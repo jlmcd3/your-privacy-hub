@@ -97,7 +97,7 @@
     "i8_certifying_exec_title": "Chief Privacy Officer",
     "primary_activity_purpose": "We analyse free-tier account and device identifiers to measure product usage.",
     "q12_notice_at_collection": "Yes, covers all collection points",
-    "sensitive_location_basis": "Not applicable — no sensitive-location processing",
+    "sensitive_location_basis": "No",
     "public_privacy_policy_url": "https://meridian.example/privacy",
     "q5b_profiling_observation": "Yes — systematic observation of workers/students/applicants",
     "a4_benefit_other_stakeholders": "Enterprise administrators who sponsor free-tier trials receive accurate seat-activation reporting instead of estimates when deciding whether to convert a trial."

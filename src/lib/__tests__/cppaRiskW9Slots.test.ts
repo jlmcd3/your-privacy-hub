@@ -104,14 +104,17 @@ describe("W9-RISK-SLOTS golden presence", () => {
     expect(rr.entries[0].pre_safeguard_severity).toBe(rr.entries[0].severity);
   });
 
-  it("computeIntakeSelectedSubsections resolves § 7150(b)(N) triggers deterministically (TURN 1b)", () => {
+  it("computeIntakeSelectedSubsections resolves § 7150(b)(N) triggers deterministically (TURN 1c)", () => {
     // (b)(1) sell/share, (b)(4) profiling, (b)(3) ADMT, (b)(5) sensitive location, (b)(6) training.
+    // TURN 1c re-pin (2026-08-26): sensitive_location_basis is now a direct
+    // Yes/No on the statutory element (inference FROM presence), not a
+    // location-type picker — "Yes" engages the trigger, "No" does not.
     const intake = {
       q5_sell_share: "Both",
       q5b_profiling_observation: "Yes — systematic observation of workers/students/applicants",
       q18_admt_use: "Yes",
       q15_sensitive_pi: "No",
-      sensitive_location_basis: "Healthcare facility or medical office",
+      sensitive_location_basis: "Yes",
       q18b_admt_training: "Yes",
     };
     const subs = computeIntakeSelectedSubsections(intake);
@@ -122,10 +125,12 @@ describe("W9-RISK-SLOTS golden presence", () => {
       "§ 7150(b)(5)",
       "§ 7150(b)(6)",
     ]);
-    // "Not applicable" enum member must NOT engage (b)(5).
+    // "No" must NOT engage (b)(5) — including for a record whose SECTOR is
+    // health-related but which describes no actual presence-based inference
+    // (the exact mischaracterization the redesign fixes).
     const subs2 = computeIntakeSelectedSubsections({
       ...intake,
-      sensitive_location_basis: "Not applicable — no sensitive-location processing",
+      sensitive_location_basis: "No",
     });
     expect(subs2).not.toContain("§ 7150(b)(5)");
   });

@@ -25,16 +25,14 @@ export const REVENUE_OPTS = ["Under $25M", "$25M to under $50M", "$50M to $100M"
 // Verbatim copy of SENSITIVE_LOCATION_BASIS_OPTS from
 // src/pages/CPPARiskAssessment.enums.ts. Parity asserted by the risk
 // option-drift test (single source of truth = the .enums.ts export).
+// TURN 1c (2026-08-26, CEO-directed redesign) — direct Yes/No on the
+// statute's actual element (inference FROM presence at a sensitive
+// location), replacing the prior 9-option location-TYPE picker that let a
+// business engage the trigger by naming its sector alone. See the parity
+// comment in src/pages/CPPARiskAssessment.enums.ts for the full rationale.
 export const SENSITIVE_LOCATION_BASIS_OPTS = [
-  "Not applicable — no sensitive-location processing",
-  "Healthcare facility or medical office",
-  "Domestic-violence shelter or family-justice services",
-  "Place of worship",
-  "School or educational facility",
-  "Reproductive- or sexual-health services",
-  "Substance-use or mental-health treatment facility",
-  "Immigration- or refugee-services facility",
-  "Other sensitive location (describe in the intake)",
+  "Yes",
+  "No",
 ] as const;
 // BAND-REALIGNMENT-T2A (2026-07-26) — CONSUMER_OPTS retargeted to V2. V2
 // edges align with § 1798.140(d)(1)(B) 100,000 trigger and § 7120(b)(2)(A)
@@ -425,12 +423,13 @@ export const cppaRiskContract: IntakeContract = {
     { key: "q5c_share_revenue_50pct", kind: "enum", required: "conditional",
       requiredWhen: 'q5_sell_share starts with "Yes"', hiddenValue: "",
       options: SHARE_REVENUE_50PCT_OPTS },
-    // TURN 1b intake fields (RISK CONTRACT DRIFT fix). Options for
+    // TURN 1b/1c intake fields (RISK CONTRACT DRIFT fix). Options for
     // sensitive_location_basis MUST match SENSITIVE_LOCATION_BASIS_OPTS in
     // src/pages/CPPARiskAssessment.enums.ts verbatim; parity is asserted
     // by _tests/golden-contract.test.ts and the risk option-drift test.
     { key: "sensitive_location_basis", kind: "enum", required: "optional",
       options: SENSITIVE_LOCATION_BASIS_OPTS },
+    // ^ TURN 1c (2026-08-26): now a direct Yes/No; "Yes" engages § 7150(b)(5).
     // T-C1 (2026-07-28) — § 1798.140(d)(1)(B) operand. Legal meaning:
     // approximate number of California consumers or households whose PI the
     // business BUYS, SELLS, or SHARES annually. Optional at intake time

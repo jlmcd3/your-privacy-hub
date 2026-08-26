@@ -73,20 +73,21 @@ export const Q5_SELL_SHARE_OPTS = ["Yes — sell only", "Yes — share for adver
 // Q15 options.
 export const Q15_SENSITIVE_PI_OPTS = ["Yes", "No", "Unsure"];
 
-// TURN 1b — § 7150(b)(5) sensitive-location predicate. Discrete enum so the
-// generator can deterministically resolve the (b)(5) branch without free-text
-// interpretation. "Not applicable" is the safe default; any other value
-// engages the (b)(5) predicate in computeIntakeSelectedSubsections().
+// TURN 1c (2026-08-26, CEO-directed redesign) — § 7150(b)(5) is a direct
+// Yes/No question on the statute's actual element: does the automated
+// processing derive a personal attribute FROM the consumer's presence at a
+// sensitive location. The prior 9-option location-TYPE picker (TURN 1b) let
+// any business that merely operates at, or handles data sourced from, a
+// listed location type engage the trigger — with no requirement that the
+// record describe an actual presence-based inference. That over-fired for
+// an entire class of real businesses (e.g. a healthcare analytics vendor
+// scoring hospital-sourced clinical data never observes anyone's presence
+// anywhere; see the CEO's 2026-08-26 redesign directive for the live
+// example). "Yes" engages the (b)(5) predicate in
+// computeIntakeSelectedSubsections(); "No" is the default/safe value.
 export const SENSITIVE_LOCATION_BASIS_OPTS = [
-  "Not applicable — no sensitive-location processing",
-  "Healthcare facility or medical office",
-  "Domestic-violence shelter or family-justice services",
-  "Place of worship",
-  "School or educational facility",
-  "Reproductive- or sexual-health services",
-  "Substance-use or mental-health treatment facility",
-  "Immigration- or refugee-services facility",
-  "Other sensitive location (describe in the intake)",
+  "Yes",
+  "No",
 ];
 
 // ── ITEM 305 — ANALYTIC-DELIVERABLE INTAKE (Chapter 1 rebuild) ─────────

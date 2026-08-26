@@ -154,7 +154,7 @@ export const RISK_CORPUS_MAP: CorpusMap = {
       },
       provenance: { page_ref: "Appendix, p. 57", verified_on: "2026-08-22" },
       curation_note:
-        "The Agency confirmed the sensitive-location list is closed (\"establishing a closed list of specific physical places\"). The sensitive_location_basis field (line 2038-2049) is a closed enum, SENSITIVE_LOCATION_BASIS_OPTS, rendered as a <select> rather than free text — consistent with the closed-list holding.",
+        "The Agency confirmed the sensitive-location list is closed (\"establishing a closed list of specific physical places\"). TURN 1c (2026-08-26, CEO-directed redesign): sensitive_location_basis is now a direct Yes/No on the statute's actual element (inference FROM presence), not a location-type picker — the closed list of qualifying location types is preserved as examples in the question text and the rail's regulationText/plainSummary, not as dropdown options. The prior 9-option enum let a business engage the trigger merely by naming its sector (e.g. a healthcare analytics vendor with no presence-inference activity at all), independent of whether any inference was actually described on the record.",
     },
     {
       id: "cppa-risk/regulatory-trigger-and-applicability/06",

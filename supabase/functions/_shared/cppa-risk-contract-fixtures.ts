@@ -135,7 +135,13 @@ export const FIXTURE_YIELD_K3: CppaRiskContractFixture = {
     i1_processing_purpose: "AI-driven mental-health triage with mood-diary intake",
     // TURN 1b — new intake fields.
     public_privacy_policy_url: "https://meridian.example/privacy",
-    sensitive_location_basis: "Healthcare facility or medical office",
+    // TURN 1c re-pin (2026-08-26): a triage-routing service that screens
+    // questionnaire responses is not thereby inferring anything FROM a
+    // consumer's detected presence at a location — the prior "Healthcare
+    // facility or medical office" answer was exactly the mischaracterization
+    // the redesign fixes (naming the sector, not describing the statutory
+    // element). Correct answer for this record is "No".
+    sensitive_location_basis: "No",
     impact_intake: {
       likelihood: "Possible",
       // severity intentionally omitted — shim defaults to "Moderate"
@@ -295,7 +301,7 @@ export const FIXTURE_PARTIAL_J_LT_K: CppaRiskContractFixture = {
     i1_processing_purpose: "Real-time credit scoring using behavioural signals",
     // TURN 1b — new intake fields.
     public_privacy_policy_url: "https://solstice.example/privacy",
-    sensitive_location_basis: "Not applicable — no sensitive-location processing",
+    sensitive_location_basis: "No",
     impact_intake: {
       likelihood: "Likely",
       severity: "Significant",
@@ -447,7 +453,7 @@ export const FIXTURE_FULL_CLOSE: CppaRiskContractFixture = {
     i1_processing_purpose: "Loyalty-tier personalization from purchase and location signals",
     // TURN 1b — new intake fields (retail store visits ≠ § 7150(b)(5) sensitive location).
     public_privacy_policy_url: "https://aurora.example/privacy",
-    sensitive_location_basis: "Not applicable — no sensitive-location processing",
+    sensitive_location_basis: "No",
     impact_intake: {
       likelihood: "Possible",
       severity: "Moderate",

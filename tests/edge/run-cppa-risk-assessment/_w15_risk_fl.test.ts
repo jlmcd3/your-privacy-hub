@@ -32,7 +32,7 @@ Deno.test("W15-FL: index.ts imports fact-ledger and inserts pre-VA-stamp pass", 
 // ── Class-1 (contradiction, wave-15 sensitive-location) ────────────────────
 Deno.test("W15-FL class-1: contradiction of denied fact is blocked with reconciliation rewrite", () => {
   const intake = {
-    sensitive_location_basis: "Not applicable — no sensitive-location processing",
+    sensitive_location_basis: "No",
   };
   const ledger = buildFactLedger(intake);
   const res = enforceLedger({}, ledger, {

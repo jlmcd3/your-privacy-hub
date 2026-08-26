@@ -31,16 +31,22 @@ Deno.test("version stamp is v4 LEAK-PREV-P0 tag", () => {
 
 // ── Builder polarity classification ─────────────────────────────────────
 Deno.test("buildFactLedger classifies polarity and emits explicit silent rows", () => {
+  // TURN 1c re-pin (2026-08-26): sensitive_location_basis is now a direct
+  // Yes/No, so it no longer carries a distinct "not applicable"-prefixed
+  // string — q14_employee_notice (a real CPPA-Risk field with a genuine
+  // "Not applicable" value) now covers that polarity branch instead.
   const raw = {
     q5b_profiling_observation: "No",
-    sensitive_location_basis: "Not applicable — no sensitive-location processing",
+    sensitive_location_basis: "No",
+    q14_employee_notice: "Not applicable (no CA employees)",
     systematic_observation_basis: "Continuous video analytics of storefront",
     trade_secret_carveout_policy: "", // silent
   };
   const ledger = buildFactLedger(raw);
   const byKey = Object.fromEntries(ledger.map((r) => [r.key, r]));
   assertEquals(byKey.q5b_profiling_observation.polarity, "denied");
-  assertEquals(byKey.sensitive_location_basis.polarity, "not_applicable");
+  assertEquals(byKey.sensitive_location_basis.polarity, "denied");
+  assertEquals(byKey.q14_employee_notice.polarity, "not_applicable");
   assertEquals(byKey.systematic_observation_basis.polarity, "asserted");
   assertEquals(byKey.trade_secret_carveout_policy.polarity, "silent");
   assertEquals(byKey.sensitive_location_basis.verbatim, raw.sensitive_location_basis);
@@ -76,7 +82,7 @@ Deno.test("W16-HOTFIX: buildFactLedger flattens nested intake to dotted-path row
 Deno.test("d73f4d44 — cross-attribution is blocked with reconciliation rewrite", () => {
   const ledger = buildFactLedger({
     systematic_observation_basis: "Continuous video analytics of storefront",
-    sensitive_location_basis: "Not applicable — no sensitive-location processing",
+    sensitive_location_basis: "No",
   });
   const report: Record<string, unknown> = { executive_summary: "…" };
   const res = enforceLedger(report, ledger, {

@@ -777,7 +777,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   sensitive_location_basis: {
-    fieldLabel: "Sensitive-location processing basis",
+    fieldLabel: "Sensitive-location inference",
     citation: "11 CCR § 7150(b)(5)",
     citationUrl: CPPA_URL,
     plainSummary:
@@ -786,13 +786,13 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       "(5) Using automated processing to infer or extrapolate a consumer's intelligence, ability, aptitude, performance at work, economic situation, health (including mental health), personal preferences, interests, reliability, predispositions, behavior, or movements, based upon that consumer's presence in a sensitive location. \"Infer or extrapolate\" does not include a business using a consumer's personal information solely to deliver goods to, or provide transportation for, that consumer at a sensitive location.",
     enforcementNote:
       "FSOR commentary on § 7150(b)(5) (row 30d841cf…) records the Agency's response to comments challenging its authority to regulate 'sensitive locations' — the Agency retained the trigger and treats presence-based inference as a distinct risk from sensitive-PI processing.",
-    coachLead: "Record the basis that matches how the processing actually uses the location — not the label you would prefer.",
+    coachLead: "Answer \"Yes\" only where the processing itself draws a conclusion about the consumer FROM their detected presence at the location — not because your business operates at, or handles data sourced from, a location of this type.",
     coachBody:
-      "Check whether presence at the location itself feeds an inference or extrapolation about the consumer. Delivery-only or transportation-only uses at the same location are carved out — the carve-out attaches to the use, not to the venue.",
+      "Check whether presence at the location itself feeds an inference or extrapolation about the consumer. Delivery-only or transportation-only uses at the same location are carved out — the carve-out attaches to the use, not to the venue. A business that IS the sensitive-location provider (e.g. a hospital, or a vendor scoring data the hospital already collected as part of care) is not thereby inferring anything FROM a consumer's presence — it is simply providing or supporting the service.",
     goodAnswer:
-      "A fitness app that flags 'in reproductive-health facility' events to shape wellness content selects the inference basis; a grocery courier app that only uses the same address to route the order selects the delivery-only carve-out.",
+      "A fitness app that flags 'in reproductive-health facility' events to shape wellness content answers \"Yes\"; a grocery courier app that only uses the same address to route the order, or a healthcare analytics vendor scoring clinical records a hospital already collected, answers \"No\".",
     commonMistake:
-      "Selecting 'not applicable' because the location is not itself in a published sensitive-location list. The trigger fires on the use — inferring or extrapolating from presence — regardless of how the venue is labelled.",
+      "Answering \"Yes\" merely because the business's data or sector is health-, school-, or worship-related. The trigger requires an actual inference drawn FROM detected presence — not merely that the venue or subject matter falls in a sensitive-location category.",
     relatedCitations: [
       { citation: "11 CCR § 7150(b)(2)", label: "Processing sensitive PI trigger (contrast)" },
       { citation: "11 CCR § 7150(b)(4)", label: "Systematic-observation trigger (contrast)" },

@@ -227,13 +227,10 @@ export function buildRiskOpening(
   if (prof && /^Yes/.test(prof) && /worker|student|applicant/i.test(prof)) {
     triggers.push(4);
   }
-  const sensLoc = str(intake.sensitive_location_basis);
-  if (
-    sensLoc && !/not\s+applicable/i.test(sensLoc) &&
-    !/^No\b/i.test(sensLoc)
-  ) {
-    triggers.push(5);
-  }
+  // TURN 1c (2026-08-26) — sensitive_location_basis is now a direct Yes/No
+  // on the statutory element itself; a plain equality check replaces the
+  // prior "anything but not-applicable/No" heuristic.
+  if (str(intake.sensitive_location_basis) === "Yes") triggers.push(5);
   if (/^Yes/.test(str(intake.q18b_admt_training))) triggers.push(6);
 
   let S1: string | null = null;

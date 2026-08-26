@@ -568,9 +568,11 @@ export default function CPPARiskAssessment() {
   // TURN 1b — CPPA-STANDARD-SETTER intake additions:
   //   • publicPrivacyPolicyUrl — optional URL rendered as a record anchor
   //     in submission_summary and attestation_block. Not a source of facts.
-  //   • sensitiveLocationBasis — closed enum. Any non-"Not applicable"
-  //     value engages the § 7150(b)(5) trigger via
-  //     computeIntakeSelectedSubsections() (deterministic resolver).
+  //   • sensitiveLocationBasis — TURN 1c (2026-08-26): a direct Yes/No
+  //     question on the statute's actual element (inference FROM presence
+  //     at a sensitive location), not a location-type picker. "Yes"
+  //     engages the § 7150(b)(5) trigger via computeIntakeSelectedSubsections()
+  //     (deterministic resolver); any other value does not.
   const [publicPrivacyPolicyUrl, setPublicPrivacyPolicyUrl] = useState("");
   const [sensitiveLocationBasis, setSensitiveLocationBasis] = useState("");
 
@@ -746,11 +748,14 @@ export default function CPPARiskAssessment() {
       {
         citation: "11 CCR § 7150(b)(5)",
         label: "Risk assessment required — sensitive-location inference",
+        // TURN 1c (2026-08-26) — sensitiveLocationBasis is now a direct
+        // Yes/No answer to the statute's own inference-from-presence test;
+        // the q5bProfiling OR-clauses remain a separate, legitimate signal
+        // for the same trigger (see the coach note on that field).
         triggered:
           q5bProfiling === "Yes — based on sensitive-location presence" ||
           q5bProfiling === "Both" ||
-          (!!sensitiveLocationBasis &&
-            sensitiveLocationBasis !== "Not applicable — no sensitive-location processing"),
+          sensitiveLocationBasis === "Yes",
       },
       {
         citation: "11 CCR § 7150(b)(6)",
@@ -2069,19 +2074,19 @@ export default function CPPARiskAssessment() {
                 <p className="text-xs text-muted-foreground mt-1">This is a separate risk-assessment trigger from selling/sharing. It covers profiling of applicants, employees, students, or independent contractors through systematic observation (e.g. productivity or location tracking), or profiling based on presence in a sensitive location such as a health-care facility, shelter, place of worship, or domestic-violence services provider.</p>
                 <div className="mt-2"><Radio name="q5b" options={["Yes — systematic observation of workers/students/applicants", "Yes — based on sensitive-location presence", "Both", "No"]} value={q5bProfiling} onChange={setQ5bProfiling} /></div>
               </div>
-              {/* TURN 1b — § 7150(b)(5) sensitive-location predicate (closed enum). */}
+              {/* TURN 1c (2026-08-26, CEO-directed redesign) — § 7150(b)(5) is a
+                  direct Yes/No question on the statute's actual element
+                  (inference FROM presence), not a location-type picker. The
+                  prior 9-option enum let a business that merely OPERATES a
+                  sensitive-location-type facility (e.g. a healthcare
+                  analytics vendor processing hospital-sourced clinical data)
+                  engage the trigger by naming its sector, with no requirement
+                  that the record describe any actual presence-based
+                  inference — see the CEO's redesign directive, 2026-08-26. */}
               <div data-rail-key="sensitive_location_basis" onFocus={() => focusRail('sensitive_location_basis')}>
-                <Label htmlFor="sensitive_location_basis">Do you process personal information of consumers while they are in a sensitive location? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(5))</span></Label>
-                <p className="text-xs text-muted-foreground mt-1">Sensitive-location processing is a separate § 7150(b)(5) trigger. Select the location type that best describes the processing; any option other than "Not applicable" engages the trigger.</p>
-                <select
-                  id="sensitive_location_basis"
-                  value={sensitiveLocationBasis}
-                  onChange={(e) => setSensitiveLocationBasis(e.target.value)}
-                  className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
-                >
-                  <option value="">Select…</option>
-                  {SENSITIVE_LOCATION_BASIS_OPTS.map((s) => <option key={s}>{s}</option>)}
-                </select>
+                <Label>Does the automated processing derive any personal attributes of users, like their intelligence, health, or behavior, based on their presence in a sensitive location, such as a school, medical facility, or place of worship? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(5))</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">This is a separate § 7150(b)(5) trigger. Answer "Yes" only where the processing draws a conclusion about a consumer FROM their detected presence at the location — not merely because your business operates at, or handles data from, a location of this type.</p>
+                <div className="mt-2"><Radio name="sensitive_location_basis" options={SENSITIVE_LOCATION_BASIS_OPTS} value={sensitiveLocationBasis} onChange={setSensitiveLocationBasis} /></div>
               </div>
               <div data-rail-key="q18_admt" onFocus={() => focusRail('q18_admt')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Do you use any ADMT that makes, or materially contributes to, decisions with significant effects on consumers? <Req /></Label><DefPopover termKey="admt" /><span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(e))</span></div><p className="text-xs text-muted-foreground mt-1">"Significant effects" covers credit, housing, employment, education, and healthcare decisions.</p><div className="mt-2"><Radio name="q18" options={["Yes", "No", "In evaluation"]} value={q18} onChange={setQ18} /></div></div>
               {(q18 === "Yes" || q18 === "In evaluation") && (

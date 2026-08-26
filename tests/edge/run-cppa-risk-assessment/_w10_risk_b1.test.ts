@@ -10,7 +10,7 @@ Deno.test("W10-RISK-B1 stamp present", () => {
 Deno.test("B1a: fcbcc203 mirror — flag attributes q5b value to sensitive_location_basis → re-keyed", () => {
   const intake = {
     q5b_profiling_observation: "Yes — systematic observation of workers/students/applicants",
-    sensitive_location_basis: "Not applicable — no sensitive-location processing",
+    sensitive_location_basis: "No",
   };
   const report = {
     inconsistency_flags: [
@@ -31,12 +31,17 @@ Deno.test("B1a: fcbcc203 mirror — flag attributes q5b value to sensitive_locat
 });
 
 Deno.test("B1a: quoted value nowhere in intake → flag DROPPED", () => {
-  const intake = { q5b_profiling_observation: "No", sensitive_location_basis: "Not applicable" };
+  // TURN 1c re-pin (2026-08-26): sensitive_location_basis is now "Yes"/"No"
+  // (was "Not applicable"). The description below is reworded to avoid the
+  // word "no" coincidentally substring-matching the field's new "No" value
+  // — the test's actual subject (an invented phrase matching zero intake
+  // fields) is otherwise unchanged.
+  const intake = { q5b_profiling_observation: "No", sensitive_location_basis: "No" };
   const report = {
     inconsistency_flags: [
       {
         intake_field_1: "sensitive_location_basis",
-        description: "The record shows \"invented phrase that appears in no intake field whatsoever\".",
+        description: "The record shows \"invented phrase that appears in zero intake fields whatsoever\".",
         source_fields: ["sensitive_location_basis"],
       },
     ],

@@ -84,8 +84,18 @@ const q5bSaysObservation = (v: unknown): boolean =>
   typeof v === "string" && /systematic observation|^both$/i.test(v.trim());
 const q5bSaysSensitiveLocation = (v: unknown): boolean =>
   typeof v === "string" && /sensitive-location presence|^both$/i.test(v.trim());
+// TURN 1c (2026-08-26, CEO-directed redesign) — sensitive_location_basis is
+// now a direct Yes/No answer to the statute's own inference-from-presence
+// test (see src/pages/CPPARiskAssessment.enums.ts). The prior version of
+// this predicate treated ANY non-empty, non-"not applicable" answer as
+// engaging the trigger — including a bare location-TYPE label with no
+// inference described anywhere in the record, which over-fired for an
+// entire class of real businesses (e.g. a healthcare analytics vendor that
+// scores hospital-sourced clinical data, and never observes anyone's
+// presence anywhere). A plain equality check is now correct because the
+// question itself asks the statutory element directly.
 const sensitiveLocationBasisEngaged = (v: unknown): boolean =>
-  typeof v === "string" && v.trim() !== "" && !/^not applicable/i.test(v.trim());
+  typeof v === "string" && /^yes$/i.test(v.trim());
 
 /**
  * PN-CORPUS-L-RISK-1 (2026-08-22) — § 7150(b)(2)(A) personnel carve-out.

@@ -29,7 +29,7 @@ const BASE_INTAKE: Record<string, unknown> = {
   q5_sell_share: "No",
   q5b_profiling_observation: "No",
   q5c_share_revenue_50pct: "",
-  sensitive_location_basis: "Not applicable — no sensitive-location processing",
+  sensitive_location_basis: "No",
   bought_sold_shared_count: "Under 100,000",
   public_privacy_policy_url: "https://example.com/privacy",
   q6_right_know: "Online form with identity verification",

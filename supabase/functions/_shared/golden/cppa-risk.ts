@@ -46,7 +46,7 @@ const base = {
   // TURN 1b — new optional intake fields; base fixture uses safe defaults so
   // no fixture accidentally engages § 7150(b)(5) unless it opts in.
   public_privacy_policy_url: "https://meridian.example/privacy",
-  sensitive_location_basis: "Not applicable — no sensitive-location processing",
+  sensitive_location_basis: "No",
 
   // ── ITEM 306 — § 7152 ANALYTIC-DELIVERABLE OPERANDS ──────────────────
   // Item 305 made these `required: "always"` in `cppaRiskContract`; without
@@ -331,7 +331,7 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
       // this record is the ADMT screening captured at q18–q20.
       q5b_profiling_observation: "No",
       // q5c_share_revenue_50pct — NOT TRIGGERED (q5_sell_share is "No").
-      sensitive_location_basis: "Not applicable — no sensitive-location processing",
+      sensitive_location_basis: "No",
       bought_sold_shared_count: "Under 100,000",
       public_privacy_policy_url: "https://www.sierraoutfitters.example/privacy",
 
@@ -828,7 +828,7 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
       q5b_profiling_observation: "No",
       q5c_share_revenue_50pct: "Yes",
       bought_sold_shared_count: "1,000,000 or more",
-      sensitive_location_basis: "Not applicable — no sensitive-location processing",
+      sensitive_location_basis: "No",
       public_privacy_policy_url: "https://www.locustechnologies.example/privacy",
 
       q6_right_know:

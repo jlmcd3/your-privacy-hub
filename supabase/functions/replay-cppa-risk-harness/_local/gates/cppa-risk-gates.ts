@@ -111,7 +111,7 @@ export const CPPA_RISK_GATES: readonly GateSpec[] = [
     description:
       "Applicability gate — § 7150(b)(5) inference from a consumer's presence in a sensitive location. "
       + "Keyed to q5b_profiling_observation options \"Yes — based on sensitive-location presence\" and \"Both\", "
-      + "plus sensitive_location_basis where present.",
+      + "plus sensitive_location_basis === \"Yes\" (TURN 1c, 2026-08-26 — a direct Yes/No on the statutory element, not a location-type pick).",
     intake_fields: ["q5b_profiling_observation", "sensitive_location_basis"],
     on_block: "suppress_assertions",
     anchor_pinpoint: "11 CCR § 7150(b)(5)",

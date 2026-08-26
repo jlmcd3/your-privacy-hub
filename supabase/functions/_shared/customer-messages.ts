@@ -55,7 +55,7 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   q5_sell_share: "sale or sharing of personal information",
   q5b_profiling_observation: "profiling and systematic observation",
   q5c_share_revenue_50pct: "share of revenue from selling or sharing",
-  sensitive_location_basis: "sensitive-location processing basis",
+  sensitive_location_basis: "sensitive-location inference (§ 7150(b)(5))",
   public_privacy_policy_url: "public privacy-policy URL",
   q6_right_know: "right-to-know handling",
   q6_right_know_multi: "right-to-know channels",

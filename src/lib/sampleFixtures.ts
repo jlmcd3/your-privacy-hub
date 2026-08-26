@@ -736,11 +736,11 @@ const F_CPPA_RISK_US: SampleFixture = {
         a9_approval_date: "2026-05-14",
         public_privacy_policy_url: "https://www.tomorrow4cariboo.example/privacy",
         // Precise geolocation is truncated to 3 decimals at ingest and
-        // excluded from audience models, so no sensitive-location processing
-        // occurs at the CCPA § 7150(b)(5) threshold. Selecting the "Not
-        // applicable" enum option is the strongest legitimate contract-legal
-        // value; supporting narrative captured in scenario_summary above.
-        sensitive_location_basis: "Not applicable — no sensitive-location processing",
+        // excluded from audience models, so no sensitive-location inference
+        // occurs at the CCPA § 7150(b)(5) threshold. "No" is the correct
+        // answer to the direct Yes/No question (TURN 1c, 2026-08-26);
+        // supporting narrative captured in scenario_summary above.
+        sensitive_location_basis: "No",
       },
     },
     invoke: { fn: "run-cppa-risk-assessment-v2", id_key: "assessment_id" },

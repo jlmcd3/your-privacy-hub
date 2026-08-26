@@ -17,7 +17,7 @@ const base = {
   q15_sensitive_pi: "No",
   q18_admt_use: "No",
   q18b_admt_training: "No",
-  sensitive_location_basis: "Not applicable — no sensitive-location processing",
+  sensitive_location_basis: "No",
   q4_pi_categories: ["Contact identifiers (name, email, phone)"],
   i1_processing_purpose: "Deliver core SaaS analytics functionality.",
   i1b_min_pi: "We collect only identifiers necessary to provision accounts and bill customers.",

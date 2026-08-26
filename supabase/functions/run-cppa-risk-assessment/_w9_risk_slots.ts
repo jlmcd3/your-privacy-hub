@@ -11,7 +11,9 @@
 //       subsection list BEFORE the model runs (pre-emit selection).
 //   (c) TURN 1b intake fields — sensitive_location_basis (§ 7150(b)(5))
 //       and public_privacy_policy_url — are surfaced in the attestation
-//       block and submission_summary as record anchors.
+//       block and submission_summary as record anchors. TURN 1c
+//       (2026-08-26) redesigned sensitive_location_basis to a direct
+//       Yes/No on the statutory element; see SENSITIVE_LOCATION_ENGAGED_VALUE.
 //
 // Stamp reflects actual authoring time — no projection.
 
@@ -76,7 +78,9 @@ const STATUTORY_FRAMEWORK = "Cal. Code Regs. tit. 11, §§ 7150–7157";
 const COMPLIANCE_DEADLINE = "December 31, 2027";
 const SUBMISSION_DEADLINE_DEFAULT = "April 1, 2028";
 
-const NOT_APPLICABLE_SENSITIVE_LOCATION = "Not applicable — no sensitive-location processing";
+// TURN 1c (2026-08-26) — sensitive_location_basis is now a direct Yes/No on
+// the § 7150(b)(5) statutory element; the engaged value is a plain "Yes".
+const SENSITIVE_LOCATION_ENGAGED_VALUE = "Yes";
 
 function extractContentDetail(intake: Intake): Record<string, any> {
   const cd = intake?.content_detail;
@@ -128,10 +132,10 @@ export function computeIntakeSelectedSubsections(intake: Intake): string[] {
   const q15 = clampStr(merged.q15_sensitive_pi);
   if (q15 === "Yes") push("§ 7150(b)(2)");
 
-  // (b)(5) — TURN 1b: sensitive-location predicate. Any value other than
-  // the explicit "Not applicable" enum member engages the trigger.
+  // (b)(5) — TURN 1c: sensitive-location predicate, now a direct Yes/No on
+  // the statutory element (inference FROM presence at a sensitive location).
   const slb = clampStr(merged.sensitive_location_basis);
-  if (slb && slb !== NOT_APPLICABLE_SENSITIVE_LOCATION) push("§ 7150(b)(5)");
+  if (slb === SENSITIVE_LOCATION_ENGAGED_VALUE) push("§ 7150(b)(5)");
 
   // (b)(6) — training ADMT / facial / emotion / biometric recognition.
   const q18b = clampStr(merged.q18b_admt_training);
@@ -187,7 +191,7 @@ export function buildSubmissionSummary(intake: Intake, report: Report): Submissi
     compliance_deadline: COMPLIANCE_DEADLINE,
     submission_deadline: SUBMISSION_DEADLINE_DEFAULT,
     submission_basis: basisBits.length ? basisBits.join("; ") : "§ 7157 attestation cycle (no triggered activity captured)",
-    ...(slb && slb !== NOT_APPLICABLE_SENSITIVE_LOCATION ? { sensitive_location_basis: slb } : {}),
+    ...(slb === SENSITIVE_LOCATION_ENGAGED_VALUE ? { sensitive_location_basis: slb } : {}),
     ...(url ? { public_privacy_policy_url: url } : {}),
   };
 }
