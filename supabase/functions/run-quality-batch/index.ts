@@ -1984,10 +1984,24 @@ export async function generateValidatedIntakesChunked(
     if (budgetExhausted()) return { progress, status: "deadline" };
 
     // ONE fresh regeneration for this slot — a NEW scenario, not a repair.
+    //
+    // FIX 2026-08-25 — this guidance was missing fixtureConstraintGuidance()
+    // (the explicit blacklist/hedge/bracket-leak/field-id/statute-allowlist
+    // list), even though screenIntake's OWN internal repair prompt already
+    // includes it. Found live: a "lint" rejection for "raw field-id token
+    // leaked into narrative" reached this path (screenNoRepair, no internal
+    // repair — e.g. under budget pressure) and the fresh-regeneration prompt
+    // named only the ABSTRACT rejection reason, never the concrete rule the
+    // model needed to avoid repeating it; the same leak recurred on the
+    // fresh attempt and the slot exhausted its budget. Every kind of lint
+    // rejection reaching this path now gets the same explicit constraint
+    // list screenIntake's repair path already relies on.
     const t1 = now();
+    const { fixtureConstraintGuidance } = await import("./_local/quality/fixture-lint.ts");
     const freshGuidance = [
       extraGuidance,
       `PREVIOUS SCENARIO REJECTED: ${screened.reason}. Generate a COMPLETELY DIFFERENT scenario — do not repair or reuse the rejected one.`,
+      fixtureConstraintGuidance(),
       kind === "carve_out" ? (await import("./_local/quality/perfect-closed-loop.ts")).CARVE_OUT_REPAIR_GUIDANCE : undefined,
     ].filter(Boolean).join("\n\n");
     let fresh: any;

@@ -86,6 +86,37 @@ Deno.test("12F/3 — carve_out → repair → fresh regenerate → accept", asyn
   assertStringIncludes(guidance[1], CARVE_OUT_REPAIR_GUIDANCE);
 });
 
+// FIX 2026-08-25 — found live in a non-pinned so-final-test batch (run #235,
+// cppa-risk): a "lint" rejection ("raw field-id token leaked into
+// narrative") reached this fresh-regeneration path and the guidance passed
+// to the second generation call named only the abstract rejection reason,
+// never the concrete fixtureConstraintGuidance() list screenIntake's own
+// internal repair prompt already relies on — so the model had no explicit
+// reminder of the specific rule it needed to avoid repeating, and the same
+// leak recurred on the fresh attempt, exhausting the slot's budget.
+Deno.test("12F FIX — a non-carve_out (lint) fresh regeneration includes fixtureConstraintGuidance", async () => {
+  let gen = 0;
+  const guidance: string[] = [];
+  const { status, abort } = await generateValidatedIntakesChunked("cppa-risk", 1, emptyIntakeGenProgress(), {
+    ...base,
+    variant: "perfect",
+    _generate: async (_t, _n, g) => { gen++; guidance.push(g ?? ""); return [{ organization_name: `Co${gen}` }]; },
+    _screen: async (_t, item: Any) =>
+      item.organization_name === "Co1"
+        ? { ok: false as const, reason: "lint: raw field-id token leaked into narrative", kind: "lint" as const }
+        : { ok: true as const, intake: item },
+  });
+  assertEquals(status, "complete");
+  assertEquals(abort, undefined);
+  assertEquals(gen, 2);
+  assertStringIncludes(guidance[1], "COMPLETELY DIFFERENT scenario");
+  // The exact rule text from fixtureConstraintGuidance() — proves the full
+  // constraint list reached the fresh-regeneration prompt, not just the
+  // abstract rejection reason.
+  assertStringIncludes(guidance[1], "Raw field-id tokens in narrative prose");
+  assertStringIncludes(guidance[1], "Blacklist phrases");
+});
+
 Deno.test("12F/3 — a slot that still fails is SKIPPED and replaced", async () => {
   let gen = 0;
   const { progress, status, abort } = await generateValidatedIntakesChunked("dpia", 2, emptyIntakeGenProgress(), {

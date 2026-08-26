@@ -48,6 +48,25 @@ const SPECIAL_CATEGORY_CATS = [
   "Criminal convictions or offences",
 ];
 
+// FIX 2026-08-25 — FALSE-POSITIVE NARROWING for the secondary_uses text path
+// only (see violatesPerfectCarveOut). Found live in a non-pinned so-final-test
+// batch: two well-constructed generated DPIA scenarios were rejected by this
+// carve-out even though their PRIMARY basis for the special-category
+// processing was a valid, distinct basis (Art. 9(2)(b) / Art. 6(1)(c)) — the
+// carve-out fired only because a SEPARATE secondary operation stated its own
+// Art. 6(1)(f) basis, and that secondary operation's own text explicitly said
+// it does not touch special-category data (anonymised/de-identified first).
+// PROMPT 9M's rationale is that a 6(1)(f) record cannot supply the Art. 9(2)
+// condition special-category data needs; an operation the record itself says
+// no longer carries special-category data at that point never needed one, so
+// it is not the violation PROMPT 9M targets. This disclaimer check applies
+// ONLY to the secondary_uses text path — the primary legal_basis_proposed
+// field stays exactly as blunt as before (a record that names "Legitimate
+// interest" as ITS OWN basis for special-category data is unconditionally a
+// violation, matching the existing pinned prompt8k test).
+const ANONYMISATION_DISCLAIMER_RE =
+  /\bno special[- ]category data\b|\bno health or biometric\b|\bde-?identifi(?:ed|cation)\b|\banonymi[sz]ed?\b|\bk-anonymit(?:y|ies)\b|\bstripped of all (?:direct )?identifiers\b/i;
+
 export interface PerfectDeficiency {
   /** "gap" | "insufficient" | "undetermined" | "signoff" | "carve_out" | "build" */
   readonly kind: string;
@@ -74,11 +93,22 @@ export function violatesPerfectCarveOut(intake: unknown): boolean {
   // Art. 6(1) basis, so the carve-out reads the record-level field AND the
   // secondary-use text. 6(1)(f) over special-category data is parked in both.
   const basis = s(o["legal_basis_proposed"]).toLowerCase();
-  const secondary = s(o["secondary_uses"]).toLowerCase();
+  const secondaryRaw = s(o["secondary_uses"]);
+  const secondary = secondaryRaw.toLowerCase();
   const li = /legitimate interest|6\(1\)\(f\)/;
-  if (!li.test(basis) && !li.test(secondary)) return false;
   const cats = categories(o).map((c) => c.toLowerCase());
-  return SPECIAL_CATEGORY_CATS.some((sc) => cats.includes(sc.toLowerCase()));
+  const hasSpecialCategory = SPECIAL_CATEGORY_CATS.some((sc) => cats.includes(sc.toLowerCase()));
+  if (!hasSpecialCategory) return false;
+  // The record's OWN primary basis is LI: unconditional violation, exactly as
+  // before this fix — this is the clear, unambiguous PROMPT 9M case.
+  if (li.test(basis)) return true;
+  // A separate secondary operation states its own LI basis. Only a violation
+  // if that operation's own text does NOT disclaim special-category
+  // involvement (see the FIX 2026-08-25 note above) — an operation the
+  // record itself says is anonymised/de-identified before that basis applies
+  // never needed the Art. 9(2) condition PROMPT 9M is protecting.
+  if (li.test(secondary)) return !ANONYMISATION_DISCLAIMER_RE.test(secondaryRaw);
+  return false;
 }
 
 /** Sign-off block completeness — the four recorded fields plus a rescorer. */
