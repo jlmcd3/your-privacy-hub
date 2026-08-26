@@ -106,6 +106,22 @@ const PRECEDENT_CLASS_KEYS = [
   "map_version",
 ] as const;
 
+// L1 PRE-LANDING (doc 62 §5 B5), 2026-08-26 — the ePrivacy short-circuit
+// gate finding. Computed and persisted on EVERY run (telemetry + audit)
+// regardless of LIA_EPRIVACY_GATE_RATIFIED; the ratification gate controls
+// whether skeleton_document's prose may ever include it (no such wiring
+// exists yet), not whether it is computed or schema-allowed.
+// `trigger_phrases` is a string array and passes through as a leaf.
+const EPRIVACY_SHORT_CIRCUIT_KEYS = [
+  ...ANALYSIS_SHAPE_KEYS,
+  "determination",
+  "li_foreclosed_for_covered_processing",
+  "trigger_basis",
+  "trigger_phrases",
+  "indication_unresolved",
+  "corpus_row_id",
+] as const;
+
 const ATTESTATION_BLOCK_KEYS = [
   "text",
   "attested",
@@ -144,7 +160,7 @@ const PRECEDENT_CLASS_AUTHORITY_ENTRY_KEYS = [
 
 
 export const LIA_REPORT_SCHEMA: ReportSchema = {
-  version: "rs-lia-w4-2026-08-26-precedent-class",
+  version: "rs-lia-w5-2026-08-26-eprivacy-gate",
   tool: "li_assessment",
   topLevel: [
     // Core assembly
@@ -179,6 +195,8 @@ export const LIA_REPORT_SCHEMA: ReportSchema = {
     "authority_exhibit",
     // DOC 73 §4 (R2) — precedent-class posture (single-writer key)
     "precedent_class_posture",
+    // L1 pre-landing (doc 62 §5 B5) — ePrivacy short-circuit gate (single-writer key)
+    "eprivacy_short_circuit",
 
     // ITEM SO-11 — the assembled byte-pinned skeleton document. This is the
     // customer document; the PDF and the result page both read it.
@@ -213,6 +231,7 @@ export const LIA_REPORT_SCHEMA: ReportSchema = {
     opt_out_feasibility: OPT_OUT_KEYS,
     attestation_block: ATTESTATION_BLOCK_KEYS,
     precedent_class_posture: PRECEDENT_CLASS_KEYS,
+    eprivacy_short_circuit: EPRIVACY_SHORT_CIRCUIT_KEYS,
   },
 
   entries: {

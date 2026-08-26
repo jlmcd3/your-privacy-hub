@@ -111,8 +111,13 @@ Deno.test("SEAM (d) — the expectation answer is written, never quoted as a bar
 
 // Machine leaves (determination/verdict/status/factor enums) and the asks,
 // which legitimately name the intake key the reader must fill, are not prose.
+// 2026-08-26 (L1 pre-landing, deliberate re-point): `basis` added for
+// eprivacy_short_circuit.trigger_basis — an enum token field
+// (EprivacyTriggerBasis, lia-deliverables/types.ts), the same machine-leaf
+// class as determination/verdict; the finding's prose lives in
+// record_fact/application, which stay linted.
 const MACHINE_LEAF =
-  /(rule_id|_id|anchor_keys|outcome|status|verdict|category|determination|factor|feasibility|default_position|information_needed|citation|id)(\[\d+\])?$/;
+  /(rule_id|_id|anchor_keys|outcome|status|verdict|category|determination|factor|feasibility|default_position|information_needed|citation|basis|id)(\[\d+\])?$/;
 
 Deno.test("SEAM LINT — no bare enum token reaches LIA prose", () => {
   const report = assembleLiaReport(INTAKE);

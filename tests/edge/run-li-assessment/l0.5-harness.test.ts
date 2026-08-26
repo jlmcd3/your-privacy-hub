@@ -122,6 +122,23 @@ for (const c of LIA_PERFECT_PINNED) {
       );
     });
 
+    await t.step("eprivacy_short_circuit obeys the degradation law and never forecloses without engagement", () => {
+      // L1 pre-landing (doc 62 §5 B5): the hard gate is part of the
+      // buildLiaDeliverables output from 2026-08-26 on. The perfect
+      // fixtures describe no ePrivacy-covered activity, so the gate must
+      // resolve — not degrade — on them.
+      const g = deliverables.eprivacy_short_circuit;
+      assertDegradationLaw(`${c.id} eprivacy_short_circuit`, g);
+      assert(g.determination, `${c.id}: eprivacy_short_circuit.determination missing`);
+      if (g.determination !== "consent_requirement_engaged") {
+        assertEquals(
+          g.li_foreclosed_for_covered_processing,
+          false,
+          `${c.id}: the gate may foreclose Art. 6(1)(f) only on an engaged determination`,
+        );
+      }
+    });
+
     // ── UPGRADE-4 (ICO three-part-arc) deliverables: same laws ─────────────
     await t.step("interest_legitimacy obeys the degradation law", () => {
       assertDegradationLaw(`${c.id} interest_legitimacy`, upgrade4.interest_legitimacy);

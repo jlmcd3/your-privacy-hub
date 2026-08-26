@@ -76,6 +76,13 @@
 // whole precedent-class posture warrants). This map is NOT yet exhaustive
 // over the 58-row pool — T3 curation work continues per doc 50 §4's
 // quarterly cadence, not a one-time landing.
+//
+// v3 UPDATE (2026-08-26, L1 pre-landing): lia/f11-eprivacy/fcl-01's
+// logic_disposition flipped extension_filed -> implemented — the factor-11
+// hard gate now exists in code (eprivacy-gate.ts:buildEprivacyShortCircuit,
+// wired into buildLiaDeliverables; disposition comment on the row itself).
+// No row added or removed; every row stays render_eligible: false per the
+// RENDER-READINESS NOTE above (the three-part test is still model-authored).
 
 import type { CorpusMap } from "../cam-types.ts";
 
@@ -99,7 +106,7 @@ export const LIA_FACTOR_VOCABULARY = [
 
 export const LIA_CORPUS_MAP: CorpusMap = {
   product: "lia",
-  map_version: "lia-cam-v2-2026-08-26",
+  map_version: "lia-cam-v3-2026-08-26",
   snapshot_file: "tests/edge/corpus/__snapshots__/fsor-snapshot-lia.json",
   rows: [
     // ── AP — doc 58 §3 / doc 63 §6.1's release-1 sources, 4 sources × 2
@@ -444,17 +451,25 @@ export const LIA_CORPUS_MAP: CorpusMap = {
       render_eligible: false,
       direction: "limits",
       logic_bearing: true,
+      // IMPLEMENTED 2026-08-26 (v3 update): the factor-11 hard gate exists in
+      // code — buildEprivacyShortCircuit, a pure intake-driven function wired
+      // into buildLiaDeliverables, evaluated independent of the balancing
+      // computation per the ratified rule. The rule text formerly carried in
+      // this disposition's queue_ref is preserved verbatim in curation_note
+      // below. The finding is computed + persisted on every run; its PROSE
+      // stays dark behind LIA_EPRIVACY_GATE_RATIFIED (PN-L6) and this row
+      // stays render_eligible: false per doc 48 §II.6.
       logic_disposition: {
-        kind: "extension_filed",
-        queue_ref:
-          "LIA conversion L1 factor-11 branch (doc 58 §2; doc 62 §5 B5 — the ePrivacy short-circuit: where Article 5(3) ePrivacy Directive requires consent for the processing (e.g. cookies/terminal-equipment access, unsolicited electronic messages), legitimate interests under Article 6(1)(f) GDPR CANNOT substitute for that consent, however the balancing test would otherwise resolve. L1 must encode this as a hard gate on factor 11, evaluated before or independent of the balancing computation, not as a balancing input.)",
+        kind: "implemented",
+        branch_ref:
+          "supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/eprivacy-gate.ts:buildEprivacyShortCircuit",
       },
       provenance: {
         source_url: "https://edpb.europa.eu",
         verified_on: "2026-08-25",
       },
       curation_note:
-        "EDPB Guidelines 1/2024 on Article 6(1)(f) GDPR (guideline_ref: \"EDPB Guidelines 1/2024\", status: final) — the primary evidence row doc 58 §2 already cited for this exact finding; re-verified live 2026-08-25, source_row_id confirmed unchanged. DATA-QUALITY NOTE: the live excerpt_text begins mid-sentence (\"13 ePrivacy Directive, there would be no legitimate interest...\" — a footnote-marker artifact truncating the clause's own lead-in); pinned_excerpt starts from the first complete clause forward, per the mid-word/mid-clause truncation discipline (cyber-corpus-map.ts precedent). Logic rule: ePrivacy's own consent requirement is not just one balancing factor among others — it forecloses Article 6(1)(f) entirely for the processing it covers. The 3 direct-marketing / reasonable-expectations siblings (34a9f202, 4bc253a9, 47420238 — this map's f01/f04 FC-J rows) inform the surrounding balancing test but do not carry this short-circuit property themselves.",
+        "RATIFIED RULE (formerly this row's extension_filed queue_ref, preserved verbatim on the 2026-08-26 implemented flip): LIA conversion L1 factor-11 branch (doc 58 §2; doc 62 §5 B5 — the ePrivacy short-circuit: where Article 5(3) ePrivacy Directive requires consent for the processing (e.g. cookies/terminal-equipment access, unsolicited electronic messages), legitimate interests under Article 6(1)(f) GDPR CANNOT substitute for that consent, however the balancing test would otherwise resolve. L1 must encode this as a hard gate on factor 11, evaluated before or independent of the balancing computation, not as a balancing input.) EDPB Guidelines 1/2024 on Article 6(1)(f) GDPR (guideline_ref: \"EDPB Guidelines 1/2024\", status: final) — the primary evidence row doc 58 §2 already cited for this exact finding; re-verified live 2026-08-25, source_row_id confirmed unchanged. DATA-QUALITY NOTE: the live excerpt_text begins mid-sentence (\"13 ePrivacy Directive, there would be no legitimate interest...\" — a footnote-marker artifact truncating the clause's own lead-in); pinned_excerpt starts from the first complete clause forward, per the mid-word/mid-clause truncation discipline (cyber-corpus-map.ts precedent). Logic rule: ePrivacy's own consent requirement is not just one balancing factor among others — it forecloses Article 6(1)(f) entirely for the processing it covers. The 3 direct-marketing / reasonable-expectations siblings (34a9f202, 4bc253a9, 47420238 — this map's f01/f04 FC-J rows) inform the surrounding balancing test but do not carry this short-circuit property themselves.",
     },
 
     // ── FC, logic-bearing — doc 73 §4 R1 candidates (2026-08-26): two

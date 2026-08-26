@@ -154,7 +154,7 @@ Also protected: the standing disclaimer; quoted statutory and EDPB text; the pla
 // This block exists so the critic stops spending tokens on proposals that
 // will be refused in code.
 export const LIA_CRITIC_CONTAINMENT =
-  `OUT OF SCOPE — TYPED SURFACES (do not propose findings on these; they are deterministic single-writer surfaces built from the record, and any proposal naming them, at any depth, is refused before it is read): reasonable_expectations, child_factor, public_authority_exclusion, lia_determination, automated_decision_analysis, skeleton_document. Confine every finding to the narrative sections — including the still-model-authored three_part_test, interest_legitimacy, relationship_with_individual, potential_harms and opt_out_feasibility, which remain fully revisable.`;
+  `OUT OF SCOPE — TYPED SURFACES (do not propose findings on these; they are deterministic single-writer surfaces built from the record, and any proposal naming them, at any depth, is refused before it is read): reasonable_expectations, child_factor, public_authority_exclusion, lia_determination, automated_decision_analysis, precedent_class_posture, eprivacy_short_circuit, skeleton_document. Confine every finding to the narrative sections — including the still-model-authored three_part_test, interest_legitimacy, relationship_with_individual, potential_harms and opt_out_feasibility, which remain fully revisable.`;
 
 /** Surfaces refinement may never touch (leg-3 consumption). */
 export const LIA_PROTECTED_ROOT_KEYS = [
@@ -181,6 +181,13 @@ export const LIA_PROTECTED_PATH_PREFIXES = [
   "public_authority_exclusion",
   "lia_determination",
   "automated_decision_analysis",
+  // Forward-added single-writer surfaces (the L0 bar covers these by its
+  // own terms — "forward-added typed surfaces"):
+  //   precedent_class_posture — doc 73 §4 R2 (2026-08-26; omitted from
+  //     this list when that engine landed — closed here, a protective fix);
+  //   eprivacy_short_circuit — doc 62 §5 B5 hard gate (2026-08-26).
+  "precedent_class_posture",
+  "eprivacy_short_circuit",
   "skeleton_document",
 ];
 

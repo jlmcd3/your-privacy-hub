@@ -113,6 +113,21 @@ Deno.test("CYBER_CORPUS_MAP: disposition mix matches the wave C3 register (6 imp
   assertEquals(counts, { implemented: 6, extension_filed: 6, declined: 0 });
 });
 
+Deno.test("LIA_CORPUS_MAP: disposition mix matches the L1 pre-landing register (1 implemented, 2 filed)", () => {
+  const counts = { implemented: 0, extension_filed: 0, declined: 0 };
+  for (const row of LIA_CORPUS_MAP.rows) {
+    const kind = row.logic_disposition?.kind;
+    if (kind) counts[kind]++;
+  }
+  // 2026-08-26: lia/f11-eprivacy/fcl-01 (the doc 62 §5 B5 ePrivacy
+  // short-circuit — the one MUST-implement logic item ahead of L1) moved
+  // from extension_filed to implemented (eprivacy-gate.ts). The two doc 73
+  // §4 R1 rows (Airbnb/Groupon ID-verification-for-rights-requests) stay
+  // extension_filed: they need a NEW intake field, a product-scope decision
+  // parked for L1 design.
+  assertEquals(counts, { implemented: 1, extension_filed: 2, declined: 0 });
+});
+
 Deno.test("DPIA_CORPUS_MAP: disposition mix matches this session's finding (7 implemented, 0 filed, 1 declined)", () => {
   const counts = { implemented: 0, extension_filed: 0, declined: 0 };
   for (const row of DPIA_CORPUS_MAP.rows) {

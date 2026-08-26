@@ -48,6 +48,7 @@ import type {
   PublicAuthorityFinding,
   ReasonableExpectationsFinding,
 } from "./types.ts";
+import { buildEprivacyShortCircuit } from "./eprivacy-gate.ts";
 
 export const LIA_DELIVERABLES_VERSION =
   "lia-analytic-deliverables-2026-08-01-item326";
@@ -865,6 +866,12 @@ export function buildLiaDeliverables(intake: unknown): LiaDeliverables {
       public_authority_exclusion,
     ),
     automated_decision_analysis: buildAutomatedDecisionAnalysis(intake),
+    // L1 pre-landing (doc 62 §5 B5) — the ePrivacy hard gate. Deliberately
+    // NOT passed to buildDetermination: the ratified rule requires the gate
+    // to be evaluated before or independent of the balancing computation,
+    // not as a balancing input. L1's deterministic three-part test is the
+    // consumer of li_foreclosed_for_covered_processing.
+    eprivacy_short_circuit: buildEprivacyShortCircuit(intake),
   };
 }
 
@@ -879,6 +886,7 @@ export function attachLiaDeliverables(
     report.public_authority_exclusion = built.public_authority_exclusion;
     report.lia_determination = built.lia_determination;
     report.automated_decision_analysis = built.automated_decision_analysis;
+    report.eprivacy_short_circuit = built.eprivacy_short_circuit;
     return {
       version: LIA_DELIVERABLES_VERSION,
       ok: true,
@@ -895,6 +903,14 @@ export function attachLiaDeliverables(
       ).length,
       rebalance_required: built.lia_determination.rebalance_required,
       separation_repairs: built.lia_determination.separation_repairs,
+      // L1 pre-landing — the ePrivacy hard gate, reported under its own
+      // keys. Kept OUT of the `insufficient` count below deliberately: that
+      // counter's five-surface membership predates this gate and is the
+      // baseline other telemetry reads; the gate's undetermined state is
+      // visible here directly.
+      eprivacy_gate: built.eprivacy_short_circuit.determination,
+      eprivacy_foreclosed: built.eprivacy_short_circuit.li_foreclosed_for_covered_processing,
+      eprivacy_trigger_basis: built.eprivacy_short_circuit.trigger_basis,
       insufficient: [
         built.reasonable_expectations,
         built.child_factor,

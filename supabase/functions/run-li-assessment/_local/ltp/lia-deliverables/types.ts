@@ -170,6 +170,50 @@ export interface LiaDeliverables {
   readonly public_authority_exclusion: PublicAuthorityFinding;
   readonly lia_determination: LiaDetermination;
   readonly automated_decision_analysis: AutomatedDecisionFinding;
+  readonly eprivacy_short_circuit: EprivacyShortCircuitFinding;
+}
+
+// ── 6. ePrivacy short-circuit gate (doc 58 §2 / doc 62 §5 B5) ────────
+/**
+ * The hard gate on factor 11 ("Special-category and ePrivacy interplay",
+ * LIA_FACTOR_VOCABULARY): where Art. 5(3) ePrivacy Directive requires
+ * consent for the processing, Art. 6(1)(f) cannot substitute for that
+ * consent, however the balancing test would otherwise resolve. Evaluated
+ * BEFORE and INDEPENDENT of the balancing computation — never a balancing
+ * input. Single writer: eprivacy-gate.ts (see its header for the intake
+ * gap, the conservative interim semantics, and the PN-L6 ratification
+ * gate on its prose).
+ */
+export type EprivacyGateDetermination =
+  | "consent_requirement_engaged"
+  | "not_engaged_on_the_record"
+  | "undetermined_on_the_record";
+
+export type EprivacyTriggerBasis =
+  | "terminal_equipment_access"
+  | "unsolicited_electronic_messages"
+  | "none_recorded";
+
+export interface EprivacyShortCircuitFinding extends AnalysisShape {
+  readonly determination: EprivacyGateDetermination;
+  /**
+   * True where Art. 6(1)(f) is foreclosed for the covered processing.
+   * L1's three-part test consumes this as a GATE, never as a weight.
+   */
+  readonly li_foreclosed_for_covered_processing: boolean;
+  readonly trigger_basis: EprivacyTriggerBasis;
+  /** Verbatim fragments of the intake's own text that grounded the
+   * detection (telemetry/audit; empty where nothing triggered). */
+  readonly trigger_phrases: readonly string[];
+  /** True where ePrivacy-covered activity is indicated but the record
+   * does not resolve whether the consent requirement applies. */
+  readonly indication_unresolved: boolean;
+  readonly supporting_citation: string;
+  readonly supporting_verbatim: string;
+  /** The CAM row this gate implements: "lia/f11-eprivacy/fcl-01". */
+  readonly corpus_row_id: string;
+  readonly status: DeliverableStatus;
+  readonly information_needed?: string;
 }
 
 // ── 5. Automated-decision analysis (ITEM 326) ────────────────────────
