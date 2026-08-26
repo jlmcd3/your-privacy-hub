@@ -198,7 +198,10 @@ export function buildCyberApplicabilityTable(profile: Bag): RenderedTable {
     key: "",
     surface: "cyber_applicability",
     title: "Cybersecurity Audit Applicability (11 CCR § 7120)",
-    columns: ["Trigger", "What the regulation requires", "On this record"],
+    // C2 (2026-08-26): column header re-registered "On this record" ->
+    // the fleet's ratified "on the information provided" family (the v5.2
+    // register ruling; the old phrase is a fleet-banned register). Ledgered.
+    columns: ["Trigger", "What the regulation requires", "On the information provided"],
     rows: [
       [
         "A1 — § 7120(b)(1)",

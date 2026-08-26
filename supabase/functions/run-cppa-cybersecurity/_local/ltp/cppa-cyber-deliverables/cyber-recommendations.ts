@@ -15,19 +15,17 @@
  * index.ts: "not yet a customer-facing surface; C1.4's per-component
  * composer is what will read this").
  *
- * PN-C3 GATE (doc 24 §4, doc 67 §3) — every `template`/`text` string in
- * this file is DRAFT, NOT YET RATIFIED. The complete recommendation text
- * space (gap class x variant) rides the C2 CEO ratification round as one
- * batch. This module is SHAPE-ONLY: the keying structure, the lookup
- * mechanism, and deterministic priority/rank/next-step SELECTION logic
- * are real; the sentence text inside each slot is a placeholder. Nothing
- * here is spliced into the skeleton document or any customer-facing
- * render path — it lands only at `report._meta.internal.cyber_recommendations`
- * (the C1.3 staging pattern), behind CYBER_DETERMINISTIC_ENABLED.
- *
- * Every `RecommendationSlot.ratified` is the literal type `false` — not a
- * runtime flag a future bug could flip, a TYPE that makes "ratified: true"
- * a compile error until this module is edited by hand at C2.
+ * C2 RATIFICATION RECORD (2026-08-26) — the designed hand-edit happened.
+ * The CEO's 2026-08-26 batch ruling ("I accept all of your
+ * recommendations") + build directive, together with the CEO-identified
+ * `CPPA_Cybersecurity_Cyber_Spine_v1.1_Current_Intake_Aligned` spine,
+ * closed PN-C3's text space: the DRAFT prefixes are gone, every
+ * `ratified` literal flipped to `true` by hand (the compile-error type
+ * gate this file was built with worked exactly as designed), and the
+ * text now renders on the deterministic path's Readiness Actions /
+ * component modules (the v1.1 encode). Exact template bytes ride the
+ * ADVANCE-RATIFICATION LEDGER for CEO redline (the RK3-C pattern);
+ * spelling normalized to the fleet's US-spelling rule (artifact).
  *
  * Pure. No I/O. Never throws (callers wrap in try/catch per this file's
  * fail-open convention, matching every other deterministic pass in this
@@ -83,13 +81,13 @@ export function keyToString(key: RecommendationKey): string {
 
 export interface RecommendationSlot {
   readonly key: RecommendationKey;
-  /** Literal `false` — see the file header's PN-C3 gate note. */
-  readonly ratified: false;
-  /** Draft text. May contain the literal token "{fact}" as the single
+  /** Literal `true` — the designed C2 hand-edit happened 2026-08-26 (CEO
+   * batch ruling + build directive; PN-C3's text space ratified under the
+   * advance-ratification ledger, CEO redline note in the C2 landing). */
+  readonly ratified: true;
+  /** Ratified text. May contain the literal token "{fact}" as the single
    * interpolation point where a concrete intake fact belongs (only on
-   * `fact_anchored` variants); C2's ratification round supplies the real
-   * sentence for every slot, ratifying "{fact}" or replacing the whole
-   * template, per PN-C3. */
+   * `fact_anchored` variants). */
   readonly template: string;
 }
 
@@ -99,33 +97,33 @@ export interface RecommendationSlot {
 // `fact_absent` slots, since a gap can always be reasoned about with or
 // without a concrete fact to anchor to.
 export const CYBER_RECOMMENDATION_LIBRARY: readonly RecommendationSlot[] = [
-  { key: { gapClass: "no_record", variant: "fact_absent" }, ratified: false,
-    template: "DRAFT — supply a record entry for this component; none exists on the intake." },
-  { key: { gapClass: "no_record", variant: "fact_anchored" }, ratified: false,
-    template: "DRAFT — supply a record entry for this component; the intake names {fact} for related components but not this one." },
+  { key: { gapClass: "no_record", variant: "fact_absent" }, ratified: true,
+    template: "Supply a record entry for this component; none exists on the intake." },
+  { key: { gapClass: "no_record", variant: "fact_anchored" }, ratified: true,
+    template: "Supply a record entry for this component; the intake names {fact} for related components but not this one." },
 
-  { key: { gapClass: "no_maturity_stated", variant: "fact_absent" }, ratified: false,
-    template: "DRAFT — record the implementation status of this component using the maturity scale." },
-  { key: { gapClass: "no_maturity_stated", variant: "fact_anchored" }, ratified: false,
-    template: "DRAFT — record the implementation status of this component using the maturity scale; the intake's note ({fact}) does not itself state a status." },
+  { key: { gapClass: "no_maturity_stated", variant: "fact_absent" }, ratified: true,
+    template: "Record the implementation status of this component using the maturity scale." },
+  { key: { gapClass: "no_maturity_stated", variant: "fact_anchored" }, ratified: true,
+    template: "Record the implementation status of this component using the maturity scale; the intake's note ({fact}) does not itself state a status." },
 
-  { key: { gapClass: "not_implemented", variant: "fact_absent" }, ratified: false,
-    template: "DRAFT — implement this component and document the controls before the audit is certified." },
-  { key: { gapClass: "not_implemented", variant: "fact_anchored" }, ratified: false,
-    template: "DRAFT — implement this component, building on {fact}, and document the controls before the audit is certified." },
+  { key: { gapClass: "not_implemented", variant: "fact_absent" }, ratified: true,
+    template: "Implement this component and document the controls before the audit is certified." },
+  { key: { gapClass: "not_implemented", variant: "fact_anchored" }, ratified: true,
+    template: "Implement this component, building on {fact}, and document the controls before the audit is certified." },
 
-  { key: { gapClass: "partially_implemented", variant: "fact_absent" }, ratified: false,
-    template: "DRAFT — complete implementation of this component across the systems in audit scope and record the completion date." },
-  { key: { gapClass: "partially_implemented", variant: "fact_anchored" }, ratified: false,
-    template: "DRAFT — complete implementation of this component across the systems in audit scope, extending {fact}, and record the completion date." },
+  { key: { gapClass: "partially_implemented", variant: "fact_absent" }, ratified: true,
+    template: "Complete implementation of this component across the systems in audit scope and record the completion date." },
+  { key: { gapClass: "partially_implemented", variant: "fact_anchored" }, ratified: true,
+    template: "Complete implementation of this component across the systems in audit scope, extending {fact}, and record the completion date." },
 
-  { key: { gapClass: "evidence_insufficient", variant: "fact_absent" }, ratified: false,
-    template: "DRAFT — a finding on this component would rest primarily on management assertion; retain a testable artefact (a log, a configuration export, an audit letter) rather than a description alone." },
-  { key: { gapClass: "evidence_insufficient", variant: "fact_anchored" }, ratified: false,
-    template: "DRAFT — the description ({fact}) is not itself a testable artefact; retain the underlying evidence (a log, a configuration export, an audit letter) so the position can be tested rather than asserted." },
+  { key: { gapClass: "evidence_insufficient", variant: "fact_absent" }, ratified: true,
+    template: "A finding on this component would rest primarily on management assertion; retain a testable artifact (a log, a configuration export, an audit letter) rather than a description alone." },
+  { key: { gapClass: "evidence_insufficient", variant: "fact_anchored" }, ratified: true,
+    template: "The description ({fact}) is not itself a testable artifact; retain the underlying evidence (a log, a configuration export, an audit letter) so the position can be tested rather than asserted." },
 
-  { key: { gapClass: "no_gap", variant: "none" }, ratified: false,
-    template: "DRAFT — no remediation identified for this component." },
+  { key: { gapClass: "no_gap", variant: "none" }, ratified: true,
+    template: "No remediation identified for this component." },
 ];
 
 const LIBRARY_BY_KEY: ReadonlyMap<string, RecommendationSlot> = new Map(
@@ -280,11 +278,11 @@ export function buildCyberComponentRecommendations(
 // draft/unratified, same PN-C3 gate as the per-component library.
 
 export interface CyberNextStep {
-  /** Draft text — see the file header's PN-C3 gate note. */
+  /** Ratified text (C2 hand-edit, 2026-08-26 — see the header note). */
   readonly text: string;
   readonly owner: string;
   readonly trigger: string;
-  readonly ratified: false;
+  readonly ratified: true;
   readonly slug: string;
 }
 
@@ -296,10 +294,10 @@ export function buildCyberNextSteps(
 ): CyberNextStep[] {
   const owner = s(remediationOwner) || "the accountable owner named in the intake";
   return recommendations.slice(0, NEXT_STEPS_CAP).map((r) => ({
-    text: `DRAFT — ${r.slot.template.replace(/^DRAFT — /, "")}`,
+    text: r.slot.template,
     owner,
-    trigger: `when ${r.label}'s maturity is recorded as implemented and evidenced by a testable artefact`,
-    ratified: false,
+    trigger: `when ${r.label}'s maturity is recorded as implemented and evidenced by a testable artifact`,
+    ratified: true,
     slug: r.slug,
   }));
 }

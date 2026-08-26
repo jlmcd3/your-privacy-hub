@@ -2454,35 +2454,58 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       console.warn("[run-cppa-cybersecurity] LEAK-PREV-P2 serializer failed (non-fatal):", (e as Error)?.message);
     }
 
-    // ── SO-4 WIRE-IN: assemble the customer document through the byte-pinned
-    // v3 skeleton. Deterministic; never mutates the typed surfaces. Runs AFTER
-    // the whitelist serializer so the assembled document is not stripped.
-    // ITEM-204: the § 7121 phase-in schedule is quoted from the approved
-    // corpus row, all three tiers, with no cohort computed here.
+    // ── SKELETON WIRE-IN. Deterministic; never mutates the typed surfaces.
+    // Runs AFTER the whitelist serializer so the assembled document is not
+    // stripped. ITEM-204: the § 7121 phase-in schedule is quoted from the
+    // approved corpus row, all three tiers, with no cohort computed here.
+    //
+    // C2 (2026-08-26, the Spine v1.1 encode): the flag selects the SPINE.
+    // Flag ON  -> the v4 assembler (cppa-cyber-v4.spine.ts — the CEO's
+    //             Cyber Spine v1.1 as render law, fully deterministic).
+    // Flag OFF -> the untouched v3 assembler, byte-identical to before this
+    //             landing (the model path's render law does not drift).
     try {
-      const { assembleCyberSkeletonDocument, CYBER_SKELETON_ASSEMBLER_STAMP } =
-        await import("./_local/ltp/cyber-skeleton-assemble.ts");
       const phaseIn = String(
         (cyberAuthoritySource as any)?.provisions?.["cppa-7121"]?.status === "approved"
           ? (cyberAuthoritySource as any)?.provisions?.["cppa-7121"]?.excerpt ?? ""
           : "",
       );
-      const sk = assembleCyberSkeletonDocument(
-        report as unknown as Record<string, unknown>,
-        ((row as any)?.intake_data as Record<string, unknown>) ?? {},
-        phaseIn,
-        // C1.2 — gates the new § 7120(a)-(b) applicability table.
-        CYBER_DETERMINISTIC_ENABLED,
-      );
-      (report as any).skeleton_document = sk.document;
-      console.log(JSON.stringify({
-        evt: "cyber_skeleton_assembled", assessment_id,
-        stamp: CYBER_SKELETON_ASSEMBLER_STAMP,
-        sections: sk.document.sections.length,
-        phase_in_pinned: phaseIn.length > 0,
-        conformance_findings: sk.conformance.length,
-        register_findings: sk.register_findings,
-      }));
+      if (CYBER_DETERMINISTIC_ENABLED) {
+        const { assembleCyberSkeletonDocumentV4, CYBER_V4_ASSEMBLER_STAMP } =
+          await import("./_local/ltp/cyber-skeleton-assemble-v4.ts");
+        const sk = assembleCyberSkeletonDocumentV4(
+          report as unknown as Record<string, unknown>,
+          ((row as any)?.intake_data as Record<string, unknown>) ?? {},
+          phaseIn,
+        );
+        (report as any).skeleton_document = sk.document;
+        console.log(JSON.stringify({
+          evt: "cyber_skeleton_assembled", assessment_id,
+          stamp: CYBER_V4_ASSEMBLER_STAMP,
+          sections: sk.document.sections.length,
+          phase_in_pinned: phaseIn.length > 0,
+          conformance_findings: sk.conformance.length,
+          register_findings: sk.register_findings,
+        }));
+      } else {
+        const { assembleCyberSkeletonDocument, CYBER_SKELETON_ASSEMBLER_STAMP } =
+          await import("./_local/ltp/cyber-skeleton-assemble.ts");
+        const sk = assembleCyberSkeletonDocument(
+          report as unknown as Record<string, unknown>,
+          ((row as any)?.intake_data as Record<string, unknown>) ?? {},
+          phaseIn,
+          CYBER_DETERMINISTIC_ENABLED,
+        );
+        (report as any).skeleton_document = sk.document;
+        console.log(JSON.stringify({
+          evt: "cyber_skeleton_assembled", assessment_id,
+          stamp: CYBER_SKELETON_ASSEMBLER_STAMP,
+          sections: sk.document.sections.length,
+          phase_in_pinned: phaseIn.length > 0,
+          conformance_findings: sk.conformance.length,
+          register_findings: sk.register_findings,
+        }));
+      }
     } catch (e) {
       console.warn("[run-cppa-cybersecurity] skeleton assembly failed (non-fatal):", (e as Error)?.message);
     }

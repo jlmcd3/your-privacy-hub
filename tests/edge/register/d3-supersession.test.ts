@@ -95,8 +95,14 @@ Deno.test("v3 register — the grader no longer exempts the banned family as dra
 
 Deno.test("v3 register — the render-layer repair still rewrites the family", () => {
   assertEquals(repairRegister("The record shows a lawful basis."), "The company has indicated a lawful basis.");
+  // C2 re-point (2026-08-26): the repair's landing phrase moved to the
+  // fleet-ratified "on the information provided" family — the old target
+  // ("on the record as documented") is itself banned register (Spine v5.2;
+  // PN-L7), and the repair now also fixes legacy strings carrying it.
   assertEquals(repairRegister("On this record, the purpose is clear."),
-    "On the record as documented, the purpose is clear.");
+    "On the information provided, the purpose is clear.");
+  assertEquals(repairRegister("On the record as documented, the purpose is clear."),
+    "On the information provided, the purpose is clear.");
   for (const probe of [
     "the record shows X",
     "the record reflects X",

@@ -10,11 +10,20 @@
 // establishes", "on this record", "as the record makes clear". Facts supplied
 // by the company are ATTRIBUTED to the company.
 
-/** Deterministic register repair — attribution voice is law (v3 bans). */
+/** Deterministic register repair — attribution voice is law (v3 bans).
+ *
+ * 2026-08-26 RE-REGISTRATION (C2; the Spine v5.2 register ruling applied
+ * fleet-wide): the old map rewrote "on this record" to "on the record as
+ * documented" — a phrase the fleet register has since BANNED (the v5.2
+ * "on the information provided" family; PN-L7 confirmed the ban for LIA).
+ * The repair now lands on the ratified register, and the formerly-injected
+ * phrase is itself repaired when legacy composed strings carry it. */
 export function repairRegister(text: string): string {
   let out = text;
-  out = out.replace(/\bOn this record\b/g, "On the record as documented");
-  out = out.replace(/\bon this record\b/g, "on the record as documented");
+  out = out.replace(/\bOn the record as documented\b/g, "On the information provided");
+  out = out.replace(/\bon the record as documented\b/g, "on the information provided");
+  out = out.replace(/\bOn this record\b/g, "On the information provided");
+  out = out.replace(/\bon this record\b/g, "on the information provided");
   out = out.replace(/\bThe record shows\b/g, "The company has indicated");
   out = out.replace(/\bthe record shows\b/g, "the company has indicated");
   out = out.replace(/\b[Tt]he record (reflects|indicates|demonstrates|establishes)\b/g,

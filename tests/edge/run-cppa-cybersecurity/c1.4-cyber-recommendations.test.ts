@@ -41,10 +41,15 @@ Deno.test("CYBER_RECOMMENDATION_LIBRARY — exhaustive: every gap class has its 
   assertEquals(CYBER_RECOMMENDATION_LIBRARY.length, 11); // 5 classes x 2 variants + 1 no_gap
 });
 
-Deno.test("CYBER_RECOMMENDATION_LIBRARY — every slot is unratified (PN-C3 gate)", () => {
+// C2 (2026-08-26) — deliberate re-point of the PN-C3 gate pin: the designed
+// hand-edit happened (CEO batch ruling + build directive; the v1.1 spine),
+// so the invariant INVERTS — every slot must now be ratified and no
+// customer-reaching template may carry the internal DRAFT tripwire token.
+Deno.test("CYBER_RECOMMENDATION_LIBRARY — every slot is RATIFIED and DRAFT-free (C2)", () => {
   for (const slot of CYBER_RECOMMENDATION_LIBRARY) {
-    assertEquals(slot.ratified, false, keyToString(slot.key));
-    assert(slot.template.startsWith("DRAFT — "), `${keyToString(slot.key)} template doesn't announce draft status`);
+    assertEquals(slot.ratified, true, keyToString(slot.key));
+    assert(!slot.template.includes("DRAFT"), `${keyToString(slot.key)} template still carries the DRAFT tripwire`);
+    assert(slot.template.trim().length > 0, `${keyToString(slot.key)} template is empty`);
   }
 });
 
@@ -206,7 +211,7 @@ Deno.test("buildCyberComponentRecommendations — corpus_commentary is threaded 
 
 // ── Next-steps digest ────────────────────────────────────────────────
 
-Deno.test("buildCyberNextSteps — capped at 3, each carries owner and a trigger, draft text only", () => {
+Deno.test("buildCyberNextSteps — capped at 3, each carries owner and a trigger, ratified DRAFT-free text (C2 re-point)", () => {
   const facts = readCyberFacts({ profile: {}, controls: [] });
   const coverage = buildComponentCoverage(facts);
   const evidence = buildEvidenceSufficiency(facts);
@@ -216,8 +221,9 @@ Deno.test("buildCyberNextSteps — capped at 3, each carries owner and a trigger
   for (const st of steps) {
     assertEquals(st.owner, "VP Security");
     assert(st.trigger.length > 0);
-    assert(st.text.startsWith("DRAFT — "));
-    assertEquals(st.ratified, false);
+    assert(!st.text.includes("DRAFT"), st.text);
+    assert(st.text.trim().length > 0);
+    assertEquals(st.ratified, true);
   }
   // Takes the top 3 by rank, in rank order.
   assertEquals(steps.map((s) => s.slug), recs.slice(0, 3).map((r) => r.slug));
