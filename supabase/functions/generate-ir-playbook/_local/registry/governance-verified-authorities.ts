@@ -29,7 +29,7 @@
 import type {
   VerifiedAuthorityRegistry,
   VerifiedAuthorityRow,
-} from "../verified-authority-resolver.ts";
+} from "../../../_shared/verified-authority-resolver.ts";
 
 /** Registry version tag. Bumped on any row add/edit; grader may pin against it. */
 export const GOVERNANCE_VERIFIED_AUTHORITY_VERSION =

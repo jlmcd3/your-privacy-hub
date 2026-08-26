@@ -56,7 +56,7 @@
 // the live DB. Both are dark FC rows here with intact first sentences
 // pinned.
 
-import type { CorpusMap } from "../cam-types.ts";
+import type { CorpusMap } from "../../../../_shared/corpus/cam-types.ts";
 
 /** The three ratified S4 frame constants (doc 63 §5.2) — byte-identical to
  * the shipped prompt-law sentences (run-cppa-cybersecurity/index.ts:160,

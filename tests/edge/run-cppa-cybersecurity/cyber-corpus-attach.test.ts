@@ -5,7 +5,7 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { attachCyberCorpus } from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cyber-corpus-attach.ts";
 import { CYBER_7123_COMPONENTS } from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cppa-cyber-deliverables/components.ts";
-import { CYBER_CORPUS_MAP, CYBER_S4_FRAMES } from "../../../supabase/functions/_shared/corpus/maps/cyber-corpus-map.ts";
+import { CYBER_CORPUS_MAP, CYBER_S4_FRAMES } from "../../../supabase/functions/run-cppa-cybersecurity/_local/corpus/maps/cyber-corpus-map.ts";
 
 Deno.test("attachCyberCorpus — one entry per rendered component, all 18 by default", () => {
   const all = attachCyberCorpus();

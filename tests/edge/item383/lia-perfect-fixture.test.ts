@@ -11,7 +11,7 @@ import {
   attachRecordComplete,
   FALSE_ABSENCE_CHECK_IDS,
 } from "../../../supabase/functions/_shared/ltp/record-complete.ts";
-import { REFERENCE_RENDER_TOKENS } from "../../../supabase/functions/_shared/prose/plans/lia.spine.ts";
+import { REFERENCE_RENDER_TOKENS } from "../../../supabase/functions/run-li-assessment/_local/prose/plans/lia.spine.ts";
 
 const INTAKE = LIA_PERFECT[0].intake as Record<string, unknown>;
 

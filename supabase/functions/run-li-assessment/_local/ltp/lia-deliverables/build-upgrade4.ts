@@ -30,7 +30,7 @@ import {
   SPECULATIVE_LEXICON,
   row,
 } from "./elements.ts";
-import { liaVerdictLabel } from "../../../../_shared/prose/plans/lia.spine.ts";
+import { liaVerdictLabel } from "../../prose/plans/lia.spine.ts";
 import type {
   AlternativeConsidered,
   AlternativesConsideredFinding,

@@ -14,7 +14,7 @@ import { DPIA_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps
 import {
   CYBER_CORPUS_MAP,
   CYBER_PROCEDURAL_FACTORS,
-} from "../../../supabase/functions/_shared/corpus/maps/cyber-corpus-map.ts";
+} from "../../../supabase/functions/run-cppa-cybersecurity/_local/corpus/maps/cyber-corpus-map.ts";
 import { LIA_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/lia-corpus-map.ts";
 
 // All maps landed so far.

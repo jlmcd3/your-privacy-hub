@@ -19,7 +19,7 @@
 // access (PGHOST unset); the branching assertions always run.
 
 import { describe, it, expect } from "vitest";
-import { GOVERNANCE_VERIFIED_AUTHORITIES } from "../../../supabase/functions/_shared/registry/governance-verified-authorities.ts";
+import { GOVERNANCE_VERIFIED_AUTHORITIES } from "../../../supabase/functions/run-governance-assessment/_local/registry/governance-verified-authorities.ts";
 import {
   buildTransferAnalysis,
   readTransferFacts,
