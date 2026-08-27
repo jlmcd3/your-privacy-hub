@@ -7,6 +7,7 @@ console.log(`[generate-dpa] boot dpa-registry-wiring registry_loaded=dpa-va-w1-2
 
 import { US_STATE_CITATION_ANCHORS } from "./_local/registry/dpa-us-citation-anchors.ts";
 import { renderTomsBlock } from "./_local/registry/dpa-toms-taxonomy.ts";
+import { renderUsRequiredTermsBlock } from "./_local/registry/dpa-us-required-terms.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
@@ -1137,6 +1138,7 @@ Additional requirements:
   This clause must appear as an explicit named section in the document, not merely as implied language elsewhere.
 - ${citeExampleSavingsLine}
 - Use the phrases "business purpose" and "prohibited from selling or sharing" explicitly where applicable.
+- ${_has("California") ? renderUsRequiredTermsBlock() : ""}
 
 ${ANNOTATIONS_INSTRUCTIONS}`;
 
