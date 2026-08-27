@@ -182,6 +182,20 @@ Deno.test("REBUILD-LIA T2: STRENGTH_NOTES.insufficient copy replaced with comple
   assert(!/Insufficient: not enough information has been provided to reach a verdict/.test(src));
 });
 
+Deno.test("QB-REPAIR-5: LIA prompt affirms UK GDPR Article 6(11) is real, no longer denies it", () => {
+  // Live batch 510a9953 (2026-08-27): a UK+EU LIA never disclosed the UK leg
+  // or its Art. 6(11) basis, because this rule's own "SPEC-PACK-1 R3" clause
+  // flatly (and, as of the DUAA 2025 cutover 2026-02-05, wrongly) denied
+  // Article 6(11) UK GDPR exists — contradicting the sentence right before
+  // it and the corpus-verified fact _shared/dpia-jurisdiction-registry.ts's
+  // resolveArticle6Examples already encodes for every other product.
+  const src = Deno.readTextFileSync(new URL("../../../supabase/functions/run-li-assessment/index.ts", import.meta.url));
+  assertStringIncludes(src, "UK GDPR is different: the Data (Use and Access) Act 2025 inserted Article 6(11) UK GDPR");
+  assertStringIncludes(src, "cite 'Article 6(11) UK GDPR' exactly as supplied in the injected block");
+  assertStringIncludes(src, "EU GDPR Article 6 is structured as 6(1)(a)–(f), 6(2), 6(3), and 6(4), with NO Article 6(11)");
+  assert(!/'Article 6\(11\)' does NOT exist in GDPR or UK GDPR/.test(src), "the stale blanket denial must be gone");
+});
+
 Deno.test("REBUILD-LIA T2/T3: prompt carries advocate-drafter, canonical-record, framework-fidelity rules", () => {
   const blocks = buildSystemContent({ toolModule: LIA_ANALYSIS_TOOL_MODULE, currentDate: today });
   const all = blocks.map((b) => b.text).join("\n");
