@@ -61,7 +61,7 @@ import {
   BIOMETRIC_REFINEMENT_CONFIG_VERSION,
   BIOMETRIC_WATCH_CLASSES,
 } from "./biometric-refinement-config.ts";
-import { BIOMETRIC_SECTION_SPECS } from "../prose/plans/biometric.spine.ts";
+import { BIOMETRIC_SKELETON_SECTIONS } from "../prose/plans/biometric.spine.ts";
 
 export type { RefinementDeps, RefinementTelemetry, CriticFinding, SpliceResult };
 export {
@@ -204,12 +204,21 @@ export const BIOMETRIC_PROTECTED_ANCHORAGE_KEYS = [
 ] as const;
 
 /**
- * B8 — the item409 spine section ids. COMPUTED from `biometric.spine.ts`,
- * never re-typed: a leaf whose KEY is a plan section id is the section's
- * machine address.
+ * B8 — the spine section ids. COMPUTED from `biometric.spine.ts`, never
+ * re-typed: a leaf whose KEY is a plan section id is the section's machine
+ * address.
+ *
+ * RESTORED 2026-08-26 (Biometric Conversion groundwork audit): this used to
+ * read the item409-era `BIOMETRIC_SECTION_SPECS` export, which the 2026-08-19
+ * SO-6 rewrite of `biometric.spine.ts` (commit fe6f68321) removed without
+ * updating this reference — a dangling import that broke this module (and,
+ * transitively, `check-biometric-compliance/index.ts`) at load time. Re-pointed
+ * to `BIOMETRIC_SKELETON_SECTIONS`, the spine's current (and only) section-id
+ * source of record under the SO-6 shape; each entry still carries the same
+ * `id` field this taxonomy needs.
  */
 export const BIOMETRIC_PROTECTED_SPINE_SECTION_IDS: readonly string[] =
-  BIOMETRIC_SECTION_SPECS.map((s) => s.id);
+  BIOMETRIC_SKELETON_SECTIONS.map((s) => s.id);
 
 export const BIOMETRIC_PROTECTED_LEAF_CLASSES = {
   verdict: BIOMETRIC_PROTECTED_VERDICT_KEYS,

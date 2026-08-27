@@ -23,7 +23,6 @@ import {
 } from "../../../supabase/functions/_shared/ltp/record-complete.ts";
 import {
   BIOMETRIC_PIPELINE_STAMP,
-  REFERENCE_RENDER_TOKENS,
 } from "../../../supabase/functions/check-biometric-compliance/_local/prose/plans/biometric.spine.ts";
 import { RUN_QUALITY_BATCH_SLUGS } from "../../../supabase/functions/quality-batch-orchestrator/index.ts";
 import { buildSeedRow } from "../../../supabase/functions/quality-batch-orchestrator/_local/quality/seed-row.ts";
@@ -118,12 +117,19 @@ Deno.test("fixture: sufficiency lint — named systems, dates, owners, cadences"
   }
 });
 
-Deno.test("fixture: carries no reference-render token (item409 fact-exempt rule)", () => {
-  const blob = JSON.stringify(INTAKE).toLowerCase();
-  for (const tok of REFERENCE_RENDER_TOKENS) {
-    assert(!blob.includes(String(tok).toLowerCase()), `reference-render token leaked: ${tok}`);
-  }
-});
+// RETIRED 2026-08-26 (Biometric Conversion groundwork audit): this test
+// asserted the golden fixture carries none of the "walked render" tokens
+// (`BIOMETRIC_REFERENCE_RENDER_IDS`, two `quality_run_documents` row ids used
+// as an architecture/register reference under the pre-SO-6 item409 idiom).
+// The 2026-08-19 SO-6 rewrite of biometric.spine.ts (commit fe6f68321)
+// deliberately retired that whole idiom along with `REFERENCE_RENDER_TOKENS`
+// itself — the concept has no successor and no live reference anywhere in
+// the codebase to test against. The import was left dangling, which broke
+// this entire test file's module load (confirmed via `deno check`/`deno
+// test`, blocking ALL of item410's other — still-relevant — coverage:
+// registry wiring, fail-closed gate, serializer survival, live parity).
+// Removed here rather than resurrecting a dead export; every other item410
+// test in this file is untouched and now runs again.
 
 // ── registry + harness ─────────────────────────────────────────────────────
 
