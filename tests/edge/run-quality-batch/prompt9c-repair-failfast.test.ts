@@ -84,11 +84,13 @@ Deno.test("9C item 4 (RE-POINTED at 12F): perfect variant stops on the kind-awar
 // the tests above exercise) named the bad value but never the allowed set,
 // so the model repeated the same near-miss and the whole run aborted. This
 // pins the fix: the repair guidance now carries the field's actual options.
-Deno.test("QB-REPAIR-1: contract-violation repair guidance names the field's actual allowed options", async () => {
-  // Otherwise-complete/valid intake — only admt_testing_facts is wrong,
-  // matching the live shape (a single near-miss paraphrase, not a mass of
-  // missing-required violations burying it out of the reason string's
-  // first-4 window).
+// QB-REPAIR-2 (2026-08-27, live batch fd703575) SUPERSEDES this test's original
+// expectation: the 510a9953 near-miss ("Testing performed within the last 12
+// months" for the real option "Testing performed or reviewed within the last
+// 12 months") is now repaired DETERMINISTICALLY — unique token-subset match
+// onto the real option, zero model calls — instead of merely being named in a
+// repair prompt the model was then told not to act on ("change nothing else").
+Deno.test("QB-REPAIR-1/2: a unique near-miss multi-enum element is repaired deterministically onto the real option", async () => {
   const rejected = {
     ...(CPPA_RISK_GOLDEN[0].intake as Record<string, unknown>),
     admt_testing_facts: ["Testing performed within the last 12 months"],
@@ -101,15 +103,41 @@ Deno.test("QB-REPAIR-1: contract-violation repair guidance names the field's act
     undefined,
     async (_t, _n, guidance) => {
       prompts.push(guidance ?? "");
+      return [rejected];
+    },
+  );
+  if (!repaired.ok) throw new Error(`expected deterministic repair to succeed: ${repaired.reason}`);
+  assertEquals(prompts.length, 0); // no model call was spent
+  assertEquals(repaired.intake.admt_testing_facts, ["Testing performed or reviewed within the last 12 months"]);
+});
+
+// The prompt-side half of the original QB-REPAIR-1 protection, exercised via a
+// violation NO deterministic mapping can resolve (live batch fd703575:
+// q16_sensitive_limit = "Yes, but in footer only" — no option shares its
+// tokens). The repair prompt must (a) name the actual allowed options and
+// (b) instruct the model to REPLACE the invalid value, not preserve it.
+Deno.test("QB-REPAIR-2: an unmatchable enum near-miss reaches the model repair with options and a REPLACE instruction", async () => {
+  const rejected = {
+    ...(CPPA_RISK_GOLDEN[0].intake as Record<string, unknown>),
+    q16_sensitive_limit: "Yes, but in footer only",
+  };
+  const prompts: string[] = [];
+  const repaired = await screenIntake(
+    "cppa-risk",
+    rejected,
+    () => null,
+    undefined,
+    async (_t, _n, guidance) => {
+      prompts.push(guidance ?? "");
       // Simulate the model repeating the exact same near-miss on retry —
-      // the failure mode actually observed live.
+      // the failure mode actually observed live in both batches.
       return [rejected];
     },
   );
   assertEquals(repaired.ok, false);
-  assertStringIncludes(prompts[0] ?? "", "admt_testing_facts");
+  assertStringIncludes(prompts[0] ?? "", "q16_sensitive_limit");
   assertStringIncludes(prompts[0] ?? "", "valid options:");
-  assertStringIncludes(prompts[0] ?? "", "Testing performed or reviewed within the last 12 months");
+  assertStringIncludes(prompts[0] ?? "", "REPLACE that field's value");
 });
 
 Deno.test("9C item 4: non-perfect variants keep the full-count behaviour", async () => {

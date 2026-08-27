@@ -218,6 +218,17 @@ export const OPT_OUT_UNCONDITIONAL: readonly RegExp[] = [
   /\bunconditional\b/i,
   /\bone-click\b/i,
 ];
+/** FD703575-L3 (2026-08-27) — negated forms of "unconditional". A narrative
+ *  mechanism reading "No unconditional opt-out is available … case-by-case"
+ *  matched /\bunconditional\b/ on the word inside its own negation and was
+ *  classified as an unconditional opt-out (the DPO-negation defect class).
+ *  Any of these forms bars the unconditional classification. */
+export const OPT_OUT_UNCONDITIONAL_NEGATED: readonly RegExp[] = [
+  /\bno\s+unconditional\b/i,
+  /\bnot\s+unconditional\b/i,
+  /\bwithout\s+(?:an?\s+)?unconditional\b/i,
+  /\bunconditional\s+opt[- ]?out\s+is\s+not\b/i,
+];
 export const OPT_OUT_CONDITIONAL: readonly RegExp[] = [
   /^yes\s*[—–-]?\s*conditional/i,
   /\bon request\b/i,

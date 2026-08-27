@@ -167,7 +167,14 @@ function expectationClause(expectations: ReasonableExpectationsFinding): string 
 
 function harmClause(u4: LiaUpgrade4Deliverables): string {
   const h = u4.potential_harms;
-  if (h.status === "record_insufficient") return "the worst-case impact is not stated";
+  // FD703575-L2 — "is not stated" may only be claimed when nothing was
+  // recorded; a recorded label outside the severity bands is named instead
+  // (the old clause flatly contradicted the record_fact quoting the label).
+  if (h.status === "record_insufficient") {
+    return h.severity_label_recorded
+      ? `the worst-case impact is characterised only as "${h.severity_label_recorded}", outside the recorded severity bands`
+      : "the worst-case impact is not stated";
+  }
   if (h.material_weight_against_controller) {
     return `the worst-case impact recorded is ${h.worst_case_severity} and weighs materially against the interest`;
   }
@@ -179,7 +186,13 @@ function controllerSideClause(intake: Bag, u4: LiaUpgrade4Deliverables): string 
   const benefit = s(u4.benefit_and_beneficiary.benefit);
   parts.push(benefit ? `the specific benefit stated — ${benefit.replace(/\.$/, "")}` : "the interest as stated");
   const safeguards = arr(bag(intake.balancing_details).safeguards);
-  if (safeguards.length) parts.push(`the recorded safeguards (${safeguards.join(", ").toLowerCase()})`);
+  // FD703575-L5 — count, not a verbatim dump: the old form pasted the entire
+  // safeguard list lowercased (mangling product names) into the executive
+  // summary and the weighing paragraph, where the full list is already set
+  // out in the balancing analysis.
+  if (safeguards.length) {
+    parts.push(`the ${safeguards.length} recorded safeguard${safeguards.length === 1 ? "" : "s"} set out in the balancing analysis`);
+  }
   if (u4.opt_out_feasibility.counts_as_mitigation) parts.push("an opt-out that goes beyond what the GDPR already requires");
   return parts.join("; ");
 }

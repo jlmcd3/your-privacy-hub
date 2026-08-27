@@ -1537,11 +1537,14 @@ const INTAKE_VALIDATORS: Record<string, IntakeValidator> = {
     }
     const now = Date.now();
     const maxPastMs = 30 * 24 * 60 * 60 * 1000;
+    // QB-REPAIR-2 — the reasons name TODAY so a repair retry can compute the
+    // valid window instead of guessing "recent" off its training cutoff.
+    const todayIso = new Date(now).toISOString().slice(0, 10);
     if (t > now) {
-      return { ok: false, reason: `ir-playbook.discoveryDateTime is in the future: ${iso}` };
+      return { ok: false, reason: `ir-playbook.discoveryDateTime is in the future: ${iso} (today is ${todayIso})` };
     }
     if (now - t > maxPastMs) {
-      return { ok: false, reason: `ir-playbook.discoveryDateTime more than 30 days old: ${iso} (age ${Math.round((now - t) / 86_400_000)} days)` };
+      return { ok: false, reason: `ir-playbook.discoveryDateTime more than 30 days old: ${iso} (age ${Math.round((now - t) / 86_400_000)} days; today is ${todayIso} — the date must fall within the 30 days before it)` };
     }
     return { ok: true };
   },
@@ -1619,11 +1622,17 @@ async function generateIntakes(tool: string, count: number, extraGuidance?: stri
 
   // QB-P6 — expanded intake-generator system prompt. Preserves the original
   // sentence verbatim and adds five richness rules (a)–(e).
+  // QB-REPAIR-2 (2026-08-27, live batch fd703575) — the model has no idea what
+  // today's date is; without an anchor, "recent" resolves against its training
+  // cutoff. ir-playbook generated discoveryDateTime 2025-07-16, and the repair
+  // retry "fixed" it to 2025-08-04 — recent for a model that believes it is
+  // August 2025. Rule (c) now carries the actual date.
+  const todayIso = new Date().toISOString().slice(0, 10);
   const sys = `You generate realistic, varied test intake objects for privacy compliance tools. Use realistic company names and vary compliance posture — some nearly compliant, some with gaps, some edge cases. Never generate all-compliant inputs. Return ONLY a valid JSON array, no markdown.
 
 (a) NAMED-OBJECT DENSITY — every narrative or free-text field must name concrete objects: real-sounding systems and vendors, officers with role titles and plausible names, datasets, cadences, and figures, so a downstream generator can tie every recommendation to a named intake fact.
 (b) CROSS-FIELD COHERENCE — narratives must agree with the enum answers, sector, jurisdictions, and volumes; no contradictions between fields. (QB-P22 item 3) Every list-field entry names exactly ONE product/tool/vendor — NEVER slash-alternatives ("Otter.ai / Fireflies"), NEVER "X or Y". Ambiguous alternatives get treated by downstream generators as multiple vendors and produce vendor-count hallucinations. If two products are actually in use, emit them as two separate array entries.
-(c) TEMPORAL COHERENCE — all dates recent and mutually consistent.
+(c) TEMPORAL COHERENCE — TODAY'S DATE IS ${todayIso}. All dates must be recent relative to that date and mutually consistent; never date an event after it. Where a field must fall inside a stated window (e.g. an incident discovered within the last 30 days), compute the window from ${todayIso}, not from any other year.
 (d) BUSINESS-FACTS-ONLY — fixture text states facts about the business, never propositions of law (no adequacy claims, no statutory interpretations, no SCC-module or section assertions), except where a tool's scenario guidance explicitly mandates specific legal phrasing.
 (e) NAME VARIETY — vary company names across scenarios and chunks; never reuse the same base name (e.g. "Meridian") across scenarios.`;
 
@@ -1698,6 +1707,86 @@ export type RejectionKind = "carve_out" | "lint" | "contract" | "generation";
 export function rejectionKindForLint(linted: { deficiencies?: any[] } | null | undefined): RejectionKind {
   const d = Array.isArray(linted?.deficiencies) ? linted!.deficiencies! : [];
   return d.some((x: any) => x?.kind === "carve_out") ? "carve_out" : "lint";
+}
+
+// QB-REPAIR-2 (2026-08-27, live batch fd703575) — DETERMINISTIC MULTI-ENUM
+// REPAIR. When the only defect in a generated intake is an invented element
+// inside a top-level multi-enum / option-bearing string-array field (dpia's
+// reasons_to_conduct grew "Employment, social security & social protection
+// law (Art. 9(2)(b))" — a plausible-sounding option that does not exist),
+// dropping the invented element is a complete, safe repair: the field keeps
+// its valid elements and no model call is spent. Only top-level fields are
+// touched (no "[]." paths), and a drop that would empty a required-always
+// field is left for the model-repair path instead.
+function repairNormTokens(s: string): string[] {
+  return s.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean);
+}
+/** Map an invalid value onto a valid option ONLY when the mapping is
+ *  unambiguous: exactly one option matches case/punctuation-insensitively,
+ *  or exactly one option contains every word token of the value (the
+ *  near-miss-paraphrase shape: "Testing performed within the last 12 months"
+ *  → "Testing performed or reviewed within the last 12 months"). Anything
+ *  ambiguous returns null and is left for the model-repair path. */
+export function uniqueNearestOption(value: string, options: readonly string[]): string | null {
+  const vNorm = repairNormTokens(value).join(" ");
+  if (!vNorm) return null;
+  const eq = options.filter((o) => repairNormTokens(o).join(" ") === vNorm);
+  if (eq.length === 1) return eq[0];
+  if (eq.length > 1) return null;
+  const vTokens = repairNormTokens(value);
+  if (vTokens.length < 3) return null; // too weak a signal to call unique
+  const sub = options.filter((o) => {
+    const ot = new Set(repairNormTokens(o));
+    return vTokens.every((t) => ot.has(t));
+  });
+  return sub.length === 1 ? sub[0] : null;
+}
+export function deterministicContractRepair(tool: string, intake: any): { repaired: any; changed: boolean; notes: string[] } {
+  const contract = CONTRACT_BY_TOOL[tool];
+  const notes: string[] = [];
+  if (!contract || !intake || typeof intake !== "object") return { repaired: intake, changed: false, notes };
+  let repaired = intake;
+  for (const f of contract.fields) {
+    if (f.key.includes("[]") || f.key.includes(".")) continue;
+    if (!f.options?.length) continue;
+    const v = repaired[f.key];
+    if (f.kind === "enum") {
+      if (typeof v !== "string" || v === "" || f.options.includes(v)) continue;
+      const near = uniqueNearestOption(v, f.options);
+      if (near) {
+        notes.push(`${f.key}: replaced near-miss ${JSON.stringify(v)} with option ${JSON.stringify(near)}`);
+        repaired = { ...repaired, [f.key]: near };
+      }
+      continue;
+    }
+    if (f.kind !== "multi-enum" && f.kind !== "string-array") continue;
+    if (!Array.isArray(v)) continue;
+    const isValid = (el: unknown): boolean =>
+      typeof el === "string" &&
+      (f.options!.includes(el) || (f.kind === "string-array" && el.startsWith("Other: ")));
+    if (v.every(isValid)) continue;
+    const mapped: string[] = [];
+    const dropped: unknown[] = [];
+    for (const el of v) {
+      if (isValid(el)) { mapped.push(el as string); continue; }
+      const near = typeof el === "string" ? uniqueNearestOption(el, f.options) : null;
+      if (near && !mapped.includes(near)) {
+        notes.push(`${f.key}: replaced near-miss element ${JSON.stringify(el)} with option ${JSON.stringify(near)}`);
+        mapped.push(near);
+      } else {
+        dropped.push(el);
+      }
+    }
+    if (mapped.length === 0 && f.required === "always") {
+      notes.push(`${f.key}: no element maps to a valid option; left for model repair (required-always)`);
+      continue;
+    }
+    if (dropped.length) {
+      notes.push(`${f.key}: dropped ${dropped.length} invalid element(s): ${dropped.map((d) => JSON.stringify(d)).join(", ")}`);
+    }
+    repaired = { ...repaired, [f.key]: mapped };
+  }
+  return { repaired, changed: repaired !== intake, notes };
 }
 
 export async function screenIntake(
@@ -1784,12 +1873,34 @@ export async function screenIntake(
     }
   }
 
-  const r = validateIntake(tool, candidate);
+  let r = validateIntake(tool, candidate);
   if (r.ok) return { ok: true, intake: candidate };
+  // QB-REPAIR-2 — try the deterministic drop first; if the intake comes back
+  // clean, no model call is spent and the slot cannot near-miss again.
+  {
+    const det = deterministicContractRepair(tool, candidate);
+    if (det.changed) {
+      const r2 = validateIntake(tool, det.repaired);
+      if (r2.ok) {
+        console.warn(`[validateIntake] ${tool}: deterministically repaired — ${det.notes.join("; ")}`);
+        return { ok: true, intake: det.repaired };
+      }
+      // Partial improvement still helps the model repair converge.
+      candidate = det.repaired;
+      r = r2;
+      console.warn(`[validateIntake] ${tool}: deterministic repair partial (${det.notes.join("; ")}); remaining: ${r2.reason}`);
+    }
+  }
   console.warn(`[validateIntake] ${tool}: ${r.reason} — repairing once`);
   try {
     // PROMPT 9C item 3 — repair, not regenerate.
-    const repairGuidance = `${extraGuidance ? `${extraGuidance}\n\n` : ""}REPAIR MODE — this is not a new scenario. The object below failed contract validation: ${r.reason ?? "contract violation"}. Return this same object with the listed facts added; change nothing else. Every field not named above must come back byte-identical.\n\n${constraints}\n\nREJECTED INTAKE JSON:\n${JSON.stringify(candidate)}`;
+    // QB-REPAIR-2 (2026-08-27, live batch fd703575) — the old instruction said
+    // "with the listed facts added; change nothing else", which for an
+    // invalid-ENUM violation told the model NOT to touch the offending field:
+    // even with QB-REPAIR-1's option list in the reason, cppa-risk's retry
+    // returned the same near-miss value verbatim and the run aborted. The
+    // instruction now names the replacement case explicitly.
+    const repairGuidance = `${extraGuidance ? `${extraGuidance}\n\n` : ""}REPAIR MODE — this is not a new scenario. The object below failed contract validation: ${r.reason ?? "contract violation"}. Return this same object with each violation corrected: where a fact is missing, add it; where a field's value is "not in options", REPLACE that field's value with the closest valid option, copied VERBATIM from the valid-options list in the violation. Change nothing else. Every field not named in the violations must come back byte-identical.\n\n${constraints}\n\nREJECTED INTAKE JSON:\n${JSON.stringify(candidate)}`;
     const retry = await generateIntakes_(tool, 1, repairGuidance, variant);
     const r2 = retry[0] ? validateIntake(tool, retry[0]) : { ok: false, reason: "regeneration returned no item" };
     if (r2.ok) return { ok: true, intake: retry[0] };

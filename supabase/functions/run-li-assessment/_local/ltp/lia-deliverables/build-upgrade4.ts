@@ -26,6 +26,7 @@ import {
   OPT_OUT_CONDITIONAL,
   OPT_OUT_UNAVAILABLE,
   OPT_OUT_UNCONDITIONAL,
+  OPT_OUT_UNCONDITIONAL_NEGATED,
   RELATIONSHIP_CATEGORIES,
   SPECULATIVE_LEXICON,
   row,
@@ -469,10 +470,17 @@ export function buildAlternativesConsidered(intake: unknown): AlternativesConsid
     information_needed =
       "necessity_details.alternatives_rationale — for each alternative already listed, the reason it would not achieve the purpose, stated in terms of the outcome that would be lost.";
   } else if (count_with_rationale < alternatives.length) {
+    // FD703575-L4 — the unexplained alternatives are NAMED HERE, not promised
+    // "below": no rendered surface sets them out individually, so the old
+    // sentence promised analysis the document never delivered. Also fixes the
+    // "1 do not" agreement error.
+    const unexplained = alternatives.filter((a) => !a.rationale_recorded).map((a) => a.alternative);
+    const nUnexplained = alternatives.length - count_with_rationale;
+    const unexplainedList = unexplained.join("; ");
     application =
-      `Of the ${alternatives.length} alternatives the record lists, ${count_with_rationale} carry a reason for inadequacy and ${alternatives.length - count_with_rationale} do not. The comparison the necessity limb requires is therefore performed for part of the field only; the alternatives left unexplained remain open and are set out individually below.`;
+      `Of the ${alternatives.length} alternatives the record lists, ${count_with_rationale} carr${count_with_rationale === 1 ? "ies" : "y"} a reason for inadequacy and ${nUnexplained} do${nUnexplained === 1 ? "es" : ""} not. The comparison the necessity limb requires is therefore performed for part of the field only; the alternative${nUnexplained === 1 ? "" : "s"} left unexplained — ${unexplainedList} — remain${nUnexplained === 1 ? "s" : ""} open on the information provided.`;
     information_needed =
-      "necessity_details.alternatives_rationale — supply the reason for inadequacy for the alternatives listed below without one.";
+      `necessity_details.alternatives_rationale — the reason for inadequacy for: ${unexplainedList}.`;
   } else if (!consent_addressed) {
     application =
       `Every alternative the record names carries a recorded reason for being inadequate, so the comparison the necessity limb requires is performed. Consent, however, is not among the alternatives addressed; where consent could realistically deliver the purpose the necessity analysis is incomplete without it.`;
@@ -661,7 +669,18 @@ export function buildScaleFrequencyDuration(intake: unknown): ScaleFrequencyDura
 // (f) potential_harms
 // ---------------------------------------------------------------------
 function severityOf(text: string): HarmSeverity {
+  // FD703575-L1 (2026-08-27) — the customer-facing vocabulary is the intake
+  // contract's own enum (POTENTIAL_HARM_OPTS, li-assessment.ts): "None /
+  // negligible" | "Minor" | "Moderate" | "Severe". The original four patterns
+  // recognised an internal vocabulary that matched only "Severe", so three of
+  // the four CONTRACT-VALID answers fell to "unstated" — producing a
+  // record_insufficient finding (and an "impact is not stated" clause) against
+  // a record that had answered the question. The mapping is the 1:1 bijection
+  // between the two four-band scales, not a re-grading.
   if (/^severe/i.test(text)) return "severe";
+  if (/^moderate/i.test(text)) return "significant";
+  if (/^minor/i.test(text)) return "limited";
+  if (/^none\b/i.test(text)) return "negligible";
   if (/^significant/i.test(text)) return "significant";
   if (/^limited/i.test(text)) return "limited";
   if (/^negligible/i.test(text)) return "negligible";
@@ -806,6 +825,7 @@ export function buildPotentialHarms(intake: unknown): PotentialHarmsFinding {
     supporting_verbatim: support.verbatim,
     status,
     ...(information_needed ? { information_needed } : {}),
+    ...(severityAnswer ? { severity_label_recorded: severityAnswer } : {}),
   };
 }
 
@@ -824,7 +844,11 @@ export function buildOptOutFeasibility(intake: unknown): OptOutFeasibilityFindin
     feasibility = "undetermined_on_the_record";
   } else if (matches(available || source, OPT_OUT_UNAVAILABLE)) {
     feasibility = "no_opt_out_available";
-  } else if (matches(source, OPT_OUT_UNCONDITIONAL)) {
+  } else if (
+    // FD703575-L3 — "unconditional" inside its own negation ("No unconditional
+    // opt-out is available") must not classify as an unconditional opt-out.
+    matches(source, OPT_OUT_UNCONDITIONAL) && !matches(source, OPT_OUT_UNCONDITIONAL_NEGATED)
+  ) {
     feasibility = "unconditional_opt_out_available";
   } else if (matches(source, OPT_OUT_CONDITIONAL)) {
     feasibility = "conditional_opt_out_available";

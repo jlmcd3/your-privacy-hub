@@ -398,6 +398,11 @@ export interface PotentialHarmsFinding extends AnalysisShape {
   readonly supporting_verbatim: string;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
+  /** FD703575-L2 — the record's own worst-case label verbatim, carried so
+   *  downstream clauses can distinguish "nothing recorded" from "recorded but
+   *  outside the severity bands" instead of claiming the impact "is not
+   *  stated" against a record that states it. */
+  readonly severity_label_recorded?: string;
 }
 
 // ── Balancing stage (g) — opt-out feasibility ────────────────────────
