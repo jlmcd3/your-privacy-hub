@@ -682,6 +682,21 @@ function buildIlDuties(
   const predates = tri(intake.retention_policy_predates_possession);
   const out: DutyFinding[] = [];
 
+  // FD703575-B2 (2026-08-27, live batch fd703575) — NEGATION-AWARE free-text
+  // reads (the DPO-negation defect class, third product). Any non-empty text
+  // in retention_schedule_text / destruction_trigger was treated as a
+  // schedule / trigger EXISTING, so a record whose own text reads "Castellan
+  // does not have a formal written biometric retention schedule" and "No
+  // automated destruction trigger is configured … tickets are often delayed
+  // or missed" concluded "this duty is met" on § 15(a) compliance (flagged
+  // HIGH). A schedule text that denies a schedule is treated as no schedule;
+  // a trigger text that denies a configured trigger degrades honestly.
+  const scheduleDenied = Boolean(schedule) &&
+    /\b(?:does not have|do(?:es)? not maintain|has no|no)\b[^.]{0,60}\bretention (?:schedule|policy)\b/i.test(schedule!);
+  const triggerDenied = Boolean(trigger) &&
+    /\bno\b[^.]{0,50}\b(?:destruction|deletion)?\s*trigger\b/i.test(trigger!);
+  const scheduleEstablished = Boolean(schedule) && !scheduleDenied;
+
   // S-B2 — § 15(a) TIMING ELEMENT. Illinois appellate authority reads the
   // policy duty as attaching at FIRST POSSESSION of biometric data, so a
   // record whose policy is complete today but was adopted after collection
@@ -689,7 +704,7 @@ function buildIlDuties(
   // cannot support a full-compliance conclusion and degrades honestly (the
   // TURN-1d MHMD pattern: an overclaim of compliance is corrected the same
   // way an overclaim of violation was).
-  const coreOk = Boolean(schedule) && isPublic === "yes";
+  const coreOk = scheduleEstablished && isPublic === "yes";
   const timingSentence = coreOk && predates === "no"
     ? " On the timing element, the record states the policy was adopted after the company first possessed biometric data; the § 15(a) duty attaches at first possession, so the period before adoption stands as a named exposure even though the policy is complete today."
     : "";
@@ -703,6 +718,8 @@ function buildIlDuties(
       ` In place since first possession of biometric data: ${predates}.`,
     (coreOk
       ? "The record describes a written retention schedule with destruction guidelines and states it is available to the public, which is what § 15(a) requires."
+      : scheduleDenied
+      ? "The schedule text the record supplies states the company does not maintain a formal written retention schedule. § 15(a) requires a written policy establishing a retention schedule and destruction guidelines, so the described practice does not satisfy it."
       : isPublic === "no"
       ? "§ 15(a) requires the policy to be made available to the public. The record states it is not."
       : schedule
@@ -711,7 +728,7 @@ function buildIlDuties(
       timingSentence,
     coreOk
       ? (predates === "unknown" ? "record_insufficient" : "satisfied")
-      : isPublic === "no"
+      : scheduleDenied || isPublic === "no"
       ? "not_satisfied"
       : "record_insufficient",
     coreOk
@@ -728,13 +745,15 @@ function buildIlDuties(
     trigger
       ? `Destruction trigger described: "${trigger}".`
       : "The record describes no destruction trigger.",
-    !schedule
-      ? "The duty to comply with an established schedule presupposes one. No schedule is documented, so compliance cannot be shown."
+    !scheduleEstablished
+      ? "The duty to comply with an established schedule presupposes one. No established schedule is documented on the record, so compliance cannot be shown."
+      : triggerDenied
+      ? "The trigger text the record supplies states no destruction trigger is configured; a discretionary manual practice is described instead. Whether destruction actually occurs on the established schedule cannot be shown on that description."
       : trigger
       ? `The record describes an operative destruction trigger, which is what compliance with the established schedule consists of on these facts. § 15(a) qualifies the duty only by a valid warrant or subpoena.`
       : "A schedule is documented, but no trigger on which destruction actually occurs is described, so compliance cannot be assessed.",
-    !schedule ? "not_satisfied" : trigger ? "satisfied" : "record_insufficient",
-    !schedule || trigger
+    !scheduleEstablished ? "not_satisfied" : (trigger && !triggerDenied) ? "satisfied" : "record_insufficient",
+    !scheduleEstablished || (trigger && !triggerDenied)
       ? undefined
       : "State the event on which biometric identifiers are actually destroyed and how that is evidenced.",
   ));

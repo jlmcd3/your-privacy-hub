@@ -338,7 +338,20 @@ function composeWashington(report: Bag, intake: Bag): string {
   if (body) parts.push(body);
   else parts.push("No RCW 19.375 duty row has been analysed on the answers given.");
   if (mhmda.length > 0) {
-    parts.push("The My Health My Data Act applies in addition, because the company's answers indicate that health data is collected or inferred.");
+    // FD703575-B1 (2026-08-27, live batch fd703575) — the lead fired on the
+    // mere EXISTENCE of MHMDA rows, asserting "the company's answers
+    // indicate that health data is collected or inferred" against a record
+    // whose health-inference answer was "No" and whose every consumer-
+    // health-data duty row said the data falls OUTSIDE the RCW 19.373.010(8)
+    // definition (flagged HIGH as an unsupported claim). The lead now reads
+    // the same answer the duty rows themselves are decided on.
+    const healthAnswer = s((intake as Bag).wa_mhmda_health_inference).toLowerCase();
+    const healthIndicated = healthAnswer.startsWith("yes");
+    parts.push(healthIndicated
+      ? "The My Health My Data Act applies in addition, because the company's answers indicate that health data is collected or inferred."
+      : healthAnswer.startsWith("no")
+      ? "The My Health My Data Act's duties are examined in addition. On the company's answers the data processed is not consumer health data as RCW 19.373.010(8) defines it; each duty below records the determination that follows."
+      : "The My Health My Data Act's duties are examined in addition; whether the data processed is consumer health data as RCW 19.373.010(8) defines it is not answered on the information provided, and each duty below is bounded accordingly.");
     parts.push(composeDutyBlock(mhmda));
   }
   return repairRegister(parts.filter(Boolean).join("\n\n"));
@@ -429,12 +442,17 @@ function composeOperativeLead(report: Bag, intake: Bag): string {
   const unresolved = asArray(c.unresolved_on_record);
   if (unlawful.length > 0) {
     // SO-FT FIX 4 (2026-08-11): name EVERY not-met duty, not just unlawful[0].
+    // FD703575-B5 (2026-08-27) — each act carries the requirement that closes
+    // it (the first sentence of the duty's own `why`), so the reader is told
+    // what remedying the duty consists of, not only its name and citation.
     const acts = unlawful
       .map((u) => {
         const duty = noStop(s(u.duty));
         const cite = s(u.citation);
         if (!duty && !cite) return "";
-        return `${duty || "the duty named above"}${cite ? ` at ${cite}` : ""}`;
+        const whyText = s(u.why);
+        const whyFirst = whyText ? (whyText.match(/^[^.!?]{1,240}[.!?]/)?.[0] ?? "").trim().replace(/[.!?]$/, "") : "";
+        return `${duty || "the duty named above"}${cite ? ` at ${cite}` : ""}${whyFirst ? ` (${whyFirst})` : ""}`;
       })
       .filter(Boolean);
     if (acts.length === 0) acts.push("the duties named above");

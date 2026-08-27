@@ -217,7 +217,21 @@ export function biometricKeyFilled(intake: unknown, key: string): boolean {
 
 type Sentence = (value: string) => string;
 
-const q = (v: string, max = 700): string => `"${v.slice(0, max)}"`;
+// FD703575-B4 (2026-08-27, live batch fd703575) — sentence-safe truncation.
+// The old hard slice cut a long description mid-sentence at the cap and the
+// carried-forward quote shipped unterminated (the batch's security section
+// dropped its final sentence and the closing punctuation mid-quote). A
+// truncated value now ends at the last complete sentence inside the cap.
+const q = (v: string, max = 700): string => {
+  const t = v.length <= max
+    ? v
+    : (() => {
+      const cut = v.slice(0, max);
+      const lastStop = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("! "), cut.lastIndexOf("? "));
+      return lastStop > 40 ? cut.slice(0, lastStop + 1) : cut;
+    })();
+  return `"${t.trim()}"`;
+};
 
 export const BIOMETRIC_KEY_SENTENCES: Readonly<Record<string, Sentence>> = {
   orgName: (v) => `The record names the organisation as ${v}.`,
@@ -227,7 +241,7 @@ export const BIOMETRIC_KEY_SENTENCES: Readonly<Record<string, Sentence>> = {
   jurisdictions: (v) => `The regimes the record puts in scope are ${v}.`,
   other_state_names: (v) => `The further states the record names are ${v}.`,
 
-  data_source_description: (v) => `The record's account of how the data is generated is carried forward: ${q(v)}`,
+  data_source_description: (v) => `The record's account of how the data is generated is carried forward: ${q(v)}.`,
   healthcare_tpo_context: (v) => `On the health-care treatment, payment and operations context the record answers ${q(v, 200)}.`,
   entity_is_government: (v) => `On whether the entity is a government body the record answers ${q(v, 120)}.`,
   glba_financial_institution: (v) => `On GLBA financial-institution status the record answers ${q(v, 120)}.`,
@@ -236,19 +250,19 @@ export const BIOMETRIC_KEY_SENTENCES: Readonly<Record<string, Sentence>> = {
   // S-B1 (doc 80, 2026-08-27) — § 15(b)(2) purpose-and-term writing.
   notice_purpose_and_term: (v) => `On whether the written notice states both the specific purpose and the length of term the record answers ${q(v, 120)}.`,
   consent_artifact_type: (v) => `The consent artefact the record names is ${q(v, 200)}.`,
-  release_artifact_description: (v) => `The record's own description of the release is carried forward: ${q(v)}`,
+  release_artifact_description: (v) => `The record's own description of the release is carried forward: ${q(v)}.`,
 
-  retention_schedule_text: (v) => `The retention schedule the record supplies is ${q(v)}`,
+  retention_schedule_text: (v) => `The retention schedule the record supplies is ${q(v)}.`,
   retention_policy_public: (v) => `On whether the policy is made available to the public the record answers ${q(v, 120)}.`,
   // S-B2 (doc 80, 2026-08-27) — § 15(a) first-possession timing.
   retention_policy_predates_possession: (v) => `On whether the policy has been in place since the company first possessed biometric data the record answers ${q(v, 120)}.`,
-  destruction_trigger: (v) => `The destruction trigger the record describes is ${q(v)}`,
+  destruction_trigger: (v) => `The destruction trigger the record describes is ${q(v)}.`,
 
   protection_parity: (v) => `On protecting biometric data to at least the standard applied to other confidential information the record answers ${q(v, 120)}.`,
   sells_or_profits: (v) => `On sale, lease, trade or other profit from biometric data the record answers ${q(v, 120)}.`,
-  security_measures_description: (v) => `The security measures the record describes are carried forward: ${q(v)}`,
+  security_measures_description: (v) => `The security measures the record describes are carried forward: ${q(v)}.`,
 
-  disclosure_recipients: (v) => `The disclosure recipients the record names are ${q(v)}`,
+  disclosure_recipients: (v) => `The disclosure recipients the record names are ${q(v)}.`,
   disclosure_bases: (v) => `The disclosure bases the record selects are ${v}.`,
 
   tx_destruction_within_one_year: (v) => `On destruction within one year of purpose expiry the record answers ${q(v, 120)}.`,
