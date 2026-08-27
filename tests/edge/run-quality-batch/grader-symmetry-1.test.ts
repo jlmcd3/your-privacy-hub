@@ -6,7 +6,6 @@ import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.t
 import {
   applyDeterministicPenalties,
   weightedOverall,
-  BUILD_STAMP,
 } from "../../../supabase/functions/run-quality-batch/index.ts";
 
 const base = {
@@ -63,5 +62,14 @@ Deno.test("GPT grader budget is 5000 (parity with Claude) and truncation is logg
   assert(src.includes("gpt_response_truncated"));
   // Union reconciliation replaced the Claude-walk join.
   assert(src.includes("UNION RECONCILIATION"));
-  assert(BUILD_STAMP.startsWith("grader-symmetry-1@"));
+  // The BUILD_STAMP.startsWith("grader-symmetry-1@") check that used to sit
+  // here is removed (2026-08-27 dead-trip-wire sweep), not relaxed: BUILD_
+  // STAMP is ONE export for the entire 2000+ line index.ts, bumped by every
+  // landing that touches the file — it was never going to durably say
+  // "grader-symmetry-1" once a later, unrelated landing renamed it (it is
+  // now "chunk-safe-intakes@prompt8g-2026-08-12", and no other test in the
+  // fleet maintains a "current landing name" pin for this constant either).
+  // The three asserts above already verify GRADER-SYM-1's actual functional
+  // content directly; nothing is lost by dropping a check that could only
+  // ever have meant "was this the single most recent commit to this file".
 });
