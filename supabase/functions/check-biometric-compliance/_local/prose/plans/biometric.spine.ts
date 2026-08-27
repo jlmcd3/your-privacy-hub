@@ -22,7 +22,10 @@
 //                   Authorities). Never printed unless the composer supplies
 //                   deterministic content for it.
 
-export const BIOMETRIC_SKELETON_VERSION = "prose-plans-2026-08-10-item-so6";
+// S-B5 (doc 80, 2026-08-27) bumped from prose-plans-2026-08-10-item-so6:
+// the state_specific section gained the unregistered-named-jurisdictions
+// conditional block (honest-posture parity).
+export const BIOMETRIC_SKELETON_VERSION = "prose-plans-2026-08-27-sb5";
 export const BIOMETRIC_SKELETON_SOURCE_FILE =
   "Biometric_Privacy_Checker_Skeleton_v3.docx (CEO-corrected 2026-08-10: six paragraph edits, eight unsourced slots dropped)";
 export const BIOMETRIC_SKELETON_PROVENANCE =
@@ -110,6 +113,11 @@ export const BIOMETRIC_SKELETON_SECTIONS: readonly BiometricSkeletonSection[] = 
       { kind: "conditional", text: "[CONDITIONAL] TEXAS - trigger TX: the CUBI duties; the company's destruction answer {txDestruction}, attributed." },
       { kind: "conditional", text: "[CONDITIONAL] WASHINGTON - trigger WA: the RCW 19.375 enrolment duties; the My Health My Data Act addressed where the answers indicate health inference." },
       { kind: "conditional", text: "[CONDITIONAL] OTHER STATES - named statutes only, per the registered-jurisdiction rule; an unresolved state is addressed by naming the statutes the company should evaluate, never by a generic instruction to confirm applicable law." },
+      // S-B5 (doc 80, 2026-08-27) — honest-posture parity: a NAMED enum
+      // jurisdiction with no duty registry behind it (EU/UK/CA/CO/NY/
+      // Federal/Canada/AU/SG) renders an explicit scope statement, never
+      // silence; EU/UK additionally name the Art. 9 route (DPIA/LIA).
+      { kind: "conditional", text: "[CONDITIONAL] UNREGISTERED NAMED JURISDICTIONS - trigger: any selected enum jurisdiction outside the registered statutes: an explicit statement that no statutory duty is stated for it here, with the EU/UK Article 9 route named where selected." },
     ],
   },
   {

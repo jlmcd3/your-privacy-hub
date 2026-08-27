@@ -13,6 +13,7 @@
 
 import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { buildBiometricDeliverables } from "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-deliverables/build.ts";
+import { assembleBiometricSkeletonDocument } from "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-skeleton-assemble.ts";
 import { BIOMETRIC_PERFECT } from "../../../supabase/functions/_shared/golden/biometric-perfect.ts";
 
 type Bag = Record<string, unknown>;
@@ -100,6 +101,38 @@ Deno.test("S-B2 — timing unanswered on an otherwise-complete record degrades t
 Deno.test("S-B2 — the timing element never rescues a missing/unpublished policy", () => {
   const built = buildBiometricDeliverables(ilIntake({ retention_policy_public: "No", retention_policy_predates_possession: "Yes" }));
   assertEquals(duty(built, "il_bipa.15a_written_policy").verdict, "not_satisfied");
+});
+
+// S-B5 — honest-posture parity: a NAMED enum jurisdiction with no duty
+// registry renders an explicit scope statement, never silence; EU/UK name
+// the Article 9 route.
+function skeletonText(intake: Bag): string {
+  const built = buildBiometricDeliverables(intake);
+  const report: Bag = { ...built, orgName: intake.orgName };
+  const sk = assembleBiometricSkeletonDocument(report as Bag, intake);
+  return JSON.stringify(sk);
+}
+
+Deno.test("S-B5 — a selected EU jurisdiction yields an explicit scope statement naming the Article 9 route", () => {
+  const intake = ilIntake({ jurisdictions: ["Illinois, USA (BIPA)", "EU / EEA (GDPR)"] });
+  const text = skeletonText(intake);
+  assertStringIncludes(text, "no statutory duty is stated here for the EU/EEA (GDPR)");
+  assertStringIncludes(text, "special category under Article 9");
+  assertStringIncludes(text, "legitimate interests assessment");
+});
+
+Deno.test("S-B5 — every named unregistered jurisdiction is listed, non-GDPR selections get no Art. 9 sentence", () => {
+  const intake = ilIntake({ jurisdictions: ["Illinois, USA (BIPA)", "New York, USA (SHIELD)", "Singapore (PDPA)"] });
+  const text = skeletonText(intake);
+  assertStringIncludes(text, "New York (SHIELD Act)");
+  assertStringIncludes(text, "Singapore (PDPA)");
+  assert(!text.includes("special category under Article 9"), "Art. 9 sentence must render only when EU/UK is selected");
+});
+
+Deno.test("S-B5 — Wave-1-only selections render no unregistered-jurisdictions block", () => {
+  const intake = ilIntake(); // IL + TX + WA only
+  const text = skeletonText(intake);
+  assert(!text.includes("Beyond the registered statutes"), "block must be absent when every selection is registered");
 });
 
 // S-B4 — the 14/20(b)/(c) accrual rules are now corpus-backed; the BIPA

@@ -356,6 +356,47 @@ function composeOtherStates(report: Bag, intake: Bag): string {
   );
 }
 
+// S-B5 (doc 80, 2026-08-27) — HONEST-POSTURE PARITY. Every named enum
+// jurisdiction WITHOUT a duty registry behind it (the intake offers nine
+// beyond Illinois/Texas/Washington) previously produced silence in the
+// document; the "Other US state" free-text path was the only selection that
+// earned an explicit scope statement. A selected jurisdiction now always
+// yields one: no statutory duty is stated for it here, and the EU/UK
+// selections name the Article 9 route (the DPIA and Legitimate Interests
+// Assessment products) rather than leaving the reader with nothing.
+const UNREGISTERED_JURISDICTION_LABELS: Record<string, string> = {
+  "EU / EEA (GDPR)": "the EU/EEA (GDPR)",
+  "United Kingdom (UK GDPR)": "the United Kingdom (UK GDPR)",
+  "California, USA (CCPA/CPRA)": "California (CCPA/CPRA)",
+  "Colorado, USA (CPA)": "Colorado (CPA)",
+  "New York, USA (SHIELD)": "New York (SHIELD Act)",
+  "United States — Federal (FTC)": "US federal law (FTC Act Section 5)",
+  "Canada (PIPEDA / provincial)": "Canada (PIPEDA and provincial law)",
+  "Australia (Privacy Act)": "Australia (Privacy Act 1988)",
+  "Singapore (PDPA)": "Singapore (PDPA)",
+};
+
+function composeUnregisteredJurisdictions(intake: Bag): string {
+  const selected = arr(intake.jurisdictions)
+    .filter((j) => Object.prototype.hasOwnProperty.call(UNREGISTERED_JURISDICTION_LABELS, j));
+  if (selected.length === 0) return "";
+  const labels = selected.map((j) => UNREGISTERED_JURISDICTION_LABELS[j]);
+  const list = asProse(labels);
+  const euUk = selected.some((j) => /GDPR/.test(j));
+  const parts: string[] = [
+    `Beyond the registered statutes. The company has also named ${list}. The duty tables of this assessment apply its registered jurisdictions only, so no statutory duty is stated here for ${list}.`,
+  ];
+  if (euUk) {
+    parts.push(
+      "For the EU/EEA and the United Kingdom, biometric data processed to uniquely identify a person is a special category under Article 9 GDPR and UK GDPR; that analysis belongs to a data protection impact assessment and, where legitimate interests is relied on, a legitimate interests assessment, each of which is its own assessment on this platform.",
+    );
+  }
+  parts.push(
+    "The company should evaluate the biometric and data-protection rules of each named jurisdiction before extending the programme there.",
+  );
+  return repairRegister(parts.join(" "));
+}
+
 function composeSecurityLead(report: Bag): string {
   const rows = dutyRows(report).filter((r) => SECURITY_DUTY.test(`${s(r.key)} ${s(r.label)}`));
   if (rows.length === 0) {
@@ -475,6 +516,8 @@ export function assembleBiometricSkeletonDocument(report: Bag, intakeInput: Bag)
     "state_specific:1": composeTexas(report, intake, values),
     "state_specific:2": composeWashington(report, intake),
     "state_specific:3": composeOtherStates(report, intake),
+    // S-B5 — honest-posture parity for named unregistered jurisdictions.
+    "state_specific:4": composeUnregisteredJurisdictions(intake),
 
     "security_retention:0": composeSecurityLead(report),
     "security_retention:2": composeSecurityBody(report, values),
