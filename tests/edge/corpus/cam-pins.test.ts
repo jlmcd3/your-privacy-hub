@@ -12,8 +12,16 @@ import { ADMT_CORPUS_MAP } from "../../../supabase/functions/run-admt-checker-v2
 import { DPIA_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/dpia-corpus-map.ts";
 import { CYBER_CORPUS_MAP } from "../../../supabase/functions/run-cppa-cybersecurity/_local/corpus/maps/cyber-corpus-map.ts";
 import { LIA_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/lia-corpus-map.ts";
+import { NOTICES_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/notices-corpus-map.ts";
 
-const MAPS: readonly CorpusMap[] = [RISK_CORPUS_MAP, ADMT_CORPUS_MAP, DPIA_CORPUS_MAP, CYBER_CORPUS_MAP, LIA_CORPUS_MAP];
+const MAPS: readonly CorpusMap[] = [
+  RISK_CORPUS_MAP,
+  ADMT_CORPUS_MAP,
+  DPIA_CORPUS_MAP,
+  CYBER_CORPUS_MAP,
+  LIA_CORPUS_MAP,
+  NOTICES_CORPUS_MAP,
+];
 
 for (const map of MAPS) {
   Deno.test(`${map.product}: every pinned_excerpt is a substring of its snapshot row`, async () => {

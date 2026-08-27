@@ -16,6 +16,7 @@ import {
   CYBER_PROCEDURAL_FACTORS,
 } from "../../../supabase/functions/run-cppa-cybersecurity/_local/corpus/maps/cyber-corpus-map.ts";
 import { LIA_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/lia-corpus-map.ts";
+import { NOTICES_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/notices-corpus-map.ts";
 
 // All maps landed so far.
 const MAPS: readonly CorpusMap[] = [
@@ -24,6 +25,7 @@ const MAPS: readonly CorpusMap[] = [
   DPIA_CORPUS_MAP,
   CYBER_CORPUS_MAP,
   LIA_CORPUS_MAP,
+  NOTICES_CORPUS_MAP,
 ];
 
 Deno.test("mapInvariants: empty map is trivially valid", () => {
@@ -210,6 +212,20 @@ Deno.test("lia: L2 posture — 4 live AP + 1 live AOW on S5, everything else dar
   }
   assertEquals(LIA_CORPUS_MAP.s4_ratification, undefined);
   assertEquals(LIA_CORPUS_MAP.s2_ratification, undefined);
+});
+
+Deno.test("notices: groundwork-audit posture — 13 AQ rows, all dark (no s2_ratification), zero FC/AP/SB/AOW", () => {
+  const aq = NOTICES_CORPUS_MAP.rows.filter((r) => r.role === "AQ");
+  const other = NOTICES_CORPUS_MAP.rows.filter((r) => r.role !== "AQ");
+  assertEquals(NOTICES_CORPUS_MAP.rows.length, 13);
+  assertEquals(aq.length, 13);
+  assertEquals(other.length, 0);
+  for (const r of NOTICES_CORPUS_MAP.rows) {
+    assertEquals(r.render_eligible, false, r.id);
+    assertEquals(r.logic_bearing, false, r.id);
+  }
+  assertEquals(NOTICES_CORPUS_MAP.s4_ratification, undefined);
+  assertEquals(NOTICES_CORPUS_MAP.s2_ratification, undefined);
 });
 
 Deno.test("LIA_CORPUS_MAP: every factor_id matches the ratified LIA_FACTOR_VOCABULARY (doc 58 §1)", async () => {

@@ -129,7 +129,12 @@ export interface CorpusMap {
   // LIA Conversion L-CA (2026-08-25) widens the union by one member, same
   // law as the phase-2 `render_eligible: boolean` widening above: additive,
   // scoped by mapInvariants, no other member's behavior changes.
-  readonly product: "cppa-risk" | "cppa-admt" | "dpia" | "cppa-cyber" | "lia";
+  // Notices groundwork audit (2026-08-26, doc 61 §1.1 / CMP-B8) widens the
+  // union again for the same reason: an AQ-only map, authored in full,
+  // every row dark (no s2_ratification stamp) — banking the manifest→CAM
+  // wrap CMP-B8 ratified, per the render-readiness law's "author now, wire
+  // never before the product's own Conversion" rule (doc 48 §II.6).
+  readonly product: "cppa-risk" | "cppa-admt" | "dpia" | "cppa-cyber" | "lia" | "notices";
   readonly map_version: string; // "<product>-cam-vN-YYYY-MM-DD"
   readonly snapshot_file: string; // the fixture this map pins against
   readonly rows: readonly CamRow[];
