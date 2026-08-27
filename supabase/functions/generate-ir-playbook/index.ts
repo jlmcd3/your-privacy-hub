@@ -39,6 +39,16 @@ import {
 } from "../_shared/ir/test-states.ts";
 import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, generationTimeoutMs, stampGenerationModel } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
 import { recordApiUsage } from "../_shared/api-usage.ts"; // PROPOSAL 2026-08-11 — main-generation cost visibility
+// IR CONVERSION (doc 15) — the customer document has rendered exclusively
+// from report_data.skeleton_document since the SO-7 wire-in (2026-08-10);
+// playbook_text has been vestigial for every row generated since. This flag
+// retires the three-call model monolith + its repair chain + the critic/
+// verifier refinement pass; when true, playbook_text is instead derived
+// from the (already-computed-regardless) skeleton's own rendered text.
+// Unlike DPA/Governance's cutover flags, flipping this one changes NO
+// customer-facing byte — it only stops paying for a generation nobody reads.
+import { skeletonDocumentToText } from "../_shared/prose/skeleton-render.ts";
+const IR_DETERMINISTIC_ENABLED = (Deno.env.get("IR_DETERMINISTIC_ENABLED") ?? "false") === "true";
 
 const IR_IDENTITY = `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.`;
 
@@ -1420,6 +1430,17 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
         }
 
 
+        // IR CONVERSION — outer-scoped so both branches below can populate
+        // them; everything after this point (typed builders, corpus/exhibit,
+        // finalize battery, emit gate, skeleton assembly) already reads
+        // report_data/body directly, never playbook_text, so it is UNCHANGED
+        // by which branch runs.
+        let assembled: { playbook_text: string; parsedAnnotations: any[] };
+        let playbook_text: string;
+        let parsedAnnotations: any[];
+        let lintWarnings: any[];
+
+        if (!IR_DETERMINISTIC_ENABLED) {
         let partA = "";
         let partB = "";
         let partC = "";
@@ -1446,7 +1467,7 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           return;
         }
 
-        const assembled = assembleFromHalves(partA, partB, partC);
+        assembled = assembleFromHalves(partA, partB, partC);
         assembled.playbook_text = stripSection4DeferralNotes(assembled.playbook_text);
         // QB11-2(a): collapse a mandated deferral note that was emitted twice in
         // immediate succession (identical sentence, optionally separated by whitespace
@@ -1525,11 +1546,11 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
         }
         lintBareCitations(assembled.playbook_text);
         const lint = lintReportText(assembled.playbook_text);
-        const lintWarnings: any[] = [];
+        lintWarnings = [];
         for (const v of lint.violations) lintWarnings.push(v);
-let playbook_text = lint.clean;
+playbook_text = lint.clean;
         let cal1D1HardReplacements = 0;
-        const parsedAnnotations = assembled.parsedAnnotations;
+        parsedAnnotations = assembled.parsedAnnotations;
 
         // R1b2 post-check gate — T-2/T-3/T-4 for the IR playbook. Log-only detection
         // (no regeneration) because the tool topology diverges from the R1b1 single-call
@@ -1832,9 +1853,15 @@ let playbook_text = lint.clean;
         } catch (e) {
           console.warn("[IR Playbook] logPostGenLint threw (non-fatal):", e);
         }
-
-
-
+        } else {
+          // IR CONVERSION — deterministic path: no model call, nothing to
+          // repair or lint. playbook_text is set below, after skeleton
+          // assembly, to the skeleton's own rendered text.
+          assembled = { playbook_text: "", parsedAnnotations: [] };
+          playbook_text = "";
+          parsedAnnotations = [];
+          lintWarnings = [];
+        }
 
 
         const portals = body.jurisdictions
@@ -1978,6 +2005,11 @@ let playbook_text = lint.clean;
         // SKIPPED fail-open with full telemetry accounting
         // (`_refinement.skipped_reason`) — the deterministic battery, the
         // fail-closed gate and the persist all still run.
+        //
+        // IR CONVERSION — this whole pass exists to critique/splice the
+        // model's playbook_text; there is nothing to refine when the
+        // deterministic path never generated any.
+        if (!IR_DETERMINISTIC_ENABLED)
         try {
           const { runIrRefinement, irSkippedTelemetry } = await import("./_local/ltp/ir-refinement.ts");
           const { makeIrRefinementDeps, IR_REFINEMENT_ENABLED } = await import(
@@ -2086,6 +2118,11 @@ let playbook_text = lint.clean;
             (body ?? {}) as unknown as Record<string, unknown>,
           );
           (report_data as any).skeleton_document = sk.document;
+          // IR CONVERSION — the DB column, run-meter version diffing, and
+          // the observe-only citation lint all read `playbook_text`; on the
+          // deterministic path there is no model text, so this gives them
+          // the skeleton's own rendered text instead of an empty string.
+          if (IR_DETERMINISTIC_ENABLED) playbook_text = skeletonDocumentToText(sk.document);
           console.log(JSON.stringify({
             evt: "ir_skeleton_assembled", fn: "generate-ir-playbook", rowId,
             stamp: IR_SKELETON_ASSEMBLER_STAMP,
