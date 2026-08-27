@@ -1550,8 +1550,17 @@ function validateIntake(tool: string, intake: any): { ok: boolean; reason?: stri
   if (contract) {
     const res = validateAgainstContract(contract, intake ?? {});
     if (!res.ok) {
+      // QB-REPAIR-1 (2026-08-27, live batch 510a9953) — a repair retry only
+      // ever sees this `reason` string (screenIntake's REPAIR MODE prompt
+      // splices it verbatim). Without the field's actual allowed values, the
+      // model has no way to converge on an exact-match answer and repeats
+      // the same near-miss paraphrase, aborting the run. Append the option
+      // list whenever the violation carries one.
       const head = res.violations.slice(0, 4)
-        .map(v => `${v.key}: ${v.reason}`).join("; ");
+        .map(v => v.options?.length
+          ? `${v.key}: ${v.reason} (valid options: ${v.options.map(o => JSON.stringify(o)).join(", ")})`
+          : `${v.key}: ${v.reason}`)
+        .join("; ");
       const more = res.violations.length > 4 ? ` (+${res.violations.length - 4} more)` : "";
       return { ok: false, reason: `contract: ${head}${more}` };
     }

@@ -32,6 +32,18 @@ const ALLOWED_TOPLEVEL_EXTRAS = new Set<string>([
 export interface Violation {
   key: string;
   reason: string;
+  /**
+   * QB-REPAIR-1 (2026-08-27) — the field's own allowed-value set, when the
+   * violation is an enum/multi-enum/string-array mismatch. A synthetic-intake
+   * repair retry that only sees the REJECTED value and never the actual
+   * allowed strings has no way to converge on an exact-match answer — a
+   * near-miss paraphrase (e.g. "Testing performed within the last 12 months"
+   * for the real option "Testing performed or reviewed within the last 12
+   * months") fails identically on the retry, aborting the whole run (live
+   * batch 510a9953, 2026-08-27, cppa-risk). Carrying the option list lets a
+   * caller build a repair prompt that actually names the fix.
+   */
+  options?: readonly string[];
 }
 
 export interface ValidateResult {
@@ -90,7 +102,7 @@ function checkField(intake: Record<string, unknown>, f: IntakeField, out: Violat
     for (const v of values) {
       if (v === undefined || v === "" || v === null) continue;
       if (typeof v !== "string" || !f.options.includes(v)) {
-        out.push({ key: f.key, reason: `enum value ${JSON.stringify(v)} not in options` });
+        out.push({ key: f.key, reason: `enum value ${JSON.stringify(v)} not in options`, options: f.options });
       }
     }
   } else if (f.kind === "multi-enum" && f.options) {
@@ -102,7 +114,7 @@ function checkField(intake: Record<string, unknown>, f: IntakeField, out: Violat
       }
       for (const el of v) {
         if (typeof el !== "string" || !f.options.includes(el)) {
-          out.push({ key: f.key, reason: `multi-enum element ${JSON.stringify(el)} not in options` });
+          out.push({ key: f.key, reason: `multi-enum element ${JSON.stringify(el)} not in options`, options: f.options });
         }
       }
     }
@@ -123,7 +135,11 @@ function checkField(intake: Record<string, unknown>, f: IntakeField, out: Violat
           continue;
         }
         if (f.options && !f.options.includes(el) && !el.startsWith("Other: ")) {
-          out.push({ key: f.key, reason: `string-array key "${f.key}" element ${JSON.stringify(el)} not in options and not an "Other: …" fold-in` });
+          out.push({
+            key: f.key,
+            reason: `string-array key "${f.key}" element ${JSON.stringify(el)} not in options and not an "Other: …" fold-in`,
+            options: f.options,
+          });
         }
       }
     }

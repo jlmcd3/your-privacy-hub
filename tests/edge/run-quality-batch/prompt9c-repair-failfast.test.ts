@@ -7,6 +7,7 @@ import {
 } from "../../../supabase/functions/run-quality-batch/index.ts";
 
 import { DPIA_GOLDEN } from "../../../supabase/functions/_shared/golden/dpia.ts";
+import { CPPA_RISK_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-risk.ts";
 
 // A contract-valid dpia intake, so the lint path (not contract validation) is
 // what the repair assertions exercise.
@@ -73,6 +74,42 @@ Deno.test("9C item 4 (RE-POINTED at 12F): perfect variant stops on the kind-awar
   assertEquals(progress.rejected.length, 4);
   assertEquals(abort?.kind, "rate");
   assertStringIncludes(reasons[0] ?? "", "alternatives_considered missing");
+});
+
+// QB-REPAIR-1 (2026-08-27) — live batch 510a9953: cppa-risk's intake
+// generator produced admt_testing_facts: ["Testing performed within the
+// last 12 months"], a near-miss paraphrase of the real option "Testing
+// performed or reviewed within the last 12 months". The repair retry
+// (screenIntake's own internal contract-violation path, not the lint path
+// the tests above exercise) named the bad value but never the allowed set,
+// so the model repeated the same near-miss and the whole run aborted. This
+// pins the fix: the repair guidance now carries the field's actual options.
+Deno.test("QB-REPAIR-1: contract-violation repair guidance names the field's actual allowed options", async () => {
+  // Otherwise-complete/valid intake — only admt_testing_facts is wrong,
+  // matching the live shape (a single near-miss paraphrase, not a mass of
+  // missing-required violations burying it out of the reason string's
+  // first-4 window).
+  const rejected = {
+    ...(CPPA_RISK_GOLDEN[0].intake as Record<string, unknown>),
+    admt_testing_facts: ["Testing performed within the last 12 months"],
+  };
+  const prompts: string[] = [];
+  const repaired = await screenIntake(
+    "cppa-risk",
+    rejected,
+    () => null, // no lint rejection — the contract path is what's under test
+    undefined,
+    async (_t, _n, guidance) => {
+      prompts.push(guidance ?? "");
+      // Simulate the model repeating the exact same near-miss on retry —
+      // the failure mode actually observed live.
+      return [rejected];
+    },
+  );
+  assertEquals(repaired.ok, false);
+  assertStringIncludes(prompts[0] ?? "", "admt_testing_facts");
+  assertStringIncludes(prompts[0] ?? "", "valid options:");
+  assertStringIncludes(prompts[0] ?? "", "Testing performed or reviewed within the last 12 months");
 });
 
 Deno.test("9C item 4: non-perfect variants keep the full-count behaviour", async () => {
