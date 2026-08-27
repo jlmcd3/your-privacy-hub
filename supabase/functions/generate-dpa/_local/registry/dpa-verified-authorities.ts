@@ -1,7 +1,13 @@
 // DPA-REGISTRY-AUTHORING (2026-07-25) — generate-dpa verified-authority registry.
 //
-// Authoring-only turn: this module is DATA and is NOT imported by any generator
-// this turn. Wiring is queued as DPA-REGISTRY-WIRING (mirror of items 51/55/56).
+// STALE-HEADER FIX (2026-08-26, groundwork audit): this module WAS authoring-only
+// data as of 2026-07-25, but DPA-REGISTRY-WIRING landed the same day (mirroring
+// items 51/55/56) — see `_w1_dpa_wire.ts`, which imports DPA_VERIFIED_AUTHORITIES
+// directly and is itself dynamically imported by `generate-dpa/index.ts` (two call
+// sites, first-pass and retry). This registry IS live-wired and has been since
+// 2026-07-25; the "NOT imported by any generator this turn" line above was never
+// updated after wiring shipped. Confirmed live in code this session (doc
+// 78-NEXTONES-CORPUS-AUDIT.md §6 flagged the same drift independently).
 //
 // Row shape follows lia-verified-authorities.ts / dpia-verified-authorities.ts /
 // governance-verified-authorities.ts exactly. See
