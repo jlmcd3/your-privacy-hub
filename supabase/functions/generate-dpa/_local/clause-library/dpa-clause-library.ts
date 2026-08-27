@@ -23,6 +23,25 @@
 
 export type DpaMode = "gdpr" | "uk" | "us-state" | "canada" | "dual-eu-us" | "dual-eu-ca";
 
+/**
+ * DOC-81 D-1 — the modes the deterministic assembler may serve. The GDPR
+ * skeleton's Art. 28 citations are correct law only for the GDPR family;
+ * us-state and canada stay on the model path until citation-native section
+ * sets are drafted and ratified as their own landing.
+ */
+export const DPA_DETERMINISTIC_MODES: readonly DpaMode[] = ["gdpr", "uk", "dual-eu-us", "dual-eu-ca"];
+
+/**
+ * DOC-81 D-2 — the UK GDPR substitutes "domestic law" for the EU text's
+ * "Union or Member State law" (Art. 28(3)(a)/(g)). Applied by the assembler
+ * to every clause when mode === "uk"; the longer phrase is replaced first.
+ */
+export function ukDomesticLawVariant(text: string): string {
+  return text
+    .replace(/Union or Member State data protection provisions/g, "domestic data protection provisions")
+    .replace(/Union or Member State law/g, "domestic law");
+}
+
 export interface DpaClauseSection {
   /** Matches _shared/grader/format-checks.ts DPA_REQUIRED_SECTIONS order. */
   readonly heading: string;
@@ -47,7 +66,7 @@ const GDPR_SECTIONS: readonly DpaClauseSection[] = [
     clauses: [
       `2.1 "Personal Data", "processing", "controller", "processor", "data subject", "personal data breach" and "supervisory authority" have the meanings given to them in {frameworkCitation}.`,
       `2.2 "Sub-processor" means any processor engaged by the Processor to process Personal Data on behalf of the Controller in connection with the Services.`,
-      `2.3 "DPA" means this Data Processing Agreement. Supervisory bodies are referred to as "supervisory authority" written out; the abbreviation refers only to this agreement.`,
+      `2.3 "DPA" means this Data Processing Agreement and is not used to refer to any data protection authority; supervisory bodies are referred to in full as "supervisory authority".`,
     ],
   },
   {
@@ -65,7 +84,7 @@ const GDPR_SECTIONS: readonly DpaClauseSection[] = [
       `4.2 (Confidentiality — Art. 28(3)(b).) The Processor shall ensure that persons authorised to process the Personal Data have committed themselves to confidentiality or are under an appropriate statutory obligation of confidentiality.`,
       `4.3 (Security — Art. 28(3)(c).) The Processor shall take all measures required pursuant to Article 32 of {frameworkCitation}, and in particular shall implement and maintain the technical and organisational measures set out in Annex C (Technical and Organisational Measures).`,
       `4.4 (Sub-processing conditions — Art. 28(3)(d).) The Processor shall respect the conditions referred to in Article 28(2) and 28(4) of {frameworkCitation} for engaging a Sub-processor, as set out in Section 5.`,
-      `4.5 (Records of instructions.) The Processor shall keep records of the Controller's documented instructions for the duration of this DPA and for a period of at least three (3) years thereafter, or such longer period as is required by applicable law.`,
+      `4.5 (Records of instructions.) The Processor shall keep records of the Controller's documented instructions for the duration of this DPA and for a period of at least [3] years thereafter, or such longer period as is required by applicable law.`,
       `4.6 (Instruction infringement notice.) The Processor shall immediately inform the Controller if, in its opinion, an instruction infringes {frameworkCitation} or other Union or Member State data protection provisions.`,
     ],
   },
@@ -74,21 +93,21 @@ const GDPR_SECTIONS: readonly DpaClauseSection[] = [
     clauses: [
       `{subprocessorAuthorisationClause}`,
       `5.2 (Flow-down — Art. 28(4).) Where the Processor engages a Sub-processor, the Processor shall impose on that Sub-processor, by way of a contract, the same data protection obligations as set out in this DPA, in particular providing sufficient guarantees to implement appropriate technical and organisational measures. Where the Sub-processor fails to fulfil its data protection obligations, the Processor remains fully liable to the Controller for the performance of that Sub-processor's obligations.`,
-      `5.3 (Sub-processor records.) The Processor shall keep records of its due diligence on each Sub-processor for the duration of this DPA and for a period of at least three (3) years thereafter, or such longer period as is required by applicable law.`,
+      `5.3 (Sub-processor records.) The Processor shall keep records of its due diligence on each Sub-processor for the duration of this DPA and for a period of at least [3] years thereafter, or such longer period as is required by applicable law.`,
     ],
   },
   {
     heading: "6. DATA SUBJECT RIGHTS",
     clauses: [
       `6.1 (Assistance — Art. 28(3)(e).) Taking into account the nature of the processing, the Processor shall assist the Controller by appropriate technical and organisational measures, insofar as this is possible, for the fulfilment of the Controller's obligation to respond to requests for exercising the data subject's rights under Chapter III of {frameworkCitation}.`,
-      `6.2 The Processor shall notify the Controller within five (5) business days upon receiving any data subject request directly, and shall not respond to such a request except on the Controller's documented instructions.`,
+      `6.2 The Processor shall notify the Controller within five (5) business days of receiving any data subject request directly, and shall not respond to such a request except on the Controller's documented instructions.`,
     ],
   },
   {
     heading: "7. SECURITY",
     clauses: [
       `7.1 (Assistance with Articles 32 to 36 — Art. 28(3)(f).) Taking into account the nature of the processing and the information available to the Processor, the Processor shall assist the Controller in ensuring compliance with the obligations pursuant to Articles 32 to 36 of {frameworkCitation}.`,
-      `7.2 (Breach notification.) The Processor shall notify the Controller of a personal data breach without undue delay after becoming aware of it, and in any event within forty-eight (48) hours, or within such shorter period as is necessary to enable the Controller to notify the supervisory authority within 72 hours under Article 33(1) of {frameworkCitation} if that period would be insufficient. The notification shall describe the nature of the breach, the categories and approximate number of data subjects and records concerned, the likely consequences, and the measures taken or proposed to be taken by the Processor to address the breach and mitigate its possible adverse effects.`,
+      `7.2 (Breach notification.) The Processor shall notify the Controller of a personal data breach without undue delay after becoming aware of it, and in any event within [48] hours, or within such shorter period as is necessary to enable the Controller to notify the supervisory authority within 72 hours under Article 33(1) of {frameworkCitation} if that period would be insufficient. The notification shall describe the nature of the breach, the categories and approximate number of data subjects and records concerned, the likely consequences, and the measures taken or proposed to be taken by the Processor to address the breach and mitigate its possible adverse effects.`,
       `7.3 The operative security baseline is Annex C. {tomsSourceSentence}`,
     ],
   },
@@ -109,7 +128,7 @@ const GDPR_SECTIONS: readonly DpaClauseSection[] = [
     heading: "10. AUDITS AND DEMONSTRATION OF COMPLIANCE",
     clauses: [
       `10.1 (Art. 28(3)(h).) The Processor shall make available to the Controller all information necessary to demonstrate compliance with the obligations laid down in Article 28 of {frameworkCitation}, and shall allow for and contribute to audits, including inspections, conducted by the Controller or another auditor mandated by the Controller. The audit arrangement the Parties have recorded is: {auditRights}.`,
-      `10.2 The Processor shall immediately inform the Controller if, in its opinion, an instruction given under clause 10.1 infringes {frameworkCitation} or other Union or Member State data protection provisions.`,
+      `10.2 With regard to the information and audit rights in this Section 10, the Processor shall immediately inform the Controller if, in its opinion, an instruction infringes {frameworkCitation} or other applicable data protection provisions.`,
       `{dpoRepresentationClause}`,
     ],
   },
@@ -146,26 +165,28 @@ export function frameworkCitationFor(mode: DpaMode): string {
 export const US_REQUIRED_TERMS_SECTION: DpaClauseSection = {
   heading: "12. PROHIBITED PROCESSING AND CCPA REQUIRED TERMS",
   clauses: [
+    // DOC-81 D-7 — role mapping and defined citations for the CCPA terms.
+    `12.0 For the purposes of this Section 12, the Controller is a "Business" and the Processor is a "Service Provider" as those terms are defined in Cal. Civ. Code § 1798.140; "the CCPA" means Cal. Civ. Code §§ 1798.100 et seq. (Title 1.81.5, as amended by the CPRA) and "the CCPA regulations" means the regulations at Cal. Code Regs. tit. 11, § 7000 et seq.`,
     // 7051(a)(1) + 100(d)(1)
     `12.1 The Processor is prohibited from selling or sharing Personal Data. The Personal Data is disclosed by the Controller only for the limited and specified purposes set out in Annex B, and the Processor shall not sell and shall not share Personal Data for any purpose.`,
     // 7051(a)(2)-(5)
-    `12.2 The Processor shall not retain, use, or disclose Personal Data for any purpose other than the specific business purposes set out in Annex B; shall not use Personal Data for any commercial purpose other than those business purposes except as permitted by the regulations; and shall not use Personal Data outside the direct business relationship between the Parties, including by combining it with personal information received from another source, except as permitted by the regulations.`,
+    `12.2 The Processor shall not retain, use, or disclose Personal Data for any purpose other than the specific business purposes set out in Annex B; shall not use Personal Data for any commercial purpose other than those business purposes except as permitted by the CCPA regulations; and shall not use Personal Data outside the direct business relationship between the Parties, including by combining it with personal information received from another source, except as permitted by the CCPA regulations.`,
     // 100(d)(2) + 7051(a)(6)
-    `12.3 The Processor shall comply with all applicable obligations under the CCPA/CPRA and its regulations, shall provide the same level of privacy protection as the title requires of the Controller, and shall implement reasonable security procedures and practices appropriate to the nature of the Personal Data.`,
+    `12.3 The Processor shall comply with all applicable obligations under the CCPA and the CCPA regulations, shall provide the same level of privacy protection as the CCPA requires of the Controller, and shall implement reasonable security procedures and practices appropriate to the nature of the Personal Data.`,
     // 100(d)(3) + 7051(a)(7)
-    `12.4 The Controller may take reasonable and appropriate steps to help ensure that the Processor uses Personal Data in a manner consistent with the Controller's obligations, including ongoing manual reviews, automated scans, and regular internal or third-party audits at least once every 12 months.`,
+    `12.4 The Controller may take reasonable and appropriate steps to help ensure that the Processor uses Personal Data in a manner consistent with the Controller's obligations, including ongoing manual reviews, automated scans, and regular internal or third-party audits at least once every [12] months.`,
     // 100(d)(4) + 7051(a)(8)
-    `12.5 The Processor shall notify the Controller if it makes a determination that it can no longer meet its obligations under the CCPA/CPRA or its regulations.`,
+    `12.5 The Processor shall notify the Controller if it makes a determination that it can no longer meet its obligations under the CCPA or the CCPA regulations.`,
     // 100(d)(5) + 7051(a)(9)
     `12.6 Upon notice, including under clause 12.5, the Controller may take reasonable and appropriate steps to stop and remediate unauthorized use of Personal Data, and the Processor shall provide documentation verifying deletion where deletion is required.`,
     // 7051(a)(10)
-    `12.7 The Processor shall enable the Controller to comply with consumer requests made pursuant to the CCPA/CPRA, or shall provide the information necessary for the Controller to comply, and shall notify the Controller within five (5) business days of receiving any consumer request directly.`,
+    `12.7 The Processor shall enable the Controller to comply with consumer requests made pursuant to the CCPA, or shall provide the information necessary for the Controller to comply, and shall notify the Controller within five (5) business days of receiving any consumer request directly.`,
   ],
 };
 
 /** Canada mode swaps the Art. 28 skeleton's citations for the PIPEDA frame. */
 export const CANADA_ACCOUNTABILITY_CLAUSES: readonly string[] = [
-  `4.A (Accountability — PIPEDA Schedule 1, Principle 1; Quebec Law 25, s. 18.3 where engaged.) The Controller remains accountable for Personal Data transferred to the Processor, and this DPA is the written contract specifying the measures the Processor must take to protect it.`,
+  `4.7 (Accountability — PIPEDA Schedule 1, Principle 1; Quebec Private Sector Act (CQLR c. P-39.1), s. 18.3, as amended by Law 25, where engaged.) The Controller remains accountable for Personal Data transferred to the Processor, and this DPA is the written contract specifying the measures the Processor must take to protect it.`,
 ];
 
 // ── Slot-dependent clause builders (pure; the assembler calls these) ───────
@@ -177,7 +198,11 @@ export function subprocessorAuthorisationClause(model: "general" | "specific", n
   if (model === "specific") {
     return `5.1 (Specific authorisation — Art. 28(2).) The Processor shall not engage or replace any Sub-processor without the Controller's prior specific written authorisation obtained before the engagement commences. Annex D lists the Sub-processors already so authorised.`;
   }
-  return `5.1 (General authorisation — Art. 28(2).) The Controller grants a general authorisation limited to the Sub-processors listed in Annex D. The Processor shall inform the Controller in writing at least ${noticeDays} days before any intended addition or replacement of a Sub-processor, thereby giving the Controller the opportunity to object within 15 days of the notice; the Processor shall not proceed over an unresolved objection.`;
+  // DOC-81 D-10 (as amended by the CEO): the notice period is floored at 15
+  // days so the objection window can never outrun it; the window itself
+  // renders bracketed as a negotiable default.
+  const days = Math.max(15, noticeDays);
+  return `5.1 (General authorisation — Art. 28(2).) The Controller grants a general authorisation limited to the Sub-processors listed in Annex D. The Processor shall inform the Controller in writing at least ${days} days before any intended addition or replacement of a Sub-processor, thereby giving the Controller the opportunity to object within [15] days of the notice; the Processor shall not proceed over an unresolved objection.`;
 }
 
 export function dpoRepresentationClause(mode: DpaMode): string {
@@ -196,7 +221,7 @@ export function transferClause(opts: {
   }
   const mech = String(opts.transferMechanism ?? "").trim();
   if (!mech || /none in place yet/i.test(mech)) {
-    return `8.1 The processing involves a transfer of Personal Data for which the Parties have recorded that no transfer mechanism is currently in place. The transfer shall not commence until an appropriate safeguard is executed: [TO BE COMPLETED: the transfer mechanism to be put in place before any transfer commences]. The clause carries the mechanism as outstanding rather than asserting cover the record does not establish.`;
+    return `8.1 The processing involves a transfer of Personal Data for which the Parties have recorded that no transfer mechanism is currently in place. The transfer shall not commence until an appropriate safeguard is executed: [TO BE COMPLETED: the transfer mechanism to be put in place before any transfer commences].`;
   }
   return `8.1 Transfers of Personal Data to a third country are made under the following recorded mechanism, executed with each recipient before any transfer to that recipient commences: ${mech}. Annex B identifies the destination and the categories transferred; the Parties shall keep the mechanism's annexes populated and current.`;
 }
@@ -207,8 +232,11 @@ export function governingLawClause(controllerJurisdiction: string): string {
   if (/^united kingdom$|^uk$|^england/i.test(cj)) {
     return `this DPA is governed by the laws of England and Wales, and the courts of England and Wales have exclusive jurisdiction.`;
   }
-  if (/^united states|^us$|federal/i.test(cj)) {
-    return `this DPA is governed by the laws of the State of Delaware, without regard to its conflict-of-laws principles (the parties should confirm whether a different state is preferred, particularly if either party's principal place of business or state of incorporation is in another state), and the courts of the State of Delaware or federal courts sitting in Delaware have exclusive jurisdiction.`;
+  // DOC-81 D-4 — placeholder-neutrality: no suggested state, no advisory
+  // parenthetical inside operative text; the regex is anchored so "federal"
+  // cannot match mid-string.
+  if (/^(united states( of america)?|usa?)$|^federal$/i.test(cj)) {
+    return `this DPA is governed by the laws of [TO BE COMPLETED: the U.S. state whose law will govern], without regard to its conflict-of-laws principles, and the courts of that state (or federal courts sitting there) have exclusive jurisdiction.`;
   }
   return `this DPA is governed by the law of ${cj}, and the courts of ${cj} have exclusive jurisdiction.`;
 }
@@ -217,12 +245,13 @@ export function roleRecitalClause(services: string, processorName: string): stri
   const s = String(services ?? "");
   const risky = /(adtech|programmatic|data broker|enrichment|model training|machine learning|social media platform)/i.test(s);
   if (!risky) return "";
-  return `1.4 The Parties acknowledge that the role characterisation of ${processorName} as a processor under GDPR Article 28 has been assumed for the purposes of this DPA on the basis that ${processorName} processes Personal Data only on the Controller's documented instructions for the Services described herein; further clarification is advisable.`;
+  return `1.4 The Parties acknowledge that the role characterisation of ${processorName} as a processor under GDPR Article 28 has been assumed for the purposes of this DPA on the basis that ${processorName} processes Personal Data only on the Controller's documented instructions for the Services described herein; the Parties will review this characterisation if the Services change.`;
 }
 
 export function frameworkBaselineClause(mode: DpaMode, controllerJurisdiction: string, processorJurisdiction: string): string {
   if (mode !== "gdpr" && mode !== "dual-eu-us" && mode !== "dual-eu-ca") return "";
-  const eea = /austria|belgium|bulgaria|croatia|cyprus|czech|denmark|estonia|finland|france|germany|greece|hungary|ireland|italy|latvia|lithuania|luxembourg|malta|netherlands|poland|portugal|romania|slovakia|slovenia|spain|sweden|iceland|liechtenstein|norway|united kingdom|uk/i;
+  // DOC-81 D-8 — "uk" is word-bounded so "Ukraine" cannot match it.
+  const eea = /austria|belgium|bulgaria|croatia|cyprus|czech|denmark|estonia|finland|france|germany|greece|hungary|ireland|italy|latvia|lithuania|luxembourg|malta|netherlands|poland|portugal|romania|slovakia|slovenia|spain|sweden|iceland|liechtenstein|norway|united kingdom|\buk\b/i;
   if (eea.test(controllerJurisdiction) || eea.test(processorJurisdiction)) return "";
   return `1.5 Although neither Party is currently established in the EEA or the UK and the EU GDPR does not, on its face, engage, this DPA adopts the GDPR Article 28(3) framework as its contractual baseline standard; its GDPR-derived provisions apply as contractual obligations between the Parties, and additionally as statutory obligations if and to the extent the processing comes within the scope of the EU GDPR or UK GDPR (including under Article 3(2)).`;
 }

@@ -10,6 +10,7 @@ import {
   checkDpaCompleteness,
   type DpaAssembleInput,
 } from "../../../supabase/functions/generate-dpa/_local/clause-library/dpa-assemble.ts";
+import { DPA_DETERMINISTIC_MODES } from "../../../supabase/functions/generate-dpa/_local/clause-library/dpa-clause-library.ts";
 import { DPA_US_REQUIRED_TERMS } from "../../../supabase/functions/generate-dpa/_local/registry/dpa-us-required-terms.ts";
 import { DPA_REQUIRED_SECTIONS } from "../../../supabase/functions/_shared/grader/format-checks.ts";
 
@@ -73,6 +74,7 @@ Deno.test("S-D1 — the S-D7 authorisation model branches; no-subprocessors gets
   const general = assembleDpaDocument(BASE).document_text;
   assertStringIncludes(general, "General authorisation");
   assertStringIncludes(general, "at least 30 days before");
+  assertStringIncludes(general, "object within [15] days");
   const specific = assembleDpaDocument({ ...BASE, subprocessorAuthorizationModel: "specific" }).document_text;
   assertStringIncludes(specific, "prior specific written authorisation");
   assert(!specific.includes("General authorisation"));
@@ -103,7 +105,7 @@ Deno.test("S-D1 — engaged-California us-state mode carries every S-D3 required
     "7051a4_no_commercial_purpose": "commercial purpose other than",
     "7051a5_direct_relationship": "outside the direct business relationship",
     "7051a6_compliance_security": "reasonable security procedures and practices",
-    "7051a7_audit_rights": "at least once every 12 months",
+    "7051a7_audit_rights": "at least once every [12] months",
     "7051a8_notify_cannot_comply": "can no longer meet its obligations",
     "7051a9_stop_remediate_delete": "documentation verifying deletion",
     "7051a10_consumer_requests": "enable the Controller to comply with consumer requests",
@@ -133,9 +135,26 @@ Deno.test("S-D1 — no unfilled slots survive into any mode's document", () => {
   }
 });
 
+Deno.test("DOC-81 D-1 — the deterministic mode gate covers exactly the GDPR-family modes", () => {
+  assertEquals([...DPA_DETERMINISTIC_MODES].sort(), ["dual-eu-ca", "dual-eu-us", "gdpr", "uk"]);
+});
+
+Deno.test("DOC-81 D-2 — UK mode substitutes domestic law for Union or Member State law", () => {
+  const t = assembleDpaDocument({ ...BASE, documentType: "uk" }).document_text;
+  assertStringIncludes(t, "unless required to do so by domestic law");
+  assertStringIncludes(t, "other domestic data protection provisions");
+  assert(!/Union or Member State/.test(t));
+});
+
 Deno.test("S-D1 — the flag defaults false and the index branch exists (model path untouched otherwise)", () => {
   const src = Deno.readTextFileSync(new URL("../../../supabase/functions/generate-dpa/index.ts", import.meta.url));
   assertStringIncludes(src, 'Deno.env.get("DPA_DETERMINISTIC_ENABLED") ?? "false"');
-  assertStringIncludes(src, "if (DPA_DETERMINISTIC_ENABLED) {");
+  assertStringIncludes(src, "if (dpaDeterministicPath) {");
   assertStringIncludes(src, "assembleDpaDocument({");
+});
+
+Deno.test("DOC-81 A-2 — the deterministic path fails loud on a hard lint violation, never falls back to a model call", () => {
+  const src = Deno.readTextFileSync(new URL("../../../supabase/functions/generate-dpa/index.ts", import.meta.url));
+  assertStringIncludes(src, "if (dpaDeterministicPath && hasHardViolations(lint)) {");
+  assertStringIncludes(src, "deterministic_dpa_lint:");
 });

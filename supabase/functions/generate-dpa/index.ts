@@ -12,6 +12,7 @@ import { renderUsRequiredTermsBlock } from "./_local/registry/dpa-us-required-te
 // dark behind DPA_DETERMINISTIC_ENABLED (default false; CEO flips at deploy
 // after the clause-library redline). The LIA/Cyber cutover pattern exactly.
 import { assembleDpaDocument } from "./_local/clause-library/dpa-assemble.ts";
+import { DPA_DETERMINISTIC_MODES } from "./_local/clause-library/dpa-clause-library.ts";
 
 const DPA_DETERMINISTIC_ENABLED = (Deno.env.get("DPA_DETERMINISTIC_ENABLED") ?? "false") === "true";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -1470,7 +1471,13 @@ ${ADVISORY_VOICE_RULES}`;
     // S-D1 — deterministic path: the clause library + annex assembler, zero
     // model calls, byte-deterministic. The model path below is UNCHANGED
     // while the flag is false.
-    if (DPA_DETERMINISTIC_ENABLED) {
+    // DOC-81 D-1 — deterministic assembly serves the GDPR-family modes only;
+    // us-state and canada stay on the model path until citation-native
+    // section sets are drafted and ratified (the GDPR skeleton's Art. 28
+    // citations are wrong law for those frameworks).
+    const dpaDeterministicPath = DPA_DETERMINISTIC_ENABLED &&
+      (DPA_DETERMINISTIC_MODES as readonly string[]).includes(documentType);
+    if (dpaDeterministicPath) {
       const _rawDays = body.subprocessorChangeNoticePeriod;
       const _days = typeof _rawDays === "number" ? _rawDays : Number.parseInt(String(_rawDays ?? "").trim(), 10);
       const assembled = assembleDpaDocument({
@@ -1517,7 +1524,14 @@ ${ADVISORY_VOICE_RULES}`;
 
     let parsed = parseDpa(fullText);
     // IR-HF1 T4 — deterministic sub-processor framework suppression BEFORE lint.
-    const subprocSup1 = suppressSubProcessorFramework(parsed.dpa_text, !!body.hasSubProcessors);
+    // DOC-81 A-5 follow-on — this is a MODEL-OUTPUT repair pass: on the
+    // deterministic path the clause library already drafts the no-sub-
+    // processor position honestly (clause 5.1 + Annex D), and the pass's
+    // unconditional fallback would otherwise APPEND its literal to every
+    // assembled no-sub-processor document. Ratified bytes are not repaired.
+    const subprocSup1 = dpaDeterministicPath
+      ? { text: parsed.dpa_text, suppressed: false }
+      : suppressSubProcessorFramework(parsed.dpa_text, !!body.hasSubProcessors);
     parsed = { ...parsed, dpa_text: subprocSup1.text } as typeof parsed;
     let lint = lintReportText(parsed.dpa_text, { checkClauseNumbering: true });
     // REBUILD-DPA T2/T3/T5 — deterministic net: speculative modules,
@@ -1744,6 +1758,14 @@ ${ADVISORY_VOICE_RULES}`;
     // Post-persist lint repair (non-fatal). If hard violations exist, attempt
     // one regeneration and update the row with repaired text on success. On
     // failure, keep the already-persisted document with its lint warnings.
+    // DOC-81 A-2 — the retry below is a MODEL regeneration. On the
+    // deterministic path a hard violation means the ratified clause text
+    // itself (or a detector) changed underneath us: fail loud, never fall
+    // back to unratified model prose under a flag flipped to prevent it.
+    if (dpaDeterministicPath && hasHardViolations(lint)) {
+      const details = lint.violations.map((v) => `${v.code}: ${v.detail}`).join("; ");
+      throw new Error(`deterministic_dpa_lint: assembled document tripped hard lint violations — ${details}`);
+    }
     if (hasHardViolations(lint)) {
       try {
         const details = lint.violations.map((v) => `${v.code}: ${v.detail}`).join("; ");

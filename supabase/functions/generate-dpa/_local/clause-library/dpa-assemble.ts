@@ -23,6 +23,7 @@ import {
   roleRecitalClause,
   subprocessorAuthorisationClause,
   transferClause,
+  ukDomesticLawVariant,
   US_REQUIRED_TERMS_SECTION,
 } from "./dpa-clause-library.ts";
 import { renderTomsBlock, resolveTomsSelection } from "../registry/dpa-toms-taxonomy.ts";
@@ -82,7 +83,7 @@ function annexB(input: DpaAssembleInput): string {
     `Categories of data subjects: [TO BE COMPLETED: categories of data subjects]`,
     `Retention: ${s(input.retention) || "[TO BE COMPLETED: retention period or criteria]"}`,
     input.includeTransferClause
-      ? `Transfer destination(s): [TO BE COMPLETED: country/region where processing occurs]`
+      ? `Transfer destination(s): [TO BE COMPLETED: destination country/region]`
       : `Transfers: none recorded across the engaged jurisdictions or onward to a third country.`,
   ].join("\n");
 }
@@ -148,6 +149,9 @@ export function assembleDpaDocument(input: DpaAssembleInput): DpaAssembledDocume
   for (const sec of baseSections()) {
     const body = sec.clauses
       .map((c) => fillSlots(c, slots))
+      // DOC-81 D-2 — UK GDPR's own wording: "domestic law", not the EU
+      // text's "Union or Member State law".
+      .map((c) => (mode === "uk" ? ukDomesticLawVariant(c) : c))
       .map((c) => c.trim())
       .filter(Boolean)
       .join("\n");
@@ -168,7 +172,9 @@ export function assembleDpaDocument(input: DpaAssembleInput): DpaAssembledDocume
   const annexes = [annexA(input), annexB(input), annexC(input), annexD(input)].join("\n\n");
   const document_text = [
     ...sections.map((x) => `${x.heading}\n${x.body}`),
-    "[SIGNATURE-EXECUTION]\nIN WITNESS WHEREOF, the Parties have executed this DPA by their duly authorised representatives.\nController: ______________________  Date: ________\nProcessor: ______________________  Date: ________",
+    // DOC-81 A-1 — a plain heading, not a bracketed internal token: nothing
+    // downstream consumes such a marker, so it would print verbatim.
+    "EXECUTION\nIN WITNESS WHEREOF, the Parties have executed this DPA by their duly authorised representatives.\nController: ______________________  Date: ________\nProcessor: ______________________  Date: ________",
     annexes,
   ].join("\n\n");
 
@@ -184,8 +190,10 @@ export function checkDpaCompleteness(doc: DpaAssembledDocument): string[] {
     "Return or Deletion", "Term and Termination",
   ];
   const headings = doc.sections.map((x) => x.heading.toLowerCase());
+  // DOC-81 A-3 — match the full required phrase: first-word needles let a
+  // missing "Data Processing" section pass on "Data Transfers".
   for (const r of REQUIRED) {
-    const needle = r.toLowerCase().split(" ")[0];
+    const needle = r.toLowerCase();
     if (!headings.some((h) => h.includes(needle))) problems.push(`missing required section: ${r}`);
   }
   if (/\{[a-zA-Z]+\}/.test(doc.document_text)) {
