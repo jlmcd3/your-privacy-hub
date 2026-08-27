@@ -927,7 +927,7 @@ function buildHtml(d: AssembledData): string {
 
 // ── DOCX ────────────────────────────────────────────────────────────────────
 
-function p(text: string, opts: { bold?: boolean; size?: number; heading?: HeadingLevel } = {}) {
+function p(text: string, opts: { bold?: boolean; size?: number; heading?: (typeof HeadingLevel)[keyof typeof HeadingLevel] } = {}) {
   return new Paragraph({
     heading: opts.heading,
     children: [new TextRun({ text, bold: opts.bold, size: opts.size })],
