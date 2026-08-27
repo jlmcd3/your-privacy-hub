@@ -126,7 +126,22 @@ export function buildNoticeHtml(
   const sharing = answerString(answers["third_party_sharing"]);
   const thirdParties = answerString(answers["third_party_categories"]) || "—";
   const sale = answerString(answers["sale_or_sharing"]);
-  const retention = answerString(answers["retention_general"]) || "Not specified";
+  // S-N3 (doc 80, 2026-08-27) — 11 CCR § 7012(e)(4): disclose the retention
+  // PERIOD or, where a period is not possible, the CRITERIA used to
+  // determine it. The old `|| "Not specified"` fallback shipped a notice
+  // that satisfies neither limb; now the criteria answer fills in when no
+  // period is stated, and a wholly-unanswered record renders a visible
+  // missing-input warning (California names the regulation) rather than a
+  // silent "Not specified".
+  const retentionPeriod = answerString(answers["retention_general"]).trim();
+  const retentionCriteria = answerString(answers["retention_criteria"]).trim();
+  const retentionHtml = retentionPeriod
+    ? `<p>${escapeHtml(retentionPeriod)}</p>`
+    : retentionCriteria
+    ? `<p>We are not able to state a single fixed retention period for every category of personal information. The criteria we use to determine how long each category is retained: ${escapeHtml(retentionCriteria)}</p>`
+    : state.framework_type === "ccpa"
+    ? `<p style="background:#fdf3e7;border:1px solid #d97706;padding:0.75rem;border-radius:0.375rem;"><strong>&#9888; Retention disclosure missing.</strong> California regulation 11 CCR &sect; 7012(e)(4) requires this notice to state the length of time each category of personal information is retained or, if that is not possible, the criteria used to determine the period. Supply the retention period or the criteria before publishing this notice.</p>`
+    : `<p>The retention period has not been stated in the record. Stating the period for each category of personal information, or the criteria used to determine it, is recommended before publishing this notice.</p>`;
 
   // INTAKE-1: controller-supplied appeals mechanism (Va. Code § 59.1-577(C)
   // and state analogues). Absent on legacy records -> empty string, so the
@@ -240,7 +255,7 @@ export function buildNoticeHtml(
   }
 
   <h2>4. How long we keep your information</h2>
-  <p>${escapeHtml(retention)}</p>
+  ${retentionHtml}
 
   <h2>5. Your rights</h2>
   ${state.framework_type === "ccpa"

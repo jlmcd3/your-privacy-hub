@@ -151,6 +151,19 @@ export const UNIVERSAL_US_NOTICE_QUESTIONS: Question[] = [
     type: "date_or_period",
     isRequired: false,
   },
+  // S-N3 (doc 80, 2026-08-27) — the 11 CCR § 7012(e)(4) fallback limb: where
+  // a fixed period cannot be stated, the notice must disclose the CRITERIA
+  // used to determine the retention period instead. Without this answer, a
+  // record with no fixed period renders a visible missing-disclosure warning
+  // on the California notice rather than a silent "Not specified".
+  {
+    key: "retention_criteria",
+    text: "If you can't state a fixed retention period, what criteria determine how long personal data is kept?",
+    whyWeAsk:
+      "California regulation 11 CCR § 7012(e)(4) requires the notice to state the retention period or, if that is not possible, the criteria used to determine it — for example, \"as long as the account remains active, plus the limitation period for contract claims.\"",
+    type: "text_long",
+    isRequired: false,
+  },
   {
     key: "tools_used",
     text: "Which of these tools or platforms does your website or app use?",

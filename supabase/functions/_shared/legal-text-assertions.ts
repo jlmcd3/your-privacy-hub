@@ -35,7 +35,11 @@ export const US_NOTICE_LEGAL_TEXT_ASSERTIONS: LegalTextAssertion[] = [
   // Response window ("respond within 45 days") + authorized-agent + extension mechanics from § 1798.130.
   { citation: "Cal. Civ. Code " + SECTION + " 1798.130", mustContain: ["45 days", "authorized agent", "extension"] },
   { citation: "11 CCR " + SECTION + " 7011", mustContain: ["privacy policy", "authorized agent"] },
-  { citation: "11 CCR " + SECTION + " 7012", mustContain: ["privacy policy", "sensitive personal information"] },
+  // S-N3 (doc 80, 2026-08-27) — the § 7012(e)(4) retention rule the US
+  // notice now implements: a stated period, OR the criteria used to
+  // determine it. The phrase below is verbatim from the live
+  // cppa_authorities row (verified 2026-08-27).
+  { citation: "11 CCR " + SECTION + " 7012", mustContain: ["privacy policy", "sensitive personal information", "criteria used to determine the period"] },
 ];
 
 // ---------------------------------------------------------------------------
