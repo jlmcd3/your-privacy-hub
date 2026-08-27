@@ -174,6 +174,13 @@ Deno.test("item412b defect a the repair never touches a reference passage", () =
 });
 
 Deno.test("item412b stamp the item412b pins", () => {
-  assertEquals(BIOMETRIC_PIPELINE_STAMP, "biometric-pipeline@item412d-2026-08-08");
+  // RETARGETED 2026-08-26 (Biometric Conversion groundwork audit) — see the
+  // identical note in tests/edge/item412d/stress-shape-parity.test.ts: the
+  // SO-6 skeleton landing (2026-08-10) intentionally rebumped
+  // BIOMETRIC_PIPELINE_STAMP; this test's literal was never updated to
+  // follow it. Internal `_meta.internal` telemetry only, never
+  // customer-facing. BIOMETRIC_PROSE_GOLD_VERSION is untouched by SO-6 and
+  // still pins correctly.
+  assertEquals(BIOMETRIC_PIPELINE_STAMP, "biometric-pipeline@item-so6-2026-08-10");
   assertEquals(BIOMETRIC_PROSE_GOLD_VERSION, "biometric-prose-gold-2026-08-08-item412b");
 });

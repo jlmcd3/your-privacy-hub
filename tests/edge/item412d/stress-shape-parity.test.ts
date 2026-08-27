@@ -161,5 +161,14 @@ Deno.test("item412d pre-fix stress shape orphans duty_findings (direction proof)
 });
 
 Deno.test("item412d stamp is item412d", () => {
-  assertEquals(BIOMETRIC_PIPELINE_STAMP, "biometric-pipeline@item412d-2026-08-08");
+  // RETARGETED 2026-08-26 (Biometric Conversion groundwork audit): the
+  // item412d-2026-08-08 literal this test originally pinned was superseded
+  // when the SO-6 skeleton landed on 2026-08-10 (biometric.spine.ts's own
+  // BIOMETRIC_SKELETON_VERSION moved to "prose-plans-2026-08-10-item-so6" at
+  // the same time), which intentionally rebumped this internal telemetry
+  // stamp to "biometric-pipeline@item-so6-2026-08-10" — this test's literal
+  // was simply never updated to match. Confirmed by reading the SO-6 landing
+  // diff directly, not assumed. Purely an internal `_meta.internal` stamp,
+  // never customer-facing, so this is a canary re-pin, not a weakened check.
+  assertEquals(BIOMETRIC_PIPELINE_STAMP, "biometric-pipeline@item-so6-2026-08-10");
 });

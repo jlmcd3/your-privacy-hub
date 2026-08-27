@@ -164,5 +164,10 @@ Deno.test("item412c telemetry carries the leaf_guard_rejected bucket with full a
 });
 
 Deno.test("item412c the stamp is item412c", () => {
-  assertEquals(BIOMETRIC_PIPELINE_STAMP, "biometric-pipeline@item412d-2026-08-08");
+  // RETARGETED 2026-08-26 (Biometric Conversion groundwork audit) — see the
+  // identical note in tests/edge/item412d/stress-shape-parity.test.ts: the
+  // SO-6 skeleton landing (2026-08-10) intentionally rebumped this internal
+  // stamp; this test's literal was never updated to follow it. Internal
+  // `_meta.internal` telemetry only, never customer-facing.
+  assertEquals(BIOMETRIC_PIPELINE_STAMP, "biometric-pipeline@item-so6-2026-08-10");
 });

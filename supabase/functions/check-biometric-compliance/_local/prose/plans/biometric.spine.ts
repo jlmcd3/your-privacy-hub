@@ -39,6 +39,20 @@ export const BIOMETRIC_SKELETON_PROVENANCE =
 export const BIOMETRIC_SKELETON_CONTENT_HASH =
   "4109a6f1a562a318a44978025dadb5802534f863680b8c6ecb87eace6449c48f";
 
+/**
+ * RESTORED 2026-08-26 (Biometric Conversion groundwork audit). The 2026-08-19
+ * "Work in progress" rewrite of this file (commit fe6f68321) replaced the
+ * item409 arc-stage shape with the SO-6 skeleton shape above but dropped this
+ * constant, even though `index.ts` and `biometric-prose-gold.ts` still import
+ * it unconditionally — a module-resolution failure that would abort the
+ * entire `check-biometric-compliance` function at load time (confirmed via
+ * `deno check`: TS2305 on both consumers). Restored with its original
+ * pre-removal value/definition; this is an internal `_meta.internal` telemetry
+ * stamp only, never rendered to a customer, so restoring it changes no
+ * customer-facing byte.
+ */
+export const BIOMETRIC_PIPELINE_STAMP = "biometric-pipeline@item-so6-2026-08-10";
+
 export const BIOMETRIC_SKELETON_TITLE = "BIOMETRIC PRIVACY COMPLIANCE ASSESSMENT";
 export const BIOMETRIC_SKELETON_SUBTITLE =
   "A multi-state review, prepared for {organizationName} - statute-as-template";
