@@ -1042,13 +1042,20 @@ export const PRICING = {
 
 // Included-generations feature — canonical marketing copy. Use these constants
 // everywhere the feature is mentioned; never restate the mechanics ad hoc.
-export const INCLUDED_GENERATIONS_SHORT = "4 generations included";
+//
+// SOFTENED 2026-08-27: revisions are gated off (VITE_REVISIONS_ENABLED=false,
+// see src/lib/revisionGate.ts), so the Refine panel and RunMeterBar hide the
+// revision affordance. Copy therefore promises the initial report generation
+// only. RESTORE the "4 generations — initial report plus up to 3 revisions at
+// no extra cost" wording once the Revision Contract program ships and the flag
+// flips true. Do NOT flip the flag to fix copy.
+export const INCLUDED_GENERATIONS_SHORT = "Initial report generation included";
 export const INCLUDED_GENERATIONS_COPY =
-  "Includes 4 generations — refine your answers and regenerate up to 3 times at no extra cost.";
+  "Includes your initial report generation. Revisions are temporarily disabled while we ship the Revision Contract program — use the free Errata channel for verbatim corrections in the meantime.";
 // Pre-intake redesign (2026-08-26): the hero support line used on product
 // pages. Same mechanics as INCLUDED_GENERATIONS_COPY, phrased for the hero.
 export const INCLUDED_GENERATIONS_HERO =
-  "4 generations included — one initial report plus up to 3 revisions at no extra cost.";
+  "Your initial report generation is included. Revisions are temporarily disabled — free Errata channel available for verbatim corrections.";
 
 export type ToolKey = keyof typeof PRICING.tools;
 

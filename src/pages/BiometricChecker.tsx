@@ -260,7 +260,7 @@ export default function BiometricChecker() {
           <p className="text-slate-300 text-lg max-w-3xl">
             A per-jurisdiction read on your biometric processing — obligations under Illinois, Texas, Washington, EU/UK, and other regimes. Cited enforcement decisions sit behind every priority action.
           </p>
-          <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">Includes 4 generations: your initial report plus up to 3 revisions at no extra cost.</p>
+          <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">{INCLUDED_GENERATIONS_COPY}</p>
           <ToolCTABlock
             toolSlug="biometric"
             hasAccess={Boolean(access.isPremium)}
