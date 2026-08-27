@@ -262,7 +262,13 @@ export function buildInterestLegitimacy(intake: unknown): InterestLegitimacyFind
     "The three conditions are cumulative. A condition recorded as not met, or left open, is not offset by the other two; the first limb of Article 6(1)(f) fails or remains unresolved until that condition is answered.";
 
   const application =
-    `${lc(std.verbatim) ? `The Guidelines put the test cumulatively: ${std.verbatim} ` : ""}Run condition by condition over what this record states, the first condition is ${liaVerdictLabel(sub_tests[0].verdict)}, the second is ${liaVerdictLabel(sub_tests[1].verdict)}, and the third is ${liaVerdictLabel(sub_tests[2].verdict)}. ${cumulative_note} On that basis the first limb of Article 6(1)(f) is recorded as: ${liaVerdictLabel(verdict)}.`;
+    // QB-REPAIR-3 (2026-08-27) — live batch 510a9953 flagged this sentence
+    // as rubric_internal_reasoning_leak and rubric_generic_boilerplate
+    // (LLM graders read "Run condition by condition" as a leaked imperative
+    // instruction, not customer-facing prose). The content was always
+    // deterministic; only the imperative voice was the defect. Reworded to
+    // a declarative statement of record — no other change.
+    `${lc(std.verbatim) ? `The Guidelines put the test cumulatively: ${std.verbatim} ` : ""}Taken condition by condition on what this record states, the first condition is ${liaVerdictLabel(sub_tests[0].verdict)}, the second is ${liaVerdictLabel(sub_tests[1].verdict)}, and the third is ${liaVerdictLabel(sub_tests[2].verdict)}. ${cumulative_note} On that basis the first limb of Article 6(1)(f) is recorded as: ${liaVerdictLabel(verdict)}.`;
 
   return {
     standard: std.verbatim || basis.verbatim,
@@ -367,7 +373,28 @@ export function buildBenefitAndBeneficiary(intake: unknown): BenefitAndBeneficia
 // NECESSITY STAGE
 // =====================================================================
 
-/** Splits a free-text alternatives entry into alternative -> rationale rows. */
+/** Splits a free-text alternatives entry into alternative -> rationale rows.
+ *
+ * QB-REPAIR-4 (2026-08-27) — live batch 510a9953: three separate LIA
+ * documents were flagged rubric_unsupported_business_claim for stating
+ * "Of the 9 alternatives the record lists…" / "6 alternatives…" /
+ * "8 alternatives…" when the intake plainly named 3, 2, and 3 respectively.
+ * Root cause: the sentence-boundary fallback split (added for prose that
+ * lists alternatives without newlines) splits on EVERY ". " + capital-letter
+ * boundary, so a single alternative's multi-sentence rationale ("Manual
+ * route logging — highly error-prone. It also does not scale beyond ten
+ * drivers.") fragments into one real alternative plus one bogus
+ * rationale_recorded:false entry per extra sentence, inflating the count
+ * 2-3x. A fragment that fails the "label — reason" match (`m` below) is far
+ * more often a continuation of the PRECEDING alternative's rationale than a
+ * genuinely new, unexplained alternative — a real bare-label alternative
+ * (no reason at all) is what the newline/semicolon-delimited primary case
+ * already handles cleanly. So: a non-matching fragment merges into the
+ * previous entry's why_inadequate instead of becoming its own alternative;
+ * only a non-matching fragment with no preceding entry (the first line of
+ * the field) still starts a new bare-label alternative, preserving the
+ * existing "alternatives listed with zero reasons" branch below.
+ */
 function parseAlternatives(text: string): AlternativeConsidered[] {
   if (!text) return [];
   const lines = text
@@ -385,6 +412,12 @@ function parseAlternatives(text: string): AlternativeConsidered[] {
         why_inadequate: m[2].trim(),
         rationale_recorded: true,
       });
+    } else if (out.length > 0) {
+      const prev = out[out.length - 1];
+      // Merge into the preceding entry's reason when it has one; a
+      // continuation of a bare label (no reason recorded at all) is
+      // dropped rather than promoted into its own spurious alternative.
+      if (prev.why_inadequate) out[out.length - 1] = { ...prev, why_inadequate: `${prev.why_inadequate} ${line}` };
     } else {
       out.push({ alternative: line.replace(/[.,;]$/, ""), why_inadequate: "", rationale_recorded: false });
     }
