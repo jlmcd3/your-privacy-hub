@@ -49,6 +49,8 @@ import * as XLSX from "https://esm.sh/xlsx@0.18.5";
 //     correct corpus table for a GDPR product.
 // Neither mechanism may be edited to make a statutory claim the other denies.
 import { ROPA_LEGAL_TEXT_ASSERTIONS } from "../_shared/legal-text-assertions.ts";
+// S-P2 (doc 80, 2026-08-27) — the Article 30(5) informational note.
+import { art305NoteHtml } from "./register/art305-note.ts";
 export const LEGAL_TEXT_ASSERTIONS = ROPA_LEGAL_TEXT_ASSERTIONS;
 
 import {
@@ -873,6 +875,8 @@ function buildHtml(d: AssembledData): string {
   </table>
   <p class="footer-note">This record is maintained pursuant to <strong>Article 30</strong> of the General Data Protection Regulation (GDPR) and UK GDPR, which requires controllers and processors to maintain records of processing activities. It satisfies the requirements of:</p>
   <ul>${lawList}</ul>
+
+  ${art305NoteHtml(d.activities, d.answersByActivity as Record<string, Record<string, unknown>>, escapeHtml)}
 
   <h2>2. Processing activities</h2>
   ${activitySections || "<p><em>No activities recorded.</em></p>"}
