@@ -108,6 +108,45 @@ export function usDraftBannerHtml(missing: string[]): string {
 </div>`;
 }
 
+
+// S-N4 (doc 80, 2026-08-27) — the "Key points" first layer. Captures the
+// value of the ICO/WP260 layered-notice structure in the one-document form:
+// a deterministic summary block atop the notice, every line derived from
+// the SAME answers as the body (single writer — no re-stated free text)
+// and anchor-linked to the full section it summarises (the § 7012
+// jump-to-the-specific-disclosure principle applied in-document).
+export function buildKeyPointsHtml(answers: Record<string, unknown>): string {
+  const categories = answerString(answers["data_categories"]).trim();
+  const purposes = answerString(answers["collection_purposes"]).trim();
+  const sharing = answerString(answers["third_party_sharing"]).trim();
+  const thirdParties = answerString(answers["third_party_categories"]).trim();
+  const sale = answerString(answers["sale_or_sharing"]).trim();
+  const retentionPeriod = answerString(answers["retention_general"]).trim();
+  const retentionCriteria = answerString(answers["retention_criteria"]).trim();
+  const contactEmail = answerString(answers["contact_email"]).trim();
+
+  const sells = sale === "sell_and_share" || sale === "sell_only" || sale === "share_only";
+  const items: string[] = [];
+  if (categories) items.push(`<li><a href="#sec-collect">What we collect:</a> ${escapeHtml(categories)}</li>`);
+  if (purposes) items.push(`<li><a href="#sec-use">Why:</a> ${escapeHtml(purposes)}</li>`);
+  items.push(sharing === "yes" && thirdParties
+    ? `<li><a href="#sec-share">Who receives it:</a> ${escapeHtml(thirdParties)}</li>`
+    : `<li><a href="#sec-share">Who receives it:</a> service providers working for us; no third parties for their own use except as the sharing section describes</li>`);
+  items.push(sells
+    ? `<li><a href="#sec-rights">Sale or sharing:</a> we sell or share personal information as described below; you can opt out</li>`
+    : `<li><a href="#sec-rights">Sale or sharing:</a> we do not sell or share personal information for cross-context behavioral advertising</li>`);
+  if (retentionPeriod) items.push(`<li><a href="#sec-retain">How long:</a> ${escapeHtml(retentionPeriod)}</li>`);
+  else if (retentionCriteria) items.push(`<li><a href="#sec-retain">How long:</a> determined by the criteria stated in the retention section</li>`);
+  if (contactEmail) items.push(`<li><a href="#sec-contact">Your rights:</a> know, access, correct, delete, and opt out where applicable — contact ${escapeHtml(contactEmail)}</li>`);
+
+  if (items.length === 0) return "";
+  return `<section style="background:#edf2f5;border:1px solid #dde5ea;border-radius:0.5rem;padding:0.9rem 1.25rem;margin:1.25rem 0;">
+  <p style="margin:0 0 0.4rem 0;font-weight:600;">Key points</p>
+  <ul style="margin:0;padding-left:1.25rem;">${items.join("\n  ")}</ul>
+  <p style="margin:0.5rem 0 0 0;font-size:0.8rem;color:#5c6d7a;">This summary is for orientation only; the numbered sections below are the notice.</p>
+</section>`;
+}
+
 export function buildNoticeHtml(
   state: StateRow,
   answers: Record<string, unknown>,
@@ -199,11 +238,12 @@ export function buildNoticeHtml(
   ${usDraftBannerHtml(missingRequiredUsFields(answers))}
   <p>This notice explains how <strong>${escapeHtml(businessName)}</strong> collects, uses, and shares the personal information of ${escapeHtml(state.state_name)} residents, and the rights they have under the ${escapeHtml(resolveLawLabel(state))}.</p>
   ${businessDesc ? `<p>${escapeHtml(businessDesc)}</p>` : ""}
+  ${buildKeyPointsHtml(answers)}
 
-  <h2>1. Information we collect</h2>
+  <h2 id="sec-collect">1. Information we collect</h2>
   <p>${escapeHtml(dataCategories)}</p>
 
-  <h2>2. How we use this information</h2>
+  <h2 id="sec-use">2. How we use this information</h2>
   <p>${escapeHtml(purposes)}</p>
 
   ${state.framework_type === "ccpa" ? `<h2>2a. Where we get this information</h2>
@@ -214,7 +254,7 @@ export function buildNoticeHtml(
     <li><strong>From third parties</strong> — such as service providers, business partners, data analytics providers, and publicly available sources, to the extent applicable to our operations.</li>
   </ul>` : ""}
 
-  <h2>3. Sharing with third parties</h2>
+  <h2 id="sec-share">3. Sharing with third parties</h2>
   ${
     sharing === "yes"
       ? `<p>We share personal information with the following categories of recipients: ${escapeHtml(thirdParties.replace(/[.\s]+$/, ""))}.</p>`
@@ -250,10 +290,10 @@ export function buildNoticeHtml(
       : ""
   }
 
-  <h2>4. How long we keep your information</h2>
+  <h2 id="sec-retain">4. How long we keep your information</h2>
   ${retentionHtml}
 
-  <h2>5. Your rights</h2>
+  <h2 id="sec-rights">5. Your rights</h2>
   ${state.framework_type === "ccpa"
     ? `<p>As a California resident under the CCPA/CPRA, you have the right to: (a) know what personal information we collect, use, disclose, and sell; (b) request access to or a copy of that information; (c) request correction or deletion; (d) opt out of the sale or sharing of your personal information${!showOptOut ? " (we do not currently sell or share your personal information for cross-context behavioral advertising, but this right remains available to you)" : ""}; (e) limit the use of sensitive personal information; and (f) non-discrimination for exercising these rights. You may designate an authorized agent to exercise these rights on your behalf. To exercise any right, you may: (i) email us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a>; or (ii) submit a request through our privacy request form at our website. We will acknowledge your request within 10 business days and respond within 45 days, or notify you if an extension is needed. You may designate an authorized agent to submit requests on your behalf — we may require written proof of authorization.</p>`
     : `<p>As a ${escapeHtml(state.state_name)} resident under the ${escapeHtml(resolveLawLabel(state))}, you have the right to: (a) know what personal information we collect about you; (b) request access to or a copy of that information; (c) request correction or deletion; (d) obtain a copy of your personal data in a portable and, to the extent technically feasible, readily usable format that allows you to transmit it to another controller without hindrance; (e) opt out of the processing of your personal data for purposes of targeted advertising, the sale of personal data, or profiling in furtherance of decisions that produce legal or similarly significant effects; and (f) appeal our refusal to act on a request — if we decline your request, we will explain how to appeal, and if your appeal is denied you may contact the ${escapeHtml(state.state_name)} Attorney General. You may also designate an authorized agent to exercise these rights on your behalf.</p>${state.state_code === "CO" ? `<p>We honor opt-out preference signals such as Global Privacy Control as a valid request to opt out of targeted advertising and sale.</p>` : ""}
@@ -274,7 +314,7 @@ export function buildNoticeHtml(
 
   }
 
-  <h2>6. How to contact us</h2>
+  <h2 id="sec-contact">6. How to contact us</h2>
   <p>To exercise any of these rights or for questions about this notice, contact us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a>.</p>
 
   ${showFooter ? `<footer>Generated by <strong>EndUserPrivacy</strong> · enduserprivacy.com ·
