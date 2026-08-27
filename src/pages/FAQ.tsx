@@ -43,7 +43,7 @@ const faqs = [
   },
   {
     q: "How many generations do I get per Smart Tool report?",
-    a: "The nine metered tools (Accountability Assessment, LIA, DPIA, DPA Generator, IR Playbook, Biometric Check, CPPA Risk, CPPA Cybersecurity, ADMT) include 4 generations: your initial report plus up to 3 revisions at no extra cost. Use the Refine panel to change your answers or add context and regenerate. Need more? Add 4 additional generations for half the tool price. RoPA, the Notice Builders, Registration Manager, and the free CPPA Scope Checker are not metered this way.",
+    a: "The nine metered tools (Accountability Assessment, LIA, DPIA, DPA Generator, IR Playbook, Biometric Check, CPPA Risk, CPPA Cybersecurity, ADMT) include your initial report generation. Revisions are temporarily disabled while we ship the Revision Contract program — please use the free Errata channel for verbatim corrections in the meantime, and we will restore included revisions when the program ships. RoPA, the Notice Builders, Registration Manager, and the free CPPA Scope Checker are not metered this way.",
   },
   {
     q: "How do I cancel my subscription?",

@@ -28,7 +28,8 @@ const SAMPLE_SLUG_MAP: Record<string, string> = {
   "cppa-cybersecurity": "cppa_cyber",
 };
 
-// Nine assessment tools that include 4 generations per purchased report.
+// Nine metered assessment tools. Revisions are gated off, so the copy promises
+// the initial report generation only (see INCLUDED_GENERATIONS_COPY).
 const INCLUDED_GENERATIONS_SLUGS = new Set([
   "healthcheck",
   "li-assessment",

@@ -66,7 +66,8 @@ const Index = () => (
               Run an LIA. Draft a DPA. Generate an IR playbook. Assess
               GDPR governance, CPPA readiness, or biometric risk. Fourteen compliance tools
               included with Annual Platform, each calibrated to enforcement. Nine of them
-              include 4 generations: your initial report plus up to 3 revisions at no extra cost.
+              include your initial report generation; revisions are temporarily disabled while
+              we ship the Revision Contract program, with a free Errata channel for corrections.
             </p>
           </div>
         </div>
