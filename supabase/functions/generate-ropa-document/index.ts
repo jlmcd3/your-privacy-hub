@@ -239,13 +239,33 @@ function lawfulBasisLabel(value: unknown): string {
   return LAWFUL_BASIS_LABELS[v] ?? v;
 }
 
+// S-P1 — module-level string reader for answer values (the builder-local str() is out of scope here).
+function strAnswer(v: unknown): string {
+  if (v == null) return "";
+  const t = Array.isArray(v) ? v.map(String).join(", ") : String(v);
+  return t.trim();
+}
+
 function activityRole(ans: Record<string, unknown>, profile: any): string {
+  // S-P1 (doc 80, 2026-08-27) — the explicit per-activity answer wins;
+  // legacy fallbacks unchanged behind it.
+  const explicit = strAnswer(ans.activity_role);
+  if (explicit === "processor") return "Processor (Article 30(2))";
+  if (explicit === "controller") return "Controller (Article 30(1))";
   return answerToString(
     ans.role ??
       ([profile?.is_controller && "Controller", profile?.is_processor && "Processor"]
         .filter(Boolean)
         .join(" + ") || "—"),
   );
+}
+
+/** S-P1 — true when the activity is a processor activity (explicit answer
+ *  first, org-level processor-only fallback matching the footer logic). */
+function isProcessorActivity(ans: Record<string, unknown>, profile: any): boolean {
+  const explicit = strAnswer(ans.activity_role);
+  if (explicit) return explicit === "processor";
+  return profile?.is_processor === true && profile?.is_controller !== true;
 }
 
 const QUESTION_LABELS: Record<string, string> = {
@@ -506,6 +526,13 @@ function buildRopaAssembleInput(d: AssembledData): RopaAssembleInput {
       name: String(a.display_name ?? ""),
       owner: str(ans.activity_owner),
       purpose: str(ans.purpose),
+      // S-P1 (doc 80, 2026-08-27) — per-activity role. An explicit answer
+      // wins; legacy records fall back to the org-level flags (processor
+      // only when the profile is processor-and-not-controller, matching the
+      // pre-S-P1 footer logic exactly).
+      activityRole: str(ans.activity_role) ||
+        (p?.is_processor === true && p?.is_controller !== true ? "processor" : "controller"),
+      actingFor: str(ans.acting_for_controller),
       lawfulBasis: ans.lawful_basis ? lawfulBasisLabel(ans.lawful_basis) : "",
       dataSubjects: str(ans.data_subjects),
       dataCategories: str(ans.data_categories ?? ans.personal_data_types),
@@ -665,14 +692,32 @@ function buildHtml(d: AssembledData): string {
       return `
         <section class="activity">
           <h3>${escapeHtml(a.display_name)}</h3>
-          <table class="kv">
+          ${(() => {
+            // S-P1 (doc 80, 2026-08-27) — Article 30(1) vs 30(2) field sets.
+            // A processor activity names its controller and the categories of
+            // processing performed on that controller's behalf; it is NOT
+            // asked to state a lawful basis it does not own (the ICO's own
+            // two-template structure). Controller activities render exactly
+            // as before.
+            const role = strAnswer(ans.activity_role) ||
+              (d.profile?.is_processor === true && d.profile?.is_controller !== true ? "processor" : "controller");
+            return role === "processor"
+              ? `<table class="kv">
             <tbody>
-              <tr><th>Role</th><td>${escapeHtml(answerToString(ans.role ?? (d.profile?.is_controller ? "Controller" : d.profile?.is_processor ? "Processor" : "—")))}</td></tr>
+              <tr><th>Role</th><td>Processor (Article 30(2))</td></tr>
+              <tr><th>Acting for (controller)</th><td>${escapeHtml(answerToString(ans.acting_for_controller) !== "—" ? answerToString(ans.acting_for_controller) : "Controller not named — Article 30(2)(a) requires it")}</td></tr>
+              <tr><th>Category</th><td>${escapeHtml(categoryLabel(a.category))}</td></tr>
+              <tr><th>Activity owner</th><td>${escapeHtml(answerToString(ans.activity_owner))}</td></tr>
+              <tr><th>Categories of processing carried out on behalf of the controller</th><td>${escapeHtml(answerToString(ans.purpose))}</td></tr>`
+              : `<table class="kv">
+            <tbody>
+              <tr><th>Role</th><td>${escapeHtml(answerToString(ans.role ?? "Controller"))} (Article 30(1))</td></tr>
               <tr><th>Category</th><td>${escapeHtml(categoryLabel(a.category))}</td></tr>
               <tr><th>Activity owner</th><td>${escapeHtml(answerToString(ans.activity_owner))}</td></tr>
               <tr><th>Purpose</th><td>${escapeHtml(answerToString(ans.purpose))}</td></tr>
               <tr><th>Lawful basis</th><td>${escapeHtml(lawfulBasisLabel(ans.lawful_basis))}</td></tr>
-              <tr><th>Special category basis</th><td>${escapeHtml(answerToString(ans.special_category_basis))}</td></tr>
+              <tr><th>Special category basis</th><td>${escapeHtml(answerToString(ans.special_category_basis))}</td></tr>`;
+          })()}
               <tr><th>Data subjects</th><td>${escapeHtml(answerToString(ans.data_subjects))}</td></tr>
               <tr><th>Data categories</th><td>${escapeHtml(answerToString(ans.data_categories))}</td></tr>
               <tr><th>Collection sources</th><td>${escapeHtml(answerToString(ans.collection_sources))}</td></tr>
@@ -694,7 +739,7 @@ function buildHtml(d: AssembledData): string {
               <tr><th>Last reviewed</th><td>${escapeHtml(d.settings.documentDate)}</td></tr>
             </tbody>
           </table>
-          <p class="footer-note">Recorded pursuant to: ${d.profile?.is_processor && !d.profile?.is_controller ? "Article 30(2) GDPR (processor activity)" : "Article 30(1) GDPR (controller activity)"}</p>
+          <p class="footer-note">Recorded pursuant to: ${(strAnswer(ans.activity_role) || (d.profile?.is_processor === true && d.profile?.is_controller !== true ? "processor" : "controller")) === "processor" ? "Article 30(2) GDPR (processor activity)" : "Article 30(1) GDPR (controller activity)"}</p>
         </section>
       `;
     })
@@ -897,6 +942,10 @@ function buildHtml(d: AssembledData): string {
       const ans = d.answersByActivity[a.id] ?? {};
       const purpose = answerToString(ans["purpose"]);
       const lawfulBasis = answerToString(ans["lawful_basis"]);
+      // S-P1 — a processor activity is not incomplete for lacking a lawful
+      // basis it does not own (Art. 30(2)); its 30(2)(a) controller-name
+      // gap is stated in its own table row instead.
+      if (isProcessorActivity(ans, d.profile)) return purpose === "—";
       return purpose === "—" || lawfulBasis === "—";
     });
     if (hasIncomplete) {
@@ -1235,9 +1284,11 @@ function buildXlsx(d: AssembledData): Uint8Array {
   const activityHeader = [
     "Activity",
     "Role",
+    // S-P1 — Art. 30(2)(a): the controller a processor activity acts for.
+    "Acting for (controller)",
     "Category",
     "Activity owner",
-    "Purpose",
+    "Purpose / categories of processing (30(2))",
     "Lawful basis",
     "Special category basis",
     "Data subjects",
@@ -1260,10 +1311,14 @@ function buildXlsx(d: AssembledData): Uint8Array {
     return [
       a.display_name,
       activityRole(ans, d.profile),
+      // S-P1 — controller named for processor activities; controller
+      // activities carry an en-dash.
+      isProcessorActivity(ans, d.profile) ? answerToString(ans.acting_for_controller) : "—",
       a.category,
       answerToString(ans.activity_owner),
       answerToString(ans.purpose),
-      lawfulBasisLabel(ans.lawful_basis),
+      // S-P1 — Art. 30(2) requires no processor-own basis.
+      isProcessorActivity(ans, d.profile) ? "n/a — processor (Art. 30(2))" : lawfulBasisLabel(ans.lawful_basis),
       answerToString(ans.special_category_basis),
       answerToString(ans.data_subjects),
       answerToString(ans.data_categories),

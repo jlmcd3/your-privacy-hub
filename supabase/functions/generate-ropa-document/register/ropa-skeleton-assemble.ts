@@ -99,6 +99,11 @@ export interface RopaActivityInput {
   readonly name: string;
   readonly owner: string;
   readonly purpose: string;
+  // S-P1 (doc 80, 2026-08-27) — per-activity role: "controller" | "processor"
+  // (resolved by the caller; legacy records default from the org profile).
+  readonly activityRole?: string;
+  /** Art. 30(2)(a) — the controller a processor activity acts for. */
+  readonly actingFor?: string;
   readonly lawfulBasis: string;
   readonly dataSubjects: string;
   readonly dataCategories: string;
@@ -303,6 +308,8 @@ function transferClause(a: RopaActivityInput): string {
     : `The company has indicated that personal data are transferred to ${noStop(dest)}, without a transfer mechanism recorded`;
 }
 
+const s2 = (v: unknown): string => (typeof v === "string" ? v : String(v ?? ""));
+
 export function buildActivitySlots(a: RopaActivityInput): SlotValues {
   const override = recorded(a.rightsOverride)
     ? `, subject to the activity-specific process the company has described: ${noStop(s(a.rightsOverride))}`
@@ -311,7 +318,14 @@ export function buildActivitySlots(a: RopaActivityInput): SlotValues {
     activity_name: s(a.name) || "an activity it has not named",
     activity_owner: orUnrecorded(a.owner, "an owner it has not named"),
     purpose: orUnrecorded(a.purpose, "a purpose it has not recorded"),
-    lawful_basis: orUnrecorded(a.lawfulBasis, "a basis it has not recorded"),
+    // S-P1 — a processor states no basis of its own (Art. 30(2)); the
+    // ratified template's basis slot carries the documented-instructions
+    // footing, naming the controller where recorded. Value-plane only.
+    lawful_basis: a.activityRole === "processor"
+      ? (recorded(a.actingFor)
+        ? `the documented instructions of ${noStop(s2(a.actingFor))} (Article 30(2))`
+        : "the documented instructions of the controller it acts for (Article 30(2))")
+      : orUnrecorded(a.lawfulBasis, "a basis it has not recorded"),
     data_subjects: orUnrecorded(a.dataSubjects, "categories of data subjects it has not recorded"),
     data_categories: orUnrecorded(a.dataCategories, "categories of personal data it has not recorded"),
     collection_sources: orUnrecorded(a.collectionSources, "sources it has not recorded"),
@@ -328,7 +342,11 @@ export function buildActivitySlots(a: RopaActivityInput): SlotValues {
 
 const REQUIRED_ART30: ReadonlyArray<{ key: string; label: string; get: (a: RopaActivityInput) => unknown }> = [
   { key: "b", label: "the purpose of the processing", get: (a) => a.purpose },
-  { key: "b", label: "the lawful basis", get: (a) => a.lawfulBasis },
+  // S-P1 — role-aware: a processor activity is complete WITHOUT an own
+  // lawful basis (Art. 30(2) does not require one) but requires the
+  // controller it acts for (Art. 30(2)(a)).
+  { key: "b", label: "the lawful basis", get: (a) => a.activityRole === "processor" ? "n/a-processor" : a.lawfulBasis },
+  { key: "a", label: "the controller the activity is performed for", get: (a) => a.activityRole === "processor" ? a.actingFor : "n/a-controller" },
   { key: "c", label: "the categories of data subjects", get: (a) => a.dataSubjects },
   { key: "c", label: "the categories of personal data", get: (a) => a.dataCategories },
   { key: "d", label: "the categories of recipients", get: (a) => a.recipients },

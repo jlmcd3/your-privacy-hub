@@ -70,6 +70,35 @@ function baseSequence(opts: {
 
   return [
     ...intro,
+    // S-P1 (doc 80, 2026-08-27) — PER-ACTIVITY ROLE. Article 30(1)
+    // (controller records) and Article 30(2) (processor records) require
+    // genuinely different information — the ICO publishes two separate
+    // templates for exactly this reason — and an organisation can be
+    // controller for some activities and processor for others. Optional so
+    // legacy records keep their org-level default; a processor activity
+    // drops the lawful-basis ask (Art. 30(2) does not require a processor
+    // to state a basis it does not own) and names its controller instead.
+    {
+      key: "activity_role",
+      text: "For this activity, is the company deciding the purposes and means, or processing on another organisation's behalf?",
+      whyWeAsk:
+        "Article 30(1) and Article 30(2) GDPR require different records: a controller records its purposes and lawful basis; a processor records the categories of processing it performs for each controller — it does not state a lawful basis of its own. Answering per activity lets a company that wears both hats keep each entry legally correct.",
+      type: "single_choice",
+      options: [
+        { value: "controller", label: "We decide why and how (controller)", example: "Our own payroll, our own marketing list" },
+        { value: "processor", label: "We process on another organisation's behalf (processor)", example: "Hosting or scoring data for a client under their instructions" },
+      ],
+      isRequired: false,
+    },
+    {
+      key: "acting_for_controller",
+      text: "Which controller is this activity performed for?",
+      whyWeAsk:
+        "Article 30(2)(a) requires a processor's record to name each controller on whose behalf it acts (with contact details where applicable). The register entry is incomplete without the controller's name.",
+      type: "text_short",
+      isRequired: false,
+      showIf: { questionKey: "activity_role", operator: "equals", value: "processor" },
+    },
     {
       key: "purpose",
       text: "What is the purpose of this processing activity?",
@@ -86,6 +115,9 @@ function baseSequence(opts: {
       type: "lawful_basis",
       options: LAWFUL_BASIS_OPTIONS,
       isRequired: true,
+      // S-P1 — a processor does not state a lawful basis of its own
+      // (Art. 30(2)); the question is skipped for processor activities.
+      showIf: { questionKey: "activity_role", operator: "not_equals", value: "processor" },
       flagIf: opts.lawfulBasisFlags,
     },
     {
