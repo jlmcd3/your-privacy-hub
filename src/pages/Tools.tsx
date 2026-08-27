@@ -798,7 +798,7 @@ export default function Tools() {
                     {INCLUDED_GENERATIONS_SLUGS.has(tool.slug) && (
                       <>
                         <p className="text-body-small text-ink mt-1">
-                          Includes 4 generations: your initial report plus up to 3 revisions at no extra cost.
+                          {INCLUDED_GENERATIONS_COPY}
                         </p>
                         {TOPUP_TIER1_SLUGS.has(tool.slug) && (
                           <p className="text-body-small text-ink mt-1">
