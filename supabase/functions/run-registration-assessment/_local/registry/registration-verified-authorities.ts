@@ -1,9 +1,19 @@
 // ITEM 303 — REGISTRATION VERIFIED-AUTHORITY SKELETON (2026-07-31).
 //
-// SOURCES ONLY. This module is DATA and is NOT imported by any generator this
-// turn. It records, per served jurisdiction, WHICH official publisher text the
-// registration product's determinations must be pinned to, and the corpus key
-// that carries the verbatim excerpt in `public.provision_texts`.
+// SOURCES ONLY. This module is DATA. It records, per served jurisdiction,
+// WHICH official publisher text the registration product's determinations
+// must be pinned to, and the corpus key that carries the verbatim excerpt in
+// `public.provision_texts` (or `public.gdpr_articles` for the EU/UK
+// representative and DPO-trigger rows below).
+//
+// CORRECTION (2026-08-26 audit, doc 78 finding): the header above used to
+// claim this module was "NOT imported by any generator this turn" / wiring
+// "queued as a separate engine turn." That was stale even at the time this
+// correction was written — it IS live-wired: `run-registration-assessment/
+// index.ts` imports `REGISTRATION_DUTY_AUTHORITIES` directly at module load
+// (line 22) and uses it to build the customer-facing authority exhibit and
+// to feed the finalize battery. Confirmed by reading the consumer, not by
+// re-trusting this comment.
 //
 // HARD SCOPE RULES FOR THIS FILE (dispatch Item 303):
 //   * No conclusions. No "the customer must register by X". No thresholds
@@ -18,7 +28,11 @@
 //     the registry. It is a CEO-visible flag, not a gap to be filled by
 //     inference.
 //
-// Wiring is queued as a separate engine turn (mirror of items 51/55/56).
+// CMP-B8 §1.2 (ratified 2026-08-23): every corpus_key referenced below must
+// resolve to an approved provision row — see
+// `assertRegistrationCorpusKeysApproved` in
+// `./registration-corpus-approval-ledger.ts`, enforced by
+// `tests/edge/run-registration-assessment/registration-corpus-key-fail-loud.test.ts`.
 
 /** Registry version tag. Bump on any row add/edit; grader may pin against it. */
 export const REGISTRATION_AUTHORITY_VERSION = "registration-va-skeleton-2026-07-31";
