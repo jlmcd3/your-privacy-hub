@@ -1,6 +1,7 @@
 // No statutory rail by design — see intakePolicy.ts. Use ChoiceWithOther + IntakeGuidance.
 
 import { useEffect, useMemo, useState } from "react";
+import { DPA_TOMS_TAXONOMY } from "@/data/dpa-toms-taxonomy";
 import { useAuth } from "@/hooks/useAuth";
 import { useToolDraft, useAutoRestoreDraft } from "@/hooks/useToolDraft";
 import DraftRestoreBanner from "@/components/DraftRestoreBanner";
@@ -73,6 +74,15 @@ export default function DPAGenerator() {
     retentionChoice: "" as "" | "As directed by the Controller's documented instructions" | "For the duration of the principal agreement, then delete or return" | "Fixed period — specify",
     retentionFixedText: "",
     hasSubProcessors: false, subProcessorList: "",
+    // S-D7 (doc 80, 2026-08-27) — the Art. 28(2) authorisation-model axis:
+    // general (Schedule-1 + notice/objection, the standing default) or
+    // specific (prior written authorisation per sub-processor).
+    subprocessorAuthorizationModel: "general" as "general" | "specific",
+    // S-D2 (doc 80, 2026-08-27) — the structured TOMs intake (PN-D6): the
+    // customer's ACTUAL measures feed Annex II verbatim; the EDPB treats a
+    // bare "appropriate measures" restatement as failing Art. 28(3)(c).
+    securityMeasuresSelected: [] as string[],
+    securityMeasuresDetails: "",
     // INTAKE-2 — optional advance-notice window (days) for subprocessor changes.
     subprocessorChangeNoticePeriod: "",
     auditRightsChoice: "" as "" | "Documentation review — Processor provides audit reports/certifications on request" | "Annual audit — third-party audit summary plus right of on-site inspection on reasonable notice" | "Enhanced — on-site inspection on 30 days' notice plus continuous evidence access" | "Custom — describe",
@@ -155,6 +165,9 @@ export default function DPAGenerator() {
       hasSubProcessors: form.hasSubProcessors,
       subProcessorList: form.subProcessorList,
       subprocessorChangeNoticePeriod: form.subprocessorChangeNoticePeriod.trim() || undefined,
+      subprocessorAuthorizationModel: form.subprocessorAuthorizationModel,
+      securityMeasuresSelected: form.securityMeasuresSelected,
+      securityMeasuresDetails: form.securityMeasuresDetails.trim() || undefined,
       auditRights,
       includeTransferClause,
       transferMechanism,
@@ -394,8 +407,17 @@ export default function DPAGenerator() {
                 )}
               </label>
 
+              {/* S-D7 — the Art. 28(2) authorisation-model axis. */}
+              <label className="block"><span className="font-semibold text-brand-navy">How must new subprocessors be authorised? <span className="text-xs text-muted-foreground font-mono">(Art. 28(2) GDPR)</span></span>
+                <span className="block text-meta text-muted-foreground mt-0.5">General authorisation approves the listed subprocessors and lets the processor add others after advance notice, with your right to object. Specific authorisation means no subprocessor may be added or replaced without your prior written approval each time — tighter control, more administration.</span>
+                <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.subprocessorAuthorizationModel} onChange={e => setForm(f => ({ ...f, subprocessorAuthorizationModel: e.target.value as typeof f.subprocessorAuthorizationModel }))}>
+                  <option value="general">General — listed subprocessors approved; additions on advance notice with a right to object</option>
+                  <option value="specific">Specific — every addition or replacement needs prior written approval</option>
+                </select>
+              </label>
+
               <label className="block"><span className="font-semibold text-brand-navy">How much advance notice must the processor give before adding or replacing a subprocessor? <span className="text-xs text-muted-foreground font-mono">(optional — Art. 28(2) GDPR)</span></span>
-                <span className="block text-meta text-muted-foreground mt-0.5">Leave blank to use the standard 30 days. The general authorisation covers the subprocessors listed at signature; anyone added later has to be notified in advance so you can object.</span>
+                <span className="block text-meta text-muted-foreground mt-0.5">Leave blank to use the standard 30 days. The general authorisation covers the subprocessors listed at signature; anyone added later has to be notified in advance so you can object. (Not used when specific authorisation is selected above.)</span>
                 <input
                   className="w-full mt-1 border border-border rounded-lg px-3 py-2"
                   inputMode="numeric"
@@ -406,6 +428,29 @@ export default function DPAGenerator() {
                 <span className="block text-meta text-muted-foreground mt-0.5">Days.</span>
               </label>
 
+
+              {/* S-D2 — the structured TOMs intake: the customer's actual
+                  measures feed Annex II verbatim (EDPB Guidelines 07/2020:
+                  a bare "appropriate measures" restatement fails
+                  Art. 28(3)(c)). Optional; absent keeps the placeholder
+                  regime unchanged. */}
+              <div className="block">
+                <span className="font-semibold text-brand-navy">Which security measures does the processor actually apply? <span className="text-xs text-muted-foreground font-mono">(optional — Art. 28(3)(c) / Annex II)</span></span>
+                <span className="block text-meta text-muted-foreground mt-0.5">Select what is genuinely in place. The agreement's security annex carries your selections in their own words; regulators treat a security clause that just restates "appropriate technical and organisational measures" as failing the article. Leave everything unticked to keep the annex as a to-be-completed framework.</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 mt-2">
+                  {DPA_TOMS_TAXONOMY.map(t => (
+                    <label key={t.id} className="flex items-start gap-2 text-sm">
+                      <input type="checkbox" className="mt-1" checked={form.securityMeasuresSelected.includes(t.id)}
+                        onChange={() => setForm(f => ({ ...f, securityMeasuresSelected: f.securityMeasuresSelected.includes(t.id) ? f.securityMeasuresSelected.filter(x => x !== t.id) : [...f.securityMeasuresSelected, t.id] }))} />
+                      <span>{t.label}</span>
+                    </label>
+                  ))}
+                </div>
+                <textarea className="w-full mt-2 border border-border rounded-lg px-3 py-2 text-sm" rows={2}
+                  placeholder="Specifics worth naming — standards, tools, cadences (optional)"
+                  value={form.securityMeasuresDetails}
+                  onChange={e => setForm(f => ({ ...f, securityMeasuresDetails: e.target.value }))} />
+              </div>
 
               <label className="block"><span className="font-semibold text-brand-navy">Does the processing move personal data across the jurisdictions above, or onward to a third country?<Req /></span>
                 <span className="block text-meta text-muted-foreground mt-0.5">Remote support access and offshore sub-processors count, not only where the data is stored at rest.</span>

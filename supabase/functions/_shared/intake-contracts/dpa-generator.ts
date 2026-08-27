@@ -100,5 +100,14 @@ export const dpaGeneratorContract: IntakeContract = {
     // documentType — server-derived via detectDocumentType(controllerJurisdiction,
     // processorJurisdiction) at invoke time.
     { key: "documentType", kind: "structured", required: "optional" },
+
+    // S-D7 (doc 80, 2026-08-27) — the Art. 28(2) authorisation-model axis.
+    // Absent -> "general" (the pre-S-D7 behavior exactly).
+    { key: "subprocessorAuthorizationModel", kind: "enum", required: "optional", options: ["general", "specific"] },
+    // S-D2 (doc 80, 2026-08-27) — the structured TOMs intake (PN-D6): ids
+    // from the DPA_TOMS_TAXONOMY registry (unknown ids are dropped by the
+    // resolver, never invented) plus optional free-text specifics.
+    { key: "securityMeasuresSelected", kind: "structured", required: "optional" },
+    { key: "securityMeasuresDetails", kind: "narrative", required: "optional" },
   ],
 };
