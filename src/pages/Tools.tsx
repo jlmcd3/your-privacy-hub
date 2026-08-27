@@ -386,7 +386,7 @@ const TOOLS: ToolDef[] = [
     section: "documents",
     icon: iconEl(Folder),
     name: "RoPA Builder (Article 30)",
-    tagline: "Build and maintain your Article 30 Record of Processing Activities — by activity, by platform, by jurisdiction. Included with any subscription.",
+    tagline: "Build and maintain your Article 30 Record of Processing Activities — by activity, by platform, by jurisdiction. Free on annual plans (first build plus one update a year); $29 per generation on monthly plans.",
     href: "/ropa-builder",
     requirement: { tier: "required", text: "Required — GDPR Art. 30" },
     subscriberPrice: PRICING.tools.ropa.display,
