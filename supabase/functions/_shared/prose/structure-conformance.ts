@@ -49,7 +49,9 @@ export const SECTION_KEY_ALIASES: Readonly<Record<string, readonly string[]>> = 
 
   // ── biometric (item409 v2 plan) ───────────────────────────────────
   "biometric:processing_record": ["processing_record", "biometric_deliverables.narrative.part1_overview"],
-  "biometric:consent_and_notice": ["consent_and_notice", "duty_findings[key~=15b_]"],
+  // S-B1 (doc 80, 2026-08-27): the § 15(b) duty split into 15b1_/15b2_/15b3_
+  // rows; the alias pattern drops the trailing underscore so all three match.
+  "biometric:consent_and_notice": ["consent_and_notice", "duty_findings[key~=15b]"],
   "biometric:retention_and_destruction": ["retention_and_destruction", "duty_findings[key~=15a_]"],
   "biometric:security_and_disclosure": [
     "security_and_disclosure", "duty_findings[key~=15e_]", "duty_findings[key~=15d_]",

@@ -49,12 +49,28 @@ describe("biometric duty registry — offline corpus pin", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("the un-ingested BIPA private right of action is never quoted", () => {
-    expect(BIPA_PRA_CORPUS_STATUS.ingested).toBe(false);
-    // TX § 503.001(d) and RCW 19.375.030 ARE in corpus and may carry
-    // enforcement rows. Illinois must not: 740 ILCS 14/20 was never ingested.
-    for (const r of BIOMETRIC_DUTY_ROWS) {
-      if (r.statute_key === "us_il_bipa") expect(r.kind).not.toBe("enforcement");
+  // S-B4 (doc 80, 2026-08-27) — the Item 314 guard, FLIPPED (not removed),
+  // exactly the ITEM 323 pattern below: 740 ILCS 14/20(b) and (c) — the
+  // P.A. 103-769 single-violation accrual rules — ARE now approved corpus
+  // rows, and the registry carries exactly two enforcement rows quoting
+  // them (byte-exact via the generic substring pin above). 14/20(a)
+  // (damages tiers, fee-shifting) remains un-ingested and reserved.
+  it("the BIPA 14/20(b)/(c) accrual rules are quoted from corpus; damages stay reserved", () => {
+    expect(BIPA_PRA_CORPUS_STATUS.ingested).toBe("partial");
+    const ilEnforcement = BIOMETRIC_DUTY_ROWS.filter(
+      (r) => r.statute_key === "us_il_bipa" && r.kind === "enforcement",
+    );
+    expect(ilEnforcement.map((r) => r.id).sort()).toEqual([
+      "il_bipa.20b_accrual_collection",
+      "il_bipa.20c_accrual_disclosure",
+    ]);
+    for (const r of ilEnforcement) {
+      expect(["il-bipa-740-14-20-b", "il-bipa-740-14-20-c"]).toContain(r.corpus_key);
+    }
+    // The reserved framing still bars every 14/20(a) specific.
+    expect(BIPA_PRA_CORPUS_STATUS.reserved).toMatch(/fee-shifting/);
+    for (const r of ilEnforcement) {
+      expect(/\$1,000|\$5,000|liquidated damages|attorney'?s fees/i.test(r.verbatim_quote)).toBe(false);
     }
   });
 

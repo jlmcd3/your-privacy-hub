@@ -116,11 +116,16 @@ async function sha256(text: string): Promise<string> {
 }
 
 Deno.test("SO-6: the spine is byte-pinned to the CEO-corrected v3 docx", async () => {
-  assertEquals(BIOMETRIC_SKELETON_PARAGRAPHS.length, 25);
+  // S-B5 (doc 80, 2026-08-27): 25 -> 26 — the unregistered-named-
+  // jurisdictions conditional paragraph added under the CEO improvement
+  // grant (ratification-ledger entry). The prior 25-paragraph hash
+  // (4109a6f1a562a318a44978025dadb5802534f863680b8c6ecb87eace6449c48f)
+  // is recorded in the spine header for the audit trail.
+  assertEquals(BIOMETRIC_SKELETON_PARAGRAPHS.length, 26);
   assertEquals(await sha256(BIOMETRIC_SKELETON_PARAGRAPHS.join("\n")), BIOMETRIC_SKELETON_CONTENT_HASH);
   assertEquals(
     BIOMETRIC_SKELETON_CONTENT_HASH,
-    "4109a6f1a562a318a44978025dadb5802534f863680b8c6ecb87eace6449c48f",
+    "2a22748ad3fc3431114799af91316a62522e33a06d22a73acdb552b3e2102006",
   );
   // Every encoded block is a verbatim span of one of the paragraphs.
   for (const section of BIOMETRIC_SKELETON_SECTIONS) {

@@ -38,9 +38,16 @@ export const BIOMETRIC_SKELETON_PROVENANCE =
  *
  * Uncorrected v3 (for the audit trail):
  *   ae5f9d461f79651d9f0a2bca3cc0d60cd7e7858548c7ee5f6119bbcc9c270fd0
+ * CEO-corrected v3 (25 paragraphs, superseded by S-B5's paragraph 26):
+ *   4109a6f1a562a318a44978025dadb5802534f863680b8c6ecb87eace6449c48f
+ *
+ * S-B5 (doc 80, 2026-08-27): one conditional paragraph added under the
+ * CEO's improvement grant (unregistered-named-jurisdictions honest-posture
+ * parity), ratification-ledger entry pending optional redline. The hash
+ * below covers the 26-paragraph set.
  */
 export const BIOMETRIC_SKELETON_CONTENT_HASH =
-  "4109a6f1a562a318a44978025dadb5802534f863680b8c6ecb87eace6449c48f";
+  "2a22748ad3fc3431114799af91316a62522e33a06d22a73acdb552b3e2102006";
 
 /**
  * RESTORED 2026-08-26 (Biometric Conversion groundwork audit). The 2026-08-19
@@ -169,6 +176,10 @@ export const BIOMETRIC_SKELETON_PARAGRAPHS: readonly string[] = [
   "[CONDITIONAL] TEXAS - trigger TX: the CUBI duties; the company's destruction answer {txDestruction}, attributed.",
   "[CONDITIONAL] WASHINGTON - trigger WA: the RCW 19.375 enrolment duties; the My Health My Data Act addressed where the answers indicate health inference.",
   "[CONDITIONAL] OTHER STATES - named statutes only, per the registered-jurisdiction rule; an unresolved state is addressed by naming the statutes the company should evaluate, never by a generic instruction to confirm applicable law.",
+  // S-B5 (doc 80, 2026-08-27) — new paragraph 26 under the CEO's
+  // improvement grant, ratification-ledger entry; the content hash and
+  // paragraph count in tests/edge/so6/skeleton.test.ts re-pin with it.
+  "[CONDITIONAL] UNREGISTERED NAMED JURISDICTIONS - trigger: any selected enum jurisdiction outside the registered statutes: an explicit statement that no statutory duty is stated for it here, with the EU/UK Article 9 route named where selected.",
   "III. Security, Retention and Destruction",
   "[DETERMINATION LEAD] One sentence stating whether storage and destruction meet the strictest applicable standard.",
   "The company has described its security measures as {securityMeasures - reader labels as prose}. Its retention is described as {retentionSchedule - own clause, attributed}, with destruction occurring on {destructionTrigger - rendered on the statutory clock}.",

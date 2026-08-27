@@ -452,6 +452,7 @@ exports[`INTAKE-2 — persisted contract identity > US builder keys, types and s
   "third_party_categories|multi_choice|service_providers,analytics,advertising,social_media,business_partners,affiliates,law_enforcement,other",
   "sale_or_sharing|single_choice|sell_and_share,sell_only,share_only,no,not_sure",
   "retention_general|date_or_period|",
+  "retention_criteria|text_long|",
   "tools_used|platform_search|",
   "ccpa_sensitive_data|single_choice|yes,no,unsure",
   "ccpa_financial_incentive|yes_no|",

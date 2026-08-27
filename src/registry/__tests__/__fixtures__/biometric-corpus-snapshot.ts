@@ -60,6 +60,14 @@ export const BIOMETRIC_CORPUS_SNAPSHOT: Record<string, string> = {
     "It is unlawful for any person to implement a geofence around an entity that provides in-person health care services where such geofence is used to: (1) Identify or track consumers seeking health care services; (2) collect consumer health data from consumers; or (3) send notifications, messages, or advertisements to consumers related to their consumer health data or health care services.",
   "wa-rcw-19-373-090":
     "The legislature finds that the practices covered by this chapter are matters vitally affecting the public interest for the purpose of applying the consumer protection act, chapter 19.86 RCW. A violation of this chapter is not reasonable in relation to the development and preservation of business, and is an unfair or deceptive act in trade or commerce and an unfair method of competition for the purpose of applying the consumer protection act, chapter 19.86 RCW.",
+  // S-B4 (doc 80, 2026-08-27): the 740 ILCS 14/20(b)/(c) single-violation
+  // accrual rows (P.A. 103-769), copied verbatim from the live APPROVED
+  // provision_texts rows (verified 2026-08-27). Item 314's follow-on
+  // ingestion happened; the registry's enforcement rows quote these.
+  "il-bipa-740-14-20-b":
+    "(b) For purposes of subsection (b) of Section 15, a private entity that, in more than one instance, collects, captures, purchases, receives through trade, or otherwise obtains the same biometric identifier or biometric information from the same person using the same method of collection in violation of subsection (b) of Section 15 has committed a single violation of subsection (b) of Section 15 for which the aggrieved person is entitled to, at most, one recovery under this Section.",
+  "il-bipa-740-14-20-c":
+    "(c) For purposes of subsection (d) of Section 15, a private entity that, in more than one instance, discloses, rediscloses, or otherwise disseminates the same biometric identifier or biometric information from the same person to the same recipient using the same method of collection in violation of subsection (d) of Section 15 has committed a single violation of subsection (d) of Section 15 for which the aggrieved person is entitled to, at most, one recovery under this Section regardless of the number of times the private entity disclosed, redisclosed, or otherwise disseminated the same biometric identifier or biometric information of the same person to the same recipient.",
 };
 
 export const BIOMETRIC_CORPUS_CITATIONS: Record<string, string> = {
@@ -86,4 +94,6 @@ export const BIOMETRIC_CORPUS_CITATIONS: Record<string, string> = {
   "wa-rcw-19-373-030": "RCW 19.373.030 (Collection or sharing of consumer health data)",
   "wa-rcw-19-373-080": "RCW 19.373.080 (Geofence restrictions)",
   "wa-rcw-19-373-090": "RCW 19.373.090 (Application of consumer protection act)",
+  "il-bipa-740-14-20-b": "740 ILCS 14/20(b) (Single-violation accrual for collection; P.A. 103-769)",
+  "il-bipa-740-14-20-c": "740 ILCS 14/20(c) (Single-violation accrual for disclosure; P.A. 103-769)",
 };

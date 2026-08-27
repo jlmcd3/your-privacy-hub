@@ -761,7 +761,7 @@ function buildIlDuties(
       ? "§ 15(b)(1) requires the information to be given in writing. The record describes notice given otherwise than in writing, which does not satisfy it."
       : writtenNotice
       ? "The record describes notice given in writing before collection that biometric data is collected or stored, which is what § 15(b)(1) requires."
-      : "Whether notice was given in writing before collection is not established on the record.",
+      : "Whether notice was given in writing before collection is not established on the information provided.",
     noNotice || noticeNotWritten
       ? "not_satisfied"
       : writtenNotice
@@ -785,7 +785,7 @@ function buildIlDuties(
       ? "The record states the written notice names both the specific purpose and the length of term for which the biometric data is collected, stored, and used, which is what § 15(b)(2) requires."
       : writtenNotice && purposeTerm === "no"
       ? "§ 15(b)(2) requires the written notice to state both the specific purpose and the length of term. The record states one or both are missing from the notice, so the second pre-collection writing is not satisfied."
-      : "Whether the written notice states both the specific purpose and the length of term is not answered on the record; § 15(b)(2) turns on exactly that.",
+      : "Whether the written notice states both the specific purpose and the length of term is not answered on the information provided; § 15(b)(2) turns on exactly that.",
     noNotice || noticeNotWritten || (writtenNotice && purposeTerm === "no")
       ? "not_satisfied"
       : writtenNotice && purposeTerm === "yes"

@@ -302,25 +302,39 @@ describe("Item 317 — SEPARATION GUARD and RESERVED-FRAMING LAW", () => {
     for (const u of c.unlawful_now) expect(EXPOSURE.test(u.why)).toBe(false);
   });
 
-  it("never quotes the un-ingested 740 ILCS 14/20", () => {
-    expect(BIPA_PRA_CORPUS_STATUS.ingested).toBe(false);
+  // S-B4 (doc 80, 2026-08-27) — the Item 317 reserved-framing guard,
+  // FLIPPED (not removed), the same discipline as the Item 323 flip below:
+  // the 14/20(b)/(c) accrual rows are now approved corpus rows, so the
+  // exposure surface QUOTES them; the guard's real target — the
+  // un-ingested 14/20(a) damages tiers and fee-shifting — stays barred.
+  it("quotes the corpus-backed 14/20 accrual rule; damages specifics stay reserved", () => {
+    expect(BIPA_PRA_CORPUS_STATUS.ingested).toBe("partial");
     const d = buildBiometricDeliverables(DEFICIENT_IL());
     const pra = d.consequence_determination.exposure_surfaces.find((s) =>
       s.citation.includes("14/20"),
     );
     expect(pra).toBeDefined();
-    expect(pra!.corpus_status).toBe("not_ingested");
-    expect(pra!.standard).toBeNull();
+    expect(pra!.corpus_status).toBe("in_corpus");
+    expect(pra!.standard).toContain("single violation of subsection (b) of Section 15");
     expect(pra!.reserved && pra!.reserved.length).toBeTruthy();
+    expect(pra!.reserved).toMatch(/fee-shifting/);
     const blob = JSON.stringify(d);
     expect(/\$1,000|\$5,000|liquidated damages/i.test(blob)).toBe(false);
   });
 
-  it("no duty row was sourced from the un-ingested PRA provision", () => {
+  it("DUTY rows never source from 14/20; the two enforcement rows are exactly the accrual pair", () => {
     for (const r of BIOMETRIC_DUTY_ROWS) {
+      if (r.kind === "enforcement" && r.statute_key === "us_il_bipa") continue;
       expect(r.corpus_key).not.toContain("14-20");
       expect(r.pinpoint).not.toContain("14/20");
     }
+    const ilEnforcement = BIOMETRIC_DUTY_ROWS.filter(
+      (r) => r.kind === "enforcement" && r.statute_key === "us_il_bipa",
+    );
+    expect(ilEnforcement.map((r) => r.id).sort()).toEqual([
+      "il_bipa.20b_accrual_collection",
+      "il_bipa.20c_accrual_disclosure",
+    ]);
   });
 });
 
