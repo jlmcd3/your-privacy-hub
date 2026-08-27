@@ -39,11 +39,11 @@ const faqs = [
   },
   {
     q: "What are the enforcement citations in tool outputs?",
-    a: "Smart Tools (LIA, DPIA, Accountability Assessment, DPA Generator, Biometric Check, CPPA Risk, CPPA Cybersecurity) show enforcement corpus citations alongside their findings: the specific regulatory decisions that supported each conclusion. Citations link directly to the enforcement action record. Primary sources should be validated before relying on any regulatory position.",
+    a: "Smart Tools (LIA, DPIA, Accountability Assessment, DPA Generator, Biometric Check, CPPA Risk, CPPA Cybersecurity, ADMT) show enforcement corpus citations alongside their findings: the specific regulatory decisions that supported each conclusion. Citations link directly to the enforcement action record. Primary sources should be validated before relying on any regulatory position.",
   },
   {
     q: "How many generations do I get per Smart Tool report?",
-    a: "Includes 4 generations: your initial report plus up to 3 revisions at no extra cost. Use the Refine panel to change your answers or add context and regenerate. Need more? Add 4 additional generations for half the tool price.",
+    a: "The nine metered tools (Accountability Assessment, LIA, DPIA, DPA Generator, IR Playbook, Biometric Check, CPPA Risk, CPPA Cybersecurity, ADMT) include 4 generations: your initial report plus up to 3 revisions at no extra cost. Use the Refine panel to change your answers or add context and regenerate. Need more? Add 4 additional generations for half the tool price. RoPA, the Notice Builders, Registration Manager, and the free CPPA Scope Checker are not metered this way.",
   },
   {
     q: "How do I cancel my subscription?",
