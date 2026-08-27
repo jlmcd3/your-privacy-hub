@@ -684,7 +684,10 @@ export function buildReadinessDetermination(
     ? `The audit cannot be certified while a component enumerated in § 7123(c) is unimplemented or unevidenced. ` +
       `The blocking components are: ${blocking.map((b) => b.label).join("; ")}.` +
       `${independenceBlocks ? ` Separately, ${independence.summary}` : ""}` +
-      `${enforcementBlocks ? ` § 7123(b)(3) enforcement of the program is also unmet on this record.` : ""}`
+      // FD703575-CY2 — the (b)(3) sentence must carry its basis in the same
+      // sentence (this function's own § 7123(b)(1)/(b)(3) usage discipline);
+      // the bare "is also unmet" form was flagged as an unsupported claim.
+      `${enforcementBlocks ? ` § 7123(b)(3) implementation-and-enforcement evidence is also unmet on this record: components recorded as unimplemented are, on their face, components the program is not enforcing.` : ""}`
     : (() => {
         // Same fix as the headline above, same root cause: never emit "The
         // following are not assessable on this record: ." with nothing

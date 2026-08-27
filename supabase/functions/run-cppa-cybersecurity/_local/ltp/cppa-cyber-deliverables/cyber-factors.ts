@@ -40,6 +40,7 @@ import type {
   EvidenceSufficiency,
 } from "./types.ts";
 import type { ComponentRecommendation, CyberNextStep } from "./cyber-recommendations.ts";
+import { recommendationFact } from "./cyber-recommendations.ts";
 import { CYBER_7123_COMPONENTS } from "./components.ts";
 
 type Bag = Record<string, unknown>;
@@ -354,8 +355,10 @@ export function buildComponentAnalyses(inputs: FactorInputs): CyberComponentAnal
     const commentary = inputs.corpusCommentaryBySlug.get(comp.slug) ?? [];
     for (const line of commentary) sentences.push(stop(line));
 
+    // FD703575-CY3 — {fact} takes the first sentence of the notes, never the
+    // whole narrative (recommendationFact's own comment carries the finding).
     const action = rec
-      ? rec.slot.template.replace("{fact}", noStop(intakeRec.notes || intakeRec.maturity || "the recorded entry"))
+      ? rec.slot.template.replace("{fact}", noStop(recommendationFact(intakeRec.notes, intakeRec.maturity)))
       : "No remediation identified for this component.";
 
     const supporting: string[] = [];
@@ -466,12 +469,18 @@ export interface ReadinessActionsResult {
 
 function actionSentence(r: ComponentRecommendation, intake: Bag): string {
   const rec = controlRec(intake, r.slug);
-  const text = r.slot.template.replace("{fact}", noStop(rec.notes || rec.maturity || "the recorded entry"));
+  // FD703575-CY3 — first-sentence fact, never the whole notes narrative.
+  const text = r.slot.template.replace("{fact}", noStop(recommendationFact(rec.notes, rec.maturity)));
   return `${r.label} - ${text} (EUP readiness recommendation; priority: ${r.priority}.)`;
 }
 
 export function buildReadinessActions(intake: Bag, recs: readonly ComponentRecommendation[]): ReadinessActionsResult {
-  const byClass = (classes: readonly string[]) => recs.filter((r) => classes.includes(r.key.gapClass)).map((r) => actionSentence(r, intake));
+  // FD703575-CY4 — an action appears ONCE. Immediate-priority items render
+  // under "Priority readiness actions"; the class families below list only
+  // the remaining (non-Immediate) items. The live batch rendered the same
+  // four Immediate items verbatim in both lists.
+  const nonPriority = recs.filter((r) => r.priority !== "Immediate");
+  const byClass = (classes: readonly string[]) => nonPriority.filter((r) => classes.includes(r.key.gapClass)).map((r) => actionSentence(r, intake));
   const priority_actions = recs.filter((r) => r.priority === "Immediate").map((r) => actionSentence(r, intake));
   const evidence_package_actions = byClass(["evidence_insufficient"]);
   const implementation_actions = byClass(["not_implemented", "partially_implemented"]);

@@ -33,6 +33,7 @@ import { buildCyberSubmissionAttestationBlock } from "./cyber-submission-attesta
 import { buildPhaseInBlock } from "./cyber-skeleton-assemble.ts";
 import type { CyberDeliverables } from "./cppa-cyber-deliverables/types.ts";
 import type { ComponentRecommendation, CyberNextStep } from "./cppa-cyber-deliverables/cyber-recommendations.ts";
+import { recommendationFact } from "./cppa-cyber-deliverables/cyber-recommendations.ts";
 import { buildCyberFactors, type CyberFactorOutputs } from "./cppa-cyber-deliverables/cyber-factors.ts";
 import { CYBER_7123_COMPONENTS } from "./cppa-cyber-deliverables/components.ts";
 
@@ -158,7 +159,8 @@ function deriveActionRegister(
       return [
         String(r.rank),
         r.label,
-        r.slot.template.replace("{fact}", rec.notes || rec.maturity || "the recorded entry"),
+        // FD703575-CY3 — first-sentence fact, never the whole notes narrative.
+        r.slot.template.replace("{fact}", recommendationFact(rec.notes, rec.maturity)),
         ACTION_TYPE_BY_GAP_CLASS[r.key.gapClass] ?? "Readiness",
         r.priority,
         owner || "Not recorded",

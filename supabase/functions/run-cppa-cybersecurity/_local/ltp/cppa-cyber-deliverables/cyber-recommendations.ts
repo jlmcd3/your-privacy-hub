@@ -143,6 +143,27 @@ export function lookupRecommendation(key: RecommendationKey): RecommendationSlot
 
 const s = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
 
+/**
+ * FD703575-CY3 (2026-08-27) — the {fact} slice. The ratified templates
+ * interpolate "a concrete intake fact" at {fact}; every call site was
+ * substituting the ENTIRE multi-sentence component notes, producing
+ * actions that pasted the whole intake narrative back at the reader
+ * ("Complete implementation of this component…, extending Multi-factor
+ * authentication is enforced via Okta… [five more sentences], and record
+ * the completion date"). The fact is the FIRST SENTENCE of the notes —
+ * concrete and short — with the maturity label and a neutral fallback
+ * unchanged from the old precedence.
+ */
+export function recommendationFact(notes: string, maturity: string): string {
+  const text = s(notes);
+  if (text) {
+    const m = text.match(/^[^.!?]{1,300}[.!?]/);
+    const first = (m ? m[0] : text).trim();
+    return first.replace(/[.!?]$/, "");
+  }
+  return s(maturity) || "the recorded entry";
+}
+
 export function resolveGapClass(
   coverage: CyberComponentCoverage,
   evidence: EvidenceSufficiency | undefined,

@@ -2473,8 +2473,30 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       if (CYBER_DETERMINISTIC_ENABLED) {
         const { assembleCyberSkeletonDocumentV4, CYBER_V4_ASSEMBLER_STAMP } =
           await import("./_local/ltp/cyber-skeleton-assemble-v4.ts");
+        // FD703575-CY1 (2026-08-27, live batch fd703575) — the LEAK-PREV-P2
+        // serializer just above strips component_coverage /
+        // evidence_sufficiency / program_obligation_findings (none is a
+        // schema topLevel key), so the V4 assembler was counting EMPTY
+        // arrays: the shipped document said "testable evidence for 0 of the
+        // eighteen components" against components that identify evidence,
+        // and printed the all-clear "No evidence follow-up is identified"
+        // as a vacuous truth over zero rows. buildCyberDeliverables is pure
+        // and the single writer of these surfaces, so rebuilding them from
+        // intake at compose time is byte-identical to what the serializer
+        // stripped. (The v3 assembler reads none of these keys — v4 only.)
+        const { buildCyberDeliverables } = await import("./_local/ltp/cppa-cyber-deliverables/build.ts");
+        const rebuiltForCompose = buildCyberDeliverables(
+          ((row as any)?.intake_data as Record<string, unknown>) ?? {},
+          (report as any).aggregates,
+        );
+        const composeView = {
+          ...(report as unknown as Record<string, unknown>),
+          component_coverage: rebuiltForCompose.component_coverage,
+          evidence_sufficiency: rebuiltForCompose.evidence_sufficiency,
+          program_obligation_findings: rebuiltForCompose.program_obligation_findings,
+        };
         const sk = assembleCyberSkeletonDocumentV4(
-          report as unknown as Record<string, unknown>,
+          composeView,
           ((row as any)?.intake_data as Record<string, unknown>) ?? {},
           phaseIn,
         );
