@@ -179,11 +179,17 @@ export interface RegistrationDutyCounts {
   readonly open: number;
   readonly broker_states: string[];
   readonly reserved: number;
+  /** FD703575-R1 — the attached duties BY NAME, in count order, so every
+   *  lead that states a count can name what it counted (the live batch said
+   *  "2 registration duties attach" while the body identified only one
+   *  concrete filing, leaving the reader to reconcile the arithmetic). */
+  readonly attached_names: string[];
 }
 
 export function computeDutyCounts(report: Bag): RegistrationDutyCounts {
   const dets = determinations(report);
   const brokerStates: string[] = [];
+  const attachedNames: string[] = [];
   let attached = 0;
   let reserved = 0;
   for (const d of dets) {
@@ -191,19 +197,24 @@ export function computeDutyCounts(report: Bag): RegistrationDutyCounts {
     if (verdict === "registrable") {
       attached += 1;
       brokerStates.push(stateName(d));
+      attachedNames.push(`data-broker registration in ${stateName(d)}`);
     } else if (verdict === "conditional" || verdict === "record_insufficient") {
       reserved += 1;
     }
   }
   for (const r of representatives(report)) {
     const v = s(r.verdict);
-    if (v === "engaged") attached += 1;
-    else if (v === "conditional" || v === "record_insufficient") reserved += 1;
+    if (v === "engaged") {
+      attached += 1;
+      attachedNames.push(`the ${s(r.jurisdiction) || "Art. 27"} representative designation`);
+    } else if (v === "conditional" || v === "record_insufficient") reserved += 1;
   }
   const dpo = (deliverables(report).dpo_determination ?? {}) as Bag;
   const dpoVerdict = s(dpo.verdict);
-  if (dpoVerdict === "engaged") attached += 1;
-  else if (dpoVerdict === "conditional" || dpoVerdict === "record_insufficient") reserved += 1;
+  if (dpoVerdict === "engaged") {
+    attached += 1;
+    attachedNames.push("the designation of a data protection officer");
+  } else if (dpoVerdict === "conditional" || dpoVerdict === "record_insufficient") reserved += 1;
 
   // Satisfied is read from the typed filing-readiness surface only: a duty is
   // satisfied when the jurisdiction's own content list is ready on its face.
@@ -212,7 +223,14 @@ export function computeDutyCounts(report: Bag): RegistrationDutyCounts {
     if (f.ready_to_file === true) satisfied += 1;
   }
   if (satisfied > attached) satisfied = attached;
-  return { attached, satisfied, open: Math.max(attached - satisfied, 0), broker_states: brokerStates, reserved };
+  return {
+    attached,
+    satisfied,
+    open: Math.max(attached - satisfied, 0),
+    broker_states: brokerStates,
+    reserved,
+    attached_names: attachedNames,
+  };
 }
 
 // ── Composed blocks ─────────────────────────────────────────────────────────
@@ -226,8 +244,13 @@ function composeExecLead(counts: RegistrationDutyCounts, org: string): string {
       )
       : stop(`On its answers, no registration duty attaches to ${org}, so there is nothing presently to file`);
   }
+  // FD703575-R1 — the count names what it counts, so a "2 duties" lead can
+  // never leave the reader hunting the body for the second duty.
+  const orgAndNames = counts.attached_names.length
+    ? `${org} — ${asProse(counts.attached_names)} —`
+    : `${org},`;
   return stop(
-    `On its answers, ${count(counts.attached, "registration duty attaches", "registration duties attach")} to ${org}, of which ${counts.satisfied === 0 ? "none is presently satisfied" : `${counts.satisfied} ${counts.satisfied === 1 ? "is" : "are"} presently satisfied`}${counts.reserved > 0 ? `, with ${count(counts.reserved, "further determination", "further determinations")} reserved for want of a fact the intake does not settle` : ""}`,
+    `On its answers, ${count(counts.attached, "registration duty attaches", "registration duties attach")} to ${orgAndNames} of which ${counts.satisfied === 0 ? "none is presently satisfied" : `${counts.satisfied} ${counts.satisfied === 1 ? "is" : "are"} presently satisfied`}${counts.reserved > 0 ? `, with ${count(counts.reserved, "further determination", "further determinations")} reserved for want of a fact the intake does not settle` : ""}`,
   );
 }
 
@@ -343,6 +366,24 @@ function composeBrokerConditional(report: Bag, intake: Bag, org: string): string
     const exclusion = s(threshold.exclusion_analysis);
     if (exclusion) bits.push(stop(noStop(firstSentence(exclusion))));
     blocks.push(bits.join(" "));
+  }
+
+  // FD703575-R2 (2026-08-27, live batch fd703575) — HONEST-POSTURE PARITY
+  // for named US-state markets outside the four registered broker registries
+  // (the biometric S-B5 pattern). The batch record served Colorado and
+  // Virginia; the document addressed only California and was silent on
+  // whether the other named states were assessed at all. A named US-state
+  // market with no registry in this product's verified corpus now earns an
+  // explicit corpus-bounded scope statement instead of silence.
+  const REGISTRY_CODES = new Set(["US-CA", "US-OR", "US-TX", "US-VT"]);
+  const unregistered = (Array.isArray(intake.markets_served) ? (intake.markets_served as unknown[]) : [])
+    .map((m) => String(m))
+    .filter((m) => /^US-/.test(m) && !REGISTRY_CODES.has(m))
+    .map((m) => REGISTRATION_JURISDICTION_LABELS[m] ?? m);
+  if (unregistered.length) {
+    blocks.push(stop(
+      `The markets served also name ${asProse(unregistered)}. No data-broker registration statute for ${unregistered.length === 1 ? "that state" : "those states"} is among the four state registries in this product's verified corpus, so no registration duty is stated for ${unregistered.length === 1 ? "it" : "them"} here; the entry of any new state registry is a named review trigger in the approval block below`,
+    ));
   }
   return repairRegister(blocks.join("\n\n"));
 }

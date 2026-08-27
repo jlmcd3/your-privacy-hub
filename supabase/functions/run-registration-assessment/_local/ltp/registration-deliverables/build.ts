@@ -870,8 +870,13 @@ function buildDpo(intake: I): DpoDetermination {
       : unknown.length
       ? `Whether a data protection officer must be designated cannot be determined from the facts recorded.`
       : `No ${art} branch is engaged by the facts recorded, so designation is not mandatory.`,
+    // FD703575-R1 (2026-08-27) — an engaged DPO duty carries its closing act,
+    // not only the determination (the live batch counted it among the duties
+    // "not presently satisfied" without stating any next step). Art. 37(7)'s
+    // operative text is not in this product's verified corpus, so the
+    // publication-and-communication step is named as follow-up, never quoted.
     reasoning: engaged.length
-      ? `The provision is disjunctive, so one branch suffices. Engaged: ${engaged.map((f) => f.citation).join(", ")}. The remaining branches are recorded above and do not need to be reached.`
+      ? `The provision is disjunctive, so one branch suffices. Engaged: ${engaged.map((f) => f.citation).join(", ")}. The remaining branches are recorded above and do not need to be reached. What closes the duty is a written designation the company records so it can be evidenced, followed by publishing the officer's contact details and communicating them to the supervisory authority (the ${regime} Art. 37(7) step, named here as follow-up; its operative text is not yet in this product's verified corpus and is not quoted).`
       : unknown.length
       ? `No branch is affirmatively engaged, but ${unknown.map((f) => f.citation).join(", ")} cannot be evaluated from the facts recorded, so a negative conclusion would be unsafe.`
       : "Each of the three branches was evaluated against the record and none is engaged. Voluntary designation remains available and is often prudent.",
