@@ -57,6 +57,21 @@ Deno.test("12F/2 — the hard-constraint block is compact and complete", () => {
   ]) assertStringIncludes(PERFECT_HARD_CONSTRAINTS, frag);
 });
 
+// QB-REPAIR-2 (2026-08-27) — live batch 510a9953: DPIA's perfect variant
+// aborted 4/4 on the legal-basis surface because nothing in the base
+// generation prompt told the generator which coupled field each non-LI
+// legal_basis_proposed value needs (build.ts's checkNonLiBasis requires it).
+// Pins the up-front guidance added to close that gap.
+Deno.test("QB-REPAIR-2 — the hard-constraint block names each non-LI basis's coupled-field requirement", () => {
+  for (const frag of [
+    "'Contract' (Art. 6(1)(b)) requires data_subjects to describe them as a party to the contract",
+    "'Consent' (Art. 6(1)(a)) requires data_subject_rights_mechanisms or description to state HOW consent is captured",
+    "'Legal obligation' (Art. 6(1)(c)) or 'Public task' (Art. 6(1)(e)) requires necessity_proportionality, nature_scope_context, reasons_to_conduct, or codes_of_conduct to NAME the specific instrument",
+    "NEVER the \"§\" symbol, which the citation screen rejects outside a small US-statute allowlist",
+    "'Vital interests' (Art. 6(1)(d)) requires either \"Health or medical data\" in data_categories or a stated life/safety/emergency scenario",
+  ]) assertStringIncludes(PERFECT_HARD_CONSTRAINTS, frag);
+});
+
 Deno.test("12F/3 — kind map: carve_out deficiency ⇒ carve_out, anything else ⇒ lint", () => {
   assertEquals(rejectionKindForLint({ deficiencies: [{ kind: "carve_out" }] }), "carve_out");
   assertEquals(rejectionKindForLint({ deficiencies: [{ kind: "gap" }] }), "lint");

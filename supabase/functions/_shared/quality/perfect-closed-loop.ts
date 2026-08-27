@@ -249,6 +249,20 @@ export function perfectRetryGuidance(d: readonly PerfectDeficiency[]): string {
  * at the VERY TOP of the perfect-variant generation prompt, before the contract
  * render. The full guidance below it is unchanged.
  */
+// QB-REPAIR-2 (2026-08-27) — live batch 510a9953: DPIA's perfect variant
+// aborted 4/4 on the closed-loop lint (checkPerfectDpiaIntake, via
+// buildLegalBasis's checkNonLiBasis in build.ts) with record_insufficient on
+// the legal-basis surface. Root cause: whichever non-LI legal_basis_proposed
+// the generator picks, build.ts's basis check requires a SPECIFIC coupled
+// field to carry basis-specific language (e.g. Contract requires
+// data_subjects to use party-relationship wording like "customers" or
+// "applicants" — CONTRACT_PARTY_LEXICON), but nothing in the base generation
+// prompt ever told the generator this coupling exists. The single post-
+// rejection repair retry (perfectRetryGuidance) names the deficiency, but by
+// then the model has already committed to subject/narrative language that
+// often can't be patched by "add facts" alone, and the run exhausts its
+// attempts. Naming the couplings UP FRONT (mirroring items 1-2 below, which
+// exist for exactly this reason) is the fix — items 6-9 below.
 export const PERFECT_HARD_CONSTRAINTS = [
   "HARD CONSTRAINTS — scenarios violating any of these are auto-rejected:",
   "(1) never legal_basis_proposed 'Legitimate interests' with special-category data_categories;",
@@ -256,5 +270,9 @@ export const PERFECT_HARD_CONSTRAINTS = [
   "(3) secondary_uses follows RULE A or RULE B exactly;",
   "(4) every transfer flow fully resolved per the 9F forms;",
   "(5) complete sign-off block.",
+  "(6) legal_basis_proposed 'Contract' (Art. 6(1)(b)) requires data_subjects to describe them as a party to the contract or taking a pre-contractual step at their own request — use words like \"customers\", \"clients\", \"subscribers\", \"employees\", \"applicants\", \"account holders\", \"policyholders\", \"members\", \"the insured\", \"borrowers\", or \"prospective customers/applying for …\"; generic descriptions like \"individuals whose data is processed\" do not qualify and will be rejected;",
+  "(7) legal_basis_proposed 'Consent' (Art. 6(1)(a)) requires data_subject_rights_mechanisms or description to state HOW consent is captured (e.g. opt-in, consent banner/form, consent record) AND how it can be withdrawn (e.g. unsubscribe, preference centre);",
+  "(8) legal_basis_proposed 'Legal obligation' (Art. 6(1)(c)) or 'Public task' (Art. 6(1)(e)) requires necessity_proportionality, nature_scope_context, reasons_to_conduct, or codes_of_conduct to NAME the specific instrument (a named Act, Regulation (EU) …, Directive …, or statute, with an Article or Section NUMBER spelled out as the word \"Article\" or \"Section\" — NEVER the \"§\" symbol, which the citation screen rejects outside a small US-statute allowlist) — describing the obligation generally, without naming the law, will be rejected;",
+  "(9) legal_basis_proposed 'Vital interests' (Art. 6(1)(d)) requires either \"Health or medical data\" in data_categories or a stated life/safety/emergency scenario in the narrative/description/nature_scope_context fields.",
 ].join("\n");
 
