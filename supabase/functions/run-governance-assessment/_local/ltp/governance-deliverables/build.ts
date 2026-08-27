@@ -380,14 +380,22 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
   const none = f.dpoStatus === "No";
 
   const limbA = f.publicAuthority;
-  const limbB = f.largeScale &&
-    f.dataCategories.some((c) => ["Location data", "Communications content"].includes(c));
+  // The monitoring-indicative categories are the limb's actual operands —
+  // FD703575-G2 (2026-08-27): the rendered sentence previously listed EVERY
+  // data category and asserted the whole set "is regular and systematic
+  // monitoring", conflating data categories held (benefits, payroll, CRM)
+  // with the distinct Art. 37(1)(b) monitoring concept (live batch fd703575,
+  // flagged as an unsupported claim). The sentence now names only the
+  // categories the limb actually tests and states the inference as what the
+  // record indicates, not as a definition.
+  const monitoringCategories = f.dataCategories.filter((c) => ["Location data", "Communications content"].includes(c));
+  const limbB = f.largeScale && monitoringCategories.length > 0;
   const limbC = f.largeScale && (f.specialCategory || f.specialList.length > 0);
   const required = limbA || limbB || limbC;
 
   const triggerReasons = [
     limbA ? `(a) applies: the record puts the controller in the ${f.sector} sector, processing carried out by a public authority or body.` : "",
-    limbB ? `(b) applies: the company has indicated core activities at the ${f.size} scale involving ${f.dataCategories.join(", ")}, which is regular and systematic monitoring of data subjects on a large scale.` : "",
+    limbB ? `(b) applies: the company has indicated core activities at the ${f.size} scale that include ${monitoringCategories.join(" and ")} — ${monitoringCategories.length === 1 ? "a category" : "categories"} whose routine processing at that scale indicates the regular and systematic monitoring of data subjects on a large scale that Article 37(1)(b) describes.` : "",
     limbC ? `(c) applies: the company has indicated large-scale processing of special categories (${(f.specialList.length ? f.specialList : ["special-category data"]).join(", ")}).` : "",
   ].filter(Boolean);
 

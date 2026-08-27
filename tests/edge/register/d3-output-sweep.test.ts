@@ -30,14 +30,22 @@ import { buildLiaUpgrade4 } from "../../../supabase/functions/run-li-assessment/
 
 const ROOT = new URL("../../../", import.meta.url);
 
-/** The seven reported locations, plus their whole files. */
+/** The seven reported locations, plus their whole files.
+ *  BASELINE FIX (2026-08-27): the deploy-cap relocation (2026-08-19,
+ *  211656806) moved the risk section composer out of _shared into the four
+ *  risk functions' _local trees; the old _shared path had been a standing
+ *  missing-file failure since. All four relocated copies are swept — the
+ *  deploy-cap mirrors must each stay clean, not just one. */
 const OUTPUT_SURFACES = [
   "supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/build.ts",
   "supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/build-upgrade4.ts",
   "supabase/functions/run-registration-assessment/_local/ltp/registration-deliverables/build.ts",
   "supabase/functions/check-biometric-compliance/_local/ltp/biometric-deliverables/build.ts",
   "supabase/functions/run-governance-assessment/_local/ltp/governance-deliverables/build.ts",
-  "supabase/functions/_shared/ltp/section-composers/cppa-risk.ts",
+  "supabase/functions/run-cppa-risk-assessment/_local/ltp/section-composers/cppa-risk.ts",
+  "supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/section-composers/cppa-risk.ts",
+  "supabase/functions/ltp-risk-doc-gen/_local/ltp/section-composers/cppa-risk.ts",
+  "supabase/functions/replay-cppa-risk-harness/_local/ltp/section-composers/cppa-risk.ts",
 ];
 
 /** A line may NAME the family when it is prohibiting or repairing it. */

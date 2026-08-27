@@ -400,7 +400,13 @@ function domainSeverityPhrase(report: Bag, needle: RegExp): string {
   // render them in the determination register instead.
   if (sev === "compliant") return "evidenced on the company's answers";
   if (sev === "unresolved") return "unresolved on the information provided";
-  return `assessed with severity ${sev}`;
+  // FD703575-G3 (2026-08-27) — a bare severity label reads identically for
+  // any organisation (live batch fd703575: five consecutive "assessed with
+  // severity medium" rows). The domain's own recorded gap is already printed
+  // in Section III; its first sentence anchors the crosswalk row to this
+  // record's facts without deciding anything new.
+  const gap = firstSentence(s(d.gap_description) || s(d.current_state));
+  return gap ? `assessed with severity ${sev} — ${gap.replace(/\.$/, "")}` : `assessed with severity ${sev}`;
 }
 
 function composeIcoCrosswalk(report: Bag): string {
@@ -472,13 +478,30 @@ function composeDeterminationBody(report: Bag, intake: Bag): string {
     const d = domains.find((x) => s(x.domain) === s(finding.domain));
     return d ? s(d.recommended_action) : "";
   };
+  // FD703575-G1 (2026-08-27) — each remediation item names the DUTY and the
+  // GAP it closes. The old lookup matched the remediation record's domain
+  // (the Item-313 duty vocabulary: "demonstrability", "dpo", …) against the
+  // model domain findings' domain names (the tool-usage vocabulary:
+  // "tool_inventory", …), which never match — every item fell back to the
+  // bare duty slug and items 2–9 rendered identically ("demonstrability
+  // Priority: High — …" with no gap named, live batch fd703575). Each
+  // remediation record was built FROM a domain_element_finding
+  // (finding.remediation, keyed by finding_key), so that finding's label and
+  // record_fact are the authoritative statement of what the item closes.
+  const elements = Array.isArray(report.domain_element_findings) ? (report.domain_element_findings as Bag[]) : [];
+  const elementFor = (p: Bag): Bag | undefined => elements.find((x) => s(x.key) === s(p.finding_key));
   if (plan.length) {
     parts.push(
       `The assessment records ${plan.length === 1 ? "one remediation item" : `${plan.length} remediation items`}, each tied to the duty it closes.`,
     );
     plan.forEach((p, i) => {
+      const el = elementFor(p);
+      const label = (el && s(el.label)) || s(p.domain).replace(/_/g, " ");
+      const gap = el ? firstSentence(s(el.record_fact)) : "";
+      const action = actionFor(p);
       const bits = [
-        `${i + 1}. ${repairRegister(actionFor(p) || s(p.domain).replace(/_/g, " "))}`,
+        `${i + 1}. ${repairRegister([label, gap].filter(Boolean).join(" — "))}`,
+        action ? `Action: ${repairRegister(action.replace(/\.$/, ""))}.` : "",
         s(p.priority) ? `Priority: ${s(p.priority)}.` : "",
         s(p.accountable_owner) ? `Accountable owner: ${s(p.accountable_owner)}.` : "",
         s(p.target_date) ? `Target date: ${s(p.target_date)}.` : "",

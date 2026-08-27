@@ -150,7 +150,7 @@ export function deriveReadinessDetermination(
   }
 
   const rationale = adverse > 0
-    ? `The accountability determination is "${primary.replace(/_/g, " ")}" and ${adverse} of the determinations read alongside it are adverse, so the rating follows the weaker of the two.`
+    ? `The accountability determination is "${primary.replace(/_/g, " ")}" and ${adverse} of the determinations read alongside it ${adverse === 1 ? "is" : "are"} adverse, so the rating follows the weaker of the two.`
     : `The accountability determination is "${primary.replace(/_/g, " ")}" and no determination read alongside it is adverse.`;
 
   return { rating, rating_basis: BASIS, rationale, determined_from };
