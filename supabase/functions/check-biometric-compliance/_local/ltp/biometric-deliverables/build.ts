@@ -746,7 +746,7 @@ function buildIlDuties(
       ? `Destruction trigger described: "${trigger}".`
       : "The record describes no destruction trigger.",
     !scheduleEstablished
-      ? "The duty to comply with an established schedule presupposes one. No established schedule is documented on the record, so compliance cannot be shown."
+      ? "The duty to comply with an established schedule presupposes one. No established schedule is documented on the information provided, so compliance cannot be shown."
       : triggerDenied
       ? "The trigger text the record supplies states no destruction trigger is configured; a discretionary manual practice is described instead. Whether destruction actually occurs on the established schedule cannot be shown on that description."
       : trigger

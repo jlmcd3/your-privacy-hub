@@ -472,7 +472,10 @@ const MESSY_REGISTRATION_BOTH_REPS: GoldenCase = {
     organization_country: "US",
     organization_size: "medium" as const,
     employee_count: 140,
-    industry: "Advertising / Marketing",
+    // BASELINE FIX (2026-08-27): "Advertising / Marketing" predates the S-R1
+    // contract wiring (doc 80) and is not in the INDUSTRIES enum; the closed
+    // list's own ad-tech option is the scenario's exact fit.
+    industry: "AdTech / MarTech",
     role: "controller" as const,
     processes_personal_data: true,
     has_uk_establishment: false,
