@@ -1,3 +1,5 @@
+// S-R1 (doc 80, 2026-08-27) — WIRED: moved from archive/unwired/ into the
+// live contract set and registered in CONTRACT_BY_TOOL (PN-R2 executed).
 // REGISTRATION-INTAKE-CONTRACT-RAIL-MAP (2026-07-24) — Registration Assessment
 // intake contract, authored on the same pattern as the other 9 contracts.
 //
@@ -36,7 +38,7 @@
 //     `markets_served`, enforced in the edge function at L196-200 and
 //     mirrored by the contract via requiredWhen on those two keys).
 
-import type { IntakeContract } from "../../../../supabase/functions/_shared/intake-contracts/types.ts";
+import type { IntakeContract } from "./types.ts";
 
 // ── Verbatim enum copies (single source of truth = the .ts modules above) ──
 

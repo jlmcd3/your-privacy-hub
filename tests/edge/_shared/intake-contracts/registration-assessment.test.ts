@@ -10,7 +10,7 @@ import {
   REGISTRATION_ROLES,
   REGISTRATION_EU_LEAD_CODES,
   REGISTRATION_MARKET_CODES,
-} from "../../../../archive/unwired/_shared/intake-contracts/registration-assessment.ts";
+} from "../../../../supabase/functions/_shared/intake-contracts/registration-assessment.ts";
 
 Deno.test("registration contract / shape", () => {
   assertEquals(registrationContract.tool_type, "registration_assessment");
@@ -118,4 +118,25 @@ Deno.test("registration validate / requires organization_name", () => {
   });
   assert(!res.ok);
   assert(res.violations.some((v) => v.key === "organization_name"));
+});
+
+// S-R1 (doc 80, 2026-08-27) — the wiring proof doc 80 requires: every
+// registration golden fixture validates cleanly against the newly-wired
+// contract BEFORE the wiring is trusted. Any mismatch here is a contract
+// bug to fix, never a fixture to bend.
+import { REGISTRATION_GOLDEN } from "../../../../supabase/functions/_shared/golden/registration.ts";
+
+Deno.test("S-R1 — every registration golden fixture validates cleanly against the wired contract", () => {
+  for (const c of REGISTRATION_GOLDEN) {
+    const res = validateIntake(registrationContract, c.intake as Record<string, unknown>);
+    assert(
+      res.ok,
+      `${c.name ?? "fixture"}: ${res.violations.map((v) => `${v.key}: ${v.reason}`).join("; ")}`,
+    );
+  }
+});
+
+Deno.test("S-R1 — the registry serves the registration contract under the batch slug", async () => {
+  const { CONTRACT_BY_TOOL } = await import("../../../../supabase/functions/run-quality-batch/_local/intake-contracts/registry.ts");
+  assert(CONTRACT_BY_TOOL["registration"] === registrationContract, "CONTRACT_BY_TOOL must serve the same wired contract object");
 });
