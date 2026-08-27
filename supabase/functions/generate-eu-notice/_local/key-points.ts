@@ -1,10 +1,29 @@
 // supabase/functions/generate-eu-notice/_local/key-points.ts
 //
 // S-N4 (doc 80, 2026-08-27) — the "Key points" first layer for the EU/global
-// notice: the ICO/WP260 layered-notice value in the one-document form. Every
-// line is derived from the SAME answers as the body (single writer, no
-// re-stated free text); a line whose answer is blank is simply absent —
-// the block never pads.
+// notice: the ICO/WP260 layered-notice value in the one-document form.
+//
+// SINGLE-WRITER FIX (same day): the first cut read raw answers and leaked
+// option CODES ("service_delivery") into the rendered block, bypassing the
+// index's formatAnswer reader-label mapping — caught by the pre-existing
+// generate-eu-notice suite. The builder now consumes a bag of ALREADY-
+// FORMATTED values that buildNoticeSections (the single writer for reader
+// labels) computes and returns; this module formats nothing itself. Blank
+// values are absent lines — the block never pads. The transfers label is
+// "Transfers:" — deliberately NOT the section title "International
+// transfers", which the suite's section-exclusivity bound reserves for the
+// conditional section itself.
+
+export interface EuKeyPointsBag {
+  readonly controller: string;
+  readonly categories: string;
+  readonly purposes: string;
+  readonly basis: string;
+  readonly recipients: string;
+  readonly transfers: boolean;
+  readonly retention: string;
+  readonly contactEmail: string;
+}
 
 function esc(s: unknown): string {
   return String(s ?? "")
@@ -15,33 +34,18 @@ function esc(s: unknown): string {
     .replace(/'/g, "&#39;");
 }
 
-function toText(v: unknown): string {
-  if (v == null) return "";
-  if (Array.isArray(v)) return v.map(String).join(", ");
-  return String(v).trim();
-}
-
-export function buildEuKeyPointsHtml(answers: Record<string, unknown>): string {
-  const controller = toText(answers["controller_name"]);
-  const categories = toText(answers["data_categories"]);
-  const purposes = toText(answers["processing_purposes"]);
-  const basis = toText(answers["lawful_basis"]);
-  const recipients = toText(answers["third_party_recipients"]);
-  const transfers = String(answers["transfer_outside_eea"] ?? "").toLowerCase().includes("yes");
-  const retention = toText(answers["retention_period"]);
-  const contactEmail = toText(answers["contact_email"]);
-
+export function buildEuKeyPointsHtml(bag: EuKeyPointsBag): string {
   const items: string[] = [];
-  if (controller) items.push(`<li><strong>Who we are:</strong> ${esc(controller)}</li>`);
-  if (categories) items.push(`<li><strong>What we collect:</strong> ${esc(categories)}</li>`);
-  if (purposes) items.push(`<li><strong>Why:</strong> ${esc(purposes)}</li>`);
-  if (basis) items.push(`<li><strong>Legal footing:</strong> ${esc(basis)}</li>`);
-  if (recipients) items.push(`<li><strong>Who receives it:</strong> ${esc(recipients)}</li>`);
-  items.push(transfers
-    ? `<li><strong>International transfers:</strong> yes — see the transfers section for the safeguards relied on</li>`
-    : `<li><strong>International transfers:</strong> none outside the originating regime are reported</li>`);
-  if (retention) items.push(`<li><strong>How long:</strong> ${esc(retention)}</li>`);
-  if (contactEmail) items.push(`<li><strong>Your rights:</strong> access, rectification, erasure, restriction, portability, and objection where applicable — contact ${esc(contactEmail)}</li>`);
+  if (bag.controller) items.push(`<li><strong>Who we are:</strong> ${esc(bag.controller)}</li>`);
+  if (bag.categories) items.push(`<li><strong>What we collect:</strong> ${esc(bag.categories)}</li>`);
+  if (bag.purposes) items.push(`<li><strong>Why:</strong> ${esc(bag.purposes)}</li>`);
+  if (bag.basis) items.push(`<li><strong>Legal footing:</strong> ${esc(bag.basis)}</li>`);
+  if (bag.recipients) items.push(`<li><strong>Who receives it:</strong> ${esc(bag.recipients)}</li>`);
+  items.push(bag.transfers
+    ? `<li><strong>Transfers:</strong> data leaves the originating regime — see the transfers section for the safeguards relied on</li>`
+    : `<li><strong>Transfers:</strong> none outside the originating regime are reported</li>`);
+  if (bag.retention) items.push(`<li><strong>How long:</strong> ${esc(bag.retention)}</li>`);
+  if (bag.contactEmail) items.push(`<li><strong>Your rights:</strong> access, rectification, erasure, restriction, portability, and objection where applicable — contact ${esc(bag.contactEmail)}</li>`);
 
   if (items.length === 0) return "";
   return `<section style="background:#edf2f5;border:1px solid #dde5ea;border-radius:0.5rem;padding:0.9rem 1.25rem;margin:1.25rem 0;">

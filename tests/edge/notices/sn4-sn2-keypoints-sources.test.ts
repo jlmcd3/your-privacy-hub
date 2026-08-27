@@ -34,21 +34,23 @@ Deno.test("S-N4 — a sell/share posture flips the Key points line and blank ans
   assert(!html.includes("How long:"), "blank retention must not render a line");
 });
 
-Deno.test("S-N4 — the EU Key points block derives from the same answers, no padding", () => {
+Deno.test("S-N4 — the EU Key points block renders the formatted bag; blanks are absent, transfers always definite", () => {
   const html = buildEuKeyPointsHtml({
-    controller_name: "Acme GmbH",
-    contact_email: "privacy@acme.example",
-    data_categories: ["contact details"],
-    processing_purposes: "order fulfilment",
-    lawful_basis: ["contract"],
-    retention_period: "24 months",
-    transfer_outside_eea: "no",
+    controller: "Acme GmbH",
+    categories: "Identifiers (name, email, IP, account ID)",
+    purposes: "Service or product delivery",
+    basis: "Contractual necessity (Art.6(1)(b))",
+    recipients: "Service providers (hosting, payments, email)",
+    transfers: false,
+    retention: "24 months",
+    contactEmail: "privacy@acme.example",
   });
   assertStringIncludes(html, "Who we are:");
   assertStringIncludes(html, "Acme GmbH");
   assertStringIncludes(html, "none outside the originating regime are reported");
-  const empty = buildEuKeyPointsHtml({});
-  // The transfers line alone still renders (a definite fact either way).
-  assertStringIncludes(empty, "International transfers:");
+  // The label deliberately avoids the "International transfers" section title.
+  assert(!html.includes("International transfers"));
+  const empty = buildEuKeyPointsHtml({ controller: "", categories: "", purposes: "", basis: "", recipients: "", transfers: false, retention: "", contactEmail: "" });
+  assertStringIncludes(empty, "Transfers:");
   assert(!empty.includes("Who we are:"));
 });
