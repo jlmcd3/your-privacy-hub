@@ -262,10 +262,18 @@ const RATING_PHRASE: Record<string, string> = {
   "Not yet determinable": "accountability is not yet determinable on the answers the company has given",
 };
 
+// DOC-81 S-1 (CEO-directed, 2026-08-27) — "evidenced" replaces "stands":
+// this is the file's OWN established word for this exact concept, already
+// used twice (RATING_PHRASE above and verdictPhrase() below, both in this
+// file) — "stands"/"stands only in part" was the outlier, not the norm,
+// and doesn't gracefully take a partial modifier ("stands in part" isn't
+// idiomatic). "Evidenced" also names the actual legal concept: all three
+// surfaces this map serves are asking whether the company's answers let
+// this be DEMONSTRATED, the literal Art. 5(2) standard.
 const VERDICT_PHRASE: Record<string, string> = {
-  satisfied: "stands on the company's answers",
-  partially_satisfied: "stands only in part on the company's answers",
-  not_satisfied: "does not stand on the company's answers",
+  satisfied: "is evidenced on the company's answers",
+  partially_satisfied: "is only partly evidenced on the company's answers",
+  not_satisfied: "is not evidenced on the company's answers",
   not_determinable: "cannot be determined on the company's answers",
   information_needed: "cannot be determined on the company's answers",
 };
@@ -557,7 +565,7 @@ export function assembleGovernanceSkeletonDocument(
     "governance_infrastructure:0": verdictLead(
       (report.accountability_determination ?? {}) as Bag,
       "The accountability structure the company has described — designation, notice and records —",
-      "Whether the accountability structure stands cannot be determined on the company's answers.",
+      "Whether the accountability structure is evidenced on the company's answers cannot be determined.",
     ),
     "governance_infrastructure:3": composeDpoBody(report),
     // S-G2 — the Art. 30 records-and-demonstrability block.
@@ -565,7 +573,11 @@ export function assembleGovernanceSkeletonDocument(
 
     "training_tools_controls:0": verdictLead(
       { verdict: s(((report.risk_calibration_finding ?? {}) as Bag).verdict) },
-      "The operational controls the company has described —",
+      // DOC-81 S-1 — renamed from "The operational controls" (plural,
+      // trailing unpaired dash) to match this section's OWN fallback below,
+      // which already called it "the operational-control posture" — and to
+      // give VERDICT_PHRASE a singular subject so "is evidenced" agrees.
+      "The operational-control posture the company has described",
       "The operational-control posture rests on the answers set out below.",
     ),
     "training_tools_controls:2": composeDomains(report, OPERATIONAL_DOMAINS),

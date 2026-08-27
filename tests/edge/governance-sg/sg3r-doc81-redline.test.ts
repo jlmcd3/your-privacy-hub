@@ -109,6 +109,41 @@ Deno.test("S-3 — the Art. 30 elements sentence is in attributed voice, and the
   assert(!GOVERNANCE_V3_BANNED_REGISTER.includes("the record does not support"));
 });
 
+Deno.test("S-1 — the operational-control lead is grammatical and uses the file's own \"evidenced\" idiom, not \"stands\"", () => {
+  const satisfied = assembleGovernanceSkeletonDocument(
+    { domain_findings: buildDomainFindingsTyped(STRONG), readiness_determination: {}, risk_calibration_finding: { verdict: "satisfied" } },
+    STRONG,
+  );
+  const partial = assembleGovernanceSkeletonDocument(
+    { domain_findings: buildDomainFindingsTyped(STRONG), readiness_determination: {}, risk_calibration_finding: { verdict: "partially_satisfied" } },
+    STRONG,
+  );
+  const notSatisfied = assembleGovernanceSkeletonDocument(
+    { domain_findings: buildDomainFindingsTyped(STRONG), readiness_determination: {}, risk_calibration_finding: { verdict: "not_satisfied" } },
+    STRONG,
+  );
+  const t1 = JSON.stringify(satisfied.document);
+  const t2 = JSON.stringify(partial.document);
+  const t3 = JSON.stringify(notSatisfied.document);
+  assertStringIncludes(t1, "The operational-control posture the company has described is evidenced on the company's answers.");
+  assertStringIncludes(t2, "The operational-control posture the company has described is only partly evidenced on the company's answers.");
+  assertStringIncludes(t3, "The operational-control posture the company has described is not evidenced on the company's answers.");
+  for (const t of [t1, t2, t3]) {
+    assert(!t.includes("stands"), t);
+    assert(!t.includes("The operational controls the company has described —"), "no unpaired em-dash / plural subject");
+  }
+});
+
+Deno.test("S-1 — the accountability-structure fallback also uses \"evidenced\", not \"stands\"", () => {
+  const sk = assembleGovernanceSkeletonDocument(
+    { domain_findings: buildDomainFindingsTyped(STRONG), readiness_determination: {}, accountability_determination: { verdict: "unknown_value" } },
+    STRONG,
+  );
+  const text = JSON.stringify(sk.document);
+  assertStringIncludes(text, "Whether the accountability structure is evidenced on the company's answers cannot be determined.");
+  assert(!text.includes("structure stands"));
+});
+
 Deno.test("S-4 — every remediation-item fragment ends with a period", () => {
   const report = {
     domain_findings: buildDomainFindingsTyped(STRONG),

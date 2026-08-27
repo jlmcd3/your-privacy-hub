@@ -109,7 +109,7 @@ export const GOVERNANCE_SKELETON_SECTIONS: readonly GovernanceSkeletonSection[] 
     id: "governance_infrastructure",
     title: "II. Governance Infrastructure",
     blocks: [
-      { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating whether the accountability structure - designation, notice, records - stands on the company's answers." },
+      { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating whether the accountability structure - designation, notice, records - is evidenced on the company's answers." },
       { kind: "skeleton", text: "As to the designation of a data protection officer, the company has answered {DPO_PHRASE - reader label from dpoStatus, rendered as prose}. Its privacy notice position is {PRIVACY_POLICY_PHRASE - reader label}, with coverage the company describes as {privacyNoticeCoverage - reader labels as prose}." },
       // [FIXED RULE - the 403-A principle] — the marker is authoring notation;
       // the sentence itself is byte-pinned skeleton law and prints.
