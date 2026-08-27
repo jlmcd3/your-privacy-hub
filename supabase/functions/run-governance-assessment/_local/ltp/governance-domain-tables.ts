@@ -38,7 +38,7 @@ export interface TypedDomainFinding {
 export const GOVERNANCE_DOMAIN_TABLES_STAMP = "governance-domain-tables@s-g3-2026-08-27";
 
 const s = (v: unknown): string => String(v ?? "").trim();
-const ORG_TIMELINE = "timeline to be set by the organisation (this quarter as the illustrative cadence)";
+const ORG_TIMELINE = "timeline to be set by the organisation (this quarter is an illustrative target)";
 
 interface Cell {
   readonly severity: TypedDomainFinding["severity"];
@@ -65,7 +65,9 @@ function finding(
 const UNRESOLVED = (topic: string, ask: string): Cell => ({
   severity: "Unresolved",
   current_state: `The company has not resolved ${topic} on the information provided.`,
-  gap_description: `The answer needed to assess this domain is not recorded.`,
+  // DOC-81 G-4 (CEO wording) — covers both the absent answer and an
+  // explicit "Unsure", which IS recorded but resolves nothing.
+  gap_description: `The company's answers do not resolve this issue.`,
   recommended_action: ask,
 });
 
@@ -125,7 +127,7 @@ function dataSubmission(intake: Bag): TypedDomainFinding {
     },
   };
   return finding(2, "Data Submission Risk", "data_submission",
-    "GDPR Arts. 25(1), 32(1)" + (special ? ", Art. 9" : ""), "IT owner",
+    special ? "GDPR Arts. 9, 25(1), 32(1)" : "GDPR Arts. 25(1), 32(1)", "IT owner",
     table[v] ?? UNRESOLVED("whether technical controls enforce the submission rules", "Answer the technical-controls question: enforced, partial, or policy-and-training only."));
 }
 
@@ -213,7 +215,13 @@ function training(intake: Bag): TypedDomainFinding {
     "Yes, formal onboarding + annual refresh": {
       severity: ai === "Yes — explicitly covers AI tools" || !tail ? "Compliant" : "Low",
       current_state: "Employees receive formal onboarding training with an annual refresh." + tail,
-      gap_description: ai === "No — not AI-specific" ? "The AI tools in use are outside the training's coverage." : null,
+      // DOC-81 G-5 — a Low finding names its gap: general data-handling
+      // coverage leaves the AI tools unaddressed.
+      gap_description: ai === "No — not AI-specific"
+        ? "The AI tools in use are outside the training's coverage."
+        : ai === "Generally covers data handling"
+        ? "The training covers data handling generally; the AI tools in use are not separately addressed."
+        : null,
       recommended_action: ai === "No — not AI-specific"
         ? "Extend the training to cover the AI tools in use and their prohibited-submission rules (GDPR Arts. 32(4), 39(1)(b))."
         : "Keep the annual refresh aligned with the tools list as it changes.",
@@ -281,7 +289,7 @@ function regulatoryExposure(intake: Bag): TypedDomainFinding {
   const special = s(intake.special_category) === "Yes";
   const frameworks = jl.length ? jl.join(", ") : "no recorded jurisdictions";
   return finding(7, "Regulatory Exposure Summary", "regulatory_exposure",
-    euUk ? "GDPR / UK GDPR as recorded per jurisdiction" : "The recorded jurisdictions' own frameworks",
+    euUk ? "GDPR / UK GDPR as recorded per jurisdiction" : "the recorded jurisdictions' own frameworks",
     "Legal owner",
     {
       severity: jl.length === 0 ? "Unresolved" : special && euUk ? "Medium" : "Low",
@@ -419,15 +427,22 @@ export function composeExecutiveSummaryTyped(findings: Record<string, TypedDomai
   const adverse = all.filter((f) => f.severity === "High" || f.severity === "Critical");
   const unresolved = all.filter((f) => f.severity === "Unresolved");
   const clean = all.filter((f) => f.severity === "Compliant");
+  // DOC-81 G-2 — Medium/Low findings with a recorded gap are repairs, not
+  // maintenance; the all-clear sentence may not fire over them.
+  const flagged = all.filter((f) =>
+    (f.severity === "Medium" || f.severity === "Low") && f.gap_description);
   const parts: string[] = [];
-  parts.push(`Across the ten governance domains, the company's answers leave ${clean.length} fully evidenced.`);
+  parts.push(`Across the ten governance domains, the company's answers leave ${clean.length === 0 ? "none" : clean.length} of the ten fully evidenced.`);
   if (adverse.length > 0) {
     parts.push(`The domains requiring action first are: ${adverse.map((f) => f.domain_name).join("; ")}.`);
+  }
+  if (flagged.length > 0) {
+    parts.push(`${flagged.length === 1 ? "One domain carries a recorded gap" : `${flagged.length} domains carry recorded gaps`} below the immediate-priority threshold; the actions are set out in Section III.`);
   }
   if (unresolved.length > 0) {
     parts.push(`${unresolved.length === 1 ? "One domain remains" : `${unresolved.length} domains remain`} unresolved on the information provided.`);
   }
-  if (adverse.length === 0 && unresolved.length === 0) {
+  if (adverse.length === 0 && unresolved.length === 0 && flagged.length === 0) {
     parts.push("No domain requires immediate remediation on the company's answers; the actions recorded per domain are maintenance, not repair.");
   }
   return parts.join(" ");

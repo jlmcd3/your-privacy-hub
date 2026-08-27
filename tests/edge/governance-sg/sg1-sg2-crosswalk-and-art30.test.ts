@@ -69,7 +69,8 @@ function text(report: Bag): string {
 Deno.test("S-G2 — the Art. 30 element walk, 30(5) position, and demonstrability roll-up all render", () => {
   const t = text(baseReport());
   assertStringIncludes(t, "evidence 5 of 7");
-  assertStringIncludes(t, "does not support (d)");
+  // DOC-81 S-3 — attributed voice: "the company's answers do not support".
+  assertStringIncludes(t, "the company's answers do not support (d)");
   assertStringIncludes(t, "(e) remains open on the information provided");
   assertStringIncludes(t, "derogation is not available: special categories of data are processed");
   assertStringIncludes(t, "artifact is present for 1 and partially present for 1");

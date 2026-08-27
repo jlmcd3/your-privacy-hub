@@ -299,7 +299,9 @@ function domainProse(d: Bag): string {
     s(d.domain_name) ? `${s(d.domain_name)}.` : "",
     s(d.current_state),
     s(d.gap_description),
-    s(d.regulatory_basis) ? `The provisions engaged are ${s(d.regulatory_basis)}` : "",
+    // DOC-81 G-1 — the terminal period lives here, not in the ten basis
+    // strings, so the sentence can never run into the action that follows.
+    s(d.regulatory_basis) ? `The provisions engaged are ${s(d.regulatory_basis)}.` : "",
     s(d.recommended_action),
   ].filter(Boolean);
   return repairRegister(parts.join(" "));
@@ -328,7 +330,9 @@ function composeArt30RecordsBody(report: Bag): string {
     const unmet = elements.filter((e) => s(e.verdict) === "not_satisfied");
     const letters = (xs: Bag[]) => xs.map((e) => `(${s(e.element)})`).join(", ");
     let sentence = `On the Article 30(1) elements, the company's answers evidence ${met.length} of ${elements.length}`;
-    if (unmet.length > 0) sentence += `; the record does not support ${letters(unmet)}`;
+    // DOC-81 S-3 — attributed voice at source ("the record does not
+    // support" passed the banned-list guard but violated the rule).
+    if (unmet.length > 0) sentence += `; the company's answers do not support ${letters(unmet)}`;
     if (open.length > 0) sentence += `; ${letters(open)} ${open.length === 1 ? "remains" : "remain"} open on the information provided`;
     parts.push(sentence + ".");
   }
@@ -384,6 +388,10 @@ function domainSeverityPhrase(report: Bag, needle: RegExp): string {
   if (!d) return "not separately assessed by this report";
   const sev = s(d.severity).toLowerCase();
   if (!sev) return "assessed in Section III without a recorded severity";
+  // DOC-81 G-3 — "Compliant" and "Unresolved" are postures, not severities;
+  // render them in the determination register instead.
+  if (sev === "compliant") return "evidenced on the company's answers";
+  if (sev === "unresolved") return "unresolved on the information provided";
   return `assessed with severity ${sev}`;
 }
 
@@ -464,7 +472,7 @@ function composeDeterminationBody(report: Bag, intake: Bag): string {
       const bits = [
         `${i + 1}. ${repairRegister(actionFor(p) || s(p.domain).replace(/_/g, " "))}`,
         s(p.priority) ? `Priority: ${s(p.priority)}.` : "",
-        s(p.accountable_owner) ? `Accountable owner: ${s(p.accountable_owner)}` : "",
+        s(p.accountable_owner) ? `Accountable owner: ${s(p.accountable_owner)}.` : "",
         s(p.target_date) ? `Target date: ${s(p.target_date)}.` : "",
         s(p.validation_method) ? `Validation: ${s(p.validation_method)}.` : "",
       ].filter(Boolean);
