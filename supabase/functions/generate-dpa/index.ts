@@ -8,6 +8,12 @@ console.log(`[generate-dpa] boot dpa-registry-wiring registry_loaded=dpa-va-w1-2
 import { US_STATE_CITATION_ANCHORS } from "./_local/registry/dpa-us-citation-anchors.ts";
 import { renderTomsBlock } from "./_local/registry/dpa-toms-taxonomy.ts";
 import { renderUsRequiredTermsBlock } from "./_local/registry/dpa-us-required-terms.ts";
+// S-D1 (doc 80, 2026-08-27) — the deterministic clause-library assembler,
+// dark behind DPA_DETERMINISTIC_ENABLED (default false; CEO flips at deploy
+// after the clause-library redline). The LIA/Cyber cutover pattern exactly.
+import { assembleDpaDocument } from "./_local/clause-library/dpa-assemble.ts";
+
+const DPA_DETERMINISTIC_ENABLED = (Deno.env.get("DPA_DETERMINISTIC_ENABLED") ?? "false") === "true";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { requireEntitlement } from "../_shared/entitlement.ts";
@@ -1461,6 +1467,35 @@ ${ADVISORY_VOICE_RULES}`;
     }
 
     let fullText: string;
+    // S-D1 — deterministic path: the clause library + annex assembler, zero
+    // model calls, byte-deterministic. The model path below is UNCHANGED
+    // while the flag is false.
+    if (DPA_DETERMINISTIC_ENABLED) {
+      const _rawDays = body.subprocessorChangeNoticePeriod;
+      const _days = typeof _rawDays === "number" ? _rawDays : Number.parseInt(String(_rawDays ?? "").trim(), 10);
+      const assembled = assembleDpaDocument({
+        documentType: documentType as import("./_local/clause-library/dpa-clause-library.ts").DpaMode,
+        controllerName: body.controllerName,
+        controllerJurisdiction: body.controllerJurisdiction,
+        processorName: body.processorName,
+        processorJurisdiction: body.processorJurisdiction,
+        services: body.services,
+        dataCategories: Array.isArray(body.dataCategories) ? body.dataCategories : [],
+        retention: body.retention ?? "",
+        hasSubProcessors: !!body.hasSubProcessors,
+        subProcessorList: body.subProcessorList ?? "",
+        subprocessorAuthorizationModel: body.subprocessorAuthorizationModel === "specific" ? "specific" : "general",
+        subprocessorNoticeDays: Number.isFinite(_days) && _days > 0 && _days <= 365 ? Math.trunc(_days) : 30,
+        auditRights: body.auditRights ?? "",
+        includeTransferClause: !!body.includeTransferClause,
+        transferMechanism: body.transferMechanism ?? "",
+        securityMeasuresSelected: Array.isArray(body.securityMeasuresSelected) ? body.securityMeasuresSelected : [],
+        securityMeasuresDetails: body.securityMeasuresDetails ?? "",
+        californiaEngaged: /california/i.test(`${body.controllerJurisdiction} ${body.processorJurisdiction}`),
+      });
+      console.log(JSON.stringify({ evt: "_dpa_deterministic", fn: "generate-dpa", assembler: assembled.assembler, mode: assembled.mode, sections: assembled.sections.length }));
+      fullText = assembled.document_text;
+    } else {
     try {
       let firstCall = await callAi("");
       if (firstCall.finishReason === "length") {
@@ -1477,6 +1512,7 @@ ${ADVISORY_VOICE_RULES}`;
       fullText = firstCall.text;
     } catch (e) {
       throw e instanceof Error ? e : new Error("AI generation failed");
+    }
     }
 
     let parsed = parseDpa(fullText);
