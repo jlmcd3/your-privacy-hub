@@ -108,6 +108,10 @@ export default function BiometricChecker() {
     entity_is_government: "",
     glba_financial_institution: "",
     notice_before_collection: "",
+    // S-B1 (doc 80, 2026-08-27) — BIPA § 15(b)(2)'s second sequential
+    // pre-collection writing (specific purpose AND length of term); asked
+    // only when Illinois is in scope.
+    notice_purpose_and_term: "",
     consent_artifact_type: "",
     release_artifact_description: "",
     // INTAKE-4g — CEO-approved addition 2026-08-09. Optional narrative; GDPR
@@ -117,6 +121,10 @@ export default function BiometricChecker() {
 
     retention_schedule_text: "",
     retention_policy_public: "",
+    // S-B2 (doc 80, 2026-08-27) — § 15(a) timing element: whether the
+    // retention/destruction policy has been in place since first possession
+    // of biometric data (Illinois appellate rule); Illinois-only.
+    retention_policy_predates_possession: "",
     destruction_trigger: "",
     sells_or_profits: "",
     disclosure_recipients: "",
@@ -184,8 +192,8 @@ export default function BiometricChecker() {
   // registry behind them yet.
   const showTexas = form.jurisdictions.some(j => j.includes("Texas"));
   const showWashington = form.jurisdictions.some(j => j.includes("Washington"));
-  const showPractices =
-    form.jurisdictions.some(j => j.includes("Illinois")) || showTexas || showWashington;
+  const showIllinois = form.jurisdictions.some(j => j.includes("Illinois"));
+  const showPractices = showIllinois || showTexas || showWashington;
 
   const handleGenerate = async () => {
     setPhase("generating");
@@ -451,6 +459,15 @@ export default function BiometricChecker() {
                     {BIO_NOTICE.map(o => <option key={o} value={o}>{o}</option>)}</select>
                 </div>
 
+                {/* S-B1 — BIPA § 15(b)(2): the second sequential pre-collection
+                    writing. Illinois-only; unanswered degrades honestly. */}
+                {showIllinois && (
+                  <div className="space-y-1">
+                    <Tri label="Does the written notice state both the specific purpose AND the length of term for which the biometric data is collected, stored, and used?" value={form.notice_purpose_and_term} onChange={(v) => setForm(f => ({ ...f, notice_purpose_and_term: v }))} />
+                    <p className="text-meta text-muted-foreground">Illinois requires this as a separate writing from the notice of collection itself: the notice must name the specific purpose and the length of term. A notice that says biometrics are collected, without stating both, answers "No" here.</p>
+                  </div>
+                )}
+
                 <div className="space-y-1">
                   <Label htmlFor="bio-consent-artifact" className="text-sm font-semibold text-brand-navy">Consent or release artifact</Label>
                   <p className="text-meta text-muted-foreground">Pick by the document you could produce on request, not by the intention behind it. A standalone signed release, a clickwrap acceptance, and onboarding paperwork are three different artifacts with three different evidential weights.</p>
@@ -493,6 +510,15 @@ export default function BiometricChecker() {
                   <Tri label="Is that policy made available to the public?" value={form.retention_policy_public} onChange={(v) => setForm(f => ({ ...f, retention_policy_public: v }))} />
                   <Tri label="Are biometrics protected at least as well as your other confidential information?" value={form.protection_parity} onChange={(v) => setForm(f => ({ ...f, protection_parity: v }))} />
                 </div>
+
+                {/* S-B2 — § 15(a) timing: the policy duty attaches at first
+                    possession of biometric data. Illinois-only. */}
+                {showIllinois && (
+                  <div className="space-y-1">
+                    <Tri label="Has the retention-and-destruction policy been in place since the company FIRST possessed biometric data?" value={form.retention_policy_predates_possession} onChange={(v) => setForm(f => ({ ...f, retention_policy_predates_possession: v }))} />
+                    <p className="text-meta text-muted-foreground">Illinois courts read the § 15(a) policy duty as attaching when biometric data is first possessed, not when a policy is eventually adopted. A policy written after collection began answers "No" here, even if it is complete today.</p>
+                  </div>
+                )}
 
                 <div className="space-y-1">
                   <Label htmlFor="bio-destruction" className="text-sm font-semibold text-brand-navy">Destruction trigger</Label>

@@ -71,11 +71,17 @@ export interface BiometricIntakeForDeliverables {
   glba_financial_institution?: string | null;
 
   notice_before_collection?: string | null;
+  // S-B1 (doc 80, 2026-08-27) — BIPA § 15(b)(2): whether the written notice
+  // states the specific purpose AND length of term. Illinois-only intake.
+  notice_purpose_and_term?: string | null;
   consent_artifact_type?: string | null;
   release_artifact_description?: string | null;
 
   retention_schedule_text?: string | null;
   retention_policy_public?: string | null;
+  // S-B2 (doc 80, 2026-08-27) — § 15(a) timing: whether the policy has been
+  // in place since first possession of biometric data. Illinois-only intake.
+  retention_policy_predates_possession?: string | null;
   destruction_trigger?: string | null;
 
   sells_or_profits?: string | null;
@@ -666,29 +672,47 @@ function buildIlDuties(
   const recipients = txt(intake.disclosure_recipients);
   const security = txt(intake.security_measures_description);
   const parity = tri(intake.protection_parity);
+  // S-B1/S-B2 (doc 80, 2026-08-27) — the two new Illinois-only timing facts.
+  const purposeTerm = tri(intake.notice_purpose_and_term);
+  const predates = tri(intake.retention_policy_predates_possession);
   const out: DutyFinding[] = [];
 
+  // S-B2 — § 15(a) TIMING ELEMENT. Illinois appellate authority reads the
+  // policy duty as attaching at FIRST POSSESSION of biometric data, so a
+  // record whose policy is complete today but was adopted after collection
+  // began carries a distinct, named exposure; a record silent on the timing
+  // cannot support a full-compliance conclusion and degrades honestly (the
+  // TURN-1d MHMD pattern: an overclaim of compliance is corrected the same
+  // way an overclaim of violation was).
+  const coreOk = Boolean(schedule) && isPublic === "yes";
+  const timingSentence = coreOk && predates === "no"
+    ? " On the timing element, the record states the policy was adopted after the company first possessed biometric data; the § 15(a) duty attaches at first possession, so the period before adoption stands as a named exposure even though the policy is complete today."
+    : "";
   out.push(mk(
     s,
     "il_bipa.15a_written_policy",
     "Public written retention-and-destruction policy",
-    schedule
+    (schedule
       ? `The record supplies a retention schedule: "${schedule}". Made available to the public: ${isPublic}.`
-      : `The record supplies no retention schedule text. Made available to the public: ${isPublic}.`,
-    schedule && isPublic === "yes"
+      : `The record supplies no retention schedule text. Made available to the public: ${isPublic}.`) +
+      ` In place since first possession of biometric data: ${predates}.`,
+    (coreOk
       ? "The record describes a written retention schedule with destruction guidelines and states it is available to the public, which is what § 15(a) requires."
       : isPublic === "no"
       ? "§ 15(a) requires the policy to be made available to the public. The record states it is not."
       : schedule
       ? "The record describes a schedule but does not establish that it is made available to the public, which § 15(a) requires in terms."
-      : "§ 15(a) requires a written policy establishing a retention schedule and destruction guidelines. The record does not describe one.",
-    schedule && isPublic === "yes"
-      ? "satisfied"
+      : "§ 15(a) requires a written policy establishing a retention schedule and destruction guidelines. The record does not describe one.") +
+      timingSentence,
+    coreOk
+      ? (predates === "unknown" ? "record_insufficient" : "satisfied")
       : isPublic === "no"
       ? "not_satisfied"
       : "record_insufficient",
-    schedule && isPublic === "yes"
-      ? undefined
+    coreOk
+      ? (predates === "unknown"
+        ? "State whether the retention-and-destruction policy has been in place since the company first possessed biometric data; the § 15(a) duty attaches at first possession."
+        : undefined)
       : "Supply the written retention schedule and destruction guidelines, and state where the policy is made available to the public.",
   ));
 
@@ -710,30 +734,81 @@ function buildIlDuties(
       : "State the event on which biometric identifiers are actually destroyed and how that is evidenced.",
   ));
 
+  // S-B1 (doc 80, 2026-08-27) — § 15(b)'s three sequential pre-collection
+  // steps as three independently-tracked duty rows, per the statute's own
+  // (1)/(2)/(3) structure (the pattern § 15(a) already follows). Each
+  // verdict flips on its own facts alone; a record strong on one step and
+  // silent on another shows exactly which writing is missing.
   const writtenNotice = /writing|written/i.test(notice ?? "");
+  const noticeNotWritten = /not in writing/i.test(notice ?? "");
   const noNotice = /^no notice/i.test(notice ?? "");
   const releaseOk = /standalone written release|electronic signature|condition of employment|onboarding/i.test(consent ?? "");
   const noConsent = /none|no consent/i.test(consent ?? "");
+
   out.push(mk(
     s,
-    "il_bipa.15b_notice_and_written_release",
-    "Written notice and written release before collection",
-    `Notice before collection: ${notice ?? "not supplied"}. Consent artifact: ${consent ?? "not supplied"}. Release description: ${txt(intake.release_artifact_description) ?? "not supplied"}.`,
-    noNotice || noConsent
-      ? "§ 15(b) permits collection only where the entity first informs the subject in writing of the fact and of the specific purpose and length of term, and receives a written release. The record does not describe both."
-      : writtenNotice && releaseOk
-      ? `The record describes notice given in writing before collection and a release within the § 15(a)-(e) definition of "written release" — informed written consent, an electronic signature, or, in employment, a release executed as a condition of employment. Whether the notice states the specific purpose AND the length of term is the point on which § 15(b)(2) turns.`
+    "il_bipa.15b1_notice_of_collection",
+    "Written notice that biometric data is collected or stored",
+    `Notice before collection: ${notice ?? "not supplied"}.`,
+    noNotice
+      ? "§ 15(b)(1) permits collection only where the subject is first informed in writing that biometric data is being collected or stored. The record states no notice was given."
+      : noticeNotWritten
+      ? "§ 15(b)(1) requires the information to be given in writing. The record describes notice given otherwise than in writing, which does not satisfy it."
       : writtenNotice
-      ? "Notice is described in writing, but the record does not describe a release that answers the definition of \"written release\"."
-      : "§ 15(b)(1) and (2) require the information to be given in writing. The record does not establish that it was.",
-    noNotice || noConsent
+      ? "The record describes notice given in writing before collection that biometric data is collected or stored, which is what § 15(b)(1) requires."
+      : "Whether notice was given in writing before collection is not established on the record.",
+    noNotice || noticeNotWritten
       ? "not_satisfied"
-      : writtenNotice && releaseOk
+      : writtenNotice
       ? "satisfied"
       : "record_insufficient",
-    (noNotice || noConsent) || (writtenNotice && releaseOk)
+    noNotice || noticeNotWritten || writtenNotice
       ? undefined
-      : "Supply the written notice text (fact of collection, specific purpose, and length of term) and describe the release instrument the subject executes.",
+      : "State whether the subject is informed in writing, before collection, that a biometric identifier or biometric information is being collected or stored.",
+  ));
+
+  out.push(mk(
+    s,
+    "il_bipa.15b2_notice_purpose_term",
+    "Written notice of the specific purpose and length of term",
+    `Notice before collection: ${notice ?? "not supplied"}. Written notice states the specific purpose and length of term: ${purposeTerm}.`,
+    noNotice
+      ? "§ 15(b)(2) requires a written statement of the specific purpose and length of term. No notice of any kind is described, so this writing is absent with it."
+      : noticeNotWritten
+      ? "§ 15(b)(2) requires the purpose and term to be stated in writing. The record describes notice given otherwise than in writing, so no written statement of purpose and term is established."
+      : writtenNotice && purposeTerm === "yes"
+      ? "The record states the written notice names both the specific purpose and the length of term for which the biometric data is collected, stored, and used, which is what § 15(b)(2) requires."
+      : writtenNotice && purposeTerm === "no"
+      ? "§ 15(b)(2) requires the written notice to state both the specific purpose and the length of term. The record states one or both are missing from the notice, so the second pre-collection writing is not satisfied."
+      : "Whether the written notice states both the specific purpose and the length of term is not answered on the record; § 15(b)(2) turns on exactly that.",
+    noNotice || noticeNotWritten || (writtenNotice && purposeTerm === "no")
+      ? "not_satisfied"
+      : writtenNotice && purposeTerm === "yes"
+      ? "satisfied"
+      : "record_insufficient",
+    noNotice || noticeNotWritten || (writtenNotice && purposeTerm !== "unknown")
+      ? undefined
+      : "State whether the written notice names both the specific purpose and the length of term for which the biometric data is collected, stored, and used.",
+  ));
+
+  out.push(mk(
+    s,
+    "il_bipa.15b3_written_release",
+    "Written release executed before collection",
+    `Consent artifact: ${consent ?? "not supplied"}. Release description: ${txt(intake.release_artifact_description) ?? "not supplied"}.`,
+    noConsent
+      ? "§ 15(b)(3) permits collection only where the entity first receives a written release executed by the subject. The record states none exists."
+      : releaseOk
+      ? `The record describes a release within the definition of "written release" — informed written consent, an electronic signature, or, in employment, a release executed as a condition of employment.`
+      : "The record does not describe a release that answers the definition of \"written release\".",
+    noConsent
+      ? "not_satisfied"
+      : releaseOk
+      ? "satisfied"
+      : "record_insufficient",
+    noConsent || releaseOk
+      ? undefined
+      : "Describe the release instrument the subject executes before collection.",
   ));
 
   out.push(mk(
@@ -1261,6 +1336,12 @@ function buildDivergence(
   const items: DivergenceItem[] = [];
   const find = (id: string) => duties.find((d) => d.key === id);
   const verdictOf = (id: string) => find(id)?.verdict ?? "record_insufficient";
+  // S-B1 — worst-of composition for a cumulative multi-step duty:
+  // not_satisfied beats record_insufficient beats satisfied.
+  const worstVerdict = (vs: string[]): string =>
+    vs.includes("not_satisfied") ? "not_satisfied"
+      : vs.includes("record_insufficient") ? "record_insufficient"
+      : "satisfied";
 
   // (a) definitional divergence — emitted only where the verdicts actually differ.
   const verdicts = new Map(identifiers.map((i) => [i.statute_key, i.verdict]));
@@ -1366,7 +1447,16 @@ function buildDivergence(
         no_analogue_in: [],
         record_consequence: `Taking the facts as written: ` +
           [
-            has("us_il_bipa") ? `BIPA § 15(b) ${verdictOf("il_bipa.15b_notice_and_written_release")}` : null,
+            // S-B1 — § 15(b) is cumulative (all three writings must precede
+            // collection), so the cross-statute position reports the worst of
+            // the three step verdicts.
+            has("us_il_bipa")
+              ? `BIPA § 15(b) ${worstVerdict([
+                verdictOf("il_bipa.15b1_notice_of_collection"),
+                verdictOf("il_bipa.15b2_notice_purpose_term"),
+                verdictOf("il_bipa.15b3_written_release"),
+              ])}`
+              : null,
             has("us_tx_cubi") ? `CUBI § 503.001(b) ${verdictOf("tx_cubi.b_notice_and_consent")}` : null,
             has("us_wa_19375") ? `RCW 19.375.020(1) ${verdictOf("wa_19375.020_1_enrollment_notice_consent")}` : null,
           ].filter(Boolean).join("; ") +

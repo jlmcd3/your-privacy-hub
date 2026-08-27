@@ -87,6 +87,11 @@ export const BIOMETRIC_PERFECT: GoldenCase[] = [
       // Verbatim NOTICE option, and the strongest one: written notice before
       // collection is the §15(b)(1)-(2) predicate.
       notice_before_collection: "Written notice given before collection",
+      // S-B1 (doc 80, 2026-08-27) — §15(b)(2)'s second sequential writing:
+      // the release_artifact_description above already narrates that the
+      // notice states the specific purpose and the retention period, so the
+      // perfect record answers the new direct question affirmatively.
+      notice_purpose_and_term: "Yes",
       // Verbatim CONSENT_ARTIFACT option: a standalone written release signed
       // before collection is the §15(b)(3) predicate, executed as its own
       // instrument rather than buried in onboarding paperwork.
@@ -105,6 +110,10 @@ export const BIOMETRIC_PERFECT: GoldenCase[] = [
       // publicly-available-guidelines requirement, not merely the existence
       // of an internal schedule.
       retention_policy_public: "Yes",
+      // S-B2 (doc 80, 2026-08-27) — §15(a) timing element: the policy has
+      // been in place since the company first possessed biometric data
+      // (the Illinois first-possession attachment rule).
+      retention_policy_predates_possession: "Yes",
       // Answered "Yes": templates are protected to at least the standard used
       // for other confidential and sensitive information (§15(e)(2)).
       protection_parity: "Yes",

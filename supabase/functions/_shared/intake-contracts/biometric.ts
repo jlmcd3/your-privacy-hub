@@ -164,6 +164,12 @@ const OTHER_STATE_TRIGGER = {
   equals: ["Other US state"],
 } as const;
 
+/** BiometricChecker.tsx — `showIllinois` (S-B1/S-B2, doc 80). */
+const ILLINOIS_TRIGGER = {
+  key: "jurisdictions[]",
+  equals: ["Illinois, USA (BIPA)"],
+} as const;
+
 export const BIOMETRIC_TRIGGERS = {
   practices: PRACTICES_TRIGGER,
   texas: TEXAS_TRIGGER,
@@ -248,6 +254,22 @@ export const biometricContract: IntakeContract = {
       requiredWhen: "Illinois, Texas or Washington is in scope",
       trigger: PRACTICES_TRIGGER,
     },
+    // S-B1 (doc 80, 2026-08-27) — BIPA § 15(b)(2)'s SECOND sequential
+    // pre-collection step. § 15(b) requires three distinct writings before
+    // collection: (1) notice that biometric data is collected/stored,
+    // (2) notice of the SPECIFIC PURPOSE and LENGTH OF TERM, (3) a written
+    // release. notice_before_collection carries only step (1); this field
+    // carries step (2), asked only when Illinois is in scope. Unanswered on
+    // an Illinois record → the 15b2 duty row degrades to record_insufficient
+    // with a specific ask, never an asserted violation.
+    {
+      key: "notice_purpose_and_term",
+      kind: "enum",
+      options: TRI,
+      required: "conditional",
+      requiredWhen: "Illinois is in scope",
+      trigger: ILLINOIS_TRIGGER,
+    },
     // L445-L451 — consent or release artifact.
     {
       key: "consent_artifact_type",
@@ -291,6 +313,20 @@ export const biometricContract: IntakeContract = {
       required: "conditional",
       requiredWhen: "Illinois, Texas or Washington is in scope",
       trigger: PRACTICES_TRIGGER,
+    },
+    // S-B2 (doc 80, 2026-08-27) — § 15(a) timing element. Illinois appellate
+    // authority holds the retention/destruction policy duty attaches at FIRST
+    // POSSESSION of biometric data, not whenever a policy is later adopted.
+    // retention_schedule_text/retention_policy_public capture whether a
+    // policy exists and is public, not when it was established relative to
+    // first possession; this field carries that timing fact. Illinois-only.
+    {
+      key: "retention_policy_predates_possession",
+      kind: "enum",
+      options: TRI,
+      required: "conditional",
+      requiredWhen: "Illinois is in scope",
+      trigger: ILLINOIS_TRIGGER,
     },
     // L473 — protection parity with other confidential information.
     {

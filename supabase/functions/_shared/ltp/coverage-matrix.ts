@@ -1360,9 +1360,12 @@ function bioFilled(intake: unknown, key: string): boolean {
  *  that produces them. A link fires only when the record supplies its key, so
  *  a statute out of scope on this record simply never engages. */
 const BIO_DUTY_LINKS: readonly BiometricCoverageLink[] = [
-  { keys: ["retention_schedule_text", "retention_policy_public"], surfaces: ["duty_findings[il_bipa.15a_written_policy]"], section: "duty_findings" },
+  { keys: ["retention_schedule_text", "retention_policy_public", "retention_policy_predates_possession"], surfaces: ["duty_findings[il_bipa.15a_written_policy]"], section: "duty_findings" },
   { keys: ["destruction_trigger"], surfaces: ["duty_findings[il_bipa.15a_comply_with_schedule]"], section: "duty_findings" },
-  { keys: ["notice_before_collection", "consent_artifact_type", "release_artifact_description"], surfaces: ["duty_findings[il_bipa.15b_notice_and_written_release]", "duty_findings[tx_cubi.b_notice_and_consent]", "duty_findings[wa_19375.020_1_enrollment_notice_consent]"], section: "duty_findings" },
+  // S-B1 (doc 80, 2026-08-27) — the BIPA § 15(b) row split into its three
+  // statutory steps; TX/WA notice-and-consent surfaces unchanged.
+  { keys: ["notice_before_collection", "consent_artifact_type", "release_artifact_description"], surfaces: ["duty_findings[il_bipa.15b1_notice_of_collection]", "duty_findings[il_bipa.15b3_written_release]", "duty_findings[tx_cubi.b_notice_and_consent]", "duty_findings[wa_19375.020_1_enrollment_notice_consent]"], section: "duty_findings" },
+  { keys: ["notice_purpose_and_term"], surfaces: ["duty_findings[il_bipa.15b2_notice_purpose_term]"], section: "duty_findings" },
   { keys: ["sells_or_profits"], surfaces: ["duty_findings[il_bipa.15c_no_profit]"], section: "duty_findings" },
   { keys: ["disclosure_bases", "disclosure_recipients"], surfaces: ["duty_findings[il_bipa.15d_disclosure_limits]", "duty_findings[tx_cubi.c1_disclosure_limits]", "duty_findings[wa_19375.020_3_disclosure_limits]"], section: "duty_findings" },
   { keys: ["security_measures_description", "protection_parity"], surfaces: ["duty_findings[il_bipa.15e_reasonable_care]", "duty_findings[tx_cubi.c2_reasonable_care]", "duty_findings[wa_19375.020_4_care_and_retention]"], section: "duty_findings" },

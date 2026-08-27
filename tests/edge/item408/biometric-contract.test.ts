@@ -91,13 +91,17 @@ Deno.test("item408 / biometric PARITY — every form control has a contract key"
   assertEquals(missing, [], `form keys absent from the contract: ${missing.join(", ")}`);
 });
 
-Deno.test("item408 / biometric PARITY — contract declares 39 fields, no duplicates", () => {
+Deno.test("item408 / biometric PARITY — contract declares 41 fields, no duplicates", () => {
   const keys = biometricContract.fields.map((f) => f.key);
   assertEquals(new Set(keys).size, keys.length, "duplicate contract key");
   // INTAKE-4g added the CEO-approved optional `biometric_consent_withdrawal`.
   // TURN 1d (2026-08-26) added `wa_mhmda_geofence_purpose` — the RCW
   // 19.373.080 purpose element, asked only when a geofence exists.
-  assertEquals(keys.length, 39);
+  // S-B1/S-B2 (doc 80, 2026-08-27) added `notice_purpose_and_term`
+  // (§ 15(b)(2) purpose-and-term writing) and
+  // `retention_policy_predates_possession` (§ 15(a) first-possession
+  // timing), both Illinois-conditional. 39 → 41.
+  assertEquals(keys.length, 41);
 
   assertEquals(biometricContract.tool_type, "biometric_checker");
   assertEquals(biometricContract.table, "biometric_assessments");

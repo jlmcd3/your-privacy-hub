@@ -201,6 +201,60 @@ export const BIOMETRIC_DUTY_ROWS: readonly BiometricDutyRow[] = [
     corpus_key: "il-bipa-740-14-15-b",
     source_url: "https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004",
   },
+  // S-B1 (doc 80, 2026-08-27) — § 15(b)'s three sequential pre-collection
+  // steps split into three independently-tracked duty rows, per the statute's
+  // own (1)/(2)/(3) structure (the same independent-subsection pattern
+  // § 15(a) already follows with its two rows). Each verbatim below is a
+  // byte-exact substring of the approved corpus row `il-bipa-740-14-15-b`
+  // (verified against the live provision_texts row 2026-08-27). The combined
+  // row above is RETAINED: the divergence analysis quotes the whole provision
+  // as a cross-statute position and reads it from the registry, not from a
+  // duty finding.
+  {
+    id: "il_bipa.15b1_notice_of_collection",
+    statute_key: "us_il_bipa",
+    statute_long: "Illinois Biometric Information Privacy Act",
+    statute_short: "BIPA",
+    jurisdiction: "US-IL",
+    citation: "740 ILCS 14/15(b)(1) (Written notice of collection or storage)",
+    pinpoint: "740 ILCS 14/15(b)(1)",
+    kind: "duty",
+    label: "Written notice that biometric data is collected or stored",
+    verbatim_quote:
+      "(1) informs the subject or the subject's legally authorized representative in writing that a biometric identifier or biometric information is being collected or stored;",
+    corpus_key: "il-bipa-740-14-15-b",
+    source_url: "https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004",
+  },
+  {
+    id: "il_bipa.15b2_notice_purpose_term",
+    statute_key: "us_il_bipa",
+    statute_long: "Illinois Biometric Information Privacy Act",
+    statute_short: "BIPA",
+    jurisdiction: "US-IL",
+    citation: "740 ILCS 14/15(b)(2) (Written notice of specific purpose and length of term)",
+    pinpoint: "740 ILCS 14/15(b)(2)",
+    kind: "duty",
+    label: "Written notice of the specific purpose and length of term",
+    verbatim_quote:
+      "(2) informs the subject or the subject's legally authorized representative in writing of the specific purpose and length of term for which a biometric identifier or biometric information is being collected, stored, and used; and",
+    corpus_key: "il-bipa-740-14-15-b",
+    source_url: "https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004",
+  },
+  {
+    id: "il_bipa.15b3_written_release",
+    statute_key: "us_il_bipa",
+    statute_long: "Illinois Biometric Information Privacy Act",
+    statute_short: "BIPA",
+    jurisdiction: "US-IL",
+    citation: "740 ILCS 14/15(b)(3) (Written release before collection)",
+    pinpoint: "740 ILCS 14/15(b)(3)",
+    kind: "duty",
+    label: "Written release executed before collection",
+    verbatim_quote:
+      "(3) receives a written release executed by the subject of the biometric identifier or biometric information or the subject's legally authorized representative.",
+    corpus_key: "il-bipa-740-14-15-b",
+    source_url: "https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004",
+  },
   {
     id: "il_bipa.15c_no_profit",
     statute_key: "us_il_bipa",

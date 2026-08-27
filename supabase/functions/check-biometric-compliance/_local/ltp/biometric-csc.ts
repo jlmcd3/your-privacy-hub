@@ -233,11 +233,15 @@ export const BIOMETRIC_KEY_SENTENCES: Readonly<Record<string, Sentence>> = {
   glba_financial_institution: (v) => `On GLBA financial-institution status the record answers ${q(v, 120)}.`,
 
   notice_before_collection: (v) => `The recorded notice position is ${q(v, 200)}.`,
+  // S-B1 (doc 80, 2026-08-27) — § 15(b)(2) purpose-and-term writing.
+  notice_purpose_and_term: (v) => `On whether the written notice states both the specific purpose and the length of term the record answers ${q(v, 120)}.`,
   consent_artifact_type: (v) => `The consent artefact the record names is ${q(v, 200)}.`,
   release_artifact_description: (v) => `The record's own description of the release is carried forward: ${q(v)}`,
 
   retention_schedule_text: (v) => `The retention schedule the record supplies is ${q(v)}`,
   retention_policy_public: (v) => `On whether the policy is made available to the public the record answers ${q(v, 120)}.`,
+  // S-B2 (doc 80, 2026-08-27) — § 15(a) first-possession timing.
+  retention_policy_predates_possession: (v) => `On whether the policy has been in place since the company first possessed biometric data the record answers ${q(v, 120)}.`,
   destruction_trigger: (v) => `The destruction trigger the record describes is ${q(v)}`,
 
   protection_parity: (v) => `On protecting biometric data to at least the standard applied to other confidential information the record answers ${q(v, 120)}.`,
@@ -377,8 +381,16 @@ const DUTY_SURFACE_KEYS: Readonly<Record<string, {
     keys: ["destruction_trigger"],
     corroborating: ["retention_schedule_text"],
   },
-  "il_bipa.15b_notice_and_written_release": {
-    keys: ["notice_before_collection", "consent_artifact_type"],
+  // S-B1 (doc 80, 2026-08-27) — the § 15(b) split: one entry per step.
+  "il_bipa.15b1_notice_of_collection": {
+    keys: ["notice_before_collection"],
+  },
+  "il_bipa.15b2_notice_purpose_term": {
+    keys: ["notice_purpose_and_term"],
+    corroborating: ["notice_before_collection"],
+  },
+  "il_bipa.15b3_written_release": {
+    keys: ["consent_artifact_type"],
     corroborating: ["release_artifact_description"],
   },
   "il_bipa.15c_no_profit": { keys: ["sells_or_profits"] },
