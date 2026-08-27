@@ -123,7 +123,7 @@ export default function RopaLanding() {
         geography="gdpr"
         eyebrowLabel={<><BookOpen aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> RoPA Builder · Free on annual plans</>}
         title="Record of Processing Activities (RoPA) Builder"
-        valueProposition="An audit-ready RoPA in minutes. Guided questions in plain language — covers GDPR Article 30, LGPD, CCPA, and 20+ frameworks. Included with every Intelligence and Professional subscription, monthly or annual. Not sold as a standalone product."
+        valueProposition="An audit-ready RoPA in minutes. Guided questions in plain language — covers GDPR Article 30, LGPD, CCPA, and 20+ frameworks. Free on annual Intelligence and Professional plans (first build plus one update each subscription year); $29 per generation or update on monthly plans. Not sold as a standalone product."
         sampleReportToolSlug="ropa"
         showIntakeCta={false}
       >
