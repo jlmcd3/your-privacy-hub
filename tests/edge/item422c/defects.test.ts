@@ -54,10 +54,25 @@ Deno.test("ITEM 422-C D1 (SO-FT-1): a MIS-KEYED assignment with unambiguous riva
   // honest downgrade because no rival proposition carried a verified row;
   // SO-FT-1 supplied corpus rows for § 7222(g) and § 7222(f), so the
   // content-anchored rival now wins outright and the pinpoint is recovered.
+  //
+  // Group 6 sweep (2026-08-27) — the rank-3 action text was reworded. As the
+  // ADMT registry grew (other propositions — notice_ts_security,
+  // access_ts_security, vendor_audit_rights, sig_financial — legitimately
+  // added "reasonable"/"security"/"transmitting" to their own anchor
+  // vocabularies), those terms stopped being DISTINCTIVE to access_secure_tx
+  // alone, so the original sentence's rival-support score fell from
+  // (recoverable) to 1 — below rekeyPropositionAssignment's own >= 2
+  // unambiguity bar (admt-proposition-anchors.ts:250) — and the case fell
+  // back to the honest downgrade instead of re-keying. That bar is working
+  // exactly as designed; the fixture just wasn't robust to legitimate
+  // registry growth elsewhere. Reworded to hit access_secure_tx's terms that
+  // remain exclusively its own — "secure", "transmission", "measures",
+  // "requested" (verified live, none shared with any other proposition) —
+  // for a safety margin (4) well clear of the bar, robust to further growth.
   const secureTx: Record<string, unknown> = {
     rank: 3,
     proposition_key: "access_logic",
-    action: "Transmit the access-request response using reasonable security measures.",
+    action: "Use a secure transmission method to send the requested response, applying reasonable security measures throughout.",
   };
   const denial: Record<string, unknown> = {
     rank: 6,

@@ -481,6 +481,30 @@ export const LIA_SKELETON_SECTIONS: readonly LiaSkeletonSection[] = [
   },
 ] as const;
 
+// ── L2 (the LIA Conversion, 2026-08-26) — the v2 section list. ──────────────
+// v1 above is BYTE-UNTOUCHED (its paragraph hash and the SO-11 battery keep
+// pinning it; the legacy model path renders through it unchanged). The
+// deterministic path renders through v2 = v1 + the Persuasive Authority
+// section (the S5 surface: the CAM's doc-63-ratified release-1 decisions,
+// the precedent-class citations, and the balancing-fails warning), placed
+// between Findings and the Table of Authorities. The section carries no
+// fixed skeleton prose — its entire content is composed
+// (lia-persuasive-authority.ts), so a record that composes nothing renders
+// no empty shell (the NO-PADDING law).
+export const LIA_SKELETON_VERSION_V2 = "prose-plans-2026-08-26-lia-l2-v2";
+
+export const LIA_SKELETON_SECTIONS_V2: readonly LiaSkeletonSection[] = [
+  ...LIA_SKELETON_SECTIONS.slice(0, LIA_SKELETON_SECTIONS.length - 1),
+  {
+    id: "persuasive_authority",
+    title: "VI. Persuasive Authority",
+    blocks: [
+      { kind: "generated", paragraph: 38, text: "[GENERATED] The persuasive-authority entries: the ratified release-1 enforcement decisions, each naming the factor it bears on; the precedent-class citations where a tracked posture fired; and the adverse-outcome caution when the balancing verdict is likely_fails. Composed deterministically from the CAM and the typed surfaces; iff-cited into the Table of Authorities." },
+    ],
+  },
+  LIA_SKELETON_SECTIONS[LIA_SKELETON_SECTIONS.length - 1],
+] as const;
+
 /**
  * The 37 paragraphs in file order, verbatim. The hash constant above is a
  * SHA-256 over these joined with "\n"; the SO-11 battery recomputes it.

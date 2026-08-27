@@ -83,7 +83,19 @@ Deno.test("ITEM 395 — the splicer refuses every enumerated protected leaf clas
     for (const key of keys as readonly string[]) {
       const path = `$.probe.${key}`;
       assert(isAdmtProtectedPath(path), `${cls}/${key} must be protected`);
-      assertEquals(admtProtectedReason(path), key, `${cls}/${key} reason`);
+      // A leaf key that is ALSO a whole-subtree prefix (e.g. spine_section_id
+      // "scope_analysis", which doubles as an ADMT_PROTECTED_PATH_PREFIXES
+      // entry protecting the typed surface at any depth) is refused via the
+      // path-prefix check FIRST — refinement-core.ts's protectedReasonFor()
+      // checks prefixes before leaf keys by design — so its reason reads
+      // "typed_surface:<name>", not the bare key. The splicer still refuses
+      // the edit either way (res.spliced stays 0 below); only the reported
+      // reason differs. Re-verified 2026-08-27 (Group 6 sweep).
+      const expectedReason = (ADMT_REFINEMENT_CONFIG.protectedPathPrefixes as readonly string[] | undefined)
+        ?.includes(key)
+        ? `typed_surface:${key}`
+        : key;
+      assertEquals(admtProtectedReason(path), expectedReason, `${cls}/${key} reason`);
       const report: Record<string, unknown> = { probe: { [key]: "ORIGINAL VALUE" } };
       const res = applyAdmtSplices(report, [finding(path, "ORIGINAL", "REWRITTEN")]);
       assertEquals(res.spliced, 0, `${cls}/${key} spliced`);
@@ -115,24 +127,30 @@ Deno.test("ITEM 395 — BARRED-LEAF CANARY: _meta and the protected roots are re
 });
 
 Deno.test("ITEM 395 — DESIGNED-OUTPUT SPLICE CANARY: revisable prose splices, double-anchored", () => {
+  // Group 6 sweep (2026-08-27) — moved off scope_analysis, which A1 made a
+  // fully deterministic typed surface: it is now in ADMT_PROTECTED_PATH_
+  // PREFIXES (protects the WHOLE subtree, "finding" included), so it can no
+  // longer stand in for genuinely revisable critic-facing prose. conclusion
+  // stays a protected determination key regardless of its parent, so this
+  // still exercises the real distinction the test is named for.
   const report: Record<string, unknown> = {
-    scope_analysis: {
+    narrative_probe: {
       finding: "The business deploys an automated decision-making technology.",
       conclusion: "in_scope",
     },
   };
   const ok = applyAdmtSplices(report, [
     finding(
-      "$.scope_analysis.finding",
+      "$.narrative_probe.finding",
       "an automated decision-making technology",
       "the Tenancy Fit Index scoring model on all rental applications.",
     ),
   ]);
   assertEquals(ok.spliced, 1);
-  assertEquals((report.scope_analysis as any).conclusion, "in_scope");
+  assertEquals((report.narrative_probe as any).conclusion, "in_scope");
 
   const again = applyAdmtSplices(report, [
-    finding("$.scope_analysis.finding", "an automated decision-making technology", "x"),
+    finding("$.narrative_probe.finding", "an automated decision-making technology", "x"),
   ]);
   assertEquals(again.spliced, 0);
   assertEquals(again.quote_drift, 1);
@@ -153,9 +171,12 @@ Deno.test("ITEM 395 — the 12-cap holds for ADMT", () => {
 
 // ── 3. Fail-open + telemetry shape ───────────────────────────────────────────
 
+// Group 6 sweep (2026-08-27) — narrative_probe, not scope_analysis (see the
+// splice-canary test above for why): this fixture needs a genuinely
+// revisable field, and scope_analysis no longer is one.
 const DOC = () => ({
   _meta: { internal: { secret: "never shown" } },
-  scope_analysis: { finding: "Original prose that must survive." },
+  narrative_probe: { finding: "Original prose that must survive." },
 });
 
 Deno.test("ITEM 395 — FAIL-OPEN: critic error leaves the document byte-identical", async () => {
@@ -176,7 +197,7 @@ Deno.test("ITEM 395 — FAIL-OPEN: verifier error yields zero splices, document 
   const before = JSON.stringify(report);
   const critic = () =>
     Promise.resolve(JSON.stringify({
-      findings: [finding("$.scope_analysis.finding", "Original prose", "Revised prose")],
+      findings: [finding("$.narrative_probe.finding", "Original prose", "Revised prose")],
       structural_findings: [],
     }));
   const tel = await runAdmtRefinement(report as any, {}, {
@@ -196,14 +217,14 @@ Deno.test("ITEM 395 — the critic never sees _meta, and telemetry carries findi
     critic: (_s, u) => {
       criticUser = u;
       return Promise.resolve(JSON.stringify({
-        findings: [finding("$.scope_analysis.finding", "Original prose", "Revised prose that is better.")],
+        findings: [finding("$.narrative_probe.finding", "Original prose", "Revised prose that is better.")],
         structural_findings: [],
       }));
     },
     verifier: (_s, u) => {
       assert(u.includes("node_content"));
       return Promise.resolve(JSON.stringify({
-        verdicts: [{ path: "$.scope_analysis.finding", verdict: "approve", reason: "clearer" }],
+        verdicts: [{ path: "$.narrative_probe.finding", verdict: "approve", reason: "clearer" }],
       }));
     },
   });
@@ -212,8 +233,8 @@ Deno.test("ITEM 395 — the critic never sees _meta, and telemetry carries findi
   assertEquals(tel.spliced, 1);
   assertEquals(tel.critic_findings, 1);
   assertEquals(tel.findings_log.length, 1);
-  assertEquals(tel.findings_log[0].path, "$.scope_analysis.finding");
-  assertEquals(tel.spliced_paths, ["$.scope_analysis.finding"]);
+  assertEquals(tel.findings_log[0].path, "$.narrative_probe.finding");
+  assertEquals(tel.spliced_paths, ["$.narrative_probe.finding"]);
   assertEquals(tel.enabled, true);
   assertEquals(tel.protected_rejected.count, 0);
   assertEquals(
@@ -225,13 +246,19 @@ Deno.test("ITEM 395 — the critic never sees _meta, and telemetry carries findi
 
 Deno.test("ITEM 395 — impossible proposals are killed before the verifier call", async () => {
   let verifierCalled = false;
-  const report = { ...DOC(), scope_analysis: { finding: "Original prose that must survive.", conclusion: "in_scope" } };
+  // narrative_probe, not scope_analysis (Group 6 sweep, 2026-08-27) — the
+  // point of this test is exercising TWO DIFFERENT rejection mechanisms
+  // (protected-leaf-key vs. quote-drift) independently; conclusion stays
+  // protected as a determination key regardless of its parent, but finding
+  // needs a genuinely non-prefix-protected parent for the quote-drift path
+  // to be reached at all (see the splice-canary test above).
+  const report = { ...DOC(), narrative_probe: { finding: "Original prose that must survive.", conclusion: "in_scope" } };
   const tel = await runAdmtRefinement(report as any, {}, {
     critic: () =>
       Promise.resolve(JSON.stringify({
         findings: [
-          finding("$.scope_analysis.conclusion", "in_scope", "out_of_scope"), // protected leaf
-          finding("$.scope_analysis.finding", "text that is not there", "x"), // quote drift
+          finding("$.narrative_probe.conclusion", "in_scope", "out_of_scope"), // protected leaf
+          finding("$.narrative_probe.finding", "text that is not there", "x"), // quote drift
         ],
         structural_findings: [],
       })),

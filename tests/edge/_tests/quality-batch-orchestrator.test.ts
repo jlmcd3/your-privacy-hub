@@ -30,10 +30,16 @@ Deno.test("slug set matches the run-quality-batch slugs exactly", () => {
   for (const s of expected) assert(RUN_QUALITY_BATCH_SLUGS.has(s), `missing ${s}`);
 });
 
-Deno.test("terminal-status set is exactly {complete, error, cancelled}", () => {
+Deno.test("terminal-status set is exactly {complete, error, cancelled, failed}", () => {
+  // FIX-SO-WD (2026-08-21, index.ts): "failed" was added — the DB watchdog
+  // writes status='failed' with a real error string, and without it here a
+  // watchdog-killed child fell through to the heartbeat-stall branch,
+  // producing a second, contradictory "stalled" verdict over an
+  // already-failed row and losing the actual error. This pin re-verified
+  // 2026-08-27 against the live set (Group 6 stale-pin sweep).
   assertEquals(
     [...RUN_QUALITY_BATCH_TERMINAL].sort(),
-    ["cancelled", "complete", "error"],
+    ["cancelled", "complete", "error", "failed"],
   );
 });
 

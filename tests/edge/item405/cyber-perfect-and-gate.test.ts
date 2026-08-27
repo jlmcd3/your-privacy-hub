@@ -110,12 +110,25 @@ Deno.test("fixture: carries no reference-render token (item404 fact-exempt rule)
   }
 });
 
-Deno.test("fixture: no revenue field is introduced (ITEM 204 audit-schedule truth)", () => {
-  const keys = cppaCybersecurityContract.fields.map((f) => f.key).join(" ");
-  assert(!/revenue/i.test(keys), "contract must not ask a revenue question");
+// Group 6 sweep (2026-08-27) — the ITEM 204 "no revenue field" rule was
+// deliberately, documentedly superseded by C1.2 (2026-08-25): the contract's
+// own header comment records that the § 7120(a)-(b) audit-applicability
+// predicate could previously only be STATED as law, never computed, and
+// names q1_revenue/q5c_share_revenue_50pct (verbatim, the same fields
+// cppa-risk-assessment.ts already asks) as the fix — explicitly calling the
+// old "AUDIT-SCHEDULE TRUTH" note "now-superseded". The live rule is
+// narrower than "never", not absent: exactly these two named keys may
+// mention revenue; nothing else may, and this fixture must not smuggle an
+// answer for a revenue question outside that pair.
+Deno.test("fixture: only the two named § 7120 predicate keys mention revenue (C1.2 supersedes ITEM 204)", () => {
+  const AUTHORIZED_REVENUE_KEYS = ["profile.q1_revenue", "profile.q5c_share_revenue_50pct"];
+  const revenueKeys = cppaCybersecurityContract.fields
+    .map((f) => f.key)
+    .filter((k) => /revenue/i.test(k));
+  assertEquals(revenueKeys.sort(), [...AUTHORIZED_REVENUE_KEYS].sort());
   assert(
     !/annual gross revenue|revenue band|gross revenue/i.test(JSON.stringify(INTAKE)),
-    "fixture must not smuggle a revenue answer the contract never asks",
+    "fixture must not smuggle free-text revenue prose the contract never asks for",
   );
 });
 
