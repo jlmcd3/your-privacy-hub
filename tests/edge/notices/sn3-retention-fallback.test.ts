@@ -5,7 +5,7 @@
 // never a silent "Not specified".
 
 import { assert, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { buildNoticeHtml } from "../../../supabase/functions/generate-us-notice/index.ts";
+import { buildNoticeHtml } from "../../../supabase/functions/generate-us-notice/_local/render.ts";
 
 const CA = { state_code: "CA", state_name: "California", framework_type: "ccpa" } as never;
 const VA = { state_code: "VA", state_name: "Virginia", framework_type: "virginia_model" } as never;
