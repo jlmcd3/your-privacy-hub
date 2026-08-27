@@ -62,21 +62,27 @@ export interface BiometricDutyRow {
 export const BIOMETRIC_DUTY_VERSION = "biometric-duty-registry-item317-2026-07-31";
 
 /**
- * RESERVED-FRAMING LAW (Item 314). The BIPA private right of action is real and
- * is the fleet's highest litigation-exposure surface, but its operative text is
- * not in the corpus. Consumers may say that BIPA carries a private right of
- * action at 740 ILCS 14/20 — a fact the statute's own structure and the
- * ingested § 5 findings support — and may say nothing about damages tiers,
- * mental-state standards, fee-shifting, or accrual. Those degrade.
+ * RESERVED-FRAMING LAW (Item 314), NARROWED by S-B4 (doc 80, 2026-08-27).
+ * The BIPA private right of action is real and is the fleet's highest
+ * litigation-exposure surface. Item 314 flagged 740 ILCS 14/20 as a
+ * follow-on ingestion; that ingestion has PARTIALLY happened: 14/20(b) and
+ * 14/20(c) — the P.A. 103-769 single-violation accrual rules for collection
+ * and disclosure — are approved corpus rows (`il-bipa-740-14-20-b`/`-c`,
+ * verified live 2026-08-27), and registry rows below carry their verbatims.
+ * Consumers may therefore state (i) that BIPA is enforced by private suit,
+ * and (ii) the (b)/(c) single-violation accrual rules, quoted from the
+ * pinned rows. STILL RESERVED — 14/20(a) is NOT ingested: damages amounts,
+ * the negligence/recklessness tiers, and fee-shifting continue to degrade.
  */
 export const BIPA_PRA_CORPUS_STATUS = {
   citation: "740 ILCS 14/20",
-  ingested: false,
-  ingestion_status: "flagged as a follow-on by Item 314; not yet ingested",
+  ingested: "partial",
+  ingestion_status:
+    "14/20(b) and 14/20(c) (single-violation accrual, P.A. 103-769) ingested and approved; 14/20(a) (damages tiers, fee-shifting) not ingested",
   permitted_characterisation:
-    "BIPA is enforced by private suit rather than solely by a regulator.",
+    "BIPA is enforced by private suit rather than solely by a regulator. Under 740 ILCS 14/20(b) and (c), repeated collection or disclosure of the same biometric identifier from the same person by the same method counts as a single violation, for which the aggrieved person is entitled to, at most, one recovery.",
   reserved:
-    "Damages amounts, negligence/recklessness tiers, fee-shifting, per-scan accrual, and any amendment history are NOT in the verified corpus and must degrade to record_insufficient.",
+    "Damages amounts, the negligence/recklessness tiers, and fee-shifting are NOT in the verified corpus and must degrade to record_insufficient.",
 
 } as const;
 
@@ -298,6 +304,41 @@ export const BIOMETRIC_DUTY_ROWS: readonly BiometricDutyRow[] = [
     verbatim_quote:
       "(e) A private entity in possession of a biometric identifier or biometric information shall:\n(1) store, transmit, and protect from disclosure all biometric identifiers and biometric information using the reasonable standard of care within the private entity's industry; and\n(2) store, transmit, and protect from disclosure all biometric identifiers and biometric information in a manner that is the same as or more protective than the manner in which the private entity stores, transmits, and protects other confidential and sensitive information.",
     corpus_key: "il-bipa-740-14-15-e",
+    source_url: "https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004",
+  },
+  // S-B4 (doc 80, 2026-08-27) — the P.A. 103-769 single-violation accrual
+  // rules. Item 314's follow-on ingestion happened: `il-bipa-740-14-20-b`
+  // and `-c` are approved corpus rows (verified live 2026-08-27); these two
+  // registry rows carry their verbatims for the consequence surface. The
+  // 14/20(a) damages tiers and fee-shifting remain un-ingested and reserved.
+  {
+    id: "il_bipa.20b_accrual_collection",
+    statute_key: "us_il_bipa",
+    statute_long: "Illinois Biometric Information Privacy Act",
+    statute_short: "BIPA",
+    jurisdiction: "US-IL",
+    citation: "740 ILCS 14/20(b) (Single-violation accrual for collection; P.A. 103-769)",
+    pinpoint: "740 ILCS 14/20(b)",
+    kind: "enforcement",
+    label: "Single-violation accrual for repeated collection",
+    verbatim_quote:
+      "(b) For purposes of subsection (b) of Section 15, a private entity that, in more than one instance, collects, captures, purchases, receives through trade, or otherwise obtains the same biometric identifier or biometric information from the same person using the same method of collection in violation of subsection (b) of Section 15 has committed a single violation of subsection (b) of Section 15 for which the aggrieved person is entitled to, at most, one recovery under this Section.",
+    corpus_key: "il-bipa-740-14-20-b",
+    source_url: "https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004",
+  },
+  {
+    id: "il_bipa.20c_accrual_disclosure",
+    statute_key: "us_il_bipa",
+    statute_long: "Illinois Biometric Information Privacy Act",
+    statute_short: "BIPA",
+    jurisdiction: "US-IL",
+    citation: "740 ILCS 14/20(c) (Single-violation accrual for disclosure; P.A. 103-769)",
+    pinpoint: "740 ILCS 14/20(c)",
+    kind: "enforcement",
+    label: "Single-violation accrual for repeated disclosure",
+    verbatim_quote:
+      "(c) For purposes of subsection (d) of Section 15, a private entity that, in more than one instance, discloses, rediscloses, or otherwise disseminates the same biometric identifier or biometric information from the same person to the same recipient using the same method of collection in violation of subsection (d) of Section 15 has committed a single violation of subsection (d) of Section 15 for which the aggrieved person is entitled to, at most, one recovery under this Section regardless of the number of times the private entity disclosed, redisclosed, or otherwise disseminated the same biometric identifier or biometric information of the same person to the same recipient.",
+    corpus_key: "il-bipa-740-14-20-c",
     source_url: "https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004",
   },
   {

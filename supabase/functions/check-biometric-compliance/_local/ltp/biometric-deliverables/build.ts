@@ -14,8 +14,13 @@
  * private suits, or exposure. That material is produced exclusively by
  * `buildConsequence` and a pin test scans the duty findings to prove it.
  *
- * RESERVED-FRAMING LAW: 740 ILCS 14/20 is not in corpus. The builder may say
- * BIPA is enforced by private suit; every specific degrades.
+ * RESERVED-FRAMING LAW (narrowed by S-B4, doc 80, 2026-08-27): 740 ILCS
+ * 14/20(b) and (c) — the P.A. 103-769 single-violation accrual rules — ARE
+ * in corpus (approved rows, verified live), and the exposure surface quotes
+ * them from the registry. The builder may say BIPA is enforced by private
+ * suit and may state the (b)/(c) accrual rules; 14/20(a) is NOT ingested,
+ * so damages amounts, negligence/recklessness tiers, and fee-shifting
+ * still degrade.
  *
  * ITEM 323 (CEO-authorized 2026-08-01): RCW 19.373 (My Health My Data Act) is
  * IN SCOPE. It is built as a SECOND, DISTINCT Washington authority alongside
@@ -1589,13 +1594,18 @@ function buildConsequence(
   const exposure_surfaces: ExposureSurface[] = [];
   for (const s of scope) {
     if (s.statute_key === "us_il_bipa") {
+      // S-B4 (doc 80, 2026-08-27) — the 14/20(b)/(c) accrual rules are now
+      // approved corpus rows, so the exposure surface quotes them; the
+      // `reserved` field continues to name exactly what is NOT ingested
+      // (the 14/20(a) damages tiers and fee-shifting).
+      const accrual = dutyRow("il_bipa.20b_accrual_collection");
       exposure_surfaces.push({
         ...s,
         citation: BIPA_PRA_CORPUS_STATUS.citation,
-        standard: null,
+        standard: accrual.verbatim_quote,
         mechanism: BIPA_PRA_CORPUS_STATUS.permitted_characterisation,
         reserved: BIPA_PRA_CORPUS_STATUS.reserved,
-        corpus_status: "not_ingested",
+        corpus_status: "in_corpus",
       });
     }
     if (s.statute_key === "us_tx_cubi") {

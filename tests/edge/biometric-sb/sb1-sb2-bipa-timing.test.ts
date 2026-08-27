@@ -101,3 +101,20 @@ Deno.test("S-B2 — the timing element never rescues a missing/unpublished polic
   const built = buildBiometricDeliverables(ilIntake({ retention_policy_public: "No", retention_policy_predates_possession: "Yes" }));
   assertEquals(duty(built, "il_bipa.15a_written_policy").verdict, "not_satisfied");
 });
+
+// S-B4 — the 14/20(b)/(c) accrual rules are now corpus-backed; the BIPA
+// exposure surface quotes them, and the reserved framing names exactly what
+// is still NOT ingested (14/20(a) damages tiers, fee-shifting).
+Deno.test("S-B4 — BIPA exposure surface carries the pinned 14/20(b) accrual verbatim, with damages still reserved", () => {
+  const built = buildBiometricDeliverables(ilIntake());
+  const surface = (built.consequence_determination as Bag).exposure_surfaces as Array<Bag>;
+  const bipa = surface.find((x) => x.statute_key === "us_il_bipa") as Bag & {
+    standard: string | null; mechanism: string; reserved: string | null; corpus_status: string;
+  };
+  assert(bipa, "BIPA exposure surface missing");
+  assertEquals(bipa.corpus_status, "in_corpus");
+  assertStringIncludes(bipa.standard ?? "", "has committed a single violation of subsection (b) of Section 15");
+  assertStringIncludes(bipa.mechanism, "at most, one recovery");
+  assertStringIncludes(bipa.reserved ?? "", "fee-shifting");
+  assert(!/per-scan accrual/.test(bipa.reserved ?? ""), "accrual must no longer be listed as reserved — it is corpus-backed now");
+});
