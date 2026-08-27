@@ -1,5 +1,17 @@
 // qb8 build active
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
+// S-G3 (doc 80, 2026-08-27) — the governance determinization: CEO-ratifiable
+// determination tables over the intake's enums replace the ten per-domain
+// model calls, and a composed posture sentence replaces the synthesis
+// executive-summary splice. Dark behind GOVERNANCE_DETERMINISTIC_ENABLED
+// (default false; the CEO flips at deploy — the LIA/Cyber cutover pattern).
+import {
+  buildDomainFindingsTyped,
+  composeExecutiveSummaryTyped,
+  GOVERNANCE_DOMAIN_TABLES_STAMP,
+} from "./_local/ltp/governance-domain-tables.ts";
+
+const GOVERNANCE_DETERMINISTIC_ENABLED = (Deno.env.get("GOVERNANCE_DETERMINISTIC_ENABLED") ?? "false") === "true";
 import { REPORT_DISCLAIMER } from "../_shared/report-disclaimer.ts";
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
@@ -1003,7 +1015,15 @@ Additional context (user narrative — treat per R1b2 rule 2d ADDITIONAL_CONTEXT
       } catch { return null; }
     };
 
-    const domainResultsArray = await Promise.all(
+    // S-G3 — deterministic path: the domain tables replace the ten model
+    // calls; the model fan-out below is UNCHANGED while the flag is false.
+    const domainResultsArray = GOVERNANCE_DETERMINISTIC_ENABLED
+      ? (() => {
+        const typed = buildDomainFindingsTyped(intake as Record<string, unknown>);
+        console.log(JSON.stringify({ evt: "_governance_deterministic_domains", stamp: GOVERNANCE_DOMAIN_TABLES_STAMP, domains: Object.keys(typed).length }));
+        return Object.entries(typed).map(([key, result]) => ({ key, result: result as unknown }));
+      })()
+      : await Promise.all(
       DOMAIN_DEFINITIONS.map(async (domain) => {
         const model = (domain.escalate && needsHigherQuality)
           ? currentGenerationModel()
@@ -1236,6 +1256,21 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     });
 
     async function runSynthesis(extra: string): Promise<any> {
+      // S-G3 — deterministic path: no synthesis model call; the executive
+      // posture sentence is composed from the typed findings, and the
+      // readiness rating stays bound by the Item-313 determination the
+      // skeleton's lead already reads (the 403-A one-voice law).
+      if (GOVERNANCE_DETERMINISTIC_ENABLED) {
+        return {
+          executive_summary: composeExecutiveSummaryTyped(domainResults as never),
+          top_three_risks: [],
+          immediate_actions: [],
+          overall_readiness_rating: "",
+          readiness_rationale: "",
+          interaction_effects: "",
+          dpia_scope: [],
+        };
+      }
       const finalUser = extra ? `${synthesisUserBase}\n\n${extra}` : synthesisUserBase;
       const synthesisText = await callAnthropic(currentGenerationModel(), synthesisSystem, finalUser, PRODUCT_MAX_OUTPUT_TOKENS);
       try {

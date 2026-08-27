@@ -50,7 +50,11 @@ import {
   GOVERNANCE_REFINEMENT_CONFIG_VERSION,
   GOVERNANCE_WATCH_CLASSES,
 } from "./governance-refinement-config.ts";
-import { GOVERNANCE_SECTION_SPECS } from "../prose/plans/governance.spine.ts";
+// RE-POINTED (S-G3 landing, 2026-08-27): GOVERNANCE_SECTION_SPECS was
+// dropped by the fe6f68321 rewrite; GOVERNANCE_SKELETON_SECTIONS is its
+// SO-3-era successor with the same per-section `id` shape (the biometric
+// audit applied the identical re-point for BIOMETRIC_SECTION_SPECS).
+import { GOVERNANCE_SKELETON_SECTIONS } from "../prose/plans/governance.spine.ts";
 
 export type { RefinementDeps, RefinementTelemetry, CriticFinding, SpliceResult };
 export {
@@ -184,7 +188,7 @@ export const GOVERNANCE_PROTECTED_ANCHORAGE_KEYS = [
  * a leaf whose KEY is a plan section id is the section's machine address.
  */
 export const GOVERNANCE_PROTECTED_SPINE_SECTION_IDS: readonly string[] =
-  GOVERNANCE_SECTION_SPECS.map((s) => s.id);
+  GOVERNANCE_SKELETON_SECTIONS.map((s) => s.id);
 
 export const GOVERNANCE_PROTECTED_LEAF_CLASSES = {
   readiness: GOVERNANCE_PROTECTED_READINESS_KEYS,

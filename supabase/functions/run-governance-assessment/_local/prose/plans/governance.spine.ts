@@ -79,6 +79,15 @@ export interface GovernanceSkeletonSection {
   readonly blocks: readonly GovernanceSkeletonBlock[];
 }
 
+// RESTORED (S-G3 landing, 2026-08-27): the 2026-08-19 "Work in progress"
+// rewrite (commit fe6f68321) dropped this export while index.ts and
+// governance-prose-gold.ts still import it — the same confirmed defect
+// class the Biometric groundwork audit fixed on 2026-08-26 (there a hard
+// outage; here fail-open silent degradation because governance's imports
+// are dynamic). Value restored VERBATIM from the pre-deletion file
+// (git show fe6f68321~1), not invented.
+export const GOVERNANCE_PIPELINE_STAMP = "governance-pipeline@item-so3-2026-08-10";
+
 export const GOVERNANCE_SKELETON_SECTIONS: readonly GovernanceSkeletonSection[] = [
   {
     id: "executive_summary",
