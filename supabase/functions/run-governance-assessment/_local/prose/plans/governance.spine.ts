@@ -106,6 +106,13 @@ export const GOVERNANCE_SKELETON_SECTIONS: readonly GovernanceSkeletonSection[] 
       // the sentence itself is byte-pinned skeleton law and prints.
       { kind: "skeleton", text: "The analysis that follows assesses the Article 37-39 duties on what the intake asks; operating detail the intake does not collect is recorded as what would strengthen the record, never as a deficiency." },
       { kind: "generated", text: "[GENERATED] The typed DPO determination rendered in counsel's voice: the designation trigger, position and independence, and task coverage, each attributed to the company's answers." },
+      // S-G2 (doc 80, 2026-08-27) — PN-G8 executed: the three computed,
+      // fully deterministic Item-313 surfaces (Art. 30(1)(a)-(g) element
+      // walk, the Art. 30(5) exemption determination, and the
+      // demonstrability artifact record) were persisted on every run but
+      // never composed into the customer document. Render-only; no new
+      // judgment. Ratification-ledger entry under the CEO improvement grant.
+      { kind: "generated", text: "[GENERATED] Records and demonstrability: the Article 30 element walk, the Article 30(5) exemption position, and the evidencing-artifact record, each read from the typed findings and attributed to the company's answers." },
     ],
   },
   {
@@ -132,6 +139,21 @@ export const GOVERNANCE_SKELETON_SECTIONS: readonly GovernanceSkeletonSection[] 
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence restating the readiness determination as the operative finding." },
       { kind: "generated", text: "[GENERATED] Findings and the remediation plan in counsel's voice, each remediation tied to the duty it closes; {additionalContext} incorporated only where substantive." },
+    ],
+  },
+  // S-G1 (doc 80, 2026-08-27) — PN-G9 resolved as recommended: the
+  // product's 10-domain taxonomy stays (a deliberate positioning), and a
+  // deterministic crosswalk appendix maps the assessment's own computed
+  // verdicts onto the ICO Accountability Framework's ten categories — the
+  // regulator's own structure — with honest "not separately assessed" cells
+  // where the mapping is partial. Every cell is a verdict READ, never a
+  // re-judgment. Ratification-ledger entry under the CEO improvement grant.
+  {
+    id: "ico_crosswalk",
+    title: "Appendix: ICO Accountability Framework Crosswalk",
+    blocks: [
+      { kind: "rule", text: "The UK Information Commissioner's Accountability Framework organises accountability into ten categories. This appendix maps the determinations of this assessment onto those categories, so the reader can see the record in the regulator's own structure; each entry restates a determination made above and decides nothing new." },
+      { kind: "generated", text: "[GENERATED] The ten crosswalk entries, each reading its mapped typed determination; a category this assessment does not separately assess says so honestly." },
     ],
   },
   {

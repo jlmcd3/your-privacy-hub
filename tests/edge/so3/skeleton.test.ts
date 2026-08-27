@@ -37,6 +37,9 @@ const SECTION_IDS = [
   "training_tools_controls",
   "processors_and_transfers",
   "the_determination",
+  // S-G1 (doc 80, 2026-08-27) — the ICO Accountability Framework crosswalk
+  // appendix, added under the CEO improvement grant (ledger entry).
+  "ico_crosswalk",
   "table_of_authorities",
 ];
 

@@ -313,6 +313,112 @@ function composeDomains(report: Bag, match: RegExp): string {
   return entries.map(domainProse).filter(Boolean).join("\n\n");
 }
 
+// S-G2 (doc 80, 2026-08-27) — PN-G8 executed. The three Item-313 surfaces
+// (computed and persisted on every run since 2026-08-01, never rendered)
+// composed into the governance-infrastructure section. Verdict READS only.
+function composeArt30RecordsBody(report: Bag): string {
+  const parts: string[] = [];
+
+  const elements = Array.isArray(report.art30_element_findings)
+    ? (report.art30_element_findings as Bag[])
+    : [];
+  if (elements.length > 0) {
+    const met = elements.filter((e) => s(e.verdict) === "satisfied");
+    const open = elements.filter((e) => s(e.verdict) === "record_insufficient" || s(e.verdict) === "partially_satisfied");
+    const unmet = elements.filter((e) => s(e.verdict) === "not_satisfied");
+    const letters = (xs: Bag[]) => xs.map((e) => `(${s(e.element)})`).join(", ");
+    let sentence = `On the Article 30(1) elements, the company's answers evidence ${met.length} of ${elements.length}`;
+    if (unmet.length > 0) sentence += `; the record does not support ${letters(unmet)}`;
+    if (open.length > 0) sentence += `; ${letters(open)} ${open.length === 1 ? "remains" : "remain"} open on the information provided`;
+    parts.push(sentence + ".");
+  }
+
+  const ex = (report.art30_exemption_determination ?? {}) as Bag;
+  if (ex && typeof ex.exemption_available !== "undefined") {
+    if (ex.exemption_available === false) {
+      const met = Array.isArray(ex.defeating_conditions)
+        ? (ex.defeating_conditions as Bag[]).filter((c) => c.met === true).map((c) => s(c.label)).filter(Boolean)
+        : [];
+      parts.push(
+        met.length > 0
+          ? `The Article 30(5) derogation is not available: ${met.join("; ")}.`
+          : "The Article 30(5) derogation is not available on the company's answers.",
+      );
+    } else if (ex.exemption_available === true) {
+      parts.push("On the company's answers the Article 30(5) derogation is available; maintaining the record remains good practice and accountability evidence.");
+    } else {
+      parts.push("Whether the Article 30(5) derogation is available cannot be resolved on the information provided.");
+    }
+  }
+
+  const demo = Array.isArray(report.demonstrability_findings)
+    ? (report.demonstrability_findings as Bag[])
+    : [];
+  if (demo.length > 0) {
+    const present = demo.filter((d) => s(d.artifact_present) === "yes").length;
+    const partial = demo.filter((d) => s(d.artifact_present) === "partial").length;
+    let sentence = `On demonstrability, of the ${demo.length} duties walked, the evidencing artifact is present for ${present}`;
+    if (partial > 0) sentence += ` and partially present for ${partial}`;
+    parts.push(sentence + ".");
+  }
+
+  return parts.length ? repairRegister(parts.join(" ")) : "";
+}
+
+// S-G1 (doc 80, 2026-08-27) — the ICO Accountability Framework crosswalk.
+// Ten entries, each a verdict READ from an existing typed determination; a
+// category the assessment does not separately assess says so honestly.
+function verdictPhrase(v: string): string {
+  switch (v) {
+    case "satisfied": return "evidenced on the company's answers";
+    case "partially_satisfied": return "partly evidenced on the company's answers";
+    case "not_satisfied": return "not evidenced on the company's answers";
+    case "not_applicable": return "not applicable on the company's answers";
+    case "record_insufficient": return "unresolved on the information provided";
+    default: return "not separately assessed by this report";
+  }
+}
+
+function domainSeverityPhrase(report: Bag, needle: RegExp): string {
+  const d = domainEntries(report).find((x) => needle.test(`${s(x.domain_name)} ${s(x.domain)}`));
+  if (!d) return "not separately assessed by this report";
+  const sev = s(d.severity).toLowerCase();
+  if (!sev) return "assessed in Section III without a recorded severity";
+  return `assessed with severity ${sev}`;
+}
+
+function composeIcoCrosswalk(report: Bag): string {
+  const acct = (report.accountability_determination ?? {}) as Bag;
+  const dpo = (report.dpo_determination ?? {}) as Bag;
+  const risk = (report.risk_calibration_finding ?? {}) as Bag;
+  const transfer = (report.transfer_analysis ?? {}) as Bag;
+  const elements = Array.isArray(report.art30_element_findings)
+    ? (report.art30_element_findings as Bag[])
+    : [];
+  const art30Read = elements.length > 0
+    ? `${elements.filter((e) => s(e.verdict) === "satisfied").length} of ${elements.length} Article 30(1) elements evidenced`
+    : "not separately assessed by this report";
+
+  const rows: Array<[string, string]> = [
+    ["Leadership and oversight", s(dpo.verdict) ? `the DPO determination is ${verdictPhrase(s(dpo.verdict))}` : "not separately assessed by this report"],
+    ["Policies and procedures", domainSeverityPhrase(report, /internal.?policy|policy/i)],
+    ["Training and awareness", domainSeverityPhrase(report, /training/i)],
+    ["Individuals' rights", domainSeverityPhrase(report, /subject.?rights|rights/i)],
+    ["Transparency", domainSeverityPhrase(report, /privacy.?notice|notice/i)],
+    ["Records of processing and lawful basis", art30Read],
+    ["Contracts and data sharing", domainSeverityPhrase(report, /vendor|contract/i)],
+    ["Risks and DPIAs", s(risk.verdict) ? `the risk-calibration finding is ${verdictPhrase(s(risk.verdict))}` : domainSeverityPhrase(report, /dpia/i)],
+    ["Records management and security", domainSeverityPhrase(report, /submission|security/i)],
+    ["Breach response and monitoring", domainSeverityPhrase(report, /incident/i)],
+  ];
+
+  const lines = rows.map(([cat, read]) => `${cat}: ${read}.`);
+  const acctTail = s(acct.verdict)
+    ? ` The headline Article 5(2)/24(1) determination above is ${verdictPhrase(s(acct.verdict))}${s(transfer.regime) && s(transfer.regime) !== "not_engaged" ? ", with the Chapter V transfer analysis carried in Section IV" : ""}.`
+    : "";
+  return repairRegister(lines.join("\n") + acctTail);
+}
+
 function composeDpoBody(report: Bag): string {
   const dpo = (report.dpo_determination ?? {}) as Bag;
   const parts: string[] = [];
@@ -446,6 +552,8 @@ export function assembleGovernanceSkeletonDocument(
       "Whether the accountability structure stands cannot be determined on the company's answers.",
     ),
     "governance_infrastructure:3": composeDpoBody(report),
+    // S-G2 — the Art. 30 records-and-demonstrability block.
+    "governance_infrastructure:4": composeArt30RecordsBody(report),
 
     "training_tools_controls:0": verdictLead(
       { verdict: s(((report.risk_calibration_finding ?? {}) as Bag).verdict) },
@@ -463,6 +571,14 @@ export function assembleGovernanceSkeletonDocument(
 
     "the_determination:0": ratingLead(report, org),
     "the_determination:1": composeDeterminationBody(report, intake),
+
+    // S-G1 — the ICO Accountability Framework crosswalk appendix. The rule
+    // block is product-supplied (the renderer's contract for rule-kind
+    // blocks, same as table_of_authorities:0): its fixed sentence prints
+    // verbatim, followed by the ten composed verdict-read entries.
+    "ico_crosswalk:0":
+      "The UK Information Commissioner's Accountability Framework organises accountability into ten categories. This appendix maps the determinations of this assessment onto those categories, so the reader can see the record in the regulator's own structure; each entry restates a determination made above and decides nothing new.",
+    "ico_crosswalk:1": composeIcoCrosswalk(report),
   };
 
   const draft = renderSkeletonDocument({
