@@ -47,7 +47,7 @@ import {
 } from "../../../_shared/prose/skeleton-render.ts";
 import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
 import { firstSentence, firstSentences } from "../../../_shared/ltp/dpia-skeleton-assemble.ts";
-import { buildIrPlaybookDeliverables, normalizeResponseTeamRoster } from "./ir-playbook-deliverables/build.ts";
+import { buildIrPlaybookDeliverables, normalizeBreachNoticeContracts, normalizeResponseTeamRoster } from "./ir-playbook-deliverables/build.ts";
 
 export const IR_SKELETON_ASSEMBLER_STAMP = "ir-skeleton-assembler@so7-wire-in-2026-08-10";
 
@@ -106,15 +106,17 @@ const isRecorded = (v: string): boolean => Boolean(v) && !TO_COMPLETE.test(v);
 // ── Slot values ─────────────────────────────────────────────────────────────
 
 /** The recorded escalation structure, as prose. Roles are the reader's own. */
+// E8973164 follow-up (2026-08-28) — the roster arrives as an array OR an
+// object keyed by camelCase role slugs; the array-only read dropped the
+// escalation-path sentence entirely on the object shape. The shared
+// normalizer (ir-playbook-deliverables/build.ts) handles both shapes.
 export function buildEscalationProse(intake: Bag): string {
-  const rows = asArray(intake.responseTeamRoster);
   const parts: string[] = [];
-  for (const r of rows) {
-    const role = s(r.role);
-    const primary = s(r.primary);
-    const alternate = s(r.alternate);
+  for (const r of normalizeResponseTeamRoster(intake)) {
+    const role = r.roleLabel;
+    const primary = r.name;
     if (!role && !primary) continue;
-    const who = [primary ? primary : "", alternate ? `with ${alternate} as alternate` : ""]
+    const who = [primary ? primary : "", r.alternate ? `with ${r.alternate} as alternate` : ""]
       .filter(Boolean)
       .join(", ");
     parts.push(role ? (who ? `${role} - ${who}` : `${role} - no named holder`) : who);
@@ -364,36 +366,16 @@ export function buildAwarenessClockClause(intake: Bag): string {
  *  of rows, or an object whose `obligations` array carries the rows; the
  *  deadline may be `deadline` free text or a `noticeWindowDays` number. One
  *  normalizer serves every consumer. */
+// E8973164 (2026-08-28, flagged MEDIUM/boilerplate) — a fixture whose rows
+// carry `noticePeriod` (a free-text sentence stating BOTH the deadline and
+// the clause's own scope qualifier) and `contractReference` produced an
+// empty deadline and clause reference for every row, so all three
+// counterparties rendered the identical bare sentence. The normalization now
+// lives in ir-playbook-deliverables/build.ts (normalizeBreachNoticeContracts)
+// and is shared with standing-playbook.ts's contracts table, which had the
+// same array-only/field-name blindness.
 function contractRows(intake: Bag): { party: string; deadline: string; clause: string }[] {
-  const raw = intake.breachNoticeContracts;
-  const rows = Array.isArray(raw)
-    ? (raw as Bag[])
-    : raw && typeof raw === "object"
-    ? asArray((raw as Bag).obligations)
-    : [];
-  return rows
-    .map((c) => {
-      const windowDays = (c as Bag).noticeWindowDays;
-      // E8973164 (2026-08-28, flagged MEDIUM/boilerplate) — a fixture whose
-      // rows carry `noticePeriod` (a free-text sentence stating BOTH the
-      // deadline and the clause's own scope qualifier, e.g. "Crestline must
-      // notify FinnCore within 48 hours of a confirmed breach affecting
-      // payment card data") and `contractReference` (not this normalizer's
-      // `deadline`/`clauseRef`/`contractRef`) produced an empty deadline and
-      // an empty clause reference for every row, so all three counterparties
-      // rendered the identical bare sentence with nothing appended — reading
-      // as generic boilerplate when the record in fact names three distinct
-      // clocks and three distinct scope conditions. `noticePeriod` is the
-      // richest available field and is preferred when present.
-      const deadline = s(c.deadline) || s(c.noticePeriod) ||
-        (typeof windowDays === "number" && Number.isFinite(windowDays) ? `${windowDays} days per the contract` : "");
-      return {
-        party: s(c.counterparty) || s(c.party),
-        deadline,
-        clause: s(c.clause) || s(c.clauseRef) || s(c.contractRef) || s(c.contractReference),
-      };
-    })
-    .filter((r) => r.party);
+  return normalizeBreachNoticeContracts(intake).map((r) => ({ ...r }));
 }
 
 export function composeContractualTriggers(intake: Bag): string {

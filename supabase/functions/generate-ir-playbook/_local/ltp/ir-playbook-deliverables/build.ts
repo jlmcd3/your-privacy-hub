@@ -98,9 +98,13 @@ export interface RosterRow {
   readonly phone: string;
   readonly contact: string;
   readonly roleLabel: string;
+  readonly alternate: string;
 }
 function camelToWords(k: string): string {
   return k.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/[_-]+/g, " ").trim().toLowerCase();
+}
+function titleCaseWords(words: string): string {
+  return words.replace(/\b[a-z]/g, (c) => c.toUpperCase());
 }
 export function normalizeResponseTeamRoster(intake: unknown): RosterRow[] {
   const raw = get(intake, "responseTeamRoster");
@@ -114,6 +118,7 @@ export function normalizeResponseTeamRoster(intake: unknown): RosterRow[] {
         phone: str(get(r, "phone")),
         contact: str(get(r, "contact")),
         roleLabel: role,
+        alternate: str(get(r, "alternate")),
       };
     });
   }
@@ -121,7 +126,7 @@ export function normalizeResponseTeamRoster(intake: unknown): RosterRow[] {
     return Object.entries(raw as Record<string, unknown>).map(([key, v]) => {
       const words = camelToWords(key);
       if (typeof v === "string") {
-        return { searchable: words, name: v.trim(), email: "", phone: "", contact: "", roleLabel: words };
+        return { searchable: words, name: v.trim(), email: "", phone: "", contact: "", roleLabel: titleCaseWords(words), alternate: "" };
       }
       const title = str(get(v, "title"));
       return {
@@ -130,11 +135,49 @@ export function normalizeResponseTeamRoster(intake: unknown): RosterRow[] {
         email: str(get(v, "email")),
         phone: str(get(v, "phone")),
         contact: str(get(v, "contact")),
-        roleLabel: title || words,
+        roleLabel: title || titleCaseWords(words),
+        alternate: str(get(v, "alternate")),
       };
     });
   }
   return [];
+}
+
+// E8973164 follow-up (2026-08-28, same shape-mismatch class, surfaced by the
+// CEO's old-vs-new playbook PDF comparison) — `breachNoticeContracts` is
+// also contract kind "structured" and arrives either as a flat ARRAY of rows
+// or an OBJECT whose `obligations` array carries the rows; row fields vary
+// between `deadline`/`clause`/`clauseRef`/`contractRef` and (this batch's
+// fixture) `noticePeriod`/`contractReference`. The skeleton assembler's
+// `contractRows` already normalised all of this after the morning fix, but
+// standing-playbook.ts's contracts table used its own array-only `records()`
+// read and carried the whole section as unrecorded against a record naming
+// three counterparties in full. One shared normalizer, every consumer.
+export interface BreachNoticeContractRow {
+  readonly party: string;
+  readonly deadline: string;
+  readonly clause: string;
+}
+export function normalizeBreachNoticeContracts(intake: unknown): BreachNoticeContractRow[] {
+  const raw = get(intake, "breachNoticeContracts");
+  const rowsRaw = Array.isArray(raw)
+    ? raw
+    : raw && typeof raw === "object" && Array.isArray(get(raw, "obligations"))
+    ? get(raw, "obligations") as unknown[]
+    : [];
+  return rowsRaw
+    .filter((c): c is Record<string, unknown> => Boolean(c) && typeof c === "object")
+    .map((c) => {
+      const windowDays = c.noticeWindowDays;
+      const deadline = str(c.deadline) || str(c.noticePeriod) ||
+        (typeof windowDays === "number" && Number.isFinite(windowDays) ? `${windowDays} days per the contract` : "");
+      return {
+        party: str(c.counterparty) || str(c.party),
+        deadline,
+        clause: str(c.clause) || str(c.clauseRef) || str(c.contractRef) || str(c.contractReference),
+      };
+    })
+    .filter((r) => r.party);
 }
 
 interface Anchor {

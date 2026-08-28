@@ -22,6 +22,7 @@
 import type { DeliverableStatus } from "./types.ts";
 import type { ContentOwnerMapping } from "./types.ts";
 import { HIGH_RISK_DATA_TYPES, STANDING_TO_COMPLETE } from "./elements.ts";
+import { normalizeBreachNoticeContracts, normalizeResponseTeamRoster } from "./build.ts";
 
 export const STANDING_PLAYBOOK_VERSION = "ir-standing-playbook-item369-2026-08-04";
 
@@ -209,10 +210,14 @@ function buildSeverityMatrix(intake: unknown): PlaybookTableSection {
 }
 
 function buildResponseTeam(intake: unknown): PlaybookTableSection {
-  const rows = records(get(intake, "responseTeamRoster")).map((r) => [
-    str(r.role) || STANDING_TO_COMPLETE,
-    str(r.primary) || STANDING_TO_COMPLETE,
-    str(r.alternate) || STANDING_TO_COMPLETE,
+  // E8973164 follow-up (2026-08-28) — the roster arrives as an array OR an
+  // object keyed by camelCase role slugs; the array-only `records()` read
+  // carried this whole section as unrecorded against a record naming every
+  // role. The shared normalizer (build.ts) handles both shapes.
+  const rows = normalizeResponseTeamRoster(intake).map((r) => [
+    r.roleLabel || STANDING_TO_COMPLETE,
+    [r.name, r.email, r.phone, r.contact].filter(Boolean).join(", ") || STANDING_TO_COMPLETE,
+    r.alternate || STANDING_TO_COMPLETE,
   ]);
   return tableOrGap(
     "response_team",
@@ -410,13 +415,19 @@ function buildStatutoryPointer(): PlaybookPointerSection {
 }
 
 function buildContractualNotifications(intake: unknown): PlaybookSection[] {
-  const contracts = records(get(intake, "breachNoticeContracts"));
+  // E8973164 follow-up (2026-08-28) — contracts arrive as a flat array OR an
+  // object whose `obligations` array carries the rows, with varying field
+  // names (deadline/noticePeriod, clause/clauseRef/contractRef/
+  // contractReference). The array-only `records()` read carried this whole
+  // section as unrecorded against a record naming three counterparties. The
+  // shared normalizer (build.ts) handles every observed shape.
+  const contracts = normalizeBreachNoticeContracts(intake);
   const rows = contracts.map((c) => [
-    str(c.counterparty) || STANDING_TO_COMPLETE,
-    str(c.deadline) || STANDING_TO_COMPLETE,
-    str(c.clause) || STANDING_TO_COMPLETE,
+    c.party || STANDING_TO_COMPLETE,
+    c.deadline || STANDING_TO_COMPLETE,
+    c.clause || STANDING_TO_COMPLETE,
   ]);
-  const tighter = contracts.filter((c) => /\b(?:2[0-3]|1?\d)\s*hours?\b/i.test(str(c.deadline)));
+  const tighter = contracts.filter((c) => /\b(?:2[0-3]|1?\d)\s*hours?\b/i.test(c.deadline));
   const finding: PlaybookFindingSection = {
     kind: "finding",
     id: "contractual_notification_finding",
