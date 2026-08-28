@@ -1264,9 +1264,19 @@ export function buildDomainElementFindings(
 
 /** The remediation table that closes each domain section, in walk order. */
 export function buildRemediationPlan(findings: DomainElementFinding[]): RemediationRecord[] {
+  // 3E9AD759-G2 (2026-08-27, live batch 3e9ad759) — items are SEQUENCED by
+  // the adversity of the finding they close (not satisfied first, then
+  // partially satisfied, then record-completion items), stable by walk order
+  // within a class. The batch shipped 15 items in bare walk order under
+  // identical intake-default priorities, giving the reader no triage signal;
+  // the verdict class is a mechanical ordering the findings already carry.
+  const rank = (v: string): number =>
+    v === "not_satisfied" ? 0 : v === "partially_satisfied" ? 1 : 2;
   return findings
-    .map((f) => f.remediation)
-    .filter((r): r is RemediationRecord => Boolean(r));
+    .filter((f): f is DomainElementFinding & { remediation: RemediationRecord } => Boolean(f.remediation))
+    .map((f, i) => ({ f, i }))
+    .sort((a, b) => rank(String(a.f.verdict)) - rank(String(b.f.verdict)) || a.i - b.i)
+    .map(({ f }) => f.remediation);
 }
 
 

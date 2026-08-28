@@ -40,7 +40,7 @@ import type {
   EvidenceSufficiency,
 } from "./types.ts";
 import type { ComponentRecommendation, CyberNextStep } from "./cyber-recommendations.ts";
-import { recommendationFact } from "./cyber-recommendations.ts";
+import { recommendationFact, recommendationGap } from "./cyber-recommendations.ts";
 import { CYBER_7123_COMPONENTS } from "./components.ts";
 
 type Bag = Record<string, unknown>;
@@ -356,9 +356,12 @@ export function buildComponentAnalyses(inputs: FactorInputs): CyberComponentAnal
     for (const line of commentary) sentences.push(stop(line));
 
     // FD703575-CY3 — {fact} takes the first sentence of the notes, never the
-    // whole narrative (recommendationFact's own comment carries the finding).
+    // whole narrative. 3E9AD759-CY3 — the action then locates the remaining
+    // work in the record's own gap sentence, so it never reads identically
+    // across components that reported different gaps.
+    const gapSentence = rec ? recommendationGap(intakeRec.notes) : "";
     const action = rec
-      ? rec.slot.template.replace("{fact}", noStop(recommendationFact(intakeRec.notes, intakeRec.maturity)))
+      ? `${rec.slot.template.replace("{fact}", noStop(recommendationFact(intakeRec.notes, intakeRec.maturity)))}${gapSentence ? ` The recorded description locates the remaining work: ${gapSentence}.` : ""}`
       : "No remediation identified for this component.";
 
     const supporting: string[] = [];
@@ -411,10 +414,39 @@ export function buildCrossCutting(intake: Bag, d: CyberDeliverables, recs: reado
   const material_evidence_gaps = evGaps.length
     ? `Evidence is the open matter for ${asProse(evGaps.map((r) => r.label))}: each is described as implemented, and the record identifies no testable artifact behind the description.`
     : "No material evidence gap is identified: where implementation is stated, testable evidence is identified with it.";
+  // 3E9AD759-CY2 (2026-08-27, live batch 3e9ad759) — the implementational
+  // branch was tautological ("the implementation gaps are implementational").
+  // The synthesis is now computed from the gapped components' OWN
+  // descriptions: proper-noun terms recurring across three or more gapped
+  // components are named with their counts (the batch record's Guadalajara
+  // facility recurred across at least eight descriptions and went unnamed),
+  // and the gap-class split is stated. Purely mechanical term recurrence —
+  // nothing is invented.
+  const recurringTerms = (() => {
+    const perComponentTerms: Set<string>[] = implGaps.map((r) => {
+      const notes = controlRec(intake, r.slug).notes || "";
+      // Proper-noun phrases in NON-sentence-initial position only, so
+      // ordinary sentence-starting words never count as named systems.
+      const found = notes.match(/(?<![.!?]\s)(?<=[a-z0-9,;)] )[A-Z][A-Za-z0-9.-]+(?: [A-Z][A-Za-z0-9.-]+)*/g) ?? [];
+      return new Set(found.map((t) => t.trim()).filter((t) => t.length > 2));
+    });
+    const counts = new Map<string, number>();
+    for (const terms of perComponentTerms) {
+      for (const t of terms) counts.set(t, (counts.get(t) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .filter(([, n]) => n >= 3)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
+  })();
+  const notImplCount = implGaps.filter((r) => r.key.gapClass === "not_implemented").length;
+  const partialCount = implGaps.length - notImplCount;
   const cross_component_findings = evGaps.length >= 3
     ? "The recurring pattern across the gapped components is evidentiary rather than operational: controls are described, and the artifacts that would let an auditor test the descriptions are not yet identified."
     : implGaps.length >= 3
-    ? "The recurring pattern across the gapped components is implementational: several enumerated components are recorded below full implementation."
+    ? (recurringTerms.length
+      ? `Across the ${implGaps.length} components with implementation gaps (${notImplCount} not implemented, ${partialCount} partially implemented), the Company's own descriptions recur on ${asProse(recurringTerms.map(([t, n]) => `${t} (named in ${n} of the gapped descriptions)`))}. The gaps concentrate on shared systems and facilities rather than isolated misses, and closing the shared surface closes several components at once.`
+      : `Across the ${implGaps.length} components with implementation gaps (${notImplCount} not implemented, ${partialCount} partially implemented), no single system or facility recurs across the Company's descriptions; the gaps are component-specific in origin and close independently.`)
     : "No systemic pattern emerges across components; the open items are component-specific.";
   const prior_audit_dependency_gaps = priorScope
     ? "Prior audit work is recorded; where the report relies on it, the reliance is limited to the coverage the Company itself describes."
@@ -470,8 +502,10 @@ export interface ReadinessActionsResult {
 function actionSentence(r: ComponentRecommendation, intake: Bag): string {
   const rec = controlRec(intake, r.slug);
   // FD703575-CY3 — first-sentence fact, never the whole notes narrative.
+  // 3E9AD759-CY3 — the record's own gap sentence locates the remaining work.
   const text = r.slot.template.replace("{fact}", noStop(recommendationFact(rec.notes, rec.maturity)));
-  return `${r.label} - ${text} (EUP readiness recommendation; priority: ${r.priority}.)`;
+  const gapSentence = recommendationGap(rec.notes);
+  return `${r.label} - ${text}${gapSentence ? ` Remaining work, as recorded: ${gapSentence}.` : ""} (EUP readiness recommendation; priority: ${r.priority}.)`;
 }
 
 export function buildReadinessActions(intake: Bag, recs: readonly ComponentRecommendation[]): ReadinessActionsResult {

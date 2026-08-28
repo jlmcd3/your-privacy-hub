@@ -494,6 +494,20 @@ function composeDeterminationBody(report: Bag, intake: Bag): string {
     parts.push(
       `The assessment records ${plan.length === 1 ? "one remediation item" : `${plan.length} remediation items`}, each tied to the duty it closes.`,
     );
+    // 3E9AD759-G2 — when the intake's remediation defaults make every item's
+    // priority, owner, date and validation identical, the ordering rule is
+    // stated so the list still carries a triage signal.
+    const uniformDefaults = plan.length > 1 &&
+      plan.every((p) =>
+        s(p.priority) === s(plan[0].priority) &&
+        s(p.accountable_owner) === s(plan[0].accountable_owner) &&
+        s(p.target_date) === s(plan[0].target_date) &&
+        s(p.validation_method) === s(plan[0].validation_method));
+    if (uniformDefaults) {
+      parts.push(
+        "The recorded owner, priority, target date and validation method are the intake's remediation defaults applied to each item. The items are ordered by the adversity of the finding each closes — duties recorded as not satisfied first, then partially satisfied, then record-completion items — and within a class by the order of the duty walk above.",
+      );
+    }
     plan.forEach((p, i) => {
       const el = elementFor(p);
       const label = (el && s(el.label)) || s(p.domain).replace(/_/g, " ");

@@ -157,11 +157,40 @@ const s = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
 export function recommendationFact(notes: string, maturity: string): string {
   const text = s(notes);
   if (text) {
-    const m = text.match(/^[^.!?]{1,300}[.!?]/);
-    const first = (m ? m[0] : text).trim();
+    // 3E9AD759-CY1 (2026-08-27, live batch 3e9ad759) — a sentence stop
+    // counts only when followed by whitespace or end-of-string. The prior
+    // character-class scan stopped at ANY dot, so "Tenable.io is used…"
+    // interpolated as "extending Tenable, and record the completion date"
+    // and "(IRP v2.1) is…" truncated mid-token.
+    const m = text.match(/^[\s\S]{1,300}?[.!?](?=\s|$)/);
+    const first = (m ? m[0] : text.slice(0, 300)).trim();
     return first.replace(/[.!?]$/, "");
   }
   return s(maturity) || "the recorded entry";
+}
+
+/**
+ * 3E9AD759-CY3 — the GAP slice. The ratified templates interpolate what
+ * EXISTS ("extending {fact}"); the component descriptions usually state what
+ * is MISSING in a later sentence ("However, the legacy Sacramento batch
+ * cluster still authenticates via username/password only…"). The first
+ * sentence carrying a gap marker is returned verbatim so the action can
+ * locate the remaining work in the record's own words — nothing is invented,
+ * and a description with no gap-marker sentence yields nothing.
+ */
+export function recommendationGap(notes: string): string {
+  const text = s(notes);
+  if (!text) return "";
+  const sentences = text.match(/[^.!?]*(?:[.!?](?!\s|$)[^.!?]*)*[.!?](?=\s|$)/g) ?? [];
+  const GAP = /\b(however|but|not|no\b|lacks?|remains?|pending|gap|missing|except|only|without|behind|breach(?:ed)?|unfunded|partial)\b/i;
+  const first = (text.match(/^[\s\S]{1,300}?[.!?](?=\s|$)/)?.[0] ?? "").trim();
+  for (const raw of sentences) {
+    const sent = raw.trim();
+    if (!sent || sent === first) continue;
+    if (GAP.test(sent)) return sent.replace(/[.!?]$/, "");
+  }
+  // The gap may live in the first sentence itself when there is no later one.
+  return GAP.test(first) ? first.replace(/[.!?]$/, "") : "";
 }
 
 export function resolveGapClass(

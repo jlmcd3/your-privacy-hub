@@ -274,5 +274,11 @@ export const PERFECT_HARD_CONSTRAINTS = [
   "(7) legal_basis_proposed 'Consent' (Art. 6(1)(a)) requires data_subject_rights_mechanisms or description to state HOW consent is captured (e.g. opt-in, consent banner/form, consent record) AND how it can be withdrawn (e.g. unsubscribe, preference centre);",
   "(8) legal_basis_proposed 'Legal obligation' (Art. 6(1)(c)) or 'Public task' (Art. 6(1)(e)) requires necessity_proportionality, nature_scope_context, reasons_to_conduct, or codes_of_conduct to NAME the specific instrument (a named Act, Regulation (EU) …, Directive …, or statute, with an Article or Section NUMBER spelled out as the word \"Article\" or \"Section\" — NEVER the \"§\" symbol, which the citation screen rejects outside a small US-statute allowlist) — describing the obligation generally, without naming the law, will be rejected;",
   "(9) legal_basis_proposed 'Vital interests' (Art. 6(1)(d)) requires either \"Health or medical data\" in data_categories or a stated life/safety/emergency scenario in the narrative/description/nature_scope_context fields.",
+  // 3E9AD759-H1 (2026-08-27, live batch 3e9ad759) — the dpia run aborted on
+  // exactly this gap: a secondary operation ("Employee Occupational Health
+  // Monitoring Platform") had no alternatives_considered entry, tripping the
+  // closed-loop gap ledger on both attempts. The per-operation coverage rule
+  // was enforced by the lint but never stated to the generator.
+  "(10) alternatives_considered must cover EVERY named processing operation — the primary activity AND each secondary operation kept under RULE A or RULE B — with at least one less-intrusive alternative PER OPERATION (named for that operation) and a specific rejection reason for each; an operation with no alternatives entry, or an alternative lacking its rejection reason, is auto-rejected.",
 ].join("\n");
 

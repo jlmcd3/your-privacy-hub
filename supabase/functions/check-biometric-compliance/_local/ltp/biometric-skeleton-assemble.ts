@@ -252,6 +252,11 @@ function composeNoticeLead(report: Bag): string {
 
 function composeDutyBlock(rows: readonly Bag[]): string {
   const blocks: string[] = [];
+  // 3E9AD759-B1 — consecutive rows sharing one application (the WA gate rows
+  // all carry the same not-applicable analysis) state it ONCE; each repeat
+  // cross-references it instead of reprinting the identical paragraph. The
+  // typed rows stay complete — this is presentation only.
+  let prevApplication = "";
   for (const r of rows) {
     const label = noStop(s(r.label));
     const citation = s(r.citation);
@@ -263,7 +268,12 @@ function composeDutyBlock(rows: readonly Bag[]): string {
     const fact = s(r.record_fact);
     if (fact) bits.push(stop(`The company has answered that ${noStop(lowerEnumLabel(fact))}`));
     const application = s(r.application);
-    if (application) bits.push(stop(noStop(firstSentences(application, 3))));
+    if (application && application === prevApplication) {
+      bits.push("The same predicate governs this duty, for the reason stated above.");
+    } else if (application) {
+      bits.push(stop(noStop(firstSentences(application, 3))));
+    }
+    prevApplication = application;
     const verdict = s(r.verdict);
     if (verdict === "record_insufficient") {
       const needed = s(r.information_needed);
@@ -445,13 +455,28 @@ function composeOperativeLead(report: Bag, intake: Bag): string {
     // FD703575-B5 (2026-08-27) — each act carries the requirement that closes
     // it (the first sentence of the duty's own `why`), so the reader is told
     // what remedying the duty consists of, not only its name and citation.
-    const acts = unlawful
+    // 3E9AD759-B2 (2026-08-27) — the acts are SEQUENCED by exposure: duties
+    // under a statute whose own exposure surface records a private action
+    // come first, then the rest in walk order, and the rule is stated. The
+    // signal comes from the report's typed exposure surfaces, nothing new.
+    const praStatutes = new Set(
+      asArray(c.exposure_surfaces)
+        .filter((e) => /private (?:right of )?action|private suit|person aggrieved/i.test(s(e.mechanism)))
+        .map((e) => s(e.statute_short))
+        .filter(Boolean),
+    );
+    const ordered = [...unlawful].sort((a, b) =>
+      Number(praStatutes.has(s(b.statute_short))) - Number(praStatutes.has(s(a.statute_short))));
+    const praFirst = praStatutes.size > 0 &&
+      ordered.some((u) => praStatutes.has(s(u.statute_short))) &&
+      ordered.some((u) => !praStatutes.has(s(u.statute_short)));
+    const acts = ordered
       .map((u) => {
         const duty = noStop(s(u.duty));
         const cite = s(u.citation);
         if (!duty && !cite) return "";
         const whyText = s(u.why);
-        const whyFirst = whyText ? (whyText.match(/^[^.!?]{1,240}[.!?]/)?.[0] ?? "").trim().replace(/[.!?]$/, "") : "";
+        const whyFirst = whyText ? (whyText.match(/^[\s\S]{1,240}?[.!?](?=\s|$)/)?.[0] ?? "").trim().replace(/[.!?]$/, "") : "";
         return `${duty || "the duty named above"}${cite ? ` at ${cite}` : ""}${whyFirst ? ` (${whyFirst})` : ""}`;
       })
       .filter(Boolean);
@@ -459,8 +484,11 @@ function composeOperativeLead(report: Bag, intake: Bag): string {
     const clause = acts.length === 1
       ? `the single next act is to remedy ${acts[0]}`
       : `the next acts are to remedy ${asProse(acts)}`;
+    const orderingRule = praFirst
+      ? " The acts are ordered by exposure: duties under the statute whose enforcement surface records a private action come first."
+      : "";
     return repairRegister(stop(
-      `The operative conclusion is that the programme is out of compliance on the duties named above, and ${clause}`,
+      `The operative conclusion is that the programme is out of compliance on the duties named above, and ${clause}${orderingRule ? `.${orderingRule.replace(/\.$/, "")}` : ""}`,
     ));
   }
   if (unresolved.length > 0) {

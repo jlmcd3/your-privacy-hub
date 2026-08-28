@@ -178,7 +178,7 @@ const RULE_CONCLUSIONS: readonly ConclusionSpec[] = [
     jurisdiction_tag: CPPA,
     surface: "applicability",
     anchor: { corpus_key: "cppa-7150", pinpoint: "11 CCR § 7150(b)(4)" },
-    display_label: "Inferring characteristics from systematic observation of workers, students, or applicants",
+    display_label: "Inferring characteristics from systematic observation of consumers acting as the business's employees, contractors, students, or job or educational-program applicants",
     description:
       "A risk assessment is required when the business uses automated processing to infer or extrapolate a consumer's "
       + "intelligence, ability, aptitude, performance at work, economic situation, health (including mental health), "

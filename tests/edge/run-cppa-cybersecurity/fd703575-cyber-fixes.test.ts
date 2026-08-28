@@ -24,6 +24,7 @@ import { buildCyberDeliverables } from "../../../supabase/functions/run-cppa-cyb
 import {
   buildCyberComponentRecommendations,
   recommendationFact,
+  recommendationGap,
 } from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cppa-cyber-deliverables/cyber-recommendations.ts";
 import { buildReadinessActions } from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cppa-cyber-deliverables/cyber-factors.ts";
 import { assembleCyberSkeletonDocumentV4 } from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cyber-skeleton-assemble-v4.ts";
@@ -142,4 +143,28 @@ Deno.test("CY1 — index.ts wires the rebuild between the serializer and the V4 
   assert(serializerAt > 0 && rebuildAt > serializerAt && assembleAt > rebuildAt,
     "the compose-time rebuild must sit between the serializer and the V4 assembler");
   assertStringIncludes(src.slice(rebuildAt, assembleAt + 400), "composeView");
+});
+
+// ── Batch 3e9ad759 additions ────────────────────────────────────────────────
+
+Deno.test("3E9AD759-CY1 — a sentence stop inside a token never truncates the fact", () => {
+  const fact = recommendationFact(
+    "Tenable.io is used for continuous scanning across the corporate estate. Coverage excludes the Guadalajara facility.",
+    "Documented, partially implemented",
+  );
+  assertEquals(fact, "Tenable.io is used for continuous scanning across the corporate estate");
+  const fact2 = recommendationFact(
+    "An incident response plan (IRP v2.1) is documented and tested annually. The Guadalajara site is out of scope.",
+    "",
+  );
+  assertEquals(fact2, "An incident response plan (IRP v2.1) is documented and tested annually");
+});
+
+Deno.test("3E9AD759-CY3 — recommendationGap returns the record's own gap sentence, or nothing", () => {
+  const gap = recommendationGap(
+    "Multi-factor authentication is enforced via Okta for corporate SaaS. However, the legacy Sacramento batch cluster still authenticates via username/password only.",
+  );
+  assertEquals(gap, "However, the legacy Sacramento batch cluster still authenticates via username/password only");
+  assertEquals(recommendationGap("Fully deployed everywhere with quarterly attestation. Coverage is complete."), "");
+  assertEquals(recommendationGap(""), "");
 });

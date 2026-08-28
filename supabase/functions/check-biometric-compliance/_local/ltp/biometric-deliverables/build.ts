@@ -1043,13 +1043,21 @@ function buildWaDuties(intake: BiometricIntakeForDeliverables): DutyFinding[] {
       : "Both elements are established, so the operative duties attach.",
   }];
 
+  // 3E9AD759-B1 (2026-08-27, live batch 3e9ad759) — the not-applicable
+  // application names the RECORDED PURPOSE and the answer that takes it
+  // outside the definition, instead of the bare "that predicate is not met"
+  // (which repeated four times over with no engagement with the record).
+  const recordedPurpose = txt(intake.purpose);
+  const outsideWhy = commercial === "no"
+    ? ` On the company's own "No" answer${recordedPurpose ? ` and the recorded purpose of the programme — ${recordedPurpose} —` : ""} the enrollment is not for a commercial purpose as those terms are defined; the definition's verbatim text is set out with the qualifier above.`
+    : ` The company has answered "No" on enrollment in a database, so the enrollment element is absent whatever the purpose.`;
   const notApplicableFor = (rowId: string, label: string) =>
     mk(
       s,
       rowId,
       label,
       `Enrolls in a database: ${enrolls}. Commercial purpose: ${commercial}.`,
-      "The duty attaches only to enrollment of a biometric identifier for a commercial purpose as those terms are defined in RCW 19.375.010. That predicate is not met by the facts recorded.",
+      `The duty attaches only to enrollment of a biometric identifier for a commercial purpose as those terms are defined in RCW 19.375.010.${outsideWhy} This duty does not attach on the facts recorded.`,
       "not_applicable",
       undefined,
       gateQualifier,

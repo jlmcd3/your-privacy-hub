@@ -106,6 +106,15 @@ function dataSubmission(intake: Bag): TypedDomainFinding {
   const specialTail = special
     ? " The recorded special categories raise the stakes of an uncontrolled submission (GDPR Art. 9)."
     : "";
+  // 3E9AD759-G1 (2026-08-27, live batch 3e9ad759) — the recorded tools list
+  // is NAMED in the partial-coverage cell (the batch document said "some
+  // tools" while the record named Microsoft 365 / Copilot, Salesforce +
+  // Einstein, Grammarly and Zoom). The answers do not structure per-tool
+  // coverage, and the clause says so rather than guessing which are covered.
+  const toolsList = (Array.isArray(intake.tools) ? intake.tools : []).map((t) => s(t)).filter(Boolean);
+  const toolsTail = toolsList.length
+    ? ` The tools the company has recorded in use are ${toolsList.join(", ")}; the answers do not state which of them the enforced controls cover, so the extension step starts from that list.`
+    : "";
   const table: Record<string, Cell> = {
     "Yes — DLP/content filtering actively enforced": {
       severity: "Compliant",
@@ -116,7 +125,7 @@ function dataSubmission(intake: Bag): TypedDomainFinding {
     "Partial — some tools or categories": {
       severity: "Medium",
       current_state: "Technical controls are enforced for some tools or data categories only." + specialTail,
-      gap_description: "Submissions through the uncovered tools or categories rest on policy and training alone.",
+      gap_description: "Submissions through the uncovered tools or categories rest on policy and training alone." + toolsTail,
       recommended_action: "Extend the enforced controls to the uncovered tools and categories, prioritising any that touch special categories (GDPR Arts. 25(1), 32(1)).",
     },
     "No — policy and training only": {
@@ -204,10 +213,14 @@ function internalPolicy(intake: Bag): TypedDomainFinding {
 function training(intake: Bag): TypedDomainFinding {
   const v = s(intake.training_status);
   const ai = s(intake.training_ai_coverage);
+  // 3E9AD759-G1 — the AI-coverage tails name the recorded tools, so the
+  // finding reads on THIS record's tools rather than "the AI tools".
+  const trainingTools = (Array.isArray(intake.tools) ? intake.tools : []).map((t) => s(t)).filter(Boolean);
+  const toolsPhrase = trainingTools.length ? ` (the recorded tools: ${trainingTools.join(", ")})` : "";
   const aiTail: Record<string, string> = {
     "Yes — explicitly covers AI tools": " The training is recorded as explicitly covering AI tools.",
-    "Generally covers data handling": " The training covers data handling generally rather than the AI tools specifically.",
-    "No — not AI-specific": " The training is recorded as not covering the AI tools.",
+    "Generally covers data handling": ` The training covers data handling generally rather than the AI tools specifically${toolsPhrase}.`,
+    "No — not AI-specific": ` The training is recorded as not covering the AI tools${toolsPhrase}.`,
     "Unsure": " Whether the training covers the AI tools is not resolved on the information provided.",
   };
   const tail = aiTail[ai] ?? "";
