@@ -13,8 +13,9 @@
  * still appears, citation-only. Nothing is invented, nothing is silently
  * dropped.
  *
- * TEMPLATE DISCIPLINE. The EDPB DPIA template v1.0 (adopted 10 March 2026)
- * gives the document its SHAPE, and the CNIL PIA methodology gives it its
+ * TEMPLATE DISCIPLINE. The EDPB DPIA template v1.0 (public-consultation
+ * draft, published 14 April 2026 — not yet adopted) gives the document its
+ * SHAPE, and the CNIL PIA methodology gives it its
  * analytical engine. Neither is statutory authority: neither enters this
  * corpus, neither is quotable as law, and `isAllowedDpiaCitation` will never
  * approve either.

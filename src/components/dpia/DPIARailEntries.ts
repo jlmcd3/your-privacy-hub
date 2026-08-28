@@ -57,7 +57,7 @@ export const DPIA_RAIL: Record<string, RailEntry> = {
     fieldLabel: "Who prepared this DPIA",
     citation: "GDPR Art. 35(7)",
     plainSummary:
-      "The people who did the work, and the role each held. EDPB DPIA template v1.0 (adopted 10 March 2026) \u00a7 0.5 \u00b66.",
+      "The people who did the work, and the role each held. EDPB DPIA template v1.0 (public-consultation draft, published 14 April 2026) \u00a7 0.5 \u00b66.",
     regulationText: "\u2026",
     coachLead: "Name people and roles, one per line.",
     coachBody:
@@ -71,7 +71,7 @@ export const DPIA_RAIL: Record<string, RailEntry> = {
     fieldLabel: "Formal approval of this DPIA",
     citation: "GDPR Art. 35(7)",
     plainSummary:
-      "The responsible official who approved the assessment as complete, their title, and the date. EDPB DPIA template v1.0 (adopted 10 March 2026) \u00a7 0.5 \u00b610.",
+      "The responsible official who approved the assessment as complete, their title, and the date. EDPB DPIA template v1.0 (public-consultation draft, published 14 April 2026) \u00a7 0.5 \u00b610.",
     regulationText: "\u2026",
     coachLead: "Approval is a person with authority, a title, and a date.",
     coachBody:

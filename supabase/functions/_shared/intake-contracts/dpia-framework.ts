@@ -109,8 +109,8 @@ export const dpiaFrameworkContract: IntakeContract = {
     { key: "estimated_launch_date", kind: "date", required: "optional" },
     { key: "estimated_end_date", kind: "date", required: "optional" },
     { key: "dpia_team", kind: "narrative", required: "optional" },
-    // DPIA UPGRADE ITEM 2 — EDPB template v1.0 (adopted 10 March 2026) § 0.5
-    // ¶6 and ¶10. ALL OPTIONAL so legacy dpia_frameworks rows continue to
+    // DPIA UPGRADE ITEM 2 — EDPB template v1.0 (public-consultation draft,
+    // published 14 April 2026) § 0.5 ¶6 and ¶10. ALL OPTIONAL so legacy dpia_frameworks rows continue to
     // validate; they ride intake_data (jsonb), so no column and no migration.
     { key: "dpia_prepared_by", kind: "narrative", required: "optional" },
     { key: "dpia_approved_by_name", kind: "text", required: "optional" },
