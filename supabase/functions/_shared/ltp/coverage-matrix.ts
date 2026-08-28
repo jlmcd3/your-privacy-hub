@@ -1726,6 +1726,10 @@ interface IrCoverageLink {
   readonly section?: string;
   /** Top-level report path the facts must reach. */
   readonly report_path?: string;
+  /** D1D2B3B8-I1 — an alternative surface that equally satisfies the link
+   *  (a fact may legitimately land on either of two surfaces depending on
+   *  the record's jurisdictions). */
+  readonly alt_report_path?: string;
   /** The only reader is the generated narrative. */
   readonly prose_only?: true;
   /** Why this fact has no deterministic reader. Required for `prose_only`. */
@@ -1755,7 +1759,12 @@ const IR_LINKS: readonly IrCoverageLink[] = [
   // content/owner mapping.
   { report_path: "standing_playbook.title", keys: ["organizationName"] },
   { report_path: "sa_notification_determination", keys: ["cause", "affectedCount"] },
-  { report_path: "notification_duties", keys: ["jurisdictions"] },
+  // D1D2B3B8-I1 (2026-08-28) — a record with no GDPR-family jurisdiction
+  // correctly carries an EMPTY notification_duties array (the EU-default
+  // fallback is retired); its jurisdictions fact is reflected by the honest
+  // not-engaged scalar determination (which names the recorded
+  // jurisdictions) and, where US states are recorded, the state duty rows.
+  { report_path: "notification_duties", alt_report_path: "sa_notification_determination", keys: ["jurisdictions"] },
   {
     report_path: "art34_exemption_analysis",
     keys: ["encryptionStatus", "encryptionKeyStatus", "contained"],
@@ -1836,20 +1845,26 @@ function irCoverage(
     t.counts.links_checked++;
 
     if (link.report_path) {
-      const node = getPath(report, link.report_path);
-      const substance = node === undefined || node === null
-        ? 0
-        : typeof node === "string"
-        ? node.trim().length
-        : bioSurfaceSubstance(node as Record<string, unknown>);
-      if (substance >= IR_SURFACE_MIN_CHARS) continue;
+      const substanceOf = (p: string): { node: unknown; substance: number } => {
+        const node = getPath(report, p);
+        const substance = node === undefined || node === null
+          ? 0
+          : typeof node === "string"
+          ? node.trim().length
+          : bioSurfaceSubstance(node as Record<string, unknown>);
+        return { node, substance };
+      };
+      const primary = substanceOf(link.report_path);
+      // D1D2B3B8-I1 — either surface satisfies the link.
+      const alt = link.alt_report_path ? substanceOf(link.alt_report_path) : { node: undefined, substance: 0 };
+      if (Math.max(primary.substance, alt.substance) >= IR_SURFACE_MIN_CHARS) continue;
       t.orphans.push({
-        type: node === undefined || node === null
+        type: primary.node === undefined || primary.node === null
           ? "supplied_fact_with_no_emission_path"
           : "supplied_fact_without_section",
         path: link.report_path,
         detail:
-          `the record supplies ${supplied.join(", ")} but "${link.report_path}" carries nothing that reflects it.`,
+          `the record supplies ${supplied.join(", ")} but "${link.report_path}"${link.alt_report_path ? ` (and "${link.alt_report_path}")` : ""} carries nothing that reflects it.`,
       });
       continue;
     }

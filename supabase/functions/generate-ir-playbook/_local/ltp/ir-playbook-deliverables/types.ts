@@ -68,7 +68,12 @@ export interface AnalysisShape {
 export type SaVerdict =
   | "notification_required"
   | "notification_not_required_unlikely_risk"
-  | "undetermined_on_the_record";
+  | "undetermined_on_the_record"
+  /** D1D2B3B8-I1 (2026-08-28) — the record engages no GDPR-family
+   *  jurisdiction, so the Art. 33/34 framework is NOT the operative law.
+   *  Distinct from "undetermined": nothing is open — the framework simply
+   *  does not apply on the recorded jurisdictions. */
+  | "framework_not_engaged";
 
 export interface RiskFactor {
   readonly factor: string;
@@ -111,7 +116,9 @@ export type CommunicationVerdict =
   | "communication_required"
   | "communication_not_required_no_high_risk"
   | "communication_excused_by_exemption"
-  | "undetermined_on_the_record";
+  | "undetermined_on_the_record"
+  /** D1D2B3B8-I1 — see SaVerdict's member of the same name. */
+  | "framework_not_engaged";
 
 export interface DataSubjectCommunicationDetermination extends AnalysisShape {
   /** ITEM 328 — which GDPR-family regime this determination is made under. */

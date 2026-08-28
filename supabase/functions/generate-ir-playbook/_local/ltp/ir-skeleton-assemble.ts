@@ -47,6 +47,7 @@ import {
 } from "../../../_shared/prose/skeleton-render.ts";
 import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
 import { firstSentence, firstSentences } from "../../../_shared/ltp/dpia-skeleton-assemble.ts";
+import { buildIrPlaybookDeliverables } from "./ir-playbook-deliverables/build.ts";
 
 export const IR_SKELETON_ASSEMBLER_STAMP = "ir-skeleton-assembler@so7-wire-in-2026-08-10";
 
@@ -273,6 +274,15 @@ function composeWorksheetLead(report: Bag, intake: Bag, values: SlotValues): str
   const verdict = s(sa.verdict);
   const label = s(sa.regime_label) || "the regime in scope";
   const classification = values.incidentType ? `${values.incidentType}` : "an incident it has not yet classified";
+  // D1D2B3B8-I1 — a record with no GDPR-family jurisdiction is told which
+  // clocks ARE operative, never that a GDPR clock is engaged.
+  if (verdict === "framework_not_engaged") {
+    const stateDuties = asArray(report.state_notification_duties);
+    const stateNames = stateDuties.map((d) => s(d.state_label)).filter(Boolean);
+    return stop(
+      `The company has classified the matter as ${classification}. No EU or UK jurisdiction is recorded, so no GDPR-family supervisory-authority clock is engaged; the operative clocks are ${stateNames.length ? `the recorded jurisdictions' own duties (${asProse(stateNames)}, set out in the standing sections)` : "the recorded jurisdictions' own duties set out in the standing sections"} and the recorded contractual clocks below, and the immediate posture is to work to the earliest of them`,
+    );
+  }
   if (verdict === "notification_required") {
     return stop(
       `The company has classified the matter as ${classification}, and on its answers the ${label} supervisory-authority notification duty is engaged, so the immediate posture is to work to that clock`,
@@ -293,7 +303,7 @@ function composeWorksheetLead(report: Bag, intake: Bag, values: SlotValues): str
  * opens with the fixed first words the skeleton pins. The Art. 28(3)(f) and
  * Art. 33(2) passages are corpus-verified quotations.
  */
-function composeProcessors(intake: Bag): string {
+function composeProcessors(intake: Bag, gdprEngaged: boolean): string {
   if (intake.processorInvolved !== true && s(intake.processorInvolved).toLowerCase() !== "true") return "";
   const name = s(intake.processorName);
   const parts: string[] = [IR_PROCESSOR_FIXED_FIRST_WORDS];
@@ -302,12 +312,23 @@ function composeProcessors(intake: Bag): string {
       ? stop(`The company has identified the processor as ${name}`)
       : "The company has not named the processor.",
   );
-  parts.push(
-    'On the processor\'s own notification clock, GDPR Art. 33(2) provides: "The processor shall notify the controller without undue delay after becoming aware of a personal data breach." The controller\'s 72-hour clock under Art. 33(1) runs from the controller\'s awareness, and the processor\'s notification is what ordinarily starts it.',
-  );
-  parts.push(
-    'Under the processing contract, GDPR Art. 28(3)(f) requires that the processor "assists the controller in ensuring compliance with the obligations pursuant to Articles 32 to 36 taking into account the nature of processing and the information available to the processor". That assistance duty is the contractual route to the facts the Art. 33(3) notification content requires.',
-  );
+  // D1D2B3B8-I1 — the Art. 33(2)/28(3)(f) paragraphs state GDPR duties and
+  // render only where a GDPR-family jurisdiction is recorded. On other
+  // records (live batch: US-only HIPAA/CA/TX/FL with a named processor) the
+  // processor's clocks are contractual and framework-specific, and the
+  // paragraph says so instead of quoting the wrong instrument.
+  if (gdprEngaged) {
+    parts.push(
+      'On the processor\'s own notification clock, GDPR Art. 33(2) provides: "The processor shall notify the controller without undue delay after becoming aware of a personal data breach." The controller\'s 72-hour clock under Art. 33(1) runs from the controller\'s awareness, and the processor\'s notification is what ordinarily starts it.',
+    );
+    parts.push(
+      'Under the processing contract, GDPR Art. 28(3)(f) requires that the processor "assists the controller in ensuring compliance with the obligations pursuant to Articles 32 to 36 taking into account the nature of processing and the information available to the processor". That assistance duty is the contractual route to the facts the Art. 33(3) notification content requires.',
+    );
+  } else {
+    parts.push(
+      "No EU or UK jurisdiction is recorded, so the GDPR's processor-notification clock is not the operative one here. The processor's notification and assistance duties on this record are those the processing contract itself sets — the recorded contractual clocks below carry them — together with any service-provider duties the recorded jurisdictions' own statutes impose.",
+    );
+  }
   return repairRegister(parts.join(" "));
 }
 
@@ -339,17 +360,38 @@ export function buildAwarenessClockClause(intake: Bag): string {
  * or response clock is checked against this incident's recorded facts, the
  * same treatment the processor already receives.
  */
+/** D1D2B3B8-I3 — breachNoticeContracts arrives in two shapes: a flat array
+ *  of rows, or an object whose `obligations` array carries the rows; the
+ *  deadline may be `deadline` free text or a `noticeWindowDays` number. One
+ *  normalizer serves every consumer. */
+function contractRows(intake: Bag): { party: string; deadline: string; clause: string }[] {
+  const raw = intake.breachNoticeContracts;
+  const rows = Array.isArray(raw)
+    ? (raw as Bag[])
+    : raw && typeof raw === "object"
+    ? asArray((raw as Bag).obligations)
+    : [];
+  return rows
+    .map((c) => {
+      const windowDays = (c as Bag).noticeWindowDays;
+      const deadline = s(c.deadline) ||
+        (typeof windowDays === "number" && Number.isFinite(windowDays) ? `${windowDays} days per the contract` : "");
+      return {
+        party: s(c.counterparty) || s(c.party),
+        deadline,
+        clause: s(c.clause) || s(c.clauseRef) || s(c.contractRef),
+      };
+    })
+    .filter((r) => r.party);
+}
+
 export function composeContractualTriggers(intake: Bag): string {
   const incidentRecorded = Boolean(s(intake.cause) || s(intake.discoveryDateTime));
   if (!incidentRecorded) return "";
   const lines: string[] = [];
-  for (const c of asArray(intake.breachNoticeContracts)) {
-    const party = s(c.counterparty);
-    const deadline = s(c.deadline);
-    const clause = s(c.clause);
-    if (!party) continue;
+  for (const c of contractRows(intake)) {
     lines.push(
-      `${party}: on the facts recorded — a ${s(intake.cause) || "recorded incident"} affecting personal data — the contractual notification condition is triggered${deadline ? `, and the clock is ${noStop(deadline)}` : ""}${clause ? ` (${clause})` : ""}.`,
+      `${c.party}: on the facts recorded — a ${s(intake.cause) || "recorded incident"} affecting personal data — the contractual notification condition is triggered${c.deadline ? `, and the clock is ${noStop(c.deadline)}` : ""}${c.clause ? ` (${c.clause})` : ""}.`,
     );
   }
   const insurer = s(intake.insurerContact);
@@ -420,10 +462,66 @@ export function composeContainmentPlan(intake: Bag): string {
   return repairRegister(parts.join(" "));
 }
 
+/** D1D2B3B8-I1 — the action plan for records the GDPR does not govern: the
+ *  recorded jurisdictions' own notice duties (typed state rows) and the
+ *  recorded contractual clocks, in place of the Art. 33(3) content plan. */
+function composeJurisdictionActionPlan(report: Bag, intake: Bag): string {
+  const lines: string[] = [];
+  for (const d of asArray(report.state_notification_duties)) {
+    const state = s(d.state_label);
+    const individual = s(d.individual_deadline);
+    const regulator = s(d.regulator_deadline);
+    const citation = s(d.citation);
+    if (!state || !individual) continue;
+    lines.push(`Notify under the law of ${state} — ${individual}${regulator ? `; ${regulator}` : ""}${citation ? ` (${citation})` : ""}.`);
+  }
+  for (const c of contractRows(intake)) {
+    lines.push(`Notify ${c.party}${c.deadline ? ` — ${c.deadline}` : ""}${c.clause ? ` (${c.clause})` : ""}.`);
+  }
+  if (!lines.length) return "";
+  return ["The action plan, in the order the clocks run:", ...lines].join("\n");
+}
+
 /** Part Two body — the notification analysis, jurisdiction by jurisdiction. */
 function composeNotificationAnalysis(report: Bag, intake: Bag): string {
   const duties = asArray(report.notification_duties);
-  if (duties.length === 0) return "";
+  // D1D2B3B8-I1 — a record with no GDPR-family duty set gets the analysis of
+  // the duties it ACTUALLY engages: the recorded jurisdictions' own statutory
+  // clocks (typed, registry-sourced state duty rows), stated with their
+  // citations, plus the honest corpus posture for recorded frameworks whose
+  // operative text is not in the verified corpus (HIPAA). The old behaviour
+  // composed nothing here and let the EU-default duty set speak instead.
+  if (duties.length === 0) {
+    const blocks: string[] = [];
+    blocks.push(
+      "No EU or UK jurisdiction is recorded, so no Article 33 or Article 34 duty is engaged on this record and no 72-hour clock runs. The operative notification duties are those of the recorded jurisdictions, stated below in their own statutory terms.",
+    );
+    for (const d of asArray(report.state_notification_duties)) {
+      const state = s(d.state_label);
+      const individual = s(d.individual_deadline);
+      const regulator = s(d.regulator_deadline);
+      const citation = s(d.citation);
+      if (!state || !individual) continue;
+      blocks.push(
+        stop(`${state}: ${individual}${regulator ? `, together with ${regulator}` : ""}${citation ? ` (${citation})` : ""}`),
+      );
+    }
+    if (arr(intake.jurisdictions).some((j) => /hipaa/i.test(j))) {
+      blocks.push(
+        "United States (HIPAA) is recorded. The HIPAA Breach Notification Rule's operative text is not in this product's verified corpus, so its clocks are not quoted here; where the record's own contractual entries name the HHS Office for Civil Rights or a business-associate notice window, those entries carry the recorded deadlines and appear with the contractual clocks below.",
+      );
+    }
+    blocks.push(
+      "The recorded contractual clocks are set out below and run alongside the statutory duties above; the earliest recorded clock governs the immediate posture.",
+    );
+    const contractual0 = composeContractualTriggers(intake);
+    if (contractual0) blocks.push(contractual0);
+    const plan0 = composeContainmentPlan(intake);
+    if (plan0) blocks.push(plan0);
+    const actionPlan0 = composeJurisdictionActionPlan(report, intake);
+    if (actionPlan0) blocks.push(actionPlan0);
+    return repairRegister(blocks.join("\n\n"));
+  }
   const clock = buildAwarenessClockClause(intake);
   let clockStated = false;
   const blocks: string[] = [];
@@ -533,14 +631,22 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
         const person = namedFor(key);
         const value = s(e.record_value);
         const needed = s(e.information_needed);
+        // D1D2B3B8-I2 — an apparatus literal is never presented as record
+        // content, even if a post-attach sweep re-introduced one.
+        const valueIsApparatus = /could not verify this item/i.test(value);
         const statusClause = needed
           ? `Outstanding: ${noStop(needed)}.`
-          : isRecorded(value) && !value.includes("[TO BE COMPLETED]")
+          : isRecorded(value) && !value.includes("[TO BE COMPLETED]") && !valueIsApparatus
           ? `On the record: ${noStop(value)}.`
           : "";
         const citation = s(e.citation);
+        // D1D2B3B8-I2 — a role with no matching roster entry is an
+        // ASSIGNMENT to make, not a person the record names.
+        const ownerClause = owner
+          ? ` (${owner}${person ? `: ${person} on the recorded roster` : " — assign on the recorded roster"})`
+          : "";
         return [
-          `${citation ? `${citation} — ` : ""}${label}${owner ? ` (${owner}${person ? `: ${person} on the recorded roster` : ""})` : ""}.`,
+          `${citation ? `${citation} — ` : ""}${label}${ownerClause}.`,
           statusClause,
         ].filter(Boolean).join(" ");
       })
@@ -598,7 +704,32 @@ export interface IrSkeletonResult {
 
 export function assembleIRSkeletonDocument(report: Bag, intakeInput: Bag): IrSkeletonResult {
   const intake = intakeInput ?? {};
-  const values = buildIrSlotValues(report, intake);
+  // D1D2B3B8-I1/I2 (2026-08-28) — COMPOSE FROM THE PURE BUILDER. The typed
+  // notification surfaces on the attached report pass through post-attach
+  // sweeps before this assembler runs; live batch d1d2b3b8 showed
+  // state-duty and content-plan values replaced with the apparatus literal
+  // ("We could not verify this item…") by the time they rendered, and the
+  // retired EU-default duty set applying GDPR to a US-only record.
+  // buildIrPlaybookDeliverables is pure and the single writer of these
+  // surfaces, so rebuilding them from intake at compose time renders the
+  // same regime-gated content the builder actually determined (the cyber
+  // FD703575-CY1 pattern). Fail-open: on any error the attached report
+  // composes as before.
+  let composeReport: Bag = report;
+  try {
+    const fresh = buildIrPlaybookDeliverables(intake);
+    composeReport = {
+      ...report,
+      notification_duties: fresh.notification_duties,
+      state_notification_duties: fresh.state_notification_duties,
+      sa_notification_determination: fresh.sa_notification_determination,
+      data_subject_communication_determination: fresh.data_subject_communication_determination,
+      art34_exemption_analysis: fresh.art34_exemption_analysis,
+      content_owner_mapping: fresh.content_owner_mapping,
+    };
+  } catch { /* fail-open */ }
+  const gdprEngaged = asArray(composeReport.notification_duties).length > 0;
+  const values = buildIrSlotValues(composeReport, intake);
   const org = s(intake.organizationName) || "the company";
 
   const composed: ComposedBlocks = {
@@ -606,9 +737,9 @@ export function assembleIRSkeletonDocument(report: Bag, intakeInput: Bag): IrSke
     "standing_playbook:2": composeFramingNote(),
     "standing_playbook:3": composeStandingPosture(report),
 
-    "incident_worksheet:0": composeWorksheetLead(report, intake, values),
-    "incident_worksheet:2": composeProcessors(intake),
-    "incident_worksheet:4": composeNotificationAnalysis(report, intake),
+    "incident_worksheet:0": composeWorksheetLead(composeReport, intake, values),
+    "incident_worksheet:2": composeProcessors(intake, gdprEngaged),
+    "incident_worksheet:4": composeNotificationAnalysis(composeReport, intake),
   };
 
   const draft = renderSkeletonDocument({

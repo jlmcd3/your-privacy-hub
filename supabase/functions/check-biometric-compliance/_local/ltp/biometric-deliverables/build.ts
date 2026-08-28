@@ -696,6 +696,21 @@ function buildIlDuties(
   const triggerDenied = Boolean(trigger) &&
     /\bno\b[^.]{0,50}\b(?:destruction|deletion)?\s*trigger\b/i.test(trigger!);
   const scheduleEstablished = Boolean(schedule) && !scheduleDenied;
+  // D1D2B3B8-B1 (2026-08-28, live batch d1d2b3b8) — RELIABILITY-AWARE read.
+  // A record can describe an operative trigger AND record that destruction
+  // has not in fact occurred as established ("the manual deletion step was
+  // not completed on time for approximately 40% of terminations", "the
+  // automated deletion job … failed silently for 47 terminated employees").
+  // § 15(a)'s compliance duty cannot be found met on the record's own
+  // account of non-compliance. The markers are the record's own failure
+  // words; a clean description matches none of them.
+  const FAILURE_RE = /\b(?:fail(?:ed|s|ure)?|missed|not (?:completed|deleted|destroyed|executed|run)|backlog|silently|delayed|remain(?:ed|s)? (?:in|undeleted|past)|overdue|lapsed|not (?:on time|timely))\b/i;
+  const complianceFailureText = [trigger, schedule].filter(Boolean).map((t) => {
+    const m = t!.match(/[^.!?]*\b(?:fail(?:ed|s|ure)?|missed|not completed|silently|delayed|overdue|backlog)\b[^.!?]*[.!?]?/i);
+    return m ? m[0].trim() : "";
+  }).find(Boolean) ?? "";
+  const complianceFailureRecorded = Boolean(trigger || schedule) &&
+    (FAILURE_RE.test(trigger ?? "") || FAILURE_RE.test(schedule ?? ""));
 
   // S-B2 — § 15(a) TIMING ELEMENT. Illinois appellate authority reads the
   // policy duty as attaching at FIRST POSSESSION of biometric data, so a
@@ -747,13 +762,21 @@ function buildIlDuties(
       : "The record describes no destruction trigger.",
     !scheduleEstablished
       ? "The duty to comply with an established schedule presupposes one. No established schedule is documented on the information provided, so compliance cannot be shown."
+      : complianceFailureRecorded
+      ? `The record describes a destruction arrangement and also records that it has not operated as established${complianceFailureText ? `: "${complianceFailureText.replace(/[.!?]$/, "")}"` : ""}. § 15(a) requires compliance with the established retention schedule and destruction guidelines, and the company's own account is of destruction not occurring as the schedule provides.`
       : triggerDenied
       ? "The trigger text the record supplies states no destruction trigger is configured; a discretionary manual practice is described instead. Whether destruction actually occurs on the established schedule cannot be shown on that description."
       : trigger
       ? `The record describes an operative destruction trigger, which is what compliance with the established schedule consists of on these facts. § 15(a) qualifies the duty only by a valid warrant or subpoena.`
       : "A schedule is documented, but no trigger on which destruction actually occurs is described, so compliance cannot be assessed.",
-    !scheduleEstablished ? "not_satisfied" : (trigger && !triggerDenied) ? "satisfied" : "record_insufficient",
-    !scheduleEstablished || (trigger && !triggerDenied)
+    !scheduleEstablished
+      ? "not_satisfied"
+      : complianceFailureRecorded
+      ? "not_satisfied"
+      : (trigger && !triggerDenied)
+      ? "satisfied"
+      : "record_insufficient",
+    !scheduleEstablished || complianceFailureRecorded || (trigger && !triggerDenied)
       ? undefined
       : "State the event on which biometric identifiers are actually destroyed and how that is evidenced.",
   ));

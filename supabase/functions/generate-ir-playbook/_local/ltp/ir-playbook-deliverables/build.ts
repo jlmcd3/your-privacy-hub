@@ -609,18 +609,41 @@ export function buildContentOwnerMapping(intake: unknown): ContentOwnerMapping {
             ].filter(Boolean).join(", ")}.`,
           }),
     },
-    {
-      element: "b_dpo_contact",
-      citation: B.citation,
-      requirement_verbatim: B.verbatim,
-      owner: OWNERS.dpo,
-      source_of_truth:
-        "The controller's data protection officer appointment record, or where no DPO is appointed, the nominated breach contact point named in the incident response plan.",
-      record_value: TO_BE_COMPLETED,
-      status: "record_insufficient",
-      information_needed:
-        "The name and contact details of the data protection officer or other contact point from which the supervisory authority can obtain more information.",
-    },
+    // D1D2B3B8-I2 (2026-08-28) — the (b) element reads the RECORDED roster
+    // before declaring itself outstanding. Two live batch records carried the
+    // DPO's name, email and phone (array-row and object shapes both occur)
+    // while the rendered plan said the contact was "Outstanding".
+    ...(() => {
+      const rosterRaw = get(intake, "responseTeamRoster");
+      const rosterRows = Array.isArray(rosterRaw) ? rosterRaw : [];
+      const dpoRow = rosterRows.find((r) =>
+        /\bdpo\b|data protection/i.test(str(get(r, "role"))));
+      const dpoObj = rosterRaw && typeof rosterRaw === "object" && !Array.isArray(rosterRaw)
+        ? get(rosterRaw, "dataProtectionOfficer")
+        : undefined;
+      const dpoParts = dpoRow
+        ? [str(get(dpoRow, "primary")), str(get(dpoRow, "email")), str(get(dpoRow, "phone")), str(get(dpoRow, "contact"))]
+        : typeof dpoObj === "string"
+        ? [dpoObj.trim()]
+        : dpoObj && typeof dpoObj === "object"
+        ? [str(get(dpoObj, "name")), str(get(dpoObj, "email")), str(get(dpoObj, "phone")), str(get(dpoObj, "contact"))]
+        : [];
+      const dpoValue = dpoParts.filter(Boolean).join(", ");
+      return [{
+        element: "b_dpo_contact" as const,
+        citation: B.citation,
+        requirement_verbatim: B.verbatim,
+        owner: OWNERS.dpo,
+        source_of_truth:
+          "The controller's data protection officer appointment record, or where no DPO is appointed, the nominated breach contact point named in the incident response plan.",
+        record_value: dpoValue || TO_BE_COMPLETED,
+        status: dpoValue ? "analysed" as const : "record_insufficient" as const,
+        ...(dpoValue ? {} : {
+          information_needed:
+            "The name and contact details of the data protection officer or other contact point from which the supervisory authority can obtain more information.",
+        }),
+      }];
+    })(),
     {
       element: "c_likely_consequences",
       citation: C.citation,
@@ -724,16 +747,71 @@ export function buildContentOwnerMapping(intake: unknown): ContentOwnerMapping {
 // ---------------------------------------------------------------------
 // Composite builder + attach
 // ---------------------------------------------------------------------
+/**
+ * D1D2B3B8-I1 — the honest not-engaged scalar. Rendered where the record
+ * names NO GDPR-family jurisdiction, replacing the retired "EU rail as the
+ * default frame" behaviour that ran the full Art. 33/34 apparatus (72-hour
+ * clock, Art. 33(3) content plan, Art. 34 communication conclusion) on
+ * records the GDPR does not govern (live batch d1d2b3b8, US-only HIPAA/CA/
+ * TX/FL record, five HIGH misapplied-citation findings).
+ */
+function buildNotEngagedSa(f: IncidentFacts): SaNotificationDetermination {
+  const juris = f.jurisdictions.length ? f.jurisdictions.join(", ") : "none recorded";
+  return {
+    regime: "eu",
+    regime_label: "GDPR-family (not engaged)",
+    verdict: "framework_not_engaged",
+    risk_factors: [],
+    unlikely_risk_established: false,
+    standard: "",
+    standard_citation: "",
+    record_fact: `The recorded jurisdictions are: ${juris}.`,
+    application:
+      "No EU or UK jurisdiction is recorded, so the GDPR-family supervisory-authority notification framework (Art. 33) is not engaged on this record. The recorded jurisdictions' own notification duties and the recorded contractual clocks are the operative obligations, and they are set out in this playbook's standing sections and contractual-clock analysis.",
+    why:
+      "The Article 33 duty attaches only where the GDPR or UK GDPR governs the processing; the recorded jurisdictions do not put either instrument in scope.",
+    exposure_note: "",
+    separation_repairs: 0,
+    status: "analysed",
+  };
+}
+
+function buildNotEngagedDs(f: IncidentFacts): DataSubjectCommunicationDetermination {
+  const juris = f.jurisdictions.length ? f.jurisdictions.join(", ") : "none recorded";
+  return {
+    regime: "eu",
+    regime_label: "GDPR-family (not engaged)",
+    verdict: "framework_not_engaged",
+    high_risk_factors: [],
+    high_risk_established: false,
+    sa_verdict_for_contrast: "framework_not_engaged",
+    threshold_separation_note: "",
+    standard: "",
+    standard_citation: "",
+    record_fact: `The recorded jurisdictions are: ${juris}.`,
+    application:
+      "No EU or UK jurisdiction is recorded, so the Article 34 communication framework is not engaged on this record. Whether and when affected individuals must be notified is governed by the recorded jurisdictions' own statutes, set out in the standing sections.",
+    why:
+      "The Article 34 duty attaches only where the GDPR or UK GDPR governs the processing; the recorded jurisdictions do not put either instrument in scope.",
+    exposure_note: "",
+    separation_repairs: 0,
+    status: "analysed",
+  };
+}
+
 export function buildIrPlaybookDeliverables(intake: unknown): IrPlaybookDeliverables {
   const f = readIncidentFacts(intake);
   const exemptions = buildArt34ExemptionAnalysis(intake);
 
   // ITEM 328 PARALLEL-DUTY LAW: one complete duty set per engaged regime.
-  // A mixed EU + UK incident yields two, stated side by side. Where no
-  // GDPR-family jurisdiction is recorded the EU rail is stated as the default
-  // frame so the deliverable is never empty.
-  const regimes: NotificationRegime[] = f.regimes.length ? f.regimes : ["eu"];
-  const notification_duties: RegimeDutySet[] = regimes.map((regime) => {
+  // A mixed EU + UK incident yields two, stated side by side.
+  // D1D2B3B8-I1 (2026-08-28): the "EU rail as the default frame" fallback is
+  // RETIRED — where no GDPR-family jurisdiction is recorded the duty-set
+  // array is EMPTY and the scalar determinations state, honestly, that the
+  // framework is not engaged. The deliverable is still never empty: the
+  // state duties, contractual clocks and standing sections carry the
+  // operative obligations for such records.
+  const notification_duties: RegimeDutySet[] = f.regimes.map((regime) => {
     const rsa = buildSaNotificationDetermination(intake, regime);
     return {
       regime,
@@ -758,8 +836,8 @@ export function buildIrPlaybookDeliverables(intake: unknown): IrPlaybookDelivera
     str(get(intake, "incidentDateTime")) || str(get(intake, "discoveryDateTime")),
   );
 
-  const sa = notification_duties[0].sa_notification_determination;
-  const ds = notification_duties[0].data_subject_communication_determination;
+  const sa = notification_duties[0]?.sa_notification_determination ?? buildNotEngagedSa(f);
+  const ds = notification_duties[0]?.data_subject_communication_determination ?? buildNotEngagedDs(f);
   const mapping = buildContentOwnerMapping(intake);
   return {
     notification_duties,

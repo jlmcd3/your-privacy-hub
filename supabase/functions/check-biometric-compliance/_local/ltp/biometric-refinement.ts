@@ -261,6 +261,27 @@ export const BIOMETRIC_VERIFIER_SYSTEM_PROMPT = composePrompt(
   BIOMETRIC_VERIFIER_EXEMPLARS,
 );
 
+// D1D2B3B8-B2 (2026-08-28) — PN-B6 CLOSED ON LIVE EVIDENCE. The 2026-08-26
+// audit flagged that duty_findings' application/record_fact/information_needed
+// are refinement-eligible while every sibling product protects its typed
+// deliverable subtrees; the open question was whether that exposure was
+// intentional narrative polish or a defect. Live batch d1d2b3b8 answered it:
+// refinement rewrote a QUOTED intake fact inside record_fact — the company's
+// recorded retention schedule "within 3 years of collection" shipped as
+// "within 3 years of the individual's last interaction with the entity"
+// (the statute's own phrase substituted into a quotation of the company's
+// record, flagged HIGH as an unsupported business claim). The typed
+// deliverable subtrees are now protected wholesale, matching the
+// ADMT/DPIA/LIA/CPPA-Risk pattern. Conservative/deterministic direction;
+// CEO may reverse on redline.
+export const BIOMETRIC_PROTECTED_PATH_PREFIXES: string[] = [
+  "duty_findings",
+  "entity_characterization",
+  "identifier_characterizations",
+  "divergence_analysis",
+  "consequence_determination",
+];
+
 export const BIOMETRIC_REFINEMENT_CONFIG: RefinementConfig = {
   product: "biometric",
   version: BIOMETRIC_REFINEMENT_VERSION,
@@ -268,6 +289,7 @@ export const BIOMETRIC_REFINEMENT_CONFIG: RefinementConfig = {
   verifierSystemPrompt: BIOMETRIC_VERIFIER_SYSTEM_PROMPT,
   protectedRootKeys: BIOMETRIC_PROTECTED_ROOTS,
   protectedLeafKeys: BIOMETRIC_PROTECTED_LEAF_KEYS,
+  protectedPathPrefixes: BIOMETRIC_PROTECTED_PATH_PREFIXES,
 };
 
 export function isBiometricProtectedPath(path: string): boolean {

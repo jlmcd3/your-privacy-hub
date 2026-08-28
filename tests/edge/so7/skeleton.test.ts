@@ -207,13 +207,36 @@ Deno.test("SO-7: the processors conditional fires only on its trigger, with the 
 });
 
 Deno.test("SO-7: notification analysis is jurisdiction by jurisdiction and reserves what is reserved", () => {
+  // D1D2B3B8-I1/I2 (2026-08-28) — the assembler now composes the
+  // notification surfaces from the PURE builder over the live intake (the
+  // attached report's copies pass through post-attach sweeps that mangled
+  // them in live batch d1d2b3b8), so the pins below assert the builder's own
+  // determinations for this intake rather than the hand-authored REPORT
+  // fixtures the composer previously echoed.
   const text = skeletonDocumentToText(assembleIRSkeletonDocument(REPORT, INTAKE).document);
-  assert(text.includes("EU GDPR"));
+  assert(text.includes("GDPR (Regulation (EU) 2016/679)"));
   assert(text.includes("UK GDPR"));
-  assert(text.includes("the Data Protection Commission (Ireland)"));
+  assert(text.includes("the competent supervisory authority"));
   assert(text.includes("is not determined, and that determination is reserved"));
-  assert(text.includes("What would settle it is whether any UK-resident individuals are among those affected"));
+  assert(text.includes("What would settle it is encryptionStatus and encryptionKeyStatus"));
   assert(text.includes("The action plan, in the order the clocks run:"));
+});
+
+Deno.test("SO-7 (D1D2B3B8-I1): a record with no GDPR-family jurisdiction gets its own clocks, never the GDPR apparatus", () => {
+  const usIntake = {
+    ...INTAKE,
+    jurisdictions: ["United States (HIPAA)", "California", "Texas", "Florida"],
+  };
+  const text = skeletonDocumentToText(assembleIRSkeletonDocument(REPORT, usIntake).document);
+  assert(text.includes("No EU or UK jurisdiction is recorded"), "the not-engaged posture must be stated");
+  assert(!text.includes("72-hour outer limit runs to"), "no GDPR clock may be computed");
+  assert(!text.includes("GDPR Art. 33(3)(a)"), "the Art. 33(3) content plan must not render");
+  assert(!text.includes("Communication to the affected data subjects is required"), "no Art. 34 conclusion may be asserted");
+  assert(text.includes("California"), "the state clocks must carry the analysis");
+  assert(text.includes("Fla. Stat.") && text.includes("501.171"), "Florida's registry row must render with its citation");
+  // The processor block survives but states contractual, not GDPR, clocks.
+  assert(text.includes("Aventine Hosting Ltd"));
+  assert(!text.includes("The processor shall notify the controller without undue delay"), "GDPR Art. 33(2) must not be quoted");
 });
 
 Deno.test("SO-7: a blank worksheet degrades to honest blanks and is never padded", () => {

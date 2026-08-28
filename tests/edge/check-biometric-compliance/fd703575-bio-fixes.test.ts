@@ -56,6 +56,10 @@ Deno.test("B2 — a schedule text that denies a schedule can never yield a met c
 });
 
 Deno.test("B2 — a real schedule with a trigger text that denies a configured trigger degrades honestly", () => {
+  // D1D2B3B8-B1 supersedes the original expectation: DENYING_TRIGGER also
+  // records that deletions are "often delayed or missed" — the company's own
+  // account of destruction not occurring as established — so the duty is now
+  // NOT SATISFIED on that account, not merely unresolved.
   const d = buildBiometricDeliverables(ilIntake({
     retention_schedule_text: "A written schedule: templates are destroyed 30 days after termination, per Policy BIO-7.",
     retention_policy_public: "Yes",
@@ -64,8 +68,34 @@ Deno.test("B2 — a real schedule with a trigger text that denies a configured t
   }) as never) as unknown as Bag;
   const duties = (d.duty_findings as Bag[]) ?? [];
   const comply = duties.find((x) => x.key === "il_bipa.15a_comply_with_schedule");
-  assertEquals(comply!.verdict, "record_insufficient");
-  assertStringIncludes(String(comply!.application), "no destruction trigger is configured");
+  assertEquals(comply!.verdict, "not_satisfied");
+  assertStringIncludes(String(comply!.application), "has not operated as established");
+});
+
+Deno.test("D1D2B3B8-B1 — a trigger whose text records missed or failed deletions can never yield a met compliance duty", () => {
+  const d = buildBiometricDeliverables(ilIntake({
+    retention_schedule_text: "Templates are deleted within 3 years of collection per the published schedule.",
+    retention_policy_public: "Yes",
+    retention_policy_predates_possession: "Yes",
+    destruction_trigger:
+      "Deletion runs on termination; the manual deletion step was not completed on time for approximately 40% of terminations in the past 12 months.",
+  }) as never) as unknown as Bag;
+  const duties = (d.duty_findings as Bag[]) ?? [];
+  const comply = duties.find((x) => x.key === "il_bipa.15a_comply_with_schedule");
+  assertEquals(comply!.verdict, "not_satisfied");
+  assertStringIncludes(String(comply!.application), "the company's own account is of destruction not occurring");
+});
+
+Deno.test("D1D2B3B8-B1 — a clean operative trigger still satisfies (no over-correction)", () => {
+  const d = buildBiometricDeliverables(ilIntake({
+    retention_schedule_text: "A written schedule: templates are destroyed 30 days after termination, per Policy BIO-7.",
+    retention_policy_public: "Yes",
+    retention_policy_predates_possession: "Yes",
+    destruction_trigger: "Automated deletion runs nightly; any template past its 30-day post-termination window is purged.",
+  }) as never) as unknown as Bag;
+  const duties = (d.duty_findings as Bag[]) ?? [];
+  const comply = duties.find((x) => x.key === "il_bipa.15a_comply_with_schedule");
+  assertEquals(comply!.verdict, "satisfied");
 });
 
 Deno.test("B2 — an affirmative schedule and trigger still satisfy (no over-correction)", () => {
