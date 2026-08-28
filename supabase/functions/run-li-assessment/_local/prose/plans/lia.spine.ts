@@ -284,25 +284,44 @@ export const LIA_BANNED_REGISTER: readonly { readonly id: string; readonly re: R
 // it is bound to.
 // ═════════════════════════════════════════════════════════════════════════════
 
-export const LIA_SKELETON_VERSION = "prose-plans-2026-08-10-item-so11";
+export const LIA_SKELETON_VERSION = "prose-plans-2026-08-28-so11-uk-instrument-repin";
 export const LIA_SKELETON_SOURCE_FILE =
   "LIA_Legitimate_Interests_Assessment_Skeleton_v3.docx";
 export const LIA_SKELETON_PROVENANCE = LIA_PLAN_PROVENANCE;
 
 /**
  * SHA-256 over the governing skeleton's paragraph text, newline-joined, in file
- * order, computed DIRECTLY from the docx bytes (all 37 `w:p` paragraphs, `w:t`
- * runs concatenated, XML entities unescaped, joined with "\n").
- * Independently confirmed by the CEO against four local copies, 2026-08-10.
+ * order. ORIGINAL PIN: computed DIRECTLY from the docx bytes (all 37 `w:p`
+ * paragraphs, `w:t` runs concatenated, XML entities unescaped, joined with
+ * "\n"); independently confirmed by the CEO against four local copies,
+ * 2026-08-10 (53de11dee90a20d0944c720f453053d3f6896a5bf58b04af411069a10a28e22a).
+ *
+ * RE-PIN 2026-08-28 (CEO-approved in-chat, the SO-11 UK-instrument landing):
+ * the subtitle and ¶6/¶19 now carry {instrumentCitation}/{instrumentName}
+ * slots so a UK-only record names the UK GDPR in its fixed prose. The literal
+ * segments outside the slots are byte-unchanged from the docx; the hash below
+ * is recomputed over the slotted paragraph text (the SO-11 battery recomputes
+ * and compares it).
  */
 export const LIA_SKELETON_CONTENT_HASH =
-  "53de11dee90a20d0944c720f453053d3f6896a5bf58b04af411069a10a28e22a";
+  "90a64832a086def3b6c0684b8a1e7c8df2def76acfcf0a89f3b853ec8768cd18";
 
 export const LIA_SKELETON_PARAGRAPH_COUNT = 37;
 
 export const LIA_SKELETON_TITLE = "LEGITIMATE INTERESTS ASSESSMENT";
+// SO-11 RE-PIN 2026-08-28 (CEO-approved in-chat) — the governing instrument
+// enters the fixed prose through {slots}, so a UK-only record renders the UK
+// GDPR label in its own byte-pinned sentences instead of the EU one (the
+// live batch d1d2b3b8 defect: subtitle/ToA switched at assembly, but the
+// fixed prose still named the EU instrument on UK-only records). Slot values
+// are computed in buildLiaSlotValues from the recorded jurisdictions:
+//   instrumentCitation — "Article 6(1)(f) GDPR" (EU or mixed, the ITEM-330
+//     EU rail) / "Article 6(1)(f) UK GDPR" (UK-only) / mixed subtitle form
+//     "Article 6(1)(f) GDPR and Article 6(1)(f) UK GDPR".
+//   instrumentName — "the GDPR" / "the UK GDPR" (mixed stays "the GDPR").
+// Both pinpoints are corpus-verified (gdpr-art-6-1-f / ukgdpr-art-6-1-f).
 export const LIA_SKELETON_SUBTITLE =
-  "Prepared under Article 6(1)(f) GDPR for {organizationName} - scope: {subjectAnchor - noun phrase}";
+  "Prepared under {instrumentCitation - Article 6(1)(f) GDPR; UK-only Article 6(1)(f) UK GDPR; mixed names both} for {organizationName} - scope: {subjectAnchor - noun phrase}";
 
 /** The v3 register guide, verbatim (¶3). Authoring law; never printed. */
 export const LIA_REGISTER_GUIDE =
@@ -415,7 +434,7 @@ export const LIA_SKELETON_SECTIONS: readonly LiaSkeletonSection[] = [
     title: "Executive Summary",
     blocks: [
       { kind: "lead", paragraph: 5, text: "[DETERMINATION LEAD] One sentence stating the conclusion of the three-part test as a finding about the processing - or the honest negative, or the qualified form naming its condition." },
-      { kind: "skeleton", paragraph: 6, text: "Article 6(1)(f) of the GDPR permits a controller to process personal data without consent where it pursues a legitimate interest, where the processing is necessary to that interest, and where the interests and fundamental rights of the people affected do not override it. {organizationName} has completed this assessment to establish whether the processing described below satisfies those three requirements. The analysis rests on the facts the company has provided and on the cited legal authorities, and on nothing else." },
+      { kind: "skeleton", paragraph: 6, text: "Article 6(1)(f) of {instrumentName - the GDPR; UK-only the UK GDPR} permits a controller to process personal data without consent where it pursues a legitimate interest, where the processing is necessary to that interest, and where the interests and fundamental rights of the people affected do not override it. {organizationName} has completed this assessment to establish whether the processing described below satisfies those three requirements. The analysis rests on the facts the company has provided and on the cited legal authorities, and on nothing else." },
       { kind: "generated", paragraph: 7, text: "[GENERATED] Two to four sentences in counsel's voice: how the purpose, necessity and balancing tests resolved, with the decisive fact for each. ATTRIBUTION RULE applies; no restatement of the lead." },
     ],
   },
@@ -443,7 +462,7 @@ export const LIA_SKELETON_SECTIONS: readonly LiaSkeletonSection[] = [
     title: "III. The Necessity Test",
     blocks: [
       { kind: "lead", paragraph: 18, text: "[DETERMINATION LEAD] One sentence stating whether the processing is necessary rather than merely useful." },
-      { kind: "skeleton", paragraph: 19, text: "Necessity under Article 6(1)(f) asks whether the identified interest could reasonably be achieved by less intrusive means. The company has indicated that it considered {alternatives - rendered as prose}, and its reasons for not adopting them are recorded as {alternativesRationale - attributed}. As to consent, the company has explained why it does not rely on it: {whyConsentNotUsed - own clause}. Its account of data minimisation is addressed in the analysis below." },
+      { kind: "skeleton", paragraph: 19, text: "Necessity under Article 6(1)(f) of {instrumentName - the GDPR; UK-only the UK GDPR} asks whether the identified interest could reasonably be achieved by less intrusive means. The company has indicated that it considered {alternatives - rendered as prose}, and its reasons for not adopting them are recorded as {alternativesRationale - attributed}. As to consent, the company has explained why it does not rely on it: {whyConsentNotUsed - own clause}. Its account of data minimisation is addressed in the analysis below." },
       { kind: "conditional", paragraph: 20, conditional: "analytics", text: "[CONDITIONAL] ANALYTICS - trigger {pseudonymisationOptions} collected: fixed first words \"For the analytical processing described, the company has recorded its consideration of pseudonymisation.\" followed by the recorded position." },
       { kind: "generated", paragraph: 21, text: "[GENERATED] The necessity analysis: less-intrusive-means discipline applied to the company's stated alternatives and minimisation answers; record facts only." },
     ],
@@ -491,7 +510,7 @@ export const LIA_SKELETON_SECTIONS: readonly LiaSkeletonSection[] = [
 // fixed skeleton prose — its entire content is composed
 // (lia-persuasive-authority.ts), so a record that composes nothing renders
 // no empty shell (the NO-PADDING law).
-export const LIA_SKELETON_VERSION_V2 = "prose-plans-2026-08-26-lia-l2-v2";
+export const LIA_SKELETON_VERSION_V2 = "prose-plans-2026-08-28-lia-l2-v2-uk-instrument";
 
 export const LIA_SKELETON_SECTIONS_V2: readonly LiaSkeletonSection[] = [
   ...LIA_SKELETON_SECTIONS.slice(0, LIA_SKELETON_SECTIONS.length - 1),

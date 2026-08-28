@@ -14,6 +14,7 @@ import {
   LIA_SKELETON_PARAGRAPHS,
   LIA_SKELETON_PINPOINTS,
   LIA_SKELETON_SECTIONS,
+  LIA_SKELETON_SUBTITLE,
 } from "../../../supabase/functions/run-li-assessment/_local/prose/plans/lia.spine.ts";
 import {
   LIA_CONDITIONAL_TRIGGERS,
@@ -120,9 +121,13 @@ Deno.test("SO-11 — the encoded skeleton is 37 paragraphs and hashes to the rat
   assertEquals(LIA_SKELETON_PARAGRAPHS.length, LIA_SKELETON_PARAGRAPH_COUNT);
   assertEquals(LIA_SKELETON_PARAGRAPHS.length, 37);
   assertEquals(await sha256(LIA_SKELETON_PARAGRAPHS.join("\n")), LIA_SKELETON_CONTENT_HASH);
+  // RE-PIN 2026-08-28 (CEO-approved, the SO-11 UK-instrument landing): the
+  // subtitle and ¶6/¶19 gained {instrumentCitation}/{instrumentName} slots so
+  // UK-only records name the UK GDPR in the fixed prose. Original docx pin
+  // (2026-08-10): 53de11dee90a20d0944c720f453053d3f6896a5bf58b04af411069a10a28e22a.
   assertEquals(
     LIA_SKELETON_CONTENT_HASH,
-    "53de11dee90a20d0944c720f453053d3f6896a5bf58b04af411069a10a28e22a",
+    "90a64832a086def3b6c0684b8a1e7c8df2def76acfcf0a89f3b853ec8768cd18",
   );
 });
 
@@ -142,7 +147,9 @@ Deno.test("SO-11 — every slot in the spine is bound in the slot map", () => {
       if (block.kind === "skeleton") for (const s of slotsIn(block.text)) inSpine.add(s);
     }
   }
-  for (const s of slotsIn("Prepared under Article 6(1)(f) GDPR for {organizationName} - scope: {subjectAnchor}")) {
+  // RE-PIN 2026-08-28: the subtitle is read from the spine constant itself
+  // (it now carries the {instrumentCitation} slot), not a re-typed literal.
+  for (const s of slotsIn(LIA_SKELETON_SUBTITLE)) {
     inSpine.add(s);
   }
   const bound = new Set(LIA_SLOT_MAP.map((b) => b.slot));
@@ -176,8 +183,10 @@ Deno.test("SO-11 — every pinned statutory span appears in the fixed prose it i
       assert(n >= 1 && n <= 37, `${p.id} cites paragraph ${n}, outside the skeleton`);
     }
   }
-  // Article 6(1)(f) is named in the fixed prose of the executive summary.
-  assert(LIA_SKELETON_PARAGRAPHS[5].includes("Article 6(1)(f) of the GDPR"));
+  // Article 6(1)(f) is named in the fixed prose of the executive summary;
+  // the instrument itself renders through the {instrumentName} slot
+  // (RE-PIN 2026-08-28, the SO-11 UK-instrument landing).
+  assert(LIA_SKELETON_PARAGRAPHS[5].includes("Article 6(1)(f) of {instrumentName"));
   // The CHILDREN conditional cites Recital 38, not Recital 47.
   assert(LIA_SKELETON_PARAGRAPHS[24].includes("Recital 38"));
   assert(!LIA_SKELETON_PARAGRAPHS[24].includes("Recital 47"));
@@ -293,4 +302,53 @@ Deno.test("SO-11 — the Table of Authorities is iff-cited and carries no unveri
   for (const line of text.split("\n").map((l) => l.trim()).filter((l) => l && !/^(Regulations|Statutes|Guidance)/.test(l))) {
     assert(body.includes(line), `ToA lists ${line}, which is not cited in the body`);
   }
+});
+
+// ── SO-11 UK-INSTRUMENT RE-PIN (2026-08-28, CEO-approved) ───────────────────
+// The governing instrument renders through {instrumentCitation}/{instrumentName}
+// so a UK-only record names the UK GDPR in its own fixed prose (subtitle, ¶6,
+// ¶19) — the live batch d1d2b3b8 defect: subtitle/ToA switched at assembly but
+// the byte-pinned prose still read "Article 6(1)(f) of the GDPR" on UK-only
+// records. Mixed EU+UK stays on the EU rail (ITEM-330).
+
+Deno.test("SO-11 re-pin — a UK-only record names the UK GDPR in the fixed prose", () => {
+  const r = assembleLiaSkeletonDocument(PERFECT_REPORT, {
+    ...PERFECT_RECORD,
+    jurisdictions: ["United Kingdom (UK GDPR)"],
+  });
+  const body = skeletonDocumentToText(r.document);
+  assert(body.includes("Prepared under Article 6(1)(f) UK GDPR"), "subtitle carries the UK instrument");
+  assert(body.includes("Article 6(1)(f) of the UK GDPR permits a controller"), "¶6 names the UK instrument");
+  assert(body.includes("Necessity under Article 6(1)(f) of the UK GDPR asks"), "¶19 names the UK instrument");
+  assert(!body.includes("of the GDPR permits"), "the EU wording must not survive on a UK-only record");
+});
+
+Deno.test("SO-11 re-pin — an EU record renders the EU instrument byte-identically to the pre-slot prose", () => {
+  const r = assembleLiaSkeletonDocument(PERFECT_REPORT, {
+    ...PERFECT_RECORD,
+    jurisdictions: ["EU (GDPR)"],
+  });
+  const body = skeletonDocumentToText(r.document);
+  assert(body.includes("Prepared under Article 6(1)(f) GDPR for Ravensmoor Cycles Ltd"));
+  assert(body.includes("Article 6(1)(f) of the GDPR permits a controller"));
+  assert(body.includes("Necessity under Article 6(1)(f) of the GDPR asks"));
+  assert(!body.includes("UK GDPR"));
+});
+
+Deno.test("SO-11 re-pin — a mixed record stays on the EU rail in the fixed prose (ITEM-330)", () => {
+  const r = assembleLiaSkeletonDocument(PERFECT_REPORT, {
+    ...PERFECT_RECORD,
+    jurisdictions: ["EU (GDPR)", "United Kingdom (UK GDPR)"],
+  });
+  const body = skeletonDocumentToText(r.document);
+  assert(body.includes("Article 6(1)(f) GDPR and Article 6(1)(f) UK GDPR"), "the subtitle names both instruments");
+  assert(body.includes("Article 6(1)(f) of the GDPR permits a controller"), "¶6 stays on the EU rail");
+  assert(body.includes("Necessity under Article 6(1)(f) of the GDPR asks"), "¶19 stays on the EU rail");
+});
+
+Deno.test("SO-11 re-pin — a record with no jurisdictions answer falls defensively to the EU rail", () => {
+  const r = assembleLiaSkeletonDocument(PERFECT_REPORT, PERFECT_RECORD);
+  const body = skeletonDocumentToText(r.document);
+  assert(body.includes("Prepared under Article 6(1)(f) GDPR"));
+  assert(body.includes("Article 6(1)(f) of the GDPR permits a controller"));
 });

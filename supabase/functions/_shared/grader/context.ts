@@ -16,8 +16,15 @@
 // PROMPT 10A (CEO-approved 2026-08-12) — skeleton calibration epoch. The bump
 // stamps the instrument; the calibration rules themselves apply ONLY under
 // grader_mode="skeleton" (see _shared/grader/skeleton-calibration.ts).
+// 2026-08-28 (CEO-approved in-chat) — skeleton-cal-3: cal_skeleton_6
+// (ITEM-204 — the cyber report computes no § 7121(a) cohort; the recurring
+// omission deduction enforces a superseded expectation) and the
+// evidence-backed dimension floor (a sub-90 dimension score with zero failed
+// findings in that dimension is raised to 90 — an unexplained deduction is
+// itself an unsupported claim; see applyEvidenceBackedDimensionFloor in
+// run-quality-batch/index.ts).
 export const GRADER_CONTEXT_VERSION =
-  "gc-2026-08-16-skeleton-cal-2-repin[cal_skeleton_1|cal_skeleton_2|cal_skeleton_3|cal_skeleton_4|cal_skeleton_5]";
+  "gc-2026-08-28-skeleton-cal-3-item204[cal_skeleton_1|cal_skeleton_2|cal_skeleton_3|cal_skeleton_4|cal_skeleton_5|cal_skeleton_6]";
 
 import { AMENDMENTS_BLOCK } from "./amendments-block.ts";
 

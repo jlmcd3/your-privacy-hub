@@ -13,14 +13,15 @@
 
 import type { LlmFinding } from "../../../_shared/grader/post-filters.ts";
 
-export const SKELETON_CAL_VERSION = "gc-2026-08-16-skeleton-cal-2-repin";
+export const SKELETON_CAL_VERSION = "gc-2026-08-28-skeleton-cal-3-item204";
 
 export type SkeletonCalRuleId =
   | "cal_skeleton_1"
   | "cal_skeleton_2"
   | "cal_skeleton_3"
   | "cal_skeleton_4"
-  | "cal_skeleton_5";
+  | "cal_skeleton_5"
+  | "cal_skeleton_6";
 
 export const SKELETON_CAL_RULE_IDS: readonly SkeletonCalRuleId[] = [
   "cal_skeleton_1",
@@ -28,6 +29,7 @@ export const SKELETON_CAL_RULE_IDS: readonly SkeletonCalRuleId[] = [
   "cal_skeleton_3",
   "cal_skeleton_4",
   "cal_skeleton_5",
+  "cal_skeleton_6",
 ];
 
 /**
@@ -353,6 +355,42 @@ function matchesRule5(ev: string, report: unknown): boolean {
   return true;
 }
 
+// RULE 6 — ITEM-204: THE REPORT COMPUTES NO § 7121(a) COHORT. CEO-ruled
+// 2026-08-25 (settled), calibration entry CEO-approved 2026-08-28 after the
+// deduction recurred in three consecutive batches (fd703575, 3e9ad759,
+// d1d2b3b8 — live instance: run 19d83cb4, "The report does not surface the
+// April 1, 2028 cohort deadline applicable to Harborstone (revenue 'Over
+// $100M' maps to the first cohort under 11 CCR § 7121(a)(1))"). The cyber
+// product DELIBERATELY does not map the company's revenue to a § 7121(a)
+// certification cohort or compute the preparation window; this rule encodes
+// that ratified product-scope ruling, exactly as the skeleton-template rules
+// encode ratified prose. DELIBERATELY NARROW: it matches only a finding
+// whose complaint is that the report FAILS TO PERFORM the cohort mapping /
+// deadline computation. A finding that the report MISSTATED a cohort,
+// misquoted § 7121, or got a deadline WRONG carries an affirmative-error
+// verb shape, not this omission shape, and passes straight through.
+const R6_COHORT_RE = /\bcohorts?\b/i;
+const R6_7121_RE = /7121\s*\(\s*a\s*\)/;
+const R6_OMISSION_RES: readonly RegExp[] = [
+  /\bdoes not (?:surface|state|map|identify|calculate|compute|provide)\b/i,
+  /\bnever (?:states|maps|identifies|calculates|computes)\b/i,
+  /\bfails? to (?:surface|state|map|identify|calculate|compute)\b/i,
+  /\bmust perform the mapping\b/i,
+  /\b(?:no|without a?n?y?) (?:cohort|deadline) (?:mapping|determination|analysis|calculation)\b/i,
+];
+const R6_AFFIRMATIVE_ERROR_RES: readonly RegExp[] = [
+  /\b(?:incorrect|wrong|misstate\w*|misquote\w*|misappl\w*|erroneous)\b/i,
+  /\bcontradict\w*\b/i,
+];
+
+function matchesRule6(ev: string): boolean {
+  if (!R6_7121_RE.test(ev)) return false;
+  if (!R6_COHORT_RE.test(ev)) return false;
+  if (!R6_OMISSION_RES.some((r) => r.test(ev))) return false;
+  if (R6_AFFIRMATIVE_ERROR_RES.some((r) => r.test(ev))) return false;
+  return true;
+}
+
 export type SkeletonCalFiltered = {
   rule: SkeletonCalRuleId;
   template_id: string | null;
@@ -366,7 +404,7 @@ export type SkeletonCalContext = {
 };
 
 /**
- * Applies the five CEO-approved skeleton calibration rules. Callers MUST gate
+ * Applies the six CEO-approved skeleton calibration rules. Callers MUST gate
  * on grader_mode === "skeleton" — this function does not know the mode.
  */
 export function applySkeletonCalibration(
@@ -383,6 +421,7 @@ export function applySkeletonCalibration(
     cal_skeleton_3: 0,
     cal_skeleton_4: 0,
     cal_skeleton_5: 0,
+    cal_skeleton_6: 0,
   };
   const filtered: SkeletonCalFiltered[] = [];
   const kept: LlmFinding[] = [];
@@ -425,7 +464,10 @@ export function applySkeletonCalibration(
     // high-risk sentence (run b82ba671 docs 3 and 4).
     if (matchesRule5(ev, ctx.report)) { drop("cal_skeleton_5", null); continue; }
 
-
+    // RULE 6 — ITEM-204: the report deliberately computes no § 7121(a)
+    // cohort; the recurring omission complaint enforces a superseded
+    // expectation, not a defect (run 19d83cb4 and two prior batches).
+    if (matchesRule6(ev)) { drop("cal_skeleton_6", null); continue; }
 
     kept.push(f);
   }

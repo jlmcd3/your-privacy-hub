@@ -376,10 +376,12 @@ Deno.test("GRADER-CAL-3 T2(c): closing-block ownership disclaimer is exempt", ()
 
 // PROMPT 10A (2026-08-12) — instrument bumped to the skeleton-calibration epoch.
 // PROMPT 8I (2026-08-12) — re-pinned for cal_skeleton_5.
+// SKELETON-CAL-3 (2026-08-28, CEO-approved) — re-pinned for cal_skeleton_6
+// (ITEM-204) + the evidence-backed dimension floor.
 Deno.test("instrument version pinned to the skeleton-calibration epoch", () => {
   assertEquals(
     GRADER_CONTEXT_VERSION,
-    "gc-2026-08-16-skeleton-cal-2-repin[cal_skeleton_1|cal_skeleton_2|cal_skeleton_3|cal_skeleton_4|cal_skeleton_5]",
+    "gc-2026-08-28-skeleton-cal-3-item204[cal_skeleton_1|cal_skeleton_2|cal_skeleton_3|cal_skeleton_4|cal_skeleton_5|cal_skeleton_6]",
   );
 });
 

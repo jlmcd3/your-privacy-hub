@@ -57,6 +57,14 @@ export interface LiaSlotBinding {
 }
 
 export const LIA_SLOT_MAP: readonly LiaSlotBinding[] = [
+  // SO-11 UK-INSTRUMENT RE-PIN (2026-08-28, CEO-approved) — the governing
+  // instrument renders through slots so a UK-only record names the UK GDPR
+  // in the fixed prose. Both values are always computable from the
+  // jurisdictions answer, so the absent branch is defensive only.
+  { slot: "instrumentCitation", paragraph: 2, kind: "composed", source: "jurisdictions → EU/UK membership", render: "derived-phrase",
+    absent: "defensive only — falls to \"Article 6(1)(f) GDPR\" (the EU rail); jurisdictions is intake-gated" },
+  { slot: "instrumentName", paragraph: 6, kind: "composed", source: "jurisdictions → EU/UK membership (also ¶19)", render: "derived-phrase",
+    absent: "defensive only — falls to \"the GDPR\" (the EU rail); jurisdictions is intake-gated" },
   { slot: "organizationName", paragraph: 2, kind: "column", source: "organization_name", render: "verbatim",
     absent: "\"the organisation\" — the intake gates submit on it, so this is a defensive branch. Never case-folded." },
   { slot: "subjectAnchor", paragraph: 2, kind: "column", source: "subject_anchor", render: "verbatim",

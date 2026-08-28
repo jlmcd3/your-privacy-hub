@@ -1380,12 +1380,53 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any, fi
   };
   const penalized = applyDeterministicPenalties(scores as any, detFindings as any);
   Object.assign(scores, penalized);
+  // EVIDENCE-BACKED DIMENSION FLOOR (CEO-approved 2026-08-28; skeleton mode
+  // only, same gate as the calibration rules). See applyEvidenceBackedDimensionFloor.
+  const dimFloor = useSkeleton
+    ? applyEvidenceBackedDimensionFloor(scores, [...detFindings, ...llmFindings] as any)
+    : { floored: [] as string[] };
+  if (dimFloor.floored.length) {
+    console.log(`[SKELETON-CAL][claude] tool=${tool} evidence_floor raised=${dimFloor.floored.join(",")}`);
+  }
   const w = weightsFor(tool);
   // QB-P17 item 2 — keep the unrounded weighted score for gate comparisons.
   // overall_score_display is the human-facing rounded copy.
   const overall_raw = scores.accuracy * w.accuracy + scores.citation * w.citation + scores.hallucination * w.hallucination + scores.analysis * w.analysis + scores.intelligence * w.intelligence + scores.formatting * w.formatting;
   const overall = Math.round(overall_raw);
-  return { dimension_scores: scores, overall_score: overall_raw, overall_score_display: overall, findings: [...detFindings, ...llmFindings], strengths: claudeResult?.strengths ?? [], critical_failures: claudeResult?.critical_failures ?? [], post_filter_dropped: cal1Dropped, post_filter_suppressed: cal1Suppressed, calibration_filtered: calibrationFiltered, calibration_counts: skelCal.counts };
+  return { dimension_scores: scores, overall_score: overall_raw, overall_score_display: overall, findings: [...detFindings, ...llmFindings], strengths: claudeResult?.strengths ?? [], critical_failures: claudeResult?.critical_failures ?? [], post_filter_dropped: cal1Dropped, post_filter_suppressed: cal1Suppressed, calibration_filtered: calibrationFiltered, calibration_counts: skelCal.counts, dimension_floor_raised: dimFloor.floored };
+}
+
+/**
+ * EVIDENCE-BACKED DIMENSION FLOOR (CEO-approved 2026-08-28). A dimension
+ * score below 90 must be supported by at least one FAILED finding in that
+ * dimension; otherwise it is raised to 90. Rationale: an unexplained
+ * deduction is itself an unsupported claim — the exact standard the graded
+ * documents are held to. Evidence: ADMT held at 93.45 then 94.7 across three
+ * consecutive batches with ZERO failed findings and GPT at 96–100, on
+ * analysis/intelligence scores in the 80s that named nothing to fix (doc 03
+ * LATEST-2/LATEST-3 decision items, resolved by this rule).
+ *
+ * Deliberately bounded: (a) skeleton (converted-document) grading only — the
+ * caller gates, matching the PROMPT-10A calibration rules; (b) the floor is
+ * 90, not 100 — a grader may still hold an unexplained reservation of up to
+ * ten points; (c) ANY failed finding in the dimension — deterministic or
+ * rubric, any severity — lifts the floor entirely and the grader's score
+ * stands as given; passes and filtered-from-scoring findings do not.
+ */
+export function applyEvidenceBackedDimensionFloor(
+  scores: Record<string, number>,
+  findings: ReadonlyArray<{ dimension?: string; passed?: boolean }>,
+): { floored: string[] } {
+  const floored: string[] = [];
+  for (const dim of Object.keys(scores)) {
+    if (typeof scores[dim] !== "number" || scores[dim] >= 90) continue;
+    const supported = findings.some((f) => f && f.dimension === dim && f.passed === false);
+    if (!supported) {
+      scores[dim] = 90;
+      floored.push(dim);
+    }
+  }
+  return { floored };
 }
 
 async function evaluateDocumentGPT(tool: string, intake: any, report: any, fixtureVariant: FixtureVariant | null = null, graderMode: GraderMode = "legacy"): Promise<{ eval: any | null; skipReason?: string; error?: string; postFilterDropped?: { a2: number; a3: number; a4: number; r15c2: number; dpa_defaults: number }; postFilterSuppressed?: Array<{ rule: string; check_id: string; evidence: string }>; calibrationFiltered?: any[] }> {

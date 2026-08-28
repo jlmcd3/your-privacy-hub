@@ -69,6 +69,54 @@ Deno.test("rule 4 — the assessment's own attributed scoring is not a business 
   assertEquals(filtered[0].template_id, "tmpl_risk_scoring_head");
 });
 
+Deno.test("rule 6 — the ITEM-204 cohort-omission complaint is calibrated out", () => {
+  // The live d1d2b3b8/19d83cb4 evidence, verbatim shape.
+  const { kept, filtered, counts } = applySkeletonCalibration([
+    {
+      check_id: "rubric_actionability",
+      dimension: "intelligence",
+      severity: "medium",
+      passed: false,
+      evidence:
+        'The report does not surface the April 1, 2028 cohort deadline applicable to Harborstone (revenue "Over $100M" maps to the first cohort under 11 CCR § 7121(a)(1)). The corpus text is reproduced verbatim in the scope section but the generated analysis never states which cohort applies to Harborstone or calculates the remaining preparation window. A compliance professional must perform the mapping themselves.',
+    },
+  ]);
+  assertEquals(kept.length, 0);
+  assertEquals(filtered.length, 1);
+  assertEquals(filtered[0].rule, "cal_skeleton_6");
+  assertEquals(counts.cal_skeleton_6, 1);
+});
+
+Deno.test("rule 6 — an AFFIRMATIVE cohort error still fails (only the omission shape is calibrated)", () => {
+  const { kept, filtered } = applySkeletonCalibration([
+    {
+      check_id: "rubric_citation_misapplied",
+      dimension: "citation",
+      severity: "high",
+      passed: false,
+      evidence:
+        "The report maps the company to the wrong cohort under 11 CCR § 7121(a)(1): it states the April 1, 2029 deadline for a business whose recorded revenue places it in the first cohort. The stated cohort is incorrect.",
+    },
+  ]);
+  assertEquals(filtered.length, 0);
+  assertEquals(kept.length, 1);
+});
+
+Deno.test("rule 6 — a cohort mention without the omission complaint passes through", () => {
+  const { kept, filtered } = applySkeletonCalibration([
+    {
+      check_id: "rubric_actionability",
+      dimension: "intelligence",
+      severity: "medium",
+      passed: false,
+      evidence:
+        "The remediation timeline references the § 7121(a) cohort deadlines generally but assigns no owner to the encryption gap and gives no completion criterion for the vendor review.",
+    },
+  ]);
+  assertEquals(filtered.length, 0);
+  assertEquals(kept.length, 1);
+});
+
 Deno.test("non-matching findings pass through untouched", () => {
   const passthrough = [
     // boilerplate that is NOT a registered template

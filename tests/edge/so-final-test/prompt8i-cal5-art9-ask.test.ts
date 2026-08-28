@@ -99,7 +99,8 @@ Deno.test("cal_skeleton_5: absent report context does not fabricate a residual h
 
 Deno.test("cal_skeleton_5 is registered and stamped in the grader context version", () => {
   assert(SKELETON_CAL_RULE_IDS.includes("cal_skeleton_5"));
-  assertEquals(SKELETON_CAL_VERSION, "gc-2026-08-16-skeleton-cal-2-repin");
+  // RE-PIN 2026-08-28 — skeleton-cal-3 epoch (cal_skeleton_6, ITEM-204; CEO-approved).
+  assertEquals(SKELETON_CAL_VERSION, "gc-2026-08-28-skeleton-cal-3-item204");
   assert(GRADER_CONTEXT_VERSION.startsWith(SKELETON_CAL_VERSION));
   for (const id of SKELETON_CAL_RULE_IDS) assert(GRADER_CONTEXT_VERSION.includes(id));
 });

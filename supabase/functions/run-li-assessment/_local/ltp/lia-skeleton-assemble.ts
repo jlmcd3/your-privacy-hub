@@ -178,6 +178,15 @@ export function buildLiaSlotValues(record: Bag): SlotValues {
   const orNull = (t: string): string | null => (t ? t : null);
   const orBlank = (t: string): string => t;
 
+  // SO-11 UK-instrument re-pin — jurisdiction read for the instrument slots
+  // (same membership test as the assembler's ukOnly/mixedEuUk, computed here
+  // so the slot bag is self-contained for every caller).
+  const instrJurisdictions = strList(record.jurisdictions);
+  const instrUk = instrJurisdictions.includes("United Kingdom (UK GDPR)");
+  const instrEu = instrJurisdictions.includes("EU (GDPR)");
+  const instrUkOnly = instrUk && !instrEu;
+  const instrMixed = instrUk && instrEu;
+
   return {
     organizationName: s(record.organization_name) || "the organisation",
     subjectAnchor: orNull(s(record.subject_anchor)),
@@ -229,6 +238,20 @@ export function buildLiaSlotValues(record: Bag): SlotValues {
     approverName: orNull(s(attestation.approver_name)),
     approverPosition: orNull(s(attestation.approver_position)),
     approvalDate: orNull(s(attestation.approval_date)),
+
+    // SO-11 UK-INSTRUMENT RE-PIN (2026-08-28, CEO-approved in-chat) — the
+    // governing instrument enters the fixed prose (subtitle, ¶6, ¶19)
+    // through these slots instead of assembly-time string replaces. A
+    // UK-only record names the UK GDPR; a mixed EU+UK record stays on the
+    // EU citation rail (ITEM-330) with the UK instrument acknowledged in
+    // the subtitle and the §I note (D1D2B3B8-L3). Corpus anchors:
+    // gdpr-art-6-1-f (EU) and ukgdpr-art-6-1-f (UK), both approved.
+    instrumentCitation: instrUkOnly
+      ? "Article 6(1)(f) UK GDPR"
+      : instrMixed
+      ? "Article 6(1)(f) GDPR and Article 6(1)(f) UK GDPR"
+      : "Article 6(1)(f) GDPR",
+    instrumentName: instrUkOnly ? "the UK GDPR" : "the GDPR",
   };
 }
 
@@ -685,11 +708,10 @@ export function assembleLiaSkeletonDocument(
   const args = {
     sections: deterministic ? LIA_SKELETON_SECTIONS_V2 : LIA_SKELETON_SECTIONS,
     title: LIA_SKELETON_TITLE,
-    subtitle: ukOnly
-      ? LIA_SKELETON_SUBTITLE.replace("Article 6(1)(f) GDPR", "Article 6(1)(f) UK GDPR")
-      : mixedEuUk
-      ? LIA_SKELETON_SUBTITLE.replace("Article 6(1)(f) GDPR", "Article 6(1)(f) GDPR and Article 6(1)(f) UK GDPR")
-      : LIA_SKELETON_SUBTITLE,
+    // SO-11 UK-instrument re-pin (2026-08-28) — the instrument renders through
+    // the subtitle's {instrumentCitation} slot (buildLiaSlotValues); the
+    // assembly-time string replaces this line used to carry are retired.
+    subtitle: LIA_SKELETON_SUBTITLE,
     spineVersion: deterministic ? LIA_SKELETON_VERSION_V2 : LIA_SKELETON_VERSION,
     values,
   };
