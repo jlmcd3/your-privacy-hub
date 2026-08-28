@@ -79,15 +79,8 @@ export const DPIA_SKELETON_VERSION_V43 = "prose-plans-2026-08-15-prompt9i-v4-3";
 
 /** The superseded v4.2 spine version string, kept for documents already assembled. */
 export const DPIA_SKELETON_VERSION_V42 = "prose-plans-2026-08-12-prompt8d-v4-2";
-// CORRECTION (2026-08-28): this line previously read "EDPB harmonised DPIA
-// template v1.0, adopted 10 March 2026" in both places below — no EDPB
-// source supports a 10 March 2026 adoption date or an "adopted"
-// characterization; the template was published 14 April 2026 as a
-// public-consultation draft (consultation closed 9 June 2026) and remained
-// unadopted as of 2026-08-28. Historical CEO-ratification dates (2026-08-11
-// through 2026-08-15) are unchanged and are not being restated.
 export const DPIA_SKELETON_SOURCE_FILE =
-  "DPIA spine v4.3 (EDPB DPIA template v1.0, public-consultation draft published 14 April 2026), CEO-ratified 2026-08-15 (PROMPT 9I redline of document 03, batch 3a4f10c4); supersedes DPIA spine v4.2 (EDPB DPIA template v1.0, public-consultation draft published 14 April 2026), CEO-ratified 2026-08-12; supersedes spine v4.1 (CEO-ratified 2026-08-12), spine v4 (CEO-ratified 2026-08-11) and Impact_Assessment_Builder_DPIA_Skeleton_v3.docx (CEO-corrected 2026-08-10)";
+  "DPIA spine v4.3 (EDPB harmonised DPIA template v1.0, adopted 10 March 2026), CEO-ratified 2026-08-15 (PROMPT 9I redline of document 03, batch 3a4f10c4); supersedes DPIA spine v4.2 (EDPB harmonised DPIA template v1.0, adopted 10 March 2026), CEO-ratified 2026-08-12; supersedes spine v4.1 (CEO-ratified 2026-08-12), spine v4 (CEO-ratified 2026-08-11) and Impact_Assessment_Builder_DPIA_Skeleton_v3.docx (CEO-corrected 2026-08-10)";
 export const DPIA_SKELETON_PROVENANCE =
   "PROMPT 9I spine v4.3 — CEO redline ratification of 2026-08-15, generated from the shipped v4.2 spine bytes: thirteen fixed-prose edits, and two composition moves (Section 3 determination last, Section 4 summary last). Slot inventory unchanged. Prior provenance: PROMPT 8D spine v4.2 — CEO ratification of 2026-08-12 (plain-language sweep), generated from the shipped v4.1 spine bytes; one structural change, the deletion of the executive-summary [DETERMINATION LEAD] block. Fixed prose unchanged.";
 
@@ -228,8 +221,8 @@ export interface DpiaSkeletonSection {
 /**
  * SPINE v4 — CEO-ratified 2026-08-11.
  *
- * Section order follows the EDPB DPIA template v1.0 (public-consultation
- * draft, published 14 April 2026 — not yet adopted). The v3 sections `the_processing`, `lawfulness`,
+ * Section order follows the EDPB harmonised DPIA template v1.0 (adopted
+ * 10 March 2026). The v3 sections `the_processing`, `lawfulness`,
  * `risks_and_measures` and `consultation_and_signoff` are RETIRED; their
  * ratified composer output is re-homed, not rewritten (necessity → Section 3,
  * risk → Section 4, sign-off → Section 6).

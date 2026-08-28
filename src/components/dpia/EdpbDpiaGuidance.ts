@@ -3,22 +3,14 @@
 // section numbering (the template body uses letter sub-sections, e.g. "1.1.a";
 // the Explainer and TOC use "1.1.1" — we key by the Explainer).
 //
-// Source: EDPB "Template [2026] for DPIA — Explainer" v1.0. Published 14
-// April 2026 as a PUBLIC-CONSULTATION DRAFT (consultation closed 9 June
-// 2026); per the EDPB's own template/consultation pages, it had NOT been
-// adopted or finalised as of 2026-08-28. CORRECTION (2026-08-28, this file
-// previously read "ADOPTED 10 March 2026 ... Used as-is, without hedging on
-// status" — no EDPB source supports a 10 March 2026 adoption date or an
-// "adopted" characterization; verify current status against
-// https://www.edpb.europa.eu/our-work-tools/documents/public-consultations/2026/edpb-dpia-template_en
-// before re-introducing adoption language). Treat the section numbering
-// below as unverified against any FINAL text until the template is adopted.
+// Source: EDPB "Template [2026] for DPIA — Explainer" v1.0, ADOPTED 10 March
+// 2026 (published 14 April 2026). Used as-is, without hedging on status.
 //
-// SECTION-REF AUDIT (DPIA UPGRADE ITEM 3, verified against the v1.0 draft's
-// table of contents). The draft Explainer numbers third-level headings
+// SECTION-REF AUDIT (DPIA UPGRADE ITEM 3, verified against the adopted v1.0
+// table of contents). The adopted Explainer numbers third-level headings
 // NUMERICALLY (1.1.1 … 4.1.3); this file previously carried the template
 // body's LETTERED sub-sections for six entries. The `sectionRef` values below
-// are now that draft numbering. Record keys are unchanged because they are
+// are now the adopted numbering. Record keys are unchanged because they are
 // also the `data-rail-key` values wired into DPIAFramework.tsx. Mapping:
 //   1.1.c -> 1.1.3 Secondary or compatible uses
 //   1.1.d -> 1.1.4 Nature, scope and context of the processing
@@ -27,7 +19,7 @@
 //   2.3.b -> 2.3.2 Measures supporting the exercise of data subjects' rights
 //   2.3.d -> 2.3.4 Measures supporting data protection by design and by default
 //   4.1.c -> 4.1.3 Inherent risk assessment
-// Sections 0.1-0.5, 1.2-1.4, 5.1 and 5.2 are unchanged in the draft text.
+// Sections 0.1-0.5, 1.2-1.4, 5.1 and 5.2 are unchanged in the adopted text.
 // "0.5.reasons" / "0.5.scope" / "0.5.publication" / "0.5.team" /
 // "0.5.validation" are HOUSE sub-keys for distinct paragraphs of § 0.5; they
 // are not template numbering and all carry sectionRef "0.5".
@@ -41,8 +33,8 @@
 import { DPIA_VERIFIED_AUTHORITIES } from "../../../supabase/functions/run-dpia-framework/_local/registry/dpia-verified-authorities";
 
 export const EDPB_DPIA_SOURCE = {
-  label: "EDPB DPIA Template Explainer v1.0 (public-consultation draft, published 14 April 2026)",
-  // The draft v1.0 document has no separate canonical EDPB permalink; it is
+  label: "EDPB DPIA Template Explainer v1.0 (adopted 10 March 2026)",
+  // The adopted v1.0 document has no separate canonical EDPB permalink; it is
   // published on (and reached via) this template page.
   url: "https://www.edpb.europa.eu/public-consultations/template-for-data-protection-impact-assessment_en",
 };

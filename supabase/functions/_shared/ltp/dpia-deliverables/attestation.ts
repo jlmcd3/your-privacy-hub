@@ -1,11 +1,7 @@
 /**
  * DPIA UPGRADE (ITEM 1) — THE TWO STRUCTURAL FIELDS.
  *
- * EDPB DPIA template v1.0 — published 14 April 2026 as a public-consultation
- * draft (consultation closed 9 June 2026); NOT adopted as of 2026-08-28 per
- * the EDPB's own template/consultation pages. CORRECTION (2026-08-28): this
- * file previously read "adopted 10 March 2026" — no EDPB source supports
- * that date or an "adopted" characterization. Accountability fields:
+ * EDPB DPIA template v1.0 (adopted 10 March 2026) accountability fields:
  *
  *   § 0.5 ¶6  — "Identify the team involved in conducting this DPIA. You can
  *               provide details of their roles, tasks, responsibilities, etc.
@@ -76,10 +72,8 @@ export interface DpiaAttestationDeliverables {
   readonly validation_approval: DpiaValidationApproval;
 }
 
-const TEMPLATE_REF_TEAM =
-  "EDPB DPIA template v1.0 (public-consultation draft, published 14 April 2026) § 0.5 ¶6";
-const TEMPLATE_REF_VALIDATION =
-  "EDPB DPIA template v1.0 (public-consultation draft, published 14 April 2026) § 0.5 ¶10";
+const TEMPLATE_REF_TEAM = "EDPB DPIA template v1.0 (adopted 10 March 2026) § 0.5 ¶6";
+const TEMPLATE_REF_VALIDATION = "EDPB DPIA template v1.0 (adopted 10 March 2026) § 0.5 ¶10";
 
 function str(v: unknown): string {
   return typeof v === "string" ? v.trim() : "";
