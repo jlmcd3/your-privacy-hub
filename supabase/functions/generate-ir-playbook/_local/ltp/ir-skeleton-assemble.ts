@@ -47,7 +47,7 @@ import {
 } from "../../../_shared/prose/skeleton-render.ts";
 import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
 import { firstSentence, firstSentences } from "../../../_shared/ltp/dpia-skeleton-assemble.ts";
-import { buildIrPlaybookDeliverables } from "./ir-playbook-deliverables/build.ts";
+import { buildIrPlaybookDeliverables, normalizeResponseTeamRoster } from "./ir-playbook-deliverables/build.ts";
 
 export const IR_SKELETON_ASSEMBLER_STAMP = "ir-skeleton-assembler@so7-wire-in-2026-08-10";
 
@@ -374,12 +374,23 @@ function contractRows(intake: Bag): { party: string; deadline: string; clause: s
   return rows
     .map((c) => {
       const windowDays = (c as Bag).noticeWindowDays;
-      const deadline = s(c.deadline) ||
+      // E8973164 (2026-08-28, flagged MEDIUM/boilerplate) — a fixture whose
+      // rows carry `noticePeriod` (a free-text sentence stating BOTH the
+      // deadline and the clause's own scope qualifier, e.g. "Crestline must
+      // notify FinnCore within 48 hours of a confirmed breach affecting
+      // payment card data") and `contractReference` (not this normalizer's
+      // `deadline`/`clauseRef`/`contractRef`) produced an empty deadline and
+      // an empty clause reference for every row, so all three counterparties
+      // rendered the identical bare sentence with nothing appended — reading
+      // as generic boilerplate when the record in fact names three distinct
+      // clocks and three distinct scope conditions. `noticePeriod` is the
+      // richest available field and is preferred when present.
+      const deadline = s(c.deadline) || s(c.noticePeriod) ||
         (typeof windowDays === "number" && Number.isFinite(windowDays) ? `${windowDays} days per the contract` : "");
       return {
         party: s(c.counterparty) || s(c.party),
         deadline,
-        clause: s(c.clause) || s(c.clauseRef) || s(c.contractRef),
+        clause: s(c.clause) || s(c.clauseRef) || s(c.contractRef) || s(c.contractReference),
       };
     })
     .filter((r) => r.party);
@@ -578,6 +589,20 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
           `On communication to the affected individuals, the determination on the company's answers is ${noStop(lowerEnumLabel(dsVerdict.replace(/_/g, " ")))}${dsWhy ? `: ${noStop(firstSentence(dsWhy))}` : ""}`,
         ),
       );
+      // E8973164 (2026-08-28, flagged HIGH) — `ds.why` is a deliberately bald
+      // one-line verdict ("Communication to the affected data subjects is
+      // required."); the Art. 34(1) high-risk reasoning and the Art. 34(3)
+      // exemption analysis (including why an unconfirmed/compromised key
+      // status defeats the encryption exemption) live in `ds.application`
+      // and were computed but never rendered anywhere in this document — the
+      // reader saw only the bald conclusion. That reasoning is surfaced here.
+      // 4 sentences (not 3) — the `communication_required` branch's 4th
+      // sentence is the exemption clause explaining why an
+      // unconfirmed/compromised key status defeats the Art. 34(3)(a)
+      // exemption; truncating at 3 would drop exactly the reasoning this
+      // fix exists to surface.
+      const dsApplication = s(ds.application);
+      if (dsApplication) bits.push(stop(noStop(firstSentences(dsApplication, 4))));
     }
     blocks.push(bits.join(" "));
   }
@@ -609,19 +634,31 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
       c_likely_consequences: "describe the likely consequences of the breach",
       d_measures: "describe the measures taken or proposed, and the measures mitigating possible adverse effects",
     };
+    // E8973164 (2026-08-28) — broadened c_likely_consequences and d_measures:
+    // an object-shaped roster's key/title text reads "incident response
+    // lead", not the literal "incident lead"/"incident commander" this
+    // regex required, and no fixture title ever literally says "it
+    // operations" for the measures/remediation owner — both patterns
+    // matched nothing on a real record that did name these roles.
     const ROSTER_MATCHERS: Record<string, RegExp> = {
       a_nature: /forensic|security/i,
       b_dpo_contact: /\bdpo\b|data protection/i,
-      c_likely_consequences: /incident (?:lead|commander)|breach/i,
-      d_measures: /remediat|recovery|it operations/i,
+      c_likely_consequences: /incident\s+(?:lead|commander|response)|breach/i,
+      d_measures: /remediat|recovery|it\s*operations|forensic|cyber|security/i,
     };
-    const roster = asArray(intake.responseTeamRoster);
+    // E8973164 — `responseTeamRoster` is contract kind "structured" and the
+    // generator has been observed producing an array-of-rows shape AND an
+    // object keyed by arbitrary camelCase role slugs; `asArray` on the
+    // object shape returned nothing, so every action-plan line fell back to
+    // "assign on the recorded roster" even though the record named every
+    // role. `normalizeResponseTeamRoster` (ir-playbook-deliverables/build.ts)
+    // handles both shapes; see its comment for the full history.
+    const roster = normalizeResponseTeamRoster(intake);
     const namedFor = (key: string): string => {
       const re = ROSTER_MATCHERS[key];
       if (!re) return "";
-      const row = roster.find((r) => re.test(s(r.role)));
-      const primary = row ? s(row.primary) : "";
-      return primary ? `${primary} (${s(row!.role)})` : "";
+      const row = roster.find((r) => re.test(r.searchable));
+      return row && row.name ? `${row.name} (${row.roleLabel})` : "";
     };
     const lines = elements
       .map((e) => {

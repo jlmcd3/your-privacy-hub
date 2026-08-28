@@ -478,6 +478,17 @@ const COUNSEL_DESCRIPTIVE_REL_RE =
 //     qualified counsel"). Custody of a record is descriptive status.
 const CUSTODIAL_ROLE_RE =
   /\b(?:owned|maintained|managed|held|tracked|kept|retained|administered|stored)\s+(?:by|in|under|with)\b[^.\n]{0,80}\b(?:legal|privacy|qualified)\s+(?:counsel|officer)\b/i;
+// (e) SOURCE-CITATION — a THIRD PARTY's own, already-obtained counsel
+//     opinion cited as the recorded basis for a fact ("financial KPIs alone
+//     do not satisfy their LP-level disclosure requirements per their legal
+//     counsel's written opinion dated 2026-03-12"). This names a historical
+//     document the record relies on, structurally identical to citing any
+//     other dated evidence — it is not a directive to the READER to go
+//     obtain counsel, and the counsel in question is not even the
+//     assessed company's own. E8973164 (2026-08-28, flagged HIGH twice on
+//     the same LIA sentence).
+const COUNSEL_SOURCE_CITATION_RE =
+  /\b(?:per|under|according\s+to|pursuant\s+to)\s+[\w'’.-]+(?:\s+[\w'’.-]+){0,4}\s+(?:legal|outside|external|qualified)\s+counsel[''’]?s?\s+(?:written\s+)?(?:opinion|advice|memo(?:randum)?|letter|guidance|assessment)\b/i;
 // Modal guard for the four exemptions above: a sentence that DIRECTS the
 // named counsel ("Claudia Baum (Legal Counsel) should review …") is a
 // referral even though it also names the role holder. Fail-closed: any
@@ -654,7 +665,8 @@ function checkE6(
       // sentence still forces the finding.
       if (
         (COUNSEL_NAMED_APPOSITIVE_RE.test(s) || NAME_PAREN_COUNSEL_RE.test(s) ||
-          COUNSEL_DESCRIPTIVE_REL_RE.test(s) || CUSTODIAL_ROLE_RE.test(s)) &&
+          COUNSEL_DESCRIPTIVE_REL_RE.test(s) || CUSTODIAL_ROLE_RE.test(s) ||
+          COUNSEL_SOURCE_CITATION_RE.test(s)) &&
         !COUNSEL_MODAL_RE.test(s) &&
         !DIRECTIVE_VERB_RE.test(s) &&
         !ADVICE_DELEGATION_RE.test(s) &&

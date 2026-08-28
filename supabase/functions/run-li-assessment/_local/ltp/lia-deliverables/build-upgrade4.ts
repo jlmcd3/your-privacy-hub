@@ -436,8 +436,35 @@ export function buildBenefitAndBeneficiary(intake: unknown): BenefitAndBeneficia
 const FIELD_POINTER_RE =
   /\b(?:alternatives?_considered|alternatives?_rationale|necessity_details|why_consent_not_used)\b/i;
 
+// E8973164 (2026-08-28, flagged HIGH twice) — a fixture that spells out each
+// alternative as "Alternative considered: <X>. Rejected because: <Y>." inside
+// one long run-on paragraph (rather than one alternative per line/sentence —
+// the shape every other known fixture uses, e.g. "Manual inspections —
+// sample only 2% of routes...") is shredded by the generic sentence-boundary
+// line splitter below: every internal sentence break inside <X> or <Y>
+// produces its own "line", and the marker words "Alternative considered"
+// and "Rejected because" each independently trip the generic label:reason
+// regex (they contain a colon/"because"), turning ONE real alternative into
+// several bogus ones. Five real alternatives came out as fourteen, with a
+// rationale the record does actually give reported as missing (QB-REPAIR-4
+// patched a related but distinct fragmentation mode — non-matching
+// continuations — and does not cover fragments that spuriously MATCH).
+// The explicit marker pair is recognised and extracted directly, bypassing
+// the heuristic splitter entirely for text written in this format.
+const ALT_MARKER_PAIR_RE =
+  /Alternative\s+considered\s*:\s*([\s\S]*?)\s*Rejected\s+because\s*:\s*([\s\S]*?)(?=\n\n|Alternative\s+considered\s*:|$)/gi;
+
 function parseAlternatives(text: string): AlternativeConsidered[] {
   if (!text) return [];
+  if (/Alternative\s+considered\s*:/i.test(text)) {
+    const pairs: AlternativeConsidered[] = [];
+    for (const m of text.matchAll(ALT_MARKER_PAIR_RE)) {
+      const alt = m[1].trim().replace(/[.,;]$/, "");
+      const why = m[2].trim();
+      if (alt && why) pairs.push({ alternative: alt, why_inadequate: why, rationale_recorded: true });
+    }
+    if (pairs.length) return pairs;
+  }
   const lines = text
     .split(/\r?\n|(?<=[.;])\s+(?=[A-Z(])/)
     .map((l) => l.replace(/^[\s•\-*\d.)]+/, "").trim())
@@ -858,13 +885,24 @@ export function buildPotentialHarms(intake: unknown): PotentialHarmsFinding {
     information_needed =
       "balancing_details.potential_harm — the worst-case severity for the harms already listed, expressed in one of the recorded severity bands.";
   } else if (material_weight_against_controller) {
+    // E8973164 (2026-08-28, flagged HIGH twice) — `worst_case_severity` is
+    // the INTERNAL four-band grading vocabulary (negligible/limited/
+    // significant/severe), a deliberate, ratified bijection off the
+    // intake's own four-band answer (None-negligible/Minor/Moderate/Severe
+    // — FD703575-L1). `record_fact` already quotes the intake's own word
+    // correctly. This sentence used to say "characterises the worst case
+    // as significant" when the intake's own word was "Moderate" — true of
+    // the internal grade, but read (correctly) by the grader as putting
+    // words in the record's mouth, since the record never said
+    // "significant". Both labels are now named, so the internal grading is
+    // transparent rather than substituted for the record's own word.
     application =
-      `The record identifies ${harms.length} harm${harms.length === 1 ? "" : "s"} and characterises the worst case as ${worst_case_severity}. At that level the harms are not incidental to the balance; they are the principal weight on the data subjects' side, and the balance can only fall in the controller's favour if measures beyond those the Regulation already requires reduce them. Each harm is carried into the balancing analysis individually below rather than collapsed into a single severity rating.`;
+      `The record identifies ${harms.length} harm${harms.length === 1 ? "" : "s"} and characterises the worst case as ${q(severityAnswer)}, which this balancing test weighs at the "${worst_case_severity}" tier. At that level the harms are not incidental to the balance; they are the principal weight on the data subjects' side, and the balance can only fall in the controller's favour if measures beyond those the Regulation already requires reduce them. Each harm is carried into the balancing analysis individually below rather than collapsed into a single severity rating.`;
   } else {
     application = [
       `The record identifies ${harms.length} harm${
         harms.length === 1 ? "" : "s"
-      } — ${harmList} — with a worst case characterised as ${worst_case_severity}.`,
+      } — ${harmList} — with a worst case characterised as ${q(severityAnswer)}, weighed at the "${worst_case_severity}" tier.`,
       detail ? `The pathway given is ${q(detail)}.` : "",
       safeguardText
         ? `What holds the harms at that level is not the characterisation but the measures recorded against them: ${

@@ -1925,6 +1925,20 @@ export async function screenIntake(
         const fb = perfectRetryGuidance((linted as any).deficiencies);
         retryGuidance = retryGuidance ? `${retryGuidance}\n\n${fb}` : fb;
       }
+      // E8973164 (2026-08-28) — a citation-allowlist rejection is not a
+      // MISSING fact, which is what the generic "with the listed facts
+      // added" framing below is written for. It is a PRESENT-BUT-WRONG
+      // statute number, and neither this instruction nor `constraints`
+      // tells the model what number would be correct — so a model told to
+      // "change nothing else" but forced to touch the flagged citation has
+      // nothing to do but guess a different one. Two live attempts on the
+      // same intake each invented a DIFFERENT out-of-allowlist number
+      // (§ 7023, then § 7027) rather than converging. Told explicitly to
+      // drop the citation rather than replace it, the repair has an
+      // instruction it can actually satisfy without inventing a number.
+      if (/statute cite outside allowlist/.test(linted.reason)) {
+        retryGuidance = `${retryGuidance ? `${retryGuidance}\n\n` : ""}The flagged statute citation is not one this generator is permitted to cite. Do NOT replace it with a different section number — you do not have a verified one for this fact. Instead, restate that sentence in plain English with NO section-number citation at all: describe the practice or requirement by name only. Every other field must come back byte-identical.`;
+      }
       retryGuidance = `${retryGuidance ? `${retryGuidance}\n\n` : ""}REPAIR MODE — this is not a new scenario. The object below was rejected for the reason(s) listed above. Return this same object with the listed facts added; change nothing else. Every field not named in the deficiency list must come back byte-identical.\n\n${constraints}\n\nREJECTED INTAKE JSON:\n${JSON.stringify(item)}`;
       const retry = await generateIntakes_(tool, 1, retryGuidance, variant);
       const relint = retry[0] ? lintFixture(retry[0]) : { reason: "regeneration returned no item" };

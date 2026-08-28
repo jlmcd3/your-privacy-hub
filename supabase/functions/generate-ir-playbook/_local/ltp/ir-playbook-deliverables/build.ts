@@ -72,6 +72,71 @@ function arr(v: unknown): string[] {
   return Array.isArray(v) ? v.map((x) => str(x)).filter(Boolean) : [];
 }
 
+// E8973164 (2026-08-28, flagged HIGH/MEDIUM) — `responseTeamRoster` is
+// contract kind "structured" (no fixed shape), and the generator has been
+// observed producing at least three shapes: an ARRAY of {role, primary,
+// email, phone, contact} rows; an OBJECT keyed by one specific slug
+// ("dataProtectionOfficer"); and — this batch — an OBJECT keyed by
+// ARBITRARY camelCase role slugs (itForensicsLead, incidentResponseLead,
+// privacyCounsel, ...) whose value carries {name, title, email, phone}.
+// D1D2B3B8-I2 (2026-08-28, the immediately preceding batch) fixed the
+// array shape and the ONE hardcoded object key "dataProtectionOfficer",
+// but this fixture's key was "privacyCounsel" — a spelling that lookup
+// never anticipated, so the roster was silently treated as empty and both
+// consumers below (the (b) DPO-contact element here, and the Art. 33(3)
+// action-plan owner lookup in ir-skeleton-assemble.ts) fell back to
+// "Outstanding" / "assign on the recorded roster" despite the record
+// naming Declan Farrell, Group Data Protection Officer, in full. Rather
+// than add another hardcoded key spelling, every object key is split into
+// words and combined with the entry's own `title` field into one
+// searchable string, so any key or title that names the role in ordinary
+// English is found regardless of the exact camelCase spelling chosen.
+export interface RosterRow {
+  readonly searchable: string;
+  readonly name: string;
+  readonly email: string;
+  readonly phone: string;
+  readonly contact: string;
+  readonly roleLabel: string;
+}
+function camelToWords(k: string): string {
+  return k.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/[_-]+/g, " ").trim().toLowerCase();
+}
+export function normalizeResponseTeamRoster(intake: unknown): RosterRow[] {
+  const raw = get(intake, "responseTeamRoster");
+  if (Array.isArray(raw)) {
+    return raw.map((r) => {
+      const role = str(get(r, "role"));
+      return {
+        searchable: role.toLowerCase(),
+        name: str(get(r, "primary")) || str(get(r, "name")),
+        email: str(get(r, "email")),
+        phone: str(get(r, "phone")),
+        contact: str(get(r, "contact")),
+        roleLabel: role,
+      };
+    });
+  }
+  if (raw && typeof raw === "object") {
+    return Object.entries(raw as Record<string, unknown>).map(([key, v]) => {
+      const words = camelToWords(key);
+      if (typeof v === "string") {
+        return { searchable: words, name: v.trim(), email: "", phone: "", contact: "", roleLabel: words };
+      }
+      const title = str(get(v, "title"));
+      return {
+        searchable: `${words} ${title}`.trim().toLowerCase(),
+        name: str(get(v, "name")),
+        email: str(get(v, "email")),
+        phone: str(get(v, "phone")),
+        contact: str(get(v, "contact")),
+        roleLabel: title || words,
+      };
+    });
+  }
+  return [];
+}
+
 interface Anchor {
   citation: string;
   verbatim: string;
@@ -612,22 +677,16 @@ export function buildContentOwnerMapping(intake: unknown): ContentOwnerMapping {
     // D1D2B3B8-I2 (2026-08-28) — the (b) element reads the RECORDED roster
     // before declaring itself outstanding. Two live batch records carried the
     // DPO's name, email and phone (array-row and object shapes both occur)
-    // while the rendered plan said the contact was "Outstanding".
+    // while the rendered plan said the contact was "Outstanding". E8973164
+    // (2026-08-28, next batch) — the object-shape branch only recognised the
+    // literal key "dataProtectionOfficer"; this fixture's key was
+    // "privacyCounsel". Now uses the shared `normalizeResponseTeamRoster`,
+    // which searches every object key's own words plus its `title` field
+    // rather than one hardcoded spelling.
     ...(() => {
-      const rosterRaw = get(intake, "responseTeamRoster");
-      const rosterRows = Array.isArray(rosterRaw) ? rosterRaw : [];
-      const dpoRow = rosterRows.find((r) =>
-        /\bdpo\b|data protection/i.test(str(get(r, "role"))));
-      const dpoObj = rosterRaw && typeof rosterRaw === "object" && !Array.isArray(rosterRaw)
-        ? get(rosterRaw, "dataProtectionOfficer")
-        : undefined;
-      const dpoParts = dpoRow
-        ? [str(get(dpoRow, "primary")), str(get(dpoRow, "email")), str(get(dpoRow, "phone")), str(get(dpoRow, "contact"))]
-        : typeof dpoObj === "string"
-        ? [dpoObj.trim()]
-        : dpoObj && typeof dpoObj === "object"
-        ? [str(get(dpoObj, "name")), str(get(dpoObj, "email")), str(get(dpoObj, "phone")), str(get(dpoObj, "contact"))]
-        : [];
+      const dpoRow = normalizeResponseTeamRoster(intake).find((r) =>
+        /\bdpo\b|data protection/i.test(r.searchable));
+      const dpoParts = dpoRow ? [dpoRow.name, dpoRow.email, dpoRow.phone, dpoRow.contact] : [];
       const dpoValue = dpoParts.filter(Boolean).join(", ");
       return [{
         element: "b_dpo_contact" as const,

@@ -686,6 +686,25 @@ function buildRepresentative(intake: I, which: "EU" | "UK"): RepresentativeDeter
     intake.large_scale_monitoring !== true &&
     intake.processes_special_categories !== true &&
     intake.acts_as_data_broker !== true;
+  // E8973164 (2026-08-28, flagged HIGH) — the "occasional" exemption is
+  // defeated when ANY ONE of three conditions is true, but the sentence
+  // below used to recite all three disjunctively regardless of which
+  // actually held. On a record where only large_scale_monitoring was true
+  // and the other two were affirmatively false, the sentence still read
+  // "... involves large-scale monitoring, special categories or brokered
+  // data", which a reader reasonably takes as asserting all three are live
+  // possibilities rather than naming the one the record actually shows.
+  // Name only the ground(s) the record actually establishes.
+  const engagedGrounds = [
+    intake.processes_special_categories === true ? "large-scale special-category processing" : null,
+    intake.large_scale_monitoring === true ? "large-scale monitoring" : null,
+    intake.acts_as_data_broker === true ? "broker activity" : null,
+  ].filter((g): g is string => g !== null);
+  const engagedGroundsText = engagedGrounds.length === 1
+    ? engagedGrounds[0]
+    : engagedGrounds.length === 2
+    ? `${engagedGrounds[0]} and ${engagedGrounds[1]}`
+    : `${engagedGrounds.slice(0, -1).join(", ")} and ${engagedGrounds[engagedGrounds.length - 1]}`;
 
   let verdict: RepresentativeDetermination["verdict"];
   let application: string;
@@ -709,7 +728,7 @@ function buildRepresentative(intake: I, which: "EU" | "UK"): RepresentativeDeter
     application = `Article 3(2) is engaged, so Art. 27(1) prima facie requires a written designation. The record does not show large-scale special-category processing, large-scale monitoring or broker activity, so the ${exemptionCite} exemption for occasional low-risk processing is live but not established: the record does not evidence that the processing is occasional, and "occasional" is the limb the exemption turns on.`;
   } else {
     verdict = "engaged";
-    application = `Article 3(2) is engaged and the ${exemptionCite} exemption is unavailable: the company has indicated processing that is not occasional and that involves large-scale monitoring, special categories or brokered data. A representative in ${territory} must be designated in writing.`;
+    application = `Article 3(2) is engaged and the ${exemptionCite} exemption is unavailable: the record states ${engagedGroundsText}, so the processing is not occasional. A representative in ${territory} must be designated in writing.`;
   }
 
   return {

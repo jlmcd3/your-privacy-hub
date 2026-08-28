@@ -317,7 +317,38 @@ function repairSegment(segment: string): string {
   out = stripFieldLabelColons(out);
   out = applyOneVoice(out);
   out = applyBiometricCustomerRegister(out);
-  out = repairStatutoryTriggers(out);
+  out = applyOutsideQuotedSpans(out, repairStatutoryTriggers);
+  return out;
+}
+
+// D1D2B3B8/E8973164 (2026-08-28) — a QUOTED span inside a string (a direct
+// quotation of the company's own record — e.g. `record_fact`'s
+// `Destruction trigger described: "..."`) is not statutory prose and must
+// never be rewritten by a register repair. `repairStatutoryTriggers` below
+// is the one repair in this file whose job is specifically to correct a
+// MISSTATED LEGAL STANDARD in generated prose; applied to a quotation of the
+// company's own stated practice it silently substitutes the statute's phrase
+// for the company's actual words — flagged HIGH twice now (batches d1d2b3b8
+// and e8973164) once as a fabricated retention anchor and once as the
+// "orwithin" concatenation this produces when the match swallows the
+// preceding word boundary's whitespace. Quoted spans are cut out, the
+// remainder is repaired, and the spans are spliced back byte for byte —
+// the same technique `repairBiometricProse` already uses for verified
+// statutory passages.
+function applyOutsideQuotedSpans(text: string, fn: (segment: string) => string): string {
+  const QUOTE_RE = /"[^"]*"/g;
+  const spans: Array<[number, number]> = [];
+  let m: RegExpExecArray | null;
+  while ((m = QUOTE_RE.exec(text))) spans.push([m.index, m.index + m[0].length]);
+  if (!spans.length) return fn(text);
+  let out = "";
+  let cursor = 0;
+  for (const [start, end] of spans) {
+    out += fn(text.slice(cursor, start));
+    out += text.slice(start, end); // verbatim — never rewritten inside quotes
+    cursor = end;
+  }
+  out += fn(text.slice(cursor));
   return out;
 }
 
@@ -328,15 +359,22 @@ function repairSegment(segment: string): string {
 // private entity, not from collection. W2 already names this class for the
 // critic; a misstated statutory trigger is too load-bearing to leave to a
 // model call, so it is also repaired deterministically here, on EVERY path.
-// Reference passages are span-excluded upstream (`repairBiometricProse`), so
-// this never touches quoted statutory text.
+// Reference passages are span-excluded upstream (`repairBiometricProse`), and
+// quoted spans are span-excluded here (`applyOutsideQuotedSpans`), so this
+// never touches quoted statutory text OR a quotation of the company's record.
 export const BIOMETRIC_STATUTORY_TRIGGER_REPAIRS: ReadonlyArray<
   { readonly id: string; readonly pattern: RegExp; readonly replacement: string }
 > = [
   {
     id: "bipa_15a_last_interaction",
-    // "within 3 years of collection" / "3 years from collection" / "…of the date of collection"
-    pattern: /\b(?:with|wi)?(?:in|thin)?\s*(3|three)\s+years?\s+(?:of|from|after)\s+(?:the\s+)?(?:date\s+of\s+)?collection\b/gi,
+    // "within 3 years of collection" / "3 years from collection" / "…of the date of collection".
+    // The match always starts AT "within" or AT the digit — never at a
+    // preceding, unrelated word boundary — so it can never swallow whitespace
+    // it doesn't own (the old `(?:with|wi)?(?:in|thin)?\s*` prefix could match
+    // zero-width at the boundary right after the PRIOR word, consuming that
+    // word's trailing space into the match and dropping it from the
+    // replacement — "or 3 years from collection" became "orwithin ...").
+    pattern: /\bwithin\s+(?:3|three)\s+years?\s+(?:of|from|after)\s+(?:the\s+)?(?:date\s+of\s+)?collection\b|\b(?:3|three)\s+years?\s+(?:of|from|after)\s+(?:the\s+)?(?:date\s+of\s+)?collection\b/gi,
     replacement: "within 3 years of the individual's last interaction with the entity",
   },
 ];

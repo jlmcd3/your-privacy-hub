@@ -341,16 +341,24 @@ function composeExecLead(counts: RegistrationDutyCounts, org: string): string {
 function composeExecPosture(report: Bag, counts: RegistrationDutyCounts, org: string): string {
   const parts: string[] = [];
   const dets = determinations(report);
-  if (dets.length === 0) {
-    parts.push(
-      stop(`No jurisdiction-level determination was produced for ${org}, so this assessment asserts no filing posture`),
-    );
-    return repairRegister(parts.join(" "));
-  }
   const registrable = dets.filter((d) => s(d.verdict) === "registrable").map(stateName);
   const conditional = dets.filter((d) => s(d.verdict) === "conditional").map(stateName);
   const insufficient = dets.filter((d) => s(d.verdict) === "record_insufficient").map(stateName);
-  if (registrable.length) {
+  // E8973164 (2026-08-28, flagged MEDIUM/boilerplate) — `dets` is the US
+  // state data-broker determination array only. A record with no US broker
+  // exposure but a live EU/UK representative or DPO determination (which
+  // `counts` already folds in) used to get the flat fallback "No
+  // jurisdiction-level determination was produced ... so this assessment
+  // asserts no filing posture" — directly contradicted by the body's own
+  // supervisory_and_ai_act section. `dets.length === 0` now speaks only to
+  // the US state-broker surface; the sentences below (driven by `counts`,
+  // which spans all three determination surfaces) still carry the real
+  // overall posture.
+  if (dets.length === 0) {
+    parts.push(
+      stop(`${org} has not indicated any US state data-broker registration duty on its answers`),
+    );
+  } else if (registrable.length) {
     parts.push(stop(`${org} has indicated facts that engage a filing duty in ${asProse(registrable)}`));
   } else {
     parts.push(
