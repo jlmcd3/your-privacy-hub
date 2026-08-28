@@ -80,15 +80,24 @@ export const DPA_REQUIRED_SECTIONS = [
 ];
 
 /**
- * IR Playbook required top-level sections. SWEEP-2R R1: the shipped
- * instrument (generate-ir-playbook v3.9.1) emits seven numbered "## Section
- * N:" H2 headings; the earlier "PART A".."PART F" list was stale grader
- * config and produced false-positive e1_section_present / e1_section_order
- * findings on every current IR document. Needle strings below are lowercase
- * substrings of the exact heading text emitted by PROMPT_PART_A/B/C.
- * checkE1's order test is a monotonic first-occurrence indexOf, which
- * remains valid because the seven headings are numbered 1..7 and therefore
- * appear in ascending textual order in a well-formed document.
+ * IR Playbook required top-level sections — RETIRED 2026-08-28 (batch
+ * b3a5dd01). SWEEP-2R R1 (2026-07-xx) targeted this list at the seven
+ * numbered "## Section N:" H2 headings the LEGACY MODEL-GENERATED
+ * `playbook_text` used to emit. That text has not been customer-facing
+ * since the SO-7 skeleton wire-in (2026-08-10, doc 15) — customers have
+ * rendered exclusively from `skeleton_document` for weeks, on EITHER side
+ * of the `IR_DETERMINISTIC_ENABLED` flag. `runFormatChecksIR` no longer
+ * calls `checkE1` against this list (see below): once the flag flipped
+ * true, `playbook_text` began carrying the skeleton's own rendered prose
+ * ("Part One - The Standing Playbook", "Standing Sections", "Part Two -
+ * The Incident Worksheet") instead of the old model shape, and this list
+ * guaranteed a 7/7 false "missing section" fail on every document,
+ * unconditionally — not a calibration nuance, a check for a document
+ * structure the product no longer produces. The skeleton assembler's own
+ * `verifySkeletonConformance` (ir-skeleton-assemble.ts, keyed to
+ * `IR_SKELETON_SECTIONS`, the CEO-ratified spine) is the single source of
+ * truth for IR's structural completeness and already runs on every
+ * document. Left exported, unused, for historical reference only.
  */
 export const IR_REQUIRED_SECTIONS = [
   "Section 1: IMMEDIATE ACTIONS",
@@ -687,8 +696,11 @@ export function runFormatChecksDPA(text: string): FormatFinding[] {
 }
 
 export function runFormatChecksIR(text: string): FormatFinding[] {
+  // D1D2B3B8-IR1 (2026-08-28) — E1 (section presence/order) retired for IR;
+  // see the IR_REQUIRED_SECTIONS comment above. E2-E6 (bracket/placeholder,
+  // TBC markers, advisory-close, counsel-referral) test raw text patterns
+  // that remain meaningful regardless of section structure and are unchanged.
   return [
-    ...checkE1(IR_REQUIRED_SECTIONS, text),
     ...checkE2(text),
     ...checkE3(text),
     ...checkE4(text),

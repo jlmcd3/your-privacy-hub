@@ -1869,12 +1869,18 @@ playbook_text = lint.clean;
           .map((j) => ({ jurisdiction: j, portal: DPA_PORTALS[j] }));
 
         // COUNSEL-VOICE-1 E-checks — deterministic format-check emission.
+        // D1D2B3B8-IR1 (2026-08-28, batch b3a5dd01) — this used to run HERE,
+        // against `playbook_text` at whatever value it held at this point in
+        // the function. On the deterministic path (IR_DETERMINISTIC_ENABLED)
+        // `playbook_text` is explicitly "" at this point (set above, "set
+        // below, after skeleton assembly") and is not reassigned to the
+        // skeleton's rendered text until ~250 lines later — so this ran
+        // E2-E6 against an empty string every single time, silently passing
+        // checks that should have inspected real content. The computation
+        // now runs after playbook_text is finalized, alongside where
+        // `skeleton_document` itself is attached (see IR_DETERMINISTIC_ENABLED
+        // below) — the exact pattern that surface already follows.
         let ir_deterministic_checks: any[] = [];
-        try {
-          ir_deterministic_checks = runFormatChecksIR(playbook_text ?? "");
-        } catch (e) {
-          console.warn("[generate-ir-playbook] format-checks non-fatal:", (e as Error).message);
-        }
 
         let report_data: Record<string, any> = {
           portals,
@@ -2123,6 +2129,14 @@ playbook_text = lint.clean;
           // deterministic path there is no model text, so this gives them
           // the skeleton's own rendered text instead of an empty string.
           if (IR_DETERMINISTIC_ENABLED) playbook_text = skeletonDocumentToText(sk.document);
+          // D1D2B3B8-IR1 — computed here, now that playbook_text is final on
+          // both paths, not ~250 lines earlier against a placeholder.
+          try {
+            ir_deterministic_checks = runFormatChecksIR(playbook_text ?? "");
+          } catch (e) {
+            console.warn("[generate-ir-playbook] format-checks non-fatal:", (e as Error).message);
+          }
+          (report_data as any).deterministic_checks = ir_deterministic_checks;
           console.log(JSON.stringify({
             evt: "ir_skeleton_assembled", fn: "generate-ir-playbook", rowId,
             stamp: IR_SKELETON_ASSEMBLER_STAMP,

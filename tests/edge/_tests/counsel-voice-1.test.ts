@@ -154,21 +154,30 @@ Deno.test("COUNSEL-VOICE-1 E6: body-text counsel referral is flagged", () => {
   assert(findings.some((f) => f.check_id === "e6_counsel_referral" && !f.passed));
 });
 
-Deno.test("COUNSEL-VOICE-1 E1 (IR): required numbered-section presence", () => {
-  // ITEM 387 (a): SWEEP-2R R1 retargeted IR_REQUIRED_SECTIONS from the stale
-  // "PART A".."PART F" list to the seven numbered headings the shipped
-  // instrument (generate-ir-playbook v3.9.1) actually emits.
-  const good = [
+Deno.test("D1D2B3B8-IR1: E1 (section presence/order) is retired for IR — never emitted", () => {
+  // SUPERSEDES the old "required numbered-section presence" pin. That pin
+  // asserted E1 passed against the seven "## Section N:" headings the
+  // legacy MODEL-generated playbook_text used to emit — a document shape
+  // that has not been customer-facing since the SO-7 skeleton wire-in
+  // (2026-08-10, doc 15). Once IR_DETERMINISTIC_ENABLED went live
+  // (batch b3a5dd01, 2026-08-28), playbook_text carries the skeleton's own
+  // "Part One / Part Two" prose instead, and the old required-section list
+  // produced a guaranteed 7/7 false "missing section" fail on every
+  // document. E1 no longer runs for IR at all — structural completeness is
+  // the skeleton assembler's own verifySkeletonConformance battery, keyed
+  // to the CEO-ratified spine, not a re-typed heading list here.
+  const anyText = [
+    "Part One - The Standing Playbook",
+    "Standing Sections",
+    "Part Two - The Incident Worksheet",
     "## Section 1: IMMEDIATE ACTIONS",
-    "## Section 2: BREACH ASSESSMENT CHECKLIST",
-    "## Section 3: REGULATORY NOTIFICATION TIMELINE",
-    "## Section 4: INDIVIDUAL NOTIFICATION DECISION TREE",
-    "## Section 5: NOTIFICATION TEMPLATES",
-    "## Section 6: DOCUMENTATION & ACCOUNTABILITY CHECKLIST",
-    "## Section 7: POST-INCIDENT ACTIONS",
-  ].map((h) => h + "\ncontent").join("\n");
-  const findings = runFormatChecksIR(good);
-  assert(findings.some((f) => f.check_id === "e1_sections_ok" && f.passed));
+    "some arbitrary content with no headings at all",
+  ].join("\n");
+  const findings = runFormatChecksIR(anyText);
+  assert(
+    !findings.some((f) => f.check_id.startsWith("e1_")),
+    `no e1_* finding may ever be emitted for IR: ${JSON.stringify(findings.filter((f) => f.check_id.startsWith("e1_")))}`,
+  );
 });
 
 // ─── §4 E-check list emitted per tool (report for humans) ────────────

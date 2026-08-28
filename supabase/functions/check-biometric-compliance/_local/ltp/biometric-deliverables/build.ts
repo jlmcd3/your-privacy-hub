@@ -138,6 +138,30 @@ function listed(v: string[] | null | undefined): string[] {
   return Array.isArray(v) ? v.filter((x) => typeof x === "string" && x.trim()) : [];
 }
 
+const noStop = (t: string): string => t.replace(/\s*\.\s*$/, "");
+
+// D1D2B3B8-B2 — a small, deliberately narrow word-overlap check, not a
+// semantic judgment call: does the current purpose's own significant words
+// appear in the text describing the terms under which the identifier was
+// originally provided? A short stopword list keeps the comparison from
+// being defeated by connective words; the ratio is generous (a majority,
+// not all) because free text rarely repeats a purpose phrase verbatim.
+const RCW_5_STOPWORDS = new Set([
+  "the", "a", "an", "and", "or", "of", "for", "to", "in", "on", "with",
+  "management", "purposes", "purpose", "use", "using",
+]);
+function purposeConsistentWithOriginalTerms(originalTerms: string, currentPurpose: string): boolean {
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9\s/&-]/g, " ");
+  const original = norm(originalTerms);
+  const words = norm(currentPurpose)
+    .split(/[\s/&-]+/)
+    .map((w) => w.trim())
+    .filter((w) => w.length > 2 && !RCW_5_STOPWORDS.has(w));
+  if (words.length === 0) return false;
+  const hits = words.filter((w) => original.includes(w)).length;
+  return hits / words.length >= 0.5;
+}
+
 const STATUTES: Record<StatuteKey, StatuteRef> = {
   us_il_bipa: {
     statute_key: "us_il_bipa",
@@ -693,8 +717,33 @@ function buildIlDuties(
   // a trigger text that denies a configured trigger degrades honestly.
   const scheduleDenied = Boolean(schedule) &&
     /\b(?:does not have|do(?:es)? not maintain|has no|no)\b[^.]{0,60}\bretention (?:schedule|policy)\b/i.test(schedule!);
-  const triggerDenied = Boolean(trigger) &&
-    /\bno\b[^.]{0,50}\b(?:destruction|deletion)?\s*trigger\b/i.test(trigger!);
+  // D1D2B3B8-B3 (2026-08-28, batch b3a5dd01, flagged HIGH) — a SCOPED denial
+  // ("Employee separation date... whichever occurs first — per RM-2023-11.
+  // No trigger is defined for inter-site transfers.") is not the same as
+  // denying the trigger altogether. The old regex matched "no ... trigger"
+  // ANYWHERE in the field, so a record that established a real general
+  // trigger in one sentence and then honestly named a narrower gap in
+  // another was read as denying the whole field ("The trigger text the
+  // record supplies states no destruction trigger is configured" — flatly
+  // false against a record that names a specific event trigger). A denying
+  // sentence is now treated as a narrow carve-out — not a full denial —
+  // only when it grammatically SCOPES the denial ("trigger ... for/in/when
+  // X") AND the field carries substantive other content beside it (so a
+  // field that is ONLY a scoped denial, with nothing else describing a
+  // trigger, still denies). The narrower gap, when found, is surfaced as
+  // its own honest note (below) rather than silently dropped.
+  const TRIGGER_DENY_RE = /\bno\b[^.]{0,50}\b(?:destruction|deletion)?\s*trigger\b/i;
+  const TRIGGER_SCOPE_QUALIFIER_RE = /\btrigger\b[^.]{0,25}\b(?:for|in|when|regarding|on)\b\s+\S/i;
+  const triggerSentences = (trigger ?? "").split(/(?<=[.!?])\s+/).filter(Boolean);
+  const triggerDenyingSentences = triggerSentences.filter((sn) => TRIGGER_DENY_RE.test(sn));
+  const triggerUnscopedDenial = triggerDenyingSentences.some((sn) => !TRIGGER_SCOPE_QUALIFIER_RE.test(sn));
+  const triggerOtherContentLength = triggerSentences
+    .filter((sn) => !triggerDenyingSentences.includes(sn)).join(" ").length;
+  const triggerDenied = Boolean(trigger) && triggerDenyingSentences.length > 0 &&
+    (triggerUnscopedDenial || triggerOtherContentLength <= 20);
+  const triggerScopedGapSentence = (!triggerDenied && triggerDenyingSentences.length > 0)
+    ? triggerDenyingSentences[0].trim()
+    : "";
   const scheduleEstablished = Boolean(schedule) && !scheduleDenied;
   // D1D2B3B8-B1 (2026-08-28, live batch d1d2b3b8) — RELIABILITY-AWARE read.
   // A record can describe an operative trigger AND record that destruction
@@ -767,7 +816,7 @@ function buildIlDuties(
       : triggerDenied
       ? "The trigger text the record supplies states no destruction trigger is configured; a discretionary manual practice is described instead. Whether destruction actually occurs on the established schedule cannot be shown on that description."
       : trigger
-      ? `The record describes an operative destruction trigger, which is what compliance with the established schedule consists of on these facts. § 15(a) qualifies the duty only by a valid warrant or subpoena.`
+      ? `The record describes an operative destruction trigger, which is what compliance with the established schedule consists of on these facts. § 15(a) qualifies the duty only by a valid warrant or subpoena.${triggerScopedGapSentence ? ` The record also names a narrower gap not covered by that trigger: "${noStop(triggerScopedGapSentence)}"; that gap is a distinct exposure and does not itself defeat compliance with the general trigger.` : ""}`
       : "A schedule is documented, but no trigger on which destruction actually occurs is described, so compliance cannot be assessed.",
     !scheduleEstablished
       ? "not_satisfied"
@@ -1178,15 +1227,44 @@ function buildWaDuties(intake: BiometricIntakeForDeliverables): DutyFinding[] {
       : "Describe the safeguards against unauthorised access and the point at which enrolled identifiers cease to be retained.",
   ));
 
-  out.push(mk(
-    s,
-    "wa_19375.020_5_material_inconsistency",
-    "No materially inconsistent use or disclosure without new consent",
-    `Original terms of provision: ${txt(intake.release_artifact_description) ?? "not supplied"}. Current stated purpose: ${txt(intake.purpose) ?? "not supplied"}.`,
-    "Subsection (5) is measured against the terms under which the identifier was originally provided. The record does not set out those original terms alongside current use, so material inconsistency cannot be assessed either way.",
-    "record_insufficient",
-    "Supply the terms under which identifiers were originally provided and state whether current use or disclosure departs from them.",
-  ));
+  {
+    // D1D2B3B8-B2 (2026-08-28, batch b3a5dd01, flagged HIGH) — this row was
+    // wired but inert: the application text unconditionally claimed the
+    // record "does not set out those original terms alongside current use"
+    // and the verdict was hardcoded record_insufficient, regardless of what
+    // release_artifact_description/purpose actually held. The live intake
+    // supplied both (a signed release naming the time-and-attendance
+    // purpose; a current purpose of "Time & attendance / workforce
+    // management") — a direct match the check never looked at.
+    const originalTerms = txt(intake.release_artifact_description);
+    const currentPurpose = txt(intake.purpose);
+    const consistent = originalTerms && currentPurpose
+      ? purposeConsistentWithOriginalTerms(originalTerms, currentPurpose)
+      : null;
+    out.push(mk(
+      s,
+      "wa_19375.020_5_material_inconsistency",
+      "No materially inconsistent use or disclosure without new consent",
+      `Original terms of provision: ${originalTerms ?? "not supplied"}. Current stated purpose: ${currentPurpose ?? "not supplied"}.`,
+      !originalTerms || !currentPurpose
+        ? "Subsection (5) is measured against the terms under which the identifier was originally provided. The record does not set out both the original terms and the current use, so material inconsistency cannot be assessed either way."
+        : consistent
+        ? `Subsection (5) is measured against the terms under which the identifier was originally provided. The record states the original terms as: "${noStop(originalTerms)}". The current stated purpose is "${noStop(currentPurpose)}", which is consistent with those terms on the information provided; no materially inconsistent use or disclosure is shown.`
+        : `Subsection (5) is measured against the terms under which the identifier was originally provided. The record states the original terms as: "${noStop(originalTerms)}". The current stated purpose is "${noStop(currentPurpose)}"; whether that use is consistent with the original terms is not clear on the information provided and is not assumed either way.`,
+      !originalTerms || !currentPurpose
+        ? "record_insufficient"
+        : consistent
+        ? "satisfied"
+        : "record_insufficient",
+      !originalTerms
+        ? "Supply the terms under which identifiers were originally provided."
+        : !currentPurpose
+        ? "State the current purpose for which identifiers are used or disclosed."
+        : consistent
+        ? undefined
+        : "Confirm whether the current stated purpose is consistent with the originally disclosed terms, or state the new consent obtained for the departure.",
+    ));
+  }
 
   return out;
 }

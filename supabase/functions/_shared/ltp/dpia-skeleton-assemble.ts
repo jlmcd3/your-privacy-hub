@@ -581,18 +581,26 @@ export const DPIA_S3_LEAD_RETIRED =
 export const DPIA_S3_DETERMINATION_ESTABLISHED =
   "On this analysis, necessity and proportionality are established for the processing as described.";
 
-function composeNecessityDetermination(report: Bag): string {
+export function composeNecessityDetermination(report: Bag): string {
   const findings = [...asArray(report.necessity_findings), ...asArray(report.proportionality)];
   const unmet = findings.filter((f) => NECESSITY_UNMET.test(s(f.verdict)));
   if (findings.length === 0) {
     // The existing branch sentence, relocated here and prefixed.
     return "On this analysis, whether necessity and proportionality are established cannot be determined based on the information the company provided alone; the analysis below sets out what that information does and does not support.";
   }
-  return unmet.length === 0
-    ? DPIA_S3_DETERMINATION_ESTABLISHED
-    : `On this analysis, necessity and proportionality are established in part: ${
-      numberWord(unmet.length)
-    } elements are not yet supported, each identified above and listed in the gap table.`;
+  if (unmet.length === 0) return DPIA_S3_DETERMINATION_ESTABLISHED;
+  // D1D2B3B8-DP1 (2026-08-28, batch b3a5dd01, flagged medium) — two defects
+  // in the partial-determination sentence: (1) "one elements are not yet
+  // supported" — an agreement error, hardcoded plural regardless of count;
+  // (2) "each identified above" promised naming that never happened — the
+  // sentence never says WHICH element is unsupported, so a reader has
+  // nothing to act on without independently re-deriving it from the gap
+  // table. Both fixed: the element(s) are named by their own operation
+  // label, and the noun/verb agree with the actual count.
+  const names = unmet.map((f) => s(f.operation_label) || "an unnamed operation").join("; ");
+  return `On this analysis, necessity and proportionality are established in part: ${
+    numberWord(unmet.length)
+  } element${unmet.length === 1 ? " is" : "s are"} not yet supported — ${names} — each identified above and listed in the gap table.`;
 }
 
 

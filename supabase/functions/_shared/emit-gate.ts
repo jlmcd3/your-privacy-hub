@@ -427,15 +427,36 @@ function markInformationNeeded(
   degradedPaths: string[],
 ): void {
   const existing = obj.information_needed;
-  if (!Array.isArray(existing)) {
-    // Legacy shape — unchanged.
-    obj.information_needed = true;
+  if (Array.isArray(existing)) {
+    // ITEM 352: internal bookkeeping only — the customer array is not touched.
+    const topic = slugPath(leaf.path);
+    if (!degradedPaths.some((p) => p === leaf.path)) degradedPaths.push(leaf.path);
+    void topic;
     return;
   }
-  // ITEM 352: internal bookkeeping only — the customer array is not touched.
-  const topic = slugPath(leaf.path);
-  if (!degradedPaths.some((p) => p === leaf.path)) degradedPaths.push(leaf.path);
-  void topic;
+  // D1D2B3B8-EG1 (2026-08-28, batch b3a5dd01) — the SAME clobber ITEM 343
+  // fixed for the report-root ARRAY shape also destroys a per-FINDING
+  // STRING shape, which is the near-universal `Finding.information_needed?:
+  // string` field carried by every product (LIA/DPIA/Registration/
+  // Biometric/Governance/...): `obj` here is `leaf.parent`, which for a
+  // finding object IS that finding, not the report root, whenever the
+  // degraded leaf sits inside one (e.g. a finding's own `standard`). The
+  // unconditional `= true` below overwrote the finding's real, specific ask
+  // — live evidence: governance chapter_v_transfers had `standard` degraded
+  // to the INFO_NEEDED_LITERAL, and `information_needed` clobbered from
+  // "The executed instrument for each transfer leg..." to the bare boolean
+  // `true`, which then rendered as nothing downstream (every consumer reads
+  // it as a string). A non-empty string is now preserved exactly like the
+  // array case; the boolean write stays truly legacy-only — absent, false,
+  // or empty.
+  if (typeof existing === "string" && existing.trim().length > 0) {
+    const topic = slugPath(leaf.path);
+    if (!degradedPaths.some((p) => p === leaf.path)) degradedPaths.push(leaf.path);
+    void topic;
+    return;
+  }
+  // Legacy shape — unchanged.
+  obj.information_needed = true;
 }
 
 /**

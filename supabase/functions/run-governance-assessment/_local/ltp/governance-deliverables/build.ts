@@ -216,6 +216,17 @@ export function buildArt30ElementFindings(intake: unknown): Art30ElementFinding[
     }
 
     const partial = evidence.length < el.evidence_keys.length;
+    // D1D2B3B8-G4 (2026-08-28, batch b3a5dd01) — the partial branch never set
+    // information_needed, unlike every other branch in this file. Item 10
+    // ("Categories of data subjects and of personal data") rendered with NO
+    // Action line in the remediation list because both the domain-action
+    // lookup and this fallback came up empty. The missing evidence key(s)
+    // are named specifically, matching the fleet's naming convention.
+    const missingKeys = el.evidence_keys.filter((k) => {
+      const v = get(intake, k);
+      const text = Array.isArray(v) ? arr(v).join(", ") : str(v);
+      return unanswered(text);
+    });
     return {
       key: `art30_${el.element}`,
       element: el.element,
@@ -228,6 +239,12 @@ export function buildArt30ElementFindings(intake: unknown): Art30ElementFinding[
         : `That content addresses Article 30(1)(${el.element}) on its face. Whether it does so activity by activity — the unit Article 30(1) uses — must be confirmed against the record itself.`,
       verdict: partial ? "partially_satisfied" : "satisfied",
       status: "analysed",
+      ...(partial
+        ? {
+          information_needed:
+            `Supply ${missingKeys.join(" and ")} to complete the Article 30(1)(${el.element}) content — ${el.label.toLowerCase()} — for each processing activity.`,
+        }
+        : {}),
     } satisfies Art30ElementFinding;
   });
 }
