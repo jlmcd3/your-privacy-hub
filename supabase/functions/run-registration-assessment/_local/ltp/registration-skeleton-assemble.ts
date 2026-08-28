@@ -135,14 +135,43 @@ export function buildDataTypesProse(intake: Bag): string {
   return `${REGISTRATION_DATA_TYPE_LABELS.base}, including ${asProse(extras)}`;
 }
 
+// D1D2B3B8-R1 (2026-08-28, flagged HIGH) — the recorded HEADCOUNT wins over a
+// size-band label that contradicts it. The live batch rendered "medium
+// (50–249 employees)" against employee_count 310: the band parenthetical is a
+// reader aid, and an aid that contradicts the record's own number is a false
+// business fact. Where the recorded count falls outside the recorded band,
+// the slot carries the count (the primary fact); where they agree, or no
+// count is recorded, the band label renders as before.
+const ORG_SIZE_BOUNDS: Record<string, [number, number]> = {
+  micro: [1, 9],
+  small: [10, 49],
+  medium: [50, 249],
+  large: [250, 999],
+  enterprise: [1000, Infinity],
+};
+
 export function buildRegistrationSlotValues(intake: Bag): SlotValues {
   const size = s(intake.organization_size).toLowerCase();
   const jurisdictions = buildJurisdictionProse(intake);
   const dataTypes = buildDataTypesProse(intake);
+  const headcount = typeof intake.employee_count === "number" && Number.isFinite(intake.employee_count)
+    ? intake.employee_count as number
+    : /^\d+$/.test(s(intake.employee_count))
+    ? Number(s(intake.employee_count))
+    : null;
+  const bounds = ORG_SIZE_BOUNDS[size];
+  const countOutOfBand = headcount !== null && bounds !== undefined &&
+    (headcount < bounds[0] || headcount > bounds[1]);
   return {
     organizationName: s(intake.organization_name) || "the organisation",
     sector: s(intake.industry) || null, // reader label, never case-folded
-    orgSize: size ? (REGISTRATION_ORG_SIZE_MAP[size] ?? lowerEnumLabel(s(intake.organization_size))) : null,
+    orgSize: countOutOfBand
+      ? `${headcount} employees`
+      : size
+      ? (REGISTRATION_ORG_SIZE_MAP[size] ?? lowerEnumLabel(s(intake.organization_size)))
+      : headcount !== null
+      ? `${headcount} employees`
+      : null,
     jurisdictions: jurisdictions || null,
     dataTypes: dataTypes || null,
   };
@@ -192,6 +221,13 @@ export interface RegistrationDutyCounts {
    *  flagged HIGH as an unsupported business claim). */
   readonly filing_attached: number;
   readonly designation_attached: number;
+  /** D1D2B3B8-R4 (2026-08-28, flagged HIGH) — duty questions the body flags
+   *  but defers as not yet assessable (corpus pending, e.g. the EU AI Act
+   *  registration duties). The live batch's lead said "one registration duty
+   *  attaches" while its own body flagged a further duty as potentially
+   *  applicable; the lead must carry that count or it understates the
+   *  position. */
+  readonly corpus_pending: number;
 }
 
 export function computeDutyCounts(report: Bag): RegistrationDutyCounts {
@@ -241,6 +277,7 @@ export function computeDutyCounts(report: Bag): RegistrationDutyCounts {
     attached_names: attachedNames,
     filing_attached: filingAttached,
     designation_attached: Math.max(attached - filingAttached, 0),
+    corpus_pending: asArray(deliverables(report).corpus_pending).length,
   };
 }
 
@@ -248,12 +285,18 @@ export function computeDutyCounts(report: Bag): RegistrationDutyCounts {
 
 /** Executive lead — duties attached vs satisfied, straight from the counts. */
 function composeExecLead(counts: RegistrationDutyCounts, org: string): string {
+  // D1D2B3B8-R4 — a lead that counts duties also counts the questions the
+  // body defers: "one registration duty attaches" over a body that flags the
+  // EU AI Act duties as potentially applicable understated the position.
+  const pendingClause = counts.corpus_pending > 0
+    ? `, and ${count(counts.corpus_pending, "further duty question is", "further duty questions are")} flagged below but not yet assessable in this product's verified corpus`
+    : "";
   if (counts.attached === 0) {
     return counts.reserved > 0
       ? stop(
-        `On its answers, no registration duty is established for ${org} and ${count(counts.reserved, "determination is", "determinations are")} reserved for want of a fact the intake does not settle`,
+        `On its answers, no registration duty is established for ${org} and ${count(counts.reserved, "determination is", "determinations are")} reserved for want of a fact the intake does not settle${pendingClause}`,
       )
-      : stop(`On its answers, no registration duty attaches to ${org}, so there is nothing presently to file`);
+      : stop(`On its answers, no registration duty attaches to ${org}, so there is nothing presently to file${pendingClause}`);
   }
   // FD703575-R1 — the count names what it counts, so a "2 duties" lead can
   // never leave the reader hunting the body for the second duty.
@@ -290,7 +333,7 @@ function composeExecLead(counts: RegistrationDutyCounts, org: string): string {
     ? `of which ${satisfaction}`
     : `and ${satisfaction}`;
   return stop(
-    `On its answers, ${count(counts.attached, "registration duty attaches", "registration duties attach")} to ${orgAndNames} ${satisfactionClause}${counts.reserved > 0 ? `, with ${count(counts.reserved, "further determination", "further determinations")} reserved for want of a fact the intake does not settle` : ""}`,
+    `On its answers, ${count(counts.attached, "registration duty attaches", "registration duties attach")} to ${orgAndNames} ${satisfactionClause}${counts.reserved > 0 ? `, with ${count(counts.reserved, "further determination", "further determinations")} reserved for want of a fact the intake does not settle` : ""}${pendingClause}`,
   );
 }
 
@@ -364,9 +407,15 @@ function composeBrokerLead(report: Bag, intake: Bag, counts: RegistrationDutyCou
  */
 function composeBrokerConditional(report: Bag, intake: Bag, org: string): string {
   if (!isTrue(intake.acts_as_data_broker)) {
-    return stop(
-      `${org} has not recorded broker activity, and no data-broker registration duty attaches on its answers`,
-    );
+    // D1D2B3B8-R5 — the outside-frameworks scope statement renders on the
+    // non-broker path too; the live silent-on-AU record was a non-broker.
+    const outside = composeOutsideFrameworks(intake);
+    return [
+      stop(
+        `${org} has not recorded broker activity, and no data-broker registration duty attaches on its answers`,
+      ),
+      ...(outside ? [repairRegister(outside)] : []),
+    ].join("\n\n");
   }
   const facts: string[] = [];
   facts.push(`${org} has indicated that it acts as a data broker`);
@@ -425,7 +474,34 @@ function composeBrokerConditional(report: Bag, intake: Bag, org: string): string
       `The markets served also name ${asProse(unregistered)}. No data-broker registration statute for ${unregistered.length === 1 ? "that state" : "those states"} is among the four state registries in this product's verified corpus, so no registration duty is stated for ${unregistered.length === 1 ? "it" : "them"} here; the entry of any new state registry is a named review trigger in the approval block below`,
     ));
   }
+  const outside = composeOutsideFrameworks(intake);
+  if (outside) blocks.push(outside);
   return repairRegister(blocks.join("\n\n"));
+}
+
+// D1D2B3B8-R5 (2026-08-28) — the same honest-posture parity for a named
+// NON-US market outside the frameworks this product assesses (US state
+// broker registries, and the EU/UK wing handled in Section II). The live
+// batch served AU and the document was silent on it — a reader relying on
+// the assessment to cover the listed markets is owed a scoped-out statement,
+// not silence. Rendered on EVERY posture (the live record was a non-broker,
+// whose Section I takes the early-return path above).
+const GDPR_WING_CODES = new Set([
+  "EU", "EEA", "UK", "GB",
+  "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR",
+  "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK",
+  "SI", "ES", "SE", "IS", "LI", "NO",
+]);
+
+function composeOutsideFrameworks(intake: Bag): string {
+  const outsideFrameworks = (Array.isArray(intake.markets_served) ? (intake.markets_served as unknown[]) : [])
+    .map((m) => String(m).toUpperCase())
+    .filter((m) => m && !/^US/.test(m) && !GDPR_WING_CODES.has(m))
+    .map((m) => REGISTRATION_JURISDICTION_LABELS[m] ?? m);
+  if (!outsideFrameworks.length) return "";
+  return stop(
+    `The markets served also name ${asProse(outsideFrameworks)}. No registration or notification regime for ${outsideFrameworks.length === 1 ? "that jurisdiction" : "those jurisdictions"} is in this product's verified corpus, so this assessment states no determination for ${outsideFrameworks.length === 1 ? "it" : "them"} — affirmative or negative — and ${outsideFrameworks.length === 1 ? "its" : "their"} registration position remains for separate advice`,
+  );
 }
 
 /** Section I body — the per-jurisdiction analysis, with registry-only money. */

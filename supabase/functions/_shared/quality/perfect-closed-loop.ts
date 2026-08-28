@@ -280,5 +280,16 @@ export const PERFECT_HARD_CONSTRAINTS = [
   // closed-loop gap ledger on both attempts. The per-operation coverage rule
   // was enforced by the lint but never stated to the generator.
   "(10) alternatives_considered must cover EVERY named processing operation — the primary activity AND each secondary operation kept under RULE A or RULE B — with at least one less-intrusive alternative PER OPERATION (named for that operation) and a specific rejection reason for each; an operation with no alternatives entry, or an alternative lacking its rejection reason, is auto-rejected.",
+  // D1D2B3B8-H2 (2026-08-28, live batch d1d2b3b8) — the dpia run aborted 3/5
+  // on exactly this: healthcare-flavoured scenarios whose NARRATIVE described
+  // health-adjacent data (symptoms, treatment, wellness, medication) without
+  // listing a special-category data_category, so constraint (1) never bit,
+  // article_9_condition stayed empty, and the closed-loop gap ledger rejected
+  // ("the described data may constitute special-category data; confirm and
+  // identify an Art. 9(2) condition"). Two of the five also tripped the
+  // 6(1)(f)+special-category carve-out (excluded from the perfect variant by
+  // design — CEO ruling, PROMPT 9M). The rule is stated to the generator up
+  // front, like items 6-10 before it.
+  "(11) SPECIAL-CATEGORY-ADJACENT DATA: if the narrative, description, purpose or data_subjects text describes health-adjacent data (health conditions, symptoms, diagnoses, treatment, medication, wellness or fitness metrics, disability, mental health, genetic or biometric identifiers, sexual orientation, religious belief, trade-union membership, political opinions) — even without listing a special-category option in data_categories — the intake MUST list the matching special-category data_category AND set article_9_condition to a named Art. 9(2) condition. For the PERFECT variant specifically: never build a healthcare/medical/wellness scenario on 'Legitimate interests' (6(1)(f)+special-category is excluded from the perfect variant by design); use a different sector, or a non-LI basis with the Art. 9(2) condition named.",
 ].join("\n");
 

@@ -503,9 +503,16 @@ function actionSentence(r: ComponentRecommendation, intake: Bag): string {
   const rec = controlRec(intake, r.slug);
   // FD703575-CY3 — first-sentence fact, never the whole notes narrative.
   // 3E9AD759-CY3 — the record's own gap sentence locates the remaining work.
+  // D1D2B3B8-CY1 (2026-08-28) — each action line carries its RANK (the
+  // cross-family sequencing signal the register table already computes) and
+  // the RECORDED remediation owner: the live batch named the owner once in
+  // the profile and never on the actions, leaving every action unassigned on
+  // its face. The owner is the intake's own remediation_owner, never an
+  // inferred assignment.
   const text = r.slot.template.replace("{fact}", noStop(recommendationFact(rec.notes, rec.maturity)));
   const gapSentence = recommendationGap(rec.notes);
-  return `${r.label} - ${text}${gapSentence ? ` Remaining work, as recorded: ${gapSentence}.` : ""} (EUP readiness recommendation; priority: ${r.priority}.)`;
+  const owner = profileStr(intake, "remediation_owner");
+  return `Rank ${r.rank} — ${r.label} - ${text}${gapSentence ? ` Remaining work, as recorded: ${gapSentence}.` : ""}${owner ? ` Recorded remediation owner: ${noStop(owner)}.` : ""} (EUP readiness recommendation; priority: ${r.priority}.)`;
 }
 
 export function buildReadinessActions(intake: Bag, recs: readonly ComponentRecommendation[]): ReadinessActionsResult {

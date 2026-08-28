@@ -80,7 +80,13 @@ Deno.test("G1 — a remediation record with no matching element finding still re
   assertStringIncludes(t, "international transfers");
 });
 
-Deno.test("G2 — the Art. 37(1)(b) sentence names only the monitoring-indicative categories, never the full category list", () => {
+Deno.test("G2 — a category-only record leaves Art. 37(1)(b) open instead of establishing it (D1D2B3B8-G1 supersedes)", () => {
+  // D1D2B3B8-G1 (2026-08-28) supersedes the fd703575 pin: the batch after
+  // that fix flagged the reworded "(b) applies … indicates the regular and
+  // systematic monitoring" HIGH twice — category presence still ESTABLISHED
+  // the limb against an intake that records no monitoring of data subjects.
+  // The intake has no monitoring question, so the limb can only be made
+  // live, never established; the finding degrades honestly.
   const dpo = buildDpoDetermination({
     organization_name: "Halcyon Benefits Administration Ltd",
     sector: "Financial services",
@@ -89,11 +95,33 @@ Deno.test("G2 — the Art. 37(1)(b) sentence names only the monitoring-indicativ
     data_categories: ["Contact details", "Employee records", "Customer records", "Financial data", "Communications content"],
     data_subject_scale: "251-1000",
   });
-  const all = JSON.stringify(dpo);
-  assertStringIncludes(all, "(b) applies"); // the limb must fire on this fixture (251-1000 + Communications content)
-  assert(!/\(b\) applies:[^"]*Contact details/.test(all), "non-monitoring categories must not be cited as the (b) basis");
-  assertStringIncludes(all, "Communications content");
-  assert(!all.includes("which is regular and systematic monitoring"), "the flat is-monitoring assertion must be gone");
+  const trigger = dpo.designation_trigger as unknown as Bag;
+  const app = String(trigger.application);
+  assert(!app.includes("(b) applies"), "limb (b) must never be asserted as applying on category presence alone");
+  assert(!app.includes("Designation is mandatory here"), "no mandatory-designation claim on an open limb");
+  assertStringIncludes(app, "Whether limb (b) is engaged is not answered on the information provided");
+  assertStringIncludes(app, "Communications content");
+  assert(!/\(b\)[^"]*Contact details/.test(app), "non-monitoring categories must not be cited for limb (b)");
+  assertStringIncludes(app, "the prudent course is to treat designation as warranted");
+  assertStringIncludes(String(trigger.verdict), "record_insufficient");
+  assertStringIncludes(String(trigger.information_needed ?? ""), "regular and systematic monitoring of data subjects");
+});
+
+Deno.test("D1D2B3B8-G1 — an established limb still carries the mandatory conclusion, with limb (b) noted as open", () => {
+  const dpo = buildDpoDetermination({
+    organization_name: "Halcyon Benefits Administration Ltd",
+    sector: "Healthcare",
+    org_size: "251-1000",
+    dpo_status: "Yes, formal DPO",
+    data_categories: ["Health data", "Communications content"],
+    special_category: "Yes",
+    data_subject_scale: "251-1000",
+  });
+  const trigger = dpo.designation_trigger as unknown as Bag;
+  const app = String(trigger.application);
+  assertStringIncludes(app, "Designation is mandatory here");
+  assertStringIncludes(app, "(c) applies");
+  assertStringIncludes(app, "Nothing turns on the open limb");
 });
 
 Deno.test("G3 — a crosswalk severity row carries the domain's own recorded gap", () => {

@@ -385,19 +385,35 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
   // data category and asserted the whole set "is regular and systematic
   // monitoring", conflating data categories held (benefits, payroll, CRM)
   // with the distinct Art. 37(1)(b) monitoring concept (live batch fd703575,
-  // flagged as an unsupported claim). The sentence now names only the
-  // categories the limb actually tests and states the inference as what the
-  // record indicates, not as a definition.
+  // flagged as an unsupported claim).
+  // D1D2B3B8-G1 (2026-08-28, flagged HIGH twice) — the fd703575 rewording
+  // still ESTABLISHED limb (b) on category presence: "routine processing at
+  // that scale indicates the regular and systematic monitoring … that
+  // Article 37(1)(b) describes" concluded "Designation is mandatory here"
+  // against an intake that records no monitoring of data subjects at all
+  // (holding Communications content for internal collaboration is not
+  // monitoring, and the limb asks whether CORE ACTIVITIES CONSIST OF
+  // operations REQUIRING such monitoring). The intake has no monitoring
+  // question, so this limb can never be established from it — only made
+  // live. limb (b) therefore no longer feeds `required`; when it is the only
+  // live limb the finding degrades honestly to record_insufficient with the
+  // monitoring question routed to information_needed, and the designation
+  // recommendation is stated as the prudent course pending that answer.
   const monitoringCategories = f.dataCategories.filter((c) => ["Location data", "Communications content"].includes(c));
-  const limbB = f.largeScale && monitoringCategories.length > 0;
+  const limbBIndicated = f.largeScale && monitoringCategories.length > 0;
   const limbC = f.largeScale && (f.specialCategory || f.specialList.length > 0);
-  const required = limbA || limbB || limbC;
+  const required = limbA || limbC;
 
   const triggerReasons = [
     limbA ? `(a) applies: the record puts the controller in the ${f.sector} sector, processing carried out by a public authority or body.` : "",
-    limbB ? `(b) applies: the company has indicated core activities at the ${f.size} scale that include ${monitoringCategories.join(" and ")} — ${monitoringCategories.length === 1 ? "a category" : "categories"} whose routine processing at that scale indicates the regular and systematic monitoring of data subjects on a large scale that Article 37(1)(b) describes.` : "",
     limbC ? `(c) applies: the company has indicated large-scale processing of special categories (${(f.specialList.length ? f.specialList : ["special-category data"]).join(", ")}).` : "",
   ].filter(Boolean);
+
+  const limbBOpenClause = limbBIndicated
+    ? `Whether limb (b) is engaged is not answered on the information provided: the limb asks whether the company's core activities consist of processing operations which, by their nature, scope or purposes, require regular and systematic monitoring of data subjects on a large scale, and the data categories the company has answered include ${monitoringCategories.join(" and ")} at the ${f.size} scale — enough to make that question live, but holding ${monitoringCategories.length === 1 ? "that category" : "those categories"} is not itself the monitoring the limb describes, and the answers do not state whether any core activity operates as such monitoring.`
+    : "";
+  const LIMB_B_INFO_NEEDED =
+    "Whether any core activity involves the regular and systematic monitoring of data subjects (for example tracking, profiling, or sustained behavioural observation), and at what scale — the Article 37(1)(b) limb turns on that, not on the categories of data held.";
 
   const designation_trigger: Finding = !f.dpoStatus || f.dpoStatus === "n/a"
     ? {
@@ -419,10 +435,13 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
       standard: [trig.verbatim, trigA.verbatim, trigB.verbatim, trigC.verbatim].filter(Boolean).join(" "),
       record_fact: `The record answers the DPO question "${f.dpoStatus}" for a ${f.size} organisation in the ${f.sector || "unstated"} sector.`,
       application: required
-        ? `Designation is mandatory here, not discretionary. ${triggerReasons.join(" ")} ${hasFormal ? "A formal DPO is designated, which meets the trigger; what remains to be tested is position and task coverage, not existence." : hasInformal ? "An informal privacy lead is not a designated data protection officer for Article 37 purposes unless the designation is formal and the contact details have been published and communicated to the supervisory authority." : "No designation is recorded, so the Article 37(1) duty is unmet on the face of the record."}`
+        ? `Designation is mandatory here, not discretionary. ${triggerReasons.join(" ")} ${limbBOpenClause ? `${limbBOpenClause} Nothing turns on the open limb: designation is already required on the ${limbA ? "(a)" : "(c)"} limb established above. ` : ""}${hasFormal ? "A formal DPO is designated, which meets the trigger; what remains to be tested is position and task coverage, not existence." : hasInformal ? "An informal privacy lead is not a designated data protection officer for Article 37 purposes unless the designation is formal and the contact details have been published and communicated to the supervisory authority." : "No designation is recorded, so the Article 37(1) duty is unmet on the face of the record."}`
+        : limbBIndicated
+        ? `Neither limb (a) nor limb (c) of Article 37(1) is established on the record as documented: the controller is not recorded as a public authority or body, and no large-scale Article 9 processing is recorded. ${limbBOpenClause} Pending that answer, the prudent course is to treat designation as warranted rather than to rest on the limb remaining open${hasFormal ? " — and a formal DPO is in fact designated; once designated, Articles 38 and 39 apply in full" : hasInformal ? "; an informal privacy lead is not a designated data protection officer for Article 37 purposes unless the designation is formal" : ""}. Whether designation is mandatory is not determined by this assessment.`
         : `None of the three limbs of Article 37(1) is established on the record as documented: the controller is not recorded as a public authority or body, and core activities are not shown to consist of large-scale regular and systematic monitoring or of large-scale Article 9 processing. Designation is therefore voluntary. ${hasFormal ? "A DPO has nonetheless been designated; once designated, Articles 38 and 39 apply in full — the voluntary character of the appointment does not soften them." : "Nothing in the record requires one."}`,
-      verdict: required ? (hasFormal ? "satisfied" : "not_satisfied") : "not_applicable",
-      status: "analysed",
+      verdict: required ? (hasFormal ? "satisfied" : "not_satisfied") : limbBIndicated ? "record_insufficient" : "not_applicable",
+      status: limbBIndicated && !required ? "record_insufficient" : "analysed",
+      information_needed: limbBIndicated ? LIMB_B_INFO_NEEDED : undefined,
     };
 
   // ── ITEM 403-A DEFECT 2 — THE UNREQUESTED-FACT RULE ────────────────────
@@ -935,6 +954,21 @@ export function buildTransferAnalysis(intake: unknown): TransferAnalysis {
     verdict = "partially_satisfied";
     information_needed =
       "The executed instrument for each transfer leg — for a UK leg, the IDTA or the Addendum as executed and the exporter's own Article 46(6) assessment; for an EU leg, the Commission clause set and its transfer impact assessment. The record names the mechanism type but not the executed document, so the leg cannot be closed as satisfied.";
+  }
+
+  // D1D2B3B8-G3 (2026-08-28) — where a transfer is occurring and the leg is
+  // not closed as satisfied, the analysis names the RECORDED TOOLS the
+  // organisation-level answer has to cover (live batch: the transfers item
+  // stated the jurisdictions while the intake named the specific tools
+  // without executed mechanisms). The answers record the transfer position
+  // at organisation level, not per tool, and the sentence says so rather
+  // than guessing which legs are covered.
+  const recordedTools = (Array.isArray(get(intake, "tools")) ? get(intake, "tools") as unknown[] : [])
+    .map((t) => str(t)).filter(Boolean);
+  if (f.occurring === true && verdict !== "satisfied" && recordedTools.length) {
+    parts.push(
+      `The tools the company has recorded in use are ${recordedTools.join(", ")}. The record states the transfer position at organisation level, not per tool, so each of those tools' transfer legs stands or falls with the mechanism position assessed above; a leg without an executed mechanism has no lawful route under the chapter identified for it.`,
+    );
   }
 
   return {

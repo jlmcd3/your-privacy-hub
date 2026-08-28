@@ -570,6 +570,22 @@ function checkE6(
       // COUNSEL-VOICE-1B Task 3 — narrow carve-out. IR playbook's legal-
       // privilege guidance stays. Sentences matching opts.exemptRe skip.
       if (opts.exemptRe && opts.exemptRe.test(s)) continue;
+
+      // D1D2B3B8-H4 (2026-08-28, live batch d1d2b3b8) — LINE-BOUNDARY GLUE
+      // EXEMPTION. Heading and list-intro lines carry no terminal stop, so
+      // the sentence splitter glues "Notification Decision Log\n\nMaintained
+      // by: Chief Privacy Officer\n\nMust contain:\n\n- …" into one pseudo-
+      // sentence, and the referral pattern then matched the role token on
+      // one line against the modal on another — five HIGH findings on one
+      // document, all template headings over lists. NARROW rule: when the
+      // "sentence" spans line breaks and NO single line matches the referral
+      // pattern on its own, the match exists only across the glue and is
+      // skipped. A genuine referral sentence matches within its own line and
+      // still falls through to the exemption chain below.
+      if (/[\r\n]/.test(s)) {
+        const lines = s.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
+        if (!lines.some((l) => COUNSEL_REFERRAL_RE.test(l))) continue;
+      }
       // GRADER-CAL-3 Task 2 — sanctioned ownership-disclaimer zone.
       if (zones.active && OWNERSHIP_DISCLAIMER_RE.test(s)) {
         const pos = doc.indexOf(s);

@@ -332,11 +332,33 @@ export function precedentClassSentence(report: Bag, deterministic = false): stri
 }
 
 function composeExecPosture(report: Bag, org: string): string {
+  // D1D2B3B8-L2 (2026-08-28) — the executive summary carries a COMPACT
+  // three-part read, not the sections' own analysis text. The old form
+  // spliced each test's first "sentence", which for the purpose test was the
+  // whole condition walk (quote included) — the live batch duplicated the
+  // full walk in the executive summary and cut it mid-word there. The full
+  // analysis lives in Sections II–IV; the summary states the outcomes.
   const tpt = bag(report.three_part_test);
+  const verdictClause = (v: string, name: string): string =>
+    v === "passes" || v === "likely_passes"
+      ? `the ${name} test is met`
+      : v === "fails" || v === "likely_fails"
+      ? `the ${name} test is not met`
+      : v
+      ? `the ${name} test is not resolved`
+      : "";
+  const clauses = [
+    verdictClause(s(bag(tpt.purpose_test).verdict), "purpose"),
+    verdictClause(s(bag(tpt.necessity_test).verdict), "necessity"),
+    verdictClause(s(bag(tpt.balancing_test).verdict), "balancing"),
+  ].filter(Boolean);
+  const summarySentence = clauses.length === 3
+    ? `On the company's answers, ${clauses[0]}, ${clauses[1]}, and ${clauses[2]}; the analysis supporting each appears in Sections II to IV.`
+    : clauses.length
+    ? `On the company's answers, ${clauses.join(", ")}; the analysis supporting each appears in the sections below.`
+    : "";
   return fromTyped(
-    firstSentence(s(bag(tpt.purpose_test).analysis)),
-    firstSentence(s(bag(tpt.necessity_test).analysis)),
-    firstSentence(s(bag(tpt.balancing_test).analysis)),
+    summarySentence,
     firstSentence(s(bag(report.lia_determination).why)),
   );
 }
@@ -645,14 +667,28 @@ export function assembleLiaSkeletonDocument(
   const liaJurisdictions = (Array.isArray(record.jurisdictions) ? record.jurisdictions : []).map((j) => s(j));
   const ukOnly = liaJurisdictions.includes("United Kingdom (UK GDPR)") &&
     !liaJurisdictions.includes("EU (GDPR)");
+  // D1D2B3B8-L3 (2026-08-28, flagged HIGH) — a MIXED EU+UK record stays on
+  // the EU citation rail (ITEM-330) but must ACKNOWLEDGE the UK instrument:
+  // the live batch's mixed record never named the UK GDPR anywhere. The
+  // subtitle carries both instruments, §I states the parallel application,
+  // and the ToA lists the UK counterpart (the §I sentence is what satisfies
+  // the ToA's iff-cited check).
+  const mixedEuUk = liaJurisdictions.includes("United Kingdom (UK GDPR)") &&
+    liaJurisdictions.includes("EU (GDPR)");
   const instrumentLabel = (c: string): string =>
     ukOnly ? c.replace(/^Article 6\(1\)\(f\) GDPR/, "Article 6(1)(f) UK GDPR") : c;
+  const mixedInstrumentNote = mixedEuUk
+    ? "The record puts both the EU GDPR and the UK GDPR in scope. Article 6(1)(f) UK GDPR is materially identical to its EU counterpart, and the analysis in this assessment applies under each instrument; citations follow the EU text, and the UK GDPR applies in parallel to the processing of the UK data subjects."
+    : "";
+  if (mixedInstrumentNote) composed["the_processing:1"] = mixedInstrumentNote;
 
   const args = {
     sections: deterministic ? LIA_SKELETON_SECTIONS_V2 : LIA_SKELETON_SECTIONS,
     title: LIA_SKELETON_TITLE,
     subtitle: ukOnly
       ? LIA_SKELETON_SUBTITLE.replace("Article 6(1)(f) GDPR", "Article 6(1)(f) UK GDPR")
+      : mixedEuUk
+      ? LIA_SKELETON_SUBTITLE.replace("Article 6(1)(f) GDPR", "Article 6(1)(f) GDPR and Article 6(1)(f) UK GDPR")
       : LIA_SKELETON_SUBTITLE,
     spineVersion: deterministic ? LIA_SKELETON_VERSION_V2 : LIA_SKELETON_VERSION,
     values,
@@ -660,7 +696,15 @@ export function assembleLiaSkeletonDocument(
 
   const draft = renderSkeletonDocument({ ...args, composed });
   const toa = renderLiaToa(
-    [...composeToaLedger(report).map(instrumentLabel), ...persuasive.ledger],
+    [
+      ...composeToaLedger(report).map(instrumentLabel),
+      // D1D2B3B8-L3 — the UK counterpart enters the ledger only on a mixed
+      // record; renderLiaToa's iff-cited filter keeps it out unless the body
+      // (the §I note above) actually names it. Corpus anchor:
+      // ukgdpr-art-6-1-f, verified at encode time (see 3E9AD759-L1).
+      ...(mixedEuUk ? ["Article 6(1)(f) UK GDPR"] : []),
+      ...persuasive.ledger,
+    ],
     skeletonDocumentToText(draft),
   );
 

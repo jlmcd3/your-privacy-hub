@@ -154,6 +154,20 @@ function checkField(intake: Record<string, unknown>, f: IntakeField, out: Violat
   // predicate; requiredWhen documents the rule for reviewers/tests.
 }
 
+/** D1D2B3B8-H1 — the unknown-top-level-key scan, shared with the quality
+ * harness's deterministic repair so both sides apply the identical rule
+ * (contract top-level keys plus ALLOWED_TOPLEVEL_EXTRAS). */
+export function unknownTopLevelKeys(
+  contract: IntakeContract,
+  intake: Record<string, unknown>,
+): string[] {
+  const knownTop = new Set<string>();
+  for (const f of contract.fields) knownTop.add(readTopLevelKey(f.key));
+  return Object.keys(intake ?? {}).filter(
+    (k) => !knownTop.has(k) && !ALLOWED_TOPLEVEL_EXTRAS.has(k),
+  );
+}
+
 export function validateIntake(
   contract: IntakeContract,
   intake: Record<string, unknown>,
@@ -161,11 +175,7 @@ export function validateIntake(
   const violations: Violation[] = [];
 
   // Unknown top-level keys.
-  const knownTop = new Set<string>();
-  for (const f of contract.fields) knownTop.add(readTopLevelKey(f.key));
-  for (const k of Object.keys(intake ?? {})) {
-    if (knownTop.has(k)) continue;
-    if (ALLOWED_TOPLEVEL_EXTRAS.has(k)) continue;
+  for (const k of unknownTopLevelKeys(contract, intake ?? {})) {
     violations.push({ key: k, reason: "unknown top-level key" });
   }
 

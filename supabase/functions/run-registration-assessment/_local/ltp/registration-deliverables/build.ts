@@ -677,6 +677,11 @@ function buildRepresentative(intake: I, which: "EU" | "UK"): RepresentativeDeter
   const isPublic = intake.is_public_authority === true;
   const exemptionRow = dutyRow("eu_representative_exemption");
   const publicRow = dutyRow("eu_representative_public_authority");
+  // D1D2B3B8-R3 — the UK determination cites the UK instrument, not the EU
+  // one: the corpus rows are the EU text, and the UK GDPR's Art. 27(2)
+  // carries the same operative words, so only the instrument label shifts.
+  const exemptionCite = which === "UK" ? regimeCite(exemptionRow.citation, "UK GDPR") : exemptionRow.citation;
+  const publicCite = which === "UK" ? regimeCite(publicRow.citation, "UK GDPR") : publicRow.citation;
   const occasional =
     intake.large_scale_monitoring !== true &&
     intake.processes_special_categories !== true &&
@@ -698,13 +703,13 @@ function buildRepresentative(intake: I, which: "EU" | "UK"): RepresentativeDeter
     application = `${orgName(intake)} is not established in ${territory} and the record does not show goods or services offered to, or behaviour monitored of, data subjects there. Article 3(2) is therefore not engaged, so the Art. 27(1) designation duty does not attach.`;
   } else if (isPublic) {
     verdict = "not_engaged";
-    application = `The designation duty does not apply to ${publicRow.verbatim_quote.replace(/\.$/, "")}, and the record states ${orgName(intake)} is a public authority or body (${publicRow.citation}).`;
+    application = `The designation duty does not apply to ${publicRow.verbatim_quote.replace(/\.$/, "")}, and the record states ${orgName(intake)} is a public authority or body (${publicCite}).`;
   } else if (occasional) {
     verdict = "conditional";
-    application = `Article 3(2) is engaged, so Art. 27(1) prima facie requires a written designation. The record does not show large-scale special-category processing, large-scale monitoring or broker activity, so the ${exemptionRow.citation} exemption for occasional low-risk processing is live but not established: the record does not evidence that the processing is occasional, and "occasional" is the limb the exemption turns on.`;
+    application = `Article 3(2) is engaged, so Art. 27(1) prima facie requires a written designation. The record does not show large-scale special-category processing, large-scale monitoring or broker activity, so the ${exemptionCite} exemption for occasional low-risk processing is live but not established: the record does not evidence that the processing is occasional, and "occasional" is the limb the exemption turns on.`;
   } else {
     verdict = "engaged";
-    application = `Article 3(2) is engaged and the ${exemptionRow.citation} exemption is unavailable: the company has indicated processing that is not occasional and that involves large-scale monitoring, special categories or brokered data. A representative in ${territory} must be designated in writing.`;
+    application = `Article 3(2) is engaged and the ${exemptionCite} exemption is unavailable: the company has indicated processing that is not occasional and that involves large-scale monitoring, special categories or brokered data. A representative in ${territory} must be designated in writing.`;
   }
 
   return {
@@ -733,7 +738,16 @@ function buildRepresentative(intake: I, which: "EU" | "UK"): RepresentativeDeter
     application,
     verdict,
     status,
-    exemption_analysis: `${exemptionRow.citation} disapplies the duty for ${exemptionRow.verbatim_quote}. ${publicRow.citation} additionally disapplies it for ${publicRow.verbatim_quote}`,
+    // D1D2B3B8-R3 (2026-08-28, flagged HIGH in two documents) — the Art.
+    // 27(2) exemption recital renders ONLY where the duty question is live
+    // (verdict "conditional" or "engaged"). Where the duty never arises —
+    // the organisation IS established, or Article 3(2) is not engaged — the
+    // exemptions to a duty that does not attach are not part of the
+    // operative analysis, and reciting them framed the conclusion as if the
+    // duty would otherwise attach.
+    exemption_analysis: verdict === "conditional" || verdict === "engaged"
+      ? `${exemptionCite} disapplies the duty for ${exemptionRow.verbatim_quote}. ${publicCite} additionally disapplies it for ${publicRow.verbatim_quote}`
+      : "",
     ...(status === "record_insufficient"
       ? { information_needed: `Whether ${orgName(intake)} is established in ${territory}.` }
       : {}),
@@ -831,10 +845,19 @@ function buildDpo(intake: I): DpoDetermination {
       fact: yn(tri(intake.processes_special_categories),
         "The record states the organisation processes special categories of personal data.",
         "The record states the organisation does not process special categories of personal data."),
+      // D1D2B3B8-R2 (2026-08-28, flagged HIGH in two documents) — ONE
+      // sentence, conclusion-with-basis first: the old first sentence was a
+      // bare recital of the branch test ("Branch (c) is engaged where such
+      // processing is a CORE ACTIVITY on a LARGE SCALE.") and downstream
+      // first-sentence budgets shipped it alone, so the document stated the
+      // test without ever applying it. The record never answers the
+      // core-activity question (the intake does not ask it), so the branch
+      // is treated as engaged on a stated conservative basis, not asserted
+      // as established.
       why: (m) => m === null
         ? "Cannot be evaluated: the record does not state whether special categories of data are processed."
         : m
-        ? "Branch (c) is engaged where such processing is a CORE ACTIVITY on a LARGE SCALE. The record evidences special-category processing; whether it is core and large-scale is a matter for the controller's own record, and the branch is treated as engaged for the purpose of this determination."
+        ? "The record evidences special-category processing; the record does not separately state whether that processing is a core activity on a large scale — the two qualifiers branch (c) requires — so the branch is treated as engaged on a conservative basis rather than established on the facts recorded."
         : "Branch (c) is not engaged by the facts recorded.",
     },
   ];
@@ -856,6 +879,11 @@ function buildDpo(intake: I): DpoDetermination {
 
   const engaged = findings.filter((f) => f.verdict === "engaged");
   const unknown = findings.filter((f) => f.verdict === "record_insufficient");
+  // D1D2B3B8-R2 — branch (c) is engaged only on a conservative basis (see
+  // its why above); the headline and the Engaged list say which footing each
+  // engaged branch stands on instead of flattening both into one claim.
+  const firm = engaged.filter((f) => f.key !== "dpo_trigger_special_categories");
+  const conservative = engaged.filter((f) => f.key === "dpo_trigger_special_categories");
 
   const verdict: DpoDetermination["verdict"] = engaged.length
     ? "engaged"
@@ -865,8 +893,10 @@ function buildDpo(intake: I): DpoDetermination {
 
   return {
     verdict,
-    headline: engaged.length
-      ? `A data protection officer must be designated: ${engaged.length === 1 ? "one" : engaged.length === 2 ? "two" : "all three"} of the three ${art} branches ${engaged.length === 1 ? "is" : "are"} engaged by the facts recorded.`
+    headline: firm.length
+      ? `A data protection officer must be designated: ${firm.length === 1 ? "one" : firm.length === 2 ? "two" : "all three"} of the three ${art} branches ${firm.length === 1 ? "is" : "are"} engaged by the facts recorded${conservative.length ? ", and a further branch is treated as engaged on a conservative basis" : ""}.`
+      : conservative.length
+      ? `A data protection officer should be designated on the conservative reading this assessment applies: no ${art} branch is established outright on the facts recorded, but the special-category branch is treated as engaged pending the core-activity answer.`
       : unknown.length
       ? `Whether a data protection officer must be designated cannot be determined from the facts recorded.`
       : `No ${art} branch is engaged by the facts recorded, so designation is not mandatory.`,
@@ -878,7 +908,7 @@ function buildDpo(intake: I): DpoDetermination {
     // operative text is not in this product's verified corpus, so the
     // publication-and-communication step is named as follow-up, never quoted.
     reasoning: engaged.length
-      ? `The provision is disjunctive, so one branch suffices. Engaged: ${engaged.map((f) => f.citation).join(", ")}. The remaining branches are recorded above and do not need to be reached.`
+      ? `The provision is disjunctive, so one branch suffices.${firm.length ? ` Engaged: ${firm.map((f) => f.citation).join(", ")}.` : ""}${conservative.length ? ` Treated as engaged on a conservative basis: ${conservative.map((f) => f.citation).join(", ")} (the record evidences special-category processing but does not answer whether it is a core activity on a large scale).` : ""} The remaining branches are recorded above and do not need to be reached.`
       : unknown.length
       ? `No branch is affirmatively engaged, but ${unknown.map((f) => f.citation).join(", ")} cannot be evaluated from the facts recorded, so a negative conclusion would be unsafe.`
       : "Each of the three branches was evaluated against the record and none is engaged. Voluntary designation remains available and is often prudent.",

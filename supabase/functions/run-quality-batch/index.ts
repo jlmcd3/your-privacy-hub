@@ -72,7 +72,7 @@ import { CYBER_CONTRACT_FIXTURES } from "../_shared/cyber-contract-fixtures.ts";
 import { ADMT_CONTRACT_FIXTURES } from "../_shared/admt-contract-fixtures.ts";
 // RC-REM-P2 — contract-driven intake generation + validation.
 import type { IntakeContract } from "../_shared/intake-contracts/types.ts";
-import { validateIntake as validateAgainstContract } from "../_shared/intake-contracts/validate.ts";
+import { unknownTopLevelKeys, validateIntake as validateAgainstContract } from "../_shared/intake-contracts/validate.ts";
 import { renderContractPrompt } from "./_local/intake-contracts/render.ts";
 import { cppaAdmtContract } from "../_shared/intake-contracts/cppa-admt.ts";
 // QB-P22 item 2 — shared IR TEST-STATES/DEADLINES enrichment (matches
@@ -152,7 +152,8 @@ QB-P6 — services must be at least 2 sentences naming the platform, hosting reg
   // S-R1 (doc 80, 2026-08-27) — registration joined CONTRACT_BY_TOOL, so its
   // schema now renders mechanically from the contract and the hand-typed
   // toolDescriptions entry went dead; the posture coaching moves here.
-  "registration": `Vary postures (well-prepared multi-EU controller with EU establishment vs missing DPO thresholds vs cross-border transfer without mechanism vs US-only processor vs high-risk AI provider) and jurisdiction sets (single-state, multi-state, EEA+UK, EEA-only, UK-only). email is a contact address at the organization's own domain. eu_lead_member_state is an ISO-2 EU code when has_eu_establishment is true, else "".`,
+  "registration": `Vary postures (well-prepared multi-EU controller with EU establishment vs missing DPO thresholds vs cross-border transfer without mechanism vs US-only processor vs high-risk AI provider) and jurisdiction sets (single-state, multi-state, EEA+UK, EEA-only, UK-only). email is a contact address at the organization's own domain. eu_lead_member_state is an ISO-2 EU code when has_eu_establishment is true, else "".
+D1D2B3B8-H3 (2026-08-28, live batch d1d2b3b8) — organization_size and employee_count are the SAME fact stated twice and MUST agree: micro = 1-9 employees, small = 10-49, medium = 50-249, large = 250-999, enterprise = 1,000+. The live batch wrote organization_size "medium" with employee_count 310 (a "large"-band count), and the document's size parenthetical contradicted the record's own number. Pick the employee_count FIRST, then set organization_size to the band that contains it.`,
   "biometric-checker": `Vary across single-jurisdiction and multi-jurisdiction mixes (e.g. Illinois only; Texas + California; EU + UK). Vary compliance posture: include some with no written policy, some without informed consent, some with third-party sharing, some with undefined retention.
 QB-P6 — purpose must name the deployment context and system.
 2026-08-26 (TURN 1d) — wa_mhmda_geofence_purpose is asked only when wa_mhmda_geofence_health_facility is "Yes", and it is the RCW 19.373.080 PURPOSE element: answer "Yes" only when the scenario's narrative describes the geofence being used to identify or track health-seeking consumers, collect consumer health data, or send notifications/messages/ads. A geofence that exists for an unrelated operational reason (e.g. pickup/drop-off zoning, wayfinding, parking) is existence "Yes" + purpose "No" — include both postures across Washington scenarios so the violation, compliant-geofence, and purpose-unknown branches are all exercised.`,
@@ -1747,6 +1748,49 @@ export function deterministicContractRepair(tool: string, intake: any): { repair
   const notes: string[] = [];
   if (!contract || !intake || typeof intake !== "object") return { repaired: intake, changed: false, notes };
   let repaired = intake;
+  // D1D2B3B8-H1 (2026-08-28, live batch d1d2b3b8) — the cppa-risk slot
+  // aborted the whole tool run on "processing_methods.collection_method:
+  // unknown top-level key; alternatives_considered: unknown top-level key".
+  // Two deterministic repairs, applied before the per-field pass:
+  //   (a) UNFLATTEN — a top-level key that is literally a known dotted field
+  //       key ("processing_methods.collection_method" written flat instead
+  //       of nested) moves to its nested location, never clobbering a value
+  //       already there.
+  //   (b) DROP — a top-level key the contract does not know and the
+  //       allowlist does not pass through is removed. The contract is the
+  //       single source of what a product may be handed; a stray key can
+  //       only fail validation or leak an unassessed fact.
+  {
+    const knownKeys = new Set(contract.fields.map((f) => f.key));
+    for (const k of unknownTopLevelKeys(contract, repaired)) {
+      if (k.includes(".") && knownKeys.has(k)) {
+        // Fully nest the dotted path (a contract key may be more than two
+        // segments deep), never clobbering a value already present.
+        const segments = k.split(".");
+        const clone: any = { ...repaired };
+        let node: any = clone;
+        for (let i = 0; i < segments.length - 1; i++) {
+          const seg = segments[i];
+          const cur = node[seg];
+          node[seg] = cur && typeof cur === "object" && !Array.isArray(cur) ? { ...cur } : {};
+          node = node[seg];
+        }
+        const leaf = segments[segments.length - 1];
+        if (node[leaf] === undefined) {
+          node[leaf] = repaired[k];
+          notes.push(`${k}: unflattened dotted top-level key into its nested location`);
+        } else {
+          notes.push(`${k}: dropped flat duplicate (nested value already present)`);
+        }
+        delete clone[k];
+        repaired = clone;
+      } else {
+        const { [k]: dropped, ...restObj } = repaired;
+        repaired = restObj;
+        notes.push(`${k}: dropped unknown top-level key (value ${JSON.stringify(dropped)?.slice(0, 120) ?? "undefined"})`);
+      }
+    }
+  }
   for (const f of contract.fields) {
     if (f.key.includes("[]") || f.key.includes(".")) continue;
     if (!f.options?.length) continue;

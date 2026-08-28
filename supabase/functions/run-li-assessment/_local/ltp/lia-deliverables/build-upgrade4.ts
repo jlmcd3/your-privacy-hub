@@ -98,12 +98,21 @@ function lc(s: string): string {
 /** 3E9AD759-L2 — the first COMPLETE sentence, stop-boundary aware: a stop
  *  counts only when followed by whitespace or end-of-string, so a dot inside
  *  a token ("Tenable.io", "v2.1") never truncates mid-word. Trailing stop
- *  removed so the result can run inside a parenthetical. */
-function firstSentenceSafe(text: string, max = 260): string {
+ *  removed so the result can run inside a parenthetical.
+ *  D1D2B3B8-L1 (2026-08-28) — NEVER cut mid-word: the earlier char-cap
+ *  fallback sliced a long first sentence at 260 characters and the live
+ *  batch shipped "…that cause injury, property d)" mid-word. The first
+ *  sentence is taken WHOLE however long it is; only a stop-less text is
+ *  bounded, and then at a word boundary. */
+function firstSentenceSafe(text: string, max = 400): string {
   const t = (text ?? "").trim();
   if (!t) return "";
-  const m = t.match(/^[\s\S]{1,260}?[.!?](?=\s|$)/);
-  return (m ? m[0] : t.slice(0, max)).trim().replace(/[.!?]$/, "");
+  const m = t.match(/^[\s\S]*?[.!?](?=\s|$)/);
+  if (m) return m[0].trim().replace(/[.!?]$/, "");
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max);
+  const lastSpace = cut.lastIndexOf(" ");
+  return (lastSpace > 40 ? cut.slice(0, lastSpace) : cut).trim();
 }
 
 // =====================================================================
@@ -415,12 +424,25 @@ export function buildBenefitAndBeneficiary(intake: unknown): BenefitAndBeneficia
  * the field) still starts a new bare-label alternative, preserving the
  * existing "alternatives listed with zero reasons" branch below.
  */
+// D1D2B3B8-L5 (2026-08-28) — a line that POINTS AT another intake field by
+// name ("As detailed in alternatives_considered, …", "… rejected as described
+// in alternatives_rationale") is narrative cross-reference, not an
+// alternative. Both live documents parsed such a pointer into a bogus
+// rationale_recorded:false entry and then reported a comparison gap the
+// record does not have ("the alternative left unexplained — As detailed in
+// alternatives_considered, manual inspections… — remains open"). The pointed-
+// at field's own content is in the parse input (see the join in
+// buildAlternativesConsidered), so the pointer line itself is skipped.
+const FIELD_POINTER_RE =
+  /\b(?:alternatives?_considered|alternatives?_rationale|necessity_details|why_consent_not_used)\b/i;
+
 function parseAlternatives(text: string): AlternativeConsidered[] {
   if (!text) return [];
   const lines = text
     .split(/\r?\n|(?<=[.;])\s+(?=[A-Z(])/)
     .map((l) => l.replace(/^[\s•\-*\d.)]+/, "").trim())
-    .filter((l) => l.length > 2);
+    .filter((l) => l.length > 2)
+    .filter((l) => !FIELD_POINTER_RE.test(l));
   const out: AlternativeConsidered[] = [];
   for (const line of lines) {
     const m = line.match(
@@ -449,8 +471,19 @@ export function buildAlternativesConsidered(intake: unknown): AlternativesConsid
   const std = anchor("edpb_necessity");
   const support = anchor("edpb_2019_less_intrusive");
 
-  const alternativesText = str(get(intake, "necessity_details.alternatives")) ||
-    str(get(intake, "alternatives_considered"));
+  // D1D2B3B8-L5 (2026-08-28) — BOTH fields feed the parse, not first-wins:
+  // the old `||` dropped alternatives_considered whenever
+  // necessity_details.alternatives was present, so an intake carrying a
+  // summary line in the latter and the detailed per-alternative reasons in
+  // the former lost every detailed reason and the document reported a false
+  // comparison gap. Containment guard: skip the second field when its text
+  // is already inside the first (some intakes mirror one into the other).
+  const necAlts = str(get(intake, "necessity_details.alternatives"));
+  const flatAlts = str(get(intake, "alternatives_considered"));
+  const alternativesText = [
+    necAlts,
+    flatAlts && !necAlts.includes(flatAlts) ? flatAlts : "",
+  ].filter(Boolean).join("\n");
   const rationaleText = str(get(intake, "necessity_details.alternatives_rationale"));
   const whyConsent = str(get(intake, "necessity_details.why_consent_not_used"));
 
@@ -904,15 +937,17 @@ export function buildOptOutFeasibility(intake: unknown): OptOutFeasibilityFindin
   let application: string;
 
   // SO-11 FIX 1 — the default position must be stated accurately: the general
-  // right to object to legitimate-interests processing is QUALIFIED (the
-  // controller may continue on compelling legitimate grounds that override the
-  // data subject's interests, rights and freedoms, or for the establishment,
-  // exercise or defence of legal claims) and is ABSOLUTE only for direct
-  // marketing. Stated in plain prose and attributed to the general right to
-  // object — deliberately no bare statutory pinpoint, which would ride on an
-  // unverified citation.
+  // right to object to legitimate-interests processing is QUALIFIED and is
+  // ABSOLUTE only for direct marketing. Stated in plain prose and attributed
+  // to the general right to object — deliberately no bare statutory pinpoint,
+  // which would ride on an unverified citation.
+  // D1D2B3B8-L4 (2026-08-28) — compressed to ONE sentence: the old two-
+  // sentence recitation was flagged as textbook boilerplate in both live
+  // documents that reached this factor ("would read identically in any LIA").
+  // The default is stated only as far as the comparison against the recorded
+  // mechanism needs it; the mechanism's own text stays the anchor.
   const OBJECTION_DEFAULT =
-    "Under the general right to object in the Regulation, a data subject objecting to processing grounded on legitimate interests must ordinarily do so on grounds relating to their particular situation, and the controller may continue where it demonstrates compelling legitimate grounds that override the data subject's interests, rights and freedoms, or where the processing is for the establishment, exercise or defence of legal claims. The right is qualified in that respect; it is unconditional only where the processing is for direct marketing, in which case the data subject may object at any time and the processing must stop.";
+    "The general right to object to legitimate-interests processing is qualified — the objection ordinarily rests on the data subject's particular situation, and the controller may continue on compelling legitimate grounds — and is unconditional only for direct marketing.";
 
   switch (feasibility) {
     case "unconditional_opt_out_available":

@@ -512,7 +512,14 @@ function composeDeterminationBody(report: Bag, intake: Bag): string {
       const el = elementFor(p);
       const label = (el && s(el.label)) || s(p.domain).replace(/_/g, " ");
       const gap = el ? firstSentence(s(el.record_fact)) : "";
-      const action = actionFor(p);
+      // D1D2B3B8-G2 (2026-08-28) — an item may not state a gap without a
+      // closure act. The duty-vocabulary items never match a model domain
+      // finding (see FD703575-G1 above), so their Action line was empty and
+      // the item just restated the intake answer ("The record carries
+      // nothing on this element" with nothing to DO — live batch, three
+      // documents). The element finding's information_needed IS the closure
+      // act for a record-completion item: what to state to close it.
+      const action = actionFor(p) || (el ? s(el.information_needed) : "");
       const bits = [
         `${i + 1}. ${repairRegister([label, gap].filter(Boolean).join(" — "))}`,
         action ? `Action: ${repairRegister(action.replace(/\.$/, ""))}.` : "",

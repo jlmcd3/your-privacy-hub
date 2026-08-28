@@ -178,19 +178,41 @@ export function recommendationFact(notes: string, maturity: string): string {
  * locate the remaining work in the record's own words — nothing is invented,
  * and a description with no gap-marker sentence yields nothing.
  */
+// D1D2B3B8-CY2 (2026-08-28, live batch d1d2b3b8) — two false-positive
+// classes in the gap scan, each verified against the shipped sentence:
+//   (1) INCIDENT HISTORY: "Two P2 incidents occurred in the prior 12 months:
+//       a credential stuffing attack on the LendScore API … (contained in 4
+//       hours) … consumer data confirmed not exfiltrated." matched on "not"
+//       and rendered as "Remaining work, as recorded" — past events are not
+//       remaining work. A sentence narrating incidents occurring/being
+//       contained is skipped; a sentence merely MENTIONING incident response
+//       (e.g. "corrective actions from the March 2026 incident remain
+//       incomplete") does not match this narrow shape and still qualifies.
+//   (2) RESTRICTIVE "only": "Security Groups allowing only ALB-originated
+//       inbound traffic" is a strength — "only" after an allow/permit/
+//       restrict/limit verb narrows what is PERMITTED, unlike the gap sense
+//       ("authenticates via username/password only"). The restrictive form
+//       is neutralised before the scan; every other marker still counts.
+const INCIDENT_HISTORY_RE =
+  /\b(?:incidents? occurred|attack (?:on|against)|contained in \d|(?:not|no(?:t was)?) exfiltrat|(?:was|were) contained)/i;
+const RESTRICTIVE_ONLY_RE =
+  /\b(?:allow(?:s|ing)?|permit(?:s|ting)?|accept(?:s|ing)?|restrict(?:s|ed|ing)?(?:\s+\w+)?\s+to|limit(?:s|ed|ing)?(?:\s+\w+)?\s+to)\s+only\b/gi;
+
 export function recommendationGap(notes: string): string {
   const text = s(notes);
   if (!text) return "";
   const sentences = text.match(/[^.!?]*(?:[.!?](?!\s|$)[^.!?]*)*[.!?](?=\s|$)/g) ?? [];
   const GAP = /\b(however|but|not|no\b|lacks?|remains?|pending|gap|missing|except|only|without|behind|breach(?:ed)?|unfunded|partial)\b/i;
+  const isGap = (sent: string): boolean =>
+    !INCIDENT_HISTORY_RE.test(sent) && GAP.test(sent.replace(RESTRICTIVE_ONLY_RE, "restricted to"));
   const first = (text.match(/^[\s\S]{1,300}?[.!?](?=\s|$)/)?.[0] ?? "").trim();
   for (const raw of sentences) {
     const sent = raw.trim();
     if (!sent || sent === first) continue;
-    if (GAP.test(sent)) return sent.replace(/[.!?]$/, "");
+    if (isGap(sent)) return sent.replace(/[.!?]$/, "");
   }
   // The gap may live in the first sentence itself when there is no later one.
-  return GAP.test(first) ? first.replace(/[.!?]$/, "") : "";
+  return isGap(first) ? first.replace(/[.!?]$/, "") : "";
 }
 
 export function resolveGapClass(

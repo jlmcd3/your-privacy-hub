@@ -143,10 +143,19 @@ describe("ir-playbook — mixed EU + UK incident engages both regimes (Item 328)
     );
   });
 
-  it("a record with no GDPR-family jurisdiction still emits one framed duty set", () => {
+  it("a record with no GDPR-family jurisdiction emits NO duty set and honest not-engaged scalars", () => {
+    // D1D2B3B8-I1 (2026-08-28) supersedes the original pin: the old assertion
+    // ("still emits one framed duty set … regime 'eu'") pinned the defect the
+    // live batch scored 40.65 on — a California-only incident framed under
+    // the EU GDPR as a default rail. The honest behaviour: no GDPR-family
+    // regime engaged → no duty set; the legacy scalar fields carry a
+    // framework_not_engaged determination naming the recorded jurisdictions.
     const d = buildIrPlaybookDeliverables({ ...baseIntake, jurisdictions: ["California"] });
-    expect(d.notification_duties).toHaveLength(1);
-    expect(d.notification_duties[0].regime).toBe("eu");
+    expect(d.notification_duties).toHaveLength(0);
+    expect(d.sa_notification_determination.verdict).toBe("framework_not_engaged");
+    expect(d.sa_notification_determination.record_fact).toContain("California");
+    expect(d.sa_notification_determination.application).toContain("not engaged on this record");
+    expect(d.data_subject_communication_determination.verdict).toBe("framework_not_engaged");
   });
 });
 
