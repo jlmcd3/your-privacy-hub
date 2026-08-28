@@ -493,17 +493,56 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
   if (plan) blocks.push(plan);
 
   // The action plan, in time order, from the typed content/owner mapping.
-
+  //
+  // 3E9AD759-I1 (2026-08-27, live batch 3e9ad759) — the old line read
+  // `s(e.action) || s(e.requirement) || s(e.element)`: the first two keys do
+  // not exist on ContentElementMapping (the field is requirement_verbatim),
+  // so every line fell through to the RAW ELEMENT KEY and the customer
+  // document printed "a_nature - Security / Forensics Lead." four times over.
+  // Each line now names the Art. 33(3) content element in words, maps the
+  // owning role to the named person on the recorded roster where one
+  // matches, and states what is on the record or what is outstanding.
   const mapping = (report.content_owner_mapping ?? {}) as Bag;
   const elements = asArray(mapping.elements);
   if (elements.length) {
+    const ELEMENT_LABELS: Record<string, string> = {
+      a_nature: "describe the nature of the breach — the categories and approximate numbers of data subjects and records concerned",
+      b_dpo_contact: "supply the name and contact details of the data protection officer or other contact point",
+      c_likely_consequences: "describe the likely consequences of the breach",
+      d_measures: "describe the measures taken or proposed, and the measures mitigating possible adverse effects",
+    };
+    const ROSTER_MATCHERS: Record<string, RegExp> = {
+      a_nature: /forensic|security/i,
+      b_dpo_contact: /\bdpo\b|data protection/i,
+      c_likely_consequences: /incident (?:lead|commander)|breach/i,
+      d_measures: /remediat|recovery|it operations/i,
+    };
+    const roster = asArray(intake.responseTeamRoster);
+    const namedFor = (key: string): string => {
+      const re = ROSTER_MATCHERS[key];
+      if (!re) return "";
+      const row = roster.find((r) => re.test(s(r.role)));
+      const primary = row ? s(row.primary) : "";
+      return primary ? `${primary} (${s(row!.role)})` : "";
+    };
     const lines = elements
       .map((e) => {
-        const action = noStop(s(e.action) || s(e.requirement) || s(e.element));
+        const key = s(e.element);
+        const label = ELEMENT_LABELS[key] || noStop(s(e.requirement_verbatim)) || key;
         const owner = s(e.owner);
-        const timing = s(e.phase) || s(e.timing);
-        if (!action) return "";
-        return `${action}${owner ? ` - ${owner}` : ""}${timing ? ` (${timing})` : ""}.`;
+        const person = namedFor(key);
+        const value = s(e.record_value);
+        const needed = s(e.information_needed);
+        const statusClause = needed
+          ? `Outstanding: ${noStop(needed)}.`
+          : isRecorded(value) && !value.includes("[TO BE COMPLETED]")
+          ? `On the record: ${noStop(value)}.`
+          : "";
+        const citation = s(e.citation);
+        return [
+          `${citation ? `${citation} — ` : ""}${label}${owner ? ` (${owner}${person ? `: ${person} on the recorded roster` : ""})` : ""}.`,
+          statusClause,
+        ].filter(Boolean).join(" ");
       })
       .filter(Boolean);
     if (lines.length) {

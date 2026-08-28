@@ -211,7 +211,13 @@ export function buildLiaSlotValues(record: Bag): SlotValues {
     frequency: orNull(lowerEnumLabel(s(balancing.frequency))),
     duration: orNull(lowerEnumLabel(s(balancing.duration))),
     safeguards: orNull(asProse(safeguards)),
-    ADDITIONAL_MITIGATIONS_CLAUSE: mitigations ? `; it has additionally recorded ${noStop(mitigations)}` : "",
+    // 3E9AD759-L5 — a recorded additional measure that is planned rather
+    // than in place is bounded explicitly (batch 3e9ad759: four dated,
+    // owner-named planned mitigations were reproduced with no statement of
+    // whether the favourable balance is conditional on them).
+    ADDITIONAL_MITIGATIONS_CLAUSE: mitigations
+      ? `; it has additionally recorded ${noStop(mitigations)}. Where a measure recorded there is planned rather than in place, it strengthens the balance only once implemented; the determination in this assessment rests on the measures in force as described, and the balance must be re-run if a planned measure does not land as recorded`
+      : "",
 
     reviewTriggers: orNull(asProse(strList(attestation.review_triggers))),
 
@@ -504,6 +510,27 @@ export function assembleLiaSkeletonDocument(
   const childrenFires = isYes(balancing.children_data_subjects) || v.children_in_scope;
   const vulnerableList = s(values.LIST);
 
+  // 3E9AD759-L6 (2026-08-27, live batch 3e9ad759) — the ARTICLE 9 BOUNDARY.
+  // A record that names a special-category-indicative data category (the
+  // batch record named biometric data) previously earned SILENCE on Article
+  // 9 unless the UK Art. 22B path happened to fire. The 9M ruling bound to
+  // this product (PN-L1): legitimate interests alone cannot carry
+  // special-category processing. Where the flag is answered true the
+  // boundary is stated; where it is unanswered but a named category is
+  // Art. 9-indicative, the open question is surfaced instead of silence.
+  // Nothing is asserted from the category label alone.
+  const SPECIAL_INDICATIVE = /health|medical|biometric|genetic|racial|ethnic|political|religio|sex life|sexual orientation|trade[- ]union/i;
+  const namedSpecial = strList(record.data_categories).filter((c) => SPECIAL_INDICATIVE.test(c));
+  const scdFlag = balancing.special_category_data;
+  const bioClause = namedSpecial.some((c) => /biometric/i.test(c))
+    ? " — for biometric data, Article 9(1) attaches where it is processed for the purpose of uniquely identifying a natural person"
+    : "";
+  const specialCategoryBoundary = scdFlag === true
+    ? "The company has indicated that special-category data is processed. Article 9(1) data cannot rest on legitimate interests alone: an Article 9(2) condition is required in addition to the Article 6 basis, and the determination in this assessment does not extend to that processing until that condition is identified."
+    : scdFlag !== false && namedSpecial.length
+    ? `The company has named ${asProse(namedSpecial.map((c) => lowerEnumLabel(c)))} among the data categories. Whether ${namedSpecial.length === 1 ? "that category engages" : "those categories engage"} Article 9(1)${bioClause} is not answered on the information provided. Where Article 9(1) is engaged, an Article 9(2) condition is required in addition to the Article 6 basis and legitimate interests alone cannot carry that processing, so the determination in this assessment is bounded accordingly.`
+    : "";
+
   const composed: ComposedBlocks = {
     "executive_summary:0": execLead,
     "executive_summary:2": composeExecPosture(report, org),
@@ -574,6 +601,7 @@ export function assembleLiaSkeletonDocument(
       s(bag(report.reasonable_expectations).application),
       s(bag(report.potential_harms).application),
       s(bag(report.opt_out_feasibility).application),
+      specialCategoryBoundary,
       precedentClassSentence(report, deterministic),
     ),
 
@@ -607,17 +635,32 @@ export function assembleLiaSkeletonDocument(
     composed["persuasive_authority:0"] = persuasive.body;
   }
 
+  // 3E9AD759-L1 (2026-08-27, live batch 3e9ad759, flagged HIGH) — a UK-only
+  // record carries the UK GDPR instrument label on the subtitle and in the
+  // Table of Authorities. The UK GDPR is a distinct instrument; the corpus
+  // holds the approved UK anchor (`ukgdpr-art-6-1-f`, verified at encode
+  // time per the spine's own pinpoint note), and the substantive text is
+  // identical. A mixed EU+UK record stays on the EU citation rail — the
+  // fleet's ITEM-330 rule (DPIA), applied identically here.
+  const liaJurisdictions = (Array.isArray(record.jurisdictions) ? record.jurisdictions : []).map((j) => s(j));
+  const ukOnly = liaJurisdictions.includes("United Kingdom (UK GDPR)") &&
+    !liaJurisdictions.includes("EU (GDPR)");
+  const instrumentLabel = (c: string): string =>
+    ukOnly ? c.replace(/^Article 6\(1\)\(f\) GDPR/, "Article 6(1)(f) UK GDPR") : c;
+
   const args = {
     sections: deterministic ? LIA_SKELETON_SECTIONS_V2 : LIA_SKELETON_SECTIONS,
     title: LIA_SKELETON_TITLE,
-    subtitle: LIA_SKELETON_SUBTITLE,
+    subtitle: ukOnly
+      ? LIA_SKELETON_SUBTITLE.replace("Article 6(1)(f) GDPR", "Article 6(1)(f) UK GDPR")
+      : LIA_SKELETON_SUBTITLE,
     spineVersion: deterministic ? LIA_SKELETON_VERSION_V2 : LIA_SKELETON_VERSION,
     values,
   };
 
   const draft = renderSkeletonDocument({ ...args, composed });
   const toa = renderLiaToa(
-    [...composeToaLedger(report), ...persuasive.ledger],
+    [...composeToaLedger(report).map(instrumentLabel), ...persuasive.ledger],
     skeletonDocumentToText(draft),
   );
 

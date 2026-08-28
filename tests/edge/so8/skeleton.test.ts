@@ -268,7 +268,13 @@ Deno.test("SO-8: leads agree with the typed determinations", () => {
   assertEquals(out.duty_counts.reserved, 1); // Texas conditional
   const text = skeletonDocumentToText(out.document);
   assert(text.includes("2 registration duties attach"));
-  assert(text.includes("none is presently satisfied"));
+  // 3E9AD759-R1 — satisfaction is claimed only for filing duties (the typed
+  // filing-readiness surface); the designation duty's status is honestly
+  // unrecorded, never asserted unsatisfied. The old pin ("none is presently
+  // satisfied" across BOTH duties) asserted exactly the unsupported claim
+  // the live batch flagged HIGH.
+  assert(text.includes("the filing duty is not presently satisfied"));
+  assert(text.includes("whether the designation duty is already met is not recorded on the intake"));
   assert(text.includes("duty attaches in California"));
   assert(text.includes("requires an EU Article 27 representative"));
 });

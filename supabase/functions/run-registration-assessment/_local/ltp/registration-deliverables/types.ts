@@ -129,6 +129,11 @@ export interface DpoDetermination {
   verdict: Verdict;
   headline: string;
   reasoning: string;
+  /** 3E9AD759-R2 — the closing act for an engaged duty, in its own field so
+   *  the composer's sentence budget on `reasoning` can never truncate it
+   *  (batch 3e9ad759: the closing-act sentence was appended as reasoning's
+   *  4th sentence and the skeleton renders only the first 3). */
+  closing_act?: string;
   /** One finding per Art. 37(1) branch — (a), (b), (c). */
   findings: Finding[];
   /** The branch(es) that engaged, by citation. */

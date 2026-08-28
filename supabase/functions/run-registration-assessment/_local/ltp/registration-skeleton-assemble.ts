@@ -184,6 +184,14 @@ export interface RegistrationDutyCounts {
    *  "2 registration duties attach" while the body identified only one
    *  concrete filing, leaving the reader to reconcile the arithmetic). */
   readonly attached_names: string[];
+  /** 3E9AD759-R1 — the duty split behind the satisfied/unsatisfied claim.
+   *  Satisfaction is only MEASURABLE for filing duties (the typed
+   *  filing-readiness surface); a designation duty (Art. 27 representative,
+   *  DPO) has no intake fact recording whether it is already met, so "none
+   *  is presently satisfied" over-asserted for those (batch 3e9ad759,
+   *  flagged HIGH as an unsupported business claim). */
+  readonly filing_attached: number;
+  readonly designation_attached: number;
 }
 
 export function computeDutyCounts(report: Bag): RegistrationDutyCounts {
@@ -223,6 +231,7 @@ export function computeDutyCounts(report: Bag): RegistrationDutyCounts {
     if (f.ready_to_file === true) satisfied += 1;
   }
   if (satisfied > attached) satisfied = attached;
+  const filingAttached = brokerStates.length;
   return {
     attached,
     satisfied,
@@ -230,6 +239,8 @@ export function computeDutyCounts(report: Bag): RegistrationDutyCounts {
     broker_states: brokerStates,
     reserved,
     attached_names: attachedNames,
+    filing_attached: filingAttached,
+    designation_attached: Math.max(attached - filingAttached, 0),
   };
 }
 
@@ -246,11 +257,40 @@ function composeExecLead(counts: RegistrationDutyCounts, org: string): string {
   }
   // FD703575-R1 — the count names what it counts, so a "2 duties" lead can
   // never leave the reader hunting the body for the second duty.
+  // 3E9AD759-R1 — the satisfaction clause claims only what the intake can
+  // show: filing duties are measured against the typed filing-readiness
+  // surface; a designation duty has no intake fact recording whether it is
+  // already met, so the lead says that rather than asserting "not satisfied".
   const orgAndNames = counts.attached_names.length
     ? `${org} — ${asProse(counts.attached_names)} —`
     : `${org},`;
+  const satisfactionBits: string[] = [];
+  if (counts.filing_attached > 0) {
+    satisfactionBits.push(
+      counts.satisfied === 0
+        ? (counts.filing_attached === counts.attached
+          ? "none is presently satisfied"
+          : counts.filing_attached === 1
+          ? "the filing duty is not presently satisfied"
+          : `none of the ${count(counts.filing_attached, "filing duty", "filing duties")} is presently satisfied`)
+        : `${counts.satisfied} of the ${count(counts.filing_attached, "filing duty", "filing duties")} ${counts.satisfied === 1 ? "is" : "are"} presently satisfied`,
+    );
+  }
+  if (counts.designation_attached > 0) {
+    satisfactionBits.push(
+      `whether the ${counts.designation_attached === 1 ? "designation duty is" : "designation duties are"} already met is not recorded on the intake`,
+    );
+  }
+  const satisfaction = satisfactionBits.join(", and ");
+  // "of which …" reads only off a measurable filing clause; a
+  // designation-only lead takes a plain semicolon instead.
+  const satisfactionClause = !satisfaction
+    ? "as set out below"
+    : counts.filing_attached > 0
+    ? `of which ${satisfaction}`
+    : `and ${satisfaction}`;
   return stop(
-    `On its answers, ${count(counts.attached, "registration duty attaches", "registration duties attach")} to ${orgAndNames} of which ${counts.satisfied === 0 ? "none is presently satisfied" : `${counts.satisfied} ${counts.satisfied === 1 ? "is" : "are"} presently satisfied`}${counts.reserved > 0 ? `, with ${count(counts.reserved, "further determination", "further determinations")} reserved for want of a fact the intake does not settle` : ""}`,
+    `On its answers, ${count(counts.attached, "registration duty attaches", "registration duties attach")} to ${orgAndNames} ${satisfactionClause}${counts.reserved > 0 ? `, with ${count(counts.reserved, "further determination", "further determinations")} reserved for want of a fact the intake does not settle` : ""}`,
   );
 }
 
@@ -491,6 +531,9 @@ function composeSupervisoryAnalysis(report: Bag): string {
     const bits: string[] = ["Data protection officer."];
     if (s(dpo.headline)) bits.push(stop(noStop(s(dpo.headline))));
     if (s(dpo.reasoning)) bits.push(stop(noStop(firstSentences(s(dpo.reasoning), 3))));
+    // 3E9AD759-R2 — the closing act rides its own field; the reasoning
+    // sentence budget above cannot truncate it.
+    if (s(dpo.closing_act)) bits.push(stop(noStop(s(dpo.closing_act))));
     for (const f of asArray(dpo.findings)) {
       const standard = s(f.standard);
       const application = s(f.application);
@@ -519,6 +562,14 @@ function composeSupervisoryAnalysis(report: Bag): string {
 function composeReadinessLead(report: Bag, counts: RegistrationDutyCounts, org: string): string {
   const rows = readiness(report);
   if (rows.length === 0) {
+    // 3E9AD759-R2 — when no filing-content list applies but a designation
+    // duty IS engaged, the section names the outstanding act instead of
+    // reading as an all-clear beside an engaged duty.
+    if (counts.designation_attached > 0) {
+      return stop(
+        `No filing-content list applies to ${org} on its answers; the outstanding ${counts.designation_attached === 1 ? "act recorded above is" : "acts recorded above are"} ${asProse(counts.attached_names.slice(counts.filing_attached))}`,
+      );
+    }
     return stop(
       `No filing-content list applies to ${org} on its answers, so nothing stands between the company and a filing it is not required to make`,
     );

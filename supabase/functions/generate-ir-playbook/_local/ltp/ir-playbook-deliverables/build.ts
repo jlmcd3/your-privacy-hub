@@ -362,8 +362,16 @@ export function buildDataSubjectCommunicationDetermination(
   } else if (highRisk) {
     verdict = "communication_required";
     established = true;
+    // 3E9AD759-I2 (2026-08-27, live batch 3e9ad759) — where encryption exists
+    // but the keys are recorded as compromised, the reader is told WHY the
+    // Article 34(3)(a) exemption fails, not just that no limb removes the
+    // duty: compromised keys negate the unintelligibility encryption would
+    // otherwise provide. The clause states the record's own basis.
+    const exemptionClause = f.encryption && f.keyStatus && f.keyStatus !== KEYS_SECURE && uni !== "yes"
+      ? `The Article 34(3)(a) exemption does not remove the duty: it applies only where the affected data were rendered unintelligible to any unauthorised person, and the record puts the encryption keys at "${f.keyStatus}" — a compromised or unconfirmed key defeats the unintelligibility the exemption turns on. No other Article 34(3) limb removes the duty on this record.`
+      : "No Article 34(3) limb removes the duty on this record.";
     application =
-      `Article 34(1) asks whether the breach is likely to result in a HIGH risk to the rights and freedoms of natural persons — a materially higher bar than Article 33(1)'s "a risk". On these facts the bar is reached: ${aggravating.map((x) => x.factor.toLowerCase()).join("; ")}. The consequences those facts point to fall on the individual directly, and no Article 34(3) limb removes them on this record. Communication is therefore required without undue delay, and under Article 34(2) it must describe in clear and plain language the nature of the breach and carry the Article 33(3)(b), (c) and (d) content.`;
+      `Article 34(1) asks whether the breach is likely to result in a HIGH risk to the rights and freedoms of natural persons — a materially higher bar than Article 33(1)'s "a risk". On these facts the bar is reached: ${aggravating.map((x) => x.factor.toLowerCase()).join("; ")}. The consequences those facts point to fall on the individual directly. ${exemptionClause} Communication is therefore required without undue delay, and under Article 34(2) it must describe in clear and plain language the nature of the breach and carry the Article 33(3)(b), (c) and (d) content.`;
     whyRaw =
       `Communication to the affected data subjects is required. ${plain.verbatim}`;
   } else {

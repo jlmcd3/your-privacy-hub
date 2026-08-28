@@ -59,10 +59,13 @@ Deno.test("R1 — an engaged DPO determination states its closing act without qu
   const d = buildRegistrationDeliverables(vantecorIntake() as never) as unknown as Bag;
   const dpo = d.dpo_determination as Bag;
   assert(String(dpo.verdict) === "engaged", "fixture must engage the DPO duty (Art. 37(1)(b))");
-  const reasoning = String(dpo.reasoning);
-  assertStringIncludes(reasoning, "What closes the duty is a written designation");
-  assertStringIncludes(reasoning, "communicating them to the supervisory authority");
-  assertStringIncludes(reasoning, "not yet in this product's verified corpus and is not quoted");
+  // 3E9AD759-R2 — the closing act rides its own field so the skeleton's
+  // 3-sentence reasoning budget can never truncate it (which is exactly
+  // what happened to the reasoning-appended version in batch 3e9ad759).
+  const act = String(dpo.closing_act ?? "");
+  assertStringIncludes(act, "What closes the duty is a written designation");
+  assertStringIncludes(act, "communicating them to the supervisory authority");
+  assertStringIncludes(act, "not yet in this product's verified corpus and is not quoted");
 });
 
 Deno.test("R2 — named US-state markets outside the four registries earn a corpus-bounded scope statement", () => {

@@ -212,8 +212,33 @@ export function composeBalancingAnalysis(
   if (u4.relationship_with_individual.power_imbalance) {
     againstParts.push("the relationship carries a recognised power imbalance");
   }
+  // 3E9AD759-L4 — a favourable closing carries the WHY, rendered from the
+  // verdict's own decision path (batch 3e9ad759 flagged the bare "Weighed
+  // together, the balance favours the interest pursued" as conclusory).
+  // Each clause is the negation of a guard balancingVerdict actually tested
+  // — nothing is re-judged here.
+  const passesWhy = (() => {
+    if (verdict !== "likely_passes") return "";
+    const bits: string[] = [];
+    bits.push(
+      expectations.verdict === "reasonably_expected"
+        ? "the people affected would reasonably expect the processing"
+        : "the processing sits partly within the expectations of the people affected, and the expectation shortfall does not of itself override the interest",
+    );
+    const h = u4.potential_harms;
+    const safeguards = arr(bag(intake.balancing_details).safeguards);
+    bits.push(
+      h.material_weight_against_controller
+        ? `the material weight the recorded harms carry is answered by the ${safeguards.length} recorded safeguard${safeguards.length === 1 ? "" : "s"}`
+        : `the worst-case severity recorded (${h.worst_case_severity}) does not of itself override the interest`,
+    );
+    if (u4.opt_out_feasibility.feasibility === "no_opt_out_available") {
+      bits.push("the absence of an opt-out raises the weight the safeguards must carry, and on the typed findings above they carry it");
+    }
+    return `: ${bits.join("; ")}`;
+  })();
   const closing = verdict === "likely_passes"
-    ? "Weighed together, the balance favours the interest pursued as the record stands."
+    ? `Weighed together, the balance favours the interest pursued as the record stands${passesWhy}.`
     : verdict === "likely_fails"
     ? "Weighed together, the balance favours the people affected as the record stands."
     : "Weighed together, the balance cannot be struck on the information provided.";

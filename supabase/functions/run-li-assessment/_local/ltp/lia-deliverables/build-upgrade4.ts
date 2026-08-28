@@ -95,6 +95,17 @@ function lc(s: string): string {
   return s ? `${s.charAt(0).toLowerCase()}${s.slice(1)}` : s;
 }
 
+/** 3E9AD759-L2 — the first COMPLETE sentence, stop-boundary aware: a stop
+ *  counts only when followed by whitespace or end-of-string, so a dot inside
+ *  a token ("Tenable.io", "v2.1") never truncates mid-word. Trailing stop
+ *  removed so the result can run inside a parenthetical. */
+function firstSentenceSafe(text: string, max = 260): string {
+  const t = (text ?? "").trim();
+  if (!t) return "";
+  const m = t.match(/^[\s\S]{1,260}?[.!?](?=\s|$)/);
+  return (m ? m[0] : t.slice(0, max)).trim().replace(/[.!?]$/, "");
+}
+
 // =====================================================================
 // PURPOSE STAGE
 // =====================================================================
@@ -262,14 +273,22 @@ export function buildInterestLegitimacy(intake: unknown): InterestLegitimacyFind
   const cumulative_note =
     "The three conditions are cumulative. A condition recorded as not met, or left open, is not offset by the other two; the first limb of Article 6(1)(f) fails or remains unresolved until that condition is answered.";
 
+  // QB-REPAIR-3 (2026-08-27) — live batch 510a9953 flagged the earlier
+  // imperative form as a leaked instruction; reworded to declarative.
+  // 3E9AD759-L2 (2026-08-27) — the walk names each condition and carries its
+  // own recorded reasoning (batch 3e9ad759 flagged the bare "the first
+  // condition is met, the second is met, and the third is met" as analysis
+  // that reads identically on any record). Every clause is the sub-test's
+  // OWN reasoning verbatim-trimmed — nothing is re-judged here.
+  const ordinal = ["first", "second", "third"] as const;
+  const conditionWalk = sub_tests
+    .map((t, i) => {
+      const why = firstSentenceSafe(t.reasoning);
+      return `the ${ordinal[i]} — ${t.label.charAt(0).toLowerCase()}${t.label.slice(1)} — is ${liaVerdictLabel(t.verdict)}${why ? ` (${why})` : ""}`;
+    })
+    .join("; ");
   const application =
-    // QB-REPAIR-3 (2026-08-27) — live batch 510a9953 flagged this sentence
-    // as rubric_internal_reasoning_leak and rubric_generic_boilerplate
-    // (LLM graders read "Run condition by condition" as a leaked imperative
-    // instruction, not customer-facing prose). The content was always
-    // deterministic; only the imperative voice was the defect. Reworded to
-    // a declarative statement of record — no other change.
-    `${lc(std.verbatim) ? `The Guidelines put the test cumulatively: ${std.verbatim} ` : ""}Taken condition by condition on what this record states, the first condition is ${liaVerdictLabel(sub_tests[0].verdict)}, the second is ${liaVerdictLabel(sub_tests[1].verdict)}, and the third is ${liaVerdictLabel(sub_tests[2].verdict)}. ${cumulative_note} On that basis the first limb of Article 6(1)(f) is recorded as: ${liaVerdictLabel(verdict)}.`;
+    `${lc(std.verbatim) ? `The Guidelines put the test cumulatively: ${std.verbatim} ` : ""}Taken condition by condition on what this record states, ${conditionWalk}. ${cumulative_note} On that basis the first limb of Article 6(1)(f) is recorded as: ${liaVerdictLabel(verdict)}.`;
 
   return {
     standard: std.verbatim || basis.verbatim,
@@ -487,8 +506,19 @@ export function buildAlternativesConsidered(intake: unknown): AlternativesConsid
     information_needed =
       "necessity_details.why_consent_not_used — whether consent under Article 6(1)(a) could deliver this purpose, and if not, what specifically it would fail to achieve.";
   } else {
+    // 3E9AD759-L3 — the comparison is SHOWN, not asserted: each alternative
+    // is named with its own recorded reason for inadequacy (batch 3e9ad759
+    // flagged the bare two-sentence all-clear as analysis that adds nothing
+    // to the record it summarises). Every clause is the record's own reason,
+    // verbatim-trimmed to its first sentence.
+    const walk = alternatives
+      .map((a) => {
+        const why = firstSentenceSafe(a.why_inadequate);
+        return `${a.alternative}${why ? ` — ${lc(why)}` : ""}`;
+      })
+      .join("; ");
     application =
-      `Every alternative the record names, consent included, carries a recorded reason for being inadequate. The necessity limb is therefore supported by a comparison rather than an assertion: the comparison identifies what else was available and what each option would have failed to achieve.`;
+      `Every alternative the record names, consent included, carries a recorded reason for being inadequate: ${walk}. The necessity limb is therefore supported by a comparison rather than an assertion: the comparison identifies what else was available and what each option would have failed to achieve.`;
   }
 
   return {
