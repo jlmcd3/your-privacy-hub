@@ -965,7 +965,7 @@ export function buildTransferAnalysis(intake: unknown): TransferAnalysis {
   // than guessing which legs are covered.
   const recordedTools = (Array.isArray(get(intake, "tools")) ? get(intake, "tools") as unknown[] : [])
     .map((t) => str(t)).filter(Boolean);
-  if (f.occurring === true && verdict !== "satisfied" && recordedTools.length) {
+  if (f.occurring === true && (verdict as Verdict) !== "satisfied" && recordedTools.length) {
     parts.push(
       `The tools the company has recorded in use are ${recordedTools.join(", ")}. The record states the transfer position at organisation level, not per tool, so each of those tools' transfer legs stands or falls with the mechanism position assessed above; a leg without an executed mechanism has no lawful route under the chapter identified for it.`,
     );
