@@ -65,6 +65,13 @@ export interface QualityConsoleProps {
    * /admin/quality-batch and /admin/so-final-test.
    */
   scoresAndLogFirst?: boolean;
+  /**
+   * ALL-PRODUCTS-TEST — extra products that have no quality_batch dispatch.
+   * Their test history is imported from the static-stress harness
+   * (/admin/static-stress → static_stress_jobs). Slugs use stress-harness
+   * naming, e.g. "ropa" | "us-notice" | "eu-notice".
+   */
+  extraHistoryTools?: string[];
 }
 
 // Must stay identical to RUN_QUALITY_BATCH_SLUGS in the orchestrator.
