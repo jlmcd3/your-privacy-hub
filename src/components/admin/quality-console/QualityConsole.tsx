@@ -882,12 +882,161 @@ export function QualityConsole({
   }
 
 
+  // ALL-PRODUCTS-TEST — the two monitoring cards, lifted into render functions
+  // so they can be hoisted above Panel A when scoresAndLogFirst is set.
+  const renderLogCard = () => (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>
+          Live log
+          {activeBatch && (
+            <span className="text-xs text-muted-foreground ml-2 font-mono">
+              batch {activeBatch.id.slice(0, 8)}
+            </span>
+          )}
+        </CardTitle>
+        <div className="flex items-center gap-2">
+          {logLastRefreshedAt && (
+            <span className="text-xs text-muted-foreground font-mono">
+              {new Date(logLastRefreshedAt).toLocaleTimeString()}
+            </span>
+          )}
+          <Button variant="outline" size="sm" onClick={refreshLog} disabled={logRefreshing}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${logRefreshing ? "animate-spin" : ""}`} />
+            {logRefreshing ? "Refreshing…" : "Refresh log"}
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <BatchLogView entries={batchLogs} />
+      </CardContent>
+    </Card>
+  );
+
+  const renderScoresCard = () => (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>Tools & batch scores</CardTitle>
+        <Button size="sm" variant="outline" disabled={snapshotting} onClick={onResnapshotBaseline}>
+          {snapshotting ? "Snapshotting…" : "Re-snapshot baseline"}
+        </Button>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b text-left">
+                <th className="py-2 pr-3">Tool</th>
+                <th className="py-2 pr-3">Tests (last 10)</th>
+                <th className="py-2 pr-3 bg-muted/40">Baseline</th>
+                {matrixColumns.map((b, i) => (
+                  <th
+                    key={b.id}
+                    className="py-2 pr-3 whitespace-nowrap"
+                    title={`${b.id} · ${new Date(b.started_at).toLocaleString()}`}
+                  >
+                    Batch {i + 1}
+                    <div className="text-[10px] font-normal text-muted-foreground">
+                      {new Date(b.started_at).toLocaleDateString()}
+                    </div>
+                    <div className="flex gap-1 mt-1">
+                      <button
+                        type="button"
+                        className="text-[10px] underline text-brand-teal-text hover:no-underline"
+                        onClick={() => onDownloadBatchZip(b)}
+                        title="Download PDFs (zip)"
+                      >zip</button>
+                      <button
+                        type="button"
+                        className="text-[10px] underline text-brand-teal-text hover:no-underline"
+                        onClick={() => onExportBatchMarkdown(b)}
+                        title="Export analysis (.md)"
+                      >md</button>
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {CONSOLE_TOOLS.map((tool) => {
+                const baseline = baselines.get(tool);
+                const baseAvg = baseline?.avg_score != null ? Number(baseline.avg_score) : null;
+                return (
+                  <tr key={tool} className="border-b align-top">
+                    <td className="py-2 pr-3 font-mono">{tool}</td>
+                    <td className="py-2 pr-3">{testsCount.get(tool) ?? 0}</td>
+                    <td
+                      className="py-2 pr-3 bg-muted/40 font-mono"
+                      title={baseline
+                        ? `claude ${baseline.claude_score ?? "—"} · gpt ${baseline.gpt_score ?? "—"}`
+                        : undefined}
+                    >
+                      {baseAvg == null ? "—" : baseAvg.toFixed(1)}
+                    </td>
+                    {matrixColumns.map((b) => {
+                      const results: ToolResult[] = Array.isArray(b.tool_results)
+                        ? (b.tool_results as unknown as ToolResult[]) : [];
+                      const entry = results.find((r) => r.tool === tool);
+                      if (!entry) {
+                        return <td key={b.id} className="py-2 pr-3 text-muted-foreground">—</td>;
+                      }
+                      if (entry.final_status !== "complete") {
+                        return (
+                          <td key={b.id} className="py-2 pr-3">
+                            <Badge variant={finalStatusVariant(entry.final_status)} className="h-4 text-[10px]">
+                              {entry.final_status}
+                            </Badge>
+                          </td>
+                        );
+                      }
+                      const c = entry.score_overall;
+                      const g = entry.gpt_score_overall;
+                      const parts: number[] = [];
+                      if (typeof c === "number") parts.push(c);
+                      if (typeof g === "number") parts.push(g);
+                      const avg = parts.length ? parts.reduce((a, b) => a + b, 0) / parts.length : null;
+                      const delta = avg != null && baseAvg != null ? avg - baseAvg : null;
+                      const color = delta == null ? "" :
+                        delta > 0.05 ? "text-emerald-600" :
+                        delta < -0.05 ? "text-destructive" : "text-muted-foreground";
+                      return (
+                        <td key={b.id} className="py-2 pr-3 font-mono whitespace-nowrap">
+                          {c?.toFixed?.(1) ?? "—"} / {g?.toFixed?.(1) ?? "—"}
+                          {delta != null && (
+                            <span className={`ml-1 text-[10px] ${color}`}>
+                              {delta >= 0 ? "+" : ""}{delta.toFixed(1)}
+                            </span>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
-      <div className="flex items-baseline justify-between">
-        <h1 className="text-3xl font-serif text-foreground">{title}</h1>
-        <span className="text-xs text-muted-foreground font-mono">{caption}</span>
-      </div>
+      {!scoresAndLogFirst && (
+        <div className="flex items-baseline justify-between">
+          <h1 className="text-3xl font-serif text-foreground">{title}</h1>
+          <span className="text-xs text-muted-foreground font-mono">{caption}</span>
+        </div>
+      )}
+
+      {/* ALL-PRODUCTS-TEST — hoist the monitoring cards to items 2 & 3. */}
+      {scoresAndLogFirst && (
+        <>
+          {renderScoresCard()}
+          {renderLogCard()}
+        </>
+      )}
+
 
       {/* Panel A — Run */}
       <Card>
