@@ -91,6 +91,48 @@ export function startLocalBatch(): string {
   return batch.id;
 }
 
+/**
+ * REATTACH FIX (2026-08-29): a Claude-intake batch keeps running server-side
+ * after a reload, and the reattached monitor must record into the SAME local
+ * batch column rather than opening a new one (or none at all). The column id
+ * is derived from the server batch id, so reattaching is idempotent.
+ */
+export function ensureLocalBatchFor(serverBatchId: string): string {
+  const id = `local-stress-${serverBatchId}`;
+  if (!cache.some((b) => b.id === id)) {
+    const now = new Date().toISOString();
+    cache = [...cache, { id, started_at: now, last_at: now, tools: {} }].slice(-MAX_BATCHES);
+    emit();
+  }
+  return id;
+}
+
+const SEEN_KEY = "eup.allProductsTest.localBatches.seen.v1";
+
+function seenSet(): Set<string> {
+  try {
+    const raw = localStorage.getItem(SEEN_KEY);
+    return new Set<string>(raw ? (JSON.parse(raw) as string[]) : []);
+  } catch {
+    return new Set<string>();
+  }
+}
+
+/** Returns true the FIRST time a (batch, job, kind) tuple is offered. */
+export function claimOnce(batchId: string, jobId: string, kind: "run" | "score"): boolean {
+  const key = `${batchId}|${jobId}|${kind}`;
+  const s = seenSet();
+  if (s.has(key)) return false;
+  s.add(key);
+  try {
+    localStorage.setItem(SEEN_KEY, JSON.stringify(Array.from(s).slice(-2000)));
+  } catch {
+    /* ignore */
+  }
+  return true;
+}
+
+
 /** Record one finished in-page run inside the given local batch. */
 export function recordLocalRun(batchId: string, toolSlug: string, ok: boolean) {
   mutate(batchId, toolSlug, (r) => ({
