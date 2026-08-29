@@ -14,6 +14,7 @@
 // refused up-front with the offending key paths named.
 
 import { useEffect, useMemo, useState } from "react";
+import { appendAllProductsLog, clearAllProductsLog } from "@/lib/allProductsLog";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -114,11 +115,20 @@ export function AllProductsPanel() {
   const setRow = (k: string, patch: Partial<RowState>) =>
     setState((s) => ({ ...s, [k]: { ...(s[k] ?? EMPTY), ...patch } }));
 
-  const appendLog = (k: string, msg: string) =>
+  // Every per-row line is also published to the shared run-log bus so the
+  // "Live log" card on /admin/all-products-test shows this run, not only
+  // server-side quality_batch_log rows.
+  const appendLog = (k: string, msg: string) => {
+    appendAllProductsLog(
+      k,
+      msg,
+      msg.startsWith("❌") ? "error" : msg.startsWith("✅") ? "success" : "info",
+    );
     setState((s) => {
       const row = s[k] ?? EMPTY;
       return { ...s, [k]: { ...row, log: [...row.log, msg].slice(-200) } };
     });
+  };
 
   const toggle = (k: string) =>
     setSelected((s) => {
@@ -145,6 +155,11 @@ export function AllProductsPanel() {
     }
 
     setBusy(true);
+    clearAllProductsLog();
+    appendAllProductsLog(
+      "batch",
+      `▶ starting ${queue.length} product(s) × ${batchNumber} run(s)`,
+    );
     const totalRuns = queue.length * batchNumber;
     for (const f of queue) setRow(fixtureKey(f), { status: "queued", log: [], resultUrl: null });
     let ok = 0;

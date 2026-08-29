@@ -32,6 +32,7 @@ import { CertificationStatusPanel } from "@/components/admin/CertificationStatus
 import { SLUG_TO_TOOL_TYPE, generationModelSlug, DEFAULT_GENERATION_MODEL, AB_ALT_GENERATION_MODEL } from "@/lib/qualityBatchTools";
 import { ModelPairTable } from "@/components/admin/quality-console/ModelPairTable";
 import { PINS_MODE_OPTIONS, type PinsMode } from "@/lib/pinsMode";
+import { useAllProductsLog, clearAllProductsLog } from "@/lib/allProductsLog";
 
 // ITEM 325 — fixture variant. "perfect" is the ratified golden set; "messy"
 // is the (not-yet-authored) realistic-input set. See
@@ -72,6 +73,11 @@ export interface QualityConsoleProps {
    * naming, e.g. "ropa" | "us-notice" | "eu-notice".
    */
   extraHistoryTools?: string[];
+  /**
+   * ALL-PRODUCTS-TEST — also show the in-page run log published by
+   * AllProductsPanel (src/lib/allProductsLog.ts) inside the Live log card.
+   */
+  showLocalRunLog?: boolean;
 }
 
 // Must stay identical to RUN_QUALITY_BATCH_SLUGS in the orchestrator.
@@ -226,6 +232,7 @@ export function QualityConsole({
   toolsOverride,
   scoresAndLogFirst = false,
   extraHistoryTools,
+  showLocalRunLog = false,
 
 }: QualityConsoleProps = {}) {
   // SO-FINAL-TEST — this console's tool universe and its row partition.
@@ -268,6 +275,12 @@ export function QualityConsole({
   // ALL-PRODUCTS-TEST — imported history for products with no quality batch.
   type StressHistory = { total: number; complete: number; failed: number; lastAt: string | null };
   const [stressHistory, setStressHistory] = useState<Map<string, StressHistory>>(new Map());
+  // ALL-PRODUCTS-TEST — in-page run log published by AllProductsPanel.
+  const localLog = useAllProductsLog();
+  const localLogRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (localLogRef.current) localLogRef.current.scrollTop = localLogRef.current.scrollHeight;
+  }, [localLog.length]);
 
   // Resume + Recent quality_runs card state (unchanged)
   const [resumeId, setResumeId] = useState("");
@@ -954,7 +967,52 @@ export function QualityConsole({
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        {/* ALL-PRODUCTS-TEST — runs started from the panel above are local
+            (insert/invoke/poll) and never write quality_batch_log, so show
+            their live lines here too. */}
+        {showLocalRunLog && (
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-medium">
+                This page — sample data + live generation
+              </div>
+              {localLog.length > 0 && (
+                <Button variant="ghost" size="sm" onClick={clearAllProductsLog}>
+                  Clear
+                </Button>
+              )}
+            </div>
+            {localLog.length === 0 ? (
+              <div className="text-xs text-muted-foreground italic">
+                No run started on this page yet.
+              </div>
+            ) : (
+              <div
+                ref={localLogRef}
+                className="max-h-64 overflow-y-auto rounded border bg-muted/30 p-2 space-y-1 font-mono text-[11px]"
+              >
+                {localLog.map((l, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <span className="text-muted-foreground shrink-0">
+                      {new Date(l.t).toLocaleTimeString()}
+                    </span>
+                    <Badge
+                      variant={l.level === "error" ? "destructive" : "secondary"}
+                      className="shrink-0 h-4 px-1 text-[9px]"
+                    >
+                      {l.source}
+                    </Badge>
+                    <span className="break-all whitespace-pre-wrap">{l.msg}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {showLocalRunLog && (
+          <div className="text-xs font-medium">Batch orchestrator log</div>
+        )}
         <BatchLogView entries={batchLogs} />
       </CardContent>
     </Card>

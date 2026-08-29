@@ -30,6 +30,7 @@ export default function AllProductsTest() {
         graderMode="skeleton"
         toolsOverride={SO_SKELETON_TOOLS}
         scoresAndLogFirst
+        showLocalRunLog
         // Products with no SO batch dispatch — history imported from the
         // static-stress harness so every testable product has a row.
         extraHistoryTools={["dpa", "ropa", "us-notice", "eu-notice"]}
