@@ -33,7 +33,7 @@ import { SLUG_TO_TOOL_TYPE, generationModelSlug, DEFAULT_GENERATION_MODEL, AB_AL
 import { ModelPairTable } from "@/components/admin/quality-console/ModelPairTable";
 import { PINS_MODE_OPTIONS, type PinsMode } from "@/lib/pinsMode";
 import { useAllProductsLog, clearAllProductsLog } from "@/lib/allProductsLog";
-import { useLocalRunHistory } from "@/lib/allProductsRunHistory";
+import { useLocalBatches, type LocalBatch, type LocalToolResult } from "@/lib/allProductsRunHistory";
 
 // ITEM 325 — fixture variant. "perfect" is the ratified golden set; "messy"
 // is the (not-yet-authored) realistic-input set. See
@@ -280,7 +280,7 @@ export function QualityConsole({
   const localLog = useAllProductsLog();
   // ALL-PRODUCTS-TEST — pass/fail tally for pre-set-package runs executed
   // in-page (they write no server-side batch or stress row).
-  const localRunHistory = useLocalRunHistory();
+  const localBatches = useLocalBatches();
   const localLogRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (localLogRef.current) localLogRef.current.scrollTop = localLogRef.current.scrollHeight;
@@ -650,10 +650,42 @@ export function QualityConsole({
   const totalCount = activeBatch?.tools.length ?? 0;
 
   // ─── Score matrix data ───────────────────────────────────────────────────
-  const matrixColumns = useMemo(() => {
-    // Oldest → newest
-    return [...recentBatches].sort((a, b) => (a.started_at < b.started_at ? -1 : 1));
-  }, [recentBatches]);
+  // BATCH LAW — server batches first (oldest → newest), then every in-page
+  // local batch as its OWN column appended to the right. A local run is never
+  // folded into a pre-existing batch column.
+  type MatrixColumn =
+    | { kind: "server"; id: string; started_at: string; batch: BatchRow }
+    | { kind: "local"; id: string; started_at: string; batch: LocalBatch };
+
+  const matrixColumns = useMemo<MatrixColumn[]>(() => {
+    const server: MatrixColumn[] = [...recentBatches]
+      .sort((a, b) => (a.started_at < b.started_at ? -1 : 1))
+      .map((b) => ({ kind: "server" as const, id: b.id, started_at: b.started_at, batch: b }));
+    const local: MatrixColumn[] = [...localBatches]
+      .sort((a, b) => (a.started_at < b.started_at ? -1 : 1))
+      .map((b) => ({ kind: "local" as const, id: b.id, started_at: b.started_at, batch: b }));
+    return [...server, ...local];
+  }, [recentBatches, localBatches]);
+
+  function renderLocalCell(key: string, r: LocalToolResult | undefined) {
+    if (!r || r.total === 0) {
+      return <td key={key} className="py-2 pr-3 text-muted-foreground">—</td>;
+    }
+    const c = r.scored ? r.claudeSum / r.scored : null;
+    const g = r.scored ? r.gptSum / r.scored : null;
+    return (
+      <td key={key} className="py-2 pr-3 font-mono text-xs whitespace-nowrap">
+        {c != null || g != null ? (
+          <span>{c?.toFixed(1) ?? "—"} / {g?.toFixed(1) ?? "—"}</span>
+        ) : (
+          <span className="text-muted-foreground">ungraded</span>
+        )}
+        <span className="ml-1 font-sans text-[10px] text-muted-foreground">
+          {r.complete}✓{r.failed ? ` ${r.failed}✗` : ""}
+        </span>
+      </td>
+    );
+  }
 
   const testsCount = useMemo(() => {
     const m = new Map<string, number>();
@@ -662,8 +694,11 @@ export function QualityConsole({
       const results: ToolResult[] = Array.isArray(b.tool_results) ? (b.tool_results as unknown as ToolResult[]) : [];
       for (const r of results) m.set(r.tool, (m.get(r.tool) ?? 0) + 1);
     }
+    for (const b of localBatches) {
+      for (const [tool, r] of Object.entries(b.tools)) m.set(tool, (m.get(tool) ?? 0) + r.total);
+    }
     return m;
-  }, [recentBatches]);
+  }, [recentBatches, localBatches]);
 
   async function onResnapshotBaseline() {
     if (!window.confirm("Replace baseline with the average of ALL stored batch results (unbounded)?")) return;
@@ -1038,30 +1073,33 @@ export function QualityConsole({
                 <th className="py-2 pr-3">Tool</th>
                 <th className="py-2 pr-3">Tests (last 10)</th>
                 <th className="py-2 pr-3 bg-muted/40">Baseline</th>
-                {matrixColumns.map((b, i) => (
+                {matrixColumns.map((col, i) => (
                   <th
-                    key={b.id}
+                    key={col.id}
                     className="py-2 pr-3 whitespace-nowrap"
-                    title={`${b.id} · ${new Date(b.started_at).toLocaleString()}`}
+                    title={`${col.id} · ${new Date(col.started_at).toLocaleString()}`}
                   >
                     Batch {i + 1}
                     <div className="text-[10px] font-normal text-muted-foreground">
-                      {new Date(b.started_at).toLocaleDateString()}
+                      {new Date(col.started_at).toLocaleDateString()}
+                      {col.kind === "local" ? " · in-page" : ""}
                     </div>
-                    <div className="flex gap-1 mt-1">
-                      <button
-                        type="button"
-                        className="text-[10px] underline text-brand-teal-text hover:no-underline"
-                        onClick={() => onDownloadBatchZip(b)}
-                        title="Download PDFs (zip)"
-                      >zip</button>
-                      <button
-                        type="button"
-                        className="text-[10px] underline text-brand-teal-text hover:no-underline"
-                        onClick={() => onExportBatchMarkdown(b)}
-                        title="Export analysis (.md)"
-                      >md</button>
-                    </div>
+                    {col.kind === "server" ? (
+                      <div className="flex gap-1 mt-1">
+                        <button
+                          type="button"
+                          className="text-[10px] underline text-brand-teal-text hover:no-underline"
+                          onClick={() => onDownloadBatchZip(col.batch)}
+                          title="Download PDFs (zip)"
+                        >zip</button>
+                        <button
+                          type="button"
+                          className="text-[10px] underline text-brand-teal-text hover:no-underline"
+                          onClick={() => onExportBatchMarkdown(col.batch)}
+                          title="Export analysis (.md)"
+                        >md</button>
+                      </div>
+                    ) : null}
                   </th>
                 ))}
               </tr>
@@ -1082,7 +1120,11 @@ export function QualityConsole({
                     >
                       {baseAvg == null ? "—" : baseAvg.toFixed(1)}
                     </td>
-                    {matrixColumns.map((b) => {
+                    {matrixColumns.map((col) => {
+                      if (col.kind === "local") {
+                        return renderLocalCell(col.id, col.batch.tools[tool]);
+                      }
+                      const b = col.batch;
                       const results: ToolResult[] = Array.isArray(b.tool_results)
                         ? (b.tool_results as unknown as ToolResult[]) : [];
                       const entry = results.find((r) => r.tool === tool);
