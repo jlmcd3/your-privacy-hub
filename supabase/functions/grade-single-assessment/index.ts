@@ -188,7 +188,7 @@ Return ONLY valid JSON of this exact shape:
 // GRADER-CAL-1 A1 — formatting weight zeroed; the 5pp rolls into hallucination
 // so leaks (now scored under hallucination) exert stronger overall pull.
 const NON_EDITORIAL_WEIGHTS = { accuracy: 0.30, citation: 0.25, hallucination: 0.25, analysis: 0.15, intelligence: 0.05, formatting: 0 };
-function weightsFor(_tool: QL3Tool) {
+function weightsFor(_tool: GradedTool) {
   return NON_EDITORIAL_WEIGHTS;
 }
 // ---- END verbatim copy ----
@@ -223,7 +223,7 @@ async function gptCall(system: string, user: string, maxTokens = 3000): Promise<
 
 function tryParse(s: string): any { try { return JSON.parse(s); } catch { const m = s.match(/\{[\s\S]*\}/); return m ? (() => { try { return JSON.parse(m[0]); } catch { return null; } })() : null; } }
 
-function computeOverall(scores: any, tool: QL3Tool): number {
+function computeOverall(scores: any, tool: GradedTool): number {
   const w = weightsFor(tool);
   return Math.round(
     (scores.accuracy ?? 60) * w.accuracy +
@@ -235,12 +235,12 @@ function computeOverall(scores: any, tool: QL3Tool): number {
   );
 }
 
-async function gradeOne(role: "claude" | "gpt", tool: QL3Tool, intake: any, report: any) {
+async function gradeOne(role: "claude" | "gpt", tool: GradedTool, intake: any, report: any) {
   const sys = buildRubricSystemPrompt(role);
   // QLB-F3: body-first, metadata-stripped, equal budget across models.
-  const family = familyForSingleTool(tool);
+  const family = familyForSingleTool(tool as QL3Tool);
   const payload = family
-    ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET, { fixtureSet: matchFixtureSet(tool, intake) })
+    ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET, { fixtureSet: matchFixtureSet(tool as QL3Tool, intake) })
     : { text: JSON.stringify(report ?? {}).slice(0, GRADER_PAYLOAD_BUDGET), truncated: false, original_length: 0 };
   if (payload.truncated) {
     console.warn(`[grade-single-assessment] payload_truncated tool=${tool} role=${role} original_length=${payload.original_length} budget=${GRADER_PAYLOAD_BUDGET}`);
