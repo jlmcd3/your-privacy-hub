@@ -35,9 +35,14 @@ function textFor(over: Bag = {}): string {
 
 // ── Registry shape ──────────────────────────────────────────────────────────
 
-Deno.test("IR-F2: exactly CA/TX/NY are gated this tranche, each verified and citing its own code", () => {
-  assertEquals(Object.keys(STATE_WALK_GATES).sort(), ["California", "New York", "Texas"]);
-  for (const [state, g] of Object.entries(STATE_WALK_GATES)) {
+// Full registry-wide assertions (key set, minimum shape) now live in
+// irf-tranche3-state-gates.test.ts, which covers all 11 gated states —
+// tranche 3 added 8 more with a different minimum element-limb count (2,
+// not 3) and one citation style (815 ILCS) that doesn't use "§". This test
+// stays scoped to the three states tranche 2 actually verified.
+Deno.test("IR-F2: CA/TX/NY are verified and citing their own code", () => {
+  for (const state of ["California", "New York", "Texas"] as const) {
+    const g = STATE_WALK_GATES[state];
     assertEquals(g.verified_on, "2026-08-29", state);
     assert(g.element_limbs.length >= 3, state);
     assert(g.breach_definition.includes("§"), state);
@@ -123,7 +128,11 @@ Deno.test("IR-F2: full encryption with safe keys supports the per-state position
 });
 
 Deno.test("IR-F2: an ungated state keeps the generic walk only", () => {
-  const text = textFor({ jurisdictions: ["Colorado"] });
+  // Tranche 3 gated all 11 named states in the IR intake's jurisdiction
+  // enum, so "Other US State" (the intake's own honest-unknown value,
+  // matched by isUsStateJurisdiction() but never a STATE_WALK_GATES key)
+  // is the only remaining case with no per-state paragraph.
+  const text = textFor({ jurisdictions: ["Other US State"] });
   assertStringIncludes(text, "four things are reviewed");
   assert(!text.includes("'s law applies to this incident."), "no per-state paragraph for an ungated state");
 });
