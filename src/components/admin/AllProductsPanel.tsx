@@ -15,6 +15,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { appendAllProductsLog, clearAllProductsLog } from "@/lib/allProductsLog";
+import { recordLocalRun } from "@/lib/allProductsRunHistory";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
