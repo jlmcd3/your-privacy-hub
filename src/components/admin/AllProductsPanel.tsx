@@ -18,6 +18,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -241,6 +243,24 @@ export function AllProductsPanel() {
             fixed.
           </div>
         )}
+
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="w-40">
+            <Label htmlFor="batch-number">Batch number (runs per product)</Label>
+            <Input
+              id="batch-number"
+              type="number"
+              min={1}
+              max={20}
+              value={batchNumber}
+              disabled={busy}
+              onChange={(e) => setBatchNumber(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Each selected product will generate this many sample runs.
+          </p>
+        </div>
 
         <div className="divide-y rounded border">
           {fixtures.map((f) => {
