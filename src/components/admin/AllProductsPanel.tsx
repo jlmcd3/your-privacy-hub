@@ -155,6 +155,11 @@ export function AllProductsPanel() {
     }
 
     setBusy(true);
+    clearAllProductsLog();
+    appendAllProductsLog(
+      "batch",
+      `▶ starting ${queue.length} product(s) × ${batchNumber} run(s)`,
+    );
     const totalRuns = queue.length * batchNumber;
     for (const f of queue) setRow(fixtureKey(f), { status: "queued", log: [], resultUrl: null });
     let ok = 0;
