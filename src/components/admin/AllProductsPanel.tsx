@@ -69,6 +69,9 @@ export function AllProductsPanel() {
   const [state, setState] = useState<Record<string, RowState>>({});
   const [busy, setBusy] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+  // BATCH NUMBER — how many sample runs to generate per selected product.
+  // Mirrors the "Batch size" control in the skeleton console below; default 1.
+  const [batchNumber, setBatchNumber] = useState<number>(1);
   // "-supplemental" fixtures are second-pass (regeneration / supplemental
   // capture) variants of the SAME products, not extra products. Hidden by
   // default so the list is one row per shipped product variant.
@@ -140,24 +143,30 @@ export function AllProductsPanel() {
     }
 
     setBusy(true);
+    const totalRuns = queue.length * batchNumber;
     for (const f of queue) setRow(fixtureKey(f), { status: "queued", log: [], resultUrl: null });
     let ok = 0;
+    let attempted = 0;
     for (const f of queue) {
       const k = fixtureKey(f);
       setRow(k, { status: "running" });
-      appendLog(k, `▶ ${f.title}`);
-      try {
-        const out = await runGenerator(f, user.id, (m) => appendLog(k, m));
-        setRow(k, { status: "complete", resultUrl: out.resultUrl, sourceRowId: out.sourceRowId });
-        appendLog(k, `✅ complete — ${out.resultUrl}`);
-        ok += 1;
-      } catch (e) {
-        appendLog(k, `❌ ${(e as Error).message}`);
-        setRow(k, { status: "failed" });
+      for (let i = 1; i <= batchNumber; i++) {
+        const runLabel = batchNumber > 1 ? ` [run ${i}/${batchNumber}]` : "";
+        appendLog(k, `▶ ${f.title}${runLabel}`);
+        attempted += 1;
+        try {
+          const out = await runGenerator(f, user.id, (m) => appendLog(k, m));
+          ok += 1;
+          appendLog(k, `✅ complete${runLabel} — ${out.resultUrl}`);
+          setRow(k, { status: "complete", resultUrl: out.resultUrl, sourceRowId: out.sourceRowId });
+        } catch (e) {
+          appendLog(k, `❌${runLabel} ${(e as Error).message}`);
+          setRow(k, { status: "failed" });
+        }
       }
     }
     setBusy(false);
-    toast[ok === queue.length ? "success" : "error"](`${ok}/${queue.length} product runs completed`);
+    toast[ok === totalRuns ? "success" : "error"](`${ok}/${totalRuns} runs completed`);
   }
 
   function runPreflightOnly() {
