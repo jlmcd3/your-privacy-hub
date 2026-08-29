@@ -48,6 +48,8 @@ import {
   launchClaudeIntakeBatch,
   fetchClaudeBatchJobs,
   fetchClaudeBatchStatus,
+  cancelClaudeBatch,
+
 } from "@/lib/claudeIntake";
 
 /** Products covered by the skeleton-graded SO batch above this panel. */
