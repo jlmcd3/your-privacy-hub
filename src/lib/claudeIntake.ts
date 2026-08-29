@@ -16,8 +16,11 @@ import { invokeWithTimeout } from "@/lib/sampleGenerators";
 // froze the page's progress display even though the batch kept running
 // server-side. Every await in this module now settles within a bounded time;
 // the monitor's per-iteration try/catch turns a timeout into a logged retry.
-function raceTimeout<T>(p: Promise<T>, ms: number, what: string): Promise<T> {
-  void p.catch(() => {});
+function raceTimeout<T>(p: PromiseLike<T>, ms: number, what: string): Promise<T> {
+  // Supabase query builders are PromiseLike (thenable) but lack .catch/.finally —
+  // normalize through Promise.resolve so the timeout wrapper always works.
+  const real = Promise.resolve(p);
+  void real.catch(() => {});
   let timer: ReturnType<typeof setTimeout> | undefined;
   const t = new Promise<never>((_, reject) => {
     timer = setTimeout(() => reject(new Error(`${what} timed out after ${Math.round(ms / 1000)}s`)), ms);
