@@ -420,7 +420,9 @@ export function AllProductsPanel() {
             />
           </div>
           <p className="text-xs text-muted-foreground">
-            Each selected product will generate this many sample runs.
+            {intakeSource === "claude"
+              ? "Claude generates this many companies per geography (US and EU), each run against every selected product."
+              : "Each selected product will generate this many sample runs."}
           </p>
         </div>
 
