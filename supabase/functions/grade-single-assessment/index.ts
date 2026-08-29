@@ -283,7 +283,8 @@ function stripHtml(html: string): string {
  * products. Returns null when the run cannot be graded yet (not generated).
  */
 async function fetchSessionShaped(
-  admin: ReturnType<typeof createClient>,
+  // deno-lint-ignore no-explicit-any
+  admin: any,
   tool: SessionTool,
   id: string,
 ): Promise<{ id: string; intake: unknown; report: unknown } | { error: string; status: number }> {
