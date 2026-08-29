@@ -1165,18 +1165,10 @@ export function QualityConsole({
                 );
               })}
               {(extraHistoryTools ?? []).map((tool) => {
-                const s = stressHistory.get(tool);
-                const l = localRunHistory[tool];
-                // Merge the two ungraded sources: Claude-intake jobs recorded
-                // server-side (static_stress_jobs) and pre-set-package runs
-                // executed in this page (no server row of their own).
-                const total = (s?.total ?? 0) + (l?.total ?? 0);
-                const complete = (s?.complete ?? 0) + (l?.complete ?? 0);
-                const failed = (s?.failed ?? 0) + (l?.failed ?? 0);
-                const lastAt = [s?.lastAt, l?.lastAt].filter(Boolean).sort().pop() ?? null;
-                const scored = l?.scored ?? 0;
-                const claudeAvg = scored ? (l!.claudeSum ?? 0) / scored : null;
-                const gptAvg = scored ? (l!.gptSum ?? 0) / scored : null;
+                const st = stressHistory.get(tool);
+                const localTotal = localBatches.reduce(
+                  (n, b) => n + (b.tools[tool]?.total ?? 0), 0);
+                const total = (st?.total ?? 0) + localTotal;
                 return (
                   <tr key={tool} className="border-b align-top bg-muted/10">
                     <td className="py-2 pr-3 font-mono">
@@ -1185,40 +1177,22 @@ export function QualityConsole({
                         stress harness + in-page · Claude/GPT graded
                       </div>
                     </td>
-                    <td className="py-2 pr-3">{total}</td>
+                    <td
+                      className="py-2 pr-3"
+                      title={st
+                        ? `stress harness: ${st.total} run(s), ${st.complete} complete, ${st.failed} failed${st.lastAt ? ` · last ${new Date(st.lastAt).toLocaleString()}` : ""}`
+                        : undefined}
+                    >
+                      {total}
+                    </td>
                     <td className="py-2 pr-3 bg-muted/40 text-muted-foreground">n/a</td>
-                    {matrixColumns.length > 0 ? (
-                      <td className="py-2 pr-3 text-xs" colSpan={matrixColumns.length}>
-                        {total > 0 ? (
-                          <>
-                            <span className="font-mono">
-                              {claudeAvg?.toFixed(1) ?? "—"} / {gptAvg?.toFixed(1) ?? "—"}
-                            </span>
-                            <span className="ml-2 text-muted-foreground">
-                              {scored ? `${scored} graded` : "not yet graded"}
-                            </span>
-                            <span className="ml-2">
-                              {complete} complete · {failed} failed
-                            </span>
-                            {l?.total ? (
-                              <span className="ml-2 text-muted-foreground">
-                                ({l.total} in-page)
-                              </span>
-                            ) : null}
-                            {lastAt && (
-                              <span className="ml-2 text-muted-foreground">
-                                last {new Date(lastAt).toLocaleString()}
-                              </span>
-                            )}
-                          </>
-                        ) : (
-                          <span className="text-muted-foreground">no run history</span>
-                        )}
-                      </td>
-                    ) : null}
+                    {matrixColumns.map((col) =>
+                      col.kind === "local"
+                        ? renderLocalCell(col.id, col.batch.tools[tool])
+                        : <td key={col.id} className="py-2 pr-3 text-muted-foreground">—</td>,
+                    )}
                   </tr>
                 );
-
               })}
             </tbody>
           </table>
