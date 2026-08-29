@@ -17,6 +17,8 @@ import type { ToolSlug } from "@/lib/sampleFixtures";
 
 export interface RunOutcome {
   id: string;
+  /** Local batch column this run belongs to (drives per-batch zip/md exports). */
+  batchId?: string | null;
   startedAt: string;
   finishedAt: string | null;
   tool_slug: ToolSlug;
