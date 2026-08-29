@@ -15,6 +15,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { appendAllProductsLog, clearAllProductsLog } from "@/lib/allProductsLog";
+import { recordLocalRun } from "@/lib/allProductsRunHistory";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -272,9 +273,11 @@ export function AllProductsPanel() {
           ok += 1;
           appendLog(k, `✅ complete${runLabel} — ${out.resultUrl}`);
           setRow(k, { status: "complete", resultUrl: out.resultUrl, sourceRowId: out.sourceRowId });
+          recordLocalRun(SLUG_TO_STRESS_TOOL[f.tool_slug], true);
         } catch (e) {
           appendLog(k, `❌${runLabel} ${(e as Error).message}`);
           setRow(k, { status: "failed" });
+          recordLocalRun(SLUG_TO_STRESS_TOOL[f.tool_slug], false);
         }
       }
     }
