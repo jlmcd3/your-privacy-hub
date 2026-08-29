@@ -260,6 +260,107 @@ async function gradeOne(role: "claude" | "gpt", tool: GradedTool, intake: any, r
 function isKnownTool(x: unknown): x is QL3Tool {
   return typeof x === "string" && (KNOWN_TOOL_SLUGS as readonly string[]).includes(x);
 }
+function isSessionTool(x: unknown): x is SessionTool {
+  return typeof x === "string" && (SESSION_TOOL_SLUGS as readonly string[]).includes(x);
+}
+
+function stripHtml(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+/**
+ * ALL-PRODUCTS GRADING — fetch intake + report for the session-shaped
+ * products. Returns null when the run cannot be graded yet (not generated).
+ */
+async function fetchSessionShaped(
+  admin: ReturnType<typeof createClient>,
+  tool: SessionTool,
+  id: string,
+): Promise<{ id: string; intake: unknown; report: unknown } | { error: string; status: number }> {
+  if (tool === "ropa") {
+    // Callers may pass the session id OR a document-version id.
+    let sessionId = id;
+    let { data: session } = await admin
+      .from("ropa_sessions")
+      .select("id, status, org_name, client_id, register_document")
+      .eq("id", id)
+      .maybeSingle();
+    if (!session) {
+      const { data: ver } = await admin
+        .from("ropa_document_versions")
+        .select("session_id")
+        .eq("id", id)
+        .maybeSingle();
+      if (!ver) return { error: "assessment_not_found", status: 404 };
+      sessionId = (ver as Record<string, unknown>).session_id as string;
+      const res = await admin
+        .from("ropa_sessions")
+        .select("id, status, org_name, client_id, register_document")
+        .eq("id", sessionId)
+        .maybeSingle();
+      session = res.data;
+    }
+    if (!session) return { error: "assessment_not_found", status: 404 };
+    const s = session as Record<string, unknown>;
+    if (!s.register_document) return { error: "assessment_not_generated", status: 400 };
+    const [{ data: profile }, { data: activities }, { data: answers }, { data: jur }] = await Promise.all([
+      admin.from("ropa_client_profiles").select("*").eq("client_id", s.client_id as string).maybeSingle(),
+      admin.from("ropa_processing_activities").select("id, display_name, category, template_key").eq("session_id", s.id as string),
+      admin.from("ropa_answers").select("activity_id, question_key, answer_value").eq("session_id", s.id as string),
+      admin.from("ropa_jurisdiction_selections").select("jurisdiction_code").eq("session_id", s.id as string),
+    ]);
+    return {
+      id: s.id as string,
+      intake: { org_name: s.org_name, profile, jurisdictions: jur, activities, answers },
+      report: s.register_document,
+    };
+  }
+
+  // US / EU notice: intake from session + answers + selections; report text
+  // is the generated HTML pulled back out of the private bucket.
+  const sessionTable = tool === "us-notice" ? "us_notice_sessions" : "eu_notice_sessions";
+  const answersTable = tool === "us-notice" ? "us_notice_answers" : "eu_notice_answers";
+  const docsTable = tool === "us-notice" ? "us_notice_documents" : "eu_notice_documents";
+  const selTable = tool === "us-notice" ? "us_notice_state_selections" : "eu_notice_framework_selections";
+  const bucket = tool === "us-notice" ? "us-notices" : "eu-notices";
+
+  const { data: session } = await admin.from(sessionTable).select("*").eq("id", id).maybeSingle();
+  if (!session) return { error: "assessment_not_found", status: 404 };
+  const [{ data: answers }, { data: selections }, { data: docs }] = await Promise.all([
+    admin.from(answersTable).select("question_key, answer_value").eq("session_id", id),
+    admin.from(selTable).select("*").eq("session_id", id),
+    admin.from(docsTable).select("file_path, document_format, is_combined, is_current").eq("session_id", id).eq("is_current", true),
+  ]);
+  const docRows = (docs ?? []) as Array<Record<string, unknown>>;
+  if (docRows.length === 0) return { error: "assessment_not_generated", status: 400 };
+  // Prefer the combined suite document; fall back to every current document.
+  const chosen = docRows.filter((d) => d.is_combined) .length > 0
+    ? docRows.filter((d) => d.is_combined)
+    : docRows;
+  const parts: string[] = [];
+  for (const d of chosen) {
+    const { data: file } = await admin.storage.from(bucket).download(d.file_path as string);
+    if (!file) continue;
+    parts.push(stripHtml(await file.text()));
+  }
+  if (parts.length === 0) return { error: "assessment_not_generated", status: 400 };
+  return {
+    id,
+    intake: { session, answers, selections },
+    report: { document_text: parts.join("\n\n---\n\n") },
+  };
+}
+
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
