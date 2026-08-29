@@ -20,11 +20,15 @@ export interface LocalRunHistoryEntry {
   complete: number;
   failed: number;
   lastAt: string | null;
+  /** Dual-model grading (grade-single-assessment): running sums + count. */
+  scored?: number;
+  claudeSum?: number;
+  gptSum?: number;
 }
 
 export type LocalRunHistory = Record<string, LocalRunHistoryEntry>;
 
-const KEY = "eup.allProductsTest.localRunHistory.v1";
+const KEY = "eup.allProductsTest.localRunHistory.v2";
 
 let cache: LocalRunHistory = load();
 const listeners = new Set<(h: LocalRunHistory) => void>();
@@ -56,6 +60,26 @@ export function recordLocalRun(toolSlug: string, ok: boolean) {
       complete: prev.complete + (ok ? 1 : 0),
       failed: prev.failed + (ok ? 0 : 1),
       lastAt: new Date().toISOString(),
+    },
+  };
+  persist();
+  for (const fn of listeners) fn(cache);
+}
+
+/**
+ * Record a Claude + GPT grading result for one finished in-page run, so the
+ * scores card shows real dual-model numbers for every product.
+ */
+export function recordLocalScore(toolSlug: string, claude: number | null, gpt: number | null) {
+  if (claude == null && gpt == null) return;
+  const prev = cache[toolSlug] ?? { total: 0, complete: 0, failed: 0, lastAt: null };
+  cache = {
+    ...cache,
+    [toolSlug]: {
+      ...prev,
+      scored: (prev.scored ?? 0) + 1,
+      claudeSum: (prev.claudeSum ?? 0) + (claude ?? 0),
+      gptSum: (prev.gptSum ?? 0) + (gpt ?? 0),
     },
   };
   persist();
