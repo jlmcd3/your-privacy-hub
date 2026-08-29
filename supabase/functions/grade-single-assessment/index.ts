@@ -456,7 +456,7 @@ const handler = async (req: Request): Promise<Response> => {
   catch (e) { gptErr = (e as Error).message; }
 
   const payload = {
-    assessment_id: rowAny.id,
+    assessment_id: gradedId,
     fixture_label: body.fixture_label ?? "believed_fixture",
     graded_at: new Date().toISOString(),
     graded_by: userId,
