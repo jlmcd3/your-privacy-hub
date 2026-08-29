@@ -87,6 +87,13 @@ export function AllProductsPanel() {
   // capture) variants of the SAME products, not extra products. Hidden by
   // default so the list is one row per shipped product variant.
   const [showSupplemental, setShowSupplemental] = useState(false);
+  // INTAKE SOURCE — "preset" uses the canonical sample package (SAMPLE_FIXTURES);
+  // "claude" runs the products against Claude-generated intake produced by
+  // generate-stress-fixtures, exactly as /admin/static-stress does.
+  const [intakeSource, setIntakeSource] = useState<"preset" | "claude">("preset");
+  const [industryId, setIndustryId] = useState<string>(STRESS_INDUSTRIES[0].id);
+  const [claudeBatchId, setClaudeBatchId] = useState<string | null>(null);
+
 
   const fixtures = useMemo(() => {
     const order = [...EXTENDED_SLUGS, ...SO_COVERED_SLUGS];
