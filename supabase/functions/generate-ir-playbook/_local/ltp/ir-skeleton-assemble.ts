@@ -480,10 +480,11 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
   const duties = asArray(report.notification_duties);
   // D1D2B3B8-I1 — a record with no GDPR-family duty set gets the analysis of
   // the duties it ACTUALLY engages: the recorded jurisdictions' own statutory
-  // clocks (typed, registry-sourced state duty rows), stated with their
-  // citations, plus the honest corpus posture for recorded frameworks whose
-  // operative text is not in the verified corpus (HIPAA). The old behaviour
+  // clocks (typed, registry-sourced state duty rows). The old behaviour
   // composed nothing here and let the EU-default duty set speak instead.
+  // IR-E Phase 3a (2026-08-29, doc 102) — HIPAA's duties now ride the same
+  // state_notification_duties rows (hipaa-duties.ts), so they render via the
+  // loop below like any other jurisdiction; no separate HIPAA carve-out.
   if (duties.length === 0) {
     const blocks: string[] = [];
     blocks.push(
@@ -499,11 +500,17 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
         stop(`${state}: ${individual}${regulator ? `, together with ${regulator}` : ""}${citation ? ` (${citation})` : ""}`),
       );
     }
-    if (arr(intake.jurisdictions).some((j) => /hipaa/i.test(j))) {
-      blocks.push(
-        "United States (HIPAA) is recorded. The HIPAA Breach Notification Rule's operative text is not in this product's verified corpus, so its clocks are not quoted here; where the record's own contractual entries name the HHS Office for Civil Rights or a business-associate notice window, those entries carry the recorded deadlines and appear with the contractual clocks below.",
-      );
-    }
+    // IR-E Phase 3a (2026-08-29, doc 102) — REMOVED the "HIPAA's operative
+    // text is not in this product's verified corpus" placeholder that used
+    // to render here whenever `jurisdictions` named HIPAA. It is now false:
+    // hipaa-duties.ts carries the verified 45 C.F.R. §§ 164.404/406/408/410
+    // text, and buildHipaaDuties() is gated on the SAME jurisdictions signal
+    // this block used to test (plus organisationType) — so whenever that
+    // condition holds, the state_notification_duties loop directly above
+    // already rendered the HIPAA rows. Leaving both blocks would have
+    // printed the duties AND, immediately after, a sentence claiming they
+    // couldn't be quoted — a self-contradiction this fix closes rather than
+    // papers over.
     blocks.push(
       "The recorded contractual clocks are set out below and run alongside the statutory duties above; the earliest recorded clock governs the immediate posture.",
     );

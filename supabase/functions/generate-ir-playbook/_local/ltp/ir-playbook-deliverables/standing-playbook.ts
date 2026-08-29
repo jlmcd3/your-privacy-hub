@@ -23,8 +23,9 @@ import type { DeliverableStatus } from "./types.ts";
 import type { ContentOwnerMapping } from "./types.ts";
 import { HIGH_RISK_DATA_TYPES, STANDING_TO_COMPLETE } from "./elements.ts";
 import { normalizeBreachNoticeContracts, normalizeResponseTeamRoster, type RosterRow } from "./build.ts";
+import { buildHipaaDuties } from "./hipaa-duties.ts";
 
-export const STANDING_PLAYBOOK_VERSION = "ir-standing-playbook-doc101-phase2-2026-08-29";
+export const STANDING_PLAYBOOK_VERSION = "ir-standing-playbook-doc102-phase3a-2026-08-29";
 
 // ── section shapes ───────────────────────────────────────────────────
 export interface PlaybookSectionBase {
@@ -507,6 +508,36 @@ function buildStatutoryPointer(): PlaybookPointerSection {
   };
 }
 
+// ── IR-E Phase 3a (2026-08-29, doc 102 §4, CEO-approved VERBATIM) — HIPAA
+// ASSUMPTION NOTE. States the healthcare-provider proxy assumption once,
+// per this product's own "condition stated once" convention, alongside the
+// HIPAA duty rows this section does not restate (those render generically
+// through state_notification_duties — see hipaa-duties.ts). Always renders
+// — the codebase's established convention for a declared standing section
+// (regulator_final_report set the precedent this session) — with a
+// not-engaged default when the healthcare signal isn't recorded, never
+// omitted and never a silent placeholder.
+function buildHipaaAssumptionNote(intake: unknown): PlaybookNoteSection {
+  const orgType = str(get(intake, "organisationType"));
+  const jurisdictions = list(get(intake, "jurisdictions"));
+  const processorInvolved = get(intake, "processorInvolved") === true;
+  const processorName = str(get(intake, "processorName"));
+  const affectedCount = str(get(intake, "affectedCount"));
+  const hipaa = buildHipaaDuties(orgType, jurisdictions, affectedCount, processorInvolved, processorName);
+  const body = hipaa.duties.length > 0
+    ? [hipaa.assumption_note]
+    : [
+      "HIPAA's breach-notification duties are not engaged on this record: the recorded organisation type is not \"Healthcare provider\" and no recorded jurisdiction names HIPAA.",
+    ];
+  return {
+    kind: "note",
+    id: "hipaa_assumption",
+    heading: "HIPAA breach-notification duties",
+    body,
+    status: "analysed",
+  };
+}
+
 // ── IR-I 5b (2026-08-29, doc 101 §5, CEO-approved) — REGULATOR FINAL-REPORT
 // REMINDER. A phased Art. 33(4) filing is not closed until the deferred
 // elements are supplied, and that follow-up duty is otherwise easy to lose
@@ -694,6 +725,7 @@ export const STANDING_SECTION_ORDER: readonly string[] = [
   "containment_eradication_recovery",
   "breach_classification",
   "statutory_notification_determinations",
+  "hipaa_assumption",
   "regulator_final_report",
   "individual_notice_template",
   "executive_briefing_template",
@@ -744,6 +776,7 @@ export function buildStandingPlaybook(
     buildContainment(),
     buildClassification(intake),
     buildStatutoryPointer(),
+    buildHipaaAssumptionNote(intake),
     buildRegulatorFinalReportNote(mapping),
     buildIndividualNoticeTemplate(intake),
     buildExecutiveBriefingTemplate(intake),

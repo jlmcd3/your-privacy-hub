@@ -36,6 +36,10 @@ import { mapContentOwnerToEdpbTemplate } from "./edpb-art33-template.ts";
 // SO-FT FIX 3 (2026-08-11): US state breach clocks, parallel to the GDPR-family
 // regime sets — the Part One summary previously named neither.
 import { buildStateNotificationDuties } from "./us-state-duties.ts";
+// IR-E Phase 3a (2026-08-29, doc 102): HIPAA's four breach-notification
+// duties, parallel to the US-state clocks above — rides the same
+// StateDutySet shape.
+import { buildHipaaDuties } from "./hipaa-duties.ts";
 
 import type {
   Art34ExemptionAnalysis,
@@ -54,7 +58,7 @@ import type {
   TransferFraming,
 } from "./types.ts";
 
-export const IR_DELIVERABLES_VERSION = "ir-deliverables-item328-2026-08-01";
+export const IR_DELIVERABLES_VERSION = "ir-deliverables-doc102-phase3a-2026-08-29";
 
 // ── record helpers ───────────────────────────────────────────────────
 function get(root: unknown, path: string): unknown {
@@ -933,10 +937,24 @@ export function buildIrPlaybookDeliverables(intake: unknown): IrPlaybookDelivera
   // SO-FT FIX 3: the recorded US-state jurisdictions carry their OWN statutory
   // clocks. They are stated in parallel with the GDPR-family duties, never
   // folded into them and never given the Art. 33 72-hour phrasing.
-  const state_notification_duties = buildStateNotificationDuties(
+  const stateDuties = buildStateNotificationDuties(
     f.jurisdictions,
     str(get(intake, "incidentDateTime")) || str(get(intake, "discoveryDateTime")),
   );
+  // IR-E Phase 3a (2026-08-29, doc 102): HIPAA's duties ride the SAME
+  // StateDutySet shape and are appended to the same array, so every existing
+  // consumer (composeJurisdictionActionPlan, the standing playbook, the
+  // schema allow-list) renders them with zero additional wiring. Independent
+  // of the jurisdictions array — gated on organisationType, not a recorded
+  // state/country.
+  const hipaa = buildHipaaDuties(
+    str(get(intake, "organisationType")),
+    f.jurisdictions,
+    f.affectedCount,
+    f.processorInvolved,
+    f.processorName,
+  );
+  const state_notification_duties = [...stateDuties, ...hipaa.duties];
 
   const sa = notification_duties[0]?.sa_notification_determination ?? buildNotEngagedSa(f);
   const ds = notification_duties[0]?.data_subject_communication_determination ?? buildNotEngagedDs(f);

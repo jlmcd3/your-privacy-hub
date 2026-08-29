@@ -531,7 +531,14 @@ export const IR_PLAYBOOK_UNANCHORED_PROPOSITIONS: readonly string[] = [
   "national_sa_registry_generic",            // any "consult regulator's register" prose — not in statute
 
   // Non-EU breach-notification statutes referenced by the IR generator
-  "hipaa_breach_notification_rule",          // 45 CFR §§ 164.400-414 — not in corpus
+  // IR-E Phase 3a (2026-08-29, doc 102) — REMOVED "hipaa_breach_notification_
+  // rule" from this list: 45 C.F.R. §§ 164.404/406/408/410/412 are now
+  // verified (against Cornell LII, doc 102 §1) and carried directly in
+  // hipaa-duties.ts, not through this VA registry's row/quote mechanism.
+  // NOTE: the three entries immediately below (California/NY/TX) are ALSO
+  // stale for the same reason — us-state-duties.ts already ships them — but
+  // that predates this session's work and is left as a separate cleanup,
+  // not touched here to keep this fix scoped to what this session verified.
   "ca_civ_code_1798_82_pre_2026",            // California pre-SB-446 regime — not in corpus
   "ca_sb_446_post_2026_regime",              // California SB-446 30-day / 15-day AG copy — not in corpus
   "ny_shield_act_breach_notification",       // NY GBS §899-aa — not in corpus
