@@ -16,7 +16,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { appendAllProductsLog, clearAllProductsLog, useAllProductsLog } from "@/lib/allProductsLog";
-import { recordLocalRun, recordLocalScore, startLocalBatch } from "@/lib/allProductsRunHistory";
+import { claimOnce, ensureLocalBatchFor, recordLocalRun, recordLocalScore, startLocalBatch } from "@/lib/allProductsRunHistory";
 import { gradeRun, SLUG_TO_GRADER_TOOL } from "@/lib/gradeRun";
 import {
   downloadAllAnalyses,
