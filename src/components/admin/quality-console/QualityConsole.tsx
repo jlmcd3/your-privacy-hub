@@ -72,6 +72,11 @@ export interface QualityConsoleProps {
    * naming, e.g. "ropa" | "us-notice" | "eu-notice".
    */
   extraHistoryTools?: string[];
+  /**
+   * ALL-PRODUCTS-TEST — also show the in-page run log published by
+   * AllProductsPanel (src/lib/allProductsLog.ts) inside the Live log card.
+   */
+  showLocalRunLog?: boolean;
 }
 
 // Must stay identical to RUN_QUALITY_BATCH_SLUGS in the orchestrator.
