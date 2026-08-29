@@ -266,9 +266,15 @@ export function AllProductsPanel() {
                 gptScore: null,
                 meanScore: null,
               });
+              recordLocalRun(
+                localBatchId,
+                SLUG_TO_STRESS_TOOL[row.tool_slug],
+                j.status === "complete",
+              );
               if (j.status === "complete" && j.source_row_id) {
                 gradingWork.push(
                   gradeAndRecord(
+                    localBatchId,
                     row.tool_slug,
                     j.source_row_id,
                     `claude-intake/${j.company_name ?? "company"}`,
