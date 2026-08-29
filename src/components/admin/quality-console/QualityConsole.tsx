@@ -275,6 +275,12 @@ export function QualityConsole({
   // ALL-PRODUCTS-TEST — imported history for products with no quality batch.
   type StressHistory = { total: number; complete: number; failed: number; lastAt: string | null };
   const [stressHistory, setStressHistory] = useState<Map<string, StressHistory>>(new Map());
+  // ALL-PRODUCTS-TEST — in-page run log published by AllProductsPanel.
+  const localLog = useAllProductsLog();
+  const localLogRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (localLogRef.current) localLogRef.current.scrollTop = localLogRef.current.scrollHeight;
+  }, [localLog.length]);
 
   // Resume + Recent quality_runs card state (unchanged)
   const [resumeId, setResumeId] = useState("");
