@@ -114,6 +114,8 @@ export function AllProductsPanel() {
   const { user } = useAuth();
   const [state, setState] = useState<Record<string, RowState>>({});
   const [busy, setBusy] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+
   const [expanded, setExpanded] = useState<string | null>(null);
   // BATCH NUMBER — how many sample runs to generate per selected product.
   // Mirrors the "Batch size" control in the skeleton console below; default 1.
