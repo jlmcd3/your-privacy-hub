@@ -265,6 +265,9 @@ export function QualityConsole({
   const [recentBatches, setRecentBatches] = useState<BatchRow[]>([]);
   const [baselines, setBaselines] = useState<Map<string, Baseline>>(new Map());
   const [snapshotting, setSnapshotting] = useState(false);
+  // ALL-PRODUCTS-TEST — imported history for products with no quality batch.
+  type StressHistory = { total: number; complete: number; failed: number; lastAt: string | null };
+  const [stressHistory, setStressHistory] = useState<Map<string, StressHistory>>(new Map());
 
   // Resume + Recent quality_runs card state (unchanged)
   const [resumeId, setResumeId] = useState("");
