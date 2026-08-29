@@ -127,7 +127,13 @@ export function AllProductsPanel() {
   // generate-stress-fixtures, exactly as /admin/static-stress does.
   const [intakeSource, setIntakeSource] = useState<"preset" | "claude">("preset");
   const [industryId, setIndustryId] = useState<string>(STRESS_INDUSTRIES[0].id);
-  const [claudeBatchId, setClaudeBatchId] = useState<string | null>(null);
+  const [claudeBatchId, setClaudeBatchId] = useState<string | null>(() => {
+    try {
+      return window.sessionStorage.getItem("eup.allProductsTest.activeClaudeBatch");
+    } catch {
+      return null;
+    }
+  });
 
 
   const fixtures = useMemo(() => {
@@ -161,6 +167,67 @@ export function AllProductsPanel() {
       return next;
     });
   }, [fixtures]);
+
+  // A Claude-intake batch runs in the backend after dispatch. Reattach its
+  // progress monitor after a reload/navigation so the Live log does not go
+  // silent while the batch itself continues.
+  useEffect(() => {
+    if (!claudeBatchId || busy) return;
+    let cancelled = false;
+    const seen = new Map<string, string>();
+    let lastSummary = "";
+
+    const monitor = async () => {
+      appendAllProductsLog("batch", `↻ reattached to batch ${claudeBatchId}`);
+      for (let poll = 0; poll < 400 && !cancelled; poll++) {
+        try {
+          const [jobs, batch] = await Promise.all([
+            fetchClaudeBatchJobs(claudeBatchId),
+            fetchClaudeBatchStatus(claudeBatchId),
+          ]);
+          if (cancelled) return;
+          for (const j of jobs) {
+            if (seen.get(j.id) === j.status) continue;
+            seen.set(j.id, j.status);
+            const slug = STRESS_TOOL_TO_SLUG[j.tool_slug];
+            const row = fixtures.find((f) => f.tool_slug === slug);
+            const k = row ? fixtureKey(row) : `stress/${j.tool_slug}`;
+            const prefix = j.status === "complete" ? "✅" : j.status === "failed" ? "❌" : "▶";
+            appendLog(k, `${prefix} ${j.company_name ?? "company"} — ${j.tool_slug}: ${j.status}${j.error_message ? ` — ${j.error_message}` : ""}`);
+            if (row) {
+              setRow(k, {
+                status: j.status === "complete" ? "complete" : j.status === "failed" ? "failed" : "running",
+                sourceRowId: j.source_row_id,
+              });
+            }
+          }
+          const summary = `setup ${batch.setup_done}/${batch.setup_total} · jobs ${batch.completed_jobs + batch.failed_jobs}/${batch.total_jobs} (${batch.status})`;
+          if (summary !== lastSummary) {
+            appendAllProductsLog("batch", `… ${summary}`);
+            lastSummary = summary;
+          }
+          if (["complete", "completed", "failed", "cancelled"].includes(batch.status)) {
+            appendAllProductsLog(
+              "batch",
+              `${batch.failed_jobs ? "❌" : "✅"} batch ${batch.status} — ${batch.completed_jobs} complete, ${batch.failed_jobs} failed`,
+              batch.failed_jobs ? "error" : "success",
+            );
+            window.sessionStorage.removeItem("eup.allProductsTest.activeClaudeBatch");
+            setClaudeBatchId(null);
+            return;
+          }
+        } catch (error) {
+          appendAllProductsLog("batch", `❌ progress refresh failed — ${(error as Error).message}`, "error");
+        }
+        await new Promise((resolve) => setTimeout(resolve, 6000));
+      }
+    };
+
+    void monitor();
+    return () => {
+      cancelled = true;
+    };
+  }, [claudeBatchId, busy, fixtures]);
 
   const setRow = (k: string, patch: Partial<RowState>) =>
     setState((s) => ({ ...s, [k]: { ...(s[k] ?? EMPTY), ...patch } }));
@@ -216,6 +283,7 @@ export function AllProductsPanel() {
         companiesPerGeo: batchNumber,
       });
       setClaudeBatchId(batchId);
+      window.sessionStorage.setItem("eup.allProductsTest.activeClaudeBatch", batchId);
       appendAllProductsLog("batch", `✓ batch ${batchId} — Claude is generating intake data server-side`);
 
       const seen = new Map<string, string>();
@@ -286,13 +354,15 @@ export function AllProductsPanel() {
             }
           }
         }
-        if (poll % 5 === 0) {
+        const progressSummary = `… setup ${batch.setup_done}/${batch.setup_total} · jobs ${batch.completed_jobs + batch.failed_jobs}/${batch.total_jobs} (${batch.status})`;
+        if (poll === 0 || seen.get("__progress__") !== progressSummary) {
           appendAllProductsLog(
             "batch",
-            `… setup ${batch.setup_done}/${batch.setup_total} · jobs ${batch.completed_jobs + batch.failed_jobs}/${batch.total_jobs} (${batch.status})`,
+            progressSummary,
           );
+          seen.set("__progress__", progressSummary);
         }
-        if (["complete", "failed", "cancelled"].includes(batch.status)) {
+        if (["complete", "completed", "failed", "cancelled"].includes(batch.status)) {
           if (gradingWork.length) {
             appendAllProductsLog("batch", `… waiting for ${gradingWork.length} grading call(s) to finish`);
             await Promise.allSettled(gradingWork);
@@ -305,6 +375,8 @@ export function AllProductsPanel() {
           toast[batch.failed_jobs ? "error" : "success"](
             `Claude batch ${batch.status}: ${batch.completed_jobs} complete, ${batch.failed_jobs} failed`,
           );
+          window.sessionStorage.removeItem("eup.allProductsTest.activeClaudeBatch");
+          setClaudeBatchId(null);
           return;
         }
       }

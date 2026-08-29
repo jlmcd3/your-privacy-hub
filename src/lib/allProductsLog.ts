@@ -25,10 +25,27 @@ export interface AllProductsLogLine {
 }
 
 const MAX_LINES = 500;
-let lines: AllProductsLogLine[] = [];
+const STORAGE_KEY = "eup.allProductsTest.liveLog.v1";
+
+function loadLines(): AllProductsLogLine[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "[]");
+    return Array.isArray(parsed) ? (parsed as AllProductsLogLine[]).slice(-MAX_LINES) : [];
+  } catch {
+    return [];
+  }
+}
+
+let lines: AllProductsLogLine[] = loadLines();
 const listeners = new Set<(l: AllProductsLogLine[]) => void>();
 
 function emit() {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
+  } catch {
+    /* The in-memory log remains usable if storage is unavailable. */
+  }
   for (const fn of listeners) fn(lines);
 }
 
