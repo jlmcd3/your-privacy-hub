@@ -31,9 +31,15 @@ export default function AllProductsTest() {
         toolsOverride={SO_SKELETON_TOOLS}
         scoresAndLogFirst
         showLocalRunLog
-        // Products with no SO batch dispatch — history imported from the
-        // static-stress harness so every testable product has a row.
-        extraHistoryTools={["dpa", "ropa", "us-notice", "eu-notice"]}
+        // Ungraded run history for EVERY testable product: Claude-intake jobs
+        // (static_stress_jobs) plus pre-set-package runs executed in this page.
+        // SO products appear twice on purpose — once graded by the batch
+        // matrix above, once here as raw pass/fail run counts.
+        extraHistoryTools={[
+          "dpa", "ropa", "us-notice", "eu-notice",
+          "lia", "dpia", "governance", "ir-playbook", "biometric",
+          "registration", "cppa-risk", "cppa-cyber", "cppa-admt",
+        ]}
       />
     </div>
   );
