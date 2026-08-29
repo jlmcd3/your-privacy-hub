@@ -188,8 +188,27 @@ Output ONLY the compliance assessment. No preamble.`;
 // Computed from the request Body shape produced by src/pages/BiometricChecker.tsx.
 // Risk ratings, priority-action selection, and enforcement-posture judgement
 // remain JUDGMENT per the existing RISK RATING CRITERIA / ENFORCEMENT-POSTURE
-// GROUNDING rules. Backlog (R2): capture retentionPeriod / consentMechanism /
-// thirdPartyProcessors as structured intake fields to bind further tests.
+// GROUNDING rules.
+//
+// Backlog (R2) note, CLOSED 2026-08-29 (verified stale, no code change): this
+// used to read "capture retentionPeriod / consentMechanism / thirdParty
+// Processors as structured intake fields to bind further tests." Two of the
+// three were already structured and bound by the time this was checked:
+// retention -> retention_schedule_text / retention_policy_public /
+// retention_policy_predates_possession, and consent mechanism ->
+// consent_artifact_type (both in _shared/intake-contracts/biometric.ts),
+// deeply read by buildIlDuties() and neighbouring functions in
+// ./_local/ltp/biometric-deliverables/build.ts, including the S-B1/S-B2
+// (doc 80, 2026-08-27) and FD703575-B2/D1D2B3B8-B1..B3 (2026-08-27/28)
+// negation-aware and reliability-aware hardening passes on those exact
+// fields. This comment was simply never updated after that work landed.
+// The third field (third-party processors) is NOT bound to any pass/fail
+// legal determination in either this file's BioTestState system or
+// build.ts's DutyFinding system today — every "processor"/"vendor" mention
+// in this file's old prompt content is a generic recommended-next-step
+// ("execute a processor agreement"), never gated on knowing who the
+// processors are. Whether that's worth its own intake field is a real but
+// separate, smaller question — not the same gap this note originally named.
 // ─────────────────────────────────────────────────────────────────────────────
 type BioTestState = "resolved_met" | "resolved_not_met" | "resolved_not_applicable" | "indeterminate" | "candidate";
 interface BioTestStateEntry {
