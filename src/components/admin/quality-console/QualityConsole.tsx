@@ -33,6 +33,7 @@ import { SLUG_TO_TOOL_TYPE, generationModelSlug, DEFAULT_GENERATION_MODEL, AB_AL
 import { ModelPairTable } from "@/components/admin/quality-console/ModelPairTable";
 import { PINS_MODE_OPTIONS, type PinsMode } from "@/lib/pinsMode";
 import { useAllProductsLog, clearAllProductsLog } from "@/lib/allProductsLog";
+import { useLocalRunHistory } from "@/lib/allProductsRunHistory";
 
 // ITEM 325 — fixture variant. "perfect" is the ratified golden set; "messy"
 // is the (not-yet-authored) realistic-input set. See
