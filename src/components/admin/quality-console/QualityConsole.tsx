@@ -1123,25 +1123,38 @@ export function QualityConsole({
                 );
               })}
               {(extraHistoryTools ?? []).map((tool) => {
-                const h = stressHistory.get(tool);
+                const s = stressHistory.get(tool);
+                const l = localRunHistory[tool];
+                // Merge the two ungraded sources: Claude-intake jobs recorded
+                // server-side (static_stress_jobs) and pre-set-package runs
+                // executed in this page (no server row of their own).
+                const total = (s?.total ?? 0) + (l?.total ?? 0);
+                const complete = (s?.complete ?? 0) + (l?.complete ?? 0);
+                const failed = (s?.failed ?? 0) + (l?.failed ?? 0);
+                const lastAt = [s?.lastAt, l?.lastAt].filter(Boolean).sort().pop() ?? null;
                 return (
                   <tr key={tool} className="border-b align-top bg-muted/10">
                     <td className="py-2 pr-3 font-mono">
                       {tool}
                       <div className="text-[10px] font-sans text-muted-foreground">
-                        imported · static-stress harness
+                        ungraded runs · stress harness + in-page
                       </div>
                     </td>
-                    <td className="py-2 pr-3">{h?.total ?? 0}</td>
+                    <td className="py-2 pr-3">{total}</td>
                     <td className="py-2 pr-3 bg-muted/40 text-muted-foreground">n/a</td>
                     {matrixColumns.length > 0 ? (
                       <td className="py-2 pr-3 text-xs" colSpan={matrixColumns.length}>
-                        {h && h.total > 0 ? (
+                        {total > 0 ? (
                           <>
-                            {h.complete} complete · {h.failed} failed
-                            {h.lastAt && (
+                            {complete} complete · {failed} failed
+                            {l?.total ? (
                               <span className="ml-2 text-muted-foreground">
-                                last {new Date(h.lastAt).toLocaleDateString()}
+                                ({l.total} in-page)
+                              </span>
+                            ) : null}
+                            {lastAt && (
+                              <span className="ml-2 text-muted-foreground">
+                                last {new Date(lastAt).toLocaleString()}
                               </span>
                             )}
                             <span className="ml-2 text-muted-foreground">
@@ -1149,7 +1162,7 @@ export function QualityConsole({
                             </span>
                           </>
                         ) : (
-                          <span className="text-muted-foreground">no imported history</span>
+                          <span className="text-muted-foreground">no run history</span>
                         )}
                       </td>
                     ) : null}
