@@ -2453,6 +2453,13 @@ const ASK_ART5_TABLE =
   "The measures supporting each Article 5(1) principle — fairness, transparency, purpose limitation, data minimisation, accuracy, storage limitation, integrity and confidentiality — stated principle by principle, and whether each measure has been deployed.";
 const ASK_RIGHTS_TABLE =
   "How each data-subject right — information, access, rectification, erasure, restriction, portability, objection — can be exercised for this processing: the route, the responding role, and the response time.";
+// DPIA-1 (2026-08-29) — restores the Old Version's "ARTICLE 20 PORTABILITY —
+// ALL THREE CONDITIONS" rule (run-dpia-framework/index.ts:139), which the
+// deterministic conversion dropped (doc 93 S-1/finding #7). Fires only where
+// legal_basis_proposed is itself unrecorded — a true customer-fixable gap,
+// distinct from the two conditions below (which have no field to ask for).
+const ASK_PORTABILITY_CONDITIONS =
+  "Whether the data underlying this processing was provided by or observed from the data subject — not solely inferred or derived by the controller (WP242 rev.01) — and whether the processing is carried out by automated means.";
 
 // PROMPT 10B(2) — credit-first residuals. Fired when the source field IS
 // supplied but unstructured: no determination turns on the breakdown, so it is
@@ -2463,6 +2470,14 @@ const RESIDUAL_ART5_TABLE =
   "The recorded measures address the relevant Article 5 principles at the level of the processing activity; no additional principle-by-principle breakdown is necessary to the determinations reached in this DPIA.";
 const RESIDUAL_RIGHTS_TABLE =
   "The recorded rights-request process addresses the applicable data-subject rights through a common request, verification, and response procedure; no additional right-by-right breakdown is necessary to the determinations reached in this DPIA.";
+// DPIA-1 — the legal-basis condition is met, but Art. 20's other two
+// conditions (data provided by/observed from the data subject; automated
+// means) have NO intake field at all, today, for any record — unlike a
+// present-but-unstructured narrative, there is nothing further the customer
+// could enter to resolve this. Credit-first per PROMPT 10B(2): analysed,
+// with a completeness residual, never an unclosable gap-ledger ask.
+const PORTABILITY_CONDITIONS_UNRESOLVED =
+  "the data was provided by or observed from the data subject (WP242 rev.01), and whether the processing is carried out by automated means — the current intake does not collect either fact, so this assessment reaches no conclusion on whether Article 20 applies to this processing";
 
 /**
  * PROMPT 10B(1) — resolve the Art. 9(2)(x) pinpoint carried by the intake's
@@ -2556,6 +2571,69 @@ export function art9OtherLexiconHit(intake: unknown): string | null {
 // together or the iff-cited gate silently drops the listing.
 export const UK_SCH1_EMPLOYMENT_SENTENCE =
   " Under the UK GDPR, this reliance additionally requires a condition under the Data Protection Act 2018 — here, Schedule 1, Part 1, paragraph 1 (employment, social security and social protection) — and an appropriate policy document under Schedule 1, Part 4, paragraph 39, retained for the duration of the processing and for six months after the last processing event.";
+
+/**
+ * DPIA-1 (2026-08-29) — Art. 20 portability's three-condition test, restored
+ * from the Old Version's explicit rule (index.ts:139) per doc 93 S-1. Art.
+ * 20(1) gates portability on the SAME legal basis already recorded in
+ * legal_basis_proposed: only Art. 6(1)(a)/9(2)(a) (consent) or Art. 6(1)(b)
+ * (contract) satisfy the legal-basis condition — every other basis fails it
+ * categorically, which is a conclusive negative finding with no further
+ * fact needed (mirrors the old prompt's own "If Art. 6(1)(f) is the sole
+ * basis... Art. 20 does not apply regardless of data provenance"). Matched
+ * on the Art. 6(1)(x) pinpoint embedded in the enum label, not the label's
+ * prose, so it is resilient to label wording drift.
+ *
+ * Where the basis DOES qualify, the two remaining conditions — data
+ * provided by/observed from the data subject (WP242 rev.01) and automated
+ * means — have no intake field to read. No new field is added (per the
+ * fleet's standing no-new-intake-field discipline); the row degrades to
+ * record_insufficient and asks for both facts, never asserting either way.
+ */
+function article20PortabilityRow(legalBasis: string, regime: DpiaRegime): DpiaCoverageRow {
+  const citation = cit(regime, "Art. 20(1)");
+  const letter = /6\(1\)\(([a-z])\)/i.exec(legalBasis)?.[1]?.toLowerCase();
+
+  if (!legalBasis) {
+    return {
+      heading: "Article 20 — right to data portability",
+      record_words: "",
+      finding:
+        "The record does not yet establish the legal basis for this processing, which is the first of Article 20's three conditions, so this assessment makes no finding on portability.",
+      citation,
+      authority_verbatim: "",
+      status: "record_insufficient",
+      information_needed: ASK_PORTABILITY_CONDITIONS,
+      ask_class: "ask_portability_conditions",
+      display_label: resolveAskLabel("ask_portability_conditions"),
+      source_field: "legal_basis_proposed",
+    };
+  }
+
+  if (letter !== "a" && letter !== "b") {
+    return {
+      heading: "Article 20 — right to data portability",
+      record_words: spliceVerbatim(legalBasis),
+      finding:
+        `Article 20 portability applies only where the processing relies on consent (Art. 6(1)(a)/9(2)(a)) or contract (Art. 6(1)(b)) as its legal basis. The legal basis recorded for this processing is ${legalBasis}, so this condition is not met and Article 20 does not apply to this processing.`,
+      citation,
+      authority_verbatim: "",
+      status: "analysed",
+      source_field: "legal_basis_proposed",
+    };
+  }
+
+  return {
+    heading: "Article 20 — right to data portability",
+    record_words: spliceVerbatim(legalBasis),
+    finding:
+      `The legal basis recorded for this processing (${legalBasis}) satisfies one of Article 20's three conditions. Article 20 additionally requires ${PORTABILITY_CONDITIONS_UNRESOLVED}.`,
+    citation,
+    authority_verbatim: "",
+    status: "analysed",
+    source_field: "legal_basis_proposed",
+  };
+}
 
 export function buildSection2Coverage(
   intake: unknown,
@@ -2950,6 +3028,7 @@ export function buildSection2Coverage(
         display_label: resolveAskLabel("ask_rights_table"),
         source_field: "data_subject_rights_mechanisms",
       },
+    article20PortabilityRow(str(get(intake, "legal_basis_proposed")), regime),
   ];
 
   return {
@@ -3130,7 +3209,13 @@ export function buildGapLedgerDetailed(
       s2push("data_minimisation_justification", r, "a principle-by-principle Art. 5 coverage table");
     }
     for (const r of s2c.measures_rights) {
-      s2push("data_subject_rights_mechanisms", r, "a right-by-right coverage table");
+      s2push(
+        r.source_field,
+        r,
+        r.ask_class === "ask_portability_conditions"
+          ? "the Article 20 portability determination"
+          : "a right-by-right coverage table",
+      );
     }
   }
 

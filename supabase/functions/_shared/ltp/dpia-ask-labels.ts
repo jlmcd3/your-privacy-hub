@@ -47,7 +47,8 @@ export type DpiaAskClass =
   | "ask_dpbd"
   | "ask_data_quality"
   | "ask_art5_table"
-  | "ask_rights_table";
+  | "ask_rights_table"
+  | "ask_portability_conditions";
 
 /** The ratified bytes. Sorted here by producer order, hashed sorted by id. */
 export const DPIA_ASK_LABELS: Readonly<Record<DpiaAskClass, string>> = Object.freeze({
@@ -93,6 +94,12 @@ export const DPIA_ASK_LABELS: Readonly<Record<DpiaAskClass, string>> = Object.fr
   ask_art5_table:
     "the measures supporting each Article 5(1) principle, and whether each is deployed",
   ask_rights_table: "how each data-subject right can be exercised for this processing",
+  // DPIA-1 (2026-08-29) — Art. 20 portability's two remaining conditions,
+  // fired only once the legal-basis condition is already met. Advance-
+  // ratification ledger, CEO redline pending (same footing as the
+  // 2026-08-26 "Other"-bypass guard class above).
+  ask_portability_conditions:
+    "whether the data was provided by or observed from the data subject, and whether the processing is carried out by automated means",
 });
 
 export const DPIA_ASK_CLASSES: readonly DpiaAskClass[] = Object.freeze(
@@ -109,12 +116,14 @@ export function serializeAskLabels(): string {
 }
 
 /** SHA-256 over serializeAskLabels(), lower-case hex. PINNED.
- *  Re-pinned 2026-08-26 (ask_art9_other_category — the "Other"-bypass
- *  guard, CEO batch ruling; deliberate re-pin, one new label only).
+ *  Re-pinned 2026-08-29 (ask_portability_conditions — DPIA-1's Art. 20
+ *  portability row, advance-ratification ledger; deliberate re-pin, one
+ *  new label only).
  *  Audit trail — 9A pin: b1b55a5dc1f1adcfa41497f0376330f59d6ca044e5404bf8dbff8bd10d739fb4
- *  9M pin: 290608efbd8dbbde9249db5c7a81baf03bcd84cf5e846f58e02fc02f2e112bdd */
+ *  9M pin: 290608efbd8dbbde9249db5c7a81baf03bcd84cf5e846f58e02fc02f2e112bdd
+ *  2026-08-26 re-pin (ask_art9_other_category): 8ed74af5082d0e0472ef96d81d571f1b26b213ede8f27a51019d0284077a5df1 */
 export const DPIA_ASK_LABELS_HASH =
-  "8ed74af5082d0e0472ef96d81d571f1b26b213ede8f27a51019d0284077a5df1";
+  "0e51b7e9ab67f0339e8afa42cb1f2a76552d3924ef351e2530270b1b45ef4340";
 
 
 /** Recompute the hash (async — Web Crypto). Used by the pin test. */

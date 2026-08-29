@@ -69,11 +69,16 @@ const RATIFIED: Record<string, string> = {
   // label bytes on the advance-ratification ledger pending redline).
   ask_art9_other_category:
     'whether the data recorded under "Other" includes special-category data, and the Art. 9(2) condition relied on',
+  // DPIA-1 (2026-08-29) — Art. 20 portability's two remaining conditions,
+  // fired only once the legal-basis condition is met (label bytes on the
+  // advance-ratification ledger, same footing as the Other-guard class).
+  ask_portability_conditions:
+    "whether the data was provided by or observed from the data subject, and whether the processing is carried out by automated means",
 };
 
-Deno.test("9A — all 31 registry entries are byte-exact (9M: +2; Other-guard: +1)", () => {
-  assertEquals(DPIA_ASK_CLASSES.length, 31);
-  assertEquals(Object.keys(RATIFIED).length, 31);
+Deno.test("9A — all 32 registry entries are byte-exact (9M: +2; Other-guard: +1; DPIA-1: +1)", () => {
+  assertEquals(DPIA_ASK_CLASSES.length, 32);
+  assertEquals(Object.keys(RATIFIED).length, 32);
   for (const [id, bytes] of Object.entries(RATIFIED)) {
     assertEquals(DPIA_ASK_LABELS[id as keyof typeof DPIA_ASK_LABELS], bytes, id);
   }

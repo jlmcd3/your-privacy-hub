@@ -200,7 +200,10 @@ Deno.test("s2: tier-3 surfaces never emit more rows than the record supports", (
   const c = coverage();
   assertEquals(c.data_quality.length, 1);
   assertEquals(c.measures_article5.length, 1);
-  assertEquals(c.measures_rights.length, 1);
+  // DPIA-1 (2026-08-29) — measures_rights now carries two rows: the
+  // rights-routes row (unchanged, [0]) plus the Art. 20 portability row
+  // ([1]); see the dedicated "DPIA-1" test block below for its own coverage.
+  assertEquals(c.measures_rights.length, 2);
   assertStringIncludes(c.measures_rights[0].record_words, "Requests arrive through the patient portal");
   // PROMPT 10B(2) — present-but-unstructured is credit-first: analysed, with a
   // completeness residual and no ask.
@@ -219,13 +222,73 @@ Deno.test("s2: tier-3 surfaces never emit more rows than the record supports", (
   assertEquals(thin.data_quality.length, 1);
   assertEquals(thin.data_quality[0].status, "record_insufficient");
   assertEquals(thin.measures_article5.length, 1);
-  assertEquals(thin.measures_rights.length, 1);
+  assertEquals(thin.measures_rights.length, 2);
   assertEquals(thin.measures_rights[0].record_words, "");
   // ABSENT source → the ratified 8C ask stands and remains ledger-bound.
   assertEquals(thin.measures_article5[0].status, "record_insufficient");
   assertEquals(thin.measures_rights[0].status, "record_insufficient");
   assertEquals(thin.measures_article5[0].residual_note, undefined);
   assertEquals(thin.measures_rights[0].residual_note, undefined);
+});
+
+// ── DPIA-1 (2026-08-29) — Art. 20 portability, three-condition test ───
+Deno.test("DPIA-1: an ineligible legal basis is a conclusive, unhedged negative", () => {
+  // Fixture default is "Legitimate interests (Art. 6(1)(f))" — Art. 6(1)(f)
+  // never satisfies Art. 20's legal-basis condition.
+  const r = coverage().measures_rights[1];
+  assertEquals(r.heading, "Article 20 — right to data portability");
+  assertEquals(r.status, "analysed");
+  assertEquals(r.information_needed, undefined);
+  assertStringIncludes(r.finding, "does not apply");
+  assertStringIncludes(r.citation, "Art. 20(1)");
+  assertEquals(r.source_field, "legal_basis_proposed");
+});
+
+Deno.test("DPIA-1: Art. 6(1)(c)/(d)/(e) all fail the legal-basis condition too", () => {
+  for (
+    const basis of [
+      "Legal obligation (Art. 6(1)(c))",
+      "Vital interests (Art. 6(1)(d))",
+      "Public task (Art. 6(1)(e))",
+    ]
+  ) {
+    const r = coverage({ legal_basis_proposed: basis }).measures_rights[1];
+    assertEquals(r.status, "analysed", basis);
+    assertStringIncludes(r.finding, "does not apply");
+  }
+});
+
+Deno.test("DPIA-1: consent or contract satisfies condition 1 but leaves 2 unresolved — never asserted, never an unclosable ask", () => {
+  for (const basis of ["Consent (Art. 6(1)(a))", "Contract (Art. 6(1)(b))"]) {
+    const r = coverage({ legal_basis_proposed: basis }).measures_rights[1];
+    // Credit-first (PROMPT 10B(2)): the intake has no field for the other two
+    // conditions at all, so this is a completeness residual, not a
+    // customer-fixable gap — analysed, no ask, no gap-ledger entry.
+    assertEquals(r.status, "analysed", basis);
+    assertEquals(r.information_needed, undefined, basis);
+    assertEquals(r.ask_class, undefined, basis);
+    assertStringIncludes(r.finding, "satisfies one of Article 20's three conditions");
+    assertStringIncludes(r.finding, "reaches no conclusion on whether Article 20 applies");
+    // Never a bare assertion that portability DOES apply — only that one
+    // condition is met.
+    assert(!/[Pp]ortability applies\./.test(r.finding), r.finding);
+  }
+});
+
+Deno.test("DPIA-1: an unrecorded legal basis asks, never assumes", () => {
+  const r = coverage({ legal_basis_proposed: "" }).measures_rights[1];
+  assertEquals(r.status, "record_insufficient");
+  assertEquals(r.ask_class, "ask_portability_conditions");
+  assertStringIncludes(r.finding, "does not yet establish the legal basis");
+});
+
+Deno.test("DPIA-1: an unrecorded basis folds into the gap ledger under legal_basis_proposed, never data_subject_rights_mechanisms", () => {
+  const i = intake({ legal_basis_proposed: "" });
+  const built = buildDpiaDeliverables(i);
+  const ledger = buildGapLedger(i, built);
+  const entry = ledger.find((e) => e.field === "legal_basis_proposed" && e.enables === "the Article 20 portability determination");
+  assert(entry, JSON.stringify(ledger));
+  assert(CONTRACT_KEYS.has(entry!.field));
 });
 
 Deno.test("s2: intake_structure_recommendations is internal and names contract keys", () => {
