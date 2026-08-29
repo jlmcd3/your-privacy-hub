@@ -393,42 +393,60 @@ const handler = async (req: Request): Promise<Response> => {
   // (ql3-orchestrator.callInternalGrader, admin one-off Doc W baseline)
   // stay unchanged. Unknown slug → 400 unknown_tool.
   const toolRaw = body.tool ?? "cppa-risk";
-  if (!isKnownTool(toolRaw)) {
-    return json({ error: "unknown_tool", detail: `known: ${KNOWN_TOOL_SLUGS.join(",")}` }, 400);
+  if (!isKnownTool(toolRaw) && !isSessionTool(toolRaw)) {
+    return json({
+      error: "unknown_tool",
+      detail: `known: ${[...KNOWN_TOOL_SLUGS, ...SESSION_TOOL_SLUGS].join(",")}`,
+    }, 400);
   }
-  const tool: QL3Tool = toolRaw;
-  const spec = TOOL_TABLE[tool];
+  const tool: GradedTool = toolRaw;
 
   const admin = createClient(SUPABASE_URL, SERVICE_KEY);
-  // Row fetch by id is unambiguous — no module filter needed for
-  // cppa_assessments (id is table PK).
-  // QLB-F3: also fetch the body-text column (playbook_text /
-  // document_text / analysis_text) when the spec declares one, and fold
-  // it into `report` as `bodyKey` so the grader payload leads with body.
-  const cols = ["id", "status", spec.reportCol, ...spec.intakeCols];
-  if (spec.bodyCol) cols.push(spec.bodyCol);
-  const selectCols = cols.join(", ");
-  const { data: row, error: selErr } = await admin
-    .from(spec.table)
-    .select(selectCols)
-    .eq("id", body.assessment_id)
-    .maybeSingle();
-  if (selErr) return json({ error: selErr.message }, 500);
-  if (!row) return json({ error: "assessment_not_found" }, 404);
-  const rowAny = row as unknown as Record<string, unknown>;
-  if (!rowAny[spec.reportCol]) return json({ error: "assessment_not_generated" }, 400);
 
-  // Assemble intake from the per-tool columns. Single JSONB column → pass
-  // through; multi-column (LIA) → object with those column values.
-  const intake: unknown = spec.intakeCols.length === 1
-    ? rowAny[spec.intakeCols[0]]
-    : Object.fromEntries(spec.intakeCols.map((c) => [c, rowAny[c]]));
-  let report = rowAny[spec.reportCol];
-  if (spec.bodyCol && spec.bodyKey) {
-    const rd = (report && typeof report === "object") ? { ...(report as Record<string, unknown>) } : {};
-    (rd as Record<string, unknown>)[spec.bodyKey] = rowAny[spec.bodyCol] ?? "";
-    report = rd;
+  let gradedId: unknown;
+  let intake: unknown;
+  let report: unknown;
+
+  if (isSessionTool(tool)) {
+    const fetched = await fetchSessionShaped(admin, tool, body.assessment_id);
+    if ("error" in fetched) return json({ error: fetched.error }, fetched.status);
+    gradedId = fetched.id;
+    intake = fetched.intake;
+    report = fetched.report;
+  } else {
+    const spec = TOOL_TABLE[tool];
+    // Row fetch by id is unambiguous — no module filter needed for
+    // cppa_assessments (id is table PK).
+    // QLB-F3: also fetch the body-text column (playbook_text /
+    // document_text / analysis_text) when the spec declares one, and fold
+    // it into `report` as `bodyKey` so the grader payload leads with body.
+    const cols = ["id", "status", spec.reportCol, ...spec.intakeCols];
+    if (spec.bodyCol) cols.push(spec.bodyCol);
+    const selectCols = cols.join(", ");
+    const { data: row, error: selErr } = await admin
+      .from(spec.table)
+      .select(selectCols)
+      .eq("id", body.assessment_id)
+      .maybeSingle();
+    if (selErr) return json({ error: selErr.message }, 500);
+    if (!row) return json({ error: "assessment_not_found" }, 404);
+    const rowAny = row as unknown as Record<string, unknown>;
+    if (!rowAny[spec.reportCol]) return json({ error: "assessment_not_generated" }, 400);
+
+    // Assemble intake from the per-tool columns. Single JSONB column → pass
+    // through; multi-column (LIA) → object with those column values.
+    gradedId = rowAny.id;
+    intake = spec.intakeCols.length === 1
+      ? rowAny[spec.intakeCols[0]]
+      : Object.fromEntries(spec.intakeCols.map((c) => [c, rowAny[c]]));
+    report = rowAny[spec.reportCol];
+    if (spec.bodyCol && spec.bodyKey) {
+      const rd = (report && typeof report === "object") ? { ...(report as Record<string, unknown>) } : {};
+      (rd as Record<string, unknown>)[spec.bodyKey] = rowAny[spec.bodyCol] ?? "";
+      report = rd;
+    }
   }
+
 
   let claudeRes: any = null, claudeErr: string | null = null;
   let gptRes: any = null, gptErr: string | null = null;
