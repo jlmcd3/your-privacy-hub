@@ -91,16 +91,24 @@ export interface IrSectionSpec {
 }
 
 /**
- * The 20-section registry: 16 standing-playbook sections (the 14 rendered
- * sections plus the two frame surfaces — the template note and the single
- * unrecorded ledger this item introduces) and the 4 worksheet forms.
+ * The 27-section registry: 21 standing-playbook sections (the 14 original
+ * rendered sections plus the two frame surfaces — the template note and the
+ * single unrecorded ledger — plus the 5 Phase 2 additions: data_sensitivity_
+ * tiers, escalation_sla, regulator_final_report, individual_notice_template,
+ * executive_briefing_template) and 6 worksheet forms (the original 4 plus
+ * Phase 2's breach_register and incident_metrics). Phase 2 additions per
+ * doc 101 (2026-08-29, CEO-approved), spine-vs-prompt comparison program.
  */
 export const IR_SECTION_SPECS: readonly IrSectionSpec[] = [
   { id: "template_note", title: "How this playbook was drafted", artifact: "standing_playbook", arc_stage: "frame", lead: "record", source_key: "standing_playbook.template_note", themes: ["template_not_authority", "provenance"], required: true },
   { id: "unrecorded_ledger", title: "What this playbook still needs", artifact: "standing_playbook", arc_stage: "frame", lead: "determination", source_key: "standing_playbook.unrecorded_ledger", themes: ["one_ledger", "named_sections", "what_would_fill_it"], required: false },
   { id: "activation_criteria", title: "Activation criteria", artifact: "standing_playbook", arc_stage: "activation", lead: "record", source_key: "standing_playbook.activation_criteria", themes: ["trigger", "source_of_trigger", "activates"], required: true },
   { id: "severity_matrix", title: "Severity matrix", artifact: "standing_playbook", arc_stage: "activation", lead: "record", source_key: "standing_playbook.severity_matrix", themes: ["levels", "thresholds", "escalation"], required: true },
+  // IR-B (2026-08-29, doc 101 §3, CEO-approved) — Phase 2 addition.
+  { id: "data_sensitivity_tiers", title: "Data-sensitivity tiers", artifact: "standing_playbook", arc_stage: "activation", lead: "record", source_key: "standing_playbook.data_sensitivity_tiers", themes: ["tiers", "data_category", "regulatory_consequence"], required: true },
   { id: "response_team", title: "Response team and alternates", artifact: "standing_playbook", arc_stage: "people", lead: "record", source_key: "standing_playbook.response_team", themes: ["roles", "primary", "alternate", "single_point_of_failure"], required: true },
+  // IR-A (2026-08-29, doc 101 §2, CEO-approved) — Phase 2 addition.
+  { id: "escalation_sla", title: "Escalation SLA", artifact: "standing_playbook", arc_stage: "people", lead: "record", source_key: "standing_playbook.escalation_sla", themes: ["function", "trigger", "sla", "assigned"], required: true },
   { id: "key_contacts", title: "Key contacts", artifact: "standing_playbook", arc_stage: "people", lead: "record", source_key: "standing_playbook.key_contacts", themes: ["counsel", "privilege", "insurer", "forensics", "law_enforcement"], required: true },
   { id: "first_hour_checklist", title: "First-hour checklist", artifact: "standing_playbook", arc_stage: "first_response", lead: "record", source_key: "standing_playbook.first_hour_checklist", themes: ["fixed_items", "owner", "standing_confirmation"], required: true },
   { id: "first_24_hours_checklist", title: "First-24-hours checklist", artifact: "standing_playbook", arc_stage: "first_response", lead: "record", source_key: "standing_playbook.first_24_hours_checklist", themes: ["phasing", "owner", "notification_content"], required: true },
@@ -108,12 +116,20 @@ export const IR_SECTION_SPECS: readonly IrSectionSpec[] = [
   { id: "containment_eradication_recovery", title: "Containment, eradication and recovery", artifact: "standing_playbook", arc_stage: "analysis", lead: "determination", source_key: "standing_playbook.containment_eradication_recovery", themes: ["order_of_operations", "generic_scope", "decision_log"], required: true },
   { id: "breach_classification", title: "Breach classification framework", artifact: "standing_playbook", arc_stage: "analysis", lead: "record", source_key: "standing_playbook.breach_classification", themes: ["cia_taxonomy", "data_categories", "elevated_severity"], required: true },
   { id: "statutory_notification_determinations", title: "Statutory notification determinations", artifact: "standing_playbook", arc_stage: "notification", lead: "determination", source_key: "standing_playbook.statutory_notification_determinations", themes: ["by_reference", "no_restatement", "single_writer"], required: true },
+  // IR-I 5b (2026-08-29, doc 101 §5, CEO-approved) — Phase 2 addition.
+  { id: "regulator_final_report", title: "Regulator final-report duty", artifact: "standing_playbook", arc_stage: "notification", lead: "determination", source_key: "standing_playbook.regulator_final_report", themes: ["phasing", "art_33_4", "final_report"], required: true },
+  // IR-G (2026-08-29, doc 101 §6, CEO-approved VERBATIM) — Phase 2 addition.
+  { id: "individual_notice_template", title: "Individual notice template", artifact: "standing_playbook", arc_stage: "notification", lead: "record", source_key: "standing_playbook.individual_notice_template", themes: ["template", "individual_notice", "placeholder_slots"], required: true },
+  { id: "executive_briefing_template", title: "Internal executive briefing template", artifact: "standing_playbook", arc_stage: "communications", lead: "record", source_key: "standing_playbook.executive_briefing_template", themes: ["template", "executive_briefing", "placeholder_slots"], required: true },
   { id: "contractual_notification_finding", title: "Contractual notification obligations — determination", artifact: "standing_playbook", arc_stage: "notification", lead: "determination", source_key: "standing_playbook.contractual_notification_finding", themes: ["contractual_clock", "parallel_duties", "shorter_period_governs"], required: true },
   { id: "contractual_notifications", title: "Contractual notification obligations", artifact: "standing_playbook", arc_stage: "notification", lead: "record", source_key: "standing_playbook.contractual_notifications", themes: ["counterparty", "deadline", "clause_reference"], required: true },
   { id: "communications", title: "Communications and holding statements", artifact: "standing_playbook", arc_stage: "communications", lead: "determination", source_key: "standing_playbook.communications", themes: ["single_spokesperson", "holding_statement", "privilege", "no_premature_numbers"], required: true },
   { id: "testing_training", title: "Testing and training", artifact: "standing_playbook", arc_stage: "assurance", lead: "determination", source_key: "standing_playbook.testing_training", themes: ["cadence", "exercise_findings_are_remediation", "new_joiners"], required: true },
   { id: "incident_log", title: "Incident log", artifact: "incident_worksheet", arc_stage: "capture", lead: "record", source_key: "incident_worksheet.incident_log", themes: ["contemporaneous", "observation_not_conclusion", "utc"], required: true },
   { id: "decision_log", title: "Decision log", artifact: "incident_worksheet", arc_stage: "decision", lead: "record", source_key: "incident_worksheet.decision_log", themes: ["decision", "decided_by", "rationale_at_the_time"], required: true },
+  // IR-H 4a/4c (2026-08-29, doc 101 §4, CEO-approved) — Phase 2 additions.
+  { id: "breach_register", title: "Breach register", artifact: "incident_worksheet", arc_stage: "capture", lead: "record", source_key: "incident_worksheet.breach_register", themes: ["date_discovered", "notifiable", "rationale", "recorded_by"], required: true },
+  { id: "incident_metrics", title: "Incident metrics", artifact: "incident_worksheet", arc_stage: "capture", lead: "record", source_key: "incident_worksheet.incident_metrics", themes: ["ttd", "tta", "ttc", "time_to_notify"], required: true },
   { id: "after_action_review", title: "After-action review", artifact: "incident_worksheet", arc_stage: "review", lead: "record", source_key: "incident_worksheet.after_action_review", themes: ["chronology", "detection", "departures", "changes_required"], required: true },
   { id: "remediation_tracker", title: "Remediation tracker", artifact: "incident_worksheet", arc_stage: "remediation", lead: "record", source_key: "incident_worksheet.remediation_tracker", themes: ["action", "owner", "deadline", "status"], required: true },
 ];

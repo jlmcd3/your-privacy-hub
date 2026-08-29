@@ -16,7 +16,7 @@
  * (action / owner / deadline / status).
  */
 
-export const INCIDENT_WORKSHEET_VERSION = "ir-incident-worksheet-item369-2026-08-04";
+export const INCIDENT_WORKSHEET_VERSION = "ir-incident-worksheet-doc101-phase2-2026-08-29";
 
 export interface WorksheetForm {
   readonly id: string;
@@ -41,6 +41,8 @@ export interface IncidentWorksheet {
 export const WORKSHEET_FORM_ORDER: readonly string[] = [
   "incident_log",
   "decision_log",
+  "breach_register",
+  "incident_metrics",
   "after_action_review",
   "remediation_tracker",
 ];
@@ -69,6 +71,34 @@ export function buildIncidentWorksheet(orgName?: string): IncidentWorksheet {
         columns: ["Timestamp (UTC)", "Decision", "Decided by", "Rationale at the time"],
         blank_rows: 12,
       },
+      // IR-H 4a (2026-08-29, doc 101 §4, CEO-approved) — the ICO's own
+      // breach-register audit expectation: every incident assessed under
+      // this playbook is documented, including one assessed as NOT
+      // notifiable, with the rationale for that assessment. The underlying
+      // documentation duty is stated as authority in the standing playbook
+      // (statutory_notification_determinations); this operational form
+      // never cites it — the worksheet's own register bars a statutory
+      // citation here, matching every other worksheet form.
+      {
+        id: "breach_register",
+        heading: "Breach register",
+        instruction:
+          "One row per incident assessed under this playbook, including one assessed as not notifiable. Record every breach regardless of whether it was notified, with the reasoning behind that assessment.",
+        columns: ["Date discovered", "Brief description", "Notifiable? (Y/N)", "Rationale if N", "Notification date if Y", "Recorded by"],
+        blank_rows: 12,
+      },
+      // IR-H 4c (2026-08-29, doc 101 §4, CEO-approved) — the fixed metric
+      // definitions live in the instruction text, never as pre-filled row
+      // cells: the worksheet's own BLANK BY DESIGN law authors only column
+      // headers and the instruction line, no row content.
+      {
+        id: "incident_metrics",
+        heading: "Incident metrics",
+        instruction:
+          "Record the actual timestamps against each metric as the incident unfolds. Time to Detect (TTD) runs from occurrence to detection. Time to Activate (TTA) runs from detection to response-team activation. Time to Contain (TTC) runs from activation to containment confirmed. Time to Notify runs from awareness to each notification duty's actual filing, measured against that duty's own statutory clock — add a further row per notification duty where more than one clock is in play.",
+        columns: ["Metric", "Start event and time (UTC)", "End event and time (UTC)", "Elapsed", "Notes"],
+        blank_rows: 6,
+      },
       {
         id: "after_action_review",
         heading: "After-action review",
@@ -84,6 +114,8 @@ export function buildIncidentWorksheet(orgName?: string): IncidentWorksheet {
           "Which decisions would be taken differently, and on what information?",
           "Which controls, contracts or contacts require change?",
           "Which remediation items arise, and who owns each?",
+          // IR-I 5a (2026-08-29, doc 101 §5, CEO-approved).
+          "Have any facts emerged since the original notification that would require a supplemental notice — additional affected individuals, additional data categories, or a materially different scope than first reported? If so, record that determination separately, with its own basis.",
         ],
       },
       {

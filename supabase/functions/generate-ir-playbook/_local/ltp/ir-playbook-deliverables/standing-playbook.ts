@@ -22,9 +22,9 @@
 import type { DeliverableStatus } from "./types.ts";
 import type { ContentOwnerMapping } from "./types.ts";
 import { HIGH_RISK_DATA_TYPES, STANDING_TO_COMPLETE } from "./elements.ts";
-import { normalizeBreachNoticeContracts, normalizeResponseTeamRoster } from "./build.ts";
+import { normalizeBreachNoticeContracts, normalizeResponseTeamRoster, type RosterRow } from "./build.ts";
 
-export const STANDING_PLAYBOOK_VERSION = "ir-standing-playbook-item369-2026-08-04";
+export const STANDING_PLAYBOOK_VERSION = "ir-standing-playbook-doc101-phase2-2026-08-29";
 
 // ── section shapes ───────────────────────────────────────────────────
 export interface PlaybookSectionBase {
@@ -209,6 +209,60 @@ function buildSeverityMatrix(intake: unknown): PlaybookTableSection {
   );
 }
 
+// ── IR-B (2026-08-29, doc 101 §3, CEO-approved) — DATA-SENSITIVITY TIER
+// AXIS. Maps the intake's own DATA_TYPES lexicon onto three tiers by
+// regulatory consequence — not four: the lexicon carries no "already public"
+// option, and an empty fourth tier would be exactly the invented category
+// the degradation law bars. Deliberately does not redefine which categories
+// are "high risk" — it reuses the same categorisation the Art. 34(1)
+// high-risk computation elsewhere in this product already applies (see
+// HIGH_RISK_DATA_TYPES / SEVERITY_RAISING_DATA_TYPES in elements.ts), so
+// this table can never disagree with that determination.
+const SENSITIVITY_TIERS: readonly { tier: string; categories: readonly string[]; consequence: string }[] = [
+  {
+    tier: "Highest",
+    categories: ["Special category data", "Children's data", "Health / medical records", "Biometric data"],
+    consequence: "Engages GDPR Art. 9 special-category protections and/or heightened regulatory scrutiny; treated as elevated severity regardless of volume.",
+  },
+  {
+    tier: "High",
+    categories: ["Government IDs / SSN", "Financial / payment data", "Passwords / credentials"],
+    consequence: "Raises the Art. 34(1) high-risk threshold and most US state breach-notice \"sensitive PI\" thresholds regardless of volume.",
+  },
+  {
+    tier: "Moderate",
+    categories: ["Names and contact details", "Location data"],
+    consequence: "Severity assessed on the incident's other facts (volume, cause, containment) rather than on the data category alone.",
+  },
+];
+
+function buildDataSensitivityTiers(intake: unknown): PlaybookTableSection {
+  const recorded = list(get(intake, "dataTypes"));
+  if (recorded.length === 0) {
+    return tableOrGap(
+      "data_sensitivity_tiers",
+      "Data-sensitivity tiers",
+      ["Tier", "Data category", "Regulatory consequence"],
+      [],
+      "Record the categories of personal data this incident involved; that completes this section.",
+    );
+  }
+  const rows: string[][] = [];
+  for (const t of SENSITIVITY_TIERS) {
+    for (const cat of t.categories) {
+      if (recorded.includes(cat)) rows.push([t.tier, cat, t.consequence]);
+    }
+  }
+  return {
+    kind: "table",
+    id: "data_sensitivity_tiers",
+    heading: "Data-sensitivity tiers",
+    columns: ["Tier", "Data category", "Regulatory consequence"],
+    rows,
+    status: "analysed",
+  };
+}
+
 function buildResponseTeam(intake: unknown): PlaybookTableSection {
   // E8973164 follow-up (2026-08-28) — the roster arrives as an array OR an
   // object keyed by camelCase role slugs; the array-only `records()` read
@@ -227,6 +281,41 @@ function buildResponseTeam(intake: unknown): PlaybookTableSection {
     "Record each response role with a named primary and a named alternate; that completes this section.",
     "A role with no named alternate is a single point of failure in an out-of-hours incident.",
   );
+}
+
+// ── IR-A (2026-08-29, doc 101 §2, CEO-approved) — ESCALATION SLA TABLE.
+// House policy defaults, presented as editable — doc 101 §7 ruling — for the
+// standard incident-response functions. The "Assigned" column fuzzy-matches
+// the response-team roster the same way the E8973164 fix already
+// established for this product (any roster key or title naming the role in
+// ordinary English is found regardless of exact spelling), so it degrades to
+// STANDING_TO_COMPLETE rather than inventing a name the roster doesn't
+// carry.
+const ESCALATION_SLA_ROWS: readonly { fn: string; trigger: string; sla: string; keywords: RegExp }[] = [
+  { fn: "Incident Lead", trigger: "Declaration of the incident", sla: "Activate the response team and open the incident log immediately on declaration", keywords: /incident.?(lead|response.?lead|manager)|breach.?lead/i },
+  { fn: "Data Protection Officer / privacy contact", trigger: "Confirmation that personal data is involved", sla: "Engage within 1 hour of that confirmation", keywords: /data protection officer|\bdpo\b|privacy (officer|contact|lead)/i },
+  { fn: "Legal (in-house or outside counsel)", trigger: "Declaration of the incident", sla: "Engage within 2–4 hours of declaration", keywords: /legal|counsel|attorney|lawyer/i },
+  { fn: "Communications Lead", trigger: "Before any external or regulatory notice is issued", sla: "Brief and prepare the holding statement within 12–24 hours of declaration", keywords: /comms?|communication|spokesperson|public relations|\bpr\b/i },
+  { fn: "Customer support / help desk", trigger: "Before any notice to affected individuals is sent", sla: "Brief with an approved script before the notice goes out", keywords: /support|help ?desk|customer service/i },
+];
+
+function findAssigned(roster: readonly RosterRow[], keywords: RegExp): string {
+  const hit = roster.find((r) => keywords.test(r.searchable) || keywords.test(r.roleLabel));
+  return (hit?.name || "").trim() || STANDING_TO_COMPLETE;
+}
+
+function buildEscalationSla(intake: unknown): PlaybookTableSection {
+  const roster = normalizeResponseTeamRoster(intake);
+  const rows = ESCALATION_SLA_ROWS.map((r) => [r.fn, r.trigger, r.sla, findAssigned(roster, r.keywords)]);
+  return {
+    kind: "table",
+    id: "escalation_sla",
+    heading: "Escalation SLA",
+    columns: ["Function", "Trigger", "Recommended-default SLA", "Assigned"],
+    rows,
+    status: "analysed",
+    note: "These are recommended-default response times, not a legal requirement; the organisation may set its own. Where a function has no name in the Assigned column, the response team above does not name anyone in that role.",
+  };
 }
 
 function buildKeyContacts(intake: unknown): PlaybookTableSection {
@@ -277,7 +366,10 @@ function buildFirstHour(intake: unknown): PlaybookTableSection {
     columns: ["Action", "Owner", "Standing confirmation"],
     rows,
     status: "analysed",
-    note: "Items are fixed. The intake confirms which are already standing arrangements; it does not author the list.",
+    // IR-C (2026-08-29, doc 101 §2) — cross-references the Escalation SLA
+    // table rather than duplicating per-function timing data in two places,
+    // which risks the two ever disagreeing.
+    note: "Items are fixed. The intake confirms which are already standing arrangements; it does not author the list. Per-function response times are set out in the Escalation SLA table above.",
   };
 }
 
@@ -347,7 +439,8 @@ function buildEvidencePreservation(intake: unknown): PlaybookTableSection {
     ["System or log source", "Type", "Preservation action", "Owner"],
     rows,
     "Record the key systems and log sources whose evidence must be preserved before it rotates; that completes this section.",
-    "Preservation is instructed in the first hour because most log sources rotate faster than an investigation concludes.",
+    // IR-H 4b (2026-08-29, doc 101 §4) — chain-of-custody addendum.
+    "Preservation is instructed in the first hour because most log sources rotate faster than an investigation concludes. Each preserved item's chain of custody is recorded separately: who collected it, when, its cryptographic hash at collection, and every subsequent transfer — a preservation action with no recorded custodian is not defensible evidence.",
   );
 }
 
@@ -409,6 +502,95 @@ function buildStatutoryPointer(): PlaybookPointerSection {
       "art34_exemption_analysis",
       "content_owner_mapping",
       "portals",
+    ],
+    status: "analysed",
+  };
+}
+
+// ── IR-I 5b (2026-08-29, doc 101 §5, CEO-approved) — REGULATOR FINAL-REPORT
+// REMINDER. A phased Art. 33(4) filing is not closed until the deferred
+// elements are supplied, and that follow-up duty is otherwise easy to lose
+// once the initial notification ships. Like every other standing section,
+// this always renders — a state naming that phasing is not presently
+// engaged, never a vanished section — matching the codebase's own
+// convention (STANDING_SECTION_ORDER is a fixed contract; ITEM369's own
+// test asserts every declared section is emitted for a populated record).
+function buildRegulatorFinalReportNote(mapping?: ContentOwnerMapping): PlaybookNoteSection {
+  const phased = mapping?.phasing?.phased ?? [];
+  const body = phased.length > 0
+    ? [
+      "Where notification was phased, Article 33(4) requires the remaining information to be provided to the supervisory authority in phases without undue further delay — a phased filing is not closed until every deferred element has been supplied.",
+    ]
+    : [
+      "No element of the Article 33(3) notification content is recorded as phased on this incident, so this duty is not presently engaged. Where a future notification is phased, Article 33(4) requires the remaining information to be provided to the supervisory authority in phases without undue further delay — a phased filing is not closed until every deferred element has been supplied.",
+    ];
+  return {
+    kind: "note",
+    id: "regulator_final_report",
+    heading: "Regulator final-report duty",
+    body,
+    status: "analysed",
+  };
+}
+
+// ── IR-G (2026-08-29, doc 101 §6, CEO-approved VERBATIM) — the two missing
+// ready-to-use templates. Both are placeholder-slotted fixed text — this
+// product's one deliberate exception to the SHAPE LAW's table-only rule: a
+// notification letter and an executive briefing are documents by nature,
+// not data. Slots are filled where the record already supports them
+// (organisation name, recorded data categories); every other slot is a
+// bracketed instruction to the implementer in plain language, never nested
+// machine-style directives. The regulator-notification leg is already
+// covered by the EDPB Art. 33 template field mapping rendered inside the
+// statutory_notification_determinations section (edpb-art33-template.ts) —
+// these two cover the individual notice and the internal briefing, the two
+// legs doc 100/101 confirmed were genuinely missing.
+function buildIndividualNoticeTemplate(intake: unknown): PlaybookNoteSection {
+  const org = str(get(intake, "organizationName")) || str(get(intake, "organization_name"));
+  const categories = list(get(intake, "dataTypes"));
+  const categoriesLine = categories.length
+    ? `[LIST ONLY THESE RECORDED CATEGORIES, OR NARROW FURTHER IF THIS NOTICE COVERS FEWER: ${categories.join(", ")}.]`
+    : "[LIST ONLY THE CATEGORIES OF YOUR PERSONAL INFORMATION THIS INCIDENT ACTUALLY INVOLVED.]";
+  return {
+    kind: "note",
+    id: "individual_notice_template",
+    heading: "Individual notice template",
+    scope_note:
+      "This template is a starting draft only. Complete every bracketed field from the confirmed facts of this incident, remove any section that does not apply, and have the completed notice reviewed by counsel before it is sent — the content requirements and permitted framing vary by notification regime, and the determinations elsewhere in this report identify which regimes apply to this incident.",
+    body: [
+      "Notice of a Data Security Incident",
+      "[DATE]",
+      "Dear [CONSUMER NAME / Valued Customer],",
+      "What happened. [DESCRIBE, IN PLAIN LANGUAGE, WHAT OCCURRED AND WHEN IT WAS DISCOVERED — e.g., \"On [DATE], we discovered that [BRIEF, FACTUAL DESCRIPTION OF THE INCIDENT].\"]",
+      `What information was involved. ${categoriesLine}`,
+      "What we are doing. [DESCRIBE THE STEPS TAKEN TO CONTAIN THE INCIDENT, INVESTIGATE ITS SCOPE, AND PREVENT RECURRENCE. WHERE OFFERING CREDIT MONITORING OR IDENTITY-PROTECTION SERVICES, DESCRIBE THE OFFER AND HOW TO ENROLL HERE.]",
+      "What you can do. [LIST RECOMMENDED PROTECTIVE STEPS TAILORED TO THE CATEGORIES OF DATA ACTUALLY INVOLVED — e.g., monitoring account statements, placing a fraud alert or credit freeze, changing passwords.]",
+      "For more information, or if you have questions, please contact us at [CONTACT METHOD], [DAYS/HOURS OF AVAILABILITY].",
+      "[WHERE THE APPLICABLE NOTIFICATION REGIME REQUIRES IT: a statement of the individual's right to complain to a supervisory authority, and that authority's contact details.]",
+      "Sincerely,",
+      "[NAME / TITLE OF SIGNATORY]",
+      org || "[ORGANIZATION NAME]",
+    ],
+    status: "analysed",
+  };
+}
+
+function buildExecutiveBriefingTemplate(intake: unknown): PlaybookNoteSection {
+  const org = str(get(intake, "organizationName")) || str(get(intake, "organization_name"));
+  return {
+    kind: "note",
+    id: "executive_briefing_template",
+    heading: "Internal executive briefing template",
+    scope_note:
+      "Complete each bracketed field from the incident record as it stands at the time of this briefing; leave a field marked NOT YET ESTABLISHED rather than guessing, and update this briefing at each scheduled cadence rather than drafting a new one from scratch.",
+    body: [
+      `Incident Executive Briefing — ${org || "[ORGANIZATION NAME]"}`,
+      "Summary. [ONE-PARAGRAPH SUMMARY: what happened, when discovered, current containment status.]",
+      "Current severity and status. [SEVERITY LEVEL PER THE STANDING SEVERITY MATRIX] / [CONTAINMENT STATE].",
+      "Regulatory exposure. [LIST EACH NOTIFICATION DUTY IN PLAY, ITS DEADLINE, AND DAYS REMAINING — drawn from the notification determinations elsewhere in this report.]",
+      "Decisions needed from leadership. [LIST OPEN DECISIONS REQUIRING EXECUTIVE INPUT — e.g., law-enforcement contact, public-statement timing, service-disruption tradeoffs.]",
+      "Next update. [DATE/TIME OF THE NEXT SCHEDULED UPDATE TO THIS GROUP.]",
+      "This briefing is prepared for internal leadership review only; it is not for external distribution, and any substantive legal analysis it references is directed to counsel under the privilege protocol.",
     ],
     status: "analysed",
   };
@@ -479,6 +661,10 @@ function buildTestingTraining(intake: unknown): PlaybookNoteSection {
     "Recommended cadence: a tabletop exercise at least annually, and a further exercise after any material change to the estate, the response team or the notification map.",
     "Each exercise runs against this playbook as written, and every step the exercise could not complete becomes a remediation item on the tracker rather than a note in a debrief.",
     "New joiners in a named role on the roster are walked through the first-hour checklist before they are listed as a primary.",
+    // IR-I 5c (2026-08-29, doc 101 §5, CEO-approved default) — the
+    // lessons-learned window is a house default, same "customer owns the
+    // number" framing as the Escalation SLA table.
+    "A lessons-learned review is scheduled within 30 days of incident closure by default (editable), and any resulting playbook change is version-controlled and dated.",
   ];
   if (next) body.push(`Next planned tabletop exercise: ${next}.`);
   return {
@@ -498,7 +684,9 @@ function buildTestingTraining(intake: unknown): PlaybookNoteSection {
 export const STANDING_SECTION_ORDER: readonly string[] = [
   "activation_criteria",
   "severity_matrix",
+  "data_sensitivity_tiers",
   "response_team",
+  "escalation_sla",
   "key_contacts",
   "first_hour_checklist",
   "first_24_hours_checklist",
@@ -506,6 +694,9 @@ export const STANDING_SECTION_ORDER: readonly string[] = [
   "containment_eradication_recovery",
   "breach_classification",
   "statutory_notification_determinations",
+  "regulator_final_report",
+  "individual_notice_template",
+  "executive_briefing_template",
   "contractual_notification_finding",
   "contractual_notifications",
   "communications",
@@ -543,7 +734,9 @@ export function buildStandingPlaybook(
   const sections: PlaybookSection[] = [
     buildActivationCriteria(intake),
     buildSeverityMatrix(intake),
+    buildDataSensitivityTiers(intake),
     buildResponseTeam(intake),
+    buildEscalationSla(intake),
     buildKeyContacts(intake),
     buildFirstHour(intake),
     buildFirst24Hours(intake, mapping),
@@ -551,6 +744,9 @@ export function buildStandingPlaybook(
     buildContainment(),
     buildClassification(intake),
     buildStatutoryPointer(),
+    buildRegulatorFinalReportNote(mapping),
+    buildIndividualNoticeTemplate(intake),
+    buildExecutiveBriefingTemplate(intake),
     ...buildContractualNotifications(intake),
     buildCommunications(),
     buildTestingTraining(intake),
