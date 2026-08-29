@@ -233,8 +233,28 @@ export function AllProductsPanel() {
               // batch that outlived its launching page session.
               if (j.status === "complete" || j.status === "failed") {
                 const lb = ensureLocalBatchFor(claudeBatchId);
+                let outcomeId: string | undefined;
                 if (claimOnce(lb, j.id, "run")) {
                   recordLocalRun(lb, SLUG_TO_STRESS_TOOL[row.tool_slug], j.status === "complete");
+                  outcomeId = newOutcomeId();
+                  recordOutcome({
+                    id: outcomeId,
+                    batchId: lb,
+                    startedAt: new Date().toISOString(),
+                    finishedAt: new Date().toISOString(),
+                    tool_slug: row.tool_slug,
+                    variant: `claude/${j.company_name ?? "company"}`,
+                    source: "claude",
+                    status: j.status === "complete" ? "complete" : "failed",
+                    sourceRowId: j.source_row_id,
+                    resultUrl: j.source_row_id
+                      ? row.result_url_pattern.replace("{id}", j.source_row_id)
+                      : null,
+                    error: j.error_message ?? undefined,
+                    claudeScore: null,
+                    gptScore: null,
+                    meanScore: null,
+                  });
                 }
                 if (j.status === "complete" && j.source_row_id && claimOnce(lb, j.id, "score")) {
                   void gradeAndRecord(
@@ -243,6 +263,7 @@ export function AllProductsPanel() {
                     j.source_row_id,
                     `claude-intake/${j.company_name ?? "company"}`,
                     k,
+                    outcomeId,
                   ).catch((e) => appendLog(k, `· grading error — ${(e as Error).message}`));
                 }
               }
