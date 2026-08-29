@@ -156,10 +156,91 @@ export function AllProductsPanel() {
     (f) => selected.has(fixtureKey(f)) && state[fixtureKey(f)]?.preflight?.ok === false,
   );
 
+  // CLAUDE INTAKE PATH — launches a stress batch (generate-stress-fixtures →
+  // static_stress_jobs → run-stress-job) and mirrors the server-side job
+  // states into this panel's rows and the shared live log.
+  async function runClaudeBatch(queue: SampleFixture[], userId: string) {
+    const slugs = Array.from(new Set(queue.map((f) => f.tool_slug)));
+    setBusy(true);
+    clearAllProductsLog();
+    const industryLabel = STRESS_INDUSTRIES.find((i) => i.id === industryId)?.label ?? industryId;
+    appendAllProductsLog(
+      "batch",
+      `▶ Claude intake batch — ${slugs.length} product(s), industry "${industryLabel}", ${Math.min(2, batchNumber)} company slot(s) per geo`,
+    );
+    for (const f of queue) setRow(fixtureKey(f), { status: "queued", log: [], resultUrl: null });
+
+    try {
+      const batchId = await launchClaudeIntakeBatch({
+        userId,
+        slugs,
+        industryId,
+        companiesPerGeo: batchNumber,
+      });
+      setClaudeBatchId(batchId);
+      appendAllProductsLog("batch", `✓ batch ${batchId} — Claude is generating intake data server-side`);
+
+      const seen = new Map<string, string>();
+      for (let poll = 0; poll < 400; poll++) {
+        await new Promise((r) => setTimeout(r, 6000));
+        const [jobs, batch] = await Promise.all([
+          fetchClaudeBatchJobs(batchId),
+          fetchClaudeBatchStatus(batchId),
+        ]);
+        for (const j of jobs) {
+          if (seen.get(j.id) === j.status) continue;
+          seen.set(j.id, j.status);
+          const slug = STRESS_TOOL_TO_SLUG[j.tool_slug];
+          const row = queue.find((f) => f.tool_slug === slug);
+          const k = row ? fixtureKey(row) : `stress/${j.tool_slug}`;
+          const prefix = j.status === "complete" ? "✅" : j.status === "failed" ? "❌" : "▶";
+          appendLog(
+            k,
+            `${prefix} ${j.company_name ?? "company"} — ${j.tool_slug}: ${j.status}${j.error_message ? ` — ${j.error_message}` : ""}`,
+          );
+          if (row) {
+            setRow(k, {
+              status: j.status === "complete" ? "complete" : j.status === "failed" ? "failed" : "running",
+              sourceRowId: j.source_row_id,
+            });
+          }
+        }
+        if (poll % 5 === 0) {
+          appendAllProductsLog(
+            "batch",
+            `… setup ${batch.setup_done}/${batch.setup_total} · jobs ${batch.completed_jobs + batch.failed_jobs}/${batch.total_jobs} (${batch.status})`,
+          );
+        }
+        if (["complete", "failed", "cancelled"].includes(batch.status)) {
+          appendAllProductsLog(
+            "batch",
+            `${batch.failed_jobs ? "❌" : "✅"} batch ${batch.status} — ${batch.completed_jobs} complete, ${batch.failed_jobs} failed`,
+            batch.failed_jobs ? "error" : "success",
+          );
+          toast[batch.failed_jobs ? "error" : "success"](
+            `Claude batch ${batch.status}: ${batch.completed_jobs} complete, ${batch.failed_jobs} failed`,
+          );
+          return;
+        }
+      }
+      appendAllProductsLog("batch", "… still running server-side — see /admin/static-stress for the rest of this batch");
+      toast.message("Batch still running server-side — it continues without this page");
+    } catch (e) {
+      appendAllProductsLog("batch", `❌ ${(e as Error).message}`, "error");
+      toast.error(`Claude intake batch failed: ${(e as Error).message}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function runSelected() {
     if (!user?.id) return toast.error("Sign in as an admin first");
     const queue = fixtures.filter((f) => selected.has(fixtureKey(f)));
     if (!queue.length) return toast.error("Select at least one product");
+
+    if (intakeSource === "claude") return runClaudeBatch(queue, user.id);
+
+
 
     // INTAKE GATE — refuse the whole run rather than emit a doomed dispatch.
     const bad = queue.map((f) => preflightFixture(f)).filter((r) => !r.ok);
