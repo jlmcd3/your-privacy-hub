@@ -543,7 +543,13 @@ export const IR_PLAYBOOK_UNANCHORED_PROPOSITIONS: readonly string[] = [
   "ca_sb_446_post_2026_regime",              // California SB-446 30-day / 15-day AG copy — not in corpus
   "ny_shield_act_breach_notification",       // NY GBS §899-aa — not in corpus
   "tx_bccp_breach_notification",             // Texas BCC §521.053 — not in corpus
-  "pipeda_breach_of_security_safeguards",    // PIPEDA + SOR/2018-64 — not in corpus
+  // IR-E Phase 3b (2026-08-29, doc 103) — REMOVED "pipeda_breach_of_
+  // security_safeguards" from this list: PIPEDA §§ 10.1-10.3 are now
+  // verified (against laws.justice.gc.ca, doc 103 §1) and carried directly
+  // in pipeda-duties.ts, not through this VA registry's row/quote
+  // mechanism. Quebec Law 25 immediately below is still genuinely
+  // unverified — pipeda-duties.ts deliberately gives it only the honest
+  // "to be confirmed" fallback, not duty text — so it stays listed here.
   "quebec_law_25_breach_notification",       // Quebec Law 25 "sans délai" regime — not in corpus
   "danish_dbl_section_12_employment",        // Danish DBL §12 employment context — not in corpus
   "state_ag_notification_thresholds",        // US state AG-notification headcount thresholds — not in corpus

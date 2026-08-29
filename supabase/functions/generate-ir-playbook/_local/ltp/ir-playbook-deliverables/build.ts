@@ -40,6 +40,9 @@ import { buildStateNotificationDuties } from "./us-state-duties.ts";
 // duties, parallel to the US-state clocks above — rides the same
 // StateDutySet shape.
 import { buildHipaaDuties } from "./hipaa-duties.ts";
+// IR-E Phase 3b (2026-08-29, doc 103): PIPEDA's breach-notification duties,
+// same StateDutySet shape reuse.
+import { buildPipedaDuties } from "./pipeda-duties.ts";
 
 import type {
   Art34ExemptionAnalysis,
@@ -58,7 +61,7 @@ import type {
   TransferFraming,
 } from "./types.ts";
 
-export const IR_DELIVERABLES_VERSION = "ir-deliverables-doc102-phase3a-2026-08-29";
+export const IR_DELIVERABLES_VERSION = "ir-deliverables-doc103-phase3b-2026-08-29";
 
 // ── record helpers ───────────────────────────────────────────────────
 function get(root: unknown, path: string): unknown {
@@ -954,7 +957,10 @@ export function buildIrPlaybookDeliverables(intake: unknown): IrPlaybookDelivera
     f.processorInvolved,
     f.processorName,
   );
-  const state_notification_duties = [...stateDuties, ...hipaa.duties];
+  // IR-E Phase 3b (2026-08-29, doc 103): PIPEDA duties + the honest
+  // provincial fallback, appended the same way.
+  const pipedaDuties = buildPipedaDuties(f.jurisdictions);
+  const state_notification_duties = [...stateDuties, ...hipaa.duties, ...pipedaDuties];
 
   const sa = notification_duties[0]?.sa_notification_determination ?? buildNotEngagedSa(f);
   const ds = notification_duties[0]?.data_subject_communication_determination ?? buildNotEngagedDs(f);
