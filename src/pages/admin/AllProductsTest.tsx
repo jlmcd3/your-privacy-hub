@@ -28,12 +28,16 @@ export default function AllProductsTest() {
         caption="quality-batch-orchestrator · skeleton_document grading"
         showVariants
         graderMode="skeleton"
-        toolsOverride={SO_SKELETON_TOOLS}
+        // Graded rows (Claude + GPT scored by run-quality-batch). DPA Generator
+        // is dispatchable and gradable by the orchestrator, so it belongs in the
+        // scored matrix rather than in the ungraded tail.
+        toolsOverride={[...SO_SKELETON_TOOLS, "dpa-generator"]}
         scoresAndLogFirst
         showLocalRunLog
-        // Products with no SO batch dispatch — history imported from the
-        // static-stress harness so every testable product has a row.
-        extraHistoryTools={["dpa", "ropa", "us-notice", "eu-notice"]}
+        // Ungraded tail — ONLY the products the orchestrator cannot dispatch or
+        // grade. No product appears in both lists.
+        extraHistoryTools={["ropa", "us-notice", "eu-notice"]}
+
       />
     </div>
   );

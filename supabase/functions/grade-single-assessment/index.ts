@@ -73,6 +73,19 @@ export const KNOWN_TOOL_SLUGS = [
 ] as const;
 export type QL3Tool = typeof KNOWN_TOOL_SLUGS[number];
 
+// ALL-PRODUCTS GRADING (2026-08-29) — the three session-shaped products
+// (RoPA register, US notice suite, EU notice suite) have no single row with
+// `intake_data` + `report_data`: their intake is spread across a session plus
+// answer/selection child tables, and their output is either a persisted
+// assembled register (ropa_sessions.register_document) or HTML files in a
+// private storage bucket. They are graded here by the SAME Claude + GPT
+// rubric as every other product; only the FETCH differs, which is what
+// `fetchSessionShaped` below does. Nothing about the nine QL3 tools changes.
+export const SESSION_TOOL_SLUGS = ["ropa", "us-notice", "eu-notice"] as const;
+export type SessionTool = typeof SESSION_TOOL_SLUGS[number];
+export type GradedTool = QL3Tool | SessionTool;
+
+
 // Per-tool row shape for grader intake+report fetch.
 //   * `table` mirrors ql3-orchestrator/index.ts:123-133 TOOL_TABLE.
 //   * `intakeCols` mirrors run-quality-batch/index.ts intake-insert paths
@@ -175,7 +188,7 @@ Return ONLY valid JSON of this exact shape:
 // GRADER-CAL-1 A1 — formatting weight zeroed; the 5pp rolls into hallucination
 // so leaks (now scored under hallucination) exert stronger overall pull.
 const NON_EDITORIAL_WEIGHTS = { accuracy: 0.30, citation: 0.25, hallucination: 0.25, analysis: 0.15, intelligence: 0.05, formatting: 0 };
-function weightsFor(_tool: QL3Tool) {
+function weightsFor(_tool: GradedTool) {
   return NON_EDITORIAL_WEIGHTS;
 }
 // ---- END verbatim copy ----
@@ -210,7 +223,7 @@ async function gptCall(system: string, user: string, maxTokens = 3000): Promise<
 
 function tryParse(s: string): any { try { return JSON.parse(s); } catch { const m = s.match(/\{[\s\S]*\}/); return m ? (() => { try { return JSON.parse(m[0]); } catch { return null; } })() : null; } }
 
-function computeOverall(scores: any, tool: QL3Tool): number {
+function computeOverall(scores: any, tool: GradedTool): number {
   const w = weightsFor(tool);
   return Math.round(
     (scores.accuracy ?? 60) * w.accuracy +
@@ -222,12 +235,12 @@ function computeOverall(scores: any, tool: QL3Tool): number {
   );
 }
 
-async function gradeOne(role: "claude" | "gpt", tool: QL3Tool, intake: any, report: any) {
+async function gradeOne(role: "claude" | "gpt", tool: GradedTool, intake: any, report: any) {
   const sys = buildRubricSystemPrompt(role);
   // QLB-F3: body-first, metadata-stripped, equal budget across models.
-  const family = familyForSingleTool(tool);
+  const family = familyForSingleTool(tool as QL3Tool);
   const payload = family
-    ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET, { fixtureSet: matchFixtureSet(tool, intake) })
+    ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET, { fixtureSet: matchFixtureSet(tool as QL3Tool, intake) })
     : { text: JSON.stringify(report ?? {}).slice(0, GRADER_PAYLOAD_BUDGET), truncated: false, original_length: 0 };
   if (payload.truncated) {
     console.warn(`[grade-single-assessment] payload_truncated tool=${tool} role=${role} original_length=${payload.original_length} budget=${GRADER_PAYLOAD_BUDGET}`);
@@ -247,6 +260,108 @@ async function gradeOne(role: "claude" | "gpt", tool: QL3Tool, intake: any, repo
 function isKnownTool(x: unknown): x is QL3Tool {
   return typeof x === "string" && (KNOWN_TOOL_SLUGS as readonly string[]).includes(x);
 }
+function isSessionTool(x: unknown): x is SessionTool {
+  return typeof x === "string" && (SESSION_TOOL_SLUGS as readonly string[]).includes(x);
+}
+
+function stripHtml(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+/**
+ * ALL-PRODUCTS GRADING — fetch intake + report for the session-shaped
+ * products. Returns null when the run cannot be graded yet (not generated).
+ */
+async function fetchSessionShaped(
+  // deno-lint-ignore no-explicit-any
+  admin: any,
+  tool: SessionTool,
+  id: string,
+): Promise<{ id: string; intake: unknown; report: unknown } | { error: string; status: number }> {
+  if (tool === "ropa") {
+    // Callers may pass the session id OR a document-version id.
+    let sessionId = id;
+    let { data: session } = await admin
+      .from("ropa_sessions")
+      .select("id, status, org_name, client_id, register_document")
+      .eq("id", id)
+      .maybeSingle();
+    if (!session) {
+      const { data: ver } = await admin
+        .from("ropa_document_versions")
+        .select("session_id")
+        .eq("id", id)
+        .maybeSingle();
+      if (!ver) return { error: "assessment_not_found", status: 404 };
+      sessionId = (ver as Record<string, unknown>).session_id as string;
+      const res = await admin
+        .from("ropa_sessions")
+        .select("id, status, org_name, client_id, register_document")
+        .eq("id", sessionId)
+        .maybeSingle();
+      session = res.data;
+    }
+    if (!session) return { error: "assessment_not_found", status: 404 };
+    const s = session as Record<string, unknown>;
+    if (!s.register_document) return { error: "assessment_not_generated", status: 400 };
+    const [{ data: profile }, { data: activities }, { data: answers }, { data: jur }] = await Promise.all([
+      admin.from("ropa_client_profiles").select("*").eq("client_id", s.client_id as string).maybeSingle(),
+      admin.from("ropa_processing_activities").select("id, display_name, category, template_key").eq("session_id", s.id as string),
+      admin.from("ropa_answers").select("activity_id, question_key, answer_value").eq("session_id", s.id as string),
+      admin.from("ropa_jurisdiction_selections").select("jurisdiction_code").eq("session_id", s.id as string),
+    ]);
+    return {
+      id: s.id as string,
+      intake: { org_name: s.org_name, profile, jurisdictions: jur, activities, answers },
+      report: s.register_document,
+    };
+  }
+
+  // US / EU notice: intake from session + answers + selections; report text
+  // is the generated HTML pulled back out of the private bucket.
+  const sessionTable = tool === "us-notice" ? "us_notice_sessions" : "eu_notice_sessions";
+  const answersTable = tool === "us-notice" ? "us_notice_answers" : "eu_notice_answers";
+  const docsTable = tool === "us-notice" ? "us_notice_documents" : "eu_notice_documents";
+  const selTable = tool === "us-notice" ? "us_notice_state_selections" : "eu_notice_framework_selections";
+  const bucket = tool === "us-notice" ? "us-notices" : "eu-notices";
+
+  const { data: session } = await admin.from(sessionTable).select("*").eq("id", id).maybeSingle();
+  if (!session) return { error: "assessment_not_found", status: 404 };
+  const [{ data: answers }, { data: selections }, { data: docs }] = await Promise.all([
+    admin.from(answersTable).select("question_key, answer_value").eq("session_id", id),
+    admin.from(selTable).select("*").eq("session_id", id),
+    admin.from(docsTable).select("file_path, document_format, is_combined, is_current").eq("session_id", id).eq("is_current", true),
+  ]);
+  const docRows = (docs ?? []) as Array<Record<string, unknown>>;
+  if (docRows.length === 0) return { error: "assessment_not_generated", status: 400 };
+  // Prefer the combined suite document; fall back to every current document.
+  const chosen = docRows.filter((d) => d.is_combined) .length > 0
+    ? docRows.filter((d) => d.is_combined)
+    : docRows;
+  const parts: string[] = [];
+  for (const d of chosen) {
+    const { data: file } = await admin.storage.from(bucket).download(d.file_path as string);
+    if (!file) continue;
+    parts.push(stripHtml(await file.text()));
+  }
+  if (parts.length === 0) return { error: "assessment_not_generated", status: 400 };
+  return {
+    id,
+    intake: { session, answers, selections },
+    report: { document_text: parts.join("\n\n---\n\n") },
+  };
+}
+
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
@@ -279,42 +394,60 @@ const handler = async (req: Request): Promise<Response> => {
   // (ql3-orchestrator.callInternalGrader, admin one-off Doc W baseline)
   // stay unchanged. Unknown slug → 400 unknown_tool.
   const toolRaw = body.tool ?? "cppa-risk";
-  if (!isKnownTool(toolRaw)) {
-    return json({ error: "unknown_tool", detail: `known: ${KNOWN_TOOL_SLUGS.join(",")}` }, 400);
+  if (!isKnownTool(toolRaw) && !isSessionTool(toolRaw)) {
+    return json({
+      error: "unknown_tool",
+      detail: `known: ${[...KNOWN_TOOL_SLUGS, ...SESSION_TOOL_SLUGS].join(",")}`,
+    }, 400);
   }
-  const tool: QL3Tool = toolRaw;
-  const spec = TOOL_TABLE[tool];
+  const tool: GradedTool = toolRaw;
 
   const admin = createClient(SUPABASE_URL, SERVICE_KEY);
-  // Row fetch by id is unambiguous — no module filter needed for
-  // cppa_assessments (id is table PK).
-  // QLB-F3: also fetch the body-text column (playbook_text /
-  // document_text / analysis_text) when the spec declares one, and fold
-  // it into `report` as `bodyKey` so the grader payload leads with body.
-  const cols = ["id", "status", spec.reportCol, ...spec.intakeCols];
-  if (spec.bodyCol) cols.push(spec.bodyCol);
-  const selectCols = cols.join(", ");
-  const { data: row, error: selErr } = await admin
-    .from(spec.table)
-    .select(selectCols)
-    .eq("id", body.assessment_id)
-    .maybeSingle();
-  if (selErr) return json({ error: selErr.message }, 500);
-  if (!row) return json({ error: "assessment_not_found" }, 404);
-  const rowAny = row as unknown as Record<string, unknown>;
-  if (!rowAny[spec.reportCol]) return json({ error: "assessment_not_generated" }, 400);
 
-  // Assemble intake from the per-tool columns. Single JSONB column → pass
-  // through; multi-column (LIA) → object with those column values.
-  const intake: unknown = spec.intakeCols.length === 1
-    ? rowAny[spec.intakeCols[0]]
-    : Object.fromEntries(spec.intakeCols.map((c) => [c, rowAny[c]]));
-  let report = rowAny[spec.reportCol];
-  if (spec.bodyCol && spec.bodyKey) {
-    const rd = (report && typeof report === "object") ? { ...(report as Record<string, unknown>) } : {};
-    (rd as Record<string, unknown>)[spec.bodyKey] = rowAny[spec.bodyCol] ?? "";
-    report = rd;
+  let gradedId: unknown;
+  let intake: unknown;
+  let report: unknown;
+
+  if (isSessionTool(tool)) {
+    const fetched = await fetchSessionShaped(admin, tool, body.assessment_id);
+    if ("error" in fetched) return json({ error: fetched.error }, fetched.status);
+    gradedId = fetched.id;
+    intake = fetched.intake;
+    report = fetched.report;
+  } else {
+    const spec = TOOL_TABLE[tool];
+    // Row fetch by id is unambiguous — no module filter needed for
+    // cppa_assessments (id is table PK).
+    // QLB-F3: also fetch the body-text column (playbook_text /
+    // document_text / analysis_text) when the spec declares one, and fold
+    // it into `report` as `bodyKey` so the grader payload leads with body.
+    const cols = ["id", "status", spec.reportCol, ...spec.intakeCols];
+    if (spec.bodyCol) cols.push(spec.bodyCol);
+    const selectCols = cols.join(", ");
+    const { data: row, error: selErr } = await admin
+      .from(spec.table)
+      .select(selectCols)
+      .eq("id", body.assessment_id)
+      .maybeSingle();
+    if (selErr) return json({ error: selErr.message }, 500);
+    if (!row) return json({ error: "assessment_not_found" }, 404);
+    const rowAny = row as unknown as Record<string, unknown>;
+    if (!rowAny[spec.reportCol]) return json({ error: "assessment_not_generated" }, 400);
+
+    // Assemble intake from the per-tool columns. Single JSONB column → pass
+    // through; multi-column (LIA) → object with those column values.
+    gradedId = rowAny.id;
+    intake = spec.intakeCols.length === 1
+      ? rowAny[spec.intakeCols[0]]
+      : Object.fromEntries(spec.intakeCols.map((c) => [c, rowAny[c]]));
+    report = rowAny[spec.reportCol];
+    if (spec.bodyCol && spec.bodyKey) {
+      const rd = (report && typeof report === "object") ? { ...(report as Record<string, unknown>) } : {};
+      (rd as Record<string, unknown>)[spec.bodyKey] = rowAny[spec.bodyCol] ?? "";
+      report = rd;
+    }
   }
+
 
   let claudeRes: any = null, claudeErr: string | null = null;
   let gptRes: any = null, gptErr: string | null = null;
@@ -324,7 +457,7 @@ const handler = async (req: Request): Promise<Response> => {
   catch (e) { gptErr = (e as Error).message; }
 
   const payload = {
-    assessment_id: rowAny.id,
+    assessment_id: gradedId,
     fixture_label: body.fixture_label ?? "believed_fixture",
     graded_at: new Date().toISOString(),
     graded_by: userId,

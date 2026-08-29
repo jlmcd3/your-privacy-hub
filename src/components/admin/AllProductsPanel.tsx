@@ -15,6 +15,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { appendAllProductsLog, clearAllProductsLog } from "@/lib/allProductsLog";
+import { recordLocalRun, recordLocalScore } from "@/lib/allProductsRunHistory";
+import { gradeRun, SLUG_TO_GRADER_TOOL } from "@/lib/gradeRun";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -203,6 +205,14 @@ export function AllProductsPanel() {
               status: j.status === "complete" ? "complete" : j.status === "failed" ? "failed" : "running",
               sourceRowId: j.source_row_id,
             });
+            if (j.status === "complete" && j.source_row_id) {
+              void gradeAndRecord(
+                row.tool_slug,
+                j.source_row_id,
+                `claude-intake/${j.company_name ?? "company"}`,
+                k,
+              );
+            }
           }
         }
         if (poll % 5 === 0) {
@@ -231,6 +241,36 @@ export function AllProductsPanel() {
     } finally {
       setBusy(false);
     }
+  }
+
+  /**
+   * DUAL-MODEL SCORING — every product graded by Claude AND GPT.
+   * Runs immediately after a successful generation, against the row/session
+   * the run produced. Grading failures never fail the run itself.
+   */
+  async function gradeAndRecord(
+    slug: ToolSlug,
+    sourceRowId: string | null,
+    label: string,
+    logKey: string,
+  ) {
+    if (!sourceRowId) return;
+    if (!SLUG_TO_GRADER_TOOL[slug]) {
+      appendLog(logKey, "· grading skipped — no grader tool for this product");
+      return;
+    }
+    appendLog(logKey, "· grading (Claude + GPT)…");
+    const res = await gradeRun(slug, sourceRowId, label);
+    if (!res) return;
+    if (res.claude == null && res.gpt == null) {
+      appendLog(logKey, `· grading failed — ${res.error ?? "no score"}`);
+      return;
+    }
+    recordLocalScore(SLUG_TO_STRESS_TOOL[slug], res.claude, res.gpt);
+    appendLog(
+      logKey,
+      `· scored — Claude ${res.claude?.toFixed(1) ?? "—"} / GPT ${res.gpt?.toFixed(1) ?? "—"}`,
+    );
   }
 
   async function runSelected() {
@@ -272,9 +312,12 @@ export function AllProductsPanel() {
           ok += 1;
           appendLog(k, `✅ complete${runLabel} — ${out.resultUrl}`);
           setRow(k, { status: "complete", resultUrl: out.resultUrl, sourceRowId: out.sourceRowId });
+          recordLocalRun(SLUG_TO_STRESS_TOOL[f.tool_slug], true);
+          await gradeAndRecord(f.tool_slug, out.sourceRowId, `${f.tool_slug}/${f.variant}`, k);
         } catch (e) {
           appendLog(k, `❌${runLabel} ${(e as Error).message}`);
           setRow(k, { status: "failed" });
+          recordLocalRun(SLUG_TO_STRESS_TOOL[f.tool_slug], false);
         }
       }
     }

@@ -33,6 +33,7 @@ import { SLUG_TO_TOOL_TYPE, generationModelSlug, DEFAULT_GENERATION_MODEL, AB_AL
 import { ModelPairTable } from "@/components/admin/quality-console/ModelPairTable";
 import { PINS_MODE_OPTIONS, type PinsMode } from "@/lib/pinsMode";
 import { useAllProductsLog, clearAllProductsLog } from "@/lib/allProductsLog";
+import { useLocalRunHistory } from "@/lib/allProductsRunHistory";
 
 // ITEM 325 — fixture variant. "perfect" is the ratified golden set; "messy"
 // is the (not-yet-authored) realistic-input set. See
@@ -277,6 +278,9 @@ export function QualityConsole({
   const [stressHistory, setStressHistory] = useState<Map<string, StressHistory>>(new Map());
   // ALL-PRODUCTS-TEST — in-page run log published by AllProductsPanel.
   const localLog = useAllProductsLog();
+  // ALL-PRODUCTS-TEST — pass/fail tally for pre-set-package runs executed
+  // in-page (they write no server-side batch or stress row).
+  const localRunHistory = useLocalRunHistory();
   const localLogRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (localLogRef.current) localLogRef.current.scrollTop = localLogRef.current.scrollHeight;
@@ -1119,38 +1123,60 @@ export function QualityConsole({
                 );
               })}
               {(extraHistoryTools ?? []).map((tool) => {
-                const h = stressHistory.get(tool);
+                const s = stressHistory.get(tool);
+                const l = localRunHistory[tool];
+                // Merge the two ungraded sources: Claude-intake jobs recorded
+                // server-side (static_stress_jobs) and pre-set-package runs
+                // executed in this page (no server row of their own).
+                const total = (s?.total ?? 0) + (l?.total ?? 0);
+                const complete = (s?.complete ?? 0) + (l?.complete ?? 0);
+                const failed = (s?.failed ?? 0) + (l?.failed ?? 0);
+                const lastAt = [s?.lastAt, l?.lastAt].filter(Boolean).sort().pop() ?? null;
+                const scored = l?.scored ?? 0;
+                const claudeAvg = scored ? (l!.claudeSum ?? 0) / scored : null;
+                const gptAvg = scored ? (l!.gptSum ?? 0) / scored : null;
                 return (
                   <tr key={tool} className="border-b align-top bg-muted/10">
                     <td className="py-2 pr-3 font-mono">
                       {tool}
                       <div className="text-[10px] font-sans text-muted-foreground">
-                        imported · static-stress harness
+                        stress harness + in-page · Claude/GPT graded
                       </div>
                     </td>
-                    <td className="py-2 pr-3">{h?.total ?? 0}</td>
+                    <td className="py-2 pr-3">{total}</td>
                     <td className="py-2 pr-3 bg-muted/40 text-muted-foreground">n/a</td>
                     {matrixColumns.length > 0 ? (
                       <td className="py-2 pr-3 text-xs" colSpan={matrixColumns.length}>
-                        {h && h.total > 0 ? (
+                        {total > 0 ? (
                           <>
-                            {h.complete} complete · {h.failed} failed
-                            {h.lastAt && (
+                            <span className="font-mono">
+                              {claudeAvg?.toFixed(1) ?? "—"} / {gptAvg?.toFixed(1) ?? "—"}
+                            </span>
+                            <span className="ml-2 text-muted-foreground">
+                              {scored ? `${scored} graded` : "not yet graded"}
+                            </span>
+                            <span className="ml-2">
+                              {complete} complete · {failed} failed
+                            </span>
+                            {l?.total ? (
                               <span className="ml-2 text-muted-foreground">
-                                last {new Date(h.lastAt).toLocaleDateString()}
+                                ({l.total} in-page)
+                              </span>
+                            ) : null}
+                            {lastAt && (
+                              <span className="ml-2 text-muted-foreground">
+                                last {new Date(lastAt).toLocaleString()}
                               </span>
                             )}
-                            <span className="ml-2 text-muted-foreground">
-                              (no grader score — pass/fail harness)
-                            </span>
                           </>
                         ) : (
-                          <span className="text-muted-foreground">no imported history</span>
+                          <span className="text-muted-foreground">no run history</span>
                         )}
                       </td>
                     ) : null}
                   </tr>
                 );
+
               })}
             </tbody>
           </table>
