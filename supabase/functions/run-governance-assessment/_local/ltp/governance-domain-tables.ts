@@ -314,6 +314,56 @@ function regulatoryExposure(intake: Bag): TypedDomainFinding {
     });
 }
 
+// G-2 (2026-08-28, doc 95/100 of the spine-vs-prompt comparison program) —
+// ART. 35(3) CANDIDATE-TRIGGER SCREENING. The old prompt's Domain 8
+// instructed the model to screen the company's recorded processing against
+// Art. 35(3)'s subsections precisely: (a) automated profiling with
+// significant effects; (b) ONLY large-scale special-category/criminal
+// data — never employee monitoring alone; (c) ONLY systematic monitoring
+// of publicly accessible PHYSICAL areas — never online/digital tooling.
+// Where a trigger turned on a fact the intake didn't establish (e.g.
+// whether special-category processing is "large scale"), the rule was to
+// flag it as a candidate to assess, never conclude "does not apply". The
+// deterministic table below dropped that to one generic Art. 35(1)
+// sentence for every record alike — a health-data customer and a
+// contact-details-only customer read identically. This restores
+// candidate-level precision from data the intake already collects
+// (special_category / special_categories_list / tools), without inventing
+// facts the intake doesn't carry: this intake has NO scale/volume field
+// and NO physical-space-monitoring signal, so (3)(b)'s large-scale element
+// and (3)(c) in its entirety stay correctly unconfirmed/unasserted — (3)(c)
+// is never named at all, matching the old prompt's own precision (online
+// AI-tool usage is never (3)(c)).
+function dpiaTriggerCandidates(intake: Bag): string {
+  const parts: string[] = [];
+
+  const special = s(intake.special_category) === "Yes";
+  if (special) {
+    const cats = (Array.isArray(intake.special_categories_list) ? intake.special_categories_list : [])
+      .map((c) => s(c)).filter(Boolean);
+    const catsPhrase = cats.length ? cats.join(", ") : "special categories of data";
+    parts.push(
+      `The company has recorded processing of ${catsPhrase}, engaging Art. 35(3)(b) as a candidate trigger; whether that processing occurs at large scale is not resolved on the information provided, so this candidate is flagged for assessment rather than concluded.`,
+    );
+  }
+
+  const tools = (Array.isArray(intake.tools) ? intake.tools : []).map((t) => s(t)).filter(Boolean);
+  if (tools.length > 0) {
+    const toolsPhrase = tools.length === 1 ? `the recorded AI tool (${tools[0]})` : `the ${tools.length} recorded AI tools (${tools.join(", ")})`;
+    parts.push(
+      `The company's use of ${toolsPhrase} engages the WP248 "innovative use or application of new technological or organisational solutions" criterion as a candidate contributing to the Art. 35(1) high-risk threshold; whether any of those tools evaluates, scores, or makes decisions about individuals with legal or similarly significant effect is not resolved on the information provided, so Art. 35(3)(a) is a further candidate pending that confirmation.`,
+    );
+  }
+
+  if (parts.length > 0) {
+    parts.push(
+      "Article 35(3) is a non-exhaustive list of examples of processing that meets the Article 35(1) high-risk threshold, not a separate obligation; the candidates above illustrate, rather than substitute for, the Article 35(1) screening.",
+    );
+  }
+
+  return parts.length ? " " + parts.join(" ") : "";
+}
+
 function dpiaStatus(intake: Bag): TypedDomainFinding {
   const v = s(intake.dpia_status);
   const ai = s(intake.dpia_ai_coverage);
@@ -324,10 +374,11 @@ function dpiaStatus(intake: Bag): TypedDomainFinding {
     "Unsure": " Whether the AI tools are assessed is not resolved on the information provided.",
   };
   const tail = aiTail[ai] ?? "";
+  const candidates = dpiaTriggerCandidates(intake);
   const table: Record<string, Cell> = {
     "Yes, multiple DPIAs completed": {
       severity: ai === "No — not for AI tools" ? "Medium" : "Compliant",
-      current_state: "Multiple DPIAs are recorded as completed." + tail,
+      current_state: "Multiple DPIAs are recorded as completed." + tail + candidates,
       gap_description: ai === "No — not for AI tools" ? "The AI tools in use fall outside the completed assessments." : null,
       recommended_action: ai === "No — not for AI tools"
         ? "Screen the AI tools against the Art. 35(1) high-risk threshold and assess those that meet it (GDPR Art. 35(1))."
@@ -335,21 +386,22 @@ function dpiaStatus(intake: Bag): TypedDomainFinding {
     },
     "Yes, one DPIA completed": {
       severity: "Low",
-      current_state: "One DPIA is recorded as completed." + tail,
+      current_state: "One DPIA is recorded as completed." + tail + candidates,
       gap_description: "Whether the remaining processing activities meet the Art. 35(1) threshold has not been screened on the information provided.",
       recommended_action: "Screen the remaining activities, the AI tools first, against the Art. 35(1) high-risk threshold (GDPR Art. 35(1)).",
     },
     "No, none conducted": {
       severity: "High",
-      current_state: "The company has answered that no DPIA has been conducted." + tail,
+      current_state: "The company has answered that no DPIA has been conducted." + tail + candidates,
       gap_description: "Processing that meets the Art. 35(1) high-risk threshold would be running unassessed.",
       recommended_action: "Screen the recorded processing, the AI tools first, against the Art. 35(1) threshold and conduct a DPIA where it is met (GDPR Art. 35(1)).",
     },
-    "Unsure": UNRESOLVED("the DPIA position", "Answer the DPIA-status question: multiple, one, or none conducted."),
   };
+  const fallback = UNRESOLVED("the DPIA position", "Answer the DPIA-status question: multiple, one, or none conducted.");
+  table["Unsure"] = { ...fallback, current_state: fallback.current_state + candidates };
   return finding(8, "Privacy Impact Assessment Status", "dpia_status",
     "GDPR Art. 35(1)", "The DPO or privacy owner",
-    table[v] ?? UNRESOLVED("the DPIA position", "Answer the DPIA-status question: multiple, one, or none conducted."));
+    table[v] ?? { ...fallback, current_state: fallback.current_state + candidates });
 }
 
 function subjectRights(intake: Bag): TypedDomainFinding {
