@@ -117,3 +117,27 @@ export async function fetchClaudeBatchStatus(
   if (error || !data) throw new Error(error?.message ?? "batch not found");
   return data as any;
 }
+
+/**
+ * CANCEL BATCH — admin stop for a Claude-intake stress batch. Jobs that have
+ * not finished are marked cancelled so run-stress-job's dispatcher stops
+ * picking them up, and the batch row itself moves to a terminal state so the
+ * panel's progress monitor detaches.
+ */
+export async function cancelClaudeBatch(batchId: string): Promise<{ cancelledJobs: number }> {
+  const { data: jobs, error: jobErr } = await supabase
+    .from("static_stress_jobs")
+    .update({ status: "cancelled", error_message: "cancelled by admin" })
+    .eq("batch_id", batchId)
+    .in("status", ["pending", "queued", "running", "processing"])
+    .select("id");
+  if (jobErr) throw jobErr;
+
+  const { error: batchErr } = await supabase
+    .from("static_stress_batches")
+    .update({ status: "cancelled" })
+    .eq("id", batchId);
+  if (batchErr) throw batchErr;
+
+  return { cancelledJobs: jobs?.length ?? 0 };
+}
