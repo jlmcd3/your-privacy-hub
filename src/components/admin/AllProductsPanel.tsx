@@ -276,6 +276,29 @@ export function AllProductsPanel() {
   const setRow = (k: string, patch: Partial<RowState>) =>
     setState((s) => ({ ...s, [k]: { ...(s[k] ?? EMPTY), ...patch } }));
 
+  // CANCEL BATCH — terminal-marks the active Claude-intake batch and its
+  // unfinished jobs, then detaches this panel's progress monitor.
+  async function cancelActiveBatch() {
+    if (!claudeBatchId) return;
+    setCancelling(true);
+    try {
+      const { cancelledJobs } = await cancelClaudeBatch(claudeBatchId);
+      appendAllProductsLog(
+        "batch",
+        `⛔ batch ${claudeBatchId} cancelled — ${cancelledJobs} unfinished job(s) stopped`,
+        "error",
+      );
+      window.sessionStorage.removeItem("eup.allProductsTest.activeClaudeBatch");
+      setClaudeBatchId(null);
+      setBusy(false);
+    } catch (e) {
+      appendAllProductsLog("batch", `❌ cancel failed — ${(e as Error).message}`, "error");
+    } finally {
+      setCancelling(false);
+    }
+  }
+
+
   // Every per-row line is also published to the shared run-log bus so the
   // "Live log" card on /admin/all-products-test shows this run, not only
   // server-side quality_batch_log rows.
