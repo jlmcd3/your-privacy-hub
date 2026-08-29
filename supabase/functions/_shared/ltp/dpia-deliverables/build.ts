@@ -2220,6 +2220,33 @@ const SPECIAL_CATEGORY_CATS_LOCAL = [
   "Biometric data",
 ] as const;
 
+// ITEM D-3 (2026-08-28, doc 93 of the spine-vs-prompt comparison program) —
+// ART. 9(1) BIOMETRIC PURPOSE TEST. Unlike "Health or medical data", which
+// Art. 9(1) treats as special-category unconditionally, biometric data is
+// special-category only "for the purpose of uniquely identifying a natural
+// person" — a purpose test, not a data-type reflex (same rule the old
+// prompt-built version carried at FF-4 pd7, and that
+// check-biometric-compliance's Texas-CUBI handling already gets right, see
+// build.ts:358 there). This lexicon narrows the "Biometric data" reflex ONLY
+// for the clear case: the record's own free text names a recognised
+// non-identification purpose (monitoring, wellness, clinical/triage, safety,
+// ergonomic, performance) and names no identification purpose. Every other
+// case — an identification purpose is named, or the purpose is simply
+// unstated — keeps the existing conservative default (special_category:
+// true), matching the fleet's stated over-assessment posture for Art. 9
+// ambiguity (see ART9_OTHER_LEXICON below). This is a narrowing of a false
+// positive, not a reversal of that posture.
+const BIOMETRIC_IDENTIFICATION_LEXICON =
+  /\bidentif\w*|\bauthenticat\w*|\bverify identit\w*|\bidentity verification\b|\baccess control\b|\blog[- ]?in\b|\bone[- ]to[- ]one\b|\bone[- ]to[- ]many\b|\b1:1\b|\b1:n\b|\bface match\w*|\bfacial recognition match\w*|\bfingerprint match\w*/i;
+const BIOMETRIC_NON_IDENTIFICATION_LEXICON =
+  /\bheart rate\b|\bspo2\b|\boxygen saturation\b|\becg\b|\bekg\b|\beeg\b|\bgaze\b|\battention score\w*|\bgait\b|\bposture\b|\btemperature\b|\bwellness\b|\bmonitoring\b|\bclinical\b|\btriage\b|\bergonomic\w*|\bperformance\b/i;
+
+function biometricHasOnlyNonIdentificationPurpose(intake: unknown): boolean {
+  const text = ART9_OTHER_SWEEP_FIELDS.map((f) => str(get(intake, f))).join("\n");
+  if (!text.trim()) return false;
+  return BIOMETRIC_NON_IDENTIFICATION_LEXICON.test(text) && !BIOMETRIC_IDENTIFICATION_LEXICON.test(text);
+}
+
 const ASK_DPO =
   "whether a data protection officer is designated for this processing, and if so their name and contact details";
 const ASK_PROCESSOR_OBLIGATIONS =
@@ -2283,8 +2310,15 @@ export function buildProcessingInventory(intake: unknown): DpiaProcessingInvento
 
   // ── data items ──────────────────────────────────────────────────────
   const art9 = str(get(intake, "article_9_condition"));
+  // ITEM D-3 — see biometricHasOnlyNonIdentificationPurpose above. Computed
+  // once per record; "Biometric data" is special_category only when this is
+  // false (no recorded non-identification-only purpose) OR the company has
+  // already named an Art. 9(2) condition itself (that determination is
+  // never second-guessed by a lexicon).
+  const biometricNonIdentifying = biometricHasOnlyNonIdentificationPurpose(intake);
   const data_items: DpiaInventoryDataItem[] = arr(get(intake, "data_categories")).map((item) => {
-    const special = (SPECIAL_CATEGORY_CATS_LOCAL as readonly string[]).includes(item);
+    const specialByLabel = (SPECIAL_CATEGORY_CATS_LOCAL as readonly string[]).includes(item);
+    const special = specialByLabel && !(item === "Biometric data" && !art9 && biometricNonIdentifying);
     if (!special) {
       return {
         item,
