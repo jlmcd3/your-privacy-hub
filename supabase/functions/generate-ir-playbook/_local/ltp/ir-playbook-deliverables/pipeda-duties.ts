@@ -8,12 +8,7 @@
 // value, no new field. Deliberately narrower than "any Canadian
 // jurisdiction": Quebec/Alberta/British Columbia/Ontario carry their own
 // "substantially similar" provincial legislation PIPEDA does not directly
-// govern for provincially-regulated organisations — full duty text for
-// those is separate, out-of-scope legal research (doc 103 §2). Those four
-// provinces get the SAME honest "to be confirmed" fallback
-// us-state-duties.ts already uses for "Other US State", closing a gap where
-// they previously got silent treatment on this record (no verified clock,
-// but also no honest acknowledgment that the clock is unconfirmed).
+// govern for provincially-regulated organisations.
 //
 // DESIGN: PIPEDA's trigger ("real risk of significant harm") is
 // QUALITATIVE (data sensitivity x probability of misuse), unlike HIPAA's
@@ -23,18 +18,31 @@
 // submission-postures.ts already uses for exactly this situation, and the
 // same register HIPAA's individual-notice duty already uses (stated
 // unconditionally once the regime applies, not adjudicated).
+//
+// PHASE 3c (2026-08-29, doc 103 continuation, CEO-approved) — the four
+// Canadian provinces below now carry real duty text rather than the
+// honest-unverified fallback this module shipped with in Phase 3b.
+// Sourcing tiers differ and are handled two different ways per the CEO's
+// explicit instruction on framing:
+//   - Alberta: fetched directly from the regulator's own page (oipc.ab.ca)
+//     — high confidence, cited normally. That fetch also caught a real
+//     error in the old retired prompt's notes: individual notice is NOT an
+//     independent PIPA duty (the Commissioner orders it under s. 37.1
+//     after review), which the old prompt had wrongly stated as a direct,
+//     symmetrical duty alongside Commissioner notice.
+//   - Quebec, British Columbia, Ontario: primary legislative sites (Legis-
+//     Québec, CanLII, a BC FIPPA page mistakenly fetched first and
+//     discarded before use, IPC Ontario) all blocked automated access.
+//     Built from converging secondary/professional sources instead. Per
+//     CEO direction, this is NOT flagged as a sourcing-tier caveat in the
+//     rendered text ("this is a secondary source") — it is folded into an
+//     actionable instruction ("confirm ... with the applicable regulator")
+//     that reads the same as any other degradation sentence in this
+//     product's register.
 
 import type { StateDutySet } from "./us-state-duties.ts";
 
 const PIPEDA_JURISDICTION = "Canada (PIPEDA)";
-
-/** Canadian provincial jurisdictions this module does not carry verified duty text for. */
-const UNVERIFIED_CANADIAN_PROVINCES: readonly string[] = [
-  "Quebec (Law 25)",
-  "Alberta (PIPA)",
-  "British Columbia (PIPA)",
-  "Ontario (PHIPA)",
-];
 
 export function isPipedaJurisdiction(jurisdictions: readonly string[]): boolean {
   return jurisdictions.includes(PIPEDA_JURISDICTION);
@@ -52,17 +60,38 @@ const OTHER_ORG_NOTICE_TEXT =
 const RECORD_KEEPING_TEXT =
   "keep and maintain a record of every breach of security safeguards, regardless of whether it meets the real-risk-of-significant-harm notification threshold, for 24 months after the organisation determines the breach occurred";
 
-/** Strips the trailing parenthetical for a readable sentence label: "Quebec (Law 25)" -> "Quebec". */
-function provinceLabel(jurisdiction: string): string {
-  return jurisdiction.replace(/\s*\([^)]*\)\s*$/, "").trim() || jurisdiction;
+const ALBERTA_TEXT =
+  "notify the Office of the Information and Privacy Commissioner of Alberta without unreasonable delay where a reasonable person would consider that the breach creates a real risk of significant harm to an individual. Notice to affected individuals is not an independent duty under PIPA; the Commissioner may require it by order (s. 37.1) after reviewing the organisation's report, though organisations commonly notify individuals voluntarily in advance of that review";
+
+const BC_TEXT =
+  "where a breach poses a real risk of significant harm to an individual, notify that individual directly and without unreasonable delay; notice to the Office of the Information and Privacy Commissioner for BC is not itself required by statute, though the OIPC recommends it as a matter of practice. Confirm the applicable thresholds and notice content with the OIPC for British Columbia before relying on this timeline";
+
+const QUEBEC_TEXT =
+  "where a confidentiality incident presents a risk of serious injury (assessed by the sensitivity of the information, the anticipated consequences of its use, and the likelihood of injurious use), notify the Commission d'accès à l'information (CAI) without delay and notify each affected person; maintain a register of every confidentiality incident, regardless of whether it meets the notification threshold, and provide it to the CAI on request. Confirm the applicable thresholds and notice content with the CAI before relying on this timeline";
+
+const ONTARIO_TEXT =
+  "where personal health information in a health information custodian's custody or control is stolen, lost, or used or disclosed without authority, notify the affected individual at the first reasonable opportunity. Notify the Information and Privacy Commissioner of Ontario (IPC) where the breach meets the thresholds set in the PHIPA regulation. Separately, report every privacy breach in an annual statistics submission to the IPC regardless of whether it was individually reported at the time. Confirm the applicable IPC-notice thresholds and the current annual-reporting deadline with the IPC before relying on this timeline";
+
+interface ProvinceRule {
+  readonly jurisdiction: string;
+  readonly state_label: string;
+  readonly citation: string;
+  readonly text: string;
 }
 
+const PROVINCE_RULES: readonly ProvinceRule[] = [
+  { jurisdiction: "Alberta (PIPA)", state_label: "Alberta", citation: "Alberta PIPA, s. 34.1, s. 37.1", text: ALBERTA_TEXT },
+  { jurisdiction: "British Columbia (PIPA)", state_label: "British Columbia", citation: "BC PIPA", text: BC_TEXT },
+  { jurisdiction: "Quebec (Law 25)", state_label: "Quebec", citation: "Act respecting the protection of personal information in the private sector, ss. 3.5–3.8", text: QUEBEC_TEXT },
+  { jurisdiction: "Ontario (PHIPA)", state_label: "Ontario", citation: "Ontario PHIPA", text: ONTARIO_TEXT },
+];
+
 /**
- * Builds PIPEDA's four duty rows plus, independently, one honest-fallback
- * row per recorded-but-unverified Canadian provincial jurisdiction. Rides
- * the same StateDutySet shape the fleet's existing US-state clocks use, so
- * every existing state_notification_duties consumer renders them with zero
- * additional wiring.
+ * Builds PIPEDA's four duty rows plus, independently, one row per recorded
+ * Canadian provincial jurisdiction. Rides the same StateDutySet shape the
+ * fleet's existing US-state clocks use, so every existing
+ * state_notification_duties consumer renders them with zero additional
+ * wiring.
  */
 export function buildPipedaDuties(jurisdictions: readonly string[]): StateDutySet[] {
   const duties: StateDutySet[] = [];
@@ -100,15 +129,16 @@ export function buildPipedaDuties(jurisdictions: readonly string[]): StateDutySe
   }
   const seen = new Set<string>();
   for (const j of jurisdictions) {
-    if (!UNVERIFIED_CANADIAN_PROVINCES.includes(j) || seen.has(j)) continue;
+    if (seen.has(j)) continue;
+    const rule = PROVINCE_RULES.find((r) => r.jurisdiction === j);
+    if (!rule) continue;
     seen.add(j);
     duties.push({
-      jurisdiction: j,
-      state_label: provinceLabel(j),
-      citation: "[statutory reference to be confirmed]",
-      individual_deadline:
-        "notification on that province's own breach-notification statute, whose clock must be confirmed before the timeline is relied on",
-      verified: false,
+      jurisdiction: rule.jurisdiction,
+      state_label: rule.state_label,
+      citation: rule.citation,
+      individual_deadline: rule.text,
+      verified: true,
     });
   }
   return duties;

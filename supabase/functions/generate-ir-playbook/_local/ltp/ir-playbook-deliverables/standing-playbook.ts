@@ -24,8 +24,9 @@ import type { ContentOwnerMapping } from "./types.ts";
 import { HIGH_RISK_DATA_TYPES, STANDING_TO_COMPLETE } from "./elements.ts";
 import { normalizeBreachNoticeContracts, normalizeResponseTeamRoster, type RosterRow } from "./build.ts";
 import { buildHipaaDuties } from "./hipaa-duties.ts";
+import { buildSectoralDuties } from "./sectoral-duties.ts";
 
-export const STANDING_PLAYBOOK_VERSION = "ir-standing-playbook-doc102-phase3a-2026-08-29";
+export const STANDING_PLAYBOOK_VERSION = "ir-standing-playbook-doc104-phase3d-2026-08-29";
 
 // ── section shapes ───────────────────────────────────────────────────
 export interface PlaybookSectionBase {
@@ -538,6 +539,32 @@ function buildHipaaAssumptionNote(intake: unknown): PlaybookNoteSection {
   };
 }
 
+// ── IR-E Phase 3d (2026-08-29, doc 104 §3, CEO-approved VERBATIM) —
+// SECTORAL PROXY ASSUMPTION NOTE. Same pattern as buildHipaaAssumptionNote
+// immediately above: NYDFS and DORA are gated on organisationType ===
+// "Financial institution" (plus a jurisdiction), a proxy for each regime's
+// own narrower "covered entity"/"financial entity" test — stated once,
+// always renders, not-engaged default when neither proxy fires. SEC 8-K
+// needs no such note: its trigger is a direct jurisdiction selection, not a
+// proxy.
+function buildSectoralAssumptionNote(intake: unknown): PlaybookNoteSection {
+  const orgType = str(get(intake, "organisationType"));
+  const jurisdictions = list(get(intake, "jurisdictions"));
+  const sectoral = buildSectoralDuties(jurisdictions, orgType);
+  const body = sectoral.proxy_assumption_note
+    ? [sectoral.proxy_assumption_note]
+    : [
+      "NYDFS's and DORA's incident-reporting duties are not engaged on this record: the recorded organisation type is not \"Financial institution\", or no recorded jurisdiction puts New York or an EU/EEA country in scope.",
+    ];
+  return {
+    kind: "note",
+    id: "sectoral_proxy_assumption",
+    heading: "NYDFS and DORA incident-reporting duties",
+    body,
+    status: "analysed",
+  };
+}
+
 // ── IR-I 5b (2026-08-29, doc 101 §5, CEO-approved) — REGULATOR FINAL-REPORT
 // REMINDER. A phased Art. 33(4) filing is not closed until the deferred
 // elements are supplied, and that follow-up duty is otherwise easy to lose
@@ -726,6 +753,7 @@ export const STANDING_SECTION_ORDER: readonly string[] = [
   "breach_classification",
   "statutory_notification_determinations",
   "hipaa_assumption",
+  "sectoral_proxy_assumption",
   "regulator_final_report",
   "individual_notice_template",
   "executive_briefing_template",
@@ -777,6 +805,7 @@ export function buildStandingPlaybook(
     buildClassification(intake),
     buildStatutoryPointer(),
     buildHipaaAssumptionNote(intake),
+    buildSectoralAssumptionNote(intake),
     buildRegulatorFinalReportNote(mapping),
     buildIndividualNoticeTemplate(intake),
     buildExecutiveBriefingTemplate(intake),

@@ -93,18 +93,22 @@ Deno.test("buildPipedaDuties — record-keeping states the 24-month retention pe
   assertEquals(recordKeeping.citation, "PIPEDA § 10.3, SOR/2018-64");
 });
 
-// ── The provincial fallback ──────────────────────────────────────────────
+// ── The four Canadian provinces (Phase 3c, doc 103 continuation) — see
+// phase3c-canadian-provinces.test.ts for the full per-province pin suite.
+// These three stay here because they were written for Phase 3b's original
+// honest-fallback design and are now updated to the Phase 3c real-duty-text
+// behavior, keeping the file's own history legible.
 
-Deno.test("buildPipedaDuties — each recognized Canadian province gets the honest unverified fallback, not duty text", () => {
+Deno.test("buildPipedaDuties — each recognized Canadian province now carries real duty text, not the placeholder fallback", () => {
   const r = buildPipedaDuties(["Quebec (Law 25)"]);
   assertEquals(r.length, 1);
-  assertEquals(r[0].verified, false);
+  assertEquals(r[0].verified, true);
   assertEquals(r[0].state_label, "Quebec");
-  assertStringIncludes(r[0].individual_deadline, "must be confirmed before the timeline is relied on");
-  assertEquals(r[0].citation, "[statutory reference to be confirmed]");
+  assertStringIncludes(r[0].individual_deadline, "Confirm the applicable thresholds and notice content with the CAI");
+  assert(r[0].citation !== "[statutory reference to be confirmed]");
 });
 
-Deno.test("buildPipedaDuties — all four recognized provinces produce independent fallback rows, deduplicated, alongside PIPEDA when both are recorded", () => {
+Deno.test("buildPipedaDuties — all four recognized provinces produce independent rows, deduplicated, alongside PIPEDA when both are recorded", () => {
   const r = buildPipedaDuties([
     "Canada (PIPEDA)",
     "Quebec (Law 25)",
@@ -113,12 +117,11 @@ Deno.test("buildPipedaDuties — all four recognized provinces produce independe
     "Ontario (PHIPA)",
     "Quebec (Law 25)", // duplicate on the intake — must not double-render
   ]);
-  const unverified = r.filter((d) => !d.verified);
-  assertEquals(unverified.map((d) => d.state_label).sort(), ["Alberta", "British Columbia", "Ontario", "Quebec"]);
-  assertEquals(r.filter((d) => d.verified).length, 4, "PIPEDA's own four rows still render alongside the provincial fallbacks");
+  assertEquals(r.filter((d) => d.jurisdiction !== "Canada (PIPEDA)").map((d) => d.state_label).sort(), ["Alberta", "British Columbia", "Ontario", "Quebec"]);
+  assertEquals(r.filter((d) => d.jurisdiction === "Canada (PIPEDA)").length, 4, "PIPEDA's own four rows still render alongside the provincial rows");
 });
 
-Deno.test("buildPipedaDuties — never invents a fallback for a province not in the recognized list", () => {
+Deno.test("buildPipedaDuties — never invents a row for a province not in the recognized list", () => {
   const r = buildPipedaDuties(["Manitoba", "Saskatchewan"]);
   assertEquals(r.length, 0, "unrecognized Canadian jurisdictions get no row at all, never a guessed one");
 });
@@ -142,7 +145,7 @@ Deno.test("buildIrPlaybookDeliverables — PIPEDA duties are appended to state_n
   assertEquals(pipedaCount, 4);
 });
 
-Deno.test("buildIrPlaybookDeliverables — a record naming only a Canadian province (no PIPEDA, no healthcare signal) gets the honest fallback and nothing else Canada-related", () => {
+Deno.test("buildIrPlaybookDeliverables — a record naming only a Canadian province (no PIPEDA, no healthcare signal) gets that province's own duty row and nothing else Canada-related", () => {
   const built = buildIrPlaybookDeliverables({
     organizationName: "Prairie Health Analytics",
     discoveryDateTime: new Date(Date.now() - 86_400_000).toISOString(),
@@ -155,7 +158,7 @@ Deno.test("buildIrPlaybookDeliverables — a record naming only a Canadian provi
   });
   const jurisdictions = built.state_notification_duties.map((d) => d.jurisdiction);
   assertEquals(jurisdictions, ["Alberta (PIPA)"]);
-  assertEquals(built.state_notification_duties[0].verified, false);
+  assertEquals(built.state_notification_duties[0].verified, true);
 });
 
 // ── Determinism ───────────────────────────────────────────────────────────

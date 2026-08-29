@@ -43,6 +43,9 @@ import { buildHipaaDuties } from "./hipaa-duties.ts";
 // IR-E Phase 3b (2026-08-29, doc 103): PIPEDA's breach-notification duties,
 // same StateDutySet shape reuse.
 import { buildPipedaDuties } from "./pipeda-duties.ts";
+// IR-E Phase 3d (2026-08-29, doc 104): SEC 8-K / NYDFS / DORA, same
+// StateDutySet shape reuse; each trigger independent, so duties stack.
+import { buildSectoralDuties } from "./sectoral-duties.ts";
 
 import type {
   Art34ExemptionAnalysis,
@@ -61,7 +64,7 @@ import type {
   TransferFraming,
 } from "./types.ts";
 
-export const IR_DELIVERABLES_VERSION = "ir-deliverables-doc103-phase3b-2026-08-29";
+export const IR_DELIVERABLES_VERSION = "ir-deliverables-doc104-phase3d-2026-08-29";
 
 // ── record helpers ───────────────────────────────────────────────────
 function get(root: unknown, path: string): unknown {
@@ -957,10 +960,12 @@ export function buildIrPlaybookDeliverables(intake: unknown): IrPlaybookDelivera
     f.processorInvolved,
     f.processorName,
   );
-  // IR-E Phase 3b (2026-08-29, doc 103): PIPEDA duties + the honest
-  // provincial fallback, appended the same way.
+  // IR-E Phase 3b (2026-08-29, doc 103): PIPEDA duties + the four Canadian
+  // provinces, appended the same way.
   const pipedaDuties = buildPipedaDuties(f.jurisdictions);
-  const state_notification_duties = [...stateDuties, ...hipaa.duties, ...pipedaDuties];
+  // IR-E Phase 3d (2026-08-29, doc 104): SEC 8-K / NYDFS / DORA.
+  const sectoral = buildSectoralDuties(f.jurisdictions, str(get(intake, "organisationType")));
+  const state_notification_duties = [...stateDuties, ...hipaa.duties, ...pipedaDuties, ...sectoral.duties];
 
   const sa = notification_duties[0]?.sa_notification_determination ?? buildNotEngagedSa(f);
   const ds = notification_duties[0]?.data_subject_communication_determination ?? buildNotEngagedDs(f);

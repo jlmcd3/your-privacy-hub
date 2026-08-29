@@ -118,6 +118,8 @@ export const IR_SECTION_SPECS: readonly IrSectionSpec[] = [
   { id: "statutory_notification_determinations", title: "Statutory notification determinations", artifact: "standing_playbook", arc_stage: "notification", lead: "determination", source_key: "standing_playbook.statutory_notification_determinations", themes: ["by_reference", "no_restatement", "single_writer"], required: true },
   // IR-E Phase 3a (2026-08-29, doc 102 §4, CEO-approved) — Phase 3 addition.
   { id: "hipaa_assumption", title: "HIPAA breach-notification duties", artifact: "standing_playbook", arc_stage: "notification", lead: "determination", source_key: "standing_playbook.hipaa_assumption", themes: ["hipaa", "covered_entity_proxy", "assumption_stated_once"], required: true },
+  // IR-E Phase 3d (2026-08-29, doc 104 §3, CEO-approved) — Phase 3 addition.
+  { id: "sectoral_proxy_assumption", title: "NYDFS and DORA incident-reporting duties", artifact: "standing_playbook", arc_stage: "notification", lead: "determination", source_key: "standing_playbook.sectoral_proxy_assumption", themes: ["nydfs", "dora", "financial_institution_proxy", "assumption_stated_once"], required: true },
   // IR-I 5b (2026-08-29, doc 101 §5, CEO-approved) — Phase 2 addition.
   { id: "regulator_final_report", title: "Regulator final-report duty", artifact: "standing_playbook", arc_stage: "notification", lead: "determination", source_key: "standing_playbook.regulator_final_report", themes: ["phasing", "art_33_4", "final_report"], required: true },
   // IR-G (2026-08-29, doc 101 §6, CEO-approved VERBATIM) — Phase 2 addition.
