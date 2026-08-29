@@ -27,6 +27,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { SAMPLE_FIXTURES, type SampleFixture, type ToolSlug } from "@/lib/sampleFixtures";
 import { preflightFixture, type PreflightResult } from "@/lib/sampleFixturePreflight";
 import { runGenerator } from "@/lib/sampleGenerators";
+import {
+  STRESS_INDUSTRIES,
+  SLUG_TO_STRESS_TOOL,
+  STRESS_TOOL_TO_SLUG,
+  launchClaudeIntakeBatch,
+  fetchClaudeBatchJobs,
+  fetchClaudeBatchStatus,
+} from "@/lib/claudeIntake";
 
 /** Products covered by the skeleton-graded SO batch above this panel. */
 export const SO_COVERED_SLUGS: ToolSlug[] = [
