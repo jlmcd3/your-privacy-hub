@@ -14,6 +14,7 @@
 // refused up-front with the offending key paths named.
 
 import { useEffect, useMemo, useState } from "react";
+import { appendAllProductsLog, clearAllProductsLog } from "@/lib/allProductsLog";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
