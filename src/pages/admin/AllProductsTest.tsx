@@ -20,6 +20,9 @@ import { SO_SKELETON_TOOLS } from "./SOFinalTest";
 export default function AllProductsTest() {
   return (
     <div className="space-y-6 pb-12">
+      <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+        <AllProductsPanel />
+      </div>
       <QualityConsole
         title="All Products Test"
         caption="quality-batch-orchestrator · skeleton_document grading"
@@ -27,9 +30,7 @@ export default function AllProductsTest() {
         graderMode="skeleton"
         toolsOverride={SO_SKELETON_TOOLS}
       />
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <AllProductsPanel />
-      </div>
     </div>
   );
 }
+

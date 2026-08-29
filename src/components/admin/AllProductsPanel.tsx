@@ -66,19 +66,32 @@ const fixtureKey = (f: SampleFixture) => `${f.tool_slug}/${f.variant}`;
 
 export function AllProductsPanel() {
   const { user } = useAuth();
-  const [selected, setSelected] = useState<Set<string>>(
-    () => new Set(SAMPLE_FIXTURES.filter((f) => EXTENDED_SLUGS.includes(f.tool_slug)).map(fixtureKey)),
-  );
   const [state, setState] = useState<Record<string, RowState>>({});
   const [busy, setBusy] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+  // "-supplemental" fixtures are second-pass (regeneration / supplemental
+  // capture) variants of the SAME products, not extra products. Hidden by
+  // default so the list is one row per shipped product variant.
+  const [showSupplemental, setShowSupplemental] = useState(false);
 
   const fixtures = useMemo(() => {
     const order = [...EXTENDED_SLUGS, ...SO_COVERED_SLUGS];
-    return [...SAMPLE_FIXTURES].sort(
-      (a, b) => order.indexOf(a.tool_slug) - order.indexOf(b.tool_slug) || a.variant.localeCompare(b.variant),
-    );
-  }, []);
+    return [...SAMPLE_FIXTURES]
+      .filter((f) => showSupplemental || !f.variant.endsWith("-supplemental"))
+      .sort(
+        (a, b) => order.indexOf(a.tool_slug) - order.indexOf(b.tool_slug) || a.variant.localeCompare(b.variant),
+      );
+  }, [showSupplemental]);
+
+  const [selected, setSelected] = useState<Set<string>>(
+    () =>
+      new Set(
+        SAMPLE_FIXTURES.filter(
+          (f) => !f.variant.endsWith("-supplemental"),
+        ).map(fixtureKey),
+      ),
+  );
+
 
   // Preflight is cheap and pure — run it on mount so the intake health of
   // every fixture is visible before anyone presses Run.
@@ -169,10 +182,9 @@ export function AllProductsPanel() {
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Runs each product end-to-end against its canonical sample fixture: sample data is written to the
-          product's own tables, the live generator is invoked, and the run is polled to a terminal status.
-          Products marked <em>SO batch</em> are also graded by the skeleton console above; the others have no
-          batch dispatch and are only exercised here.
+          Select any or all products. Sample data is written to each product's own tables, the live generator
+          is invoked, and the run is polled to a terminal status. Products marked <em>SO batch</em> are also
+          graded by the skeleton console below; the others have no batch dispatch and run only here.
         </p>
 
         <div className="flex flex-wrap gap-2">
@@ -190,6 +202,9 @@ export function AllProductsPanel() {
           >
             Select all
           </Button>
+          <Button size="sm" variant="ghost" disabled={busy} onClick={() => setSelected(new Set())}>
+            Clear
+          </Button>
           <Button
             size="sm"
             variant="ghost"
@@ -200,6 +215,15 @@ export function AllProductsPanel() {
           >
             Only non-SO products
           </Button>
+          <label className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
+            <Checkbox
+              checked={showSupplemental}
+              disabled={busy}
+              onCheckedChange={(v) => setShowSupplemental(v === true)}
+            />
+            Show second-pass (supplemental capture) variants
+          </label>
+
         </div>
 
         {failedPreflight.length > 0 && (
