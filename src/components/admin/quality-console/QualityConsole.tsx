@@ -277,6 +277,9 @@ export function QualityConsole({
   const [stressHistory, setStressHistory] = useState<Map<string, StressHistory>>(new Map());
   // ALL-PRODUCTS-TEST — in-page run log published by AllProductsPanel.
   const localLog = useAllProductsLog();
+  // ALL-PRODUCTS-TEST — pass/fail tally for pre-set-package runs executed
+  // in-page (they write no server-side batch or stress row).
+  const localRunHistory = useLocalRunHistory();
   const localLogRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (localLogRef.current) localLogRef.current.scrollTop = localLogRef.current.scrollHeight;
