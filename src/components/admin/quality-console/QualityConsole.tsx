@@ -954,7 +954,52 @@ export function QualityConsole({
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        {/* ALL-PRODUCTS-TEST — runs started from the panel above are local
+            (insert/invoke/poll) and never write quality_batch_log, so show
+            their live lines here too. */}
+        {showLocalRunLog && (
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-medium">
+                This page — sample data + live generation
+              </div>
+              {localLog.length > 0 && (
+                <Button variant="ghost" size="sm" onClick={clearAllProductsLog}>
+                  Clear
+                </Button>
+              )}
+            </div>
+            {localLog.length === 0 ? (
+              <div className="text-xs text-muted-foreground italic">
+                No run started on this page yet.
+              </div>
+            ) : (
+              <div
+                ref={localLogRef}
+                className="max-h-64 overflow-y-auto rounded border bg-muted/30 p-2 space-y-1 font-mono text-[11px]"
+              >
+                {localLog.map((l, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <span className="text-muted-foreground shrink-0">
+                      {new Date(l.t).toLocaleTimeString()}
+                    </span>
+                    <Badge
+                      variant={l.level === "error" ? "destructive" : "secondary"}
+                      className="shrink-0 h-4 px-1 text-[9px]"
+                    >
+                      {l.source}
+                    </Badge>
+                    <span className="break-all whitespace-pre-wrap">{l.msg}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {showLocalRunLog && (
+          <div className="text-xs font-medium">Batch orchestrator log</div>
+        )}
         <BatchLogView entries={batchLogs} />
       </CardContent>
     </Card>
