@@ -141,6 +141,15 @@ export const ROPA_SKELETON_SECTIONS: readonly RopaSkeletonSection[] = [
       // Honest alternate for the final sentence when {home_base} was never
       // captured. Composed only in that branch; otherwise absent entirely.
       { kind: "conditional", text: "[CONDITIONAL] Trigger - no home base recorded: the operating sentence without the home-base clause." },
+      // ROPA-1 (2026-08-29, advance-ratification ledger) — Art. 30(2) scope
+      // statement. Composed ONLY where the company records a processor role:
+      // this register renders the Art. 30(1) controller format, and a
+      // processor's register under Art. 30(2) has its own required columns
+      // (each controller's name and contact details among them) that the
+      // intake does not capture. Stating the boundary is honest scope, not a
+      // new determination. Composed prose, so the byte-pinned docx paragraphs
+      // and ROPA_SKELETON_CONTENT_HASH are untouched.
+      { kind: "conditional", text: "[CONDITIONAL] Trigger - processor role recorded: the Article 30(2) scope statement." },
     ],
   },
   {

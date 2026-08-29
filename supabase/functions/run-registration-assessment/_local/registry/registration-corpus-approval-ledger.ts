@@ -67,6 +67,14 @@ export const REGISTRATION_APPROVED_CORPUS_KEYS: Readonly<
   "gdpr-articles:eu:27": { source: "gdpr_articles", jurisdiction: "EU", verified_on: "2026-08-26" },
   "gdpr-articles:uk:27": { source: "gdpr_articles", jurisdiction: "UK", verified_on: "2026-08-26" },
   "gdpr-articles:eu:37": { source: "gdpr_articles", jurisdiction: "EU", verified_on: "2026-08-26" },
+  // REG-1 (doc 106, 2026-08-29) — EU AI Act rows. Ingested and approved
+  // 2026-08-10 (found already present when doc 106 proposed ingesting them);
+  // status='approved' confirmed live 2026-08-29 via Lovable query_database
+  // against `provision_texts`, and the stored excerpts independently
+  // re-verified against the EUR-Lex OJ publication the same day.
+  "aiact-art-49": { source: "provision_texts", jurisdiction: "EU", verified_on: "2026-08-29" },
+  "aiact-art-71": { source: "provision_texts", jurisdiction: "EU", verified_on: "2026-08-29" },
+  "aiact-annex-8": { source: "provision_texts", jurisdiction: "EU", verified_on: "2026-08-29" },
 };
 
 /**

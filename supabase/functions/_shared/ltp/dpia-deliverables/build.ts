@@ -2513,6 +2513,12 @@ const INTAKE_STRUCTURE_RECOMMENDATIONS: readonly DpiaIntakeStructureRecommendati
   {
     field: "data_minimisation_justification",
     today: "single free-text narrative covering the whole data set",
+    // DPIA-2 REVIEWED 2026-08-29 (doc 100): recommend NO build. The
+    // corpus-verified Art. 5(1)(c) verbatim is a substantive standard on the
+    // data, not a per-item documentation mandate; the old prompt used the
+    // same single field; and TIER 2a already renders minimisation/retention
+    // one row per data item. Kept as a description of an intake-structure
+    // possibility, not an open defect.
     would_enable: "a per-data-item necessity justification, so minimisation is decided per field rather than per activity",
   },
 ];

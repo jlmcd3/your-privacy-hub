@@ -568,6 +568,18 @@ export function assembleRopaRegister(input: RopaAssembleInput): RopaRegisterDocu
       `It operates across ${values.jurisdictions}, with a workforce of ${values.employee_band}. The intake carries no home base for the company, so this register does not state one.`;
   }
 
+  // ROPA-1 (2026-08-29) — Art. 30(2) scope statement, composed only where a
+  // processor role is recorded. The intake captures the processor role as a
+  // boolean but not the controllers on whose behalf the company processes,
+  // and Art. 30(2)(a) makes each such controller's name and contact details
+  // a required column of the processor-format register — so the correct
+  // document states the boundary rather than rendering an incomplete
+  // Art. 30(2) register or staying silent.
+  if (input.isProcessor === true) {
+    composed["controller_and_accountability:2"] =
+      `The company has indicated that it ${input.isController ? "also acts" : "acts"} as a processor for other organisations. This register is prepared in the controller format of Article 30(1) GDPR; Article 30(2) prescribes a separate register format for a processor's activities carried out on behalf of each controller, including each controller's name and contact details, and this document does not contain that register because the intake does not capture the controllers on whose behalf the company processes.`;
+  }
+
   // Processing Activities — the repeating record, one rendered row per activity.
   composed["processing_activities:0"] = records.length
     ? records.map((r) => r.sentence).join("\n\n")

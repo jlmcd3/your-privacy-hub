@@ -134,14 +134,32 @@ Deno.test("R3 — a live UK representative duty cites the UK instrument in its e
   assert(!/(?<!UK )GDPR Art\. 27/.test(ex), "the EU instrument label must not head the UK exemption recital");
 });
 
-Deno.test("R4 — the executive lead counts corpus-pending duty questions", () => {
+// REG-1 (doc 106, 2026-08-29) UPDATE: this test previously pinned the blanket
+// corpus-pending flag for any AI signal. The AI Act corpus rows
+// (aiact-art-49/-71/annex-8, approved 2026-08-10) now back a real Art. 49
+// determination, so a high-risk record gets the determination and NO pending
+// flag; the flag survives only for the general-purpose-AI duty family.
+Deno.test("R4 — a high-risk AI record gets the Art. 49 determination, not a pending flag", () => {
   const intake = aurabloomIntake();
   const d = buildRegistrationDeliverables(intake as never) as unknown as Bag;
   const report: Bag = { registration_deliverables: d, ...d };
   const counts = computeDutyCounts(report);
-  assert(counts.corpus_pending > 0, "the AI-systems fixture must flag a corpus-pending question");
+  assertEquals(counts.corpus_pending, 0, "the Art. 49 question is determined now, not pending");
   const text = JSON.stringify(assembleRegistrationSkeletonDocument(report, intake));
-  assertStringIncludes(text, "flagged below but not yet assessable in this product's verified corpus");
+  assertStringIncludes(text, "EU AI Act registration.");
+  assertStringIncludes(text, "rests on the provider or its authorised representative");
+  assert(!text.includes("flagged below but not yet assessable"), "no pending clause for a determined question");
+});
+
+Deno.test("R4b — the GPAI duty family still carries the narrowed corpus-pending flag", () => {
+  const intake = aurabloomIntake({ ai_high_risk: false, ai_general_purpose_provider: true });
+  const d = buildRegistrationDeliverables(intake as never) as unknown as Bag;
+  const report: Bag = { registration_deliverables: d, ...d };
+  const counts = computeDutyCounts(report);
+  assertEquals(counts.corpus_pending, 1);
+  const text = JSON.stringify(assembleRegistrationSkeletonDocument(report, intake));
+  assertStringIncludes(text, "general-purpose-AI chapter");
+  assertStringIncludes(text, "not yet assessable — corpus pending");
 });
 
 Deno.test("R5 — a named non-US market outside the assessed frameworks earns a scoped-out statement", () => {

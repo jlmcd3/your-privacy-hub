@@ -228,7 +228,10 @@ export const REGISTRATION_SERVED_JURISDICTIONS: ReadonlyArray<string> = [
 // computes a customer's deadline date from it.
 // ═══════════════════════════════════════════════════════════════════════════
 
-export const REGISTRATION_DUTY_VERSION = "registration-duty-item316-2026-07-31";
+// REG-1 (2026-08-29): +6 AI Act rows (Art. 49(1)/(2)/(3)/(5), Art. 71(1),
+// Annex VIII Section A head), keyed to the aiact-* corpus rows approved
+// 2026-08-10 and re-confirmed live 2026-08-29.
+export const REGISTRATION_DUTY_VERSION = "registration-duty-reg1-2026-08-29";
 
 export type RegistrationDutyRole =
   | "definitional_threshold"
@@ -562,6 +565,80 @@ export const REGISTRATION_DUTY_AUTHORITIES: ReadonlyArray<RegistrationDutyRow> =
     role: "dpo_trigger",
     primary_source_url: "https://eur-lex.europa.eu/eli/reg/2016/679/oj",
     verified_on: "2026-07-31",
+  },
+
+  // ── REG-1 (doc 106, 2026-08-29) — EU AI Act Art. 49 registration duties.
+  // The corpus rows (aiact-art-49 / aiact-art-71 / aiact-annex-8) were
+  // ingested and approved 2026-08-10; approval re-confirmed live against
+  // `provision_texts` (status='approved') 2026-08-29 via the Lovable
+  // query_database tool, and the stored excerpts independently re-verified
+  // byte-for-byte against the EUR-Lex OJ publication the same day. Every
+  // verbatim_quote below is an exact substring of its corpus row.
+  {
+    key: "aiact_registration_provider",
+    jurisdiction: "EU",
+    citation: "AI Act Art. 49(1)",
+    verbatim_quote:
+      "Before placing on the market or putting into service a high-risk AI system listed in Annex III, with the exception of high-risk AI systems referred to in point 2 of Annex III, the provider or, where applicable, the authorised representative shall register themselves and their system in the EU database referred to in Article 71.",
+    corpus_key: "aiact-art-49",
+    role: "registration_requirement",
+    primary_source_url: "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202401689",
+    verified_on: "2026-08-29",
+  },
+  {
+    key: "aiact_registration_not_high_risk",
+    jurisdiction: "EU",
+    citation: "AI Act Art. 49(2)",
+    verbatim_quote:
+      "Before placing on the market or putting into service an AI system for which the provider has concluded that it is not high-risk according to Article 6(3), that provider or, where applicable, the authorised representative shall register themselves and that system in the EU database referred to in Article 71.",
+    corpus_key: "aiact-art-49",
+    role: "registration_requirement",
+    primary_source_url: "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202401689",
+    verified_on: "2026-08-29",
+  },
+  {
+    key: "aiact_registration_public_deployer",
+    jurisdiction: "EU",
+    citation: "AI Act Art. 49(3)",
+    verbatim_quote:
+      "Before putting into service or using a high-risk AI system listed in Annex III, with the exception of high-risk AI systems listed in point 2 of Annex III, deployers that are public authorities, Union institutions, bodies, offices or agencies or persons acting on their behalf shall register themselves, select the system and register its use in the EU database referred to in Article 71.",
+    corpus_key: "aiact-art-49",
+    role: "registration_requirement",
+    primary_source_url: "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202401689",
+    verified_on: "2026-08-29",
+  },
+  {
+    key: "aiact_registration_national_level",
+    jurisdiction: "EU",
+    citation: "AI Act Art. 49(5)",
+    verbatim_quote:
+      "High-risk AI systems referred to in point 2 of Annex III shall be registered at national level.",
+    corpus_key: "aiact-art-49",
+    role: "registration_requirement",
+    primary_source_url: "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202401689",
+    verified_on: "2026-08-29",
+  },
+  {
+    key: "aiact_eu_database",
+    jurisdiction: "EU",
+    citation: "AI Act Art. 71(1)",
+    verbatim_quote:
+      "The Commission shall, in collaboration with the Member States, set up and maintain an EU database containing information referred to in paragraphs 2 and 3 of this Article concerning high-risk AI systems referred to in Article 6(2) which are registered in accordance with Articles 49 and 60 and AI systems that are not considered as high-risk pursuant to Article 6(3) and which are registered in accordance with Article 6(4) and Article 49.",
+    corpus_key: "aiact-art-71",
+    role: "definitional_threshold",
+    primary_source_url: "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202401689",
+    verified_on: "2026-08-29",
+  },
+  {
+    key: "aiact_filing_content_provider",
+    jurisdiction: "EU",
+    citation: "AI Act Annex VIII, Section A",
+    verbatim_quote:
+      "Section A — Information to be submitted by providers of high-risk AI systems in accordance with Article 49(1)",
+    corpus_key: "aiact-annex-8",
+    role: "filing_content",
+    primary_source_url: "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202401689",
+    verified_on: "2026-08-29",
   },
 ];
 

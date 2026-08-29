@@ -143,15 +143,45 @@ export interface DpoDetermination {
 }
 
 /**
- * The EU AI Act (Reg. (EU) 2024/1689 Arts. 16, 26, 49, 71) is NOT in corpus as
- * of this item. CORPUS-PENDING LAW: the product may record that the question
- * exists; it may not answer it. This carries no verdict field by construction.
+ * CORPUS-PENDING LAW: the product may record that a question exists; it may
+ * not answer it. This carries no verdict field by construction.
+ *
+ * REG-1 (2026-08-29): the flag's original scope ("the EU AI Act ... is NOT
+ * in corpus") is now stale — `provision_texts` has carried approved rows for
+ * AI Act Art. 49, Art. 71 and Annex VIII since 2026-08-10 (confirmed live
+ * this session), and the Art. 49 registration question is answered by
+ * `AiActRegistrationDetermination` below. The flag remains ONLY for the
+ * general-purpose-AI duty family (transparency/documentation and the
+ * systemic-risk Commission notification), whose operative text is still not
+ * in corpus.
  */
 export interface CorpusPendingFlag {
   topic: string;
   named_provisions: string[];
   status: "record_insufficient";
   note: string;
+}
+
+/**
+ * REG-1 (doc 106, 2026-08-29) — the EU AI Act Art. 49 registration
+ * determination. Shape mirrors DpoDetermination field-for-field so the
+ * skeleton composer renders it through the same block pattern (headline →
+ * bounded reasoning → closing_act in its own untruncatable field →
+ * per-branch findings). Every `standard` is a verbatim substring of an
+ * approved corpus row (aiact-art-49 / aiact-art-71 / aiact-annex-8); no new
+ * intake field is read anywhere — the branches turn on `ai_high_risk`,
+ * `is_public_authority`, `ai_general_purpose_provider`, `uses_ai_systems`
+ * and the existing EU-exposure signals only.
+ */
+export interface AiActRegistrationDetermination {
+  verdict: Verdict;
+  headline: string;
+  reasoning: string;
+  /** The completing-fact sentence, own field per the 3E9AD759-R2 pattern. */
+  closing_act?: string;
+  findings: Finding[];
+  citations: string[];
+  status: FindingStatus;
 }
 
 /** Op. 7 — the prose surface this product previously did not have at all. */
@@ -178,6 +208,8 @@ export interface RegistrationDeliverables {
   /** Present only when both_representatives_required is true. */
   combined_representative_callout?: string;
   dpo_determination: DpoDetermination;
+  /** REG-1 — null when the record raises no AI signal at all. */
+  ai_act_registration?: AiActRegistrationDetermination | null;
   corpus_pending: CorpusPendingFlag[];
   narrative: RegistrationNarrative;
   /** Shared accountability attestation (Registration hardening, 2026-08-04). */

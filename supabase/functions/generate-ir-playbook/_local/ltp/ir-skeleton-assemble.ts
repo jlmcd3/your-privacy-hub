@@ -458,6 +458,60 @@ export function composeContainmentPlan(intake: Bag): string {
 /** D1D2B3B8-I1 — the action plan for records the GDPR does not govern: the
  *  recorded jurisdictions' own notice duties (typed state rows) and the
  *  recorded contractual clocks, in place of the Art. 33(3) content plan. */
+// IR-F tranche 1 (2026-08-29, doc 100 recommendation; advance-ratification
+// ledger) — the notification decision walk. The state/sectoral duty rows
+// above state each regime's clock; this block states the FOUR GATES every
+// such duty is walked through and resolves the record's own posture on each
+// from facts the intake already carries (cause; dataTypes; encryptionStatus;
+// encryptionKeyStatus). Per-state gate CONTENT (each statute's covered-PI
+// definition, risk-of-harm carve-out, safe-harbour formulation) is
+// deliberately NOT asserted here — that is the sourced, per-tranche registry
+// work IR-F's remaining tranches carry under the verified-citation
+// discipline. Zero new intake fields; renders only when state/sectoral duty
+// rows exist to walk.
+function composeNotificationWalk(report: Bag, intake: Bag): string {
+  if (asArray(report.state_notification_duties).length === 0) return "";
+
+  const cause = s(intake.cause);
+  const dataTypes = asArray(intake.dataTypes).map((d) => s(d)).filter(Boolean);
+  const enc = s(intake.encryptionStatus);
+  const keys = s(intake.encryptionKeyStatus);
+
+  const gate1 = cause && cause !== "Unknown / still investigating"
+    ? `First, the breach-definition gate: the recorded cause — ${noStop(cause).toLowerCase()} — is assessed against each statute's own unauthorised-acquisition or unauthorised-access formulation.`
+    : "First, the breach-definition gate: the cause is not yet established on the record, so each statute's unauthorised-acquisition or unauthorised-access formulation is assessed once it is.";
+
+  // Enum labels keep their case — lowercasing mangles the acronyms
+  // ("Government IDs / SSN"), caught on the render pass.
+  const gate2 = dataTypes.length
+    ? `Second, the data-element gate: the recorded data types — ${dataTypes.join("; ")} — are checked against each statute's own definition of covered personal information, which varies by jurisdiction.`
+    : "Second, the data-element gate: the record lists no affected data types, and this gate cannot be walked until they are recorded.";
+
+  const gate3 =
+    "Third, the harm-threshold gate: where a statute conditions notification on a risk-of-harm assessment, that assessment is made and recorded by the response team for this incident; this playbook does not pre-resolve it.";
+
+  const keysCompromised = /compromised or possibly compromised/i.test(keys);
+  const posture = keysCompromised
+    ? "the recorded key status is compromised or possibly compromised, so an encryption safe harbour is not available on the record's own account"
+    : /^All affected data encrypted/i.test(enc) && /^Keys not compromised/i.test(keys)
+    ? "the record states all affected data was encrypted and the keys were not compromised, which supports an encryption-based safe-harbour position wherever the applicable statute provides one, subject to confirming that statute's own formulation"
+    : /^Some affected data encrypted/i.test(enc)
+    ? "the record states only some affected data was encrypted, so any encryption safe harbour could reach only the encrypted portion"
+    : /^No affected data encrypted/i.test(enc)
+    ? "the record states no affected data was encrypted, so no encryption safe harbour is available"
+    : "the record does not establish the encryption posture, so no safe-harbour position is taken";
+
+  const gate4 = `Fourth, the safe-harbour gate: ${posture}.`;
+
+  return [
+    "Whether each recorded jurisdiction's own duty is triggered is walked through four gates against this incident's record.",
+    gate1,
+    gate2,
+    gate3,
+    gate4,
+  ].join(" ");
+}
+
 function composeJurisdictionActionPlan(report: Bag, intake: Bag): string {
   const lines: string[] = [];
   for (const d of asArray(report.state_notification_duties)) {
@@ -511,6 +565,9 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
     // printed the duties AND, immediately after, a sentence claiming they
     // couldn't be quoted — a self-contradiction this fix closes rather than
     // papers over.
+    // IR-F tranche 1 — the four-gate walk, resolved against this record.
+    const walk0 = composeNotificationWalk(report, intake);
+    if (walk0) blocks.push(walk0);
     blocks.push(
       "The recorded contractual clocks are set out below and run alongside the statutory duties above; the earliest recorded clock governs the immediate posture.",
     );
@@ -595,6 +652,12 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
     }
     blocks.push(bits.join(" "));
   }
+
+  // IR-F tranche 1 — where recorded state/sectoral duties run in parallel
+  // with the GDPR-family duties above, the four-gate walk renders here too;
+  // a pure EU/UK record has no state rows and gets no walk block.
+  const walk = composeNotificationWalk(report, intake);
+  if (walk) blocks.push(walk);
 
   // SO-FT2 FIX 4 — contractual clocks applied to this incident's facts.
   const contractual = composeContractualTriggers(intake);

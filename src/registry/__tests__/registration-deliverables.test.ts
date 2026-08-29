@@ -104,14 +104,17 @@ const CA_NOT_REGISTRABLE = {
 // ═══════════════════════════════════════════════════════════════════════════
 
 describe("ITEM 316 — corpus pin", () => {
-  it("carries 28 duty rows across six jurisdictions", () => {
-    expect(REGISTRATION_DUTY_AUTHORITIES.length).toBe(28);
+  // REG-1 (doc 106, 2026-08-29): +6 EU AI Act rows (Art. 49(1)/(2)/(3)/(5),
+  // Art. 71(1), Annex VIII Section A head) — 28 -> 34, jurisdictions unchanged.
+  it("carries 34 duty rows across six jurisdictions", () => {
+    expect(REGISTRATION_DUTY_AUTHORITIES.length).toBe(34);
     expect(new Set(REGISTRATION_DUTY_AUTHORITIES.map((r) => r.jurisdiction))).toEqual(
       new Set(["US-CA", "US-OR", "US-TX", "US-VT", "EU", "UK"]),
     );
     for (const code of ["US-CA", "US-OR", "US-TX", "US-VT"]) {
       expect(dutyRowsFor(code).length).toBeGreaterThanOrEqual(4);
     }
+    expect(REGISTRATION_DUTY_AUTHORITIES.filter((r) => r.corpus_key.startsWith("aiact-")).length).toBe(6);
   });
 
   it("every verbatim_quote is an exact substring of its approved corpus row", () => {
@@ -126,10 +129,14 @@ describe("ITEM 316 — corpus pin", () => {
   });
 
   it("every row names a citation, an official source URL and a verification date", () => {
+    // REG-1: the AI Act rows carry their own verification date (2026-08-29,
+    // re-confirmed live against provision_texts); the Item 316 rows keep
+    // 2026-07-31. Pin the known set, not a single date.
+    const KNOWN_VERIFICATION_DATES = new Set(["2026-07-31", "2026-08-29"]);
     for (const row of REGISTRATION_DUTY_AUTHORITIES) {
       expect(row.citation.length).toBeGreaterThan(8);
       expect(row.primary_source_url).toMatch(/^https:\/\//);
-      expect(row.verified_on).toBe("2026-07-31");
+      expect(KNOWN_VERIFICATION_DATES.has(row.verified_on), `${row.key}: ${row.verified_on}`).toBe(true);
       expect(row.verbatim_quote.length).toBeGreaterThan(20);
     }
   });
@@ -382,16 +389,30 @@ describe("ITEM 316 — analysis shape", () => {
     expect(out.representative_determinations[0].application).toContain("Article 3(2)");
   });
 
-  it("the AI Act question is flagged as corpus-pending and carries no verdict field", () => {
+  // REG-1 (doc 106, 2026-08-29): the blanket AI corpus-pending flag is
+  // retired — the AI Act corpus rows (approved 2026-08-10) now back a real
+  // Art. 49 determination, and the flag survives only for the
+  // general-purpose-AI duty family.
+  it("the AI Act Art. 49 question is determined; only the GPAI family stays corpus-pending", () => {
     const out = buildRegistrationDeliverables({ ...CA_VT_BROKER, uses_ai_systems: true } as never);
-    expect(out.corpus_pending.length).toBe(1);
-    const flag = out.corpus_pending[0];
+    expect(out.corpus_pending.length).toBe(0);
+    expect(out.ai_act_registration).toBeTruthy();
+    expect(out.ai_act_registration!.verdict).toBe("not_engaged");
+    expect(out.ai_act_registration!.status).toBe("analysed");
+
+    const gpai = buildRegistrationDeliverables(
+      { ...CA_VT_BROKER, ai_general_purpose_provider: true } as never,
+    );
+    expect(gpai.corpus_pending.length).toBe(1);
+    const flag = gpai.corpus_pending[0];
     expect(flag.status).toBe("record_insufficient");
     expect(flag.note).toContain("corpus pending");
     expect(flag.named_provisions.join(" ")).toContain("2024/1689");
     expect((flag as unknown as Record<string, unknown>).verdict).toBeUndefined();
-    // Absent any AI indicator, no flag is raised at all.
-    expect(buildRegistrationDeliverables(CA_VT_BROKER as never).corpus_pending.length).toBe(0);
+    // Absent any AI indicator, neither surface is raised at all.
+    const none = buildRegistrationDeliverables(CA_VT_BROKER as never);
+    expect(none.corpus_pending.length).toBe(0);
+    expect(none.ai_act_registration).toBeUndefined();
   });
 
   it("emits a Part-1 overview and a Part-4 determination — the prose surface the product lacked", () => {

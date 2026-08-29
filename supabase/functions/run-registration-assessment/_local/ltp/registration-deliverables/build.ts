@@ -20,6 +20,7 @@ import {
   REGISTRATION_DUTY_VERSION,
 } from "../../registry/registration-verified-authorities.ts";
 import type {
+  AiActRegistrationDetermination,
   Attestation,
   CorpusPendingFlag,
   DpoDetermination,
@@ -31,10 +32,11 @@ import type {
   RepresentativeDetermination,
   ScheduleAndFee,
   ThresholdAnalysis,
+  Verdict,
 } from "./types.ts";
 
 export const REGISTRATION_DELIVERABLES_VERSION =
-  `registration-deliverables-item316-2026-07-31 (${REGISTRATION_DUTY_VERSION})`;
+  `registration-deliverables-reg1-2026-08-29 (${REGISTRATION_DUTY_VERSION})`;
 
 // ── Intake surface actually read by this builder ─────────────────────────────
 
@@ -944,26 +946,178 @@ function buildDpo(intake: I): DpoDetermination {
   };
 }
 
-// ── CORPUS-PENDING — EU AI Act ──────────────────────────────────────────────
+// ── REG-1 (doc 106, 2026-08-29) — EU AI Act Art. 49 registration ────────────
+//
+// Replaces the former blanket corpus-pending flag for the Art. 49 question:
+// the corpus has carried approved rows for AI Act Art. 49, Art. 71 and
+// Annex VIII since 2026-08-10 (the old flag's "not yet in this product's
+// verified corpus" note had gone stale), so the registration question is now
+// determined rather than deferred. No new intake field is read anywhere —
+// the branches turn on ai_high_risk / is_public_authority /
+// ai_general_purpose_provider / uses_ai_systems plus the same EU-exposure
+// signals the Art. 27 representative determination already reads. The
+// corpus-pending flag survives ONLY for the general-purpose-AI duty family
+// (see buildCorpusPending below), whose operative text is still not in
+// corpus.
+
+function euExposureClause(intake: I): string {
+  const established = tri(intake.has_eu_establishment);
+  const markets = Array.isArray(intake.markets_served) ? intake.markets_served : [];
+  const offers = markets.some((m) => EU_MARKET_CODES.has(m));
+  if (established === true || offers) return "";
+  return " These duties are stated as the Regulation allocates them; whether they reach the company turns on the Regulation's territorial scope, which the record's stated markets and establishments do not resolve.";
+}
+
+function aiActFinding(
+  rowKey: string,
+  label: string,
+  record_fact: string,
+  application: string,
+  verdict: Verdict,
+  information_needed?: string,
+): Finding {
+  const row = dutyRow(rowKey);
+  return {
+    key: rowKey,
+    label,
+    citation: row.citation,
+    standard: row.verbatim_quote,
+    record_fact,
+    application,
+    verdict,
+    status: verdict === "record_insufficient" ? "record_insufficient" : "analysed",
+    ...(information_needed ? { information_needed } : {}),
+  };
+}
+
+function buildAiActRegistration(intake: I): AiActRegistrationDetermination | null {
+  const highRisk = intake.ai_high_risk === true;
+  const gpai = intake.ai_general_purpose_provider === true;
+  const usesAi = intake.uses_ai_systems === true;
+  if (!highRisk && !gpai && !usesAi) return null;
+
+  const isPublic = intake.is_public_authority === true;
+  const scope = euExposureClause(intake);
+
+  if (highRisk && isPublic) {
+    // Branch A — the Art. 49(3) public-authority deployer rail.
+    const deployer = aiActFinding(
+      "aiact_registration_public_deployer",
+      "AI Act Art. 49(3) — public-authority deployer registration",
+      "The record states the organisation is a public authority and that a high-risk AI system is in use.",
+      "A public-authority deployer of an Annex III high-risk system registers itself, selects the system and registers its use in the EU database before putting it into service or using it.",
+      "conditional",
+      "the Annex III point under which the system in use is classified",
+    );
+    const national = aiActFinding(
+      "aiact_registration_national_level",
+      "AI Act Art. 49(5) — the critical-infrastructure exception",
+      "The record does not identify which Annex III listing covers the system in use.",
+      "Systems under Annex III point 2 are registered at national level rather than in the EU database, so the registration venue turns on the system's Annex III classification.",
+      "conditional",
+    );
+    return {
+      verdict: "conditional",
+      headline:
+        "The company has indicated that it is a public authority using a high-risk AI system, which engages the EU-database registration duty for public-authority deployers on a conservative basis.",
+      reasoning:
+        `Article 49(3) of Regulation (EU) 2024/1689 requires deployers that are public authorities, Union institutions, bodies, offices or agencies, or persons acting on their behalf, to register themselves, select the system and register its use in the EU database established under Article 71 before putting the system into service or using it. The exception is a high-risk system listed in point 2 of Annex III (critical infrastructure), which Article 49(5) sends to national-level registration instead. The record does not identify which Annex III listing covers the system in use, so this assessment records the duty as engaged on a conservative basis and does not resolve the point-2 exception.${scope}`,
+      closing_act:
+        "What would complete the determination is the Annex III point under which the system in use is classified.",
+      findings: [deployer, national],
+      citations: [deployer.citation, national.citation],
+      status: "analysed",
+    };
+  }
+
+  if (highRisk) {
+    // Branch B — the provider-vs-deployer allocation.
+    const provider = aiActFinding(
+      "aiact_registration_provider",
+      "AI Act Art. 49(1) — provider registration",
+      "The record states a high-risk AI system is in use, and does not state whether the company supplies it as its provider or uses a third party's system.",
+      "The EU-database registration duty for an Annex III high-risk system rests on the provider or its authorised representative, before placing the system on the market or putting it into service, with the information listed in Annex VIII, Section A.",
+      "conditional",
+      "whether the company developed the system or places it on the market under its own name or trademark",
+    );
+    const deployer = aiActFinding(
+      "aiact_registration_public_deployer",
+      "AI Act Art. 49(3) — deployer registration reaches public authorities only",
+      "The record states the organisation is not a public authority, or does not state that it is one.",
+      "A deployer registers only where it is a public authority, a Union institution, body, office or agency, or a person acting on behalf of one; no deployer-side registration duty arises for the company from this record.",
+      "not_engaged",
+    );
+    return {
+      verdict: "conditional",
+      headline:
+        "The company has indicated that a high-risk AI system is in use; the EU-database registration duty for such a system rests on its provider, and the company's answers do not state whether it holds that role.",
+      reasoning:
+        `Under Regulation (EU) 2024/1689, registration of an Annex III high-risk system in the EU database is the provider's duty — Article 49(1), discharged before placing the system on the market or putting it into service, with the Annex VIII Section A information. A deployer registers only where it is a public authority or acts on behalf of one (Article 49(3)). The record does not state whether the company supplies the system as its provider or uses a third party's system, so this assessment states the duty as the Regulation allocates it and does not attribute it.${scope}`,
+      closing_act:
+        "What would complete the determination is whether the company developed the system or places it on the market under its own name or trademark.",
+      findings: [provider, deployer],
+      citations: [provider.citation, deployer.citation],
+      status: "analysed",
+    };
+  }
+
+  if (gpai) {
+    // Branch C — scope negative, grounded on the ingested Art. 49 text.
+    const scopeFinding = aiActFinding(
+      "aiact_registration_provider",
+      "AI Act Art. 49 — registration scope",
+      "The record states the company provides a general-purpose AI model, and does not indicate any high-risk AI system.",
+      "Article 49's EU-database registration duties reach high-risk AI systems and systems a provider has assessed under Article 6(3); the general-purpose-model provider role does not, by itself, engage them.",
+      "not_engaged",
+    );
+    return {
+      verdict: "not_engaged",
+      headline:
+        "The company has indicated that it provides a general-purpose AI model; that role does not, by itself, engage the EU-database registration duties of Article 49.",
+      reasoning:
+        `Article 49's registration duties reach high-risk AI systems — the provider's registration under Article 49(1) and the public-authority deployer's registration under Article 49(3) — and systems a provider has assessed as not high-risk under Article 6(3), which Article 49(2) still sends to the EU database. The general-purpose-model provider role engages none of these on the information provided, so this assessment records no EU-database registration duty from that role alone.${scope}`,
+      findings: [scopeFinding],
+      citations: [scopeFinding.citation],
+      status: "analysed",
+    };
+  }
+
+  // Branch D — uses_ai_systems only.
+  const notHighRisk = aiActFinding(
+    "aiact_registration_not_high_risk",
+    "AI Act Art. 49(2) — registration of an Article 6(3) not-high-risk conclusion",
+    "The record states AI systems are in use and does not indicate any is high-risk.",
+    "Where a provider has concluded under Article 6(3) that a system is not high-risk, Article 49(2) still requires registering that provider and system in the EU database; the record does not address whether the company has made such an assessment for a system it provides.",
+    "conditional",
+    "whether the company has itself made an Article 6(3) assessment for a system it provides",
+  );
+  return {
+    verdict: "not_engaged",
+    headline:
+      "The company has indicated that AI systems are in use but has not indicated any is high-risk; on the information provided, no EU-database registration duty is established.",
+    reasoning:
+      `Article 49's duties attach to high-risk AI systems and to systems a provider has assessed under Article 6(3) as not high-risk. Neither is indicated on the information provided, so no registration duty is established.${scope}`,
+    closing_act:
+      "If the company has itself made an Article 6(3) assessment for a system it provides, Article 49(2) requires that assessment's registration — a fact the record does not address.",
+    findings: [notHighRisk],
+    citations: [notHighRisk.citation],
+    status: "analysed",
+  };
+}
+
+// ── CORPUS-PENDING — narrowed to the GPAI duty family (REG-1) ───────────────
 
 function buildCorpusPending(intake: I): CorpusPendingFlag[] {
-  const touchesAi =
-    intake.uses_ai_systems === true ||
-    intake.ai_high_risk === true ||
-    intake.ai_general_purpose_provider === true;
-  if (!touchesAi) return [];
+  if (intake.ai_general_purpose_provider !== true) return [];
   return [
     {
-      topic: "EU AI Act provider / deployer registration duties",
+      topic: "EU AI Act general-purpose AI model duties",
       named_provisions: [
-        "Regulation (EU) 2024/1689, Art. 16",
-        "Regulation (EU) 2024/1689, Art. 26",
-        "Regulation (EU) 2024/1689, Art. 49",
-        "Regulation (EU) 2024/1689, Art. 71",
+        "Regulation (EU) 2024/1689, Chapter V (general-purpose AI models)",
       ],
       status: "record_insufficient",
       note:
-        "The company has indicated AI systems are in use, which raises the question whether the EU database registration duties apply. This assessment does not answer it: the operative text of Reg. (EU) 2024/1689 is not yet in this product's verified corpus, and stating a conclusion without the provision in front of it would be assertion rather than analysis. Not yet assessable — corpus pending.",
+        "The company's general-purpose-model provider role also raises duties under the Regulation's general-purpose-AI chapter, including notification duties for models with systemic risk. Their operative text is not yet in this product's verified corpus; not yet assessable — corpus pending.",
     },
   ];
 }
@@ -1179,6 +1333,7 @@ export function buildRegistrationDeliverables(
     ? `Both representative duties are engaged. This processing requires appointing TWO separate representatives: one established in a Member State where the relevant data subjects are (GDPR Art. 27(1), (3)), and one established in the United Kingdom (UK GDPR Art. 27(1), (3)). Neither designation satisfies the other — the two regimes have applied independently since the United Kingdom left the Union, and a single person or entity may only serve both roles if it is separately established in each territory and separately designated in writing for each.`
     : null;
   const dpo_determination = buildDpo(intake);
+  const ai_act_registration = buildAiActRegistration(intake);
   const corpus_pending = buildCorpusPending(intake);
 
   return {
@@ -1191,6 +1346,7 @@ export function buildRegistrationDeliverables(
       ? { combined_representative_callout }
       : {}),
     dpo_determination,
+    ...(ai_act_registration ? { ai_act_registration } : {}),
     corpus_pending,
     narrative: buildNarrative(
       intake,

@@ -629,6 +629,27 @@ function composeSupervisoryAnalysis(report: Bag): string {
     blocks.push(bits.join(" "));
   }
 
+  // REG-1 (doc 106, 2026-08-29) — the EU AI Act registration determination.
+  // Same block pattern as the DPO determination above: headline → bounded
+  // reasoning → closing_act in its own untruncatable slot (3E9AD759-R2) →
+  // per-branch findings.
+  const aiAct = (deliverables(report).ai_act_registration ?? {}) as Bag;
+  if (s(aiAct.headline) || asArray(aiAct.findings).length) {
+    const bits: string[] = ["EU AI Act registration."];
+    if (s(aiAct.headline)) bits.push(stop(noStop(s(aiAct.headline))));
+    if (s(aiAct.reasoning)) bits.push(stop(noStop(firstSentences(s(aiAct.reasoning), 4))));
+    if (s(aiAct.closing_act)) bits.push(stop(noStop(s(aiAct.closing_act))));
+    for (const f of asArray(aiAct.findings)) {
+      const standard = s(f.standard);
+      const application = s(f.application);
+      if (!standard && !application) continue;
+      bits.push(
+        `${s(f.citation) || "The branch"}: ${standard ? `"${noStop(standard)}." ` : ""}${application ? stop(noStop(firstSentence(application))) : ""}`.trim(),
+      );
+    }
+    blocks.push(bits.join(" "));
+  }
+
   for (const cp of asArray(deliverables(report).corpus_pending)) {
     const topic = s(cp.topic);
     const note = s(cp.note);
