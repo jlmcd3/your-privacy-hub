@@ -433,6 +433,41 @@ export function QualityConsole({
     return () => { cancelled = true; clearInterval(t); };
   }, []);
 
+  // ─── ALL-PRODUCTS-TEST: import history for non-batch products ────────────
+  // These products (RoPA, US/EU Notice) are exercised by the static-stress
+  // harness, so their test history lives in static_stress_jobs, not in
+  // quality_batch_runs. Import a rollup so every testable product has a row.
+  useEffect(() => {
+    if (!extraHistoryTools || extraHistoryTools.length === 0) return;
+    let cancelled = false;
+    const load = async () => {
+      const { data } = await supabase
+        .from("static_stress_jobs")
+        .select("tool_slug, status, completed_at, created_at")
+        .in("tool_slug", extraHistoryTools)
+        .order("created_at", { ascending: false })
+        .limit(500);
+      if (cancelled || !data) return;
+      const m = new Map<string, StressHistory>();
+      for (const t of extraHistoryTools) m.set(t, { total: 0, complete: 0, failed: 0, lastAt: null });
+      for (const j of data as { tool_slug: string; status: string; completed_at: string | null; created_at: string }[]) {
+        const e = m.get(j.tool_slug);
+        if (!e) continue;
+        e.total += 1;
+        if (j.status === "complete") e.complete += 1;
+        else if (j.status === "failed") e.failed += 1;
+        const at = j.completed_at ?? j.created_at;
+        if (!e.lastAt || at > e.lastAt) e.lastAt = at;
+      }
+      setStressHistory(m);
+    };
+    load();
+    const t = setInterval(load, 30_000);
+    return () => { cancelled = true; clearInterval(t); };
+  }, [extraHistoryTools?.join(",")]);
+
+
+
   // ─── Recent child quality_runs (bottom drill-down card) ──────────────────
   async function refreshRuns() {
     setLoadingRuns(true);
