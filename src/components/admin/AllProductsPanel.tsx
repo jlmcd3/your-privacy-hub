@@ -182,10 +182,9 @@ export function AllProductsPanel() {
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Runs each product end-to-end against its canonical sample fixture: sample data is written to the
-          product's own tables, the live generator is invoked, and the run is polled to a terminal status.
-          Products marked <em>SO batch</em> are also graded by the skeleton console above; the others have no
-          batch dispatch and are only exercised here.
+          Select any or all products. Sample data is written to each product's own tables, the live generator
+          is invoked, and the run is polled to a terminal status. Products marked <em>SO batch</em> are also
+          graded by the skeleton console below; the others have no batch dispatch and run only here.
         </p>
 
         <div className="flex flex-wrap gap-2">
@@ -203,6 +202,9 @@ export function AllProductsPanel() {
           >
             Select all
           </Button>
+          <Button size="sm" variant="ghost" disabled={busy} onClick={() => setSelected(new Set())}>
+            Clear
+          </Button>
           <Button
             size="sm"
             variant="ghost"
@@ -213,6 +215,15 @@ export function AllProductsPanel() {
           >
             Only non-SO products
           </Button>
+          <label className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
+            <Checkbox
+              checked={showSupplemental}
+              disabled={busy}
+              onCheckedChange={(v) => setShowSupplemental(v === true)}
+            />
+            Show second-pass (supplemental capture) variants
+          </label>
+
         </div>
 
         {failedPreflight.length > 0 && (
