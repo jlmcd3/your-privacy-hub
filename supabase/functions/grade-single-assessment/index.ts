@@ -73,6 +73,19 @@ export const KNOWN_TOOL_SLUGS = [
 ] as const;
 export type QL3Tool = typeof KNOWN_TOOL_SLUGS[number];
 
+// ALL-PRODUCTS GRADING (2026-08-29) — the three session-shaped products
+// (RoPA register, US notice suite, EU notice suite) have no single row with
+// `intake_data` + `report_data`: their intake is spread across a session plus
+// answer/selection child tables, and their output is either a persisted
+// assembled register (ropa_sessions.register_document) or HTML files in a
+// private storage bucket. They are graded here by the SAME Claude + GPT
+// rubric as every other product; only the FETCH differs, which is what
+// `fetchSessionShaped` below does. Nothing about the nine QL3 tools changes.
+export const SESSION_TOOL_SLUGS = ["ropa", "us-notice", "eu-notice"] as const;
+export type SessionTool = typeof SESSION_TOOL_SLUGS[number];
+export type GradedTool = QL3Tool | SessionTool;
+
+
 // Per-tool row shape for grader intake+report fetch.
 //   * `table` mirrors ql3-orchestrator/index.ts:123-133 TOOL_TABLE.
 //   * `intakeCols` mirrors run-quality-batch/index.ts intake-insert paths
