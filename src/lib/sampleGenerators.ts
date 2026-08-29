@@ -16,9 +16,20 @@ export async function getOrCreatePersonalClient(userId: string): Promise<string>
     .eq("is_active", true)
     .limit(1);
   if (error) throw error;
-  if (!data?.length) throw new Error("No personal workspace client found for admin user");
-  return data[0].id;
+  if (data?.length) return data[0].id;
+  // ALL-PRODUCTS-TEST: the RoPA and Notice-Builder sample paths are
+  // workspace-scoped. An admin account without a personal workspace used to
+  // fail here BEFORE any intake was written — a pure environment problem
+  // presenting as a product failure. Create the workspace instead.
+  const { data: created, error: cErr } = await supabase
+    .from("clients")
+    .insert({ owner_id: userId, name: "Personal workspace", is_personal: true, is_active: true })
+    .select("id")
+    .single();
+  if (cErr || !created) throw new Error(`could not create personal workspace client: ${cErr?.message}`);
+  return created.id;
 }
+
 
 // Poll a table row until it reaches a terminal status. Returns the terminal status.
 export async function pollRowStatus(
