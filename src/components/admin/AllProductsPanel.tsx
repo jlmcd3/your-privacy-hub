@@ -411,6 +411,7 @@ export function AllProductsPanel() {
               const outcomeId = newOutcomeId();
               recordOutcome({
                 id: outcomeId,
+                batchId: localBatchId,
                 startedAt: new Date().toISOString(),
                 finishedAt: new Date().toISOString(),
                 tool_slug: row.tool_slug,
@@ -619,6 +620,7 @@ export function AllProductsPanel() {
           recordLocalRun(localBatchId, SLUG_TO_STRESS_TOOL[f.tool_slug], true);
           recordOutcome({
             id: outcomeId,
+            batchId: localBatchId,
             startedAt,
             finishedAt: new Date().toISOString(),
             tool_slug: f.tool_slug,
@@ -638,6 +640,7 @@ export function AllProductsPanel() {
           recordLocalRun(localBatchId, SLUG_TO_STRESS_TOOL[f.tool_slug], false);
           recordOutcome({
             id: outcomeId,
+            batchId: localBatchId,
             startedAt,
             finishedAt: new Date().toISOString(),
             tool_slug: f.tool_slug,
