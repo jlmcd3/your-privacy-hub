@@ -112,6 +112,32 @@ export function computeScope(intake: Intake): ScopeResult {
 
   const findings: AdmtV2Finding[] = [];
 
+  // ADMT-1 (2026-08-28, doc 96/100 of the spine-vs-prompt comparison
+  // program) — MECHANICAL ADVERTISING-EXCLUSION GATE.
+  //
+  // decision_domains' enum carries no "advertising" member (see the
+  // JUDGMENT note below) — so a business whose System is used solely for
+  // advertising, and nothing else, mechanically leaves decision_domains
+  // empty. That is a clean, unambiguous case: 11 CCR § 7001(ddd)(6)
+  // excludes advertising from "significant decision" categorically, and a
+  // record that affirmatively says "solely advertising" and selects no
+  // regulated domain has already established the exclusion — nothing
+  // further needs resolving, and asking about human review is moot (human
+  // review only matters for a decision this System doesn't make). Before
+  // this fix, that exact record fell into the `domains.length === 0`
+  // branch below with everything else (a business that answered NOTHING),
+  // producing UNABLE_TO_ASSESS and a spurious "human review not resolved"
+  // finding despite the record deterministically resolving to
+  // out-of-scope. Guarded on domains.length === 0 specifically so it never
+  // fires when a real regulated domain is also selected — that combination
+  // is a genuine self-contradiction in the record, handled separately by
+  // advertisingConflict below (INCONSISTENT_RECORD, flagged for the
+  // business to reconcile — see the admt-advertising-adversarial golden
+  // fixture, which deliberately pairs a domain with solely_advertising=Yes
+  // to test exactly that path and must keep resolving to
+  // INCONSISTENT_RECORD, not this gate).
+  const clearAdvertisingExclusion = domains.length === 0 && solelyAdvertising.startsWith("Yes");
+
   // -- Significant decision factor --
   // JUDGMENT: every option in the intake's decision_domains enum is itself a
   // regulated § 7001(ddd) category (the enum carries no "advertising" or
@@ -154,7 +180,7 @@ export function computeScope(intake: Intake): ScopeResult {
     humanInvolvementLabel = "Human review not resolved";
   }
   const humanInvolvementBasis = vaCite("human_involvement") || cite("human_involvement");
-  if (humanReviewUnresolved) {
+  if (humanReviewUnresolved && !clearAdvertisingExclusion) {
     findings.push(mkFinding({
       area: "Applicability", criterion: "Human involvement",
       source_fields: ["human_review"], substantive_state: "INSUFFICIENT_RECORD",
@@ -196,6 +222,8 @@ export function computeScope(intake: Intake): ScopeResult {
       authority: advertisingBasis, action_text: "Reconcile the decision-domain selection with the solely-advertising answer before the applicability determination can be finalized.",
       priority: 1, closure_condition: "decision_domains and admt_detail.solely_advertising reconciled",
     }));
+  } else if (clearAdvertisingExclusion) {
+    scopeState = "OUT_OF_SCOPE";
   } else if (domains.length === 0) {
     scopeState = "UNABLE_TO_ASSESS";
   } else if (humanReview.startsWith("Yes")) {
