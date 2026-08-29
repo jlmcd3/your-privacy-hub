@@ -41,16 +41,18 @@ Deno.test("the initial/remaining distinction renders distinctly on a row carryin
   assertEquals(/(?<!initial |remaining |the )\brisk level of\b/.test(body), false, body);
 });
 
-Deno.test("the re-scoring caveat is preliminary, deployed, and stated once", () => {
+// STALE-PIN FIX 2026-08-29: this test pinned the pre-v4.6.2 "preliminary
+// until {name} re-scores it … once they have been deployed" per-row tail.
+// v4.6.2 (CEO-ordered polish round, 2026-08-25 — see the comment above the
+// emitting line in dpia-skeleton-assemble.ts) RETIRED that tail: residual
+// ratings are final as of the assessment date; later change is Art. 35(11)
+// review, not completion of an unfinished DPIA. The test now pins the
+// retirement and the ratified replacement formula.
+Deno.test("the re-scoring caveat is retired (v4.6.2); remaining-risk formula is final-as-of-date", () => {
   const body = composeRiskBody(REPORT, {} as never, INTAKE);
-  assert(
-    body.includes(
-      "preliminary until R. Delacroix re-scores it against the mitigating measures once they have been deployed",
-    ),
-    body,
-  );
-  assertEquals(body.split("re-scores it against").length - 1, 1, body);
-  assert(body.includes("on the same preliminary basis"), body);
+  assertEquals(body.includes("re-scores it against"), false, body);
+  assertEquals(body.includes("preliminary"), false, body);
+  assert(body.includes("after those measures are taken into account"), body);
 });
 
 Deno.test("retired phrases cannot return to the composed risk prose", () => {
@@ -127,11 +129,16 @@ Deno.test("composed customer prose never carries the '(s)' construction", () => 
   }
 });
 
+// STALE-PIN FIX 2026-08-29: the previous expected bytes ("self-identified …
+// Section 6 below") were superseded by v4.6.2 (CEO-ordered polish round) —
+// see the comment above the note constants in build.ts: plainer counts, and
+// the cross-reference corrected to Section 4 (the old "Section 6 below"
+// pointed where no such account renders, verified against rendered output).
 Deno.test("risk_count_note — normal variant carries the ratified bytes", () => {
   const note = buildRiskCountNote({ residual_risks: "We identified two risks." }, REG(4));
   assertEquals(
     note?.note,
-    "The company self-identified two of these risks; this assessment surfaces two more. The company's own account is recorded in its own words in Section 6 below.",
+    "The risk register contains four identified risks: two identified by the company and two identified through this assessment. The identified risks and the supporting factual record are set out in Section 4.",
   );
 });
 
@@ -139,7 +146,7 @@ Deno.test("risk_count_note — reversed variant carries the ratified bytes", () 
   const note = buildRiskCountNote({ residual_risks: "We identified five risks." }, REG(3));
   assertEquals(
     note?.note,
-    "The company self-identified five risks in its own account; this assessment carries three after consolidation, and the company's own account is recorded in its own words in Section 6 below.",
+    "The company identified five risks in its own account; this assessment carries three after consolidation. The identified risks and the supporting factual record are set out in Section 4.",
   );
 });
 

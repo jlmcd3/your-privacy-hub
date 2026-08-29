@@ -211,8 +211,12 @@ Deno.test("s2: tier-3 surfaces never emit more rows than the record supports", (
   assertEquals(c.measures_rights[0].status, "analysed");
   assertEquals(c.measures_article5[0].information_needed, undefined);
   assertEquals(c.measures_rights[0].information_needed, undefined);
-  assertStringIncludes(String(c.measures_article5[0].residual_note), "per-principle breakdown");
-  assertStringIncludes(String(c.measures_rights[0].residual_note), "per-right breakdown");
+  // STALE-PIN FIX 2026-08-29: v4.6.2 reworded the residual notes ("would
+  // complete the table" said the DPIA was unfinished — see the comment on
+  // RESIDUAL_ART5_TABLE/RESIDUAL_RIGHTS_TABLE in build.ts); the current
+  // ratified bytes say "principle-by-principle" / "right-by-right".
+  assertStringIncludes(String(c.measures_article5[0].residual_note), "principle-by-principle breakdown");
+  assertStringIncludes(String(c.measures_rights[0].residual_note), "right-by-right breakdown");
 
   const thin = coverage({
     data_quality_measures: "",

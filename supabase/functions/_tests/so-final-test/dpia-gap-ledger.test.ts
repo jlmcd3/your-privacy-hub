@@ -197,9 +197,14 @@ Deno.test("reconciliation: note appears when the stated count differs from the r
   assertEquals(note!.register_count, 3);
   assertEquals(note!.stated_count, 2);
   // PROMPT 8E item 1 — ratified bytes: number words, no lead-in sentence.
+  // STALE-PIN FIX 2026-08-29: expected bytes updated to the v4.6.2
+  // (CEO-ordered polish round) wording — plainer counts, Section 4
+  // cross-reference — per the ratification comment above the note
+  // constants in build.ts. The old "self-identified … Section 6 below"
+  // bytes were superseded there.
   assertEquals(
     note!.note,
-    "The company self-identified two of these risks; this assessment surfaces one more. The company's own account is recorded in its own words in Section 6 below.",
+    "The risk register contains three identified risks: two identified by the company and one identified through this assessment. The identified risks and the supporting factual record are set out in Section 4.",
   );
 });
 

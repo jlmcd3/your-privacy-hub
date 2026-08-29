@@ -132,7 +132,10 @@ Deno.test("branch d — approved", () => {
   );
   assertEquals(d.determination, "approved");
   assertEquals(d.conditions, []);
-  assertStringIncludes(d.why, "deemed low or moderate");
+  // STALE-PIN FIX 2026-08-29: "deemed low or moderate" was the pre-v4.6.2
+  // wording; the current approved-branch why (build.ts, v4.6.2 comment:
+  // "precise band statement") says "rated Low or Moderate".
+  assertStringIncludes(d.why, "rated Low or Moderate");
   // PROMPT 4 rider — ratified closing clause.
   assertStringIncludes(d.why, "no determination this assessment makes is left open");
 });

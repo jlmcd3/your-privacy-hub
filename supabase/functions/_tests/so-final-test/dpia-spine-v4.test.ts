@@ -79,6 +79,12 @@ Deno.test("spine v4.6 — the slot inventory drops regimeName entirely", () => {
     "ART36_SENTENCE",
     "DPO_ADVICE_SENTENCE",
     "LAUNCH_CLAUSE",
+    // STALE-PIN FIX 2026-08-29: {OUTSTANDING_MATTERS} was added at v4.6.2
+    // (CEO-ordered polish round, 2026-08-25) — Section 6's unconditional
+    // "Matters still outstanding are listed below" sentence became this
+    // conditional slot so an empty gap ledger no longer announces a list
+    // that never appears (see the v4.6.2 comment block in dpia.spine.ts).
+    "OUTSTANDING_MATTERS",
     "VERSION_CLAUSE",
     "dataSubjectsViews",
     "description",
@@ -126,7 +132,13 @@ Deno.test("spine v4.6 — the ratified wording edits are the shipped bytes", () 
   // Appendix A intro (replaces the Table of Authorities). v4.6.1 (CEO-ratified
   // 2026-08-22): 3 columns, not 4 -- intake data and report language merge
   // into one Report Determination sentence per factor.
-  assertStringIncludes(fixed[17], "Internal field keys, variable names, and reasoning traces are never printed in the customer report.");
+  // STALE-PIN FIX 2026-08-29: the "Internal field keys, variable names, and
+  // reasoning traces…" final sentence was REMOVED at v4.6.2 — the spine's own
+  // FIXED-PROSE HASH comment records exactly this ("the Appendix A intro lost
+  // its internal-documentation final sentence"). Pin the current intro close
+  // and the removal.
+  assertStringIncludes(fixed[17], "Every determination is drawn from the analysis already presented in this report, so nothing here is a new conclusion.");
+  assertEquals(fixed[17].includes("Internal field keys"), false);
 
   const all = fixed.join("\n");
   // regimeName is gone entirely (CEO item 3a/3b context -- the citation-review

@@ -65,7 +65,11 @@ Deno.test("risk body attributes scoring to the assessment, not the customer", ()
   // Ruling 2026-08-12: the 8A ratified template is authoritative. This test
   // protects the ATTRIBUTION PROPERTY (scoring belongs to the assessment, never
   // the customer), not any one superseded sentence.
-  assert(body.includes("under this assessment's pre-set risk taxonomy"), body);
+  // STALE-PIN FIX 2026-08-29: "pre-set risk taxonomy" was itself superseded by
+  // the PROMPT 9L.1 item 4 uniform per-risk template (CEO-ratified 2026-08-16)
+  // — the attribution phrase is now "under the assessment's defined risk
+  // matrix"; the property assertions below are unchanged.
+  assert(body.includes("under the assessment's defined risk matrix"), body);
   assert(body.includes("possible"), body);
   assert(body.includes("significant"), body);
   assertEquals(body.includes("company's answers put likelihood"), false);

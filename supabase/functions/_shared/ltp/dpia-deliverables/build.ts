@@ -2476,8 +2476,11 @@ const RESIDUAL_RIGHTS_TABLE =
 // present-but-unstructured narrative, there is nothing further the customer
 // could enter to resolve this. Credit-first per PROMPT 10B(2): analysed,
 // with a completeness residual, never an unclosable gap-ledger ask.
+// (Grammar fixed on a full-document render pass 2026-08-29: the first cut
+// composed "requires …, and whether …" after the call site's "Article 20
+// additionally requires" lead-in.)
 const PORTABILITY_CONDITIONS_UNRESOLVED =
-  "the data was provided by or observed from the data subject (WP242 rev.01), and whether the processing is carried out by automated means — the current intake does not collect either fact, so this assessment reaches no conclusion on whether Article 20 applies to this processing";
+  "that the data was provided by or observed from the data subject (WP242 rev.01) and that the processing is carried out by automated means — the current intake does not collect either fact, so this assessment reaches no conclusion on whether Article 20 applies to this processing";
 
 /**
  * PROMPT 10B(1) — resolve the Art. 9(2)(x) pinpoint carried by the intake's
