@@ -223,8 +223,28 @@ export function AllProductsPanel() {
                 status: j.status === "complete" ? "complete" : j.status === "failed" ? "failed" : "running",
                 sourceRowId: j.source_row_id,
               });
+              // GRADING FIX (2026-08-29): the reattached monitor used to only
+              // print job states — it never recorded the run nor called the
+              // Claude+GPT grader, so the scores matrix stayed empty for any
+              // batch that outlived its launching page session.
+              if (j.status === "complete" || j.status === "failed") {
+                const lb = ensureLocalBatchFor(claudeBatchId);
+                if (claimOnce(lb, j.id, "run")) {
+                  recordLocalRun(lb, SLUG_TO_STRESS_TOOL[row.tool_slug], j.status === "complete");
+                }
+                if (j.status === "complete" && j.source_row_id && claimOnce(lb, j.id, "score")) {
+                  void gradeAndRecord(
+                    lb,
+                    row.tool_slug,
+                    j.source_row_id,
+                    `claude-intake/${j.company_name ?? "company"}`,
+                    k,
+                  ).catch((e) => appendLog(k, `· grading error — ${(e as Error).message}`));
+                }
+              }
             }
           }
+
           const summary = `setup ${batch.setup_done}/${batch.setup_total} · jobs ${batch.completed_jobs + batch.failed_jobs}/${batch.total_jobs} (${batch.status})`;
           if (summary !== lastSummary) {
             appendAllProductsLog("batch", `… ${summary}`);
