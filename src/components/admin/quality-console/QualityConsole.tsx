@@ -1060,6 +1060,40 @@ export function QualityConsole({
                   </tr>
                 );
               })}
+              {(extraHistoryTools ?? []).map((tool) => {
+                const h = stressHistory.get(tool);
+                return (
+                  <tr key={tool} className="border-b align-top bg-muted/10">
+                    <td className="py-2 pr-3 font-mono">
+                      {tool}
+                      <div className="text-[10px] font-sans text-muted-foreground">
+                        imported · static-stress harness
+                      </div>
+                    </td>
+                    <td className="py-2 pr-3">{h?.total ?? 0}</td>
+                    <td className="py-2 pr-3 bg-muted/40 text-muted-foreground">n/a</td>
+                    {matrixColumns.length > 0 ? (
+                      <td className="py-2 pr-3 text-xs" colSpan={matrixColumns.length}>
+                        {h && h.total > 0 ? (
+                          <>
+                            {h.complete} complete · {h.failed} failed
+                            {h.lastAt && (
+                              <span className="ml-2 text-muted-foreground">
+                                last {new Date(h.lastAt).toLocaleDateString()}
+                              </span>
+                            )}
+                            <span className="ml-2 text-muted-foreground">
+                              (no grader score — pass/fail harness)
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground">no imported history</span>
+                        )}
+                      </td>
+                    ) : null}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
