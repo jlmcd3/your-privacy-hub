@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
-import { isIncludedTool } from "@/config/pricing";
+import { isIncludedToolForPlan } from "@/config/pricing";
 import {
   isAnnualCreditEligible,
   countAvailableAnnualCredits,
@@ -24,7 +24,7 @@ interface Props {
  */
 export default function FreeRunIndicator({ toolKey }: Props) {
   const { user } = useAuth();
-  const { isPremium, isLoading } = useSubscriptionTier();
+  const { isPremium, isLoading, isPro } = useSubscriptionTier();
   const [credits, setCredits] = useState<number>(0);
 
   const eligible = isAnnualCreditEligible(toolKey);
@@ -40,7 +40,8 @@ export default function FreeRunIndicator({ toolKey }: Props) {
 
   if (isLoading || !user || !isPremium) return null;
 
-  if (isIncludedTool(toolKey)) {
+  // v13 tier split: DPA / IR / Biometric are Professional-included only.
+  if (isIncludedToolForPlan(toolKey, isPro)) {
     return (
       <p className="text-sm font-medium text-brand-teal-text">
         <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Included with your subscription

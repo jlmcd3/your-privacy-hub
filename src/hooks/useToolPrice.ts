@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
-import { PRICING, PRICING_REGISTRY, type ToolKey, requiresAnnualForSubscriberRate } from "@/config/pricing";
+import { PRICING, PRICING_REGISTRY, type ToolKey, requiresAnnualForSubscriberRate, requiresProfessionalForInclusion } from "@/config/pricing";
 
 /**
  * Pricing hook — restores differentiated subscriber pricing per the
@@ -9,7 +9,11 @@ import { PRICING, PRICING_REGISTRY, type ToolKey, requiresAnnualForSubscriberRat
  *   • Subscriber price comes from PRICING_REGISTRY `*_subscriber*` addons.
  *   • Subscribers (intelligence/professional, any cadence) see the
  *     subscriber rate; everyone else sees the standalone rate.
- *   • IR Playbook and Biometric are FREE for any active subscriber.
+ *   • v13 (2026-08-29, LAUNCH REPRICING): DPA, IR Playbook and Biometric are
+ *     included ($0) for PROFESSIONAL subscribers only. Intelligence
+ *     subscribers pay the standalone rate on those three — their $0
+ *     subscriber registry entries apply only where
+ *     requiresProfessionalForInclusion() is satisfied by a Professional plan.
  */
 
 const SLUG_TO_TOOL_KEY: Record<string, ToolKey | "cppa_suite_combo"> = {
@@ -83,10 +87,10 @@ const SLUG_TO_SUBSCRIBER_KEY: Partial<Record<ToolSlug, string>> = {
 function standaloneCentsFor(slug: ToolSlug): number {
   const key = SLUG_TO_TOOL_KEY[slug];
   if (key === "cppa_suite_combo") {
-    // v9 Prompt 0.5.1: bundle price is $169 — NOT the sum of risk+cyber ($188).
+    // v13 launch pricing: bundle is $599 — NOT the sum of risk+cyber ($698).
     return (PRICING.tools as any).cppa_suite?.dollars
       ? (PRICING.tools as any).cppa_suite.dollars * 100
-      : 16900;
+      : 59900;
   }
   return PRICING.tools[key].dollars * 100;
 }
@@ -130,7 +134,7 @@ export interface ToolPricing {
 const CPPA_TOOLS = new Set(["cppa_risk_assessment", "cppa_cybersecurity", "cppa_suite", "cppa_admt"]);
 
 export function useToolPrice(toolSlug: ToolSlug): ToolPricing {
-  const { tier, isPremium, isInTrial, isLoading } = useSubscriptionTier();
+  const { tier, isPremium, isInTrial, isLoading, isPro } = useSubscriptionTier();
   const isCppa = CPPA_TOOLS.has(toolSlug);
   const name = DISPLAY_NAMES[toolSlug] ?? toolSlug;
 
@@ -145,9 +149,15 @@ export function useToolPrice(toolSlug: ToolSlug): ToolPricing {
   const isAnnualSubscriber = isSubscriber && String(tier ?? "").toLowerCase().includes("annual");
   const baseKey = SLUG_TO_TOOL_KEY[toolSlug] === "cppa_suite_combo" ? "cppa_suite" : String(SLUG_TO_TOOL_KEY[toolSlug]);
   const gated = requiresAnnualForSubscriberRate(baseKey);
-  const qualifiesForSubscriberRate = isSubscriber && (subscriberCents === 0 || !gated || isAnnualSubscriber);
+  // v13 — a $0 subscriber rate on a Professional-only included tool applies
+  // to Professional subscribers alone; an Intelligence subscriber pays the
+  // standalone rate on those tools.
+  const inclusionBlocked =
+    subscriberCents === 0 && requiresProfessionalForInclusion(baseKey) && !isPro;
+  const qualifiesForSubscriberRate =
+    isSubscriber && !inclusionBlocked && (subscriberCents === 0 || !gated || isAnnualSubscriber);
   const effective = qualifiesForSubscriberRate ? subscriber : standalone;
-  const isIncluded = isSubscriber && subscriberCents === 0;
+  const isIncluded = isSubscriber && subscriberCents === 0 && !inclusionBlocked;
 
   const [stripeConfigured, setStripeConfigured] = useState(false);
 

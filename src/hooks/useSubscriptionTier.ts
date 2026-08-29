@@ -56,10 +56,12 @@ export interface SubscriptionTierState {
  * Single source of truth for subscription tier (v9 model).
  *
  * `hasToolAccess` = ANY active subscription (monthly or annual, Intelligence
- * or Professional) post-trial. Layer-1 tools (RoPA, US/EU Notices, IR,
- * Biometric, DPA) are included with any active subscription under v9 — this
- * field gates their UI surfaces. Annual-only benefits (the Smart Tool
- * credit) check `tier === "annual" || tier === "annual_founding"` directly.
+ * or Professional) post-trial. It gates subscriber-only UI surfaces (RoPA,
+ * US/EU Notices). v13 (2026-08-29): IR, Biometric, and DPA are included for
+ * PROFESSIONAL subscribers only — check `isPro` (or
+ * isIncludedToolForPlan()) for those, never hasToolAccess alone. Annual-only
+ * benefits (the Smart Tool credit) check `tier === "annual" ||
+ * tier === "annual_founding"` directly.
  *
  * Trial enforcement: `isInTrial` collapses `hasToolAccess` to `false`. Every
  * downstream consumer inherits that automatically.

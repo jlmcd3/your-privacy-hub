@@ -87,19 +87,19 @@ interface IncludedRow {
 }
 
 const INCLUDED_ROWS: IncludedRow[] = [
-  { tool: "Custom DPA Generator", standalone: PRICING.tools.dpa.display, access: "Free for all active subscribers" },
+  { tool: "Custom DPA Generator", standalone: PRICING.tools.dpa.display, access: "Free with Professional plans · Intelligence pays standalone" },
   {
     tool: "Incident Response Playbook",
     standalone: PRICING.tools.ir_playbook.display,
-    access: "Free for all active subscribers",
+    access: "Free with Professional plans · Intelligence pays standalone",
   },
   {
     tool: "Biometric Compliance Check",
     standalone: PRICING.tools.biometric.display,
-    access: "Free for all active subscribers",
+    access: "Free with Professional plans · Intelligence pays standalone",
   },
-  { tool: "RoPA Builder — Initial Generation", standalone: "—", access: "Annual plans: free · Monthly plans: $29" },
-  { tool: "RoPA Builder — Update", standalone: "—", access: "Annual plans: 1 free update/yr, then $29 · Monthly plans: $29" },
+  { tool: "RoPA Builder — Initial Generation", standalone: "—", access: "Annual plans: free · Monthly plans: $49" },
+  { tool: "RoPA Builder — Update", standalone: "—", access: "Annual plans: 1 free update/yr, then $39 · Monthly plans: $49" },
   { tool: "US Privacy Notice Builder", standalone: "—", access: "Subscriber-only (free)" },
   { tool: "EU & Global Privacy Notice Builder", standalone: "—", access: "Subscriber-only (free)" },
   { tool: "CPPA Scope Checker", standalone: "Free", access: "Free (no account required)" },
@@ -157,7 +157,7 @@ export default function Pricing() {
                 <Check {...iconProps} className="text-brand-teal mt-0.5 shrink-0" /> Weekly Intelligence Brief
               </li>
               <li className="flex gap-2">
-                <Check {...iconProps} className="text-brand-teal mt-0.5 shrink-0" /> Notice Builders included · RoPA free on annual plans (first build + 1 update/yr, then $29)
+                <Check {...iconProps} className="text-brand-teal mt-0.5 shrink-0" /> Notice Builders included · RoPA free on annual plans (first build + 1 update/yr, then $39)
               </li>
               <li className="flex gap-2">
                 <Check {...iconProps} className="text-brand-teal mt-0.5 shrink-0" /> 1 free Smart Tool run / year

@@ -58,7 +58,10 @@ export default function DPAGenerator() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const pricing = useToolPrice("dpa_generator");
-  const access = useToolAccess({ standalonePrice: pricing.standalonePrice, subscriberPrice: pricing.subscriberPrice });
+  // v13 (2026-08-29 launch repricing): DPA is included for PROFESSIONAL
+  // subscribers only; the $0 subscriber registry rate must not leak to
+  // Intelligence subscribers via a plan-blind subscriberPrice.
+  const access = useToolAccess({ standalonePrice: pricing.standalonePrice, subscriberPrice: pricing.isIncluded ? null : pricing.standalonePrice });
   const { clientId } = useActiveClient();
   const refine = useRefineMode("dpa_generator");
   const [step, setStep] = useState(1);

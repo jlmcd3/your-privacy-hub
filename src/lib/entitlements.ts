@@ -9,17 +9,20 @@
  * drifting). All fields are DERIVED — nothing here is hardcoded copy that
  * duplicates pricing.ts.
  *
- * KEY POLICY BEING ENCODED (v11):
+ * KEY POLICY BEING ENCODED (v13, LAUNCH REPRICING 2026-08-29):
  *  - Client / matter workspace management is an ANNUAL-Professional feature.
  *    The $150/client/year add-on is annual-only; monthly Professional does
  *    NOT unlock client management.
- *  - Layer-1 tools (US Notice, EU Notice, IR Playbook, Biometric,
- *    Custom DPA) are included with ANY active subscription including
- *    monthly.
+ *  - v13: the Layer-1 bundle is SPLIT BY TIER. Intelligence (any cadence)
+ *    includes the two notice builders only. DPA, IR Playbook and Biometric
+ *    are PROFESSIONAL benefits (any cadence) — Intelligence subscribers pay
+ *    the standalone rate for them. This closes the $20-month →
+ *    generate-everything → cancel arbitrage.
  *  - v12 (2026-08-11): RoPA is NOT in the flat Layer-1 bundle. Annual
  *    subscribers get the first generation free plus one free update per
- *    subscription year (own credit pool, 1/yr both tiers); every other RoPA
- *    action, and every monthly-subscriber RoPA action, is $29.
+ *    subscription year (own credit pool, 1/yr both tiers); further annual
+ *    actions are $39 (ropa_annual_additional) and every monthly-subscriber
+ *    RoPA action is $49 (ropa_paid_generation).
  *  - Annual credits: Intelligence annual = 1/yr, Professional annual = 3/yr.
  *    Redeemable on Governance / LIA / DPIA. RoPA is credit-eligible but draws
  *    on its own separate 1/yr pool, not this one.
@@ -28,6 +31,7 @@
 import {
   PRICING,
   INCLUDED_TOOL_KEYS,
+  INTELLIGENCE_INCLUDED_TOOL_KEYS,
   ANNUAL_CREDIT_ELIGIBLE_KEYS,
   ANNUAL_CREDIT,
 } from "@/config/pricing";
@@ -56,7 +60,8 @@ export interface Entitlement {
   perClientAddonDisplay: string | null;
 }
 
-const INTELLIGENCE_INCLUDED = INCLUDED_TOOL_KEYS as readonly string[];
+// v13 split: Intelligence = notice builders only; Professional = full Layer-1.
+const INTELLIGENCE_INCLUDED = INTELLIGENCE_INCLUDED_TOOL_KEYS as readonly string[];
 const PROFESSIONAL_INCLUDED = INCLUDED_TOOL_KEYS as readonly string[];
 
 export function entitlementFor(planKey: PlanKey): Entitlement {

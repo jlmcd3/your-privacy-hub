@@ -80,6 +80,14 @@ const CPPA_TOOL_SLUGS = new Set([
   "cppa-admt-checker",
 ]);
 
+// v13 (2026-08-29 launch repricing): tools included at no charge for
+// PROFESSIONAL subscribers only. Intelligence subscribers pay standalone.
+const PRO_INCLUDED_TOOL_SLUGS = new Set([
+  "dpa-generator",
+  "ir-playbook",
+  "biometric-checker",
+]);
+
 // Tools that are subscriber-only — never sold standalone, never per-use.
 const SUBSCRIBER_ONLY_SLUGS = new Set([
   "ropa-builder",
@@ -148,7 +156,7 @@ const SECTION_HEADERS: Record<ToolSection, {
   documents: {
     label: "Compliance documents",
     title: "Produce the documents tailored to your jurisdictions and stack",
-    note: "Included with any active subscription",
+    note: "Notice Builders with any subscription · DPA & IR Playbook with Professional",
     iconPath: "M5 3h8l4 4v10a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z M13 3v4h4 M7 11h8 M7 14h6",
     colors: {
       bg: "bg-amber-50",
@@ -387,7 +395,7 @@ const TOOLS: ToolDef[] = [
     section: "documents",
     icon: iconEl(Folder),
     name: "RoPA Builder (Article 30)",
-    tagline: "Build and maintain your Article 30 Record of Processing Activities — by activity, by platform, by jurisdiction. Free on annual plans (first build plus one update a year); $29 per generation on monthly plans.",
+    tagline: "Build and maintain your Article 30 Record of Processing Activities — by activity, by platform, by jurisdiction. Free on annual plans (first build plus one update a year); $49 per generation on monthly plans.",
     href: "/ropa-builder",
     requirement: { tier: "required", text: "Required — GDPR Art. 30" },
     subscriberPrice: PRICING.tools.ropa.display,
@@ -395,7 +403,7 @@ const TOOLS: ToolDef[] = [
     body: [
       "Article 30 RoPAs look administrative until a regulator asks for them. Then the gap between a spreadsheet that nominally lists processing activities and a record that actually demonstrates accountability becomes immediately visible. The RoPA Builder is structured around the latter.",
       "Activities are organised per-platform and per-jurisdiction. Each entry captures the lawful basis, data categories, recipients, retention rules, and international transfer safeguards in the structure supervisory authorities expect to see — with prompts calibrated to your sector and the platforms you've already named.",
-      "The output is a versioned, dated record intended to be reviewed by your privacy or legal professional and retained as part of your accountability documentation. RoPA Builder requires an Intelligence or Professional subscription and is not sold as a standalone product. On annual plans the first build is free and each subscription year includes one free update; additional updates are $29. On monthly plans each build or update is $29.",
+      "The output is a versioned, dated record intended to be reviewed by your privacy or legal professional and retained as part of your accountability documentation. RoPA Builder requires an Intelligence or Professional subscription and is not sold as a standalone product. On annual plans the first build is free and each subscription year includes one free update; additional updates are $39. On monthly plans each build or update is $49.",
       "The output of this tool is your Subscriber Confidential Information and, as such, is protected as described in our Privacy Policy.",
     ],
     sampleSections: [
@@ -542,7 +550,7 @@ const TOOLS: ToolDef[] = [
     href: "/cppa-admt-checker",
     requirement: { tier: "conditional", text: "Required for ADMT decisions — by Jan 1, 2027" },
     subscriberPrice: (PRICING.tools as any).cppa_admt?.display ?? "$59",
-    standalonePrice: (PRICING.tools as any).cppa_admt?.display ?? "$109",
+    standalonePrice: (PRICING.tools as any).cppa_admt?.display ?? "$149",
     body: [
       "The CPPA's automated decisionmaking technology regulations take effect January 1, 2027. Businesses that use ADMT for significant decisions — credit, housing, education, employment, healthcare — must provide a pre-use notice, offer two opt-out methods (or qualify for a narrow exception), and respond to consumer access requests with plain-language information about the logic and outcome of the decision.",
       "The ADMT Compliance Assessment walks through one ADMT system at a time. Each answer updates a persistent Statute Rail showing the exact regulation text, the agency's reasoning in the Final Statement of Reasons, and enforcement notes. The output is a gap analysis — every finding cites the specific paragraph of 11 CCR §§ 7220–7222 it relates to, with a concrete remediation step.",
@@ -559,24 +567,24 @@ const PRICING_GRID: [string, string][] = [
   ["GDPR Accountability Assessment", `${PRICING.tools.governance.display} (Smart)`],
   ["Legitimate Interests Assessment", `${PRICING.tools.lia.display} (Smart)`],
   ["Impact Assessment (DPIA)", `${PRICING.tools.dpia.display} (Smart)`],
-  ["DPA Generator", `Included with subscription · ${PRICING.tools.dpa.display} standalone`],
-  ["Incident Response Playbook", `Included with subscription · ${PRICING.tools.ir_playbook.display} standalone`],
-  ["Biometric Privacy Check", `Included with subscription · ${PRICING.tools.biometric.display} standalone`],
-  ["RoPA Builder", "Free on annual plans (first build + 1 update/yr), then $29 · $29 per build on monthly"],
+  ["DPA Generator", `Included with Professional · ${PRICING.tools.dpa.display} standalone`],
+  ["Incident Response Playbook", `Included with Professional · ${PRICING.tools.ir_playbook.display} standalone`],
+  ["Biometric Privacy Check", `Included with Professional · ${PRICING.tools.biometric.display} standalone`],
+  ["RoPA Builder", "Free on annual plans (first build + 1 update/yr), then $39 · $49 per build on monthly"],
   ["U.S. Privacy Notice Builder", "Included with subscription"],
   ["EU/UK Privacy Notice Builder", "Included with subscription"],
   ["Registration Manager", `${PRICING.tools.registration.display} (Convenience)`],
   ["CPPA Scope Checker", PRICING.tools.cppa_scope.display],
   ["CPPA Risk Assessment", `${PRICING.tools.cppa_risk.display} (Smart)`],
   ["CPPA Cybersecurity Audit", `${PRICING.tools.cppa_cyber.display} (Smart)`],
-  ["ADMT Compliance Assessment", `${(PRICING.tools as any).cppa_admt?.display ?? '$109'} (Smart)`],
+  ["ADMT Compliance Assessment", `${(PRICING.tools as any).cppa_admt?.display ?? '$149'} (Smart)`],
   ["Annual subscription bonus", "1 free Smart Tool run/yr (Intelligence) · 3 free Smart Tool runs/yr (Professional): Governance, LIA, or DPIA"],
 ];
 
 export default function Tools() {
   const [sampleModal, setSampleModal] = useState<string | null>(null);
   const activeTool = sampleModal ? TOOLS.find((t) => t.slug === sampleModal) : null;
-  const { hasToolAccess, tier } = useSubscriptionTier();
+  const { hasToolAccess, tier, isPro } = useSubscriptionTier();
   const fireConversion = useConversionEvent();
   const { user } = useAuth();
   const userType = user ? "authenticated" : "anonymous";
@@ -751,7 +759,7 @@ export default function Tools() {
                           <span className="inline-block text-eyebrow bg-blue-50 text-blue-800 border border-blue-200 px-3 py-1 rounded-full">
                             Included with subscription
                           </span>
-                        ) : hasToolAccess && !CPPA_TOOL_SLUGS.has(tool.slug) ? (
+                        ) : hasToolAccess && isPro && PRO_INCLUDED_TOOL_SLUGS.has(tool.slug) ? (
                           <span className="inline-block text-eyebrow bg-green-100 text-green-800 border border-green-200 px-3 py-1 rounded-full">
                             <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Included
                           </span>
@@ -787,10 +795,12 @@ export default function Tools() {
                           ? hasToolAccess
                             ? "Included in your subscription"
                             : "Subscriber-only: not sold standalone"
-                          : hasToolAccess && !CPPA_TOOL_SLUGS.has(tool.slug)
-                          ? "Included in your Professional"
+                          : hasToolAccess && isPro && PRO_INCLUDED_TOOL_SLUGS.has(tool.slug)
+                          ? "Included in your Professional plan"
                           : hasToolAccess && CPPA_TOOL_SLUGS.has(tool.slug)
                           ? "Paid: subscriber rate applied"
+                          : hasToolAccess
+                          ? `${tool.standalonePrice} per run`
                           : tier === "monthly" && tool.monthlySubscriberPrice
                           ? "Monthly subscriber discount"
                           : `${tool.standalonePrice} without subscription`}

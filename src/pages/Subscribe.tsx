@@ -51,10 +51,10 @@ const comparisonRows: ComparisonRow[] = [
   { feature: "Accountability Assessment (Smart Tool)", free: false, intel: T.governance.display, platform: T.governance.display },
   { feature: "Legitimate Interests Assessment (Smart Tool)", free: false, intel: T.lia.display, platform: T.lia.display },
   { feature: "DPIA / Impact Assessment (Smart Tool)", free: false, intel: T.dpia.display, platform: T.dpia.display },
-  { feature: "DPA Generator (Smart Tool)", free: false, intel: "Included", platform: "Included" },
-  { feature: "IR Playbook (Convenience)", free: false, intel: "Included", platform: "Included" },
-  { feature: "Biometric Privacy Checker (Smart Tool)", free: false, intel: "Included", platform: "Included" },
-  { feature: "Records of Processing (RoPA), subscriber-only", free: "—", intel: "Free on annual · $29/generation monthly", platform: "Free on annual · $29/generation monthly" },
+  { feature: "DPA Generator (Smart Tool)", free: false, intel: `${PRICING.tools.dpa.display} per document`, platform: "Included" },
+  { feature: "IR Playbook (Convenience)", free: false, intel: `${PRICING.tools.ir_playbook.display} per playbook`, platform: "Included" },
+  { feature: "Biometric Privacy Checker (Smart Tool)", free: false, intel: `${PRICING.tools.biometric.display} per assessment`, platform: "Included" },
+  { feature: "Records of Processing (RoPA), subscriber-only", free: "—", intel: "Free on annual (1 update/yr, then $39) · $49/generation monthly", platform: "Free on annual (1 update/yr, then $39) · $49/generation monthly" },
   { feature: "US Privacy Notice Builder, subscriber-only", free: "—", intel: "Included", platform: "Included" },
   { feature: "EU & Global Privacy Notice Builder, subscriber-only", free: "—", intel: "Included", platform: "Included" },
   { feature: "Registration Manager (Convenience)", free: false, intel: T.registration.display, platform: T.registration.display },
@@ -119,7 +119,7 @@ const Subscribe = () => {
         <title>Pricing & Plans | End User Privacy</title>
         <meta
           name="description"
-          content={`Privacy Intelligence at ${PRICING.intelligence.monthly.display}/month with a 10-day free trial. Professional from ${PRICING.professional.monthly.display}/month; annual Professional adds client/matter workspaces. Any subscription includes the Notice Builders, IR Playbook, Biometric Checker, and DPA Generator; RoPA is free on annual plans (first build plus one update a year, then $29) and $29 per generation on monthly plans; annual plans add free Smart Tool runs (1 with Intelligence annual, 3 with Professional annual).`}
+          content={`Privacy Intelligence at ${PRICING.intelligence.monthly.display}/month with a 10-day free trial. Professional from ${PRICING.professional.monthly.display}/month; annual Professional adds client/matter workspaces. Any subscription includes the Notice Builders; Professional also includes the IR Playbook, Biometric Checker, and DPA Generator; RoPA is free on annual plans (first build plus one update a year, then $39) and $49 per generation on monthly plans; annual plans add free Smart Tool runs (1 with Intelligence annual, 3 with Professional annual).`}
         />
       </Helmet>
       <Navbar />
@@ -379,10 +379,10 @@ const Subscribe = () => {
                   { type: 'row', feature: "Accountability Assessment (Smart)", free: "—", intel: T.governance.display, platform: T.governance.display },
                   { type: 'row', feature: "Legitimate Interests Assessment (Smart)", free: "—", intel: T.lia.display, platform: T.lia.display },
                   { type: 'row', feature: "DPIA / Impact Assessment (Smart)", free: "—", intel: T.dpia.display, platform: T.dpia.display },
-                  { type: 'row', feature: "DPA Generator (Smart)", free: "—", intel: "Included", platform: "Included" },
-                  { type: 'row', feature: "Biometric Privacy Checker (Smart)", free: "—", intel: "Included", platform: "Included" },
-                  { type: 'row', feature: "IR Playbook (Convenience)", free: "—", intel: "Included", platform: "Included" },
-                  { type: 'row', feature: "RoPA Builder (Convenience)", free: "—", intel: "Free on annual · $29/generation monthly", platform: "Free on annual · $29/generation monthly" },
+                  { type: 'row', feature: "DPA Generator (Smart)", free: "—", intel: `${PRICING.tools.dpa.display} per document`, platform: "Included" },
+                  { type: 'row', feature: "Biometric Privacy Checker (Smart)", free: "—", intel: `${PRICING.tools.biometric.display} per assessment`, platform: "Included" },
+                  { type: 'row', feature: "IR Playbook (Convenience)", free: "—", intel: `${PRICING.tools.ir_playbook.display} per playbook`, platform: "Included" },
+                  { type: 'row', feature: "RoPA Builder (Convenience)", free: "—", intel: "Free on annual (1 update/yr, then $39) · $49/generation monthly", platform: "Free on annual (1 update/yr, then $39) · $49/generation monthly" },
                   { type: 'row', feature: "US Privacy Notice Builder", free: "—", intel: "Included", platform: "Included" },
                   { type: 'row', feature: "EU & Global Privacy Notice Builder", free: "—", intel: "Included", platform: "Included" },
                   { type: 'row', feature: "Registration Filings (Convenience)", free: "—", intel: T.registration.display, platform: T.registration.display },

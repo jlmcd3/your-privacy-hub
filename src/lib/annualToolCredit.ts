@@ -106,7 +106,7 @@ export async function countAvailableAnnualCredits(
  * RoPA annual credit (v12, 2026-08-11). Separate pool: exactly ONE per
  * subscription year for BOTH Intelligence annual and Professional annual —
  * deliberately NOT the 1-vs-3 Smart Tool grant. Covers the first RoPA update
- * of each subscription year; later updates cost $29.
+ * of each subscription year; later updates cost $39 (v13, ropa_annual_additional).
  */
 export async function getAvailableRopaCredit(
   userId:    string,

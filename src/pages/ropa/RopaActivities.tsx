@@ -568,7 +568,7 @@ export default function RopaActivities() {
               selected
             </p>
             <p className="text-xs text-muted-foreground">
-              Answering questions is free · Document generation included with any subscription
+              Answering questions is free · Generation free on annual plans, $49 on monthly
             </p>
           </div>
           <button

@@ -11,7 +11,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
-import { PRICING, type ToolKey, isIncludedTool } from "@/config/pricing";
+import { PRICING, type ToolKey, isIncludedToolForPlan } from "@/config/pricing";
 import {
   isAnnualCreditEligible,
   countAvailableAnnualCredits,
@@ -27,7 +27,7 @@ interface Props {
 
 export default function ToolPricingCTA({ toolKey, unitLabel, className = "" }: Props) {
   const { user } = useAuth();
-  const { isPremium, isLoading } = useSubscriptionTier();
+  const { isPremium, isLoading, isPro } = useSubscriptionTier();
   const [credits, setCredits] = useState<number>(0);
   const hasCredit = credits > 0;
 
@@ -57,8 +57,9 @@ export default function ToolPricingCTA({ toolKey, unitLabel, className = "" }: P
     );
   }
 
-  // Layer 1 — included with any active subscription
-  if (isPremium && isIncludedTool(toolKey)) {
+  // Layer 1 — v13 tier split: notice builders included with any active
+  // subscription; DPA / IR / Biometric included with Professional only.
+  if (isPremium && isIncludedToolForPlan(toolKey, isPro)) {
     return (
       <div className={`text-sm ${className}`}>
         <div className="font-bold text-brand-teal-text">Included with your subscription</div>

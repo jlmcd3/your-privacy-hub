@@ -261,7 +261,7 @@ export default function RopaHome() {
                   <Plus className="mr-1.5 h-4 w-4" /> Start RoPA
                 </Button>
                 <p className="text-xs text-muted-foreground mt-3">
-                  Included with any subscription
+                  Free on annual plans · $49 per generation on monthly
                 </p>
               </CardContent>
             </Card>

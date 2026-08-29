@@ -123,7 +123,7 @@ export default function RopaLanding() {
         geography="gdpr"
         eyebrowLabel={<><BookOpen aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> RoPA Builder · Free on annual plans</>}
         title="Record of Processing Activities (RoPA) Builder"
-        valueProposition="An audit-ready RoPA in minutes. Guided questions in plain language — covers GDPR Article 30, LGPD, CCPA, and 20+ frameworks. Free on annual Intelligence and Professional plans (first build plus one update each subscription year); $29 per generation or update on monthly plans. Not sold as a standalone product."
+        valueProposition="An audit-ready RoPA in minutes. Guided questions in plain language — covers GDPR Article 30, LGPD, CCPA, and 20+ frameworks. Free on annual Intelligence and Professional plans (first build plus one update each subscription year, then $39); $49 per generation or update on monthly plans. Not sold as a standalone product."
         sampleReportToolSlug="ropa"
         showIntakeCta={false}
       >
@@ -240,7 +240,7 @@ export default function RopaLanding() {
               Pricing
             </h2>
             <p className="text-center text-muted-foreground mb-10 text-sm">
-              Included with any active subscription, with no per-document fees.
+              Available with any active subscription — free builds on annual plans, per-generation pricing on monthly plans.
             </p>
 
             <div className="cmp-table overflow-x-auto border border-border rounded-2xl">
@@ -318,8 +318,8 @@ export default function RopaLanding() {
             RoPA Builder requires an Intelligence or Professional subscription
             and is not sold as a standalone product. On annual plans the first
             build is free and each subscription year includes one free update;
-            additional updates are $29. On monthly plans every build or update
-            is $29.
+            additional updates are $39. On monthly plans every build or update
+            is $49.
           </p>
           <Button asChild size="lg">
             <Link to="/subscribe" onClick={() => { fireConversion("subscribe_cta_click", { cta_label: "Free on annual plans", cta_position: "article-footer" }); fireConversion("tool_start_click", { tool_slug: "ropa", page_path: "/ropa-builder", user_type: userType }); }}>

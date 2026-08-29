@@ -98,7 +98,9 @@ export default function IRPlaybook() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const pricing = useToolPrice("ir_playbook");
-  const access = useToolAccess({ standalonePrice: pricing.standalonePrice, subscriberPrice: null });
+  // v13 (2026-08-29 launch repricing): IR Playbook is included for
+  // PROFESSIONAL subscribers only; Intelligence subscribers pay standalone.
+  const access = useToolAccess({ standalonePrice: pricing.standalonePrice, subscriberPrice: pricing.isIncluded ? null : pricing.standalonePrice });
   const { clientId } = useActiveClient();
   const refine = useRefineMode("ir_playbook");
   const [phase, setPhase] = useState<"sample" | "form" | "generating" | "result">("sample");

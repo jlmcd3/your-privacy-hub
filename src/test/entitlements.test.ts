@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { entitlementFor, describeClientAccess, type PlanKey } from "@/lib/entitlements";
-import { ANNUAL_CREDIT, INCLUDED_TOOL_KEYS, ANNUAL_CREDIT_ELIGIBLE_KEYS } from "@/config/pricing";
+import { ANNUAL_CREDIT, INCLUDED_TOOL_KEYS, INTELLIGENCE_INCLUDED_TOOL_KEYS, ANNUAL_CREDIT_ELIGIBLE_KEYS } from "@/config/pricing";
 
 // Table-driven entitlement matrix. Copy drift trips these tests.
 const CASES: Array<{
@@ -43,8 +43,14 @@ describe("entitlements", () => {
     expect(describeClientAccess("professional_annual")).toMatch(/unlocked/i);
   });
 
+  // v13 (2026-08-29 launch repricing): the Layer-1 bundle is split by tier —
+  // Intelligence includes the notice builders only; the full bundle (adding
+  // IR Playbook, Biometric, DPA) is Professional, any cadence.
   it("Included-tools list agrees with pricing.ts across all subscriber plans", () => {
-    for (const p of ["intelligence_monthly","intelligence_annual","professional_monthly","professional_annual"] as PlanKey[]) {
+    for (const p of ["intelligence_monthly","intelligence_annual"] as PlanKey[]) {
+      expect(entitlementFor(p).includedTools).toEqual(INTELLIGENCE_INCLUDED_TOOL_KEYS);
+    }
+    for (const p of ["professional_monthly","professional_annual"] as PlanKey[]) {
       expect(entitlementFor(p).includedTools).toEqual(INCLUDED_TOOL_KEYS);
     }
   });

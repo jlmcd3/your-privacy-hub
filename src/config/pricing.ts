@@ -157,9 +157,9 @@ export const PRICING_REGISTRY = {
     productName: "Professional — Monthly",
     description:
       "Monthly Professional subscription. Everything in Intelligence plus the client/matter workspace. Annual subscription required to activate client management.",
-    amountCents: 4900,
+    amountCents: 5900,
     currency: "usd",
-    displayPrice: "$49",
+    displayPrice: "$59",
     displaySuffix: "/month",
     recurringInterval: "month",
     active: true,
@@ -170,10 +170,10 @@ export const PRICING_REGISTRY = {
     productKey: "professional",
     productName: "Professional — Annual",
     description:
-      "Annual Professional subscription. Save $98 — pay for 10 months, get 12. Unlocks client/matter workspace, every Layer-1 tool (Notice Builders, IR Playbook, Biometric, DPA), RoPA (first generation free, plus one free update each subscription year — $29 per additional update), and 3 free Smart Tool runs per year (Accountability, LIA, or DPIA — up to $267 value).",
-    amountCents: 49000,
+      "Annual Professional subscription. Save $118 — pay for 10 months, get 12. Unlocks client/matter workspace, every Layer-1 tool (Notice Builders, IR Playbook, Biometric, DPA), RoPA (first generation free, plus one free update each subscription year — $39 per additional update), and 3 free Smart Tool runs per year (Accountability, LIA, or DPIA — up to $447 value).",
+    amountCents: 59000,
     currency: "usd",
-    displayPrice: "$490",
+    displayPrice: "$590",
     displaySuffix: "/year",
     recurringInterval: "year",
     active: true,
@@ -237,9 +237,9 @@ export const PRICING_REGISTRY = {
     productKey: "governance_v8",
     productName: "GDPR Accountability Assessment (Standalone)",
     description: "Standalone per-use price for the GDPR Accountability Assessment.",
-    amountCents: 8900,
+    amountCents: 11900,
     currency: "usd",
-    displayPrice: "$89",
+    displayPrice: "$119",
     displaySuffix: " flat",
     active: true,
   },
@@ -249,9 +249,9 @@ export const PRICING_REGISTRY = {
     productKey: "governance_v8",
     productName: "GDPR Accountability Assessment (Subscriber)",
     description: "Subscriber per-use price for the GDPR Accountability Assessment.",
-    amountCents: 4900,
+    amountCents: 7900,
     currency: "usd",
-    displayPrice: "$49",
+    displayPrice: "$79",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_discount",
@@ -263,9 +263,9 @@ export const PRICING_REGISTRY = {
     productKey: "lia_v8",
     productName: "Legitimate Interests Assessment (Standalone)",
     description: "Standalone per-use price for the LIA Tool.",
-    amountCents: 10900,
+    amountCents: 13900,
     currency: "usd",
-    displayPrice: "$109",
+    displayPrice: "$139",
     displaySuffix: " flat",
     active: true,
   },
@@ -275,9 +275,9 @@ export const PRICING_REGISTRY = {
     productKey: "lia_v8",
     productName: "Legitimate Interests Assessment (Subscriber)",
     description: "Subscriber per-use price for the LIA Tool.",
-    amountCents: 5900,
+    amountCents: 8900,
     currency: "usd",
-    displayPrice: "$59",
+    displayPrice: "$89",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_discount",
@@ -289,9 +289,9 @@ export const PRICING_REGISTRY = {
     productKey: "dpia_v8",
     productName: "DPIA Builder (Standalone)",
     description: "Standalone per-use price for the DPIA Tool.",
-    amountCents: 10900,
+    amountCents: 14900,
     currency: "usd",
-    displayPrice: "$109",
+    displayPrice: "$149",
     displaySuffix: " flat",
     active: true,
   },
@@ -301,9 +301,9 @@ export const PRICING_REGISTRY = {
     productKey: "dpia_v8",
     productName: "DPIA Builder (Subscriber)",
     description: "Subscriber per-use price for the DPIA Tool.",
-    amountCents: 5900,
+    amountCents: 9900,
     currency: "usd",
-    displayPrice: "$59",
+    displayPrice: "$99",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_discount",
@@ -315,9 +315,9 @@ export const PRICING_REGISTRY = {
     productKey: "dpa_v8",
     productName: "Custom DPA Generator (Standalone)",
     description: "Standalone per-use price for the DPA Generator.",
-    amountCents: 4900,
+    amountCents: 6900,
     currency: "usd",
-    displayPrice: "$49",
+    displayPrice: "$69",
     displaySuffix: " flat",
     active: true,
   },
@@ -341,9 +341,9 @@ export const PRICING_REGISTRY = {
     productKey: "ir_v8",
     productName: "Incident Response Playbook (Standalone)",
     description: "Standalone per-use price for the Incident Response Playbook.",
-    amountCents: 5900,
+    amountCents: 8900,
     currency: "usd",
-    displayPrice: "$59",
+    displayPrice: "$89",
     displaySuffix: " flat",
     active: true,
   },
@@ -367,9 +367,9 @@ export const PRICING_REGISTRY = {
     productKey: "biometric_v8",
     productName: "Biometric Compliance Check (Standalone)",
     description: "Standalone per-use price for the Biometric Compliance Check.",
-    amountCents: 4900,
+    amountCents: 7900,
     currency: "usd",
-    displayPrice: "$49",
+    displayPrice: "$79",
     displaySuffix: " flat",
     active: true,
   },
@@ -415,14 +415,14 @@ export const PRICING_REGISTRY = {
   // subscription. ANNUAL subscribers: first generation free, then one free
   // update per subscription year (its own annual-credit pool, flat 1/yr for
   // BOTH Intelligence and Professional). MONTHLY subscribers: every RoPA
-  // action costs $29. See ropa_paid_generation below.
+  // action costs $49. See ropa_paid_generation below.
   ropa_initial_subscriber: {
     kind: "addon",
     lookupKey: "ropa_initial_subscriber",
     productKey: "rofa",
     productName: "RoPA Builder — Initial (Annual Subscriber)",
     description:
-      "Free for ANNUAL subscribers — the first RoPA generation, once, bypasses Stripe checkout. Monthly subscribers pay ropa_paid_generation ($29).",
+      "Free for ANNUAL subscribers — the first RoPA generation, once, bypasses Stripe checkout. Monthly subscribers pay ropa_paid_generation ($49).",
     amountCents: 0,
     currency: "usd",
     displayPrice: "Free",
@@ -437,7 +437,7 @@ export const PRICING_REGISTRY = {
     productKey: "rofa",
     productName: "RoPA Builder — Annual Update (Annual Subscriber, credit)",
     description:
-      "Free for ANNUAL subscribers on the FIRST update of each subscription year, redeemed against the RoPA annual credit (1 per year, both tiers). Later updates in the same year cost ropa_paid_generation ($29).",
+      "Free for ANNUAL subscribers on the FIRST update of each subscription year, redeemed against the RoPA annual credit (1 per year, both tiers). Later updates in the same year cost ropa_annual_additional ($39).",
     amountCents: 0,
     currency: "usd",
     displayPrice: "Free",
@@ -452,11 +452,26 @@ export const PRICING_REGISTRY = {
     productKey: "rofa",
     productName: "RoPA Builder — Generation or Update",
     description:
-      "$29 RoPA generation/update. Charged to monthly subscribers on every RoPA action, and to annual subscribers on the second-or-later update within a subscription year. NOTE: a $29 one-time Stripe Price with this lookup key must exist in Stripe before go-live.",
-    amountCents: 2900,
+      "$49 RoPA generation/update (monthly subscribers and non-entitled actions). Annual subscribers use ropa_annual_additional ($39) beyond the included initial + one yearly update. NOTE: one-time Stripe Prices with these lookup keys must exist in Stripe before go-live.",
+    amountCents: 4900,
     currency: "usd",
-    displayPrice: "$29",
+    displayPrice: "$49",
     displaySuffix: "",
+    active: true,
+  },
+  // v13 (2026-08-29) — annual subscribers' RoPA actions BEYOND the included
+  // initial + one yearly update are $39 (monthly subscribers stay at the $49
+  // ropa_paid_generation rate above).
+  ropa_annual_additional: {
+    kind: "one_time",
+    lookupKey: "ropa_annual_additional",
+    productKey: "rofa",
+    productName: "RoPA Builder — Additional Generation (Annual Subscriber)",
+    description: "$39 additional RoPA generation/update for annual subscribers beyond the included initial generation and one update per subscription year.",
+    amountCents: 3900,
+    currency: "usd",
+    displayPrice: "$39",
+    displaySuffix: " per additional generation",
     active: true,
   },
   us_notice_v7_standalone: {
@@ -517,9 +532,9 @@ export const PRICING_REGISTRY = {
     productKey: "cppa_risk",
     productName: "CPPA Risk Assessment — Module 1 (Subscriber)",
     description: "Subscriber per-use price for the CPPA Risk Assessment.",
-    amountCents: 13900,
+    amountCents: 17900,
     currency: "usd",
-    displayPrice: "$139",
+    displayPrice: "$179",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_discount",
@@ -531,9 +546,9 @@ export const PRICING_REGISTRY = {
     productKey: "cppa_risk",
     productName: "CPPA Risk Assessment — Module 1 (Standalone)",
     description: "Standalone per-use price for the CPPA Risk Assessment.",
-    amountCents: 23900,
+    amountCents: 29900,
     currency: "usd",
-    displayPrice: "$239",
+    displayPrice: "$299",
     displaySuffix: " flat",
     active: true,
   },
@@ -542,10 +557,10 @@ export const PRICING_REGISTRY = {
     lookupKey: "cppa_suite_standalone",
     productKey: "cppa_suite",
     productName: "CPPA Full Audit Suite — Modules 1 & 2 (Standalone)",
-    description: "Complete CPPA audit readiness bundle. Save $79 vs buying modules separately.",
-    amountCents: 44900,
+    description: "Complete CPPA audit readiness bundle. Save $99 vs buying modules separately.",
+    amountCents: 59900,
     currency: "usd",
-    displayPrice: "$449",
+    displayPrice: "$599",
     displaySuffix: " flat",
     active: true,
   },
@@ -555,9 +570,9 @@ export const PRICING_REGISTRY = {
     productKey: "cppa_cybersecurity",
     productName: "CPPA Cybersecurity Readiness — Module 2 (Standalone)",
     description: "Standalone per-use price for the CPPA Cybersecurity Readiness assessment.",
-    amountCents: 29900,
+    amountCents: 39900,
     currency: "usd",
-    displayPrice: "$299",
+    displayPrice: "$399",
     displaySuffix: " flat",
     active: true,
   },
@@ -567,9 +582,9 @@ export const PRICING_REGISTRY = {
     productKey: "cppa_cybersecurity",
     productName: "CPPA Cybersecurity Readiness — Module 2 (Subscriber)",
     description: "Subscriber per-use price for the CPPA Cybersecurity Readiness assessment.",
-    amountCents: 16900,
+    amountCents: 23900,
     currency: "usd",
-    displayPrice: "$169",
+    displayPrice: "$239",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_discount",
@@ -581,9 +596,9 @@ export const PRICING_REGISTRY = {
     productKey: "cppa_suite",
     productName: "CPPA Full Audit Suite — Modules 1 & 2 (Subscriber)",
     description: "Subscriber per-use price for the CPPA Full Audit Suite.",
-    amountCents: 24900,
+    amountCents: 34900,
     currency: "usd",
-    displayPrice: "$249",
+    displayPrice: "$349",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_discount",
@@ -595,9 +610,9 @@ export const PRICING_REGISTRY = {
     productKey: "cppa_admt",
     productName: "ADMT Compliance Assessment — Module 3 (Standalone)",
     description: "Standalone per-use price for the ADMT Compliance Assessment (pre-use notice, opt-out, access rights gap analysis).",
-    amountCents: 10900,
+    amountCents: 14900,
     currency: "usd",
-    displayPrice: "$109",
+    displayPrice: "$149",
     displaySuffix: " flat",
     active: true,
   },
@@ -607,9 +622,9 @@ export const PRICING_REGISTRY = {
     productKey: "cppa_admt",
     productName: "ADMT Compliance Assessment — Module 3 (Subscriber)",
     description: "Subscriber per-use price for the ADMT Compliance Assessment.",
-    amountCents: 5900,
+    amountCents: 9900,
     currency: "usd",
-    displayPrice: "$59",
+    displayPrice: "$99",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_discount",
@@ -621,10 +636,26 @@ export const PRICING_REGISTRY = {
     productKey: "registration",
     productName: "Registration Filings — DIY Toolkit (Standalone)",
     description: "Flat per-filing price for the DPO / DPA / AI Act registration document pack. One price regardless of jurisdiction count.",
-    amountCents: 5900,
+    amountCents: 7900,
     currency: "usd",
-    displayPrice: "$59",
+    displayPrice: "$79",
     displaySuffix: " flat",
+    active: true,
+  },
+  // v13 (2026-08-29) — multi-jurisdiction ladder: each ADDITIONAL concurrent
+  // jurisdiction filed in the same order is $49. NOTE: checkout wiring for
+  // the additional-filing rate is a fast-follow; the price exists here so the
+  // Stripe sync creates it at launch.
+  registration_additional_filing: {
+    kind: "one_time",
+    lookupKey: "registration_additional_filing",
+    productKey: "registration",
+    productName: "Registration Filings — Additional Concurrent Jurisdiction",
+    description: "$49 for each additional concurrent jurisdiction filed in the same order ($79 first filing).",
+    amountCents: 4900,
+    currency: "usd",
+    displayPrice: "$49",
+    displaySuffix: " per additional jurisdiction",
     active: true,
   },
   registration_subscriber: {
@@ -633,9 +664,9 @@ export const PRICING_REGISTRY = {
     productKey: "registration",
     productName: "Registration Filings — DIY Toolkit (Subscriber alias)",
     description: "Subscriber-rate alias (mirrors standalone — no longer discounted) for the DPO / DPA / AI Act registration document pack.",
-    amountCents: 5900,
+    amountCents: 7900,
     currency: "usd",
-    displayPrice: "$59",
+    displayPrice: "$79",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_alias",
@@ -669,9 +700,9 @@ export const PRICING_REGISTRY = {
     productKey: "lia_v8",
     productName: "Legitimate Interests Assessment — 4 additional generations",
     description: "Meter top-up: adds 4 additional generations on an existing LIA. Half-price policy.",
-    amountCents: 5450,
+    amountCents: 6950,
     currency: "usd",
-    displayPrice: "$54.50",
+    displayPrice: "$69.50",
     displaySuffix: " flat",
     parentLookupKey: "li_standalone_v2",
     addonReason: "meter_topup",
@@ -683,9 +714,9 @@ export const PRICING_REGISTRY = {
     productKey: "governance_v8",
     productName: "GDPR Accountability Assessment — 4 additional generations",
     description: "Meter top-up: adds 4 additional generations on an existing Accountability Assessment. Half-price policy.",
-    amountCents: 4450,
+    amountCents: 5950,
     currency: "usd",
-    displayPrice: "$44.50",
+    displayPrice: "$59.50",
     displaySuffix: " flat",
     parentLookupKey: "hc_standalone_v2",
     addonReason: "meter_topup",
@@ -697,9 +728,9 @@ export const PRICING_REGISTRY = {
     productKey: "dpia_v8",
     productName: "DPIA Builder — 4 additional generations",
     description: "Meter top-up: adds 4 additional generations on an existing DPIA. Half-price policy.",
-    amountCents: 5450,
+    amountCents: 7450,
     currency: "usd",
-    displayPrice: "$54.50",
+    displayPrice: "$74.50",
     displaySuffix: " flat",
     parentLookupKey: "dpia_standalone_v2",
     addonReason: "meter_topup",
@@ -711,9 +742,9 @@ export const PRICING_REGISTRY = {
     productKey: "dpa_v8",
     productName: "Custom DPA Generator — 4 additional generations",
     description: "Meter top-up: adds 4 additional generations on an existing DPA. Half-price policy.",
-    amountCents: 2450,
+    amountCents: 3450,
     currency: "usd",
-    displayPrice: "$24.50",
+    displayPrice: "$34.50",
     displaySuffix: " flat",
     parentLookupKey: "dpa_standalone_v2",
     addonReason: "meter_topup",
@@ -725,9 +756,9 @@ export const PRICING_REGISTRY = {
     productKey: "ir_v8",
     productName: "Incident Response Playbook — 4 additional generations",
     description: "Meter top-up: adds 4 additional generations on an existing IR Playbook. Half-price policy.",
-    amountCents: 2950,
+    amountCents: 4450,
     currency: "usd",
-    displayPrice: "$29.50",
+    displayPrice: "$44.50",
     displaySuffix: " flat",
     parentLookupKey: "ir_standalone_v2",
     addonReason: "meter_topup",
@@ -739,9 +770,9 @@ export const PRICING_REGISTRY = {
     productKey: "biometric_v8",
     productName: "Biometric Compliance Check — 4 additional generations",
     description: "Meter top-up: adds 4 additional generations on an existing Biometric Compliance Check. Half-price policy.",
-    amountCents: 2450,
+    amountCents: 3950,
     currency: "usd",
-    displayPrice: "$24.50",
+    displayPrice: "$39.50",
     displaySuffix: " flat",
     parentLookupKey: "biometric_standalone_v2",
     addonReason: "meter_topup",
@@ -753,9 +784,9 @@ export const PRICING_REGISTRY = {
     productKey: "cppa_admt",
     productName: "ADMT Compliance Assessment — 4 additional generations",
     description: "Meter top-up: adds 4 additional generations on an existing ADMT Compliance Assessment. Half-price policy.",
-    amountCents: 5450,
+    amountCents: 7450,
     currency: "usd",
-    displayPrice: "$54.50",
+    displayPrice: "$74.50",
     displaySuffix: " flat",
     parentLookupKey: "cppa_admt_standalone",
     addonReason: "meter_topup",
@@ -767,9 +798,9 @@ export const PRICING_REGISTRY = {
     productKey: "cppa_risk",
     productName: "CPPA Risk Assessment — 4 additional generations",
     description: "Meter top-up: adds 4 additional generations on an existing CPPA Risk Assessment. Half-price policy.",
-    amountCents: 11950,
+    amountCents: 14950,
     currency: "usd",
-    displayPrice: "$119.50",
+    displayPrice: "$149.50",
     displaySuffix: " flat",
     parentLookupKey: "cppa_risk_standalone",
     addonReason: "meter_topup",
@@ -781,9 +812,9 @@ export const PRICING_REGISTRY = {
     productKey: "cppa_cybersecurity",
     productName: "CPPA Cybersecurity Readiness — 4 additional generations",
     description: "Meter top-up: adds 4 additional generations on an existing CPPA Cybersecurity Readiness assessment. Half-price policy.",
-    amountCents: 14950,
+    amountCents: 19950,
     currency: "usd",
-    displayPrice: "$149.50",
+    displayPrice: "$199.50",
     displaySuffix: " flat",
     parentLookupKey: "cppa_cyber_standalone",
     addonReason: "meter_topup",
@@ -832,8 +863,8 @@ export const INTELLIGENCE_PRICING = {
 
 /** Platform pricing helpers (annual subscriptions). */
 export const PLATFORM_PRICING = {
-  standard: () => formatPrice("professional_annual"),                              // "$490/year"
-  standardMonthly: () => formatPrice("professional_monthly"),                      // "$49/month"
+  standard: () => formatPrice("professional_annual"),                              // "$590/year"
+  standardMonthly: () => formatPrice("professional_monthly"),                      // "$59/month"
   clientAddon: () => formatPrice("professional_client"),                           // "$150/client/year"
 } as const;
 
@@ -978,18 +1009,18 @@ export const PRICING = {
   },
   professional: {
     monthly: {
-      display: '$49',
-      dollars: 49,
-      cents: 4900,
+      display: '$59',
+      dollars: 59,
+      cents: 5900,
       label: 'month',
       stripePriceId: 'professional_monthly',
     },
     annual: {
-      display: '$490',
-      dollars: 490,
-      cents: 49000,
+      display: '$590',
+      dollars: 590,
+      cents: 59000,
       label: 'year',
-      savingDisplay: 'Save $98 — pay for 10 months, get 12',
+      savingDisplay: 'Save $118 — pay for 10 months, get 12',
       note: 'Annual subscription required to activate client management',
       stripePriceId: 'professional_annual',
     },
@@ -1002,9 +1033,9 @@ export const PRICING = {
     },
     // Legacy alias — some UI still reads `.base`.
     base: {
-      display: '$49',
-      dollars: 49,
-      cents: 4900,
+      display: '$59',
+      dollars: 59,
+      cents: 5900,
       label: 'month',
       stripePriceId: 'professional_monthly',
     },
@@ -1013,30 +1044,30 @@ export const PRICING = {
   },
   tools: {
     cppa_scope:   { name: 'CPPA Scope Checker',                 dollars: 0,   display: 'Free', stripePriceId: null },
-    biometric:    { name: 'Biometric Compliance Check',         dollars: 49,  display: '$49',  stripePriceId: 'biometric_standalone_v2' },
-    ir_playbook:  { name: 'Breach IR Playbook',                 dollars: 59,  display: '$59',  stripePriceId: 'ir_standalone_v2' },
-    lia:          { name: 'Legitimate Interests Assessment',     dollars: 109, display: '$109',  stripePriceId: 'li_standalone_v2' },
+    biometric:    { name: 'Biometric Compliance Check',         dollars: 79,  display: '$79',  stripePriceId: 'biometric_standalone_v2' },
+    ir_playbook:  { name: 'Breach IR Playbook',                 dollars: 89,  display: '$89',  stripePriceId: 'ir_standalone_v2' },
+    lia:          { name: 'Legitimate Interests Assessment',     dollars: 139, display: '$139',  stripePriceId: 'li_standalone_v2' },
     us_notice:    { name: 'US Privacy Notice Builder',          dollars: 0,   display: 'Included with subscription', stripePriceId: null },
-    dpia:         { name: 'Data Protection Impact Assessment',  dollars: 109, display: '$109',  stripePriceId: 'dpia_standalone_v2' },
-    dpa:          { name: 'Custom DPA Generator',               dollars: 49,  display: '$49',  stripePriceId: 'dpa_standalone_v2' },
-    ropa:         { name: 'RoPA Builder',                       dollars: 29,  display: 'Free (annual) · $29/generation (monthly)', stripePriceId: 'ropa_paid_generation' },
+    dpia:         { name: 'Data Protection Impact Assessment',  dollars: 149, display: '$149',  stripePriceId: 'dpia_standalone_v2' },
+    dpa:          { name: 'Custom DPA Generator',               dollars: 69,  display: '$69',  stripePriceId: 'dpa_standalone_v2' },
+    ropa:         { name: 'RoPA Builder',                       dollars: 49,  display: 'Free (annual) · $49/generation ($39 additional for annual)', stripePriceId: 'ropa_paid_generation' },
     eu_notice:    { name: 'EU / Global Privacy Notice Builder', dollars: 0,   display: 'Included with subscription', stripePriceId: null },
-    registration: { name: 'Registration Filings',               dollars: 59,  display: '$59',  stripePriceId: 'registration_standalone' },
-    governance:   { name: 'GDPR Accountability Assessment',         dollars: 89,  display: '$89',  stripePriceId: 'hc_standalone_v2' },
-    cppa_risk:    { name: 'CPPA Risk Assessment',               dollars: 239, display: '$239', stripePriceId: 'cppa_risk_standalone' },
-    cppa_cyber:   { name: 'CPPA Cybersecurity Readiness',       dollars: 299, display: '$299', stripePriceId: 'cppa_cyber_standalone' },
-    cppa_suite:   { name: 'CPPA Full Audit Suite',              dollars: 449, display: '$449', stripePriceId: 'cppa_suite_standalone' },
-    cppa_admt:    { name: 'ADMT Compliance Assessment',            dollars: 109, display: '$109',  stripePriceId: 'cppa_admt_standalone' },
+    registration: { name: 'Registration Filings',               dollars: 79,  display: '$79',  stripePriceId: 'registration_standalone' },
+    governance:   { name: 'GDPR Accountability Assessment',         dollars: 119,  display: '$119',  stripePriceId: 'hc_standalone_v2' },
+    cppa_risk:    { name: 'CPPA Risk Assessment',               dollars: 299, display: '$299', stripePriceId: 'cppa_risk_standalone' },
+    cppa_cyber:   { name: 'CPPA Cybersecurity Readiness',       dollars: 399, display: '$399', stripePriceId: 'cppa_cyber_standalone' },
+    cppa_suite:   { name: 'CPPA Full Audit Suite',              dollars: 599, display: '$599', stripePriceId: 'cppa_suite_standalone' },
+    cppa_admt:    { name: 'ADMT Compliance Assessment',            dollars: 149, display: '$149',  stripePriceId: 'cppa_admt_standalone' },
 
     // ── Legacy camelCase aliases (kept so existing imports keep compiling) ──
     cppaScope:    { name: 'CPPA Scope Checker',                 dollars: 0,   display: 'Free', stripePriceId: null },
-    irPlaybook:   { name: 'Breach IR Playbook',                 dollars: 59,  display: '$59',  stripePriceId: 'ir_standalone_v2' },
+    irPlaybook:   { name: 'Breach IR Playbook',                 dollars: 89,  display: '$89',  stripePriceId: 'ir_standalone_v2' },
     usNotice:     { name: 'US Privacy Notice Builder',          dollars: 0,   display: 'Included with subscription', stripePriceId: null },
     euNotice:     { name: 'EU / Global Privacy Notice Builder', dollars: 0,   display: 'Included with subscription', stripePriceId: null },
-    cppaRisk:     { name: 'CPPA Risk Assessment',               dollars: 239, display: '$239', stripePriceId: 'cppa_risk_standalone' },
-    cppaCyber:    { name: 'CPPA Cybersecurity Readiness',       dollars: 299, display: '$299', stripePriceId: 'cppa_cyber_standalone' },
-    cppaSuite:    { name: 'CPPA Full Audit Suite',              dollars: 449, display: '$449', stripePriceId: 'cppa_suite_standalone' },
-    cppaAdmt:     { name: 'ADMT Compliance Assessment',            dollars: 109, display: '$109',  stripePriceId: 'cppa_admt_standalone' },
+    cppaRisk:     { name: 'CPPA Risk Assessment',               dollars: 299, display: '$299', stripePriceId: 'cppa_risk_standalone' },
+    cppaCyber:    { name: 'CPPA Cybersecurity Readiness',       dollars: 399, display: '$399', stripePriceId: 'cppa_cyber_standalone' },
+    cppaSuite:    { name: 'CPPA Full Audit Suite',              dollars: 599, display: '$599', stripePriceId: 'cppa_suite_standalone' },
+    cppaAdmt:     { name: 'ADMT Compliance Assessment',            dollars: 149, display: '$149',  stripePriceId: 'cppa_admt_standalone' },
   },
 } as const;
 
@@ -1096,12 +1127,13 @@ export const CPPA_SUBSCRIBER_DISCOUNT_RANGE_DISPLAY = computeCppaDiscountRangeDi
 
 export type SubscriptionTier = 'anonymous' | 'free' | 'intelligence' | 'professional';
 
-// ── v9 PRICING HELPERS ────────────────────────────────────────────────────
+// ── v9 PRICING HELPERS (Layer-1 split by tier in v13) ─────────────────────
 //
-// Every tier pays the standalone per-use tool price. Layer 1 tools (RoPA,
-// US/EU Notices, IR Playbook, Biometric, DPA) are included with any active
-// subscription. Layer 3 (Smart Tool annual credit: Governance, LIA, DPIA)
-// is redeemed server-side via `create-tool-checkout` → `annual_tool_credits`.
+// Every tier pays the standalone per-use tool price. v13 Layer 1: the notice
+// builders are included with any active subscription; IR Playbook, Biometric
+// and DPA are included with PROFESSIONAL only. Layer 3 (Smart Tool annual
+// credit: Governance, LIA, DPIA) is redeemed server-side via
+// `create-tool-checkout` → `annual_tool_credits`.
 
 export function getToolPrice(toolKey: ToolKey, _tier?: string): number {
   return PRICING.tools[toolKey].dollars;
@@ -1130,8 +1162,19 @@ const SUBSCRIBED_TIERS = new Set([
   'monthly', 'annual', 'annual_founding',
 ]);
 
+const PROFESSIONAL_TIERS = new Set([
+  'pro_monthly', 'pro_annual',
+  'professional', 'professional_monthly', 'professional_annual',
+]);
+
 export function isToolFreeForTier(toolKey: string, tier?: string): boolean {
   if (!tier || !SUBSCRIBED_TIERS.has(tier)) return false;
+  // v13: IR / Biometric / DPA are free for Professional tiers only. Generic
+  // legacy cadence aliases ('monthly'/'annual'/'annual_founding') carry no
+  // plan information, so they conservatively do NOT unlock the pro-only set.
+  if (requiresProfessionalForInclusion(toolKey) && !PROFESSIONAL_TIERS.has(tier)) {
+    return false;
+  }
   return isIncludedTool(toolKey) || isSubscriberOnlyTool(toolKey);
 }
 
@@ -1183,14 +1226,35 @@ export function isSmartTool(toolKey: string): boolean {
 
 // ── v9 LAYER CLASSIFICATION (June 2026) ──────────────────────────────────
 
-/** v9 Layer 1 — included with ANY active subscription (monthly or annual).
- *  IR, Biometric, and DPA remain purchasable standalone by non-subscribers. */
+/** Layer 1 superset — every tool included in at least one paid tier.
+ *  v13: this is the PROFESSIONAL bundle. Intelligence includes only the two
+ *  notice builders (INTELLIGENCE_INCLUDED_TOOL_KEYS below); IR, Biometric,
+ *  and DPA remain purchasable standalone by everyone else. */
 export const INCLUDED_TOOL_KEYS = [
   'us_notice', 'eu_notice', 'ir_playbook', 'biometric', 'dpa',
 ] as const;
 const INCLUDED_TOOL_CAMEL = new Set(['usNotice','euNotice','irPlaybook','biometric','dpa']);
+/** True when the tool is included in AT LEAST ONE paid tier (the Professional
+ *  superset). For tier-correct checks use isIncludedToolForPlan below. */
 export function isIncludedTool(toolKey: string): boolean {
   return (INCLUDED_TOOL_KEYS as readonly string[]).includes(toolKey) || INCLUDED_TOOL_CAMEL.has(toolKey);
+}
+
+// v13 (2026-08-29, LAUNCH REPRICING) — the Layer-1 bundle is split by tier.
+// Intelligence's job is privacy intelligence + notice drafting; the one-time
+// deliverable tools (DPA, IR Playbook, Biometric) are Professional benefits,
+// closing the $20-month → generate-everything → cancel arbitrage.
+export const INTELLIGENCE_INCLUDED_TOOL_KEYS = ['us_notice', 'eu_notice'] as const;
+export const PROFESSIONAL_ONLY_INCLUDED_TOOL_KEYS = ['ir_playbook', 'biometric', 'dpa'] as const;
+const PRO_ONLY_CAMEL = new Set(['irPlaybook', 'biometric', 'dpa']);
+/** True when inclusion for this tool requires a Professional plan. */
+export function requiresProfessionalForInclusion(toolKey: string): boolean {
+  return (PROFESSIONAL_ONLY_INCLUDED_TOOL_KEYS as readonly string[]).includes(toolKey) || PRO_ONLY_CAMEL.has(toolKey);
+}
+/** Tier-correct inclusion check. */
+export function isIncludedToolForPlan(toolKey: string, isPro: boolean): boolean {
+  if (!isIncludedTool(toolKey)) return false;
+  return requiresProfessionalForInclusion(toolKey) ? isPro : true;
 }
 
 /** v9 Layer 3 — Smart Tools redeemable with the annual credit.
@@ -1209,22 +1273,28 @@ export function creditPoolForTool(toolKey: string): 'ropa' | 'smart_tool' {
 /** Flat grant size per subscription year, by pool. RoPA is 1 for both tiers. */
 export const ROPA_ANNUAL_CREDITS_PER_YEAR = 1;
 
-/** v12 (2026-08-11) RoPA pricing policy — ratified.
+/** v12 (2026-08-11) RoPA pricing policy — ratified; amounts updated by the
+ *  v13 launch repricing (2026-08-29).
  *  ANNUAL subscribers (Intelligence annual or Professional annual, identical
  *  treatment): the first RoPA generation is free and never charged; each
  *  subscription year thereafter carries ONE free update; a second or later
- *  update in the same year is $29 (ropa_paid_generation).
+ *  update in the same year is $39 (ropa_annual_additional).
  *  MONTHLY subscribers (Intelligence or Professional monthly): every RoPA
- *  action — initial generation or update — is $29. No free tier, no cap.
- *  RoPA is therefore OUT of the flat Layer-1 included bundle; Notices, IR
- *  Playbook, Biometric and DPA stay included unchanged. */
+ *  action — initial generation or update — is $49 (ropa_paid_generation).
+ *  No free tier, no cap. RoPA is therefore OUT of the flat Layer-1 included
+ *  bundle. */
 
 // v10 (2026-06-11): Layer-2 subscriber per-use rates are ANNUAL-SUBSCRIBER-ONLY.
 // Monthly subscribers pay standalone on Layer-2 tools.
-// Layer-1 included tools (RoPA, notices, IR, Biometric, DPA) remain included for
-// ANY active subscription including monthly. CPPA repriced: 179/99, 249/139, 349/189.
-// Governance subscriber 25→49, DPIA subscriber 49→45.
-// v11 (2026-06-11, ratified): LIA 99/49, DPIA 99/49, RoPA-initial 99, CPPA 229/129 · 299/169 · 449/249, Registration 59, Professional 49/mo · 490/yr. All other prices unchanged.
+// v13 (2026-08-29, LAUNCH REPRICING — CEO-directed): the Layer-1 bundle is
+// SPLIT BY TIER. Intelligence (any cadence) includes the two notice builders
+// only; DPA, IR Playbook and Biometric are PROFESSIONAL benefits (any
+// cadence). Launch prices: Governance 119/79, LIA 139/89, DPIA 149/99,
+// DPA 69, IR 89, Biometric 79, RoPA 49/gen ($39 annual-additional),
+// Registration 79, CPPA 299/179 · 399/239 · 599/349, ADMT 149/99,
+// Professional 59/mo · 590/yr. Top-ups remain half the standalone price.
+// (A prior comment here claimed "CPPA repriced: 179/99, 249/139, 349/189" —
+// that repricing never shipped; the comment was stale.)
 export const ANNUAL_GATED_SUBSCRIBER_RATE_KEYS = ['governance','lia','dpia','cppa_risk','cppa_cyber','cppa_suite','cppa_admt'] as const;
 const ANNUAL_GATED_CAMEL = new Set(['governance','lia','dpia','cppaRisk','cppaCyber','cppaSuite','cppaAdmt']);
 export function requiresAnnualForSubscriberRate(toolKey: string): boolean {
@@ -1234,15 +1304,16 @@ export function requiresAnnualForSubscriberRate(toolKey: string): boolean {
 export const ANNUAL_CREDIT = {
   intelligenceAnnual: 1,           // credits per Intelligence annual cycle
   professionalAnnualPerClient: 3,  // credits per Professional annual cycle
-  // Per-credit cap. The most expensive Smart Tool currently runs at $89
-  // standalone, so the credit value cap stays at $89/credit.
-  maxValueCents: 8900,
+  // Per-credit cap. The most expensive Smart Tool now runs at $149
+  // standalone (DPIA, launch repricing 2026-08-29), so the credit value cap
+  // is $149/credit.
+  maxValueCents: 14900,
   marketingLabel:
     'Annual plans include free Smart Tool runs each year — 1 with Intelligence, 3 with Professional (Accountability, LIA, or DPIA).',
   professionalLabel:
-    '3 free Smart Tool runs per year (Accountability, LIA, or DPIA — up to $267 value)',
+    '3 free Smart Tool runs per year (Accountability, LIA, or DPIA — up to $447 value)',
   intelligenceLabel:
-    '1 free Smart Tool run per year (Accountability, LIA, or DPIA — up to $89 value)',
+    '1 free Smart Tool run per year (Accountability, LIA, or DPIA — up to $149 value)',
 } as const;
 
 /** Credits granted at each annual renewal, by subscription type. */

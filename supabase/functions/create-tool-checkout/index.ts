@@ -40,31 +40,31 @@ const TOOLS: Record<
     standalone_lookup: "li_standalone_v2",
     subscriber_lookup: "li_subscriber_v2",
     table: "li_assessments",
-    fallback_standalone_cents: 9900,
-    fallback_subscriber_cents: 4900,
+    fallback_standalone_cents: 13900,
+    fallback_subscriber_cents: 8900,
   },
   governance_assessment: {
     name: "Privacy Program Assessment Tool",
     standalone_lookup: "hc_standalone_v2",
     subscriber_lookup: "hc_subscriber_v2",
     table: "governance_assessments",
-    fallback_standalone_cents: 8900,
-    fallback_subscriber_cents: 4900,
+    fallback_standalone_cents: 11900,
+    fallback_subscriber_cents: 7900,
   },
   dpia_framework: {
     name: "DPIA Builder",
     standalone_lookup: "dpia_standalone_v2",
     subscriber_lookup: "dpia_subscriber_v2",
     table: "dpia_frameworks",
-    fallback_standalone_cents: 9900,
-    fallback_subscriber_cents: 4900,
+    fallback_standalone_cents: 14900,
+    fallback_subscriber_cents: 9900,
   },
   dpa_generator: {
     name: "Your Custom DPA",
     standalone_lookup: "dpa_standalone_v2",
     subscriber_lookup: "dpa_subscriber_v2",
     table: "dpa_documents",
-    fallback_standalone_cents: 4900,
+    fallback_standalone_cents: 6900,
     fallback_subscriber_cents: 0,
   },
   ir_playbook: {
@@ -72,16 +72,16 @@ const TOOLS: Record<
     standalone_lookup: "ir_standalone_v2",
     subscriber_lookup: "ir_subscriber_v2",
     table: "ir_playbooks",
-    fallback_standalone_cents: 5900,
-    fallback_subscriber_cents: 5900,
+    fallback_standalone_cents: 8900,
+    fallback_subscriber_cents: 0,
   },
   biometric_checker: {
     name: "Biometric Privacy Compliance Checker",
     standalone_lookup: "biometric_standalone_v2",
     subscriber_lookup: "biometric_subscriber_v2",
     table: "biometric_assessments",
-    fallback_standalone_cents: 4900,
-    fallback_subscriber_cents: 4900,
+    fallback_standalone_cents: 7900,
+    fallback_subscriber_cents: 0,
   },
 
   ropa_initial: {
@@ -161,37 +161,41 @@ const TOOLS: Record<
     standalone_lookup: "cppa_risk_standalone",
     subscriber_lookup: "cppa_risk_subscriber",
     table: "cppa_assessments",
-    fallback_standalone_cents: 22900,
-    fallback_subscriber_cents: 12900,
+    fallback_standalone_cents: 29900,
+    fallback_subscriber_cents: 17900,
   },
   cppa_cybersecurity: {
     name: "CPPA Cybersecurity Readiness — Module 2",
     standalone_lookup: "cppa_cyber_standalone",
     subscriber_lookup: "cppa_cyber_subscriber",
     table: "cppa_assessments",
-    fallback_standalone_cents: 29900,
-    fallback_subscriber_cents: 16900,
+    fallback_standalone_cents: 39900,
+    fallback_subscriber_cents: 23900,
   },
   cppa_suite: {
     name: "CPPA Full Audit Suite",
     standalone_lookup: "cppa_suite_standalone",
     subscriber_lookup: "cppa_suite_subscriber",
     table: "cppa_assessments",
-    fallback_standalone_cents: 44900,
-    fallback_subscriber_cents: 24900,
+    fallback_standalone_cents: 59900,
+    fallback_subscriber_cents: 34900,
   },
   cppa_admt: {
     name: "ADMT Compliance Assessment — Module 3",
     standalone_lookup: "cppa_admt_standalone",
     subscriber_lookup: "cppa_admt_subscriber",
     table: "cppa_assessments",
-    fallback_standalone_cents: 9900,
-    fallback_subscriber_cents: 4900,
+    fallback_standalone_cents: 14900,
+    fallback_subscriber_cents: 9900,
   },
 
 };
 
-// v9: Tools that bypass Stripe entirely for ANY active subscriber (FREE).
+// v13 (2026-08-29, LAUNCH REPRICING): tools that bypass Stripe entirely for
+// PROFESSIONAL subscribers (any cadence). Intelligence subscribers pay the
+// standalone rate on these three — the tier split that closes the
+// $20-month → generate-everything → cancel arbitrage. (v9 granted these to
+// ANY active subscriber.)
 const SUBSCRIBER_FREE_TOOLS = new Set(["ir_playbook", "biometric_checker", "dpa_generator"]);
 
 // Tools that are subscription-only (never sold standalone). Active monthly
@@ -419,12 +423,13 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ── Subscriber FREE bypass (IR Playbook, Biometric Checker, DPA) ──
-    // v9: gated on isPremium (ANY active subscription), not isPro alone.
+    // ── Professional FREE bypass (IR Playbook, Biometric Checker, DPA) ──
+    // v13: gated on isPro (Professional, any cadence). Intelligence
+    // subscribers fall through to standard checkout at the standalone rate.
     // Stripe disallows $0 sessions; insert the assessment row directly
     // with is_subscriber_credit=true and return the success path so the
     // client navigates straight to the result page.
-    if (isPremium && SUBSCRIBER_FREE_TOOLS.has(tool_type)) {
+    if (isPro && SUBSCRIBER_FREE_TOOLS.has(tool_type)) {
       const insertRow: Record<string, unknown> = {
         user_id,
         client_id: client_id || null,
@@ -466,8 +471,8 @@ Deno.serve(async (req) => {
     //   treated IDENTICALLY): the FIRST RoPA generation is free; each
     //   subscription year carries ONE free update, drawn from the RoPA credit
     //   pool (pool='ropa', flat 1/yr); a second or later update inside the
-    //   same year is $29.
-    //   MONTHLY subscribers: every RoPA action — initial or update — is $29.
+    //   same year is $39 (ropa_annual_additional, v13).
+    //   MONTHLY subscribers: every RoPA action — initial or update — is $49.
     // Non-subscribers are already rejected by SUBSCRIPTION_ONLY_TOOLS above.
     const ROPA_TOOLS = new Set(["ropa_initial", "ropa_refresh"]);
     let ropaPaidCharge = false;
@@ -516,7 +521,7 @@ Deno.serve(async (req) => {
       };
 
       if (!isAnnualSubscriber) {
-        // Monthly subscriber → always $29, no free path, no credit.
+        // Monthly subscriber → always $49, no free path, no credit.
         ropaPaidCharge = true;
       } else {
         // Has this user ever produced a RoPA before? The FIRST one is free.
@@ -542,7 +547,7 @@ Deno.serve(async (req) => {
           const { data: ropaCredit } = await rq.maybeSingle();
           if (ropaCredit) return await ropaBypass("annual_credit", (ropaCredit as any).id);
         }
-        // Credit already spent this year → $29.
+        // Credit already spent this year → $39 (annual-additional rate).
         ropaPaidCharge = true;
       }
     }
@@ -638,15 +643,23 @@ Deno.serve(async (req) => {
     // subscribers pay the standalone price for gated tools.
     const gatedToolRequiresAnnual =
       ANNUAL_GATED_TOOLS.has(tool_type) && !isAnnualSubscriber;
+    // v13: the three Professional-included tools never use their $0
+    // subscriber lookup here — Professional buyers were already bypassed
+    // above, so anyone reaching this point pays the standalone rate.
     const useSubscriberPrice =
-      isPremium && !!tool.subscriber_lookup && !gatedToolRequiresAnnual;
-    // v12: a chargeable RoPA action is always the flat $29 generation price,
-    // regardless of tier or subscriber discounting.
+      isPremium && !!tool.subscriber_lookup && !gatedToolRequiresAnnual &&
+      !SUBSCRIBER_FREE_TOOLS.has(tool_type);
+    // v13: a chargeable RoPA action is $49 (ropa_paid_generation) for
+    // monthly subscribers and non-entitled actions, and $39
+    // (ropa_annual_additional) for ANNUAL subscribers beyond the included
+    // initial generation + one yearly update.
+    const ropaLookup = isAnnualSubscriber ? "ropa_annual_additional" : "ropa_paid_generation";
+    const ropaFallbackCents = isAnnualSubscriber ? 3900 : 4900;
     const lookupKey = ropaPaidCharge
-      ? "ropa_paid_generation"
+      ? ropaLookup
       : (useSubscriberPrice ? tool.subscriber_lookup! : tool.standalone_lookup);
     const fallbackCents = ropaPaidCharge
-      ? 2900
+      ? ropaFallbackCents
       : (useSubscriberPrice ? tool.fallback_subscriber_cents : tool.fallback_standalone_cents);
 
     const env = checkoutEnv;

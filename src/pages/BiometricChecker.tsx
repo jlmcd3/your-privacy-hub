@@ -83,8 +83,11 @@ export default function BiometricChecker() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   // No more anonymous free tier — every analysis requires a signed-in account.
-  const access = useToolAccess({ standalonePrice: 49, subscriberPrice: null });
   const pricing = useToolPrice("biometric_checker");
+  // v13 (2026-08-29 launch repricing): Biometric is included for PROFESSIONAL
+  // subscribers only; Intelligence subscribers pay the standalone rate. The
+  // plan-aware determination lives in useToolPrice — never hardcode it here.
+  const access = useToolAccess({ standalonePrice: pricing.standalonePrice, subscriberPrice: pricing.isIncluded ? null : pricing.standalonePrice });
   const { clientId } = useActiveClient();
   const refine = useRefineMode("biometric_checker");
   const { meter } = useRunMeter("biometric_checker", refine.assessmentId);
