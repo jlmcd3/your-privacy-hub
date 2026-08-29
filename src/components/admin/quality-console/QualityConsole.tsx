@@ -65,6 +65,13 @@ export interface QualityConsoleProps {
    * /admin/quality-batch and /admin/so-final-test.
    */
   scoresAndLogFirst?: boolean;
+  /**
+   * ALL-PRODUCTS-TEST — extra products that have no quality_batch dispatch.
+   * Their test history is imported from the static-stress harness
+   * (/admin/static-stress → static_stress_jobs). Slugs use stress-harness
+   * naming, e.g. "ropa" | "us-notice" | "eu-notice".
+   */
+  extraHistoryTools?: string[];
 }
 
 // Must stay identical to RUN_QUALITY_BATCH_SLUGS in the orchestrator.
@@ -218,6 +225,8 @@ export function QualityConsole({
   graderMode = "legacy",
   toolsOverride,
   scoresAndLogFirst = false,
+  extraHistoryTools,
+
 }: QualityConsoleProps = {}) {
   // SO-FINAL-TEST — this console's tool universe and its row partition.
   const CONSOLE_TOOLS = toolsOverride ?? TOOLS;
@@ -256,6 +265,9 @@ export function QualityConsole({
   const [recentBatches, setRecentBatches] = useState<BatchRow[]>([]);
   const [baselines, setBaselines] = useState<Map<string, Baseline>>(new Map());
   const [snapshotting, setSnapshotting] = useState(false);
+  // ALL-PRODUCTS-TEST — imported history for products with no quality batch.
+  type StressHistory = { total: number; complete: number; failed: number; lastAt: string | null };
+  const [stressHistory, setStressHistory] = useState<Map<string, StressHistory>>(new Map());
 
   // Resume + Recent quality_runs card state (unchanged)
   const [resumeId, setResumeId] = useState("");
@@ -420,6 +432,41 @@ export function QualityConsole({
     const t = setInterval(load, 15_000);
     return () => { cancelled = true; clearInterval(t); };
   }, []);
+
+  // ─── ALL-PRODUCTS-TEST: import history for non-batch products ────────────
+  // These products (RoPA, US/EU Notice) are exercised by the static-stress
+  // harness, so their test history lives in static_stress_jobs, not in
+  // quality_batch_runs. Import a rollup so every testable product has a row.
+  useEffect(() => {
+    if (!extraHistoryTools || extraHistoryTools.length === 0) return;
+    let cancelled = false;
+    const load = async () => {
+      const { data } = await supabase
+        .from("static_stress_jobs")
+        .select("tool_slug, status, completed_at, created_at")
+        .in("tool_slug", extraHistoryTools)
+        .order("created_at", { ascending: false })
+        .limit(500);
+      if (cancelled || !data) return;
+      const m = new Map<string, StressHistory>();
+      for (const t of extraHistoryTools) m.set(t, { total: 0, complete: 0, failed: 0, lastAt: null });
+      for (const j of data as { tool_slug: string; status: string; completed_at: string | null; created_at: string }[]) {
+        const e = m.get(j.tool_slug);
+        if (!e) continue;
+        e.total += 1;
+        if (j.status === "complete") e.complete += 1;
+        else if (j.status === "failed") e.failed += 1;
+        const at = j.completed_at ?? j.created_at;
+        if (!e.lastAt || at > e.lastAt) e.lastAt = at;
+      }
+      setStressHistory(m);
+    };
+    load();
+    const t = setInterval(load, 30_000);
+    return () => { cancelled = true; clearInterval(t); };
+  }, [extraHistoryTools?.join(",")]);
+
+
 
   // ─── Recent child quality_runs (bottom drill-down card) ──────────────────
   async function refreshRuns() {
@@ -1010,6 +1057,40 @@ export function QualityConsole({
                         </td>
                       );
                     })}
+                  </tr>
+                );
+              })}
+              {(extraHistoryTools ?? []).map((tool) => {
+                const h = stressHistory.get(tool);
+                return (
+                  <tr key={tool} className="border-b align-top bg-muted/10">
+                    <td className="py-2 pr-3 font-mono">
+                      {tool}
+                      <div className="text-[10px] font-sans text-muted-foreground">
+                        imported · static-stress harness
+                      </div>
+                    </td>
+                    <td className="py-2 pr-3">{h?.total ?? 0}</td>
+                    <td className="py-2 pr-3 bg-muted/40 text-muted-foreground">n/a</td>
+                    {matrixColumns.length > 0 ? (
+                      <td className="py-2 pr-3 text-xs" colSpan={matrixColumns.length}>
+                        {h && h.total > 0 ? (
+                          <>
+                            {h.complete} complete · {h.failed} failed
+                            {h.lastAt && (
+                              <span className="ml-2 text-muted-foreground">
+                                last {new Date(h.lastAt).toLocaleDateString()}
+                              </span>
+                            )}
+                            <span className="ml-2 text-muted-foreground">
+                              (no grader score — pass/fail harness)
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground">no imported history</span>
+                        )}
+                      </td>
+                    ) : null}
                   </tr>
                 );
               })}
