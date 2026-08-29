@@ -29,6 +29,7 @@ export default function AllProductsTest() {
         showVariants
         graderMode="skeleton"
         toolsOverride={SO_SKELETON_TOOLS}
+        scoresAndLogFirst
       />
     </div>
   );
