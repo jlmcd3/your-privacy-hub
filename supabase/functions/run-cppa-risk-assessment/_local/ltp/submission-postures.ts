@@ -51,19 +51,47 @@ function prongPreface(prong: ProngKey): string {
  */
 export function renderProngPosture(prong: ProngKey, outcome: ProngOutcome): string {
   const preface = prongPreface(prong);
-  // BATCH 55b9f3a2 ADDENDUM (d) — align resolution tokens with the
-  // grader's expected vocabulary ("met" / "not met" / "insufficient
-  // basis"). State-the-law preface unchanged; resolution sentence
-  // carries the token family verbatim so qc_r1_3 finds the phrasing.
+  // R-1 FIX (2026-08-28, doc 98/100 of the spine-vs-prompt comparison
+  // program): the "not applicable" and "indeterminate" branches previously
+  // read "...there is insufficient basis to apply it here" / "...provides
+  // insufficient basis to resolve...", violating this product's own ABSOLUTE
+  // PROSE BLACKLIST rule (FF-2 T1), which bans "insufficient basis" from
+  // every user-facing field with no exceptions. Confirmed both branches
+  // reach the customer verbatim (pass2-assembler.ts appends
+  // renderAllProngPostures() output directly under "Submission postures
+  // under 11 CCR § 7120(b):"), and confirmed reachable in ordinary use — the
+  // "indeterminate" case fires by design whenever a revenue band straddles
+  // the CPI-adjusted $25M line (waveb-completion.ts) or a volume field is
+  // unanswered.
+  //
+  // The original wording was added to satisfy grader check qc_r1_3
+  // ("qc_r1_3_50pct_prong_utilization", run-quality-batch/index.ts) — but
+  // that check (a) accepts a whole family of compliant phrasings
+  // ("pending confirmation", "does not confirm", "cannot be... resolved",
+  // "indeterminate", etc. — see its `insufficientBasis` regex, which the
+  // literal banned token is only ONE member of), and (b) only runs at all
+  // when the mapped test-state is RESOLVED (isResolved() excludes
+  // "indeterminate" by definition), so the "indeterminate" branch below was
+  // never graded by qc_r1_3 in the first place. The sibling check for the
+  // b2B/M4 prong (qc_r1_2_spi_prong_utilization) has the same shape: its
+  // "not applicable" branch requires the literal phrase "not applicable"
+  // (satisfied below) and it likewise never inspects the "indeterminate"
+  // branch. No grader change is needed for this fix.
+  //
+  // Also aligns "On the current record" -> the fleet-ratified "On the
+  // information provided" register family (the v5.2 register ruling; see
+  // the identical alignment on the Cyber applicability table,
+  // cyber-applicability.ts:201-203) for consistency across all four
+  // branches, not just the two that needed the banned-phrase fix.
   switch (outcome) {
     case "met":
-      return `${preface}. On the current record this threshold is met.`;
+      return `${preface}. On the information provided, this threshold is met.`;
     case "not met":
-      return `${preface}. On the current record this threshold is not met.`;
+      return `${preface}. On the information provided, this threshold is not met.`;
     case "not applicable":
-      return `${preface}. On the current record this prong is not applicable; there is insufficient basis to apply it here.`;
+      return `${preface}. On the information provided, this prong is not applicable.`;
     case "indeterminate":
-      return `${preface}. The current record provides insufficient basis to resolve this threshold as met or not met; completing the underlying intake field resolves it.`;
+      return `${preface}. The information provided does not yet resolve this threshold as met or not met; completing the underlying intake field resolves it.`;
   }
 }
 
@@ -73,4 +101,4 @@ export function renderAllProngPostures(
   return (["b1", "b2A", "b2B"] as const).map((k) => renderProngPosture(k, outcomes[k]));
 }
 
-export const SUBMISSION_POSTURES_STAMP = "submission-postures@2026-07-28-item244-addendum-tokens";
+export const SUBMISSION_POSTURES_STAMP = "submission-postures@2026-08-28-r1-banned-phrase-fix";
