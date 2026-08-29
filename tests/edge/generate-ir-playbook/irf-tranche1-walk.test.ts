@@ -33,60 +33,62 @@ function textFor(over: Bag = {}): string {
   return JSON.stringify(assembleIRSkeletonDocument(report, intake));
 }
 
-const WALK_LEAD = "walked through four gates against this incident's record";
+// Plain-English rewrite (2026-08-29, CEO redline) — same four review points,
+// "gate" terminology replaced by a description of what each one checks.
+const WALK_LEAD = "four things are reviewed";
 
-Deno.test("IR-F1: a US-state record carries the four-gate walk with all gates present", () => {
+Deno.test("IR-F1: a US-state record carries the four-part walk with all four points present", () => {
   const text = textFor();
   assertStringIncludes(text, WALK_LEAD);
-  assertStringIncludes(text, "the breach-definition gate");
-  assertStringIncludes(text, "the data-element gate");
-  assertStringIncludes(text, "the harm-threshold gate");
-  assertStringIncludes(text, "the safe-harbour gate");
+  assertStringIncludes(text, "First, whether it counts as a breach");
+  assertStringIncludes(text, "Second, whether the right kind of data was involved");
+  assertStringIncludes(text, "Third, whether the harm is serious enough to matter");
+  assertStringIncludes(text, "Fourth, whether encryption changes the outcome");
 });
 
-Deno.test("IR-F1: the recorded cause and data types resolve gates 1 and 2, case preserved", () => {
+Deno.test("IR-F1: the recorded cause and data types resolve points 1 and 2, case preserved", () => {
   const text = textFor();
   assertStringIncludes(text, "ransomware or malware");
   // Enum labels keep their case (acronym-mangling caught on the render pass).
   assertStringIncludes(text, "Government IDs / SSN; Financial / payment data");
 });
 
-Deno.test("IR-F1: safe-harbour posture — full encryption with safe keys supports the position", () => {
+Deno.test("IR-F1: encryption posture — full encryption with safe keys supports an exception", () => {
   const text = textFor({
     encryptionStatus: "All affected data encrypted / rendered unintelligible",
     encryptionKeyStatus: "Keys not compromised",
   });
-  assertStringIncludes(text, "supports an encryption-based safe-harbour position");
-  assertStringIncludes(text, "subject to confirming that statute's own formulation");
+  assertStringIncludes(text, "this can qualify for an exception to notification under the states that allow one");
+  assertStringIncludes(text, "as long as the encryption meets that state's specific standard");
 });
 
-Deno.test("IR-F1: safe-harbour posture — compromised keys defeat it even with full encryption", () => {
+Deno.test("IR-F1: encryption posture — compromised keys defeat it even with full encryption", () => {
   const text = textFor({
     encryptionStatus: "All affected data encrypted / rendered unintelligible",
     encryptionKeyStatus: "Keys compromised or possibly compromised",
   });
-  assertStringIncludes(text, "an encryption safe harbour is not available on the record's own account");
-  assert(!text.includes("supports an encryption-based safe-harbour position"));
+  assertStringIncludes(text, "encryption does not excuse notification here");
+  assert(!text.includes("this can qualify for an exception to notification"));
 });
 
-Deno.test("IR-F1: safe-harbour posture — partial encryption reaches only the encrypted portion", () => {
+Deno.test("IR-F1: encryption posture — partial encryption reaches only that part", () => {
   const text = textFor({ encryptionStatus: "Some affected data encrypted" });
-  assertStringIncludes(text, "could reach only the encrypted portion");
+  assertStringIncludes(text, "any exception could only apply to that part");
 });
 
-Deno.test("IR-F1: safe-harbour posture — an unstated posture takes no position", () => {
+Deno.test("IR-F1: encryption posture — an unstated posture resolves neither way", () => {
   const text = textFor();
-  assertStringIncludes(text, "the record does not establish the encryption posture, so no safe-harbour position is taken");
+  assertStringIncludes(text, "the encryption status hasn't been recorded, so this can't be resolved either way");
 });
 
-Deno.test("IR-F1: the harm-threshold gate is never pre-resolved", () => {
+Deno.test("IR-F1: the harm point is never pre-resolved", () => {
   const text = textFor();
-  assertStringIncludes(text, "this playbook does not pre-resolve it");
+  assertStringIncludes(text, "this playbook does not decide it in advance");
 });
 
-Deno.test("IR-F1: an unknown cause degrades gate 1 honestly", () => {
+Deno.test("IR-F1: an unknown cause degrades point 1 honestly", () => {
   const text = textFor({ cause: "Unknown / still investigating" });
-  assertStringIncludes(text, "the cause is not yet established on the record");
+  assertStringIncludes(text, "the cause of the incident hasn't been recorded yet");
 });
 
 Deno.test("IR-F1: a pure EU/UK record carries no walk block", () => {
@@ -99,13 +101,14 @@ Deno.test("IR-F1: the walk renders alongside GDPR-family duties on a mixed recor
   assertStringIncludes(text, WALK_LEAD);
 });
 
-Deno.test("IR-F1: no per-state statutory content is asserted by the walk itself", () => {
-  // The walk names gate STRUCTURE only; covered-PI definitions and
-  // carve-outs stay with the sourced duty rows. Guard the boundary: the walk
-  // sentences never claim a specific state defines or exempts anything.
+Deno.test("IR-F1: no per-state statutory content is asserted by the generic walk itself", () => {
+  // The generic walk names review STRUCTURE only; covered-PI definitions and
+  // carve-outs stay with the sourced per-state gates. Guard the boundary: the
+  // generic paragraph never claims a specific state defines or exempts anything.
   const text = textFor();
   const at = text.indexOf(WALK_LEAD);
-  const walkSlice = text.slice(at, text.indexOf("safe-harbour gate") + 400);
+  const end = text.indexOf("whether encryption changes the outcome");
+  const walkSlice = text.slice(at, end + 400);
   assert(!/California (?:defines|exempts|provides)/.test(walkSlice));
   assert(!/Texas (?:defines|exempts|provides)/.test(walkSlice));
 });

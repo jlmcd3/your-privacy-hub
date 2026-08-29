@@ -479,34 +479,37 @@ function composeNotificationWalk(report: Bag, intake: Bag): string {
   const enc = s(intake.encryptionStatus);
   const keys = s(intake.encryptionKeyStatus);
 
+  // Plain-English rewrite (2026-08-29, CEO redline) — the four review points
+  // are unchanged in substance; only the register changed, from "gate"
+  // terminology to a description of what is actually being checked and why.
   const gate1 = cause && cause !== "Unknown / still investigating"
-    ? `First, the breach-definition gate: the recorded cause — ${noStop(cause).toLowerCase()} — is assessed against each statute's own unauthorised-acquisition or unauthorised-access formulation.`
-    : "First, the breach-definition gate: the cause is not yet established on the record, so each statute's unauthorised-acquisition or unauthorised-access formulation is assessed once it is.";
+    ? `First, whether it counts as a breach: the incident was caused by ${noStop(cause).toLowerCase()} — each state has its own definition of what counts as a reportable breach, and some require the data to have been taken while others only require that someone accessed it without permission.`
+    : "First, whether it counts as a breach: the cause of the incident hasn't been recorded yet, so this part of the review can't be completed until it is.";
 
   // Enum labels keep their case — lowercasing mangles the acronyms
   // ("Government IDs / SSN"), caught on the render pass.
   const gate2 = dataTypes.length
-    ? `Second, the data-element gate: the recorded data types — ${dataTypes.join("; ")} — are checked against each statute's own definition of covered personal information, which varies by jurisdiction.`
-    : "Second, the data-element gate: the record lists no affected data types, and this gate cannot be walked until they are recorded.";
+    ? `Second, whether the right kind of data was involved: the incident affected ${dataTypes.join("; ")} — each state has its own list of what counts as protected personal information, so not every state necessarily treats this the same way.`
+    : "Second, whether the right kind of data was involved: no data types have been recorded yet, so this part of the review can't be completed until they are.";
 
   const gate3 =
-    "Third, the harm-threshold gate: where a statute conditions notification on a risk-of-harm assessment, that assessment is made and recorded by the response team for this incident; this playbook does not pre-resolve it.";
+    "Third, whether the harm is serious enough to matter: some states only require notification if the incident is likely to actually harm the people affected — your response team makes that call for this incident; this playbook does not decide it in advance.";
 
   const keysCompromised = /compromised or possibly compromised/i.test(keys);
   const posture = keysCompromised
-    ? "the recorded key status is compromised or possibly compromised, so an encryption safe harbour is not available on the record's own account"
+    ? "the encryption keys for this incident are recorded as compromised, so encryption does not excuse notification here"
     : /^All affected data encrypted/i.test(enc) && /^Keys not compromised/i.test(keys)
-    ? "the record states all affected data was encrypted and the keys were not compromised, which supports an encryption-based safe-harbour position wherever the applicable statute provides one, subject to confirming that statute's own formulation"
+    ? "the data is recorded as fully encrypted and the keys were not compromised — this can qualify for an exception to notification under the states that allow one, as long as the encryption meets that state's specific standard"
     : /^Some affected data encrypted/i.test(enc)
-    ? "the record states only some affected data was encrypted, so any encryption safe harbour could reach only the encrypted portion"
+    ? "only part of the affected data is recorded as encrypted, so any exception could only apply to that part"
     : /^No affected data encrypted/i.test(enc)
-    ? "the record states no affected data was encrypted, so no encryption safe harbour is available"
-    : "the record does not establish the encryption posture, so no safe-harbour position is taken";
+    ? "the data is recorded as not encrypted, so no encryption-based exception applies"
+    : "the encryption status hasn't been recorded, so this can't be resolved either way";
 
-  const gate4 = `Fourth, the safe-harbour gate: ${posture}.`;
+  const gate4 = `Fourth, whether encryption changes the outcome: ${posture}.`;
 
   const paragraphs: string[] = [[
-    "Whether each recorded jurisdiction's own duty is triggered is walked through four gates against this incident's record.",
+    "To determine whether this incident triggers a state's notification law, four things are reviewed.",
     gate1,
     gate2,
     gate3,
@@ -528,8 +531,11 @@ function composeNotificationWalk(report: Bag, intake: Bag): string {
     const bits: string[] = [];
     // Sentence-case the breach-definition formulation at the seam (a
     // formulation may begin lowercase; a quoted term keeps its own casing).
+    // Opener reworded 2026-08-29 (CEO redline) — "walked" read as jargon;
+    // this introduces the review without asserting its conclusion, since the
+    // sentences that follow are what actually resolve it.
     const bd = noStop(gates.breach_definition);
-    bits.push(stop(`${label}, walked. ${bd.charAt(0).toUpperCase()}${bd.slice(1)}`));
+    bits.push(stop(`Here is how ${label}'s law applies to this incident. ${bd.charAt(0).toUpperCase()}${bd.slice(1)}`));
 
     // Data-element gate, resolved per limb against the recorded types.
     const engagedNamed: string[] = [];

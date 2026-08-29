@@ -65,7 +65,7 @@ Deno.test("IR-F2: every limb's intake_types are exact members of the IR DATA_TYP
 
 Deno.test("IR-F2: names + government IDs engage California's name-plus-element limb outright", () => {
   const text = textFor();
-  assertStringIncludes(text, "California, walked.");
+  assertStringIncludes(text, "Here is how California's law applies to this incident.");
   assertStringIncludes(text, "the following fall within the statute's covered elements: Government IDs / SSN");
   assertStringIncludes(text, "§ 1798.82(h)(1)(A)–(B)");
   assert(!text.includes("turns on whether names accompany them"));
@@ -85,7 +85,7 @@ Deno.test("IR-F2: credentials engage California's (h)(2) limb with no name condi
 
 Deno.test("IR-F2: Texas resolves biometric and credentials as honest negatives", () => {
   const text = textFor({ jurisdictions: ["Texas"], dataTypes: ["Biometric data", "Passwords / credentials"] });
-  assertStringIncludes(text, "Texas, walked.");
+  assertStringIncludes(text, "Here is how Texas's law applies to this incident.");
   assertStringIncludes(text, "carries no standalone biometric or online-credential limb");
   assertStringIncludes(text, "no notification duty is established under it");
 });
@@ -98,7 +98,7 @@ Deno.test("IR-F2: Texas's health limb needs no name combination", () => {
 
 Deno.test("IR-F2: New York states the access-alone breach character and the harm carve-out", () => {
   const text = textFor({ jurisdictions: ["New York"] });
-  assertStringIncludes(text, "New York, walked.");
+  assertStringIncludes(text, "Here is how New York's law applies to this incident.");
   assertStringIncludes(text, "access alone can suffice");
   assertStringIncludes(text, "harm-threshold carve-out, which the response team assesses and documents");
   assertStringIncludes(text, "§ 899-aa(2)(a)");
@@ -124,11 +124,11 @@ Deno.test("IR-F2: full encryption with safe keys supports the per-state position
 
 Deno.test("IR-F2: an ungated state keeps the generic walk only", () => {
   const text = textFor({ jurisdictions: ["Colorado"] });
-  assertStringIncludes(text, "walked through four gates");
-  assert(!text.includes(", walked."), "no per-state walked paragraph for an ungated state");
+  assertStringIncludes(text, "four things are reviewed");
+  assert(!text.includes("'s law applies to this incident."), "no per-state paragraph for an ungated state");
 });
 
 Deno.test("IR-F2: the breach-definition seam is sentence-cased", () => {
   const text = textFor();
-  assertStringIncludes(text, "California, walked. The duty runs to a resident");
+  assertStringIncludes(text, "Here is how California's law applies to this incident. The duty runs to a resident");
 });
