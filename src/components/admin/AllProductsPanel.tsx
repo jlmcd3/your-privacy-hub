@@ -18,6 +18,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -69,6 +71,9 @@ export function AllProductsPanel() {
   const [state, setState] = useState<Record<string, RowState>>({});
   const [busy, setBusy] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+  // BATCH NUMBER — how many sample runs to generate per selected product.
+  // Mirrors the "Batch size" control in the skeleton console below; default 1.
+  const [batchNumber, setBatchNumber] = useState<number>(1);
   // "-supplemental" fixtures are second-pass (regeneration / supplemental
   // capture) variants of the SAME products, not extra products. Hidden by
   // default so the list is one row per shipped product variant.
@@ -140,24 +145,30 @@ export function AllProductsPanel() {
     }
 
     setBusy(true);
+    const totalRuns = queue.length * batchNumber;
     for (const f of queue) setRow(fixtureKey(f), { status: "queued", log: [], resultUrl: null });
     let ok = 0;
+    let attempted = 0;
     for (const f of queue) {
       const k = fixtureKey(f);
       setRow(k, { status: "running" });
-      appendLog(k, `▶ ${f.title}`);
-      try {
-        const out = await runGenerator(f, user.id, (m) => appendLog(k, m));
-        setRow(k, { status: "complete", resultUrl: out.resultUrl, sourceRowId: out.sourceRowId });
-        appendLog(k, `✅ complete — ${out.resultUrl}`);
-        ok += 1;
-      } catch (e) {
-        appendLog(k, `❌ ${(e as Error).message}`);
-        setRow(k, { status: "failed" });
+      for (let i = 1; i <= batchNumber; i++) {
+        const runLabel = batchNumber > 1 ? ` [run ${i}/${batchNumber}]` : "";
+        appendLog(k, `▶ ${f.title}${runLabel}`);
+        attempted += 1;
+        try {
+          const out = await runGenerator(f, user.id, (m) => appendLog(k, m));
+          ok += 1;
+          appendLog(k, `✅ complete${runLabel} — ${out.resultUrl}`);
+          setRow(k, { status: "complete", resultUrl: out.resultUrl, sourceRowId: out.sourceRowId });
+        } catch (e) {
+          appendLog(k, `❌${runLabel} ${(e as Error).message}`);
+          setRow(k, { status: "failed" });
+        }
       }
     }
     setBusy(false);
-    toast[ok === queue.length ? "success" : "error"](`${ok}/${queue.length} product runs completed`);
+    toast[ok === totalRuns ? "success" : "error"](`${ok}/${totalRuns} runs completed`);
   }
 
   function runPreflightOnly() {
@@ -232,6 +243,24 @@ export function AllProductsPanel() {
             fixed.
           </div>
         )}
+
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="w-40">
+            <Label htmlFor="batch-number">Batch number (runs per product)</Label>
+            <Input
+              id="batch-number"
+              type="number"
+              min={1}
+              max={20}
+              value={batchNumber}
+              disabled={busy}
+              onChange={(e) => setBatchNumber(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Each selected product will generate this many sample runs.
+          </p>
+        </div>
 
         <div className="divide-y rounded border">
           {fixtures.map((f) => {
