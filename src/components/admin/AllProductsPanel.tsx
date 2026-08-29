@@ -406,7 +406,9 @@ export function AllProductsPanel() {
 
         <div className="flex flex-wrap items-end gap-4">
           <div className="w-40">
-            <Label htmlFor="batch-number">Batch number (runs per product)</Label>
+            <Label htmlFor="batch-number">
+              {intakeSource === "claude" ? "Company slots per geo (max 2)" : "Batch number (runs per product)"}
+            </Label>
             <Input
               id="batch-number"
               type="number"
