@@ -114,11 +114,20 @@ export function AllProductsPanel() {
   const setRow = (k: string, patch: Partial<RowState>) =>
     setState((s) => ({ ...s, [k]: { ...(s[k] ?? EMPTY), ...patch } }));
 
-  const appendLog = (k: string, msg: string) =>
+  // Every per-row line is also published to the shared run-log bus so the
+  // "Live log" card on /admin/all-products-test shows this run, not only
+  // server-side quality_batch_log rows.
+  const appendLog = (k: string, msg: string) => {
+    appendAllProductsLog(
+      k,
+      msg,
+      msg.startsWith("❌") ? "error" : msg.startsWith("✅") ? "success" : "info",
+    );
     setState((s) => {
       const row = s[k] ?? EMPTY;
       return { ...s, [k]: { ...row, log: [...row.log, msg].slice(-200) } };
     });
+  };
 
   const toggle = (k: string) =>
     setSelected((s) => {
