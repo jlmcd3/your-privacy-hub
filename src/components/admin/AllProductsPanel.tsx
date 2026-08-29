@@ -16,7 +16,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { appendAllProductsLog, clearAllProductsLog, useAllProductsLog } from "@/lib/allProductsLog";
-import { recordLocalRun, recordLocalScore } from "@/lib/allProductsRunHistory";
+import { recordLocalRun, recordLocalScore, startLocalBatch } from "@/lib/allProductsRunHistory";
 import { gradeRun, SLUG_TO_GRADER_TOOL } from "@/lib/gradeRun";
 import {
   downloadAllAnalyses,
@@ -198,6 +198,9 @@ export function AllProductsPanel() {
     const slugs = Array.from(new Set(queue.map((f) => f.tool_slug)));
     setBusy(true);
     clearAllProductsLog();
+    // BATCH LAW — every press opens its own local batch column in the
+    // "Tools & batch scores" matrix; results never fold into an earlier batch.
+    const localBatchId = startLocalBatch();
     const industryLabel = STRESS_INDUSTRIES.find((i) => i.id === industryId)?.label ?? industryId;
     appendAllProductsLog(
       "batch",
@@ -317,6 +320,7 @@ export function AllProductsPanel() {
    * the batch outcome table can offer a per-run analysis download.
    */
   async function gradeAndRecord(
+    batchId: string,
     slug: ToolSlug,
     sourceRowId: string | null,
     label: string,
@@ -337,7 +341,7 @@ export function AllProductsPanel() {
       if (outcomeId) updateOutcome(outcomeId, { gradeError: res.error ?? "no score" });
       return;
     }
-    recordLocalScore(SLUG_TO_STRESS_TOOL[slug], res.claude, res.gpt);
+    recordLocalScore(batchId, SLUG_TO_STRESS_TOOL[slug], res.claude, res.gpt);
     if (outcomeId) {
       updateOutcome(outcomeId, {
         claudeScore: res.claude,
@@ -413,6 +417,9 @@ export function AllProductsPanel() {
 
     setBusy(true);
     clearAllProductsLog();
+    // BATCH LAW — every press opens its own local batch column in the
+    // "Tools & batch scores" matrix; results never fold into an earlier batch.
+    const localBatchId = startLocalBatch();
     appendAllProductsLog(
       "batch",
       `▶ starting ${queue.length} product(s) × ${batchNumber} run(s)`,
@@ -435,7 +442,7 @@ export function AllProductsPanel() {
           ok += 1;
           appendLog(k, `✅ complete${runLabel} — ${out.resultUrl}`);
           setRow(k, { status: "complete", resultUrl: out.resultUrl, sourceRowId: out.sourceRowId });
-          recordLocalRun(SLUG_TO_STRESS_TOOL[f.tool_slug], true);
+          recordLocalRun(localBatchId, SLUG_TO_STRESS_TOOL[f.tool_slug], true);
           recordOutcome({
             id: outcomeId,
             startedAt,
@@ -450,11 +457,11 @@ export function AllProductsPanel() {
             gptScore: null,
             meanScore: null,
           });
-          await gradeAndRecord(f.tool_slug, out.sourceRowId, `${f.tool_slug}/${f.variant}`, k, outcomeId);
+          await gradeAndRecord(localBatchId, f.tool_slug, out.sourceRowId, `${f.tool_slug}/${f.variant}`, k, outcomeId);
         } catch (e) {
           appendLog(k, `❌${runLabel} ${(e as Error).message}`);
           setRow(k, { status: "failed" });
-          recordLocalRun(SLUG_TO_STRESS_TOOL[f.tool_slug], false);
+          recordLocalRun(localBatchId, SLUG_TO_STRESS_TOOL[f.tool_slug], false);
           recordOutcome({
             id: outcomeId,
             startedAt,
