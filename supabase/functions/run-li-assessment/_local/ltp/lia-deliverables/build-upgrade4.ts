@@ -27,6 +27,8 @@ import {
   OPT_OUT_UNAVAILABLE,
   OPT_OUT_UNCONDITIONAL,
   OPT_OUT_UNCONDITIONAL_NEGATED,
+  PURPOSE_BUNDLING_CONNECTOR,
+  PURPOSE_CATEGORIES,
   RELATIONSHIP_CATEGORIES,
   SPECULATIVE_LEXICON,
   row,
@@ -88,6 +90,37 @@ function matches(text: string, res: readonly RegExp[]): boolean {
 function anchor(key: keyof typeof ANCHOR_KEYS): { citation: string; verbatim: string } {
   const r = row(ANCHOR_KEYS[key]);
   return { citation: r?.subsection ?? "", verbatim: r?.verbatim_quote ?? "" };
+}
+
+/**
+ * Bundled-purpose detector (EDPB Guidelines 1/2024 ¶10 — reliance on Art.
+ * 6(1)(f) "should not encompass several purposes without assessing the
+ * validity of the legal basis for each of them"). Conservative by design:
+ * flags only when the statement names two DIFFERENT PURPOSE_CATEGORIES
+ * concepts split across an explicit connector, never on a bare co-occurrence
+ * of two category words anywhere in the sentence. No new intake field —
+ * reads only purpose_details.interest_statement against the same 7
+ * categories the intake's own interest_type select already offers.
+ */
+function detectPurposeBundling(statement: string): { a: string; b: string } | null {
+  // A statement can carry an unrelated "and" before the connector that
+  // actually joins the two purposes (e.g. "device and browsing data to
+  // detect fraud and also to power marketing") — every connector occurrence
+  // is checked, not just the first.
+  const re = new RegExp(PURPOSE_BUNDLING_CONNECTOR.source, "gi");
+  let conn: RegExpExecArray | null;
+  while ((conn = re.exec(statement))) {
+    const before = statement.slice(0, conn.index);
+    const after = statement.slice(conn.index + conn[0].length);
+    const beforeCats = PURPOSE_CATEGORIES.filter((c) => c.match.test(before));
+    const afterCats = PURPOSE_CATEGORIES.filter((c) => c.match.test(after));
+    for (const b of beforeCats) {
+      for (const a of afterCats) {
+        if (b.id !== a.id) return { a: b.label, b: a.label };
+      }
+    }
+  }
+  return null;
 }
 
 /** Lower-cases the first character so a verbatim quote can be run into prose. */
@@ -196,12 +229,24 @@ export function buildInterestLegitimacy(intake: unknown): InterestLegitimacyFind
   let clearReasoning: string;
   let clearNeeded: string | undefined;
   const wordCount = statement.split(/\s+/).filter(Boolean).length;
+  const bundling = statement ? detectPurposeBundling(statement) : null;
   if (!statement) {
     clearVerdict = "undetermined_on_the_record";
     clearReasoning =
       "The second condition asks whether the interest is clearly and precisely articulated. The record contains no articulation of the interest to test.";
     clearNeeded =
       "purpose_details.interest_statement — the interest itself, stated specifically enough that a reader can tell what is being pursued and for whom.";
+  } else if (bundling) {
+    // EDPB Guidelines 1/2024 ¶10: reliance on Art. 6(1)(f) "should not
+    // encompass several purposes without assessing the validity of the
+    // legal basis for each of them." An undetermined verdict (not a flat
+    // not_met) — advocate-drafter voice, never an auditor "does not meet
+    // this standard" (index.ts PROPORTIONATE ASKS / OUTPUT-ABSENCE rules).
+    clearVerdict = "undetermined_on_the_record";
+    clearReasoning =
+      `The interest is recorded as "${statement}", which reads as naming two distinct interests — ${bundling.a} and ${bundling.b} — within a single articulation. The perimeter of a single legitimate interest must be clearly identified so it can be properly balanced (EDPB Guidelines 1/2024, ¶10), and where a controller processes for more than one purpose, the legal basis is assessed separately for each; this record does not yet present each interest with its own necessity and balancing basis.`;
+    clearNeeded =
+      "purpose_details.interest_statement — this record's necessity_details and balancing_details each hold one interest's basis, so the direct way to complete this record is to restate it for the single interest being assessed here; where more than one interest is genuinely pursued, run a separate assessment per interest so each gets its own recorded necessity and balancing basis.";
   } else if (wordCount < 5) {
     clearVerdict = "not_met";
     clearReasoning =
@@ -296,6 +341,11 @@ export function buildInterestLegitimacy(intake: unknown): InterestLegitimacyFind
       return `the ${ordinal[i]} — ${t.label.charAt(0).toLowerCase()}${t.label.slice(1)} — is ${liaVerdictLabel(t.verdict)}${why ? ` (${why})` : ""}`;
     })
     .join("; ");
+  // 2026-08-29 — the actual multi-purpose fix lives in sub-test 2 above
+  // (detectPurposeBundling), not here: a bundled statement now surfaces
+  // through clearVerdict/clearNeeded and the existing information_needed
+  // path, per the Target/Old/New comparison in doc 105. This walk stays a
+  // verbatim-trim of each sub-test's own reasoning; nothing re-judged here.
   const application =
     `${lc(std.verbatim) ? `The Guidelines put the test cumulatively: ${std.verbatim} ` : ""}Taken condition by condition on what this record states, ${conditionWalk}. ${cumulative_note} On that basis the first limb of Article 6(1)(f) is recorded as: ${liaVerdictLabel(verdict)}.`;
 

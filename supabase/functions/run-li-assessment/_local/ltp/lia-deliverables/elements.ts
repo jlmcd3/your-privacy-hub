@@ -197,6 +197,33 @@ export const SPECULATIVE_LEXICON: readonly RegExp[] = [
   /\bnot yet (live|launched|decided)\b/i,
 ];
 
+/**
+ * The 7 controlled options on the intake's purpose_details.interest_type
+ * select (LIAssessmentIntake.tsx), mirrored here so free-text bundling
+ * detection reasons from the SAME categories the record's own structured
+ * field offers — never an invented taxonomy. Used only to detect when an
+ * interest_statement names two distinct interests joined by an explicit
+ * connector (see PURPOSE_BUNDLING_CONNECTOR / detectPurposeBundling).
+ */
+export const PURPOSE_CATEGORIES: readonly { id: string; label: string; match: RegExp }[] = [
+  { id: "commercial", label: "commercial / revenue-related", match: /\b(revenue|commercial(?:ly)?|sales|monetis(?:e|ation)|monetiz(?:e|ation)|profit(?:ability)?|marketing|advertis(?:e|ing|ement)|upsell|cross-sell)\b/i },
+  { id: "operational", label: "operational / service delivery", match: /\b(service delivery|operational(?:ly)?|operations?|customer service|service quality|business continuity)\b/i },
+  { id: "security", label: "security / fraud prevention", match: /\b(fraud(?:ulent)?|security|cyberattack|cyber attack|data breach|threat detection|abuse prevention|account takeover)\b/i },
+  { id: "legal", label: "legal / regulatory compliance", match: /\b(compliance|regulatory|legal obligation|statutory requirement|audit(?:ing)?)\b/i },
+  { id: "public_interest", label: "public interest / societal benefit", match: /\b(public interest|societal benefit|community benefit|public good|public health)\b/i },
+  { id: "research", label: "research / product improvement", match: /\b(research|product improvement|improve (?:our|the) product|r&d|user experience improvement)\b/i },
+  { id: "political", label: "political / electoral campaigning", match: /\b(political|campaign(?:ing)?|electoral|voter)\b/i },
+];
+
+/**
+ * Explicit multi-purpose connectors. Deliberately narrow (conservative
+ * detection, CEO-selected 2026-08-29): a bare "and" only counts alongside
+ * the stronger connectors below, never on its own elsewhere in the lexicon,
+ * so an ordinary single-purpose sentence with an incidental "and" between
+ * two words from the SAME category never trips this.
+ */
+export const PURPOSE_BUNDLING_CONNECTOR = /\b(and|as well as|in addition to|along with|together with|combined with|alongside)\b/i;
+
 /** Beneficiary classes the record may name. Order is the emitted order. */
 export const BENEFICIARY_CLASSES: readonly { id: string; label: string; match: RegExp }[] = [
   { id: "business", label: "the controller's own business", match: /\bbusiness\b|\bcontroller\b|\bour organisation\b|\bthe company\b/i },
