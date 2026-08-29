@@ -9,8 +9,8 @@
  * session shape (assembled register / generated HTML), which the grader
  * fetches server-side. Grading is a dry run — it never writes a baseline.
  */
-import { supabase } from "@/integrations/supabase/client";
 import type { ToolSlug } from "@/lib/sampleFixtures";
+import { invokeWithTimeout } from "@/lib/sampleGenerators";
 
 /** Panel slug → grade-single-assessment tool slug. */
 export const SLUG_TO_GRADER_TOOL: Partial<Record<ToolSlug, string>> = {
@@ -53,14 +53,21 @@ export async function gradeRun(
   const tool = SLUG_TO_GRADER_TOOL[slug];
   if (!tool) return null;
   try {
-    const { data, error } = await supabase.functions.invoke("grade-single-assessment", {
-      body: {
+    // FREEZE FIX (2026-08-30): grading runs two model calls server-side and
+    // was awaited inline in the batch loop with NO client timeout — a hung
+    // grading connection froze the entire remaining batch. Dual-model
+    // grading legitimately takes 1–3 minutes; 5 minutes of silence is a
+    // failure of THIS grade, never of the batch.
+    const { data, error } = await invokeWithTimeout(
+      "grade-single-assessment",
+      {
         tool,
         assessment_id: sourceRowId,
         fixture_label: fixtureLabel,
         dry_run: true,
       },
-    });
+      300_000,
+    );
     if (error) return { tool, claude: null, gpt: null, mean: null, error: error.message };
     const p = (data as any)?.payload ?? {};
     const claude = typeof p.claude?.overall_score === "number" ? p.claude.overall_score : null;

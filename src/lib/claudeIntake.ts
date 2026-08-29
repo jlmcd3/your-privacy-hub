@@ -10,6 +10,20 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { ToolSlug } from "@/lib/sampleFixtures";
+import { invokeWithTimeout } from "@/lib/sampleGenerators";
+
+// FREEZE FIX (2026-08-30): a hung network call in the batch monitor loop
+// froze the page's progress display even though the batch kept running
+// server-side. Every await in this module now settles within a bounded time;
+// the monitor's per-iteration try/catch turns a timeout into a logged retry.
+function raceTimeout<T>(p: Promise<T>, ms: number, what: string): Promise<T> {
+  void p.catch(() => {});
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const t = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${what} timed out after ${Math.round(ms / 1000)}s`)), ms);
+  });
+  return Promise.race([p, t]).finally(() => clearTimeout(timer)) as Promise<T>;
+}
 
 /** Industries recognised by generate-stress-fixtures (AdminStaticStress list). */
 export const STRESS_INDUSTRIES: Array<{ id: string; label: string }> = [
@@ -82,15 +96,17 @@ export async function launchClaudeIntakeBatch(opts: {
   const tools = Array.from(new Set(opts.slugs.map((s) => SLUG_TO_STRESS_TOOL[s]))).filter(Boolean);
   if (!tools.length) throw new Error("no products selected");
 
-  const { data, error } = await supabase.functions.invoke("start-stress-batch", {
-    body: {
+  const { data, error } = await invokeWithTimeout<{ batch_id?: string; error?: string }>(
+    "start-stress-batch",
+    {
       run_by: opts.userId,
       industries: [{ id: industry.id, label: industry.label }],
       geo_filter: "both",
       selected_tools: tools,
       slots_per_geo: Math.max(1, Math.min(2, opts.companiesPerGeo)),
     },
-  });
+    90_000,
+  );
   if (error || !data?.batch_id) {
     throw new Error(error?.message ?? data?.error ?? "start-stress-batch returned no batch_id");
   }
@@ -98,22 +114,30 @@ export async function launchClaudeIntakeBatch(opts: {
 }
 
 export async function fetchClaudeBatchJobs(batchId: string): Promise<StressJobRow[]> {
-  const { data, error } = await supabase
-    .from("static_stress_jobs")
-    .select("id, tool_slug, status, company_name, error_message, source_row_id")
-    .eq("batch_id", batchId);
+  const { data, error } = await raceTimeout(
+    supabase
+      .from("static_stress_jobs")
+      .select("id, tool_slug, status, company_name, error_message, source_row_id")
+      .eq("batch_id", batchId) as unknown as Promise<{ data: unknown; error: { message: string } | null }>,
+    20_000,
+    "job status read",
+  );
   if (error) throw error;
-  return (data ?? []) as StressJobRow[];
+  return ((data as StressJobRow[] | null) ?? []);
 }
 
 export async function fetchClaudeBatchStatus(
   batchId: string,
 ): Promise<{ status: string; total_jobs: number; completed_jobs: number; failed_jobs: number; setup_total: number; setup_done: number }> {
-  const { data, error } = await supabase
-    .from("static_stress_batches")
-    .select("status, total_jobs, completed_jobs, failed_jobs, setup_total, setup_done")
-    .eq("id", batchId)
-    .single();
+  const { data, error } = await raceTimeout(
+    supabase
+      .from("static_stress_batches")
+      .select("status, total_jobs, completed_jobs, failed_jobs, setup_total, setup_done")
+      .eq("id", batchId)
+      .single() as unknown as Promise<{ data: unknown; error: { message: string } | null }>,
+    20_000,
+    "batch status read",
+  );
   if (error || !data) throw new Error(error?.message ?? "batch not found");
   return data as any;
 }

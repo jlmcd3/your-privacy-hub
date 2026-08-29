@@ -8,6 +8,52 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { SampleFixture } from "@/lib/sampleFixtures";
 
+// FREEZE FIX (2026-08-30): `supabase.functions.invoke` is a plain fetch with
+// NO timeout — a stalled connection (or an edge function the platform holds
+// open) hangs the await forever, which froze the /admin/all-products-test
+// sequential run loop mid-batch with no log output. Every invoke in this
+// pipeline now races a client-side timeout. On timeout the underlying fetch
+// is abandoned (the function may still be running server-side — the message
+// says so); fire-and-poll call sites proceed to polling, id-returning call
+// sites fail that one run honestly and the loop continues.
+export interface TimedInvokeResult<T = any> {
+  data: T | null;
+  error: { message: string } | null;
+  timedOut: boolean;
+}
+
+export async function invokeWithTimeout<T = any>(
+  fn: string,
+  body: unknown,
+  timeoutMs: number,
+): Promise<TimedInvokeResult<T>> {
+  const call = supabase.functions
+    .invoke(fn, { body })
+    .then((r) => ({ data: (r.data ?? null) as T | null, error: r.error ? { message: r.error.message } : null, timedOut: false }));
+  // Late settlement (success or failure) after the race must never surface
+  // as an unhandled rejection.
+  void call.catch(() => {});
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<TimedInvokeResult<T>>((resolve) => {
+    timer = setTimeout(
+      () =>
+        resolve({
+          data: null,
+          error: {
+            message: `no response from ${fn} after ${Math.round(timeoutMs / 1000)}s (client-side timeout — the function may still be running server-side)`,
+          },
+          timedOut: true,
+        }),
+      timeoutMs,
+    );
+  });
+  try {
+    return await Promise.race([call, timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function getOrCreatePersonalClient(userId: string): Promise<string> {
   const { data, error } = await supabase
     .from("clients")
@@ -41,7 +87,14 @@ export async function pollRowStatus(
   for (let i = 0; i < opts.max; i++) {
     await new Promise((r) => setTimeout(r, opts.intervalMs));
     const cols = opts.errorCol ? `status, ${opts.errorCol}` : "status";
-    const { data } = await (supabase as any).from(table).select(cols).eq("id", id).maybeSingle();
+    // FREEZE FIX: one stalled status read must never hang the poll loop —
+    // race it against 15s and treat a timeout as an unknown-status poll.
+    const read = (supabase as any).from(table).select(cols).eq("id", id).maybeSingle() as Promise<{ data: any }>;
+    void read.catch(() => {});
+    const { data } = await Promise.race([
+      read,
+      new Promise<{ data: null }>((r) => setTimeout(() => r({ data: null }), 15_000)),
+    ]);
     const status = data?.status as string | undefined;
     if (status && opts.complete.includes(status)) {
       log(`✅ status=${status} after ${i + 1} polls`);
@@ -76,8 +129,11 @@ export async function runGenerator(
     if (insErr || !rec) throw new Error(`insert failed: ${insErr?.message}`);
     log(`✓ id=${rec.id}`);
     log(`▶ Invoking ${invoke.fn}...`);
-    const { error: fnErr } = await supabase.functions.invoke(invoke.fn, { body: { [invoke.id_key]: rec.id } });
-    if (fnErr) log(`⚠ fn error (polling anyway): ${fnErr.message}`);
+    // FREEZE FIX: these functions write their outcome to the row's status
+    // column, so the response body is not load-bearing — polling is. Wait at
+    // most 30s for the ack, then move on to polling either way.
+    const inv = await invokeWithTimeout(invoke.fn, { [invoke.id_key]: rec.id }, 30_000);
+    if (inv.error) log(`⚠ fn ${inv.timedOut ? "ack timeout" : "error"} (polling anyway): ${inv.error.message}`);
     log(`▶ Polling ${poll.table} for completion...`);
     await pollRowStatus(
       poll.table,
@@ -107,7 +163,10 @@ export async function runGenerator(
         ? { ...(f.invoke_body as Record<string, unknown>), user_id: userId }
         : { ...((f.invoke_body_extras as Record<string, unknown>) ?? {}), user_id: userId };
     log(`▶ Invoking ${invoke.fn} (background dispatch)...`);
-    const { data, error } = await supabase.functions.invoke(invoke.fn, { body });
+    // FREEZE FIX: the 202 dispatch normally answers in seconds; 90s of
+    // silence means this run failed to dispatch — fail it and let the batch
+    // loop continue to the next run instead of hanging the whole batch.
+    const { data, error } = await invokeWithTimeout<{ id?: string; error?: string }>(invoke.fn, body, 90_000);
     if (error || !data?.id) throw new Error(`generator: ${error?.message || data?.error || "no id"}`);
     log(`✓ accepted id=${data.id} — polling for completion`);
     const table = fix.tool_slug === "dpa" ? "dpa_documents" : "ir_playbooks";
@@ -125,7 +184,10 @@ export async function runGenerator(
     const invoke = f.invoke as { fn: string };
     const body = { ...((f.invoke_body_extras as Record<string, unknown>) ?? {}), user_id: userId };
     log(`▶ Invoking ${invoke.fn}...`);
-    const { data, error } = await supabase.functions.invoke(invoke.fn, { body });
+    // FREEZE FIX: synchronous generator — the response IS the result, so the
+    // timeout is generous (5 min), but a dead connection can no longer hang
+    // the batch loop forever.
+    const { data, error } = await invokeWithTimeout<{ id?: string; error?: string }>(invoke.fn, body, 300_000);
     if (error || !data?.id) throw new Error(`generator: ${error?.message || data?.error || "no id"}`);
     log(`✅ id=${data.id}`);
     return { sourceRowId: data.id, resultUrl: fix.result_url_pattern.replace("{id}", data.id) };
@@ -139,7 +201,10 @@ export async function runGenerator(
   if (fix.tool_slug === "registration") {
     const body = { ...((f.invoke_body as Record<string, unknown>) ?? {}), user_id: userId };
     log("▶ Invoking run-registration-assessment...");
-    const { data, error } = await supabase.functions.invoke("run-registration-assessment", { body });
+    // FREEZE FIX: synchronous generator — generous 5-min cap, never infinite.
+    const { data, error } = await invokeWithTimeout<{ assessment_id?: string; shareable_token?: string; error?: string }>(
+      "run-registration-assessment", body, 300_000,
+    );
     if (error || !data?.assessment_id) {
       throw new Error(`generator: ${error?.message || data?.error || "no assessment_id"}`);
     }
@@ -243,8 +308,12 @@ export async function runGenerator(
     if (ansErr) throw new Error(`answers: ${ansErr.message}`);
 
     log("▶ Invoking generate-ropa-document...");
-    const { error: genErr } = await supabase.functions.invoke("generate-ropa-document", {
-      body: {
+    // FREEZE FIX: the outcome is polled from ropa_sessions below, so treat
+    // this as fire-and-poll — a real error still fails the run, but an ack
+    // timeout just proceeds to polling.
+    const gen = await invokeWithTimeout(
+      "generate-ropa-document",
+      {
         session_id: session.id,
         format: "pdf",
         document_date: new Date().toISOString().slice(0, 10),
@@ -254,9 +323,10 @@ export async function runGenerator(
         approval_date: (f.approval_date as string) ?? null,
         next_review_due: (f.next_review_due as string) ?? null,
       },
-    });
-
-    if (genErr) throw new Error(`gen: ${genErr.message}`);
+      60_000,
+    );
+    if (gen.error && !gen.timedOut) throw new Error(`gen: ${gen.error.message}`);
+    if (gen.timedOut) log(`⚠ ${gen.error!.message} — polling for the outcome anyway`);
 
     log("… polling ropa_sessions for generation to complete");
     await pollRowStatus(
@@ -325,8 +395,16 @@ export async function runGenerator(
     if (aErr) throw new Error(`answers: ${aErr.message}`);
 
     log(`▶ Invoking ${genFn}...`);
-    const { data: gen, error: gErr } = await supabase.functions.invoke(genFn, { body: { session_id: session.id } });
-    if (gErr) throw new Error(`gen: ${gErr.message}`);
+    // FREEZE FIX: EU notice is a 202/background dispatch (its outcome is
+    // polled below — an ack timeout proceeds to polling); US notice is
+    // synchronous (the response carries the documents), so it gets the
+    // generous cap and an honest failure instead of an infinite hang.
+    const isEu = fix.tool_slug === "eu_notice";
+    const { data: gen, error: gErr, timedOut } = await invokeWithTimeout<{ error?: string; documents?: unknown[] }>(
+      genFn, { session_id: session.id }, isEu ? 60_000 : 300_000,
+    );
+    if (gErr && !(isEu && timedOut)) throw new Error(`gen: ${gErr.message}`);
+    if (isEu && timedOut) log(`⚠ ${gErr!.message} — polling for the outcome anyway`);
     if (gen?.error) throw new Error(`gen: ${gen.error}`);
 
     // EU notice is 202/background; US notice is still synchronous.

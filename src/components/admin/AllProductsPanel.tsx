@@ -40,7 +40,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { SAMPLE_FIXTURES, type SampleFixture, type ToolSlug } from "@/lib/sampleFixtures";
 import { preflightFixture, type PreflightResult } from "@/lib/sampleFixturePreflight";
-import { runGenerator } from "@/lib/sampleGenerators";
+import { invokeWithTimeout, runGenerator } from "@/lib/sampleGenerators";
 import {
   STRESS_INDUSTRIES,
   SLUG_TO_STRESS_TOOL,
@@ -516,9 +516,13 @@ export function AllProductsPanel() {
     if (!toolType || !o.sourceRowId) return;
     setPdfBusy(o.id);
     try {
-      const { data, error } = await supabase.functions.invoke("generate-report-pdf", {
-        body: { tool_type: toolType, assessment_id: o.sourceRowId },
-      });
+      // FREEZE FIX: PDF rendering (PDFShift) can take a while but must never
+      // wedge the button forever — 3-minute client cap.
+      const { data, error } = await invokeWithTimeout<{ pdf_url?: string; error?: string }>(
+        "generate-report-pdf",
+        { tool_type: toolType, assessment_id: o.sourceRowId },
+        180_000,
+      );
       if (error || !data?.pdf_url) throw new Error(error?.message || data?.error || "no pdf_url returned");
       updateOutcome(o.id, { pdfUrl: data.pdf_url as string });
       window.open(data.pdf_url as string, "_blank", "noopener");

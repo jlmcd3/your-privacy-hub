@@ -34,6 +34,7 @@ import { ModelPairTable } from "@/components/admin/quality-console/ModelPairTabl
 import { PINS_MODE_OPTIONS, type PinsMode } from "@/lib/pinsMode";
 import { useAllProductsLog, clearAllProductsLog } from "@/lib/allProductsLog";
 import { useLocalBatches, type LocalBatch, type LocalToolResult } from "@/lib/allProductsRunHistory";
+import { invokeWithTimeout } from "@/lib/sampleGenerators";
 
 // ITEM 325 — fixture variant. "perfect" is the ratified golden set; "messy"
 // is the (not-yet-authored) realistic-input set. See
@@ -335,6 +336,15 @@ export function QualityConsole({
         .select("id, tool, status, run_number, started_at, last_heartbeat_at, completed_at, score_overall, gpt_score_overall, error, progress_log")
         .in("id", childIds);
 
+      // STALL WATCHDOG (2026-08-30): child heartbeats are the liveness signal
+      // during a long generation (a child can legitimately write no progress
+      // line for minutes while a model call runs, but its heartbeat moves).
+      // The watchdog effect below folds this into its progress fingerprint.
+      childHeartbeatsRef.current = ((children as any[]) ?? [])
+        .map((c) => `${c.id}:${c.status}:${c.last_heartbeat_at ?? ""}`)
+        .sort()
+        .join("|");
+
       childLogs = ((children as any[]) ?? []).flatMap((child) => {
         const entries = Array.isArray(child.progress_log) ? child.progress_log : [];
         const progressEntries: BatchLogRow[] = entries.map((entry: LogEntry, index: number) => ({
@@ -394,6 +404,63 @@ export function QualityConsole({
     }, 10_000);
     return () => { cancelled = true; clearInterval(t); };
   }, [activeBatch?.id, activeBatch?.status, logRefreshTick]);
+
+  // ─── STALL WATCHDOG (2026-08-30) — automatic orchestrator kick ───────────
+  // The orchestrator advances a batch by self-invoking between waves
+  // (EdgeRuntime.waitUntil → fetch). When that self-chain link dies — an edge
+  // instance recycled before the fetch landed — the batch sits in "running"
+  // forever with completed children and no next wave: exactly the "freezes
+  // after completing only some reports" failure. The orchestrator's `kick`
+  // action is the idempotent recovery (reload row → record terminals →
+  // dispatch next wave → or finalize), but it was only reachable through the
+  // manual refresh button. This effect fingerprints batch progress on every
+  // poll (status, tool index, per-child final statuses, child heartbeats,
+  // newest log line) and, when NOTHING has moved for 2 minutes on a
+  // non-terminal batch, fires `kick` automatically — at most once per stall
+  // window, with a visible log line so the operator can see the recovery.
+  const childHeartbeatsRef = useRef<string>("");
+  const stallFpRef = useRef<string>("");
+  const stallSinceRef = useRef<number>(0);
+  const lastKickAtRef = useRef<number>(0);
+  const STALL_KICK_MS = 120_000;
+  useEffect(() => {
+    if (!activeBatch || isBatchTerminal(activeBatch.status)) {
+      stallFpRef.current = "";
+      stallSinceRef.current = 0;
+      return;
+    }
+    const newestLogTs = batchLogs.length ? batchLogs[batchLogs.length - 1].ts : "";
+    const fp = JSON.stringify([
+      activeBatch.id,
+      activeBatch.status,
+      (activeBatch as any).phase ?? null,
+      (activeBatch as any).current_tool_index ?? null,
+      (Array.isArray(activeBatch.tool_results) ? activeBatch.tool_results : [])
+        .map((r: any) => r?.final_status ?? null),
+      childHeartbeatsRef.current,
+      newestLogTs,
+    ]);
+    const now = Date.now();
+    if (fp !== stallFpRef.current) {
+      stallFpRef.current = fp;
+      stallSinceRef.current = now;
+      return;
+    }
+    if (!stallSinceRef.current) { stallSinceRef.current = now; return; }
+    const stalledMs = now - stallSinceRef.current;
+    if (stalledMs >= STALL_KICK_MS && now - lastKickAtRef.current >= STALL_KICK_MS) {
+      lastKickAtRef.current = now;
+      const runId = activeBatch.id;
+      void supabase.functions
+        .invoke("quality-batch-orchestrator", { body: { action: "kick", run_id: runId } })
+        .then(() => {
+          toast.message(
+            `Batch watchdog: no progress for ${Math.round(stalledMs / 1000)}s — kicked the orchestrator to resume`,
+          );
+        })
+        .catch((e) => console.error("[quality-console] watchdog kick failed", e));
+    }
+  }, [activeBatch, batchLogs]);
 
   const refreshLog = async () => {
     setLogRefreshing(true);
@@ -784,9 +851,13 @@ export function QualityConsole({
           docTotal += 1;
           toast.loading(`Rendering ${tr.tool} #${d.doc_number} (${ok + failed + 1}/${completed.length}+)…`, { id: tid });
           try {
-            const { data: pdfResp, error: pdfErr } = await supabase.functions.invoke("generate-report-pdf", {
-              body: { tool_type: toolType, assessment_id: d.source_row_id },
-            });
+            // FREEZE FIX (2026-08-30): per-doc render inside a loop — one
+            // stalled connection must fail THIS doc, not wedge the download.
+            const { data: pdfResp, error: pdfErr } = await invokeWithTimeout<{ pdf_url?: string }>(
+              "generate-report-pdf",
+              { tool_type: toolType, assessment_id: d.source_row_id },
+              180_000,
+            );
             if (pdfErr) throw pdfErr;
             const url = (pdfResp as any)?.pdf_url as string | undefined;
             if (!url) throw new Error("no pdf_url");
