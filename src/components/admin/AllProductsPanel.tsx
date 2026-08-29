@@ -168,6 +168,30 @@ export function AllProductsPanel() {
     });
   }, [fixtures]);
 
+  // Recover the newest backend batch for this admin even when it began before
+  // this browser build stored its id. This also repairs the currently running
+  // batch's progress display without requiring the operator to relaunch it.
+  useEffect(() => {
+    if (!user?.id || claudeBatchId || busy) return;
+    let cancelled = false;
+    void (async () => {
+      const { data, error } = await supabase
+        .from("static_stress_batches")
+        .select("id")
+        .eq("run_by", user.id)
+        .in("status", ["pending", "setting_up", "running"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (cancelled || error || !data?.id) return;
+      window.sessionStorage.setItem("eup.allProductsTest.activeClaudeBatch", data.id);
+      setClaudeBatchId(data.id);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, claudeBatchId, busy]);
+
   // A Claude-intake batch runs in the backend after dispatch. Reattach its
   // progress monitor after a reload/navigation so the Live log does not go
   // silent while the batch itself continues.
