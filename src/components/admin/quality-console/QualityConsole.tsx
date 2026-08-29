@@ -226,6 +226,7 @@ export function QualityConsole({
   toolsOverride,
   scoresAndLogFirst = false,
   extraHistoryTools,
+  showLocalRunLog = false,
 
 }: QualityConsoleProps = {}) {
   // SO-FINAL-TEST — this console's tool universe and its row partition.
