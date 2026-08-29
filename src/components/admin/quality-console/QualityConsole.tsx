@@ -225,6 +225,8 @@ export function QualityConsole({
   graderMode = "legacy",
   toolsOverride,
   scoresAndLogFirst = false,
+  extraHistoryTools,
+
 }: QualityConsoleProps = {}) {
   // SO-FINAL-TEST — this console's tool universe and its row partition.
   const CONSOLE_TOOLS = toolsOverride ?? TOOLS;
