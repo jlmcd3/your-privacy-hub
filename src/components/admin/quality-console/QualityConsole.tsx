@@ -57,6 +57,14 @@ export interface QualityConsoleProps {
   graderMode?: "legacy" | "skeleton";
   /** SO-FINAL-TEST — restrict the tool checkbox list (defaults to all TOOLS). */
   toolsOverride?: string[];
+  /**
+   * ALL-PRODUCTS-TEST — render the "Tools & batch scores" and "Live log" cards
+   * at the top of the console (immediately after the All Products selector),
+   * so they read as the 2nd and 3rd items on the page. Default false keeps the
+   * legacy bottom order (Live log then Tools & batch scores) for
+   * /admin/quality-batch and /admin/so-final-test.
+   */
+  scoresAndLogFirst?: boolean;
 }
 
 // Must stay identical to RUN_QUALITY_BATCH_SLUGS in the orchestrator.
