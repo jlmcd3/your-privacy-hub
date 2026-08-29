@@ -80,6 +80,11 @@ export interface QualityConsoleProps {
    * AllProductsPanel (src/lib/allProductsLog.ts) inside the Live log card.
    */
   showLocalRunLog?: boolean;
+  /**
+   * ALL-PRODUCTS-TEST — per-batch action links ("zip" / "md") rendered under
+   * each LOCAL (in-page) batch column header, mirroring the server columns.
+   */
+  renderLocalBatchActions?: (batchId: string) => React.ReactNode;
 }
 
 // Must stay identical to RUN_QUALITY_BATCH_SLUGS in the orchestrator.
@@ -235,6 +240,7 @@ export function QualityConsole({
   scoresAndLogFirst = false,
   extraHistoryTools,
   showLocalRunLog = false,
+  renderLocalBatchActions,
 
 }: QualityConsoleProps = {}) {
   // SO-FINAL-TEST — this console's tool universe and its row partition.
@@ -1170,6 +1176,8 @@ export function QualityConsole({
                           title="Export analysis (.md)"
                         >md</button>
                       </div>
+                    ) : renderLocalBatchActions ? (
+                      <div className="flex gap-1 mt-1">{renderLocalBatchActions(col.id)}</div>
                     ) : null}
                   </th>
                 ))}
