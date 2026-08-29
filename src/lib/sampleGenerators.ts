@@ -89,7 +89,8 @@ export async function pollRowStatus(
     const cols = opts.errorCol ? `status, ${opts.errorCol}` : "status";
     // FREEZE FIX: one stalled status read must never hang the poll loop —
     // race it against 15s and treat a timeout as an unknown-status poll.
-    const read = (supabase as any).from(table).select(cols).eq("id", id).maybeSingle() as Promise<{ data: any }>;
+    // Supabase builders are PromiseLike without .catch — normalize first.
+    const read = Promise.resolve((supabase as any).from(table).select(cols).eq("id", id).maybeSingle()) as Promise<{ data: any }>;
     void read.catch(() => {});
     const { data } = await Promise.race([
       read,
