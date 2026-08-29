@@ -1132,12 +1132,15 @@ export function QualityConsole({
                 const complete = (s?.complete ?? 0) + (l?.complete ?? 0);
                 const failed = (s?.failed ?? 0) + (l?.failed ?? 0);
                 const lastAt = [s?.lastAt, l?.lastAt].filter(Boolean).sort().pop() ?? null;
+                const scored = l?.scored ?? 0;
+                const claudeAvg = scored ? (l!.claudeSum ?? 0) / scored : null;
+                const gptAvg = scored ? (l!.gptSum ?? 0) / scored : null;
                 return (
                   <tr key={tool} className="border-b align-top bg-muted/10">
                     <td className="py-2 pr-3 font-mono">
                       {tool}
                       <div className="text-[10px] font-sans text-muted-foreground">
-                        ungraded runs · stress harness + in-page
+                        stress harness + in-page · Claude/GPT graded
                       </div>
                     </td>
                     <td className="py-2 pr-3">{total}</td>
@@ -1146,7 +1149,15 @@ export function QualityConsole({
                       <td className="py-2 pr-3 text-xs" colSpan={matrixColumns.length}>
                         {total > 0 ? (
                           <>
-                            {complete} complete · {failed} failed
+                            <span className="font-mono">
+                              {claudeAvg?.toFixed(1) ?? "—"} / {gptAvg?.toFixed(1) ?? "—"}
+                            </span>
+                            <span className="ml-2 text-muted-foreground">
+                              {scored ? `${scored} graded` : "not yet graded"}
+                            </span>
+                            <span className="ml-2">
+                              {complete} complete · {failed} failed
+                            </span>
                             {l?.total ? (
                               <span className="ml-2 text-muted-foreground">
                                 ({l.total} in-page)
@@ -1157,9 +1168,6 @@ export function QualityConsole({
                                 last {new Date(lastAt).toLocaleString()}
                               </span>
                             )}
-                            <span className="ml-2 text-muted-foreground">
-                              (no grader score — pass/fail harness)
-                            </span>
                           </>
                         ) : (
                           <span className="text-muted-foreground">no run history</span>
@@ -1168,6 +1176,7 @@ export function QualityConsole({
                     ) : null}
                   </tr>
                 );
+
               })}
             </tbody>
           </table>
