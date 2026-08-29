@@ -83,7 +83,18 @@ export type QL3Tool = typeof KNOWN_TOOL_SLUGS[number];
 // `fetchSessionShaped` below does. Nothing about the nine QL3 tools changes.
 export const SESSION_TOOL_SLUGS = ["ropa", "us-notice", "eu-notice"] as const;
 export type SessionTool = typeof SESSION_TOOL_SLUGS[number];
-export type GradedTool = QL3Tool | SessionTool;
+
+// ALL-PRODUCTS GRADING FIX (2026-08-29) — registration was the ONE dispatchable
+// product this grader could not score ("grading skipped — no grader tool" on
+// /admin/all-products-test). Its shape differs from both families above:
+// run-registration-assessment writes status='completed' (not 'complete')
+// synchronously and stores the customer report — including skeleton_document —
+// in `result_summary`, not `report_data` (mirrors run-quality-batch's own
+// registration_assessments fold at its poll path). Graded here through the
+// same Claude + GPT rubric with the whole-report JSON payload fallback
+// (familyForSingleTool returns null for it, by design).
+export const REGISTRATION_TOOL_SLUG = "registration" as const;
+export type GradedTool = QL3Tool | SessionTool | typeof REGISTRATION_TOOL_SLUG;
 
 
 // Per-tool row shape for grader intake+report fetch.
@@ -394,13 +405,13 @@ const handler = async (req: Request): Promise<Response> => {
   // (ql3-orchestrator.callInternalGrader, admin one-off Doc W baseline)
   // stay unchanged. Unknown slug → 400 unknown_tool.
   const toolRaw = body.tool ?? "cppa-risk";
-  if (!isKnownTool(toolRaw) && !isSessionTool(toolRaw)) {
+  if (!isKnownTool(toolRaw) && !isSessionTool(toolRaw) && toolRaw !== REGISTRATION_TOOL_SLUG) {
     return json({
       error: "unknown_tool",
-      detail: `known: ${[...KNOWN_TOOL_SLUGS, ...SESSION_TOOL_SLUGS].join(",")}`,
+      detail: `known: ${[...KNOWN_TOOL_SLUGS, ...SESSION_TOOL_SLUGS, REGISTRATION_TOOL_SLUG].join(",")}`,
     }, 400);
   }
-  const tool: GradedTool = toolRaw;
+  const tool: GradedTool = toolRaw as GradedTool;
 
   const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
@@ -408,7 +419,24 @@ const handler = async (req: Request): Promise<Response> => {
   let intake: unknown;
   let report: unknown;
 
-  if (isSessionTool(tool)) {
+  if (tool === REGISTRATION_TOOL_SLUG) {
+    const { data: row, error: selErr } = await admin
+      .from("registration_assessments")
+      .select("id, status, intake_data, result_summary")
+      .eq("id", body.assessment_id)
+      .maybeSingle();
+    if (selErr) return json({ error: selErr.message }, 500);
+    if (!row) return json({ error: "assessment_not_found" }, 404);
+    const r = row as unknown as Record<string, unknown>;
+    const status = String(r.status ?? "");
+    if (status !== "completed" && status !== "complete") {
+      return json({ error: "assessment_not_generated" }, 400);
+    }
+    if (!r.result_summary) return json({ error: "assessment_not_generated" }, 400);
+    gradedId = r.id;
+    intake = r.intake_data ?? {};
+    report = r.result_summary;
+  } else if (isSessionTool(tool)) {
     const fetched = await fetchSessionShaped(admin, tool, body.assessment_id);
     if ("error" in fetched) return json({ error: fetched.error }, fetched.status);
     gradedId = fetched.id;

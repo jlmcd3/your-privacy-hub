@@ -14,9 +14,21 @@
 // refused up-front with the offending key paths named.
 
 import { useEffect, useMemo, useState } from "react";
-import { appendAllProductsLog, clearAllProductsLog } from "@/lib/allProductsLog";
+import { supabase } from "@/integrations/supabase/client";
+import { appendAllProductsLog, clearAllProductsLog, useAllProductsLog } from "@/lib/allProductsLog";
 import { recordLocalRun, recordLocalScore } from "@/lib/allProductsRunHistory";
 import { gradeRun, SLUG_TO_GRADER_TOOL } from "@/lib/gradeRun";
+import {
+  downloadAllAnalyses,
+  downloadOutcomeAnalysis,
+  downloadOutcomesCsv,
+  clearOutcomes,
+  newOutcomeId,
+  recordOutcome,
+  updateOutcome,
+  useRunOutcomes,
+  type RunOutcome,
+} from "@/lib/allProductsOutcomes";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,6 +76,27 @@ export const SLUG_LABEL: Record<ToolSlug, string> = {
 };
 
 type RunStatus = "idle" | "queued" | "running" | "complete" | "failed";
+
+/**
+ * Panel slug → generate-report-pdf tool_type — the SAME values the customer
+ * result pages pass to PDFDownloadButton, so the outcome table's "Create PDF"
+ * renders through the exact shipped path. Session-shaped products (RoPA, the
+ * two Notice builders) produce their documents through their own pipelines
+ * and have no generate-report-pdf branch; their outcome rows link to the
+ * result instead.
+ */
+const SLUG_TO_PDF_TOOL_TYPE: Partial<Record<ToolSlug, string>> = {
+  li_assessment: "li_assessment",
+  governance: "governance_assessment",
+  dpia: "dpia_framework",
+  biometric: "biometric_checker",
+  cppa_risk: "cppa_risk",
+  cppa_cyber: "cppa_cybersecurity",
+  cppa_admt: "cppa_admt",
+  dpa: "dpa_generator",
+  ir_playbook: "ir_playbook",
+  registration: "registration_assessment",
+};
 
 interface RowState {
   status: RunStatus;
@@ -183,6 +216,12 @@ export function AllProductsPanel() {
       appendAllProductsLog("batch", `✓ batch ${batchId} — Claude is generating intake data server-side`);
 
       const seen = new Map<string, string>();
+      // RELIABILITY FIX (2026-08-29): grading calls used to be fired with
+      // `void` — unawaited, invisible to the batch's completion, and any
+      // rejection was unhandled. They are now collected and settled before
+      // the batch is declared finished, so "batch complete" means the scores
+      // are in too.
+      const gradingWork: Promise<void>[] = [];
       for (let poll = 0; poll < 400; poll++) {
         await new Promise((r) => setTimeout(r, 6000));
         const [jobs, batch] = await Promise.all([
@@ -205,13 +244,36 @@ export function AllProductsPanel() {
               status: j.status === "complete" ? "complete" : j.status === "failed" ? "failed" : "running",
               sourceRowId: j.source_row_id,
             });
-            if (j.status === "complete" && j.source_row_id) {
-              void gradeAndRecord(
-                row.tool_slug,
-                j.source_row_id,
-                `claude-intake/${j.company_name ?? "company"}`,
-                k,
-              );
+            if (j.status === "complete" || j.status === "failed") {
+              const outcomeId = newOutcomeId();
+              recordOutcome({
+                id: outcomeId,
+                startedAt: new Date().toISOString(),
+                finishedAt: new Date().toISOString(),
+                tool_slug: row.tool_slug,
+                variant: `claude/${j.company_name ?? "company"}`,
+                source: "claude",
+                status: j.status === "complete" ? "complete" : "failed",
+                sourceRowId: j.source_row_id,
+                resultUrl: j.source_row_id
+                  ? row.result_url_pattern.replace("{id}", j.source_row_id)
+                  : null,
+                error: j.error_message ?? undefined,
+                claudeScore: null,
+                gptScore: null,
+                meanScore: null,
+              });
+              if (j.status === "complete" && j.source_row_id) {
+                gradingWork.push(
+                  gradeAndRecord(
+                    row.tool_slug,
+                    j.source_row_id,
+                    `claude-intake/${j.company_name ?? "company"}`,
+                    k,
+                    outcomeId,
+                  ).catch((e) => appendLog(k, `· grading error — ${(e as Error).message}`)),
+                );
+              }
             }
           }
         }
@@ -222,6 +284,10 @@ export function AllProductsPanel() {
           );
         }
         if (["complete", "failed", "cancelled"].includes(batch.status)) {
+          if (gradingWork.length) {
+            appendAllProductsLog("batch", `… waiting for ${gradingWork.length} grading call(s) to finish`);
+            await Promise.allSettled(gradingWork);
+          }
           appendAllProductsLog(
             "batch",
             `${batch.failed_jobs ? "❌" : "✅"} batch ${batch.status} — ${batch.completed_jobs} complete, ${batch.failed_jobs} failed`,
@@ -246,17 +312,21 @@ export function AllProductsPanel() {
   /**
    * DUAL-MODEL SCORING — every product graded by Claude AND GPT.
    * Runs immediately after a successful generation, against the row/session
-   * the run produced. Grading failures never fail the run itself.
+   * the run produced. Grading failures never fail the run itself. The result
+   * (scores AND the full payload) is written onto the run's OUTCOME entry so
+   * the batch outcome table can offer a per-run analysis download.
    */
   async function gradeAndRecord(
     slug: ToolSlug,
     sourceRowId: string | null,
     label: string,
     logKey: string,
+    outcomeId?: string,
   ) {
     if (!sourceRowId) return;
     if (!SLUG_TO_GRADER_TOOL[slug]) {
       appendLog(logKey, "· grading skipped — no grader tool for this product");
+      if (outcomeId) updateOutcome(outcomeId, { gradeError: "no grader tool for this product" });
       return;
     }
     appendLog(logKey, "· grading (Claude + GPT)…");
@@ -264,13 +334,64 @@ export function AllProductsPanel() {
     if (!res) return;
     if (res.claude == null && res.gpt == null) {
       appendLog(logKey, `· grading failed — ${res.error ?? "no score"}`);
+      if (outcomeId) updateOutcome(outcomeId, { gradeError: res.error ?? "no score" });
       return;
     }
     recordLocalScore(SLUG_TO_STRESS_TOOL[slug], res.claude, res.gpt);
+    if (outcomeId) {
+      updateOutcome(outcomeId, {
+        claudeScore: res.claude,
+        gptScore: res.gpt,
+        meanScore: res.mean,
+        gradePayload: res.payload,
+      });
+    }
     appendLog(
       logKey,
       `· scored — Claude ${res.claude?.toFixed(1) ?? "—"} / GPT ${res.gpt?.toFixed(1) ?? "—"}`,
     );
+  }
+
+  /**
+   * OUTCOME-TABLE PDF CREATION — renders the run's document through the SAME
+   * generate-report-pdf path customer result pages use, then opens the signed
+   * URL and pins it on the outcome row.
+   */
+  const [pdfBusy, setPdfBusy] = useState<string | null>(null);
+  async function createPdfForOutcome(o: RunOutcome) {
+    const toolType = SLUG_TO_PDF_TOOL_TYPE[o.tool_slug];
+    if (!toolType || !o.sourceRowId) return;
+    setPdfBusy(o.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-report-pdf", {
+        body: { tool_type: toolType, assessment_id: o.sourceRowId },
+      });
+      if (error || !data?.pdf_url) throw new Error(error?.message || data?.error || "no pdf_url returned");
+      updateOutcome(o.id, { pdfUrl: data.pdf_url as string });
+      window.open(data.pdf_url as string, "_blank", "noopener");
+    } catch (e) {
+      toast.error(`PDF failed: ${(e as Error).message}`);
+    } finally {
+      setPdfBusy(null);
+    }
+  }
+
+  /** GOLDEN DATA SET — download the canonical fixture package (the exact
+   *  contract-conformant intake payloads the preset runs use). */
+  function downloadGoldenDataSet() {
+    const wanted = fixtures.filter((f) => selected.size === 0 || selected.has(fixtureKey(f)));
+    const blob = new Blob(
+      [JSON.stringify(wanted, null, 2)],
+      { type: "application/json" },
+    );
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `golden-data-set-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   }
 
   async function runSelected() {
@@ -307,17 +428,48 @@ export function AllProductsPanel() {
         const runLabel = batchNumber > 1 ? ` [run ${i}/${batchNumber}]` : "";
         appendLog(k, `▶ ${f.title}${runLabel}`);
         attempted += 1;
+        const outcomeId = newOutcomeId();
+        const startedAt = new Date().toISOString();
         try {
           const out = await runGenerator(f, user.id, (m) => appendLog(k, m));
           ok += 1;
           appendLog(k, `✅ complete${runLabel} — ${out.resultUrl}`);
           setRow(k, { status: "complete", resultUrl: out.resultUrl, sourceRowId: out.sourceRowId });
           recordLocalRun(SLUG_TO_STRESS_TOOL[f.tool_slug], true);
-          await gradeAndRecord(f.tool_slug, out.sourceRowId, `${f.tool_slug}/${f.variant}`, k);
+          recordOutcome({
+            id: outcomeId,
+            startedAt,
+            finishedAt: new Date().toISOString(),
+            tool_slug: f.tool_slug,
+            variant: f.variant,
+            source: "preset",
+            status: "complete",
+            sourceRowId: out.sourceRowId,
+            resultUrl: out.resultUrl,
+            claudeScore: null,
+            gptScore: null,
+            meanScore: null,
+          });
+          await gradeAndRecord(f.tool_slug, out.sourceRowId, `${f.tool_slug}/${f.variant}`, k, outcomeId);
         } catch (e) {
           appendLog(k, `❌${runLabel} ${(e as Error).message}`);
           setRow(k, { status: "failed" });
           recordLocalRun(SLUG_TO_STRESS_TOOL[f.tool_slug], false);
+          recordOutcome({
+            id: outcomeId,
+            startedAt,
+            finishedAt: new Date().toISOString(),
+            tool_slug: f.tool_slug,
+            variant: f.variant,
+            source: "preset",
+            status: "failed",
+            sourceRowId: null,
+            resultUrl: null,
+            error: (e as Error).message,
+            claudeScore: null,
+            gptScore: null,
+            meanScore: null,
+          });
         }
       }
     }
@@ -337,77 +489,28 @@ export function AllProductsPanel() {
     );
   }
 
+  const outcomes = useRunOutcomes();
+  const liveLog = useAllProductsLog();
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex flex-wrap items-center gap-3">
           <span>All Products — sample data + live generation</span>
-          <span className="font-mono text-xs text-muted-foreground">sampleGenerators · preflight-gated</span>
+          <span className="font-mono text-xs text-muted-foreground">sampleGenerators · contract-preflight-gated</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Select any or all products. Sample data is written to each product's own tables, the live generator
-          is invoked, and the run is polled to a terminal status. Products marked <em>SO batch</em> are also
-          graded by the skeleton console below; the others have no batch dispatch and run only here.
+          1&nbsp;Select products → 2&nbsp;choose the intake data source → 3&nbsp;set the batch size and run.
+          The live log streams every step; the batch outcome table below records each run with its
+          Claude&nbsp;+&nbsp;GPT scores, PDF creation, and a downloadable analysis. Every run is graded by the
+          same dual-model rubric; every preset run is gated by the contract-level intake preflight.
         </p>
 
-        {/* INTAKE SOURCE TOGGLE — pre-set package vs Claude-generated data. */}
-        <div className="flex flex-wrap items-end gap-4 rounded border bg-muted/30 p-3">
-          <div>
-            <Label className="text-xs">Intake data source</Label>
-            <div className="mt-1 flex gap-1">
-              <Button
-                size="sm"
-                variant={intakeSource === "preset" ? "default" : "outline"}
-                disabled={busy}
-                onClick={() => setIntakeSource("preset")}
-              >
-                Pre-set data package
-              </Button>
-              <Button
-                size="sm"
-                variant={intakeSource === "claude" ? "default" : "outline"}
-                disabled={busy}
-                onClick={() => setIntakeSource("claude")}
-              >
-                Claude-generated intake
-              </Button>
-            </div>
-          </div>
-          {intakeSource === "claude" && (
-            <div>
-              <Label htmlFor="claude-industry" className="text-xs">Industry (company profile)</Label>
-              <select
-                id="claude-industry"
-                className="mt-1 h-9 w-64 rounded border bg-background px-2 text-sm"
-                value={industryId}
-                disabled={busy}
-                onChange={(e) => setIndustryId(e.target.value)}
-              >
-                {STRESS_INDUSTRIES.map((i) => (
-                  <option key={i.id} value={i.id}>{i.label}</option>
-                ))}
-              </select>
-            </div>
-          )}
-          <p className="max-w-xl text-xs text-muted-foreground">
-            {intakeSource === "preset"
-              ? "Canonical sample fixtures are inserted directly and each generator is invoked and polled here."
-              : "Claude writes a fresh, internally consistent company profile per geo (generate-stress-fixtures) and every selected product runs against it server-side via the stress harness. Progress streams into the live log; results also appear at /admin/static-stress."}
-          </p>
-          {claudeBatchId && intakeSource === "claude" && (
-            <span className="font-mono text-[11px] text-muted-foreground">batch {claudeBatchId}</span>
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <Button size="sm" onClick={runSelected} disabled={busy}>
-            {busy ? "Running…" : `Run selected (${selected.size})`}
-          </Button>
-          <Button size="sm" variant="outline" onClick={runPreflightOnly} disabled={busy}>
-            Preflight intake data
-          </Button>
+        {/* ── 1. PRODUCT SELECTION ─────────────────────────────────────── */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">1 · Products</span>
           <Button
             size="sm"
             variant="ghost"
@@ -437,36 +540,6 @@ export function AllProductsPanel() {
             />
             Show second-pass (supplemental capture) variants
           </label>
-
-        </div>
-
-        {failedPreflight.length > 0 && (
-          <div className="rounded border border-destructive/40 bg-destructive/5 p-3 text-sm">
-            Intake preflight failing for {failedPreflight.length} selected fixture(s) — runs are blocked until
-            fixed.
-          </div>
-        )}
-
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="w-40">
-            <Label htmlFor="batch-number">
-              {intakeSource === "claude" ? "Company slots per geo (max 2)" : "Batch number (runs per product)"}
-            </Label>
-            <Input
-              id="batch-number"
-              type="number"
-              min={1}
-              max={20}
-              value={batchNumber}
-              disabled={busy}
-              onChange={(e) => setBatchNumber(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
-            />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {intakeSource === "claude"
-              ? "Claude generates this many companies per geography (US and EU), each run against every selected product."
-              : "Each selected product will generate this many sample runs."}
-          </p>
         </div>
 
         <div className="divide-y rounded border">
@@ -534,6 +607,204 @@ export function AllProductsPanel() {
               </div>
             );
           })}
+        </div>
+
+        {/* ── 2. INTAKE DATA SOURCE — pre-set package vs Claude-generated. ── */}
+        <div className="flex flex-wrap items-end gap-4 rounded border bg-muted/30 p-3">
+          <div>
+            <Label className="text-xs">Intake data source</Label>
+            <div className="mt-1 flex gap-1">
+              <Button
+                size="sm"
+                variant={intakeSource === "preset" ? "default" : "outline"}
+                disabled={busy}
+                onClick={() => setIntakeSource("preset")}
+              >
+                Pre-set data package
+              </Button>
+              <Button
+                size="sm"
+                variant={intakeSource === "claude" ? "default" : "outline"}
+                disabled={busy}
+                onClick={() => setIntakeSource("claude")}
+              >
+                Claude-generated intake
+              </Button>
+            </div>
+          </div>
+          {intakeSource === "claude" && (
+            <div>
+              <Label htmlFor="claude-industry" className="text-xs">Industry (company profile)</Label>
+              <select
+                id="claude-industry"
+                className="mt-1 h-9 w-64 rounded border bg-background px-2 text-sm"
+                value={industryId}
+                disabled={busy}
+                onChange={(e) => setIndustryId(e.target.value)}
+              >
+                {STRESS_INDUSTRIES.map((i) => (
+                  <option key={i.id} value={i.id}>{i.label}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          <p className="max-w-xl text-xs text-muted-foreground">
+            {intakeSource === "preset"
+              ? "Canonical sample fixtures are inserted directly and each generator is invoked and polled here."
+              : "Claude writes a fresh, internally consistent company profile per geo (generate-stress-fixtures) and every selected product runs against it server-side via the stress harness. Progress streams into the live log; results also appear at /admin/static-stress."}
+          </p>
+          {claudeBatchId && intakeSource === "claude" && (
+            <span className="font-mono text-[11px] text-muted-foreground">batch {claudeBatchId}</span>
+          )}
+        </div>
+
+        {/* ── 3. BATCH SIZE + RUN ─────────────────────────────────────── */}
+        <div className="flex flex-wrap items-end gap-4">
+          <span className="pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">3 · Batch</span>
+          <div className="w-40">
+            <Label htmlFor="batch-number">
+              {intakeSource === "claude" ? "Company slots per geo (max 2)" : "Batch size (runs per product)"}
+            </Label>
+            <Input
+              id="batch-number"
+              type="number"
+              min={1}
+              max={20}
+              value={batchNumber}
+              disabled={busy}
+              onChange={(e) => setBatchNumber(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
+            />
+          </div>
+          <Button size="sm" onClick={runSelected} disabled={busy}>
+            {busy ? "Running…" : `Run selected (${selected.size})`}
+          </Button>
+          <Button size="sm" variant="outline" onClick={runPreflightOnly} disabled={busy}>
+            Preflight intake data
+          </Button>
+          <Button size="sm" variant="outline" onClick={downloadGoldenDataSet} disabled={busy}>
+            Download golden data set
+          </Button>
+          <p className="max-w-md text-xs text-muted-foreground">
+            {intakeSource === "claude"
+              ? "Claude generates this many companies per geography (US and EU), each run against every selected product."
+              : "Each selected product will generate this many sample runs."}
+          </p>
+        </div>
+
+        {failedPreflight.length > 0 && (
+          <div className="rounded border border-destructive/40 bg-destructive/5 p-3 text-sm">
+            Intake preflight failing for {failedPreflight.length} selected fixture(s) — runs are blocked until
+            fixed.
+          </div>
+        )}
+
+        {/* ── 4. LIVE LOG ─────────────────────────────────────────────── */}
+        <div>
+          <div className="mb-1 flex items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">4 · Live log</span>
+            <Button size="sm" variant="ghost" onClick={() => clearAllProductsLog()} disabled={busy}>
+              clear
+            </Button>
+          </div>
+          <pre className="max-h-72 overflow-auto rounded border bg-muted/40 p-2 font-mono text-[11px] leading-4">
+            {liveLog.length === 0
+              ? "— no run in this session yet —"
+              : liveLog
+                  .map((l) => `${l.t.slice(11, 19)} ${l.level === "error" ? "✖" : l.level === "success" ? "✔" : "·"} [${l.source}] ${l.msg}`)
+                  .join("\n")}
+          </pre>
+        </div>
+
+        {/* ── 5. TEST BATCH OUTCOME TABLE ─────────────────────────────── */}
+        <div>
+          <div className="mb-1 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              5 · Batch outcomes ({outcomes.length})
+            </span>
+            <Button size="sm" variant="outline" disabled={!outcomes.length} onClick={() => downloadAllAnalyses(outcomes)}>
+              Download analyses (JSON)
+            </Button>
+            <Button size="sm" variant="outline" disabled={!outcomes.length} onClick={() => downloadOutcomesCsv(outcomes)}>
+              Download CSV
+            </Button>
+            <Button size="sm" variant="ghost" disabled={!outcomes.length || busy} onClick={() => clearOutcomes()}>
+              Clear outcomes
+            </Button>
+          </div>
+          {outcomes.length === 0 ? (
+            <p className="rounded border bg-muted/30 p-3 text-xs text-muted-foreground">
+              Run a batch above — every run lands here with its scores, PDF creation, and analysis download.
+            </p>
+          ) : (
+            <div className="overflow-x-auto rounded border">
+              <table className="w-full text-xs">
+                <thead className="bg-muted/50 text-left">
+                  <tr>
+                    <th className="p-2">When</th>
+                    <th className="p-2">Product</th>
+                    <th className="p-2">Variant</th>
+                    <th className="p-2">Source</th>
+                    <th className="p-2">Status</th>
+                    <th className="p-2 text-right">Claude</th>
+                    <th className="p-2 text-right">GPT</th>
+                    <th className="p-2 text-right">Mean</th>
+                    <th className="p-2">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {outcomes.map((o) => (
+                    <tr key={o.id}>
+                      <td className="whitespace-nowrap p-2 font-mono">{o.startedAt.slice(5, 16).replace("T", " ")}</td>
+                      <td className="p-2">{SLUG_LABEL[o.tool_slug] ?? o.tool_slug}</td>
+                      <td className="p-2 font-mono">{o.variant}</td>
+                      <td className="p-2">{o.source}</td>
+                      <td className="p-2">
+                        <Badge variant={o.status === "complete" ? "default" : "destructive"}>{o.status}</Badge>
+                        {(o.error || o.gradeError) && (
+                          <span className="ml-1 text-destructive" title={o.error ?? o.gradeError}>!</span>
+                        )}
+                      </td>
+                      <td className="p-2 text-right font-mono">{o.claudeScore?.toFixed(1) ?? "—"}</td>
+                      <td className="p-2 text-right font-mono">{o.gptScore?.toFixed(1) ?? "—"}</td>
+                      <td className="p-2 text-right font-mono">{o.meanScore?.toFixed(1) ?? "—"}</td>
+                      <td className="space-x-2 whitespace-nowrap p-2">
+                        {o.resultUrl && (
+                          <Link to={o.resultUrl} className="text-primary underline">
+                            open
+                          </Link>
+                        )}
+                        {o.status === "complete" && SLUG_TO_PDF_TOOL_TYPE[o.tool_slug] && o.sourceRowId && (
+                          o.pdfUrl ? (
+                            <a href={o.pdfUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                              PDF
+                            </a>
+                          ) : (
+                            <button
+                              type="button"
+                              className="text-primary underline disabled:opacity-50"
+                              disabled={pdfBusy === o.id}
+                              onClick={() => void createPdfForOutcome(o)}
+                            >
+                              {pdfBusy === o.id ? "PDF…" : "Create PDF"}
+                            </button>
+                          )
+                        )}
+                        {o.gradePayload != null && (
+                          <button
+                            type="button"
+                            className="text-primary underline"
+                            onClick={() => downloadOutcomeAnalysis(o)}
+                          >
+                            analysis
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

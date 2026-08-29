@@ -397,13 +397,20 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
       return { sourceTable: "cppa_assessments", sourceRowId: rec.id };
     }
     case "cppa-admt": {
+      // ALL-PRODUCTS-TEST FIX (2026-08-29): this harness used to insert
+      // module="admt" and invoke run-admt-checker — the LEGACY v1 engine —
+      // while customers and the graded quality-batch path run the
+      // deterministic v2 engine (module="admt_v2" → run-admt-checker-v2;
+      // see run-quality-batch's own admt inserts and ADMTCheckerResult.tsx's
+      // module routing). Testing v1 measured an engine customers no longer
+      // receive.
       const { data: rec, error } = await admin.from("cppa_assessments").insert({
-        user_id: userId, module: "admt", status: "pending", intake_data: withNames(intake),
+        user_id: userId, module: "admt_v2", status: "pending", intake_data: withNames(intake),
       }).select("id").single();
 
       if (error || !rec) throw new Error(`cppa-admt insert: ${error?.message}`);
-      await invokeFn("run-admt-checker", { assessment_id: rec.id })
-        .catch((e) => console.warn("[run-stress-job] run-admt-checker trigger failed (will poll):", e));
+      await invokeFn("run-admt-checker-v2", { assessment_id: rec.id })
+        .catch((e) => console.warn("[run-stress-job] run-admt-checker-v2 trigger failed (will poll):", e));
       await pollCppa(admin, rec.id);
       return { sourceTable: "cppa_assessments", sourceRowId: rec.id };
     }

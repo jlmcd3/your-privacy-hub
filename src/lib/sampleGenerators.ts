@@ -86,7 +86,10 @@ export async function runGenerator(
         max: poll.max,
         intervalMs: poll.interval_ms,
         complete: ["complete"],
-        failed: poll.terminal.filter((t) => t !== "complete"),
+        // RELIABILITY FIX (2026-08-29): "cancelled" is a terminal status the
+        // orchestrator recognises; without it here a cancelled row polled to
+        // timeout instead of failing fast.
+        failed: [...new Set([...poll.terminal.filter((t) => t !== "complete"), "cancelled"])],
       },
       log,
     );

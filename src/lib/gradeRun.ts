@@ -26,6 +26,11 @@ export const SLUG_TO_GRADER_TOOL: Partial<Record<ToolSlug, string>> = {
   ropa: "ropa",
   us_notice: "us-notice",
   eu_notice: "eu-notice",
+  // ALL-PRODUCTS GRADING FIX (2026-08-29): registration was the one
+  // dispatchable product with no grader mapping, so panel runs logged
+  // "grading skipped". grade-single-assessment now accepts it (fetches
+  // intake_data + result_summary, status 'completed').
+  registration: "registration",
 };
 
 export interface GradeResult {
@@ -34,6 +39,10 @@ export interface GradeResult {
   gpt: number | null;
   mean: number | null;
   error?: string;
+  /** Full grade payload (dimension scores, findings counts, critical
+   *  failures per model) — stored by the outcome table for the
+   *  downloadable analysis. */
+  payload?: unknown;
 }
 
 export async function gradeRun(
@@ -58,7 +67,7 @@ export async function gradeRun(
     const gpt = typeof p.gpt?.overall_score === "number" ? p.gpt.overall_score : null;
     const mean = typeof (data as any)?.mean_score === "number" ? (data as any).mean_score : null;
     const err = p.claude?.error ?? p.gpt?.error ?? (data as any)?.error;
-    return { tool, claude, gpt, mean, error: claude == null && gpt == null ? String(err ?? "no score") : undefined };
+    return { tool, claude, gpt, mean, payload: p, error: claude == null && gpt == null ? String(err ?? "no score") : undefined };
   } catch (e) {
     return { tool, claude: null, gpt: null, mean: null, error: (e as Error).message };
   }

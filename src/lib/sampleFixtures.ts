@@ -184,8 +184,15 @@ const F_DPIA_EU: SampleFixture = {
         article_9_condition: "",
         necessity_proportionality:
           "The blurring pipeline plus 30-day raw-frame deletion is the least-intrusive means of producing usable geological mosaics; alternatives (ground surveys, satellite imagery at lower resolution) were considered and rejected as insufficient for drill-target identification.",
-        controller_sector: "Mining and resource extraction (exploration)",
-        controller_country: "Germany",
+        // ALL-PRODUCTS-TEST FIX (2026-08-29): the form emits ISO-2 country
+        // codes (DPIAFramework.tsx L168 "ISO-2 e.g. DE, IE, FR") and a
+        // closed 5-value sector enum; the previous values ("Germany",
+        // "Mining and resource extraction (exploration)") were never form-
+        // emittable, so the jurisdiction resolver's DE/Land branch and the
+        // sector-keyed SA logic silently never fired on this fixture.
+        controller_sector: "private",
+        controller_country: "DE",
+        controller_land: "Saxony",
         nature_scope_context:
           "Data categories in scope: (a) image data incidentally capturing building edges, gardens, and occasional individuals along transit corridors; (b) location data from flight telemetry. Imagery is blurred (faces, license plates, house numbers) before any external release; raw frames are deleted after 30 days.",
         dp_by_design_measures:
@@ -816,7 +823,11 @@ const F_CPPA_ADMT_US: SampleFixture = {
   result_url_pattern: "/cppa-admt-checker/result/{id}",
   fixture: {
     insert: {
-      module: "admt",
+      // ALL-PRODUCTS-TEST FIX (2026-08-29): was module "admt" + the legacy
+      // run-admt-checker v1 engine; customers and the graded quality-batch
+      // path run the deterministic v2 engine (module "admt_v2" ->
+      // run-admt-checker-v2). The fixture now exercises what customers get.
+      module: "admt_v2",
       status: "pending",
       intake_data: {
         organization_name: "Tomorrow4Cariboo Lending",
@@ -870,7 +881,7 @@ const F_CPPA_ADMT_US: SampleFixture = {
         ],
       },
     },
-    invoke: { fn: "run-admt-checker", id_key: "assessment_id" },
+    invoke: { fn: "run-admt-checker-v2", id_key: "assessment_id" },
     poll: { table: "cppa_assessments", terminal: ["complete", "failed", "error"], max: 120, interval_ms: 4000 },
   },
 };
