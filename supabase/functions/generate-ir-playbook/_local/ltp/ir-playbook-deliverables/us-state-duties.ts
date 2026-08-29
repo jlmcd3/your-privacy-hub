@@ -185,3 +185,158 @@ export function buildStateNotificationDuties(
   }
   return out;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// IR-F TRANCHE 2 (2026-08-29) — PER-STATE WALK GATES.
+//
+// Verified gate content for the four-gate notification walk (tranche 1,
+// ir-skeleton-assemble.ts): each entry carries the state's own covered-PI
+// element structure, breach-definition character, encryption formulation and
+// (where the statute has one) harm-threshold carve-out — every formulation
+// condensed FROM THE STATUTE'S OWN TEXT, fetched fresh from the state's
+// official code publisher on the verified_on date (California:
+// leginfo.legislature.ca.gov § 1798.82; Texas: statutes.capitol.texas.gov
+// §§ 521.002/521.053; New York: nysenate.gov GBS § 899-aa). States without
+// an entry keep tranche 1's generic walk — the gate is absent, never
+// invented. `intake_types` values are EXACT members of the IR intake's
+// DATA_TYPES enum (_shared/intake-contracts/ir-playbook.ts).
+// ═══════════════════════════════════════════════════════════════════════════
+
+export interface StateGateElementLimb {
+  /** IR intake DATA_TYPES labels that engage this limb. */
+  readonly intake_types: readonly string[];
+  /** The statute's own element description, condensed, with pinpoint. */
+  readonly limb: string;
+  /** True where the limb reaches items only in combination with the
+   *  individual's name. */
+  readonly requires_name: boolean;
+}
+
+export interface StateWalkGates {
+  /** Breach-definition character, in the statute's own frame, with pinpoint. */
+  readonly breach_definition: string;
+  readonly element_limbs: readonly StateGateElementLimb[];
+  /** Data types the statute's element list does NOT reach, stated so the
+   *  walk can resolve honest negatives. */
+  readonly uncovered_note?: string;
+  /** The statute's encryption formulation, with pinpoint. */
+  readonly encryption_formulation: string;
+  /** Harm-threshold carve-out where the statute has one. */
+  readonly harm_carveout?: string;
+  readonly verified_on: string;
+}
+
+export const STATE_WALK_GATES: Record<string, StateWalkGates> = {
+  "California": {
+    breach_definition:
+      "the duty runs to a resident whose personal information was, or is reasonably believed to have been, acquired by an unauthorized person (Cal. Civ. Code § 1798.82(a)(1)) — an acquisition standard",
+    element_limbs: [
+      {
+        intake_types: ["Government IDs / SSN"],
+        limb:
+          "social security number, and driver's license, state identification card, tax identification, passport, military identification or other government-issued unique identification numbers (§ 1798.82(h)(1)(A)–(B))",
+        requires_name: true,
+      },
+      {
+        intake_types: ["Financial / payment data"],
+        limb:
+          "account, credit or debit card numbers in combination with any required security code, access code or password permitting access to the financial account (§ 1798.82(h)(1)(C))",
+        requires_name: true,
+      },
+      {
+        intake_types: ["Health / medical records"],
+        limb: "medical information and health insurance information (§ 1798.82(h)(1)(D)–(E))",
+        requires_name: true,
+      },
+      {
+        intake_types: ["Biometric data"],
+        limb:
+          "unique biometric data used to authenticate a specific individual (§ 1798.82(h)(1)(F))",
+        requires_name: true,
+      },
+      {
+        intake_types: ["Passwords / credentials"],
+        limb:
+          "a username or email address in combination with a password or security question and answer permitting access to an online account (§ 1798.82(h)(2))",
+        requires_name: false,
+      },
+    ],
+    uncovered_note:
+      "location data and other types outside § 1798.82(h)'s element list do not, by themselves, constitute covered personal information under this section",
+    encryption_formulation:
+      "the duty attaches to unencrypted personal information, or to encrypted personal information where the encryption key or security credential was also acquired and could render the information readable or usable (§ 1798.82(a)(1)); \"encrypted\" means rendered unusable, unreadable, or indecipherable through a generally accepted security technology or methodology (§ 1798.82(i)(4))",
+    verified_on: "2026-08-29",
+  },
+  "Texas": {
+    breach_definition:
+      "\"breach of system security\" means unauthorized acquisition of computerized data that compromises the security, confidentiality, or integrity of sensitive personal information, including encrypted data where the person accessing it has the decryption key; good-faith acquisition by an employee or agent for the person's purposes is excluded unless used or disclosed without authorization (Tex. Bus. & Com. Code § 521.053(a))",
+    element_limbs: [
+      {
+        intake_types: ["Government IDs / SSN"],
+        limb:
+          "social security number, and driver's license or other government-issued identification numbers (§ 521.002(a)(2)(A)(i)–(ii))",
+        requires_name: true,
+      },
+      {
+        intake_types: ["Financial / payment data"],
+        limb:
+          "account, credit or debit card numbers in combination with any required security code, access code or password permitting access to the financial account (§ 521.002(a)(2)(A)(iii))",
+        requires_name: true,
+      },
+      {
+        intake_types: ["Health / medical records"],
+        limb:
+          "information that identifies an individual and relates to physical or mental health, the provision of health care, or payment for health care (§ 521.002(a)(2)(B))",
+        requires_name: false,
+      },
+    ],
+    uncovered_note:
+      "§ 521.002(a)(2) carries no standalone biometric or online-credential limb, so biometric data and passwords or credentials do not, by themselves, constitute sensitive personal information under this chapter",
+    encryption_formulation:
+      "the name-plus-element limbs reach items only if the name and the items are not encrypted (§ 521.002(a)(2)(A)), while acquisition of encrypted data is nonetheless a breach where the person accessing it has the decryption key (§ 521.053(a))",
+    verified_on: "2026-08-29",
+  },
+  "New York": {
+    breach_definition:
+      "\"breach of the security of the system\" means unauthorized access to, or acquisition of, computerized data compromising the security, confidentiality, or integrity of private information — access alone can suffice, and the statute lists factors for both determinations; good-faith access by an employee or agent for business purposes is excluded absent misuse or unauthorized disclosure (N.Y. Gen. Bus. Law § 899-aa(1)(c))",
+    element_limbs: [
+      {
+        intake_types: ["Government IDs / SSN"],
+        limb:
+          "social security number, and driver's license or non-driver identification card numbers (§ 899-aa(1)(b)(i)(1)–(2))",
+        requires_name: true,
+      },
+      {
+        intake_types: ["Financial / payment data"],
+        limb:
+          "account, credit or debit card numbers with a required code or password — or alone, where the number could be used to access the financial account without additional information (§ 899-aa(1)(b)(i)(3)–(4))",
+        requires_name: true,
+      },
+      {
+        intake_types: ["Biometric data"],
+        limb:
+          "biometric information used to authenticate or ascertain the individual's identity (§ 899-aa(1)(b)(i)(5))",
+        requires_name: true,
+      },
+      {
+        intake_types: ["Health / medical records"],
+        limb:
+          "medical information and health insurance information (§ 899-aa(1)(b)(i)(6)–(7))",
+        requires_name: true,
+      },
+      {
+        intake_types: ["Passwords / credentials"],
+        limb:
+          "a username or email address in combination with a password or security question and answer permitting access to an online account (§ 899-aa(1)(b)(ii))",
+        requires_name: false,
+      },
+    ],
+    uncovered_note:
+      "location data and other types outside § 899-aa(1)(b)'s element list do not, by themselves, constitute private information under this section",
+    encryption_formulation:
+      "elements count where the data element, or the combination with personal information, is not encrypted — or is encrypted with an encryption key that has also been accessed or acquired (§ 899-aa(1)(b))",
+    harm_carveout:
+      "notice is not required where the exposure was an inadvertent disclosure by persons authorized to access the information and the business reasonably determines it will not likely result in misuse, financial harm, or (for online credentials) emotional harm — a determination that must be documented in writing, kept five years, and filed with the Attorney General within ten days where more than five hundred New York residents are affected (§ 899-aa(2)(a))",
+    verified_on: "2026-08-29",
+  },
+};

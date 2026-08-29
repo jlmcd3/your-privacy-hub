@@ -48,6 +48,8 @@ import {
 import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
 import { firstSentence, firstSentences } from "../../../_shared/ltp/dpia-skeleton-assemble.ts";
 import { buildIrPlaybookDeliverables, normalizeBreachNoticeContracts, normalizeResponseTeamRoster } from "./ir-playbook-deliverables/build.ts";
+// IR-F tranche 2 — the verified per-state walk gates (CA/TX/NY this tranche).
+import { STATE_WALK_GATES } from "./ir-playbook-deliverables/us-state-duties.ts";
 
 export const IR_SKELETON_ASSEMBLER_STAMP = "ir-skeleton-assembler@so7-wire-in-2026-08-10";
 
@@ -503,13 +505,85 @@ function composeNotificationWalk(report: Bag, intake: Bag): string {
 
   const gate4 = `Fourth, the safe-harbour gate: ${posture}.`;
 
-  return [
+  const paragraphs: string[] = [[
     "Whether each recorded jurisdiction's own duty is triggered is walked through four gates against this incident's record.",
     gate1,
     gate2,
     gate3,
     gate4,
-  ].join(" ");
+  ].join(" ")];
+
+  // IR-F TRANCHE 2 (2026-08-29) — per-state resolution for the gated states
+  // (STATE_WALK_GATES: California, Texas, New York this tranche; each gate
+  // formulation condensed from the statute's own text, fetched fresh from
+  // the state's official publisher — see the registry comment). A duty row
+  // for a state without gates keeps the generic walk above.
+  const namesRecorded = dataTypes.includes("Names and contact details");
+  const keysSafe = /^Keys not compromised/i.test(keys);
+  const fullyEncrypted = /^All affected data encrypted/i.test(enc);
+  for (const d of asArray(report.state_notification_duties)) {
+    const gates = STATE_WALK_GATES[s(d.jurisdiction)];
+    if (!gates) continue;
+    const label = s(d.state_label);
+    const bits: string[] = [];
+    // Sentence-case the breach-definition formulation at the seam (a
+    // formulation may begin lowercase; a quoted term keeps its own casing).
+    const bd = noStop(gates.breach_definition);
+    bits.push(stop(`${label}, walked. ${bd.charAt(0).toUpperCase()}${bd.slice(1)}`));
+
+    // Data-element gate, resolved per limb against the recorded types.
+    const engagedNamed: string[] = [];
+    const engagedConditional: string[] = [];
+    const matchedTypes = new Set<string>();
+    for (const limb of gates.element_limbs) {
+      const hits = limb.intake_types.filter((t) => dataTypes.includes(t));
+      if (!hits.length) continue;
+      for (const h of hits) matchedTypes.add(h);
+      if (limb.requires_name && !namesRecorded) {
+        engagedConditional.push(`${hits.join(" and ")} — ${limb.limb}`);
+      } else {
+        engagedNamed.push(`${hits.join(" and ")} — ${limb.limb}`);
+      }
+    }
+    if (engagedNamed.length) {
+      bits.push(stop(
+        `On the recorded data types, the following fall within the statute's covered elements: ${engagedNamed.join("; ")}`,
+      ));
+    }
+    if (engagedConditional.length) {
+      bits.push(stop(
+        `The following reach the covered elements only in combination with the individual's name, which the recorded data types do not list, so each turns on whether names accompany them: ${engagedConditional.join("; ")}`,
+      ));
+    }
+    const unmatched = dataTypes.filter((t) => !matchedTypes.has(t) && t !== "Names and contact details");
+    if (unmatched.length && gates.uncovered_note) {
+      bits.push(stop(
+        `Of the remaining recorded types (${unmatched.join("; ")}): ${noStop(gates.uncovered_note)}`,
+      ));
+    }
+    if (!engagedNamed.length && !engagedConditional.length) {
+      bits.push(
+        "None of the recorded data types falls within this statute's covered elements on its own terms, so no notification duty is established under it on this record.",
+      );
+    }
+
+    // Encryption formulation, applied to the recorded posture.
+    const encApplied = keysCompromised
+      ? "on the recorded key compromise, the encrypted state does not avoid the duty under this formulation"
+      : fullyEncrypted && keysSafe
+      ? "the recorded posture — all affected data encrypted, keys not compromised — supports the position that the duty is not triggered under this formulation, subject to the encryption meeting the statute's own standard"
+      : "the recorded posture does not establish an encryption state that would resolve this formulation either way";
+    bits.push(stop(`On encryption, ${noStop(gates.encryption_formulation)}; ${encApplied}`));
+
+    if (gates.harm_carveout) {
+      bits.push(stop(
+        `The statute also carries a harm-threshold carve-out, which the response team assesses and documents rather than this playbook: ${noStop(gates.harm_carveout)}`,
+      ));
+    }
+    paragraphs.push(bits.join(" "));
+  }
+
+  return paragraphs.join("\n\n");
 }
 
 function composeJurisdictionActionPlan(report: Bag, intake: Bag): string {
