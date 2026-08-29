@@ -309,6 +309,55 @@ export function AllProductsPanel() {
           graded by the skeleton console below; the others have no batch dispatch and run only here.
         </p>
 
+        {/* INTAKE SOURCE TOGGLE — pre-set package vs Claude-generated data. */}
+        <div className="flex flex-wrap items-end gap-4 rounded border bg-muted/30 p-3">
+          <div>
+            <Label className="text-xs">Intake data source</Label>
+            <div className="mt-1 flex gap-1">
+              <Button
+                size="sm"
+                variant={intakeSource === "preset" ? "default" : "outline"}
+                disabled={busy}
+                onClick={() => setIntakeSource("preset")}
+              >
+                Pre-set data package
+              </Button>
+              <Button
+                size="sm"
+                variant={intakeSource === "claude" ? "default" : "outline"}
+                disabled={busy}
+                onClick={() => setIntakeSource("claude")}
+              >
+                Claude-generated intake
+              </Button>
+            </div>
+          </div>
+          {intakeSource === "claude" && (
+            <div>
+              <Label htmlFor="claude-industry" className="text-xs">Industry (company profile)</Label>
+              <select
+                id="claude-industry"
+                className="mt-1 h-9 w-64 rounded border bg-background px-2 text-sm"
+                value={industryId}
+                disabled={busy}
+                onChange={(e) => setIndustryId(e.target.value)}
+              >
+                {STRESS_INDUSTRIES.map((i) => (
+                  <option key={i.id} value={i.id}>{i.label}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          <p className="max-w-xl text-xs text-muted-foreground">
+            {intakeSource === "preset"
+              ? "Canonical sample fixtures are inserted directly and each generator is invoked and polled here."
+              : "Claude writes a fresh, internally consistent company profile per geo (generate-stress-fixtures) and every selected product runs against it server-side via the stress harness. Progress streams into the live log; results also appear at /admin/static-stress."}
+          </p>
+          {claudeBatchId && intakeSource === "claude" && (
+            <span className="font-mono text-[11px] text-muted-foreground">batch {claudeBatchId}</span>
+          )}
+        </div>
+
         <div className="flex flex-wrap gap-2">
           <Button size="sm" onClick={runSelected} disabled={busy}>
             {busy ? "Running…" : `Run selected (${selected.size})`}
