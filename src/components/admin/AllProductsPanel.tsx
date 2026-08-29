@@ -813,6 +813,16 @@ export function AllProductsPanel() {
           <Button size="sm" variant="outline" onClick={downloadGoldenDataSet} disabled={busy}>
             Download golden data set
           </Button>
+          {/* CANCEL BATCH — stops the active Claude-intake batch server-side. */}
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={cancelActiveBatch}
+            disabled={!claudeBatchId || cancelling}
+          >
+            {cancelling ? "Cancelling…" : "Cancel batch"}
+          </Button>
+
           <p className="max-w-md text-xs text-muted-foreground">
             {intakeSource === "claude"
               ? "Claude generates this many companies per geography (US and EU), each run against every selected product."
