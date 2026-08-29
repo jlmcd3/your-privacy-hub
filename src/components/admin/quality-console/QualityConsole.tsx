@@ -1306,32 +1306,7 @@ export function QualityConsole({
       <CertificationStatusPanel />
 
       {/* Panel B — Live log */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>
-            Live log
-            {activeBatch && (
-              <span className="text-xs text-muted-foreground ml-2 font-mono">
-                batch {activeBatch.id.slice(0, 8)}
-              </span>
-            )}
-          </CardTitle>
-          <div className="flex items-center gap-2">
-            {logLastRefreshedAt && (
-              <span className="text-xs text-muted-foreground font-mono">
-                {new Date(logLastRefreshedAt).toLocaleTimeString()}
-              </span>
-            )}
-            <Button variant="outline" size="sm" onClick={refreshLog} disabled={logRefreshing}>
-              <RefreshCw className={`h-4 w-4 mr-2 ${logRefreshing ? "animate-spin" : ""}`} />
-              {logRefreshing ? "Refreshing…" : "Refresh log"}
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <BatchLogView entries={batchLogs} />
-        </CardContent>
-      </Card>
+      {!scoresAndLogFirst && renderLogCard()}
 
       {/* Panel C — Tools × Batches score matrix */}
       <Card>
