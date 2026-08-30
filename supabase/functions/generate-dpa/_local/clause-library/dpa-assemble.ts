@@ -57,6 +57,37 @@ export interface DpaAssembledDocument {
   readonly sections: readonly { heading: string; body: string }[];
   readonly mode: DpaMode;
   readonly assembler: string;
+  /** doc 113 Part I (RULING 9.2) — additive contract-mode structure, computed
+   * alongside `sections`/`document_text` from the same intermediate values.
+   * Neither `document_text` nor `sections[].body` changes when this is added. */
+  readonly contract: DpaContractStructured;
+}
+
+/** doc 113 Part I — typed surfaces for the contract-mode PDF renderer. */
+export interface DpaContractSection {
+  readonly heading: string;
+  readonly clauses: readonly string[];
+}
+export interface DpaContractParty {
+  readonly label: string;
+  readonly name: string;
+}
+export interface DpaContractExecution {
+  readonly statement: string;
+  readonly parties: readonly DpaContractParty[];
+}
+export interface DpaContractAnnex {
+  readonly title: string;
+  readonly rows: readonly (readonly string[])[];
+  readonly note?: string;
+}
+export interface DpaContractStructured {
+  readonly sections: readonly DpaContractSection[];
+  readonly execution: DpaContractExecution;
+  readonly annexA: DpaContractAnnex;
+  readonly annexB: DpaContractAnnex;
+  readonly annexC: DpaContractAnnex;
+  readonly annexD: DpaContractAnnex;
 }
 
 export const DPA_ASSEMBLER_STAMP = "dpa-assembler@s-d1-2026-08-27";
@@ -162,6 +193,116 @@ function annexD(input: DpaAssembleInput): string {
   ].join("\n");
 }
 
+// doc 113 Part I (RULING 9.2) — structured siblings of annexA–annexD above.
+// Deliberately NOT a refactor of those functions: each recomputes the same
+// underlying facts (same intake fields, same transfer-framing/party-label
+// logic, same sub-processor separator parsing) into typed rows, so the
+// byte-frozen flat-text builders that feed `document_text` are never
+// touched. `document_text` is read by `checkArt28Coverage`'s token matching
+// and the legacy grader payload; a refactor risk to those bytes is not
+// worth the small duplication avoided.
+function partyLabels(input: DpaAssembleInput): { ctrlLabel: string; procLabel: string } {
+  const transferFraming = input.includeTransferClause ||
+    ukEeaAdequacySplit(s(input.controllerJurisdiction), s(input.processorJurisdiction));
+  return {
+    ctrlLabel: transferFraming ? "Data exporter / Controller" : "Controller",
+    procLabel: transferFraming ? "Data importer / Processor" : "Processor",
+  };
+}
+
+function annexAStructured(input: DpaAssembleInput): DpaContractAnnex {
+  const { ctrlLabel, procLabel } = partyLabels(input);
+  return {
+    title: "Annex A — Parties",
+    rows: [
+      [ctrlLabel, `${s(input.controllerName)} (${s(input.controllerJurisdiction)}) — contact: [TO BE COMPLETED: controller contact details]`],
+      [procLabel, `${s(input.processorName)} (${s(input.processorJurisdiction)}) — contact: [TO BE COMPLETED: processor contact details]`],
+    ],
+    note: "The jurisdiction shown beside each Party is the jurisdiction whose law the record engages, not the Party's jurisdiction of formation.",
+  };
+}
+
+function annexBStructured(input: DpaAssembleInput): DpaContractAnnex {
+  const transfersRow = input.includeTransferClause
+    ? "[TO BE COMPLETED: destination country/region]"
+    : ukEeaAdequacySplit(s(input.controllerJurisdiction), s(input.processorJurisdiction))
+    ? "Between the United Kingdom and the EEA under the applicable adequacy decisions (see clause 8.1); no onward transfer to any other third country recorded."
+    : "None recorded across the engaged jurisdictions or onward to a third country.";
+  return {
+    title: "Annex B — Description of the Processing",
+    rows: [
+      ["Services (the specific business purposes)", s(input.services)],
+      ["Categories of Personal Data", input.dataCategories.length ? input.dataCategories.join(", ") : "[TO BE COMPLETED: categories of personal data]"],
+      ["Categories of data subjects", "[TO BE COMPLETED: categories of data subjects]"],
+      ["Retention", s(input.retention) || "[TO BE COMPLETED: retention period or criteria]"],
+      [input.includeTransferClause ? "Transfer destination(s)" : "Transfers", transfersRow],
+    ],
+  };
+}
+
+function annexCStructured(input: DpaAssembleInput): DpaContractAnnex {
+  const title = "Annex C — Technical and Organisational Measures";
+  const items = resolveTomsSelection(input.securityMeasuresSelected);
+  const details = s(input.securityMeasuresDetails);
+  if (items.length === 0 && !details) {
+    return {
+      title,
+      rows: DPA_TOMS_TAXONOMY.map((t) => [t.label, "[TO BE COMPLETED: applicable / not applicable — specifics]"]),
+      note: "The Parties must populate this annex before the processing commences; a bare restatement of the statutory standard does not satisfy Article 28(3)(c).",
+    };
+  }
+  const rows: string[][] = items.map((t) => [t.label, "Applicable"]);
+  if (details) rows.push(["Customer-described specifics", details]);
+  return { title, rows };
+}
+
+function annexDStructured(input: DpaAssembleInput): DpaContractAnnex {
+  const title = "Annex D — Sub-processors";
+  if (!input.hasSubProcessors) {
+    return { title, rows: [["None engaged as of the Effective Date.", "", "", ""]] };
+  }
+  const list = s(input.subProcessorList);
+  if (!list) return { title, rows: [["[TO BE COMPLETED: list approved Sub-processors here]", "", "", ""]] };
+  const TBC_SERVICE = "[TO BE COMPLETED: service]";
+  const TBC_LOCATION = "[TO BE COMPLETED: country/region where processing occurs]";
+  const TBC_DATE = "[TO BE COMPLETED: date authorised]";
+  const row = (item: string): string[] => {
+    let name = item;
+    let service = "";
+    let location = "";
+    const paren = /^(.+?)\s*\(([^)]+)\)\s*$/.exec(item);
+    if (paren) {
+      name = paren[1].trim();
+      const inner = paren[2].split(/\s*[,;]\s*/).map((t) => t.trim()).filter(Boolean);
+      service = inner[0] ?? "";
+      location = inner[1] ?? "";
+    } else {
+      const parts = item.split(/\s+—\s+|\s+\/\s+/).map((t) => t.trim()).filter(Boolean);
+      if (parts.length >= 2) {
+        name = parts[0];
+        service = parts[1] ?? "";
+        location = parts[2] ?? "";
+      }
+    }
+    return [name, service || TBC_SERVICE, location || TBC_LOCATION, TBC_DATE];
+  };
+  return {
+    title,
+    rows: list.split(/[\n;]+/).map((x) => x.trim()).filter(Boolean).map(row),
+  };
+}
+
+function buildExecution(input: DpaAssembleInput): DpaContractExecution {
+  const { ctrlLabel, procLabel } = partyLabels(input);
+  return {
+    statement: "IN WITNESS WHEREOF, the Parties have executed this DPA by their duly authorised representatives.",
+    parties: [
+      { label: ctrlLabel, name: s(input.controllerName) || "[TO BE COMPLETED: controller name]" },
+      { label: procLabel, name: s(input.processorName) || "[TO BE COMPLETED: processor name]" },
+    ],
+  };
+}
+
 export function assembleDpaDocument(input: DpaAssembleInput): DpaAssembledDocument {
   const mode = input.documentType;
   const slots: Record<string, string> = {
@@ -201,26 +342,37 @@ export function assembleDpaDocument(input: DpaAssembleInput): DpaAssembledDocume
   };
 
   const sections: { heading: string; body: string }[] = [];
+  // doc 113 Part I (RULING 9.2) — the contract-mode structure is captured
+  // from the SAME clause array before it is joined into `body`, so
+  // `document_text`/`sections[].body` below are computed exactly as before.
+  const contractSections: DpaContractSection[] = [];
   for (const sec of baseSections()) {
-    const body = sec.clauses
+    const clauseLines = sec.clauses
       .map((c) => fillSlots(c, slots))
       // DOC-81 D-2 — UK GDPR's own wording: "domestic law", not the EU
       // text's "Union or Member State law".
       .map((c) => (mode === "uk" ? ukDomesticLawVariant(c) : c))
       .map((c) => c.trim())
-      .filter(Boolean)
-      .join("\n");
+      .filter(Boolean);
+    const body = clauseLines.join("\n");
     let augmented = body;
+    let contractClauses = clauseLines;
     if (mode === "canada" && sec.heading.startsWith("4.")) {
       augmented = [body, ...CANADA_ACCOUNTABILITY_CLAUSES].join("\n");
+      contractClauses = [...clauseLines, ...CANADA_ACCOUNTABILITY_CLAUSES];
     }
     sections.push({ heading: sec.heading, body: augmented });
+    contractSections.push({ heading: sec.heading, clauses: contractClauses });
   }
 
   if ((mode === "us-state" || mode === "dual-eu-us") && input.californiaEngaged) {
     sections.push({
       heading: US_REQUIRED_TERMS_SECTION.heading,
       body: US_REQUIRED_TERMS_SECTION.clauses.join("\n"),
+    });
+    contractSections.push({
+      heading: US_REQUIRED_TERMS_SECTION.heading,
+      clauses: [...US_REQUIRED_TERMS_SECTION.clauses],
     });
   }
 
@@ -233,7 +385,16 @@ export function assembleDpaDocument(input: DpaAssembleInput): DpaAssembledDocume
     annexes,
   ].join("\n\n");
 
-  return { document_text, sections, mode, assembler: DPA_ASSEMBLER_STAMP };
+  const contract: DpaContractStructured = {
+    sections: contractSections,
+    execution: buildExecution(input),
+    annexA: annexAStructured(input),
+    annexB: annexBStructured(input),
+    annexC: annexCStructured(input),
+    annexD: annexDStructured(input),
+  };
+
+  return { document_text, sections, mode, assembler: DPA_ASSEMBLER_STAMP, contract };
 }
 
 /** The deterministic completeness check the battery runs on assembly. */

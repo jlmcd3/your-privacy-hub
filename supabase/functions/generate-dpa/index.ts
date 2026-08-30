@@ -1468,6 +1468,10 @@ ${ADVISORY_VOICE_RULES}`;
     }
 
     let fullText: string;
+    // doc 113 Part I (RULING 9.3) — the contract-mode structured data,
+    // populated only on the deterministic path below. Additive: `document_text`
+    // is computed identically to before regardless of this variable.
+    let dpaContract: import("./_local/clause-library/dpa-assemble.ts").DpaContractStructured | null = null;
     // S-D1 — deterministic path: the clause library + annex assembler, zero
     // model calls, byte-deterministic. The model path below is UNCHANGED
     // while the flag is false.
@@ -1502,6 +1506,7 @@ ${ADVISORY_VOICE_RULES}`;
       });
       console.log(JSON.stringify({ evt: "_dpa_deterministic", fn: "generate-dpa", assembler: assembled.assembler, mode: assembled.mode, sections: assembled.sections.length }));
       fullText = assembled.document_text;
+      dpaContract = assembled.contract;
     } else {
     try {
       let firstCall = await callAi("");
@@ -1676,6 +1681,10 @@ ${ADVISORY_VOICE_RULES}`;
         : [],
       deterministic_checks,
       clause_coverage,
+      // doc 113 Part I (RULING 9.3) — additive; null on the model path (us-state
+      // /canada modes, or the flag dark) so the PDF renderer falls back to the
+      // legacy flat-text path per RULING 9.4.
+      dpa_contract: dpaContract,
       generated_at: new Date().toISOString(),
       // QB-P25 Item 3 — grader-invisible drafting record (stripped by
       // METADATA_KEYS in _shared/grader/payload.ts and by _RESERVED_KEYS

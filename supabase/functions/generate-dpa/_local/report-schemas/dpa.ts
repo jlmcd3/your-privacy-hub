@@ -18,7 +18,7 @@
 import type { ReportSchema } from "../../../_shared/report-serialize.ts";
 
 export const DPA_REPORT_SCHEMA: ReportSchema = {
-  version: "rs-dpa-w2-2026-08-04",
+  version: "rs-dpa-w3-2026-08-30",
   tool: "dpa",
   topLevel: [
     // Core DPA payload
@@ -31,6 +31,11 @@ export const DPA_REPORT_SCHEMA: ReportSchema = {
     // DPA-ANNEX (Master Spec §4.11) — deterministic Art. 28(3)
     // clause-coverage checklist metadata backing the rendered annex.
     "clause_coverage",
+    // doc 113 Part I (RULING 9.3) — contract-mode structured data (deterministic
+    // path only; null on the model path). Every string inside is verbatim-
+    // identical to, or derived from the same intake fields as, text already
+    // present in `document_text` — no new leak surface.
+    "dpa_contract",
     "lint_warnings",
     // Enforcement injection
     "enforcement_precedents",
