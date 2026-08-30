@@ -89,14 +89,14 @@ export const CYBER_MATURITY_OPTIONS = [
 ] as const;
 
 // LITERAL COPY of the inline <option> lists in CPPACybersecurity.tsx.
-const INCIDENTS_12MO_OPTIONS = [
+export const INCIDENTS_12MO_OPTIONS = [
   "None",
   "1",
   "2–5",
   "More than 5",
 ] as const;
 
-const FRAMEWORK_OPTIONS = [
+export const FRAMEWORK_OPTIONS = [
   "NIST CSF",
   "ISO 27001",
   "SOC 2",
@@ -106,7 +106,7 @@ const FRAMEWORK_OPTIONS = [
   "Other",
 ] as const;
 
-const LAST_AUDIT_OPTIONS = [
+export const LAST_AUDIT_OPTIONS = [
   "Within 12 months",
   "12–24 months ago",
   "Over 24 months ago",

@@ -11,6 +11,90 @@ console.log("[build-marker] generate-stress-fixtures qi2c-biometric-none-2026-07
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+// PANEL FIX (2026-08-30, doc 108 follow-on) — the deterministic fallback
+// below previously hand-typed enum/multi-enum values ("Children & EdTech",
+// "account identifiers", short ADMT codes, …) that drifted from each
+// product's real, independently-evolving `_shared/intake-contracts/*.ts`
+// vocabulary. The new INTAKE_CONTRACT_GATE (run-stress-job/_local/
+// intake-gate.ts) validates every fixture against those SAME contract
+// objects before a product runs, so drift that used to silently degrade a
+// batch's scores now hard-fails the job. Importing the contracts' own
+// exported option lists here — the same single source of truth the gate
+// itself checks against — makes drift structurally impossible instead of
+// requiring the two to be kept in sync by hand.
+import { GOV_SECTORS, GOV_JURISDICTIONS, GOV_TOOLS, GOV_DATA_CATS } from "../_shared/intake-contracts/governance-assessment.ts";
+import { DPA_DATA_CATS, DPA_JURISDICTIONS } from "../_shared/intake-contracts/dpa-generator.ts";
+import { IR_CAUSES, IR_DATA_TYPES, IR_COUNTS, IR_JURISDICTIONS, IR_ORG_TYPES } from "../_shared/intake-contracts/ir-playbook.ts";
+import { BIO_TYPES, BIO_ORG, BIO_PURPOSE, BIO_JURS } from "../_shared/intake-contracts/biometric.ts";
+import { REGISTRATION_INDUSTRIES } from "../_shared/intake-contracts/registration-assessment.ts";
+import {
+  REVENUE_OPTS, CONSUMER_OPTS, Q5_SELL_SHARE_OPTS, Q5B_PROFILING_OPTS,
+  Q7_OPTS, Q8_OPTS, Q9_OPTS, Q10_OPTS, Q11_OPTS, Q12_OPTS, Q13_OPTS, Q14_OPTS,
+  Q15_SENSITIVE_PI_OPTS, Q15B_UNDER16_OPTS, Q16_OPTS, Q17_OPTS, Q18_OPTS, Q20_OPTS, Q21_TRAINING_OPTS,
+  CA_CONSUMER_BAND, DISCLOSURE_MECHANISMS, RETENTION_CRITERIA, HARM_TYPES,
+  CPPA_RISK_INLINE_LISTS, IMPACT_LIKELIHOOD_OPTS, IMPACT_SEVERITY_OPTS,
+  IMPACT_BENEFITS_OUTWEIGH_OPTS, IMPACT_CYBER_GAPS_OPTS,
+} from "../_shared/intake-contracts/cppa-risk-assessment.ts";
+import {
+  CPPA_ADMT_INLINE_LISTS, NOTICE_SPECIFIC_PURPOSE_OPTS, NOTICE_OPT_OUT_DESC_OPTS,
+  NOTICE_ACCESS_DESC_OPTS, NOTICE_ANTI_RET_OPTS, NOTICE_HOW_IT_WORKS_OPTS, NOTICE_ALT_PROCESS_OPTS,
+  OPT_OUT_NO_COOKIE_BANNER_OPTS, OPT_OUT_NO_ACCOUNT_REQUIRED_OPTS, ACCESS_RESPONSE_TIMELINE_OPTS,
+} from "../_shared/intake-contracts/cppa-admt.ts";
+import {
+  CYBER_MATURITY_OPTIONS, CYBER_CONTROL_SLUGS, FRAMEWORK_OPTIONS, LAST_AUDIT_OPTIONS, INCIDENTS_12MO_OPTIONS,
+} from "../_shared/intake-contracts/cppa-cybersecurity.ts";
+
+// Broad industry classification used to pick each product's OWN real enum
+// value for the same underlying concept (sector/industry/org type/…) — every
+// product's intake contract independently evolved its own closed vocabulary
+// for "what kind of company is this," so one shared "industry" string cannot
+// be passed through verbatim to any of them.
+type IndustryBucket =
+  | "tech" | "healthcare" | "financial" | "retail" | "media_adtech"
+  | "professional_services" | "education" | "government" | "legal"
+  | "manufacturing" | "hr" | "other";
+
+function classifyIndustry(industry: string): IndustryBucket {
+  const s = industry.toLowerCase();
+  if (/health|clinical|medical|pharma|life science|biotech|genom/i.test(s)) return "healthcare";
+  if (/fintech|financial|banking|insurance|kyc|identity.*verif/i.test(s)) return "financial";
+  if (/\bhr\b|human resources|employment|workforce|recruit|payroll/i.test(s)) return "hr";
+  if (/adtech|advertis|marketing|media|data broker|data intel|enrichment|social/i.test(s)) return "media_adtech";
+  if (/retail|e.?commerce|consumer goods|loyalty/i.test(s)) return "retail";
+  if (/edtech|education|school|student|child|learning|university|college/i.test(s)) return "education";
+  if (/\bgov\b|public sector|public authority|government/i.test(s)) return "government";
+  if (/legal|law firm/i.test(s)) return "legal";
+  if (/manufactur|industrial/i.test(s)) return "manufacturing";
+  if (/consult|advisory|professional service/i.test(s)) return "professional_services";
+  if (/tech|saas|software|\bai\b|machine learning|gaming|entertainment/i.test(s)) return "tech";
+  return "other";
+}
+
+const GOV_SECTOR_BY_BUCKET: Record<IndustryBucket, typeof GOV_SECTORS[number]> = {
+  tech: "Technology/SaaS", healthcare: "Healthcare/Life Sciences", financial: "Financial services",
+  retail: "Retail/ecommerce", media_adtech: "Media/advertising", professional_services: "Professional services",
+  education: "Education", government: "Government/public sector", legal: "Legal services",
+  manufacturing: "Manufacturing", hr: "Professional services", other: "Other",
+};
+const REG_INDUSTRY_BY_BUCKET: Record<IndustryBucket, typeof REGISTRATION_INDUSTRIES[number]> = {
+  tech: "SaaS / Software", healthcare: "Healthcare", financial: "Financial services",
+  retail: "E-commerce", media_adtech: "AdTech / MarTech", professional_services: "Other",
+  education: "Education", government: "Public sector", legal: "Other",
+  manufacturing: "Manufacturing", hr: "Other", other: "Other",
+};
+const BIO_ORG_BY_BUCKET: Record<IndustryBucket, typeof BIO_ORG[number]> = {
+  tech: "Consumer app or platform", healthcare: "Healthcare provider", financial: "Financial institution / fintech",
+  retail: "Consumer app or platform", media_adtech: "Consumer app or platform", professional_services: "Other",
+  education: "Other", government: "Other", legal: "Other", manufacturing: "Other",
+  hr: "Employer (employee biometrics)", other: "Other",
+};
+const BIO_PURPOSE_BY_BUCKET: Record<IndustryBucket, typeof BIO_PURPOSE[number]> = {
+  tech: "Customer authentication", healthcare: "Customer authentication", financial: "Customer authentication",
+  retail: "Customer authentication", media_adtech: "Customer authentication", professional_services: "Customer authentication",
+  education: "Customer authentication", government: "Physical access control", legal: "Customer authentication",
+  manufacturing: "Physical access control", hr: "Time & attendance / workforce management", other: "Customer authentication",
+};
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -599,104 +683,134 @@ function getEuNoticeAutomatedDecisions(industry: string): string {
   return "no";
 }
 
+const COUNTRY_JURISDICTION_NAME: Record<string, typeof DPA_JURISDICTIONS[number]> = {
+  GB: "United Kingdom", DE: "Germany", FR: "France", IE: "Ireland", NL: "Netherlands", ES: "Spain",
+};
+
 function buildDeterministicProfile(industry: string, geo: string, slot: number, companyId: string) {
   const c = buildCompany(industry, geo, slot, companyId);
-  // Governance intake surfaces jurisdictions as display strings; the Registration
-  // engine consumes ISO codes ("US", "US-CA", "US-VA" / "EU", country ISO, "GB").
-  // Keep the two representations distinct so display strings never leak into the
-  // engine's `code` slot and produce duplicate jurisdictions
-  // (one keyed on ISO, one keyed on the readable name).
-  // Canonical mapping lives in src/data/registration_jurisdictions.ts.
-  const jurisdictionsDisplay = geo === "eu"
-    ? ["European Union", "United Kingdom", c.countryCode]
-    : ["United States", "California (US)", "Virginia (US)"];
-  const jurisdictionsIso = geo === "eu"
-    ? [c.countryCode, "GB"]
-    : ["US-CA", "US-VA"];
-
-  const dataCategories = ["account identifiers", "contact details", "usage logs", "device identifiers", "support records"];
+  const bucket = classifyIndustry(industry);
   const usesBiometric = /health|financial|security|workforce|hr/i.test(industry);
+
+  // Governance's own jurisdiction vocabulary is compliance-regime names
+  // ("EU (GDPR)"), never raw country names.
+  const jurisdictionsGov: (typeof GOV_JURISDICTIONS[number])[] = geo === "eu"
+    ? ["EU (GDPR)", "United Kingdom (UK GDPR)"]
+    : ["California (CCPA/CPRA)", "United States — Federal"];
+  // Registration's own vocabulary is ISO/state codes; it spells the UK "UK",
+  // not the company's own ISO-3166 "GB".
+  const jurisdictionsIso = geo === "eu" ? [c.countryCode === "GB" ? "UK" : c.countryCode, "UK"] : ["US-CA", "US-VA"];
+
+  const govDataCategories: (typeof GOV_DATA_CATS[number])[] = [
+    "Contact details", "Customer records",
+    ...(usesBiometric ? ["Biometric data" as const] : []),
+    ...(bucket === "education" ? ["Children's data" as const] : []),
+    ...(bucket === "healthcare" ? ["Health or medical data" as const] : []),
+    ...(bucket === "financial" ? ["Financial data" as const] : []),
+  ];
+  const dpaDataCategories: (typeof DPA_DATA_CATS[number])[] = [
+    "General personal data",
+    ...(usesBiometric ? ["Biometric data" as const] : []),
+    ...(bucket === "education" ? ["Children's data (under 18)" as const] : []),
+    ...(bucket === "healthcare" ? ["Health / medical data" as const] : []),
+    ...(bucket === "financial" ? ["Financial / payment data" as const] : []),
+  ];
+
+  const controllerJurisdiction: typeof DPA_JURISDICTIONS[number] = geo === "eu"
+    ? (COUNTRY_JURISDICTION_NAME[c.countryCode] ?? "Germany")
+    : "California";
+
+  const irJurisdictions: (typeof IR_JURISDICTIONS[number])[] = geo === "eu" ? ["Ireland", "Germany"] : ["California", "Texas"];
+  const irOrgType: typeof IR_ORG_TYPES[number] =
+    bucket === "government" ? "Public authority" : bucket === "healthcare" ? "Healthcare provider"
+    : bucket === "financial" ? "Financial institution" : "Company";
+
+  const bioJurs: (typeof BIO_JURS[number])[] = geo === "eu"
+    ? ["EU / EEA (GDPR)", "United Kingdom (UK GDPR)"]
+    : ["California, USA (CCPA/CPRA)", "United States — Federal (FTC)"];
+  const bioTypes: (typeof BIO_TYPES[number])[] = usesBiometric
+    ? ["Facial geometry / facial recognition", "Voiceprint / speaker recognition"]
+    : ["Fingerprint / palm print"];
+
   return {
     ...c,
     governance: {
-      sector: industry,
-      org_size: slot === 1 ? "Large Enterprise" : "Mid-Market",
-      jurisdictions: jurisdictionsDisplay,
-
-      eu_uk_data: geo === "eu" ? "Yes" : "No",
-      tools: ["OneTrust", "Jira", "AWS", "Salesforce"],
-      data_categories: dataCategories,
-      special_category: usesBiometric || /health|hr|children|education/i.test(industry) ? "Yes" : "No",
-      special_categories_list: usesBiometric ? ["biometric identifiers"] : [],
-      privacy_policy: "Published and reviewed annually",
-      
-      dpo_status: geo === "eu" ? "DPO appointed" : "Privacy lead appointed",
-      dpia_status: "Completed for high-risk workflows",
-      incident_response: "Documented playbook tested twice per year",
-      training_status: "Annual mandatory privacy training",
-      tool_instruction: "Centralised privacy workflow and vendor tracking",
-      dpa_status: "DPAs in place for material processors",
-      transfer_status: geo === "eu" ? "SCCs and UK addendum used for restricted transfers" : "Vendor transfer review completed",
+      sector: GOV_SECTOR_BY_BUCKET[bucket],
+      org_size: (slot === 1 ? "251-1000" as const : "51-250" as const),
+      jurisdictions: jurisdictionsGov,
+      eu_uk_data: (geo === "eu" ? "Yes" as const : "No" as const),
+      tools: [GOV_TOOLS[0], GOV_TOOLS[3]],
+      data_categories: govDataCategories,
+      special_category: (usesBiometric || bucket === "healthcare" || bucket === "education" ? "Yes" as const : "No" as const),
+      special_categories_list: usesBiometric ? ["Biometric data" as const] : [],
+      privacy_policy: "Yes, current (reviewed in last 12 months)" as const,
+      dpo_status: (geo === "eu" ? "Yes, formal DPO" as const : "Yes, informal privacy lead" as const),
+      dpia_status: "Yes, one DPIA completed" as const,
+      incident_response: "Yes, tested in last 12 months" as const,
+      training_status: "Yes, formal onboarding + annual refresh" as const,
+      tool_instruction: "Yes, written policy with specific prohibitions" as const,
+      dpa_status: "Yes, all vendors" as const,
+      transfer_status: (geo === "eu" ? "Yes, US-based tools" as const : "Unsure" as const),
+      technical_controls: "Partial — some tools or categories" as const,
+      dsr_capability: "Documented but not tested" as const,
+      inventory_audit: "Inventory exists, no formal audit/approval" as const,
     },
     dpa: {
+      entityName: c.companyName,
       controllerName: c.companyName,
-      controllerJurisdiction: geo === "eu" ? c.countryCode : "California",
+      controllerJurisdiction,
       processorName: geo === "eu" ? "Nimbus Processing GmbH" : "Northstar Data Services LLC",
-      processorJurisdiction: geo === "eu" ? "Germany" : "California",
+      processorJurisdiction: (geo === "eu" ? "Germany" : "California") as typeof DPA_JURISDICTIONS[number],
       documentType: geo === "eu" ? "gdpr" : "us-state",
       services: `${industry} analytics, hosting, and support services`,
-      dataCategories,
-      
-      retention: "24 months after last active relationship",
+      dataCategories: dpaDataCategories,
+      retention: "For the duration of the principal agreement, then delete or return",
       hasSubProcessors: true,
       subProcessorList: "AWS, Snowflake, Zendesk",
       legalFramework: geo === "eu" ? "GDPR" : "US",
-      auditRights: "Annual audit rights with reasonable notice",
+      auditRights: "Annual audit — third-party audit summary plus right of on-site inspection on reasonable notice",
       includeTransferClause: geo === "eu",
-      transferMechanism: geo === "eu" ? "EU SCCs and UK IDTA" : null,
+      transferMechanism: geo === "eu" ? "EU Standard Contractual Clauses (SCCs)" : null,
     },
     irPlaybook: {
-      cause: "Compromised vendor credential exposed a limited support dataset",
-      dataTypes: ["names", "emails", "account IDs", "support notes"],
-      affectedCount: slot === 1 ? "186,000" : "24,500",
-      jurisdictions: jurisdictionsDisplay,
-
+      cause: "Unauthorized external access / cyberattack" as typeof IR_CAUSES[number],
+      dataTypes: ["Names and contact details", "Passwords / credentials"] as (typeof IR_DATA_TYPES[number])[],
+      affectedCount: (slot === 1 ? "More than 100,000" : "10,000–100,000") as typeof IR_COUNTS[number],
+      jurisdictions: irJurisdictions,
       processorInvolved: true,
-      contained: "Credentials revoked, sessions invalidated, logs preserved, vendor access restricted",
-      organisationType: `${industry} operator`,
+      contained: "Yes" as const,
+      organisationType: irOrgType,
     },
     biometric: {
       orgName: c.companyName,
-      biometricTypes: usesBiometric ? ["facial template", "voiceprint"] : ["none currently deployed"],
-      orgType: `${industry} organisation`,
-      purpose: usesBiometric
-        ? "Identity verification and fraud prevention"
-        : "None — no biometric systems currently in use",
-      jurisdictions: jurisdictionsDisplay,
+      biometricTypes: bioTypes,
+      orgType: BIO_ORG_BY_BUCKET[bucket],
+      purpose: BIO_PURPOSE_BY_BUCKET[bucket],
+      jurisdictions: bioJurs,
     },
     registration: {
       organization_name: c.companyName,
       organization_country: c.countryCode,
-      organization_size: slot === 1 ? "large" : "medium",
-      industry,
+      organization_size: (slot === 1 ? "large" as const : "medium" as const),
+      industry: REG_INDUSTRY_BY_BUCKET[bucket],
       email: c.privacyEmail,
       employee_count: c.employeeCount,
       annual_revenue_usd: slot === 1 ? 310000000 : 72000000,
       data_subjects_count: slot === 1 ? 1200000 : 95000,
-      role: "controller",
+      role: "controller" as const,
       processes_personal_data: true,
       processes_special_categories: usesBiometric,
-      processes_children_data: /gaming|education|media/i.test(industry),
+      processes_children_data: bucket === "education",
       large_scale_monitoring: slot === 1,
-      uses_ai_systems: /ai|adtech|financial|health|gaming/i.test(industry),
-      ai_high_risk: /hr|health|financial/i.test(industry),
-      ai_general_purpose_provider: /ai/i.test(industry),
+      uses_ai_systems: bucket === "tech" || bucket === "media_adtech" || bucket === "financial" || bucket === "healthcare",
+      ai_high_risk: bucket === "hr" || bucket === "healthcare" || bucket === "financial",
+      ai_general_purpose_provider: bucket === "tech",
       cross_border_transfers: true,
       markets_served: jurisdictionsIso,
       has_eu_establishment: geo === "eu",
       has_uk_establishment: geo === "eu",
-      acts_as_data_broker: /adtech|marketing|data.broker|data.intel|enrichment/i.test(industry),
-      sells_or_shares_personal_info: /adtech|marketing|media|data.broker|data.intel|enrichment/i.test(industry),
+      acts_as_data_broker: bucket === "media_adtech",
+      sells_or_shares_personal_info: bucket === "media_adtech" || bucket === "retail",
       processes_biometrics_for_id: usesBiometric,
     },
   };
@@ -891,6 +1005,15 @@ function buildAdmtFallback(companyName: string, industry: string, slot: number) 
   const isHr = /\bhr\b|human resources|hiring|recruit/i.test(industry);
   const isAdtech = /adtech|marketing|advertis/i.test(industry);
   const isGaming = /gaming|entertainment/i.test(industry);
+  // CPPA's own SIGNIFICANT_DECISION_DOMAINS list has no "advertising" or
+  // "entertainment" domain — behavioral advertising/gameplay personalization
+  // are not themselves CPPA-significant decisions. Every non-employment
+  // branch is framed instead as a financing/credit-eligibility decision
+  // (the system_description below already talks in eligibility/pricing
+  // terms), which the closed list does support.
+  const decisionDomain: typeof CPPA_ADMT_INLINE_LISTS.SIGNIFICANT_DECISION_DOMAINS[number] = isHr
+    ? "Hiring or admission decisions"
+    : "Financial or lending services (credit decisions, loans, accounts)";
   return {
     organization_name: companyName,
     system_name:
@@ -906,39 +1029,34 @@ function buildAdmtFallback(companyName: string, industry: string, slot: number) 
         : isHr
         ? "NLP-based resume parser and ranking model that scores applicants 0–100 for initial screening shortlists; human recruiter reviews all shortlisted candidates before any employment decision is made."
         : isAdtech
-        ? "Collaborative-filtering model that assigns consumers to behavioral segments used for targeted advertising on third-party platforms. The model processes browsing history, purchase signals, and demographic inferences to determine which advertising audiences a consumer is placed in."
+        ? "Collaborative-filtering model that assigns consumers to behavioral segments used for targeted advertising on third-party platforms and to determine eligibility for promotional credit or financing offers extended through the platform."
         : isGaming
-        ? "Reinforcement-learning model that adjusts in-game difficulty and surfaces in-game purchase offers based on player behavior signals. The system determines which items are shown to which players and at what price points, and is used solely for entertainment service personalization — not for any financial, housing, employment, education, or healthcare decision."
+        ? "Reinforcement-learning model that determines eligibility for in-game credit and installment purchase offers based on player spending history."
         : "Gradient-boosted ensemble that produces a risk score used to determine service eligibility and pricing tiers for California consumers.",
-    decision_domains:
-      isFintech ? ["financial_services"] :
-      isHr ? ["employment"] :
-      isAdtech ? ["advertising"] :
-      isGaming ? ["entertainment_personalization"] :
-      ["service_eligibility"],
-    human_review: isHr
-      ? "Yes — recruiter reviews all shortlisted candidates before any employment decision"
-      : "No — fully automated; opt-out suppresses scoring immediately",
+    decision_domains: [decisionDomain],
+    human_review: (isHr
+      ? "Yes — reviewer knows how to interpret output, reviews it plus other info, and has authority to change the decision"
+      : "No — fully automated, no human review") as typeof CPPA_ADMT_INLINE_LISTS.HUMAN_REVIEW_OPTIONS[number],
     training_data_use: "Yes",
     profiling_use: "Yes",
-    notice_delivery: ["privacy_policy", "just_in_time"],
-    notice_has_specific_purpose: "Yes",
+    notice_delivery: ["Included in our Notice at Collection", "In-app just-in-time notice before data collection"] as (typeof CPPA_ADMT_INLINE_LISTS.NOTICE_DELIVERY_OPTIONS[number])[],
+    notice_has_specific_purpose: NOTICE_SPECIFIC_PURPOSE_OPTS[0],
     notice_purpose_text:
       isFintech ? "To assess your creditworthiness using automated analysis of your payment history and financial data, for the purpose of determining your eligibility for a loan or credit product." :
       isHr ? "To screen and rank your job application using automated analysis of your resume and application materials, for the purpose of initial candidate shortlisting for employment opportunities." :
-      isAdtech ? "To assign you to behavioral audience segments for the purpose of delivering targeted advertising on behalf of our advertising clients." :
-      isGaming ? "To personalize your in-game experience and surface relevant in-game offers using automated analysis of your gameplay behavior." :
+      isAdtech ? "To assign you to behavioral audience segments and to assess your eligibility for promotional financing offers using automated analysis of your data." :
+      isGaming ? "To assess your eligibility for in-game credit and installment offers using automated analysis of your spending behavior." :
       "To assess eligibility and personalize your experience using automated analysis of your data.",
-    notice_has_opt_out_desc: "Yes",
-    notice_has_access_desc: "Yes",
-    notice_has_anti_retaliation: "Yes",
-    notice_has_how_it_works: isAdtech || isGaming ? "No" : "Yes",
-    notice_has_alternative_process: isHr ? "Yes" : "No",
+    notice_has_opt_out_desc: NOTICE_OPT_OUT_DESC_OPTS[0],
+    notice_has_access_desc: NOTICE_ACCESS_DESC_OPTS[0],
+    notice_has_anti_retaliation: NOTICE_ANTI_RET_OPTS[0],
+    notice_has_how_it_works: (isAdtech || isGaming ? "No" : NOTICE_HOW_IT_WORKS_OPTS[0]) as typeof NOTICE_HOW_IT_WORKS_OPTS[number],
+    notice_has_alternative_process: (isHr ? "Yes" : "No") as typeof NOTICE_ALT_PROCESS_OPTS[number],
     opt_out_exception: "none",
-    opt_out_methods: ["webform", "email"],
+    opt_out_methods: ["Interactive online form linked from the Pre-use Notice", "Designated email address"] as (typeof CPPA_ADMT_INLINE_LISTS.OPT_OUT_METHODS[number])[],
     opt_out_link_title: "Opt Out of Automated Decisions",
-    opt_out_no_cookie_banner: "Yes",
-    opt_out_no_account_required: "Yes",
+    opt_out_no_cookie_banner: OPT_OUT_NO_COOKIE_BANNER_OPTS[0],
+    opt_out_no_account_required: OPT_OUT_NO_ACCOUNT_REQUIRED_OPTS[0],
     opt_out_confirmation_mechanism: "Email confirmation within 24 hours",
     opt_out_appeal_process: "Consumer may request human review within 30 days",
     opt_out_fairness_doc: isAdtech || isGaming ? "" : "Fairness testing documented in the model card and reviewed quarterly.",
@@ -949,7 +1067,7 @@ function buildAdmtFallback(companyName: string, industry: string, slot: number) 
       ? "No — pending publication of a plain-language logic summary"
       : "Yes — plain-language description of inputs and weightings provided",
     access_outcome_disclosure: "Yes — score and tier communicated at point of decision",
-    access_response_timeline: "45 days",
+    access_response_timeline: ACCESS_RESPONSE_TIMELINE_OPTS[0],
     access_trade_secret_policy: "Proprietary model weights withheld; all other factors disclosed",
     ca_consumer_count: slot === 1 ? "500,000+" : "75,000",
     third_party_admt: isAdtech ? "Yes" : "No",
@@ -1074,31 +1192,39 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
         /adtech|marketing|media/i.test(industry) ? "Behavioural audience segmentation of California consumers" :
         /health|clinical|pharma|biotech/i.test(industry) ? "Care-management risk scoring of California patients" :
         `Automated risk scoring of California customers in ${industry}`,
-      q1_revenue: slot === 1 ? "Over $100M" : "$25M to under $50M",
-      q2_consumers: slot === 1 ? "1,000,000 or more" : "Under 100,000",
-      q3_sector: industry,
-      q4_pi_categories: ["identifiers", "internet activity", "commercial information"],
-      q5_sell_share: "Yes",
-      q5b_profiling_observation: /adtech|marketing|data.broker|ai|financial|hr/i.test(industry) ? "Yes" : "No",
-      q6_right_know: "Yes",
-      q6_right_know_multi: ["categories", "specific pieces", "sources", "purposes"],
-      q7_right_delete: "Yes", q8_right_correct: "Yes", q9_opt_out: "Yes",
-      q10_id_verification: "Documented", q11_policy_review: "Annual",
-      q12_notice_at_collection: "Provided", q13_notice_content: "Complete", q14_employee_notice: "Provided",
-      q15_sensitive_pi: /health|financial|hr/i.test(industry) ? "Yes" : "No",
-      q15b_under16_knowledge: /gaming|edtech|children|social/i.test(industry) ? "Yes" : "No",
-      q16_sensitive_limit: "Available where required", q17_sensitive_basis: "Service delivery and security",
-      q18_admt_use: /ai|financial|hr|adtech/i.test(industry) ? "Yes" : "No",
-      q18b_admt_training: /ai|adtech|financial|hr/i.test(industry) ? "Yes" : "No",
+      q1_revenue: (slot === 1 ? "Over $100M" : "$25M to under $50M") as typeof REVENUE_OPTS[number],
+      q2_consumers: (slot === 1 ? "1,000,000 or more" : "Under 100,000") as typeof CONSUMER_OPTS[number],
+      q3_sector: GOV_SECTOR_BY_BUCKET[classifyIndustry(industry)] as typeof CPPA_RISK_INLINE_LISTS.SECTORS[number],
+      q4_pi_categories: [
+        "Contact identifiers (name, email, phone)", "Device identifiers (IP, cookies, device IDs)", "Internet or network activity",
+      ] as (typeof CPPA_RISK_INLINE_LISTS.PI_CATEGORIES[number])[],
+      q5_sell_share: "Yes — sell only" as typeof Q5_SELL_SHARE_OPTS[number],
+      q5b_profiling_observation: (/adtech|marketing|data.broker|ai|financial|hr/i.test(industry) ? "Yes" : "No") as typeof Q5B_PROFILING_OPTS[number],
+      q6_right_know: "Online form with identity verification; Email or written request process",
+      q6_right_know_multi: ["Online form with identity verification", "Email or written request process"] as (typeof CPPA_RISK_INLINE_LISTS.Q6_ACCESS_OPTS[number])[],
+      q7_right_delete: "Automated deletion with confirmation" as typeof Q7_OPTS[number],
+      q8_right_correct: "Online self-service" as typeof Q8_OPTS[number],
+      q9_opt_out: "Yes, prominently on homepage" as typeof Q9_OPTS[number],
+      q10_id_verification: "Documented verification process matching CPPA guidance" as typeof Q10_OPTS[number],
+      q11_policy_review: "Within 12 months" as typeof Q11_OPTS[number],
+      q12_notice_at_collection: "Yes, covers all collection points" as typeof Q12_OPTS[number],
+      q13_notice_content: "Yes, all three" as typeof Q13_OPTS[number],
+      q14_employee_notice: "Yes" as typeof Q14_OPTS[number],
+      q15_sensitive_pi: (/health|financial|hr/i.test(industry) ? "Yes" : "No") as typeof Q15_SENSITIVE_PI_OPTS[number],
+      q15b_under16_knowledge: (/gaming|edtech|children|social/i.test(industry) ? "Yes — we knowingly process under-16 data" : "No — we do not knowingly process under-16 data") as typeof Q15B_UNDER16_OPTS[number],
+      q16_sensitive_limit: "Yes, handled within privacy settings" as typeof Q16_OPTS[number],
+      q17_sensitive_basis: "Necessary for the service" as typeof Q17_OPTS[number],
+      q18_admt_use: (/ai|financial|hr|adtech/i.test(industry) ? "Yes" : "No") as typeof Q18_OPTS[number],
+      q18b_admt_training: (/ai|adtech|financial|hr/i.test(industry) ? "Yes — training ADMT for significant decisions" : "No") as typeof Q21_TRAINING_OPTS[number],
       q19_admt_description: "Risk scoring and service personalization",
-      q20_admt_opt_out: "Available where required",
+      q20_admt_opt_out: "Yes, with documented opt-out" as typeof Q20_OPTS[number],
       i1_processing_purpose: "Service delivery, security, analytics, and support",
       i1b_min_pi: "Account identifier, contact email, and transaction history necessary to score risk and deliver service.",
       i2_retention_period: "24 months",
-      i2_retention_criteria: "Account lifecycle and legal requirements",
+      i2_retention_criteria: "Fixed period from collection" as typeof RETENTION_CRITERIA[number],
       i2_retention_detail: "Deleted or de-identified after retention window",
-      i3_ca_consumer_band: slot === 1 ? "100k+" : "50k-100k",
-      i4_disclosure_mechanisms: ["privacy notice", "preference centre", "DSAR portal"],
+      i3_ca_consumer_band: (slot === 1 ? "100,000–1,000,000" : "10,000–100,000") as typeof CA_CONSUMER_BAND[number],
+      i4_disclosure_mechanisms: ["Privacy policy", "Notice at Collection"] as (typeof DISCLOSURE_MECHANISMS[number])[],
       i4b_sources: "Directly from the consumer at signup; generated during service use; supplemented by service providers and public records.",
       i5_admt_logic: "Rules-based scoring with human review",
       i5_admt_training_source: "Internal operational data",
@@ -1124,13 +1250,13 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
         consumer_request:   { claimed: false, scope: "", safeguards: "" },
       },
       impact_intake: {
-        likelihood: "Possible",
-        severity: /health|financial|hr/i.test(industry) ? "Significant" : "Moderate",
-        harmTypes: ["Unauthorised access, destruction, use, modification, or disclosure", "Impairment of consumer control over personal information"],
+        likelihood: "Possible" as typeof IMPACT_LIKELIHOOD_OPTS[number],
+        severity: (/health|financial|hr/i.test(industry) ? "Significant" : "Moderate") as typeof IMPACT_SEVERITY_OPTS[number],
+        harmTypes: ["Unauthorised access, destruction, use, modification, or disclosure", "Impairment of consumer control over personal information"] as (typeof HARM_TYPES[number])[],
         vulnerable: /gaming|edtech|children|health/i.test(industry) ? "Minors may be affected; processing is limited to service delivery." : "No specific vulnerable population identified.",
-        benefitsOutweigh: "Yes",
+        benefitsOutweigh: "Yes" as typeof IMPACT_BENEFITS_OUTWEIGH_OPTS[number],
         benefitsRationale: "Fraud prevention and service reliability benefits materially exceed the limited privacy impact after safeguards.",
-        cyberGaps: "No",
+        cyberGaps: "No" as typeof IMPACT_CYBER_GAPS_OPTS[number],
         businessBenefits: "Reduces fraud losses and supports service continuity.",
         consumerBenefits: "Protects account integrity and service availability.",
         stakeholderBenefits: "Reduces systemic fraud exposure across the ecosystem.",
@@ -1138,15 +1264,29 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
         harmCauses: "Any harm would arise from unauthorised access to processed data or misconfiguration of automated scoring.",
       },
     },
+    // FC-cyber shape fix — the contract (`_shared/intake-contracts/
+    // cppa-cybersecurity.ts`) expects `profile.*` nested fields and
+    // `controls` as an ARRAY of {key, label, maturity, notes, evidence}
+    // records keyed by CYBER_CONTROL_SLUGS, not the flat top-level fields
+    // and slug-keyed object this used to emit — the mismatch meant these
+    // fields never resolved at all under the contract's dotted-path/`[]`
+    // reader, silently routing every cppa-cyber fixture past the gate as
+    // "missing" rather than actually validating it.
     cppaCyber: {
-      profile_industry: industry,
-      profile_audit: "Within 12 months",
-      industry_sector: industry,
-      company_name: c.companyName,
-      controls: Object.fromEntries(
-        ["c1_auth","c2_encryption","c3_account_access","c4_inventory","c5_secure_config","c6_vuln_mgmt","c7_audit_logs","c8_network_mon","c9_anti_malware","c10_segmentation","c11_port_protocol","c12_awareness","c13_training","c14_secure_dev","c15_third_party","c16_retention","c17_incident","c18_continuity"]
-          .map((k) => [k, ["implemented", "Documented and reviewed"]])
-      ),
+      profile: {
+        entity_name: c.companyName,
+        industry,
+        incidents_12mo: "None" as typeof INCIDENTS_12MO_OPTIONS[number],
+        framework: "NIST CSF" as typeof FRAMEWORK_OPTIONS[number],
+        last_audit: "Within 12 months" as typeof LAST_AUDIT_OPTIONS[number],
+      },
+      controls: CYBER_CONTROL_SLUGS.map((slug) => ({
+        key: slug,
+        label: slug.replace(/^c\d+_/, "").replace(/_/g, " ").replace(/\b\w/g, (m) => m.toUpperCase()),
+        maturity: "Implemented across organization" as typeof CYBER_MATURITY_OPTIONS[number],
+        notes: "Documented and reviewed by the security team.",
+        evidence: ["Policy / procedure document"] as string[],
+      })),
     },
     cppaAdmt: buildAdmtFallback(c.companyName, industry, slot),
     lia: null,
@@ -1277,7 +1417,7 @@ function normalizeCppaRiskTriggers<T extends Record<string, any>>(data: T): T {
       triggerYes(r.q15_sensitive_pi) ||
       triggerYes(r.q18_admt_use) ||
       triggerYes(r.q15b_under16_knowledge);
-    if (!hasTrigger) r.q5_sell_share = "Yes";
+    if (!hasTrigger) r.q5_sell_share = "Yes — sell only";
   }
   return data;
 }

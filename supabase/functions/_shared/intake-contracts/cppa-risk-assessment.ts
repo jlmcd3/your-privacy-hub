@@ -261,25 +261,25 @@ export const CONSUMER_INTERACTION_METHOD_OPTS = [
 // deterministic predicates keep a narrow legacy-compat clause for the two
 // retired values that genuinely affirmed the OBSERVATION branch, so stored
 // records re-run under the engine do not silently lose that trigger.
-const Q5B_PROFILING_OPTS = [
+export const Q5B_PROFILING_OPTS = [
   "Yes",
   "No",
 ] as const;
-const Q7_OPTS = ["Automated deletion with confirmation", "Manual process, documented", "Case-by-case handling", "No formal process"] as const;
-const Q8_OPTS = ["Online self-service", "Handled via support", "No formal process"] as const;
-const Q9_OPTS = ["Yes, prominently on homepage", "Yes, but in footer only", "In progress", "No"] as const;
-const Q10_OPTS = ["Documented verification process matching CPPA guidance", "Informal verification", "No verification process"] as const;
-const Q11_OPTS = ["Within 12 months", "12–24 months ago", "Over 24 months ago", "No privacy policy"] as const;
-const Q12_OPTS = ["Yes, covers all collection points", "Yes, partial coverage", "No"] as const;
-const Q13_OPTS = ["Yes, all three", "Some elements", "No"] as const;
-const Q14_OPTS = ["Yes", "No — we use our general privacy policy", "Not applicable (no CA employees)"] as const;
-const Q16_OPTS = [
+export const Q7_OPTS = ["Automated deletion with confirmation", "Manual process, documented", "Case-by-case handling", "No formal process"] as const;
+export const Q8_OPTS = ["Online self-service", "Handled via support", "No formal process"] as const;
+export const Q9_OPTS = ["Yes, prominently on homepage", "Yes, but in footer only", "In progress", "No"] as const;
+export const Q10_OPTS = ["Documented verification process matching CPPA guidance", "Informal verification", "No verification process"] as const;
+export const Q11_OPTS = ["Within 12 months", "12–24 months ago", "Over 24 months ago", "No privacy policy"] as const;
+export const Q12_OPTS = ["Yes, covers all collection points", "Yes, partial coverage", "No"] as const;
+export const Q13_OPTS = ["Yes, all three", "Some elements", "No"] as const;
+export const Q14_OPTS = ["Yes", "No — we use our general privacy policy", "Not applicable (no CA employees)"] as const;
+export const Q16_OPTS = [
   "Yes, with a separate \"Limit the Use of My Sensitive PI\" link",
   "Yes, handled within privacy settings",
   "No",
   "Not yet implemented",
 ] as const;
-const Q17_OPTS = ["Consent", "Necessary for the service", "Employment contract", "Other permitted purpose"] as const;
+export const Q17_OPTS = ["Consent", "Necessary for the service", "Employment contract", "Other permitted purpose"] as const;
 // PN-CORPUS-L-RISK-1 (2026-08-22) — § 7150(b)(2)(A) personnel carve-out.
 // The gate evaluator matches the "Yes — solely…" literal exactly.
 const Q15D_HR_CARVEOUT_OPTS = [
@@ -287,20 +287,20 @@ const Q15D_HR_CARVEOUT_OPTS = [
   "No — processed for other purposes as well",
   "Not applicable — no employee or contractor sensitive PI",
 ] as const;
-const Q18_OPTS = ["Yes", "No", "In evaluation"] as const;
-const Q15B_UNDER16_OPTS = [
+export const Q18_OPTS = ["Yes", "No", "In evaluation"] as const;
+export const Q15B_UNDER16_OPTS = [
   "Yes — we knowingly process under-16 data",
   "No — we do not knowingly process under-16 data",
   "Unsure",
 ] as const;
-const Q20_OPTS = ["Yes, with documented opt-out", "Planned for implementation", "No"] as const;
-const Q21_TRAINING_OPTS = [
+export const Q20_OPTS = ["Yes, with documented opt-out", "Planned for implementation", "No"] as const;
+export const Q21_TRAINING_OPTS = [
   "Yes — training ADMT for significant decisions",
   "Yes — training facial/emotion/biometric recognition",
   "No",
 ] as const;
-const CA_CONSUMER_BAND = ["Fewer than 10,000", "10,000–100,000", "100,000–1,000,000", "More than 1,000,000", "Unsure"] as const;
-const DISCLOSURE_MECHANISMS = [
+export const CA_CONSUMER_BAND = ["Fewer than 10,000", "10,000–100,000", "100,000–1,000,000", "More than 1,000,000", "Unsure"] as const;
+export const DISCLOSURE_MECHANISMS = [
   "Notice at Collection",
   "Privacy policy",
   "Just-in-time notice",
@@ -309,7 +309,7 @@ const DISCLOSURE_MECHANISMS = [
   "Contract / terms of service",
   "No standalone disclosure",
 ] as const;
-const RETENTION_CRITERIA = [
+export const RETENTION_CRITERIA = [
   "Fixed period from collection",
   "Duration of account / relationship",
   "Statutory or regulatory retention requirement",

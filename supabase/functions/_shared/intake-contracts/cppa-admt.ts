@@ -96,40 +96,40 @@ const OPT_OUT_EXCEPTIONS = [
   "No exception — we provide a full opt-out right",
 ] as const;
 
-const NOTICE_SPECIFIC_PURPOSE_OPTS = [
+export const NOTICE_SPECIFIC_PURPOSE_OPTS = [
   "Yes",
   "No — uses generic language",
   "We have not yet created a Pre-use Notice",
 ] as const;
-const NOTICE_OPT_OUT_DESC_OPTS = [
+export const NOTICE_OPT_OUT_DESC_OPTS = [
   "Yes — with specific opt-out instructions",
   "Mentions opt-out but without clear instructions",
   "No",
   "We rely on an exception and describe appeal rights instead",
 ] as const;
-const NOTICE_ACCESS_DESC_OPTS = ["Yes", "No", "Not yet"] as const;
-const NOTICE_ANTI_RET_OPTS = ["Yes", "No", "Not yet"] as const;
-const NOTICE_HOW_IT_WORKS_OPTS = [
+export const NOTICE_ACCESS_DESC_OPTS = ["Yes", "No", "Not yet"] as const;
+export const NOTICE_ANTI_RET_OPTS = ["Yes", "No", "Not yet"] as const;
+export const NOTICE_HOW_IT_WORKS_OPTS = [
   "Yes — included inline in the notice",
   "Yes — via hyperlink or layered notice",
   "Partial — some elements missing",
   "No",
   "Not yet",
 ] as const;
-const NOTICE_ALT_PROCESS_OPTS = [
+export const NOTICE_ALT_PROCESS_OPTS = [
   "Yes",
   "No",
   "Not applicable — we rely on an opt-out exception",
 ] as const;
-const OPT_OUT_NO_COOKIE_BANNER_OPTS = [
+export const OPT_OUT_NO_COOKIE_BANNER_OPTS = [
   "Confirmed — we provide at least one ADMT-specific opt-out method in addition",
   "Cookie banner is currently our only method (gap)",
 ] as const;
-const OPT_OUT_NO_ACCOUNT_REQUIRED_OPTS = [
+export const OPT_OUT_NO_ACCOUNT_REQUIRED_OPTS = [
   "Confirmed — no account required",
   "Account is currently required (gap)",
 ] as const;
-const ACCESS_RESPONSE_TIMELINE_OPTS = [
+export const ACCESS_RESPONSE_TIMELINE_OPTS = [
   "Within 45 calendar days (standard)",
   "Within 45 days with documented 45-day extension capability",
   "Our process is not yet defined",
