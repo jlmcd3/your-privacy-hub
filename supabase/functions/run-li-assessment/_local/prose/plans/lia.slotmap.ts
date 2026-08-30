@@ -39,6 +39,11 @@ export type LiaSlotRender =
   | "short-list"
   | "adverbial"
   | "quoted-attributed"
+  // BATCH 19a housekeeping (2026-08-30): the ¶27 scale-attribution re-pin
+  // (panel LIA-P2) introduced this render mode in the slot rows without
+  // extending the union — a latent TS2322 the --no-check battery never
+  // surfaced. Union completed; no behavior change.
+  | "quoted-as-recorded"
   | "derived-phrase"
   | "clause-or-omitted"
   | "conditional-trigger";

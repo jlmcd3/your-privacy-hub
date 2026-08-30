@@ -656,34 +656,51 @@ export function buildEvidencePreservation(intake: Bag, d: CyberDeliverables): { 
 
 // ── Executive summary lines (v1.1 front section) ───────────────────────────
 
-export function buildExecutiveReadinessLines(inputs: FactorInputs): string {
+// BATCH 19a (Wave C3, doc 113 S3.4) — the seven orphan exec lines split:
+// the label/value FACTS are the Readiness snapshot table rows; the
+// ANALYTICAL sentences remain the generated prose block below the table.
+// Fact/sentence bytes are unchanged where they survive; the debug-looking
+// "Label: value" stack retires (doc 109 Cyber first-ten-seconds offense).
+export function buildExecutiveSnapshotRows(inputs: FactorInputs): readonly (readonly string[])[] {
   const { intake, deliverables: d, recommendations: recs } = inputs;
   const entity = profileStr(intake, "entity_name") || "The Company";
   const industry = profileStr(intake, "industry");
-  const rd = d.readiness_determination;
-  const rs = buildRecordSufficiency(intake, d);
   const evRows = d.evidence_sufficiency;
   const evOk = evRows.filter((r) => r.sufficiency === "sufficient").length;
-  const ind = buildIndependenceReadinessConsequence(d);
   const gaps = recs.filter((r) => r.priority === "Immediate" || r.priority === "Within 90 days");
 
+  const rows: string[][] = [["Company", entity]];
+  if (industry) rows.push(["Operating context", industry]);
+  rows.push([
+    "Evidence posture",
+    `Testable evidence identified for ${evOk} of the eighteen components`,
+  ]);
+  rows.push([
+    "Principal readiness gaps",
+    gaps.length
+      ? `${asProse(gaps.slice(0, 3).map((r) => r.label))}${gaps.length > 3 ? `, and ${gaps.length - 3} more in Section IV` : ""}`
+      : "None identified on the Company's answers",
+  ]);
+  rows.push([
+    "Priority readiness actions",
+    inputs.nextSteps.length
+      ? `${asProse(inputs.nextSteps.map((st) => st.slug).map((slug) => CYBER_7123_COMPONENTS.find((c) => c.slug === slug)?.label ?? slug))} — each stated in Section VI with its owner`
+      : "None identified; the preparation focus is organizing the identified evidence for auditor access",
+  ]);
+  return rows;
+}
+
+export function buildExecutiveReadinessLines(inputs: FactorInputs): string {
+  const { intake, deliverables: d } = inputs;
+  const rd = d.readiness_determination;
+  const rs = buildRecordSufficiency(intake, d);
+  const ind = buildIndependenceReadinessConsequence(d);
+
   const lines: string[] = [];
-  lines.push(`Company / operating context: ${entity}${industry ? ` / ${industry}` : ""}.`);
   if (s(rd.reasoning)) lines.push(stop(s(rd.reasoning)));
   lines.push(stop(rs.conclusion));
-  lines.push(`Evidence posture: the Company identifies testable evidence for ${evOk} of the eighteen components.`);
   lines.push(stop(ind));
-  lines.push(
-    gaps.length
-      ? `Principal readiness gaps: ${asProse(gaps.slice(0, 3).map((r) => r.label))}${gaps.length > 3 ? `, and ${gaps.length - 3} more in Section IV` : ""}.`
-      : "Principal readiness gaps: none identified on the Company's answers.",
-  );
-  lines.push(
-    inputs.nextSteps.length
-      ? `Priority readiness actions: ${asProse(inputs.nextSteps.map((st) => st.slug).map((slug) => CYBER_7123_COMPONENTS.find((c) => c.slug === slug)?.label ?? slug))} - each stated in Section VI with its owner.`
-      : "Priority readiness actions: none identified; the preparation focus is organizing the identified evidence for auditor access.",
-  );
-  return lines.join("\n");
+  return lines.filter(Boolean).join(" ");
 }
 
 // ── The bundle ─────────────────────────────────────────────────────────────
@@ -703,6 +720,8 @@ export interface CyberFactorOutputs {
   readonly overall: { narrative: string; single_next_act: string };
   readonly evidence_preservation: { actions: string; observations: string };
   readonly executive_lines: string;
+  /** BATCH 19a (doc 113 S3.4) — the Readiness snapshot table rows. */
+  readonly executive_snapshot_rows: readonly (readonly string[])[];
 }
 
 export const CYBER_FACTORS_STAMP = "cyber-factors@c2-spine-v1.1-2026-08-26";
@@ -730,5 +749,6 @@ export function buildCyberFactors(
     overall: buildOverallReadinessNarrative(deliverables, recommendations),
     evidence_preservation: buildEvidencePreservation(intake, deliverables),
     executive_lines: buildExecutiveReadinessLines(inputs),
+    executive_snapshot_rows: buildExecutiveSnapshotRows(inputs),
   };
 }

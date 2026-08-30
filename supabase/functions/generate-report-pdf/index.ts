@@ -3864,7 +3864,10 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: "report_data_invalid", detail: "skeleton_document" }),
           { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      html = buildSkeletonReportHTML(skelAdmtV2, record, "CPPA ADMT Compliance Audit", "cppa-admt-v2");
+      // BATCH 19 (doc 111 queue) — retitle leftover: the product is the
+      // "CPPA ADMT Compliance Assessment" (Batch 9 retitle); the fallback
+      // must match the skeleton title, never resurrect the old name.
+      html = buildSkeletonReportHTML(skelAdmtV2, record, "CPPA ADMT Compliance Assessment", "cppa-admt-v2");
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "cppa_cybersecurity") {
       const intake = record.intake_data || {};

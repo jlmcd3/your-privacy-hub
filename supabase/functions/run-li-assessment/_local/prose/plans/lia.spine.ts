@@ -414,16 +414,21 @@ export const LIA_V3_BANNED_REGISTER: readonly string[] = [
   "as the record makes clear",
 ];
 
+// BATCH 19a (Wave C3, doc 113 S3.1) — "table" joins the union (biometric
+// Batch-18a precedent). Table blocks carry no fixed text and correspond to
+// no docx paragraph (paragraph: 0); the hash basis (LIA_SKELETON_PARAGRAPHS)
+// is a literal list and is unchanged.
 export type LiaSkeletonBlockKind =
   | "skeleton"
   | "lead"
   | "generated"
   | "conditional"
-  | "rule";
+  | "rule"
+  | "table";
 
 export interface LiaSkeletonBlock {
   readonly kind: LiaSkeletonBlockKind;
-  /** Skeleton paragraph number, file order, 1-based. */
+  /** Skeleton paragraph number, file order, 1-based; 0 for table blocks. */
   readonly paragraph: number;
   /** Conditional id, matching `LIA_CONDITIONAL_TRIGGERS`. */
   readonly conditional?: string;
@@ -518,10 +523,22 @@ export const LIA_SKELETON_SECTIONS: readonly LiaSkeletonSection[] = [
 // fixed skeleton prose — its entire content is composed
 // (lia-persuasive-authority.ts), so a record that composes nothing renders
 // no empty shell (the NO-PADDING law).
-export const LIA_SKELETON_VERSION_V2 = "prose-plans-2026-08-30-lia-l2-v2-p27-scale";
+export const LIA_SKELETON_VERSION_V2 = "prose-plans-2026-08-30-lia-c3-verdict-strip";
 
 export const LIA_SKELETON_SECTIONS_V2: readonly LiaSkeletonSection[] = [
-  ...LIA_SKELETON_SECTIONS.slice(0, LIA_SKELETON_SECTIONS.length - 1),
+  // BATCH 19a (Wave C3, doc 113 S3.1) — the deterministic path's Executive
+  // Summary carries the three-test verdict strip as a table block appended
+  // after the v1 blocks. v1 stays BYTE-UNTOUCHED per the policy above; the
+  // table block carries no fixed text (paragraph 0 — no docx paragraph), so
+  // the paragraph hash basis is unchanged.
+  {
+    ...LIA_SKELETON_SECTIONS[0],
+    blocks: [
+      ...LIA_SKELETON_SECTIONS[0].blocks,
+      { kind: "table", paragraph: 0, text: "three_part_test (verdict strip)" },
+    ],
+  },
+  ...LIA_SKELETON_SECTIONS.slice(1, LIA_SKELETON_SECTIONS.length - 1),
   {
     id: "persuasive_authority",
     title: "VI. Persuasive Authority",

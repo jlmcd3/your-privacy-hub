@@ -32,6 +32,8 @@ import {
   verifySkeletonConformance,
   type ComposedBlocks,
   type RenderedSkeletonDocument,
+  type RenderedTable,
+  type SkeletonTables,
   type SlotValues,
 } from "../../../_shared/prose/skeleton-render.ts";
 
@@ -610,6 +612,55 @@ export interface GovernanceSkeletonResult {
   readonly register_findings: string[];
 }
 
+// BATCH 19a (Wave C3, doc 113 S3.2) — the Executive Summary scoreboard,
+// each row read from a typed surface's own counts; a surface absent from
+// the record skips its row. This is the anchor for the scattered-tallies
+// cluster the panel flagged (doc 109 Documents 6-7, offense #3); the
+// sections' own sentences still carry the analysis.
+export function deriveGovernanceScoreboard(report: Bag): RenderedTable | null {
+  const rows: string[][] = [];
+
+  const demo = Array.isArray(report.demonstrability_findings)
+    ? (report.demonstrability_findings as Bag[])
+    : [];
+  if (demo.length > 0) {
+    const present = demo.filter((d) => s(d.artifact_present) === "yes").length;
+    rows.push(["Accountability duties evidenced", `${present} of ${demo.length}`]);
+  }
+
+  const elements = Array.isArray(report.art30_element_findings)
+    ? (report.art30_element_findings as Bag[])
+    : [];
+  if (elements.length > 0) {
+    const met = elements.filter((e) => s(e.verdict) === "satisfied").length;
+    rows.push(["Article 30(1) elements evidenced", `${met} of ${elements.length}`]);
+  }
+
+  const domains = domainEntries(report);
+  if (domains.length > 0) {
+    const withGap = domains.filter((d) => {
+      const sev = s(d.severity).toLowerCase();
+      return sev !== "" && sev !== "compliant";
+    }).length;
+    rows.push(["Domains with a recorded gap", `${withGap} of ${domains.length}`]);
+  }
+
+  const plan = Array.isArray(report.remediation_plan) ? (report.remediation_plan as Bag[]) : [];
+  if (plan.length > 0) {
+    rows.push(["Remediation items recorded", String(plan.length)]);
+  }
+
+  if (!rows.length) return null;
+  return {
+    key: "",
+    surface: "art30_element_findings+demonstrability_findings+domain_element_findings+remediation_plan",
+    title: "Programme scoreboard",
+    columns: ["Measure", "Count"],
+    rows,
+    hideHeader: true,
+  };
+}
+
 export function assembleGovernanceSkeletonDocument(
   report: Bag,
   intakeInput: Bag,
@@ -663,6 +714,11 @@ export function assembleGovernanceSkeletonDocument(
     "ico_crosswalk:1": composeIcoCrosswalk(report),
   };
 
+  // BATCH 19a (doc 113 S3.2) — the scoreboard, keyed to its spine block.
+  const tables: SkeletonTables = {
+    "executive_summary:3": deriveGovernanceScoreboard(report),
+  };
+
   const draft = renderSkeletonDocument({
     sections: GOVERNANCE_SKELETON_SECTIONS,
     title: GOVERNANCE_SKELETON_TITLE,
@@ -670,6 +726,7 @@ export function assembleGovernanceSkeletonDocument(
     spineVersion: GOVERNANCE_SKELETON_VERSION,
     values,
     composed,
+    tables,
   });
 
   const toa = governanceToa(report, skeletonDocumentToText(draft));
@@ -681,6 +738,7 @@ export function assembleGovernanceSkeletonDocument(
     spineVersion: GOVERNANCE_SKELETON_VERSION,
     values,
     composed: { ...composed, "table_of_authorities:0": toa },
+    tables,
   });
 
   const body = skeletonDocumentToText(document).toLowerCase();

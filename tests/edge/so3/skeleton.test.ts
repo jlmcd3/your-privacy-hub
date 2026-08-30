@@ -96,7 +96,9 @@ const REPORT: Record<string, unknown> = {
 
 Deno.test("SO-3 — the skeleton's seven sections, in order", () => {
   assertEquals(GOVERNANCE_SKELETON_SECTIONS.map((s) => s.id), SECTION_IDS);
-  assertEquals(GOVERNANCE_SKELETON_VERSION, "prose-plans-2026-08-10-item-so3");
+  // RE-PIN BATCH 19a (doc 113 S3.2): version bumped for the Executive
+  // Summary scoreboard table block; fixed prose is unchanged.
+  assertEquals(GOVERNANCE_SKELETON_VERSION, "prose-plans-2026-08-30-c3-scoreboard");
   assertEquals(GOVERNANCE_SKELETON_SOURCE_FILE, "Governance_Assessment_Skeleton_v3.docx");
   assert(GOVERNANCE_SKELETON_PROVENANCE.includes(
     "panel-delegated approval per CEO delegation 2026-08-06",

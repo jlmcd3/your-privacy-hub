@@ -60,6 +60,8 @@ import {
   type ComposedBlocks,
   type ConformanceFinding,
   type RenderedSkeletonDocument,
+  type RenderedTable,
+  type SkeletonTables,
   type SlotValues,
 } from "../../../_shared/prose/skeleton-render.ts";
 import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
@@ -356,6 +358,39 @@ export function precedentClassSentence(report: Bag, deterministic = false): stri
   if (s(finding.status) !== "analysed") return "";
   if (s(finding.posture) === "not_assessed" || !s(finding.posture)) return "";
   return s(finding.application);
+}
+
+// BATCH 19a (Wave C3, doc 113 S3.1) — the three-test verdict strip: the
+// Executive Summary's hideHeader scoreboard, one row per typed test verdict.
+// Verdict words mirror composeExecPosture's own mapping. An unrecorded test
+// drops its row; no rows, no table (NO-PADDING LAW).
+export function deriveThreeTestStrip(report: Bag): RenderedTable | null {
+  const tpt = bag(report.three_part_test);
+  const word = (v: string): string =>
+    v === "passes" || v === "likely_passes"
+      ? "Met"
+      : v === "fails" || v === "likely_fails"
+      ? "Not met"
+      : v
+      ? "Not resolved"
+      : "";
+  const rows: string[][] = [];
+  const add = (label: string, v: string) => {
+    const w = word(v);
+    if (w) rows.push([label, w]);
+  };
+  add("Purpose test", s(bag(tpt.purpose_test).verdict));
+  add("Necessity test", s(bag(tpt.necessity_test).verdict));
+  add("Balancing test", s(bag(tpt.balancing_test).verdict));
+  if (!rows.length) return null;
+  return {
+    key: "",
+    surface: "three_part_test",
+    title: "Three-part test",
+    columns: ["Test", "Verdict"],
+    rows,
+    hideHeader: true,
+  };
 }
 
 function composeExecPosture(report: Bag, org: string): string {
@@ -745,6 +780,14 @@ export function assembleLiaSkeletonDocument(
     : "";
   if (mixedInstrumentNote) composed["the_processing:1"] = mixedInstrumentNote;
 
+  // BATCH 19a (doc 113 S3.1) — the verdict-strip table block exists only in
+  // the v2 section list (v1 stays byte-frozen for the legacy path), so the
+  // key targets v2's appended block; on v1 the key matches no table block
+  // and the map is inert.
+  const tables: SkeletonTables = {
+    "executive_summary:3": deriveThreeTestStrip(report),
+  };
+
   const args = {
     sections: deterministic ? LIA_SKELETON_SECTIONS_V2 : LIA_SKELETON_SECTIONS,
     title: LIA_SKELETON_TITLE,
@@ -754,6 +797,7 @@ export function assembleLiaSkeletonDocument(
     subtitle: LIA_SKELETON_SUBTITLE,
     spineVersion: deterministic ? LIA_SKELETON_VERSION_V2 : LIA_SKELETON_VERSION,
     values,
+    tables,
   };
 
   const draft = renderSkeletonDocument({ ...args, composed });
@@ -781,7 +825,9 @@ export function assembleLiaSkeletonDocument(
       ...sec,
       paragraphs: sec.paragraphs
         .map((p) => (p.kind === "skeleton" ? { ...p, text: pruneOrphanSubheads(p.text) } : p))
-        .filter((p) => p.text.trim().length > 0),
+        // BATCH 19a (doc 113 S3.1) — table paragraphs carry no text by
+        // design; the empty-text prune must not drop them.
+        .filter((p) => p.kind === "table" || p.text.trim().length > 0),
     })),
   };
 

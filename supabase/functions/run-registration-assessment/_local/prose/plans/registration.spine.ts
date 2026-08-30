@@ -119,6 +119,10 @@ export const REGISTRATION_SKELETON_SECTIONS: readonly RegistrationSkeletonSectio
       { kind: "skeleton", text: "{organizationName}, operating in {sector - reader label} at a size of {orgSize - band as prose}, has indicated that it operates across {jurisdictions - as prose} and processes {dataTypes - reader labels}." },
       { kind: "rule", text: "[BYTE-PINNED] Every determination below rests on the statutes in the verified corpus behind this assessment and on nothing else." },
       { kind: "generated", text: "[GENERATED] The filing posture in two to three sentences: duties attached, satisfied, and open, attributed." },
+      // BATCH 19a (Wave C3, doc 113 S3.3) — the duty-status table (Duty |
+      // Jurisdiction | Status | What closes it), rows from the four typed
+      // determination surfaces. No fixed text.
+      { kind: "table", text: "determinations+representative_determinations+dpo_determination+ai_act_registration (duty status)" },
     ],
   },
   {

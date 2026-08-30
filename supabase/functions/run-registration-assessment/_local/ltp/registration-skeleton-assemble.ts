@@ -438,6 +438,118 @@ function deriveReadinessChecklistTable(report: Bag): RenderedTable | null {
   };
 }
 
+// BATCH 19a (Wave C3, doc 113 S3.3) — the Executive Summary duty-status
+// table: Duty | Jurisdiction | Status | What closes it, one row per typed
+// determination across all four surfaces. Status maps typed verdicts only.
+function dutyStatusWord(verdict: string): string {
+  switch (verdict) {
+    case "registrable":
+    case "engaged":
+      return "Attaches";
+    case "not_registrable":
+    case "not_engaged":
+      return "Does not attach";
+    case "conditional":
+      return "Turns on the claimed exclusion";
+    case "record_insufficient":
+      return "Reserved";
+    default:
+      return "";
+  }
+}
+
+// Presentation-only trim of the typed closing chapeau for a table cell.
+function closesCell(text: string): string {
+  const t = noStop(s(text));
+  if (!t) return "—";
+  const m = /^What would complete the determination is\s+(.+)$/i.exec(t);
+  const out = m ? m[1] : t;
+  return out.charAt(0).toUpperCase() + out.slice(1);
+}
+
+export function deriveDutyStatusTable(report: Bag): RenderedTable | null {
+  const rows: string[][] = [];
+  const readinessFor = new Map<string, Bag>();
+  for (const f of readiness(report)) readinessFor.set(s(f.jurisdiction), f);
+
+  for (const d of determinations(report)) {
+    const verdict = s(d.verdict);
+    const status = dutyStatusWord(verdict) || "Reserved";
+    let closes = "—";
+    if (verdict === "registrable") {
+      const f = readinessFor.get(s(d.jurisdiction));
+      const open = f ? asArray(f.items).filter((i) => i.ready !== true).length : 0;
+      closes = f && f.ready_to_file === true
+        ? "Ready to file on its face"
+        : open > 0
+        ? `${open} content ${open === 1 ? "element" : "elements"} — see Section III`
+        : "Filing content — see Section III";
+    } else if (verdict === "conditional") {
+      closes = "Substantiate the claimed exclusion";
+    } else if (verdict === "record_insufficient") {
+      const openLimbs = asArray(((d.threshold ?? {}) as Bag).limbs).filter((l) => l.met === null).length;
+      closes = openLimbs > 0
+        ? `Evidence on ${openLimbs} definitional ${openLimbs === 1 ? "limb" : "limbs"}`
+        : "Facts the intake does not settle";
+    }
+    rows.push(["Data-broker registration", stateName(d), status, closes]);
+  }
+
+  for (const r of representatives(report)) {
+    const verdict = s(r.verdict);
+    const word = dutyStatusWord(verdict === "conditional" ? "record_insufficient" : verdict);
+    if (!word) continue;
+    const jur = s(r.jurisdiction) === "UK" ? "United Kingdom" : "European Union";
+    const closes = verdict === "engaged"
+      ? "Written designation of the representative"
+      : verdict === "not_engaged"
+      ? "—"
+      : closesCell(s(r.information_needed));
+    rows.push([`Article 27 representative`, jur, word, closes]);
+  }
+
+  const dpo = (deliverables(report).dpo_determination ?? {}) as Bag;
+  const dpoVerdict = s(dpo.verdict);
+  if (dpoVerdict) {
+    const word = dutyStatusWord(dpoVerdict === "conditional" ? "record_insufficient" : dpoVerdict);
+    if (word) {
+      rows.push([
+        "Data protection officer",
+        "GDPR / UK GDPR",
+        word,
+        dpoVerdict === "engaged"
+          ? "Written designation and the Art. 37(7) steps"
+          : dpoVerdict === "not_engaged"
+          ? "—"
+          : closesCell(s(dpo.closing_act) || s(dpo.information_needed)),
+      ]);
+    }
+  }
+
+  const aiAct = (deliverables(report).ai_act_registration ?? {}) as Bag;
+  const aiVerdict = s(aiAct.verdict);
+  if (aiVerdict) {
+    const word = aiVerdict === "conditional" ? "Reserved" : dutyStatusWord(aiVerdict);
+    if (word) {
+      rows.push([
+        "EU AI Act registration",
+        "European Union",
+        word,
+        aiVerdict === "not_engaged" ? "—" : closesCell(s(aiAct.closing_act)),
+      ]);
+    }
+  }
+
+  if (!rows.length) return null;
+  return {
+    key: "",
+    surface: "determinations+representative_determinations+dpo_determination+ai_act_registration",
+    title: "Duty status",
+    columns: ["Duty", "Jurisdiction", "Status", "What closes it"],
+    rows,
+  };
+}
+
 // ── Composed blocks ─────────────────────────────────────────────────────────
 
 /** Executive lead — duties attached vs satisfied, straight from the counts. */
@@ -1114,6 +1226,7 @@ export function assembleRegistrationSkeletonDocument(
   // BATCH 18b (doc 113 S2.12/S2.14/S2.16/S2.17) — the tables, keyed to
   // their spine blocks. Each is honestly absent (null) when its rows are.
   const tables: SkeletonTables = {
+    "executive_summary:4": deriveDutyStatusTable(report),
     "data_broker_registration:1": deriveFilingCalendarTable(report),
     "data_broker_registration:3": deriveLimbWalkTable(report),
     "supervisory_and_ai_act:2": deriveArt37BranchTable(report),

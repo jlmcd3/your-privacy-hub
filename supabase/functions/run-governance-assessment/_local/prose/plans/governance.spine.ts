@@ -38,7 +38,7 @@
 // `governance` (7f168ddb-d419-4f06-8cdc-1cf1fa03be7f), superseded at SO-3 with
 // "panel-delegated approval per CEO delegation 2026-08-06".
 
-export const GOVERNANCE_SKELETON_VERSION = "prose-plans-2026-08-10-item-so3";
+export const GOVERNANCE_SKELETON_VERSION = "prose-plans-2026-08-30-c3-scoreboard";
 export const GOVERNANCE_SKELETON_SOURCE_FILE = "Governance_Assessment_Skeleton_v3.docx";
 export const GOVERNANCE_SKELETON_PROVENANCE =
   "Governance_Assessment_Skeleton_v3.docx — panel-delegated approval per CEO delegation 2026-08-06";
@@ -62,11 +62,15 @@ export const GOVERNANCE_SKELETON_SUBTITLE =
 /** The v3 register guide, verbatim. Authoring law; never printed to a customer. */
 export const GOVERNANCE_REGISTER_GUIDE = "Register guide (v3 - CEO-ratified counsel register, senior privacy lawyers with the professors editing) - Fixed prose is a lawyer's client document: full flowing sentences, measured connectives, the law stated plainly and applied. The company's facts are always attributed (\"{org} has indicated that ...\", \"the company has described ...\") - \"the record shows\" and its family are banned. No dramatization, no rhetorical questions, no self-narration. Facts enter only through {slots} and [GENERATED] blocks under the ATTRIBUTION RULE: every factual clause names its source and traces to an intake answer or typed analysis; coverage, CSC and refinement police this mechanically. Statutory sentences in fixed prose are registry-verified at encode time. Slot notation: {field - rule}.";
 
+// BATCH 19a (Wave C3, doc 113 S3.2) — "table" joins the union (biometric
+// Batch-18a precedent). Table blocks carry no fixed text; the docx-derived
+// content hash above is unaffected.
 export type GovernanceSkeletonBlockKind =
   | "skeleton"
   | "lead"
   | "generated"
-  | "rule";
+  | "rule"
+  | "table";
 
 export interface GovernanceSkeletonBlock {
   readonly kind: GovernanceSkeletonBlockKind;
@@ -96,6 +100,9 @@ export const GOVERNANCE_SKELETON_SECTIONS: readonly GovernanceSkeletonSection[] 
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence: the typed readiness determination - accountability evidenced, partly evidenced, or not yet determinable on the company's answers - the single verdict every other surface derives from." },
       { kind: "skeleton", text: "Article 5(2) of the GDPR makes a controller responsible not only for complying with the data protection principles but for being able to demonstrate that compliance. The provisions examined below - Articles 24, 28, 30 and 37 through 39 - supply the machinery of that demonstration. {organizationName} has provided the account of its programme on which this review rests, and each duty is considered against that account in turn." },
       { kind: "generated", text: "[GENERATED] The posture summary, bound to the typed rating: the rating-derived phrasing rules apply, and no affirmative characterisation may stand beside a non-affirmative rating." },
+      // BATCH 19a (Wave C3, doc 113 S3.2) — the programme scoreboard, each
+      // row read from a typed surface's own counts. No fixed text.
+      { kind: "table", text: "art30_element_findings+demonstrability_findings+domain_element_findings+remediation_plan (scoreboard)" },
     ],
   },
   {

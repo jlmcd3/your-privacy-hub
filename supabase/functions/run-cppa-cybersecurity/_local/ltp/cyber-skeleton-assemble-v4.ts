@@ -62,7 +62,23 @@ function controlRec(intake: Bag, slug: string): { maturity: string; notes: strin
 
 // ── Tables ──────────────────────────────────────────────────────────────────
 
-function deriveCoverTable(intake: Bag, reportDate: string): RenderedTable {
+// BATCH 19a (doc 113 S3.4) — the fleet-law cover verdict row, mapped from
+// the typed readiness conclusion ENUM (a status label; the ratified
+// headline bytes are untouched — RULING 3.2).
+function coverVerdictPhrase(conclusion: string): string {
+  switch (conclusion) {
+    case "ready":
+      return "Ready for the independent audit on the Company's answers";
+    case "ready_subject_to_named_remediation":
+      return "Ready subject to the named remediation";
+    case "not_ready":
+      return "Not yet ready — blocking items named in this report";
+    default:
+      return "No readiness conclusion on the information provided";
+  }
+}
+
+function deriveCoverTable(intake: Bag, reportDate: string, readinessConclusion: string): RenderedTable {
   const profile = ((intake.profile ?? {}) as Bag);
   return {
     key: "",
@@ -75,10 +91,28 @@ function deriveCoverTable(intake: Bag, reportDate: string): RenderedTable {
       ["Report date", reportDate],
       ["Assessment", "CPPA Cybersecurity Audit Readiness Report"],
       ["Regulatory reference", "11 CCR §§ 7120-7124"],
+      // BATCH 19a (doc 113 S3.4): verdict-on-cover, the ADMT pattern as
+      // fleet law (doc 109 §1.6).
+      ["Overall assessment", coverVerdictPhrase(readinessConclusion)],
       // PANEL CYB-5 (2026-08-30): the spine version string is generation
       // metadata, not cover content; it stays in Appendix D's engine-version
       // row, where the reperformance record belongs.
     ],
+  };
+}
+
+// BATCH 19a (doc 113 S3.4) — the Readiness snapshot: the exec label/value
+// facts as a hideHeader table, directly after the determination lead.
+function deriveReadinessSnapshot(factors: CyberFactorOutputs): RenderedTable | null {
+  const rows = factors.executive_snapshot_rows.map((r) => [...r]);
+  if (!rows.length) return null;
+  return {
+    key: "",
+    surface: "cyber_v4_readiness_snapshot",
+    title: "Readiness snapshot",
+    columns: ["Field", "Value"],
+    rows,
+    hideHeader: true,
   };
 }
 
@@ -374,7 +408,9 @@ export function assembleCyberSkeletonDocumentV4(
   const composedBase: ComposedBlocks = {
     // Executive Summary.
     "executive_summary:1": repairPreserving(leadSentence),
-    "executive_summary:2": repairPreserving(factors.executive_lines),
+    // BATCH 19a (doc 113 S3.4): the snapshot table sits at :2; the
+    // analytical prose follows at :3.
+    "executive_summary:3": repairPreserving(factors.executive_lines),
 
     // I. Purpose, Scope, and Assessment Record.
     "purpose_scope_record:2": repairPreserving(composeCompanyContext(intake, factors)),
@@ -462,7 +498,8 @@ export function assembleCyberSkeletonDocumentV4(
   };
 
   const tables: SkeletonTables = {
-    "cover:0": deriveCoverTable(intake, reportDate),
+    "cover:0": deriveCoverTable(intake, reportDate, s(rd.conclusion)),
+    "executive_summary:2": deriveReadinessSnapshot(factors),
     "purpose_scope_record:5": buildCyberApplicabilityTable((intake.profile ?? {}) as Bag),
     "appendix_a_matrix:1": deriveComponentMatrix(intake, deliverables, factors),
     "appendix_b_evidence:1": deriveEvidenceIndex(deliverables),

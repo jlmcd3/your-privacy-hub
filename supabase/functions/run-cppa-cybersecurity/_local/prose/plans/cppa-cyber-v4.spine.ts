@@ -78,7 +78,7 @@ export interface CyberV4Section {
 // PANEL CYB-5 (2026-08-30): eight section openers rewritten from drafting-
 // instruction voice ("the report should not state…") to first-person-
 // document indicative; every legal boundary each sentence drew is kept.
-export const CYBER_V4_SKELETON_VERSION = "cppa-cyber-v4.0-spine-v1.4-2026-08-30";
+export const CYBER_V4_SKELETON_VERSION = "cppa-cyber-v4.0-spine-v1.5-2026-08-30";
 export const CYBER_V4_SKELETON_TITLE = "CPPA CYBERSECURITY AUDIT READINESS REPORT";
 export const CYBER_V4_SKELETON_SUBTITLE =
   "Prepared under 11 CCR §§ 7120-7124 - {profile.entity_name}";
@@ -101,7 +101,14 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
     blocks: [
       { kind: "skeleton", text: "This assessment evaluates the Company’s cybersecurity program as the Company describes it in its answers, the evidence categories the Company identifies as available, and the extent to which that record appears prepared for independent audit. The analysis distinguishes implementation posture from evidence posture and distinguishes an identified evidence category from evidence actually examined and tested by an auditor." },
       { kind: "lead", text: "[DETERMINATION LEAD] The deterministic readiness determination, bound to DERIVED.readiness_determination." },
-      { kind: "generated", text: "[GENERATED] The executive readiness lines: company/operating context; readiness explanation; component posture; record completeness; evidence posture; auditor-engagement/independence posture; principal readiness gaps; priority readiness actions. Composed from DERIVED surfaces and FACTOR records only." },
+      // BATCH 19a (Wave C3, doc 113 S3.4) — the readiness snapshot: the
+      // label/value exec facts as a hideHeader table, directly after the
+      // determination lead. No fixed text.
+      { kind: "table", text: "" },
+      // v1.5 (S3.4): the generated block carries the ANALYTICAL sentences
+      // only (readiness explanation, record completeness, independence
+      // posture); the label/value facts moved to the snapshot table above.
+      { kind: "generated", text: "[GENERATED] The executive readiness analysis: readiness explanation; record completeness; auditor-engagement/independence posture. Composed from DERIVED surfaces and FACTOR records only; the company/evidence/gaps/actions facts render in the readiness snapshot table." },
     ],
   },
   {
