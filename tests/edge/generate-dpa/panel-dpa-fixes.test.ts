@@ -86,10 +86,17 @@ Deno.test("DPA-P1: a recorded transfer keeps the exporter/importer labels", () =
   assert(t.includes("Data exporter / Controller"), "exporter label missing where a transfer is framed");
 });
 
-Deno.test("DPA-P1: doc-81 D-5's 4.6/10.2 resolution is untouched (both clauses present, 10.2 scoped to Section 10)", () => {
+// RE-PIN A-TEAM SESSION 1, RULING 2 (2026-08-30, doc 111): doc-81 D-5 is
+// MODIFIED under the CEO's delegated authority — 4.6 stays the single
+// operative duty (Commission SCC placement); 10.2 becomes a cross-reference
+// retaining its D-5 opening phrase; the duty sentence appears exactly once.
+Deno.test("RULING 2: clause 4.6 carries the duty once; 10.2 cross-references it with the D-5 opening intact", () => {
   const t = assembleDpaDocument(BASE).document_text;
-  assert(t.includes("4.6 (Instruction infringement notice.)"), "clause 4.6 removed — contradicts doc-81 D-5");
-  assert(t.includes("10.2 With regard to the information and audit rights in this Section 10"), "clause 10.2 changed");
+  assert(t.includes("4.6 (Instruction infringement notice.)"), "clause 4.6 removed — contradicts RULING 2");
+  assert(t.includes("10.2 With regard to the information and audit rights in this Section 10"), "10.2's D-5 opening phrase lost");
+  assert(t.includes("is governed by clause 4.6 (Instruction infringement notice)"), "10.2 cross-reference absent");
+  const dutyCount = t.split("shall immediately inform the Controller if, in its opinion, an instruction infringes").length - 1;
+  assert(dutyCount === 1, `the Art. 28(3) second-subparagraph duty must appear exactly once, saw ${dutyCount}`);
 });
 
 Deno.test("ukEeaAdequacySplit: word-boundary and Northern Ireland guards", () => {

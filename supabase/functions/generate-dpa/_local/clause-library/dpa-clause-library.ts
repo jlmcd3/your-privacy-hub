@@ -128,7 +128,15 @@ const GDPR_SECTIONS: readonly DpaClauseSection[] = [
     heading: "10. AUDITS AND DEMONSTRATION OF COMPLIANCE",
     clauses: [
       `10.1 (Art. 28(3)(h).) The Processor shall make available to the Controller all information necessary to demonstrate compliance with the obligations laid down in Article 28 of {frameworkCitation}, and shall allow for and contribute to audits, including inspections, conducted by the Controller or another auditor mandated by the Controller. The audit arrangement the Parties have recorded is: {auditRights}.`,
-      `10.2 With regard to the information and audit rights in this Section 10, the Processor shall immediately inform the Controller if, in its opinion, an instruction infringes {frameworkCitation} or other applicable data protection provisions.`,
+      // A-TEAM SESSION 1, RULING 2 (2026-08-30, doc 111; modifies doc-81
+      // D-5 under the CEO's delegated authority): clause 4.6 is the single
+      // operative Art. 28(3) second-subparagraph duty — the Commission's own
+      // Art. 28(7) standard clauses place it with the Instructions clause,
+      // where a counterparty's lawyer looks for it. 10.2 becomes a
+      // cross-reference; its D-5 opening phrase is retained byte-for-byte so
+      // the sd1r-doc81-redline pin survives. The review panel's delete-4.6
+      // recommendation was REJECTED 7-2 (dissents recorded in doc 111).
+      `10.2 With regard to the information and audit rights in this Section 10, the Processor's duty to inform the Controller of instruction infringement is governed by clause 4.6 (Instruction infringement notice), which applies equally to any instruction given in connection with this Section 10.`,
       `{dpoRepresentationClause}`,
     ],
   },
