@@ -46,7 +46,9 @@ Deno.test("G2 — an item with no domain action falls back to the element's info
   };
   const t = JSON.stringify(assembleGovernanceSkeletonDocument(report, INTAKE));
   assertStringIncludes(t, "Envisaged retention time limits — The record carries nothing on this element.");
-  assertStringIncludes(t, "Action: State the envisaged retention time limit for each category of personal data");
+  // RE-PIN BATCH 20a (doc 113 S5.1): the "Action:" prefix retired — the
+  // closure act is the Remediation Register's Action cell now.
+  assertStringIncludes(t, "State the envisaged retention time limit for each category of personal data");
 });
 
 Deno.test("G3 — an open transfer leg names the recorded tools the organisation-level answer must cover", () => {

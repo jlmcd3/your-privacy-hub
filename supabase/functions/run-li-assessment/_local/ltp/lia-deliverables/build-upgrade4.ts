@@ -677,19 +677,19 @@ export function buildAlternativesConsidered(intake: unknown): AlternativesConsid
     information_needed =
       "necessity_details.why_consent_not_used — whether consent under Article 6(1)(a) could deliver this purpose, and if not, what specifically it would fail to achieve.";
   } else {
-    // 3E9AD759-L3 — the comparison is SHOWN, not asserted: each alternative
-    // is named with its own recorded reason for inadequacy (batch 3e9ad759
-    // flagged the bare two-sentence all-clear as analysis that adds nothing
-    // to the record it summarises). Every clause is the record's own reason,
-    // verbatim-trimmed to its first sentence.
-    const walk = alternatives
-      .map((a) => {
-        const why = firstSentenceSafe(a.why_inadequate);
-        return `${a.alternative}${why ? ` — ${lc(why)}` : ""}`;
-      })
-      .join("; ");
+    // 3E9AD759-L3, form superseded by BATCH 20a (doc 113 S5.3): the
+    // comparison is still SHOWN, not asserted — but it shows in the
+    // Alternatives table the deterministic document now renders from the
+    // typed `alternatives` rows (doc 109 §2.2 item 3 flagged the inline
+    // semicolon walk as a 194-word self-repetition of that same data). The
+    // walk data is unchanged on `alternatives`; only this sentence's inline
+    // restatement retires. Recorded consequence (ledger): the dormant
+    // legacy path renders no table and degrades to the assertion form.
+    // No table pointer in the sentence: the deterministic path renders the
+    // table ADJACENT in the same section, and the dormant legacy path has
+    // no table to point to (a pointer there would be a broken reference).
     application =
-      `Every alternative the record names, consent included, carries a recorded reason for being inadequate: ${walk}. The necessity limb is therefore supported by a comparison rather than an assertion: the comparison identifies what else was available and what each option would have failed to achieve.`;
+      `Every alternative the record names, consent included, carries a recorded reason for being inadequate. The necessity limb is therefore supported by a comparison rather than an assertion: the comparison identifies what else was available and what each option would have failed to achieve.`;
   }
 
   return {

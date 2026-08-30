@@ -523,22 +523,37 @@ export const LIA_SKELETON_SECTIONS: readonly LiaSkeletonSection[] = [
 // fixed skeleton prose — its entire content is composed
 // (lia-persuasive-authority.ts), so a record that composes nothing renders
 // no empty shell (the NO-PADDING law).
-export const LIA_SKELETON_VERSION_V2 = "prose-plans-2026-08-30-lia-c3-verdict-strip";
+export const LIA_SKELETON_VERSION_V2 = "prose-plans-2026-08-30-lia-c4-balance-alternatives";
 
 export const LIA_SKELETON_SECTIONS_V2: readonly LiaSkeletonSection[] = [
-  // BATCH 19a (Wave C3, doc 113 S3.1) — the deterministic path's Executive
-  // Summary carries the three-test verdict strip as a table block appended
-  // after the v1 blocks. v1 stays BYTE-UNTOUCHED per the policy above; the
-  // table block carries no fixed text (paragraph 0 — no docx paragraph), so
-  // the paragraph hash basis is unchanged.
-  {
-    ...LIA_SKELETON_SECTIONS[0],
-    blocks: [
-      ...LIA_SKELETON_SECTIONS[0].blocks,
-      { kind: "table", paragraph: 0, text: "three_part_test (verdict strip)" },
-    ],
-  },
-  ...LIA_SKELETON_SECTIONS.slice(1, LIA_SKELETON_SECTIONS.length - 1),
+  // BATCH 19a (Wave C3, doc 113 S3.1) + BATCH 20a (Wave C4, doc 113
+  // S5.3/S5.4) — the deterministic path's sections carry table blocks
+  // appended after the v1 blocks: the exec three-test verdict strip, the
+  // §III alternatives table, and the §IV balance table. v1 stays
+  // BYTE-UNTOUCHED per the policy above; table blocks carry no fixed text
+  // (paragraph 0 — no docx paragraph), so the paragraph hash basis is
+  // unchanged.
+  ...LIA_SKELETON_SECTIONS.slice(0, LIA_SKELETON_SECTIONS.length - 1).map((sec): LiaSkeletonSection => {
+    if (sec.id === "executive_summary") {
+      return {
+        ...sec,
+        blocks: [...sec.blocks, { kind: "table", paragraph: 0, text: "three_part_test (verdict strip)" }],
+      };
+    }
+    if (sec.id === "necessity_test") {
+      return {
+        ...sec,
+        blocks: [...sec.blocks, { kind: "table", paragraph: 0, text: "alternatives_considered.alternatives (alternatives table)" }],
+      };
+    }
+    if (sec.id === "balancing_test") {
+      return {
+        ...sec,
+        blocks: [...sec.blocks, { kind: "table", paragraph: 0, text: "three_part_test.balancing_test.factors (balance table)" }],
+      };
+    }
+    return sec;
+  }),
   {
     id: "persuasive_authority",
     title: "VI. Persuasive Authority",

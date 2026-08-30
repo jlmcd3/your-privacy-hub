@@ -97,7 +97,8 @@ Deno.test("S-G1 — the crosswalk renders all ten ICO categories with verdict re
     "Records management and security",
     "Breach response and monitoring",
   ]) assertStringIncludes(t, cat);
-  assertStringIncludes(t, "the DPO determination is evidenced on the company's answers");
+  // RE-PIN BATCH 20a (doc 113 S5.1/S5.2): the crosswalk lines and remediation-item fragments moved into table cells (cells initial-capped; label prefixes retired).
+  assertStringIncludes(t, "The DPO determination is evidenced on the company's answers");
   assertStringIncludes(t, "5 of 7 Article 30(1) elements evidenced");
   assertStringIncludes(t, "decides nothing new");
 });
@@ -107,6 +108,6 @@ Deno.test("S-G1 — a category with no mapped surface says so honestly, never gu
   r.domain_findings = [];
   r.dpo_determination = {};
   const t = text(r);
-  assertStringIncludes(t, "not separately assessed by this report");
+  assertStringIncludes(t, "Not separately assessed by this report");
   assert(!t.includes("assessed with severity"), "no severity may be invented when no domain finding exists");
 });

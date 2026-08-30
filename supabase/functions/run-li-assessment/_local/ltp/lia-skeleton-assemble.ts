@@ -393,6 +393,63 @@ export function deriveThreeTestStrip(report: Bag): RenderedTable | null {
   };
 }
 
+// BATCH 20a (Wave C4, doc 113 S5.3) — the §III alternatives table:
+// Alternative | Why rejected, rows from the typed comparison the necessity
+// limb performs. A missing rationale renders honestly.
+export function deriveAlternativesTable(report: Bag): RenderedTable | null {
+  const alts = bag(report.alternatives_considered).alternatives;
+  if (!Array.isArray(alts)) return null;
+  const rows = (alts as Bag[])
+    .map((a) => {
+      const name = s(a.alternative);
+      if (!name) return null;
+      const why = s(a.why_inadequate);
+      return [
+        name.charAt(0).toUpperCase() + name.slice(1),
+        why ? why.charAt(0).toUpperCase() + why.slice(1) : "Not recorded",
+      ];
+    })
+    .filter((r): r is string[] => r !== null);
+  if (!rows.length) return null;
+  return {
+    key: "",
+    surface: "alternatives_considered.alternatives",
+    title: "Alternatives considered",
+    columns: ["Alternative", "Why rejected"],
+    rows,
+  };
+}
+
+// BATCH 20a (Wave C4, doc 113 S5.4) — the §IV balance table, from the
+// typed W3-T2 factor entries; the per-factor `direction` is the record's
+// own polarity, never invented here.
+export function deriveBalanceTable(report: Bag): RenderedTable | null {
+  const factors = bag(bag(report.three_part_test).balancing_test).factors;
+  if (!Array.isArray(factors)) return null;
+  const toward = (d: string): string =>
+    d === "controller"
+      ? "The controller's interest"
+      : d === "data_subject"
+      ? "The data subjects"
+      : "Neutral or unresolved";
+  const rows = (factors as Bag[])
+    .map((f) => {
+      const factor = s(f.factor);
+      if (!factor) return null;
+      const position = firstSentence(s(f.reasoning));
+      return [factor, toward(s(f.direction)), position || "—"];
+    })
+    .filter((r): r is string[] => r !== null);
+  if (rows.length < 2) return null;
+  return {
+    key: "",
+    surface: "three_part_test.balancing_test.factors",
+    title: "Balance of interests",
+    columns: ["Factor", "Weighs toward", "Position on the record"],
+    rows,
+  };
+}
+
 function composeExecPosture(report: Bag, org: string): string {
   // D1D2B3B8-L2 (2026-08-28) — the executive summary carries a COMPACT
   // three-part read, not the sections' own analysis text. The old form
@@ -716,14 +773,17 @@ export function assembleLiaSkeletonDocument(
         `The safeguards the company has recorded for that imbalance are ${noStop(s(balancing.employment_safeguards))}.`,
       )
       : "",
-    "balancing_test:6": fromTyped(
+    // BATCH 20a (doc 113 S5.5) — one typed surface, one paragraph: the six
+    // parts join with paragraph seams instead of fusing into the 472-word
+    // wall. Sentence bytes unchanged.
+    "balancing_test:6": [
       s(bag(tpt.balancing_test).analysis),
       s(bag(report.reasonable_expectations).application),
       s(bag(report.potential_harms).application),
       s(bag(report.opt_out_feasibility).application),
       specialCategoryBoundary,
       precedentClassSentence(report, deterministic),
-    ),
+    ].map((p) => fromTyped(p)).filter(Boolean).join("\n\n"),
 
     "findings:0": findingsLead,
     "findings:1": fromTyped(
@@ -780,12 +840,14 @@ export function assembleLiaSkeletonDocument(
     : "";
   if (mixedInstrumentNote) composed["the_processing:1"] = mixedInstrumentNote;
 
-  // BATCH 19a (doc 113 S3.1) — the verdict-strip table block exists only in
-  // the v2 section list (v1 stays byte-frozen for the legacy path), so the
-  // key targets v2's appended block; on v1 the key matches no table block
-  // and the map is inert.
+  // BATCH 19a (doc 113 S3.1) + BATCH 20a (doc 113 S5.3/S5.4) — the table
+  // blocks exist only in the v2 section list (v1 stays byte-frozen for the
+  // legacy path), so the keys target v2's appended blocks; on v1 the keys
+  // match no table block and the map is inert.
   const tables: SkeletonTables = {
     "executive_summary:3": deriveThreeTestStrip(report),
+    "necessity_test:4": deriveAlternativesTable(report),
+    "balancing_test:7": deriveBalanceTable(report),
   };
 
   const args = {

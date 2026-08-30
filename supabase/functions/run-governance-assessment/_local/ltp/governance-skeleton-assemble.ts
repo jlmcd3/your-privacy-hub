@@ -429,11 +429,11 @@ function domainSeverityPhrase(report: Bag, needle: RegExp): string {
   return gap ? `assessed with severity ${sev} — ${gap.replace(/\.$/, "")}` : `assessed with severity ${sev}`;
 }
 
-function composeIcoCrosswalk(report: Bag): string {
-  const acct = (report.accountability_determination ?? {}) as Bag;
+// BATCH 20a (Wave C4, doc 113 S5.2) — the crosswalk's ten rows, shared by
+// the table builder; the verdict reads keep their bytes.
+function icoCrosswalkRows(report: Bag): Array<[string, string]> {
   const dpo = (report.dpo_determination ?? {}) as Bag;
   const risk = (report.risk_calibration_finding ?? {}) as Bag;
-  const transfer = (report.transfer_analysis ?? {}) as Bag;
   const elements = Array.isArray(report.art30_element_findings)
     ? (report.art30_element_findings as Bag[])
     : [];
@@ -441,7 +441,7 @@ function composeIcoCrosswalk(report: Bag): string {
     ? `${elements.filter((e) => s(e.verdict) === "satisfied").length} of ${elements.length} Article 30(1) elements evidenced`
     : "not separately assessed by this report";
 
-  const rows: Array<[string, string]> = [
+  return [
     ["Leadership and oversight", s(dpo.verdict) ? `the DPO determination is ${verdictPhrase(s(dpo.verdict))}` : "not separately assessed by this report"],
     ["Policies and procedures", domainSeverityPhrase(report, /internal.?policy|policy/i)],
     ["Training and awareness", domainSeverityPhrase(report, /training/i)],
@@ -453,12 +453,33 @@ function composeIcoCrosswalk(report: Bag): string {
     ["Records management and security", domainSeverityPhrase(report, /submission|security/i)],
     ["Breach response and monitoring", domainSeverityPhrase(report, /incident/i)],
   ];
+}
 
-  const lines = rows.map(([cat, read]) => `${cat}: ${read}.`);
+function deriveIcoCrosswalkTable(report: Bag): RenderedTable | null {
+  const rows = icoCrosswalkRows(report).map(([cat, read]) => {
+    const repaired = repairRegister(read);
+    return [cat, repaired.charAt(0).toUpperCase() + repaired.slice(1)];
+  });
+  if (!rows.length) return null;
+  return {
+    key: "",
+    surface: "ico_accountability_crosswalk",
+    title: "ICO Accountability Framework crosswalk",
+    columns: ["Category", "Position on the record"],
+    rows,
+  };
+}
+
+// BATCH 20a (doc 113 S5.2) — the prose block now carries ONLY the detached
+// closing sentence (it used to glue onto the last crosswalk line); the ten
+// rows render in the table above it.
+function composeIcoCrosswalk(report: Bag): string {
+  const acct = (report.accountability_determination ?? {}) as Bag;
+  const transfer = (report.transfer_analysis ?? {}) as Bag;
   const acctTail = s(acct.verdict)
-    ? ` The headline Article 5(2)/24(1) determination above is ${verdictPhrase(s(acct.verdict))}${s(transfer.regime) && s(transfer.regime) !== "not_engaged" ? ", with the Chapter V transfer analysis carried in Section IV" : ""}.`
+    ? `The headline Article 5(2)/24(1) determination above is ${verdictPhrase(s(acct.verdict))}${s(transfer.regime) && s(transfer.regime) !== "not_engaged" ? ", with the Chapter V transfer analysis carried in Section IV" : ""}.`
     : "";
-  return repairRegister(lines.join("\n") + acctTail);
+  return repairRegister(acctTail);
 }
 
 function composeDpoBody(report: Bag): string {
@@ -493,63 +514,19 @@ function composeDeterminationBody(report: Bag, intake: Bag): string {
   }
 
   const plan = Array.isArray(report.remediation_plan) ? (report.remediation_plan as Bag[]) : [];
-  const domains = domainEntries(report);
-  const actionFor = (finding: Bag): string => {
-    const d = domains.find((x) => s(x.domain) === s(finding.domain));
-    return d ? s(d.recommended_action) : "";
-  };
-  // FD703575-G1 (2026-08-27) — each remediation item names the DUTY and the
-  // GAP it closes. The old lookup matched the remediation record's domain
-  // (the Item-313 duty vocabulary: "demonstrability", "dpo", …) against the
-  // model domain findings' domain names (the tool-usage vocabulary:
-  // "tool_inventory", …), which never match — every item fell back to the
-  // bare duty slug and items 2–9 rendered identically ("demonstrability
-  // Priority: High — …" with no gap named, live batch fd703575). Each
-  // remediation record was built FROM a domain_element_finding
-  // (finding.remediation, keyed by finding_key), so that finding's label and
-  // record_fact are the authoritative statement of what the item closes.
-  const elements = Array.isArray(report.domain_element_findings) ? (report.domain_element_findings as Bag[]) : [];
-  const elementFor = (p: Bag): Bag | undefined => elements.find((x) => s(x.key) === s(p.finding_key));
+  // BATCH 20a (Wave C4, doc 113 S5.1) — the numbered item paragraphs moved
+  // into the Remediation Register table below; the prose keeps the count
+  // sentence and the adversity-ordering sentence, and the uniform-defaults
+  // sentence rides the table's own note.
   if (plan.length) {
     parts.push(
-      `The assessment records ${plan.length === 1 ? "one remediation item" : `${plan.length} remediation items`}, each tied to the duty it closes.`,
+      `The assessment records ${plan.length === 1 ? "one remediation item" : `${plan.length} remediation items`}, each tied to the duty it closes and set out in the remediation register below.`,
     );
-    // 3E9AD759-G2 — when the intake's remediation defaults make every item's
-    // priority, owner, date and validation identical, the ordering rule is
-    // stated so the list still carries a triage signal.
-    const uniformDefaults = plan.length > 1 &&
-      plan.every((p) =>
-        s(p.priority) === s(plan[0].priority) &&
-        s(p.accountable_owner) === s(plan[0].accountable_owner) &&
-        s(p.target_date) === s(plan[0].target_date) &&
-        s(p.validation_method) === s(plan[0].validation_method));
-    if (uniformDefaults) {
+    if (plan.length > 1) {
       parts.push(
-        "The recorded owner, priority, target date and validation method are the intake's remediation defaults applied to each item. The items are ordered by the adversity of the finding each closes — duties recorded as not satisfied first, then partially satisfied, then record-completion items — and within a class by the order of the duty walk above.",
+        "The items are ordered by the adversity of the finding each closes — duties recorded as not satisfied first, then partially satisfied, then record-completion items — and within a class by the order of the duty walk above.",
       );
     }
-    plan.forEach((p, i) => {
-      const el = elementFor(p);
-      const label = (el && s(el.label)) || s(p.domain).replace(/_/g, " ");
-      const gap = el ? firstSentence(s(el.record_fact)) : "";
-      // D1D2B3B8-G2 (2026-08-28) — an item may not state a gap without a
-      // closure act. The duty-vocabulary items never match a model domain
-      // finding (see FD703575-G1 above), so their Action line was empty and
-      // the item just restated the intake answer ("The record carries
-      // nothing on this element" with nothing to DO — live batch, three
-      // documents). The element finding's information_needed IS the closure
-      // act for a record-completion item: what to state to close it.
-      const action = actionFor(p) || (el ? s(el.information_needed) : "");
-      const bits = [
-        `${i + 1}. ${repairRegister([label, gap].filter(Boolean).join(" — "))}`,
-        action ? `Action: ${repairRegister(action.replace(/\.$/, ""))}.` : "",
-        s(p.priority) ? `Priority: ${s(p.priority)}.` : "",
-        s(p.accountable_owner) ? `Accountable owner: ${s(p.accountable_owner)}.` : "",
-        s(p.target_date) ? `Target date: ${s(p.target_date)}.` : "",
-        s(p.validation_method) ? `Validation: ${s(p.validation_method)}.` : "",
-      ].filter(Boolean);
-      parts.push(bits.join(" "));
-    });
   }
 
   const context = s(intake.additional_context);
@@ -610,6 +587,67 @@ export interface GovernanceSkeletonResult {
   readonly document: RenderedSkeletonDocument;
   readonly conformance: ReturnType<typeof verifySkeletonConformance>;
   readonly register_findings: string[];
+}
+
+// BATCH 20a (Wave C4, doc 113 S5.1) — the §V Remediation Register. Rows
+// carry the FD703575-G1 duty/gap lookup (each remediation record was built
+// FROM a domain_element_finding keyed by finding_key, so that finding's
+// label and record_fact are the authoritative statement of what the item
+// closes; D1D2B3B8-G2's closure-act rule rides the Action column). The
+// §1.4 constant-column rule applies to the four meta columns: a column
+// whose every cell is identical is dropped and its constant stated once in
+// the table note.
+export function deriveRemediationRegisterTable(report: Bag): RenderedTable | null {
+  const plan = Array.isArray(report.remediation_plan) ? (report.remediation_plan as Bag[]) : [];
+  if (!plan.length) return null;
+  const domains = domainEntries(report);
+  const actionFor = (finding: Bag): string => {
+    const d = domains.find((x) => s(x.domain) === s(finding.domain));
+    return d ? s(d.recommended_action) : "";
+  };
+  const elements = Array.isArray(report.domain_element_findings) ? (report.domain_element_findings as Bag[]) : [];
+  const elementFor = (p: Bag): Bag | undefined => elements.find((x) => s(x.key) === s(p.finding_key));
+
+  const metaColumns: Array<{ label: string; value: (p: Bag) => string }> = [
+    { label: "Priority", value: (p) => s(p.priority) },
+    { label: "Accountable owner", value: (p) => s(p.accountable_owner) },
+    { label: "Target date", value: (p) => s(p.target_date) },
+    { label: "Validation", value: (p) => s(p.validation_method) },
+  ];
+  const kept = metaColumns.filter((c) => {
+    const first = c.value(plan[0]);
+    return !plan.every((p) => c.value(p) === first);
+  });
+  const dropped = metaColumns.filter((c) => !kept.includes(c) && c.value(plan[0]));
+
+  const rows = plan.map((p, i) => {
+    const el = elementFor(p);
+    const label = (el && s(el.label)) || s(p.domain).replace(/_/g, " ");
+    const gap = el ? firstSentence(s(el.record_fact)) : "";
+    // Cells carry an initial capital (doc 109 §1.4) — the slug fallback
+    // label may arrive lowercase.
+    const duty = repairRegister([label, gap].filter(Boolean).join(" — "));
+    const action = actionFor(p) || (el ? s(el.information_needed) : "");
+    return [
+      String(i + 1),
+      duty ? duty.charAt(0).toUpperCase() + duty.slice(1) : "—",
+      action ? repairRegister(action.replace(/\.$/, "")) : "—",
+      ...kept.map((c) => c.value(p) || "—"),
+    ];
+  });
+
+  return {
+    key: "",
+    surface: "remediation_plan",
+    title: "Remediation register",
+    columns: ["#", "Duty and gap", "Action", ...kept.map((c) => c.label)],
+    rows,
+    ...(dropped.length
+      ? {
+        note: `${dropped.map((c) => `${c.label}: ${c.value(plan[0])}`).join("; ")} — the intake's remediation defaults, applied to each item.`,
+      }
+      : {}),
+  };
 }
 
 // BATCH 19a (Wave C3, doc 113 S3.2) — the Executive Summary scoreboard,
@@ -711,12 +749,17 @@ export function assembleGovernanceSkeletonDocument(
     // verbatim, followed by the ten composed verdict-read entries.
     "ico_crosswalk:0":
       "The UK Information Commissioner's Accountability Framework organises accountability into ten categories. This appendix maps the determinations of this assessment onto those categories, so the reader can see the record in the regulator's own structure; each entry restates a determination made above and decides nothing new.",
-    "ico_crosswalk:1": composeIcoCrosswalk(report),
+    // BATCH 20a (doc 113 S5.2) — :1 is the crosswalk table; the detached
+    // closing sentence composes at :2.
+    "ico_crosswalk:2": composeIcoCrosswalk(report),
   };
 
   // BATCH 19a (doc 113 S3.2) — the scoreboard, keyed to its spine block.
   const tables: SkeletonTables = {
     "executive_summary:3": deriveGovernanceScoreboard(report),
+    // BATCH 20a (doc 113 S5.1/S5.2).
+    "the_determination:2": deriveRemediationRegisterTable(report),
+    "ico_crosswalk:1": deriveIcoCrosswalkTable(report),
   };
 
   const draft = renderSkeletonDocument({

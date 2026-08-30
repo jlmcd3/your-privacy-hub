@@ -38,7 +38,7 @@
 // `governance` (7f168ddb-d419-4f06-8cdc-1cf1fa03be7f), superseded at SO-3 with
 // "panel-delegated approval per CEO delegation 2026-08-06".
 
-export const GOVERNANCE_SKELETON_VERSION = "prose-plans-2026-08-30-c3-scoreboard";
+export const GOVERNANCE_SKELETON_VERSION = "prose-plans-2026-08-30-c4-registers";
 export const GOVERNANCE_SKELETON_SOURCE_FILE = "Governance_Assessment_Skeleton_v3.docx";
 export const GOVERNANCE_SKELETON_PROVENANCE =
   "Governance_Assessment_Skeleton_v3.docx — panel-delegated approval per CEO delegation 2026-08-06";
@@ -155,6 +155,10 @@ export const GOVERNANCE_SKELETON_SECTIONS: readonly GovernanceSkeletonSection[] 
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence restating the readiness determination as the operative finding." },
       { kind: "generated", text: "[GENERATED] Findings and the remediation plan in counsel's voice, each remediation tied to the duty it closes; {additionalContext} incorporated only where substantive." },
+      // BATCH 20a (Wave C4, doc 113 S5.1) — the Remediation Register: the
+      // numbered items as a table; meta columns under the constant-column
+      // rule with the intake defaults stated once in the note.
+      { kind: "table", text: "remediation_plan (remediation register)" },
     ],
   },
   // S-G1 (doc 80, 2026-08-27) — PN-G9 resolved as recommended: the
@@ -169,7 +173,11 @@ export const GOVERNANCE_SKELETON_SECTIONS: readonly GovernanceSkeletonSection[] 
     title: "Appendix: ICO Accountability Framework Crosswalk",
     blocks: [
       { kind: "rule", text: "The UK Information Commissioner's Accountability Framework organises accountability into ten categories. This appendix maps the determinations of this assessment onto those categories, so the reader can see the record in the regulator's own structure; each entry restates a determination made above and decides nothing new." },
-      { kind: "generated", text: "[GENERATED] The ten crosswalk entries, each reading its mapped typed determination; a category this assessment does not separately assess says so honestly." },
+      // BATCH 20a (Wave C4, doc 113 S5.2) — the ten entries as the
+      // crosswalk table; the closing sentence detaches into its own
+      // generated paragraph below instead of gluing onto the last line.
+      { kind: "table", text: "ico_accountability_crosswalk" },
+      { kind: "generated", text: "[GENERATED] The detached closing sentence: the headline Article 5(2)/24(1) determination restated, with the Chapter V pointer where a transfer analysis is carried." },
     ],
   },
   {

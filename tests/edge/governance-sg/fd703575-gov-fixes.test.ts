@@ -77,7 +77,9 @@ Deno.test("G1 — a remediation record with no matching element finding still re
   const r = reportWithPlan();
   (r.remediation_plan as Bag[]).push({ finding_key: "unknown_key", domain: "international_transfers", priority: "High" });
   const t = text(r);
-  assertStringIncludes(t, "international transfers");
+  // RE-PIN BATCH 20a (doc 113 S5.1): the fallback label is a Remediation
+  // Register cell now, and cells carry an initial capital.
+  assertStringIncludes(t, "International transfers");
 });
 
 Deno.test("G2 — a category-only record leaves Art. 37(1)(b) open instead of establishing it (D1D2B3B8-G1 supersedes)", () => {
@@ -126,5 +128,6 @@ Deno.test("D1D2B3B8-G1 — an established limb still carries the mandatory concl
 
 Deno.test("G3 — a crosswalk severity row carries the domain's own recorded gap", () => {
   const t = text(reportWithPlan());
-  assertStringIncludes(t, "assessed with severity medium — Employee instruction on tool use is verbal only; no written policy is recorded");
+  // RE-PIN BATCH 20a (doc 113 S5.1/S5.2): the crosswalk lines and remediation-item fragments moved into table cells (cells initial-capped; label prefixes retired).
+  assertStringIncludes(t, "Assessed with severity medium — Employee instruction on tool use is verbal only; no written policy is recorded");
 });

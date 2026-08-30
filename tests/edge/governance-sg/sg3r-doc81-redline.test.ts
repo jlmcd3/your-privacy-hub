@@ -70,7 +70,9 @@ Deno.test("G-3 — Compliant and Unresolved render as postures, not as \"severit
   const f = buildDomainFindingsTyped({ ...STRONG, privacy_policy: "" });
   const sk = assembleGovernanceSkeletonDocument({ domain_findings: f, readiness_determination: {} }, STRONG);
   const text = JSON.stringify(sk.document);
-  assertStringIncludes(text, "Transparency: unresolved on the information provided.");
+  // RE-PIN BATCH 20a (doc 113 S5.1/S5.2): the crosswalk lines and remediation-item fragments moved into table cells (cells initial-capped; label prefixes retired).
+  assertStringIncludes(text, "Transparency");
+  assertStringIncludes(text, "Unresolved on the information provided");
   assert(!text.includes("severity unresolved"));
   assert(!text.includes("severity compliant"));
 });
@@ -149,7 +151,10 @@ Deno.test("S-1 — the accountability-structure fallback also uses \"evidenced\"
   assert(!text.includes("structure stands"));
 });
 
-Deno.test("S-4 — every remediation-item fragment ends with a period", () => {
+// RE-PIN BATCH 20a (doc 113 S5.1): the item fragments are Remediation
+// Register cells now; a single item makes every meta column constant, so
+// the four meta values ride the table note.
+Deno.test("S-4 — the remediation meta values render in the register (note when constant)", () => {
   const report = {
     domain_findings: buildDomainFindingsTyped(STRONG),
     readiness_determination: {},
@@ -159,5 +164,7 @@ Deno.test("S-4 — every remediation-item fragment ends with a period", () => {
   };
   const sk = assembleGovernanceSkeletonDocument(report, STRONG);
   const text = JSON.stringify(sk.document);
-  assertStringIncludes(text, "Accountable owner: IT owner.");
+  assertStringIncludes(text, "Remediation register");
+  assertStringIncludes(text, "Accountable owner: IT owner");
+  assertStringIncludes(text, "the intake's remediation defaults, applied to each item");
 });
