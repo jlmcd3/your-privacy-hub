@@ -315,8 +315,11 @@ const ADMT_V3_FIXED = {
     "Article 11 places the consumer-facing duties on the business, but some duties expressly depend on downstream cooperation, and every service-provider or contractor contract must already require that cooperation, including assisting the business with its ADMT compliance and granting the business audit and testing rights over the vendor's systems (11 CCR § 7050(h); § 7051(a)(6)–(7)). When a consumer opts out after ADMT processing has begun, the business must notify service providers, contractors, and other persons processing the consumer's information with that ADMT and instruct them to comply within the same 15-business-day period (11 CCR § 7221(n)(2)). For access requests, service providers and contractors must assist the business by providing or making available relevant personal information (11 CCR § 7222(i)). Vendor controls therefore matter when the Company depends on a third party to execute the selected compliance pathway; they are not automatically standalone Article 11 violations merely because a particular contract term is absent.",
   governance_requirement:
     "Businesses using ADMT for significant decisions must comply with Article 11 beginning January 1, 2027 (11 CCR § 7200(b)). The same use of ADMT is also a separate risk-assessment trigger under Article 10 (11 CCR § 7150(b)(3)). A required risk assessment must be conducted before covered processing begins (11 CCR §§ 7150(a), 7155(a)(1)) and reviewed at least every three years (11 CCR § 7155(a)(2)); it must be updated sooner — as soon as feasible and no later than 45 calendar days after the change — when a material change creates new privacy impacts, increases existing impacts, or weakens safeguards (11 CCR § 7155(a)(3)).",
+  // PANEL ADMT-2 (2026-08-30, panel-B memo 2 (h)): there is no freestanding
+  // "Article 11 of the California Code of Regulations", and Article 11
+  // governs ADMT requirements, not "ADMT audits" — cited precisely.
   general_requirement_summary:
-    "Article 11 of the California Code of Regulations governing ADMT audits requires a business to determine whether it uses ADMT for a significant decision and, if so, to give consumers the required Pre-use Notice, provide an effective opt-out or support the exception it relies on, and be able to explain a consumer-specific decision on request.",
+    "Article 11 of the CCPA regulations (Cal. Code Regs. tit. 11, §§ 7200–7222) requires a business to determine whether it uses ADMT for a significant decision and, if so, to give consumers the required Pre-use Notice, provide an effective opt-out or support the exception it relies on, and be able to explain a consumer-specific decision on request.",
 };
 
 // ---------------------------------------------------------------------------
@@ -439,6 +442,13 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   const d = (intake as any)?.admt_detail ?? {};
   const { scope, notice, optOut, access, vendor } = computed;
 
+  // PANEL ADMT-1 (2026-08-30): when the System is out of scope, only the
+  // Applicability findings are reached; duty-area findings must not surface
+  // as Priority Matters or §8 items for duties this report does not assess.
+  const computedForActions = scope.scopeState === "OUT_OF_SCOPE"
+    ? { ...computed, allFindings: computed.allFindings.filter((f) => f.area === "Applicability") }
+    : computed;
+
   const sections: RenderedSection[] = [];
   const push = (id: string, title: string, paragraphs: RenderedParagraph[]) => {
     const nonEmpty = paragraphs.filter((p) => p.kind === "table" ? !!p.table && p.table.rows.length > 0 : !!p.text?.trim());
@@ -484,18 +494,28 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
       domains.length
         ? `The Company uses ${systemName || "the System"} in ${reader(domains)}.`
         : `The Company has not identified the decision domain in which it uses ${systemName || "the System"}.`
-    } This audit addresses four questions: whether Article 11 applies to that use; whether the required Pre-use Notice is in place; whether the Company provides the required opt-out or can support the exception it selected; and whether it can provide the consumer-specific access and explanation required by the regulations.` },
+    } This assessment addresses four questions: whether Article 11 applies to that use; whether the required Pre-use Notice is in place; whether the Company provides the required opt-out or can support the exception it selected; and whether it can provide the consumer-specific access and explanation required by the regulations.` },
     { kind: "table", text: "", table: {
       key: "executive_summary:2", surface: "audit_area_summary", title: "",
       columns: ["Audit area", "Result on reported facts", "Record grade", "Assessment"],
       rows: [
         ["Applicability", stateCell(scope.scopeState), gradeCell(scope.recordGrade), scopeAreaPhrase(scope)],
+        // PANEL ADMT-1 (2026-08-30, panel-B memo 2 (c)): the summary promises
+        // four questions; an out-of-scope record used to answer one and drop
+        // the rest without a word. The three duty rows now state that they
+        // are not reached, so the table always accounts for every question.
         ...(scope.scopeState !== "OUT_OF_SCOPE" ? [
           ["Pre-use Notice", stateCell(notice.posture), gradeCell(notice.recordGrade), postureEffectPhrase(notice.posture, "the Pre-use Notice requirements", true)],
           ["Opt-out / exception", stateCell(optOut.posture), gradeCell(optOut.recordGrade), postureEffectPhrase(optOut.posture, "the selected opt-out pathway")],
           ["Access and explanation", stateCell(access.posture), gradeCell(access.recordGrade), postureEffectPhrase(access.posture, "the access and explanation requirements", true)],
-        ] : []),
-        ...(vendor.identified ? [["Vendor dependency", stateCell(vendor.posture), gradeCell(vendor.recordGrade), vendorDependencyPhrase(vendor)]] : []),
+        ] : [
+          ["Pre-use Notice", "Not reached", "—", NOT_REACHED_PHRASE],
+          ["Opt-out / exception", "Not reached", "—", NOT_REACHED_PHRASE],
+          ["Access and explanation", "Not reached", "—", NOT_REACHED_PHRASE],
+        ]),
+        ...(vendor.identified && scope.scopeState !== "OUT_OF_SCOPE"
+          ? [["Vendor dependency", stateCell(vendor.posture), gradeCell(vendor.recordGrade), vendorDependencyPhrase(vendor)]]
+          : []),
       ],
     }},
     // v3.2.2 — an overall "Meets" next to a bare "Qualified" grade left the
@@ -509,7 +529,7 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
           : "Record sufficiency is graded Materially incomplete because material supporting information was not provided. The record-quality table in the Governance section identifies the affected areas, and the Assessment Fact Record appendix identifies the specific fields.",
       } as RenderedParagraph]
       : []),
-    ...priorityMattersParagraphs(computed),
+    ...priorityMattersParagraphs(computedForActions),
   ]);
 
   // ── 1. System and Decision Profile ──────────────────────────────────────
@@ -551,6 +571,13 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
       ],
     }},
     { kind: "generated", text: composeApplicabilityAnalysis(scope, systemName || "the System") },
+    // PANEL ADMT-1 (2026-08-30, panel-B memo 2 (e), unanimous): the
+    // out-of-scope determination hangs on one self-reported fact —
+    // qualifying human review. The conditions under which it holds are
+    // stated with the determination, from facts already in the record.
+    ...(scope.scopeState === "OUT_OF_SCOPE"
+      ? buildOutOfScopeConditions(intake, systemName || "the System")
+      : []),
     ...admtS4.flatMap((att): RenderedParagraph[] => [
       { kind: "skeleton", text: `What the Regulator Said — ${att.factor_id}` },
       { kind: "skeleton", text: att.frame },
@@ -558,13 +585,31 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
     ]),
   ]);
 
-  if (scope.scopeState === "OUT_OF_SCOPE") {
-    return { _typed: "skeleton-document@admt-v3.2", spine_version: ADMT_V2_SPINE_VERSION, title: "CPPA ADMT COMPLIANCE AUDIT", subtitle: `Prepared for ${organizationName || "(organization not provided)"}`, sections };
-  }
+  // PANEL ADMT-1 (2026-08-30, panel-B memo 2 (a)-(c)): the out-of-scope
+  // path used to RETURN here — the document ended after Section 2 with no
+  // conclusion, no governance/record table, no fact-record appendix, no
+  // signature, no ToA, while the Executive Summary pointed at two of those
+  // missing destinations. The duty audits (§§3-6) are rightly not reached;
+  // each now renders a one-sentence not-reached stub (the fixed-numbering
+  // pattern §6 already used for the no-vendor case), and everything
+  // downstream renders with its content gated to what was actually
+  // assessed.
+  const outOfScope = scope.scopeState === "OUT_OF_SCOPE";
+  const NOT_REACHED_STUB = (dutyPhrase: string): RenderedParagraph => ({
+    kind: "skeleton",
+    text: `Not reached. On the Company's reported facts the System is outside Article 11 for this decision (Section 2), so ${dutyPhrase} in this report. The section number is retained so the report's fixed structure reads consistently across assessments.`,
+  });
 
   // ── 3. Pre-use Notice Audit ──────────────────────────────────────────────
   const deliveryPhrase = str((intake as any)?.notice_delivery) || reader(Array.isArray((intake as any)?.notice_delivery) ? (intake as any).notice_delivery : []);
-  push("notice", "3. Pre-use Notice Audit", [
+  if (outOfScope) {
+    push("notice", "3. Pre-use Notice Audit", [NOT_REACHED_STUB("the Pre-use Notice requirements are not assessed")]);
+    push("optout", "4. Opt-Out and Exception Audit", [NOT_REACHED_STUB("the opt-out and exception requirements are not assessed")]);
+    push("access", "5. Access and Explanation Audit", [NOT_REACHED_STUB("the access and explanation requirements are not assessed")]);
+    push("vendor", "6. Third-Party and Vendor Dependency", [NOT_REACHED_STUB("no vendor-dependency analysis is performed")]);
+  }
+
+  if (!outOfScope) push("notice", "3. Pre-use Notice Audit", [
     legal(ADMT_V3_FIXED.preuse_notice_requirement),
     legal(ADMT_V3_FIXED.preuse_notice_layering),
     { kind: "lead", text: noticeDeterminationSentence(notice) },
@@ -652,10 +697,10 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
       { kind: "generated", text: composeEmploymentEducationExceptionAnalysis(optOut) },
     );
   }
-  push("optout", "4. Opt-Out and Exception Audit", optOutParas);
+  if (!outOfScope) push("optout", "4. Opt-Out and Exception Audit", optOutParas);
 
   // ── 5. Access and Explanation Audit ─────────────────────────────────────
-  push("access", "5. Access and Explanation Audit", [
+  if (!outOfScope) push("access", "5. Access and Explanation Audit", [
     legal(ADMT_V3_FIXED.access_requirement),
     legal(ADMT_V3_FIXED.access_process_requirement),
     { kind: "skeleton", text: "The following tables show the Company's access-request process and its readiness to produce each element of the required explanation:" },
@@ -686,7 +731,7 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   // only in the one case the intake itself establishes the Company cannot
   // perform the duty independently (vendor-hosted System + a missing,
   // pathway-relevant control) — see VENDOR_MATERIALITY_MATRIX.
-  if (vendor.identified) {
+  if (!outOfScope && vendor.identified) {
     push("vendor", "6. Third-Party and Vendor Dependency", [
       legal(ADMT_V3_FIXED.vendor_requirement),
       { kind: "skeleton", text: vendor.sectionLead },
@@ -706,7 +751,7 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
       }},
       { kind: "generated", text: composeVendorDependencyAnalysis(vendor) },
     ]);
-  } else {
+  } else if (!outOfScope) {
     // v3.2.2 — the fixed section numbering stays; a report with no vendor
     // dependency states that instead of jumping 5 → 7 unexplained.
     push("vendor", "6. Third-Party and Vendor Dependency", [
@@ -717,23 +762,35 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   // ── 7. Governance, Record Sufficiency, and Related Risk-Assessment ─────
   push("governance", "7. Governance, Record Sufficiency, and Related Risk-Assessment Obligations", [
     legal(ADMT_V3_FIXED.governance_requirement),
-    { kind: "skeleton", text: "This ADMT Audit is not the Article 10 risk assessment. The two records should nevertheless stay aligned because changes to the system, its decision use, or its safeguards may affect both analyses. The following table shows the record quality supporting each section of this assessment:" },
+    { kind: "skeleton", text: "This ADMT Compliance Assessment is not the Article 10 risk assessment. The two records should nevertheless stay aligned because changes to the system, its decision use, or its safeguards may affect both analyses. The following table shows the record quality supporting each section of this assessment:" },
     { kind: "skeleton", text: `The overall record supporting this assessment is graded ${computed.overallRecordGrade.replace(/_/g, " ").toLowerCase()}.` },
     { kind: "table", text: "", table: {
       key: "governance:1", surface: "record_grades", title: "",
       columns: ["Area", "Record quality"],
+      // PANEL ADMT-1 (2026-08-30): out of scope, only the Applicability
+      // record was assessed — grading duty areas this report never reached
+      // would reverse the body. The duty rows state "Not reached" instead,
+      // so the overall grade keeps its referent.
       rows: [
         ["Applicability", gradeCell(scope.recordGrade)],
-        ["Pre-use Notice", gradeCell(notice.recordGrade)],
-        ["Opt-out / exception", gradeCell(optOut.recordGrade)],
-        ["Access", gradeCell(access.recordGrade)],
-        ...(vendor.identified ? [["Vendor dependency", gradeCell(vendor.recordGrade)]] : []),
+        ...(outOfScope
+          ? [
+            ["Pre-use Notice", "Not reached"],
+            ["Opt-out / exception", "Not reached"],
+            ["Access", "Not reached"],
+          ]
+          : [
+            ["Pre-use Notice", gradeCell(notice.recordGrade)],
+            ["Opt-out / exception", gradeCell(optOut.recordGrade)],
+            ["Access", gradeCell(access.recordGrade)],
+            ...(vendor.identified ? [["Vendor dependency", gradeCell(vendor.recordGrade)]] : []),
+          ]),
       ],
     }},
   ]);
 
   // ── 8. Conditions, Required Follow-Up, and Recommendations ──────────────
-  push("actions", "8. Conditions, Required Follow-Up, and Recommendations", buildActionParagraphs(computed));
+  push("actions", "8. Conditions, Required Follow-Up, and Recommendations", buildActionParagraphs(computedForActions));
 
   // ── 9. Conclusion ────────────────────────────────────────────────────────
   push("conclusion", "9. Conclusion", [
@@ -751,7 +808,13 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   // report was reviewed. Name/Title/Signature/Date are never pre-filled.
   // v3.2.2 — retitled "Review and Approval" (matches CPPA Risk's section).
   push("review_of_assessment", "Review and Approval", [
-    { kind: "skeleton", text: "The foregoing report describes the pre-use notice, opt-out mechanisms, and consumer access response processes implemented as of the date of this assessment." },
+    // PANEL ADMT-1 (2026-08-30): the fixed sentence claimed the report
+    // "describes the pre-use notice, opt-out mechanisms, and consumer
+    // access response processes" — untrue of an out-of-scope report that
+    // assessed none of them.
+    { kind: "skeleton", text: outOfScope
+      ? "The foregoing report records the applicability assessment of the System, and the facts supporting it, as of the date of this assessment."
+      : "The foregoing report describes the pre-use notice, opt-out mechanisms, and consumer access response processes implemented as of the date of this assessment." },
     { kind: "table", text: "", table: {
       key: "review_of_assessment:1", surface: "admt_review_signature", title: "",
       columns: ["Field", "Value"], hideHeader: true,
@@ -795,14 +858,14 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
 
   // ── Appendix C — Assessment Fact Record ─────────────────────────────────
   push("appendix_c", "Appendix C — Assessment Fact Record", [
-    { kind: "skeleton", text: "This appendix captures the material facts the Company supplied and that the audit used. It supports later review and updating; it does not independently verify the Company's responses. The following table records the material facts the Company supplied for each topic:" },
+    { kind: "skeleton", text: "This appendix captures the material facts the Company supplied and that the assessment used. It supports later review and updating; it does not independently verify the Company's responses. The following table records the material facts the Company supplied for each topic:" },
     { kind: "table", text: "", table: { key: "appendix_c:0", surface: "fact_record", ...buildFactRecordTable(intake, computed, organizationName, systemName, systemType, domains) } },
   ]);
 
   return {
     _typed: "skeleton-document@admt-v3.2",
     spine_version: ADMT_V2_SPINE_VERSION,
-    title: "CPPA ADMT COMPLIANCE AUDIT",
+    title: "CPPA ADMT Compliance Assessment",
     subtitle: `Prepared for ${organizationName || "(organization not provided)"}`,
     sections,
   };
@@ -865,6 +928,29 @@ function vendorLead(intake: Record<string, unknown>, vendor: { identified: boole
 // state). v3.2: reworded to drop Part II §L's banned canned phrases (the
 // old "the Pre-use Notice duty is discharged" line specifically).
 // ---------------------------------------------------------------------------
+
+// PANEL ADMT-1 (2026-08-30) — the out-of-scope surfaces.
+const NOT_REACHED_PHRASE =
+  "Not reached — the System is outside Article 11 for this decision on the Company's reported facts (see Section 2).";
+
+/** The conditions under which the out-of-scope determination holds, stated
+ * with the determination (panel-B memo 2 (e), unanimous). The band sentence
+ * fires on a lexical signal in the Company's OWN system description —
+ * nothing is inferred beyond what the description says. */
+function buildOutOfScopeConditions(intake: Record<string, unknown>, systemName: string): RenderedParagraph[] {
+  const paras: RenderedParagraph[] = [
+    { kind: "skeleton", text: "Conditions on this determination" },
+    { kind: "skeleton", text: `This determination rests on the reported human review operating in practice for every significant decision ${systemName} touches. Qualifying review under 11 CCR § 7001(e)(1) means the reviewer knows how to interpret the output, considers it together with other information, and has authority to change the decision — for each decision, not in the aggregate. Where a decision is made without that review, the System is ADMT for that decision, and the Article 11 duties this report does not reach — the Pre-use Notice, the opt-out or exception, and consumer access and explanation — apply to it.` },
+  ];
+  const desc = str((intake as any)?.system_description);
+  if (/auto(?:matic(?:ally)?|-)\s*(?:approv|declin|reject|deni)/i.test(desc)) {
+    paras.push({
+      kind: "skeleton",
+      text: "The Company's own description of the System routes some outcomes automatically. Decisions reached that way are not covered by the reported human review, and for them the determination above does not hold: the Article 11 duties would apply to those decisions.",
+    });
+  }
+  return paras;
+}
 
 function overallDeterminationSentence(c: AdmtV2Computed): string {
   const label = c.overallPostureLabel;
@@ -1096,10 +1182,24 @@ function buildFactorMatrixTable(
     ["Human involvement", scope.humanInvolvementLabel, humanInvolvementPhrase(scope.humanInvolvementEffect), "11 CCR § 7001(e)(1)"],
     ["Advertising exclusion", scope.advertisingLabel, advertisingPhrase(scope.advertisingEffect), "11 CCR § 7001(ddd)(6)"],
     ["Output role", scope.outputRoleLabel, outputRolePhrase(), "11 CCR §§ 7001(e)(1), 7220(c)(5)(B), 7222(b)(3)–(3)(A)"],
+  ];
+
+  // PANEL ADMT-1 (2026-08-30): the matrix "restates each material factor
+  // behind the assessment" — out of scope, the duty factors were never
+  // assessed, so restating them here would reverse the body.
+  if (scope.scopeState === "OUT_OF_SCOPE") {
+    return {
+      title: "",
+      columns: ["Factor", "Report Determination", "Primary Authority"],
+      rows: rows.map((r) => [r[0], `${r[1]} — ${r[2]}`, r[3]]),
+    };
+  }
+
+  rows.push(
     ["Notice delivery", notice.delivery.label, noticeDeliveryPhrase(notice.delivery.status), "11 CCR § 7220(b)(2)–(3)"],
     ["Notice content", `Composite across the six required elements (see §3 table)`, noticeContentPhrase(notice.posture), "11 CCR § 7220(c)(1)–(5)"],
     ["Notice text (evidence / record grade)", `Record grade: ${gradeLabel(notice.recordGrade)}`, gradeLabel(notice.recordGrade), "11 CCR § 7220(c)"],
-  ];
+  );
 
   if (path === "FULL_OPT_OUT") {
     rows.push(["Opt-out pathway", "Full opt-out (§4.1 table)", optOutPathwayPhrase(optOut), "11 CCR § 7221(c)–(h), (n)"]);
