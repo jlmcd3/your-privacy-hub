@@ -581,6 +581,20 @@ function safeguardCreditedCell(p: Pathway): string {
 export function buildRiskLedgerTable(pathways: Pathway[], surface: string): RenderedTable | null {
   const ranked = rankPathways(pathways);
   if (!ranked.length) return null;
+  // PANEL RISK-P3 (2026-08-30): the exec surface previously emitted the same
+  // four-column ledger as § IV.A byte-for-byte — the full table printed
+  // twice. The exec summary now carries the compression this function's
+  // doc-comment always promised: one line per risk, name and remaining
+  // level; § IV.A keeps the full ledger.
+  if (surface === "exec_ledger") {
+    return {
+      key: "",
+      surface,
+      title: "",
+      columns: ["Privacy risk", "Remaining risk"],
+      rows: ranked.map((p) => [p.harm, `${p.residual} ${movementMark(p)}`]),
+    };
+  }
   return {
     key: "",
     surface,
@@ -690,10 +704,13 @@ export function runRiskFactorEngine(
     );
   }
   if (necessity.unnecessary.length) {
+    // PANEL RISK-P1/D8 (2026-08-30): no colon cataphora here — the exec
+    // summary compresses each condition to the text before its first colon,
+    // and "the following element:" left "the following element" dangling in
+    // the one paragraph most customers read. Naming the elements inline
+    // keeps both the full § IV.D entry and the compact form grammatical.
     conditions.push(
-      `Cease processing, or establish the necessity of, the following ${
-        plural(necessity.unnecessary.length, "element", "elements")
-      }: ${asProse(necessity.unnecessary.map((r) => s(r.element)))}`,
+      `Cease processing, or establish the necessity of, ${asProse(necessity.unnecessary.map((r) => s(r.element)))}`,
     );
   }
   for (const p of gaps) {
@@ -1457,9 +1474,23 @@ export function runRiskFactorEngine(
     );
   }
   if (necessity.unnecessary.length || necessity.unsure.length) {
-    const paras: string[] = necessity.unnecessary.map((r) =>
-      `${s(r.element)} is collected but not shown to be necessary: the information provided identifies no contribution it makes to the Purpose. Processing it creates privacy exposure without a corresponding contribution to the benefits weighed in Section IV, and ceasing or justifying it appears in the Conditions to Proceed.`
-    );
+    // PANEL RISK-P1 (2026-08-30). Two defects in the old sentence: (a) the
+    // element name is the grammatical subject, so a plural element ("Contact
+    // identifiers (name, email, phone) is collected") broke agreement on the
+    // report's most consequential finding; (b) where the row carries a
+    // recorded basis, Appendix D prints it — asserting "identifies no
+    // contribution" in the body contradicted the report's own record
+    // (quote-then-deny class). The determination is unchanged: the bucket
+    // comes from the Company's own necessity answer, and the sentence now
+    // says so, acknowledging the recorded basis where one exists.
+    const paras: string[] = necessity.unnecessary.map((r) => {
+      const basis = clause(r.justification);
+      const consequence =
+        "Processing the element creates privacy exposure without a corresponding contribution to the benefits weighed in Section IV, and ceasing or justifying it appears in the Conditions to Proceed.";
+      return basis
+        ? `The necessity of ${s(r.element)} is not established for the Purpose under assessment: the Company itself records the element as collected but not necessary to the stated purpose, and the basis it records (“${basis}”) does not establish a contribution to that Purpose; the element-level record appears in Appendix D. ${consequence}`
+        : `The necessity of ${s(r.element)} is not established: the Company records the element as collected but not necessary to the stated purpose, and the information provided identifies no contribution it makes to the Purpose. ${consequence}`;
+    });
     if (necessity.unsure.length) {
       paras.push(
         necessity.unsure.map((r) =>

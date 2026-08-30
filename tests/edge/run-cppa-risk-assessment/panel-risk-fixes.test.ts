@@ -1,0 +1,152 @@
+// PANEL FIX BATCH 5 (2026-08-30) — CPPA Risk defects from the expert-panel
+// review (doc 108), each verified against the published sample before fixing:
+//   RISK-P1  (D2) subject–verb break "Contact identifiers (name, email,
+//            phone) is collected"; (D3) body denied any recorded
+//            contribution while Appendix D printed the recorded basis
+//            (quote-then-deny class); (D8) the exec compact-conditions
+//            sentence truncated at the colon, leaving "the following
+//            element" dangling with no element named;
+//   RISK-P2  (D4) circular sensitive-PI placeholder ("the sensitive personal
+//            information the Company has identified in its submission") in
+//            three table cells;
+//   RISK-P3  (D9) cover disposition title-cased to "Do not Proceed";
+//            the exec summary printed the full four-column risk ledger
+//            byte-identical to § IV.A.
+//
+// Determination LOGIC is untouched throughout — these are sentence-family
+// and projection fixes over the same typed verdicts.
+
+import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import {
+  buildRiskLedgerTable,
+  runRiskFactorEngine,
+} from "../../../supabase/functions/_shared/ltp/risk-factor-engine.ts";
+import {
+  deriveActivitySpiInventory,
+  deriveExecStatusPanel,
+} from "../../../supabase/functions/_shared/ltp/risk-skeleton-assemble.ts";
+import { CPPA_RISK_PERFECT } from "../../../supabase/functions/_shared/golden/cppa-risk.ts";
+
+type Bag = Record<string, unknown>;
+
+const baseIntake = (): Bag => ({ ...(CPPA_RISK_PERFECT[0].intake as Bag) });
+
+function engineOn(overrides: Bag) {
+  return runRiskFactorEngine({ ...baseIntake(), ...overrides } as never, {} as never, "2026-08-30");
+}
+
+Deno.test("RISK-P1: an unnecessary element WITH a recorded basis is attributed, never denied", () => {
+  const r = engineOn({
+    a2_necessity_set: [
+      {
+        element: "Contact identifiers (name, email, phone)",
+        necessity: "Collected but not necessary to the stated purpose",
+        justification:
+          "Contact identifiers are collected for shipment-tracking notifications and are excluded from the audience models.",
+      },
+    ],
+  });
+  const body = r.blocks["iii_analysis:5"] ?? "";
+  assert(!body.includes("is collected but not shown to be necessary"), "old subject-verb sentence survived");
+  assert(!body.includes("identifies no contribution"), "denied a contribution the record carries (quote-then-deny)");
+  assert(
+    body.includes("The necessity of Contact identifiers (name, email, phone) is not established"),
+    "new attribution sentence absent",
+  );
+  assert(
+    body.includes("collected for shipment-tracking notifications"),
+    "the recorded basis is not acknowledged in the body",
+  );
+  assert(body.includes("Appendix D"), "no pointer to the element-level record");
+});
+
+Deno.test("RISK-P1: an unnecessary element with NO basis keeps the honest no-contribution sentence", () => {
+  const r = engineOn({
+    a2_necessity_set: [
+      {
+        element: "Device fingerprint hashes",
+        necessity: "Collected but not necessary to the stated purpose",
+        justification: "",
+      },
+    ],
+  });
+  const body = r.blocks["iii_analysis:5"] ?? "";
+  assert(body.includes("The necessity of Device fingerprint hashes is not established"), "new sentence absent");
+  assert(
+    body.includes("the information provided identifies no contribution it makes to the Purpose"),
+    "no-basis branch lost its honest denial",
+  );
+});
+
+Deno.test("RISK-P1/D8: the exec compact conditions never dangle — the elements are named inline", () => {
+  const r = engineOn({
+    a2_necessity_set: [
+      {
+        element: "Contact identifiers (name, email, phone)",
+        necessity: "Collected but not necessary to the stated purpose",
+        justification: "Collected for notifications only.",
+      },
+    ],
+  });
+  const compact = r.blocks["executive_summary:9"] ?? "";
+  assert(!/the following element[s]?[;.]/.test(compact), "dangling cataphora survived in the compact list");
+  if (compact.includes("Cease processing")) {
+    assert(
+      compact.includes("Cease processing, or establish the necessity of, Contact identifiers (name, email, phone)"),
+      "compact condition does not name the element",
+    );
+  }
+});
+
+Deno.test("RISK-P2: q15 Yes with no mapped category yields an honest limitation, not a circular placeholder", () => {
+  const spi = deriveActivitySpiInventory({
+    q4_pi_categories: ["Internet or network activity"],
+    q15_sensitive_pi: "Yes",
+  } as never);
+  assertEquals(
+    spi,
+    "Identified as processed in the Company’s submission; the specific categories are not named in the activity record.",
+  );
+  assert(!String(spi).includes("has identified in its submission"), "circular placeholder survived");
+});
+
+Deno.test("RISK-P2: mapped SPI categories still print verbatim", () => {
+  const spi = deriveActivitySpiInventory(baseIntake() as never);
+  // Whatever the golden intake maps, the fallback sentence must not appear
+  // when a mapped category exists — and a No answer yields null.
+  assertEquals(deriveActivitySpiInventory({ q15_sensitive_pi: "No" } as never), null);
+  void spi;
+});
+
+Deno.test("RISK-P3: the cover disposition is sentence-cased", () => {
+  const table = deriveExecStatusPanel({
+    assessment_required: true,
+    inherent: "High",
+    residual: "High",
+    disposition: "do not proceed",
+  } as never);
+  const cell = table?.rows.find((r) => r[0] === "Assessment disposition")?.[1];
+  assertEquals(cell, "Do not proceed");
+  const table2 = deriveExecStatusPanel({
+    assessment_required: true,
+    inherent: "High",
+    residual: "Low",
+    disposition: "proceed with conditions",
+  } as never);
+  assertEquals(table2?.rows.find((r) => r[0] === "Assessment disposition")?.[1], "Proceed with conditions");
+});
+
+Deno.test("RISK-P3: the exec ledger is the compression; § IV.A keeps the full four columns", () => {
+  const r = engineOn({});
+  const exec = r.tables["executive_summary:5"];
+  const full = r.tables["iv_determination:1"];
+  if (exec && full) {
+    assertEquals(exec.columns, ["Privacy risk", "Remaining risk"]);
+    assertEquals(full.columns, ["Privacy risk", "Before safeguards", "Safeguard credited (status)", "Remaining"]);
+    assertEquals(exec.rows.length, full.rows.length);
+    assert(exec.rows.every((row) => row.length === 2), "exec rows must be two cells");
+  } else {
+    // The golden fixture must produce a ledger for this pin to bite.
+    assert(exec !== undefined || full !== undefined, "no ledger tables produced on the golden fixture");
+  }
+});

@@ -238,6 +238,11 @@ for (const c of CPPA_RISK_PERFECT) {
     await t.step("the risk ledger and balance summary tables render", () => {
       assert(body.includes("Privacy risk | Before safeguards | Safeguard credited (status) | Remaining"), "risk ledger columns absent");
       assert(body.includes("Benefits established (weight) | Risks remaining (level)"), "balance summary columns absent");
+      // PANEL RISK-P3 (2026-08-30): the exec summary carries the compressed
+      // two-column ledger; the four-column table prints once, in § IV.A.
+      assert(body.includes("Privacy risk | Remaining risk"), "compressed exec ledger columns absent");
+      const fullHeaderCount = body.split("Privacy risk | Before safeguards | Safeguard credited (status) | Remaining").length - 1;
+      assert(fullHeaderCount === 1, `full ledger header must print exactly once, saw ${fullHeaderCount}`);
     });
 
     await t.step("§ 7150(b) triggers derive and render", () => {
@@ -314,7 +319,13 @@ Deno.test("v5.2 — SPI inventory maps the canonical taxonomy with the q15 fallb
   const locusSpi = deriveActivitySpiInventory(locus);
   assert(locusSpi?.includes("Precise geolocation"), locusSpi ?? "");
   const sierraSpi = deriveActivitySpiInventory(sierra);
-  assert(sierraSpi?.includes("sensitive personal information"), sierraSpi ?? "");
+  // RE-PIN PANEL RISK-P2 (2026-08-30): the q15-Yes fallback was the circular
+  // placeholder "the sensitive personal information the Company has
+  // identified in its submission"; it now states the limitation honestly.
+  assert(
+    sierraSpi?.includes("the specific categories are not named in the activity record"),
+    sierraSpi ?? "",
+  );
   assertEquals(
     deriveActivitySpiInventory({ q4_pi_categories: ["Financial information"], q15_sensitive_pi: "No" }),
     null,

@@ -612,7 +612,11 @@ const F_CPPA_RISK_US: SampleFixture = {
         i7_external_consultees: "Outside privacy counsel; independent bias auditor (annual)",
         i8_certifying_exec_name: "Rudy Rangifer",
         i8_certifying_exec_title: "Chief Privacy Officer",
-        i8_contact_email: "privacy@bustedsled.example",
+        // RISK-F1 (panel, 2026-08-30): was privacy@bustedsled.example — the
+        // Busted Sled governance fixture's address pasted into the
+        // Tomorrow4Cariboo risk fixture, so §V.E and the Agency Checklist
+        // published another company's contact. Domain per lines 744/865.
+        i8_contact_email: "privacy@tomorrow4cariboo.example",
         i8_contact_phone: "+1 312 555 0148",
         i9_has_existing_dpia: "No",
         i9_existing_dpia_summary: "",

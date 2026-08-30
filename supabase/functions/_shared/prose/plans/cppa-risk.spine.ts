@@ -109,8 +109,12 @@ export const RISK52_FIXED = {
     "On the information provided, the Activity engages the following trigger or triggers:",
   exec_triggers_none:
     "On the information provided, the Activity does not engage any of the significant-risk categories in 11 CCR § 7150(b); a risk assessment is not required for the Activity as described, and this report records that determination.",
+  // PANEL RISK-P3 (2026-08-30): rewritten alongside the exec ledger's
+  // compression — the old sentence promised the four-column ledger ("its
+  // level before safeguards, the safeguard credited against it") that now
+  // prints only in § IV.A.
   exec_ledger_intro:
-    "Section I describes how this assessment reaches its conclusions; the table below shows the result of applying it to the information provided by the Company — each identified risk, its level before safeguards, the safeguard credited against it, and the risk that remains:",
+    "Section I describes how this assessment reaches its conclusions; the table below summarises the result of applying it to the information provided by the Company — each identified risk and the risk that remains after the credited safeguards. The full ledger, including each risk’s level before safeguards and the safeguard credited against it, appears in § IV.A:",
   exec_determination_pointer:
     "The reasoning behind each row, and the determination it produces, appear in Section IV.",
   exec_outcome_head: "D. Outcome and Conditions.",

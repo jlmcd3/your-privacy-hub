@@ -232,8 +232,14 @@ for (const c of CPPA_RISK_PERFECT) {
           "all-necessary lead absent on an all-necessary fixture",
         );
       } else {
+        // RE-PIN PANEL RISK-P1 (2026-08-30): the old sentence ("X is
+        // collected but not shown to be necessary") put the element name in
+        // subject position (plural elements broke agreement) and denied any
+        // recorded contribution even when Appendix D printed one. Both
+        // variants of the new family share this attribution spine.
         assert(
-          body.includes("is collected but not shown to be necessary"),
+          body.includes("is not established") &&
+            body.includes("records the element as collected but not necessary to the stated purpose"),
           "T4 unsupported paragraph absent",
         );
         assert(

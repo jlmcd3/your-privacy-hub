@@ -121,7 +121,12 @@ export function deriveActivitySpiInventory(intake: Bag): string | null {
   const spi = arr(intake.q4_pi_categories).filter((c) => CA_PI_TAXONOMY[c]?.spi);
   if (spi.length > 0) return asProse(spi);
   if (isYes(intake.q15_sensitive_pi)) {
-    return "the sensitive personal information the Company has identified in its submission";
+    // PANEL RISK-P2 (2026-08-30): the old fallback ("the sensitive personal
+    // information the Company has identified in its submission") was a
+    // circular placeholder posing as data in three table cells. Where the
+    // record confirms sensitive PI but names no mapped category, the cell
+    // states that limitation honestly instead of describing itself.
+    return "Identified as processed in the Company’s submission; the specific categories are not named in the activity record.";
   }
   return null;
 }
@@ -192,10 +197,10 @@ export function deriveExecStatusPanel(
 ): RenderedTable | null {
   if (!panel.assessment_required && !panel.inherent && !panel.residual) return null;
   const tier = (t: string | null): string => t ?? "Not assessed — no risks recorded.";
-  const disposition = panel.disposition
-    .split(" ")
-    .map((w) => (w === "with" || w === "not" ? w : w.charAt(0).toUpperCase() + w.slice(1)))
-    .join(" ");
+  // PANEL RISK-P3 (2026-08-30): sentence case, not per-word title case — the
+  // old caser produced "Do not Proceed" ("not" exempted, "Proceed" capped)
+  // on the cover of an adverse determination.
+  const disposition = panel.disposition.charAt(0).toUpperCase() + panel.disposition.slice(1);
   return {
     key: "",
     surface: "exec_status_panel",
