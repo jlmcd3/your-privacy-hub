@@ -182,34 +182,36 @@ for (const c of CPPA_RISK_PERFECT) {
       assert(!body.includes(String.fromCharCode(0)), "sentinel leaked");
     });
 
+    // RE-PIN BATCH 21a (doc 113 S7.1): section titles converted from
+    // ALL-CAPS to Title Case; Roman numerals and body content unchanged.
     await t.step("key v5.2 fixed literals render", () => {
       for (const literal of [
         "A. Activity Assessed.",
         "B. Why a Risk Assessment Is Required.",
         "C. The Balancing Test.",
-        "I. HOW THIS ASSESSMENT DECIDES",
+        "I. How This Assessment Decides",
         "A. The Question.",
         // RE-PIN PANEL LEAK-1 (2026-08-30): EUP expanded at first use.
         "B. The EndUserPrivacy (EUP) Decision Logic.",
         "Step 1 — Triggers.",
         "Step 5 — The balance.",
         "C. Qualitative Refinement.",
-        "II. THE INFORMATION PROVIDED",
+        "II. The Information Provided",
         "A. Purpose and Scope.",
         "B. How the Processing Operates.",
         "F. Recipients and Disclosures.",
         "G. Retention.",
-        "III. ANALYSIS",
+        "III. Analysis",
         "A. The Triggers, Applied.",
         "B. Necessity and Minimization.",
         "D. Practical Consumer Control.",
         "F. Benefits.",
-        "IV. THE BALANCE AND THE DETERMINATION",
+        "IV. The Balance and the Determination",
         "A. The Risk Ledger.",
         "B. What Weighs For, and What Weighs Against.",
         "C. The Determination.",
         "D. Conditions, Follow-Ups, and Recommendations.",
-        "V. GOVERNANCE, REVIEW, AND SUBMISSION",
+        "V. Governance, Review, and Submission",
         "D. Retention of the Assessment Record.",
         "E. CPPA Submission Support (§ 7157).",
       ]) {

@@ -26,7 +26,7 @@
 //                   Authorities). Never printed unless the composer supplies
 //                   deterministic content for it.
 
-export const IR_SKELETON_VERSION = "prose-plans-2026-08-30-c1-worksheet-tables";
+export const IR_SKELETON_VERSION = "prose-plans-2026-08-30-c5-dash-grammar";
 export const IR_SKELETON_SOURCE_FILE =
   "Incident_Response_Playbook_Skeleton_v3.docx (CEO-corrected 2026-08-10: four paragraph edits, six unsourced slots dropped, containmentState added)";
 export const IR_SKELETON_PROVENANCE =
@@ -46,12 +46,20 @@ export const IR_SKELETON_PROVENANCE =
  * Prior pin, for the audit trail:
  *   61bd929aa4061f32b0944722dd537db7f3c37676e21cf94098dadff526059789
  */
+/**
+ * RE-PIN BATCH 21a (Wave C5, doc 113 S7.2, doc 109 §1.6 subtitle/heading
+ * dash grammar) — the subtitle and both Part titles' spaced hyphens ("Part
+ * One - ", "Two artifacts - ... - prepared for") became em dashes; no other
+ * byte changed. Method verified by reproducing the prior value first. Prior
+ * pin, for the audit trail:
+ *   506affb30d42c7e6c14483d5fd56249546986fff70b54b47119c54e149dbf4fd
+ */
 export const IR_SKELETON_CONTENT_HASH =
-  "506affb30d42c7e6c14483d5fd56249546986fff70b54b47119c54e149dbf4fd";
+  "0f32a3eb39e815f9b242b86e833e5820356ddab0d434e8b0f90a935ec1e7e347";
 
 export const IR_SKELETON_TITLE = "INCIDENT RESPONSE PLAYBOOK AND WORKSHEET";
 export const IR_SKELETON_SUBTITLE =
-  "Two artifacts - the standing playbook and the incident worksheet - prepared for {organizationName}";
+  "Two artifacts — the standing playbook and the incident worksheet — prepared for {organizationName}";
 
 /** The v3 register guide, verbatim. Authoring law; never printed to a customer. */
 export const IR_REGISTER_GUIDE = "Register guide (v3 - CEO-ratified counsel register, senior privacy lawyers with the professors editing) - Fixed prose is a lawyer's client document: full flowing sentences, measured connectives, the law stated plainly and applied. The company's facts are always attributed (\"{org} has indicated that ...\", \"the company has described ...\") - \"the record shows\" and its family are banned. No dramatization, no rhetorical questions, no self-narration. Facts enter only through {slots} and [GENERATED] blocks under the ATTRIBUTION RULE: every factual clause names its source and traces to an intake answer or typed analysis; coverage, CSC and refinement police this mechanically. Statutory sentences in fixed prose are registry-verified at encode time. Slot notation: {field - rule}.";
@@ -131,7 +139,7 @@ export interface IrSkeletonSection {
 export const IR_SKELETON_SECTIONS: readonly IrSkeletonSection[] = [
   {
     id: "standing_playbook",
-    title: "Part One - The Standing Playbook",
+    title: "Part One — The Standing Playbook",
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating whether the company's standing preparedness, on its answers, would carry it through a notifiable incident." },
       { kind: "skeleton", text: "This playbook is {organizationName}'s own: it is assembled from the team, contacts, deadlines and processor relationships the company has recorded, for an organisation in its sector ({sector - reader label})." },
@@ -158,7 +166,7 @@ export const IR_SKELETON_SECTIONS: readonly IrSkeletonSection[] = [
   },
   {
     id: "incident_worksheet",
-    title: "Part Two - The Incident Worksheet",
+    title: "Part Two — The Incident Worksheet",
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence, incident-specific, generated only where an incident is recorded: the classification and immediate posture. Otherwise the worksheet ships blank by design - blank fields are correct output, never gaps." },
       { kind: "skeleton", text: "The company classifies the incident as {incidentType - reader label}, discovered on {discoveryDate}. The data involved: {dataCategories - reader labels}. The scale of those affected is estimated at {affectedCount - band as prose}." },
@@ -202,13 +210,13 @@ export const IR_SKELETON_PARAGRAPHS: readonly string[] = [
   "INCIDENT RESPONSE PLAYBOOK AND WORKSHEET",
   "Two artifacts - the standing playbook and the incident worksheet - prepared for {organizationName}",
   IR_REGISTER_GUIDE,
-  "Part One - The Standing Playbook",
+  "Part One — The Standing Playbook",
   "[DETERMINATION LEAD] One sentence stating whether the company's standing preparedness, on its answers, would carry it through a notifiable incident.",
   `${IR_SKELETON_SECTIONS[0].blocks[1].text} ${IR_SKELETON_SECTIONS[0].blocks[2].text}`,
   "[GENERATED] The programme posture in counsel's voice from the company's answers - plan, team, testing, register, insurance - determination-led; sections the company has not recorded take the single ledger sentence with each section stating what would fill it.",
   "Standing Sections",
   `${IR_SKELETON_SECTIONS[1].blocks[0].text} ${IR_REGISTER_RULE}`,
-  "Part Two - The Incident Worksheet",
+  "Part Two — The Incident Worksheet",
   "[DETERMINATION LEAD] One sentence, incident-specific, generated only where an incident is recorded: the classification and immediate posture. Otherwise the worksheet ships blank by design - blank fields are correct output, never gaps.",
   "The company classifies the incident as {incidentType - reader label}, discovered on {discoveryDate}. The data involved: {dataCategories - reader labels}. The scale of those affected is estimated at {affectedCount - band as prose}.",
   "[CONDITIONAL] PROCESSORS - trigger {processorsInvolved}: fixed first words \"A processor is involved.\" followed by {processorDetail - attributed} and the Article 28 / 33(2) notification-clock analysis.",

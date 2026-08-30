@@ -81,7 +81,7 @@ export interface CyberV4Section {
 export const CYBER_V4_SKELETON_VERSION = "cppa-cyber-v4.0-spine-v1.5-2026-08-30";
 export const CYBER_V4_SKELETON_TITLE = "CPPA CYBERSECURITY AUDIT READINESS REPORT";
 export const CYBER_V4_SKELETON_SUBTITLE =
-  "Prepared under 11 CCR §§ 7120-7124 - {profile.entity_name}";
+  "Prepared under 11 CCR §§ 7120-7124 — {profile.entity_name}";
 
 export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
   {
@@ -205,7 +205,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
   },
   {
     id: "appendix_a_matrix",
-    title: "Appendix A - Component Readiness Matrix",
+    title: "Appendix A — Component Readiness Matrix",
     blocks: [
       { kind: "skeleton", text: "A compact matrix consolidating the eighteen component records and the findings of this report." },
       { kind: "table", text: "" },
@@ -213,7 +213,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
   },
   {
     id: "appendix_b_evidence",
-    title: "Appendix B - Evidence Readiness Index",
+    title: "Appendix B — Evidence Readiness Index",
     blocks: [
       { kind: "skeleton", text: "A component-by-component index of the evidence categories the Company identifies as available. The appendix preserves the distinction between an evidence category the Company identified as available and a specific artifact actually reviewed by an auditor." },
       { kind: "table", text: "" },
@@ -221,7 +221,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
   },
   {
     id: "appendix_c_actions",
-    title: "Appendix C - Readiness Action Register",
+    title: "Appendix C — Readiness Action Register",
     blocks: [
       { kind: "skeleton", text: "A consolidated action register of the material findings, organized by remediation owner where available and by action type. Each item identifies whether it concerns implementation, evidence, or record completion." },
       { kind: "table", text: "" },
@@ -229,7 +229,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
   },
   {
     id: "appendix_d_record",
-    title: "Appendix D - Assessment Record",
+    title: "Appendix D — Assessment Record",
     blocks: [
       { kind: "skeleton", text: "A structured preservation of the profile and control facts this report rests on, together with the report-generation record, so the assessment can be reviewed and reperformed." },
       { kind: "table", text: "" }, // profile facts + generation metadata

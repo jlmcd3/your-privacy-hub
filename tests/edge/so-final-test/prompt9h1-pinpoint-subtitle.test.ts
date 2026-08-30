@@ -79,12 +79,13 @@ Deno.test("9H.1 — pin guard: every pinned perfect fixture still passes closed-
 });
 
 Deno.test("9H.1 item 2 — subtitle constants are byte-pinned", () => {
+  // RE-PIN BATCH 21a (doc 113 S7.2, doc 109 §1.6): spaced hyphen → em dash.
   assertEquals(
     DPIA_SKELETON_SUBTITLE_EU,
-    "Prepared under Article 35 GDPR - {name}, for {organizationName}",
+    "Prepared under Article 35 GDPR — {name}, for {organizationName}",
   );
   assertEquals(
     DPIA_SKELETON_SUBTITLE_UK,
-    "Prepared under Article 35 UK GDPR - {name}, for {organizationName}",
+    "Prepared under Article 35 UK GDPR — {name}, for {organizationName}",
   );
 });

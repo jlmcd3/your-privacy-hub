@@ -60,7 +60,10 @@
 //       keys, variable names, and reasoning traces are never printed in
 //       the customer report") — internal product documentation, not
 //       customer prose.
-export const DPIA_SKELETON_VERSION = "dpia-v4.7-2026-08-30";
+export const DPIA_SKELETON_VERSION = "dpia-v4.8-2026-08-30";
+
+/** The v4.7 spine version — retained for the audit trail. */
+export const DPIA_SKELETON_VERSION_V47 = "dpia-v4.7-2026-08-30";
 
 /** The v4.6.1 spine version — retained for the audit trail. */
 export const DPIA_SKELETON_VERSION_V461 = "dpia-v4.6.1-2026-08-22";
@@ -192,7 +195,7 @@ export const DPIA_SKELETON_CONTENT_HASH =
 
 
 export const DPIA_SKELETON_TITLE = "DATA PROTECTION IMPACT ASSESSMENT";
-export const DPIA_SKELETON_SUBTITLE = "Prepared under Article 35 GDPR - {name}, for {organizationName}";
+export const DPIA_SKELETON_SUBTITLE = "Prepared under Article 35 GDPR — {name}, for {organizationName}";
 
 /**
  * PROMPT 9H.1 item 2 (CEO-ratified by inclusion, 2026-08-15) — regime subtitles
@@ -201,7 +204,7 @@ export const DPIA_SKELETON_SUBTITLE = "Prepared under Article 35 GDPR - {name}, 
  */
 export const DPIA_SKELETON_SUBTITLE_EU = DPIA_SKELETON_SUBTITLE;
 export const DPIA_SKELETON_SUBTITLE_UK =
-  "Prepared under Article 35 UK GDPR - {name}, for {organizationName}";
+  "Prepared under Article 35 UK GDPR — {name}, for {organizationName}";
 
 /** The v3 register guide, verbatim. Authoring law; never printed to a customer. */
 export const DPIA_REGISTER_GUIDE = "Register guide (v3 - CEO-ratified counsel register, senior privacy lawyers with the professors editing) - Fixed prose is a lawyer's client document: full flowing sentences, measured connectives, the law stated plainly and applied. The company's facts are always attributed (\"{org} has indicated that ...\", \"the company has described ...\") - \"the record shows\" and its family are banned. No dramatization, no rhetorical questions, no self-narration. Facts enter only through {slots} and [GENERATED] blocks under the ATTRIBUTION RULE: every factual clause names its source and traces to an intake answer or typed analysis; coverage, CSC and refinement police this mechanically. Statutory sentences in fixed prose are registry-verified at encode time. Slot notation: {field - rule}.";
@@ -263,7 +266,7 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
   },
   {
     id: "section_0_overview",
-    title: "Section 0 - Overview of the Processing",
+    title: "Section 0 — Overview of the Processing",
     blocks: [
       { kind: "skeleton", text: "This section identifies the controller, processors, planning information, assessment scope, materials, assessment team, and approval record. Article 35 places responsibility for the DPIA on the controller, while Articles 24 and 28 require the controller to remain accountable for the processing and to use processors that provide sufficient guarantees. {organizationName} is the controller of the processing being assessed, and the tables below identify the processors it has engaged and the particulars of the engagements. Where the company has not provided information, the absence of that information is noted rather than assumed." },
       { kind: "table", text: "processing_inventory.controllers" },
@@ -278,7 +281,7 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
   },
   {
     id: "section_1_description",
-    title: "Section 1 - Systematic Description of the Processing",
+    title: "Section 1 — Systematic Description of the Processing",
     blocks: [
       { kind: "skeleton", text: "Article 35(7)(a) requires a systematic description of the envisaged processing operations and their purposes, including the legitimate interest pursued by the controller where applicable. Pursuant to that requirement, the tables below identify the categories of data, purposes of the processing, and any further uses of the data. The additional narrative describes the nature, scope, context, functional operation, and supporting assets so that the later necessity and risk analysis is tied to the processing actually proposed." },
       { kind: "table", text: "processing_inventory.data_items" },
@@ -289,7 +292,7 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
   },
   {
     id: "section_2_analysis",
-    title: "Section 2 - Analysis of the Processing",
+    title: "Section 2 — Analysis of the Processing",
     blocks: [
       { kind: "skeleton", text: "A DPIA is not limited to identifying risks; it must also assess necessity and proportionality and identify measures that demonstrate compliance and protect data subjects. This section therefore reviews the legal bases under Article 6(1): consent, contract necessity, legal obligation, vital interests, public task, or legitimate interests, and any applicable Article 9 conditions for special-category data as described below, the Article 5 principles also as described below, data-subject rights, international transfers, processor governance, data protection by design and by default, and security. In the first table below, the company asserts the lawful basis of the processing under Article 6(1). Each subsequent table states what {organizationName} has recorded, what that supports, and, where information is lacking, what remains to be established. An entry marked as insufficient describes the sufficiency of the assessment record and is not, by itself, a finding of GDPR non-compliance." },
       { kind: "table", text: "legal_basis" },
@@ -315,7 +318,7 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
   },
   {
     id: "section_3_necessity_proportionality",
-    title: "Section 3 - Considerations on Necessity and Proportionality",
+    title: "Section 3 — Considerations on Necessity and Proportionality",
     blocks: [
       // PROMPT 9I item 4 (CEO-ratified 2026-08-15) — SECTION 3 COMPOSITION
       // ORDER (S3-R1): statutory frame → necessity per operation →
@@ -332,7 +335,7 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
   },
   {
     id: "section_4_risk_management",
-    title: "Section 4 - Risk Assessment and Management",
+    title: "Section 4 — Risk Assessment and Management",
     blocks: [
       // PROMPT 9L.2 item 1 (CEO-ratified 2026-08-16) — pure block reorder: the
       // statutory-frame block opens Section 4, and the relocated design-risk
@@ -354,14 +357,14 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
 
   {
     id: "section_5_interested_parties",
-    title: "Section 5 - Involvement of Interested Parties",
+    title: "Section 5 — Involvement of Interested Parties",
     blocks: [
       { kind: "skeleton", text: "Article 35(2) requires the controller to seek the advice of its data protection officer, where one is designated, when carrying out the DPIA. Article 35(9) requires the controller, where appropriate, to seek the views of data subjects or their representatives on the intended processing, subject to protection of commercial or public interests and the security of processing operations. {DPO_ADVICE_SENTENCE - conditional: the DPO's advice as recorded, attributed; the negative branch states honestly that DPO advice has not been obtained}. With respect to the views of the people affected, the company states: {dataSubjectsViews - attributed verbatim; absent => the honest negative that no such views were sought}." },
     ],
   },
   {
     id: "section_6_conclusion",
-    title: "Section 6 - Conclusion and Decision",
+    title: "Section 6 — Conclusion and Decision",
     blocks: [
       { kind: "skeleton", text: "This section states the DPIA determination, any conditions or unresolved points, the approval basis, and whether prior consultation is required. Article 35(11) also requires the controller to review the DPIA where necessary, at least when a change in the risk represented by the processing occurs." },
       { kind: "table", text: "decision" },
@@ -474,9 +477,18 @@ export const DPIA_SPINE_HASH_V462 =
 /** v4.7 spine hash — BATCH 19b (doc 113 Part D): the Executive Summary
  * reordered determination-first, its statutory frame cut, and the WP248
  * sentence moved to the Appendix A intro (method verified by reproducing
- * the v4.6.2 value first). */
-export const DPIA_SPINE_HASH =
+ * the v4.6.2 value first). Retained for the audit trail. */
+export const DPIA_SPINE_HASH_V47 =
   "dbd7036915ff12a7694d762990884acd17c32bc5a5aaa6bcd324e9c1fcbce6ee";
+
+/** v4.8 spine hash — BATCH 21a (Wave C5, doc 113 S7.2, doc 109 §1.6): the
+ * subtitle (both EU and UK forms) and all seven Section titles' spaced
+ * hyphens became em dashes. Basis-v1 (skeleton-block text only) is
+ * UNCHANGED by this edit, confirming titles carry no fixed prose; only the
+ * basis-v2 full serialization (which embeds title text) moves. Method
+ * verified by reproducing the v4.7 value first. */
+export const DPIA_SPINE_HASH =
+  "2e71661a3f2b46dc6f640217e93782a403aed455fa2836fa082e82bdeb724549";
 
 /** The v4.5.1 spine under basis v2 — retained for the audit trail. */
 export const DPIA_SPINE_HASH_V451 =

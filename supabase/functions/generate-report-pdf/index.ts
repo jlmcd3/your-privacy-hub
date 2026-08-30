@@ -1730,7 +1730,7 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
   }).join("\n");
 }
 
-function buildSkeletonReportHTML(doc: SkeletonDocLike, record: any, fallbackTitle: string, product?: string): string {
+function buildSkeletonReportHTML(doc: SkeletonDocLike, record: any, fallbackTitle: string, product?: string, eyebrow?: string): string {
   const created = record?.created_at ? new Date(record.created_at) : new Date();
   const metaLine = `Generated ${created.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}`
     + (doc.subtitle ? ` · ${doc.subtitle}` : "");
@@ -1757,6 +1757,11 @@ function buildSkeletonReportHTML(doc: SkeletonDocLike, record: any, fallbackTitl
     text: "",
     showJurisdictionChip: false,
     htmlPrefix: tocHtml + skeletonSectionsHtml(doc, { product }),
+    // BATCH 21a (doc 113 S7.3, completing RULING 3.9's Batch-16 half-
+    // landing): threaded through to buildTextReportHTML's own eyebrow
+    // param; omitted for every call site but IR's, so the fleet default
+    // ("Customized Compliance Assessment") is unchanged everywhere else.
+    eyebrow,
   });
 }
 
@@ -3745,7 +3750,10 @@ Deno.serve(async (req) => {
         html = irArtifact === "incident_worksheet"
           ? buildIRWorksheetHTML(record)
           : skelIr
-          ? buildSkeletonReportHTML(skelIr, record, "Incident Response Playbook", "ir-playbook")
+          // BATCH 21a (doc 113 S7.3, RULING 3.9): the ops-playbook eyebrow —
+          // the only product-noun set fleet-wide besides the DPA's future
+          // contract-mode noun.
+          ? buildSkeletonReportHTML(skelIr, record, "Incident Response Playbook", "ir-playbook", "Incident Response Playbook")
           : buildIRStandingPlaybookHTML(record);
         generatedAt = record.created_at || new Date().toISOString();
 

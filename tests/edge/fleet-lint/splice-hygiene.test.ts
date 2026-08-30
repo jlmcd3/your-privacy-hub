@@ -240,12 +240,12 @@ const ALLOWANCES: Record<string, Record<string, string>> = {
 // assigned to a later batch of the doc-111 implementation queue. Each entry
 // is removed when its batch lands — a triaged pattern that stops hitting
 // means the entry is stale and must go.
-const TRIAGED: Array<{ product: string; id: string; token?: string; fixBatch: string; reason: string }> = [
-  // Batch 17 (Wave C2) landed 2026-08-30: the risk trigger(s), ADMT
-  // domain(s)/type(s), and biometric ';."' entries are FIXED and removed.
-  { product: "cppa_cyber", id: "spaced-hyphen-in-heading", fixBatch: "Batch 21 (Wave C5)", reason: "'Appendix X - Title' + subtitle spaced hyphens → em-dash/en-dash (§1.3/§1.6)" },
-  { product: "li_assessment", id: "spaced-hyphen-in-heading", fixBatch: "Batch 21 (Wave C5)", reason: "subtitle ' - scope:' spaced hyphen → fleet subtitle grammar (§1.6)" },
-];
+// Batch 17 (Wave C2) landed 2026-08-30: the risk trigger(s), ADMT
+// domain(s)/type(s), and biometric ';."' entries were FIXED and removed.
+// Batch 21a (Wave C5, doc 113 S7.2) landed 2026-08-30: the Cyber
+// "Appendix X - Title"/subtitle and LIA subtitle " - scope:" spaced
+// hyphens are FIXED (em dash) and removed — the table is empty.
+const TRIAGED: Array<{ product: string; id: string; token?: string; fixBatch: string; reason: string }> = [];
 
 function allowed(product: string, patternId: string, token: string): boolean {
   const base = product.split(":")[0];

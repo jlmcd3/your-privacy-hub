@@ -200,7 +200,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     // Hard budget: 1.5 pages. Conclusions and the compact ledger only;
     // verbatim intake text appears solely in the defined-term introductions
     // of A. Closes with the appendix-purpose sentence (CEO instruction).
-    title: "EXECUTIVE SUMMARY",
+    title: "Executive Summary",
     blocks: [
       // 0 — A. Activity Assessed: the defined-term introductions.
       { kind: "skeleton", text: "A. Activity Assessed. The activity assessed is identified by the Company as follows: “{activityName}” (the “Activity”). The Company describes those affected as follows: “{subjectAnchor}”. The Company states the purpose of the Activity as follows: “{activityPurpose}” (the “Purpose”). This report assesses the Activity and the Purpose under 11 CCR §§ 7150–7157; it does not evaluate the Company’s privacy program or CCPA compliance generally." },
@@ -240,7 +240,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     // Entirely fixed, well under half a page: each step states WHAT is done
     // in one sentence, never HOW (no crediting or weighing principles — the
     // per-risk and per-benefit paragraphs carry the reasoning case by case).
-    title: "I. HOW THIS ASSESSMENT DECIDES",
+    title: "I. How This Assessment Decides",
     blocks: [
       // 0
       { kind: "skeleton", text: "A. The Question. Sections 7152 and 7154 of 11 CCR frame a single question: do the privacy risks that this processing creates for consumers outweigh the benefits it produces for the consumer, the business, other stakeholders, and the public, once safeguards are taken into account? Section 7154 states the consequence directly: processing whose risks outweigh its benefits should be restricted or prohibited." },
@@ -264,7 +264,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     id: "ii_information",
     // Facts stated once; recipients and retention as tables; the providers
     // list appears once. Budget ~3 pages.
-    title: "II. THE INFORMATION PROVIDED",
+    title: "II. The Information Provided",
     blocks: [
       // 0 — A. Purpose and Scope (law).
       { kind: "skeleton", text: "A. Purpose and Scope. Section 7152(a)(1) requires the assessment to state the Company’s purpose with enough specificity to evaluate the processing; generic purposes such as “improve our services” or “security purposes” do not suffice. The Purpose, as the Company states it in the Executive Summary, governs every analysis that follows." },
@@ -312,7 +312,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
   },
   {
     id: "iii_analysis",
-    title: "III. ANALYSIS",
+    title: "III. Analysis",
     blocks: [
       // 0
       { kind: "skeleton", text: "Each part of this section applies one element of the regulatory test to the information provided by the Company: the rule first, then the facts read against the rule’s own language, then the conclusion." },
@@ -363,7 +363,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
   },
   {
     id: "iv_determination",
-    title: "IV. THE BALANCE AND THE DETERMINATION",
+    title: "IV. The Balance and the Determination",
     blocks: [
       // 0 — A (law).
       { kind: "skeleton", text: "A. The Risk Ledger. Section 7152(a)(5) requires the assessment to identify the negative impacts the processing may create and their sources and causes; §§ 7152(a)(5)–(6) require those impacts to be considered together with the safeguards directed at them. Each risk below is rated as set forth in the table below, and the paragraphs that follow show the reasoning. For further convenience, the full risk record appears in Appendix E." },
@@ -404,7 +404,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
   },
   {
     id: "v_governance",
-    title: "V. GOVERNANCE, REVIEW, AND SUBMISSION",
+    title: "V. Governance, Review, and Submission",
     blocks: [
       // 0 — A. Approval and Accountability (carried composition).
       { kind: "conditional", text: "[CONDITIONAL] APPROVAL AND ACCOUNTABILITY - trigger: any finalization/approval fact present. RISK52_FIXED.x_approval_* over those facts. Absent => omitted." },

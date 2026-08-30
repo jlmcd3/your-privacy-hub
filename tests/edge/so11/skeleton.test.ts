@@ -130,9 +130,12 @@ Deno.test("SO-11 — the encoded skeleton is 37 paragraphs and hashes to the rat
   // double-wrapped recorded free-text ("approximately Approximately 480 ...
   // people") and spliced non-adverbial answers into adverbial slots. Prior
   // pin: 90a64832a086def3b6c0684b8a1e7c8df2def76acfcf0a89f3b853ec8768cd18.
+  // RE-PIN BATCH 21a (Wave C5, doc 113 S7.2): the subtitle's " - scope:"
+  // spaced hyphen became an em dash. Prior pin:
+  // de3fd62a1e7c77af0bc92ebaa1e14399f31a5ed1617519254eba8f6b3e351eed.
   assertEquals(
     LIA_SKELETON_CONTENT_HASH,
-    "de3fd62a1e7c77af0bc92ebaa1e14399f31a5ed1617519254eba8f6b3e351eed",
+    "053c21be0d7c72b4eef88186ec791ddb1ba380f6f18f7b724ef9f2380b6f65f0",
   );
 });
 

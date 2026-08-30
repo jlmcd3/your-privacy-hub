@@ -39,7 +39,9 @@ Deno.test("C3/S4.1: both v4.7 hash bases recompute to the shipped pins", async (
     .join("\n");
   assertEquals(await sha(basis1), DPIA_SKELETON_CONTENT_HASH);
   assertEquals(await sha(serializeDpiaSpine()), DPIA_SPINE_HASH);
-  assertEquals(DPIA_SKELETON_VERSION, "dpia-v4.7-2026-08-30");
+  // RE-PIN BATCH 21a (doc 113 S7.2): v4.8 — subtitle/section-title
+  // spaced hyphens became em dashes; skeleton-block prose is unchanged.
+  assertEquals(DPIA_SKELETON_VERSION, "dpia-v4.8-2026-08-30");
 });
 
 Deno.test("C3/S4.2: the exec statutory frame is under eighty words and WP248 lives in Appendix A", () => {

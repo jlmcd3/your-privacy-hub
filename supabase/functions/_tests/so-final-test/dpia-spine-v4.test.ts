@@ -105,7 +105,14 @@ Deno.test("spine v4.6 — the ratified wording edits are the shipped bytes", () 
   // as the Appendix A intro (replacing what was a "rule"-kind ToA block, which
   // never counted toward this "skeleton" filter) -- 16 -> 18.
   assertEquals(fixed.length, 18);
-  assertStringIncludes(fixed[0], "Article 35(3) identifies three cases in which a DPIA is required in particular");
+  // RE-PIN BATCH 19b (doc 113 Part D S4.2, caught late by Batch 21a's
+  // double-check — this file lives outside tests/edge/ and was missed by
+  // every battery run since): the Art. 35(3) three-case enumeration
+  // retired from the exec statutory frame (cut to ≤80 words; the cases
+  // live in the record's own reasons-to-conduct and Appendix A's
+  // authorities). Prior pin: "identifies three cases in which a DPIA is
+  // required in particular".
+  assertStringIncludes(fixed[0], "Article 35(3) identifies the cases in which one is required in particular");
   assertStringIncludes(fixed[1], "Articles 24 and 28 require the controller to remain accountable for the processing");
   assertStringIncludes(fixed[2], "Below, the company identifies the reasons the assessment was undertaken");
   assertStringIncludes(fixed[3], "The assessment team and the approval process are reproduced as identified by the company.");
