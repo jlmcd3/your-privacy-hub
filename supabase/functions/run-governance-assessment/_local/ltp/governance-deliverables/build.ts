@@ -494,13 +494,25 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
       label: "Article 38 position and independence",
       citation: indep.citation,
       standard: indep.verbatim,
-      record_fact: none ? "No data protection officer or privacy lead is recorded." : "The record does not answer the DPO question.",
+      // PANEL GOV-2 (2026-08-30) — an ANSWERED designation question whose
+      // value matches no recognised state used to print "The record does not
+      // answer the DPO question." (false: it answers it, unrecognisably) in
+      // BOTH the Art. 38 and Art. 39 findings — the same false sentence and
+      // the same ask, twice in a row in the rendered document, contradicting
+      // the designation walk above, which quotes the recorded answer. The
+      // record_fact now states the truth (answered, unrecognised), and the
+      // Art. 39 finding's ask is differentiated instead of duplicated.
+      record_fact: none
+        ? "No data protection officer or privacy lead is recorded."
+        : f.dpoStatus
+        ? `The record answers the designation question "${f.dpoStatus}", which does not match a designation state this assessment recognises.`
+        : "The record does not answer the DPO question.",
       application: none
         ? "Article 38 has no subject on the record as documented: there is no designated officer whose position could be tested. If designation is required under Article 37(1), the Article 38 duties crystallise on appointment."
         : "",
       verdict: none ? "not_applicable" : "record_insufficient",
       status: none ? "analysed" : "record_insufficient",
-      information_needed: none ? undefined : "State whether a data protection officer has been designated.",
+      information_needed: none ? undefined : "State whether a data protection officer has been designated, using one of the designation states the intake offers.",
     };
 
   const bothAdjacent = str(get(intake, "dpia_status")).startsWith("Yes") &&
@@ -531,13 +543,20 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
       label: "Article 39 task coverage",
       citation: tasks.citation,
       standard: tasks.verbatim,
-      record_fact: none ? "No data protection officer is recorded." : "The record does not answer the DPO question.",
+      // PANEL GOV-2 — see the Art. 38 fallback above: truth-stated
+      // record_fact for an unrecognised answer, and an ask that references
+      // the same missing fact WITHOUT duplicating the Art. 38 ask verbatim.
+      record_fact: none
+        ? "No data protection officer is recorded."
+        : f.dpoStatus
+        ? `The designation answer "${f.dpoStatus}" does not match a recognised state, so Article 39 task coverage cannot be assessed from it.`
+        : "The record does not answer the DPO question.",
       application: none
         ? "Article 39 has no subject on the record as documented. Where no officer is designated the tasks it lists are not extinguished — they remain controller duties under Articles 5(2) and 24(1) and must be owned by someone."
         : "",
       verdict: none ? "not_applicable" : "record_insufficient",
       status: none ? "analysed" : "record_insufficient",
-      information_needed: none ? undefined : "State whether a data protection officer has been designated.",
+      information_needed: none ? undefined : "Article 39 task coverage is resolved by the same designation answer named under Article 38.",
     };
 
   const subs = [designation_trigger, position_and_independence, task_coverage];
@@ -701,8 +720,43 @@ export function buildAccountabilityDetermination(
 
   const status = worst === "record_insufficient" ? "record_insufficient" : "analysed";
 
+  // PANEL GOV-1 (2026-08-30) — the insufficiency reasoning used to be ONE
+  // fixed template claiming "${unknownCount} of N accountability duties are
+  // unanswered, AND the Article 24(1) factors or review evidence are
+  // incomplete" regardless of WHICH leg was actually insufficient. On the
+  // published EU sample every duty was evidenced (0 unanswered, 8 of 8
+  // artifacts present) and the insufficiency came from a different leg — so
+  // the document cited "0 of 8 ... are unanswered" as its own grounds, and
+  // the remediation ask ordered the customer to "complete the unanswered
+  // accountability duties" that did not exist. Grounds and ask are now
+  // composed from the leg(s) actually insufficient; the Article 5(2)
+  // burden sentence renders only where unanswered duties exist.
+  const insufficientLegs: string[] = [];
+  const insufficientAsks: string[] = [];
+  if (demonstrability_verdict === "record_insufficient") {
+    insufficientLegs.push(`${unknownCount} of ${demonstrability.length} accountability duties are unanswered`);
+    insufficientAsks.push("complete the unanswered accountability duties");
+  }
+  if (appropriateness_verdict === "record_insufficient") {
+    insufficientLegs.push("the Article 24(1) risk-calibration factors are not answered");
+    insufficientAsks.push("supply the Article 24(1) risk-calibration answers");
+  }
+  if (review.verdict === "record_insufficient") {
+    insufficientLegs.push("the Article 24(1) review evidence is incomplete");
+    insufficientAsks.push("supply the review evidence the Article 24(1) second sentence turns on");
+  }
+  const legsText = insufficientLegs.length
+    ? insufficientLegs.length === 1
+      ? insufficientLegs[0]
+      : `${insufficientLegs.slice(0, -1).join(", ")} and ${insufficientLegs[insufficientLegs.length - 1]}`
+    : "the record leaves the determination open";
+  const asksJoined = insufficientAsks.join(", and ");
+  const asksText = insufficientAsks.length
+    ? `${asksJoined.charAt(0).toUpperCase()}${asksJoined.slice(1)} before relying on any headline conclusion.`
+    : "Complete the open items named above before relying on any headline conclusion.";
+
   const reasoning = status === "record_insufficient"
-    ? `The record does not yet support a determination. ${unknownCount} of ${demonstrability.length} accountability duties are unanswered, and the Article 24(1) factors or review evidence are incomplete. Article 5(2) places the burden on the controller to be able to demonstrate compliance, so an unanswered duty is not neutral — it is an unevidenced duty until the artifact is produced.`
+    ? `The record does not yet support a determination: ${legsText}.${demonstrability_verdict === "record_insufficient" ? " Article 5(2) places the burden on the controller to be able to demonstrate compliance, so an unanswered duty is not neutral — it is an unevidenced duty until the artifact is produced." : ""}`
     : `Demonstrability: ${evidenced} of ${demonstrability.length} accountability duties on the record as documented are evidenced by an artifact the controller could produce to a supervisory authority; ${unevidenced.length} ${unevidenced.length === 1 ? "is" : "are"} not. Appropriateness: ${riskCalibration.verdict === "satisfied" ? "the measure set is calibrated to the nature, scope, context and purposes Article 24(1) names" : "the measure set is not calibrated to the nature, scope, context and purposes Article 24(1) names"}. Review: ${review.verdict === "satisfied" ? "the measures are reviewed and updated on a defined cadence that has actually been executed" : review.verdict === "partially_satisfied" ? "the review cadence is defined but too infrequent to carry the second sentence of Article 24(1) unaided" : "the measures are not on a defined review cadence"}. Taken together the controller ${worst === "satisfied" ? "can, on the record as documented, demonstrate compliance with measures appropriate to its risk" : worst === "partially_satisfied" ? "can demonstrate compliance in part only; the unevidenced duties below are where an authority's first request would land" : "cannot presently demonstrate compliance to the standard Article 5(2) sets"}.`;
 
   return {
@@ -715,9 +769,10 @@ export function buildAccountabilityDetermination(
     reasoning,
     unevidenced_duties: unevidenced,
     status,
-    information_needed: status === "record_insufficient"
-      ? "Complete the unanswered accountability duties and the Article 24(1) factors before relying on any headline conclusion."
-      : undefined,
+    // PANEL GOV-1 — branch-aware ask: names only the leg(s) actually open,
+    // never "complete the unanswered accountability duties" on a record
+    // whose duties are all answered.
+    information_needed: status === "record_insufficient" ? asksText : undefined,
   };
 }
 

@@ -497,7 +497,18 @@ export function composeExecutiveSummaryTyped(findings: Record<string, TypedDomai
   const flagged = all.filter((f) =>
     (f.severity === "Medium" || f.severity === "Low") && f.gap_description);
   const parts: string[] = [];
-  parts.push(`Across the ten governance domains, the company's answers leave ${clean.length === 0 ? "none" : clean.length} of the ten fully evidenced.`);
+  // PANEL GOV-5 (2026-08-30) — two scoping fixes, no logic change:
+  // (1) "the ten governance domains" now says WHICH ten — the operational
+  //     domains walked in the body — because the ICO crosswalk appendix
+  //     groups the same determinations into a DIFFERENT ten, and the
+  //     published sample showed "9 of the ten" against a crosswalk a reader
+  //     tallies as 8 of ten;
+  // (2) the all-clear sentence is scoped to those operational domains and
+  //     names the headline determination, because the accountability
+  //     determination (rendered above it) can be unresolved — and carry a
+  //     High register row — while every operational domain is clean; the
+  //     unscoped sentence read as contradicting both.
+  parts.push(`Across the ten operational domains walked in the sections below, the company's answers leave ${clean.length === 0 ? "none" : clean.length} of the ten fully evidenced.`);
   if (adverse.length > 0) {
     parts.push(`The domains requiring action first are: ${adverse.map((f) => f.domain_name).join("; ")}.`);
   }
@@ -508,7 +519,7 @@ export function composeExecutiveSummaryTyped(findings: Record<string, TypedDomai
     parts.push(`${unresolved.length === 1 ? "One domain remains" : `${unresolved.length} domains remain`} unresolved on the information provided.`);
   }
   if (adverse.length === 0 && unresolved.length === 0 && flagged.length === 0) {
-    parts.push("No domain requires immediate remediation on the company's answers; the actions recorded per domain are maintenance, not repair.");
+    parts.push("No operational domain requires immediate remediation on the company's answers; the actions recorded per domain are maintenance, not repair. The headline accountability determination is carried separately above, and where it remains open the remediation register carries it first.");
   }
   return parts.join(" ");
 }

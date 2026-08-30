@@ -193,8 +193,18 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
       return { sourceTable: "dpia_frameworks", sourceRowId: rec.id };
     }
     case "governance": {
+      // PANEL GOV-4 (2026-08-30) — the governance engine reads
+      // intake.organization_name (run-governance-assessment/index.ts:901);
+      // withNames only backfills entity_name/company_name, so every
+      // stress-run governance document rendered "the company" everywhere,
+      // including the title line. Scoped to this product's intake_data
+      // jsonb — never a raw column spread.
+      const govIntake = withNames(intake);
+      if (govIntake.organization_name === undefined && job.company_name) {
+        govIntake.organization_name = job.company_name;
+      }
       const { data: rec, error } = await admin.from("governance_assessments")
-        .insert({ user_id: userId, status: "pending", intake_data: withNames(intake) })
+        .insert({ user_id: userId, status: "pending", intake_data: govIntake })
         .select("id").single();
       if (error || !rec) throw new Error(`governance insert: ${error?.message}`);
       await invokeFn("run-governance-assessment", { assessment_id: rec.id, stress_run: true })

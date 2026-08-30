@@ -219,11 +219,14 @@ export function buildGovernanceSlotValues(intake: Bag): SlotValues {
     sector: s(intake.sector),
     orgSize: ORG_SIZE_PROSE[s(intake.org_size)] ?? s(intake.org_size),
     jurisdictions: asProse(arr(intake.jurisdictions)) || null,
+    // PANEL GOV-3 (2026-08-30) — this value begins a sentence; when the
+    // org-name fallback ("the company") fills it, the sentence used to open
+    // lowercase. Real names are proper nouns and pass through unchanged.
     EU_UK_SENTENCE: isNA(euUk)
       ? null
       : /^Yes/i.test(euUk)
-      ? `${org} has indicated that it processes the personal data of individuals in the EU or the UK`
-      : `${org} has indicated that it does not process the personal data of individuals in the EU or the UK`,
+      ? `${org.charAt(0).toUpperCase()}${org.slice(1)} has indicated that it processes the personal data of individuals in the EU or the UK`
+      : `${org.charAt(0).toUpperCase()}${org.slice(1)} has indicated that it does not process the personal data of individuals in the EU or the UK`,
     dataCategories: asProse(arr(intake.data_categories).map(lower)) || null,
     SPECIAL_CATEGORY_CLAUSE: /^Yes/i.test(s(intake.special_category)) && specialList.length
       ? `, including the special categories ${asProse(specialList.map(lower))}, which engage Article 9`
@@ -302,14 +305,29 @@ function domainEntries(report: Bag): Bag[] {
   return [];
 }
 
+// PANEL GOV-6 (2026-08-30) — where the upstream citation-verification pass
+// degrades a domain's regulatory_basis, the field carries the emit-gate's
+// substitution literal, not citations. Splicing whatever the field holds
+// into "The provisions engaged are ___." rendered, verbatim on the public
+// US sample (twice): "The provisions engaged are We could not verify this
+// item from the information provided; it is listed under information
+// needed.." — an error string as a citation, with a doubled period. A
+// degraded basis is an UNVERIFIED citation: under the iff-cited law it is
+// not stated at all, and the degradation already travels via
+// information_needed. The literal is matched on its stable stem so a future
+// wording tweak of the tail cannot silently re-open the leak.
+const DEGRADED_BASIS_STEM = "We could not verify this item";
+
 function domainProse(d: Bag): string {
+  const basis = s(d.regulatory_basis);
+  const basisIsDegraded = basis.includes(DEGRADED_BASIS_STEM);
   const parts = [
     s(d.domain_name) ? `${s(d.domain_name)}.` : "",
     s(d.current_state),
     s(d.gap_description),
     // DOC-81 G-1 — the terminal period lives here, not in the ten basis
     // strings, so the sentence can never run into the action that follows.
-    s(d.regulatory_basis) ? `The provisions engaged are ${s(d.regulatory_basis)}.` : "",
+    basis && !basisIsDegraded ? `The provisions engaged are ${basis}.` : "",
     s(d.recommended_action),
   ].filter(Boolean);
   return repairRegister(parts.join(" "));

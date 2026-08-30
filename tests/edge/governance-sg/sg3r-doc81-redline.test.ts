@@ -57,8 +57,13 @@ Deno.test("G-2 — a genuinely clean record still gets the all-clear sentence an
   const exec = composeExecutiveSummaryTyped(f);
   // Regulatory Exposure Summary is architecturally never "Compliant" (its
   // severity ladder is Unresolved/Medium/Low only) — 9, not 10, is correct.
+  // RE-PIN PANEL GOV-5 (2026-08-30): the count is now scoped to "the ten
+  // operational domains walked in the sections below" so it can no longer be
+  // read against the ICO crosswalk's DIFFERENT ten categories (whose tally
+  // is 8 on the published sample); the all-clear is scoped the same way.
+  assertStringIncludes(exec, "Across the ten operational domains walked in the sections below");
   assertStringIncludes(exec, "leave 9 of the ten fully evidenced");
-  assertStringIncludes(exec, "No domain requires immediate remediation on the company's answers");
+  assertStringIncludes(exec, "No operational domain requires immediate remediation on the company's answers");
 });
 
 Deno.test("G-3 — Compliant and Unresolved render as postures, not as \"severity compliant/unresolved\"", () => {
