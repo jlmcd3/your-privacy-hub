@@ -85,19 +85,44 @@ function sentenceSpans(text: string): SentenceSpan[] {
 //   UNDERLINED, NOT BOLD, and START A NEW LINE (the paragraph's
 //   whitespace-pre-line renders the inserted "\n").
 // Keep the two files' label lists and boundaries in sync.
+// BATCH 16 (A-Team RULING 3.1 / doc 66 Rule 2 rewrite, 2026-08-30):
+// HEAD_LEAD_LABELS is FROZEN — no new entries, ever. "Priority Matters:"
+// and "Scope of Assessment:" moved HEAD → RUN-IN per RULING 3.1 item 4.
+// Byte-equivalent with generate-report-pdf/index.ts.
 const HEAD_LEAD_LABELS = [
   "Activity Assessed\\.", "Why a Risk Assessment Is Required\\.", "Key Findings\\.",
   "Overall Determination\\.", "Conditions to Proceed\\.", "Condition to Proceed\\.",
   "Assessment Follow-Up Required\\.", "Recommendation\\.", "Recommendations\\.",
   "Required Follow-Up\\.", "Follow-Ups\\.", "Record Considered\\.",
   "Risk Assessments\\.", "Outstanding Matters\\.", "Review and Maintenance\\.",
-  "Priority Matters:", "Scope of Assessment:", "Withholding and Security:",
+  "Withholding and Security:",
 ];
+// RUN-IN additions ratified by doc 66 Rule 2 item 6 (A-Team RULING 3.1).
 const RUNIN_LEAD_LABELS = [
   "Analysis\\.", "Conclusion\\.", "Reasoning\\.", "Consequence\\.",
   "Caution\\.", "Out of scope\\.", "Effectiveness analysis\\.",
   "Entry\\.", "Stages\\.", "Output\\.",
+  "Rulemaking context — persuasive only\\.", "Analytical note\\.",
+  "Statutory text\\.", "Record\\.", "Status\\.", "Controls described\\.",
+  "Evidence identified\\.", "Auditor testability\\.", "Reliance notice\\.",
+  "Deadline\\.", "Priority Matters:", "Scope of Assessment:",
 ];
+// BATCH 16 (R2): a chunk that consists SOLELY of a structural lead renders
+// as a sub-heading (doc 66 Rule 2 rewrite). Web sections already use h3, so
+// sub-heads render as h4 at the same visual rank as the PDF's h3. Keep the
+// shape regex byte-equivalent with generate-report-pdf/index.ts.
+const H3_CHUNK_RE = new RegExp(
+  `^(?:` +
+    `(?:[A-Z]\\.\\s+[A-Z][^.\\n]{0,80}?\\.)` +
+    `|(?:\\d{1,2}\\.\\s+[A-Z][^.\\n]{0,80}?)` +
+    `|(?:§\\s?[\\d.()a-zA-Z/ ]{1,24}\\s+—\\s+[A-Z][^.\\n]{0,80}?\\.?)` +
+    `|(?:Step \\d+ — [A-Z][^.\\n]{0,40}?\\.)` +
+    `|(?:${HEAD_LEAD_LABELS.join("|")})` +
+  `)$`,
+);
+// BATCH 16 (R4): one enquoted span of >= ~25 words renders as the
+// statute-quote block (composer-typed quoted_authority paragraphs too).
+const QUOTE_CHUNK_RE = /^[\u201c"][\s\S]{40,}[\u201d"]\.?$/;
 const LEAD_PHRASE_RE = new RegExp(
   `(^|[.!?]\\s+|\\n\\s*)((?:[A-Z]\\.\\s+[A-Z][^.\\n]{0,80}?\\.)|(?:\\([A-H]\\)\\s+[A-Z][^.\\n]{0,140}?\\.)|(?:Step \\d+ — [A-Z][^.\\n]{0,40}?\\.)|${HEAD_LEAD_LABELS.join("|")})(?=\\s|$)` +
     `|(^|[.!?]\\s+|\\n\\s*)(${RUNIN_LEAD_LABELS.join("|")})(?=\\s|$)`,
@@ -264,6 +289,8 @@ export function isSkeletonDocument(value: unknown): value is SkeletonDocument {
 }
 
 export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
+  // BATCH 16 (R6): one amber Deadline box per document maximum.
+  const deadlineUsedRef = { used: false };
   return (
     <article className="font-serif-text space-y-8">
       <header className="space-y-1">
@@ -286,16 +313,47 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
               <ToaView key={i} text={p.text} />
             ) : (
 
+              p.kind === "quoted_authority" ? (
+                // BATCH 16 (R4, kind-driven): composer-typed quoted
+                // authority renders as the statute-quote block, verbatim.
+                <div key={i} className="my-2 border-l-[3px] border-slate-400 pl-3 pr-2 py-1 text-[13px] leading-relaxed text-foreground whitespace-pre-line">
+                  {p.text}
+                </div>
+              ) : (
               p.text.split(/\n{2,}/).map((chunk, j) => {
-                // 2026-08-25 polish round — mirror of the PDF renderer's
-                // .condition-callout: a Condition(s)-to-Proceed chunk wraps
-                // in a bordered amber box so it can't be missed against a
-                // favorable disposition. Keep the detection regex in sync
-                // with generate-report-pdf/index.ts.
-                const conditionCallout =
+                const trimmed = chunk.trim();
+                // BATCH 16 (R2): a chunk that IS a structural lead renders
+                // as a sub-heading.
+                if (trimmed.length <= 96 && H3_CHUNK_RE.test(trimmed)) {
+                  return (
+                    <h4 key={`${i}-${j}`} className="font-serif text-[15px] font-bold text-foreground mt-4 mb-1">
+                      {trimmed}
+                    </h4>
+                  );
+                }
+                // BATCH 16 (R4, shape-driven).
+                if (QUOTE_CHUNK_RE.test(trimmed) && trimmed.split(/\s+/).length >= 25) {
+                  return (
+                    <div key={`${i}-${j}`} className="my-2 border-l-[3px] border-slate-400 pl-3 pr-2 py-1 text-[13px] leading-relaxed text-foreground whitespace-pre-line">
+                      {trimmed}
+                    </div>
+                  );
+                }
+                // BATCH 16 (R5/R6): guidance panel for rulemaking context;
+                // muted panel for short not-yet-assessable states; the
+                // "Deadline." amber trigger fires once per document.
+                const guidancePanel = trimmed.startsWith("Rulemaking context — persuasive only.");
+                const mutedPanel = !guidancePanel && trimmed.length <= 600 && /not yet assessable/i.test(trimmed);
+                const deadlineCallout = trimmed.startsWith("Deadline.") && !deadlineUsedRef.used;
+                if (deadlineCallout) deadlineUsedRef.used = true;
+                const conditionCallout = deadlineCallout ||
                   /^(?:[A-Z]\.\s+[^.]+\.\s+)?Conditions? to Proceed\./.test(chunk.trim());
                 const calloutClass = conditionCallout
                   ? "rounded-md border-[1.5px] border-amber-600/70 bg-amber-50 px-3 py-2 dark:bg-amber-950/30"
+                  : guidancePanel
+                  ? "border-l-4 border-slate-400 bg-slate-100 dark:bg-slate-900/40 px-3 py-2 text-[13px]"
+                  : mutedPanel
+                  ? "border-l-[3px] border-slate-400 bg-muted/40 px-3 py-2 italic text-muted-foreground text-[13px]"
                   : "";
                 // CEO report review 2026-08-24 — a chunk containing a
                 // "— item" list run (see segmentDashText) renders those
@@ -336,12 +394,21 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
                   </p>
                 );
               })
+              )
             ),
           )}
         </section>
       ))}
     </article>
   );
+}
+
+// BATCH 16 (R7): signature fill-ins draw a bottom-border rule, never
+// literal underscore runs (doc 109 §1.6). Mirrors skeletonTableHtml.
+function cellContent(v: string): React.ReactNode {
+  return /^_{6,}$/.test(v.trim())
+    ? <span className="inline-block min-w-[220px] border-b border-foreground">&nbsp;</span>
+    : v;
 }
 
 function SkeletonTableView({ table }: { table: SkeletonTable }) {
@@ -380,7 +447,7 @@ function SkeletonTableView({ table }: { table: SkeletonTable }) {
               <tr key={r} className="align-top">
                 {row.map((cell, c) => (
                   <td key={c} className="border-b border-border px-3 py-2 leading-relaxed text-foreground">
-                    {renderWithFootnotes(cell)}
+                    {/^_{6,}$/.test(String(cell).trim()) ? cellContent(String(cell)) : renderWithFootnotes(cell)}
                   </td>
                 ))}
               </tr>

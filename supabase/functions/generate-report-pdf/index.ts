@@ -998,6 +998,10 @@ interface TextReportOpts {
   metaLine?: string;
   text: string;
   showJurisdictionChip?: boolean;
+  /** BATCH 16 (R8, A-Team RULING 3.9): cover eyebrow product noun.
+   * Default unchanged fleet-wide; only products with an approved noun set
+   * it (IR in Wave C5; the DPA when contract mode lands). */
+  eyebrow?: string;
   callout?: { kind: "warn" | "muted"; title?: string; html: string };
   /**
    * PDF-1: pre-body HTML block rendered verbatim (unescaped) BEFORE section
@@ -1172,7 +1176,7 @@ ${AUTHORITY_EXHIBIT_CSS}
 <body><div class="shell">
   <header class="header">
     <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-    <p class="eyebrow">Customized Compliance Assessment</p>
+    <p class="eyebrow">${escHtml(opts.eyebrow || "Customized Compliance Assessment")}</p>
     <h1>${escHtml(opts.title)}</h1>
     ${opts.metaLine ? `<div class="meta">${escHtml(opts.metaLine)}</div>` : ""}
   </header>
@@ -1242,7 +1246,15 @@ function skeletonTableHtml(t: SkeletonTableLike): string {
   const body = rows
     .map((r) =>
       `<tr>${cols
-        .map((_c, i) => `<td style="border:none;border-bottom:0.5pt solid #666;padding:6pt 8pt 6pt 0;vertical-align:top;font-size:9.5pt;">${escHtml(String(r[i] ?? ""))}</td>`)
+        .map((_c, i) => {
+          const v = String(r[i] ?? "");
+          // BATCH 16 (R7): signature fill-ins draw a bottom-border rule,
+          // never literal underscore runs (doc 109 §1.6).
+          const cell = /^_{6,}$/.test(v.trim())
+            ? `<span style="display:inline-block;min-width:220px;border-bottom:0.75pt solid #0c2a44;">&nbsp;</span>`
+            : escHtml(v);
+          return `<td style="border:none;border-bottom:0.5pt solid #666;padding:6pt 8pt 6pt 0;vertical-align:top;font-size:9.5pt;">${cell}</td>`;
+        })
         .join("")}</tr>`
     )
     .join("");
@@ -1431,11 +1443,17 @@ function toaAnchorId(line: string): { id: string | null; rest: string } {
 // to CPPA Risk, ADMT, and Cyber. Listed by id (not title-pattern, since none
 // of these are titled "Appendix ..." — see the forceBreak note below) so the
 // page-break and "is a fillable page, not narrative" treatment is centralized.
+// BATCH 16 (A-Team doc-111 renderer wave, R7): "review_approval" is the
+// Biometric §IV dedicated signature section. The LIA §V / DPIA §0+§6 /
+// Registration approval blocks live INSIDE mixed-content sections today and
+// join this set only when Waves C4/C5 split them into dedicated sections —
+// forcing a whole mixed section onto its own page would be wrong.
 const SIGNATURE_PAGE_IDS = new Set([
   "review_and_approval",
   "agency_submission_checklist",
   "review_of_assessment",
   "signature",
+  "review_approval",
 ]);
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1464,18 +1482,32 @@ const SIGNATURE_PAGE_IDS = new Set([
 // after the letter) so a mid-sentence "… v. Smith." can never be mistaken
 // for a lead. Keep the web twin (SkeletonDocumentView.tsx) in sync.
 // ─────────────────────────────────────────────────────────────────────────
+// BATCH 16 (A-Team RULING 3.1 / doc 66 Rule 2 rewrite, 2026-08-30):
+// HEAD_LEAD_LABELS is FROZEN — no new entries, ever. Structural leads are
+// emitted by composers as their own chunks and render as h3 (see the h3
+// branch in skeletonSectionsHtml). "Priority Matters:" and "Scope of
+// Assessment:" moved HEAD → RUN-IN per RULING 3.1 item 4 (short inline
+// labels that introduce a sentence). Keep the web twin
+// (SkeletonDocumentView.tsx) byte-equivalent in LABELS and regex.
 const HEAD_LEAD_LABELS = [
   "Activity Assessed\\.", "Why a Risk Assessment Is Required\\.", "Key Findings\\.",
   "Overall Determination\\.", "Conditions to Proceed\\.", "Condition to Proceed\\.",
   "Assessment Follow-Up Required\\.", "Recommendation\\.", "Recommendations\\.",
   "Required Follow-Up\\.", "Follow-Ups\\.", "Record Considered\\.",
   "Risk Assessments\\.", "Outstanding Matters\\.", "Review and Maintenance\\.",
-  "Priority Matters:", "Scope of Assessment:", "Withholding and Security:",
+  "Withholding and Security:",
 ];
+// RUN-IN additions ratified by doc 66 Rule 2 item 6 (A-Team RULING 3.1).
+// "Rulemaking context — persuasive only." doubles as the guidance-panel
+// trigger (R5); "Deadline." doubles as the amber-callout trigger (R6).
 const RUNIN_LEAD_LABELS = [
   "Analysis\\.", "Conclusion\\.", "Reasoning\\.", "Consequence\\.",
   "Caution\\.", "Out of scope\\.", "Effectiveness analysis\\.",
   "Entry\\.", "Stages\\.", "Output\\.",
+  "Rulemaking context — persuasive only\\.", "Analytical note\\.",
+  "Statutory text\\.", "Record\\.", "Status\\.", "Controls described\\.",
+  "Evidence identified\\.", "Auditor testability\\.", "Reliance notice\\.",
+  "Deadline\\.", "Priority Matters:", "Scope of Assessment:",
 ];
 const LEAD_PHRASE_RE = new RegExp(
   `(^|[.!?]\\s+|\\n\\s*)((?:[A-Z]\\.\\s+[A-Z][^.\\n]{0,80}?\\.)|(?:\\([A-H]\\)\\s+[A-Z][^.\\n]{0,140}?\\.)|(?:Step \\d+ — [A-Z][^.\\n]{0,40}?\\.)|${HEAD_LEAD_LABELS.join("|")})(?=\\s|$)` +
@@ -1502,13 +1534,50 @@ function styleLeadPhrases(escapedText: string): string {
   );
 }
 
+// BATCH 16 (doc-111 renderer wave R2): a chunk that consists SOLELY of a
+// structural lead renders as an h3 sub-heading (doc 66 Rule 2 rewrite).
+// Composers opt in by emitting the label on its own blank-line-separated
+// chunk; shapes are line-start anchored and length-bounded so a short
+// numbered/lettered SENTENCE inside running prose never matches (it would
+// not be its own chunk). Keep in sync with the web twin.
+const H3_CHUNK_RE = new RegExp(
+  `^(?:` +
+    `(?:[A-Z]\\.\\s+[A-Z][^.\\n]{0,80}?\\.)` +
+    `|(?:\\d{1,2}\\.\\s+[A-Z][^.\\n]{0,80}?)` +
+    `|(?:§\\s?[\\d.()a-zA-Z/ ]{1,24}\\s+—\\s+[A-Z][^.\\n]{0,80}?\\.?)` +
+    `|(?:Step \\d+ — [A-Z][^.\\n]{0,40}?\\.)` +
+    `|(?:${HEAD_LEAD_LABELS.join("|")})` +
+  `)$`,
+);
+// R4: a statutory/verbatim quote chunk — either the composer emitted a
+// quoted_authority paragraph kind (ADMT S4 excerpts), or the chunk is one
+// enquoted span of ≥ 25 words.
+const QUOTE_CHUNK_RE = /^[“"][\s\S]{40,}[”"]\.?$/;
+const STATUTE_QUOTE_STYLE =
+  "font-size:10.5px;border-left:3px solid #8a9eb1;padding:6px 12px;margin:6px 0 10px;white-space:pre-line;color:#1a1a1a;";
+// R5: the rulemaking-context guidance voice (doc 109 §1.5) — tinted panel,
+// reduced size, roman.
+const GUIDANCE_PANEL_STYLE =
+  "background:#edf2f5;border-left:4px solid #8a9eb1;padding:10px 14px;margin:0 0 10px;font-size:10.5px;";
+// R6: the muted callout for not-yet-assessable states.
+const MUTED_PANEL_STYLE =
+  "border-left:3px solid #8a9eb1;background:#f5f6f7;color:#4a5b6a;font-style:italic;padding:8px 12px;margin:0 0 10px;font-size:10.5px;";
+
 function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string }): string {
   const footnotesOn = opts?.product === "cppa-admt-v2";
+  // R6: one amber Deadline box per document maximum (doc 109 §1.5); the
+  // deadline-board table carries the rest.
+  let deadlineCalloutUsed = false;
   return (doc.sections ?? []).map((sec) => {
     const paras = (sec.paragraphs ?? []).map((p) => {
       if (p?.kind === "table" && p.table) return skeletonTableHtml(p.table);
       const t = typeof p?.text === "string" ? p.text : "";
       if (!t.trim()) return "";
+      // R4 (kind-driven): composer-typed quoted authority renders as the
+      // statute-quote block, verbatim, no lead styling.
+      if (p?.kind === "quoted_authority") {
+        return `<div class="statute-quote" style="${STATUTE_QUOTE_STYLE}">${escHtml(t.trim())}</div>`;
+      }
       if (sec.id === "table_of_authorities" && p?.kind !== "skeleton") {
         // ITEM 4 — FIRST ToA FIX (CEO-directed, 2026-08-15; presentation only):
         // one authority per line, single column, ledger order preserved.
@@ -1536,12 +1605,38 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
         // wraps in the amber .condition-callout so the condition is visually
         // impossible to miss. Detected on the raw chunk, ahead of both render
         // branches below, so list-shaped condition chunks get the box too.
-        const conditionCallout =
+        const trimmed = chunk.trim();
+        // R2: a chunk that IS a structural lead renders as an h3.
+        if (trimmed.length <= 96 && H3_CHUNK_RE.test(trimmed)) {
+          return `<h3 style="font-family:'Georgia','Times New Roman',serif;font-weight:bold;font-size:13px;color:#0c2a44;margin:14px 0 6px;break-after:avoid;page-break-after:avoid;">${escHtml(trimmed)}</h3>`;
+        }
+        // R4 (shape-driven): a chunk that is one enquoted span of ≥ ~25
+        // words renders as the statute-quote block.
+        if (QUOTE_CHUNK_RE.test(trimmed) && trimmed.split(/\s+/).length >= 25) {
+          return `<div class="statute-quote" style="${STATUTE_QUOTE_STYLE}">${escHtml(trimmed)}</div>`;
+        }
+        // R5: a rulemaking-context chunk renders in the guidance panel; the
+        // run-in label styling still applies inside it.
+        const guidancePanel = trimmed.startsWith("Rulemaking context — persuasive only.");
+        // R6: the muted panel for not-yet-assessable / corpus-pending
+        // states — short chunks only, so an analysis paragraph that merely
+        // mentions the phrase does not get pulled into the muted voice.
+        const mutedPanel = !guidancePanel && trimmed.length <= 600 &&
+          /not yet assessable/i.test(trimmed);
+        // R6: "Deadline." opens the amber family once per document.
+        const deadlineCallout = trimmed.startsWith("Deadline.") && !deadlineCalloutUsed;
+        if (deadlineCallout) deadlineCalloutUsed = true;
+        const conditionCallout = deadlineCallout ||
           /^(?:[A-Z]\.\s+[^.]+\.\s+)?Conditions? to Proceed\./.test(chunk.trim());
-        const wrapChunk = (html: string): string =>
-          conditionCallout && html
-            ? `<div class="condition-callout" style="border:1.5px solid #b9822d;background:#fdf6e7;border-radius:5px;padding:9px 13px;margin:0 0 10px;">${html}</div>`
-            : html;
+        const wrapChunk = (html: string): string => {
+          if (!html) return html;
+          if (conditionCallout) {
+            return `<div class="condition-callout" style="border:1.5px solid #b9822d;background:#fdf6e7;border-radius:5px;padding:9px 13px;margin:0 0 10px;">${html}</div>`;
+          }
+          if (guidancePanel) return `<div class="guidance" style="${GUIDANCE_PANEL_STYLE}">${html}</div>`;
+          if (mutedPanel) return `<div class="callout-muted" style="${MUTED_PANEL_STYLE}">${html}</div>`;
+          return html;
+        };
         // CEO report review 2026-08-24 — bold alone doesn't read as
         // distinct enough; the lead carries an underline too.
         const mark = (html: string) => {
@@ -1613,12 +1708,29 @@ function buildSkeletonReportHTML(doc: SkeletonDocLike, record: any, fallbackTitl
   const created = record?.created_at ? new Date(record.created_at) : new Date();
   const metaLine = `Generated ${created.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}`
     + (doc.subtitle ? ` · ${doc.subtitle}` : "");
+  // BATCH 16 (R10, A-Team RULING 3.7): Cyber-scoped Table of Contents —
+  // one page after the cover block, h2 section titles only. Chromium's
+  // print pipeline cannot resolve target page numbers, so entries are
+  // anchor links without page numbers. Extension to any other product
+  // waits for a calibrated batch readout, as its own ruling.
+  const tocHtml = product === "cppa-cyber"
+    ? (() => {
+      const items = (doc.sections ?? [])
+        .map((sec, i) => ({ title: (sec.title ?? "").trim(), i }))
+        .filter((x) => x.title);
+      if (items.length <= 9) return "";
+      return `<section class="section" style="break-after:always;page-break-after:always;margin-bottom:14px;">
+        <h2 style="font-family:'Georgia','Times New Roman',serif;color:#0c2a44;font-size:15px;margin:0 0 10px;">Contents</h2>
+        ${items.map((x) => `<p style="margin:0 0 4px;font-size:11px;border-bottom:0.5pt dotted #9fb0bd;padding-bottom:2px;">${escHtml(x.title)}</p>`).join("")}
+      </section>`;
+    })()
+    : "";
   return buildTextReportHTML({
     title: doc.title || fallbackTitle,
     metaLine,
     text: "",
     showJurisdictionChip: false,
-    htmlPrefix: skeletonSectionsHtml(doc, { product }),
+    htmlPrefix: tocHtml + skeletonSectionsHtml(doc, { product }),
   });
 }
 
@@ -3745,7 +3857,7 @@ Deno.serve(async (req) => {
       // document IS the customer report — the legacy narrative path is bypassed.
       const skelCyber = readSkeletonDocument(record.report_data);
       if (skelCyber) {
-        html = buildSkeletonReportHTML(skelCyber, record, "CPPA Cybersecurity Audit Readiness Report");
+        html = buildSkeletonReportHTML(skelCyber, record, "CPPA Cybersecurity Audit Readiness Report", "cppa-cyber");
       } else if (parts.length === 0 && hasStructured) {
         // Structured report path: render via dedicated HTML template that
         // emits compact FSOR refs + formatted enforcement precedents and
