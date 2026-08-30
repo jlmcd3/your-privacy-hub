@@ -24,6 +24,8 @@ import {
   subprocessorAuthorisationClause,
   transferClause,
   ukDomesticLawVariant,
+  ukEeaAdequacySplit,
+  ukEngaged,
   US_REQUIRED_TERMS_SECTION,
 } from "./dpa-clause-library.ts";
 import { renderTomsBlock, resolveTomsSelection } from "../registry/dpa-toms-taxonomy.ts";
@@ -67,10 +69,19 @@ function fillSlots(text: string, slots: Record<string, string>): string {
 }
 
 function annexA(input: DpaAssembleInput): string {
+  // PANEL DPA-P1 (2026-08-30): the SCC exporter/importer labels are
+  // transfer-mechanism vocabulary — they print only where the instrument
+  // actually frames a transfer (a recorded transfer, or the UK↔EEA
+  // adequacy leg clause 8.1 now states); a pure no-transfer DPA labels the
+  // Parties plainly, so Annex A no longer contradicts clause 8.1.
+  const transferFraming = input.includeTransferClause ||
+    ukEeaAdequacySplit(s(input.controllerJurisdiction), s(input.processorJurisdiction));
+  const ctrlLabel = transferFraming ? "Data exporter / Controller" : "Controller";
+  const procLabel = transferFraming ? "Data importer / Processor" : "Processor";
   return [
     "ANNEX A — PARTIES",
-    `Data exporter / Controller: ${s(input.controllerName)} (${s(input.controllerJurisdiction)}) — contact: [TO BE COMPLETED: controller contact details]`,
-    `Data importer / Processor: ${s(input.processorName)} (${s(input.processorJurisdiction)}) — contact: [TO BE COMPLETED: processor contact details]`,
+    `${ctrlLabel}: ${s(input.controllerName)} (${s(input.controllerJurisdiction)}) — contact: [TO BE COMPLETED: controller contact details]`,
+    `${procLabel}: ${s(input.processorName)} (${s(input.processorJurisdiction)}) — contact: [TO BE COMPLETED: processor contact details]`,
     "The jurisdiction shown beside each Party is the jurisdiction whose law the record engages, not the Party's jurisdiction of formation.",
   ].join("\n");
 }
@@ -84,6 +95,10 @@ function annexB(input: DpaAssembleInput): string {
     `Retention: ${s(input.retention) || "[TO BE COMPLETED: retention period or criteria]"}`,
     input.includeTransferClause
       ? `Transfer destination(s): [TO BE COMPLETED: destination country/region]`
+      // PANEL DPA-P1: keep Annex B consistent with clause 8.1 for the
+      // UK↔EEA adequacy pair; all other no-transfer pairs byte-unchanged.
+      : ukEeaAdequacySplit(s(input.controllerJurisdiction), s(input.processorJurisdiction))
+      ? `Transfers: between the United Kingdom and the EEA under the applicable adequacy decisions (see clause 8.1); no onward transfer to any other third country recorded.`
       : `Transfers: none recorded across the engaged jurisdictions or onward to a third country.`,
   ].join("\n");
 }
@@ -125,7 +140,13 @@ export function assembleDpaDocument(input: DpaAssembleInput): DpaAssembledDocume
     services: s(input.services) || "[TO BE COMPLETED: description of the services]",
     retention: s(input.retention) || "[TO BE COMPLETED: retention period or criteria]",
     auditRights: s(input.auditRights) || "[TO BE COMPLETED: the audit arrangement]",
-    frameworkCitation: frameworkCitationFor(mode),
+    // PANEL DPA-P1 (2026-08-30): a "gdpr"-mode instrument whose parties
+    // engage the UK (the derivation collapses UK+EEA pairs to "gdpr")
+    // carries the dual-regime citation, so the UK GDPR is named wherever
+    // the clauses cite the framework.
+    frameworkCitation: frameworkCitationFor(mode, {
+      ukAlsoEngaged: ukEngaged(s(input.controllerJurisdiction), s(input.processorJurisdiction)),
+    }),
     subprocessorAuthorisationClause: subprocessorAuthorisationClause(
       input.subprocessorAuthorizationModel,
       input.subprocessorNoticeDays,
@@ -135,6 +156,8 @@ export function assembleDpaDocument(input: DpaAssembleInput): DpaAssembledDocume
       mode,
       includeTransferClause: input.includeTransferClause,
       transferMechanism: input.transferMechanism,
+      controllerJurisdiction: s(input.controllerJurisdiction),
+      processorJurisdiction: s(input.processorJurisdiction),
     }),
     governingLawClause: governingLawClause(input.controllerJurisdiction),
     dpoRepresentationClause: dpoRepresentationClause(mode),

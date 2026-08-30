@@ -144,8 +144,44 @@ const GDPR_SECTIONS: readonly DpaClauseSection[] = [
 
 // ── Mode deltas ────────────────────────────────────────────────────────────
 
-/** The framework citation the clauses reference, per mode. */
-export function frameworkCitationFor(mode: DpaMode): string {
+// PANEL DPA-P1 (2026-08-30, doc 108 / panel-C memo 2 D4-D5) — jurisdiction
+// predicates for the UK/EEA adequacy leg. UK is word-bounded (DOC-81 D-8);
+// the EEA list deliberately EXCLUDES the United Kingdom, unlike
+// frameworkBaselineClause's combined test, and the split test guards each
+// side with !UK so "Northern Ireland" (which contains "ireland") stays UK.
+const UK_JUR_RE = /united kingdom|\buk\b|\bengland\b|\bscotland\b|\bwales\b|northern ireland/i;
+const EEA_JUR_RE =
+  /austria|belgium|bulgaria|croatia|cyprus|czech|denmark|estonia|finland|france|germany|greece|hungary|ireland|italy|latvia|lithuania|luxembourg|malta|netherlands|poland|portugal|romania|slovakia|slovenia|spain|sweden|iceland|liechtenstein|norway/i;
+
+/** True when one Party's engaged jurisdiction is the UK and the other's is
+ * in the EEA — the pair for which "no transfer" is legally wrong on the
+ * face of the parties block (UK↔EEA disclosures are restricted transfers,
+ * lawful today under the mutual adequacy decisions). */
+export function ukEeaAdequacySplit(controllerJurisdiction: string, processorJurisdiction: string): boolean {
+  const a = String(controllerJurisdiction ?? "");
+  const b = String(processorJurisdiction ?? "");
+  const ukA = UK_JUR_RE.test(a);
+  const ukB = UK_JUR_RE.test(b);
+  return (ukA && !ukB && EEA_JUR_RE.test(b)) || (ukB && !ukA && EEA_JUR_RE.test(a));
+}
+
+/** True when the pair engages the law of the United Kingdom at all — used
+ * to make the GDPR citation dual-regime in "gdpr"-mode instruments whose
+ * parties span the UK and the EEA (panel-C D5: an EU-GDPR-only instrument
+ * under English governing law never mentioned the UK GDPR). */
+export function ukEngaged(controllerJurisdiction: string, processorJurisdiction: string): boolean {
+  return UK_JUR_RE.test(String(controllerJurisdiction ?? "")) || UK_JUR_RE.test(String(processorJurisdiction ?? ""));
+}
+
+/** The framework citation the clauses reference, per mode.
+ * PANEL DPA-P1 (2026-08-30): "gdpr" mode with the UK also engaged renders
+ * the dual-regime citation, so every {frameworkCitation} splice covers the
+ * UK GDPR as well — the derivation collapses a UK+EEA pair to "gdpr" mode,
+ * which previously produced an EU-GDPR-only instrument for UK processing. */
+export function frameworkCitationFor(mode: DpaMode, opts?: { readonly ukAlsoEngaged?: boolean }): string {
+  if (mode === "gdpr" && opts?.ukAlsoEngaged === true) {
+    return "Regulation (EU) 2016/679 (the GDPR) and, where the processing is subject to the law of the United Kingdom, the UK GDPR as defined in section 3(10) of the Data Protection Act 2018 (references to Articles being references to the corresponding Articles of each)";
+  }
   switch (mode) {
     case "gdpr": return "Regulation (EU) 2016/679 (the GDPR)";
     case "uk": return "the UK GDPR (Regulation (EU) 2016/679 as it forms part of the law of England and Wales, Scotland and Northern Ireland by virtue of section 3 of the European Union (Withdrawal) Act 2018) and the Data Protection Act 2018";
@@ -215,8 +251,24 @@ export function transferClause(opts: {
   readonly mode: DpaMode;
   readonly includeTransferClause: boolean;
   readonly transferMechanism: string;
+  /** PANEL DPA-P1 — engaged jurisdictions, so the no-transfer branch can
+   * recognise a UK↔EEA pair instead of asserting "no transfer" against the
+   * parties' own geography. Optional so ratified callers outside the
+   * assembler are byte-unchanged. */
+  readonly controllerJurisdiction?: string;
+  readonly processorJurisdiction?: string;
 }): string {
   if (!opts.includeTransferClause) {
+    // PANEL DPA-P1 (2026-08-30, panel-C memo 2 D4): with a UK party on one
+    // side and an EEA party on the other, "no transfer" is legally wrong —
+    // the disclosure is a restricted transfer under the UK GDPR (and the
+    // return leg engages EU GDPR Chapter V), lawful today under the mutual
+    // adequacy decisions. The clause states that basis and the fallback
+    // mechanism. All other no-transfer pairs keep the ratified sentence
+    // byte-unchanged.
+    if (ukEeaAdequacySplit(opts.controllerJurisdiction ?? "", opts.processorJurisdiction ?? "")) {
+      return `8.1 The processing takes place in both the United Kingdom and the European Economic Area, so Personal Data passing between the Parties moves between those two regimes. Those transfers take place under the applicable adequacy decisions — the European Commission's adequacy decision for the United Kingdom, and the United Kingdom's adequacy regulations for the EEA — and no onward transfer to any other third country is recorded. If an applicable adequacy decision ceases to apply, the Parties shall put an appropriate transfer mechanism (standard contractual clauses under Article 46, or the UK International Data Transfer Agreement or Addendum) in place before continuing the transfer. The Processor shall not otherwise transfer Personal Data to a third country or an international organisation without the Controller's prior documented instructions.`;
+    }
     return `8.1 The Parties have recorded that the processing involves no transfer of Personal Data across the recorded jurisdictions or onward to a third country. The Processor shall not transfer Personal Data to a third country or an international organisation without the Controller's prior documented instructions, in which case the Parties shall first put an appropriate transfer mechanism in place.`;
   }
   const mech = String(opts.transferMechanism ?? "").trim();
