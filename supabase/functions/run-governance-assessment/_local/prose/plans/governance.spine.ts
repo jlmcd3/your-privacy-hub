@@ -38,7 +38,7 @@
 // `governance` (7f168ddb-d419-4f06-8cdc-1cf1fa03be7f), superseded at SO-3 with
 // "panel-delegated approval per CEO delegation 2026-08-06".
 
-export const GOVERNANCE_SKELETON_VERSION = "prose-plans-2026-08-30-c4-registers";
+export const GOVERNANCE_SKELETON_VERSION = "prose-plans-2026-08-30-c5-arabic";
 export const GOVERNANCE_SKELETON_SOURCE_FILE = "Governance_Assessment_Skeleton_v3.docx";
 export const GOVERNANCE_SKELETON_PROVENANCE =
   "Governance_Assessment_Skeleton_v3.docx — panel-delegated approval per CEO delegation 2026-08-06";
@@ -107,14 +107,14 @@ export const GOVERNANCE_SKELETON_SECTIONS: readonly GovernanceSkeletonSection[] 
   },
   {
     id: "organisation_and_data",
-    title: "I. The Organisation and Its Data",
+    title: "1. The Organisation and Its Data",
     blocks: [
       { kind: "skeleton", text: "{organizationName} has described itself as operating in {sector - reader label}, at a size of {orgSize - band rendered as prose}, across {jurisdictions - as prose}. {EU_UK_SENTENCE - from euUkData, attributed}. The categories of data the company reports holding are {dataCategories - reader labels}{SPECIAL_CATEGORY_CLAUSE - conditional on specialCategory: \", including the special categories \" + specialCategoriesList + \", which engage Article 9\"; absent => omitted}." },
     ],
   },
   {
     id: "governance_infrastructure",
-    title: "II. Governance Infrastructure",
+    title: "2. Governance Infrastructure",
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating whether the accountability structure - designation, notice, records - is evidenced on the company's answers." },
       { kind: "skeleton", text: "As to the designation of a data protection officer, the company has answered {DPO_PHRASE - reader label from dpoStatus, rendered as prose}. Its privacy notice position is {PRIVACY_POLICY_PHRASE - reader label}, with coverage the company describes as {privacyNoticeCoverage - reader labels as prose}." },
@@ -133,7 +133,7 @@ export const GOVERNANCE_SKELETON_SECTIONS: readonly GovernanceSkeletonSection[] 
   },
   {
     id: "training_tools_controls",
-    title: "III. Training, Tools and Controls",
+    title: "3. Training, Tools and Controls",
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating the operational-control posture." },
       { kind: "skeleton", text: "The company reports its training position as {TRAINING_PHRASE - reader label}{TRAINING_AI_CLAUSE - \", with coverage of AI tools recorded as \" + trainingAiCoverage; absent => omitted}. The tools it reports in use are {tools - reader labels}{OTHER_TOOL_CLAUSE - Other verbatim; absent => omitted}, and its policy position on their use is {TOOL_INSTRUCTION_PHRASE - reader label}. {TECHNICAL_CONTROLS_SENTENCE - from the technical-controls answers, attributed; absent => the honest sentence naming the absence}." },
@@ -142,7 +142,7 @@ export const GOVERNANCE_SKELETON_SECTIONS: readonly GovernanceSkeletonSection[] 
   },
   {
     id: "processors_and_transfers",
-    title: "IV. Processors and International Transfers",
+    title: "4. Processors and International Transfers",
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating the Article 28 and Chapter V posture together." },
       { kind: "skeleton", text: "As to processor contracts, the company has answered {DPA_STATUS_PHRASE - reader label}; as to verification of the Article 28(3) terms, {DPA_VERIFIED_PHRASE - reader label}. On transfers, the company reports {TRANSFER_PHRASE - reader label}{TRANSFER_MECHANISM_CLAUSE - \", relying on \" + transferMechanism reader label; absent where transfers occur => the honest gap sentence}." },
@@ -151,7 +151,7 @@ export const GOVERNANCE_SKELETON_SECTIONS: readonly GovernanceSkeletonSection[] 
   },
   {
     id: "the_determination",
-    title: "V. The Determination",
+    title: "5. The Determination",
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence restating the readiness determination as the operative finding." },
       { kind: "generated", text: "[GENERATED] Findings and the remediation plan in counsel's voice, each remediation tied to the duty it closes; {additionalContext} incorporated only where substantive." },

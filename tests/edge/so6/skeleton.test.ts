@@ -126,9 +126,12 @@ Deno.test("SO-6: the spine is byte-pinned to the CEO-corrected v3 docx", async (
   // RE-PIN 2026-08-30 (expert-panel LEAK-1): the subtitle's internal
   // ' - statute-as-template' tail is off the customer cover. Prior pin:
   // 2a22748ad3fc3431114799af91316a62522e33a06d22a73acdb552b3e2102006.
+  // RE-PIN BATCH 21b (doc 113 S8.1, RULING 3.6): section titles' Roman
+  // numerals (I-IV) went arabic (1-4). Prior pin:
+  // 8d688a3bc21deb7066d725856f543a9ac1decef7e2e6dc5eb396ea235e160206.
   assertEquals(
     BIOMETRIC_SKELETON_CONTENT_HASH,
-    "8d688a3bc21deb7066d725856f543a9ac1decef7e2e6dc5eb396ea235e160206",
+    "28b62bd3385cee5feee8e8c4e6a2e4e9224895827090f857cfbcf3c26c6a0d5f",
   );
   // Every encoded block is a verbatim span of one of the paragraphs.
   for (const section of BIOMETRIC_SKELETON_SECTIONS) {

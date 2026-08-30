@@ -35,7 +35,7 @@
 //                   Authorities). Never printed unless the composer supplies
 //                   deterministic content for it.
 
-export const REGISTRATION_SKELETON_VERSION = "prose-plans-2026-08-30-c1-filing-calendar";
+export const REGISTRATION_SKELETON_VERSION = "prose-plans-2026-08-30-c5-arabic";
 export const REGISTRATION_SKELETON_SOURCE_FILE =
   "DPA_AI_Act_Registration_Assessment_Skeleton_v3.docx (Aug-10 governing copy, carrying the 428-D named-actor correction at paragraph 16)";
 export const REGISTRATION_SKELETON_PROVENANCE =
@@ -55,9 +55,16 @@ export const REGISTRATION_SKELETON_PROVENANCE =
  * product jargon in the customer document — and now reads "the verified
  * corpus behind this assessment". Nothing else changed. Prior pin:
  * 2dedc8dadf458a8c1e969a570cb10ebdc3ce5519cb49f4ee6016bf5d6ed64118.
+ *
+ * RE-PIN BATCH 21b (Wave C5, doc 113 S8.1, RULING 3.6): the three section
+ * titles' Roman numerals (I–III) became arabic (1–3); no cross-reference
+ * audit was needed (zero inline Roman-numeral references exist anywhere in
+ * this product's composed prose, confirmed by grep). Method verified by
+ * reproducing the prior value first. Prior pin:
+ * 9ebf8a9cddc6ebc970f27ceb587ef6688bd63ea2bd329f129200ae1c88bc4af2.
  */
 export const REGISTRATION_SKELETON_CONTENT_HASH =
-  "9ebf8a9cddc6ebc970f27ceb587ef6688bd63ea2bd329f129200ae1c88bc4af2";
+  "5e60e0a56654f64da95ec38a978f16bbfe517a59ba385b0ee88f9ff3d5b11c67";
 
 export const REGISTRATION_SKELETON_TITLE = "REGISTRATION ASSESSMENT";
 export const REGISTRATION_SKELETON_SUBTITLE =
@@ -127,7 +134,7 @@ export const REGISTRATION_SKELETON_SECTIONS: readonly RegistrationSkeletonSectio
   },
   {
     id: "data_broker_registration",
-    title: "I. Data Broker Registration",
+    title: "1. Data Broker Registration",
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating whether data-broker registration duties attach and in which states." },
       // BATCH 18b (doc 113 S2.12) — the Filing Calendar, the broker
@@ -143,7 +150,7 @@ export const REGISTRATION_SKELETON_SECTIONS: readonly RegistrationSkeletonSectio
   },
   {
     id: "supervisory_and_ai_act",
-    title: "II. Supervisory-Authority and AI Act Registrations",
+    title: "2. Supervisory-Authority and AI Act Registrations",
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating the EU, UK and AI Act filing posture." },
       { kind: "generated", text: "[GENERATED] The determinations for each recorded establishment and market, in counsel's voice: representative duties, surviving notification duties, and AI Act provider or deployer registrations per the company's recorded AI answers; each duty from its verified passage; where the intake does not collect a fact a determination needs, the assessment says what is missing rather than assuming it." },
@@ -154,7 +161,7 @@ export const REGISTRATION_SKELETON_SECTIONS: readonly RegistrationSkeletonSectio
   },
   {
     id: "filing_readiness",
-    title: "III. Filing Readiness",
+    title: "3. Filing Readiness",
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating what stands between the company's answers and complete filings." },
       { kind: "generated", text: "[GENERATED] The readiness findings: each open duty with the company's recorded state and what closes it, naming the specific responsible party the record supplies rather than an unnamed role (the 428-D named-actor law); the attestation from the typed block." },
@@ -186,14 +193,14 @@ export const REGISTRATION_SKELETON_PARAGRAPHS: readonly string[] = [
   "[DETERMINATION LEAD] One sentence stating how many registration duties attach on the company's answers and how many are presently satisfied.",
   `${REGISTRATION_SKELETON_SECTIONS[0].blocks[1].text} ${REGISTRATION_SKELETON_SECTIONS[0].blocks[2].text}`,
   "[GENERATED] The filing posture in two to three sentences: duties attached, satisfied, and open, attributed.",
-  "I. Data Broker Registration",
+  "1. Data Broker Registration",
   "[DETERMINATION LEAD] One sentence stating whether data-broker registration duties attach and in which states.",
   "[CONDITIONAL] Trigger - broker activity recorded in {dataBrokerDetail}: each state's duty stated from its verified passage, with the company's position set beside it; where no broker activity is recorded, one honest sentence says that no such duty attaches on the company's answers.",
   "[GENERATED] The per-jurisdiction analysis from the typed determinations; fees and deadlines appear only from registry rows.",
-  "II. Supervisory-Authority and AI Act Registrations",
+  "2. Supervisory-Authority and AI Act Registrations",
   "[DETERMINATION LEAD] One sentence stating the EU, UK and AI Act filing posture.",
   "[GENERATED] The determinations for each recorded establishment and market, in counsel's voice: representative duties, surviving notification duties, and AI Act provider or deployer registrations per the company's recorded AI answers; each duty from its verified passage; where the intake does not collect a fact a determination needs, the assessment says what is missing rather than assuming it.",
-  "III. Filing Readiness",
+  "3. Filing Readiness",
   "[DETERMINATION LEAD] One sentence stating what stands between the company's answers and complete filings.",
   "[GENERATED] The readiness findings: each open duty with the company's recorded state and what closes it, naming the specific responsible party the record supplies rather than an unnamed role (the 428-D named-actor law); the attestation from the typed block.",
   "Table of Authorities",

@@ -25,7 +25,7 @@
 // S-B5 (doc 80, 2026-08-27) bumped from prose-plans-2026-08-10-item-so6:
 // the state_specific section gained the unregistered-named-jurisdictions
 // conditional block (honest-posture parity).
-export const BIOMETRIC_SKELETON_VERSION = "prose-plans-2026-08-30-c1-duty-walk";
+export const BIOMETRIC_SKELETON_VERSION = "prose-plans-2026-08-30-c5-arabic";
 export const BIOMETRIC_SKELETON_SOURCE_FILE =
   "Biometric_Privacy_Checker_Skeleton_v3.docx (CEO-corrected 2026-08-10: six paragraph edits, eight unsourced slots dropped)";
 export const BIOMETRIC_SKELETON_PROVENANCE =
@@ -52,9 +52,16 @@ export const BIOMETRIC_SKELETON_PROVENANCE =
  * printed on the customer's cover (panel-C memo 3 D2); the subtitle now
  * ends at the organization name. Nothing else changed. Prior pin:
  * 2a22748ad3fc3431114799af91316a62522e33a06d22a73acdb552b3e2102006.
+ *
+ * RE-PIN BATCH 21b (Wave C5, doc 113 S8.1, RULING 3.6): the four section
+ * titles' Roman numerals (I–IV) became arabic (1–4); no cross-reference
+ * audit was needed (zero inline Roman-numeral references exist anywhere in
+ * this product's composed prose, confirmed by grep). Method verified by
+ * reproducing the prior value first. Prior pin:
+ * 8d688a3bc21deb7066d725856f543a9ac1decef7e2e6dc5eb396ea235e160206.
  */
 export const BIOMETRIC_SKELETON_CONTENT_HASH =
-  "8d688a3bc21deb7066d725856f543a9ac1decef7e2e6dc5eb396ea235e160206";
+  "28b62bd3385cee5feee8e8c4e6a2e4e9224895827090f857cfbcf3c26c6a0d5f";
 
 /**
  * RESTORED 2026-08-26 (Biometric Conversion groundwork audit). The 2026-08-19
@@ -117,7 +124,7 @@ export const BIOMETRIC_SKELETON_SECTIONS: readonly BiometricSkeletonSection[] = 
   },
   {
     id: "notice_consent",
-    title: "I. Notice, Consent and the Written Policy",
+    title: "1. Notice, Consent and the Written Policy",
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating the notice-and-consent posture across the statutes in scope." },
       { kind: "skeleton", text: "The company has answered the written-notice question {HAS_NOTICE_PHRASE - reader phrase}; and the written-release question {HAS_RELEASE_PHRASE - reader phrase}." },
@@ -127,7 +134,7 @@ export const BIOMETRIC_SKELETON_SECTIONS: readonly BiometricSkeletonSection[] = 
   },
   {
     id: "state_specific",
-    title: "II. State-Specific Requirements",
+    title: "2. State-Specific Requirements",
     blocks: [
       { kind: "conditional", text: "[CONDITIONAL] ILLINOIS - trigger IL in {states}: the BIPA Section 15(a)-(e) duties, each from its verified passage, with the 2024 amendment's damages rule per the pinned rulebook." },
       { kind: "conditional", text: "[CONDITIONAL] TEXAS - trigger TX: the CUBI duties; the company's destruction answer {txDestruction}, attributed." },
@@ -142,7 +149,7 @@ export const BIOMETRIC_SKELETON_SECTIONS: readonly BiometricSkeletonSection[] = 
   },
   {
     id: "security_retention",
-    title: "III. Security, Retention and Destruction",
+    title: "3. Security, Retention and Destruction",
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating whether storage and destruction meet the strictest applicable standard." },
       { kind: "skeleton", text: "The company has described its security measures as {securityMeasures - reader labels as prose}. Its retention is described as {retentionSchedule - own clause, attributed}, with destruction occurring on {destructionTrigger - rendered on the statutory clock}." },
@@ -151,7 +158,7 @@ export const BIOMETRIC_SKELETON_SECTIONS: readonly BiometricSkeletonSection[] = 
   },
   {
     id: "review_approval",
-    title: "IV. Review and Approval",
+    title: "4. Review and Approval",
     blocks: [
       { kind: "skeleton", text: "{APPROVAL_SENTENCE - from approverName / approverTitle / approvalDate; these approval fields render only when answered}." },
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating the operative conclusion and the single next act." },
@@ -180,11 +187,11 @@ export const BIOMETRIC_SKELETON_PARAGRAPHS: readonly string[] = [
   "[DETERMINATION LEAD] One sentence stating whether the programme as the company describes it meets each statute in scope, or naming plainly where it falls short.",
   "{organizationName}, operating in {sector - reader label}, has indicated that it collects {biometricTypes - reader labels} for {collectionPurpose}, by means of {collectionMethod - own clause}. The states whose laws the company has placed in scope are {states - as prose}. Each statute below is applied in its own words: the duty appears as the verified statutory passage states it, the company's answers are set beside it, and the conclusion follows from the two.",
   "[GENERATED] The outcome per statute in scope, one measured clause each; where the company's answers leave a duty unresolved, the assessment says so and names what would settle it.",
-  "I. Notice, Consent and the Written Policy",
+  "1. Notice, Consent and the Written Policy",
   "[DETERMINATION LEAD] One sentence stating the notice-and-consent posture across the statutes in scope.",
   "The company has answered the written-notice question {HAS_NOTICE_PHRASE - reader phrase}; and the written-release question {HAS_RELEASE_PHRASE - reader phrase}. [BYTE-PINNED] Each statutory duty in this section is the verified corpus passage, cited to its source row; the company's facts are set beside the passage, never written into it.",
   "[GENERATED] Per-duty findings from the typed duty rows, each attributed; destruction obligations are stated on the statutory clock - the period runs from the individual's last interaction, not from collection - and the deterministic trigger repair guards that phrasing.",
-  "II. State-Specific Requirements",
+  "2. State-Specific Requirements",
   "[CONDITIONAL] ILLINOIS - trigger IL in {states}: the BIPA Section 15(a)-(e) duties, each from its verified passage, with the 2024 amendment's damages rule per the pinned rulebook.",
   "[CONDITIONAL] TEXAS - trigger TX: the CUBI duties; the company's destruction answer {txDestruction}, attributed.",
   "[CONDITIONAL] WASHINGTON - trigger WA: the RCW 19.375 enrolment duties; the My Health My Data Act addressed where the answers indicate health inference.",
@@ -193,11 +200,11 @@ export const BIOMETRIC_SKELETON_PARAGRAPHS: readonly string[] = [
   // improvement grant, ratification-ledger entry; the content hash and
   // paragraph count in tests/edge/so6/skeleton.test.ts re-pin with it.
   "[CONDITIONAL] UNREGISTERED NAMED JURISDICTIONS - trigger: any selected enum jurisdiction outside the registered statutes: an explicit statement that no statutory duty is stated for it here, with the EU/UK Article 9 route named where selected.",
-  "III. Security, Retention and Destruction",
+  "3. Security, Retention and Destruction",
   "[DETERMINATION LEAD] One sentence stating whether storage and destruction meet the strictest applicable standard.",
   "The company has described its security measures as {securityMeasures - reader labels as prose}. Its retention is described as {retentionSchedule - own clause, attributed}, with destruction occurring on {destructionTrigger - rendered on the statutory clock}.",
   "[GENERATED] The security and retention findings per statute, attributed.",
-  "IV. Review and Approval",
+  "4. Review and Approval",
   "{APPROVAL_SENTENCE - from approverName / approverTitle / approvalDate; these approval fields render only when answered}.",
   "[DETERMINATION LEAD] One sentence stating the operative conclusion and the single next act.",
   "Table of Authorities",

@@ -96,10 +96,9 @@ const REPORT: Record<string, unknown> = {
 
 Deno.test("SO-3 — the skeleton's seven sections, in order", () => {
   assertEquals(GOVERNANCE_SKELETON_SECTIONS.map((s) => s.id), SECTION_IDS);
-  // RE-PIN BATCH 20a (doc 113 S5.1/S5.2, after 19a's S3.2): version bumped
-  // for the Remediation Register and crosswalk table blocks; fixed prose
-  // is unchanged.
-  assertEquals(GOVERNANCE_SKELETON_VERSION, "prose-plans-2026-08-30-c4-registers");
+  // RE-PIN BATCH 21b (doc 113 S8.1, after 20a's S5.1/S5.2): section titles'
+  // Roman numerals went arabic; fixed prose is unchanged.
+  assertEquals(GOVERNANCE_SKELETON_VERSION, "prose-plans-2026-08-30-c5-arabic");
   assertEquals(GOVERNANCE_SKELETON_SOURCE_FILE, "Governance_Assessment_Skeleton_v3.docx");
   assert(GOVERNANCE_SKELETON_PROVENANCE.includes(
     "panel-delegated approval per CEO delegation 2026-08-06",

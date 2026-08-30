@@ -68,14 +68,16 @@ const INTAKE: Bag = {
   security_measures_description: "Encrypted template storage",
 };
 
+// RE-PIN BATCH 21b (doc 113 S8.1, RULING 3.6): section-title numerals went
+// arabic (I–IV → 1–4).
 function sections() {
   const out = assembleBiometricSkeletonDocument(REPORT as never, INTAKE as never);
   const byTitle = (prefix: string) => out.document.sections.find((s) => s.title.startsWith(prefix));
   return {
     text: skeletonDocumentToText(out.document),
-    one: byTitle("I."),
-    two: byTitle("II."),
-    three: byTitle("III."),
+    one: byTitle("1."),
+    two: byTitle("2."),
+    three: byTitle("3."),
   };
 }
 
