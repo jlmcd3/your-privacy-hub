@@ -87,6 +87,9 @@ export interface CyberComponentAnalysis extends CyberFactorRecord {
   readonly label: string;
   readonly component_number: number;
   readonly narrative: string;
+  /** BATCH 18: the S4 regulator commentary, composed as its own demoted
+   * "Rulemaking context — persuasive only." chunk; "" when none curated. */
+  readonly rulemaking_context: string;
 }
 
 // ── Shared readers ──────────────────────────────────────────────────────────
@@ -373,33 +376,48 @@ export function buildComponentAnalyses(inputs: FactorInputs): CyberComponentAnal
       ? "RecordFollowUp"
       : "ReadinessRemediation";
 
-    // The narrative: fact -> implementation posture -> evidence posture ->
-    // consequence, each sentence attributed and guardrail-compliant.
-    const sentences: string[] = [];
-    if (intakeRec.maturity) {
-      sentences.push(`The Company records this component as ${maturityPhrase(intakeRec.maturity)}.`);
-    } else {
-      sentences.push("The Company has not recorded an implementation status for this component.");
+    // BATCH 18 (Wave C1, doc 109 §2.5 items 1-2 / A-Team doc-111 queue):
+    // the component entry is a labeled record, not a fused paragraph. The
+    // shared § 7123(c)/§ 7122(d) methodology sentences state ONCE in the
+    // §III section lead (spine v1.4); each entry carries only this
+    // component's own facts. Labels are doc-66 RUN-INs; the assembler
+    // renders the number line as an h3 chunk and the rulemaking context as
+    // its own demoted panel (A-Team RULING 3.4). The typed coverage and
+    // evidence rows are UNTOUCHED — this narrows only what the body prints.
+    const cap = (t: string): string => (t ? t.charAt(0).toUpperCase() + t.slice(1) : t);
+    const lines: string[] = [];
+    lines.push(intakeRec.maturity
+      ? `Status. ${cap(maturityPhrase(intakeRec.maturity))}.`
+      : "Status. No implementation status is recorded.");
+    if (c && c.status === "record_insufficient" && s(c.application)) {
+      lines.push(stop(s(c.application)));
     }
     if (intakeRec.notes) {
-      sentences.push(`Its description: "${noStop(intakeRec.notes)}."`);
+      lines.push(`Controls described. "${noStop(intakeRec.notes)}."`);
+    } else {
+      lines.push("Controls described. None recorded, so an auditor would test the assertion rather than accept it.");
     }
     if (intakeRec.evidence.length && !intakeRec.evidence.every((x) => /^none on file$/i.test(x))) {
-      // PANEL CYB-6 (2026-08-30): a blanket .toLowerCase() produced "soc 2"
-      // in every evidence list; lowercase only a sentence-cased first
-      // letter, leaving acronyms (SOC 2) intact, item by item.
-      sentences.push(`Evidence identified: ${asProse(intakeRec.evidence.map(lowerItemLabel))}.`);
+      // PANEL CYB-6: acronym-safe per-item lowercasing (SOC 2 survives).
+      lines.push(`Evidence identified.\n${intakeRec.evidence.map((x) => `— ${lowerItemLabel(x)}`).join("\n")}`);
     } else {
-      sentences.push("No evidence is identified for this component.");
+      lines.push("Evidence identified. None.");
     }
-    if (c && c.status !== "record_insufficient" && s(c.application)) {
-      sentences.push(stop(s(c.application)));
+    if (e) {
+      lines.push(e.sufficiency === "sufficient"
+        ? "Auditor testability. The identified evidence includes material an auditor can examine and test."
+        : e.sufficiency === "partial"
+        ? "Auditor testability. The identified material evidences intent rather than operation; a testable artifact — a log, a configuration export, a report, a test result, an auditor letter, or a training record — belongs behind the described control."
+        : "Auditor testability. No testable material is identified; a finding would rest primarily on management assertion, which § 7122(d) does not permit as the primary basis.");
     }
-    if (e && s(e.application)) {
-      sentences.push(stop(s(e.application)));
-    }
+    // The ratified S4 regulator commentary renders as its own demoted panel
+    // chunk; a line already closing with ".)" is never double-stopped (the
+    // ".)." class, doc 109 §2.5 item 2).
     const commentary = inputs.corpusCommentaryBySlug.get(comp.slug) ?? [];
-    for (const line of commentary) sentences.push(stop(line));
+    const stopSafe = (t: string): string => (/[.!?)]$/.test(t.trim()) ? t.trim() : `${t.trim()}.`);
+    const rulemaking_context = commentary.length
+      ? `Rulemaking context — persuasive only. ${commentary.map(stopSafe).join(" ")}`
+      : "";
 
     // FD703575-CY3 — {fact} takes the first sentence of the notes, never the
     // whole narrative. 3E9AD759-CY3 — the action then locates the remaining
@@ -432,7 +450,8 @@ export function buildComponentAnalyses(inputs: FactorInputs): CyberComponentAnal
       recommended_action: action,
       authority: comp.citation,
       factual_basis: [`controls[${comp.slug}].maturity`, `controls[${comp.slug}].notes`, `controls[${comp.slug}].evidence`],
-      narrative: sentences.join(" "),
+      narrative: lines.join("\n"),
+      rulemaking_context,
     };
   });
 }

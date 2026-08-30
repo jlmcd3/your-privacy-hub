@@ -125,13 +125,23 @@ Deno.test("C2 — the appendices carry all eighteen components", () => {
   assertEquals(evidenceTable?.rows.length, 18);
 });
 
-Deno.test("C2 — all eighteen component modules render, numbered, with a next action each", () => {
+// RE-PIN BATCH 18 (Wave C1, doc 109 §2.5 item 1 / no-padding law): a
+// no-op "Next action: No remediation identified" line no longer prints —
+// next actions render only where a real action exists, and the shared
+// § 7123(c)/§ 7122(d) methodology sentences state once in the section
+// lead instead of ×18 per component.
+Deno.test("C2 — all eighteen component modules render, numbered; next actions only where real", () => {
   const text = skeletonDocumentToText(assembleGolden().document);
   for (let n = 1; n <= 18; n++) {
     assert(new RegExp(`^${n}\\. `, "m").test(text), `component module ${n} missing`);
   }
-  const nextActions = text.match(/Next action: /g) ?? [];
-  assertEquals(nextActions.length, 18);
+  assert(!text.includes("Next action: No remediation identified"), "no-op next action shipped");
+  const boiler = text.match(/requires this component to be assessed and documented/g) ?? [];
+  assert(boiler.length === 0, `per-component methodology boilerplate resurfaced ×${boiler.length}`);
+  assertStringIncludes(text, "Two requirements govern every component entry below");
+  // Every component carries the labeled record shape.
+  assertEquals((text.match(/^Status\. /gm) ?? []).length, 18);
+  assertEquals((text.match(/^Evidence identified\./gm) ?? []).length, 18);
 });
 
 Deno.test("C2 — thin record degrades to record-insufficient, never not-ready (guardrail i5)", () => {

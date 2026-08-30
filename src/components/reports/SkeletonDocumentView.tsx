@@ -117,6 +117,9 @@ const H3_CHUNK_RE = new RegExp(
     `|(?:\\d{1,2}\\.\\s+[A-Z][^.\\n]{0,80}?)` +
     `|(?:§\\s?[\\d.()a-zA-Z/ ]{1,24}\\s+—\\s+[A-Z][^.\\n]{0,80}?\\.?)` +
     `|(?:Step \\d+ — [A-Z][^.\\n]{0,40}?\\.)` +
+    // BATCH 18 (Wave C1): the biometric duty walk emits RCW pinpoint
+    // headings ("RCW 19.375.020(1) — Enrolment notice"); keep synced.
+    `|(?:RCW [\\d.()]{1,24}\\s+—\\s+[A-Z][^.\\n]{0,80}\\.?)` +
     `|(?:${HEAD_LEAD_LABELS.join("|")})` +
   `)$`,
 );

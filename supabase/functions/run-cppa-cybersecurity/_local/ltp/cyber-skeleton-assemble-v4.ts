@@ -287,14 +287,22 @@ function composeCompanyContext(intake: Bag, factors: CyberFactorOutputs): string
 }
 
 function composeComponentModules(factors: CyberFactorOutputs): string {
+  // BATCH 18 (Wave C1): each component renders as its own h3 chunk
+  // ("1. Authentication" — the R2 numbered shape), a labeled record chunk,
+  // the S4 rulemaking-context panel as its own chunk, and a Next action
+  // line only when a real action exists (no-padding law — the ×18
+  // "No remediation identified" lines are gone).
   return factors.component_analyses
     .map((f) => {
       const parts = [
         `${f.component_number}. ${f.label}`,
         repairPreserving(f.narrative),
-        `Next action: ${f.recommended_action}`,
       ];
-      return parts.join("\n");
+      if (f.rulemaking_context) parts.push(repairPreserving(f.rulemaking_context));
+      if (f.recommended_action && !/^No remediation identified/i.test(f.recommended_action)) {
+        parts.push(`Next action: ${f.recommended_action}`);
+      }
+      return parts.join("\n\n");
     })
     .join("\n\n");
 }

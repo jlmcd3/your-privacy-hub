@@ -79,15 +79,33 @@ function sections() {
   };
 }
 
-Deno.test("BIO-2: each statutory passage prints exactly once, in Section II", () => {
+// RE-PIN BATCH 18 (Wave C1, doc 109 §2.9 item 1): the duty walk is now an
+// h3 pinpoint heading + standalone quote chunk + Record./Conclusion.
+// run-ins — the "The provision states:" chapeau retired (the heading names
+// the provision), and the verbatim passage still prints exactly once.
+Deno.test("BIO-2/C1: each statutory passage prints exactly once, as a quote chunk under its pinpoint heading", () => {
   const { text, one, two, three } = sections();
-  assertEquals(text.split("The provision states:").length - 1, 3, "quote count != duty count");
+  assert(!text.includes("The provision states:"), "retired chapeau resurfaced");
+  const QUOTE_SNIPPET = "informs the subject or the subject's legally authorized representative";
+  assertEquals(text.split(QUOTE_SNIPPET).length - 1, 1, "statutory passage must print exactly once");
   assertExists(two);
   const secText = (s: { paragraphs: Array<{ text: string }> } | undefined) =>
     (s?.paragraphs ?? []).map((p) => p.text).join("\n");
-  assert(secText(two).includes("The provision states:"), "Section II lost the full analysis");
-  assert(!secText(one).includes("The provision states:"), "Section I still prints statutory quotes");
-  assert(!secText(three).includes("The provision states:"), "Section III still prints statutory quotes");
+  assert(secText(two).includes(QUOTE_SNIPPET), "Section II lost the verbatim passage");
+  assert(secText(two).includes("§ 15(b)(1) — Written notice before collection"), "pinpoint heading absent");
+  assert(secText(two).includes("Record. The company has answered that"), "Record run-in absent");
+  assert(secText(two).includes("Conclusion. On the company's answers, this duty is met."), "Conclusion run-in absent");
+  assert(!secText(one).includes(QUOTE_SNIPPET), "Section I still prints statutory quotes");
+  assert(!secText(three).includes(QUOTE_SNIPPET), "Section III still prints statutory quotes");
+  // The exec duty scorecard (item 3) renders as the report's first table.
+  const { doc } = (() => {
+    const out = assembleBiometricSkeletonDocument(REPORT as never, INTAKE as never);
+    return { doc: out.document };
+  })();
+  const exec = doc.sections.find((s2) => s2.id === "executive_summary");
+  const scorecard = exec?.paragraphs.find((p) => p.kind === "table");
+  assertExists(scorecard, "duty scorecard table missing from the Executive Summary");
+  assertEquals((scorecard as { table?: { columns: string[] } }).table?.columns, ["Duty", "Pinpoint", "Status", "Where addressed"]);
 });
 
 Deno.test("BIO-2: Sections I and III carry the one-line-per-duty summary with a Section II pointer", () => {

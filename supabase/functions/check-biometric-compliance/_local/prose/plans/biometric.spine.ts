@@ -25,7 +25,7 @@
 // S-B5 (doc 80, 2026-08-27) bumped from prose-plans-2026-08-10-item-so6:
 // the state_specific section gained the unregistered-named-jurisdictions
 // conditional block (honest-posture parity).
-export const BIOMETRIC_SKELETON_VERSION = "prose-plans-2026-08-30-leak-subtitle-repin";
+export const BIOMETRIC_SKELETON_VERSION = "prose-plans-2026-08-30-c1-duty-walk";
 export const BIOMETRIC_SKELETON_SOURCE_FILE =
   "Biometric_Privacy_Checker_Skeleton_v3.docx (CEO-corrected 2026-08-10: six paragraph edits, eight unsourced slots dropped)";
 export const BIOMETRIC_SKELETON_PROVENANCE =
@@ -86,7 +86,8 @@ export const BIOMETRIC_V3_BANNED_REGISTER: readonly string[] = [
   "as the record makes clear",
 ];
 
-export type BiometricSkeletonBlockKind = "skeleton" | "lead" | "generated" | "conditional" | "rule";
+// BATCH 18 (Wave C1): "table" joins the block kinds for the duty scorecard.
+export type BiometricSkeletonBlockKind = "skeleton" | "lead" | "generated" | "conditional" | "rule" | "table";
 
 export interface BiometricSkeletonBlock {
   readonly kind: BiometricSkeletonBlockKind;
@@ -107,6 +108,11 @@ export const BIOMETRIC_SKELETON_SECTIONS: readonly BiometricSkeletonSection[] = 
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating whether the programme as the company describes it meets each statute in scope, or naming plainly where it falls short." },
       { kind: "skeleton", text: "{organizationName}, operating in {sector - reader label}, has indicated that it collects {biometricTypes - reader labels} for {collectionPurpose}, by means of {collectionMethod - own clause}. The states whose laws the company has placed in scope are {states - as prose}. Each statute below is applied in its own words: the duty appears as the verified statutory passage states it, the company's answers are set beside it, and the conclusion follows from the two." },
       { kind: "generated", text: "[GENERATED] The outcome per statute in scope, one measured clause each; where the company's answers leave a duty unresolved, the assessment says so and names what would settle it." },
+      // BATCH 18 (Wave C1, doc 109 §2.9 item 3): the duty scorecard —
+      // Duty | Pinpoint | Status | Where addressed — built from the typed
+      // duty rows; the report's first table. Carries no fixed text, so the
+      // paragraph hash basis is unchanged.
+      { kind: "table", text: "" },
     ],
   },
   {

@@ -37,6 +37,8 @@ import {
   verifySkeletonConformance,
   type ComposedBlocks,
   type RenderedSkeletonDocument,
+  type RenderedTable,
+  type SkeletonTables,
   type SlotValues,
 } from "../../../_shared/prose/skeleton-render.ts";
 import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
@@ -71,6 +73,11 @@ function asProse(items: readonly string[]): string {
   if (xs.length === 1) return xs[0];
   return `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
 }
+
+// BATCH 18 (Wave C1, welded-blocks class): repairRegister collapses runs
+// of whitespace, welding chunk seams; repair per line so paragraph and
+// line structure survive (mirrors the cyber assembler).
+const repairPreserving = (t: string): string => t.split("\n").map((l) => repairRegister(l)).join("\n");
 
 const noStop = (t: string): string => t.replace(/\s*\.\s*$/, "");
 const stop = (t: string): string => (t ? (/[.!?]$/.test(t) ? t : `${t}.`) : "");
@@ -156,6 +163,25 @@ function consequence(report: Bag): Bag {
   const direct = report.consequence_determination;
   if (direct && typeof direct === "object") return direct as Bag;
   return (((report.biometric_deliverables ?? {}) as Bag).consequence_determination ?? {}) as Bag;
+}
+
+// BATCH 18 (Wave C1, doc 109 §2.9 item 3): the Executive Summary duty
+// scorecard — the report's first table — built from the typed duty rows.
+function deriveDutyScorecard(report: Bag): RenderedTable | null {
+  const rows = dutyRows(report);
+  if (!rows.length) return null;
+  const word = (v: string): string =>
+    v === "satisfied" ? "Met"
+    : v === "not_satisfied" ? "Not met"
+    : v === "not_applicable" ? "Not applicable"
+    : "Not resolved";
+  return {
+    key: "",
+    surface: "biometric_duty_scorecard",
+    title: "Duty scorecard",
+    columns: ["Duty", "Pinpoint", "Status", "Where addressed"],
+    rows: rows.map((r) => [s(r.label), s(r.citation), word(s(r.verdict)), "Section II"]),
+  };
 }
 
 function statuteGroups(rows: readonly Bag[]): Map<string, Bag[]> {
@@ -250,26 +276,47 @@ function composeNoticeLead(report: Bag): string {
   return "Across the statutes in scope, the notice-and-consent duties analysed are met on the company's answers.";
 }
 
+// BATCH 18 (Wave C1, doc 109 §2.9 item 1): the per-duty walk is a set of
+// typed chunks, not a fused paragraph — an h3 pinpoint heading, the
+// verbatim statutory passage as its own quote chunk (the renderer's
+// statute-quote block; the h3 names the provision, so the old
+// "The provision states:" chapeau retires), the company's answer as a
+// "Record." run-in line, the application, and a "Conclusion." run-in.
+// The 870/413/384-word duty walls die with this split. Typed rows stay
+// complete — presentation only.
+function dutyPinpointHeading(citation: string, label: string): string {
+  // The h3 shape wants a pinpoint lead ("§ 15(b)(3) — Written release…").
+  // BIPA citations reduce to their section pinpoint; citations already
+  // carrying "§" reduce to the final pinpoint; anything else (RCW …)
+  // stands verbatim before the em-dash.
+  const ilcs = citation.match(/^740 ILCS 14\/(.+)$/);
+  const pin = ilcs
+    ? `§ ${ilcs[1]}`
+    : citation.includes("§")
+    ? `§ ${citation.split("§").pop()!.trim()}`
+    : citation;
+  return `${pin} — ${label}`;
+}
+
 function composeDutyBlock(rows: readonly Bag[]): string {
   const blocks: string[] = [];
   // 3E9AD759-B1 — consecutive rows sharing one application (the WA gate rows
   // all carry the same not-applicable analysis) state it ONCE; each repeat
-  // cross-references it instead of reprinting the identical paragraph. The
-  // typed rows stay complete — this is presentation only.
+  // cross-references it instead of reprinting the identical paragraph.
   let prevApplication = "";
   for (const r of rows) {
     const label = noStop(s(r.label));
     const citation = s(r.citation);
     if (!label) continue;
-    const bits: string[] = [];
-    bits.push(`${label}${citation ? ` (${citation})` : ""}.`);
+    blocks.push(citation ? dutyPinpointHeading(citation, label) : `${label}.`);
     const standard = s(r.standard);
-    // BATCH 17 (Wave C2, panel-C D5): a quoted subsection's terminal
-    // semicolon plus the framing period produced ';."' in every (b)(1)/(b)(2)
-    // quote; trim any terminal punctuation inside the quote.
-    if (standard) bits.push(`The provision states: "${standard.replace(/\s*[;:,.]+\s*$/, "")}."`);
+    if (standard) {
+      // BATCH 17 seam fix carried: terminal [;:,.] trimmed inside the quote.
+      blocks.push(`"${standard.replace(/\s*[;:,.]+\s*$/, "")}."`);
+    }
+    const bits: string[] = [];
     const fact = s(r.record_fact);
-    if (fact) bits.push(stop(`The company has answered that ${noStop(lowerEnumLabel(fact))}`));
+    if (fact) bits.push(stop(`Record. The company has answered that ${noStop(lowerEnumLabel(fact))}`));
     const application = s(r.application);
     if (application && application === prevApplication) {
       bits.push("The same predicate governs this duty, for the reason stated above.");
@@ -281,16 +328,16 @@ function composeDutyBlock(rows: readonly Bag[]): string {
     if (verdict === "record_insufficient") {
       const needed = s(r.information_needed);
       bits.push(needed
-        ? stop(`This duty is not resolved by the company's answers; what would settle it is ${noStop(lowerEnumLabel(needed))}`)
-        : "This duty is not resolved by the company's answers.");
+        ? stop(`Conclusion. This duty is not resolved by the company's answers; what would settle it is ${noStop(lowerEnumLabel(needed))}`)
+        : "Conclusion. This duty is not resolved by the company's answers.");
     } else if (verdict === "not_satisfied") {
-      bits.push("On the company's answers, this duty is not met.");
+      bits.push("Conclusion. On the company's answers, this duty is not met.");
     } else if (verdict === "satisfied") {
-      bits.push("On the company's answers, this duty is met.");
+      bits.push("Conclusion. On the company's answers, this duty is met.");
     } else if (verdict === "not_applicable") {
-      bits.push("This duty does not apply to the company's programme as described.");
+      bits.push("Conclusion. This duty does not apply to the company's programme as described.");
     }
-    blocks.push(bits.join(" "));
+    if (bits.length) blocks.push(bits.join(" "));
   }
   return blocks.join("\n\n");
 }
@@ -358,7 +405,7 @@ function composeIllinois(report: Bag, intake: Bag): string {
   parts.push(
     "On damages, 740 ILCS 14/20(b) and 20(c) as amended by Public Act 103-769 provide that a private entity that more than once collects or discloses the same biometric identifier from the same person by the same method has committed a single violation, for which the aggrieved person is entitled to, at most, one recovery.",
   );
-  return repairRegister(parts.join("\n\n"));
+  return repairPreserving(parts.join("\n\n"));
 }
 
 function composeTexas(report: Bag, intake: Bag, values: SlotValues): string {
@@ -373,7 +420,7 @@ function composeTexas(report: Bag, intake: Bag, values: SlotValues): string {
   parts.push(values.txDestruction
     ? stop(`On destruction, the company has answered ${values.txDestruction}`)
     : "On destruction, the company has not recorded whether biometric identifiers are destroyed within one year of the date the purpose for collecting them expires.");
-  return repairRegister(parts.join("\n\n"));
+  return repairPreserving(parts.join("\n\n"));
 }
 
 function composeWashington(report: Bag, intake: Bag): string {
@@ -403,7 +450,7 @@ function composeWashington(report: Bag, intake: Bag): string {
       : "The My Health My Data Act's duties are examined in addition; whether the data processed is consumer health data as RCW 19.373.010(8) defines it is not answered on the information provided, and each duty below is bounded accordingly.");
     parts.push(composeDutyBlock(mhmda));
   }
-  return repairRegister(parts.filter(Boolean).join("\n\n"));
+  return repairPreserving(parts.filter(Boolean).join("\n\n"));
 }
 
 function composeOtherStates(report: Bag, intake: Bag): string {
@@ -618,6 +665,10 @@ export function assembleBiometricSkeletonDocument(report: Bag, intakeInput: Bag)
     "review_approval:1": composeOperativeLead(report, intake),
   };
 
+  const tables: SkeletonTables = {
+    "executive_summary:3": deriveDutyScorecard(report),
+  };
+
   const draft = renderSkeletonDocument({
     sections: BIOMETRIC_SKELETON_SECTIONS,
     title: BIOMETRIC_SKELETON_TITLE,
@@ -625,6 +676,7 @@ export function assembleBiometricSkeletonDocument(report: Bag, intakeInput: Bag)
     spineVersion: BIOMETRIC_SKELETON_VERSION,
     values,
     composed,
+    tables,
   });
 
   const toa = biometricToa(report, skeletonDocumentToText(draft));
@@ -636,6 +688,7 @@ export function assembleBiometricSkeletonDocument(report: Bag, intakeInput: Bag)
     spineVersion: BIOMETRIC_SKELETON_VERSION,
     values,
     composed: { ...composed, "table_of_authorities:0": toa },
+    tables,
   });
 
   const body = skeletonDocumentToText(document).toLowerCase();
