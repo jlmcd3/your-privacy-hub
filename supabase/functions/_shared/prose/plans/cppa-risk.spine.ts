@@ -57,7 +57,7 @@
 // SPINE NOTE: section inclusion is driven by legal applicability and
 // established facts, not by whether a factor happened to produce prose.
 
-export const RISK_SKELETON_VERSION = "cppa-risk-v5.2-2026-08-26";
+export const RISK_SKELETON_VERSION = "cppa-risk-v5.2.1-2026-08-30";
 /** Prior encode stamps, retained for provenance. */
 export const RISK_SKELETON_VERSION_V472 = "cppa-risk-v4.7.2-2026-08-25";
 export const RISK_SKELETON_VERSION_V45 = "cppa-risk-v4.5-2026-08-21";
@@ -210,7 +210,11 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       // factual basis (bulleted by the renderer); uncertain triggers state
       // the unresolved element; none-engaged states the determination.
       { kind: "generated", text: "[GENERATED trigger_lines] RISK52_FIXED.exec_triggers_lead + one line per engaged trigger; uncertain-trigger and none-engaged branches per the v5.2 Exec B frame." },
-      // 3 — C. The Balancing Test (law sentence).
+      // BATCH 20b (Wave C4, doc 113 S6.1) — the trigger digest table
+      // (Trigger | Engaged | Basis); the lead sentence stays in the block
+      // above, and SS III.A keeps the full per-trigger analysis.
+      { kind: "table", text: "exec_triggers" },
+      // 3 (now 4) — C. The Balancing Test (law sentence).
       { kind: "skeleton", text: "C. The Balancing Test. Where a trigger is engaged, 11 CCR §§ 7152 and 7154 require the Company to evaluate whether the privacy risks the Activity creates for consumers outweigh its benefits to the consumer, the business, other stakeholders, and the public, once safeguards are taken into account." },
       // 4 — ledger intro (conditional: composed iff the ledger renders).
       { kind: "conditional", text: "[CONDITIONAL] EXEC LEDGER INTRO - RISK52_FIXED.exec_ledger_intro; trigger: at least one identified risk. Absent => omitted." },
@@ -423,6 +427,10 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       { kind: "skeleton", text: "E. CPPA Submission Support (§ 7157). Section 7157 requires businesses to submit specified risk-assessment information to the Agency on the regulatory schedule rather than routinely submitting each full assessment. For assessments conducted in 2026 and 2027, the first submission is due April 1, 2028; later submissions are due by April 1 following a year in which assessments were conducted. The submission includes business/contact information, the reporting period, counts and categories of assessments, PI/SPI categories, an attestation, and the submitting executive’s name, title, and certification date. The submitting individual must be an executive-management member who is directly responsible for risk-assessment compliance, sufficiently knowledgeable, and authorized to submit. The Agency or Attorney General may separately require the Company to submit its full risk-assessment reports, which must be provided within 30 calendar days of the request. Certifying executive: {certExecName}, {certExecTitle}. Phone: {certContactPhone}. Email: {certContactEmail}. Executive-management status: {certifierIsExec}. Direct responsibility: {certifierResponsible}. Sufficient knowledge: {certifierKnowledge}. Authorized to submit: {certifierAuthorized}. Business point of contact: {submissionContact}." },
       // 9 — certifying-executive eligibility (carried).
       { kind: "generated", text: "[GENERATED certifying_executive_eligibility] Eligibility criteria confirmed / gap named." },
+      // BATCH 20b (Wave C4, doc 113 S6.3) — the Key Dates and Deadlines
+      // digest: the derived timing values plus the statutory windows the
+      // pinned SS V prose itself states. The prose is untouched.
+      { kind: "table", text: "key_dates" },
     ],
   },
   // Signature pages — CARRIED v4.7.1/v4.7.2 byte-identical.

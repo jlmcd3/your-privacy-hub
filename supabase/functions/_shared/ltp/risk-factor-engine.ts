@@ -80,7 +80,9 @@ export function markInformationProviderItems(text: string): string {
   const NAME_LEAD = /^[A-ZÀ-ÿ][\wÀ-ÿ'.-]*(?:\s[A-ZÀ-ÿ][\wÀ-ÿ'.-]*)*\s+\([^)]+\)\s+—\s+/;
   if (!NAME_LEAD.test(t)) return t;
   const NAME_BOUNDARY = /\.\s+(?=[A-ZÀ-ÿ][\wÀ-ÿ'.-]*(?:\s[A-ZÀ-ÿ][\wÀ-ÿ'.-]*)*\s+\([^)]+\)\s+—\s+)/g;
-  const marked = t.replace(NAME_BOUNDARY, ". — ");
+  // BATCH 20b (doc 113 S6.2) — one roster item per LINE, so the renderer's
+  // Rule-4 list machinery fires instead of fusing the items into a run.
+  const marked = t.replace(NAME_BOUNDARY, ".\n— ");
   return `— ${marked}`;
 }
 
@@ -925,21 +927,34 @@ export function runRiskFactorEngine(
 
   // ══ EXECUTIVE SUMMARY ══════════════════════════════════════════════════════
 
-  // Exec B — trigger lines (bulleted).
+  // Exec B — BATCH 20b (doc 113 S6.1): the lead sentence stays composed;
+  // the per-trigger lines move into the digest table (Trigger | Engaged |
+  // Basis). SS III.A keeps the full analysis paragraphs.
   if (parsedTriggers.length || uncertainSwept.length) {
-    const lines: string[] = parsedTriggers.map((t) =>
-      `— ${t.cite}${t.label ? ` — ${t.label}` : ""}: ${t.basis || "the information provided supports this trigger."}${/[.!?]$/.test(t.basis) ? "" : "."}`
-    );
+    const triggerRows: string[][] = parsedTriggers.map((t) => [
+      `${t.cite}${t.label ? ` — ${t.label}` : ""}`,
+      "Engaged",
+      `${t.basis || "the information provided supports this trigger."}${/[.!?]$/.test(t.basis) ? "" : "."}`,
+    ]);
     for (const u of uncertainSwept) {
-      lines.push(
-        `— ${u.replace(/[.!?]\s*$/, "")}: the information provided leaves this trigger unresolved; resolving it appears among the Follow-ups in § IV.D.`,
-      );
+      triggerRows.push([
+        u.replace(/[.!?]\s*$/, ""),
+        "Unresolved",
+        "The information provided leaves this trigger unresolved; resolving it appears among the Follow-ups in § IV.D.",
+      ]);
     }
+    tables["executive_summary:3"] = {
+      key: "",
+      surface: "exec_triggers",
+      title: "Triggers under § 7150(b)",
+      columns: ["Trigger", "Engaged", "Basis"],
+      rows: triggerRows,
+    };
     put(
       "executive_summary:2",
       "exec_trigger_lines",
       "A",
-      `${RISK52_FIXED.exec_triggers_lead} ${lines.join(" ")}`,
+      RISK52_FIXED.exec_triggers_lead,
       ["DERIVED:applicable_7150_triggers"],
       ["11 CCR § 7150(b)"],
     );
@@ -957,7 +972,7 @@ export function runRiskFactorEngine(
   // Exec C — ledger intro + compact ledger.
   if (pathways.length) {
     put(
-      "executive_summary:4",
+      "executive_summary:5",
       "exec_ledger_intro",
       "A",
       RISK52_FIXED.exec_ledger_intro,
@@ -965,7 +980,7 @@ export function runRiskFactorEngine(
       ["11 CCR § 7152", "11 CCR § 7154"],
     );
   }
-  tables["executive_summary:5"] = buildRiskLedgerTable(pathways, "exec_ledger");
+  tables["executive_summary:6"] = buildRiskLedgerTable(pathways, "exec_ledger");
 
   // Exec C — benefit strip.
   {
@@ -981,7 +996,7 @@ export function runRiskFactorEngine(
       : "No benefit is established in any of the four benefit categories (§ III.F).";
     if (benefits.some((b) => b.narrative) || benefits.every((b) => b.weight === "no affirmative weight")) {
       put(
-        "executive_summary:6",
+        "executive_summary:7",
         "benefit_strip",
         "A",
         strip,
@@ -994,7 +1009,7 @@ export function runRiskFactorEngine(
   // Exec C — the determination lead + pointer.
   if (pathways.length || benefits.some((b) => b.weight !== "no affirmative weight")) {
     put(
-      "executive_summary:7",
+      "executive_summary:8",
       "exec_determination",
       "B",
       `${cell.conclusion} ${RISK52_FIXED.exec_determination_pointer}`,
@@ -1003,7 +1018,7 @@ export function runRiskFactorEngine(
     );
     // Exec D — outcome.
     put(
-      "executive_summary:8",
+      "executive_summary:9",
       "recommended_outcome",
       "B",
       `${RISK52_FIXED.exec_outcome_head} ${outcome}`,
@@ -1019,7 +1034,7 @@ export function runRiskFactorEngine(
       }. The full conditions, follow-ups, and recommendations appear in § IV.D.`
       : RISK52_FIXED.conditions_compact_none;
     put(
-      "executive_summary:9",
+      "executive_summary:10",
       "conditions_compact",
       "B",
       compact,
@@ -1394,9 +1409,12 @@ export function runRiskFactorEngine(
       .filter((x) => x !== "— , — .");
     const external = clause(intake.i7_external_consultees) || asProse(arr(intake.i7_external_consultees));
     if (providers || internal || participants.length || external) {
+      // BATCH 20b (doc 113 S6.2) — the roster is a Rule-4 list, not a
+      // fused 108-word paragraph: line seams between the parts, one line
+      // per roster item. Sentence bytes unchanged.
       const parts: string[] = [RISK52_FIXED.providers_lead];
       if (providers) parts.push(markInformationProviderItems(providers) + (/[.!?]$/.test(providers) ? "" : "."));
-      if (participants.length) parts.push(participants.join(" "));
+      if (participants.length) parts.push(participants.join("\n"));
       if (internal) parts.push(`Internal participants: ${internal}.`);
       if (external) parts.push(`External participants consulted: ${external}.`);
       parts.push(RISK52_FIXED.providers_close);
@@ -1404,7 +1422,7 @@ export function runRiskFactorEngine(
         "ii_information:18",
         "record_providers",
         "A",
-        parts.join(" "),
+        parts.join("\n"),
         ["INTAKE:a8_information_providers", "INTAKE:i7_internal_contributors", "INTAKE:section_7151_operational_participants", "INTAKE:i7_external_consultees"],
         ["11 CCR § 7151", "11 CCR § 7152(a)(8)"],
       );

@@ -43,7 +43,10 @@ const BUILD_STAMP = "spine-v52-pins";
 // ── Spine structure pins ──────────────────────────────────────────────────────
 
 Deno.test("v5.2 — spine version is the 2026-08-26 memorandum encode", () => {
-  assertEquals(RISK_SKELETON_VERSION, "cppa-risk-v5.2-2026-08-26");
+  // RE-PIN BATCH 20b (doc 113 S6.1/S6.3): v5.2.1 — the exec trigger table
+  // and the SS V Key Dates table blocks joined the v5.2 memorandum
+  // structure; fixed prose is unchanged.
+  assertEquals(RISK_SKELETON_VERSION, "cppa-risk-v5.2.1-2026-08-30");
 });
 
 Deno.test("v5.2 — section ids, in document order", () => {

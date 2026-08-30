@@ -28,7 +28,7 @@ import {
   ukEngaged,
   US_REQUIRED_TERMS_SECTION,
 } from "./dpa-clause-library.ts";
-import { renderTomsBlock, resolveTomsSelection } from "../registry/dpa-toms-taxonomy.ts";
+import { DPA_TOMS_TAXONOMY, renderTomsBlock, resolveTomsSelection } from "../registry/dpa-toms-taxonomy.ts";
 
 export interface DpaAssembleInput {
   readonly documentType: DpaMode;
@@ -107,9 +107,14 @@ function annexC(input: DpaAssembleInput): string {
   const items = resolveTomsSelection(input.securityMeasuresSelected);
   const details = s(input.securityMeasuresDetails);
   if (items.length === 0 && !details) {
+    // BATCH 20b (doc 113 S6.4b) — the empty state is a structured fill-in
+    // checklist over the ratified TOMS taxonomy, framed as a menu, never a
+    // mandate; the populate-before-commencement sentence stays.
     return [
       "ANNEX C — TECHNICAL AND ORGANISATIONAL MEASURES",
       "[TO BE COMPLETED: the technical and organisational measures the Processor applies — the Parties must populate this annex before the processing commences; a bare restatement of the statutory standard does not satisfy Article 28(3)(c)]",
+      "The Parties may record the applicable measures against the following framework, marking each as applicable or not applicable:",
+      ...DPA_TOMS_TAXONOMY.map((t) => `- ${t.label}: [TO BE COMPLETED: applicable / not applicable — specifics]`),
     ].join("\n");
   }
   const lines = items.map((t) => `- ${t.label}`);
@@ -124,11 +129,36 @@ function annexD(input: DpaAssembleInput): string {
   }
   const list = s(input.subProcessorList);
   if (!list) return [head, "[TO BE COMPLETED: list approved Sub-processors here]"].join("\n");
+  // BATCH 20b (doc 113 S6.4a) — an item that itself carries service/location
+  // separators (" — ", " / ", or a parenthetical) has those parts placed in
+  // the Service / Location positions instead of trapped in the Name cell;
+  // items without separators keep today's bytes.
+  const TBC_SERVICE = "[TO BE COMPLETED: service]";
+  const TBC_LOCATION = "[TO BE COMPLETED: country/region where processing occurs]";
+  const TBC_DATE = "[TO BE COMPLETED: date authorised]";
+  const row = (item: string): string => {
+    let name = item;
+    let service = "";
+    let location = "";
+    const paren = /^(.+?)\s*\(([^)]+)\)\s*$/.exec(item);
+    if (paren) {
+      name = paren[1].trim();
+      const inner = paren[2].split(/\s*[,;]\s*/).map((t) => t.trim()).filter(Boolean);
+      service = inner[0] ?? "";
+      location = inner[1] ?? "";
+    } else {
+      const parts = item.split(/\s+—\s+|\s+\/\s+/).map((t) => t.trim()).filter(Boolean);
+      if (parts.length >= 2) {
+        name = parts[0];
+        service = parts[1] ?? "";
+        location = parts[2] ?? "";
+      }
+    }
+    return `- ${name} / ${service || TBC_SERVICE} / ${location || TBC_LOCATION} / ${TBC_DATE}`;
+  };
   return [
     head,
-    ...list.split(/[\n;]+/).map((x) => x.trim()).filter(Boolean).map((x) =>
-      `- ${x} / [TO BE COMPLETED: service] / [TO BE COMPLETED: country/region where processing occurs] / [TO BE COMPLETED: date authorised]`
-    ),
+    ...list.split(/[\n;]+/).map((x) => x.trim()).filter(Boolean).map(row),
   ].join("\n");
 }
 

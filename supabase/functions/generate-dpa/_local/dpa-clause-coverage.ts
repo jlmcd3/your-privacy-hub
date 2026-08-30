@@ -111,10 +111,16 @@ export function parseArt28Segments(excerpt: string): Array<{ clause: string; tex
 }
 
 /** Requirement summary = first sentence of the provision text, clipped. */
-function summarise(text: string): string {
+export function summarise(text: string): string {
   const first = text.split(/(?<=[.;])\s/)[0] ?? text;
   const s = first.trim().replace(/[;,]$/, "");
-  return s.length > 220 ? s.slice(0, 217).trimEnd() + "…" : s;
+  if (s.length <= 220) return s;
+  // BATCH 20b (doc 113 S6.4c) — truncate at a WORD boundary; the old
+  // character slice shipped mid-word ellipses ("proces…") in the customer
+  // instrument. No new statutory string literals, per this file's own law.
+  const cut = s.slice(0, 217);
+  const atWord = cut.slice(0, cut.lastIndexOf(" "));
+  return `${(atWord || cut).trimEnd()}…`;
 }
 
 function citationFor(baseCitation: string, clause: string): string {
@@ -238,7 +244,10 @@ export function checkArt28Coverage(
   };
 }
 
-export const ANNEX_HEADING = "ANNEX — ARTICLE 28(3) CLAUSE-COVERAGE CHECKLIST";
+// BATCH 20b (doc 113 S6.4c, RULING D3 keep-as-Schedule): the checklist is
+// a labeled INFORMATIONAL Schedule of the instrument, not an annex of
+// obligations.
+export const ANNEX_HEADING = "SCHEDULE — ARTICLE 28(3) CLAUSE-COVERAGE (INFORMATIONAL)";
 
 function clauseLabel(clause: string): string {
   if (clause === "chapeau") return "Chapeau";

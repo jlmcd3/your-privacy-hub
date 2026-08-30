@@ -163,6 +163,52 @@ export function deriveAssessmentRetentionEnd(intake: Bag): string | null {
   return "Because the processing continues on the information provided, the retention end date is not yet determinable; the later-of rule above governs";
 }
 
+// BATCH 20b (Wave C4, doc 113 S6.3) — the §V Key Dates and Deadlines
+// digest: the derived timing values this module already computes, plus the
+// statutory windows the pinned §V prose itself states, as digest
+// constants. A row whose value cannot be derived from the record skips.
+// The §V prose is untouched.
+export function deriveKeyDatesTable(intake: Bag, assessmentDateIso: string): RenderedTable | null {
+  const rows: string[][] = [];
+  const initial = deriveInitialAssessmentDeadline(intake);
+  if (initial) {
+    const value = initial.replace(/^Initial-assessment deadline:\s*/i, "").replace(/\.\s*$/, "");
+    rows.push([
+      "Initial risk assessment",
+      "11 CCR § 7155(a)(1)–(b)",
+      value.charAt(0).toUpperCase() + value.slice(1),
+    ]);
+  }
+  rows.push(["Three-year review", "11 CCR § 7155(a)(2)", deriveNextReviewDate(assessmentDateIso)]);
+  rows.push([
+    "Update after a material change",
+    "11 CCR § 7155(a)(3)",
+    "As soon as feasible, and no later than 45 calendar days after the material change",
+  ]);
+  rows.push([
+    "First § 7157 submission (2026–2027 assessments)",
+    "11 CCR § 7157",
+    "April 1, 2028",
+  ]);
+  rows.push([
+    "Full report on Agency or Attorney General request",
+    "11 CCR § 7157",
+    "Within 30 calendar days of the request",
+  ]);
+  rows.push([
+    "Retention of the assessment record",
+    "11 CCR § 7155(c)",
+    "As long as the processing continues, or five years after completion of the assessment, whichever is later",
+  ]);
+  return {
+    key: "",
+    surface: "key_dates",
+    title: "Key dates and deadlines",
+    columns: ["Obligation", "Authority", "Date / deadline"],
+    rows,
+  };
+}
+
 /**
  * {{DERIVED.cover_summary}} — the Assessment Profile panel (v5.2 cover): the
  * three identity facts, with the defined-term tags. The internal
@@ -785,6 +831,8 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
     "cover:0": deriveCoverTable(values),
     "cover:2": deriveExecStatusPanel(engine.exec_panel),
     "review_and_approval:1": deriveReviewApprovalTable(intake),
+    // BATCH 20b (doc 113 S6.3).
+    "v_governance:10": deriveKeyDatesTable(intake, assessmentDate),
     "agency_submission_checklist:1": deriveAgencySubmissionChecklistTable(intake, values),
     "table_of_authorities:1": matrixTable,
     "appendix_a:1": deriveProcessingAndDataInventory(intake),

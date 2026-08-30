@@ -81,6 +81,64 @@ export const label = (v: unknown): string => {
   return DPIA_TABLE_LABELS[t] ?? t;
 };
 
+// BATCH 20b (Wave C4, doc 113 S6.5 — doc 109 SS 1.4 column conventions,
+// applied once here so every DPIA table conforms): a column whose every
+// cell is the dash is dropped at any row count (it says nothing); a
+// non-identity column whose every cell is identical is dropped when the
+// table has two or more rows, with the constant stated once in the note.
+// A table never drops below two columns and never loses column 0.
+function applyColumnConventions(
+  columns: readonly string[],
+  rows: readonly (readonly string[])[],
+  note?: string,
+): { columns: readonly string[]; rows: readonly (readonly string[])[]; note?: string } {
+  const keep: number[] = [];
+  const droppedConstant: number[] = [];
+  const droppedDash: number[] = [];
+  const constantOf = new Map<number, string>();
+  for (let i = 0; i < columns.length; i++) {
+    if (i === 0) {
+      keep.push(i);
+      continue;
+    }
+    const cells = rows.map((r) => s(r[i]));
+    const allDash = cells.length > 0 && cells.every((c) => c === DASH || c === "");
+    if (allDash) {
+      droppedDash.push(i);
+      continue;
+    }
+    const constant = rows.length >= 2 && cells.every((c) => c === cells[0]);
+    if (constant) {
+      droppedConstant.push(i);
+      constantOf.set(i, cells[0]);
+      continue;
+    }
+    keep.push(i);
+  }
+  // Never below two columns: restore data-bearing constant columns first
+  // (their note entry is withdrawn), all-dash columns only as a last
+  // resort.
+  const restoreOrder = [...droppedConstant, ...droppedDash];
+  while (keep.length < Math.min(2, columns.length) && restoreOrder.length) {
+    const i = restoreOrder.shift()!;
+    keep.push(i);
+    const at = droppedConstant.indexOf(i);
+    if (at >= 0) droppedConstant.splice(at, 1);
+  }
+  keep.sort((a, b) => a - b);
+  const constants = droppedConstant.map((i) => `${columns[i]}: ${constantOf.get(i)}`);
+  if (keep.length === columns.length) return { columns, rows, note };
+  const constNote = constants.length
+    ? `${constants.join("; ")} — applies to every row.`
+    : "";
+  const mergedNote = [note, constNote].filter(Boolean).join(" ");
+  return {
+    columns: keep.map((i) => columns[i]),
+    rows: rows.map((r) => keep.map((i) => r[i] ?? "")),
+    ...(mergedNote ? { note: mergedNote } : {}),
+  };
+}
+
 function table(
   surface: string,
   title: string,
@@ -89,7 +147,8 @@ function table(
   note?: string,
 ): RenderedTable | null {
   if (rows.length === 0) return null;
-  return { key: "", surface, title, columns, rows, ...(note ? { note } : {}) };
+  const c = applyColumnConventions(columns, rows, note);
+  return { key: "", surface, title, columns: c.columns, rows: c.rows, ...(c.note ? { note: c.note } : {}) };
 }
 
 /** v4.6.2 — a "What is still needed" column full of dashes read as an
