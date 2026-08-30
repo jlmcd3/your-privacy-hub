@@ -1508,6 +1508,8 @@ const RUNIN_LEAD_LABELS = [
   "Statutory text\\.", "Record\\.", "Status\\.", "Controls described\\.",
   "Evidence identified\\.", "Auditor testability\\.", "Reliance notice\\.",
   "Deadline\\.", "Priority Matters:", "Scope of Assessment:",
+  // BATCH 18b (doc 113 S2.5) — doubles as the readiness-banner trigger.
+  "Readiness\\.",
 ];
 const LEAD_PHRASE_RE = new RegExp(
   `(^|[.!?]\\s+|\\n\\s*)((?:[A-Z]\\.\\s+[A-Z][^.\\n]{0,80}?\\.)|(?:\\([A-H]\\)\\s+[A-Z][^.\\n]{0,140}?\\.)|(?:Step \\d+ — [A-Z][^.\\n]{0,40}?\\.)|${HEAD_LEAD_LABELS.join("|")})(?=\\s|$)` +
@@ -1549,6 +1551,10 @@ const H3_CHUNK_RE = new RegExp(
     // BATCH 18 (Wave C1): the biometric duty walk emits RCW pinpoint
     // headings ("RCW 19.375.020(1) — Enrolment notice"); keep synced.
     `|(?:RCW [\\d.()]{1,24}\\s+—\\s+[A-Z][^.\\n]{0,80}\\.?)` +
+    // BATCH 18b (doc 113 S2.15): instrument-anchored per-state/per-instrument
+    // heading — "California — Cal. Civ. Code § 1798.99.82", "European Union
+    // representative — GDPR Art. 27(1)". Anchored on both sides; keep synced.
+    `|(?:[A-Z][A-Za-z .()&'\\-]{1,48} — (?:Cal\\.|ORS |Tex\\.|\\d+ V\\.S\\.A\\.|GDPR |UK GDPR |Regulation \\(EU\\) )[^\\n]{0,60})` +
     `|(?:${HEAD_LEAD_LABELS.join("|")})` +
   `)$`,
 );
@@ -1629,12 +1635,21 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
         // R6: "Deadline." opens the amber family once per document.
         const deadlineCallout = trimmed.startsWith("Deadline.") && !deadlineCalloutUsed;
         if (deadlineCallout) deadlineCalloutUsed = true;
-        const conditionCallout = deadlineCallout ||
+        // BATCH 18b (doc 113 S2.5) — the IR readiness banner: a "Readiness."
+        // chunk takes the condition-callout box; amber when it carries the
+        // negative-state determination, the same geometry with the calm
+        // slate border otherwise. Keep in sync with SkeletonDocumentView.tsx.
+        const readinessCallout = trimmed.startsWith("Readiness.");
+        const readinessNegative = readinessCallout && trimmed.includes("would not carry");
+        const conditionCallout = deadlineCallout || readinessNegative ||
           /^(?:[A-Z]\.\s+[^.]+\.\s+)?Conditions? to Proceed\./.test(chunk.trim());
         const wrapChunk = (html: string): string => {
           if (!html) return html;
           if (conditionCallout) {
             return `<div class="condition-callout" style="border:1.5px solid #b9822d;background:#fdf6e7;border-radius:5px;padding:9px 13px;margin:0 0 10px;">${html}</div>`;
+          }
+          if (readinessCallout) {
+            return `<div class="readiness-callout" style="border:1.5px solid #94a3b8;background:#f8fafc;border-radius:5px;padding:9px 13px;margin:0 0 10px;">${html}</div>`;
           }
           if (guidancePanel) return `<div class="guidance" style="${GUIDANCE_PANEL_STYLE}">${html}</div>`;
           if (mutedPanel) return `<div class="callout-muted" style="${MUTED_PANEL_STYLE}">${html}</div>`;

@@ -43,6 +43,8 @@ import {
   verifySkeletonConformance,
   type ComposedBlocks,
   type RenderedSkeletonDocument,
+  type RenderedTable,
+  type SkeletonTables,
   type SlotValues,
 } from "../../../_shared/prose/skeleton-render.ts";
 import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
@@ -84,6 +86,25 @@ function asProse(items: readonly string[]): string {
 
 const noStop = (t: string): string => t.replace(/\s*\.\s*$/, "");
 const stop = (t: string): string => (t ? (/[.!?]$/.test(t) ? t : `${t}.`) : "");
+
+// BATCH 18b (Wave C1, doc 113 — welded-blocks class, the 796w/735w root
+// cause): repairRegister collapses runs of whitespace, welding the "\n\n"
+// paragraph seams this composer writes into one wall paragraph. Repair per
+// line so paragraph and line structure survive (mirrors cyber/biometric).
+const repairPreserving = (t: string): string => t.split("\n").map((l) => repairRegister(l)).join("\n");
+
+// Table-cell convention (doc 109 §1.4): noun phrases with an initial capital.
+const cellCap = (t: string): string => (t ? t.charAt(0).toUpperCase() + t.slice(1) : t);
+
+// Deterministic clock-order key (doc 113 S2.8): hours parsed from the
+// recorded deadline text; unparseable rows sort last in recorded order.
+function clockHours(text: string): number {
+  const h = /(\d+)\s*hours?/i.exec(text);
+  if (h) return Number(h[1]);
+  const d = /(\d+)\s*(?:calendar\s+|business\s+)?days?/i.exec(text);
+  if (d) return Number(d[1]) * 24;
+  return Number.MAX_SAFE_INTEGER;
+}
 
 // SO-3 DEFECT CLASS 1 — curated enum labels only. Never an organisation name,
 // a person's name, a firm, a sector label or any free-text answer.
@@ -174,6 +195,239 @@ export function buildDeadlinesProse(report: Bag): string {
 }
 
 
+// ── Tables (BATCH 18b, Wave C1 — doc 113 S2.3/S2.8/S2.10, doc 109 §1.4) ────
+// The tables this product exists for, each built from the same typed
+// surfaces the retired prose read. NO-PADDING LAW: no rows, no table.
+
+function deriveEscalationTable(intake: Bag): RenderedTable | null {
+  const rows = normalizeResponseTeamRoster(intake)
+    .filter((r) => r.roleLabel || r.name)
+    .map((r) => [r.roleLabel || "—", r.name || "No named holder", r.alternate || "—"]);
+  if (!rows.length) return null;
+  return {
+    key: "",
+    surface: "responseTeamRoster",
+    title: "Escalation roster",
+    columns: ["Role", "Primary", "Alternate"],
+    rows,
+  };
+}
+
+function deriveExternalSupportTable(intake: Bag): RenderedTable | null {
+  const rows: string[][] = [];
+  const counsel = s(intake.outsideCounselName);
+  const counselContact = s(intake.outsideCounselContact);
+  if (isRecorded(counsel)) {
+    rows.push(["Outside counsel", `${counsel}${isRecorded(counselContact) ? ` — ${counselContact}` : ""}`]);
+  }
+  const forensic = s(intake.forensicVendorContact);
+  if (isRecorded(forensic)) rows.push(["Forensic vendor", forensic]);
+  const insurer = s(intake.insurerContact);
+  if (isRecorded(insurer)) rows.push(["Cyber insurer", insurer]);
+  const le = s(intake.lawEnforcementContact);
+  if (isRecorded(le)) rows.push(["Law enforcement", le]);
+  if (!rows.length) return null;
+  return {
+    key: "",
+    surface: "externalSupport",
+    title: "External support",
+    columns: ["Party", "Contact / reference"],
+    rows,
+  };
+}
+
+// The standing notification-clocks register. State rows carry both statutory
+// deadlines from the typed registry rows; GDPR-family rows carry the
+// Art. 33(1) clock in the regulator cell and "—" for individuals — Art. 34
+// sets no fixed clock and none is invented (doc 113 S2.3).
+function deriveNotificationClocksTable(report: Bag): RenderedTable | null {
+  const rows: string[][] = [];
+  for (const d of asArray(report.notification_duties)) {
+    const label = s(d.regime_label);
+    if (!label) continue;
+    const authority = s(d.supervisory_authority);
+    const sa = (d.sa_notification_determination ?? {}) as Bag;
+    const citation = s(sa.standard_citation) || (s(sa.regime) === "uk" ? "UK GDPR Art. 33(1)" : "GDPR Art. 33(1)");
+    rows.push([
+      label,
+      "—",
+      `${authority || "The competent supervisory authority"} — without undue delay and, where feasible, not later than 72 hours after awareness`,
+      citation,
+    ]);
+  }
+  for (const d of asArray(report.state_notification_duties)) {
+    const state = s(d.state_label);
+    const individual = s(d.individual_deadline);
+    if (!state || !individual) continue;
+    rows.push([state, cellCap(individual), cellCap(s(d.regulator_deadline)) || "—", s(d.citation) || "—"]);
+  }
+  if (!rows.length) return null;
+  return {
+    key: "",
+    surface: "notification_duties+state_notification_duties",
+    title: "Notification clocks",
+    columns: ["Jurisdiction", "Notify individuals", "Notify regulator", "Citation"],
+    rows,
+  };
+}
+
+/** The computed 72-hour outer limit, as a reader date-time; "" if unrecorded. */
+function outerLimit72h(intake: Bag): string {
+  const raw = s(intake.discoveryDateTime);
+  if (!raw) return "";
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return "";
+  const deadline = new Date(d.getTime() + 72 * 60 * 60 * 1000);
+  return `${deadline.toISOString().slice(0, 10)} at ${deadline.toISOString().slice(11, 16)} UTC`;
+}
+
+// The incident facts strip (doc 113 S2.10) — hideHeader label/value; only
+// recorded facts become rows.
+function deriveIncidentFactsTable(values: SlotValues, intake: Bag): RenderedTable | null {
+  const rows: string[][] = [];
+  const add = (label: string, v: unknown) => {
+    const t = s(v);
+    if (t) rows.push([label, cellCap(t)]);
+  };
+  add("Classification", values.incidentType);
+  add("Discovered", values.discoveryDate);
+  add("Data involved", values.dataCategories);
+  add("Estimated scale", values.affectedCount);
+  add("Containment", values.containmentState);
+  if (intake.processorInvolved === true || s(intake.processorInvolved).toLowerCase() === "true") {
+    rows.push(["Processor", s(intake.processorName) || "Involved — not named"]);
+  }
+  if (!rows.length) return null;
+  return {
+    key: "",
+    surface: "incident_worksheet.intake_facts",
+    title: "Incident facts",
+    columns: ["Field", "Value"],
+    rows,
+    hideHeader: true,
+  };
+}
+
+// The deadline board (doc 113 S2.8) — every recorded clock, statutory and
+// contractual, in clock order. Statuses map from determinations that already
+// exist; the typed state rows carry no per-incident verdict and none is
+// invented. The computed 72-hour run-to prints only where the duty is
+// engaged or reserved (honest basis).
+function deriveDeadlineBoardTable(report: Bag, intake: Bag): RenderedTable | null {
+  const incidentRecorded = Boolean(s(intake.cause) || s(intake.discoveryDateTime));
+  if (!incidentRecorded) return null;
+  type BoardRow = { cells: string[]; hours: number; ord: number };
+  const rows: BoardRow[] = [];
+  let ord = 0;
+  for (const d of asArray(report.notification_duties)) {
+    const label = s(d.regime_label);
+    if (!label) continue;
+    const sa = (d.sa_notification_determination ?? {}) as Bag;
+    const citation = s(sa.standard_citation) || (s(sa.regime) === "uk" ? "UK GDPR Art. 33(1)" : "GDPR Art. 33(1)");
+    const verdict = s(sa.verdict);
+    const status = verdict === "notification_required"
+      ? "Triggered"
+      : verdict === "notification_not_required_unlikely_risk"
+      ? "Not engaged"
+      : "Reserved";
+    const outer = status === "Not engaged" ? "" : outerLimit72h(intake);
+    rows.push({
+      cells: [
+        `${label} — supervisory authority`,
+        outer ? `72 hours from awareness — runs to ${outer}` : "Without undue delay and, where feasible, not later than 72 hours after awareness",
+        citation,
+        status,
+      ],
+      hours: 72,
+      ord: ord++,
+    });
+  }
+  for (const d of asArray(report.state_notification_duties)) {
+    const state = s(d.state_label);
+    const individual = s(d.individual_deadline);
+    if (!state || !individual) continue;
+    const regulator = s(d.regulator_deadline);
+    rows.push({
+      cells: [
+        `${state} — individuals${regulator ? " and regulator" : ""}`,
+        cellCap(`${individual}${regulator ? `; ${regulator}` : ""}`),
+        s(d.citation) || "—",
+        "Recorded duty",
+      ],
+      hours: clockHours(individual),
+      ord: ord++,
+    });
+  }
+  for (const c of contractRows(intake)) {
+    rows.push({
+      cells: [
+        `${c.party} — contractual notice`,
+        c.deadline ? cellCap(noStop(c.deadline)) : "As the agreement provides",
+        c.clause || "Contract — as recorded",
+        "Triggered",
+      ],
+      hours: clockHours(c.deadline),
+      ord: ord++,
+    });
+  }
+  if (!rows.length) return null;
+  rows.sort((a, b) => a.hours - b.hours || a.ord - b.ord);
+  return {
+    key: "",
+    surface: "notification_duties+state_notification_duties+breachNoticeContracts",
+    title: "Deadline board",
+    columns: ["Clock", "Runs to / limit", "Source", "Status"],
+    rows: rows.map((r) => r.cells),
+    note: "All recorded clocks, in clock order; the earliest recorded clock governs the immediate posture.",
+  };
+}
+
+// The jurisdiction action plan as a table (doc 113 S2.7) — no-GDPR path
+// only; the EU Art. 33(3) element plan stays prose until doc 109 §2.10
+// item 5. Replaces composeJurisdictionActionPlan's prose lines.
+function deriveActionPlanTable(report: Bag, intake: Bag): RenderedTable | null {
+  if (asArray(report.notification_duties).length > 0) return null;
+  type PlanRow = { cells: string[]; hours: number; ord: number };
+  const rows: PlanRow[] = [];
+  let ord = 0;
+  for (const d of asArray(report.state_notification_duties)) {
+    const state = s(d.state_label);
+    const individual = s(d.individual_deadline);
+    if (!state || !individual) continue;
+    const regulator = s(d.regulator_deadline);
+    rows.push({
+      cells: [
+        `Notify under the law of ${state}`,
+        cellCap(`${individual}${regulator ? `; ${regulator}` : ""}`),
+        s(d.citation) || "—",
+      ],
+      hours: clockHours(individual),
+      ord: ord++,
+    });
+  }
+  for (const c of contractRows(intake)) {
+    rows.push({
+      cells: [
+        `Notify ${c.party}`,
+        c.deadline ? cellCap(noStop(c.deadline)) : "As the agreement provides",
+        c.clause || "Contract — as recorded",
+      ],
+      hours: clockHours(c.deadline),
+      ord: ord++,
+    });
+  }
+  if (!rows.length) return null;
+  rows.sort((a, b) => a.hours - b.hours || a.ord - b.ord);
+  return {
+    key: "",
+    surface: "state_notification_duties+breachNoticeContracts.action_plan",
+    title: "Action plan",
+    columns: ["Order", "Duty", "Deadline", "Citation"],
+    rows: rows.map((r, i) => [String(i + 1), ...r.cells]),
+    note: "In the order the clocks run.",
+  };
+}
+
 export function buildIrSlotValues(report: Bag, intake: Bag): SlotValues {
   const escalation = buildEscalationProse(intake);
   const external = buildExternalSupportProse(intake);
@@ -188,9 +442,14 @@ export function buildIrSlotValues(report: Bag, intake: Bag): SlotValues {
     // Part One — durable register.
     organizationName: s(intake.organizationName) || null,
     sector: s(intake.organisationType) || null, // reader label, never case-folded
-    escalationContacts: escalation || null,
-    externalSupport: external || null,
-    notificationDeadlines: deadlines || null,
+    // BATCH 18b (doc 113 S2.2) — the data now lives in the Standing Sections
+    // tables (the pinned descriptor's own "rendered as a table" intent); the
+    // slot VALUES become pointer prose. Absent data keeps a null slot so the
+    // pinned clause drops — blank by design, never a pointer to a table that
+    // is not there. Fixed bytes outside the slots are untouched.
+    escalationContacts: escalation ? "the roles and named holders set out in the escalation table below" : null,
+    externalSupport: external ? "the supporting parties set out in the external support table below" : null,
+    notificationDeadlines: deadlines ? "each set out in the notification clocks table below with its statutory basis" : null,
 
     // Part Two — operational register. Absent => BLANK BY DESIGN.
     incidentType: cause ? (IR_INCIDENT_TYPE_MAP[cause] ?? lowerEnumLabel(cause)) : null,
@@ -213,18 +472,59 @@ function standingSections(report: Bag): Bag[] {
 
 // ── Composed blocks ─────────────────────────────────────────────────────────
 
+// BATCH 18b (doc 113 S2.4) — the deduped standing-gap ledger. Two open
+// sections whose completion text is byte-identical and whose headings are
+// equal modulo a trailing " — determination" collapse to ONE entry under the
+// plain heading: a finding/table pair of the same gap read as a copy-paste
+// error on the published page (doc 109 §2.10 offense #3). The lead's count
+// and the gaps table are both derived from THIS ledger so they always agree.
+export function standingGapLedger(report: Bag): { heading: string; completes: string }[] {
+  const out: { heading: string; completes: string }[] = [];
+  const baseOf = (h: string): string => h.replace(/\s+—\s+determination$/i, "");
+  for (const sec of standingSections(report)) {
+    const heading = noStop(s(sec.heading));
+    if (!heading) continue;
+    if (s(sec.status) !== "record_insufficient") continue;
+    const completes = s(sec.information_needed) || "Not recorded.";
+    const dup = out.find((r) => r.completes === completes && baseOf(r.heading) === baseOf(heading));
+    if (dup) {
+      dup.heading = baseOf(dup.heading);
+      continue;
+    }
+    out.push({ heading, completes });
+  }
+  return out;
+}
+
+function deriveStandingGapsTable(report: Bag): RenderedTable | null {
+  const gaps = standingGapLedger(report);
+  if (!gaps.length) return null;
+  return {
+    key: "",
+    surface: "standing_playbook.sections[record_insufficient]",
+    title: "Preparedness gaps",
+    columns: ["Standing section", "What completes it"],
+    rows: gaps.map((g) => [g.heading, g.completes]),
+  };
+}
+
 /** Part One lead — bound to the standing playbook's own typed status. */
+// BATCH 18b (doc 113 S2.5) — the lead is the readiness banner: the composer
+// prefixes "Readiness. " and the renderers box the chunk (condition-callout
+// family; amber on the negative state). The determination sentences' own
+// bytes are unchanged after the prefix (RULING 3.2 — styled and moved, never
+// reworded). The open-section count follows the deduped ledger (S2.4).
 function composeStandingLead(report: Bag, org: string): string {
   const sp = standing(report);
   const sections = standingSections(report);
   if (sections.length === 0) {
     return `No standing arrangement has been analysed for ${org} on the answers given, so this playbook states no preparedness conclusion.`;
   }
-  const open = sections.filter((x) => s(x.status) === "record_insufficient");
+  const open = standingGapLedger(report);
   if (s(sp.status) === "record_insufficient" || open.length > 0) {
-    return `On the company's answers, ${org}'s standing preparedness would not carry it through a notifiable incident unaided: ${open.length === 1 ? "one standing section is" : `${open.length} standing sections are`} not settled by what the company has recorded, and each is named below with what would complete it.`;
+    return `Readiness. On the company's answers, ${org}'s standing preparedness would not carry it through a notifiable incident unaided: ${open.length === 1 ? "one standing section is" : `${open.length} standing sections are`} not settled by what the company has recorded, and each is named below with what would complete it.`;
   }
-  return `On the company's answers, ${org}'s standing preparedness would carry it through a notifiable incident, subject to the arrangements being operated as recorded.`;
+  return `Readiness. On the company's answers, ${org}'s standing preparedness would carry it through a notifiable incident, subject to the arrangements being operated as recorded.`;
 }
 
 /** The BYTE-PINNED authority-framing note, printed verbatim, marker removed. */
@@ -233,39 +533,37 @@ function composeFramingNote(): string {
 }
 
 /** Part One body — programme posture plus the single unrecorded-section ledger. */
+// BATCH 18b (doc 113 S2.4, adopting the doc 109 §2.10 recorded-arrangements
+// compromise verbatim) — the 13/22-item comma enumeration retires: the
+// all-recorded state takes one count sentence and nothing else; the mixed
+// state takes one count sentence plus the ledger sentence, and the gap rows
+// themselves move to the Preparedness gaps table (deduped, S2.4).
 function composeStandingPosture(report: Bag): string {
   const sections = standingSections(report);
   if (sections.length === 0) return "";
-  const recorded: string[] = [];
-  const openLines: string[] = [];
-  for (const sec of sections) {
-    const heading = noStop(s(sec.heading));
-    if (!heading) continue;
-    if (s(sec.status) === "record_insufficient") {
-      const needed = s(sec.information_needed);
-      openLines.push(needed ? `${heading}: ${noStop(lowerEnumLabel(needed))}.` : `${heading}: not recorded.`);
-    } else {
-      recorded.push(heading);
-    }
-  }
+  const titled = sections.filter((x) => noStop(s(x.heading)));
+  const gaps = standingGapLedger(report);
+  const recordedCount = titled.filter((x) => s(x.status) !== "record_insufficient").length;
+  // The stated total rides the DEDUPED ledger (S2.4): a collapsed
+  // finding/table pair counts as one section everywhere, so recorded +
+  // unrecorded always sums to the total the reader can check.
+  const total = recordedCount + gaps.length;
   const parts: string[] = [];
-  if (recorded.length) {
+  if (gaps.length === 0) {
+    parts.push(`All ${total} standing sections are recorded, and each is set out below as the company gave it.`);
+  } else {
+    if (recordedCount) {
+      parts.push(
+        `The company has recorded the arrangements behind ${recordedCount} of the ${total} standing sections, and each is set out below as the company gave it.`,
+      );
+    }
     parts.push(
       stop(
-        `The company has recorded the arrangements behind ${asProse(recorded.map(lowerEnumLabel))}, and each is set out in the standing sections below as the company gave it`,
+        `The ledger carries ${gaps.length === 1 ? "one standing section" : `${gaps.length} standing sections`} as unrecorded, and the preparedness gaps table below states what would fill each`,
       ),
     );
   }
-  if (openLines.length) {
-    // ONE ledger sentence, then each unrecorded section stating what fills it.
-    parts.push(
-      stop(
-        `${openLines.length === 1 ? "One standing section is" : `${openLines.length} standing sections are`} carried on the ledger as unrecorded, and each states what would fill it`,
-      ),
-    );
-    parts.push(openLines.join("\n"));
-  }
-  return repairRegister(parts.filter(Boolean).join("\n\n"));
+  return repairPreserving(parts.filter(Boolean).join(" "));
 }
 
 /** Part Two lead — incident-specific, or the blank-by-design sentence. */
@@ -425,6 +723,8 @@ export function composeContainmentPlan(intake: Bag): string {
   const authority = s(intake.itIsolationAuthority);
   const systems = arr(intake.keySystems);
   const logs = arr(intake.logSources);
+  // BATCH 18b (doc 113 S2.9) — containment+evidence one paragraph,
+  // eradication+recovery the second. Sentence bytes unchanged.
   const parts: string[] = [];
   if (contained === "Yes") {
     parts.push(
@@ -454,7 +754,13 @@ export function composeContainmentPlan(intake: Bag): string {
       `Recovery is validated, not assumed: restore service only on evidence that the route is closed, and monitor ${logs.length ? asProse(logs.slice(0, 3)) : "the recorded log sources"} for recurrence across the first 24 hours after restoration before the incident is closed`,
     ),
   );
-  return repairRegister(parts.join(" "));
+  // Group: everything before the eradication/recovery pair is the
+  // containment-and-evidence paragraph; the last two sentences (eradication
+  // where present, recovery always) are the second paragraph.
+  const tailLen = Math.min(2, Math.max(1, parts.length - 1));
+  const head = parts.slice(0, parts.length - tailLen).join(" ");
+  const tail = parts.slice(parts.length - tailLen).join(" ");
+  return repairPreserving([head, tail].filter(Boolean).join("\n\n"));
 }
 
 /** D1D2B3B8-I1 — the action plan for records the GDPR does not govern: the
@@ -508,13 +814,16 @@ function composeNotificationWalk(report: Bag, intake: Bag): string {
 
   const gate4 = `Fourth, whether encryption changes the outcome: ${posture}.`;
 
+  // BATCH 18b (doc 113 S2.9) — the four gates render as a list, one per
+  // line, under the lead sentence; the CEO-redlined gate sentences' bytes
+  // are untouched (2026-08-29 redline is ratified prose).
   const paragraphs: string[] = [[
     "To determine whether this incident triggers a state's notification law, four things are reviewed.",
     gate1,
     gate2,
     gate3,
     gate4,
-  ].join(" ")];
+  ].join("\n")];
 
   // IR-F TRANCHE 2 (2026-08-29) — per-state resolution for the gated states
   // (STATE_WALK_GATES: California, Texas, New York this tranche; each gate
@@ -528,14 +837,20 @@ function composeNotificationWalk(report: Bag, intake: Bag): string {
     const gates = STATE_WALK_GATES[s(d.jurisdiction)];
     if (!gates) continue;
     const label = s(d.state_label);
-    const bits: string[] = [];
+    // BATCH 18b (doc 113 S2.9) — the limb walk is its own block, grouped
+    // opener+definition / element resolution / encryption+harm, so each
+    // state's analysis reads in ≤90-word paragraphs instead of one wall.
+    // Sentence bytes are unchanged; only the seams moved from " " to "\n\n".
+    const openerBits: string[] = [];
+    const elementBits: string[] = [];
+    const postureBits: string[] = [];
     // Sentence-case the breach-definition formulation at the seam (a
     // formulation may begin lowercase; a quoted term keeps its own casing).
     // Opener reworded 2026-08-29 (CEO redline) — "walked" read as jargon;
     // this introduces the review without asserting its conclusion, since the
     // sentences that follow are what actually resolve it.
     const bd = noStop(gates.breach_definition);
-    bits.push(stop(`Here is how ${label}'s law applies to this incident. ${bd.charAt(0).toUpperCase()}${bd.slice(1)}`));
+    openerBits.push(stop(`Here is how ${label}'s law applies to this incident. ${bd.charAt(0).toUpperCase()}${bd.slice(1)}`));
 
     // Data-element gate, resolved per limb against the recorded types.
     const engagedNamed: string[] = [];
@@ -552,23 +867,23 @@ function composeNotificationWalk(report: Bag, intake: Bag): string {
       }
     }
     if (engagedNamed.length) {
-      bits.push(stop(
+      elementBits.push(stop(
         `On the recorded data types, the following fall within the statute's covered elements: ${engagedNamed.join("; ")}`,
       ));
     }
     if (engagedConditional.length) {
-      bits.push(stop(
+      elementBits.push(stop(
         `The following reach the covered elements only in combination with the individual's name, which the recorded data types do not list, so each turns on whether names accompany them: ${engagedConditional.join("; ")}`,
       ));
     }
     const unmatched = dataTypes.filter((t) => !matchedTypes.has(t) && t !== "Names and contact details");
     if (unmatched.length && gates.uncovered_note) {
-      bits.push(stop(
+      elementBits.push(stop(
         `Of the remaining recorded types (${unmatched.join("; ")}): ${noStop(gates.uncovered_note)}`,
       ));
     }
     if (!engagedNamed.length && !engagedConditional.length) {
-      bits.push(
+      elementBits.push(
         "None of the recorded data types falls within this statute's covered elements on its own terms, so no notification duty is established under it on this record.",
       );
     }
@@ -579,34 +894,45 @@ function composeNotificationWalk(report: Bag, intake: Bag): string {
       : fullyEncrypted && keysSafe
       ? "the recorded posture — all affected data encrypted, keys not compromised — supports the position that the duty is not triggered under this formulation, subject to the encryption meeting the statute's own standard"
       : "the recorded posture does not establish an encryption state that would resolve this formulation either way";
-    bits.push(stop(`On encryption, ${noStop(gates.encryption_formulation)}; ${encApplied}`));
+    postureBits.push(stop(`On encryption, ${noStop(gates.encryption_formulation)}; ${encApplied}`));
 
     if (gates.harm_carveout) {
-      bits.push(stop(
+      postureBits.push(stop(
         `The statute also carries a harm-threshold carve-out, which the response team assesses and documents rather than this playbook: ${noStop(gates.harm_carveout)}`,
       ));
     }
-    paragraphs.push(bits.join(" "));
+    paragraphs.push(
+      [openerBits.join(" "), elementBits.join(" "), postureBits.join(" ")]
+        .filter(Boolean)
+        .join("\n\n"),
+    );
   }
 
   return paragraphs.join("\n\n");
 }
 
-function composeJurisdictionActionPlan(report: Bag, intake: Bag): string {
-  const lines: string[] = [];
-  for (const d of asArray(report.state_notification_duties)) {
-    const state = s(d.state_label);
-    const individual = s(d.individual_deadline);
-    const regulator = s(d.regulator_deadline);
-    const citation = s(d.citation);
-    if (!state || !individual) continue;
-    lines.push(`Notify under the law of ${state} — ${individual}${regulator ? `; ${regulator}` : ""}${citation ? ` (${citation})` : ""}.`);
-  }
-  for (const c of contractRows(intake)) {
-    lines.push(`Notify ${c.party}${c.deadline ? ` — ${c.deadline}` : ""}${c.clause ? ` (${c.clause})` : ""}.`);
-  }
-  if (!lines.length) return "";
-  return ["The action plan, in the order the clocks run:", ...lines].join("\n");
+// BATCH 18b (doc 113 S2.7) — composeJurisdictionActionPlan retired: its
+// prose lines are now the Action plan table (deriveActionPlanTable), the
+// last block of the worksheet section.
+
+// BATCH 18b (doc 113 S2.6) — the one amber deadline callout, moved out of
+// the duty walk so the 72-hour outer limit prints exactly once, above the
+// deadline board. Gating unchanged from the duty-loop logic it replaces:
+// only where a GDPR-family duty is engaged or reserved (never on the
+// not-required verdict) and a discovery timestamp is recorded. The US /
+// no-GDPR path gets no 72-hour callout — a GDPR clock never prints on a
+// record the GDPR does not govern; the deadline board is that path's
+// floodlight.
+function composeDeadlineCallout(report: Bag, intake: Bag): string {
+  const clock = buildAwarenessClockClause(intake);
+  if (!clock) return "";
+  const duties = asArray(report.notification_duties);
+  if (!duties.length) return "";
+  const engagedOrReserved = duties.some((d) =>
+    s(((d.sa_notification_determination ?? {}) as Bag).verdict) !== "notification_not_required_unlikely_risk"
+  );
+  if (!engagedOrReserved) return "";
+  return `Deadline. ${clock}`;
 }
 
 /** Part Two body — the notification analysis, jurisdiction by jurisdiction. */
@@ -624,27 +950,23 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
     blocks.push(
       "No EU or UK jurisdiction is recorded, so no Article 33 or Article 34 duty is engaged on this record and no 72-hour clock runs. The operative notification duties are those of the recorded jurisdictions, stated below in their own statutory terms.",
     );
-    for (const d of asArray(report.state_notification_duties)) {
-      const state = s(d.state_label);
-      const individual = s(d.individual_deadline);
-      const regulator = s(d.regulator_deadline);
-      const citation = s(d.citation);
-      if (!state || !individual) continue;
-      blocks.push(
-        stop(`${state}: ${individual}${regulator ? `, together with ${regulator}` : ""}${citation ? ` (${citation})` : ""}`),
-      );
-    }
+    // BATCH 18b (doc 113 S2.7 — kills doc 109 §2.10 offense #2, the state
+    // clock stated three times in prose): the per-state duty SENTENCE LOOP
+    // that rendered here ("California: notification to affected residents…
+    // (§ 1798.82(f))." per row) is retired; each recorded clock now lives in
+    // exactly one scannable home each — the standing notification-clocks
+    // table, the deadline board, and the action-plan table — and the
+    // statutory ANALYSIS lives in the four-gate walk below.
     // IR-E Phase 3a (2026-08-29, doc 102) — REMOVED the "HIPAA's operative
     // text is not in this product's verified corpus" placeholder that used
     // to render here whenever `jurisdictions` named HIPAA. It is now false:
     // hipaa-duties.ts carries the verified 45 C.F.R. §§ 164.404/406/408/410
     // text, and buildHipaaDuties() is gated on the SAME jurisdictions signal
     // this block used to test (plus organisationType) — so whenever that
-    // condition holds, the state_notification_duties loop directly above
-    // already rendered the HIPAA rows. Leaving both blocks would have
-    // printed the duties AND, immediately after, a sentence claiming they
-    // couldn't be quoted — a self-contradiction this fix closes rather than
-    // papers over.
+    // condition holds, the HIPAA rows render with every other recorded duty
+    // in the clocks tables (S2.7). Leaving both would have printed the
+    // duties AND, immediately after, a sentence claiming they couldn't be
+    // quoted — a self-contradiction this fix closes rather than papers over.
     // IR-F tranche 1 — the four-gate walk, resolved against this record.
     const walk0 = composeNotificationWalk(report, intake);
     if (walk0) blocks.push(walk0);
@@ -655,12 +977,10 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
     if (contractual0) blocks.push(contractual0);
     const plan0 = composeContainmentPlan(intake);
     if (plan0) blocks.push(plan0);
-    const actionPlan0 = composeJurisdictionActionPlan(report, intake);
-    if (actionPlan0) blocks.push(actionPlan0);
-    return repairRegister(blocks.join("\n\n"));
+    // BATCH 18b (doc 113 S2.7) — the action plan renders as the worksheet's
+    // closing table, not prose lines here.
+    return repairPreserving(blocks.join("\n\n"));
   }
-  const clock = buildAwarenessClockClause(intake);
-  let clockStated = false;
   const blocks: string[] = [];
 
 
@@ -669,7 +989,12 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
     const authority = s(d.supervisory_authority);
     const sa = (d.sa_notification_determination ?? {}) as Bag;
     const ds = (d.data_subject_communication_determination ?? {}) as Bag;
+    // BATCH 18b (doc 113 S2.9) — the per-duty analysis reads in grouped
+    // paragraphs (verdict+basis / what-would-settle-it / Art. 34) instead of
+    // one 300-word run. Sentence bytes unchanged; seams only.
     const bits: string[] = [];
+    const settleBits: string[] = [];
+    const dsBits: string[] = [];
     bits.push(`${label}.`);
     const citation = s(sa.standard_citation);
     const verdict = s(sa.verdict);
@@ -692,21 +1017,19 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
         ),
       );
     }
-    // SO-FT2 FIX 3 — the actual awareness moment and the computed deadline,
-    // stated next to the duty rather than deferred to an analysis the reader
-    // never sees. Stated ONCE, on the first duty that runs to a clock.
-    if (clock && !clockStated && verdict !== "notification_not_required_unlikely_risk") {
-      bits.push(clock);
-      clockStated = true;
-    }
+    // SO-FT2 FIX 3, superseded by BATCH 18b (doc 113 S2.6): the awareness
+    // moment and computed 72-hour outer limit now print exactly once, as the
+    // amber "Deadline." callout above the deadline board — never inside the
+    // duty walk, so the document's most operative fact is impossible to
+    // bury (doc 109 §2.10 EU offense #1).
 
     const why = s(sa.why);
     if (why) bits.push(stop(noStop(firstSentences(why, 3))));
 
     const parallel = s(sa.parallel_duty_note);
-    if (parallel) bits.push(stop(noStop(firstSentences(parallel, 2))));
+    if (parallel) settleBits.push(stop(noStop(firstSentences(parallel, 2))));
     const needed = s(sa.information_needed);
-    if (needed) bits.push(stop(`What would settle it is ${noStop(lowerEnumLabel(needed))}`));
+    if (needed) settleBits.push(stop(`What would settle it is ${noStop(lowerEnumLabel(needed))}`));
     const dsVerdict = s(ds.verdict);
     const dsWhy = s(ds.why);
     if (dsVerdict) {
@@ -724,7 +1047,7 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
         undetermined_on_the_record: "reserved: it cannot be resolved on the facts recorded",
       };
       const dsPhrase = DS_VERDICT_PHRASE[dsVerdict] ?? noStop(lowerEnumLabel(dsVerdict.replace(/_/g, " ")));
-      bits.push(
+      dsBits.push(
         stop(
           `On communication to the affected individuals, the determination on the company's answers is ${dsPhrase}${dsWhy ? `: ${noStop(firstSentence(dsWhy))}` : ""}`,
         ),
@@ -742,9 +1065,13 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
       // exemption; truncating at 3 would drop exactly the reasoning this
       // fix exists to surface.
       const dsApplication = s(ds.application);
-      if (dsApplication) bits.push(stop(noStop(firstSentences(dsApplication, 4))));
+      if (dsApplication) dsBits.push(stop(noStop(firstSentences(dsApplication, 4))));
     }
-    blocks.push(bits.join(" "));
+    blocks.push(
+      [bits.join(" "), settleBits.join(" "), dsBits.join(" ")]
+        .filter(Boolean)
+        .join("\n\n"),
+    );
   }
 
   // IR-F tranche 1 — where recorded state/sectoral duties run in parallel
@@ -840,7 +1167,7 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
       );
     }
   }
-  return repairRegister(blocks.join("\n\n"));
+  return repairPreserving(blocks.join("\n\n"));
 }
 
 // ── Table of Authorities ────────────────────────────────────────────────────
@@ -915,14 +1242,31 @@ export function assembleIRSkeletonDocument(report: Bag, intakeInput: Bag): IrSke
   const values = buildIrSlotValues(composeReport, intake);
   const org = s(intake.organizationName) || "the company";
 
+  // BATCH 18b (doc 113 S2.1) — the worksheet's pinned blocks re-indexed
+  // around the inserted table/callout blocks; the pinned blocks' RELATIVE
+  // order (lead -> classify -> processors -> containment -> analysis) is
+  // unchanged. Keys track ir-playbook.spine.ts block positions.
   const composed: ComposedBlocks = {
     "standing_playbook:0": composeStandingLead(report, org),
     "standing_playbook:2": composeFramingNote(),
     "standing_playbook:3": composeStandingPosture(report),
 
     "incident_worksheet:0": composeWorksheetLead(composeReport, intake, values),
-    "incident_worksheet:2": composeProcessors(intake, gdprEngaged),
-    "incident_worksheet:4": composeNotificationAnalysis(composeReport, intake),
+    "incident_worksheet:3": composeDeadlineCallout(composeReport, intake),
+    "incident_worksheet:5": composeProcessors(intake, gdprEngaged),
+    "incident_worksheet:7": composeNotificationAnalysis(composeReport, intake),
+  };
+
+  // BATCH 18b (doc 113 S2.3/S2.4/S2.8/S2.10) — the tables, keyed to their
+  // spine blocks. Each is honestly absent (null) when its rows are.
+  const tables: SkeletonTables = {
+    "standing_playbook:4": deriveStandingGapsTable(report),
+    "standing_sections:2": deriveEscalationTable(intake),
+    "standing_sections:3": deriveExternalSupportTable(intake),
+    "standing_sections:4": deriveNotificationClocksTable(composeReport),
+    "incident_worksheet:2": deriveIncidentFactsTable(values, intake),
+    "incident_worksheet:4": deriveDeadlineBoardTable(composeReport, intake),
+    "incident_worksheet:8": deriveActionPlanTable(composeReport, intake),
   };
 
   const draft = renderSkeletonDocument({
@@ -932,6 +1276,7 @@ export function assembleIRSkeletonDocument(report: Bag, intakeInput: Bag): IrSke
     spineVersion: IR_SKELETON_VERSION,
     values,
     composed,
+    tables,
   });
 
   const toa = irToa(report, skeletonDocumentToText(draft));
@@ -943,6 +1288,7 @@ export function assembleIRSkeletonDocument(report: Bag, intakeInput: Bag): IrSke
     spineVersion: IR_SKELETON_VERSION,
     values,
     composed: { ...composed, "table_of_authorities:0": toa },
+    tables,
   });
 
   const body = skeletonDocumentToText(document).toLowerCase();

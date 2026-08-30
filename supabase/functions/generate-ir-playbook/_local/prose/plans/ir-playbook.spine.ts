@@ -26,7 +26,7 @@
 //                   Authorities). Never printed unless the composer supplies
 //                   deterministic content for it.
 
-export const IR_SKELETON_VERSION = "prose-plans-2026-08-30-panel-framing-note-repin";
+export const IR_SKELETON_VERSION = "prose-plans-2026-08-30-c1-worksheet-tables";
 export const IR_SKELETON_SOURCE_FILE =
   "Incident_Response_Playbook_Skeleton_v3.docx (CEO-corrected 2026-08-10: four paragraph edits, six unsourced slots dropped, containmentState added)";
 export const IR_SKELETON_PROVENANCE =
@@ -111,7 +111,11 @@ export const IR_V3_BANNED_REGISTER: readonly string[] = [
   "as the record makes clear",
 ];
 
-export type IrSkeletonBlockKind = "skeleton" | "lead" | "generated" | "conditional" | "rule";
+// BATCH 18b (Wave C1, doc 113 S2.1) — "table" joins the union (biometric
+// Batch-18a precedent). Table blocks carry text: "" — no customer bytes ride
+// the spine; the tables the product exists for are built from the typed
+// surfaces at assembly time and are honestly absent when their rows are.
+export type IrSkeletonBlockKind = "skeleton" | "lead" | "generated" | "conditional" | "rule" | "table";
 
 export interface IrSkeletonBlock {
   readonly kind: IrSkeletonBlockKind;
@@ -133,6 +137,9 @@ export const IR_SKELETON_SECTIONS: readonly IrSkeletonSection[] = [
       { kind: "skeleton", text: "This playbook is {organizationName}'s own: it is assembled from the team, contacts, deadlines and processor relationships the company has recorded, for an organisation in its sector ({sector - reader label})." },
       { kind: "rule", text: "[BYTE-PINNED] Template material drawn from NIST SP 800-61r3, the CISA playbooks and the ICO toolkit is drafting scaffolding and not legal authority." },
       { kind: "generated", text: "[GENERATED] The programme posture in counsel's voice from the company's answers - plan, team, testing, register, insurance - determination-led; sections the company has not recorded take the single ledger sentence with each section stating what would fill it." },
+      // BATCH 18b (doc 113 S2.4) — the preparedness-gaps register, built from
+      // the deduped standing-gap ledger. Carries no fixed text.
+      { kind: "table", text: "standing_playbook.sections[record_insufficient]" },
     ],
   },
   {
@@ -141,6 +148,12 @@ export const IR_SKELETON_SECTIONS: readonly IrSkeletonSection[] = [
     blocks: [
       { kind: "skeleton", text: "The escalation path the company has recorded: {escalationContacts - rendered as a table}. External support: {externalSupport - as prose; absent => carried on the ledger}. Notification obligations and their clocks: {notificationDeadlines - each stated with its statutory basis, registry-sourced}." },
       { kind: "rule", text: "[REGISTER RULE] Playbook sections are written in the durable register; worksheet sections in the operational register; the two do not mix." },
+      // BATCH 18b (doc 113 S2.2/S2.3) — the tables the pinned sentence's own
+      // slot descriptors call for ("rendered as a table"); the slot VALUES
+      // become pointer prose to these. No fixed bytes change.
+      { kind: "table", text: "responseTeamRoster" },
+      { kind: "table", text: "externalSupport" },
+      { kind: "table", text: "notification_duties+state_notification_duties" },
     ],
   },
   {
@@ -149,9 +162,21 @@ export const IR_SKELETON_SECTIONS: readonly IrSkeletonSection[] = [
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence, incident-specific, generated only where an incident is recorded: the classification and immediate posture. Otherwise the worksheet ships blank by design - blank fields are correct output, never gaps." },
       { kind: "skeleton", text: "The company classifies the incident as {incidentType - reader label}, discovered on {discoveryDate}. The data involved: {dataCategories - reader labels}. The scale of those affected is estimated at {affectedCount - band as prose}." },
+      // BATCH 18b (doc 113 S2.10/S2.6/S2.8) — the incident facts strip, the
+      // one amber deadline callout, and the deadline board. All three are
+      // honestly absent where no incident is recorded; the pinned blocks'
+      // relative order (classify -> processors -> containment -> analysis)
+      // is preserved around them.
+      { kind: "table", text: "incident_worksheet.intake_facts" },
+      { kind: "generated", text: "[GENERATED] Deadline callout - the operative supervisory-authority outer limit, stated once for the whole document; renders only where a GDPR-family duty is engaged or reserved and a discovery timestamp is recorded." },
+      { kind: "table", text: "notification_duties+state_notification_duties+breachNoticeContracts" },
       { kind: "conditional", text: "[CONDITIONAL] PROCESSORS - trigger {processorsInvolved}: fixed first words \"A processor is involved.\" followed by {processorDetail - attributed} and the Article 28 / 33(2) notification-clock analysis." },
       { kind: "skeleton", text: "The company reports the incident's containment state as {containmentState - reader label}." },
       { kind: "generated", text: "[GENERATED] The notification analysis in counsel's voice: each duty with its clock, jurisdiction by jurisdiction, from the company's answers; the action plan in time order; determinations reserved to counsel stay reserved." },
+      // BATCH 18b (doc 113 S2.7) — the jurisdiction action plan as a table
+      // (Order | Duty | Deadline | Citation); no-GDPR path only, the EU
+      // Art. 33(3) element plan stays prose until doc 109 §2.10 item 5.
+      { kind: "table", text: "state_notification_duties+breachNoticeContracts.action_plan" },
     ],
   },
   {

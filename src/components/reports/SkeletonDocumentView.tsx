@@ -106,6 +106,8 @@ const RUNIN_LEAD_LABELS = [
   "Statutory text\\.", "Record\\.", "Status\\.", "Controls described\\.",
   "Evidence identified\\.", "Auditor testability\\.", "Reliance notice\\.",
   "Deadline\\.", "Priority Matters:", "Scope of Assessment:",
+  // BATCH 18b (doc 113 S2.5) — doubles as the readiness-banner trigger.
+  "Readiness\\.",
 ];
 // BATCH 16 (R2): a chunk that consists SOLELY of a structural lead renders
 // as a sub-heading (doc 66 Rule 2 rewrite). Web sections already use h3, so
@@ -120,6 +122,10 @@ const H3_CHUNK_RE = new RegExp(
     // BATCH 18 (Wave C1): the biometric duty walk emits RCW pinpoint
     // headings ("RCW 19.375.020(1) — Enrolment notice"); keep synced.
     `|(?:RCW [\\d.()]{1,24}\\s+—\\s+[A-Z][^.\\n]{0,80}\\.?)` +
+    // BATCH 18b (doc 113 S2.15): instrument-anchored per-state/per-instrument
+    // heading — "California — Cal. Civ. Code § 1798.99.82", "European Union
+    // representative — GDPR Art. 27(1)". Anchored on both sides; keep synced.
+    `|(?:[A-Z][A-Za-z .()&'\\-]{1,48} — (?:Cal\\.|ORS |Tex\\.|\\d+ V\\.S\\.A\\.|GDPR |UK GDPR |Regulation \\(EU\\) )[^\\n]{0,60})` +
     `|(?:${HEAD_LEAD_LABELS.join("|")})` +
   `)$`,
 );
@@ -349,10 +355,19 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
                 const mutedPanel = !guidancePanel && trimmed.length <= 600 && /not yet assessable/i.test(trimmed);
                 const deadlineCallout = trimmed.startsWith("Deadline.") && !deadlineUsedRef.used;
                 if (deadlineCallout) deadlineUsedRef.used = true;
-                const conditionCallout = deadlineCallout ||
+                // BATCH 18b (doc 113 S2.5) — the IR readiness banner: a
+                // "Readiness." chunk takes the condition-callout box; amber
+                // when it carries the negative-state determination, the
+                // same geometry with the calm slate border otherwise. Keep
+                // in sync with generate-report-pdf/index.ts.
+                const readinessCallout = trimmed.startsWith("Readiness.");
+                const readinessNegative = readinessCallout && trimmed.includes("would not carry");
+                const conditionCallout = deadlineCallout || readinessNegative ||
                   /^(?:[A-Z]\.\s+[^.]+\.\s+)?Conditions? to Proceed\./.test(chunk.trim());
                 const calloutClass = conditionCallout
                   ? "rounded-md border-[1.5px] border-amber-600/70 bg-amber-50 px-3 py-2 dark:bg-amber-950/30"
+                  : readinessCallout
+                  ? "rounded-md border-[1.5px] border-slate-400/70 bg-slate-50 px-3 py-2 dark:bg-slate-900/30"
                   : guidancePanel
                   ? "border-l-4 border-slate-400 bg-slate-100 dark:bg-slate-900/40 px-3 py-2 text-[13px]"
                   : mutedPanel

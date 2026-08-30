@@ -146,7 +146,9 @@ Deno.test("R4 — a high-risk AI record gets the Art. 49 determination, not a pe
   const counts = computeDutyCounts(report);
   assertEquals(counts.corpus_pending, 0, "the Art. 49 question is determined now, not pending");
   const text = JSON.stringify(assembleRegistrationSkeletonDocument(report, intake));
-  assertStringIncludes(text, "EU AI Act registration.");
+  // RE-PIN BATCH 18b (doc 113 S2.16): the run-in label became the h3
+  // heading chunk "EU AI Act registration — <citation>".
+  assertStringIncludes(text, "EU AI Act registration — AI Act Art. 49(1)");
   assertStringIncludes(text, "rests on the provider or its authorised representative");
   assert(!text.includes("flagged below but not yet assessable"), "no pending clause for a determined question");
 });

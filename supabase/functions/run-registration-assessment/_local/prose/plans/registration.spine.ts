@@ -35,7 +35,7 @@
 //                   Authorities). Never printed unless the composer supplies
 //                   deterministic content for it.
 
-export const REGISTRATION_SKELETON_VERSION = "prose-plans-2026-08-30-leak-corpus-framing-repin";
+export const REGISTRATION_SKELETON_VERSION = "prose-plans-2026-08-30-c1-filing-calendar";
 export const REGISTRATION_SKELETON_SOURCE_FILE =
   "DPA_AI_Act_Registration_Assessment_Skeleton_v3.docx (Aug-10 governing copy, carrying the 428-D named-actor correction at paragraph 16)";
 export const REGISTRATION_SKELETON_PROVENANCE =
@@ -87,12 +87,17 @@ export const REGISTRATION_V3_BANNED_REGISTER: readonly string[] = [
   "as the record makes clear",
 ];
 
+// BATCH 18b (Wave C1, doc 113 S2.11) — "table" joins the union (biometric
+// Batch-18a precedent). Table blocks carry no fixed text; the tables are
+// built from the typed surfaces at assembly time and are honestly absent
+// when their rows are.
 export type RegistrationSkeletonBlockKind =
   | "skeleton"
   | "lead"
   | "generated"
   | "conditional"
-  | "rule";
+  | "rule"
+  | "table";
 
 export interface RegistrationSkeletonBlock {
   readonly kind: RegistrationSkeletonBlockKind;
@@ -121,7 +126,14 @@ export const REGISTRATION_SKELETON_SECTIONS: readonly RegistrationSkeletonSectio
     title: "I. Data Broker Registration",
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating whether data-broker registration duties attach and in which states." },
+      // BATCH 18b (doc 113 S2.12) — the Filing Calendar, the broker
+      // document's centerpiece, directly after the lead. Carries no fixed
+      // text; honestly absent when no registry determination exists.
+      { kind: "table", text: "registration_deliverables.determinations+schedules+filing_readiness (filing calendar)" },
       { kind: "conditional", text: "[CONDITIONAL] Trigger - broker activity recorded in {dataBrokerDetail}: each state's duty stated from its verified passage, with the company's position set beside it; where no broker activity is recorded, one honest sentence says that no such duty attaches on the company's answers." },
+      // BATCH 18b (doc 113 S2.14) — the combined definitional limb walk
+      // (State | Limb | Record | Met?), after the definition walk.
+      { kind: "table", text: "registration_deliverables.determinations[].threshold.limbs (limb walk)" },
       { kind: "generated", text: "[GENERATED] The per-jurisdiction analysis from the typed determinations; fees and deadlines appear only from registry rows." },
     ],
   },
@@ -131,6 +143,9 @@ export const REGISTRATION_SKELETON_SECTIONS: readonly RegistrationSkeletonSectio
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating the EU, UK and AI Act filing posture." },
       { kind: "generated", text: "[GENERATED] The determinations for each recorded establishment and market, in counsel's voice: representative duties, surviving notification duties, and AI Act provider or deployer registrations per the company's recorded AI answers; each duty from its verified passage; where the intake does not collect a fact a determination needs, the assessment says what is missing rather than assuming it." },
+      // BATCH 18b (doc 113 S2.16) — the Art. 37(1) branch walk as a table
+      // (Branch | Position on the record); renders at two or more rows.
+      { kind: "table", text: "registration_deliverables.dpo_determination.findings (Art. 37(1) branches)" },
     ],
   },
   {
@@ -139,6 +154,9 @@ export const REGISTRATION_SKELETON_SECTIONS: readonly RegistrationSkeletonSectio
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating what stands between the company's answers and complete filings." },
       { kind: "generated", text: "[GENERATED] The readiness findings: each open duty with the company's recorded state and what closes it, naming the specific responsible party the record supplies rather than an unnamed role (the 428-D named-actor law); the attestation from the typed block." },
+      // BATCH 18b (doc 113 S2.17) — the per-element readiness checklist
+      // (Jurisdiction | Required element | Recorded?), state names not codes.
+      { kind: "table", text: "registration_deliverables.filing_readiness[].items (readiness checklist)" },
     ],
   },
   {

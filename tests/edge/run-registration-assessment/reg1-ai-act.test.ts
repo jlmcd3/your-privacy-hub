@@ -155,7 +155,9 @@ Deno.test("REG-1: the determination renders as its own block with the verbatim s
   const built = build({ ai_high_risk: true });
   const report: Bag = { registration_deliverables: built, ...built };
   const text = JSON.stringify(assembleRegistrationSkeletonDocument(report, intake({ ai_high_risk: true })));
-  assertStringIncludes(text, "EU AI Act registration.");
+  // RE-PIN BATCH 18b (doc 113 S2.16): the run-in label became the h3
+  // heading chunk "EU AI Act registration — <citation>".
+  assertStringIncludes(text, "EU AI Act registration — AI Act Art. 49(1)");
   assertStringIncludes(text, "AI Act Art. 49(1)");
   // The verbatim standard from the approved corpus row renders in the findings line.
   assertStringIncludes(text, "Before placing on the market or putting into service a high-risk AI system listed in Annex III");

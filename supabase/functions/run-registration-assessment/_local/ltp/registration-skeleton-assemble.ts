@@ -45,6 +45,8 @@ import {
   verifySkeletonConformance,
   type ComposedBlocks,
   type RenderedSkeletonDocument,
+  type RenderedTable,
+  type SkeletonTables,
   type SlotValues,
 } from "../../../_shared/prose/skeleton-render.ts";
 import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
@@ -90,6 +92,12 @@ const stop = (t: string): string => (t ? (/[.!?]$/.test(t) ? t : `${t}.`) : "");
 // quote-period.
 const quoteEnd = (t: string): string => t.replace(/\s*[;:,.]+\s*$/, "");
 const isTrue = (v: unknown): boolean => v === true || s(v).toLowerCase() === "true";
+
+// BATCH 18b (Wave C1, welded-blocks class): repairRegister collapses runs of
+// whitespace, welding "\n"/"\n\n" seams INSIDE a block (heading chunks, quote
+// chunks, item lines). Repair per line so paragraph and line structure
+// survive (mirrors cyber/biometric/IR).
+const repairPreserving = (t: string): string => t.split("\n").map((l) => repairRegister(l)).join("\n");
 
 const count = (n: number, one: string, many: string): string =>
   n === 1 ? `one ${one}` : `${n} ${many}`;
@@ -287,6 +295,149 @@ export function computeDutyCounts(report: Bag): RegistrationDutyCounts {
   };
 }
 
+// ── Tables (BATCH 18b, Wave C1 — doc 113 S2.12/S2.14/S2.16/S2.17) ──────────
+// The tables this product exists for. NO-PADDING LAW: no rows, no table.
+
+/** Reader name for a readiness/schedule jurisdiction code: the typed
+ *  determination's own state_name first, then the slotmap label, then the
+ *  code itself (doc 113 S2.17 — no "US-CA." customer-facing codes). */
+function stateLabelFor(report: Bag, code: string): string {
+  const det = determinations(report).find((d) => s(d.jurisdiction) === code);
+  if (det && s(det.state_name)) return s(det.state_name);
+  return REGISTRATION_JURISDICTION_LABELS[code] ?? code;
+}
+
+// Doc 109 §C Filing Calendar (lines 1499–1504) — the panel's own drafted
+// deadline/cycle digests, ratified via doc 111; fixed per-registry constants.
+// The verbatim statutory window still prints once, quoted, in the per-state
+// analysis with its citation (doc 113 S2.13).
+const REGISTRY_CYCLE_DIGEST: Record<string, string> = {
+  "US-CA": "On or before Jan 31 following each qualifying year",
+  "US-OR": "Before collecting or selling in-state; valid to Dec 31 of the approval year",
+  "US-TX": "Before conducting business; the certificate expires on the first anniversary of issuance",
+  "US-VT": "Annually, on or before Jan 31",
+};
+
+function deriveFilingCalendarTable(report: Bag): RenderedTable | null {
+  const dets = determinations(report);
+  if (!dets.length) return null;
+  const scheduleFor = new Map<string, Bag>();
+  for (const sch of schedules(report)) scheduleFor.set(s(sch.jurisdiction), sch);
+  const readinessFor = new Map<string, Bag>();
+  for (const f of readiness(report)) readinessFor.set(s(f.jurisdiction), f);
+
+  const rows: string[][] = [];
+  for (const d of dets) {
+    const code = s(d.jurisdiction);
+    const sch = scheduleFor.get(code);
+    const requirement = (d.requirement ?? {}) as Bag;
+    const citations = [s(requirement.citation), s(sch?.window_citation), s(sch?.fee_citation)]
+      .filter(Boolean)
+      .filter((c, i, all) => all.indexOf(c) === i)
+      .join("; ");
+    const fee = s(sch?.fee_stated_amount) ||
+      (sch && s(sch.fee_standard) ? "Set by the administering body" : "—");
+    const verdict = s(d.verdict);
+    let status: string;
+    if (verdict === "registrable") {
+      const f = readinessFor.get(code);
+      if (f && f.ready_to_file === true) status = "Ready on its face";
+      else if (f) {
+        // Cells carry numerals (data column, panel row style): "Open — 2
+        // content elements outstanding".
+        const open = asArray(f.items).filter((i) => i.ready !== true).length;
+        status = open > 0 ? `Open — ${open} content ${open === 1 ? "element" : "elements"} outstanding` : "Open";
+      } else status = "Open";
+    } else if (verdict === "not_registrable") {
+      status = "No duty on the company's answers";
+    } else if (verdict === "conditional") {
+      status = "Turns on the claimed exclusion";
+    } else {
+      status = "Reserved — facts outstanding";
+    }
+    const fileWith = s(d.filing_body).replace(/^the\s+/i, "");
+    rows.push([
+      stateName(d),
+      fileWith ? fileWith.charAt(0).toUpperCase() + fileWith.slice(1) : "—",
+      REGISTRY_CYCLE_DIGEST[code] ?? "As the statute provides",
+      fee,
+      citations || "—",
+      status,
+    ]);
+  }
+  if (!rows.length) return null;
+  return {
+    key: "",
+    surface: "registration_deliverables.determinations+schedules+filing_readiness",
+    title: "Filing calendar",
+    columns: ["State", "File with", "Deadline / cycle", "Fee", "Authority", "Status"],
+    rows,
+    note: "Deadlines and fees are stated from the registry rows; the operative filing date for this organisation is fixed by counsel.",
+  };
+}
+
+function deriveLimbWalkTable(report: Bag): RenderedTable | null {
+  const rows: string[][] = [];
+  for (const d of determinations(report)) {
+    const threshold = (d.threshold ?? {}) as Bag;
+    for (const l of asArray(threshold.limbs)) {
+      const limb = s(l.limb);
+      if (!limb) continue;
+      const met = l.met === true ? "Met" : l.met === false ? "Not met" : "Not recorded";
+      rows.push([stateName(d), limb, s(l.record_fact) || "—", met]);
+    }
+  }
+  if (!rows.length) return null;
+  return {
+    key: "",
+    surface: "registration_deliverables.determinations[].threshold.limbs",
+    title: "Definitional limbs",
+    columns: ["State", "Limb", "Record", "Met?"],
+    rows,
+    note: "Each state's limbs are its own statute's; the sets deliberately differ.",
+  };
+}
+
+function deriveArt37BranchTable(report: Bag): RenderedTable | null {
+  const dpo = (deliverables(report).dpo_determination ?? {}) as Bag;
+  const rows: string[][] = [];
+  for (const f of asArray(dpo.findings)) {
+    const citation = s(f.citation);
+    const application = s(f.application);
+    if (!citation || !application) continue;
+    rows.push([citation, stop(noStop(firstSentence(application)))]);
+  }
+  // One-row rule (doc 109 §1.4): a single branch stays in the prose.
+  if (rows.length < 2) return null;
+  return {
+    key: "",
+    surface: "registration_deliverables.dpo_determination.findings",
+    title: "Article 37(1) branches",
+    columns: ["Branch", "Position on the record"],
+    rows,
+  };
+}
+
+function deriveReadinessChecklistTable(report: Bag): RenderedTable | null {
+  const rows: string[][] = [];
+  for (const r of readiness(report)) {
+    const label = stateLabelFor(report, s(r.jurisdiction));
+    for (const i of asArray(r.items)) {
+      const item = noStop(s(i.item));
+      if (!item) continue;
+      rows.push([label, item, i.ready === true ? "Yes" : "No — outstanding"]);
+    }
+  }
+  if (!rows.length) return null;
+  return {
+    key: "",
+    surface: "registration_deliverables.filing_readiness[].items",
+    title: "Filing content checklist",
+    columns: ["Jurisdiction", "Required element", "Recorded?"],
+    rows,
+  };
+}
+
 // ── Composed blocks ─────────────────────────────────────────────────────────
 
 /** Executive lead — duties attached vs satisfied, straight from the counts. */
@@ -460,15 +611,22 @@ function composeBrokerConditional(report: Bag, intake: Bag, org: string): string
     const threshold = (d.threshold ?? {}) as Bag;
     const standard = s(threshold.standard);
     if (!standard) continue;
-    const bits: string[] = [`${stateName(d)}.`];
-    bits.push(`Its own definition provides: "${quoteEnd(standard)}."`);
+    // BATCH 18b (doc 113 S2.15/S2.16) — each state opens with an h3-shaped
+    // heading chunk ("California — Cal. Civ. Code § 1798.99.82"); the
+    // definition quote is its own chunk (statute-quote styling); the record
+    // walk follows as its own paragraph. A multi-row standard (Texas) keeps
+    // its internal break inside the one quote chunk.
+    const headCite = s(threshold.citation).split(";")[0].trim();
+    const heading = headCite ? `${stateName(d)} — ${headCite}` : `${stateName(d)}.`;
+    const quote = `Its own definition provides: "${quoteEnd(standard).replace(/\n{2,}/g, "\n")}."`;
+    const bits: string[] = [];
     const fact = s(threshold.record_fact);
     if (fact) bits.push(stop(noStop(firstSentences(fact, 2))));
     const application = s(threshold.application);
     if (application) bits.push(stop(noStop(firstSentences(application, 2))));
     const exclusion = s(threshold.exclusion_analysis);
     if (exclusion) bits.push(stop(noStop(firstSentence(exclusion))));
-    blocks.push(bits.join(" "));
+    blocks.push([heading, quote, bits.join(" ")].filter(Boolean).join("\n\n"));
   }
 
   // FD703575-R2 (2026-08-27, live batch fd703575) — HONEST-POSTURE PARITY
@@ -493,7 +651,7 @@ function composeBrokerConditional(report: Bag, intake: Bag, org: string): string
   // BATCH 17 (Wave C2, welded-blocks class): repairRegister collapses
   // runs of whitespace, welding the paragraph seams (the attestation
   // glued onto the preceding block); repair per block, then rejoin.
-  return blocks.map(repairRegister).join("\n\n");
+  return blocks.map(repairPreserving).join("\n\n");
 }
 
 // D1D2B3B8-R5 (2026-08-28) — the same honest-posture parity for a named
@@ -530,41 +688,65 @@ function composeBrokerAnalysis(report: Bag): string {
 
   const blocks: string[] = [];
   for (const d of dets) {
-    const bits: string[] = [`${stateName(d)}.`];
+    // BATCH 18b (doc 113 S2.15/S2.13) — h3-shaped heading chunk per state;
+    // each verbatim provision prints ONCE per state block — where the
+    // statute states duty, timing and fee in one sentence (VT, TX; CA's
+    // window rides its requirement provision), it is quoted once and cited
+    // for each role (kills the doc-109 Vermont ×3 / Texas ×2 / CA ×2 walls).
+    const requirement = (d.requirement ?? {}) as Bag;
+    const reqCite = s(requirement.citation);
+    const heading = reqCite ? `${stateName(d)} — ${reqCite}` : `${stateName(d)}.`;
+    const bits: string[] = [];
     const headline = s(d.headline);
     if (headline) bits.push(stop(noStop(headline)));
     const reasoning = s(d.reasoning);
     if (reasoning) bits.push(stop(noStop(firstSentences(reasoning, 3))));
-    const requirement = (d.requirement ?? {}) as Bag;
+    const quoted: string[] = [];
+    const quoteBits: string[] = [];
     const reqStandard = s(requirement.standard);
-    if (reqStandard) bits.push(`The filing duty is stated as: "${noStop(reqStandard)}."`);
+    if (reqStandard) {
+      quoteBits.push(`The filing duty is stated as: "${quoteEnd(reqStandard).replace(/\n{2,}/g, "\n")}."`);
+      quoted.push(reqStandard);
+    }
+    const tailBits: string[] = [];
     const filingBody = s(d.filing_body);
-    if (filingBody) bits.push(stop(`The filing is made to ${filingBody}`));
+    if (filingBody) tailBits.push(stop(`The filing is made to ${filingBody}`));
 
     // Fees and deadlines: registry rows only. No date is computed here.
     const sch = scheduleFor.get(s(d.jurisdiction));
     if (sch) {
       const window = s(sch.window_standard);
       const windowCite = s(sch.window_citation);
-      if (window) {
-        bits.push(`On timing, ${windowCite ? `${windowCite} provides` : "the statute provides"}: "${noStop(window)}."`);
+      if (window && quoted.includes(window)) {
+        tailBits.push(stop(`The timing is fixed by the same provision${windowCite ? `, ${windowCite}` : ""}, quoted above`));
+      } else if (window) {
+        quoteBits.push(`On timing, ${windowCite ? `${windowCite} provides` : "the statute provides"}: "${quoteEnd(window).replace(/\n{2,}/g, "\n")}."`);
+        quoted.push(window);
       }
       const fee = s(sch.fee_standard);
       const feeCite = s(sch.fee_citation);
-      if (fee) {
-        bits.push(`On the fee, ${feeCite ? `${feeCite} provides` : "the statute provides"}: "${noStop(fee)}."`);
+      const feeAmount = s(sch.fee_stated_amount);
+      if (fee && quoted.includes(fee)) {
+        tailBits.push(stop(`The fee is fixed by the same provision${feeCite ? `, ${feeCite}` : ""}${feeAmount ? ` — ${feeAmount} on its face` : ""}`));
+      } else if (fee) {
+        quoteBits.push(`On the fee, ${feeCite ? `${feeCite} provides` : "the statute provides"}: "${quoteEnd(fee).replace(/\n{2,}/g, "\n")}."`);
+        quoted.push(fee);
       }
     }
     const open = strList(d.open_questions);
     if (open.length) {
-      bits.push(stop(`What would settle the remaining question is ${asProse(open.map((q) => noStop(lowerEnumLabel(q))))}`));
+      tailBits.push(stop(`What would settle the remaining question is ${asProse(open.map((q) => noStop(lowerEnumLabel(q))))}`));
     }
-    blocks.push(bits.join(" "));
+    blocks.push(
+      [heading, bits.join(" "), ...quoteBits, tailBits.join(" ")]
+        .filter(Boolean)
+        .join("\n\n"),
+    );
   }
   // BATCH 17 (Wave C2, welded-blocks class): repairRegister collapses
   // runs of whitespace, welding the paragraph seams (the attestation
   // glued onto the preceding block); repair per block, then rejoin.
-  return blocks.map(repairRegister).join("\n\n");
+  return blocks.map(repairPreserving).join("\n\n");
 }
 
 /** Section II lead — the EU, UK and AI Act posture in one sentence. */
@@ -603,18 +785,31 @@ function composeSupervisoryLead(report: Bag, org: string): string {
 function composeSupervisoryAnalysis(report: Bag): string {
   const blocks: string[] = [];
   for (const r of representatives(report)) {
-    const bits: string[] = [`${s(r.jurisdiction) === "UK" ? "United Kingdom" : "European Union"} representative.`];
+    // BATCH 18b (doc 113 S2.15/S2.16) — heading chunk / statute-quote chunk
+    // / record+application paragraph / exemption+what-is-missing paragraph.
+    // Sentence bytes unchanged; seams only. This is the split that retires
+    // the 464-word §II wall (doc 109 Document 4, offense #1).
+    const instrument = `${s(r.jurisdiction) === "UK" ? "United Kingdom" : "European Union"} representative`;
+    const heading = s(r.citation) ? `${instrument} — ${s(r.citation)}` : `${instrument}.`;
     const standard = s(r.standard);
-    if (standard) bits.push(`${s(r.citation) || "The governing article"} provides: "${quoteEnd(standard)}."`);
+    const quote = standard
+      ? `${s(r.citation) || "The governing article"} provides: "${quoteEnd(standard).replace(/\n{2,}/g, "\n")}."`
+      : "";
+    const walkBits: string[] = [];
     const fact = s(r.record_fact);
-    if (fact) bits.push(stop(noStop(firstSentences(fact, 2))));
+    if (fact) walkBits.push(stop(noStop(firstSentences(fact, 2))));
     const application = s(r.application);
-    if (application) bits.push(stop(noStop(firstSentences(application, 2))));
+    if (application) walkBits.push(stop(noStop(firstSentences(application, 2))));
+    const closeBits: string[] = [];
     const exemption = s(r.exemption_analysis);
-    if (exemption) bits.push(stop(noStop(firstSentences(exemption, 2))));
+    if (exemption) closeBits.push(stop(noStop(firstSentences(exemption, 2))));
     const needed = s(r.information_needed);
-    if (needed) bits.push(stop(`What is missing is ${noStop(lowerEnumLabel(needed))}`));
-    blocks.push(bits.join(" "));
+    if (needed) closeBits.push(stop(`What is missing is ${noStop(lowerEnumLabel(needed))}`));
+    blocks.push(
+      [heading, quote, walkBits.join(" "), closeBits.join(" ")]
+        .filter(Boolean)
+        .join("\n\n"),
+    );
   }
 
   const combined = s(deliverables(report).combined_representative_callout);
@@ -624,21 +819,32 @@ function composeSupervisoryAnalysis(report: Bag): string {
 
   const dpo = (deliverables(report).dpo_determination ?? {}) as Bag;
   if (s(dpo.headline) || asArray(dpo.findings).length) {
-    const bits: string[] = ["Data protection officer."];
+    // BATCH 18b (doc 113 S2.16) — heading chunk + determination paragraph;
+    // the per-branch quote walk keeps one line per branch, and the branch
+    // POSITIONS also render in the Article 37(1) branch table below.
+    const dpoFindings = asArray(dpo.findings);
+    const dpoCite = s((dpoFindings[0] ?? {}).citation);
+    const heading = dpoCite ? `Data protection officer — ${dpoCite}` : "Data protection officer.";
+    const bits: string[] = [];
     if (s(dpo.headline)) bits.push(stop(noStop(s(dpo.headline))));
     if (s(dpo.reasoning)) bits.push(stop(noStop(firstSentences(s(dpo.reasoning), 3))));
     // 3E9AD759-R2 — the closing act rides its own field; the reasoning
     // sentence budget above cannot truncate it.
     if (s(dpo.closing_act)) bits.push(stop(noStop(s(dpo.closing_act))));
-    for (const f of asArray(dpo.findings)) {
+    const branchLines: string[] = [];
+    for (const f of dpoFindings) {
       const standard = s(f.standard);
       const application = s(f.application);
       if (!standard && !application) continue;
-      bits.push(
+      branchLines.push(
         `${s(f.citation) || "The branch"}: ${standard ? `"${quoteEnd(standard)}." ` : ""}${application ? stop(noStop(firstSentence(application))) : ""}`.trim(),
       );
     }
-    blocks.push(bits.join(" "));
+    blocks.push(
+      [heading, bits.join(" "), branchLines.join("\n")]
+        .filter(Boolean)
+        .join("\n\n"),
+    );
   }
 
   // REG-1 (doc 106, 2026-08-29) — the EU AI Act registration determination.
@@ -647,19 +853,28 @@ function composeSupervisoryAnalysis(report: Bag): string {
   // per-branch findings.
   const aiAct = (deliverables(report).ai_act_registration ?? {}) as Bag;
   if (s(aiAct.headline) || asArray(aiAct.findings).length) {
-    const bits: string[] = ["EU AI Act registration."];
+    // BATCH 18b (doc 113 S2.16) — same split as the DPO block.
+    const aiFindings = asArray(aiAct.findings);
+    const aiCite = s((aiFindings[0] ?? {}).citation);
+    const heading = aiCite ? `EU AI Act registration — ${aiCite}` : "EU AI Act registration.";
+    const bits: string[] = [];
     if (s(aiAct.headline)) bits.push(stop(noStop(s(aiAct.headline))));
     if (s(aiAct.reasoning)) bits.push(stop(noStop(firstSentences(s(aiAct.reasoning), 4))));
     if (s(aiAct.closing_act)) bits.push(stop(noStop(s(aiAct.closing_act))));
-    for (const f of asArray(aiAct.findings)) {
+    const branchLines: string[] = [];
+    for (const f of aiFindings) {
       const standard = s(f.standard);
       const application = s(f.application);
       if (!standard && !application) continue;
-      bits.push(
+      branchLines.push(
         `${s(f.citation) || "The branch"}: ${standard ? `"${quoteEnd(standard)}." ` : ""}${application ? stop(noStop(firstSentence(application))) : ""}`.trim(),
       );
     }
-    blocks.push(bits.join(" "));
+    blocks.push(
+      [heading, bits.join(" "), branchLines.join("\n")]
+        .filter(Boolean)
+        .join("\n\n"),
+    );
   }
 
   for (const cp of asArray(deliverables(report).corpus_pending)) {
@@ -675,7 +890,7 @@ function composeSupervisoryAnalysis(report: Bag): string {
   // BATCH 17 (Wave C2, welded-blocks class): repairRegister collapses
   // runs of whitespace, welding the paragraph seams (the attestation
   // glued onto the preceding block); repair per block, then rejoin.
-  return blocks.map(repairRegister).join("\n\n");
+  return blocks.map(repairPreserving).join("\n\n");
 }
 
 /** Section III lead — what stands between the answers and complete filings. */
@@ -724,34 +939,33 @@ function composeReadinessBody(report: Bag, intake: Bag): string {
     : "";
 
   for (const r of readiness(report)) {
-    const bits: string[] = [`${s(r.jurisdiction) || "The jurisdiction"}.`];
-    const standard = s(r.standard);
-    if (standard) bits.push(`${s(r.citation) ? `${s(r.citation)} requires` : "The filing must contain"}: "${quoteEnd(standard)}."`);
+    // BATCH 18b (doc 113 S2.17) — the jurisdiction opens with its state name
+    // (never a US-CA code) as an h3-shaped heading with its citation; the
+    // per-element status lines move to the Filing content checklist table
+    // below; the prose keeps the quote and the what-closes-it sentence
+    // naming the responsible party (the 428-D named-actor law).
+    const label = stateLabelFor(report, s(r.jurisdiction)) || "The jurisdiction";
+    const heading = s(r.citation) ? `${label} — ${s(r.citation)}` : `${label}.`;
+    const quote = s(r.standard)
+      ? `${s(r.citation) ? `${s(r.citation)} requires` : "The filing must contain"}: "${quoteEnd(s(r.standard)).replace(/\n{2,}/g, "\n")}."`
+      : "";
+    const bits: string[] = [];
     const summary = s(r.summary);
     if (summary) bits.push(stop(noStop(firstSentences(summary, 2))));
     const open = asArray(r.items).filter((i) => i.ready !== true);
     if (open.length) {
-      const lines = open
-        .map((i) => {
-          const item = noStop(s(i.item));
-          const fact = noStop(s(i.record_fact));
-          if (!item) return "";
-          return `${item}${fact ? ` - ${lowerEnumLabel(fact)}` : ""}.`;
-        })
-        .filter(Boolean);
       bits.push(
         stop(
           actor
-            ? `What closes ${open.length === 1 ? "it" : "these"} is the content below, which ${actor} is the party the company has named to supply`
-            : `What closes ${open.length === 1 ? "it" : "these"} is the content below; the company has not named the party responsible for supplying it`,
+            ? `What closes ${open.length === 1 ? "it" : "these"} is the outstanding content in the checklist below, which ${actor} is the party the company has named to supply`
+            : `What closes ${open.length === 1 ? "it" : "these"} is the outstanding content in the checklist below; the company has not named the party responsible for supplying it`,
         ),
       );
-      blocks.push([bits.join(" "), ...lines].join("\n"));
-      continue;
+    } else {
+      const needed = s(r.information_needed);
+      if (needed) bits.push(stop(`What is missing is ${noStop(lowerEnumLabel(needed))}`));
     }
-    const needed = s(r.information_needed);
-    if (needed) bits.push(stop(`What is missing is ${noStop(lowerEnumLabel(needed))}`));
-    blocks.push(bits.join(" "));
+    blocks.push([heading, quote, bits.join(" ")].filter(Boolean).join("\n\n"));
   }
 
   const att = (deliverables(report).attestation ?? {}) as Bag;
@@ -772,14 +986,25 @@ function composeReadinessBody(report: Bag, intake: Bag): string {
       bits.push(stop(`An earlier review is required on ${asProse(triggers.map((t) => noStop(lowerEnumLabel(t))))}`));
     }
     if (s(att.information_needed)) {
-      bits.push(stop(`What the attestation still needs is ${noStop(lowerEnumLabel(s(att.information_needed)))}`));
+      // BATCH 18b (doc 113 S2.18, doc 109 §1.8 item 11) — the typed value is
+      // a full drafted sentence ("To complete this block the record must
+      // state …"); jamming it into the fragment wrapper shipped the garbled
+      // seam "What the attestation still needs is to complete this block the
+      // record must state…" in all three published samples. A sentence-
+      // shaped value renders verbatim; the wrapper serves fragments only.
+      const needText = s(att.information_needed);
+      bits.push(
+        /^To complete this block/i.test(needText)
+          ? stop(noStop(needText))
+          : stop(`What the attestation still needs is ${noStop(lowerEnumLabel(needText))}`),
+      );
     }
     blocks.push(bits.join(" "));
   }
   // BATCH 17 (Wave C2, welded-blocks class): repairRegister collapses
   // runs of whitespace, welding the paragraph seams (the attestation
   // glued onto the preceding block); repair per block, then rejoin.
-  return blocks.map(repairRegister).join("\n\n");
+  return blocks.map(repairPreserving).join("\n\n");
 }
 
 // ── Table of Authorities ────────────────────────────────────────────────────
@@ -865,6 +1090,10 @@ export function assembleRegistrationSkeletonDocument(
   const execLead = composeExecLead(counts, org);
   const brokerLead = composeBrokerLead(report, intake, counts, org);
 
+  // BATCH 18b (doc 113 S2.11) — §I's pinned blocks re-indexed around the
+  // inserted table blocks (lead / calendar / conditional / limbs / analysis);
+  // §II and §III append their tables after the existing blocks. Keys track
+  // registration.spine.ts block positions.
   const composed: ComposedBlocks = {
     "executive_summary:0": execLead,
     // BYTE-PINNED corpus-only framing sentence, printed verbatim, marker removed.
@@ -872,14 +1101,23 @@ export function assembleRegistrationSkeletonDocument(
     "executive_summary:3": composeExecPosture(report, counts, org),
 
     "data_broker_registration:0": brokerLead,
-    "data_broker_registration:1": composeBrokerConditional(report, intake, org),
-    "data_broker_registration:2": composeBrokerAnalysis(report),
+    "data_broker_registration:2": composeBrokerConditional(report, intake, org),
+    "data_broker_registration:4": composeBrokerAnalysis(report),
 
     "supervisory_and_ai_act:0": composeSupervisoryLead(report, org),
     "supervisory_and_ai_act:1": composeSupervisoryAnalysis(report),
 
     "filing_readiness:0": composeReadinessLead(report, counts, org),
     "filing_readiness:1": composeReadinessBody(report, intake),
+  };
+
+  // BATCH 18b (doc 113 S2.12/S2.14/S2.16/S2.17) — the tables, keyed to
+  // their spine blocks. Each is honestly absent (null) when its rows are.
+  const tables: SkeletonTables = {
+    "data_broker_registration:1": deriveFilingCalendarTable(report),
+    "data_broker_registration:3": deriveLimbWalkTable(report),
+    "supervisory_and_ai_act:2": deriveArt37BranchTable(report),
+    "filing_readiness:2": deriveReadinessChecklistTable(report),
   };
 
   const draft = renderSkeletonDocument({
@@ -889,6 +1127,7 @@ export function assembleRegistrationSkeletonDocument(
     spineVersion: REGISTRATION_SKELETON_VERSION,
     values,
     composed,
+    tables,
   });
 
   const toa = registrationToa(report, skeletonDocumentToText(draft));
@@ -900,6 +1139,7 @@ export function assembleRegistrationSkeletonDocument(
     spineVersion: REGISTRATION_SKELETON_VERSION,
     values,
     composed: { ...composed, "table_of_authorities:0": toa },
+    tables,
   });
 
   const body = skeletonDocumentToText(document).toLowerCase();
