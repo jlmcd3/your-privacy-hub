@@ -11,7 +11,7 @@
 //            three table cells;
 //   RISK-P3  (D9) cover disposition title-cased to "Do not Proceed";
 //            the exec summary printed the full four-column risk ledger
-//            byte-identical to § IV.A.
+//            byte-identical to § 4.A.
 //
 // Determination LOGIC is untouched throughout — these are sentence-family
 // and projection fixes over the same typed verdicts.
@@ -136,7 +136,7 @@ Deno.test("RISK-P3: the cover disposition is sentence-cased", () => {
   assertEquals(table2?.rows.find((r) => r[0] === "Assessment disposition")?.[1], "Proceed with conditions");
 });
 
-Deno.test("RISK-P3: the exec ledger is the compression; § IV.A keeps the full four columns", () => {
+Deno.test("RISK-P3: the exec ledger is the compression; § 4.A keeps the full four columns", () => {
   const r = engineOn({});
   const exec = r.tables["executive_summary:5"];
   const full = r.tables["iv_determination:1"];

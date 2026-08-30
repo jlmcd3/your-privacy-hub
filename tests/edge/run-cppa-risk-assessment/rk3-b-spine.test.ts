@@ -2,7 +2,7 @@
 //
 // Pins the v5.2 encode: section structure, rendering behaviour over both
 // CPPA_RISK_PERFECT fixtures (skeleton + slots + generated blocks + tables),
-// the ADMT gate (§ III.E and Appendix F carry a not-applicable record for
+// the ADMT gate (§ 3.E and Appendix F carry a not-applicable record for
 // the non-ADMT fixture), and the deterministic DERIVED builders.
 //
 // Engine invocation matches the RK0.5 harness: deterministic Pass-1,
@@ -50,8 +50,8 @@ Deno.test("v5.2 — spine version is the 2026-08-26 memorandum encode", () => {
 });
 
 Deno.test("v5.2 — section ids, in document order", () => {
-  // The memorandum structure: Exec Summary → I. Method → II. Information →
-  // III. Analysis → IV. Balance/Determination → V. Governance → signature
+  // The memorandum structure: Exec Summary → 1. Method → 2. Information →
+  // 3. Analysis → 4. Balance/Determination → 5. Governance → signature
   // pages → Appendices A–H. Appendix section ids are CARRIED from the v4.x
   // encode (the PDF renderer page-breaks on "table_of_authorities", and the
   // corpus wiring keys on "appendix_i").
@@ -162,13 +162,13 @@ for (const c of CPPA_RISK_PERFECT) {
       }
     });
 
-    await t.step("ADMT gate — § III.E and Appendix F carry full content iff ADMT, a not-applicable record otherwise", () => {
+    await t.step("ADMT gate — § 3.E and Appendix F carry full content iff ADMT, a not-applicable record otherwise", () => {
       if (isAdmt) {
-        assert(body.includes("E. Automated Decisionmaking Technology. Section 7152(a)(3)(G)"), "ADMT § III.E intro absent on ADMT fixture");
+        assert(body.includes("E. Automated Decisionmaking Technology. Section 7152(a)(3)(G)"), "ADMT § 3.E intro absent on ADMT fixture");
       } else {
         assert(
           body.includes("does not identify automated decisionmaking technology"),
-          "non-ADMT § III.E not-applicable record absent",
+          "non-ADMT § 3.E not-applicable record absent",
         );
         assert(body.includes("no ADMT technical and decision record is required"), "non-ADMT Appendix F placeholder absent");
         assert(!body.includes("It classifies the system as"), "non-ADMT body leaks ADMT prose");
@@ -189,29 +189,29 @@ for (const c of CPPA_RISK_PERFECT) {
         "A. Activity Assessed.",
         "B. Why a Risk Assessment Is Required.",
         "C. The Balancing Test.",
-        "I. How This Assessment Decides",
+        "1. How This Assessment Decides",
         "A. The Question.",
         // RE-PIN PANEL LEAK-1 (2026-08-30): EUP expanded at first use.
         "B. The EndUserPrivacy (EUP) Decision Logic.",
         "Step 1 — Triggers.",
         "Step 5 — The balance.",
         "C. Qualitative Refinement.",
-        "II. The Information Provided",
+        "2. The Information Provided",
         "A. Purpose and Scope.",
         "B. How the Processing Operates.",
         "F. Recipients and Disclosures.",
         "G. Retention.",
-        "III. Analysis",
+        "3. Analysis",
         "A. The Triggers, Applied.",
         "B. Necessity and Minimization.",
         "D. Practical Consumer Control.",
         "F. Benefits.",
-        "IV. The Balance and the Determination",
+        "4. The Balance and the Determination",
         "A. The Risk Ledger.",
         "B. What Weighs For, and What Weighs Against.",
         "C. The Determination.",
         "D. Conditions, Follow-Ups, and Recommendations.",
-        "V. Governance, Review, and Submission",
+        "5. Governance, Review, and Submission",
         "D. Retention of the Assessment Record.",
         "E. CPPA Submission Support (§ 7157).",
       ]) {
@@ -245,7 +245,7 @@ for (const c of CPPA_RISK_PERFECT) {
       assert(body.includes("Privacy risk | Before safeguards | Safeguard credited (status) | Remaining"), "risk ledger columns absent");
       assert(body.includes("Benefits established (weight) | Risks remaining (level)"), "balance summary columns absent");
       // PANEL RISK-P3 (2026-08-30): the exec summary carries the compressed
-      // two-column ledger; the four-column table prints once, in § IV.A.
+      // two-column ledger; the four-column table prints once, in § 4.A.
       assert(body.includes("Privacy risk | Remaining risk"), "compressed exec ledger columns absent");
       const fullHeaderCount = body.split("Privacy risk | Before safeguards | Safeguard credited (status) | Remaining").length - 1;
       assert(fullHeaderCount === 1, `full ledger header must print exactly once, saw ${fullHeaderCount}`);

@@ -8,10 +8,10 @@
 // tracked-changes redline of v5.0 with the earlier message rulings:
 //
 //   * MEMORANDUM STRUCTURE — Exec Summary (A–D, hard 1.5-page budget) →
-//     I. How This Assessment Decides (ultra-terse method: five WHAT-not-HOW
-//     steps) → II. The Information Provided → III. Analysis →
-//     IV. The Balance and the Determination (ledger + T1 paragraphs +
-//     fact-specific balance summary) → V. Governance → signature pages →
+//     1. How This Assessment Decides (ultra-terse method: five WHAT-not-HOW
+//     steps) → 2. The Information Provided → 3. Analysis →
+//     4. The Balance and the Determination (ledger + T1 paragraphs +
+//     fact-specific balance summary) → 5. Governance → signature pages →
 //     Appendices A–H.
 //   * REGISTER — "on the information provided" / "the information the
 //     Company provided" / "the Company's submission"; the "on the record /
@@ -112,11 +112,11 @@ export const RISK52_FIXED = {
   // PANEL RISK-P3 (2026-08-30): rewritten alongside the exec ledger's
   // compression — the old sentence promised the four-column ledger ("its
   // level before safeguards, the safeguard credited against it") that now
-  // prints only in § IV.A.
+  // prints only in § 4.A.
   exec_ledger_intro:
-    "Section I describes how this assessment reaches its conclusions; the table below summarises the result of applying it to the information provided by the Company — each identified risk and the risk that remains after the credited safeguards. The full ledger, including each risk’s level before safeguards and the safeguard credited against it, appears in § IV.A:",
+    "Section 1 describes how this assessment reaches its conclusions; the table below summarises the result of applying it to the information provided by the Company — each identified risk and the risk that remains after the credited safeguards. The full ledger, including each risk’s level before safeguards and the safeguard credited against it, appears in § 4.A:",
   exec_determination_pointer:
-    "The reasoning behind each row, and the determination it produces, appear in Section IV.",
+    "The reasoning behind each row, and the determination it produces, appear in Section 4.",
   exec_outcome_head: "D. Outcome and Conditions.",
   conditions_compact_none: "No conditions attach to the determination.",
 
@@ -169,7 +169,7 @@ export const RISK52_FIXED = {
 
 /**
  * Legacy v4.x conditional-prose constants, retained for provenance and for
- * the carried Section V compositions that still read them. Superseded fields
+ * the carried Section 5 compositions that still read them. Superseded fields
  * are unused by the v5.2 assembly but keep their ratified bytes on file.
  */
 export const RISK_FIXED = RISK52_FIXED;
@@ -218,7 +218,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       { kind: "skeleton", text: "C. The Balancing Test. Where a trigger is engaged, 11 CCR §§ 7152 and 7154 require the Company to evaluate whether the privacy risks the Activity creates for consumers outweigh its benefits to the consumer, the business, other stakeholders, and the public, once safeguards are taken into account." },
       // 4 — ledger intro (conditional: composed iff the ledger renders).
       { kind: "conditional", text: "[CONDITIONAL] EXEC LEDGER INTRO - RISK52_FIXED.exec_ledger_intro; trigger: at least one identified risk. Absent => omitted." },
-      // 5 — the compact ledger (same derivation as § IV.A's full ledger).
+      // 5 — the compact ledger (same derivation as § 4.A's full ledger).
       { kind: "table", text: "exec_ledger" },
       // 6 — benefit strip: one sentence.
       { kind: "generated", text: "[GENERATED benefit_strip] One sentence: strongest benefit tier + category + how many of the four categories are supported by specific information." },
@@ -230,7 +230,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       { kind: "generated", text: "[GENERATED recommended_outcome] RISK52_FIXED.exec_outcome_head + the ratified recommended-outcome sentence." },
       // 9 — compact conditions line (n + short labels) or the no-conditions
       // sentence.
-      { kind: "generated", text: "[GENERATED conditions_compact] 'The determination depends on {n} Conditions to Proceed: {short labels}. The full conditions, follow-ups, and recommendations appear in § IV.D.' / RISK52_FIXED.conditions_compact_none." },
+      { kind: "generated", text: "[GENERATED conditions_compact] 'The determination depends on {n} Conditions to Proceed: {short labels}. The full conditions, follow-ups, and recommendations appear in § 4.D.' / RISK52_FIXED.conditions_compact_none." },
       // 10 — the appendix-purpose closer (CEO instruction).
       { kind: "skeleton", text: "The appendices to this report preserve the complete supporting record behind this summary — the data inventory, the element-level necessity review, the full risk and safeguard register, the automated-decisionmaking technical record, and the authorities relied on — so that any conclusion in this report can be traced to its source without lengthening the analysis itself." },
     ],
@@ -240,7 +240,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     // Entirely fixed, well under half a page: each step states WHAT is done
     // in one sentence, never HOW (no crediting or weighing principles — the
     // per-risk and per-benefit paragraphs carry the reasoning case by case).
-    title: "I. How This Assessment Decides",
+    title: "1. How This Assessment Decides",
     blocks: [
       // 0
       { kind: "skeleton", text: "A. The Question. Sections 7152 and 7154 of 11 CCR frame a single question: do the privacy risks that this processing creates for consumers outweigh the benefits it produces for the consumer, the business, other stakeholders, and the public, once safeguards are taken into account? Section 7154 states the consequence directly: processing whose risks outweigh its benefits should be restricted or prohibited." },
@@ -264,12 +264,12 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     id: "ii_information",
     // Facts stated once; recipients and retention as tables; the providers
     // list appears once. Budget ~3 pages.
-    title: "II. The Information Provided",
+    title: "2. The Information Provided",
     blocks: [
       // 0 — A. Purpose and Scope (law).
       { kind: "skeleton", text: "A. Purpose and Scope. Section 7152(a)(1) requires the assessment to state the Company’s purpose with enough specificity to evaluate the processing; generic purposes such as “improve our services” or “security purposes” do not suffice. The Purpose, as the Company states it in the Executive Summary, governs every analysis that follows." },
       // 1 — purpose_specificity: one sentence, two branches.
-      { kind: "generated", text: "[GENERATED purpose_specificity] Confirmed / not-confirmed branches per the v5.2 § II.A frame." },
+      { kind: "generated", text: "[GENERATED purpose_specificity] Confirmed / not-confirmed branches per the v5.2 § 2.A frame." },
       // 2 — scope (law).
       { kind: "skeleton", text: "This assessment covers processing undertaken for the Purpose. Section 7156 permits one assessment to cover a comparable set of activities only when they are similar and present similar privacy risks; a materially different purpose requires its own assessment." },
       // 3 — out-of-scope branch.
@@ -281,11 +281,11 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       // missing, naming it.
       { kind: "generated", text: "[GENERATED operational_sequence] RISK52_FIXED.operates_lead + Entry. / Stages. / Output. labeled runs, quoted verbatim; honest-incompleteness branch." },
       // 6 — C. Consumers and the Interaction (woven).
-      { kind: "generated", text: "[GENERATED consumer_context] Method, interaction purpose, approximate California scale, population class; dependency branch per the v5.2 § II.C frame." },
+      { kind: "generated", text: "[GENERATED consumer_context] Method, interaction purpose, approximate California scale, population class; dependency branch per the v5.2 § 2.C frame." },
       // 7 — D. Personal Information and Sensitivity (woven).
       { kind: "generated", text: "[GENERATED information_profile] Category count + list; SPI branch; Appendix C pointer." },
       // 8 — E. Sources (woven; only engaged branches render).
-      { kind: "generated", text: "[GENERATED sources_analysis] Source categories with their analytical consequences woven, per the v5.2 § II.E frame." },
+      { kind: "generated", text: "[GENERATED sources_analysis] Source categories with their analytical consequences woven, per the v5.2 § 2.E frame." },
       // 9 — F. Recipients and Disclosures (law).
       { kind: "skeleton", text: "F. Recipients and Disclosures. Section 7152(a)(3)(F) requires the report to identify the service providers, contractors, and third parties that receive or can access the information, with the purpose of each disclosure. A disclosure can change the risk profile because another organization may use, secure, retain, or further disclose the information." },
       // 10 — recipients lead / none-branch.
@@ -294,7 +294,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       { kind: "table", text: "recipients" },
       // 12 — recipient consequences (contract-gap and dependency sentences,
       // only where engaged).
-      { kind: "generated", text: "[GENERATED recipient_consequences] Contract-gap and dependency sentences per the v5.2 § II.F frame. Absent => omitted." },
+      { kind: "generated", text: "[GENERATED recipient_consequences] Contract-gap and dependency sentences per the v5.2 § 2.F frame. Absent => omitted." },
       // 13 — G. Retention (law).
       { kind: "skeleton", text: "G. Retention. Section 7152(a)(3)(B) requires the report to identify how long each category of personal information will be retained or, if the period is not known, the criteria used to determine it." },
       // 14 — retention table.
@@ -312,7 +312,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
   },
   {
     id: "iii_analysis",
-    title: "III. Analysis",
+    title: "3. Analysis",
     blocks: [
       // 0
       { kind: "skeleton", text: "Each part of this section applies one element of the regulatory test to the information provided by the Company: the rule first, then the facts read against the rule’s own language, then the conclusion." },
@@ -327,7 +327,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       // 5 — unsupported / unresolved elements (T4).
       { kind: "generated", text: "[GENERATED necessity_unsupported] One paragraph per unsupported element; unresolved-element sentences (Annex T4)." },
       // 6 — the necessity lead.
-      { kind: "lead", text: "[LEAD necessity_conclusion] Supports / qualified branches with the § IV directional close." },
+      { kind: "lead", text: "[LEAD necessity_conclusion] Supports / qualified branches with the § 4 directional close." },
       // 7 — C (law).
       { kind: "skeleton", text: "C. Transparency, Expectations, and Choice Architecture. Section 7152(a)(3)(E) requires the report to identify the disclosures the Company has made or plans to make; § 7152(a)(5)(C) treats insufficient information that prevents an informed choice, and interference with choices consistent with reasonable expectations, as privacy harms; § 7152(a)(5)(D) reaches coercion and dark patterns. What consumers are told, what they would reasonably expect, and what they can practically refuse therefore shape the weight of every risk this processing carries." },
       // 8 — notice posture woven.
@@ -335,16 +335,16 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       // 9 — expectations woven.
       { kind: "generated", text: "[GENERATED expectation_application] Engaged expectation markers woven with the notice posture; directional close." },
       // 10 — choice architecture, branch-complete.
-      { kind: "generated", text: "[GENERATED choice_architecture] Confirmed facts credited; unconfirmed facts as live interference risks; none-confirmed branch pointed at § IV.D." },
+      { kind: "generated", text: "[GENERATED choice_architecture] Confirmed facts credited; unconfirmed facts as live interference risks; none-confirmed branch pointed at § 4.D." },
       // 11 — D (law).
       { kind: "skeleton", text: "D. Practical Consumer Control. A consumer right reduces risk only where the consumer can use it in practice and exercising it meaningfully changes the processing." },
       // 12 — controls table.
       { kind: "table", text: "controls" },
       // 13 — controls application.
-      { kind: "generated", text: "[GENERATED controls_application] Weak-control paragraph / favorable branch, with the § IV.D recommendation pointer." },
+      { kind: "generated", text: "[GENERATED controls_application] Weak-control paragraph / favorable branch, with the § 4.D recommendation pointer." },
       // 14 — E. ADMT (fixed statutory intro iff ADMT; not-applicable line
       // otherwise, so the D→F lettering never shows an unexplained gap).
-      { kind: "conditional", text: "[CONDITIONAL] ADMT INTRO - trigger: ADMT in the Activity. Fixed § III.E statutory intro; absent => the one-line not-applicable record." },
+      { kind: "conditional", text: "[CONDITIONAL] ADMT INTRO - trigger: ADMT in the Activity. Fixed § 3.E statutory intro; absent => the one-line not-applicable record." },
       // 15 — role woven.
       { kind: "generated", text: "[GENERATED admt_role] Role classification woven with the operational fact; the operative-questions close." },
       // 16 — human review, three-element credit pattern.
@@ -352,18 +352,18 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       // 17 — testing + logic + training, with the Appendix F pointer.
       { kind: "generated", text: "[GENERATED admt_testing] Testing woven with its limits; logic-reliance and training-data provenance each get one sentence with the Appendix F pointer." },
       // 18 — the ADMT lead.
-      { kind: "lead", text: "[LEAD admt_conclusion] Adequately-described conclusion with the § IV carriage and any noted limits." },
+      { kind: "lead", text: "[LEAD admt_conclusion] Adequately-described conclusion with the § 4 carriage and any noted limits." },
       // 19 — F (law).
       { kind: "skeleton", text: "F. Benefits. Section 7152(a)(4) requires the assessment to identify the benefits the processing produces for the consumer, the business, other stakeholders, and the public — and it rejects generic benefit descriptions. Here, the Company has identified the following benefits:" },
       // 20 — T2 paragraphs, branch-complete (material / limited / none).
       { kind: "generated", text: "[GENERATED benefit_paragraphs] One paragraph per category (Annex T2). NO restatement list follows." },
       // 21 — the benefits lead.
-      { kind: "lead", text: "[LEAD benefits_conclusion] Strongest-benefit tier with the § IV.C carriage." },
+      { kind: "lead", text: "[LEAD benefits_conclusion] Strongest-benefit tier with the § 4.C carriage." },
     ],
   },
   {
     id: "iv_determination",
-    title: "IV. The Balance and the Determination",
+    title: "4. The Balance and the Determination",
     blocks: [
       // 0 — A (law).
       { kind: "skeleton", text: "A. The Risk Ledger. Section 7152(a)(5) requires the assessment to identify the negative impacts the processing may create and their sources and causes; §§ 7152(a)(5)–(6) require those impacts to be considered together with the safeguards directed at them. Each risk below is rated as set forth in the table below, and the paragraphs that follow show the reasoning. For further convenience, the full risk record appears in Appendix E." },
@@ -382,7 +382,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       // 6 — reference list, adverse.
       { kind: "generated", text: "[GENERATED factors_against] Reference list, one line each, only where each state is engaged." },
       // 7 — C (law).
-      { kind: "skeleton", text: "C. The Determination. The determination weighs the strongest benefit established (§ III.F) against the most serious risk remaining (§ IV.A), on the information provided and nothing else:" },
+      { kind: "skeleton", text: "C. The Determination. The determination weighs the strongest benefit established (§ 3.F) against the most serious risk remaining (§ 4.A), on the information provided and nothing else:" },
       // 8 — the fact-specific balance summary (CEO-approved form; design per
       // doc 72 — NOT a grid or matrix), with the determination band.
       { kind: "table", text: "balance_summary" },
@@ -404,7 +404,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
   },
   {
     id: "v_governance",
-    title: "V. Governance, Review, and Submission",
+    title: "5. Governance, Review, and Submission",
     blocks: [
       // 0 — A. Approval and Accountability (carried composition).
       { kind: "conditional", text: "[CONDITIONAL] APPROVAL AND ACCOUNTABILITY - trigger: any finalization/approval fact present. RISK52_FIXED.x_approval_* over those facts. Absent => omitted." },
@@ -484,13 +484,13 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     ],
   },
   {
-    // Appendix C — SLIMMER role note: body §§ II.F–G carry recipients and
+    // Appendix C — SLIMMER role note: body §§ 2.F–G carry recipients and
     // retention; C keeps the full per-category detail.
     id: "appendix_a",
     title: "Appendix C — Processing and Data Inventory",
     blocks: [
       // 0
-      { kind: "skeleton", text: "This appendix contains the detailed factual inventory supporting Section II, including personal-information and sensitive-personal-information categories, sources, processing methods, consumer interaction, scale, disclosures, recipients, and category-level retention." },
+      { kind: "skeleton", text: "This appendix contains the detailed factual inventory supporting Section 2, including personal-information and sensitive-personal-information categories, sources, processing methods, consumer interaction, scale, disclosures, recipients, and category-level retention." },
       // 1
       { kind: "table", text: "processing_and_data_inventory" },
     ],
@@ -500,26 +500,26 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     title: "Appendix D — Necessity and Minimization Matrix",
     blocks: [
       // 0
-      { kind: "skeleton", text: "This appendix provides the element-level analysis underlying § III.B. For each material personal-information element, it records the function of the information, whether it is necessary to achieve the stated purpose, the basis for that conclusion, and any identified limitation or change." },
+      { kind: "skeleton", text: "This appendix provides the element-level analysis underlying § 3.B. For each material personal-information element, it records the function of the information, whether it is necessary to achieve the stated purpose, the basis for that conclusion, and any identified limitation or change." },
       // 1
       { kind: "table", text: "necessity_matrix" },
     ],
   },
   {
-    // Appendix E — SLIMMER: structured fields only; § IV.A carries all
+    // Appendix E — SLIMMER: structured fields only; § 4.A carries all
     // analysis prose.
     id: "appendix_c",
     title: "Appendix E — Privacy Risk Register and Safeguard Mapping",
     blocks: [
       // 0
-      { kind: "skeleton", text: "This appendix provides the detailed factual register underlying § IV.A. For each identified risk, the register records the negative impact, personal information involved, relevant actor or event, source and cause, the Company’s likelihood and severity assessments, the level before safeguards, the relevant safeguards with their implementation status, and the remaining level. The mapping of risks to safeguards is an EUP analytical method designed to make the reasoning transparent and reviewable. It is not presented as a regulator-prescribed report format." },
+      { kind: "skeleton", text: "This appendix provides the detailed factual register underlying § 4.A. For each identified risk, the register records the negative impact, personal information involved, relevant actor or event, source and cause, the Company’s likelihood and severity assessments, the level before safeguards, the relevant safeguards with their implementation status, and the remaining level. The mapping of risks to safeguards is an EUP analytical method designed to make the reasoning transparent and reviewable. It is not presented as a regulator-prescribed report format." },
       // 1
       { kind: "table", text: "risk_and_safeguard_register" },
     ],
   },
   {
     // Appendix F — GAINS the verbatim system/logic/assumptions/training-data
-    // text leaving § III.E (the technical-facts table below carries it).
+    // text leaving § 3.E (the technical-facts table below carries it).
     id: "appendix_d",
     title: "Appendix F — ADMT Technical and Decision Record",
     blocks: [

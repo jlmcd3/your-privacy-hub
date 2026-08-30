@@ -3,10 +3,10 @@
 // sample before fixing:
 //   CYB-2  the evidence all-clear ("every component's identified evidence
 //          includes testable material") fired over 4 partial (policy-only)
-//          components, and §IV repeated the false negative;
+//          components, and § 4 repeated the false negative;
 //   CYB-3  Appendix D printed "Not recorded" for the ARRAY-valued
-//          in_scope_frameworks §I named; "No record-completion follow-up"
-//          fired while §§I-II named two record-completion items; §IV said
+//          in_scope_frameworks § 1 named; "No record-completion follow-up"
+//          fired while §§ 1-2 named two record-completion items; § 4 said
 //          "No prior audit coverage is recorded" against "Most recent
 //          audit: Within 12 months";
 //   CYB-5  eight spine openers shipped drafting-instruction voice ("the
@@ -72,7 +72,7 @@ function assembled() {
   return assembleCyberSkeletonDocumentV4(d as unknown as Bag, intake, "", "2026-08-30");
 }
 
-Deno.test("CYB-2: policy-only components block the evidence all-clear in §II and §IV", () => {
+Deno.test("CYB-2: policy-only components block the evidence all-clear in § 2 and § 4", () => {
   const intake = sampleIntake();
   const d = buildCyberDeliverables(intake) as unknown as Parameters<typeof buildEvidenceReadinessAnalysis>[0];
   const ev = buildEvidenceReadinessAnalysis(d);
@@ -81,8 +81,8 @@ Deno.test("CYB-2: policy-only components block the evidence all-clear in §II an
   assert(ev.follow_up.includes("intent only"), "policy-only follow-up absent");
   const cc = buildCrossCutting(intake, d as never, []);
   assert(!cc.material_evidence_gaps.includes("No material evidence gap is identified"),
-    "§IV repeated the all-clear over policy-only components");
-  assert(cc.material_evidence_gaps.includes("policy-only evidence"), "§IV policy-only sentence absent");
+    "§ 4 repeated the all-clear over policy-only components");
+  assert(cc.material_evidence_gaps.includes("policy-only evidence"), "§ 4 policy-only sentence absent");
 });
 
 Deno.test("CYB-2: with testable artifacts behind every component, the all-clear is byte-unchanged", () => {
@@ -107,12 +107,12 @@ Deno.test("CYB-3: record-completion follow-up names the open auditor-engagement 
   assert(rs.follow_up.includes("prior audit"), "prior-audit item absent");
 });
 
-Deno.test("CYB-3: Appendix D renders the array-valued frameworks, and §IV acknowledges the recorded prior audit", () => {
+Deno.test("CYB-3: Appendix D renders the array-valued frameworks, and § 4 acknowledges the recorded prior audit", () => {
   const out = assembled();
   const text = skeletonDocumentToText(out.document);
   assert(text.includes("SOC 2, NIST CSF"), "in_scope_frameworks array still renders 'Not recorded'");
   assert(!text.includes("No prior audit coverage is recorded"),
-    "§IV denies the prior audit that Appendix D and §I record");
+    "§ 4 denies the prior audit that Appendix D and § 1 record");
   assert(text.includes("A prior audit is recorded, but its coverage is not described"),
     "prior-audit middle branch absent");
 });

@@ -14,31 +14,31 @@
 //
 // PARAGRAPH DISPOSITIONS (faithful-encode record — every v1.1 paragraph is
 // either transcribed below or listed here; nothing was silently dropped):
-//   (i1) §II.B trailing paragraph ("The report should say 'evidence
+//   (i1) § 2.B trailing paragraph ("The report should say 'evidence
 //        identified,' 'evidence represented as available,' or equivalent
 //        language. It should not say that the evidence was examined,
 //        tested, or found sufficient by the independent auditor …") —
 //        GENERATOR INSTRUCTION, encoded as CYBER_V4_BANNED_REGISTER
 //        entries + composer discipline (cyber-factors.ts), not prose.
-//   (i2) §III.B second paragraph ("Each component should follow one compact
+//   (i2) § 3.B second paragraph ("Each component should follow one compact
 //        pattern … Static legal prose should not be repeated eighteen
 //        times.") — INSTRUCTION; implemented as the component-module
 //        composer's shape.
-//   (i3) §V trailing paragraph ("The generator must not infer from the
+//   (i3) § 5 trailing paragraph ("The generator must not infer from the
 //        incident count alone …") — INSTRUCTION; implemented in
 //        buildIncidentReadiness (cyber-factors.ts), which never infers
 //        breach facts from the count.
-//   (i4) §VI trailing paragraph ("Any timeframe generated here should be
+//   (i4) § 6 trailing paragraph ("Any timeframe generated here should be
 //        clearly labeled as an EUP readiness recommendation … The
 //        generator should not invent a statutory 30-, 60-, or 90-day
 //        remediation deadline.") — INSTRUCTION; the action composers carry
 //        no invented deadlines and label priority tiers as EUP
 //        recommendations.
-//   (i5) §VII trailing paragraph ("A strong record may support language
+//   (i5) § 7 trailing paragraph ("A strong record may support language
 //        such as … A thin record should produce 'record insufficient,'
 //        not 'not ready' …") — INSTRUCTION; implemented by
 //        buildOverallReadinessNarrative's conditional composition.
-//   (i6) §VIII second sentence ("The readiness product should state that
+//   (i6) § 8 second sentence ("The readiness product should state that
 //        rule once …") — INSTRUCTION (anti-repetition); the five-year
 //        rule renders exactly once, in this section.
 //   (i7) Front-matter "Regulatory timing note" — NOT RENDERED, a flagged
@@ -113,7 +113,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
   },
   {
     id: "purpose_scope_record",
-    title: "I. Purpose, Scope, and Assessment Record",
+    title: "1. Purpose, Scope, and Assessment Record",
     blocks: [
       // A. Nature of the Readiness Assessment (v1.1, byte-pinned, both paragraphs).
       { kind: "skeleton", text: "Article 9 requires an independent cybersecurity audit for businesses within its scope. This report serves a narrower purpose: it organizes the Company’s present cybersecurity record against the regulatory component structure, evaluates whether the Company has described implementation and identified evidence that an auditor can later examine, and identifies gaps or follow-up that should be addressed before or during the independent audit." },
@@ -138,7 +138,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
   },
   {
     id: "auditor_evidence",
-    title: "II. Auditor Engagement and Evidence Readiness",
+    title: "2. Auditor Engagement and Evidence Readiness",
     blocks: [
       // A. Auditor Engagement Posture (v1.1, byte-pinned).
       { kind: "skeleton", text: "The statutory audit must be performed by a qualified, objective, independent professional. The Company’s answers do not identify the auditor’s identity, qualifications, procedures, or testing record; they capture the status of the engagement and whether independence has been confirmed. This report evaluates that engagement posture and goes no further: whether the statutory independence requirement is satisfied is established by the engagement itself, not by this report." },
@@ -151,7 +151,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
   },
   {
     id: "program_readiness",
-    title: "III. Cybersecurity Program Readiness",
+    title: "3. Cybersecurity Program Readiness",
     blocks: [
       // A. Program-Level Readiness (v1.1, byte-pinned).
       { kind: "skeleton", text: "The component-by-component analysis is not a substitute for understanding the cybersecurity program as a whole. References to the FSOR below are to the California Privacy Protection Agency’s Final Statement of Reasons for these regulations — interpretive history, persuasive only, never operative. This section states whether the Company’s answers describe an established program, whether the component record is complete enough to evaluate that program, and whether material implementation or evidence weaknesses cut across multiple components." },
@@ -164,7 +164,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
   },
   {
     id: "cross_cutting",
-    title: "IV. Cross-Cutting Findings and Readiness Gaps",
+    title: "4. Cross-Cutting Findings and Readiness Gaps",
     blocks: [
       { kind: "skeleton", text: "The component discussion establishes the record one control at a time. This section identifies the few matters that actually affect the overall readiness conclusion, consolidating recurring evidence problems, common implementation gaps, dependencies on prior audit work, and material information deficiencies rather than repeating eighteen individual observations." },
       { kind: "generated", text: "[GENERATED] Material implementation gaps; material evidence gaps; cross-component/systemic issues; prior-audit dependency gaps; material record limitations; the cross-cutting conclusion. FACTOR.material_* / cross_component_findings / cross_cutting_conclusion." },
@@ -172,7 +172,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
   },
   {
     id: "incident_context",
-    title: "V. Security-Incident Context",
+    title: "5. Security-Incident Context",
     blocks: [
       { kind: "skeleton", text: "Incident history can inform readiness, particularly the incident-response component, but the Company’s answers capture only the number of incidents in the preceding twelve months and whatever additional facts the Company includes in the incident-response control notes and evidence selections. This report characterizes the incident record only to that extent." },
       { kind: "generated", text: "[GENERATED] The incident count, the incident-response component's recorded posture, the incident-readiness analysis and any incident-record follow-up (FACTOR.incident_readiness_analysis / incident_record_follow_up). Never infers breach facts from the count (disposition i3)." },
@@ -180,7 +180,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
   },
   {
     id: "readiness_actions",
-    title: "VI. Readiness Actions",
+    title: "6. Readiness Actions",
     blocks: [
       { kind: "skeleton", text: "This section converts the assessment into a practical audit-preparation plan. These are EndUserPrivacy (EUP) readiness actions generated from the Company’s answers; they are not represented as the Company’s formal remediation plan for purposes of § 7123(e)(4). The distinction matters because the record identifies who owns remediation but does not include a Company-approved remediation plan or timeframe." },
       { kind: "generated", text: "[GENERATED] The remediation owner; priority readiness actions; evidence-package actions; implementation actions; record-completion actions; suggested sequencing. Composed from the ratified recommendation library (cyber-recommendations.ts) + FACTOR action families. No invented statutory deadlines (disposition i4)." },
@@ -188,7 +188,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
   },
   {
     id: "readiness_conclusion",
-    title: "VII. Readiness Conclusion",
+    title: "7. Readiness Conclusion",
     blocks: [
       { kind: "skeleton", text: "This conclusion answers a narrow and useful question: based on the Company’s present description of its cybersecurity program and the evidence categories identified, how prepared is the Company to proceed into the independent Article 9 audit? It does not answer the different question whether the independent audit has been completed or whether the Company has passed it." },
       { kind: "lead", text: "[DETERMINATION LEAD] The deterministic readiness determination and its blockers, bound to DERIVED.readiness_determination." },
@@ -197,7 +197,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
   },
   {
     id: "evidence_preservation",
-    title: "VIII. Evidence Preservation and Continuing Readiness",
+    title: "8. Evidence Preservation and Continuing Readiness",
     blocks: [
       { kind: "skeleton", text: "Article 9 requires the business and auditor to retain documents relevant to the cybersecurity audit for at least five years after completion." },
       { kind: "generated", text: "[GENERATED] The most recent audit fact, the evidence-preservation actions, and continuing-readiness observations (FACTOR.evidence_preservation_actions / continuing_readiness_observations). The five-year rule renders exactly once, above (disposition i6)." },

@@ -197,7 +197,7 @@ function deriveActionRegister(
     // PANEL CYB-6 (2026-08-30): a zero-action register used to render as an
     // empty appendix (intro paragraph, then nothing — it read as a
     // rendering failure). The empty state is now an explicit one-row
-    // result, consistent with Section VI's "none identified" sentence.
+    // result, consistent with Section 6's "none identified" sentence.
     rows: recommendations.length
       ? recommendations.map((r) => {
         const rec = controlRec(intake, r.slug);
@@ -214,7 +214,7 @@ function deriveActionRegister(
       : [[
         "—",
         "All components",
-        "No readiness actions are identified for any component; Section VI records the same result.",
+        "No readiness actions are identified for any component; Section 6 records the same result.",
         "—",
         "—",
         "—",
@@ -226,7 +226,7 @@ function deriveAssessmentProfileRecord(intake: Bag, reportDate: string): Rendere
   const profile = ((intake.profile ?? {}) as Bag);
   // PANEL CYB-3 (2026-08-30): s() returns "" for non-strings, so the
   // ARRAY-valued in_scope_frameworks always rendered "Not recorded" here
-  // while §I named the same frameworks — the provenance appendix
+  // while § 1 named the same frameworks — the provenance appendix
   // contradicted the body it provenances. Arrays now render joined.
   const field = (label: string, key: string): [string, string] => {
     const v = profile[key];
@@ -298,7 +298,7 @@ function joinLines(...parts: (string | null | undefined)[]): string {
 
 // PANEL CYB-6 (2026-08-30, welded-blocks class): repairRegister ends with
 // `\s{2,}` → " ", which collapsed every joinLines("\n\n") seam and every
-// label/bullet line list into one run-on paragraph (the published §I read
+// label/bullet line list into one run-on paragraph (the published § 1 read
 // "…12 months: None Tomorrow4Cariboo, Inc. operates in…"). Repair is applied
 // per line, preserving the line and paragraph structure the renderer's
 // \n{2,} split depends on. Register bytes are repaired exactly as before.
@@ -412,7 +412,7 @@ export function assembleCyberSkeletonDocumentV4(
     // analytical prose follows at :3.
     "executive_summary:3": repairPreserving(factors.executive_lines),
 
-    // I. Purpose, Scope, and Assessment Record.
+    // 1. Purpose, Scope, and Assessment Record.
     "purpose_scope_record:2": repairPreserving(composeCompanyContext(intake, factors)),
     "purpose_scope_record:4": repairPreserving(
       joinLines(factors.scope_record.analysis, factors.scope_record.sufficiency),
@@ -425,7 +425,7 @@ export function assembleCyberSkeletonDocumentV4(
       factors.record_sufficiency.follow_up,
     )),
 
-    // II. Auditor Engagement and Evidence Readiness.
+    // 2. Auditor Engagement and Evidence Readiness.
     "auditor_evidence:1": repairPreserving(joinLines(
       s(deliverables.independence_determination.summary),
       factors.independence_readiness_consequence,
@@ -435,14 +435,14 @@ export function assembleCyberSkeletonDocumentV4(
       factors.evidence_readiness.follow_up,
     )),
 
-    // III. Cybersecurity Program Readiness.
+    // 3. Cybersecurity Program Readiness.
     "program_readiness:1": repairPreserving(joinLines(
       factors.program_readiness.analysis,
       factors.program_readiness.conclusion,
     )),
     "program_readiness:3": composeComponentModules(factors),
 
-    // IV. Cross-Cutting Findings and Readiness Gaps.
+    // 4. Cross-Cutting Findings and Readiness Gaps.
     "cross_cutting:1": repairPreserving(joinLines(
       factors.cross_cutting.material_implementation_gaps,
       factors.cross_cutting.material_evidence_gaps,
@@ -452,13 +452,13 @@ export function assembleCyberSkeletonDocumentV4(
       factors.cross_cutting.conclusion,
     )),
 
-    // V. Security-Incident Context.
+    // 5. Security-Incident Context.
     "incident_context:1": repairPreserving(joinLines(
       factors.incident_readiness.analysis,
       factors.incident_readiness.follow_up,
     )),
 
-    // VI. Readiness Actions.
+    // 6. Readiness Actions.
     "readiness_actions:1": repairPreserving(joinLines(
       factors.readiness_actions.priority_actions.length
         ? `Priority readiness actions:\n${bullets(factors.readiness_actions.priority_actions)}`
@@ -475,7 +475,7 @@ export function assembleCyberSkeletonDocumentV4(
       factors.readiness_actions.sequencing,
     )),
 
-    // VII. Readiness Conclusion.
+    // 7. Readiness Conclusion.
     "readiness_conclusion:1": repairPreserving(joinLines(
       leadSentence,
       rd.blocking_components.length
@@ -487,7 +487,7 @@ export function assembleCyberSkeletonDocumentV4(
       factors.overall.single_next_act,
     )),
 
-    // VIII. Evidence Preservation and Continuing Readiness.
+    // 8. Evidence Preservation and Continuing Readiness.
     "evidence_preservation:1": repairPreserving(joinLines(
       factors.evidence_preservation.actions,
       factors.evidence_preservation.observations,

@@ -138,7 +138,7 @@ interface Counts {
 // the pipeline. Live batch evidence showed a served document where that
 // pass's own telemetry (`_meta.internal.cyber_prose_gold`) was entirely
 // absent — the side-channel was never attached — while `report.controls`
-// (the SAME per-component array Section II renders from, and the source
+// (the SAME per-component array Section 2 renders from, and the source
 // `readiness_determination` is itself built from) was fully populated with
 // 7 blocking components. Because readCounts silently defaulted every field
 // to zero when the side-channel was missing, the executive summary,
@@ -150,7 +150,7 @@ interface Counts {
 // Deriving the tally directly from report.controls removes the side-channel
 // dependency entirely: there is now only one source of truth for "how many
 // components are blocking," so this composer can never disagree with
-// Section II or with readiness_determination again, regardless of whether
+// Section 2 or with readiness_determination again, regardless of whether
 // any earlier pass runs.
 function readCounts(report: Bag): Counts {
   const controls = Array.isArray(report.controls) ? (report.controls as Bag[]) : [];
@@ -413,7 +413,7 @@ export function assembleCyberSkeletonDocument(
     "executive_summary:0": composeExecutiveLead(report),
     "executive_summary:2": composeExecutiveBody(report),
 
-    // v3.2 — Section I block 2 is the ITEM-204 byte-pinned corpus quote
+    // v3.2 — Section 1 block 2 is the ITEM-204 byte-pinned corpus quote
     // (shifted from block 1 to block 2 when the applicability table took
     // block 0; see the spine's v3.2 changelog comment).
     "audit_scope:2": buildPhaseInBlock(phaseInCorpusExcerpt),

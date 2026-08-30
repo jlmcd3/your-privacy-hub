@@ -22,20 +22,20 @@
 //   "rule"      — deterministic assembly rule (Table of Authorities).
 
 // v3.1 (2026-08-24, CEO report review) — adds the "Signature" section
-// between Section IV (Conclusion) and the Table of Authorities: a
+// between Section 4 (Conclusion) and the Table of Authorities: a
 // not-pre-filled Name/Title/Signature/Date table with a scoping statement
 // before it and a clarifying disclaimer after it. No component finding,
 // determination, or intake contract changed.
 //
 // v3.2 (2026-08-25, Conversion C1.2) — adds ONE new `{kind:"table"}` block
-// as the FIRST block of Section I ("audit_scope"), before the existing
+// as the FIRST block of Section 1 ("audit_scope"), before the existing
 // fixed prose: the doc-64-ratified § 7120(a)-(b) applicability table
 // (computed from six new intake fields, gated behind
 // CYBER_DETERMINISTIC_ENABLED — absent under the flag, per the NO-PADDING
 // law in skeleton-render.ts). No new fixed prose is added (none is
 // available to transcribe byte-for-byte from a ratified docx for this
 // insertion; the table's own title/columns/note carry its framing,
-// matching the v3.1 Signature-table precedent). The existing Section I
+// matching the v3.1 Signature-table precedent). The existing Section 1
 // skeleton prose and the byte-pinned ITEM-204 corpus block shift from
 // blocks[0]/[1] to blocks[1]/[2] — their TEXT is unchanged, only their
 // position, so CYBER_SKELETON_CONTENT_HASH (which hashes only `kind:
@@ -98,7 +98,7 @@ export const CYBER_SKELETON_SECTIONS: readonly CyberSkeletonSection[] = [
   },
   {
     id: "audit_scope",
-    title: "I. Audit Scope and the Auditor",
+    title: "1. Audit Scope and the Auditor",
     blocks: [
       // v3.2 (Conversion C1.2) — the § 7120(a)-(b) applicability table.
       // Gated behind CYBER_DETERMINISTIC_ENABLED at the assembler; absent
@@ -110,7 +110,7 @@ export const CYBER_SKELETON_SECTIONS: readonly CyberSkeletonSection[] = [
   },
   {
     id: "required_components",
-    title: "II. The Required Components",
+    title: "2. The Required Components",
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating how many components the company's answers support and where the material gaps lie." },
       { kind: "generated", text: "[GENERATED] Per-component findings from the typed controls array, each attributed to the company's answers - status, the evidence the company holds, the finding, and the remediation where one is needed. The renderer draws the table; comparative-framework references remain orientation only, with the operative requirement always the cited regulation." },
@@ -118,7 +118,7 @@ export const CYBER_SKELETON_SECTIONS: readonly CyberSkeletonSection[] = [
   },
   {
     id: "findings_remediation",
-    title: "III. Findings, Gaps and Remediation",
+    title: "3. Findings, Gaps and Remediation",
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating the remediation posture." },
       { kind: "skeleton", text: "The gaps identified above resolve into the actions below. Each action names the component it addresses, the role responsible, and its timeframe; priority labels express operational urgency only, and remediation timing is tied where relevant to the applicable certification tier rather than to any invented deadline." },
@@ -127,7 +127,7 @@ export const CYBER_SKELETON_SECTIONS: readonly CyberSkeletonSection[] = [
   },
   {
     id: "conclusion",
-    title: "IV. Conclusion",
+    title: "4. Conclusion",
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating the audit-readiness conclusion with any condition attached." },
       { kind: "generated", text: "[GENERATED] Counsel's closing analysis, ending on the single next act." },
@@ -163,7 +163,7 @@ export const CYBER_SKELETON_SECTIONS: readonly CyberSkeletonSection[] = [
   // behind it — the CEO's instruction here was structural, not a text
   // redline. It uses `kind: "corpus"` throughout instead, the SAME kind
   // already used for this document's other byte-pinned, no-slot,
-  // no-computation block (the § 7121(a) ITEM-204 schedule in Section I):
+  // no-computation block (the § 7121(a) ITEM-204 schedule in Section 1):
   // the § 7124 facts and the attestation quote are verbatim corpus text,
   // pin-verified against the approved `cppa-7124` row
   // (cyber-submission-attestation.ts, components.ts), never paraphrased.

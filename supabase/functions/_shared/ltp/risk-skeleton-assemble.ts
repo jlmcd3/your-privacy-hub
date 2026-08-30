@@ -163,11 +163,11 @@ export function deriveAssessmentRetentionEnd(intake: Bag): string | null {
   return "Because the processing continues on the information provided, the retention end date is not yet determinable; the later-of rule above governs";
 }
 
-// BATCH 20b (Wave C4, doc 113 S6.3) — the §V Key Dates and Deadlines
+// BATCH 20b (Wave C4, doc 113 S6.3) — the § 5 Key Dates and Deadlines
 // digest: the derived timing values this module already computes, plus the
-// statutory windows the pinned §V prose itself states, as digest
+// statutory windows the pinned § 5 prose itself states, as digest
 // constants. A row whose value cannot be derived from the record skips.
-// The §V prose is untouched.
+// The § 5 prose is untouched.
 export function deriveKeyDatesTable(intake: Bag, assessmentDateIso: string): RenderedTable | null {
   const rows: string[][] = [];
   const initial = deriveInitialAssessmentDeadline(intake);
@@ -484,7 +484,7 @@ export function deriveMaterialsConsideredIndex(intake: Bag): RenderedTable {
 }
 
 /** Appendix F — {{DERIVED.admt_technical_facts}} (the verbatim technical
- * record that leaves § III.E under v5.2). */
+ * record that leaves § 3.E under v5.2). */
 export function deriveAdmtTechnicalFacts(intake: Bag): RenderedTable | null {
   if (!isYes(intake.q18_admt_use)) return null;
   const pairs: Array<[string, string]> = [
@@ -531,7 +531,7 @@ export function buildRiskSlotValues(intake: Bag, report: Bag = {}): SlotValues {
     derivedTriggers: deriveApplicable7150Triggers(report),
     piCategories: asProse(arr(intake.q4_pi_categories)) || null,
 
-    // Section V (governance)
+    // Section 5 (governance)
     processingStatus: s(intake.processing_status) || null,
     processingStartDate: s(intake.processing_start_date) || null,
     plannedStartDate: s(intake.planned_start_date) || null,
@@ -550,7 +550,7 @@ export function buildRiskSlotValues(intake: Bag, report: Bag = {}): SlotValues {
   };
 }
 
-// ── Conditional composers (carried Section V compositions) ──────────────────
+// ── Conditional composers (carried Section 5 compositions) ──────────────────
 
 function composeVApproval(intake: Bag, assessmentDateIso?: string): string {
   const reviewerRows = rows(intake.assessment_reviewers_approvers)
@@ -786,7 +786,7 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
   const composed: ComposedBlocks = {
     ...engine.blocks,
 
-    // Section V — carried compositions.
+    // Section 5 — carried compositions.
     "v_governance:0": composeVApproval(intake, assessmentDate),
     "v_governance:3": composeVTiming(intake),
     "v_governance:5": composeMaterialChangeDetails(intake),
@@ -795,7 +795,7 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
   // Appendix F — intro / not-applicable record + analytical note.
   if (isYes(intake.q18_admt_use)) {
     composed["appendix_d:0"] =
-      "This appendix preserves the technical and analytical detail supporting § III.E, including the technology’s role, logic, assumptions and limitations, output, human review, testing, training-data provenance, and facts relevant to § 7153. The verbatim system, logic, assumptions, and training-data descriptions live in this appendix rather than in the body.";
+      "This appendix preserves the technical and analytical detail supporting § 3.E, including the technology’s role, logic, assumptions and limitations, output, human review, testing, training-data provenance, and facts relevant to § 7153. The verbatim system, logic, assumptions, and training-data descriptions live in this appendix rather than in the body.";
     const techPresent = [
       clause(intake.q19_admt_description),
       clause(intake.i5_admt_logic),
@@ -806,7 +806,7 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
     ].filter(Boolean).length;
     if (techPresent > 0) {
       composed["appendix_d:2"] =
-        `Analytical note. The record above preserves the Company’s own technical description across ${techPresent} of the six record areas the appendix tracks (system description, logic, output and use, human review, testing, and training data). The body of the report evaluates those facts in § III.E; this appendix preserves them so a reviewer can trace each conclusion to the description it rests on.`;
+        `Analytical note. The record above preserves the Company’s own technical description across ${techPresent} of the six record areas the appendix tracks (system description, logic, output and use, human review, testing, and training data). The body of the report evaluates those facts in § 3.E; this appendix preserves them so a reviewer can trace each conclusion to the description it rests on.`;
     }
   } else {
     composed["appendix_d:0"] =

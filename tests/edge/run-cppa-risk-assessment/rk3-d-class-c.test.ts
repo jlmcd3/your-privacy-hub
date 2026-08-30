@@ -114,7 +114,7 @@ Deno.test("v5.2 — purpose-specificity branches follow the facet count", () => 
   );
   assert(
     none.factors.conditions_to_proceed.includes("Restate the processing purpose"),
-    "None branch must route a condition into § IV.D",
+    "None branch must route a condition into § 4.D",
   );
 });
 
@@ -267,11 +267,11 @@ for (const c of CPPA_RISK_PERFECT) {
       assertEquals(sk.register_findings.length, 0, JSON.stringify(sk.register_findings));
     });
 
-    await t.step("§ II.A specificity and scope render", () => {
+    await t.step("§ 2.A specificity and scope render", () => {
       assert(body.includes("The Company confirms the stated Purpose identifies"), "specificity branch absent");
     });
 
-    await t.step("§ II operational sequence and context render", () => {
+    await t.step("§ 2 operational sequence and context render", () => {
       assert(body.includes("As the Company describes it, the processing runs as one sequence:"), "operational sequence absent");
       assert(body.includes("Entry."), "Entry label absent");
       assert(body.includes("Output."), "Output label absent");
@@ -279,7 +279,7 @@ for (const c of CPPA_RISK_PERFECT) {
       assert(body.includes("E. Sources."), "sources analysis absent");
     });
 
-    await t.step("§ II.F recipients table and § II.G retention render", () => {
+    await t.step("§ 2.F recipients table and § 2.G retention render", () => {
       assert(
         body.includes("Recipient | Role | Information made available | Purpose of the disclosure | Contract status"),
         "recipients table columns absent",
@@ -290,17 +290,17 @@ for (const c of CPPA_RISK_PERFECT) {
       );
     });
 
-    await t.step("§ III.C notice, expectations, and choice architecture render", () => {
+    await t.step("§ 3.C notice, expectations, and choice architecture render", () => {
       assert(body.includes("notice posture"), "notice application absent");
       assert(body.includes("The Company confirms") && body.includes("declining"), "choice-architecture analysis absent");
     });
 
-    await t.step("§ III.E typed analyses render iff ADMT", () => {
+    await t.step("§ 3.E typed analyses render iff ADMT", () => {
       assertEquals(body.includes("It classifies the system as"), isAdmt, "role analysis gating");
       assertEquals(body.includes("confirms that reviewers"), isAdmt, "human-review analysis gating");
     });
 
-    await t.step("§ IV.A compounding closer renders from the typed answer", () => {
+    await t.step("§ 4.A compounding closer renders from the typed answer", () => {
       if (isSierra) {
         assert(body.includes("could compound each other"), "compounding closer absent on Sierra");
       } else {
@@ -308,7 +308,7 @@ for (const c of CPPA_RISK_PERFECT) {
       }
     });
 
-    await t.step("§ IV.A T1 safeguard branches render", () => {
+    await t.step("§ 4.A T1 safeguard branches render", () => {
       assert(
         body.includes("implemented and tested") ||
           body.includes("recognizes the control") ||
@@ -319,7 +319,7 @@ for (const c of CPPA_RISK_PERFECT) {
       );
     });
 
-    await t.step("§ IV.B reference lists render", () => {
+    await t.step("§ 4.B reference lists render", () => {
       assert(body.includes("Weighing in favor of the Activity:"), "factors-for list absent");
       assert(body.includes("Weighing against the Activity:"), "factors-against list absent");
     });

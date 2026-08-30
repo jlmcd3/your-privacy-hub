@@ -210,12 +210,12 @@ export const RISK_BALANCING_TABLE: Record<BenefitTier, Record<RiskMateriality, B
       conclusion:
         "Based on the information provided by the Company, the benefits of the Activity outweigh the privacy risks that remain, although the margin is narrower than a low-risk profile would produce.",
       materiality:
-        "The determination is material: the moderate remaining risk or risks identified in § IV.A could change the balance if a risk grows or a credited safeguard weakens.",
+        "The determination is material: the moderate remaining risk or risks identified in § 4.A could change the balance if a risk grows or a credited safeguard weakens.",
       effect:
-        "The processing may proceed, subject to any conditions identified in § IV.D and to the review cadence in Section V.",
+        "The processing may proceed, subject to any conditions identified in § 4.D and to the review cadence in Section 5.",
       kind: "proceed",
       explanation:
-        "This is a favorable determination, but a close one: the benefit record is material, while the remaining risk sits at the moderate level rather than low. It depends on the credited safeguards continuing to operate as described, on the conditions and recommendations in § IV.D being carried out, and on the review required in Section V taking place on schedule.",
+        "This is a favorable determination, but a close one: the benefit record is material, while the remaining risk sits at the moderate level rather than low. It depends on the credited safeguards continuing to operate as described, on the conditions and recommendations in § 4.D being carried out, and on the review required in Section 5 taking place on schedule.",
     },
     High: {
       conclusion:
@@ -225,7 +225,7 @@ export const RISK_BALANCING_TABLE: Record<BenefitTier, Record<RiskMateriality, B
         "The processing should not proceed in its present form; completion of the identified conditions and an updated assessment could change the determination.",
       kind: "stop",
       explanation:
-        "The determination rests on the remaining-risk conclusion in § IV.A: the benefit record, although material, cannot carry a high-level remaining risk.",
+        "The determination rests on the remaining-risk conclusion in § 4.A: the benefit record, although material, cannot carry a high-level remaining risk.",
     },
     Critical: {
       conclusion:
@@ -254,10 +254,10 @@ export const RISK_BALANCING_TABLE: Record<BenefitTier, Record<RiskMateriality, B
       materiality:
         "The determination is close. Growth in the remaining risk or risks, or weakening of a credited safeguard, should prompt reassessment.",
       effect:
-        "The processing may proceed, subject to any conditions identified in § IV.D; the review cadence in Section V takes on added importance.",
+        "The processing may proceed, subject to any conditions identified in § 4.D; the review cadence in Section 5 takes on added importance.",
       kind: "proceed",
       explanation:
-        "This is a favorable determination, but a close one: the benefit record carries only limited weight, and the remaining risk sits at the moderate level. It depends on the credited safeguards continuing to operate as described and on the conditions and recommendations in § IV.D being carried out.",
+        "This is a favorable determination, but a close one: the benefit record carries only limited weight, and the remaining risk sits at the moderate level. It depends on the credited safeguards continuing to operate as described and on the conditions and recommendations in § 4.D being carried out.",
     },
     High: {
       conclusion:
@@ -325,8 +325,8 @@ export function resolveRecommendedOutcome(
   if (hasConditions) {
     return {
       outcome: planned
-        ? "Initiate the processing subject to the Conditions to Proceed identified in § IV.D."
-        : "Continue the processing subject to the Conditions to Proceed identified in § IV.D.",
+        ? "Initiate the processing subject to the Conditions to Proceed identified in § 4.D."
+        : "Continue the processing subject to the Conditions to Proceed identified in § 4.D.",
       consequence: "proceed with conditions",
     };
   }
@@ -520,7 +520,7 @@ export function buildNecessityMatrixTable(intake: Bag): RenderedTable {
 }
 
 /** Appendix E — the risk × safeguard register (structured fields only;
- * § IV.A carries all analysis prose). Ranked by pre-safeguard level. */
+ * § 4.A carries all analysis prose). Ranked by pre-safeguard level. */
 export function buildRiskAndSafeguardRegisterTable(intake: Bag): RenderedTable {
   const pathways = rankPathways(extractPathways(intake));
   return {
@@ -578,16 +578,16 @@ function safeguardCreditedCell(p: Pathway): string {
 
 /** The ledger — one row per identified risk, ranked by pre-safeguard level.
  * A findings table: levels and safeguards only; no numerals, no totals, no
- * summary row (doc 72 guardrail). Shared derivation for § IV.A and the
+ * summary row (doc 72 guardrail). Shared derivation for § 4.A and the
  * exec-summary compression. */
 export function buildRiskLedgerTable(pathways: Pathway[], surface: string): RenderedTable | null {
   const ranked = rankPathways(pathways);
   if (!ranked.length) return null;
   // PANEL RISK-P3 (2026-08-30): the exec surface previously emitted the same
-  // four-column ledger as § IV.A byte-for-byte — the full table printed
+  // four-column ledger as § 4.A byte-for-byte — the full table printed
   // twice. The exec summary now carries the compression this function's
   // doc-comment always promised: one line per risk, name and remaining
-  // level; § IV.A keeps the full ledger.
+  // level; § 4.A keeps the full ledger.
   if (surface === "exec_ledger") {
     return {
       key: "",
@@ -710,7 +710,7 @@ export function runRiskFactorEngine(
     // summary compresses each condition to the text before its first colon,
     // and "the following element:" left "the following element" dangling in
     // the one paragraph most customers read. Naming the elements inline
-    // keeps both the full § IV.D entry and the compact form grammatical.
+    // keeps both the full § 4.D entry and the compact form grammatical.
     conditions.push(
       `Cease processing, or establish the necessity of, ${asProse(necessity.unnecessary.map((r) => s(r.element)))}`,
     );
@@ -899,7 +899,7 @@ export function runRiskFactorEngine(
   const necessityQualified = necessity.unnecessary.length > 0 || necessity.unsure.length > 0;
   const cellExplanation =
     necessityQualified && cell.explanation.includes("a necessity analysis that supports the information processed")
-      ? "Material benefits and a low remaining-risk profile support the favorable disposition; the necessity issue identified in § III.B remains a condition to proceeding."
+      ? "Material benefits and a low remaining-risk profile support the favorable disposition; the necessity issue identified in § 3.B remains a condition to proceeding."
       : cell.explanation;
   const hasConditions = conditions.length > 0;
   const { outcome, consequence } = resolveRecommendedOutcome(
@@ -940,7 +940,7 @@ export function runRiskFactorEngine(
       triggerRows.push([
         u.replace(/[.!?]\s*$/, ""),
         "Unresolved",
-        "The information provided leaves this trigger unresolved; resolving it appears among the Follow-ups in § IV.D.",
+        "The information provided leaves this trigger unresolved; resolving it appears among the Follow-ups in § 4.D.",
       ]);
     }
     tables["executive_summary:3"] = {
@@ -990,10 +990,10 @@ export function runRiskFactorEngine(
     const strip = strongest
       ? `The strongest benefit established is of ${
         strongest.weight === "material weight" ? "material" : "limited"
-      } weight (the ${strongest.label} benefit — § III.F); ${supported.length} of the four benefit categories ${
+      } weight (the ${strongest.label} benefit — § 3.F); ${supported.length} of the four benefit categories ${
         plural(supported.length, "is", "are")
       } supported by specific information.`
-      : "No benefit is established in any of the four benefit categories (§ III.F).";
+      : "No benefit is established in any of the four benefit categories (§ 3.F).";
     if (benefits.some((b) => b.narrative) || benefits.every((b) => b.weight === "no affirmative weight")) {
       put(
         "executive_summary:7",
@@ -1031,7 +1031,7 @@ export function runRiskFactorEngine(
         plural(conditions.length, "Condition", "Conditions")
       } to Proceed: ${
         conditions.map((c) => c.split(":")[0].trim().replace(/\.$/, "")).join("; ")
-      }. The full conditions, follow-ups, and recommendations appear in § IV.D.`
+      }. The full conditions, follow-ups, and recommendations appear in § 4.D.`
       : RISK52_FIXED.conditions_compact_none;
     put(
       "executive_summary:10",
@@ -1052,8 +1052,8 @@ export function runRiskFactorEngine(
       : specificityFacets.length >= 1
       ? `The Company confirms the stated Purpose identifies ${
         asProse(specificityFacets.map((x) => x.toLowerCase()))
-      }; it does not confirm the remaining facets the assessment checks. The assessment proceeds on the Company’s formulation, and sharpening the Purpose appears among the Follow-ups in § IV.D.`
-      : "The information provided does not confirm that the stated Purpose identifies the operation supported, the information involved, the consumers affected, or the intended outcome; restating the Purpose appears among the Conditions to Proceed in § IV.D.";
+      }; it does not confirm the remaining facets the assessment checks. The assessment proceeds on the Company’s formulation, and sharpening the Purpose appears among the Follow-ups in § 4.D.`
+      : "The information provided does not confirm that the stated Purpose identifies the operation supported, the information involved, the consumers affected, or the intended outcome; restating the Purpose appears among the Conditions to Proceed in § 4.D.";
     put(
       "ii_information:1",
       "purpose_specificity_analysis",
@@ -1104,7 +1104,7 @@ export function runRiskFactorEngine(
       if (!stages.length) missing.push("the processing stages");
       if (!result) missing.push("what the processing produces");
       if (missing.length) {
-        parts.push(`\nThe description does not identify ${asProse(missing)}; the limitation is carried into § II.H.`);
+        parts.push(`\nThe description does not identify ${asProse(missing)}; the limitation is carried into § 2.H.`);
       }
       put(
         "ii_information:5",
@@ -1142,7 +1142,7 @@ export function runRiskFactorEngine(
         bits.push(
           `The affected consumers are ${relationshipContext.toLowerCase()}${
             dependency
-              ? "; because the relationship involves a dependency the consumer cannot easily exit, the choice-architecture analysis in § III.C carries correspondingly greater weight"
+              ? "; because the relationship involves a dependency the consumer cannot easily exit, the choice-architecture analysis in § 3.C carries correspondingly greater weight"
               : ""
           }.`,
         );
@@ -1160,7 +1160,7 @@ export function runRiskFactorEngine(
         "ii_information:6",
         "consumer_context",
         "A",
-        "C. Consumers and the Interaction. The information provided does not describe the consumer interaction; the limitation is carried into § II.H.",
+        "C. Consumers and the Interaction. The information provided does not describe the consumer interaction; the limitation is carried into § 2.H.",
         ["INTAKE:consumer_interaction_method"],
         [],
       );
@@ -1175,9 +1175,9 @@ export function runRiskFactorEngine(
       const spiBranch = spiList.length
         ? `Of those, ${spiList.length} ${plural(spiList.length, "is", "are")} sensitive personal information — ${
           asProse(spiList)
-        } — and ${plural(spiList.length, "its", "their")} presence raises what the information provided must show on necessity, access, disclosure, retention, and the consequences of misuse (§§ III.B, IV.A).`
+        } — and ${plural(spiList.length, "its", "their")} presence raises what the information provided must show on necessity, access, disclosure, retention, and the consequences of misuse (§§ 3.B, 4.A).`
         : isYes(intake.q15_sensitive_pi)
-        ? "The Company additionally identifies sensitive personal information in its submission, and that identification raises what the information provided must show on necessity, access, disclosure, retention, and the consequences of misuse (§§ III.B, IV.A)."
+        ? "The Company additionally identifies sensitive personal information in its submission, and that identification raises what the information provided must show on necessity, access, disclosure, retention, and the consequences of misuse (§§ 3.B, 4.A)."
         : "No sensitive personal information is identified for the Activity.";
       put(
         "ii_information:7",
@@ -1194,7 +1194,7 @@ export function runRiskFactorEngine(
         "ii_information:7",
         "information_profile",
         "A",
-        "D. Personal Information and Sensitivity. The information provided does not identify the categories of personal information the Activity processes; the limitation is carried into § II.H.",
+        "D. Personal Information and Sensitivity. The information provided does not identify the categories of personal information the Activity processes; the limitation is carried into § 2.H.",
         ["INTAKE:q4_pi_categories"],
         [],
       );
@@ -1214,7 +1214,7 @@ export function runRiskFactorEngine(
       const consequences: string[] = [];
       if (automatic) {
         consequences.push(
-          "information collected automatically from devices or interactions is gathered without a contemporaneous act by the consumer, which raises the weight of the notice and expectation analyses in § III.C",
+          "information collected automatically from devices or interactions is gathered without a contemporaneous act by the consumer, which raises the weight of the notice and expectation analyses in § 3.C",
         );
       }
       if (brokers) {
@@ -1261,7 +1261,7 @@ export function runRiskFactorEngine(
         "ii_information:8",
         "sources_analysis",
         "A",
-        "E. Sources. The information provided does not identify the sources of the personal information; the limitation is carried into § II.H.",
+        "E. Sources. The information provided does not identify the sources of the personal information; the limitation is carried into § 2.H.",
         ["INTAKE:i4b_sources"],
         [],
       );
@@ -1299,11 +1299,11 @@ export function runRiskFactorEngine(
         const name = s(r.recipient_name_or_category);
         if (c === "Written contract without confirmed CCPA restriction terms" || c === "Unsure") {
           consequences.push(
-            `For ${name}, the required restriction terms are not confirmed, and the reliance the assessment can place on the contractual control is reduced accordingly in § IV.A.`,
+            `For ${name}, the required restriction terms are not confirmed, and the reliance the assessment can place on the contractual control is reduced accordingly in § 4.A.`,
           );
         } else if (c === "No written contract") {
           consequences.push(
-            `For ${name}, no written contract is reported; the disclosure operates outside a contractual control, and remediation appears among the Recommendations in § IV.D.`,
+            `For ${name}, no written contract is reported; the disclosure operates outside a contractual control, and remediation appears among the Recommendations in § 4.D.`,
           );
         }
       }
@@ -1442,7 +1442,7 @@ export function runRiskFactorEngine(
     });
     for (const u of uncertainSwept) {
       paras.push(
-        `${u.replace(/[.!?]\s*$/, "")}: the information provided leaves this trigger unresolved; resolving it appears among the Follow-ups in § IV.D.`,
+        `${u.replace(/[.!?]\s*$/, "")}: the information provided leaves this trigger unresolved; resolving it appears among the Follow-ups in § 4.D.`,
       );
     }
     put(
@@ -1459,7 +1459,7 @@ export function runRiskFactorEngine(
       "trigger_application",
       "B",
       uncertainSwept.map((u) =>
-        `${u.replace(/[.!?]\s*$/, "")}: the information provided leaves this trigger unresolved; resolving it appears among the Follow-ups in § IV.D.`
+        `${u.replace(/[.!?]\s*$/, "")}: the information provided leaves this trigger unresolved; resolving it appears among the Follow-ups in § 4.D.`
       ).join("\n\n"),
       ["DERIVED:applicable_7150_triggers"],
       ["11 CCR § 7150(b)"],
@@ -1504,7 +1504,7 @@ export function runRiskFactorEngine(
     const paras: string[] = necessity.unnecessary.map((r) => {
       const basis = clause(r.justification);
       const consequence =
-        "Processing the element creates privacy exposure without a corresponding contribution to the benefits weighed in Section IV, and ceasing or justifying it appears in the Conditions to Proceed.";
+        "Processing the element creates privacy exposure without a corresponding contribution to the benefits weighed in Section 4, and ceasing or justifying it appears in the Conditions to Proceed.";
       return basis
         ? `The necessity of ${s(r.element)} is not established for the Purpose under assessment: the Company itself records the element as collected but not necessary to the stated purpose, and the basis it records (“${basis}”) does not establish a contribution to that Purpose; the element-level record appears in Appendix D. ${consequence}`
         : `The necessity of ${s(r.element)} is not established: the Company records the element as collected but not necessary to the stated purpose, and the information provided identifies no contribution it makes to the Purpose. ${consequence}`;
@@ -1527,14 +1527,14 @@ export function runRiskFactorEngine(
   }
   if (necessity.total) {
     const lead = !necessity.unnecessary.length && !necessity.unsure.length
-      ? "The necessity analysis supports the information processed, and that conclusion weighs in the Company’s favor in Section IV."
+      ? "The necessity analysis supports the information processed, and that conclusion weighs in the Company’s favor in Section 4."
       : necessity.unnecessary.length
       ? `The necessity analysis is qualified: ${necessity.unnecessary.length} ${
         plural(necessity.unnecessary.length, "element is", "elements are")
-      } not shown to be necessary, and that conclusion weighs against the processing in Section IV.`
+      } not shown to be necessary, and that conclusion weighs against the processing in Section 4.`
       : `The necessity analysis is qualified: necessity is not yet established for ${necessity.unsure.length} ${
         plural(necessity.unsure.length, "element", "elements")
-      }, and that conclusion weighs against the processing in Section IV until the Follow-ups in § IV.D are resolved.`;
+      }, and that conclusion weighs against the processing in Section 4 until the Follow-ups in § 4.D are resolved.`;
     put(
       "iii_analysis:6",
       "necessity_conclusion",
@@ -1569,7 +1569,7 @@ export function runRiskFactorEngine(
           asProse(noticeGaps)
         }. A consumer reading the Company’s notices would not learn the full scope of the processing before it occurs — which weighs against the processing until the notice covers it.`;
       const plannedBranch = plannedD.length
-        ? ` ${plannedD.length === 1 ? "A planned disclosure is" : "Planned disclosures are"} treated as part of the transparency posture only on completion, and completion appears among the conditions or recommendations in § IV.D.`
+        ? ` ${plannedD.length === 1 ? "A planned disclosure is" : "Planned disclosures are"} treated as part of the transparency posture only on completion, and completion appears among the conditions or recommendations in § 4.D.`
         : "";
       put(
         "iii_analysis:8",
@@ -1588,10 +1588,10 @@ export function runRiskFactorEngine(
     const text = divergenceMarkers.length === 0
       ? "On the information provided, the processing occurs during and as part of the interaction the consumer participates in, and no divergence marker the assessment checks applies — which weighs in the Company’s favor."
       : noticeFull
-      ? `Because ${asProse(phrases)}, aspects of the processing extend beyond the interaction the consumer participates in; each is disclosed through the notice posture above, and the divergence enters § IV.B at reduced force.`
+      ? `Because ${asProse(phrases)}, aspects of the processing extend beyond the interaction the consumer participates in; each is disclosed through the notice posture above, and the divergence enters § 4.B at reduced force.`
       : `Because ${
         asProse(phrases)
-      }, and the notice does not cover the processing in full, those aspects fall outside the expectations the interaction creates. Unexpected processing is not prohibited, but until the notice covers it, the divergence weighs against the processing in Section IV.`;
+      }, and the notice does not cover the processing in full, those aspects fall outside the expectations the interaction creates. Unexpected processing is not prohibited, but until the notice covers it, the divergence weighs against the processing in Section 4.`;
     put(
       "iii_analysis:9",
       "expectation_application",
@@ -1607,7 +1607,7 @@ export function runRiskFactorEngine(
     const confirmedPhrases = choiceConfirmed.map((x) => CHOICE_CONFIRMATIONS[x]);
     const missingPhrases = choiceMissing.map((x) => CHOICE_CONFIRMATIONS[x]);
     const text = choiceNoneConfirmed
-      ? "None of the choice-architecture facts the assessment checks — symmetric presentation of the permission choice, that declining does not degrade the core service, or the absence of steering design elements — can be confirmed on the information provided. Each is treated as a live interference risk and weighs against the processing, and confirming them appears among the Follow-ups in § IV.D."
+      ? "None of the choice-architecture facts the assessment checks — symmetric presentation of the permission choice, that declining does not degrade the core service, or the absence of steering design elements — can be confirmed on the information provided. Each is treated as a live interference risk and weighs against the processing, and confirming them appears among the Follow-ups in § 4.D."
       : choiceMissing.length === 0
       ? `The Company confirms ${asProse(confirmedPhrases)} — which weighs in the Company’s favor.`
       : `The Company confirms ${asProse(confirmedPhrases)}; it does not confirm ${
@@ -1682,9 +1682,9 @@ export function runRiskFactorEngine(
       const application = weakControls.length
         ? `Of the ${controlRows.length} controls reported, ${asProse(weakControls)} ${
           plural(weakControls.length, "operates", "operate")
-        } without a formal or completed process. A right that cannot be exercised carries no weight: the reduction is carried into Section IV, and strengthening ${
+        } without a formal or completed process. A right that cannot be exercised carries no weight: the reduction is carried into Section 4, and strengthening ${
           plural(weakControls.length, "it", "them")
-        } appears among the Recommendations in § IV.D.`
+        } appears among the Recommendations in § 4.D.`
         : `The ${controlRows.length} ${
           plural(controlRows.length, "control", "controls")
         } reported ${plural(controlRows.length, "is", "are")} formal and exercisable on the information provided, and each is credited — which weighs in the Company’s favor.`;
@@ -1756,13 +1756,13 @@ export function runRiskFactorEngine(
       const missing = Object.keys(HRF_PHRASES).filter((x) => !humanReviewFacts.includes(x)).map((x) => HRF_PHRASES[x]);
       if (humanReviewFacts.length) {
         const text = noHumanReview
-          ? "The Company records that there is no human review of the system’s decisions; the automated component is weighed as deciding, and the related risk in § IV.A carries that weight — which weighs against the processing."
+          ? "The Company records that there is no human review of the system’s decisions; the automated component is weighed as deciding, and the related risk in § 4.A carries that weight — which weighs against the processing."
           : confirmed.length === 3
-          ? `The Company confirms that reviewers ${asProse(confirmed)} — which weighs in the Company’s favor, and the human review is credited at full weight in § IV.A.`
+          ? `The Company confirms that reviewers ${asProse(confirmed)} — which weighs in the Company’s favor, and the human review is credited at full weight in § 4.A.`
           : confirmed.length > 0
           ? `The Company confirms that reviewers ${asProse(confirmed)}; it does not confirm that reviewers ${
             asProse(missing)
-          }. Human review is credited only to the confirmed extent — and the assessment relies on it only to that extent in § IV.A.`
+          }. Human review is credited only to the confirmed extent — and the assessment relies on it only to that extent in § 4.A.`
           : "None of the elements of effective human involvement can be confirmed on the information provided; the review that exists is not shown to change outcomes, and the automated component is weighed as if it decides.";
         put(
           "iii_analysis:16",
@@ -1777,7 +1777,7 @@ export function runRiskFactorEngine(
           "iii_analysis:16",
           "admt_human_review",
           "B",
-          `The Company describes human review as follows: ${firstSentence(review)} The assessment relies on it to the extent the description supports reviewer understanding, adequate information and time, and authority to reach a different result — and only to that extent in § IV.A.`,
+          `The Company describes human review as follows: ${firstSentence(review)} The assessment relies on it to the extent the description supports reviewer understanding, adequate information and time, and authority to reach a different result — and only to that extent in § 4.A.`,
           ["INTAKE:i5_admt_human_review"],
           ["11 CCR § 7001(e)"],
         );
@@ -1801,12 +1801,12 @@ export function runRiskFactorEngine(
           : accuracy && bias && recent
           ? `The Company confirms accuracy and discriminatory-impact testing, performed or reviewed within the last 12 months${
             providerOnly ? ", performed by the provider rather than the Company" : ""
-          } — and the related safeguard credit in § IV.A rests on that record${
+          } — and the related safeguard credit in § 4.A rests on that record${
             providerOnly ? ", with the provider dependency noted" : ""
           }.`
           : `The testing described does not confirm ${asProse(testGaps)}${
             providerOnly ? ", and the testing that exists was performed by the provider rather than the Company" : ""
-          }. The credit the related safeguard receives in § IV.A is limited accordingly, and completing the identified testing appears among the Recommendations in § IV.D.`;
+          }. The credit the related safeguard receives in § 4.A is limited accordingly, and completing the identified testing appears among the Recommendations in § 4.D.`;
         put(
           "iii_analysis:17",
           "admt_testing_analysis",
@@ -1820,7 +1820,7 @@ export function runRiskFactorEngine(
           "iii_analysis:17",
           "admt_testing_analysis",
           "B",
-          "Testing is described in the Company’s submission and provides evidence bearing on accuracy, fairness, and bias; the strength of that evidence is weighed in § IV.A.",
+          "Testing is described in the Company’s submission and provides evidence bearing on accuracy, fairness, and bias; the strength of that evidence is weighed in § 4.A.",
           ["INTAKE:i5_admt_fairness_testing"],
           ["11 CCR § 7152(a)(5)(B)"],
         );
@@ -1829,8 +1829,8 @@ export function runRiskFactorEngine(
         const logicText = admtLogicDocumented === "The logic is documented and reviewed internally"
           ? "The system’s logic is documented and reviewed internally; the full logic record, including its assumptions and limitations, is preserved in Appendix F."
           : admtLogicDocumented === "The logic is documented by the provider and the Company relies on that documentation"
-          ? "The system’s logic is documented by the provider, on whose documentation the Company relies; the record is preserved in Appendix F, with the provider dependency noted in § II.F."
-          : "The system’s logic is not fully documented or understood on the information provided; documenting it appears among the Conditions to Proceed in § IV.D, and the record to date is preserved in Appendix F.";
+          ? "The system’s logic is documented by the provider, on whose documentation the Company relies; the record is preserved in Appendix F, with the provider dependency noted in § 2.F."
+          : "The system’s logic is not fully documented or understood on the information provided; documenting it appears among the Conditions to Proceed in § 4.D, and the record to date is preserved in Appendix F.";
         put("iii_analysis:17", "admt_logic_note", "B", logicText, ["INTAKE:admt_logic_documented"], ["11 CCR § 7152(a)(3)(G)(i)"]);
       }
       {
@@ -1880,10 +1880,10 @@ export function runRiskFactorEngine(
         "admt_conclusion",
         "B",
         described
-          ? `The automated component is adequately described for assessment purposes; its risks are carried into Section IV rather than resolved here${
+          ? `The automated component is adequately described for assessment purposes; its risks are carried into Section 4 rather than resolved here${
             limits ? ", with the human-review and testing limits noted weighing on the credit its safeguards receive" : ""
           }.`
-          : "The automated component is not yet fully described on the information provided; completing the description appears among the Follow-ups in § IV.D, and the risks it presents are carried into Section IV on the description to date.",
+          : "The automated component is not yet fully described on the information provided; completing the description appears among the Follow-ups in § 4.D, and the risks it presents are carried into Section 4 on the description to date.",
         ["INTAKE:q19_admt_description", "FACTOR:admt_human_review", "FACTOR:admt_testing_analysis"],
         ["11 CCR § 7152(a)(3)(G)"],
       );
@@ -1941,8 +1941,8 @@ export function runRiskFactorEngine(
       "benefits_conclusion",
       "B",
       benefitTier === "none"
-        ? "No benefit is established in any category; that absence enters the determination in § IV.C."
-        : `The strongest benefit established carries ${benefitTier} weight; it enters the determination in § IV.C.`,
+        ? "No benefit is established in any category; that absence enters the determination in § 4.C."
+        : `The strongest benefit established carries ${benefitTier} weight; it enters the determination in § 4.C.`,
       ["FACTOR:benefit_weight_table"],
       ["11 CCR § 7152(a)(4)"],
     );
@@ -2054,7 +2054,7 @@ export function runRiskFactorEngine(
           materialSafeguards.length
             ? `; ${materialSafeguards.length} ${plural(materialSafeguards.length, "is", "are")} implemented against the material risks`
             : ""
-        }. The credit each earns appears risk by risk in § IV.A.`,
+        }. The credit each earns appears risk by risk in § 4.A.`,
         ["INTAKE:a6_safeguards"],
         ["11 CCR § 7152(a)(6)"],
       );
@@ -2066,18 +2066,18 @@ export function runRiskFactorEngine(
     const pro: string[] = benefits
       .filter((b) => b.weight !== "no affirmative weight")
       .sort((a, b) => (a.weight === "material weight" ? 0 : 1) - (b.weight === "material weight" ? 0 : 1))
-      .map((b) => `— The ${b.label} benefit — ${b.weight === "material weight" ? "material" : "limited"} weight (§ III.F).`);
+      .map((b) => `— The ${b.label} benefit — ${b.weight === "material weight" ? "material" : "limited"} weight (§ 3.F).`);
     for (const p of rankPathways(pathways)) {
       if (MATERIALITY_RANK[p.residual] < MATERIALITY_RANK[p.materiality]) {
         const letter = /^\(([A-H])\)/.exec(p.harm)?.[1];
-        pro.push(`— Tested safeguards reduce the ${letter ? `(${letter})` : "identified"} risk (§ IV.A).`);
+        pro.push(`— Tested safeguards reduce the ${letter ? `(${letter})` : "identified"} risk (§ 4.A).`);
       }
     }
     if (necessity.total && !necessity.unnecessary.length && !necessity.unsure.length) {
-      pro.push("— The necessity analysis supports the information processed (§ III.B).");
+      pro.push("— The necessity analysis supports the information processed (§ 3.B).");
     }
     if (weakControls.length === 0 && (s(intake.q7_right_delete) || s(intake.q9_opt_out))) {
-      pro.push("— Consumer controls are formal and exercisable (§ III.D).");
+      pro.push("— Consumer controls are formal and exercisable (§ 3.D).");
     }
     if (pro.length) {
       put(
@@ -2092,28 +2092,28 @@ export function runRiskFactorEngine(
     const con: string[] = rankPathways(pathways)
       .filter((p) => MATERIALITY_RANK[p.residual] >= 1)
       .sort((a, b) => MATERIALITY_RANK[b.residual] - MATERIALITY_RANK[a.residual])
-      .map((p) => `— Remaining ${p.residual}: ${p.harm} (§ IV.A).`);
+      .map((p) => `— Remaining ${p.residual}: ${p.harm} (§ 4.A).`);
     if (necessity.unnecessary.length) {
       con.push(
         `— ${necessity.unnecessary.length} ${
           plural(necessity.unnecessary.length, "element", "elements")
-        } not shown necessary (§ III.B).`,
+        } not shown necessary (§ 3.B).`,
       );
     }
     if (gaps.length) {
-      con.push(`— ${plural(gaps.length, "A material risk lacks", "Material risks lack")} an implemented safeguard (§ IV.A).`);
+      con.push(`— ${plural(gaps.length, "A material risk lacks", "Material risks lack")} an implemented safeguard (§ 4.A).`);
     }
     if (planned.length) {
-      con.push("— The safeguard posture depends in part on planned safeguards (§ IV.A).");
+      con.push("— The safeguard posture depends in part on planned safeguards (§ 4.A).");
     }
     if (divergenceMarkers.length && !noticeFull) {
-      con.push("— Processing falls partly outside consumer expectations and notice coverage (§ III.C).");
+      con.push("— Processing falls partly outside consumer expectations and notice coverage (§ 3.C).");
     }
     if (choiceNoneConfirmed || (choiceAnswered && choiceMissing.length > 0)) {
-      con.push("— Choice-architecture facts unconfirmed (§ III.C).");
+      con.push("— Choice-architecture facts unconfirmed (§ 3.C).");
     }
     if (interdependency === "Two or more identified pathways could compound each other") {
-      con.push("— Identified risks could compound (§ IV.A).");
+      con.push("— Identified risks could compound (§ 4.A).");
     }
     if (con.length === 0 && pathways.length) {
       con.push("— No remaining risk sits above the low level; the considerations against the Activity are correspondingly limited.");

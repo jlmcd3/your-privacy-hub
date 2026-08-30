@@ -245,14 +245,14 @@ export function buildRecordSufficiency(intake: Bag, d: CyberDeliverables): Recor
   // PANEL CYB-3 (2026-08-30): "No record-completion follow-up is
   // identified." used to fire while the same report named two
   // record-completion items in so many words — the undescribed auditor
-  // engagement (Section II) and the undescribed prior-audit coverage
-  // (Section I). Both now count here, so the none-branch is true when it
+  // engagement (Section 2) and the undescribed prior-audit coverage
+  // (Section 1). Both now count here, so the none-branch is true when it
   // prints.
   if (!["external", "internal", "none"].includes(s(d.independence_determination.auditor_type))) {
-    followUps.push("describe the auditor engagement, whose unresolved status Section II identifies as a record-completion item");
+    followUps.push("describe the auditor engagement, whose unresolved status Section 2 identifies as a record-completion item");
   }
   if (profileStr(intake, "last_audit") && !profileStr(intake, "prior_audit_scope")) {
-    followUps.push("record what the prior audit covered, which Section I identifies as a record-completion item");
+    followUps.push("record what the prior audit covered, which Section 1 identifies as a record-completion item");
   }
   const follow_up = followUps.length
     ? `To improve the record: ${asProse(followUps)}.`
@@ -302,7 +302,7 @@ export function buildEvidenceReadinessAnalysis(d: CyberDeliverables): { analysis
   const follow_up = insufficient + unknown > 0
     ? "The evidence follow-up is component-specific and appears in each component module and Appendix C: in each case the action is to retain a testable artifact - a log, a configuration export, a report, a test result, an auditor letter, or a training record - behind the described control."
     : partial > 0
-    ? `No component leaves a finding resting primarily on management assertion, but ${partial === 1 ? "one component evidences" : `${partial} components evidence`} intent only - a policy or procedure with no testable artifact yet identified behind it. The component modules in Section III name each; the action in each case is to retain a testable artifact - a log, a configuration export, a report, a test result, an auditor letter, or a training record - behind the described control.`
+    ? `No component leaves a finding resting primarily on management assertion, but ${partial === 1 ? "one component evidences" : `${partial} components evidence`} intent only - a policy or procedure with no testable artifact yet identified behind it. The component modules in Section 3 name each; the action in each case is to retain a testable artifact - a log, a configuration export, a report, a test result, an auditor letter, or a training record - behind the described control.`
     : "No evidence follow-up is identified: every component's identified evidence includes testable material.";
   return { analysis, follow_up };
 }
@@ -379,7 +379,7 @@ export function buildComponentAnalyses(inputs: FactorInputs): CyberComponentAnal
     // BATCH 18 (Wave C1, doc 109 §2.5 items 1-2 / A-Team doc-111 queue):
     // the component entry is a labeled record, not a fused paragraph. The
     // shared § 7123(c)/§ 7122(d) methodology sentences state ONCE in the
-    // §III section lead (spine v1.4); each entry carries only this
+    // § 3 section lead (spine v1.4); each entry carries only this
     // component's own facts. Labels are doc-66 RUN-INs; the assembler
     // renders the number line as an h3 chunk and the rulemaking context as
     // its own demoted panel (A-Team RULING 3.4). The typed coverage and
@@ -456,7 +456,7 @@ export function buildComponentAnalyses(inputs: FactorInputs): CyberComponentAnal
   });
 }
 
-// ── Cross-cutting findings (v1.1 §IV families) ─────────────────────────────
+// ── Cross-cutting findings (v1.1 § 4 families) ─────────────────────────────
 
 export interface CrossCuttingResult {
   readonly material_implementation_gaps: string;
@@ -476,7 +476,7 @@ export function buildCrossCutting(intake: Bag, d: CyberDeliverables, recs: reado
   const material_implementation_gaps = implGaps.length
     ? `Implementation is the open matter for ${asProse(implGaps.map((r) => r.label))}.`
     : "No material implementation gap is described on the Company's answers.";
-  // PANEL CYB-2 (2026-08-30): the §IV all-clear repeated §II's false
+  // PANEL CYB-2 (2026-08-30): the § 4 all-clear repeated § 2's false
   // negative — it looked only at evidence_insufficient recommendations, so
   // components graded "partial" (policy-only evidence, Appendix B testable
   // artifacts "None") sat under "testable evidence is identified with it".
@@ -486,7 +486,7 @@ export function buildCrossCutting(intake: Bag, d: CyberDeliverables, recs: reado
   const material_evidence_gaps = evGaps.length
     ? `Evidence is the open matter for ${asProse(evGaps.map((r) => r.label))}: each is described as implemented, and the record identifies no testable artifact behind the description.`
     : policyOnly.length
-    ? `${policyOnly.length === 1 ? "One component rests" : `${policyOnly.length} components rest`} on policy-only evidence - ${asProse(policyOnly.map((r) => r.label.replace(/^Evidence sufficiency — /, "")))} - each described as implemented with no testable artifact yet identified; Section III carries the follow-up for each.`
+    ? `${policyOnly.length === 1 ? "One component rests" : `${policyOnly.length} components rest`} on policy-only evidence - ${asProse(policyOnly.map((r) => r.label.replace(/^Evidence sufficiency — /, "")))} - each described as implemented with no testable artifact yet identified; Section 3 carries the follow-up for each.`
     : "No material evidence gap is identified: where implementation is stated, testable evidence is identified with it.";
   // 3E9AD759-CY2 (2026-08-27, live batch 3e9ad759) — the implementational
   // branch was tautological ("the implementation gaps are implementational").
@@ -537,7 +537,7 @@ export function buildCrossCutting(intake: Bag, d: CyberDeliverables, recs: reado
   const openCount = recs.length;
   const conclusion = openCount === 0
     ? "Nothing rises to a cross-cutting readiness concern on the Company's answers."
-    : `${openCount === 1 ? "One matter bears" : `${openCount} matters bear`} on the overall readiness conclusion; the readiness actions in Section VI sequence ${openCount === 1 ? "it" : "them"}.`;
+    : `${openCount === 1 ? "One matter bears" : `${openCount} matters bear`} on the overall readiness conclusion; the readiness actions in Section 6 sequence ${openCount === 1 ? "it" : "them"}.`;
   return {
     material_implementation_gaps,
     material_evidence_gaps,
@@ -548,14 +548,14 @@ export function buildCrossCutting(intake: Bag, d: CyberDeliverables, recs: reado
   };
 }
 
-// ── Incident context (v1.1 §V; guardrail i3 — never infer breach facts) ────
+// ── Incident context (v1.1 § 5; guardrail i3 — never infer breach facts) ────
 
 export function buildIncidentReadiness(intake: Bag, d: CyberDeliverables): { analysis: string; follow_up: string } {
   const count = profileStr(intake, "incidents_12mo");
   const c17 = controlRec(intake, "c17_incident");
   const sentences: string[] = [];
   if (count) {
-    // PANEL CYB-6 (2026-08-30): same None-splice fix as §I.
+    // PANEL CYB-6 (2026-08-30): same None-splice fix as § 1.
     sentences.push(/^none$/i.test(count)
       ? "The Company reports no security incidents in the preceding twelve months."
       : `The Company reports ${noStop(count)} security incidents in the preceding twelve months.`);
@@ -572,7 +572,7 @@ export function buildIncidentReadiness(intake: Bag, d: CyberDeliverables): { ana
   return { analysis: sentences.join(" "), follow_up };
 }
 
-// ── Readiness actions (v1.1 §VI families; guardrail i4 — no invented deadlines) ──
+// ── Readiness actions (v1.1 § 6 families; guardrail i4 — no invented deadlines) ──
 
 export interface ReadinessActionsResult {
   readonly priority_actions: readonly string[];
@@ -615,7 +615,7 @@ export function buildReadinessActions(intake: Bag, recs: readonly ComponentRecom
   return { priority_actions, evidence_package_actions, implementation_actions, record_completion_actions, sequencing };
 }
 
-// ── Readiness conclusion (v1.1 §VII; guardrail i5) ─────────────────────────
+// ── Readiness conclusion (v1.1 § 7; guardrail i5) ─────────────────────────
 
 export function buildOverallReadinessNarrative(d: CyberDeliverables, recs: readonly ComponentRecommendation[]): { narrative: string; single_next_act: string } {
   const rd = d.readiness_determination;
@@ -640,7 +640,7 @@ export function buildOverallReadinessNarrative(d: CyberDeliverables, recs: reado
   return { narrative, single_next_act };
 }
 
-// ── Evidence preservation (v1.1 §VIII) ─────────────────────────────────────
+// ── Evidence preservation (v1.1 § 8) ─────────────────────────────────────
 
 export function buildEvidencePreservation(intake: Bag, d: CyberDeliverables): { actions: string; observations: string } {
   const withEvidence = d.evidence_sufficiency.filter((e) => e.testable_artifacts.length > 0).length;
@@ -678,13 +678,13 @@ export function buildExecutiveSnapshotRows(inputs: FactorInputs): readonly (read
   rows.push([
     "Principal readiness gaps",
     gaps.length
-      ? `${asProse(gaps.slice(0, 3).map((r) => r.label))}${gaps.length > 3 ? `, and ${gaps.length - 3} more in Section IV` : ""}`
+      ? `${asProse(gaps.slice(0, 3).map((r) => r.label))}${gaps.length > 3 ? `, and ${gaps.length - 3} more in Section 4` : ""}`
       : "None identified on the Company's answers",
   ]);
   rows.push([
     "Priority readiness actions",
     inputs.nextSteps.length
-      ? `${asProse(inputs.nextSteps.map((st) => st.slug).map((slug) => CYBER_7123_COMPONENTS.find((c) => c.slug === slug)?.label ?? slug))} — each stated in Section VI with its owner`
+      ? `${asProse(inputs.nextSteps.map((st) => st.slug).map((slug) => CYBER_7123_COMPONENTS.find((c) => c.slug === slug)?.label ?? slug))} — each stated in Section 6 with its owner`
       : "None identified; the preparation focus is organizing the identified evidence for auditor access",
   ]);
   return rows;

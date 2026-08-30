@@ -123,7 +123,7 @@ Deno.test("v5.2 — recommended outcome keyed to consequence × processing statu
   assertEquals(resolveRecommendedOutcome("proceed", false, "Planned").consequence, "proceed");
   assertEquals(
     resolveRecommendedOutcome("proceed", true, "Ongoing").outcome,
-    "Continue the processing subject to the Conditions to Proceed identified in § IV.D.",
+    "Continue the processing subject to the Conditions to Proceed identified in § 4.D.",
   );
   assertEquals(resolveRecommendedOutcome("proceed", true, "Ongoing").consequence, "proceed with conditions");
   assertEquals(
@@ -248,13 +248,13 @@ for (const c of CPPA_RISK_PERFECT) {
         );
       }
       assert(
-        body.includes("This appendix provides the element-level analysis underlying § III.B."),
+        body.includes("This appendix provides the element-level analysis underlying § 3.B."),
         "Appendix D intro absent",
       );
     });
 
     await t.step("the risk ledger and T1 paragraphs render", () => {
-      assert(body.includes("A. The Risk Ledger."), "§ IV.A head absent");
+      assert(body.includes("A. The Risk Ledger."), "§ 4.A head absent");
       assert(
         body.includes("before safeguards."),
         "T1 opening (level before safeguards) absent",
@@ -268,7 +268,7 @@ for (const c of CPPA_RISK_PERFECT) {
         "remaining-risk rollup absent",
       );
       assert(
-        body.includes("This appendix provides the detailed factual register underlying § IV.A."),
+        body.includes("This appendix provides the detailed factual register underlying § 4.A."),
         "Appendix E intro absent",
       );
     });
@@ -286,19 +286,19 @@ for (const c of CPPA_RISK_PERFECT) {
 
     await t.step("the determination renders once, with the outcome (Annex T5)", () => {
       assert(body.includes("Based on the information provided by the Company"), "re-registered conclusion absent");
-      // At most three renders: the exec-summary lead, § IV.C, and the
+      // At most three renders: the exec-summary lead, § 4.C, and the
       // Appendix A audit-trail row (the appendix is the trace, not a body
       // restatement).
       const occurrences = body.split("Based on the information provided by the Company").length - 1;
       assert(occurrences <= 3, `the determination conclusion renders ${occurrences} times`);
       assert(
-        body.includes("The reasoning behind each row, and the determination it produces, appear in Section IV."),
+        body.includes("The reasoning behind each row, and the determination it produces, appear in Section 4."),
         "exec determination pointer absent",
       );
       assert(body.includes("D. Outcome and Conditions."), "exec outcome head absent");
     });
 
-    await t.step("the controls table and application render (§ III.D)", () => {
+    await t.step("the controls table and application render (§ 3.D)", () => {
       assert(body.includes("Control | Reported status | Weight credited"), "controls table columns absent");
       assert(
         body.includes("which weighs in the Company’s favor") || body.includes("carries no weight"),

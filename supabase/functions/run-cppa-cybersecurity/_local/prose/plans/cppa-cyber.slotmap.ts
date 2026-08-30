@@ -34,7 +34,7 @@ export const CYBER_SLOT_MAP: readonly CyberSlotBinding[] = [
   { slot: "profile.entity_name", kind: "intake", source: "profile.entity_name",
     render: "verbatim", absent: "required — the document may not issue without it" },
 
-  // I. Audit Scope and the Auditor
+  // 1. Audit Scope and the Auditor
   { slot: "profile.framework", kind: "intake", source: "profile.framework",
     render: "verbatim", absent: "required (form gates submit on every profile leaf)" },
   { slot: "profile.in_scope_frameworks", kind: "intake", source: "profile.in_scope_frameworks",
