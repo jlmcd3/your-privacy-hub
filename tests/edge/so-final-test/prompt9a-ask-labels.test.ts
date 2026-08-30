@@ -74,11 +74,17 @@ const RATIFIED: Record<string, string> = {
   // advance-ratification ledger, same footing as the Other-guard class).
   ask_portability_conditions:
     "whether the data was provided by or observed from the data subject, and whether the processing is carried out by automated means",
+  // PANEL DPIA-P3 (2026-08-30) — the processor-marker transfer ask, fired
+  // only where zero flows are declared but a processor entry carries a
+  // marker outside the origin territory (label bytes on the
+  // advance-ratification ledger, same footing as the two classes above).
+  ask_transfer_leg_unresolved:
+    "whether a cross-border transfer arises from {party}; if so, the destination and the Chapter V mechanism relied on",
 };
 
-Deno.test("9A — all 32 registry entries are byte-exact (9M: +2; Other-guard: +1; DPIA-1: +1)", () => {
-  assertEquals(DPIA_ASK_CLASSES.length, 32);
-  assertEquals(Object.keys(RATIFIED).length, 32);
+Deno.test("9A — all 33 registry entries are byte-exact (9M: +2; Other-guard: +1; DPIA-1: +1; P3: +1)", () => {
+  assertEquals(DPIA_ASK_CLASSES.length, 33);
+  assertEquals(Object.keys(RATIFIED).length, 33);
   for (const [id, bytes] of Object.entries(RATIFIED)) {
     assertEquals(DPIA_ASK_LABELS[id as keyof typeof DPIA_ASK_LABELS], bytes, id);
   }

@@ -48,7 +48,8 @@ export type DpiaAskClass =
   | "ask_data_quality"
   | "ask_art5_table"
   | "ask_rights_table"
-  | "ask_portability_conditions";
+  | "ask_portability_conditions"
+  | "ask_transfer_leg_unresolved";
 
 /** The ratified bytes. Sorted here by producer order, hashed sorted by id. */
 export const DPIA_ASK_LABELS: Readonly<Record<DpiaAskClass, string>> = Object.freeze({
@@ -100,6 +101,11 @@ export const DPIA_ASK_LABELS: Readonly<Record<DpiaAskClass, string>> = Object.fr
   // 2026-08-26 "Other"-bypass guard class above).
   ask_portability_conditions:
     "whether the data was provided by or observed from the data subject, and whether the processing is carried out by automated means",
+  // PANEL DPIA-P3 (2026-08-30) — fired only where the intake declares zero
+  // transfer flows but the processor record carries a marker outside the
+  // origin regime's own territory. Advance-ratification ledger.
+  ask_transfer_leg_unresolved:
+    "whether a cross-border transfer arises from {party}; if so, the destination and the Chapter V mechanism relied on",
 });
 
 export const DPIA_ASK_CLASSES: readonly DpiaAskClass[] = Object.freeze(
@@ -116,14 +122,15 @@ export function serializeAskLabels(): string {
 }
 
 /** SHA-256 over serializeAskLabels(), lower-case hex. PINNED.
- *  Re-pinned 2026-08-29 (ask_portability_conditions — DPIA-1's Art. 20
- *  portability row, advance-ratification ledger; deliberate re-pin, one
- *  new label only).
+ *  Re-pinned 2026-08-30 (ask_transfer_leg_unresolved — PANEL DPIA-P3's
+ *  processor-marker transfer ask, advance-ratification ledger; deliberate
+ *  re-pin, one new label only).
  *  Audit trail — 9A pin: b1b55a5dc1f1adcfa41497f0376330f59d6ca044e5404bf8dbff8bd10d739fb4
  *  9M pin: 290608efbd8dbbde9249db5c7a81baf03bcd84cf5e846f58e02fc02f2e112bdd
- *  2026-08-26 re-pin (ask_art9_other_category): 8ed74af5082d0e0472ef96d81d571f1b26b213ede8f27a51019d0284077a5df1 */
+ *  2026-08-26 re-pin (ask_art9_other_category): 8ed74af5082d0e0472ef96d81d571f1b26b213ede8f27a51019d0284077a5df1
+ *  2026-08-29 re-pin (ask_portability_conditions): 0e51b7e9ab67f0339e8afa42cb1f2a76552d3924ef351e2530270b1b45ef4340 */
 export const DPIA_ASK_LABELS_HASH =
-  "0e51b7e9ab67f0339e8afa42cb1f2a76552d3924ef351e2530270b1b45ef4340";
+  "858c465a9d12f30b8334d100feb37db00117851a6364d3e1732ce41097ff7a80";
 
 
 /** Recompute the hash (async — Web Crypto). Used by the pin test. */
@@ -167,6 +174,9 @@ export interface AskSlots {
   readonly name?: string;
   readonly item?: string;
   readonly dest?: string;
+  /** PANEL DPIA-P3 — the processor entry (or entries) whose marker sits
+   *  outside the origin regime's territory. */
+  readonly party?: string;
 }
 
 /** The quoted operation label, the ONLY form an operation is named in (R2). */
@@ -187,7 +197,8 @@ export function resolveAskLabel(id: DpiaAskClass, slots: AskSlots = {}): string 
     .replace("{risk}", stripTerminal(str(slots.risk)) || "the risk recorded")
     .replace("{name}", stripTerminal(str(slots.name)) || "the processor named")
     .replace("{item}", lower(stripTerminal(str(slots.item))) || "this data")
-    .replace("{dest}", stripTerminal(str(slots.dest)) || "the destination stated");
+    .replace("{dest}", stripTerminal(str(slots.dest)) || "the destination stated")
+    .replace("{party}", stripTerminal(str(slots.party)) || "the processor engagement marked outside the origin territory");
 }
 
 function str(v: unknown): string {

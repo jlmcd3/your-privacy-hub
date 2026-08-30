@@ -393,7 +393,14 @@ function measuresOtherTable(cov: Bag): RenderedTable | null {
       s(t.determination) === "no_transfer_on_the_record"
         ? "Cross-border transfers"
         : `Transfer from ${cell(t.origin_regime)} to ${cell(t.destination)}${s(t.importer) ? ` (${s(t.importer)})` : ""}`,
-      label(t.determination),
+      // PANEL DPIA-P3 (2026-08-30) — a zero-flows sentinel that carries an
+      // ask (a processor marker outside the origin territory left the
+      // transfer question open) must not print the flat "No cross-border
+      // transfer is on the record" label; its Determination cell states the
+      // open point instead. The clean sentinel is byte-unchanged.
+      s(t.determination) === "no_transfer_on_the_record" && s(t.status) === "record_insufficient"
+        ? label("record_insufficient")
+        : label(t.determination),
       cell(t.mechanism_label),
       cell(t.finding),
       cell(t.mechanism_citation) !== DASH ? cell(t.mechanism_citation) : cell(t.citation),

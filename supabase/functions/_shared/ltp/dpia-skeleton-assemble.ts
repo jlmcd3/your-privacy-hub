@@ -1260,6 +1260,33 @@ function providedFor(topic: string, count?: number, noun?: string, nounPlural?: 
   return `The Company has provided the necessary information for ${topic}${detail}.`;
 }
 
+// PANEL DPIA-P2 (2026-08-30) — APPENDIX DERIVES FROM BODY. The DESCRIPTIVE
+// matrix rows used to fire providedFor() on table ROW COUNT alone: a table
+// whose rows are open asks (record_insufficient / information_needed)
+// counted the same as one whose rows are answered, so on the published
+// sample Appendix A said "The Company has provided the necessary
+// information" for four factors the body's own gap table lists as open
+// (controller/DPO, accuracy, Art. 5 measures, data-subject rights). These
+// helpers read the STRUCTURED surfaces' statuses so the appendix restates
+// the body's determinations instead of re-deciding them.
+function openRowCount(rows: readonly unknown[]): number {
+  return rows.filter((r) => {
+    const b = (r ?? {}) as Bag;
+    return s(b.status) === "record_insufficient" || s(b.information_needed).length > 0;
+  }).length;
+}
+
+function providedOrPartial(
+  topic: string,
+  rows: readonly unknown[],
+  detail?: { count?: number; noun?: string; nounPlural?: string },
+): string | null {
+  if (!rows.length) return null;
+  const open = openRowCount(rows);
+  if (open === 0) return providedFor(topic, detail?.count, detail?.noun, detail?.nounPlural);
+  return `The Company has provided the information for ${topic} in part; the ${open === 1 ? "point still open is" : `${open} points still open are`} listed in the gap table.`;
+}
+
 interface DpiaMatrixRowSpec {
   readonly label: string;
   readonly authority: string;
@@ -1287,20 +1314,30 @@ const DPIA_MATRIX_ROWS: readonly DpiaMatrixRowSpec[] = [
   },
   {
     // DESCRIPTIVE — a heterogeneous inventory (controller, processors, planning, team, approval); named by category, not by count, since the five underlying tables carry different kinds of rows.
+    // PANEL DPIA-P2 — status-aware: the old sentence claimed the record
+    // includes "its data protection officer" while the body's controller
+    // table carried the open DPO ask.
     label: "Controller, processors, and accountability",
     authority: "GDPR Arts. 24, 28; Art. 35(2), (7), (11) as applicable",
-    reportDetermination: ({ tables }) =>
-      tableRowCount(tables, [
-        "processing_inventory.controllers",
-        "processing_inventory.processors",
-        "processing_inventory.planning",
-        "assessment_team",
-        "validation_approval",
-      ]) > 0
+    reportDetermination: ({ report, tables }) => {
+      if (
+        tableRowCount(tables, [
+          "processing_inventory.controllers",
+          "processing_inventory.processors",
+          "processing_inventory.planning",
+          "assessment_team",
+          "validation_approval",
+        ]) === 0
+      ) return null;
+      const inv = (report as Bag).processing_inventory as Bag | undefined;
+      const rows = [...asArray(inv?.controllers), ...asArray(inv?.processors)];
+      const open = openRowCount(rows);
+      return open === 0
         ? providedFor(
           "its controller and processor record, including its data protection officer, its processor engagements, and this assessment’s own review and approval history",
         )
-        : null,
+        : `The Company has provided its controller and processor record in part; the ${open === 1 ? "point still open is" : `${open} points still open are`} listed in the gap table.`;
+    },
   },
   {
     // DESCRIPTIVE (+ genuine prose tail kept verbatim, not a table dump).
@@ -1347,32 +1384,48 @@ const DPIA_MATRIX_ROWS: readonly DpiaMatrixRowSpec[] = [
   },
   {
     // DESCRIPTIVE — one row per data category; count is genuine and informative.
+    // PANEL DPIA-P2 — status-aware (per-item retention asks make the row partial).
     label: "Data minimisation and retention",
     authority: "GDPR Art. 5(1)(b), (c), (e); Art. 35(7)(b)",
-    reportDetermination: ({ tables }) => {
-      const n = tableRowCount(tables, ["section2_coverage.data_minimisation_retention"]);
-      return n > 0 ? providedFor("data minimisation and retention", n, "data category", "data categories") : null;
+    reportDetermination: ({ report }) => {
+      const cov = (report as Bag).section2_coverage as Bag | undefined;
+      const rows = asArray(cov?.data_minimisation_retention);
+      return providedOrPartial("data minimisation and retention", rows, {
+        count: rows.length,
+        noun: "data category",
+        nounPlural: "data categories",
+      });
     },
   },
   {
     // DESCRIPTIVE — single-matter summary table; a count adds nothing here.
+    // PANEL DPIA-P2 — status-aware.
     label: "Data quality / accuracy",
     authority: "GDPR Art. 5(1)(d); Art. 35(7)(b), (d)",
-    reportDetermination: ({ tables }) => (tableRowCount(tables, ["section2_coverage.data_quality"]) > 0 ? providedFor("how it keeps this data accurate") : null),
+    reportDetermination: ({ report }) => {
+      const cov = (report as Bag).section2_coverage as Bag | undefined;
+      return providedOrPartial("how it keeps this data accurate", asArray(cov?.data_quality));
+    },
   },
   {
     // DESCRIPTIVE — single-matter summary table.
+    // PANEL DPIA-P2 — status-aware.
     label: "Article 5 principles / accountability measures",
     authority: "GDPR Art. 5(1)–(2); Arts. 24, 35(7)(d)",
-    reportDetermination: ({ tables }) =>
-      tableRowCount(tables, ["section2_coverage.measures_article5"]) > 0 ? providedFor("the measures carrying the Article 5 principles") : null,
+    reportDetermination: ({ report }) => {
+      const cov = (report as Bag).section2_coverage as Bag | undefined;
+      return providedOrPartial("the measures carrying the Article 5 principles", asArray(cov?.measures_article5));
+    },
   },
   {
     // DESCRIPTIVE — single-matter summary table.
+    // PANEL DPIA-P2 — status-aware.
     label: "Data-subject rights",
     authority: "GDPR Arts. 12–22; Art. 35(7)(b), (d)",
-    reportDetermination: ({ tables }) =>
-      tableRowCount(tables, ["section2_coverage.measures_rights"]) > 0 ? providedFor("how data subjects exercise their rights") : null,
+    reportDetermination: ({ report }) => {
+      const cov = (report as Bag).section2_coverage as Bag | undefined;
+      return providedOrPartial("how data subjects exercise their rights", asArray(cov?.measures_rights));
+    },
   },
   {
     // DETERMINATION — a distinct factor from Processor Governance (Chapter V vs Art. 28) even though both currently read from the same underlying table; see risk-skeleton-assemble.ts's analogous note for the fleet-wide pattern.
@@ -1388,10 +1441,19 @@ const DPIA_MATRIX_ROWS: readonly DpiaMatrixRowSpec[] = [
       // "the Company has identified a cross-border transfer" while Section 2
       // correctly said none exists — a direct internal contradiction in the
       // rendered report (batch doc 04-b672471b).
+      // PANEL DPIA-P3 (2026-08-30) — a sentinel row carrying an ask means the
+      // processor record names an entry marked outside the origin territory
+      // and the transfer question is OPEN; the appendix must restate that,
+      // not assert the negative the body no longer asserts.
+      const openSentinel = asArray(cov.transfers).some((t) =>
+        s(t.determination) === "no_transfer_on_the_record" && s(t.status) === "record_insufficient"
+      );
       const transfers = asArray(cov.transfers)
         .filter((t) => s(t.determination) !== "no_transfer_on_the_record");
       if (!transfers.length) {
-        return "No cross-border transfer is identified in the assessment record; accordingly, no Chapter V transfer mechanism is engaged for the processing as assessed.";
+        return openSentinel
+          ? "No transfer flow is recorded, but the processor record names an engagement marked outside the origin territory; whether a Chapter V transfer arises from it is an open point listed in the gap table."
+          : "No cross-border transfer is identified in the assessment record; accordingly, no Chapter V transfer mechanism is engaged for the processing as assessed.";
       }
       const INSTRUMENTED = new Set(["intra_eea_processing", "uk_domestic_processing", "adequacy", "instrument_recorded"]);
       const allInstrumented = transfers.every((t) => INSTRUMENTED.has(s(t.determination)));

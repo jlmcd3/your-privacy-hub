@@ -661,10 +661,25 @@ export function buildNecessityFindings(intake: unknown): NecessityFinding[] {
     } else if (alternatives.length === 0) {
       verdict = "undetermined_on_the_record";
       status = "record_insufficient";
-      why =
-        `The record states the purpose ("${op.purpose_text}") but records no alternative means that were considered and rejected. ` +
-        `The test the assessment must run is the one the guidance states: ${test.verbatim} ` +
-        "Until the alternatives that were actually weighed are recorded, that comparison cannot be run on this record.";
+      // PANEL DPIA-P1 (2026-08-30, quote-then-deny class) — where the
+      // structured alternatives list is empty but the company's own
+      // necessity narrative exists (and is quoted earlier in this very
+      // document), the old sentence flatly asserted the record "records no
+      // alternative means that were considered and rejected". On the
+      // published sample the quoted narrative two paragraphs above named
+      // the alternatives and their rejection ground — the document denied
+      // material it had just quoted, and blocked sign-off on that denial.
+      // The determination is unchanged (the itemised comparison still
+      // cannot be run); the stated basis now acknowledges the narrative
+      // where one exists instead of denying it.
+      const necessityNarrative = str(get(intake, "necessity_proportionality"));
+      why = necessityNarrative
+        ? `The record states the purpose ("${op.purpose_text}"), and the company's necessity narrative is quoted in this assessment; what the record does not carry is the itemised form this test runs on — each alternative considered, entered with its own rejection reason. ` +
+          `The test the assessment must run is the one the guidance states: ${test.verbatim} ` +
+          "Until the alternatives that were actually weighed are recorded item by item, that comparison cannot be run on this record."
+        : `The record states the purpose ("${op.purpose_text}") but records no alternative means that were considered and rejected. ` +
+          `The test the assessment must run is the one the guidance states: ${test.verbatim} ` +
+          "Until the alternatives that were actually weighed are recorded, that comparison cannot be run on this record.";
       information_needed =
         `For "${op.operation_label}": each less-intrusive alternative that was actually considered (for example a narrower data set, aggregated or pseudonymized data, a shorter retention period, or a manual process), and the specific reason each was rejected.`;
       ask_class = "ask_necessity_alternatives";
@@ -1817,9 +1832,15 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
       : "Part one (purpose test): no interest is stated on the record, so there is nothing to weigh.";
 
     const necessity_test_met = alternatives.length > 0 && alternatives.every((x) => x.rejection_reason !== NOT_STATED);
+    // PANEL DPIA-P1 (2026-08-30, quote-then-deny class) — same acknowledgment
+    // as buildNecessityFindings above: where the structured alternatives list
+    // is empty but a necessity narrative exists on the record, the grounds
+    // sentence must not deny that any alternatives were considered; the
+    // determination itself is unchanged.
+    const liNecessityNarrative = str(get(intake, "necessity_proportionality"));
     const necessity_test_why = necessity_test_met
       ? `Part two (necessity test): the record identifies ${alternatives.length} alternative means (${alternatives.map((x) => x.alternative).join("; ")}) and states why each would not achieve the stated interest, applying the test the guidance sets: ${necessityTest.verbatim}`
-      : `Part two (necessity test): the record does not show that the stated interest cannot reasonably be achieved by a less intrusive means${alternatives.length > 0 ? ", because the alternatives it records carry no rejection reason" : ", because no alternative means are recorded as considered"}. On this record necessity for the purposes of Art. 6(1)(f) is not established.`;
+      : `Part two (necessity test): the record does not show that the stated interest cannot reasonably be achieved by a less intrusive means${alternatives.length > 0 ? ", because the alternatives it records carry no rejection reason" : liNecessityNarrative ? ", because the record's necessity narrative is not itemised into alternatives, each with its own rejection reason — the form this test runs on" : ", because no alternative means are recorded as considered"}. On this record necessity for the purposes of Art. 6(1)(f) is not established.`;
 
     // PROMPT 9M item 2 — the categorical special-category bar is GONE; the
     // balance is scoped to the non-special-category items and decided on the
@@ -2740,21 +2761,71 @@ export function buildSection2Coverage(
   const flows = Array.isArray(rawFlows) ? rawFlows : [];
   const transfers: DpiaTransferRow[] = [];
   if (flows.length === 0) {
-    transfers.push({
-      origin_regime: regime,
-      destination: "",
-      importer: "",
-      determination: "no_transfer_on_the_record",
-      mechanism_label: "",
-      mechanism_citation: "",
-      transfer_risk_assessment_required: false,
-      finding:
-        "No cross-border transfer is on the record for this processing, so no Chapter V mechanism is engaged by this assessment.",
-      citation: chapterVCite,
-      status: "analysed",
-      source_field: "transfer_flows",
-      registry_verified_on: "",
-    });
+    // PANEL DPIA-P3 (2026-08-30, quote-then-deny class) — the zero-flows
+    // sentinel used to assert "No cross-border transfer is on the record"
+    // unconditionally, while the SAME document's processor table named an
+    // entry marked "(CH)" (published sample: OrthoMosaic Alpine SA (CH)).
+    // Where a processor entry carries a parenthesised two-letter marker
+    // outside the origin regime's own territory, the record has not
+    // resolved the transfer question and the sentinel degrades to a
+    // record_insufficient ask instead of asserting the negative. The scan
+    // is purely lexical over a closed ISO set — it never asserts a transfer
+    // EXISTS, only that the marker leaves the question open. A record whose
+    // processors carry no such marker keeps the original bytes.
+    const EEA_ISO = new Set([
+      "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR",
+      "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK",
+      "SI", "ES", "SE", "IS", "LI", "NO",
+    ]);
+    const domestic = (code: string): boolean =>
+      regime === "UK" ? code === "GB" || code === "UK" : EEA_ISO.has(code);
+    const markerHits: string[] = [];
+    for (const p of arr(get(intake, "third_party_processors"))) {
+      for (const m of String(p).matchAll(/\(([A-Z]{2})\)/g)) {
+        if (!domestic(m[1])) {
+          markerHits.push(str(p));
+          break;
+        }
+      }
+    }
+    if (markerHits.length > 0) {
+      const partyText = markerHits.join("; ");
+      transfers.push({
+        origin_regime: regime,
+        destination: "",
+        importer: "",
+        determination: "no_transfer_on_the_record",
+        mechanism_label: "",
+        mechanism_citation: "",
+        transfer_risk_assessment_required: false,
+        finding:
+          `No transfer flow is recorded for this processing, but the processor record names ${partyText} — a marker outside ${regime === "UK" ? "the United Kingdom" : "the EEA"} — so whether a cross-border leg arises from that engagement is not resolved on the record, and no Chapter V determination is made until it is.`,
+        citation: chapterVCite,
+        status: "record_insufficient",
+        information_needed:
+          `Whether a cross-border transfer arises from ${partyText}; if so, the destination and the Chapter V mechanism relied on.`,
+        ask_class: "ask_transfer_leg_unresolved",
+        display_label: resolveAskLabel("ask_transfer_leg_unresolved", { party: partyText }),
+        source_field: "transfer_flows",
+        registry_verified_on: "",
+      });
+    } else {
+      transfers.push({
+        origin_regime: regime,
+        destination: "",
+        importer: "",
+        determination: "no_transfer_on_the_record",
+        mechanism_label: "",
+        mechanism_citation: "",
+        transfer_risk_assessment_required: false,
+        finding:
+          "No cross-border transfer is on the record for this processing, so no Chapter V mechanism is engaged by this assessment.",
+        citation: chapterVCite,
+        status: "analysed",
+        source_field: "transfer_flows",
+        registry_verified_on: "",
+      });
+    }
   } else {
     for (const f of flows as Record<string, unknown>[]) {
       const r = readTransferFlowAliases(f, regime);
