@@ -1131,7 +1131,7 @@ function buildFactRecordTable(
     ["Organization and system",
       factOr(`${organizationName || "(not reported)"} — ${systemName || "(not reported)"}${systemType ? `, ${systemType}` : ""}.`)],
     ["Hosting / model type",
-      factOr([hosting, modelTypes ? `Model type(s): ${modelTypes}.` : ""].filter(Boolean).join(" "))],
+      factOr([hosting, modelTypes ? `Model ${/[;,]/.test(modelTypes) ? "types" : "type"}: ${modelTypes}.` : ""].filter(Boolean).join(" "))],
     ["Decision domains", factOr(reader(domains))],
     ["Decision role",
       factOr([decisionEffects && `Effects: ${decisionEffects}.`, decisionCadence && `Cadence: ${decisionCadence}.`, soleFactor && `Role of output: ${soleFactor}.`, feedsFuture && `Feeds future decisions: ${feedsFuture}.`].filter(Boolean).join(" "))],

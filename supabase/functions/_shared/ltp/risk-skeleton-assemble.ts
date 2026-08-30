@@ -375,7 +375,8 @@ export function deriveSubmissionSupportRecord(
 
   push("Processing activity", s(intake.primary_activity_name));
   const triggers = deriveApplicable7150Triggers(report);
-  push("Applicable § 7150(b) trigger(s)", triggers ?? "none engaged on the information provided");
+  // BATCH 17 (Wave C2): no machine plurals in customer prose (doc 66 R15).
+  push("Applicable § 7150(b) triggers", triggers ?? "none engaged on the information provided");
   const cats = arr(intake.q4_pi_categories);
   if (cats.length) push("Personal-information categories processed (this activity)", cats.join("; "));
   const spi = deriveActivitySpiInventory(intake);

@@ -490,7 +490,10 @@ function composeBrokerConditional(report: Bag, intake: Bag, org: string): string
   }
   const outside = composeOutsideFrameworks(intake);
   if (outside) blocks.push(outside);
-  return repairRegister(blocks.join("\n\n"));
+  // BATCH 17 (Wave C2, welded-blocks class): repairRegister collapses
+  // runs of whitespace, welding the paragraph seams (the attestation
+  // glued onto the preceding block); repair per block, then rejoin.
+  return blocks.map(repairRegister).join("\n\n");
 }
 
 // D1D2B3B8-R5 (2026-08-28) — the same honest-posture parity for a named
@@ -558,7 +561,10 @@ function composeBrokerAnalysis(report: Bag): string {
     }
     blocks.push(bits.join(" "));
   }
-  return repairRegister(blocks.join("\n\n"));
+  // BATCH 17 (Wave C2, welded-blocks class): repairRegister collapses
+  // runs of whitespace, welding the paragraph seams (the attestation
+  // glued onto the preceding block); repair per block, then rejoin.
+  return blocks.map(repairRegister).join("\n\n");
 }
 
 /** Section II lead — the EU, UK and AI Act posture in one sentence. */
@@ -666,7 +672,10 @@ function composeSupervisoryAnalysis(report: Bag): string {
       ),
     );
   }
-  return repairRegister(blocks.join("\n\n"));
+  // BATCH 17 (Wave C2, welded-blocks class): repairRegister collapses
+  // runs of whitespace, welding the paragraph seams (the attestation
+  // glued onto the preceding block); repair per block, then rejoin.
+  return blocks.map(repairRegister).join("\n\n");
 }
 
 /** Section III lead — what stands between the answers and complete filings. */
@@ -767,7 +776,10 @@ function composeReadinessBody(report: Bag, intake: Bag): string {
     }
     blocks.push(bits.join(" "));
   }
-  return repairRegister(blocks.join("\n\n"));
+  // BATCH 17 (Wave C2, welded-blocks class): repairRegister collapses
+  // runs of whitespace, welding the paragraph seams (the attestation
+  // glued onto the preceding block); repair per block, then rejoin.
+  return blocks.map(repairRegister).join("\n\n");
 }
 
 // ── Table of Authorities ────────────────────────────────────────────────────

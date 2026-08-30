@@ -138,7 +138,9 @@ export function assembleDpaDocument(input: DpaAssembleInput): DpaAssembledDocume
     controllerName: s(input.controllerName) || "[TO BE COMPLETED: controller name]",
     processorName: s(input.processorName) || "[TO BE COMPLETED: processor name]",
     services: s(input.services) || "[TO BE COMPLETED: description of the services]",
-    retention: s(input.retention) || "[TO BE COMPLETED: retention period or criteria]",
+    // BATCH 17 (Wave C2): the {retention} slot precedes a literal period in
+    // clause 3.3 — trim a recorded terminal stop so ".." never ships.
+    retention: s(input.retention).replace(/\s*\.+\s*$/, "") || "[TO BE COMPLETED: retention period or criteria]",
     auditRights: s(input.auditRights) || "[TO BE COMPLETED: the audit arrangement]",
     // PANEL DPA-P1 (2026-08-30): a "gdpr"-mode instrument whose parties
     // engage the UK (the derivation collapses UK+EEA pairs to "gdpr")

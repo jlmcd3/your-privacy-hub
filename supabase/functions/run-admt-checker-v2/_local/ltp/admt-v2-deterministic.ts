@@ -145,7 +145,7 @@ export function computeScope(intake: Intake): ScopeResult {
   // to "decision_domains is non-empty."
   const significantDecisionEffect: DecisionEffect = domains.length > 0 ? "SUPPORTS" : "NEUTRAL";
   const significantDecisionLabel = domains.length > 0
-    ? `Regulated significant-decision domain(s) identified: ${domains.join("; ")}`
+    ? `Regulated significant-decision ${domains.length === 1 ? "domain" : "domains"} identified: ${domains.join("; ")}`
     : "No significant-decision domain identified";
   const significantDecisionBasis = vaCite("sig_decision") || cite("sig_decision");
 

@@ -241,10 +241,8 @@ const ALLOWANCES: Record<string, Record<string, string>> = {
 // is removed when its batch lands — a triaged pattern that stops hitting
 // means the entry is stale and must go.
 const TRIAGED: Array<{ product: string; id: string; token?: string; fixBatch: string; reason: string }> = [
-  { product: "cppa_risk", id: "machine-plural", token: "trigger(s)", fixBatch: "Batch 17 (Wave C2)", reason: "§ 7150(b) trigger(s) table label — machine plural in customer prose (§1.8 item 5)" },
-  { product: "cppa_admt", id: "machine-plural", token: "domain(s)", fixBatch: "Batch 17 (Wave C2)", reason: "significant-decision domain(s) factor cell (§1.8 item 5)" },
-  { product: "cppa_admt", id: "machine-plural", token: "type(s)", fixBatch: "Batch 17 (Wave C2)", reason: "Model type(s) fact-record cell (§1.8 item 5)" },
-  { product: "biometric", id: "semicolon-period", fixBatch: "Batch 17 (Wave C2)", reason: "statutory quote's terminal semicolon + framing period (';.\"' class, panel-C D5)" },
+  // Batch 17 (Wave C2) landed 2026-08-30: the risk trigger(s), ADMT
+  // domain(s)/type(s), and biometric ';."' entries are FIXED and removed.
   { product: "cppa_cyber", id: "spaced-hyphen-in-heading", fixBatch: "Batch 21 (Wave C5)", reason: "'Appendix X - Title' + subtitle spaced hyphens → em-dash/en-dash (§1.3/§1.6)" },
   { product: "li_assessment", id: "spaced-hyphen-in-heading", fixBatch: "Batch 21 (Wave C5)", reason: "subtitle ' - scope:' spaced hyphen → fleet subtitle grammar (§1.6)" },
 ];

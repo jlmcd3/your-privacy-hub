@@ -264,7 +264,10 @@ function composeDutyBlock(rows: readonly Bag[]): string {
     const bits: string[] = [];
     bits.push(`${label}${citation ? ` (${citation})` : ""}.`);
     const standard = s(r.standard);
-    if (standard) bits.push(`The provision states: "${noStop(standard)}."`);
+    // BATCH 17 (Wave C2, panel-C D5): a quoted subsection's terminal
+    // semicolon plus the framing period produced ';."' in every (b)(1)/(b)(2)
+    // quote; trim any terminal punctuation inside the quote.
+    if (standard) bits.push(`The provision states: "${standard.replace(/\s*[;:,.]+\s*$/, "")}."`);
     const fact = s(r.record_fact);
     if (fact) bits.push(stop(`The company has answered that ${noStop(lowerEnumLabel(fact))}`));
     const application = s(r.application);

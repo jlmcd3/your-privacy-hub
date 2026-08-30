@@ -264,7 +264,8 @@ for (const c of CPPA_RISK_PERFECT) {
 
     await t.step("appendix table blocks compose", () => {
       assert(body.includes("Personal-information categories (this activity)"), "Appendix C inventory absent");
-      assert(body.includes("Applicable § 7150(b) trigger(s)"), "Appendix G submission record absent");
+      // RE-PIN BATCH 17 (Wave C2): machine plural retired from the label.
+      assert(body.includes("Applicable § 7150(b) triggers"), "Appendix G submission record absent");
       assert(body.includes("Business-level § 7157 submission items requiring reporting-period aggregation"), "Appendix G outstanding checklist absent");
       assert(body.includes("CPPA risk-assessment intake record"), "Appendix H materials index absent");
       // RE-PIN PANEL LEAK-1 (2026-08-30): generation metadata stays for
@@ -362,7 +363,7 @@ Deno.test("v5.2 — Appendix C / G / H builders compose from established facts o
   }, "2026-08-18");
   assertEquals(subE.columns, ["Item", "Detail"]);
   assert(
-    subE.rows.some((r) => r[0] === "Applicable § 7150(b) trigger(s)" && r[1].includes("Section 7150(b)(3)")),
+    subE.rows.some((r) => r[0] === "Applicable § 7150(b) triggers" && r[1].includes("Section 7150(b)(3)")),
     JSON.stringify(subE.rows),
   );
   assert(
