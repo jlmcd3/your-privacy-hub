@@ -710,9 +710,23 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
     const dsVerdict = s(ds.verdict);
     const dsWhy = s(ds.why);
     if (dsVerdict) {
+      // PANEL LEAK-CLASS (2026-08-30) — the verdict used to be spliced as the
+      // raw enum with underscores swapped for spaces ("communication not
+      // required no high risk"), a machine register in customer prose. Each
+      // verdict now maps to a drafted phrase; unknown values keep the legacy
+      // splice rather than dropping the determination.
+      const DS_VERDICT_PHRASE: Record<string, string> = {
+        communication_required: "that communication to the affected individuals is required",
+        communication_not_required_no_high_risk:
+          "that no communication is required, because the Article 34(1) high-risk threshold is not reached",
+        communication_excused_by_exemption:
+          "that communication is excused by an Article 34(3) exemption",
+        undetermined_on_the_record: "reserved: it cannot be resolved on the facts recorded",
+      };
+      const dsPhrase = DS_VERDICT_PHRASE[dsVerdict] ?? noStop(lowerEnumLabel(dsVerdict.replace(/_/g, " ")));
       bits.push(
         stop(
-          `On communication to the affected individuals, the determination on the company's answers is ${noStop(lowerEnumLabel(dsVerdict.replace(/_/g, " ")))}${dsWhy ? `: ${noStop(firstSentence(dsWhy))}` : ""}`,
+          `On communication to the affected individuals, the determination on the company's answers is ${dsPhrase}${dsWhy ? `: ${noStop(firstSentence(dsWhy))}` : ""}`,
         ),
       );
       // E8973164 (2026-08-28, flagged HIGH) — `ds.why` is a deliberately bald

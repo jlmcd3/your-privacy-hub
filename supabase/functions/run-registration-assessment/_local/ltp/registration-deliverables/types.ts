@@ -140,6 +140,10 @@ export interface DpoDetermination {
   engaged_branches: string[];
   citations: string[];
   status: FindingStatus;
+  /** PANEL-BLOCKER REG-1 (2026-08-30) — set only where the GDPR-wing
+   *  applicability gate itself cannot be resolved (establishment unrecorded,
+   *  no market signal); names the missing fact. */
+  information_needed?: string;
 }
 
 /**

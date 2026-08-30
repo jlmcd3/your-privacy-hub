@@ -26,7 +26,7 @@
 //                   Authorities). Never printed unless the composer supplies
 //                   deterministic content for it.
 
-export const IR_SKELETON_VERSION = "prose-plans-2026-08-10-item-so7";
+export const IR_SKELETON_VERSION = "prose-plans-2026-08-30-panel-framing-note-repin";
 export const IR_SKELETON_SOURCE_FILE =
   "Incident_Response_Playbook_Skeleton_v3.docx (CEO-corrected 2026-08-10: four paragraph edits, six unsourced slots dropped, containmentState added)";
 export const IR_SKELETON_PROVENANCE =
@@ -40,8 +40,14 @@ export const IR_SKELETON_PROVENANCE =
  * Uncorrected v3 (for the audit trail), CEO-verified:
  *   3497e5085bf5151fc7802c502c4735d499d2d3cd51d2c7910c1c5035e95daea3
  */
+/**
+ * RE-PIN 2026-08-30 (PANEL leak fix — the framing note's trailing authoring
+ * directive removed from the customer bytes; see IR_TEMPLATE_FRAMING_NOTE).
+ * Prior pin, for the audit trail:
+ *   61bd929aa4061f32b0944722dd537db7f3c37676e21cf94098dadff526059789
+ */
 export const IR_SKELETON_CONTENT_HASH =
-  "61bd929aa4061f32b0944722dd537db7f3c37676e21cf94098dadff526059789";
+  "506affb30d42c7e6c14483d5fd56249546986fff70b54b47119c54e149dbf4fd";
 
 export const IR_SKELETON_TITLE = "INCIDENT RESPONSE PLAYBOOK AND WORKSHEET";
 export const IR_SKELETON_SUBTITLE =
@@ -53,10 +59,18 @@ export const IR_REGISTER_GUIDE = "Register guide (v3 - CEO-ratified counsel regi
 /**
  * BYTE-PINNED authority-framing note (skeleton law, second sentence of the
  * Part One fixed-prose paragraph). It is printed to the customer verbatim,
- * without the authoring marker. It may never be reworded.
+ * without the authoring marker.
+ *
+ * PANEL-2026-08-30 (expert-panel leak class; advance-ratification ledger):
+ * the pinned bytes used to END with "; that framing note is fixed and may
+ * never be reworded" — an AUTHORING directive that printed into both
+ * customer playbooks. The directive belongs in this comment, not in the
+ * customer's document: the note's fixedness is enforced by the content hash
+ * below, not by announcing it to the reader. Substantive framing sentence
+ * unchanged; hash re-pinned (old hash in the audit trail above it).
  */
 export const IR_TEMPLATE_FRAMING_NOTE =
-  "Template material drawn from NIST SP 800-61r3, the CISA playbooks and the ICO toolkit is drafting scaffolding and not legal authority; that framing note is fixed and may never be reworded.";
+  "Template material drawn from NIST SP 800-61r3, the CISA playbooks and the ICO toolkit is drafting scaffolding and not legal authority.";
 
 /**
  * The register rule for the two artifacts. Authoring law; never printed.
@@ -117,7 +131,7 @@ export const IR_SKELETON_SECTIONS: readonly IrSkeletonSection[] = [
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating whether the company's standing preparedness, on its answers, would carry it through a notifiable incident." },
       { kind: "skeleton", text: "This playbook is {organizationName}'s own: it is assembled from the team, contacts, deadlines and processor relationships the company has recorded, for an organisation in its sector ({sector - reader label})." },
-      { kind: "rule", text: "[BYTE-PINNED] Template material drawn from NIST SP 800-61r3, the CISA playbooks and the ICO toolkit is drafting scaffolding and not legal authority; that framing note is fixed and may never be reworded." },
+      { kind: "rule", text: "[BYTE-PINNED] Template material drawn from NIST SP 800-61r3, the CISA playbooks and the ICO toolkit is drafting scaffolding and not legal authority." },
       { kind: "generated", text: "[GENERATED] The programme posture in counsel's voice from the company's answers - plan, team, testing, register, insurance - determination-led; sections the company has not recorded take the single ledger sentence with each section stating what would fill it." },
     ],
   },

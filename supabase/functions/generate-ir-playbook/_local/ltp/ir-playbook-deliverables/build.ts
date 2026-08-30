@@ -494,8 +494,24 @@ export function buildDataSubjectCommunicationDetermination(
       `Communication to the affected data subjects is required. ${plain.verbatim}`;
   } else {
     verdict = "communication_not_required_no_high_risk";
+    // PANEL-BLOCKER IR-4 (2026-08-30) — the no-high-category fallback used to
+    // hardcode "neither scale nor a hostile actor is recorded", and this
+    // branch is reached whenever no high-risk CATEGORY is recorded — even on
+    // a record that DOES record a hostile cause (ransomware) or exposure at
+    // scale. The published EU sample therefore denied its own recorded facts
+    // two sections after stating them. The verdict logic is unchanged; the
+    // stated basis now acknowledges whichever aggravating facts the record
+    // actually carries and explains why, without a category capable of
+    // severe consequences, they do not lift the incident over the bar.
+    const recordedAggravators = [
+      HOSTILE_CAUSES.includes(f.cause) ? `a hostile actor (the recorded cause is "${f.cause}")` : null,
+      scale ? `exposure at scale (${f.affectedCount} affected)` : null,
+    ].filter((x): x is string => x !== null);
+    const noHighCatBasis = recordedAggravators.length
+      ? `The categories recorded are not ones whose exposure ordinarily produces severe consequences for the individual. The record does show ${recordedAggravators.join(" and ")}; the high-risk question is asked of the consequences for the individual, and on the categories recorded those facts do not by themselves carry the incident over the Article 34(1) bar.`
+      : "The categories recorded are not ones whose exposure ordinarily produces severe consequences for the individual, and neither scale nor a hostile actor is recorded.";
     application =
-      `Article 34(1) is a higher threshold than Article 33(1): it requires a HIGH risk to be likely, not merely a risk to be possible. ${highCats.length ? `The record puts ${JSON.stringify(highCats)} in issue, but without a hostile actor or exposure at scale the consequences it points to are not of the severity Article 34 addresses.` : "The categories recorded are not ones whose exposure ordinarily produces severe consequences for the individual, and neither scale nor a hostile actor is recorded."} The higher threshold is therefore not reached${saVerdict === "notification_required" ? ", notwithstanding that the Article 33(1) duty to notify the supervisory authority is engaged — the two tests are different standards on different questions" : ""}.`;
+      `Article 34(1) is a higher threshold than Article 33(1): it requires a HIGH risk to be likely, not merely a risk to be possible. ${highCats.length ? `The record puts ${JSON.stringify(highCats)} in issue, but without a hostile actor or exposure at scale the consequences it points to are not of the severity Article 34 addresses.` : noHighCatBasis} The higher threshold is therefore not reached${saVerdict === "notification_required" ? ", notwithstanding that the Article 33(1) duty to notify the supervisory authority is engaged — the two tests are different standards on different questions" : ""}.`;
     whyRaw =
       "No communication to data subjects is required on the facts as recorded. This position must be re-run if the investigation identifies further categories, further affected individuals, or misuse of the data.";
   }

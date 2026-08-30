@@ -814,6 +814,61 @@ function regimeCite(citation: string, regime: "GDPR" | "UK GDPR"): string {
 function buildDpo(intake: I): DpoDetermination {
   const regime = dpoRegimeLabel(intake);
   const art = `${regime} Art. 37(1)`;
+
+  // PANEL-BLOCKER REG-1 (2026-08-30) — Art. 37(1) attaches only where the
+  // GDPR (or UK GDPR) itself applies. This walk previously ran the three
+  // branches for EVERY record, so a US-only organisation with large-scale
+  // monitoring recorded was told "A data protection officer must be
+  // designated" by a regulation that does not reach it — in the same
+  // document whose Art. 27 walk correctly found Article 3(2) not engaged.
+  // The gate below reads the SAME establishment/market facts the Art. 27
+  // walk reads (buildRepresentative): the instruments reach the organisation
+  // where it is established in the Union or the United Kingdom, or where
+  // the recorded markets served include either territory (the Art. 3(2)
+  // offering signal). Where neither instrument reaches it, the branch walk
+  // is not performed — walking the branches of an inapplicable law is what
+  // produced the contradiction. Where establishment is unrecorded and no
+  // market signal exists, the determination degrades to record_insufficient
+  // rather than asserting either way.
+  const gateMarkets = Array.isArray(intake.markets_served) ? intake.markets_served : [];
+  const euEstablished = tri(intake.has_eu_establishment);
+  const ukEstablished = tri(intake.has_uk_establishment);
+  const euReach = euEstablished === true ||
+    EEA_CODES.has(String(intake.organization_country || "").toUpperCase()) ||
+    gateMarkets.some((m) => {
+      const code = String(m).toUpperCase().replace(/^(EU|EEA)-/, "").trim();
+      return code === "EU" || code === "EEA" || EEA_CODES.has(code);
+    });
+  const ukReach = ukEstablished === true ||
+    ["UK", "GB"].includes(String(intake.organization_country || "").toUpperCase()) ||
+    gateMarkets.some((m) => ["UK", "GB"].includes(String(m).toUpperCase().trim()));
+  if (!euReach && !ukReach) {
+    if (euEstablished === false && ukEstablished === false) {
+      return {
+        verdict: "not_engaged",
+        headline:
+          `A data protection officer is not required under the GDPR or UK GDPR: neither instrument reaches ${orgName(intake)} on the facts recorded.`,
+        reasoning:
+          `The Art. 37(1) designation duty attaches only where the GDPR or UK GDPR itself applies. ${orgName(intake)} is not established in the Union or the United Kingdom, and the record does not show goods or services offered to, or behaviour monitored of, data subjects there, so neither instrument reaches the organisation and the branch analysis is not reached. Voluntary designation remains available and is often prudent.`,
+        findings: [],
+        engaged_branches: [],
+        citations: [],
+        status: "analysed",
+      };
+    }
+    return {
+      verdict: "record_insufficient",
+      headline:
+        `Whether a data protection officer must be designated cannot be determined: whether the GDPR or UK GDPR applies to ${orgName(intake)} turns on establishment and markets the record does not state.`,
+      reasoning:
+        `The Art. 37(1) designation duty attaches only where the GDPR or UK GDPR itself applies. The record does not state whether ${orgName(intake)} is established in the Union or the United Kingdom, and the recorded markets do not include either territory, so the applicability question — and with it the branch analysis — cannot be resolved from the facts recorded.`,
+      findings: [],
+      engaged_branches: [],
+      citations: [],
+      status: "record_insufficient",
+      information_needed: `Whether ${orgName(intake)} is established in the Union or the United Kingdom.`,
+    };
+  }
   // ITEM 369 DEFECT 3(c) — shape-only. Where the record states an industry,
   // the information-needed ask may say why the answer matters in that
   // context. It asserts nothing about the organisation and reaches no

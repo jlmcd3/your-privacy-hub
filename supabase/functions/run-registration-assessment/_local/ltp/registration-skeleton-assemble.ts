@@ -83,6 +83,12 @@ function asProse(items: readonly string[]): string {
 
 const noStop = (t: string): string => t.replace(/\s*\.\s*$/, "");
 const stop = (t: string): string => (t ? (/[.!?]$/.test(t) ? t : `${t}.`) : "");
+// PANEL QUOTE-HYGIENE (2026-08-30) — statutory verbatim quotes often end with
+// the subparagraph's own ";" or ","; rendering them via noStop (which strips
+// only ".") produced the ";." artifact flagged across the fleet review.
+// Quoted standards drop ANY trailing punctuation before the closing
+// quote-period.
+const quoteEnd = (t: string): string => t.replace(/\s*[;:,.]+\s*$/, "");
 const isTrue = (v: unknown): boolean => v === true || s(v).toLowerCase() === "true";
 
 const count = (n: number, one: string, many: string): string =>
@@ -455,7 +461,7 @@ function composeBrokerConditional(report: Bag, intake: Bag, org: string): string
     const standard = s(threshold.standard);
     if (!standard) continue;
     const bits: string[] = [`${stateName(d)}.`];
-    bits.push(`Its own definition provides: "${noStop(standard)}."`);
+    bits.push(`Its own definition provides: "${quoteEnd(standard)}."`);
     const fact = s(threshold.record_fact);
     if (fact) bits.push(stop(noStop(firstSentences(fact, 2))));
     const application = s(threshold.application);
@@ -593,7 +599,7 @@ function composeSupervisoryAnalysis(report: Bag): string {
   for (const r of representatives(report)) {
     const bits: string[] = [`${s(r.jurisdiction) === "UK" ? "United Kingdom" : "European Union"} representative.`];
     const standard = s(r.standard);
-    if (standard) bits.push(`${s(r.citation) || "The governing article"} provides: "${noStop(standard)}."`);
+    if (standard) bits.push(`${s(r.citation) || "The governing article"} provides: "${quoteEnd(standard)}."`);
     const fact = s(r.record_fact);
     if (fact) bits.push(stop(noStop(firstSentences(fact, 2))));
     const application = s(r.application);
@@ -623,7 +629,7 @@ function composeSupervisoryAnalysis(report: Bag): string {
       const application = s(f.application);
       if (!standard && !application) continue;
       bits.push(
-        `${s(f.citation) || "The branch"}: ${standard ? `"${noStop(standard)}." ` : ""}${application ? stop(noStop(firstSentence(application))) : ""}`.trim(),
+        `${s(f.citation) || "The branch"}: ${standard ? `"${quoteEnd(standard)}." ` : ""}${application ? stop(noStop(firstSentence(application))) : ""}`.trim(),
       );
     }
     blocks.push(bits.join(" "));
@@ -644,7 +650,7 @@ function composeSupervisoryAnalysis(report: Bag): string {
       const application = s(f.application);
       if (!standard && !application) continue;
       bits.push(
-        `${s(f.citation) || "The branch"}: ${standard ? `"${noStop(standard)}." ` : ""}${application ? stop(noStop(firstSentence(application))) : ""}`.trim(),
+        `${s(f.citation) || "The branch"}: ${standard ? `"${quoteEnd(standard)}." ` : ""}${application ? stop(noStop(firstSentence(application))) : ""}`.trim(),
       );
     }
     blocks.push(bits.join(" "));
@@ -711,7 +717,7 @@ function composeReadinessBody(report: Bag, intake: Bag): string {
   for (const r of readiness(report)) {
     const bits: string[] = [`${s(r.jurisdiction) || "The jurisdiction"}.`];
     const standard = s(r.standard);
-    if (standard) bits.push(`${s(r.citation) ? `${s(r.citation)} requires` : "The filing must contain"}: "${noStop(standard)}."`);
+    if (standard) bits.push(`${s(r.citation) ? `${s(r.citation)} requires` : "The filing must contain"}: "${quoteEnd(standard)}."`);
     const summary = s(r.summary);
     if (summary) bits.push(stop(noStop(firstSentences(summary, 2))));
     const open = asArray(r.items).filter((i) => i.ready !== true);
