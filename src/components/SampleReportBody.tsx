@@ -30,7 +30,30 @@ const HIDDEN_KEYS = new Set([
   "methodology_note",
   "jurisdiction_validation",
   "jurisdictions_analysed",
+  // PANEL SAMP-2 (2026-08-30): engine telemetry that leaked to published
+  // sample pages through this generic renderer (`_meta`, warnings,
+  // rules_fired on the ADMT and Registration samples). skeleton_document
+  // is hidden here because SampleToolReport renders it as the document.
+  "_meta",
+  "warnings",
+  "rules_fired",
+  "register_findings",
+  "conformance",
+  "spine_version",
+  "skeleton_document",
+  "verification",
+  "composed_factor_ids",
+  "provenance",
+  "factors",
+  "telemetry",
+  "grader_context",
+  "pipeline_stamp",
 ]);
+
+// PANEL SAMP-2: any underscore-prefixed key is internal by convention.
+function isHiddenKey(key: string): boolean {
+  return HIDDEN_KEYS.has(key) || key.startsWith("_");
+}
 
 function titleCase(key: string) {
   return key
@@ -132,7 +155,7 @@ function renderValue(value: unknown, depth = 0): JSX.Element | null {
   }
   if (isPlainObject(value)) {
     const entries = Object.entries(value).filter(
-      ([k, v]) => !HIDDEN_KEYS.has(k) && v !== null && v !== undefined && v !== "",
+      ([k, v]) => !isHiddenKey(k) && v !== null && v !== undefined && v !== "",
     );
     if (entries.length === 0) return null;
     return (

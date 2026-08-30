@@ -23,6 +23,9 @@ type SampleRow = {
   report_data: Record<string, unknown> | null;
   verification: Record<string, unknown> | null;
   published_at: string | null;
+  // PANEL SAMP-3 (2026-08-30): file-driven samples (RoPA, notices) carry
+  // their deliverable as a stored PDF, not row content.
+  pdf_path: string | null;
 };
 
 const TOOL_DISPLAY: Record<string, string> = {
@@ -91,7 +94,7 @@ export default function SampleReport() {
       const { data, error } = await supabase
         .from("sample_reports")
         .select(
-          "id, tool_slug, variant, title, scenario_summary, document_text, report_data, verification, published_at",
+          "id, tool_slug, variant, title, scenario_summary, document_text, report_data, verification, published_at, pdf_path",
         )
         .eq("tool_slug", toolSlug)
         .eq("status", "published")
@@ -221,6 +224,7 @@ export default function SampleReport() {
                   documentText={r.document_text}
                   reportData={r.report_data}
                   publishedAt={r.published_at}
+                  pdfPath={r.pdf_path}
                 />
 
                 {toolRoute && (

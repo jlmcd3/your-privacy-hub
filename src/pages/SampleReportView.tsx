@@ -22,6 +22,9 @@ type Row = {
   report_data: Record<string, unknown> | null;
   verification: Record<string, unknown> | null;
   published_at: string | null;
+  // PANEL SAMP-3 (2026-08-30): the file-driven samples (RoPA, US/EU
+  // notices) carry their deliverable as a stored PDF, not row content.
+  pdf_path: string | null;
 };
 
 const TOOL_DISPLAY: Record<string, string> = {
@@ -93,7 +96,7 @@ export default function SampleReportView() {
         supabase
           .from("sample_reports")
           .select(
-            "id, tool_slug, variant, title, scenario_summary, document_text, report_data, verification, published_at",
+            "id, tool_slug, variant, title, scenario_summary, document_text, report_data, verification, published_at, pdf_path",
           )
           .eq("tool_slug", toolSlug)
           .eq("variant", variant)
@@ -282,6 +285,7 @@ export default function SampleReportView() {
                   documentText={row.document_text}
                   reportData={row.report_data}
                   publishedAt={row.published_at}
+                  pdfPath={row.pdf_path}
                 />
               </div>
 
