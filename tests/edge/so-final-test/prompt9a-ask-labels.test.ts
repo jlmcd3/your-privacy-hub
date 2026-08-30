@@ -153,9 +153,11 @@ Deno.test("9A — the Britannia executive paragraph renders the ratified labels"
   const text = skeletonDocumentToText(
     assembleDpiaSkeletonDocument(report as unknown as Record<string, unknown>, BRITANNIA).document,
   );
+  // RE-PIN BATCH 19b (doc 113 S4.4): the ratified labels are unchanged;
+  // the inline "They are: …; …" chain became the Rule-4 dash list.
   assert(
     text.includes(
-      'They are: the effect of the processing on the data subjects, and the measures that reduce it — which completes the lawful-basis finding for "Workforce sentiment analytics"; whether a written processing contract is in place with each named processor, and the date it was signed — which completes the Art. 28 processing-contract determination.',
+      'They are:\n— the effect of the processing on the data subjects, and the measures that reduce it — which completes the lawful-basis finding for "Workforce sentiment analytics"\n— whether a written processing contract is in place with each named processor, and the date it was signed — which completes the Art. 28 processing-contract determination',
     ),
     text.slice(0, 2000),
   );

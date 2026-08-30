@@ -1510,6 +1510,8 @@ const RUNIN_LEAD_LABELS = [
   "Deadline\\.", "Priority Matters:", "Scope of Assessment:",
   // BATCH 18b (doc 113 S2.5) — doubles as the readiness-banner trigger.
   "Readiness\\.",
+  // BATCH 19b (doc 113 S4.3) — doubles as the determination-banner trigger.
+  "Determination\\.",
 ];
 const LEAD_PHRASE_RE = new RegExp(
   `(^|[.!?]\\s+|\\n\\s*)((?:[A-Z]\\.\\s+[A-Z][^.\\n]{0,80}?\\.)|(?:\\([A-H]\\)\\s+[A-Z][^.\\n]{0,140}?\\.)|(?:Step \\d+ — [A-Z][^.\\n]{0,40}?\\.)|${HEAD_LEAD_LABELS.join("|")})(?=\\s|$)` +
@@ -1641,14 +1643,20 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
         // slate border otherwise. Keep in sync with SkeletonDocumentView.tsx.
         const readinessCallout = trimmed.startsWith("Readiness.");
         const readinessNegative = readinessCallout && trimmed.includes("would not carry");
-        const conditionCallout = deadlineCallout || readinessNegative ||
+        // BATCH 19b (doc 113 S4.3) — the DPIA determination banner: amber
+        // when it records a blocking outcome, the calm slate box otherwise.
+        // Keep in sync with SkeletonDocumentView.tsx.
+        const determinationCallout = trimmed.startsWith("Determination.");
+        const determinationBlocking = determinationCallout &&
+          /may not begin|should not begin|cannot yet determine/.test(trimmed);
+        const conditionCallout = deadlineCallout || readinessNegative || determinationBlocking ||
           /^(?:[A-Z]\.\s+[^.]+\.\s+)?Conditions? to Proceed\./.test(chunk.trim());
         const wrapChunk = (html: string): string => {
           if (!html) return html;
           if (conditionCallout) {
             return `<div class="condition-callout" style="border:1.5px solid #b9822d;background:#fdf6e7;border-radius:5px;padding:9px 13px;margin:0 0 10px;">${html}</div>`;
           }
-          if (readinessCallout) {
+          if (readinessCallout || determinationCallout) {
             return `<div class="readiness-callout" style="border:1.5px solid #94a3b8;background:#f8fafc;border-radius:5px;padding:9px 13px;margin:0 0 10px;">${html}</div>`;
           }
           if (guidancePanel) return `<div class="guidance" style="${GUIDANCE_PANEL_STYLE}">${html}</div>`;

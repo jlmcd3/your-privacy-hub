@@ -457,6 +457,15 @@ function composeExecutiveBody(report: Bag, intake: Bag): string {
   const openBand = bands["undetermined"] ?? 0;
   const sentences: string[] = [];
 
+  // BATCH 19b (doc 113 S4.3 — doc 111 D2 supersedes PROMPT 8D's placement):
+  // the grounded decision statement OPENS the executive body as the styled
+  // "Determination." chunk. Its ratified sentence bytes are unchanged after
+  // the prefix (RULING 3.2).
+  const determinationChunk = (() => {
+    const closing = composeExecutiveDecisionSentence(report, total);
+    return closing ? `Determination. ${closing}` : "";
+  })();
+
   // PROMPT 8D (CEO-ratified 2026-08-12) — the CANONICAL MODEL.
   // v4.6.2 (CEO-ordered polish round, 2026-08-25) — the "preliminary until
   // {name} re-scores them … once they have been deployed" clause said the
@@ -546,6 +555,11 @@ function composeExecutiveBody(report: Bag, intake: Bag): string {
       : what
   );
   const open = openItems.length;
+  // BATCH 19b (doc 113 S4.4) — the open points render as the Rule-4 "— "
+  // list under the byte-unchanged count lead; the panel's own three-bullet
+  // design keeps the ≤3 preview cap (the gap table remains the complete
+  // register). A single open point keeps its single sentence.
+  let openBlock = "";
   if (open === 1) {
     sentences.push(
       `Based on the information the company provided, one point is still open; it is listed in the gap table and raised again where it bears on a determination. It is: ${openItems[0]}.`,
@@ -553,18 +567,20 @@ function composeExecutiveBody(report: Bag, intake: Bag): string {
   } else if (open > 1) {
     const lead =
       `Based on the information the company provided, ${numberWord(open)} points are still open; each is listed in the gap table and raised again where it bears on a determination.`;
-    sentences.push(
-      open <= 3
-        ? `${lead} They are: ${openItems.join("; ")}.`
-        : `${lead} The first three are: ${openItems.slice(0, 3).join("; ")}.`,
-    );
+    const chapeau = open <= 3 ? "They are:" : "The first three are:";
+    const bullets = openItems.slice(0, 3).map((x) => `— ${x}`);
+    openBlock = [`${lead} ${chapeau}`, ...bullets].join("\n");
   }
 
-  // PROMPT 8D — the grounded decision statement CLOSES the executive body.
-  const closing = composeExecutiveDecisionSentence(report, total);
-  if (closing) sentences.push(closing);
-
-  return repairRegister(sentences.join(" "));
+  // BATCH 19b (doc 113 S4.3) — PROMPT 8D's closing placement is superseded:
+  // the determination chunk composed above OPENS the body instead.
+  // BATCH 19b (doc 113 S4.5, welded-blocks class — the seventh product):
+  // this block now writes "\n\n" and "\n— " seams, so the register repair
+  // runs per line and never collapses them.
+  return [determinationChunk, sentences.join(" "), openBlock]
+    .filter(Boolean)
+    .map((part) => part.split("\n").map((l) => repairRegister(l)).join("\n"))
+    .join("\n\n");
 }
 
 
@@ -1709,7 +1725,9 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
   const composedRaw: ComposedBlocks = {
     // PROMPT 8D (spine v4.2): the executive lead block is deleted, so the body
     // is block index 1 and carries the closing decision sentence itself.
-    "executive_summary:1": composeExecutiveBody(report, intake),
+    // BATCH 19b (doc 113 S4.1) — the generated body is now block 0; the
+    // statutory-frame skeleton closes the section as block 1.
+    "executive_summary:0": composeExecutiveBody(report, intake),
 
 
     // PROMPT 8 (spine v4) — the v3 sections `lawfulness`,

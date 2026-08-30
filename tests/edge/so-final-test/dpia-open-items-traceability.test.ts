@@ -54,10 +54,11 @@ Deno.test("dpia skeleton: every information_needed entry is visible in the docum
   }
 
   // The stated count matches the number of items actually rendered.
-  // PROMPT 8D (ratified 2026-08-12): the count sentence is number-worded
-  // and, at three or fewer items, the list is complete ("They are: …").
+  // RE-PIN BATCH 19b (doc 113 S4.4): the open points render as the Rule-4
+  // dash list under the byte-unchanged count lead; at three or fewer items
+  // the list is complete ("They are:" then one "— " line per item).
   assert(/three points are still open/.test(text), text.slice(0, 800));
-  assert(/They are: /.test(text), text.slice(0, 800));
+  assert(text.includes("They are:\n— "), text.slice(0, 800));
 });
 
 Deno.test("dpia skeleton: no count sentence when there are no open items", () => {

@@ -108,6 +108,8 @@ const RUNIN_LEAD_LABELS = [
   "Deadline\\.", "Priority Matters:", "Scope of Assessment:",
   // BATCH 18b (doc 113 S2.5) — doubles as the readiness-banner trigger.
   "Readiness\\.",
+  // BATCH 19b (doc 113 S4.3) — doubles as the determination-banner trigger.
+  "Determination\\.",
 ];
 // BATCH 16 (R2): a chunk that consists SOLELY of a structural lead renders
 // as a sub-heading (doc 66 Rule 2 rewrite). Web sections already use h3, so
@@ -362,11 +364,18 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
                 // in sync with generate-report-pdf/index.ts.
                 const readinessCallout = trimmed.startsWith("Readiness.");
                 const readinessNegative = readinessCallout && trimmed.includes("would not carry");
-                const conditionCallout = deadlineCallout || readinessNegative ||
+                // BATCH 19b (doc 113 S4.3) — the DPIA determination banner:
+                // a "Determination." chunk takes the callout box; amber when
+                // it records a blocking outcome, the calm slate box
+                // otherwise. Keep in sync with generate-report-pdf/index.ts.
+                const determinationCallout = trimmed.startsWith("Determination.");
+                const determinationBlocking = determinationCallout &&
+                  /may not begin|should not begin|cannot yet determine/.test(trimmed);
+                const conditionCallout = deadlineCallout || readinessNegative || determinationBlocking ||
                   /^(?:[A-Z]\.\s+[^.]+\.\s+)?Conditions? to Proceed\./.test(chunk.trim());
                 const calloutClass = conditionCallout
                   ? "rounded-md border-[1.5px] border-amber-600/70 bg-amber-50 px-3 py-2 dark:bg-amber-950/30"
-                  : readinessCallout
+                  : readinessCallout || determinationCallout
                   ? "rounded-md border-[1.5px] border-slate-400/70 bg-slate-50 px-3 py-2 dark:bg-slate-900/30"
                   : guidancePanel
                   ? "border-l-4 border-slate-400 bg-slate-100 dark:bg-slate-900/40 px-3 py-2 text-[13px]"

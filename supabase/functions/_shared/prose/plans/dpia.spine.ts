@@ -60,7 +60,7 @@
 //       keys, variable names, and reasoning traces are never printed in
 //       the customer report") — internal product documentation, not
 //       customer prose.
-export const DPIA_SKELETON_VERSION = "dpia-v4.6.2-2026-08-25";
+export const DPIA_SKELETON_VERSION = "dpia-v4.7-2026-08-30";
 
 /** The v4.6.1 spine version — retained for the audit trail. */
 export const DPIA_SKELETON_VERSION_V461 = "dpia-v4.6.1-2026-08-22";
@@ -170,14 +170,24 @@ export const DPIA_SKELETON_CONTENT_HASH_V461 =
   "dea0ea23c3562a686c52e1c69fb532625eb474c19995a834ee82cf600f8c567b";
 
 /**
- * FIXED-PROSE HASH (BASIS v1) at spine v4.6.2 — the Appendix A intro lost
- * its internal-documentation final sentence and Section 6's outstanding
- * lead became the {OUTSTANDING_MATTERS} slot. Recomputed with the same
- * method as every prior encode (skeleton-block text, newline-joined, in
- * document order; verified by reproducing the v4.6.1 value first).
+ * FIXED-PROSE HASH (BASIS v1) at spine v4.6.2 — retained for the audit
+ * trail only; `DPIA_SPINE_HASH` (basis v2) is the shipped pin.
+ */
+export const DPIA_SKELETON_CONTENT_HASH_V462 =
+  "a37b95f8ad6f493a89a1882899f63a42cb437dbaca4dd7d62915ae8d29805026";
+
+/**
+ * FIXED-PROSE HASH (BASIS v1) at spine v4.7 — BATCH 19b (doc 113 Part D,
+ * doc 109 DPIA item 1, doc 111 D2 verdict-first): the Executive Summary's
+ * statutory frame cut to under eighty words (the Article 35(3) three-case
+ * enumeration retired; the WP248 sentence moved verbatim to the Appendix A
+ * intro) and the exec blocks reordered determination-first. Recomputed with
+ * the same method as every prior encode (skeleton-block text,
+ * newline-joined, in document order; verified by reproducing the v4.6.2
+ * value first).
  */
 export const DPIA_SKELETON_CONTENT_HASH =
-  "a37b95f8ad6f493a89a1882899f63a42cb437dbaca4dd7d62915ae8d29805026";
+  "35d9a83b15c7bb538a0dd48c6bf83978fe35f6de11431aa9ed59ce5bd81c6c18";
 
 
 
@@ -235,11 +245,20 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     id: "executive_summary",
     title: "Executive Summary",
     blocks: [
-      // PROMPT 8D (v4.2): the [DETERMINATION LEAD] block is DELETED. The
-      // decision statement closes the executive body per the canonical model.
-      { kind: "skeleton", text: "Article 35(1) of the General Data Protection Regulation for the EU and UK (“GDPR”) requires a data protection impact assessment before processing that, taking into account its nature, scope, context and purposes, is likely to result in a high risk to the rights and freedoms of natural persons. Article 35(3) identifies three cases in which a DPIA is required in particular: systematic and extensive automated evaluation producing legal or similarly significant effects; large-scale processing of special-category data or criminal-offence data; and large-scale systematic monitoring of publicly accessible areas. The EDPB-endorsed WP248 rev.01 criteria and applicable supervisory-authority lists may identify additional processing likely to present high risk. {organizationName} believes that this assessment may be required because {reasonsToConduct - reader phrases as prose}. The processing under assessment is described as the following: {description - own sentence}{VERSION_CLAUSE - \", version \" + processingVersion; absent => omitted}{LAUNCH_CLAUSE - \", planned to commence \" + launchDate; absent => omitted}." },
-      { kind: "generated", text: "[GENERATED] The executive body per the canonical model: the risks reviewed and the measures mitigating them; whether any is deemed high; the self-identified/surfaced split; the open points; and the grounded decision statement, which closes the section." },
-
+      // BATCH 19b (v4.7, doc 113 S4.1/S4.3 — doc 111 D2 verdict-first
+      // supersedes PROMPT 8D's decision-closes-the-section placement): the
+      // determination-led executive body OPENS the section; the statutory
+      // frame closes it. The decision statement's ratified sentence bytes
+      // are unchanged (RULING 3.2) — it moved and gained the
+      // "Determination." style label, nothing more.
+      { kind: "generated", text: "[GENERATED] The executive body, determination first: the grounded decision statement opens the section as the styled determination; then the risks reviewed and the measures mitigating them; whether any is deemed high; the self-identified/surfaced split; and the open points as a dash list." },
+      // BATCH 19b (v4.7, doc 113 S4.2 — doc 109 DPIA item 1): the statutory
+      // frame cut to under eighty words. Article 35(1)'s requirement
+      // sentence keeps its bytes; the Article 35(3) three-case enumeration
+      // retires from the exec (the provision stays cited; the cases live in
+      // the record's own reasons-to-conduct and Appendix A's authorities);
+      // the WP248 sentence moved VERBATIM to the Appendix A intro.
+      { kind: "skeleton", text: "Article 35(1) of the General Data Protection Regulation for the EU and UK (“GDPR”) requires a data protection impact assessment before processing that, taking into account its nature, scope, context and purposes, is likely to result in a high risk to the rights and freedoms of natural persons, and Article 35(3) identifies the cases in which one is required in particular. {organizationName} believes that this assessment may be required because {reasonsToConduct - reader phrases as prose}. The processing under assessment is described as the following: {description - own sentence}{VERSION_CLAUSE - \", version \" + processingVersion; absent => omitted}{LAUNCH_CLAUSE - \", planned to commence \" + launchDate; absent => omitted}." },
     ],
   },
   {
@@ -373,7 +392,9 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
       // v4.6.2 — the final sentence ("Internal field keys, variable names,
       // and reasoning traces are never printed…") was internal product
       // documentation, not customer prose; dropped.
-      { kind: "skeleton", text: "This appendix is a factor-by-factor audit trail for the material determinations in this DPIA. Each row states the factor assessed, the report's determination on that factor, and the primary legal authority that governs it. Every determination is drawn from the analysis already presented in this report, so nothing here is a new conclusion." },
+      // BATCH 19b (v4.7, doc 113 S4.2): the WP248 sentence moved here
+      // VERBATIM from the Executive Summary's statutory frame.
+      { kind: "skeleton", text: "This appendix is a factor-by-factor audit trail for the material determinations in this DPIA. Each row states the factor assessed, the report's determination on that factor, and the primary legal authority that governs it. Every determination is drawn from the analysis already presented in this report, so nothing here is a new conclusion. The EDPB-endorsed WP248 rev.01 criteria and applicable supervisory-authority lists may identify additional processing likely to present high risk." },
       // {{DERIVED.factor_input_determination_authority_matrix}}, assembled in
       // dpia-skeleton-assemble.ts from the same composed values/tables that
       // already render in the body -- no new legal content, no new intake or
@@ -446,11 +467,16 @@ export const DPIA_SPINE_HASH_V46 =
 export const DPIA_SPINE_HASH_V461 =
   "759ed3f3555d9039961c3de736bdc0469c4fc5e5da32a1805a9b8fde0faa4075";
 
-/** v4.6.2 spine hash — recomputed after the Section 6 outstanding-matters
- * slot conversion and the Appendix A intro trim (method verified by
- * reproducing the v4.6.1 value first). */
-export const DPIA_SPINE_HASH =
+/** v4.6.2 spine hash — retained for the audit trail. */
+export const DPIA_SPINE_HASH_V462 =
   "2a384cc03a59c3aaa2df66dd34885b1da4450ac2e555175228027f4049d76132";
+
+/** v4.7 spine hash — BATCH 19b (doc 113 Part D): the Executive Summary
+ * reordered determination-first, its statutory frame cut, and the WP248
+ * sentence moved to the Appendix A intro (method verified by reproducing
+ * the v4.6.2 value first). */
+export const DPIA_SPINE_HASH =
+  "dbd7036915ff12a7694d762990884acd17c32bc5a5aaa6bcd324e9c1fcbce6ee";
 
 /** The v4.5.1 spine under basis v2 — retained for the audit trail. */
 export const DPIA_SPINE_HASH_V451 =

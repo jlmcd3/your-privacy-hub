@@ -85,5 +85,6 @@ Deno.test("9L.1 item 5 — design risks follow the §4 statutory frame, not the 
   // Re-pinned 2026-08-25: block 1 is the combined "Risk Assessments." intro.
   assert(s4blocks[1].text.endsWith("after the company's measures are considered."), s4blocks[1].text);
   assertEquals(s4blocks[2].text, "risk_register.design");
-  assertEquals(DPIA_SKELETON_VERSION, "dpia-v4.6.2-2026-08-25");
+  // RE-PIN BATCH 19b (doc 113 Part D): v4.7 — exec verdict-first re-encode.
+  assertEquals(DPIA_SKELETON_VERSION, "dpia-v4.7-2026-08-30");
 });
