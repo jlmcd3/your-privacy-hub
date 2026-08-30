@@ -75,7 +75,9 @@ function deriveCoverTable(intake: Bag, reportDate: string): RenderedTable {
       ["Report date", reportDate],
       ["Assessment", "CPPA Cybersecurity Audit Readiness Report"],
       ["Regulatory reference", "11 CCR §§ 7120-7124"],
-      ["Version", CYBER_V4_SKELETON_VERSION],
+      // PANEL CYB-5 (2026-08-30): the spine version string is generation
+      // metadata, not cover content; it stays in Appendix D's engine-version
+      // row, where the reperformance record belongs.
     ],
   };
 }
@@ -127,8 +129,12 @@ function deriveEvidenceIndex(deliverables: CyberDeliverables): RenderedTable {
     surface: "cyber_v4_evidence_index",
     title: "Evidence Readiness Index",
     columns: ["Component", "Evidence categories identified", "Testable artifacts", "Sufficiency"],
+    // PANEL CYB-6 (2026-08-30): the row label carries an "Evidence
+    // sufficiency — " prefix that duplicated the table's own title and
+    // Sufficiency column in all 18 rows; the Component cell names the
+    // component alone.
     rows: deliverables.evidence_sufficiency.map((e) => [
-      `${e.component_number}. ${e.label}`,
+      `${e.component_number}. ${e.label.replace(/^Evidence sufficiency — /, "")}`,
       e.evidence_offered.length ? e.evidence_offered.join("; ") : "None identified",
       e.testable_artifacts.length ? e.testable_artifacts.join("; ") : "None",
       e.sufficiency,
@@ -154,24 +160,45 @@ function deriveActionRegister(
     surface: "cyber_v4_action_register",
     title: "Readiness Action Register",
     columns: ["Rank", "Component", "Action", "Type", "Priority", "Owner"],
-    rows: recommendations.map((r) => {
-      const rec = controlRec(intake, r.slug);
-      return [
-        String(r.rank),
-        r.label,
-        // FD703575-CY3 — first-sentence fact, never the whole notes narrative.
-        r.slot.template.replace("{fact}", recommendationFact(rec.notes, rec.maturity)),
-        ACTION_TYPE_BY_GAP_CLASS[r.key.gapClass] ?? "Readiness",
-        r.priority,
-        owner || "Not recorded",
-      ];
-    }),
+    // PANEL CYB-6 (2026-08-30): a zero-action register used to render as an
+    // empty appendix (intro paragraph, then nothing — it read as a
+    // rendering failure). The empty state is now an explicit one-row
+    // result, consistent with Section VI's "none identified" sentence.
+    rows: recommendations.length
+      ? recommendations.map((r) => {
+        const rec = controlRec(intake, r.slug);
+        return [
+          String(r.rank),
+          r.label,
+          // FD703575-CY3 — first-sentence fact, never the whole notes narrative.
+          r.slot.template.replace("{fact}", recommendationFact(rec.notes, rec.maturity)),
+          ACTION_TYPE_BY_GAP_CLASS[r.key.gapClass] ?? "Readiness",
+          r.priority,
+          owner || "Not recorded",
+        ];
+      })
+      : [[
+        "—",
+        "All components",
+        "No readiness actions are identified for any component; Section VI records the same result.",
+        "—",
+        "—",
+        "—",
+      ]],
   };
 }
 
 function deriveAssessmentProfileRecord(intake: Bag, reportDate: string): RenderedTable {
   const profile = ((intake.profile ?? {}) as Bag);
-  const field = (label: string, key: string): [string, string] => [label, s(profile[key]) || "Not recorded"];
+  // PANEL CYB-3 (2026-08-30): s() returns "" for non-strings, so the
+  // ARRAY-valued in_scope_frameworks always rendered "Not recorded" here
+  // while §I named the same frameworks — the provenance appendix
+  // contradicted the body it provenances. Arrays now render joined.
+  const field = (label: string, key: string): [string, string] => {
+    const v = profile[key];
+    const text = Array.isArray(v) ? v.map((x) => s(x)).filter(Boolean).join(", ") : s(v);
+    return [label, text || "Not recorded"];
+  };
   return {
     key: "",
     surface: "cyber_v4_assessment_record_profile",
@@ -235,6 +262,16 @@ function joinLines(...parts: (string | null | undefined)[]): string {
   return parts.map((p) => s(p)).filter(Boolean).join("\n\n");
 }
 
+// PANEL CYB-6 (2026-08-30, welded-blocks class): repairRegister ends with
+// `\s{2,}` → " ", which collapsed every joinLines("\n\n") seam and every
+// label/bullet line list into one run-on paragraph (the published §I read
+// "…12 months: None Tomorrow4Cariboo, Inc. operates in…"). Repair is applied
+// per line, preserving the line and paragraph structure the renderer's
+// \n{2,} split depends on. Register bytes are repaired exactly as before.
+function repairPreserving(text: string): string {
+  return text.split("\n").map((l) => repairRegister(l)).join("\n");
+}
+
 function composeCompanyContext(intake: Bag, factors: CyberFactorOutputs): string {
   const profile = ((intake.profile ?? {}) as Bag);
   const lines: string[] = [];
@@ -254,7 +291,7 @@ function composeComponentModules(factors: CyberFactorOutputs): string {
     .map((f) => {
       const parts = [
         `${f.component_number}. ${f.label}`,
-        repairRegister(f.narrative),
+        repairPreserving(f.narrative),
         `Next action: ${f.recommended_action}`,
       ];
       return parts.join("\n");
@@ -328,41 +365,41 @@ export function assembleCyberSkeletonDocumentV4(
 
   const composedBase: ComposedBlocks = {
     // Executive Summary.
-    "executive_summary:1": repairRegister(leadSentence),
-    "executive_summary:2": repairRegister(factors.executive_lines),
+    "executive_summary:1": repairPreserving(leadSentence),
+    "executive_summary:2": repairPreserving(factors.executive_lines),
 
     // I. Purpose, Scope, and Assessment Record.
-    "purpose_scope_record:2": repairRegister(composeCompanyContext(intake, factors)),
-    "purpose_scope_record:4": repairRegister(
+    "purpose_scope_record:2": repairPreserving(composeCompanyContext(intake, factors)),
+    "purpose_scope_record:4": repairPreserving(
       joinLines(factors.scope_record.analysis, factors.scope_record.sufficiency),
     ),
     "purpose_scope_record:6": buildPhaseInBlock(phaseInCorpusExcerpt),
-    "purpose_scope_record:8": repairRegister(factors.prior_audit_reliance_analysis),
-    "purpose_scope_record:10": repairRegister(joinLines(
+    "purpose_scope_record:8": repairPreserving(factors.prior_audit_reliance_analysis),
+    "purpose_scope_record:10": repairPreserving(joinLines(
       `Unassessed or incomplete components: ${factors.record_sufficiency.unassessed_count}. Components lacking narrative support: ${factors.record_sufficiency.without_notes}. Components lacking identified evidence: ${factors.record_sufficiency.without_evidence}.`,
       factors.record_sufficiency.conclusion,
       factors.record_sufficiency.follow_up,
     )),
 
     // II. Auditor Engagement and Evidence Readiness.
-    "auditor_evidence:1": repairRegister(joinLines(
+    "auditor_evidence:1": repairPreserving(joinLines(
       s(deliverables.independence_determination.summary),
       factors.independence_readiness_consequence,
     )),
-    "auditor_evidence:3": repairRegister(joinLines(
+    "auditor_evidence:3": repairPreserving(joinLines(
       factors.evidence_readiness.analysis,
       factors.evidence_readiness.follow_up,
     )),
 
     // III. Cybersecurity Program Readiness.
-    "program_readiness:1": repairRegister(joinLines(
+    "program_readiness:1": repairPreserving(joinLines(
       factors.program_readiness.analysis,
       factors.program_readiness.conclusion,
     )),
     "program_readiness:3": composeComponentModules(factors),
 
     // IV. Cross-Cutting Findings and Readiness Gaps.
-    "cross_cutting:1": repairRegister(joinLines(
+    "cross_cutting:1": repairPreserving(joinLines(
       factors.cross_cutting.material_implementation_gaps,
       factors.cross_cutting.material_evidence_gaps,
       factors.cross_cutting.cross_component_findings,
@@ -372,13 +409,13 @@ export function assembleCyberSkeletonDocumentV4(
     )),
 
     // V. Security-Incident Context.
-    "incident_context:1": repairRegister(joinLines(
+    "incident_context:1": repairPreserving(joinLines(
       factors.incident_readiness.analysis,
       factors.incident_readiness.follow_up,
     )),
 
     // VI. Readiness Actions.
-    "readiness_actions:1": repairRegister(joinLines(
+    "readiness_actions:1": repairPreserving(joinLines(
       factors.readiness_actions.priority_actions.length
         ? `Priority readiness actions:\n${bullets(factors.readiness_actions.priority_actions)}`
         : "Priority readiness actions: none identified on the Company's answers.",
@@ -395,19 +432,19 @@ export function assembleCyberSkeletonDocumentV4(
     )),
 
     // VII. Readiness Conclusion.
-    "readiness_conclusion:1": repairRegister(joinLines(
+    "readiness_conclusion:1": repairPreserving(joinLines(
       leadSentence,
       rd.blocking_components.length
         ? `Blocking components: ${rd.blocking_components.map((b) => b.label).join("; ")}.`
         : null,
     )),
-    "readiness_conclusion:2": repairRegister(joinLines(
+    "readiness_conclusion:2": repairPreserving(joinLines(
       factors.overall.narrative,
       factors.overall.single_next_act,
     )),
 
     // VIII. Evidence Preservation and Continuing Readiness.
-    "evidence_preservation:1": repairRegister(joinLines(
+    "evidence_preservation:1": repairPreserving(joinLines(
       factors.evidence_preservation.actions,
       factors.evidence_preservation.observations,
     )),
@@ -444,8 +481,25 @@ export function assembleCyberSkeletonDocumentV4(
   // The component citations are always in the ledger's candidate set: the
   // component modules and matrix cite them via the factor records.
   const componentCitations = CYBER_7123_COMPONENTS.map((c) => c.citation);
+  // PANEL CYB-6 (2026-08-30): the candidate set omitted authorities the
+  // body cites (§ 7120 in the applicability table, § 7123(d)/(f) in the
+  // scope rationale walk, Civ. Code § 1798.140(d)(1)) — the iff-cited
+  // filter can only list what it is offered, so counsel found body cites
+  // missing from the ToA. Candidates the body does not cite still never
+  // render.
   const toa = renderTableOfAuthorities(
-    [...new Set([...ledger, ...componentCitations, "11 CCR § 7121(a)", "11 CCR § 7122", "11 CCR § 7123(e)(4)", "11 CCR § 7124"])],
+    [...new Set([
+      ...ledger,
+      ...componentCitations,
+      "11 CCR § 7120",
+      "11 CCR § 7121(a)",
+      "11 CCR § 7122",
+      "11 CCR § 7123(d)",
+      "11 CCR § 7123(e)(4)",
+      "11 CCR § 7123(f)",
+      "11 CCR § 7124",
+      "Cal. Civ. Code § 1798.140(d)(1)",
+    ])],
     skeletonDocumentToText(draft),
   );
 

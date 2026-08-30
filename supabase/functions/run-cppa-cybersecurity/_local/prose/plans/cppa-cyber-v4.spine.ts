@@ -75,7 +75,10 @@ export interface CyberV4Section {
   readonly blocks: readonly CyberV4Block[];
 }
 
-export const CYBER_V4_SKELETON_VERSION = "cppa-cyber-v4.0-spine-v1.1-2026-08-26";
+// PANEL CYB-5 (2026-08-30): eight section openers rewritten from drafting-
+// instruction voice ("the report should not state…") to first-person-
+// document indicative; every legal boundary each sentence drew is kept.
+export const CYBER_V4_SKELETON_VERSION = "cppa-cyber-v4.0-spine-v1.2-2026-08-30";
 export const CYBER_V4_SKELETON_TITLE = "CPPA CYBERSECURITY AUDIT READINESS REPORT";
 export const CYBER_V4_SKELETON_SUBTITLE =
   "Prepared under 11 CCR §§ 7120-7124 - {profile.entity_name}";
@@ -131,7 +134,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
     title: "II. Auditor Engagement and Evidence Readiness",
     blocks: [
       // A. Auditor Engagement Posture (v1.1, byte-pinned).
-      { kind: "skeleton", text: "The statutory audit must be performed by a qualified, objective, independent professional. The present intake does not collect the auditor’s identity, qualifications, procedures, or testing record. It does, however, capture the status of the engagement and whether independence has been confirmed in the forms reflected by the intake. The readiness report may evaluate that engagement posture, but should not state that the statutory independence requirement has been conclusively established unless the available status supports only that limited proposition." },
+      { kind: "skeleton", text: "The statutory audit must be performed by a qualified, objective, independent professional. The Company’s answers do not identify the auditor’s identity, qualifications, procedures, or testing record; they capture the status of the engagement and whether independence has been confirmed. This report evaluates that engagement posture and goes no further: whether the statutory independence requirement is satisfied is established by the engagement itself, not by this report." },
       { kind: "generated", text: "[GENERATED] Auditor engagement: the recorded engagement status, the deterministic engagement/independence determination, and the readiness consequence (FACTOR.independence_readiness_consequence)." },
       // B. Evidence Standard (v1.1, byte-pinned; trailing register
       // instruction encoded as banned-register entries — disposition i1).
@@ -144,11 +147,11 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
     title: "III. Cybersecurity Program Readiness",
     blocks: [
       // A. Program-Level Readiness (v1.1, byte-pinned).
-      { kind: "skeleton", text: "The component-by-component analysis is not a substitute for understanding the cybersecurity program as a whole. The readiness assessment should first state whether the intake describes an established program, whether the component record is sufficiently complete to evaluate that program, and whether material implementation or evidence weaknesses cut across multiple components." },
+      { kind: "skeleton", text: "The component-by-component analysis is not a substitute for understanding the cybersecurity program as a whole. This section states whether the Company’s answers describe an established program, whether the component record is complete enough to evaluate that program, and whether material implementation or evidence weaknesses cut across multiple components." },
       { kind: "generated", text: "[GENERATED] Program-level readiness: the program-framework fact, the program-obligation findings, the program-level assessment and conclusion (DERIVED.program_obligation_findings + FACTOR.program_readiness_analysis / program_readiness_conclusion)." },
       // B. Treatment of the 18 Regulatory Components (v1.1, byte-pinned;
       // the compact-pattern instruction is disposition i2).
-      { kind: "skeleton", text: "The current intake presents all eighteen § 7123(c) components. Because it does not collect a separate applicability determination for each component, this readiness report should review the entire catalogue as a conservative preparation exercise but should not say that all eighteen are legally applicable to every Company. The independent auditor ultimately determines which listed components are applicable to the Company’s information system." },
+      { kind: "skeleton", text: "This report presents all eighteen § 7123(c) components. Because the Company’s answers do not include a separate applicability determination for each component, the report reviews the entire catalogue as a conservative preparation exercise; it does not state that all eighteen are legally applicable to the Company. The independent auditor ultimately determines which listed components are applicable to the Company’s information system." },
       { kind: "generated", text: "[GENERATED] The eighteen component modules, one compact pattern each: Company fact (maturity, description, evidence categories) -> deterministic implementation posture -> evidence posture -> readiness analysis -> next action, with the ratified S4 regulator commentary where curated. Composed from INTAKE.controls + DERIVED.component_coverage/evidence_sufficiency + FACTOR.component_analysis." },
     ],
   },
@@ -156,7 +159,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
     id: "cross_cutting",
     title: "IV. Cross-Cutting Findings and Readiness Gaps",
     blocks: [
-      { kind: "skeleton", text: "The component discussion establishes the record one control at a time. This section should then identify the few matters that actually affect the overall readiness conclusion. It should consolidate recurring evidence problems, common implementation gaps, dependencies on prior audit work, and material information deficiencies rather than repeating eighteen individual observations." },
+      { kind: "skeleton", text: "The component discussion establishes the record one control at a time. This section identifies the few matters that actually affect the overall readiness conclusion, consolidating recurring evidence problems, common implementation gaps, dependencies on prior audit work, and material information deficiencies rather than repeating eighteen individual observations." },
       { kind: "generated", text: "[GENERATED] Material implementation gaps; material evidence gaps; cross-component/systemic issues; prior-audit dependency gaps; material record limitations; the cross-cutting conclusion. FACTOR.material_* / cross_component_findings / cross_cutting_conclusion." },
     ],
   },
@@ -164,7 +167,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
     id: "incident_context",
     title: "V. Security-Incident Context",
     blocks: [
-      { kind: "skeleton", text: "Incident history can inform readiness, particularly the incident-response component, but the present intake captures only the number of incidents in the preceding twelve months and whatever additional facts the Company chooses to include in the incident-response control notes and evidence selections. The report should therefore characterize the incident record only to that extent." },
+      { kind: "skeleton", text: "Incident history can inform readiness, particularly the incident-response component, but the Company’s answers capture only the number of incidents in the preceding twelve months and whatever additional facts the Company includes in the incident-response control notes and evidence selections. This report characterizes the incident record only to that extent." },
       { kind: "generated", text: "[GENERATED] The incident count, the incident-response component's recorded posture, the incident-readiness analysis and any incident-record follow-up (FACTOR.incident_readiness_analysis / incident_record_follow_up). Never infers breach facts from the count (disposition i3)." },
     ],
   },
@@ -180,7 +183,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
     id: "readiness_conclusion",
     title: "VII. Readiness Conclusion",
     blocks: [
-      { kind: "skeleton", text: "The conclusion should answer a narrow and useful question: based on the Company’s present description of its cybersecurity program and the evidence categories identified, how prepared is the Company to proceed into the independent Article 9 audit? It should not answer the different question whether the independent audit has been completed or whether the Company has passed it." },
+      { kind: "skeleton", text: "This conclusion answers a narrow and useful question: based on the Company’s present description of its cybersecurity program and the evidence categories identified, how prepared is the Company to proceed into the independent Article 9 audit? It does not answer the different question whether the independent audit has been completed or whether the Company has passed it." },
       { kind: "lead", text: "[DETERMINATION LEAD] The deterministic readiness determination and its blockers, bound to DERIVED.readiness_determination." },
       { kind: "generated", text: "[GENERATED] The overall readiness narrative and the most important next act (FACTOR.overall_readiness_narrative / single_next_act), composed per disposition i5: a thin record concludes record-insufficient, never not-ready, unless the intake affirmatively describes a material implementation deficiency." },
     ],
@@ -205,7 +208,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
     id: "appendix_b_evidence",
     title: "Appendix B - Evidence Readiness Index",
     blocks: [
-      { kind: "skeleton", text: "A component-by-component index of the evidence categories the Company identifies as available. The appendix should preserve the distinction between an evidence category selected in intake and a specific artifact actually reviewed by an auditor." },
+      { kind: "skeleton", text: "A component-by-component index of the evidence categories the Company identifies as available. The appendix preserves the distinction between an evidence category the Company identified as available and a specific artifact actually reviewed by an auditor." },
       { kind: "table", text: "" },
     ],
   },
@@ -213,7 +216,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
     id: "appendix_c_actions",
     title: "Appendix C - Readiness Action Register",
     blocks: [
-      { kind: "skeleton", text: "A consolidated action register generated from material factor findings, organized by remediation owner where available and by action type. The action register should identify whether an item concerns implementation, evidence, or record completion." },
+      { kind: "skeleton", text: "A consolidated action register of the material findings, organized by remediation owner where available and by action type. Each item identifies whether it concerns implementation, evidence, or record completion." },
       { kind: "table", text: "" },
     ],
   },

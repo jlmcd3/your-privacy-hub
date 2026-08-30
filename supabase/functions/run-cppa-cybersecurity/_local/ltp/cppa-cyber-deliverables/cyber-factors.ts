@@ -115,6 +115,24 @@ function controlRec(intake: Bag, slug: string): { maturity: string; notes: strin
   return { maturity: "", notes: "", evidence: [] };
 }
 
+// PANEL CYB-6 (2026-08-30) — splice hygiene for recorded enum labels.
+// maturityPhrase lowercases a sentence-cased maturity label and restores the
+// article the enum omits ("Implemented across organization" → "implemented
+// across the organization"); labels already carrying their article, and the
+// continuous-monitoring label, pass through lowercased only. lowerItemLabel
+// lowercases a sentence-cased first letter but leaves acronym-initial items
+// (SOC 2) untouched.
+export function maturityPhrase(label: string): string {
+  const t = label.trim();
+  const lowered = /^[A-Z][a-z]/.test(t) ? t.charAt(0).toLowerCase() + t.slice(1) : t;
+  return lowered.replace(/across organization\b/i, "across the organization");
+}
+
+export function lowerItemLabel(label: string): string {
+  const t = label.trim();
+  return /^[A-Z][a-z]/.test(t) ? t.charAt(0).toLowerCase() + t.slice(1) : t;
+}
+
 function coverageBySlug(d: CyberDeliverables): ReadonlyMap<string, CyberComponentCoverage> {
   return new Map(d.component_coverage.map((c) => [c.slug, c]));
 }
@@ -140,7 +158,13 @@ export function buildCompanyContextAnalysis(intake: Bag): string {
   );
   if (lastAudit) sentences.push(`Its most recent cybersecurity audit is recorded as ${noStop(lastAudit)}.`);
   if (incidents) {
-    sentences.push(`The Company reports ${noStop(incidents)} security incidents in the preceding twelve months; what those incidents involved is addressed only to the extent the incident-response record states it.`);
+    // PANEL CYB-6 (2026-08-30): "reports None security incidents" was the
+    // raw enum spliced into prose, followed by a reference to "what those
+    // incidents involved" for incidents that do not exist. A None answer
+    // gets its own sentence; any other answer keeps the prior bytes.
+    sentences.push(/^none$/i.test(incidents)
+      ? "The Company reports no security incidents in the preceding twelve months."
+      : `The Company reports ${noStop(incidents)} security incidents in the preceding twelve months; what those incidents involved is addressed only to the extent the incident-response record states it.`);
   }
   return sentences.join(" ");
 }
@@ -215,6 +239,18 @@ export function buildRecordSufficiency(intake: Bag, d: CyberDeliverables): Recor
   if (unassessed > 0) followUps.push(`record an implementation status for the ${unassessed === 1 ? "unassessed component" : `${unassessed} unassessed components`}`);
   if (withoutNotes > 0) followUps.push(`add a narrative description for the ${withoutNotes === 1 ? "component" : `${withoutNotes} components`} that carry none`);
   if (withoutEvidence > 0) followUps.push(`identify the evidence categories available for the ${withoutEvidence === 1 ? "component" : `${withoutEvidence} components`} with none identified`);
+  // PANEL CYB-3 (2026-08-30): "No record-completion follow-up is
+  // identified." used to fire while the same report named two
+  // record-completion items in so many words — the undescribed auditor
+  // engagement (Section II) and the undescribed prior-audit coverage
+  // (Section I). Both now count here, so the none-branch is true when it
+  // prints.
+  if (!["external", "internal", "none"].includes(s(d.independence_determination.auditor_type))) {
+    followUps.push("describe the auditor engagement, whose unresolved status Section II identifies as a record-completion item");
+  }
+  if (profileStr(intake, "last_audit") && !profileStr(intake, "prior_audit_scope")) {
+    followUps.push("record what the prior audit covered, which Section I identifies as a record-completion item");
+  }
   const follow_up = followUps.length
     ? `To improve the record: ${asProse(followUps)}.`
     : "No record-completion follow-up is identified.";
@@ -255,8 +291,15 @@ export function buildEvidenceReadinessAnalysis(d: CyberDeliverables): { analysis
     );
   }
   const analysis = sentences.join(" ");
+  // PANEL CYB-2 (2026-08-30): the all-clear used to fire whenever nothing
+  // was insufficient/unknown — so 4 "partial" components whose Appendix B
+  // testable-artifacts column reads "None" sat under "every component's
+  // identified evidence includes testable material". Partial means
+  // policy-only evidence; the all-clear now requires none of the three.
   const follow_up = insufficient + unknown > 0
     ? "The evidence follow-up is component-specific and appears in each component module and Appendix C: in each case the action is to retain a testable artifact - a log, a configuration export, a report, a test result, an auditor letter, or a training record - behind the described control."
+    : partial > 0
+    ? `No component leaves a finding resting primarily on management assertion, but ${partial === 1 ? "one component evidences" : `${partial} components evidence`} intent only - a policy or procedure with no testable artifact yet identified behind it. The component modules in Section III name each; the action in each case is to retain a testable artifact - a log, a configuration export, a report, a test result, an auditor letter, or a training record - behind the described control.`
     : "No evidence follow-up is identified: every component's identified evidence includes testable material.";
   return { analysis, follow_up };
 }
@@ -334,7 +377,7 @@ export function buildComponentAnalyses(inputs: FactorInputs): CyberComponentAnal
     // consequence, each sentence attributed and guardrail-compliant.
     const sentences: string[] = [];
     if (intakeRec.maturity) {
-      sentences.push(`The Company records this component as ${noStop(intakeRec.maturity).toLowerCase()}.`);
+      sentences.push(`The Company records this component as ${maturityPhrase(intakeRec.maturity)}.`);
     } else {
       sentences.push("The Company has not recorded an implementation status for this component.");
     }
@@ -342,7 +385,10 @@ export function buildComponentAnalyses(inputs: FactorInputs): CyberComponentAnal
       sentences.push(`Its description: "${noStop(intakeRec.notes)}."`);
     }
     if (intakeRec.evidence.length && !intakeRec.evidence.every((x) => /^none on file$/i.test(x))) {
-      sentences.push(`Evidence identified: ${asProse(intakeRec.evidence).toLowerCase()}.`);
+      // PANEL CYB-6 (2026-08-30): a blanket .toLowerCase() produced "soc 2"
+      // in every evidence list; lowercase only a sentence-cased first
+      // letter, leaving acronyms (SOC 2) intact, item by item.
+      sentences.push(`Evidence identified: ${asProse(intakeRec.evidence.map(lowerItemLabel))}.`);
     } else {
       sentences.push("No evidence is identified for this component.");
     }
@@ -411,8 +457,17 @@ export function buildCrossCutting(intake: Bag, d: CyberDeliverables, recs: reado
   const material_implementation_gaps = implGaps.length
     ? `Implementation is the open matter for ${asProse(implGaps.map((r) => r.label))}.`
     : "No material implementation gap is described on the Company's answers.";
+  // PANEL CYB-2 (2026-08-30): the §IV all-clear repeated §II's false
+  // negative — it looked only at evidence_insufficient recommendations, so
+  // components graded "partial" (policy-only evidence, Appendix B testable
+  // artifacts "None") sat under "testable evidence is identified with it".
+  const policyOnly = d.evidence_sufficiency.filter((r) =>
+    r.sufficiency === "partial" && !evGaps.some((g) => g.slug === r.slug)
+  );
   const material_evidence_gaps = evGaps.length
     ? `Evidence is the open matter for ${asProse(evGaps.map((r) => r.label))}: each is described as implemented, and the record identifies no testable artifact behind the description.`
+    : policyOnly.length
+    ? `${policyOnly.length === 1 ? "One component rests" : `${policyOnly.length} components rest`} on policy-only evidence - ${asProse(policyOnly.map((r) => r.label.replace(/^Evidence sufficiency — /, "")))} - each described as implemented with no testable artifact yet identified; Section III carries the follow-up for each.`
     : "No material evidence gap is identified: where implementation is stated, testable evidence is identified with it.";
   // 3E9AD759-CY2 (2026-08-27, live batch 3e9ad759) — the implementational
   // branch was tautological ("the implementation gaps are implementational").
@@ -448,8 +503,14 @@ export function buildCrossCutting(intake: Bag, d: CyberDeliverables, recs: reado
       ? `Across the ${implGaps.length} components with implementation gaps (${notImplCount} not implemented, ${partialCount} partially implemented), the Company's own descriptions recur on ${asProse(recurringTerms.map(([t, n]) => `${t} (named in ${n} of the gapped descriptions)`))}. The gaps concentrate on shared systems and facilities rather than isolated misses, and closing the shared surface closes several components at once.`
       : `Across the ${implGaps.length} components with implementation gaps (${notImplCount} not implemented, ${partialCount} partially implemented), no single system or facility recurs across the Company's descriptions; the gaps are component-specific in origin and close independently.`)
     : "No systemic pattern emerges across components; the open items are component-specific.";
+  // PANEL CYB-3 (2026-08-30): "No prior audit coverage is recorded" collided
+  // with "Most recent audit: Within 12 months" two sections earlier. Where
+  // an audit is recorded but its scope is not described, the sentence says
+  // that; only a record with no prior audit at all keeps the old bytes.
   const prior_audit_dependency_gaps = priorScope
     ? "Prior audit work is recorded; where the report relies on it, the reliance is limited to the coverage the Company itself describes."
+    : profileStr(intake, "last_audit")
+    ? "A prior audit is recorded, but its coverage is not described, so nothing in this assessment relies on prior work."
     : "No prior audit coverage is recorded, so nothing in this assessment depends on prior work.";
   const material_record_limitations = recordGaps.length
     ? `The record itself is the limitation for ${asProse(recordGaps.map((r) => r.label))}: no assessable entry exists yet.`
@@ -475,12 +536,15 @@ export function buildIncidentReadiness(intake: Bag, d: CyberDeliverables): { ana
   const c17 = controlRec(intake, "c17_incident");
   const sentences: string[] = [];
   if (count) {
-    sentences.push(`The Company reports ${noStop(count)} security incidents in the preceding twelve months.`);
+    // PANEL CYB-6 (2026-08-30): same None-splice fix as §I.
+    sentences.push(/^none$/i.test(count)
+      ? "The Company reports no security incidents in the preceding twelve months."
+      : `The Company reports ${noStop(count)} security incidents in the preceding twelve months.`);
   } else {
     sentences.push("The Company has not recorded an incident count for the preceding twelve months.");
   }
   if (c17.maturity) {
-    sentences.push(`Its security-incident response management component is recorded as ${noStop(c17.maturity).toLowerCase()}${c17.notes ? `, described as: "${noStop(c17.notes)}"` : ""}.`);
+    sentences.push(`Its security-incident response management component is recorded as ${maturityPhrase(c17.maturity)}${c17.notes ? `, described as: "${noStop(c17.notes)}"` : ""}.`);
   }
   sentences.push("Whether any incident involved personal information, required notification, or was notified is addressed only to the extent the incident-response record states it; nothing is inferred from the count alone.");
   const follow_up = !c17.maturity || c17.evidence.length === 0

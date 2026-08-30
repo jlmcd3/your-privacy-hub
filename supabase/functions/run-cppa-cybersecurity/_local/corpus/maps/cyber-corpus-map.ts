@@ -199,7 +199,7 @@ export const CYBER_CORPUS_MAP: CorpusMap = {
       source_row_id: "ded1d6bf-0922-4bfc-ae36-d722186271da",
       excerpt_field: "agency_position_summary",
       pinned_excerpt:
-        "The California Attorney General declined to specify particular encryption standards for information at rest and in transit under 11 CCR § 7123(b)(2). The Agency retained the existing regulatory language without referencing external standards like NIST, determining that prescriptive standards would be inappropriate given the need for the regulations to apply flexibly across diverse industries and information systems.",
+        "The California Privacy Protection Agency declined to specify particular encryption standards for information at rest and in transit under 11 CCR § 7123(b)(2). The Agency retained the existing regulatory language without referencing external standards like NIST, determining that prescriptive standards would be inappropriate given the need for the regulations to apply flexibly across diverse industries and information systems.",
       render_eligible: true,
       render_surface: "S4",
       purpose_class: "misreading",
@@ -367,7 +367,7 @@ export const CYBER_CORPUS_MAP: CorpusMap = {
       source_row_id: "a99195b0-d929-4bb4-892a-2f19cada832c",
       excerpt_field: "agency_position_summary",
       pinned_excerpt:
-        "The regulation addresses what cybersecurity audits must evaluate regarding antivirus and anti-malware protections. The CPRA rejected the commenter's recommendation to modify section 7123(b)(2)(J), maintaining that audits need not focus specifically on antivirus and anti-malware protections as distinct requirements.",
+        "The regulation addresses what cybersecurity audits must evaluate regarding antivirus and anti-malware protections. The Agency rejected the commenter's recommendation to modify section 7123(b)(2)(J), maintaining that audits need not focus specifically on antivirus and anti-malware protections as distinct requirements.",
       render_eligible: true,
       render_surface: "S4",
       purpose_class: "misreading",

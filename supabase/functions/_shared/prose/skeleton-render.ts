@@ -416,15 +416,21 @@ export function renderTableOfAuthorities(
   // two arguments (cyber, ADMT) are byte-unchanged.
   factorAuthorities: readonly string[] = [],
 ): string {
+  // PANEL CYB-6 (2026-08-30): plain .sort() is ASCII order, which filed
+  // "§ 7123(c)(10)" between "(1)" and "(2)" in every ToA with two-digit
+  // pinpoints. Numeric-aware comparison sorts subsections as counsel
+  // expects; lists without multi-digit pinpoints are ordered as before.
+  const naturalCompare = (a: string, b: string): number =>
+    a.localeCompare(b, "en", { numeric: true, sensitivity: "variant" });
   const cited = [...new Set(ledgerPinpoints.filter((p) => p && assembledBody.includes(p)))];
   const relied = [...new Set(factorAuthorities.filter(Boolean))]
     .filter((a) => !cited.includes(a))
-    .sort();
+    .sort(naturalCompare);
   if (cited.length === 0 && relied.length === 0) return "";
 
   const lines: string[] = [];
   for (const group of TOA_GROUPS) {
-    const inGroup = cited.filter((p) => groupAuthority(p) === group).sort();
+    const inGroup = cited.filter((p) => groupAuthority(p) === group).sort(naturalCompare);
     if (inGroup.length === 0) continue;
     lines.push(group === "Guidance and Persuasive Authority" ? `${group} (persuasive)` : group);
     for (const p of inGroup) lines.push(`    ${p}`);

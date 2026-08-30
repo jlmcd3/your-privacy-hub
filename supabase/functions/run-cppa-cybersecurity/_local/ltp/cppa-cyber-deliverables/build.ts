@@ -22,6 +22,7 @@ import {
   CYBER_7124_CITATION,
   CYBER_PROGRAM_OBLIGATIONS,
 } from "./components.ts";
+import { maturityPhrase } from "./cyber-factors.ts";
 import type {
   CyberComponentCoverage,
   CyberDeliverables,
@@ -65,7 +66,7 @@ const MATURITY_VERDICT: Record<string, Verdict> = {
 };
 
 /**
- * Evidence types that are testable artefacts. § 7122(d) requires findings to
+ * Evidence types that are testable artifacts. § 7122(d) requires findings to
  * rest on "documents reviewed, sampling and testing performed, and interviews
  * conducted" — a policy document alone evidences intent, not operation.
  */
@@ -208,9 +209,16 @@ export function buildComponentCoverage(facts: CyberFacts): CyberComponentCoverag
     let application: string;
     let remediation: string;
     if (verdict === "satisfied") {
+      // PANEL CYB-6 (2026-08-30): the satisfied branch hardcoded
+      // "implemented across the organisation" — asserting a second maturity
+      // two sentences after components recorded as "Implemented with
+      // continuous monitoring" stated their own, and in UK spelling inside
+      // a California regulatory document. The sentence now reflects the
+      // recorded maturity itself.
+      const recordedMaturity = maturityPhrase(maturity);
       application =
-        `${comp.citation} requires this component to be assessed and documented. The record shows it implemented ` +
-        `across the organisation, which is what the component asks for; ` +
+        `${comp.citation} requires this component to be assessed and documented. The record shows it ` +
+        `${recordedMaturity}, which is what the component asks for; ` +
         (notes
           ? `the description identifies the specific controls relied on.`
           : `no description is recorded, so an auditor would test the assertion rather than accept it.`);
@@ -304,7 +312,7 @@ export function buildEvidenceSufficiency(facts: CyberFacts): EvidenceSufficiency
           `${offered.join("; ")}.`,
         application:
           `${EVIDENCE_STANDARD.citation} requires reliance on documents reviewed, sampling and testing performed, ` +
-          `and interviews conducted. The record offers ${testable.length} testable artefact` +
+          `and interviews conducted. The record offers ${testable.length} testable artifact` +
           `${testable.length === 1 ? "" : "s"} (${testable.join("; ")}), so the auditor can test the position ` +
           `rather than accept management's account of it.`,
         verdict: "satisfied" as Verdict,
@@ -326,7 +334,7 @@ export function buildEvidenceSufficiency(facts: CyberFacts): EvidenceSufficiency
       status: "analysed" as const,
       assessable_on_record: true,
       sufficiency: "partial" as const,
-      information_needed: `Add one operational artefact (log, configuration export, or test report) for ${comp.label}.`,
+      information_needed: `Add one operational artifact (log, configuration export, or test report) for ${comp.label}.`,
     };
   });
 }
@@ -674,7 +682,7 @@ export function buildReadinessDetermination(
 
   const reasoning = conclusion === "ready"
     ? `Every enumerated component in § 7123(c) is recorded as implemented, and for each the record identifies at ` +
-      `least one testable artefact, so no finding would rest primarily on management assertion under § 7122(d). ` +
+      `least one testable artifact, so no finding would rest primarily on management assertion under § 7122(d). ` +
       `${independence.summary} Nothing on this record prevents an auditor from completing and certifying the audit.`
     : conclusion === "ready_subject_to_named_remediation"
     ? `No component is recorded as unimplemented. ${partial} component${partial === 1 ? " is" : "s are"} either ` +
