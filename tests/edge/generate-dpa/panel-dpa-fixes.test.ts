@@ -9,9 +9,9 @@
 //          (D5)  every framework reference was EU-GDPR-only under English
 //                governing law with UK-based data subjects — the UK GDPR
 //                was never named.
-//   DPA-P2 (D6, the 4.6/10.2 pair) is NOT implemented: doc 81's D-5 CEO
-//   ruling chose the reword-and-keep-both resolution that ships today, and
-//   the panel's "delete 4.6" contradicts it — escalated to the CEO instead.
+//   DPA-P2 (D6, the 4.6/10.2 pair): resolved by A-Team Session 1 RULING 2
+//   (doc 111, 2026-08-30, under the CEO's delegated authority) — doc-81
+//   D-5 modified: 4.6 is the single operative duty, 10.2 a cross-reference.
 // All non-UK/EEA pairs keep the ratified clause bytes unchanged (asserted
 // below).
 
