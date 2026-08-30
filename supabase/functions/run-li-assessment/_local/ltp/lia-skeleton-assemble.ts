@@ -216,9 +216,13 @@ export function buildLiaSlotValues(record: Bag): SlotValues {
 
     potentialHarm: orNull(harmLabel),
     potentialHarms: orNull(asProse(labelSet(strList(balancing.potential_harms), {}, ""))),
-    scaleApprox: orNull(s(balancing.scale_approx)),
-    frequency: orNull(lowerEnumLabel(s(balancing.frequency))),
-    duration: orNull(lowerEnumLabel(s(balancing.duration))),
+    // PANEL LIA-P2 (2026-08-30) — ¶27's C.-Scale sentence quotes these three
+    // answers as recorded, so the values keep the customer's own casing and
+    // wording (no lowerEnumLabel) and drop only a terminal stop so the
+    // closing quote is not followed by doubled punctuation.
+    scaleApprox: orNull(noStop(s(balancing.scale_approx))),
+    frequency: orNull(noStop(s(balancing.frequency))),
+    duration: orNull(noStop(s(balancing.duration))),
     safeguards: orNull(asProse(safeguards)),
     // 3E9AD759-L5 — a recorded additional measure that is planned rather
     // than in place is bounded explicitly (batch 3e9ad759: four dated,
@@ -570,8 +574,24 @@ export function assembleLiaSkeletonDocument(
   const bioClause = namedSpecial.some((c) => /biometric/i.test(c))
     ? " — for biometric data, Article 9(1) attaches where it is processed for the purpose of uniquely identifying a natural person"
     : "";
+  // PANEL LIA-P3b (2026-08-30, quote-then-deny class) — the boundary sentence
+  // ended "until that condition is identified" even where the record NAMES an
+  // Art. 9(2) condition elsewhere (the published UK sample records "UK GDPR
+  // Art. 9(2)(b) employment-law condition for health data" in its statutory
+  // answer). The boundary itself is unchanged — legitimate interests never
+  // carries Art. 9 processing — but where a condition is named on the record
+  // the sentence acknowledges it instead of implying none was identified.
+  // Lexical detection only: an Art. 9(2)(x) pinpoint in the recorded texts.
+  const art9ConditionNamed = (() => {
+    const m = [s(balancing.statutory_restrictions), s(record.legal_framework), s(balancing.article_9_condition)]
+      .join(" ")
+      .match(/art(?:icle)?\.?\s*9\(2\)\(([a-z])\)/i);
+    return m ? `Article 9(2)(${m[1].toLowerCase()})` : "";
+  })();
   const specialCategoryBoundary = scdFlag === true
-    ? "The company has indicated that special-category data is processed. Article 9(1) data cannot rest on legitimate interests alone: an Article 9(2) condition is required in addition to the Article 6 basis, and the determination in this assessment does not extend to that processing until that condition is identified."
+    ? art9ConditionNamed
+      ? `The company has indicated that special-category data is processed. Article 9(1) data cannot rest on legitimate interests alone: an Article 9(2) condition is required in addition to the Article 6 basis. The record names ${art9ConditionNamed} for that processing; the condition falls to be assessed in its own right, and the determination in this assessment does not extend to the special-category processing either way.`
+      : "The company has indicated that special-category data is processed. Article 9(1) data cannot rest on legitimate interests alone: an Article 9(2) condition is required in addition to the Article 6 basis, and the determination in this assessment does not extend to that processing until that condition is identified."
     : scdFlag !== false && namedSpecial.length
     ? `The company has named ${asProse(namedSpecial.map((c) => lowerEnumLabel(c)))} among the data categories. Whether ${namedSpecial.length === 1 ? "that category engages" : "those categories engage"} Article 9(1)${bioClause} is not answered on the information provided. Where Article 9(1) is engaged, an Article 9(2) condition is required in addition to the Article 6 basis and legitimate interests alone cannot carry that processing, so the determination in this assessment is bounded accordingly.`
     : "";
@@ -597,10 +617,30 @@ export function assembleLiaSkeletonDocument(
         ),
       )
       : "",
+    // PANEL LIA-P1 (2026-08-30) — the marketing conditional used to fire on
+    // ANY non-empty statutory_restrictions answer. The intake gates that
+    // field on the marketing branch client-side, but the gate
+    // (preview_signal.use_case_code) never persists, and a record can carry
+    // general statutory restrictions (the published UK sample: Mines
+    // Regulations 2014 / HSWA 1974 on a worker-safety interest) — the
+    // document then asserted the interest "involves direct marketing" and
+    // spliced the legal-framework answer as its marketing position. The
+    // conditional now fires only where the recorded interest/purpose text
+    // itself signals marketing; otherwise the recorded restrictions render
+    // under a neutral, attribution-true lead so the content is never lost.
     "purpose_test:3": s(balancing.statutory_restrictions)
-      ? composeConditional(
-        "Because the identified interest involves direct marketing, the analysis must also address the rules specific to that activity",
-        `The company has recorded its position as ${noStop(s(balancing.statutory_restrictions))}.`,
+      ? (
+        /direct[- ]?marketing|behaviou?ral advertis|electronic marketing|e-?privacy|PECR/i.test(
+          [s(purpose.interest_type), s(purpose.interest_type_other), s(purpose.interest_statement), s(record.stated_purpose)].join(" "),
+        )
+          ? composeConditional(
+            "Because the identified interest involves direct marketing, the analysis must also address the rules specific to that activity",
+            `The company has recorded its position as ${noStop(s(balancing.statutory_restrictions))}.`,
+          )
+          : composeConditional(
+            "The company has recorded statutory provisions bearing on this processing",
+            `Its recorded position is ${noStop(s(balancing.statutory_restrictions))}.`,
+          )
       )
       : "",
     "purpose_test:4": fromTyped(

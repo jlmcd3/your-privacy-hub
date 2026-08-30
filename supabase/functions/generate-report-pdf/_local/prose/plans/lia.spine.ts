@@ -284,7 +284,7 @@ export const LIA_BANNED_REGISTER: readonly { readonly id: string; readonly re: R
 // it is bound to.
 // ═════════════════════════════════════════════════════════════════════════════
 
-export const LIA_SKELETON_VERSION = "prose-plans-2026-08-28-so11-uk-instrument-repin";
+export const LIA_SKELETON_VERSION = "prose-plans-2026-08-30-panel-p27-scale-attribution";
 export const LIA_SKELETON_SOURCE_FILE =
   "LIA_Legitimate_Interests_Assessment_Skeleton_v3.docx";
 export const LIA_SKELETON_PROVENANCE = LIA_PLAN_PROVENANCE;
@@ -302,9 +302,17 @@ export const LIA_SKELETON_PROVENANCE = LIA_PLAN_PROVENANCE;
  * segments outside the slots are byte-unchanged from the docx; the hash below
  * is recomputed over the slotted paragraph text (the SO-11 battery recomputes
  * and compares it).
+ *
+ * RE-PIN 2026-08-30 (expert-panel LIA-P2, CEO fix-campaign mandate): the
+ * ¶27 C.-Scale sentence is rewritten to quoted attribution ("describes the
+ * scale of the processing as ...") because the old "affects approximately
+ * {scaleApprox} people, occurs {frequency}" frame double-wrapped recorded
+ * free-text ("approximately Approximately 480 ... people") and spliced
+ * non-adverbial answers into adverbial slots. Prior hash:
+ * 90a64832a086def3b6c0684b8a1e7c8df2def76acfcf0a89f3b853ec8768cd18.
  */
 export const LIA_SKELETON_CONTENT_HASH =
-  "90a64832a086def3b6c0684b8a1e7c8df2def76acfcf0a89f3b853ec8768cd18";
+  "de3fd62a1e7c77af0bc92ebaa1e14399f31a5ed1617519254eba8f6b3e351eed";
 
 export const LIA_SKELETON_PARAGRAPH_COUNT = 37;
 
@@ -475,7 +483,7 @@ export const LIA_SKELETON_SECTIONS: readonly LiaSkeletonSection[] = [
       { kind: "skeleton", paragraph: 24, text: "A. Relationship and reasonable expectations. The company has indicated that the people affected are {RELATIONSHIP_PHRASE - reader label as prose}, and that in its assessment they {EXPECTATION_PHRASE - would / would not / may not} reasonably expect this processing; the basis it offers is {reasonableExpectationDetail - attributed}." },
       { kind: "conditional", paragraph: 25, conditional: "children", text: "[CONDITIONAL] CHILDREN - trigger {childrenDataSubjects}=yes: fixed first words \"Children are among the people affected.\" followed by generated weighing that addresses that fact expressly, citing Recital 38. Negative case: the section is silent." },
       { kind: "conditional", paragraph: 26, conditional: "vulnerable_groups", text: "[CONDITIONAL] VULNERABLE GROUPS - trigger {vulnerableSubjects} non-empty: fixed first words \"The processing reaches people whose circumstances call for particular care: {LIST - reader labels, Other verbatim}.\" followed by generated weighing." },
-      { kind: "skeleton", paragraph: 27, text: "B. Potential impact. The company assesses the most serious realistic impact as {potentialHarm - reader label rendered as prose}, and has identified the following categories of possible harm: {potentialHarms - introduced by this sentence, rendered as a short list}. C. Scale. The company estimates that the processing affects approximately {scaleApprox} people, occurs {frequency - adverbial phrase}, and will continue {duration - adverbial phrase}. D. Safeguards. The measures the company has implemented are {safeguards - reader labels as prose}{ADDITIONAL_MITIGATIONS_CLAUSE - \"; it has additionally recorded \" + additionalMitigations; absent => omitted}." },
+      { kind: "skeleton", paragraph: 27, text: "B. Potential impact. The company assesses the most serious realistic impact as {potentialHarm - reader label rendered as prose}, and has identified the following categories of possible harm: {potentialHarms - introduced by this sentence, rendered as a short list}. C. Scale. The company describes the scale of the processing as \"{scaleApprox - quoted as recorded}\"; its frequency as \"{frequency - quoted as recorded}\"; and its duration as \"{duration - quoted as recorded}\". D. Safeguards. The measures the company has implemented are {safeguards - reader labels as prose}{ADDITIONAL_MITIGATIONS_CLAUSE - \"; it has additionally recorded \" + additionalMitigations; absent => omitted}." },
       { kind: "conditional", paragraph: 28, conditional: "employee_monitoring", text: "[CONDITIONAL] EMPLOYEE MONITORING - trigger {employmentSafeguards} collected: fixed first words \"Because the people affected are employees, the imbalance inherent in that relationship must be addressed.\" followed by the recorded safeguards." },
       { kind: "generated", paragraph: 29, text: "[GENERATED] The balancing analysis: two-sided and concrete, engaging the strongest consideration against the conclusion, and ending on the finding rather than a formula." },
     ],
@@ -510,7 +518,7 @@ export const LIA_SKELETON_SECTIONS: readonly LiaSkeletonSection[] = [
 // fixed skeleton prose — its entire content is composed
 // (lia-persuasive-authority.ts), so a record that composes nothing renders
 // no empty shell (the NO-PADDING law).
-export const LIA_SKELETON_VERSION_V2 = "prose-plans-2026-08-28-lia-l2-v2-uk-instrument";
+export const LIA_SKELETON_VERSION_V2 = "prose-plans-2026-08-30-lia-l2-v2-p27-scale";
 
 export const LIA_SKELETON_SECTIONS_V2: readonly LiaSkeletonSection[] = [
   ...LIA_SKELETON_SECTIONS.slice(0, LIA_SKELETON_SECTIONS.length - 1),

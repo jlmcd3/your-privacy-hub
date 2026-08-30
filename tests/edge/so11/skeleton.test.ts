@@ -125,9 +125,14 @@ Deno.test("SO-11 — the encoded skeleton is 37 paragraphs and hashes to the rat
   // subtitle and ¶6/¶19 gained {instrumentCitation}/{instrumentName} slots so
   // UK-only records name the UK GDPR in the fixed prose. Original docx pin
   // (2026-08-10): 53de11dee90a20d0944c720f453053d3f6896a5bf58b04af411069a10a28e22a.
+  // RE-PIN 2026-08-30 (expert-panel LIA-P2, CEO fix-campaign mandate): ¶27's
+  // C.-Scale sentence rewritten to quoted attribution — the old frame
+  // double-wrapped recorded free-text ("approximately Approximately 480 ...
+  // people") and spliced non-adverbial answers into adverbial slots. Prior
+  // pin: 90a64832a086def3b6c0684b8a1e7c8df2def76acfcf0a89f3b853ec8768cd18.
   assertEquals(
     LIA_SKELETON_CONTENT_HASH,
-    "90a64832a086def3b6c0684b8a1e7c8df2def76acfcf0a89f3b853ec8768cd18",
+    "de3fd62a1e7c77af0bc92ebaa1e14399f31a5ed1617519254eba8f6b3e351eed",
   );
 });
 

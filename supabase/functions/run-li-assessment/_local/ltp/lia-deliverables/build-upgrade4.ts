@@ -576,6 +576,67 @@ export function buildAlternativesConsidered(intake: unknown): AlternativesConsid
     });
   }
 
+  // PANEL LIA-P3 (2026-08-30) — CROSS-FIELD PARAPHRASE DEDUP. D1D2B3B8-L5
+  // made BOTH alternative fields feed the parse (first-wins had dropped the
+  // detailed reasons), but an intake that describes the SAME alternatives in
+  // three renditions (a summary line, a numbered compact list, and expanded
+  // per-alternative reasons) then listed every rendition as its own
+  // alternative — the published UK sample walked ~8 "alternatives" for 3
+  // real ones, with ";;" artifacts where source lines carried their own
+  // trailing semicolons. Two purely lexical rules:
+  //   (1) an entry whose label contains the labels of two or more OTHER
+  //       entries is a summary line and is dropped;
+  //   (2) entries whose labels share >=60% of their (shorter side's) tokens
+  //       are the same alternative — keep one, with the longer reason.
+  // Plus seam hygiene: trailing ;/,/. stripped from each reason.
+  {
+    const norm = (t: string) => t.toLowerCase().replace(/\(\d+\)/g, " ").replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+    const toks = (t: string) => new Set(norm(t).split(" ").filter((w) => w.length > 2));
+    const overlap = (a: Set<string>, b: Set<string>) => {
+      const small = a.size <= b.size ? a : b;
+      const big = a.size <= b.size ? b : a;
+      if (small.size === 0) return 0;
+      let hit = 0;
+      for (const w of small) if (big.has(w)) hit++;
+      return hit / small.size;
+    };
+    const trimmed = alternatives.map((a) => ({
+      alternative: a.alternative,
+      why_inadequate: a.why_inadequate.replace(/[\s;,.]+$/, ""),
+      rationale_recorded: a.rationale_recorded,
+    }));
+    const summaryIdx = new Set<number>();
+    for (let i = 0; i < trimmed.length; i++) {
+      let contained = 0;
+      for (let j = 0; j < trimmed.length; j++) {
+        if (i === j) continue;
+        const nj = norm(trimmed[j].alternative);
+        if (nj && norm(trimmed[i].alternative).includes(nj)) contained++;
+      }
+      if (contained >= 2) summaryIdx.add(i);
+    }
+    const kept: { alternative: string; why_inadequate: string; rationale_recorded: boolean }[] = [];
+    for (let i = 0; i < trimmed.length; i++) {
+      if (summaryIdx.has(i)) continue;
+      const cand = trimmed[i];
+      const dupIdx = kept.findIndex((k) => overlap(toks(k.alternative), toks(cand.alternative)) >= 0.6);
+      if (dupIdx === -1) {
+        kept.push({ ...cand });
+        continue;
+      }
+      const dup = kept[dupIdx];
+      kept[dupIdx] = {
+        alternative: cand.why_inadequate.length > dup.why_inadequate.length && cand.alternative.length > dup.alternative.length
+          ? cand.alternative
+          : dup.alternative,
+        why_inadequate: cand.why_inadequate.length > dup.why_inadequate.length ? cand.why_inadequate : dup.why_inadequate,
+        rationale_recorded: dup.rationale_recorded || cand.rationale_recorded,
+      };
+    }
+    alternatives.length = 0;
+    alternatives.push(...kept);
+  }
+
   const count_with_rationale = alternatives.filter((a) => a.rationale_recorded).length;
 
   const record_fact = alternatives.length
