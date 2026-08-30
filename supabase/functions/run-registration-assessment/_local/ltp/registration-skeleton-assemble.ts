@@ -295,7 +295,7 @@ function composeExecLead(counts: RegistrationDutyCounts, org: string): string {
   // body defers: "one registration duty attaches" over a body that flags the
   // EU AI Act duties as potentially applicable understated the position.
   const pendingClause = counts.corpus_pending > 0
-    ? `, and ${count(counts.corpus_pending, "further duty question is", "further duty questions are")} flagged below but not yet assessable in this product's verified corpus`
+    ? `, and ${count(counts.corpus_pending, "further duty question is", "further duty questions are")} flagged below but not yet assessable in the verified statutory corpus behind this assessment`
     : "";
   if (counts.attached === 0) {
     return counts.reserved > 0
@@ -485,7 +485,7 @@ function composeBrokerConditional(report: Bag, intake: Bag, org: string): string
     .map((m) => REGISTRATION_JURISDICTION_LABELS[m] ?? m);
   if (unregistered.length) {
     blocks.push(stop(
-      `The markets served also name ${asProse(unregistered)}. No data-broker registration statute for ${unregistered.length === 1 ? "that state" : "those states"} is among the four state registries in this product's verified corpus, so no registration duty is stated for ${unregistered.length === 1 ? "it" : "them"} here; the entry of any new state registry is a named review trigger in the approval block below`,
+      `The markets served also name ${asProse(unregistered)}. No data-broker registration statute for ${unregistered.length === 1 ? "that state" : "those states"} is among the four state registries in the verified statutory corpus behind this assessment, so no registration duty is stated for ${unregistered.length === 1 ? "it" : "them"} here; the entry of any new state registry is a named review trigger in the approval block below`,
     ));
   }
   const outside = composeOutsideFrameworks(intake);
@@ -514,7 +514,7 @@ function composeOutsideFrameworks(intake: Bag): string {
     .map((m) => REGISTRATION_JURISDICTION_LABELS[m] ?? m);
   if (!outsideFrameworks.length) return "";
   return stop(
-    `The markets served also name ${asProse(outsideFrameworks)}. No registration or notification regime for ${outsideFrameworks.length === 1 ? "that jurisdiction" : "those jurisdictions"} is in this product's verified corpus, so this assessment states no determination for ${outsideFrameworks.length === 1 ? "it" : "them"} — affirmative or negative — and ${outsideFrameworks.length === 1 ? "its" : "their"} registration position remains for separate advice`,
+    `The markets served also name ${asProse(outsideFrameworks)}. No registration or notification regime for ${outsideFrameworks.length === 1 ? "that jurisdiction" : "those jurisdictions"} is in the verified statutory corpus behind this assessment, so this assessment states no determination for ${outsideFrameworks.length === 1 ? "it" : "them"} — affirmative or negative — and ${outsideFrameworks.length === 1 ? "its" : "their"} registration position remains for separate advice`,
   );
 }
 
@@ -662,7 +662,7 @@ function composeSupervisoryAnalysis(report: Bag): string {
     if (!topic && !note) continue;
     blocks.push(
       stop(
-        `${topic || "A further question"}: ${noStop(note) || "the provisions are named but are not in this product's verified corpus, so no determination is asserted"}`,
+        `${topic || "A further question"}: ${noStop(note) || "the provisions are named but are not in the verified statutory corpus behind this assessment, so no determination is asserted"}`,
       ),
     );
   }

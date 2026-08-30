@@ -65,14 +65,15 @@ Deno.test("R1 — an engaged DPO determination states its closing act without qu
   const act = String(dpo.closing_act ?? "");
   assertStringIncludes(act, "What closes the duty is a written designation");
   assertStringIncludes(act, "communicating them to the supervisory authority");
-  assertStringIncludes(act, "not yet in this product's verified corpus and is not quoted");
+  // RE-PIN PANEL LEAK-1 (2026-08-30).
+  assertStringIncludes(act, "not yet in the verified statutory corpus behind this assessment and is not quoted");
 });
 
 Deno.test("R2 — named US-state markets outside the four registries earn a corpus-bounded scope statement", () => {
   const text = skeletonText();
   assertStringIncludes(text, "Colorado (US)");
   assertStringIncludes(text, "Virginia (US)");
-  assertStringIncludes(text, "No data-broker registration statute for those states is among the four state registries in this product's verified corpus");
+  assertStringIncludes(text, "No data-broker registration statute for those states is among the four state registries in the verified statutory corpus behind this assessment");
 });
 
 Deno.test("R2 — no scope statement renders when every named US market is a registry state", () => {
@@ -80,5 +81,5 @@ Deno.test("R2 — no scope statement renders when every named US market is a reg
   const d = buildRegistrationDeliverables(intake as never) as unknown as Bag;
   const sk = assembleRegistrationSkeletonDocument({ registration_deliverables: d, ...d }, intake);
   const text = JSON.stringify(sk);
-  assert(!text.includes("is among the four state registries in this product's verified corpus"), "the parity sentence must not render without an unregistered named state");
+  assert(!text.includes("is among the four state registries in the verified statutory corpus behind this assessment"), "the parity sentence must not render without an unregistered named state");
 });

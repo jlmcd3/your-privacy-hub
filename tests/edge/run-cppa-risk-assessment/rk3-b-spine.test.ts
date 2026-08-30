@@ -186,7 +186,8 @@ for (const c of CPPA_RISK_PERFECT) {
         "C. The Balancing Test.",
         "I. HOW THIS ASSESSMENT DECIDES",
         "A. The Question.",
-        "B. The EUP Decision Logic.",
+        // RE-PIN PANEL LEAK-1 (2026-08-30): EUP expanded at first use.
+        "B. The EndUserPrivacy (EUP) Decision Logic.",
         "Step 1 — Triggers.",
         "Step 5 — The balance.",
         "C. Qualitative Refinement.",
@@ -266,7 +267,9 @@ for (const c of CPPA_RISK_PERFECT) {
       assert(body.includes("Applicable § 7150(b) trigger(s)"), "Appendix G submission record absent");
       assert(body.includes("Business-level § 7157 submission items requiring reporting-period aggregation"), "Appendix G outstanding checklist absent");
       assert(body.includes("CPPA risk-assessment intake record"), "Appendix H materials index absent");
-      assert(body.includes(`Assessment engine version: ${RISK_SKELETON_VERSION}`), "Appendix H engine-version line absent");
+      // RE-PIN PANEL LEAK-1 (2026-08-30): generation metadata stays for
+      // reperformance, labelled as the generation record.
+      assert(body.includes(`Report generation record — assessment engine ${RISK_SKELETON_VERSION}`), "Appendix H generation-record line absent");
       if (isAdmt) {
         assert(body.includes("System description"), "Appendix F ADMT facts absent on ADMT fixture");
       }
@@ -375,7 +378,7 @@ Deno.test("v5.2 — Appendix C / G / H builders compose from established facts o
   assert(idx.rows.some((r) => r[0].includes("intake record")), JSON.stringify(idx.rows));
   assert(idx.rows.some((r) => r[0].includes("https://www.sierraoutfitters.example/privacy")), JSON.stringify(idx.rows));
   // v5.2 — the engine-version line moved off the cover into Appendix H.
-  assert(idx.rows.some((r) => r[0].includes("Assessment engine version")), JSON.stringify(idx.rows));
+  assert(idx.rows.some((r) => r[0].includes("Report generation record — assessment engine")), JSON.stringify(idx.rows));
 });
 
 Deno.test("v5.2 — Appendix F ADMT facts compose iff ADMT", () => {

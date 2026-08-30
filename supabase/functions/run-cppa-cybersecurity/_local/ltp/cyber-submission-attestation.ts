@@ -92,7 +92,10 @@ export function buildCyberSubmissionAttestationBlock(): string {
   // this module treats as inviolable. The two verbatim sentences that
   // follow keep their own original capitalization exactly as sourced.
   return [
-    `${SUBMISSION_ATTESTATION_MARKER} ${CYBER_7124_CITATION} sets the certification-of-completion requirement. ${obligation} ${deadline}`,
+    // PANEL LEAK-1 (2026-08-30): the bracketed internal marker used to open
+    // this customer-facing sentence; the block is findable by its own
+    // citation, and the marker constant survives for tests/telemetry.
+    `${CYBER_7124_CITATION} sets the certification-of-completion requirement. ${obligation} ${deadline}`,
     signerLines,
     contentLines,
     `The ${CYBER_7124_ATTESTATION_CITATION} attestation statement, to be signed electronically, reads: “${CYBER_7124_ATTESTATION_STATEMENT}”`,

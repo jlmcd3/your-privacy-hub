@@ -21,7 +21,10 @@ Deno.test("buildCyberSubmissionAttestationBlock — is pure and deterministic (n
 
 Deno.test("buildCyberSubmissionAttestationBlock — opens with the byte-pinned marker, matching the ITEM-204 corpus block's own convention", () => {
   const text = buildCyberSubmissionAttestationBlock();
-  assert(text.startsWith(SUBMISSION_ATTESTATION_MARKER));
+  // RE-PIN PANEL LEAK-1 (2026-08-30): the internal marker no longer opens
+  // the customer sentence; the block opens on the § 7124 citation.
+  assert(!text.includes(SUBMISSION_ATTESTATION_MARKER));
+  assert(text.startsWith("11 CCR § 7124"));
 });
 
 Deno.test("buildCyberSubmissionAttestationBlock — every § 7124 requirement's verbatim text appears somewhere in the composed block", () => {

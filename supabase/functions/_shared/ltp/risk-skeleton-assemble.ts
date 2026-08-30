@@ -421,7 +421,7 @@ export function deriveBusinessLevelOutstanding(): RenderedTable {
  * line (moved off the cover per the v5.2 cover note). */
 export function deriveMaterialsConsideredIndex(intake: Bag): RenderedTable {
   const rowsOut: string[][] = [
-    ["The Company’s CPPA risk-assessment intake record (Intake Contract v2.0), including its structured processing, disclosure, recipient, retention, necessity, benefit, risk and safeguard records."],
+    ["The Company’s CPPA risk-assessment intake record, including its structured processing, disclosure, recipient, retention, necessity, benefit, risk and safeguard records."],
   ];
   if (s(intake.public_privacy_policy_url)) {
     rowsOut.push([`The Company’s public privacy policy: ${s(intake.public_privacy_policy_url)}`]);
@@ -429,7 +429,10 @@ export function deriveMaterialsConsideredIndex(intake: Bag): RenderedTable {
   if (isYes(intake.i9_has_existing_dpia) && s(intake.i9_existing_dpia_summary)) {
     rowsOut.push(["The Company’s existing data protection impact assessment, as summarised in the intake record."]);
   }
-  rowsOut.push([`Assessment engine version: ${RISK_SKELETON_VERSION}.`]);
+  // PANEL LEAK-1 (2026-08-30): generation metadata stays for
+  // reperformance, labelled as the generation record rather than an
+  // engine build string among the Company's materials.
+  rowsOut.push([`Report generation record — assessment engine ${RISK_SKELETON_VERSION}.`]);
   return { key: "", surface: "materials_considered_index", title: "", columns: ["Material considered"], rows: rowsOut };
 }
 
@@ -745,7 +748,7 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
   // Appendix F — intro / not-applicable record + analytical note.
   if (isYes(intake.q18_admt_use)) {
     composed["appendix_d:0"] =
-      "This appendix preserves the technical and analytical detail supporting § III.E, including the technology’s role, logic, assumptions and limitations, output, human review, testing, training-data provenance, and facts relevant to § 7153. Under the v5.2 report structure the verbatim system, logic, assumptions, and training-data descriptions live here rather than in the body.";
+      "This appendix preserves the technical and analytical detail supporting § III.E, including the technology’s role, logic, assumptions and limitations, output, human review, testing, training-data provenance, and facts relevant to § 7153. The verbatim system, logic, assumptions, and training-data descriptions live in this appendix rather than in the body.";
     const techPresent = [
       clause(intake.q19_admt_description),
       clause(intake.i5_admt_logic),

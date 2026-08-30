@@ -159,11 +159,14 @@ Deno.test("R4b — the GPAI duty family still carries the narrowed corpus-pendin
   assertEquals(counts.corpus_pending, 1);
   const text = JSON.stringify(assembleRegistrationSkeletonDocument(report, intake));
   assertStringIncludes(text, "general-purpose-AI chapter");
-  assertStringIncludes(text, "not yet assessable — corpus pending");
+  // RE-PIN PANEL LEAK-1 (2026-08-30): "corpus pending" was internal
+  // shorthand in customer prose; the narrowed flag survives in plain terms.
+  assertStringIncludes(text, "those duties are not yet assessable here");
 });
 
 Deno.test("R5 — a named non-US market outside the assessed frameworks earns a scoped-out statement", () => {
   const text = skeletonText(aurabloomIntake());
   assertStringIncludes(text, "No registration or notification regime for");
-  assertStringIncludes(text, "is in this product's verified corpus");
+  // RE-PIN PANEL LEAK-1 (2026-08-30): "this product's" jargon retired.
+  assertStringIncludes(text, "is in the verified statutory corpus behind this assessment");
 });

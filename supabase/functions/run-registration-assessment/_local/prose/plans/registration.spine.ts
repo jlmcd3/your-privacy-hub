@@ -35,7 +35,7 @@
 //                   Authorities). Never printed unless the composer supplies
 //                   deterministic content for it.
 
-export const REGISTRATION_SKELETON_VERSION = "prose-plans-2026-08-10-item-so8";
+export const REGISTRATION_SKELETON_VERSION = "prose-plans-2026-08-30-leak-corpus-framing-repin";
 export const REGISTRATION_SKELETON_SOURCE_FILE =
   "DPA_AI_Act_Registration_Assessment_Skeleton_v3.docx (Aug-10 governing copy, carrying the 428-D named-actor correction at paragraph 16)";
 export const REGISTRATION_SKELETON_PROVENANCE =
@@ -49,9 +49,15 @@ export const REGISTRATION_SKELETON_PROVENANCE =
  *
  * The stale Aug-9 pre-correction upload, for the audit trail only:
  *   eb09f4e9f71bb42977a177e3b5bb7b967b57ce23e283aa61225ec0b358fcc0c0
+ *
+ * RE-PIN 2026-08-30 (expert-panel LEAK-1, CEO fix-campaign mandate): the
+ * byte-pinned corpus framing note said "this product's verified corpus" —
+ * product jargon in the customer document — and now reads "the verified
+ * corpus behind this assessment". Nothing else changed. Prior pin:
+ * 2dedc8dadf458a8c1e969a570cb10ebdc3ce5519cb49f4ee6016bf5d6ed64118.
  */
 export const REGISTRATION_SKELETON_CONTENT_HASH =
-  "2dedc8dadf458a8c1e969a570cb10ebdc3ce5519cb49f4ee6016bf5d6ed64118";
+  "9ebf8a9cddc6ebc970f27ceb587ef6688bd63ea2bd329f129200ae1c88bc4af2";
 
 export const REGISTRATION_SKELETON_TITLE = "REGISTRATION ASSESSMENT";
 export const REGISTRATION_SKELETON_SUBTITLE =
@@ -67,7 +73,7 @@ export const REGISTRATION_REGISTER_GUIDE =
  * without the authoring marker, and may never be reworded.
  */
 export const REGISTRATION_CORPUS_FRAMING_NOTE =
-  "Every determination below rests on the statutes in this product's verified corpus and on nothing else.";
+  "Every determination below rests on the statutes in the verified corpus behind this assessment and on nothing else.";
 
 /**
  * The item413 register carries: the banned "on this record" family is checked
@@ -106,7 +112,7 @@ export const REGISTRATION_SKELETON_SECTIONS: readonly RegistrationSkeletonSectio
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating how many registration duties attach on the company's answers and how many are presently satisfied." },
       { kind: "skeleton", text: "{organizationName}, operating in {sector - reader label} at a size of {orgSize - band as prose}, has indicated that it operates across {jurisdictions - as prose} and processes {dataTypes - reader labels}." },
-      { kind: "rule", text: "[BYTE-PINNED] Every determination below rests on the statutes in this product's verified corpus and on nothing else." },
+      { kind: "rule", text: "[BYTE-PINNED] Every determination below rests on the statutes in the verified corpus behind this assessment and on nothing else." },
       { kind: "generated", text: "[GENERATED] The filing posture in two to three sentences: duties attached, satisfied, and open, attributed." },
     ],
   },

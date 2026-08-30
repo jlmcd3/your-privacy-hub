@@ -545,7 +545,9 @@ function buildDetermination(intake: I, spec: StateSpec): RegistrationDeterminati
 
   const open_questions: string[] = [];
   for (const l of threshold.limbs) {
-    if (l.met === null) open_questions.push(`${spec.state_name}: evidence needed on — ${l.limb}.`);
+    // PANEL LEAK-1 (2026-08-30): was "california: evidence needed on — …"
+    // (key:value + floating dash); reads as a sentence now.
+    if (l.met === null) open_questions.push(`${spec.state_name}: evidence is still needed on ${l.limb}.`);
   }
   if (verdict === "conditional") {
     open_questions.push(
@@ -991,7 +993,7 @@ function buildDpo(intake: I): DpoDetermination {
     ...(engaged.length
       ? {
         closing_act:
-          `What closes the duty is a written designation the company records so it can be evidenced, followed by publishing the officer's contact details and communicating them to the supervisory authority (the ${regime} Art. 37(7) step, named here as follow-up; its operative text is not yet in this product's verified corpus and is not quoted).`,
+          `What closes the duty is a written designation the company records so it can be evidenced, followed by publishing the officer's contact details and communicating them to the supervisory authority (the ${regime} Art. 37(7) step, named here as follow-up; its operative text is not yet in the verified statutory corpus behind this assessment and is not quoted).`,
       }
       : {}),
     findings,
@@ -1172,7 +1174,7 @@ function buildCorpusPending(intake: I): CorpusPendingFlag[] {
       ],
       status: "record_insufficient",
       note:
-        "The company's general-purpose-model provider role also raises duties under the Regulation's general-purpose-AI chapter, including notification duties for models with systemic risk. Their operative text is not yet in this product's verified corpus; not yet assessable — corpus pending.",
+        "The company's general-purpose-model provider role also raises duties under the Regulation's general-purpose-AI chapter, including notification duties for models with systemic risk. Their operative text is not yet in the verified statutory corpus behind this assessment, and those duties are not yet assessable here.",
     },
   ];
 }
@@ -1216,11 +1218,11 @@ function buildNarrative(
     ? `${name}'s registration position is conditional in ${conditional.map((d) => d.state_name).join(", ")}; ${repClause}; ${dpoClause}.`
     : insufficient.length
     ? `${name}'s registration position cannot be settled as the record stands in ${insufficient.map((d) => d.state_name).join(", ")}; ${repClause}; ${dpoClause}.`
-    : `${name} is not registrable under any US state data-broker regime in this product's verified corpus; ${repClause}; ${dpoClause}.`;
+    : `${name} is not registrable under any US state data-broker regime in the verified statutory corpus behind this assessment; ${repClause}; ${dpoClause}.`;
 
   const overview = [
     verdictOpener,
-    `The determinations rest on the statutes in this product's verified corpus and on nothing else.`,
+    `The determinations rest on the statutes in the verified corpus behind this assessment and on nothing else.`,
     assessed.length
       ? `Four US state data-broker registration regimes were considered and ${assessed.length} was in scope here: ${assessed.join(", ")}. Each state's own definitional threshold was applied; the definitions differ materially and are not treated as interchangeable — California and Vermont turn on the absence of a direct relationship with the consumer, Oregon contains no such carve-out, and Texas reaches processing and transfer rather than sale and adds a separate revenue-or-volume applicability test.`
       : "No US state data-broker registration regime in the corpus was in scope on the markets and activities this record describes.",

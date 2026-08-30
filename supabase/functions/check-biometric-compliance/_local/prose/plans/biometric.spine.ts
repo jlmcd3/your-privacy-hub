@@ -25,7 +25,7 @@
 // S-B5 (doc 80, 2026-08-27) bumped from prose-plans-2026-08-10-item-so6:
 // the state_specific section gained the unregistered-named-jurisdictions
 // conditional block (honest-posture parity).
-export const BIOMETRIC_SKELETON_VERSION = "prose-plans-2026-08-27-sb5";
+export const BIOMETRIC_SKELETON_VERSION = "prose-plans-2026-08-30-leak-subtitle-repin";
 export const BIOMETRIC_SKELETON_SOURCE_FILE =
   "Biometric_Privacy_Checker_Skeleton_v3.docx (CEO-corrected 2026-08-10: six paragraph edits, eight unsourced slots dropped)";
 export const BIOMETRIC_SKELETON_PROVENANCE =
@@ -46,8 +46,15 @@ export const BIOMETRIC_SKELETON_PROVENANCE =
  * parity), ratification-ledger entry pending optional redline. The hash
  * below covers the 26-paragraph set.
  */
+/**
+ * RE-PIN 2026-08-30 (expert-panel LEAK-1, CEO fix-campaign mandate): the
+ * subtitle's " - statute-as-template" tail was internal build vocabulary
+ * printed on the customer's cover (panel-C memo 3 D2); the subtitle now
+ * ends at the organization name. Nothing else changed. Prior pin:
+ * 2a22748ad3fc3431114799af91316a62522e33a06d22a73acdb552b3e2102006.
+ */
 export const BIOMETRIC_SKELETON_CONTENT_HASH =
-  "2a22748ad3fc3431114799af91316a62522e33a06d22a73acdb552b3e2102006";
+  "8d688a3bc21deb7066d725856f543a9ac1decef7e2e6dc5eb396ea235e160206";
 
 /**
  * RESTORED 2026-08-26 (Biometric Conversion groundwork audit). The 2026-08-19
@@ -65,7 +72,7 @@ export const BIOMETRIC_PIPELINE_STAMP = "biometric-pipeline@item-so6-2026-08-10"
 
 export const BIOMETRIC_SKELETON_TITLE = "BIOMETRIC PRIVACY COMPLIANCE ASSESSMENT";
 export const BIOMETRIC_SKELETON_SUBTITLE =
-  "A multi-state review, prepared for {organizationName} - statute-as-template";
+  "A multi-state review, prepared for {organizationName}";
 
 /** The v3 register guide, verbatim. Authoring law; never printed to a customer. */
 export const BIOMETRIC_REGISTER_GUIDE = "Register guide (v3 - CEO-ratified counsel register, senior privacy lawyers with the professors editing) - Fixed prose is a lawyer's client document: full flowing sentences, measured connectives, the law stated plainly and applied. The company's facts are always attributed (\"{org} has indicated that ...\", \"the company has described ...\") - \"the record shows\" and its family are banned. No dramatization, no rhetorical questions, no self-narration. Facts enter only through {slots} and [GENERATED] blocks under the ATTRIBUTION RULE: every factual clause names its source and traces to an intake answer or typed analysis; coverage, CSC and refinement police this mechanically. Statutory sentences in fixed prose are registry-verified at encode time. Slot notation: {field - rule}.";
@@ -161,7 +168,7 @@ export const BIOMETRIC_SKELETON_SECTIONS: readonly BiometricSkeletonSection[] = 
  */
 export const BIOMETRIC_SKELETON_PARAGRAPHS: readonly string[] = [
   "BIOMETRIC PRIVACY COMPLIANCE ASSESSMENT",
-  "A multi-state review, prepared for {organizationName} - statute-as-template",
+  "A multi-state review, prepared for {organizationName}",
   BIOMETRIC_REGISTER_GUIDE,
   "Executive Summary",
   "[DETERMINATION LEAD] One sentence stating whether the programme as the company describes it meets each statute in scope, or naming plainly where it falls short.",

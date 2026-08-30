@@ -78,7 +78,7 @@ export interface CyberV4Section {
 // PANEL CYB-5 (2026-08-30): eight section openers rewritten from drafting-
 // instruction voice ("the report should not state…") to first-person-
 // document indicative; every legal boundary each sentence drew is kept.
-export const CYBER_V4_SKELETON_VERSION = "cppa-cyber-v4.0-spine-v1.2-2026-08-30";
+export const CYBER_V4_SKELETON_VERSION = "cppa-cyber-v4.0-spine-v1.3-2026-08-30";
 export const CYBER_V4_SKELETON_TITLE = "CPPA CYBERSECURITY AUDIT READINESS REPORT";
 export const CYBER_V4_SKELETON_SUBTITLE =
   "Prepared under 11 CCR §§ 7120-7124 - {profile.entity_name}";
@@ -99,7 +99,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
     id: "executive_summary",
     title: "Executive Summary",
     blocks: [
-      { kind: "skeleton", text: "This assessment evaluates the Company’s cybersecurity program as described in the current intake, the evidence categories the Company identifies as available, and the extent to which that record appears prepared for independent audit. The analysis distinguishes implementation posture from evidence posture and distinguishes an identified evidence category from evidence actually examined and tested by an auditor." },
+      { kind: "skeleton", text: "This assessment evaluates the Company’s cybersecurity program as the Company describes it in its answers, the evidence categories the Company identifies as available, and the extent to which that record appears prepared for independent audit. The analysis distinguishes implementation posture from evidence posture and distinguishes an identified evidence category from evidence actually examined and tested by an auditor." },
       { kind: "lead", text: "[DETERMINATION LEAD] The deterministic readiness determination, bound to DERIVED.readiness_determination." },
       { kind: "generated", text: "[GENERATED] The executive readiness lines: company/operating context; readiness explanation; component posture; record completeness; evidence posture; auditor-engagement/independence posture; principal readiness gaps; priority readiness actions. Composed from DERIVED surfaces and FACTOR records only." },
     ],
@@ -147,7 +147,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
     title: "III. Cybersecurity Program Readiness",
     blocks: [
       // A. Program-Level Readiness (v1.1, byte-pinned).
-      { kind: "skeleton", text: "The component-by-component analysis is not a substitute for understanding the cybersecurity program as a whole. This section states whether the Company’s answers describe an established program, whether the component record is complete enough to evaluate that program, and whether material implementation or evidence weaknesses cut across multiple components." },
+      { kind: "skeleton", text: "The component-by-component analysis is not a substitute for understanding the cybersecurity program as a whole. References to the FSOR below are to the California Privacy Protection Agency’s Final Statement of Reasons for these regulations — interpretive history, persuasive only, never operative. This section states whether the Company’s answers describe an established program, whether the component record is complete enough to evaluate that program, and whether material implementation or evidence weaknesses cut across multiple components." },
       { kind: "generated", text: "[GENERATED] Program-level readiness: the program-framework fact, the program-obligation findings, the program-level assessment and conclusion (DERIVED.program_obligation_findings + FACTOR.program_readiness_analysis / program_readiness_conclusion)." },
       // B. Treatment of the 18 Regulatory Components (v1.1, byte-pinned;
       // the compact-pattern instruction is disposition i2).
@@ -175,7 +175,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
     id: "readiness_actions",
     title: "VI. Readiness Actions",
     blocks: [
-      { kind: "skeleton", text: "This section converts the assessment into a practical audit-preparation plan. These are EUP readiness actions generated from the intake record; they are not represented as the Company’s formal remediation plan for purposes of § 7123(e)(4). The distinction matters because the current intake identifies who owns remediation but does not collect a Company-approved remediation plan or timeframe." },
+      { kind: "skeleton", text: "This section converts the assessment into a practical audit-preparation plan. These are EndUserPrivacy (EUP) readiness actions generated from the Company’s answers; they are not represented as the Company’s formal remediation plan for purposes of § 7123(e)(4). The distinction matters because the record identifies who owns remediation but does not include a Company-approved remediation plan or timeframe." },
       { kind: "generated", text: "[GENERATED] The remediation owner; priority readiness actions; evidence-package actions; implementation actions; record-completion actions; suggested sequencing. Composed from the ratified recommendation library (cyber-recommendations.ts) + FACTOR action families. No invented statutory deadlines (disposition i4)." },
     ],
   },
@@ -200,7 +200,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
     id: "appendix_a_matrix",
     title: "Appendix A - Component Readiness Matrix",
     blocks: [
-      { kind: "skeleton", text: "A compact matrix generated from the 18 intake records and deterministic analysis." },
+      { kind: "skeleton", text: "A compact matrix consolidating the eighteen component records and the findings of this report." },
       { kind: "table", text: "" },
     ],
   },
@@ -224,7 +224,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
     id: "appendix_d_record",
     title: "Appendix D - Assessment Record",
     blocks: [
-      { kind: "skeleton", text: "A structured preservation of the profile and control facts on which the readiness report was generated, together with the system generation metadata. This is the factual provenance layer for the report." },
+      { kind: "skeleton", text: "A structured preservation of the profile and control facts this report rests on, together with the report-generation record, so the assessment can be reviewed and reperformed." },
       { kind: "table", text: "" }, // profile facts + generation metadata
       { kind: "table", text: "" }, // raw per-component control facts, verbatim
     ],

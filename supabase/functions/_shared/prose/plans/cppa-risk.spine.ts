@@ -241,7 +241,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       // 0
       { kind: "skeleton", text: "A. The Question. Sections 7152 and 7154 of 11 CCR frame a single question: do the privacy risks that this processing creates for consumers outweigh the benefits it produces for the consumer, the business, other stakeholders, and the public, once safeguards are taken into account? Section 7154 states the consequence directly: processing whose risks outweigh its benefits should be restricted or prohibited." },
       // 1
-      { kind: "skeleton", text: "B. The EUP Decision Logic. This assessment follows a five-step process to analyze whether the benefits of the Activity outweigh the risks it poses, after taking into account the safeguards the Company has implemented to mitigate those risks. It is based on the information provided by the Company." },
+      { kind: "skeleton", text: "B. The EndUserPrivacy (EUP) Decision Logic. This assessment follows a five-step process to analyze whether the benefits of the Activity outweigh the risks it poses, after taking into account the safeguards the Company has implemented to mitigate those risks. It is based on the information provided by the Company." },
       // 2
       { kind: "skeleton", text: "Step 1 — Triggers. The Activity is tested against the significant-risk categories of § 7150(b); if none applies, no assessment is required and the analysis ends." },
       // 3
