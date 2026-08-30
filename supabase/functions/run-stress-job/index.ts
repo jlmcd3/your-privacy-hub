@@ -7,6 +7,14 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+// PANEL HARNESS CONTRACT-GATE (2026-08-30, doc 108): Claude-generated stress
+// intakes that drift from the canonical intake contracts silently route the
+// deterministic builders down record_insufficient/generic paths, and the
+// resulting low grades read as product defects when they are fixture
+// defects — the investigation's root cause for the "drastically backwards"
+// batch scores. The gate below validates every fixture against the same
+// canonical contract the product form emits, BEFORE the product runs.
+import { blockingContractViolations, INTAKE_CONTRACT_GATE_PREFIX } from "./_local/intake-gate.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -155,6 +163,18 @@ function normalizeRopaCategory(raw: string | null | undefined): string {
 async function runTool(admin: Admin, job: any, userId: string): Promise<RunResult> {
 
   const intake: Record<string, any> = { ...(job.fixture_data ?? {}) };
+
+  // PANEL HARNESS CONTRACT-GATE (2026-08-30): label/shape drift in the
+  // generated fixture fails the job HERE, with the violations named, so a
+  // batch grade can never again silently measure fixture quality instead
+  // of product quality.
+  const gate = blockingContractViolations(job.tool_slug, intake);
+  if (gate.length) {
+    throw new Error(
+      `${INTAKE_CONTRACT_GATE_PREFIX}: the generated intake violates the ${job.tool_slug} contract — ` +
+        gate.slice(0, 6).join("; ") + (gate.length > 6 ? `; +${gate.length - 6} more` : ""),
+    );
+  }
 
   // Some tools' shims read intake.entity_name / company_name (e.g. cppa-risk's
   // legacy-flat → five-stage shim). Backfill them ONLY into inline-invoke bodies and
@@ -601,7 +621,9 @@ async function processNextJob(batchId: string, specificJobId: string | null): Pr
       const errMsg = (err as Error).message?.slice(0, 480) ?? "unknown error";
       const currentRetries = job.retry_count ?? 0;
 
-      if (currentRetries < 1) {
+      // A contract-gate failure is deterministic — retrying reruns the same
+      // violating fixture. Fail immediately with the named violations.
+      if (currentRetries < 1 && !errMsg.startsWith(INTAKE_CONTRACT_GATE_PREFIX)) {
         console.warn(`[run-stress-job] job ${job.id} (${job.tool_slug}) failed (attempt ${currentRetries + 1}), scheduling retry:`, errMsg);
         try {
           await admin.from("static_stress_jobs").update({
