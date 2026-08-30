@@ -292,11 +292,47 @@ function composeDutyBlock(rows: readonly Bag[]): string {
   return blocks.join("\n\n");
 }
 
+// PANEL BIO-2 (2026-08-30, doc 108 / panel-C D6). Sections I and III used
+// to print composeDutyBlock over their thematic filters while Section II
+// printed the SAME rows per statute — in a single-state assessment the full
+// analyses, statutory block quotes included, appeared twice (fifteen
+// analyses for seven duties on the published sample). Section II is the
+// single home of the full per-duty analysis; Sections I and III carry their
+// posture leads plus this one-line-per-duty summary. The typed rows are
+// untouched — this is presentation only.
+function summaryVerdictPhrase(verdict: string): string {
+  switch (verdict) {
+    case "satisfied":
+      return "met on the company's answers";
+    case "not_satisfied":
+      return "not met on the company's answers";
+    case "record_insufficient":
+      return "not resolved by the company's answers";
+    case "not_applicable":
+      return "not applicable to the programme as described";
+    default:
+      return "recorded without a verdict";
+  }
+}
+
+function composeDutySummary(rows: readonly Bag[]): string {
+  const lines: string[] = [];
+  for (const r of rows) {
+    const label = noStop(s(r.label));
+    if (!label) continue;
+    const citation = s(r.citation);
+    lines.push(`${label}${citation ? ` (${citation})` : ""} — ${summaryVerdictPhrase(s(r.verdict))}.`);
+  }
+  if (!lines.length) return "";
+  lines.push(
+    "Each duty is analysed in full — with its statutory text, the company's answer, and what would settle any open point — in Section II.",
+  );
+  return lines.join("\n");
+}
+
 function composeNoticeBody(report: Bag): string {
   const rows = dutyRows(report).filter((r) => NOTICE_DUTY.test(`${s(r.key)} ${s(r.label)}`));
-  const body = composeDutyBlock(rows);
-  const parts = [body, destructionClockSentence()].filter(Boolean);
-  return repairRegister(parts.join("\n\n"));
+  return repairRegister(composeDutySummary(rows));
 }
 
 function inScope(intake: Bag, needle: RegExp): boolean {
@@ -438,12 +474,20 @@ function composeSecurityLead(report: Bag): string {
 function composeSecurityBody(report: Bag, values: SlotValues): string {
   const rows = dutyRows(report).filter((r) => SECURITY_DUTY.test(`${s(r.key)} ${s(r.label)}`));
   const parts: string[] = [];
-  const body = composeDutyBlock(rows);
+  // PANEL BIO-2 — summary here; the full analyses live in Section II.
+  const body = composeDutySummary(rows);
   if (body) parts.push(body);
+  // The destruction-clock directive moved here from Section I (panel-C D7:
+  // it sat "apropos of nothing in the notice discussion"); the retention
+  // clock is this section's subject.
+  if (rows.length > 0) parts.push(destructionClockSentence());
   if (!values.securityMeasures) parts.push("The company has not recorded the controls applied to storage and transmission, so no protection-parity conclusion is drawn.");
   if (!values.retentionSchedule) parts.push("The company has not recorded a written retention schedule, and the destruction duties in scope require one.");
   if (parts.length === 0) return "";
-  return repairRegister(parts.join("\n\n"));
+  // repairRegister collapses \s{2,}, which would weld the parts into one
+  // paragraph; repair each part, then rejoin so the renderer's \n{2,} split
+  // keeps them as separate paragraphs.
+  return parts.map(repairRegister).join("\n\n");
 }
 
 function composeOperativeLead(report: Bag, intake: Bag): string {

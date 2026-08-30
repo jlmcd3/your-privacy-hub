@@ -531,6 +531,33 @@ const F_BIO_US: SampleFixture = {
       biometricTypes: ["Fingerprint / palm print"],
       purpose: "Time & attendance / workforce management",
       jurisdictions: ["Illinois, USA (BIPA)"],
+      // BIO-1 (panel, 2026-08-30): the scenario narrates a model BIPA
+      // program, but this body carried only the five legacy enum fields —
+      // so the published sample answered "not supplied" for the release,
+      // retention schedule, and vendor DPA its own scenario describes.
+      // The intake contract (_shared/intake-contracts/biometric.ts) has
+      // carried these practice fields since ITEM 317; they are mapped
+      // faithfully from the narrative above. Facts the narrative does not
+      // state (e.g. retention_policy_predates_possession) stay blank so
+      // the report's degrades remain honest.
+      data_source_description:
+        "Fingerprint templates enrolled directly from workers on vendor-hosted time-clock hardware at three Illinois warehouse facilities.",
+      entity_is_government: "No",
+      glba_financial_institution: "No",
+      notice_before_collection: "Written notice given before collection",
+      notice_purpose_and_term: "Yes",
+      consent_artifact_type: "Standalone written release signed before collection",
+      release_artifact_description:
+        "Standalone written BIPA release signed by each enrolled worker before enrollment, separate from the employment agreement, referencing the specific purpose (time and attendance), the retention term (3 years after last interaction or separation, whichever occurs first), and the destruction schedule.",
+      retention_schedule_text:
+        "Templates destroyed when the initial purpose is satisfied or within 3 years of the individual's last interaction, whichever occurs first; automated deletion job with quarterly attestation.",
+      retention_policy_public: "Yes",
+      destruction_trigger:
+        "Purpose satisfied (separation or end of time-and-attendance need) or 3 years after the individual's last interaction, whichever occurs first.",
+      sells_or_profits: "No",
+      disclosure_recipients:
+        "US-based time-clock vendor hosting fingerprint template storage under a written BIPA-compliant data processing agreement that prohibits secondary use, sale, or lease of templates and requires deletion on request.",
+      disclosure_bases: ["Third party contractually promises no further disclosure"],
     },
     invoke: { fn: "check-biometric-compliance", returns_id: true },
     poll: null,

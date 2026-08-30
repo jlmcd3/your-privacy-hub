@@ -35,4 +35,22 @@ describe("sample fixtures — canonical intake-contract conformance", () => {
       bad.map((b) => `${b.label}: ${b.issues.map((i) => `${i.key}(${i.problem})`).join(", ")}`).join("\n"),
     ).toBe("");
   });
+
+  // PANEL BIO-1 (2026-08-30): the biometric fixture's scenario narrates a
+  // model BIPA program, but the invoke body used to carry only the five
+  // legacy enum fields — so the published sample answered "not supplied"
+  // for the release, retention schedule, and vendor DPA its own scenario
+  // describes. Guard the practice facts against being trimmed back out.
+  it("the biometric fixture supplies the practice facts its scenario narrates", async () => {
+    const { SAMPLE_FIXTURES } = await import("@/lib/sampleFixtures");
+    const bio = SAMPLE_FIXTURES.find((f) => f.tool_slug === "biometric");
+    expect(bio, "no biometric fixture").toBeTruthy();
+    const body = (bio!.fixture.invoke_body_extras ?? {}) as Record<string, unknown>;
+    expect(body.consent_artifact_type).toBe("Standalone written release signed before collection");
+    expect(String(body.release_artifact_description ?? "")).toContain("Standalone written BIPA release");
+    expect(String(body.retention_schedule_text ?? "")).toContain("whichever occurs first");
+    expect(body.retention_policy_public).toBe("Yes");
+    expect(String(body.disclosure_recipients ?? "")).toContain("BIPA-compliant data processing agreement");
+    expect(body.notice_before_collection).toBe("Written notice given before collection");
+  });
 });
