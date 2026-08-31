@@ -170,10 +170,13 @@ export function applyProfile(base: SampleFixture, profile: DataProfile, index: n
   const substituted = mapStrings(clone, (s, key) => {
     let out = s;
     for (const org of id.orgs) {
-      out = out.replace(new RegExp(escapeRe(org), "g"), org === shortForm(org) && org !== profile.org ? profile.orgShort : profile.org);
+      out = out.replace(
+        new RegExp(escapeRe(org), "g"),
+        org === shortForm(org) ? profile.orgShort : profile.org,
+      );
     }
     for (const person of id.people) {
-      out = out.replace(new RegExp(escapeRe(person), "g"), PERSON_KEYS.has(key) ? profile.dpoName : profile.dpoName);
+      out = out.replace(new RegExp(escapeRe(person), "g"), profile.dpoName);
     }
     for (const domain of id.domains) {
       out = out.replace(new RegExp(escapeRe(domain), "gi"), profile.domain);
