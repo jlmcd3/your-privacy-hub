@@ -171,6 +171,9 @@ type Baseline = {
 const SELECT_COLS =
   "id, tool, status, batch_size, run_number, checks_passed, checks_failed, checks_total, score_overall, gpt_score_overall, cross_review_complete, error, started_at, last_heartbeat_at, completed_at, progress_log";
 
+/** Batch column pinned as the baseline (browser-local marker). */
+const BASELINE_COL_KEY = "eup.qualityConsole.baselineColumn.v1";
+
 const CHILD_TERMINAL = new Set([
   "complete", "completed", "done", "error", "failed", "cancelled", "canceled",
 ]);
