@@ -224,6 +224,7 @@ export function AllProductsPanel() {
     if (!claudeBatchId || busy) return;
     let cancelled = false;
     const seen = new Map<string, string>();
+    const gradingWork: Promise<void>[] = [];
     let lastSummary = "";
 
     const monitor = async () => {
