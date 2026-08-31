@@ -866,6 +866,17 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
       key: "review_of_assessment:1", surface: "admt_review_signature", title: "",
       columns: ["Field", "Value"], hideHeader: true,
       rows: [
+        // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, ADMT
+        // P1-1) — the blank Name/Title/Signature/Date block gave the
+        // reviewer nothing to check against; these two rows restate the
+        // assessment's own top-line state (already computed above for the
+        // executive audit table) immediately next to the signature block,
+        // and name the outstanding condition rather than leaving the
+        // reviewer to find it in Section 8.
+        ["Assessment status", scope.pathwayDependent ? "Pathway-dependent" : computed.overallPostureLabel],
+        ...(scope.pathwayDependent
+          ? [["Condition outstanding", "Automated decision pathways require qualifying human review or Article 11 treatment (Section 8)."]]
+          : []),
         ["Name", "________________________________"],
         ["Title", "________________________________"],
         ["Signature", "________________________________"],
@@ -1277,6 +1288,19 @@ function buildFactorMatrixTable(
   // behind the assessment" — out of scope, the duty factors were never
   // assessed, so restating them here would reverse the body.
   if (scope.scopeState === "OUT_OF_SCOPE") {
+    // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, ADMT P1-2) —
+    // the matrix restated the human-reviewed-pathway factors above but
+    // never named the pathway split itself; the audit trail should mirror
+    // the executive conclusion (RULING 3.2: the typed scopeState is
+    // unchanged — this is a presentation row, not a new determination).
+    if (scope.pathwayDependent) {
+      rows.push([
+        "Decision pathways",
+        "Human-reviewed: outside Article 11 on reported facts — Automatically decided: Article 11 applies unless qualifying human review is extended",
+        "Article 11 applies to the automatically-decided pathways unless qualifying human review is extended to them; see the Condition to Proceed in Section 8.",
+        "11 CCR § 7001(e)(1)",
+      ]);
+    }
     return {
       title: "",
       columns: ["Factor", "Report Determination", "Primary Authority"],
