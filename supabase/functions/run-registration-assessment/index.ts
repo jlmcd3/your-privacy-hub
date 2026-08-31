@@ -722,6 +722,16 @@ Deno.serve(async (req) => {
         }
       };
       walkCites((result_summary as any).registration_deliverables ?? {});
+      // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31,
+      // closes Registration P0-3) — obligations_summary.dpo_condition
+      // carries a national-law determination (BDSG § 38) as free prose;
+      // dpo_condition_citations (engine, S1.1-adjacent) is the keyed
+      // sibling walkCites can actually see. obligations_summary was never
+      // scanned at all before this call, so this closes a class of gap
+      // wider than just the BDSG row — any future obligations_summary
+      // field named citation/citations/window_citation/fee_citation is now
+      // picked up automatically.
+      walkCites((result_summary as any).obligations_summary ?? {});
       const seenBase = new Set<string>();
       const provisions = REGISTRATION_DUTY_AUTHORITIES.flatMap((r) => {
         const base = baseSection(r.citation);

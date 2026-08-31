@@ -128,6 +128,15 @@ export interface AssessmentOutput {
     // case `dpo_required` is false, per the addendum).
     dpo_trigger: string | null;
     dpo_condition: string | null;
+    // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, closes
+    // Registration P0-3) — `dpo_condition` is free prose; the exhibit
+    // builder's walkCites() only extracts a KEYED field literally named
+    // "citations" (exact match, not a suffix match — confirmed by reading
+    // walkCites() in index.ts before naming this), so a citable
+    // determination that only ever appeared in prose could never reach
+    // Authorities Cited. This array names the citation(s) actually
+    // load-bearing for the condition prose above.
+    citations: string[];
     // QB-P24 Addendum Item 7 — honest name. Value equals
     // `gpai_provider_obligations || high_risk_ai_deployer_obligations`. The
     // legacy key `ai_act_provider_obligations` is retained here purely as a
@@ -286,6 +295,9 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
   // QB-P24 Addendum Item 9(a) — track engaged trigger + conditional path.
   let dpoTrigger: string | null = null;
   let dpoCondition: string | null = null;
+  // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, closes
+  // Registration P0-3) — see dpo_condition_citations on AssessmentOutput.
+  const citations: string[] = [];
   const isSmallController =
     (intake.organization_size === "small" || intake.organization_size === "micro") &&
     (intake.employee_count ?? 0) < 50;
@@ -317,6 +329,7 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
       // addendum instead of an over-inclusive `true`.
       dpoCondition =
         "Conditional on GDPR Art. 37(1)(c): DPO becomes mandatory if the special-category processing declared in the intake constitutes the organisation's 'core activity' AND is carried out 'on a large scale' (EDPB WP 243 rev.01 factors: number of data subjects, volume, duration, geographic extent). For a small controller of this size these thresholds are not established by the intake; confirm before concluding either way.";
+      citations.push("GDPR Art. 37(1)(c)");
     }
   }
   if (
@@ -336,6 +349,7 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
     const bdsgCondition =
       `Conditional on BDSG §38 (Germany): a DPO designation becomes mandatory as a matter of German national law if 20 or more persons are constantly engaged in the automated processing of personal data. The intake reports ${intake.employee_count ?? 0} employees in total, which does not itself establish how many are constantly engaged in automated processing — confirm that number before concluding the threshold is met either way.`;
     dpoCondition = dpoCondition ? `${dpoCondition} ${bdsgCondition}` : bdsgCondition;
+    citations.push("BDSG § 38(1)");
     dpoReasons.push(`${bdsgTrigger}; the intake reports ${intake.employee_count ?? 0} employees — confirm how many are constantly engaged in automated processing before concluding the threshold is met`);
     if (dpoRequired) {
       // A GDPR Art. 37(1) branch independently engaged the duty; the BDSG
@@ -552,6 +566,7 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
       dpo_required: dpoRequired,
       dpo_trigger: dpoTrigger,
       dpo_condition: dpoCondition,
+      citations,
       ai_act_obligations_engaged: aiActProvider,
       // Deprecated alias — see interface comment.
       ai_act_provider_obligations: aiActProvider,

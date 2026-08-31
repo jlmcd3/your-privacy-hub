@@ -566,6 +566,35 @@ export const REGISTRATION_DUTY_AUTHORITIES: ReadonlyArray<RegistrationDutyRow> =
     primary_source_url: "https://eur-lex.europa.eu/eli/reg/2016/679/oj",
     verified_on: "2026-07-31",
   },
+  // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, closes
+  // Registration P0-3) — the German national-law DPO trigger the S1.1 (doc
+  // 119) conditional already names in customer prose but never had an
+  // authority row for. BDSG § 38's own text has no OFFICIAL English-language
+  // version the way GDPR does (GDPR's English is one of 24 co-equal official
+  // EU languages; BDSG is German-only original law). The quote below is the
+  // official English CONVENIENCE TRANSLATION published by the same
+  // government body as the German original (Bundesministerium des Innern —
+  // Federal Ministry of the Interior — Language Service), retrieved from the
+  // same official publisher (gesetze-im-internet.de) as every other row in
+  // this file, not a third-party or machine translation. German original,
+  // for cross-reference: "Ergänzend zu Artikel 37 Absatz 1 Buchstabe b und c
+  // der Verordnung (EU) 2016/679 benennen der Verantwortliche und der
+  // Auftragsverarbeiter eine Datenschutzbeauftragte oder einen
+  // Datenschutzbeauftragten, soweit sie in der Regel mindestens 20 Personen
+  // ständig mit der automatisierten Verarbeitung personenbezogener Daten
+  // beschäftigen." (retrieved 2026-08-31 from
+  // gesetze-im-internet.de/bdsg_2018/__38.html).
+  {
+    key: "dpo_trigger_bdsg_de",
+    jurisdiction: "DE",
+    citation: "BDSG § 38(1)",
+    verbatim_quote:
+      "In addition to Article 37 (1) (b) and (c) of Regulation (EU) 2016/679, the controller and processor shall designate a data protection officer if they constantly employ as a rule at least 20 persons dealing with the automated processing of personal data.",
+    corpus_key: "de-bdsg-38",
+    role: "dpo_trigger",
+    primary_source_url: "https://www.gesetze-im-internet.de/englisch_bdsg/englisch_bdsg.html",
+    verified_on: "2026-08-31",
+  },
 
   // ── REG-1 (doc 106, 2026-08-29) — EU AI Act Art. 49 registration duties.
   // The corpus rows (aiact-art-49 / aiact-art-71 / aiact-annex-8) were

@@ -67,6 +67,12 @@ export const REGISTRATION_APPROVED_CORPUS_KEYS: Readonly<
   "gdpr-articles:eu:27": { source: "gdpr_articles", jurisdiction: "EU", verified_on: "2026-08-26" },
   "gdpr-articles:uk:27": { source: "gdpr_articles", jurisdiction: "UK", verified_on: "2026-08-26" },
   "gdpr-articles:eu:37": { source: "gdpr_articles", jurisdiction: "EU", verified_on: "2026-08-26" },
+  // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, closes
+  // Registration P0-3) — BDSG § 38 (Germany). Requires the matching
+  // provision_texts row (key "de-bdsg-38", status='approved') to exist in
+  // the live table before this entry is true; see registration-verified-
+  // authorities.ts's dpo_trigger_bdsg_de row for the source and quote.
+  "de-bdsg-38": { source: "provision_texts", jurisdiction: "DE", verified_on: "2026-08-31" },
   // REG-1 (doc 106, 2026-08-29) — EU AI Act rows. Ingested and approved
   // 2026-08-10 (found already present when doc 106 proposed ingesting them);
   // status='approved' confirmed live 2026-08-29 via Lovable query_database
