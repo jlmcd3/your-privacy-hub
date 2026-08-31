@@ -280,6 +280,10 @@ export function QualityConsole({
   const [recentBatches, setRecentBatches] = useState<BatchRow[]>([]);
   const [baselines, setBaselines] = useState<Map<string, Baseline>>(new Map());
   const [snapshotting, setSnapshotting] = useState(false);
+  // Which batch column the current baseline was pinned from (browser-local).
+  const [baselineColumnId, setBaselineColumnId] = useState<string | null>(() => {
+    try { return localStorage.getItem(BASELINE_COL_KEY); } catch { return null; }
+  });
   // ALL-PRODUCTS-TEST — imported history for products with no quality batch.
   type StressHistory = { total: number; complete: number; failed: number; lastAt: string | null };
   const [stressHistory, setStressHistory] = useState<Map<string, StressHistory>>(new Map());
