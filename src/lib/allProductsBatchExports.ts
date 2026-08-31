@@ -80,7 +80,14 @@ export async function downloadBatchPdfZip(batchId: string, outcomes: RunOutcome[
           { tool_type: SLUG_TO_PDF_TOOL_TYPE[o.tool_slug], assessment_id: o.sourceRowId },
           180_000,
         );
-        if (error || !data?.pdf_url) throw new Error(error?.message || data?.error || "no pdf_url returned");
+        if (error || !data?.pdf_url) {
+          const raw = error?.message || data?.error || "no pdf_url returned";
+          throw new Error(
+            /auth_expired|401|Session expired/i.test(raw)
+              ? "session expired — sign in again, then re-run the zip export"
+              : raw,
+          );
+        }
         pdfUrl = data.pdf_url;
         updateOutcome(o.id, { pdfUrl });
       }

@@ -259,8 +259,18 @@ function coerceField(intake: Record<string, unknown>, f: IntakeField, notes: str
         // gate blocks with the offending strings named instead of an opaque
         // downstream 400.
         if (EMPTY_FATAL_FIELDS[toolType]?.has(f.key)) {
-          notes.push(`${f.key}[]: left unmatched (empty is fatal to the product; gate will name them) ${JSON.stringify(dropped).slice(0, 160)}`);
-          return v;
+          // PANEL FIX (2026-08-31): leaving the unmatched originals here made
+          // the job die either at the gate or on the product's own 400 ("At
+          // least one biometric type required"), so the batch measured fixture
+          // naming again. A required list that the product hard-requires is
+          // instead snapped onto the contract's own catch-all option — the
+          // honest "we cannot name this from the record" answer that the form
+          // itself offers — and the run proceeds.
+          const fallback = opts.find((o) => /^other\b/i.test(o)) ?? opts[0];
+          notes.push(
+            `${f.key}[]: unmatched ${JSON.stringify(dropped).slice(0, 120)} → ${JSON.stringify(fallback)} (empty is fatal to the product)`,
+          );
+          return [fallback];
         }
         notes.push(`${f.key}[]: cleared unmatched ${JSON.stringify(dropped).slice(0, 160)}`);
         return [];
