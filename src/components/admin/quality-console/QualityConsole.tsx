@@ -1229,25 +1229,39 @@ export function QualityConsole({
                     <div className="text-[10px] font-normal text-muted-foreground">
                       {new Date(col.started_at).toLocaleDateString()}
                       {col.kind === "local" ? " · in-page" : ""}
+                      {baselineColumnId === col.id ? " · baseline" : ""}
                     </div>
-                    {col.kind === "server" ? (
-                      <div className="flex gap-1 mt-1">
-                        <button
-                          type="button"
-                          className="text-[10px] underline text-brand-teal-text hover:no-underline"
-                          onClick={() => onDownloadBatchZip(col.batch)}
-                          title="Download PDFs (zip)"
-                        >zip</button>
-                        <button
-                          type="button"
-                          className="text-[10px] underline text-brand-teal-text hover:no-underline"
-                          onClick={() => onExportBatchMarkdown(col.batch)}
-                          title="Export analysis (.md)"
-                        >md</button>
-                      </div>
-                    ) : renderLocalBatchActions ? (
-                      <div className="flex gap-1 mt-1">{renderLocalBatchActions(col.id)}</div>
-                    ) : null}
+                    <div className="flex gap-1 mt-1">
+                      {col.kind === "server" ? (
+                        <>
+                          <button
+                            type="button"
+                            className="text-[10px] underline text-brand-teal-text hover:no-underline"
+                            onClick={() => onDownloadBatchZip(col.batch)}
+                            title="Download PDFs (zip)"
+                          >zip</button>
+                          <button
+                            type="button"
+                            className="text-[10px] underline text-brand-teal-text hover:no-underline"
+                            onClick={() => onExportBatchMarkdown(col.batch)}
+                            title="Export analysis (.md)"
+                          >md</button>
+                        </>
+                      ) : renderLocalBatchActions ? (
+                        renderLocalBatchActions(col.id)
+                      ) : null}
+                      <button
+                        type="button"
+                        disabled={snapshotting}
+                        className={`text-[10px] underline hover:no-underline ${
+                          baselineColumnId === col.id
+                            ? "font-semibold text-foreground no-underline"
+                            : "text-brand-teal-text"
+                        }`}
+                        onClick={() => void onSetBaselineFromColumn(col, `Batch ${i + 1}`)}
+                        title="Pin this batch's scores as the baseline"
+                      >{baselineColumnId === col.id ? "★ baseline" : "baseline"}</button>
+                    </div>
                   </th>
                 ))}
               </tr>
