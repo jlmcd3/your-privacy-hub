@@ -43,7 +43,10 @@ const F_LIA_UK: SampleFixture = {
   fixture: {
     insert: {
       stage: "submitted",
-      preview_assessment_id: "sample-preview-lia-uk-000",
+      // NOTE (2026-08-31): `preview_assessment_id` is NOT a column on
+      // li_assessments — it is a checkout-time analytics field. Inserting it
+      // made every LIA harness run fail with a schema-cache error.
+
       organization_name: "North Pole Manual Mining Ltd",
       subject_anchor:
         "Wearable safety telemetry (underground location and heart rate) on underground shift workers",
