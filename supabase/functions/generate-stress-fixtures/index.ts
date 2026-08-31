@@ -9,7 +9,7 @@ console.log("[build-marker] generate-stress-fixtures qi2c-biometric-none-2026-07
 // and geo-specific call as separate requests under the platform timeout.
 
 import { verifyCaller } from "../_shared/verify-caller.ts";
-import { enumAppendix } from "./_local/enum-appendix.ts";
+import { enumAppendix, withInlineOptions } from "./_local/enum-appendix.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // PANEL FIX (2026-08-30, doc 108 follow-on) — the deterministic fallback
@@ -249,7 +249,7 @@ Rules:
 
 function buildCallAPrompt(industry: string, geo: string, slot: number, companyId: string): string {
   const isEU = geo === "eu";
-  return `Generate test data for:
+  return withInlineOptions(`Generate test data for:
 Industry: ${industry}
 Geography: ${geo} (${isEU ? "EU / United Kingdom" : "United States"})
 Company slot: ${slot} (${slot === 1 ? "large enterprise" : "mid-market"})
@@ -307,7 +307,7 @@ Return a JSON object with EXACTLY these top-level fields:
   }
 }
 
-Always emit a biometric object for every company (tool selection is handled at the job level by selected_tools). For sectors that do not routinely use biometric identification, still emit the object using realistic minimal values, choosing verbatim options from the allowed lists below (e.g. biometricTypes may be ["Other biometric identifier"]). Never emit null.${enumAppendix(["governance", "dpa", "irPlaybook", "biometric", "registration"])}`;
+Always emit a biometric object for every company (tool selection is handled at the job level by selected_tools). For sectors that do not routinely use biometric identification, still emit the object using realistic minimal values, choosing verbatim options from the allowed lists below (e.g. biometricTypes may be ["Other biometric identifier"]). Never emit null.${enumAppendix(["governance", "dpa", "irPlaybook", "biometric", "registration"])}`, ["governance", "dpa", "irPlaybook", "biometric", "registration"]);
 }
 
 // ── CALL B (EU): lia, dpia, ropa, euNotice ────────────────────────────────────
@@ -422,7 +422,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
 
 function buildCallBEUPrompt(industry: string, slot: number, companyName: string): string {
 
-  return `You are generating EU-specific compliance tool payloads for "${companyName}", a ${slot === 1 ? "large enterprise" : "mid-market"} ${industry} company based in the EU/UK.
+  return withInlineOptions(`You are generating EU-specific compliance tool payloads for "${companyName}", a ${slot === 1 ? "large enterprise" : "mid-market"} ${industry} company based in the EU/UK.
 Use the same company name, domain, DPO details, and country as already established for this company.
 
 Return a JSON object with EXACTLY these fields:
@@ -491,13 +491,13 @@ Return a JSON object with EXACTLY these fields:
   }
 }
 
-Include 3-5 realistic processing activities in ropa.activities for a ${industry} company.${enumAppendix(["lia", "dpia", "cppaAdmt"])}`;
+Include 3-5 realistic processing activities in ropa.activities for a ${industry} company.${enumAppendix(["lia", "dpia", "cppaAdmt"])}`, ["lia", "dpia", "cppaAdmt"]);
 }
 
 // ── CALL B (US): usNotice, cppaRisk, cppaCyber ───────────────────────────────
 
 function buildCallBUSPrompt(industry: string, slot: number, companyName: string): string {
-  return `You are generating US-specific compliance tool payloads for "${companyName}", a ${slot === 1 ? "large enterprise" : "mid-market"} ${industry} company based in the United States.
+  return withInlineOptions(`You are generating US-specific compliance tool payloads for "${companyName}", a ${slot === 1 ? "large enterprise" : "mid-market"} ${industry} company based in the United States.
 Use the same company name, domain, and contact info as already established for this company.
 
 Return a JSON object with EXACTLY these fields:
@@ -609,7 +609,7 @@ Return a JSON object with EXACTLY these fields:
   "euNotice": null
 }
 
-Notice/opt-out/access answers must be a realistic mix — not all "Yes", not all blank — so gap analysis has real material.${enumAppendix(["cppaRisk", "cppaAdmt"])}`;
+Notice/opt-out/access answers must be a realistic mix — not all "Yes", not all blank — so gap analysis has real material.${enumAppendix(["cppaRisk", "cppaAdmt"])}`, ["cppaRisk", "cppaAdmt"]);
 }
 
 function fixtureSeed(companyId: string): number {
