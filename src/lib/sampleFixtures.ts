@@ -1118,7 +1118,7 @@ const F_EU_NOTICE: SampleFixture = {
       dpo_name: "Donna Dasher (acting DPO, shared service)",
       dpo_email: "dpo@misfittoyslogistics.example",
       processing_purposes: ["service_delivery", "analytics", "marketing", "security", "legal_compliance"],
-      data_categories: ["identifiers", "professional", "internet_activity", "order_history"],
+      data_categories: ["identifiers", "professional", "internet_activity", "commercial"],
       lawful_basis: ["contract", "legitimate_interests", "legal_obligation", "consent"],
       third_party_recipients: ["service_providers", "analytics", "regulators"],
       transfer_outside_eea: "yes",

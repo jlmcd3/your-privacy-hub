@@ -367,7 +367,14 @@ async function fetchSessionShaped(
       admin.from("ropa_client_profiles").select("*").eq("client_id", s.client_id as string).maybeSingle(),
       admin.from("ropa_processing_activities").select("id, display_name, category, template_key").eq("session_id", s.id as string),
       admin.from("ropa_answers").select("activity_id, question_key, answer_value").eq("session_id", s.id as string),
-      admin.from("ropa_jurisdiction_selections").select("jurisdiction_code").eq("session_id", s.id as string),
+      // ropa_jurisdiction_selections is client-scoped (upserted on
+      // client_id,jurisdiction_code by the generator — see
+      // generate-ropa-document/index.ts's own load, which queries the same
+      // way), not session-scoped. Querying by session_id here always
+      // returned zero rows, showing the grader a fabricated-looking empty
+      // jurisdictions list on every RoPA run even though the rendered
+      // document correctly reflects the client's real jurisdiction footprint.
+      admin.from("ropa_jurisdiction_selections").select("jurisdiction_code").eq("client_id", s.client_id as string),
     ]);
     return {
       id: s.id as string,

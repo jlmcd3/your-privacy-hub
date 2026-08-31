@@ -106,10 +106,11 @@ const CA_NOT_REGISTRABLE = {
 describe("ITEM 316 — corpus pin", () => {
   // REG-1 (doc 106, 2026-08-29): +6 EU AI Act rows (Art. 49(1)/(2)/(3)/(5),
   // Art. 71(1), Annex VIII Section A head) — 28 -> 34, jurisdictions unchanged.
-  it("carries 34 duty rows across six jurisdictions", () => {
-    expect(REGISTRATION_DUTY_AUTHORITIES.length).toBe(34);
+  // BDSG (2026-08-31): +1 DE row (§ 38(1) DPO-designation threshold) — 34 -> 35.
+  it("carries 35 duty rows across seven jurisdictions", () => {
+    expect(REGISTRATION_DUTY_AUTHORITIES.length).toBe(35);
     expect(new Set(REGISTRATION_DUTY_AUTHORITIES.map((r) => r.jurisdiction))).toEqual(
-      new Set(["US-CA", "US-OR", "US-TX", "US-VT", "EU", "UK"]),
+      new Set(["US-CA", "US-OR", "US-TX", "US-VT", "EU", "UK", "DE"]),
     );
     for (const code of ["US-CA", "US-OR", "US-TX", "US-VT"]) {
       expect(dutyRowsFor(code).length).toBeGreaterThanOrEqual(4);
@@ -132,7 +133,7 @@ describe("ITEM 316 — corpus pin", () => {
     // REG-1: the AI Act rows carry their own verification date (2026-08-29,
     // re-confirmed live against provision_texts); the Item 316 rows keep
     // 2026-07-31. Pin the known set, not a single date.
-    const KNOWN_VERIFICATION_DATES = new Set(["2026-07-31", "2026-08-29"]);
+    const KNOWN_VERIFICATION_DATES = new Set(["2026-07-31", "2026-08-29", "2026-08-31"]);
     for (const row of REGISTRATION_DUTY_AUTHORITIES) {
       expect(row.citation.length).toBeGreaterThan(8);
       expect(row.primary_source_url).toMatch(/^https:\/\//);

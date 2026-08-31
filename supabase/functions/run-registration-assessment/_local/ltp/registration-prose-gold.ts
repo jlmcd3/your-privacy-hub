@@ -111,7 +111,11 @@ export function repairGlyphJoiner(text: string): string {
 // "Label: value Label: value" is a form, not a sentence. The repair keeps every
 // value and drops the colons, so nothing is lost and nothing is invented.
 
-const LABEL_LITANY_RE = /(^|[.\s])([A-Z][A-Za-z][^:.]{2,48}):\s(yes|no|not stated|not recorded)(\.)?/g;
+// The value token must end the clause (end-of-string, a period, or a new
+// Capitalised label/sentence) — otherwise "Label: no" is the opening of a
+// longer sentence ("France: no local-only filing identified...") rather than
+// a yes/no litany entry, and must be left untouched.
+const LABEL_LITANY_RE = /(^|[.\s])([A-Z][A-Za-z][^:.]{2,48}):\s(yes|no|not stated|not recorded)(\.)?(?=\s+[A-Z]|\s*$)/g;
 
 export function repairLabelColonLitany(text: string): string {
   if (!/: (yes|no|not stated|not recorded)/.test(text)) return text;

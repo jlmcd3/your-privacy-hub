@@ -319,7 +319,7 @@ export function buildDpiaEngagementMap(
   const looksProfiling = /(profil|scor|automated (decision|evaluation)|adm[t]?\b|recommend)/i.test(stmt);
   const looksHealth = /(health|medical|patient|clinical|nhs|ehr|emr)/i.test(stmt) || /health/i.test(art9);
   const looksChildren = /(child|minor|under[- ]18|student|learner|pupil)/i.test(stmt);
-  const looksPublicMonitoring = /(cctv|public (space|area)|wi-?fi tracking|kerbside|street|shopping mall)/i.test(stmt);
+  const looksPublicMonitoring = /(cctv|public (space|area)|wi-?fi tracking|kerbside|street|shopping mall|drone|aerial|overflight|airborne|unmanned aerial|uav\b)/i.test(stmt);
   const looksBiometric = /(biometric|face|fingerprint|iris|voiceprint|gait)/i.test(stmt);
   const looksInnovative = /(ai|machine learning|generative|llm|deep learning|edge inference)/i.test(stmt);
   const hasTransfers = Array.isArray(transfers) && transfers.length > 0;

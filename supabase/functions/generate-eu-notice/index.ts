@@ -231,6 +231,16 @@ export function buildNoticeSections(opts: BuildNoticeOptions): {
   const recipients = formatAnswer("third_party_recipients", answers["third_party_recipients"]) || "—";
   const transfersYes = answerToken(answers["transfer_outside_eea"]) === "yes";
   const safeguards = formatAnswer("transfer_safeguards", answers["transfer_safeguards"]);
+  // UK IDTA / UK Addendum is a UK-specific instrument (s.17C DPA 2018) with no
+  // status under EU GDPR Art. 46 — rendering it under an "Art. 46 GDPR"
+  // (EU) framing misapplies the citation. Filter it out of the EU-framework
+  // safeguards line; the UK_GDPR branch below keeps it (it belongs there).
+  const safeguardsNonUk = formatAnswer(
+    "transfer_safeguards",
+    Array.isArray(answers["transfer_safeguards"])
+      ? (answers["transfer_safeguards"] as unknown[]).filter((v) => String(v) !== "uk_addendum")
+      : answers["transfer_safeguards"],
+  );
   const retention = formatAnswer("retention_period", answers["retention_period"]) || "Not specified";
   const automatedYes = answerToken(answers["automated_decisions"]) === "yes";
 
@@ -385,7 +395,7 @@ export function buildNoticeSections(opts: BuildNoticeOptions): {
       safeguardsLine = `<p>Our safeguards under Art. 46 UK GDPR: ${escapeHtml(safeguards || "the UK International Data Transfer Agreement (IDTA), the EU Standard Contractual Clauses with the UK Addendum, or other appropriate safeguards approved by the ICO")}.</p>`;
     } else {
       // EU_GDPR (and any GDPR-family default)
-      safeguardsLine = `<p>Our safeguards under Art. 46 GDPR: ${escapeHtml(safeguards || "Standard Contractual Clauses (SCCs) or equivalent")}.</p>`;
+      safeguardsLine = `<p>Our safeguards under Art. 46 GDPR: ${escapeHtml(safeguardsNonUk || "Standard Contractual Clauses (SCCs) or equivalent")}.</p>`;
     }
     sections.push({
       title: "International transfers",

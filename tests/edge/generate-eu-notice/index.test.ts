@@ -166,7 +166,10 @@ Deno.test("transfers=yes inserts International transfers section in order", () =
   assertStringIncludes(html, "<h2>9. Your rights");
   assert(!html.includes("<h2>10."), "Unexpected 10th section");
   assertStringIncludes(html, "Standard Contractual Clauses (SCCs)");
-  assertStringIncludes(html, "UK International Data Transfer Addendum");
+  // The UK IDTA/Addendum is a UK-specific instrument with no status under EU
+  // GDPR Art. 46 — it must not appear in the EU_GDPR section's safeguards
+  // line (citation-misapplication fix, 2026-08-31).
+  assert(!html.includes("UK International Data Transfer Addendum"), "UK Addendum should not appear under EU GDPR Art. 46");
 });
 
 Deno.test("automated=yes adds Automated decision-making as last section", () => {

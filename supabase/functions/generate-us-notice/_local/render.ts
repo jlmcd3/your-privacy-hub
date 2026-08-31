@@ -160,6 +160,7 @@ export function buildNoticeHtml(
   const purposes = answerString(answers["collection_purposes"]) || "—";
   const sharing = answerString(answers["third_party_sharing"]);
   const thirdParties = answerString(answers["third_party_categories"]) || "—";
+  const dataSources = answerString(answers["data_sources"]).trim();
   const sale = answerString(answers["sale_or_sharing"]);
   // S-N3 (doc 80, 2026-08-27) — 11 CCR § 7012(e)(4): disclose the retention
   // PERIOD or, where a period is not possible, the CRITERIA used to
@@ -247,12 +248,14 @@ export function buildNoticeHtml(
   <p>${escapeHtml(purposes)}</p>
 
   ${state.framework_type === "ccpa" ? `<h2>2a. Where we get this information</h2>
-  <p>We collect personal information from the following categories of sources:</p>
+  ${dataSources
+    ? `<p>We collect personal information from the following sources: ${escapeHtml(dataSources.replace(/[.\s]+$/, ""))}.</p>`
+    : `<p>We collect personal information from the following categories of sources:</p>
   <ul>
     <li><strong>Directly from you</strong> — when you create an account, make a purchase, contact us, or otherwise provide information to us.</li>
     <li><strong>Automatically</strong> — when you use our website, app, or services, through cookies, log files, and similar technologies.</li>
     <li><strong>From third parties</strong> — such as service providers, business partners, data analytics providers, and publicly available sources, to the extent applicable to our operations.</li>
-  </ul>` : ""}
+  </ul>`}` : ""}
 
   <h2 id="sec-share">3. Sharing with third parties</h2>
   ${
@@ -265,7 +268,7 @@ export function buildNoticeHtml(
   <h2>3a. Categories of recipients</h2>
   <p>In the preceding 12 months, we have disclosed personal information to the following categories of third parties:</p>
   <ul>
-    <li><strong>Service providers and contractors</strong> — companies that provide services on our behalf, such as cloud hosting, analytics, payment processing, customer support, and marketing platforms, under contractual restrictions preventing them from using your personal information for their own purposes.</li>
+    <li><strong>Service providers and contractors</strong> — companies that provide services on our behalf${sharing !== "yes" && thirdParties !== "—" ? `, such as ${escapeHtml(thirdParties.replace(/[.\s]+$/, ""))}` : " (such as cloud hosting and analytics)"}, under contractual restrictions preventing them from using your personal information for their own purposes.</li>
     <li><strong>Professional advisers</strong> — lawyers, accountants, auditors, and insurers in connection with legal, financial, or regulatory obligations.</li>
     <li><strong>Government and regulatory authorities</strong> — when required by applicable law, court order, or regulatory obligation.</li>
     ${sharing === "yes" ? `<li><strong>Third-party partners</strong> — ${escapeHtml(thirdParties.replace(/[.\s]+$/, ""))}.</li>` : ""}
@@ -302,7 +305,7 @@ export function buildNoticeHtml(
   <p>To exercise any of the rights listed above, contact us by email at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a> or through the privacy request form on our website. Please include your name, state of residence, the right you wish to exercise, and enough information to verify your identity. We will respond within <strong>45 days</strong> of receiving a verifiable request. If we need additional time, we will notify you within the initial 45-day period and may extend the response period by an additional 45 days.</p>
 
   <h2>5b. Appeal process</h2>
-  <p>If we decline your request, we will provide you with a written explanation of our reasons. You may appeal our decision by emailing us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a> with the subject line "Privacy Rights Appeal." We will respond to your appeal within <strong>60 days</strong>. If we deny your appeal, you have the right to contact your state Attorney General:
+  <p>If we decline your request, we will provide you with a written explanation of our reasons. You may appeal our decision by emailing us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a> with the subject line "Privacy Rights Appeal." We will respond to your appeal within <strong>${state.state_code === "CO" ? "45 days (C.R.S. § 6-1-1306(3))" : "60 days"}</strong>. If we deny your appeal, you have the right to contact your state Attorney General:
   ${state.state_code === "VA" ? `<ul><li><strong>Virginia Attorney General:</strong> <a href="https://www.oag.state.va.us">oag.state.va.us</a> · (804) 786-2071</li></ul>` : ""}
   ${state.state_code === "TX" ? `<ul><li><strong>Texas Attorney General:</strong> <a href="https://www.texasattorneygeneral.gov">texasattorneygeneral.gov</a> · (800) 252-8011</li></ul>` : ""}
   ${state.state_code === "CO" ? `<ul><li><strong>Colorado Attorney General:</strong> <a href="https://coag.gov">coag.gov</a> · (720) 508-6000</li></ul>` : ""}

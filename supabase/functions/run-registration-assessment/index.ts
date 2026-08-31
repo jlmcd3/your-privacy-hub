@@ -467,7 +467,7 @@ Deno.serve(async (req) => {
           // data_broker_evaluation.basis) — flagged as boilerplate. Each field
           // now carries a scope-appropriate sentence and `notes` may be null.
           const regBasisTxt = ossActive
-            ? `${jurName}: no local-only controller-registration filing identified on the current record. Cross-border complaints are routed via the GDPR one-stop-shop mechanism — see the oss_group block.`
+            ? `No local-only controller-registration filing is identified for ${jurName} on the current record. Cross-border complaints are routed via the GDPR one-stop-shop mechanism — see the oss_group block.`
             : (r?.registration_required === false
                 ? `${jurName} does not operate a general controller-registration scheme (${r?.law_name || "governing law"}); no filing under a general registry is engaged for this market.`
                 : `No general controller-registration obligation was identified for ${jurName} on the current record. Confirm any local filing, representative-appointment, or sector-authorisation requirements with ${r?.authority_name || "the competent supervisory authority"} before concluding no filing is due.`);
