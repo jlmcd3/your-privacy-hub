@@ -170,17 +170,59 @@ function consequence(report: Bag): Bag {
 function deriveDutyScorecard(report: Bag): RenderedTable | null {
   const rows = dutyRows(report);
   if (!rows.length) return null;
+  // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, P1-2) — fleet
+  // status vocabulary: "Additional information required", matching
+  // Registration/Governance, not the older "Not resolved" dialect.
   const word = (v: string): string =>
     v === "satisfied" ? "Met"
     : v === "not_satisfied" ? "Not met"
     : v === "not_applicable" ? "Not applicable"
-    : "Not resolved";
+    : "Additional information required";
   return {
     key: "",
     surface: "biometric_duty_scorecard",
     title: "Duty scorecard",
     columns: ["Duty", "Pinpoint", "Status", "Where addressed"],
     rows: rows.map((r) => [s(r.label), s(r.citation), word(s(r.verdict)), "Section II"]),
+  };
+}
+
+// A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, Biometric P1-4) —
+// the same unlawful/unresolved arrays composeOperativeLead reads, as a
+// compact table: one row per action, typed by whether it is substantive
+// remediation or record completion. No new facts — same source, second
+// presentation.
+function deriveActionPanelTable(report: Bag): RenderedTable | null {
+  const c = consequence(report);
+  const unlawful = asArray(c.unlawful_now);
+  const unresolved = asArray(c.unresolved_on_record);
+  if (unlawful.length === 0 && unresolved.length === 0) return null;
+  const rows: string[][] = [];
+  let n = 1;
+  for (const u of unlawful) {
+    const duty = noStop(s(u.duty));
+    const cite = s(u.citation);
+    if (!duty && !cite) continue;
+    rows.push([String(n++), "Immediate remediation", `Remedy ${duty || "the duty named above"}${cite ? ` at ${cite}` : ""}`]);
+  }
+  for (const u of unresolved) {
+    const duty = noStop(s(u.duty));
+    const cite = s(u.citation);
+    const needed = s(u.information_needed);
+    if (!duty && !cite) continue;
+    rows.push([
+      String(n++),
+      "Record completion",
+      `Confirm ${duty || "the duty named above"}${cite ? ` at ${cite}` : ""}${needed ? ` — ${lowerEnumLabel(noStop(needed))}` : ""}`,
+    ]);
+  }
+  if (!rows.length) return null;
+  return {
+    key: "",
+    surface: "consequence_determination.action_panel",
+    title: "Action panel",
+    columns: ["#", "Type", "Action"],
+    rows,
   };
 }
 
@@ -287,7 +329,18 @@ function composeNoticeLead(report: Bag): string {
       const label = first ? noStop(s(first.label)) : "";
       const cite = first ? s(first.citation) : "";
       if (label) {
-        return `Across the statutes in scope, the notice-and-consent posture is deficient: ${lowerEnumLabel(label)}${cite ? ` (${cite})` : ""} is not met on the company's answers.`;
+        // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, P1-3) —
+        // a blanket "posture is deficient" headline, even one that names
+        // the single failing duty, still reads as broader than the record
+        // supports when the sibling duties are in fact met. Name them too.
+        const metLabels = rows
+          .filter((r) => r !== first && s(r.verdict) === "satisfied")
+          .map((r) => noStop(s(r.label)))
+          .filter(Boolean);
+        const metClause = metLabels.length
+          ? ` The ${asProse(metLabels.map((l) => lowerEnumLabel(l)))} ${metLabels.length === 1 ? "duty" : "duties"} assessed here ${metLabels.length === 1 ? "is" : "are"} met on the company's answers.`
+          : "";
+        return `The notice-and-consent posture includes one confirmed deficiency: ${lowerEnumLabel(label)}${cite ? ` (${cite})` : ""} is not met on the company's answers.${metClause}`;
       }
     }
     return `Across the statutes in scope, the notice-and-consent posture is deficient: ${unmet === 1 ? "one of the notice, release or disclosure duties is" : `${unmet} of the notice, release and disclosure duties are`} not met on the company's answers.`;
@@ -383,7 +436,9 @@ function summaryVerdictPhrase(verdict: string): string {
     case "not_applicable":
       return "not applicable to the programme as described";
     default:
-      return "recorded without a verdict";
+      // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, P1-5) —
+      // the fleet's formal status word, not a bespoke fallback phrase.
+      return "additional information required";
   }
 }
 
@@ -711,6 +766,7 @@ export function assembleBiometricSkeletonDocument(report: Bag, intakeInput: Bag)
 
   const tables: SkeletonTables = {
     "executive_summary:3": deriveDutyScorecard(report),
+    "review_approval:2": deriveActionPanelTable(report),
   };
 
   const draft = renderSkeletonDocument({

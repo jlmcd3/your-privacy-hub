@@ -3945,9 +3945,22 @@ Deno.serve(async (req) => {
       const intake = record.intake_data || {};
       const text = record.analysis_text || record.report_data?.assessment_text || "";
       // BIPA litigation risk callout retired 2026-07-14 — bipa_risk field removed from report_data.
-      const metaLine = `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
-        ((record.jurisdictions || intake.jurisdictions || []).length
-          ? ` · ${(record.jurisdictions || intake.jurisdictions).join(", ")}` : "");
+      // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, Biometric
+      // P1-1) — biometric is the one product still rendered through
+      // buildTextReportHTML (below) rather than the shared
+      // buildSkeletonReportHTML, which is where every other product's
+      // Report ID (A-TEAM S4 RULING S4, doc 119) comes from. Same
+      // derivation, applied here directly.
+      const bioReportId = typeof record?.id === "string" && record.id.length >= 8
+        ? `Report ID ${record.id.slice(0, 8).toUpperCase()}`
+        : "";
+      const metaLine = [
+        bioReportId,
+        `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}`,
+        (record.jurisdictions || intake.jurisdictions || []).length
+          ? (record.jurisdictions || intake.jurisdictions).join(", ")
+          : "",
+      ].filter(Boolean).join(" · ");
       const orgNameForPdf = (intake as any).orgName || (intake as any).organizationName || "";
       // SO-6 WIRE-IN: the byte-pinned Biometric skeleton IS the customer
       // document when the pipeline assembled one; the legacy narrative path

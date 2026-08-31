@@ -164,6 +164,11 @@ export const BIOMETRIC_SKELETON_SECTIONS: readonly BiometricSkeletonSection[] = 
     blocks: [
       { kind: "skeleton", text: "{APPROVAL_SENTENCE - from approverName / approverTitle / approvalDate; these approval fields render only when answered}." },
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating the operative conclusion and the single next act." },
+      // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, Biometric
+      // P1-4) — the remediation vs. record-completion distinction as a
+      // compact action panel, complementing the lead's prose. Not part of
+      // the docx's fixed-prose paragraphs (hash above unaffected).
+      { kind: "table", text: "consequence_determination.action_panel" },
     ],
   },
   {
