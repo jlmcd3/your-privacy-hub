@@ -68,24 +68,23 @@ Deno.test("a genuinely wrong value is left for the gate to refuse", () => {
   assertEquals(intake.q1_revenue, "about seventeen bananas");
 });
 
-// PANEL FIX 11 follow-on — the empty-fatal clearing guard. Clearing an
-// all-unmatched list to [] let the job sail past the gate (missing-required
-// is advisory) and detonate inside the product with an opaque 400 for the
-// fields whose emptiness the endpoint hard-rejects (batch b8c21317:
-// biometricTypes ["none currently deployed"] → [] →
-// check-biometric-compliance 400 "At least one biometric type required").
-// For EMPTY_FATAL_FIELDS the coercer now leaves the list untouched so the
-// gate blocks with the offending strings NAMED; every other field keeps the
-// clearing behavior (tolerant products run degraded-but-honest, which is
-// the harness's whole point — see the dpa dataCategories replay case above,
-// which must keep clearing).
-Deno.test("empty-fatal field (biometricTypes) with no resolvable element is LEFT for the gate, not cleared", () => {
+// PANEL FIX 11 follow-on — the empty-fatal guard. Clearing an all-unmatched
+// list to [] let the job sail past the gate (missing-required is advisory)
+// and detonate inside the product with an opaque 400 for the fields whose
+// emptiness the endpoint hard-rejects (batch b8c21317: biometricTypes
+// ["none currently deployed"] → [] → check-biometric-compliance 400 "At
+// least one biometric type required"). For EMPTY_FATAL_FIELDS the coercer
+// now snaps the list onto the contract's own catch-all option — the answer
+// the form itself offers — so the run proceeds and the PRODUCT is measured.
+// Every other field keeps the clearing behavior (tolerant products run
+// degraded-but-honest — see the dpa dataCategories replay case above).
+Deno.test("empty-fatal field (biometricTypes) with no resolvable element falls back to the contract catch-all", () => {
   const raw = { biometricTypes: ["quantum aura scanning"] };
   const { intake } = coerceIntakeToContract(biometricContract, raw);
-  assertEquals(intake.biometricTypes, ["quantum aura scanning"], "must not be cleared to []");
-  const blocking = blockingContractViolations("biometric", intake);
-  assert(blocking.some((b) => b.includes("quantum aura scanning")), `gate must name the value; got: ${blocking.join("; ")}`);
+  assertEquals(intake.biometricTypes, ["Other biometric identifier"]);
+  assertEquals(blockingContractViolations("biometric", intake), []);
 });
+
 
 Deno.test("non-fatal list with no resolvable element is still cleared (absence is legitimate product input)", () => {
   // governance.special_categories_list — no endpoint 400s on its absence.
