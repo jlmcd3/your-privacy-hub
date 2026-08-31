@@ -2149,21 +2149,34 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       ? [{ type: "text", text: overrideText }]
       : composedSystem;
 
-    const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: maxTokens,
-        stream: true,
-        system: biometricSystem,
-        messages: [{ role: "user", content: prompt + stressBudget }],
-      }),
-    });
+    // A-TEAM S3 (doc 115, Lovable API-topology item, 2026-08-31) — biometric
+    // was never given a deterministic conversion, so this live call runs on
+    // EVERY generation; a single transient 429/5xx/overloaded used to fail
+    // the whole run. Bounded pre-stream retry: the failure is detected
+    // before any SSE bytes are consumed, so a retry is a clean fresh call.
+    const callBiometricModel = () =>
+      fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "x-api-key": ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: maxTokens,
+          stream: true,
+          system: biometricSystem,
+          messages: [{ role: "user", content: prompt + stressBudget }],
+        }),
+      });
+    let aiRes = await callBiometricModel();
+    for (let attempt = 1; attempt <= 2 && (!aiRes.ok && [429, 500, 502, 503, 529].includes(aiRes.status)); attempt++) {
+      const transientText = await aiRes.text().catch(() => "");
+      console.warn(`[check-biometric-compliance] transient AI status ${aiRes.status} (attempt ${attempt}/2, backing off): ${transientText.slice(0, 120)}`);
+      await new Promise((r) => setTimeout(r, attempt * 2_000));
+      aiRes = await callBiometricModel();
+    }
 
     if (!aiRes.ok || !aiRes.body) {
       const errText = aiRes.body ? await aiRes.text() : "no body";

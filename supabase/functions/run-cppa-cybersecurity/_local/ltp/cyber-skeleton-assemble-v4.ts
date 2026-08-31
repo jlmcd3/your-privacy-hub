@@ -1,4 +1,6 @@
 // CPPA CYBER — v4 ASSEMBLY (C2: the Spine v1.1 encode, 2026-08-26).
+// A-TEAM S3 RULING I.23 (doc 115) — customer-facing dates in long form.
+import { formatReportDateLong } from "../../../_shared/report-dates.ts";
 //
 // Assembles the deterministic customer document through the v4 skeleton
 // (`cppa-cyber-v4.spine.ts` — the CEO's Cyber Spine v1.1 as render law).
@@ -88,9 +90,9 @@ function deriveCoverTable(intake: Bag, reportDate: string, readinessConclusion: 
     hideHeader: true,
     rows: [
       ["Entity", s(profile.entity_name) || "the company"],
-      ["Report date", reportDate],
+      ["Report date", formatReportDateLong(reportDate)],
       ["Assessment", "CPPA Cybersecurity Audit Readiness Report"],
-      ["Regulatory reference", "11 CCR §§ 7120-7124"],
+      ["Regulatory reference", "11 CCR §§ 7120–7124"],
       // BATCH 19a (doc 113 S3.4): verdict-on-cover, the ADMT pattern as
       // fleet law (doc 109 §1.6).
       ["Overall assessment", coverVerdictPhrase(readinessConclusion)],
@@ -249,8 +251,8 @@ function deriveAssessmentProfileRecord(intake: Bag, reportDate: string): Rendere
       field("Auditor engagement status", "auditor_engagement_status"),
       field("Prior audit scope", "prior_audit_scope"),
       field("Remediation owner", "remediation_owner"),
-      ["Report date", reportDate],
-      ["Engine version", CYBER_V4_ASSEMBLER_STAMP],
+      ["Report date", formatReportDateLong(reportDate)],
+      ["Report template version", CYBER_V4_ASSEMBLER_STAMP.replace(/^.*@/, "")],
     ],
   };
 }

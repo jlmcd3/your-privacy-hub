@@ -272,10 +272,10 @@ for (const c of CPPA_RISK_PERFECT) {
       // RE-PIN BATCH 17 (Wave C2): machine plural retired from the label.
       assert(body.includes("Applicable § 7150(b) triggers"), "Appendix G submission record absent");
       assert(body.includes("Business-level § 7157 submission items requiring reporting-period aggregation"), "Appendix G outstanding checklist absent");
-      assert(body.includes("CPPA risk-assessment intake record"), "Appendix H materials index absent");
+      assert(body.includes("submitted CPPA risk-assessment record"), "Appendix H materials index absent");
       // RE-PIN PANEL LEAK-1 (2026-08-30): generation metadata stays for
       // reperformance, labelled as the generation record.
-      assert(body.includes(`Report generation record — assessment engine ${RISK_SKELETON_VERSION}`), "Appendix H generation-record line absent");
+      assert(body.includes("Report record — report template version 5.2.1 (2026-08-30)"), "Appendix H generation-record line absent");
       if (isAdmt) {
         assert(body.includes("System description"), "Appendix F ADMT facts absent on ADMT fixture");
       }
@@ -381,10 +381,10 @@ Deno.test("v5.2 — Appendix C / G / H builders compose from established facts o
   assertEquals(outstanding.rows.length, 4);
 
   const idx = deriveMaterialsConsideredIndex(sierra);
-  assert(idx.rows.some((r) => r[0].includes("intake record")), JSON.stringify(idx.rows));
+  assert(idx.rows.some((r) => r[0].includes("submitted CPPA risk-assessment record")), JSON.stringify(idx.rows));
   assert(idx.rows.some((r) => r[0].includes("https://www.sierraoutfitters.example/privacy")), JSON.stringify(idx.rows));
   // v5.2 — the engine-version line moved off the cover into Appendix H.
-  assert(idx.rows.some((r) => r[0].includes("Report generation record — assessment engine")), JSON.stringify(idx.rows));
+  assert(idx.rows.some((r) => r[0].includes("Report record — report template version")), JSON.stringify(idx.rows));
 });
 
 Deno.test("v5.2 — Appendix F ADMT facts compose iff ADMT", () => {

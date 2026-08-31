@@ -193,7 +193,7 @@ Deno.test("assembleCyberSkeletonDocument — the ITEM-204 byte-pinned corpus blo
   const result = assembleCyberSkeletonDocument(report, intake, phaseInExcerpt, true);
   const text = result.document.sections.flatMap((s) => s.paragraphs.map((p) => p.text ?? "")).join("\n");
   assert(
-    text.includes("The customer, in consultation with qualified legal counsel, determines which tier"),
+    text.includes("The Company, in consultation with qualified legal counsel, determines which tier"),
     "the ITEM-204 corpus block did not render after the block-index shift",
   );
 });

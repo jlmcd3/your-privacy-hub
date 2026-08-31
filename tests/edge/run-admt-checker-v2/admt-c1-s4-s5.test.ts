@@ -45,7 +45,7 @@ Deno.test("wave C1 — human-involvement S4 content renders on an OUT_OF_SCOPE r
 
   const { body, sectionIds } = renderText(intake);
   assert(sectionIds.includes("applicability"), "Section 2 must still render even for an OUT_OF_SCOPE report");
-  assert(body.includes("What the Regulator Said — Human involvement"));
+  assert(body.includes("Regulatory Interpretation — Human involvement"));
   assert(body.includes("substantially replace human decisionmaking"));
   assert(body.includes("human override capability"));
 });
@@ -59,7 +59,7 @@ Deno.test("wave C1 — human-involvement S4 + the S5 Deliveroo appendix both ren
   assert(fired.has("human_involvement_addressed"));
 
   const { body, sectionIds } = renderText(intake);
-  assert(body.includes("What the Regulator Said — Human involvement"));
+  assert(body.includes("Regulatory Interpretation — Human involvement"));
   // CEO review 2026-08-23/24 reorder: Persuasive Authority is now
   // Appendix B (formerly C); the factor matrix is now Appendix A
   // (formerly B) — see admt-v2-assemble.ts's reorder comment.
@@ -76,7 +76,7 @@ Deno.test("wave C1 — human-involvement S4 + the S5 Deliveroo appendix both ren
   // redundant restated tag (avoids the aggregate-budget clutter R2 exists
   // to prevent).
   // v3.2.2 — the body has no numbered §2.1; the pointer names the callout.
-  assert(body.includes('see the "What the Regulator Said" discussion in Section 2, above'));
+  assert(body.includes('see the "Regulatory Interpretation" discussion in Section 2, above'));
 });
 
 Deno.test("wave C1 — advertising-exclusion S4 content renders independent of admt_in_scope", () => {
@@ -93,7 +93,7 @@ Deno.test("wave C1 — advertising-exclusion S4 content renders independent of a
   assert(!fired.has("admt_in_scope"), "sanity: this intake must not resolve to IN_SCOPE");
 
   const { body } = renderText(intake);
-  assert(body.includes("What the Regulator Said — Advertising exclusion"));
+  assert(body.includes("Regulatory Interpretation — Advertising exclusion"));
   assert(body.includes("explicitly exclude advertising to a consumer"));
 });
 
@@ -105,7 +105,7 @@ Deno.test("wave C1 — no S4/S5 content on a report where neither factor was add
     human_review: "",
   };
   const { body } = renderText(intake);
-  assert(!body.includes("What the Regulator Said"), "no-padding law: nothing fired, nothing renders");
+  assert(!body.includes("Regulatory Interpretation —"), "no-padding law: nothing fired, nothing renders");
   // Persuasive Authority is now Appendix B (formerly C) — see the reorder
   // comment in admt-v2-assemble.ts. Appendix A (factor matrix) and
   // Appendix C (fact record) always render, so only B is checked here.

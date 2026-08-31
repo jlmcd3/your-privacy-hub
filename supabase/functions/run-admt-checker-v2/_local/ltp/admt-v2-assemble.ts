@@ -68,6 +68,8 @@ import {
 import type { AuthorityExhibit } from "../../../_shared/report-exhibits/authority-exhibit.ts";
 import { attachCorpusRows } from "../../../_shared/corpus/cam-attach.ts";
 import { ADMT_CORPUS_MAP } from "../corpus/maps/admt-corpus-map.ts";
+// A-TEAM S3 RULING V.7 (doc 115) — acronym-safe mid-sentence casing.
+import { lowerFirstWordSafe } from "../../../_shared/ltp/splice-case.ts";
 
 // v3.2.1 (2026-08-24, CEO report review) — adds the "Review of This
 // Assessment" section between Section 9 (Conclusion) and Appendix A: a
@@ -341,12 +343,17 @@ export function deriveAdmtFiredStates(computed: AdmtV2Computed): Set<string> {
 }
 
 /** F-ADMT-HI / F-ADMT-AD — the two ratified S4 frame sentences (doc 63
- * §3.1), byte-stable across every report that composes them. */
+ * §3.1), byte-stable across every report that composes them.
+ *
+ * A-TEAM S3 RULINGS V.10/V.11 (doc 115, 2026-08-31): the conversational
+ * "What the regulator said" head and the emphatic "persuasive only, never
+ * operative" are recast in professional register; content and the
+ * operative/nonbinding distinction unchanged. */
 const ADMT_S4_FRAMES: Record<string, string> = {
   "Human involvement":
-    "What the regulator said about the human-involvement standard — interpretive context from the Agency's Final Statement of Reasons, persuasive only, never operative. The operative test is stated in this factor's determination above.",
+    "Regulatory interpretation of the human-involvement standard — nonbinding interpretive context from the Agency's Final Statement of Reasons; the operative test is stated in this factor's determination above.",
   "Advertising exclusion":
-    "What the regulator said about the advertising exclusion — interpretive context from the Agency's Final Statement of Reasons, persuasive only, never operative. The exclusion's scope is set by the operative definition cited above.",
+    "Regulatory interpretation of the advertising exclusion — nonbinding interpretive context from the Agency's Final Statement of Reasons; the exclusion's scope is set by the operative definition cited above.",
 };
 
 export interface AdmtS4Attachment {
@@ -468,16 +475,25 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
       rows: [
         ["Organization", organizationName || "(not provided)"],
         ["System reviewed", systemName || "(not provided)"],
-        ["Overall assessment", computed.overallPostureLabel],
+        // A-TEAM S3 RULINGS V.8/V.16 (doc 115, 2026-08-31) — when the
+        // out-of-scope determination rests on a condition stated later
+        // ("Conditions on this determination"), the cover flags it beside
+        // the outcome instead of leaving the qualification buried.
+        ["Overall assessment", `${computed.overallPostureLabel}${scope.scopeState === "OUT_OF_SCOPE" ? " — see Scope qualification (Section 2)" : ""}`],
         // v3.2.2 — sentence case ("Qualified"), matching gradeCell().
-        ["Record sufficiency", gradeCell(computed.overallRecordGrade)],
+        // A-TEAM S3 RULING V.2 (doc 115) — "Qualified" carries its meaning
+        // inline instead of standing as an unexplained grade.
+        ["Record sufficiency", `${gradeCell(computed.overallRecordGrade)}${String(computed.overallRecordGrade).toLowerCase() === "qualified" ? " — one or more supporting fields were not provided" : ""}`],
         ["Regulatory framework", "11 CCR §§ 7001(e), 7001(ddd), 7200, 7220–7222; vendor-cooperation provisions in §§ 7050–7051; related risk-assessment provisions in §§ 7150(b)(3) and 7155"],
       ],
     }},
     // v3.2.2 — reframed from "Important Note" to a Scope of Assessment: the
     // old close ("… to create the formal audit document") told the reader
     // the deliverable was a precursor. Same scope limits, final register.
-    { kind: "skeleton", text: "Scope of Assessment: This report evaluates the Company's reported practices against the CCPA regulations governing automated decisionmaking technology (“ADMT”) used for significant decisions. It explains the principal legal requirements, identifies where the Company's reported practices support those requirements, and calls out missing or inconsistent information. The conclusions are based on the information and materials supplied by the Company. This report is an automated compliance assessment and does not constitute legal advice, a legal opinion, an assurance engagement, or a certification of compliance. The Company remains responsible for the accuracy and completeness of the assessment record." },
+    // A-TEAM S3 RULING V.3 (doc 115, 2026-08-31) — "automated compliance
+    // assessment" exposed the generation method on page 1; the limitation
+    // sentence carries the same legal force without it.
+    { kind: "skeleton", text: "Scope of Assessment: This report evaluates the Company's reported practices against the CCPA regulations governing automated decisionmaking technology (“ADMT”) used for significant decisions. It explains the principal legal requirements, identifies where the Company's reported practices support those requirements, and calls out missing or inconsistent information. The conclusions are based on the information and materials supplied by the Company. This report does not constitute legal advice, a legal opinion, an assurance engagement, or a certification of compliance. The Company remains responsible for the accuracy and completeness of the assessment record." },
   ]);
 
   // ── Executive Summary ───────────────────────────────────────────────────
@@ -534,7 +550,10 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
 
   // ── 1. System and Decision Profile ──────────────────────────────────────
   const systemType = str((intake as any)?.system_type);
-  const sysTypePhrase = systemType ? `, described by the Company as a ${systemType.toLowerCase()}` : "";
+  // A-TEAM S3 RULING V.7 (doc 115) — a full toLowerCase() mangled acronyms in
+  // the Company's own system description ("ML" → "ml"); only the first
+  // character may be case-adjusted, acronym-guarded.
+  const sysTypePhrase = systemType ? `, described by the Company as a ${lowerFirstWordSafe(systemType)}` : "";
   // v3.2.2 — the old single spliced sentence garbled when the description
   // value was itself multi-sentence prose; split into attributed sentences
   // and normalize the description's terminal period. Attribution retained.
@@ -579,7 +598,8 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
       ? buildOutOfScopeConditions(intake, systemName || "the System")
       : []),
     ...admtS4.flatMap((att): RenderedParagraph[] => [
-      { kind: "skeleton", text: `What the Regulator Said — ${att.factor_id}` },
+      // A-TEAM S3 RULING V.10 (doc 115) — professional register heading.
+      { kind: "skeleton", text: `Regulatory Interpretation — ${att.factor_id}` },
       { kind: "skeleton", text: att.frame },
       ...att.excerpts.map((text): RenderedParagraph => ({ kind: "quoted_authority", text })),
     ]),
@@ -595,9 +615,12 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   // downstream renders with its content gated to what was actually
   // assessed.
   const outOfScope = scope.scopeState === "OUT_OF_SCOPE";
+  // A-TEAM S3 RULING V.13 (doc 115, 2026-08-31) — the trailing "section
+  // number is retained…" sentence explained the template to the customer;
+  // removed from every stub (the Not-reached sentence states the substance).
   const NOT_REACHED_STUB = (dutyPhrase: string): RenderedParagraph => ({
     kind: "skeleton",
-    text: `Not reached. On the Company's reported facts the System is outside Article 11 for this decision (Section 2), so ${dutyPhrase} in this report. The section number is retained so the report's fixed structure reads consistently across assessments.`,
+    text: `Not reached. On the Company's reported facts the System is outside Article 11 for this decision (Section 2), so ${dutyPhrase} in this report.`,
   });
 
   // ── 3. Pre-use Notice Audit ──────────────────────────────────────────────
@@ -755,7 +778,8 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
     // v3.2.2 — the fixed section numbering stays; a report with no vendor
     // dependency states that instead of jumping 5 → 7 unexplained.
     push("vendor", "6. Third-Party and Vendor Dependency", [
-      { kind: "skeleton", text: "Not applicable. The Company did not identify a third-party ADMT vendor for the assessed System, so no vendor-dependency analysis is required. The section number is retained so the report's fixed structure reads consistently across assessments." },
+      // A-TEAM S3 RULING V.13 (doc 115) — template commentary removed.
+      { kind: "skeleton", text: "Not applicable. The Company did not identify a third-party ADMT vendor for the assessed System, so no vendor-dependency analysis is required." },
     ]);
   }
 
@@ -849,15 +873,25 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   // ── Appendix B — Persuasive Authority (Analogous Enforcement) ──────────
   // Wave C1 (doc 62 §9 amendment / doc 63 §3.3). NO-PADDING LAW: no
   // attached precedent, no appendix.
+  //
+  // A-TEAM S3 RULING V.19 (doc 115, 2026-08-31) — when the no-padding law
+  // suppresses this appendix, the lettering used to jump A→C (flagged P0 as
+  // an unexplained numbering gap). Letters are now assigned sequentially to
+  // the appendices that actually render; no report can carry a gap. Body
+  // cross-references use the appendix NAME ("Assessment Fact Record"), so no
+  // lettered cross-reference can dangle.
+  let nextAppendixLetter = "B";
   if (persuasive.table) {
-    push("appendix_b", "Appendix B — Persuasive Authority (Analogous Enforcement)", [
+    push("appendix_b", `Appendix ${nextAppendixLetter} — Persuasive Authority (Analogous Enforcement)`, [
       { kind: "skeleton", text: ADMT_APPENDIX_B_LEAD },
       { kind: "table", text: "", table: { ...persuasive.table, key: "appendix_b:1" } },
     ]);
+    nextAppendixLetter = "C";
   }
 
-  // ── Appendix C — Assessment Fact Record ─────────────────────────────────
-  push("appendix_c", "Appendix C — Assessment Fact Record", [
+  // ── Assessment Fact Record (Appendix C, or B when Persuasive Authority
+  // is suppressed by the no-padding law) ──────────────────────────────────
+  push("appendix_c", `Appendix ${nextAppendixLetter} — Assessment Fact Record`, [
     { kind: "skeleton", text: "This appendix captures the material facts the Company supplied and that the assessment used. It supports later review and updating; it does not independently verify the Company's responses. The following table records the material facts the Company supplied for each topic:" },
     { kind: "table", text: "", table: { key: "appendix_c:0", surface: "fact_record", ...buildFactRecordTable(intake, computed, organizationName, systemName, systemType, domains) } },
   ]);
@@ -939,7 +973,11 @@ const NOT_REACHED_PHRASE =
  * nothing is inferred beyond what the description says. */
 function buildOutOfScopeConditions(intake: Record<string, unknown>, systemName: string): RenderedParagraph[] {
   const paras: RenderedParagraph[] = [
-    { kind: "skeleton", text: "Conditions on this determination" },
+    // A-TEAM S3 RULING V.9 (doc 115, 2026-08-31) — "Conditions on this
+    // determination" read against Priority Matters' "no conditions to
+    // proceed"; the head now names what this IS (a scope qualification),
+    // a different thing from a remediation condition.
+    { kind: "skeleton", text: "Scope qualification — conditions on this determination" },
     { kind: "skeleton", text: `This determination rests on the reported human review operating in practice for every significant decision ${systemName} touches. Qualifying review under 11 CCR § 7001(e)(1) means the reviewer knows how to interpret the output, considers it together with other information, and has authority to change the decision — for each decision, not in the aggregate. Where a decision is made without that review, the System is ADMT for that decision, and the Article 11 duties this report does not reach — the Pre-use Notice, the opt-out or exception, and consumer access and explanation — apply to it.` },
   ];
   const desc = str((intake as any)?.system_description);
@@ -1130,8 +1168,12 @@ function buildFactRecordTable(
   const rows: string[][] = [
     ["Organization and system",
       factOr(`${organizationName || "(not reported)"} — ${systemName || "(not reported)"}${systemType ? `, ${systemType}` : ""}.`)],
-    ["Hosting / model type",
-      factOr([hosting, modelTypes ? `Model ${/[;,]/.test(modelTypes) ? "types" : "type"}: ${modelTypes}.` : ""].filter(Boolean).join(" "))],
+    // A-TEAM S3 RULING V.20 (doc 115, 2026-08-31) — a combined row could
+    // print "Not reported" against a model type the report described
+    // elsewhere; the two facts get their own rows so neither can read
+    // against the other.
+    ["Hosting", factOr(hosting)],
+    ["Model type", factOr(modelTypes)],
     ["Decision domains", factOr(reader(domains))],
     ["Decision role",
       factOr([decisionEffects && `Effects: ${decisionEffects}.`, decisionCadence && `Cadence: ${decisionCadence}.`, soleFactor && `Role of output: ${soleFactor}.`, feedsFuture && `Feeds future decisions: ${feedsFuture}.`].filter(Boolean).join(" "))],
@@ -1243,7 +1285,8 @@ function buildFactorMatrixTable(
     if (s4Factors.has(factorId)) {
       // v3.2.2 — the body has no numbered "§2.1"; point at the callout by
       // name and section instead of a number that doesn't exist.
-      row[3] = `${row[3]}; see the "What the Regulator Said" discussion in Section 2, above — interpretive`;
+      // A-TEAM S3 RULING V.10 (doc 115) — heading renamed; pointer follows.
+      row[3] = `${row[3]}; see the "Regulatory Interpretation" discussion in Section 2, above — interpretive`;
       continue;
     }
     const tag = admtTrailImpactFor(factorId);

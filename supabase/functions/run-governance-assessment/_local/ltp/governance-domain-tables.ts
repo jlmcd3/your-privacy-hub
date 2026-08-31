@@ -67,7 +67,7 @@ const UNRESOLVED = (topic: string, ask: string): Cell => ({
   current_state: `The company has not resolved ${topic} on the information provided.`,
   // DOC-81 G-4 (CEO wording) — covers both the absent answer and an
   // explicit "Unsure", which IS recorded but resolves nothing.
-  gap_description: `The company's answers do not resolve this issue.`,
+  gap_description: `The information provided does not resolve this issue.`,
   recommended_action: ask,
 });
 
@@ -90,7 +90,7 @@ function toolInventory(intake: Bag): TypedDomainFinding {
     },
     "No formal inventory": {
       severity: "High",
-      current_state: "The company has answered that no formal tool inventory exists.",
+      current_state: "The company reports that no formal tool inventory exists.",
       gap_description: "Without an inventory, the company cannot demonstrate which tools process personal data, which Art. 5(2) accountability presupposes.",
       recommended_action: "Build the tool inventory from the recorded tools list, then add approval and audit steps (GDPR Arts. 5(2), 24(1), 30).",
     },
@@ -173,7 +173,7 @@ function vendorTerms(intake: Bag): TypedDomainFinding {
     },
     "No": {
       severity: "Critical",
-      current_state: "The company has answered that no vendor processing agreements are in place." + tail,
+      current_state: "The company reports that no vendor processing agreements are in place." + tail,
       gap_description: "Every vendor engagement lacks the contract Article 28(3) makes mandatory.",
       recommended_action: "Execute an Art. 28(3)-conformant processing agreement with every vendor that processes personal data; until then, restrict what those tools receive (GDPR Art. 28(3)).",
     },
@@ -200,7 +200,7 @@ function internalPolicy(intake: Bag): TypedDomainFinding {
     },
     "No instruction provided": {
       severity: "High",
-      current_state: "The company has answered that no instruction on tool use is provided to employees.",
+      current_state: "The company reports that no instruction on tool use is provided to employees.",
       gap_description: "Employees decide unaided what personal data may enter which tool.",
       recommended_action: "Issue a written tool-use policy naming the prohibited data categories per tool, and pair it with the training domain's actions (GDPR Arts. 5(2), 24(1)-(2), 32(4)).",
     },
@@ -253,7 +253,7 @@ function training(intake: Bag): TypedDomainFinding {
     },
     "No formal training": {
       severity: "High",
-      current_state: "The company has answered that no formal training is provided." + tail,
+      current_state: "The company reports that no formal training is provided." + tail,
       gap_description: "Employees using the tools have no instructed baseline for what may be submitted.",
       recommended_action: "Introduce onboarding training on personal-data handling in the recorded tools, then a refresher cadence (GDPR Arts. 32(4), 39(1)(b)).",
     },
@@ -286,7 +286,7 @@ function incidentResponse(intake: Bag): TypedDomainFinding {
     },
     "No": {
       severity: "High",
-      current_state: "The company has answered that no incident response plan exists.",
+      current_state: "The company reports that no incident response plan exists.",
       gap_description: "A breach through an external tool would be handled without a plan while the Art. 33(1) 72-hour window runs.",
       recommended_action: "Adopt an incident response plan covering tool-exposure scenarios, notification timelines and reporting triggers, then test it (GDPR Arts. 33, 34).",
     },
@@ -392,7 +392,7 @@ function dpiaStatus(intake: Bag): TypedDomainFinding {
     },
     "No, none conducted": {
       severity: "High",
-      current_state: "The company has answered that no DPIA has been conducted." + tail + candidates,
+      current_state: "The company reports that no DPIA has been conducted." + tail + candidates,
       gap_description: "Processing that meets the Art. 35(1) high-risk threshold would be running unassessed.",
       recommended_action: "Screen the recorded processing, the AI tools first, against the Art. 35(1) threshold and conduct a DPIA where it is met (GDPR Art. 35(1)).",
     },
@@ -427,7 +427,7 @@ function subjectRights(intake: Bag): TypedDomainFinding {
     },
     "No process in place": {
       severity: "High",
-      current_state: "The company has answered that no rights process is in place.",
+      current_state: "The company reports that no rights process is in place.",
       gap_description: "A request received today has no path to a compliant answer.",
       recommended_action: "Stand up the request process — intake channel, identity check, vendor path, response clock — and document it (GDPR Arts. 12(3), 15-22, 28(3)(e)).",
     },
@@ -459,7 +459,7 @@ function privacyNotice(intake: Bag): TypedDomainFinding {
     },
     "No": {
       severity: "High",
-      current_state: "The company has answered that no privacy notice exists.",
+      current_state: "The company reports that no privacy notice exists.",
       gap_description: "The transparency information Arts. 13-14 require is not provided at all.",
       recommended_action: "Publish a privacy notice covering the recorded activities, transfers, retention and rights (GDPR Arts. 12-14).",
     },
@@ -508,7 +508,7 @@ export function composeExecutiveSummaryTyped(findings: Record<string, TypedDomai
   //     determination (rendered above it) can be unresolved — and carry a
   //     High register row — while every operational domain is clean; the
   //     unscoped sentence read as contradicting both.
-  parts.push(`Across the ten operational domains walked in the sections below, the company's answers leave ${clean.length === 0 ? "none" : clean.length} of the ten fully evidenced.`);
+  parts.push(`Across the ten operational domains assessed in the sections below, the information provided leaves ${clean.length === 0 ? "none" : clean.length} of the ten fully evidenced.`);
   if (adverse.length > 0) {
     parts.push(`The domains requiring action first are: ${adverse.map((f) => f.domain_name).join("; ")}.`);
   }
@@ -519,7 +519,7 @@ export function composeExecutiveSummaryTyped(findings: Record<string, TypedDomai
     parts.push(`${unresolved.length === 1 ? "One domain remains" : `${unresolved.length} domains remain`} unresolved on the information provided.`);
   }
   if (adverse.length === 0 && unresolved.length === 0 && flagged.length === 0) {
-    parts.push("No operational domain requires immediate remediation on the company's answers; the actions recorded per domain are maintenance, not repair. The headline accountability determination is carried separately above, and where it remains open the remediation register carries it first.");
+    parts.push("No operational domain requires immediate remediation on the information provided; the recorded actions are preventive maintenance rather than remediation of an identified deficiency. The headline accountability determination is carried separately above, and where it remains open the remediation register carries it first.");
   }
   return parts.join(" ");
 }

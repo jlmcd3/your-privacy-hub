@@ -98,14 +98,14 @@ export interface RecommendationSlot {
 // without a concrete fact to anchor to.
 export const CYBER_RECOMMENDATION_LIBRARY: readonly RecommendationSlot[] = [
   { key: { gapClass: "no_record", variant: "fact_absent" }, ratified: true,
-    template: "Supply a record entry for this component; none exists on the intake." },
+    template: "Supply a record entry for this component; none exists in the assessment record." },
   { key: { gapClass: "no_record", variant: "fact_anchored" }, ratified: true,
-    template: "Supply a record entry for this component; the intake names {fact} for related components but not this one." },
+    template: "Supply a record entry for this component; the record names {fact} for related components but not this one." },
 
   { key: { gapClass: "no_maturity_stated", variant: "fact_absent" }, ratified: true,
     template: "Record the implementation status of this component using the maturity scale." },
   { key: { gapClass: "no_maturity_stated", variant: "fact_anchored" }, ratified: true,
-    template: "Record the implementation status of this component using the maturity scale; the intake's note ({fact}) does not itself state a status." },
+    template: "Record the implementation status of this component using the maturity scale; the recorded note ({fact}) does not itself state a status." },
 
   { key: { gapClass: "not_implemented", variant: "fact_absent" }, ratified: true,
     template: "Implement this component and document the controls before the audit is certified." },
@@ -364,7 +364,7 @@ export function buildCyberNextSteps(
   recommendations: readonly ComponentRecommendation[],
   remediationOwner: string,
 ): CyberNextStep[] {
-  const owner = s(remediationOwner) || "the accountable owner named in the intake";
+  const owner = s(remediationOwner) || "the accountable owner named in the assessment record";
   return recommendations.slice(0, NEXT_STEPS_CAP).map((r) => ({
     text: r.slot.template,
     owner,

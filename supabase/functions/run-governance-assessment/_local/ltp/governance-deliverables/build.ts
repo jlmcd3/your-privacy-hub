@@ -195,7 +195,7 @@ export function buildArt30ElementFindings(intake: unknown): Art30ElementFinding[
       .map((k) => {
         const v = get(intake, k);
         const text = Array.isArray(v) ? arr(v).join(", ") : str(v);
-        return unanswered(text) ? "" : `${k} = ${text}`;
+        return unanswered(text) ? "" : `${govFieldLabel(k)}: ${text}`;
       })
       .filter(Boolean);
 
@@ -242,11 +242,40 @@ export function buildArt30ElementFindings(intake: unknown): Art30ElementFinding[
       ...(partial
         ? {
           information_needed:
-            `Supply ${missingKeys.join(" and ")} to complete the Article 30(1)(${el.element}) content — ${el.label.toLowerCase()} — for each processing activity.`,
+            `Supply ${missingKeys.map(govFieldLabel).join(" and ")} to complete the Article 30(1)(${el.element}) content — ${el.label.toLowerCase()} — for each processing activity.`,
         }
         : {}),
     } satisfies Art30ElementFinding;
   });
+}
+
+
+// A-TEAM S3 RULINGS I.2/III.15 (doc 115, 2026-08-31) — the Art. 30 evidence
+// and remediation-action text printed raw intake keys ("data_categories =",
+// "Supply special_categories_list…"): internal schema vocabulary in
+// customer-facing text, flagged P0. Known keys resolve to authored labels;
+// anything unmapped is humanized so a raw snake_case key can never render.
+const GOV_FIELD_LABELS: Record<string, string> = {
+  organization_name: "the organization name",
+  dpo_status: "the DPO designation state",
+  processing_purposes: "the purposes of the processing",
+  data_categories: "the categories of personal data",
+  special_categories_list: "the special-category data list",
+  tools: "the processing tools / recipients list",
+  transfer_status: "the transfer status",
+  transfer_mechanism: "the transfer mechanism",
+  retention_schedule_status: "the retention-schedule status",
+  technical_controls: "the technical-controls status",
+  technical_controls_list: "the technical-controls list",
+  org_size: "the organization size",
+  special_category: "the special-category processing answer",
+  jurisdictions: "the jurisdictions in scope",
+};
+function govFieldLabel(k: string): string {
+  const known = GOV_FIELD_LABELS[k];
+  if (known) return known;
+  const t = k.replace(/_/g, " ").trim();
+  return t ? `the ${t}` : k;
 }
 
 /** Art. 30(5) — any ONE of three conditions defeats the exemption. */
@@ -427,7 +456,7 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
   ].filter(Boolean);
 
   const limbBOpenClause = limbBIndicated
-    ? `Whether limb (b) is engaged is not answered on the information provided: the limb asks whether the company's core activities consist of processing operations which, by their nature, scope or purposes, require regular and systematic monitoring of data subjects on a large scale, and the data categories the company has answered include ${monitoringCategories.join(" and ")} at the ${f.size} scale — enough to make that question live, but holding ${monitoringCategories.length === 1 ? "that category" : "those categories"} is not itself the monitoring the limb describes, and the answers do not state whether any core activity operates as such monitoring.`
+    ? `Whether limb (b) is engaged is not answered on the information provided: the limb asks whether the company's core activities consist of processing operations which, by their nature, scope or purposes, require regular and systematic monitoring of data subjects on a large scale, and the data categories the company reports include ${monitoringCategories.join(" and ")} at the ${f.size} scale — enough to make that question live, but holding ${monitoringCategories.length === 1 ? "that category" : "those categories"} is not itself the monitoring the limb describes, and the information provided does not state whether any core activity operates as such monitoring.`
     : "";
   const LIMB_B_INFO_NEEDED =
     "Whether any core activity involves the regular and systematic monitoring of data subjects (for example tracking, profiling, or sustained behavioural observation), and at what scale — the Article 37(1)(b) limb turns on that, not on the categories of data held.";
@@ -450,7 +479,7 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
       label: "Article 37 designation trigger",
       citation: trig.citation,
       standard: [trig.verbatim, trigA.verbatim, trigB.verbatim, trigC.verbatim].filter(Boolean).join(" "),
-      record_fact: `The record answers the DPO question "${f.dpoStatus}" for a ${f.size} organisation in the ${f.sector || "unstated"} sector.`,
+      record_fact: `The record answers the DPO question "${f.dpoStatus}" for a ${f.size} organisation in the ${f.sector === "Other" ? "Other (as reported)" : (f.sector || "unstated")} sector.`,
       application: required
         ? `Designation is mandatory here, not discretionary. ${triggerReasons.join(" ")} ${limbBOpenClause ? `${limbBOpenClause} Nothing turns on the open limb: designation is already required on the ${limbA ? "(a)" : "(c)"} limb established above. ` : ""}${hasFormal ? "A formal DPO is designated, which meets the trigger; what remains to be tested is position and task coverage, not existence." : hasInformal ? "An informal privacy lead is not a designated data protection officer for Article 37 purposes unless the designation is formal and the contact details have been published and communicated to the supervisory authority." : "No designation is recorded, so the Article 37(1) duty is unmet on the face of the record."}`
         : limbBIndicated
@@ -480,9 +509,9 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
       label: "Article 38 position and independence",
       citation: indep.citation,
       standard: [anchor("dpo_involvement", "GDPR Art. 38(1)").verbatim, anchor("dpo_resources", "GDPR Art. 38(2)").verbatim, indep.verbatim, anchor("dpo_conflict", "GDPR Art. 38(6)").verbatim].filter(Boolean).join(" "),
-      record_fact: `The record answers the designation question "${f.dpoStatus}".`,
+      record_fact: `The designation state is as recorded above.`,
       application: hasFormal
-        ? "A formal designation carries the Article 38 duties with it: on designation the controller owes timely involvement in all data-protection issues, resources sufficient for the Article 39 tasks, freedom from instructions on their exercise, and a direct reporting line to the highest management level. The record states a formal designation, and the assessment takes the Article 38 position as evidenced on that basis. The operating detail behind it — reporting line, resourcing, and other duties held — is a refinement this assessment records under information needed; it is not collected by the intake and is not read as a shortfall."
+        ? "A formal designation carries the Article 38 duties with it: on designation the controller owes timely involvement in all data-protection issues, resources sufficient for the Article 39 tasks, freedom from instructions on their exercise, and a direct reporting line to the highest management level. The record states a formal designation, and the assessment takes the Article 38 position as evidenced on that basis. The operating detail behind it — reporting line, resourcing, and other duties held — is a refinement this assessment records under information needed; it is not part of the information requested for this assessment and is not read as a shortfall."
         : "An informal privacy lead is not a formal designation for Article 37 purposes, so the Article 38 protections are evidenced only in part: the function exists and is owned, but the independence and conflict-of-interests protections Article 38(3) and 38(6) attach to a designated officer are not carried by an informal arrangement. That is a conclusion about the arrangement the record describes, not about anything the record omits.",
       verdict: hasFormal ? "satisfied" : "partially_satisfied",
       status: "analysed",
@@ -512,7 +541,7 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
         : "",
       verdict: none ? "not_applicable" : "record_insufficient",
       status: none ? "analysed" : "record_insufficient",
-      information_needed: none ? undefined : "State whether a data protection officer has been designated, using one of the designation states the intake offers.",
+      information_needed: none ? undefined : "State whether a data protection officer has been designated, using one of the designation states the assessment questionnaire offers.",
     };
 
   const bothAdjacent = str(get(intake, "dpia_status")).startsWith("Yes") &&
@@ -525,7 +554,7 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
       citation: tasks.citation,
       standard: [tasks.verbatim, anchor("dpo_task_a", "GDPR Art. 39(1)(a)").verbatim, anchor("dpo_task_b", "GDPR Art. 39(1)(b)").verbatim, anchor("dpo_task_c", "GDPR Art. 39(1)(c)").verbatim, anchor("dpo_task_d", "GDPR Art. 39(1)(d)").verbatim, anchor("dpo_task_e", "GDPR Art. 39(1)(e)").verbatim].filter(Boolean).join(" "),
       record_fact:
-        `The record answers "${f.dpoStatus}". On the adjacent answers, DPIA activity is "${str(get(intake, "dpia_status")) || "unstated"}" and training is "${str(get(intake, "training_status")) || "unstated"}".`,
+        `On the designation recorded above, DPIA activity is "${str(get(intake, "dpia_status")) || "unstated"}" and training is "${str(get(intake, "training_status")) || "unstated"}".`,
       application:
         "Article 39(1) sets a floor of five tasks, and the record speaks to two of them directly: monitoring compliance including awareness-raising and training of staff (39(1)(b)), and advising on and monitoring the performance of data protection impact assessments (39(1)(c)). " +
         (bothAdjacent
@@ -872,7 +901,7 @@ export function buildTransferAnalysis(intake: unknown): TransferAnalysis {
   const factParts: string[] = [];
   factParts.push(
     f.jurisdictions.length
-      ? `The record states the jurisdictions in scope as ${f.jurisdictions.map((j) => `"${j}"`).join(", ")}.`
+      ? `The record states the jurisdictions in scope as ${f.jurisdictions.map((j) => `"${j === "Other" ? "Other (as reported)" : j}"`).join(", ")}.`
       : "The record does not state which jurisdictions are in scope.",
   );
   factParts.push(

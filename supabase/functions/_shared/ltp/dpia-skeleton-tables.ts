@@ -53,7 +53,9 @@ const strList = (v: unknown): string[] =>
 
 /** Pre-authored reader labels for the pipeline's determination vocabulary. */
 export const DPIA_TABLE_LABELS: Record<string, string> = {
-  analysed: "Analysed on the record",
+  // A-TEAM S3 RULING IV.6 (doc 115, 2026-08-31) — "Analysed on the record"
+  // read as process metadata, not a result; the status states the result.
+  analysed: "Assessed",
   record_insufficient: "The record does not carry the point",
   basis_supported_on_the_record: "Basis supported based on the information the company provided",
   undetermined_on_the_record: "Undetermined based on the information the company provided",
@@ -68,7 +70,8 @@ export const DPIA_TABLE_LABELS: Record<string, string> = {
   approved: "Approved",
   conditionally_approved: "Approved subject to conditions",
   consultation_required: "Prior consultation with the supervisory authority required",
-  draft_incomplete: "Cannot yet be signed off from the company's input",
+  // A-TEAM S3 RULING IV.2 (doc 115) — final-status register.
+  draft_incomplete: "Sign-off not available — required information remains outstanding",
   low: "Low",
   moderate: "Moderate",
   high: "High",
@@ -153,9 +156,11 @@ function table(
 
 /** v4.6.2 — a "What is still needed" column full of dashes read as an
  * unfinished form (CEO output review); an answered column states the
- * determined outcome instead. */
+ * determined outcome instead. A-TEAM S3 RULING IV.19 (doc 115, 2026-08-31):
+ * the empty-state phrase for a FOLLOW-UP column states the follow-up result
+ * ("No follow-up required"), not the ambiguous "None identified". */
 function needed(v: unknown): string {
-  return s(v) || "None identified";
+  return s(v) || "No follow-up required";
 }
 
 /** v4.6.2 — reader name for a 2-letter main-establishment country code; the
@@ -218,7 +223,7 @@ function processorsTable(inv: Bag): RenderedTable | null {
   // ABSENCE IS A DETERMINATION: the company recorded no processor, and that is
   // an answer rather than a blank.
   if (rows.length === 0) {
-    rows.push(["No processor is recorded for this processing.", DASH, label("analysed"), "None identified"]);
+    rows.push(["No processor is recorded for this processing.", DASH, label("analysed"), "No follow-up required"]);
   }
   return table("processing_inventory.processors", "Processors", [
     "Processor",
@@ -476,7 +481,7 @@ function measuresOtherTable(cov: Bag): RenderedTable | null {
       "The company has declared no transfer of the data outside the origin regime, so Chapter V is not engaged based on the information the company provided.",
       DASH,
       label("analysed"),
-      "None identified",
+      "No follow-up required",
     ]);
   }
   const pc = asBag(cov.processor_contract);
@@ -574,10 +579,42 @@ function decisionTable(report: Bag): RenderedTable | null {
   ]);
 }
 
+// A-TEAM S3 RULINGS I.2/IV.11 (doc 115, 2026-08-31) — the ledger's second
+// column printed the raw record-field id (dpo_info, transfer_flows, …): an
+// internal schema key in customer-facing text, flagged P0. Known ids resolve
+// to authored labels; anything unmapped goes through a humanizer so a raw
+// snake_case key can never render again.
+const GAP_FIELD_LABELS: Record<string, string> = {
+  alternatives_considered: "Alternatives considered (necessity record)",
+  necessity_proportionality: "Necessity and proportionality record",
+  dpo_info: "Data protection officer details",
+  processor_obligations: "Processor obligations record (Art. 28)",
+  transfer_flows: "Cross-border transfer record (Chapter V)",
+  data_quality_measures: "Data-accuracy measures record",
+  data_minimisation_justification: "Data-minimisation record",
+  data_subject_rights_mechanisms: "Data-subject rights record (Arts. 12–22)",
+  processing_description: "Processing description",
+  data_categories: "Categories of personal data",
+  retention_schedule: "Retention schedule",
+  security_measures: "Security measures record",
+  special_categories: "Special-category data record (Art. 9)",
+  legal_basis: "Legal-basis record (Art. 6)",
+  consultation_record: "Consultation record (Art. 35(9))",
+};
+
+function humanizeFieldId(id: string): string {
+  const t = id.replace(/_/g, " ").trim();
+  return t ? t.charAt(0).toUpperCase() + t.slice(1) : t;
+}
+
+function gapFieldLabel(id: string): string {
+  return GAP_FIELD_LABELS[id] ?? (id.includes("_") ? humanizeFieldId(id) : id);
+}
+
 function gapLedgerTable(report: Bag): RenderedTable | null {
   const rows = asArray(report.gap_ledger)
     .filter((g) => s(g.dimensions) && s(g.field))
-    .map((g) => [cell(g.dimensions), cell(g.field), cell(g.provision), cell(g.enables)]);
+    .map((g) => [cell(g.dimensions), gapFieldLabel(cell(g.field)), cell(g.provision), cell(g.enables)]);
   return table("gap_ledger", "Matters outstanding on the record", [
     "What is still needed",
     "Where it belongs in the record",

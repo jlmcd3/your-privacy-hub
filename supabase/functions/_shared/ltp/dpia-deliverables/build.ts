@@ -2085,14 +2085,17 @@ export function buildDecision(
       why: (() => {
         // PROMPT 8D branch 13f — undetermined risk levels get their own
         // sentence; the generic open-points sentence is 13b.
+        // A-TEAM S3 RULINGS IV.1/IV.2 (doc 115, 2026-08-31) — final-status
+        // register ("determination not reached") in place of the draft-in-
+        // progress register ("cannot yet be determined"). Logic unchanged.
         if (openBands.length > 0) {
           const head =
-            `Given that ${openBands.length === 1 ? "one risk level remains" : `${openBands.length} risk levels remain`} undetermined, whether the processing being assessed may proceed cannot yet be determined; the levels must be set before this assessment can carry a determination.`;
+            `Given that ${openBands.length === 1 ? "one risk level remains" : `${openBands.length} risk levels remain`} undetermined, the determination on whether the processing being assessed may proceed has not been reached; the levels must be set before this assessment can carry a determination.`;
           return blockers.length ? `${head} The following are still needed — ${blockerSlot(blockers)}` : head;
         }
         const n = blockers.length;
         const head =
-          `Given the points still open, whether the processing being assessed may proceed cannot yet be determined: ${n === 1 ? "one point the determination turns on is" : `${n} points the determination turns on are`} unresolved based on the information the company provided`;
+          `The determination on whether the processing being assessed may proceed has not been reached: ${n === 1 ? "one point the determination turns on is" : `${n} points the determination turns on are`} unresolved based on the information the company provided`;
         return blockers.length ? `${head} — ${blockerSlot(blockers)}` : `${head}.`;
       })(),
       citation: art36Citation,

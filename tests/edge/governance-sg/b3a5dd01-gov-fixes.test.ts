@@ -17,7 +17,7 @@ Deno.test("D1D2B3B8-G4 — a partially-evidenced element names the missing key i
   const el = findings.find((f) => f.key === "art30_c") as unknown as Bag;
   assert(el, "the art30_c finding must exist");
   assert(el.verdict === "partially_satisfied");
-  assertStringIncludes(String(el.information_needed ?? ""), "special_categories_list");
+  assertStringIncludes(String(el.information_needed ?? ""), "the special-category data list");
   assertStringIncludes(String(el.information_needed ?? ""), "Article 30(1)(c)");
 });
 

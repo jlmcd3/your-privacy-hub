@@ -187,7 +187,7 @@ export function verdictLedOverviewOpener(
     );
   } else {
     parts.push(
-      `No US state data-broker registration regime in the verified statutory corpus behind this assessment is in scope for ${orgName} on the facts recorded`,
+      `No US state data-broker registration regime covered by this assessment is in scope for ${orgName} on the facts recorded`,
     );
   }
   const reps: string[] = [];

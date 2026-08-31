@@ -63,7 +63,7 @@ const noStop = (t: string): string => t.replace(/\s*\.\s*$/, "");
 
 /** The single pinned sentence that follows the quote; never reworded. */
 export const CYBER_PHASE_IN_PINNED_SENTENCE =
-  "The customer, in consultation with qualified legal counsel, determines which tier its revenue places it in and calendars the corresponding deadline.";
+  "The Company, in consultation with qualified legal counsel, determines which tier its revenue places it in and calendars the corresponding deadline.";
 
 /**
  * Quotes subsection (a) of the approved § 7121 corpus row — all three tiers —

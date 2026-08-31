@@ -85,7 +85,7 @@ export const GOVERNANCE_READINESS_LINES: Record<string, string> = {
   satisfied: "Accountability evidenced",
   partially_satisfied: "Accountability partly evidenced",
   not_satisfied: "Accountability not evidenced",
-  record_insufficient: "Accountability not yet determinable",
+  record_insufficient: "Accountability open — additional information required",
   not_applicable: "Accountability duties not engaged",
 };
 

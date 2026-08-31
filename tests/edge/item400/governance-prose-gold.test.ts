@@ -47,8 +47,8 @@ Deno.test("GV-1: readiness line comes from the determination, not the demoted ti
       "The organisation presents a materially strong compliance posture under GDPR and UK GDPR.",
   };
   const t = applyVerdictVoice(report);
-  assertEquals(t.readiness_line, "Accountability not yet determinable");
-  assertEquals(report.governance_readiness_line, "Accountability not yet determinable");
+  assertEquals(t.readiness_line, "Accountability open — additional information required");
+  assertEquals(report.governance_readiness_line, "Accountability open — additional information required");
   // The contradicting posture claim does not stand beside a non-affirmative verdict.
   assertEquals(String(report.executive_summary).includes("materially strong compliance posture"), false);
   assertEquals(t.posture_claims_deasserted, 1);

@@ -145,7 +145,7 @@ Deno.test("SO-3 — fixed prose is byte-pinned and register-clean", () => {
   }
   // The 403-A fixed rule is skeleton law and prints.
   assert(GOVERNANCE_PROTECTED_FIXED_PROSE.some((t) =>
-    t.includes("assesses the Article 37-39 duties on what the intake asks")
+    t.includes("assesses the Article 37-39 duties on the information requested for this assessment")
   ));
 });
 
@@ -214,7 +214,7 @@ Deno.test("SO-3 — assembly: conformance, register, one summary voice", () => {
   assert(text.includes(
     "Article 5(2) of the GDPR makes a controller responsible not only for complying with the data protection principles but for being able to demonstrate that compliance.",
   ));
-  assert(text.includes("operating detail the intake does not collect is recorded as what would strengthen the record"));
+  assert(text.includes("operating detail this assessment does not request is recorded as what would strengthen the record"));
 
   // Slots filled from the intake, in the skeleton's rendering rules.
   assert(text.includes("Aldergate Occupational Health Services Ltd"));
@@ -267,5 +267,5 @@ Deno.test("SO-3 — a non-affirmative rating never yields an affirmative lead", 
   const res = assembleGovernanceSkeletonDocument(report, INTAKE);
   const lead = res.document.sections[0].paragraphs[0].text;
   assert(lead.includes("partly evidenced"), lead);
-  assert(lead.includes("cannot yet demonstrate"), lead);
+  assert(lead.includes("has not demonstrated"), lead);
 });

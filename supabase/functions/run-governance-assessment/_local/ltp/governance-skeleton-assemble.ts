@@ -36,6 +36,8 @@ import {
   type SkeletonTables,
   type SlotValues,
 } from "../../../_shared/prose/skeleton-render.ts";
+// A-TEAM S3 RULING III.10 (doc 115) — acronym-safe mid-sentence casing.
+import { lowerFirstWordSafe } from "../../../_shared/ltp/splice-case.ts";
 
 export const GOVERNANCE_SKELETON_ASSEMBLER_STAMP =
   "governance-skeleton-assembler@so3-wire-in-2026-08-10";
@@ -54,23 +56,33 @@ function asProse(items: readonly string[]): string {
   return `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
 }
 
+// A-TEAM S3 RULING III.10 (doc 115, 2026-08-31) — acronym-guarded: the old
+// first-char lowercase printed "DLP rules" as "dLP rules". A word opening
+// with two capitals is preserved.
 function lower(v: string): string {
-  return v ? v.charAt(0).toLowerCase() + v.slice(1) : v;
+  return lowerFirstWordSafe(v);
 }
 
-/** Deterministic register repair — the attribution voice is law (v3 bans). */
+/** Deterministic register repair — the attribution voice is law (v3 bans).
+ *
+ * A-TEAM S3 RULING I.12 (doc 115, 2026-08-31): the repair target changes
+ * from "on the company's answers" (questionnaire register, flagged for
+ * overuse across the fleet) to "on the information provided" — the same
+ * evidentiary anchor the Risk product's ratified spine uses. The v3 BAN
+ * (record-voice constructions) is unchanged; only the replacement register
+ * moves. */
 export function repairRegister(text: string): string {
   let out = text;
-  out = out.replace(/\bOn this record\b/g, "On the company's answers");
-  out = out.replace(/\bon this record\b/g, "on the company's answers");
+  out = out.replace(/\bOn this record\b/g, "On the information provided");
+  out = out.replace(/\bon this record\b/g, "on the information provided");
   out = out.replace(/\bThe record shows\b/g, "The company has indicated");
   out = out.replace(/\bthe record shows\b/g, "the company has indicated");
   out = out.replace(/\bThe record (reflects|indicates|demonstrates|establishes)\b/g, "The company has indicated");
   out = out.replace(/\bthe record (reflects|indicates|demonstrates|establishes)\b/g, "the company has indicated");
-  out = out.replace(/\bThe record evidences\b/g, "The company's answers evidence");
-  out = out.replace(/\bthe record evidences\b/g, "the company's answers evidence");
-  out = out.replace(/\bThe record answers\b/g, "The company has answered");
-  out = out.replace(/\bthe record answers\b/g, "the company has answered");
+  out = out.replace(/\bThe record evidences\b/g, "The information provided evidences");
+  out = out.replace(/\bthe record evidences\b/g, "the information provided evidences");
+  out = out.replace(/\bThe record answers\b/g, "The company reports");
+  out = out.replace(/\bthe record answers\b/g, "the company reports");
   out = out.replace(/\bThe record states\b/g, "The company has stated");
   out = out.replace(/\bthe record states\b/g, "the company has stated");
   out = out.replace(/\bThe record describes\b/g, "The company has described");
@@ -145,10 +157,10 @@ const DPA_STATUS_PHRASES: Record<string, string> = {
 };
 
 const DPA_VERIFIED_PHRASES: Record<string, string> = {
-  "Yes — verified": "the company has answered that those terms have been verified",
-  "Partially": "the company has answered that verification is partial",
-  "Not verified": "the company has answered that they have not been verified",
-  "Unsure": "the company has answered that it is unsure whether they have been verified",
+  "Yes — verified": "the company reports that those terms have been verified",
+  "Partially": "the company reports that verification is partial",
+  "Not verified": "the company reports that they have not been verified",
+  "Unsure": "the company reports that it is unsure whether they have been verified",
 };
 
 const TRANSFER_PHRASES: Record<string, string> = {
@@ -261,10 +273,10 @@ export function buildGovernanceSlotValues(intake: Bag): SlotValues {
 // ── Composed blocks ─────────────────────────────────────────────────────────
 
 const RATING_PHRASE: Record<string, string> = {
-  "Evidenced": "accountability is evidenced on the answers the company has given",
-  "Partly evidenced": "accountability is partly evidenced on the answers the company has given",
-  "Not evidenced": "accountability is not evidenced on the answers the company has given",
-  "Not yet determinable": "accountability is not yet determinable on the answers the company has given",
+  "Evidenced": "accountability is evidenced on the information provided",
+  "Partly evidenced": "accountability is partly evidenced on the information provided",
+  "Not evidenced": "accountability is not evidenced on the information provided",
+  "Not yet determinable": "the accountability determination requires additional information before it can be made",
 };
 
 // DOC-81 S-1 (CEO-directed, 2026-08-27) — "evidenced" replaces "stands":
@@ -276,20 +288,20 @@ const RATING_PHRASE: Record<string, string> = {
 // surfaces this map serves are asking whether the company's answers let
 // this be DEMONSTRATED, the literal Art. 5(2) standard.
 const VERDICT_PHRASE: Record<string, string> = {
-  satisfied: "is evidenced on the company's answers",
-  partially_satisfied: "is only partly evidenced on the company's answers",
-  not_satisfied: "is not evidenced on the company's answers",
-  not_determinable: "cannot be determined on the company's answers",
-  information_needed: "cannot be determined on the company's answers",
+  satisfied: "is evidenced on the information provided",
+  partially_satisfied: "is only partly evidenced on the information provided",
+  not_satisfied: "is not evidenced on the information provided",
+  not_determinable: "cannot be determined on the information provided",
+  information_needed: "cannot be determined on the information provided",
 };
 
 function ratingLead(report: Bag, org: string): string {
   const rd = (report.readiness_determination ?? {}) as Bag;
   const rating = s(rd.rating);
-  const phrase = RATING_PHRASE[rating] ?? "accountability is not yet determinable on the answers the company has given";
+  const phrase = RATING_PHRASE[rating] ?? "the accountability determination requires additional information before it can be made";
   // Org names are proper nouns — never case-fold them (SO-3 r2 defect).
   return `Assessed against Articles 5(2) and 24(1), ${phrase}: ${org} ${
-    rating === "Evidenced" ? "can demonstrate the compliance those provisions require" : "cannot yet demonstrate, in full, the compliance those provisions require"
+    rating === "Evidenced" ? "can demonstrate the compliance those provisions require" : "has not demonstrated, in full, the compliance those provisions require"
   }.`;
 }
 
@@ -357,10 +369,10 @@ function composeArt30RecordsBody(report: Bag): string {
     const open = elements.filter((e) => s(e.verdict) === "record_insufficient" || s(e.verdict) === "partially_satisfied");
     const unmet = elements.filter((e) => s(e.verdict) === "not_satisfied");
     const letters = (xs: Bag[]) => xs.map((e) => `(${s(e.element)})`).join(", ");
-    let sentence = `On the Article 30(1) elements, the company's answers evidence ${met.length} of ${elements.length}`;
+    let sentence = `On the Article 30(1) elements, the information provided evidences ${met.length} of ${elements.length}`;
     // DOC-81 S-3 — attributed voice at source ("the record does not
     // support" passed the banned-list guard but violated the rule).
-    if (unmet.length > 0) sentence += `; the company's answers do not support ${letters(unmet)}`;
+    if (unmet.length > 0) sentence += `; the information provided does not support ${letters(unmet)}`;
     if (open.length > 0) sentence += `; ${letters(open)} ${open.length === 1 ? "remains" : "remain"} open on the information provided`;
     parts.push(sentence + ".");
   }
@@ -374,10 +386,10 @@ function composeArt30RecordsBody(report: Bag): string {
       parts.push(
         met.length > 0
           ? `The Article 30(5) derogation is not available: ${met.join("; ")}.`
-          : "The Article 30(5) derogation is not available on the company's answers.",
+          : "The Article 30(5) derogation is not available on the information provided.",
       );
     } else if (ex.exemption_available === true) {
-      parts.push("On the company's answers the Article 30(5) derogation is available; maintaining the record remains good practice and accountability evidence.");
+      parts.push("On the information provided the Article 30(5) derogation is available; maintaining the record remains good practice and accountability evidence.");
     } else {
       parts.push("Whether the Article 30(5) derogation is available cannot be resolved on the information provided.");
     }
@@ -389,7 +401,7 @@ function composeArt30RecordsBody(report: Bag): string {
   if (demo.length > 0) {
     const present = demo.filter((d) => s(d.artifact_present) === "yes").length;
     const partial = demo.filter((d) => s(d.artifact_present) === "partial").length;
-    let sentence = `On demonstrability, of the ${demo.length} duties walked, the evidencing artifact is present for ${present}`;
+    let sentence = `On demonstrability, of the ${demo.length} requirements assessed, supporting evidence is identified for ${present}`;
     if (partial > 0) sentence += ` and partially present for ${partial}`;
     parts.push(sentence + ".");
   }
@@ -402,10 +414,10 @@ function composeArt30RecordsBody(report: Bag): string {
 // category the assessment does not separately assess says so honestly.
 function verdictPhrase(v: string): string {
   switch (v) {
-    case "satisfied": return "evidenced on the company's answers";
-    case "partially_satisfied": return "partly evidenced on the company's answers";
-    case "not_satisfied": return "not evidenced on the company's answers";
-    case "not_applicable": return "not applicable on the company's answers";
+    case "satisfied": return "evidenced on the information provided";
+    case "partially_satisfied": return "partly evidenced on the information provided";
+    case "not_satisfied": return "not evidenced on the information provided";
+    case "not_applicable": return "not applicable on the information provided";
     case "record_insufficient": return "unresolved on the information provided";
     default: return "not separately assessed by this report";
   }
@@ -418,7 +430,7 @@ function domainSeverityPhrase(report: Bag, needle: RegExp): string {
   if (!sev) return "assessed in Section III without a recorded severity";
   // DOC-81 G-3 — "Compliant" and "Unresolved" are postures, not severities;
   // render them in the determination register instead.
-  if (sev === "compliant") return "evidenced on the company's answers";
+  if (sev === "compliant") return "evidenced";
   if (sev === "unresolved") return "unresolved on the information provided";
   // FD703575-G3 (2026-08-27) — a bare severity label reads identically for
   // any organisation (live batch fd703575: five consecutive "assessed with
@@ -477,7 +489,7 @@ function composeIcoCrosswalk(report: Bag): string {
   const acct = (report.accountability_determination ?? {}) as Bag;
   const transfer = (report.transfer_analysis ?? {}) as Bag;
   const acctTail = s(acct.verdict)
-    ? `The headline Article 5(2)/24(1) determination above is ${verdictPhrase(s(acct.verdict))}${s(transfer.regime) && s(transfer.regime) !== "not_engaged" ? ", with the Chapter V transfer analysis carried in Section IV" : ""}.`
+    ? `The headline Article 5(2)/24(1) determination above is ${verdictPhrase(s(acct.verdict))}${s(transfer.regime) && s(transfer.regime) !== "not_engaged" ? ", with the Chapter V transfer analysis carried in Section 4" : ""}.`
     : "";
   return repairRegister(acctTail);
 }
@@ -571,6 +583,29 @@ function governanceToa(report: Bag, body: string): string {
       : "Guidance and Persuasive Authority";
     groups[group].push(citation);
   }
+  // A-TEAM S3 RULINGS I.21/III.22 (doc 115, 2026-08-31) — the exhibit ledger
+  // underreported: the body discusses many GDPR articles the ledger never
+  // carried, so the final list showed three rows against a report citing a
+  // dozen provisions. The body scan below adds a consolidated "GDPR Art. N"
+  // row for every article the document actually cites that no ledger entry
+  // already covers. Iff-cited discipline is preserved (the scan reads the
+  // assembled body only); ledger rows keep their fuller pinpoint forms.
+  const citedArticles = new Set<number>();
+  const artRe = /\b(?:UK\s+)?GDPR\s+Art(?:icle)?s?\.?\s*(\d{1,2})\b|\bArt(?:icle)?s?\.?\s*(\d{1,2})(?:\(\d+\))?\s+(?:UK\s+)?GDPR\b/gi;
+  let am: RegExpExecArray | null;
+  while ((am = artRe.exec(body))) {
+    const n = Number(am[1] ?? am[2]);
+    if (n >= 1 && n <= 99) citedArticles.add(n);
+  }
+  const covered = new Set<number>();
+  for (const c of groups["Regulations"]) {
+    let cm: RegExpExecArray | null;
+    const cRe = /Art(?:icle)?s?\.?\s*(\d{1,2})/gi;
+    while ((cm = cRe.exec(c))) covered.add(Number(cm[1]));
+  }
+  for (const n of [...citedArticles].sort((a, b) => a - b)) {
+    if (!covered.has(n)) groups["Regulations"].push(`GDPR Art. ${n}`);
+  }
   const lines: string[] = [];
   for (const group of Object.keys(groups)) {
     const inGroup = groups[group].sort();
@@ -644,7 +679,7 @@ export function deriveRemediationRegisterTable(report: Bag): RenderedTable | nul
     rows,
     ...(dropped.length
       ? {
-        note: `${dropped.map((c) => `${c.label}: ${c.value(plan[0])}`).join("; ")} — the intake's remediation defaults, applied to each item.`,
+        note: `${dropped.map((c) => `${c.label}: ${c.value(plan[0])}`).join("; ")} — these values apply to every item in this register.`,
       }
       : {}),
   };
@@ -663,7 +698,7 @@ export function deriveGovernanceScoreboard(report: Bag): RenderedTable | null {
     : [];
   if (demo.length > 0) {
     const present = demo.filter((d) => s(d.artifact_present) === "yes").length;
-    rows.push(["Accountability duties evidenced", `${present} of ${demo.length}`]);
+    rows.push(["Duties with an identified supporting artifact", `${present} of ${demo.length}`]);
   }
 
   const elements = Array.isArray(report.art30_element_findings)
@@ -716,7 +751,7 @@ export function assembleGovernanceSkeletonDocument(
     "governance_infrastructure:0": verdictLead(
       (report.accountability_determination ?? {}) as Bag,
       "The accountability structure the company has described — designation, notice and records —",
-      "Whether the accountability structure is evidenced on the company's answers cannot be determined.",
+      "Additional information is required before the accountability determination can be made on the information provided.",
     ),
     "governance_infrastructure:3": composeDpoBody(report),
     // S-G2 — the Art. 30 records-and-demonstrability block.

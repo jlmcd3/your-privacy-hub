@@ -1375,6 +1375,46 @@ ${ADVISORY_VOICE_RULES}`;
             signal: aiController.signal,
           });
           clearTimeout(aiTimeout);
+          // A-TEAM S3 (doc 115, Lovable API-topology item, 2026-08-31) —
+          // TRANSIENT-STATUS RETRY. The us-state/canada document types still
+          // make a live model call by design (DOC-81 D-1); a single 429/5xx/
+          // overloaded used to fail the whole generation. Bounded: two
+          // retries with short backoff, then the existing failure path.
+          if (!aiRes.ok && [429, 500, 502, 503, 529].includes(aiRes.status)) {
+            const transientText = await aiRes.text().catch(() => "");
+            let recovered: Response | null = null;
+            for (let attempt = 1; attempt <= 2 && !recovered; attempt++) {
+              console.warn(`[generate-dpa] transient AI status ${aiRes.status} (attempt ${attempt}/2, backing off): ${transientText.slice(0, 120)}`);
+              await new Promise((r) => setTimeout(r, attempt * 2_000));
+              const retryRes = await fetch("https://api.anthropic.com/v1/messages", {
+                method: "POST",
+                headers: {
+                  "x-api-key": ANTHROPIC_API_KEY!,
+                  "anthropic-version": "2023-06-01",
+                  "content-type": "application/json",
+                },
+                body: JSON.stringify({
+                  model: AI_MODEL,
+                  max_tokens: maxTokens,
+                  system: systemPrompt,
+                  messages: [{ role: "user", content: finalUser }],
+                }),
+                signal: aiController.signal,
+              });
+              if (retryRes.ok) recovered = retryRes;
+              else if (![429, 500, 502, 503, 529].includes(retryRes.status)) { recovered = retryRes; }
+              else await retryRes.text().catch(() => "");
+            }
+            if (recovered?.ok) {
+              const aiData = await recovered.json();
+              const text = aiData.content?.[0]?.text ?? "";
+              const stopReason: string | null = aiData.stop_reason ?? null;
+              const finishReason: string | null = stopReason === "max_tokens" ? "length" : stopReason;
+              console.log(`[generate-dpa] gen done (after transient retry) stop=${stopReason} chars=${text.length} max_tokens=${maxTokens}`);
+              return { text, finishReason };
+            }
+            throw new Error(`AI generation failed (status ${recovered ? recovered.status : aiRes.status} after transient retries)`);
+          }
           if (!aiRes.ok) {
             const errText = await aiRes.text();
             const isTokenCapError =

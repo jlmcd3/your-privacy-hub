@@ -78,7 +78,7 @@ Deno.test("C3/S3.2: the Governance scoreboard rows read the typed counts and ski
   const board = execTables(out.document).find((t) => t.title === "Programme scoreboard");
   assertExists(board);
   assertEquals(board.rows, [
-    ["Accountability duties evidenced", "6 of 8"],
+    ["Duties with an identified supporting artifact", "6 of 8"],
     ["Article 30(1) elements evidenced", "4 of 7"],
     ["Domains with a recorded gap", "9 of 10"],
     ["Remediation items recorded", "7"],
@@ -113,7 +113,7 @@ Deno.test("C3/S3.3: the Registration duty-status table spans all four typed surf
   const out = assembleRegistrationSkeletonDocument({ registration_deliverables: d, ...d }, intake);
   const table = execTables(out.document).find((t) => t.title === "Duty status");
   assertExists(table);
-  assertEquals(table.columns, ["Duty", "Jurisdiction", "Status", "What closes it"]);
+  assertEquals(table.columns, ["Duty", "Jurisdiction", "Status", "Information required"]);
   assert(table.rows.some((r) => r[0] === "Data-broker registration" && r[1] === "California" && r[2] === "Attaches"));
   assert(table.rows.some((r) => r[0] === "Article 27 representative" && r[1] === "European Union" && r[2] === "Attaches"));
   assert(table.rows.some((r) => r[0] === "Data protection officer" && r[2] === "Attaches" && r[3] === "Written designation and the Art. 37(7) steps"));

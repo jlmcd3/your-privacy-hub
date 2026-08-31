@@ -379,11 +379,15 @@ function composeExecutiveDecisionSentence(report: Bag, total: number): string {
       : "the competent supervisory authority";
     return `Given the noted risks and the mitigating measures, and after the analysis as set forth below, the processing being assessed may not begin until the company has consulted ${authority} under Article 36(1).`;
   }
+  // A-TEAM S3 RULINGS IV.1/IV.2 (doc 115, 2026-08-31) — "cannot yet
+  // determine"-class wording read as a draft in progress; an incomplete
+  // record's FINAL status is a determination not reached. Typed
+  // determinations unchanged; sentence register only.
   if (art36 === "undetermined_on_the_record") {
-    return "Given the points still open, and after the analysis as set forth below, whether prior consultation is required cannot yet be determined, and the processing being assessed should not begin until it is.";
+    return "After the analysis as set forth below, the determination on whether prior consultation is required has not been reached — required information remains outstanding — and the processing being assessed should not begin until that determination is made.";
   }
   if (det === "draft_incomplete") {
-    return "Given the points still open, and after the analysis as set forth below, this assessment cannot yet determine whether the processing being assessed may proceed.";
+    return "After the analysis as set forth below, the determination on whether the processing being assessed may proceed has not been reached: required information remains outstanding.";
   }
   if (det === "conditionally_approved") {
     return "Given the noted risks and the mitigating measures, and after the analysis as set forth below, the processing being assessed may proceed on the conditions set out below.";
@@ -1010,7 +1014,11 @@ function composeSignoffBody(report: Bag, intake: Bag, values: SlotValues): strin
       ? ((report.decision as Bag).blockers as unknown[]).map((c) => s(c)).filter(Boolean)
       : [];
     if (list.length) {
-      parts.push(`Sign-off is held open by the following: ${list.join(" ")}`);
+      // A-TEAM S3 RULING IV.10 (doc 115, 2026-08-31) — blockers were joined
+      // with a bare space and no terminal stop, producing a run-on ("…each
+      // with its rejection reason each less intrusive means considered…").
+      // Semicolon-joined, full stop closed.
+      parts.push(`Sign-off is held open by the following: ${list.join("; ")}.`);
     }
   }
 

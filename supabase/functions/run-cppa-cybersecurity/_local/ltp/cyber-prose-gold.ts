@@ -469,7 +469,7 @@ export const CYBER_ABSENCE_LABEL_PHRASINGS: readonly string[] = [
   // The prompt-pinned per-control absence sentence (run-cppa-cybersecurity
   // control schema, `evidence` field): the canonical "nothing on the record"
   // artefact statement.
-  "the intake supplies no artefact for this component",
+  "the assessment record supplies no artefact for this component",
 ];
 
 

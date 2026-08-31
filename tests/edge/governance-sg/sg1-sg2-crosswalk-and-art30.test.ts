@@ -68,12 +68,12 @@ function text(report: Bag): string {
 
 Deno.test("S-G2 — the Art. 30 element walk, 30(5) position, and demonstrability roll-up all render", () => {
   const t = text(baseReport());
-  assertStringIncludes(t, "evidence 5 of 7");
+  assertStringIncludes(t, "evidences 5 of 7");
   // DOC-81 S-3 — attributed voice: "the company's answers do not support".
-  assertStringIncludes(t, "the company's answers do not support (d)");
+  assertStringIncludes(t, "the information provided does not support (d)");
   assertStringIncludes(t, "(e) remains open on the information provided");
   assertStringIncludes(t, "derogation is not available: special categories of data are processed");
-  assertStringIncludes(t, "artifact is present for 1 and partially present for 1");
+  assertStringIncludes(t, "supporting evidence is identified for 1 and partially present for 1");
 });
 
 Deno.test("S-G2 — an available derogation renders the good-practice sentence", () => {
@@ -98,7 +98,7 @@ Deno.test("S-G1 — the crosswalk renders all ten ICO categories with verdict re
     "Breach response and monitoring",
   ]) assertStringIncludes(t, cat);
   // RE-PIN BATCH 20a (doc 113 S5.1/S5.2): the crosswalk lines and remediation-item fragments moved into table cells (cells initial-capped; label prefixes retired).
-  assertStringIncludes(t, "The DPO determination is evidenced on the company's answers");
+  assertStringIncludes(t, "The DPO determination is evidenced on the information provided");
   assertStringIncludes(t, "5 of 7 Article 30(1) elements evidenced");
   assertStringIncludes(t, "decides nothing new");
 });

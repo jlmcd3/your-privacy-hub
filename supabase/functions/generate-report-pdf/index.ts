@@ -123,6 +123,17 @@ function footerTitleFromAttachment(attachmentName: string): string {
   return `End User Privacy · ${base}`;
 }
 
+// A-TEAM S3 RULING I.25 (doc 115, 2026-08-31) — the page footer printed a
+// filename-derived short form ("CPPA Cybersecurity Audit") that drifted from
+// the document's formal title ("CPPA Cybersecurity Audit Readiness Report").
+// The footer now carries the document's own <h1>; the filename derivation
+// survives only as the fallback for builders that emit no <h1>.
+function footerTitleFromDocument(html: string, attachmentName: string): string {
+  const m = /<h1[^>]*>([\s\S]*?)<\/h1>/i.exec(html);
+  const raw = m ? m[1].replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim() : "";
+  return raw ? `End User Privacy · ${raw}` : footerTitleFromAttachment(attachmentName);
+}
+
 async function generatePDF(
   html: string,
   title: string
@@ -151,7 +162,15 @@ async function generatePDF(
         landscape: false,
         format: "Letter",
         margin: { top: "16mm", right: "14mm", bottom: "18mm", left: "14mm" },
-        use_print: false,
+        // A-TEAM S3 RULING I.4 (doc 115, 2026-08-31): multi-page tables were
+        // not repeating their <thead> on continuation pages in production
+        // even though the markup and `display:table-header-group` are
+        // correct. Verified empirically with headless Chromium: header
+        // repetition works in a PRINT-media context (5/5 pages, with and
+        // without the .shell overflow) — the production difference is
+        // screen-media emulation. The stylesheet carries no @media print
+        // rules, so this flag changes only the emulated media type.
+        use_print: true,
         sandbox: Deno.env.get("PDFSHIFT_SANDBOX") === "true",
         // Embed a small footer with the EndUserPrivacy mark + page numbers.
         footer: {
@@ -1113,7 +1132,7 @@ function buildTextReportHTML(opts: TextReportOpts): string {
   .body { padding:22px 26px 26px; }
 ${AUTHORITY_EXHIBIT_CSS}
   .disclaimer { border-left:4px solid var(--teal); background:var(--teal-soft);
-    border-radius:0 6px 6px 0; padding:10px 14px; font-size:11px; margin-bottom:16px; }
+    border-radius:0 6px 6px 0; padding:10px 14px; font-size:8.5pt; margin-bottom:16px; }
   .disclaimer .kw { font-weight:600; color:var(--navy); }
   .callout { border-left:4px solid var(--warn); background:var(--warn-soft);
     border-radius:0 6px 6px 0; padding:10px 14px; font-size:11.5px; margin-bottom:16px; }
@@ -1139,8 +1158,12 @@ ${AUTHORITY_EXHIBIT_CSS}
     color:var(--navy); letter-spacing:0.02em; margin:0; }
   .subhead .rule { margin-top:4px; height:2px; width:36px; background:var(--steel); border-radius:2px; }
   .subhead .sub-trailing { margin-top:6px; }
-  p.body-p, .sub-trailing, .li-body { font-size:12px; line-height:1.6; color:var(--navy-ink); margin:0 0 8px; }
-  ul.body-list { font-size:12px; line-height:1.6; color:var(--navy-ink); margin:0 0 8px; }
+  /* A-TEAM S3 RULING I.6 (doc 115) — 12px (~9pt) body text read as dense and
+     inexpensive; ordinary body prose now sits at 10pt with the same leading.
+     Table cells stay 9.5pt (above the 9pt floor); truly ancillary material
+     only may sit below 8.5pt. */
+  p.body-p, .sub-trailing, .li-body { font-size:10pt; line-height:1.55; color:var(--navy-ink); margin:0 0 8px; }
+  ul.body-list { font-size:10pt; line-height:1.55; color:var(--navy-ink); margin:0 0 8px; }
   ul.body-list li { margin-bottom:4px; }
   ol.num-list, ul.dot-list { list-style:none; padding:0; margin:8px 0 4px; }
   ol.num-list li, ul.dot-list li { display:flex; gap:10px; align-items:flex-start;
@@ -1151,15 +1174,22 @@ ${AUTHORITY_EXHIBIT_CSS}
   ul.dot-list .dot { flex:0 0 auto; width:6px; height:6px; border-radius:999px;
     background:var(--teal); margin-top:8px; }
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border);
-    font-size:10px; color:var(--slate); text-align:center; }
+    font-size:8.5pt; color:var(--slate); text-align:center; }
   table.md-table { border-collapse:collapse; width:100%; font-size:10.5pt; margin:12px 0; }
   table.md-table th, table.md-table td { border:1px solid var(--border); padding:6px 10px; text-align:left; vertical-align:top; }
   table.md-table th { background:var(--silver); font-weight:600; color:var(--navy); }
   /* 2026-08-25 polish round — a table that continues onto the next page
      repeats its header row there (table-header-group is the paged-media
-     mechanism); rows never split mid-row. */
-  thead { display:table-header-group; }
-  tr { page-break-inside:avoid; }
+     mechanism); rows never split mid-row. A-TEAM S3 (doc 115 I.4): the
+     mechanism only engages under print-media emulation — see use_print in
+     generatePDF. */
+  thead { display:table-header-group; break-inside:avoid; }
+  tr { page-break-inside:avoid; break-inside:avoid; }
+  /* A-TEAM S3 RULING I.5 (doc 115) — callouts, condition boxes and the
+     final notice never split across a page break (a taller-than-page block
+     is exempt per the fragmentation spec, which is the right failure mode). */
+  .callout, .condition-callout, .disclaimer, .eup-report-disclaimer {
+    break-inside:avoid; page-break-inside:avoid; }
   /* 2026-08-25 polish round — Conditions to Proceed render inside a bordered
      amber callout so the condition can't be missed against a favorable
      disposition. Applied by skeletonSectionsHtml when a chunk opens with a
@@ -1262,12 +1292,12 @@ function skeletonTableHtml(t: SkeletonTableLike): string {
   // nothing the row's own first cell doesn't already say; omit it entirely.
   const headHtml = t.hideHeader ? "" : `<thead><tr>${head}</tr></thead>`;
   return `<div style="margin:0 0 10px;">
-    ${t.title ? `<div style="font-weight:bold;font-size:10.5px;margin:0 0 4px;break-after:avoid;page-break-after:avoid;">${escHtml(t.title)}</div>` : ""}
-    <table style="width:100%;border-collapse:collapse;border-top:1.25pt solid #000;border-bottom:1.25pt solid #000;font-size:9.5px;line-height:1.35;">
+    ${t.title ? `<div style="font-weight:bold;font-size:10pt;margin:0 0 4px;break-after:avoid;page-break-after:avoid;">${escHtml(t.title)}</div>` : ""}
+    <table style="width:100%;border-collapse:collapse;border-top:1.25pt solid #000;border-bottom:1.25pt solid #000;font-size:9.5pt;line-height:1.35;">
       ${headHtml}
       <tbody>${body}</tbody>
     </table>
-    ${t.note ? `<div style="font-size:9px;color:#4a5b6a;margin:3px 0 0;">${escHtml(t.note)}</div>` : ""}
+    ${t.note ? `<div style="font-size:8pt;color:#4a5b6a;margin:3px 0 0;break-before:avoid;page-break-before:avoid;">${escHtml(t.note)}</div>` : ""}
   </div>`;
 }
 
@@ -1320,6 +1350,21 @@ function substituteFootnoteMarkers(escapedHtml: string): string {
 const APPENDIX_REF_RE = /Appendix [A-Z](?:\s*[—–-]\s*[A-Z][^.;]*)?/g;
 function underlineAppendixRefs(escapedHtml: string): string {
   return escapedHtml.replace(APPENDIX_REF_RE, (m) => `<u>${m}</u>`);
+}
+
+// A-TEAM S3 RULING I.27 (doc 115, 2026-08-31) — a bare URL in skeleton prose
+// (e.g. the § 7124 submission portal "https://cppa.ca.gov/") becomes a live
+// hyperlink in the PDF. Display text is deliberately UNCHANGED: rewording it
+// would alter byte-pinned skeleton prose, which needs its own re-pin batch.
+// Applied to already-escaped text; a URL's characters need no escaping, and a
+// trailing sentence stop is excluded from the link target.
+const BARE_URL_RE = /https?:\/\/[^\s<>&"')]+/g;
+function linkifyBareUrls(escapedHtml: string): string {
+  return escapedHtml.replace(BARE_URL_RE, (m) => {
+    const trimmed = m.replace(/[.,;:]+$/, "");
+    const tail = m.slice(trimmed.length);
+    return `<a href="${trimmed}" style="color:#0c2a44;">${trimmed}</a>${tail}`;
+  });
 }
 
 // CEO report review 2026-08-24 — several composers already mark a list
@@ -1666,7 +1711,7 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
         // CEO report review 2026-08-24 — bold alone doesn't read as
         // distinct enough; the lead carries an underline too.
         const mark = (html: string) => {
-          const underlined = underlineAppendixRefs(html);
+          const underlined = linkifyBareUrls(underlineAppendixRefs(html));
           return footnotesOn ? substituteFootnoteMarkers(underlined) : underlined;
         };
         // 2026-08-25 batch be0f9e02 fix — lead styling is applied by
@@ -3490,7 +3535,7 @@ Deno.serve(async (req) => {
         intake_data: {},
       });
       const replayName = makeAttachmentName("cppa_risk", rrow.created_at || new Date().toISOString());
-      const replayBytes = await generatePDF(replayHtml, footerTitleFromAttachment(replayName));
+      const replayBytes = await generatePDF(replayHtml, footerTitleFromDocument(replayHtml, replayName));
       let replayUrl: string | null = null;
       if (replayBytes) {
         const p = `reports/replay_harness_results/${rrow.id}/${replayName}`;
@@ -4166,7 +4211,7 @@ Deno.serve(async (req) => {
 
     html = applyUniversalDisclaimerHtml(html);
 
-    const pdfBytes = await generatePDF(html, footerTitleFromAttachment(attachmentName));
+    const pdfBytes = await generatePDF(html, footerTitleFromDocument(html, attachmentName));
 
     let pdfUrl: string | null = null;
     if (pdfBytes) {

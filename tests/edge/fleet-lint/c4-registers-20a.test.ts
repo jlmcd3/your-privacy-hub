@@ -36,7 +36,7 @@ Deno.test("C4/S5.1: the Remediation Register renders with constant meta columns 
   assertEquals(register.columns, ["#", "Duty and gap", "Action"]);
   assertExists(register.note);
   assertStringIncludes(register.note, "Priority: High");
-  assertStringIncludes(register.note, "the intake's remediation defaults, applied to each item");
+  assertStringIncludes(register.note, "these values apply to every item in this register");
   assertEquals(register.rows[0][1], "Envisaged retention time limits — The record carries nothing on this element.");
   assertEquals(register.rows[0][2], "State the retention limit per category");
   // The prose keeps the count sentence pointing at the register; the old
@@ -68,7 +68,7 @@ Deno.test("C4/S5.2: the ICO crosswalk is a table and the closing sentence is det
   assertEquals(crosswalk.columns, ["Category", "Position on the record"]);
   assertEquals(crosswalk.rows.length, 10);
   assertEquals(crosswalk.rows[0][0], "Leadership and oversight");
-  assertEquals(crosswalk.rows[0][1], "The DPO determination is evidenced on the company's answers");
+  assertEquals(crosswalk.rows[0][1], "The DPO determination is evidenced on the information provided");
   // The closing sentence is its own paragraph, after the table, not glued
   // onto the last crosswalk line.
   const sec = out.document.sections.find((s) => s.id === "ico_crosswalk")!;

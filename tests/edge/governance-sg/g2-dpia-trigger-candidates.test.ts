@@ -36,7 +36,7 @@ Deno.test("G-2 — no special-category data and no recorded tools: no candidate 
   const f = buildDomainFindingsTyped(BASE);
   assertEquals(
     f["dpia_status"].current_state,
-    "The company has answered that no DPIA has been conducted.",
+    "The company reports that no DPIA has been conducted.",
   );
 });
 
@@ -111,7 +111,7 @@ Deno.test("G-2 — candidate text is appended consistently across every dpia_sta
   assertStringIncludes(unsure["dpia_status"].current_state, "Art. 35(3)(a)");
   // gap_description / severity for Unsure are untouched by this fix
   assertEquals(unsure["dpia_status"].severity, "Unresolved");
-  assertEquals(unsure["dpia_status"].gap_description, "The company's answers do not resolve this issue.");
+  assertEquals(unsure["dpia_status"].gap_description, "The information provided does not resolve this issue.");
 
   const multiple = buildDomainFindingsTyped({
     ...withTools,

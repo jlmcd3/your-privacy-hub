@@ -86,7 +86,7 @@ describe("Batch 16 — renderer wave shapes (web twin)", () => {
     });
     const { container } = render(<SkeletonDocumentView doc={doc as never} />);
     expect(container.textContent).toContain("CPPA ADMT Compliance Assessment");
-    expect(container.textContent).toContain("Conditions on this determination");
+    expect(container.textContent).toContain("Scope qualification — conditions on this determination");
     // The typed quoted-authority S4 excerpts render as statute-quote blocks.
     expect(container.querySelectorAll("div.border-l-\\[3px\\]").length).toBeGreaterThanOrEqual(1);
   });

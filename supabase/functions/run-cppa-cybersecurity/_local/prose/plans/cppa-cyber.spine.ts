@@ -68,8 +68,8 @@ export const CYBER_SKELETON_PROVENANCE =
 export const CYBER_SKELETON_CONTENT_HASH =
   "fd804ea63455ca8e4012da3380195c0d8cf27be65637b7aefd00bcc17306a873";
 
-export const CYBER_SKELETON_TITLE = "CPPA CYBERSECURITY AUDIT READINESS REPORT";
-export const CYBER_SKELETON_SUBTITLE = "Prepared under 11 CCR Sections 7120-7124 for {profile.entity_name}";
+export const CYBER_SKELETON_TITLE = "CPPA Cybersecurity Audit Readiness Report";
+export const CYBER_SKELETON_SUBTITLE = "Prepared under 11 CCR Sections 7120–7124 for {profile.entity_name}";
 /** The v3 register guide, verbatim. Authoring law; never printed to a customer. */
 export const CYBER_REGISTER_GUIDE = "Register guide (v3 - CEO-ratified counsel register, senior privacy lawyers with the professors editing) - Fixed prose is a lawyer's client document: full flowing sentences, measured connectives, the law stated plainly and applied. The company's facts are always attributed (\"{org} has indicated that ...\", \"the company has described ...\") - \"the record shows\" and its family are banned. No dramatization, no rhetorical questions, no self-narration. Facts enter only through {slots} and [GENERATED] blocks under the ATTRIBUTION RULE: every factual clause names its source and traces to an intake answer or typed analysis; coverage, CSC and refinement police this mechanically. Statutory sentences in fixed prose are registry-verified at encode time. Slot notation: {field - rule}.";
 
@@ -146,7 +146,7 @@ export const CYBER_SKELETON_SECTIONS: readonly CyberSkeletonSection[] = [
     id: "signature",
     title: "Signature",
     blocks: [
-      { kind: "skeleton", text: "This information is provided for the purposes of a cybersecurity audit as required pursuant to 11 CCR §§ 7120-7124." },
+      { kind: "skeleton", text: "This information is provided for the purposes of a cybersecurity audit as required pursuant to 11 CCR §§ 7120–7124." },
       { kind: "table", text: "" },
       { kind: "skeleton", text: "This signature acknowledges the information above, and is not the certification described in 11 CCR § 7124." },
     ],

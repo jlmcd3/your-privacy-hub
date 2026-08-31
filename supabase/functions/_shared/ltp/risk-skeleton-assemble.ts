@@ -41,6 +41,8 @@ import {
   type RiskFactorEngineResult,
 } from "./risk-factor-engine.ts";
 import { firstSubstantiveSentence } from "./clause-bound.ts";
+// A-TEAM S3 RULING I.23 (doc 115) — customer-facing date rows in long form.
+import { formatReportDateLong } from "../report-dates.ts";
 // Corpus program phase 2 (carried): Appendix B renders by pure attachment
 // over the Risk CAM (the determinism law's generation-plane mechanism).
 import { attachCorpusRows } from "../corpus/cam-attach.ts";
@@ -228,7 +230,7 @@ export function deriveCoverTable(values: SlotValues): RenderedTable {
     rows: [
       ["Prepared for", `${v("entityName")} (the “Company”)`],
       ["Processing activity", `${v("activityName")} (the “Activity”)`],
-      ["Assessment date", v("assessmentDate")],
+      ["Assessment date", formatReportDateLong(v("assessmentDate"))],
     ],
   };
 }
@@ -443,7 +445,7 @@ export function deriveSubmissionSupportRecord(
       }`,
     );
   }
-  push("Assessment date", assessmentDateIso);
+  push("Assessment date", formatReportDateLong(assessmentDateIso));
 
   return { key: "", surface: "submission_support_record", title: "", columns: ["Item", "Detail"], rows: rowsOut };
 }
@@ -468,19 +470,32 @@ export function deriveBusinessLevelOutstanding(): RenderedTable {
  * line (moved off the cover per the v5.2 cover note). */
 export function deriveMaterialsConsideredIndex(intake: Bag): RenderedTable {
   const rowsOut: string[][] = [
-    ["The Company’s CPPA risk-assessment intake record, including its structured processing, disclosure, recipient, retention, necessity, benefit, risk and safeguard records."],
+    // A-TEAM S3 RULING VI.19 (doc 115, 2026-08-31) — "intake record" exposed
+    // the form workflow; the material considered is the submitted record.
+    ["The Company’s submitted CPPA risk-assessment record, including its structured processing, disclosure, recipient, retention, necessity, benefit, risk and safeguard records."],
   ];
   if (s(intake.public_privacy_policy_url)) {
     rowsOut.push([`The Company’s public privacy policy: ${s(intake.public_privacy_policy_url)}`]);
   }
   if (isYes(intake.i9_has_existing_dpia) && s(intake.i9_existing_dpia_summary)) {
-    rowsOut.push(["The Company’s existing data protection impact assessment, as summarised in the intake record."]);
+    rowsOut.push(["The Company’s existing data protection impact assessment, as summarised in the submitted record."]);
   }
-  // PANEL LEAK-1 (2026-08-30): generation metadata stays for
-  // reperformance, labelled as the generation record rather than an
-  // engine build string among the Company's materials.
-  rowsOut.push([`Report generation record — assessment engine ${RISK_SKELETON_VERSION}.`]);
+  // PANEL LEAK-1 (2026-08-30): generation metadata stays for reperformance.
+  // A-TEAM S3 RULINGS I.3/VI.18 (doc 115): the raw engine identifier
+  // ("assessment engine cppa-risk-v5.2.1-…") is internal vocabulary; the
+  // provenance row now carries a neutral template-version form derived from
+  // the same stamp, so traceability is preserved without the leak.
+  rowsOut.push([`Report record — ${neutralTemplateVersion(RISK_SKELETON_VERSION)}.`]);
   return { key: "", surface: "materials_considered_index", title: "", columns: ["Material considered"], rows: rowsOut };
+}
+
+/** "cppa-risk-v5.2.1-2026-08-30" → "report template version 5.2.1 (2026-08-30)".
+ * Falls back to "report template <stamp>" for a stamp that doesn't parse —
+ * never drops provenance. Shared shape with the cyber assembler's ruling. */
+function neutralTemplateVersion(stamp: string): string {
+  const m = /v(\d+(?:\.\d+)*)[-@]?(\d{4}-\d{2}-\d{2})?/.exec(stamp);
+  if (m) return `report template version ${m[1]}${m[2] ? ` (${m[2]})` : ""}`;
+  return `report template ${stamp}`;
 }
 
 /** Appendix F — {{DERIVED.admt_technical_facts}} (the verbatim technical
@@ -809,8 +824,11 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
         `Analytical note. The record above preserves the Company’s own technical description across ${techPresent} of the six record areas the appendix tracks (system description, logic, output and use, human review, testing, and training data). The body of the report evaluates those facts in § 3.E; this appendix preserves them so a reviewer can trace each conclusion to the description it rests on.`;
     }
   } else {
+    // A-TEAM S3 RULING V.13 (doc 115, 2026-08-31) — the trailing "appendix
+    // letter is retained…" sentence explained the template to the customer;
+    // removed (the Not-applicable sentence already states the substance).
     composed["appendix_d:0"] =
-      "Not applicable. The Activity does not involve automated decisionmaking technology, so no ADMT technical and decision record is required. The appendix letter is retained so the report’s fixed structure reads consistently across assessments.";
+      "Not applicable. The Activity does not involve automated decisionmaking technology, so no ADMT technical and decision record is required.";
   }
 
   // Appendix B (Persuasive Authority): pure CAM attachment over the report's

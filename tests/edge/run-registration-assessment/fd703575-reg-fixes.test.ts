@@ -49,7 +49,7 @@ function skeletonText(): string {
 
 Deno.test("R1 — the executive lead names every counted duty", () => {
   const text = skeletonText();
-  const lead = text.match(/On its answers, [^"]*registration dut[^"]*/)?.[0] ?? "";
+  const lead = text.match(/Based on the information supplied, [^"]*registration dut[^"]*/)?.[0] ?? "";
   assert(lead.length > 0, "the duties-attach lead must render");
   assertStringIncludes(lead, "data-broker registration in California");
   assertStringIncludes(lead, "the designation of a data protection officer");
@@ -66,14 +66,14 @@ Deno.test("R1 — an engaged DPO determination states its closing act without qu
   assertStringIncludes(act, "What closes the duty is a written designation");
   assertStringIncludes(act, "communicating them to the supervisory authority");
   // RE-PIN PANEL LEAK-1 (2026-08-30).
-  assertStringIncludes(act, "not yet in the verified statutory corpus behind this assessment and is not quoted");
+  assertStringIncludes(act, "not yet among the authorities relied on in this assessment and is not quoted");
 });
 
 Deno.test("R2 — named US-state markets outside the four registries earn a corpus-bounded scope statement", () => {
   const text = skeletonText();
   assertStringIncludes(text, "Colorado (US)");
   assertStringIncludes(text, "Virginia (US)");
-  assertStringIncludes(text, "No data-broker registration statute for those states is among the four state registries in the verified statutory corpus behind this assessment");
+  assertStringIncludes(text, "No data-broker registration statute for those states is among the four state registries covered by this assessment");
 });
 
 Deno.test("R2 — no scope statement renders when every named US market is a registry state", () => {

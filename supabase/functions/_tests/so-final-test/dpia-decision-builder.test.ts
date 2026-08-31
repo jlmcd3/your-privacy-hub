@@ -101,7 +101,7 @@ Deno.test("branch b — draft_incomplete on an undetermined remaining risk level
   );
   assertEquals(d.determination, "draft_incomplete");
   assertEquals(d.blockers, ["the measures applied against re-identification"]);
-  assertStringIncludes(d.why, "cannot yet be determined");
+  assertStringIncludes(d.why, "has not been reached");
 });
 
 

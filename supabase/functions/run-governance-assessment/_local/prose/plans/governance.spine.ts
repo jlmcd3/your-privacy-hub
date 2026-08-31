@@ -56,7 +56,8 @@ export const GOVERNANCE_SKELETON_PROVENANCE =
 export const GOVERNANCE_SKELETON_CONTENT_HASH =
   "e0717aba9ee74a0bef16c22feafd6a5abe39531d59d4db3b5c69fd29b574c92f";
 
-export const GOVERNANCE_SKELETON_TITLE = "PRIVACY GOVERNANCE ASSESSMENT";
+// A-TEAM S3 RULING I.24 (doc 115, 2026-08-31) — fleet Title Case cover.
+export const GOVERNANCE_SKELETON_TITLE = "Privacy Governance Assessment";
 export const GOVERNANCE_SKELETON_SUBTITLE =
   "A programme review under the GDPR and UK GDPR, prepared for {organizationName}";
 /** The v3 register guide, verbatim. Authoring law; never printed to a customer. */
@@ -120,7 +121,7 @@ export const GOVERNANCE_SKELETON_SECTIONS: readonly GovernanceSkeletonSection[] 
       { kind: "skeleton", text: "As to the designation of a data protection officer, the company has answered {DPO_PHRASE - reader label from dpoStatus, rendered as prose}. Its privacy notice position is {PRIVACY_POLICY_PHRASE - reader label}, with coverage the company describes as {privacyNoticeCoverage - reader labels as prose}." },
       // [FIXED RULE - the 403-A principle] — the marker is authoring notation;
       // the sentence itself is byte-pinned skeleton law and prints.
-      { kind: "skeleton", text: "The analysis that follows assesses the Article 37-39 duties on what the intake asks; operating detail the intake does not collect is recorded as what would strengthen the record, never as a deficiency." },
+      { kind: "skeleton", text: "The analysis that follows assesses the Article 37-39 duties on the information requested for this assessment; operating detail this assessment does not request is recorded as what would strengthen the record, never as a deficiency." },
       { kind: "generated", text: "[GENERATED] The typed DPO determination rendered in counsel's voice: the designation trigger, position and independence, and task coverage, each attributed to the company's answers." },
       // S-G2 (doc 80, 2026-08-27) — PN-G8 executed: the three computed,
       // fully deterministic Item-313 surfaces (Art. 30(1)(a)-(g) element

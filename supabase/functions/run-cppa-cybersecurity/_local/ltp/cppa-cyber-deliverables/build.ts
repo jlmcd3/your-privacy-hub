@@ -516,7 +516,7 @@ export function buildIndependenceDetermination(facts: CyberFacts): IndependenceD
             `influence.`
           : `${cond.citation} requires objective and impartial judgment free from influence by the business. The ` +
             `record's engagement description is consistent with that requirement; the arrangement would be confirmed ` +
-            `in the engagement letter rather than concluded from the intake alone.`,
+            `in the engagement letter rather than concluded from the submitted record alone.`,
         verdict: (conflicted ? "not_satisfied" : "satisfied") as Verdict,
         status: "analysed" as const,
       };

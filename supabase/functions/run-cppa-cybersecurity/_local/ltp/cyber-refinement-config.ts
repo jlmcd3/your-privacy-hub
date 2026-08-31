@@ -127,7 +127,7 @@ export const CYBER_WATCH_CLASSES: readonly CyberWatchClass[] = [
     title: "Absence frame on a component the record describes",
     archive_fails: 64,
     detector_hint:
-      "an absence sentence — 'the intake supplies no artefact for this component', 'the record does not yet carry…', 'not determinable on this record' — on a component, on the audit-readiness surface, on third-party oversight, incident response or training where the record in fact supplies notes, maturity or evidence. An absence sentence about a genuinely silent component is designed output and must be preserved byte-for-byte.",
+      "an absence sentence — 'the assessment record supplies no artefact for this component', 'the record does not yet carry…', 'not determinable on this record' — on a component, on the audit-readiness surface, on third-party oversight, incident response or training where the record in fact supplies notes, maturity or evidence. An absence sentence about a genuinely silent component is designed output and must be preserved byte-for-byte.",
   },
 ];
 
@@ -141,7 +141,7 @@ W4 Citation at the wrong depth or the wrong duty-holder: § 7123(c) cited at sub
 W5 Arithmetic about the eighteen components inside a sentence: "a mean score of 81 across all 18 scored components", "Mean of 81…", any aggregate or count recited in prose. The tally lives in the typed control_status_counts object; prose points at it and never recites it.
 W6 Assertion about the record the record does not carry: an incident narrative that contradicts profile.incidents_12mo, an artefact the record does not name, a system count the record does not support. Check the record both ways — an accurate statement about a genuinely silent component is CORRECT and must not be flagged.
 W7 Counsel referral or internal reasoning in body text: any "review with qualified legal counsel" sentence outside the standing disclaimer and the § 7121(a) reserved-to-customer sentence; any model reasoning about its own process.
-W8 Absence frame on a component the record describes: "the intake supplies no artefact for this component", "the record does not yet carry…", "not determinable on this record" on a component, on audit readiness, on third-party oversight, incident response or training that the record in fact answers. An absence sentence about a genuinely silent component is designed output and must be preserved.
+W8 Absence frame on a component the record describes: "the assessment record supplies no artefact for this component", "the record does not yet carry…", "not determinable on this record" on a component, on audit readiness, on third-party oversight, incident response or training that the record in fact answers. An absence sentence about a genuinely silent component is designed output and must be preserved.
 W-COPYEDIT Assembly-seam copy defects (ITEM 399 R11; the perfect-exemplar register is the "after"): markdown or markup leaking into prose (**bold**, ## headings, backticks, bullet glyphs); a grammar break at a concatenation seam (a frame clause that does not accept the words the quotation actually begins with; a missing relative pronoun, as in "the gap is the reserved judgment must be exercised"); the SAME citation pinpoint repeated back to back inside one string; internal scaffolding surviving mid-sentence ("Owner:"); a Title-Case headline fragment jammed into a paragraph. Report the assembled string, not the builder. Never restyle a byte-pinned surface, a verbatim quotation, a banner or the standing disclaimer to satisfy this class.`;
 
 /**

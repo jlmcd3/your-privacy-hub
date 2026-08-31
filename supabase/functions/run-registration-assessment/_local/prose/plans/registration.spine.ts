@@ -35,7 +35,7 @@
 //                   Authorities). Never printed unless the composer supplies
 //                   deterministic content for it.
 
-export const REGISTRATION_SKELETON_VERSION = "prose-plans-2026-08-30-c5-arabic";
+export const REGISTRATION_SKELETON_VERSION = "prose-plans-2026-08-31-s3-profile";
 export const REGISTRATION_SKELETON_SOURCE_FILE =
   "DPA_AI_Act_Registration_Assessment_Skeleton_v3.docx (Aug-10 governing copy, carrying the 428-D named-actor correction at paragraph 16)";
 export const REGISTRATION_SKELETON_PROVENANCE =
@@ -62,11 +62,20 @@ export const REGISTRATION_SKELETON_PROVENANCE =
  * this product's composed prose, confirmed by grep). Method verified by
  * reproducing the prior value first. Prior pin:
  * 9ebf8a9cddc6ebc970f27ceb587ef6688bd63ea2bd329f129200ae1c88bc4af2.
+ *
+ * RE-PIN A-TEAM S3 (doc 115 II.3, 2026-08-31): the byte-pinned framing
+ * sentence's "the verified corpus behind this assessment" — internal
+ * source-pipeline vocabulary the presentation review flagged P0 — became
+ * "listed in the Table of Authorities", and the cover title moved to the
+ * fleet Title Case ("Registration Assessment", ruling I.24). Prior pins:
+ * 5e60e0a56654f64da95ec38a978f16bbfe517a59ba385b0ee88f9ff3d5b11c67 (pre-II.3),
+ * 8cac3cb474f7b85485ac317bd2b81244a7679c90b0182b0c303810714a174650 (pre-I.24).
  */
 export const REGISTRATION_SKELETON_CONTENT_HASH =
-  "5e60e0a56654f64da95ec38a978f16bbfe517a59ba385b0ee88f9ff3d5b11c67";
+  "1e948250877c52a464c3d0fb8235744c04cb7764780d7013dc11ea735c76aa13";
 
-export const REGISTRATION_SKELETON_TITLE = "REGISTRATION ASSESSMENT";
+// A-TEAM S3 RULING I.24 (doc 115, 2026-08-31) — fleet Title Case cover.
+export const REGISTRATION_SKELETON_TITLE = "Registration Assessment";
 export const REGISTRATION_SKELETON_SUBTITLE =
   "Data-broker, supervisory-authority and AI Act filing review, prepared for {organizationName}";
 
@@ -80,7 +89,7 @@ export const REGISTRATION_REGISTER_GUIDE =
  * without the authoring marker, and may never be reworded.
  */
 export const REGISTRATION_CORPUS_FRAMING_NOTE =
-  "Every determination below rests on the statutes in the verified corpus behind this assessment and on nothing else.";
+  "Every determination below rests on the statutes listed in the Table of Authorities and on nothing else.";
 
 /**
  * The item413 register carries: the banned "on this record" family is checked
@@ -118,13 +127,23 @@ export interface RegistrationSkeletonSection {
 }
 
 export const REGISTRATION_SKELETON_SECTIONS: readonly RegistrationSkeletonSection[] = [
+  // A-TEAM S3 RULING II.5 (doc 115, 2026-08-31) — Registration was the one
+  // reviewed product with no Assessment Profile block; the fleet-standard
+  // label/value cover table renders ahead of the Executive Summary.
+  {
+    id: "cover",
+    title: "Assessment Profile",
+    blocks: [
+      { kind: "table", text: "registration_profile (assessment profile)" },
+    ],
+  },
   {
     id: "executive_summary",
     title: "Executive Summary",
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating how many registration duties attach on the company's answers and how many are presently satisfied." },
       { kind: "skeleton", text: "{organizationName}, operating in {sector - reader label} at a size of {orgSize - band as prose}, has indicated that it operates across {jurisdictions - as prose} and processes {dataTypes - reader labels}." },
-      { kind: "rule", text: "[BYTE-PINNED] Every determination below rests on the statutes in the verified corpus behind this assessment and on nothing else." },
+      { kind: "rule", text: "[BYTE-PINNED] Every determination below rests on the statutes listed in the Table of Authorities and on nothing else." },
       { kind: "generated", text: "[GENERATED] The filing posture in two to three sentences: duties attached, satisfied, and open, attributed." },
       // BATCH 19a (Wave C3, doc 113 S3.3) — the duty-status table (Duty |
       // Jurisdiction | Status | What closes it), rows from the four typed
@@ -186,12 +205,15 @@ export const REGISTRATION_SKELETON_SECTIONS: readonly RegistrationSkeletonSectio
  * framing note), so it is reassembled here in file form.
  */
 export const REGISTRATION_SKELETON_PARAGRAPHS: readonly string[] = [
-  "REGISTRATION ASSESSMENT",
+  "Registration Assessment",
   "Data-broker, supervisory-authority and AI Act filing review, prepared for {organizationName}",
   REGISTRATION_REGISTER_GUIDE,
   "Executive Summary",
   "[DETERMINATION LEAD] One sentence stating how many registration duties attach on the company's answers and how many are presently satisfied.",
-  `${REGISTRATION_SKELETON_SECTIONS[0].blocks[1].text} ${REGISTRATION_SKELETON_SECTIONS[0].blocks[2].text}`,
+  // A-TEAM S3 RULING II.5 (doc 115) — the cover section is SECTIONS[0] now;
+  // the Executive Summary the docx paragraphs reference is found by id so a
+  // future section insertion can never silently shift this reassembly.
+  `${REGISTRATION_SKELETON_SECTIONS.find((s) => s.id === "executive_summary")!.blocks[1].text} ${REGISTRATION_SKELETON_SECTIONS.find((s) => s.id === "executive_summary")!.blocks[2].text}`,
   "[GENERATED] The filing posture in two to three sentences: duties attached, satisfied, and open, attributed.",
   "1. Data Broker Registration",
   "[DETERMINATION LEAD] One sentence stating whether data-broker registration duties attach and in which states.",

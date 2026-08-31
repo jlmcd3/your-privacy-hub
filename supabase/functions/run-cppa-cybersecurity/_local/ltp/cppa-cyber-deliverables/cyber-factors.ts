@@ -157,7 +157,7 @@ export function buildCompanyContextAnalysis(intake: Bag): string {
   sentences.push(
     framework
       ? `The Company has indicated that its cybersecurity program is organized around ${noStop(framework)}.`
-      : "The Company has not named a primary cybersecurity framework in the intake; the component record below is therefore read on its own terms rather than against a named framework.",
+      : "The Company has not named a primary cybersecurity framework in the assessment record; the component record below is therefore read on its own terms rather than against a named framework.",
   );
   if (lastAudit) sentences.push(`Its most recent cybersecurity audit is recorded as ${noStop(lastAudit)}.`);
   if (incidents) {
@@ -673,13 +673,13 @@ export function buildExecutiveSnapshotRows(inputs: FactorInputs): readonly (read
   if (industry) rows.push(["Operating context", industry]);
   rows.push([
     "Evidence posture",
-    `Testable evidence identified for ${evOk} of the eighteen components`,
+    `Testable evidence identified for ${evOk} of 18 components`,
   ]);
   rows.push([
-    "Principal readiness gaps",
+    "Material program gaps identified",
     gaps.length
       ? `${asProse(gaps.slice(0, 3).map((r) => r.label))}${gaps.length > 3 ? `, and ${gaps.length - 3} more in Section 4` : ""}`
-      : "None identified on the Company's answers",
+      : "None identified on the information provided",
   ]);
   rows.push([
     "Priority readiness actions",

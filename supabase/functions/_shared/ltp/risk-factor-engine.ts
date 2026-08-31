@@ -68,6 +68,12 @@ function plural(n: number, one: string, many: string): string {
   return n === 1 ? one : many;
 }
 
+// A-TEAM S3 RULING VI.21 (doc 115) — counts under ten as words in narrative.
+const COUNT_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"] as const;
+function countWord(n: number): string {
+  return n >= 0 && n < COUNT_WORDS.length ? COUNT_WORDS[n] : String(n);
+}
+
 /**
  * CEO report review 2026-08-24 (carried) — § 7152(a)(8) "information
  * providers" free text in the "Name (Role) — materials." shape gets the
@@ -557,9 +563,15 @@ export function buildRiskAndSafeguardRegisterTable(intake: Bag): RenderedTable {
 
 // ── v5.2 ledger/table helpers ────────────────────────────────────────────────
 
-/** The doc-72 movement mark: ▼ reduced, = unchanged. */
+/** The movement mark beside a remaining-risk level.
+ *
+ * A-TEAM S3 RULING VI.3 (doc 115, 2026-08-31): doc 72's glyph marks (▼
+ * reduced, = unchanged) printed as apparent rendering defects — with no
+ * credited safeguard every ledger row read "High =", which the presentation
+ * review flagged P0 as stray output, and ▼ carries font-subsetting risk.
+ * Words replace the glyphs: self-explanatory, no legend, no glyph risk. */
 function movementMark(p: Pathway): string {
-  return MATERIALITY_RANK[p.residual] < MATERIALITY_RANK[p.materiality] ? "▼" : "=";
+  return MATERIALITY_RANK[p.residual] < MATERIALITY_RANK[p.materiality] ? "(reduced)" : "(unchanged)";
 }
 
 /** The safeguard-credited cell: credited safeguard(s) with status, or the
@@ -1025,9 +1037,10 @@ export function runRiskFactorEngine(
       ["FACTOR:balancing_table", "INTAKE:processing_status"],
       ["11 CCR § 7152(a)(7)", "11 CCR § 7154"],
     );
-    // Exec D — compact conditions.
+    // Exec D — compact conditions. A-TEAM S3 RULING VI.21 (doc 115): counts
+    // under ten render as words in narrative prose.
     const compact = conditions.length
-      ? `The determination depends on ${conditions.length} ${
+      ? `The determination depends on ${countWord(conditions.length)} ${
         plural(conditions.length, "Condition", "Conditions")
       } to Proceed: ${
         conditions.map((c) => c.split(":")[0].trim().replace(/\.$/, "")).join("; ")

@@ -61,9 +61,9 @@ Deno.test("G-2 — a genuinely clean record still gets the all-clear sentence an
   // operational domains walked in the sections below" so it can no longer be
   // read against the ICO crosswalk's DIFFERENT ten categories (whose tally
   // is 8 on the published sample); the all-clear is scoped the same way.
-  assertStringIncludes(exec, "Across the ten operational domains walked in the sections below");
-  assertStringIncludes(exec, "leave 9 of the ten fully evidenced");
-  assertStringIncludes(exec, "No operational domain requires immediate remediation on the company's answers");
+  assertStringIncludes(exec, "Across the ten operational domains assessed in the sections below");
+  assertStringIncludes(exec, "leaves 9 of the ten fully evidenced");
+  assertStringIncludes(exec, "No operational domain requires immediate remediation on the information provided");
 });
 
 Deno.test("G-3 — Compliant and Unresolved render as postures, not as \"severity compliant/unresolved\"", () => {
@@ -79,7 +79,7 @@ Deno.test("G-3 — Compliant and Unresolved render as postures, not as \"severit
 
 Deno.test("G-4 — the CEO-worded UNRESOLVED gap sentence, verbatim", () => {
   const f = buildDomainFindingsTyped({ ...STRONG, dpia_status: "Unsure" });
-  assertEquals(f["dpia_status"].gap_description, "The company's answers do not resolve this issue.");
+  assertEquals(f["dpia_status"].gap_description, "The information provided does not resolve this issue.");
 });
 
 Deno.test("G-5 — a Low-severity general-coverage training finding names its own gap", () => {
@@ -106,7 +106,7 @@ Deno.test("S-3 — the Art. 30 elements sentence is in attributed voice, and the
   };
   const sk = assembleGovernanceSkeletonDocument(report, STRONG);
   const text = JSON.stringify(sk.document);
-  assertStringIncludes(text, "the company's answers do not support (d)");
+  assertStringIncludes(text, "the information provided does not support (d)");
   assert(!text.includes("the record does not support"));
   // Deliberately NOT added to the banned-register guard per the CEO's
   // "do not do the optional addition" instruction.
@@ -132,9 +132,9 @@ Deno.test("S-1 — the operational-control lead is grammatical and uses the file
   const t1 = JSON.stringify(satisfied.document);
   const t2 = JSON.stringify(partial.document);
   const t3 = JSON.stringify(notSatisfied.document);
-  assertStringIncludes(t1, "The operational-control posture the company has described is evidenced on the company's answers.");
-  assertStringIncludes(t2, "The operational-control posture the company has described is only partly evidenced on the company's answers.");
-  assertStringIncludes(t3, "The operational-control posture the company has described is not evidenced on the company's answers.");
+  assertStringIncludes(t1, "The operational-control posture the company has described is evidenced on the information provided.");
+  assertStringIncludes(t2, "The operational-control posture the company has described is only partly evidenced on the information provided.");
+  assertStringIncludes(t3, "The operational-control posture the company has described is not evidenced on the information provided.");
   for (const t of [t1, t2, t3]) {
     assert(!t.includes("stands"), t);
     assert(!t.includes("The operational controls the company has described —"), "no unpaired em-dash / plural subject");
@@ -147,7 +147,7 @@ Deno.test("S-1 — the accountability-structure fallback also uses \"evidenced\"
     STRONG,
   );
   const text = JSON.stringify(sk.document);
-  assertStringIncludes(text, "Whether the accountability structure is evidenced on the company's answers cannot be determined.");
+  assertStringIncludes(text, "Additional information is required before the accountability determination can be made on the information provided.");
   assert(!text.includes("structure stands"));
 });
 
@@ -166,5 +166,5 @@ Deno.test("S-4 — the remediation meta values render in the register (note when
   const text = JSON.stringify(sk.document);
   assertStringIncludes(text, "Remediation register");
   assertStringIncludes(text, "Accountable owner: IT owner");
-  assertStringIncludes(text, "the intake's remediation defaults, applied to each item");
+  assertStringIncludes(text, "these values apply to every item in this register");
 });

@@ -79,9 +79,9 @@ export interface CyberV4Section {
 // instruction voice ("the report should not state…") to first-person-
 // document indicative; every legal boundary each sentence drew is kept.
 export const CYBER_V4_SKELETON_VERSION = "cppa-cyber-v4.0-spine-v1.5-2026-08-30";
-export const CYBER_V4_SKELETON_TITLE = "CPPA CYBERSECURITY AUDIT READINESS REPORT";
+export const CYBER_V4_SKELETON_TITLE = "CPPA Cybersecurity Audit Readiness Report";
 export const CYBER_V4_SKELETON_SUBTITLE =
-  "Prepared under 11 CCR §§ 7120-7124 — {profile.entity_name}";
+  "Prepared under 11 CCR §§ 7120–7124 — {profile.entity_name}";
 
 export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
   {
@@ -231,7 +231,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
     id: "appendix_d_record",
     title: "Appendix D — Assessment Record",
     blocks: [
-      { kind: "skeleton", text: "A structured preservation of the profile and control facts this report rests on, together with the report-generation record, so the assessment can be reviewed and reperformed." },
+      { kind: "skeleton", text: "A structured preservation of the profile and control facts this report rests on, together with the report record, so the assessment can be reviewed and reperformed." },
       { kind: "table", text: "" }, // profile facts + generation metadata
       { kind: "table", text: "" }, // raw per-component control facts, verbatim
     ],
@@ -243,7 +243,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
     id: "signature",
     title: "Signature",
     blocks: [
-      { kind: "skeleton", text: "This information is provided for the purposes of a cybersecurity audit as required pursuant to 11 CCR §§ 7120-7124." },
+      { kind: "skeleton", text: "This information is provided for the purposes of a cybersecurity audit as required pursuant to 11 CCR §§ 7120–7124." },
       { kind: "table", text: "" },
       { kind: "skeleton", text: "This signature acknowledges the information above, and is not the certification described in 11 CCR § 7124." },
     ],

@@ -18,7 +18,7 @@ import {
 import { attachCyberCorpus } from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cyber-corpus-attach.ts";
 import { CPPA_CYBER_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-cyber.ts";
 
-const REPORT_DATE = "2026-08-26";
+const REPORT_DATE = "August 26, 2026";
 
 // A minimal but realistic § 7121(a) excerpt shape for the ITEM-204 block.
 const PHASE_IN_EXCERPT = `(a) A business must complete its first cybersecurity audit as follows:
@@ -91,7 +91,7 @@ Deno.test("C2 — ITEM-204: all three tiers quoted, the pinned no-cohort sentenc
   assertStringIncludes(text, "April 1, 2030");
   assertStringIncludes(
     text,
-    "The customer, in consultation with qualified legal counsel, determines which tier its revenue places it in",
+    "The Company, in consultation with qualified legal counsel, determines which tier its revenue places it in",
   );
 });
 
@@ -172,7 +172,7 @@ Deno.test("C2 — the cover table carries the assessment identity", () => {
   assert(table, "cover table missing");
   const flat = table!.rows.flat().join(" | ");
   assertStringIncludes(flat, "CPPA Cybersecurity Audit Readiness Report");
-  assertStringIncludes(flat, "11 CCR §§ 7120-7124");
+  assertStringIncludes(flat, "11 CCR §§ 7120–7124");
   assertStringIncludes(flat, REPORT_DATE);
 });
 

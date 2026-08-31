@@ -65,7 +65,7 @@ Deno.test("ADMT-1: no orphan pointers — the destinations the summary names exi
   }
   assert(execTable!.rows.some((r) => r[1] === "Not reached"), "duty rows must read Not reached");
   assert(text.includes("7. Governance, Record Sufficiency"), "Governance section absent while the summary points to it");
-  assert(text.includes("Appendix C — Assessment Fact Record"), "fact-record appendix absent while the summary points to it");
+  assert(/Appendix [BC] — Assessment Fact Record/.test(text), "fact-record appendix absent while the summary points to it");
 });
 
 Deno.test("ADMT-1: §§3-6 render as not-reached stubs, and duty content stays out", () => {
@@ -80,7 +80,7 @@ Deno.test("ADMT-1: §§3-6 render as not-reached stubs, and duty content stays o
 Deno.test("ADMT-1: the conditions-on-determination caveat renders, with the auto-band sentence only on a lexical signal", () => {
   const base = fixture("admt-hr-perfect-record");
   const { text } = docFor(base);
-  assert(text.includes("Conditions on this determination"), "caveat heading absent");
+  assert(text.includes("Scope qualification — conditions on this determination"), "caveat heading absent");
   assert(text.includes("rests on the reported human review operating in practice"), "fragility sentence absent");
   const banded = docFor({
     ...base,

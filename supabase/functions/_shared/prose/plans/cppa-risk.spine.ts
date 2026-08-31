@@ -66,7 +66,10 @@ export const RISK_SKELETON_SOURCE_FILE =
 export const RISK_SKELETON_PROVENANCE =
   "CPPA_Risk_Assessment_Spine_v5.2_DRAFT_Memorandum_Redesign.docx — the Memorandum Redesign, integrating the CEO's v5.0 redline; ratified 2026-08-26 (chat record of that date), superseding the v5.0/v5.1 drafts and the v4.x encode line. Companion analysis doc 71; presentation layer doc 72. The determination logic (materiality matrix, residual rule, benefit-weight table, § 7154 balancing table) is carried from the v4.x ratifications unchanged; the determination STRINGS are re-registered to the redline's target wording (¶72) as part of this encode's ratification event.";
 
-export const RISK_SKELETON_TITLE = "CPPA PRIVACY RISK ASSESSMENT";
+// A-TEAM S3 RULING I.24 (doc 115, 2026-08-31) — cover titles follow the fleet
+// Title Case convention (Batch 21a); ADMT's cover set the precedent. Cover
+// bytes only; body content unchanged.
+export const RISK_SKELETON_TITLE = "CPPA Privacy Risk Assessment";
 export const RISK_SKELETON_SUBTITLE =
   "Prepared under 11 CCR §§ 7150–7157 for {entityName}";
 

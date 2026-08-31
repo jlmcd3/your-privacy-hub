@@ -235,7 +235,7 @@ Deno.test("buildCyberNextSteps — blank owner falls back to a named-in-intake p
   const evidence = buildEvidenceSufficiency(facts);
   const recs = buildCyberComponentRecommendations(coverage, evidence);
   const steps = buildCyberNextSteps(recs, "");
-  assertEquals(steps[0].owner, "the accountable owner named in the intake");
+  assertEquals(steps[0].owner, "the accountable owner named in the assessment record");
 });
 
 Deno.test("buildCyberNextSteps — fewer than 3 gaps yields fewer than 3 steps, never padded", () => {

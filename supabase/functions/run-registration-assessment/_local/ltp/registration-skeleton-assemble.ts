@@ -50,6 +50,8 @@ import {
   type SlotValues,
 } from "../../../_shared/prose/skeleton-render.ts";
 import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
+// A-TEAM S3 RULING I.23 (doc 115) — customer-facing dates in long form.
+import { formatReportDateLong } from "../../../_shared/report-dates.ts";
 import { firstSentence, firstSentences } from "../../../_shared/ltp/dpia-skeleton-assemble.ts";
 
 export const REGISTRATION_SKELETON_ASSEMBLER_STAMP =
@@ -353,7 +355,7 @@ function deriveFilingCalendarTable(report: Bag): RenderedTable | null {
     } else if (verdict === "conditional") {
       status = "Turns on the claimed exclusion";
     } else {
-      status = "Reserved — facts outstanding";
+      status = "Additional information required";
     }
     const fileWith = s(d.filing_body).replace(/^the\s+/i, "");
     rows.push([
@@ -490,7 +492,7 @@ export function deriveDutyStatusTable(report: Bag): RenderedTable | null {
       const openLimbs = asArray(((d.threshold ?? {}) as Bag).limbs).filter((l) => l.met === null).length;
       closes = openLimbs > 0
         ? `Evidence on ${openLimbs} definitional ${openLimbs === 1 ? "limb" : "limbs"}`
-        : "Facts the intake does not settle";
+        : "Required information not provided";
     }
     rows.push(["Data-broker registration", stateName(d), status, closes]);
   }
@@ -545,7 +547,7 @@ export function deriveDutyStatusTable(report: Bag): RenderedTable | null {
     key: "",
     surface: "determinations+representative_determinations+dpo_determination+ai_act_registration",
     title: "Duty status",
-    columns: ["Duty", "Jurisdiction", "Status", "What closes it"],
+    columns: ["Duty", "Jurisdiction", "Status", "Information required"],
     rows,
   };
 }
@@ -558,14 +560,14 @@ function composeExecLead(counts: RegistrationDutyCounts, org: string): string {
   // body defers: "one registration duty attaches" over a body that flags the
   // EU AI Act duties as potentially applicable understated the position.
   const pendingClause = counts.corpus_pending > 0
-    ? `, and ${count(counts.corpus_pending, "further duty question is", "further duty questions are")} flagged below but not yet assessable in the verified statutory corpus behind this assessment`
+    ? `, and ${count(counts.corpus_pending, "further duty question is", "further duty questions are")} flagged below but not yet assessable against the authorities relied on in this assessment`
     : "";
   if (counts.attached === 0) {
     return counts.reserved > 0
       ? stop(
-        `On its answers, no registration duty is established for ${org} and ${count(counts.reserved, "determination is", "determinations are")} reserved for want of a fact the intake does not settle${pendingClause}`,
+        `Based on the information supplied, no registration duty is established for ${org}, and ${count(counts.reserved, "determination remains", "determinations remain")} open because required information was not provided${pendingClause}`,
       )
-      : stop(`On its answers, no registration duty attaches to ${org}, so there is nothing presently to file${pendingClause}`);
+      : stop(`Based on the information supplied, no registration duty attaches to ${org}, so there is nothing presently to file${pendingClause}`);
   }
   // FD703575-R1 — the count names what it counts, so a "2 duties" lead can
   // never leave the reader hunting the body for the second duty.
@@ -590,7 +592,7 @@ function composeExecLead(counts: RegistrationDutyCounts, org: string): string {
   }
   if (counts.designation_attached > 0) {
     satisfactionBits.push(
-      `whether the ${counts.designation_attached === 1 ? "designation duty is" : "designation duties are"} already met is not recorded on the intake`,
+      `whether the ${counts.designation_attached === 1 ? "designation duty is" : "designation duties are"} already met is not recorded in the information supplied`,
     );
   }
   const satisfaction = satisfactionBits.join(", and ");
@@ -602,7 +604,7 @@ function composeExecLead(counts: RegistrationDutyCounts, org: string): string {
     ? `of which ${satisfaction}`
     : `and ${satisfaction}`;
   return stop(
-    `On its answers, ${count(counts.attached, "registration duty attaches", "registration duties attach")} to ${orgAndNames} ${satisfactionClause}${counts.reserved > 0 ? `, with ${count(counts.reserved, "further determination", "further determinations")} reserved for want of a fact the intake does not settle` : ""}${pendingClause}`,
+    `Based on the information supplied, ${count(counts.attached, "registration duty attaches", "registration duties attach")} to ${orgAndNames} ${satisfactionClause}${counts.reserved > 0 ? `, with ${count(counts.reserved, "further determination", "further determinations")} remaining open because required information was not provided` : ""}${pendingClause}`,
   );
 }
 
@@ -755,7 +757,7 @@ function composeBrokerConditional(report: Bag, intake: Bag, org: string): string
     .map((m) => REGISTRATION_JURISDICTION_LABELS[m] ?? m);
   if (unregistered.length) {
     blocks.push(stop(
-      `The markets served also name ${asProse(unregistered)}. No data-broker registration statute for ${unregistered.length === 1 ? "that state" : "those states"} is among the four state registries in the verified statutory corpus behind this assessment, so no registration duty is stated for ${unregistered.length === 1 ? "it" : "them"} here; the entry of any new state registry is a named review trigger in the approval block below`,
+      `The markets served also name ${asProse(unregistered)}. No data-broker registration statute for ${unregistered.length === 1 ? "that state" : "those states"} is among the four state registries covered by this assessment, so no registration duty is stated for ${unregistered.length === 1 ? "it" : "them"} here; the entry of any new state registry is a named review trigger in the approval block below`,
     ));
   }
   const outside = composeOutsideFrameworks(intake);
@@ -881,15 +883,15 @@ function composeSupervisoryLead(report: Bag, org: string): string {
   if (ai.ai_act_obligations_engaged === true) engaged.push("EU AI Act registration duties");
 
   if (engaged.length === 0 && reserved.length === 0) {
-    return stop(`On its answers, ${org} carries no EU, UK or AI Act filing duty of this kind`);
+    return stop(`Based on the information supplied, ${org} carries no EU, UK or AI Act filing duty of this kind`);
   }
   if (engaged.length === 0) {
     return stop(
-      `On its answers, ${org} carries no established EU, UK or AI Act filing duty of this kind, and the position on ${asProse(reserved)} is reserved for want of a fact the intake does not settle`,
+      `Based on the information supplied, ${org} carries no established EU, UK or AI Act filing duty of this kind, and the position on ${asProse(reserved)} remains open because required information was not provided`,
     );
   }
   return stop(
-    `On its answers, ${org} requires ${asProse(engaged)}${reserved.length ? `, and the position on ${asProse(reserved)} is reserved for want of a fact the intake does not settle` : ""}`,
+    `Based on the information supplied, ${org} requires ${asProse(engaged)}${reserved.length ? `, and the position on ${asProse(reserved)} remains open because required information was not provided` : ""}`,
   );
 }
 
@@ -1014,17 +1016,17 @@ function composeReadinessLead(report: Bag, counts: RegistrationDutyCounts, org: 
     // reading as an all-clear beside an engaged duty.
     if (counts.designation_attached > 0) {
       return stop(
-        `No filing-content list applies to ${org} on its answers; the outstanding ${counts.designation_attached === 1 ? "act recorded above is" : "acts recorded above are"} ${asProse(counts.attached_names.slice(counts.filing_attached))}`,
+        `No filing-content list applies to ${org} on the current assessment record; the outstanding ${counts.designation_attached === 1 ? "act recorded above is" : "acts recorded above are"} ${asProse(counts.attached_names.slice(counts.filing_attached))}`,
       );
     }
     return stop(
-      `No filing-content list applies to ${org} on its answers, so nothing stands between the company and a filing it is not required to make`,
+      `No filing is required of ${org} on the current assessment record; accordingly, no filing-readiness items apply`,
     );
   }
   const open = rows.filter((r) => r.ready_to_file !== true);
   if (open.length === 0) {
     return stop(
-      `Nothing on the company's answers stands between ${org} and complete filings: every content item each jurisdiction requires is recorded`,
+      `The information supplied supports complete filings for ${org}: every content item each jurisdiction requires is recorded`,
     );
   }
   const missing = new Set<string>();
@@ -1095,7 +1097,14 @@ function composeReadinessBody(report: Bag, intake: Bag): string {
     if (s(att.next_review_due)) bits.push(stop(`The next review is recorded as due on ${s(att.next_review_due)}`));
     const triggers = strList(att.review_triggers);
     if (triggers.length) {
-      bits.push(stop(`An earlier review is required on ${asProse(triggers.map((t) => noStop(lowerEnumLabel(t))))}`));
+      // A-TEAM S3 RULING II.15 (doc 115, 2026-08-31) — the triggers used to
+      // be prose-joined into one run-on sentence; each now renders on its
+      // own "— " line (the renderer's dash-list segmentation turns the run
+      // into a real bullet list).
+      bits.push(
+        "An earlier review is required on any of the following:\n" +
+          triggers.map((t) => `— ${stop(noStop(t))}`).join("\n"),
+      );
     }
     if (s(att.information_needed)) {
       // BATCH 18b (doc 113 S2.18, doc 109 §1.8 item 11) — the typed value is
@@ -1190,6 +1199,37 @@ function checkLeadCoherence(
   return findings;
 }
 
+// A-TEAM S3 RULING II.5 (doc 115, 2026-08-31) — the fleet-standard
+// label/value Assessment Profile cover table (hideHeader, matching ADMT/
+// Risk/Cyber). Every value is read from the intake or the typed duty
+// counts; nothing is invented.
+function deriveRegistrationProfileTable(
+  intake: Bag,
+  counts: RegistrationDutyCounts,
+  org: string,
+): RenderedTable {
+  const juris = buildJurisdictionProse(intake);
+  const status = counts.attached === 0
+    ? (counts.reserved > 0
+      ? `No registration duty established; ${count(counts.reserved, "determination remains", "determinations remain")} open`
+      : "No registration duty attaches")
+    : `${count(counts.attached, "registration duty attaches", "registration duties attach")}${counts.reserved > 0 ? `; ${count(counts.reserved, "determination remains", "determinations remain")} open` : ""}`;
+  const rows: string[][] = [
+    ["Organization", org],
+    ...(juris ? [["Jurisdictions assessed", juris]] : []),
+    ["Assessment date", formatReportDateLong(new Date().toISOString().slice(0, 10))],
+    ["Overall status", status],
+  ];
+  return {
+    key: "",
+    surface: "registration_profile",
+    title: "",
+    columns: ["Field", "Value"],
+    hideHeader: true,
+    rows,
+  };
+}
+
 export function assembleRegistrationSkeletonDocument(
   report: Bag,
   intakeInput: Bag,
@@ -1226,6 +1266,8 @@ export function assembleRegistrationSkeletonDocument(
   // BATCH 18b (doc 113 S2.12/S2.14/S2.16/S2.17) — the tables, keyed to
   // their spine blocks. Each is honestly absent (null) when its rows are.
   const tables: SkeletonTables = {
+    // A-TEAM S3 RULING II.5 (doc 115) — the Assessment Profile cover table.
+    "cover:0": deriveRegistrationProfileTable(intake, counts, org),
     "executive_summary:4": deriveDutyStatusTable(report),
     "data_broker_registration:1": deriveFilingCalendarTable(report),
     "data_broker_registration:3": deriveLimbWalkTable(report),

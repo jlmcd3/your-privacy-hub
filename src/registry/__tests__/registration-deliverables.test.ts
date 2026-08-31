@@ -408,7 +408,7 @@ describe("ITEM 316 — analysis shape", () => {
     expect(flag.status).toBe("record_insufficient");
     // RE-PIN PANEL LEAK-1 (2026-08-30): "corpus pending" was internal
     // shorthand in customer prose; the flag's note now states it plainly.
-    expect(flag.note).toContain("not yet in the verified statutory corpus behind this assessment");
+    expect(flag.note).toContain("not yet among the authorities relied on in this assessment");
     expect(flag.named_provisions.join(" ")).toContain("2024/1689");
     expect((flag as unknown as Record<string, unknown>).verdict).toBeUndefined();
     // Absent any AI indicator, neither surface is raised at all.
