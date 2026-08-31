@@ -23,12 +23,15 @@ function json(body: unknown, status = 200) {
   });
 }
 
+// GDPR-ONLY LAW (2026-08-31, CEO ruling): Governance, DPIA, and Registration
+// are GDPR-only products — US companies never run them. geo: "eu" gates both
+// job creation here and the Claude fixture prompt in generate-stress-fixtures.
 const ALL_TOOLS = [
-  { id: "governance", geo: "both" },
+  { id: "governance", geo: "eu"   },
   { id: "dpa",        geo: "both" },
   { id: "ir-playbook",geo: "both" },
   { id: "biometric",  geo: "both" },
-  { id: "registration",geo:"both" },
+  { id: "registration",geo:"eu"   },
   { id: "lia",        geo: "eu"   },
   { id: "dpia",       geo: "eu"   },
   { id: "ropa",       geo: "eu"   },
