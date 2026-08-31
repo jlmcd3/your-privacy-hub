@@ -40,7 +40,11 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { SAMPLE_FIXTURES, type SampleFixture, type ToolSlug } from "@/lib/sampleFixtures";
 import { preflightFixture, type PreflightResult } from "@/lib/sampleFixturePreflight";
-import { PRESET_DATASET_COUNT, pickPresetDatasets } from "@/lib/sampleDataPackages";
+import {
+  PRESET_DATASET_COUNT,
+  isNonGdprFixtureForGdprOnlyProduct,
+  pickPresetDatasets,
+} from "@/lib/sampleDataPackages";
 import { invokeWithTimeout, runGenerator } from "@/lib/sampleGenerators";
 import {
   STRESS_INDUSTRIES,
@@ -157,6 +161,10 @@ export function AllProductsPanel() {
     const order = [...EXTENDED_SLUGS, ...SO_COVERED_SLUGS];
     return [...SAMPLE_FIXTURES]
       .filter((f) => showSupplemental || !f.variant.endsWith("-supplemental"))
+      // GDPR-ONLY PRODUCTS: Governance, DPIA and Registration are run by
+      // GDPR-subject clients, so their US-jurisdiction fixtures are not
+      // offered as pre-set data here.
+      .filter((f) => !isNonGdprFixtureForGdprOnlyProduct(f))
       .sort(
         (a, b) => order.indexOf(a.tool_slug) - order.indexOf(b.tool_slug) || a.variant.localeCompare(b.variant),
       );
@@ -690,8 +698,17 @@ export function AllProductsPanel() {
             gptScore: null,
             meanScore: null,
           });
+          // QUEUE LAW (2026-08-31): a run that times out or errors ends THIS
+          // product's remaining datasets only — the batch always moves on to
+          // the next product instead of grinding through four more copies of
+          // a generator that is currently broken.
+          if (i < datasets.length) {
+            appendLog(k, `⏭ skipping ${datasets.length - i} remaining dataset(s) for this product`);
+          }
+          break;
         }
       }
+
     }
     setBusy(false);
     toast[ok === totalRuns ? "success" : "error"](`${ok}/${totalRuns} runs completed`);

@@ -79,6 +79,59 @@ export const DERIVED_PROFILES: DataProfile[] = [
   },
 ];
 
+/**
+ * GDPR-ONLY PRODUCTS (2026-08-31, CEO instruction).
+ *
+ * A US-established company does not run the Governance assessment, the DPIA
+ * or Registration — those products exist because the client is subject to the
+ * GDPR. Their pre-set datasets therefore carry EU/UK identities only, and the
+ * US-jurisdiction canonical variants of those products are not offered as
+ * pre-set data on /admin/all-products-test.
+ */
+export const GDPR_ONLY_SLUGS: ToolSlug[] = ["governance", "dpia", "registration"];
+
+/** EU/UK substitution identities used for the GDPR-only products. */
+export const EU_DERIVED_PROFILES: DataProfile[] = [
+  DERIVED_PROFILES[0], // Aurora Borealis Logistics AB — Gothenburg (SE)
+  {
+    key: "meridiaan",
+    org: "Meridiaan Datadiensten B.V.",
+    orgShort: "Meridiaan Datadiensten",
+    domain: "meridiaandata.eu",
+    dpoName: "Wouter van Leeuwen",
+    execName: "Wouter van Leeuwen",
+    execTitle: "General Counsel",
+    city: "Rotterdam",
+  },
+  DERIVED_PROFILES[2], // Silverbell Health Networks Ltd — Manchester (UK)
+  {
+    key: "lumiere",
+    org: "Lumière Santé Group SAS",
+    orgShort: "Lumière Santé Group",
+    domain: "lumieresante.eu",
+    dpoName: "Camille Devereux",
+    execName: "Camille Devereux",
+    execTitle: "Head of Compliance",
+    city: "Lyon",
+  },
+];
+
+/** The substitution identities a given product's datasets are built from. */
+export function profilesFor(slug: ToolSlug): DataProfile[] {
+  return GDPR_ONLY_SLUGS.includes(slug) ? EU_DERIVED_PROFILES : DERIVED_PROFILES;
+}
+
+/**
+ * True when a canonical fixture must not be offered as pre-set data because it
+ * gives a GDPR-only product a US-established company.
+ */
+export function isNonGdprFixtureForGdprOnlyProduct(f: SampleFixture): boolean {
+  return (
+    GDPR_ONLY_SLUGS.includes(f.tool_slug) &&
+    /^(us|broker_multistate)(-|$)/.test(f.variant)
+  );
+}
+
 /** Keys whose value names the organisation, at any depth. */
 const ORG_KEYS = new Set([
   "organization_name", "organisation_name", "organizationName", "organisationName",
@@ -214,7 +267,7 @@ export function applyProfile(base: SampleFixture, profile: DataProfile, index: n
 
 /** The 5 datasets for one canonical fixture (dataset 1 = the fixture itself). */
 export function datasetsFor(base: SampleFixture): SampleFixture[] {
-  return [base, ...DERIVED_PROFILES.map((p, i) => applyProfile(base, p, i + 1))];
+  return [base, ...profilesFor(base.tool_slug).map((p, i) => applyProfile(base, p, i + 1))];
 }
 
 export const PRESET_DATASET_COUNT = 5;

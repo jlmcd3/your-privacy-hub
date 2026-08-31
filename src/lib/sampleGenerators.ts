@@ -78,14 +78,32 @@ export async function getOrCreatePersonalClient(userId: string): Promise<string>
 
 
 // Poll a table row until it reaches a terminal status. Returns the terminal status.
+//
+// WALL-CLOCK LAW (2026-08-31): the budget is REAL TIME, not a poll count.
+// Chrome throttles `setTimeout` in a backgrounded tab to roughly one tick per
+// minute, so a "90 polls × 4s = 6 minutes" budget silently stretched toward
+// ~90 minutes and the whole batch looked frozen behind one product. The loop
+// now stops as soon as `max × intervalMs` of wall-clock time has elapsed,
+// whatever the browser does to the timers.
 export async function pollRowStatus(
   table: string,
   id: string,
-  opts: { max: number; intervalMs: number; complete: string[]; failed: string[]; errorCol?: string },
+  opts: {
+    max: number;
+    intervalMs: number;
+    complete: string[];
+    failed: string[];
+    errorCol?: string;
+    /** Explicit wall-clock budget; defaults to max × intervalMs. */
+    budgetMs?: number;
+  },
   log: (msg: string) => void,
 ): Promise<void> {
-  for (let i = 0; i < opts.max; i++) {
-    await new Promise((r) => setTimeout(r, opts.intervalMs));
+  const budgetMs = opts.budgetMs ?? opts.max * opts.intervalMs;
+  const startedAt = Date.now();
+  const deadline = startedAt + budgetMs;
+  for (let i = 0; Date.now() < deadline; i++) {
+    await new Promise((r) => setTimeout(r, Math.min(opts.intervalMs, Math.max(0, deadline - Date.now()))));
     const cols = opts.errorCol ? `status, ${opts.errorCol}` : "status";
     // FREEZE FIX: one stalled status read must never hang the poll loop —
     // race it against 15s and treat a timeout as an unknown-status poll.
@@ -98,16 +116,21 @@ export async function pollRowStatus(
     ]);
     const status = data?.status as string | undefined;
     if (status && opts.complete.includes(status)) {
-      log(`✅ status=${status} after ${i + 1} polls`);
+      log(`✅ status=${status} after ${i + 1} polls (${Math.round((Date.now() - startedAt) / 1000)}s)`);
       return;
     }
     if (status && opts.failed.includes(status)) {
       const detail = opts.errorCol ? data?.[opts.errorCol] : null;
       throw new Error(`generator status=${status}${detail ? `: ${detail}` : ""}`);
     }
-    if (i % 5 === 0) log(`… poll ${i + 1}/${opts.max} (status=${status ?? "?"})`);
+    if (i % 5 === 0) {
+      const leftS = Math.max(0, Math.round((deadline - Date.now()) / 1000));
+      log(`… poll ${i + 1} (status=${status ?? "?"}, ${leftS}s of budget left)`);
+    }
   }
-  throw new Error("polling timed out");
+  throw new Error(
+    `polling timed out after ${Math.round((Date.now() - startedAt) / 1000)}s (budget ${Math.round(budgetMs / 1000)}s)`,
+  );
 }
 
 export async function runGenerator(
