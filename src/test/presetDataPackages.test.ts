@@ -4,6 +4,10 @@ import { describe, expect, it } from "vitest";
 import { SAMPLE_FIXTURES } from "@/lib/sampleFixtures";
 import {
   DERIVED_PROFILES,
+  EU_DERIVED_PROFILES,
+  GDPR_ONLY_SLUGS,
+  isNonGdprFixtureForGdprOnlyProduct,
+  profilesFor,
   PRESET_DATASET_COUNT,
   datasetsFor,
   pickPresetDatasets,
@@ -50,8 +54,9 @@ describe("preset data packages", () => {
       const blobs = ds.map((d) => JSON.stringify(d.fixture));
       expect(new Set(blobs).size).toBe(PRESET_DATASET_COUNT);
       // Each derived dataset must mention its own organisation somewhere.
+      const profiles = profilesFor(f.tool_slug);
       ds.slice(1).forEach((d, i) => {
-        expect(blobs[i + 1]).toContain(DERIVED_PROFILES[i].orgShort);
+        expect(blobs[i + 1]).toContain(profiles[i].orgShort);
       });
     }
   });
@@ -67,5 +72,29 @@ describe("preset data packages", () => {
     expect(pickPresetDatasets(base, 5)).toHaveLength(5);
     expect(pickPresetDatasets(base, 12)).toHaveLength(5);
     expect(pickPresetDatasets(base, 1)).toHaveLength(1);
+  });
+});
+
+describe("GDPR-only products carry no US identities", () => {
+  it("derives Governance / DPIA / Registration datasets from EU-UK profiles only", () => {
+    for (const slug of GDPR_ONLY_SLUGS) {
+      expect(profilesFor(slug)).toBe(EU_DERIVED_PROFILES);
+    }
+    for (const p of EU_DERIVED_PROFILES) {
+      expect(["Anchorage", "Boston"]).not.toContain(p.city);
+    }
+    // The general pool is unchanged for the US-facing products.
+    expect(profilesFor("cppa_risk")).toBe(DERIVED_PROFILES);
+  });
+
+  it("drops the US canonical variants of the GDPR-only products", () => {
+    const dropped = SAMPLE_FIXTURES.filter(isNonGdprFixtureForGdprOnlyProduct).map(
+      (f) => `${f.tool_slug}/${f.variant}`,
+    );
+    expect(dropped).toContain("governance/us");
+    expect(dropped).toContain("registration/us");
+    expect(dropped).toContain("registration/broker_multistate");
+    expect(dropped.some((k) => k.startsWith("cppa_"))).toBe(false);
+    expect(dropped.some((k) => k.startsWith("biometric/"))).toBe(false);
   });
 });
