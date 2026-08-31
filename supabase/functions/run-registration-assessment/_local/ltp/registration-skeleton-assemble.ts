@@ -916,6 +916,13 @@ function composeSupervisoryLead(report: Bag, org: string): string {
   push("an EU Article 27 representative", s(eu?.verdict));
   push("a UK Article 27 representative", s(uk?.verdict));
   push("a data protection officer", s(dpo.verdict));
+  // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, closes
+  // Registration P1-3) — BDSG §38 is a determination separate from the GDPR
+  // Art. 37(1) dpo.verdict above (a record can resolve the GDPR branches
+  // while the BDSG conditional stays open, or vice versa); naming only
+  // whichever was already reserved undercounted the open items this lead
+  // sentence claims to summarise.
+  if (/Conditional on BDSG §38/.test(s(ai.dpo_condition))) reserved.push("the German BDSG § 38 DPO threshold");
   if (ai.ai_act_obligations_engaged === true) engaged.push("EU AI Act registration duties");
 
   if (engaged.length === 0 && reserved.length === 0) {
@@ -994,6 +1001,25 @@ function composeSupervisoryAnalysis(report: Bag): string {
     }
     blocks.push(
       [heading, bits.join(" "), branchLines.join("\n")]
+        .filter(Boolean)
+        .join("\n\n"),
+    );
+  }
+
+  // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, closes
+  // Registration P0-2) — the BDSG §38 conditional already carries its own
+  // reasoning in obligations_summary.dpo_condition (registration-engine.ts's
+  // bdsgCondition) and already earns its own scorecard row above, but this
+  // §II body never rendered it — a duty visible on page 1 had no detailed
+  // analysis. bdsgCondition is always appended LAST when present (engine
+  // concatenates GDPR text, then BDSG text), so it is extracted by its fixed
+  // opening words rather than duplicating the whole (possibly GDPR-prefixed)
+  // dpo_condition string.
+  const dpoConditionFull = s((report.obligations_summary as Bag | undefined)?.dpo_condition);
+  const bdsgMatch = dpoConditionFull.match(/Conditional on BDSG §38[\s\S]*/);
+  if (bdsgMatch) {
+    blocks.push(
+      ["Germany — data protection officer, BDSG § 38.", stop(noStop(bdsgMatch[0]))]
         .filter(Boolean)
         .join("\n\n"),
     );
