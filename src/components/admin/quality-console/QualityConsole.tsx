@@ -1203,7 +1203,17 @@ export function QualityConsole({
     </Card>
   );
 
+  // Scores matrix opens scrolled to the newest batches (right-hand edge).
+  const scoresScrollRef = useRef<HTMLDivElement>(null);
+  const scoresColCount = matrixColumns.length;
+  useEffect(() => {
+    const el = scoresScrollRef.current;
+    if (!el) return;
+    el.scrollLeft = el.scrollWidth;
+  }, [scoresColCount]);
+
   const renderScoresCard = () => (
+
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Tools & batch scores</CardTitle>
@@ -1212,11 +1222,13 @@ export function QualityConsole({
         </Button>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        {/* Product names stay pinned on the left; batches scroll horizontally,
+            opening on the most recent batches. */}
+        <div ref={scoresScrollRef} className="overflow-x-auto">
+          <table className="w-full min-w-max text-sm">
             <thead>
               <tr className="border-b text-left">
-                <th className="py-2 pr-3">Tool</th>
+                <th className="sticky left-0 z-20 bg-background py-2 pr-3">Tool</th>
                 <th className="py-2 pr-3">Tests (last 10)</th>
                 <th className="py-2 pr-3 bg-muted/40">Baseline</th>
                 {matrixColumns.map((col, i) => (
@@ -1272,7 +1284,7 @@ export function QualityConsole({
                 const baseAvg = baseline?.avg_score != null ? Number(baseline.avg_score) : null;
                 return (
                   <tr key={tool} className="border-b align-top">
-                    <td className="py-2 pr-3 font-mono">{tool}</td>
+                    <td className="sticky left-0 z-10 bg-background py-2 pr-3 font-mono">{tool}</td>
                     <td className="py-2 pr-3">{testsCount.get(tool) ?? 0}</td>
                     <td
                       className="py-2 pr-3 bg-muted/40 font-mono"
@@ -1333,7 +1345,7 @@ export function QualityConsole({
                 const total = (st?.total ?? 0) + localTotal;
                 return (
                   <tr key={tool} className="border-b align-top bg-muted/10">
-                    <td className="py-2 pr-3 font-mono">
+                    <td className="sticky left-0 z-10 bg-background py-2 pr-3 font-mono">
                       {tool}
                       <div className="text-[10px] font-sans text-muted-foreground">
                         stress harness + in-page · Claude/GPT graded
