@@ -130,6 +130,8 @@ export function AllProductsPanel() {
   const [cancelling, setCancelling] = useState(false);
 
   const [expanded, setExpanded] = useState<string | null>(null);
+  // Batch-outcomes table collapse (simple toggle; open by default).
+  const [outcomesOpen, setOutcomesOpen] = useState(true);
   // BATCH NUMBER — how many sample runs to generate per selected product.
   // Mirrors the "Batch size" control in the skeleton console below; default 1.
   const [batchNumber, setBatchNumber] = useState<number>(1);
@@ -936,9 +938,15 @@ export function AllProductsPanel() {
         {/* ── 5. TEST BATCH OUTCOME TABLE ─────────────────────────────── */}
         <div>
           <div className="mb-1 flex flex-wrap items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <button
+              type="button"
+              onClick={() => setOutcomesOpen((v) => !v)}
+              aria-expanded={outcomesOpen}
+              className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
+            >
+              <span aria-hidden>{outcomesOpen ? "▾" : "▸"}</span>
               5 · Batch outcomes ({outcomes.length})
-            </span>
+            </button>
             <Button size="sm" variant="outline" disabled={!outcomes.length} onClick={() => downloadAllAnalyses(outcomes)}>
               Download analyses (JSON)
             </Button>
@@ -949,7 +957,7 @@ export function AllProductsPanel() {
               Clear outcomes
             </Button>
           </div>
-          {outcomes.length === 0 ? (
+          {!outcomesOpen ? null : outcomes.length === 0 ? (
             <p className="rounded border bg-muted/30 p-3 text-xs text-muted-foreground">
               Run a batch above — every run lands here with its scores, PDF creation, and analysis download.
             </p>
