@@ -180,42 +180,59 @@ export async function runGenerator(
   // These functions return { id, status: "processing" } immediately and write
   // status complete|failed to the row in the background. We MUST poll to a
   // terminal status before the PDF step, or generate-report-pdf will 409.
+  //
+  // ROW-FIRST LAW (2026-08-31): generate-dpa / generate-ir-playbook /
+  // check-biometric-compliance answer 403 to any NON-service caller that does
+  // not reference an existing row (new-row generation is reserved for the
+  // payments webhook). The harness runs as a signed-in admin, so it creates
+  // the owned row itself and invokes with `assessment_id` — requireEntitlement
+  // then grants via the server-side admin bypass.
   if (fix.tool_slug === "dpa" || fix.tool_slug === "ir_playbook") {
     const invoke = f.invoke as { fn: string };
     const body =
       fix.tool_slug === "ir_playbook" && f.invoke_body
         ? { ...(f.invoke_body as Record<string, unknown>), user_id: userId }
         : { ...((f.invoke_body_extras as Record<string, unknown>) ?? {}), user_id: userId };
+    const table = fix.tool_slug === "dpa" ? "dpa_documents" : "ir_playbooks";
+    const rowId = await createOwnedRow(table, body, userId, log);
     log(`▶ Invoking ${invoke.fn} (background dispatch)...`);
     // FREEZE FIX: the 202 dispatch normally answers in seconds; 90s of
     // silence means this run failed to dispatch — fail it and let the batch
     // loop continue to the next run instead of hanging the whole batch.
-    const { data, error } = await invokeWithTimeout<{ id?: string; error?: string }>(invoke.fn, body, 90_000);
-    if (error || !data?.id) throw new Error(`generator: ${error?.message || data?.error || "no id"}`);
-    log(`✓ accepted id=${data.id} — polling for completion`);
-    const table = fix.tool_slug === "dpa" ? "dpa_documents" : "ir_playbooks";
+    const { data, error } = await invokeWithTimeout<{ id?: string; error?: string }>(
+      invoke.fn, { ...body, assessment_id: rowId }, 90_000,
+    );
+    if (error) throw new Error(`generator: ${error.message}`);
+    if (data?.error) throw new Error(`generator: ${data.error}`);
+    log(`✓ accepted id=${rowId} — polling for completion`);
     await pollRowStatus(
       table,
-      data.id,
+      rowId,
       { max: 90, intervalMs: 3000, complete: ["complete"], failed: ["failed", "error"] },
       log,
     );
-    return { sourceRowId: data.id, resultUrl: fix.result_url_pattern.replace("{id}", data.id) };
+    return { sourceRowId: rowId, resultUrl: fix.result_url_pattern.replace("{id}", rowId) };
   }
 
   // -- Biometric (synchronous single call) ---------------------------------
   if (fix.tool_slug === "biometric") {
     const invoke = f.invoke as { fn: string };
     const body = { ...((f.invoke_body_extras as Record<string, unknown>) ?? {}), user_id: userId };
+    const rowId = await createOwnedRow("biometric_assessments", body, userId, log);
     log(`▶ Invoking ${invoke.fn}...`);
     // FREEZE FIX: synchronous generator — the response IS the result, so the
     // timeout is generous (5 min), but a dead connection can no longer hang
     // the batch loop forever.
-    const { data, error } = await invokeWithTimeout<{ id?: string; error?: string }>(invoke.fn, body, 300_000);
-    if (error || !data?.id) throw new Error(`generator: ${error?.message || data?.error || "no id"}`);
-    log(`✅ id=${data.id}`);
-    return { sourceRowId: data.id, resultUrl: fix.result_url_pattern.replace("{id}", data.id) };
+    const { data, error } = await invokeWithTimeout<{ id?: string; error?: string }>(
+      invoke.fn, { ...body, assessment_id: rowId }, 300_000,
+    );
+    if (error) throw new Error(`generator: ${error.message}`);
+    if (data?.error) throw new Error(`generator: ${data.error}`);
+    log(`✅ id=${data?.id ?? rowId}`);
+    const id = data?.id ?? rowId;
+    return { sourceRowId: id, resultUrl: fix.result_url_pattern.replace("{id}", id) };
   }
+
 
   // -- Registration (synchronous single call) ------------------------------
   // run-registration-assessment persists to `registration_assessments` and
