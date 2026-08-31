@@ -279,14 +279,16 @@ export function AllProductsPanel() {
                   });
                 }
                 if (j.status === "complete" && j.source_row_id && claimOnce(lb, j.id, "score")) {
-                  void gradeAndRecord(
-                    lb,
-                    row.tool_slug,
-                    j.source_row_id,
-                    `claude-intake/${j.company_name ?? "company"}`,
-                    k,
-                    outcomeId,
-                  ).catch((e) => appendLog(k, `· grading error — ${(e as Error).message}`));
+                  gradingWork.push(
+                    gradeAndRecord(
+                      lb,
+                      row.tool_slug,
+                      j.source_row_id,
+                      `claude-intake/${j.company_name ?? "company"}`,
+                      k,
+                      outcomeId,
+                    ).catch((e) => appendLog(k, `· grading error — ${(e as Error).message}`)),
+                  );
                 }
               }
             }
@@ -298,9 +300,15 @@ export function AllProductsPanel() {
             lastSummary = summary;
           }
           if (["complete", "completed", "failed", "cancelled"].includes(batch.status)) {
+            // COMPLETION LAW — "batch complete" is only printed once every
+            // grading call started by this monitor has settled.
+            if (gradingWork.length) {
+              appendAllProductsLog("batch", `… waiting for ${gradingWork.length} grading call(s) to finish`);
+              await Promise.allSettled(gradingWork);
+            }
             appendAllProductsLog(
               "batch",
-              `${batch.failed_jobs ? "❌" : "✅"} batch ${batch.status} — ${batch.completed_jobs} complete, ${batch.failed_jobs} failed`,
+              `${batch.failed_jobs ? "❌" : "✅"} batch ${batch.status} — ${batch.completed_jobs} complete, ${batch.failed_jobs} failed · ${gradingWork.length} graded`,
               batch.failed_jobs ? "error" : "success",
             );
             window.sessionStorage.removeItem("eup.allProductsTest.activeClaudeBatch");
