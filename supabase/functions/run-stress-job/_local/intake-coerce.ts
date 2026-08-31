@@ -203,7 +203,23 @@ function mapLeaf(
   }
 }
 
-function coerceField(intake: Record<string, unknown>, f: IntakeField, notes: string[]): void {
+/** Fields whose EMPTINESS the product endpoint hard-rejects with a 400,
+ * keyed by contract tool_type (grep the endpoint's own input guards before
+ * adding a row). For these, clearing an all-unmatched list would sail past
+ * the gate (missing-required is only advisory) and detonate INSIDE the
+ * product with an opaque 400 — live case: biometricTypes ["none currently
+ * deployed"] → cleared to [] → check-biometric-compliance 400 "At least one
+ * biometric type required" (batch b8c21317, 2026-08-31). Leaving the
+ * originals makes the gate block HERE with the offending strings named.
+ * Every other field keeps the clearing behavior: tolerant products run
+ * degraded-but-honest on an absent list (the DPA prints its TO-BE-COMPLETED
+ * fill-ins), which grades the product instead of failing the job. */
+const EMPTY_FATAL_FIELDS: Record<string, ReadonlySet<string>> = {
+  // check-biometric-compliance/index.ts — the two `status: 400` input guards.
+  biometric_checker: new Set(["biometricTypes", "jurisdictions"]),
+};
+
+function coerceField(intake: Record<string, unknown>, f: IntakeField, notes: string[], toolType = ""): void {
   if (!f.options) return;
   const opts = f.options;
   if (f.kind === "enum") {
@@ -237,7 +253,15 @@ function coerceField(intake: Record<string, unknown>, f: IntakeField, notes: str
         // Nothing in the list is expressible in this contract's vocabulary.
         // Emptying the field is honest (the gate then records it as a
         // missing-required advisory) and lets the product run on the rest of
-        // the record instead of failing the whole job on naming.
+        // the record instead of failing the whole job on naming — EXCEPT
+        // where the product endpoint hard-400s on the empty field (see
+        // EMPTY_FATAL_FIELDS above): there the originals are left so the
+        // gate blocks with the offending strings named instead of an opaque
+        // downstream 400.
+        if (EMPTY_FATAL_FIELDS[toolType]?.has(f.key)) {
+          notes.push(`${f.key}[]: left unmatched (empty is fatal to the product; gate will name them) ${JSON.stringify(dropped).slice(0, 160)}`);
+          return v;
+        }
         notes.push(`${f.key}[]: cleared unmatched ${JSON.stringify(dropped).slice(0, 160)}`);
         return [];
       }
@@ -258,6 +282,6 @@ export function coerceIntakeToContract(
   if (!contract) return { intake, notes: [] };
   const copy = structuredClone(intake) as Record<string, unknown>;
   const notes: string[] = [];
-  for (const f of contract.fields) coerceField(copy, f, notes);
+  for (const f of contract.fields) coerceField(copy, f, notes, contract.tool_type);
   return { intake: copy, notes };
 }

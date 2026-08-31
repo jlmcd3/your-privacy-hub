@@ -44,6 +44,22 @@ import {
 import {
   CYBER_MATURITY_OPTIONS, CYBER_CONTROL_SLUGS, FRAMEWORK_OPTIONS, LAST_AUDIT_OPTIONS, INCIDENTS_12MO_OPTIONS,
 } from "../_shared/intake-contracts/cppa-cybersecurity.ts";
+// PANEL FIX 11 follow-on (2026-08-31) — lia and dpia were the two fixture
+// blocks the first contract-conformance pass missed: lia's REQUIRED
+// reasonable_expectation / potential_harm enums carried free prose, and
+// dpia's REQUIRED legal_basis_proposed carried multi-basis legal analysis no
+// form radio could ever emit. Same discipline as above: import the
+// contracts' own option lists and type-anchor every constrained value.
+import {
+  DATA_CATEGORIES as LIA_DATA_CATEGORIES,
+  JURISDICTIONS as LIA_JURISDICTIONS,
+  RELATIONSHIPS as LIA_RELATIONSHIPS,
+  REASONABLE_EXPECTATION_OPTS as LIA_REASONABLE_EXPECTATION_OPTS,
+  POTENTIAL_HARM_OPTS as LIA_POTENTIAL_HARM_OPTS,
+} from "../_shared/intake-contracts/li-assessment.ts";
+import {
+  DPIA_DATA_CATS, DPIA_SAFEGUARDS, DPIA_JURISDICTIONS, DPIA_LEGAL_BASES, DPIA_ART9,
+} from "../_shared/intake-contracts/dpia-framework.ts";
 
 // Broad industry classification used to pick each product's OWN real enum
 // value for the same underlying concept (sector/industry/org type/…) — every
@@ -296,13 +312,23 @@ Always emit a biometric object for every company (tool selection is handled at t
 
 // ── CALL B (EU): lia, dpia, ropa, euNotice ────────────────────────────────────
 
+// PANEL FIX 11 follow-on (2026-08-31) — legal_basis_proposed is a REQUIRED
+// closed radio on the DPIA form (DPIA_LEGAL_BASES); the old multi-basis legal
+// prose here ("Consent (ePrivacy) for device access; legitimate interests or
+// consent (GDPR) for profiling — …") could never come off that form and was
+// gate-blocked. Each block now carries ONE verbatim Art. 6 basis, plus the
+// verbatim Art. 9 condition wherever its data_categories engage the
+// contract's special-category gate ("Health or medical data" / "Biometric
+// data" → article_9_condition becomes conditionally required). The type
+// anchors below make any future option-string drift a compile error.
 function getDpiaIntakeForSector(industry: string, slot: number): {
   processing_activity_name: string;
   description: string;
   purpose: string;
-  data_categories: string[];
+  data_categories: (typeof DPIA_DATA_CATS[number])[];
   data_subjects: string;
-  legal_basis_proposed: string;
+  legal_basis_proposed: typeof DPIA_LEGAL_BASES[number];
+  article_9_condition?: typeof DPIA_ART9[number];
   automated_decisions: string;
 } {
   const s = industry.toLowerCase();
@@ -312,7 +338,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     purpose: "Deliver targeted advertising to maximise CPM; build and monetise audience segments.",
     data_categories: ["Contact details", "Location data", "Customer records", "Other"],
     data_subjects: "Platform users and third-party website visitors whose identifiers are collected via pixels and SDKs",
-    legal_basis_proposed: "Consent (ePrivacy) for device access; legitimate interests or consent (GDPR) for profiling — to be confirmed per purpose",
+    legal_basis_proposed: "Consent (Art. 6(1)(a))",
     automated_decisions: "Automated audience scoring affects ad delivery; not Article 22 in scope absent significant effect on individuals.",
   };
   if (/healthcare|life science|clinical|medical|pharma/i.test(s)) return {
@@ -321,7 +347,8 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     purpose: "Provide clinical services; support diagnostic and treatment decisions; maintain medical records.",
     data_categories: ["Health or medical data", "Contact details", "Customer records"],
     data_subjects: "Patients and clinical trial participants, including potentially vulnerable individuals",
-    legal_basis_proposed: "Article 9(2)(h) (healthcare purposes) + Article 6(1)(b) or (1)(c); explicit consent for non-essential processing",
+    legal_basis_proposed: "Contract (Art. 6(1)(b))",
+    article_9_condition: "Preventive/occupational medicine, health or social care (Art. 9(2)(h))",
     automated_decisions: "Clinical decision-support tools may generate automated recommendations; final decisions made by clinicians.",
   };
   if (/data broker|data intel|enrichment|audience data/i.test(s)) return {
@@ -330,7 +357,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     purpose: "Build and commercialise consumer profiles; provide identity resolution, audience targeting, and credit pre-screening to business clients.",
     data_categories: ["Contact details", "Customer records", "Financial data", "Other"],
     data_subjects: "Individuals whose data is collected indirectly via third-party sources, public records, or data partnerships — not from direct collection",
-    legal_basis_proposed: "Legal basis to be determined per purpose; legitimate interests is contested for large-scale indirect profiling — purpose-by-purpose analysis required",
+    legal_basis_proposed: "Legitimate interest (Art. 6(1)(f))",
     automated_decisions: "Automated profile scoring used to assign segments; no solely automated Article 22 decisions without human review.",
   };
   if (/edtech|children|child|schools|students|learning/i.test(s)) return {
@@ -339,7 +366,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     purpose: "Personalise learning journeys; generate progress reports for teachers and parents; maintain educational records.",
     data_categories: ["Children's data", "Contact details", "Customer records", "Other"],
     data_subjects: "Children and young people aged under 18 (students/learners), parents or guardians, and teachers — a vulnerable population",
-    legal_basis_proposed: "Article 6(1)(b) (contract with school/institution); Article 8 consent requirements apply where processing is information society services directed at children",
+    legal_basis_proposed: "Contract (Art. 6(1)(b))",
     automated_decisions: "Automated learning progress scoring; no solely automated decisions with significant legal or educational effects.",
   };
   if (/biotech|genomic|genetic|genome/i.test(s)) return {
@@ -348,7 +375,8 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     purpose: "Advance biotech research; identify genetic markers; support drug development and personalised medicine.",
     data_categories: ["Biometric data", "Health or medical data", "Contact details", "Other"],
     data_subjects: "Research participants and patients who have provided samples, including family members whose genetic data may be incidentally revealed",
-    legal_basis_proposed: "Article 9(2)(j) (scientific research) + explicit consent (Article 9(2)(a)); ethical approval required",
+    legal_basis_proposed: "Consent (Art. 6(1)(a))",
+    article_9_condition: "Archiving, research or statistics — Art. 89(1) (Art. 9(2)(j))",
     automated_decisions: "Automated genomic analysis tools used; outputs reviewed by qualified scientists before any clinical application.",
   };
   if (/hr|employment|workforce|recruitment|payroll/i.test(s)) return {
@@ -357,7 +385,8 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     purpose: "Manage workforce performance; ensure regulatory compliance; support recruitment and HR administration.",
     data_categories: ["Employee records", "Health or medical data", "Communications content", "Contact details"],
     data_subjects: "Employees, contractors, and job applicants in a power-imbalanced relationship with the controller",
-    legal_basis_proposed: "Article 6(1)(b) employment contract; Article 6(1)(c) legal obligation; consent is not freely given in employment contexts",
+    legal_basis_proposed: "Contract (Art. 6(1)(b))",
+    article_9_condition: "Employment, social security & social protection law (Art. 9(2)(b))",
     automated_decisions: "Performance scoring may inform promotion or disciplinary decisions; human review mandatory for all significant employment decisions.",
   };
   if (/gov|public sector|public authority|government/i.test(s)) return {
@@ -366,7 +395,8 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     purpose: "Discharge statutory public functions; administer public services; comply with legal obligations.",
     data_categories: ["Contact details", "Customer records", "Health or medical data", "Other"],
     data_subjects: "Members of the public interacting with public services; potentially including vulnerable individuals",
-    legal_basis_proposed: "Article 6(1)(e) public task or Article 6(1)(c) legal obligation; Article 6(1)(f) legitimate interests does NOT apply to public authorities in the performance of their tasks",
+    legal_basis_proposed: "Public task (Art. 6(1)(e))",
+    article_9_condition: "Substantial public interest — Union/Member State law (Art. 9(2)(g))",
     automated_decisions: "Administrative decisions may be partially automated; Article 22 applies to solely automated decisions with significant individual effects.",
   };
   if (/ai|machine learning|artificial intelligence|ml model/i.test(s)) return {
@@ -375,7 +405,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     purpose: "Develop AI products; automate decisions or recommendations at scale; improve model performance using training data.",
     data_categories: ["Customer records", "Contact details", "Communications content", "Other"],
     data_subjects: "Individuals whose data is used to train or evaluate models, and individuals subject to model outputs",
-    legal_basis_proposed: "Legitimate interests or consent depending on the processing purpose; Article 9 applies if training data includes special categories",
+    legal_basis_proposed: "Legitimate interest (Art. 6(1)(f))",
     automated_decisions: "Model outputs may constitute Article 22 automated decisions if they produce significant individual effects; human review obligations must be assessed.",
   };
   // Default: generic security monitoring (unchanged for sectors not requiring specific treatment)
@@ -385,7 +415,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     purpose: "Security, fraud prevention, and service resilience",
     data_categories: ["Contact details", "Customer records", "Other"],
     data_subjects: "Customers and end users",
-    legal_basis_proposed: "Legitimate interests",
+    legal_basis_proposed: "Legitimate interest (Art. 6(1)(f))",
     automated_decisions: "No solely automated legal or similarly significant decisions",
   };
 }
@@ -408,9 +438,9 @@ Return a JSON object with EXACTLY these fields:
   "dpia": {
     "processing_activity_name": "string", "description": "string", "purpose": "string",
     "data_categories": ["array"], "data_subjects": "string", "volume_frequency": "string",
-    "retention": "string", "third_party_processors": ["array"], "automated_decisions": "string",
+    "retention_period": "string", "third_party_processors": ["array"], "automated_decisions": "string",
     "existing_safeguards": ["array"], "jurisdictions": ["array"],
-    "legal_basis_proposed": "string", "sector": "string"
+    "legal_basis_proposed": "string", "controller_sector": "string"
   },
   "ropa": {
     "org_name": "string", "legal_entity_type": "string", "employee_band": "string",
@@ -1084,30 +1114,52 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
 
 
     return {
+      // PANEL FIX 11 follow-on (2026-08-31) — the two REQUIRED lia enums
+      // (reasonable_expectation: Yes/Partly/No; potential_harm: None/Minor/
+      // Moderate/Severe) carried free prose the gate blocks; the prose now
+      // lives in the contract's own *_detail narrative companions.
+      // jurisdictions/data_categories/relationship_type snapped to the
+      // contract's verbatim vocabulary, type-anchored.
       lia: {
         organization_name: c.companyName,
         subject_anchor: `${industry} — fraud screening and security monitoring of authenticated users`,
         processing_description: `${industry} service analytics and fraud prevention`,
         sector: industry,
         stated_purpose: "Improve reliability, prevent fraud, and support users",
-        relationship_type: "Direct customer relationship",
-        data_categories: ["account data", "usage logs", "device identifiers"],
-        jurisdictions: ["EU", "UK"],
+        relationship_type: "Existing customer" as typeof LIA_RELATIONSHIPS[number],
+        data_categories: ["Contact data", "Browsing/behavioural data", "Device/technical data"] as (typeof LIA_DATA_CATEGORIES[number])[],
+        jurisdictions: ["EU (GDPR)", "United Kingdom (UK GDPR)"] as (typeof LIA_JURISDICTIONS[number])[],
         alternatives_considered: "Consent and aggregate-only analytics were considered but would not support security monitoring",
         purpose_details: { interest_holder: c.companyName, interest_type: "Operational security", purpose_text: "Maintain secure and reliable services" },
         necessity_details: { alternatives: "Aggregate reporting and shorter retention", why_consent_not_used: "Security controls must operate consistently", data_minimised: "Only event metadata is processed", pseudonymisation_options: "User IDs are pseudonymised in analytics" },
-        balancing_details: { reasonable_expectation: "Users expect security and service telemetry", vulnerable_subjects: [], potential_harm: "Unexpected profiling if safeguards fail", safeguards: ["opt-out where applicable", "role-based access", "short retention"], opt_out_mechanism: "Privacy centre preference controls", special_category_data: false, balancing_text: "Benefits outweigh limited privacy impact with safeguards" },
+        balancing_details: {
+          reasonable_expectation: "Yes" as typeof LIA_REASONABLE_EXPECTATION_OPTS[number],
+          reasonable_expectation_detail: "Users expect security and service telemetry",
+          vulnerable_subjects: [],
+          potential_harm: "Moderate" as typeof LIA_POTENTIAL_HARM_OPTS[number],
+          potential_harm_detail: "Unexpected profiling if safeguards fail",
+          safeguards: ["opt-out where applicable", "role-based access", "short retention"],
+          opt_out_mechanism: "Privacy centre preference controls",
+          special_category_data: false,
+          balancing_text: "Benefits outweigh limited privacy impact with safeguards",
+        },
       },
       dpia: (() => {
         const dpiaIntake = getDpiaIntakeForSector(industry, slot);
         return {
           ...dpiaIntake,
+          organization_name: c.companyName,
           volume_frequency: slot === 1 ? "Large-scale — confirm exact volume from operational data" : "Mid-scale — confirm exact volume from operational data",
-          retention: "To be confirmed per data category",
+          // PANEL FIX 11 follow-on — the contract key is retention_period
+          // (`retention` was an unknown-key advisory AND left the required
+          // field honestly absent; now it is honestly present).
+          retention_period: "To be confirmed per data category",
           third_party_processors: ["AWS", "Snowflake", "Zendesk"],
-          existing_safeguards: ["Encryption at rest", "Encryption in transit", "Access controls", "DPA signed with processor"],
-          jurisdictions: ["EU (GDPR)"],
-          sector: industry,
+          existing_safeguards: ["Encryption at rest", "Encryption in transit", "Access controls", "DPA signed with processor"] as (typeof DPIA_SAFEGUARDS[number])[],
+          jurisdictions: ["EU (GDPR)"] as (typeof DPIA_JURISDICTIONS[number])[],
+          // The contract's field for this is controller_sector (free text);
+          // `sector` was an unknown-key advisory.
+          controller_sector: industry,
         };
       })(),
 

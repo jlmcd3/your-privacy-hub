@@ -34,8 +34,10 @@ export const JURISDICTIONS = [
 // Stage B enum values — verified against LIAssessmentIntake.tsx radio
 // components. Kept locally; parity is asserted by literal-in-source
 // substring at test time is not needed because these are unique inline.
-const REASONABLE_EXPECTATION_OPTS = ["Yes", "Partly", "No"] as const;
-const POTENTIAL_HARM_OPTS = ["None / negligible", "Minor", "Moderate", "Severe"] as const;
+// Exported (PANEL FIX 11 follow-on, 2026-08-31) so generate-stress-fixtures
+// can type-anchor its deterministic LIA fixture to these exact options.
+export const REASONABLE_EXPECTATION_OPTS = ["Yes", "Partly", "No"] as const;
+export const POTENTIAL_HARM_OPTS = ["None / negligible", "Minor", "Moderate", "Severe"] as const;
 
 // ITEM 311 additions — Art. 6(1)(f) child clause and second subparagraph.
 const CHILD_DATA_SUBJECT_OPTS = ["Yes", "No", "Unknown"] as const;

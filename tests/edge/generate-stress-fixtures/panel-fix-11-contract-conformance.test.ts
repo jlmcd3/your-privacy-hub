@@ -92,3 +92,45 @@ Deno.test("PANEL-11: the q5_sell_share fallback in normalizeCppaRiskTriggers is 
   assert(!src.includes('r.q5_sell_share = "Yes";'), "bare non-conformant fallback resurfaced");
   assertStringIncludes(src, 'r.q5_sell_share = "Yes — sell only";');
 });
+
+// ── PANEL FIX 11 FOLLOW-ON (2026-08-31) — the lia + dpia blocks the first
+// pass missed (batch 55ae5688's lia/dpia rejections; batch b8c21317 then
+// re-proved the class against the still-deployed pre-fix build). ──
+
+Deno.test("PANEL-11b: lia's required enums carry contract options; the prose moved to the *_detail companions", async () => {
+  const src = await Deno.readTextFile(SRC_PATH);
+  // Old blocking values must be gone from the lia block…
+  assert(!src.includes('reasonable_expectation: "Users expect'), "lia free-text reasonable_expectation resurfaced");
+  assert(!src.includes('potential_harm: "Unexpected profiling'), "lia free-text potential_harm resurfaced");
+  assert(!src.includes('jurisdictions: ["EU", "UK"]'), "lia short-code jurisdictions resurfaced");
+  // …and the verbatim-option + detail-companion shape must be present.
+  assertStringIncludes(src, 'reasonable_expectation: "Yes" as typeof LIA_REASONABLE_EXPECTATION_OPTS[number]');
+  assertStringIncludes(src, 'reasonable_expectation_detail: "Users expect security and service telemetry"');
+  assertStringIncludes(src, 'potential_harm: "Moderate" as typeof LIA_POTENTIAL_HARM_OPTS[number]');
+  assertStringIncludes(src, 'potential_harm_detail: "Unexpected profiling if safeguards fail"');
+  assertStringIncludes(src, '["EU (GDPR)", "United Kingdom (UK GDPR)"] as (typeof LIA_JURISDICTIONS[number])[]');
+});
+
+Deno.test("PANEL-11b: dpia's legal_basis_proposed is a closed radio option in every sector block, never legal prose", async () => {
+  const src = await Deno.readTextFile(SRC_PATH);
+  // The old multi-basis prose shapes must all be gone.
+  for (const gone of [
+    'legal_basis_proposed: "Consent (ePrivacy)',
+    'legal_basis_proposed: "Article 9(2)(h)',
+    'legal_basis_proposed: "Legal basis to be determined',
+    'legal_basis_proposed: "Article 6(1)(b) (contract with school',
+    'legal_basis_proposed: "Article 9(2)(j)',
+    'legal_basis_proposed: "Article 6(1)(b) employment contract',
+    'legal_basis_proposed: "Article 6(1)(e) public task',
+    'legal_basis_proposed: "Legitimate interests or consent',
+    'legal_basis_proposed: "Legitimate interests"',
+  ]) {
+    assert(!src.includes(gone), `dpia legal-basis prose resurfaced: ${JSON.stringify(gone)}`);
+  }
+  // The type anchor forces every value into DPIA_LEGAL_BASES at compile time.
+  assertStringIncludes(src, "legal_basis_proposed: typeof DPIA_LEGAL_BASES[number];");
+  assertStringIncludes(src, "article_9_condition?: typeof DPIA_ART9[number];");
+  // And the assembled dpia block uses the contract's real key names.
+  assertStringIncludes(src, 'retention_period: "To be confirmed per data category"');
+  assertStringIncludes(src, "controller_sector: industry,");
+});
