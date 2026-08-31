@@ -264,15 +264,15 @@ Return a JSON object with EXACTLY these top-level fields:
   "dpoName": ${isEU ? '"string — Full Name, Title"' : '"string or null"'},
   "countryCode": "string — ISO-2 (${isEU ? "GB, DE, FR, IE, NL, etc." : "US"})",
   "employeeCount": number,
-  "annualRevenue": "string — e.g. ${isEU ? "€92M" : "$145M"}",
+  "annualRevenue": "string — e.g. ${isEU ? "€92M" : "$145M"}",${isEU ? `
   "governance": {
     "sector": "string", "org_size": "string", "jurisdictions": ["array"],
-    "eu_uk_data": "${isEU ? "Yes" : "No"}", "tools": ["array"], "data_categories": ["array"],
+    "eu_uk_data": "Yes", "tools": ["array"], "data_categories": ["array"],
     "special_category": "Yes or No", "special_categories_list": [],
     "privacy_policy": "string", "dpo_status": "string",
     "dpia_status": "string", "incident_response": "string", "training_status": "string",
     "tool_instruction": "string", "dpa_status": "string", "transfer_status": "string"
-  },
+  },` : ""}
   "dpa": {
     "controllerName": "string", "controllerJurisdiction": "string",
     "processorName": "string — a realistic vendor name", "processorJurisdiction": "string",
@@ -292,7 +292,7 @@ Return a JSON object with EXACTLY these top-level fields:
     "orgType": "string",
     "purpose": "string",
     "jurisdictions": ["array"]
-  },
+  }${isEU ? `,
   "registration": {
     "organization_name": "string", "organization_country": "string",
     "organization_size": "string", "industry": "string", "email": "string",
@@ -304,10 +304,10 @@ Return a JSON object with EXACTLY these top-level fields:
     "markets_served": ["array"], "has_eu_establishment": boolean, "has_uk_establishment": boolean,
     "acts_as_data_broker": boolean, "sells_or_shares_personal_info": boolean,
     "processes_biometrics_for_id": boolean
-  }
+  }` : ""}
 }
 
-Always emit a biometric object for every company (tool selection is handled at the job level by selected_tools). For sectors that do not routinely use biometric identification, still emit the object using realistic minimal values, choosing verbatim options from the allowed lists below (e.g. biometricTypes may be ["Other biometric identifier"]). Never emit null.${enumAppendix(["governance", "dpa", "irPlaybook", "biometric", "registration"])}`, ["governance", "dpa", "irPlaybook", "biometric", "registration"]);
+Always emit a biometric object for every company (tool selection is handled at the job level by selected_tools). For sectors that do not routinely use biometric identification, still emit the object using realistic minimal values, choosing verbatim options from the allowed lists below (e.g. biometricTypes may be ["Other biometric identifier"]). Never emit null.${isEU ? "" : " Governance and Registration are GDPR-only products — do NOT emit \"governance\" or \"registration\" fields for this United States company."}${enumAppendix(isEU ? ["governance", "dpa", "irPlaybook", "biometric", "registration"] : ["dpa", "irPlaybook", "biometric"])}`, isEU ? ["governance", "dpa", "irPlaybook", "biometric", "registration"] : ["dpa", "irPlaybook", "biometric"]);
 }
 
 // ── CALL B (EU): lia, dpia, ropa, euNotice ────────────────────────────────────

@@ -15,6 +15,7 @@ Prose: All customer-facing fixed sentences follow the [EUP Prose Voice Standard]
 
 
 ## Memories
+- [GDPR-only products](mem://features/gdpr-only-products) — Governance, DPIA, Registration never run for US companies (fixtures, prompts, ALL_TOOLS geo)
 - [Project Overview](mem://project/overview) — What EndUserPrivacy.com is and its core features
 - [Design System](mem://design/typography-and-colors) — Fonts, UI colors, article card styling, and document layouts
 - [Brand Voice](mem://brand/voice-policy) — Banned words, allowed terminology, product identity
