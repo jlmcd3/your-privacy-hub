@@ -67,3 +67,66 @@ label. If none of the options is a perfect fit, choose the closest one (or the
 
 ${blocks.join("\n")}`;
 }
+
+// ── INLINE OPTION HINTS (2026-08-31) ────────────────────────────────────────
+// The appendix alone was not enough: the JSON skeleton in each prompt still
+// declared closed-list fields as "string" / "Yes or No" / ["array"], and the
+// generator followed the nearer instruction — emitting "Yes" for
+// q7_right_delete, "Published and reviewed annually" for privacy_policy,
+// narrative prose for ir-playbook.cause, and so on. Every one of those was
+// refused by the contract gate in run-stress-job.
+//
+// withInlineOptions rewrites the skeleton itself from the contracts, so the
+// closed list sits exactly where the model reads the field's type. Derived,
+// never hand-maintained. Leaf names that mean different things in two
+// contracts of the same prompt are skipped (the appendix still covers them).
+
+function leafOptionMap(objectNames: string[]): Map<string, { options: readonly string[]; many: boolean }> {
+  const map = new Map<string, { options: readonly string[]; many: boolean }>();
+  const ambiguous = new Set<string>();
+  for (const name of objectNames) {
+    const contract = CONTRACTS[name];
+    if (!contract) continue;
+    for (const f of contract.fields) {
+      if (!f.options?.length) continue;
+      if (f.kind !== "enum" && f.kind !== "multi-enum" && f.kind !== "string-array") continue;
+      const leaf = f.key.split(".").pop()!.replace(/\[\]$/, "");
+      const prev = map.get(leaf);
+      const entry = { options: f.options, many: f.kind !== "enum" };
+      if (prev && (prev.many !== entry.many || prev.options.join("|") !== entry.options.join("|"))) {
+        ambiguous.add(leaf);
+        continue;
+      }
+      map.set(leaf, entry);
+    }
+  }
+  for (const leaf of ambiguous) map.delete(leaf);
+  return map;
+}
+
+/**
+ * Replace the placeholder value of every closed-list field in a prompt's JSON
+ * skeleton with its verbatim option list.
+ */
+export function withInlineOptions(prompt: string, objectNames: string[]): string {
+  const map = leafOptionMap(objectNames);
+  let out = prompt;
+  for (const [leaf, { options, many }] of map) {
+    const list = options.map((o) => JSON.stringify(o)).join(" | ");
+    const key = leaf.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    if (many) {
+      // "leaf": ["array"]  /  "leaf": []
+      out = out.replace(
+        new RegExp(`("${key}"\\s*:\\s*)\\[[^\\]\\n]*\\]`, "g"),
+        (_m, head) => `${head}["choose 1+ VERBATIM from: ${list.replace(/"/g, "'")}"]`,
+      );
+    } else {
+      // "leaf": "string — …"  /  "leaf": "Yes or No"
+      out = out.replace(
+        new RegExp(`("${key}"\\s*:\\s*)"[^"\\n]*"`, "g"),
+        (_m, head) => `${head}"choose exactly 1 VERBATIM from: ${list.replace(/"/g, "'")}"`,
+      );
+    }
+  }
+  return out;
+}
