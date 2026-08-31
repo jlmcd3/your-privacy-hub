@@ -171,6 +171,9 @@ type Baseline = {
 const SELECT_COLS =
   "id, tool, status, batch_size, run_number, checks_passed, checks_failed, checks_total, score_overall, gpt_score_overall, cross_review_complete, error, started_at, last_heartbeat_at, completed_at, progress_log";
 
+/** Batch column pinned as the baseline (browser-local marker). */
+const BASELINE_COL_KEY = "eup.qualityConsole.baselineColumn.v1";
+
 const CHILD_TERMINAL = new Set([
   "complete", "completed", "done", "error", "failed", "cancelled", "canceled",
 ]);
@@ -280,6 +283,10 @@ export function QualityConsole({
   const [recentBatches, setRecentBatches] = useState<BatchRow[]>([]);
   const [baselines, setBaselines] = useState<Map<string, Baseline>>(new Map());
   const [snapshotting, setSnapshotting] = useState(false);
+  // Which batch column the current baseline was pinned from (browser-local).
+  const [baselineColumnId, setBaselineColumnId] = useState<string | null>(() => {
+    try { return localStorage.getItem(BASELINE_COL_KEY); } catch { return null; }
+  });
   // ALL-PRODUCTS-TEST — imported history for products with no quality batch.
   type StressHistory = { total: number; complete: number; failed: number; lastAt: string | null };
   const [stressHistory, setStressHistory] = useState<Map<string, StressHistory>>(new Map());
@@ -818,6 +825,68 @@ export function QualityConsole({
     }
   }
 
+  /**
+   * BASELINE-COLUMN LAW (2026-08-31): any single batch column — server or
+   * in-page — can be pinned as THE baseline. The column's own per-tool scores
+   * replace quality_batch_baselines wholesale, so every other column's delta is
+   * measured against that one run rather than an unbounded historical average.
+   * The pinned column id is remembered locally so the header shows which batch
+   * the baseline came from.
+   */
+  async function onSetBaselineFromColumn(col: MatrixColumn, label: string) {
+    if (!window.confirm(`Replace the baseline with ${label}'s scores?`)) return;
+    setSnapshotting(true);
+    try {
+      const capturedAt = new Date().toISOString();
+      const rows: Baseline[] = [];
+      if (col.kind === "server") {
+        const results: ToolResult[] = Array.isArray(col.batch.tool_results)
+          ? (col.batch.tool_results as unknown as ToolResult[]) : [];
+        for (const r of results) {
+          if (r.final_status !== "complete") continue;
+          const claude = typeof r.score_overall === "number" ? r.score_overall : null;
+          const gpt = typeof r.gpt_score_overall === "number" ? r.gpt_score_overall : null;
+          const parts = [claude, gpt].filter((n): n is number => n != null);
+          if (parts.length === 0) continue;
+          rows.push({
+            tool: r.tool,
+            claude_score: claude,
+            gpt_score: gpt,
+            avg_score: parts.reduce((a, b) => a + b, 0) / parts.length,
+            captured_at: capturedAt,
+          });
+        }
+      } else {
+        for (const [tool, r] of Object.entries(col.batch.tools)) {
+          if (!r.scored) continue;
+          const claude = r.claudeSum / r.scored;
+          const gpt = r.gptSum / r.scored;
+          rows.push({
+            tool,
+            claude_score: claude,
+            gpt_score: gpt,
+            avg_score: (claude + gpt) / 2,
+            captured_at: capturedAt,
+          });
+        }
+      }
+      if (rows.length === 0) { toast.message("That batch has no graded results to pin."); return; }
+      const { error } = await supabase.from("quality_batch_baselines")
+        .upsert(rows, { onConflict: "tool" });
+      if (error) throw error;
+      const m = new Map<string, Baseline>();
+      for (const r of rows) m.set(r.tool, r);
+      setBaselines(m);
+      setBaselineColumnId(col.id);
+      try { localStorage.setItem(BASELINE_COL_KEY, col.id); } catch { /* ignore */ }
+      toast.success(`${label} is now the baseline (${rows.length} tool${rows.length === 1 ? "" : "s"}).`);
+    } catch (e: any) {
+      toast.error(`Set baseline failed: ${e?.message ?? e}`);
+    } finally {
+      setSnapshotting(false);
+    }
+  }
+
   // ─── QB-P3: PDF zip export (per batch) ───────────────────────────────────
   async function onDownloadBatchZip(batch: BatchRow) {
     const toolResults: ToolResult[] = Array.isArray(batch.tool_results)
@@ -1160,25 +1229,39 @@ export function QualityConsole({
                     <div className="text-[10px] font-normal text-muted-foreground">
                       {new Date(col.started_at).toLocaleDateString()}
                       {col.kind === "local" ? " · in-page" : ""}
+                      {baselineColumnId === col.id ? " · baseline" : ""}
                     </div>
-                    {col.kind === "server" ? (
-                      <div className="flex gap-1 mt-1">
-                        <button
-                          type="button"
-                          className="text-[10px] underline text-brand-teal-text hover:no-underline"
-                          onClick={() => onDownloadBatchZip(col.batch)}
-                          title="Download PDFs (zip)"
-                        >zip</button>
-                        <button
-                          type="button"
-                          className="text-[10px] underline text-brand-teal-text hover:no-underline"
-                          onClick={() => onExportBatchMarkdown(col.batch)}
-                          title="Export analysis (.md)"
-                        >md</button>
-                      </div>
-                    ) : renderLocalBatchActions ? (
-                      <div className="flex gap-1 mt-1">{renderLocalBatchActions(col.id)}</div>
-                    ) : null}
+                    <div className="flex gap-1 mt-1">
+                      {col.kind === "server" ? (
+                        <>
+                          <button
+                            type="button"
+                            className="text-[10px] underline text-brand-teal-text hover:no-underline"
+                            onClick={() => onDownloadBatchZip(col.batch)}
+                            title="Download PDFs (zip)"
+                          >zip</button>
+                          <button
+                            type="button"
+                            className="text-[10px] underline text-brand-teal-text hover:no-underline"
+                            onClick={() => onExportBatchMarkdown(col.batch)}
+                            title="Export analysis (.md)"
+                          >md</button>
+                        </>
+                      ) : renderLocalBatchActions ? (
+                        renderLocalBatchActions(col.id)
+                      ) : null}
+                      <button
+                        type="button"
+                        disabled={snapshotting}
+                        className={`text-[10px] underline hover:no-underline ${
+                          baselineColumnId === col.id
+                            ? "font-semibold text-foreground no-underline"
+                            : "text-brand-teal-text"
+                        }`}
+                        onClick={() => void onSetBaselineFromColumn(col, `Batch ${i + 1}`)}
+                        title="Pin this batch's scores as the baseline"
+                      >{baselineColumnId === col.id ? "★ baseline" : "baseline"}</button>
+                    </div>
                   </th>
                 ))}
               </tr>
