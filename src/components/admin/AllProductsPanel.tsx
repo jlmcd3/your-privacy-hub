@@ -628,7 +628,7 @@ export function AllProductsPanel() {
             : raw,
         );
       }
-      updateOutcome(o.id, { pdfUrl: data.pdf_url as string });
+      updateOutcome(o.id, { pdfUrl: data.pdf_url as string, pdfUrlAt: Date.now() });
       window.open(data.pdf_url as string, "_blank", "noopener");
     } catch (e) {
       toast.error(`PDF failed: ${(e as Error).message}`);
