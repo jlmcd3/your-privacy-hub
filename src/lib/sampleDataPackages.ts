@@ -267,7 +267,7 @@ export function applyProfile(base: SampleFixture, profile: DataProfile, index: n
 
 /** The 5 datasets for one canonical fixture (dataset 1 = the fixture itself). */
 export function datasetsFor(base: SampleFixture): SampleFixture[] {
-  return [base, ...DERIVED_PROFILES.map((p, i) => applyProfile(base, p, i + 1))];
+  return [base, ...profilesFor(base.tool_slug).map((p, i) => applyProfile(base, p, i + 1))];
 }
 
 export const PRESET_DATASET_COUNT = 5;
