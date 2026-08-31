@@ -347,7 +347,7 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
     // dpo_required is not flipped by headcount; the deciding fact is named.
     const bdsgTrigger = "BDSG §38 — DPO required where 20+ persons are constantly engaged in the automated processing of personal data";
     const bdsgCondition =
-      `Conditional on BDSG §38 (Germany): a DPO designation becomes mandatory as a matter of German national law if 20 or more persons are constantly engaged in the automated processing of personal data. The intake reports ${intake.employee_count ?? 0} employees in total, which does not itself establish how many are constantly engaged in automated processing — confirm that number before concluding the threshold is met either way.`;
+      `Conditional on BDSG §38 (Germany): a DPO designation becomes mandatory as a matter of German national law if 20 or more persons are constantly engaged in the automated processing of personal data. The Company reports ${intake.employee_count ?? 0} employees in total, which does not itself establish how many are constantly engaged in automated processing — confirm that number before concluding the threshold is met either way.`;
     dpoCondition = dpoCondition ? `${dpoCondition} ${bdsgCondition}` : bdsgCondition;
     citations.push("BDSG § 38(1)");
     dpoReasons.push(`${bdsgTrigger}; the intake reports ${intake.employee_count ?? 0} employees — confirm how many are constantly engaged in automated processing before concluding the threshold is met`);

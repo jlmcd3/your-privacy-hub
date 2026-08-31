@@ -63,8 +63,11 @@ import type { CorpusMap } from "../../../../_shared/corpus/cam-types.ts";
  * :166). No new prose: already-ratified language carried forward. */
 export const CYBER_S4_FRAMES = {
   /** c4/c18 (zero-row components): the exact :166 label. */
+  // A-TEAM DELTA (ChatGPT batch review, 2026-08-31, fleet P0-1) — "the FSOR
+  // corpus" is internal-implementation vocabulary; the customer-facing
+  // equivalent names the actual source document.
   F_GEN:
-    "General § 7123 agency response; no subsection-specific interpretive commentary was identified in the FSOR corpus for this component.",
+    "General § 7123 agency response; no subsection-specific discussion was identified in the Agency's Final Statement of Reasons for this component.",
   /** Every bridged row: the exact :160 clause. */
   F_BRIDGE:
     "the FSOR discussion references the proposal's numbering; the final regulation locates this component at [the control's fsor_citation]",

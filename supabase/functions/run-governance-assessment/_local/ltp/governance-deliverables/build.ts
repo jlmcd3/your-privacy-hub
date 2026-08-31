@@ -517,7 +517,7 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
       verdict: hasFormal ? "satisfied" : "partially_satisfied",
       status: "analysed",
       information_needed:
-        "Recording the officer's reporting line, the resources allocated, and any other roles the same individual holds would let Article 38(1)-(3) and 38(6) be tested directly rather than taken from the designation. This intake does not collect those facts, so their absence carries no adverse weight.",
+        "Recording the officer's reporting line, the resources allocated, and any other roles the same individual holds would let Article 38(1)-(3) and 38(6) be tested directly rather than taken from the designation. This assessment does not request those operating details, so their absence carries no adverse weight.",
     }
     : {
       key: "dpo_position_independence",
@@ -559,14 +559,14 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
       application:
         "Article 39(1) sets a floor of five tasks, and the record speaks to two of them directly: monitoring compliance including awareness-raising and training of staff (39(1)(b)), and advising on and monitoring the performance of data protection impact assessments (39(1)(c)). " +
         (bothAdjacent
-          ? "Both are evidenced in substance alongside a designation, which is what this intake collects on the point, and the assessment takes Article 39 task coverage as evidenced on that basis. The remaining tasks — informing and advising, cooperating with the supervisory authority, and acting as its contact point — follow from the designation itself and are recorded under information needed as a confirmation that would strengthen the record."
+          ? "Both are evidenced in substance alongside a designation, which is what this assessment records on the point, and the assessment takes Article 39 task coverage as evidenced on that basis. The remaining tasks — informing and advising, cooperating with the supervisory authority, and acting as its contact point — follow from the designation itself and are recorded under information needed as a confirmation that would strengthen the record."
           : (hasFormal
-            ? "One of the two is not evidenced in substance, so task coverage is evidenced in part: the designation is recorded, and the activity behind two of the named tasks is only partly visible in the answers this intake collects."
+            ? "One of the two is not evidenced in substance, so task coverage is evidenced in part: the designation is recorded, and the activity behind two of the named tasks is only partly visible in the Company's answers."
             : "The arrangement recorded is an informal privacy lead and one of the two adjacent activities is not evidenced in substance, so task coverage is evidenced in part.")),
       verdict: (bothAdjacent && hasFormal) ? "satisfied" : "partially_satisfied",
       status: "analysed",
       information_needed:
-        "Confirming, task by task against Article 39(1)(a)-(e), which tasks the designated officer performs and how that is recorded would strengthen the record. This intake does not collect it, so its absence carries no adverse weight.",
+        "Confirming, task by task against Article 39(1)(a)-(e), which tasks the designated officer performs and how that is recorded would strengthen the record. This assessment does not request that confirmation, so its absence carries no adverse weight.",
     }
     : {
       key: "dpo_task_coverage",

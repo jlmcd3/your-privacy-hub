@@ -315,8 +315,30 @@ export function deriveAgencySubmissionChecklistTable(
   };
   const contactName = s(intake.i8_certifying_exec_name);
   const contactTitle = clause(intake.i8_certifying_exec_title);
+  // A-TEAM DELTA (ChatGPT batch review, 2026-08-31, P0-7) — this is a
+  // genuinely separate intake question from the review/approval roster
+  // (deriveReviewApprovalTable, above: assessment_reviewers_approvers /
+  // a9_approver_name), asked for a different purpose (who certifies the
+  // § 7157(b) submission vs. who reviewed/approved the assessment record).
+  // When the SAME person's name was recorded on both, the two questions can
+  // carry different titles for real reasons (a role held alongside another)
+  // or from inconsistent data entry -- either way, showing only one here
+  // silently drops a title the record equally supports. Where the names
+  // match, both titles are shown together rather than one being picked.
+  const approverEntries: Array<{ name: string; title: string }> = [
+    ...rows(intake.assessment_reviewers_approvers).map((r) => ({ name: s(r.name), title: s(r.position) })),
+    ...(s(intake.a9_approver_name) ? [{ name: s(intake.a9_approver_name), title: s(intake.a9_approver_position) }] : []),
+  ];
+  const matchingApproverTitle = contactName
+    ? approverEntries.find((a) =>
+      a.name.trim().toLowerCase() === contactName.trim().toLowerCase() && a.title && a.title !== contactTitle
+    )?.title
+    : undefined;
+  const combinedTitle = matchingApproverTitle
+    ? [contactTitle, matchingApproverTitle].filter(Boolean).join(" / ")
+    : contactTitle;
   const contact = contactName
-    ? `${contactName}${contactTitle ? `, ${contactTitle}` : ""}`
+    ? `${contactName}${combinedTitle ? `, ${combinedTitle}` : ""}`
     : "Not reported.";
   return {
     key: "",

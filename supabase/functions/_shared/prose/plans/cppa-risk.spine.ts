@@ -141,8 +141,11 @@ export const RISK52_FIXED = {
   prior_none:
     "No prior assessment of this Activity is identified in the information provided.",
   providers_lead: "The information was provided by:",
+  // A-TEAM DELTA (ChatGPT batch review, 2026-08-31, fleet P0-1) — "the intake"
+  // is internal-implementation vocabulary; the customer-facing equivalent is
+  // "the information supplied by the Company".
   providers_close:
-    "This assessment rests on the information the Company provided through the intake and on the materials indexed in Appendix H. Where information needed for a material conclusion is missing or inconsistent, the report states the limitation rather than assuming a favorable answer.",
+    "This assessment rests on the information supplied by the Company and on the materials indexed in Appendix H. Where information needed for a material conclusion is missing or inconsistent, the report states the limitation rather than assuming a favorable answer.",
 
   // IV — Conditions block
   conditions_lead: "Conditions to Proceed.",

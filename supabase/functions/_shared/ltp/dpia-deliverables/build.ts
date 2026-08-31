@@ -2215,7 +2215,15 @@ export function buildDecision(
     why:
       // v4.6.2 — precise band statement; later change is Art. 35(11) review,
       // not a re-run of an unfinished assessment.
-      `Given the noted risks and the mitigating measures, the processing being assessed may proceed as described: following application of the recorded mitigating measures, all identified residual risks are rated Low or Moderate, and no determination this assessment makes is left open. This determination remains applicable while the processing and the mitigating measures remain materially consistent with the assessment record; a material change requires review in accordance with Article 35(11).`,
+      // A-TEAM DELTA (ChatGPT batch review, 2026-08-31, P0-5) — "no
+      // determination this assessment makes is left open" is an assessment-
+      // wide claim that can be false even when the PROCESSING decision
+      // itself is unconditionally approved: gap_ledger (built separately,
+      // PROMPT 4 below) can carry open record-completion matters that do
+      // not gate this decision. Scoped to what is actually being claimed
+      // here — the processing decision, not every determination in the
+      // document.
+      `Given the noted risks and the mitigating measures, the processing being assessed may proceed as described: following application of the recorded mitigating measures, all identified residual risks are rated Low or Moderate, and the processing decision itself is not conditional. This determination remains applicable while the processing and the mitigating measures remain materially consistent with the assessment record; a material change requires review in accordance with Article 35(11).`,
     citation: art36Citation,
     rule_id: "dpia_decision_v1",
   };

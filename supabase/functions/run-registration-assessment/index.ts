@@ -91,7 +91,7 @@ function dpoBasisForJurisdiction(
       return {
         required: false,
         basis:
-          `DPO designation in ${jurName} is conditional on BDSG §38 — mandatory as a matter of German national law where 20+ persons are constantly engaged in the automated processing of personal data. The intake reports ${employeeCount} employees in total, which does not itself establish how many are constantly engaged in automated processing; confirm that number before concluding the threshold is met either way. GDPR Art. 37(1)(b)/(c) may also engage — assess independently.`,
+          `DPO designation in ${jurName} is conditional on BDSG §38 — mandatory as a matter of German national law where 20+ persons are constantly engaged in the automated processing of personal data. The Company reports ${employeeCount} employees in total, which does not itself establish how many are constantly engaged in automated processing; confirm that number before concluding the threshold is met either way. GDPR Art. 37(1)(b)/(c) may also engage — assess independently.`,
       };
     }
     // Fall through to GDPR-only analysis for DE below.

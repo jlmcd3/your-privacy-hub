@@ -2149,15 +2149,39 @@ Return JSON:
     // ── ITEM 369 DEFECT 1 — FRAME SUBSTITUTION FOR DEGRADED SURFACES ───
     // Runs after the emit gate and BEFORE the cap, so the LIA register's
     // approved gap atoms land on degraded leaves and the cap is a backstop.
+    //
+    // A-TEAM DELTA (ChatGPT batch review, 2026-08-31, P0-2) — traced to root
+    // cause: this call never passed `surfaceStatuses` (ITEM 374 FIX 1(a),
+    // opt-in per-product — DPIA already opted in, run-dpia-framework/index.ts
+    // ~line 2661). Without it, `surfaceIsAnalysed()` always returns false, so
+    // the approved "lia-gap-alternatives-considered" whole-section frame
+    // ("No alternative route appears in the record...") can land on
+    // `alternatives_considered` even when the record genuinely supplies
+    // alternatives — the per-item "lia-gap-alternatives-rationale" frame's
+    // declared section ("alternatives_considered.rationale") never actually
+    // matches the real field path (necessity_details.alternatives_rationale
+    // uses "rationale" as a suffix, not "why_inadequate"; see
+    // sectionCandidates() in frame-substitution.ts), so every degraded leaf
+    // under this surface falls through to the coarser whole-section frame.
+    // Passing the surface's real analysed/not status closes the same class
+    // of gap DPIA already closed, without touching frame-selection logic.
     try {
       const { applyFrameSubstitution, loadApprovedFrameSet } = await import(
         "../_shared/prose/frame-substitution.ts"
       );
       const frameSet = await loadApprovedFrameSet(supabase, "lia");
+      const necessityAlternativesText = String(
+        (assessment as any)?.necessity_details?.alternatives ??
+          (assessment as any)?.alternatives_considered ?? "",
+      ).trim();
+      const liaSurfaceStatuses: Record<string, string> = {
+        alternatives_considered: necessityAlternativesText ? "analysed" : "",
+      };
       const counters = applyFrameSubstitution(reportData as any, {
         product: "lia",
         frameSet,
         contract: "li_assessment",
+        surfaceStatuses: liaSurfaceStatuses,
         values: {
           organization_name:
             (liaIntakeObject as any)?.organization_name ??

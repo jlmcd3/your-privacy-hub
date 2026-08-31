@@ -326,8 +326,8 @@ export function buildProgramReadiness(intake: Bag, d: CyberDeliverables): { anal
   const sentences: string[] = [];
   sentences.push(
     framework
-      ? `The intake describes a program organized around ${noStop(framework)}.`
-      : "The intake does not name an organizing framework for the program.",
+      ? `The Company describes its cybersecurity program as organized around ${noStop(framework)}.`
+      : "The Company does not name an organizing framework for the program.",
   );
   sentences.push(
     rs.unassessed_count === 0
@@ -550,9 +550,15 @@ export function buildCrossCutting(intake: Bag, d: CyberDeliverables, recs: reado
     : profileStr(intake, "last_audit")
     ? "A prior audit is recorded, but its coverage is not described, so nothing in this assessment relies on prior work."
     : "No prior audit coverage is recorded, so nothing in this assessment depends on prior work.";
+  // A-TEAM DELTA (ChatGPT batch review, 2026-08-31, P0-4) — recordGaps is
+  // narrower than the full set of record-completion items this report
+  // separately lists (unresolved auditor engagement, undescribed prior-audit
+  // coverage, partial-evidence components) — an unqualified "No material
+  // record limitation is identified" read as contradicting those. Scoped to
+  // what this specific check actually covers.
   const material_record_limitations = recordGaps.length
     ? `The record itself is the limitation for ${asProse(recordGaps.map((r) => r.label))}: no assessable entry exists yet.`
-    : "No material record limitation is identified.";
+    : "No additional cross-cutting record limitation is identified beyond the readiness actions stated in this report.";
   const openCount = recs.length;
   const conclusion = openCount === 0
     ? "Nothing rises to a cross-cutting readiness concern on the Company's answers."
@@ -700,8 +706,20 @@ export function buildOverallReadinessNarrative(d: CyberDeliverables, recs: reado
     default:
       narrative = "The record is insufficient for a readiness conclusion: the open items are record-completion matters, and completing them - not remediating a described deficiency - is what a conclusion waits on.";
   }
+  // A-TEAM DELTA (ChatGPT batch review, 2026-08-31, P0-4/fleet P0-4) — this
+  // picked recs[0] (or the generic evidence-organizing fallback) with no
+  // visibility into d.independence_determination, the SAME status
+  // buildRecordCompletionExtras (above) already reads to know that an
+  // unresolved auditor engagement gates the whole readiness conclusion. The
+  // narrative built two paragraphs up can say resolving auditor engagement
+  // precedes everything, while this sentence named a different "most
+  // important" act — a direct contradiction. The gating check now runs
+  // first, matching the narrative's own logic.
+  const auditorEngagementGating = d.independence_determination?.status === "record_insufficient";
   const top = recs[0];
-  const single_next_act = top
+  const single_next_act = auditorEngagementGating
+    ? "The most important next act is to record the auditor engagement and its independence status; the readiness conclusion waits on completing this item before any other action below is sequenced."
+    : top
     ? `The most important next act is on ${top.label}: ${top.slot.template.replace("{fact}", "the recorded entry")}`
     : "The most important next act is to keep the identified evidence packages organized for auditor access.";
   return { narrative, single_next_act };
@@ -764,9 +782,16 @@ export function buildExecutiveSnapshotRows(inputs: FactorInputs): readonly (read
   // Renamed, and the empty case now says explicitly that it means no item
   // carries elevated priority beyond what the record-completion row above
   // already lists — not that there is nothing to do.
+  // A-TEAM DELTA (ChatGPT batch review, 2026-08-31, P0-4) — same gating
+  // check as buildOverallReadinessNarrative's single_next_act: an unresolved
+  // auditor engagement outranks every component-level item, and this row
+  // must say so rather than falling to the generic "no item" sentence.
+  const auditorEngagementGating = d.independence_determination?.status === "record_insufficient";
   rows.push([
     "Sequencing priority among the above",
-    inputs.nextSteps.length
+    auditorEngagementGating
+      ? "Auditor engagement — gating: the readiness conclusion waits on this item before any other action is sequenced."
+      : inputs.nextSteps.length
       ? `${asProse(inputs.nextSteps.map((st) => st.slug).map((slug) => CYBER_7123_COMPONENTS.find((c) => c.slug === slug)?.label ?? slug))} — each stated in Section 6 with its owner`
       : "No item above carries elevated sequencing priority; the preparation focus is organizing the identified evidence for auditor access",
   ]);

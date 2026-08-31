@@ -136,8 +136,12 @@ Deno.test("branch d — approved", () => {
   // wording; the current approved-branch why (build.ts, v4.6.2 comment:
   // "precise band statement") says "rated Low or Moderate".
   assertStringIncludes(d.why, "rated Low or Moderate");
-  // PROMPT 4 rider — ratified closing clause.
-  assertStringIncludes(d.why, "no determination this assessment makes is left open");
+  // A-TEAM DELTA (ChatGPT batch review, 2026-08-31, P0-5) — the old
+  // assessment-wide "no determination... is left open" claim could
+  // contradict a separately-populated gap_ledger; scoped to the
+  // processing decision itself, which is what this branch actually
+  // establishes.
+  assertStringIncludes(d.why, "the processing decision itself is not conditional");
 });
 
 Deno.test("consultation beats draft_incomplete when both hold", () => {

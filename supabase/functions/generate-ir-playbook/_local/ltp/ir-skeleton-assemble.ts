@@ -722,13 +722,25 @@ function composeStandingPosture(report: Bag): string {
   // finding/table pair counts as one section everywhere, so recorded +
   // unrecorded always sums to the total the reader can check.
   const total = recordedCount + gaps.length;
+  // A-TEAM DELTA (ChatGPT batch review, 2026-08-31, fleet P0-3) — this
+  // sentence promised "each is set out below", but the doc 113 S2.4 /
+  // doc 109 S2.10 fix that retired the old 13-22-item comma enumeration
+  // (deliberately, to kill a wall-of-text) never updated the wording to
+  // match: only a COUNT is stated here, nothing is actually set out below
+  // it. Rendering the full structured standing playbook (checklists,
+  // rosters, matrices, findings — see standing-playbook.ts's four section
+  // kinds) is a real assembly-layer project, not a wording fix, and isn't
+  // attempted here; this closes the direct contradiction a reader sees
+  // today by describing what the section actually delivers: a verified
+  // count, with each section's own record findable by name in the register
+  // this playbook was built from.
   const parts: string[] = [];
   if (gaps.length === 0) {
-    parts.push(`All ${total} standing sections are recorded, and each is set out below as the company gave it.`);
+    parts.push(`All ${total} standing sections are recorded and complete on the company's answers.`);
   } else {
     if (recordedCount) {
       parts.push(
-        `The company has recorded the arrangements behind ${recordedCount} of the ${total} standing sections, and each is set out below as the company gave it.`,
+        `The company has recorded the arrangements behind ${recordedCount} of the ${total} standing sections.`,
       );
     }
     parts.push(

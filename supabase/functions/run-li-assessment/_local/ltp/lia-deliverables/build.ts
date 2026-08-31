@@ -594,8 +594,12 @@ export function buildDetermination(
   } else if (publicAuthority.determination === "undetermined_on_the_record") {
     outcome = "undetermined_on_the_record";
     status = "record_insufficient";
+    // A-TEAM DELTA (ChatGPT batch review, 2026-08-31, LIA P1) — same
+    // determination, reader-facing wording: states what must be established
+    // and why, before the abstract "availability... before the balance"
+    // framing.
     rawWhy =
-      "Availability of the basis is decided before the balance is reached, and the record does not establish whether the public-authority exclusion applies. Everything below is therefore conditional on that question being answered.";
+      "Before relying on Article 6(1)(f), this assessment must establish that the legitimate-interests basis is available to the Company. The information provided does not establish whether the public-authority exclusion applies. The lawful-basis decision therefore remains pending until that threshold issue is resolved.";
     information_needed = publicAuthority.information_needed;
   } else if (child.determination === "children_in_scope" && materialHarm) {
     outcome = "legitimate_interests_not_available";

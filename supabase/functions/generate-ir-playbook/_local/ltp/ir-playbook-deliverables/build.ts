@@ -726,7 +726,16 @@ export function buildContentOwnerMapping(intake: unknown): ContentOwnerMapping {
   if (f.subjectCount) aParts.push(`approximate number of data subjects: ${f.subjectCount}`);
   else if (f.affectedCount) aParts.push(`approximate number of data subjects: band "${f.affectedCount}" only`);
   if (f.recordCount) aParts.push(`approximate number of personal data records: ${f.recordCount}`);
-  const aComplete = !!(f.cause && f.dataTypes.length && f.subjectCount && f.recordCount);
+  // A-TEAM DELTA (ChatGPT batch review, 2026-08-31, fleet P0-6) — a band
+  // ("1,000-10,000") IS an approximate number for Art. 33(3)(a) purposes
+  // (the article itself asks for an approximation "where possible"); this
+  // previously required the separate precise-count field, so a record with
+  // only a band satisfied the record_value line above (which already fell
+  // back to the band two lines up) while this completeness check and the
+  // "Missing" list below both still said the count was absent — a direct
+  // self-contradiction on the same element.
+  const hasSubjectCount = !!(f.subjectCount || f.affectedCount);
+  const aComplete = !!(f.cause && f.dataTypes.length && hasSubjectCount && f.recordCount);
 
   const elements: ContentElementMapping[] = [
     {
@@ -744,7 +753,7 @@ export function buildContentOwnerMapping(intake: unknown): ContentOwnerMapping {
             information_needed: `Article 33(3)(a) asks for the categories AND the approximate numbers of both data subjects and records. Missing: ${[
               !f.cause ? "the cause of the incident" : null,
               !f.dataTypes.length ? "the categories of data affected" : null,
-              !f.subjectCount ? "the approximate number of affected data subjects" : null,
+              !hasSubjectCount ? "the approximate number of affected data subjects" : null,
               !f.recordCount ? "the approximate number of affected personal-data records" : null,
             ].filter(Boolean).join("; ")}.`,
           }),

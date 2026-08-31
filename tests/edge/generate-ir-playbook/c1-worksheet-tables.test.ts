@@ -145,7 +145,7 @@ Deno.test("C1/S2.4: the all-recorded state takes the single count sentence and n
     ],
   });
   const text = skeletonDocumentToText(out.document);
-  assertStringIncludes(text, "All 2 standing sections are recorded, and each is set out below as the company gave it.");
+  assertStringIncludes(text, "All 2 standing sections are recorded and complete on the company's answers.");
   assert(!text.includes("preparedness gaps table"), "gaps pointer printed with no gaps");
   assertEquals(tablesOf(out, "standing_playbook"), []);
 });

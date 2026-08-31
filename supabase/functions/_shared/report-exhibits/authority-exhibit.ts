@@ -106,6 +106,11 @@ export function classifyAuthority(citation: string): AuthorityClass {
   }
   if (/Civ\.? Code|Civil Code|U\.?S\.?C\.?|\bCode §|Stat\.|Act\b|Bus\. ?& ?Prof/i.test(c)) return "statute";
   if (STATE_STATUTE_PATTERN.test(c)) return "statute";
+  // A-TEAM DELTA (ChatGPT batch review, 2026-08-31, Registration P1) — BDSG
+  // (Bundesdatenschutzgesetz, the German Federal Data Protection Act) is a
+  // national statute, not persuasive/administrative material; it fell
+  // through to "other" for want of a recognised citation pattern.
+  if (/\bBDSG\b/i.test(c)) return "statute";
 
   if (/EDPB|Guidance|Guidelines|Advisory|Enforcement|Opinion|FSOR|Agency|Commissioner|Bulletin|FAQ/i.test(c)) {
     return "administrative";
