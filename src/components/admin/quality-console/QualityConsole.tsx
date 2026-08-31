@@ -1212,11 +1212,13 @@ export function QualityConsole({
         </Button>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        {/* Product names stay pinned on the left; batches scroll horizontally,
+            opening on the most recent batches. */}
+        <div ref={scoresScrollRef} className="overflow-x-auto">
+          <table className="w-full min-w-max text-sm">
             <thead>
               <tr className="border-b text-left">
-                <th className="py-2 pr-3">Tool</th>
+                <th className="sticky left-0 z-20 bg-background py-2 pr-3">Tool</th>
                 <th className="py-2 pr-3">Tests (last 10)</th>
                 <th className="py-2 pr-3 bg-muted/40">Baseline</th>
                 {matrixColumns.map((col, i) => (
