@@ -1204,6 +1204,7 @@ export function QualityConsole({
   );
 
   const renderScoresCard = () => (
+
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Tools & batch scores</CardTitle>
