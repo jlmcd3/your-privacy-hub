@@ -519,7 +519,16 @@ export function composeExecutiveSummaryTyped(findings: Record<string, TypedDomai
     parts.push(`${unresolved.length === 1 ? "One domain remains" : `${unresolved.length} domains remain`} unresolved on the information provided.`);
   }
   if (adverse.length === 0 && unresolved.length === 0 && flagged.length === 0) {
-    parts.push("No operational domain requires immediate remediation on the information provided; the recorded actions are preventive maintenance rather than remediation of an identified deficiency. The headline accountability determination is carried separately above, and where it remains open the remediation register carries it first.");
+    // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31,
+    // Governance P0-1) — this composer sees only the ten domain-level
+    // findings, never the remediation register; the retired sentence
+    // claimed "the recorded actions are preventive maintenance" on that
+    // narrower view, which the register can (and did, live batch f374ddde:
+    // two High "Compliance gap" items) directly contradict. The domain-
+    // level claim now states only what this composer actually knows, and
+    // sends the reader to the register — which is typed and prioritised
+    // independently — instead of pre-empting it.
+    parts.push("No operational domain in this walk is itself rated as requiring immediate remediation on the information provided. Where the remediation register below records a higher-priority item, that priority reflects a specific element within an otherwise-evidenced domain rather than a domain-level finding; the register states each such item and its priority directly. The headline accountability determination is carried separately above, and where it remains open the remediation register carries it first.");
   }
   return parts.join(" ");
 }

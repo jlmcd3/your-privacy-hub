@@ -51,7 +51,11 @@ Deno.test("S-G3 — a strong record is Compliant across the board; the posture s
   // the accountability determination can be unresolved (with a High register
   // row) while every operational domain is clean — the unscoped sentence
   // read as contradicting both on the published sample.
-  assertStringIncludes(exec, "No operational domain requires immediate remediation on the information provided");
+  // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31,
+  // Governance P0-1) — the composer only sees domain-level findings, never
+  // the remediation register, so the all-clear sentence now states only
+  // that and points the reader to the register rather than pre-empting it.
+  assertStringIncludes(exec, "No operational domain in this walk is itself rated as requiring immediate remediation on the information provided");
   assertStringIncludes(exec, "The headline accountability determination is carried separately above");
 });
 

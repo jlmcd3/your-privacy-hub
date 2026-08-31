@@ -144,3 +144,22 @@ Deno.test("DPIA-P2: matrix DESCRIPTIVE sentences follow row status — open asks
   assertStringIncludes(text, "in part");
   void matrix;
 });
+
+// A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, DPIA P0-1)
+// — a gap-ledger entry with information_needed but no ask_class/display_label
+// was silently dropped by mergeLabeledAsks whenever ANY other entry in the
+// same ledger carried a label (mergeLabeledAsks's `if (!label) continue`).
+// The S1.8 DPO-credited-via-prepared-by branch was exactly that entry (live
+// batch 0792d73b: exec said "five points," the gap table and Appendix A said
+// six). This guards the controller row specifically.
+Deno.test("DPIA-DELTA: a DPO credited via prepared-by still carries a label, so its formalities ask survives mergeLabeledAsks", () => {
+  const inv = buildProcessingInventory({
+    organization_name: "Lumière Santé Group SAS",
+    dpia_prepared_by: "Donna Dasher — Data Protection Officer",
+  } as never);
+  const controller = inv.controllers[0] as unknown as Bag;
+  assertEquals(controller.status, "analysed", "DPO is credited from prepared-by, so the who-question is answered");
+  assert(String(controller.information_needed ?? "").includes("formal designation record"), "formalities ask missing");
+  assertEquals(controller.ask_class, "ask_dpo_formalities", "ask_class missing — this entry would be silently dropped from the executive count");
+  assert(String(controller.display_label ?? "").length > 0, "display_label missing — this entry would be silently dropped from the executive count");
+});

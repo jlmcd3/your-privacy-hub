@@ -659,8 +659,14 @@ function composeWorksheetLead(report: Bag, intake: Bag, values: SlotValues): str
   if (verdict === "framework_not_engaged") {
     const stateDuties = asArray(report.state_notification_duties);
     const stateNames = stateDuties.map((d) => s(d.state_label)).filter(Boolean);
+    // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, US
+    // Incident P0/P1-1) — the same dangling "contractual clocks below"
+    // promise, gated the same way as composeProcessors above.
+    const contractualClause = contractRows(intake).length > 0
+      ? " and the recorded contractual clocks below"
+      : "";
     return stop(
-      `The company has classified the matter as ${classification}. No EU or UK jurisdiction is recorded, so no GDPR-family supervisory-authority clock is engaged; the operative clocks are ${stateNames.length ? `the recorded jurisdictions' own duties (${asProse(stateNames)}, set out in the standing sections)` : "the recorded jurisdictions' own duties set out in the standing sections"} and the recorded contractual clocks below, and the immediate posture is to work to the earliest of them`,
+      `The company has classified the matter as ${classification}. No EU or UK jurisdiction is recorded, so no GDPR-family supervisory-authority clock is engaged; the operative clocks are ${stateNames.length ? `the recorded jurisdictions' own duties (${asProse(stateNames)}, set out in the standing sections)` : "the recorded jurisdictions' own duties set out in the standing sections"}${contractualClause}, and the immediate posture is to work to the earliest of them`,
     );
   }
   if (verdict === "notification_required") {
@@ -685,7 +691,11 @@ function composeWorksheetLead(report: Bag, intake: Bag, values: SlotValues): str
  */
 function composeProcessors(intake: Bag, gdprEngaged: boolean): string {
   if (intake.processorInvolved !== true && s(intake.processorInvolved).toLowerCase() !== "true") return "";
-  const name = s(intake.processorName);
+  // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, EU
+  // Incident P0-1) — a contract-derived name (S2.2) resolves the same
+  // paragraph the facts strip already credits, so "not named" cannot
+  // follow a facts-strip row that already names the processor.
+  const name = s(intake.processorName) || processorNameFromContracts(intake);
   const parts: string[] = [IR_PROCESSOR_FIXED_FIRST_WORDS];
   parts.push(
     name
@@ -705,8 +715,16 @@ function composeProcessors(intake: Bag, gdprEngaged: boolean): string {
       'Under the processing contract, GDPR Art. 28(3)(f) requires that the processor "assists the controller in ensuring compliance with the obligations pursuant to Articles 32 to 36 taking into account the nature of processing and the information available to the processor". That assistance duty is the contractual route to the facts the Art. 33(3) notification content requires.',
     );
   } else {
+    // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, US
+    // Incident P0/P1-1) — the promise "the recorded contractual clocks
+    // below" dangled where processorInvolved is true but no
+    // breachNoticeContracts row exists, since composeContractualTriggers
+    // then renders nothing to point at.
+    const hasContracts = contractRows(intake).length > 0;
     parts.push(
-      "No EU or UK jurisdiction is recorded, so the GDPR's processor-notification clock is not the operative one here. The processor's notification and assistance duties on this record are those the processing contract itself sets — the recorded contractual clocks below carry them — together with any service-provider duties the recorded jurisdictions' own statutes impose.",
+      hasContracts
+        ? "No EU or UK jurisdiction is recorded, so the GDPR's processor-notification clock is not the operative one here. The processor's notification and assistance duties on this record are those the processing contract itself sets — the recorded contractual clocks below carry them — together with any service-provider duties the recorded jurisdictions' own statutes impose."
+        : "No EU or UK jurisdiction is recorded, so the GDPR's processor-notification clock is not the operative one here. No contractual notification clause for this processor is recorded on the current record; the processor's duties on this record are those the recorded jurisdictions' own statutes impose.",
     );
   }
   return repairRegister(parts.join(" "));
@@ -877,7 +895,9 @@ function composeNotificationWalk(report: Bag, intake: Bag): string {
     : "Second, whether the right kind of data was involved: no data types have been recorded yet, so this part of the review can't be completed until they are.";
 
   const gate3 =
-    "Third, whether the harm is serious enough to matter: some states only require notification if the incident is likely to actually harm the people affected — your response team makes that call for this incident; this playbook does not decide it in advance.";
+    // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, P1-2)
+    // — second-person address breaks the report's counsel voice.
+    "Third, whether the harm is serious enough to matter: some states only require notification if the incident is likely to actually harm the people affected — the Company's response team must make and document that determination; this playbook does not decide it in advance.";
 
   const keysCompromised = /compromised or possibly compromised/i.test(keys);
   const posture = keysCompromised
@@ -1048,11 +1068,18 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
     // IR-F tranche 1 — the four-gate walk, resolved against this record.
     const walk0 = composeNotificationWalk(report, intake);
     if (walk0) blocks.push(walk0);
-    blocks.push(
-      "The recorded contractual clocks are set out below and run alongside the statutory duties above; the earliest recorded clock governs the immediate posture.",
-    );
+    // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, US
+    // Incident P0/P1-1) — this lead sentence used to render unconditionally
+    // ahead of composeContractualTriggers(), which already correctly
+    // renders "" when nothing is recorded; the sentence now moves inside
+    // the same gate so it never promises a table that isn't there.
     const contractual0 = composeContractualTriggers(intake);
-    if (contractual0) blocks.push(contractual0);
+    if (contractual0) {
+      blocks.push(
+        "The recorded contractual clocks are set out below and run alongside the statutory duties above; the earliest recorded clock governs the immediate posture.",
+      );
+      blocks.push(contractual0);
+    }
     const plan0 = composeContainmentPlan(intake);
     if (plan0) blocks.push(plan0);
     // BATCH 18b (doc 113 S2.7) — the action plan renders as the worksheet's

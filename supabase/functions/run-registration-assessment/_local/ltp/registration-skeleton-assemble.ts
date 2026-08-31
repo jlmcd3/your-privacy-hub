@@ -275,6 +275,18 @@ export function computeDutyCounts(report: Bag): RegistrationDutyCounts {
     attached += 1;
     attachedNames.push("the designation of a data protection officer");
   } else if (dpoVerdict === "conditional" || dpoVerdict === "record_insufficient") reserved += 1;
+  // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31,
+  // Registration P0-1) — S1.1 (doc 119) gave the German BDSG §38 conditional
+  // its own row in the executive Duty-status table (deriveExecTable below,
+  // gated on the same obligations_summary.dpo_condition signal), but this
+  // counter never counted it: the GDPR/UK-GDPR global dpo_determination
+  // above is a SEPARATE verdict from the per-jurisdiction BDSG question, so
+  // a resolved GDPR DPO verdict (not_required) alongside an open BDSG
+  // question produced reserved=1 while the table rendered two open rows
+  // (live batch 6068cc0a: cover/exec/§3 all said "one determination," the
+  // table and Authorities Cited section carried two).
+  const osumForCounts = (report.obligations_summary ?? {}) as Bag;
+  if (/BDSG/i.test(s(osumForCounts.dpo_condition))) reserved += 1;
 
   // Satisfied is read from the typed filing-readiness surface only: a duty is
   // satisfied when the jurisdiction's own content list is ready on its face.

@@ -50,6 +50,9 @@ const RATIFIED: Record<string, string> = {
   ask_lia_balancing: "the effect of the processing on the data subjects, and the measures that reduce it",
   ask_lia_art9: "the Art. 9 condition relied on for the special-category items",
   ask_dpo: "whether a data protection officer is designated, and their contact details",
+  // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, DPIA P0-1).
+  ask_dpo_formalities:
+    "the formal designation record and contact details for the data protection officer named in the assessment team",
   ask_processor_contract: "a written Art. 28 contract with {name}, and the date it was signed",
   ask_art9_condition: "the Art. 9(2) condition relied on for {item}",
   ask_transfer_mechanism: "the Chapter V mechanism relied on for the transfer to {dest}",
@@ -82,9 +85,9 @@ const RATIFIED: Record<string, string> = {
     "whether a cross-border transfer arises from {party}; if so, the destination and the Chapter V mechanism relied on",
 };
 
-Deno.test("9A — all 33 registry entries are byte-exact (9M: +2; Other-guard: +1; DPIA-1: +1; P3: +1)", () => {
-  assertEquals(DPIA_ASK_CLASSES.length, 33);
-  assertEquals(Object.keys(RATIFIED).length, 33);
+Deno.test("9A — all 34 registry entries are byte-exact (9M: +2; Other-guard: +1; DPIA-1: +1; P3: +1; Delta: +1)", () => {
+  assertEquals(DPIA_ASK_CLASSES.length, 34);
+  assertEquals(Object.keys(RATIFIED).length, 34);
   for (const [id, bytes] of Object.entries(RATIFIED)) {
     assertEquals(DPIA_ASK_LABELS[id as keyof typeof DPIA_ASK_LABELS], bytes, id);
   }

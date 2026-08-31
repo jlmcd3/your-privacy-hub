@@ -63,7 +63,9 @@ Deno.test("G-2 — a genuinely clean record still gets the all-clear sentence an
   // is 8 on the published sample); the all-clear is scoped the same way.
   assertStringIncludes(exec, "Across the ten operational domains assessed in the sections below");
   assertStringIncludes(exec, "leaves 9 of the ten fully evidenced");
-  assertStringIncludes(exec, "No operational domain requires immediate remediation on the information provided");
+  // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31,
+  // Governance P0-1) — scoped to what the composer actually knows.
+  assertStringIncludes(exec, "No operational domain in this walk is itself rated as requiring immediate remediation on the information provided");
 });
 
 Deno.test("G-3 — Compliant and Unresolved render as postures, not as \"severity compliant/unresolved\"", () => {

@@ -142,7 +142,10 @@ describe("ITEM 312 — TWO-THRESHOLD LAW", () => {
     const d = buildSaNotificationDetermination(withoutEncryption);
     expect(d.verdict).toBe("undetermined_on_the_record");
     expect(d.status).toBe("record_insufficient");
-    expect(d.information_needed).toContain("encryptionStatus");
+    // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, EU
+    // Incident P0-2) — plain language, not the raw field name.
+    expect(d.information_needed).toContain("whether the affected data were encrypted");
+    expect(d.information_needed).not.toContain("encryptionStatus");
   });
 
   it("the two thresholds diverge: notifiable to the SA but no high risk", () => {

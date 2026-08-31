@@ -172,3 +172,27 @@ Deno.test("R5 — a named non-US market outside the assessed frameworks earns a 
   // RE-PIN PANEL LEAK-1 (2026-08-30): "this product's" jargon retired.
   assertStringIncludes(text, "is in the verified statutory corpus behind this assessment");
 });
+
+// A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, Registration
+// P0-1) — computeDutyCounts walked determinations/representatives/the
+// global GDPR dpo_determination, but never the S1.1 per-jurisdiction BDSG
+// §38 conditional (obligations_summary.dpo_condition), which the executive
+// Duty-status table renders as its own row. A GDPR DPO verdict of
+// not_required alongside an open BDSG question undercounted "reserved" by
+// exactly one (live batch 6068cc0a: cover/exec/§3 said "one determination,"
+// the table showed two).
+Deno.test("DELTA: computeDutyCounts counts an open BDSG §38 condition even when the global GDPR DPO verdict is resolved", () => {
+  const report: Bag = {
+    registration_deliverables: {
+      determinations: [],
+      representative_determinations: [{ jurisdiction: "United Kingdom", verdict: "conditional" }],
+      dpo_determination: { verdict: "not_required" },
+      filing_readiness: [],
+    },
+    obligations_summary: {
+      dpo_condition: "Conditional on BDSG §38 (Germany): a DPO designation becomes mandatory as a matter of German national law if 20 or more persons are constantly engaged in the automated processing of personal data.",
+    },
+  };
+  const counts = computeDutyCounts(report);
+  assertEquals(counts.reserved, 2, "the UK Art.27 conditional AND the BDSG §38 conditional must both count as open");
+});

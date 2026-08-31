@@ -41,6 +41,15 @@ import { CYBER_7123_COMPONENTS } from "./cppa-cyber-deliverables/components.ts";
 
 export const CYBER_V4_ASSEMBLER_STAMP = "cyber-skeleton-assembler@c2-spine-v1.1-2026-08-26";
 
+// A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, Cyber
+// P0-3) — a year.month framework version derived from the internal stamp's
+// date component, for the one customer-facing row that used to print the
+// stamp itself.
+function cyberFrameworkVersionLabel(stamp: string): string {
+  const m = /(\d{4})-(\d{2})-\d{2}$/.exec(stamp);
+  return m ? `${m[1]}.${m[2]}` : "Not recorded";
+}
+
 type Bag = Record<string, unknown>;
 const s = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
 const arr = (v: unknown): string[] =>
@@ -266,7 +275,12 @@ function deriveAssessmentProfileRecord(intake: Bag, reportDate: string): Rendere
       field("Prior audit scope", "prior_audit_scope"),
       field("Remediation owner", "remediation_owner"),
       ["Report date", formatReportDateLong(reportDate)],
-      ["Report template version", CYBER_V4_ASSEMBLER_STAMP.replace(/^.*@/, "")],
+      // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, Cyber
+      // P0-3) — the raw internal spine/build tag ("c2-spine-v1.1-2026-08-26")
+      // read as an engineering artifact. A customer-facing framework version
+      // (year.month, matching the date component) replaces it; the internal
+      // tag stays in CYBER_V4_ASSEMBLER_STAMP for engineering use.
+      ["Assessment framework version", cyberFrameworkVersionLabel(CYBER_V4_ASSEMBLER_STAMP)],
     ],
   };
 }

@@ -2374,7 +2374,14 @@ export function buildProcessingInventory(intake: unknown): DpiaProcessingInvento
     ...(dpoRecorded
       ? {}
       : dpo
-      ? { information_needed: ASK_DPO_FORMALITIES }
+      // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, DPIA
+      // P0-1) — this branch produced information_needed with no
+      // ask_class/display_label, so mergeLabeledAsks silently dropped it
+      // from the executive count and preview whenever any other gap-ledger
+      // entry carried a label (live batch 0792d73b: "five points" vs the
+      // gap table's and Appendix A's six). ask_dpo_formalities carries the
+      // identical sentence as its label.
+      ? { information_needed: ASK_DPO_FORMALITIES, ask_class: "ask_dpo_formalities", display_label: resolveAskLabel("ask_dpo_formalities") }
       : { information_needed: ASK_DPO, ask_class: "ask_dpo", display_label: resolveAskLabel("ask_dpo") }),
     source_field: "organization_name",
   };

@@ -38,6 +38,7 @@ export type DpiaAskClass =
   | "ask_lia_special_category"
   | "ask_lia_children"
   | "ask_dpo"
+  | "ask_dpo_formalities"
   | "ask_processor_contract"
   | "ask_art9_condition"
   | "ask_art9_other_category"
@@ -80,6 +81,20 @@ export const DPIA_ASK_LABELS: Readonly<Record<DpiaAskClass, string>> = Object.fr
   ask_lia_children:
     "a dedicated legitimate interests assessment for the children's data stream, with age-appropriate safeguards",
   ask_dpo: "whether a data protection officer is designated, and their contact details",
+  // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, DPIA
+  // P0-1) — S1.8 (doc 119) credits the DPO from the assessment team and
+  // asks only for the formalities (a record-completion ask distinct from
+  // ask_dpo, which restates "is a DPO designated" over an already-answered
+  // question). That branch never set an ask_class/display_label, so once
+  // ANY other gap-ledger entry carried one, mergeLabeledAsks's `!label →
+  // continue` silently dropped this entry from the executive count and
+  // list (live batch 0792d73b: exec said "five points," the gap table and
+  // Appendix A said six). Verbatim match to build.ts's ASK_DPO_FORMALITIES
+  // constant — no new wording, just a label for the sentence already
+  // written. Advance-ratification ledger, CEO redline pending (same
+  // footing as the 2026-08-26/08-29/08-30 additions above).
+  ask_dpo_formalities:
+    "the formal designation record and contact details for the data protection officer named in the assessment team",
   ask_processor_contract: "a written Art. 28 contract with {name}, and the date it was signed",
   ask_art9_condition: "the Art. 9(2) condition relied on for {item}",
   // 2026-08-26 "Other"-bypass guard (CEO batch ruling) — implementation-
@@ -122,15 +137,16 @@ export function serializeAskLabels(): string {
 }
 
 /** SHA-256 over serializeAskLabels(), lower-case hex. PINNED.
- *  Re-pinned 2026-08-30 (ask_transfer_leg_unresolved — PANEL DPIA-P3's
- *  processor-marker transfer ask, advance-ratification ledger; deliberate
- *  re-pin, one new label only).
+ *  Re-pinned 2026-08-31 (ask_dpo_formalities — A-TEAM DELTA, ChatGPT
+ *  post-implementation review DPIA P0-1; verbatim match to the S1.8
+ *  ASK_DPO_FORMALITIES sentence, one new label only, no re-wording).
  *  Audit trail — 9A pin: b1b55a5dc1f1adcfa41497f0376330f59d6ca044e5404bf8dbff8bd10d739fb4
  *  9M pin: 290608efbd8dbbde9249db5c7a81baf03bcd84cf5e846f58e02fc02f2e112bdd
  *  2026-08-26 re-pin (ask_art9_other_category): 8ed74af5082d0e0472ef96d81d571f1b26b213ede8f27a51019d0284077a5df1
- *  2026-08-29 re-pin (ask_portability_conditions): 0e51b7e9ab67f0339e8afa42cb1f2a76552d3924ef351e2530270b1b45ef4340 */
+ *  2026-08-29 re-pin (ask_portability_conditions): 0e51b7e9ab67f0339e8afa42cb1f2a76552d3924ef351e2530270b1b45ef4340
+ *  2026-08-30 re-pin (ask_transfer_leg_unresolved): 858c465a9d12f30b8334d100feb37db00117851a6364d3e1732ce41097ff7a80 */
 export const DPIA_ASK_LABELS_HASH =
-  "858c465a9d12f30b8334d100feb37db00117851a6364d3e1732ce41097ff7a80";
+  "201a87bfc428d09f2903b807f80486ed9078e3ceb6183dbf85df9f880906e8a9";
 
 
 /** Recompute the hash (async — Web Crypto). Used by the pin test. */

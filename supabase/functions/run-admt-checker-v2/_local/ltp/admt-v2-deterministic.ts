@@ -101,6 +101,15 @@ export interface ScopeResult {
   scopeState: ScopeState;
   recordGrade: RecordGrade;
   findings: AdmtV2Finding[];
+  // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, ADMT
+  // P0-1; CEO directive: split the pathway explicitly) — true only for the
+  // OUT_OF_SCOPE determination that rests on qualifying human review while
+  // the Company's own system description names automated pathways the
+  // review does not cover (S1.6's Condition to Proceed). The typed
+  // scopeState is UNCHANGED (encoding law, RULING 3.2); this is presentation
+  // metadata the assemble layer uses to make the headline pathway-aware
+  // instead of contradicting the caveat two paragraphs later.
+  pathwayDependent: boolean;
 }
 
 export function computeScope(intake: Intake): ScopeResult {
@@ -212,6 +221,9 @@ export function computeScope(intake: Intake): ScopeResult {
   // -- Composite scope state --
   const advertisingConflict = solelyAdvertising.startsWith("Yes") && domains.length > 0;
   let scopeState: ScopeState;
+  // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, ADMT
+  // P0-1) — see ScopeResult.pathwayDependent.
+  let pathwayDependent = false;
   if (advertisingConflict) {
     scopeState = "INCONSISTENT_RECORD";
     findings.push(mkFinding({
@@ -240,6 +252,7 @@ export function computeScope(intake: Intake): ScopeResult {
     // determination itself is unchanged (RULING 3.2).
     const sysDesc = str((intake as any)?.system_description);
     if (/auto(?:matic(?:ally)?|-)\s*(?:approv|declin|reject|deni)/i.test(sysDesc)) {
+      pathwayDependent = true;
       findings.push(mkFinding({
         area: "Applicability", criterion: "Automated decision pathways",
         source_fields: ["system_description", "human_review"],
@@ -274,7 +287,7 @@ export function computeScope(intake: Intake): ScopeResult {
     humanInvolvementEffect, humanInvolvementLabel, humanInvolvementBasis,
     advertisingEffect, advertisingLabel, advertisingBasis,
     outputRoleEffect: "NEUTRAL", outputRoleLabel, outputRoleBasis,
-    scopeState, recordGrade, findings,
+    scopeState, recordGrade, findings, pathwayDependent,
   };
 }
 

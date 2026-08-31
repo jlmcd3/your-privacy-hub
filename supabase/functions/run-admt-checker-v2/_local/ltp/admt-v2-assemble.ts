@@ -259,7 +259,14 @@ function vendorDependencyPhrase(v: VendorResult): string {
   return "No independent effect; governance note only.";
 }
 function scopeAreaPhrase(scope: ScopeResult): string {
-  if (scope.scopeState === "OUT_OF_SCOPE") return "Supports the out-of-scope determination.";
+  if (scope.scopeState === "OUT_OF_SCOPE") {
+    // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, ADMT
+    // P1-2, result table pathway-aware) — states the split, not a blanket
+    // support, where the automated-pathway condition applies.
+    return scope.pathwayDependent
+      ? "Supports the out-of-scope determination for the human-reviewed pathway only; automated pathways are addressed in Section 8."
+      : "Supports the out-of-scope determination.";
+  }
   // v3.2.2 — this cell states a determination, not a condition; the old
   // "Condition —" prefix mislabeled it.
   if (scope.scopeState === "IN_SCOPE") return "ADMT duties apply to this decision.";
@@ -479,7 +486,10 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
         // out-of-scope determination rests on a condition stated later
         // ("Conditions on this determination"), the cover flags it beside
         // the outcome instead of leaving the qualification buried.
-        ["Overall assessment", `${computed.overallPostureLabel}${scope.scopeState === "OUT_OF_SCOPE" ? " — see Scope qualification (Section 2)" : ""}`],
+        // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31,
+        // ADMT P0-1) — "Pathway-dependent" replaces the blanket "Out of
+        // scope" headline where the automated-pathway condition applies.
+        ["Overall assessment", `${scope.pathwayDependent ? "Pathway-dependent" : computed.overallPostureLabel}${scope.scopeState === "OUT_OF_SCOPE" ? " — see Scope qualification (Section 2)" : ""}`],
         // v3.2.2 — sentence case ("Qualified"), matching gradeCell().
         // A-TEAM S3 RULING V.2 (doc 115) — "Qualified" carries its meaning
         // inline instead of standing as an unexplained grade.
@@ -515,7 +525,10 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
       key: "executive_summary:2", surface: "audit_area_summary", title: "",
       columns: ["Audit area", "Result on reported facts", "Record grade", "Assessment"],
       rows: [
-        ["Applicability", stateCell(scope.scopeState), gradeCell(scope.recordGrade), scopeAreaPhrase(scope)],
+        // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31,
+        // ADMT P1-2) — "Pathway-dependent" replaces the bare "Out of scope"
+        // result cell where the automated-pathway condition applies.
+        ["Applicability", scope.pathwayDependent ? "Pathway-dependent" : stateCell(scope.scopeState), gradeCell(scope.recordGrade), scopeAreaPhrase(scope)],
         // PANEL ADMT-1 (2026-08-30, panel-B memo 2 (c)): the summary promises
         // four questions; an out-of-scope record used to answer one and drop
         // the rest without a word. The three duty rows now state that they
@@ -525,9 +538,12 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
           ["Opt-out / exception", stateCell(optOut.posture), gradeCell(optOut.recordGrade), postureEffectPhrase(optOut.posture, "the selected opt-out pathway")],
           ["Access and explanation", stateCell(access.posture), gradeCell(access.recordGrade), postureEffectPhrase(access.posture, "the access and explanation requirements", true)],
         ] : [
-          ["Pre-use Notice", "Not reached", "—", NOT_REACHED_PHRASE],
-          ["Opt-out / exception", "Not reached", "—", NOT_REACHED_PHRASE],
-          ["Access and explanation", "Not reached", "—", NOT_REACHED_PHRASE],
+          // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31,
+          // ADMT P1-4) — names which pathway is not reached, and points at
+          // the automated-pathway condition, instead of the flat phrase.
+          ["Pre-use Notice", "Not reached", "—", scope.pathwayDependent ? NOT_REACHED_PHRASE_PATHWAY : NOT_REACHED_PHRASE],
+          ["Opt-out / exception", "Not reached", "—", scope.pathwayDependent ? NOT_REACHED_PHRASE_PATHWAY : NOT_REACHED_PHRASE],
+          ["Access and explanation", "Not reached", "—", scope.pathwayDependent ? NOT_REACHED_PHRASE_PATHWAY : NOT_REACHED_PHRASE],
         ]),
         ...(vendor.identified && scope.scopeState !== "OUT_OF_SCOPE"
           ? [["Vendor dependency", stateCell(vendor.posture), gradeCell(vendor.recordGrade), vendorDependencyPhrase(vendor)]]
@@ -618,9 +634,16 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   // A-TEAM S3 RULING V.13 (doc 115, 2026-08-31) — the trailing "section
   // number is retained…" sentence explained the template to the customer;
   // removed from every stub (the Not-reached sentence states the substance).
+  // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, ADMT
+  // P1-4) — where the automated-pathway condition applies, the stub names
+  // which pathway is not reached and points at Section 8 rather than
+  // stating a blanket "outside Article 11" that the Condition to Proceed
+  // two sections earlier already qualifies.
   const NOT_REACHED_STUB = (dutyPhrase: string): RenderedParagraph => ({
     kind: "skeleton",
-    text: `Not reached. On the Company's reported facts the System is outside Article 11 for this decision (Section 2), so ${dutyPhrase} in this report.`,
+    text: scope.pathwayDependent
+      ? `Not reached for the human-reviewed pathway assessed as out of scope (Section 2), so ${dutyPhrase} in this report for that pathway. For the automatically-decided pathways, see the Condition to Proceed in Section 8.`
+      : `Not reached. On the Company's reported facts the System is outside Article 11 for this decision (Section 2), so ${dutyPhrase} in this report.`,
   });
 
   // ── 3. Pre-use Notice Audit ──────────────────────────────────────────────
@@ -970,6 +993,12 @@ function vendorLead(intake: Record<string, unknown>, vendor: { identified: boole
 // states only the reason.
 const NOT_REACHED_PHRASE =
   "This requirement is not assessed because the decision pathway is outside Article 11 on the reported facts (see Section 2).";
+// A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, ADMT
+// P1-4) — the pathway-aware variant, used where scope.pathwayDependent is
+// true: names which pathway is not reached and points at the Condition to
+// Proceed for the automated ones, instead of the flat single-pathway phrase.
+const NOT_REACHED_PHRASE_PATHWAY =
+  "Not reached for the human-reviewed pathway assessed as out of scope (see Section 2). For the automatically-decided pathways, see the Condition to Proceed in Section 8.";
 
 /** The conditions under which the out-of-scope determination holds, stated
  * with the determination (panel-B memo 2 (e), unanimous). The band sentence
@@ -996,7 +1025,15 @@ function buildOutOfScopeConditions(intake: Record<string, unknown>, systemName: 
 
 function overallDeterminationSentence(c: AdmtV2Computed): string {
   const label = c.overallPostureLabel;
-  if (c.scope.scopeState === "OUT_OF_SCOPE") return `On the Company's reported facts, the System is out of scope for the ADMT requirements addressed in this report.`;
+  if (c.scope.scopeState === "OUT_OF_SCOPE") {
+    // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, ADMT
+    // P0-1; CEO directive: split the pathway explicitly). The out-of-scope
+    // conclusion is stated as holding for the human-reviewed pathway only
+    // where the Company's own system description names an automated one.
+    return c.scope.pathwayDependent
+      ? `On the Company's reported facts, the human-reviewed decision pathway falls outside Article 11. Automatically approved or declined pathways do not share that conclusion and require the treatment stated below.`
+      : `On the Company's reported facts, the System is out of scope for the ADMT requirements addressed in this report.`;
+  }
   if (label === "Record conflict — resolve before a determination can be reached") return `The Company's answers on decision domain and advertising use conflict, so a determination cannot be reached until that conflict is resolved.`;
   if (label === "Unable to assess — scope cannot be determined on the current record") return `The Company has not supplied enough information to determine whether the System is within the ADMT rules for this decision.`;
   if (label === "Gaps identified") return `On the Company's reported facts, one or more ADMT requirements addressed in this report are not currently met.`;
@@ -1007,7 +1044,13 @@ function overallDeterminationSentence(c: AdmtV2Computed): string {
 function applicabilityDeterminationSentence(scope: AdmtV2Computed["scope"]): string {
   if (scope.scopeState === "INCONSISTENT_RECORD") return "The Company's decision-domain and advertising answers conflict, so the applicability determination cannot be finalized on the current record.";
   if (scope.scopeState === "UNABLE_TO_ASSESS") return "The Company has not supplied enough information to determine whether the System is ADMT for this decision.";
-  if (scope.scopeState === "OUT_OF_SCOPE") return "On the Company's reported facts, the System is outside the ADMT rules for this decision.";
+  if (scope.scopeState === "OUT_OF_SCOPE") {
+    // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, ADMT
+    // P0-1) — pathway-aware, matching overallDeterminationSentence.
+    return scope.pathwayDependent
+      ? "On the Company's reported facts, the human-reviewed decision pathway is outside the ADMT rules for this decision. The automatically-decided pathways named in the Company's own system description are not covered by that conclusion; see the Scope qualification below."
+      : "On the Company's reported facts, the System is outside the ADMT rules for this decision.";
+  }
   return "On the Company's reported facts, the System is ADMT for this decision and the requirements addressed below apply.";
 }
 

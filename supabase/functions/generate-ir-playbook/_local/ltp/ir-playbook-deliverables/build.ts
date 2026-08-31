@@ -361,9 +361,13 @@ export function buildSaNotificationDetermination(
       `Article 33(1) makes notification the rule and lifts it only where the breach is "unlikely to result in a risk to the rights and freedoms of natural persons". Running that negative condition requires knowing what was exposed and whether it was intelligible to whoever obtained it. The record ${!f.dataTypes.length ? "does not state the categories affected" : "does not state whether the affected data were rendered unintelligible"}, so the exception cannot be established. The duty is therefore treated as engaged on a precautionary basis and the determination is left open rather than assumed either way.`;
     whyRaw =
       "Notification is prepared on the footing that the Article 33(1) duty is engaged, because the negative condition that would lift it has not been established on this record.";
+    // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, EU
+    // Incident P0-2) — raw camelCase field names leaked into customer text
+    // (same class as the earlier affectedDataSubjectCount fix); both asks
+    // now name the fact in plain language.
     information_needed = !f.dataTypes.length
-      ? "dataTypes — the categories of personal data actually affected by the incident."
-      : "encryptionStatus and encryptionKeyStatus — whether the affected data were encrypted or otherwise rendered unintelligible to an unauthorised person, and whether the keys were compromised.";
+      ? "the categories of personal data actually affected by the incident."
+      : "whether the affected data were encrypted or otherwise rendered unintelligible to an unauthorised person, and whether the encryption key or other means of decryption was compromised.";
   } else if (uni === "yes" && aggravating.length === 0 && f.contained === "Yes") {
     verdict = "notification_not_required_unlikely_risk";
     unlikely = true;
@@ -575,7 +579,9 @@ export function buildArt34ExemptionAnalysis(intake: unknown): Art34ExemptionAnal
     aStatus = "record_insufficient";
     aApplication =
       "Limb (a) cannot be run: the record does not state whether protection measures were applied to the affected data, or whether the keys remained secure. The limb is therefore neither available nor ruled out.";
-    aNeeded = "encryptionStatus and encryptionKeyStatus — whether the affected data were encrypted or otherwise rendered unintelligible, and whether the keys were compromised.";
+    // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, EU
+    // Incident P0-2) — plain language, not the raw field names.
+    aNeeded = "whether the affected data were encrypted or otherwise rendered unintelligible, and whether the encryption key or other means of decryption was compromised.";
   }
 
   // (b) subsequent measures

@@ -154,3 +154,21 @@ Deno.test("B5 — the operative lead names, per unmet duty, the requirement that
   assertStringIncludes(lead, "(");
   assertStringIncludes(lead, "requires");
 });
+
+// A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, Biometric
+// P0/P1-3) — the "single next act" used to name ONLY the unmet duties'
+// remediation and silently drop any unresolved duties, contradicting the
+// exec's own S2.13 counts two paragraphs above it (live batch us-ds4:
+// "Unresolved duties: 2" against a §4 naming none). A second sentence now
+// records unresolved duties as record-completion, separate from remediation.
+Deno.test("DELTA: the operative conclusion names unresolved duties separately from unmet-duty remediation", () => {
+  const report = buildBiometricDeliverables(ilIntake() as never) as unknown as Bag;
+  const sk = assembleBiometricSkeletonDocument(report, ilIntake());
+  const text = JSON.stringify(sk);
+  const lead = text.match(/The operative conclusion is that the programme is out of compliance[^"]*/)?.[0] ?? "";
+  assert(lead.length > 0, "the out-of-compliance lead must render on this fixture");
+  // This fixture leaves security-measures/retention-timing unanswered, so two
+  // duties (§15(d), §15(e)) are unresolved alongside the unmet ones.
+  assertStringIncludes(lead, "). Separately, 2 duties remain unresolved");
+  assertStringIncludes(lead, "record completion, not remediation");
+});

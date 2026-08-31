@@ -489,12 +489,15 @@ export function deriveMaterialsConsideredIndex(intake: Bag): RenderedTable {
   return { key: "", surface: "materials_considered_index", title: "", columns: ["Material considered"], rows: rowsOut };
 }
 
-/** "cppa-risk-v5.2.1-2026-08-30" → "report template version 5.2.1 (2026-08-30)".
- * Falls back to "report template <stamp>" for a stamp that doesn't parse —
- * never drops provenance. Shared shape with the cyber assembler's ruling. */
+/** "cppa-risk-v5.2.1-2026-08-30" → "assessment framework version 2026.08".
+ * A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, Risk
+ * P1-2) — the bare build number ("5.2.1") still read as an internal
+ * version tag; a year.month framework label (the same shape as the cyber
+ * assembler's fix) replaces it. Falls back to "report template <stamp>"
+ * for a stamp that doesn't parse — never drops provenance. */
 function neutralTemplateVersion(stamp: string): string {
-  const m = /v(\d+(?:\.\d+)*)[-@]?(\d{4}-\d{2}-\d{2})?/.exec(stamp);
-  if (m) return `report template version ${m[1]}${m[2] ? ` (${m[2]})` : ""}`;
+  const m = /(\d{4})-(\d{2})-\d{2}/.exec(stamp);
+  if (m) return `assessment framework version ${m[1]}.${m[2]}`;
   return `report template ${stamp}`;
 }
 

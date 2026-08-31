@@ -607,8 +607,26 @@ function composeOperativeLead(report: Bag, intake: Bag): string {
     const orderingRule = praFirst
       ? " The acts are ordered by exposure: duties under the statute whose enforcement surface records a private action come first."
       : "";
+    // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31,
+    // Biometric P0/P1-3) — this branch used to name ONLY the unmet duties'
+    // remediation, dropping the unresolved duties entirely (the "single
+    // next act" ignored the S2.13 exec counts two paragraphs above it: live
+    // batch us-ds4, "Unresolved duties: 2" against a §4 that named none).
+    // A second sentence records the record-completion items separately.
+    const recordCompletionClause = (() => {
+      if (unresolved.length === 0) return "";
+      const items = unresolved
+        .map((u: Bag) => {
+          const duty = noStop(s(u.duty));
+          const cite = s(u.citation);
+          return duty || cite ? `${duty || "the duty named above"}${cite ? ` at ${cite}` : ""}` : "";
+        })
+        .filter(Boolean);
+      if (items.length === 0) return "";
+      return `. Separately, ${items.length === 1 ? "one duty remains" : `${items.length} duties remain`} unresolved by the company's answers and require record completion, not remediation: ${asProse(items)}`;
+    })();
     return repairRegister(stop(
-      `The operative conclusion is that the programme is out of compliance on the duties named above, and ${clause}${orderingRule ? `.${orderingRule.replace(/\.$/, "")}` : ""}`,
+      `The operative conclusion is that the programme is out of compliance on the duties named above, and ${clause}${orderingRule ? `.${orderingRule.replace(/\.$/, "")}` : ""}${recordCompletionClause}`,
     ));
   }
   if (unresolved.length > 0) {

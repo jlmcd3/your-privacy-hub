@@ -277,7 +277,10 @@ for (const c of CPPA_RISK_PERFECT) {
       assert(body.includes("submitted CPPA risk-assessment record"), "Appendix H materials index absent");
       // RE-PIN PANEL LEAK-1 (2026-08-30): generation metadata stays for
       // reperformance, labelled as the generation record.
-      assert(body.includes("Report record — report template version 5.2.1 (2026-08-30)"), "Appendix H generation-record line absent");
+      // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31,
+      // Risk P1-2) — the bare build number is gone; a year.month framework
+      // label replaces it.
+      assert(body.includes("Report record — assessment framework version 2026.08"), "Appendix H generation-record line absent");
       if (isAdmt) {
         assert(body.includes("System description"), "Appendix F ADMT facts absent on ADMT fixture");
       }
@@ -386,7 +389,7 @@ Deno.test("v5.2 — Appendix C / G / H builders compose from established facts o
   assert(idx.rows.some((r) => r[0].includes("submitted CPPA risk-assessment record")), JSON.stringify(idx.rows));
   assert(idx.rows.some((r) => r[0].includes("https://www.sierraoutfitters.example/privacy")), JSON.stringify(idx.rows));
   // v5.2 — the engine-version line moved off the cover into Appendix H.
-  assert(idx.rows.some((r) => r[0].includes("Report record — report template version")), JSON.stringify(idx.rows));
+  assert(idx.rows.some((r) => r[0].includes("Report record — assessment framework version")), JSON.stringify(idx.rows));
 });
 
 Deno.test("v5.2 — Appendix F ADMT facts compose iff ADMT", () => {
