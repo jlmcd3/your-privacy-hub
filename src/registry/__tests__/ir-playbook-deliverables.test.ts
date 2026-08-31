@@ -231,7 +231,10 @@ describe("ITEM 312 — Art. 33(3) content/owner mapping", () => {
     const { affectedRecordCount: _r, ...noRecords } = PERFECT.intake as Record<string, unknown>;
     const degraded = buildContentOwnerMapping(noRecords).elements[0];
     expect(degraded.status).toBe("record_insufficient");
-    expect(degraded.information_needed).toContain("affectedRecordCount");
+    // A-TEAM S4 RULING S2.1 (doc 119): the ask names the fact in plain
+    // language, never the raw intake key.
+    expect(degraded.information_needed).toContain("the approximate number of affected personal-data records");
+    expect(degraded.information_needed).not.toContain("affectedRecordCount");
   });
 
   it("the Art. 33(4) phasing plan defers exactly the unresolved elements", () => {

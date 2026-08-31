@@ -60,8 +60,10 @@ export const BIOMETRIC_SKELETON_PROVENANCE =
  * reproducing the prior value first. Prior pin:
  * 8d688a3bc21deb7066d725856f543a9ac1decef7e2e6dc5eb396ea235e160206.
  */
+// RE-PIN A-TEAM S4 (doc 119 S3.1, 2026-08-31): fleet ToA rename — the "Table of Authorities" section title became "Authorities Cited" (CEO-ratified, panel A1); ids and assembly rules unchanged. Old-hash reproduction verified before re-pin. Prior pin:
+// 28b62bd3385cee5feee8e8c4e6a2e4e9224895827090f857cfbcf3c26c6a0d5f.
 export const BIOMETRIC_SKELETON_CONTENT_HASH =
-  "28b62bd3385cee5feee8e8c4e6a2e4e9224895827090f857cfbcf3c26c6a0d5f";
+  "4ad3d8c5bf26ddfe84dc636d32114f065599d921b6b8a60a87982f81b5807d23";
 
 /**
  * RESTORED 2026-08-26 (Biometric Conversion groundwork audit). The 2026-08-19
@@ -166,7 +168,7 @@ export const BIOMETRIC_SKELETON_SECTIONS: readonly BiometricSkeletonSection[] = 
   },
   {
     id: "table_of_authorities",
-    title: "Table of Authorities",
+    title: "Authorities Cited",
     blocks: [
       { kind: "rule", text: "Assembled deterministically from the document's citation ledger: an authority appears here if and only if it is cited above, with pinpoints consolidated and section back-references. Grouped in brief order - Regulations; Statutes; Guidance and Persuasive Authority (labelled persuasive, never binding). Source links deferred." },
     ],
@@ -207,7 +209,7 @@ export const BIOMETRIC_SKELETON_PARAGRAPHS: readonly string[] = [
   "4. Review and Approval",
   "{APPROVAL_SENTENCE - from approverName / approverTitle / approvalDate; these approval fields render only when answered}.",
   "[DETERMINATION LEAD] One sentence stating the operative conclusion and the single next act.",
-  "Table of Authorities",
+  "Authorities Cited",
   "Assembled deterministically from the document's citation ledger: an authority appears here if and only if it is cited above, with pinpoints consolidated and section back-references. Grouped in brief order - Regulations; Statutes; Guidance and Persuasive Authority (labelled persuasive, never binding). Source links deferred.",
 ];
 

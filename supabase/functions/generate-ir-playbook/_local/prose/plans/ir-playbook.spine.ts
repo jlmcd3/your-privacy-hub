@@ -54,8 +54,10 @@ export const IR_SKELETON_PROVENANCE =
  * pin, for the audit trail:
  *   506affb30d42c7e6c14483d5fd56249546986fff70b54b47119c54e149dbf4fd
  */
+// RE-PIN A-TEAM S4 (doc 119 S3.1, 2026-08-31): fleet ToA rename — the "Table of Authorities" section title became "Authorities Cited" (CEO-ratified, panel A1); ids and assembly rules unchanged. Old-hash reproduction verified before re-pin. Prior pin:
+// 0f32a3eb39e815f9b242b86e833e5820356ddab0d434e8b0f90a935ec1e7e347.
 export const IR_SKELETON_CONTENT_HASH =
-  "0f32a3eb39e815f9b242b86e833e5820356ddab0d434e8b0f90a935ec1e7e347";
+  "1996129c4d0b7d018f24233128296e0c7dbd6aa421da462953214a3e0e924960";
 
 export const IR_SKELETON_TITLE = "INCIDENT RESPONSE PLAYBOOK AND WORKSHEET";
 export const IR_SKELETON_SUBTITLE =
@@ -189,7 +191,7 @@ export const IR_SKELETON_SECTIONS: readonly IrSkeletonSection[] = [
   },
   {
     id: "table_of_authorities",
-    title: "Table of Authorities",
+    title: "Authorities Cited",
     blocks: [
       { kind: "rule", text: "Assembled deterministically from the document's citation ledger: an authority appears here if and only if it is cited above, with pinpoints consolidated and section back-references. Grouped in brief order - Regulations; Statutes; Guidance and Persuasive Authority (labelled persuasive, never binding). Source links deferred." },
     ],
@@ -222,6 +224,6 @@ export const IR_SKELETON_PARAGRAPHS: readonly string[] = [
   "[CONDITIONAL] PROCESSORS - trigger {processorsInvolved}: fixed first words \"A processor is involved.\" followed by {processorDetail - attributed} and the Article 28 / 33(2) notification-clock analysis.",
   "The company reports the incident's containment state as {containmentState - reader label}.",
   "[GENERATED] The notification analysis in counsel's voice: each duty with its clock, jurisdiction by jurisdiction, from the company's answers; the action plan in time order; determinations reserved to counsel stay reserved.",
-  "Table of Authorities",
+  "Authorities Cited",
   "Assembled deterministically from the document's citation ledger: an authority appears here if and only if it is cited above, with pinpoints consolidated and section back-references. Grouped in brief order - Regulations; Statutes; Guidance and Persuasive Authority (labelled persuasive, never binding). Source links deferred.",
 ];

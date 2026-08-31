@@ -271,6 +271,59 @@ function deriveNotificationClocksTable(report: Bag): RenderedTable | null {
   };
 }
 
+/** A-TEAM S4 RULING S2.2 (doc 119) — the "(processor)"-tagged breach-notice
+ * counterparty, when the intake records no processorName. */
+function processorNameFromContracts(intake: Bag): string {
+  for (const c of contractRows(intake)) {
+    const m = /^(.*?)\s*\(\s*processor\s*\)\s*$/i.exec(s(c.party));
+    if (m && m[1].trim()) return m[1].trim();
+  }
+  return "";
+}
+
+/** A-TEAM S4 RULING S2.4 (doc 119) — the registry-verify fallback sentence is
+ * an internal QA string; inside a deadline cell it renders as the customer
+ * ask instead. */
+const REGISTRY_VERIFY_FALLBACK =
+  "We could not verify this item from the information provided; it is listed under information needed.";
+function deadlineCellText(t: string): string {
+  return s(t) === REGISTRY_VERIFY_FALLBACK
+    ? "Additional information required — see Information Needed"
+    : s(t);
+}
+
+/** A-TEAM S4 RULING S2.3 (doc 119) — per-state duty posture, computed from
+ * the SAME element/encryption gates the prose walk applies (STATE_WALK_GATES),
+ * so the Deadline Board and Action Plan can no longer present an
+ * unestablished duty as a live "Notify" task (live batch: Virginia carried as
+ * a live duty against the report's own no-duty analysis). A state without a
+ * gate registry entry stays conditional — never presumed triggered.
+ */
+type StateDutyPosture = "not_established" | "determination_pending" | "triggered";
+function stateDutyPosture(d: Bag, intake: Bag): StateDutyPosture {
+  const gates = STATE_WALK_GATES[s(d.jurisdiction)];
+  if (!gates) return "determination_pending";
+  const dataTypes = asArray(intake.dataTypes).map((x) => s(x)).filter(Boolean);
+  const namesRecorded = dataTypes.includes("Names and contact details");
+  let engaged = false;
+  let conditional = false;
+  for (const limb of gates.element_limbs) {
+    const hits = limb.intake_types.filter((t) => dataTypes.includes(t));
+    if (!hits.length) continue;
+    if (limb.requires_name && !namesRecorded) conditional = true;
+    else engaged = true;
+  }
+  if (!engaged && !conditional) return "not_established";
+  const keysCompromised = /compromised or possibly compromised/i.test(s(intake.encryptionKeyStatus));
+  if (engaged && keysCompromised) return "triggered";
+  return "determination_pending";
+}
+const STATE_POSTURE_STATUS: Record<StateDutyPosture, string> = {
+  triggered: "Triggered",
+  determination_pending: "Determination pending",
+  not_established: "Not triggered on recorded data types",
+};
+
 /** The computed 72-hour outer limit, as a reader date-time; "" if unrecorded. */
 function outerLimit72h(intake: Bag): string {
   const raw = s(intake.discoveryDateTime);
@@ -295,7 +348,19 @@ function deriveIncidentFactsTable(values: SlotValues, intake: Bag): RenderedTabl
   add("Estimated scale", values.affectedCount);
   add("Containment", values.containmentState);
   if (intake.processorInvolved === true || s(intake.processorInvolved).toLowerCase() === "true") {
-    rows.push(["Processor", s(intake.processorName) || "Involved — not named"]);
+    // A-TEAM S4 RULING S2.2 (doc 119, 2026-08-31) — the facts strip said
+    // "Involved — not named" while the deadline board named the processor
+    // from the contractual notice records (live batch, DB-verified). When
+    // the intake carries no processorName but a breach-notice counterparty
+    // is tagged "(processor)", that name is credited with its source.
+    const contractProcessor = processorNameFromContracts(intake);
+    rows.push([
+      "Processor",
+      s(intake.processorName) ||
+        (contractProcessor
+          ? `Involved — ${contractProcessor} (named in the contractual notice records)`
+          : "Involved — not named"),
+    ]);
   }
   if (!rows.length) return null;
   return {
@@ -334,7 +399,9 @@ function deriveDeadlineBoardTable(report: Bag, intake: Bag): RenderedTable | nul
     rows.push({
       cells: [
         `${label} — supervisory authority`,
-        outer ? `72 hours from awareness — runs to ${outer}` : "Without undue delay and, where feasible, not later than 72 hours after awareness",
+        outer
+          ? `72 hours from awareness — provisionally runs to ${outer}, computed from the recorded discovery time until the controller's awareness time is confirmed`
+          : "Without undue delay and, where feasible, not later than 72 hours after awareness",
         citation,
         status,
       ],
@@ -344,17 +411,20 @@ function deriveDeadlineBoardTable(report: Bag, intake: Bag): RenderedTable | nul
   }
   for (const d of asArray(report.state_notification_duties)) {
     const state = s(d.state_label);
-    const individual = s(d.individual_deadline);
+    const individual = deadlineCellText(s(d.individual_deadline));
     if (!state || !individual) continue;
-    const regulator = s(d.regulator_deadline);
+    const regulator = deadlineCellText(s(d.regulator_deadline));
+    // A-TEAM S4 RULING S2.3 (doc 119) — the status states the clock's
+    // posture instead of the blanket "Recorded duty".
+    const posture = stateDutyPosture(d, intake);
     rows.push({
       cells: [
         `${state} — individuals${regulator ? " and regulator" : ""}`,
         cellCap(`${individual}${regulator ? `; ${regulator}` : ""}`),
         s(d.citation) || "—",
-        "Recorded duty",
+        STATE_POSTURE_STATUS[posture],
       ],
-      hours: clockHours(individual),
+      hours: posture === "not_established" ? Number.MAX_SAFE_INTEGER : clockHours(individual),
       ord: ord++,
     });
   }
@@ -378,7 +448,7 @@ function deriveDeadlineBoardTable(report: Bag, intake: Bag): RenderedTable | nul
     title: "Deadline board",
     columns: ["Clock", "Runs to / limit", "Source", "Status"],
     rows: rows.map((r) => r.cells),
-    note: "All recorded clocks, in clock order; the earliest recorded clock governs the immediate posture.",
+    note: "Recorded and conditional clocks, in clock order; the Status column states each clock's posture, and the earliest operative clock governs the immediate posture.",
   };
 }
 
@@ -392,16 +462,24 @@ function deriveActionPlanTable(report: Bag, intake: Bag): RenderedTable | null {
   let ord = 0;
   for (const d of asArray(report.state_notification_duties)) {
     const state = s(d.state_label);
-    const individual = s(d.individual_deadline);
+    const individual = deadlineCellText(s(d.individual_deadline));
     if (!state || !individual) continue;
-    const regulator = s(d.regulator_deadline);
+    const regulator = deadlineCellText(s(d.regulator_deadline));
+    // A-TEAM S4 RULING S2.3 (doc 119) — a conditional or unestablished duty
+    // never renders as an unconditional "Notify" task.
+    const posture = stateDutyPosture(d, intake);
+    const dutyText = posture === "triggered"
+      ? `Notify under the law of ${state}`
+      : posture === "determination_pending"
+      ? `Determine whether notification is required under the law of ${state} (resolve the outstanding encryption, acquisition, and harm facts), and notify if the duty is established`
+      : `No notice action currently identified under the law of ${state} — reassess if additional data types or facts emerge`;
     rows.push({
       cells: [
-        `Notify under the law of ${state}`,
+        dutyText,
         cellCap(`${individual}${regulator ? `; ${regulator}` : ""}`),
         s(d.citation) || "—",
       ],
-      hours: clockHours(individual),
+      hours: posture === "not_established" ? Number.MAX_SAFE_INTEGER : clockHours(individual),
       ord: ord++,
     });
   }

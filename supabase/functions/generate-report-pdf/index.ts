@@ -1271,7 +1271,7 @@ function skeletonTableHtml(t: SkeletonTableLike): string {
   const rows = Array.isArray(t.rows) ? t.rows.filter((r) => Array.isArray(r)) : [];
   if (rows.length === 0 || cols.length === 0) return "";
   const head = cols
-    .map((c) => `<th style="border:none;border-bottom:0.75pt solid #000;padding:5pt 8pt 4pt 0;text-align:left;font-weight:bold;font-family:Arial,Helvetica,sans-serif;font-size:8pt;text-transform:uppercase;letter-spacing:0.06em;color:#1a1a1a;">${escHtml(c)}</th>`)
+    .map((c) => `<th style="border:none;border-bottom:0.75pt solid #000;background:#f3f6f8;padding:5pt 8pt 4pt 6pt;text-align:left;font-weight:bold;font-family:Arial,Helvetica,sans-serif;font-size:8pt;text-transform:uppercase;letter-spacing:0.06em;color:#1a1a1a;">${escHtml(c)}</th>`)
     .join("");
   const body = rows
     .map((r) =>
@@ -1655,7 +1655,13 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
         if (!rows) return "";
         return `<table class="toa-table" style="width:100%;border-collapse:collapse;margin:0 0 8px;"><tbody>${rows}</tbody></table>`;
       }
-      return t.split(/\n{2,}/).map((chunk) => {
+      // A-TEAM S4 RULING S3.4 (doc 119) — kind-driven chrome: a
+      // legal_requirement paragraph opens with a small "Legal standard"
+      // eyebrow chip; determination-lead kinds already carry banner chrome.
+      const kindChip = p?.kind === "legal_requirement"
+        ? `<div style="display:inline-block;font-size:7.5pt;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4a5b6a;border:0.75pt solid #8a9eb1;border-radius:2px;padding:1pt 5pt;margin:8px 0 3px;break-after:avoid;page-break-after:avoid;">Legal standard</div>`
+        : "";
+      const chunksHtml = t.split(/\n{2,}/).map((chunk) => {
         // 2026-08-25 polish round — a chunk whose lead is a Condition(s)-to-
         // Proceed (bare, or right after a lettered lead like "D. Consequence.")
         // wraps in the amber .condition-callout so the condition is visually
@@ -1740,6 +1746,7 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
         }
         return wrapChunk(paragraphHtml(chunk));
       }).join("");
+      return kindChip + chunksHtml;
     }).join("");
     if (!paras) return "";
     // Part B item 2 (2026-08-21, CEO-confirmed, PDF-only) — every Appendix
@@ -1777,8 +1784,16 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
 
 function buildSkeletonReportHTML(doc: SkeletonDocLike, record: any, fallbackTitle: string, product?: string, eyebrow?: string): string {
   const created = record?.created_at ? new Date(record.created_at) : new Date();
-  const metaLine = `Generated ${created.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}`
-    + (doc.subtitle ? ` · ${doc.subtitle}` : "");
+  // A-TEAM S4 RULING S4 (doc 119) — the cover meta line carries a Report ID
+  // derived from the row id, so a printed report can be traced to its record.
+  const reportId = typeof record?.id === "string" && record.id.length >= 8
+    ? `Report ID ${record.id.slice(0, 8).toUpperCase()}`
+    : "";
+  const metaLine = [
+    reportId,
+    `Generated ${created.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}`,
+    doc.subtitle || "",
+  ].filter(Boolean).join(" · ");
   // BATCH 16 (R10, A-Team RULING 3.7): Cyber-scoped Table of Contents —
   // one page after the cover block, h2 section titles only. Chromium's
   // print pipeline cannot resolve target page numbers, so entries are

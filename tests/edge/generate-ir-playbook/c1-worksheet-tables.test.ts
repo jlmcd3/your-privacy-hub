@@ -188,7 +188,10 @@ Deno.test("C1/S2.7: the US state clocks live in tables, not repeated prose sente
   // Clock order: the 48-hour contractual clock outruns the 30-day statute.
   assertEquals(plan.rows[0][0], "1");
   assertEquals(plan.rows[0][1], "Notify Acme Fulfilment");
-  assert(plan.rows.some((r) => r[1] === "Notify under the law of California"));
+  // A-TEAM S4 RULING S2.3 (doc 119): no name-type is recorded on this
+  // intake, so California's duty is a determination to run, not a live
+  // notify task.
+  assert(plan.rows.some((r) => String(r[1]).startsWith("Determine whether notification is required under the law of California")));
 });
 
 Deno.test("C1/S2.7: the EU record keeps its Art. 33(3) element plan as prose and gets no plan table", () => {
@@ -205,7 +208,9 @@ Deno.test("C1/S2.8: the deadline board sorts by clock and statuses map from real
   assertEquals(board.columns, ["Clock", "Runs to / limit", "Source", "Status"]);
   assertEquals(board.rows[0][0], "Acme Fulfilment — contractual notice"); // 48h first
   assertEquals(board.rows[0][3], "Triggered");
-  assert(board.rows.some((r) => r[0].startsWith("California") && r[3] === "Recorded duty"));
+  // A-TEAM S4 RULING S2.3 (doc 119): the board status states the clock's
+  // posture, never the blanket "Recorded duty".
+  assert(board.rows.some((r) => r[0].startsWith("California") && r[3] === "Determination pending"));
 
   const eu = assemble(euIntake());
   const euBoard = tablesOf(eu, "incident_worksheet").find((t) => t.title === "Deadline board");

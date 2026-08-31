@@ -644,6 +644,10 @@ export function deriveRemediationRegisterTable(report: Bag): RenderedTable | nul
   const elementFor = (p: Bag): Bag | undefined => elements.find((x) => s(x.key) === s(p.finding_key));
 
   const metaColumns: Array<{ label: string; value: (p: Bag) => string }> = [
+    // A-TEAM S4 RULING S2.7 (doc 119) — the action class renders beside the
+    // priority so "preventive maintenance" and "High — remediate this
+    // quarter" can no longer collide on the same row.
+    { label: "Type", value: (p) => s(p.action_type) },
     { label: "Priority", value: (p) => s(p.priority) },
     { label: "Accountable owner", value: (p) => s(p.accountable_owner) },
     { label: "Target date", value: (p) => s(p.target_date) },

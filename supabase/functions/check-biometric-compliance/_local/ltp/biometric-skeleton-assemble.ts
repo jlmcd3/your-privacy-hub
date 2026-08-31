@@ -229,12 +229,24 @@ function composeExecutiveLead(report: Bag, org: string): string {
   }
   if (unlawful.length > 0) {
     const statutes = asProse([...new Set(unlawful.map((u) => s(u.statute_short)).filter(Boolean))]);
-    return `On the company's answers, the programme as ${org} describes it does not meet ${unlawful.length === 1 ? "one duty" : `${unlawful.length} duties`}${statutes ? ` under ${statutes}` : ""}, and those duties are named with their pinpoints below.`;
+    // A-TEAM S4 RULING S2.13(a) (doc 119, 2026-08-31) — singular agreement:
+    // one duty is "which is named with its pinpoint", never "those duties".
+    return `On the company's answers, the programme as ${org} describes it does not meet ${unlawful.length === 1 ? "one duty" : `${unlawful.length} duties`}${statutes ? ` under ${statutes}` : ""}, ${unlawful.length === 1 ? "which is named with its pinpoint below" : "which are named with their pinpoints below"}.`;
   }
   if (unresolved.length > 0) {
     return `On the company's answers, no duty in scope is unmet, but ${unresolved.length === 1 ? "one duty is" : `${unresolved.length} duties are`} left unresolved by what the company has answered, and each is named below with what would settle it.`;
   }
   return `On the company's answers, the programme as ${org} describes it meets each statutory duty in scope, subject to the measures being operated as described.`;
+}
+
+// A-TEAM S4 RULING S2.13(e) (doc 119) — the exec carries the typed
+// scorecard's counts in one fixed line, so the posture is countable at a
+// glance (not-applicable rows are outside all three counts).
+function composeExecutiveCounts(report: Bag): string {
+  const rows = dutyRows(report);
+  if (rows.length === 0) return "";
+  const { met, unmet, open } = verdictCounts(rows);
+  return `Confirmed deficiencies: ${unmet} · Unresolved duties: ${open} · Duties satisfied: ${met}.`;
 }
 
 function composeExecutiveBody(report: Bag): string {
@@ -268,6 +280,16 @@ function composeNoticeLead(report: Bag): string {
   }
   const { unmet, open } = verdictCounts(rows);
   if (unmet > 0) {
+    // A-TEAM S4 RULING S2.13(b) (doc 119) — exactly one unmet duty is named
+    // from the typed row, with its pinpoint, instead of the blanket phrase.
+    if (unmet === 1) {
+      const first = rows.find((r) => s(r.verdict) === "not_satisfied");
+      const label = first ? noStop(s(first.label)) : "";
+      const cite = first ? s(first.citation) : "";
+      if (label) {
+        return `Across the statutes in scope, the notice-and-consent posture is deficient: ${lowerEnumLabel(label)}${cite ? ` (${cite})` : ""} is not met on the company's answers.`;
+      }
+    }
     return `Across the statutes in scope, the notice-and-consent posture is deficient: ${unmet === 1 ? "one of the notice, release or disclosure duties is" : `${unmet} of the notice, release and disclosure duties are`} not met on the company's answers.`;
   }
   if (open > 0) {
@@ -371,7 +393,11 @@ function composeDutySummary(rows: readonly Bag[]): string {
     const label = noStop(s(r.label));
     if (!label) continue;
     const citation = s(r.citation);
-    lines.push(`${label}${citation ? ` (${citation})` : ""} — ${summaryVerdictPhrase(s(r.verdict))}.`);
+    // A-TEAM S4 RULING S2.13(c) (doc 119) — an unresolved row states its own
+    // open fact from the deliverables' information_needed, so "§ 15(a) — not
+    // resolved" reads as a specific ask, not a bare status.
+    const needed = s(r.verdict) === "record_insufficient" ? noStop(s(r.information_needed)) : "";
+    lines.push(`${label}${citation ? ` (${citation})` : ""} — ${summaryVerdictPhrase(s(r.verdict))}${needed ? `; the open point is ${lowerEnumLabel(needed)}` : ""}.`);
   }
   if (!lines.length) return "";
   lines.push(
@@ -646,7 +672,7 @@ export function assembleBiometricSkeletonDocument(report: Bag, intakeInput: Bag)
   const org = s(intake.orgName) || "the company";
 
   const composed: ComposedBlocks = {
-    "executive_summary:0": composeExecutiveLead(report, org),
+    "executive_summary:0": [composeExecutiveLead(report, org), composeExecutiveCounts(report)].filter(Boolean).join("\n"),
     "executive_summary:2": composeExecutiveBody(report),
 
     "notice_consent:0": composeNoticeLead(report),

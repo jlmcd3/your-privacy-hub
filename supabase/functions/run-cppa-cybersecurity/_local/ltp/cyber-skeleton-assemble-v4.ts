@@ -36,7 +36,7 @@ import { buildPhaseInBlock } from "./cyber-skeleton-assemble.ts";
 import type { CyberDeliverables } from "./cppa-cyber-deliverables/types.ts";
 import type { ComponentRecommendation, CyberNextStep } from "./cppa-cyber-deliverables/cyber-recommendations.ts";
 import { recommendationFact } from "./cppa-cyber-deliverables/cyber-recommendations.ts";
-import { buildCyberFactors, type CyberFactorOutputs } from "./cppa-cyber-deliverables/cyber-factors.ts";
+import { buildCyberFactors, buildRecordCompletionExtras, type CyberFactorOutputs, type RecordCompletionAction } from "./cppa-cyber-deliverables/cyber-factors.ts";
 import { CYBER_7123_COMPONENTS } from "./cppa-cyber-deliverables/components.ts";
 
 export const CYBER_V4_ASSEMBLER_STAMP = "cyber-skeleton-assembler@c2-spine-v1.1-2026-08-26";
@@ -189,6 +189,7 @@ const ACTION_TYPE_BY_GAP_CLASS: Readonly<Record<string, string>> = {
 function deriveActionRegister(
   intake: Bag,
   recommendations: readonly ComponentRecommendation[],
+  recordCompletion: readonly RecordCompletionAction[] = [],
 ): RenderedTable {
   const owner = s((intake.profile as Bag | undefined)?.remediation_owner);
   return {
@@ -200,19 +201,32 @@ function deriveActionRegister(
     // empty appendix (intro paragraph, then nothing — it read as a
     // rendering failure). The empty state is now an explicit one-row
     // result, consistent with Section 6's "none identified" sentence.
-    rows: recommendations.length
-      ? recommendations.map((r) => {
-        const rec = controlRec(intake, r.slug);
-        return [
-          String(r.rank),
-          r.label,
-          // FD703575-CY3 — first-sentence fact, never the whole notes narrative.
-          r.slot.template.replace("{fact}", recommendationFact(rec.notes, rec.maturity)),
-          ACTION_TYPE_BY_GAP_CLASS[r.key.gapClass] ?? "Readiness",
-          r.priority,
+    // A-TEAM S4 RULING S2.6 (doc 119) — audit-readiness record-completion
+    // items are a second action class; the empty state fires only when BOTH
+    // classes are empty.
+    rows: recommendations.length || recordCompletion.length
+      ? [
+        ...recommendations.map((r) => {
+          const rec = controlRec(intake, r.slug);
+          return [
+            String(r.rank),
+            r.label,
+            // FD703575-CY3 — first-sentence fact, never the whole notes narrative.
+            r.slot.template.replace("{fact}", recommendationFact(rec.notes, rec.maturity)),
+            ACTION_TYPE_BY_GAP_CLASS[r.key.gapClass] ?? "Readiness",
+            r.priority,
+            owner || "Not recorded",
+          ];
+        }),
+        ...recordCompletion.map((x) => [
+          "—",
+          x.label,
+          x.action,
+          "Record completion",
+          "Within 90 days",
           owner || "Not recorded",
-        ];
-      })
+        ]),
+      ]
       : [[
         "—",
         "All components",
@@ -464,7 +478,11 @@ export function assembleCyberSkeletonDocumentV4(
     "readiness_actions:1": repairPreserving(joinLines(
       factors.readiness_actions.priority_actions.length
         ? `Priority readiness actions:\n${bullets(factors.readiness_actions.priority_actions)}`
-        : "Priority readiness actions: none identified on the Company's answers.",
+        // A-TEAM S4 RULING S2.6 (doc 119) — split classes: no program
+        // remediation is not the same as nothing to do.
+        : factors.readiness_actions.record_completion_actions.length
+        ? "Program remediation: none identified on the information provided. Audit readiness waits on the record-completion actions below."
+        : "Priority readiness actions: none identified on the information provided.",
       factors.readiness_actions.evidence_package_actions.length
         ? `Evidence-package actions:\n${bullets(factors.readiness_actions.evidence_package_actions)}`
         : null,
@@ -505,7 +523,7 @@ export function assembleCyberSkeletonDocumentV4(
     "purpose_scope_record:5": buildCyberApplicabilityTable((intake.profile ?? {}) as Bag),
     "appendix_a_matrix:1": deriveComponentMatrix(intake, deliverables, factors),
     "appendix_b_evidence:1": deriveEvidenceIndex(deliverables),
-    "appendix_c_actions:1": deriveActionRegister(intake, recommendations),
+    "appendix_c_actions:1": deriveActionRegister(intake, recommendations, buildRecordCompletionExtras(intake, deliverables)),
     "appendix_d_record:1": deriveAssessmentProfileRecord(intake, reportDate),
     "appendix_d_record:2": deriveAssessmentControlRecord(intake),
     "signature:1": deriveSignatureTable(),

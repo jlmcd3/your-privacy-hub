@@ -729,18 +729,18 @@ export function buildContentOwnerMapping(intake: unknown): ContentOwnerMapping {
       requirement_verbatim: A.verbatim,
       owner: OWNERS.forensics,
       source_of_truth:
-        "Forensic investigation record, reconciled against the intake fields `cause`, `dataTypes`, `affectedDataSubjectCount` and `affectedRecordCount`.",
+        "Forensic investigation record, reconciled against the recorded cause of the incident, the categories of data affected, and the approximate numbers of affected data subjects and personal-data records.",
       record_value: aParts.length ? aParts.join("; ") : TO_BE_COMPLETED,
       status: aComplete ? "analysed" : "record_insufficient",
       ...(aComplete
         ? {}
         : {
             information_needed: `Article 33(3)(a) asks for the categories AND the approximate numbers of both data subjects and records. Missing: ${[
-              !f.cause ? "cause" : null,
-              !f.dataTypes.length ? "dataTypes" : null,
-              !f.subjectCount ? "affectedDataSubjectCount" : null,
-              !f.recordCount ? "affectedRecordCount" : null,
-            ].filter(Boolean).join(", ")}.`,
+              !f.cause ? "the cause of the incident" : null,
+              !f.dataTypes.length ? "the categories of data affected" : null,
+              !f.subjectCount ? "the approximate number of affected data subjects" : null,
+              !f.recordCount ? "the approximate number of affected personal-data records" : null,
+            ].filter(Boolean).join("; ")}.`,
           }),
     },
     // D1D2B3B8-I2 (2026-08-28) — the (b) element reads the RECORDED roster

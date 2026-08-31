@@ -601,12 +601,20 @@ export function buildRiskLedgerTable(pathways: Pathway[], surface: string): Rend
   // doc-comment always promised: one line per risk, name and remaining
   // level; § 4.A keeps the full ledger.
   if (surface === "exec_ledger") {
+    // A-TEAM S4 RULING S2.16 (doc 119, 2026-08-31) — the compression carries
+    // the safeguard STATUS word between risk and remaining level, so the
+    // exec reader sees whether anything was credited without the full
+    // § 4.A ledger repeating (RISK-P3 no-duplication holds).
     return {
       key: "",
       surface,
       title: "",
-      columns: ["Privacy risk", "Remaining risk"],
-      rows: ranked.map((p) => [p.harm, `${p.residual} ${movementMark(p)}`]),
+      columns: ["Privacy risk", "Safeguard credited", "Remaining risk"],
+      rows: ranked.map((p) => [
+        p.harm,
+        p.safeguards.length ? (p.bestStatus ?? "Recorded") : "None established",
+        `${p.residual} ${movementMark(p)}`,
+      ]),
     };
   }
   return {
@@ -2169,13 +2177,20 @@ export function runRiskFactorEngine(
       title: "",
       columns: ["Benefits established (weight)", "Risks remaining (level)"],
       rows: summaryRows,
-      note: CONSEQUENCE_BAND[consequence],
+      // A-TEAM S4 RULING S2.15 (doc 119) — the legend states that the two
+      // columns are qualitative dimensions, not operands of an equation.
+      note:
+        `${CONSEQUENCE_BAND[consequence]} Benefit weight and risk level are separate qualitative dimensions; the determination applies the methodology in Section 1 rather than a numerical equation.`,
     };
+    // A-TEAM S4 RULING S3.2 (doc 119, ChatGPT panel A3) — one cross-labeling
+    // sentence maps the § 7154 consequence text onto the executive result's
+    // disposition wording; composed from the SAME typed disposition, so no
+    // determination changes.
     put(
       "iv_determination:9",
       "determination_text",
       "B",
-      `${cell.conclusion} ${cell.materiality} ${cell.effect} ${cellExplanation} ${outcome}`,
+      `${cell.conclusion} ${cell.materiality} ${cell.effect} ${cellExplanation} ${outcome} In this report's executive result, that consequence is stated as "${CONSEQUENCE_BAND[consequence].replace(/\.$/, "")}."`,
       ["FACTOR:balancing_table", "FACTOR:benefit_weight_table", "FACTOR:residual_rule"],
       ["11 CCR § 7154", "11 CCR § 7152(a)(7)"],
     );

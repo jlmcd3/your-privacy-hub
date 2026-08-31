@@ -101,7 +101,7 @@ describe("SO-9 — byte-pinned spine", () => {
   it("SHA-256 over the joined spine matches the CEO certification", () => {
     const h = createHash("sha256").update(SCOPE_SPINE.join("\n")).digest("hex");
     expect(h).toBe(SCOPE_SPINE_SHA256);
-    expect(h).toBe("24e551a1c8becb7339fbbc7303227056dc4f2483060b015f3799009f64f97bd2");
+    expect(h).toBe("21d6feb4eca175b687e1d99df060b88d6de354a6a2da0783c1eb8b510170fe40");
   });
 
   it("spine is pure ASCII with straight quotes and no entities", () => {

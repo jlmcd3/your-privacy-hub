@@ -59,9 +59,19 @@ export type RemediationPriority =
  * or priority, the record is emitted with `record_insufficient` status and a
  * named `information_needed` rather than an invented plan.
  */
+// A-TEAM S4 RULING S2.7 (doc 119, 2026-08-31) — the action CLASS travels
+// with the record so the register can stop stamping one blanket priority on
+// items of different kinds (the live batch rendered "no immediate
+// remediation" beside seven "High — remediate this quarter" rows).
+export type RemediationActionType =
+  | "Compliance gap"
+  | "Record completion"
+  | "Preventive maintenance";
+
 export interface RemediationRecord {
   finding_key: string;
   domain: GovernanceDomain;
+  action_type: RemediationActionType;
   accountable_owner: string;
   target_date: string;
   priority: RemediationPriority;

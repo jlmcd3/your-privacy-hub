@@ -49,6 +49,7 @@ import type {
   GovernanceDeliverables,
   GovernanceDomain,
   MaturityTierAid,
+  RemediationActionType,
   RemediationPriority,
   RemediationRecord,
   TransferAnalysis,
@@ -1179,17 +1180,34 @@ function normalisePriority(v: string): RemediationPriority {
     : "unspecified";
 }
 
+// A-TEAM S4 RULING S2.7 (doc 119) — the verdict class decides both the
+// action TYPE and, where no per-item priority is recorded, the priority:
+// only genuine compliance gaps inherit the intake's default priority; a
+// record-completion item is "Medium" work, never a blanket "High".
+function actionTypeFor(verdict: string): RemediationActionType {
+  if (verdict === "not_satisfied" || verdict === "partially_satisfied") return "Compliance gap";
+  if (verdict === "record_insufficient" || verdict === "information_needed") return "Record completion";
+  return "Preventive maintenance";
+}
+
 export function buildRemediationRecord(
   findingKey: string,
   domain: GovernanceDomain,
   intake: unknown,
+  verdict = "not_satisfied",
 ): RemediationRecord {
   const { defaults, byKey, byDomain } = readRemediationIntake(intake);
   const src = byKey[findingKey] ?? byDomain[domain] ?? {};
+  const action_type = actionTypeFor(verdict);
 
   const accountable_owner = src.accountable_owner || defaults.accountable_owner || "";
   const target_date = src.target_date || defaults.target_date || "";
-  const priorityRaw = src.priority || defaults.priority || "";
+  const priorityRaw = src.priority ||
+    (action_type === "Compliance gap"
+      ? defaults.priority || ""
+      : action_type === "Record completion"
+      ? "Medium — remediate this year"
+      : "Low — monitor");
   const priority = normalisePriority(priorityRaw);
   const recordedMethod = src.validation_method || defaults.validation_method || "";
 
@@ -1201,6 +1219,7 @@ export function buildRemediationRecord(
   return {
     finding_key: findingKey,
     domain,
+    action_type,
     accountable_owner,
     target_date,
     priority,
@@ -1228,7 +1247,7 @@ function answerFor(intake: unknown, keys: readonly string[]): string {
     .map((k) => {
       const v = get(intake, k);
       const text = Array.isArray(v) ? arr(v).join(", ") : str(v);
-      return unanswered(text) ? "" : `${k} = ${text}`;
+      return unanswered(text) ? "" : `${govFieldLabel(k)}: ${text}`;
     })
     .filter(Boolean);
   return parts.length > 0 ? parts.join("; ") : "The record does not answer this control question.";
@@ -1283,7 +1302,7 @@ function toDomainFinding(
     evidence_reviewed: evidenceFor(intake, answerKeys),
   };
   if (isAdverse(base.verdict)) {
-    finding.remediation = buildRemediationRecord(base.key, domain, intake);
+    finding.remediation = buildRemediationRecord(base.key, domain, intake, String(base.verdict));
   }
   return finding;
 }

@@ -213,7 +213,13 @@ export function buildDpiaSlotValues(intake: Bag): SlotValues {
     // PROMPT 2A(a) — must read grammatically after "…is required because ".
     // PROMPT 9L item 1 (JOINER) — the reasons-to-conduct splice takes the
     // serial comma.
-    reasonsToConduct: reasons.length ? `the processing involves ${asProseSerial(reasons)}` : null,
+    // A-TEAM S4 RULING S2.9 (doc 119, 2026-08-31) — a null value made the
+    // renderer drop the believes-clause and strand a bare organisation name
+    // ("Meridiaan Datadiensten B.V. The processing under assessment…").
+    // The degrade names no invented trigger; it points at the description.
+    reasonsToConduct: reasons.length
+      ? `the processing involves ${asProseSerial(reasons)}`
+      : "of the nature, scope, context and purposes of the processing described below",
     ...descriptionSlots(noStop(s(intake.description)), version, humanizeDateISO(launch)),
 
     purpose: noStop(s(intake.purpose)) || null,
@@ -569,8 +575,18 @@ function composeExecutiveBody(report: Bag, intake: Bag): string {
       `Based on the information the company provided, one point is still open; it is listed in the gap table and raised again where it bears on a determination. It is: ${openItems[0]}.`,
     );
   } else if (open > 1) {
-    const lead =
-      `Based on the information the company provided, ${numberWord(open)} points are still open; each is listed in the gap table and raised again where it bears on a determination.`;
+    // A-TEAM S4 RULING S2.11 (doc 119) — the count separates the items that
+    // hold sign-off from record-completion items, so "eight open points"
+    // cannot read as eight blockers.
+    const blockerCount = Math.min(
+      Array.isArray((report.decision as Bag)?.blockers)
+        ? ((report.decision as Bag).blockers as unknown[]).map((c) => s(c)).filter(Boolean).length
+        : 0,
+      open,
+    );
+    const lead = blockerCount > 0 && blockerCount < open
+      ? `Based on the information the company provided, ${numberWord(open)} points are still open: ${numberWord(blockerCount)} ${blockerCount === 1 ? "holds" : "hold"} sign-off and ${numberWord(open - blockerCount)} ${open - blockerCount === 1 ? "is a record-completion item" : "are record-completion items"}; each is listed in the gap table and raised again where it bears on a determination.`
+      : `Based on the information the company provided, ${numberWord(open)} points are still open; each is listed in the gap table and raised again where it bears on a determination.`;
     const chapeau = open <= 3 ? "They are:" : "The first three are:";
     const bullets = openItems.slice(0, 3).map((x) => `— ${x}`);
     openBlock = [`${lead} ${chapeau}`, ...bullets].join("\n");
@@ -1019,6 +1035,14 @@ function composeSignoffBody(report: Bag, intake: Bag, values: SlotValues): strin
       // with its rejection reason each less intrusive means considered…").
       // Semicolon-joined, full stop closed.
       parts.push(`Sign-off is held open by the following: ${list.join("; ")}.`);
+      // A-TEAM S4 RULING S2.12 (doc 119, 2026-08-31) — when no residual risk
+      // is rated High, the pending decision states its actual ground so the
+      // reader cannot infer an unstated risk finding.
+      const registerRows = Array.isArray(report.risk_register) ? (report.risk_register as Bag[]) : [];
+      const residualHigh = registerRows.some((r) => s(r.residual_band).toLowerCase() === "high");
+      if (!residualHigh) {
+        parts.push("The decision remains pending because required information is outstanding, not because a high residual risk has been identified.");
+      }
     }
   }
 

@@ -324,7 +324,14 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
               <ToaView key={i} text={p.text} />
             ) : (
 
-              p.kind === "quoted_authority" ? (
+              p.kind === "legal_requirement" ? (
+                <div key={i}>
+                  <div className="inline-block rounded-sm border border-slate-400 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-2 mb-1">
+                    Legal standard
+                  </div>
+                  <p className="text-[13.5px] leading-relaxed text-foreground whitespace-pre-line">{p.text}</p>
+                </div>
+              ) : p.kind === "quoted_authority" ? (
                 // BATCH 16 (R4, kind-driven): composer-typed quoted
                 // authority renders as the statute-quote block, verbatim.
                 <div key={i} className="my-2 border-l-[3px] border-slate-400 pl-3 pr-2 py-1 text-[13px] leading-relaxed text-foreground whitespace-pre-line">
@@ -449,9 +456,11 @@ function SkeletonTableView({ table }: { table: SkeletonTable }) {
       )}
       {/* doc 72 (Fleet Report Design System, 2026-08-25) — horizontal-rules-
           only table anatomy, matching generate-report-pdf's skeletonTableHtml
-          byte-for-byte in intent: no vertical rules, no header fill, no
-          zebra striping. The table itself carries the heavy open/close
-          rule; the header its own rule; body rows a light separator. */}
+          byte-for-byte in intent: no vertical rules, no zebra striping.
+          A-TEAM S4 RULING S3.3 (doc 119): doc 72's no-header-fill rule is
+          AMENDED by CEO directive to permit this one very light navy-grey
+          header tint (#f3f6f8; dark-mode slate equivalent), synced with the
+          PDF renderer. */}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse border-y-2 border-foreground text-xs">
           {!table.hideHeader && (
@@ -461,7 +470,7 @@ function SkeletonTableView({ table }: { table: SkeletonTable }) {
                   <th
                     key={i}
                     scope="col"
-                    className="border-b-2 border-foreground/70 px-3 py-2 text-left font-sans text-[11px] font-bold uppercase tracking-wide text-foreground"
+                    className="border-b-2 border-foreground/70 bg-[#f3f6f8] dark:bg-slate-900/40 px-3 py-2 text-left font-sans text-[11px] font-bold uppercase tracking-wide text-foreground"
                   >
                     {c}
                   </th>

@@ -118,9 +118,11 @@ Deno.test("BIO-2: Sections I and III carry the one-line-per-duty summary with a 
   assert(oneText.includes("Written notice before collection (740 ILCS 14/15(b)(1)) — met on the company's answers."));
   assert(oneText.includes("in Section II."));
   const threeText = secText(three);
+  // A-TEAM S4 RULING S2.13(c) (doc 119): the unresolved line states its
+  // own open point from the deliverables' information_needed.
   assert(
     threeText.includes(
-      "Public written retention schedule and destruction guidelines (740 ILCS 14/15(a)) — not resolved by the company's answers.",
+      "Public written retention schedule and destruction guidelines (740 ILCS 14/15(a)) — not resolved by the company's answers; the open point is",
     ),
   );
   assert(threeText.includes("in Section II."));

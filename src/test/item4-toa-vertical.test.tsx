@@ -10,7 +10,7 @@ const doc = {
   sections: [
     {
       id: "table_of_authorities",
-      title: "Table of Authorities",
+      title: "Authorities Cited",
       paragraphs: [
         {
           kind: "rule",

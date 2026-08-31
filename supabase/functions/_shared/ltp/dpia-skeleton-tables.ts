@@ -56,7 +56,8 @@ export const DPIA_TABLE_LABELS: Record<string, string> = {
   // A-TEAM S3 RULING IV.6 (doc 115, 2026-08-31) — "Analysed on the record"
   // read as process metadata, not a result; the status states the result.
   analysed: "Assessed",
-  record_insufficient: "The record does not carry the point",
+  // A-TEAM S4 RULING S2.10 (doc 119) — fleet status vocabulary.
+  record_insufficient: "Additional information required",
   basis_supported_on_the_record: "Basis supported based on the information the company provided",
   undetermined_on_the_record: "Undetermined based on the information the company provided",
   no_transfer_on_the_record: "No cross-border transfer is on the record",
@@ -287,6 +288,10 @@ function validationApprovalTable(report: Bag): RenderedTable | null {
     ["Approved by", s(v.approved_by_name)],
     ["Title", s(v.approved_by_title)],
     ["Date of approval", s(v.approval_date)],
+    // A-TEAM S4 RULING S2.12 (doc 119) — the approval's MEANING renders
+    // beside it, so "Approved by X" cannot read against Section 6's
+    // pending processing decision.
+    ["Meaning", s(v.approved_by_name) ? "Approval of the factual assessment record only; the decision on the processing itself is stated in Section 6." : ""],
     ["Note", dateNote],
     ["Basis for sign-off", s(v.basis_for_sign_off)],
     ["What is still needed", s(v.information_needed)],

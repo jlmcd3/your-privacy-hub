@@ -333,9 +333,9 @@ const F_GOV_EU: SampleFixture = {
         inventory_audit: "Yes — audited + formal approval process",
         additional_context:
           "Sector context: logistics / e-commerce fulfilment operating across 11 EU jurisdictions. " +
-          "Additional jurisdictional overlay folded into 'Other': Irish Data Protection Act 2018 as the national implementation of the GDPR. " +
-          "Additional operational tools folded into the intake narrative (not on the standard governance tool list): Shopify Plus (storefront platform) and ShipHero WMS (warehouse-management system). " +
-          "Additional data category folded into 'Other': order history (used for fulfilment routing and returns). " +
+          "Additional jurisdictional context: the Irish Data Protection Act 2018 applies as the national implementation of the GDPR. " +
+          "Additional operational tools identified by the Company: Shopify Plus (storefront platform) and ShipHero WMS (warehouse-management system). " +
+          "Additional data category held: order history (used for fulfilment routing and returns). " +
           "Transfer mechanism SCCs are supplemented by transfer impact assessments (TIAs) for each US-based sub-processor.",
         // GOVERNANCE UPGRADE — ICO tracker remediation defaults.
         remediation_default_owner: "Group Data Protection Officer",

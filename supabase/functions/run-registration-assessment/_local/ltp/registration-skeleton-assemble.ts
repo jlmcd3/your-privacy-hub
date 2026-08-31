@@ -443,18 +443,21 @@ function deriveReadinessChecklistTable(report: Bag): RenderedTable | null {
 // BATCH 19a (Wave C3, doc 113 S3.3) — the Executive Summary duty-status
 // table: Duty | Jurisdiction | Status | What closes it, one row per typed
 // determination across all four surfaces. Status maps typed verdicts only.
+// A-TEAM S4 RULING S2.17 (doc 119, 2026-08-31) — fleet status vocabulary:
+// "Does not attach" and "Reserved" read as engine dialect; statuses now
+// state the customer-facing conclusion.
 function dutyStatusWord(verdict: string): string {
   switch (verdict) {
     case "registrable":
     case "engaged":
-      return "Attaches";
+      return "Required on reported facts";
     case "not_registrable":
     case "not_engaged":
-      return "Does not attach";
+      return "Not required on reported facts";
     case "conditional":
       return "Turns on the claimed exclusion";
     case "record_insufficient":
-      return "Reserved";
+      return "Additional information required";
     default:
       return "";
   }
@@ -476,7 +479,7 @@ export function deriveDutyStatusTable(report: Bag): RenderedTable | null {
 
   for (const d of determinations(report)) {
     const verdict = s(d.verdict);
-    const status = dutyStatusWord(verdict) || "Reserved";
+    const status = dutyStatusWord(verdict) || "Additional information required";
     let closes = "—";
     if (verdict === "registrable") {
       const f = readinessFor.get(s(d.jurisdiction));
@@ -502,10 +505,17 @@ export function deriveDutyStatusTable(report: Bag): RenderedTable | null {
     const word = dutyStatusWord(verdict === "conditional" ? "record_insufficient" : verdict);
     if (!word) continue;
     const jur = s(r.jurisdiction) === "UK" ? "United Kingdom" : "European Union";
+    // A-TEAM S4 RULING S2.17a (doc 119) — an open determination names the
+    // deciding fact in the Information-required cell, never a dash.
+    const repFallback = s(r.jurisdiction) === "UK"
+      ? "Whether the UK processing is \"occasional\" for the Art. 27(2)(a) exemption"
+      : "The establishment and market facts the Art. 27 determination turns on";
     const closes = verdict === "engaged"
       ? "Written designation of the representative"
       : verdict === "not_engaged"
       ? "—"
+      : closesCell(s(r.information_needed)) === "—"
+      ? repFallback
       : closesCell(s(r.information_needed));
     rows.push([`Article 27 representative`, jur, word, closes]);
   }
@@ -528,10 +538,24 @@ export function deriveDutyStatusTable(report: Bag): RenderedTable | null {
     }
   }
 
+  // A-TEAM S4 RULING S1.1 (doc 119) — when the record carries the German
+  // BDSG §38 conditional (obligations_summary.dpo_condition), the open
+  // national-law question gets its own row; previously it contradicted the
+  // GDPR row silently.
+  const osum = (report.obligations_summary ?? {}) as Bag;
+  if (/BDSG/i.test(s(osum.dpo_condition))) {
+    rows.push([
+      "Data protection officer — BDSG §38 (Germany)",
+      "Germany",
+      "Additional information required",
+      "How many persons are constantly engaged in automated processing (the §38 threshold counts engaged persons, not total headcount)",
+    ]);
+  }
+
   const aiAct = (deliverables(report).ai_act_registration ?? {}) as Bag;
   const aiVerdict = s(aiAct.verdict);
   if (aiVerdict) {
-    const word = aiVerdict === "conditional" ? "Reserved" : dutyStatusWord(aiVerdict);
+    const word = aiVerdict === "conditional" ? "Additional information required" : dutyStatusWord(aiVerdict);
     if (word) {
       rows.push([
         "EU AI Act registration",
@@ -938,7 +962,9 @@ function composeSupervisoryAnalysis(report: Bag): string {
     // POSITIONS also render in the Article 37(1) branch table below.
     const dpoFindings = asArray(dpo.findings);
     const dpoCite = s((dpoFindings[0] ?? {}).citation);
-    const heading = dpoCite ? `Data protection officer — ${dpoCite}` : "Data protection officer.";
+    // A-TEAM S4 RULING S2.17d (doc 119) — the heading covers all three
+    // branches; citing branch (a) alone misdescribed the analysis below.
+    const heading = dpoCite ? `Data protection officer — ${dpoCite.replace(/Art\.\s*37\(1\)\([a-c]\)/, "Art. 37(1)")}` : "Data protection officer.";
     const bits: string[] = [];
     if (s(dpo.headline)) bits.push(stop(noStop(s(dpo.headline))));
     if (s(dpo.reasoning)) bits.push(stop(noStop(firstSentences(s(dpo.reasoning), 3))));
@@ -1019,8 +1045,10 @@ function composeReadinessLead(report: Bag, counts: RegistrationDutyCounts, org: 
         `No filing-content list applies to ${org} on the current assessment record; the outstanding ${counts.designation_attached === 1 ? "act recorded above is" : "acts recorded above are"} ${asProse(counts.attached_names.slice(counts.filing_attached))}`,
       );
     }
+    // A-TEAM S4 RULING S2.17e (doc 119) — the all-clear names any duty
+    // determination that remains open above, so it cannot read as settled.
     return stop(
-      `No filing is required of ${org} on the current assessment record; accordingly, no filing-readiness items apply`,
+      `No filing is required of ${org} on the current assessment record; accordingly, no filing-readiness items apply${counts.reserved > 0 ? `. ${counts.reserved === 1 ? "One duty determination remains" : `${counts.reserved} duty determinations remain`} open above and ${counts.reserved === 1 ? "is" : "are"} not a filing item` : ""}`,
     );
   }
   const open = rows.filter((r) => r.ready_to_file !== true);

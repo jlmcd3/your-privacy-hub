@@ -183,7 +183,7 @@ export const GOVERNANCE_SKELETON_SECTIONS: readonly GovernanceSkeletonSection[] 
   },
   {
     id: "table_of_authorities",
-    title: "Table of Authorities",
+    title: "Authorities Cited",
     blocks: [
       { kind: "rule", text: "Assembled deterministically from the document's citation ledger: an authority appears here if and only if it is cited above, with pinpoints consolidated and section back-references. Grouped in brief order - Regulations; Statutes; Guidance and Persuasive Authority (labelled persuasive, never binding). Source links deferred." },
     ],

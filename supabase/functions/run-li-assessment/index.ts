@@ -1971,9 +1971,15 @@ Return JSON:
 
     try { const _prose = extractProseFromReport(reportData); const _det = runFormatChecksGeneric(_prose).map(x=>({...x, check_type:'deterministic' as const})); attachDeterministicChecks(reportData as any, _det as any); } catch(_) {}
     // C1-d — Engagement Map v1 (additive metadata; document structure unchanged)
+    // A-TEAM S4 RULING S1.3 (doc 119, 2026-08-31) — the map was built from the
+    // TRIMMED intake object, which omits purpose_details / necessity_details /
+    // balancing_details, so populated safeguards, vulnerable-subjects,
+    // expectation and alternatives answers were reported as "not supplied"
+    // (live batch row 63e7fd51, DB-verified). The full persisted row is what
+    // attachLiaDeliverables already reads by design; the map now reads it too.
     try {
       (reportData as any).engagement_map = buildLiaEngagementMap(
-        liaIntakeObject as Record<string, unknown>,
+        assessment as unknown as Record<string, unknown>,
         liaTestStates as any,
         engagedFrameworks,
       );

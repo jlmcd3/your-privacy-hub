@@ -598,7 +598,49 @@ function actionSentence(r: ComponentRecommendation, intake: Bag): string {
   return `Rank ${r.rank} — ${r.label} - ${text}${gapSentence ? ` Remaining work, as recorded: ${gapSentence}.` : ""}${owner ? ` Recorded remediation owner: ${noStop(owner)}.` : ""} (EUP readiness recommendation; priority: ${r.priority}.)`;
 }
 
-export function buildReadinessActions(intake: Bag, recs: readonly ComponentRecommendation[]): ReadinessActionsResult {
+// A-TEAM S4 RULING S2.6 (doc 119, 2026-08-31) — TWO ACTION CLASSES. The
+// report identified four policy-only components, an unresolved auditor
+// engagement, and missing prior-audit coverage, then said "Priority
+// readiness actions: none identified" — because evidence "partial" resolves
+// to no_gap and the engagement/prior-audit items were never actions at all
+// (live batch row 32c9a611, mechanism-verified). Those items are now
+// AUDIT-READINESS (RECORD-COMPLETION) actions, a separate class from
+// program remediation; no determination changes and the ratified
+// recommendation library is untouched.
+export interface RecordCompletionAction {
+  readonly label: string;
+  readonly action: string;
+}
+
+export function buildRecordCompletionExtras(intake: Bag, d: CyberDeliverables): RecordCompletionAction[] {
+  const out: RecordCompletionAction[] = [];
+  if (d.independence_determination?.status === "record_insufficient") {
+    out.push({
+      label: "Auditor engagement",
+      action: "Record the auditor engagement and its independence status; the readiness conclusion waits on completing this item.",
+    });
+  }
+  const lastAudit = profileStr(intake, "last_audit");
+  const priorScope = profileStr(intake, "prior_audit_scope");
+  if (lastAudit && !priorScope) {
+    out.push({
+      label: "Prior audit coverage",
+      action: "Record what the prior cybersecurity audit covered, so any reliance on it can be assessed.",
+    });
+  }
+  for (const e of d.evidence_sufficiency) {
+    if (e.sufficiency === "partial") {
+      const label = CYBER_7123_COMPONENTS.find((c) => c.slug === e.slug)?.label ?? e.slug;
+      out.push({
+        label,
+        action: "Add a testable artifact — a log, a configuration export, a report, a test result, an auditor letter, or a training record — behind the described control.",
+      });
+    }
+  }
+  return out;
+}
+
+export function buildReadinessActions(intake: Bag, recs: readonly ComponentRecommendation[], d?: CyberDeliverables): ReadinessActionsResult {
   // FD703575-CY4 — an action appears ONCE. Immediate-priority items render
   // under "Priority readiness actions"; the class families below list only
   // the remaining (non-Immediate) items. The live batch rendered the same
@@ -608,9 +650,15 @@ export function buildReadinessActions(intake: Bag, recs: readonly ComponentRecom
   const priority_actions = recs.filter((r) => r.priority === "Immediate").map((r) => actionSentence(r, intake));
   const evidence_package_actions = byClass(["evidence_insufficient"]);
   const implementation_actions = byClass(["not_implemented", "partially_implemented"]);
-  const record_completion_actions = byClass(["no_record", "no_maturity_stated"]);
-  const sequencing = recs.length === 0
+  const extras = d ? buildRecordCompletionExtras(intake, d) : [];
+  const record_completion_actions = [
+    ...byClass(["no_record", "no_maturity_stated"]),
+    ...extras.map((x) => `${x.label} — ${x.action} (Audit-readiness record-completion item.)`),
+  ];
+  const sequencing = recs.length === 0 && extras.length === 0
     ? "No readiness actions are identified; the preparation focus is organizing the identified evidence for auditor access."
+    : recs.length === 0
+    ? "Program remediation: none identified on the information provided. The record-completion items above are what audit readiness waits on."
     : "Suggested sequencing: complete the record first, then close implementation gaps, then assemble the evidence packages - each earlier group unblocks the assessment of the later ones.";
   return { priority_actions, evidence_package_actions, implementation_actions, record_completion_actions, sequencing };
 }
@@ -681,6 +729,15 @@ export function buildExecutiveSnapshotRows(inputs: FactorInputs): readonly (read
       ? `${asProse(gaps.slice(0, 3).map((r) => r.label))}${gaps.length > 3 ? `, and ${gaps.length - 3} more in Section 4` : ""}`
       : "None identified on the information provided",
   ]);
+  // A-TEAM S4 RULING S2.6 (doc 119) — the snapshot separates program
+  // remediation from audit-readiness record completion.
+  const rcExtras = buildRecordCompletionExtras(intake, d);
+  rows.push([
+    "Audit-readiness (record-completion) actions",
+    rcExtras.length
+      ? `${rcExtras.length} — ${asProse(rcExtras.slice(0, 3).map((x) => x.label))}${rcExtras.length > 3 ? `, and ${rcExtras.length - 3} more in the Readiness Action Register` : ""}`
+      : "None identified on the information provided",
+  ]);
   rows.push([
     "Priority readiness actions",
     inputs.nextSteps.length
@@ -745,7 +802,7 @@ export function buildCyberFactors(
     component_analyses: buildComponentAnalyses(inputs),
     cross_cutting: buildCrossCutting(intake, deliverables, recommendations),
     incident_readiness: buildIncidentReadiness(intake, deliverables),
-    readiness_actions: buildReadinessActions(intake, recommendations),
+    readiness_actions: buildReadinessActions(intake, recommendations, deliverables),
     overall: buildOverallReadinessNarrative(deliverables, recommendations),
     evidence_preservation: buildEvidencePreservation(intake, deliverables),
     executive_lines: buildExecutiveReadinessLines(inputs),

@@ -130,6 +130,10 @@ const LI_INTAKE_COLS = [
   "purpose_details", "necessity_details", "balancing_details",
   "alternatives_considered", "supplemental_context", "supplemental_responses",
   "subject_anchor", "preview_signal",
+  // A-TEAM S4 RULING S1.4 (doc 119, 2026-08-31) — the report's attestation
+  // block is sourced from this real column; omitting it made the grader call
+  // genuinely-recorded reviewer/approver names "fabricated" (row 63e7fd51).
+  "attestation",
 ];
 export const TOOL_TABLE: Record<QL3Tool, ToolRowSpec> = {
   "governance":  { table: "governance_assessments", intakeCols: ["intake_data"], reportCol: "report_data" },

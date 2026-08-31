@@ -71,8 +71,10 @@ export const REGISTRATION_SKELETON_PROVENANCE =
  * 5e60e0a56654f64da95ec38a978f16bbfe517a59ba385b0ee88f9ff3d5b11c67 (pre-II.3),
  * 8cac3cb474f7b85485ac317bd2b81244a7679c90b0182b0c303810714a174650 (pre-I.24).
  */
+// RE-PIN A-TEAM S4 (doc 119 S3.1, 2026-08-31): fleet ToA rename — the "Table of Authorities" section title became "Authorities Cited" (CEO-ratified, panel A1); ids and assembly rules unchanged. Old-hash reproduction verified before re-pin. Prior pin:
+// 1e948250877c52a464c3d0fb8235744c04cb7764780d7013dc11ea735c76aa13.
 export const REGISTRATION_SKELETON_CONTENT_HASH =
-  "1e948250877c52a464c3d0fb8235744c04cb7764780d7013dc11ea735c76aa13";
+  "f47eaa0120b1329d5d1d6afea6008639d50e1155944afe3a957d7ef45f1f4e71";
 
 // A-TEAM S3 RULING I.24 (doc 115, 2026-08-31) — fleet Title Case cover.
 export const REGISTRATION_SKELETON_TITLE = "Registration Assessment";
@@ -89,7 +91,7 @@ export const REGISTRATION_REGISTER_GUIDE =
  * without the authoring marker, and may never be reworded.
  */
 export const REGISTRATION_CORPUS_FRAMING_NOTE =
-  "Every determination below rests on the statutes listed in the Table of Authorities and on nothing else.";
+  "Every determination below rests on the statutes listed in Authorities Cited and on nothing else.";
 
 /**
  * The item413 register carries: the banned "on this record" family is checked
@@ -143,7 +145,7 @@ export const REGISTRATION_SKELETON_SECTIONS: readonly RegistrationSkeletonSectio
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating how many registration duties attach on the company's answers and how many are presently satisfied." },
       { kind: "skeleton", text: "{organizationName}, operating in {sector - reader label} at a size of {orgSize - band as prose}, has indicated that it operates across {jurisdictions - as prose} and processes {dataTypes - reader labels}." },
-      { kind: "rule", text: "[BYTE-PINNED] Every determination below rests on the statutes listed in the Table of Authorities and on nothing else." },
+      { kind: "rule", text: "[BYTE-PINNED] Every determination below rests on the statutes listed in Authorities Cited and on nothing else." },
       { kind: "generated", text: "[GENERATED] The filing posture in two to three sentences: duties attached, satisfied, and open, attributed." },
       // BATCH 19a (Wave C3, doc 113 S3.3) — the duty-status table (Duty |
       // Jurisdiction | Status | What closes it), rows from the four typed
@@ -191,7 +193,7 @@ export const REGISTRATION_SKELETON_SECTIONS: readonly RegistrationSkeletonSectio
   },
   {
     id: "table_of_authorities",
-    title: "Table of Authorities",
+    title: "Authorities Cited",
     blocks: [
       { kind: "rule", text: "Assembled deterministically from the document's citation ledger: an authority appears here if and only if it is cited above, with pinpoints consolidated and section back-references. Grouped in brief order - Regulations; Statutes; Guidance and Persuasive Authority (labelled persuasive, never binding). Source links deferred." },
     ],
@@ -225,7 +227,7 @@ export const REGISTRATION_SKELETON_PARAGRAPHS: readonly string[] = [
   "3. Filing Readiness",
   "[DETERMINATION LEAD] One sentence stating what stands between the company's answers and complete filings.",
   "[GENERATED] The readiness findings: each open duty with the company's recorded state and what closes it, naming the specific responsible party the record supplies rather than an unnamed role (the 428-D named-actor law); the attestation from the typed block.",
-  "Table of Authorities",
+  "Authorities Cited",
   "Assembled deterministically from the document's citation ledger: an authority appears here if and only if it is cited above, with pinpoints consolidated and section back-references. Grouped in brief order - Regulations; Statutes; Guidance and Persuasive Authority (labelled persuasive, never binding). Source links deferred.",
 ];
 

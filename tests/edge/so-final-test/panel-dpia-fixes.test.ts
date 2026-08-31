@@ -33,8 +33,25 @@ const BASE: Bag = {
   transfer_flows: [],
 };
 
-Deno.test("DPIA-P1: an empty alternatives list with a necessity narrative never denies that alternatives were considered", () => {
+// A-TEAM S4 RULING S1.7 (doc 119): a narrative carrying itemised
+// considered-and-rejected language is now parsed into structured
+// alternatives for the primary operation, so BASE's narrative RESOLVES the
+// least-intrusive-means test instead of degrading. The quote-then-deny
+// guard (PANEL DPIA-P1) moves to a narrative the parser cannot itemise.
+Deno.test("DPIA-P1: an itemised necessity narrative resolves the alternatives test (S1.7)", () => {
   const findings = buildNecessityFindings(BASE as never);
+  const f = findings[0] as unknown as Bag;
+  assertEquals(f.verdict, "least_intrusive_means_supported");
+  assert(!String(f.why).includes("records no alternative means"), "denied material the document quotes");
+  assertStringIncludes(String(f.why), "ground surveys");
+});
+
+Deno.test("DPIA-P1: an unparseable narrative still never denies that alternatives were considered", () => {
+  const findings = buildNecessityFindings({
+    ...BASE,
+    necessity_proportionality:
+      "The processing is proportionate to the stated aim and no less intrusive approach would satisfy the survey objectives.",
+  } as never);
   const f = findings[0] as unknown as Bag;
   assertEquals(f.verdict, "undetermined_on_the_record");
   assert(!String(f.why).includes("records no alternative means"), "denied material the document quotes");

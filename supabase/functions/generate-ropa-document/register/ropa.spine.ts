@@ -43,8 +43,10 @@ export const ROPA_SKELETON_PROVENANCE =
  * computed directly from `word/document.xml` (`w:t` runs concatenated, XML
  * entities unescaped). Independently confirmed by the CEO, 2026-08-10.
  */
+// RE-PIN A-TEAM S4 (doc 119 S3.1, 2026-08-31): fleet ToA rename — the "Table of Authorities" section title became "Authorities Cited" (CEO-ratified, panel A1); ids and assembly rules unchanged. Old-hash reproduction verified before re-pin. Prior pin:
+// 71b06e5f68647fd78af989368210b577d0301ef7f51e48c9dfb08edee9a73ff6.
 export const ROPA_SKELETON_CONTENT_HASH =
-  "71b06e5f68647fd78af989368210b577d0301ef7f51e48c9dfb08edee9a73ff6";
+  "1bdc0365947cd64011285cb09ce06824c52afd3e26479d2c5dac171f760bf55b";
 
 export const ROPA_SKELETON_TITLE = "RECORD OF PROCESSING ACTIVITIES";
 export const ROPA_SKELETON_SUBTITLE =
@@ -169,7 +171,7 @@ export const ROPA_SKELETON_SECTIONS: readonly RopaSkeletonSection[] = [
   },
   {
     id: "table_of_authorities",
-    title: "Table of Authorities",
+    title: "Authorities Cited",
     blocks: [
       { kind: "rule", text: ROPA_TOA_RULE },
     ],
@@ -191,7 +193,7 @@ export const ROPA_SKELETON_PARAGRAPHS: readonly string[] = [
   "Completeness Review",
   ROPA_COMPLETENESS_LEAD,
   ROPA_COMPLETENESS_GENERATED,
-  "Table of Authorities",
+  "Authorities Cited",
   ROPA_TOA_RULE,
 ];
 

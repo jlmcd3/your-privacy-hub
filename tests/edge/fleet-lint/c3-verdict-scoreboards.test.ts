@@ -114,12 +114,15 @@ Deno.test("C3/S3.3: the Registration duty-status table spans all four typed surf
   const table = execTables(out.document).find((t) => t.title === "Duty status");
   assertExists(table);
   assertEquals(table.columns, ["Duty", "Jurisdiction", "Status", "Information required"]);
-  assert(table.rows.some((r) => r[0] === "Data-broker registration" && r[1] === "California" && r[2] === "Attaches"));
-  assert(table.rows.some((r) => r[0] === "Article 27 representative" && r[1] === "European Union" && r[2] === "Attaches"));
-  assert(table.rows.some((r) => r[0] === "Data protection officer" && r[2] === "Attaches" && r[3] === "Written designation and the Art. 37(7) steps"));
+  // A-TEAM S4 RULING S2.17 (doc 119): the status vocabulary is the reader's
+  // ("Required on reported facts" / "Additional information required"), not
+  // the engine's ("Attaches" / "Reserved").
+  assert(table.rows.some((r) => r[0] === "Data-broker registration" && r[1] === "California" && r[2] === "Required on reported facts"));
+  assert(table.rows.some((r) => r[0] === "Article 27 representative" && r[1] === "European Union" && r[2] === "Required on reported facts"));
+  assert(table.rows.some((r) => r[0] === "Data protection officer" && r[2] === "Required on reported facts" && r[3] === "Written designation and the Art. 37(7) steps"));
   const ai = table.rows.find((r) => r[0] === "EU AI Act registration");
   assertExists(ai);
-  assertEquals(ai[2], "Reserved");
+  assertEquals(ai[2], "Additional information required");
   assertStringIncludes(ai[3], "under its own name or trademark");
 });
 

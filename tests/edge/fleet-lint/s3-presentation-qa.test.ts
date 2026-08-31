@@ -40,11 +40,55 @@ Deno.test("S3 VI.3 — risk ledger movement marks render as words", () => {
   ];
   const t = buildRiskLedgerTable(pathways as never, "exec_ledger");
   assert(t, "exec ledger renders");
-  assertEquals(t!.rows[0][1], "High (unchanged)");
-  assertEquals(t!.rows[1][1], "Low (reduced)");
+  // A-TEAM S4 RULING S2.16 (doc 119) — the compression carries the
+  // safeguard-status middle column; movement marks live in column 2.
+  assertEquals(t!.columns, ["Privacy risk", "Safeguard credited", "Remaining risk"]);
+  assertEquals(t!.rows[0][1], "None established");
+  assertEquals(t!.rows[0][2], "High (unchanged)");
+  assertEquals(t!.rows[1][2], "Low (reduced)");
   for (const row of t!.rows) {
-    assert(!/[=▼]/.test(row[1]), `glyph mark leaked: ${row[1]}`);
+    assert(!/[=▼]/.test(row[2]), `glyph mark leaked: ${row[2]}`);
   }
+});
+
+// ── S4 (doc 119) — SESSION-4 RECURRENCE GUARDS ────────────────────────────
+
+// S2.10 — the DPIA status vocabulary states the ask, not the engine idiom.
+Deno.test("S4 S2.10 — DPIA record_insufficient label is the fleet ask", async () => {
+  const src = await Deno.readTextFile(
+    new URL("../../../supabase/functions/_shared/ltp/dpia-skeleton-tables.ts", import.meta.url),
+  );
+  assert(!src.includes('"The record does not carry the point"'), "engine idiom returned");
+  assert(src.includes('record_insufficient: "Additional information required"'), "fleet label missing");
+});
+
+// S3.1 — the ToA rename holds across every spine section title.
+Deno.test("S4 S3.1 — no spine section title says Table of Authorities", async () => {
+  const spines = [
+    "../../../supabase/functions/check-biometric-compliance/_local/prose/plans/biometric.spine.ts",
+    "../../../supabase/functions/generate-ir-playbook/_local/prose/plans/ir-playbook.spine.ts",
+    "../../../supabase/functions/run-li-assessment/_local/prose/plans/lia.spine.ts",
+    "../../../supabase/functions/generate-report-pdf/_local/prose/plans/lia.spine.ts",
+    "../../../supabase/functions/generate-ropa-document/register/ropa.spine.ts",
+    "../../../supabase/functions/run-registration-assessment/_local/prose/plans/registration.spine.ts",
+    "../../../supabase/functions/run-governance-assessment/_local/prose/plans/governance.spine.ts",
+    "../../../supabase/functions/run-cppa-cybersecurity/_local/prose/plans/cppa-cyber-v4.spine.ts",
+    "../../../supabase/functions/run-admt-checker/_local/prose/plans/cppa-admt.spine.ts",
+    "../../../src/lib/scope/scope-spine.ts",
+  ];
+  for (const rel of spines) {
+    const text = await Deno.readTextFile(new URL(rel, import.meta.url));
+    assert(!text.includes('title: "Table of Authorities"'), `${rel} still titles the old ToA name`);
+  }
+});
+
+// S2.13(d) — the biometric amendment trigger names in-scope statutes only.
+Deno.test("S4 S2.13d — biometric review triggers are jurisdiction-scoped", async () => {
+  const src = await Deno.readTextFile(
+    new URL("../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-deliverables/build.ts", import.meta.url),
+  );
+  assert(!src.includes("const BIOMETRIC_REVIEW_TRIGGERS"), "static all-statute trigger list returned");
+  assert(src.includes("function biometricReviewTriggers("), "scoped trigger builder missing");
 });
 
 // ── III.10/V.7 — acronym-safe mid-sentence casing ─────────────────────────

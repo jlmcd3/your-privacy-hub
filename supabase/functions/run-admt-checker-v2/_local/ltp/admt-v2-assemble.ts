@@ -964,8 +964,12 @@ function vendorLead(intake: Record<string, unknown>, vendor: { identified: boole
 // ---------------------------------------------------------------------------
 
 // PANEL ADMT-1 (2026-08-30) — the out-of-scope surfaces.
+// A-TEAM S4 RULING S2.14 (doc 119, 2026-08-31) — the exec table's Result
+// cell already reads "Not reached"; the Assessment cell repeating that lead
+// rendered "Not reached | — | Not reached — …" (flagged P0-2). The cell now
+// states only the reason.
 const NOT_REACHED_PHRASE =
-  "Not reached — the System is outside Article 11 for this decision on the Company's reported facts (see Section 2).";
+  "This requirement is not assessed because the decision pathway is outside Article 11 on the reported facts (see Section 2).";
 
 /** The conditions under which the out-of-scope determination holds, stated
  * with the determination (panel-B memo 2 (e), unanimous). The band sentence

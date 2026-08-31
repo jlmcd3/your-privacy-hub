@@ -3,7 +3,7 @@
 // CERTIFIED SOURCE: the CEO's paragraph-by-paragraph certification of
 // 2026-08-10, reconciled byte-for-byte against
 // CPPA_Scope_Checker_Skeleton_v3-3.docx (word/document.xml, 20 paragraphs).
-// Both produce SHA-256 24e551a1c8becb7339fbbc7303227056dc4f2483060b015f3799009f64f97bd2
+// Both produce SHA-256 21d6feb4eca175b687e1d99df060b88d6de354a6a2da0783c1eb8b510170fe40 (re-pinned doc 119 S3.1)
 // over the "\n"-joined paragraph list. ASCII only, straight quotes, no entities.
 //
 // DO NOT reformat, re-wrap, or "fix" typography in this file. The spine is law;
@@ -28,13 +28,15 @@ export const SCOPE_SPINE: readonly string[] = [
   "IV. Conclusion",
   "[DETERMINATION LEAD] One sentence restating the scope conclusion, with any unanswered limb carried forward.",
   "[GENERATED] Counsel's closing: what in-scope status obligates next, concretely, attributed; ends on the single next act.",
-  "Table of Authorities",
+  "Authorities Cited",
   "Assembled deterministically from the document's citation ledger: an authority appears here if and only if it is cited above, with pinpoints consolidated and section back-references. Grouped in brief order - Regulations; Statutes; Guidance and Persuasive Authority (labelled persuasive, never binding). Source links deferred.",
 ];
 
 /** SHA-256 over SCOPE_SPINE.join("\n"). Certified 2026-08-10. */
 export const SCOPE_SPINE_SHA256 =
-  "24e551a1c8becb7339fbbc7303227056dc4f2483060b015f3799009f64f97bd2";
+// RE-PIN A-TEAM S4 (doc 119 S3.1, 2026-08-31): fleet ToA rename — the "Table of Authorities" section title became "Authorities Cited" (CEO-ratified, panel A1); ids and assembly rules unchanged. Old-hash reproduction verified before re-pin. Prior pin:
+// 24e551a1c8becb7339fbbc7303227056dc4f2483060b015f3799009f64f97bd2.
+  "21d6feb4eca175b687e1d99df060b88d6de354a6a2da0783c1eb8b510170fe40";
 
 export const SCOPE_PIPELINE_STAMP = "scope-pipeline@item-so9-2026-08-10";
 

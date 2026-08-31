@@ -35,7 +35,7 @@ const report = {
       },
       {
         id: "table_of_authorities",
-        title: "Table of Authorities",
+        title: "Authorities Cited",
         paragraphs: [{ kind: "rule", text: "GDPR Art. 6(1)(f); Recital 47" }],
       },
       {

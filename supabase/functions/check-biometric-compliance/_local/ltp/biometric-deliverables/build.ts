@@ -1866,12 +1866,25 @@ function attStr(v: unknown): string | null {
   return s.length > 0 ? s : null;
 }
 
-const BIOMETRIC_REVIEW_TRIGGERS: string[] = [
-  "Amendment of any biometric statute named in this assessment (740 ILCS 14; Tex. Bus. & Com. Code § 503.001; RCW 19.375; RCW 19.373).",
-  "Collection or generation of a biometric modality not assessed here — a new identifier type engages the definitional limbs afresh in each statute.",
-  "A change in the jurisdictions in which biometric identifiers are collected, stored or transmitted.",
-  "Any change to the notice, written-release, retention-schedule, disclosure or safeguard practices the duty findings rest on.",
-];
+// A-TEAM S4 RULING S2.13(d) (doc 119, 2026-08-31) — the amendment trigger
+// names only the statutes this assessment applies; naming out-of-scope
+// Texas/Washington instruments in an Illinois-only report misread as scope.
+// The jurisdiction-change trigger covers new states generically.
+function biometricReviewTriggers(intake: BiometricIntakeForDeliverables): string[] {
+  const labels = listed(intake.jurisdictions).map((j) => j.toLowerCase());
+  const statutes: string[] = [];
+  if (labels.some((j) => j.includes("illinois"))) statutes.push("740 ILCS 14");
+  if (labels.some((j) => j.includes("texas"))) statutes.push("Tex. Bus. & Com. Code § 503.001");
+  if (labels.some((j) => j.includes("washington"))) statutes.push("RCW 19.375", "RCW 19.373");
+  return [
+    statutes.length
+      ? `Amendment of any biometric statute named in this assessment (${statutes.join("; ")}).`
+      : "Amendment of any biometric statute applicable to the programme.",
+    "Collection or generation of a biometric modality not assessed here — a new identifier type engages the definitional limbs afresh in each statute.",
+    "A change in the jurisdictions in which biometric identifiers are collected, stored or transmitted.",
+    "Any change to the notice, written-release, retention-schedule, disclosure or safeguard practices the duty findings rest on.",
+  ];
+}
 
 export function buildBiometricAttestation(
   intake: BiometricIntakeForDeliverables,
@@ -1897,7 +1910,7 @@ export function buildBiometricAttestation(
     approved_by_title: title,
     approval_date: date,
     next_review_due: review,
-    review_triggers: BIOMETRIC_REVIEW_TRIGGERS,
+    review_triggers: biometricReviewTriggers(intake),
     statement,
     status: missing.length === 0 ? "analysed" : "record_insufficient",
     ...(missing.length ? { information_needed: missing.join("; ") } : {}),

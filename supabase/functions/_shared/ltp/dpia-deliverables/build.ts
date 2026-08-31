@@ -588,9 +588,54 @@ export function buildOperations(intake: unknown): Operation[] {
  * "primary" (unchanged), then token overlap against the SECONDARY operation's
  * label (gapOverlap, 0.6, and it must beat the primary label), then primary.
  */
+// A-TEAM S4 RULING S1.7 (doc 119, 2026-08-31) — BOUNDED NARRATIVE PARSE.
+// The necessity test demands an itemised alternatives structure the DPIA
+// intake has no dedicated field for; a record whose free-text
+// `necessity_proportionality` EXPLICITLY names the alternatives considered
+// and their rejection ground (live batch row c5114436: "alternatives
+// (ground surveys, satellite imagery at lower resolution) were considered
+// and rejected as insufficient for drill-target identification") was still
+// scored "not established" for want of the form. The parse below is
+// deliberately narrow: it fires only on a sentence that BOTH names the
+// alternatives in a parenthesised or colon-introduced list AND carries
+// considered-and-rejected language with a stated ground; anything looser
+// degrades exactly as before. Nothing is invented — every extracted string
+// is the company's own narrative, quoted.
+function alternativesFromNarrative(intake: unknown): AlternativeConsidered[] {
+  const narrative = str(get(intake, "necessity_proportionality"));
+  if (!narrative) return [];
+  // Sentence-level scan: alternatives (A, B) were considered and rejected
+  // [as|because] <ground>.
+  const m =
+    /alternatives?\s*\(([^)]{3,300})\)\s*(?:were|was|have been|has been)\s+considered\s+and\s+rejected(?:\s+(?:as|because(?:\s+of)?|for(?:\s+being)?)\s+([^.;]{3,300}))?/i.exec(narrative) ??
+    /alternatives?\s+considered\s*(?::|—|-)\s*([^.;]{3,300})\s*(?:—|-|;)\s*(?:each\s+)?rejected(?:\s+(?:as|because(?:\s+of)?)\s+([^.;]{3,300}))?/i.exec(narrative);
+  if (!m) return [];
+  const items = m[1]
+    .split(/;|,\s+(?:and\s+)?|\s+and\s+/i)
+    .map((x) => x.trim())
+    .filter((x) => x.length >= 3);
+  if (!items.length) return [];
+  const ground = str(m[2]);
+  return items.map((alternative) => ({
+    alternative,
+    rejection_reason: ground
+      ? `rejected, per the company's necessity narrative, as ${ground}`
+      : NOT_STATED,
+    rejected_for_usefulness_only:
+      ground.length > 0 &&
+      matches(ground, USEFULNESS_ONLY) &&
+      !/cannot|does not|would not (achieve|deliver|meet)|fails to|insufficient/i.test(ground),
+  }));
+}
+
 function alternativesFor(intake: unknown, op: Operation): AlternativeConsidered[] {
   const raw = get(intake, "alternatives_considered");
-  if (!Array.isArray(raw)) return [];
+  if (!Array.isArray(raw) || raw.length === 0) {
+    // S1.7 — the narrative parse serves the PRIMARY operation only (free
+    // text cannot be routed per-operation); secondary operations keep the
+    // structured-path behaviour unchanged.
+    return op.operation_id === "op_primary" ? alternativesFromNarrative(intake) : [];
+  }
   const ops = buildOperations(intake);
   const secondary = ops.find((o) => o.operation_id === "op_secondary");
   const primary = ops[0];
@@ -2278,9 +2323,33 @@ const ASK_PROCESSOR_OBLIGATIONS =
 const ASK_ART9_CONDITION =
   "which Art. 9(2) condition is relied on for the special-category data recorded here";
 
+// A-TEAM S4 RULING S1.8 (doc 119, 2026-08-31) — the DPO row asked "whether a
+// data protection officer is designated" on records whose OWN assessment-team
+// field names one (live batch row c5114436: dpia_prepared_by carries "Donna
+// Dasher — Data Protection Officer (Accountable)"). When the team roster
+// names a DPO-role person, that name is credited as the record's DPO answer
+// and the ask narrows to what is genuinely still open (formal designation /
+// contact details), instead of denying the person the document itself lists.
+function dpoFromPreparedBy(intake: unknown): string {
+  const prepared = str(get(intake, "dpia_prepared_by"));
+  if (!prepared) return "";
+  for (const part of prepared.split(/;|\n/)) {
+    if (/data protection officer|(?:^|[^a-z])dpo(?:[^a-z]|$)/i.test(part)) {
+      const name = part.split(/—|-|,/)[0].trim();
+      if (name) return `${name} (named as Data Protection Officer in the assessment team)`;
+    }
+  }
+  return "";
+}
+
+const ASK_DPO_FORMALITIES =
+  "the formal designation record and contact details for the data protection officer named in the assessment team";
+
 export function buildProcessingInventory(intake: unknown): DpiaProcessingInventory {
   // ── controllers: exactly one row ────────────────────────────────────
-  const dpo = str(get(intake, "dpo_info"));
+  const dpoRecorded = str(get(intake, "dpo_info"));
+  const dpoCredited = dpoRecorded || dpoFromPreparedBy(intake);
+  const dpo = dpoCredited;
   // eu_decision_establishment_country carries emptyIsAnswer semantics: an
   // empty string is the answer "decisions are made elsewhere", never a gap.
   const central = str(get(intake, "central_administration_country"));
@@ -2298,7 +2367,15 @@ export function buildProcessingInventory(intake: unknown): DpiaProcessingInvento
     main_establishment_or_representative: establishment,
     dpo,
     status: dpo ? "analysed" : "record_insufficient",
-    ...(dpo ? {} : { information_needed: ASK_DPO, ask_class: "ask_dpo", display_label: resolveAskLabel("ask_dpo") }),
+    // S1.8 — when the DPO is credited from the assessment team rather than
+    // the formal dpo_info record, the "who" question is answered and only
+    // the formalities remain open (a plain record-completion ask; the full
+    // ask_dpo class would restate the already-answered question).
+    ...(dpoRecorded
+      ? {}
+      : dpo
+      ? { information_needed: ASK_DPO_FORMALITIES }
+      : { information_needed: ASK_DPO, ask_class: "ask_dpo", display_label: resolveAskLabel("ask_dpo") }),
     source_field: "organization_name",
   };
 

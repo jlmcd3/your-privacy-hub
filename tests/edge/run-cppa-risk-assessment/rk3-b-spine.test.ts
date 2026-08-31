@@ -245,8 +245,10 @@ for (const c of CPPA_RISK_PERFECT) {
       assert(body.includes("Privacy risk | Before safeguards | Safeguard credited (status) | Remaining"), "risk ledger columns absent");
       assert(body.includes("Benefits established (weight) | Risks remaining (level)"), "balance summary columns absent");
       // PANEL RISK-P3 (2026-08-30): the exec summary carries the compressed
-      // two-column ledger; the four-column table prints once, in § 4.A.
-      assert(body.includes("Privacy risk | Remaining risk"), "compressed exec ledger columns absent");
+      // ledger; the four-column table prints once, in § 4.A. A-TEAM S4
+      // RULING S2.16 (doc 119): the compression carries the safeguard-status
+      // middle column.
+      assert(body.includes("Privacy risk | Safeguard credited | Remaining risk"), "compressed exec ledger columns absent");
       const fullHeaderCount = body.split("Privacy risk | Before safeguards | Safeguard credited (status) | Remaining").length - 1;
       assert(fullHeaderCount === 1, `full ledger header must print exactly once, saw ${fullHeaderCount}`);
     });

@@ -81,12 +81,17 @@ function dpoBasisForJurisdiction(
     employeeCount < 50;
 
   // Germany — BDSG §38 (national statute) sits ALONGSIDE GDPR Art. 37(1).
+  // A-TEAM S4 RULING S1.1 (doc 119, 2026-08-31) — the §38 threshold counts
+  // persons CONSTANTLY ENGAGED in automated processing, which total headcount
+  // does not establish; asserting `required: true` off headcount contradicted
+  // the same document's Art. 37(1) "not engaged" determination. The DE card
+  // now states the question as conditional rather than answered.
   if (code === "DE") {
     if (employeeCount >= 20) {
       return {
-        required: true,
+        required: false,
         basis:
-          `DPO required in ${jurName} under BDSG §38 — DPO is mandatory where 20+ persons are constantly engaged in the automated processing of personal data. The intake reports ${employeeCount} employees; confirm how many are constantly engaged in automated processing before concluding the threshold is met. GDPR Art. 37(1)(b)/(c) may also engage — assess independently.`,
+          `DPO designation in ${jurName} is conditional on BDSG §38 — mandatory as a matter of German national law where 20+ persons are constantly engaged in the automated processing of personal data. The intake reports ${employeeCount} employees in total, which does not itself establish how many are constantly engaged in automated processing; confirm that number before concluding the threshold is met either way. GDPR Art. 37(1)(b)/(c) may also engage — assess independently.`,
       };
     }
     // Fall through to GDPR-only analysis for DE below.

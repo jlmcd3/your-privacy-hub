@@ -34,7 +34,7 @@ Deno.test("Persona 1 — US SaaS selling into EU & UK", () => {
 });
 
 // ---------- Persona 2: German SME, 25 employees, no AI ----------
-Deno.test("Persona 2 — German SME triggers BDSG DPO at 20+ employees", () => {
+Deno.test("Persona 2 — German SME: BDSG DPO conditional at 20+ persons engaged", () => {
   const intake: IntakeData = {
     organization_country: "DE",
     organization_size: "small",
@@ -51,9 +51,13 @@ Deno.test("Persona 2 — German SME triggers BDSG DPO at 20+ employees", () => {
   // OSS should collapse EU markets to DE (lead SA)
   const euCodes = out.jurisdictions.map(j => j.code).filter(c => ["DE","AT","FR","IE"].includes(c));
   assertEquals(euCodes, ["DE"], "OSS should leave only the lead SA");
-  // BDSG DPO rule must fire
-  assert(out.obligations_summary.dpo_required, "DPO required at 20+ employees in DE");
-  assert(out.rules_fired.includes("R5_DPO"));
+  // A-TEAM S4 RULING S1.1 (doc 119, from live-batch bug b21c607b): total
+  // headcount is not BDSG §38's operative fact (20+ persons CONSTANTLY
+  // ENGAGED in automated processing is), so the duty travels the
+  // conditional channel instead of flipping dpo_required.
+  assertEquals(out.obligations_summary.dpo_required, false);
+  assert(String(out.obligations_summary.dpo_condition ?? "").includes("BDSG"), "BDSG condition missing");
+  assert(!out.rules_fired.includes("R5_DPO"), "R5_DPO must not fire on headcount alone");
   // No EU rep needed (has establishment)
   assertEquals(out.obligations_summary.eu_representative_required, false);
 });

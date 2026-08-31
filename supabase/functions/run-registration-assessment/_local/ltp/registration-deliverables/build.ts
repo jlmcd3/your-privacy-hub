@@ -1222,7 +1222,7 @@ function buildNarrative(
 
   const overview = [
     verdictOpener,
-    `The determinations rest on the legal authorities listed in the Table of Authorities and on nothing else.`,
+    `The determinations rest on the legal authorities listed in Authorities Cited and on nothing else.`,
     assessed.length
       ? `Four US state data-broker registration regimes were considered and ${assessed.length} was in scope here: ${assessed.join(", ")}. Each state's own definitional threshold was applied; the definitions differ materially and are not treated as interchangeable — California and Vermont turn on the absence of a direct relationship with the consumer, Oregon contains no such carve-out, and Texas reaches processing and transfer rather than sale and adds a separate revenue-or-volume applicability test.`
       : "No US state data-broker registration regime in the corpus was in scope on the markets and activities this record describes.",

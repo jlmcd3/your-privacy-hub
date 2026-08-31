@@ -44,8 +44,16 @@ const BODY_FIELDS: Record<GraderReportFamily, string[]> = {
     "test_states", "risk_findings", "strengthen_items",
     "record_sufficiency", "priority_actions", "inconsistency_flags",
   ],
-  // run-cppa-cybersecurity
+  // run-cppa-cybersecurity — A-TEAM S4 RULING S1.5 (doc 119, 2026-08-31):
+  // the deterministic pipeline no longer writes the legacy fields below;
+  // handing the grader four empty values as "the document body" produced a
+  // false "analytically hollow" critical while the real 100KB+
+  // skeleton_document sat in the untitled rest-section (row 32c9a611,
+  // DB-verified). Same fix ADMT already received in this file: a
+  // skeleton-shaped record leads with skeleton_document; a legacy-shaped
+  // record still leads with its own fields (hasOwnProperty gating).
   "cppa-cyber": [
+    "skeleton_document", "authority_exhibit",
     "executive_summary", "overall_status", "scope_analysis",
     "controls", "gaps", "priority_actions", "cybersecurity_audit",
   ],

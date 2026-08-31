@@ -323,15 +323,27 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
     (home === "DE" || markets.has("DE")) &&
     (intake.employee_count ?? 0) >= 20
   ) {
-    dpoRequired = true;
-    // QB-P24 Addendum Item 9(b) — headline aligned to the actual BDSG §38
-    // threshold (persons constantly engaged in automated processing), not
-    // the misleading "20+ employees" shorthand.
+    // A-TEAM S4 RULING S1.1 (doc 119, 2026-08-31) — BDSG §38's threshold is
+    // 20+ persons CONSTANTLY ENGAGED in automated processing, a narrower test
+    // than total headcount, and the intake measures only headcount. Firing
+    // `dpoRequired = true` off headcount alone contradicted the Art. 37(1)
+    // determination ("not engaged") in the same document (live batch row
+    // b21c607b, DB-verified: exec table "Does not attach" beside DE
+    // "dpo_required: true"). The BDSG question now travels on the CONDITIONAL
+    // channel (the QB-P24 addendum pattern Art. 37(1)(c) already uses):
+    // dpo_required is not flipped by headcount; the deciding fact is named.
     const bdsgTrigger = "BDSG §38 — DPO required where 20+ persons are constantly engaged in the automated processing of personal data";
+    const bdsgCondition =
+      `Conditional on BDSG §38 (Germany): a DPO designation becomes mandatory as a matter of German national law if 20 or more persons are constantly engaged in the automated processing of personal data. The intake reports ${intake.employee_count ?? 0} employees in total, which does not itself establish how many are constantly engaged in automated processing — confirm that number before concluding the threshold is met either way.`;
+    dpoCondition = dpoCondition ? `${dpoCondition} ${bdsgCondition}` : bdsgCondition;
     dpoReasons.push(`${bdsgTrigger}; the intake reports ${intake.employee_count ?? 0} employees — confirm how many are constantly engaged in automated processing before concluding the threshold is met`);
-    dpoTrigger = dpoTrigger ? `${dpoTrigger}; and ${bdsgTrigger}` : bdsgTrigger;
+    if (dpoRequired) {
+      // A GDPR Art. 37(1) branch independently engaged the duty; the BDSG
+      // trigger may ride alongside it as before.
+      dpoTrigger = dpoTrigger ? `${dpoTrigger}; and ${bdsgTrigger}` : bdsgTrigger;
+    }
     ensure(map, "DE", "R5_DE_DPO",
-      "BDSG §38 — DPO required at 20+ persons constantly engaged in automated processing (assess whether the reported employee count meets this threshold in your operations)",
+      "BDSG §38 — DPO conditional at 20+ persons constantly engaged in automated processing (assess whether that engaged-person threshold — not total headcount — is met in your operations)",
       "dpo");
   }
   if (dpoRequired) {

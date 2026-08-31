@@ -135,7 +135,7 @@ Deno.test("SO-11 — the encoded skeleton is 37 paragraphs and hashes to the rat
   // de3fd62a1e7c77af0bc92ebaa1e14399f31a5ed1617519254eba8f6b3e351eed.
   assertEquals(
     LIA_SKELETON_CONTENT_HASH,
-    "053c21be0d7c72b4eef88186ec791ddb1ba380f6f18f7b724ef9f2380b6f65f0",
+    "7ad66336c0c06f7b732715ba78902bf5e3831a4d8c1c29b541d5d67b8e208e1f",
   );
 });
 

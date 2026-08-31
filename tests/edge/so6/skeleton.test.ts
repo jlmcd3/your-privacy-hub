@@ -131,7 +131,7 @@ Deno.test("SO-6: the spine is byte-pinned to the CEO-corrected v3 docx", async (
   // 8d688a3bc21deb7066d725856f543a9ac1decef7e2e6dc5eb396ea235e160206.
   assertEquals(
     BIOMETRIC_SKELETON_CONTENT_HASH,
-    "28b62bd3385cee5feee8e8c4e6a2e4e9224895827090f857cfbcf3c26c6a0d5f",
+    "4ad3d8c5bf26ddfe84dc636d32114f065599d921b6b8a60a87982f81b5807d23",
   );
   // Every encoded block is a verbatim span of one of the paragraphs.
   for (const section of BIOMETRIC_SKELETON_SECTIONS) {

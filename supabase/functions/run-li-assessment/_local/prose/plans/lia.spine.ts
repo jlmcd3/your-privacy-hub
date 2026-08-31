@@ -316,8 +316,10 @@ export const LIA_SKELETON_PROVENANCE = LIA_PLAN_PROVENANCE;
  * Method verified by reproducing the prior value first. Prior hash:
  * de3fd62a1e7c77af0bc92ebaa1e14399f31a5ed1617519254eba8f6b3e351eed.
  */
+// RE-PIN A-TEAM S4 (doc 119 S3.1, 2026-08-31): fleet ToA rename — the "Table of Authorities" section title became "Authorities Cited" (CEO-ratified, panel A1); ids and assembly rules unchanged. Old-hash reproduction verified before re-pin. Prior pin:
+// 053c21be0d7c72b4eef88186ec791ddb1ba380f6f18f7b724ef9f2380b6f65f0.
 export const LIA_SKELETON_CONTENT_HASH =
-  "053c21be0d7c72b4eef88186ec791ddb1ba380f6f18f7b724ef9f2380b6f65f0";
+  "7ad66336c0c06f7b732715ba78902bf5e3831a4d8c1c29b541d5d67b8e208e1f";
 
 export const LIA_SKELETON_PARAGRAPH_COUNT = 37;
 
@@ -511,7 +513,7 @@ export const LIA_SKELETON_SECTIONS: readonly LiaSkeletonSection[] = [
   },
   {
     id: "table_of_authorities",
-    title: "Table of Authorities",
+    title: "Authorities Cited",
     blocks: [
       { kind: "rule", paragraph: 37, text: "Assembled deterministically from the document's citation ledger: an authority appears here if and only if it is cited above, with pinpoints consolidated and section back-references. Grouped in brief order - Regulations; Statutes; Guidance and Persuasive Authority (labelled persuasive, never binding). Source links deferred." },
     ],
@@ -609,7 +611,7 @@ export const LIA_SKELETON_PARAGRAPHS: readonly string[] = [
   LIA_SKELETON_SECTIONS[5].blocks[2].text,
   LIA_SKELETON_SECTIONS[5].blocks[3].text,
   LIA_SKELETON_SECTIONS[5].blocks[4].text,
-  "Table of Authorities",
+  "Authorities Cited",
   LIA_SKELETON_SECTIONS[6].blocks[0].text,
 ] as const;
 

@@ -228,6 +228,28 @@ export function computeScope(intake: Intake): ScopeResult {
     scopeState = "UNABLE_TO_ASSESS";
   } else if (humanReview.startsWith("Yes")) {
     scopeState = "OUT_OF_SCOPE";
+    // A-TEAM S4 RULING S1.6 (doc 119, 2026-08-31) — when the Company's OWN
+    // system description reports outcomes decided automatically (auto-
+    // approve / auto-decline bands), those decisions are not covered by the
+    // blanket human-review answer, and the § 7001(e)(1) qualifying-review
+    // rationale does not reach them. The narrative caveat (assemble's
+    // buildOutOfScopeConditions, same lexical signal) already states this;
+    // it now ALSO travels as a ranked priority-1 finding so Priority
+    // Matters and the §8 action list carry it instead of an unconditional
+    // all-clear (live batch row a7c99a7e, DB-verified). The OUT_OF_SCOPE
+    // determination itself is unchanged (RULING 3.2).
+    const sysDesc = str((intake as any)?.system_description);
+    if (/auto(?:matic(?:ally)?|-)\s*(?:approv|declin|reject|deni)/i.test(sysDesc)) {
+      findings.push(mkFinding({
+        area: "Applicability", criterion: "Automated decision pathways",
+        source_fields: ["system_description", "human_review"],
+        substantive_state: "GAP", decision_effect: "CONDITION",
+        factual_basis: "The Company's own system description reports outcomes that are decided automatically (auto-approved or auto-declined), which the reported human review does not cover; for those decisions the System is ADMT and the Article 11 duties apply.",
+        authority: humanInvolvementBasis,
+        action_text: "Either extend qualifying human review to every significant decision the System touches, or treat the automatically-decided pathways as in-scope ADMT and put the Article 11 Pre-use Notice, opt-out, and access processes in place for them.",
+        priority: 1, closure_condition: "qualifying human review confirmed for every decision pathway, or the automated pathways brought under Article 11",
+      }));
+    }
   } else if (humanReviewUnresolved) {
     // DEF-2: an unresolved answer (blank OR "Not applicable / unsure")
     // cannot carry an affirmative scope determination.
