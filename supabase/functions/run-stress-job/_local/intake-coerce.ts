@@ -233,7 +233,14 @@ function coerceField(intake: Record<string, unknown>, f: IntakeField, notes: str
           dropped.push(String(el));
         }
       }
-      if (dropped.length && out.length === 0) return v; // nothing resolved — let the gate speak
+      if (dropped.length && out.length === 0) {
+        // Nothing in the list is expressible in this contract's vocabulary.
+        // Emptying the field is honest (the gate then records it as a
+        // missing-required advisory) and lets the product run on the rest of
+        // the record instead of failing the whole job on naming.
+        notes.push(`${f.key}[]: cleared unmatched ${JSON.stringify(dropped).slice(0, 160)}`);
+        return [];
+      }
       if (dropped.length) notes.push(`${f.key}[]: dropped unmatched ${JSON.stringify(dropped).slice(0, 160)}`);
       return out;
     });
