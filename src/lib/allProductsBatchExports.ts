@@ -71,27 +71,37 @@ export async function downloadBatchPdfZip(batchId: string, outcomes: RunOutcome[
   let failed = 0;
   const failures: string[] = [];
 
+  /** Signed URLs live 600s; only reuse a cached one well inside that window. */
+  const SIGNED_URL_TTL_MS = 8 * 60 * 1000;
+
+  async function renderFresh(o: RunOutcome): Promise<string> {
+    const { data, error } = await invokeWithTimeout<{ pdf_url?: string; error?: string }>(
+      "generate-report-pdf",
+      { tool_type: SLUG_TO_PDF_TOOL_TYPE[o.tool_slug], assessment_id: o.sourceRowId },
+      180_000,
+    );
+    if (error || !data?.pdf_url) {
+      const raw = error?.message || data?.error || "no pdf_url returned";
+      throw new Error(
+        /auth_expired|401|Session expired/i.test(raw)
+          ? "session expired — sign in again, then re-run the zip export"
+          : raw,
+      );
+    }
+    updateOutcome(o.id, { pdfUrl: data.pdf_url, pdfUrlAt: Date.now() });
+    return data.pdf_url;
+  }
+
   for (const o of rows) {
     try {
-      let pdfUrl = o.pdfUrl ?? null;
-      if (!pdfUrl) {
-        const { data, error } = await invokeWithTimeout<{ pdf_url?: string; error?: string }>(
-          "generate-report-pdf",
-          { tool_type: SLUG_TO_PDF_TOOL_TYPE[o.tool_slug], assessment_id: o.sourceRowId },
-          180_000,
-        );
-        if (error || !data?.pdf_url) {
-          const raw = error?.message || data?.error || "no pdf_url returned";
-          throw new Error(
-            /auth_expired|401|Session expired/i.test(raw)
-              ? "session expired — sign in again, then re-run the zip export"
-              : raw,
-          );
-        }
-        pdfUrl = data.pdf_url;
-        updateOutcome(o.id, { pdfUrl });
+      const fresh = o.pdfUrl && o.pdfUrlAt && Date.now() - o.pdfUrlAt < SIGNED_URL_TTL_MS;
+      let pdfUrl = fresh ? (o.pdfUrl as string) : await renderFresh(o);
+      let res = await fetch(pdfUrl);
+      if (!res.ok && fresh) {
+        // Cached link rejected (expired/rotated) — re-render once, then retry.
+        pdfUrl = await renderFresh(o);
+        res = await fetch(pdfUrl);
       }
-      const res = await fetch(pdfUrl);
       if (!res.ok) throw new Error(`download ${res.status}`);
       const blob = await res.blob();
       zip.file(`${o.tool_slug}/${o.variant.replace(/[^\w.-]+/g, "_")}-${o.id}.pdf`, blob);
@@ -102,6 +112,7 @@ export async function downloadBatchPdfZip(batchId: string, outcomes: RunOutcome[
       failures.push(`${o.tool_slug}/${o.variant}: ${(e as Error).message}`);
     }
   }
+
 
   if (!ok) {
     toast.error(`Zip aborted — 0 of ${rows.length} PDFs rendered.`, { id: tid });
