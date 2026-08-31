@@ -261,14 +261,25 @@ function optionPolarity(o: string): "yes" | "no" | "unknown" | "other" {
 /** Yes/No-shaped lists: pick the option matching the value's polarity. */
 function polarityMatch(value: string, options: readonly string[]): string | null {
   const pol = options.map(optionPolarity);
-  if (!pol.includes("yes") || !pol.includes("no")) return null;
+  // The list must be answer-shaped: it carries an explicit affirmative, an
+  // explicit negative, or both. A pure vocabulary list (sectors, data types)
+  // has neither and is left alone.
+  if (!pol.includes("yes") && !pol.includes("no")) return null;
   let want: "yes" | "no" | "unknown";
   if (UNKNOWN_RE.test(value)) want = "unknown";
   else if (NEGATIVE_RE.test(value.trim())) want = "no";
   else want = "yes";
   let pool = options.filter((_, i) => pol[i] === want);
   if (!pool.length && want === "unknown") pool = options.filter((_, i) => pol[i] === "yes");
+  // A bare affirmative on a list with no "Yes …" label (e.g. "Yes" against
+  // "Automated deletion with confirmation" / … / "No formal process"): the
+  // contracts order these strongest → weakest, so take the first
+  // non-negative rung rather than failing the whole job.
+  if (!pool.length && want === "yes" && value.trim().split(/\s+/).length <= 3) {
+    pool = options.filter((_, i) => pol[i] === "other");
+  }
   if (!pool.length) return null;
+
   if (pool.length === 1) return pool[0];
   const vt = tokens(value);
   let best: { opt: string; score: number } | null = null;
