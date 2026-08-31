@@ -81,7 +81,8 @@ export const DERIVED_PROFILES: DataProfile[] = [
 
 /** Keys whose value names the organisation, at any depth. */
 const ORG_KEYS = new Set([
-  "organization_name", "organisation_name", "entity_name", "orgName", "org_name",
+  "organization_name", "organisation_name", "organizationName", "organisationName",
+  "entity_name", "orgName", "org_name",
   "company_name", "companyName", "controllerName", "controller_name",
   "business_name", "businessName", "legal_entity_name", "title_org",
 ]);
