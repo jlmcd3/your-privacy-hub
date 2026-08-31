@@ -136,6 +136,7 @@ export function downloadBatchErrorsMarkdown(batchId: string, outcomes: RunOutcom
   lines.push(`- Run failures: ${runFailures.length}`);
   lines.push(`- Grading failures: ${gradeFailures.length}`);
   lines.push(`- Completed but unscored: ${noScore.length}`);
+  lines.push(`- Runs with a grade payload: ${rows.filter((o) => o.gradePayload != null).length}`);
   lines.push("");
 
   const section = (title: string, items: RunOutcome[], field: (o: RunOutcome) => string) => {
