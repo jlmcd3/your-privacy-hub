@@ -40,6 +40,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { SAMPLE_FIXTURES, type SampleFixture, type ToolSlug } from "@/lib/sampleFixtures";
 import { preflightFixture, type PreflightResult } from "@/lib/sampleFixturePreflight";
+import { PRESET_DATASET_COUNT, pickPresetDatasets } from "@/lib/sampleDataPackages";
 import { invokeWithTimeout, runGenerator } from "@/lib/sampleGenerators";
 import {
   STRESS_INDUSTRIES,
@@ -111,6 +112,16 @@ interface RowState {
 const EMPTY: RowState = { status: "idle", log: [], resultUrl: null, sourceRowId: null, preflight: null };
 
 const fixtureKey = (f: SampleFixture) => `${f.tool_slug}/${f.variant}`;
+
+/** Live-log clock — 12-hour scale with am/pm (never 24-hour). */
+export function formatLogTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso.slice(11, 19);
+  const h24 = d.getHours();
+  const h = h24 % 12 === 0 ? 12 : h24 % 12;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(h)}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${h24 < 12 ? "am" : "pm"}`;
+}
 
 export function AllProductsPanel() {
   const { user } = useAuth();
@@ -599,21 +610,34 @@ export function AllProductsPanel() {
       "batch",
       `▶ starting ${queue.length} product(s) × ${batchNumber} run(s)`,
     );
-    const totalRuns = queue.length * batchNumber;
+    // PRE-SET PACKAGE SELECTION LAW — each product carries 5 complete
+    // datasets. Fewer than 5 requested runs → that many datasets picked at
+    // random; 5 or more → exactly the 5 datasets (data is never repeated).
+    const plan = new Map<string, SampleFixture[]>();
+    for (const f of queue) plan.set(fixtureKey(f), pickPresetDatasets(f, batchNumber));
+    const totalRuns = [...plan.values()].reduce((n, ds) => n + ds.length, 0);
+    if (batchNumber > PRESET_DATASET_COUNT) {
+      appendAllProductsLog(
+        "batch",
+        `pre-set package holds ${PRESET_DATASET_COUNT} datasets per product — capping ${batchNumber} requested runs at ${PRESET_DATASET_COUNT}`,
+      );
+    }
     for (const f of queue) setRow(fixtureKey(f), { status: "queued", log: [], resultUrl: null });
     let ok = 0;
     let attempted = 0;
     for (const f of queue) {
       const k = fixtureKey(f);
       setRow(k, { status: "running" });
-      for (let i = 1; i <= batchNumber; i++) {
-        const runLabel = batchNumber > 1 ? ` [run ${i}/${batchNumber}]` : "";
-        appendLog(k, `▶ ${f.title}${runLabel}`);
+      const datasets = plan.get(k) ?? [f];
+      for (let i = 1; i <= datasets.length; i++) {
+        const d = datasets[i - 1];
+        const runLabel = datasets.length > 1 ? ` [dataset ${i}/${datasets.length} · ${d.variant}]` : "";
+        appendLog(k, `▶ ${d.title}${runLabel}`);
         attempted += 1;
         const outcomeId = newOutcomeId();
         const startedAt = new Date().toISOString();
         try {
-          const out = await runGenerator(f, user.id, (m) => appendLog(k, m));
+          const out = await runGenerator(d, user.id, (m) => appendLog(k, m));
           ok += 1;
           appendLog(k, `✅ complete${runLabel} — ${out.resultUrl}`);
           setRow(k, { status: "complete", resultUrl: out.resultUrl, sourceRowId: out.sourceRowId });
@@ -624,7 +648,7 @@ export function AllProductsPanel() {
             startedAt,
             finishedAt: new Date().toISOString(),
             tool_slug: f.tool_slug,
-            variant: f.variant,
+            variant: d.variant,
             source: "preset",
             status: "complete",
             sourceRowId: out.sourceRowId,
@@ -633,7 +657,7 @@ export function AllProductsPanel() {
             gptScore: null,
             meanScore: null,
           });
-          await gradeAndRecord(localBatchId, f.tool_slug, out.sourceRowId, `${f.tool_slug}/${f.variant}`, k, outcomeId);
+          await gradeAndRecord(localBatchId, f.tool_slug, out.sourceRowId, `${d.tool_slug}/${d.variant}`, k, outcomeId);
         } catch (e) {
           appendLog(k, `❌${runLabel} ${(e as Error).message}`);
           setRow(k, { status: "failed" });
@@ -644,7 +668,7 @@ export function AllProductsPanel() {
             startedAt,
             finishedAt: new Date().toISOString(),
             tool_slug: f.tool_slug,
-            variant: f.variant,
+            variant: d.variant,
             source: "preset",
             status: "failed",
             sourceRowId: null,
@@ -881,7 +905,7 @@ export function AllProductsPanel() {
           <p className="max-w-md text-xs text-muted-foreground">
             {intakeSource === "claude"
               ? "Claude generates this many companies per geography (US and EU), each run against every selected product."
-              : "Each selected product will generate this many sample runs."}
+              : `Each selected product runs this many of its 5 pre-set datasets (fewer than 5 → picked at random; 5 or more → all ${PRESET_DATASET_COUNT}).`}
           </p>
         </div>
 
@@ -904,7 +928,7 @@ export function AllProductsPanel() {
             {liveLog.length === 0
               ? "— no run in this session yet —"
               : liveLog
-                  .map((l) => `${l.t.slice(11, 19)} ${l.level === "error" ? "✖" : l.level === "success" ? "✔" : "·"} [${l.source}] ${l.msg}`)
+                  .map((l) => `${formatLogTime(l.t)} ${l.level === "error" ? "✖" : l.level === "success" ? "✔" : "·"} [${l.source}] ${l.msg}`)
                   .join("\n")}
           </pre>
         </div>
