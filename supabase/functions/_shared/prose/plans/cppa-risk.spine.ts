@@ -340,7 +340,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       // 10 — choice architecture, branch-complete.
       { kind: "generated", text: "[GENERATED choice_architecture] Confirmed facts credited; unconfirmed facts as live interference risks; none-confirmed branch pointed at § 4.D." },
       // 11 — D (law).
-      { kind: "skeleton", text: "D. Practical Consumer Control. A consumer right reduces risk only where the consumer can use it in practice and exercising it meaningfully changes the processing." },
+      { kind: "skeleton", text: "D. Practical Consumer Control. A consumer right reduces risk only where the consumer can use it in practice and exercising it meaningfully changes the processing. This is distinct from the safeguard-by-safeguard credit shown against each risk in the ledger below (§ 4.A): a control here is a data-subject right; a safeguard there is a technical or organizational measure mapped to one specific identified risk. A right can be fully exercisable while no safeguard has been credited against a given risk, without contradiction." },
       // 12 — controls table.
       { kind: "table", text: "controls" },
       // 13 — controls application.
