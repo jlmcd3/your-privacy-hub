@@ -300,9 +300,9 @@ export function buildEvidenceReadinessAnalysis(d: CyberDeliverables): { analysis
   // identified evidence includes testable material". Partial means
   // policy-only evidence; the all-clear now requires none of the three.
   const follow_up = insufficient + unknown > 0
-    ? "The evidence follow-up is component-specific and appears in each component module and Appendix C: in each case the action is to retain a testable artifact - a log, a configuration export, a report, a test result, an auditor letter, or a training record - behind the described control."
+    ? "The evidence follow-up is component-specific and appears in each component module and Appendix C: in each case the action is to retain a testable artifact—a log, a configuration export, a report, a test result, an auditor letter, or a training record—behind the described control."
     : partial > 0
-    ? `No component leaves a finding resting primarily on management assertion, but ${partial === 1 ? "one component evidences" : `${partial} components evidence`} intent only - a policy or procedure with no testable artifact yet identified behind it. The component modules in Section 3 name each; the action in each case is to retain a testable artifact - a log, a configuration export, a report, a test result, an auditor letter, or a training record - behind the described control.`
+    ? `No component leaves a finding resting primarily on management assertion, but ${partial === 1 ? "one component evidences" : `${partial} components evidence`} intent only—a policy or procedure with no testable artifact yet identified behind it. The component modules in Section 3 name each; the action in each case is to retain a testable artifact—a log, a configuration export, a report, a test result, an auditor letter, or a training record—behind the described control.`
     : "No evidence follow-up is identified: every component's identified evidence includes testable material.";
   return { analysis, follow_up };
 }

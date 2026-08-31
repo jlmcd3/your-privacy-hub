@@ -27,6 +27,19 @@ import {
 import { matchFixtureSet } from "../_shared/golden/registry.ts";
 // GRADER-CAL-1 A2/A3/A4 — shared post-filter (mirror of run-quality-batch).
 import { applyGraderCal1Filter } from "../_shared/grader/post-filters.ts";
+// SKELETON-MODE CALIBRATION PARITY (2026-08-31) — this grader (used by
+// /admin/all-products-test) previously applied NONE of run-quality-batch's
+// CEO-ratified skeleton-mode calibration (PROMPT 10A's 6 false-positive
+// filters, incl. the ITEM-204 cyber-cohort rule, and the evidence-backed
+// dimension floor), so its scores diverged from /admin/so-final-test's
+// scores for the SAME converted-document shape. See skeleton-calibration-mirror.ts
+// for why this is a mirror rather than a direct import of run-quality-batch.
+import {
+  applySkeletonCalibration,
+  applyEvidenceBackedDimensionFloor,
+  hasSkeletonDocument,
+  SKELETON_CAL_VERSION,
+} from "../_shared/grader/skeleton-calibration-mirror.ts";
 
 // GRADER-1 Task 1 — full intake JSON passed to the grader (mirrors
 // run-quality-batch). Safety cap only for pathological payloads.
@@ -260,12 +273,33 @@ async function gradeOne(role: "claude" | "gpt", tool: GradedTool, intake: any, r
   const raw = role === "claude" ? await claudeCall(sys, user) : await gptCall(sys, user);
   const parsed = tryParse(raw);
   if (!parsed?.dimension_scores) throw new Error(`${role} returned no dimension_scores`);
-  const overall = computeOverall(parsed.dimension_scores, tool);
   const { kept, dropped } = applyGraderCal1Filter((parsed.findings ?? []) as any);
   if (dropped.a2 || dropped.a3 || dropped.a4) {
     console.log(`[GRADER-CAL-1][${role}] tool=${tool} dropped a2=${dropped.a2} a3=${dropped.a3} a4=${dropped.a4}`);
   }
-  return { dimension_scores: parsed.dimension_scores, overall_score: overall, findings: kept, strengths: parsed.strengths ?? [], critical_failures: parsed.critical_failures ?? [] };
+
+  // SKELETON-MODE CALIBRATION PARITY — same gate + order as run-quality-batch:
+  // PROMPT 10A false-positive filter first, then the evidence-backed dimension
+  // floor (which needs the POST-calibration finding list so a filtered-out
+  // finding can't itself supply the "support" that keeps a low score honest).
+  const useSkeleton = hasSkeletonDocument(report);
+  const skelCal = useSkeleton
+    ? applySkeletonCalibration(kept as any, { report })
+    : { kept: kept as any[], filtered: [] as any[], counts: null as any };
+  if (skelCal.filtered.length) {
+    console.log(`[SKELETON-CAL][${role}] tool=${tool} version=${SKELETON_CAL_VERSION} filtered=${skelCal.filtered.map((c: any) => c.rule).join(",")}`);
+  }
+
+  const scores = { ...parsed.dimension_scores };
+  const dimFloor = useSkeleton
+    ? applyEvidenceBackedDimensionFloor(scores, skelCal.kept as any)
+    : { floored: [] as string[] };
+  if (dimFloor.floored.length) {
+    console.log(`[SKELETON-CAL][${role}] tool=${tool} evidence_floor raised=${dimFloor.floored.join(",")}`);
+  }
+
+  const overall = computeOverall(scores, tool);
+  return { dimension_scores: scores, overall_score: overall, findings: skelCal.kept, strengths: parsed.strengths ?? [], critical_failures: parsed.critical_failures ?? [] };
 }
 
 function isKnownTool(x: unknown): x is QL3Tool {

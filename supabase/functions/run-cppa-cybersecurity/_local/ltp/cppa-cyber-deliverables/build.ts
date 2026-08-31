@@ -579,7 +579,7 @@ export function buildIndependenceDetermination(facts: CyberFacts): IndependenceD
     ? `The engagement described on the record does not meet ${unsatisfied.length} § 7122 condition` +
       `${unsatisfied.length === 1 ? "" : "s"}: ${unsatisfied.map((f) => f.label).join("; ")}.`
     : verdict === "record_insufficient"
-    ? `The record does not carry enough about the engagement to conclude on § 7122 independence.`
+    ? `The record does not describe the engagement in enough detail to conclude on § 7122 independence.`
     : `The engagement is consistent with § 7122, but the record documents rather than demonstrates the auditor's ` +
       `qualifications and retention practice.`;
 
