@@ -37,6 +37,13 @@ export interface RunOutcome {
   gradePayload?: unknown;
   /** Set once a PDF has been created for this run (storage URL or path). */
   pdfUrl?: string | null;
+  /**
+   * SIGNED-URL LAW (2026-08-31): generate-report-pdf returns a signed URL that
+   * expires after 600s. Record when it was minted so consumers can re-render
+   * instead of downloading an expired link.
+   */
+  pdfUrlAt?: number;
+
 }
 
 const KEY = "eup.allProductsTest.runOutcomes.v1";
