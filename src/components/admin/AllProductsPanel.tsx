@@ -157,6 +157,10 @@ export function AllProductsPanel() {
     const order = [...EXTENDED_SLUGS, ...SO_COVERED_SLUGS];
     return [...SAMPLE_FIXTURES]
       .filter((f) => showSupplemental || !f.variant.endsWith("-supplemental"))
+      // GDPR-ONLY PRODUCTS: Governance, DPIA and Registration are run by
+      // GDPR-subject clients, so their US-jurisdiction fixtures are not
+      // offered as pre-set data here.
+      .filter((f) => !isNonGdprFixtureForGdprOnlyProduct(f))
       .sort(
         (a, b) => order.indexOf(a.tool_slug) - order.indexOf(b.tool_slug) || a.variant.localeCompare(b.variant),
       );
