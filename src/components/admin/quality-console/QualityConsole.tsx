@@ -818,6 +818,68 @@ export function QualityConsole({
     }
   }
 
+  /**
+   * BASELINE-COLUMN LAW (2026-08-31): any single batch column — server or
+   * in-page — can be pinned as THE baseline. The column's own per-tool scores
+   * replace quality_batch_baselines wholesale, so every other column's delta is
+   * measured against that one run rather than an unbounded historical average.
+   * The pinned column id is remembered locally so the header shows which batch
+   * the baseline came from.
+   */
+  async function onSetBaselineFromColumn(col: MatrixColumn, label: string) {
+    if (!window.confirm(`Replace the baseline with ${label}'s scores?`)) return;
+    setSnapshotting(true);
+    try {
+      const capturedAt = new Date().toISOString();
+      const rows: Baseline[] = [];
+      if (col.kind === "server") {
+        const results: ToolResult[] = Array.isArray(col.batch.tool_results)
+          ? (col.batch.tool_results as unknown as ToolResult[]) : [];
+        for (const r of results) {
+          if (r.final_status !== "complete") continue;
+          const claude = typeof r.score_overall === "number" ? r.score_overall : null;
+          const gpt = typeof r.gpt_score_overall === "number" ? r.gpt_score_overall : null;
+          const parts = [claude, gpt].filter((n): n is number => n != null);
+          if (parts.length === 0) continue;
+          rows.push({
+            tool: r.tool,
+            claude_score: claude,
+            gpt_score: gpt,
+            avg_score: parts.reduce((a, b) => a + b, 0) / parts.length,
+            captured_at: capturedAt,
+          });
+        }
+      } else {
+        for (const [tool, r] of Object.entries(col.batch.tools)) {
+          if (!r.scored) continue;
+          const claude = r.claudeSum / r.scored;
+          const gpt = r.gptSum / r.scored;
+          rows.push({
+            tool,
+            claude_score: claude,
+            gpt_score: gpt,
+            avg_score: (claude + gpt) / 2,
+            captured_at: capturedAt,
+          });
+        }
+      }
+      if (rows.length === 0) { toast.message("That batch has no graded results to pin."); return; }
+      const { error } = await supabase.from("quality_batch_baselines")
+        .upsert(rows, { onConflict: "tool" });
+      if (error) throw error;
+      const m = new Map<string, Baseline>();
+      for (const r of rows) m.set(r.tool, r);
+      setBaselines(m);
+      setBaselineColumnId(col.id);
+      try { localStorage.setItem(BASELINE_COL_KEY, col.id); } catch { /* ignore */ }
+      toast.success(`${label} is now the baseline (${rows.length} tool${rows.length === 1 ? "" : "s"}).`);
+    } catch (e: any) {
+      toast.error(`Set baseline failed: ${e?.message ?? e}`);
+    } finally {
+      setSnapshotting(false);
+    }
+  }
+
   // ─── QB-P3: PDF zip export (per batch) ───────────────────────────────────
   async function onDownloadBatchZip(batch: BatchRow) {
     const toolResults: ToolResult[] = Array.isArray(batch.tool_results)
