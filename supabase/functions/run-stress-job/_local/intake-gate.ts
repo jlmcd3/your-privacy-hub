@@ -33,6 +33,11 @@ const CONTRACT_BY_STRESS_TOOL: Record<string, IntakeContract | undefined> = {
 
 export const INTAKE_CONTRACT_GATE_PREFIX = "INTAKE_CONTRACT_GATE";
 
+/** The canonical contract for a stress-harness tool id, if it has one. */
+export function contractForStressTool(tool: string): IntakeContract | undefined {
+  return CONTRACT_BY_STRESS_TOOL[tool];
+}
+
 /** Violation classes that BLOCK the run: a value that is present but not
  * the verbatim label/shape the form emits. These silently degrade output
  * and corrupt the grade. Missing-required and unknown-key findings are
