@@ -14,7 +14,8 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 // defects — the investigation's root cause for the "drastically backwards"
 // batch scores. The gate below validates every fixture against the same
 // canonical contract the product form emits, BEFORE the product runs.
-import { blockingContractViolations, INTAKE_CONTRACT_GATE_PREFIX } from "./_local/intake-gate.ts";
+import { blockingContractViolations, contractForStressTool, INTAKE_CONTRACT_GATE_PREFIX } from "./_local/intake-gate.ts";
+import { coerceIntakeToContract } from "./_local/intake-coerce.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
