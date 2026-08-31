@@ -1203,6 +1203,15 @@ export function QualityConsole({
     </Card>
   );
 
+  // Scores matrix opens scrolled to the newest batches (right-hand edge).
+  const scoresScrollRef = useRef<HTMLDivElement>(null);
+  const scoresColCount = matrixColumns.length;
+  useEffect(() => {
+    const el = scoresScrollRef.current;
+    if (!el) return;
+    el.scrollLeft = el.scrollWidth;
+  }, [scoresColCount]);
+
   const renderScoresCard = () => (
 
     <Card>
