@@ -321,7 +321,28 @@ export function buildDpiaEngagementMap(
   const looksChildren = /(child|minor|under[- ]18|student|learner|pupil)/i.test(stmt);
   const looksPublicMonitoring = /(cctv|public (space|area)|wi-?fi tracking|kerbside|street|shopping mall|drone|aerial|overflight|airborne|unmanned aerial|uav\b)/i.test(stmt);
   const looksBiometric = /(biometric|face|fingerprint|iris|voiceprint|gait)/i.test(stmt);
-  const looksInnovative = /(ai|machine learning|generative|llm|deep learning|edge inference)/i.test(stmt);
+  // A-TEAM DELTA (2026-08-31, DPIA batch finding) — the bare "ai" alternative
+  // had no word boundary and matched inside unrelated words ("obtain",
+  // "certain", "training", "maintain", "detail"...); word-bounded now. The
+  // matched-term list also drives the rationale below, so a deep-learning
+  // computer-vision model (YOLOv8) is no longer characterised as
+  // "generative technology" just because SOME innovative-tech keyword hit —
+  // the rationale now names only what actually matched.
+  const INNOVATIVE_TERMS: ReadonlyArray<[RegExp, string]> = [
+    [/\bartificial intelligence\b/i, "artificial intelligence"],
+    [/\bai\b/i, "AI"],
+    [/\bmachine learning\b/i, "machine learning"],
+    [/\bgenerative\b/i, "generative technology"],
+    [/\bllm\b/i, "an LLM"],
+    [/\bdeep learning\b/i, "deep learning"],
+    [/\bedge inference\b/i, "edge inference"],
+  ];
+  const innovativeMatchesRaw = [...new Set(INNOVATIVE_TERMS.filter(([re]) => re.test(stmt)).map(([, label]) => label))];
+  const looksInnovative = innovativeMatchesRaw.length > 0;
+  const asProseList = (items: readonly string[]): string =>
+    items.length <= 1
+      ? items[0] ?? ""
+      : `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
   const hasTransfers = Array.isArray(transfers) && transfers.length > 0;
   const multiEstablishment = !!(controllerCountry && centralAdmin && controllerCountry !== centralAdmin);
   const ossAvailable = !!resolved?.oss?.ossAvailable;
@@ -458,7 +479,7 @@ export function buildDpiaEngagementMap(
     name: "WP248 criterion 8 — innovative use of technology",
     status: looksInnovative ? "engaged" : "not_engaged",
     rationale: looksInnovative
-      ? "The record describes AI/ML/generative technology; WP248 criterion 8 is engaged."
+      ? `The record describes ${asProseList(innovativeMatchesRaw)}; WP248 criterion 8 is engaged.`
       : "The record does not describe innovative technology use.",
     intake_signals: ["description", "purpose"],
     section_ref: "section_1_description",

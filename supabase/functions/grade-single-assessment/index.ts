@@ -514,7 +514,19 @@ const handler = async (req: Request): Promise<Response> => {
       ? rowAny[spec.intakeCols[0]]
       : Object.fromEntries(spec.intakeCols.map((c) => [c, rowAny[c]]));
     report = rowAny[spec.reportCol];
-    if (spec.bodyCol && spec.bodyKey) {
+    // A-TEAM DELTA (2026-08-31 batch finding, biometric us-ds2) — the
+    // "SO-6 WIRE-IN" pattern (generate-report-pdf/index.ts) means that once
+    // a row carries a skeleton_document, THAT is the customer document —
+    // the legacy bodyCol text (analysis_text / playbook_text /
+    // document_text) is stale and is never what the customer actually
+    // sees. Unconditionally injecting it here showed the grader content
+    // that contradicted the current typed findings (e.g. a stale "gap to
+    // address: retention policy not confirmed" line) alongside the correct,
+    // up-to-date duty_findings that had already resolved it — a false
+    // internal-contradiction flag against a document nobody was shown. Skip
+    // the injection whenever a real skeleton_document is present; the
+    // report payload (which already includes skeleton_document) is enough.
+    if (spec.bodyCol && spec.bodyKey && !hasSkeletonDocument(report)) {
       const rd = (report && typeof report === "object") ? { ...(report as Record<string, unknown>) } : {};
       (rd as Record<string, unknown>)[spec.bodyKey] = rowAny[spec.bodyCol] ?? "";
       report = rd;

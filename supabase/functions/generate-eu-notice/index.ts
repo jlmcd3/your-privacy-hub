@@ -316,13 +316,22 @@ export function buildNoticeSections(opts: BuildNoticeOptions): {
   // "we rely on the following lawful basis or bases" list with no linkage.
   const basisRaw = answers["lawful_basis"];
   const basisArr = Array.isArray(basisRaw) ? basisRaw.map(String) : (basisRaw ? [String(basisRaw)] : []);
+  // A-TEAM DELTA (2026-08-31 batch finding) — these hints previously
+  // asserted SPECIFIC business activities ("account management, and payment
+  // processing", "B2B relationship management") the intake never stated,
+  // even though the section's own lead sentence claims the bases are
+  // "mapped to the purposes above" (the customer's actual recorded
+  // purposes, rendered in the Purposes of processing section). Each hint
+  // now describes what the basis legally covers WITHOUT inventing specific
+  // activities, and points back to the purposes the customer actually
+  // recorded rather than substituting invented ones.
   const BASIS_PURPOSE_HINT: Record<string, string> = {
-    consent: "Marketing communications, optional analytics/advertising cookies, and any optional features you opt into.",
-    contract: "Service or product delivery, account management, and payment processing where these are needed to perform our contract with you.",
-    legal_obligation: "Legal and regulatory compliance, tax/accounting records, and responding to lawful regulator requests.",
+    consent: "For the purposes described above where you have given your consent, which you may withdraw at any time.",
+    contract: "For the purposes described above, where processing is needed to perform our contract with you or to take steps at your request before entering into one.",
+    legal_obligation: "For the purposes described above, where processing is required by a legal obligation we are subject to.",
     vital_interests: "Limited safety-critical processing where it is needed to protect a person's life or physical integrity.",
     public_task: "Processing carried out in the exercise of official authority or a task in the public interest, where applicable.",
-    legitimate_interests: "Security and fraud prevention, service improvement analytics, and B2B relationship management — balanced against your rights and interests.",
+    legitimate_interests: "For the purposes described above, balanced against your rights and interests.",
   };
   const basisRows = basisArr
     .map((b) => {
@@ -456,7 +465,10 @@ ${dpiaRef ? `<p>Transfer impact assessment: ${escapeHtml(dpiaRef)}.</p>` : `<p>W
         <li><strong>Restriction</strong> (Art. 18) — limit how we process your data in specified circumstances.</li>
         <li><strong>Portability</strong> (Art. 20) — receive your data in a structured, commonly used, machine-readable format.</li>
         <li><strong>Object</strong> (Art. 21) — including absolute right to object to direct marketing.</li>
-        ${consentSelected ? `<li><strong>Withdraw consent</strong> at any time, without affecting the lawfulness of processing before withdrawal (Art. 13(2)(c)).</li>` : ""}
+        // A-TEAM DELTA (2026-08-31 batch finding) — Art. 13(2)(c) is the
+        // transparency duty to INFORM the data subject of this right; the
+        // substantive right to withdraw consent itself is Art. 7(3).
+        ${consentSelected ? `<li><strong>Withdraw consent</strong> at any time, without affecting the lawfulness of processing before withdrawal (Art. 7(3)).</li>` : ""}
         <li><strong>Not be subject to solely automated decisions</strong> with legal or similarly significant effects (Art. 22).</li>
       </ul>
       <p>We will respond to verified requests without undue delay and within one month (Art. 12(3)), extendable by a further two months for complex requests.</p>`
