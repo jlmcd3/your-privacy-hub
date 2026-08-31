@@ -1345,7 +1345,7 @@ export function QualityConsole({
                 const total = (st?.total ?? 0) + localTotal;
                 return (
                   <tr key={tool} className="border-b align-top bg-muted/10">
-                    <td className="py-2 pr-3 font-mono">
+                    <td className="sticky left-0 z-10 bg-background py-2 pr-3 font-mono">
                       {tool}
                       <div className="text-[10px] font-sans text-muted-foreground">
                         stress harness + in-page · Claude/GPT graded
