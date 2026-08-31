@@ -728,6 +728,16 @@ export function AllProductsPanel() {
       Array.from({ length: Math.min(LOCAL_RUN_CONCURRENCY, queue.length) }, () => lane()),
     );
     setBusy(false);
+    // COMPLETION LAW (2026-08-31): the pre-set path finished with a toast only,
+    // so the Live log gave no terminal line and a finished batch was
+    // indistinguishable from a stalled one. Always close the log.
+    appendAllProductsLog(
+      "batch",
+      `${ok === totalRuns ? "✅" : "❌"} batch complete — ${ok}/${totalRuns} run(s) succeeded${
+        attempted !== totalRuns ? ` · ${totalRuns - attempted} not attempted` : ""
+      }`,
+      ok === totalRuns ? "success" : "error",
+    );
     toast[ok === totalRuns ? "success" : "error"](`${ok}/${totalRuns} runs completed`);
   }
 

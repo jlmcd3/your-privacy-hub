@@ -180,3 +180,28 @@ export function useLocalBatches(): LocalBatch[] {
   }, []);
   return snapshot;
 }
+
+/**
+ * COLUMN-ALIAS LAW (2026-08-31): the scores matrix names two products with the
+ * orchestrator's slugs ("biometric-checker", "dpa-generator") while in-page
+ * runs record them under the stress-harness slugs ("biometric", "dpa"). Their
+ * scores were graded but never displayed. Resolve both spellings on read.
+ */
+const TOOL_ALIASES: Record<string, string[]> = {
+  "biometric-checker": ["biometric"],
+  biometric: ["biometric-checker"],
+  "dpa-generator": ["dpa"],
+  dpa: ["dpa-generator"],
+};
+
+/** Local result for a matrix tool column, tolerating slug spelling variants. */
+export function localToolResult(
+  tools: Record<string, LocalToolResult>,
+  tool: string,
+): LocalToolResult | undefined {
+  if (tools[tool]) return tools[tool];
+  for (const alias of TOOL_ALIASES[tool] ?? []) {
+    if (tools[alias]) return tools[alias];
+  }
+  return undefined;
+}

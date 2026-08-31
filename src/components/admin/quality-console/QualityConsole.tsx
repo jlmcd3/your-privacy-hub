@@ -33,7 +33,7 @@ import { SLUG_TO_TOOL_TYPE, generationModelSlug, DEFAULT_GENERATION_MODEL, AB_AL
 import { ModelPairTable } from "@/components/admin/quality-console/ModelPairTable";
 import { PINS_MODE_OPTIONS, type PinsMode } from "@/lib/pinsMode";
 import { useAllProductsLog, clearAllProductsLog } from "@/lib/allProductsLog";
-import { useLocalBatches, type LocalBatch, type LocalToolResult } from "@/lib/allProductsRunHistory";
+import { useLocalBatches, localToolResult, type LocalBatch, type LocalToolResult } from "@/lib/allProductsRunHistory";
 import { invokeWithTimeout } from "@/lib/sampleGenerators";
 
 // ITEM 325 — fixture variant. "perfect" is the ratified golden set; "messy"
@@ -1201,7 +1201,7 @@ export function QualityConsole({
                     </td>
                     {matrixColumns.map((col) => {
                       if (col.kind === "local") {
-                        return renderLocalCell(col.id, col.batch.tools[tool]);
+                        return renderLocalCell(col.id, localToolResult(col.batch.tools, tool));
                       }
                       const b = col.batch;
                       const results: ToolResult[] = Array.isArray(b.tool_results)
@@ -1246,7 +1246,7 @@ export function QualityConsole({
               {(extraHistoryTools ?? []).map((tool) => {
                 const st = stressHistory.get(tool);
                 const localTotal = localBatches.reduce(
-                  (n, b) => n + (b.tools[tool]?.total ?? 0), 0);
+                  (n, b) => n + (localToolResult(b.tools, tool)?.total ?? 0), 0);
                 const total = (st?.total ?? 0) + localTotal;
                 return (
                   <tr key={tool} className="border-b align-top bg-muted/10">
@@ -1267,7 +1267,7 @@ export function QualityConsole({
                     <td className="py-2 pr-3 bg-muted/40 text-muted-foreground">n/a</td>
                     {matrixColumns.map((col) =>
                       col.kind === "local"
-                        ? renderLocalCell(col.id, col.batch.tools[tool])
+                        ? renderLocalCell(col.id, localToolResult(col.batch.tools, tool))
                         : <td key={col.id} className="py-2 pr-3 text-muted-foreground">—</td>,
                     )}
                   </tr>
