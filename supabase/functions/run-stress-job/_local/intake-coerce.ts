@@ -204,6 +204,98 @@ export function coerceValue(raw: unknown, options: readonly string[], key = ""):
   return null;
 }
 
+// ---- semantic-pass helpers -------------------------------------------------
+
+function numbersIn(s: string): number[] {
+  return (s.match(/\d[\d,]*(?:\.\d+)?/g) ?? []).map((n) => Number(n.replace(/,/g, ""))).filter((n) => Number.isFinite(n));
+}
+
+/** Match a numeric value against band/threshold-shaped options. */
+function numericBandMatch(value: string, options: readonly string[]): string | null {
+  const vn = numbersIn(value);
+  if (vn.length !== 1) return null;
+  const n = vn[0];
+  const banded = options.filter((o) => numbersIn(o).length > 0);
+  // Every numeric option must be band-shaped for this pass to be meaningful.
+  if (banded.length < 2) return null;
+  const exact: string[] = [];
+  const fits: string[] = [];
+  for (const o of banded) {
+    const on = numbersIn(o);
+    const lo = norm(o);
+    if (on.includes(n)) exact.push(o);
+    if (/fewer than|less than|under|below/.test(lo) && on.length === 1) { if (n < on[0]) fits.push(o); continue; }
+    if (/more than|over|greater than|above|\+/.test(lo) && on.length === 1) { if (n > on[0]) fits.push(o); continue; }
+    if (on.length >= 2) { if (n >= on[0] && n <= on[on.length - 1]) fits.push(o); continue; }
+  }
+  if (exact.length >= 1) return exact[0];
+  if (fits.length === 1) return fits[0];
+  return null;
+}
+
+/** True when the value and the option share a distinctive (≥6 char) stem. */
+function sharesStem(value: string, option: string): boolean {
+  const vw = norm(value).split(" ").filter((w) => w.length >= 6);
+  const ow = norm(option).split(" ").filter((w) => w.length >= 6);
+  for (const a of vw) {
+    for (const b of ow) {
+      const min = Math.min(a.length, b.length);
+      if (min >= 6 && (a.startsWith(b.slice(0, 6)) && b.startsWith(a.slice(0, 6)))) return true;
+    }
+  }
+  return false;
+}
+
+const NEGATIVE_RE = /^(no\b|none|not\b|never|absent|lacking|without)|\bno formal\b|\bnot (yet|in place|defined|conducted|done)\b/i;
+const UNKNOWN_RE = /unknown|unsure|not known|still investigating|tbd|to be determined/i;
+
+function optionPolarity(o: string): "yes" | "no" | "unknown" | "other" {
+  const c = core(o);
+  const n = norm(o);
+  if (UNKNOWN_RE.test(o)) return "unknown";
+  if (/^(yes|confirmed|true)\b/.test(c) || /^(yes|confirmed)\b/.test(n)) return "yes";
+  if (/^(no|none|never)\b/.test(c) || NEGATIVE_RE.test(o)) return "no";
+  return "other";
+}
+
+/** Yes/No-shaped lists: pick the option matching the value's polarity. */
+function polarityMatch(value: string, options: readonly string[]): string | null {
+  const pol = options.map(optionPolarity);
+  if (!pol.includes("yes") || !pol.includes("no")) return null;
+  let want: "yes" | "no" | "unknown";
+  if (UNKNOWN_RE.test(value)) want = "unknown";
+  else if (NEGATIVE_RE.test(value.trim())) want = "no";
+  else want = "yes";
+  let pool = options.filter((_, i) => pol[i] === want);
+  if (!pool.length && want === "unknown") pool = options.filter((_, i) => pol[i] === "yes");
+  if (!pool.length) return null;
+  if (pool.length === 1) return pool[0];
+  const vt = tokens(value);
+  let best: { opt: string; score: number } | null = null;
+  for (const o of pool) {
+    const s = scoreTokens(vt, tokens(o));
+    if (!best || s > best.score) best = { opt: o, score: s };
+  }
+  return best && best.score > 0 ? best.opt : pool[0];
+}
+
+const SEVERITY_WORDS = ["none", "negligible", "minor", "low", "moderate", "medium", "major", "high", "severe", "critical"];
+
+/** Ordinal severity scales: keyword hit, else the low-middle rung. */
+function severityMatch(value: string, options: readonly string[]): string | null {
+  const isScale = options.length >= 3 && options.every((o) => SEVERITY_WORDS.some((w) => norm(o).split(" ").includes(w)));
+  if (!isScale) return null;
+  const v = norm(value);
+  for (const w of ["severe", "critical", "major", "high", "moderate", "medium", "minor", "low", "negligible", "none"]) {
+    if (!v.split(" ").includes(w)) continue;
+    const hit = options.find((o) => norm(o).split(" ").includes(w));
+    if (hit) return hit;
+  }
+  return options[Math.floor((options.length - 1) / 2)];
+}
+
+
+
 /** Walk a dotted path (with "[]" array segments) and rewrite leaf values. */
 function mapLeaf(
   root: unknown,
