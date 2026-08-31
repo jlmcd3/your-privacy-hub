@@ -14,7 +14,8 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 // defects — the investigation's root cause for the "drastically backwards"
 // batch scores. The gate below validates every fixture against the same
 // canonical contract the product form emits, BEFORE the product runs.
-import { blockingContractViolations, INTAKE_CONTRACT_GATE_PREFIX } from "./_local/intake-gate.ts";
+import { blockingContractViolations, contractForStressTool, INTAKE_CONTRACT_GATE_PREFIX } from "./_local/intake-gate.ts";
+import { coerceIntakeToContract } from "./_local/intake-coerce.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -162,7 +163,22 @@ function normalizeRopaCategory(raw: string | null | undefined): string {
 
 async function runTool(admin: Admin, job: any, userId: string): Promise<RunResult> {
 
-  const intake: Record<string, any> = { ...(job.fixture_data ?? {}) };
+  let intake: Record<string, any> = { ...(job.fixture_data ?? {}) };
+
+  // PANEL HARNESS CONTRACT-COERCION (2026-08-31): before the gate speaks,
+  // snap NAMING drift onto the contract's own option labels ("GB" →
+  // "United Kingdom (UK GDPR)"). Values that cannot be resolved are left
+  // alone so the gate still refuses genuinely wrong input.
+  {
+    const coerced = coerceIntakeToContract(contractForStressTool(job.tool_slug), intake);
+    if (coerced.notes.length) {
+      intake = coerced.intake;
+      console.log(JSON.stringify({
+        evt: "intake_contract_coercion", fn: "run-stress-job", tool: job.tool_slug,
+        applied: coerced.notes.slice(0, 24),
+      }));
+    }
+  }
 
   // PANEL HARNESS CONTRACT-GATE (2026-08-30): label/shape drift in the
   // generated fixture fails the job HERE, with the violations named, so a

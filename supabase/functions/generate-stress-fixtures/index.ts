@@ -9,6 +9,7 @@ console.log("[build-marker] generate-stress-fixtures qi2c-biometric-none-2026-07
 // and geo-specific call as separate requests under the platform timeout.
 
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { enumAppendix } from "./_local/enum-appendix.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -206,7 +207,7 @@ Return a JSON object with EXACTLY these top-level fields:
   }
 }
 
-Always emit a biometric object for every company (tool selection is handled at the job level by selected_tools). For sectors that do not routinely use biometric identification, still emit the object using realistic minimal values (e.g. biometricTypes may be ["none currently deployed"]). Never emit null.`;
+Always emit a biometric object for every company (tool selection is handled at the job level by selected_tools). For sectors that do not routinely use biometric identification, still emit the object using realistic minimal values, choosing verbatim options from the allowed lists below (e.g. biometricTypes may be ["Other biometric identifier"]). Never emit null.${enumAppendix(["governance", "dpa", "irPlaybook", "biometric", "registration"])}`;
 }
 
 // ── CALL B (EU): lia, dpia, ropa, euNotice ────────────────────────────────────
@@ -225,7 +226,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     processing_activity_name: `Behavioural advertising and audience segmentation`,
     description: `Cross-context collection and analysis of device identifiers, browsing history, and inferred interests to build audience segments used for targeted advertising.`,
     purpose: "Deliver targeted advertising to maximise CPM; build and monetise audience segments.",
-    data_categories: ["device identifiers", "browsing history", "IP addresses", "inferred interests", "location data"],
+    data_categories: ["Contact details", "Location data", "Customer records", "Other"],
     data_subjects: "Platform users and third-party website visitors whose identifiers are collected via pixels and SDKs",
     legal_basis_proposed: "Consent (ePrivacy) for device access; legitimate interests or consent (GDPR) for profiling — to be confirmed per purpose",
     automated_decisions: "Automated audience scoring affects ad delivery; not Article 22 in scope absent significant effect on individuals.",
@@ -234,7 +235,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     processing_activity_name: `Health data processing for clinical services`,
     description: `Collection, storage, and analysis of patient health records, diagnostic data, and treatment history to support clinical decision-making and care delivery.`,
     purpose: "Provide clinical services; support diagnostic and treatment decisions; maintain medical records.",
-    data_categories: ["health/medical data", "diagnostic records", "treatment history", "contact details", "identifiers"],
+    data_categories: ["Health or medical data", "Contact details", "Customer records"],
     data_subjects: "Patients and clinical trial participants, including potentially vulnerable individuals",
     legal_basis_proposed: "Article 9(2)(h) (healthcare purposes) + Article 6(1)(b) or (1)(c); explicit consent for non-essential processing",
     automated_decisions: "Clinical decision-support tools may generate automated recommendations; final decisions made by clinicians.",
@@ -243,7 +244,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     processing_activity_name: `Large-scale profiling and data commercialisation`,
     description: `Collection, aggregation, and sale or licensing of personal data from multiple third-party sources to build consumer profiles sold to commercial clients.`,
     purpose: "Build and commercialise consumer profiles; provide identity resolution, audience targeting, and credit pre-screening to business clients.",
-    data_categories: ["identifiers", "inferred demographics", "purchasing behaviour", "credit indicators", "contact details"],
+    data_categories: ["Contact details", "Customer records", "Financial data", "Other"],
     data_subjects: "Individuals whose data is collected indirectly via third-party sources, public records, or data partnerships — not from direct collection",
     legal_basis_proposed: "Legal basis to be determined per purpose; legitimate interests is contested for large-scale indirect profiling — purpose-by-purpose analysis required",
     automated_decisions: "Automated profile scoring used to assign segments; no solely automated Article 22 decisions without human review.",
@@ -252,7 +253,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     processing_activity_name: `Processing of children's personal data for educational services`,
     description: `Collection and use of students' usage logs, assessment results, and learning behaviour data within an educational technology platform serving schools and learners.`,
     purpose: "Personalise learning journeys; generate progress reports for teachers and parents; maintain educational records.",
-    data_categories: ["educational records", "usage logs", "assessment data", "contact details", "identifiers"],
+    data_categories: ["Children's data", "Contact details", "Customer records", "Other"],
     data_subjects: "Children and young people aged under 18 (students/learners), parents or guardians, and teachers — a vulnerable population",
     legal_basis_proposed: "Article 6(1)(b) (contract with school/institution); Article 8 consent requirements apply where processing is information society services directed at children",
     automated_decisions: "Automated learning progress scoring; no solely automated decisions with significant legal or educational effects.",
@@ -261,7 +262,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     processing_activity_name: `Genomic and genetic data processing for biotech research`,
     description: `Sequencing, storage, and analysis of genetic and genomic data for research purposes, potentially combined with health records and clinical data.`,
     purpose: "Advance biotech research; identify genetic markers; support drug development and personalised medicine.",
-    data_categories: ["genetic data", "genomic sequences", "health data", "identifiers", "research records"],
+    data_categories: ["Biometric data", "Health or medical data", "Contact details", "Other"],
     data_subjects: "Research participants and patients who have provided samples, including family members whose genetic data may be incidentally revealed",
     legal_basis_proposed: "Article 9(2)(j) (scientific research) + explicit consent (Article 9(2)(a)); ethical approval required",
     automated_decisions: "Automated genomic analysis tools used; outputs reviewed by qualified scientists before any clinical application.",
@@ -270,7 +271,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     processing_activity_name: `Employee monitoring and workforce analytics`,
     description: `Collection and analysis of employee activity, productivity metrics, communication logs, and HR records including performance assessments and disciplinary records.`,
     purpose: "Manage workforce performance; ensure regulatory compliance; support recruitment and HR administration.",
-    data_categories: ["employee records", "productivity data", "communications metadata", "health/absence data", "identifiers"],
+    data_categories: ["Employee records", "Health or medical data", "Communications content", "Contact details"],
     data_subjects: "Employees, contractors, and job applicants in a power-imbalanced relationship with the controller",
     legal_basis_proposed: "Article 6(1)(b) employment contract; Article 6(1)(c) legal obligation; consent is not freely given in employment contexts",
     automated_decisions: "Performance scoring may inform promotion or disciplinary decisions; human review mandatory for all significant employment decisions.",
@@ -279,7 +280,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     processing_activity_name: `Public authority data processing for statutory functions`,
     description: `Processing of personal data by a public authority in the exercise of official functions including benefits administration, licensing, or law enforcement support.`,
     purpose: "Discharge statutory public functions; administer public services; comply with legal obligations.",
-    data_categories: ["identifiers", "contact details", "government records", "potentially health or criminal offence data"],
+    data_categories: ["Contact details", "Customer records", "Health or medical data", "Other"],
     data_subjects: "Members of the public interacting with public services; potentially including vulnerable individuals",
     legal_basis_proposed: "Article 6(1)(e) public task or Article 6(1)(c) legal obligation; Article 6(1)(f) legitimate interests does NOT apply to public authorities in the performance of their tasks",
     automated_decisions: "Administrative decisions may be partially automated; Article 22 applies to solely automated decisions with significant individual effects.",
@@ -288,7 +289,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     processing_activity_name: `AI model training and automated decision-making`,
     description: `Training and deployment of machine learning models on large datasets of personal data to generate predictions, classifications, or recommendations affecting individuals.`,
     purpose: "Develop AI products; automate decisions or recommendations at scale; improve model performance using training data.",
-    data_categories: ["behavioural data", "identifiers", "inferred characteristics", "interaction history", "potentially special-category data depending on model purpose"],
+    data_categories: ["Customer records", "Contact details", "Communications content", "Other"],
     data_subjects: "Individuals whose data is used to train or evaluate models, and individuals subject to model outputs",
     legal_basis_proposed: "Legitimate interests or consent depending on the processing purpose; Article 9 applies if training data includes special categories",
     automated_decisions: "Model outputs may constitute Article 22 automated decisions if they produce significant individual effects; human review obligations must be assessed.",
@@ -298,7 +299,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     processing_activity_name: `${industry} platform monitoring`,
     description: "Monitoring service events to detect abuse and reliability issues",
     purpose: "Security, fraud prevention, and service resilience",
-    data_categories: ["account IDs", "IP addresses", "event logs"],
+    data_categories: ["Contact details", "Customer records", "Other"],
     data_subjects: "Customers and end users",
     legal_basis_proposed: "Legitimate interests",
     automated_decisions: "No solely automated legal or similarly significant decisions",
@@ -376,7 +377,7 @@ Return a JSON object with EXACTLY these fields:
   }
 }
 
-Include 3-5 realistic processing activities in ropa.activities for a ${industry} company.`;
+Include 3-5 realistic processing activities in ropa.activities for a ${industry} company.${enumAppendix(["lia", "dpia", "cppaAdmt"])}`;
 }
 
 // ── CALL B (US): usNotice, cppaRisk, cppaCyber ───────────────────────────────
@@ -494,7 +495,7 @@ Return a JSON object with EXACTLY these fields:
   "euNotice": null
 }
 
-Notice/opt-out/access answers must be a realistic mix — not all "Yes", not all blank — so gap analysis has real material.`;
+Notice/opt-out/access answers must be a realistic mix — not all "Yes", not all blank — so gap analysis has real material.${enumAppendix(["cppaRisk", "cppaAdmt"])}`;
 }
 
 function fixtureSeed(companyId: string): number {
@@ -986,7 +987,7 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
           volume_frequency: slot === 1 ? "Large-scale — confirm exact volume from operational data" : "Mid-scale — confirm exact volume from operational data",
           retention: "To be confirmed per data category",
           third_party_processors: ["AWS", "Snowflake", "Zendesk"],
-          existing_safeguards: ["encryption", "MFA", "DPIA review", "vendor DPAs"],
+          existing_safeguards: ["Encryption at rest", "Encryption in transit", "Access controls", "DPA signed with processor"],
           jurisdictions: ["EU (GDPR)"],
           sector: industry,
         };

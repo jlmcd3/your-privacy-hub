@@ -82,6 +82,7 @@ describe("Batch 16 — renderer wave shapes (web twin)", () => {
       computed,
       organizationName: "Test Org",
       systemName: "the System",
+      exhibit: null,
     });
     const { container } = render(<SkeletonDocumentView doc={doc as never} />);
     expect(container.textContent).toContain("CPPA ADMT Compliance Assessment");
