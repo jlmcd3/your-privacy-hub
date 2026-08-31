@@ -714,8 +714,19 @@ export function AllProductsPanel() {
           break;
         }
       }
+    };
 
-    }
+    // Worker pool: each lane pulls the next product until the queue drains.
+    let cursor = 0;
+    const lane = async () => {
+      while (cursor < queue.length) {
+        const f = queue[cursor++];
+        await runProduct(f);
+      }
+    };
+    await Promise.all(
+      Array.from({ length: Math.min(LOCAL_RUN_CONCURRENCY, queue.length) }, () => lane()),
+    );
     setBusy(false);
     toast[ok === totalRuns ? "success" : "error"](`${ok}/${totalRuns} runs completed`);
   }
