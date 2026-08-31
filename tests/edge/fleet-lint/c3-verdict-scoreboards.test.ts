@@ -44,7 +44,7 @@ Deno.test("C3/S3.1: LIA deterministic path carries the three-test strip; the v1 
   const strip = execTables(det.document).find((t) => t.title === "Three-part test");
   assertExists(strip, "verdict strip missing on the deterministic path");
   assert(strip.hideHeader === true);
-  assertEquals(strip.rows, [["Purpose test", "Met"], ["Necessity test", "Met"], ["Balancing test", "Not resolved"]]);
+  assertEquals(strip.rows, [["Purpose test", "Met"], ["Necessity test", "Met"], ["Balancing test", "Determination Pending"]]);
 
   const legacy = assembleLiaSkeletonDocument(report, intake);
   assert(

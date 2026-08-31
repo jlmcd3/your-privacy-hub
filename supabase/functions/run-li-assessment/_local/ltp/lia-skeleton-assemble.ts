@@ -372,13 +372,36 @@ export function deriveThreeTestStrip(report: Bag): RenderedTable | null {
       : v === "fails" || v === "likely_fails"
       ? "Not met"
       : v
-      ? "Not resolved"
+      // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, §XIII check
+      // #4) — fleet status vocabulary: "Determination Pending", not the
+      // older "Not resolved" dialect.
+      ? "Determination Pending"
       : "";
   const rows: string[][] = [];
   const add = (label: string, v: string) => {
     const w = word(v);
     if (w) rows.push([label, w]);
   };
+  // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, LIA P1-2) —
+  // Article 6(1)(f) availability (the public-authority exclusion gate) is a
+  // logically PRIOR question to the three-part test, and buildDetermination
+  // (lia-deliverables/build.ts) correctly gates the overall outcome on it
+  // when it is open. But that gating previously left the reader unable to
+  // see that the three-part test below WAS in fact reached and resolved —
+  // an open gate is not the same fact as an unresolved balancing test, and
+  // showing only the former made a completed analysis look abandoned. This
+  // row states the gate explicitly and separately; the rows below it render
+  // from the same typed verdicts regardless of the gate's state.
+  const pa = bag(report.public_authority_exclusion);
+  const paDetermination = s(pa.determination);
+  const paWord = pa.basis_unavailable === true
+    ? "Not available"
+    : paDetermination === "undetermined_on_the_record"
+    ? "Determination Pending"
+    : paDetermination === "exclusion_does_not_apply"
+    ? "Available"
+    : "";
+  if (paWord) rows.push(["Article 6(1)(f) availability", paWord]);
   add("Purpose test", s(bag(tpt.purpose_test).verdict));
   add("Necessity test", s(bag(tpt.necessity_test).verdict));
   add("Balancing test", s(bag(tpt.balancing_test).verdict));
@@ -798,10 +821,21 @@ export function assembleLiaSkeletonDocument(
         : "The assessment was reviewed by the data protection officer.")
       // HONEST NEGATIVE — weight attaches either way, so the absence is stated.
       : "Review by the data protection officer has not yet occurred.",
+    // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, LIA P1-3) —
+    // "approved" without qualification read as if the lawful-basis outcome
+    // itself had been signed off, even on a record where that outcome is
+    // still undetermined (verdictIsPositive(v.outcome) === null). The
+    // approval sentence now says what was approved: the assessment RECORD
+    // (the documented analysis) is distinct from the lawful-basis /
+    // processing decision, which remains open until the outcome resolves.
     "findings:3": s(attestation.approver_name)
-      ? `It was approved by ${s(attestation.approver_name)}${
+      ? `The assessment record was approved by ${s(attestation.approver_name)}${
         s(attestation.approver_position) ? `, ${s(attestation.approver_position)}` : ""
-      }${s(attestation.approval_date) ? `, on ${s(attestation.approval_date)}` : ""}.`
+      }${s(attestation.approval_date) ? `, on ${s(attestation.approval_date)}` : ""}.${
+        verdictIsPositive(v.outcome) === null && !v.public_authority_bar
+          ? " That approval covers the assessment record itself; the lawful-basis and processing decision remain pending until the outcome above is resolved."
+          : ""
+      }`
       : "",
   };
 

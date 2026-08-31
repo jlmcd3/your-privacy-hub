@@ -394,7 +394,11 @@ function deriveDeadlineBoardTable(report: Bag, intake: Bag): RenderedTable | nul
       ? "Triggered"
       : verdict === "notification_not_required_unlikely_risk"
       ? "Not engaged"
-      : "Reserved";
+      // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, P1-2) — the
+      // fleet's status vocabulary uses "Determination Pending" for an
+      // unresolved verdict everywhere else; this table's "Reserved" was an
+      // older dialect the reader has to separately learn.
+      : "Determination Pending";
     const outer = status === "Not engaged" ? "" : outerLimit72h(intake);
     rows.push({
       cells: [
@@ -452,9 +456,22 @@ function deriveDeadlineBoardTable(report: Bag, intake: Bag): RenderedTable | nul
   };
 }
 
-// The jurisdiction action plan as a table (doc 113 S2.7) — no-GDPR path
-// only; the EU Art. 33(3) element plan stays prose until doc 109 §2.10
-// item 5. Replaces composeJurisdictionActionPlan's prose lines.
+// A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, US IR P1-1 /
+// EU IR P1-3) — shared owner lookup for both action-plan tables below. Never
+// invents a name: a role with no roster match renders the honest fallback,
+// matching the wording composeNotificationAnalysis already used for the
+// content-owner mapping (D1D2B3B8-I2).
+function rosterOwnerFor(intake: Bag, pattern: RegExp, roleLabel: string): string {
+  const row = normalizeResponseTeamRoster(intake).find((r) => pattern.test(r.searchable));
+  return row && row.name
+    ? `${row.name} (${row.roleLabel || roleLabel})`
+    : `${roleLabel} — assign on the recorded roster`;
+}
+const FORENSIC_OWNER_RE = /forensic|security/i;
+const INCIDENT_LEAD_OWNER_RE = /incident\s+(?:lead|commander|response)|breach/i;
+
+// The jurisdiction action plan as a table (doc 113 S2.7) — no-GDPR path only.
+// Replaces composeJurisdictionActionPlan's prose lines.
 function deriveActionPlanTable(report: Bag, intake: Bag): RenderedTable | null {
   if (asArray(report.notification_duties).length > 0) return null;
   type PlanRow = { cells: string[]; hours: number; ord: number };
@@ -468,15 +485,31 @@ function deriveActionPlanTable(report: Bag, intake: Bag): RenderedTable | null {
     // A-TEAM S4 RULING S2.3 (doc 119) — a conditional or unestablished duty
     // never renders as an unconditional "Notify" task.
     const posture = stateDutyPosture(d, intake);
+    const statusWord = posture === "triggered"
+      ? "Triggered"
+      : posture === "determination_pending"
+      ? "Determination Pending"
+      : "Not engaged";
     const dutyText = posture === "triggered"
       ? `Notify under the law of ${state}`
       : posture === "determination_pending"
       ? `Determine whether notification is required under the law of ${state} (resolve the outstanding encryption, acquisition, and harm facts), and notify if the duty is established`
       : `No notice action currently identified under the law of ${state} — reassess if additional data types or facts emerge`;
+    // ChatGPT P1-1 — Owner column: the fact-resolution work a
+    // determination-pending row names is forensic/security work; a
+    // triggered notify duty is an incident-lead action; a duty not
+    // established carries no owner (there is no action to assign).
+    const owner = posture === "determination_pending"
+      ? rosterOwnerFor(intake, FORENSIC_OWNER_RE, "Security / Forensics Lead")
+      : posture === "triggered"
+      ? rosterOwnerFor(intake, INCIDENT_LEAD_OWNER_RE, "Incident Lead")
+      : "—";
     rows.push({
       cells: [
         dutyText,
+        statusWord,
         cellCap(`${individual}${regulator ? `; ${regulator}` : ""}`),
+        owner,
         s(d.citation) || "—",
       ],
       hours: posture === "not_established" ? Number.MAX_SAFE_INTEGER : clockHours(individual),
@@ -487,7 +520,9 @@ function deriveActionPlanTable(report: Bag, intake: Bag): RenderedTable | null {
     rows.push({
       cells: [
         `Notify ${c.party}`,
+        "Triggered",
         c.deadline ? cellCap(noStop(c.deadline)) : "As the agreement provides",
+        rosterOwnerFor(intake, INCIDENT_LEAD_OWNER_RE, "Incident Lead"),
         c.clause || "Contract — as recorded",
       ],
       hours: clockHours(c.deadline),
@@ -500,9 +535,70 @@ function deriveActionPlanTable(report: Bag, intake: Bag): RenderedTable | null {
     key: "",
     surface: "state_notification_duties+breachNoticeContracts.action_plan",
     title: "Action plan",
-    columns: ["Order", "Duty", "Deadline", "Citation"],
+    columns: ["Order", "Duty", "Status", "Deadline", "Owner", "Citation"],
     rows: rows.map((r, i) => [String(i + 1), ...r.cells]),
     note: "In the order the clocks run.",
+  };
+}
+
+// A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, EU IR P1-3) — the
+// Art. 33(3) content plan as a table, replacing the prose block below for
+// the GDPR-engaged path (the prose block only carries a fallback for report
+// shapes with no content_owner_mapping). Same element data, same owner
+// lookup, same honest "outstanding" / "on the record" language — a
+// structural change, not a wording change.
+const ART33_ELEMENT_LABELS: Record<string, string> = {
+  a_nature: "Nature of breach — categories and approximate numbers of data subjects and records",
+  b_dpo_contact: "DPO / contact point — name and contact details",
+  c_likely_consequences: "Likely consequences of the breach",
+  d_measures: "Measures taken or proposed, and measures mitigating adverse effects",
+};
+const ART33_OWNER_MATCHERS: Record<string, RegExp> = {
+  a_nature: FORENSIC_OWNER_RE,
+  b_dpo_contact: /\bdpo\b|data protection/i,
+  c_likely_consequences: INCIDENT_LEAD_OWNER_RE,
+  d_measures: /remediat|recovery|it\s*operations|forensic|cyber|security/i,
+};
+function deriveArt33ContentTable(report: Bag, intake: Bag): RenderedTable | null {
+  // D1D2B3B8-I1's gate (composeNotificationAnalysis, above): the builder
+  // computes content_owner_mapping unconditionally, but Art. 33(3) is a
+  // GDPR-family duty — it must not render on a record with no EU/UK
+  // jurisdiction, matching the prose block's own early return.
+  if (asArray(report.notification_duties).length === 0) return null;
+  const mapping = (report.content_owner_mapping ?? {}) as Bag;
+  const elements = asArray(mapping.elements);
+  if (!elements.length) return null;
+  const rows = elements
+    .map((e) => {
+      const key = s(e.element);
+      const label = ART33_ELEMENT_LABELS[key] || noStop(s(e.requirement_verbatim)) || key;
+      if (!label) return null;
+      const value = s(e.record_value);
+      const needed = s(e.information_needed);
+      const valueIsApparatus = /could not verify this item/i.test(value);
+      const status = needed
+        ? `Outstanding: ${noStop(needed)}`
+        : isRecorded(value) && !value.includes("[TO BE COMPLETED]") && !valueIsApparatus
+        ? `On the record: ${noStop(value)}`
+        : "Not recorded";
+      const matcher = ART33_OWNER_MATCHERS[key];
+      const owner = matcher ? rosterOwnerFor(intake, matcher, s(e.owner) || "Assigned role") : (s(e.owner) || "—");
+      return [
+        s(e.citation) || "Art. 33(3)",
+        label,
+        status,
+        owner,
+        needed ? "Resolve the outstanding fact and record it" : "None — already on the record",
+      ];
+    })
+    .filter((r): r is string[] => r !== null);
+  if (!rows.length) return null;
+  return {
+    key: "",
+    surface: "content_owner_mapping.elements",
+    title: "Article 33(3) content plan",
+    columns: ["Provision", "Element", "Record status", "Owner", "Action"],
+    rows,
   };
 }
 
@@ -743,13 +839,22 @@ export function buildAwarenessClockClause(intake: Bag): string {
   const fmt = (x: Date) => `${x.toISOString().slice(0, 10)} at ${x.toISOString().slice(11, 16)} UTC`;
   const deadline = new Date(d.getTime() + 72 * 60 * 60 * 1000);
   const awareness = s(intake.awarenessConfirmed);
+  const isConfirmed = /confirmed/i.test(awareness) && !/assumed/i.test(awareness);
   const basis = /assumed/i.test(awareness)
     ? "awareness is recorded as ASSUMED against that timestamp pending confirmation"
-    : /confirmed/i.test(awareness)
+    : isConfirmed
     ? "awareness is recorded as CONFIRMED against that timestamp"
     : "the record does not state whether awareness is confirmed or assumed against that timestamp";
+  // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, P1-1) — this
+  // clause stated the 72-hour figure as a settled "outer limit" even in the
+  // ASSUMED/unstated branches, while the Deadline Board table (above) already
+  // called the same figure provisional. Only the CONFIRMED-awareness branch
+  // earns "outer limit" certainty; the other two branches now match the
+  // table's own "provisionally runs to" language instead of contradicting it.
   return stop(
-    `The company records discovery at ${fmt(d)}, and ${basis}, so the 72-hour outer limit runs to ${fmt(deadline)}`,
+    isConfirmed
+      ? `The company records discovery at ${fmt(d)}, and ${basis}, so the 72-hour outer limit runs to ${fmt(deadline)}`
+      : `The company records discovery at ${fmt(d)}, and ${basis}, so the provisional planning deadline is ${fmt(deadline)} — calculated conservatively from the recorded discovery timestamp until the controller's Article 33 awareness time is confirmed`,
   );
 }
 
@@ -1118,7 +1223,7 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
     } else {
       bits.push(
         stop(
-          `On the company's answers, whether notification to ${authority || "the competent supervisory authority"} is required${citation ? ` under ${citation}` : ""} is not determined, and that determination is reserved`,
+          `On the company's answers, whether notification to ${authority || "the competent supervisory authority"} is required${citation ? ` under ${citation}` : ""} is not determined, and that determination is pending`,
         ),
       );
     }
@@ -1372,6 +1477,7 @@ export function assembleIRSkeletonDocument(report: Bag, intakeInput: Bag): IrSke
     "incident_worksheet:2": deriveIncidentFactsTable(values, intake),
     "incident_worksheet:4": deriveDeadlineBoardTable(composeReport, intake),
     "incident_worksheet:8": deriveActionPlanTable(composeReport, intake),
+    "incident_worksheet:9": deriveArt33ContentTable(composeReport, intake),
   };
 
   const draft = renderSkeletonDocument({

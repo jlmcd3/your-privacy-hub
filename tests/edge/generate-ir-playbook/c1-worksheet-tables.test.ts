@@ -166,7 +166,11 @@ Deno.test("C1/S2.5: the Part One lead is the readiness banner in both states", (
 Deno.test("C1/S2.6: exactly one Deadline. callout on a GDPR record; none on a no-GDPR record", () => {
   const eu = skeletonDocumentToText(assemble(euIntake()).document);
   assertEquals(eu.split("Deadline. The company records discovery at").length - 1, 1);
-  assertStringIncludes(eu, "so the 72-hour outer limit runs to 2026-09-01 at 18:00 UTC");
+  // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, EU IR P1-1) —
+  // euIntake() carries no awarenessConfirmed field, so the honest wording is
+  // "provisional planning deadline", not a settled "outer limit"; only a
+  // CONFIRMED-awareness record earns the "outer limit runs to" phrasing.
+  assertStringIncludes(eu, "so the provisional planning deadline is 2026-09-01 at 18:00 UTC");
   const us = skeletonDocumentToText(assemble(usIntake()).document);
   assert(!us.includes("Deadline. The company records discovery"), "72-hour callout printed on a record the GDPR does not govern");
   assert(!us.includes("72-hour outer limit"), "GDPR outer limit printed on a no-GDPR record");
@@ -184,7 +188,10 @@ Deno.test("C1/S2.7: the US state clocks live in tables, not repeated prose sente
   assert(!text.includes("The action plan, in the order the clocks run:"), "US action plan still prose");
   const plan = tablesOf(out, "incident_worksheet").find((t) => t.title === "Action plan");
   assertExists(plan);
-  assertEquals(plan.columns, ["Order", "Duty", "Deadline", "Citation"]);
+  // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, US IR P1-1) —
+  // Status and Owner columns added; the reader no longer has to infer
+  // posture from the Duty prose or guess who is responsible.
+  assertEquals(plan.columns, ["Order", "Duty", "Status", "Deadline", "Owner", "Citation"]);
   // Clock order: the 48-hour contractual clock outruns the 30-day statute.
   assertEquals(plan.rows[0][0], "1");
   assertEquals(plan.rows[0][1], "Notify Acme Fulfilment");
@@ -192,6 +199,13 @@ Deno.test("C1/S2.7: the US state clocks live in tables, not repeated prose sente
   // intake, so California's duty is a determination to run, not a live
   // notify task.
   assert(plan.rows.some((r) => String(r[1]).startsWith("Determine whether notification is required under the law of California")));
+  // The determination-pending California row gets the forensic/security
+  // owner; the contract-notice row gets the incident lead named on the
+  // recorded roster.
+  const caRow = plan.rows.find((r) => String(r[1]).startsWith("Determine whether notification is required under the law of California"));
+  assertExists(caRow);
+  assertStringIncludes(String(caRow[4]), "Security / Forensics Lead");
+  assertStringIncludes(String(plan.rows[0][4]), "J. Ortiz");
 });
 
 Deno.test("C1/S2.7: the EU record keeps its Art. 33(3) element plan as prose and gets no plan table", () => {

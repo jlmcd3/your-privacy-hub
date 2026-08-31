@@ -184,9 +184,13 @@ export const IR_SKELETON_SECTIONS: readonly IrSkeletonSection[] = [
       { kind: "skeleton", text: "The company reports the incident's containment state as {containmentState - reader label}." },
       { kind: "generated", text: "[GENERATED] The notification analysis in counsel's voice: each duty with its clock, jurisdiction by jurisdiction, from the company's answers; the action plan in time order; determinations reserved to counsel stay reserved." },
       // BATCH 18b (doc 113 S2.7) — the jurisdiction action plan as a table
-      // (Order | Duty | Deadline | Citation); no-GDPR path only, the EU
-      // Art. 33(3) element plan stays prose until doc 109 §2.10 item 5.
+      // (Order | Duty | Status | Deadline | Owner | Citation); no-GDPR path.
       { kind: "table", text: "state_notification_duties+breachNoticeContracts.action_plan" },
+      // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, EU IR P1-3)
+      // — the Art. 33(3) content plan as a table, GDPR-engaged path. Not
+      // part of the docx's 17 fixed-prose paragraphs (hash above is
+      // unaffected); a "table" block, honestly absent when its rows are.
+      { kind: "table", text: "content_owner_mapping.art33_content_plan" },
     ],
   },
   {

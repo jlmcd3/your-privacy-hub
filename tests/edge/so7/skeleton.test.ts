@@ -217,7 +217,7 @@ Deno.test("SO-7: notification analysis is jurisdiction by jurisdiction and reser
   assert(text.includes("GDPR (Regulation (EU) 2016/679)"));
   assert(text.includes("UK GDPR"));
   assert(text.includes("the competent supervisory authority"));
-  assert(text.includes("is not determined, and that determination is reserved"));
+  assert(text.includes("is not determined, and that determination is pending"));
   // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, EU
   // Incident P0-2) — plain language, not the raw field names.
   assert(text.includes("What would settle it is whether the affected data were encrypted"));

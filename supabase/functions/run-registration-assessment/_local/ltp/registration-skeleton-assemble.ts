@@ -1086,7 +1086,11 @@ function composeReadinessLead(report: Bag, counts: RegistrationDutyCounts, org: 
     // A-TEAM S4 RULING S2.17e (doc 119) — the all-clear names any duty
     // determination that remains open above, so it cannot read as settled.
     return stop(
-      `No filing is required of ${org} on the current assessment record; accordingly, no filing-readiness items apply${counts.reserved > 0 ? `. ${counts.reserved === 1 ? "One duty determination remains" : `${counts.reserved} duty determinations remain`} open above and ${counts.reserved === 1 ? "is" : "are"} not a filing item` : ""}`,
+      // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, P2-4) —
+      // "N duty determinations remain open above and are not a filing
+      // item" reads as an awkward compound predicate; two clauses instead,
+      // with "neither"/"none" chosen by count rather than fixed at two.
+      `No filing is required of ${org} on the current assessment record; accordingly, no filing-readiness items apply${counts.reserved > 0 ? `. ${counts.reserved === 1 ? "One duty determination remains" : `${counts.reserved === 2 ? "Two" : counts.reserved} duty determinations remain`} open above; ${counts.reserved === 1 ? "it is" : counts.reserved === 2 ? "neither is" : "none is"} a filing item` : ""}`,
     );
   }
   const open = rows.filter((r) => r.ready_to_file !== true);
