@@ -40,7 +40,11 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { SAMPLE_FIXTURES, type SampleFixture, type ToolSlug } from "@/lib/sampleFixtures";
 import { preflightFixture, type PreflightResult } from "@/lib/sampleFixturePreflight";
-import { PRESET_DATASET_COUNT, pickPresetDatasets } from "@/lib/sampleDataPackages";
+import {
+  PRESET_DATASET_COUNT,
+  isNonGdprFixtureForGdprOnlyProduct,
+  pickPresetDatasets,
+} from "@/lib/sampleDataPackages";
 import { invokeWithTimeout, runGenerator } from "@/lib/sampleGenerators";
 import {
   STRESS_INDUSTRIES,
