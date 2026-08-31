@@ -9,6 +9,7 @@ console.log("[build-marker] generate-stress-fixtures qi2c-biometric-none-2026-07
 // and geo-specific call as separate requests under the platform timeout.
 
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { enumAppendix } from "./_local/enum-appendix.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -206,7 +207,7 @@ Return a JSON object with EXACTLY these top-level fields:
   }
 }
 
-Always emit a biometric object for every company (tool selection is handled at the job level by selected_tools). For sectors that do not routinely use biometric identification, still emit the object using realistic minimal values (e.g. biometricTypes may be ["none currently deployed"]). Never emit null.`;
+Always emit a biometric object for every company (tool selection is handled at the job level by selected_tools). For sectors that do not routinely use biometric identification, still emit the object using realistic minimal values, choosing verbatim options from the allowed lists below (e.g. biometricTypes may be ["Other biometric identifier"]). Never emit null.${enumAppendix(["governance", "dpa", "irPlaybook", "biometric", "registration"])}`;
 }
 
 // ── CALL B (EU): lia, dpia, ropa, euNotice ────────────────────────────────────
@@ -376,7 +377,7 @@ Return a JSON object with EXACTLY these fields:
   }
 }
 
-Include 3-5 realistic processing activities in ropa.activities for a ${industry} company.`;
+Include 3-5 realistic processing activities in ropa.activities for a ${industry} company.${enumAppendix(["lia", "dpia", "cppaAdmt"])}`;
 }
 
 // ── CALL B (US): usNotice, cppaRisk, cppaCyber ───────────────────────────────
@@ -494,7 +495,7 @@ Return a JSON object with EXACTLY these fields:
   "euNotice": null
 }
 
-Notice/opt-out/access answers must be a realistic mix — not all "Yes", not all blank — so gap analysis has real material.`;
+Notice/opt-out/access answers must be a realistic mix — not all "Yes", not all blank — so gap analysis has real material.${enumAppendix(["cppaRisk", "cppaAdmt"])}`;
 }
 
 function fixtureSeed(companyId: string): number {
