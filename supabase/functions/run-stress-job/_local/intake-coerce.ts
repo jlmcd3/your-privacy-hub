@@ -163,6 +163,40 @@ export function coerceValue(raw: unknown, options: readonly string[], key = ""):
     if (/micro|startup|solo/i.test(value)) return options[0];
   }
 
+  // ---- SEMANTIC PASSES (2026-08-31, batch b8c21317 classes) -------------
+  // The drifts below are not naming drifts; the generator answered the
+  // QUESTION rather than picking a LABEL ("Yes" for a Confirmed/gap pair,
+  // "186,000" for a band, a containment narrative for a Yes/No/Unknown
+  // field). Each pass is deterministic and refuses ambiguity.
+
+  // 1. Numeric band / threshold options ("186,000" → "More than 100,000",
+  //    "45 days" → "Within 45 calendar days (standard)").
+  const numeric = numericBandMatch(value, options);
+  if (numeric) return numeric;
+
+  // 2. Recency phrases against "last N months" style options.
+  if (/annual|annually|yearly|each year|every year|last 12 months|past year|within a year/i.test(value)) {
+    const hits = options.filter((o) => /\b12 months\b/.test(norm(o)));
+    if (hits.length === 1) return hits[0];
+  }
+
+  // 3. Distinctive stem overlap — exactly one option shares a ≥6-char word
+  //    stem with the value ("…vendor credential…" → "Phishing / credential
+  //    compromise"). Short words cannot trigger this.
+  const stemHits = options.filter((o) => sharesStem(value, o));
+  if (stemHits.length === 1) return stemHits[0];
+
+  // 4. Polarity-shaped option lists (a Yes/Confirmed option AND a No option):
+  //    classify the value's polarity, then take the best option of that
+  //    polarity (first one when nothing distinguishes them).
+  const polar = polarityMatch(value, options);
+  if (polar) return polar;
+
+  // 5. Ordinal severity scales (None/Minor/Moderate/Severe).
+  const sev = severityMatch(value, options);
+  if (sev) return sev;
+
+
   // Last resort for enums that carry an explicit catch-all.
   const other = options.find((o) => norm(o) === "other");
   if (other) return other;
