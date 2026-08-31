@@ -3326,7 +3326,23 @@ async function runBootstrap(dpia_id: string, _caller: any): Promise<void> {
   // Fan out phase 1 (retired units are already seeded as complete).
   for (const u of PHASE1) if (!isRetiredUnit(u)) selfInvokeUnit(dpia_id, u);
   console.log(JSON.stringify({ evt: "dpia_units_minimal", fn: "run-dpia-framework", dpia_id, enabled: DPIA_UNITS_MINIMAL, retired: DPIA_UNITS_MINIMAL ? DPIA_RETIRED_UNITS : [] }));
-  if (DPIA_UNITS_MINIMAL) { const n = await advancePhaseIfReady(dpia_id); for (const u of n) selfInvokeUnit(dpia_id, u); }
+  if (DPIA_UNITS_MINIMAL) {
+    const n = await advancePhaseIfReady(dpia_id);
+    for (const u of n) selfInvokeUnit(dpia_id, u);
+    // DPIA-STALL-2 (2026-08-31): under DPIA_UNITS_MINIMAL every unit is seeded
+    // "done" at bootstrap, so advancePhaseIfReady finds nothing "blocked" and
+    // returns [] — leaving the row at status=processing with nobody to run
+    // stitch. The document only completed when the 12-minute retry cron
+    // re-entered bootstrap and hit the sweeper's inline stitch. Mirror that
+    // path here: when phase 1 needs no model unit, stitch immediately.
+    const fresh = await readRow(dpia_id);
+    const units = ((fresh.report_data ?? {}) as any)?._staging?.units ?? {};
+    const allDone = (["u1", "u2", "u3", "u4", "u5"] as UnitId[]).every((u) => units[u]?.status === "done");
+    if (allDone) {
+      console.log(JSON.stringify({ evt: "dpia_minimal_inline_stitch", fn: "run-dpia-framework", dpia_id }));
+      await runStitch(dpia_id);
+    }
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
