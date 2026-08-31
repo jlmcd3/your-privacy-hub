@@ -558,7 +558,17 @@ export function AllProductsPanel() {
         { tool_type: toolType, assessment_id: o.sourceRowId },
         180_000,
       );
-      if (error || !data?.pdf_url) throw new Error(error?.message || data?.error || "no pdf_url returned");
+      if (error || !data?.pdf_url) {
+        const raw = error?.message || data?.error || "no pdf_url returned";
+        // PDF FIX (2026-08-31): the commonest panel PDF failure is an expired
+        // admin session (generate-report-pdf answers 401 auth_expired), which
+        // surfaced only as an opaque "non-2xx status".
+        throw new Error(
+          /auth_expired|401|Session expired/i.test(raw)
+            ? "session expired — sign in again, then press Create PDF"
+            : raw,
+        );
+      }
       updateOutcome(o.id, { pdfUrl: data.pdf_url as string });
       window.open(data.pdf_url as string, "_blank", "noopener");
     } catch (e) {
