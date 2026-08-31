@@ -168,7 +168,7 @@ export const BIOMETRIC_SKELETON_SECTIONS: readonly BiometricSkeletonSection[] = 
       // P1-4) — the remediation vs. record-completion distinction as a
       // compact action panel, complementing the lead's prose. Not part of
       // the docx's fixed-prose paragraphs (hash above unaffected).
-      { kind: "table", text: "consequence_determination.action_panel" },
+      { kind: "table", text: "" },
     ],
   },
   {

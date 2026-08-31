@@ -147,7 +147,8 @@ function deriveComponentMatrix(
       "Coverage",
       "Evidence sufficiency",
       "Material gap",
-      "Recommended action",
+      "Program remediation",
+      "Evidence / readiness follow-up",
     ],
     rows: CYBER_7123_COMPONENTS.map((comp) => {
       const rec = controlRec(intake, comp.slug);
@@ -162,7 +163,12 @@ function deriveComponentMatrix(
         cov ? (cov.status === "record_insufficient" ? "Record insufficient" : cov.verdict.replace(/_/g, " ")) : "",
         ev ? ev.sufficiency : "",
         fa && fa.materiality === "Material" ? "Yes" : "No",
+        // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, Cyber
+        // P1-2) — split from one "Recommended action" column into the two
+        // dimensions cyber-factors.ts now types separately: program
+        // remediation and evidence/readiness follow-up.
         fa?.recommended_action ?? "",
+        fa?.evidence_followup || "None",
       ];
     }),
   };
@@ -201,11 +207,23 @@ function deriveActionRegister(
   recordCompletion: readonly RecordCompletionAction[] = [],
 ): RenderedTable {
   const owner = s((intake.profile as Bag | undefined)?.remediation_owner);
+  // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, Cyber P1-3) —
+  // PriorityTier ("Immediate" / "Within 90 days" / "Within 6 months" /
+  // "Monitor") names a target timeframe, not a priority level; a single
+  // "Priority" column showing "Within 90 days" reads as a deadline mislabeled
+  // as urgency. Split into a priority tier word and its target timeframe —
+  // no new fact, same tier, two views of it.
+  const PRIORITY_TIER_LABEL: Record<string, string> = {
+    "Immediate": "High",
+    "Within 90 days": "Medium",
+    "Within 6 months": "Medium",
+    "Monitor": "Low",
+  };
   return {
     key: "",
     surface: "cyber_v4_action_register",
     title: "Readiness Action Register",
-    columns: ["Rank", "Component", "Action", "Type", "Priority", "Owner"],
+    columns: ["Rank", "Component", "Action", "Type", "Priority", "Target", "Owner"],
     // PANEL CYB-6 (2026-08-30): a zero-action register used to render as an
     // empty appendix (intro paragraph, then nothing — it read as a
     // rendering failure). The empty state is now an explicit one-row
@@ -223,6 +241,7 @@ function deriveActionRegister(
             // FD703575-CY3 — first-sentence fact, never the whole notes narrative.
             r.slot.template.replace("{fact}", recommendationFact(rec.notes, rec.maturity)),
             ACTION_TYPE_BY_GAP_CLASS[r.key.gapClass] ?? "Readiness",
+            PRIORITY_TIER_LABEL[r.priority] ?? r.priority,
             r.priority,
             owner || "Not recorded",
           ];
@@ -232,6 +251,7 @@ function deriveActionRegister(
           x.label,
           x.action,
           "Record completion",
+          PRIORITY_TIER_LABEL["Within 90 days"],
           "Within 90 days",
           owner || "Not recorded",
         ]),
@@ -240,6 +260,7 @@ function deriveActionRegister(
         "—",
         "All components",
         "No readiness actions are identified for any component; Section 6 records the same result.",
+        "—",
         "—",
         "—",
         "—",

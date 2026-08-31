@@ -78,6 +78,16 @@ export interface CyberFactorRecord {
   readonly materiality: "Material" | "Secondary" | "Immaterial";
   readonly consequence_type: "None" | "AuditorVerification" | "ReadinessRemediation" | "RecordFollowUp";
   readonly recommended_action: string;
+  // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, Cyber P1-2) —
+  // program remediation ("Recommended action") and evidence-readiness
+  // follow-up are two different dimensions (Factor-Bearing Law: the
+  // consequence_type field above already types them as ReadinessRemediation
+  // vs. AuditorVerification/RecordFollowUp). A component can have no
+  // material remediation and still need a testable artifact; conflating
+  // that into one "Recommended action" field printed "No remediation
+  // identified" beside a table row that separately showed evidence
+  // sufficiency as Partial. This field carries that ask on its own.
+  readonly evidence_followup: string;
   readonly authority: string;
   readonly factual_basis: readonly string[];
 }
@@ -427,6 +437,14 @@ export function buildComponentAnalyses(inputs: FactorInputs): CyberComponentAnal
     const action = rec
       ? `${rec.slot.template.replace("{fact}", noStop(recommendationFact(intakeRec.notes, intakeRec.maturity)))}${gapSentence ? ` The recorded description locates the remaining work: ${gapSentence}.` : ""}`
       : "No remediation identified for this component.";
+    // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, Cyber P1-2)
+    // — same condition the narrative above already states in prose (line
+    // "Auditor testability..."); this surfaces it as its own structured
+    // field so the component matrix table can carry it in its own column
+    // instead of leaving it buried in the per-component narrative only.
+    const evidenceFollowup = e?.sufficiency === "partial"
+      ? "Retain a testable artifact supporting operation of the control (a log, configuration export, report, test result, auditor letter, or training record)."
+      : "";
 
     const supporting: string[] = [];
     if (intakeRec.maturity) supporting.push(`recorded maturity: ${intakeRec.maturity}`);
@@ -448,6 +466,7 @@ export function buildComponentAnalyses(inputs: FactorInputs): CyberComponentAnal
       materiality,
       consequence_type: consequence,
       recommended_action: action,
+      evidence_followup: evidenceFollowup,
       authority: comp.citation,
       factual_basis: [`controls[${comp.slug}].maturity`, `controls[${comp.slug}].notes`, `controls[${comp.slug}].evidence`],
       narrative: lines.join("\n"),
@@ -738,11 +757,18 @@ export function buildExecutiveSnapshotRows(inputs: FactorInputs): readonly (read
       ? `${rcExtras.length} — ${asProse(rcExtras.slice(0, 3).map((x) => x.label))}${rcExtras.length > 3 ? `, and ${rcExtras.length - 3} more in the Readiness Action Register` : ""}`
       : "None identified on the information provided",
   ]);
+  // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, Cyber P1-1) —
+  // this row ranks a subset of the actions ABOVE by sequencing priority; it
+  // is not a fourth, independent action count. The old label and its bare
+  // "None identified" read as directly contradicting the "6" two rows up.
+  // Renamed, and the empty case now says explicitly that it means no item
+  // carries elevated priority beyond what the record-completion row above
+  // already lists — not that there is nothing to do.
   rows.push([
-    "Priority readiness actions",
+    "Sequencing priority among the above",
     inputs.nextSteps.length
       ? `${asProse(inputs.nextSteps.map((st) => st.slug).map((slug) => CYBER_7123_COMPONENTS.find((c) => c.slug === slug)?.label ?? slug))} — each stated in Section 6 with its owner`
-      : "None identified; the preparation focus is organizing the identified evidence for auditor access",
+      : "No item above carries elevated sequencing priority; the preparation focus is organizing the identified evidence for auditor access",
   ]);
   return rows;
 }
