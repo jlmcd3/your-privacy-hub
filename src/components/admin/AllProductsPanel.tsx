@@ -690,8 +690,17 @@ export function AllProductsPanel() {
             gptScore: null,
             meanScore: null,
           });
+          // QUEUE LAW (2026-08-31): a run that times out or errors ends THIS
+          // product's remaining datasets only — the batch always moves on to
+          // the next product instead of grinding through four more copies of
+          // a generator that is currently broken.
+          if (i < datasets.length) {
+            appendLog(k, `⏭ skipping ${datasets.length - i} remaining dataset(s) for this product`);
+          }
+          break;
         }
       }
+
     }
     setBusy(false);
     toast[ok === totalRuns ? "success" : "error"](`${ok}/${totalRuns} runs completed`);
