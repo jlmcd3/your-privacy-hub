@@ -524,8 +524,12 @@ const handler = async (req: Request): Promise<Response> => {
     graded_at: new Date().toISOString(),
     graded_by: userId,
     tool,
-    claude: claudeRes ? { overall_score: claudeRes.overall_score, dimension_scores: claudeRes.dimension_scores, findings_count: claudeRes.findings.length, critical_failures: claudeRes.critical_failures } : { error: claudeErr },
-    gpt: gptRes ? { overall_score: gptRes.overall_score, dimension_scores: gptRes.dimension_scores, findings_count: gptRes.findings.length, critical_failures: gptRes.critical_failures } : { error: gptErr },
+    // FINDINGS EXPORT (2026-08-31): the payload previously carried only
+    // findings_count, so every downstream consumer (all-products-test .md
+    // export, analysis JSON) lost the actual grader findings. Emit the
+    // failed findings verbatim alongside the counts.
+    claude: claudeRes ? { overall_score: claudeRes.overall_score, dimension_scores: claudeRes.dimension_scores, findings_count: claudeRes.findings.length, findings: claudeRes.findings, strengths: claudeRes.strengths, critical_failures: claudeRes.critical_failures } : { error: claudeErr },
+    gpt: gptRes ? { overall_score: gptRes.overall_score, dimension_scores: gptRes.dimension_scores, findings_count: gptRes.findings.length, findings: gptRes.findings, strengths: gptRes.strengths, critical_failures: gptRes.critical_failures } : { error: gptErr },
     note: "One-off grader (grade-single-assessment). NOT a product baseline. Never used by ql2-orchestrator or run-stress-job.",
   };
 

@@ -136,6 +136,7 @@ export function downloadBatchErrorsMarkdown(batchId: string, outcomes: RunOutcom
   lines.push(`- Run failures: ${runFailures.length}`);
   lines.push(`- Grading failures: ${gradeFailures.length}`);
   lines.push(`- Completed but unscored: ${noScore.length}`);
+  lines.push(`- Runs with a grade payload: ${rows.filter((o) => o.gradePayload != null).length}`);
   lines.push("");
 
   const section = (title: string, items: RunOutcome[], field: (o: RunOutcome) => string) => {
@@ -160,6 +161,53 @@ export function downloadBatchErrorsMarkdown(batchId: string, outcomes: RunOutcom
   section("Run failures", runFailures, (o) => o.error ?? "failed (no message)");
   section("Grading failures", gradeFailures, (o) => o.gradeError ?? "grading failed");
   section("Completed but unscored", noScore, () => "no Claude/GPT score recorded");
+
+  // GRADER FINDINGS (2026-08-31): the .md is the FULL error list, so every
+  // failed grader check of every run is written out verbatim (check id,
+  // dimension, severity, evidence) per model, followed by critical failures.
+  lines.push("## Grader findings");
+  lines.push("");
+  let findingRows = 0;
+  for (const o of rows) {
+    const p = (o.gradePayload ?? null) as
+      | Record<string, { findings?: Array<Record<string, unknown>>; critical_failures?: string[]; error?: string }>
+      | null;
+    if (!p) continue;
+    const blocks: string[] = [];
+    for (const model of ["claude", "gpt"] as const) {
+      const m = p[model];
+      if (!m) continue;
+      if (m.error) {
+        blocks.push(`- **${model}**: grading error — ${String(m.error).replace(/\n/g, " ")}`);
+        continue;
+      }
+      const failed = (m.findings ?? []).filter((f) => f.passed === false);
+      findingRows += failed.length;
+      if (failed.length) {
+        blocks.push(`- **${model}** — ${failed.length} failed check(s):`);
+        for (const f of failed) {
+          const ev = String(f.evidence ?? "").replace(/\n/g, " ").slice(0, 400);
+          blocks.push(
+            `  - \`${f.check_id ?? "?"}\` · ${f.dimension ?? "—"} · ${f.severity ?? "—"}${ev ? ` — ${ev}` : ""}`,
+          );
+        }
+      }
+      for (const cf of m.critical_failures ?? []) {
+        blocks.push(`  - **critical (${model})**: ${String(cf).replace(/\n/g, " ")}`);
+      }
+    }
+    if (!blocks.length) continue;
+    lines.push(`### ${o.tool_slug} · ${o.variant} (${o.sourceRowId ?? "no row"})`);
+    lines.push("");
+    lines.push(...blocks);
+    lines.push("");
+  }
+  if (!findingRows) {
+    lines.push(
+      "_No grader findings recorded for this batch. If runs were graded before 2026-08-31, the grader returned counts only — re-run the batch to capture findings._",
+    );
+    lines.push("");
+  }
 
   lines.push("## All runs");
   lines.push("");
