@@ -87,8 +87,22 @@ function scoreTokens(a: string[], b: string[]): number {
   return hit / Math.min(new Set(a).size, setB.size);
 }
 
+/** Sector/industry free text → the sector word the contracts actually use. */
+const SECTOR_HINTS: Array<[RegExp, string]> = [
+  [/edtech|education|school|student|learning|children/i, "education"],
+  [/health|clinical|medical|pharma|life science|biotech|genomic/i, "healthcare"],
+  [/fintech|financial|bank|insur|payment|lending/i, "financial"],
+  [/retail|ecommerce|e-commerce|commerce|marketplace/i, "retail"],
+  [/adtech|advertis|marketing|media|publish/i, "media"],
+  [/gov|public sector|public authority|municipal/i, "government"],
+  [/legal|law firm|counsel/i, "legal"],
+  [/manufactur|industrial|factory/i, "manufacturing"],
+  [/consult|professional services|advisory|agency/i, "professional"],
+  [/saas|software|technology|platform|ai|cloud|data/i, "technology"],
+];
+
 /** Resolve one raw value to a verbatim option, or null when unresolved. */
-export function coerceValue(raw: unknown, options: readonly string[]): string | null {
+export function coerceValue(raw: unknown, options: readonly string[], key = ""): string | null {
   if (typeof raw !== "string") return null;
   const value = raw.trim();
   if (!value) return null;
@@ -128,6 +142,17 @@ export function coerceValue(raw: unknown, options: readonly string[]): string | 
     else if (best && s === best.score) tie = true;
   }
   if (best && best.score >= 0.75 && !tie) return best.opt;
+
+  // Sector / industry free text: route through the sector vocabulary.
+  if (/sector|industry/i.test(key)) {
+    for (const [re, word] of SECTOR_HINTS) {
+      if (!re.test(value)) continue;
+      const hits = options.filter((o) => norm(o).includes(word));
+      if (hits.length === 1) return hits[0];
+    }
+    const other = options.find((o) => norm(o) === "other");
+    if (other) return other;
+  }
 
   return null;
 }
@@ -171,7 +196,7 @@ function coerceField(intake: Record<string, unknown>, f: IntakeField, notes: str
   if (f.kind === "enum") {
     mapLeaf(intake, f.key, (v) => {
       if (typeof v !== "string" || opts.includes(v)) return v;
-      const hit = coerceValue(v, opts);
+      const hit = coerceValue(v, opts, f.key);
       if (hit) { notes.push(`${f.key}: ${JSON.stringify(v)} → ${JSON.stringify(hit)}`); return hit; }
       return v;
     });
@@ -182,7 +207,7 @@ function coerceField(intake: Record<string, unknown>, f: IntakeField, notes: str
       const dropped: string[] = [];
       for (const el of v) {
         if (typeof el === "string" && opts.includes(el)) { out.push(el); continue; }
-        const hit = typeof el === "string" ? coerceValue(el, opts) : null;
+        const hit = typeof el === "string" ? coerceValue(el, opts, f.key) : null;
         if (hit) {
           if (!out.includes(hit)) out.push(hit);
           notes.push(`${f.key}[]: ${JSON.stringify(el)} → ${JSON.stringify(hit)}`);
