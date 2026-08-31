@@ -1284,7 +1284,7 @@ export function QualityConsole({
                 const baseAvg = baseline?.avg_score != null ? Number(baseline.avg_score) : null;
                 return (
                   <tr key={tool} className="border-b align-top">
-                    <td className="py-2 pr-3 font-mono">{tool}</td>
+                    <td className="sticky left-0 z-10 bg-background py-2 pr-3 font-mono">{tool}</td>
                     <td className="py-2 pr-3">{testsCount.get(tool) ?? 0}</td>
                     <td
                       className="py-2 pr-3 bg-muted/40 font-mono"
