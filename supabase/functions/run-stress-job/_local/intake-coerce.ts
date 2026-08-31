@@ -154,6 +154,19 @@ export function coerceValue(raw: unknown, options: readonly string[], key = ""):
     if (other) return other;
   }
 
+  // Employee-band fields expressed as words ("Large Enterprise").
+  if (/org_size|employee_band|organization_size/i.test(key) && options.every((o) => /^\d/.test(o))) {
+    const n = options.length;
+    if (/enterprise|1000|large/i.test(value)) return options[n - 1];
+    if (/medium|mid|250|500/i.test(value)) return options[Math.max(0, n - 3)];
+    if (/small|50/i.test(value)) return options[Math.min(1, n - 1)];
+    if (/micro|startup|solo/i.test(value)) return options[0];
+  }
+
+  // Last resort for enums that carry an explicit catch-all.
+  const other = options.find((o) => norm(o) === "other");
+  if (other) return other;
+
   return null;
 }
 
