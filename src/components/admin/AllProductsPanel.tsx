@@ -645,7 +645,13 @@ export function AllProductsPanel() {
     for (const f of queue) setRow(fixtureKey(f), { status: "queued", log: [], resultUrl: null });
     let ok = 0;
     let attempted = 0;
-    for (const f of queue) {
+    // CONCURRENCY LAW (2026-08-31): products run through a 4-lane worker pool.
+    // Deterministic engines take ~60–70s each, so a serial 13-product sweep
+    // costs ~15 min of wall time; 4 lanes collapse it to ~4 min while staying
+    // well under gateway throttle limits. Datasets WITHIN a product stay
+    // serial (QUEUE LAW below still applies per product).
+    const LOCAL_RUN_CONCURRENCY = 4;
+    const runProduct = async (f: (typeof queue)[number]) => {
       const k = fixtureKey(f);
       setRow(k, { status: "running" });
       const datasets = plan.get(k) ?? [f];
