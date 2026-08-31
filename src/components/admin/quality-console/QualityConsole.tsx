@@ -33,7 +33,7 @@ import { SLUG_TO_TOOL_TYPE, generationModelSlug, DEFAULT_GENERATION_MODEL, AB_AL
 import { ModelPairTable } from "@/components/admin/quality-console/ModelPairTable";
 import { PINS_MODE_OPTIONS, type PinsMode } from "@/lib/pinsMode";
 import { useAllProductsLog, clearAllProductsLog } from "@/lib/allProductsLog";
-import { useLocalBatches, type LocalBatch, type LocalToolResult } from "@/lib/allProductsRunHistory";
+import { useLocalBatches, localToolResult, type LocalBatch, type LocalToolResult } from "@/lib/allProductsRunHistory";
 import { invokeWithTimeout } from "@/lib/sampleGenerators";
 
 // ITEM 325 — fixture variant. "perfect" is the ratified golden set; "messy"
