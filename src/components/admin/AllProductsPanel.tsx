@@ -378,9 +378,6 @@ export function AllProductsPanel() {
     const slugs = Array.from(new Set(queue.map((f) => f.tool_slug)));
     setBusy(true);
     clearAllProductsLog();
-    // BATCH LAW — every press opens its own local batch column in the
-    // "Tools & batch scores" matrix; results never fold into an earlier batch.
-    const localBatchId = startLocalBatch();
     const industryLabel = STRESS_INDUSTRIES.find((i) => i.id === industryId)?.label ?? industryId;
     appendAllProductsLog(
       "batch",
@@ -395,6 +392,12 @@ export function AllProductsPanel() {
         industryId,
         companiesPerGeo: batchNumber,
       });
+      // ONE-COLUMN LAW (2026-08-31): a Claude batch owns exactly ONE local
+      // batch column, derived from the server batch id. The launching monitor
+      // and any reattached monitor therefore write to the same column instead
+      // of splitting one run's documents across two columns (the defect that
+      // made a 14-job batch look like "6 documents, 3 graded").
+      const localBatchId = ensureLocalBatchFor(batchId);
       setClaudeBatchId(batchId);
       window.sessionStorage.setItem("eup.allProductsTest.activeClaudeBatch", batchId);
       appendAllProductsLog("batch", `✓ batch ${batchId} — Claude is generating intake data server-side`);
@@ -406,12 +409,28 @@ export function AllProductsPanel() {
       // the batch is declared finished, so "batch complete" means the scores
       // are in too.
       const gradingWork: Promise<void>[] = [];
+      let recordedDocs = 0;
+      let gradedDocs = 0;
       for (let poll = 0; poll < 400; poll++) {
         await new Promise((r) => setTimeout(r, 6000));
-        const [jobs, batch] = await Promise.all([
-          fetchClaudeBatchJobs(batchId),
-          fetchClaudeBatchStatus(batchId),
-        ]);
+        // MONITOR-RESILIENCE LAW (2026-08-31): a single timed-out status read
+        // used to throw straight out of this loop, abandoning the batch
+        // mid-flight while the server kept producing documents. Every poll is
+        // now isolated: a failed read is logged and retried on the next tick.
+        let jobs: Awaited<ReturnType<typeof fetchClaudeBatchJobs>>;
+        let batch: Awaited<ReturnType<typeof fetchClaudeBatchStatus>>;
+        try {
+          [jobs, batch] = await Promise.all([
+            fetchClaudeBatchJobs(batchId),
+            fetchClaudeBatchStatus(batchId),
+          ]);
+        } catch (readErr) {
+          appendAllProductsLog(
+            "batch",
+            `… progress read failed, retrying — ${(readErr as Error).message}`,
+          );
+          continue;
+        }
         for (const j of jobs) {
           if (seen.get(j.id) === j.status) continue;
           seen.set(j.id, j.status);
@@ -429,31 +448,39 @@ export function AllProductsPanel() {
               sourceRowId: j.source_row_id,
             });
             if (j.status === "complete" || j.status === "failed") {
-              const outcomeId = newOutcomeId();
-              recordOutcome({
-                id: outcomeId,
-                batchId: localBatchId,
-                startedAt: new Date().toISOString(),
-                finishedAt: new Date().toISOString(),
-                tool_slug: row.tool_slug,
-                variant: `claude/${j.company_name ?? "company"}`,
-                source: "claude",
-                status: j.status === "complete" ? "complete" : "failed",
-                sourceRowId: j.source_row_id,
-                resultUrl: j.source_row_id
-                  ? row.result_url_pattern.replace("{id}", j.source_row_id)
-                  : null,
-                error: j.error_message ?? undefined,
-                claudeScore: null,
-                gptScore: null,
-                meanScore: null,
-              });
-              recordLocalRun(
-                localBatchId,
-                SLUG_TO_STRESS_TOOL[row.tool_slug],
-                j.status === "complete",
-              );
-              if (j.status === "complete" && j.source_row_id) {
+              let outcomeId: string | undefined;
+              if (claimOnce(localBatchId, j.id, "run")) {
+                outcomeId = newOutcomeId();
+                recordedDocs += 1;
+                recordOutcome({
+                  id: outcomeId,
+                  batchId: localBatchId,
+                  startedAt: new Date().toISOString(),
+                  finishedAt: new Date().toISOString(),
+                  tool_slug: row.tool_slug,
+                  variant: `claude/${j.company_name ?? "company"}`,
+                  source: "claude",
+                  status: j.status === "complete" ? "complete" : "failed",
+                  sourceRowId: j.source_row_id,
+                  resultUrl: j.source_row_id
+                    ? row.result_url_pattern.replace("{id}", j.source_row_id)
+                    : null,
+                  error: j.error_message ?? undefined,
+                  claudeScore: null,
+                  gptScore: null,
+                  meanScore: null,
+                });
+                recordLocalRun(
+                  localBatchId,
+                  SLUG_TO_STRESS_TOOL[row.tool_slug],
+                  j.status === "complete",
+                );
+              }
+              if (
+                j.status === "complete" && j.source_row_id &&
+                claimOnce(localBatchId, j.id, "score")
+              ) {
+                gradedDocs += 1;
                 gradingWork.push(
                   gradeAndRecord(
                     localBatchId,
@@ -466,6 +493,14 @@ export function AllProductsPanel() {
                 );
               }
             }
+          } else {
+            // A dispatched job whose product has no row in this queue would
+            // otherwise vanish silently. Say so rather than lose the document.
+            appendAllProductsLog(
+              "batch",
+              `⚠ job ${j.tool_slug} has no matching product row in this run — not recorded`,
+              "error",
+            );
           }
         }
         const progressSummary = `… setup ${batch.setup_done}/${batch.setup_total} · jobs ${batch.completed_jobs + batch.failed_jobs}/${batch.total_jobs} (${batch.status})`;
@@ -483,9 +518,16 @@ export function AllProductsPanel() {
           }
           appendAllProductsLog(
             "batch",
-            `${batch.failed_jobs ? "❌" : "✅"} batch ${batch.status} — ${batch.completed_jobs} complete, ${batch.failed_jobs} failed`,
+            `${batch.failed_jobs ? "❌" : "✅"} batch ${batch.status} — ${batch.completed_jobs} complete, ${batch.failed_jobs} failed · ${recordedDocs}/${batch.total_jobs} document(s) recorded, ${gradedDocs} graded`,
             batch.failed_jobs ? "error" : "success",
           );
+          if (recordedDocs < batch.total_jobs) {
+            appendAllProductsLog(
+              "batch",
+              `⚠ ${batch.total_jobs - recordedDocs} dispatched job(s) were never recorded in this column — reload the page to reattach and backfill`,
+              "error",
+            );
+          }
           toast[batch.failed_jobs ? "error" : "success"](
             `Claude batch ${batch.status}: ${batch.completed_jobs} complete, ${batch.failed_jobs} failed`,
           );
