@@ -960,7 +960,7 @@ Texas AG enforcement of CUBI is active; the per-violation calculation at scale c
 On the intake as supplied, this framework applies conditionally — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. California has no standalone biometric privacy statute equivalent to Illinois BIPA. The primary framework is CPRA (amending CCPA), which classifies biometric information as Sensitive Personal Information (SPI). A financial institution GLBA analysis should be conducted before applying CCPA where applicable.
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
-1. Cal. Civ. Code § 1798.140(ae)(1)(B): biometric information used to identify a consumer is Sensitive Personal Information (SPI).
+1. Cal. Civ. Code § 1798.140(ae)(2)(A): biometric information used to identify a consumer is Sensitive Personal Information (SPI).
 2. § 1798.121: consumers have the right to direct the business to limit use of SPI to what is necessary to perform services or provide goods reasonably expected. Implement a "Limit the Use of My Sensitive Personal Information" opt-out link.
 3. § 1798.100(b): provide notice at or before collection identifying biometric information as a category of personal information collected and the purposes of use; the Privacy Policy must additionally reflect the SPI classification for purposes of the § 1798.121 limit-use right.
 4. § 1798.145(e): GLBA exemption — if the organisation is a financial institution under GLBA and the biometric data relates to GLBA-covered activities, CCPA may not apply to that data; complete GLBA boundary analysis first.
@@ -979,7 +979,7 @@ Current enforcement posture:
 CPPA enforcement is active; limited private litigation (breach-only). Enforcement focus includes missing SPI notices, inadequate at-collection disclosures, and failure to honor consumer rights.
 
 Priority actions:
-1. Update Privacy Policy and at-collection notices to identify biometric information as SPI under § 1798.140(ae)(1)(B).
+1. Update Privacy Policy and at-collection notices to identify biometric information as SPI under § 1798.140(ae)(2)(A).
 2. Implement "Limit the Use of My Sensitive Personal Information" mechanism under § 1798.121.
 3. Execute CCPA-compliant service provider contracts for all vendors receiving biometric data, restricting further use.
 

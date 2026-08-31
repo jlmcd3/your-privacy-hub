@@ -40,6 +40,27 @@ const HARM_CODE_TO_FACTOR: Readonly<Record<string, string>> = {
   H: "neg.h.psychological_harms",
 };
 
+// A-TEAM DELTA (ChatGPT-flagged batch finding, 2026-08-31) — a second,
+// contract-declared way to answer the SAME § 7152(a)(5) harm-category
+// question: `impact_intake.harmTypes` (a multi-enum, HARM_TYPES in
+// cppa-risk-assessment.ts) rather than the detailed `a5_harm_pathways`
+// structured list. Both are legitimate contract fields; this module only
+// ever read the pathway shape, so an intake answered via the simpler
+// multi-select showed every negative-impact factor as absent regardless of
+// what was selected. "Loss of availability of personal information" has no
+// A-H counterpart and intentionally maps to nothing (omission over
+// invention -- it does not grant presence to an unrelated factor).
+const HARM_TYPE_TEXT_TO_CODE: Readonly<Record<string, string>> = {
+  "Unauthorised access, destruction, use, modification, or disclosure": "A",
+  "Unlawful discrimination": "B",
+  "Impairment of consumer control over personal information": "C",
+  "Coercion or dark patterns": "D",
+  "Economic harm": "E",
+  "Physical harm": "F",
+  "Reputational harm": "G",
+  "Psychological harm": "H",
+};
+
 /** Benefit factor id → the § 7152(a)(4) contract field that evidences it. */
 const BENEFIT_FIELD_BY_FACTOR: Readonly<Record<string, string>> = {
   "benefit.business": "a4_benefit_business",
@@ -61,15 +82,31 @@ const nonEmptyList = (v: unknown): boolean => Array.isArray(v) && v.length > 0;
 
 const absent: FactorPresence = { present: false, ledger_refs: [] };
 
-function harmCodesOnRecord(intake: Record<string, unknown>): Set<string> {
-  const out = new Set<string>();
+/** Which of the two contract-real sources evidenced each harm-code letter. */
+function harmCodeSourcesOnRecord(intake: Record<string, unknown>): Map<string, Set<"pathways" | "harmTypes">> {
+  const out = new Map<string, Set<"pathways" | "harmTypes">>();
+  const add = (code: string, source: "pathways" | "harmTypes") => {
+    const s = out.get(code) ?? new Set<"pathways" | "harmTypes">();
+    s.add(source);
+    out.set(code, s);
+  };
   const rows = intake?.a5_harm_pathways;
-  if (!Array.isArray(rows)) return out;
-  for (const r of rows) {
-    const harm = (r as Record<string, unknown> | null)?.harm;
-    if (typeof harm !== "string") continue;
-    const m = harm.trim().match(/^\(([A-H])\)/i);
-    if (m) out.add(m[1].toUpperCase());
+  if (Array.isArray(rows)) {
+    for (const r of rows) {
+      const harm = (r as Record<string, unknown> | null)?.harm;
+      if (typeof harm !== "string") continue;
+      const m = harm.trim().match(/^\(([A-H])\)/i);
+      if (m) add(m[1].toUpperCase(), "pathways");
+    }
+  }
+  const impactIntake = intake?.impact_intake as Record<string, unknown> | null | undefined;
+  const harmTypes = impactIntake?.harmTypes;
+  if (Array.isArray(harmTypes)) {
+    for (const t of harmTypes) {
+      if (typeof t !== "string") continue;
+      const code = HARM_TYPE_TEXT_TO_CODE[t.trim()];
+      if (code) add(code, "harmTypes");
+    }
   }
   return out;
 }
@@ -95,9 +132,12 @@ export function detectFactorPresence(
       const letter = Object.keys(HARM_CODE_TO_FACTOR)
         .find((k) => HARM_CODE_TO_FACTOR[k] === factorId);
       if (!letter) return absent;
-      return harmCodesOnRecord(intake).has(letter)
-        ? { present: true, ledger_refs: ["L.a5_harm_pathways"] }
-        : absent;
+      const sources = harmCodeSourcesOnRecord(intake).get(letter);
+      if (!sources) return absent;
+      const ledger_refs: string[] = [];
+      if (sources.has("pathways")) ledger_refs.push("L.a5_harm_pathways");
+      if (sources.has("harmTypes")) ledger_refs.push("L.impact_intake.harmTypes");
+      return { present: true, ledger_refs };
     }
 
     if (factorId === "safe.i.technical_controls") {
