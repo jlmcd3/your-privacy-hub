@@ -54,6 +54,25 @@ export async function invokeWithTimeout<T = any>(
   }
 }
 
+// ROW-FIRST LAW (2026-08-31) — see the DPA/IR/biometric branches below.
+// Creates the caller-owned row the generator's entitlement gate requires.
+async function createOwnedRow(
+  table: "dpa_documents" | "ir_playbooks" | "biometric_assessments",
+  intake: Record<string, unknown>,
+  userId: string,
+  log: (m: string) => void,
+): Promise<string> {
+  log(`▶ Insert into ${table}...`);
+  const { data, error } = await supabase
+    .from(table)
+    .insert({ user_id: userId, status: "pending", intake_data: intake } as never)
+    .select("id")
+    .single();
+  if (error || !data?.id) throw new Error(`insert failed: ${error?.message ?? "no id"}`);
+  return data.id as string;
+}
+
+
 export async function getOrCreatePersonalClient(userId: string): Promise<string> {
   const { data, error } = await supabase
     .from("clients")
