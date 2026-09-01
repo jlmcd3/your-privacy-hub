@@ -171,52 +171,61 @@ export default function RegistrationLanding() {
         </section>
 
 
-        {/* 4. What you get */}
-        <section className="py-12 border-t border-border/40">
-          <h2 className="font-display text-brand-navy text-center mb-8">What you get</h2>
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        {/* 4. What a filing pack includes */}
+        <section id="what-you-get" className="py-12 border-t border-border/40">
+          <h2 className="font-display text-brand-navy text-center mb-8">What a filing pack includes</h2>
+          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {[
-              { icon: ShieldCheck, t: "DPO Appointment Letter", b: "Authority-specific format with mandatory fields." },
-              { icon: FileText, t: "Record of Processing Activities (RoPA)", b: "GDPR Art. 30-compliant template, pre-populated from your assessment." },
-              { icon: Brain, t: "AI System Registration (EU AI Act)", b: "Draft for each high-risk AI system you operate." },
-              { icon: Building2, t: "Article 27 Representative Letter", b: "For non-EU controllers — designation, scope, and contact details." },
-              { icon: CheckCircle2, t: "Filing Checklist", b: "Step-by-step submission guide with portal URLs and fees." },
-              { icon: Clock, t: "Renewal Schedule", b: "Tracked automatically with email reminders 60/30/7 days out." },
-            ].map((b, i) => (
+              {
+                icon: FileText,
+                t: "Documents",
+                b: "The filing documents your authority expects, drafted from your assessment.",
+                details: [
+                  ["DPO Appointment Letter", "Authority-specific format with mandatory fields."],
+                  ["Article 27 Representative Letter", "For non-EU controllers — designation, scope, and contact details."],
+                  ["AI System Registration (EU AI Act)", "Draft for each high-risk AI system you operate."],
+                  ["Record of Processing Activities (RoPA)", "GDPR Art. 30-compliant template, pre-populated from your assessment."],
+                ],
+              },
+              {
+                icon: CheckCircle2,
+                t: "Submission pack",
+                b: "Everything needed to lodge the filing yourself.",
+                details: [
+                  ["Filing checklist", "Step-by-step submission guide."],
+                  ["Portal links and fees", "Verified authority URLs and current fees."],
+                ],
+              },
+              {
+                icon: Clock,
+                t: "Renewal tracking",
+                b: "The expiry date, tracked in your workspace.",
+                details: [["Reminders", "Email reminders 60/30/7 days out."]],
+              },
+            ].map((g, i) => (
               <div key={i} className="flex gap-3">
-                <b.icon className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                <g.icon className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-semibold text-brand-navy text-sm">{b.t}</div>
-                  <p className="text-xs text-slate">{b.b}</p>
+                  <div className="font-semibold text-brand-navy text-sm">{g.t}</div>
+                  <p className="text-xs text-slate">{g.b}</p>
+                  <details className="group mt-2">
+                    <summary className="cursor-pointer list-none text-xs text-brand-teal-text underline underline-offset-2">
+                      Examples
+                    </summary>
+                    <ul className="mt-1.5 space-y-1.5">
+                      {g.details.map(([t, b]) => (
+                        <li key={t} className="text-xs text-slate">
+                          <span className="font-semibold text-brand-navy">{t}</span> — {b}
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* 5. Confidence model */}
-        <section className="py-12 border-t border-border/40 bg-brand-cloud/40 rounded-xl">
-          <div className="max-w-3xl mx-auto px-4">
-            <h2 className="font-display text-brand-navy mb-4">Three-tier confidence rating</h2>
-            <p className="text-slate text-sm mb-6">
-              Every recommendation is rated based on how directly the law applies to your inputs.
-            </p>
-            <div className="space-y-3">
-              <div className="bg-card border border-emerald-200 rounded-lg p-4">
-                <span className="font-bold text-emerald-700">High</span>
-                <span className="text-sm text-slate ml-2">— Threshold clearly met. Filing is mandatory based on stated facts.</span>
-              </div>
-              <div className="bg-card border border-amber-200 rounded-lg p-4">
-                <span className="font-bold text-amber-700">Medium</span>
-                <span className="text-sm text-slate ml-2">— Likely required but depends on how authority interprets your activities. Counsel review recommended.</span>
-              </div>
-              <div className="bg-card border border-slate/30 rounded-lg p-4">
-                <span className="font-bold text-slate">Low</span>
-                <span className="text-sm text-slate ml-2">— Possible exposure. Optional pre-filing or monitoring may be appropriate.</span>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* 6. Pricing */}
         <section className="py-12 border-t border-border/40">
