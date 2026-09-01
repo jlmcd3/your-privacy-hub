@@ -24,6 +24,8 @@ export default function SampleReportLink({
     return (
       <Link
         to={`/samples/${toolSlug}`}
+        target="_blank"
+        rel="noopener noreferrer"
         className={`inline-flex items-center gap-1.5 text-sm font-medium underline-offset-4 hover:underline ${
           tone === "onDark" ? "text-white/90 hover:text-white" : "text-brand-teal-text"
         } ${className ?? ""}`}
@@ -40,6 +42,8 @@ export default function SampleReportLink({
   return (
     <Link
       to={`/samples/${toolSlug}`}
+      target="_blank"
+      rel="noopener noreferrer"
       className={`inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition-colors ${base} ${className ?? ""}`}
     >
       <FileText className="h-4 w-4" aria-hidden />

@@ -907,9 +907,10 @@ export const EU_NOTICE_PRICING = {
 
 // ============================================================================
 //  NEW PRICING MODEL (v7) — Coexists with legacy registry above.
-//  Source of truth for the v7 redesign (Intelligence $20/mo, Professional
-//  $35/mo base + $150/client/yr, per-use tools with subscriber discounts,
-//  10-day Intelligence trial, 1 free tool run/month for paid tiers).
+//  Source of truth for the v7 redesign: subscription tiers, per-use tools
+//  with subscriber discounts, the Intelligence trial, and the free monthly
+//  tool run for paid tiers. Figures live in the PRICING object below, never
+//  in these comments.
 //
 //  ── Migration plan ────────────────────────────────────────────────────────
 //  Legacy exports above (INTELLIGENCE_PRICING, PLATFORM_PRICING, formatPrice,

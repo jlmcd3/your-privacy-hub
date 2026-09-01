@@ -361,7 +361,7 @@ const LIAssessment = () => {
                 : undefined
             }
             meter={meter ?? null}
-            preRunHint="The subject line you set below is fixed once you first generate. Everything else stays editable across your included revision runs."
+            preRunHint="The subject line you set below is fixed once you first generate. Everything else stays editable until you generate."
           />
           <BenchLayout
             toolType="lia"
@@ -396,8 +396,8 @@ const LIAssessment = () => {
                 In one line: what does this assessment cover?<Req />
               </Label>
               <p className="text-xs text-muted-foreground mt-1">
-                This names the single interest being assessed. It is set when you first generate and stays fixed
-                across all your revision runs; everything below it can be refined.
+                This names the single interest being assessed. It is set when you first generate and stays
+                fixed thereafter; everything below it can be refined until you generate.
               </p>
               <input
                 id="subject-anchor"
