@@ -148,6 +148,12 @@ Deno.serve(async (req) => {
             const lastAction: string = result?.last_action ?? "";
             const lastActionDate: string = result?.last_action_date ?? "";
 
+            const legiscanUrl: string | null = result?.url ?? null;
+            const cachedOfficial = existingUrls.get(billIdStr);
+            const { officialUrl, stateLink } = !isAggregatorUrl(cachedOfficial)
+              ? { officialUrl: cachedOfficial!, stateLink: cachedOfficial! }
+              : await resolveOfficialUrl(LEGISCAN_API_KEY, billIdStr, legiscanUrl);
+
             const bill: NormalizedBill = {
               source: SOURCE,
               external_id: billIdStr,
@@ -160,8 +166,9 @@ Deno.serve(async (req) => {
               stage: normalizeStage(lastAction),
               summary: lastAction || null,
               key_provisions: [],
-              source_url: result?.url ?? null,
-              source_name: "LegiScan",
+              source_url: officialUrl ?? legiscanUrl,
+              source_name: stateLink ? stateName : "LegiScan",
+
               introduced_at: null,
               source_last_action_at: lastActionDate ? lastActionDate.slice(0, 10) : null,
               matched_keywords: matched,
