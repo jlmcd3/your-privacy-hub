@@ -223,11 +223,12 @@ export default function RopaLanding() {
         <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20 bg-muted/20 border-y border-border">
           <div className="max-w-5xl mx-auto">
             <h2 className="font-serif text-center mb-3">
-              Jurisdiction coverage
+              25+ frameworks across six regions
             </h2>
             <p className="text-center text-muted-foreground mb-10 text-sm">
-              25+ data protection frameworks across six regions.
+              Coverage by region.
             </p>
+
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {JURISDICTIONS.map((j) => (
                 <div key={j.region} className="bg-card border border-border rounded-xl p-5">
