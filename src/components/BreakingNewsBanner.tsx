@@ -61,14 +61,12 @@ const BreakingNewsBanner = () => {
           Breaking
         </span>
         <span className="text-white opacity-60 flex-shrink-0 text-xs">•</span>
-        <a
-          href={news.url}
-          target="_blank"
-          rel="noopener noreferrer"
+        <Link
+          to={`/updates/${news.id}`}
           className="text-white text-sm font-medium no-underline hover:underline break-words"
         >
           {news.headline}
-        </a>
+        </Link>
       </div>
       <button
         onClick={handleDismiss}
