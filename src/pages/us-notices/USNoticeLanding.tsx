@@ -36,23 +36,23 @@ const PENDING_STATES = pendingStateLabels();
 const FAQ: Array<{ q: string; a: string }> = [
   {
     q: "Do I legally need a US privacy notice?",
-    a: "Yes, if your business meets the applicability threshold for any active state law. Texas has no consumer-volume threshold — any non-small business processing Texas residents' data may be covered.",
+    a: "You do if your business meets the applicability threshold for an active state law, and thresholds differ by state. Use the free scope checker to see which laws reach your business before you build notices.",
   },
   {
     q: "What's the Virginia model?",
-    a: `${VIRGINIA_MODEL_COUNT} states share a common notice structure based on the Virginia Consumer Data Protection Act. We ask the questions once and generate separate notices for each selected state.`,
+    a: "Several states share a common notice structure based on the Virginia Consumer Data Protection Act. Common structures let you answer overlapping questions once while still generating a state-specific notice for each state you select.",
   },
   {
     q: "How is CCPA different?",
-    a: "California has its own distinct framework with unique concepts like 'sensitive personal information', financial incentive notices, and the CPPA as a dedicated enforcement agency.",
+    a: "California uses its own CCPA/CPRA notice framework, so the builder asks California-specific questions and generates a separate notice where needed.",
   },
   {
     q: "Can I add the notice to my website?",
-    a: "Yes. Every notice is generated as embeddable HTML you can paste into any page, plus PDF and Word versions for review and records.",
+    a: "Yes — export PDF or Word, or copy embeddable HTML for your site.",
   },
   {
     q: "What happens when state laws change?",
-    a: "Annual refresh detects regulatory changes affecting your states and pre-fills your previous answers. You only re-answer what's actually changed.",
+    a: "Annual refresh carries your prior answers forward so you only revisit the fields you need to update for the states you cover.",
   },
   {
     q: "Is my data secure?",
