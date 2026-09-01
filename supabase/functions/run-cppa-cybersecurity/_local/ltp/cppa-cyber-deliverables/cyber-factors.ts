@@ -323,6 +323,15 @@ export function buildProgramReadiness(intake: Bag, d: CyberDeliverables): { anal
   const framework = profileStr(intake, "framework");
   const rs = buildRecordSufficiency(intake, d);
   const gaps = d.readiness_determination.blocking_components.length;
+  // A-TEAM DELTA (ChatGPT Dropbox Batch 1 review, 2026-08-31, P0-B) —
+  // "assessable" and "audit-ready" are not synonyms. `gaps` (implementation
+  // verdict) and `rs.unassessed_count` (component-record completeness) say
+  // nothing about whether the identified evidence is actually testable — a
+  // report where every component is implemented but 0/18 have testable
+  // evidence used to still clear this branch. Untestable is scoped the same
+  // way buildEvidenceReadinessAnalysis() already scopes it elsewhere in this
+  // file, so the two surfaces cannot disagree with each other.
+  const untestable = d.evidence_sufficiency.filter((r) => r.sufficiency === "insufficient" || r.sufficiency === "unknown" || r.sufficiency === "partial").length;
   const sentences: string[] = [];
   sentences.push(
     framework
@@ -337,8 +346,13 @@ export function buildProgramReadiness(intake: Bag, d: CyberDeliverables): { anal
   if (gaps > 0) {
     sentences.push(`${gaps === 1 ? "One material weakness cuts" : `${gaps} material weaknesses cut`} across the readiness picture; the cross-cutting section consolidates ${gaps === 1 ? "it" : "them"}.`);
   }
-  const conclusion = gaps === 0 && rs.unassessed_count === 0
+  if (gaps === 0 && rs.unassessed_count === 0 && untestable > 0) {
+    sentences.push(`No material implementation weakness is described, but ${untestable === 1 ? "one component" : `${untestable} components`} do not yet have a testable operating artifact identified behind the described control.`);
+  }
+  const conclusion = gaps === 0 && rs.unassessed_count === 0 && untestable === 0
     ? "At the program level, the described program and its identified evidence appear prepared for the independent audit, subject to auditor verification."
+    : gaps === 0 && untestable > 0
+    ? "At the program level, no material implementation weakness is identified. Evidence readiness is incomplete: not every component currently has a testable operating artifact identified. The programme therefore cannot yet be described as prepared for the independent audit."
     : gaps === 0
     ? "At the program level, no material implementation weakness is described; the open items are record-completion matters rather than identified deficiencies."
     : "At the program level, the described program is not yet prepared for the independent audit; the blocking items are named in the readiness conclusion.";

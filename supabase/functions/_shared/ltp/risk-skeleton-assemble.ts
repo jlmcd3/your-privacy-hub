@@ -221,6 +221,17 @@ export function deriveCoverTable(values: SlotValues): RenderedTable {
     const val = values[k];
     return typeof val === "string" && val.trim() ? val : "Not reported.";
   };
+  // A-TEAM DELTA (ChatGPT Dropbox Batch 1 review, 2026-08-31, Risk P0) —
+  // when no activity name is on the record, this row used to read
+  // "Not reported. (the "Activity")" — tagging an admittedly-absent value
+  // with the defined term the rest of the report then uses as though it
+  // were known. Absent the name, the row states the gap plainly and drops
+  // the defined-term tag; the report's use of "the Activity" elsewhere is
+  // unaffected by this cover row alone.
+  const activityName = values["activityName"];
+  const activityCell = typeof activityName === "string" && activityName.trim()
+    ? `${activityName.trim()} (the “Activity”)`
+    : "Additional Information Required — no processing activity name is on the record.";
   return {
     key: "",
     surface: "cover_summary",
@@ -229,7 +240,7 @@ export function deriveCoverTable(values: SlotValues): RenderedTable {
     hideHeader: true,
     rows: [
       ["Prepared for", `${v("entityName")} (the “Company”)`],
-      ["Processing activity", `${v("activityName")} (the “Activity”)`],
+      ["Processing activity", activityCell],
       ["Assessment date", formatReportDateLong(v("assessmentDate"))],
     ],
   };

@@ -625,6 +625,18 @@ function composeOperativeLead(report: Bag, intake: Bag): string {
   const c = consequence(report);
   const unlawful = asArray(c.unlawful_now);
   const unresolved = asArray(c.unresolved_on_record);
+  // A-TEAM DELTA (ChatGPT Dropbox Batch 1 review, 2026-08-31, P0-A) —
+  // composeExecutiveLead() already carries this zero-row guard; this
+  // function did not, so a report with no statutory duty analysed
+  // (unlawful=0, unresolved=0 by definition of having zero rows) fell
+  // through to the same "meets the duties in scope" sentence used for a
+  // genuinely clean assessment. Fleet rule: NO DUTIES ANALYZED ≠ ALL
+  // DUTIES SATISFIED.
+  if (dutyRows(report).length === 0) {
+    return "No statutory duty was analyzed for the jurisdictions selected in this assessment, " +
+      "so the programme is neither cleared nor found deficient by this report. The next step is " +
+      "to complete the applicable jurisdiction-specific assessment before recording an approval decision.";
+  }
   if (unlawful.length > 0) {
     // SO-FT FIX 4 (2026-08-11): name EVERY not-met duty, not just unlawful[0].
     // FD703575-B5 (2026-08-27) — each act carries the requirement that closes

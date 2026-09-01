@@ -1107,7 +1107,19 @@ function overallConclusionSentence(c: AdmtV2Computed): string {
 // ---------------------------------------------------------------------------
 
 function priorityMattersParagraphs(c: AdmtV2Computed): RenderedParagraph[] {
-  const top = [...c.allFindings].filter((f) => f.priority === 1).slice(0, 3);
+  // A-TEAM DELTA (ChatGPT Dropbox Batch 1 review, 2026-08-31, ADMT P0) — this
+  // used to be priority===1 only, sliced to 3 in whatever order the findings
+  // array happened to build them in (Pre-use Notice pushed before Opt-Out,
+  // with no sort). A GAP-status Pre-use Notice element (e.g. "How the ADMT
+  // works" not covered) scores priority 2, not 1 — by design, priority 1 is
+  // reserved for pathway-blocking conditions. That left a known,
+  // definitively-missing notice element with no path into this Executive
+  // Summary surface at all, while an unresolved (merely uncertain) Opt-Out
+  // pathway item at priority 1 always won a slot. A definite GAP is a known
+  // deficiency, not an open question, so it belongs here even at priority 2;
+  // priority-1 items still lead.
+  const candidates = c.allFindings.filter((f) => f.priority === 1 || (f.priority === 2 && f.substantive_state === "GAP"));
+  const top = [...candidates].sort((a, b) => a.priority - b.priority).slice(0, 5);
   if (top.length === 0) {
     // v3.2.2 — "was generated" exposed the machinery; findings are
     // "identified", not "generated".

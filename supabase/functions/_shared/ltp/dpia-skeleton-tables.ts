@@ -159,9 +159,36 @@ function table(
  * unfinished form (CEO output review); an answered column states the
  * determined outcome instead. A-TEAM S3 RULING IV.19 (doc 115, 2026-08-31):
  * the empty-state phrase for a FOLLOW-UP column states the follow-up result
- * ("No follow-up required"), not the ambiguous "None identified". */
-function needed(v: unknown): string {
-  return s(v) || "No follow-up required";
+ * ("No follow-up required"), not the ambiguous "None identified".
+ *
+ * A-TEAM DELTA (ChatGPT Dropbox Batch 1 review, 2026-08-31, DPIA) — that
+ * default fired off `information_needed` alone, blind to the row's own
+ * `status`/`verdict` cell. A row whose status is still open (e.g.
+ * `record_insufficient`, `undetermined_on_the_record`) but whose
+ * `information_needed` text happens to be empty printed "No follow-up
+ * required" beside an unresolved status — the retention-table and Article 20
+ * contradictions the review quotes. "No follow-up required" is now reserved
+ * for a status this module knows is actually closed; every other status
+ * (including an unmapped/unknown token) gets an honest "not specified"
+ * rather than a false all-clear. */
+const RESOLVED_ROW_STATUSES = new Set([
+  "analysed",
+  "approved",
+  "conditionally_approved",
+  "basis_supported_on_the_record",
+  "no_transfer_on_the_record",
+  "intra_eea_processing",
+  "uk_domestic_processing",
+  "adequacy",
+  "instrument_recorded",
+  "satisfied",
+]);
+function needed(v: unknown, status?: unknown): string {
+  const text = s(v);
+  if (text) return text;
+  return RESOLVED_ROW_STATUSES.has(s(status))
+    ? "No follow-up required"
+    : "Not specified in the record";
 }
 
 /** v4.6.2 — reader name for a 2-letter main-establishment country code; the
@@ -202,7 +229,7 @@ function controllersTable(inv: Bag): RenderedTable | null {
     establishmentCell(c.main_establishment_or_representative),
     cell(c.dpo),
     label(c.status),
-    needed(c.information_needed),
+    needed(c.information_needed, c.status),
   ]);
   return table("processing_inventory.controllers", "Controller", [
     "Controller",
@@ -219,7 +246,7 @@ function processorsTable(inv: Bag): RenderedTable | null {
     cell(p.name),
     cell(p.obligations_and_tasks),
     label(p.status),
-    needed(p.information_needed),
+    needed(p.information_needed, p.status),
   ]);
   // ABSENCE IS A DETERMINATION: the company recorded no processor, and that is
   // an answer rather than a blank.
@@ -306,7 +333,7 @@ function dataItemsTable(inv: Bag): RenderedTable | null {
     d.special_category === true ? "Special category" : "Not a special category",
     cell(d.art9_condition_label),
     label(d.status),
-    needed(d.information_needed),
+    needed(d.information_needed, d.status),
   ]);
   return table("processing_inventory.data_items", "Categories of personal data", [
     "Data item",
@@ -358,7 +385,7 @@ function legalBasisTable(report: Bag): RenderedTable | null {
     cell(b.article_6_basis),
     label(b.verdict),
     cell(b.citation),
-    needed(b.information_needed),
+    needed(b.information_needed, b.verdict),
   ]);
   return table("legal_basis", "Lawful basis under Article 6(1)", [
     "Purpose",
@@ -378,7 +405,7 @@ function specialCategoryTable(cov: Bag): RenderedTable | null {
     // anchor, so the iff-cited ToA rule can see it in the body.
     cell([r.citation, r.condition_citation].filter(Boolean).join("; ")),
     label(r.status),
-    needed(r.information_needed),
+    needed(r.information_needed, r.status),
   ]);
   return table("section2_coverage.special_category_conditions", "Article 9(2) conditions", [
     "Data item",
@@ -397,7 +424,7 @@ function minimisationRetentionTable(cov: Bag): RenderedTable | null {
     cell(r.retention_period),
     cell(r.citation),
     label(r.status),
-    needed(r.information_needed),
+    needed(r.information_needed, r.status),
   ]);
   return table("section2_coverage.data_minimisation_retention", "Data minimisation and retention", [
     "Data item",
@@ -418,7 +445,7 @@ function coverageTable(surface: string, title: string, rowsIn: Bag[]): RenderedT
     cell([r.finding, r.residual_note].filter(Boolean).join(" ")),
     cell(r.citation),
     label(r.status),
-    needed(r.information_needed),
+    needed(r.information_needed, r.status),
   ]);
   return table(surface, title, [
     "Matter",
@@ -436,7 +463,7 @@ function measuresTable(surface: string, title: string, rowsIn: Bag[]): RenderedT
     cell(r.description),
     cell(r.citation),
     label(r.status),
-    needed(r.information_needed),
+    needed(r.information_needed, r.status),
   ]);
   return table(surface, title, [
     "Measure",
@@ -474,7 +501,7 @@ function measuresOtherTable(cov: Bag): RenderedTable | null {
       cell(t.finding),
       cell(t.mechanism_citation) !== DASH ? cell(t.mechanism_citation) : cell(t.citation),
       label(t.status),
-      needed(t.information_needed),
+      needed(t.information_needed, t.status),
     ]);
   }
   if (rows.length === 0) {
@@ -500,7 +527,7 @@ function measuresOtherTable(cov: Bag): RenderedTable | null {
       cell(pc.finding),
       cell(pc.citation),
       label(pc.status),
-      needed(pc.information_needed),
+      needed(pc.information_needed, pc.status),
     ]);
   }
   return table("section2_coverage.measures_other", "Transfers and processor arrangements", [

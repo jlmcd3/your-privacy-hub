@@ -2152,7 +2152,21 @@ export function runRiskFactorEngine(
   }
 
   // IV.C — the balance summary table + the determination text.
-  if (pathways.length || benefits.some((b) => b.weight !== "no affirmative weight")) {
+  //
+  // A-TEAM DELTA (ChatGPT Dropbox Batch 1 review, 2026-08-31, Risk P0) —
+  // `determination_text` and `recommended_outcome` used to be `put()` only
+  // inside this same `if`, gated on the SAME condition that decides whether
+  // the balance_summary TABLE has any row to show. When neither a benefit
+  // nor a pathway is on the record, that condition is false, so the fixed
+  // skeleton lead-in ("C. The Determination. The determination weighs...:")
+  // rendered with nothing after the colon — no determination sentence at
+  // all — while the cover still showed a disposition. `cell`, `cellExplanation`,
+  // `outcome`, and `consequence` are all computed unconditionally above this
+  // block (lines 918-925), so the determination sentence can always be
+  // composed from them; only the TABLE (which has nothing to tabulate with
+  // zero rows on either side) stays gated under the NO PADDING law.
+  const hasBalanceRecord = pathways.length || benefits.some((b) => b.weight !== "no affirmative weight");
+  if (hasBalanceRecord) {
     const left = benefits
       .filter((b) => b.weight !== "no affirmative weight")
       .map((b) =>
@@ -2182,26 +2196,28 @@ export function runRiskFactorEngine(
       note:
         `${CONSEQUENCE_BAND[consequence]} Benefit weight and risk level are separate qualitative dimensions; the determination applies the methodology in Section 1 rather than a numerical equation.`,
     };
-    // A-TEAM S4 RULING S3.2 (doc 119, ChatGPT panel A3) — one cross-labeling
-    // sentence maps the § 7154 consequence text onto the executive result's
-    // disposition wording; composed from the SAME typed disposition, so no
-    // determination changes.
-    put(
-      "iv_determination:9",
-      "determination_text",
-      "B",
-      `${cell.conclusion} ${cell.materiality} ${cell.effect} ${cellExplanation} ${outcome} In this report's executive result, that consequence is stated as "${CONSEQUENCE_BAND[consequence].replace(/\.$/, "")}."`,
-      ["FACTOR:balancing_table", "FACTOR:benefit_weight_table", "FACTOR:residual_rule"],
-      ["11 CCR § 7154", "11 CCR § 7152(a)(7)"],
-    );
-    putFactorOnly(
-      "recommended_outcome",
-      "B",
-      outcome,
-      ["FACTOR:balancing_table", "INTAKE:processing_status"],
-      ["11 CCR § 7152(a)(7)", "11 CCR § 7154"],
-    );
   }
+  // A-TEAM S4 RULING S3.2 (doc 119, ChatGPT panel A3) — one cross-labeling
+  // sentence maps the § 7154 consequence text onto the executive result's
+  // disposition wording; composed from the SAME typed disposition, so no
+  // determination changes.
+  put(
+    "iv_determination:9",
+    "determination_text",
+    "B",
+    hasBalanceRecord
+      ? `${cell.conclusion} ${cell.materiality} ${cell.effect} ${cellExplanation} ${outcome} In this report's executive result, that consequence is stated as "${CONSEQUENCE_BAND[consequence].replace(/\.$/, "")}."`
+      : `The record establishes no benefit under § 3.F and no risk pathway under § 4.A, so the balance this report performs has nothing to weigh on either side. ${outcome} In this report's executive result, that consequence is stated as "${CONSEQUENCE_BAND[consequence].replace(/\.$/, "")}."`,
+    ["FACTOR:balancing_table", "FACTOR:benefit_weight_table", "FACTOR:residual_rule"],
+    ["11 CCR § 7154", "11 CCR § 7152(a)(7)"],
+  );
+  putFactorOnly(
+    "recommended_outcome",
+    "B",
+    outcome,
+    ["FACTOR:balancing_table", "INTAKE:processing_status"],
+    ["11 CCR § 7152(a)(7)", "11 CCR § 7154"],
+  );
 
   // IV.D — conditions / follow-ups / recommendations, numbered.
   if (conditions.length) {

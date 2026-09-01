@@ -719,7 +719,17 @@ export function deriveGovernanceScoreboard(report: Bag): RenderedTable | null {
       const sev = s(d.severity).toLowerCase();
       return sev !== "" && sev !== "compliant";
     }).length;
-    rows.push(["Domains with a recorded gap", `${withGap} of ${domains.length}`]);
+    // A-TEAM DELTA (ChatGPT Dropbox Batch 1 review, 2026-08-31, Governance
+    // P0) — this counts EVERY non-compliant severity (Unresolved through
+    // Low). `composeExecutiveSummaryTyped`'s "N domains carry recorded gaps"
+    // sentence deliberately counts only the Medium/Low-with-gap_description
+    // subset (High/Critical/Unresolved domains get their own separate
+    // sentences there) — a narrower, legitimately different number. Both
+    // counts are correct; the collision was that both used the word "gap."
+    // Renamed here to the same "fully evidenced" vocabulary the exec lead
+    // already uses, so the two surfaces can no longer read as one
+    // contradicted count.
+    rows.push(["Domains not fully evidenced", `${withGap} of ${domains.length}`]);
   }
 
   const plan = Array.isArray(report.remediation_plan) ? (report.remediation_plan as Bag[]) : [];

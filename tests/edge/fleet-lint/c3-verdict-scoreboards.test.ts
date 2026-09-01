@@ -80,7 +80,7 @@ Deno.test("C3/S3.2: the Governance scoreboard rows read the typed counts and ski
   assertEquals(board.rows, [
     ["Duties with an identified supporting artifact", "6 of 8"],
     ["Article 30(1) elements evidenced", "4 of 7"],
-    ["Domains with a recorded gap", "9 of 10"],
+    ["Domains not fully evidenced", "9 of 10"],
     ["Remediation items recorded", "7"],
   ]);
   // Absent surfaces skip their rows; an empty record has no scoreboard.

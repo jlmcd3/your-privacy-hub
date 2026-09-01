@@ -681,9 +681,21 @@ function composeExecPosture(report: Bag, counts: RegistrationDutyCounts, org: st
       ),
     );
   } else if (counts.attached > 0) {
+    // A-TEAM DELTA (ChatGPT Dropbox Batch 1 review, 2026-08-31, Registration
+    // P0) — "those duties" pronoun-referenced back to whichever duty the
+    // PRECEDING sentence just named. When that preceding sentence was the
+    // `dets.length === 0` no-US-data-broker-duty branch (data-broker and
+    // designation are separate arrays — `counts.attached` spans both), the
+    // combined text read as "no data-broker duty is established... None of
+    // those [data-broker] duties is yet satisfied" — asserting the very duty
+    // the record says doesn't exist is somehow unsatisfied. Naming the
+    // actually-attached duty by `attached_names` removes the ambiguous
+    // pronoun regardless of which sentence precedes it.
     parts.push(
       stop(
-        `None of those duties is yet satisfied on the content the company has recorded, and each is set out below with what closes it`,
+        counts.attached === 1
+          ? `The ${asProse(counts.attached_names)} duty is not yet satisfied on the content the company has recorded, and it is set out below with what closes it`
+          : `None of the ${asProse(counts.attached_names)} duties is yet satisfied on the content the company has recorded, and each is set out below with what closes it`,
       ),
     );
   }
