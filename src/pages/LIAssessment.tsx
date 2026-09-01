@@ -270,27 +270,28 @@ const LIAssessment = () => {
         {/* HOW IT WORKS */}
         <section className="mb-10">
           <div className="text-eyebrow text-brand-mist mb-2">How it works</div>
-          <h2 className="font-display text-brand-navy mb-5 leading-snug">Three steps, and why each one matters</h2>
+          <h2 className="font-display text-brand-navy mb-5 leading-snug">Free signal first. Full analysis only if it makes sense.</h2>
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-4 md:gap-3">
             {[
               {
                 n: "01",
-                title: "Free preliminary signal",
-                desc: "You describe the processing in plain language. We classify the use case and surface the most analogous regulator decisions.",
-                why: "Some use cases — behavioural advertising, employee monitoring, special category data — almost never survive the balancing test. Knowing this upfront, for free, saves you the cost of a full assessment that was always going to fail.",
+                title: "Free viability signal",
+                desc: "Describe the processing. We identify analogous regulator guidance and flag use cases that are poor candidates for legitimate interests.",
+                why: "Avoid paying for a full LIA when the legal basis is unlikely to fit.",
               },
               {
                 n: "02",
                 title: "Adaptive intake",
-                desc: "We ask only the questions that matter for your facts: whose interest, what alternatives you considered, what data subjects would reasonably expect, what safeguards are in place.",
-                why: "The EDPB's 2024 guidelines list the specific factors regulators weigh. A defensible record has to address them by name — generic 'we considered the impact' language is routinely rejected on enforcement.",
+                desc: "Answer only the factors relevant to your facts: interests, alternatives, expectations, impact, and safeguards.",
+                why: "Questions map to the factors regulators actually weigh.",
               },
               {
                 n: "03",
-                title: "Three-part test report",
-                desc: "A structured analysis of purpose, necessity and balancing, plus a documentation pack and PDF you can hand to counsel.",
-                why: "Article 5(2) accountability requires you to demonstrate compliance, not just claim it. A timestamped, fact-specific LIA is the artefact regulators ask for first when they open an investigation.",
+                title: "Cited LIA record",
+                desc: "Receive the purpose, necessity and balancing analysis plus a documentation pack and PDF for review.",
+                why: "A timestamped, fact-specific accountability record.",
               },
+
             ].flatMap((step, i, arr) => {
               const card = (
                 <div key={`card-${step.n}`} className="bg-card border-t-4 border-brand-navy p-5 shadow-eup-sm rounded-md flex flex-col">
