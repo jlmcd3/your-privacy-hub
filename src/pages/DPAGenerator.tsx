@@ -244,14 +244,15 @@ export default function DPAGenerator() {
         <meta name="description" content="Draft a controller-processor DPA tailored to your jurisdictions — GDPR Article 28, US state processor agreements (CCPA, TDPSA, CTDPA, VCDPA, CPA), Canadian PIPEDA/Law 25, or dual-compliance for cross-border arrangements. Every clause calibrated to enforcement decisions." /></Helmet>
       <ProductHero
         geography="gdpr"
-        eyebrowLabel={<><FileText aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("dpa", `$${pricing.price}`)}</>}
+        eyebrowLabel={<><FileText aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("dpa")}</>}
         title="Custom Data Processing Agreement"
-        legalTrigger={{ tier: "required", text: "GDPR Article 28 requires a written data-processing agreement whenever you let a vendor or processor handle personal data on your behalf." }}
-        valueProposition="Draft a controller-processor agreement tailored to your jurisdictions — EU, UK, US state, Canadian, or dual-compliance for cross-border arrangements. Every clause is calibrated to your obligations and the enforcement record."
+        valueProposition="Draft a controller–processor agreement tailored to your jurisdictions, services, data, and security terms — with every required clause mapped to the governing rules."
         sampleReportToolSlug="dpa"
-        citationLine="GDPR Art. 28 · Every clause built from the statutory processor obligations of your jurisdictions and calibrated to cited enforcement decisions"
-        ctaLabel="Draft your DPA"
-      />
+        citationLine="GDPR Art. 28 · Jurisdiction-specific processor clauses · Enforcement-informed drafting"
+        ctaLabel="Draft my DPA"
+      >
+        <HeroAccessLine toolKey="dpa" />
+      </ProductHero>
       <ProductHeroSubstrip
         generationsLine={INCLUDED_GENERATIONS_COPY}
         methodologyLine={REVISIONS_ENABLED ? "Need more? Add 4 additional generations for half the tool price." : undefined}
@@ -260,16 +261,16 @@ export default function DPAGenerator() {
         className="mt-6"
         cards={[
           {
-            title: "When is a DPA required?",
+            title: "When you need a DPA",
             tone: "amber",
-            body: "GDPR Article 28 requires a written processing agreement whenever a processor handles personal data on your behalf. US state privacy laws impose their own contract terms on service providers and processors.",
+            body: "Using a processor or vendor to handle personal data? GDPR Article 28 requires a written controller–processor agreement with specified terms. US state privacy laws impose their own contract terms on service providers and processors.",
           },
           {
             title: "What you receive",
-            body: "A controller-processor agreement drafted to the jurisdictions you select — EU/UK, US state, Canadian, or dual-compliance for cross-border arrangements.",
+            body: "A controller–processor agreement drafted to the jurisdictions you select — EU/UK, US state, Canadian, or dual-compliance for cross-border arrangements.",
           },
           {
-            title: "Calibrated clause by clause",
+            title: "Multi-jurisdiction drafting",
             body: "Each clause is composed from the statutory processor obligations of the jurisdictions you name, not from a fixed template pasted across regimes.",
           },
           {
