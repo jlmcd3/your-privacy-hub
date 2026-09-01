@@ -108,13 +108,13 @@ export default function RegistrationLanding() {
 
       <PageContainer>
 
-        {/* 2. Problem */}
+        {/* 2. Why teams use it */}
         <section className="py-10 border-t border-border/40">
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { icon: AlertTriangle, title: "Fragmented requirements", body: "DPO thresholds, RoPA formats, and AI Act duties differ across 30+ EU/EEA jurisdictions — and change every quarter." },
-              { icon: Clock, title: "Renewal blindspots", body: "Most fines for registration failures stem from missed renewals, not first-time filings. Authorities don't remind you." },
-              { icon: Globe2, title: "Article 27 ambiguity", body: "Non-EU controllers struggle to identify which jurisdictions actually require a representative — and which letter format each authority expects." },
+              { icon: AlertTriangle, title: "Fragmented rules → one scope map", body: "DPO thresholds, RoPA formats, and AI Act duties differ across 30+ EU/EEA jurisdictions." },
+              { icon: Clock, title: "Renewal dates → reminders", body: "Expiry dates are tracked in your workspace so renewals do not slip." },
+              { icon: Globe2, title: "Local formats → filing packs", body: "Each authority expects its own Article 27 and registration formats; we draft to them." },
             ].map((b, i) => (
               <div key={i} className="space-y-2">
                 <b.icon className="w-6 h-6 text-amber-600" />
@@ -130,10 +130,10 @@ export default function RegistrationLanding() {
           <h2 className="font-display text-brand-navy text-center mb-8">How it works</h2>
           <div className="grid md:grid-cols-4 gap-4">
             {[
-              ["1", "Free assessment", "Answer ~12 questions about your organization and processing activities. No account required."],
-              ["2", "Personalized scope", "We map your activities to every jurisdiction that applies, with confidence ratings."],
-              ["3", "Generate documents", `Pay only when you generate documents: ${PRICING.tools.registration.display} per filing, flat. We draft every required filing in minutes.`],
-              ["4", "You file & we track renewals", "You (or your counsel) submit the filings. Optional annual renewal monitoring keeps you ahead of expiry dates."],
+              ["1", "Free scope check", "Answer ~12 questions about your organisation and processing. No account required."],
+              ["2", "Confidence-rated jurisdiction map", "Every jurisdiction that applies, rated by how directly the rule matches your facts."],
+              ["3", `Generate a ${PRICING.tools.registration.display} filing pack`, "Documents, checklist, portal links and fees for the filing you choose."],
+              ["4", "You or counsel submit", "We track the renewal date; we do not file on your behalf."],
             ].map(([n, t, b]) => (
               <Card key={n} className="border-border/60">
                 <CardContent className="p-5">
@@ -145,6 +145,31 @@ export default function RegistrationLanding() {
             ))}
           </div>
         </section>
+
+        {/* 3b. Confidence-rated scope — sits next to the free-scope explanation */}
+        <section className="py-12 border-t border-border/40 bg-brand-cloud/40 rounded-xl">
+          <div className="max-w-3xl mx-auto px-4">
+            <h2 className="font-display text-brand-navy mb-4">Confidence-rated scope</h2>
+            <p className="text-slate text-sm mb-6">
+              Each jurisdiction recommendation shows how directly the rule matches the facts you entered.
+            </p>
+            <div className="space-y-3">
+              <div className="bg-card border border-emerald-200 rounded-lg p-4">
+                <span className="font-bold text-emerald-700">High</span>
+                <span className="text-sm text-slate ml-2">— Threshold clearly met. Filing is mandatory based on stated facts.</span>
+              </div>
+              <div className="bg-card border border-amber-200 rounded-lg p-4">
+                <span className="font-bold text-amber-700">Medium</span>
+                <span className="text-sm text-slate ml-2">— Likely required but depends on how authority interprets your activities. Counsel review recommended.</span>
+              </div>
+              <div className="bg-card border border-slate/30 rounded-lg p-4">
+                <span className="font-bold text-slate">Low</span>
+                <span className="text-sm text-slate ml-2">— Possible exposure. Optional pre-filing or monitoring may be appropriate.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
 
         {/* 4. What you get */}
         <section className="py-12 border-t border-border/40">
