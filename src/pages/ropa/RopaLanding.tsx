@@ -24,6 +24,7 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 
 const TITLE =
   "RoPA Builder · Records of Processing | End User Privacy";
@@ -101,6 +102,7 @@ export default function RopaLanding() {
   const userType = user ? "authenticated" : "anonymous";
 
   const pricing = useToolPrice("ropa_initial");
+  const { tier } = useSubscriptionTier();
   useEffect(() => {
     document.title = TITLE;
     let meta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
@@ -117,7 +119,7 @@ export default function RopaLanding() {
   const primary = isAnnual
     ? { label: "Build my RoPA", to: "/ropa" }
     : isMonthlySub
-      ? { label: `Start RoPA — ${pricing.priceLabel ?? ""}`.trim(), to: "/ropa" }
+      ? { label: `Start RoPA — $${pricing.price}`, to: "/ropa" }
       : { label: "Choose an annual plan", to: "/get-intelligence" };
 
   return (
