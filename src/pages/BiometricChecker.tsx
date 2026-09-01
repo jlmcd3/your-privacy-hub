@@ -15,6 +15,7 @@ import ActiveClientLabel from "@/components/ActiveClientLabel";
 import CopyButton from "@/components/CopyButton";
 import ToolCTABlock from "@/components/ToolCTABlock";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
+import ProductInfoCards from "@/components/product/ProductInfoCards";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import AuthGateModal from "@/components/AuthGateModal";
 import AssessmentReport from "@/components/AssessmentReport";
