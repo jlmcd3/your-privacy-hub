@@ -584,19 +584,21 @@ const DPIAFramework = () => {
         geography="gdpr"
         eyebrowLabel={<><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("dpia")}</>}
         title={<>Data Protection Impact Assessment (DPIA) Builder <DefPopover termKey="gdpr_dpia" /></>}
-        valueProposition={INCLUDED_GENERATIONS_HERO}
-        citationLine="GDPR Art. 35 · Accountability record for high-risk processing"
+        valueProposition="Build an EDPB-structured DPIA for one high-risk processing activity, ready for DPO or counsel review."
+        citationLine="GDPR Art. 35 · EDPB-structured impact assessment · Regulator guidance cited throughout"
         showIntakeCta={false}
       >
         <HeroPriceCta
           standalonePrice={pricing.standalonePrice}
           subscriberPrice={pricing.subscriberPrice}
           isSubscriber={pricing.isSubscriber && pricing.price === pricing.subscriberPrice}
-          primaryLabel="Start Impact Assessment"
+          primaryLabel="Start DPIA"
           toolSlug="dpia"
           sampleSlug="dpia"
         />
       </ProductHero>
+
+      <ProductHeroSubstrip generationsLine={INCLUDED_GENERATIONS_HERO} />
 
       <ProductInfoCards
         className="mt-6"
@@ -604,22 +606,23 @@ const DPIAFramework = () => {
           {
             title: "Does this assessment apply to you?",
             tone: "amber",
-            body: "A DPIA is required under GDPR Article 35 before high-risk processing — large-scale special-category data, systematic profiling, or large-scale monitoring of public areas.",
+            body: "A DPIA is required before high-risk processing, including large-scale special-category data, systematic profiling, or large-scale public-area monitoring (GDPR Article 35).",
           },
           {
             title: "What you receive",
-            body: "A defensible impact assessment for one high-risk processing activity, pre-populated from your intake and mapped to the accountability record your DPO or counsel needs to sign off.",
+            body: "A structured Article 35 assessment for one processing activity, pre-populated from your answers and organised for necessity and proportionality, risks, safeguards, residual risk, consultation, and sign-off.",
           },
           {
-            title: "A starting point for your DPO",
-            body: "The document is a structured starting point for your Data Protection Officer or legal counsel to complete and own — it is not a finished DPIA and does not satisfy Article 35 on its own. Qualified legal review is required before relying on it.",
+            title: "Built for DPO and counsel review",
+            body: "A review-ready assessment record with the facts, analysis, open issues, and sign-off fields your DPO or counsel needs to finalise. It does not satisfy Article 35 on its own — qualified legal review is required before you rely on it.",
           },
           {
-            title: "Why trust the analysis",
-            body: "Built on GDPR Article 35 and the EDPB's impact-assessment guidance, with cited regulator authority behind the analysis.",
+            title: "Why trust it",
+            body: "Built on GDPR Article 35 and EDPB impact-assessment guidance, with regulator authority cited in the analysis.",
           },
         ]}
       />
+
 
       <ToolAlsoAvailableRow currentTool="dpia" />
 
