@@ -182,6 +182,12 @@ const Updates = () => {
     const topicFilter = searchParams.get("topic");
     const regionFilter = searchParams.get("region");
 
+    // Deep-link target captured once on mount (the URL sync effect below strips extra params)
+    const targetArticleIdRef = useRef<string | null>(
+        new URLSearchParams(window.location.search).get("article")
+    );
+
+
 
     // Debounce search term so each keystroke doesn't hit the DB
     const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
@@ -434,6 +440,25 @@ const Updates = () => {
         source_url: (a as any).source_url || a.url,
         jurisdiction: a.direct_jurisdictions?.[0] ?? a.affected_jurisdictions?.[0] ?? null,
     } as unknown as ArticleItem));
+
+    // Deep-link: /updates?article=<id> scrolls to that article's placement in the feed
+    const targetArticleId = targetArticleIdRef.current;
+    useEffect(() => {
+        if (!targetArticleId || loading) return;
+        let tries = 0;
+        const tick = () => {
+            const el = document.getElementById(`article-${targetArticleId}`);
+            if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "center" });
+                el.classList.add("ring-2", "ring-brand-teal", "ring-offset-2");
+                setTimeout(() => el.classList.remove("ring-2", "ring-brand-teal", "ring-offset-2"), 2600);
+                return;
+            }
+            if (tries++ < 20) setTimeout(tick, 150);
+        };
+        tick();
+    }, [targetArticleId, loading, updates.length]);
+
 
     return (
         <div className="min-h-screen flex flex-col bg-background">

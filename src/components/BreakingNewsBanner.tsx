@@ -62,7 +62,8 @@ const BreakingNewsBanner = () => {
         </span>
         <span className="text-white opacity-60 flex-shrink-0 text-xs">•</span>
         <Link
-          to={`/updates/${news.id}`}
+          to={`/updates?article=${news.id}`}
+
           className="text-white text-sm font-medium no-underline hover:underline break-words"
         >
           {news.headline}
