@@ -5,6 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToolDraft, useAutoRestoreDraft } from "@/hooks/useToolDraft";
 import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import { ProductHero, ProductHeroSubstrip } from "@/components/ProductHero";
+import { productEyebrow } from "@/config/productEyebrow";
 import { RequirementBadge } from "@/components/RequirementBadge";
 import { Label } from "@/components/ui/label";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
