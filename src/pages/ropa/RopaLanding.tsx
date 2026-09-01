@@ -179,11 +179,12 @@ export default function RopaLanding() {
         {/* TRUST BAR */}
         <section className="border-y border-border bg-muted/30 py-6 px-4">
           <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm text-muted-foreground">
-            <span>25+ jurisdictions</span>
+            <span>25+ frameworks</span>
             <span aria-hidden>·</span>
-            <span>Article 30-compliant</span>
+            <span>PDF / Word / Excel</span>
             <span aria-hidden>·</span>
-            <span>Used by privacy professionals</span>
+            <span>Annual refresh workflow</span>
+
           </div>
         </section>
 
