@@ -442,7 +442,7 @@ const Updates = () => {
     } as unknown as ArticleItem));
 
     // Deep-link: /updates?article=<id> scrolls to that article's placement in the feed
-    const targetArticleId = searchParams.get("article");
+    const targetArticleId = targetArticleIdRef.current;
     useEffect(() => {
         if (!targetArticleId || loading) return;
         let tries = 0;
