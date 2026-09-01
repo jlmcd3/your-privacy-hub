@@ -257,14 +257,14 @@ const LIAssessment = () => {
           <h2 className="font-display text-brand-navy mb-4 leading-snug">
             Legitimate interest must be documented, not assumed
           </h2>
-          <p className="text-sm text-brand-navy leading-relaxed mb-4 max-w-[70ch]">
-            Article 6(1)(f) is the most flexible — and most contested — legal basis under the GDPR. Regulators don't
-            accept it on assertion: if challenged, you must produce a written record showing you tested your processing
-            against the three-part test (purpose, necessity, balancing) <em>before</em> you relied on it.
-          </p>
           <p className="text-sm text-brand-navy leading-relaxed max-w-[70ch]">
-            Recent fines from the CNIL, ICO, Garante and others have hit organisations that skipped this record or produced a generic one. The full assessment cites the specific enforcement decisions behind each test verdict — so you can see exactly what informed the analysis.
+            Article 6(1)(f) is the most flexible — and most contested — legal basis under the GDPR: regulators do not
+            accept it on assertion, and if challenged you must produce a written record showing you tested your
+            processing against the three-part test (purpose, necessity, balancing) <em>before</em> you relied on it.
+            Recent fines from the CNIL, ICO and Garante have hit organisations that skipped that record or produced a
+            generic one, so the full assessment cites the specific enforcement decisions behind each test verdict.
           </p>
+
         </section>
 
         {/* HOW IT WORKS */}
