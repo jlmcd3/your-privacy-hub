@@ -1401,10 +1401,21 @@ export function runRiskFactorEngine(
   }
 
   // II.C — consumers and the interaction.
+  //
+  // DOC 133 (all-products batch review, 2026-09-01) — consumer_interaction_
+  // method/purpose and approximate_ca_consumers are data-layer-optional
+  // (RK3-A1 g2, the "canonical going forward" fields); i3_ca_consumer_band
+  // and i4b_sources are the always-required predecessors and are the ones
+  // actually populated on most records today. Falling back to them here
+  // (rather than only to the g2 fields) fixes a false "does not describe
+  // the consumer interaction" negative on records that answer i3/i4b but
+  // haven't yet been asked the newer g2 questions.
   {
-    const method = clause(intake.consumer_interaction_method);
+    const sourcesFallback = clause(intake.i4b_sources);
+    const method = clause(intake.consumer_interaction_method) || sourcesFallback;
+    const usingSourcesFallback = !clause(intake.consumer_interaction_method) && !!sourcesFallback;
     const ipurpose = clause(intake.consumer_interaction_purpose);
-    const n = clause(intake.approximate_ca_consumers);
+    const n = clause(intake.approximate_ca_consumers) || clause(intake.i3_ca_consumer_band);
     const dependency = relationshipContext === "Employees or job applicants" ||
       relationshipContext === "Students" ||
       relationshipContext === "Patients or health-service recipients";
@@ -1414,7 +1425,13 @@ export function runRiskFactorEngine(
         // The Company's own words in quotation marks (v5.2 register) — the
         // intake values are full phrases whose casing is the Company's.
         const clauses: string[] = [];
-        if (method) clauses.push(`The Company interacts with the affected consumers through “${method}”`);
+        if (method) {
+          clauses.push(
+            usingSourcesFallback
+              ? `The record identifies these consumer-facing collection sources: “${method}”`
+              : `The Company interacts with the affected consumers through “${method}”`,
+          );
+        }
         if (ipurpose) clauses.push(`for the stated purpose of “${ipurpose}”`);
         bits.push(`${clauses.join(", ")}.`);
       }
@@ -1435,7 +1452,7 @@ export function runRiskFactorEngine(
         "consumer_context",
         "A",
         bits.join(" "),
-        ["INTAKE:consumer_interaction_method", "INTAKE:consumer_interaction_purpose", "INTAKE:approximate_ca_consumers", "INTAKE:consumer_relationship_context"],
+        ["INTAKE:consumer_interaction_method", "INTAKE:consumer_interaction_purpose", "INTAKE:approximate_ca_consumers", "INTAKE:consumer_relationship_context", "INTAKE:i3_ca_consumer_band", "INTAKE:i4b_sources"],
         ["11 CCR § 7152(a)(3)(C)", "11 CCR § 7152(a)(3)(D)"],
       );
     } else {

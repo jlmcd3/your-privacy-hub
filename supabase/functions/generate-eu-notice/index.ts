@@ -115,6 +115,14 @@ const OPTION_LABELS: Record<string, Record<string, string>> = {
     trade_union: "Trade union membership",
     criminal: "Criminal convictions or offences",
     children: "Children's data (under 16 / under 18)",
+    // DOC 133 (all-products batch review, 2026-09-01) — a stored answer
+    // value with no dictionary entry rendered as the raw slug "order_history"
+    // in both the EU and UK sections (formatAnswer()'s `labelMap?.[value] ??
+    // value` fallback). Not in the question's own option list either (see
+    // universal-questions.ts) — flagged separately as a chase item for
+    // whether it should become a selectable intake option in its own right;
+    // this entry only fixes the humanization of whatever already stores it.
+    order_history: "Order history (past purchases, transactions)",
   },
   lawful_basis: {
     consent: "Consent (Art.6(1)(a))",

@@ -280,7 +280,15 @@ export function buildSlotValues(input: RopaAssembleInput): SlotValues {
     // Absent home base: the whole operating sentence drops and the honest
     // alternate is composed as the conditional block.
     home_base: homeBase,
-    jurisdictions: asProse([...input.jurisdictionLabels]) || "the jurisdictions it has selected",
+    // DOC 133 (all-products batch review, 2026-09-01) — every other slot in
+    // this block degrades to null/an honest alternate when unrecorded; this
+    // one had no such branch, so a session whose intake never captured
+    // jurisdictions could never render "not established on the record" —
+    // the composed sentence below could only ever assert a (possibly
+    // stale — see the ropa_jurisdiction_selections client_id-vs-session_id
+    // chase item) list. Flagged separately: the deeper fix is scoping that
+    // table's read to the session/intake, not the client.
+    jurisdictions: input.jurisdictionLabels.length ? asProse([...input.jurisdictionLabels]) : null,
     employee_band: recorded(input.employeeBand)
       ? (EMPLOYEE_BAND_LABELS[s(input.employeeBand)] ?? s(input.employeeBand))
       : UNRECORDED_BAND,
@@ -564,8 +572,9 @@ export function assembleRopaRegister(input: RopaAssembleInput): RopaRegisterDocu
   // Controller and Accountability — honest alternate when no home base was
   // captured (the byte-pinned operating sentence drops in that branch).
   if (values.home_base === null) {
-    composed["controller_and_accountability:1"] =
-      `It operates across ${values.jurisdictions}, with a workforce of ${values.employee_band}. The intake carries no home base for the company, so this register does not state one.`;
+    composed["controller_and_accountability:1"] = values.jurisdictions
+      ? `It operates across ${values.jurisdictions}, with a workforce of ${values.employee_band}. The intake carries no home base for the company, so this register does not state one.`
+      : `The intake carries no home base and no jurisdictions for the company, so this register does not state either. Workforce: ${values.employee_band}.`;
   }
 
   // ROPA-1 (2026-08-29) — Art. 30(2) scope statement, composed only where a

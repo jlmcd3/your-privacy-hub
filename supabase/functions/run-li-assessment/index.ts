@@ -2170,12 +2170,25 @@ Return JSON:
         "../_shared/prose/frame-substitution.ts"
       );
       const frameSet = await loadApprovedFrameSet(supabase, "lia");
+      // DOC 133 (all-products batch review, 2026-09-01) — this gate checked
+      // only the general "what alternatives did you consider" field. An
+      // intake that answers the consent-specific question
+      // (necessity_details.why_consent_not_used, read by
+      // buildAlternativesConsidered() in lia-deliverables/build-upgrade4.ts)
+      // but leaves the general field blank left this status "" (not
+      // analysed), so the correctly-composed consent-rejection row got
+      // overwritten by the generic whole-section gap frame two steps later.
+      // OR-ing the consent-specific field in fixes that without touching
+      // the general-alternatives gap behavior when NEITHER is answered.
       const necessityAlternativesText = String(
         (assessment as any)?.necessity_details?.alternatives ??
           (assessment as any)?.alternatives_considered ?? "",
       ).trim();
+      const necessityWhyConsentNotUsed = String(
+        (assessment as any)?.necessity_details?.why_consent_not_used ?? "",
+      ).trim();
       const liaSurfaceStatuses: Record<string, string> = {
-        alternatives_considered: necessityAlternativesText ? "analysed" : "",
+        alternatives_considered: (necessityAlternativesText || necessityWhyConsentNotUsed) ? "analysed" : "",
       };
       const counters = applyFrameSubstitution(reportData as any, {
         product: "lia",

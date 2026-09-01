@@ -801,7 +801,12 @@ export function buildContentOwnerMapping(intake: unknown): ContentOwnerMapping {
         ? `Consequences assessed on the categories ${f.dataTypes.join(", ")}${f.cause ? ` exposed via ${f.cause.toLowerCase()}` : ""}; see the Article 34(1) determination for the reasoning.`
         : TO_BE_COMPLETED,
       status: f.dataTypes.length ? "analysed" : "record_insufficient",
-      ...(f.dataTypes.length ? {} : { information_needed: "dataTypes — the consequences cannot be described without the categories affected." }),
+      // DOC 133 (all-products batch review, 2026-09-01) — was a raw
+      // camelCase field-name token ("dataTypes") leaking verbatim into the
+      // customer-facing Article 33(3) content-plan table; same leak class
+      // as the encryptionStatus/encryptionKeyStatus fix already landed at
+      // lines 370/587 above.
+      ...(f.dataTypes.length ? {} : { information_needed: "the categories of personal data affected — the consequences cannot be described without them." }),
     },
     {
       element: "d_measures",

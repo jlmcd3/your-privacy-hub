@@ -196,7 +196,7 @@ export function buildReasonableExpectations(
   let status: ReasonableExpectationsFinding["status"] = "analysed";
   let information_needed: string | undefined;
 
-  if (!context && detail && expectation) {
+  if (!context && detail) {
     // DOC 129 LIA-A (Batch 3 A-Team ruling, 2026-09-01) — the Company's own
     // reasonable-expectation account (reasonable_expectation_detail) is on
     // the record; the factor runs on that account and the answered enum
@@ -204,18 +204,29 @@ export function buildReasonableExpectations(
     // collection-context field stays open only as a strengthening item —
     // never as a blocker, and never with prose claiming the factual basis
     // was not supplied.
-    if (matches(expectation, EXPECTATION_POSITIVE)) {
+    //
+    // DOC 133 (all-products batch review, 2026-09-01) — widened from
+    // `detail && expectation` to `detail` alone: the original guard let a
+    // populated `reasonable_expectation_detail` fall straight through to
+    // the record_insufficient branch below whenever the categorical enum
+    // was left unanswered, reproducing exactly the "treats the record as
+    // silent" failure this doc-129 branch exists to prevent. The
+    // POSITIVE/NEGATIVE sentence templates are unchanged (still gated on
+    // the enum); only the fallback (enum absent or non-matching) now reads
+    // the account instead of discarding it.
+    if (expectation && matches(expectation, EXPECTATION_POSITIVE)) {
       verdict = "reasonably_expected";
       application =
         `The Company's own account addresses the expectation question directly: "${detail}" On that account, and on the answer supplied ("${expectation}"), the processing sits within what the data subjects would expect, and the factor weighs with the controller — ${support.verbatim.charAt(0).toLowerCase()}${support.verbatim.slice(1)} Recording when and in what setting the data were collected would complete the formal Recital 47 record, but the factor does not wait on it given the account supplied.`;
-    } else if (matches(expectation, EXPECTATION_NEGATIVE)) {
+    } else if (expectation && matches(expectation, EXPECTATION_NEGATIVE)) {
       verdict = "not_reasonably_expected";
       application =
         `The Company's own account addresses the expectation question directly: "${detail}" On that account, and on the answer supplied ("${expectation}"), this use falls outside what the data subjects would have contemplated, and Recital 47 treats that as the situation in which their interests and rights may override the controller's interest.`;
     } else {
       verdict = "partly_expected";
-      application =
-        `The Company's own account addresses the expectation question directly: "${detail}" On that account the processing is expected only in part, so the factor neither carries the balance for the controller nor defeats it, and the measures the record commits to for closing the expectation gap it describes are weighed with the safeguards rather than treated as missing information.`;
+      application = expectation
+        ? `The Company's own account addresses the expectation question directly: "${detail}" On that account the processing is expected only in part, so the factor neither carries the balance for the controller nor defeats it, and the measures the record commits to for closing the expectation gap it describes are weighed with the safeguards rather than treated as missing information.`
+        : `The Company's own account addresses the expectation question directly: "${detail}" The record does not separately answer the categorical expectation question, so the factor is run on the account alone: it neither carries the balance for the controller nor defeats it, and is weighed alongside the other balancing factors rather than treated as missing information.`;
     }
   } else if (!context) {
     // Recital 47 tests expectation AT THE TIME AND IN THE CONTEXT OF
