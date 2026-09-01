@@ -91,14 +91,6 @@ export default function USNoticeLanding() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <DashboardSubnav />
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-        <ToolTierNote />
-        {hasToolAccess && (
-          <div className="mt-2 text-meta text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-            <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Included in your Annual Platform: every US state privacy notice is included at no additional charge.
-          </div>
-        )}
-      </div>
       <ProductHero
         geography="us"
         eyebrowLabel={<><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("us_notice")}</>}
