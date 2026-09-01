@@ -435,6 +435,25 @@ const Updates = () => {
         jurisdiction: a.direct_jurisdictions?.[0] ?? a.affected_jurisdictions?.[0] ?? null,
     } as unknown as ArticleItem));
 
+    // Deep-link: /updates?article=<id> scrolls to that article's placement in the feed
+    const targetArticleId = searchParams.get("article");
+    useEffect(() => {
+        if (!targetArticleId || loading) return;
+        let tries = 0;
+        const tick = () => {
+            const el = document.getElementById(`article-${targetArticleId}`);
+            if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "center" });
+                el.classList.add("ring-2", "ring-brand-teal", "ring-offset-2");
+                setTimeout(() => el.classList.remove("ring-2", "ring-brand-teal", "ring-offset-2"), 2600);
+                return;
+            }
+            if (tries++ < 20) setTimeout(tick, 150);
+        };
+        tick();
+    }, [targetArticleId, loading, updates.length]);
+
+
     return (
         <div className="min-h-screen flex flex-col bg-background">
             <Helmet>
