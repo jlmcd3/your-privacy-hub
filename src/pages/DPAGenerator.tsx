@@ -255,6 +255,28 @@ export default function DPAGenerator() {
         generationsLine={INCLUDED_GENERATIONS_COPY}
         methodologyLine={REVISIONS_ENABLED ? "Need more? Add 4 additional generations for half the tool price." : undefined}
       />
+      <ProductInfoCards
+        className="mt-6"
+        cards={[
+          {
+            title: "When is a DPA required?",
+            tone: "amber",
+            body: "GDPR Article 28 requires a written processing agreement whenever a processor handles personal data on your behalf. US state privacy laws impose their own contract terms on service providers and processors.",
+          },
+          {
+            title: "What you receive",
+            body: "A controller-processor agreement drafted to the jurisdictions you select — EU/UK, US state, Canadian, or dual-compliance for cross-border arrangements.",
+          },
+          {
+            title: "Calibrated clause by clause",
+            body: "Each clause is composed from the statutory processor obligations of the jurisdictions you name, not from a fixed template pasted across regimes.",
+          },
+          {
+            title: "Why trust the draft",
+            body: "Clauses are calibrated to cited enforcement decisions. The draft is a starting document for counsel review — it must be validated before execution.",
+          },
+        ]}
+      />
       <ToolAlsoAvailableRow currentTool="dpa" />
 
 
