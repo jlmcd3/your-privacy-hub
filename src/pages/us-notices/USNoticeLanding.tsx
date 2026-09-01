@@ -224,47 +224,50 @@ export default function USNoticeLanding() {
           </div>
         </section>
 
-        {/* PRICING */}
+        {/* ACCESS & PLANS */}
         <section className="py-16 md:py-20">
           <div className="max-w-[900px] mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="font-serif text-foreground mb-2">
-              Pricing
+              Access &amp; plans
             </h2>
             <p className="text-muted-foreground mb-8">
-              Included with any active Intelligence or Professional subscription (monthly or annual). Not sold as a standalone product.
+              Included with active Intelligence and Professional subscriptions. No per-notice charge.
             </p>
-            <Card>
-              <CardContent className="cmp-table p-0 overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="text-left p-4 font-medium"></th>
-                      <th className="text-left p-4 font-medium">Free</th>
-                      <th className="text-left p-4 font-medium">
-                        Intelligence Plan{" "}
-                        <span className="text-muted-foreground font-normal">({INTELLIGENCE_PRICING.monthlyShort()})</span>
-                      </th>
-                      <th className="text-left p-4 font-medium">
-                        Platform{" "}
-                        <span className="text-muted-foreground font-normal">({PLATFORM_PRICING.standard()})</span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {PRICING_ROWS.map((row) => (
-                      <tr key={row.feature} className="border-b border-border last:border-b-0">
-                        <td className="p-4 text-foreground">{row.feature}</td>
-                        <td className="p-4">{row.free}</td>
-                        <td className="p-4 font-medium">{row.sub}</td>
-                        <td className="p-4 font-medium text-green-700">{row.platform}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </CardContent>
-            </Card>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="mb-1">Intelligence</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    {INTELLIGENCE_PRICING.monthlyShort()} — the lower-friction way in for a single organisation.
+                  </p>
+                  <Button asChild variant="outline" className="min-h-[44px]">
+                    <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "Get Intelligence", cta_position: "pricing" })}>
+                      Get Intelligence <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="mb-1">Professional</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    {PLATFORM_PRICING.standard()} — for teams and advisers managing multiple clients.
+                  </p>
+                  <Button asChild className="min-h-[44px]">
+                    <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "View plans", cta_position: "pricing" })}>
+                      View plans <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+            <p className="text-sm text-muted-foreground mt-4">
+              All covered states · save/resume · RoPA pre-fill · annual refresh · PDF / Word / HTML.{" "}
+              <Link to="/subscribe" className="underline">Compare plans</Link>.
+            </p>
           </div>
         </section>
+
 
         {/* FAQ */}
         <section className="py-16 md:py-20 border-t border-border bg-muted/20">
