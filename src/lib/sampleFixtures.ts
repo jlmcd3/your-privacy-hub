@@ -173,6 +173,13 @@ const F_DPIA_EU: SampleFixture = {
           "4–6 campaigns per year, each producing ~40,000 raw frames. Raw frames retained 30 days; processed mosaics (with all residential edges blurred) retained for the life of the prospecting permit.",
         retention_period:
           "Raw frames: 30 days from capture, then deleted via automated job. Blurred mosaics: duration of the prospecting permit plus 2 years for regulatory dispute window.",
+        // DOC 131 (2026-09-01) — the imagery-capture typed facts (doc 130 B1
+        // option (a)); the drone sample exercises the incidental fact-walk
+        // branch and the r10 imagery risk spec.
+        imagery_capture: "Imagery or video in which identifiable individuals appear incidentally",
+        imagery_capture_spaces: "Publicly accessible spaces",
+        imagery_capture_detail:
+          "Survey transit corridors and block edges clip residential boundaries; faces, license plates, and house numbers are blurred by the QA-reviewed pipeline before any release, and raw frames are deleted at 30 days.",
         third_party_processors: [
           "Glacier Peak Hosting GmbH (DE) cloud storage; OrthoMosaic Alpine SA (CH) photogrammetry processing",
         ],

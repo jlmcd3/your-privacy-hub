@@ -210,7 +210,9 @@ Deno.test("risk specs — every spec carries exactly one ratified risk class", (
     "r5_third_country_transfer",
     "r6_processor_chain",
   ]);
-  assertEquals(design.length, 6);
+  // DOC 131 (2026-09-01) — r10_imagery_identifiable_capture joins the design
+  // class (CEO-ratified doc 130 B1).
+  assertEquals(design.length, 7);
 });
 
 Deno.test("no-padding law — an empty surface yields no table", () => {

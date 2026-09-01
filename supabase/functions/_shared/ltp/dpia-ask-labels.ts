@@ -43,6 +43,9 @@ export type DpiaAskClass =
   // DOC 130 DPIA-A28 (2026-09-01) — the term-coverage half of the Art. 28
   // split: the instrument exists, the 28(3) task coverage is the open ask.
   | "ask_processor_terms_coverage"
+  // DOC 131 (2026-09-01) — the Art. 35(3)(c) undetermined-branch ask:
+  // imagery subjects recorded, publicly-accessible status unanswered.
+  | "ask_imagery_spaces"
   | "ask_art9_condition"
   | "ask_art9_other_category"
   | "ask_transfer_mechanism"
@@ -105,6 +108,10 @@ export const DPIA_ASK_LABELS: Readonly<Record<DpiaAskClass, string>> = Object.fr
   // ask_dpo_formalities above).
   ask_processor_terms_coverage:
     "the obligations and tasks each processor performs, so the Art. 28(3) required terms of the recorded contract can be assessed against them",
+  // DOC 131 (DPIA batch, CEO-ratified doc 130 B2, 2026-09-01) — same
+  // advance-ratification footing as the entry above.
+  ask_imagery_spaces:
+    "whether the spaces in which the imagery is captured are publicly accessible, so the Article 35(3)(c) trigger can be resolved",
   ask_art9_condition: "the Art. 9(2) condition relied on for {item}",
   // 2026-08-26 "Other"-bypass guard (CEO batch ruling) — implementation-
   // authored label, advance-ratification ledger, CEO redline pending.
@@ -154,9 +161,10 @@ export function serializeAskLabels(): string {
  *  2026-08-26 re-pin (ask_art9_other_category): 8ed74af5082d0e0472ef96d81d571f1b26b213ede8f27a51019d0284077a5df1
  *  2026-08-29 re-pin (ask_portability_conditions): 0e51b7e9ab67f0339e8afa42cb1f2a76552d3924ef351e2530270b1b45ef4340
  *  2026-08-30 re-pin (ask_transfer_leg_unresolved): 858c465a9d12f30b8334d100feb37db00117851a6364d3e1732ce41097ff7a80
- *  2026-09-01 re-pin (ask_processor_terms_coverage, DOC 130 DPIA-A28): 201a87bfc428d09f2903b807f80486ed9078e3ceb6183dbf85df9f880906e8a9 was the prior pin */
+ *  2026-09-01 re-pin (ask_processor_terms_coverage, DOC 130 DPIA-A28): 201a87bfc428d09f2903b807f80486ed9078e3ceb6183dbf85df9f880906e8a9 was the prior pin
+ *  2026-09-01 re-pin (ask_imagery_spaces, DOC 131): 201c8c3d156407b9f123e4b7162a09e8862c421eb529d914bcd8796b4aeaa47b was the prior pin */
 export const DPIA_ASK_LABELS_HASH =
-  "201c8c3d156407b9f123e4b7162a09e8862c421eb529d914bcd8796b4aeaa47b";
+  "21c3ec3e51f1f248bc6ba8002480ddf783dc97ebe161dcb0b9fefa28de0d0117";
 
 
 /** Recompute the hash (async — Web Crypto). Used by the pin test. */

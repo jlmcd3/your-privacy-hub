@@ -380,16 +380,76 @@ export function buildDpiaEngagementMap(
     section_ref: "section_1_description",
   });
 
-  entries.push({
-    rule_id: "R_ART_35_3_C_PUBLIC_MONITORING",
-    name: "Article 35(3)(c) — systematic monitoring of publicly accessible areas",
-    status: looksPublicMonitoring ? "engaged" : "not_engaged",
-    rationale: looksPublicMonitoring
-      ? "The record describes monitoring of a publicly accessible physical area (CCTV / public-space monitoring); Art. 35(3)(c) is engaged."
-      : "The record does not describe physical-space public monitoring; per the rule, online platform monitoring engages Art. 35(1) with WP248 criterion 3, not Art. 35(3)(c).",
-    intake_signals: ["description", "purpose"],
-    section_ref: "section_1_description",
-  });
+  // DOC 131 (DPIA batch; doc 130 B2 fact-walk RATIFIED as drafted,
+  // 2026-09-01) — where the imagery-capture typed facts are answered, the
+  // Art. 35(3)(c) determination runs the ratified four-branch fact-walk on
+  // them, replacing the description lexicon; a record without the new facts
+  // keeps the pre-existing lexicon behavior byte-identical (legacy rows'
+  // determinations are unchanged). The optional detail narrative is quoted
+  // verbatim as supporting context and never decides a branch.
+  entries.push((() => {
+    const imageryCapture = asStr(intake?.imagery_capture);
+    const imagerySpaces = asStr(intake?.imagery_capture_spaces);
+    const imageryDetail = asStr(intake?.imagery_capture_detail);
+    const CAP_NONE = "No imagery or video of identifiable individuals";
+    const CAP_SUBJECTS = "Imagery or video in which identifiable individuals are the subjects";
+    const CAP_INCIDENTAL = "Imagery or video in which identifiable individuals appear incidentally";
+    const base = {
+      rule_id: "R_ART_35_3_C_PUBLIC_MONITORING",
+      name: "Article 35(3)(c) — systematic monitoring of publicly accessible areas",
+      intake_signals: ["imagery_capture", "imagery_capture_spaces", "description", "purpose"],
+      section_ref: "section_1_description",
+    };
+    if (!imageryCapture) {
+      // Legacy path — pre-DOC-131 lexicon behavior, unchanged.
+      return {
+        ...base,
+        intake_signals: ["description", "purpose"],
+        status: looksPublicMonitoring ? "engaged" as const : "not_engaged" as const,
+        rationale: looksPublicMonitoring
+          ? "The record describes monitoring of a publicly accessible physical area (CCTV / public-space monitoring); Art. 35(3)(c) is engaged."
+          : "The record does not describe physical-space public monitoring; per the rule, online platform monitoring engages Art. 35(1) with WP248 criterion 3, not Art. 35(3)(c).",
+      };
+    }
+    const lead = `Article 35(3)(c) requires an assessment where there is "a systematic monitoring of a publicly accessible area on a large scale." The record states: "${imageryCapture}"${imagerySpaces ? `; "${imagerySpaces}"` : ""}${volume ? `; volume and frequency: "${volume}"` : ""}.`;
+    const detailNote = imageryDetail ? ` The Company adds: "${imageryDetail}".` : "";
+    const publicSpaces = imagerySpaces === "Publicly accessible spaces" || imagerySpaces === "Both";
+    if (imageryCapture === CAP_NONE) {
+      return {
+        ...base,
+        status: "not_engaged" as const,
+        rationale: `${lead} No imagery or video of identifiable individuals is captured, so Article 35(3)(c) is not engaged on the record as described.${detailNote}`,
+      };
+    }
+    if (imageryCapture === CAP_INCIDENTAL) {
+      const subjectMatter = asStr(intake?.processing_activity_name);
+      return {
+        ...base,
+        status: "not_engaged" as const,
+        rationale: `${lead} On those facts the recording of individuals is incidental to ${subjectMatter ? `"${subjectMatter}"` : "the recorded subject-matter of the capture"} and is not directed at observing persons; Article 35(3)(c) is therefore not engaged on the record as described, and the general Article 35(1) test — which this assessment applies in any event — governs. This determination is bound to the incidental character as recorded: if capture becomes directed at persons, the trigger must be re-run.${detailNote}`,
+      };
+    }
+    if (imageryCapture === CAP_SUBJECTS && publicSpaces) {
+      return {
+        ...base,
+        status: "engaged" as const,
+        rationale: `${lead} Those facts describe observation of publicly accessible areas that is systematic and large-scale, so Article 35(3)(c) is engaged and this assessment is required on that ground.${detailNote}`,
+      };
+    }
+    if (imageryCapture === CAP_SUBJECTS && imagerySpaces === "Private or controlled premises") {
+      return {
+        ...base,
+        status: "not_engaged" as const,
+        rationale: `${lead} On those facts the spaces recorded are not publicly accessible areas, so Article 35(3)(c) is not engaged on the record as described, and the general Article 35(1) test — which this assessment applies in any event — governs.${detailNote}`,
+      };
+    }
+    // Subjects captured, spaces unanswered — the ratified undetermined branch.
+    return {
+      ...base,
+      status: "conditional" as const,
+      rationale: `${lead} The record does not state whether the spaces recorded are publicly accessible, so the trigger cannot be resolved; the assessment proceeds on the more protective footing that an assessment is required — which this document itself satisfies — and the open fact is recorded among the follow-ups.${detailNote}`,
+    };
+  })());
 
   entries.push({
     rule_id: "R_ART_9_SPECIAL_CATEGORIES",

@@ -16,6 +16,10 @@ const EXEMPT = new Set([
   "source_assessment_id",
   "controller_land",
   "eu_decision_establishment_country",
+  // DOC 131 (2026-09-01) — conditional/hiddenValue field: asked only when
+  // imagery_capture is not the "No imagery" value; both perfect fixtures
+  // truthfully answer No, so the spaces question is legitimately hidden.
+  "imagery_capture_spaces",
 ]);
 
 function filled(v: unknown): boolean {

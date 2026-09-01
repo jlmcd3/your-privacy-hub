@@ -1159,6 +1159,8 @@ function facts(intake: unknown): RiskFacts {
       ?.purpose_text ?? "",
 
     volume: str(get(intake, "volume_frequency")),
+    // DOC 131 — the imagery-capture typed fact (doc 130 B1 option (a)).
+    imageryCapture: str(get(intake, "imagery_capture")),
   };
 }
 
@@ -3424,6 +3426,30 @@ export function buildGapLedgerDetailed(
       "the prior-consultation determination",
       a36,
     );
+  }
+
+  // DOC 131 (DPIA batch, CEO-ratified doc 130 B2, 2026-09-01) — the
+  // Art. 35(3)(c) undetermined branch: identifiable individuals are the
+  // recorded subjects of imagery capture but the publicly-accessible status
+  // of the spaces is unanswered. The engagement map's undetermined wording
+  // promises the open fact "among the follow-ups" — this entry is that
+  // follow-up (labeled, so mergeLabeledAsks can never drop it from the
+  // executive count — the doc 119 S1.8 lesson).
+  {
+    const imageryCapture = str(get(_intake, "imagery_capture"));
+    const imagerySpaces = str(get(_intake, "imagery_capture_spaces"));
+    if (
+      imageryCapture === "Imagery or video in which identifiable individuals are the subjects" &&
+      !imagerySpaces
+    ) {
+      push(
+        "imagery_capture_spaces",
+        "Whether the spaces in which imagery or video of identifiable individuals is captured are publicly accessible, so the Article 35(3)(c) trigger can be resolved.",
+        "GDPR Art. 35(3)(c)",
+        "the Article 35(3)(c) trigger determination",
+        { ask_class: "ask_imagery_spaces", display_label: resolveAskLabel("ask_imagery_spaces") },
+      );
+    }
   }
 
   // Decision blockers are the same asks aggregated; they carry no field of

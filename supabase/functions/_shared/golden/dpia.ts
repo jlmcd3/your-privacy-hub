@@ -211,6 +211,13 @@ export const DPIA_PERFECT: GoldenCase[] = [
       data_minimisation_justification:
         "Only the diagnosis category, certified dates and prescribed restrictions are recorded; free-text clinical notes are not transcribed into the HR system.",
       retention_period: "18 months from the end of the absence, then deleted.",
+      // DOC 131 (2026-09-01) — the imagery-capture typed facts (doc 130 B1
+      // option (a)); the perfect fixtures answer every asked contract question,
+      // and this processing captures no imagery of identifiable individuals.
+      imagery_capture: "No imagery or video of identifiable individuals",
+      imagery_capture_spaces: "",
+      imagery_capture_detail:
+        "Certificates are documents; no photographic, video, or CCTV material is processed.",
       existing_safeguards: [
         "Encryption at rest",
         "Encryption in transit",
@@ -329,6 +336,13 @@ export const DPIA_PERFECT: GoldenCase[] = [
       data_minimisation_justification:
         "Only message metadata and computed sentiment scores are retained; raw post text is discarded within 48 hours of scoring; individual flags carry a pseudonymised identifier resolvable only by the occupational-health advisers.",
       retention_period: "Team-level trends 12 months; individual flags deleted 90 days after the occupational-health case closes.",
+      // DOC 131 (2026-09-01) — the imagery-capture typed facts (doc 130 B1
+      // option (a)); the perfect fixtures answer every asked contract question,
+      // and this processing captures no imagery of identifiable individuals.
+      imagery_capture: "No imagery or video of identifiable individuals",
+      imagery_capture_spaces: "",
+      imagery_capture_detail:
+        "Certificates are documents; no photographic, video, or CCTV material is processed.",
       existing_safeguards: [
         "Encryption at rest",
         "Encryption in transit",

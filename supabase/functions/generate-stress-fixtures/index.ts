@@ -440,7 +440,10 @@ Return a JSON object with EXACTLY these fields:
     "data_categories": ["array"], "data_subjects": "string", "volume_frequency": "string",
     "retention_period": "string", "third_party_processors": ["array"], "automated_decisions": "string",
     "existing_safeguards": ["array"], "jurisdictions": ["array"],
-    "legal_basis_proposed": "string", "controller_sector": "string"
+    "legal_basis_proposed": "string", "controller_sector": "string",
+    "imagery_capture": "one of EXACTLY: 'No imagery or video of identifiable individuals' | 'Imagery or video in which identifiable individuals are the subjects' | 'Imagery or video in which identifiable individuals appear incidentally' — DOC 131 typed fact, always answer it with the value the scenario supports",
+    "imagery_capture_spaces": "when imagery_capture is not the No value, one of EXACTLY: 'Publicly accessible spaces' | 'Private or controlled premises' | 'Both'; otherwise the empty string",
+    "imagery_capture_detail": "one or two scenario-specific sentences about the imagery, or why none exists"
   },
   "ropa": {
     "org_name": "string", "legal_entity_type": "string", "employee_band": "string",

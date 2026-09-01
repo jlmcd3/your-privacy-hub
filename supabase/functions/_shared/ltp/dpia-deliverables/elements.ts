@@ -70,7 +70,14 @@ export interface RiskFacts {
   readonly reasons: readonly string[];
   readonly secondaryUses: string;
   readonly volume: string;
+  /** DOC 131 (CEO-ratified 2026-09-01, doc 130 B1 option (a)) — the
+   * imagery-capture enum answer, verbatim; "" when unanswered (legacy). */
+  readonly imageryCapture: string;
 }
+
+/** DOC 131 — the imagery-capture "No" enum value the r10 trigger negates.
+ * Byte-identical to DPIA_IMAGERY_CAPTURE[0] in the intake contract. */
+export const IMAGERY_CAPTURE_NONE = "No imagery or video of identifiable individuals";
 
 const SPECIAL_CATS = ["Health or medical data", "Biometric data"];
 
@@ -186,6 +193,23 @@ export const DPIA_RISK_SPECS: readonly RiskSpec[] = [
       "The record describes secondary uses of the same data, which must each remain compatible with the purpose for which the data was collected.",
     mitigating_safeguards: ["Contractual restrictions", "Data minimisation", "Access controls"],
     trigger: (f) => f.secondaryUses.length > 0,
+  },
+  {
+    // DOC 131 (DPIA batch, CEO-ratified 2026-09-01; doc 130 B1 approved as
+    // drafted, id shifted r8→r10 because r8/r9 were taken) — capture of
+    // identifiable individuals in imagery, including incidental capture.
+    // Trigger is the typed imagery_capture enum (option (a)); blurring/
+    // redaction pipelines credit under Anonymisation.
+    risk_id: "r10_imagery_identifiable_capture",
+    risk_class: "design",
+    risk_label: "Capture of identifiable individuals in imagery, including individuals recorded incidentally",
+    affected_rights:
+      "Art. 5(1)(c) minimisation; the private life and image of persons recorded, including those who are not subjects of the processing",
+    severity: "Significant",
+    source_template:
+      "The record describes imagery in which identifiable individuals appear, including individuals who are not the subjects of the processing; each appearance is an exposure of those persons for as long as unredacted material is retained.",
+    mitigating_safeguards: ["Anonymisation", "Pseudonymisation", "Data minimisation", "Access controls"],
+    trigger: (f) => !!f.imageryCapture && f.imageryCapture !== IMAGERY_CAPTURE_NONE,
   },
 ];
 

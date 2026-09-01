@@ -72,6 +72,24 @@ export const DPIA_REASONS = [
   "Existing processing — the risk has changed",
 ] as const;
 
+// DOC 131 (DPIA batch, CEO-ratified 2026-09-01 per doc 130 B1 option (a)) —
+// the imagery-capture typed facts. Fixed-choice enums (radio buttons in the
+// UI, never free text) so the r10 risk-spec trigger and the Art. 35(3)(c)
+// fact-walk branch on byte-exact values; the optional detail narrative is
+// quoted verbatim as supporting context and never decides anything (the LIA
+// reasonable_expectation_detail pattern). All optional (degradation law) so
+// legacy rows validate; Lovable UI wiring follows.
+export const DPIA_IMAGERY_CAPTURE = [
+  "No imagery or video of identifiable individuals",
+  "Imagery or video in which identifiable individuals are the subjects",
+  "Imagery or video in which identifiable individuals appear incidentally",
+] as const;
+export const DPIA_IMAGERY_SPACES = [
+  "Publicly accessible spaces",
+  "Private or controlled premises",
+  "Both",
+] as const;
+
 // SPECIAL_CATEGORY_CATS — page L58; gates article_9_condition requiredness.
 const SPECIAL_CATEGORY_CATS = ["Health or medical data", "Biometric data"] as const;
 
@@ -100,6 +118,16 @@ export const dpiaFrameworkContract: IntakeContract = {
       hiddenValue: "", options: DPIA_ART9 },
     { key: "necessity_proportionality", kind: "narrative", required: "always" },
     { key: "retention_period", kind: "text", required: "always" },
+
+    // DOC 131 — imagery-capture typed facts (doc 130 B1 option (a)). The
+    // spaces question is asked only when capture is reported (the
+    // article_9_condition conditional/hiddenValue pattern), so a "No"
+    // answer legitimately leaves it hidden-empty.
+    { key: "imagery_capture", kind: "enum", required: "optional", options: DPIA_IMAGERY_CAPTURE },
+    { key: "imagery_capture_spaces", kind: "enum", required: "conditional",
+      requiredWhen: 'imagery_capture is answered and is not the "No imagery" value',
+      hiddenValue: "", options: DPIA_IMAGERY_SPACES },
+    { key: "imagery_capture_detail", kind: "narrative", required: "optional" },
 
     // EDPB §0 — carried now, consumed by edge rebuild
     { key: "controller_contact", kind: "text", required: "optional" },

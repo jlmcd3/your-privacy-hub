@@ -58,6 +58,9 @@ const RATIFIED: Record<string, string> = {
   // 2026-09-01) — the coverage half of the Art. 28 existence/terms split.
   ask_processor_terms_coverage:
     "the obligations and tasks each processor performs, so the Art. 28(3) required terms of the recorded contract can be assessed against them",
+  // DOC 131 (DPIA batch, CEO-ratified doc 130 B2, 2026-09-01).
+  ask_imagery_spaces:
+    "whether the spaces in which the imagery is captured are publicly accessible, so the Article 35(3)(c) trigger can be resolved",
   ask_art9_condition: "the Art. 9(2) condition relied on for {item}",
   ask_transfer_mechanism: "the Chapter V mechanism relied on for the transfer to {dest}",
   ask_dpa_contracts:
@@ -89,9 +92,9 @@ const RATIFIED: Record<string, string> = {
     "whether a cross-border transfer arises from {party}; if so, the destination and the Chapter V mechanism relied on",
 };
 
-Deno.test("9A — all 35 registry entries are byte-exact (9M: +2; Other-guard: +1; DPIA-1: +1; P3: +1; Delta: +1; DOC130 A28: +1)", () => {
-  assertEquals(DPIA_ASK_CLASSES.length, 35);
-  assertEquals(Object.keys(RATIFIED).length, 35);
+Deno.test("9A — all 36 registry entries are byte-exact (9M: +2; Other-guard: +1; DPIA-1: +1; P3: +1; Delta: +1; DOC130 A28: +1; DOC131 imagery: +1)", () => {
+  assertEquals(DPIA_ASK_CLASSES.length, 36);
+  assertEquals(Object.keys(RATIFIED).length, 36);
   for (const [id, bytes] of Object.entries(RATIFIED)) {
     assertEquals(DPIA_ASK_LABELS[id as keyof typeof DPIA_ASK_LABELS], bytes, id);
   }
