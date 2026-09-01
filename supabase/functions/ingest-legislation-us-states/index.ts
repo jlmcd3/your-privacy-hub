@@ -167,8 +167,7 @@ Deno.serve(async (req) => {
               summary: lastAction || null,
               key_provisions: [],
               source_url: officialUrl ?? legiscanUrl,
-              source_name: stateLink ? stateName : "LegiScan",
-
+              source_name: !isAggregatorUrl(officialUrl) ? `${stateName} Legislature` : "LegiScan",
               introduced_at: null,
               source_last_action_at: lastActionDate ? lastActionDate.slice(0, 10) : null,
               matched_keywords: matched,
@@ -177,7 +176,9 @@ Deno.serve(async (req) => {
                 relevance,
                 change_hash: result?.change_hash,
                 text_url: result?.text_url,
+                legiscan_url: legiscanUrl,
               },
+
             };
 
             const err = validateBill(bill);
