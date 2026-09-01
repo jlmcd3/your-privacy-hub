@@ -29,7 +29,6 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 import { toast } from "sonner";
-import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import { useRefineMode } from "@/hooks/useRefineMode";
