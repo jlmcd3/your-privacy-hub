@@ -66,26 +66,25 @@ export default function RegistrationLanding() {
         />
         <link rel="canonical" href="https://enduserprivacy.com/registration-manager" />
       </Helmet>
-      <main id="main-content" aria-label="Registration Manager"><div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-        <ToolTierNote />
-      </div>
+      <main id="main-content" aria-label="Registration Manager">
 
       {/* PRE-INTAKE REDESIGN (2026-08-26): nav-only chip (price moves to the
           pricing section), name-led H1; the legal trigger moves into the
-          applicability card below the hero. */}
+          applicability card below the hero. The conditional "subscriber rate"
+          note is retired — filings are a flat per-filing price for everyone. */}
       <ProductHero
         geography="us"
         eyebrowLabel={<><Folder aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("registration")}</>}
         title="Privacy Registration Manager"
-        valueProposition={`Privacy registration filings, drafted and tracked — DPO appointments, RoPA templates, Article 27 representative letters, and EU AI Act registration documents, generated in minutes and renewed on schedule. ${formatPrice("registration_standalone")} per filing.`}
-        citationLine="Free assessment · No card required · Pay only when you generate documents"
+        valueProposition={`Find where you need to register for free. Generate authority-specific filing packs only when you need them — ${formatPrice("registration_standalone")} per filing.`}
+        citationLine={`Free scope assessment · No card required · ${formatPrice("registration_standalone")} only when you generate a filing`}
         showIntakeCta={false}
       >
         <Button size="lg" asChild className="bg-white text-slate-900 hover:bg-slate-100">
-          <Link to="/registration-manager/start" onClick={() => fireConversion("tool_start_click", { tool_slug: "registration", page_path: "/registration-manager", user_type: userType })}>Start free assessment <ArrowRight className="ml-2 w-4 h-4" /></Link>
+          <Link to="/registration-manager/start" onClick={() => fireConversion("tool_start_click", { tool_slug: "registration", page_path: "/registration-manager", user_type: userType })}>Start free scope assessment <ArrowRight className="ml-2 w-4 h-4" /></Link>
         </Button>
         <Button size="lg" variant="outline" asChild className="bg-transparent border-slate-500 text-white hover:bg-slate-800 hover:text-white">
-          <Link to="#how-it-works">How it works</Link>
+          <Link to="#what-you-get">See what {formatPrice("registration_standalone")} includes</Link>
         </Button>
       </ProductHero>
       <ProductInfoCards
@@ -94,18 +93,19 @@ export default function RegistrationLanding() {
           {
             title: "Does the registration duty apply to you?",
             tone: "amber",
-            body: "Several jurisdictions require controllers to register with — or pay a data-protection fee to — their supervisory authority. In the UK, the ICO data-protection fee is a legal requirement for most organisations.",
+            body: "Registration and data-protection fee duties vary by jurisdiction. The free assessment identifies the authorities and filing types that may apply to your facts.",
           },
           {
-            title: "What you receive",
-            body: "Filings tailored to every jurisdiction you operate in — DPO appointment letters, RoPA templates, Article 27 representative letters, and EU AI Act registration documents — with renewals tracked on schedule.",
+            title: `What you get for ${formatPrice("registration_standalone")}`,
+            body: "Authority-specific filing documents, a submission checklist, verified portal links and fees, and the renewal date in your workspace. Examples include DPO appointment letters, Article 27 representative letters, EU AI Act registrations, and RoPA or fee documents.",
           },
           {
-            title: "Why trust the analysis",
-            body: "Built from each supervisory authority's own registration and fee requirements, jurisdiction by jurisdiction — including the ICO's data-protection-fee rules and the EU AI Act's registration provisions.",
+            title: "Why trust it",
+            body: "Built from supervisory-authority registration and fee requirements, jurisdiction by jurisdiction, with a verification date recorded for each filing pack.",
           },
         ]}
       />
+
       <PageContainer>
 
         {/* 2. Problem */}
