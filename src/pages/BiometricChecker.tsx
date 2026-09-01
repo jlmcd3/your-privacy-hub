@@ -350,7 +350,7 @@ export default function BiometricChecker() {
                 : undefined
             }
             meter={meter ?? null}
-            preRunHint="The entity name you set below is fixed once you first generate. Everything else stays editable across your included revision runs."
+            preRunHint="The entity name you set below is fixed once you first generate. Everything else stays editable until you generate."
           />
           <BenchLayout
             toolType="biometric"

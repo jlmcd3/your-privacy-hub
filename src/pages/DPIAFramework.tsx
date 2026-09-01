@@ -685,7 +685,7 @@ const DPIAFramework = () => {
           <div data-rail-key="name" onFocus={() => handleLocalRailFocus("name")}>
             <Label>What do you call this processing activity?<Req /></Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Employee location monitoring" className="mt-2" />
-            <p className="text-meta text-muted-foreground mt-1">One activity, named the way your organisation refers to it. A good answer names the processing rather than the project — the population and the method usually make it clear. This name is fixed once you generate, and everything else stays editable across your revision runs.</p>
+            <p className="text-meta text-muted-foreground mt-1">One activity, named the way your organisation refers to it. A good answer names the processing rather than the project — the population and the method usually make it clear. This name is fixed once you generate, and everything else stays editable until you generate.</p>
           </div>
 
           <div data-rail-key="description" onFocus={() => handleLocalRailFocus("description")}>
