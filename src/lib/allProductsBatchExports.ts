@@ -128,7 +128,9 @@ export async function downloadBatchPdfZip(batchId: string, outcomes: RunOutcome[
   const SIGNED_URL_TTL_MS = 8 * 60 * 1000;
 
   async function renderFresh(o: RunOutcome): Promise<string> {
+    if (DIRECT_PDF_SLUGS.has(o.tool_slug)) return renderRopaPdf(o);
     const { data, error } = await invokeWithTimeout<{ pdf_url?: string; error?: string }>(
+
       "generate-report-pdf",
       { tool_type: SLUG_TO_PDF_TOOL_TYPE[o.tool_slug], assessment_id: o.sourceRowId },
       180_000,
