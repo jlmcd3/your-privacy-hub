@@ -37,7 +37,7 @@ import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { PRICING_REGISTRY } from "@/config/pricing";
-import ProductInfoCards from "@/components/product/ProductInfoCards";
+
 import CompactDisclaimer from "@/components/product/CompactDisclaimer";
 import { useEnforcementSignals } from "@/hooks/useEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
