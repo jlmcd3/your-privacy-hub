@@ -315,10 +315,23 @@ const LIAssessment = () => {
             })}
           </div>
 
-          <div className="mt-5 bg-amber-50 border-l-4 border-amber-400 rounded p-3 text-meta text-amber-900 max-w-[70ch]">
-            <strong>Not legal advice.</strong> This tool produces a compliance framework grounded in tracked regulatory decisions — and cites them directly in the output so you can see the enforcement basis for each verdict. Your final determination should be reviewed by qualified legal counsel.
+          <div className="mt-5 max-w-[70ch]">
+            <p className="text-meta text-muted-foreground">
+              Analytical aid only — final legal-basis determination should be reviewed by qualified counsel.
+            </p>
+            <details className="group mt-1">
+              <summary className="cursor-pointer list-none inline-flex items-center gap-1 text-meta text-muted-foreground underline underline-offset-2 hover:text-foreground">
+                Legal notes
+              </summary>
+              <div className="mt-2 bg-amber-50 border-l-4 border-amber-400 rounded p-3 text-meta text-amber-900">
+                <strong>Not legal advice.</strong> This tool produces a compliance framework grounded in tracked regulatory decisions — and cites them directly in the output so you can see the enforcement basis for each verdict. Your final determination should be reviewed by qualified legal counsel.
+              </div>
+            </details>
           </div>
         </section>
+
+        <ToolAlsoAvailableRow currentTool="lia" />
+
 
         {/* INTAKE FORM / REFINE PANEL */}
         {refine.isRefine && refine.assessmentId && !refine.loading && refine.intake ? (
