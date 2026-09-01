@@ -10,7 +10,6 @@ import { ProductHero } from "@/components/ProductHero";
 import ProductInfoCards from "@/components/product/ProductInfoCards";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { Link } from "react-router-dom";
-import ToolTierNote from "@/components/tools/ToolTierNote";
 // useSubscriptionTier removed — registration is per-filing for all tiers.
 import PageContainer from "@/components/PageContainer";
 import { Button } from "@/components/ui/button";
