@@ -20,21 +20,25 @@ import { US_NOTICE_PRICING, INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/con
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  US_STATE_COUNT,
+  VIRGINIA_MODEL_COUNT,
+  virginiaModelStates,
+  pendingStateLabels,
+} from "@/data/usStateNoticeCoverage";
 
-const VIRGINIA_STATES = [
-  "Virginia", "Colorado", "Connecticut", "Utah", "Texas", "Oregon",
-  "Montana", "Iowa", "Tennessee", "Indiana", "Delaware", "New Hampshire",
-  "New Jersey", "Kentucky", "Minnesota", "Rhode Island", "Nebraska",
-];
+// Coverage counts and state lists derive from the shared registry that also
+// drives the builder itself — never hand-typed here (see usStateNoticeCoverage).
+const VIRGINIA_STATES = virginiaModelStates().map((s) => s.name);
 
-const PENDING_STATES = ["Kentucky (eff. 2026)", "Rhode Island (eff. 2026)"];
+const PENDING_STATES = pendingStateLabels();
 
 const PRICING_ROWS: Array<{ feature: string; free: string; sub: string; platform: string }> = [
   { feature: "Answer all questions", free: "Subscribers only", sub: "", platform: "" },
   { feature: "Save & resume", free: "Subscribers only", sub: "", platform: "" },
   { feature: "Pre-population from RoPA", free: "Subscribers only", sub: "", platform: "" },
   { feature: "Single state notice", free: "Subscribers only", sub: "Included", platform: "Included" },
-  { feature: "All 20 states", free: "Subscribers only", sub: "Included", platform: "Included" },
+  { feature: `All ${US_STATE_COUNT} states`, free: "Subscribers only", sub: "Included", platform: "Included" },
   { feature: "Annual refresh", free: "Subscribers only", sub: "Included", platform: "Included" },
 ];
 
@@ -45,7 +49,7 @@ const FAQ: Array<{ q: string; a: string }> = [
   },
   {
     q: "What's the Virginia model?",
-    a: "17 states share a common notice structure based on the Virginia Consumer Data Protection Act. We ask the questions once and generate separate notices for each selected state.",
+    a: `${VIRGINIA_MODEL_COUNT} states share a common notice structure based on the Virginia Consumer Data Protection Act. We ask the questions once and generate separate notices for each selected state.`,
   },
   {
     q: "How is CCPA different?",
@@ -78,7 +82,7 @@ export default function USNoticeLanding() {
       Object.assign(document.createElement("meta"), { name: "description" });
     meta.setAttribute(
       "content",
-      "Generate privacy notices for all 20 US state privacy laws in one session. CCPA/CPRA, Virginia CDPA, Texas TDPSA, and more. Pre-populated from your RoPA.",
+      `Generate privacy notices for all ${US_STATE_COUNT} US state privacy laws in one session. CCPA/CPRA, Virginia CDPA, Texas TDPSA, and more. Pre-populated from your RoPA.`,
     );
     if (!meta.parentNode) document.head.appendChild(meta);
   }, []);
@@ -99,7 +103,7 @@ export default function USNoticeLanding() {
         geography="us"
         eyebrowLabel={<><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("us_notice", "Included with any subscription")}</>}
         title="US Privacy Notice Builder"
-        valueProposition="All 20 US state privacy notices, generated in one session. Covers CCPA/CPRA, Virginia CDPA, Texas TDPSA, and every active US state privacy law. Pre-populated from your RoPA. Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product."
+        valueProposition={`All ${US_STATE_COUNT} US state privacy notices, generated in one session. Covers CCPA/CPRA, Virginia CDPA, Texas TDPSA, and every active US state privacy law. Pre-populated from your RoPA. Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product.`}
         citationLine="Built from each state statute's own notice content requirements — every disclosure traces to the law that requires it"
         showIntakeCta={false}
       >
@@ -204,6 +208,7 @@ export default function USNoticeLanding() {
                 tag="Very narrow scope — $1B+ revenue only"
                 items={["Florida (FDBR)"]}
               />
+              {PENDING_STATES.length > 0 && (
               <div>
                 <h3 className="text-foreground mb-3">Pending states</h3>
                 <div className="flex flex-wrap gap-2">
@@ -214,6 +219,7 @@ export default function USNoticeLanding() {
                   ))}
                 </div>
               </div>
+              )}
             </div>
           </div>
         </section>
