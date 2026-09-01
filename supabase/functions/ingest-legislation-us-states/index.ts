@@ -89,6 +89,17 @@ Deno.serve(async (req) => {
 
     const seenBillIds = new Set<string>();
 
+    // Already-resolved official links — avoids re-spending getBill quota.
+    const existingUrls = new Map<string, string | null>();
+    {
+      const { data: rows } = await supabase
+        .from("legislation_bills")
+        .select("external_id, source_url")
+        .eq("source", SOURCE);
+      for (const r of rows ?? []) existingUrls.set(String(r.external_id), r.source_url ?? null);
+    }
+
+
     for (const search of SEARCHES) {
       let pageTotal = 4;
       for (let page = 1; page <= Math.min(4, pageTotal); page++) {
