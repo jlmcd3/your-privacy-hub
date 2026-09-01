@@ -182,6 +182,12 @@ const Updates = () => {
     const topicFilter = searchParams.get("topic");
     const regionFilter = searchParams.get("region");
 
+    // Deep-link target captured once on mount (the URL sync effect below strips extra params)
+    const targetArticleIdRef = useRef<string | null>(
+        new URLSearchParams(window.location.search).get("article")
+    );
+
+
 
     // Debounce search term so each keystroke doesn't hit the DB
     const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
