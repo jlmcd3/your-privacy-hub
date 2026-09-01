@@ -15,6 +15,7 @@ import ActiveClientLabel from "@/components/ActiveClientLabel";
 import CopyButton from "@/components/CopyButton";
 import ToolCTABlock from "@/components/ToolCTABlock";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
+import ProductInfoCards from "@/components/product/ProductInfoCards";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import AuthGateModal from "@/components/AuthGateModal";
 import AssessmentReport from "@/components/AssessmentReport";
@@ -275,6 +276,28 @@ export default function BiometricChecker() {
         />
       </ProductHero>
       <ProductHeroSubstrip generationsLine={INCLUDED_GENERATIONS_COPY} />
+      <ProductInfoCards
+        className="mt-6"
+        cards={[
+          {
+            title: "Does a biometric statute apply to you?",
+            tone: "amber",
+            body: "Illinois BIPA requires informed written consent before collection and a published retention-and-destruction schedule, and it carries a private right of action. Texas CUBI, Washington MHMD, and GDPR Article 9 each add their own conditions.",
+          },
+          {
+            title: "What you receive",
+            body: "A per-jurisdiction obligation map across the biometric regimes you select — consent, notice, retention, and destruction duties — with prioritised actions.",
+          },
+          {
+            title: "Built per statute, not per template",
+            body: "Nothing is rendered for a jurisdiction you have not selected. Each statute block is composed from that statute's own text and the modality you capture.",
+          },
+          {
+            title: "Why trust the analysis",
+            body: "Cited enforcement decisions sit behind every priority action. Where a regulator or court has not spoken, the report says so.",
+          },
+        ]}
+      />
       <section className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
         <div className="mb-4">
