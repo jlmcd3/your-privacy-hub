@@ -75,7 +75,7 @@ export default function RegistrationLanding() {
           applicability card below the hero. */}
       <ProductHero
         geography="us"
-        eyebrowLabel={<><Folder aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Registration Manager</>}
+        eyebrowLabel={<><Folder aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("registration")}</>}
         title="Privacy Registration Manager"
         valueProposition={`Privacy registration filings, drafted and tracked — DPO appointments, RoPA templates, Article 27 representative letters, and EU AI Act registration documents, generated in minutes and renewed on schedule. ${formatPrice("registration_standalone")} per filing.`}
         citationLine="Free assessment · No card required · Pay only when you generate documents"

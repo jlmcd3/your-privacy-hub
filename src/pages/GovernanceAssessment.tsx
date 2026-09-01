@@ -550,7 +550,7 @@ const GovernanceAssessment = () => {
           disclaimer is compressed with a Legal notes disclosure. */}
       <ProductHero
         geography="gdpr"
-        eyebrowLabel={<><Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> GDPR Accountability Assessment</>}
+        eyebrowLabel={<><Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("governance")}</>}
         title="GDPR Accountability Assessment"
         valueProposition={INCLUDED_GENERATIONS_HERO}
         citationLine="GDPR Art. 5(2) · Ten governance domains · Cited enforcement decisions behind every risk finding"

@@ -53,7 +53,7 @@ export default function EUNoticeLanding() {
       </div>
       <ProductHero
         geography="global"
-        eyebrowLabel={<><Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> EU & Global Notice Builder · Included with any subscription</>}
+        eyebrowLabel={<><Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("eu_notice", "Included with any subscription")}</>}
         title="EU & Global Privacy Notice Builder"
         showIntakeCta={false}
         valueProposition="Build privacy notices for GDPR, UK GDPR, Swiss FADP, LGPD, APPI, DPDPA, POPIA and 5 more frameworks, in a single guided session. Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product."
