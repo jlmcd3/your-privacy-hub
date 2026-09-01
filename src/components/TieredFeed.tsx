@@ -47,14 +47,17 @@ export function TieredFeed({
       {articles.map((a, index) => (
         <Fragment key={a.id}>
           {interleaveAds && index > 0 && index % 5 === 0 && <InFeedAd />}
-          <ArticleCard
-            item={a}
-            variant="full"
-            isPremium={isPremium}
-            userSalutation={userProfile?.action_brief_salutation}
-          />
+          <div id={`article-${a.id}`} className="scroll-mt-28 rounded-xl transition-shadow">
+            <ArticleCard
+              item={a}
+              variant="full"
+              isPremium={isPremium}
+              userSalutation={userProfile?.action_brief_salutation}
+            />
+          </div>
         </Fragment>
       ))}
+
       {loadMoreButton}
     </div>
   );
