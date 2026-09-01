@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 const BreakingNewsBanner = () => {
-  const [news, setNews] = useState<{ headline: string; url: string } | null>(null);
+  const [news, setNews] = useState<{ headline: string; id: string } | null>(null);
   const [dismissed, setDismissed] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     supabase
       .from("updates")
-      .select("title, url, published_at")
+      .select("id, title, published_at")
       .eq("is_hidden", false)
       .eq("category", "enforcement")
       .order("published_at", { ascending: false })
@@ -20,7 +21,7 @@ const BreakingNewsBanner = () => {
           const publishedAt = new Date(article.published_at);
           const hoursAgo = (Date.now() - publishedAt.getTime()) / (1000 * 60 * 60);
           if (hoursAgo <= 24) {
-            setNews({ headline: article.title, url: article.url });
+            setNews({ headline: article.title, id: article.id });
           }
           // If older than 24 hours, news stays null and banner does not render
         }
