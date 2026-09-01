@@ -40,6 +40,9 @@ export type DpiaAskClass =
   | "ask_dpo"
   | "ask_dpo_formalities"
   | "ask_processor_contract"
+  // DOC 130 DPIA-A28 (2026-09-01) — the term-coverage half of the Art. 28
+  // split: the instrument exists, the 28(3) task coverage is the open ask.
+  | "ask_processor_terms_coverage"
   | "ask_art9_condition"
   | "ask_art9_other_category"
   | "ask_transfer_mechanism"
@@ -96,6 +99,12 @@ export const DPIA_ASK_LABELS: Readonly<Record<DpiaAskClass, string>> = Object.fr
   ask_dpo_formalities:
     "the formal designation record and contact details for the data protection officer named in the assessment team",
   ask_processor_contract: "a written Art. 28 contract with {name}, and the date it was signed",
+  // DOC 130 DPIA-A28 (Batch 3 A-Team recommendation, CEO-approved
+  // 2026-09-01) — the coverage half of the existence/terms split. Advance-
+  // ratification ledger, CEO redline pending (same footing as
+  // ask_dpo_formalities above).
+  ask_processor_terms_coverage:
+    "the obligations and tasks each processor performs, so the Art. 28(3) required terms of the recorded contract can be assessed against them",
   ask_art9_condition: "the Art. 9(2) condition relied on for {item}",
   // 2026-08-26 "Other"-bypass guard (CEO batch ruling) — implementation-
   // authored label, advance-ratification ledger, CEO redline pending.
@@ -144,9 +153,10 @@ export function serializeAskLabels(): string {
  *  9M pin: 290608efbd8dbbde9249db5c7a81baf03bcd84cf5e846f58e02fc02f2e112bdd
  *  2026-08-26 re-pin (ask_art9_other_category): 8ed74af5082d0e0472ef96d81d571f1b26b213ede8f27a51019d0284077a5df1
  *  2026-08-29 re-pin (ask_portability_conditions): 0e51b7e9ab67f0339e8afa42cb1f2a76552d3924ef351e2530270b1b45ef4340
- *  2026-08-30 re-pin (ask_transfer_leg_unresolved): 858c465a9d12f30b8334d100feb37db00117851a6364d3e1732ce41097ff7a80 */
+ *  2026-08-30 re-pin (ask_transfer_leg_unresolved): 858c465a9d12f30b8334d100feb37db00117851a6364d3e1732ce41097ff7a80
+ *  2026-09-01 re-pin (ask_processor_terms_coverage, DOC 130 DPIA-A28): 201a87bfc428d09f2903b807f80486ed9078e3ceb6183dbf85df9f880906e8a9 was the prior pin */
 export const DPIA_ASK_LABELS_HASH =
-  "201a87bfc428d09f2903b807f80486ed9078e3ceb6183dbf85df9f880906e8a9";
+  "201c8c3d156407b9f123e4b7162a09e8862c421eb529d914bcd8796b4aeaa47b";
 
 
 /** Recompute the hash (async — Web Crypto). Used by the pin test. */

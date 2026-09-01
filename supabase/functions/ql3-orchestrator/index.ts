@@ -219,7 +219,7 @@ async function readAssessment(toolSlug: string, assessmentId: string) {
 // "ql3-qlbf3-grader-payload@2026-07-15T02:00Z" while the counterpart
 // grade-single-assessment.BUILD_STAMP moved to the value below; the
 // grader_stamp DB filter depends on the two being byte-identical.
-export const GRADER_STAMP = "post-c1-fix-2-amend-clay-postcutoff-block@2026-07-23T18:45:00Z";
+export const GRADER_STAMP = "doc129-customer-doc-first@2026-09-01";
 
 export interface GraderSample { claude: number | null; gpt: number | null; blended: number | null }
 async function callInternalGrader(toolSlug: string, assessmentId: string): Promise<GraderSample | null> {

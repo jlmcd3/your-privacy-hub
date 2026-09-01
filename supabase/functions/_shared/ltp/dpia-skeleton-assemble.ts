@@ -1012,7 +1012,21 @@ function composeSignoffBody(report: Bag, intake: Bag, values: SlotValues): strin
     parts.push("No approver has been recorded, so the remaining risk levels set out above have not yet been accepted by anyone on the company's behalf.");
   }
 
-  if (basis) parts.push(stop(`The basis recorded for that acceptance is as follows: ${spliceVerbatim(basis)}`));
+  if (basis) {
+    parts.push(stop(`The basis recorded for that acceptance is as follows: ${spliceVerbatim(basis)}`));
+    // DOC 130 DPIA-SIGNOFF (Batch 3 A-Team recommendation, CEO-approved
+    // 2026-09-01) — sign-off traceability guard: where the Company's own
+    // acceptance basis speaks of accepted risks, the reader is pointed to
+    // the register this assessment maintains and told the basis is the
+    // Company's verbatim record — so an approval basis can never silently
+    // appear to rest on risks this report never itemises (the Batch-3
+    // incidental-capture traceability gap, pending the risk-spec ruling).
+    if (/\brisks?\b/i.test(basis) && /(accept|residual)/i.test(basis)) {
+      parts.push(
+        "Where that basis refers to accepted residual risks, the risks this assessment itself identifies, and their remaining levels, are those set out in Section 4; the acceptance basis above is the Company's own record, quoted verbatim, and is not re-derived by this assessment.",
+      );
+    }
+  }
   if (values.dpiaScopeNote) parts.push(stop(`The company has recorded the scope of this assessment as ${values.dpiaScopeNote}`));
   if (values.endDate) parts.push(`The review window the company has recorded runs to ${values.endDate}.`);
 

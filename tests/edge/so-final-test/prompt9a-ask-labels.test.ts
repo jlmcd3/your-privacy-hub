@@ -54,6 +54,10 @@ const RATIFIED: Record<string, string> = {
   ask_dpo_formalities:
     "the formal designation record and contact details for the data protection officer named in the assessment team",
   ask_processor_contract: "a written Art. 28 contract with {name}, and the date it was signed",
+  // DOC 130 DPIA-A28 (Batch 3 A-Team recommendation, CEO-approved
+  // 2026-09-01) — the coverage half of the Art. 28 existence/terms split.
+  ask_processor_terms_coverage:
+    "the obligations and tasks each processor performs, so the Art. 28(3) required terms of the recorded contract can be assessed against them",
   ask_art9_condition: "the Art. 9(2) condition relied on for {item}",
   ask_transfer_mechanism: "the Chapter V mechanism relied on for the transfer to {dest}",
   ask_dpa_contracts:
@@ -85,9 +89,9 @@ const RATIFIED: Record<string, string> = {
     "whether a cross-border transfer arises from {party}; if so, the destination and the Chapter V mechanism relied on",
 };
 
-Deno.test("9A — all 34 registry entries are byte-exact (9M: +2; Other-guard: +1; DPIA-1: +1; P3: +1; Delta: +1)", () => {
-  assertEquals(DPIA_ASK_CLASSES.length, 34);
-  assertEquals(Object.keys(RATIFIED).length, 34);
+Deno.test("9A — all 35 registry entries are byte-exact (9M: +2; Other-guard: +1; DPIA-1: +1; P3: +1; Delta: +1; DOC130 A28: +1)", () => {
+  assertEquals(DPIA_ASK_CLASSES.length, 35);
+  assertEquals(Object.keys(RATIFIED).length, 35);
   for (const [id, bytes] of Object.entries(RATIFIED)) {
     assertEquals(DPIA_ASK_LABELS[id as keyof typeof DPIA_ASK_LABELS], bytes, id);
   }

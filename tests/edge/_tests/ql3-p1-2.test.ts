@@ -46,9 +46,10 @@ Deno.test("TOOL_TABLE: intake column shape is per-tool", () => {
 
 Deno.test("GRADER_STAMP === grade-single-assessment.BUILD_STAMP (mirror asserted)", () => {
   assertEquals(GRADER_STAMP, GRADER_BUILD_STAMP);
-  // ITEM 388 FIX 3: the mirror's truth is grade-single-assessment.BUILD_STAMP,
-  // which moved to the post-c1-fix-2 line on 2026-07-23. Old pin: "ql3-qlbf3-".
-  assert(GRADER_BUILD_STAMP.startsWith("post-c1-fix-2-"));
+  // ITEM 388 FIX 3 (line updated DOC 129/130, 2026-09-01): the mirror's truth
+  // is grade-single-assessment.BUILD_STAMP, now on the doc129 customer-doc-
+  // first line. Old pins: "ql3-qlbf3-", "post-c1-fix-2-".
+  assert(GRADER_BUILD_STAMP.startsWith("doc129-"));
 });
 
 // ---------- Handler input validation (no network) ----------

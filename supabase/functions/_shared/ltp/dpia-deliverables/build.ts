@@ -2999,6 +2999,14 @@ export function buildSection2Coverage(
   const safeguards = arr(get(intake, "existing_safeguards"));
   const processorNames = arr(get(intake, "third_party_processors"));
   const dpaRecorded = safeguards.includes("DPA signed with processor");
+  // DOC 130 DPIA-A28 (Batch 3 A-Team recommendation, CEO-approved
+  // 2026-09-01) — instrument EXISTENCE and Art. 28(3) TERM/TASK COVERAGE are
+  // separate dimensions: "a DPA exists" no longer produces a broad analysed/
+  // no-follow-up state while the processors' recorded obligations and tasks
+  // (the coverage the 28(3) terms must reach) remain undescribed. Same typed
+  // signal the Section-1 inventory already runs on (processor_obligations);
+  // same ask taxonomy, no new ask class.
+  const processorObligations = str(get(intake, "processor_obligations"));
   const processor_contract: DpiaProcessorContractRow = processorNames.length === 0
     ? {
       processors: [],
@@ -3010,14 +3018,27 @@ export function buildSection2Coverage(
       status: "analysed",
       source_field: "third_party_processors",
     }
+    : dpaRecorded && processorObligations
+    ? {
+      processors: processorNames,
+      dpa_recorded: true,
+      finding: `The record selects a signed processing contract as a safeguard and names ${processorNames.join(", ")}, so the Art. 28 instrument is recorded for the processor chain described; the processors' obligations and tasks — the coverage the Art. 28(3) terms must reach — are recorded in the Section 1 inventory.`,
+      citation: a28.citation,
+      authority_verbatim: a28.verbatim,
+      status: "analysed",
+      source_field: "existing_safeguards",
+    }
     : dpaRecorded
     ? {
       processors: processorNames,
       dpa_recorded: true,
-      finding: `The record selects a signed processing contract as a safeguard and names ${processorNames.join(", ")}, so the Art. 28 instrument is recorded for the processor chain described.`,
+      finding: `The record selects a signed processing contract as a safeguard and names ${processorNames.join(", ")}, so the Art. 28 instrument is recorded. Whether that instrument covers the Art. 28(3) required terms for the processors' actual tasks is a separate question, and the record does not describe the processors' obligations and tasks, so the term-coverage dimension remains open.`,
       citation: a28.citation,
       authority_verbatim: a28.verbatim,
-      status: "analysed",
+      status: "record_insufficient",
+      information_needed: ASK_PROCESSOR_OBLIGATIONS,
+      ask_class: "ask_processor_terms_coverage",
+      display_label: resolveAskLabel("ask_processor_terms_coverage"),
       source_field: "existing_safeguards",
     }
     : {

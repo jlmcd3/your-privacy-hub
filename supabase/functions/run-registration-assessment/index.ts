@@ -205,6 +205,17 @@ function resolveIcoFeeTier(intake: any): IcoTierResolution {
     tier = sizeTier;
     boundary = true; // organization_size alone can't confirm the axis-based tier.
   }
+  // DOC 130 REG-1 (Batch 3 follow-up, 2026-09-01) — the 0.80 GBP/USD
+  // planning-rate conversion is an assumption, and where a plausible-rate
+  // range (0.72-0.88) would straddle a tier threshold, the conversion is
+  // load-bearing and the boundary confirm-note must fire.
+  if (hasRevenue) {
+    const lo = revenueUsd * 0.72;
+    const hi = revenueUsd * 0.88;
+    if ((lo <= T2_TURNOVER_GBP && hi > T2_TURNOVER_GBP) || (lo <= T1_TURNOVER_GBP && hi > T1_TURNOVER_GBP)) {
+      boundary = true;
+    }
+  }
   const feeMap: Record<1 | 2 | 3, number> = { 1: FEE_T1, 2: FEE_T2, 3: FEE_T3 };
   const fee_cents = tier ? feeMap[tier] : null;
   const basisBits: string[] = [];
@@ -212,8 +223,13 @@ function resolveIcoFeeTier(intake: any): IcoTierResolution {
   if (hasRevenue) basisBits.push(`turnover ≈ £${Math.round(revenueGbp).toLocaleString("en-GB")} (from annual_revenue_usd)`);
   if (!basisBits.length && sizeTier) basisBits.push(`organization_size "${orgSize}"`);
   const basis = basisBits.length ? basisBits.join(" and ") : "no distinguishing intake fields";
+  // DOC 130 REG-1 — the conversion assumption is always disclosed where it
+  // was used, never implied to be a recorded GBP figure.
+  const conversionNote = hasRevenue
+    ? " The turnover figure is converted from the recorded USD revenue at a 0.80 GBP/USD planning rate; confirm the organisation's GBP turnover against the ICO thresholds before filing."
+    : "";
   const narrative = tier
-    ? `ICO Data-Protection Fee resolved to Tier ${tier} (£${(feeMap[tier] / 100).toFixed(2)}) from ${basis}.`
+    ? `ICO Data-Protection Fee resolved to Tier ${tier} (£${(feeMap[tier] / 100).toFixed(2)}) from ${basis}.${conversionNote}`
     : `ICO Data-Protection Fee tier could not be resolved from the record (${basis}); confirm the tier via the ICO fee self-assessment.`;
   return { tier, fee_cents, narrative, boundary };
 }
