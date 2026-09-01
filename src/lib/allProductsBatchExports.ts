@@ -14,13 +14,16 @@
 import JSZip from "jszip";
 import { toast } from "sonner";
 import { invokeWithTimeout } from "@/lib/sampleGenerators";
+import { supabase } from "@/integrations/supabase/client";
 import { updateOutcome, type RunOutcome } from "@/lib/allProductsOutcomes";
 import type { ToolSlug } from "@/lib/sampleFixtures";
 
 /**
- * Panel slug → generate-report-pdf tool_type. Session-shaped products (RoPA,
- * the two Notice builders) have no generate-report-pdf branch and are skipped
- * by the zip with a note in the toast.
+ * Panel slug → generate-report-pdf tool_type. Session-shaped products (the two
+ * Notice builders, which are HTML-only) have no generate-report-pdf branch and
+ * are skipped by the zip with a note in the toast. RoPA is session-shaped too,
+ * but it renders a real PDF through its own `generate-ropa-document` function,
+ * so the zip pulls it directly (see `renderRopaPdf`).
  */
 export const SLUG_TO_PDF_TOOL_TYPE: Partial<Record<ToolSlug, string>> = {
   li_assessment: "li_assessment",
@@ -34,6 +37,55 @@ export const SLUG_TO_PDF_TOOL_TYPE: Partial<Record<ToolSlug, string>> = {
   ir_playbook: "ir_playbook",
   registration: "registration_assessment",
 };
+
+/** Products the zip can render even though generate-report-pdf has no branch. */
+const DIRECT_PDF_SLUGS: ReadonlySet<ToolSlug> = new Set<ToolSlug>(["ropa" as ToolSlug]);
+
+const isRenderable = (o: RunOutcome) =>
+  Boolean(SLUG_TO_PDF_TOOL_TYPE[o.tool_slug]) || DIRECT_PDF_SLUGS.has(o.tool_slug);
+
+/**
+ * RoPA: the run's sourceRowId is a ropa_document_versions id (or, for legacy
+ * rows, the session id). Resolve the session, ask generate-ropa-document for a
+ * fresh signed PDF URL, and re-generate once if no current PDF version exists.
+ */
+async function renderRopaPdf(o: RunOutcome): Promise<string> {
+  const rowId = o.sourceRowId as string;
+  const { data: ver } = await supabase
+    .from("ropa_document_versions")
+    .select("session_id")
+    .eq("id", rowId)
+    .maybeSingle();
+  const sessionId = (ver as { session_id?: string } | null)?.session_id ?? rowId;
+
+  const download = async () =>
+    invokeWithTimeout<{ download_url?: string; error?: string }>(
+      "generate-ropa-document",
+      { session_id: sessionId, download_only: true, format: "pdf" },
+      120_000,
+    );
+
+  let res = await download();
+  if (!res.data?.download_url) {
+    // No current PDF version — generate one, then poll for it.
+    await invokeWithTimeout(
+      "generate-ropa-document",
+      { session_id: sessionId, format: "pdf" },
+      120_000,
+    );
+    for (let i = 0; i < 40 && !res.data?.download_url; i++) {
+      await new Promise((r) => setTimeout(r, 3000));
+      res = await download();
+    }
+  }
+  const url = res.data?.download_url;
+  if (!url) {
+    throw new Error(res.error?.message || res.data?.error || "no RoPA PDF available");
+  }
+  updateOutcome(o.id, { pdfUrl: url, pdfUrlAt: Date.now() });
+  return url;
+}
+
 
 export function outcomesForBatch(outcomes: RunOutcome[], batchId: string): RunOutcome[] {
   return outcomes.filter((o) => o.batchId === batchId);
