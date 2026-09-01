@@ -311,15 +311,26 @@ export default function RegistrationLanding() {
 
         {/* 10. Final CTA + disclaimer */}
         <section className="py-12 text-center">
-          <h2 className="font-display text-brand-navy mb-3">Ready to start?</h2>
-          <p className="text-slate text-sm mb-6">The free assessment takes about 5 minutes.</p>
+          <h2 className="font-display text-brand-navy mb-3">Ready to see where you need to file?</h2>
+          <p className="text-slate text-sm mb-6">Start the free scope assessment. No card required.</p>
           <Button size="lg" asChild className="bg-teal-action hover:bg-teal-action-hover text-white rounded-md">
-            <Link to="/registration-manager/start" onClick={() => fireConversion("tool_start_click", { tool_slug: "registration", page_path: "/registration-manager", user_type: userType })}>Start free assessment <ArrowRight className="ml-2 w-4 h-4" /></Link>
+            <Link to="/registration-manager/start" onClick={() => fireConversion("tool_start_click", { tool_slug: "registration", page_path: "/registration-manager", user_type: userType })}>Start free scope assessment <ArrowRight className="ml-2 w-4 h-4" /></Link>
           </Button>
-          <div className="mt-10 max-w-3xl mx-auto">
-            <RegistrationDisclaimer />
+          <div className="mt-10 max-w-3xl mx-auto text-left">
+            <p className="text-meta text-muted-foreground">
+              Filing documents and checklists only — you or counsel submit; verify current authority requirements before filing.
+            </p>
+            <details className="group mt-1">
+              <summary className="cursor-pointer list-none text-meta text-muted-foreground underline underline-offset-2 hover:text-foreground">
+                Important legal notes
+              </summary>
+              <div className="mt-2">
+                <RegistrationDisclaimer />
+              </div>
+            </details>
           </div>
         </section>
+
       </PageContainer>
       </main>
       <Footer />
