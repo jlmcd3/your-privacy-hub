@@ -22,7 +22,6 @@ import { useConversionEvent } from "@/hooks/useConversionEvent";
 import { useAuth } from "@/hooks/useAuth";
 import {
   US_STATE_COUNT,
-  VIRGINIA_MODEL_COUNT,
   virginiaModelStates,
   pendingStateLabels,
 } from "@/data/usStateNoticeCoverage";
