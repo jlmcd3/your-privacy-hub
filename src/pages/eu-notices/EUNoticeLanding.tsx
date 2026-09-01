@@ -80,7 +80,7 @@ export default function EUNoticeLanding() {
                 </Button>
               </>
             )}
-            <SampleReportLink toolSlug="eu-notice" tone="onDark" variant="link" />
+            <SampleReportLink toolSlug="eu_notice" label="View a sample notice" tone="onDark" variant="link" />
           </div>
         </div>
       </ProductHero>
