@@ -52,13 +52,19 @@ Deno.serve(async (req) => {
       /ai|artificial intelligence|automated decision|facial recognition|biometric/.test(k)
     ) ? "ai-privacy" : "enforcement";
 
+    const sourceDomain = (() => {
+      try { return new URL(syntheticUrl).hostname.replace(/^www\./, ""); }
+      catch { return "enduserprivacy.com"; }
+    })();
+
     const row: Record<string, unknown> = {
       title: title.slice(0, 400),
       summary,
       url: syntheticUrl,
       source_name: bill.source_name ?? "Legislation Tracker",
-      source_domain: "enduserprivacy.com",
+      source_domain: sourceDomain,
       image_url: null,
+
       category,
       topic_tags: bill.matched_keywords ?? [],
       regulator: null,

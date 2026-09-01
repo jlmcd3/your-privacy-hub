@@ -44,6 +44,33 @@ const STATE_NAMES: Record<string, string> = {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+// LegiScan is an aggregator/API feeder — its own bill page is NOT the article.
+// Resolve the official state legislature page (`state_link`) via getBill so the
+// stored source_url points at the primary source on the Internet.
+const isAggregatorUrl = (u?: string | null) =>
+  !u || /(^|\.)legiscan\.com$/i.test((() => { try { return new URL(u).hostname; } catch { return ""; } })());
+
+async function resolveOfficialUrl(
+  apiKey: string,
+  billId: string,
+  legiscanUrl: string | null,
+): Promise<{ officialUrl: string | null; stateLink: string | null }> {
+  try {
+    await sleep(200);
+    const res = await fetch(`https://api.legiscan.com/?key=${apiKey}&op=getBill&id=${encodeURIComponent(billId)}`);
+    if (!res.ok) return { officialUrl: legiscanUrl, stateLink: null };
+    const json = await res.json();
+    const stateLink: string | null = json?.bill?.state_link ?? null;
+    if (stateLink && /^https?:\/\//i.test(stateLink) && !isAggregatorUrl(stateLink)) {
+      return { officialUrl: stateLink, stateLink };
+    }
+    return { officialUrl: legiscanUrl, stateLink: null };
+  } catch {
+    return { officialUrl: legiscanUrl, stateLink: null };
+  }
+}
+
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -61,6 +88,17 @@ Deno.serve(async (req) => {
     if (!LEGISCAN_API_KEY) throw new Error("LEGISCAN_API_KEY not configured");
 
     const seenBillIds = new Set<string>();
+
+    // Already-resolved official links — avoids re-spending getBill quota.
+    const existingUrls = new Map<string, string | null>();
+    {
+      const { data: rows } = await supabase
+        .from("legislation_bills")
+        .select("external_id, source_url")
+        .eq("source", SOURCE);
+      for (const r of rows ?? []) existingUrls.set(String(r.external_id), r.source_url ?? null);
+    }
+
 
     for (const search of SEARCHES) {
       let pageTotal = 4;
@@ -121,6 +159,12 @@ Deno.serve(async (req) => {
             const lastAction: string = result?.last_action ?? "";
             const lastActionDate: string = result?.last_action_date ?? "";
 
+            const legiscanUrl: string | null = result?.url ?? null;
+            const cachedOfficial = existingUrls.get(billIdStr);
+            const { officialUrl, stateLink } = !isAggregatorUrl(cachedOfficial)
+              ? { officialUrl: cachedOfficial!, stateLink: cachedOfficial! }
+              : await resolveOfficialUrl(LEGISCAN_API_KEY, billIdStr, legiscanUrl);
+
             const bill: NormalizedBill = {
               source: SOURCE,
               external_id: billIdStr,
@@ -133,8 +177,8 @@ Deno.serve(async (req) => {
               stage: normalizeStage(lastAction),
               summary: lastAction || null,
               key_provisions: [],
-              source_url: result?.url ?? null,
-              source_name: "LegiScan",
+              source_url: officialUrl ?? legiscanUrl,
+              source_name: !isAggregatorUrl(officialUrl) ? `${stateName} Legislature` : "LegiScan",
               introduced_at: null,
               source_last_action_at: lastActionDate ? lastActionDate.slice(0, 10) : null,
               matched_keywords: matched,
@@ -143,7 +187,9 @@ Deno.serve(async (req) => {
                 relevance,
                 change_hash: result?.change_hash,
                 text_url: result?.text_url,
+                legiscan_url: legiscanUrl,
               },
+
             };
 
             const err = validateBill(bill);
