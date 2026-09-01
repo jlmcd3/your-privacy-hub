@@ -49,7 +49,7 @@ import {
 } from "../../../_shared/prose/skeleton-render.ts";
 import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
 import { firstSentence, firstSentences } from "../../../_shared/ltp/dpia-skeleton-assemble.ts";
-import { buildIrPlaybookDeliverables, normalizeBreachNoticeContracts, normalizeResponseTeamRoster } from "./ir-playbook-deliverables/build.ts";
+import { buildIrPlaybookDeliverables, normalizeBreachNoticeContracts, normalizeResponseTeamRoster, processorNameFromContracts, resolveProcessorName } from "./ir-playbook-deliverables/build.ts";
 // IR-F tranche 2 — the verified per-state walk gates (CA/TX/NY this tranche).
 import { STATE_WALK_GATES } from "./ir-playbook-deliverables/us-state-duties.ts";
 
@@ -269,16 +269,6 @@ function deriveNotificationClocksTable(report: Bag): RenderedTable | null {
     columns: ["Jurisdiction", "Notify individuals", "Notify regulator", "Citation"],
     rows,
   };
-}
-
-/** A-TEAM S4 RULING S2.2 (doc 119) — the "(processor)"-tagged breach-notice
- * counterparty, when the intake records no processorName. */
-function processorNameFromContracts(intake: Bag): string {
-  for (const c of contractRows(intake)) {
-    const m = /^(.*?)\s*\(\s*processor\s*\)\s*$/i.exec(s(c.party));
-    if (m && m[1].trim()) return m[1].trim();
-  }
-  return "";
 }
 
 /** A-TEAM S4 RULING S2.4 (doc 119) — the registry-verify fallback sentence is
@@ -803,7 +793,7 @@ function composeProcessors(intake: Bag, gdprEngaged: boolean): string {
   // Incident P0-1) — a contract-derived name (S2.2) resolves the same
   // paragraph the facts strip already credits, so "not named" cannot
   // follow a facts-strip row that already names the processor.
-  const name = s(intake.processorName) || processorNameFromContracts(intake);
+  const name = resolveProcessorName(intake);
   const parts: string[] = [IR_PROCESSOR_FIXED_FIRST_WORDS];
   parts.push(
     name

@@ -190,6 +190,37 @@ export function normalizeBreachNoticeContracts(intake: unknown): BreachNoticeCon
     .filter((r) => r.party);
 }
 
+// DOC 134 (all-products batch review follow-up, 2026-09-01) — the single
+// resolver for "which counterparty is the processor," consolidated after
+// finding it computed THREE different ways: composeProcessors() and
+// deriveIncidentFactsTable() (ir-skeleton-assemble.ts, patched same-day by
+// A-TEAM DELTA "EU Incident P0-1" to fall back to the contract-tagged name)
+// versus readIncidentFacts() below, which read intake.processorName ALONE
+// with no such fallback — so build.ts:390's Article 33(1) analysis
+// paragraph and edpb-art33-template.ts's "Processor involved" field could
+// still say the processor is unnamed even when the Incident Facts table
+// correctly named it from breachNoticeContracts.
+//
+// The intake has no separate role column for a contract counterparty (the
+// UI is a free-text "Counterparty | deadline | clause" textarea —
+// src/pages/IRPlaybook.tsx), so the "(processor)" tag is customer-typed
+// text at the end of the party name. Broadened from an exact "(processor)"
+// match to any trailing parenthetical containing the word "processor(s)"
+// — catches "(Sub-processor)", "(data processor)", "(third-party
+// processor)" — while still requiring the parenthetical shape, so it does
+// not fire on an unrelated mention of "processor" elsewhere in the name.
+export function processorNameFromContracts(intake: unknown): string {
+  for (const c of normalizeBreachNoticeContracts(intake)) {
+    const m = /^(.*?)\s*\(([^)]*\bprocessors?\b[^)]*)\)\s*$/i.exec(c.party);
+    if (m && m[1].trim()) return m[1].trim();
+  }
+  return "";
+}
+
+export function resolveProcessorName(intake: unknown): string {
+  return str(get(intake, "processorName")) || processorNameFromContracts(intake);
+}
+
 interface Anchor {
   citation: string;
   verbatim: string;
@@ -261,7 +292,9 @@ export function readIncidentFacts(intake: unknown): IncidentFacts {
     awareness: str(get(intake, "awarenessConfirmed")),
     jurisdictions,
     processorInvolved: get(intake, "processorInvolved") === true,
-    processorName: str(get(intake, "processorName")),
+    // DOC 134 — was str(get(intake, "processorName")) alone; see the
+    // resolveProcessorName() header comment above.
+    processorName: resolveProcessorName(intake),
     ukOnly: uk && eea.length === 0,
     gdprInScope: uk || eea.length > 0,
     regimes,
