@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import ToolTierNote from "@/components/tools/ToolTierNote";
+import ProductInfoCards from "@/components/product/ProductInfoCards";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +15,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ArrowRight, Check, Shield, RefreshCw, MapPin, CheckCircle2, ClipboardList } from 'lucide-react';
+import { ArrowRight, Check, ClipboardList } from 'lucide-react';
 import { US_NOTICE_PRICING, INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
@@ -32,15 +32,6 @@ import {
 const VIRGINIA_STATES = virginiaModelStates().map((s) => s.name);
 
 const PENDING_STATES = pendingStateLabels();
-
-const PRICING_ROWS: Array<{ feature: string; free: string; sub: string; platform: string }> = [
-  { feature: "Answer all questions", free: "Subscribers only", sub: "", platform: "" },
-  { feature: "Save & resume", free: "Subscribers only", sub: "", platform: "" },
-  { feature: "Pre-population from RoPA", free: "Subscribers only", sub: "", platform: "" },
-  { feature: "Single state notice", free: "Subscribers only", sub: "Included", platform: "Included" },
-  { feature: `All ${US_STATE_COUNT} states`, free: "Subscribers only", sub: "Included", platform: "Included" },
-  { feature: "Annual refresh", free: "Subscribers only", sub: "Included", platform: "Included" },
-];
 
 const FAQ: Array<{ q: string; a: string }> = [
   {
@@ -169,7 +160,7 @@ export default function USNoticeLanding() {
 
 
         {/* HOW IT WORKS */}
-        <section className="py-12 md:py-14">
+        <section id="how-it-works" className="py-12 md:py-14">
           <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="font-serif text-foreground mb-8">
               How it works
