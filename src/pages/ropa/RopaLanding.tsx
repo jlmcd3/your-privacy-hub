@@ -33,20 +33,21 @@ const META_DESCRIPTION =
 const STEPS = [
   {
     icon: ListChecks,
-    title: "Answer plain-language questions",
-    body: "About your data processing activities, in plain language (no legal jargon).",
+    title: "Describe processing activities",
+    body: "Guided, plain-language questions; save and resume at any point.",
   },
   {
     icon: FileText,
-    title: "We assemble the complete RoPA",
-    body: "Document is built automatically from your answers, with citations.",
+    title: "We assemble the RoPA",
+    body: "Required fields are organised by framework, with citations, reusing your answers across jurisdictions wherever they apply.",
   },
   {
     icon: Download,
-    title: "Download your audit-ready record",
-    body: "Export in PDF, Word, or Excel, formatted for regulator review.",
+    title: "Export and maintain",
+    body: "Download PDF, Word, or Excel; return later to refresh changed activities.",
   },
 ];
+
 
 const JURISDICTIONS: { region: string; items: string[] }[] = [
   { region: "EU & EEA", items: ["GDPR", "France", "Germany", "Italy", "Spain", "Netherlands", "Ireland"] },
