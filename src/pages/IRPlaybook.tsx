@@ -248,14 +248,15 @@ export default function IRPlaybook() {
         <meta name="description" content="A jurisdiction-specific breach response runbook with regulator notification deadlines, DPA portal links, and notification templates — with cited enforcement decisions behind every timeline and threshold recommendation." /></Helmet>
       <ProductHero
         geography="global"
-        eyebrowLabel={<><Siren aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("ir_playbook", `$${pricing.price}`)}</>}
+        eyebrowLabel={<><Siren aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("ir_playbook")}</>}
         title="Incident Response Playbook"
-        legalTrigger={{ tier: "supports", text: "Breach notification is mandatory under GDPR Articles 33–34 and every U.S. state breach law. Sector regimes — HIPAA, NYDFS, DORA — additionally require a written incident-response plan." }}
-        valueProposition="A jurisdiction-specific breach response runbook with regulator notification deadlines, DPA portal links, and notification templates — cited enforcement decisions included for every deadline and threshold recommendation. Ships with a structured incident worksheet: breach register and response metrics."
+        valueProposition="Build a jurisdiction-specific breach response runbook before the clock starts — deadlines, regulator portals, decision steps, and notification templates in one playbook, plus a structured incident worksheet with breach register, decision log, and response metrics."
         sampleReportToolSlug="ir_playbook"
-        citationLine="GDPR Arts. 33–34 · Built from each regulator's own notification rules, portals, and deadlines, with cited enforcement decisions behind every threshold"
-        ctaLabel="Build your playbook"
-      />
+        citationLine="GDPR Arts. 33–34 · Regulator deadlines, portals, and notification rules · Cited authority"
+        ctaLabel="Build my playbook"
+      >
+        <HeroAccessLine toolKey="ir_playbook" />
+      </ProductHero>
       <ProductHeroSubstrip
         generationsLine={INCLUDED_GENERATIONS_COPY}
         methodologyLine={REVISIONS_ENABLED ? "Need more? Add 4 additional generations for half the tool price." : undefined}
@@ -264,16 +265,16 @@ export default function IRPlaybook() {
         className="mt-6"
         cards={[
           {
-            title: "What the law expects",
+            title: "When the clock starts",
             tone: "amber",
-            body: "Breach notification is mandatory under GDPR Articles 33–34 and every US state breach law. HIPAA, NYDFS, and DORA additionally require a written incident-response plan.",
+            body: "Breach laws impose short, jurisdiction-specific notification clocks; GDPR, state laws, HIPAA, NYDFS, DORA and other regimes can impose different duties.",
           },
           {
             title: "What you receive",
-            body: "A jurisdiction-specific breach runbook with regulator deadlines, notification thresholds, DPA portal links, and notification templates — plus a structured incident worksheet with a breach register and response metrics.",
+            body: "A jurisdiction-specific breach runbook with regulator deadlines, notification thresholds, DPA portal links, and notification templates — plus a structured incident worksheet with breach register, decision log, and response metrics.",
           },
           {
-            title: "Built from each regulator's own rules",
+            title: "Jurisdiction-specific deadlines",
             body: "Deadlines, portals, and thresholds are taken from the notification rules of the regulators you select, not from a generic 72-hour summary.",
           },
           {
