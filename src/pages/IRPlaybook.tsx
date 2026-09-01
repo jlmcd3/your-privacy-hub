@@ -16,6 +16,7 @@ import CopyButton from "@/components/CopyButton";
 import SampleReportLink from "@/components/SampleReportLink";
 import { INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
+import ProductInfoCards from "@/components/product/ProductInfoCards";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import ToolSampleOverlay from "@/components/ToolSampleOverlay";
 import AuthGateModal from "@/components/AuthGateModal";
@@ -258,6 +259,28 @@ export default function IRPlaybook() {
       <ProductHeroSubstrip
         generationsLine={INCLUDED_GENERATIONS_COPY}
         methodologyLine={REVISIONS_ENABLED ? "Need more? Add 4 additional generations for half the tool price." : undefined}
+      />
+      <ProductInfoCards
+        className="mt-6"
+        cards={[
+          {
+            title: "What the law expects",
+            tone: "amber",
+            body: "Breach notification is mandatory under GDPR Articles 33–34 and every US state breach law. HIPAA, NYDFS, and DORA additionally require a written incident-response plan.",
+          },
+          {
+            title: "What you receive",
+            body: "A jurisdiction-specific breach runbook with regulator deadlines, notification thresholds, DPA portal links, and notification templates — plus a structured incident worksheet with a breach register and response metrics.",
+          },
+          {
+            title: "Built from each regulator's own rules",
+            body: "Deadlines, portals, and thresholds are taken from the notification rules of the regulators you select, not from a generic 72-hour summary.",
+          },
+          {
+            title: "Why trust the playbook",
+            body: "Cited enforcement decisions sit behind every timeline and threshold recommendation. Section 6 contributes to your Article 33(5) accountability record.",
+          },
+        ]}
       />
       <ToolAlsoAvailableRow currentTool="ir_playbook" />
       <section className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
