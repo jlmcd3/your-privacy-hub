@@ -448,22 +448,15 @@ export default function CPPAScopeChecker() {
           offers: { "@type": "Offer", price: "0", priceCurrency: "USD", availability: "https://schema.org/InStock" },
         })}</script>
       </Helmet>
-      <header className="bg-brand-ocean text-white py-12">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            <Shield aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> CPPA Scope Checker · Free · No account required
-          </span>
-          <h1 className="text-hero-h1 text-white mb-3">CPPA Scope Checker</h1>
-          <RequirementBadge variant="hero" tier="free" text="Free. Find out which CPPA obligations — risk assessment, cybersecurity audit, ADMT — apply to your business, and by when." className="mt-2 max-w-3xl" />
-          <p className="text-slate-300 text-lg">
-            Find out whether the California Consumer Privacy Act (CCPA/CPRA) and CPPA
-            enforcement obligations apply to your business. Takes 2 minutes.
-          </p>
-          <p className="text-slate-400 text-sm mt-3">
-            The CPPA Audits Division stood up in February 2026. Enforcement is active.
-          </p>
-        </div>
-      </header>
+      <ProductHero
+        geography="us"
+        eyebrowLabel={<><Shield aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("cppa_scope", "Free · No account required")}</>}
+        title="CPPA Scope Checker"
+        legalTrigger={{ tier: "free", text: "Free. Find out which CPPA obligations — risk assessment, cybersecurity audit, ADMT — apply to your business, and by when." }}
+        valueProposition="Find out whether the California Consumer Privacy Act (CCPA/CPRA) and CPPA enforcement obligations apply to your business. Takes 2 minutes."
+        citationLine="The CPPA Audits Division stood up in February 2026. Enforcement is active."
+        ctaLabel="Start the free check"
+      />
 
       <main className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <ToolDisclaimer addition="This checker provides an indicative obligation map based on your answers. Applicability thresholds under the CCPA/CPRA are fact-specific; confirm scope conclusions with qualified counsel." />
