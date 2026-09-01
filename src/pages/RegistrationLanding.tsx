@@ -5,6 +5,7 @@
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { productEyebrow } from "@/config/productEyebrow";
 import { ProductHero } from "@/components/ProductHero";
 import ProductInfoCards from "@/components/product/ProductInfoCards";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";

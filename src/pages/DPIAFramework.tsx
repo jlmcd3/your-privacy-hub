@@ -25,6 +25,7 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
+import { productEyebrow } from "@/config/productEyebrow";
 import { ProductHero } from "@/components/ProductHero";
 import HeroPriceCta from "@/components/product/HeroPriceCta";
 import ProductInfoCards from "@/components/product/ProductInfoCards";

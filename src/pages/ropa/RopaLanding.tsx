@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Button } from "@/components/ui/button";
 import SampleReportLink from "@/components/SampleReportLink";
+import { productEyebrow } from "@/config/productEyebrow";
 import { ProductHero } from "@/components/ProductHero";
 import ProductInfoCards from "@/components/product/ProductInfoCards";
 import {

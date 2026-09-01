@@ -1,3 +1,4 @@
+import { productEyebrow } from "@/config/productEyebrow";
 import { ProductHero } from "@/components/ProductHero";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
