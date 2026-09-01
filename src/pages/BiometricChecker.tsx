@@ -5,6 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToolDraft, useAutoRestoreDraft } from "@/hooks/useToolDraft";
 import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import { ProductHero, ProductHeroSubstrip } from "@/components/ProductHero";
+import { productEyebrow } from "@/config/productEyebrow";
 import { RequirementBadge } from "@/components/RequirementBadge";
 import { Label } from "@/components/ui/label";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
@@ -253,30 +255,26 @@ export default function BiometricChecker() {
   return (
     <WorkspaceLayout className="bg-paper">
       <Helmet><title>Biometric Privacy Compliance Assessment | End User Privacy</title>
-        <meta name="description" content="Per-jurisdiction biometric privacy compliance covering BIPA, CUBI, MHMD, GDPR Article 9 and other regimes — with cited enforcement decisions behind every priority action." /></Helmet>      <header className="bg-brand-slate-teal text-white py-12">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            <Dna aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Biometric Compliance Assessment · ${pricing.price}
-          </span>
-          <h1 className="text-hero-h1 text-white mb-3">Biometric Privacy Compliance Assessment</h1>
-          <RequirementBadge variant="hero" tier="required" text="Illinois BIPA requires a written retention-and-destruction policy and informed written consent before you collect any biometric identifier — with statutory damages per violation." className="mt-2 max-w-3xl" />
-          <p className="text-slate-300 text-lg max-w-3xl">
-            A per-jurisdiction read on your biometric processing — obligations under Illinois, Texas, Washington, EU/UK, and other regimes. Cited enforcement decisions sit behind every priority action.
-          </p>
-          <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">{INCLUDED_GENERATIONS_COPY}</p>
-          <ToolCTABlock
-            toolSlug="biometric"
-            hasAccess={Boolean(access.isPremium)}
-            ctaPosition="hero"
-            onDark
-            pagePath="/biometric-checker"
-            primaryLabel={`Run a Biometric Privacy Assessment — $${pricing.price}`}
-          />
-          <p className="font-mono text-[12.5px] leading-snug text-slate-400 mt-4">
-            740 ILCS 14 (BIPA) · Built from each biometric statute's own text — BIPA, CUBI, MHMD, GDPR Art. 9 — with cited enforcement decisions behind every priority action
-          </p>
-        </div>
-      </header>
+        <meta name="description" content="Per-jurisdiction biometric privacy compliance covering BIPA, CUBI, MHMD, GDPR Article 9 and other regimes — with cited enforcement decisions behind every priority action." /></Helmet>
+      <ProductHero
+        geography="global"
+        eyebrowLabel={<><Dna aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("biometric", `$${pricing.price}`)}</>}
+        title="Biometric Privacy Compliance Assessment"
+        legalTrigger={{ tier: "required", text: "Illinois BIPA requires a written retention-and-destruction policy and informed written consent before you collect any biometric identifier — with statutory damages per violation." }}
+        valueProposition="A per-jurisdiction read on your biometric processing — obligations under Illinois, Texas, Washington, EU/UK, and other regimes. Cited enforcement decisions sit behind every priority action."
+        citationLine="740 ILCS 14 (BIPA) · Built from each biometric statute's own text — BIPA, CUBI, MHMD, GDPR Art. 9 — with cited enforcement decisions behind every priority action"
+        showIntakeCta={false}
+      >
+        <ToolCTABlock
+          toolSlug="biometric"
+          hasAccess={Boolean(access.isPremium)}
+          ctaPosition="hero"
+          onDark
+          pagePath="/biometric-checker"
+          primaryLabel={`Run a Biometric Privacy Assessment — $${pricing.price}`}
+        />
+      </ProductHero>
+      <ProductHeroSubstrip generationsLine={INCLUDED_GENERATIONS_COPY} />
       <section className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
         <div className="mb-4">

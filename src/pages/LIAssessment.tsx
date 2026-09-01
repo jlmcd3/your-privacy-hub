@@ -21,6 +21,7 @@ import { stripeFor, accentFor } from "@/lib/li-outcome-palette";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
+import { productEyebrow } from "@/config/productEyebrow";
 import { ProductHero } from "@/components/ProductHero";
 import HeroPriceCta from "@/components/product/HeroPriceCta";
 import ProductInfoCards from "@/components/product/ProductInfoCards";
@@ -209,7 +210,7 @@ const LIAssessment = () => {
           the top-up offer leaves the initial purchase path. */}
       <ProductHero
         geography="gdpr"
-        eyebrowLabel={<><Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Legitimate Interests Assessment · Free preliminary signal</>}
+        eyebrowLabel={<><Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("lia", "Free preliminary signal")}</>}
         title="Legitimate Interests Assessment"
         valueProposition={INCLUDED_GENERATIONS_HERO}
         citationLine="GDPR Art. 6(1)(f) · Three-part balancing test · Cited enforcement precedents behind every verdict"

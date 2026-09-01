@@ -7,6 +7,8 @@ import Navbar from "@/components/Navbar";
 import { RequirementBadge } from "@/components/RequirementBadge";
 import Footer from "@/components/Footer";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
+import { productEyebrow } from "@/config/productEyebrow";
+import { US_STATE_COUNT } from "@/data/usStateNoticeCoverage";
 import { ProductHero } from "@/components/ProductHero";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Button } from "@/components/ui/button";
@@ -75,9 +77,9 @@ export default function NoticeBuilderLanding() {
       <ProductHero
         geography="global"
         showIntakeCta={false}
-        eyebrowLabel={<><Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Privacy Notice Builder · US & EU/Global · Included with any subscription</>}
+        eyebrowLabel={<><Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("notice_suite", "Included with any subscription")}</>}
         title="Privacy Notice Builder"
-        valueProposition="Two guided builders, one workspace. Cover all 20 US state privacy laws and every major non-US framework (GDPR, UK GDPR, LGPD, APPI, DPDPA, POPIA, PIPEDA and more). Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product."
+        valueProposition={`Two guided builders, one workspace. Cover all ${US_STATE_COUNT} US state privacy laws and every major non-US framework (GDPR, UK GDPR, LGPD, APPI, DPDPA, POPIA, PIPEDA and more). Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product.`}
         citationLine="Built from each law's own notice content requirements — every disclosure traces to the statute that requires it"
       >
         <div className="flex flex-wrap gap-3">

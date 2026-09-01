@@ -25,6 +25,7 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
+import { productEyebrow } from "@/config/productEyebrow";
 import { ProductHero } from "@/components/ProductHero";
 import HeroPriceCta from "@/components/product/HeroPriceCta";
 import ProductInfoCards from "@/components/product/ProductInfoCards";
@@ -581,7 +582,7 @@ const DPIAFramework = () => {
           card band; the top-up offer leaves the initial purchase path. */}
       <ProductHero
         geography="gdpr"
-        eyebrowLabel={<><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Data Protection Impact Assessment</>}
+        eyebrowLabel={<><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("dpia")}</>}
         title={<>Data Protection Impact Assessment (DPIA) Builder <DefPopover termKey="gdpr_dpia" /></>}
         valueProposition={INCLUDED_GENERATIONS_HERO}
         citationLine="GDPR Art. 35 · Accountability record for high-risk processing"

@@ -13,6 +13,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { US_NOTICE_PRICING } from "@/config/pricing";
+import { US_STATE_COUNT } from "@/data/usStateNoticeCoverage";
 import {
   Dialog,
   DialogContent,
@@ -350,7 +351,7 @@ export default function USNoticeStates() {
               onClick={selectAllActive}
               className="text-sm text-primary hover:underline"
             >
-              Select all 20 states
+              Select all {US_STATE_COUNT} states
             </button>
           </div>
 
