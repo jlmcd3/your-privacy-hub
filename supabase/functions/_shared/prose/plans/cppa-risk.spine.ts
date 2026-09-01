@@ -151,6 +151,23 @@ export const RISK52_FIXED = {
   conditions_lead: "Conditions to Proceed.",
   conditions_close:
     "These are conditions of the determination, not optional recommendations.",
+  // DOC 127 PART I (CEO-ratified 2026-08-31) — adverse-disposition variants.
+  // A Do-Not-Proceed report heads its § 4.D conditions "Conditions for
+  // Reassessment" (never "to Proceed"), states the path in an intro
+  // sentence, and — where the stop requires Activity redesign (a critical
+  // inherent risk no safeguard can cure) — says so without promising that
+  // the conditions alone could change the determination.
+  conditions_reassessment_lead: "Conditions for Reassessment.",
+  conditions_reassessment_intro:
+    "The Activity should not proceed in its present form. The following must be satisfied before the Activity is reconsidered for a different disposition.",
+  conditions_reassessment_intro_redesign:
+    "The Activity should not proceed in its present form. Because a critical-level privacy risk remains that no safeguard can reduce below the high-risk level, satisfying the conditions below will not, by itself, change the determination; a different disposition also requires modifying the Activity itself, as described in § 4.C.",
+  conditions_close_redesign:
+    "These conditions support a future reassessment; they do not, by themselves, change the determination.",
+  // DOC 127 PART I — the Additional-Information-Required qualifier appended
+  // to a determination whose balance omitted an unassessed named risk.
+  band4_provisional:
+    "This conclusion is provisional: it weighs only the risks that could be assessed on the information provided. At least one identified risk lacks the recorded likelihood or severity the balance requires, so the executive result is stated as “Additional Information Required” until the record is completed.",
   follow_ups_lead: "Follow-Ups.",
   recommendations_lead: "Recommendations.",
   none_attach:

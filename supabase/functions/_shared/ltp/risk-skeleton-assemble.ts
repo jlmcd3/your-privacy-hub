@@ -254,24 +254,39 @@ export function deriveCoverTable(values: SlotValues): RenderedTable {
 export function deriveExecStatusPanel(
   panel: RiskFactorEngineResult["exec_panel"],
 ): RenderedTable | null {
-  if (!panel.assessment_required && !panel.inherent && !panel.residual) return null;
-  const tier = (t: string | null): string => t ?? "Not assessed — no risks recorded.";
-  // PANEL RISK-P3 (2026-08-30): sentence case, not per-word title case — the
-  // old caser produced "Do not Proceed" ("not" exempted, "Proceed" capped)
-  // on the cover of an adverse determination.
-  const disposition = panel.disposition.charAt(0).toUpperCase() + panel.disposition.slice(1);
+  if (
+    !panel.assessment_required && !panel.inherent && !panel.residual &&
+    !panel.has_unassessed
+  ) return null;
+  // DOC 127 PART I — a record whose only named risks are unassessed states
+  // that, rather than implying no risk was recorded at all.
+  const tier = (t: string | null): string =>
+    t ?? (panel.has_unassessed
+      ? "Not assessed — risk information incomplete."
+      : "Not assessed — no risks recorded.");
+  // DOC 127 PART I + the §21 casing ruling (2026-08-31): the badge surface
+  // renders the engine's controlled title-case label (running prose stays
+  // sentence case) — supersedes the PANEL RISK-P3 sentence-caser HERE ONLY.
+  // The caser remains as the fallback for legacy panel shapes without a
+  // label (older persisted engine output re-derived in tests).
+  const disposition = panel.disposition_label ??
+    panel.disposition.charAt(0).toUpperCase() + panel.disposition.slice(1);
+  const rows: string[][] = [
+    ["Assessment required", panel.assessment_required ? "Yes" : "No"],
+    ["Inherent privacy risk", tier(panel.inherent)],
+    ["Residual privacy risk", tier(panel.residual)],
+    ["Assessment disposition", disposition],
+  ];
+  // DOC 127 PART I — the path/reason line beneath an adverse or
+  // information-gated disposition: no "Do Not Proceed" is ever a dead end.
+  if (panel.path_forward) rows.push(["Path forward", panel.path_forward]);
   return {
     key: "",
     surface: "exec_status_panel",
     title: "Assessment Result",
     columns: ["Determination", "Result"],
     hideHeader: true,
-    rows: [
-      ["Assessment required", panel.assessment_required ? "Yes" : "No"],
-      ["Inherent privacy risk", tier(panel.inherent)],
-      ["Residual privacy risk", tier(panel.residual)],
-      ["Assessment disposition", disposition],
-    ],
+    rows,
   };
 }
 

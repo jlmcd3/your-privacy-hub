@@ -180,7 +180,43 @@ export function resolveBenefitWeight(
 }
 
 export type BenefitTier = "material" | "limited" | "none";
-export type ProcessingConsequence = "proceed" | "proceed with conditions" | "do not proceed";
+
+/**
+ * DOC 127 PART I (CEO-ratified 2026-08-31) — the normalized disposition.
+ * The former flat "do not proceed" band splits on a derivable line: a stop is
+ * REMEDIABLE unless a pathway's INHERENT level is Critical (the ratified
+ * one-tier residual rule means no safeguard can bring such a risk below the
+ * high-risk level, and High/Critical residuals are stop under every benefit
+ * tier — so only redesigning the Activity itself can change the inputs).
+ * "additional information required" fires when a NAMED risk lacks the
+ * likelihood/severity the balance requires and the assessed record alone
+ * would otherwise proceed (conservative-only precedence: an information gap
+ * can never rescue a failed balance). "no processing decision required" is
+ * the discontinued-processing projection, so the cover badge can no longer
+ * contradict the body's own outcome sentence.
+ */
+export type ProcessingConsequence =
+  | "proceed"
+  | "proceed with conditions"
+  | "do not proceed - remediable"
+  | "do not proceed - redesign required"
+  | "additional information required"
+  | "no processing decision required";
+
+/**
+ * DOC 127 PART I + §21 ruling — the controlled customer-facing labels (title
+ * case on badge surfaces; running prose stays sentence case). Both stop
+ * bands share the "Do Not Proceed" label; the path line beneath the badge
+ * carries the difference.
+ */
+export const DISPOSITION_LABEL: Record<ProcessingConsequence, string> = {
+  "proceed": "Proceed",
+  "proceed with conditions": "Proceed with Conditions",
+  "do not proceed - remediable": "Do Not Proceed",
+  "do not proceed - redesign required": "Do Not Proceed",
+  "additional information required": "Additional Information Required",
+  "no processing decision required": "No Processing Decision Required",
+};
 
 export interface BalancingCell {
   readonly conclusion: string;
@@ -305,27 +341,49 @@ function noneBenefitCell(tier: string): BalancingCell {
   };
 }
 
-/** RATIFIED LOGIC, RE-REGISTERED STRINGS (v5.2) — recommended-outcome wording,
- * keyed to consequence × processing status. */
+/** RATIFIED LOGIC, RE-REGISTERED STRINGS (v5.2; DOC 127 PART I re-registration
+ * 2026-08-31) — recommended-outcome wording, keyed to consequence ×
+ * processing status. A stop now always states its path: the remediable
+ * branch names the Conditions for Reassessment; the redesign branch states
+ * the critical-risk reason and the Activity-level change a different
+ * disposition would require; the information-gap branch states what is
+ * missing. Precedence: discontinued > stop > information gap > conditions. */
 export function resolveRecommendedOutcome(
   kind: "proceed" | "stop",
   hasConditions: boolean,
   processingStatus: string,
+  opts?: { readonly criticalInherent?: boolean; readonly unassessedCount?: number },
 ): { outcome: string; consequence: ProcessingConsequence } {
   if (/^discontinued/i.test(processingStatus)) {
     return {
       outcome:
         "No processing decision is required: the Company records the processing as discontinued, and this assessment documents the Activity as conducted.",
-      consequence: kind === "stop" ? "do not proceed" : "proceed",
+      consequence: "no processing decision required",
     };
   }
   const planned = /^planned/i.test(processingStatus);
   if (kind === "stop") {
+    const stopSentence = planned
+      ? "Do not initiate the processing on the information provided."
+      : "Suspend or discontinue the processing on the information provided.";
+    if (opts?.criticalInherent) {
+      return {
+        outcome:
+          `${stopSentence} A critical-level privacy risk remains that no safeguard can reduce below the high-risk level; a different disposition would require modifying the Activity itself — reducing the likelihood or severity of the critical risk identified in § 4.A at its source — and reassessing.`,
+        consequence: "do not proceed - redesign required",
+      };
+    }
     return {
-      outcome: planned
-        ? "Do not initiate the processing on the information provided."
-        : "Suspend or discontinue the processing on the information provided.",
-      consequence: "do not proceed",
+      outcome:
+        `${stopSentence} To continue with the processing, the Company should satisfy the Conditions for Reassessment stated in § 4.D.`,
+      consequence: "do not proceed - remediable",
+    };
+  }
+  if ((opts?.unassessedCount ?? 0) > 0) {
+    return {
+      outcome:
+        "The information provided does not yet support a processing decision: at least one identified risk lacks the recorded likelihood or severity the balance requires. Provide the missing information identified among the Follow-Ups in § 4.D and update the assessment.",
+      consequence: "additional information required",
     };
   }
   if (hasConditions) {
@@ -379,7 +437,16 @@ export interface RiskFactorEngineResult {
     readonly assessment_required: boolean;
     readonly inherent: RiskMateriality | null;
     readonly residual: RiskMateriality | null;
+    /** The normalized ProcessingConsequence state (machine form). */
     readonly disposition: string;
+    /** DOC 127 PART I — the controlled badge label (DISPOSITION_LABEL). */
+    readonly disposition_label: string;
+    /** DOC 127 PART I — the path/reason line rendered beneath an adverse or
+     * information-gated disposition; null for favorable dispositions. */
+    readonly path_forward: string | null;
+    /** True when a named risk lacks the likelihood/severity the balance
+     * requires (drives the honest tier text when no risk was assessable). */
+    readonly has_unassessed: boolean;
   };
 }
 
@@ -443,6 +510,33 @@ export function extractPathways(intake: Bag): Pathway[] {
       ),
       safeguards: linked,
     }];
+  });
+}
+
+/**
+ * DOC 127 PART I (CEO-ratified 2026-08-31) — a NAMED harm whose likelihood or
+ * severity cannot be resolved to the ratified matrix. `extractPathways` used
+ * to drop such a row silently, so a report could print a clean favorable
+ * determination while a risk the Company itself named sat outside the
+ * analysis entirely. These rows now carry through: they render in the
+ * ledgers as "Not assessed", generate a Follow-Up naming the missing
+ * field(s), and gate the disposition (conservative-only — see the
+ * ProcessingConsequence note).
+ */
+export interface UnassessedPathway {
+  readonly harm: string;
+  /** The unresolvable field name(s): "likelihood" and/or "severity". */
+  readonly missing: readonly string[];
+}
+
+export function extractUnassessedPathways(intake: Bag): UnassessedPathway[] {
+  return rows(intake.a5_harm_pathways).flatMap((p) => {
+    if (!s(p.harm)) return [];
+    if (resolveMateriality(s(p.likelihood), s(p.severity))) return [];
+    const missing: string[] = [];
+    if (!RISK_MATERIALITY_MATRIX.Minimal[s(p.likelihood) as RiskLikelihood]) missing.push("likelihood");
+    if (!RISK_MATERIALITY_MATRIX[s(p.severity) as RiskSeverity]) missing.push("severity");
+    return [{ harm: s(p.harm), missing: missing.length ? missing : ["likelihood", "severity"] }];
   });
 }
 
@@ -529,6 +623,28 @@ export function buildNecessityMatrixTable(intake: Bag): RenderedTable {
  * § 4.A carries all analysis prose). Ranked by pre-safeguard level. */
 export function buildRiskAndSafeguardRegisterTable(intake: Bag): RenderedTable {
   const pathways = rankPathways(extractPathways(intake));
+  // DOC 127 PART I — named-but-unassessed risks appear in the register too,
+  // with their recorded facts and an honest "Not assessed" level.
+  const allSafeguardRows = rows(intake.a6_safeguards);
+  const unassessedRows = extractUnassessedPathways(intake).map((u) => {
+    const raw = rows(intake.a5_harm_pathways).find((r) => s(r.harm) === u.harm) ?? ({} as Bag);
+    const linked = allSafeguardRows.filter((g) => s(g.harm) === u.harm && s(g.safeguard));
+    const safeguardCells = linked.length
+      ? linked.map((g) =>
+        `${firstSentence(s(g.safeguard))} [${s(g.safeguard_status)}]${
+          s(g.residual) ? ` — Company residual description: ${clause(g.residual)}` : ""
+        }`
+      ).join(" | ")
+      : "None established.";
+    return [
+      u.harm,
+      `Information: ${clause(raw.data_involved) || "not stated"}. Actor or event: ${clause(raw.actor) || "not stated"}. Source: ${clause(raw.source) || "not stated"}. Cause: ${clause(raw.cause) || "not stated"}.`,
+      `Not recorded — the ${asProse(u.missing)} ${plural(u.missing.length, "is", "are")} missing.`,
+      "Not assessed",
+      safeguardCells,
+      "Not assessed",
+    ];
+  });
   return {
     key: "",
     surface: "risk_and_safeguard_register",
@@ -541,23 +657,26 @@ export function buildRiskAndSafeguardRegisterTable(intake: Bag): RenderedTable {
       "Safeguards (status)",
       "Remaining Level",
     ],
-    rows: pathways.map((p) => {
-      const safeguardCells = p.safeguards.length
-        ? p.safeguards.map((g) =>
-          `${firstSentence(s(g.safeguard))} [${s(g.safeguard_status)}]${
-            s(g.residual) ? ` — Company residual description: ${clause(g.residual)}` : ""
-          }`
-        ).join(" | ")
-        : "None established.";
-      return [
-        p.harm,
-        `Information: ${p.data || "not stated"}. Actor or event: ${p.actor || "not stated"}. Source: ${p.source || "not stated"}. Cause: ${p.cause || "not stated"}.`,
-        `Likelihood: ${p.likelihood}. Severity: ${p.severity}.`,
-        p.materiality,
-        safeguardCells,
-        p.residual,
-      ];
-    }),
+    rows: [
+      ...pathways.map((p) => {
+        const safeguardCells = p.safeguards.length
+          ? p.safeguards.map((g) =>
+            `${firstSentence(s(g.safeguard))} [${s(g.safeguard_status)}]${
+              s(g.residual) ? ` — Company residual description: ${clause(g.residual)}` : ""
+            }`
+          ).join(" | ")
+          : "None established.";
+        return [
+          p.harm,
+          `Information: ${p.data || "not stated"}. Actor or event: ${p.actor || "not stated"}. Source: ${p.source || "not stated"}. Cause: ${p.cause || "not stated"}.`,
+          `Likelihood: ${p.likelihood}. Severity: ${p.severity}.`,
+          p.materiality,
+          safeguardCells,
+          p.residual,
+        ];
+      }),
+      ...unassessedRows,
+    ],
   };
 }
 
@@ -592,9 +711,18 @@ function safeguardCreditedCell(p: Pathway): string {
  * A findings table: levels and safeguards only; no numerals, no totals, no
  * summary row (doc 72 guardrail). Shared derivation for § 4.A and the
  * exec-summary compression. */
-export function buildRiskLedgerTable(pathways: Pathway[], surface: string): RenderedTable | null {
+export function buildRiskLedgerTable(
+  pathways: Pathway[],
+  surface: string,
+  // DOC 127 PART I — named-but-unassessed risks render as honest "Not
+  // assessed" rows after the ranked assessed rows; they are never dropped.
+  unassessed: readonly UnassessedPathway[] = [],
+): RenderedTable | null {
   const ranked = rankPathways(pathways);
-  if (!ranked.length) return null;
+  if (!ranked.length && !unassessed.length) return null;
+  const unassessedNote = unassessed.length
+    ? "A risk marked “Not assessed” lacks the recorded likelihood or severity the assessment requires; recording it appears among the Follow-Ups in § 4.D."
+    : undefined;
   // PANEL RISK-P3 (2026-08-30): the exec surface previously emitted the same
   // four-column ledger as § 4.A byte-for-byte — the full table printed
   // twice. The exec summary now carries the compression this function's
@@ -610,11 +738,15 @@ export function buildRiskLedgerTable(pathways: Pathway[], surface: string): Rend
       surface,
       title: "",
       columns: ["Privacy risk", "Safeguard credited", "Remaining risk"],
-      rows: ranked.map((p) => [
-        p.harm,
-        p.safeguards.length ? (p.bestStatus ?? "Recorded") : "None established",
-        `${p.residual} ${movementMark(p)}`,
-      ]),
+      rows: [
+        ...ranked.map((p) => [
+          p.harm,
+          p.safeguards.length ? (p.bestStatus ?? "Recorded") : "None established",
+          `${p.residual} ${movementMark(p)}`,
+        ]),
+        ...unassessed.map((u) => [u.harm, "Not evaluated", "Not assessed"]),
+      ],
+      ...(unassessedNote ? { note: unassessedNote } : {}),
     };
   }
   return {
@@ -622,19 +754,29 @@ export function buildRiskLedgerTable(pathways: Pathway[], surface: string): Rend
     surface,
     title: "",
     columns: ["Privacy risk", "Before safeguards", "Safeguard credited (status)", "Remaining"],
-    rows: ranked.map((p) => [
-      p.harm,
-      p.materiality,
-      safeguardCreditedCell(p),
-      `${p.residual} ${movementMark(p)}`,
-    ]),
+    rows: [
+      ...ranked.map((p) => [
+        p.harm,
+        p.materiality,
+        safeguardCreditedCell(p),
+        `${p.residual} ${movementMark(p)}`,
+      ]),
+      ...unassessed.map((u) => [u.harm, "Not assessed", "Not evaluated", "Not assessed"]),
+    ],
+    ...(unassessedNote ? { note: unassessedNote } : {}),
   };
 }
 
+// DOC 127 PART I — running-prose band sentences (sentence case per the §21
+// casing ruling; the badge surfaces use DISPOSITION_LABEL instead).
 const CONSEQUENCE_BAND: Record<ProcessingConsequence, string> = {
   "proceed": "Proceed on the information provided.",
   "proceed with conditions": "Proceed with conditions on the information provided.",
-  "do not proceed": "Do not proceed on the information provided.",
+  "do not proceed - remediable": "Do not proceed on the information provided.",
+  "do not proceed - redesign required": "Do not proceed on the information provided.",
+  "additional information required":
+    "No determination is certified on the information provided: additional information is required.",
+  "no processing decision required": "No processing decision is required on the information provided.",
 };
 
 // ── The engine ────────────────────────────────────────────────────────────────
@@ -686,6 +828,9 @@ export function runRiskFactorEngine(
 
   // Shared typed operands.
   const pathways = extractPathways(intake);
+  // DOC 127 PART I — named risks whose likelihood/severity cannot resolve;
+  // carried honestly instead of silently dropped.
+  const unassessed = extractUnassessedPathways(intake);
   const material = materialPathways(pathways);
   const benefits = extractBenefits(intake);
   const benefitTier = bestBenefitTier(benefits);
@@ -716,6 +861,27 @@ export function runRiskFactorEngine(
     )
   );
 
+  // DOC 127 PART I — the balancing cell's stop/proceed kind is resolved here
+  // (same ratified table lookup as § 4.C uses below) because the condition
+  // generators need it: a remediable stop must always state its path. A stop
+  // requires Activity redesign exactly when a pathway's INHERENT level is
+  // Critical — the one-tier residual rule means no safeguard can bring it
+  // below High, and High/Critical residuals are stop under every benefit
+  // tier, so safeguards and benefits alone can never change that outcome.
+  const cellKind = RISK_BALANCING_TABLE[benefitTier][maxResidual].kind;
+  const redesignRequired = cellKind === "stop" &&
+    pathways.some((p) => p.materiality === "Critical");
+  // A stop driven by a High/Critical remaining risk whose credited safeguard
+  // is implemented but untested is remediable by testing evidence; that
+  // action escalates from recommendation to condition so the stop's path is
+  // stated (it was previously only a recommendation, which could leave a
+  // remediable stop with zero conditions).
+  const untestedStopDrivers = cellKind === "stop"
+    ? pathways.filter((p) =>
+      MATERIALITY_RANK[p.residual] >= 2 && p.bestStatus === "Implemented, not tested")
+    : [];
+  const untestedEscalatedHarms = new Set(untestedStopDrivers.map((p) => p.harm));
+
   // Conditions / follow-ups / recommendations (typed derivations, carried).
   const conditions: string[] = [];
   for (const g of planned) {
@@ -740,6 +906,21 @@ export function runRiskFactorEngine(
       `Establish and implement a safeguard addressing the material risk: ${p.harm}`,
     );
   }
+  // DOC 127 PART I (CEO-ratified 2026-08-31) — a stop always states its path.
+  // (1) A no-benefit stop is remediable by establishing the benefit record;
+  //     it previously generated no condition at all, so the report said
+  //     "Do not proceed" beside "No conditions attach to the determination."
+  if (cellKind === "stop" && benefitTier === "none") {
+    conditions.push(
+      "Identify at least one benefit of the Activity — to the consumer, the business, other stakeholders, or the public — and support it with specific information (§ 3.F)",
+    );
+  }
+  // (2) The untested-safeguard stop drivers (see untestedStopDrivers above).
+  for (const p of untestedStopDrivers) {
+    conditions.push(
+      `Obtain implementation and testing evidence for the safeguard credited against the risk: ${p.harm}`,
+    );
+  }
 
   const followUps: string[] = [];
   if (necessity.unsure.length) {
@@ -762,6 +943,14 @@ export function runRiskFactorEngine(
   for (const line of uncertainLines) {
     followUps.push(`Resolve the trigger question: ${sweepRegister52(line)}`);
   }
+  // DOC 127 PART I — every named-but-unassessed risk generates a Follow-Up
+  // naming the missing field(s); the ledgers carry the matching "Not
+  // assessed" row.
+  for (const u of unassessed) {
+    followUps.push(
+      `Record the ${asProse(u.missing)} for the identified risk so it can be assessed: ${u.harm}`,
+    );
+  }
 
   // Consumer-control weak markers (typed on the q7–q10 / q16 / q20 enums).
   const weakControls: string[] = [];
@@ -776,11 +965,14 @@ export function runRiskFactorEngine(
   if (isAdmt && isNo(intake.q20_admt_opt_out)) weakControls.push("the ADMT opt-out");
 
   const recommendations: string[] = [];
-  if (untested.length) {
+  // DOC 127 PART I — untested safeguards already escalated to a Condition
+  // (stop-driving rows) are not repeated as a recommendation.
+  const untestedForRec = untested.filter((g) => !untestedEscalatedHarms.has(s(g.harm)));
+  if (untestedForRec.length) {
     recommendations.push(
       `Obtain implementation or testing evidence for the ${
-        plural(untested.length, "control", "controls")
-      } credited without it, so the assessment can rely on ${plural(untested.length, "it", "them")} at full weight`,
+        plural(untestedForRec.length, "control", "controls")
+      } credited without it, so the assessment can rely on ${plural(untestedForRec.length, "it", "them")} at full weight`,
     );
   }
   if (planned.length) {
@@ -926,7 +1118,25 @@ export function runRiskFactorEngine(
     cell.kind,
     hasConditions,
     s(intake.processing_status),
+    // DOC 127 PART I — the two derivations that split the stop band and gate
+    // the information-required band (conservative-only precedence: a stop
+    // stands even when a named risk is unassessed; the gap joins Follow-Ups).
+    { criticalInherent: redesignRequired, unassessedCount: unassessed.length },
   );
+  // DOC 127 PART I — shared derived flags for the composition sites below.
+  const adverse = consequence === "do not proceed - remediable" ||
+    consequence === "do not proceed - redesign required";
+  const band4 = consequence === "additional information required";
+  const conditionsHeadName = adverse ? "Conditions for Reassessment" : "Conditions to Proceed";
+  const hasBalanceRecord = pathways.length > 0 ||
+    benefits.some((b) => b.weight !== "no affirmative weight");
+  // Branch-truth (doc 127 I.2(e)): where the disposition requires Activity
+  // redesign, the ratified cell's effect sentence must not promise that
+  // completing conditions alone could change the determination. The cell
+  // STRINGS themselves are untouched; only the composed effect swaps.
+  const cellEffect = redesignRequired
+    ? "The processing should not proceed in its present form."
+    : cell.effect;
 
   // Parsed trigger operands.
   interface TriggerParsed {
@@ -989,8 +1199,10 @@ export function runRiskFactorEngine(
     );
   }
 
-  // Exec C — ledger intro + compact ledger.
-  if (pathways.length) {
+  // Exec C — ledger intro + compact ledger. DOC 127 PART I: unassessed named
+  // risks render in the ledger too, so the intro composes whenever any named
+  // risk (assessed or not) is on the record.
+  if (pathways.length || unassessed.length) {
     put(
       "executive_summary:5",
       "exec_ledger_intro",
@@ -1000,7 +1212,7 @@ export function runRiskFactorEngine(
       ["11 CCR § 7152", "11 CCR § 7154"],
     );
   }
-  tables["executive_summary:6"] = buildRiskLedgerTable(pathways, "exec_ledger");
+  tables["executive_summary:6"] = buildRiskLedgerTable(pathways, "exec_ledger", unassessed);
 
   // Exec C — benefit strip.
   {
@@ -1026,16 +1238,23 @@ export function runRiskFactorEngine(
     }
   }
 
-  // Exec C — the determination lead + pointer.
-  if (pathways.length || benefits.some((b) => b.weight !== "no affirmative weight")) {
-    put(
-      "executive_summary:8",
-      "exec_determination",
-      "B",
-      `${cell.conclusion} ${RISK52_FIXED.exec_determination_pointer}`,
-      ["FACTOR:balancing_table"],
-      ["11 CCR § 7154"],
-    );
+  // Exec C — the determination lead + pointer. DOC 127 PART I: the gate
+  // widens to unassessed-only records (so the outcome and path still print),
+  // while the ratified cell conclusion composes only when there is a balance
+  // record for it to describe (doc 124's rule, carried); a band-4 conclusion
+  // carries the provisional qualifier so the exec text can never contradict
+  // the cover's "Additional Information Required".
+  if (hasBalanceRecord || unassessed.length) {
+    if (hasBalanceRecord) {
+      put(
+        "executive_summary:8",
+        "exec_determination",
+        "B",
+        `${cell.conclusion}${band4 ? ` ${RISK52_FIXED.band4_provisional}` : ""} ${RISK52_FIXED.exec_determination_pointer}`,
+        ["FACTOR:balancing_table"],
+        ["11 CCR § 7154"],
+      );
+    }
     // Exec D — outcome.
     put(
       "executive_summary:9",
@@ -1046,14 +1265,30 @@ export function runRiskFactorEngine(
       ["11 CCR § 7152(a)(7)", "11 CCR § 7154"],
     );
     // Exec D — compact conditions. A-TEAM S3 RULING VI.21 (doc 115): counts
-    // under ten render as words in narrative prose.
-    const compact = conditions.length
-      ? `The determination depends on ${countWord(conditions.length)} ${
+    // under ten render as words in narrative prose. DOC 127 PART I: adverse
+    // dispositions compress under the Conditions-for-Reassessment frame, and
+    // the redesign branch never implies the conditions alone could change
+    // the determination.
+    const compactLabels = conditions
+      .map((c) => c.split(":")[0].trim().replace(/\.$/, ""))
+      .join("; ");
+    const capFirst = (t: string): string => t.charAt(0).toUpperCase() + t.slice(1);
+    let compact: string;
+    if (!conditions.length) {
+      compact = RISK52_FIXED.conditions_compact_none;
+    } else if (consequence === "do not proceed - remediable") {
+      compact = `A different disposition depends on ${countWord(conditions.length)} ${
         plural(conditions.length, "Condition", "Conditions")
-      } to Proceed: ${
-        conditions.map((c) => c.split(":")[0].trim().replace(/\.$/, "")).join("; ")
-      }. The full conditions, follow-ups, and recommendations appear in § 4.D.`
-      : RISK52_FIXED.conditions_compact_none;
+      } for Reassessment: ${compactLabels}. The full conditions, follow-ups, and recommendations appear in § 4.D.`;
+    } else if (consequence === "do not proceed - redesign required") {
+      compact = `${capFirst(countWord(conditions.length))} ${
+        plural(conditions.length, "Condition for Reassessment is", "Conditions for Reassessment are")
+      } stated in § 4.D; because a critical-level risk remains, a different disposition also requires modifying the Activity itself.`;
+    } else {
+      compact = `The determination depends on ${countWord(conditions.length)} ${
+        plural(conditions.length, "Condition", "Conditions")
+      } to Proceed: ${compactLabels}. The full conditions, follow-ups, and recommendations appear in § 4.D.`;
+    }
     put(
       "executive_summary:10",
       "conditions_compact",
@@ -1074,7 +1309,7 @@ export function runRiskFactorEngine(
       ? `The Company confirms the stated Purpose identifies ${
         asProse(specificityFacets.map((x) => x.toLowerCase()))
       }; it does not confirm the remaining facets the assessment checks. The assessment proceeds on the Company’s formulation, and sharpening the Purpose appears among the Follow-ups in § 4.D.`
-      : "The information provided does not confirm that the stated Purpose identifies the operation supported, the information involved, the consumers affected, or the intended outcome; restating the Purpose appears among the Conditions to Proceed in § 4.D.";
+      : `The information provided does not confirm that the stated Purpose identifies the operation supported, the information involved, the consumers affected, or the intended outcome; restating the Purpose appears among the ${conditionsHeadName} in § 4.D.`;
     put(
       "ii_information:1",
       "purpose_specificity_analysis",
@@ -1525,7 +1760,7 @@ export function runRiskFactorEngine(
     const paras: string[] = necessity.unnecessary.map((r) => {
       const basis = clause(r.justification);
       const consequence =
-        "Processing the element creates privacy exposure without a corresponding contribution to the benefits weighed in Section 4, and ceasing or justifying it appears in the Conditions to Proceed.";
+        `Processing the element creates privacy exposure without a corresponding contribution to the benefits weighed in Section 4, and ceasing or justifying it appears in the ${conditionsHeadName}.`;
       return basis
         ? `The necessity of ${s(r.element)} is not established for the Purpose under assessment: the Company itself records the element as collected but not necessary to the stated purpose, and the basis it records (“${basis}”) does not establish a contribution to that Purpose; the element-level record appears in Appendix D. ${consequence}`
         : `The necessity of ${s(r.element)} is not established: the Company records the element as collected but not necessary to the stated purpose, and the information provided identifies no contribution it makes to the Purpose. ${consequence}`;
@@ -1851,7 +2086,7 @@ export function runRiskFactorEngine(
           ? "The system’s logic is documented and reviewed internally; the full logic record, including its assumptions and limitations, is preserved in Appendix F."
           : admtLogicDocumented === "The logic is documented by the provider and the Company relies on that documentation"
           ? "The system’s logic is documented by the provider, on whose documentation the Company relies; the record is preserved in Appendix F, with the provider dependency noted in § 2.F."
-          : "The system’s logic is not fully documented or understood on the information provided; documenting it appears among the Conditions to Proceed in § 4.D, and the record to date is preserved in Appendix F.";
+          : `The system’s logic is not fully documented or understood on the information provided; documenting it appears among the ${conditionsHeadName} in § 4.D, and the record to date is preserved in Appendix F.`;
         put("iii_analysis:17", "admt_logic_note", "B", logicText, ["INTAKE:admt_logic_documented"], ["11 CCR § 7152(a)(3)(G)(i)"]);
       }
       {
@@ -1972,7 +2207,7 @@ export function runRiskFactorEngine(
   // ══ IV — THE BALANCE AND THE DETERMINATION ═════════════════════════════════
 
   // IV.A — the ledger + T1 paragraphs + rollup.
-  tables["iv_determination:1"] = buildRiskLedgerTable(pathways, "risk_ledger");
+  tables["iv_determination:1"] = buildRiskLedgerTable(pathways, "risk_ledger", unassessed);
   if (pathways.length) {
     const ranked = rankPathways(pathways);
     const paras = ranked.map((p) => {
@@ -2009,10 +2244,18 @@ export function runRiskFactorEngine(
           plural(plannedList.length, "safeguard", "safeguards")
         } directed at it — ${asProse(plannedList)} — ${
           plural(plannedList.length, "is", "are")
-        } planned but not yet operating. A planned safeguard enters this assessment as a Condition to Proceed, not as present protection, and the remaining risk stays ${p.residual}.`;
+        } planned but not yet operating. A planned safeguard enters this assessment as a ${
+          adverse ? "Condition for Reassessment" : "Condition to Proceed"
+        }, not as present protection, and the remaining risk stays ${p.residual}.`;
       } else {
-        branch =
-          "No safeguard in the information provided is directed at this risk, so it enters the balance at its full level; establishing one appears in the Conditions to Proceed.";
+        // DOC 127 PART I — the condition pointer prints only when the gap
+        // condition actually generated for THIS risk (the gaps cut is the
+        // material pathways; a below-material no-safeguard risk previously
+        // promised a condition § 4.D never carried), and it names the
+        // branch-correct § 4.D head.
+        branch = gaps.some((g) => g.harm === p.harm)
+          ? `No safeguard in the information provided is directed at this risk, so it enters the balance at its full level; establishing one appears in the ${conditionsHeadName}.`
+          : "No safeguard in the information provided is directed at this risk, so it enters the balance at its full level.";
       }
       return `${opening} ${branch}`;
     });
@@ -2025,7 +2268,13 @@ export function runRiskFactorEngine(
         } could compound each other; the levels above are per-risk, and the interaction weighs as an additional consideration against the processing.`,
       );
     }
-    const addressed = [...new Set(pathways.map((p) => p.harm))];
+    // DOC 127 PART I — a named-but-unassessed harm is NOT swept into the
+    // "no credible path" sentence: the Company named it, so the honest
+    // statement is the ledger's "Not assessed" row and the § 4.D Follow-Up,
+    // never a claim that no path to that harm exists.
+    const addressed = [
+      ...new Set([...pathways.map((p) => p.harm), ...unassessed.map((u) => u.harm)]),
+    ];
     const remaining = HARM_PATHWAY_OPTS.filter((o) => !addressed.includes(o));
     if (remaining.length) {
       closers.push(
@@ -2165,7 +2414,7 @@ export function runRiskFactorEngine(
   // block (lines 918-925), so the determination sentence can always be
   // composed from them; only the TABLE (which has nothing to tabulate with
   // zero rows on either side) stays gated under the NO PADDING law.
-  const hasBalanceRecord = pathways.length || benefits.some((b) => b.weight !== "no affirmative weight");
+  // (hasBalanceRecord is derived with the disposition flags above.)
   if (hasBalanceRecord) {
     const left = benefits
       .filter((b) => b.weight !== "no affirmative weight")
@@ -2205,9 +2454,20 @@ export function runRiskFactorEngine(
     "iv_determination:9",
     "determination_text",
     "B",
+    // DOC 127 PART I — the effect sentence is the branch-true cellEffect (a
+    // redesign-required stop never promises that conditions alone could
+    // change the determination); a band-4 determination carries the
+    // provisional qualifier; and the cross-label sentence quotes the
+    // controlled executive label. The no-record fallback additionally drops
+    // the retired-register phrasing doc 124's version carried ("The record
+    // establishes…", "risk pathway") and states the unassessed gap honestly.
     hasBalanceRecord
-      ? `${cell.conclusion} ${cell.materiality} ${cell.effect} ${cellExplanation} ${outcome} In this report's executive result, that consequence is stated as "${CONSEQUENCE_BAND[consequence].replace(/\.$/, "")}."`
-      : `The record establishes no benefit under § 3.F and no risk pathway under § 4.A, so the balance this report performs has nothing to weigh on either side. ${outcome} In this report's executive result, that consequence is stated as "${CONSEQUENCE_BAND[consequence].replace(/\.$/, "")}."`,
+      ? `${cell.conclusion} ${cell.materiality} ${cellEffect} ${cellExplanation}${band4 ? ` ${RISK52_FIXED.band4_provisional}` : ""} ${outcome} In this report's executive result, that determination is stated as "${DISPOSITION_LABEL[consequence]}."`
+      : `The information provided establishes no benefit under § 3.F and ${
+        unassessed.length
+          ? "identifies no risk under § 4.A with a recorded likelihood and severity"
+          : "identifies no risk under § 4.A"
+      }, so the balance this report performs has nothing to weigh on either side. ${outcome} In this report's executive result, that determination is stated as "${DISPOSITION_LABEL[consequence]}."`,
     ["FACTOR:balancing_table", "FACTOR:benefit_weight_table", "FACTOR:residual_rule"],
     ["11 CCR § 7154", "11 CCR § 7152(a)(7)"],
   );
@@ -2220,15 +2480,29 @@ export function runRiskFactorEngine(
   );
 
   // IV.D — conditions / follow-ups / recommendations, numbered.
+  // DOC 127 PART I + §13 ruling — an adverse disposition heads its conditions
+  // "Conditions for Reassessment." (its own chunk, so it renders as a
+  // sub-heading) with the ratified intro sentence; the redesign branch uses
+  // the intro and close that never promise the conditions alone could
+  // change the determination. Bands 1–2 keep the byte-identical
+  // "Conditions to Proceed." composition.
   if (conditions.length) {
+    const condItems = conditions.map((c, i) => `${i + 1}. ${c}.`).join("\n");
+    const conditionsText = adverse
+      ? `${RISK52_FIXED.conditions_reassessment_lead}\n\n${
+        redesignRequired
+          ? RISK52_FIXED.conditions_reassessment_intro_redesign
+          : RISK52_FIXED.conditions_reassessment_intro
+      }\n${condItems}\n${
+        redesignRequired ? RISK52_FIXED.conditions_close_redesign : RISK52_FIXED.conditions_close
+      }`
+      : `${RISK52_FIXED.conditions_lead}\n${condItems}\n${RISK52_FIXED.conditions_close}`;
     put(
       "iv_determination:11",
       "conditions_to_proceed",
       "B",
-      `${RISK52_FIXED.conditions_lead}\n${
-        conditions.map((c, i) => `${i + 1}. ${c}.`).join("\n")
-      }\n${RISK52_FIXED.conditions_close}`,
-      ["FACTOR:planned_safeguards", "FACTOR:necessity_conclusion", "FACTOR:safeguard_gaps"],
+      conditionsText,
+      ["FACTOR:planned_safeguards", "FACTOR:necessity_conclusion", "FACTOR:safeguard_gaps", "FACTOR:balancing_table"],
       ["11 CCR § 7154"],
     );
   }
@@ -2365,6 +2639,18 @@ export function runRiskFactorEngine(
       inherent: pathways.length ? maxInherent : null,
       residual: pathways.length ? maxResidual : null,
       disposition: consequence,
+      // DOC 127 PART I — the controlled badge label and the path/reason line
+      // the cover renders beneath an adverse or information-gated
+      // disposition. Projections of the determinations above, never new.
+      disposition_label: DISPOSITION_LABEL[consequence],
+      path_forward: consequence === "do not proceed - remediable"
+        ? "To continue with the processing, the Company should satisfy the Conditions for Reassessment in § 4.D."
+        : consequence === "do not proceed - redesign required"
+        ? "No safeguard can reduce a critical-level risk below the high-risk level; a different disposition requires modifying the Activity itself — reducing the likelihood or severity of the critical risk at its source — and reassessing."
+        : consequence === "additional information required"
+        ? "Provide the likelihood and severity for the risk or risks identified among the Follow-Ups in § 4.D, and update the assessment."
+        : null,
+      has_unassessed: unassessed.length > 0,
     },
   };
 }

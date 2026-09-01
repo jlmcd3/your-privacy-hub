@@ -126,11 +126,39 @@ Deno.test("v5.2 — recommended outcome keyed to consequence × processing statu
     "Continue the processing subject to the Conditions to Proceed identified in § 4.D.",
   );
   assertEquals(resolveRecommendedOutcome("proceed", true, "Ongoing").consequence, "proceed with conditions");
+  // DOC 127 PART I (CEO-ratified 2026-08-31) — a stop always states its
+  // path: the remediable branch appends the Conditions-for-Reassessment
+  // sentence; the redesign branch states the critical-risk reason; the
+  // consequence carries the split band.
   assertEquals(
     resolveRecommendedOutcome("stop", false, "Planned").outcome,
-    "Do not initiate the processing on the information provided.",
+    "Do not initiate the processing on the information provided. To continue with the processing, the Company should satisfy the Conditions for Reassessment stated in § 4.D.",
   );
-  assertEquals(resolveRecommendedOutcome("stop", true, "Ongoing").consequence, "do not proceed");
+  assertEquals(resolveRecommendedOutcome("stop", true, "Ongoing").consequence, "do not proceed - remediable");
+  assertEquals(
+    resolveRecommendedOutcome("stop", true, "Ongoing", { criticalInherent: true }).consequence,
+    "do not proceed - redesign required",
+  );
+  assert(
+    resolveRecommendedOutcome("stop", true, "Ongoing", { criticalInherent: true }).outcome
+      .includes("modifying the Activity itself"),
+  );
+  // Conservative-only precedence: an information gap never rescues a stop…
+  assertEquals(
+    resolveRecommendedOutcome("stop", true, "Ongoing", { unassessedCount: 2 }).consequence,
+    "do not proceed - remediable",
+  );
+  // …but gates an otherwise-favorable balance.
+  assertEquals(
+    resolveRecommendedOutcome("proceed", false, "Ongoing", { unassessedCount: 1 }).consequence,
+    "additional information required",
+  );
+  // Discontinued processing projects its own label, so the cover badge can
+  // never contradict the body's "no processing decision is required".
+  assertEquals(
+    resolveRecommendedOutcome("stop", false, "Discontinued").consequence,
+    "no processing decision required",
+  );
   assert(resolveRecommendedOutcome("proceed", false, "Discontinued").outcome.includes("discontinued"));
 });
 

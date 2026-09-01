@@ -1603,6 +1603,10 @@ const H3_CHUNK_RE = new RegExp(
     // representative — GDPR Art. 27(1)". Anchored on both sides; keep synced.
     `|(?:[A-Z][A-Za-z .()&'\\-]{1,48} — (?:Cal\\.|ORS |Tex\\.|\\d+ V\\.S\\.A\\.|GDPR |UK GDPR |Regulation \\(EU\\) )[^\\n]{0,60})` +
     `|(?:${HEAD_LEAD_LABELS.join("|")})` +
+    // DOC 127 §13 (2026-08-31) — the CPPA Risk adverse-disposition § 4.D
+    // head, emitted as its own chunk per RULING 3.1's h3 mechanism
+    // (HEAD_LEAD_LABELS itself stays frozen). Keep synced with the web twin.
+    `|(?:Conditions for Reassessment\\.)` +
   `)$`,
 );
 // R4: a statutory/verbatim quote chunk — either the composer emitted a
