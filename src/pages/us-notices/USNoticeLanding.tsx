@@ -101,44 +101,80 @@ export default function USNoticeLanding() {
       </div>
       <ProductHero
         geography="us"
-        eyebrowLabel={<><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("us_notice", "Included with any subscription")}</>}
+        eyebrowLabel={<><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("us_notice")}</>}
         title="US Privacy Notice Builder"
-        valueProposition={`All ${US_STATE_COUNT} US state privacy notices, generated in one session. Covers CCPA/CPRA, Virginia CDPA, Texas TDPSA, and every active US state privacy law. Pre-populated from your RoPA. Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product.`}
-        citationLine="Built from each state statute's own notice content requirements — every disclosure traces to the law that requires it"
+        valueProposition="Generate publish-ready privacy notices for every active U.S. state privacy law in one guided session."
+        citationLine="State-specific disclosures mapped to each law's notice requirements"
         showIntakeCta={false}
       >
-        <div className="flex flex-wrap gap-3">
-          <Button asChild size="lg" className="min-h-[48px]">
-            <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "View subscription plans", cta_position: "hero" })}>
-              View subscription plans <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
-            </Link>
-          </Button>
-          <Button
-            asChild
-            size="lg"
-            variant="outline"
-            className="min-h-[48px] bg-transparent border-slate-500 text-white hover:bg-slate-800 hover:text-white"
-          >
-            <Link to="/us-notices" onClick={() => fireConversion("tool_start_click", { tool_slug: "us_notice", page_path: "/us-notice-builder", user_type: userType })}>View my notice projects</Link>
-          </Button>
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-emerald-300">
+            {hasToolAccess
+              ? "Included with your plan — no additional charge."
+              : "Included with Intelligence and Professional subscriptions."}
+          </p>
+          <div className="flex flex-wrap gap-3">
+            {hasToolAccess ? (
+              <>
+                <Button asChild size="lg" className="min-h-[48px]">
+                  <Link to="/us-notices" onClick={() => fireConversion("tool_start_click", { tool_slug: "us_notice", page_path: "/us-notice-builder", user_type: userType })}>
+                    Open Notice Builder <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="min-h-[48px] bg-transparent border-slate-500 text-white hover:bg-slate-800 hover:text-white"
+                >
+                  <Link to="/us-notices">My notice projects</Link>
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button asChild size="lg" className="min-h-[48px]">
+                  <Link to="/subscribe" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "View plans", cta_position: "hero" })}>
+                    View plans <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="min-h-[48px] bg-transparent border-slate-500 text-white hover:bg-slate-800 hover:text-white"
+                >
+                  <a href="#how-it-works">See how it works</a>
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </ProductHero>
       <main className="flex-1">
 
-        {/* TRUST BAR */}
-        <section className="border-b border-border bg-muted/30">
-          <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm text-muted-foreground">
-            <span className="flex items-center gap-2">
-              <MapPin className="h-4 w-4" aria-hidden /> 20 active state laws
-            </span>
-            <span className="flex items-center gap-2">
-              <Shield className="h-4 w-4" aria-hidden /> CCPA separate from Virginia model
-            </span>
-            <span className="flex items-center gap-2">
-              <RefreshCw className="h-4 w-4" aria-hidden /> Annual refresh included
-            </span>
-          </div>
-        </section>
+        {/* SELLING CARDS */}
+        <ProductInfoCards
+          className="mt-6"
+          cards={[
+            {
+              title: "All active state laws",
+              body: `Coverage for every active U.S. state privacy framework, including California's separate CCPA/CPRA notice.`,
+            },
+            {
+              title: "Answer once, reuse",
+              body: "Overlapping questions are answered once and reused across similar frameworks, with state-specific notices generated separately.",
+            },
+            {
+              title: "PDF / Word / embeddable HTML",
+              body: "Export for review and records, or copy the HTML straight into your site.",
+            },
+            {
+              title: "Annual refresh + RoPA pre-fill",
+              body: "Prior answers carry forward at refresh, and RoPA data pre-fills available fields.",
+            },
+          ]}
+        />
+
 
         {/* HOW IT WORKS */}
         <section className="py-12 md:py-14">
