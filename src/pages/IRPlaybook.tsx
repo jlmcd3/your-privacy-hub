@@ -288,9 +288,6 @@ export default function IRPlaybook() {
       <section className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/ir-playbook" />
-        <div className="mb-4">
-          <ToolTierNote />
-        </div>
 
         {refine.isRefine && refine.intake && !refine.loading ? (
           <RefinePanel
