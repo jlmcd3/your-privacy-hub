@@ -17,6 +17,7 @@ import SampleReportLink from "@/components/SampleReportLink";
 import { INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import ProductInfoCards from "@/components/product/ProductInfoCards";
+import HeroAccessLine from "@/components/product/HeroAccessLine";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import ToolSampleOverlay from "@/components/ToolSampleOverlay";
 import AuthGateModal from "@/components/AuthGateModal";
