@@ -265,9 +265,6 @@ export default function RegistrationLanding() {
               </CardContent>
             </Card>
           </div>
-          <p className="text-center text-xs text-brand-mist mt-6">
-            Annual subscribers: 1 free Smart Tool run/year on Intelligence annual, 3 on Professional annual, redeemable on Governance, LIA, or DPIA.
-          </p>
         </section>
 
 
@@ -285,11 +282,11 @@ export default function RegistrationLanding() {
           <div className="grid md:grid-cols-3 gap-4 text-center max-w-4xl mx-auto">
             <div>
               <div className="text-2xl font-bold text-brand-navy">Monthly</div>
-              <p className="text-xs text-slate">Authority website monitoring</p>
+              <p className="text-xs text-slate">Authority sources monitored</p>
             </div>
             <div>
               <div className="text-2xl font-bold text-brand-navy">Weekly</div>
-              <p className="text-xs text-slate">EU AI Act updates</p>
+              <p className="text-xs text-slate">EU AI Act sources monitored</p>
             </div>
             <div>
               <div className="text-2xl font-bold text-brand-navy">Audit trail</div>
@@ -297,6 +294,7 @@ export default function RegistrationLanding() {
             </div>
           </div>
         </section>
+
 
         {/* 9. FAQ */}
         <section className="py-12 border-t border-border/40 max-w-3xl mx-auto">
