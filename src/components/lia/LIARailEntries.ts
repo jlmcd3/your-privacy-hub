@@ -13,7 +13,7 @@ export const LIA_RAIL: Record<string, RailEntry> = {
     fieldLabel: "In one line — what does this assessment cover?",
     citation: "GDPR Art. 6(1)(f)",
     plainSummary:
-      "One assessment covers one legitimate interest. This line names it and fixes it for all your revision runs.",
+      "One assessment covers one legitimate interest. This line names it and fixes it once you generate.",
     regulationText: "…",
     coachLead: "Name one interest, in one line.",
     coachBody:

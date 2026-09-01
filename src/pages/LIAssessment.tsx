@@ -22,7 +22,7 @@ import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
 import { productEyebrow } from "@/config/productEyebrow";
-import { ProductHero } from "@/components/ProductHero";
+import { ProductHero, ProductHeroSubstrip } from "@/components/ProductHero";
 import HeroPriceCta from "@/components/product/HeroPriceCta";
 import ProductInfoCards from "@/components/product/ProductInfoCards";
 import { INCLUDED_GENERATIONS_HERO } from "@/config/pricing";
@@ -212,40 +212,41 @@ const LIAssessment = () => {
         geography="gdpr"
         eyebrowLabel={<><Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("lia", "Free preliminary signal")}</>}
         title="Legitimate Interests Assessment"
-        valueProposition={INCLUDED_GENERATIONS_HERO}
-        citationLine="GDPR Art. 6(1)(f) · Three-part balancing test · Cited enforcement precedents behind every verdict"
+        valueProposition="Check your use case first — free. If legitimate interests remains viable, build the full three-part balancing test with cited regulator precedent."
+        citationLine="GDPR Art. 6(1)(f) · Purpose · Necessity · Balancing · Cited regulator decisions"
         showIntakeCta={false}
       >
         <HeroPriceCta
           standalonePrice={pricing.standalonePrice}
           subscriberPrice={pricing.subscriberPrice}
           isSubscriber={pricing.isSubscriber && pricing.price === pricing.subscriberPrice}
-          primaryLabel="Start Legitimate Interests Assessment"
+          primaryLabel="Check my use case — Free"
           toolSlug="li_assessment"
           sampleSlug="li_assessment"
         />
       </ProductHero>
 
+      <ProductHeroSubstrip generationsLine={INCLUDED_GENERATIONS_HERO} />
+
       <ProductInfoCards
         className="mt-6"
         cards={[
           {
-            title: "Does this assessment apply to you?",
+            title: "Relying on Article 6(1)(f)?",
             tone: "amber",
-            body: "To rely on legitimate interests under GDPR Article 6(1)(f), you must conduct and document a balancing test — regulators expect a written LIA as your accountability record before you rely on it.",
+            body: "Document the balancing test before you rely on the legal basis. The assessment creates the fact-specific record regulators expect to see — Article 6(1)(f) must be demonstrated, not asserted.",
           },
           {
             title: "What you receive",
-            body: "A free preliminary signal on whether your processing can rest on legitimate interests, then a full three-part test — purpose, necessity, balancing — plus a documentation pack and PDF you can hand to counsel.",
+            body: "Free check → Full LIA. A free viability signal first; then, if appropriate, a full purpose, necessity and balancing analysis, documentation pack, and PDF for legal review.",
           },
           {
-            title: "Why trust the analysis",
-            body: "Built upon regulator guidance and enforcement actions throughout the EU and UK — every test verdict cites the specific guidance and enforcement decisions (EDPB, CNIL, ICO, Garante and others) that informed it, so you can see exactly what stands behind the analysis.",
+            title: "Regulator-grounded analysis",
+            body: "Findings cite the EDPB, ICO and other national authority guidance and enforcement decisions that informed each verdict, so you can see what stands behind the conclusion.",
           },
         ]}
       />
 
-      <ToolAlsoAvailableRow currentTool="lia" />
 
       <main className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
         
@@ -256,40 +257,41 @@ const LIAssessment = () => {
           <h2 className="font-display text-brand-navy mb-4 leading-snug">
             Legitimate interest must be documented, not assumed
           </h2>
-          <p className="text-sm text-brand-navy leading-relaxed mb-4 max-w-[70ch]">
-            Article 6(1)(f) is the most flexible — and most contested — legal basis under the GDPR. Regulators don't
-            accept it on assertion: if challenged, you must produce a written record showing you tested your processing
-            against the three-part test (purpose, necessity, balancing) <em>before</em> you relied on it.
-          </p>
           <p className="text-sm text-brand-navy leading-relaxed max-w-[70ch]">
-            Recent fines from the CNIL, ICO, Garante and others have hit organisations that skipped this record or produced a generic one. The full assessment cites the specific enforcement decisions behind each test verdict — so you can see exactly what informed the analysis.
+            Article 6(1)(f) is the most flexible — and most contested — legal basis under the GDPR: regulators do not
+            accept it on assertion, and if challenged you must produce a written record showing you tested your
+            processing against the three-part test (purpose, necessity, balancing) <em>before</em> you relied on it.
+            Recent fines from the CNIL, ICO and Garante have hit organisations that skipped that record or produced a
+            generic one, so the full assessment cites the specific enforcement decisions behind each test verdict.
           </p>
+
         </section>
 
         {/* HOW IT WORKS */}
         <section className="mb-10">
           <div className="text-eyebrow text-brand-mist mb-2">How it works</div>
-          <h2 className="font-display text-brand-navy mb-5 leading-snug">Three steps, and why each one matters</h2>
+          <h2 className="font-display text-brand-navy mb-5 leading-snug">Free signal first. Full analysis only if it makes sense.</h2>
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-4 md:gap-3">
             {[
               {
                 n: "01",
-                title: "Free preliminary signal",
-                desc: "You describe the processing in plain language. We classify the use case and surface the most analogous regulator decisions.",
-                why: "Some use cases — behavioural advertising, employee monitoring, special category data — almost never survive the balancing test. Knowing this upfront, for free, saves you the cost of a full assessment that was always going to fail.",
+                title: "Free viability signal",
+                desc: "Describe the processing. We identify analogous regulator guidance and flag use cases that are poor candidates for legitimate interests.",
+                why: "Avoid paying for a full LIA when the legal basis is unlikely to fit.",
               },
               {
                 n: "02",
                 title: "Adaptive intake",
-                desc: "We ask only the questions that matter for your facts: whose interest, what alternatives you considered, what data subjects would reasonably expect, what safeguards are in place.",
-                why: "The EDPB's 2024 guidelines list the specific factors regulators weigh. A defensible record has to address them by name — generic 'we considered the impact' language is routinely rejected on enforcement.",
+                desc: "Answer only the factors relevant to your facts: interests, alternatives, expectations, impact, and safeguards.",
+                why: "Questions map to the factors regulators actually weigh.",
               },
               {
                 n: "03",
-                title: "Three-part test report",
-                desc: "A structured analysis of purpose, necessity and balancing, plus a documentation pack and PDF you can hand to counsel.",
-                why: "Article 5(2) accountability requires you to demonstrate compliance, not just claim it. A timestamped, fact-specific LIA is the artefact regulators ask for first when they open an investigation.",
+                title: "Cited LIA record",
+                desc: "Receive the purpose, necessity and balancing analysis plus a documentation pack and PDF for review.",
+                why: "A timestamped, fact-specific accountability record.",
               },
+
             ].flatMap((step, i, arr) => {
               const card = (
                 <div key={`card-${step.n}`} className="bg-card border-t-4 border-brand-navy p-5 shadow-eup-sm rounded-md flex flex-col">
@@ -313,10 +315,23 @@ const LIAssessment = () => {
             })}
           </div>
 
-          <div className="mt-5 bg-amber-50 border-l-4 border-amber-400 rounded p-3 text-meta text-amber-900 max-w-[70ch]">
-            <strong>Not legal advice.</strong> This tool produces a compliance framework grounded in tracked regulatory decisions — and cites them directly in the output so you can see the enforcement basis for each verdict. Your final determination should be reviewed by qualified legal counsel.
+          <div className="mt-5 max-w-[70ch]">
+            <p className="text-meta text-muted-foreground">
+              Analytical aid only — final legal-basis determination should be reviewed by qualified counsel.
+            </p>
+            <details className="group mt-1">
+              <summary className="cursor-pointer list-none inline-flex items-center gap-1 text-meta text-muted-foreground underline underline-offset-2 hover:text-foreground">
+                Legal notes
+              </summary>
+              <div className="mt-2 bg-amber-50 border-l-4 border-amber-400 rounded p-3 text-meta text-amber-900">
+                <strong>Not legal advice.</strong> This tool produces a compliance framework grounded in tracked regulatory decisions — and cites them directly in the output so you can see the enforcement basis for each verdict. Your final determination should be reviewed by qualified legal counsel.
+              </div>
+            </details>
           </div>
         </section>
+
+        <ToolAlsoAvailableRow currentTool="lia" />
+
 
         {/* INTAKE FORM / REFINE PANEL */}
         {refine.isRefine && refine.assessmentId && !refine.loading && refine.intake ? (
@@ -361,7 +376,7 @@ const LIAssessment = () => {
                 : undefined
             }
             meter={meter ?? null}
-            preRunHint="The subject line you set below is fixed once you first generate. Everything else stays editable across your included revision runs."
+            preRunHint="The subject line you set below is fixed once you first generate. Everything else stays editable until you generate."
           />
           <BenchLayout
             toolType="lia"
@@ -396,8 +411,8 @@ const LIAssessment = () => {
                 In one line: what does this assessment cover?<Req />
               </Label>
               <p className="text-xs text-muted-foreground mt-1">
-                This names the single interest being assessed. It is set when you first generate and stays fixed
-                across all your revision runs; everything below it can be refined.
+                This names the single interest being assessed. It is set when you first generate and stays
+                fixed thereafter; everything below it can be refined until you generate.
               </p>
               <input
                 id="subject-anchor"

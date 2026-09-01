@@ -10,7 +10,6 @@ import { ProductHero } from "@/components/ProductHero";
 import ProductInfoCards from "@/components/product/ProductInfoCards";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { Link } from "react-router-dom";
-import ToolTierNote from "@/components/tools/ToolTierNote";
 // useSubscriptionTier removed — registration is per-filing for all tiers.
 import PageContainer from "@/components/PageContainer";
 import { Button } from "@/components/ui/button";
@@ -66,26 +65,25 @@ export default function RegistrationLanding() {
         />
         <link rel="canonical" href="https://enduserprivacy.com/registration-manager" />
       </Helmet>
-      <main id="main-content" aria-label="Registration Manager"><div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-        <ToolTierNote />
-      </div>
+      <main id="main-content" aria-label="Registration Manager">
 
       {/* PRE-INTAKE REDESIGN (2026-08-26): nav-only chip (price moves to the
           pricing section), name-led H1; the legal trigger moves into the
-          applicability card below the hero. */}
+          applicability card below the hero. The conditional "subscriber rate"
+          note is retired — filings are a flat per-filing price for everyone. */}
       <ProductHero
         geography="us"
         eyebrowLabel={<><Folder aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("registration")}</>}
         title="Privacy Registration Manager"
-        valueProposition={`Privacy registration filings, drafted and tracked — DPO appointments, RoPA templates, Article 27 representative letters, and EU AI Act registration documents, generated in minutes and renewed on schedule. ${formatPrice("registration_standalone")} per filing.`}
-        citationLine="Free assessment · No card required · Pay only when you generate documents"
+        valueProposition={`Find where you need to register for free. Generate authority-specific filing packs only when you need them — ${formatPrice("registration_standalone")} per filing.`}
+        citationLine={`Free scope assessment · No card required · ${formatPrice("registration_standalone")} only when you generate a filing`}
         showIntakeCta={false}
       >
         <Button size="lg" asChild className="bg-white text-slate-900 hover:bg-slate-100">
-          <Link to="/registration-manager/start" onClick={() => fireConversion("tool_start_click", { tool_slug: "registration", page_path: "/registration-manager", user_type: userType })}>Start free assessment <ArrowRight className="ml-2 w-4 h-4" /></Link>
+          <Link to="/registration-manager/start" onClick={() => fireConversion("tool_start_click", { tool_slug: "registration", page_path: "/registration-manager", user_type: userType })}>Start free scope assessment <ArrowRight className="ml-2 w-4 h-4" /></Link>
         </Button>
         <Button size="lg" variant="outline" asChild className="bg-transparent border-slate-500 text-white hover:bg-slate-800 hover:text-white">
-          <Link to="#how-it-works">How it works</Link>
+          <Link to="#what-you-get">See what {formatPrice("registration_standalone")} includes</Link>
         </Button>
       </ProductHero>
       <ProductInfoCards
@@ -94,27 +92,28 @@ export default function RegistrationLanding() {
           {
             title: "Does the registration duty apply to you?",
             tone: "amber",
-            body: "Several jurisdictions require controllers to register with — or pay a data-protection fee to — their supervisory authority. In the UK, the ICO data-protection fee is a legal requirement for most organisations.",
+            body: "Registration and data-protection fee duties vary by jurisdiction. The free assessment identifies the authorities and filing types that may apply to your facts.",
           },
           {
-            title: "What you receive",
-            body: "Filings tailored to every jurisdiction you operate in — DPO appointment letters, RoPA templates, Article 27 representative letters, and EU AI Act registration documents — with renewals tracked on schedule.",
+            title: `What you get for ${formatPrice("registration_standalone")}`,
+            body: "Authority-specific filing documents, a submission checklist, verified portal links and fees, and the renewal date in your workspace. Examples include DPO appointment letters, Article 27 representative letters, EU AI Act registrations, and RoPA or fee documents.",
           },
           {
-            title: "Why trust the analysis",
-            body: "Built from each supervisory authority's own registration and fee requirements, jurisdiction by jurisdiction — including the ICO's data-protection-fee rules and the EU AI Act's registration provisions.",
+            title: "Why trust it",
+            body: "Built from supervisory-authority registration and fee requirements, jurisdiction by jurisdiction, with a verification date recorded for each filing pack.",
           },
         ]}
       />
+
       <PageContainer>
 
-        {/* 2. Problem */}
+        {/* 2. Why teams use it */}
         <section className="py-10 border-t border-border/40">
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { icon: AlertTriangle, title: "Fragmented requirements", body: "DPO thresholds, RoPA formats, and AI Act duties differ across 30+ EU/EEA jurisdictions — and change every quarter." },
-              { icon: Clock, title: "Renewal blindspots", body: "Most fines for registration failures stem from missed renewals, not first-time filings. Authorities don't remind you." },
-              { icon: Globe2, title: "Article 27 ambiguity", body: "Non-EU controllers struggle to identify which jurisdictions actually require a representative — and which letter format each authority expects." },
+              { icon: AlertTriangle, title: "Fragmented rules → one scope map", body: "DPO thresholds, RoPA formats, and AI Act duties differ across 30+ EU/EEA jurisdictions." },
+              { icon: Clock, title: "Renewal dates → reminders", body: "Expiry dates are tracked in your workspace so renewals do not slip." },
+              { icon: Globe2, title: "Local formats → filing packs", body: "Each authority expects its own Article 27 and registration formats; we draft to them." },
             ].map((b, i) => (
               <div key={i} className="space-y-2">
                 <b.icon className="w-6 h-6 text-amber-600" />
@@ -130,10 +129,10 @@ export default function RegistrationLanding() {
           <h2 className="font-display text-brand-navy text-center mb-8">How it works</h2>
           <div className="grid md:grid-cols-4 gap-4">
             {[
-              ["1", "Free assessment", "Answer ~12 questions about your organization and processing activities. No account required."],
-              ["2", "Personalized scope", "We map your activities to every jurisdiction that applies, with confidence ratings."],
-              ["3", "Generate documents", `Pay only when you generate documents: ${PRICING.tools.registration.display} per filing, flat. We draft every required filing in minutes.`],
-              ["4", "You file & we track renewals", "You (or your counsel) submit the filings. Optional annual renewal monitoring keeps you ahead of expiry dates."],
+              ["1", "Free scope check", "Answer ~12 questions about your organisation and processing. No account required."],
+              ["2", "Confidence-rated jurisdiction map", "Every jurisdiction that applies, rated by how directly the rule matches your facts."],
+              ["3", `Generate a ${PRICING.tools.registration.display} filing pack`, "Documents, checklist, portal links and fees for the filing you choose."],
+              ["4", "You or counsel submit", "We track the renewal date; we do not file on your behalf."],
             ].map(([n, t, b]) => (
               <Card key={n} className="border-border/60">
                 <CardContent className="p-5">
@@ -146,35 +145,12 @@ export default function RegistrationLanding() {
           </div>
         </section>
 
-        {/* 4. What you get */}
-        <section className="py-12 border-t border-border/40">
-          <h2 className="font-display text-brand-navy text-center mb-8">What you get</h2>
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {[
-              { icon: ShieldCheck, t: "DPO Appointment Letter", b: "Authority-specific format with mandatory fields." },
-              { icon: FileText, t: "Record of Processing Activities (RoPA)", b: "GDPR Art. 30-compliant template, pre-populated from your assessment." },
-              { icon: Brain, t: "AI System Registration (EU AI Act)", b: "Draft for each high-risk AI system you operate." },
-              { icon: Building2, t: "Article 27 Representative Letter", b: "For non-EU controllers — designation, scope, and contact details." },
-              { icon: CheckCircle2, t: "Filing Checklist", b: "Step-by-step submission guide with portal URLs and fees." },
-              { icon: Clock, t: "Renewal Schedule", b: "Tracked automatically with email reminders 60/30/7 days out." },
-            ].map((b, i) => (
-              <div key={i} className="flex gap-3">
-                <b.icon className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-                <div>
-                  <div className="font-semibold text-brand-navy text-sm">{b.t}</div>
-                  <p className="text-xs text-slate">{b.b}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* 5. Confidence model */}
+        {/* 3b. Confidence-rated scope — sits next to the free-scope explanation */}
         <section className="py-12 border-t border-border/40 bg-brand-cloud/40 rounded-xl">
           <div className="max-w-3xl mx-auto px-4">
-            <h2 className="font-display text-brand-navy mb-4">Three-tier confidence rating</h2>
+            <h2 className="font-display text-brand-navy mb-4">Confidence-rated scope</h2>
             <p className="text-slate text-sm mb-6">
-              Every recommendation is rated based on how directly the law applies to your inputs.
+              Each jurisdiction recommendation shows how directly the rule matches the facts you entered.
             </p>
             <div className="space-y-3">
               <div className="bg-card border border-emerald-200 rounded-lg p-4">
@@ -192,6 +168,63 @@ export default function RegistrationLanding() {
             </div>
           </div>
         </section>
+
+
+        {/* 4. What a filing pack includes */}
+        <section id="what-you-get" className="py-12 border-t border-border/40">
+          <h2 className="font-display text-brand-navy text-center mb-8">What a filing pack includes</h2>
+          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            {[
+              {
+                icon: FileText,
+                t: "Documents",
+                b: "The filing documents your authority expects, drafted from your assessment.",
+                details: [
+                  ["DPO Appointment Letter", "Authority-specific format with mandatory fields."],
+                  ["Article 27 Representative Letter", "For non-EU controllers — designation, scope, and contact details."],
+                  ["AI System Registration (EU AI Act)", "Draft for each high-risk AI system you operate."],
+                  ["Record of Processing Activities (RoPA)", "GDPR Art. 30-compliant template, pre-populated from your assessment."],
+                ],
+              },
+              {
+                icon: CheckCircle2,
+                t: "Submission pack",
+                b: "Everything needed to lodge the filing yourself.",
+                details: [
+                  ["Filing checklist", "Step-by-step submission guide."],
+                  ["Portal links and fees", "Verified authority URLs and current fees."],
+                ],
+              },
+              {
+                icon: Clock,
+                t: "Renewal tracking",
+                b: "The expiry date, tracked in your workspace.",
+                details: [["Reminders", "Email reminders 60/30/7 days out."]],
+              },
+            ].map((g, i) => (
+              <div key={i} className="flex gap-3">
+                <g.icon className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                <div>
+                  <div className="font-semibold text-brand-navy text-sm">{g.t}</div>
+                  <p className="text-xs text-slate">{g.b}</p>
+                  <details className="group mt-2">
+                    <summary className="cursor-pointer list-none text-xs text-brand-teal-text underline underline-offset-2">
+                      Examples
+                    </summary>
+                    <ul className="mt-1.5 space-y-1.5">
+                      {g.details.map(([t, b]) => (
+                        <li key={t} className="text-xs text-slate">
+                          <span className="font-semibold text-brand-navy">{t}</span> — {b}
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
 
         {/* 6. Pricing */}
         <section className="py-12 border-t border-border/40">
@@ -231,9 +264,6 @@ export default function RegistrationLanding() {
               </CardContent>
             </Card>
           </div>
-          <p className="text-center text-xs text-brand-mist mt-6">
-            Annual subscribers: 1 free Smart Tool run/year on Intelligence annual, 3 on Professional annual, redeemable on Governance, LIA, or DPIA.
-          </p>
         </section>
 
 
@@ -251,11 +281,11 @@ export default function RegistrationLanding() {
           <div className="grid md:grid-cols-3 gap-4 text-center max-w-4xl mx-auto">
             <div>
               <div className="text-2xl font-bold text-brand-navy">Monthly</div>
-              <p className="text-xs text-slate">Authority website monitoring</p>
+              <p className="text-xs text-slate">Authority sources monitored</p>
             </div>
             <div>
               <div className="text-2xl font-bold text-brand-navy">Weekly</div>
-              <p className="text-xs text-slate">EU AI Act updates</p>
+              <p className="text-xs text-slate">EU AI Act sources monitored</p>
             </div>
             <div>
               <div className="text-2xl font-bold text-brand-navy">Audit trail</div>
@@ -263,6 +293,7 @@ export default function RegistrationLanding() {
             </div>
           </div>
         </section>
+
 
         {/* 9. FAQ */}
         <section className="py-12 border-t border-border/40 max-w-3xl mx-auto">
@@ -279,15 +310,26 @@ export default function RegistrationLanding() {
 
         {/* 10. Final CTA + disclaimer */}
         <section className="py-12 text-center">
-          <h2 className="font-display text-brand-navy mb-3">Ready to start?</h2>
-          <p className="text-slate text-sm mb-6">The free assessment takes about 5 minutes.</p>
+          <h2 className="font-display text-brand-navy mb-3">Ready to see where you need to file?</h2>
+          <p className="text-slate text-sm mb-6">Start the free scope assessment. No card required.</p>
           <Button size="lg" asChild className="bg-teal-action hover:bg-teal-action-hover text-white rounded-md">
-            <Link to="/registration-manager/start" onClick={() => fireConversion("tool_start_click", { tool_slug: "registration", page_path: "/registration-manager", user_type: userType })}>Start free assessment <ArrowRight className="ml-2 w-4 h-4" /></Link>
+            <Link to="/registration-manager/start" onClick={() => fireConversion("tool_start_click", { tool_slug: "registration", page_path: "/registration-manager", user_type: userType })}>Start free scope assessment <ArrowRight className="ml-2 w-4 h-4" /></Link>
           </Button>
-          <div className="mt-10 max-w-3xl mx-auto">
-            <RegistrationDisclaimer />
+          <div className="mt-10 max-w-3xl mx-auto text-left">
+            <p className="text-meta text-muted-foreground">
+              Filing documents and checklists only — you or counsel submit; verify current authority requirements before filing.
+            </p>
+            <details className="group mt-1">
+              <summary className="cursor-pointer list-none text-meta text-muted-foreground underline underline-offset-2 hover:text-foreground">
+                Important legal notes
+              </summary>
+              <div className="mt-2">
+                <RegistrationDisclaimer />
+              </div>
+            </details>
           </div>
         </section>
+
       </PageContainer>
       </main>
       <Footer />

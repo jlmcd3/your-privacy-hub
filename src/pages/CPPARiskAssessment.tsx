@@ -1925,7 +1925,7 @@ export default function CPPARiskAssessment() {
               <div data-rail-key="subject_anchor" onFocus={() => focusRail('subject_anchor')}>
                 <Label htmlFor="subject_anchor">In one line: what processing does this assessment cover? <Req /></Label>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Set when you first generate; fixed across your revision runs. The detailed purpose below remains editable.
+                  Set when you first generate; fixed thereafter. The detailed purpose below remains editable.
                 </p>
                 <input
                   id="subject_anchor"

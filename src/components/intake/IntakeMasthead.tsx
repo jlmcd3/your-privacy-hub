@@ -17,6 +17,7 @@ export default function IntakeMasthead({
   meter,
   preRunHint,
   clientSlot,
+  stepLabel,
 }: {
   kicker: string; // e.g. "CPPA Risk Assessment · 11 CCR §§ 7150–7157"
   title: string; // the current step question, serif
@@ -27,6 +28,8 @@ export default function IntakeMasthead({
   preRunHint?: string;
   /** Active-client selector, rendered top-right ("For: {client} · Change"). */
   clientSlot?: ReactNode;
+  /** Progress indicator, e.g. "Step 2 of 6" — rendered inside the header. */
+  stepLabel?: string;
 }) {
   return (
     <div className="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-brand-navy to-brand-shadow px-6 py-5 text-white">
@@ -34,9 +37,15 @@ export default function IntakeMasthead({
       <div className="relative z-10 flex flex-wrap items-start justify-between gap-x-6 gap-y-1.5">
         <p className="text-label-caps uppercase tracking-[0.16em] text-brand-light-teal font-semibold mb-1.5">
           {kicker}
+          {stepLabel ? (
+            <span className="ml-2 font-medium text-brand-mist" aria-live="polite">
+              · {stepLabel}
+            </span>
+          ) : null}
         </p>
         {clientSlot ? <div className="shrink-0">{clientSlot}</div> : null}
       </div>
+
       <h1 className="relative z-10 font-serif-text font-semibold text-white text-[22px] leading-tight tracking-[-0.01em] max-w-2xl">
         {title}
       </h1>

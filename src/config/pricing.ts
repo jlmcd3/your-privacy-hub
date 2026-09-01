@@ -907,9 +907,10 @@ export const EU_NOTICE_PRICING = {
 
 // ============================================================================
 //  NEW PRICING MODEL (v7) — Coexists with legacy registry above.
-//  Source of truth for the v7 redesign (Intelligence $20/mo, Professional
-//  $35/mo base + $150/client/yr, per-use tools with subscriber discounts,
-//  10-day Intelligence trial, 1 free tool run/month for paid tiers).
+//  Source of truth for the v7 redesign: subscription tiers, per-use tools
+//  with subscriber discounts, the Intelligence trial, and the free monthly
+//  tool run for paid tiers. Figures live in the PRICING object below, never
+//  in these comments.
 //
 //  ── Migration plan ────────────────────────────────────────────────────────
 //  Legacy exports above (INTELLIGENCE_PRICING, PLATFORM_PRICING, formatPrice,
@@ -955,37 +956,29 @@ export const EU_NOTICE_PRICING = {
 //    legacy subscription/per-tool prices and must still be migrated before
 //    flipping the new Stripe Price IDs live for subscription products.
 //  ─────────────────────────────────────────────────────────────────────────
-//  UI (v7 PRICING)                       vs.  Legacy registry / backend
-//  -------------------------------------------------------------------------
-//  Intelligence monthly      $20/mo
-//  Intelligence annual       $200/yr
-//  Professional base         $30/mo
-//  Professional per-client   $150/yr     vs.  per_client_addon          $199
-//  Intelligence trial        10 days     vs.  (none — Stripe checkout has no trial)
-//  Free tool run / month     1 (paid)    vs.  (none — no usage tracking)
-//  Tool: Biometric           $10         vs.  biometric_checker_standalone  $49
-//  Tool: IR Playbook         $20         vs.  ir_playbook_standalone        $59
-//  Tool: LIA                 $30         vs.  li_assessment_standalone      $69
-//  Tool: US Notice (single)  $30         vs.  us_notice_single_standalone   $25
-//  Tool: DPIA                $40         vs.  dpia_framework_standalone     $99
-//  Tool: DPA                 $40         vs.  dpa_generator_standalone      $49
-//  Tool: RoPA/RoFA           $40         vs.  rofa_initial_standalone       $79
-//  Tool: EU Notice (single)  $50         vs.  eu_notice_single_standalone   $45
-//  Tool: Registration        $50         vs.  (no legacy equivalent)
-//  Tool: Governance          $50         vs.  governance_assessment_standalone $49
-//  Tool: CPPA Risk           $60         vs.  cppa_risk_standalone          $149
-//  Tool: CPPA Cyber          $80         vs.  cppa_cybersecurity_standalone $199
-//  Tool: CPPA Scope          Free        vs.  (no legacy entry)
+//  PRICE FIGURES DELIBERATELY REMOVED FROM THIS COMMENT (2026-09-01).
+//  A prior version of this block carried a UI-vs-legacy price comparison
+//  table (e.g. "DPIA $40 vs. $99", "Governance subscriber $50 vs. standalone
+//  $49"). Those figures went stale and were then quoted back to us as if
+//  they were live prices during the product-page audit.
 //
-//  Subscriber-tier tool discounts: legacy registry has per-tool subscriber
-//  prices (e.g. us_notice_single_subscriber $12). v7 replaces these with
-//  uniform percentage discounts (Intelligence 20%, Professional 25%).
+//  RULE: comments in this file must never carry price figures. The single
+//  source of truth for every displayed price is the `PRICING` object below
+//  (read through `getToolPrice` / `useToolPrice`); subscription prices come
+//  from `PRICING.intelligence` / `PRICING.professional`. Legacy backend
+//  reads still go through PRICING_REGISTRY above. If you need to know a
+//  price, read the data — do not read a comment.
 //
-//  Stripe Price IDs in v7 are placeholders. Katherine must create new
-//  Stripe Price objects (see "STRIPE NOTE" in the v7 spec doc) and replace
-//  every REPLACE_WITH_STRIPE_PRICE_ID_* below before going live. Archive,
-//  do not delete, the legacy $29 / $399 / $249 / $199 Stripe prices.
+//  Subscriber-tier tool discounts: the legacy registry carries per-tool
+//  subscriber prices; v7 replaces these with uniform percentage discounts
+//  (Intelligence 20%, Professional 25%) applied by getToolPrice.
+//
+//  Stripe Price IDs in v7 are placeholders until the v7 Price objects exist
+//  at the same lookup keys. Archive, do not delete, the legacy Stripe
+//  prices. Registry-vs-Stripe reconciliation is tracked by the sitewide
+//  pricing-consistency review on the post-deployment roadmap.
 // ============================================================================
+
 
 export const PRICING = {
   intelligence: {

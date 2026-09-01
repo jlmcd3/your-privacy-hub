@@ -128,7 +128,7 @@ export default function Pricing() {
             <h1 className="text-white mb-4">Intelligence, Professional, or per-use.</h1>
             <p className="text-blue-100 max-w-2xl mx-auto">
               Subscribe for the daily feed and weekly brief, add the client workspace with Professional, or buy select
-              compliance tools standalone. 4 generations included for select tools.
+              compliance tools standalone.
             </p>
           </div>
         </section>

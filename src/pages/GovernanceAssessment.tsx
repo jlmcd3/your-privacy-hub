@@ -33,7 +33,7 @@ import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
 import { productEyebrow } from "@/config/productEyebrow";
-import { ProductHero } from "@/components/ProductHero";
+import { ProductHero, ProductHeroSubstrip } from "@/components/ProductHero";
 import HeroPriceCta from "@/components/product/HeroPriceCta";
 import ProductInfoCards from "@/components/product/ProductInfoCards";
 import CompactDisclaimer from "@/components/product/CompactDisclaimer";
@@ -552,8 +552,8 @@ const GovernanceAssessment = () => {
         geography="gdpr"
         eyebrowLabel={<><Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("governance")}</>}
         title="GDPR Accountability Assessment"
-        valueProposition={INCLUDED_GENERATIONS_HERO}
-        citationLine="GDPR Art. 5(2) · Ten governance domains · Cited enforcement decisions behind every risk finding"
+        valueProposition="Review 10 GDPR accountability domains in about 10–15 minutes and receive prioritized findings backed by regulator authority."
+        citationLine="GDPR Art. 5(2) · 10 governance domains · Cited enforcement decisions"
         showIntakeCta={false}
       >
         <HeroPriceCta
@@ -566,27 +566,29 @@ const GovernanceAssessment = () => {
         />
       </ProductHero>
 
+      <ProductHeroSubstrip generationsLine={INCLUDED_GENERATIONS_HERO} />
+
       <ProductInfoCards
         className="mt-6"
         cards={[
           {
-            title: "Why this assessment matters",
+            title: "Why it matters",
             tone: "amber",
-            body: "GDPR Article 5(2) requires you to demonstrate compliance — this assessment produces the documented evidence of that accountability.",
+            body: "Article 5(2) requires organisations to demonstrate compliance, not merely state it. This assessment turns your governance practices into a documented accountability record.",
           },
           {
             title: "What you receive",
-            body: "A structured review of your organisation's data governance practices across ten domains — with cited enforcement decisions behind every risk finding. Estimated completion time: 10–15 minutes.",
+            body: "A 10-domain review of privacy governance, prioritized gaps, regulator-cited findings, and recommended next actions. Typical intake: 10–15 minutes.",
           },
           {
-            title: "Framework scope",
+            title: "Coverage",
             body: (
-              <>Evaluates your privacy programme against the GDPR framework (EU &amp; UK GDPR and GDPR-modelled regimes). For California (CCPA/CPRA) obligations, use the <a href="/cppa" className="underline text-primary">CPPA Assessment</a>.</>
+              <>EU &amp; UK GDPR and GDPR-modelled regimes. For California (CCPA/CPRA), use the <a href="/cppa" className="underline text-primary">CPPA Assessment</a>.</>
             ),
           },
           {
-            title: "Why trust the analysis",
-            body: "Conforms to the EDPB's latest recommended guidance, with cited enforcement decisions behind every risk finding — so you can see the regulator authority standing behind each conclusion.",
+            title: "Why trust it",
+            body: "Findings are mapped to current EDPB guidance and cited enforcement decisions, so each risk conclusion has visible regulator authority behind it.",
           },
         ]}
       />
@@ -596,15 +598,15 @@ const GovernanceAssessment = () => {
       <section className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <ActiveClientLabel />
         <CompactDisclaimer
-          line="Compliance framework tool — findings should be validated against your records; not legal advice."
+          line="Compliance framework tool — validate findings against your records; not legal advice."
           addition="This assessment is a compliance framework tool. It identifies governance findings that should be validated against your organization's authoritative records. It does not constitute legal advice or a legal compliance opinion."
         />
 
-        <div className="text-sm text-muted-foreground" aria-live="polite">Step {step} of {totalSteps}</div>
-
         <IntakeMasthead
-          kicker="GDPR Accountability Assessment · Art. 5(2) accountability"
+          kicker="GDPR Accountability · Art. 5(2)"
+          stepLabel={`Step ${step} of ${totalSteps}`}
           title="GDPR Accountability Assessment"
+
           subjectLabel={meter ? "Assessment subject · locked" : undefined}
           subjectValue={
             meter && typeof meter.lockedFields?.organization_name === "string"
