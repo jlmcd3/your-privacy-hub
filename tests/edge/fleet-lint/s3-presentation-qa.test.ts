@@ -42,7 +42,9 @@ Deno.test("S3 VI.3 — risk ledger movement marks render as words", () => {
   assert(t, "exec ledger renders");
   // A-TEAM S4 RULING S2.16 (doc 119) — the compression carries the
   // safeguard-status middle column; movement marks live in column 2.
-  assertEquals(t!.columns, ["Privacy risk", "Safeguard credited", "Remaining risk"]);
+  // DOC 127 §11 (Phase B, 2026-09-01): label re-registration — "Safeguard
+  // credited" implied credit over a "None established" cell.
+  assertEquals(t!.columns, ["Risk", "Safeguard Status", "Residual Risk"]);
   assertEquals(t!.rows[0][1], "None established");
   assertEquals(t!.rows[0][2], "High (unchanged)");
   assertEquals(t!.rows[1][2], "Low (reduced)");

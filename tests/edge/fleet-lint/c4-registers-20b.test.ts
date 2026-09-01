@@ -110,8 +110,10 @@ Deno.test("C4/S6.1+S6.2: the Risk exec trigger table and the II.H roster list", 
   };
   const trig = engine.tables["executive_summary:3"];
   if (trig) {
-    assertEquals(trig.columns, ["Trigger", "Engaged", "Basis"]);
-    assert(trig.rows.every((r) => r[1] === "Engaged" || r[1] === "Unresolved"));
+    // DOC 127 §10 (Phase B, 2026-09-01) — the digest merged to two columns;
+    // the status word leads the Determination cell, basis bytes carried.
+    assertEquals(trig.columns, ["Trigger", "Determination"]);
+    assert(trig.rows.every((r) => /^(Engaged|Unresolved) — /.test(r[1])));
   }
   const providers = engine.blocks["ii_information:18"];
   const providersText = typeof providers === "string" ? providers : providers?.text ?? "";

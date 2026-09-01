@@ -1248,6 +1248,10 @@ interface SkeletonTableLike {
   note?: string;
   /** CEO report review 2026-08-24 — see RenderedTable.hideHeader. */
   hideHeader?: boolean;
+  /** DOC 127 §28 (Phase B, 2026-09-01) — the assembler's typed surface id,
+   * persisted in skeleton_document; keys the Risk-scoped table styling
+   * (never string-matched on visible cell text). */
+  surface?: string;
 }
 
 /**
@@ -1563,7 +1567,7 @@ const LEAD_PHRASE_RE = new RegExp(
     `|(^|[.!?]\\s+|\\n\\s*)(${RUNIN_LEAD_LABELS.join("|")})(?=\\s|$)`,
   "g",
 );
-function styleLeadPhrases(escapedText: string): string {
+function styleLeadPhrases(escapedText: string, riskMode = false): string {
   return escapedText.replace(
     LEAD_PHRASE_RE,
     // doc 72 §4 — a dropped, thin underline (offset from the baseline so it
@@ -1571,6 +1575,10 @@ function styleLeadPhrases(escapedText: string): string {
     // hyperlink; the default browser underline strikes descenders.
     (_m, preHead: string | undefined, headLabel: string | undefined, preRunin: string | undefined, runinLabel: string | undefined) => {
       if (headLabel !== undefined) {
+        // DOC 127 §5/§6 (Phase B) — Risk only: the marker/heading split (the
+        // underline never runs beneath "A."/"(B)"/"Step N —"). Every other
+        // product keeps the doc 66 Rule 2 whole-label treatment.
+        if (riskMode) return `${preHead}${riskSplitLeadHtml(headLabel)}`;
         return `${preHead}<strong style="text-decoration:underline;text-underline-offset:2.5px;text-decoration-thickness:0.5pt;">${headLabel}</strong>`;
       }
       // Run-in: underlined (not bold), on a new line. Keep the sentence
@@ -1623,16 +1631,270 @@ const GUIDANCE_PANEL_STYLE =
 const MUTED_PANEL_STYLE =
   "border-left:3px solid #8a9eb1;background:#f5f6f7;color:#4a5b6a;font-style:italic;padding:8px 12px;margin:0 0 10px;font-size:10.5px;";
 
+// ─────────────────────────────────────────────────────────────────────────
+// DOC 127 PHASE B (2026-09-01) — the CPPA-Risk presentation system.
+//
+// Everything in this block is RISK-GATED: invoked only when the render
+// product is "cppa-risk". Doc 66 Rule 2 remains fleet law for every other
+// product; doc 128 is the running portability ledger recording which of
+// these mechanisms generalize fleet-wide (surface-keyed table styling, the
+// marker/heading split, status badges, the result card, the determination
+// card, first-line indentation, the methodology strip).
+//
+// Styling is surface-keyed (§28): tables are recognized by the assembler's
+// persisted `RenderedTable.surface` id — never by matching visible cell
+// text. All styling stays inline (the fleet renderer's convention; inline
+// wins over any injected stylesheet, so there is no specificity ambiguity).
+// ─────────────────────────────────────────────────────────────────────────
+
+const RISK_UNDERLINE = "text-decoration:underline;text-underline-offset:2.5px;text-decoration-thickness:0.5pt;";
+
+/** Restrained status badge — §4.2/§21: light tint, dark text, 1px border;
+ * grayscale-safe (weight and border carry the signal, never color alone). */
+function riskBadgeHtml(value: string, opts?: { large?: boolean }): string {
+  const v = value.trim();
+  const palette = /^(Critical|High|Do Not Proceed)$/i.test(v)
+    ? "color:#6e2323;background:#faf3f3;border-color:#c4a0a0;"
+    : /^(Moderate|Additional Information Required|Unresolved)$/i.test(v)
+    ? "color:#6e5518;background:#fbf6ea;border-color:#cdb887;"
+    : /^(Low|Yes|Proceed|Proceed with Conditions|Engaged|No Processing Decision Required)$/i.test(v)
+    ? "color:#28503a;background:#f2f7f4;border-color:#a4bfae;"
+    : "color:#1a1a1a;background:#f3f6f8;border-color:#aab8c5;";
+  const size = opts?.large
+    ? "font-size:10pt;padding:2pt 9pt;"
+    : "font-size:8pt;padding:0.5pt 5pt;";
+  return `<span style="display:inline-block;border:1px solid;border-radius:3px;font-family:Arial,Helvetica,sans-serif;font-weight:700;letter-spacing:0.04em;${size}${palette}">${escHtml(v)}</span>`;
+}
+
+/** A ledger level cell ("High (unchanged)") → level badge + muted movement
+ * word; any other value passes through escaped. */
+function riskLevelCellHtml(value: string): string {
+  const m = /^(Low|Moderate|High|Critical|Not assessed)\s*(\(reduced\)|\(unchanged\))?$/.exec(value.trim());
+  if (!m) return escHtml(value);
+  const tail = m[2] ? ` <span style="color:#6b7a87;font-size:8pt;">${escHtml(m[2])}</span>` : "";
+  return riskBadgeHtml(m[1]) + tail;
+}
+
+/** Bold the leading harm letter "(A) …" in a risk-name cell. */
+function riskHarmCellHtml(value: string): string {
+  const m = /^(\([A-H]\))\s+([\s\S]*)$/.exec(value.trim());
+  return m ? `<strong>${escHtml(m[1])}</strong> ${escHtml(m[2])}` : escHtml(value);
+}
+
+/** Bold the leading status word of a merged determination cell
+ * ("Engaged — basis" / "Unresolved — basis"). */
+function riskStatusLeadCellHtml(value: string): string {
+  const m = /^(Engaged|Unresolved)( — )([\s\S]*)$/.exec(value.trim());
+  return m ? `<strong>${escHtml(m[1])}</strong>${escHtml(m[2])}${escHtml(m[3])}` : escHtml(value);
+}
+
+/** §4.1 — the Assessment Profile executive fact panel (surface cover_summary). */
+function riskProfilePanelHtml(t: SkeletonTableLike): string {
+  const rows = (t.rows ?? []).filter((r) => Array.isArray(r));
+  if (!rows.length) return "";
+  const body = rows.map((r, i) => {
+    const sep = i < rows.length - 1 ? "border-bottom:0.5pt solid #e3e9ee;" : "";
+    return `<tr>
+      <td style="border:none;${sep}width:30%;padding:5pt 10pt 5pt 0;font-family:Arial,Helvetica,sans-serif;font-size:8.5pt;font-weight:600;letter-spacing:0.02em;color:#3f556b;vertical-align:top;">${escHtml(String(r[0] ?? ""))}</td>
+      <td style="border:none;${sep}padding:5pt 0;font-size:10.5pt;font-weight:600;color:#12212f;vertical-align:top;">${escHtml(String(r[1] ?? ""))}</td>
+    </tr>`;
+  }).join("");
+  return `<div class="risk-profile-panel" style="background:#f7f9fb;border-left:2.5pt solid #17324d;border-radius:3px;padding:7pt 12pt;margin:0 0 12px;break-inside:avoid;page-break-inside:avoid;">
+    <table style="width:100%;border-collapse:collapse;border:none;">${body}</table>
+  </div>`;
+}
+
+/** §4.2 — the Assessment Result executive card (surface exec_status_panel):
+ * required/tier rows, a rule, then the disposition as the dominant object
+ * with the Path-forward line beneath (doc 127 Part I). Falls back to the
+ * generic table when the expected rows are absent (legacy payloads). */
+function riskResultCardHtml(t: SkeletonTableLike): string {
+  const get = (label: string): string => {
+    const row = (t.rows ?? []).find((r) => String(r?.[0] ?? "") === label);
+    return row ? String(row[1] ?? "") : "";
+  };
+  const disp = get("Assessment disposition");
+  if (!disp) return "";
+  const req = get("Assessment required");
+  const inherent = get("Inherent privacy risk");
+  const residual = get("Residual privacy risk");
+  const path = get("Path forward");
+  const tierRow = (label: string, v: string): string => {
+    if (!v) return "";
+    const badge = /^(Low|Moderate|High|Critical|Yes|No)$/.test(v.trim());
+    return `<tr>
+      <td style="border:none;padding:3.5pt 0;font-size:9.5pt;color:#3f556b;">${escHtml(label)}</td>
+      <td style="border:none;padding:3.5pt 0;text-align:right;">${
+      badge ? riskBadgeHtml(v.trim()) : `<span style="font-size:9.5pt;color:#12212f;">${escHtml(v)}</span>`
+    }</td>
+    </tr>`;
+  };
+  return `<div class="risk-result-card" style="border:1px solid #c6d0d9;border-radius:4px;padding:10pt 13pt 9pt;margin:0 0 14px;break-inside:avoid;page-break-inside:avoid;">
+    <div style="font-family:Arial,Helvetica,sans-serif;font-size:8pt;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:#17324d;margin:0 0 5pt;break-after:avoid;page-break-after:avoid;">Assessment Result</div>
+    <table style="width:100%;border-collapse:collapse;border:none;">
+      ${tierRow("Assessment required", req)}
+      ${tierRow("Inherent privacy risk", inherent)}
+      ${tierRow("Residual privacy risk", residual)}
+    </table>
+    <div style="border-top:0.75pt solid #aab8c5;margin-top:5pt;padding-top:6pt;">
+      <table style="width:100%;border-collapse:collapse;border:none;"><tr>
+        <td style="border:none;font-size:9.5pt;color:#3f556b;vertical-align:middle;">Assessment disposition</td>
+        <td style="border:none;text-align:right;vertical-align:middle;">${riskBadgeHtml(disp, { large: true })}</td>
+      </tr></table>
+      ${path ? `<div style="margin-top:5pt;font-size:9.5pt;line-height:1.4;color:#12212f;">${escHtml(path)}</div>` : ""}
+    </div>
+  </div>`;
+}
+
+/** Per-surface column widths and cell renderers for the remaining Risk
+ * tables (§10, §11, §14/§15, §25). Surfaces not listed render with the
+ * shared defaults (plus the Risk row-break rule). */
+const RISK_TABLE_SPECS: Record<string, {
+  widths?: readonly string[];
+  cell?: (value: string, col: number) => string;
+  fontPt?: number;
+}> = {
+  exec_triggers: {
+    widths: ["42%", "58%"],
+    cell: (v, c) => (c === 1 ? riskStatusLeadCellHtml(v) : escHtml(v)),
+  },
+  exec_ledger: {
+    widths: ["56%", "22%", "22%"],
+    cell: (v, c) => (c === 2 ? riskLevelCellHtml(v) : c === 0 ? riskHarmCellHtml(v) : escHtml(v)),
+  },
+  risk_ledger: {
+    widths: ["40%", "15%", "30%", "15%"],
+    cell: (v, c) =>
+      c === 3 ? riskLevelCellHtml(v) : c === 1 ? riskLevelCellHtml(v) : c === 0 ? riskHarmCellHtml(v) : escHtml(v),
+  },
+  balance_summary: { widths: ["50%", "50%"] },
+  review_approval_signatures: { widths: ["18%", "24%", "26%", "22%", "10%"] },
+  risk_and_safeguard_register: { fontPt: 8.5 },
+};
+
+/** The Risk table renderer: profile panel and result card for the two cover
+ * surfaces; the shared horizontal-rules anatomy with surface-keyed widths,
+ * badges, and row break protection for everything else. */
+function riskTableHtml(t: SkeletonTableLike): string {
+  const cols = Array.isArray(t.columns) ? t.columns : [];
+  const rows = Array.isArray(t.rows) ? t.rows.filter((r) => Array.isArray(r)) : [];
+  if (rows.length === 0 || cols.length === 0) return "";
+  if (t.surface === "cover_summary") return riskProfilePanelHtml(t);
+  if (t.surface === "exec_status_panel") {
+    const card = riskResultCardHtml(t);
+    if (card) return card;
+  }
+  const spec = RISK_TABLE_SPECS[t.surface ?? ""] ?? {};
+  const fontPt = spec.fontPt ?? 9.5;
+  const colgroup = spec.widths
+    ? `<colgroup>${spec.widths.map((w) => `<col style="width:${w};">`).join("")}</colgroup>`
+    : "";
+  const head = cols
+    .map((c) => `<th style="border:none;border-bottom:0.75pt solid #000;background:#f3f6f8;padding:5pt 8pt 4pt 6pt;text-align:left;font-weight:bold;font-family:Arial,Helvetica,sans-serif;font-size:8pt;text-transform:uppercase;letter-spacing:0.06em;color:#17324d;">${escHtml(c)}</th>`)
+    .join("");
+  const body = rows
+    .map((r) =>
+      `<tr style="break-inside:avoid;page-break-inside:avoid;">${cols
+        .map((_c, i) => {
+          const v = String(r[i] ?? "");
+          const cell = /^_{6,}$/.test(v.trim())
+            ? `<span style="display:inline-block;min-width:220px;border-bottom:0.75pt solid #0c2a44;">&nbsp;</span>`
+            : spec.cell
+            ? spec.cell(v, i)
+            : escHtml(v);
+          return `<td style="border:none;border-bottom:0.5pt solid #666;padding:6pt 8pt 6pt 0;vertical-align:top;font-size:${fontPt}pt;">${cell}</td>`;
+        })
+        .join("")}</tr>`
+    )
+    .join("");
+  const headHtml = t.hideHeader ? "" : `<thead style="display:table-header-group;"><tr>${head}</tr></thead>`;
+  return `<div class="risk-table risk-${escHtml(t.surface ?? "table")}" style="margin:0 0 10px;">
+    ${t.title ? `<div style="font-weight:bold;font-size:10pt;margin:0 0 4px;break-after:avoid;page-break-after:avoid;">${escHtml(t.title)}</div>` : ""}
+    <table style="width:100%;border-collapse:collapse;border-top:1.25pt solid #000;border-bottom:1.25pt solid #000;font-size:${fontPt}pt;line-height:1.35;table-layout:fixed;">
+      ${colgroup}
+      ${headHtml}
+      <tbody>${body}</tbody>
+    </table>
+    ${t.note ? `<div style="font-size:8pt;color:#4a5b6a;margin:3px 0 0;break-before:avoid;page-break-before:avoid;">${escHtml(t.note)}</div>` : ""}
+  </div>`;
+}
+
+/** §5/§6/§8 — the marker/heading typography split for a lead label: the
+ * section marker ("A.", "1.", "(B)", "Step 3 —") is bold and NEVER
+ * underlined; the heading words carry the underline (bold at lettered
+ * level, regular at numbered level). Input is already-escaped text. */
+function riskSplitLeadHtml(escapedLabel: string): string {
+  const m = /^([A-Z]\.|\([A-H]\)|Step \d+ —|\d{1,2}\.)\s+([\s\S]*)$/.exec(escapedLabel);
+  if (!m) {
+    const stop = /\.$/.test(escapedLabel) ? "." : "";
+    const core = stop ? escapedLabel.slice(0, -1) : escapedLabel;
+    return `<strong><span style="${RISK_UNDERLINE}">${core}</span>${stop}</strong>`;
+  }
+  const numbered = /^\d/.test(m[1]);
+  const rest = m[2];
+  const stop = /\.$/.test(rest) ? "." : "";
+  const core = stop ? rest.slice(0, -1) : rest;
+  const restHtml = numbered
+    ? `<span style="${RISK_UNDERLINE}">${core}</span>${stop}`
+    : `<strong><span style="${RISK_UNDERLINE}">${core}</span>${stop}</strong>`;
+  return `<strong style="display:inline-block;min-width:1.65em;">${m[1]}</strong> ${restHtml}`;
+}
+
+/** §12 — the disposition label projected from the cover's Assessment Result
+ * table (surface-keyed; the SAME normalized state, never re-derived). */
+function riskDispositionOf(doc: SkeletonDocLike): string {
+  for (const sec of doc.sections ?? []) {
+    for (const p of sec.paragraphs ?? []) {
+      if (p?.kind === "table" && p.table?.surface === "exec_status_panel") {
+        const row = (p.table.rows ?? []).find((r) => String(r?.[0] ?? "") === "Assessment disposition");
+        if (row) return String(row[1] ?? "");
+      }
+    }
+  }
+  return "";
+}
+
 function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string }): string {
   const footnotesOn = opts?.product === "cppa-admt-v2";
+  // DOC 127 PHASE B (2026-09-01) — the Risk presentation system gate.
+  const riskMode = opts?.product === "cppa-risk";
+  const riskDisposition = riskMode ? riskDispositionOf(doc) : "";
   // R6: one amber Deadline box per document maximum (doc 109 §1.5); the
   // deadline-board table carries the rest.
   let deadlineCalloutUsed = false;
   return (doc.sections ?? []).map((sec) => {
     const paras = (sec.paragraphs ?? []).map((p) => {
-      if (p?.kind === "table" && p.table) return skeletonTableHtml(p.table);
+      if (p?.kind === "table" && p.table) {
+        return riskMode ? riskTableHtml(p.table) : skeletonTableHtml(p.table);
+      }
       const t = typeof p?.text === "string" ? p.text : "";
       if (!t.trim()) return "";
+      // DOC 127 §9 (Phase B) — the Section-1 methodology strip: each byte-
+      // pinned "Step N — Title. Sentence" paragraph lays out as a compact
+      // framework row (number chip, bold title, the sentence). Bytes are
+      // untouched upstream; this is PDF layout only.
+      const stepM = riskMode && sec.id === "i_method"
+        ? /^Step (\d+) — ([^.]+)\.\s*([\s\S]*)$/.exec(t.trim())
+        : null;
+      if (stepM) {
+        return `<div class="risk-step" style="padding:4pt 0 4pt 2pt;border-bottom:0.5pt solid #dfe6ec;break-inside:avoid;page-break-inside:avoid;font-size:9.5pt;line-height:1.4;">
+          <span style="display:inline-block;width:13pt;height:13pt;border-radius:50%;background:#eef2f6;color:#17324d;font-family:Arial,Helvetica,sans-serif;font-size:8pt;font-weight:700;text-align:center;line-height:13pt;margin-right:5pt;">${escHtml(stepM[1])}</span><strong>${escHtml(stepM[2])}</strong> — ${escHtml(stepM[3])}
+        </div>`;
+      }
+      // DOC 127 §12 (Phase B) — the executive DETERMINATION card: the exec
+      // summary's determination lead (kind "lead", the ratified balancing
+      // conclusion + pointer) renders inside a restrained card headed by
+      // the same controlled disposition label the cover projects (read
+      // from the exec_status_panel surface — the ONE normalized state,
+      // never re-derived; §30.19).
+      if (riskMode && sec.id === "executive_summary" && p?.kind === "lead") {
+        const marked = linkifyBareUrls(underlineAppendixRefs(styleLeadPhrases(escHtml(t.trim()), true)));
+        return `<div class="risk-determination-card" style="border-top:1.5pt solid #17324d;background:#f7f9fb;padding:8pt 12pt 9pt;margin:2pt 0 10pt;break-inside:avoid;page-break-inside:avoid;">
+          <div style="font-family:Arial,Helvetica,sans-serif;font-size:8pt;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:#17324d;margin:0 0 3pt;">Determination</div>
+          ${riskDisposition ? `<div style="margin:0 0 5pt;">${riskBadgeHtml(riskDisposition, { large: true })}</div>` : ""}
+          <p class="body-p" style="white-space:pre-line;margin:0;font-size:9.5pt;line-height:1.4;">${marked}</p>
+        </div>`;
+      }
       // R4 (kind-driven): composer-typed quoted authority renders as the
       // statute-quote block, verbatim, no lead styling.
       if (p?.kind === "quoted_authority") {
@@ -1674,6 +1936,14 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
         const trimmed = chunk.trim();
         // R2: a chunk that IS a structural lead renders as an h3.
         if (trimmed.length <= 96 && H3_CHUNK_RE.test(trimmed)) {
+          // DOC 127 §5/§6/§8 (Phase B) — Risk h3 sub-heads carry the same
+          // marker/heading split as inline leads: bold marker never
+          // underlined; lettered heading words bold+underlined, numbered
+          // heading words regular+underlined.
+          if (riskMode) {
+            const numbered = /^\d{1,2}\./.test(trimmed);
+            return `<h3 style="font-family:'Georgia','Times New Roman',serif;font-weight:${numbered ? "400" : "bold"};font-size:13px;color:#0c2a44;margin:14px 0 6px;break-after:avoid;page-break-after:avoid;">${riskSplitLeadHtml(escHtml(trimmed))}</h3>`;
+          }
           return `<h3 style="font-family:'Georgia','Times New Roman',serif;font-weight:bold;font-size:13px;color:#0c2a44;margin:14px 0 6px;break-after:avoid;page-break-after:avoid;">${escHtml(trimmed)}</h3>`;
         }
         // R4 (shape-driven): a chunk that is one enquoted span of ≥ ~25
@@ -1704,8 +1974,14 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
         const determinationCallout = trimmed.startsWith("Determination.");
         const determinationBlocking = determinationCallout &&
           /may not begin|should not begin|cannot yet determine/.test(trimmed);
+        // DOC 127 §13 (Phase B) — the adverse § 4.D block's items chunk opens
+        // with the ratified reassessment intro (its "Conditions for
+        // Reassessment." head is its own h3 chunk), so that intro joins the
+        // amber-callout trigger; the favorable branch is unchanged. Keep in
+        // sync with SkeletonDocumentView.tsx.
         const conditionCallout = deadlineCallout || readinessNegative || determinationBlocking ||
-          /^(?:[A-Z]\.\s+[^.]+\.\s+)?Conditions? to Proceed\./.test(chunk.trim());
+          /^(?:[A-Z]\.\s+[^.]+\.\s+)?Conditions? to Proceed\./.test(chunk.trim()) ||
+          /^The Activity should not proceed in its present form\./.test(chunk.trim());
         const wrapChunk = (html: string): string => {
           if (!html) return html;
           if (conditionCallout) {
@@ -1733,8 +2009,12 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
         // chunks rendered plain; (b) run-in analytic labels ("Analysis.",
         // "Conclusion.", "Reasoning.", …) mid-paragraph were never styled at
         // all — only chunk-opening leads were.
+        // DOC 127 §7 (Phase B) — Risk body paragraphs take a CSS first-line
+        // indent (never typed spaces); with white-space:pre-line only the
+        // block's FIRST formatted line indents, so composer "\n" line runs
+        // (Entry./Stages., numbered conditions) stay at the margin.
         const paragraphHtml = (text: string): string =>
-          `<p class="body-p" style="white-space:pre-line;">${mark(styleLeadPhrases(escHtml(text)))}</p>`;
+          `<p class="body-p" style="white-space:pre-line;${riskMode ? "text-indent:0.22in;" : ""}">${mark(styleLeadPhrases(escHtml(text), riskMode))}</p>`;
         // CEO report review 2026-08-24 — a chunk containing a "— item"
         // list run (see segmentDashText) renders those runs as real
         // bullet lists and everything else as ordinary paragraphs.
@@ -1786,7 +2066,10 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
   }).join("\n");
 }
 
-function buildSkeletonReportHTML(doc: SkeletonDocLike, record: any, fallbackTitle: string, product?: string, eyebrow?: string): string {
+// DOC 127 PHASE C (2026-09-01) — exported for the local print-media QA
+// harness (the edge entrypoint itself cannot be imported without serving;
+// the harness imports this builder directly). No behavior change.
+export function buildSkeletonReportHTML(doc: SkeletonDocLike, record: any, fallbackTitle: string, product?: string, eyebrow?: string): string {
   const created = record?.created_at ? new Date(record.created_at) : new Date();
   // A-TEAM S4 RULING S4 (doc 119) — the cover meta line carries a Report ID
   // derived from the row id, so a printed report can be traced to its record.
@@ -1820,7 +2103,11 @@ function buildSkeletonReportHTML(doc: SkeletonDocLike, record: any, fallbackTitl
     metaLine,
     text: "",
     showJurisdictionChip: false,
-    htmlPrefix: tocHtml + skeletonSectionsHtml(doc, { product }),
+    // DOC 127 §29 (Phase B) — Risk sections carry the scoping wrapper class
+    // so future stylesheet-level rules stay contained to this product.
+    htmlPrefix: tocHtml + (product === "cppa-risk"
+      ? `<div class="report risk-report">${skeletonSectionsHtml(doc, { product })}</div>`
+      : skeletonSectionsHtml(doc, { product })),
     // BATCH 21a (doc 113 S7.3, completing RULING 3.9's Batch-16 half-
     // landing): threaded through to buildTextReportHTML's own eyebrow
     // param; omitted for every call site but IR's, so the fleet default
@@ -4121,8 +4408,11 @@ Deno.serve(async (req) => {
           { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       const skel = readSkeletonDocument(record.report_data);
+      // DOC 127 PHASE B (2026-09-01) — the product string activates the
+      // Risk-scoped presentation system (surface-keyed tables, marker/
+      // heading split, determination card, methodology strip, indentation).
       html = skel
-        ? buildSkeletonReportHTML(skel, record, "CPPA Privacy Risk Assessment")
+        ? buildSkeletonReportHTML(skel, record, "CPPA Privacy Risk Assessment", "cppa-risk")
         : buildCPPARiskReportHTML(record.report_data, record);
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "cppa_admt") {

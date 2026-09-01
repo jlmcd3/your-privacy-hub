@@ -311,7 +311,9 @@ export default function CPPARiskAssessmentResult() {
               ) : null;
             })()}
 
-            {skeletonDoc && <SkeletonDocumentView doc={skeletonDoc} />}
+            {/* DOC 127 PHASE B (2026-09-01) — the product string activates the
+                Risk presentation system in the shared skeleton renderer. */}
+            {skeletonDoc && <SkeletonDocumentView doc={skeletonDoc} product="cppa-risk" />}
             {!skeletonDoc && isV3 && <RiskAssessmentReportV3 report={report as any} />}
             {!skeletonDoc && isV4 && <RiskAssessmentReportV4 report={report as any} />}
 

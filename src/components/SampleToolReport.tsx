@@ -39,7 +39,9 @@ export function SampleToolReport({ toolSlug, documentText, reportData, published
   // both render through the same customer-facing surfaces.
   const sk = rd?.skeleton_document;
   if (isSkeletonDocument(sk)) {
-    return <SkeletonDocumentView doc={sk} />;
+    // DOC 127 PHASE B (2026-09-01) — the sample surface renders CPPA Risk
+    // with the same Risk presentation system as the live result page.
+    return <SkeletonDocumentView doc={sk} product={toolSlug === "cppa_risk" ? "cppa-risk" : undefined} />;
   }
   if (typeof sk === "string" && sk.trim().length > 0) {
     return <AssessmentReport text={sk} sectionChipLabel={null} />;

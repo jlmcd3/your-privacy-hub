@@ -147,7 +147,48 @@ const LEAD_PHRASE_RE = new RegExp(
 /** Chunk text → React nodes: HEAD leads bold+underlined inline; RUN-IN
  * labels underlined (not bold) on a new line; the remaining text routed
  * through renderBodyText (appendix-ref underlining). */
-function renderLeadStyledText(text: string): React.ReactNode[] {
+// DOC 127 §5/§6 (Phase B, 2026-09-01) — CPPA-Risk marker/heading split (web
+// twin of the PDF's riskSplitLeadHtml): the section marker ("A.", "(B)",
+// "Step N —", "1.") is bold and NEVER underlined; the heading words carry
+// the underline (bold at lettered level, regular at numbered level). Risk
+// only — every other product keeps the doc 66 Rule 2 whole-label treatment.
+const RISK_U = "underline underline-offset-[2.5px] decoration-[0.5px]";
+function riskSplitLead(label: string): React.ReactNode {
+  const m = /^([A-Z]\.|\([A-H]\)|Step \d+ —|\d{1,2}\.)\s+([\s\S]*)$/.exec(label);
+  if (!m) {
+    const stop = /\.$/.test(label) ? "." : "";
+    const core = stop ? label.slice(0, -1) : label;
+    return (
+      <strong>
+        <span className={RISK_U}>{core}</span>
+        {stop}
+      </strong>
+    );
+  }
+  const numbered = /^\d/.test(m[1]);
+  const stop = /\.$/.test(m[2]) ? "." : "";
+  const core = stop ? m[2].slice(0, -1) : m[2];
+  const heading = numbered
+    ? (
+      <>
+        <span className={RISK_U}>{core}</span>
+        {stop}
+      </>
+    )
+    : (
+      <strong>
+        <span className={RISK_U}>{core}</span>
+        {stop}
+      </strong>
+    );
+  return (
+    <>
+      <strong className="inline-block min-w-[1.65em]">{m[1]}</strong> {heading}
+    </>
+  );
+}
+
+function renderLeadStyledText(text: string, riskMode = false): React.ReactNode[] {
   const nodes: React.ReactNode[] = [];
   let last = 0;
   let key = 0;
@@ -176,9 +217,13 @@ function renderLeadStyledText(text: string): React.ReactNode[] {
     nodes.push(
       isHead
         ? (
-          <strong key={`l${key++}`} className="underline underline-offset-[2.5px] decoration-[0.5px]">
-            {label}
-          </strong>
+          riskMode
+            ? <span key={`l${key++}`}>{riskSplitLead(label)}</span>
+            : (
+              <strong key={`l${key++}`} className="underline underline-offset-[2.5px] decoration-[0.5px]">
+                {label}
+              </strong>
+            )
         )
         : (
           <span key={`l${key++}`} className="underline underline-offset-[2.5px] decoration-[0.5px]">
@@ -304,9 +349,27 @@ export function isSkeletonDocument(value: unknown): value is SkeletonDocument {
     && typeof d.title === "string";
 }
 
-export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
+export function SkeletonDocumentView({ doc, product }: { doc: SkeletonDocument; product?: string }) {
   // BATCH 16 (R6): one amber Deadline box per document maximum.
   const deadlineUsedRef = { used: false };
+  // DOC 127 PHASE B (2026-09-01) — the Risk presentation system gate (web
+  // twin of generate-report-pdf's riskMode). The disposition shown on the
+  // determination card is READ from the cover's exec_status_panel surface —
+  // the one normalized state, never re-derived (§30.19).
+  const riskMode = product === "cppa-risk";
+  const riskDisposition = riskMode
+    ? (() => {
+      for (const sec of doc.sections) {
+        for (const p of sec.paragraphs) {
+          if (p.kind === "table" && p.table?.surface === "exec_status_panel") {
+            const row = (p.table.rows ?? []).find((r) => String(r?.[0] ?? "") === "Assessment disposition");
+            if (row) return String(row[1] ?? "");
+          }
+        }
+      }
+      return "";
+    })()
+    : "";
   return (
     <article className="font-serif-text space-y-8">
       <header className="space-y-1">
@@ -319,7 +382,37 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
           <h3 className="font-body text-display-card font-semibold">{section.title}</h3>
           {section.paragraphs.map((p, i) =>
             p.kind === "table" && p.table ? (
-              <SkeletonTableView key={i} table={p.table} />
+              <SkeletonTableView key={i} table={p.table} product={product} />
+            ) : riskMode && section.id === "i_method" && /^Step \d+ — [^.]+\./.test(p.text.trim()) ? (
+              // DOC 127 §9 (Phase B) — the Section-1 methodology strip row.
+              (() => {
+                const m = /^Step (\d+) — ([^.]+)\.\s*([\s\S]*)$/.exec(p.text.trim())!;
+                return (
+                  <div key={i} className="flex items-start gap-2 border-b border-border/60 py-1.5 text-[13px] leading-relaxed">
+                    <span className="mt-0.5 inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-slate-100 font-sans text-[10px] font-bold text-slate-800 dark:bg-slate-800 dark:text-slate-200">
+                      {m[1]}
+                    </span>
+                    <span>
+                      <strong>{m[2]}</strong> — {m[3]}
+                    </span>
+                  </div>
+                );
+              })()
+            ) : riskMode && section.id === "executive_summary" && p.kind === "lead" ? (
+              // DOC 127 §12 (Phase B) — the executive DETERMINATION card.
+              <div key={i} className="border-t-2 border-slate-800 bg-slate-50 px-4 py-3 dark:border-slate-300 dark:bg-slate-900/40">
+                <div className="font-sans text-[10px] font-bold uppercase tracking-widest text-slate-700 dark:text-slate-300">
+                  Determination
+                </div>
+                {riskDisposition && (
+                  <div className="my-1.5">
+                    <RiskBadge value={riskDisposition} large />
+                  </div>
+                )}
+                <p className="leading-relaxed text-foreground whitespace-pre-line">
+                  {renderLeadStyledText(p.text, true)}
+                </p>
+              </div>
             ) : section.id === "table_of_authorities" && p.kind !== "skeleton" ? (
               // Every product's ToA content composes as a "rule" block. CPPA
               // Risk v4.5 repurposes this section id for Appendix G and adds
@@ -348,6 +441,17 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
                 // BATCH 16 (R2): a chunk that IS a structural lead renders
                 // as a sub-heading.
                 if (trimmed.length <= 96 && H3_CHUNK_RE.test(trimmed)) {
+                  // DOC 127 §5/§6/§8 (Phase B) — Risk sub-heads carry the
+                  // marker/heading split; numbered heads are regular-weight
+                  // with only the heading words underlined.
+                  if (riskMode) {
+                    const numbered = /^\d{1,2}\./.test(trimmed);
+                    return (
+                      <h4 key={`${i}-${j}`} className={`font-serif text-[15px] ${numbered ? "font-normal" : "font-bold"} text-foreground mt-4 mb-1`}>
+                        {riskSplitLead(trimmed)}
+                      </h4>
+                    );
+                  }
                   return (
                     <h4 key={`${i}-${j}`} className="font-serif text-[15px] font-bold text-foreground mt-4 mb-1">
                       {trimmed}
@@ -383,8 +487,12 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
                 const determinationCallout = trimmed.startsWith("Determination.");
                 const determinationBlocking = determinationCallout &&
                   /may not begin|should not begin|cannot yet determine/.test(trimmed);
+                // DOC 127 §13 (Phase B) — the adverse § 4.D items chunk opens
+                // with the ratified reassessment intro; it joins the amber-
+                // callout trigger. Keep in sync with the PDF renderer.
                 const conditionCallout = deadlineCallout || readinessNegative || determinationBlocking ||
-                  /^(?:[A-Z]\.\s+[^.]+\.\s+)?Conditions? to Proceed\./.test(chunk.trim());
+                  /^(?:[A-Z]\.\s+[^.]+\.\s+)?Conditions? to Proceed\./.test(chunk.trim()) ||
+                  /^The Activity should not proceed in its present form\./.test(chunk.trim());
                 const calloutClass = conditionCallout
                   ? "rounded-md border-[1.5px] border-amber-600/70 bg-amber-50 px-3 py-2 dark:bg-amber-950/30"
                   : readinessCallout || determinationCallout
@@ -416,8 +524,12 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
                             ))}
                           </ul>
                         ) : (
-                          <p key={k} className="leading-relaxed text-foreground whitespace-pre-line">
-                            {renderLeadStyledText(seg.parts.join(" "))}
+                          <p
+                            key={k}
+                            className="leading-relaxed text-foreground whitespace-pre-line"
+                            style={riskMode ? { textIndent: "0.22in" } : undefined}
+                          >
+                            {renderLeadStyledText(seg.parts.join(" "), riskMode)}
                           </p>
                         )
                       )}
@@ -428,8 +540,11 @@ export function SkeletonDocumentView({ doc }: { doc: SkeletonDocument }) {
                   <p
                     key={`${i}-${j}`}
                     className={`leading-relaxed text-foreground whitespace-pre-line${calloutClass ? ` ${calloutClass}` : ""}`}
+                    // DOC 127 §7 (Phase B) — Risk first-line indent via CSS
+                    // (pre-line means only the block's first line indents).
+                    style={riskMode ? { textIndent: "0.22in" } : undefined}
                   >
-                    {renderLeadStyledText(chunk)}
+                    {renderLeadStyledText(chunk, riskMode)}
                   </p>
                 );
               })
@@ -450,8 +565,125 @@ function cellContent(v: string): React.ReactNode {
     : v;
 }
 
-function SkeletonTableView({ table }: { table: SkeletonTable }) {
+// ─── DOC 127 PHASE B (2026-09-01) — CPPA-Risk table surfaces (web twin of
+// the PDF's riskTableHtml family). Risk-gated; surface-keyed, never matched
+// on visible cell text (§28). Doc 128 is the fleet-portability ledger. ───
+
+/** Restrained status badge — §4.2/§21: light tint, dark text, 1px border. */
+function RiskBadge({ value, large }: { value: string; large?: boolean }) {
+  const v = value.trim();
+  const tone = /^(Critical|High|Do Not Proceed)$/i.test(v)
+    ? "border-red-300 bg-red-50 text-red-900 dark:bg-red-950/30 dark:text-red-200"
+    : /^(Moderate|Additional Information Required|Unresolved)$/i.test(v)
+    ? "border-amber-300 bg-amber-50 text-amber-900 dark:bg-amber-950/30 dark:text-amber-200"
+    : /^(Low|Yes|Proceed|Proceed with Conditions|Engaged|No Processing Decision Required)$/i.test(v)
+    ? "border-emerald-300 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200"
+    : "border-border bg-muted text-foreground";
+  return (
+    <span className={`inline-block rounded-sm border font-sans font-bold tracking-wide ${large ? "px-2.5 py-0.5 text-[12px]" : "px-1.5 py-px text-[10px]"} ${tone}`}>
+      {v}
+    </span>
+  );
+}
+
+function riskLevelCell(value: string): React.ReactNode {
+  const m = /^(Low|Moderate|High|Critical|Not assessed)\s*(\(reduced\)|\(unchanged\))?$/.exec(value.trim());
+  if (!m) return renderWithFootnotes(value);
+  return (
+    <>
+      <RiskBadge value={m[1]} />
+      {m[2] && <span className="ml-1 text-[10px] text-muted-foreground">{m[2]}</span>}
+    </>
+  );
+}
+function riskHarmCell(value: string): React.ReactNode {
+  const m = /^(\([A-H]\))\s+([\s\S]*)$/.exec(value.trim());
+  return m ? <><strong>{m[1]}</strong> {m[2]}</> : renderWithFootnotes(value);
+}
+function riskStatusLeadCell(value: string): React.ReactNode {
+  const m = /^(Engaged|Unresolved)( — )([\s\S]*)$/.exec(value.trim());
+  return m ? <><strong>{m[1]}</strong>{m[2]}{m[3]}</> : renderWithFootnotes(value);
+}
+const RISK_CELL_RENDERERS: Record<string, (value: string, col: number) => React.ReactNode> = {
+  exec_triggers: (v, c) => (c === 1 ? riskStatusLeadCell(v) : renderWithFootnotes(v)),
+  exec_ledger: (v, c) => (c === 2 ? riskLevelCell(v) : c === 0 ? riskHarmCell(v) : renderWithFootnotes(v)),
+  risk_ledger: (v, c) => (c === 3 || c === 1 ? riskLevelCell(v) : c === 0 ? riskHarmCell(v) : renderWithFootnotes(v)),
+};
+
+/** §4.1 — the Assessment Profile executive fact panel. */
+function RiskProfilePanel({ table }: { table: SkeletonTable }) {
+  return (
+    <div className="rounded-sm border-l-[3px] border-slate-800 bg-slate-50 px-4 py-2 dark:border-slate-300 dark:bg-slate-900/40">
+      <table className="w-full border-collapse">
+        <tbody>
+          {table.rows.map((r, i) => (
+            <tr key={i} className={i < table.rows.length - 1 ? "border-b border-border/50" : ""}>
+              <td className="w-[30%] py-1.5 pr-4 align-top font-sans text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                {String(r[0] ?? "")}
+              </td>
+              <td className="py-1.5 align-top text-[13.5px] font-semibold text-foreground">
+                {String(r[1] ?? "")}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/** §4.2 — the Assessment Result executive card; falls back to the generic
+ * table when the expected rows are absent (legacy payloads). */
+function RiskResultCard({ table }: { table: SkeletonTable }) {
+  const get = (label: string): string => {
+    const row = table.rows.find((r) => String(r?.[0] ?? "") === label);
+    return row ? String(row[1] ?? "") : "";
+  };
+  const disp = get("Assessment disposition");
+  if (!disp) return null;
+  const path = get("Path forward");
+  const tierRow = (label: string) => {
+    const v = get(label);
+    if (!v) return null;
+    const badge = /^(Low|Moderate|High|Critical|Yes|No)$/.test(v.trim());
+    return (
+      <div key={label} className="flex items-center justify-between py-1">
+        <span className="text-[12.5px] text-slate-600 dark:text-slate-300">{label}</span>
+        {badge ? <RiskBadge value={v.trim()} /> : <span className="text-[12.5px] text-foreground">{v}</span>}
+      </div>
+    );
+  };
+  return (
+    <div className="rounded border border-border px-4 py-3">
+      <div className="mb-1 font-sans text-[10px] font-bold uppercase tracking-widest text-slate-700 dark:text-slate-300">
+        Assessment Result
+      </div>
+      {tierRow("Assessment required")}
+      {tierRow("Inherent privacy risk")}
+      {tierRow("Residual privacy risk")}
+      <div className="mt-1.5 border-t border-border pt-2">
+        <div className="flex items-center justify-between">
+          <span className="text-[12.5px] text-slate-600 dark:text-slate-300">Assessment disposition</span>
+          <RiskBadge value={disp} large />
+        </div>
+        {path && <div className="mt-1.5 text-[12.5px] leading-relaxed text-foreground">{path}</div>}
+      </div>
+    </div>
+  );
+}
+
+function SkeletonTableView({ table, product }: { table: SkeletonTable; product?: string }) {
   if (!table.rows?.length) return null;
+  if (product === "cppa-risk" && table.surface === "cover_summary") {
+    return <RiskProfilePanel table={table} />;
+  }
+  if (
+    product === "cppa-risk" && table.surface === "exec_status_panel" &&
+    table.rows.some((r) => String(r?.[0] ?? "") === "Assessment disposition")
+  ) {
+    return <RiskResultCard table={table} />;
+  }
+  const riskCell = product === "cppa-risk" ? RISK_CELL_RENDERERS[table.surface ?? ""] : undefined;
   return (
     <figure className="my-4 space-y-2">
       {table.title && (
@@ -488,7 +720,11 @@ function SkeletonTableView({ table }: { table: SkeletonTable }) {
               <tr key={r} className="align-top">
                 {row.map((cell, c) => (
                   <td key={c} className="border-b border-border px-3 py-2 leading-relaxed text-foreground">
-                    {/^_{6,}$/.test(String(cell).trim()) ? cellContent(String(cell)) : renderWithFootnotes(cell)}
+                    {/^_{6,}$/.test(String(cell).trim())
+                      ? cellContent(String(cell))
+                      : riskCell
+                      ? riskCell(String(cell ?? ""), c)
+                      : renderWithFootnotes(cell)}
                   </td>
                 ))}
               </tr>

@@ -737,7 +737,11 @@ export function buildRiskLedgerTable(
       key: "",
       surface,
       title: "",
-      columns: ["Privacy risk", "Safeguard credited", "Remaining risk"],
+      // DOC 127 §11 (Phase B, 2026-09-01) — label re-registration (supersedes
+      // doc 119 S2.16's LABELS; its substance — the status word visible in
+      // the exec row — is kept): "Safeguard credited" implied credit even
+      // when the cell said "None established".
+      columns: ["Risk", "Safeguard Status", "Residual Risk"],
       rows: [
         ...ranked.map((p) => [
           p.harm,
@@ -1161,23 +1165,25 @@ export function runRiskFactorEngine(
   // the per-trigger lines move into the digest table (Trigger | Engaged |
   // Basis). SS III.A keeps the full analysis paragraphs.
   if (parsedTriggers.length || uncertainSwept.length) {
+    // DOC 127 §10 (Phase B, 2026-09-01) — two-column digest: the old narrow
+    // "Engaged" column repeated one word down the page; the status word now
+    // leads the Determination cell, with the same basis BYTES carried
+    // verbatim after it.
     const triggerRows: string[][] = parsedTriggers.map((t) => [
       `${t.cite}${t.label ? ` — ${t.label}` : ""}`,
-      "Engaged",
-      `${t.basis || "the information provided supports this trigger."}${/[.!?]$/.test(t.basis) ? "" : "."}`,
+      `Engaged — ${t.basis || "the information provided supports this trigger."}${/[.!?]$/.test(t.basis) ? "" : "."}`,
     ]);
     for (const u of uncertainSwept) {
       triggerRows.push([
         u.replace(/[.!?]\s*$/, ""),
-        "Unresolved",
-        "The information provided leaves this trigger unresolved; resolving it appears among the Follow-ups in § 4.D.",
+        "Unresolved — the information provided leaves this trigger unresolved; resolving it appears among the Follow-ups in § 4.D.",
       ]);
     }
     tables["executive_summary:3"] = {
       key: "",
       surface: "exec_triggers",
       title: "Triggers under § 7150(b)",
-      columns: ["Trigger", "Engaged", "Basis"],
+      columns: ["Trigger", "Determination"],
       rows: triggerRows,
     };
     put(
@@ -2416,12 +2422,15 @@ export function runRiskFactorEngine(
   // zero rows on either side) stays gated under the NO PADDING law.
   // (hasBalanceRecord is derived with the disposition flags above.)
   if (hasBalanceRecord) {
+    // DOC 127 §15 (Phase B, 2026-09-01) — cells compress to "Category —
+    // weight": the supporting fact already prints verbatim in § 3.F, so the
+    // table no longer repeats 4–6-line evidence sentences.
     const left = benefits
       .filter((b) => b.weight !== "no affirmative weight")
       .map((b) =>
         `${b.label.charAt(0).toUpperCase()}${b.label.slice(1)} benefit — ${
           b.weight === "material weight" ? "material" : "limited"
-        }${b.fact ? ` (${firstSentence(b.fact).replace(/\.$/, "")})` : ""}`
+        }`
       );
     if (!left.length) left.push("No benefit established");
     const rightRisks = rankPathways(pathways)
