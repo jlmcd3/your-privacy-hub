@@ -870,6 +870,8 @@ export const RISK_CORPUS_MAP: CorpusMap = {
         decision_date: "2025-11-06",
         case_reference: "EXP202304532",
       },
+      // DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01).
+      advisory_terms: ["biometric passenger processing", "airport", "biometric screening"],
       direction: "supports",
       logic_bearing: false,
       provenance: {
@@ -910,6 +912,8 @@ export const RISK_CORPUS_MAP: CorpusMap = {
         jurisdiction: "Italy",
         decision_date: "2021-07-22",
       },
+      // DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01).
+      advisory_terms: ["algorithmic decision-making", "gig economy", "delivery riders", "location data"],
       direction: "supports",
       logic_bearing: false,
       provenance: {
@@ -949,6 +953,8 @@ export const RISK_CORPUS_MAP: CorpusMap = {
         decision_date: "2023-12-07",
         case_reference: "SAN-2023-021",
       },
+      // DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01).
+      advisory_terms: ["warehouse monitoring", "scanner tracking", "video monitoring", "worker productivity tracking"],
       direction: "supports",
       logic_bearing: false,
       provenance: {

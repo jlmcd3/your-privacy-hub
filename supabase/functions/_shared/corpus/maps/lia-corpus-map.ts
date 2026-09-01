@@ -156,6 +156,8 @@ export const LIA_CORPUS_MAP: CorpusMap = {
         jurisdiction: "Ireland",
         decision_date: "2024-10-22",
       },
+      // DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01).
+      advisory_terms: ["targeted advertising", "behavioural analysis", "behavioural advertising"],
       direction: "supports",
       logic_bearing: false,
       provenance: {
@@ -220,6 +222,8 @@ export const LIA_CORPUS_MAP: CorpusMap = {
         decision_date: "2024-09-05",
         case_reference: "SAN-2024-013",
       },
+      // DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01).
+      advisory_terms: ["pseudonymisation", "patient data", "health data", "anonymisation"],
       direction: "supports",
       logic_bearing: false,
       provenance: {
@@ -285,6 +289,8 @@ export const LIA_CORPUS_MAP: CorpusMap = {
         decision_date: "2024-05-31",
         case_reference: "EXP202201608",
       },
+      // DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01).
+      advisory_terms: ["vaccination status", "health information", "entry requirements"],
       direction: "supports",
       logic_bearing: false,
       provenance: {
@@ -350,6 +356,8 @@ export const LIA_CORPUS_MAP: CorpusMap = {
         decision_date: "2022-12-27",
         case_reference: "EXP202301678",
       },
+      // DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01).
+      advisory_terms: ["data exposure", "data leak", "resale of personal data"],
       direction: "supports",
       logic_bearing: false,
       provenance: {

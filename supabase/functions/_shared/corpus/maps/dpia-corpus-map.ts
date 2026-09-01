@@ -461,6 +461,9 @@ export const DPIA_CORPUS_MAP: CorpusMap = {
         decision_date: "2025-11-06",
         case_reference: "EXP202304532",
       },
+      // DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01) —
+      // terms grounded verbatim in this row's own what_happened text.
+      advisory_terms: ["biometric passenger processing", "airport", "biometric screening"],
       direction: "supports",
       logic_bearing: false,
       provenance: { verified_on: "2026-08-23" },
@@ -495,6 +498,8 @@ export const DPIA_CORPUS_MAP: CorpusMap = {
         jurisdiction: "Netherlands",
         decision_date: "2024-01-15",
       },
+      // DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01).
+      advisory_terms: ["digital identification", "identity verification", "onboarding"],
       direction: "supports",
       logic_bearing: false,
       provenance: { verified_on: "2026-08-23" },
@@ -528,6 +533,8 @@ export const DPIA_CORPUS_MAP: CorpusMap = {
         jurisdiction: "Italy",
         decision_date: "2026-04-17",
       },
+      // DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01).
+      advisory_terms: ["fraud prevention", "fraud detection"],
       direction: "supports",
       logic_bearing: false,
       provenance: { verified_on: "2026-08-23" },
@@ -561,6 +568,8 @@ export const DPIA_CORPUS_MAP: CorpusMap = {
         jurisdiction: "Italy",
         decision_date: "2021-07-22",
       },
+      // DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01).
+      advisory_terms: ["algorithmic decision-making", "gig economy", "delivery riders", "location data"],
       direction: "supports",
       logic_bearing: false,
       provenance: { verified_on: "2026-08-23" },
@@ -595,6 +604,8 @@ export const DPIA_CORPUS_MAP: CorpusMap = {
         decision_date: "2024-01-05",
         case_reference: "EXP202212247",
       },
+      // DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01).
+      advisory_terms: ["biometric clock-in", "facial recognition", "time and attendance"],
       direction: "supports",
       logic_bearing: false,
       provenance: { verified_on: "2026-08-23" },
@@ -628,6 +639,8 @@ export const DPIA_CORPUS_MAP: CorpusMap = {
         jurisdiction: "Italy",
         decision_date: "2021-05-13",
       },
+      // DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01).
+      advisory_terms: ["employee monitoring", "internet usage monitoring", "workplace monitoring"],
       direction: "supports",
       logic_bearing: false,
       provenance: { verified_on: "2026-08-23" },

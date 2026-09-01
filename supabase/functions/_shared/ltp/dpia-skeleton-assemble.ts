@@ -53,6 +53,7 @@ import { spliceVerbatim, collapseSeam, humanizeDateISO } from "./verbatim-splice
 import { naturalCitationCompare } from "./citation-order.ts";
 import { attachCorpusRows } from "../corpus/cam-attach.ts";
 import { DPIA_CORPUS_MAP } from "../corpus/maps/dpia-corpus-map.ts";
+import { ADVISORY_APPENDIX_PREAMBLE, advisoryMatchesTable, matchAdvisoryRows } from "../corpus/advisory-surfacing.ts";
 
 // PROMPT 8A (CEO-ratified 2026-08-12) — CITATION STYLE RULING for all DPIA
 // composed prose: running prose spells "Article 35(1)"; parenthetical citations
@@ -1095,6 +1096,46 @@ export function dpiaConsultationWarning(det: string): string | null {
   return aow?.warning_text ?? null;
 }
 
+// ── DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01) ──────────
+
+/** The Company's own free-text account, concatenated for term-matching.
+ * Never parsed for meaning — only scanned for curated advisory_terms. */
+function dpiaFreeText(intake: Bag): string[] {
+  return [
+    s(intake.description),
+    s(intake.purpose),
+    s(intake.necessity_proportionality),
+    s(intake.nature_scope_context),
+    s(intake.dp_by_design_measures),
+  ];
+}
+
+/** DPIA's release-1 precedent list (dpia-enforcement-precedents-pinned.ts,
+ * doc 57 §2a) always renders its 6 verified rows via the separate
+ * EnforcementPrecedents surface, cross-referenced with the CAM's AP rows
+ * by source_row_id (guarded by dpia-c2-determinism.test.ts). Every row
+ * curated with advisory_terms today IS one of those 6 always-shown rows
+ * (all six carry the fixed `render_when: ["dpia_ap_record"]` marker), so
+ * they must be excluded here or the advisory appendix would repeat a
+ * precedent the reader already saw. Read off the CAM itself rather than
+ * importing the pinned-literal file — that file lives under a sibling
+ * function's `_local/` tree and is a deliberate non-import boundary (see
+ * that file's header); the marker token already identifies the same set. */
+function dpiaAlreadyCitedIds(): ReadonlySet<string> {
+  return new Set(
+    DPIA_CORPUS_MAP.rows
+      .filter((r) => r.role === "AP" && r.render_when?.includes("dpia_ap_record"))
+      .map((r) => r.source_row_id),
+  );
+}
+
+export function buildDpiaAdvisoryCorpusMatches(intake: Bag): RenderedTable | null {
+  const matches = matchAdvisoryRows(DPIA_CORPUS_MAP, dpiaFreeText(intake), dpiaAlreadyCitedIds());
+  const t = advisoryMatchesTable(matches);
+  if (!t) return null;
+  return { key: "", surface: "advisory_corpus_matches", title: "", columns: [...t.columns], rows: t.rows.map((r) => [...r]) };
+}
+
 function composeArt36Sentence(report: Bag): string {
   const a36 = (report.art36_consultation ?? {}) as Bag;
   const det = art36Determination(report);
@@ -1816,7 +1857,16 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
   // built from a separately surface-keyed bag.
   const tablesBySurface = buildDpiaTablesBySurface(report, intake);
   const matrixTable = buildDpiaFactorAuthorityMatrixTable(report, intake, values, composed, tablesBySurface);
-  const tablesWithMatrix = { ...tables, "table_of_authorities:1": matrixTable };
+
+  // DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01).
+  const advisoryMatches = buildDpiaAdvisoryCorpusMatches(intake);
+  composed["table_of_authorities:2"] = advisoryMatches ? ADVISORY_APPENDIX_PREAMBLE : null;
+
+  const tablesWithMatrix = {
+    ...tables,
+    "table_of_authorities:1": matrixTable,
+    "table_of_authorities:3": advisoryMatches,
+  };
 
   const document = renderSkeletonDocument({
     sections: sectionsForRender,

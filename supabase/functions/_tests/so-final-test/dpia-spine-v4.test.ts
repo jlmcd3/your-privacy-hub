@@ -182,8 +182,11 @@ Deno.test("spine v4.1 — every table surface has a builder", () => {
   // AuthorityMatrixTable, positionally keyed as "table_of_authorities:1"),
   // not by the generic by-surface builder — same pattern as CPPA Risk's
   // Appendix G and CPPA ADMT's Appendix B matrices.
+  // DOC 132 — "advisory_corpus_matches" is the same pattern: a dedicated
+  // composer (buildDpiaAdvisoryCorpusMatches), positionally keyed as
+  // "table_of_authorities:3".
   for (const surface of DPIA_SKELETON_TABLE_SURFACES) {
-    if (surface === "factor_authority_matrix") continue;
+    if (surface === "factor_authority_matrix" || surface === "advisory_corpus_matches") continue;
     assert(surface in built, `no builder for table surface ${surface}`);
   }
 });

@@ -504,6 +504,12 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       { kind: "table", text: "persuasive_authority_matrix" },
       // 2
       { kind: "conditional", text: "[CONDITIONAL] ADVERSE-OUTCOME WARNING - composed by the assembler iff the AOW row's bound adverse state fired. Absent => omitted." },
+      // 3-4 — DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01):
+      // a second, separately-labeled block within the same appendix, present
+      // only when the corpus term-match finds something NOT already
+      // attached above (no-padding law).
+      { kind: "conditional", text: "[CONDITIONAL] ADVISORY CORPUS SURFACING - the ratified preamble (advisory-surfacing.ts's ADVISORY_APPENDIX_PREAMBLE), present only when the term-match table below has rows." },
+      { kind: "table", text: "advisory_corpus_matches" },
     ],
   },
   {

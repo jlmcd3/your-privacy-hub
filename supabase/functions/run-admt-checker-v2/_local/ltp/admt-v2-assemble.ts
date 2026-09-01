@@ -68,6 +68,7 @@ import {
 import type { AuthorityExhibit } from "../../../_shared/report-exhibits/authority-exhibit.ts";
 import { attachCorpusRows } from "../../../_shared/corpus/cam-attach.ts";
 import { ADMT_CORPUS_MAP } from "../corpus/maps/admt-corpus-map.ts";
+import { ADVISORY_APPENDIX_PREAMBLE, ADVISORY_APPENDIX_TITLE, advisoryMatchesTable, matchAdvisoryRows } from "../../../_shared/corpus/advisory-surfacing.ts";
 // A-TEAM S3 RULING V.7 (doc 115) — acronym-safe mid-sentence casing.
 import { lowerFirstWordSafe } from "../../../_shared/ltp/splice-case.ts";
 
@@ -389,6 +390,38 @@ export function buildAdmtS4Attachments(computed: AdmtV2Computed): readonly AdmtS
     out.push({ factor_id, frame, excerpts });
   }
   return out;
+}
+
+// ── DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01) ──────────
+
+/** The Company's own free-text account, concatenated for term-matching.
+ * Never parsed for meaning — only scanned for curated advisory_terms. */
+function admtFreeText(intake: unknown): string[] {
+  const i = intake as Record<string, unknown>;
+  return [
+    typeof i?.system_description === "string" ? i.system_description : "",
+    typeof i?.notice_purpose_text === "string" ? i.notice_purpose_text : "",
+  ];
+}
+
+/** Advisory table over the ADMT CAM — excludes any row already attached in
+ * the Persuasive Authority appendix above, so this surfaces ONLY topics
+ * the deterministic scope/factor gates did not reach. */
+export function buildAdmtAdvisoryCorpusMatches(
+  computed: AdmtV2Computed,
+  intake: unknown,
+): RenderedTable | null {
+  const fired = deriveAdmtFiredStates(computed);
+  const alreadyCited = new Set(
+    attachCorpusRows(ADMT_CORPUS_MAP, "S5", fired)
+      .filter((r) => r.role === "AP")
+      .map((r) => r.provenance.source_url)
+      .filter((u): u is string => !!u),
+  );
+  const matches = matchAdvisoryRows(ADMT_CORPUS_MAP, admtFreeText(intake), alreadyCited);
+  const t = advisoryMatchesTable(matches);
+  if (!t) return null;
+  return { key: "", surface: "advisory_corpus_matches", title: "", columns: [...t.columns], rows: t.rows.map((r) => [...r]) };
 }
 
 export interface AdmtPersuasiveAuthority {
@@ -920,11 +953,23 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
       { kind: "skeleton", text: ADMT_APPENDIX_B_LEAD },
       { kind: "table", text: "", table: { ...persuasive.table, key: "appendix_b:1" } },
     ]);
-    nextAppendixLetter = "C";
+    nextAppendixLetter = String.fromCharCode(nextAppendixLetter.charCodeAt(0) + 1);
   }
 
-  // ── Assessment Fact Record (Appendix C, or B when Persuasive Authority
-  // is suppressed by the no-padding law) ──────────────────────────────────
+  // DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01). Same
+  // sequential-lettering, no-padding pattern as Appendix B above.
+  const advisoryMatches = buildAdmtAdvisoryCorpusMatches(computed, intake);
+  if (advisoryMatches) {
+    push("appendix_advisory", `Appendix ${nextAppendixLetter} — ${ADVISORY_APPENDIX_TITLE}`, [
+      { kind: "skeleton", text: ADVISORY_APPENDIX_PREAMBLE },
+      { kind: "table", text: "", table: { ...advisoryMatches, key: "appendix_advisory:1" } },
+    ]);
+    nextAppendixLetter = String.fromCharCode(nextAppendixLetter.charCodeAt(0) + 1);
+  }
+
+  // ── Assessment Fact Record (Appendix C, or the next free letter when
+  // Persuasive Authority and/or Advisory Surfacing are suppressed by the
+  // no-padding law) ──────────────────────────────────────────────────────
   push("appendix_c", `Appendix ${nextAppendixLetter} — Assessment Fact Record`, [
     { kind: "skeleton", text: "This appendix captures the material facts the Company supplied and that the assessment used. It supports later review and updating; it does not independently verify the Company's responses. The following table records the material facts the Company supplied for each topic:" },
     { kind: "table", text: "", table: { key: "appendix_c:0", surface: "fact_record", ...buildFactRecordTable(intake, computed, organizationName, systemName, systemType, domains) } },

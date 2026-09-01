@@ -404,6 +404,11 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
       // output variable. A row suppressed here means the underlying factor
       // did not compose for this document (no-padding law).
       { kind: "table", text: "factor_authority_matrix" },
+      // DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01) — a
+      // conditional lead + table, present only when the corpus term-match
+      // finds something (no-padding law: renders nothing on zero matches).
+      { kind: "generated", text: "[GENERATED] ADVISORY CORPUS SURFACING - the ratified preamble (advisory-surfacing.ts's ADVISORY_APPENDIX_PREAMBLE), present only when the term-match table below has rows." },
+      { kind: "table", text: "advisory_corpus_matches" },
     ],
   },
 ];
@@ -486,9 +491,18 @@ export const DPIA_SPINE_HASH_V47 =
  * hyphens became em dashes. Basis-v1 (skeleton-block text only) is
  * UNCHANGED by this edit, confirming titles carry no fixed prose; only the
  * basis-v2 full serialization (which embeds title text) moves. Method
- * verified by reproducing the v4.7 value first. */
-export const DPIA_SPINE_HASH =
+ * verified by reproducing the v4.7 value first. Retained for the audit
+ * trail. */
+export const DPIA_SPINE_HASH_V48 =
   "2e71661a3f2b46dc6f640217e93782a403aed455fa2836fa082e82bdeb724549";
+
+/** v4.9 spine hash — DOC 132 (Track A, CEO-ratified 2026-09-01): the
+ * table_of_authorities section gains the advisory-corpus-surfacing
+ * generated preamble + `advisory_corpus_matches` table block (additive
+ * only — no other block moved or changed). Method verified by reproducing
+ * the v4.8 value first. */
+export const DPIA_SPINE_HASH =
+  "edc29494c02631d7e9846cbbf0e6c34befcaddcd998ac0249fa4b7f184554ae3";
 
 /** The v4.5.1 spine under basis v2 — retained for the audit trail. */
 export const DPIA_SPINE_HASH_V451 =

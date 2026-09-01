@@ -260,6 +260,15 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
     title: "Authorities Cited",
     blocks: [
       { kind: "rule", text: "Assembled deterministically from the document's citation ledger: an authority appears here if and only if it is cited above, with pinpoints consolidated and section back-references. Grouped in brief order - Regulations; Statutes; Guidance and Persuasive Authority (labelled persuasive, never binding). Source links deferred." },
+      // DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01) —
+      // EMPTY SCAFFOLD: Cyber's corpus map holds zero enforcement-action
+      // rows today (verified at curation — every row is FSOR commentary or
+      // a statute pin), so no row carries advisory_terms and this table
+      // never has rows to show (no-padding law). Wired now at zero cost so
+      // the appendix activates automatically the day the corpus ever gains
+      // a curated enforcement-action row — no further code change needed.
+      { kind: "generated", text: "[GENERATED] ADVISORY CORPUS SURFACING - the ratified preamble (advisory-surfacing.ts's ADVISORY_APPENDIX_PREAMBLE), present only when the term-match table below has rows. Dark today: the Cyber corpus map holds no enforcement-action rows to curate terms on." },
+      { kind: "table", text: "advisory_corpus_matches" },
     ],
   },
 ];

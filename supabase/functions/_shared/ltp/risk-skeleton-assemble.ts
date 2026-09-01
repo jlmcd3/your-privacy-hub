@@ -47,6 +47,7 @@ import { formatReportDateLong } from "../report-dates.ts";
 // over the Risk CAM (the determinism law's generation-plane mechanism).
 import { attachCorpusRows } from "../corpus/cam-attach.ts";
 import { RISK_CORPUS_MAP } from "../corpus/maps/risk-corpus-map.ts";
+import { ADVISORY_APPENDIX_PREAMBLE, advisoryMatchesTable, matchAdvisoryRows } from "../corpus/advisory-surfacing.ts";
 
 export const RISK_SKELETON_ASSEMBLER_STAMP =
   "risk-skeleton-assembler@spine-v5.2-2026-08-26";
@@ -830,6 +831,37 @@ export function buildPersuasiveAuthority(report: Bag): RiskPersuasiveAuthority {
   return { table, trail, warning: aow?.warning_text ?? null };
 }
 
+// ── DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01) ──────────
+
+/** The Company's own free-text account, concatenated for term-matching.
+ * Never parsed for meaning — only scanned for curated advisory_terms. */
+function riskFreeText(intake: Bag): string[] {
+  return [
+    s(intake.primary_activity_purpose),
+    s(intake.processing_entry_point),
+    s(intake.processing_result),
+    ...rows(intake.a5_harm_pathways).flatMap((p) => [s(p.data_involved), s(p.actor), s(p.source), s(p.cause)]),
+    ...rows(intake.a2_necessity_set).map((r) => s(r.justification)),
+  ];
+}
+
+/** Advisory table for the report's fired states — excludes any row already
+ * attached above (buildPersuasiveAuthority's own `ap` list), so this
+ * appendix surfaces ONLY topics the deterministic triggers did not reach. */
+export function buildAdvisoryCorpusMatches(report: Bag, intake: Bag): RenderedTable | null {
+  const fired = deriveRiskFiredStates(report);
+  const alreadyCited = new Set(
+    attachCorpusRows(RISK_CORPUS_MAP, "S5", fired)
+      .filter((r) => r.role === "AP")
+      .map((r) => r.provenance.source_url)
+      .filter((u): u is string => !!u),
+  );
+  const matches = matchAdvisoryRows(RISK_CORPUS_MAP, riskFreeText(intake), alreadyCited);
+  const t = advisoryMatchesTable(matches);
+  if (!t) return null;
+  return { key: "", surface: "advisory_corpus_matches", title: "", columns: [...t.columns], rows: t.rows.map((r) => [...r]) };
+}
+
 // ── Assembly ────────────────────────────────────────────────────────────────
 
 export interface RiskSkeletonResult {
@@ -890,6 +922,10 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
   composed["appendix_i:0"] = persuasive.table ? RISK_APPENDIX_I_LEAD : null;
   composed["appendix_i:2"] = persuasive.table ? persuasive.warning : null;
 
+  // DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01).
+  const advisoryMatches = buildAdvisoryCorpusMatches(report, intake);
+  composed["appendix_i:3"] = advisoryMatches ? ADVISORY_APPENDIX_PREAMBLE : null;
+
   const matrixTable = buildFactorAuthorityMatrixTable(report, intake, engine, persuasive.trail);
 
   const tables: SkeletonTables = {
@@ -912,6 +948,7 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
     "appendix_e:2": deriveBusinessLevelOutstanding(),
     "appendix_f:1": deriveMaterialsConsideredIndex(intake),
     "appendix_i:1": persuasive.table,
+    "appendix_i:4": advisoryMatches,
   };
 
   const document = renderSkeletonDocument({

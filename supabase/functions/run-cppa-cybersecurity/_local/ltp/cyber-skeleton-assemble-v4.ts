@@ -38,6 +38,8 @@ import type { ComponentRecommendation, CyberNextStep } from "./cppa-cyber-delive
 import { recommendationFact } from "./cppa-cyber-deliverables/cyber-recommendations.ts";
 import { buildCyberFactors, buildRecordCompletionExtras, type CyberFactorOutputs, type RecordCompletionAction } from "./cppa-cyber-deliverables/cyber-factors.ts";
 import { CYBER_7123_COMPONENTS } from "./cppa-cyber-deliverables/components.ts";
+import { CYBER_CORPUS_MAP } from "../corpus/maps/cyber-corpus-map.ts";
+import { ADVISORY_APPENDIX_PREAMBLE, advisoryMatchesTable, matchAdvisoryRows } from "../../../_shared/corpus/advisory-surfacing.ts";
 
 export const CYBER_V4_ASSEMBLER_STAMP = "cyber-skeleton-assembler@c2-spine-v1.1-2026-08-26";
 
@@ -603,14 +605,30 @@ export function assembleCyberSkeletonDocumentV4(
     skeletonDocumentToText(draft),
   );
 
+  // DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01) — EMPTY
+  // SCAFFOLD (see the spine comment for why: the Cyber corpus map curates
+  // zero advisory_terms today, so this always returns null regardless of
+  // input; wired now so the appendix activates automatically, zero further
+  // code change, the day the corpus first gains a curated enforcement row).
+  const advisoryMatches = advisoryMatchesTable(matchAdvisoryRows(CYBER_CORPUS_MAP, [], new Set()));
+
   const document = renderSkeletonDocument({
     sections: CYBER_V4_SKELETON_SECTIONS,
     title: CYBER_V4_SKELETON_TITLE,
     subtitle: CYBER_V4_SKELETON_SUBTITLE,
     spineVersion: CYBER_V4_SKELETON_VERSION,
     values: { "profile.entity_name": s((intake.profile as Bag | undefined)?.entity_name) || "the company" },
-    composed: { ...composedBase, "table_of_authorities:0": toa },
-    tables,
+    composed: {
+      ...composedBase,
+      "table_of_authorities:0": toa,
+      "table_of_authorities:1": advisoryMatches ? ADVISORY_APPENDIX_PREAMBLE : null,
+    },
+    tables: {
+      ...tables,
+      ...(advisoryMatches
+        ? { "table_of_authorities:2": { key: "", surface: "advisory_corpus_matches", title: "", ...advisoryMatches } }
+        : {}),
+    },
   });
 
   const body = skeletonDocumentToText(document).toLowerCase();

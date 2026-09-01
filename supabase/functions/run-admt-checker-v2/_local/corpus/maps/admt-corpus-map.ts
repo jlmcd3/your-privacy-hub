@@ -260,6 +260,8 @@ export const ADMT_CORPUS_MAP: CorpusMap = {
         jurisdiction: "Italy",
         decision_date: "2021-07-22",
       },
+      // DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01).
+      advisory_terms: ["algorithmic decision-making", "gig economy", "delivery riders", "algorithmic management"],
       direction: "supports",
       logic_bearing: false,
       provenance: {

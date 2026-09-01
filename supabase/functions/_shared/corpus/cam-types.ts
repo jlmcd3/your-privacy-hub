@@ -116,6 +116,17 @@ export interface CamRow {
   readonly display?: CamApDisplay;
   /** Required iff role === "AOW" and render_eligible. Ratified wording. */
   readonly warning_text?: string;
+  /** DOC 132 (advisory-surfacing, Track A, CEO-ratified 2026-09-01) —
+   * curated subject-matter nouns/phrases authored at curation time.
+   * Present ONLY on AP rows with a `display` block (external enforcement-
+   * action precedent) — never on FC/AQ commentary or statute-pin rows,
+   * which already render deterministically on their own gates, and never
+   * on AOW rows (a warning row shares its underlying case with a sibling
+   * AP row, which is what the matcher scans). Runtime matching is dumb:
+   * word-bounded, case-insensitive substring match over the product's
+   * free-text intake fields, never a model call. Advisory surfacing
+   * decides NOTHING — it is a signpost, never a determination input. */
+  readonly advisory_terms?: readonly string[];
   /** For S0 rows: the intake field/rail key the callout attaches to. */
   readonly s0_field?: string;
   readonly direction: "supports" | "limits" | "neutral";
