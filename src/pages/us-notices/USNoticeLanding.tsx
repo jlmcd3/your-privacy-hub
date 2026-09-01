@@ -141,27 +141,27 @@ export default function USNoticeLanding() {
         </section>
 
         {/* HOW IT WORKS */}
-        <section className="py-16 md:py-20">
+        <section className="py-12 md:py-14">
           <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="font-serif text-foreground mb-10">
+            <h2 className="font-serif text-foreground mb-8">
               How it works
             </h2>
             <div className="grid gap-6 md:grid-cols-3">
               {[
                 {
                   n: "1",
-                  title: "Select your states",
-                  body: "Choose the states where your customers live. We surface the laws that actually apply to you.",
+                  title: "Select states",
+                  body: "We surface the laws relevant to the states you serve.",
                 },
                 {
                   n: "2",
-                  title: "Answer state-specific questions",
-                  body: "4 to 18 questions per framework. Save and resume any time. RoPA users get most answers pre-filled.",
+                  title: "Answer once",
+                  body: "State-specific questions appear only where needed; RoPA data pre-fills available fields.",
                 },
                 {
                   n: "3",
-                  title: "Download in any format",
-                  body: "Get your notices as PDF, Word, or embeddable HTML, ready to publish on your site.",
+                  title: "Publish",
+                  body: "Download PDF or Word, or copy embeddable HTML.",
                 },
               ].map((step) => (
                 <Card key={step.n}>
@@ -175,6 +175,7 @@ export default function USNoticeLanding() {
             </div>
           </div>
         </section>
+
 
         {/* COVERAGE BY FRAMEWORK */}
         <section className="py-16 md:py-20 border-t border-border bg-muted/20">
