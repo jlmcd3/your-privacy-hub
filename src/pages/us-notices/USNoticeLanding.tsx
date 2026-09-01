@@ -176,53 +176,72 @@ export default function USNoticeLanding() {
           </div>
         </section>
 
-        {/* STATE COVERAGE */}
+        {/* COVERAGE BY FRAMEWORK */}
         <section className="py-16 md:py-20 border-t border-border bg-muted/20">
           <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="font-serif text-foreground mb-2">
-              State coverage
+              Coverage by framework
             </h2>
-            <p className="text-muted-foreground mb-8 max-w-2xl">
-              Every active US state privacy law, organised by framework, so you only
-              answer the questions that actually apply to your business.
+            <p className="text-muted-foreground mb-6 max-w-2xl">
+              Every active state privacy framework, grouped so common answers can be reused.
             </p>
-            <div className="space-y-6">
-              <CoverageGroup
-                title="California"
-                tag="CCPA/CPRA · Unique Framework"
-                items={["California"]}
-                emphasized
-              />
-              <CoverageGroup
-                title={`Virginia model (${VIRGINIA_STATES.length} states)`}
-                tag="Shared notice structure"
-                items={VIRGINIA_STATES}
-              />
-              <CoverageGroup
-                title="Maryland"
-                tag="Stricter — data minimisation requirement"
-                items={["Maryland (MODPA)"]}
-              />
-              <CoverageGroup
-                title="Florida"
-                tag="Very narrow scope — $1B+ revenue only"
-                items={["Florida (FDBR)"]}
-              />
-              {PENDING_STATES.length > 0 && (
-              <div>
-                <h3 className="text-foreground mb-3">Pending states</h3>
-                <div className="flex flex-wrap gap-2">
-                  {PENDING_STATES.map((s) => (
-                    <Badge key={s} variant="secondary" className="opacity-60">
-                      {s} · Coming soon
-                    </Badge>
-                  ))}
+            <details className="group">
+              <summary className="cursor-pointer list-none text-sm text-primary underline underline-offset-2">
+                See coverage detail
+              </summary>
+              <div className="space-y-6 mt-6">
+                <CoverageGroup
+                  title="California"
+                  tag="CCPA/CPRA · unique framework"
+                  items={["California"]}
+                  emphasized
+                />
+                <div>
+                  <div className="flex flex-wrap items-baseline gap-2 mb-3">
+                    <h3 className="text-foreground">Virginia-model states ({VIRGINIA_STATES.length})</h3>
+                    <span className="text-xs text-muted-foreground italic">— shared notice structure</span>
+                  </div>
+                  <details>
+                    <summary className="cursor-pointer list-none text-sm text-primary underline underline-offset-2">
+                      Show states
+                    </summary>
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {VIRGINIA_STATES.map((s) => (
+                        <Badge key={s} variant="outline" className="font-normal">
+                          <Check className="h-3 w-3 mr-1" aria-hidden />
+                          {s}
+                        </Badge>
+                      ))}
+                    </div>
+                  </details>
                 </div>
+                <CoverageGroup
+                  title="Maryland"
+                  tag="stricter minimisation requirements"
+                  items={["Maryland (MODPA)"]}
+                />
+                <CoverageGroup
+                  title="Florida"
+                  tag="narrower applicability"
+                  items={["Florida (FDBR)"]}
+                />
+                {PENDING_STATES.length > 0 && (
+                <div>
+                  <h3 className="text-foreground mb-3">Not yet in effect</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {PENDING_STATES.map((s) => (
+                      <Badge key={s} variant="secondary" className="opacity-60">
+                        {s}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                )}
               </div>
-              )}
-            </div>
+            </details>
           </div>
         </section>
+
 
         {/* ACCESS & PLANS */}
         <section className="py-16 md:py-20">
