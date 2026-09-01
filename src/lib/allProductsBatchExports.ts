@@ -108,8 +108,9 @@ const shortId = (id: string) => id.replace(/^local-(stress-)?/, "").slice(0, 8);
 /** Create + download a zip of the batch's report PDFs. */
 export async function downloadBatchPdfZip(batchId: string, outcomes: RunOutcome[]) {
   const rows = outcomesForBatch(outcomes, batchId).filter(
-    (o) => o.status === "complete" && o.sourceRowId && SLUG_TO_PDF_TOOL_TYPE[o.tool_slug],
+    (o) => o.status === "complete" && o.sourceRowId && isRenderable(o),
   );
+
   const skipped = outcomesForBatch(outcomes, batchId).length - rows.length;
   if (!rows.length) {
     toast.error("No renderable documents recorded for this batch.");
