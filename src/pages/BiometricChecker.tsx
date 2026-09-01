@@ -259,20 +259,20 @@ export default function BiometricChecker() {
         <meta name="description" content="Per-jurisdiction biometric privacy compliance covering BIPA, CUBI, MHMD, GDPR Article 9 and other regimes — with cited enforcement decisions behind every priority action." /></Helmet>
       <ProductHero
         geography="global"
-        eyebrowLabel={<><Dna aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("biometric", `$${pricing.price}`)}</>}
+        eyebrowLabel={<><Dna aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("biometric")}</>}
         title="Biometric Privacy Compliance Assessment"
-        legalTrigger={{ tier: "required", text: "Illinois BIPA requires a written retention-and-destruction policy and informed written consent before you collect any biometric identifier — with statutory damages per violation." }}
-        valueProposition="A per-jurisdiction read on your biometric processing — obligations under Illinois, Texas, Washington, EU/UK, and other regimes. Cited enforcement decisions sit behind every priority action."
-        citationLine="740 ILCS 14 (BIPA) · Built from each biometric statute's own text — BIPA, CUBI, MHMD, GDPR Art. 9 — with cited enforcement decisions behind every priority action"
+        valueProposition="One intake. A jurisdiction-by-jurisdiction compliance map for your biometric processing, with prioritized actions and cited authority."
+        citationLine="BIPA · CUBI · MHMD · GDPR Art. 9 · Statute- and enforcement-cited findings"
         showIntakeCta={false}
       >
+        <HeroAccessLine toolKey="biometric" />
         <ToolCTABlock
           toolSlug="biometric"
           hasAccess={Boolean(access.isPremium)}
           ctaPosition="hero"
           onDark
           pagePath="/biometric-checker"
-          primaryLabel={`Run a Biometric Privacy Assessment — $${pricing.price}`}
+          primaryLabel="Start Biometric Assessment"
         />
       </ProductHero>
       <ProductHeroSubstrip generationsLine={INCLUDED_GENERATIONS_COPY} />
@@ -282,19 +282,19 @@ export default function BiometricChecker() {
           {
             title: "Does a biometric statute apply to you?",
             tone: "amber",
-            body: "Illinois BIPA requires informed written consent before collection and a published retention-and-destruction schedule, and it carries a private right of action. Texas CUBI, Washington MHMD, and GDPR Article 9 each add their own conditions.",
+            body: "Illinois BIPA requires a written retention-and-destruction policy and informed written consent before you collect any biometric identifier — with statutory damages per violation. Texas CUBI, Washington MHMD, and GDPR Article 9 each impose their own duties.",
           },
           {
             title: "What you receive",
-            body: "A per-jurisdiction obligation map across the biometric regimes you select — consent, notice, retention, and destruction duties — with prioritised actions.",
+            body: "A per-statute duty analysis for every jurisdiction you select — the statute's own text quoted against your facts — with current-versus-prospective risk ratings and prioritized actions.",
           },
           {
-            title: "Built per statute, not per template",
-            body: "Nothing is rendered for a jurisdiction you have not selected. Each statute block is composed from that statute's own text and the modality you capture.",
+            title: "Jurisdictions covered",
+            body: "Illinois BIPA, Texas CUBI, Washington MHMD, EU/UK GDPR Article 9, and the other biometric regimes you select. Nothing is rendered for a jurisdiction you have not selected.",
           },
           {
-            title: "Why trust the analysis",
-            body: "Cited enforcement decisions sit behind every priority action. Where a regulator or court has not spoken, the report says so.",
+            title: "Why trust it",
+            body: "Each statute block is built from that statute's own text and the modality you capture, with cited enforcement decisions behind every priority action. Where a regulator or court has not spoken, the report says so.",
           },
         ]}
       />
