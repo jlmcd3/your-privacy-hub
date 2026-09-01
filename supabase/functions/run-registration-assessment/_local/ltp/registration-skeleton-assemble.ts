@@ -837,7 +837,7 @@ function composeOutsideFrameworks(intake: Bag): string {
     .map((m) => REGISTRATION_JURISDICTION_LABELS[m] ?? m);
   if (!outsideFrameworks.length) return "";
   return stop(
-    `The markets served also name ${asProse(outsideFrameworks)}. No registration or notification regime for ${outsideFrameworks.length === 1 ? "that jurisdiction" : "those jurisdictions"} is in the verified statutory corpus behind this assessment, so this assessment states no determination for ${outsideFrameworks.length === 1 ? "it" : "them"} — affirmative or negative — and ${outsideFrameworks.length === 1 ? "its" : "their"} registration position remains for separate advice`,
+    `The markets served also name ${asProse(outsideFrameworks)}. No registration or notification regime for ${outsideFrameworks.length === 1 ? "that jurisdiction" : "those jurisdictions"} is among the statutes this assessment covers, so this assessment states no determination for ${outsideFrameworks.length === 1 ? "it" : "them"} — affirmative or negative — and ${outsideFrameworks.length === 1 ? "its" : "their"} registration position remains for separate advice`,
   );
 }
 
@@ -1073,7 +1073,7 @@ function composeSupervisoryAnalysis(report: Bag): string {
     if (!topic && !note) continue;
     blocks.push(
       stop(
-        `${topic || "A further question"}: ${noStop(note) || "the provisions are named but are not in the verified statutory corpus behind this assessment, so no determination is asserted"}`,
+        `${topic || "A further question"}: ${noStop(note) || "the provisions are named but are not among the statutes this assessment covers, so no determination is asserted"}`,
       ),
     );
   }

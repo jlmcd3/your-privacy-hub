@@ -170,7 +170,8 @@ Deno.test("R5 — a named non-US market outside the assessed frameworks earns a 
   const text = skeletonText(aurabloomIntake());
   assertStringIncludes(text, "No registration or notification regime for");
   // RE-PIN PANEL LEAK-1 (2026-08-30): "this product's" jargon retired.
-  assertStringIncludes(text, "is in the verified statutory corpus behind this assessment");
+  // A-TEAM DELTA (doc 125, 2026-08-31): "corpus" retired from customer-facing text.
+  assertStringIncludes(text, "is among the statutes this assessment covers");
 });
 
 // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, Registration

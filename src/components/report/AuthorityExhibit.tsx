@@ -49,8 +49,10 @@ export const AUTHORITY_CLASS_LABELS: Record<AuthorityClass, string> = {
   other: "Other Authorities",
 };
 
+// A-TEAM DELTA (doc 125, 2026-08-31) — kept byte-identical to the backend
+// twin (supabase/functions/_shared/report-exhibits/authority-exhibit.ts).
 export const CITATION_ONLY_NOTE =
-  "Citation only — this authority has no approved corpus text, so no excerpt is reproduced.";
+  "Citation only — no verbatim excerpt is available for this authority, so none is reproduced.";
 
 export function AuthorityExhibit({ exhibit }: { exhibit: AuthorityExhibitData | null | undefined }) {
   const entries = Array.isArray(exhibit?.entries) ? exhibit!.entries : [];
@@ -84,7 +86,7 @@ export function AuthorityExhibit({ exhibit }: { exhibit: AuthorityExhibitData | 
                   <blockquote className="mt-1 ml-6 indent-0 border-l-2 pl-3 text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap">
                     {e.excerpt}
                     <span className="block mt-1 text-[10px]">
-                      Corpus key: {e.corpus_key} · pin-verified verbatim text
+                      Source key: {e.corpus_key} · pin-verified verbatim text
                     </span>
                   </blockquote>
                 ) : exhibit?.preamble_note ? null : (

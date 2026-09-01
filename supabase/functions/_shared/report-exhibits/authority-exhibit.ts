@@ -72,12 +72,16 @@ export const AUTHORITY_CLASS_LABELS: Record<AuthorityClass, string> = {
   other: "Other Authorities",
 };
 
+// A-TEAM DELTA (doc 125, 2026-08-31) — "corpus" is internal-architecture
+// language; these three strings render directly into every product's
+// Authorities Cited appendix (renderAuthorityExhibitHtml below), so they
+// were the fleet's most-repeated customer-facing "corpus" leak.
 export const CITATION_ONLY_NOTE =
-  "Citation only — this authority has no approved corpus text, so no excerpt is reproduced.";
+  "Citation only — no verbatim excerpt is available for this authority, so none is reproduced.";
 
 /** ITEM 372 — the same condition, stated once for the whole exhibit. */
 export const CITATION_ONLY_PREAMBLE =
-  "Verbatim excerpts appear only where the approved corpus carries the text. Where it does not, the citation stands alone.";
+  "Verbatim excerpts appear only where the underlying source text is available. Where it is not, the citation stands alone.";
 
 /** Two or more citation-only entries collapse into the preamble note. */
 export const CITATION_ONLY_COMPACTION_THRESHOLD = 2;
@@ -116,6 +120,39 @@ export function classifyAuthority(citation: string): AuthorityClass {
     return "administrative";
   }
   return "other";
+}
+
+/**
+ * A-TEAM DELTA (doc 125, 2026-08-31) — presentation-only grouping layered on
+ * top of `AuthorityClass`, additive and non-breaking: `classifyAuthority()`'s
+ * five technical classes are untouched, and every existing caller that reads
+ * `authority_class` keeps working unchanged. This splits the "administrative"
+ * bucket — which today lumps FSOR/EDPB interpretive commentary together with
+ * enforcement decisions and agency bulletins into one undifferentiated class
+ * — into "Regulatory Enforcement" (decisions applying the law to specific
+ * facts) versus "Regulatory Interpretation" (guidance explaining it), the one
+ * real clarity gap doc 125 identified in the existing classifier.
+ */
+export type PresentationClass =
+  | "Binding Law"
+  | "Regulatory Interpretation"
+  | "Regulatory Enforcement"
+  | "Legislative or Regulatory Context"
+  | "Persuasive or Comparative Authority";
+
+const ENFORCEMENT_PATTERN = /Enforcement|Consent Order|Corrective Order|\bFine\b|\bDecision\b|\bOpinion\b/i;
+
+export function presentationClassOf(entry: Pick<AuthorityExhibitEntry, "authority_class" | "citation">): PresentationClass {
+  switch (entry.authority_class) {
+    case "constitutional":
+    case "statute":
+    case "regulation":
+      return "Binding Law";
+    case "administrative":
+      return ENFORCEMENT_PATTERN.test(entry.citation) ? "Regulatory Enforcement" : "Regulatory Interpretation";
+    default:
+      return "Persuasive or Comparative Authority";
+  }
 }
 
 /**
@@ -270,7 +307,7 @@ export function renderAuthorityExhibitHtml(exhibit: AuthorityExhibit | null | un
       <div class="authority-entry">
         <p class="authority-cite">${esc(e.citation)}${e.as_cited ? ` <span class="authority-pin">(cited at ${esc(e.as_cited)})</span>` : ""}</p>
         ${e.excerpt
-          ? `<blockquote class="authority-excerpt">${esc(e.excerpt)}<span class="authority-key">Corpus key: ${esc(e.corpus_key)} · pin-verified verbatim text</span></blockquote>`
+          ? `<blockquote class="authority-excerpt">${esc(e.excerpt)}<span class="authority-key">Source key: ${esc(e.corpus_key)} · pin-verified verbatim text</span></blockquote>`
           : (exhibit?.preamble_note ? "" : `<p class="authority-note">${esc(e.note || CITATION_ONLY_NOTE)}</p>`)}
       </div>`).join("")}
     </div>`).join("");

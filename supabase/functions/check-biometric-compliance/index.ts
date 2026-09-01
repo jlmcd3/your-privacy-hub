@@ -964,7 +964,7 @@ Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 2. § 1798.121: consumers have the right to direct the business to limit use of SPI to what is necessary to perform services or provide goods reasonably expected. Implement a "Limit the Use of My Sensitive Personal Information" opt-out link.
 3. § 1798.100(b): provide notice at or before collection identifying biometric information as a category of personal information collected and the purposes of use; the Privacy Policy must additionally reflect the SPI classification for purposes of the § 1798.121 limit-use right.
 4. § 1798.145(e): GLBA exemption — if the organisation is a financial institution under GLBA and the biometric data relates to GLBA-covered activities, CCPA may not apply to that data; complete GLBA boundary analysis first.
-5. CPPA enforcement: the California Privacy Protection Agency (CPPA) enforces CCPA/CPRA; private right of action only for data breaches (§ 1798.150).
+5. CPPA enforcement: the California Privacy Protection Agency ("CPPA") enforces CCPA/CPRA; private right of action only for data breaches (§ 1798.150).
 
 Consent and notice:
 No opt-in consent is required for biometric collection under CCPA/CPRA (unlike BIPA) — but at-collection notice is required, and consumers must be provided the § 1798.121 right to limit use and disclosure of SPI and any applicable sale/sharing opt-outs.

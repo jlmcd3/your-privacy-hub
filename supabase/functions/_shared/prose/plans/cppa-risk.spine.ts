@@ -455,7 +455,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     title: "Agency Submission Checklist (11 CCR § 7157)",
     blocks: [
       // 0
-      { kind: "skeleton", text: "If this risk assessment is subject to the submission requirement under 11 CCR § 7157(a), a member of the Company’s executive management team who meets the qualifications of 11 CCR § 7157(c) must submit the following information to the California Privacy Protection Agency through the Agency’s website at https://cppa.ca.gov/ (11 CCR § 7157(d)). This report does not submit this information on the Company’s behalf — that step must be completed separately, by that individual, on the Agency’s site." },
+      { kind: "skeleton", text: "If this risk assessment is subject to the submission requirement under 11 CCR § 7157(a), a member of the Company’s executive management team who meets the qualifications of 11 CCR § 7157(c) must submit the following information to the California Privacy Protection Agency (“CPPA”) through the Agency’s website at https://cppa.ca.gov/ (11 CCR § 7157(d)). This report does not submit this information on the Company’s behalf — that step must be completed separately, by that individual, on the Agency’s site." },
       // 1
       { kind: "table", text: "agency_submission_checklist" },
       // 2

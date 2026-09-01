@@ -424,7 +424,7 @@ export function buildAdmtPersuasiveAuthority(computed: AdmtV2Computed): AdmtPers
  * twin of RISK_APPENDIX_I_LEAD (risk-skeleton-assemble.ts), reworded for
  * the ADMT reader. Composed iff ≥1 precedent row attaches. */
 export const ADMT_APPENDIX_B_LEAD =
-  "This appendix collects enforcement decisions issued under analogous data-protection law that bear on factors assessed in this report. These decisions were issued under the EU General Data Protection Regulation, not the CCPA or its Article 10/11 regulations; they are persuasive context only, are not binding on the California Privacy Protection Agency or on any court applying California law, and are cited because the processing or the failure they address is analogous to a factor this assessment addresses. Each entry names the factor it bears on. The operative determination for every factor remains the analysis in the body of this report.";
+  "This appendix collects enforcement decisions issued under analogous data-protection law that bear on factors assessed in this report. These decisions were issued under the EU General Data Protection Regulation, not the CCPA or its Article 10/11 regulations; they are persuasive context only, are not binding on the California Privacy Protection Agency (“CPPA”) or on any court applying California law, and are cited because the processing or the failure they address is analogous to a factor this assessment addresses. Each entry names the factor it bears on. The operative determination for every factor remains the analysis in the body of this report.";
 
 /** Appendix A's (formerly "B") Primary-authority column, extended (doc 62
  * §11's R1 amendment): a factor with a ratified `trail_impact` tag carries
