@@ -23,6 +23,8 @@
 
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ProductHero } from "@/components/ProductHero";
+import { productEyebrow } from "@/config/productEyebrow";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { RequirementBadge } from "@/components/RequirementBadge";
