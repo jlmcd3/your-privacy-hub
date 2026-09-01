@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Button } from "@/components/ui/button";
 import SampleReportLink from "@/components/SampleReportLink";
+import { productEyebrow } from "@/config/productEyebrow";
 import { ProductHero } from "@/components/ProductHero";
 import ProductInfoCards from "@/components/product/ProductInfoCards";
 import {
@@ -121,7 +122,7 @@ export default function RopaLanding() {
           trigger moves into the applicability card below the hero. */}
       <ProductHero
         geography="gdpr"
-        eyebrowLabel={<><BookOpen aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> RoPA Builder · Free on annual plans</>}
+        eyebrowLabel={<><BookOpen aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("ropa", "Free on annual plans")}</>}
         title="Record of Processing Activities (RoPA) Builder"
         valueProposition="An audit-ready RoPA in minutes. Guided questions in plain language — covers GDPR Article 30, LGPD, CCPA, and 20+ frameworks. Free on annual Intelligence and Professional plans (first build plus one update each subscription year, then $39); $49 per generation or update on monthly plans. Not sold as a standalone product."
         sampleReportToolSlug="ropa"

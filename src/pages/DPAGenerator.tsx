@@ -6,6 +6,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToolDraft, useAutoRestoreDraft } from "@/hooks/useToolDraft";
 import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 import Navbar from "@/components/Navbar";
+import { ProductHero, ProductHeroSubstrip } from "@/components/ProductHero";
+import { productEyebrow } from "@/config/productEyebrow";
+import { REVISIONS_ENABLED } from "@/lib/revisionGate";
 import Footer from "@/components/Footer";
 import { RequirementBadge } from "@/components/RequirementBadge";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
@@ -14,6 +17,7 @@ import { Helmet } from "react-helmet-async";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
 import CopyButton from "@/components/CopyButton";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
+import ProductInfoCards from "@/components/product/ProductInfoCards";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
@@ -237,24 +241,43 @@ export default function DPAGenerator() {
       <Navbar />
       <DashboardSubnav />
       <Helmet><title>Custom DPA Generator | End User Privacy</title>
-        <meta name="description" content="Draft a controller-processor DPA tailored to your jurisdictions — GDPR Article 28, US state processor agreements (CCPA, TDPSA, CTDPA, VCDPA, CPA), Canadian PIPEDA/Law 25, or dual-compliance for cross-border arrangements. Every clause calibrated to enforcement decisions." /></Helmet>      <header className="bg-brand-navy text-white py-12">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            <FileText aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Custom DPA Generator · ${pricing.price}
-          </span>
-          <h1 className="font-serif text-white mb-3">Custom Data Processing Agreement</h1>
-          <RequirementBadge variant="hero" tier="required" text="GDPR Article 28 requires a written data-processing agreement whenever you let a vendor or processor handle personal data on your behalf." className="mt-2 max-w-3xl" />
-          <p className="text-slate-300 text-lg max-w-3xl">
-            Draft a controller-processor agreement tailored to your jurisdictions — EU, UK, US state, Canadian, or dual-compliance for cross-border arrangements. Every clause is calibrated to your obligations and the enforcement record.
-          </p>
-          <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">{INCLUDED_GENERATIONS_COPY}</p>
-          <p className="text-slate-400 text-xs italic mt-1 max-w-3xl">Need more? Add 4 additional generations for half the tool price.</p>
-          <div className="mt-4"><SampleReportLink toolSlug="dpa" tone="onDark" variant="link" /></div>
-          <p className="font-mono text-[12.5px] leading-snug text-slate-400 mt-4">
-            GDPR Art. 28 · Every clause built from the statutory processor obligations of your jurisdictions and calibrated to cited enforcement decisions
-          </p>
-        </div>
-      </header>
+        <meta name="description" content="Draft a controller-processor DPA tailored to your jurisdictions — GDPR Article 28, US state processor agreements (CCPA, TDPSA, CTDPA, VCDPA, CPA), Canadian PIPEDA/Law 25, or dual-compliance for cross-border arrangements. Every clause calibrated to enforcement decisions." /></Helmet>
+      <ProductHero
+        geography="gdpr"
+        eyebrowLabel={<><FileText aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("dpa", `$${pricing.price}`)}</>}
+        title="Custom Data Processing Agreement"
+        legalTrigger={{ tier: "required", text: "GDPR Article 28 requires a written data-processing agreement whenever you let a vendor or processor handle personal data on your behalf." }}
+        valueProposition="Draft a controller-processor agreement tailored to your jurisdictions — EU, UK, US state, Canadian, or dual-compliance for cross-border arrangements. Every clause is calibrated to your obligations and the enforcement record."
+        sampleReportToolSlug="dpa"
+        citationLine="GDPR Art. 28 · Every clause built from the statutory processor obligations of your jurisdictions and calibrated to cited enforcement decisions"
+        ctaLabel="Draft your DPA"
+      />
+      <ProductHeroSubstrip
+        generationsLine={INCLUDED_GENERATIONS_COPY}
+        methodologyLine={REVISIONS_ENABLED ? "Need more? Add 4 additional generations for half the tool price." : undefined}
+      />
+      <ProductInfoCards
+        className="mt-6"
+        cards={[
+          {
+            title: "When is a DPA required?",
+            tone: "amber",
+            body: "GDPR Article 28 requires a written processing agreement whenever a processor handles personal data on your behalf. US state privacy laws impose their own contract terms on service providers and processors.",
+          },
+          {
+            title: "What you receive",
+            body: "A controller-processor agreement drafted to the jurisdictions you select — EU/UK, US state, Canadian, or dual-compliance for cross-border arrangements.",
+          },
+          {
+            title: "Calibrated clause by clause",
+            body: "Each clause is composed from the statutory processor obligations of the jurisdictions you name, not from a fixed template pasted across regimes.",
+          },
+          {
+            title: "Why trust the draft",
+            body: "Clauses are calibrated to cited enforcement decisions. The draft is a starting document for counsel review — it must be validated before execution.",
+          },
+        ]}
+      />
       <ToolAlsoAvailableRow currentTool="dpa" />
 
 

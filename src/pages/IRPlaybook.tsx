@@ -5,6 +5,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToolDraft, useAutoRestoreDraft } from "@/hooks/useToolDraft";
 import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import { ProductHero, ProductHeroSubstrip } from "@/components/ProductHero";
+import { productEyebrow } from "@/config/productEyebrow";
+import { REVISIONS_ENABLED } from "@/lib/revisionGate";
 import { RequirementBadge } from "@/components/RequirementBadge";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -13,6 +16,7 @@ import CopyButton from "@/components/CopyButton";
 import SampleReportLink from "@/components/SampleReportLink";
 import { INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
+import ProductInfoCards from "@/components/product/ProductInfoCards";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import ToolSampleOverlay from "@/components/ToolSampleOverlay";
 import AuthGateModal from "@/components/AuthGateModal";
@@ -241,24 +245,43 @@ export default function IRPlaybook() {
   return (
     <WorkspaceLayout>
       <Helmet><title>Incident Response Playbook | End User Privacy</title>
-        <meta name="description" content="A jurisdiction-specific breach response runbook with regulator notification deadlines, DPA portal links, and notification templates — with cited enforcement decisions behind every timeline and threshold recommendation." /></Helmet>      <header className="bg-brand-slate-teal text-white py-12">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            <Siren aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Incident Response Playbook · ${pricing.price}
-          </span>
-          <h1 className="font-serif text-white mb-3">Incident Response Playbook</h1>
-          <RequirementBadge variant="hero" tier="supports" text="Breach notification is mandatory under GDPR Articles 33–34 and every U.S. state breach law — and HIPAA, NYDFS, and DORA require a written incident-response plan." className="mt-2 max-w-3xl" />
-          <p className="text-slate-300 text-lg max-w-3xl">
-            A jurisdiction-specific breach response runbook with regulator notification deadlines, DPA portal links, and notification templates — cited enforcement decisions included for every deadline and threshold recommendation.
-          </p>
-          <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">{INCLUDED_GENERATIONS_COPY}</p>
-          <p className="text-slate-400 text-xs italic mt-1 max-w-3xl">Need more? Add 4 additional generations for half the tool price.</p>
-          <div className="mt-4"><SampleReportLink toolSlug="ir_playbook" tone="onDark" variant="link" /></div>
-          <p className="font-mono text-[12.5px] leading-snug text-slate-400 mt-4">
-            GDPR Arts. 33–34 · Built from each regulator's own notification rules, portals, and deadlines, with cited enforcement decisions behind every threshold
-          </p>
-        </div>
-      </header>
+        <meta name="description" content="A jurisdiction-specific breach response runbook with regulator notification deadlines, DPA portal links, and notification templates — with cited enforcement decisions behind every timeline and threshold recommendation." /></Helmet>
+      <ProductHero
+        geography="global"
+        eyebrowLabel={<><Siren aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("ir_playbook", `$${pricing.price}`)}</>}
+        title="Incident Response Playbook"
+        legalTrigger={{ tier: "supports", text: "Breach notification is mandatory under GDPR Articles 33–34 and every U.S. state breach law. Sector regimes — HIPAA, NYDFS, DORA — additionally require a written incident-response plan." }}
+        valueProposition="A jurisdiction-specific breach response runbook with regulator notification deadlines, DPA portal links, and notification templates — cited enforcement decisions included for every deadline and threshold recommendation. Ships with a structured incident worksheet: breach register and response metrics."
+        sampleReportToolSlug="ir_playbook"
+        citationLine="GDPR Arts. 33–34 · Built from each regulator's own notification rules, portals, and deadlines, with cited enforcement decisions behind every threshold"
+        ctaLabel="Build your playbook"
+      />
+      <ProductHeroSubstrip
+        generationsLine={INCLUDED_GENERATIONS_COPY}
+        methodologyLine={REVISIONS_ENABLED ? "Need more? Add 4 additional generations for half the tool price." : undefined}
+      />
+      <ProductInfoCards
+        className="mt-6"
+        cards={[
+          {
+            title: "What the law expects",
+            tone: "amber",
+            body: "Breach notification is mandatory under GDPR Articles 33–34 and every US state breach law. HIPAA, NYDFS, and DORA additionally require a written incident-response plan.",
+          },
+          {
+            title: "What you receive",
+            body: "A jurisdiction-specific breach runbook with regulator deadlines, notification thresholds, DPA portal links, and notification templates — plus a structured incident worksheet with a breach register and response metrics.",
+          },
+          {
+            title: "Built from each regulator's own rules",
+            body: "Deadlines, portals, and thresholds are taken from the notification rules of the regulators you select, not from a generic 72-hour summary.",
+          },
+          {
+            title: "Why trust the playbook",
+            body: "Cited enforcement decisions sit behind every timeline and threshold recommendation. Section 6 contributes to your Article 33(5) accountability record.",
+          },
+        ]}
+      />
       <ToolAlsoAvailableRow currentTool="ir_playbook" />
       <section className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
