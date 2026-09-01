@@ -212,40 +212,41 @@ const LIAssessment = () => {
         geography="gdpr"
         eyebrowLabel={<><Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("lia", "Free preliminary signal")}</>}
         title="Legitimate Interests Assessment"
-        valueProposition={INCLUDED_GENERATIONS_HERO}
-        citationLine="GDPR Art. 6(1)(f) · Three-part balancing test · Cited enforcement precedents behind every verdict"
+        valueProposition="Check your use case first — free. If legitimate interests remains viable, build the full three-part balancing test with cited regulator precedent."
+        citationLine="GDPR Art. 6(1)(f) · Purpose · Necessity · Balancing · Cited regulator decisions"
         showIntakeCta={false}
       >
         <HeroPriceCta
           standalonePrice={pricing.standalonePrice}
           subscriberPrice={pricing.subscriberPrice}
           isSubscriber={pricing.isSubscriber && pricing.price === pricing.subscriberPrice}
-          primaryLabel="Start Legitimate Interests Assessment"
+          primaryLabel="Check my use case — Free"
           toolSlug="li_assessment"
           sampleSlug="li_assessment"
         />
       </ProductHero>
 
+      <ProductHeroSubstrip generationsLine={INCLUDED_GENERATIONS_HERO} />
+
       <ProductInfoCards
         className="mt-6"
         cards={[
           {
-            title: "Does this assessment apply to you?",
+            title: "Relying on Article 6(1)(f)?",
             tone: "amber",
-            body: "To rely on legitimate interests under GDPR Article 6(1)(f), you must conduct and document a balancing test — regulators expect a written LIA as your accountability record before you rely on it.",
+            body: "Document the balancing test before you rely on the legal basis. The assessment creates the fact-specific record regulators expect to see — Article 6(1)(f) must be demonstrated, not asserted.",
           },
           {
             title: "What you receive",
-            body: "A free preliminary signal on whether your processing can rest on legitimate interests, then a full three-part test — purpose, necessity, balancing — plus a documentation pack and PDF you can hand to counsel.",
+            body: "Free check → Full LIA. A free viability signal first; then, if appropriate, a full purpose, necessity and balancing analysis, documentation pack, and PDF for legal review.",
           },
           {
-            title: "Why trust the analysis",
-            body: "Built upon regulator guidance and enforcement actions throughout the EU and UK — every test verdict cites the specific guidance and enforcement decisions (EDPB, CNIL, ICO, Garante and others) that informed it, so you can see exactly what stands behind the analysis.",
+            title: "Regulator-grounded analysis",
+            body: "Findings cite the EDPB, ICO and other national authority guidance and enforcement decisions that informed each verdict, so you can see what stands behind the conclusion.",
           },
         ]}
       />
 
-      <ToolAlsoAvailableRow currentTool="lia" />
 
       <main className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
         
