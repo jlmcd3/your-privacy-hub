@@ -44,6 +44,33 @@ const STATE_NAMES: Record<string, string> = {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+// LegiScan is an aggregator/API feeder — its own bill page is NOT the article.
+// Resolve the official state legislature page (`state_link`) via getBill so the
+// stored source_url points at the primary source on the Internet.
+const isAggregatorUrl = (u?: string | null) =>
+  !u || /(^|\.)legiscan\.com$/i.test((() => { try { return new URL(u).hostname; } catch { return ""; } })());
+
+async function resolveOfficialUrl(
+  apiKey: string,
+  billId: string,
+  legiscanUrl: string | null,
+): Promise<{ officialUrl: string | null; stateLink: string | null }> {
+  try {
+    await sleep(200);
+    const res = await fetch(`https://api.legiscan.com/?key=${apiKey}&op=getBill&id=${encodeURIComponent(billId)}`);
+    if (!res.ok) return { officialUrl: legiscanUrl, stateLink: null };
+    const json = await res.json();
+    const stateLink: string | null = json?.bill?.state_link ?? null;
+    if (stateLink && /^https?:\/\//i.test(stateLink) && !isAggregatorUrl(stateLink)) {
+      return { officialUrl: stateLink, stateLink };
+    }
+    return { officialUrl: legiscanUrl, stateLink: null };
+  } catch {
+    return { officialUrl: legiscanUrl, stateLink: null };
+  }
+}
+
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
