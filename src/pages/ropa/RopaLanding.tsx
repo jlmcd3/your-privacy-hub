@@ -112,57 +112,66 @@ export default function RopaLanding() {
     meta.content = META_DESCRIPTION;
   }, []);
 
+  const isAnnual = tier === "annual" || tier === "annual_founding";
+  const isMonthlySub = tier === "monthly";
+  const primary = isAnnual
+    ? { label: "Build my RoPA", to: "/ropa" }
+    : isMonthlySub
+      ? { label: `Start RoPA — ${pricing.priceLabel ?? ""}`.trim(), to: "/ropa" }
+      : { label: "Choose an annual plan", to: "/get-intelligence" };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <DashboardSubnav />
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-        <ToolTierNote />
-      </div>
       {/* PRE-INTAKE REDESIGN (2026-08-26): name-led H1; the Article 30 legal
-          trigger moves into the applicability card below the hero. */}
+          trigger moves into the applicability card below the hero. The
+          conditional tier note is retired — entitlement is stated in the hero
+          access line instead. */}
       <ProductHero
         geography="gdpr"
-        eyebrowLabel={<><BookOpen aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("ropa", "Free on annual plans")}</>}
+        eyebrowLabel={<><BookOpen aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("ropa")}</>}
         title="Record of Processing Activities (RoPA) Builder"
-        valueProposition="An audit-ready RoPA in minutes. Guided questions in plain language — covers GDPR Article 30, LGPD, CCPA, and 20+ frameworks. Free on annual Intelligence and Professional plans (first build plus one update each subscription year, then $39); $49 per generation or update on monthly plans. Not sold as a standalone product."
-        sampleReportToolSlug="ropa"
+        valueProposition="Build and maintain an Article 30 RoPA across 25+ privacy frameworks with guided questions, reusable records, and an annual refresh."
         showIntakeCta={false}
       >
         <Button asChild size="lg" className="bg-white text-slate-900 hover:bg-slate-100">
-          <Link to="/get-intelligence" onClick={() => fireConversion("subscribe_cta_click", { cta_label: "View subscription plans", cta_position: "hero" })}>
-            View subscription plans <ArrowRight className="ml-1.5 h-4 w-4" />
+          <Link to={primary.to} onClick={() => fireConversion("subscribe_cta_click", { cta_label: primary.label, cta_position: "hero" })}>
+            {primary.label} <ArrowRight className="ml-1.5 h-4 w-4" />
           </Link>
         </Button>
-        <Button
-          asChild
-          size="lg"
-          variant="outline"
-          className="bg-transparent border-slate-500 text-white hover:bg-slate-800 hover:text-white"
-        >
-          <Link to="/#brief">
-            See sample document <ExternalLink className="ml-1.5 h-4 w-4" />
-          </Link>
-        </Button>
+        <SampleReportLink toolSlug="ropa" tone="onDark" variant="link" />
       </ProductHero>
+
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+        <p className="text-sm text-muted-foreground">
+          {isAnnual
+            ? "Included with your annual plan: first RoPA build plus one refresh each subscription year."
+            : isMonthlySub
+              ? "Included with your monthly plan at the per-generation rate for each build or update."
+              : "Requires an Intelligence or Professional subscription. Annual plans include the first build and one refresh each subscription year; monthly plans are priced per build or update."}
+        </p>
+      </div>
+
       <ProductInfoCards
         className="mt-6"
         cards={[
           {
             title: "Does the RoPA requirement apply to you?",
             tone: "amber",
-            body: "GDPR Article 30 requires a Record of Processing Activities — the under-250-employee exemption falls away if your processing is regular, risky, or involves special-category data.",
+            body: "Article 30 generally requires controllers and processors to maintain processing records; the small-organisation exemption is limited where processing is regular, risky, or involves special-category data.",
           },
           {
             title: "What you receive",
-            body: "An audit-ready, Article 30-compliant Record of Processing Activities covering 25+ jurisdictions, built from guided plain-language questions and refreshed annually.",
+            body: "A regulator-ready processing record covering the required Article 30 fields across 25+ frameworks, with reusable activities and an annual refresh.",
           },
           {
-            title: "Why trust the analysis",
-            body: "Built to GDPR Article 30's enumerated record requirements — and to the corresponding record-keeping provisions of LGPD, CCPA, and each other covered framework.",
+            title: "Why trust it",
+            body: "Each framework is mapped to its own recordkeeping requirements, including GDPR Article 30 and the corresponding provisions of every covered law.",
           },
         ]}
       />
+
       <main className="flex-1 mt-6">
 
         {/* TRUST BAR */}
