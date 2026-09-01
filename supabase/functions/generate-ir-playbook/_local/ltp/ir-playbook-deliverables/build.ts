@@ -473,7 +473,10 @@ export function buildDataSubjectCommunicationDetermination(
     application =
       "Article 34(1) turns on whether the breach is likely to result in a HIGH risk to the rights and freedoms of natural persons. That question is asked of the consequences for the individual, which cannot be assessed without knowing what was exposed. The record does not state the affected categories, so the higher threshold can be neither reached nor ruled out.";
     whyRaw = "Communication to data subjects is held open pending the categories affected; it is not ruled out and must not be treated as discharged.";
-    information_needed = "dataTypes and affectedDataSubjectCount — the categories affected and how many individuals they concern, which are the facts the high-risk test runs over.";
+    // DOC 129 IR-1 (Batch 3 A-Team ruling, 2026-09-01) — the residual raw-
+    // token ask this determination kept after the EU Incident P0-2 fix
+    // cleaned its Art. 33 twin; the fact is named in plain language.
+    information_needed = "the categories of personal data affected and approximately how many individuals they concern — the facts the high-risk test runs over.";
   } else if (uni === "yes" && exemptionAvailable) {
     verdict = "communication_excused_by_exemption";
     established = highRisk;

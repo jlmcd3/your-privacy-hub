@@ -168,5 +168,6 @@ Deno.test("S-4 — the remediation meta values render in the register (note when
   const text = JSON.stringify(sk.document);
   assertStringIncludes(text, "Remediation register");
   assertStringIncludes(text, "Accountable owner: IT owner");
-  assertStringIncludes(text, "these values apply to every item in this register");
+  // DOC 129 GOV (2026-09-01) — note wording superseded: portfolio-defaults label.
+  assertStringIncludes(text, "applying to every item in this register");
 });

@@ -196,7 +196,28 @@ export function buildReasonableExpectations(
   let status: ReasonableExpectationsFinding["status"] = "analysed";
   let information_needed: string | undefined;
 
-  if (!context) {
+  if (!context && detail && expectation) {
+    // DOC 129 LIA-A (Batch 3 A-Team ruling, 2026-09-01) — the Company's own
+    // reasonable-expectation account (reasonable_expectation_detail) is on
+    // the record; the factor runs on that account and the answered enum
+    // instead of asking for information already supplied. The formal
+    // collection-context field stays open only as a strengthening item —
+    // never as a blocker, and never with prose claiming the factual basis
+    // was not supplied.
+    if (matches(expectation, EXPECTATION_POSITIVE)) {
+      verdict = "reasonably_expected";
+      application =
+        `The Company's own account addresses the expectation question directly: "${detail}" On that account, and on the answer supplied ("${expectation}"), the processing sits within what the data subjects would expect, and the factor weighs with the controller — ${support.verbatim.charAt(0).toLowerCase()}${support.verbatim.slice(1)} Recording when and in what setting the data were collected would complete the formal Recital 47 record, but the factor does not wait on it given the account supplied.`;
+    } else if (matches(expectation, EXPECTATION_NEGATIVE)) {
+      verdict = "not_reasonably_expected";
+      application =
+        `The Company's own account addresses the expectation question directly: "${detail}" On that account, and on the answer supplied ("${expectation}"), this use falls outside what the data subjects would have contemplated, and Recital 47 treats that as the situation in which their interests and rights may override the controller's interest.`;
+    } else {
+      verdict = "partly_expected";
+      application =
+        `The Company's own account addresses the expectation question directly: "${detail}" On that account the processing is expected only in part, so the factor neither carries the balance for the controller nor defeats it, and the measures the record commits to for closing the expectation gap it describes are weighed with the safeguards rather than treated as missing information.`;
+    }
+  } else if (!context) {
     // Recital 47 tests expectation AT THE TIME AND IN THE CONTEXT OF
     // COLLECTION. An enum answer is a conclusion, not that fact.
     verdict = "undetermined_on_the_record";
@@ -367,11 +388,24 @@ export function buildPublicAuthorityExclusion(intake: unknown): PublicAuthorityF
   } else {
     determination = "undetermined_on_the_record";
     status = "record_insufficient";
-    application =
-      "Whether Article 6(1)(f) is available at all turns on this exclusion before any balancing is reached. The record does not establish the controller's status or whether the processing is task-related, so availability of the basis is open.";
+    // DOC 129 LIA-C (Batch 3 A-Team ruling, 2026-09-01) — where the record
+    // describes the organisation, the open item is stated against that
+    // description with the reason explicit confirmation is still required
+    // (the exclusion turns on the controller's LEGAL character, which a
+    // name or sector cannot resolve), so the ask reads as record
+    // completion rather than a fabricated ambiguity. The availability gate
+    // itself is the ratified ITEM-311 model, unchanged.
+    const orgName = str(get(intake, "organization_name"));
+    const sector = str(get(intake, "sector"));
+    const orgClause = orgName
+      ? ` The record describes the controller as ${orgName}${sector ? `, operating in ${sector.toLowerCase().replace(/\.$/, "")}` : ""}; nothing in that description suggests a public authority, but the exclusion turns on the controller's legal character rather than its sector, and the record does not answer that question directly.`
+      : "";
+    application = authYes
+      ? "Whether Article 6(1)(f) is available at all turns on this exclusion before any balancing is reached. The controller is recorded as a public authority, but whether this processing is carried out in the performance of its tasks is not established, so availability of the basis is open."
+      : `Whether Article 6(1)(f) is available at all turns on this exclusion before any balancing is reached.${orgClause} Confirming the answer completes the availability record; it is a record-completion step, not a finding against the processing.`;
     information_needed = authYes
       ? "purpose_details.public_task_processing — whether this processing is carried out in the performance of the authority's tasks, and which statutory task it serves."
-      : "purpose_details.controller_is_public_authority — whether the controller is a public authority, and if so whether this processing is carried out in the performance of its tasks.";
+      : "purpose_details.controller_is_public_authority — confirmation of whether the controller is a public authority, and if so whether this processing is carried out in the performance of its tasks.";
   }
 
   return {

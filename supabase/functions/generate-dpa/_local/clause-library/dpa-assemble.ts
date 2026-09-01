@@ -94,9 +94,25 @@ export const DPA_ASSEMBLER_STAMP = "dpa-assembler@s-d1-2026-08-27";
 
 const s = (v: unknown): string => String(v ?? "").trim();
 
-function fillSlots(text: string, slots: Record<string, string>): string {
-  return text.replace(/\{([a-zA-Z]+)\}/g, (_m, k: string) =>
-    Object.prototype.hasOwnProperty.call(slots, k) ? slots[k] : `{${k}}`);
+// DOC 129 DPA (Batch 3 A-Team ruling, 2026-09-01) — inline slot values are
+// sanitised at substitution: an intake value ending in a sentence stop
+// produced broken clause punctuation ('…employees. (the "Services") and…'),
+// and padded values produced doubled spaces around the slot. A trailing
+// stop is stripped only where the clause CONTINUES after the slot (the next
+// character is not end-of-text), so a slot that legitimately ends a
+// sentence keeps its stop.
+export function fillSlots(text: string, slots: Record<string, string>): string {
+  // The following character is observed via lookahead (never consumed), so
+  // adjacent slots substitute independently.
+  const filled = text.replace(/\{([a-zA-Z]+)\}(?=([\s\S]?))/g, (_m, k: string, next: string) => {
+    if (!Object.prototype.hasOwnProperty.call(slots, k)) return `{${k}}`;
+    let v = String(slots[k] ?? "").trim();
+    // Never strip the stop of a trailing abbreviation (Inc., Ltd., e.g.).
+    const abbrevTail = /\b(?:Inc|Ltd|Corp|Co|LLC|GmbH|plc|etc|No|Art|e\.g|i\.e)\.$/i.test(v);
+    if (next && v.endsWith(".") && !v.endsWith("..") && !abbrevTail) v = v.slice(0, -1);
+    return v;
+  });
+  return filled.replace(/[^\S\n]{2,}/g, " ");
 }
 
 function annexA(input: DpaAssembleInput): string {

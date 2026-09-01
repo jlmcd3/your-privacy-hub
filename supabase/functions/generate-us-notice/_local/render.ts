@@ -261,16 +261,15 @@ export function buildNoticeHtml(
   ${
     sharing === "yes"
       ? `<p>We share personal information with the following categories of recipients: ${escapeHtml(thirdParties.replace(/[.\s]+$/, ""))}.</p>`
-      : `<p>We do not share personal information with third parties for their own use, except as described below. We may disclose personal information to: service providers and contractors that assist with our business operations (such as hosting, payment processing, and customer support); professional advisers including lawyers and accountants; and government or regulatory authorities when required by applicable law.</p>`
+      : `<p>We do not share personal information with third parties for their own use, except as described below. We may disclose personal information to: service providers and contractors that assist with our business operations, under contracts limiting their use of personal information to providing those services; and government or regulatory authorities when disclosure is required by applicable law.</p>`
   }
 
   ${state.framework_type === "ccpa" ? `
   <h2>3a. Categories of recipients</h2>
   <p>In the preceding 12 months, we have disclosed personal information to the following categories of third parties:</p>
   <ul>
-    <li><strong>Service providers and contractors</strong> — companies that provide services on our behalf${sharing !== "yes" && thirdParties !== "—" ? `, such as ${escapeHtml(thirdParties.replace(/[.\s]+$/, ""))}` : " (such as cloud hosting and analytics)"}, under contractual restrictions preventing them from using your personal information for their own purposes.</li>
-    <li><strong>Professional advisers</strong> — lawyers, accountants, auditors, and insurers in connection with legal, financial, or regulatory obligations.</li>
-    <li><strong>Government and regulatory authorities</strong> — when required by applicable law, court order, or regulatory obligation.</li>
+    <li><strong>Service providers and contractors</strong> — companies that provide services on our behalf${sharing !== "yes" && thirdParties !== "—" ? `, such as ${escapeHtml(thirdParties.replace(/[.\s]+$/, ""))}` : ""}, under contractual restrictions preventing them from using your personal information for their own purposes.</li>
+    <li><strong>Government and regulatory authorities</strong> — where disclosure is required by applicable law, court order, or regulatory obligation.</li>
     ${sharing === "yes" ? `<li><strong>Third-party partners</strong> — ${escapeHtml(thirdParties.replace(/[.\s]+$/, ""))}.</li>` : ""}
   </ul>
 
@@ -281,7 +280,7 @@ export function buildNoticeHtml(
   }
 
   <h2>3c. Business-purpose disclosures — prior 12 months</h2>
-  <p>In the preceding 12 months, we have disclosed personal information to service providers and contractors for the following business purposes: operating and maintaining our services; detecting and preventing fraud and security incidents; performing analytics to improve our products; fulfilling your requests and supporting our customer relationships; and complying with legal obligations. The categories of personal information disclosed for these purposes include: identifiers, commercial information, internet or network activity, and other information you provide when using our services.</p>
+  <p>In the preceding 12 months, we have disclosed personal information to service providers and contractors for the business purposes described in this notice: ${escapeHtml(purposes.replace(/[.\s]+$/, ""))}. The categories of personal information disclosed for these purposes are the categories described in Section 1: ${escapeHtml(dataCategories.replace(/[.\s]+$/, ""))}.</p>
   ` : ""}
 
   ${

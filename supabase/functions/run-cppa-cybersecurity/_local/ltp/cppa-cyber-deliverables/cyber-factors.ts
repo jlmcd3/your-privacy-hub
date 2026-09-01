@@ -349,8 +349,18 @@ export function buildProgramReadiness(intake: Bag, d: CyberDeliverables): { anal
   if (gaps === 0 && rs.unassessed_count === 0 && untestable > 0) {
     sentences.push(`No material implementation weakness is described, but ${untestable === 1 ? "one component" : `${untestable} components`} do not yet have a testable operating artifact identified behind the described control.`);
   }
-  const conclusion = gaps === 0 && rs.unassessed_count === 0 && untestable === 0
+  // DOC 129 CY-1 (Batch 3 A-Team ruling, 2026-09-01) — the "appear prepared"
+  // all-clear now requires the Section-2 readiness determination itself to
+  // be "ready". Batch 3 showed the Batch-1 false-success returning: page one
+  // said no readiness conclusion could be reached (auditor engagement not
+  // described) while this § 3 sentence said the program appeared prepared.
+  // A positive implementation posture is not an audit-readiness conclusion
+  // while a § 7122 gating item (auditor engagement above all) is unresolved.
+  const overallReadiness = d.readiness_determination.conclusion;
+  const conclusion = gaps === 0 && rs.unassessed_count === 0 && untestable === 0 && overallReadiness === "ready"
     ? "At the program level, the described program and its identified evidence appear prepared for the independent audit, subject to auditor verification."
+    : gaps === 0 && rs.unassessed_count === 0 && untestable === 0
+    ? "At the program level, no material implementation weakness is identified on the information supplied, but the readiness conclusion in Section 2 remains open — the § 7122 auditor-engagement record above all — so the program cannot yet be described as prepared for the independent audit."
     : gaps === 0 && untestable > 0
     ? "At the program level, no material implementation weakness is identified. Evidence readiness is incomplete: not every component currently has a testable operating artifact identified. The programme therefore cannot yet be described as prepared for the independent audit."
     : gaps === 0
@@ -687,6 +697,15 @@ export function buildReadinessActions(intake: Bag, recs: readonly ComponentRecom
   const nonPriority = recs.filter((r) => r.priority !== "Immediate");
   const byClass = (classes: readonly string[]) => nonPriority.filter((r) => classes.includes(r.key.gapClass)).map((r) => actionSentence(r, intake));
   const priority_actions = recs.filter((r) => r.priority === "Immediate").map((r) => actionSentence(r, intake));
+  // DOC 129 CY-1 (Batch 3 A-Team ruling, 2026-09-01) — while the Section-2
+  // readiness conclusion is open (record_insufficient), "Priority readiness
+  // actions: none identified" must not print beside it: the gating
+  // record-completion ask IS the priority action.
+  if (d && d.readiness_determination.conclusion === "record_insufficient" && priority_actions.length === 0) {
+    priority_actions.push(
+      "Complete the readiness record identified in Section 2 — the § 7122 auditor-engagement description above all — so the readiness conclusion can be reached; no readiness conclusion is available while it is open.",
+    );
+  }
   const evidence_package_actions = byClass(["evidence_insufficient"]);
   const implementation_actions = byClass(["not_implemented", "partially_implemented"]);
   const extras = d ? buildRecordCompletionExtras(intake, d) : [];

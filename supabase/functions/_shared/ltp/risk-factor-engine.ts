@@ -835,6 +835,11 @@ export function runRiskFactorEngine(
   // DOC 127 PART I — named risks whose likelihood/severity cannot resolve;
   // carried honestly instead of silently dropped.
   const unassessed = extractUnassessedPathways(intake);
+  // DOC 129 RISK (2026-09-01) — the Company's GENERAL safeguard description
+  // (impact_intake.safeguards, free text). Never credited (crediting is the
+  // ratified per-risk a6_safeguards model); read solely so the report can
+  // explain WHY nothing is credited when no per-risk row exists.
+  const generalSafeguardsText = clause((intake.impact_intake as Bag | undefined)?.safeguards);
   const material = materialPathways(pathways);
   const benefits = extractBenefits(intake);
   const benefitTier = bestBenefitTier(benefits);
@@ -1218,7 +1223,23 @@ export function runRiskFactorEngine(
       ["11 CCR § 7152", "11 CCR § 7154"],
     );
   }
-  tables["executive_summary:6"] = buildRiskLedgerTable(pathways, "exec_ledger", unassessed);
+  {
+    const execLedger = buildRiskLedgerTable(pathways, "exec_ledger", unassessed);
+    // DOC 129 RISK (2026-09-01) — the all-None ledger explains itself when a
+    // general safeguard description IS on the record: crediting requires the
+    // per-risk record, and rights mechanisms (§ 3.D controls) are a distinct
+    // concept from risk-directed safeguards.
+    const allUncredited = pathways.length > 0 && pathways.every((p) => p.safeguards.length === 0);
+    tables["executive_summary:6"] = execLedger && allUncredited && generalSafeguardsText
+      ? {
+        ...execLedger,
+        note: [
+          execLedger.note,
+          "The Company's general safeguard description is on the record; this ledger credits only safeguards recorded against a specific risk with an implementation status, and none is, which is why no credit appears. Consumer-rights mechanisms (§ 3.D) are recorded separately and are not risk-directed safeguards.",
+        ].filter(Boolean).join(" "),
+      }
+      : execLedger;
+  }
 
   // Exec C — benefit strip.
   {
@@ -2259,9 +2280,17 @@ export function runRiskFactorEngine(
         // material pathways; a below-material no-safeguard risk previously
         // promised a condition § 4.D never carried), and it names the
         // branch-correct § 4.D head.
+        // DOC 129 RISK (Batch 3 A-Team ruling, 2026-09-01) — where the
+        // Company's GENERAL safeguard description is on the record but no
+        // safeguard is recorded against this specific risk, the sentence
+        // says WHY nothing is credited instead of a bare absence: crediting
+        // requires the per-risk record with an implementation status.
+        const whyNone = generalSafeguardsText
+          ? "The Company's general safeguard description is on the record, but crediting requires a safeguard recorded against this specific risk with its implementation status, and none is; the risk therefore enters the balance at its full level"
+          : "No safeguard in the information provided is directed at this risk, so it enters the balance at its full level";
         branch = gaps.some((g) => g.harm === p.harm)
-          ? `No safeguard in the information provided is directed at this risk, so it enters the balance at its full level; establishing one appears in the ${conditionsHeadName}.`
-          : "No safeguard in the information provided is directed at this risk, so it enters the balance at its full level.";
+          ? `${whyNone}; establishing one appears in the ${conditionsHeadName}.`
+          : `${whyNone}.`;
       }
       return `${opening} ${branch}`;
     });

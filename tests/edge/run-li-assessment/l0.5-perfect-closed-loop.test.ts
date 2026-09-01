@@ -62,14 +62,28 @@ Deno.test("L0.5 — a build error yields a build deficiency, not a throw", () =>
 // ── Mutation battery — one deletion per acceptance-predicate branch,
 // proving the checker actually detects the SPECIFIC gap it claims to. ──────
 
-Deno.test("L0.5 mutation — dropping balancing_details.collection_context reopens reasonable_expectations", () => {
-  const intake = clone(REFERENCE_INTAKE);
-  intake.balancing_details.collection_context = "";
-  const res = checkPerfectLiaIntake(intake);
-  assertEquals(res.ok, false);
+// DOC 129 LIA-A (Batch 3 A-Team ruling, 2026-09-01) — SUPERSEDED behavior:
+// with reasonable_expectation_detail populated (the perfect fixture carries
+// it), dropping collection_context no longer reopens the factor — the
+// Company's own account carries it, and asking for information already
+// supplied was the Batch-3 defect. The factor reopens only when BOTH the
+// context and the detail are absent.
+Deno.test("L0.5 mutation — dropping collection_context alone no longer reopens (detail carries the factor); dropping both does", () => {
+  const contextOnly = clone(REFERENCE_INTAKE);
+  contextOnly.balancing_details.collection_context = "";
+  const res1 = checkPerfectLiaIntake(contextOnly);
   assert(
-    res.deficiencies.some((d) => d.detail.startsWith("reasonable_expectations:")),
-    `Expected reasonable_expectations deficiency. Got: ${deficiencyLines(res.deficiencies).join(" | ")}`,
+    !res1.deficiencies.some((d) => d.detail.startsWith("reasonable_expectations:")),
+    `Detail-backed factor wrongly reopened. Got: ${deficiencyLines(res1.deficiencies).join(" | ")}`,
+  );
+  const both = clone(REFERENCE_INTAKE);
+  both.balancing_details.collection_context = "";
+  both.balancing_details.reasonable_expectation_detail = "";
+  const res2 = checkPerfectLiaIntake(both);
+  assertEquals(res2.ok, false);
+  assert(
+    res2.deficiencies.some((d) => d.detail.startsWith("reasonable_expectations:")),
+    `Expected reasonable_expectations deficiency. Got: ${deficiencyLines(res2.deficiencies).join(" | ")}`,
   );
 });
 

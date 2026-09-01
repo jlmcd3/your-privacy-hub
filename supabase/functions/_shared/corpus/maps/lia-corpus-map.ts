@@ -142,8 +142,10 @@ export const LIA_CORPUS_MAP: CorpusMap = {
         matter: "DPC (Ireland) — LinkedIn (2024)",
         what_happened:
           "Ireland's Data Protection Commission fined LinkedIn €310,000,000 for processing personal data for behavioural analysis and targeted advertising without a valid legal basis, with insufficient transparency.",
+        // DOC 129 LIA-E (Batch 3 A-Team ruling, 2026-09-01) — neutral legal
+        // relevance, not advocacy framing ("largest verified rejection").
         bearing:
-          "The largest verified rejection of legitimate-interests reliance: where balancing fails, the basis fails — the exact test this assessment performs.",
+          "This decision illustrates that where the balancing test fails, Article 6(1)(f) cannot support the processing — the same test this assessment performs.",
         authority_label:
           "DPC (Ireland), LinkedIn, decision of 22 October 2024 — persuasive authority",
         trail_cite: "DPC, LinkedIn (2024)",

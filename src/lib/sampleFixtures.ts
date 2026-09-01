@@ -770,6 +770,34 @@ const F_CPPA_RISK_US: SampleFixture = {
             severity: "Moderate",
           },
         ],
+        // DOC 129 RISK fixture enrichment (Batch 3 A-Team ruling, 2026-09-01)
+        // — the fixture carried its safeguards ONLY as impact_intake free
+        // text, which the ratified per-risk crediting model deliberately does
+        // not read, so every ledger row printed "None established" and the
+        // graders mis-called the engine incoherent. The safeguards are now
+        // ALSO recorded contract-canonically against the named harms
+        // (a6_safeguards; enum values verbatim from
+        // supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts),
+        // with (G) deliberately left uncovered so the sample exercises the
+        // safeguard-gap condition path.
+        a6_safeguards: [
+          {
+            harm: "(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability",
+            safeguard:
+              "Encryption in transit and at rest across the tracking warehouse, with role-based access limiting credential and address data to the fulfilment and support teams.",
+            safeguard_status: "Implemented and tested",
+            residual:
+              "Credential-stuffing exposure remains for consumers who reuse passwords; rate limiting and breached-password screening reduce but do not remove it.",
+          },
+          {
+            harm: "(C) Impairment of consumer control over personal information",
+            safeguard:
+              "Opt-out honoured within 15 business days with Global Privacy Control support, and a suppression-propagation monitor across the ad exchanges.",
+            safeguard_status: "Implemented, not tested",
+            residual:
+              "Suppression can lag at an individual exchange inside the 15-business-day window; propagation completion is monitored but not yet independently tested.",
+          },
+        ],
         a8_information_providers:
           "CISO Blitz Zenn (security controls and incident history); VP Engineering (scoring pipeline and retention enforcement); Product Owner (opt-out propagation); the independent bias auditor (annual subgroup testing). Legal advice from outside counsel is excluded from this record.",
         a9_approver_name: "Rudy Rangifer",

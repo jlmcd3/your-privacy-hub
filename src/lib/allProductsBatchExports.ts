@@ -185,6 +185,17 @@ export function downloadBatchErrorsMarkdown(batchId: string, outcomes: RunOutcom
       | null;
     if (!p) continue;
     const blocks: string[] = [];
+    // DOC 129 §2 — deterministic pre-grader findings (proved by the app,
+    // not model opinions) render first for the run.
+    const det = (p as Record<string, unknown>).deterministic;
+    if (Array.isArray(det) && det.length) {
+      findingRows += det.length;
+      blocks.push(`- **deterministic** — ${det.length} proved defect(s):`);
+      for (const f of det as Array<Record<string, unknown>>) {
+        const ev = String(f.evidence ?? "").replace(/\n/g, " ").slice(0, 400);
+        blocks.push(`  - \`${f.check_id ?? "?"}\` · ${f.severity ?? "—"} · ${f.classification ?? "—"}${ev ? ` — ${ev}` : ""}`);
+      }
+    }
     for (const model of ["claude", "gpt"] as const) {
       const m = p[model];
       if (!m) continue;
@@ -198,8 +209,11 @@ export function downloadBatchErrorsMarkdown(batchId: string, outcomes: RunOutcom
         blocks.push(`- **${model}** — ${failed.length} failed check(s):`);
         for (const f of failed) {
           const ev = String(f.evidence ?? "").replace(/\n/g, " ").slice(0, 400);
+          // DOC 129 §1.3 — the finding classification renders beside the
+          // dimension/severity so engineering can triage without re-tracing.
+          const cls = f.classification ? ` · ${String(f.classification)}` : "";
           blocks.push(
-            `  - \`${f.check_id ?? "?"}\` · ${f.dimension ?? "—"} · ${f.severity ?? "—"}${ev ? ` — ${ev}` : ""}`,
+            `  - \`${f.check_id ?? "?"}\` · ${f.dimension ?? "—"} · ${f.severity ?? "—"}${cls}${ev ? ` — ${ev}` : ""}`,
           );
         }
       }

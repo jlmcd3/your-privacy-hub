@@ -816,8 +816,13 @@ function composeProcessors(intake: Bag, gdprEngaged: boolean): string {
   // processor's clocks are contractual and framework-specific, and the
   // paragraph says so instead of quoting the wrong instrument.
   if (gdprEngaged) {
+    // DOC 129 IR-2 (Batch 3 A-Team ruling, 2026-09-01; GPT grader citation
+    // finding AGREED) — the Art. 33(1) clock runs from the controller's own
+    // awareness however it arises; a processor notice commonly establishes
+    // that awareness but is not the legal trigger, and the sentence no
+    // longer says it "starts" the clock.
     parts.push(
-      'On the processor\'s own notification clock, GDPR Art. 33(2) provides: "The processor shall notify the controller without undue delay after becoming aware of a personal data breach." The controller\'s 72-hour clock under Art. 33(1) runs from the controller\'s awareness, and the processor\'s notification is what ordinarily starts it.',
+      'On the processor\'s own notification clock, GDPR Art. 33(2) provides: "The processor shall notify the controller without undue delay after becoming aware of a personal data breach." The controller\'s 72-hour clock under Art. 33(1) runs from the controller\'s own awareness, however that awareness arises; in a processor-held incident the processor\'s notification is commonly what first establishes it.',
     );
     parts.push(
       'Under the processing contract, GDPR Art. 28(3)(f) requires that the processor "assists the controller in ensuring compliance with the obligations pursuant to Articles 32 to 36 taking into account the nature of processing and the information available to the processor". That assistance duty is the contractual route to the facts the Art. 33(3) notification content requires.',

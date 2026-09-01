@@ -9,7 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // RC-D.10: BUILD_STAMP = git short-sha + ISO. Update on any behavior edit.
 // Value = git short-sha of the commit being deployed + ISO timestamp.
 // MUST be updated in the same edit that changes behavior in this file.
-export const BUILD_STAMP = "chunk-safe-intakes@prompt8g-2026-08-12";
+export const BUILD_STAMP = "doc129-grader-classification@2026-09-01";
 
 // QLB-F3 — shared grader payload builder (body-first, metadata-stripped,
 // equal budget across Claude+GPT).
@@ -1240,7 +1240,7 @@ DIMENSIONS:
 3. hallucination  — HIGHER = LESS hallucination. No invented facts or non-existent regulations.
 4. analysis       — Reasoning is specific to THIS intake, not generic boilerplate.
 5. intelligence   — Output is actionable for a real compliance professional.
-6. formatting     — Clean output; no AI meta-commentary.
+6. formatting     — Clean TEXT presentation and structure; no AI meta-commentary. You are grading text/JSON only: you CANNOT see the rendered PDF — never infer or score visual layout, typography, whitespace, tables-as-rendered, pagination, or any pixel-level quality.
 
 CORPUS-VERIFIED RECENT AMENDMENTS (do not deduct for these): the platform's legal corpus is verified against official texts, including changes that may postdate your training knowledge. The following are CORRECT statements of current law; treat them as accurate, do not flag them for verification, and do not deduct from any dimension for asserting them: (1) Cal. Civ. Code § 1798.82, as amended by SB 446 (effective January 1, 2026): individual notice within 30 calendar days of discovery or notification per (a)(2)(A); for breaches affecting more than 500 California residents, a single sample copy to the California Attorney General within 15 calendar days of consumer notice per (f); both statutory delay allowances retained per (a)(2)(B). (2) CCPA post-CPRA subsection lettering in Cal. Civ. Code § 1798.140: 'service provider' is defined at subsection (ag), not the pre-2020 (v) lettering. (3) UK GDPR Article 6(11), inserted by the Data (Use and Access) Act 2025 (recognised-legitimate-interests examples: direct marketing, intra-group transmission for internal administrative purposes, network and information security). (4) EDPB “Data Protection Impact Assessment” template v1.0 and its section structure (0 Overview, 1 Description, 2 Analysis, 3 Necessity and proportionality, 4 Risk management, 5 Interested parties, 6 Conclusion), together with the assessment-team and validation/approval fields at § 0.5: this is a real, published EDPB template, and documents following it must not be flagged as inventing a framework or citing a non-existent source. This list is exhaustive: it does not license any OTHER uncited or unverifiable legal claim, and all normal citation and hallucination scrutiny continues to apply to everything else.
 
@@ -1255,12 +1255,14 @@ ${SHARED_GRADER_CONTEXT}
 CHECKLIST (evaluate ONLY these; use the EXACT id given; do not add, rename, or omit):
 ${rubricChecklistText(checks)}
 
+FINDING CLASSIFICATION (DOC 129, 2026-09-01): for every finding set "classification": "customer_visible_defect" ONLY when the defective text appears in the CUSTOMER DOCUMENT section (or the document body of a legacy-shaped record); "hidden_state_or_mapping_defect" when the problem lives in the STRUCTURED EVIDENCE (internal fields the customer never sees); "fixture_or_intake_issue" when the root cause is the supplied intake/fixture data itself; "grader_false_positive_or_rubric_mismatch" when on reflection the check does not truly apply (prefer passed: true in that case).
+
 Return ONLY valid JSON of this exact shape:
 {
   "dimension_scores": { "accuracy": 0-100, "citation": 0-100, "hallucination": 0-100, "analysis": 0-100, "intelligence": 0-100, "formatting": 0-100 },
   "overall_score": 0-100,
   "findings": [
-    { "check_id": "<EXACT id from the checklist above>", "dimension": "...", "severity": "...", "passed": true|false, "evidence": "quoted text or null" }
+    { "check_id": "<EXACT id from the checklist above>", "dimension": "...", "severity": "...", "passed": true|false, "classification": "customer_visible_defect" | "hidden_state_or_mapping_defect" | "fixture_or_intake_issue" | "grader_false_positive_or_rubric_mismatch", "evidence": "quoted text or null" }
   ],
   "strengths": ["..."],
   "critical_failures": ["..."]

@@ -683,7 +683,18 @@ export function deriveRemediationRegisterTable(report: Bag): RenderedTable | nul
     rows,
     ...(dropped.length
       ? {
-        note: `${dropped.map((c) => `${c.label}: ${c.value(plan[0])}`).join("; ")} — these values apply to every item in this register.`,
+        // DOC 129 GOV (Batch 3 A-Team ruling, 2026-09-01) — the collapsed
+        // constants are the Company's own recorded portfolio defaults, and
+        // where a priority reads "this quarter" beside a portfolio target
+        // date, the note separates the two dimensions instead of letting
+        // them contradict: priority states urgency; the date is the
+        // recorded outer deadline.
+        note: `${dropped.map((c) => `${c.label}: ${c.value(plan[0])}`).join("; ")} — the Company's recorded portfolio defaults, applying to every item in this register.${
+          dropped.some((c) => c.label === "Target date") &&
+            plan.some((p) => /this quarter/i.test(s(p.priority)))
+            ? " Priority states the recommended urgency; the target date is the recorded outer deadline for the portfolio, and higher-priority items should complete ahead of it."
+            : ""
+        }`,
       }
       : {}),
   };

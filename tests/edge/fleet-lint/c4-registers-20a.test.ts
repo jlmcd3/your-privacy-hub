@@ -36,7 +36,8 @@ Deno.test("C4/S5.1: the Remediation Register renders with constant meta columns 
   assertEquals(register.columns, ["#", "Duty and gap", "Action"]);
   assertExists(register.note);
   assertStringIncludes(register.note, "Priority: High");
-  assertStringIncludes(register.note, "these values apply to every item in this register");
+  // DOC 129 GOV (2026-09-01) — note wording superseded: constants are labeled as the Company's recorded portfolio defaults.
+  assertStringIncludes(register.note, "applying to every item in this register");
   assertEquals(register.rows[0][1], "Envisaged retention time limits — The record carries nothing on this element.");
   assertEquals(register.rows[0][2], "State the retention limit per category");
   // The prose keeps the count sentence pointing at the register; the old

@@ -75,7 +75,7 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // QLB-F3 (2026-07-15): grader payload rebuild (body-first, metadata-strip,
 // equal budget), spelling-neutral prompt preamble, and fill-in placeholder
 // exemption mirrored verbatim with run-quality-batch.
-export const BUILD_STAMP = "post-c1-fix-2-amend-clay-postcutoff-block@2026-07-23T18:45:00Z";
+export const BUILD_STAMP = "doc129-customer-doc-first@2026-09-01";
 console.log(`[grade-single-assessment] boot ${BUILD_STAMP}`);
 console.log(JSON.stringify({ evt: "grader_build_stamp", fn: "grade-single-assessment", build_stamp: BUILD_STAMP }));
 
@@ -182,7 +182,7 @@ DIMENSIONS:
 3. hallucination  — HIGHER = LESS hallucination. No invented facts or non-existent regulations.
 4. analysis       — Reasoning is specific to THIS intake, not generic boilerplate.
 5. intelligence   — Output is actionable for a real compliance professional.
-6. formatting     — Clean output; no AI meta-commentary.
+6. formatting     — Clean TEXT presentation and structure; no AI meta-commentary. You are grading text/JSON only: you CANNOT see the rendered PDF — never infer or score visual layout, typography, whitespace, tables-as-rendered, pagination, or any pixel-level quality.
 
 CORPUS-VERIFIED RECENT AMENDMENTS (do not deduct for these): the platform's legal corpus is verified against official texts, including changes that may postdate your training knowledge. The following are CORRECT statements of current law; treat them as accurate, do not flag them for verification, and do not deduct from any dimension for asserting them: (1) Cal. Civ. Code § 1798.82, as amended by SB 446 (effective January 1, 2026): individual notice within 30 calendar days of discovery or notification per (a)(2)(A); for breaches affecting more than 500 California residents, a single sample copy to the California Attorney General within 15 calendar days of consumer notice per (f); both statutory delay allowances retained per (a)(2)(B). (2) CCPA post-CPRA subsection lettering in Cal. Civ. Code § 1798.140: 'service provider' is defined at subsection (ag), not the pre-2020 (v) lettering. (3) UK GDPR Article 6(11), inserted by the Data (Use and Access) Act 2025 (recognised-legitimate-interests examples: direct marketing, intra-group transmission for internal administrative purposes, network and information security). This list is exhaustive: it does not license any OTHER uncited or unverifiable legal claim, and all normal citation and hallucination scrutiny continues to apply to everything else.
 
@@ -195,12 +195,14 @@ ${SHARED_GRADER_CONTEXT}
 CHECKLIST (evaluate ONLY these; use the EXACT id given; do not add, rename, or omit):
 ${rubricChecklistText(checks)}
 
+FINDING CLASSIFICATION (DOC 129, 2026-09-01): for every finding set "classification": "customer_visible_defect" ONLY when the defective text appears in the CUSTOMER DOCUMENT section (or the document body of a legacy-shaped record); "hidden_state_or_mapping_defect" when the problem lives in the STRUCTURED EVIDENCE (internal fields the customer never sees); "fixture_or_intake_issue" when the root cause is the supplied intake/fixture data itself; "grader_false_positive_or_rubric_mismatch" when on reflection the check does not truly apply (prefer passed: true in that case).
+
 Return ONLY valid JSON of this exact shape:
 {
   "dimension_scores": { "accuracy": 0-100, "citation": 0-100, "hallucination": 0-100, "analysis": 0-100, "intelligence": 0-100, "formatting": 0-100 },
   "overall_score": 0-100,
   "findings": [
-    { "check_id": "<EXACT id from the checklist above>", "dimension": "...", "severity": "...", "passed": true|false, "evidence": "quoted text or null" }
+    { "check_id": "<EXACT id from the checklist above>", "dimension": "...", "severity": "...", "passed": true|false, "classification": "customer_visible_defect" | "hidden_state_or_mapping_defect" | "fixture_or_intake_issue" | "grader_false_positive_or_rubric_mismatch", "evidence": "quoted text or null" }
   ],
   "strengths": ["..."],
   "critical_failures": ["..."]
@@ -266,10 +268,17 @@ function computeOverall(scores: any, tool: GradedTool): number {
 async function gradeOne(role: "claude" | "gpt", tool: GradedTool, intake: any, report: any) {
   const sys = buildRubricSystemPrompt(role);
   // QLB-F3: body-first, metadata-stripped, equal budget across models.
+  // DOC 129 §1.2 — registration/session-shaped tools (family null) now
+  // route through the SAME customer-document-first builder instead of a raw
+  // whole-JSON slice, so their hidden structured fields are labeled
+  // evidence rather than gradeable copy.
   const family = familyForSingleTool(tool as QL3Tool);
-  const payload = family
-    ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET, { fixtureSet: matchFixtureSet(tool as QL3Tool, intake) })
-    : { text: JSON.stringify(report ?? {}).slice(0, GRADER_PAYLOAD_BUDGET), truncated: false, original_length: 0 };
+  const payload = buildGraderPayload(
+    family,
+    report,
+    GRADER_PAYLOAD_BUDGET,
+    { fixtureSet: family ? matchFixtureSet(tool as QL3Tool, intake) : null, customerDocFirst: true },
+  );
   if (payload.truncated) {
     console.warn(`[grade-single-assessment] payload_truncated tool=${tool} role=${role} original_length=${payload.original_length} budget=${GRADER_PAYLOAD_BUDGET}`);
   }
@@ -534,6 +543,19 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
 
+  // DOC 129 §2 — deterministic pre-grader QA over the SAME customer document
+  // the model payload leads with. Runs first, never gates the model calls.
+  let deterministicFindings: unknown[] = [];
+  try {
+    const { runDeterministicQa } = await import("../_shared/grader/deterministic-qa.ts");
+    deterministicFindings = runDeterministicQa(report);
+    if (deterministicFindings.length) {
+      console.log(`[DETERMINISTIC-QA] tool=${tool} findings=${deterministicFindings.length}`);
+    }
+  } catch (e) {
+    console.warn("[grade-single-assessment] deterministic QA failed (non-fatal):", (e as Error).message);
+  }
+
   let claudeRes: any = null, claudeErr: string | null = null;
   let gptRes: any = null, gptErr: string | null = null;
   try { claudeRes = await gradeOne("claude", tool, intake, report); }
@@ -551,6 +573,8 @@ const handler = async (req: Request): Promise<Response> => {
     // findings_count, so every downstream consumer (all-products-test .md
     // export, analysis JSON) lost the actual grader findings. Emit the
     // failed findings verbatim alongside the counts.
+    // DOC 129 §2 — deterministic findings ride alongside the model results.
+    deterministic: deterministicFindings,
     claude: claudeRes ? { overall_score: claudeRes.overall_score, dimension_scores: claudeRes.dimension_scores, findings_count: claudeRes.findings.length, findings: claudeRes.findings, strengths: claudeRes.strengths, critical_failures: claudeRes.critical_failures } : { error: claudeErr },
     gpt: gptRes ? { overall_score: gptRes.overall_score, dimension_scores: gptRes.dimension_scores, findings_count: gptRes.findings.length, findings: gptRes.findings, strengths: gptRes.strengths, critical_failures: gptRes.critical_failures } : { error: gptErr },
     note: "One-off grader (grade-single-assessment). NOT a product baseline. Never used by ql2-orchestrator or run-stress-job.",
