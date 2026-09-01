@@ -220,6 +220,11 @@
   line-height: 1.4;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+/* Default ink lives in :where() (zero specificity) so an explicit color
+   utility (e.g. text-brand-light-teal on dark bands) always wins over the
+   steel default. Prevents dark-on-dark caps labels. */
+:where(.text-label-caps) {
   color: hsl(var(--brand-steel));
 }
 .text-body-marketing {
