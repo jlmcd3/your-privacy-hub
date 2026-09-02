@@ -842,39 +842,67 @@ export function QualityConsole({
   }
 
   // ─── Score matrix data ───────────────────────────────────────────────────
-  // BATCH LAW — server batches first (oldest → newest), then every in-page
-  // local batch as its OWN column appended to the right. A local run is never
-  // folded into a pre-existing batch column.
-  // BATCH-NUMBER LAW — `n` is the batch's global sequence number (oldest
-  // server batch = 1). recentBatches is newest-first, so desc index d maps
-  // to n = batchTotal - d. Local in-page batches continue the sequence.
+  // BATCH LAW — every batch is its OWN column, ordered oldest → newest:
+  // orchestrator batches (quality_batch_runs), server stress batches launched
+  // from this page (static_stress_batches), and any purely in-page batch that
+  // has no server row. A run is never folded into a pre-existing column.
+  // SERVER-BATCH LAW (2026-09-02) — stress columns come from the SERVER, so a
+  // batch run today shows up even in a browser that never ran it; in-page
+  // Claude/GPT scores are overlaid on the server counts when available.
+  // BATCH-NUMBER LAW — `n` is the global sequence number across all batch
+  // sources: the newest loaded column is the global total, counting back.
   type MatrixColumn =
     | { kind: "server"; id: string; started_at: string; n: number; batch: BatchRow }
     | { kind: "local"; id: string; started_at: string; n: number; batch: LocalBatch };
 
   const matrixColumns = useMemo<MatrixColumn[]>(() => {
-    const server: MatrixColumn[] = [...recentBatches]
-      .sort((a, b) => (a.started_at < b.started_at ? -1 : 1))
-      .map((b) => ({
-        kind: "server" as const,
-        id: b.id,
-        started_at: b.started_at,
-        n: batchTotal - recentBatches.findIndex((r) => r.id === b.id),
-        batch: b,
-      }));
-    const local: MatrixColumn[] = [...localBatches]
-      .sort((a, b) => (a.started_at < b.started_at ? -1 : 1))
-      .map((b, i) => ({
+    const server = [...recentBatches].map((b) => ({
+      kind: "server" as const, id: b.id, started_at: b.started_at, n: 0, batch: b,
+    }));
+    // Stress batches → local-shaped columns (counts from the server, scores
+    // from the matching in-page batch when this browser ran it).
+    const localById = new Map(localBatches.map((b) => [b.id, b] as const));
+    const stress = stressBatches.map((s) => {
+      const overlay = localById.get(`local-stress-${s.id}`);
+      const tools: Record<string, LocalToolResult> = {};
+      const keys = new Set([...Object.keys(s.tools), ...Object.keys(overlay?.tools ?? {})]);
+      for (const k of keys) {
+        const base = s.tools[k] ?? { total: 0, complete: 0, failed: 0, scored: 0, claudeSum: 0, gptSum: 0 };
+        const ov = overlay?.tools[k];
+        tools[k] = {
+          ...base,
+          total: Math.max(base.total, ov?.total ?? 0),
+          complete: Math.max(base.complete, ov?.complete ?? 0),
+          failed: Math.max(base.failed, ov?.failed ?? 0),
+          scored: ov?.scored ?? 0,
+          claudeSum: ov?.claudeSum ?? 0,
+          gptSum: ov?.gptSum ?? 0,
+        };
+      }
+      return {
         kind: "local" as const,
-        id: b.id,
-        started_at: b.started_at,
-        n: batchTotal + i + 1,
-        batch: b,
-      }));
-    return [...server, ...local];
-  }, [recentBatches, localBatches, batchTotal]);
+        id: overlay?.id ?? `local-stress-${s.id}`,
+        started_at: s.started_at,
+        n: 0,
+        batch: { id: overlay?.id ?? s.id, started_at: s.started_at, last_at: s.started_at, tools } as LocalBatch,
+      };
+    });
+    const stressLocalIds = new Set(stressBatches.map((s) => `local-stress-${s.id}`));
+    const localOnly = localBatches
+      .filter((b) => !stressLocalIds.has(b.id))
+      .map((b) => ({ kind: "local" as const, id: b.id, started_at: b.started_at, n: 0, batch: b }));
 
-  const hasOlderBatches = recentBatches.length < batchTotal;
+    const all = [...server, ...stress, ...localOnly]
+      .sort((a, b) => (a.started_at < b.started_at ? -1 : 1));
+    const totalAll = batchTotal + (showStressBatches ? stressTotal : 0) + localOnly.length;
+    const base = Math.max(totalAll - all.length, 0);
+    return all.map((c, i) => ({ ...c, n: base + i + 1 }));
+  }, [recentBatches, localBatches, stressBatches, batchTotal, stressTotal, showStressBatches]);
+
+  const hasOlderBatches =
+    recentBatches.length < batchTotal ||
+    (showStressBatches && stressBatches.length < stressTotal);
+
 
   function renderLocalCell(key: string, r: LocalToolResult | undefined) {
     if (!r || r.total === 0) {
