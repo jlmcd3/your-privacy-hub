@@ -112,10 +112,10 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
   // best-effort work (worker launches) that can be killed by the wall-clock
   // limit and silently drop the rest of the batch.
   let chained = false;
-  const chainNext = () => {
+  const chainNext = async () => {
     if (chained || reachedEnd) return;
     chained = true;
-    selfInvokeNext(batchId, companyIndex + 1);
+    await selfInvokeNext(batchId, companyIndex + 1);
   };
 
 
@@ -218,7 +218,7 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
         .eq("id", batchId);
 
       // Hand off to the next company NOW — before any slow best-effort work.
-      chainNext();
+      await chainNext();
 
       // After the first company's jobs are inserted, launch parallel workers.
       // They continuously claim and process jobs as more companies are added by
@@ -233,15 +233,18 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
         }).eq("id", batchId);
 
         const WORKER_COUNT = 20;
-        for (let w = 0; w < WORKER_COUNT; w++) {
-          // Stagger launches without blocking this invocation: an awaited
-          // cumulative sleep (~95s) used to burn the wall clock here.
-          setTimeout(() => {
-            invokeFn("run-stress-job", { batch_id: batchId, job_id: null }).catch((e) =>
-              console.warn(`[start-stress-batch] worker ${w} early-start launch failed:`, e)
-            );
-          }, w * 500);
-        }
+        // Detached timers are not durable in an Edge invocation: the runtime
+        // may freeze as soon as the request's waitUntil promise settles. Keep
+        // the launches inside this durable task. Promise.all makes the stagger
+        // cost 9.5s wall-clock (not the former cumulative ~95s).
+        await Promise.all(Array.from({ length: WORKER_COUNT }, async (_, w) => {
+          if (w > 0) await new Promise((resolve) => setTimeout(resolve, w * 500));
+          try {
+            await invokeFn("run-stress-job", { batch_id: batchId, job_id: null }, 30_000);
+          } catch (e) {
+            console.warn(`[start-stress-batch] worker ${w} early-start launch failed:`, e);
+          }
+        }));
       }
 
 
@@ -285,7 +288,7 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
     } catch { /* best-effort */ }
   } finally {
     if (!reachedEnd) {
-      chainNext();
+      await chainNext();
     }
     console.log(`[start-stress-batch] company ${companyIndex} done for ${batchId} — chained=${chained} reachedEnd=${reachedEnd}`);
   }
@@ -371,38 +374,36 @@ async function repairFixtureFailures(batchId: string): Promise<{ repaired: numbe
   return { repaired, failed };
 }
 
-function selfInvokeNext(batchId: string, nextIndex: number): void {
-  const attempt = (remaining: number) => {
-    (async () => {
-      try {
-        const r = await fetch(`${SUPABASE_URL}/functions/v1/start-stress-batch`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${SERVICE_KEY}`,
-          },
-          body: JSON.stringify({ batch_id: batchId, company_index: nextIndex }),
-          signal: AbortSignal.timeout(15_000),
-        });
-        if (!r.ok && remaining > 1) {
-          setTimeout(() => attempt(remaining - 1), 2000);
-        }
-      } catch (_e) {
-        if (remaining > 1) {
-          setTimeout(() => attempt(remaining - 1), 2000);
-        } else {
-          console.error("[start-stress-batch] self-invoke exhausted retries for batch", batchId);
-          try {
-            const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
-            await admin.from("static_stress_batches").update({
-              error_log: `Setup interrupted at company ${nextIndex} — self-invoke failed. Click Resume Setup to continue.`,
-            }).eq("id", batchId).eq("status", "pending");
-          } catch { /* best-effort */ }
-        }
-      }
-    })();
-  };
-  attempt(3);
+async function selfInvokeNext(batchId: string, nextIndex: number): Promise<void> {
+  let lastError = "unknown";
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const r = await fetch(`${SUPABASE_URL}/functions/v1/start-stress-batch`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${SERVICE_KEY}`,
+        },
+        body: JSON.stringify({ batch_id: batchId, company_index: nextIndex }),
+        signal: AbortSignal.timeout(15_000),
+      });
+      const responseBody = await r.text();
+      if (r.ok) return;
+      lastError = `HTTP ${r.status}: ${responseBody.slice(0, 240)}`;
+    } catch (error) {
+      lastError = (error as Error).message?.slice(0, 240) ?? "unknown";
+    }
+    if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, 2_000));
+  }
+
+  console.error("[start-stress-batch] self-invoke exhausted retries for batch", batchId, lastError);
+  try {
+    const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
+    await admin.from("static_stress_batches").update({
+      error_log: `Setup interrupted at company ${nextIndex} — self-invoke failed: ${lastError}. Click Resume Setup to continue.`,
+    }).eq("id", batchId).in("status", ["pending", "running"]);
+  } catch { /* best-effort */ }
+  throw new Error(`setup handoff failed for company ${nextIndex}: ${lastError}`);
 }
 
 Deno.serve(async (req) => {
