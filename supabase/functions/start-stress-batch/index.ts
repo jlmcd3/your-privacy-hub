@@ -107,6 +107,17 @@ async function generateFixtures(c: { industryLabel: string; geo: string; slot: n
 async function processNextCompany(batchId: string, companyIndex: number): Promise<void> {
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
   let reachedEnd = false;
+  // SETUP-CHAIN LAW (2026-09-02): the hand-off to the next company must be
+  // fired as soon as this company's jobs are inserted — never after slow
+  // best-effort work (worker launches) that can be killed by the wall-clock
+  // limit and silently drop the rest of the batch.
+  let chained = false;
+  const chainNext = () => {
+    if (chained || reachedEnd) return;
+    chained = true;
+    selfInvokeNext(batchId, companyIndex + 1);
+  };
+
 
   try {
     const { data: batch } = await admin
@@ -140,9 +151,20 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
       await admin.from("static_stress_batches").update({
         total_jobs: totalJobs,
         status: totalJobs > 0 ? "running" : "complete",
+        setup_done: companies.length,
         started_at: new Date().toISOString(),
       }).eq("id", batchId);
+
+      // Setup just cleared the gate. If every job already finished while
+      // setup was still running, nobody would ever finalise the batch — kick
+      // one worker so run-stress-job's (now unblocked) finalise path runs.
+      if (totalJobs > 0) {
+        invokeFn("run-stress-job", { batch_id: batchId, job_id: null }, 30_000).catch((e) =>
+          console.warn("[start-stress-batch] post-setup finalise nudge failed:", e)
+        );
+      }
       return;
+
     }
 
     const c = companies[companyIndex];
@@ -195,6 +217,9 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
         })
         .eq("id", batchId);
 
+      // Hand off to the next company NOW — before any slow best-effort work.
+      chainNext();
+
       // After the first company's jobs are inserted, launch parallel workers.
       // They continuously claim and process jobs as more companies are added by
       // the ongoing setup chain. Workers self-sustain via run-stress-job's own
@@ -209,13 +234,16 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
 
         const WORKER_COUNT = 20;
         for (let w = 0; w < WORKER_COUNT; w++) {
-          // Stagger launches to avoid a thundering-herd claim collision.
-          await new Promise((r) => setTimeout(r, w * 500));
-          invokeFn("run-stress-job", { batch_id: batchId, job_id: null }).catch((e) =>
-            console.warn(`[start-stress-batch] worker ${w} early-start launch failed:`, e)
-          );
+          // Stagger launches without blocking this invocation: an awaited
+          // cumulative sleep (~95s) used to burn the wall clock here.
+          setTimeout(() => {
+            invokeFn("run-stress-job", { batch_id: batchId, job_id: null }).catch((e) =>
+              console.warn(`[start-stress-batch] worker ${w} early-start launch failed:`, e)
+            );
+          }, w * 500);
         }
       }
+
 
     } catch (err) {
       const errMsg = (err as Error).message?.slice(0, 480) ?? "unknown";
@@ -257,9 +285,11 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
     } catch { /* best-effort */ }
   } finally {
     if (!reachedEnd) {
-      selfInvokeNext(batchId, companyIndex + 1);
+      chainNext();
     }
+    console.log(`[start-stress-batch] company ${companyIndex} done for ${batchId} — chained=${chained} reachedEnd=${reachedEnd}`);
   }
+
 }
 
 async function repairFixtureFailures(batchId: string): Promise<{ repaired: number; failed: number }> {
