@@ -79,9 +79,15 @@ Deno.test("L1-B — both perfect fixtures are deterministic: two builds byte-ide
   }
 });
 
-Deno.test("L1-B — necessity degrades to uncertain (never fails) when alternatives are absent", () => {
+Deno.test("L1-B — necessity degrades to uncertain (never fails) when the comparison is absent", () => {
   const clean = structuredClone(LIA_PERFECT_PINNED[0].intake) as Bag;
+  // DOC 142 — the verdict now reads the typed per-alternative comparison
+  // (buildAlternativesConsidered), which also parses alternatives_rationale
+  // and why_consent_not_used; for the comparison to be absent, every field
+  // that feeds it must be blank, not just the two alternatives lists.
   (clean.necessity_details as Bag).alternatives = "";
+  (clean.necessity_details as Bag).alternatives_rationale = "";
+  (clean.necessity_details as Bag).why_consent_not_used = "";
   clean.alternatives_considered = "";
   const v = verdicts(typedReportFor(clean));
   assertEquals(v.necessity, "uncertain");

@@ -946,7 +946,7 @@ function buildHtml(d: AssembledData): string {
   <h2>2. Processing activities</h2>
   ${activitySections || "<p><em>No activities recorded.</em></p>"}
 
-  ${allAnswerSections ? `<h2>3. Intake answer register (verbatim responses, normalised labels)</h2>${allAnswerSections}` : ""}
+  ${allAnswerSections ? `<h2>3. Company-Provided Processing Record</h2>${allAnswerSections}` : ""}
 
   <h2>${allAnswerSections ? "4" : "3"}. Cross-border transfer register</h2>
   ${transferTable}

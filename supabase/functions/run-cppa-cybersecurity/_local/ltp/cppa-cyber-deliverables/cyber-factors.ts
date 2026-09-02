@@ -847,7 +847,16 @@ export function buildExecutiveSnapshotRows(inputs: FactorInputs): readonly (read
   if (industry) rows.push(["Operating context", industry]);
   rows.push([
     "Evidence posture",
-    `Testable evidence identified for ${evOk} of 18 components`,
+    // DOC 142 (2026-09-02, external reviewer P2) — "Testable evidence
+    // identified for 0 of 18 components" sat alongside Section 1's
+    // "Components lacking identified evidence: 0" and read as a
+    // contradiction. The two measure different things: this row counts
+    // components whose identified evidence an auditor could actually test
+    // (operating artifacts, the "sufficient" bucket), while the Section 1
+    // count asks only whether any evidence category is identified at all.
+    // Both labels now name their own concept; see the paired relabel in
+    // cyber-skeleton-assemble-v4.ts (purpose_scope_record:10).
+    `Testable operating evidence identified for ${evOk} of 18 components`,
   ]);
   rows.push([
     "Material program gaps identified",

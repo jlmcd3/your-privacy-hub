@@ -168,6 +168,13 @@ export const RISK52_FIXED = {
   // to a determination whose balance omitted an unassessed named risk.
   band4_provisional:
     "This conclusion is provisional: it weighs only the risks that could be assessed on the information provided. At least one identified risk lacks the recorded likelihood or severity the balance requires, so the executive result is stated as “Additional Information Required” until the record is completed.",
+  // DOC 142 (2026-09-02, CEO-ruled) — the wholly-absent-a5 incomplete-state
+  // sentence: no risk row is recorded at all (distinct from doc 127's
+  // named-but-unassessed case above), so no balance conclusion exists to
+  // qualify; this standalone sentence composes IN PLACE OF a cell
+  // conclusion, never appended to one.
+  band4_provisional_no_risks:
+    "No risk to consumers’ privacy is identified in the intake, so the substantive balance of benefits against risks is not determined. The executive result is stated as “Additional Information Required” until the identified information is completed.",
   follow_ups_lead: "Follow-Ups.",
   recommendations_lead: "Recommendations.",
   none_attach:

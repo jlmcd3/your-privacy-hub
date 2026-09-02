@@ -2812,7 +2812,12 @@ function article20PortabilityRow(legalBasis: string, regime: DpiaRegime): DpiaCo
       `The legal basis recorded for this processing (${legalBasis}) satisfies one of Article 20's three conditions. Article 20 additionally requires ${PORTABILITY_CONDITIONS_UNRESOLVED}.`,
     citation,
     authority_verbatim: "",
-    status: "analysed",
+    // DOC 142 (2026-09-02) — the prose says the assessment "reaches no
+    // conclusion on whether Article 20 applies" (DPIA-1 ratified: the intake
+    // deliberately has no field for the two remaining conditions), so the
+    // status cell must not read "Assessed". A dedicated closed status — no
+    // ask, no ledger entry — renders "Not independently assessed" instead.
+    status: "not_independently_assessed",
     source_field: "legal_basis_proposed",
   };
 }

@@ -129,9 +129,13 @@ Deno.test("SO-6: the spine is byte-pinned to the CEO-corrected v3 docx", async (
   // RE-PIN BATCH 21b (doc 113 S8.1, RULING 3.6): section titles' Roman
   // numerals (I-IV) went arabic (1-4). Prior pin:
   // 8d688a3bc21deb7066d725856f543a9ac1decef7e2e6dc5eb396ea235e160206.
+  // RE-PIN DOC 142 (2026-09-02): "The states whose laws" -> "The
+  // jurisdictions whose laws" — the scope list carries EU/EEA, UK and
+  // US-federal entries, none of which is a state. Prior pin:
+  // 4ad3d8c5bf26ddfe84dc636d32114f065599d921b6b8a60a87982f81b5807d23.
   assertEquals(
     BIOMETRIC_SKELETON_CONTENT_HASH,
-    "4ad3d8c5bf26ddfe84dc636d32114f065599d921b6b8a60a87982f81b5807d23",
+    "0dc2383f95f1d45fb96be2f7dd7af1e6dc94fbf4dc61e7d03233a0944462a67b",
   );
   // Every encoded block is a verbatim span of one of the paragraphs.
   for (const section of BIOMETRIC_SKELETON_SECTIONS) {
@@ -300,9 +304,16 @@ Deno.test("SO-6: a degraded record degrades honestly — no padding, no inventio
   // The honest negatives are stated.
   assert(t.includes("No statutory duty has been analysed"));
   assert(t.includes("No approver, title or approval date has been recorded"));
-  assert(t.includes("The company has not recorded a written retention schedule"));
-  // The states sentence survives on its own.
-  assert(t.includes("The states whose laws the company has placed in scope are EU / EEA (GDPR)."));
+  // DOC 142 (2026-09-02) — with ZERO security/retention/destruction duty
+  // rows analysed, the retention-schedule sentence must not assert live
+  // "destruction duties in scope" (it contradicted this section's own
+  // "No storage, retention or destruction duty has been analysed" lead).
+  assert(t.includes("The company has not recorded a written retention schedule; a written schedule would be required by any destruction duty brought into scope."));
+  assert(!t.includes("and the destruction duties in scope require one"), t);
+  // The jurisdictions sentence survives on its own. (DOC 142: "The states
+  // whose laws" -> "The jurisdictions whose laws" — the list carries
+  // EU/EEA, UK and US-federal entries.)
+  assert(t.includes("The jurisdictions whose laws the company has placed in scope are EU / EEA (GDPR)."));
 });
 
 Deno.test("SO-3 defect class 1: proper nouns are never case-folded", () => {

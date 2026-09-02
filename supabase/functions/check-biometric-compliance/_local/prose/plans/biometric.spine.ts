@@ -62,8 +62,15 @@ export const BIOMETRIC_SKELETON_PROVENANCE =
  */
 // RE-PIN A-TEAM S4 (doc 119 S3.1, 2026-08-31): fleet ToA rename — the "Table of Authorities" section title became "Authorities Cited" (CEO-ratified, panel A1); ids and assembly rules unchanged. Old-hash reproduction verified before re-pin. Prior pin:
 // 28b62bd3385cee5feee8e8c4e6a2e4e9224895827090f857cfbcf3c26c6a0d5f.
+// RE-PIN DOC 142 (2026-09-02, A-Team batch item): "The states whose laws the
+// company has placed in scope" became "The jurisdictions whose laws the
+// company has placed in scope" — the {states} list carries EU/EEA, UK and
+// US-federal entries, none of which is a state. One-word terminology fix;
+// slots, ids and assembly rules unchanged. Old-hash reproduction verified
+// before re-pin. Prior pin:
+// 4ad3d8c5bf26ddfe84dc636d32114f065599d921b6b8a60a87982f81b5807d23.
 export const BIOMETRIC_SKELETON_CONTENT_HASH =
-  "4ad3d8c5bf26ddfe84dc636d32114f065599d921b6b8a60a87982f81b5807d23";
+  "0dc2383f95f1d45fb96be2f7dd7af1e6dc94fbf4dc61e7d03233a0944462a67b";
 
 /**
  * RESTORED 2026-08-26 (Biometric Conversion groundwork audit). The 2026-08-19
@@ -115,7 +122,7 @@ export const BIOMETRIC_SKELETON_SECTIONS: readonly BiometricSkeletonSection[] = 
     title: "Executive Summary",
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating whether the programme as the company describes it meets each statute in scope, or naming plainly where it falls short." },
-      { kind: "skeleton", text: "{organizationName}, operating in {sector - reader label}, has indicated that it collects {biometricTypes - reader labels} for {collectionPurpose}, by means of {collectionMethod - own clause}. The states whose laws the company has placed in scope are {states - as prose}. Each statute below is applied in its own words: the duty appears as the verified statutory passage states it, the company's answers are set beside it, and the conclusion follows from the two." },
+      { kind: "skeleton", text: "{organizationName}, operating in {sector - reader label}, has indicated that it collects {biometricTypes - reader labels} for {collectionPurpose}, by means of {collectionMethod - own clause}. The jurisdictions whose laws the company has placed in scope are {states - as prose}. Each statute below is applied in its own words: the duty appears as the verified statutory passage states it, the company's answers are set beside it, and the conclusion follows from the two." },
       { kind: "generated", text: "[GENERATED] The outcome per statute in scope, one measured clause each; where the company's answers leave a duty unresolved, the assessment says so and names what would settle it." },
       // BATCH 18 (Wave C1, doc 109 §2.9 item 3): the duty scorecard —
       // Duty | Pinpoint | Status | Where addressed — built from the typed
@@ -192,7 +199,7 @@ export const BIOMETRIC_SKELETON_PARAGRAPHS: readonly string[] = [
   BIOMETRIC_REGISTER_GUIDE,
   "Executive Summary",
   "[DETERMINATION LEAD] One sentence stating whether the programme as the company describes it meets each statute in scope, or naming plainly where it falls short.",
-  "{organizationName}, operating in {sector - reader label}, has indicated that it collects {biometricTypes - reader labels} for {collectionPurpose}, by means of {collectionMethod - own clause}. The states whose laws the company has placed in scope are {states - as prose}. Each statute below is applied in its own words: the duty appears as the verified statutory passage states it, the company's answers are set beside it, and the conclusion follows from the two.",
+  "{organizationName}, operating in {sector - reader label}, has indicated that it collects {biometricTypes - reader labels} for {collectionPurpose}, by means of {collectionMethod - own clause}. The jurisdictions whose laws the company has placed in scope are {states - as prose}. Each statute below is applied in its own words: the duty appears as the verified statutory passage states it, the company's answers are set beside it, and the conclusion follows from the two.",
   "[GENERATED] The outcome per statute in scope, one measured clause each; where the company's answers leave a duty unresolved, the assessment says so and names what would settle it.",
   "1. Notice, Consent and the Written Policy",
   "[DETERMINATION LEAD] One sentence stating the notice-and-consent posture across the statutes in scope.",

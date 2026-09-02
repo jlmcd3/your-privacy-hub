@@ -236,7 +236,28 @@ const OPTOUT_PATH_LABEL: Record<string, string> = {
  */
 function optOutPathwayPhrase(o: OptOutResult): string {
   const label = OPTOUT_PATH_LABEL[o.path] ?? "selected pathway";
-  return postureEffectPhrase(o.posture, `the ${label}`);
+  return optOutAreaPhrase(o, `the ${label}`);
+}
+/**
+ * DOC 142 (2026-09-02, external reviewer) — normalized action-type
+ * consistency. §8 (buildActionParagraphs) classifies every priority-1
+ * finding as a Condition to Proceed, but the Executive Summary and
+ * Appendix B used to re-derive their severity word from `posture` alone.
+ * For the unresolved opt-out pathway (OTHER_UNRESOLVED), computeOptOut
+ * records posture INSUFFICIENT_RECORD together with a priority-1 finding,
+ * so those surfaces printed "Recommendation — follow up on the selected
+ * opt-out pathway." while §8.1 listed the very same item as a Condition to
+ * Proceed. A normalized action must carry one type on every surface: any
+ * priority-1 opt-out finding now renders as a Condition here too, wording
+ * matched to the finding's own action_text ("Confirm which opt-out pathway
+ * or § 7221(b) exception the Company relies on."). GAP postures are
+ * unchanged — postureEffectPhrase already renders those as Conditions.
+ */
+function optOutAreaPhrase(o: OptOutResult, context: string): string {
+  if (o.posture !== "GAP" && o.posture !== "NOT_APPLICABLE" && o.findings.some((f) => f.priority === 1)) {
+    return `Condition — confirm ${context}.`;
+  }
+  return postureEffectPhrase(o.posture, context);
 }
 function accessProcessPhrase(timelineStatus: SubstantiveState): string {
   if (timelineStatus === "GAP") return "Condition — the Company has not defined a response timeline.";
@@ -568,7 +589,9 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
         // are not reached, so the table always accounts for every question.
         ...(scope.scopeState !== "OUT_OF_SCOPE" ? [
           ["Pre-use Notice", stateCell(notice.posture), gradeCell(notice.recordGrade), postureEffectPhrase(notice.posture, "the Pre-use Notice requirements", true)],
-          ["Opt-out / exception", stateCell(optOut.posture), gradeCell(optOut.recordGrade), postureEffectPhrase(optOut.posture, "the selected opt-out pathway")],
+          // DOC 142 (2026-09-02) — condition-aware (see optOutAreaPhrase):
+          // the §8.1 Condition item must not print as a Recommendation here.
+          ["Opt-out / exception", stateCell(optOut.posture), gradeCell(optOut.recordGrade), optOutAreaPhrase(optOut, "the selected opt-out pathway")],
           ["Access and explanation", stateCell(access.posture), gradeCell(access.recordGrade), postureEffectPhrase(access.posture, "the access and explanation requirements", true)],
         ] : [
           // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31,

@@ -9,15 +9,42 @@
 //
 // Detection reads the per-activity `special_category_basis` answer — the
 // register's own Art. 9 signal — never free-text category parsing.
+//
+// DOC 142 (2026-09-02) — ONE STATE, MANY SURFACES. The old exact-match
+// negation test (`^(—|-|none|not applicable|n\/a)$`) counted an activity
+// whose recorded answer LEADS with a disclaimer but carries an explanatory
+// clause — "Not applicable — ICO Children's Code (DPA 2018 s.123) …" — as
+// having a special-category basis, so the 30(5) note contradicted that same
+// activity's own rendered "Special category basis: Not applicable — …" row.
+// `specialCategoryBasisRecorded` below is now the single negation-aware
+// normalizer of the per-activity special-category state; any surface that
+// needs the boolean must consume it rather than re-deriving its own.
 
 type Bag = Record<string, unknown>;
 
-function answered(v: unknown): string {
-  if (v == null) return "";
-  const s = Array.isArray(v) ? v.map(String).join(", ") : String(v);
-  const t = s.trim();
-  if (/^(—|-|none|not applicable|n\/a)$/i.test(t)) return "";
-  return t;
+/**
+ * THE per-activity normalized special-category state: true only when the
+ * recorded `special_category_basis` answer affirms a basis. Negation-aware
+ * (doc 138 lesson): an answer whose LEADING clause disclaims a basis is a
+ * negative answer even when an explanatory clause follows it.
+ */
+export function specialCategoryBasisRecorded(v: unknown): boolean {
+  if (v == null) return false;
+  const s = (Array.isArray(v) ? v.map(String).join(", ") : String(v)).trim();
+  if (s === "" || /^(?:—|–|-+)$/.test(s)) return false;
+  const lead = s.toLowerCase();
+  if (
+    /^n\/a\b/.test(lead) ||
+    /^none\b/.test(lead) ||
+    /^not applicable\b/.test(lead) ||
+    /^not required\b/.test(lead) ||
+    /^not recorded\b/.test(lead) ||
+    /^no special\b/.test(lead) ||
+    /^no[.,;:\s]*$/.test(lead)
+  ) {
+    return false;
+  }
+  return true;
 }
 
 /** Names of activities whose record carries a special-category basis. */
@@ -26,7 +53,7 @@ export function specialCategoryActivities(
   answersByActivity: Record<string, Bag>,
 ): string[] {
   return activities
-    .filter((a) => answered((answersByActivity[a.id] ?? {})["special_category_basis"]) !== "")
+    .filter((a) => specialCategoryBasisRecorded((answersByActivity[a.id] ?? {})["special_category_basis"]))
     .map((a) => a.display_name);
 }
 

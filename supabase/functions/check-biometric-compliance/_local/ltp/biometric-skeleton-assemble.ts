@@ -641,7 +641,16 @@ function composeSecurityBody(report: Bag, values: SlotValues): string {
   // clock is this section's subject.
   if (rows.length > 0) parts.push(destructionClockSentence());
   if (!values.securityMeasures) parts.push("The company has not recorded the controls applied to storage and transmission, so no protection-parity conclusion is drawn.");
-  if (!values.retentionSchedule) parts.push("The company has not recorded a written retention schedule, and the destruction duties in scope require one.");
+  // DOC 142 (2026-09-02) — the "duties in scope require one" clause asserted
+  // live destruction duties in the EMPTY-scope state, directly contradicting
+  // this section's own lead ("No storage, retention or destruction duty has
+  // been analysed"). The clause is now gated on a non-empty duty scope; with
+  // no duty analysed, the sentence states the absence and the conditional.
+  if (!values.retentionSchedule) {
+    parts.push(rows.length > 0
+      ? "The company has not recorded a written retention schedule, and the destruction duties in scope require one."
+      : "The company has not recorded a written retention schedule; a written schedule would be required by any destruction duty brought into scope.");
+  }
   if (parts.length === 0) return "";
   // repairRegister collapses \s{2,}, which would weld the parts into one
   // paragraph; repair each part, then rejoin so the renderer's \n{2,} split

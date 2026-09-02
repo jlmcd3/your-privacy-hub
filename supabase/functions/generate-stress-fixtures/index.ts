@@ -315,6 +315,7 @@ Return a JSON object with EXACTLY these top-level fields:
   }` : ""}
 }
 
+The companyName's legal-form suffix must match the incorporation country given by countryCode (e.g. GmbH only with DE, B.V. only with NL, Ltd only with GB or IE, SE for any EU member state, Inc./Corp./LLC only with US) — never pair a legal form with a country where that form does not exist.
 Always emit a biometric object for every company (tool selection is handled at the job level by selected_tools). For sectors that do not routinely use biometric identification, still emit the object using realistic minimal values, choosing verbatim options from the allowed lists below (e.g. biometricTypes may be ["Other biometric identifier"]). Never emit null. For United States companies, the duty-registered jurisdictions "Illinois, USA (BIPA)", "Texas, USA (CUBI)", and "Washington state, USA" are valid high-coverage choices — include one of them alongside California whenever the scenario plausibly reaches that state, so the statutory-duty analysis path is exercised.${isEU ? "" : " Governance and Registration are GDPR-only products — do NOT emit \"governance\" or \"registration\" fields for this United States company."}${enumAppendix(isEU ? ["governance", "dpa", "irPlaybook", "biometric", "registration"] : ["dpa", "irPlaybook", "biometric"])}${contractChecklist(isEU ? ["governance", "dpa", "irPlaybook", "biometric", "registration"] : ["dpa", "irPlaybook", "biometric"])}`, isEU ? ["governance", "dpa", "irPlaybook", "biometric", "registration"] : ["dpa", "irPlaybook", "biometric"]);
 }
 
@@ -666,16 +667,29 @@ function fixtureSeed(companyId: string): number {
   return Array.from(companyId).reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
 }
 
+// DOC 142 (2026-09-02) — the legal-form suffix must be coherent with the
+// incorporation country: the old `seed % 4` suffix was chosen independently
+// of the `seed % 6` countryCode, producing companies like a "B.V." (a Dutch
+// legal form) paired with countryCode GB. One map, keyed by countryCode, now
+// drives the suffix; the ropa `legal_entity_type` derivation in
+// buildDeterministicGeo consumes the same value (legalSuffix below).
+const EU_COUNTRY_LEGAL_SUFFIX: Record<string, string> = {
+  GB: "Ltd", IE: "Ltd", DE: "GmbH", NL: "B.V.", FR: "SE", ES: "SE",
+};
+
 function buildCompany(industry: string, geo: string, slot: number, companyId: string) {
   const seed = fixtureSeed(companyId);
   const roots = ["Aster", "Nexa", "Velor", "Syntara", "Vortex", "Luma", "Civix", "Helio", "Orion", "Maris"];
-  const suffix = geo === "eu" ? ["SE", "GmbH", "B.V.", "Ltd"][seed % 4] : ["Inc.", "Corp.", "LLC", "Technologies"][seed % 4];
+  const countryCode = geo === "eu" ? ["GB", "DE", "FR", "IE", "NL", "ES"][seed % 6] : "US";
+  const suffix = geo === "eu"
+    ? (EU_COUNTRY_LEGAL_SUFFIX[countryCode] ?? "SE")
+    : ["Inc.", "Corp.", "LLC", "Technologies"][seed % 4];
   const sectorWord = industry.split(/\s|&/).find((w) => w.length > 3)?.replace(/[^a-z]/gi, "") || "Privacy";
   const companyName = `${roots[seed % roots.length]} ${sectorWord} ${suffix}`;
   const domain = `${companyName.toLowerCase().replace(/[^a-z0-9]+/g, "")}.${geo === "eu" ? "eu" : "com"}`;
-  const countryCode = geo === "eu" ? ["GB", "DE", "FR", "IE", "NL", "ES"][seed % 6] : "US";
   return {
     companyName,
+    legalSuffix: suffix,
     domain,
     privacyEmail: `privacy@${domain}`,
     dpoEmail: geo === "eu" ? `dpo@${domain}` : null,
@@ -1257,7 +1271,13 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
           // PANEL FIX 11 follow-on — the contract key is retention_period
           // (`retention` was an unknown-key advisory AND left the required
           // field honestly absent; now it is honestly present).
-          retention_period: "To be confirmed per data category",
+          // DOC 142 (2026-09-02) — "To be confirmed per data category" was a
+          // recorded free-text TBD: the product (correctly) takes a supplied
+          // answer at face value, so the retention table printed a
+          // to-be-confirmed value beside an "Assessed" status. The fixture now
+          // records a real per-category retention statement; no product-side
+          // change (the contradiction resolves with clean fixture data).
+          retention_period: "Customer and account records: 6 years after the end of the relationship; contact details: 3 years after the last interaction; all other recorded categories: 24 months from collection, after which the data is deleted or anonymised",
           third_party_processors: ["AWS", "Snowflake", "Zendesk"],
           existing_safeguards: ["Encryption at rest", "Encryption in transit", "Access controls", "DPA signed with processor"] as (typeof DPIA_SAFEGUARDS[number])[],
           jurisdictions: ["EU (GDPR)"] as (typeof DPIA_JURISDICTIONS[number])[],
@@ -1275,11 +1295,18 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
           if (/gov|public sector|public authority/i.test(s)) return "Public sector body";
           if (/non.?profit|ngo|charity|foundation/i.test(s)) return "Registered charity";
           if (/university|college|higher ed/i.test(s)) return "Higher education institution";
-          const sfx = geo === "eu" ? ["SE", "GmbH", "B.V.", "Ltd"][fixtureSeed(companyId) % 4] : "Inc.";
+          // DOC 142 (2026-09-02) — consume the SAME country-coherent suffix
+          // buildCompany chose (it used to re-derive `seed % 4` here, which
+          // could disagree with both the name and the country).
+          const sfx = geo === "eu" ? c.legalSuffix : "Inc.";
           if (sfx === "SE") return "Societas Europaea (SE)";
           if (sfx === "GmbH") return "Gesellschaft mit beschränkter Haftung (GmbH)";
           if (sfx === "B.V.") return "Besloten Vennootschap (B.V.)";
-          if (sfx === "Ltd") return "Private limited company (UK)";
+          if (sfx === "Ltd") {
+            return c.countryCode === "IE"
+              ? "Private company limited by shares (LTD, Ireland)"
+              : "Private limited company (UK)";
+          }
           return "Private limited company";
         })(),
         employee_band: (() => {

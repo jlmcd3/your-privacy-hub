@@ -140,9 +140,13 @@ export interface DpoDetermination {
   engaged_branches: string[];
   citations: string[];
   status: FindingStatus;
-  /** PANEL-BLOCKER REG-1 (2026-08-30) — set only where the GDPR-wing
+  /** PANEL-BLOCKER REG-1 (2026-08-30) — set where the GDPR-wing
    *  applicability gate itself cannot be resolved (establishment unrecorded,
-   *  no market signal); names the missing fact. */
+   *  no market signal); names the missing fact. DOC 142 (2026-09-02) — also
+   *  set where the branch walk leaves the determination open (a branch
+   *  cannot be evaluated), naming the concrete fact each open branch turns
+   *  on, so the Duty-status table's Information-required cell never renders
+   *  a dash for a pending DPO row. */
   information_needed?: string;
 }
 

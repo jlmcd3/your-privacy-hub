@@ -134,6 +134,10 @@ Deno.test("PANEL-11b: dpia's legal_basis_proposed is a closed radio option in ev
   assertStringIncludes(src, "legal_basis_proposed: typeof DPIA_LEGAL_BASES[number];");
   assertStringIncludes(src, "article_9_condition?: typeof DPIA_ART9[number];");
   // And the assembled dpia block uses the contract's real key names.
-  assertStringIncludes(src, 'retention_period: "To be confirmed per data category"');
+  // DOC 142 (2026-09-02): the value must be a REAL retention statement, never
+  // a recorded free-text TBD (which rendered as a to-be-confirmed retention
+  // beside an "Assessed" status in the DPIA table).
+  assertStringIncludes(src, 'retention_period: "Customer and account records: 6 years after the end of the relationship');
+  assert(!src.includes('retention_period: "To be confirmed'), "dpia retention TBD placeholder resurfaced");
   assertStringIncludes(src, "controller_sector: industry,");
 });

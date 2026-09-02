@@ -807,7 +807,15 @@ export function deriveRemediationRegisterTable(report: Bag): RenderedTable | nul
     // priority so "preventive maintenance" and "High — remediate this
     // quarter" can no longer collide on the same row.
     { label: "Type", value: (p) => s(p.action_type) },
-    { label: "Priority", value: (p) => s(p.priority) },
+    // DOC 142 (2026-09-02) — external review: the internal normalisePriority
+    // state token "unspecified" leaked verbatim into the rendered Priority
+    // cell. Doc-119 S2.7 ratified the ABSENCE of a fabricated priority, not
+    // the token's spelling, and the tracker UI already maps the same token
+    // to a reader-facing label (GovernanceTrackerFindings.tsx renders "Not
+    // recorded"). Presentation-only: the record still carries "unspecified"
+    // and no priority is invented — the label states that assignment is the
+    // Company's own open act.
+    { label: "Priority", value: (p) => s(p.priority) === "unspecified" ? "Priority to be assigned" : s(p.priority) },
     { label: "Accountable owner", value: (p) => s(p.accountable_owner) },
     { label: "Target date", value: (p) => s(p.target_date) },
     { label: "Validation", value: (p) => s(p.validation_method) },
@@ -841,20 +849,35 @@ export function deriveRemediationRegisterTable(report: Bag): RenderedTable | nul
     columns: ["#", "Duty and gap", "Action", ...kept.map((c) => c.label)],
     rows,
     ...(dropped.length
-      ? {
+      ? (() => {
         // DOC 129 GOV (Batch 3 A-Team ruling, 2026-09-01) — the collapsed
         // constants are the Company's own recorded portfolio defaults, and
         // where a priority reads "this quarter" beside a portfolio target
         // date, the note separates the two dimensions instead of letting
         // them contradict: priority states urgency; the date is the
         // recorded outer deadline.
-        note: `${dropped.map((c) => `${c.label}: ${c.value(plan[0])}`).join("; ")} — the Company's recorded portfolio defaults, applying to every item in this register.${
-          dropped.some((c) => c.label === "Target date") &&
-            plan.some((p) => /this quarter/i.test(s(p.priority)))
-            ? " Priority states the recommended urgency; the target date is the recorded outer deadline for the portfolio, and higher-priority items should complete ahead of it."
-            : ""
-        }`,
-      }
+        //
+        // DOC 142 (2026-09-02) — a Priority column that collapses because
+        // NO priority was recorded anywhere is not a "recorded portfolio
+        // default"; that constant gets its own sentence instead of being
+        // folded into the recorded-defaults clause.
+        const recorded = dropped.filter((c) => !(c.label === "Priority" && s(plan[0].priority) === "unspecified"));
+        const unassignedPriority = dropped.length !== recorded.length;
+        const recordedClause = recorded.length
+          ? `${recorded.map((c) => `${c.label}: ${c.value(plan[0])}`).join("; ")} — the Company's recorded portfolio defaults, applying to every item in this register.`
+          : "";
+        const unassignedClause = unassignedPriority
+          ? `${recordedClause ? " " : ""}Priority is yet to be assigned for every item in this register; no priority was recorded.`
+          : "";
+        return {
+          note: `${recordedClause}${unassignedClause}${
+            recorded.some((c) => c.label === "Target date") &&
+              plan.some((p) => /this quarter/i.test(s(p.priority)))
+              ? " Priority states the recommended urgency; the target date is the recorded outer deadline for the portfolio, and higher-priority items should complete ahead of it."
+              : ""
+          }`,
+        };
+      })()
       : {}),
   };
 }

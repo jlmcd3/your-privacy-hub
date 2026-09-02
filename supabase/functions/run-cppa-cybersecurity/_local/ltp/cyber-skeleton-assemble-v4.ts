@@ -491,7 +491,15 @@ export function assembleCyberSkeletonDocumentV4(
     "purpose_scope_record:6": buildPhaseInBlock(phaseInCorpusExcerpt),
     "purpose_scope_record:8": repairPreserving(factors.prior_audit_reliance_analysis),
     "purpose_scope_record:10": repairPreserving(joinLines(
-      `Unassessed or incomplete components: ${factors.record_sufficiency.unassessed_count}. Components lacking narrative support: ${factors.record_sufficiency.without_notes}. Components lacking identified evidence: ${factors.record_sufficiency.without_evidence}.`,
+      // DOC 142 (2026-09-02, external reviewer P2) — was "Components
+      // lacking identified evidence: 0", which read as contradicting the
+      // Readiness snapshot's "Testable [operating] evidence identified for
+      // 0 of 18 components". This count asks only whether ANY evidence
+      // category is identified; auditor-testability is the separate measure
+      // Section 2 assesses. The label now names its own concept and points
+      // at the distinction (paired relabel in cyber-factors.ts,
+      // buildExecutiveSnapshotRows).
+      `Unassessed or incomplete components: ${factors.record_sufficiency.unassessed_count}. Components lacking narrative support: ${factors.record_sufficiency.without_notes}. Components with no evidence category identified at all: ${factors.record_sufficiency.without_evidence}. Whether identified evidence is testable is assessed separately in Section 2.`,
       factors.record_sufficiency.conclusion,
       factors.record_sufficiency.follow_up,
     )),

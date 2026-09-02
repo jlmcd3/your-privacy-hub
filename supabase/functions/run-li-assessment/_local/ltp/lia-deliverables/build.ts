@@ -49,6 +49,12 @@ import type {
   ReasonableExpectationsFinding,
 } from "./types.ts";
 import { buildEprivacyShortCircuit } from "./eprivacy-gate.ts";
+// DOC 142 (2026-09-02) — the determination's necessity element reads the SAME
+// typed per-alternative comparison the necessity analysis and the necessity
+// verdict read (state-normalization; see three-part-test-typed.ts
+// necessityVerdict). buildAlternativesConsidered is pure over the intake, so
+// calling it here creates no ordering dependency on attachLiaUpgrade4.
+import { buildAlternativesConsidered } from "./build-upgrade4.ts";
 
 export const LIA_DELIVERABLES_VERSION =
   "lia-analytic-deliverables-2026-08-01-item326";
@@ -490,8 +496,17 @@ export function buildDetermination(
 
   const interest = str(get(intake, "purpose_details.interest_statement")) ||
     str(get(intake, "stated_purpose"));
-  const alternatives = str(get(intake, "necessity_details.alternatives")) ||
-    str(get(intake, "alternatives_considered"));
+  // DOC 142 (2026-09-02) — completeness, not presence: the old read treated
+  // ANY alternatives text as a documented comparison, so a record listing an
+  // alternative with no recorded reason for inadequacy could still land in
+  // "the comparison against less intrusive means is documented" while the
+  // necessity analysis on the same document reported that alternative open.
+  const altsFinding = buildAlternativesConsidered(intake);
+  const altsUnexplained = altsFinding.alternatives
+    .filter((a) => !a.rationale_recorded)
+    .map((a) => a.alternative);
+  const altsListed = altsFinding.alternatives.length > 0;
+  const altsComplete = altsListed && altsUnexplained.length === 0;
   const harm = str(get(intake, "balancing_details.potential_harm"));
   const safeguards = arr(get(intake, "balancing_details.safeguards"));
   const optOut = str(get(intake, "balancing_details.opt_out_mechanism"));
@@ -519,7 +534,7 @@ export function buildDetermination(
   }
 
   // ── necessity ──
-  if (!alternatives) {
+  if (!altsListed) {
     open.push("necessity");
     mitigations.push({
       factor: "necessity",
@@ -528,6 +543,23 @@ export function buildDetermination(
         "Record the less intrusive alternatives that were actually considered for this purpose, and for each one the reason it was rejected on purpose-defeat grounds rather than on cost or convenience.",
       why_it_moves_the_balance:
         `Necessity is not satisfied by asserting that the processing is useful. ${necessityAnchor.verbatim}. Without that comparison written down, the second condition stays open.`,
+      goes_beyond_gdpr_obligation: false,
+      citation: necessityAnchor.citation || "EDPB Guidelines 1/2024, Section II.B",
+      ...authorityVerbatim(necessityAnchor.verbatim),
+    });
+  } else if (!altsComplete) {
+    // DOC 142 — an alternative listed without a recorded reason for
+    // inadequacy leaves the comparison performed for part of the field
+    // only; the concrete missing fact is named (doc-138 pattern), and the
+    // element degrades to open rather than to an adverse finding.
+    open.push("necessity");
+    mitigations.push({
+      factor: "necessity",
+      anchor_keys: [],
+      measure:
+        `Record, for each alternative already listed, the reason it would not achieve the purpose — still without one: ${altsUnexplained.join("; ")}.`,
+      why_it_moves_the_balance:
+        `Necessity is not satisfied by asserting that the processing is useful. ${necessityAnchor.verbatim}. A list with unexplained entries performs that comparison for part of the field only, so the second condition stays open.`,
       goes_beyond_gdpr_obligation: false,
       citation: necessityAnchor.citation || "EDPB Guidelines 1/2024, Section II.B",
       ...authorityVerbatim(necessityAnchor.verbatim),
@@ -664,8 +696,12 @@ export function buildDetermination(
           !interest
             ? "purpose_details.interest_statement — the interest pursued, stated precisely enough to be weighed."
             : undefined,
-          !alternatives
-            ? "necessity_details.alternatives — the less intrusive alternatives considered and why each was rejected."
+          // DOC 142 — the typed comparison's own ask names the concrete gap
+          // (the unexplained alternatives when the list is partial); the
+          // literal covers the finding carrying no ask of its own.
+          !altsComplete
+            ? altsFinding.information_needed ||
+              "necessity_details.alternatives — the less intrusive alternatives considered and why each was rejected."
             : undefined,
           !harm
             ? "balancing_details.potential_harm — the worst-case impact on the data subjects if the processing miscarries."

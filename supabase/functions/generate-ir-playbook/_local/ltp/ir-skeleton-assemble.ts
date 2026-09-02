@@ -1313,6 +1313,17 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
       // fix exists to surface.
       const dsApplication = s(ds.application);
       if (dsApplication) dsBits.push(stop(noStop(firstSentences(dsApplication, 4))));
+      // DOC 142 (2026-09-02) — where the duty is required but the Art. 34(3)
+      // protection facts are unresolved, the builder now carries the missing
+      // facts in `information_needed`; they render here as the immediate
+      // follow-up so the conditional in the determination is actionable.
+      // Scoped to communication_required: the undetermined verdicts already
+      // narrate their missing facts inside `application`, and rendering
+      // their `information_needed` too would double-print them.
+      const dsNeeded = s(ds.information_needed);
+      if (dsNeeded && dsVerdict === "communication_required") {
+        dsBits.push(stop(`The immediate follow-up is to confirm ${noStop(lowerEnumLabel(dsNeeded))}`));
+      }
     }
     blocks.push(
       [bits.join(" "), settleBits.join(" "), dsBits.join(" ")]

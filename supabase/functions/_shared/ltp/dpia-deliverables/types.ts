@@ -523,7 +523,16 @@ export interface DpiaCoverageRow {
   readonly finding: string;
   readonly citation: string;
   readonly authority_verbatim: string;
-  readonly status: DeliverableStatus;
+  /**
+   * DOC 142 (2026-09-02) — "not_independently_assessed" is reserved for a
+   * matter the product DELIBERATELY does not assess (DPIA-1's Article 20
+   * qualified-basis row: the intake collects neither of the two remaining
+   * Art. 20 conditions by design). It is a closed status — no ask, no
+   * gap-ledger entry — whose reader label ("Not independently assessed") no
+   * longer claims the matter was assessed while the row's own prose says the
+   * assessment reaches no conclusion.
+   */
+  readonly status: DeliverableStatus | "not_independently_assessed";
   readonly information_needed?: string;
   /// PROMPT 9A — ask-class id from _shared/ltp/dpia-ask-labels.ts.
   readonly ask_class?: string;

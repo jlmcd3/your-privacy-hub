@@ -267,8 +267,11 @@ Deno.test("DPIA-1: consent or contract satisfies condition 1 but leaves 2 unreso
     const r = coverage({ legal_basis_proposed: basis }).measures_rights[1];
     // Credit-first (PROMPT 10B(2)): the intake has no field for the other two
     // conditions at all, so this is a completeness residual, not a
-    // customer-fixable gap — analysed, no ask, no gap-ledger entry.
-    assertEquals(r.status, "analysed", basis);
+    // customer-fixable gap — no ask, no gap-ledger entry. DOC 142
+    // (2026-09-02): the row carries the dedicated closed status whose reader
+    // label is "Not independently assessed" — "Assessed" contradicted the
+    // row's own "reaches no conclusion" finding.
+    assertEquals(r.status, "not_independently_assessed", basis);
     assertEquals(r.information_needed, undefined, basis);
     assertEquals(r.ask_class, undefined, basis);
     assertStringIncludes(r.finding, "satisfies one of Article 20's three conditions");
@@ -277,6 +280,28 @@ Deno.test("DPIA-1: consent or contract satisfies condition 1 but leaves 2 unreso
     // condition is met.
     assert(!/[Pp]ortability applies\./.test(r.finding), r.finding);
   }
+});
+
+// DOC 142 (2026-09-02) — render-level regression: the qualified-basis
+// Article 20 row's STATUS cell reads "Not independently assessed" (never
+// "Assessed" beside a "reaches no conclusion" finding), and its follow-up
+// cell stays "No follow-up required" (the status is closed by design — no
+// intake field exists that could resolve it).
+Deno.test("DOC 142: the Article 20 row renders 'Not independently assessed' with no follow-up", async () => {
+  const { buildDpiaTablesBySurface } = await import("../../_shared/ltp/dpia-skeleton-tables.ts");
+  const cov = coverage({ legal_basis_proposed: "Contract (Art. 6(1)(b))" });
+  const tables = buildDpiaTablesBySurface({ section2_coverage: cov }, intake());
+  const t = tables["section2_coverage.measures_rights"];
+  assert(t, "rights coverage table missing");
+  const row20 = t!.rows.find((r) => r[0].startsWith("Article 20"));
+  assert(row20, JSON.stringify(t!.rows.map((r) => r[0])));
+  assert(row20!.includes("Not independently assessed"), JSON.stringify(row20));
+  assert(!row20!.some((c) => c === "Assessed"), JSON.stringify(row20));
+  assert(
+    row20!.includes("No follow-up required") ||
+      (t!.note ?? "").includes("No follow-up required"),
+    JSON.stringify({ row: row20, note: t!.note }),
+  );
 });
 
 Deno.test("DPIA-1: an unrecorded legal basis asks, never assumes", () => {

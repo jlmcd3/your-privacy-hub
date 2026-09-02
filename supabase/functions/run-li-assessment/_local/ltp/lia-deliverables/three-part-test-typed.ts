@@ -17,11 +17,18 @@
 //       legitimate_interest_not_established  -> "fails"
 //       undetermined_on_the_record           -> "uncertain"
 //   necessity_test.verdict <- the recorded less-intrusive-means comparison:
-//       alternatives recorded                -> "passes"
-//       absent                               -> "uncertain"
+//       every listed alternative carries a
+//         recorded inadequacy reason         -> "passes"
+//       absent, or any alternative left
+//         without a recorded reason          -> "uncertain"
 //       (never "fails" on silence — the degradation law; no intake fact
 //       can affirmatively establish that a viable less-intrusive means
-//       was declined, so an adverse necessity verdict is never composed.)
+//       was declined, so an adverse necessity verdict is never composed.
+//       DOC 142 (2026-09-02): the verdict reads the SAME typed comparison
+//       the necessity analysis renders — buildAlternativesConsidered's
+//       per-alternative rows — not the raw intake fields, so the headline
+//       and the analysis cannot disagree about whether the comparison was
+//       performed.)
 //   balancing_test.verdict <- the typed balancing findings:
 //       expectations not_reasonably_expected            -> "likely_fails"
 //       children in scope AND material harm weight      -> "likely_fails"
@@ -125,9 +132,21 @@ export function purposeVerdict(u4: LiaUpgrade4Deliverables): TestVerdict {
   }
 }
 
-export function necessityVerdict(intake: Bag): TestVerdict {
-  const alternatives = s(bag(intake.necessity_details).alternatives) || s(intake.alternatives_considered);
-  return alternatives ? "passes" : "uncertain";
+// DOC 142 (2026-09-02) — external review, both live PDFs: the headline said
+// "Necessity test: Met" while the necessity analysis on the same page
+// reported an alternative with no recorded reason for inadequacy still open.
+// Root cause: this verdict read the raw intake fields (mere presence of any
+// alternatives text) while the analysis reads the typed per-alternative
+// comparison. State-normalization only: "passes" now requires the comparison
+// the limb asks for to be performed for the whole field — at least one
+// alternative, every one carrying a recorded inadequacy reason. Anything
+// less degrades to "uncertain", never "fails" (an unexplained alternative is
+// a gap in the record, not proof a viable less intrusive means was declined).
+export function necessityVerdict(u4: LiaUpgrade4Deliverables): TestVerdict {
+  const finding = u4.alternatives_considered as unknown as Bag;
+  const alternatives = Array.isArray(finding.alternatives) ? finding.alternatives as Bag[] : [];
+  if (!alternatives.length) return "uncertain";
+  return alternatives.every((a) => a.rationale_recorded === true) ? "passes" : "uncertain";
 }
 
 export function balancingVerdict(
@@ -454,7 +473,7 @@ export function buildThreePartTestTyped(report: Bag, intake: Bag): LiaTypedStage
   const precedent = bag(report.precedent_class_posture) as unknown as PrecedentClassFinding;
 
   const pv = purposeVerdict(u4);
-  const nv = necessityVerdict(intake);
+  const nv = necessityVerdict(u4);
   const bv = balancingVerdict(expectations, child, u4, intake);
   const weighing = composeBalancingAnalysis(bv, expectations, child, u4, intake);
 
@@ -518,8 +537,15 @@ export function buildThreePartTestTyped(report: Bag, intake: Bag): LiaTypedStage
       analysis: stop(s((u4.alternatives_considered as unknown as Bag).application)),
       risk_factors: [],
       supporting_factors: nv === "passes" ? ["less intrusive alternatives are recorded with the reasons they were not adopted"] : [],
+      // DOC 142 — the open question states the concrete fact needed: the
+      // finding's own information_needed names the specific unexplained
+      // alternatives when the comparison is partial; the generic ask covers
+      // the no-alternatives case.
       open_questions: nv === "uncertain"
-        ? ["the less intrusive alternatives considered, and why each was rejected"]
+        ? [
+          s((u4.alternatives_considered as unknown as Bag).information_needed as string) ||
+          "the less intrusive alternatives considered, and why each was rejected",
+        ]
         : [],
     },
     balancing_test: {

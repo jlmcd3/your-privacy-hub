@@ -347,18 +347,41 @@ function noneBenefitCell(tier: string): BalancingCell {
  * branch names the Conditions for Reassessment; the redesign branch states
  * the critical-risk reason and the Activity-level change a different
  * disposition would require; the information-gap branch states what is
- * missing. Precedence: discontinued > stop > information gap > conditions. */
+ * missing. Precedence: discontinued > stop > information gap > conditions.
+ *
+ * DOC 142 (2026-09-02) — CEO-ruled state change: a WHOLLY-ABSENT
+ * a5_harm_pathways (zero risk rows recorded — distinct from doc 127's
+ * named-but-unassessed case) yields "additional information required", not a
+ * balancing outcome at all. CEO ruling verbatim: "Yes, a wholly-absent
+ * a5_harm_pathways yield 'Additional Information Required' instead of 'Do
+ * Not Proceed'." With no risk identified, the substantive balance is not
+ * determined in either direction, so this branch precedes the stop branch
+ * (the ratified benefits-none stop cell continues to govern every record
+ * that DOES carry risk rows — assessed or named-but-unassessed).
+ * Precedence: discontinued > wholly-absent gap > stop > named-risk
+ * information gap > conditions. */
 export function resolveRecommendedOutcome(
   kind: "proceed" | "stop",
   hasConditions: boolean,
   processingStatus: string,
-  opts?: { readonly criticalInherent?: boolean; readonly unassessedCount?: number },
+  opts?: {
+    readonly criticalInherent?: boolean;
+    readonly unassessedCount?: number;
+    readonly whollyAbsentRisks?: boolean;
+  },
 ): { outcome: string; consequence: ProcessingConsequence } {
   if (/^discontinued/i.test(processingStatus)) {
     return {
       outcome:
         "No processing decision is required: the Company records the processing as discontinued, and this assessment documents the Activity as conducted.",
       consequence: "no processing decision required",
+    };
+  }
+  if (opts?.whollyAbsentRisks) {
+    return {
+      outcome:
+        "The information provided does not yet support a processing decision: no risk to consumers’ privacy is identified in the intake, so the substantive balance of benefits against risks is not determined. The processing should not begin or continue in reliance on this assessment until the identified information is completed. Provide the missing information identified among the Follow-Ups in § 4.D and update the assessment.",
+      consequence: "additional information required",
     };
   }
   const planned = /^planned/i.test(processingStatus);
@@ -839,6 +862,12 @@ export function runRiskFactorEngine(
   // DOC 127 PART I — named risks whose likelihood/severity cannot resolve;
   // carried honestly instead of silently dropped.
   const unassessed = extractUnassessedPathways(intake);
+  // DOC 142 (2026-09-02) — CEO ruling: a5_harm_pathways wholly absent (zero
+  // named risk rows; every named row lands in either `pathways` or
+  // `unassessed`, so this is exactly "no named row at all"). The disposition
+  // becomes "additional information required" — the assessment-incomplete
+  // state — instead of a balancing outcome; see resolveRecommendedOutcome.
+  const whollyAbsentRisks = pathways.length === 0 && unassessed.length === 0;
   // DOC 129 RISK (2026-09-01) — the Company's GENERAL safeguard description
   // (impact_intake.safeguards, free text). Never credited (crediting is the
   // ratified per-risk a6_safeguards model); read solely so the report can
@@ -979,6 +1008,13 @@ export function runRiskFactorEngine(
   for (const u of unassessed) {
     followUps.push(
       `Record the ${asProse(u.missing)} for the identified risk so it can be assessed: ${u.harm}`,
+    );
+  }
+  // DOC 142 (2026-09-02) — the wholly-absent-a5 gap generates the Follow-Up
+  // the "Additional Information Required" outcome sentence points to.
+  if (whollyAbsentRisks) {
+    followUps.push(
+      "Identify and record the risk or risks to consumers’ privacy the Activity creates, with the likelihood and severity of each, so the substantive balance can be determined; the intake identifies none",
     );
   }
 
@@ -1151,7 +1187,13 @@ export function runRiskFactorEngine(
     // DOC 127 PART I — the two derivations that split the stop band and gate
     // the information-required band (conservative-only precedence: a stop
     // stands even when a named risk is unassessed; the gap joins Follow-Ups).
-    { criticalInherent: redesignRequired, unassessedCount: unassessed.length },
+    // DOC 142 (2026-09-02) — the wholly-absent-a5 gap outranks the stop band
+    // (CEO ruling; see resolveRecommendedOutcome's header).
+    {
+      criticalInherent: redesignRequired,
+      unassessedCount: unassessed.length,
+      whollyAbsentRisks,
+    },
   );
   // DOC 127 PART I — shared derived flags for the composition sites below.
   const adverse = consequence === "do not proceed - remediable" ||
@@ -1174,6 +1216,71 @@ export function runRiskFactorEngine(
     readonly label: string;
     readonly basis: string;
   }
+  // DOC 142 (2026-09-02) — trigger traceability (external-review invariant:
+  // every trigger rendered as Engaged carries a traceable normalized fact).
+  // The upstream narrative's basis is a fixed template sentence ("the
+  // information provided supports this trigger…"), so the engine derives the
+  // qualifying intake answer per § 7150(b) prong — mirroring the affirmation
+  // predicates in run-cppa-risk-assessment/_local/openings/risk-opening.ts
+  // and _local/ltp/gate-eval.ts, the surfaces that FIRE these triggers — and
+  // substitutes it ONLY where the basis is that generic sentence (or empty).
+  // A basis already stating a fact is carried verbatim (doc 127 §10 pin);
+  // a prong the stored intake does not affirm keeps the generic sentence
+  // (never fabricate — replayed records can carry narrative lines the
+  // stored intake no longer supports).
+  const q5SellShareAffirmed = (v: string): boolean =>
+    v === "Yes — sell only" || v === "Yes — share for advertising only" || v === "Both";
+  const q5bObservationAffirmed = (v: string): boolean =>
+    /^yes$/i.test(v) ||
+    v === "Yes — systematic observation of workers/students/applicants" ||
+    /^both$/i.test(v);
+  const triggerQualifyingFact = (prong: number): string | null => {
+    switch (prong) {
+      case 1: {
+        const v = s(intake.q5_sell_share);
+        return q5SellShareAffirmed(v)
+          ? `the Company answers “${v}” on selling or sharing personal information (Q5)`
+          : null;
+      }
+      case 2:
+        return s(intake.q15_sensitive_pi) === "Yes"
+          ? "the Company answers “Yes” to processing sensitive personal information (Q15)"
+          : null;
+      case 3:
+        return s(intake.q18_admt_use) === "Yes"
+          ? "the Company answers “Yes” to using automated decisionmaking technology for a significant decision (Q18)"
+          : null;
+      case 4: {
+        const v = s(intake.q5b_profiling_observation);
+        return v && q5bObservationAffirmed(v)
+          ? `the Company answers “${v}” on inference from systematic observation of workers, students, or applicants (Q5b)`
+          : null;
+      }
+      case 5:
+        return /^yes$/i.test(s(intake.sensitive_location_basis))
+          ? "the Company answers “Yes” to inferring characteristics from a consumer’s presence at a sensitive location"
+          : null;
+      case 6: {
+        const v = s(intake.q18b_admt_training);
+        return /^Yes/.test(v)
+          ? `the Company answers “${v}” on processing personal information to train an ADMT or identification technology (Q18b)`
+          : null;
+      }
+      default:
+        return null;
+    }
+  };
+  const withQualifyingFact = (t: TriggerParsed): TriggerParsed => {
+    if (t.basis && !/^the information provided supports this trigger/.test(t.basis)) return t;
+    const prong = /§\s*7150\(b\)\((\d)\)/.exec(t.cite)?.[1];
+    if (!prong) return t;
+    const fact = triggerQualifyingFact(Number(prong));
+    if (!fact) return t;
+    return {
+      ...t,
+      basis: `${fact}, and the Activity falls within the risk-assessment obligation`,
+    };
+  };
   const parsedTriggers: TriggerParsed[] = engagedLines.map((l) => {
     const stripped = l.replace(/^Engaged — /, "");
     const m = /^(.*?§\s*7150\(b\)\(\d\))\s*\(([^)]+)\)\s*:\s*(.*)$/.exec(stripped);
@@ -1182,7 +1289,7 @@ export function runRiskFactorEngine(
     return idx >= 0
       ? { cite: stripped.slice(0, idx).trim(), label: "", basis: sweepRegister52(stripped.slice(idx + 1).trim()) }
       : { cite: stripped.trim(), label: "", basis: "" };
-  });
+  }).map(withQualifyingFact);
   const uncertainSwept = uncertainLines.map((l) => sweepRegister52(l.replace(/^Uncertain\s*—\s*/i, "")));
 
   // ══ EXECUTIVE SUMMARY ══════════════════════════════════════════════════════
@@ -1294,11 +1401,16 @@ export function runRiskFactorEngine(
   // the cover's "Additional Information Required".
   if (hasBalanceRecord || unassessed.length) {
     if (hasBalanceRecord) {
+      // DOC 142 (2026-09-02) — with a5 wholly absent, the ratified cell
+      // conclusion would assert a balance the report has no risk side for;
+      // the incomplete-state sentence composes instead.
       put(
         "executive_summary:8",
         "exec_determination",
         "B",
-        `${cell.conclusion}${band4 ? ` ${RISK52_FIXED.band4_provisional}` : ""} ${RISK52_FIXED.exec_determination_pointer}`,
+        whollyAbsentRisks
+          ? `${RISK52_FIXED.band4_provisional_no_risks} ${RISK52_FIXED.exec_determination_pointer}`
+          : `${cell.conclusion}${band4 ? ` ${RISK52_FIXED.band4_provisional}` : ""} ${RISK52_FIXED.exec_determination_pointer}`,
         ["FACTOR:balancing_table"],
         ["11 CCR § 7154"],
       );
@@ -2504,7 +2616,11 @@ export function runRiskFactorEngine(
       .filter((p) => MATERIALITY_RANK[p.residual] >= 1)
       .sort((a, b) => MATERIALITY_RANK[b.residual] - MATERIALITY_RANK[a.residual])
       .map((p) => `${p.harm} — ${p.residual}`);
-    const right = rightRisks.length ? rightRisks : ["No remaining risk above the low level"];
+    // DOC 142 (2026-09-02) — with a5 wholly absent, "No remaining risk above
+    // the low level" would imply an assessment that never happened.
+    const right = rightRisks.length
+      ? rightRisks
+      : [whollyAbsentRisks ? "No risk identified in the intake" : "No remaining risk above the low level"];
     const rowCount = Math.max(left.length, right.length);
     const summaryRows: string[][] = [];
     for (let i = 0; i < rowCount; i++) {
@@ -2537,7 +2653,12 @@ export function runRiskFactorEngine(
     // controlled executive label. The no-record fallback additionally drops
     // the retired-register phrasing doc 124's version carried ("The record
     // establishes…", "risk pathway") and states the unassessed gap honestly.
-    hasBalanceRecord
+    // DOC 142 (2026-09-02) — wholly-absent a5 with a benefit on the record:
+    // the ratified cell would assert a favorable balance the report has no
+    // risk side for, so the incomplete-state sentence composes instead.
+    whollyAbsentRisks && hasBalanceRecord
+      ? `The information provided establishes a benefit under § 3.F but identifies no risk under § 4.A, so the balance this report performs has nothing to weigh on the risk side. ${outcome} In this report's executive result, that determination is stated as "${DISPOSITION_LABEL[consequence]}."`
+      : hasBalanceRecord
       ? `${cell.conclusion} ${cell.materiality} ${cellEffect} ${cellExplanation}${band4 ? ` ${RISK52_FIXED.band4_provisional}` : ""} ${outcome} In this report's executive result, that determination is stated as "${DISPOSITION_LABEL[consequence]}."`
       : `The information provided establishes no benefit under § 3.F and ${
         unassessed.length
@@ -2724,7 +2845,12 @@ export function runRiskFactorEngine(
         : consequence === "do not proceed - redesign required"
         ? "No safeguard can reduce a critical-level risk below the high-risk level; a different disposition requires modifying the Activity itself — reducing the likelihood or severity of the critical risk at its source — and reassessing."
         : consequence === "additional information required"
-        ? "Provide the likelihood and severity for the risk or risks identified among the Follow-Ups in § 4.D, and update the assessment."
+        // DOC 142 (2026-09-02) — the wholly-absent-a5 path line names ITS
+        // gap (no risk recorded at all) and carries the reliance sentence;
+        // the doc-127 line stays for the named-but-unassessed case.
+        ? (whollyAbsentRisks
+          ? "Identify and record the risk or risks to consumers’ privacy the Activity creates, as stated among the Follow-Ups in § 4.D, and update the assessment; the processing should not begin or continue in reliance on this assessment until the identified information is completed."
+          : "Provide the likelihood and severity for the risk or risks identified among the Follow-Ups in § 4.D, and update the assessment.")
         : null,
       has_unassessed: unassessed.length > 0,
       conditions_count: conditions.length,

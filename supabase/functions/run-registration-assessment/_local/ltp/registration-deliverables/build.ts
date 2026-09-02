@@ -813,6 +813,24 @@ function regimeCite(citation: string, regime: "GDPR" | "UK GDPR"): string {
   return citation.replace(/\bUK GDPR\b/g, "GDPR").replace(/\bGDPR\b/g, "UK GDPR");
 }
 
+// DOC 142 (2026-09-02) — external review (Batch 7): where the Art. 37(1)
+// branch walk leaves the determination open, the Duty-status table's
+// Information-required cell rendered an em-dash, because the open-branch
+// return below carried no top-level `information_needed` (only the
+// per-branch findings did, and deriveDutyStatusTable reads the top level).
+// Same rule the Art. 27 rows already follow (A-TEAM S4 RULING S2.17a,
+// doc 119): an open determination names the deciding fact, never a dash.
+// The entries name the concrete missing fact WITHOUT resolving it — the
+// doc-138 discipline (state what is needed; never auto-answer it).
+const DPO_BRANCH_MISSING_FACT: Record<string, string> = {
+  dpo_trigger_public_authority:
+    "whether the organisation is a public authority or body",
+  dpo_trigger_regular_systematic_monitoring:
+    "whether the organisation's core activities involve regular and systematic monitoring of data subjects on a large scale",
+  dpo_trigger_special_categories:
+    "whether the organisation processes special categories of personal data or criminal-offence data",
+};
+
 function buildDpo(intake: I): DpoDetermination {
   const regime = dpoRegimeLabel(intake);
   const art = `${regime} Art. 37(1)`;
@@ -1000,6 +1018,16 @@ function buildDpo(intake: I): DpoDetermination {
     engaged_branches: engaged.map((f) => f.citation),
     citations: findings.map((f) => f.citation),
     status: verdict === "record_insufficient" ? "record_insufficient" : "analysed",
+    // DOC 142 — see DPO_BRANCH_MISSING_FACT above: an open determination
+    // names the deciding fact(s) at the top level so the Duty-status table
+    // never renders a dash for a pending DPO row.
+    ...(verdict === "record_insufficient" && unknown.length
+      ? {
+        information_needed: unknown
+          .map((f) => `${DPO_BRANCH_MISSING_FACT[f.key] ?? f.label} — the fact ${f.citation} turns on`)
+          .join("; "),
+      }
+      : {}),
   };
 }
 

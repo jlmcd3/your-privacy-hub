@@ -58,6 +58,11 @@ export const DPIA_TABLE_LABELS: Record<string, string> = {
   analysed: "Assessed",
   // A-TEAM S4 RULING S2.10 (doc 119) — fleet status vocabulary.
   record_insufficient: "Additional information required",
+  // DOC 142 (2026-09-02) — DPIA-1's Article 20 qualified-basis row: the
+  // matter is deliberately not assessed (no intake field exists for the two
+  // remaining Art. 20 conditions), so "Assessed" contradicted the row's own
+  // "reaches no conclusion" prose. Closed status, honest label.
+  not_independently_assessed: "Not independently assessed",
   basis_supported_on_the_record: "Basis supported based on the information the company provided",
   undetermined_on_the_record: "Undetermined based on the information the company provided",
   no_transfer_on_the_record: "No cross-border transfer is on the record",
@@ -173,6 +178,10 @@ function table(
  * rather than a false all-clear. */
 const RESOLVED_ROW_STATUSES = new Set([
   "analysed",
+  // DOC 142 — deliberately-not-assessed is CLOSED: nothing the customer can
+  // supply would resolve it (no intake field exists), so "No follow-up
+  // required" is the honest follow-up cell, not a false all-clear.
+  "not_independently_assessed",
   "approved",
   "conditionally_approved",
   "basis_supported_on_the_record",

@@ -347,7 +347,7 @@ export function verifySkeletonConformance(
         if (literal.length < 12) continue;
         const needle = literal.replace(/\s{2,}/g, " ");
         // A literal that begins mid-sentence can open with the stop of the
-        // PRECEDING sentence (". The states whose laws ..."). When that
+        // PRECEDING sentence (". The jurisdictions whose laws ..."). When that
         // preceding sentence is legitimately dropped by a null slot, its stop
         // goes with it, so the surviving span is the needle minus the stub.
         const stubless = needle.replace(/^[.!?;:,]+\s*/, "");
