@@ -107,6 +107,17 @@ async function generateFixtures(c: { industryLabel: string; geo: string; slot: n
 async function processNextCompany(batchId: string, companyIndex: number): Promise<void> {
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
   let reachedEnd = false;
+  // SETUP-CHAIN LAW (2026-09-02): the hand-off to the next company must be
+  // fired as soon as this company's jobs are inserted — never after slow
+  // best-effort work (worker launches) that can be killed by the wall-clock
+  // limit and silently drop the rest of the batch.
+  let chained = false;
+  const chainNext = () => {
+    if (chained || reachedEnd) return;
+    chained = true;
+    selfInvokeNext(batchId, companyIndex + 1);
+  };
+
 
   try {
     const { data: batch } = await admin
