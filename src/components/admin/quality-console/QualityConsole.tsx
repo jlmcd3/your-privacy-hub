@@ -1298,20 +1298,27 @@ export function QualityConsole({
       <CardContent>
         {/* Product names stay pinned on the left; batches scroll horizontally,
             opening on the most recent batches. */}
+        {hasOlderBatches && (
+          <div className="mb-2">
+            <Button size="sm" variant="outline" disabled={loadingOlder} onClick={loadOlderBatches}>
+              {loadingOlder ? "Loading…" : `‹ Load older batches (${recentBatches.length} of ${batchTotal} shown)`}
+            </Button>
+          </div>
+        )}
         <div ref={scoresScrollRef} className="overflow-x-auto">
           <table className="w-full min-w-max text-sm">
             <thead>
               <tr className="border-b text-left">
                 <th className="sticky left-0 z-20 bg-background py-2 pr-3">Tool</th>
-                <th className="py-2 pr-3">Tests (last 10)</th>
+                <th className="py-2 pr-3">Tests (window)</th>
                 <th className="py-2 pr-3 bg-muted/40">Baseline</th>
-                {matrixColumns.map((col, i) => (
+                {matrixColumns.map((col) => (
                   <th
                     key={col.id}
                     className="py-2 pr-3 whitespace-nowrap"
                     title={`${col.id} · ${new Date(col.started_at).toLocaleString()}`}
                   >
-                    Batch {i + 1}
+                    Batch {col.n}
                     <div className="text-[10px] font-normal text-muted-foreground">
                       {new Date(col.started_at).toLocaleDateString()}
                       {col.kind === "local" ? " · in-page" : ""}
