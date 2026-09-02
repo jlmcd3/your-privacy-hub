@@ -1701,35 +1701,17 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       const { buildAuthorityExhibit } = await import("../_shared/report-exhibits/authority-exhibit.ts");
       const { fetchGovernanceCorpus, governanceCorpusProvisionsForExhibit } = await import("./_local/ltp/governance-corpus.ts"
       );
-      const cited = new Set<string>();
-      // SO-FT FIX 2 (2026-08-11): a sentence that names an authority ONLY to
-      // disclaim it ("There is no UK GDPR Article 44 in force", "must not be
-      // cited to Art. 44", "does not apply") was harvested like a real
-      // citation, so the Table of Authorities contradicted the body. Skip a
-      // match whose immediate context carries negation phrasing.
-      const NEGATION =
-        /\b(there is no|there are no|is not in force|are not in force|must not be cited|may not be cited|does not apply|do not apply|is omitted|are omitted|no longer|not applicable|inapplicable)\b/i;
-      const NEG_WINDOW = 140;
-      const walkCites = (v: unknown): void => {
-        if (typeof v === "string") {
-          for (const m of v.matchAll(/(?:UK\s+)?GDPR\s+(?:Art(?:icle|\.)|Recital)[^,;.)\]]*?[\d.]+(?:\([a-z0-9]+\))*/gi)) {
-            const at = m.index ?? 0;
-            const before = v.slice(Math.max(0, at - NEG_WINDOW), at);
-            const after = v.slice(at + m[0].length, at + m[0].length + NEG_WINDOW).split(/(?<=[.!?])\s/)[0] ?? "";
-            if (NEGATION.test(before) || NEGATION.test(after)) continue;
-            cited.add(m[0].replace(/\s+/g, " ").trim());
-          }
-          return;
-        }
-        if (Array.isArray(v)) { for (const x of v) walkCites(x); return; }
-        if (v && typeof v === "object") {
-          for (const [k, x] of Object.entries(v as Record<string, unknown>)) {
-            if (k === "_meta" || k === "_staging") continue;
-            walkCites(x);
-          }
-        }
-      };
-      walkCites(reportData);
+      // DOC 141 (2026-09-02) — BUG 1(a): the citation walker moved to
+      // governance-skeleton-assemble.ts (harvestGovernanceCitations) so it is
+      // unit-testable, and its number token now carries an optional letter
+      // suffix: "UK GDPR Art. 44A(1)" previously harvested as "UK GDPR Art. 44"
+      // because `[\d.]+` could not take the "A", and that truncated key was
+      // then suppressed by the ToA as the (genuinely omitted) UK Art. 44 — so
+      // the UK Chapter V provisions the body quotes verbatim never reached
+      // the Authorities Cited appendix. The SO-FT FIX 2 (2026-08-11) negation
+      // guard travels with the walker unchanged.
+      const { harvestGovernanceCitations } = await import("./_local/ltp/governance-skeleton-assemble.ts");
+      const cited = new Set<string>(harvestGovernanceCitations(reportData));
       const exhibitCorpus = await fetchGovernanceCorpus(supabase);
       const exhibit = buildAuthorityExhibit(
         [...cited],

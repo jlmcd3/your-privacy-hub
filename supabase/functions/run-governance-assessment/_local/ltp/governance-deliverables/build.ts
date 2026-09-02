@@ -182,6 +182,23 @@ export function buildDemonstrabilityFindings(intake: unknown): DemonstrabilityFi
       application,
       verdict: present === "yes" ? "satisfied" : present === "partial" ? "partially_satisfied" : "not_satisfied",
       status: "analysed",
+      // DOC 141 (2026-09-02) — BUG 2(ii): the partial/not-discharged branches
+      // set no information_needed, so their remediation register rows rendered
+      // a blank Action cell (the D1D2B3B8-G4 fix, 2026-08-28, patched the
+      // Art. 30 walk only and its comment acknowledged this broader gap).
+      // The action is derived from the finding's own evidencing artifact —
+      // nothing is invented beyond what the duty definition already names.
+      ...(present === "partial"
+        ? {
+          information_needed:
+            `Complete, and make producible to a supervisory authority, the evidencing artifact: ${d.artifact.charAt(0).toLowerCase()}${d.artifact.slice(1)}. A partial artifact describes the measure but does not demonstrate compliance with it.`,
+        }
+        : present === "no"
+        ? {
+          information_needed:
+            `Prepare, and make producible to a supervisory authority, the evidencing artifact: ${d.artifact.charAt(0).toLowerCase()}${d.artifact.slice(1)}. Until that artifact exists this duty remains unevidenced for the purposes of Article 5(2).`,
+        }
+        : {}),
     } satisfies DemonstrabilityFinding;
   });
 }
@@ -1097,6 +1114,16 @@ export function buildTransferAnalysis(intake: unknown): TransferAnalysis {
     parts.push(
       "The record states that a restricted transfer is made but records no mechanism for it. On the record as it stands the transfer has no lawful route under the chapter identified above.",
     );
+    // DOC 141 (2026-09-02) — BUG 2(iii): this branch set no
+    // information_needed, so its remediation register row rendered a blank
+    // Action cell. The action adapts the adjacent executed-instrument
+    // branch's already-drafted language to the no-mechanism-at-all posture:
+    // a mechanism must first be adopted AND executed, per leg, and the
+    // recorded tools are named where the record names any (the DOC 138
+    // recordedTools computation above).
+    information_needed = recordedTools.length
+      ? `Adopt and execute a transfer mechanism for each transfer leg — the recorded tools are ${recordedTools.join(", ")} — for a UK leg, the IDTA or the Addendum as executed and the exporter's own Article 46(6) assessment; for an EU leg, the Commission clause set and its transfer impact assessment. The record states that a restricted transfer is made but names no mechanism, so no leg has a lawful route until one is executed.`
+      : "Adopt and execute a transfer mechanism for each transfer leg — for a UK leg, the IDTA or the Addendum as executed and the exporter's own Article 46(6) assessment; for an EU leg, the Commission clause set and its transfer impact assessment. The record states that a restricted transfer is made but names no mechanism, so no leg has a lawful route until one is executed.";
   } else if (mechanism_regime_mismatch) {
     verdict = "partially_satisfied";
     information_needed =

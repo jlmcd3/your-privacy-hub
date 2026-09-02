@@ -36,11 +36,18 @@ import {
   CA_CONSUMER_BAND, DISCLOSURE_MECHANISMS, RETENTION_CRITERIA, HARM_TYPES,
   CPPA_RISK_INLINE_LISTS, IMPACT_LIKELIHOOD_OPTS, IMPACT_SEVERITY_OPTS,
   IMPACT_BENEFITS_OUTWEIGH_OPTS, IMPACT_CYBER_GAPS_OPTS,
+  // DOC 141 (2026-09-02) — the risk-factor-engine's real operands (a2/a4/a5/
+  // a6 + magnitude bases) were never emitted by this generator; type-anchor
+  // their enum values to the contract's own lists.
+  NECESSITY_STATUS_OPTS, HARM_PATHWAY_OPTS, HARM_LIKELIHOOD_OPTS, HARM_SEVERITY_OPTS,
+  SAFEGUARD_STATUS_OPTS, SAFEGUARD_EFFECTIVENESS_BASIS_OPTS, PLANNED_TIMELINE_OPTS,
+  BENEFIT_MAGNITUDE_BASIS_OPTS, HAS_SECONDARY_USES_OPTS,
 } from "../_shared/intake-contracts/cppa-risk-assessment.ts";
 import {
   CPPA_ADMT_INLINE_LISTS, NOTICE_SPECIFIC_PURPOSE_OPTS, NOTICE_OPT_OUT_DESC_OPTS,
   NOTICE_ACCESS_DESC_OPTS, NOTICE_ANTI_RET_OPTS, NOTICE_HOW_IT_WORKS_OPTS, NOTICE_ALT_PROCESS_OPTS,
   OPT_OUT_NO_COOKIE_BANNER_OPTS, OPT_OUT_NO_ACCOUNT_REQUIRED_OPTS, ACCESS_RESPONSE_TIMELINE_OPTS,
+  ACCESS_READINESS_OPTS,
 } from "../_shared/intake-contracts/cppa-admt.ts";
 import {
   CYBER_MATURITY_OPTIONS, CYBER_CONTROL_SLUGS, FRAMEWORK_OPTIONS, LAST_AUDIT_OPTIONS, INCIDENTS_12MO_OPTIONS,
@@ -308,7 +315,7 @@ Return a JSON object with EXACTLY these top-level fields:
   }` : ""}
 }
 
-Always emit a biometric object for every company (tool selection is handled at the job level by selected_tools). For sectors that do not routinely use biometric identification, still emit the object using realistic minimal values, choosing verbatim options from the allowed lists below (e.g. biometricTypes may be ["Other biometric identifier"]). Never emit null.${isEU ? "" : " Governance and Registration are GDPR-only products — do NOT emit \"governance\" or \"registration\" fields for this United States company."}${enumAppendix(isEU ? ["governance", "dpa", "irPlaybook", "biometric", "registration"] : ["dpa", "irPlaybook", "biometric"])}${contractChecklist(isEU ? ["governance", "dpa", "irPlaybook", "biometric", "registration"] : ["dpa", "irPlaybook", "biometric"])}`, isEU ? ["governance", "dpa", "irPlaybook", "biometric", "registration"] : ["dpa", "irPlaybook", "biometric"]);
+Always emit a biometric object for every company (tool selection is handled at the job level by selected_tools). For sectors that do not routinely use biometric identification, still emit the object using realistic minimal values, choosing verbatim options from the allowed lists below (e.g. biometricTypes may be ["Other biometric identifier"]). Never emit null. For United States companies, the duty-registered jurisdictions "Illinois, USA (BIPA)", "Texas, USA (CUBI)", and "Washington state, USA" are valid high-coverage choices — include one of them alongside California whenever the scenario plausibly reaches that state, so the statutory-duty analysis path is exercised.${isEU ? "" : " Governance and Registration are GDPR-only products — do NOT emit \"governance\" or \"registration\" fields for this United States company."}${enumAppendix(isEU ? ["governance", "dpa", "irPlaybook", "biometric", "registration"] : ["dpa", "irPlaybook", "biometric"])}${contractChecklist(isEU ? ["governance", "dpa", "irPlaybook", "biometric", "registration"] : ["dpa", "irPlaybook", "biometric"])}`, isEU ? ["governance", "dpa", "irPlaybook", "biometric", "registration"] : ["dpa", "irPlaybook", "biometric"]);
 }
 
 // ── CALL B (EU): lia, dpia, ropa, euNotice ────────────────────────────────────
@@ -432,7 +439,7 @@ Return a JSON object with EXACTLY these fields:
     "organization_name": "string", "subject_anchor": "string — one line naming the single interest, e.g. Fraud screening of new account signups", "processing_description": "string", "sector": "string",
     "stated_purpose": "string", "relationship_type": "string", "data_categories": ["array"],
     "jurisdictions": ["array"], "alternatives_considered": "string",
-    "purpose_details": { "interest_holder": "string", "interest_type": "string", "purpose_text": "string" },
+    "purpose_details": { "interest_holder": "string", "interest_type": "string", "interest_statement": "string — one full sentence articulating the specific legitimate interest being pursued", "specific_benefit": "string — the concrete benefit the processing delivers", "beneficiary": "string — verbatim option: 'Our business' | 'The individuals whose data is processed' | 'A third party' | 'Our business and the individuals' | 'Our business and a third party'", "controller_is_public_authority": "Yes or No" },
     "necessity_details": { "alternatives": "string", "why_consent_not_used": "string", "data_minimised": "string", "pseudonymisation_options": "string" },
     "balancing_details": { "reasonable_expectation": "string", "vulnerable_subjects": [], "potential_harm": "string", "safeguards": ["array"], "opt_out_mechanism": "string", "special_category_data": boolean, "balancing_text": "string" }
   },
@@ -456,7 +463,14 @@ Return a JSON object with EXACTLY these fields:
         "lawful_basis": "string", "special_category_basis": "string or null",
         "data_categories": ["array"], "data_subjects": "string", "recipients": "string",
         "transfer_destination": "string or null", "transfer_mechanism": "string or null",
-        "retention_period": "string", "security_measures": "string"
+        "retention_period": "string", "security_measures": "string",
+        "activity_owner": "string — role or team accountable for the activity, e.g. 'Head of Clinical Operations'",
+        "collection_sources": "string — where the data comes from, e.g. 'Directly from the data subject; referral records'",
+        "processing_operations": ["array of tokens from EXACTLY: collection | recording | organisation | structuring | storage | adaptation | retrieval | consultation | use | disclosure_transmission | dissemination | combination | restriction | erasure"],
+        "access_controls": "string — one sentence on who can access the records and how access is restricted",
+        "notices_displayed": "string — which privacy notices cover this activity and where they are shown",
+        "incident_log": "string — whether incidents affecting this activity are logged, and where",
+        "related_assessments": ["array of strings naming DPIAs/LIAs/other assessments covering this activity — MAY be an empty array for some activities (that is a legitimate completeness gap), but populate it for at least one activity"]
       }
     ]
   },
@@ -481,7 +495,7 @@ Return a JSON object with EXACTLY these fields:
     "notice_has_opt_out_desc": "Yes or No", "notice_has_access_desc": "Yes or No",
     "notice_has_anti_retaliation": "Yes or No", "notice_has_how_it_works": "Yes or No",
     "notice_has_alternative_process": "Yes or No",
-    "opt_out_exception": "string", "opt_out_methods": ["array"], "opt_out_link_title": "string",
+    "opt_out_exception": "string — EXACTLY one of the four canonical options: 'Human appeal exception (§ 7221(b)(1)) — we provide a human reviewer with authority to overturn the decision' | 'Hiring/admission exception (§ 7221(b)(2)) — ADMT used solely to assess ability; no unlawful discrimination' | 'Work allocation/compensation exception (§ 7221(b)(3)) — ADMT used solely for allocation/compensation; no unlawful discrimination' | 'No exception — we provide a full opt-out right'", "opt_out_methods": ["array"], "opt_out_link_title": "string",
     "opt_out_no_cookie_banner": "Yes or No", "opt_out_no_account_required": "Yes or No",
     "opt_out_confirmation_mechanism": "string", "opt_out_appeal_process": "string",
     "opt_out_fairness_doc": "string",
@@ -491,6 +505,14 @@ Return a JSON object with EXACTLY these fields:
     "access_response_timeline": "string", "access_trade_secret_policy": "string",
     "ca_consumer_count": "string", "third_party_admt": "Yes or No",
     "admt_system_count": "string",
+    "access_readiness": {
+      "b1_purpose_ready": "string — one of EXACTLY: 'Yes — we can produce this today' | 'Partially — we can produce some of it' | 'No — we cannot produce this today' | 'Unsure'",
+      "b1_purpose_process": "string — one sentence on how the purpose disclosure would be produced (empty string if not ready)",
+      "b2_logic_ready": "string — same four options", "b2_logic_process": "string — how the logic explanation would be produced",
+      "b3_output_use_ready": "string — same four options", "b3_output_use_process": "string — how the output-use record would be produced",
+      "b3_outcome_ready": "string — same four options", "b3_outcome_process": "string — how the outcome record would be produced",
+      "b3_human_role_ready": "string — same four options", "b3_human_role_process": "string — how the human-role record would be produced"
+    },
     "admt_detail": {}
   }
 }
@@ -515,9 +537,12 @@ Return a JSON object with EXACTLY these fields:
   },
   "cppaRisk": {
     "entity_name": "string", "subject_anchor": "string — one line naming the specific processing",
+    "primary_activity_name": "string — short name for the processing activity being assessed (the report cover prints it verbatim)",
+    "primary_activity_purpose": "string — one sentence: what this activity does with personal information",
+    "has_secondary_uses": "string — EXACTLY one of: 'No — this data is used for this activity only' | 'Yes — there are other uses'",
     "q1_revenue": "string", "q2_consumers": "string", "q3_sector": "string",
     "q4_pi_categories": ["array"], "q5_sell_share": "string",
-    "q5b_profiling_observation": "Yes or No",
+    "q5b_profiling_observation": "Yes or No — Yes ONLY if consumers are observed acting as employees/contractors/students/applicants; customer or general-consumer profiling is No",
     "q6_right_know": "string", "q6_right_know_multi": ["array"],
     "q7_right_delete": "string", "q8_right_correct": "string", "q9_opt_out": "string",
     "q10_id_verification": "string", "q11_policy_review": "string",
@@ -540,6 +565,23 @@ Return a JSON object with EXACTLY these fields:
     "i8_contact_email": "string", "i8_contact_phone": "string",
     "i9_has_existing_dpia": "string",
     "i9_existing_dpia_summary": "string",
+    "a2_necessity_set": [
+      { "element": "string — one personal-information element collected for the activity", "necessity": "string — verbatim necessity option", "justification": "string — one sentence" }
+    ],
+    "a4_benefit_business": "string — concrete business benefit narrative", "a4_benefit_business_fact": "string — supporting record fact",
+    "a4_benefit_consumer": "string — concrete consumer benefit narrative", "a4_benefit_consumer_fact": "string — supporting record fact",
+    "a4_benefit_other_stakeholders": "string — benefit to other stakeholders, or empty string", "a4_benefit_other_stakeholders_fact": "string or empty string",
+    "a4_benefit_public": "string — benefit to the public, or empty string", "a4_benefit_public_fact": "string or empty string",
+    "benefit_business_identified": "Yes or No", "benefit_consumer_identified": "Yes or No",
+    "benefit_other_stakeholders_identified": "Yes or No", "benefit_public_identified": "Yes or No — 'No' with an empty narrative is a valid no-benefit record",
+    "benefit_business_magnitude_basis": "string — verbatim magnitude-basis option", "benefit_consumer_magnitude_basis": "string — verbatim magnitude-basis option",
+    "benefit_other_stakeholders_magnitude_basis": "string — verbatim magnitude-basis option",
+    "a5_harm_pathways": [
+      { "harm": "string — verbatim harm-pathway option (lettered)", "data_involved": "string — what data the pathway involves", "actor": "string — who could cause the harm", "source": "string — where the exposure arises", "cause": "string — the mechanism of harm", "likelihood": "string — verbatim likelihood option", "severity": "string — verbatim severity option" }
+    ],
+    "a6_safeguards": [
+      { "harm": "string — verbatim harm-pathway option the safeguard addresses", "safeguard": "string — the safeguard itself", "safeguard_status": "string — verbatim status option", "residual": "string — residual risk after the safeguard", "risk_pathway_ids": ["array of verbatim harm-pathway options"], "effectiveness_basis": "string — verbatim effectiveness-basis option", "planned_timeline": "string — verbatim timeline option, ONLY for planned rows (omit for implemented rows)" }
+    ],
     "exceptions_intake": {
       "fraud_detection":    { "claimed": false, "scope": "string or empty", "safeguards": "string or empty" },
       "security_integrity": { "claimed": false, "scope": "string or empty", "safeguards": "string or empty" },
@@ -588,7 +630,7 @@ Return a JSON object with EXACTLY these fields:
     "notice_has_opt_out_desc": "Yes or No", "notice_has_access_desc": "Yes or No",
     "notice_has_anti_retaliation": "Yes or No", "notice_has_how_it_works": "Yes or No",
     "notice_has_alternative_process": "Yes or No",
-    "opt_out_exception": "string", "opt_out_methods": ["array"],
+    "opt_out_exception": "string — EXACTLY one of the four canonical options: 'Human appeal exception (§ 7221(b)(1)) — we provide a human reviewer with authority to overturn the decision' | 'Hiring/admission exception (§ 7221(b)(2)) — ADMT used solely to assess ability; no unlawful discrimination' | 'Work allocation/compensation exception (§ 7221(b)(3)) — ADMT used solely for allocation/compensation; no unlawful discrimination' | 'No exception — we provide a full opt-out right'", "opt_out_methods": ["array"],
     "opt_out_link_title": "string",
     "opt_out_no_cookie_banner": "Yes or No", "opt_out_no_account_required": "Yes or No",
     "opt_out_confirmation_mechanism": "string", "opt_out_appeal_process": "string",
@@ -599,6 +641,14 @@ Return a JSON object with EXACTLY these fields:
     "access_response_timeline": "string", "access_trade_secret_policy": "string",
     "ca_consumer_count": "string", "third_party_admt": "Yes or No",
     "admt_system_count": "string",
+    "access_readiness": {
+      "b1_purpose_ready": "string — one of EXACTLY: 'Yes — we can produce this today' | 'Partially — we can produce some of it' | 'No — we cannot produce this today' | 'Unsure'",
+      "b1_purpose_process": "string — one sentence on how the purpose disclosure would be produced (empty string if not ready)",
+      "b2_logic_ready": "string — same four options", "b2_logic_process": "string — how the logic explanation would be produced",
+      "b3_output_use_ready": "string — same four options", "b3_output_use_process": "string — how the output-use record would be produced",
+      "b3_outcome_ready": "string — same four options", "b3_outcome_process": "string — how the outcome record would be produced",
+      "b3_human_role_ready": "string — same four options", "b3_human_role_process": "string — how the human-role record would be produced"
+    },
     "admt_detail": {}
   },
   "lia": null,
@@ -608,6 +658,7 @@ Return a JSON object with EXACTLY these fields:
 }
 
 cppaCyber.controls MUST contain all 18 records, one per control key, in the listed order — never an object, never a subset.
+cppaRisk.a2_necessity_set needs 3-4 rows (include at least one "Collected but not necessary" element so necessity analysis has material); a5_harm_pathways needs 2-3 rows consistent with impact_intake; a6_safeguards needs one row per harm pathway, mixing implemented and planned statuses.
 Notice/opt-out/access answers must be a realistic mix — not all "Yes", not all blank — so gap analysis has real material.${enumAppendix(["cppaRisk", "cppaCyber", "cppaAdmt"])}${contractChecklist(["cppaRisk", "cppaCyber", "cppaAdmt"])}`, ["cppaRisk", "cppaCyber", "cppaAdmt"]);
 }
 
@@ -755,9 +806,16 @@ function buildDeterministicProfile(industry: string, geo: string, slot: number, 
     bucket === "government" ? "Public authority" : bucket === "healthcare" ? "Healthcare provider"
     : bucket === "financial" ? "Financial institution" : "Company";
 
+  // DOC 141 (2026-09-02) — the US branch never selected any of the three
+  // duty-registered biometric jurisdictions (Illinois BIPA / Texas CUBI /
+  // Washington), so that whole engine path went unexercised by every batch.
+  // Vary by slot: slot 1 exercises the BIPA path, slot 2 keeps the prior
+  // CA + FTC pair. Values verbatim from _shared/intake-contracts/biometric.ts.
   const bioJurs: (typeof BIO_JURS[number])[] = geo === "eu"
     ? ["EU / EEA (GDPR)", "United Kingdom (UK GDPR)"]
-    : ["California, USA (CCPA/CPRA)", "United States — Federal (FTC)"];
+    : slot === 1
+      ? ["Illinois, USA (BIPA)", "California, USA (CCPA/CPRA)"]
+      : ["California, USA (CCPA/CPRA)", "United States — Federal (FTC)"];
   const bioTypes: (typeof BIO_TYPES[number])[] = usesBiometric
     ? ["Facial geometry / facial recognition", "Voiceprint / speaker recognition"]
     : ["Fingerprint / palm print"];
@@ -855,10 +913,18 @@ const EU_EEA_MEMBER_STATE_NAMES: Record<string, string> = {
 function getRopaActivitiesForSector(industry: string, companyName: string) {
   const s = industry.toLowerCase();
 
+  // DOC 141 (2026-09-02) — activities previously omitted the real intake
+  // fields generate-ropa-document reads per activity (activity_owner,
+  // collection_sources, processing_operations, access_controls,
+  // notices_displayed, incident_log, related_assessments), so those grid
+  // columns rendered empty on every batch. Populated for the healthcare,
+  // edtech, and default sets; related_assessments is deliberately left
+  // empty on some activities so the completeness finding is exercised
+  // legitimately.
   if (/healthcare|life science|clinical|medical/i.test(s)) return [
-    { activity_name: "Patient Data Processing", category: "patient_records", purpose: "Delivering clinical services, managing appointments, and maintaining health records for patients.", lawful_basis: "contract", special_category_basis: "Article 9(2)(h) — medical diagnosis and treatment", data_categories: ["Health or medical data", "Contact identifiers", "Identity documents"], data_subjects: "Patients and their representatives", recipients: "Clinical staff; NHS Digital; referral hospitals; insurance providers", transfer_destination: "United Kingdom", transfer_mechanism: "No third-country transfer", retention_period: "8 years post-treatment (NHS records standards)", security_measures: "Role-based access; audit logging; MFA; encryption at rest and in transit" },
-    { activity_name: "Employee HR Processing", category: "hr_employment", purpose: "Payroll, recruitment, benefits, and statutory employment compliance.", lawful_basis: "contract", special_category_basis: "Article 9(2)(b) — occupational health", data_categories: ["Employee records", "Financial data", "Contact identifiers"], data_subjects: "Employees and contractors", recipients: "HR team; payroll provider; HMRC", transfer_destination: "United Kingdom", transfer_mechanism: "No third-country transfer", retention_period: "Active employment plus 6 years", security_measures: "RBAC; encrypted HR system; quarterly access reviews" },
-    { activity_name: "Security and Fraud Monitoring", category: "technology", purpose: "Detecting unauthorised access and fraudulent activity on clinical systems.", lawful_basis: "legitimate_interests", special_category_basis: "Not applicable", data_categories: ["Account identifiers", "Usage logs", "Device identifiers"], data_subjects: "Employees and system users", recipients: "IT security team; SIEM vendor", transfer_destination: "United Kingdom", transfer_mechanism: "No third-country transfer", retention_period: "90 days rolling", security_measures: "Pseudonymised dashboards; least-privilege access; SOC monitoring" },
+    { activity_name: "Patient Data Processing", category: "patient_records", purpose: "Delivering clinical services, managing appointments, and maintaining health records for patients.", lawful_basis: "contract", special_category_basis: "Article 9(2)(h) — medical diagnosis and treatment", data_categories: ["Health or medical data", "Contact identifiers", "Identity documents"], data_subjects: "Patients and their representatives", recipients: "Clinical staff; NHS Digital; referral hospitals; insurance providers", transfer_destination: "United Kingdom", transfer_mechanism: "No third-country transfer", retention_period: "8 years post-treatment (NHS records standards)", security_measures: "Role-based access; audit logging; MFA; encryption at rest and in transit", activity_owner: "Head of Clinical Operations", collection_sources: "Directly from patients at registration and during care; referral records from other providers", processing_operations: ["collection", "recording", "storage", "consultation", "use", "disclosure_transmission"], access_controls: "Clinical records restricted to the treating care team via role-based access; all access is audit-logged.", notices_displayed: "Patient privacy notice provided at registration and published on the website.", incident_log: "Incidents affecting patient records are logged in the clinical governance incident register.", related_assessments: ["DPIA — Health data processing for clinical services (2026)"] },
+    { activity_name: "Employee HR Processing", category: "hr_employment", purpose: "Payroll, recruitment, benefits, and statutory employment compliance.", lawful_basis: "contract", special_category_basis: "Article 9(2)(b) — occupational health", data_categories: ["Employee records", "Financial data", "Contact identifiers"], data_subjects: "Employees and contractors", recipients: "HR team; payroll provider; HMRC", transfer_destination: "United Kingdom", transfer_mechanism: "No third-country transfer", retention_period: "Active employment plus 6 years", security_measures: "RBAC; encrypted HR system; quarterly access reviews", activity_owner: "HR Director", collection_sources: "Directly from employees and applicants; references from previous employers", processing_operations: ["collection", "recording", "storage", "use", "disclosure_transmission"], access_controls: "HR records restricted to the HR team and line management on a need-to-know basis.", notices_displayed: "Employee privacy notice issued at onboarding and available on the intranet.", incident_log: "HR data incidents recorded in the corporate incident register.", related_assessments: [] },
+    { activity_name: "Security and Fraud Monitoring", category: "technology", purpose: "Detecting unauthorised access and fraudulent activity on clinical systems.", lawful_basis: "legitimate_interests", special_category_basis: "Not applicable", data_categories: ["Account identifiers", "Usage logs", "Device identifiers"], data_subjects: "Employees and system users", recipients: "IT security team; SIEM vendor", transfer_destination: "United Kingdom", transfer_mechanism: "No third-country transfer", retention_period: "90 days rolling", security_measures: "Pseudonymised dashboards; least-privilege access; SOC monitoring", activity_owner: "Head of IT Security", collection_sources: "Generated by clinical systems during authenticated use", processing_operations: ["collection", "recording", "storage", "consultation", "erasure"], access_controls: "Security logs accessible only to the IT security team under least-privilege roles.", notices_displayed: "Covered by the staff acceptable-use and monitoring notice.", incident_log: "Security events triaged and logged in the SIEM incident queue.", related_assessments: [] },
   ];
 
   if (/pharma|clinical research|biotech|genomic/i.test(s)) return [
@@ -874,9 +940,9 @@ function getRopaActivitiesForSector(industry: string, companyName: string) {
   ];
 
   if (/edtech|children|child|school|student|learning/i.test(s)) return [
-    { activity_name: "Child User Account Management", category: "customer_service", purpose: "Creating and managing accounts for children using the educational platform, including parental consent workflows.", lawful_basis: "consent", special_category_basis: "Not applicable — ICO Children's Code (DPA 2018 s.123) age-appropriate design standards apply", data_categories: ["Contact identifiers", "Educational records", "Usage logs"], data_subjects: "Children (under 18) and their parents or guardians", recipients: "Platform team; school administrators (where applicable); hosting provider", transfer_destination: "European Economic Area (AWS EU)", transfer_mechanism: "EEA — no third-country transfer", retention_period: "Account active period plus 30 days post-closure; parental consent records 3 years", security_measures: "Privacy-by-default settings; age-appropriate content filtering; parental dashboard; RBAC; MFA for admin access" },
-    { activity_name: "Learning Analytics", category: "technology", purpose: "Tracking progress, identifying learning gaps, and generating teacher reports.", lawful_basis: "legitimate_interests", special_category_basis: "Not applicable", data_categories: ["Educational records", "Usage logs", "Account identifiers"], data_subjects: "Children using the platform and their teachers", recipients: "Teachers and school administrators; analytics vendor", transfer_destination: "European Economic Area", transfer_mechanism: "EEA — no third-country transfer", retention_period: "Academic year plus 12 months", security_measures: "Aggregate dashboards only for non-admin users; pseudonymised raw logs; SOC 2 vendor" },
-    { activity_name: "Safeguarding Records", category: "operations", purpose: "Maintaining records of safeguarding concerns and disclosures in compliance with statutory obligations.", lawful_basis: "legal_obligation", special_category_basis: "Article 9(2)(g) — substantial public interest (child protection)", data_categories: ["Educational records", "Special educational needs data", "Contact identifiers"], data_subjects: "Children and their parents or guardians", recipients: "Designated safeguarding lead; local authority children's services; police (on lawful request)", transfer_destination: "United Kingdom", transfer_mechanism: "No third-country transfer", retention_period: "Until the child reaches 25 or 35 years if serious harm (Keeping Children Safe in Education)", security_measures: "Restricted access to DSL and senior leadership only; audit log; encrypted records" },
+    { activity_name: "Child User Account Management", category: "customer_service", purpose: "Creating and managing accounts for children using the educational platform, including parental consent workflows.", lawful_basis: "consent", special_category_basis: "Not applicable — ICO Children's Code (DPA 2018 s.123) age-appropriate design standards apply", data_categories: ["Contact identifiers", "Educational records", "Usage logs"], data_subjects: "Children (under 18) and their parents or guardians", recipients: "Platform team; school administrators (where applicable); hosting provider", transfer_destination: "European Economic Area (AWS EU)", transfer_mechanism: "EEA — no third-country transfer", retention_period: "Account active period plus 30 days post-closure; parental consent records 3 years", security_measures: "Privacy-by-default settings; age-appropriate content filtering; parental dashboard; RBAC; MFA for admin access", activity_owner: "Head of Product (Safeguarding Lead for consent flows)", collection_sources: "Directly from parents/guardians at sign-up; school rosters where a school administers accounts", processing_operations: ["collection", "recording", "storage", "use"], access_controls: "Child account data restricted to the platform support team; parental dashboard exposes only the parent's own children.", notices_displayed: "Age-appropriate child privacy notice in-product plus the parent-facing privacy notice at sign-up.", incident_log: "Account-data incidents logged in the safeguarding-aware incident register.", related_assessments: ["DPIA — Processing of children's personal data for educational services (2026)"] },
+    { activity_name: "Learning Analytics", category: "technology", purpose: "Tracking progress, identifying learning gaps, and generating teacher reports.", lawful_basis: "legitimate_interests", special_category_basis: "Not applicable", data_categories: ["Educational records", "Usage logs", "Account identifiers"], data_subjects: "Children using the platform and their teachers", recipients: "Teachers and school administrators; analytics vendor", transfer_destination: "European Economic Area", transfer_mechanism: "EEA — no third-country transfer", retention_period: "Academic year plus 12 months", security_measures: "Aggregate dashboards only for non-admin users; pseudonymised raw logs; SOC 2 vendor", activity_owner: "Head of Data & Analytics", collection_sources: "Generated by pupils' platform activity during lessons", processing_operations: ["collection", "structuring", "storage", "consultation", "use"], access_controls: "Raw learning logs pseudonymised; identifiable views limited to the pupil's own teachers and school administrators.", notices_displayed: "Learning-analytics section of the child and parent privacy notices; school-facing processing summary.", incident_log: "Analytics incidents logged in the platform incident register.", related_assessments: [] },
+    { activity_name: "Safeguarding Records", category: "operations", purpose: "Maintaining records of safeguarding concerns and disclosures in compliance with statutory obligations.", lawful_basis: "legal_obligation", special_category_basis: "Article 9(2)(g) — substantial public interest (child protection)", data_categories: ["Educational records", "Special educational needs data", "Contact identifiers"], data_subjects: "Children and their parents or guardians", recipients: "Designated safeguarding lead; local authority children's services; police (on lawful request)", transfer_destination: "United Kingdom", transfer_mechanism: "No third-country transfer", retention_period: "Until the child reaches 25 or 35 years if serious harm (Keeping Children Safe in Education)", security_measures: "Restricted access to DSL and senior leadership only; audit log; encrypted records", activity_owner: "Designated Safeguarding Lead", collection_sources: "Reports from staff, pupils, parents, and partner agencies", processing_operations: ["collection", "recording", "storage", "restriction", "disclosure_transmission"], access_controls: "Safeguarding records sealed to the DSL and senior leadership; every access is audit-logged.", notices_displayed: "Safeguarding section of the school-facing privacy notice.", incident_log: "Safeguarding disclosures and record incidents logged in the statutory safeguarding register.", related_assessments: [] },
   ];
 
   if (/adtech|digital media|advertising|programmatic/i.test(s)) return [
@@ -1024,9 +1090,9 @@ function getRopaActivitiesForSector(industry: string, companyName: string) {
   ];
 
   return [
-    { activity_name: "Customer Account Management", category: "customer_service", purpose: `Managing user accounts, authentication, and customer support for ${companyName}'s ${industry.toLowerCase()} platform, including account creation, profile updates, and customer service interactions.`, lawful_basis: "contract", special_category_basis: "Not applicable — no special category data processed in this activity", data_categories: ["Contact identifiers (name, email, phone)", "Account credentials", "Customer service correspondence", "Transaction or service history"], data_subjects: "Registered customers and users of the platform", recipients: "Customer service team; CRM platform vendor; cloud hosting provider", transfer_destination: "United States (cloud hosting and CRM)", transfer_mechanism: "EU Standard Contractual Clauses", retention_period: "Active account plus 3 years post-closure; customer service records 2 years", security_measures: "MFA enforced; RBAC; SOC 2 Type II hosting; encrypted CRM; DPA with vendors" },
-    { activity_name: "Platform Security Monitoring", category: "technology", purpose: `Detecting and responding to security incidents, fraud attempts, and unauthorised access to ${companyName}'s platform infrastructure.`, lawful_basis: "legitimate_interests", special_category_basis: "Not applicable", data_categories: ["Access logs", "Device identifiers", "IP addresses", "Usage events"], data_subjects: "Registered users and authenticated staff", recipients: "IT security team; SIEM vendor; cloud provider security services", transfer_destination: "United States (SIEM vendor)", transfer_mechanism: "EU Standard Contractual Clauses", retention_period: "Security logs: 90 days rolling; incident records: 3 years", security_measures: "SIEM alerting; RBAC; MFA; SOC 2 hosting; pseudonymised log analysis; vendor DPA" },
-    { activity_name: "Marketing and Communications", category: "marketing", purpose: `Sending promotional communications, product updates, and event invitations to opted-in contacts and existing customers of ${companyName}.`, lawful_basis: "consent", special_category_basis: "Not applicable", data_categories: ["Contact identifiers", "Marketing preferences", "Engagement history"], data_subjects: "Opted-in customers and marketing contacts", recipients: "Marketing team; email service provider; CRM platform", transfer_destination: "United States (email service provider)", transfer_mechanism: "EU Standard Contractual Clauses", retention_period: "Until consent withdrawn or 36 months of inactivity", security_measures: "Double opt-in; preference centre; SOC 2 vendor; unsubscribe in every communication" },
+    { activity_name: "Customer Account Management", category: "customer_service", purpose: `Managing user accounts, authentication, and customer support for ${companyName}'s ${industry.toLowerCase()} platform, including account creation, profile updates, and customer service interactions.`, lawful_basis: "contract", special_category_basis: "Not applicable — no special category data processed in this activity", data_categories: ["Contact identifiers (name, email, phone)", "Account credentials", "Customer service correspondence", "Transaction or service history"], data_subjects: "Registered customers and users of the platform", recipients: "Customer service team; CRM platform vendor; cloud hosting provider", transfer_destination: "United States (cloud hosting and CRM)", transfer_mechanism: "EU Standard Contractual Clauses", retention_period: "Active account plus 3 years post-closure; customer service records 2 years", security_measures: "MFA enforced; RBAC; SOC 2 Type II hosting; encrypted CRM; DPA with vendors", activity_owner: "Head of Customer Operations", collection_sources: "Directly from customers at account creation and through support interactions", processing_operations: ["collection", "recording", "storage", "use", "erasure"], access_controls: "Account records restricted to the customer service team via role-based CRM permissions.", notices_displayed: "Main privacy notice at sign-up and linked from every account page.", incident_log: "Account-data incidents logged in the corporate incident register.", related_assessments: ["LIA — Platform security monitoring (2026)"] },
+    { activity_name: "Platform Security Monitoring", category: "technology", purpose: `Detecting and responding to security incidents, fraud attempts, and unauthorised access to ${companyName}'s platform infrastructure.`, lawful_basis: "legitimate_interests", special_category_basis: "Not applicable", data_categories: ["Access logs", "Device identifiers", "IP addresses", "Usage events"], data_subjects: "Registered users and authenticated staff", recipients: "IT security team; SIEM vendor; cloud provider security services", transfer_destination: "United States (SIEM vendor)", transfer_mechanism: "EU Standard Contractual Clauses", retention_period: "Security logs: 90 days rolling; incident records: 3 years", security_measures: "SIEM alerting; RBAC; MFA; SOC 2 hosting; pseudonymised log analysis; vendor DPA", activity_owner: "Head of IT Security", collection_sources: "Generated by platform infrastructure during authenticated use", processing_operations: ["collection", "recording", "storage", "consultation", "erasure"], access_controls: "Security logs accessible only to the IT security team under least-privilege roles.", notices_displayed: "Security-monitoring section of the main privacy notice.", incident_log: "Alerts triaged and incidents recorded in the SIEM incident queue.", related_assessments: ["LIA — Platform security monitoring (2026)"] },
+    { activity_name: "Marketing and Communications", category: "marketing", purpose: `Sending promotional communications, product updates, and event invitations to opted-in contacts and existing customers of ${companyName}.`, lawful_basis: "consent", special_category_basis: "Not applicable", data_categories: ["Contact identifiers", "Marketing preferences", "Engagement history"], data_subjects: "Opted-in customers and marketing contacts", recipients: "Marketing team; email service provider; CRM platform", transfer_destination: "United States (email service provider)", transfer_mechanism: "EU Standard Contractual Clauses", retention_period: "Until consent withdrawn or 36 months of inactivity", security_measures: "Double opt-in; preference centre; SOC 2 vendor; unsubscribe in every communication", activity_owner: "Marketing Director", collection_sources: "Directly from contacts via opt-in forms and event registrations", processing_operations: ["collection", "storage", "use", "dissemination", "erasure"], access_controls: "Marketing lists restricted to the marketing team within the CRM.", notices_displayed: "Marketing section of the main privacy notice; consent language at each opt-in point.", incident_log: "Marketing-data incidents logged in the corporate incident register.", related_assessments: [] },
   ];
 }
 
@@ -1082,7 +1148,10 @@ function buildAdmtFallback(companyName: string, industry: string, slot: number) 
     notice_has_anti_retaliation: NOTICE_ANTI_RET_OPTS[0],
     notice_has_how_it_works: (isAdtech || isGaming ? "No" : NOTICE_HOW_IT_WORKS_OPTS[0]) as typeof NOTICE_HOW_IT_WORKS_OPTS[number],
     notice_has_alternative_process: (isHr ? "Yes" : "No") as typeof NOTICE_ALT_PROCESS_OPTS[number],
-    opt_out_exception: "none",
+    // DOC 141 (2026-09-02) — was "none", which is not a value the real UI's
+    // ChoiceWithOther control produces. Snapped to the canonical
+    // OPT_OUT_EXCEPTIONS option (advisory enum, cppa-admt.ts), type-anchored.
+    opt_out_exception: "No exception — we provide a full opt-out right" as typeof CPPA_ADMT_INLINE_LISTS.OPT_OUT_EXCEPTIONS[number],
     opt_out_methods: ["Interactive online form linked from the Pre-use Notice", "Designated email address"] as (typeof CPPA_ADMT_INLINE_LISTS.OPT_OUT_METHODS[number])[],
     opt_out_link_title: "Opt Out of Automated Decisions",
     opt_out_no_cookie_banner: OPT_OUT_NO_COOKIE_BANNER_OPTS[0],
@@ -1102,6 +1171,29 @@ function buildAdmtFallback(companyName: string, industry: string, slot: number) 
     ca_consumer_count: slot === 1 ? "500,000+" : "75,000",
     third_party_admt: isAdtech ? "Yes" : "No",
     admt_system_count: slot === 1 ? "3" : "1",
+    // DOC 141 (2026-09-02) — access_readiness added (contract cppa-admt.ts
+    // UPGRADE-3 ITEM 3, § 7222(b) explanation readiness; optional but the
+    // fallback never emitted it, so the readiness findings always degraded).
+    // Mix is consistent with the other answers above: the adtech branch has
+    // no published logic summary (access_logic_disclosure "No — pending"),
+    // so its b2_logic readiness is "No"; the outcome element is "Partially"
+    // everywhere so gap analysis has material.
+    access_readiness: {
+      b1_purpose_ready: "Yes — we can produce this today" as typeof ACCESS_READINESS_OPTS[number],
+      b1_purpose_process: "The consumer-request handler inserts the published purpose paragraph from the current Pre-use Notice register entry.",
+      b2_logic_ready: (isAdtech ? "No — we cannot produce this today" : "Yes — we can produce this today") as typeof ACCESS_READINESS_OPTS[number],
+      b2_logic_process: isAdtech
+        ? ""
+        : "The handler runs the model explanation report, which lists the inputs and their direction of effect; proprietary weightings are withheld.",
+      b3_output_use_ready: "Yes — we can produce this today" as typeof ACCESS_READINESS_OPTS[number],
+      b3_output_use_process: "The decision audit trail records the score or segment returned and the action taken on it.",
+      b3_outcome_ready: "Partially — we can produce some of it" as typeof ACCESS_READINESS_OPTS[number],
+      b3_outcome_process: "The final decision is on the application record, but appeal outcomes are logged in a separate ticketing system and require manual retrieval.",
+      b3_human_role_ready: (isHr ? "Yes — we can produce this today" : "Partially — we can produce some of it") as typeof ACCESS_READINESS_OPTS[number],
+      b3_human_role_process: isHr
+        ? "The applicant tracking system stamps the reviewing recruiter's identity and the action taken."
+        : "The audit trail confirms no human reviewer role in individual decisions, but the dispute-routing record is not yet linked to it.",
+    },
     // prior_access_requests_12mo removed (RC-P6).
     admt_detail: {},
   };
@@ -1129,7 +1221,20 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
         data_categories: ["Contact data", "Browsing/behavioural data", "Device/technical data"] as (typeof LIA_DATA_CATEGORIES[number])[],
         jurisdictions: ["EU (GDPR)", "United Kingdom (UK GDPR)"] as (typeof LIA_JURISDICTIONS[number])[],
         alternatives_considered: "Consent and aggregate-only analytics were considered but would not support security monitoring",
-        purpose_details: { interest_holder: c.companyName, interest_type: "Operational security", purpose_text: "Maintain secure and reliable services" },
+        // DOC 141 (2026-09-02) — `purpose_text` was not a contract key
+        // (li-assessment.ts registers purpose_details.interest_statement);
+        // replaced with a real articulation sentence, and the UPGRADE-4 /
+        // ITEM 311 companions (specific_benefit, beneficiary,
+        // controller_is_public_authority) the fallback never emitted are
+        // added with the form's verbatim option strings.
+        purpose_details: {
+          interest_holder: c.companyName,
+          interest_type: "Operational security",
+          interest_statement: `${c.companyName} has a legitimate interest in monitoring authenticated user activity to detect fraud and keep its ${industry.toLowerCase()} service secure and reliable for all users.`,
+          specific_benefit: "Fewer compromised accounts and fraudulent transactions, and uninterrupted service availability for legitimate users.",
+          beneficiary: "Our business and the individuals",
+          controller_is_public_authority: "No",
+        },
         necessity_details: { alternatives: "Aggregate reporting and shorter retention", why_consent_not_used: "Security controls must operate consistently", data_minimised: "Only event metadata is processed", pseudonymisation_options: "User IDs are pseudonymised in analytics" },
         balancing_details: {
           reasonable_expectation: "Yes" as typeof LIA_REASONABLE_EXPECTATION_OPTS[number],
@@ -1217,6 +1322,18 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
       cppaAdmt: buildAdmtFallback(c.companyName, industry, slot),
     };
   }
+  // DOC 141 (2026-09-02) — the risk report's cover reads the contract's
+  // required primary_activity_name (run-cppa-risk-assessment slot
+  // primary_activity_name); the fallback set only subject_anchor, so covers
+  // printed "no processing activity name is on the record". One name now
+  // feeds both fields.
+  const riskActivityName =
+    /fintech|financial/i.test(industry) ? "Automated credit-risk scoring of California loan applicants" :
+    /hr|employment|workforce/i.test(industry) ? "Automated screening of California job applicants" :
+    /adtech|marketing|media/i.test(industry) ? "Behavioural audience segmentation of California consumers" :
+    /health|clinical|pharma|biotech/i.test(industry) ? "Care-management risk scoring of California patients" :
+    `Automated risk scoring of California customers in ${industry}`;
+
   const base = {
     usNotice: {
       business_name: c.companyName,
@@ -1238,12 +1355,16 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
     },
     cppaRisk: {
       entity_name: c.companyName,
-      subject_anchor:
-        /fintech|financial/i.test(industry) ? "Automated credit-risk scoring of California loan applicants" :
-        /hr|employment|workforce/i.test(industry) ? "Automated screening of California job applicants" :
-        /adtech|marketing|media/i.test(industry) ? "Behavioural audience segmentation of California consumers" :
-        /health|clinical|pharma|biotech/i.test(industry) ? "Care-management risk scoring of California patients" :
-        `Automated risk scoring of California customers in ${industry}`,
+      subject_anchor: riskActivityName,
+      // DOC 141 (2026-09-02) — required contract fields the fallback never
+      // emitted (primary_activity_name is what the cover prints).
+      primary_activity_name: riskActivityName,
+      primary_activity_purpose: "Scores personal information collected from California consumers to detect fraud and determine service eligibility and risk tiers.",
+      // DOC 141 follow-up — has_secondary_uses is required "always" in the
+      // contract; "No" matches the single-activity fraud-prevention scenario
+      // and keeps the secondary_activities skip logic disengaged (the form
+      // emits secondary_activities: [] unless the "Yes" option is chosen).
+      has_secondary_uses: "No — this data is used for this activity only" as typeof HAS_SECONDARY_USES_OPTS[number],
       q1_revenue: (slot === 1 ? "Over $100M" : "$25M to under $50M") as typeof REVENUE_OPTS[number],
       q2_consumers: (slot === 1 ? "1,000,000 or more" : "Under 100,000") as typeof CONSUMER_OPTS[number],
       q3_sector: GOV_SECTOR_BY_BUCKET[classifyIndustry(industry)] as typeof CPPA_RISK_INLINE_LISTS.SECTORS[number],
@@ -1251,7 +1372,12 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
         "Contact identifiers (name, email, phone)", "Device identifiers (IP, cookies, device IDs)", "Internet or network activity",
       ] as (typeof CPPA_RISK_INLINE_LISTS.PI_CATEGORIES[number])[],
       q5_sell_share: "Yes — sell only" as typeof Q5_SELL_SHARE_OPTS[number],
-      q5b_profiling_observation: (/adtech|marketing|data.broker|ai|financial|hr/i.test(industry) ? "Yes" : "No") as typeof Q5B_PROFILING_OPTS[number],
+      // DOC 141 (2026-09-02) — q5b is strictly the workers/students/
+      // applicants observation question. The old broad regex (adtech/ai/
+      // financial/…) said "Yes" while subject_anchor described CUSTOMER
+      // scoring — a self-contradictory intake driving a false § 7150(b)(4)
+      // trigger. Only genuinely employment-context industries answer Yes.
+      q5b_profiling_observation: (/hr|employment|workforce/i.test(industry) ? "Yes" : "No") as typeof Q5B_PROFILING_OPTS[number],
       q6_right_know: "Online form with identity verification; Email or written request process",
       q6_right_know_multi: ["Online form with identity verification", "Email or written request process"] as (typeof CPPA_RISK_INLINE_LISTS.Q6_ACCESS_OPTS[number])[],
       q7_right_delete: "Automated deletion with confirmation" as typeof Q7_OPTS[number],
@@ -1291,6 +1417,74 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
       i8_contact_phone: "+1-415-555-0180",
       i9_has_existing_dpia: "Yes",
       i9_existing_dpia_summary: "Existing DPIA covers analytics and security monitoring",
+      // DOC 141 (2026-09-02) — the risk-factor-engine reads a2_necessity_set,
+      // the a4 benefit narratives (+ _fact companions, gates, magnitude
+      // bases), a5_harm_pathways rows, and a6_safeguards rows; the generator
+      // emitted NONE of them (only the retired impact_intake shape), so
+      // every fallback batch degraded those sections. Values are consistent
+      // with the impact_intake content below (fraud-prevention benefits,
+      // unauthorized-access harm pathway). Keys are the real UI emission
+      // (CPPARiskAssessment.tsx submit shape) — never invented.
+      a2_necessity_set: [
+        { element: "Account identifier", necessity: "Necessary to the stated purpose" as typeof NECESSITY_STATUS_OPTS[number], justification: "Links risk signals to the account being scored." },
+        { element: "Contact email", necessity: "Necessary to the stated purpose" as typeof NECESSITY_STATUS_OPTS[number], justification: "Used for identity verification and consumer notices about scoring outcomes." },
+        { element: "Transaction history", necessity: "Necessary to the stated purpose" as typeof NECESSITY_STATUS_OPTS[number], justification: "Primary input to the fraud and risk score." },
+        { element: "Device identifiers", necessity: "Collected but not necessary to the stated purpose" as typeof NECESSITY_STATUS_OPTS[number], justification: "Collected by the SDK by default; scoring runs without them." },
+      ],
+      a4_benefit_business: "Reduces fraud losses and chargeback exposure and supports service continuity.",
+      a4_benefit_business_fact: "Fraud write-offs fell measurably in the 12 months after automated scoring was introduced.",
+      a4_benefit_consumer: "Protects account integrity and keeps the service available to legitimate users.",
+      a4_benefit_consumer_fact: "Account-takeover incidents affecting consumers declined year over year after deployment.",
+      a4_benefit_other_stakeholders: "Payment and platform partners see fewer fraudulent transactions routed through the ecosystem.",
+      a4_benefit_other_stakeholders_fact: "Partner-reported chargeback disputes declined after scoring was enabled on shared flows.",
+      a4_benefit_public: "",
+      a4_benefit_public_fact: "",
+      benefit_business_identified: "Yes" as const,
+      benefit_consumer_identified: "Yes" as const,
+      benefit_other_stakeholders_identified: "Yes" as const,
+      benefit_public_identified: "No" as const,
+      benefit_business_magnitude_basis: "Quantified or measurable basis stated" as typeof BENEFIT_MAGNITUDE_BASIS_OPTS[number],
+      benefit_consumer_magnitude_basis: "Qualitative basis stated" as typeof BENEFIT_MAGNITUDE_BASIS_OPTS[number],
+      benefit_other_stakeholders_magnitude_basis: "Qualitative basis stated" as typeof BENEFIT_MAGNITUDE_BASIS_OPTS[number],
+      a5_harm_pathways: [
+        {
+          harm: "(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability" as typeof HARM_PATHWAY_OPTS[number],
+          data_involved: "Account identifiers, contact email, and transaction history held in the scoring datastore.",
+          actor: "An external attacker or a compromised insider account.",
+          source: "Compromise of the scoring datastore or of a vendor integration.",
+          cause: "Credential theft or a misconfigured access policy exposing scored records.",
+          likelihood: "Possible" as typeof HARM_LIKELIHOOD_OPTS[number],
+          severity: (/health|financial|hr/i.test(industry) ? "Significant" : "Moderate") as typeof HARM_SEVERITY_OPTS[number],
+        },
+        {
+          harm: "(C) Impairment of consumer control over personal information" as typeof HARM_PATHWAY_OPTS[number],
+          data_involved: "Device identifiers and behavioural signals collected during service use.",
+          actor: "The business's own scoring pipeline.",
+          source: "Collection at signup and during service use.",
+          cause: "Signals reused for risk scoring without a clear disclosure at the collection point.",
+          likelihood: "Possible" as typeof HARM_LIKELIHOOD_OPTS[number],
+          severity: "Moderate" as typeof HARM_SEVERITY_OPTS[number],
+        },
+      ],
+      a6_safeguards: [
+        {
+          harm: "(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability" as typeof HARM_PATHWAY_OPTS[number],
+          safeguard: "Role-based access with MFA on the scoring datastore; pseudonymised analytics views; 90-day log retention.",
+          safeguard_status: "Implemented and tested" as typeof SAFEGUARD_STATUS_OPTS[number],
+          residual: "Residual risk limited to compromise of a privileged account within the log-retention window.",
+          risk_pathway_ids: ["(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability"] as (typeof HARM_PATHWAY_OPTS[number])[],
+          effectiveness_basis: "Validated by testing against the linked risk" as typeof SAFEGUARD_EFFECTIVENESS_BASIS_OPTS[number],
+        },
+        {
+          harm: "(C) Impairment of consumer control over personal information" as typeof HARM_PATHWAY_OPTS[number],
+          safeguard: "Notice-at-collection wording naming risk scoring as a purpose, plus a preference-centre control over non-essential signals.",
+          safeguard_status: "Planned, not yet implemented" as typeof SAFEGUARD_STATUS_OPTS[number],
+          residual: "Until the wording ships, consumers may not connect collection with scoring.",
+          risk_pathway_ids: ["(C) Impairment of consumer control over personal information"] as (typeof HARM_PATHWAY_OPTS[number])[],
+          effectiveness_basis: "Based on internal design review only" as typeof SAFEGUARD_EFFECTIVENESS_BASIS_OPTS[number],
+          planned_timeline: "Within 12 months" as typeof PLANNED_TIMELINE_OPTS[number],
+        },
+      ],
       exceptions_intake: {
         fraud_detection:    { claimed: true,  scope: "Automated fraud signals on account access and payment events.", safeguards: "Reviewed quarterly; limited retention (90 days); RBAC." },
         security_integrity: { claimed: true,  scope: "Anomaly detection across authentication and API traffic.",       safeguards: "SIEM alerts; least-privilege access; pseudonymised dashboards." },
@@ -1332,13 +1526,48 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
         framework: "NIST CSF" as typeof FRAMEWORK_OPTIONS[number],
         last_audit: "Within 12 months" as typeof LAST_AUDIT_OPTIONS[number],
       },
-      controls: CYBER_CONTROL_SLUGS.map((slug) => ({
-        key: slug,
-        label: slug.replace(/^c\d+_/, "").replace(/_/g, " ").replace(/\b\w/g, (m) => m.toUpperCase()),
-        maturity: "Implemented across organization" as typeof CYBER_MATURITY_OPTIONS[number],
-        notes: "Documented and reviewed by the security team.",
-        evidence: ["Policy / procedure document"] as string[],
-      })),
+      // DOC 141 (2026-09-02) — all 18 controls previously shared one
+      // maturity value and the identical note "Documented and reviewed by
+      // the security team.", so gap analysis had zero material. Notes are
+      // now control-specific and maturity varies across three contract
+      // values (the two partially-implemented clusters give the gap
+      // analysis something real to find).
+      controls: CYBER_CONTROL_SLUGS.map((slug) => {
+        const notesBySlug: Record<typeof CYBER_CONTROL_SLUGS[number], string> = {
+          c1_auth: "MFA enforced for all workforce and admin accounts via the central identity provider.",
+          c2_encryption: "TLS 1.2+ in transit and AES-256 at rest on managed datastores; key rotation is annual.",
+          c3_account_access: "Quarterly access reviews with least-privilege role templates; offboarding revokes within 24 hours.",
+          c4_inventory: "Asset inventory maintained in the CMDB, but unmanaged SaaS discovery is still manual.",
+          c5_secure_config: "CIS-benchmark baseline images for servers; drift detection alerts on deviation.",
+          c6_vuln_mgmt: "Monthly authenticated scans; critical findings patched within 14 days, though SLA tracking is spreadsheet-based.",
+          c7_audit_logs: "Centralised logging to the SIEM with 12-month retention and tamper-evident storage.",
+          c8_network_mon: "IDS sensors on ingress and east-west traffic; alerts triaged by the on-call analyst.",
+          c9_anti_malware: "EDR deployed to all managed endpoints with automatic quarantine.",
+          c10_segmentation: "Production, corporate, and guest networks separated; scoring datastore in its own VLAN.",
+          c11_port_protocol: "Perimeter firewall default-deny; exposed services reviewed quarterly.",
+          c12_awareness: "Annual all-hands security awareness campaign with phishing simulations.",
+          c13_training: "Role-specific secure-handling training for engineering and support; completion tracked in the LMS.",
+          c14_secure_dev: "Code review plus SAST in CI; dependency scanning runs on every build.",
+          c15_third_party: "Vendor security questionnaires at onboarding; annual reassessment for critical vendors.",
+          c16_retention: "Retention schedule applied to primary datastores; legacy backups not yet aligned to it.",
+          c17_incident: "Written IR plan with severity tiers; last tabletop exercise within 12 months.",
+          c18_continuity: "Daily encrypted backups with quarterly restore tests; RTO/RPO documented.",
+        };
+        const maturityBySlug: Partial<Record<typeof CYBER_CONTROL_SLUGS[number], typeof CYBER_MATURITY_OPTIONS[number]>> = {
+          c1_auth: "Implemented with continuous monitoring",
+          c7_audit_logs: "Implemented with continuous monitoring",
+          c4_inventory: "Documented, partially implemented",
+          c6_vuln_mgmt: "Documented, partially implemented",
+          c16_retention: "Documented, partially implemented",
+        };
+        return {
+          key: slug,
+          label: slug.replace(/^c\d+_/, "").replace(/_/g, " ").replace(/\b\w/g, (m) => m.toUpperCase()),
+          maturity: (maturityBySlug[slug] ?? "Implemented across organization") as typeof CYBER_MATURITY_OPTIONS[number],
+          notes: notesBySlug[slug],
+          evidence: ["Policy / procedure document"] as string[],
+        };
+      }),
     },
     cppaAdmt: buildAdmtFallback(c.companyName, industry, slot),
     lia: null,
@@ -1448,7 +1677,11 @@ Deno.serve(async (req) => {
       geo === "eu"
         ? buildCallBEUPrompt(industry, company_slot, companyName)
         : buildCallBUSPrompt(industry, company_slot, companyName),
-      4500,
+      // DOC 141 (2026-09-02) — raised 4500 → 24000 to match the split "geo"
+      // path's Call B budget. 4500 truncated the multi-tool Call B payload
+      // mid-JSON, and extractJson (first "{" to last "}") would then parse a
+      // mangled object instead of failing loudly.
+      24000,
     );
     const geoData = extractJson(callBText);
 

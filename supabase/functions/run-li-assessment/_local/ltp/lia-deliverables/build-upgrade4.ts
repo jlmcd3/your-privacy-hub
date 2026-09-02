@@ -208,8 +208,12 @@ export function buildInterestLegitimacy(intake: unknown): InterestLegitimacyFind
   let lawfulNeeded: string | undefined;
   if (!interestType && !statement) {
     lawfulVerdict = "undetermined_on_the_record";
+    // DOC 141 (2026-09-02) — informative sentence FIRST: the condition walk
+    // (build-upgrade4 application, firstSentenceSafe) quotes only the first
+    // sentence, and the old order put the condition-restating sentence there,
+    // so the customer-facing walk read as pure circularity.
     lawfulReasoning =
-      "The first condition asks whether the interest pursued is lawful. The record names neither the interest nor its type, so there is nothing against which lawfulness can be tested.";
+      "The record names neither the interest nor its type, so there is nothing against which lawfulness can be tested. The first condition — whether the interest pursued is lawful — therefore remains unanswered.";
     lawfulNeeded =
       "purpose_details.interest_statement and purpose_details.interest_type — the interest relied on, in the controller's own words, and the category it falls into.";
   } else if (interestType) {
@@ -232,8 +236,10 @@ export function buildInterestLegitimacy(intake: unknown): InterestLegitimacyFind
   const bundling = statement ? detectPurposeBundling(statement) : null;
   if (!statement) {
     clearVerdict = "undetermined_on_the_record";
+    // DOC 141 (2026-09-02) — informative sentence FIRST (same circularity
+    // fix as the lawful branch above; the walk quotes only sentence one).
     clearReasoning =
-      "The second condition asks whether the interest is clearly and precisely articulated. The record contains no articulation of the interest to test.";
+      "The record contains no articulation of the interest to test. The second condition — whether the interest is clearly and precisely articulated — therefore cannot be answered.";
     clearNeeded =
       "purpose_details.interest_statement — the interest itself, stated specifically enough that a reader can tell what is being pursued and for whom.";
   } else if (bundling) {
@@ -266,8 +272,10 @@ export function buildInterestLegitimacy(intake: unknown): InterestLegitimacyFind
   const speculative = matches(speculativeSource, SPECULATIVE_LEXICON);
   if (!description && !statedPurpose) {
     presentVerdict = "undetermined_on_the_record";
+    // DOC 141 (2026-09-02) — informative sentence FIRST (same circularity
+    // fix as the lawful branch above; the walk quotes only sentence one).
     presentReasoning =
-      "The third condition asks whether the interest is real and present rather than speculative. The record describes neither the processing nor the purpose as it would be stated to data subjects, so the record names no present activity to weigh.";
+      "The record describes neither the processing nor the purpose as it would be stated to data subjects, so there is no present activity to weigh. The third condition — whether the interest is real and present rather than speculative — therefore remains unanswered.";
     presentNeeded =
       "processing_description — what is actually done today, to whose data, and with what output.";
   } else if (speculative) {

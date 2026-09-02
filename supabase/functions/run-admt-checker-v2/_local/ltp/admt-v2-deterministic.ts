@@ -198,7 +198,15 @@ export function computeScope(intake: Intake): ScopeResult {
         ? `The Company's answer on human review — "${humanReview}" — does not resolve whether a qualifying human review occurs.`
         : "The Company has not described human review of the System's output.",
       authority: humanInvolvementBasis, action_text: "Confirm whether a human reviews the System's output before it is applied, and describe that review.",
-      priority: 3, closure_condition: "human_review answered",
+      // DOC 141 (2026-09-02) — closure_condition strings are rendered
+      // VERBATIM into the §8.1 "Closure condition" / §8.2 "What resolves it"
+      // table columns (admt-v2-assemble.ts buildActionsSection). The
+      // deterministic grader proved raw intake tokens ("opt_out_exception",
+      // "access_readiness.b1_purpose_ready", ...) reaching customer PDFs.
+      // Every closure string that can route to §8.1 (priority 1) or §8.2
+      // (INSUFFICIENT_RECORD, priority != 1) is reworded to plain prose in
+      // this batch — checked per-instance, wording only, no routing change.
+      priority: 3, closure_condition: "The Company confirms whether a human reviews the System's output before it is applied",
     }));
   }
 
@@ -232,7 +240,9 @@ export function computeScope(intake: Intake): ScopeResult {
       substantive_state: "GAP", decision_effect: "CONDITION",
       factual_basis: `The Company has selected a regulated significant-decision domain (${domains.join("; ")}) while also reporting the System is used solely for advertising. These answers conflict.`,
       authority: advertisingBasis, action_text: "Reconcile the decision-domain selection with the solely-advertising answer before the applicability determination can be finalized.",
-      priority: 1, closure_condition: "decision_domains and admt_detail.solely_advertising reconciled",
+      // DOC 141 (2026-09-02) — prose closure, no raw field tokens (see note
+      // at the human-review finding above).
+      priority: 1, closure_condition: "The Company reconciles its decision-domain selection with its solely-advertising answer",
     }));
   } else if (clearAdvertisingExclusion) {
     scopeState = "OUT_OF_SCOPE";
@@ -400,7 +410,10 @@ export function computeNotice(intake: Intake, optOutPath: PathState): NoticeResu
   deliveryFactor.effect = statusEffect(deliveryFactor.status);
   push("Pre-use Notice", "Notice delivery", deliveryFactor, ["notice_delivery"],
     "The Company reports it has not yet provided a Pre-use Notice.", "Publish a Pre-use Notice covering the required § 7220(c) elements before ADMT is used for the significant decision.",
-    1, "notice_delivery no longer includes the not-yet-provided option");
+    // DOC 141 (2026-09-02) — closure strings in this function reworded to
+    // plain prose; they render verbatim in the §8.1/§8.2 tables (see note in
+    // computeScope's human-review finding).
+    1, "The Company confirms a Pre-use Notice has been provided");
 
   const purposeAns = str((intake as any)?.notice_has_specific_purpose);
   const purposeStatus: SubstantiveState = purposeAns === "Yes" ? "MEETS_REPORTED" : purposeAns ? "GAP" : "INSUFFICIENT_RECORD";
@@ -410,7 +423,7 @@ export function computeNotice(intake: Intake, optOutPath: PathState): NoticeResu
   };
   push("Pre-use Notice", "Specific purpose", purposeFactor, ["notice_has_specific_purpose"],
     `The Company reports: "${purposeAns || "(not answered)"}".`, "State the specific decision the ADMT informs in plain language in the Pre-use Notice.",
-    purposeStatus === "GAP" ? 2 : 3, "notice_has_specific_purpose reports Yes with supporting text");
+    purposeStatus === "GAP" ? 2 : 3, "The Company confirms the Pre-use Notice states the specific purpose, with supporting notice text");
 
   const purposeText = str(noticeText(intake).purpose) || str((intake as any)?.notice_purpose_text) || str((intake as any)?.notice_full_text);
   purposeFactor.evidence = purposeText ? "DOCUMENTED" : "NOT_DOCUMENTED";
@@ -428,7 +441,7 @@ export function computeNotice(intake: Intake, optOutPath: PathState): NoticeResu
   };
   push("Pre-use Notice", "Opt-out / exception description", optoutDescFactor, ["notice_has_opt_out_desc"],
     `The Company reports: "${optoutDescAns || "(not answered)"}".`, "Describe the opt-out right (or the exception relied on) in the Pre-use Notice with specific instructions.",
-    optoutDescStatus === "GAP" ? 2 : 3, "notice_has_opt_out_desc reports specific opt-out instructions");
+    optoutDescStatus === "GAP" ? 2 : 3, "The Company confirms the Pre-use Notice gives specific opt-out (or exception) instructions");
 
   const accessDescAns = str((intake as any)?.notice_has_access_desc);
   const accessDescStatus: SubstantiveState = accessDescAns === "Yes" ? "MEETS_REPORTED" : accessDescAns ? "GAP" : "INSUFFICIENT_RECORD";
@@ -438,7 +451,7 @@ export function computeNotice(intake: Intake, optOutPath: PathState): NoticeResu
   };
   push("Pre-use Notice", "Access right description", accessDescFactor, ["notice_has_access_desc"],
     `The Company reports: "${accessDescAns || "(not answered)"}".`, "Describe the access right and how to submit a request in the Pre-use Notice.",
-    accessDescStatus === "GAP" ? 2 : 3, "notice_has_access_desc reports Yes");
+    accessDescStatus === "GAP" ? 2 : 3, "The Company confirms the Pre-use Notice describes the access right");
 
   const antiRetAns = str((intake as any)?.notice_has_anti_retaliation);
   const antiRetStatus: SubstantiveState = antiRetAns === "Yes" ? "MEETS_REPORTED" : antiRetAns ? "GAP" : "INSUFFICIENT_RECORD";
@@ -448,7 +461,7 @@ export function computeNotice(intake: Intake, optOutPath: PathState): NoticeResu
   };
   push("Pre-use Notice", "Anti-retaliation", antiRetFactor, ["notice_has_anti_retaliation"],
     `The Company reports: "${antiRetAns || "(not answered)"}".`, "Add the anti-retaliation statement required by § 7220(c)(4) to the Pre-use Notice.",
-    antiRetStatus === "GAP" ? 2 : 3, "notice_has_anti_retaliation reports Yes");
+    antiRetStatus === "GAP" ? 2 : 3, "The Company confirms the Pre-use Notice carries the anti-retaliation statement");
 
   const howWorksAns = str((intake as any)?.notice_has_how_it_works);
   let howWorksStatus: SubstantiveState = "INSUFFICIENT_RECORD";
@@ -461,7 +474,7 @@ export function computeNotice(intake: Intake, optOutPath: PathState): NoticeResu
   };
   push("Pre-use Notice", "How the ADMT works", howWorksFactor, ["notice_has_how_it_works"],
     `The Company reports: "${howWorksAns || "(not answered)"}".`, "Explain how the ADMT works — the inputs it uses and the output it produces — in the Pre-use Notice.",
-    howWorksStatus === "GAP" ? 2 : 3, "notice_has_how_it_works reports full coverage");
+    howWorksStatus === "GAP" ? 2 : 3, "The Company confirms the Pre-use Notice fully explains how the ADMT works");
 
   const altProcessAns = str((intake as any)?.notice_has_alternative_process);
   let altProcessStatus: SubstantiveState;
@@ -484,7 +497,7 @@ export function computeNotice(intake: Intake, optOutPath: PathState): NoticeResu
       : `The Company reports: "${altProcessAns || "(not answered)"}".`,
     altConflict ? "Reconcile the opt-out pathway selection with the alternative-process notice answer." : "Describe the alternative process available to a consumer who opts out in the Pre-use Notice.",
     altProcessStatus === "GAP" ? (altConflict ? 1 : 2) : 3,
-    altConflict ? "opt_out_exception and notice_has_alternative_process reconciled" : "notice_has_alternative_process reports Yes on the full opt-out path");
+    altConflict ? "The Company reconciles its opt-out pathway selection with its alternative-process notice answer" : "The Company confirms the Pre-use Notice describes the alternative process available after an opt-out");
 
   // Record grade.
   const hasFullText = !!str((intake as any)?.notice_full_text);
@@ -582,6 +595,9 @@ export function computeOptOut(intake: Intake, path: PathState): OptOutResult {
   };
   push("Opt-Out", "Designated methods", methods, ["opt_out_methods"],
     `The Company selected ${methodsSel.length} opt-out ${methodsSel.length === 1 ? "method" : "methods"}: ${methodsSel.join("; ") || "(none)"}.`,
+    // DOC 141 (2026-09-02) — this closure is machine-facing only: the finding
+    // is always GAP/priority-2, which routes to §8.3 Recommendations, whose
+    // table renders no closure column. Checked per-instance; left as-is.
     "Offer at least two designated methods for consumers to submit an opt-out request.", 2, "opt_out_methods lists two or more methods");
 
   const cookieAns = str((intake as any)?.opt_out_no_cookie_banner);
@@ -594,7 +610,7 @@ export function computeOptOut(intake: Intake, path: PathState): OptOutResult {
     authority: elementCite("optout_designated_methods", intake),
   };
   push("Opt-Out", "ADMT-specific route", cookie, ["opt_out_no_cookie_banner"],
-    `The Company reports: "${cookieAns || "(not answered)"}".`, "Provide at least one ADMT-specific opt-out route in addition to any cookie banner.", 1, "opt_out_no_cookie_banner confirms an additional ADMT-specific route");
+    `The Company reports: "${cookieAns || "(not answered)"}".`, "Provide at least one ADMT-specific opt-out route in addition to any cookie banner.", 1, "The Company confirms an ADMT-specific opt-out route in addition to any cookie banner");
 
   const acctAns = str((intake as any)?.opt_out_no_account_required);
   let acctStatus: SubstantiveState = "INSUFFICIENT_RECORD";
@@ -606,26 +622,26 @@ export function computeOptOut(intake: Intake, path: PathState): OptOutResult {
     authority: elementCite("optout_account_barrier", intake),
   };
   push("Opt-Out", "No account required", account, ["opt_out_no_account_required"],
-    `The Company reports: "${acctAns || "(not answered)"}".`, "Remove the account-creation requirement from the opt-out process.", 1, "opt_out_no_account_required confirms no account is required");
+    `The Company reports: "${acctAns || "(not answered)"}".`, "Remove the account-creation requirement from the opt-out process.", 1, "The Company confirms no account is required to submit an opt-out request");
 
   const fifteenDayText = str((intake as any)?.opt_out_15_day_process);
   const fifteenDay = evidenceOnlyFactor(fifteenDayText, onFullOptOut, elementCite("optout_processing", intake));
   push("Opt-Out", "15-business-day process", fifteenDay, ["opt_out_15_day_process"],
     fifteenDayText ? `The Company describes its process as: "${fifteenDayText}".` : "The Company has not described its 15-business-day cessation process.",
-    "Document the operational process for ceasing ADMT processing within 15 business days of an opt-out request.", 3, "opt_out_15_day_process describes the cessation process");
+    "Document the operational process for ceasing ADMT processing within 15 business days of an opt-out request.", 3, "The Company documents its 15-business-day cessation process");
 
   const confirmText = str((intake as any)?.opt_out_confirmation_mechanism);
   const confirmation = evidenceOnlyFactor(confirmText, onFullOptOut, elementCite("optout_confirmation", intake));
   push("Opt-Out", "Confirmation mechanism", confirmation, ["opt_out_confirmation_mechanism"],
     confirmText ? `The Company describes its confirmation mechanism as: "${confirmText}".` : "The Company has not described how it confirms an opt-out was processed.",
-    "Document the mechanism used to confirm an opt-out request was processed.", 3, "opt_out_confirmation_mechanism describes a confirmation mechanism");
+    "Document the mechanism used to confirm an opt-out request was processed.", 3, "The Company documents how it confirms an opt-out request was processed");
 
   // -- 4.2 Human-appeal exception --
   const appealProcessText = str((intake as any)?.opt_out_appeal_process);
   const appealProcess = evidenceOnlyFactor(appealProcessText, onHumanAppeal, elementCite("optout_offer", intake));
   push("Opt-Out", "Appeal process", appealProcess, ["opt_out_appeal_process"],
     appealProcessText ? `The Company describes its appeal process as: "${appealProcessText}".` : "The Company has not described the human-appeal process it relies on for this exception.",
-    "Describe the human-appeal process, including how a consumer reaches it.", 2, "opt_out_appeal_process describes the appeal process");
+    "Describe the human-appeal process, including how a consumer reaches it.", 2, "The Company describes the human-appeal process it relies on, including how a consumer reaches it");
 
   const appealTrainedAns = str(detail(intake).appeal_trained);
   const appealTrainingStatus: SubstantiveState = appealTrainedAns === "Yes" ? "MEETS_REPORTED" : appealTrainedAns === "No" ? "GAP" : "INSUFFICIENT_RECORD";
@@ -634,7 +650,7 @@ export function computeOptOut(intake: Intake, path: PathState): OptOutResult {
     effect: statusEffect(onHumanAppeal ? appealTrainingStatus : "NOT_APPLICABLE"), authority: elementCite("human_involvement" as ElementId, intake) || cite("human_involvement"),
   };
   push("Opt-Out", "Reviewer training", appealTraining, ["admt_detail.appeal_trained"],
-    `The Company reports the reviewer is trained: "${appealTrainedAns || "(not answered)"}".`, "Confirm the reviewer knows how to interpret the System's output before relying on the human-appeal exception.", 1, "admt_detail.appeal_trained reports Yes");
+    `The Company reports the reviewer is trained: "${appealTrainedAns || "(not answered)"}".`, "Confirm the reviewer knows how to interpret the System's output before relying on the human-appeal exception.", 1, "The Company confirms the reviewer is trained to interpret the System's output");
 
   const appealAuthorityAns = str(detail(intake).appeal_authority_overturn);
   const appealAuthorityStatus: SubstantiveState = appealAuthorityAns === "Yes" ? "MEETS_REPORTED" : appealAuthorityAns === "No" ? "GAP" : "INSUFFICIENT_RECORD";
@@ -643,13 +659,13 @@ export function computeOptOut(intake: Intake, path: PathState): OptOutResult {
     effect: statusEffect(onHumanAppeal ? appealAuthorityStatus : "NOT_APPLICABLE"), authority: elementCite("human_involvement" as ElementId, intake) || cite("human_involvement"),
   };
   push("Opt-Out", "Authority to overturn", appealAuthority, ["admt_detail.appeal_authority_overturn"],
-    `The Company reports the reviewer can overturn the decision: "${appealAuthorityAns || "(not answered)"}".`, "Confirm the reviewer has authority to change the decision before relying on the human-appeal exception.", 1, "admt_detail.appeal_authority_overturn reports Yes");
+    `The Company reports the reviewer can overturn the decision: "${appealAuthorityAns || "(not answered)"}".`, "Confirm the reviewer has authority to change the decision before relying on the human-appeal exception.", 1, "The Company confirms the reviewer has authority to overturn the decision");
 
   const appealStepsText = str(detail(intake).appeal_step_count);
   const appealSteps = evidenceOnlyFactor(appealStepsText, onHumanAppeal, "");
   push("Opt-Out", "Steps to reviewer", appealSteps, ["admt_detail.appeal_step_count"],
     appealStepsText ? `The Company reports the appeal process takes: "${appealStepsText}".` : "The Company has not described the number of steps to reach a human reviewer.",
-    "Describe the steps a consumer takes to reach the human reviewer.", 3, "admt_detail.appeal_step_count describes the steps");
+    "Describe the steps a consumer takes to reach the human reviewer.", 3, "The Company describes the steps a consumer takes to reach the human reviewer");
 
   // -- 4.3 Hiring/admission or work-allocation/compensation exception --
   const soleUseAns = str(detail(intake).sole_use_attestation);
@@ -661,7 +677,7 @@ export function computeOptOut(intake: Intake, path: PathState): OptOutResult {
     effect: statusEffect(onEmpExc ? soleUseStatus : "NOT_APPLICABLE"), authority: cite("optout_exc_hire"),
   };
   push("Opt-Out", "Sole-use condition", exceptionSoleUse, ["admt_detail.sole_use_attestation"],
-    `The Company reports: "${soleUseAns || "(not answered)"}".`, "Confirm the ADMT is used solely to assess the relevant ability or allocation/compensation factor.", 1, "admt_detail.sole_use_attestation reports Yes");
+    `The Company reports: "${soleUseAns || "(not answered)"}".`, "Confirm the ADMT is used solely to assess the relevant ability or allocation/compensation factor.", 1, "The Company confirms the ADMT is used solely to assess the relevant ability or allocation/compensation factor");
 
   const testingAns = str(detail(intake).nondiscrimination_testing);
   let testingStatus: SubstantiveState = "INSUFFICIENT_RECORD";
@@ -674,13 +690,13 @@ export function computeOptOut(intake: Intake, path: PathState): OptOutResult {
   };
   push("Opt-Out", "Non-discrimination testing", exceptionTesting, ["admt_detail.nondiscrimination_testing"],
     `The Company reports: "${testingAns || "(not answered)"}".`, "Document non-discrimination testing supporting the exception, or complete testing if none has been performed.",
-    testingStatus === "GAP" ? 1 : 2, "admt_detail.nondiscrimination_testing reports a documented testing record");
+    testingStatus === "GAP" ? 1 : 2, "The Company documents its non-discrimination testing");
 
   const fairnessDocText = str((intake as any)?.opt_out_fairness_doc);
   const exceptionFairnessDoc = evidenceOnlyFactor(fairnessDocText, onEmpExc, "");
   push("Opt-Out", "Fairness documentation", exceptionFairnessDoc, ["opt_out_fairness_doc"],
     fairnessDocText ? `The Company describes its fairness documentation as: "${fairnessDocText}".` : "The Company has not supplied fairness/non-discrimination documentation supporting the exception.",
-    "Supply the underlying fairness or non-discrimination testing documentation.", 3, "opt_out_fairness_doc supplies supporting documentation");
+    "Supply the underlying fairness or non-discrimination testing documentation.", 3, "The Company supplies the supporting fairness or non-discrimination documentation");
 
   // -- Record grade + composite posture, scoped to the selected path --
   const pathFactors: NoticeFactor[] = onFullOptOut
@@ -707,7 +723,10 @@ export function computeOptOut(intake: Intake, path: PathState): OptOutResult {
       source_fields: ["opt_out_exception"], substantive_state: "INSUFFICIENT_RECORD",
       decision_effect: "NEUTRAL", factual_basis: "The Company's opt-out / exception selection does not match one of the four pathways this audit evaluates.",
       authority: cite("optout_offer"), action_text: "Confirm which opt-out pathway or § 7221(b) exception the Company relies on.",
-      priority: 1, closure_condition: "opt_out_exception matches a recognized pathway",
+      // DOC 141 (2026-09-02) — was the raw-token string "opt_out_exception
+      // matches a recognized pathway", which the grader proved rendering
+      // verbatim into the §8.1 Closure-condition column.
+      priority: 1, closure_condition: "The Company confirms which opt-out pathway or § 7221(b) exception it relies on",
     }));
   } else if (pathFactors.some((f) => f.status === "GAP")) posture = "GAP";
   else if (pathFactors.some((f) => f.status === "PARTIAL")) posture = "PARTIAL";
@@ -766,7 +785,7 @@ export function computeAccess(intake: Intake): AccessResult {
       substantive_state: "INSUFFICIENT_RECORD", evidence_state: "NOT_DOCUMENTED", decision_effect: "NEUTRAL",
       factual_basis: "The Company has not described how consumers submit an access request.",
       authority: "", action_text: "Describe the access-request submission method.", priority: 3,
-      closure_condition: "access_submission_methods answered",
+      closure_condition: "The Company describes how consumers submit an access request",
     }));
   }
 
@@ -778,7 +797,7 @@ export function computeAccess(intake: Intake): AccessResult {
       substantive_state: "INSUFFICIENT_RECORD", evidence_state: "NOT_DOCUMENTED", decision_effect: "NEUTRAL",
       factual_basis: "The Company has not described how it verifies an access request.",
       authority: "", action_text: "Describe the identity-verification process for access requests.", priority: 3,
-      closure_condition: "access_verification_process answered",
+      closure_condition: "The Company describes how it verifies an access request",
     }));
   }
 
@@ -791,7 +810,7 @@ export function computeAccess(intake: Intake): AccessResult {
   };
   push("Access", "Response timeline", timeline, ["access_response_timeline"],
     `The Company reports: "${timelineAns || "(not answered)"}".`, "Define the access-response timeline consistent with the 45/90-day framework.", timelineStatus === "GAP" ? 1 : 3,
-    "access_response_timeline reports a defined timeline");
+    "The Company confirms a defined access-response timeline");
 
   const readinessFactors: Record<string, NoticeFactor> = {};
   const readinessData = readiness(intake);
@@ -812,7 +831,10 @@ export function computeAccess(intake: Intake): AccessResult {
     push("Access", `Explanation readiness — ${el.label}`, f, [`access_readiness.${el.id}`, `access_readiness.${el.processId}`],
       `The Company reports readiness to explain "${el.label}" as: "${readyAns || "(not answered)"}".`,
       `Establish the ability to produce the "${el.label}" element of the access explanation.`, status === "GAP" ? 1 : status === "PARTIAL" ? 2 : 3,
-      `access_readiness.${el.id} reports Yes`);
+      // DOC 141 (2026-09-02) — was `access_readiness.${el.id} reports Yes`,
+      // which the grader proved rendering verbatim into customer PDFs. The
+      // prose form reuses the element's existing human label.
+      `The Company confirms it can produce the "${el.label}" element of the access explanation`);
   }
 
   const readinessStates = READINESS_ELEMENTS.map((el) => readinessFactors[el.id].status);
@@ -985,7 +1007,8 @@ export function computeVendor(intake: Intake, scopeState: ScopeState, path: Path
         factual_basis: `The Company reports the System is hosted by the vendor and that the vendor contract does not provide for ${m.label.toLowerCase()}. Because the System is vendor-hosted, the Company has no independent way to discharge this duty without the vendor's cooperation.`,
         authority: elementId ? elementCite(elementId, intake) : "",
         action_text: `Obtain a vendor commitment covering ${m.label.toLowerCase()}, since the Company cannot perform this duty independently on a vendor-hosted System.`,
-        priority: 1, closure_condition: `admt_detail.v_${key} reports Yes, or hosting is no longer vendor-only`,
+        // DOC 141 (2026-09-02) — prose closure, no raw field tokens.
+        priority: 1, closure_condition: `The Company obtains a vendor commitment covering ${m.label.toLowerCase()}, or the System is no longer hosted solely by the vendor`,
       }));
     } else if (pathwayRelevant && !ans) {
       // Relevant to the pathway but simply unanswered — an information gap
@@ -996,7 +1019,8 @@ export function computeVendor(intake: Intake, scopeState: ScopeState, path: Path
         substantive_state: "INSUFFICIENT_RECORD", decision_effect: "NEUTRAL",
         factual_basis: `The Company has not reported whether the vendor contract addresses ${m.label.toLowerCase()}, which is relevant to the selected pathway.`,
         authority: "", action_text: `Obtain and confirm whether the vendor contract addresses ${m.label.toLowerCase()}.`,
-        priority: 3, closure_condition: `admt_detail.v_${key} answered`,
+        // DOC 141 (2026-09-02) — prose closure, no raw field tokens.
+        priority: 3, closure_condition: `The Company confirms whether the vendor contract addresses ${m.label.toLowerCase()}`,
       }));
     } else if (pathwayRelevant && ans === "No") {
       // Relevant, reported No, but the Company is NOT shown to depend on
@@ -1007,6 +1031,9 @@ export function computeVendor(intake: Intake, scopeState: ScopeState, path: Path
         substantive_state: "PARTIAL", decision_effect: "NEUTRAL",
         factual_basis: `The Company reports the vendor contract does not provide for ${m.label.toLowerCase()}. This does not by itself establish an Article 11 gap; it identifies a dependency worth tracking.`,
         authority: "", action_text: `Confirm how the Company covers ${m.label.toLowerCase()} independently of the vendor contract, or amend the contract to address it.`,
+        // DOC 141 (2026-09-02) — machine-facing only: this finding is always
+        // PARTIAL/priority-3, which routes to §8.3 Recommendations (no
+        // closure column rendered). Checked per-instance; left as-is.
         priority: 3, closure_condition: `admt_detail.v_${key} reports Yes, or the Company confirms independent coverage`,
       }));
     }

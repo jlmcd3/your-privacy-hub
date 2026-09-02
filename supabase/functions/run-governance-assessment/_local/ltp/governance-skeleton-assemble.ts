@@ -599,6 +599,81 @@ function isNonApplicableAuthority(citation: string): boolean {
   return NON_APPLICABLE_AUTHORITIES.some((n) => c === n || c.startsWith(`${n} `));
 }
 
+// SO-FT FIX 2 (2026-08-11): a sentence that names an authority ONLY to
+// disclaim it ("There is no UK GDPR Article 44 in force", "must not be
+// cited to Art. 44", "does not apply") was harvested like a real citation,
+// so the Table of Authorities contradicted the body. Skip a match whose
+// immediate context carries negation phrasing.
+const CITATION_NEGATION =
+  /\b(there is no|there are no|is not in force|are not in force|must not be cited|may not be cited|does not apply|do not apply|is omitted|are omitted|no longer|not applicable|inapplicable)\b/i;
+const CITATION_NEG_WINDOW = 140;
+
+// DOC 141 (2026-09-02) — BUG 1(a): the number token carries an optional
+// letter suffix ([A-C]) so UK GDPR's inserted articles survive intact.
+// "UK GDPR Art. 44A(1)" previously matched as "UK GDPR Art. 44" because
+// `[\d.]+` could not take the "A" and the pinpoint group needs an opening
+// paren; the truncated key then collided with the genuinely omitted UK
+// Art. 44 and was suppressed from the Authorities Cited appendix.
+const GDPR_CITATION_RE =
+  /(?:UK\s+)?GDPR\s+(?:Art(?:icle|\.)|Recital)[^,;.)\]]*?[\d.]+[A-C]?(?:\([a-z0-9]+\))*/gi;
+
+/**
+ * Walk a report object and collect every GDPR/UK GDPR citation string it
+ * emits, skipping negated mentions and internal subtrees. Moved here from
+ * run-governance-assessment/index.ts by DOC 141 (2026-09-02) so the walker
+ * is unit-testable; behaviour unchanged apart from the letter-suffix fix
+ * documented on GDPR_CITATION_RE above.
+ */
+export function harvestGovernanceCitations(v: unknown): string[] {
+  const cited = new Set<string>();
+  const walk = (x: unknown): void => {
+    if (typeof x === "string") {
+      for (const m of x.matchAll(GDPR_CITATION_RE)) {
+        const at = m.index ?? 0;
+        const before = x.slice(Math.max(0, at - CITATION_NEG_WINDOW), at);
+        const after = x.slice(at + m[0].length, at + m[0].length + CITATION_NEG_WINDOW).split(/(?<=[.!?])\s/)[0] ?? "";
+        if (CITATION_NEGATION.test(before) || CITATION_NEGATION.test(after)) continue;
+        cited.add(m[0].replace(/\s+/g, " ").trim());
+      }
+      return;
+    }
+    if (Array.isArray(x)) { for (const y of x) walk(y); return; }
+    if (x && typeof x === "object") {
+      for (const [k, y] of Object.entries(x as Record<string, unknown>)) {
+        if (k === "_meta" || k === "_staging") continue;
+        walk(y);
+      }
+    }
+  };
+  walk(v);
+  return [...cited];
+}
+
+// DOC 141 (2026-09-02) — BUG 1(b): the iff-cited check was a raw
+// `body.includes(citation)`, but the body spells UK Chapter V provisions in
+// the un-prefixed statutory voice ("Article 44A(1) requires…", "Article
+// 44A(2)(a): …") while the ledger keys them "UK GDPR Art. 44A(1)". Verified
+// registry rows for UK GDPR Arts. 44A/45A therefore never rendered even
+// when the body quoted them verbatim. The check now also accepts the
+// body's "Art./Article N…" spelling for a GDPR-family citation, with a
+// trailing-character guard so "Art. 44" can never be satisfied by
+// "Article 44A" (and vice versa the pinpoints must match exactly).
+function bodyCitesAuthority(body: string, citation: string): boolean {
+  if (body.includes(citation)) return true;
+  const c = citation.replace(/\s+/g, " ").trim();
+  // Two ledger spellings resolve to an article number + optional pinpoints:
+  // the raw "UK GDPR Art. 44A(1)" form and formatCitation()'s long EU form
+  // ("Regulation (EU) 2016/679 (General Data Protection Regulation) art. 44").
+  const m = /^(?:UK\s+)?GDPR\s+Art(?:icle|\.)\s*(\d{1,3}[A-C]?)((?:\([a-z0-9]+\))*)$/i.exec(c) ??
+    /^Regulation \(EU\) 2016\/679 \(General Data Protection Regulation\) art\.\s*(\d{1,3}[A-C]?)((?:\([a-z0-9]+\))*)$/i.exec(c);
+  if (!m) return false;
+  const esc = (x: string) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp(
+    `\\bArt(?:icle|\\.)\\s*${esc(m[1])}${esc(m[2] ?? "")}(?![A-Za-z0-9])`,
+    "i",
+  );
+  return re.test(body);
+}
 
 function governanceToa(report: Bag, body: string): string {
   const exhibit = (report.authority_exhibit ?? {}) as Bag;
@@ -612,7 +687,7 @@ function governanceToa(report: Bag, body: string): string {
   for (const e of entries) {
     const citation = s(e.citation);
     if (!citation || seen.has(citation)) continue;
-    if (!body.includes(citation)) continue; // iff-cited
+    if (!bodyCitesAuthority(body, citation)) continue; // iff-cited (DOC 141 — accepts the body's un-prefixed "Article 44A(…)" spelling)
     // SO-FT FIX 2 (2026-08-11): rows that exist only to explain an omission
     // (UK GDPR Art. 44) never enter the Table of Authorities.
     if (e.applicable === false || isNonApplicableAuthority(citation)) continue;
@@ -632,21 +707,56 @@ function governanceToa(report: Bag, body: string): string {
   // row for every article the document actually cites that no ledger entry
   // already covers. Iff-cited discipline is preserved (the scan reads the
   // assembled body only); ledger rows keep their fuller pinpoint forms.
-  const citedArticles = new Set<number>();
-  const artRe = /\b(?:UK\s+)?GDPR\s+Art(?:icle)?s?\.?\s*(\d{1,2})\b|\bArt(?:icle)?s?\.?\s*(\d{1,2})(?:\(\d+\))?\s+(?:UK\s+)?GDPR\b/gi;
+  // DOC 141 (2026-09-02) — BUG 1(c): three narrow fixes to this scan.
+  //   1. Letter-suffix awareness: `(\d{1,2})\b` could never match the UK
+  //      GDPR's inserted articles (44A, 45A, 45B) — digit→letter is not a
+  //      word boundary — so a UK provision could only surface truncated or
+  //      not at all.
+  //   2. Prefix preservation: the output row was hardcoded `GDPR Art. ${n}`,
+  //      which would mislabel a UK-only provision as the EU article; a
+  //      match carrying the "UK " prefix now keeps it.
+  //   3. Negation guard: the scan had none, so the disclaimer sentence
+  //      "There is no UK GDPR Article 44 in force" MANUFACTURED an
+  //      "Art. 44" row — coincidentally correct on a dual-regime report
+  //      (the EU leg genuinely cites Art. 44), wrong on a UK-only report.
+  //      The guard mirrors harvestGovernanceCitations above.
+  const citedArticles = new Set<string>(); // "44" | "UK 44A" | …
+  const artRe = /\b(UK\s+)?GDPR\s+Art(?:icle)?s?\.?\s*(\d{1,2}[A-C]?)\b|\bArt(?:icle)?s?\.?\s*(\d{1,2}[A-C]?)(?:\(\d+\))?\s+(UK\s+)?GDPR\b/gi;
   let am: RegExpExecArray | null;
   while ((am = artRe.exec(body))) {
-    const n = Number(am[1] ?? am[2]);
-    if (n >= 1 && n <= 99) citedArticles.add(n);
+    const token = (am[2] ?? am[3] ?? "").toUpperCase();
+    const uk = Boolean(am[1] ?? am[4]);
+    const n = parseInt(token, 10);
+    if (!(n >= 1 && n <= 99)) continue;
+    const at = am.index;
+    const before = body.slice(Math.max(0, at - CITATION_NEG_WINDOW), at);
+    const after = body.slice(at + am[0].length, at + am[0].length + CITATION_NEG_WINDOW).split(/(?<=[.!?])\s/)[0] ?? "";
+    if (CITATION_NEGATION.test(before) || CITATION_NEGATION.test(after)) continue;
+    citedArticles.add(`${uk ? "UK " : ""}${token}`);
   }
-  const covered = new Set<number>();
+  const covered = new Set<string>();
   for (const c of groups["Regulations"]) {
     let cm: RegExpExecArray | null;
-    const cRe = /Art(?:icle)?s?\.?\s*(\d{1,2})/gi;
-    while ((cm = cRe.exec(c))) covered.add(Number(cm[1]));
+    const cRe = /Art(?:icle)?s?\.?\s*(\d{1,2}[A-C]?)/gi;
+    const coveredUk = /\bUK\b/i.test(c);
+    while ((cm = cRe.exec(c))) covered.add(`${coveredUk ? "UK " : ""}${cm[1].toUpperCase()}`);
   }
-  for (const n of [...citedArticles].sort((a, b) => a - b)) {
-    if (!covered.has(n)) groups["Regulations"].push(`GDPR Art. ${n}`);
+  const artSortKey = (k: string): [number, string] => {
+    const tok = k.startsWith("UK ") ? k.slice(3) : k;
+    return [parseInt(tok, 10), k];
+  };
+  for (const key of [...citedArticles].sort((a, b) => {
+    const [na, ka] = artSortKey(a);
+    const [nb, kb] = artSortKey(b);
+    return na - nb || ka.localeCompare(kb, "en");
+  })) {
+    if (covered.has(key)) continue;
+    const uk = key.startsWith("UK ");
+    const row = `${uk ? "UK " : ""}GDPR Art. ${uk ? key.slice(3) : key}`;
+    // "UK GDPR Art. 44" (exact, no suffix) stays suppressed — that
+    // provision genuinely does not exist in UK law.
+    if (isNonApplicableAuthority(row)) continue;
+    groups["Regulations"].push(row);
   }
   const lines: string[] = [];
   for (const group of Object.keys(groups)) {
@@ -677,11 +787,18 @@ export interface GovernanceSkeletonResult {
 export function deriveRemediationRegisterTable(report: Bag): RenderedTable | null {
   const plan = Array.isArray(report.remediation_plan) ? (report.remediation_plan as Bag[]) : [];
   if (!plan.length) return null;
-  const domains = domainEntries(report);
-  const actionFor = (finding: Bag): string => {
-    const d = domains.find((x) => s(x.domain) === s(finding.domain));
-    return d ? s(d.recommended_action) : "";
-  };
+  // DOC 141 (2026-09-02) — BUG 2(i): the former `actionFor` lookup here was
+  // dead code. It matched a remediation record's `p.domain` — the
+  // GovernanceDomain vocabulary (accountability, demonstrability,
+  // records_of_processing, dpo, risk_calibration, review_and_update,
+  // international_transfers; governance-deliverables/types.ts) — against
+  // `domain_findings`' operational-domain keys (tool_inventory,
+  // data_submission, …). The vocabularies are disjoint, so it returned ""
+  // for every row, and any row whose source finding carried no
+  // `information_needed` rendered a blank Action cell (register rows 1-5 on
+  // the live batch). The finding's own `information_needed` is the single
+  // honest source for the Action column; no speculative domain map is
+  // substituted for it.
   const elements = Array.isArray(report.domain_element_findings) ? (report.domain_element_findings as Bag[]) : [];
   const elementFor = (p: Bag): Bag | undefined => elements.find((x) => s(x.key) === s(p.finding_key));
 
@@ -708,7 +825,7 @@ export function deriveRemediationRegisterTable(report: Bag): RenderedTable | nul
     // Cells carry an initial capital (doc 109 §1.4) — the slug fallback
     // label may arrive lowercase.
     const duty = repairRegister([label, gap].filter(Boolean).join(" — "));
-    const action = actionFor(p) || (el ? s(el.information_needed) : "");
+    const action = el ? s(el.information_needed) : "";
     return [
       String(i + 1),
       duty ? duty.charAt(0).toUpperCase() + duty.slice(1) : "—",

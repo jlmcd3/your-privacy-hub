@@ -77,12 +77,18 @@ async function invokeFn(name: string, body: unknown, timeoutMs = 360_000): Promi
 }
 
 async function generateFixtures(c: { industryLabel: string; geo: string; slot: number }, companyId: string): Promise<any> {
+  // DOC 141 (2026-09-02) — use_claude: true. The flag was added to
+  // generate-stress-fixtures on 2026-06-13 but was never passed by ANY
+  // caller, so every "claude/" batch since then silently used the
+  // deterministic fallback fixtures instead of the LLM path. Passing it
+  // here makes the Claude-intake batch pipeline do what its name says.
   const profile = await invokeFn("generate-stress-fixtures", {
     industry: c.industryLabel,
     geo: c.geo,
     company_slot: c.slot,
     company_id: companyId,
     part: "profile",
+    use_claude: true,
   }, 300_000);
 
   const geoData = await invokeFn("generate-stress-fixtures", {
@@ -92,6 +98,7 @@ async function generateFixtures(c: { industryLabel: string; geo: string; slot: n
     company_id: companyId,
     company_name: profile.companyName ?? companyId,
     part: "geo",
+    use_claude: true,
   }, 300_000);
 
   return { ...profile, ...geoData };

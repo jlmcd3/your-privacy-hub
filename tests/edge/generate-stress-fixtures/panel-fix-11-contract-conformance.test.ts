@@ -84,7 +84,10 @@ Deno.test("PANEL-11: cppaCyber is nested under profile.* with an array controls[
   // CYBER_CONTROL_SLUGS rather than a hand-typed slug list.
   assertStringIncludes(src, "entity_name: c.companyName,");
   assertStringIncludes(src, "incidents_12mo: \"None\" as typeof INCIDENTS_12MO_OPTIONS[number],");
-  assertStringIncludes(src, "controls: CYBER_CONTROL_SLUGS.map((slug) => ({");
+  // DOC 141 (2026-09-02): the map body grew a per-slug notes/maturity block,
+  // so the arrow now opens a statement body — the pin still asserts controls
+  // are keyed off the contract's own CYBER_CONTROL_SLUGS.
+  assertStringIncludes(src, "controls: CYBER_CONTROL_SLUGS.map((slug) => {");
 });
 
 Deno.test("PANEL-11: the q5_sell_share fallback in normalizeCppaRiskTriggers is a real contract option", async () => {

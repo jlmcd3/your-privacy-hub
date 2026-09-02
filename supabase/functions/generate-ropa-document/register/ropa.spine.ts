@@ -45,8 +45,21 @@ export const ROPA_SKELETON_PROVENANCE =
  */
 // RE-PIN A-TEAM S4 (doc 119 S3.1, 2026-08-31): fleet ToA rename — the "Table of Authorities" section title became "Authorities Cited" (CEO-ratified, panel A1); ids and assembly rules unchanged. Old-hash reproduction verified before re-pin. Prior pin:
 // 71b06e5f68647fd78af989368210b577d0301ef7f51e48c9dfb08edee9a73ff6.
-export const ROPA_SKELETON_CONTENT_HASH =
+// RETAINED FOR THE AUDIT TRAIL — the pin at the doc-119 re-pin, superseded
+// by the DOC 141 re-pin below (DPIA_SPINE_HASH_V* versioning model).
+export const ROPA_SKELETON_CONTENT_HASH_V2 =
   "1bdc0365947cd64011285cb09ce06824c52afd3e26479d2c5dac171f760bf55b";
+// RE-PIN DOC 141 (2026-09-02): the repeating record's two self-contradictory
+// unrecorded seams became composed conditional clauses (the TRANSFER_CLAUSE
+// pattern) — "The operations performed: {processing_operations}." is now
+// {OPERATIONS_SENTENCE} and "; access is controlled as the company describes:
+// {access_controls}" is now {ACCESS_CLAUSE} — because those fixed lead-ins
+// presuppose a recorded answer and no value-plane fallback can be grammatical
+// under them ("as the company describes: a matter it has not recorded").
+// Recorded-path bytes are unchanged: the identical lead-in text now composes
+// inside the clause. Old-hash reproduction verified before re-pin (V2 above).
+export const ROPA_SKELETON_CONTENT_HASH =
+  "f0e32e4356582fdab2699f9d939fd3acbaa2832e527b67b3e729aae9b8652f5e";
 
 export const ROPA_SKELETON_TITLE = "RECORD OF PROCESSING ACTIVITIES";
 export const ROPA_SKELETON_SUBTITLE =
@@ -112,8 +125,12 @@ export interface RopaSkeletonSection {
 export const ROPA_CONTROLLER_PARAGRAPH =
   "{organisation_name} is a {legal_entity_type - reader label} incorporated in {incorporation_jurisdiction}{REG_CLAUSE - \", registration \" + registration_number; absent => omitted}, with its registered address at {registered_address}. The company has indicated that it acts as {roles - reader labels as prose}. {DPO_BLOCK - conditional on has_dpo: \"Its data protection officer is \" + dpo_name + \", reachable at \" + dpo_email + / + dpo_phone; negative => the honest sentence that no officer has been designated}. {EU_REP_SENTENCE - conditional on eu_rep_name: the Article 27 representative, named}. It operates from {home_base}, across {jurisdictions - as prose}, with a workforce of {employee_band - band as prose}.";
 
+// DOC 141 (2026-09-02) — {OPERATIONS_SENTENCE} and {ACCESS_CLAUSE} are
+// composed conditional clauses (the {TRANSFER_CLAUSE} pattern): each composes
+// or drops WHOLE, so the fixed lead-in never presupposes an answer the
+// company has not recorded. Hash re-pinned above (V2 retained).
 export const ROPA_REPEATING_RECORD =
-  "[REPEATING RECORD - one per activity; the renderer draws the register as a table mapped to Article 30(1)(a)-(g).] The activity {activity_name}, owned by {activity_owner}, is conducted for {purpose}, on the lawful basis of {lawful_basis - reader label}. It concerns {data_subjects - reader labels} and the categories {data_categories - reader labels}, collected from {collection_sources - as prose}. The operations performed: {processing_operations - as prose}. Recipients and platforms: {processor_platform - as prose}. The company retains the data {RETENTION_PHRASE - from retention_period, or per category where retention_varies_by_category}. Security measures: {security_measures - reader labels}; access is controlled as the company describes: {access_controls - the recorded answer rendered as prose}. {TRANSFER_CLAUSE - conditional: the transfer mechanism named}. Rights requests are handled {rights_handling - as prose}{OVERRIDE_CLAUSE - from rights_handling_override; absent => omitted}.";
+  "[REPEATING RECORD - one per activity; the renderer draws the register as a table mapped to Article 30(1)(a)-(g).] The activity {activity_name}, owned by {activity_owner}, is conducted for {purpose}, on the lawful basis of {lawful_basis - reader label}. It concerns {data_subjects - reader labels} and the categories {data_categories - reader labels}, collected from {collection_sources - as prose}. {OPERATIONS_SENTENCE - conditional: recorded => \"The operations performed: \" + processing_operations; unrecorded => the honest sentence that the operations are not recorded}. Recipients and platforms: {processor_platform - as prose}. The company retains the data {RETENTION_PHRASE - from retention_period, or per category where retention_varies_by_category}. Security measures: {security_measures - reader labels}{ACCESS_CLAUSE - conditional: recorded => \"; access is controlled as the company describes: \" + access_controls; unrecorded => \"; how access is controlled is not recorded\"}. {TRANSFER_CLAUSE - conditional: the transfer mechanism named}. Rights requests are handled {rights_handling - as prose}{OVERRIDE_CLAUSE - from rights_handling_override; absent => omitted}.";
 
 /**
  * The per-activity sentence template, i.e. the repeating record with its

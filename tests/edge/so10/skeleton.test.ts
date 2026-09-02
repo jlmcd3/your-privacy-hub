@@ -146,6 +146,31 @@ Deno.test("the two-part access-controls answer renders as ONE fact", () => {
   assert(body.includes(ACTIVITY.accessControls));
 });
 
+// DOC 141 (2026-09-02) — the two seams whose fixed lead-ins presupposed a
+// recorded answer are now composed conditional clauses; the self-contradictory
+// renders ("as the company describes: a matter it has not recorded", "The
+// operations performed: operations it has not recorded") must never recur.
+Deno.test("unrecorded access controls and operations compose honest clauses, never contradictions", () => {
+  const out = assembleRopaRegister({
+    ...INPUT,
+    activities: [{ ...ACTIVITY, accessControls: "", processingOperations: "" }],
+  });
+  const body = out.activity_records[0].sentence;
+  assert(body.includes("how access is controlled is not recorded"), body);
+  assert(body.includes("The operations performed are not recorded."), body);
+  assert(!body.includes("as the company describes: a matter it has not recorded"), body);
+  assert(!body.includes("The operations performed: operations it has not recorded"), body);
+  assertEquals(out.conformance.ok, true, JSON.stringify(out.conformance.findings));
+});
+
+Deno.test("recorded access controls and operations render exactly as before DOC 141", () => {
+  const body = assembleRopaRegister(INPUT).activity_records[0].sentence;
+  assert(body.includes(`access is controlled as the company describes: ${ACTIVITY.accessControls}.`), body);
+  assert(body.includes(`The operations performed: ${ACTIVITY.processingOperations}.`), body);
+  assert(!body.includes("how access is controlled is not recorded"), body);
+  assert(!body.includes("The operations performed are not recorded"), body);
+});
+
 Deno.test("related assessments cite only the company's own documents", () => {
   const out = assembleRopaRegister(INPUT);
   assert(out.text.includes("Legitimate Interest Assessment — Customer support ticketing"));

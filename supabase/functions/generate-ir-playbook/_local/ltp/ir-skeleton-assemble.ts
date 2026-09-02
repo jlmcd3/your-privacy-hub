@@ -52,6 +52,10 @@ import { firstSentence, firstSentences } from "../../../_shared/ltp/dpia-skeleto
 import { buildIrPlaybookDeliverables, normalizeBreachNoticeContracts, normalizeResponseTeamRoster, processorNameFromContracts, resolveProcessorName } from "./ir-playbook-deliverables/build.ts";
 // IR-F tranche 2 — the verified per-state walk gates (CA/TX/NY this tranche).
 import { STATE_WALK_GATES } from "./ir-playbook-deliverables/us-state-duties.ts";
+// DOC 141 (2026-09-02) — the same jurisdiction list the regime derivation
+// folds into "eu" (build.ts readIncidentFacts), read here only to echo the
+// customer's own recorded member-state selections on the EU clocks row.
+import { EEA_JURISDICTIONS } from "./ir-playbook-deliverables/elements.ts";
 
 export const IR_SKELETON_ASSEMBLER_STAMP = "ir-skeleton-assembler@so7-wire-in-2026-08-10";
 
@@ -248,11 +252,21 @@ function deriveExternalSupportTable(intake: Bag): RenderedTable | null {
 // per-incident Art. 34 analysis (built by
 // buildDataSubjectCommunicationDetermination in ir-playbook-deliverables/
 // build.ts) rather than leaving the cell to read as "no duty exists."
-function deriveNotificationClocksTable(report: Bag): RenderedTable | null {
+function deriveNotificationClocksTable(report: Bag, intake: Bag): RenderedTable | null {
   const rows: string[][] = [];
   for (const d of asArray(report.notification_duties)) {
-    const label = s(d.regime_label);
+    let label = s(d.regime_label);
     if (!label) continue;
+    // DOC 141 (2026-09-02) — label wiring only, no legal content: the intake's
+    // recorded EU/EEA member states are folded into the single "eu" regime by
+    // readIncidentFacts (build.ts / elements.ts), so the customer's own
+    // recorded selections (e.g. Ireland, Germany) appeared nowhere in the
+    // document. Echo them on the EU row's Jurisdiction cell. No statutory
+    // claim, no authority name — the generic "EU/EEA" token is not repeated.
+    if (s(d.regime) === "eu") {
+      const recorded = arr(intake.jurisdictions).filter((j) => j !== "EU/EEA" && EEA_JURISDICTIONS.includes(j));
+      if (recorded.length) label = `${label} — recorded jurisdictions: ${recorded.join(", ")}`;
+    }
     const authority = s(d.supervisory_authority);
     const sa = (d.sa_notification_determination ?? {}) as Bag;
     const citation = s(sa.standard_citation) || (s(sa.regime) === "uk" ? "UK GDPR Art. 33(1)" : "GDPR Art. 33(1)");
@@ -1500,7 +1514,7 @@ export function assembleIRSkeletonDocument(report: Bag, intakeInput: Bag): IrSke
     "standing_playbook:4": deriveStandingGapsTable(report),
     "standing_sections:2": deriveEscalationTable(intake),
     "standing_sections:3": deriveExternalSupportTable(intake),
-    "standing_sections:4": deriveNotificationClocksTable(composeReport),
+    "standing_sections:4": deriveNotificationClocksTable(composeReport, intake),
     "incident_worksheet:2": deriveIncidentFactsTable(values, intake),
     "incident_worksheet:4": deriveDeadlineBoardTable(composeReport, intake),
     "incident_worksheet:8": deriveActionPlanTable(composeReport, intake),

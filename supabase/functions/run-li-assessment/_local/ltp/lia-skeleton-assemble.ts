@@ -434,6 +434,50 @@ export function eprivacyOverlayNote(report: Bag): string {
   return `Separately, ${lowered} This is a separate, additional obligation under the ePrivacy Directive and the UK's Privacy and Electronic Communications Regulations (PECR); it does not affect, and is not affected by, the Article 6(1)(f) determination above.`;
 }
 
+// DOC 141 (2026-09-02) — the UK GDPR Art. 6(11)/DUAA recognised-interest
+// overlay. engagement-map.ts has computed the three R_UK_ART_6_11_* entries
+// (direct marketing / intra-group transmission / network and information
+// security) since C1-d, but no LIA renderer ever read them — the same
+// "computed but never rendered" defect class doc 137 fixed for
+// R_EPRIVACY_PECR. This sibling of eprivacyOverlayNote (above) reads ONLY
+// `report.engagement_map`, exactly like that function, and renders one
+// informational sentence when an entry is engaged.
+//
+// UK-in-scope gating: buildLiaEngagementMap resolves an R_UK_ART_6_11_*
+// entry to "engaged" ONLY when the record's jurisdictions include the UK
+// (a non-UK record gets "not_applicable"), so the engaged status carries
+// the jurisdiction fact; this function trusts the map's own gate, the same
+// single-writer discipline eprivacyOverlayNote applies to R_EPRIVACY_PECR.
+//
+// INFORMATIONAL ONLY (doc-139 discipline, applied identically): this note
+// never reads or alters lia_determination, three_part_test, or any verdict;
+// its only render door is the v2 "findings:5" generated block it shares
+// with the ePrivacy note (the spine is byte-mirrored into
+// generate-report-pdf, so no new block is added). The example names quoted
+// are taken from the map entries' own `name` labels — nothing statutory is
+// invented here.
+export function ukArt611OverlayNote(report: Bag): string {
+  const engagementMap = bag(report.engagement_map);
+  const entries = Array.isArray(engagementMap.entries) ? engagementMap.entries : [];
+  const engaged = entries
+    .map((e) => bag(e))
+    .filter((e) => s(e.rule_id).startsWith("R_UK_ART_6_11_") && s(e.status) === "engaged");
+  if (!engaged.length) return "";
+  // Each entry's name reads "UK GDPR Art. 6(11) — <example> (DUAA 2025)";
+  // the example label between the dash and the instrument tag is the map's
+  // own wording for the recognised-interests example.
+  const examples = engaged
+    .map((e) => {
+      const m = s(e.name).match(/—\s*(.+?)\s*\(DUAA/);
+      return m ? m[1] : "";
+    })
+    .filter(Boolean);
+  if (!examples.length) return "";
+  return `On the UK leg of the analysis, UK GDPR Article 6(11), inserted by the Data (Use and Access) Act 2025, recognises ${
+    asProse(examples)
+  } as an example of a legitimate interest, and that recognition bears on this assessment's application under the UK GDPR; a legitimate interests assessment is still required, and this note does not affect, and is not affected by, the Article 6(1)(f) determination above.`;
+}
+
 // BATCH 19a (Wave C3, doc 113 S3.1) — the three-test verdict strip: the
 // Executive Summary's hideHeader scoreboard, one row per typed test verdict.
 // Verdict words mirror composeExecPosture's own mapping. An unrecorded test
@@ -971,7 +1015,16 @@ export function assembleLiaSkeletonDocument(
   // the Art. 6(1)(f) determination, and it never touches eprivacy-gate.ts.
   if (deterministic) {
     const eprivacyNote = eprivacyOverlayNote(report);
-    if (eprivacyNote) composed["findings:5"] = eprivacyNote;
+    // DOC 141 (2026-09-02) — the UK GDPR Art. 6(11)/DUAA recognised-interest
+    // overlay (ukArt611OverlayNote, defined above) shares the v2-only
+    // "findings:5" generated block: the spine is byte-mirrored into
+    // generate-report-pdf, so no new block key exists to target, and the
+    // block is [GENERATED, OPTIONAL] — both notes are informational
+    // engagement-map overlays that never touch the Art. 6(1)(f)
+    // determination. Rendered after the ePrivacy note when both fire.
+    const ukArt611Note = ukArt611OverlayNote(report);
+    const overlayNotes = [eprivacyNote, ukArt611Note].filter(Boolean).join(" ");
+    if (overlayNotes) composed["findings:5"] = overlayNotes;
   }
 
   // 3E9AD759-L1 (2026-08-27, live batch 3e9ad759, flagged HIGH) — a UK-only

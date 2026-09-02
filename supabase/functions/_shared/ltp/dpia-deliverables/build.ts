@@ -2650,7 +2650,10 @@ const RESIDUAL_RIGHTS_TABLE =
 // composed "requires …, and whether …" after the call site's "Article 20
 // additionally requires" lead-in.)
 const PORTABILITY_CONDITIONS_UNRESOLVED =
-  "that the data was provided by or observed from the data subject (WP242 rev.01) and that the processing is carried out by automated means — the current intake does not collect either fact, so this assessment reaches no conclusion on whether Article 20 applies to this processing";
+  // DOC 141 (2026-09-02) — BUG 2: "the current intake does not collect either
+  // fact" was internal-design language in customer prose; house style is the
+  // record-facing form. Structure and legal content unchanged (DPIA-1 ratified).
+  "that the data was provided by or observed from the data subject (WP242 rev.01) and that the processing is carried out by automated means — the record does not state either fact, so this assessment reaches no conclusion on whether Article 20 applies to this processing";
 
 /**
  * PROMPT 10B(1) — resolve the Art. 9(2)(x) pinpoint carried by the intake's

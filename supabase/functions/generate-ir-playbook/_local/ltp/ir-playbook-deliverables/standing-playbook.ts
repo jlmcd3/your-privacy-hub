@@ -22,7 +22,7 @@
 import type { DeliverableStatus } from "./types.ts";
 import type { ContentOwnerMapping } from "./types.ts";
 import { HIGH_RISK_DATA_TYPES, STANDING_TO_COMPLETE } from "./elements.ts";
-import { normalizeBreachNoticeContracts, normalizeResponseTeamRoster, type RosterRow } from "./build.ts";
+import { normalizeBreachNoticeContracts, normalizeResponseTeamRoster, readIncidentFacts, type RosterRow } from "./build.ts";
 import { buildHipaaDuties } from "./hipaa-duties.ts";
 import { buildSectoralDuties } from "./sectoral-duties.ts";
 
@@ -401,13 +401,25 @@ const ELEMENT_ACTIONS: Readonly<Record<string, string>> = {
  */
 function buildFirst24Hours(intake: unknown, mapping?: ContentOwnerMapping): PlaybookTableSection {
   const rows: string[][] = FIRST_24H_BASE.map((i) => [i.item, i.owner, "First 24 hours"]);
-  const first = new Set(mapping?.phasing?.first_tranche ?? []);
-  for (const el of mapping?.elements ?? []) {
-    rows.push([
-      `${ELEMENT_ACTIONS[el.element] ?? "Supply the notification element the provision requires"}, for ${el.citation}.`,
-      el.owner,
-      first.has(el.element) ? "First tranche" : "Phased — deferred with a recorded reason",
-    ]);
+  // DOC 141 (2026-09-02) — GDPR-FAMILY GATE. `content_owner_mapping` is
+  // computed unconditionally upstream (build.ts), so before this gate a
+  // US-only record carried the four GDPR Art. 33(3)(a)-(d) actions in this
+  // structured checklist. The element rows are appended only where the
+  // intake engages a GDPR-family regime — the same jurisdiction derivation
+  // that decides `notification_duties`, mirroring the skeleton assembler's
+  // empty-duties gate (ir-skeleton-assemble.ts). Both consumers of
+  // buildStandingPlaybook (index.ts and the ir-csc rebuild) pass through
+  // here, so this is the single fix point. Non-GDPR rows are untouched.
+  const gdprEngaged = readIncidentFacts(intake).gdprInScope;
+  if (gdprEngaged) {
+    const first = new Set(mapping?.phasing?.first_tranche ?? []);
+    for (const el of mapping?.elements ?? []) {
+      rows.push([
+        `${ELEMENT_ACTIONS[el.element] ?? "Supply the notification element the provision requires"}, for ${el.citation}.`,
+        el.owner,
+        first.has(el.element) ? "First tranche" : "Phased — deferred with a recorded reason",
+      ]);
+    }
   }
   const isolation = str(get(intake, "itIsolationAuthority"));
   rows.push([
@@ -425,7 +437,12 @@ function buildFirst24Hours(intake: unknown, mapping?: ContentOwnerMapping): Play
     ...(isolation
       ? {}
       : { information_needed: "Record which role may isolate a production system without further approval; that completes this section." }),
-    note: "The phasing column generalises the Article 33(4) phasing plan: an item that cannot be established in the first tranche is deferred with a recorded reason, not dropped.",
+    // DOC 141 (2026-09-02) — where no GDPR-family regime is engaged the
+    // Article 33(4) reference goes with the element rows it explains; the
+    // phasing discipline itself is stated without a statutory citation.
+    note: gdprEngaged
+      ? "The phasing column generalises the Article 33(4) phasing plan: an item that cannot be established in the first tranche is deferred with a recorded reason, not dropped."
+      : "An item that cannot be established in the first 24 hours is deferred with a recorded reason, not dropped.",
   };
 }
 

@@ -232,7 +232,10 @@ Deno.test("item414: IR-6 — the notification-content rows name their element", 
     ],
     phasing: { first_tranche: ["a_nature"], phased: [] },
   } as any;
-  const sp = buildStandingPlaybook(COMPLETE, mapping);
+  // DOC 141 (2026-09-02) — the Art. 33(3) element rows are now gated on
+  // GDPR-family engagement; this test is about their naming, so it runs on
+  // an intake that actually engages the EU regime.
+  const sp = buildStandingPlaybook({ ...COMPLETE, jurisdictions: ["Ireland"] }, mapping);
   const sec = sp.sections.find((s) => s.id === "first_24_hours_checklist") as any;
   const actions: string[] = sec.rows.map((r: string[]) => r[0]);
   const content = actions.filter((a) => /Art\. 33\(3\)/.test(a));

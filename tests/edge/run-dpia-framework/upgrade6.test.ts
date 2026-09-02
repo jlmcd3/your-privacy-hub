@@ -62,7 +62,8 @@ Deno.test("ITEM 1a — a missing roster degrades, it is never omitted and never 
   assertEquals(team.members.length, 0);
   assert(team.text.length > 0, "degraded record still carries prose");
   assert(team.information_needed, "degraded record names what is missing");
-  assertStringIncludes(team.information_needed!, "dpia_prepared_by");
+  // DOC 141 (2026-09-02) — BUG 1: plain-language label, never the raw key.
+  assertStringIncludes(team.information_needed!, "who prepared this assessment");
 });
 
 Deno.test("ITEM 1a — the legacy dpia_team RACI field is the fallback source", () => {
@@ -106,18 +107,61 @@ Deno.test("ITEM 1b — name, title, date and basis produce an attested approval"
   assertStringIncludes(v.template_ref, "§ 0.5 ¶10");
 });
 
+// DOC 141 (2026-09-02) — BUG 1: information_needed now carries the
+// FIELD_LABELS plain-language phrases, never raw intake keys.
 Deno.test("ITEM 1b — a partial approval is not attested and lists every missing part", () => {
   const v = buildDpiaValidationApproval({ dpia_approved_by_name: "M. Ferrante" });
   assertEquals(v.attested, false);
   assertEquals(v.status, "record_insufficient");
   assert(v.information_needed);
-  assertStringIncludes(v.information_needed!, "dpia_approved_by_title");
-  assertStringIncludes(v.information_needed!, "dpia_approval_date");
-  assertStringIncludes(v.information_needed!, "dpia_signoff_basis");
+  assertStringIncludes(v.information_needed!, "the approver's role");
+  assertStringIncludes(v.information_needed!, "the date this assessment was approved");
+  assertStringIncludes(v.information_needed!, "what the sign-off rests on");
   assert(
-    !v.information_needed!.includes("dpia_approved_by_name"),
+    !v.information_needed!.includes("who approved this assessment"),
     "a field that IS on the record must not be listed as missing",
   );
+});
+
+// DOC 141 (2026-09-02) — regression: no raw dpia_* intake token may reach the
+// rendered "What is still needed" string, under any combination of absence.
+Deno.test("DOC 141 — information_needed never renders a raw dpia_* intake token", () => {
+  for (
+    const intake of [
+      {},
+      { dpia_approved_by_name: "M. Ferrante" },
+      { dpia_approved_by_title: "Managing Director" },
+      {
+        dpia_approved_by_name: "M. Ferrante",
+        dpia_approved_by_title: "Managing Director",
+        dpia_approval_date: "2026-04-14",
+      },
+    ]
+  ) {
+    const v = buildDpiaValidationApproval(intake);
+    assert(v.information_needed, "these intakes are all incomplete");
+    assert(
+      !/dpia_[a-z_]+/.test(v.information_needed!),
+      `raw intake token leaked into: ${v.information_needed}`,
+    );
+    assert(!/dpia_[a-z_]+/.test(v.text), "raw intake token leaked into text");
+  }
+  // Same guarantee for the assessment-team builder: an empty roster and a
+  // roster whose roles are missing both degrade without a raw token.
+  for (
+    const intake of [
+      {},
+      { dpia_prepared_by: "P. Raman" }, // name present, role missing
+    ]
+  ) {
+    const team = buildDpiaAssessmentTeam(intake);
+    assert(team.information_needed, "these intakes are all incomplete");
+    assert(
+      !/dpia_[a-z_]+/.test(team.information_needed!),
+      `raw intake token leaked into: ${team.information_needed}`,
+    );
+    assert(!/dpia_[a-z_]+/.test(team.text), "raw intake token leaked into text");
+  }
 });
 
 Deno.test("ITEM 1b — an empty record is not attested and never fabricates an approver", () => {

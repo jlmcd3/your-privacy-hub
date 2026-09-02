@@ -90,7 +90,12 @@ const UNRECORDED_ENTITY_TYPE = "legal entity whose form it has not recorded";
 const UNRECORDED_JURISDICTION = "a jurisdiction it has not recorded";
 const UNRECORDED_ADDRESS = "an address it has not recorded";
 const UNRECORDED_BAND = "a size it has not recorded";
-const UNRECORDED_ANSWER = "a matter it has not recorded";
+// DOC 141 (2026-09-02) — UNRECORDED_ANSWER ("a matter it has not recorded")
+// retired: its only consumer was the access-controls slot, whose fixed
+// lead-in ("access is controlled as the company describes:") presupposed a
+// recorded answer, rendering the self-contradictory "...as the company
+// describes: a matter it has not recorded". That seam is now the composed
+// conditional {ACCESS_CLAUSE} (see buildActivitySlots).
 
 // ── Input contract ──────────────────────────────────────────────────────────
 
@@ -323,7 +328,11 @@ export function buildActivitySlots(a: RopaActivityInput): SlotValues {
     ? `, subject to the activity-specific process the company has described: ${noStop(s(a.rightsOverride))}`
     : "";
   return {
-    activity_name: s(a.name) || "an activity it has not named",
+    // DOC 141 (2026-09-02) — under the fixed lead-in "The activity {slot}",
+    // the old fallback "an activity it has not named" doubled the noun
+    // ("The activity an activity it has not named"). The relative clause
+    // composes: "The activity it has not named, owned by ...".
+    activity_name: s(a.name) || "it has not named",
     activity_owner: orUnrecorded(a.owner, "an owner it has not named"),
     purpose: orUnrecorded(a.purpose, "a purpose it has not recorded"),
     // S-P1 — a processor states no basis of its own (Art. 30(2)); the
@@ -335,13 +344,29 @@ export function buildActivitySlots(a: RopaActivityInput): SlotValues {
         : "the documented instructions of the controller it acts for (Article 30(2))")
       : orUnrecorded(a.lawfulBasis, "a basis it has not recorded"),
     data_subjects: orUnrecorded(a.dataSubjects, "categories of data subjects it has not recorded"),
-    data_categories: orUnrecorded(a.dataCategories, "categories of personal data it has not recorded"),
+    // DOC 141 (2026-09-02) — under the fixed lead-in "and the categories
+    // {slot}", the old fallback "categories of personal data it has not
+    // recorded" doubled "categories". The trimmed fallback composes: "and the
+    // categories of personal data it has not recorded".
+    data_categories: orUnrecorded(a.dataCategories, "of personal data it has not recorded"),
     collection_sources: orUnrecorded(a.collectionSources, "sources it has not recorded"),
-    processing_operations: orUnrecorded(a.processingOperations, "operations it has not recorded"),
+    // DOC 141 (2026-09-02) — conditional clause (the TRANSFER_CLAUSE
+    // pattern): the old fixed lead-in "The operations performed:" presupposed
+    // a recorded answer, rendering "The operations performed: operations it
+    // has not recorded". The clause now composes whole in each branch.
+    OPERATIONS_SENTENCE: recorded(a.processingOperations)
+      ? `The operations performed: ${noStop(s(a.processingOperations))}`
+      : "The operations performed are not recorded",
     processor_platform: orUnrecorded(a.recipients, "recipients it has not recorded"),
     RETENTION_PHRASE: retentionPhrase(a),
     security_measures: orUnrecorded(a.security, "measures it has not recorded"),
-    access_controls: orUnrecorded(a.accessControls, UNRECORDED_ANSWER),
+    // DOC 141 (2026-09-02) — conditional clause: the old fixed lead-in
+    // "; access is controlled as the company describes:" presupposed a
+    // recorded answer, rendering "...as the company describes: a matter it
+    // has not recorded". The clause now composes whole in each branch.
+    ACCESS_CLAUSE: recorded(a.accessControls)
+      ? `; access is controlled as the company describes: ${noStop(s(a.accessControls))}`
+      : "; how access is controlled is not recorded",
     TRANSFER_CLAUSE: transferClause(a) || null,
     rights_handling: orUnrecorded(a.rightsHandling, "by a process it has not recorded"),
     OVERRIDE_CLAUSE: override,

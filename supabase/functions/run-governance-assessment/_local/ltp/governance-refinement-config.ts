@@ -178,4 +178,13 @@ export const GOVERNANCE_PROTECTED_LEAF_KEYS = [
   "decision",
   "emit_gate",
   "build_stamp",
+  // DOC 141 (2026-09-02) — BUG 3: ratified recommended-action sentences.
+  // The domain-findings `recommended_action` strings are CEO-ratified prose
+  // (governance-domain-tables.ts) carrying their citations in-line. On the
+  // Maris run the critic→verifier→splicer pass rewrote one, moving the
+  // "(GDPR Art. 24(1); Art. 32(1)(d))" citation onto a record-production
+  // rationale and inventing an "at minimum annual" cadence the record never
+  // stated. The leaf is protected outright: refinement may not splice into
+  // recommended_action anywhere in the report.
+  "recommended_action",
 ];

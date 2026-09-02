@@ -33,6 +33,11 @@ import type { DeliverableStatus } from "./types.ts";
 // Table of Authorities listed both forms. The prefix now follows the record's
 // regime; the pinpoint is unchanged.
 import { readDpiaRegime } from "./build.ts";
+// DOC 141 (2026-09-02) — BUG 1: the validation-approval `information_needed`
+// string rendered raw intake keys ("dpia_approved_by_name — …") verbatim in
+// the customer PDF's "What is still needed" row. The plain-language labels
+// already exist in the fleet registry; use them as the single source.
+import { FIELD_LABELS } from "../../customer-messages.ts";
 
 const art357 = (intake: unknown): string =>
   `${readDpiaRegime(intake) === "UK" ? "UK GDPR" : "GDPR"} Art. 35(7)`;
@@ -142,8 +147,10 @@ export function buildDpiaAssessmentTeam(intake: unknown): DpiaAssessmentTeam {
       citation: art357(intake),
       template_ref: TEMPLATE_REF_TEAM,
       status: "record_insufficient",
+      // DOC 141 (2026-09-02) \u2014 BUG 1 (same class): plain-language label, no
+      // raw intake key in the rendered string.
       information_needed:
-        "dpia_prepared_by \u2014 the names and roles of the people who prepared this assessment. Where responsibilities are allocated on a RACI basis, record who is Responsible, Accountable, Consulted and Informed.",
+        `${FIELD_LABELS.dpia_prepared_by} \u2014 the names and roles of the people who prepared it. Where responsibilities are allocated on a RACI basis, record who is Responsible, Accountable, Consulted and Informed.`,
     };
   }
 
@@ -167,8 +174,10 @@ export function buildDpiaAssessmentTeam(intake: unknown): DpiaAssessmentTeam {
     template_ref: TEMPLATE_REF_TEAM,
     status: rolesKnown.length === named.length ? "analysed" : "record_insufficient",
     ...(rolesKnown.length === named.length ? {} : {
+      // DOC 141 (2026-09-02) \u2014 BUG 1 (same class): plain-language label, no
+      // raw intake key in the rendered string.
       information_needed:
-        "dpia_prepared_by \u2014 the role held by each named contributor to this assessment.",
+        `${FIELD_LABELS.dpia_prepared_by} \u2014 the role held by each named contributor.`,
     }),
   };
 }
@@ -186,21 +195,23 @@ export function buildDpiaValidationApproval(intake: unknown): DpiaValidationAppr
 
   const attested = !!name && !!title && !!date;
 
+  // DOC 141 (2026-09-02) \u2014 BUG 1: plain-language entries only; no raw intake
+  // key may reach the rendered string. Labels come from FIELD_LABELS.
   const missing: string[] = [];
   if (!name) {
     missing.push(
-      "dpia_approved_by_name \u2014 the responsible official who formally approved this assessment as complete",
+      `${FIELD_LABELS.dpia_approved_by_name} \u2014 the responsible official who formally approved it as complete`,
     );
   }
   if (!title) {
     missing.push(
-      "dpia_approved_by_title \u2014 that official's title and the authority under which they approve",
+      `${FIELD_LABELS.dpia_approved_by_title} \u2014 that official's title and the authority under which they approve`,
     );
   }
-  if (!date) missing.push("dpia_approval_date \u2014 the date formal approval was given");
+  if (!date) missing.push(FIELD_LABELS.dpia_approval_date);
   if (!basis) {
     missing.push(
-      "dpia_signoff_basis \u2014 what the approval rests on: the sections reviewed, the residual-risk position accepted, and any condition attached",
+      `${FIELD_LABELS.dpia_signoff_basis} \u2014 the sections reviewed, the residual-risk position accepted, and any condition attached`,
     );
   }
 

@@ -204,8 +204,35 @@ export function composeBalancingAnalysis(
   u4: LiaUpgrade4Deliverables,
   intake: Bag,
 ): { analysis: string; synthesis: string } {
-  const forSide = controllerSideClause(intake, u4);
-  const againstParts: string[] = [expectationClause(expectations), harmClause(u4)];
+  // DOC 141 (2026-09-02) — polarity bucketing. The expectation and harm
+  // clauses used to land in "Against it" UNCONDITIONALLY, so a record whose
+  // people would reasonably expect the processing printed that pro-controller
+  // fact as weighing AGAINST the interest — contradicting factorEntries
+  // below, which routes the same verdicts to their correct direction
+  // (controller / neutral / data_subject). The clauses now follow the same
+  // routing: reasonably_expected joins the FOR side; an undetermined
+  // expectation and a non-material or unrecorded harm sit in a neutral
+  // sentence (mirroring factorEntries' "neutral" direction); only an adverse
+  // or partial expectation, a materially-weighted harm, the child factor and
+  // a power imbalance print against the interest. Nothing is re-judged here
+  // — every clause still renders the verdict the typed finding carries.
+  const forParts: string[] = [controllerSideClause(intake, u4)];
+  const againstParts: string[] = [];
+  const neutralParts: string[] = [];
+  const expClause = expectationClause(expectations);
+  if (expectations.verdict === "reasonably_expected") {
+    forParts.push(expClause);
+  } else if (expectations.verdict === "partly_expected" || expectations.verdict === "not_reasonably_expected") {
+    againstParts.push(expClause);
+  } else {
+    neutralParts.push(expClause);
+  }
+  const hClause = harmClause(u4);
+  if (u4.potential_harms.status !== "record_insufficient" && u4.potential_harms.material_weight_against_controller) {
+    againstParts.push(hClause);
+  } else {
+    neutralParts.push(hClause);
+  }
   if (child.determination === "children_in_scope") {
     againstParts.push("children are among the people affected, and their interests carry particular weight");
   }
@@ -242,8 +269,18 @@ export function composeBalancingAnalysis(
     : verdict === "likely_fails"
     ? "Weighed together, the balance favours the people affected as the record stands."
     : "Weighed together, the balance cannot be struck on the information provided.";
-  const analysis =
-    `In favour of the interest: ${forSide}. Against it: ${againstParts.join("; ")}. ${closing}`;
+  // DOC 141 (2026-09-02) — the three buckets render as separate sentences,
+  // and an empty against-bucket is stated honestly rather than padded.
+  const sentences: string[] = [`In favour of the interest: ${forParts.join("; ")}.`];
+  sentences.push(
+    againstParts.length
+      ? `Against it: ${againstParts.join("; ")}.`
+      : "Against it, the typed findings above carry no factor of material weight.",
+  );
+  if (neutralParts.length) {
+    sentences.push(`Neither for nor against it: ${neutralParts.join("; ")}.`);
+  }
+  const analysis = `${sentences.join(" ")} ${closing}`;
   return { analysis, synthesis: closing };
 }
 
