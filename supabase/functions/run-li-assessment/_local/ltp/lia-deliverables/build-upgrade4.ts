@@ -600,9 +600,28 @@ export function buildAlternativesConsidered(intake: unknown): AlternativesConsid
       for (const w of small) if (big.has(w)) hit++;
       return hit / small.size;
     };
+    // DOC 135 (Batch 4 A-Team review, 2026-09-01) — this used to strip
+    // seam punctuation down to nothing, which left long (>=120 char)
+    // why_inadequate strings without terminal punctuation. _shared/
+    // emit-gate.ts's unterminatedSentence() heuristic (a generic leak
+    // detector, not LIA-specific, threshold mirrored exactly here) then
+    // flagged those as truncated/leaked content and destructively
+    // overwrote them with the generic "could not verify this item"
+    // fallback — even though the record fully supported the rejected
+    // alternative. Re-terminating with a period fixes the false positive
+    // at its source instead of widening the leak-detector — but ONLY
+    // above the same length threshold the leak-detector uses: a short,
+    // deliberately terse reason (this table's normal case — see
+    // c4-registers-20a.test.ts's "Cannot cover the full shaft network
+    // continuously", no trailing period by design) must stay exactly as
+    // it was, since it was never at risk of the false positive.
+    const stripSeam = (t: string): string => {
+      const trimmed = t.replace(/[\s;,.]+$/, "");
+      return trimmed.length >= 120 && !/[.!?]$/.test(trimmed) ? `${trimmed}.` : trimmed;
+    };
     const trimmed = alternatives.map((a) => ({
       alternative: a.alternative,
-      why_inadequate: a.why_inadequate.replace(/[\s;,.]+$/, ""),
+      why_inadequate: stripSeam(a.why_inadequate),
       rationale_recorded: a.rationale_recorded,
     }));
     const summaryIdx = new Set<number>();

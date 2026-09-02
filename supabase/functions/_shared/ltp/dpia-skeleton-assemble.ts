@@ -1023,8 +1023,27 @@ function composeSignoffBody(report: Bag, intake: Bag, values: SlotValues): strin
     // appear to rest on risks this report never itemises (the Batch-3
     // incidental-capture traceability gap, pending the risk-spec ruling).
     if (/\brisks?\b/i.test(basis) && /(accept|residual)/i.test(basis)) {
+      // DOC 135 (Batch 4 A-Team review, 2026-09-01) — strengthens the
+      // DOC-130 DPIA-SIGNOFF guard: pointing to "Section 4" without stating
+      // the current figures left the historical-vs-current mismatch (e.g.
+      // a basis quoting "two moderate residual risks" against a register
+      // that currently shows one Moderate risk under a different name)
+      // implicit rather than stated. Names the current band counts and
+      // labels explicitly so the divergence, if any, is visible without a
+      // cross-reference.
+      const bandLabels: Record<string, string[]> = {};
+      for (const r of asArray(report.risk_register)) {
+        const band = s(r.residual_band) || s(r.inherent_band);
+        if (!band) continue;
+        (bandLabels[band] ??= []).push(noStop(s(r.risk_label)) || "an unlabeled risk");
+      }
+      const bandSummary = Object.entries(bandLabels)
+        .map(([band, labels]) => `${labels.length} at ${band} (${asProse(labels)})`)
+        .join("; ");
       parts.push(
-        "Where that basis refers to accepted residual risks, the risks this assessment itself identifies, and their remaining levels, are those set out in Section 4; the acceptance basis above is the Company's own record, quoted verbatim, and is not re-derived by this assessment.",
+        `Where that basis refers to accepted residual risks, the risks this assessment itself identifies, and their remaining levels, are those set out in Section 4${
+          bandSummary ? ` — currently ${bandSummary}` : ""
+        }; the acceptance basis above is the Company's own record, quoted verbatim, and is not re-derived by this assessment.`,
       );
     }
   }

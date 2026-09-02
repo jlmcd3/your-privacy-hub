@@ -882,7 +882,11 @@ function buildHtml(d: AssembledData): string {
   </header>
   <div class="body">
 
-  <p style="font-size: 13px; margin-top: 24px;">This record is maintained in accordance with Article 30 of the General Data Protection Regulation (EU) 2016/679 (GDPR) and, where applicable, Article 30 of the UK GDPR as retained by the Data Protection Act 2018. It is intended to document the processing activities carried out by the controller and, where relevant, the processor. <strong>This record must be reviewed and completed before it can be relied upon as a compliant Article 30 record.</strong></p>
+  <p style="font-size: 13px; margin-top: 24px;">This record is maintained in accordance with Article 30 of the General Data Protection Regulation (EU) 2016/679 (GDPR) and, where applicable, Article 30 of the UK GDPR as retained by the Data Protection Act 2018. It is intended to document the processing activities carried out by the controller and, where relevant, the processor. <strong>${
+    d.register.completeness.complete
+      ? "This record contains the Article 30 elements identified for the recorded processing activities. The completion items identified in the Completeness Review should be addressed as part of the Company's ongoing accountability record."
+      : "This record must be reviewed and completed before it can be relied upon as a compliant Article 30 record."
+  }</strong></p>
 
   ${registerHtml(d.register)}
 

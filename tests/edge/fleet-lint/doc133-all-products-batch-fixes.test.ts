@@ -139,7 +139,7 @@ Deno.test("doc133 — RoPA: no home base and no jurisdictions renders an honest 
   // deno-lint-ignore no-explicit-any
   const doc = assembleRopaRegister(minimalRopaInput([]) as any);
   assert(!doc.text.includes("It operates across"), "fabricated an 'operates across' clause with no jurisdictions");
-  assert(doc.text.includes("no jurisdictions for the company"));
+  assert(doc.text.includes("does not identify a home base or jurisdictions for the company"));
 });
 
 Deno.test("doc133 — RoPA: no home base but jurisdictions recorded still renders the jurisdictions sentence (unchanged)", () => {

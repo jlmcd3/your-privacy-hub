@@ -481,7 +481,9 @@ function composeCompletenessFindings(
     );
   } else {
     sentences.push(
-      "The intake carries no answer on whether processing notices are displayed; recording that answer for each activity would close the point",
+      // DOC 135 (Batch 4 A-Team review, 2026-09-01) — customer-facing
+      // vocabulary filter: "intake" is an internal term.
+      "The information supplied by the Company does not state whether processing notices are displayed; recording that answer for each activity would close the point",
     );
   }
 
@@ -572,9 +574,10 @@ export function assembleRopaRegister(input: RopaAssembleInput): RopaRegisterDocu
   // Controller and Accountability — honest alternate when no home base was
   // captured (the byte-pinned operating sentence drops in that branch).
   if (values.home_base === null) {
+    // DOC 135 — "intake" replaced with customer-facing phrasing.
     composed["controller_and_accountability:1"] = values.jurisdictions
-      ? `It operates across ${values.jurisdictions}, with a workforce of ${values.employee_band}. The intake carries no home base for the company, so this register does not state one.`
-      : `The intake carries no home base and no jurisdictions for the company, so this register does not state either. Workforce: ${values.employee_band}.`;
+      ? `It operates across ${values.jurisdictions}, with a workforce of ${values.employee_band}. The information supplied by the Company does not identify a home base for the company, so this register does not state one.`
+      : `The information supplied by the Company does not identify a home base or jurisdictions for the company, so this register does not state either. Workforce: ${values.employee_band}.`;
   }
 
   // ROPA-1 (2026-08-29) — Art. 30(2) scope statement, composed only where a

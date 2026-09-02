@@ -54,6 +54,17 @@ export const READINESS_SIBLING_KEYS: readonly string[] = [
 
 const ADVERSE = new Set(["not_satisfied", "record_insufficient"]);
 
+// DOC 135 — customer-facing labels for the raw verdict tokens, used only in
+// the rationale sentence (the `rating` switch below already has its own
+// customer-facing vocabulary for the headline word).
+const PRIMARY_LABEL: Record<string, string> = {
+  satisfied: "satisfied",
+  partially_satisfied: "partially satisfied",
+  not_satisfied: "not satisfied",
+  record_insufficient: "additional information required",
+  not_applicable: "not applicable",
+};
+
 export type ReadinessRating =
   | "Evidenced"
   | "Partly evidenced"
@@ -149,9 +160,15 @@ export function deriveReadinessDetermination(
       return null;
   }
 
+  // DOC 135 (Batch 4 A-Team review, 2026-09-01) — `primary.replace(/_/g, " ")`
+  // printed the raw internal verdict token verbatim ("record insufficient",
+  // "not_satisfied" → "not satisfied") into customer-facing prose instead of
+  // a proper label. PRIMARY_LABEL mirrors the `rating` switch above's
+  // customer-facing vocabulary rather than re-deriving one from the enum.
+  const primaryLabel = PRIMARY_LABEL[primary] ?? primary.replace(/_/g, " ");
   const rationale = adverse > 0
-    ? `The accountability determination is "${primary.replace(/_/g, " ")}" and ${adverse} of the determinations read alongside it ${adverse === 1 ? "is" : "are"} adverse, so the rating follows the weaker of the two.`
-    : `The accountability determination is "${primary.replace(/_/g, " ")}" and no determination read alongside it is adverse.`;
+    ? `The accountability determination is "${primaryLabel}" and ${adverse} of the determinations read alongside it ${adverse === 1 ? "is" : "are"} adverse, so the rating follows the weaker of the two.`
+    : `The accountability determination is "${primaryLabel}" and no determination read alongside it is adverse.`;
 
   return { rating, rating_basis: BASIS, rationale, determined_from };
 }

@@ -42,6 +42,7 @@ import type {
 import type { ComponentRecommendation, CyberNextStep } from "./cyber-recommendations.ts";
 import { recommendationFact, recommendationGap } from "./cyber-recommendations.ts";
 import { CYBER_7123_COMPONENTS } from "./components.ts";
+import { resolveCyberApplicability } from "../cyber-applicability.ts";
 
 type Bag = Record<string, unknown>;
 
@@ -723,7 +724,7 @@ export function buildReadinessActions(intake: Bag, recs: readonly ComponentRecom
 
 // ── Readiness conclusion (v1.1 § 7; guardrail i5) ─────────────────────────
 
-export function buildOverallReadinessNarrative(d: CyberDeliverables, recs: readonly ComponentRecommendation[]): { narrative: string; single_next_act: string } {
+export function buildOverallReadinessNarrative(intake: Bag, d: CyberDeliverables, recs: readonly ComponentRecommendation[]): { narrative: string; single_next_act: string } {
   const rd = d.readiness_determination;
   let narrative: string;
   switch (rd.conclusion) {
@@ -748,9 +749,22 @@ export function buildOverallReadinessNarrative(d: CyberDeliverables, recs: reado
   // precedes everything, while this sentence named a different "most
   // important" act — a direct contradiction. The gating check now runs
   // first, matching the narrative's own logic.
+  //
+  // DOC 135 (Batch 4 A-Team review, 2026-09-01) — the auditor-engagement
+  // gate itself was outranking a MORE fundamental open question: whether
+  // § 7120 even requires an audit. Section 1's applicability table can show
+  // both A1/A2 triggers as "Insufficient information" while this sentence
+  // told the Company auditor engagement was the first gating item, with no
+  // acknowledgment that applicability was open too. Applicability now gates
+  // ahead of auditor engagement, matching the ratified gating hierarchy
+  // (applicability → first-audit timing → auditor engagement → evidence
+  // readiness).
+  const applicabilityUnresolved = resolveCyberApplicability((intake.profile ?? {}) as Bag).auditRequired.value === null;
   const auditorEngagementGating = d.independence_determination?.status === "record_insufficient";
   const top = recs[0];
-  const single_next_act = auditorEngagementGating
+  const single_next_act = applicabilityUnresolved
+    ? "The most important next act is to resolve whether an independent cybersecurity audit is required (§ 7120) — the record does not yet state the revenue and sale/share facts that trigger table depends on. The Company may continue preparing voluntarily while that is open; auditor engagement becomes the next gating item once applicability is resolved or the Company elects to proceed voluntarily."
+    : auditorEngagementGating
     ? "The most important next act is to record the auditor engagement and its independence status; the readiness conclusion waits on completing this item before any other action below is sequenced."
     : top
     ? `The most important next act is on ${top.label}: ${top.slot.template.replace("{fact}", "the recorded entry")}`
@@ -819,10 +833,15 @@ export function buildExecutiveSnapshotRows(inputs: FactorInputs): readonly (read
   // check as buildOverallReadinessNarrative's single_next_act: an unresolved
   // auditor engagement outranks every component-level item, and this row
   // must say so rather than falling to the generic "no item" sentence.
+  // DOC 135 — same applicability-first gating fix as
+  // buildOverallReadinessNarrative's single_next_act.
+  const applicabilityUnresolved = resolveCyberApplicability((intake.profile ?? {}) as Bag).auditRequired.value === null;
   const auditorEngagementGating = d.independence_determination?.status === "record_insufficient";
   rows.push([
     "Sequencing priority among the above",
-    auditorEngagementGating
+    applicabilityUnresolved
+      ? "Audit applicability (§ 7120) — gating: whether an independent cybersecurity audit is required is not yet resolved; that precedes auditor engagement and every other item."
+      : auditorEngagementGating
       ? "Auditor engagement — gating: the readiness conclusion waits on this item before any other action is sequenced."
       : inputs.nextSteps.length
       ? `${asProse(inputs.nextSteps.map((st) => st.slug).map((slug) => CYBER_7123_COMPONENTS.find((c) => c.slug === slug)?.label ?? slug))} — each stated in Section 6 with its owner`
@@ -887,7 +906,7 @@ export function buildCyberFactors(
     cross_cutting: buildCrossCutting(intake, deliverables, recommendations),
     incident_readiness: buildIncidentReadiness(intake, deliverables),
     readiness_actions: buildReadinessActions(intake, recommendations, deliverables),
-    overall: buildOverallReadinessNarrative(deliverables, recommendations),
+    overall: buildOverallReadinessNarrative(intake, deliverables, recommendations),
     evidence_preservation: buildEvidencePreservation(intake, deliverables),
     executive_lines: buildExecutiveReadinessLines(inputs),
     executive_snapshot_rows: buildExecutiveSnapshotRows(inputs),

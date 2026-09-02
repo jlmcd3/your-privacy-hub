@@ -2418,8 +2418,19 @@ export function buildProcessingInventory(intake: unknown): DpiaProcessingInvento
           ? {}
           : {
             information_needed: ASK_PROCESSOR_OBLIGATIONS,
-            ask_class: "ask_processor_contract",
-            display_label: resolveAskLabel("ask_processor_contract", { name }),
+            // DOC 135 (Batch 4 A-Team review, 2026-09-01) — this producer was
+            // never updated to the DOC-130 DPIA-A28 existence/terms split
+            // (see the Tier-1c "Transfers and processor arrangements" block
+            // below, ~line 3042, which already uses the correct class). The
+            // Executive Summary composes its open-items list from
+            // display_label, not information_needed, so it kept printing
+            // the stale "a written Art. 28 contract... and the date it was
+            // signed" wording (implying the DPA doesn't exist) even though
+            // this same record correctly shows an executed contract
+            // elsewhere in the document — only the term-coverage question
+            // is actually open.
+            ask_class: "ask_processor_terms_coverage",
+            display_label: resolveAskLabel("ask_processor_terms_coverage"),
           }),
         source_field: "third_party_processors",
       });

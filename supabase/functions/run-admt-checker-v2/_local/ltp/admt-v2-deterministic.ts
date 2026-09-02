@@ -1060,9 +1060,27 @@ export function computeAdmtV2(intake: Intake): AdmtV2Computed {
   const access = computeAccess(intake);
   const vendor = computeVendor(intake, scope.scopeState, optOutPath);
 
+  // DOC 135 (Batch 4 A-Team review, 2026-09-01) — a pathway-dependent record
+  // (scopeState stays literally "OUT_OF_SCOPE" by design — RULING 3.2 — with
+  // pathwayDependent:true layered on for presentation) previously excluded
+  // notice/optOut/access from BOTH the record-grade rollup and allFindings,
+  // even though the automated pathways are in scope for Article 11. Section
+  // 8's condition list (buildActionParagraphs, reads allFindings) then had
+  // only the one blanket "put the notice/opt-out/access processes in place"
+  // finding to work with — telling a Company to build processes its own
+  // Appendix B record shows already exist. Widening this gate to also fire
+  // on pathwayDependent lets the real, already-computed per-duty findings
+  // (GAP-only by construction — no-padding law) flow through, so Section 8
+  // can name actual gaps instead of a blanket ask. This does NOT yet change
+  // Sections 3-6's own rendering (still stubbed for pathwayDependent) or the
+  // Executive Summary's "Not reached" cells — that is a larger content
+  // decision (whether/how to render a full audit attributed to "the
+  // automatically-decided pathways") deferred pending its own review, same
+  // as the original pathwayDependent fix.
+  const pathwayInScope = scope.scopeState !== "OUT_OF_SCOPE" || scope.pathwayDependent;
   const sectionGrades: RecordGrade[] = [scope.recordGrade];
   const sectionStates: SubstantiveState[] = [];
-  if (scope.scopeState !== "OUT_OF_SCOPE") {
+  if (pathwayInScope) {
     sectionGrades.push(notice.recordGrade, optOut.recordGrade, access.recordGrade);
     sectionStates.push(notice.posture, optOut.posture, access.posture);
     if (vendor.posture !== "NOT_APPLICABLE") {
@@ -1077,10 +1095,10 @@ export function computeAdmtV2(intake: Intake): AdmtV2Computed {
 
   const allFindings = [
     ...scope.findings,
-    ...(scope.scopeState !== "OUT_OF_SCOPE" ? notice.findings : []),
-    ...(scope.scopeState !== "OUT_OF_SCOPE" ? optOut.findings : []),
-    ...(scope.scopeState !== "OUT_OF_SCOPE" ? access.findings : []),
-    ...(scope.scopeState !== "OUT_OF_SCOPE" && vendor.posture !== "NOT_APPLICABLE" ? vendor.findings : []),
+    ...(pathwayInScope ? notice.findings : []),
+    ...(pathwayInScope ? optOut.findings : []),
+    ...(pathwayInScope ? access.findings : []),
+    ...(pathwayInScope && vendor.posture !== "NOT_APPLICABLE" ? vendor.findings : []),
   ];
 
   return {
