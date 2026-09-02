@@ -85,6 +85,12 @@ export interface QualityConsoleProps {
    * each LOCAL (in-page) batch column header, mirroring the server columns.
    */
   renderLocalBatchActions?: (batchId: string) => ReactNode;
+  /**
+   * ALL-PRODUCTS-TEST — add server-side stress batches (static_stress_batches)
+   * as matrix columns, so batches run from this page appear in every browser.
+   */
+  showStressBatches?: boolean;
+
 }
 
 // Must stay identical to RUN_QUALITY_BATCH_SLUGS in the orchestrator.
