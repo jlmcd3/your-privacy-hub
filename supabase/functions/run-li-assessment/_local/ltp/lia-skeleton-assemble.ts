@@ -360,6 +360,48 @@ export function precedentClassSentence(report: Bag, deterministic = false): stri
   return s(finding.application);
 }
 
+// DOC 137 (2026-09-01) — the ePrivacy/PECR engagement-map overlay. Same
+// "computed but never rendered" pattern doc 136 fixed for DPIA's Art.
+// 35(3)(c) entry (_shared/ltp/dpia-skeleton-assemble.ts's
+// DPIA_MATRIX_ROWS[0].reportDetermination): engagement-map.ts's
+// R_EPRIVACY_PECR entry has been attached to report.engagement_map since it
+// shipped, but no LIA renderer ever read it — confirmed absent from a live
+// graded PDF by a prior investigation agent.
+//
+// This overlay is DELIBERATELY additive and informational only. It concerns
+// a DIFFERENT legal instrument (the ePrivacy Directive / PECR 2003, device
+// storage/access) from the one this document determines (GDPR/UK GDPR Art.
+// 6(1)(f), the legitimate-interests balancing test). It must never be read
+// as, or allowed to influence, the Art. 6(1)(f) determination itself — that
+// determination is computed exclusively from `three_part_test` / `v.outcome`
+// and this function touches neither. It is also fully separate from the
+// already-ratified narrow-trigger hard gate in
+// `lia-deliverables/eprivacy-gate.ts` (LIA_EPRIVACY_GATE_RATIFIED), which
+// can alter the three-part-test outcome on its own regex triggers; this
+// function does not call it, read it, or duplicate its triggers.
+//
+// R_EPRIVACY_PECR's status is "engaged" or "conditional" — engagement-map.ts
+// never assigns it a non-engagement status, so in practice this renders on
+// every record with an engagement_map. The gate below is still written
+// defensively (only "engaged"/"conditional" render; anything else, or a
+// missing entry, renders nothing) so a future narrowing of that rule's
+// status values is honored automatically without a further code change
+// (NO-PADDING LAW — no placeholder for a null/negative result).
+export function eprivacyOverlayNote(report: Bag): string {
+  const engagementMap = bag(report.engagement_map);
+  const entries = Array.isArray(engagementMap.entries) ? engagementMap.entries : [];
+  const entry = entries
+    .map((e) => bag(e))
+    .find((e) => s(e.rule_id) === "R_EPRIVACY_PECR");
+  if (!entry) return "";
+  const status = s(entry.status);
+  if (status !== "engaged" && status !== "conditional") return "";
+  const rationale = s(entry.rationale);
+  if (!rationale) return "";
+  const lowered = rationale.charAt(0).toLowerCase() + rationale.slice(1);
+  return `Separately, ${lowered} This is a separate, additional obligation under the ePrivacy Directive and the UK's Privacy and Electronic Communications Regulations (PECR); it does not affect, and is not affected by, the Article 6(1)(f) determination above.`;
+}
+
 // BATCH 19a (Wave C3, doc 113 S3.1) — the three-test verdict strip: the
 // Executive Summary's hideHeader scoreboard, one row per typed test verdict.
 // Verdict words mirror composeExecPosture's own mapping. An unrecorded test
@@ -847,6 +889,17 @@ export function assembleLiaSkeletonDocument(
     : { body: "", ledger: [] as readonly string[], entry_count: 0, aow_fired: false };
   if (deterministic && persuasive.body) {
     composed["persuasive_authority:0"] = persuasive.body;
+  }
+
+  // DOC 137 (2026-09-01) — the ePrivacy/PECR engagement-map overlay
+  // (eprivacyOverlayNote, defined above). V2-only: the new "findings:5"
+  // block exists only on LIA_SKELETON_SECTIONS_V2 (appended below, v1 stays
+  // byte-frozen). Informational/adjacent-obligation note; does not read
+  // from or write to v.outcome / three_part_test, so it cannot influence
+  // the Art. 6(1)(f) determination, and it never touches eprivacy-gate.ts.
+  if (deterministic) {
+    const eprivacyNote = eprivacyOverlayNote(report);
+    if (eprivacyNote) composed["findings:5"] = eprivacyNote;
   }
 
   // 3E9AD759-L1 (2026-08-27, live batch 3e9ad759, flagged HIGH) — a UK-only

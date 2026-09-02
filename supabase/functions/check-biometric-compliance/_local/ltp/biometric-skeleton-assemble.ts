@@ -187,23 +187,50 @@ function deriveDutyScorecard(report: Bag): RenderedTable | null {
   };
 }
 
+// DOC 137 FIX 1 — ACTION PANEL OWNER COLUMN. The fuller recommendation prose
+// this pipeline renders elsewhere in the same document
+// (check-biometric-compliance/index.ts — the "Other US state"
+// information-needed owner line and the parameterized Priority-actions owner,
+// both printed as "Suggested owner (confirm): [role].") already derives a
+// suggested owner role from orgType. The compact Action panel table below
+// never carried that column. This is the SAME derivation (identical
+// employer/healthcare/financial/else branches as index.ts's `orgOwner`), kept
+// here as its own pure function — rather than imported across the
+// index.ts/assembler boundary — so the table has no dependency on that
+// module's internals, but produces the identical string for the same
+// orgType so the table and the prose never disagree.
+export function deriveBiometricOwnerRole(orgType: string): string {
+  const t = orgType ?? "";
+  return /employer/i.test(t)
+    ? "the HR lead, in coordination with the DPO or Head of Privacy"
+    : /healthcare/i.test(t)
+      ? "the Privacy Officer and CISO"
+      : /financial/i.test(t)
+        ? "the Chief Compliance Officer and CISO"
+        : "the Head of Privacy (or DPO where designated) and the Head of Security";
+}
+
 // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, Biometric P1-4) —
 // the same unlawful/unresolved arrays composeOperativeLead reads, as a
 // compact table: one row per action, typed by whether it is substantive
 // remediation or record completion. No new facts — same source, second
 // presentation.
-function deriveActionPanelTable(report: Bag): RenderedTable | null {
+// DOC 137 FIX 1: added the Owner column (see deriveBiometricOwnerRole above)
+// — every row of a given report carries the same suggested owner, since the
+// owner role is a function of the org's type, not of the individual action.
+function deriveActionPanelTable(report: Bag, orgType: string): RenderedTable | null {
   const c = consequence(report);
   const unlawful = asArray(c.unlawful_now);
   const unresolved = asArray(c.unresolved_on_record);
   if (unlawful.length === 0 && unresolved.length === 0) return null;
+  const owner = deriveBiometricOwnerRole(orgType);
   const rows: string[][] = [];
   let n = 1;
   for (const u of unlawful) {
     const duty = noStop(s(u.duty));
     const cite = s(u.citation);
     if (!duty && !cite) continue;
-    rows.push([String(n++), "Immediate remediation", `Remedy ${duty || "the duty named above"}${cite ? ` at ${cite}` : ""}`]);
+    rows.push([String(n++), "Immediate remediation", `Remedy ${duty || "the duty named above"}${cite ? ` at ${cite}` : ""}`, owner]);
   }
   for (const u of unresolved) {
     const duty = noStop(s(u.duty));
@@ -214,6 +241,7 @@ function deriveActionPanelTable(report: Bag): RenderedTable | null {
       String(n++),
       "Record completion",
       `Confirm ${duty || "the duty named above"}${cite ? ` at ${cite}` : ""}${needed ? ` — ${lowerEnumLabel(noStop(needed))}` : ""}`,
+      owner,
     ]);
   }
   if (!rows.length) return null;
@@ -221,7 +249,7 @@ function deriveActionPanelTable(report: Bag): RenderedTable | null {
     key: "",
     surface: "consequence_determination.action_panel",
     title: "Action panel",
-    columns: ["#", "Type", "Action"],
+    columns: ["#", "Type", "Action", "Owner"],
     rows,
   };
 }
@@ -778,7 +806,7 @@ export function assembleBiometricSkeletonDocument(report: Bag, intakeInput: Bag)
 
   const tables: SkeletonTables = {
     "executive_summary:3": deriveDutyScorecard(report),
-    "review_approval:2": deriveActionPanelTable(report),
+    "review_approval:2": deriveActionPanelTable(report, s(intake.orgType)),
   };
 
   const draft = renderSkeletonDocument({

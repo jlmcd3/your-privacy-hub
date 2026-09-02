@@ -43,7 +43,7 @@ import {
 } from "../prose/skeleton-render.ts";
 import { buildDpiaSkeletonTables, buildDpiaTablesBySurface } from "./dpia-skeleton-tables.ts";
 // PROMPT 9H item 3 — the record's regime drives the ToA prefix and the header.
-import { DPIA_NECESSITY_TEST_SENTENCE, readDpiaRegime } from "./dpia-deliverables/build.ts";
+import { DPIA_NECESSITY_TEST_SENTENCE, dpoFromPreparedBy, readDpiaRegime } from "./dpia-deliverables/build.ts";
 import { repairRegister } from "./risk-skeleton-assemble.ts";
 // PROMPT 9J — clause bounding and abbreviation-aware sentence heads live in
 // ONE module so dpia-deliverables/build.ts can share them without a cycle.
@@ -323,6 +323,21 @@ export function dpoSentence(intake: Bag): string {
   const info = s(intake.dpo_info);
   if (advice) return `The company has recorded the advice of its data protection officer as follows: ${noStop(advice)}`;
   if (info) return `The company has recorded its data protection officer as ${noStop(info)}`;
+  // DOC 137 FIX 1 (2026-09-01, confirmed by reading the rendered PDF) —
+  // Section 0's assessment team and the Controller table both credit a DPO
+  // named only in the assessment team roster (via build.ts's
+  // `dpoFromPreparedBy` fallback, S1.8, doc 119) when no formal `dpo_info`
+  // record exists. Without this branch, Section 5 fell straight to the flat
+  // "not recorded … obtained" line with no reference to that named DPO,
+  // reading as a self-contradiction against Section 0/the Controller table
+  // even though the actual gap is narrower: naming a DPO is not the same as
+  // recording that DPO's advice was specifically sought FOR THIS ASSESSMENT.
+  // Reuses `dpoFromPreparedBy` rather than reimplementing it, so the two
+  // surfaces can never diverge on who is credited.
+  const credited = dpoFromPreparedBy(intake);
+  if (credited) {
+    return `The company has not recorded that the advice of ${credited} was specifically sought for this assessment`;
+  }
   return "The company has not recorded that the advice of a data protection officer has been obtained";
 }
 
@@ -1598,9 +1613,19 @@ const DPIA_MATRIX_ROWS: readonly DpiaMatrixRowSpec[] = [
       }
       const INSTRUMENTED = new Set(["intra_eea_processing", "uk_domestic_processing", "adequacy", "instrument_recorded"]);
       const allInstrumented = transfers.every((t) => INSTRUMENTED.has(s(t.determination)));
+      // DOC 137 FIX 3 (2026-09-01) — a grader flagged this sentence for
+      // naming no owner or timeline. Confirmed (codebase search): DPIA has
+      // no owner/responsible-party field anywhere for this class of
+      // follow-up item — inventing a name, role or deadline would violate
+      // this fleet's no-fabrication design law. The honest fix is to state
+      // explicitly that a designation is still needed, without fabricating
+      // who or when — the same principle documented for biometric's
+      // `orgOwner` "Suggested owner (confirm)" pattern. Scoped to this one
+      // unresolved-mechanism branch only; the "mechanism IS recorded" branch
+      // above is untouched.
       return allInstrumented
         ? "The Company has identified its cross-border transfers, and a transfer mechanism is recorded for each."
-        : "The Company has identified a cross-border transfer for which a Chapter V transfer mechanism has not yet been recorded.";
+        : "The Company has identified a cross-border transfer for which a Chapter V transfer mechanism has not yet been recorded. The Company will need to designate an owner for resolving this open item before the transfer proceeds.";
     },
   },
   {

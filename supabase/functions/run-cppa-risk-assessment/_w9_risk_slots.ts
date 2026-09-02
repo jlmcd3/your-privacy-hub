@@ -19,6 +19,8 @@
 
 export const W9_RISK_SLOTS_STAMP = "w9-risk-slots-p1@2026-07-24T09:58:12Z";
 
+import { classifyAdmtSignificantDecision } from "./_local/admt-significant-decision.ts";
+
 export interface AttestationBlock {
   certifying_executive_name: string;
   certifying_executive_title: string;
@@ -135,8 +137,21 @@ export function computeIntakeSelectedSubsections(intake: Intake): string[] {
   ) push("§ 7150(b)(4)");
 
   // (b)(3) — ADMT for significant decisions.
+  //
+  // DOC 137 (2026-09-02) — this used to push (b)(3) on q18_admt_use === "Yes"
+  // alone, with no check of which § 7001(ddd) significant-decision category
+  // (if any) the described activity falls into, and without the FSOR
+  // advertising exclusion (11 CCR § 7001(ddd)(6)) the CPPA ADMT product
+  // already applies (see classifyAdmtSignificantDecision's header). Category
+  // match is now required before the subsection fires; an advertising-only
+  // or unresolved description does not fire it — see the honest-degradation
+  // handling in risk-opening.ts's S1 trigger list, which mirrors this same
+  // gate for the customer-facing opening paragraph.
   const q18 = clampStr(merged.q18_admt_use);
-  if (q18 === "Yes") push("§ 7150(b)(3)");
+  const q19 = clampStr(merged.q19_admt_description);
+  if (q18 === "Yes" && classifyAdmtSignificantDecision(q19) === "significant") {
+    push("§ 7150(b)(3)");
+  }
 
   // (b)(2) — sensitive PI processing.
   const q15 = clampStr(merged.q15_sensitive_pi);

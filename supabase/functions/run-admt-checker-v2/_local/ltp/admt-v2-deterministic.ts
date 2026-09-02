@@ -272,7 +272,25 @@ export function computeScope(intake: Intake): ScopeResult {
         // confirm pathway-uniformity — no intake field is quoted, so this
         // never breaks on an empty/unusual answer and doesn't duplicate the
         // Assessment Fact Record appendix.
-        action_text: "Either extend qualifying human review to every significant decision the System touches, or treat the automatically-decided pathways as in-scope ADMT and put the Article 11 Pre-use Notice, opt-out, and access processes in place for them. The Company's Pre-use Notice, opt-out, and access processes are recorded for the System as a whole, without distinguishing among decision pathways. Before relying on that record for the automatically-decided pathways, the Company should confirm that each of these processes operates identically there as it does where a human reviews the decision. Any pathway where a process differs has not yet been assessed under Article 11 and should be evaluated separately.",
+        //
+        // DOC 137 (2026-09-01) — external reviewer (A-Team Batch 5) caught a
+        // legitimate internal tension: the first sentence's "...put the
+        // Article 11 Pre-use Notice, opt-out, and access processes in place
+        // for them" implied those processes don't yet exist and must be
+        // built from scratch, directly contradicting the very next sentence
+        // ("The Company's Pre-use Notice, opt-out, and access processes ARE
+        // recorded for the System as a whole"). The CEO reconfirmed (second
+        // time) rejecting the reviewer's heavier ask — a full per-pathway
+        // compliance-matrix architecture with independent Notice/Opt-out/
+        // Access state per decision pathway — so this is wording-only: "put
+        // ... in place for them" becomes "ensure ... cover them", which
+        // reads as confirming/extending the existing system-wide processes
+        // rather than building new ones, and flows directly into the next
+        // sentence's "are recorded ... as a whole" without contradiction.
+        // The choice-of-remedy framing (extend human review OR bring the
+        // automated pathways under Article 11) and the pathway-uniformity
+        // confirmation sentences that follow are unchanged.
+        action_text: "Either extend qualifying human review to every significant decision the System touches, or treat the automatically-decided pathways as in-scope ADMT and ensure the Article 11 Pre-use Notice, opt-out, and access processes cover them. The Company's Pre-use Notice, opt-out, and access processes are recorded for the System as a whole, without distinguishing among decision pathways. Before relying on that record for the automatically-decided pathways, the Company should confirm that each of these processes operates identically there as it does where a human reviews the decision. Any pathway where a process differs has not yet been assessed under Article 11 and should be evaluated separately.",
         priority: 1, closure_condition: "qualifying human review confirmed for every decision pathway, or the automated pathways brought under Article 11, with pathway-uniformity of the notice/opt-out/access processes confirmed",
       }));
     }

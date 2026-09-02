@@ -660,10 +660,37 @@ function actionSentence(r: ComponentRecommendation, intake: Bag): string {
 export interface RecordCompletionAction {
   readonly label: string;
   readonly action: string;
+  // DOC 137 (2026-09-01) — most record-completion items are unranked (the
+  // register prints Rank "—" and Target "Within 90 days" for them) because
+  // nothing else in THIS register waits on them. The § 7120 applicability
+  // item is different: per the ratified gating hierarchy (applicability →
+  // first-audit timing → auditor engagement → evidence readiness), it gates
+  // every other item in this register, including the "Auditor engagement"
+  // row directly below it. An explicit rank/priority lets
+  // deriveActionRegister() (cyber-skeleton-assemble-v4.ts) print it as Rank
+  // 1 / Immediate instead of "—" / "Within 90 days", so the register's own
+  // columns actually reflect the sequencing the Executive Summary's
+  // "Sequencing priority among the above" row already claims.
+  readonly rank?: string;
+  readonly priorityTier?: "Immediate" | "Within 90 days" | "Within 6 months" | "Monitor";
 }
 
 export function buildRecordCompletionExtras(intake: Bag, d: CyberDeliverables): RecordCompletionAction[] {
   const out: RecordCompletionAction[] = [];
+  // DOC 137 (2026-09-01) — the § 7120 applicability question was the
+  // Executive Summary's own stated top-priority item (see the "Sequencing
+  // priority among the above" row in buildExecutiveSnapshotRows below) but
+  // had no line item anywhere in the Readiness Action Register, so the
+  // register meant to enumerate priorities was silent on the one the
+  // Company was told matters most.
+  if (resolveCyberApplicability((intake.profile ?? {}) as Bag).auditRequired.value === null) {
+    out.push({
+      label: "Audit applicability",
+      action: "Resolve whether an independent cybersecurity audit is required (§ 7120) — the record does not yet state the revenue and sale/share facts the trigger table depends on. This precedes auditor engagement and every other item below.",
+      rank: "1",
+      priorityTier: "Immediate",
+    });
+  }
   if (d.independence_determination?.status === "record_insufficient") {
     out.push({
       label: "Auditor engagement",
@@ -702,9 +729,24 @@ export function buildReadinessActions(intake: Bag, recs: readonly ComponentRecom
   // readiness conclusion is open (record_insufficient), "Priority readiness
   // actions: none identified" must not print beside it: the gating
   // record-completion ask IS the priority action.
+  //
+  // DOC 137 (2026-09-01) — this bullet always named auditor engagement (§
+  // 7122) as the top item, even when § 7120 applicability was the actual
+  // open gating question — the SAME applicability-first hierarchy that
+  // buildOverallReadinessNarrative's single_next_act and
+  // buildExecutiveSnapshotRows's "Sequencing priority among the above" row
+  // (both below) already apply. A Batch 5 external PDF review caught the
+  // resulting contradiction: the Executive Summary named § 7120 as gating
+  // everything, while this Section 6 bullet named § 7122 auditor engagement
+  // as the thing to complete "above all." The ratified gating hierarchy
+  // (applicability → first-audit timing → auditor engagement → evidence
+  // readiness) now governs here too, matching the other two surfaces.
   if (d && d.readiness_determination.conclusion === "record_insufficient" && priority_actions.length === 0) {
+    const applicabilityUnresolved = resolveCyberApplicability((intake.profile ?? {}) as Bag).auditRequired.value === null;
     priority_actions.push(
-      "Complete the readiness record identified in Section 2 — the § 7122 auditor-engagement description above all — so the readiness conclusion can be reached; no readiness conclusion is available while it is open.",
+      applicabilityUnresolved
+        ? "Resolve whether an independent cybersecurity audit is required (§ 7120) — the record does not yet state the revenue and sale/share facts the trigger table depends on. This precedes auditor engagement and every other item, so the readiness conclusion cannot be reached until it is resolved."
+        : "Complete the readiness record identified in Section 2 — the § 7122 auditor-engagement description above all — so the readiness conclusion can be reached; no readiness conclusion is available while it is open.",
     );
   }
   const evidence_package_actions = byClass(["evidence_insufficient"]);
@@ -851,7 +893,7 @@ export function buildExecutiveSnapshotRows(inputs: FactorInputs): readonly (read
 }
 
 export function buildExecutiveReadinessLines(inputs: FactorInputs): string {
-  const { intake, deliverables: d } = inputs;
+  const { intake, deliverables: d, recommendations } = inputs;
   const rd = d.readiness_determination;
   const rs = buildRecordSufficiency(intake, d);
   const ind = buildIndependenceReadinessConsequence(d);
@@ -860,6 +902,19 @@ export function buildExecutiveReadinessLines(inputs: FactorInputs): string {
   if (s(rd.reasoning)) lines.push(stop(s(rd.reasoning)));
   lines.push(stop(rs.conclusion));
   lines.push(stop(ind));
+  // DOC 137 (Category B, 2026-09-01) — the Readiness Action Register's Owner
+  // column honestly prints "Not recorded" for every row when
+  // remediation_owner is blank (deriveActionRegister, cyber-skeleton-
+  // assemble-v4.ts), but nothing told the Company it needs to designate one.
+  // Fires once, at summary level (a per-row sentence in a table column is
+  // awkward), only when the register actually has at least one row —
+  // otherwise there is nothing to own yet.
+  const registerHasRows = recommendations.length > 0 || buildRecordCompletionExtras(intake, d).length > 0;
+  if (registerHasRows && !profileStr(intake, "remediation_owner")) {
+    lines.push(
+      "The Company will need to designate an owner for the items in the Readiness Action Register; none is currently recorded.",
+    );
+  }
   return lines.filter(Boolean).join(" ");
 }
 

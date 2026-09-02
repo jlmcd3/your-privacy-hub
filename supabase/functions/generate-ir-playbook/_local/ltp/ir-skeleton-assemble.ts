@@ -451,11 +451,18 @@ function deriveDeadlineBoardTable(report: Bag, intake: Bag): RenderedTable | nul
 // invents a name: a role with no roster match renders the honest fallback,
 // matching the wording composeNotificationAnalysis already used for the
 // content-owner mapping (D1D2B3B8-I2).
+// DOC 137 FIX 2 — the no-match fallback below used to read "[role] — assign
+// on the recorded roster", which can be misread as pointing the reader to a
+// complete roster that merely needs consulting, when the actual state is
+// that no one on the roster (as recorded) fills this role. Reworded to say
+// plainly that the roster itself is what still needs completing. The
+// row.name branch above — a real person found on a real roster — is
+// unaffected; this only changes the "nobody matched" case.
 function rosterOwnerFor(intake: Bag, pattern: RegExp, roleLabel: string): string {
   const row = normalizeResponseTeamRoster(intake).find((r) => pattern.test(r.searchable));
   return row && row.name
     ? `${row.name} (${row.roleLabel || roleLabel})`
-    : `${roleLabel} — assign on the recorded roster`;
+    : `${roleLabel} — assign a named holder when the response roster is completed`;
 }
 const FORENSIC_OWNER_RE = /forensic|security/i;
 const INCIDENT_LEAD_OWNER_RE = /incident\s+(?:lead|commander|response)|breach/i;
@@ -1369,8 +1376,12 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
         const citation = s(e.citation);
         // D1D2B3B8-I2 — a role with no matching roster entry is an
         // ASSIGNMENT to make, not a person the record names.
+        // DOC 137 FIX 2 — the unmatched branch reworded (see rosterOwnerFor
+        // above, same defect, same fix): the roster itself is what needs
+        // completing, not merely consulting. The matched (`person`) branch,
+        // which names a real person off a real roster row, is unchanged.
         const ownerClause = owner
-          ? ` (${owner}${person ? `: ${person} on the recorded roster` : " — assign on the recorded roster"})`
+          ? ` (${owner}${person ? `: ${person} on the recorded roster` : " — assign a named holder when the response roster is completed"})`
           : "";
         return [
           `${citation ? `${citation} — ` : ""}${label}${ownerClause}.`,

@@ -217,6 +217,39 @@ function representatives(report: Bag): Bag[] {
 
 const stateName = (d: Bag): string => s(d.state_name) || s(d.jurisdiction) || "the jurisdiction";
 
+// DOC 137 (2026-09-02) — the UK ICO annual data-protection fee is a fourth
+// duty surface, distinct from the three `registration_deliverables` arrays
+// (`determinations`, `representative_determinations`, `dpo_determination`)
+// this file otherwise reads. `resolveIcoFeeTier` (index.ts) and Rule R4
+// (_local/registration-engine.ts) compute and tag it on the TOP-LEVEL
+// `report.jurisdictions[]` array — not on `registration_deliverables` — by
+// pushing the obligation string "ico_fee" onto that jurisdiction's
+// `obligations` array and setting `filing_fee_cents`/`notes`. computeDutyCounts()
+// never read that surface, so a live UK record with a fully-resolved,
+// mandatory £3,763 Tier-3 fee still rendered "No filing is required" (the
+// exec lead and Section III lead below are driven purely off these counts).
+// Read the "ico_fee" TAG rather than hardcoding jurisdiction code "UK" —
+// Rule R4 only ever fires for UK today (the ICO is the UK's regulator, so
+// R4 is intentionally UK-scoped, not a general "any jurisdiction with a
+// fee" rule), but keying off the tag keeps this branch in lockstep with
+// R4's own scope instead of duplicating it.
+function icoFeeJurisdictions(report: Bag): Bag[] {
+  const juris = Array.isArray(report.jurisdictions) ? (report.jurisdictions as Bag[]) : [];
+  return juris.filter((j) => Array.isArray(j.obligations) && (j.obligations as unknown[]).includes("ico_fee"));
+}
+
+function icoFeeAmountLabel(j: Bag): string | null {
+  const cents = j.filing_fee_cents;
+  if (typeof cents !== "number" || !Number.isFinite(cents)) return null;
+  return `£${(cents / 100).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function icoFeeDutyName(j: Bag): string {
+  const name = s(j.name) || s(j.code) || "the United Kingdom";
+  const amount = icoFeeAmountLabel(j);
+  return amount ? `the ${name} ICO annual data-protection fee (${amount})` : `the ${name} ICO annual data-protection fee`;
+}
+
 /** The typed duty counts every lead in this document is bound to. */
 export interface RegistrationDutyCounts {
   readonly attached: number;
@@ -244,6 +277,10 @@ export interface RegistrationDutyCounts {
    *  applicable; the lead must carry that count or it understates the
    *  position. */
   readonly corpus_pending: number;
+  /** DOC 137 (2026-09-02) — the count of UK ICO annual data-protection fee
+   *  duties folded into `attached` above (see icoFeeJurisdictions). Always
+   *  0 or 1 today because Rule R4 only ever tags the UK jurisdiction. */
+  readonly ico_fee_attached: number;
 }
 
 export function computeDutyCounts(report: Bag): RegistrationDutyCounts {
@@ -288,6 +325,17 @@ export function computeDutyCounts(report: Bag): RegistrationDutyCounts {
   const osumForCounts = (report.obligations_summary ?? {}) as Bag;
   if (/BDSG/i.test(s(osumForCounts.dpo_condition))) reserved += 1;
 
+  // DOC 137 (2026-09-02) — fourth branch: the ICO fee obligation (see
+  // icoFeeJurisdictions above). Unconditional once Rule R4 tags it — the
+  // engine records no "conditional"/"record_insufficient" state for this
+  // duty, so it only ever attaches, never reserves.
+  let icoFeeAttached = 0;
+  for (const j of icoFeeJurisdictions(report)) {
+    attached += 1;
+    icoFeeAttached += 1;
+    attachedNames.push(icoFeeDutyName(j));
+  }
+
   // Satisfied is read from the typed filing-readiness surface only: a duty is
   // satisfied when the jurisdiction's own content list is ready on its face.
   let satisfied = 0;
@@ -306,6 +354,7 @@ export function computeDutyCounts(report: Bag): RegistrationDutyCounts {
     filing_attached: filingAttached,
     designation_attached: Math.max(attached - filingAttached, 0),
     corpus_pending: asArray(deliverables(report).corpus_pending).length,
+    ico_fee_attached: icoFeeAttached,
   };
 }
 
@@ -561,6 +610,22 @@ export function deriveDutyStatusTable(report: Bag): RenderedTable | null {
       "Germany",
       "Additional information required",
       "How many persons are constantly engaged in automated processing (the §38 threshold counts engaged persons, not total headcount)",
+    ]);
+  }
+
+  // DOC 137 (2026-09-02) — the ICO fee obligation earns its own Duty-status
+  // row, same as the BDSG §38 row above: it is tagged on the top-level
+  // `report.jurisdictions[]` surface (Rule R4), not on any of the three
+  // `registration_deliverables` arrays this table otherwise reads, and had
+  // no row at all before this fix.
+  for (const j of icoFeeJurisdictions(report)) {
+    rows.push([
+      "ICO annual data-protection fee",
+      s(j.name) || s(j.code) || "United Kingdom",
+      "Required on reported facts",
+      icoFeeAmountLabel(j)
+        ? `Payment of ${icoFeeAmountLabel(j)} to the ICO — confirm the tier via the ICO fee self-assessment before filing`
+        : "Confirm the fee tier via the ICO fee self-assessment",
     ]);
   }
 

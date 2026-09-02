@@ -23,6 +23,12 @@ import {
   CYBER_PROGRAM_OBLIGATIONS,
 } from "./components.ts";
 import { maturityPhrase } from "./cyber-factors.ts";
+// DOC 137 (2026-09-01) — needed so the record_insufficient headline/
+// reasoning can name § 7120 applicability as an open gate alongside the
+// § 7122 auditor-engagement gate, matching the gating hierarchy already
+// used in cyber-factors.ts (applicability -> first-audit timing -> auditor
+// engagement -> evidence readiness).
+import { resolveCyberApplicability } from "../cyber-applicability.ts";
 import type {
   CyberComponentCoverage,
   CyberDeliverables,
@@ -602,6 +608,15 @@ export function buildReadinessDetermination(
   evidence: EvidenceSufficiency[],
   independence: IndependenceDetermination,
   programObligations: Finding[],
+  // DOC 137 (2026-09-01) — optional and defaulted false so every existing
+  // positional call site (all of which predate § 7120 applicability being
+  // wired into this function) is byte-identical unless it opts in. Does NOT
+  // change `conclusion` — that stays governed by the existing
+  // blocking/unassessable/independence/partial logic; it only lets the
+  // record_insufficient headline and reasoning ALSO name the applicability
+  // gate when it is the (or an additional) open question, alongside the
+  // auditor-engagement gate they already name.
+  applicabilityUnresolved = false,
 ): ReadinessDetermination {
   const evidenceBySlug = new Map(evidence.map((e) => [e.slug, e]));
 
@@ -672,12 +687,19 @@ export function buildReadinessDetermination(
         // (every component assessable, but the auditor engagement status was
         // never described). Fixed by stating each applicable clause only when
         // it applies; byte-identical to the prior wording when BOTH apply.
+        // DOC 137 (2026-09-01, ChatGPT-agreed wording polish) — § 7120
+        // applicability is Gate 1 of the ratified sequencing hierarchy
+        // (applicability -> first-audit timing -> auditor engagement ->
+        // evidence readiness); when it is unresolved this headline must
+        // name it, not just the auditor-engagement gate, so the Executive
+        // Summary does not read as if only one gate were open.
         const bits: string[] = [];
+        if (applicabilityUnresolved) bits.push("audit applicability under § 7120 remains unresolved");
         if (unassessable.length > 0) {
           bits.push(`${unassessable.length} § 7123(c) component${unassessable.length === 1 ? "" : "s"} ${unassessable.length === 1 ? "is" : "are"} not assessable on the information supplied`);
         }
         if (independenceUnknown) bits.push("the auditor engagement is not described");
-        return `On this record no readiness conclusion can be reached: ${bits.join(", and ")}.`;
+        return `No readiness conclusion can be reached on the current record: ${bits.join(", and ")}.`;
       })();
 
   const reasoning = conclusion === "ready"
@@ -701,9 +723,16 @@ export function buildReadinessDetermination(
         // following are not assessable on this record: ." with nothing
         // after the colon when unassessable is empty and independenceUnknown
         // is the sole trigger.
+        // DOC 137 (2026-09-01) — same applicability-gate naming as the
+        // headline above.
         const bits: string[] = [
-          "A readiness conclusion requires a position on every enumerated component and on the § 7122 auditor engagement.",
+          applicabilityUnresolved
+            ? "A readiness conclusion requires a position on § 7120 audit applicability, on every enumerated component, and on the § 7122 auditor engagement."
+            : "A readiness conclusion requires a position on every enumerated component and on the § 7122 auditor engagement.",
         ];
+        if (applicabilityUnresolved) {
+          bits.push("Audit applicability under § 7120 is not yet resolved: the record does not state the revenue and sale/share facts the trigger table depends on.");
+        }
         if (unassessable.length > 0) {
           bits.push(`The following are not assessable on this record: ${unassessable.map((u) => u.label).join("; ")}.`);
         }
@@ -755,11 +784,18 @@ export function buildCyberDeliverables(
   const evidence_sufficiency = buildEvidenceSufficiency(facts);
   const program_obligation_findings = buildProgramObligationFindings(facts);
   const independence_determination = buildIndependenceDetermination(facts);
+  // DOC 137 (2026-09-01) — threaded through so the record_insufficient
+  // headline/reasoning can name § 7120 applicability alongside auditor
+  // engagement; see buildReadinessDetermination's own comment.
+  const applicabilityUnresolved = resolveCyberApplicability(
+    ((intake as Record<string, unknown> | null | undefined)?.profile ?? {}) as Record<string, unknown>,
+  ).auditRequired.value === null;
   const readiness_determination = buildReadinessDetermination(
     component_coverage,
     evidence_sufficiency,
     independence_determination,
     program_obligation_findings,
+    applicabilityUnresolved,
   );
   const mean_score_readability_aid = buildMeanScoreAid(aggregates);
   return {

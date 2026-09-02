@@ -222,6 +222,16 @@ export const ANCHOR_KEYS = {
   measures: "dpia_content_measures",
   art36: "prior_consultation_art_36",
   art36_materials: "prior_consultation_materials_art_36_3",
+  // DOC 137 FIX 2 (2026-09-01) — the controller's own DPIA
+  // acceptance/completeness determination (buildDecision's approved /
+  // conditionally_approved / draft_incomplete branches) is grounded in the
+  // Art. 35(1) obligation to carry out the assessment prior to processing,
+  // NOT in Art. 36(1)'s supervisory prior-consultation trigger, which is a
+  // distinct, narrower duty that fires only on the `consultation_required`
+  // branch. Registry-anchored so the citation resolves to the verified row
+  // (dpia_when_required / uk_dpia_when_required) with the hardcoded "GDPR
+  // Art. 35(1)" string as fallback only.
+  dpia_obligation: "dpia_when_required",
   views: "consultation_of_data_subjects_35_9",
   dpo_advice: "dpia_dpo_advice",
   // WP248-PINNING (2026-08-01) — WP248 rev.01 is now anchored in the registry,

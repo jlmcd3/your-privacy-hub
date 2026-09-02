@@ -559,6 +559,26 @@ export const LIA_SKELETON_SECTIONS_V2: readonly LiaSkeletonSection[] = [
         blocks: [...sec.blocks, { kind: "table", paragraph: 0, text: "three_part_test.balancing_test.factors (balance table)" }],
       };
     }
+    // DOC 137 (2026-09-01) — the ePrivacy/PECR engagement-map overlay
+    // (engagement-map.ts's R_EPRIVACY_PECR, wired by
+    // lia-skeleton-assemble.ts's eprivacyOverlayNote). Appended as
+    // "findings:5", after the section's four existing composed blocks
+    // (findings:0-3) and its trailing fixed skeleton block (findings:4).
+    // Carries no fixed text (paragraph 0 — no docx paragraph, same
+    // convention as the table blocks above), so v1's byte-frozen paragraph
+    // hash basis is unaffected; a record with no PECR engagement renders no
+    // empty block (NO-PADDING LAW).
+    if (sec.id === "findings") {
+      return {
+        ...sec,
+        blocks: [...sec.blocks, {
+          kind: "generated",
+          paragraph: 0,
+          text:
+            "[GENERATED, OPTIONAL] The ePrivacy/PECR device-storage overlay (engagement-map.ts's R_EPRIVACY_PECR), when engaged or conditional: an informational, adjacent-obligation note under the ePrivacy Directive / PECR 2003, distinct from and never affecting the Article 6(1)(f) determination above.",
+        }],
+      };
+    }
     return sec;
   }),
   {

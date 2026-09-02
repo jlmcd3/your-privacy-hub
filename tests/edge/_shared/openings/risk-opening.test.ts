@@ -133,6 +133,15 @@ Deno.test("Multi-criteria enumerate in statutory order A,B (compliant count fiel
   assert(s0.indexOf("(A)") < s0.indexOf("(B)"));
 });
 
+// DOC 137 (2026-09-02) — this test previously fired (b)(3) on
+// q18_admt_use === "Yes" alone, with no q19_admt_description at all. That
+// was the bug: § 7150(b)(3) requires the described activity to actually
+// fall within an enumerated § 7001(ddd) significant-decision category (see
+// classifyAdmtSignificantDecision in _local/admt-significant-decision.ts).
+// A description naming a real significant-decision category (credit
+// eligibility scoring, financial/lending) is added so this test continues
+// to exercise "all six triggers fire together, in statutory order" without
+// pinning the corrected-away bug.
 Deno.test("S1 emits § 7150(b) triggers in statutory order", () => {
   const r = buildRiskOpening(
     {
@@ -140,6 +149,7 @@ Deno.test("S1 emits § 7150(b) triggers in statutory order", () => {
       q5_sell_share: "Both",
       q15_sensitive_pi: "Yes",
       q18_admt_use: "Yes",
+      q19_admt_description: "The system scores loan applications to determine consumer credit eligibility.",
       q5b_profiling_observation: "Yes — systematic observation of workers/students/applicants",
       q18b_admt_training: "Yes — training ADMT for significant decisions",
     },
@@ -149,6 +159,50 @@ Deno.test("S1 emits § 7150(b) triggers in statutory order", () => {
   const s1 = r.slots.S1 ?? "";
   assert(s1.indexOf("(1)") < s1.indexOf("(2)"));
   assert(s1.indexOf("(3)") < s1.indexOf("(4)"));
+});
+
+// DOC 137 (2026-09-02) — the actual bug fixture: q18_admt_use === "Yes"
+// with NO description establishing a significant-decision category must
+// NOT fire (b)(3), and the open question is recorded in `omitted`
+// telemetry rather than silently resolved either way.
+Deno.test("DOC 137: (b)(3) does not fire on ADMT use alone with no significant-decision category described", () => {
+  const r = buildRiskOpening(
+    { ...base, q18_admt_use: "Yes", q19_admt_description: "" },
+    { asOfDate: AS_OF },
+  );
+  assertEquals(r.provenance.s1_triggers.includes(3), false);
+  assert(r.provenance.omitted.includes("S1:b3_significant_decision_category_unresolved"));
+});
+
+// DOC 137 (2026-09-02) — an advertising-only description must not fire
+// (b)(3) either, citing the FSOR advertising exclusion (11 CCR
+// § 7001(ddd)(6)), mirroring the CPPA ADMT product's own treatment.
+Deno.test("DOC 137: (b)(3) does not fire for an advertising-only ADMT description (FSOR exclusion)", () => {
+  const r = buildRiskOpening(
+    {
+      ...base,
+      q18_admt_use: "Yes",
+      q19_admt_description: "The system is used solely to target advertising to consumers based on browsing history.",
+    },
+    { asOfDate: AS_OF },
+  );
+  assertEquals(r.provenance.s1_triggers.includes(3), false);
+  assert(r.provenance.omitted.includes("S1:b3_advertising_exclusion_fsor_7001_ddd_6"));
+});
+
+// DOC 137 (2026-09-02) — a description that clearly establishes an
+// enumerated § 7001(ddd) category (here, employment/hiring) DOES fire
+// (b)(3).
+Deno.test("DOC 137: (b)(3) fires when the description clearly establishes a significant-decision category", () => {
+  const r = buildRiskOpening(
+    {
+      ...base,
+      q18_admt_use: "Yes",
+      q19_admt_description: "The system screens job applicants and recommends hiring decisions.",
+    },
+    { asOfDate: AS_OF },
+  );
+  assertEquals(r.provenance.s1_triggers.includes(3), true);
 });
 
 Deno.test("S1 omitted when no trigger resolves", () => {

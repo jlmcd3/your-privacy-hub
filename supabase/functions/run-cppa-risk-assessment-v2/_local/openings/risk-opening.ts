@@ -36,6 +36,7 @@ import {
   CCPA_1798_140_D_1_B,
 } from "./ccpa-1798-140-pin.ts";
 import { CCPA_7150_B_LABELS } from "./ccpa-7150-pin.ts";
+import { classifyAdmtSignificantDecision } from "../admt-significant-decision.ts";
 
 export const RISK_OPENING_VERSION = "risk-opening-item244-l4-epistemic@2026-07-28";
 // ITEM 244 (L4) — CEO-approved courier: EPISTEMIC-METHOD SENTENCE. Inserted
@@ -102,6 +103,9 @@ export interface RiskOpeningInput {
   q5b_profiling_observation?: unknown;
   q15_sensitive_pi?: unknown;
   q18_admt_use?: unknown;
+  // DOC 137 (2026-09-02) — free-text ADMT activity description; the only
+  // fact source for the § 7150(b)(3) category-match gate (classifyAdmtSignificantDecision).
+  q19_admt_description?: unknown;
   q18b_admt_training?: unknown;
   sensitive_location_basis?: unknown;
   q4_pi_categories?: unknown;
@@ -238,7 +242,27 @@ export function buildRiskOpening(
   const triggers: number[] = [];
   if (SELL_SHARE_AFFIRMATIVE.has(sellShare)) triggers.push(1);
   if (str(intake.q15_sensitive_pi) === "Yes") triggers.push(2);
-  if (str(intake.q18_admt_use) === "Yes") triggers.push(3);
+  // DOC 137 (2026-09-02) — q18_admt_use === "Yes" alone used to fire (3)
+  // with no check of which § 7001(ddd) significant-decision category the
+  // described activity falls into, and without the FSOR advertising
+  // exclusion (11 CCR § 7001(ddd)(6)) the CPPA ADMT product already applies
+  // (see classifyAdmtSignificantDecision's header for the full comparison).
+  // "Omission over invention" (this file's own design rule, see header):
+  // an advertising-only or unresolved description does not fire the
+  // trigger, and — since (3) is otherwise silently absent from S1, giving
+  // no signal the record was even considered — the open question is
+  // recorded in `omitted` telemetry rather than left unexplained.
+  const admtUse = str(intake.q18_admt_use);
+  const admtDescriptionClass = classifyAdmtSignificantDecision(str(intake.q19_admt_description));
+  if (admtUse === "Yes" && admtDescriptionClass === "significant") {
+    triggers.push(3);
+  } else if (admtUse === "Yes") {
+    omitted.push(
+      admtDescriptionClass === "advertising_only"
+        ? "S1:b3_advertising_exclusion_fsor_7001_ddd_6"
+        : "S1:b3_significant_decision_category_unresolved",
+    );
+  }
   // TURN 1d (2026-08-26) — direct Yes/No; legacy observation-branch values
   // recognised. (Also fixes a pre-existing S1 drift: legacy "Both" fired
   // (b)(4) in gate-eval but not here.)

@@ -2050,6 +2050,20 @@ export function buildDecision(
   const regime = readDpiaRegime(intake);
   const a = anchor("art36", regime);
   const art36Citation = a.citation || cit(regime, "Art. 36(1)");
+  // DOC 137 FIX 2 (2026-09-01, confirmed root-cause) — `art36Citation` was
+  // being stamped onto EVERY branch below, including the six branches that
+  // assert the controller's OWN DPIA acceptance/completeness determination
+  // (draft_incomplete, both conditionally_approved variants, approved) —
+  // none of which is the Art. 36(1) supervisory-authority prior-consultation
+  // trigger. Only the `consultation_required` branch (a) genuinely invokes
+  // Art. 36(1); every other branch below now cites `dpiaCitation`, the same
+  // Art. 35(1) DPIA-obligation authority the Appendix A "Approval / decision"
+  // row already cites for this exact determination (see
+  // dpia-skeleton-assemble.ts's "GDPR Arts. 5(2), 24, 35(1), 35(11)" row).
+  // Determination LOGIC is unchanged — only which citation string each
+  // branch's `citation` field carries.
+  const dpiaObligationAnchor = anchor("dpia_obligation", regime);
+  const dpiaCitation = dpiaObligationAnchor.citation || cit(regime, "Art. 35(1)");
   const register = deliverables.risk_register;
   const authority = regime === "UK"
     ? "the Commissioner"
@@ -2086,7 +2100,10 @@ export function buildDecision(
       blockers: [],
       why:
         "No risk has been identified by the company or otherwise identified in this assessment, so there is nothing on which a determination can rest; a determination requires at least one risk to be assessed.",
-      citation: art36Citation,
+      // DOC 137 FIX 2 — this is the controller's own draft-incomplete
+      // determination (no risk to assess at all), not a supervisory
+      // prior-consultation matter.
+      citation: dpiaCitation,
       rule_id: "dpia_decision_v1",
     };
   }
@@ -2145,7 +2162,10 @@ export function buildDecision(
           `The determination on whether the processing being assessed may proceed has not been reached: ${n === 1 ? "one point the determination turns on is" : `${n} points the determination turns on are`} unresolved based on the information the company provided`;
         return blockers.length ? `${head} — ${blockerSlot(blockers)}` : `${head}.`;
       })(),
-      citation: art36Citation,
+      // DOC 137 FIX 2 — an unresolved record's draft-incomplete determination
+      // is the controller's own DPIA-completeness gap, not the Art. 36(1)
+      // supervisory-consultation trigger.
+      citation: dpiaCitation,
       rule_id: "dpia_decision_v1",
     };
   }
@@ -2170,7 +2190,10 @@ export function buildDecision(
       blockers: [],
       why:
         `Given the noted risks and the mitigating measures, the processing being assessed may proceed on conditions for the non-special-category data: ${conditions.join("; and ")}.`,
-      citation: art36Citation,
+      // DOC 137 FIX 2 — the Art. 9 carve is a conditional-approval
+      // determination on the controller's own DPIA record; no supervisory
+      // consultation is implicated by this branch (high.length === 0).
+      citation: dpiaCitation,
       rule_id: "dpia_decision_v1",
     };
   }
@@ -2189,7 +2212,11 @@ export function buildDecision(
       blockers: [],
       why:
         `Given the noted risks and the mitigating measures, the processing being assessed may proceed on conditions: ${high.length === 1 ? "one risk" : `${high.length} risks`} — ${labels(high)} — ${high.length === 1 ? "is deemed a high risk" : "are deemed high risks"}, and clearance is conditional on ${deduped.join("; ")}.`,
-      citation: art36Citation,
+      // DOC 137 FIX 2 — this branch is reached only AFTER the (a) branch
+      // above has already ruled out `consultation_required`; a high residual
+      // band here still resolves to the controller's own conditional
+      // approval, not an Art. 36(1) supervisory-consultation trigger.
+      citation: dpiaCitation,
       rule_id: "dpia_decision_v1",
     };
   }
@@ -2204,7 +2231,10 @@ export function buildDecision(
       blockers: [],
       why:
         "Given the noted risks and the absence of any recorded mitigating measure, the processing being assessed may proceed only once the company records the measures it will rely on: no risk level in this document has been tested against a measure.",
-      citation: art36Citation,
+      // DOC 137 FIX 2 — a missing-measures conditional approval is the
+      // controller's own DPIA-content gap (Art. 35(7)(d) measures), not a
+      // supervisory-consultation matter.
+      citation: dpiaCitation,
       rule_id: "dpia_decision_v1",
     };
   }
@@ -2226,7 +2256,13 @@ export function buildDecision(
       // here — the processing decision, not every determination in the
       // document.
       `Given the noted risks and the mitigating measures, the processing being assessed may proceed as described: following application of the recorded mitigating measures, all identified residual risks are rated Low or Moderate, and the processing decision itself is not conditional. This determination remains applicable while the processing and the mitigating measures remain materially consistent with the assessment record; a material change requires review in accordance with Article 35(11).`,
-    citation: art36Citation,
+    // DOC 137 FIX 2 (2026-09-01, confirmed root-cause) — the controller's own
+    // approval determination is grounded in the DPIA obligation itself
+    // (Art. 35(1)), not the Art. 36(1) supervisory prior-consultation
+    // trigger, which never fires on this branch (no high residual risk, no
+    // consultation_required). Matches the Appendix A "Approval / decision"
+    // row's existing authority citation for this same determination.
+    citation: dpiaCitation,
     rule_id: "dpia_decision_v1",
   };
 }
@@ -2340,7 +2376,12 @@ const ASK_ART9_CONDITION =
 // names a DPO-role person, that name is credited as the record's DPO answer
 // and the ask narrows to what is genuinely still open (formal designation /
 // contact details), instead of denying the person the document itself lists.
-function dpoFromPreparedBy(intake: unknown): string {
+// DOC 137 FIX 1 (2026-09-01) — exported so dpia-skeleton-assemble.ts's
+// `dpoSentence()` can consult the SAME fallback rather than reimplementing
+// it, so the Section 5 DPO-advice sentence can name the DPO already credited
+// via the assessment-team fallback instead of reading as a flat, unqualified
+// gap when a formal `dpo_info` record does not exist.
+export function dpoFromPreparedBy(intake: unknown): string {
   const prepared = str(get(intake, "dpia_prepared_by"));
   if (!prepared) return "";
   for (const part of prepared.split(/;|\n/)) {

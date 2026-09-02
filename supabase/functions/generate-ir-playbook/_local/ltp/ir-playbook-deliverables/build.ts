@@ -532,6 +532,42 @@ export function buildDataSubjectCommunicationDetermination(
       `Article 34(1) asks whether the breach is likely to result in a HIGH risk to the rights and freedoms of natural persons — a materially higher bar than Article 33(1)'s "a risk". On these facts the bar is reached: ${aggravating.map((x) => x.factor.toLowerCase()).join("; ")}. The consequences those facts point to fall on the individual directly. ${exemptionClause} Communication is therefore required without undue delay, and under Article 34(2) it must describe in clear and plain language the nature of the breach and carry the Article 33(3)(b), (c) and (d) content.`;
     whyRaw =
       `Communication to the affected data subjects is required. ${plain.verbatim}`;
+  } else if (highCats.length >= 1 && uni === "unknown") {
+    // DOC 137 (2026-09-01) — Art. 34 gate for unresolved encryption, mirroring
+    // (not duplicating) the Art. 33(1) gate's precautionary pattern at
+    // `!f.dataTypes.length || !f.encryption` above. Art. 34's HIGH-risk test
+    // is a materially higher bar than Art. 33's "a risk" test, so unresolved
+    // encryption cannot be allowed to block every Art. 34 conclusion the way
+    // it blocks every Art. 33 conclusion: where the record carries NO
+    // HIGH_RISK_DATA_TYPES category at all, `highRisk` computes false
+    // regardless of how encryption resolves (the formula's hostile-actor and
+    // scale terms are both gated behind `highCats.length > 0`), so a firm
+    // "not required" conclusion in that case is sound and is left to the
+    // `else` branch below untouched — this does not gate that case.
+    // This branch is scoped to the one situation where an unresolved
+    // encryption fact is genuinely capable of tipping the outcome: the
+    // record carries at least one HIGH_RISK_DATA_TYPES category (one
+    // category short of the `highCats.length >= 2` threshold that is high
+    // risk on its own, regardless of cause or scale) but neither a hostile
+    // cause nor scale is separately recorded, so `highRisk` computes false.
+    // On that borderline record, whether the affected data were ever
+    // rendered unintelligible is a fact this codebase's own factor list
+    // already treats as bearing on severity for this category (see the
+    // `uni === "yes"` mitigating factor above), and an adverse resolution
+    // (data recorded as never encrypted, or keys compromised) is capable of
+    // completing the case for a likely HIGH risk on that single category.
+    // That fact has not been established, so the determination is left open
+    // rather than assumed either way — the same posture the Article 33(1)
+    // gate takes, without touching HIGH_RISK_DATA_TYPES or the `highRisk`
+    // formula itself.
+    verdict = "undetermined_on_the_record";
+    status = "record_insufficient";
+    application =
+      `Article 34(1) turns on whether the breach is likely to result in a HIGH risk to the rights and freedoms of natural persons. The record puts ${JSON.stringify(highCats)} in issue, a category capable of producing serious consequences for the individual, and does not state whether the affected data were encrypted or otherwise rendered unintelligible. Neither a hostile actor nor exposure at scale is separately recorded, so the category alone does not settle the question either way: an adverse resolution of the encryption fact is capable of completing the case for a likely HIGH risk on this category, and that fact has not been established. The higher Article 34(1) threshold is therefore neither reached nor ruled out.`;
+    whyRaw =
+      "Communication to data subjects is held open pending the encryption and key-status facts; it is not ruled out and must not be treated as discharged.";
+    information_needed =
+      "whether the affected data were encrypted or otherwise rendered unintelligible to an unauthorised person, and whether the encryption key or other means of decryption was compromised.";
   } else {
     verdict = "communication_not_required_no_high_risk";
     // PANEL-BLOCKER IR-4 (2026-08-30) — the no-high-category fallback used to

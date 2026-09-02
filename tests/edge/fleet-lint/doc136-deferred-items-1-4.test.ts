@@ -4,6 +4,15 @@
 // RoPA wide-matrix CSS fix, and the CPPA Risk TOC extension + cover-panel
 // conditions count. Item 5 (EU IR standing clock) was investigated only,
 // per instruction — no code change, no test.
+//
+// DOC 137 (2026-09-01) — the ADMT test below also guards the narrow
+// wording fix to the same action_text: "put the Article 11 ... processes
+// in place for them" (implying build-from-scratch) was replaced with
+// "ensure the Article 11 ... processes cover them" (implying confirm/
+// extend the existing system-wide processes), resolving a contradiction
+// with the very next sentence, which states those processes ARE already
+// recorded for the System as a whole. No architecture change — the CEO
+// reconfirmed rejecting a per-pathway compliance-matrix build.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
@@ -32,6 +41,12 @@ Deno.test("doc136 — ADMT: pathway-dependent condition asks for pathway-uniform
     "pathway-uniformity confirmation sentence missing",
   );
   assert(!/notice_delivery|opt_out_exception|access_submission_methods/.test(scopeFinding!.action_text), "must not quote raw intake field names");
+  // DOC 137 — the first sentence must no longer imply the Notice/opt-out/
+  // access processes need to be built from scratch ("put ... in place for
+  // them"), since the very next sentence says they are already recorded
+  // system-wide; it should instead read as confirming/extending them.
+  assert(!scopeFinding!.action_text.includes("put the Article 11 Pre-use Notice, opt-out, and access processes in place for them"), "must not reintroduce the build-from-scratch phrasing");
+  assert(scopeFinding!.action_text.includes("ensure the Article 11 Pre-use Notice, opt-out, and access processes cover them"), "revised confirm/extend phrasing missing");
 });
 
 // ── DPIA — Art. 35(3)(c) engagement-map wiring ──────────────────────────────
@@ -72,14 +87,42 @@ Deno.test("doc136 — DPIA: legacy records (no imagery_capture answered) are una
   if (cell) assert(!cell.includes("35(3)(c)"), "legacy path must not gain new Art. 35(3)(c) text");
 });
 
-// ── RoPA — wide matrix uses the bordered "grid" class + header repeat ───────
+// ── RoPA — wide matrix ─────────────────────────────────────────────────────
+//
+// DOC 137 (2026-09-01) — a Batch 5 external PDF review found the doc-136
+// grid-class fix insufficient: 8 columns of statutory text still rendered
+// visually compressed/clipped at portrait width. Rather than keep fighting
+// the column-width problem (and with landscape permanently banned, doc 66
+// Rule 10), the wide matrix is now dropped entirely from the HTML/PDF render
+// path — every Art. 30(1)(a)-(g) element it carried is already rendered in
+// full, readable form by the per-activity "kv" card in Section 2
+// (`activitySections` in buildHtml). `registerTableAoa()` itself is
+// untouched and still feeds the DOCX and XLSX exports, which are not
+// reported as clipped.
 
-Deno.test("doc136 — RoPA: the Art. 30(1)(a)-(g) matrix uses the grid class, not the fixed-width kv class", async () => {
+Deno.test("doc137 — RoPA: the wide Art. 30(1)(a)-(g) matrix is no longer rendered into the HTML/PDF register section", async () => {
   const src = await Deno.readTextFile(
     new URL("../../../supabase/functions/generate-ropa-document/index.ts", import.meta.url),
   );
-  assert(src.includes('<table class="grid"><thead><tr>${registerTableAoa'), "matrix table not switched to the grid class");
-  assert(src.includes("table.grid thead { display: table-header-group; }"), "header-repeat CSS missing for table.grid");
+  // The registerHtml() section renderer must no longer build a <table> from
+  // registerTableAoa() — find the registerHtml function body specifically,
+  // not the whole file (registerDocxChildren legitimately still calls it).
+  const fnStart = src.indexOf("function registerHtml(");
+  const fnEnd = src.indexOf("\nfunction registerDocxChildren(");
+  assert(fnStart !== -1 && fnEnd !== -1 && fnEnd > fnStart, "could not isolate registerHtml() body");
+  const registerHtmlBody = src.slice(fnStart, fnEnd);
+  assert(!registerHtmlBody.includes("registerTableAoa(reg)"), "registerHtml() must not call registerTableAoa() anymore");
+  assert(!registerHtmlBody.includes('<table class="grid">'), "no grid-class matrix table should remain in registerHtml()");
+
+  // The per-activity card view (Section 2) must still be present as the
+  // sole HTML rendering of Art. 30(1)(a)-(g) content.
+  assert(src.includes('<h2>2. Processing activities</h2>'), "per-activity card section (Section 2) must remain");
+  assert(src.includes("${activitySections ||"), "activitySections rendering must remain wired in");
+
+  // registerTableAoa() itself, and its DOCX/XLSX consumers, must remain.
+  assert(src.includes("function registerTableAoa("), "registerTableAoa() must not be deleted — still used by DOCX/XLSX");
+  assert(src.includes("registerDocxChildren"), "DOCX export path must remain");
+
   assert(!src.includes("wide-landscape") && !/@page\s+\w*landscape/.test(src), "landscape orientation must not be reintroduced (doc 66 Rule 10)");
 });
 

@@ -235,6 +235,24 @@ function deriveActionRegister(
     // classes are empty.
     rows: recommendations.length || recordCompletion.length
       ? [
+        // DOC 137 (2026-09-01) — a record-completion item can now carry its
+        // own rank/priorityTier (currently only the § 7120 applicability
+        // item, buildRecordCompletionExtras). Giving it Rank "1" only helps
+        // if the row also SITS first: the array order below used to place
+        // every record-completion row after all numbered recommendation
+        // rows, so a "Rank 1" label would have printed on the LAST row of
+        // the table — visually contradicting the very sequencing it names.
+        // Ranked record-completion items render first; unranked ones keep
+        // their previous position, after the numbered recommendations.
+        ...recordCompletion.filter((x) => x.rank).map((x) => [
+          x.rank!,
+          x.label,
+          x.action,
+          "Record completion",
+          PRIORITY_TIER_LABEL[x.priorityTier ?? "Within 90 days"],
+          x.priorityTier ?? "Within 90 days",
+          owner || "Not recorded",
+        ]),
         ...recommendations.map((r) => {
           const rec = controlRec(intake, r.slug);
           return [
@@ -248,7 +266,7 @@ function deriveActionRegister(
             owner || "Not recorded",
           ];
         }),
-        ...recordCompletion.map((x) => [
+        ...recordCompletion.filter((x) => !x.rank).map((x) => [
           "—",
           x.label,
           x.action,

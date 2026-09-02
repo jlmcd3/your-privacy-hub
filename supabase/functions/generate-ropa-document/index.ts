@@ -624,32 +624,31 @@ function registerHtml(reg: RopaRegisterDocument): string {
                 .join(""),
         )
         .join("");
-      // DOC 135 FOLLOW-UP (deferred item, 2026-09-01) — this 8-column
-      // Art. 30(1)(a)-(g) matrix used the "kv" class, built for narrow
+      // DOC 136 FOLLOW-UP / DOC 137 (2026-09-01) — this 8-column Art.
+      // 30(1)(a)-(g) matrix previously used the "kv" class, built for narrow
       // 2-column label/value tables with a fixed 200px column width (8 x
-      // 200px far exceeds the 880px content area). Switched to "grid" —
-      // already proven for this document's 5-column cross-border transfer
-      // table (bordered cells, no fixed width) — plus header-repeat CSS
-      // below. Landscape orientation was tried fleet-wide and reverted
-      // (doc 66 Rule 10, 2026-08-25): PDFShift's Chromium clips text past
-      // the page edge on a rotated named page without any visible warning
-      // in the composed HTML, so it is never reintroduced without a
-      // dedicated per-page text-extraction render test. This document
-      // already offers the A-Team's third alternative (one card per
-      // processing activity, Section 2 below) independently of this fix.
-      const table =
-        sec.id === "processing_activities" && reg.activity_records.length
-          ? `<table class="grid"><thead><tr>${registerTableAoa(reg)[0]
-              .map((h) => `<th>${escapeHtml(h)}</th>`)
-              .join("")}</tr></thead><tbody>${registerTableAoa(reg)
-              .slice(1)
-              .map(
-                (row) =>
-                  `<tr>${row.map((v) => `<td>${escapeHtml(v)}</td>`).join("")}</tr>`,
-              )
-              .join("")}</tbody></table>`
-          : "";
-      return `<h2>${escapeHtml(sec.title)}</h2>${paras}${table}`;
+      // 200px far exceeds the 880px content area). Doc 136 switched it to
+      // "grid" (already proven for this document's 5-column cross-border
+      // transfer table) plus header-repeat CSS, but a Batch 5 external PDF
+      // review still showed the matrix visually compressed/clipped in
+      // rendered output ("Art. GDP Tech orga secu mea", "RBA AES rest,
+      // acce...", "Pseu dash ident..."). Landscape orientation remains
+      // banned fleet-wide (doc 66 Rule 10, 2026-08-25): PDFShift's Chromium
+      // clips text past the page edge on a rotated named page with no
+      // visible warning in the composed HTML, so it is never reintroduced
+      // without a dedicated per-page text-extraction render test. Rather
+      // than keep fighting 8 columns of statutory text at portrait width,
+      // this HTML/PDF render now DROPS the wide matrix outright: every
+      // Art. 30(1)(a)-(g) element it carried is already rendered in full,
+      // readable form by the per-activity "kv" card in Section 2 below
+      // (buildHtml's `activitySections` — role/purpose/lawful basis, data
+      // subjects/categories, recipients, cross-border transfers, retention,
+      // security measures, access controls — a superset of the matrix's
+      // seven cells; contact details (a) live in "1. Client record"). The
+      // prose paragraphs above (the byte-pinned per-activity sentence) are
+      // untouched. `registerTableAoa()` remains in use by the DOCX and XLSX
+      // exports, which are not reported as clipped and are left as-is.
+      return `<h2>${escapeHtml(sec.title)}</h2>${paras}`;
     })
     .join("");
 

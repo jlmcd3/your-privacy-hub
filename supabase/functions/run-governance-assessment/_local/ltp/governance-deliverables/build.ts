@@ -189,6 +189,20 @@ export function buildDemonstrabilityFindings(intake: unknown): DemonstrabilityFi
 // ─────────────────────────────────────────────────────────────────────
 // Op. 3 — Art. 30(1)(a)-(g) element walk (deterministic)
 // ─────────────────────────────────────────────────────────────────────
+// DOC 137 (2026-09-01) — `special_categories_list` is a CONDITIONAL field: it
+// is only expected to carry content when `special_category` is answered
+// "Yes". A record that answers `special_category` "No" has correctly and
+// completely answered this sub-element by recording nothing to list — that
+// is a different state from the field being genuinely unanswered, and the
+// Art. 30(1)(c) walk previously could not tell the two apart, so it asked
+// the customer to "supply the special-category data list" on a record that
+// had already, correctly, answered "No, nothing to list." This checks only
+// the specific special-category sub-check; the general Art. 30(1)(c)
+// `data_categories` evaluation is untouched.
+function specialCategoryAnsweredNo(intake: unknown): boolean {
+  return str(get(intake, "special_category")).toLowerCase() === "no";
+}
+
 export function buildArt30ElementFindings(intake: unknown): Art30ElementFinding[] {
   return ART30_ELEMENTS.map((el) => {
     const a = anchor(el.anchorKey, `GDPR Art. 30(1)(${el.element})`);
@@ -196,6 +210,9 @@ export function buildArt30ElementFindings(intake: unknown): Art30ElementFinding[
       .map((k) => {
         const v = get(intake, k);
         const text = Array.isArray(v) ? arr(v).join(", ") : str(v);
+        if (k === "special_categories_list" && unanswered(text) && specialCategoryAnsweredNo(intake)) {
+          return `${govFieldLabel(k)}: none recorded (special-category processing answered "No")`;
+        }
         return unanswered(text) ? "" : `${govFieldLabel(k)}: ${text}`;
       })
       .filter(Boolean);
@@ -224,6 +241,10 @@ export function buildArt30ElementFindings(intake: unknown): Art30ElementFinding[
     // lookup and this fallback came up empty. The missing evidence key(s)
     // are named specifically, matching the fleet's naming convention.
     const missingKeys = el.evidence_keys.filter((k) => {
+      // DOC 137 — see specialCategoryAnsweredNo above: an answered "No"
+      // takes special_categories_list out of the missing-keys set so no
+      // remediation item asks the customer to supply a list of nothing.
+      if (k === "special_categories_list" && specialCategoryAnsweredNo(intake)) return false;
       const v = get(intake, k);
       const text = Array.isArray(v) ? arr(v).join(", ") : str(v);
       return unanswered(text);
@@ -504,6 +525,17 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
   // customer completion time to answer a question the analysis can already
   // reach. What the form does not collect is routed to `information_needed`
   // framed as what would STRENGTHEN the record — never as a deficiency.
+  //
+  // DOC 137 (2026-09-01) — A-Team Batch 5: the hasFormal sentence below used
+  // to say the assessment "takes the Article 38 position as evidenced on
+  // that basis" from designation alone. A formal designation establishes
+  // that Articles 38-39 APPLY; it does not, by itself, establish timely
+  // involvement, adequate resources, freedom from instructions, protection
+  // from dismissal/penalty, direct reporting, or absence of conflicting
+  // duties. The UNREQUESTED-FACT RULE above already reached the honest
+  // OUTCOME (no adverse weight for a fact never asked); this refines the
+  // WORDING to match — "not independently assessed", not "evidenced" —
+  // without reopening the panel-ratified verdict/status computation.
   const position_and_independence: Finding = hasFormal || hasInformal
     ? {
       key: "dpo_position_independence",
@@ -512,12 +544,12 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
       standard: [anchor("dpo_involvement", "GDPR Art. 38(1)").verbatim, anchor("dpo_resources", "GDPR Art. 38(2)").verbatim, indep.verbatim, anchor("dpo_conflict", "GDPR Art. 38(6)").verbatim].filter(Boolean).join(" "),
       record_fact: `The designation state is as recorded above.`,
       application: hasFormal
-        ? "A formal designation carries the Article 38 duties with it: on designation the controller owes timely involvement in all data-protection issues, resources sufficient for the Article 39 tasks, freedom from instructions on their exercise, and a direct reporting line to the highest management level. The record states a formal designation, and the assessment takes the Article 38 position as evidenced on that basis. The operating detail behind it — reporting line, resourcing, and other duties held — is a refinement this assessment records under information needed; it is not part of the information requested for this assessment and is not read as a shortfall."
+        ? "A formal designation carries the Article 38 duties with it: on designation the controller owes timely involvement in all data-protection issues, resources sufficient for the Article 39 tasks, freedom from instructions on their exercise, protection from dismissal or another penalty for performing the officer's tasks, a direct reporting line to the highest management level, and management of any conflicting duties. Those duties apply on designation; whether the specific operational safeguards behind them are being met in practice is not independently assessed here. The operating detail — reporting line, resourcing, freedom from instructions, dismissal protection, and other duties held — is a refinement this assessment records under information needed; it is not part of the information requested for this assessment, so its absence is not read as a shortfall, and it is equally not presumed satisfied."
         : "An informal privacy lead is not a formal designation for Article 37 purposes, so the Article 38 protections are evidenced only in part: the function exists and is owned, but the independence and conflict-of-interests protections Article 38(3) and 38(6) attach to a designated officer are not carried by an informal arrangement. That is a conclusion about the arrangement the record describes, not about anything the record omits.",
       verdict: hasFormal ? "satisfied" : "partially_satisfied",
       status: "analysed",
       information_needed:
-        "Recording the officer's reporting line, the resources allocated, and any other roles the same individual holds would let Article 38(1)-(3) and 38(6) be tested directly rather than taken from the designation. This assessment does not request those operating details, so their absence carries no adverse weight.",
+        "Recording the officer's reporting line, the resources allocated, whether they are free from instructions, whether they are protected from dismissal or penalty for performing DPO tasks, and any other roles the same individual holds would let Article 38(1)-(3) and 38(6) be tested directly rather than left not independently assessed. This assessment does not request those operating details, so their absence carries no adverse weight.",
     }
     : {
       key: "dpo_position_independence",
@@ -558,15 +590,25 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
         `On the designation recorded above, DPIA activity is "${str(get(intake, "dpia_status")) || "unstated"}" and training is "${str(get(intake, "training_status")) || "unstated"}".`,
       application:
         "Article 39(1) sets a floor of five tasks, and the record speaks to two of them directly: monitoring compliance including awareness-raising and training of staff (39(1)(b)), and advising on and monitoring the performance of data protection impact assessments (39(1)(c)). " +
+        // DOC 137 (2026-09-01) — A-Team Batch 5: "the assessment takes
+        // Article 39 task coverage as evidenced on that basis" previously
+        // let the three UNTESTED tasks (informing/advising generally,
+        // cooperation with the supervisory authority, contact-point
+        // function) ride on the coattails of the two that ARE specifically
+        // evidenced by recorded training/DPIA activity. Only the
+        // specifically-evidenced tasks now read as supported; the rest are
+        // stated as not independently assessed, matching the honest,
+        // no-adverse-weight outcome the UNREQUESTED-FACT RULE already gives
+        // them under information_needed.
         (bothAdjacent
-          ? "Both are evidenced in substance alongside a designation, which is what this assessment records on the point, and the assessment takes Article 39 task coverage as evidenced on that basis. The remaining tasks — informing and advising, cooperating with the supervisory authority, and acting as its contact point — follow from the designation itself and are recorded under information needed as a confirmation that would strengthen the record."
+          ? "Both are supported by the record: the recorded training activity supports 39(1)(b), and the recorded DPIA activity supports 39(1)(c). The remaining three tasks — informing and advising generally (39(1)(a)), cooperating with the supervisory authority (39(1)(d)), and acting as its contact point (39(1)(e)) — are not independently assessed here: a designation establishes that the tasks apply, not that each is being performed, and this assessment does not request task-by-task confirmation. That gap is recorded under information needed as a confirmation that would strengthen the record, not as a deficiency."
           : (hasFormal
-            ? "One of the two is not evidenced in substance, so task coverage is evidenced in part: the designation is recorded, and the activity behind two of the named tasks is only partly visible in the Company's answers."
-            : "The arrangement recorded is an informal privacy lead and one of the two adjacent activities is not evidenced in substance, so task coverage is evidenced in part.")),
+            ? "One of the two is not evidenced in substance, so task coverage is evidenced in part: the designation is recorded, and the activity behind two of the named tasks is only partly visible in the Company's answers. The remaining three tasks are not independently assessed here."
+            : "The arrangement recorded is an informal privacy lead and one of the two adjacent activities is not evidenced in substance, so task coverage is evidenced in part. The remaining three tasks are not independently assessed here.")),
       verdict: (bothAdjacent && hasFormal) ? "satisfied" : "partially_satisfied",
       status: "analysed",
       information_needed:
-        "Confirming, task by task against Article 39(1)(a)-(e), which tasks the designated officer performs and how that is recorded would strengthen the record. This assessment does not request that confirmation, so its absence carries no adverse weight.",
+        "Confirming, task by task against Article 39(1)(a)-(e), which tasks the designated officer performs and how that is recorded would strengthen the record and let the tasks not independently assessed above be tested directly. This assessment does not request that confirmation, so its absence carries no adverse weight.",
     }
     : {
       key: "dpo_task_coverage",
