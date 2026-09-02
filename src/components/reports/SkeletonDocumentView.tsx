@@ -635,7 +635,10 @@ function cellContent(v: string): React.ReactNode {
 /** Restrained status badge — §4.2/§21: light tint, dark text, 1px border.
  * DOC 144 (2026-09-02): the `tone` override maps determination words the
  * value-regexes don't know (necessity words, likelihood/severity scale
- * words) onto the SAME tint families — synced with the PDF renderer. */
+ * words) onto the SAME tint families — synced with the PDF renderer.
+ * DOC 147 (2026-09-02) — CEO T8 ruling: "Additional Information Required"
+ * reads slate GLOBALLY (removed from the warn regex; falls to neutral),
+ * closing doc 144 §D.1. */
 type RiskBadgeTone = "ok" | "warn" | "hi" | "neutral";
 const RISK_BADGE_TONE_CLASS: Record<RiskBadgeTone, string> = {
   hi: "border-red-300 bg-red-50 text-red-900 dark:bg-red-950/30 dark:text-red-200",
@@ -648,7 +651,7 @@ function RiskBadge({ value, large, tone }: { value: string; large?: boolean; ton
   const resolved: RiskBadgeTone = tone ?? (
     /^(Critical|High|Do Not Proceed)$/i.test(v)
       ? "hi"
-      : /^(Moderate|Additional Information Required|Unresolved)$/i.test(v)
+      : /^(Moderate|Unresolved)$/i.test(v)
       ? "warn"
       : /^(Low|Yes|Proceed|Proceed with Conditions|Engaged|No Processing Decision Required)$/i.test(v)
       ? "ok"
@@ -822,10 +825,11 @@ function riskDispositionAccentClass(label: string): string {
   return "border-l-slate-500/70 dark:border-l-slate-300/70";
 }
 
-/** The panel-scoped disposition badge tone for the SAME family mapping (AIR
- * reads slate/neutral here per the mockup, not the amber the generic badge
- * machinery would pick); every other badge surface is unchanged. Synced with
- * the PDF renderer's riskDispositionPanelTone. */
+/** The panel-scoped disposition badge tone for the SAME family mapping.
+ * DOC 147 (2026-09-02): since the CEO's T8 ruling the generic badge
+ * machinery also reads AIR as neutral/slate, so this override now matters
+ * only for future divergence; kept for explicitness. Synced with the PDF
+ * renderer's riskDispositionPanelTone. */
 function riskDispositionPanelTone(label: string): RiskBadgeTone {
   const v = label.trim();
   if (/^Do Not Proceed$/i.test(v)) return "hi";

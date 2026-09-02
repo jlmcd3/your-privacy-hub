@@ -1659,7 +1659,10 @@ const RISK_UNDERLINE = "text-decoration:underline;text-underline-offset:2.5px;te
  * DOC 144 (2026-09-02): an explicit `tone` override lets surface-keyed cell
  * renderers map determination words the value-regexes don't know (the § 3.B
  * necessity words, the ledger's likelihood/severity scale words) onto the
- * SAME tint families — no new palette is introduced. */
+ * SAME tint families — no new palette is introduced.
+ * DOC 147 (2026-09-02) — CEO T8 ruling: "Additional Information Required"
+ * reads slate GLOBALLY (removed from the warn regex; falls to neutral),
+ * closing doc 144 §D.1. */
 type RiskBadgeTone = "ok" | "warn" | "hi" | "neutral";
 const RISK_BADGE_PALETTE: Record<RiskBadgeTone, string> = {
   hi: "color:#6e2323;background:#faf3f3;border-color:#c4a0a0;",
@@ -1672,7 +1675,7 @@ function riskBadgeHtml(value: string, opts?: { large?: boolean; tone?: RiskBadge
   const tone: RiskBadgeTone = opts?.tone ?? (
     /^(Critical|High|Do Not Proceed)$/i.test(v)
       ? "hi"
-      : /^(Moderate|Additional Information Required|Unresolved)$/i.test(v)
+      : /^(Moderate|Unresolved)$/i.test(v)
       ? "warn"
       : /^(Low|Yes|Proceed|Proceed with Conditions|Engaged|No Processing Decision Required)$/i.test(v)
       ? "ok"
@@ -1830,9 +1833,10 @@ function riskDispositionAccent(label: string): string {
   return "#5c6d7a";
 }
 
-/** The panel-scoped disposition badge tone for the SAME family mapping
- * (AIR reads slate/neutral here per the mockup, not the amber the generic
- * badge machinery would pick); every other badge surface is unchanged. */
+/** The panel-scoped disposition badge tone for the SAME family mapping.
+ * DOC 147 (2026-09-02): since the CEO's T8 ruling the generic badge
+ * machinery also reads AIR as neutral/slate, so this override now matters
+ * only for future divergence; kept for explicitness. */
 function riskDispositionPanelTone(label: string): RiskBadgeTone {
   const v = label.trim();
   if (/^Do Not Proceed$/i.test(v)) return "hi";
