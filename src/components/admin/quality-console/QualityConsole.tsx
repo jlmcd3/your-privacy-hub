@@ -280,7 +280,16 @@ export function QualityConsole({
   const [batchLogs, setBatchLogs] = useState<BatchLogRow[]>([]);
 
   // Panel C state
+  // BATCH-NUMBER LAW (2026-09-02): batch numbers are GLOBALLY STABLE — the
+  // newest batch is always numbered from the total server batch count, so a
+  // new batch takes the next number and old columns never renumber. The
+  // matrix window shows the latest 7 server batches; "Load older" pages
+  // backwards through every batch ever run here. `recentBatches` is stored
+  // newest-first (desc), deduped by id.
   const [recentBatches, setRecentBatches] = useState<BatchRow[]>([]);
+  const [batchTotal, setBatchTotal] = useState(0);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const BATCH_PAGE = 7;
   const [baselines, setBaselines] = useState<Map<string, Baseline>>(new Map());
   const [snapshotting, setSnapshotting] = useState(false);
   // Which batch column the current baseline was pinned from (browser-local).
