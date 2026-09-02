@@ -31,7 +31,7 @@
 import { HARM_PATHWAY_OPTS } from "../intake-contracts/cppa-risk-assessment.ts";
 import { CA_SPI_CATEGORY_KEYS } from "./ca-pi-taxonomy.ts";
 import type { RenderedTable } from "../prose/skeleton-render.ts";
-import { firstSentence } from "./clause-bound.ts";
+import { boundedPassage, firstSentence } from "./clause-bound.ts";
 import { RISK52_FIXED } from "../prose/plans/cppa-risk.spine.ts";
 
 export const RISK_FACTOR_ENGINE_STAMP =
@@ -55,6 +55,21 @@ function isNo(v: unknown): boolean {
 function clause(v: unknown): string {
   return s(v).replace(/\.\s*$/, "");
 }
+
+// DOC 144 (2026-09-02) — quote discipline for customer free text spliced into
+// engine prose (doc 143 §C sweep). Every intake-derived narrative or name
+// renders inside typographic quotes with attribution at the call site, so the
+// Company's casing is visibly the Company's and its punctuation cannot break
+// the surrounding sentence.
+//
+// `qPassage` — a multi-sentence narrative value, sentence-bounded through
+// `boundedPassage` (abbreviation-aware, never cut mid-clause, terminal stop
+// stripped) and quoted. `qName` — a short name-like value (an element, a
+// safeguard's first sentence, a recipient), bounded to its first sentence
+// and quoted.
+const qPassage = (t: unknown): string => `“${boundedPassage(s(t))}”`;
+const qName = (t: unknown): string =>
+  `“${firstSentence(s(t)).replace(/[.!?]\s*$/, "")}”`;
 
 /** "a, b and c" */
 function asProse(items: readonly string[]): string {
@@ -554,6 +569,11 @@ export interface UnassessedPathway {
   readonly harm: string;
   /** The unresolvable field name(s): "likelihood" and/or "severity". */
   readonly missing: readonly string[];
+  /** DOC 144 (2026-09-02) — the raw recorded rating strings (possibly empty),
+   * so the widened § 4.A ledger can show what the Company DID record on a
+   * row that cannot be assessed, instead of a blanket "Not recorded". */
+  readonly likelihood?: string;
+  readonly severity?: string;
 }
 
 export function extractUnassessedPathways(intake: Bag): UnassessedPathway[] {
@@ -563,7 +583,12 @@ export function extractUnassessedPathways(intake: Bag): UnassessedPathway[] {
     const missing: string[] = [];
     if (!RISK_MATERIALITY_MATRIX.Minimal[s(p.likelihood) as RiskLikelihood]) missing.push("likelihood");
     if (!RISK_MATERIALITY_MATRIX[s(p.severity) as RiskSeverity]) missing.push("severity");
-    return [{ harm: s(p.harm), missing: missing.length ? missing : ["likelihood", "severity"] }];
+    return [{
+      harm: s(p.harm),
+      missing: missing.length ? missing : ["likelihood", "severity"],
+      likelihood: s(p.likelihood),
+      severity: s(p.severity),
+    }];
   });
 }
 
@@ -630,25 +655,44 @@ export function extractNecessity(intake: Bag): NecessityBuckets {
 
 // ── Appendix tables (carried, v5.2 column register) ──────────────────────────
 
-/** Appendix D — the element-level necessity matrix. */
-export function buildNecessityMatrixTable(intake: Bag): RenderedTable {
+/** The element-level necessity determinations table.
+ *
+ * DOC 144 (2026-09-02, CEO-ratified redesign) — this table now renders INSIDE
+ * § 3.B (`iii_analysis:4`), not in an appendix slot: the per-element
+ * determinations are analysis, not a register (doc 143 §B row D). The surface
+ * name `necessity_matrix` is KEPT so RISK_TABLE_SPECS keying is unchanged.
+ * The Basis cell carries the Company's own justification QUOTED ("their
+ * casing is theirs"). Zero recorded elements ⇒ `null` — the § 3.B body states
+ * the one-line honest posture inline and no empty-table deliverable is
+ * emitted (doc 143 §B empty-register suppression).
+ */
+export function buildNecessityMatrixTable(intake: Bag): RenderedTable | null {
   const rowsData = rows(intake.a2_necessity_set).filter((r) => s(r.element));
+  if (rowsData.length === 0) return null;
   return {
     key: "",
     surface: "necessity_matrix",
     title: "",
-    columns: ["Element", "Necessity Determination", "Basis"],
+    columns: ["Element", "Determination", "Basis"],
     rows: rowsData.map((r) => [
       s(r.element),
       s(r.necessity),
-      clause(r.justification) || "Recorded in the intake record without further explanation.",
+      clause(r.justification)
+        ? `${qPassage(r.justification)}.`
+        : "Recorded without further explanation.",
     ]),
   };
 }
 
-/** Appendix E — the risk × safeguard register (structured fields only;
- * § 4.A carries all analysis prose). Ranked by pre-safeguard level. */
-export function buildRiskAndSafeguardRegisterTable(intake: Bag): RenderedTable {
+/** Appendix D (old E, DOC 144 re-lettering) — the risk × safeguard register
+ * (structured fields only;
+ * § 4.A carries all analysis prose). Ranked by pre-safeguard level.
+ *
+ * DOC 144 (2026-09-02) — empty-register suppression: zero named risk rows
+ * (assessed or unassessed) ⇒ `null`, so no empty-table deliverable is
+ * emitted and the appendix page is suppressed; § 4.A states the zero-a5
+ * posture inline (doc 143 §B). */
+export function buildRiskAndSafeguardRegisterTable(intake: Bag): RenderedTable | null {
   const pathways = rankPathways(extractPathways(intake));
   // DOC 127 PART I — named-but-unassessed risks appear in the register too,
   // with their recorded facts and an honest "Not assessed" level.
@@ -672,6 +716,7 @@ export function buildRiskAndSafeguardRegisterTable(intake: Bag): RenderedTable {
       "Not assessed",
     ];
   });
+  if (pathways.length === 0 && unassessedRows.length === 0) return null;
   return {
     key: "",
     surface: "risk_and_safeguard_register",
@@ -780,19 +825,42 @@ export function buildRiskLedgerTable(
       ...(unassessedNote ? { note: unassessedNote } : {}),
     };
   }
+  // DOC 144 (2026-09-02, CEO-ratified redesign; amends the doc-72 ledger
+  // shape per doc 143 §B row E) — the § 4.A ledger carries the Company's own
+  // recorded Likelihood and Severity ratings (enum words; the renderer
+  // badges them) so the ratings no longer exist only in the appendix
+  // register. "Remaining risk" is the SAME per-risk residual the ledger has
+  // always shown (`p.residual`, the ratified one-tier rule) — no new rating
+  // is derived. Two added columns is the doc-143 column-width ceiling.
   return {
     key: "",
     surface,
     title: "",
-    columns: ["Privacy risk", "Before safeguards", "Safeguard credited (status)", "Remaining"],
+    columns: [
+      "Privacy risk",
+      "Likelihood",
+      "Severity",
+      "Before safeguards",
+      "Safeguard credited (status)",
+      "Remaining risk",
+    ],
     rows: [
       ...ranked.map((p) => [
         p.harm,
+        p.likelihood,
+        p.severity,
         p.materiality,
         safeguardCreditedCell(p),
         `${p.residual} ${movementMark(p)}`,
       ]),
-      ...unassessed.map((u) => [u.harm, "Not assessed", "Not evaluated", "Not assessed"]),
+      ...unassessed.map((u) => [
+        u.harm,
+        s(u.likelihood) || "Not recorded",
+        s(u.severity) || "Not recorded",
+        "Not assessed",
+        "Not evaluated",
+        "Not assessed",
+      ]),
     ],
     ...(unassessedNote ? { note: unassessedNote } : {}),
   };
@@ -926,9 +994,12 @@ export function runRiskFactorEngine(
 
   // Conditions / follow-ups / recommendations (typed derivations, carried).
   const conditions: string[] = [];
+  // DOC 144 (2026-09-02, doc 143 §C sweep) — intake-derived names in § 4.D
+  // items (safeguard first-sentences, element names, recipient names) render
+  // quoted; the imperative frame around them is unchanged.
   for (const g of planned) {
     conditions.push(
-      `Complete implementation of the planned safeguard: ${firstSentence(s(g.safeguard))}${
+      `Complete implementation of the planned safeguard: ${qName(g.safeguard)}${
         s(g.harm) ? ` (addresses: ${s(g.harm)})` : ""
       }`,
     );
@@ -940,7 +1011,7 @@ export function runRiskFactorEngine(
     // the one paragraph most customers read. Naming the elements inline
     // keeps both the full § 4.D entry and the compact form grammatical.
     conditions.push(
-      `Cease processing, or establish the necessity of, ${asProse(necessity.unnecessary.map((r) => s(r.element)))}`,
+      `Cease processing, or establish the necessity of, ${asProse(necessity.unnecessary.map((r) => `“${s(r.element)}”`))}`,
     );
   }
   for (const p of gaps) {
@@ -986,7 +1057,7 @@ export function runRiskFactorEngine(
     followUps.push(
       `Establish whether the following ${
         plural(necessity.unsure.length, "element is", "elements are")
-      } necessary to the stated purpose: ${asProse(necessity.unsure.map((r) => s(r.element)))}`,
+      } necessary to the stated purpose: ${asProse(necessity.unsure.map((r) => `“${s(r.element)}”`))}`,
     );
   }
   if (rc && rc.value === false) {
@@ -1035,10 +1106,14 @@ export function runRiskFactorEngine(
   // (stop-driving rows) are not repeated as a recommendation.
   const untestedForRec = untested.filter((g) => !untestedEscalatedHarms.has(s(g.harm)));
   if (untestedForRec.length) {
+    // DOC 144 (2026-09-02, doc 143 §C sweep) — the controls are named,
+    // quoted, so the recommendation is actionable without the ledger.
     recommendations.push(
       `Obtain implementation or testing evidence for the ${
         plural(untestedForRec.length, "control", "controls")
-      } credited without it, so the assessment can rely on ${plural(untestedForRec.length, "it", "them")} at full weight`,
+      } credited without it — ${
+        asProse(untestedForRec.map((g) => qName(g.safeguard)))
+      } — so the assessment can rely on ${plural(untestedForRec.length, "it", "them")} at full weight`,
     );
   }
   if (planned.length) {
@@ -1157,10 +1232,14 @@ export function runRiskFactorEngine(
     );
   }
   if (weakRecipients.length) {
+    // DOC 144 (2026-09-02, doc 143 §C sweep) — the recipients are named,
+    // quoted ("their casing is theirs"); the imperative frame is kept.
     recommendations.push(
       `Put a written contract with the required restrictions in place for ${
-        plural(weakRecipients.length, "the recipient that lacks one", "each recipient that lacks one")
-      }, and record its terms in the assessment record`,
+        asProse(weakRecipients.map((r) => `“${s(r.recipient_name_or_category)}”`))
+      }, and record ${
+        plural(weakRecipients.length, "its terms", "the terms of each")
+      } in the assessment record`,
     );
   }
   const plannedNoTimeline = planned.filter((g) => s(g.planned_timeline) === "No committed timeline");
@@ -1681,11 +1760,13 @@ export function runRiskFactorEngine(
         ["11 CCR § 7152(a)(3)(A)"],
       );
     } else if (i4b) {
+      // DOC 144 (2026-09-02, doc 143 §C sweep) — the same intake value is
+      // quoted in § 2.C's fallback; this splice now matches that treatment.
       put(
         "ii_information:8",
         "sources_analysis",
         "A",
-        `E. Sources. The Company identifies the following source or sources: ${i4b}.`,
+        `E. Sources. The Company identifies the following source or sources: “${i4b}”.`,
         ["INTAKE:i4b_sources"],
         ["11 CCR § 7152(a)(3)(A)"],
       );
@@ -1742,8 +1823,12 @@ export function runRiskFactorEngine(
       }
       if (vendorDependency === "One or more vendors are essential — the processing could not continue without them") {
         const essential = clause(intake.essential_vendors);
+        // DOC 144 (2026-09-02, doc 143 §C sweep) — the Company's own vendor
+        // naming is quoted with attribution, never woven bare.
         consequences.push(
-          `The processing materially depends on ${essential || "one or more vendors the Company records as essential"}.`,
+          essential
+            ? `The processing materially depends on the following vendors the Company records as essential: “${essential}”.`
+            : `The processing materially depends on one or more vendors the Company records as essential.`,
         );
       }
       if (consequences.length) {
@@ -1835,11 +1920,19 @@ export function runRiskFactorEngine(
 
     const providers = clause(intake.a8_information_providers);
     const internal = clause(intake.i7_internal_contributors);
+    // DOC 144 (2026-09-02, doc 143 §C sweep) — the two narrative values on a
+    // participant row (role and processing responsibility) are the Company's
+    // own words and render quoted; the name leads the item unquoted.
     const participants = rows(intake.section_7151_operational_participants)
-      .map((p) =>
-        `— ${s(p.name)}, ${s(p.role)} — ${clause(p.processing_responsibility)}.`
-      )
-      .filter((x) => x !== "— , — .");
+      .map((p) => {
+        const name = s(p.name);
+        const role = s(p.role);
+        const resp = clause(p.processing_responsibility);
+        if (!name && !role && !resp) return "";
+        const head = [name, role ? `“${role}”` : ""].filter(Boolean).join(", ");
+        return `— ${head}${resp ? ` — “${resp}”` : ""}.`;
+      })
+      .filter(Boolean);
     const external = clause(intake.i7_external_consultees) || asProse(arr(intake.i7_external_consultees));
     if (providers || internal || participants.length || external) {
       // BATCH 20b (doc 113 S6.2) — the roster is a Rule-4 list, not a
@@ -1909,14 +2002,53 @@ export function runRiskFactorEngine(
   }
 
   // III.B — necessity (Annex T4).
-  if (necessity.necessary.length) {
-    const sentences = necessity.necessary.map((r) =>
-      `The information provided supports the necessity of ${s(r.element)}: ${
-        clause(r.justification) || "the element is recorded as necessary without further explanation"
-      }.`
+  //
+  // DOC 144 (2026-09-02, CEO-ratified redesign) — Appendix D is folded into
+  // the § 3.B body (doc 143 §B row D): the sub-part now opens with a landing
+  // question and one reader-first sentence, states the governing requirement
+  // as its own run-in paragraph (the law sentence VERBATIM from the retired
+  // § 3.B spine block), renders the per-element determinations table inline
+  // (`iii_analysis:4`, surface `necessity_matrix`), and only then carries the
+  // per-element reasoning (now at `iii_analysis:5`) and the grouped
+  // conclusion (`iii_analysis:6`, unchanged). Zero recorded elements ⇒ the
+  // one-line honest posture composes inline and no table is emitted.
+  {
+    const parts: string[] = ["B. Necessity and Minimization."];
+    if (necessity.total) {
+      parts.push("[Q] Does every data element the Company collects earn its place?");
+      parts.push(
+        "A processing activity is only as defensible as its least necessary data element, so the assessment weighs each element the Company collects against the Purpose it is said to serve, one element at a time.",
+      );
+    }
+    parts.push(
+      "Governing requirement. Section 7152(a)(2) requires the assessment to identify the minimum personal information necessary to achieve the Purpose.",
     );
+    if (!necessity.total) {
+      parts.push(
+        "The information provided contains no element-level necessity record for the Activity; no element-by-element determination is made on the information provided.",
+      );
+    }
     put(
-      "iii_analysis:4",
+      "iii_analysis:3",
+      "necessity_landing",
+      "A",
+      parts.join("\n\n"),
+      ["INTAKE:a2_necessity_set"],
+      ["11 CCR § 7152(a)(2)"],
+    );
+    tables["iii_analysis:4"] = buildNecessityMatrixTable(intake);
+  }
+  if (necessity.necessary.length) {
+    // DOC 144 (doc 143 §C sweep) — element and justification both quoted,
+    // matching the unsupported sibling's treatment of the same fields.
+    const sentences = necessity.necessary.map((r) => {
+      const basis = clause(r.justification);
+      return basis
+        ? `The information provided supports the necessity of “${s(r.element)}”: the Company records “${basis}”.`
+        : `The information provided supports the necessity of “${s(r.element)}”: the element is recorded as necessary without further explanation.`;
+    });
+    put(
+      "iii_analysis:5",
       "necessity_supported",
       "A",
       sentences.join(" "),
@@ -1934,18 +2066,21 @@ export function runRiskFactorEngine(
     // (quote-then-deny class). The determination is unchanged: the bucket
     // comes from the Company's own necessity answer, and the sentence now
     // says so, acknowledging the recorded basis where one exists.
+    // DOC 144 (2026-09-02) — element names quoted (doc 143 §C sweep); the
+    // "appears in Appendix D" pointer is retired with the fold-in — the
+    // determinations table now sits directly above this paragraph.
     const paras: string[] = necessity.unnecessary.map((r) => {
       const basis = clause(r.justification);
       const consequence =
         `Processing the element creates privacy exposure without a corresponding contribution to the benefits weighed in Section 4, and ceasing or justifying it appears in the ${conditionsHeadName}.`;
       return basis
-        ? `The necessity of ${s(r.element)} is not established for the Purpose under assessment: the Company itself records the element as collected but not necessary to the stated purpose, and the basis it records (“${basis}”) does not establish a contribution to that Purpose; the element-level record appears in Appendix D. ${consequence}`
-        : `The necessity of ${s(r.element)} is not established: the Company records the element as collected but not necessary to the stated purpose, and the information provided identifies no contribution it makes to the Purpose. ${consequence}`;
+        ? `The necessity of “${s(r.element)}” is not established for the Purpose under assessment: the Company itself records the element as collected but not necessary to the stated purpose, and the basis it records (“${basis}”) does not establish a contribution to that Purpose. ${consequence}`
+        : `The necessity of “${s(r.element)}” is not established: the Company records the element as collected but not necessary to the stated purpose, and the information provided identifies no contribution it makes to the Purpose. ${consequence}`;
     });
     if (necessity.unsure.length) {
       paras.push(
         necessity.unsure.map((r) =>
-          `The necessity of ${s(r.element)} is unresolved on the information provided; resolving it appears among the Follow-ups.`
+          `The necessity of “${s(r.element)}” is unresolved on the information provided; resolving it appears among the Follow-ups.`
         ).join(" "),
       );
     }
@@ -1953,7 +2088,9 @@ export function runRiskFactorEngine(
       "iii_analysis:5",
       "necessity_unsupported",
       "A",
-      paras.join("\n\n"),
+      // A leading paragraph break: this block shares `iii_analysis:5` with
+      // the supported group when both compose.
+      `\n\n${paras.join("\n\n")}`,
       ["INTAKE:a2_necessity_set"],
       ["11 CCR § 7152(a)(2)"],
     );
@@ -2134,11 +2271,18 @@ export function runRiskFactorEngine(
 
   // III.E — ADMT (compressed to one analytical unit).
   if (isAdmt) {
+    // DOC 144 (2026-09-02, task-5 landing restructure) — the sub-part no
+    // longer opens on a bare statutory recitation: one reader-first sentence
+    // leads (carrying the carried what-it-does-not-the-label principle and
+    // the ADMT-appendix pointer), and the law sentence follows VERBATIM as
+    // its own "Governing requirement." run-in paragraph.
+    // DOC 144 reconciliation (same day) — re-lettered: the ADMT technical
+    // record is now Appendix E (old F).
     put(
       "iii_analysis:14",
       "admt_intro",
       "A",
-      "E. Automated Decisionmaking Technology. Section 7152(a)(3)(G) requires the report to describe the technology’s role, logic, and output, and §§ 7001(e), 7150(b)(3), 7152(a)(5)(B) and 7152(a)(6)(A)(iv) make human review and accuracy-fairness-bias testing relevant to both the risk analysis and the safeguards. The assessment evaluates what the technology actually does rather than the label applied to it; the full technical record appears in Appendix F.",
+      "E. Automated Decisionmaking Technology.\n\nAn automated system that decides, or helps decide, something significant for a consumer stands or falls on what it actually does — not the label applied to it — so this sub-part evaluates the system's role, the human review around it, and the testing behind it; the full technical record appears in Appendix E.\n\nGoverning requirement. Section 7152(a)(3)(G) requires the report to describe the technology’s role, logic, and output, and §§ 7001(e), 7150(b)(3), 7152(a)(5)(B) and 7152(a)(6)(A)(iv) make human review and accuracy-fairness-bias testing relevant to both the risk analysis and the safeguards.",
       ["INTAKE:q18_admt_use"],
       ["11 CCR § 7152(a)(3)(G)"],
     );
@@ -2210,14 +2354,18 @@ export function runRiskFactorEngine(
           "iii_analysis:16",
           "admt_human_review",
           "B",
-          `The Company describes human review as follows: ${firstSentence(review)} The assessment relies on it to the extent the description supports reviewer understanding, adequate information and time, and authority to reach a different result — and only to that extent in § 4.A.`,
+          // DOC 144 (2026-09-02) — doc 143 §C's live seam defect: the splice
+          // now carries the same quotes + guaranteed closing stop as the
+          // `quoted()` discipline at the § 3.E role site, so an unpunctuated
+          // intake fragment can no longer fuse into the following sentence.
+          `The Company describes human review as follows: “${firstSentence(review).replace(/[.!?]\s*$/, "")}”. The assessment relies on it to the extent the description supports reviewer understanding, adequate information and time, and authority to reach a different result — and only to that extent in § 4.A.`,
           ["INTAKE:i5_admt_human_review"],
           ["11 CCR § 7001(e)"],
         );
       }
     }
 
-    // Testing + logic + training (each with the Appendix F pointer).
+    // Testing + logic + training (each with the ADMT-appendix pointer).
     {
       const accuracy = admtTestingFacts.includes("Tested for accuracy or validity");
       const bias = admtTestingFacts.includes("Tested for discriminatory impact or bias");
@@ -2258,12 +2406,15 @@ export function runRiskFactorEngine(
           ["11 CCR § 7152(a)(5)(B)"],
         );
       }
+      // DOC 144 reconciliation (2026-09-02) — re-lettered: the ADMT technical
+      // record is now Appendix E (old F) across the logic, training, and
+      // § 7153 sentences below.
       if (admtLogicDocumented) {
         const logicText = admtLogicDocumented === "The logic is documented and reviewed internally"
-          ? "The system’s logic is documented and reviewed internally; the full logic record, including its assumptions and limitations, is preserved in Appendix F."
+          ? "The system’s logic is documented and reviewed internally; the full logic record, including its assumptions and limitations, is preserved in Appendix E."
           : admtLogicDocumented === "The logic is documented by the provider and the Company relies on that documentation"
-          ? "The system’s logic is documented by the provider, on whose documentation the Company relies; the record is preserved in Appendix F, with the provider dependency noted in § 2.F."
-          : `The system’s logic is not fully documented or understood on the information provided; documenting it appears among the ${conditionsHeadName} in § 4.D, and the record to date is preserved in Appendix F.`;
+          ? "The system’s logic is documented by the provider, on whose documentation the Company relies; the record is preserved in Appendix E, with the provider dependency noted in § 2.F."
+          : `The system’s logic is not fully documented or understood on the information provided; documenting it appears among the ${conditionsHeadName} in § 4.D, and the record to date is preserved in Appendix E.`;
         put("iii_analysis:17", "admt_logic_note", "B", logicText, ["INTAKE:admt_logic_documented"], ["11 CCR § 7152(a)(3)(G)(i)"]);
       }
       {
@@ -2275,15 +2426,16 @@ export function runRiskFactorEngine(
             "admt_training_note",
             "B",
             noneSrc
-              ? "Training-data provenance is not identified in the information provided; the gap is carried into the Follow-ups where material, and the technical record appears in Appendix F."
-              : "Training-data provenance is identified in the information provided and is preserved in Appendix F.",
+              ? "Training-data provenance is not identified in the information provided; the gap is carried into the Follow-ups where material, and the technical record appears in Appendix E."
+              : "Training-data provenance is identified in the information provided and is preserved in Appendix E.",
             ["INTAKE:i5_admt_training_source"],
             ["11 CCR § 7150(b)(6)", "11 CCR § 7153"],
           );
         }
       }
       // § 7153 — provided to another business (the Appendix A row's factor;
-      // the underlying facts also sit in the Appendix F record).
+      // the underlying facts also sit in the ADMT technical record,
+      // Appendix E after the DOC 144 re-lettering).
       if (isYes(intake.admt_made_available_to_other_business)) {
         const trained = isYes(intake.admt_provider_trained_using_pi);
         const significant = isYes(intake.recipient_business_uses_admt_for_significant_decision);
@@ -2292,8 +2444,8 @@ export function runRiskFactorEngine(
           "admt_made_available",
           "B",
           trained && significant
-            ? "The provided-to-another-business facts are established: the technology is made available to another business, is trained using personal information, and is used by the recipient for a significant decision. The recipient business remains responsible for its own risk assessment; Appendix F preserves the facts that assessment requires."
-            : "The Company reports that the technology is made available to another business; the training and significant-decision facts preserved in Appendix F frame the scope of the recipient’s own assessment obligation.",
+            ? "The provided-to-another-business facts are established: the technology is made available to another business, is trained using personal information, and is used by the recipient for a significant decision. The recipient business remains responsible for its own risk assessment; Appendix E preserves the facts that assessment requires."
+            : "The Company reports that the technology is made available to another business; the training and significant-decision facts preserved in Appendix E frame the scope of the recipient’s own assessment obligation.",
           ["INTAKE:admt_made_available_to_other_business", "INTAKE:admt_provider_trained_using_pi", "INTAKE:recipient_business_uses_admt_for_significant_decision"],
           ["11 CCR § 7153"],
         );
@@ -2342,10 +2494,13 @@ export function runRiskFactorEngine(
           : b.basis === "Qualitative basis stated"
           ? " — a qualitative basis the balance can credit"
           : "";
-        return `The ${b.label} benefit carries material weight: the Company identifies “${b.narrative}”, and supports it with “${b.fact}”${basisClause}.`;
+        // DOC 144 (2026-09-02) — multi-sentence narratives are hardened
+        // through `boundedPassage` (doc 143 §C item 3): the Company's own
+        // periods stay inside the quotes and can no longer break the frame.
+        return `The ${b.label} benefit carries material weight: the Company identifies ${qPassage(b.narrative)}, and supports it with ${qPassage(b.fact)}${basisClause}.`;
       }
       if (b.weight === "limited weight") {
-        return `The ${b.label} benefit carries limited weight: the Company identifies “${b.narrative}” but supplies no supporting information, so the claim is credited as stated rather than as established.`;
+        return `The ${b.label} benefit carries limited weight: the Company identifies ${qPassage(b.narrative)} but supplies no supporting information, so the claim is credited as stated rather than as established.`;
       }
       return `No ${b.label} benefit is identified, and none is credited.`;
     });
@@ -2383,24 +2538,70 @@ export function runRiskFactorEngine(
 
   // ══ IV — THE BALANCE AND THE DETERMINATION ═════════════════════════════════
 
-  // IV.A — the ledger + T1 paragraphs + rollup.
+  // IV.A — landing + governing requirement, the ledger, T1 paragraphs, rollup.
+  //
+  // DOC 144 (2026-09-02, CEO-ratified redesign) — § 4.A opens with the
+  // landing question and one reader-first sentence, then the governing
+  // requirement VERBATIM (the law sentence from the retired § 4.A spine
+  // block) as its own run-in paragraph. On a wholly-absent risk record the
+  // sub-part states the honest zero-a5 posture inline instead (the doc-142
+  // AIR machinery below is untouched), and the register pointer prints
+  // only when the register actually renders.
+  //
+  // DOC 144 reconciliation (same day) — the sibling's re-lettering: the risk
+  // register is now Appendix D (old E); and the landing line is the
+  // CEO-approved mockup's wording verbatim (declarative period).
+  {
+    const parts: string[] = ["A. The Risk Ledger."];
+    if (pathways.length || unassessed.length) {
+      parts.push("[Q] What could go wrong, how badly, and what stands in the way.");
+      parts.push(
+        "The ledger below answers that question risk by risk, on the Company’s own ratings: each identified risk, its recorded likelihood and severity, its level before safeguards, the safeguard credited against it, and the risk that remains. The paragraphs that follow show the reasoning.",
+      );
+    }
+    parts.push(
+      "Governing requirement. Section 7152(a)(5) requires the assessment to identify the negative impacts the processing may create and their sources and causes; §§ 7152(a)(5)–(6) require those impacts to be considered together with the safeguards directed at them.",
+    );
+    if (pathways.length || unassessed.length) {
+      parts.push("For further convenience, the full risk record appears in Appendix D.");
+    } else {
+      parts.push(
+        "No risk to consumers’ privacy is identified in the information provided, so the ledger this sub-part would carry is omitted; identifying and recording the Activity’s risks appears among the Follow-Ups in § 4.D.",
+      );
+    }
+    put(
+      "iv_determination:0",
+      "risk_ledger_landing",
+      "A",
+      parts.join("\n\n"),
+      ["INTAKE:a5_harm_pathways"],
+      ["11 CCR § 7152(a)(5)", "11 CCR § 7152(a)(6)"],
+    );
+  }
   tables["iv_determination:1"] = buildRiskLedgerTable(pathways, "risk_ledger", unassessed);
   if (pathways.length) {
     const ranked = rankPathways(pathways);
     const paras = ranked.map((p) => {
       // Annex T1 opening — the Company's own clauses in quotation marks
       // (v5.2 register: their casing is theirs, not the sentence's).
+      // DOC 144 (2026-09-02) — the quoted narratives are hardened through
+      // `boundedPassage` (doc 143 §C item 3), and the recorded SOURCE now
+      // rides in the paragraph beside the cause (doc 143 §B row E: § 7152
+      // (a)(5) promises "sources and causes", which previously existed only
+      // in the appendix register).
       const opening = [
         `${p.harm}. `,
-        p.data ? `The Company identifies “${p.data}”` : `The Company identifies this risk`,
-        p.actor ? `, at risk from “${p.actor}”` : "",
-        p.cause ? `: “${p.cause}”` : "",
+        p.data ? `The Company identifies ${qPassage(p.data)}` : `The Company identifies this risk`,
+        p.actor ? `, at risk from ${qPassage(p.actor)}` : "",
+        p.cause ? `: ${qPassage(p.cause)}` : "",
         ". ",
+        p.source ? `The source the Company records is ${qPassage(p.source)}. ` : "",
         `The Company assesses the likelihood as ${p.likelihood.toLowerCase()} and the severity as ${p.severity.toLowerCase()}, and the risk is rated ${p.materiality} before safeguards.`,
       ].join("").replace(/\s+,/g, ",").replace(/\s+:/g, ":").replace(/\s{2,}/g, " ");
+      // DOC 144 (doc 143 §C sweep) — safeguard noun phrases quoted.
       const byStatus = (status: string) =>
         p.safeguards.filter((g) => s(g.safeguard_status) === status)
-          .map((g) => firstSentence(s(g.safeguard)).replace(/\.$/, ""));
+          .map((g) => qName(g.safeguard));
       const testedList = byStatus("Implemented and tested");
       const untestedList = byStatus("Implemented, not tested");
       const plannedList = byStatus("Planned, not yet implemented");

@@ -1561,6 +1561,11 @@ const RUNIN_LEAD_LABELS = [
   "Readiness\\.",
   // BATCH 19b (doc 113 S4.3) — doubles as the determination-banner trigger.
   "Determination\\.",
+  // DOC 144 (2026-09-02) — the CPPA-Risk statutory run-in. In risk mode a
+  // chunk OPENING with this label takes the framed law-cite treatment (see
+  // the risk-law-cite branch in skeletonSectionsHtml); a mid-chunk
+  // occurrence falls back to this ordinary run-in styling.
+  "Governing requirement\\.",
 ];
 const LEAD_PHRASE_RE = new RegExp(
   `(^|[.!?]\\s+|\\n\\s*)((?:[A-Z]\\.\\s+[A-Z][^.\\n]{0,80}?\\.)|(?:\\([A-H]\\)\\s+[A-Z][^.\\n]{0,140}?\\.)|(?:Step \\d+ — [A-Z][^.\\n]{0,40}?\\.)|${HEAD_LEAD_LABELS.join("|")})(?=\\s|$)` +
@@ -1650,20 +1655,33 @@ const MUTED_PANEL_STYLE =
 const RISK_UNDERLINE = "text-decoration:underline;text-underline-offset:2.5px;text-decoration-thickness:0.5pt;";
 
 /** Restrained status badge — §4.2/§21: light tint, dark text, 1px border;
- * grayscale-safe (weight and border carry the signal, never color alone). */
-function riskBadgeHtml(value: string, opts?: { large?: boolean }): string {
+ * grayscale-safe (weight and border carry the signal, never color alone).
+ * DOC 144 (2026-09-02): an explicit `tone` override lets surface-keyed cell
+ * renderers map determination words the value-regexes don't know (the § 3.B
+ * necessity words, the ledger's likelihood/severity scale words) onto the
+ * SAME tint families — no new palette is introduced. */
+type RiskBadgeTone = "ok" | "warn" | "hi" | "neutral";
+const RISK_BADGE_PALETTE: Record<RiskBadgeTone, string> = {
+  hi: "color:#6e2323;background:#faf3f3;border-color:#c4a0a0;",
+  warn: "color:#6e5518;background:#fbf6ea;border-color:#cdb887;",
+  ok: "color:#28503a;background:#f2f7f4;border-color:#a4bfae;",
+  neutral: "color:#1a1a1a;background:#f3f6f8;border-color:#aab8c5;",
+};
+function riskBadgeHtml(value: string, opts?: { large?: boolean; tone?: RiskBadgeTone }): string {
   const v = value.trim();
-  const palette = /^(Critical|High|Do Not Proceed)$/i.test(v)
-    ? "color:#6e2323;background:#faf3f3;border-color:#c4a0a0;"
-    : /^(Moderate|Additional Information Required|Unresolved)$/i.test(v)
-    ? "color:#6e5518;background:#fbf6ea;border-color:#cdb887;"
-    : /^(Low|Yes|Proceed|Proceed with Conditions|Engaged|No Processing Decision Required)$/i.test(v)
-    ? "color:#28503a;background:#f2f7f4;border-color:#a4bfae;"
-    : "color:#1a1a1a;background:#f3f6f8;border-color:#aab8c5;";
+  const tone: RiskBadgeTone = opts?.tone ?? (
+    /^(Critical|High|Do Not Proceed)$/i.test(v)
+      ? "hi"
+      : /^(Moderate|Additional Information Required|Unresolved)$/i.test(v)
+      ? "warn"
+      : /^(Low|Yes|Proceed|Proceed with Conditions|Engaged|No Processing Decision Required)$/i.test(v)
+      ? "ok"
+      : "neutral"
+  );
   const size = opts?.large
     ? "font-size:10pt;padding:2pt 9pt;"
     : "font-size:8pt;padding:0.5pt 5pt;";
-  return `<span style="display:inline-block;border:1px solid;border-radius:3px;font-family:Arial,Helvetica,sans-serif;font-weight:700;letter-spacing:0.04em;${size}${palette}">${escHtml(v)}</span>`;
+  return `<span style="display:inline-block;border:1px solid;border-radius:3px;font-family:Arial,Helvetica,sans-serif;font-weight:700;letter-spacing:0.04em;${size}${RISK_BADGE_PALETTE[tone]}">${escHtml(v)}</span>`;
 }
 
 /** A ledger level cell ("High (unchanged)") → level badge + muted movement
@@ -1673,6 +1691,34 @@ function riskLevelCellHtml(value: string): string {
   if (!m) return escHtml(value);
   const tail = m[2] ? ` <span style="color:#6b7a87;font-size:8pt;">${escHtml(m[2])}</span>` : "";
   return riskBadgeHtml(m[1]) + tail;
+}
+
+/** DOC 144 — the § 4.A ledger's Likelihood/Severity cells: the Company's own
+ * enum scale words badge onto the existing tint families (words the engine
+ * emits: RiskLikelihood / RiskSeverity); "Not recorded" and any free text
+ * pass through escaped. */
+function riskScaleCellHtml(value: string): string {
+  const v = value.trim();
+  const tone: RiskBadgeTone | null = /^(Unlikely|Minimal)$/.test(v)
+    ? "ok"
+    : /^(Possible|Likely|Moderate)$/.test(v)
+    ? "warn"
+    : /^(Highly likely|Significant|Severe)$/.test(v)
+    ? "hi"
+    : null;
+  return tone ? riskBadgeHtml(v, { tone }) : escHtml(value);
+}
+
+/** DOC 144 — the § 3.B necessity matrix's Determination cell: the three
+ * exact determination words the engine emits (extractNecessity's a2 enum),
+ * mapped onto the existing tint families. Any other value passes through
+ * escaped (never guessed at). */
+function riskNecessityCellHtml(value: string): string {
+  const v = value.trim();
+  if (v === "Necessary to the stated purpose") return riskBadgeHtml(v, { tone: "ok" });
+  if (v === "Collected but not necessary to the stated purpose") return riskBadgeHtml(v, { tone: "hi" });
+  if (v === "Unsure") return riskBadgeHtml(v, { tone: "warn" });
+  return escHtml(value);
 }
 
 /** Bold the leading harm letter "(A) …" in a risk-name cell. */
@@ -1719,6 +1765,27 @@ function riskResultCardHtml(t: SkeletonTableLike): string {
   const inherent = get("Inherent privacy risk");
   const residual = get("Residual privacy risk");
   const path = get("Path forward");
+  // DOC 144 (2026-09-02) — the Wave-1 dashboard rows (tallies, "What this
+  // means") projected onto this surface render too: rows this card does not
+  // consume by name render as compact label/value lines, so nothing the
+  // assembler persisted is silently dropped from the cover.
+  const CONSUMED = new Set([
+    "Assessment required",
+    "Inherent privacy risk",
+    "Residual privacy risk",
+    "Assessment disposition",
+    "Path forward",
+    "What this means",
+  ]);
+  const whatThisMeans = get("What this means");
+  const extraRows = (t.rows ?? [])
+    .filter((r) => Array.isArray(r) && !CONSUMED.has(String(r[0] ?? "")))
+    .map((r) =>
+      `<tr>
+      <td style="border:none;padding:2.5pt 0;font-size:9pt;color:#3f556b;">${escHtml(String(r[0] ?? ""))}</td>
+      <td style="border:none;padding:2.5pt 0;text-align:right;font-size:9pt;color:#12212f;">${escHtml(String(r[1] ?? ""))}</td>
+    </tr>`
+    ).join("");
   const tierRow = (label: string, v: string): string => {
     if (!v) return "";
     const badge = /^(Low|Moderate|High|Critical|Yes|No)$/.test(v.trim());
@@ -1742,7 +1809,125 @@ function riskResultCardHtml(t: SkeletonTableLike): string {
         <td style="border:none;text-align:right;vertical-align:middle;">${riskBadgeHtml(disp, { large: true })}</td>
       </tr></table>
       ${path ? `<div style="margin-top:5pt;font-size:9.5pt;line-height:1.4;color:#12212f;">${escHtml(path)}</div>` : ""}
+      ${extraRows ? `<table style="width:100%;border-collapse:collapse;border:none;margin-top:4pt;">${extraRows}</table>` : ""}
+      ${whatThisMeans ? `<div style="margin-top:4pt;font-size:9.5pt;line-height:1.4;color:#12212f;"><strong>What this means:</strong> ${escHtml(whatThisMeans)}</div>` : ""}
     </div>
+  </div>`;
+}
+
+/** DOC 144 (2026-09-02) — the disposition-family accent for the Assessment-
+ * at-a-Glance panel's left rule: restrained, keyed on the controlled badge
+ * label families (proceed=green, conditions=amber, AIR/NPDR=slate/neutral,
+ * do-not-proceed=red — the same grayscale-safe tint families the badges
+ * use). No full-page tinting, ever. */
+function riskDispositionAccent(label: string): string {
+  const v = label.trim();
+  if (/^Do Not Proceed$/i.test(v)) return "#6e2323";
+  if (/^Proceed with Conditions$/i.test(v)) return "#b9822d";
+  if (/^Proceed$/i.test(v)) return "#28503a";
+  // Additional Information Required / No Processing Decision Required /
+  // anything unrecognized: the slate/neutral family.
+  return "#5c6d7a";
+}
+
+/** The panel-scoped disposition badge tone for the SAME family mapping
+ * (AIR reads slate/neutral here per the mockup, not the amber the generic
+ * badge machinery would pick); every other badge surface is unchanged. */
+function riskDispositionPanelTone(label: string): RiskBadgeTone {
+  const v = label.trim();
+  if (/^Do Not Proceed$/i.test(v)) return "hi";
+  if (/^Proceed with Conditions$/i.test(v)) return "warn";
+  if (/^Proceed$/i.test(v)) return "ok";
+  return "neutral";
+}
+
+/** DOC 144 (2026-09-02) — the page-2 "Assessment at a Glance" panel (the
+ * approved mockup's treatment): eyebrow + dominant disposition badge, the
+ * count-tile strip (Georgia numerals, Arial caps labels, hairline
+ * separators), the key-dates line, and the fixed "What this means" line.
+ * Built ONLY from data the assembler already persisted, surface-keyed
+ * (exec_status_panel + key_dates — doc 127 §28 law): the SAME rows the
+ * cover Assessment Result card projects, never re-derived. */
+function riskGlancePanelHtml(doc: SkeletonDocLike): string {
+  let panelRows: string[][] | null = null;
+  let keyDateRows: string[][] | null = null;
+  for (const sec of doc.sections ?? []) {
+    for (const p of sec.paragraphs ?? []) {
+      if (p?.kind !== "table" || !p.table) continue;
+      if (p.table.surface === "exec_status_panel") {
+        panelRows = (p.table.rows ?? []).filter((r) => Array.isArray(r)) as string[][];
+      } else if (p.table.surface === "key_dates") {
+        keyDateRows = (p.table.rows ?? []).filter((r) => Array.isArray(r)) as string[][];
+      }
+    }
+  }
+  if (!panelRows) return "";
+  const get = (label: string): string => {
+    const row = panelRows!.find((r) => String(r?.[0] ?? "") === label);
+    return row ? String(row[1] ?? "") : "";
+  };
+  const disp = get("Assessment disposition");
+  if (!disp) return "";
+  const accent = riskDispositionAccent(disp);
+  const tiles = ([
+    ["Triggers engaged", get("Triggers engaged")],
+    ["Risks identified", get("Risks identified")],
+    ["Benefits credited", get("Benefits credited")],
+    ["Conditions", get("Number of conditions")],
+  ] as Array<[string, string]>).filter(([, v]) => v !== "");
+  const tileStrip = tiles.length
+    ? `<table style="width:100%;border-collapse:collapse;border:none;margin:6pt 0 0;"><tr>${
+      tiles.map(([label, v], i) =>
+        `<td style="border:none;${i > 0 ? "border-left:0.5pt solid #c9d3db;" : ""}padding:2pt 8pt 3pt;text-align:center;vertical-align:top;width:${Math.floor(100 / tiles.length)}%;">
+          <div style="font-family:'Georgia','Times New Roman',serif;font-size:20pt;line-height:1.15;color:#17324d;">${escHtml(v)}</div>
+          <div style="font-family:Arial,Helvetica,sans-serif;font-size:7.5pt;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#5c6d7a;">${escHtml(label)}</div>
+        </td>`
+      ).join("")
+    }</tr></table>`
+    : "";
+  // The key-dates line: the two schedule anchors the governance table
+  // already states (initial-assessment deadline when present, the § 7155
+  // three-year review) — read from the persisted key_dates surface, never
+  // re-derived.
+  const keyDateOf = (label: string): string => {
+    const row = (keyDateRows ?? []).find((r) => String(r?.[0] ?? "") === label);
+    return row ? String(row[2] ?? "") : "";
+  };
+  const keyDates = ([
+    ["Initial assessment", keyDateOf("Initial risk assessment")],
+    ["Three-year review", keyDateOf("Three-year review")],
+  ] as Array<[string, string]>).filter(([, v]) => v !== "");
+  const keyDatesLine = keyDates.length
+    ? `<div style="margin-top:5pt;padding-top:4pt;border-top:0.5pt solid #dfe6ec;font-size:8.5pt;line-height:1.4;color:#3f556b;"><span style="font-family:Arial,Helvetica,sans-serif;font-size:7.5pt;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">Key dates</span> — ${
+      keyDates.map(([l, v]) => `${escHtml(l)}: ${escHtml(v)}`).join(" · ")
+    }</div>`
+    : "";
+  const plain = get("What this means");
+  return `<div class="risk-glance-panel" style="border:1px solid #c6d0d9;border-left:3pt solid ${accent};border-radius:4px;background:#f7f9fb;padding:9pt 13pt 8pt;margin:0 0 14px;break-inside:avoid;page-break-inside:avoid;">
+    <div style="font-family:Arial,Helvetica,sans-serif;font-size:8pt;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:#17324d;margin:0 0 4pt;">Assessment at a Glance</div>
+    <div>${riskBadgeHtml(disp, { large: true, tone: riskDispositionPanelTone(disp) })}</div>
+    ${tileStrip}
+    ${keyDatesLine}
+    ${plain ? `<div style="margin-top:4pt;font-size:9.5pt;line-height:1.4;color:#12212f;"><strong>What this means:</strong> ${escHtml(plain)}</div>` : ""}
+  </div>`;
+}
+
+/** DOC 144 (2026-09-02) — the § 2.A customer-voice block (paragraph kind
+ * `customer_voice`): attribution line as the teal eyebrow, the Processing/
+ * Purpose labels as caps slate, the Company's quoted values in Georgia with
+ * their typographic quotes preserved byte-for-byte. */
+function riskCustomerVoiceHtml(text: string): string {
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  if (!lines.length) return "";
+  const [attribution, ...rest] = lines;
+  const rows = rest.map((line) => {
+    const m = /^(Processing|Purpose)\.\s*([\s\S]*)$/.exec(line);
+    if (!m) return `<div style="margin:0 0 2pt;font-size:10pt;line-height:1.5;">${escHtml(line)}</div>`;
+    return `<div style="margin:0 0 2pt;font-size:10pt;line-height:1.5;"><span style="font-family:Arial,Helvetica,sans-serif;font-size:8pt;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#3f556b;margin-right:4pt;">${escHtml(m[1])}</span> ${escHtml(m[2])}</div>`;
+  }).join("");
+  return `<div class="risk-customer-voice" style="border-left:2.5pt solid #2d9b90;background:#f7fbfa;padding:7pt 12pt 6pt;margin:0 0 10px;break-inside:avoid;page-break-inside:avoid;">
+    <div style="font-family:Arial,Helvetica,sans-serif;font-size:8pt;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:#1f7a71;margin:0 0 4pt;">${escHtml(attribution)}</div>
+    ${rows}
   </div>`;
 }
 
@@ -1762,10 +1947,29 @@ const RISK_TABLE_SPECS: Record<string, {
     widths: ["56%", "22%", "22%"],
     cell: (v, c) => (c === 2 ? riskLevelCellHtml(v) : c === 0 ? riskHarmCellHtml(v) : escHtml(v)),
   },
+  // DOC 144 (2026-09-02) — the § 4.A ledger is now SIX columns (Privacy risk
+  // | Likelihood | Severity | Before safeguards | Safeguard credited (status)
+  // | Remaining risk). Portrait-only law holds: the App-register precedent's
+  // 8.5pt scale absorbs the two added columns; level/scale words badge
+  // (columns 1, 2, 3, 5), the harm cell keeps its bold letter.
   risk_ledger: {
-    widths: ["40%", "15%", "30%", "15%"],
+    widths: ["23%", "11%", "11%", "13%", "28%", "14%"],
+    fontPt: 8.5,
     cell: (v, c) =>
-      c === 3 ? riskLevelCellHtml(v) : c === 1 ? riskLevelCellHtml(v) : c === 0 ? riskHarmCellHtml(v) : escHtml(v),
+      c === 0
+        ? riskHarmCellHtml(v)
+        : c === 1 || c === 2
+        ? riskScaleCellHtml(v)
+        : c === 3 || c === 5
+        ? riskLevelCellHtml(v)
+        : escHtml(v),
+  },
+  // DOC 144 — the § 3.B in-body necessity matrix (previously appendix-only,
+  // no spec entry): three columns, Determination badges on the engine's
+  // exact necessity words (surface + column keyed, never cell-text keyed).
+  necessity_matrix: {
+    widths: ["24%", "31%", "45%"],
+    cell: (v, c) => (c === 1 ? riskNecessityCellHtml(v) : escHtml(v)),
   },
   balance_summary: { widths: ["50%", "50%"] },
   review_approval_signatures: { widths: ["18%", "24%", "26%", "22%", "10%"] },
@@ -1895,6 +2099,12 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
           <p class="body-p" style="white-space:pre-line;margin:0;font-size:9.5pt;line-height:1.4;">${marked}</p>
         </div>`;
       }
+      // DOC 144 (2026-09-02) — the § 2.A customer-voice block (kind-driven,
+      // risk only): the Company's recorded processing and purpose quoted as
+      // given under the attribution line, on the teal-ruled ground.
+      if (riskMode && p?.kind === "customer_voice") {
+        return riskCustomerVoiceHtml(t);
+      }
       // R4 (kind-driven): composer-typed quoted authority renders as the
       // statute-quote block, verbatim, no lead styling.
       if (p?.kind === "quoted_authority") {
@@ -2000,6 +2210,25 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
           const underlined = linkifyBareUrls(underlineAppendixRefs(html));
           return footnotesOn ? substituteFootnoteMarkers(underlined) : underlined;
         };
+        // DOC 144 (2026-09-02) — the plain-question landing line: a chunk
+        // opening with the literal "[Q] " token (risk only) drops the token
+        // and renders as the italic slate subline directly beneath its
+        // section head.
+        if (riskMode && trimmed.startsWith("[Q] ")) {
+          return `<p class="risk-q" style="font-style:italic;color:#5c6d7a;font-size:10.5pt;line-height:1.45;margin:-2px 0 9px;">${mark(escHtml(trimmed.slice(4)))}</p>`;
+        }
+        // DOC 144 (2026-09-02) — the framed law-cite treatment: a chunk
+        // opening with the "Governing requirement." run-in (risk only) takes
+        // the slate-tinted hairline frame, the label as the Arial caps
+        // eyebrow, the statutory text in the ordinary Georgia body.
+        // Grayscale-safe (frame + weight carry the signal).
+        if (riskMode && trimmed.startsWith("Governing requirement.")) {
+          const rest = trimmed.slice("Governing requirement.".length).trim();
+          return `<div class="risk-law-cite" style="background:#f4f6f8;border:0.75pt solid #c9d3db;border-radius:3px;padding:6pt 11pt 7pt;margin:0 0 10px;break-inside:avoid;page-break-inside:avoid;">
+            <div style="font-family:Arial,Helvetica,sans-serif;font-size:8.5pt;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#3f556b;margin:0 0 3pt;break-after:avoid;page-break-after:avoid;">Governing requirement</div>
+            <p class="body-p" style="white-space:pre-line;margin:0;">${mark(styleLeadPhrases(escHtml(rest), true))}</p>
+          </div>`;
+        }
         // 2026-08-25 batch be0f9e02 fix — lead styling is applied by
         // styleLeadPhrases (see its definition) on the ESCAPED text of every
         // plain-paragraph run, in BOTH branches below. This closes the two
@@ -2033,6 +2262,10 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
       return kindChip + chunksHtml;
     }).join("");
     if (!paras) return "";
+    // DOC 144 (2026-09-02) — the page-2 Assessment-at-a-Glance panel opens
+    // the executive summary (built from the persisted exec_status_panel /
+    // key_dates surfaces — the SAME data the cover card projects).
+    const glanceHtml = riskMode && sec.id === "executive_summary" ? riskGlancePanelHtml(doc) : "";
     // Part B item 2 (2026-08-21, CEO-confirmed, PDF-only) — every Appendix
     // or Exhibit starts on a new page, not just the section that happens to
     // carry the "table_of_authorities" id. Title-driven so it is id-
@@ -2059,8 +2292,26 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
     // pages CLIPPED text at the right edge rather than reflowing. Negative
     // result recorded in doc 66 Rule 10 — do not reintroduce without a
     // dedicated render test against the live PDF service.
+    // DOC 144 (2026-09-02) — the risk section opener: the numbered main
+    // sections (1–5 only; never appendices) open with the large quiet
+    // Georgia numeral in light slate-blue left of the eyebrow+title stack,
+    // under the retained 2.5pt navy top rule. The numeral marker is NEVER
+    // underlined (Rule 1 — amends doc-66 Rule 2 for the RISK product).
+    const riskOpener = riskMode ? /^([1-5])\.\s+(.+)$/.exec(sec.title ?? "") : null;
+    const headingHtml = riskOpener
+      ? `<div class="risk-section-opener" style="border-top:2.5pt solid #17324d;padding-top:6px;margin:4px 0 10px;break-after:avoid;page-break-after:avoid;break-inside:avoid;page-break-inside:avoid;">
+        <table style="width:100%;border-collapse:collapse;border:none;"><tr>
+          <td style="border:none;width:36pt;vertical-align:top;padding:0;font-family:'Georgia','Times New Roman',serif;font-size:40px;line-height:0.85;color:#b8c4cd;">${escHtml(riskOpener[1])}</td>
+          <td style="border:none;vertical-align:bottom;padding:0 0 2px;">
+            <div style="font-family:Arial,Helvetica,sans-serif;font-size:7.5pt;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a9eb1;margin:0 0 2px;">Section ${escHtml(riskOpener[1])}</div>
+            <h2 style="font-family:'Georgia','Times New Roman',serif;color:#0c2a44;font-size:15px;margin:0;">${escHtml(riskOpener[2])}</h2>
+          </td>
+        </tr></table>
+      </div>`
+      : `<h2 style="font-family:'Georgia','Times New Roman',serif;color:#0c2a44;font-size:15px;margin:0 0 8px;break-after:avoid;page-break-after:avoid;">${escHtml(sec.title ?? "")}</h2>`;
     return `<section class="section" style="${breakCss}margin-bottom:14px;">
-      <h2 style="font-family:'Georgia','Times New Roman',serif;color:#0c2a44;font-size:15px;margin:0 0 8px;break-after:avoid;page-break-after:avoid;">${escHtml(sec.title ?? "")}</h2>
+      ${headingHtml}
+      ${glanceHtml}
       ${paras}
     </section>`;
   }).join("\n");

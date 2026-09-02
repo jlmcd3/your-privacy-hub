@@ -1,5 +1,8 @@
-// CPPA RISK: ASSEMBLY THROUGH THE SPINE v5.2 SKELETON (the Memorandum
-// Redesign, CEO-ratified 2026-08-26).
+// CPPA RISK: ASSEMBLY THROUGH THE SPINE v5.3 SKELETON (the Memorandum
+// Redesign, CEO-ratified 2026-08-26, restructured by DOC 144 — the doc-143
+// structure redesign, CEO-ratified 2026-09-02: appendix re-lettering,
+// landing rhythm, the § 2.A customer-voice block, the page-2 dashboard
+// operands, and the ENGINE_KEY_REMAP coordinate translation below).
 //
 // This module is DETERMINISTIC: it invents no prose. Every {slot} is filled
 // from the live intake (Intake Contract v2.0 keys), every [CONDITIONAL]
@@ -18,6 +21,7 @@
 
 import {
   RISK52_FIXED,
+  RISK_PLAIN_MEANING,
   RISK_SKELETON_SUBTITLE,
   RISK_SKELETON_TITLE,
   RISK_SKELETON_VERSION,
@@ -36,8 +40,8 @@ import {
 } from "../prose/skeleton-render.ts";
 import {
   runRiskFactorEngine,
-  buildNecessityMatrixTable,
   buildRiskAndSafeguardRegisterTable,
+  extractBenefits,
   type RiskFactorEngineResult,
 } from "./risk-factor-engine.ts";
 import { firstSubstantiveSentence } from "./clause-bound.ts";
@@ -50,9 +54,81 @@ import { RISK_CORPUS_MAP } from "../corpus/maps/risk-corpus-map.ts";
 import { ADVISORY_APPENDIX_PREAMBLE, advisoryMatchesTable, matchAdvisoryRows } from "../corpus/advisory-surfacing.ts";
 
 export const RISK_SKELETON_ASSEMBLER_STAMP =
-  "risk-skeleton-assembler@spine-v5.2-2026-08-26";
+  "risk-skeleton-assembler@spine-v5.3-2026-09-02";
 
 type Bag = Record<string, unknown>;
+
+/**
+ * DOC 144 (2026-09-02) — ENGINE→SPINE COORDINATE TRANSLATION.
+ *
+ * risk-factor-engine.ts continues to emit its blocks and tables in the
+ * v5.2.1 index space (every `put("<section>:<i>", …)` and `tables[…]` key in
+ * the engine is unchanged). The v5.3 spine moved indices in §§ 2, 3, 4 and 5
+ * (landing lines, Governing-requirement restructures, the § 3.B fold-in, the
+ * § 4 Appendix B pointer). This map is the SINGLE translation point: every
+ * engine-emitted key is passed through it on the way into the renderer. A
+ * key absent from the map passes through unchanged (executive_summary and
+ * the v5.2.1-identical § 4 head indices).
+ *
+ * Keep in lockstep with the "Engine key" annotations in
+ * prose/plans/cppa-risk.spine.ts. If the engine ever adopts v5.3-native
+ * keys, delete the corresponding entries here in the same commit.
+ */
+export const ENGINE_KEY_REMAP: Readonly<Record<string, string>> = {
+  // § 2 — The Information Provided.
+  "ii_information:1": "ii_information:4",
+  "ii_information:3": "ii_information:6",
+  "ii_information:5": "ii_information:9",
+  "ii_information:6": "ii_information:10",
+  "ii_information:7": "ii_information:11",
+  "ii_information:8": "ii_information:13",
+  "ii_information:10": "ii_information:16",
+  "ii_information:11": "ii_information:17",
+  "ii_information:12": "ii_information:18",
+  "ii_information:14": "ii_information:21",
+  "ii_information:15": "ii_information:22",
+  "ii_information:16": "ii_information:23",
+  "ii_information:18": "ii_information:25",
+  // § 3 — Analysis.
+  "iii_analysis:2": "iii_analysis:4",
+  "iii_analysis:3": "iii_analysis:5",
+  "iii_analysis:4": "iii_analysis:6",
+  "iii_analysis:5": "iii_analysis:7",
+  "iii_analysis:6": "iii_analysis:8",
+  "iii_analysis:8": "iii_analysis:11",
+  "iii_analysis:9": "iii_analysis:12",
+  "iii_analysis:10": "iii_analysis:13",
+  "iii_analysis:12": "iii_analysis:15",
+  "iii_analysis:13": "iii_analysis:16",
+  "iii_analysis:14": "iii_analysis:17",
+  "iii_analysis:15": "iii_analysis:18",
+  "iii_analysis:16": "iii_analysis:19",
+  "iii_analysis:17": "iii_analysis:20",
+  "iii_analysis:18": "iii_analysis:21",
+  "iii_analysis:20": "iii_analysis:23",
+  "iii_analysis:21": "iii_analysis:24",
+  // § 4 — indices 0–9 are v5.2.1-identical; only § 4.D shifts (the DOC 144
+  // Appendix B pointer occupies the new index 10).
+  "iv_determination:11": "iv_determination:12",
+  "iv_determination:12": "iv_determination:13",
+  "iv_determination:13": "iv_determination:14",
+  "iv_determination:14": "iv_determination:15",
+  // § 5 — Governance.
+  "v_governance:1": "v_governance:2",
+  "v_governance:6": "v_governance:9",
+  "v_governance:9": "v_governance:14",
+};
+
+/** Apply ENGINE_KEY_REMAP to an engine-emitted keyed record (all-at-once,
+ * from the original keys, so a key that is both a source and a target of
+ * the translation cannot collide). */
+function remapEngineKeys<T>(emitted: Record<string, T>): Record<string, T> {
+  const out: Record<string, T> = {};
+  for (const [k, v] of Object.entries(emitted)) {
+    out[ENGINE_KEY_REMAP[k] ?? k] = v;
+  }
+  return out;
+}
 
 const s = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
 const arr = (v: unknown): string[] =>
@@ -234,7 +310,8 @@ export function deriveKeyDatesTable(intake: Bag, assessmentDateIso: string): Ren
 /**
  * {{DERIVED.cover_summary}} — the Assessment Profile panel (v5.2 cover): the
  * three identity facts, with the defined-term tags. The internal
- * spine-version string lives in Appendix H, not the cover.
+ * spine-version string lives in the materials appendix (Appendix F since
+ * DOC 144), not the cover.
  */
 export function deriveCoverTable(values: SlotValues): RenderedTable {
   const v = (k: string): string => {
@@ -266,13 +343,67 @@ export function deriveCoverTable(values: SlotValues): RenderedTable {
   };
 }
 
+/** The engine's own exec panel shape (typed operands, engine-owned). */
+export type RiskExecPanelCore = RiskFactorEngineResult["exec_panel"];
+
+/**
+ * DOC 144 (2026-09-02) — the page-2 dashboard operands (doc 143 §D.1). All
+ * four fields are PROJECTIONS of determinations the engine already made —
+ * nothing here is recomputed or newly decided.
+ */
+export interface RiskExecDashboardExtras {
+  /** Count of § 7150(b) triggers the live classification records as engaged
+   * (the same "Engaged — " lines deriveApplicable7150Triggers reads). */
+  readonly triggers_engaged_count: number;
+  /** Row count of the § 4.A risk ledger the engine emitted (assessed +
+   * named-but-unassessed risks). */
+  readonly risks_identified_count: number;
+  /** Benefit categories the engine's own weight resolution credits
+   * (material or limited weight — extractBenefits, engine-owned). */
+  readonly benefits_credited_count: number;
+  /** The fixed "What this means" consequence sentence for the disposition
+   * branch (RISK_PLAIN_MEANING — selected, never composed). */
+  readonly plain_meaning: string;
+}
+
+export type RiskExecDashboardPanel = RiskExecPanelCore & RiskExecDashboardExtras;
+
+/**
+ * DOC 144 — build the dashboard panel from engine outputs already computed.
+ * `report.scope_and_triggers` carries the live trigger classification; the
+ * ledger row count comes from the engine's own emitted table; the benefit
+ * count runs the engine's exported weight resolution over the same intake.
+ */
+export function buildRiskExecDashboard(
+  engine: RiskFactorEngineResult,
+  report: Bag,
+  intake: Bag,
+): RiskExecDashboardPanel {
+  const scope = arr((report.scope_and_triggers as Bag)?.narrative ?? report.scope_and_triggers);
+  const triggers_engaged_count = scope.filter((x) => x.startsWith("Engaged — ")).length;
+  const ledger = engine.tables["iv_determination:1"];
+  const risks_identified_count = ledger && Array.isArray(ledger.rows) ? ledger.rows.length : 0;
+  const benefits_credited_count = extractBenefits(intake)
+    .filter((b) => b.weight !== "no affirmative weight").length;
+  return {
+    ...engine.exec_panel,
+    triggers_engaged_count,
+    risks_identified_count,
+    benefits_credited_count,
+    plain_meaning: RISK_PLAIN_MEANING[engine.exec_panel.disposition] ?? "",
+  };
+}
+
 /**
  * The cover's Assessment Result panel — a PROJECTION of the factor engine's
  * own typed determinations (trigger engagement, the two levels, the
- * balancing consequence) — never a new determination.
+ * balancing consequence) — never a new determination. DOC 144: accepts the
+ * dashboard extras and renders the tally rows (no-padding: a zero tally is
+ * not itself informative here, matching the doc-136 conditions-count rule)
+ * plus the fixed "What this means" line.
  */
 export function deriveExecStatusPanel(
-  panel: RiskFactorEngineResult["exec_panel"],
+  panel: RiskExecPanelCore & Partial<RiskExecDashboardExtras>,
 ): RenderedTable | null {
   if (
     !panel.assessment_required && !panel.inherent && !panel.residual &&
@@ -297,6 +428,18 @@ export function deriveExecStatusPanel(
     ["Residual privacy risk", tier(panel.residual)],
     ["Assessment disposition", disposition],
   ];
+  // DOC 144 (2026-09-02) — the dashboard tallies (doc 143 §D.1). Each row
+  // states a count the engine or the live classification already produced;
+  // a zero count is skipped (the body already states each absence honestly).
+  if (typeof panel.triggers_engaged_count === "number" && panel.triggers_engaged_count > 0) {
+    rows.push(["Triggers engaged", String(panel.triggers_engaged_count)]);
+  }
+  if (typeof panel.risks_identified_count === "number" && panel.risks_identified_count > 0) {
+    rows.push(["Risks identified", String(panel.risks_identified_count)]);
+  }
+  if (typeof panel.benefits_credited_count === "number" && panel.benefits_credited_count > 0) {
+    rows.push(["Benefits credited", String(panel.benefits_credited_count)]);
+  }
   // DOC 135 FOLLOW-UP (deferred item, 2026-09-01) — A-Team-requested cover
   // field the panel didn't carry: how many §4.D conditions this
   // determination depends on. No-padding law: a zero count isn't itself
@@ -309,6 +452,9 @@ export function deriveExecStatusPanel(
   // DOC 127 PART I — the path/reason line beneath an adverse or
   // information-gated disposition: no "Do Not Proceed" is ever a dead end.
   if (panel.path_forward) rows.push(["Path forward", panel.path_forward]);
+  // DOC 144 — the fixed consequence sentence for this disposition branch
+  // (RISK_PLAIN_MEANING; selected, never composed).
+  if (panel.plain_meaning) rows.push(["What this means", panel.plain_meaning]);
   return {
     key: "",
     surface: "exec_status_panel",
@@ -489,45 +635,36 @@ export function deriveProcessingAndDataInventory(intake: Bag): RenderedTable | n
   return { key: "", surface: "processing_and_data_inventory", title: "", columns: ["Item", "Detail"], rows: rowsOut };
 }
 
-/** Appendix G — {{DERIVED.submission_support_record_for_this_assessment}}. */
-export function deriveSubmissionSupportRecord(
-  intake: Bag,
-  report: Bag,
-  assessmentDateIso: string,
-): RenderedTable {
-  const rowsOut: string[][] = [];
-  const push = (item: string, detail: string) => { if (detail) rowsOut.push([item, detail]); };
+// DOC 144 (2026-09-02): deriveSubmissionSupportRecord (the retired Appendix
+// G's per-assessment table) is REMOVED with the appendix — every row it
+// printed already appears in Exec B, § 2.D, § 5.E or on the Agency
+// Submission Checklist page (doc 143 §B row G). Its one unique element, the
+// fixed reporting-period aggregation list below, moved onto the checklist
+// page (agency_submission_checklist:2).
 
-  push("Processing activity", s(intake.primary_activity_name));
-  const triggers = deriveApplicable7150Triggers(report);
-  // BATCH 17 (Wave C2): no machine plurals in customer prose (doc 66 R15).
-  push("Applicable § 7150(b) triggers", triggers ?? "none engaged on the information provided");
-  const cats = arr(intake.q4_pi_categories);
-  if (cats.length) push("Personal-information categories processed (this activity)", cats.join("; "));
-  const spi = deriveActivitySpiInventory(intake);
-  push("Sensitive personal information", spi ?? "none identified in the activity record");
-  push("Approximate California consumers affected", s(intake.approximate_ca_consumers));
-  if (s(intake.processing_status)) {
-    const dates = [
-      s(intake.processing_start_date) ? `start ${s(intake.processing_start_date)}` : "",
-      s(intake.planned_start_date) ? `planned start ${s(intake.planned_start_date)}` : "",
-    ].filter(Boolean).join("; ");
-    push("Processing status", `${s(intake.processing_status)}${dates ? ` (${dates})` : ""}`);
-  }
-  if (s(intake.i8_certifying_exec_name)) {
-    push(
-      "Certifying executive identified",
-      `${s(intake.i8_certifying_exec_name)}${
-        s(intake.i8_certifying_exec_title) ? `, ${s(intake.i8_certifying_exec_title)}` : ""
-      }`,
-    );
-  }
-  push("Assessment date", formatReportDateLong(assessmentDateIso));
-
-  return { key: "", surface: "submission_support_record", title: "", columns: ["Item", "Detail"], rows: rowsOut };
+/**
+ * DOC 144 — the § 2.A customer-voice block (doc 143 §C / §D.5): the
+ * Company's recorded processing and purpose, quoted as given, under the
+ * attribution line. Renders as a `customer_voice`-kind paragraph
+ * (line-per-row); NO-PADDING LAW: absent both quoted values ⇒ null, and the
+ * § 2.A intro sentence drops with it (its slot).
+ */
+export function buildCustomerVoiceBlock(intake: Bag): string | null {
+  const processing = clause(intake.primary_activity_name);
+  const purpose = clause(intake.primary_activity_purpose);
+  if (!processing && !purpose) return null;
+  const name = s(intake.entity_name);
+  const attribution = name
+    ? RISK52_FIXED.customer_voice_attribution.replace("{name}", name)
+    : RISK52_FIXED.customer_voice_attribution_fallback;
+  const lines = [attribution];
+  if (processing) lines.push(`Processing. “${processing}”`);
+  if (purpose) lines.push(`Purpose. “${purpose}”`);
+  return lines.join("\n");
 }
 
-/** Appendix G — fixed § 7157 aggregate checklist. */
+/** The fixed § 7157 reporting-period aggregation list — DOC 144: renders on
+ * the Agency Submission Checklist page (formerly the retired Appendix G). */
 export function deriveBusinessLevelOutstanding(): RenderedTable {
   return {
     key: "",
@@ -543,8 +680,9 @@ export function deriveBusinessLevelOutstanding(): RenderedTable {
   };
 }
 
-/** Appendix H — {{DERIVED.materials_considered_index}} + the engine-version
- * line (moved off the cover per the v5.2 cover note). */
+/** Appendix F (was H; DOC 144 re-letter) —
+ * {{DERIVED.materials_considered_index}} + the engine-version line (moved
+ * off the cover per the v5.2 cover note). */
 export function deriveMaterialsConsideredIndex(intake: Bag): RenderedTable {
   const rowsOut: string[][] = [
     // A-TEAM S3 RULING VI.19 (doc 115, 2026-08-31) — "intake record" exposed
@@ -578,8 +716,8 @@ function neutralTemplateVersion(stamp: string): string {
   return `report template ${stamp}`;
 }
 
-/** Appendix F — {{DERIVED.admt_technical_facts}} (the verbatim technical
- * record that leaves § 3.E under v5.2). */
+/** Appendix E (was F; DOC 144 re-letter) — {{DERIVED.admt_technical_facts}}
+ * (the verbatim technical record that leaves § 3.E under v5.2). */
 export function deriveAdmtTechnicalFacts(intake: Bag): RenderedTable | null {
   if (!isYes(intake.q18_admt_use)) return null;
   const pairs: Array<[string, string]> = [
@@ -625,6 +763,17 @@ export function buildRiskSlotValues(intake: Bag, report: Bag = {}): SlotValues {
     activityPurpose: clause(intake.primary_activity_purpose) || null,
     derivedTriggers: deriveApplicable7150Triggers(report),
     piCategories: asProse(arr(intake.q4_pi_categories)) || null,
+
+    // § 2.A — DOC 144: the customer-voice intro sentence rides a slot so it
+    // drops exactly when the block cannot compose (no dangling "recorded
+    // below"). Fixed bytes live in the spine (RISK52_FIXED).
+    customerVoiceIntro: buildCustomerVoiceBlock(intake)
+      ? RISK52_FIXED.customer_voice_intro
+      : null,
+    // § 2.D — DOC 144 (doc 143 §B row C): the canonical California category
+    // mapping, the same derivation Appendix C tabulates. Null ⇒ the fixed
+    // sentence drops.
+    canonicalCaMapping: deriveActivityPiInventory(intake),
 
     // Section 5 (governance)
     processingStatus: s(intake.processing_status) || null,
@@ -898,6 +1047,9 @@ export interface RiskSkeletonResult {
   readonly register_findings: string[];
   /** The factor engine's output (provenance persisted for the Appendix A feed). */
   readonly factor_engine: RiskFactorEngineResult;
+  /** DOC 144 — the page-2 dashboard panel: the engine's exec panel extended
+   * with the tally and plain-meaning operands (buildRiskExecDashboard). */
+  readonly exec_panel: RiskExecDashboardPanel;
 }
 
 export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkeletonResult {
@@ -906,16 +1058,21 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
 
   // The v5.2 factor engine composes every generated body block and owns the
   // in-body tables (exec ledger, recipients, retention, controls, risk
-  // ledger, balance summary).
+  // ledger, balance summary). DOC 144: it emits in the v5.2.1 coordinate
+  // space; ENGINE_KEY_REMAP translates into the v5.3 spine layout.
   const engine = runRiskFactorEngine(intake, report, assessmentDate);
+  const execDashboard = buildRiskExecDashboard(engine, report, intake);
 
   const composed: ComposedBlocks = {
-    ...engine.blocks,
+    ...remapEngineKeys(engine.blocks),
 
-    // Section 5 — carried compositions.
-    "v_governance:0": composeVApproval(intake, assessmentDate),
-    "v_governance:3": composeVTiming(intake),
-    "v_governance:5": composeMaterialChangeDetails(intake),
+    // § 2.A — DOC 144: the customer-voice block (kind `customer_voice`).
+    "ii_information:2": buildCustomerVoiceBlock(intake),
+
+    // Section 5 — carried compositions (v5.3 indices).
+    "v_governance:1": composeVApproval(intake, assessmentDate),
+    "v_governance:5": composeVTiming(intake),
+    "v_governance:8": composeMaterialChangeDetails(intake),
   };
 
   // Appendix F — intro / not-applicable record + analytical note.
@@ -950,6 +1107,21 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
   composed["appendix_i:0"] = persuasive.table ? RISK_APPENDIX_I_LEAD : null;
   composed["appendix_i:2"] = persuasive.table ? persuasive.warning : null;
 
+  // DOC 144 (doc 143 §B row B) — the one fixed § 4 cross-reference to the
+  // Appendix B caution, composed iff the appendix renders (no dangling
+  // pointer).
+  composed["iv_determination:10"] = persuasive.table
+    ? RISK52_FIXED.persuasive_pointer
+    : null;
+
+  // DOC 144 (doc 143 §B empty-register suppression) — the risk-register
+  // appendix intro composes iff the register has rows; otherwise the whole
+  // appendix drops and the § 4.A opener states the posture inline.
+  const riskRegister = buildRiskAndSafeguardRegisterTable(intake);
+  composed["appendix_c:0"] = riskRegister
+    ? RISK52_FIXED.risk_register_appendix_intro
+    : null;
+
   // DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01).
   const advisoryMatches = buildAdvisoryCorpusMatches(report, intake);
   composed["appendix_i:3"] = advisoryMatches ? ADVISORY_APPENDIX_PREAMBLE : null;
@@ -958,22 +1130,23 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
 
   const tables: SkeletonTables = {
     // Engine-owned in-body tables (exec ledger, recipients, retention,
-    // controls, risk ledger, balance summary).
-    ...engine.tables,
+    // controls, the § 3.B necessity matrix, risk ledger, balance summary),
+    // translated into the v5.3 spine layout.
+    ...remapEngineKeys(engine.tables),
 
     "cover:0": deriveCoverTable(values),
-    "cover:2": deriveExecStatusPanel(engine.exec_panel),
+    "cover:2": deriveExecStatusPanel(execDashboard),
     "review_and_approval:1": deriveReviewApprovalTable(intake),
-    // BATCH 20b (doc 113 S6.3).
-    "v_governance:10": deriveKeyDatesTable(intake, assessmentDate),
+    // BATCH 20b (doc 113 S6.3) — v5.3 index.
+    "v_governance:15": deriveKeyDatesTable(intake, assessmentDate),
     "agency_submission_checklist:1": deriveAgencySubmissionChecklistTable(intake, values),
+    // DOC 144 — the reporting-period aggregation list, moved here from the
+    // retired Appendix G.
+    "agency_submission_checklist:2": deriveBusinessLevelOutstanding(),
     "table_of_authorities:1": matrixTable,
     "appendix_a:1": deriveProcessingAndDataInventory(intake),
-    "appendix_b:1": buildNecessityMatrixTable(intake),
-    "appendix_c:1": buildRiskAndSafeguardRegisterTable(intake),
+    "appendix_c:1": riskRegister,
     "appendix_d:1": deriveAdmtTechnicalFacts(intake),
-    "appendix_e:1": deriveSubmissionSupportRecord(intake, report, assessmentDate),
-    "appendix_e:2": deriveBusinessLevelOutstanding(),
     "appendix_f:1": deriveMaterialsConsideredIndex(intake),
     "appendix_i:1": persuasive.table,
     "appendix_i:4": advisoryMatches,
@@ -997,5 +1170,6 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
     conformance: verifySkeletonConformance(document, SKELETON_SECTIONS, values),
     register_findings,
     factor_engine: engine,
+    exec_panel: execDashboard,
   };
 }

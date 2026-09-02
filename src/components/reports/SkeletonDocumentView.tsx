@@ -110,6 +110,11 @@ const RUNIN_LEAD_LABELS = [
   "Readiness\\.",
   // BATCH 19b (doc 113 S4.3) — doubles as the determination-banner trigger.
   "Determination\\.",
+  // DOC 144 (2026-09-02) — the CPPA-Risk statutory run-in. In risk mode a
+  // chunk OPENING with this label takes the framed law-cite treatment (see
+  // the risk-law-cite branch below); a mid-chunk occurrence falls back to
+  // this ordinary run-in styling. Keep synced with the PDF renderer.
+  "Governing requirement\\.",
 ];
 // BATCH 16 (R2): a chunk that consists SOLELY of a structural lead renders
 // as a sub-heading (doc 66 Rule 2 rewrite). Web sections already use h3, so
@@ -377,12 +382,40 @@ export function SkeletonDocumentView({ doc, product }: { doc: SkeletonDocument; 
         {doc.subtitle && <p className="text-sm text-muted-foreground">{doc.subtitle}</p>}
       </header>
 
-      {doc.sections.map((section) => (
+      {doc.sections.map((section) => {
+        // DOC 144 (2026-09-02) — the risk section opener: numbered main
+        // sections (1–5 only, never appendices) open with the large quiet
+        // serif numeral left of the eyebrow+title stack, under the navy top
+        // rule; the numeral marker is never underlined (Rule 1). Keep in
+        // sync with the PDF renderer's risk-section-opener.
+        const riskOpener = riskMode ? /^([1-5])\.\s+(.+)$/.exec(section.title) : null;
+        return (
         <section key={section.id} className="space-y-3">
-          <h3 className="font-body text-display-card font-semibold">{section.title}</h3>
+          {riskOpener ? (
+            <div className="border-t-[2.5px] border-slate-800 pt-2 dark:border-slate-300">
+              <div className="flex items-start gap-3">
+                <span className="font-serif text-[40px] leading-none text-slate-300 dark:text-slate-600">{riskOpener[1]}</span>
+                <span className="self-end pb-0.5">
+                  <span className="block font-sans text-[9px] font-bold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">
+                    Section {riskOpener[1]}
+                  </span>
+                  <h3 className="font-body text-display-card font-semibold">{riskOpener[2]}</h3>
+                </span>
+              </div>
+            </div>
+          ) : (
+            <h3 className="font-body text-display-card font-semibold">{section.title}</h3>
+          )}
+          {/* DOC 144 — the Assessment-at-a-Glance panel opens the executive
+              summary (built from the persisted exec_status_panel/key_dates
+              surfaces — the SAME data the cover card projects). */}
+          {riskMode && section.id === "executive_summary" && <RiskGlancePanel doc={doc} />}
           {section.paragraphs.map((p, i) =>
             p.kind === "table" && p.table ? (
               <SkeletonTableView key={i} table={p.table} product={product} />
+            ) : riskMode && p.kind === "customer_voice" ? (
+              // DOC 144 — the § 2.A customer-voice block (kind-driven).
+              <RiskCustomerVoice key={i} text={p.text} />
             ) : riskMode && section.id === "i_method" && /^Step \d+ — [^.]+\./.test(p.text.trim()) ? (
               // DOC 127 §9 (Phase B) — the Section-1 methodology strip row.
               (() => {
@@ -438,6 +471,35 @@ export function SkeletonDocumentView({ doc, product }: { doc: SkeletonDocument; 
               ) : (
               p.text.split(/\n{2,}/).map((chunk, j) => {
                 const trimmed = chunk.trim();
+                // DOC 144 (2026-09-02) — the plain-question landing line:
+                // a chunk opening with the literal "[Q] " token (risk only)
+                // drops the token and renders as the italic slate subline.
+                // Keep in sync with the PDF renderer.
+                if (riskMode && trimmed.startsWith("[Q] ")) {
+                  return (
+                    <p key={`${i}-${j}`} className="-mt-1 text-[13.5px] italic leading-snug text-slate-600 dark:text-slate-400">
+                      {renderBodyText(trimmed.slice(4))}
+                    </p>
+                  );
+                }
+                // DOC 144 (2026-09-02) — the framed law-cite treatment: a
+                // chunk opening with the "Governing requirement." run-in
+                // (risk only) takes the slate-tinted hairline frame, the
+                // label as the caps eyebrow, the statutory text as body.
+                // Keep in sync with the PDF renderer's risk-law-cite.
+                if (riskMode && trimmed.startsWith("Governing requirement.")) {
+                  const rest = trimmed.slice("Governing requirement.".length).trim();
+                  return (
+                    <div key={`${i}-${j}`} className="rounded-sm border border-slate-300 bg-slate-100/70 px-3 py-2 dark:border-slate-600 dark:bg-slate-900/40">
+                      <div className="mb-0.5 font-sans text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                        Governing requirement
+                      </div>
+                      <p className="leading-relaxed text-foreground whitespace-pre-line">
+                        {renderLeadStyledText(rest, true)}
+                      </p>
+                    </div>
+                  );
+                }
                 // BATCH 16 (R2): a chunk that IS a structural lead renders
                 // as a sub-heading.
                 if (trimmed.length <= 96 && H3_CHUNK_RE.test(trimmed)) {
@@ -552,7 +614,8 @@ export function SkeletonDocumentView({ doc, product }: { doc: SkeletonDocument; 
             ),
           )}
         </section>
-      ))}
+        );
+      })}
     </article>
   );
 }
@@ -569,18 +632,30 @@ function cellContent(v: string): React.ReactNode {
 // the PDF's riskTableHtml family). Risk-gated; surface-keyed, never matched
 // on visible cell text (§28). Doc 128 is the fleet-portability ledger. ───
 
-/** Restrained status badge — §4.2/§21: light tint, dark text, 1px border. */
-function RiskBadge({ value, large }: { value: string; large?: boolean }) {
+/** Restrained status badge — §4.2/§21: light tint, dark text, 1px border.
+ * DOC 144 (2026-09-02): the `tone` override maps determination words the
+ * value-regexes don't know (necessity words, likelihood/severity scale
+ * words) onto the SAME tint families — synced with the PDF renderer. */
+type RiskBadgeTone = "ok" | "warn" | "hi" | "neutral";
+const RISK_BADGE_TONE_CLASS: Record<RiskBadgeTone, string> = {
+  hi: "border-red-300 bg-red-50 text-red-900 dark:bg-red-950/30 dark:text-red-200",
+  warn: "border-amber-300 bg-amber-50 text-amber-900 dark:bg-amber-950/30 dark:text-amber-200",
+  ok: "border-emerald-300 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200",
+  neutral: "border-border bg-muted text-foreground",
+};
+function RiskBadge({ value, large, tone }: { value: string; large?: boolean; tone?: RiskBadgeTone }) {
   const v = value.trim();
-  const tone = /^(Critical|High|Do Not Proceed)$/i.test(v)
-    ? "border-red-300 bg-red-50 text-red-900 dark:bg-red-950/30 dark:text-red-200"
-    : /^(Moderate|Additional Information Required|Unresolved)$/i.test(v)
-    ? "border-amber-300 bg-amber-50 text-amber-900 dark:bg-amber-950/30 dark:text-amber-200"
-    : /^(Low|Yes|Proceed|Proceed with Conditions|Engaged|No Processing Decision Required)$/i.test(v)
-    ? "border-emerald-300 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200"
-    : "border-border bg-muted text-foreground";
+  const resolved: RiskBadgeTone = tone ?? (
+    /^(Critical|High|Do Not Proceed)$/i.test(v)
+      ? "hi"
+      : /^(Moderate|Additional Information Required|Unresolved)$/i.test(v)
+      ? "warn"
+      : /^(Low|Yes|Proceed|Proceed with Conditions|Engaged|No Processing Decision Required)$/i.test(v)
+      ? "ok"
+      : "neutral"
+  );
   return (
-    <span className={`inline-block rounded-sm border font-sans font-bold tracking-wide ${large ? "px-2.5 py-0.5 text-[12px]" : "px-1.5 py-px text-[10px]"} ${tone}`}>
+    <span className={`inline-block rounded-sm border font-sans font-bold tracking-wide ${large ? "px-2.5 py-0.5 text-[12px]" : "px-1.5 py-px text-[10px]"} ${RISK_BADGE_TONE_CLASS[resolved]}`}>
       {v}
     </span>
   );
@@ -604,10 +679,45 @@ function riskStatusLeadCell(value: string): React.ReactNode {
   const m = /^(Engaged|Unresolved)( — )([\s\S]*)$/.exec(value.trim());
   return m ? <><strong>{m[1]}</strong>{m[2]}{m[3]}</> : renderWithFootnotes(value);
 }
+/** DOC 144 — the § 4.A ledger's Likelihood/Severity cells: the Company's
+ * enum scale words badge onto the existing tint families; anything else
+ * ("Not recorded", free text) passes through. Synced with the PDF twin. */
+function riskScaleCell(value: string): React.ReactNode {
+  const v = value.trim();
+  const tone: RiskBadgeTone | null = /^(Unlikely|Minimal)$/.test(v)
+    ? "ok"
+    : /^(Possible|Likely|Moderate)$/.test(v)
+    ? "warn"
+    : /^(Highly likely|Significant|Severe)$/.test(v)
+    ? "hi"
+    : null;
+  return tone ? <RiskBadge value={v} tone={tone} /> : renderWithFootnotes(value);
+}
+/** DOC 144 — the § 3.B necessity Determination cell: the three exact words
+ * the engine emits, mapped onto the tint families. Synced with the PDF twin. */
+function riskNecessityCell(value: string): React.ReactNode {
+  const v = value.trim();
+  if (v === "Necessary to the stated purpose") return <RiskBadge value={v} tone="ok" />;
+  if (v === "Collected but not necessary to the stated purpose") return <RiskBadge value={v} tone="hi" />;
+  if (v === "Unsure") return <RiskBadge value={v} tone="warn" />;
+  return renderWithFootnotes(value);
+}
 const RISK_CELL_RENDERERS: Record<string, (value: string, col: number) => React.ReactNode> = {
   exec_triggers: (v, c) => (c === 1 ? riskStatusLeadCell(v) : renderWithFootnotes(v)),
   exec_ledger: (v, c) => (c === 2 ? riskLevelCell(v) : c === 0 ? riskHarmCell(v) : renderWithFootnotes(v)),
-  risk_ledger: (v, c) => (c === 3 || c === 1 ? riskLevelCell(v) : c === 0 ? riskHarmCell(v) : renderWithFootnotes(v)),
+  // DOC 144 — the six-column § 4.A ledger: harm | likelihood | severity |
+  // before | safeguard credited (status) | remaining. Badge columns 1/2/3/5.
+  risk_ledger: (v, c) =>
+    c === 0
+      ? riskHarmCell(v)
+      : c === 1 || c === 2
+      ? riskScaleCell(v)
+      : c === 3 || c === 5
+      ? riskLevelCell(v)
+      : renderWithFootnotes(v),
+  // DOC 144 — the § 3.B in-body necessity matrix (Element | Determination |
+  // Basis); Determination badges (surface + column keyed).
+  necessity_matrix: (v, c) => (c === 1 ? riskNecessityCell(v) : renderWithFootnotes(v)),
 };
 
 /** §4.1 — the Assessment Profile executive fact panel. */
@@ -642,6 +752,20 @@ function RiskResultCard({ table }: { table: SkeletonTable }) {
   const disp = get("Assessment disposition");
   if (!disp) return null;
   const path = get("Path forward");
+  // DOC 144 (2026-09-02) — Wave-1 dashboard rows (tallies, "What this
+  // means") projected onto this surface render too: rows the card does not
+  // consume by name render as compact label/value lines. Synced with the
+  // PDF renderer.
+  const CONSUMED = new Set([
+    "Assessment required",
+    "Inherent privacy risk",
+    "Residual privacy risk",
+    "Assessment disposition",
+    "Path forward",
+    "What this means",
+  ]);
+  const whatThisMeans = get("What this means");
+  const extraRows = table.rows.filter((r) => Array.isArray(r) && !CONSUMED.has(String(r[0] ?? "")));
   const tierRow = (label: string) => {
     const v = get(label);
     if (!v) return null;
@@ -667,7 +791,144 @@ function RiskResultCard({ table }: { table: SkeletonTable }) {
           <RiskBadge value={disp} large />
         </div>
         {path && <div className="mt-1.5 text-[12.5px] leading-relaxed text-foreground">{path}</div>}
+        {extraRows.map((r, i) => (
+          <div key={i} className="flex items-center justify-between py-0.5">
+            <span className="text-[12px] text-slate-600 dark:text-slate-300">{String(r[0] ?? "")}</span>
+            <span className="text-[12px] text-foreground">{String(r[1] ?? "")}</span>
+          </div>
+        ))}
+        {whatThisMeans && (
+          <div className="mt-1.5 text-[12.5px] leading-relaxed text-foreground">
+            <strong>What this means:</strong> {whatThisMeans}
+          </div>
+        )}
       </div>
+    </div>
+  );
+}
+
+// ─── DOC 144 (2026-09-02) — the page-2 "Assessment at a Glance" panel and
+// § 2.A customer-voice block (web twins of the PDF renderer's
+// riskGlancePanelHtml / riskCustomerVoiceHtml — keep in sync). ───
+
+/** The disposition-family accent for the glance panel's left rule:
+ * proceed=green, conditions=amber, AIR/NPDR=slate/neutral,
+ * do-not-proceed=red — the badges' own grayscale-safe families. */
+function riskDispositionAccentClass(label: string): string {
+  const v = label.trim();
+  if (/^Do Not Proceed$/i.test(v)) return "border-l-red-900/70 dark:border-l-red-300/70";
+  if (/^Proceed with Conditions$/i.test(v)) return "border-l-amber-700/80 dark:border-l-amber-300/70";
+  if (/^Proceed$/i.test(v)) return "border-l-emerald-900/70 dark:border-l-emerald-300/70";
+  return "border-l-slate-500/70 dark:border-l-slate-300/70";
+}
+
+/** The panel-scoped disposition badge tone for the SAME family mapping (AIR
+ * reads slate/neutral here per the mockup, not the amber the generic badge
+ * machinery would pick); every other badge surface is unchanged. Synced with
+ * the PDF renderer's riskDispositionPanelTone. */
+function riskDispositionPanelTone(label: string): RiskBadgeTone {
+  const v = label.trim();
+  if (/^Do Not Proceed$/i.test(v)) return "hi";
+  if (/^Proceed with Conditions$/i.test(v)) return "warn";
+  if (/^Proceed$/i.test(v)) return "ok";
+  return "neutral";
+}
+
+/** The glance panel: eyebrow + dominant disposition badge, the count-tile
+ * strip (serif numerals, sans caps labels, hairline separators), the
+ * key-dates line, the fixed "What this means" line. Built ONLY from the
+ * persisted exec_status_panel / key_dates surfaces (doc 127 §28 law) — the
+ * SAME rows the cover card projects, never re-derived. */
+function RiskGlancePanel({ doc }: { doc: SkeletonDocument }) {
+  let panelRows: string[][] | null = null;
+  let keyDateRows: string[][] | null = null;
+  for (const sec of doc.sections) {
+    for (const p of sec.paragraphs) {
+      if (p.kind !== "table" || !p.table) continue;
+      if (p.table.surface === "exec_status_panel") panelRows = p.table.rows;
+      else if (p.table.surface === "key_dates") keyDateRows = p.table.rows;
+    }
+  }
+  if (!panelRows) return null;
+  const get = (label: string): string => {
+    const row = panelRows!.find((r) => String(r?.[0] ?? "") === label);
+    return row ? String(row[1] ?? "") : "";
+  };
+  const disp = get("Assessment disposition");
+  if (!disp) return null;
+  const tiles = ([
+    ["Triggers engaged", get("Triggers engaged")],
+    ["Risks identified", get("Risks identified")],
+    ["Benefits credited", get("Benefits credited")],
+    ["Conditions", get("Number of conditions")],
+  ] as Array<[string, string]>).filter(([, v]) => v !== "");
+  const keyDateOf = (label: string): string => {
+    const row = (keyDateRows ?? []).find((r) => String(r?.[0] ?? "") === label);
+    return row ? String(row[2] ?? "") : "";
+  };
+  const keyDates = ([
+    ["Initial assessment", keyDateOf("Initial risk assessment")],
+    ["Three-year review", keyDateOf("Three-year review")],
+  ] as Array<[string, string]>).filter(([, v]) => v !== "");
+  const plain = get("What this means");
+  return (
+    <div className={`rounded border border-border border-l-[3px] bg-slate-50 px-4 py-3 dark:bg-slate-900/40 ${riskDispositionAccentClass(disp)}`}>
+      <div className="mb-1 font-sans text-[10px] font-bold uppercase tracking-widest text-slate-700 dark:text-slate-300">
+        Assessment at a Glance
+      </div>
+      <RiskBadge value={disp} large tone={riskDispositionPanelTone(disp)} />
+      {tiles.length > 0 && (
+        <div className="mt-2 flex">
+          {tiles.map(([label, v], i) => (
+            <div key={label} className={`flex-1 px-2 text-center ${i > 0 ? "border-l border-border/70" : ""}`}>
+              <div className="font-serif text-[26px] leading-tight text-slate-800 dark:text-slate-200">{v}</div>
+              <div className="font-sans text-[9px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">{label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+      {keyDates.length > 0 && (
+        <div className="mt-2 border-t border-border/60 pt-1.5 text-[11px] leading-relaxed text-slate-600 dark:text-slate-300">
+          <span className="font-sans text-[9px] font-bold uppercase tracking-wider">Key dates</span>
+          {" — "}
+          {keyDates.map(([l, v]) => `${l}: ${v}`).join(" · ")}
+        </div>
+      )}
+      {plain && (
+        <div className="mt-1.5 text-[12.5px] leading-relaxed text-foreground">
+          <strong>What this means:</strong> {plain}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** The § 2.A customer-voice block (kind `customer_voice`): attribution line
+ * as the teal eyebrow, the Processing/Purpose labels as caps slate, the
+ * quoted values with their typographic quotes preserved. */
+function RiskCustomerVoice({ text }: { text: string }) {
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  if (!lines.length) return null;
+  const [attribution, ...rest] = lines;
+  return (
+    <div className="border-l-[3px] border-teal-600/80 bg-teal-50/50 px-4 py-2.5 dark:border-teal-400/70 dark:bg-teal-950/20">
+      <div className="mb-1 font-sans text-[10px] font-bold uppercase tracking-widest text-teal-800 dark:text-teal-300">
+        {attribution}
+      </div>
+      {rest.map((line, i) => {
+        const m = /^(Processing|Purpose)\.\s*([\s\S]*)$/.exec(line);
+        if (!m) {
+          return (
+            <div key={i} className="text-[13.5px] leading-relaxed text-foreground">{line}</div>
+          );
+        }
+        return (
+          <div key={i} className="text-[13.5px] leading-relaxed text-foreground">
+            <span className="mr-1.5 font-sans text-[10px] font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300">{m[1]}</span>
+            {m[2]}
+          </div>
+        );
+      })}
     </div>
   );
 }

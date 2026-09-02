@@ -17,6 +17,8 @@ import { generateCppaRiskReport } from "../../../supabase/functions/run-cppa-ris
 import { EMPTY_RISK_CORPUS } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-corpus.ts";
 import { CPPA_RISK_PERFECT } from "../../../supabase/functions/_shared/golden/cppa-risk.ts";
 import {
+  RISK_PROTECTED_FIXED_PROSE,
+  RISK_SKELETON_CONTENT_HASH,
   RISK_SKELETON_VERSION,
   SKELETON_SECTIONS,
 } from "../../../supabase/functions/_shared/prose/plans/cppa-risk.spine.ts";
@@ -32,7 +34,6 @@ import {
   deriveMaterialsConsideredIndex,
   deriveNextReviewDate,
   deriveProcessingAndDataInventory,
-  deriveSubmissionSupportRecord,
 } from "../../../supabase/functions/_shared/ltp/risk-skeleton-assemble.ts";
 import { skeletonDocumentToText } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
 
@@ -42,11 +43,22 @@ const BUILD_STAMP = "spine-v52-pins";
 
 // ── Spine structure pins ──────────────────────────────────────────────────────
 
-Deno.test("v5.2 — spine version is the 2026-08-26 memorandum encode", () => {
-  // RE-PIN BATCH 20b (doc 113 S6.1/S6.3): v5.2.1 — the exec trigger table
-  // and the SS V Key Dates table blocks joined the v5.2 memorandum
-  // structure; fixed prose is unchanged.
-  assertEquals(RISK_SKELETON_VERSION, "cppa-risk-v5.2.1-2026-08-30");
+Deno.test("v5.3 — spine version is the DOC 144 structure-redesign encode", () => {
+  // RE-PIN DOC 144 (2026-09-02): the doc-143 structure redesign — appendix
+  // re-lettering (necessity matrix folded into § 3.B, Appendix G retired,
+  // E→D, F→E, H→F), landing rhythm ([Q] lines + Governing-requirement
+  // restructures), the § 2.A customer-voice block, and the page-2 dashboard
+  // operands.
+  assertEquals(RISK_SKELETON_VERSION, "cppa-risk-v5.3-2026-09-02");
+});
+
+Deno.test("v5.3 — the BASIS v1 content hash pins the fixed prose (recomputed, never trusted)", async () => {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(RISK_PROTECTED_FIXED_PROSE.join("\n")),
+  );
+  const hex = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  assertEquals(hex, RISK_SKELETON_CONTENT_HASH);
 });
 
 Deno.test("v5.2 — section ids, in document order", () => {
@@ -68,10 +80,10 @@ Deno.test("v5.2 — section ids, in document order", () => {
     "table_of_authorities",
     "appendix_i",
     "appendix_a",
-    "appendix_b",
+    // DOC 144: "appendix_b" (necessity matrix) folded into § 3.B and
+    // "appendix_e" (CPPA Submission Support Record) retired.
     "appendix_c",
     "appendix_d",
-    "appendix_e",
     "appendix_f",
   ]);
 });
@@ -122,10 +134,11 @@ const PRESENT_ALWAYS = [
   "agency_submission_checklist",
   "table_of_authorities",
   "appendix_a",
-  "appendix_b",
+  // DOC 144: appendix_b and appendix_e no longer exist; appendix_c
+  // (the risk register) renders on these fixtures because both carry
+  // recorded risks — on a zero-risk record it is suppressed entirely.
   "appendix_c",
   "appendix_d",
-  "appendix_e",
   "appendix_f",
 ];
 
@@ -164,13 +177,20 @@ for (const c of CPPA_RISK_PERFECT) {
 
     await t.step("ADMT gate — § 3.E and Appendix F carry full content iff ADMT, a not-applicable record otherwise", () => {
       if (isAdmt) {
-        assert(body.includes("E. Automated Decisionmaking Technology. Section 7152(a)(3)(G)"), "ADMT § 3.E intro absent on ADMT fixture");
+        // DOC 144 (2026-09-02) — RE-PIN: § 3.E no longer opens on the bare
+        // statutory recitation; a reader-first landing leads and the law
+        // sentence follows VERBATIM under the "Governing requirement." run-in.
+        assert(body.includes("E. Automated Decisionmaking Technology."), "ADMT § 3.E head absent on ADMT fixture");
+        assert(
+          body.includes("Governing requirement. Section 7152(a)(3)(G) requires the report to describe the technology’s role, logic, and output"),
+          "ADMT § 3.E governing-requirement paragraph absent",
+        );
       } else {
         assert(
           body.includes("does not identify automated decisionmaking technology"),
           "non-ADMT § 3.E not-applicable record absent",
         );
-        assert(body.includes("no ADMT technical and decision record is required"), "non-ADMT Appendix F placeholder absent");
+        assert(body.includes("no ADMT technical and decision record is required"), "non-ADMT Appendix E placeholder absent");
         assert(!body.includes("It classifies the system as"), "non-ADMT body leaks ADMT prose");
       }
     });
@@ -242,16 +262,22 @@ for (const c of CPPA_RISK_PERFECT) {
     });
 
     await t.step("the risk ledger and balance summary tables render", () => {
-      assert(body.includes("Privacy risk | Before safeguards | Safeguard credited (status) | Remaining"), "risk ledger columns absent");
+      // DOC 144 (2026-09-02) — RE-PIN (amends the doc-72 ledger shape per the
+      // CEO-ratified redesign, doc 143 §B row E): the § 4.A ledger carries the
+      // Company's recorded Likelihood and Severity columns, and "Remaining"
+      // is labeled "Remaining risk".
+      const FULL_LEDGER_HEADER =
+        "Privacy risk | Likelihood | Severity | Before safeguards | Safeguard credited (status) | Remaining risk";
+      assert(body.includes(FULL_LEDGER_HEADER), "risk ledger columns absent");
       assert(body.includes("Benefits established (weight) | Risks remaining (level)"), "balance summary columns absent");
       // PANEL RISK-P3 (2026-08-30): the exec summary carries the compressed
-      // ledger; the four-column table prints once, in § 4.A. A-TEAM S4
+      // ledger; the full table prints once, in § 4.A. A-TEAM S4
       // RULING S2.16 (doc 119): the compression carries the safeguard-status
       // middle column. DOC 127 §11 (Phase B, 2026-09-01): label
       // re-registration — "Safeguard credited" implied credit over a
       // "None established" cell.
       assert(body.includes("Risk | Safeguard Status | Residual Risk"), "compressed exec ledger columns absent");
-      const fullHeaderCount = body.split("Privacy risk | Before safeguards | Safeguard credited (status) | Remaining").length - 1;
+      const fullHeaderCount = body.split(FULL_LEDGER_HEADER).length - 1;
       assert(fullHeaderCount === 1, `full ledger header must print exactly once, saw ${fullHeaderCount}`);
     });
 
@@ -273,18 +299,19 @@ for (const c of CPPA_RISK_PERFECT) {
 
     await t.step("appendix table blocks compose", () => {
       assert(body.includes("Personal-information categories (this activity)"), "Appendix C inventory absent");
-      // RE-PIN BATCH 17 (Wave C2): machine plural retired from the label.
-      assert(body.includes("Applicable § 7150(b) triggers"), "Appendix G submission record absent");
-      assert(body.includes("Business-level § 7157 submission items requiring reporting-period aggregation"), "Appendix G outstanding checklist absent");
-      assert(body.includes("submitted CPPA risk-assessment record"), "Appendix H materials index absent");
+      // DOC 144: the reporting-period aggregation list moved from the
+      // retired Appendix G onto the Agency Submission Checklist page.
+      assert(body.includes("Business-level § 7157 submission items requiring reporting-period aggregation"), "checklist-page aggregation list absent");
+      assert(body.includes("submitted CPPA risk-assessment record"), "Appendix F materials index absent");
       // RE-PIN PANEL LEAK-1 (2026-08-30): generation metadata stays for
       // reperformance, labelled as the generation record.
       // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31,
       // Risk P1-2) — the bare build number is gone; a year.month framework
       // label replaces it.
-      assert(body.includes("Report record — assessment framework version 2026.08"), "Appendix H generation-record line absent");
+      // DOC 144: the framework label follows the v5.3 encode date.
+      assert(body.includes("Report record — assessment framework version 2026.09"), "Appendix F generation-record line absent");
       if (isAdmt) {
-        assert(body.includes("System description"), "Appendix F ADMT facts absent on ADMT fixture");
+        assert(body.includes("System description"), "Appendix E ADMT facts absent on ADMT fixture");
       }
     });
   });
@@ -362,7 +389,7 @@ Deno.test("v5.2 — PI inventory carries the canonical California mapping", () =
   assertEquals(deriveActivityPiInventory({}), null);
 });
 
-Deno.test("v5.2 — Appendix C / G / H builders compose from established facts only", () => {
+Deno.test("v5.2 — Appendix C / checklist / F builders compose from established facts only", () => {
   const sierra = CPPA_RISK_PERFECT[0].intake as Bag;
   const invA = deriveProcessingAndDataInventory(sierra);
   assertExists(invA);
@@ -376,19 +403,8 @@ Deno.test("v5.2 — Appendix C / G / H builders compose from established facts o
     JSON.stringify(invA.rows),
   );
 
-  const subE = deriveSubmissionSupportRecord(sierra, {
-    scope_and_triggers: { narrative: ["Engaged — Section 7150(b)(3): significant-decision ADMT."] },
-  }, "2026-08-18");
-  assertEquals(subE.columns, ["Item", "Detail"]);
-  assert(
-    subE.rows.some((r) => r[0] === "Applicable § 7150(b) triggers" && r[1].includes("Section 7150(b)(3)")),
-    JSON.stringify(subE.rows),
-  );
-  assert(
-    subE.rows.some((r) => r[0] === "Certifying executive identified" && r[1].includes("L. Whitcomb, Chief Compliance Officer")),
-    JSON.stringify(subE.rows),
-  );
-
+  // DOC 144: deriveSubmissionSupportRecord retired with Appendix G; the
+  // aggregation list below now renders on the checklist page.
   const outstanding = deriveBusinessLevelOutstanding();
   assert(outstanding.title.includes("§ 7157"), outstanding.title);
   assertEquals(outstanding.rows.length, 4);
@@ -396,11 +412,12 @@ Deno.test("v5.2 — Appendix C / G / H builders compose from established facts o
   const idx = deriveMaterialsConsideredIndex(sierra);
   assert(idx.rows.some((r) => r[0].includes("submitted CPPA risk-assessment record")), JSON.stringify(idx.rows));
   assert(idx.rows.some((r) => r[0].includes("https://www.sierraoutfitters.example/privacy")), JSON.stringify(idx.rows));
-  // v5.2 — the engine-version line moved off the cover into Appendix H.
+  // v5.2 — the engine-version line moved off the cover into the materials
+  // appendix (Appendix F since DOC 144).
   assert(idx.rows.some((r) => r[0].includes("Report record — assessment framework version")), JSON.stringify(idx.rows));
 });
 
-Deno.test("v5.2 — Appendix F ADMT facts compose iff ADMT", () => {
+Deno.test("v5.2 — ADMT technical facts (Appendix E since DOC 144) compose iff ADMT", () => {
   const sierra = CPPA_RISK_PERFECT[0].intake as Bag;
   const locus = CPPA_RISK_PERFECT[1].intake as Bag;
   const facts = deriveAdmtTechnicalFacts(sierra);

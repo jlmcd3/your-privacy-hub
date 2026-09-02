@@ -49,15 +49,25 @@ Deno.test("RISK-P1: an unnecessary element WITH a recorded basis is attributed, 
   const body = r.blocks["iii_analysis:5"] ?? "";
   assert(!body.includes("is collected but not shown to be necessary"), "old subject-verb sentence survived");
   assert(!body.includes("identifies no contribution"), "denied a contribution the record carries (quote-then-deny)");
+  // DOC 144 (2026-09-02) — RE-PIN: element names render quoted (doc 143 §C
+  // sweep), and the "appears in Appendix D" pointer is retired with the
+  // Appendix-D fold-in (the determinations table now sits in § 3.B itself).
+  // The RISK-P1 substance — attribution, never denial — is unchanged.
   assert(
-    body.includes("The necessity of Contact identifiers (name, email, phone) is not established"),
+    body.includes("The necessity of “Contact identifiers (name, email, phone)” is not established"),
     "new attribution sentence absent",
   );
   assert(
     body.includes("collected for shipment-tracking notifications"),
     "the recorded basis is not acknowledged in the body",
   );
-  assert(body.includes("Appendix D"), "no pointer to the element-level record");
+  assert(!body.includes("Appendix D"), "retired Appendix D pointer still composes in § 3.B");
+  const matrix = r.tables["iii_analysis:4"];
+  assert(matrix, "in-body necessity determinations table absent");
+  assert(
+    matrix.rows.some((row) => row[2].includes("“Contact identifiers are collected for shipment-tracking")),
+    "table basis cell does not quote the Company's justification",
+  );
 });
 
 Deno.test("RISK-P1: an unnecessary element with NO basis keeps the honest no-contribution sentence", () => {
@@ -71,7 +81,8 @@ Deno.test("RISK-P1: an unnecessary element with NO basis keeps the honest no-con
     ],
   });
   const body = r.blocks["iii_analysis:5"] ?? "";
-  assert(body.includes("The necessity of Device fingerprint hashes is not established"), "new sentence absent");
+  // DOC 144 (2026-09-02) — RE-PIN: element name quoted (doc 143 §C sweep).
+  assert(body.includes("The necessity of “Device fingerprint hashes” is not established"), "new sentence absent");
   assert(
     body.includes("the information provided identifies no contribution it makes to the Purpose"),
     "no-basis branch lost its honest denial",
@@ -91,8 +102,9 @@ Deno.test("RISK-P1/D8: the exec compact conditions never dangle — the elements
   const compact = r.blocks["executive_summary:9"] ?? "";
   assert(!/the following element[s]?[;.]/.test(compact), "dangling cataphora survived in the compact list");
   if (compact.includes("Cease processing")) {
+    // DOC 144 (2026-09-02) — RE-PIN: the named element is quoted.
     assert(
-      compact.includes("Cease processing, or establish the necessity of, Contact identifiers (name, email, phone)"),
+      compact.includes("Cease processing, or establish the necessity of, “Contact identifiers (name, email, phone)”"),
       "compact condition does not name the element",
     );
   }

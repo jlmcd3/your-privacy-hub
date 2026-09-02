@@ -241,8 +241,10 @@ for (const c of CPPA_RISK_PERFECT) {
     });
 
     await t.step("factor appendices render", () => {
-      assert(ids.includes("appendix_b"), "the necessity matrix appendix (id appendix_b, printed as Appendix D) is absent");
-      assert(ids.includes("appendix_c"), "the risk register appendix (id appendix_c, printed as Appendix E) is absent");
+      // DOC 144: the necessity matrix folded into § 3.B (no appendix_b
+      // section any more); the risk register appendix re-lettered to D.
+      assert(!ids.includes("appendix_b"), "retired appendix_b section still renders");
+      assert(ids.includes("appendix_c"), "the risk register appendix (id appendix_c, printed as Appendix D) is absent");
     });
 
     await t.step("necessity renders end-to-end (Annex T4)", () => {
@@ -275,9 +277,14 @@ for (const c of CPPA_RISK_PERFECT) {
           "qualified lead absent on a fixture with an unnecessary element",
         );
       }
+      // DOC 144: the element-level determinations table renders inside
+      // § 3.B itself (surface necessity_matrix), not as an appendix.
       assert(
-        body.includes("This appendix provides the element-level analysis underlying § 3.B."),
-        "Appendix D intro absent",
+        sk.document.sections.some((s) =>
+          s.id === "iii_analysis" &&
+          s.paragraphs.some((p) => p.table?.surface === "necessity_matrix")
+        ),
+        "in-body § 3.B necessity determinations table absent",
       );
     });
 
@@ -297,7 +304,7 @@ for (const c of CPPA_RISK_PERFECT) {
       );
       assert(
         body.includes("This appendix provides the detailed factual register underlying § 4.A."),
-        "Appendix E intro absent",
+        "risk-register appendix (Appendix D since DOC 144) intro absent",
       );
     });
 
