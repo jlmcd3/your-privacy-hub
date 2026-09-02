@@ -151,9 +151,20 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
       await admin.from("static_stress_batches").update({
         total_jobs: totalJobs,
         status: totalJobs > 0 ? "running" : "complete",
+        setup_done: companies.length,
         started_at: new Date().toISOString(),
       }).eq("id", batchId);
+
+      // Setup just cleared the gate. If every job already finished while
+      // setup was still running, nobody would ever finalise the batch — kick
+      // one worker so run-stress-job's (now unblocked) finalise path runs.
+      if (totalJobs > 0) {
+        invokeFn("run-stress-job", { batch_id: batchId, job_id: null }, 30_000).catch((e) =>
+          console.warn("[start-stress-batch] post-setup finalise nudge failed:", e)
+        );
+      }
       return;
+
     }
 
     const c = companies[companyIndex];
