@@ -1398,7 +1398,7 @@ export function QualityConsole({
         {hasOlderBatches && (
           <div className="mb-2">
             <Button size="sm" variant="outline" disabled={loadingOlder} onClick={loadOlderBatches}>
-              {loadingOlder ? "Loading…" : `‹ Load older batches (${recentBatches.length} of ${batchTotal} shown)`}
+              {loadingOlder ? "Loading…" : `‹ Load older batches (${matrixColumns.length} of ${batchTotal + (showStressBatches ? stressTotal : 0)} shown)`}
             </Button>
           </div>
         )}
