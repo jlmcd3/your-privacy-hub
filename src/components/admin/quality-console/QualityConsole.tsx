@@ -521,13 +521,24 @@ export function QualityConsole({
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      const [{ data: rows }, { data: base }] = await Promise.all([
+      const [{ data: rows, count }, { data: base }] = await Promise.all([
         scope(supabase.from("quality_batch_runs")
-          .select("*")).order("started_at", { ascending: false }).limit(10),
+          .select("*", { count: "exact" })).order("started_at", { ascending: false }).limit(BATCH_PAGE),
         supabase.from("quality_batch_baselines").select("*"),
       ]);
       if (cancelled) return;
-      if (rows) setRecentBatches(rows as unknown as BatchRow[]);
+      if (typeof count === "number") setBatchTotal(count);
+      if (rows) {
+        const fresh = rows as unknown as BatchRow[];
+        // Merge the newest window into whatever older pages are loaded —
+        // replace rows we already have, keep the older tail, stay desc.
+        setRecentBatches((prev) => {
+          const freshIds = new Set(fresh.map((b) => b.id));
+          const merged = [...fresh, ...prev.filter((b) => !freshIds.has(b.id))];
+          merged.sort((a, b) => (a.started_at > b.started_at ? -1 : 1));
+          return merged;
+        });
+      }
       if (base) {
         const m = new Map<string, Baseline>();
         for (const b of (base as unknown as Baseline[])) m.set(b.tool, b);
