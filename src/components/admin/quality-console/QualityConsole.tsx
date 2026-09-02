@@ -749,23 +749,65 @@ export function QualityConsole({
   const doneCount = activeToolResults.length;
   const totalCount = activeBatch?.tools.length ?? 0;
 
+  // Page backwards: fetch the next 7 older batches (offset = already loaded).
+  async function loadOlderBatches() {
+    setLoadingOlder(true);
+    try {
+      const { data, count, error } = await scope(supabase
+        .from("quality_batch_runs")
+        .select("*", { count: "exact" }))
+        .order("started_at", { ascending: false })
+        .range(recentBatches.length, recentBatches.length + BATCH_PAGE - 1);
+      if (error) throw error;
+      if (typeof count === "number") setBatchTotal(count);
+      const older = (data ?? []) as unknown as BatchRow[];
+      setRecentBatches((prev) => {
+        const known = new Set(prev.map((b) => b.id));
+        const merged = [...prev, ...older.filter((b) => !known.has(b.id))];
+        merged.sort((a, b) => (a.started_at > b.started_at ? -1 : 1));
+        return merged;
+      });
+    } catch (e: any) {
+      toast.error(`Load older failed: ${e?.message ?? e}`);
+    } finally {
+      setLoadingOlder(false);
+    }
+  }
+
   // ─── Score matrix data ───────────────────────────────────────────────────
   // BATCH LAW — server batches first (oldest → newest), then every in-page
   // local batch as its OWN column appended to the right. A local run is never
   // folded into a pre-existing batch column.
+  // BATCH-NUMBER LAW — `n` is the batch's global sequence number (oldest
+  // server batch = 1). recentBatches is newest-first, so desc index d maps
+  // to n = batchTotal - d. Local in-page batches continue the sequence.
   type MatrixColumn =
-    | { kind: "server"; id: string; started_at: string; batch: BatchRow }
-    | { kind: "local"; id: string; started_at: string; batch: LocalBatch };
+    | { kind: "server"; id: string; started_at: string; n: number; batch: BatchRow }
+    | { kind: "local"; id: string; started_at: string; n: number; batch: LocalBatch };
 
   const matrixColumns = useMemo<MatrixColumn[]>(() => {
     const server: MatrixColumn[] = [...recentBatches]
       .sort((a, b) => (a.started_at < b.started_at ? -1 : 1))
-      .map((b) => ({ kind: "server" as const, id: b.id, started_at: b.started_at, batch: b }));
+      .map((b) => ({
+        kind: "server" as const,
+        id: b.id,
+        started_at: b.started_at,
+        n: batchTotal - recentBatches.findIndex((r) => r.id === b.id),
+        batch: b,
+      }));
     const local: MatrixColumn[] = [...localBatches]
       .sort((a, b) => (a.started_at < b.started_at ? -1 : 1))
-      .map((b) => ({ kind: "local" as const, id: b.id, started_at: b.started_at, batch: b }));
+      .map((b, i) => ({
+        kind: "local" as const,
+        id: b.id,
+        started_at: b.started_at,
+        n: batchTotal + i + 1,
+        batch: b,
+      }));
     return [...server, ...local];
-  }, [recentBatches, localBatches]);
+  }, [recentBatches, localBatches, batchTotal]);
+
+  const hasOlderBatches = recentBatches.length < batchTotal;
 
   function renderLocalCell(key: string, r: LocalToolResult | undefined) {
     if (!r || r.total === 0) {
