@@ -299,6 +299,19 @@ export function QualityConsole({
   // ALL-PRODUCTS-TEST — imported history for products with no quality batch.
   type StressHistory = { total: number; complete: number; failed: number; lastAt: string | null };
   const [stressHistory, setStressHistory] = useState<Map<string, StressHistory>>(new Map());
+  // SERVER-BATCH LAW (2026-09-02): every batch launched from this page writes a
+  // static_stress_batches row. Those batches are read FROM THE SERVER, so the
+  // matrix shows them in any browser and after localStorage is cleared —
+  // in-page scores, when present, are overlaid on top of the server counts.
+  type StressBatchCol = {
+    id: string;
+    started_at: string;
+    tools: Record<string, LocalToolResult>;
+  };
+  const [stressBatches, setStressBatches] = useState<StressBatchCol[]>([]);
+  const [stressTotal, setStressTotal] = useState(0);
+  const [stressLoaded, setStressLoaded] = useState(7);
+
   // ALL-PRODUCTS-TEST — in-page run log published by AllProductsPanel.
   const localLog = useAllProductsLog();
   // ALL-PRODUCTS-TEST — pass/fail tally for pre-set-package runs executed
