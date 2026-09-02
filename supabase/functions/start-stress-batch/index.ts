@@ -403,7 +403,6 @@ async function selfInvokeNext(batchId: string, nextIndex: number): Promise<void>
       error_log: `Setup interrupted at company ${nextIndex} — self-invoke failed: ${lastError}. Click Resume Setup to continue.`,
     }).eq("id", batchId).in("status", ["pending", "running"]);
   } catch { /* best-effort */ }
-  throw new Error(`setup handoff failed for company ${nextIndex}: ${lastError}`);
 }
 
 Deno.serve(async (req) => {
