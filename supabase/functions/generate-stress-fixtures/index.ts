@@ -10,6 +10,7 @@ console.log("[build-marker] generate-stress-fixtures qi2c-biometric-none-2026-07
 
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { enumAppendix, withInlineOptions } from "./_local/enum-appendix.ts";
+import { contractChecklist } from "./_local/contract-skeleton.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // PANEL FIX (2026-08-30, doc 108 follow-on) — the deterministic fallback
@@ -307,7 +308,7 @@ Return a JSON object with EXACTLY these top-level fields:
   }` : ""}
 }
 
-Always emit a biometric object for every company (tool selection is handled at the job level by selected_tools). For sectors that do not routinely use biometric identification, still emit the object using realistic minimal values, choosing verbatim options from the allowed lists below (e.g. biometricTypes may be ["Other biometric identifier"]). Never emit null.${isEU ? "" : " Governance and Registration are GDPR-only products — do NOT emit \"governance\" or \"registration\" fields for this United States company."}${enumAppendix(isEU ? ["governance", "dpa", "irPlaybook", "biometric", "registration"] : ["dpa", "irPlaybook", "biometric"])}`, isEU ? ["governance", "dpa", "irPlaybook", "biometric", "registration"] : ["dpa", "irPlaybook", "biometric"]);
+Always emit a biometric object for every company (tool selection is handled at the job level by selected_tools). For sectors that do not routinely use biometric identification, still emit the object using realistic minimal values, choosing verbatim options from the allowed lists below (e.g. biometricTypes may be ["Other biometric identifier"]). Never emit null.${isEU ? "" : " Governance and Registration are GDPR-only products — do NOT emit \"governance\" or \"registration\" fields for this United States company."}${enumAppendix(isEU ? ["governance", "dpa", "irPlaybook", "biometric", "registration"] : ["dpa", "irPlaybook", "biometric"])}${contractChecklist(isEU ? ["governance", "dpa", "irPlaybook", "biometric", "registration"] : ["dpa", "irPlaybook", "biometric"])}`, isEU ? ["governance", "dpa", "irPlaybook", "biometric", "registration"] : ["dpa", "irPlaybook", "biometric"]);
 }
 
 // ── CALL B (EU): lia, dpia, ropa, euNotice ────────────────────────────────────
@@ -494,7 +495,7 @@ Return a JSON object with EXACTLY these fields:
   }
 }
 
-Include 3-5 realistic processing activities in ropa.activities for a ${industry} company.${enumAppendix(["lia", "dpia", "cppaAdmt"])}`, ["lia", "dpia", "cppaAdmt"]);
+Include 3-5 realistic processing activities in ropa.activities for a ${industry} company.${enumAppendix(["lia", "dpia", "cppaAdmt"])}${contractChecklist(["lia", "dpia", "cppaAdmt"])}`, ["lia", "dpia", "cppaAdmt"]);
 }
 
 // ── CALL B (US): usNotice, cppaRisk, cppaCyber ───────────────────────────────
@@ -606,7 +607,8 @@ Return a JSON object with EXACTLY these fields:
   "euNotice": null
 }
 
-Notice/opt-out/access answers must be a realistic mix — not all "Yes", not all blank — so gap analysis has real material.${enumAppendix(["cppaRisk", "cppaAdmt"])}`, ["cppaRisk", "cppaAdmt"]);
+cppaCyber.controls MUST contain all 18 records, one per control key, in the listed order — never an object, never a subset.
+Notice/opt-out/access answers must be a realistic mix — not all "Yes", not all blank — so gap analysis has real material.${enumAppendix(["cppaRisk", "cppaCyber", "cppaAdmt"])}${contractChecklist(["cppaRisk", "cppaCyber", "cppaAdmt"])}`, ["cppaRisk", "cppaCyber", "cppaAdmt"]);
 }
 
 function fixtureSeed(companyId: string): number {
@@ -1406,7 +1408,7 @@ Deno.serve(async (req) => {
     if (part === "profile") {
       if (!use_claude) return json(buildDeterministicProfile(industry, geo, company_slot, company_id), 200);
       return streamJsonWork(async () => {
-        const callAText = await callClaude(SYSTEM_PROMPT, buildCallAPrompt(industry, geo, company_slot, company_id), 6000);
+        const callAText = await callClaude(SYSTEM_PROMPT, buildCallAPrompt(industry, geo, company_slot, company_id), 16000);
         return extractJson(callAText);
       });
     }
@@ -1420,7 +1422,7 @@ Deno.serve(async (req) => {
           geo === "eu"
             ? buildCallBEUPrompt(industry, company_slot, name)
             : buildCallBUSPrompt(industry, company_slot, name),
-          4500,
+          24000,
         );
         return normalizeCppaRiskTriggers(extractJson(callBText));
       });
@@ -1437,7 +1439,7 @@ Deno.serve(async (req) => {
   }
 
   return streamJsonWork(async () => {
-    const callAText = await callClaude(SYSTEM_PROMPT, buildCallAPrompt(industry, geo, company_slot, company_id), 6000);
+    const callAText = await callClaude(SYSTEM_PROMPT, buildCallAPrompt(industry, geo, company_slot, company_id), 16000);
     const profileData = extractJson(callAText);
     const companyName: string = profileData.companyName ?? company_id;
 
