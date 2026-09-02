@@ -280,7 +280,16 @@ export function QualityConsole({
   const [batchLogs, setBatchLogs] = useState<BatchLogRow[]>([]);
 
   // Panel C state
+  // BATCH-NUMBER LAW (2026-09-02): batch numbers are GLOBALLY STABLE — the
+  // newest batch is always numbered from the total server batch count, so a
+  // new batch takes the next number and old columns never renumber. The
+  // matrix window shows the latest 7 server batches; "Load older" pages
+  // backwards through every batch ever run here. `recentBatches` is stored
+  // newest-first (desc), deduped by id.
   const [recentBatches, setRecentBatches] = useState<BatchRow[]>([]);
+  const [batchTotal, setBatchTotal] = useState(0);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const BATCH_PAGE = 7;
   const [baselines, setBaselines] = useState<Map<string, Baseline>>(new Map());
   const [snapshotting, setSnapshotting] = useState(false);
   // Which batch column the current baseline was pinned from (browser-local).
@@ -512,13 +521,24 @@ export function QualityConsole({
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      const [{ data: rows }, { data: base }] = await Promise.all([
+      const [{ data: rows, count }, { data: base }] = await Promise.all([
         scope(supabase.from("quality_batch_runs")
-          .select("*")).order("started_at", { ascending: false }).limit(10),
+          .select("*", { count: "exact" })).order("started_at", { ascending: false }).limit(BATCH_PAGE),
         supabase.from("quality_batch_baselines").select("*"),
       ]);
       if (cancelled) return;
-      if (rows) setRecentBatches(rows as unknown as BatchRow[]);
+      if (typeof count === "number") setBatchTotal(count);
+      if (rows) {
+        const fresh = rows as unknown as BatchRow[];
+        // Merge the newest window into whatever older pages are loaded —
+        // replace rows we already have, keep the older tail, stay desc.
+        setRecentBatches((prev) => {
+          const freshIds = new Set(fresh.map((b) => b.id));
+          const merged = [...fresh, ...prev.filter((b) => !freshIds.has(b.id))];
+          merged.sort((a, b) => (a.started_at > b.started_at ? -1 : 1));
+          return merged;
+        });
+      }
       if (base) {
         const m = new Map<string, Baseline>();
         for (const b of (base as unknown as Baseline[])) m.set(b.tool, b);
@@ -729,23 +749,65 @@ export function QualityConsole({
   const doneCount = activeToolResults.length;
   const totalCount = activeBatch?.tools.length ?? 0;
 
+  // Page backwards: fetch the next 7 older batches (offset = already loaded).
+  async function loadOlderBatches() {
+    setLoadingOlder(true);
+    try {
+      const { data, count, error } = await scope(supabase
+        .from("quality_batch_runs")
+        .select("*", { count: "exact" }))
+        .order("started_at", { ascending: false })
+        .range(recentBatches.length, recentBatches.length + BATCH_PAGE - 1);
+      if (error) throw error;
+      if (typeof count === "number") setBatchTotal(count);
+      const older = (data ?? []) as unknown as BatchRow[];
+      setRecentBatches((prev) => {
+        const known = new Set(prev.map((b) => b.id));
+        const merged = [...prev, ...older.filter((b) => !known.has(b.id))];
+        merged.sort((a, b) => (a.started_at > b.started_at ? -1 : 1));
+        return merged;
+      });
+    } catch (e: any) {
+      toast.error(`Load older failed: ${e?.message ?? e}`);
+    } finally {
+      setLoadingOlder(false);
+    }
+  }
+
   // ─── Score matrix data ───────────────────────────────────────────────────
   // BATCH LAW — server batches first (oldest → newest), then every in-page
   // local batch as its OWN column appended to the right. A local run is never
   // folded into a pre-existing batch column.
+  // BATCH-NUMBER LAW — `n` is the batch's global sequence number (oldest
+  // server batch = 1). recentBatches is newest-first, so desc index d maps
+  // to n = batchTotal - d. Local in-page batches continue the sequence.
   type MatrixColumn =
-    | { kind: "server"; id: string; started_at: string; batch: BatchRow }
-    | { kind: "local"; id: string; started_at: string; batch: LocalBatch };
+    | { kind: "server"; id: string; started_at: string; n: number; batch: BatchRow }
+    | { kind: "local"; id: string; started_at: string; n: number; batch: LocalBatch };
 
   const matrixColumns = useMemo<MatrixColumn[]>(() => {
     const server: MatrixColumn[] = [...recentBatches]
       .sort((a, b) => (a.started_at < b.started_at ? -1 : 1))
-      .map((b) => ({ kind: "server" as const, id: b.id, started_at: b.started_at, batch: b }));
+      .map((b) => ({
+        kind: "server" as const,
+        id: b.id,
+        started_at: b.started_at,
+        n: batchTotal - recentBatches.findIndex((r) => r.id === b.id),
+        batch: b,
+      }));
     const local: MatrixColumn[] = [...localBatches]
       .sort((a, b) => (a.started_at < b.started_at ? -1 : 1))
-      .map((b) => ({ kind: "local" as const, id: b.id, started_at: b.started_at, batch: b }));
+      .map((b, i) => ({
+        kind: "local" as const,
+        id: b.id,
+        started_at: b.started_at,
+        n: batchTotal + i + 1,
+        batch: b,
+      }));
     return [...server, ...local];
-  }, [recentBatches, localBatches]);
+  }, [recentBatches, localBatches, batchTotal]);
+
+  const hasOlderBatches = recentBatches.length < batchTotal;
 
   function renderLocalCell(key: string, r: LocalToolResult | undefined) {
     if (!r || r.total === 0) {
@@ -1204,13 +1266,25 @@ export function QualityConsole({
   );
 
   // Scores matrix opens scrolled to the newest batches (right-hand edge).
+  // Scrolling BACK (Load older) prepends columns — preserve the viewport's
+  // relative position instead of yanking back to the right edge.
   const scoresScrollRef = useRef<HTMLDivElement>(null);
-  const scoresColCount = matrixColumns.length;
+  const prevNewestColId = useRef<string | null>(null);
+  const prevScrollWidth = useRef(0);
+  const newestColId = matrixColumns.length ? matrixColumns[matrixColumns.length - 1].id : null;
   useEffect(() => {
     const el = scoresScrollRef.current;
     if (!el) return;
-    el.scrollLeft = el.scrollWidth;
-  }, [scoresColCount]);
+    const isNewBatch = newestColId !== prevNewestColId.current;
+    const grew = el.scrollWidth - prevScrollWidth.current;
+    if (isNewBatch || prevNewestColId.current === null) {
+      el.scrollLeft = el.scrollWidth;
+    } else if (grew > 0) {
+      el.scrollLeft += grew;
+    }
+    prevNewestColId.current = newestColId;
+    prevScrollWidth.current = el.scrollWidth;
+  }, [newestColId, matrixColumns.length]);
 
   const renderScoresCard = () => (
 
@@ -1224,20 +1298,27 @@ export function QualityConsole({
       <CardContent>
         {/* Product names stay pinned on the left; batches scroll horizontally,
             opening on the most recent batches. */}
+        {hasOlderBatches && (
+          <div className="mb-2">
+            <Button size="sm" variant="outline" disabled={loadingOlder} onClick={loadOlderBatches}>
+              {loadingOlder ? "Loading…" : `‹ Load older batches (${recentBatches.length} of ${batchTotal} shown)`}
+            </Button>
+          </div>
+        )}
         <div ref={scoresScrollRef} className="overflow-x-auto">
           <table className="w-full min-w-max text-sm">
             <thead>
               <tr className="border-b text-left">
                 <th className="sticky left-0 z-20 bg-background py-2 pr-3">Tool</th>
-                <th className="py-2 pr-3">Tests (last 10)</th>
+                <th className="py-2 pr-3">Tests (window)</th>
                 <th className="py-2 pr-3 bg-muted/40">Baseline</th>
-                {matrixColumns.map((col, i) => (
+                {matrixColumns.map((col) => (
                   <th
                     key={col.id}
                     className="py-2 pr-3 whitespace-nowrap"
                     title={`${col.id} · ${new Date(col.started_at).toLocaleString()}`}
                   >
-                    Batch {i + 1}
+                    Batch {col.n}
                     <div className="text-[10px] font-normal text-muted-foreground">
                       {new Date(col.started_at).toLocaleDateString()}
                       {col.kind === "local" ? " · in-page" : ""}
@@ -1270,7 +1351,7 @@ export function QualityConsole({
                             ? "font-semibold text-foreground no-underline"
                             : "text-brand-teal-text"
                         }`}
-                        onClick={() => void onSetBaselineFromColumn(col, `Batch ${i + 1}`)}
+                        onClick={() => void onSetBaselineFromColumn(col, `Batch ${col.n}`)}
                         title="Pin this batch's scores as the baseline"
                       >{baselineColumnId === col.id ? "★ baseline" : "baseline"}</button>
                     </div>
