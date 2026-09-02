@@ -20,6 +20,7 @@ import { liAssessmentStageBContract } from "../../_shared/intake-contracts/li-as
 import { dpiaFrameworkContract } from "../../_shared/intake-contracts/dpia-framework.ts";
 import { cppaAdmtContract } from "../../_shared/intake-contracts/cppa-admt.ts";
 import { cppaRiskContract } from "../../_shared/intake-contracts/cppa-risk-assessment.ts";
+import { cppaCybersecurityContract } from "../../_shared/intake-contracts/cppa-cybersecurity.ts";
 
 const CONTRACTS: Record<string, IntakeContract> = {
   governance: governanceContract,
@@ -31,11 +32,12 @@ const CONTRACTS: Record<string, IntakeContract> = {
   dpia: dpiaFrameworkContract,
   cppaAdmt: cppaAdmtContract,
   cppaRisk: cppaRiskContract,
+  cppaCyber: cppaCybersecurityContract,
 };
 
 /**
  * Render an "ALLOWED VALUES" block for the given prompt object names.
- * Objects with no contract (usNotice, euNotice, ropa, cppaCyber) are skipped.
+ * Objects with no contract (usNotice, euNotice, ropa) are skipped.
  */
 export function enumAppendix(objectNames: string[]): string {
   const blocks: string[] = [];
