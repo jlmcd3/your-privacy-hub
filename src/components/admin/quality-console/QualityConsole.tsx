@@ -1266,13 +1266,25 @@ export function QualityConsole({
   );
 
   // Scores matrix opens scrolled to the newest batches (right-hand edge).
+  // Scrolling BACK (Load older) prepends columns — preserve the viewport's
+  // relative position instead of yanking back to the right edge.
   const scoresScrollRef = useRef<HTMLDivElement>(null);
-  const scoresColCount = matrixColumns.length;
+  const prevNewestColId = useRef<string | null>(null);
+  const prevScrollWidth = useRef(0);
+  const newestColId = matrixColumns.length ? matrixColumns[matrixColumns.length - 1].id : null;
   useEffect(() => {
     const el = scoresScrollRef.current;
     if (!el) return;
-    el.scrollLeft = el.scrollWidth;
-  }, [scoresColCount]);
+    const isNewBatch = newestColId !== prevNewestColId.current;
+    const grew = el.scrollWidth - prevScrollWidth.current;
+    if (isNewBatch || prevNewestColId.current === null) {
+      el.scrollLeft = el.scrollWidth;
+    } else if (grew > 0) {
+      el.scrollLeft += grew;
+    }
+    prevNewestColId.current = newestColId;
+    prevScrollWidth.current = el.scrollWidth;
+  }, [newestColId, matrixColumns.length]);
 
   const renderScoresCard = () => (
 
