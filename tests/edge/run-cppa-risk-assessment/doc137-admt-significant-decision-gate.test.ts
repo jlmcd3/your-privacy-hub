@@ -142,3 +142,49 @@ Deno.test("S1: (b)(3) fires when the description clearly establishes a significa
   );
   assert(r.provenance.s1_triggers.includes(3));
 });
+
+// ── DOC 138 (2026-09-02) — negation-aware category matching ────────────────
+//
+// A fresh grading run found the classifier still firing "significant" for a
+// PURE ADVERTISING description because the bare `/\bhousing\b/i` category
+// keyword matched the word "housing" INSIDE the description's own explicit
+// exclusion clause ("No financial-eligibility, employment, or housing
+// decisions"), short-circuiting before the advertising-only check ever ran.
+// Fixed by scoping category matches to their own sentence and discarding a
+// match that sits inside that sentence's negation/exclusion clause. See
+// admt-significant-decision.ts's DOC 138 comment for the full writeup.
+
+Deno.test("DOC 138: pure-advertising description with an explicit exclusion clause naming 'housing' is advertising_only, not significant", () => {
+  const description =
+    "Audience-scoring models segment consumers into interest cohorts and predicted-purchase-intent bands. " +
+    "Outputs drive bid eligibility and frequency caps. " +
+    "No financial-eligibility, employment, or housing decisions.";
+  assertEquals(classifyAdmtSignificantDecision(description), "advertising_only");
+});
+
+Deno.test("DOC 138: a genuine housing-decision description still classifies as significant (negation-awareness must not over-suppress real matches)", () => {
+  assertEquals(
+    classifyAdmtSignificantDecision(
+      "The system scores rental applications to approve or deny housing.",
+    ),
+    "significant",
+  );
+});
+
+Deno.test("DOC 138: a genuine employment-decision description is not suppressed by an unrelated 'no housing' disclaimer elsewhere in the text", () => {
+  const description =
+    "The system automatically decides employee promotion and termination based on performance scores. " +
+    "No housing decisions are made by this system.";
+  assertEquals(classifyAdmtSignificantDecision(description), "significant");
+});
+
+Deno.test("DOC 138: end-to-end — the pure-advertising fixture does not fire § 7150(b)(3) through computeIntakeSelectedSubsections", () => {
+  const out = computeIntakeSelectedSubsections({
+    q18_admt_use: "Yes",
+    q19_admt_description:
+      "Audience-scoring models segment consumers into interest cohorts and predicted-purchase-intent bands. " +
+      "Outputs drive bid eligibility and frequency caps. " +
+      "No financial-eligibility, employment, or housing decisions.",
+  });
+  assertFalse(out.includes("§ 7150(b)(3)"));
+});

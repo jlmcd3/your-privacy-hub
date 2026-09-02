@@ -82,6 +82,105 @@ Deno.test("DOC 137 — the Duty-status table gets an ICO fee row with tier amoun
   assertStringIncludes(icoRow[3], "£3,763.00");
 });
 
+// DOC 138 (2026-09-02) — "The the [Name]…" double-article typo, pattern-wide.
+//
+// Root cause: icoFeeDutyName() (and two other attached_names pushers — the
+// Art. 27 representative designation, the DPO designation) return a string
+// that already OPENS with a lowercase "the". composeExecPosture's summary
+// sentence used to prepend its own hardcoded "The "/"the " in front of
+// `asProse(counts.attached_names)` regardless of what the joined string
+// already started with, doubling the article whenever a self-prefixed name
+// was first in the (possibly multi-item) list. Fixed via the `leadNames`
+// helper, which inspects the JOINED string once and reuses its own leading
+// "the" instead of stacking a second one.
+Deno.test("DOC 138 — ICO fee as the SOLE attached duty does not double the article", () => {
+  const intake: Bag = { organization_name: "Northbridge Analytics Ltd", organization_country: "UK" };
+  const doc = assembleRegistrationSkeletonDocument(ukIcoFeeOnlyReport(), intake);
+  const text = JSON.stringify(doc.document);
+  assertEquals(/the the/i.test(text), false, "must never render a doubled article");
+  assertStringIncludes(
+    text,
+    "The United Kingdom ICO annual data-protection fee (£3,763.00) duty is not yet satisfied",
+  );
+});
+
+Deno.test("DOC 138 — ICO fee combined with another attached duty joins correctly, no double article", () => {
+  const deliverables: Bag = {
+    determinations: [],
+    representative_determinations: [],
+    dpo_determination: { verdict: "engaged" },
+    filing_readiness: [],
+  };
+  const report: Bag = {
+    registration_deliverables: deliverables,
+    ...deliverables,
+    obligations_summary: {},
+    jurisdictions: [
+      {
+        code: "UK",
+        name: "United Kingdom",
+        obligations: ["ico_fee"],
+        filing_fee_cents: 376_300,
+        notes: "ICO Data-Protection Fee resolved to Tier 3 (£3,763.00).",
+      },
+    ],
+  };
+  const intake: Bag = { organization_name: "Northbridge Analytics Ltd", organization_country: "UK" };
+  const doc = assembleRegistrationSkeletonDocument(report, intake);
+  const text = JSON.stringify(doc.document);
+  assertEquals(/the the/i.test(text), false, "must never render a doubled article across a joined list either");
+  assertStringIncludes(
+    text,
+    "None of the designation of a data protection officer and the United Kingdom ICO annual data-protection fee (£3,763.00) duties is yet satisfied",
+  );
+});
+
+Deno.test("DOC 138 — a non-ICO self-prefixed duty (DPO designation) as the sole attached item also avoids the double article", () => {
+  const deliverables: Bag = {
+    determinations: [],
+    representative_determinations: [],
+    dpo_determination: { verdict: "engaged" },
+    filing_readiness: [],
+  };
+  const report: Bag = {
+    registration_deliverables: deliverables,
+    ...deliverables,
+    obligations_summary: {},
+    jurisdictions: [],
+  };
+  const intake: Bag = { organization_name: "Northbridge Analytics Ltd", organization_country: "DE" };
+  const doc = assembleRegistrationSkeletonDocument(report, intake);
+  const text = JSON.stringify(doc.document);
+  assertEquals(/the the/i.test(text), false, "must never render a doubled article for the DPO-only case either");
+  assertStringIncludes(
+    text,
+    "The designation of a data protection officer duty is not yet satisfied",
+  );
+});
+
+Deno.test("DOC 138 — a normal (non-\"the\"-prefixed) duty name is unaffected and still gets a capitalized \"The \"", () => {
+  const deliverables: Bag = {
+    determinations: [{ verdict: "registrable", jurisdiction: "US-CA", state_name: "California" }],
+    representative_determinations: [],
+    dpo_determination: { verdict: "not_engaged" },
+    filing_readiness: [],
+  };
+  const report: Bag = {
+    registration_deliverables: deliverables,
+    ...deliverables,
+    obligations_summary: {},
+    jurisdictions: [],
+  };
+  const intake: Bag = { organization_name: "Northbridge Analytics Ltd", organization_country: "US" };
+  const doc = assembleRegistrationSkeletonDocument(report, intake);
+  const text = JSON.stringify(doc.document);
+  assertEquals(/the the/i.test(text), false);
+  assertStringIncludes(
+    text,
+    "The data-broker registration in California duty is not yet satisfied",
+  );
+});
+
 Deno.test("DOC 137 — no ico_fee tag means no ICO row and no change to the existing three surfaces", () => {
   const deliverables: Bag = {
     determinations: [{ verdict: "registrable", jurisdiction: "US-CA", state_name: "California" }],

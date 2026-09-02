@@ -552,6 +552,39 @@ function composeConditional(fixedOpening: string, body: string): string {
   return `${stop(fixedOpening)} ${stop(body)}`.trim();
 }
 
+// DOC 138 (2026-09-02) — the public-authority "Determination Pending"
+// sentence (build.ts's rawWhy for `public_authority_exclusion.determination
+// === "undetermined_on_the_record"`) told the reader the lawful-basis
+// decision was pending but never said what would resolve it, even though the
+// exact, already-ratified ask has existed on the typed finding since DOC 129
+// LIA-C (2026-09-01): `public_authority_exclusion.information_needed`
+// (build.ts ~line 419). The `information_needed` spine section
+// (lia.spine.ts, id "information_needed") is declared but has no composer
+// wired to it anywhere in this file, so that ask never reached a customer —
+// confirmed dead section, not merely an unconsumed field. Rather than stand
+// up a whole new section (bigger blast radius for one sentence), this
+// appends the SAME ratified text to the existing findings:1 paragraph, right
+// after the pending sentence it explains.
+//
+// SCOPE GUARD: gated on the identical condition build.ts uses to produce the
+// generic pending sentence in the first place
+// (`public_authority_exclusion.determination === "undetermined_on_the_record"`).
+// It renders nothing when the exclusion is resolved either way (exclusion
+// applies / does not apply), and it only reads an already-computed field —
+// it does not call, re-derive, or influence the exclusion determination
+// itself. The only edit here is a stripped internal field-path prefix
+// ("purpose_details.controller_is_public_authority — ") and a customer-facing
+// lead-in; the substantive ask is verbatim from build.ts.
+function publicAuthorityInformationNeededSentence(report: Bag): string {
+  const pa = bag(report.public_authority_exclusion);
+  if (s(pa.determination) !== "undetermined_on_the_record") return "";
+  const raw = s(pa.information_needed);
+  if (!raw) return "";
+  const ask = raw.includes(" — ") ? raw.split(" — ").slice(1).join(" — ").trim() : raw;
+  if (!ask) return "";
+  return `The information needed to resolve that threshold issue is ${ask}`;
+}
+
 function composeToaLedger(report: Bag): string[] {
   // ITEM SO-11 CITATION LAW: the ledger carries ONLY authorities whose pinpoint
   // is corpus-verified (`pin_verified` with a `corpus_key`), plus the skeleton's
@@ -851,8 +884,15 @@ export function assembleLiaSkeletonDocument(
     ].map((p) => fromTyped(p)).filter(Boolean).join("\n\n"),
 
     "findings:0": findingsLead,
+    // DOC 138 (2026-09-02) — publicAuthorityInformationNeededSentence adds the
+    // concrete "what to confirm next" ask right after the pending sentence it
+    // explains, and only when the public-authority exclusion is itself
+    // unresolved (see the function's header). No-op (empty string, filtered
+    // by fromTyped) in every other outcome, including the general
+    // multi-factor "open" case and the resolved-either-way cases.
     "findings:1": fromTyped(
       s(bag(report.lia_determination).why),
+      publicAuthorityInformationNeededSentence(report),
       ...strList(report.documentation_recommendations).slice(0, 4),
     ),
     "findings:2": isYes(attestation.dpo_reviewed) || s(attestation.dpo_reviewer)

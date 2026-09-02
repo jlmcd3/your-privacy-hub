@@ -46,14 +46,54 @@ const REJECT_TERMS: ReadonlyArray<{ id: string; re: RegExp }> = [
 // few legitimate exceptions observed in shipping documents.
 const CAMEL_RE = /\b[a-z]+(?:[A-Z][a-z0-9]+)+\b/g;
 const SNAKE_RE = /\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b/g;
+// DOC 138 (2026-09-02) — "ePrivacy" (the EU's ePrivacy Directive) is a real,
+// standard legal term of art, structurally identical to the already-
+// whitelisted "eDiscovery"/"eIDAS" entries. It is a false positive against
+// genuinely correct product text, not a leaking internal field name. Exact
+// string, case-sensitive, matching the literal token CAMEL_RE extracts.
 const TOKEN_WHITELIST = new Set([
   "eCommerce", "iPhone", "iPad", "iOS", "macOS", "JavaScript", "eDiscovery",
-  "openId", "eIDAS",
+  "openId", "eIDAS", "ePrivacy",
 ]);
 
+// DOC 138 (2026-09-02) — the raw 80-char character-count window had no
+// word-boundary awareness: a slice boundary landing mid-word (e.g. inside
+// "information") produced a mangled excerpt ("formation on a user's device
+// requires...") that looks like a genuine text-corruption bug in the
+// PRODUCT, even when the actual rendered document is spelled correctly
+// throughout. Snap start/end outward to the nearest whitespace (or string
+// boundary) so the excerpt never starts or ends mid-word. The extension is
+// capped at EXCERPT_BOUNDARY_CAP extra characters per side so a single long
+// word-free run (e.g. a URL) can't blow up the excerpt length; if no
+// boundary is found within the cap, fall back to the raw slice point.
+const EXCERPT_BOUNDARY_CAP = 20;
+
+function snapStartToWordBoundary(text: string, rawStart: number): number {
+  if (rawStart <= 0) return 0;
+  if (/\s/.test(text[rawStart - 1] ?? "")) return rawStart;
+  const floor = Math.max(0, rawStart - EXCERPT_BOUNDARY_CAP);
+  for (let i = rawStart; i > floor; i--) {
+    if (/\s/.test(text[i - 1] ?? "")) return i;
+  }
+  return floor === 0 ? 0 : rawStart;
+}
+
+function snapEndToWordBoundary(text: string, rawEnd: number): number {
+  if (rawEnd >= text.length) return text.length;
+  if (/\s/.test(text[rawEnd] ?? "")) return rawEnd;
+  const ceil = Math.min(text.length, rawEnd + EXCERPT_BOUNDARY_CAP);
+  for (let i = rawEnd; i < ceil; i++) {
+    if (/\s/.test(text[i] ?? "")) return i;
+  }
+  return ceil === text.length ? text.length : rawEnd;
+}
+
 function excerptAround(text: string, index: number, len: number): string {
-  const start = Math.max(0, index - 80);
-  return text.slice(start, index + len + 80).replace(/\s+/g, " ").trim();
+  const rawStart = Math.max(0, index - 80);
+  const rawEnd = Math.min(text.length, index + len + 80);
+  const start = snapStartToWordBoundary(text, rawStart);
+  const end = snapEndToWordBoundary(text, rawEnd);
+  return text.slice(start, end).replace(/\s+/g, " ").trim();
 }
 
 /**

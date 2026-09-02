@@ -1051,6 +1051,13 @@ export function buildTransferAnalysis(intake: unknown): TransferAnalysis {
     );
   }
 
+  // DOC 138 (2026-09-02) — moved up from just below the verdict/degradation
+  // block (where it fed only the `parts` narrative, see the push below) so
+  // the "executed instrument" remediation branch can name the SAME recorded
+  // tools rather than leaving them unnamed. Computed once, used twice.
+  const recordedTools = (Array.isArray(get(intake, "tools")) ? get(intake, "tools") as unknown[] : [])
+    .map((t) => str(t)).filter(Boolean);
+
   // ── mechanism / regime coherence ───────────────────────────────────
   let mechanism_regime_mismatch = false;
   if (f.regime !== "not_engaged" && f.mechanism && f.mechanismRegime !== "unrecorded") {
@@ -1096,8 +1103,17 @@ export function buildTransferAnalysis(intake: unknown): TransferAnalysis {
       "Confirmation of which chapter each transfer leg runs under, and the mechanism actually executed for that leg — the recorded mechanism and the recorded jurisdictions belong to different chapters.";
   } else {
     verdict = "partially_satisfied";
-    information_needed =
-      "The executed instrument for each transfer leg — for a UK leg, the IDTA or the Addendum as executed and the exporter's own Article 46(6) assessment; for an EU leg, the Commission clause set and its transfer impact assessment. The record names the mechanism type but not the executed document, so the leg cannot be closed as satisfied.";
+    // DOC 138 (2026-09-02, confirmed live bug) — Remediation Item 1 told the
+    // reader to "supply the executed instrument for each transfer leg"
+    // without naming a single leg, even though the SAME record's Section 4
+    // narrative (the recordedTools sentence just below) already names the
+    // specific transfer-implicated tools by name. Reader had to hunt the
+    // rest of the document to learn what "each transfer leg" even refers
+    // to. Named only when the record actually has tools to name — an
+    // unnamed-tools record keeps the prior generic phrasing unchanged.
+    information_needed = recordedTools.length
+      ? `The executed instrument for each transfer leg — ${recordedTools.join(", ")} — for a UK leg, the IDTA or the Addendum as executed and the exporter's own Article 46(6) assessment; for an EU leg, the Commission clause set and its transfer impact assessment. The record names the mechanism type but not the executed document, so the leg cannot be closed as satisfied.`
+      : "The executed instrument for each transfer leg — for a UK leg, the IDTA or the Addendum as executed and the exporter's own Article 46(6) assessment; for an EU leg, the Commission clause set and its transfer impact assessment. The record names the mechanism type but not the executed document, so the leg cannot be closed as satisfied.";
   }
 
   // D1D2B3B8-G3 (2026-08-28) — where a transfer is occurring and the leg is
@@ -1107,8 +1123,6 @@ export function buildTransferAnalysis(intake: unknown): TransferAnalysis {
   // without executed mechanisms). The answers record the transfer position
   // at organisation level, not per tool, and the sentence says so rather
   // than guessing which legs are covered.
-  const recordedTools = (Array.isArray(get(intake, "tools")) ? get(intake, "tools") as unknown[] : [])
-    .map((t) => str(t)).filter(Boolean);
   if (f.occurring === true && (verdict as Verdict) !== "satisfied" && recordedTools.length) {
     parts.push(
       `The tools the company has recorded in use are ${recordedTools.join(", ")}. The record states the transfer position at organisation level, not per tool, so each of those tools' transfer legs stands or falls with the mechanism position assessed above; a leg without an executed mechanism has no lawful route under the chapter identified for it.`,

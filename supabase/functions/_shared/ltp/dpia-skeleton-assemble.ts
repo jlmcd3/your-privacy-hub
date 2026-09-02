@@ -1853,8 +1853,26 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
   // and the rendered table can never disagree.
   const outstandingRows = asArray(report.gap_ledger)
     .filter((g) => s(g.dimensions) && s(g.field)).length;
+  // DOC 138 FIX 2 (2026-09-02) — the six-item gap table ("Matters
+  // outstanding on the record") names what each open item needs and which
+  // provision it bears on, but assigns no responsible owner or target date
+  // to any row. DPIA has no owner/date field anywhere in
+  // DpiaGapLedgerEntry (dpia-deliverables/types.ts) to draw one from, so —
+  // matching the no-fabrication design law and the same true-absence
+  // pattern already fixed today for the cross-border-transfer item
+  // (dpia-skeleton-assemble.ts ~line 1628: "The Company will need to
+  // designate an owner for resolving this open item before the transfer
+  // proceeds.") — this appends ONE blanket designation-call sentence to the
+  // section lead, scoped to the whole table rather than per row (a per-cell
+  // sentence would be awkward inside a table, and a single summary sentence
+  // is this fleet's established pattern for this class of gap). It fires
+  // only when the table actually renders at least one row (NO-PADDING LAW,
+  // same `outstandingRows > 0` condition gapLedgerTable's own row filter
+  // uses, so the lead and the table can never disagree), and never
+  // fabricates a name, role, or date — only the explicit call to designate
+  // one.
   (values as Bag).OUTSTANDING_MATTERS = outstandingRows > 0
-    ? "Matters still outstanding are listed below. Each is a point this assessment could not determine from the company's answers, and each names what would resolve it."
+    ? "Matters still outstanding are listed below. Each is a point this assessment could not determine from the company's answers, and each names what would resolve it. The Company will need to designate a responsible owner and target date for resolving each of the items below."
     : "Outstanding Matters. None identified.";
 
   // PROMPT 8 — typed surfaces rendered as tables. NO-PADDING LAW: a surface

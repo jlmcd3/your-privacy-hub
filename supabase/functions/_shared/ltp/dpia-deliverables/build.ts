@@ -3221,7 +3221,31 @@ export function buildSection2Coverage(
   // ── TIER 3b — Art. 5 principles (single coverage row, never a table) ─
   // PROMPT 10B(2): source PRESENT → analysed + credit-first residual (no ask,
   // no ledger entry); source ABSENT → the 8C ask, ledgered as before.
-  const aPurpose = anchorStrict("purpose_limitation", regime, "Art. 5(1)");
+  //
+  // DOC 138 FIX 1 (2026-09-02) — this row's finding is a GENERAL, all-six-
+  // sub-principles statement ("no principle-by-principle finding"), and its
+  // "what's needed" ask (ASK_ART5_TABLE) lists all six Art. 5(1) principles.
+  // It was previously cited via anchorStrict("purpose_limitation", ...),
+  // which resolves against the registry's `principle_purpose_limitation`
+  // row — correctly pinned to the NARROW Art. 5(1)(b) purpose-limitation
+  // sub-principle for a genuinely purpose-limitation-specific finding, but
+  // wrong here. `aPurpose` was not reused anywhere else in this file (i.e.
+  // no other row depends on the narrow anchor), so there was nothing to
+  // preserve — the fix is to stop borrowing a mis-scoped anchor rather than
+  // to redefine what it resolves to.
+  //
+  // No registry entry exists for the general Art. 5(1)-(2) provision (only
+  // the individual lettered sub-principles are anchored), so — mirroring the
+  // sibling "all rights together" row immediately below (measures_rights,
+  // which cites `cit(regime, "Arts. 12–22")` directly with no verbatim quote
+  // rather than borrowing a single right's anchor) — this row now cites the
+  // general provision directly via the same `cit()` fallback helper, with no
+  // authority_verbatim claimed (no single sub-clause is being quoted for a
+  // whole-activity finding). This also matches the citation already used for
+  // the same underlying fact in Appendix A ("Article 5 principles /
+  // accountability measures" → "GDPR Art. 5(1)–(2); Arts. 24, 35(7)(d)",
+  // dpia-skeleton-assemble.ts ~line 1569).
+  const art5GeneralCitation = cit(regime, "Art. 5(1)–(2)");
   const measures_article5: DpiaCoverageRow[] = [
     minJust
       ? {
@@ -3229,8 +3253,8 @@ export function buildSection2Coverage(
         record_words: spliceVerbatim(minJust),
         finding:
           "On the record supplied, the measures bearing on the Art. 5 principles are described at the level of the activity as a whole, in the company's own words, and not principle by principle.",
-        citation: aPurpose.citation,
-        authority_verbatim: aPurpose.verbatim,
+        citation: art5GeneralCitation,
+        authority_verbatim: "",
         status: "analysed" as const,
         residual_note: RESIDUAL_ART5_TABLE,
         source_field: "data_minimisation_justification",
@@ -3240,8 +3264,8 @@ export function buildSection2Coverage(
         record_words: "",
         finding:
           "The record describes no measure against the Art. 5 principles, so this assessment records coverage at the level of the activity as a whole and makes no principle-by-principle finding.",
-        citation: aPurpose.citation,
-        authority_verbatim: aPurpose.verbatim,
+        citation: art5GeneralCitation,
+        authority_verbatim: "",
         status: "record_insufficient" as const,
         information_needed: ASK_ART5_TABLE,
         ask_class: "ask_art5_table",

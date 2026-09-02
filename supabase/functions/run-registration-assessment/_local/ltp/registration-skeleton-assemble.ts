@@ -85,6 +85,32 @@ function asProse(items: readonly string[]): string {
   return `${xs.slice(0, -1).join(", ")}, and ${xs[xs.length - 1]}`;
 }
 
+// DOC 138 (2026-09-02) — three of the `attached_names` pushers embed their
+// OWN leading "the" in the name string itself (icoFeeDutyName: "the United
+// Kingdom ICO annual data-protection fee (…)"; the Art. 27 representative
+// designation pusher: "the ${jurisdiction} representative designation"; the
+// DPO pusher: "the designation of a data protection officer"). Every
+// sentence template that names the sole/first attached duty by prepending a
+// hardcoded article ("The "/"the ") to `asProse(attached_names)` doubles that
+// article whenever the FIRST name in the (possibly multi-item) joined list is
+// one of these self-prefixed strings — asProse only joins the names with
+// commas/"and", it never inspects or rewrites their text, so the doubling
+// shows up both when the self-prefixed name is the SOLE attached duty ("The
+// the United Kingdom ICO annual data-protection fee (£3,763.00) duty…") and
+// when it is merely the FIRST of several ("None of the the Germany
+// representative designation and the designation of a data protection
+// officer duties…"). Fix at the template level: inspect the START of the
+// JOINED string (not each individual name) for an existing leading "the ",
+// and reuse that word — recased to whatever the template needs — instead of
+// prepending a second one.
+function leadNames(names: readonly string[], capitalizeArticle: boolean): string {
+  const joined = asProse(names);
+  if (/^the\s+/i.test(joined)) {
+    return capitalizeArticle ? joined.charAt(0).toUpperCase() + joined.slice(1) : joined;
+  }
+  return capitalizeArticle ? `The ${joined}` : `the ${joined}`;
+}
+
 const noStop = (t: string): string => t.replace(/\s*\.\s*$/, "");
 const stop = (t: string): string => (t ? (/[.!?]$/.test(t) ? t : `${t}.`) : "");
 // PANEL QUOTE-HYGIENE (2026-08-30) — statutory verbatim quotes often end with
@@ -759,8 +785,19 @@ function composeExecPosture(report: Bag, counts: RegistrationDutyCounts, org: st
     parts.push(
       stop(
         counts.attached === 1
-          ? `The ${asProse(counts.attached_names)} duty is not yet satisfied on the content the company has recorded, and it is set out below with what closes it`
-          : `None of the ${asProse(counts.attached_names)} duties is yet satisfied on the content the company has recorded, and each is set out below with what closes it`,
+          // DOC 138 (2026-09-02) — was a hardcoded "The ${asProse(...)}",
+          // which doubled the article when the sole attached name already
+          // opened with its own "the" (icoFeeDutyName, the Art. 27
+          // representative designation, the DPO designation). leadNames
+          // inspects the joined string once and reuses its own "the" instead
+          // of stacking a second one.
+          ? `${leadNames(counts.attached_names, true)} duty is not yet satisfied on the content the company has recorded, and it is set out below with what closes it`
+          // Same doubling risk applies positionally here: asProse can put a
+          // self-prefixed name FIRST in a multi-item list ("the Germany
+          // representative designation and the designation of a data
+          // protection officer"), and the old "None of the ${asProse(...)}"
+          // template would have stacked a second "the" in front of it.
+          : `None of ${leadNames(counts.attached_names, false)} duties is yet satisfied on the content the company has recorded, and each is set out below with what closes it`,
       ),
     );
   }
