@@ -571,6 +571,52 @@ export function QualityConsole({
     return () => { cancelled = true; clearInterval(t); };
   }, []);
 
+  // ─── SERVER-BATCH LAW: stress batches launched from this page ────────────
+  useEffect(() => {
+    if (!showStressBatches) return;
+    let cancelled = false;
+    const load = async () => {
+      const { data: rows, count } = await supabase
+        .from("static_stress_batches")
+        .select("id, created_at, started_at", { count: "exact" })
+        .order("created_at", { ascending: false })
+        .range(0, Math.max(BATCH_PAGE, stressLoaded) - 1);
+      if (cancelled) return;
+      if (typeof count === "number") setStressTotal(count);
+      const batches = (rows ?? []) as { id: string; created_at: string; started_at: string | null }[];
+      if (batches.length === 0) { setStressBatches([]); return; }
+      const { data: jobs } = await supabase
+        .from("static_stress_jobs")
+        .select("batch_id, tool_slug, status")
+        .in("batch_id", batches.map((b) => b.id))
+        .limit(5000);
+      if (cancelled) return;
+      const byBatch = new Map<string, Record<string, LocalToolResult>>();
+      for (const b of batches) byBatch.set(b.id, {});
+      for (const j of ((jobs ?? []) as { batch_id: string; tool_slug: string; status: string }[])) {
+        const tools = byBatch.get(j.batch_id);
+        if (!tools) continue;
+        const r = tools[j.tool_slug] ?? { total: 0, complete: 0, failed: 0, scored: 0, claudeSum: 0, gptSum: 0 };
+        const failed = j.status === "failed" || j.status === "error";
+        tools[j.tool_slug] = {
+          ...r,
+          total: r.total + 1,
+          complete: r.complete + (j.status === "complete" ? 1 : 0),
+          failed: r.failed + (failed ? 1 : 0),
+        };
+      }
+      setStressBatches(batches.map((b) => ({
+        id: b.id,
+        started_at: b.started_at ?? b.created_at,
+        tools: byBatch.get(b.id) ?? {},
+      })));
+    };
+    load();
+    const t = setInterval(load, 15_000);
+    return () => { cancelled = true; clearInterval(t); };
+  }, [showStressBatches, stressLoaded]);
+
+
   // ─── ALL-PRODUCTS-TEST: import history for non-batch products ────────────
   // These products (RoPA, US/EU Notice) are exercised by the static-stress
   // harness, so their test history lives in static_stress_jobs, not in
