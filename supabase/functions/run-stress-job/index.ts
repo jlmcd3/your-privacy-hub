@@ -499,8 +499,20 @@ async function finaliseBatch(admin: Admin, batchId: string) {
   // Check first — multiple workers may reach here simultaneously when the
   // last few jobs complete. The update is idempotent but we log it cleanly.
   const { data: batch } = await admin.from("static_stress_batches")
-    .select("status").eq("id", batchId).single();
+    .select("status, setup_done, setup_total").eq("id", batchId).single();
   if (batch?.status === "complete") return; // already finalised by another worker
+
+  // SETUP-GATE LAW (2026-09-02) — never publish a terminal status while setup
+  // is still inserting companies. Callers each check this, but a stale worker
+  // or a future call site must not be able to bypass it: a premature
+  // "complete" detaches the panel monitor and the rest of the batch runs
+  // ungraded.
+  const setupDone = batch?.setup_done ?? 0;
+  const setupTotal = batch?.setup_total ?? 0;
+  if (!(setupTotal > 0 && setupDone >= setupTotal)) {
+    console.log(`[run-stress-job] finalise blocked — setup ${setupDone}/${setupTotal} for batch ${batchId}`);
+    return;
+  }
   await admin.from("static_stress_batches").update({
     status: "complete",
     completed_at: new Date().toISOString(),

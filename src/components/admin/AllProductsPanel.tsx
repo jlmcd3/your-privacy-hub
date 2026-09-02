@@ -299,7 +299,13 @@ export function AllProductsPanel() {
             appendAllProductsLog("batch", `… ${summary}`);
             lastSummary = summary;
           }
-          if (["complete", "completed", "failed", "cancelled"].includes(batch.status)) {
+          // SETUP-GATE LAW (2026-09-02) — see the launching monitor below.
+          const setupFinished =
+            (batch.setup_total ?? 0) > 0 && (batch.setup_done ?? 0) >= batch.setup_total;
+          if (
+            batch.status === "cancelled" ||
+            (setupFinished && ["complete", "completed", "failed"].includes(batch.status))
+          ) {
             // COMPLETION LAW — "batch complete" is only printed once every
             // grading call started by this monitor has settled.
             if (gradingWork.length) {
@@ -520,7 +526,16 @@ export function AllProductsPanel() {
           );
           seen.set("__progress__", progressSummary);
         }
-        if (["complete", "completed", "failed", "cancelled"].includes(batch.status)) {
+        // SETUP-GATE LAW (2026-09-02) — a "complete" status published while
+        // setup is still inserting companies is premature (a worker drained
+        // the first company's jobs during the fixture lull). Only "cancelled"
+        // is terminal before setup finishes; otherwise keep monitoring.
+        const setupFinished =
+          (batch.setup_total ?? 0) > 0 && (batch.setup_done ?? 0) >= batch.setup_total;
+        if (
+          batch.status === "cancelled" ||
+          (setupFinished && ["complete", "completed", "failed"].includes(batch.status))
+        ) {
           if (gradingWork.length) {
             appendAllProductsLog("batch", `… waiting for ${gradingWork.length} grading call(s) to finish`);
             await Promise.allSettled(gradingWork);
