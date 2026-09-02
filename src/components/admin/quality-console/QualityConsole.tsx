@@ -250,6 +250,8 @@ export function QualityConsole({
   extraHistoryTools,
   showLocalRunLog = false,
   renderLocalBatchActions,
+  showStressBatches = false,
+
 
 }: QualityConsoleProps = {}) {
   // SO-FINAL-TEST — this console's tool universe and its row partition.
