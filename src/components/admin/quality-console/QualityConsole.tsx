@@ -85,6 +85,12 @@ export interface QualityConsoleProps {
    * each LOCAL (in-page) batch column header, mirroring the server columns.
    */
   renderLocalBatchActions?: (batchId: string) => ReactNode;
+  /**
+   * ALL-PRODUCTS-TEST — add server-side stress batches (static_stress_batches)
+   * as matrix columns, so batches run from this page appear in every browser.
+   */
+  showStressBatches?: boolean;
+
 }
 
 // Must stay identical to RUN_QUALITY_BATCH_SLUGS in the orchestrator.
@@ -244,6 +250,8 @@ export function QualityConsole({
   extraHistoryTools,
   showLocalRunLog = false,
   renderLocalBatchActions,
+  showStressBatches = false,
+
 
 }: QualityConsoleProps = {}) {
   // SO-FINAL-TEST — this console's tool universe and its row partition.
@@ -280,7 +288,16 @@ export function QualityConsole({
   const [batchLogs, setBatchLogs] = useState<BatchLogRow[]>([]);
 
   // Panel C state
+  // BATCH-NUMBER LAW (2026-09-02): batch numbers are GLOBALLY STABLE — the
+  // newest batch is always numbered from the total server batch count, so a
+  // new batch takes the next number and old columns never renumber. The
+  // matrix window shows the latest 7 server batches; "Load older" pages
+  // backwards through every batch ever run here. `recentBatches` is stored
+  // newest-first (desc), deduped by id.
   const [recentBatches, setRecentBatches] = useState<BatchRow[]>([]);
+  const [batchTotal, setBatchTotal] = useState(0);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const BATCH_PAGE = 7;
   const [baselines, setBaselines] = useState<Map<string, Baseline>>(new Map());
   const [snapshotting, setSnapshotting] = useState(false);
   // Which batch column the current baseline was pinned from (browser-local).
@@ -290,6 +307,19 @@ export function QualityConsole({
   // ALL-PRODUCTS-TEST — imported history for products with no quality batch.
   type StressHistory = { total: number; complete: number; failed: number; lastAt: string | null };
   const [stressHistory, setStressHistory] = useState<Map<string, StressHistory>>(new Map());
+  // SERVER-BATCH LAW (2026-09-02): every batch launched from this page writes a
+  // static_stress_batches row. Those batches are read FROM THE SERVER, so the
+  // matrix shows them in any browser and after localStorage is cleared —
+  // in-page scores, when present, are overlaid on top of the server counts.
+  type StressBatchCol = {
+    id: string;
+    started_at: string;
+    tools: Record<string, LocalToolResult>;
+  };
+  const [stressBatches, setStressBatches] = useState<StressBatchCol[]>([]);
+  const [stressTotal, setStressTotal] = useState(0);
+  const [stressLoaded, setStressLoaded] = useState(7);
+
   // ALL-PRODUCTS-TEST — in-page run log published by AllProductsPanel.
   const localLog = useAllProductsLog();
   // ALL-PRODUCTS-TEST — pass/fail tally for pre-set-package runs executed
@@ -512,13 +542,24 @@ export function QualityConsole({
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      const [{ data: rows }, { data: base }] = await Promise.all([
+      const [{ data: rows, count }, { data: base }] = await Promise.all([
         scope(supabase.from("quality_batch_runs")
-          .select("*")).order("started_at", { ascending: false }).limit(10),
+          .select("*", { count: "exact" })).order("started_at", { ascending: false }).limit(BATCH_PAGE),
         supabase.from("quality_batch_baselines").select("*"),
       ]);
       if (cancelled) return;
-      if (rows) setRecentBatches(rows as unknown as BatchRow[]);
+      if (typeof count === "number") setBatchTotal(count);
+      if (rows) {
+        const fresh = rows as unknown as BatchRow[];
+        // Merge the newest window into whatever older pages are loaded —
+        // replace rows we already have, keep the older tail, stay desc.
+        setRecentBatches((prev) => {
+          const freshIds = new Set(fresh.map((b) => b.id));
+          const merged = [...fresh, ...prev.filter((b) => !freshIds.has(b.id))];
+          merged.sort((a, b) => (a.started_at > b.started_at ? -1 : 1));
+          return merged;
+        });
+      }
       if (base) {
         const m = new Map<string, Baseline>();
         for (const b of (base as unknown as Baseline[])) m.set(b.tool, b);
@@ -529,6 +570,52 @@ export function QualityConsole({
     const t = setInterval(load, 15_000);
     return () => { cancelled = true; clearInterval(t); };
   }, []);
+
+  // ─── SERVER-BATCH LAW: stress batches launched from this page ────────────
+  useEffect(() => {
+    if (!showStressBatches) return;
+    let cancelled = false;
+    const load = async () => {
+      const { data: rows, count } = await supabase
+        .from("static_stress_batches")
+        .select("id, created_at, started_at", { count: "exact" })
+        .order("created_at", { ascending: false })
+        .range(0, Math.max(BATCH_PAGE, stressLoaded) - 1);
+      if (cancelled) return;
+      if (typeof count === "number") setStressTotal(count);
+      const batches = (rows ?? []) as { id: string; created_at: string; started_at: string | null }[];
+      if (batches.length === 0) { setStressBatches([]); return; }
+      const { data: jobs } = await supabase
+        .from("static_stress_jobs")
+        .select("batch_id, tool_slug, status")
+        .in("batch_id", batches.map((b) => b.id))
+        .limit(5000);
+      if (cancelled) return;
+      const byBatch = new Map<string, Record<string, LocalToolResult>>();
+      for (const b of batches) byBatch.set(b.id, {});
+      for (const j of ((jobs ?? []) as { batch_id: string; tool_slug: string; status: string }[])) {
+        const tools = byBatch.get(j.batch_id);
+        if (!tools) continue;
+        const r = tools[j.tool_slug] ?? { total: 0, complete: 0, failed: 0, scored: 0, claudeSum: 0, gptSum: 0 };
+        const failed = j.status === "failed" || j.status === "error";
+        tools[j.tool_slug] = {
+          ...r,
+          total: r.total + 1,
+          complete: r.complete + (j.status === "complete" ? 1 : 0),
+          failed: r.failed + (failed ? 1 : 0),
+        };
+      }
+      setStressBatches(batches.map((b) => ({
+        id: b.id,
+        started_at: b.started_at ?? b.created_at,
+        tools: byBatch.get(b.id) ?? {},
+      })));
+    };
+    load();
+    const t = setInterval(load, 15_000);
+    return () => { cancelled = true; clearInterval(t); };
+  }, [showStressBatches, stressLoaded]);
+
 
   // ─── ALL-PRODUCTS-TEST: import history for non-batch products ────────────
   // These products (RoPA, US/EU Notice) are exercised by the static-stress
@@ -729,23 +816,95 @@ export function QualityConsole({
   const doneCount = activeToolResults.length;
   const totalCount = activeBatch?.tools.length ?? 0;
 
+  // Page backwards: fetch the next 7 older batches (offset = already loaded).
+  async function loadOlderBatches() {
+    setLoadingOlder(true);
+    try {
+      const { data, count, error } = await scope(supabase
+        .from("quality_batch_runs")
+        .select("*", { count: "exact" }))
+        .order("started_at", { ascending: false })
+        .range(recentBatches.length, recentBatches.length + BATCH_PAGE - 1);
+      if (error) throw error;
+      if (typeof count === "number") setBatchTotal(count);
+      const older = (data ?? []) as unknown as BatchRow[];
+      setRecentBatches((prev) => {
+        const known = new Set(prev.map((b) => b.id));
+        const merged = [...prev, ...older.filter((b) => !known.has(b.id))];
+        merged.sort((a, b) => (a.started_at > b.started_at ? -1 : 1));
+        return merged;
+      });
+    } catch (e: any) {
+      toast.error(`Load older failed: ${e?.message ?? e}`);
+    } finally {
+      if (showStressBatches) setStressLoaded((n) => n + BATCH_PAGE);
+      setLoadingOlder(false);
+    }
+  }
+
+
   // ─── Score matrix data ───────────────────────────────────────────────────
-  // BATCH LAW — server batches first (oldest → newest), then every in-page
-  // local batch as its OWN column appended to the right. A local run is never
-  // folded into a pre-existing batch column.
+  // BATCH LAW — every batch is its OWN column, ordered oldest → newest:
+  // orchestrator batches (quality_batch_runs), server stress batches launched
+  // from this page (static_stress_batches), and any purely in-page batch that
+  // has no server row. A run is never folded into a pre-existing column.
+  // SERVER-BATCH LAW (2026-09-02) — stress columns come from the SERVER, so a
+  // batch run today shows up even in a browser that never ran it; in-page
+  // Claude/GPT scores are overlaid on the server counts when available.
+  // BATCH-NUMBER LAW — `n` is the global sequence number across all batch
+  // sources: the newest loaded column is the global total, counting back.
   type MatrixColumn =
-    | { kind: "server"; id: string; started_at: string; batch: BatchRow }
-    | { kind: "local"; id: string; started_at: string; batch: LocalBatch };
+    | { kind: "server"; id: string; started_at: string; n: number; batch: BatchRow }
+    | { kind: "local"; id: string; started_at: string; n: number; batch: LocalBatch };
 
   const matrixColumns = useMemo<MatrixColumn[]>(() => {
-    const server: MatrixColumn[] = [...recentBatches]
-      .sort((a, b) => (a.started_at < b.started_at ? -1 : 1))
-      .map((b) => ({ kind: "server" as const, id: b.id, started_at: b.started_at, batch: b }));
-    const local: MatrixColumn[] = [...localBatches]
-      .sort((a, b) => (a.started_at < b.started_at ? -1 : 1))
-      .map((b) => ({ kind: "local" as const, id: b.id, started_at: b.started_at, batch: b }));
-    return [...server, ...local];
-  }, [recentBatches, localBatches]);
+    const server = [...recentBatches].map((b) => ({
+      kind: "server" as const, id: b.id, started_at: b.started_at, n: 0, batch: b,
+    }));
+    // Stress batches → local-shaped columns (counts from the server, scores
+    // from the matching in-page batch when this browser ran it).
+    const localById = new Map(localBatches.map((b) => [b.id, b] as const));
+    const stress = stressBatches.map((s) => {
+      const overlay = localById.get(`local-stress-${s.id}`);
+      const tools: Record<string, LocalToolResult> = {};
+      const keys = new Set([...Object.keys(s.tools), ...Object.keys(overlay?.tools ?? {})]);
+      for (const k of keys) {
+        const base = s.tools[k] ?? { total: 0, complete: 0, failed: 0, scored: 0, claudeSum: 0, gptSum: 0 };
+        const ov = overlay?.tools[k];
+        tools[k] = {
+          ...base,
+          total: Math.max(base.total, ov?.total ?? 0),
+          complete: Math.max(base.complete, ov?.complete ?? 0),
+          failed: Math.max(base.failed, ov?.failed ?? 0),
+          scored: ov?.scored ?? 0,
+          claudeSum: ov?.claudeSum ?? 0,
+          gptSum: ov?.gptSum ?? 0,
+        };
+      }
+      return {
+        kind: "local" as const,
+        id: overlay?.id ?? `local-stress-${s.id}`,
+        started_at: s.started_at,
+        n: 0,
+        batch: { id: overlay?.id ?? s.id, started_at: s.started_at, last_at: s.started_at, tools } as LocalBatch,
+      };
+    });
+    const stressLocalIds = new Set(stressBatches.map((s) => `local-stress-${s.id}`));
+    const localOnly = localBatches
+      .filter((b) => !stressLocalIds.has(b.id))
+      .map((b) => ({ kind: "local" as const, id: b.id, started_at: b.started_at, n: 0, batch: b }));
+
+    const all = [...server, ...stress, ...localOnly]
+      .sort((a, b) => (a.started_at < b.started_at ? -1 : 1));
+    const totalAll = batchTotal + (showStressBatches ? stressTotal : 0) + localOnly.length;
+    const base = Math.max(totalAll - all.length, 0);
+    return all.map((c, i) => ({ ...c, n: base + i + 1 }));
+  }, [recentBatches, localBatches, stressBatches, batchTotal, stressTotal, showStressBatches]);
+
+  const hasOlderBatches =
+    recentBatches.length < batchTotal ||
+    (showStressBatches && stressBatches.length < stressTotal);
+
 
   function renderLocalCell(key: string, r: LocalToolResult | undefined) {
     if (!r || r.total === 0) {
@@ -1204,13 +1363,25 @@ export function QualityConsole({
   );
 
   // Scores matrix opens scrolled to the newest batches (right-hand edge).
+  // Scrolling BACK (Load older) prepends columns — preserve the viewport's
+  // relative position instead of yanking back to the right edge.
   const scoresScrollRef = useRef<HTMLDivElement>(null);
-  const scoresColCount = matrixColumns.length;
+  const prevNewestColId = useRef<string | null>(null);
+  const prevScrollWidth = useRef(0);
+  const newestColId = matrixColumns.length ? matrixColumns[matrixColumns.length - 1].id : null;
   useEffect(() => {
     const el = scoresScrollRef.current;
     if (!el) return;
-    el.scrollLeft = el.scrollWidth;
-  }, [scoresColCount]);
+    const isNewBatch = newestColId !== prevNewestColId.current;
+    const grew = el.scrollWidth - prevScrollWidth.current;
+    if (isNewBatch || prevNewestColId.current === null) {
+      el.scrollLeft = el.scrollWidth;
+    } else if (grew > 0) {
+      el.scrollLeft += grew;
+    }
+    prevNewestColId.current = newestColId;
+    prevScrollWidth.current = el.scrollWidth;
+  }, [newestColId, matrixColumns.length]);
 
   const renderScoresCard = () => (
 
@@ -1224,20 +1395,27 @@ export function QualityConsole({
       <CardContent>
         {/* Product names stay pinned on the left; batches scroll horizontally,
             opening on the most recent batches. */}
+        {hasOlderBatches && (
+          <div className="mb-2">
+            <Button size="sm" variant="outline" disabled={loadingOlder} onClick={loadOlderBatches}>
+              {loadingOlder ? "Loading…" : `‹ Load older batches (${matrixColumns.length} of ${batchTotal + (showStressBatches ? stressTotal : 0)} shown)`}
+            </Button>
+          </div>
+        )}
         <div ref={scoresScrollRef} className="overflow-x-auto">
           <table className="w-full min-w-max text-sm">
             <thead>
               <tr className="border-b text-left">
                 <th className="sticky left-0 z-20 bg-background py-2 pr-3">Tool</th>
-                <th className="py-2 pr-3">Tests (last 10)</th>
+                <th className="py-2 pr-3">Tests (window)</th>
                 <th className="py-2 pr-3 bg-muted/40">Baseline</th>
-                {matrixColumns.map((col, i) => (
+                {matrixColumns.map((col) => (
                   <th
                     key={col.id}
                     className="py-2 pr-3 whitespace-nowrap"
                     title={`${col.id} · ${new Date(col.started_at).toLocaleString()}`}
                   >
-                    Batch {i + 1}
+                    Batch {col.n}
                     <div className="text-[10px] font-normal text-muted-foreground">
                       {new Date(col.started_at).toLocaleDateString()}
                       {col.kind === "local" ? " · in-page" : ""}
@@ -1270,7 +1448,7 @@ export function QualityConsole({
                             ? "font-semibold text-foreground no-underline"
                             : "text-brand-teal-text"
                         }`}
-                        onClick={() => void onSetBaselineFromColumn(col, `Batch ${i + 1}`)}
+                        onClick={() => void onSetBaselineFromColumn(col, `Batch ${col.n}`)}
                         title="Pin this batch's scores as the baseline"
                       >{baselineColumnId === col.id ? "★ baseline" : "baseline"}</button>
                     </div>
