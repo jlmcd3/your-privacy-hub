@@ -1351,7 +1351,7 @@ export function QualityConsole({
                             ? "font-semibold text-foreground no-underline"
                             : "text-brand-teal-text"
                         }`}
-                        onClick={() => void onSetBaselineFromColumn(col, `Batch ${i + 1}`)}
+                        onClick={() => void onSetBaselineFromColumn(col, `Batch ${col.n}`)}
                         title="Pin this batch's scores as the baseline"
                       >{baselineColumnId === col.id ? "★ baseline" : "baseline"}</button>
                     </div>
