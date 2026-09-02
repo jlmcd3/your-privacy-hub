@@ -172,8 +172,20 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
         await admin.from("static_stress_jobs").insert(jobRows);
       }
 
+      // SETUP-GATE LAW (2026-09-02) — publish the running total after every
+      // company so progress never reads "N/0", and force the batch back to
+      // "running" in case a worker finalised it during the fixture lull.
+      const { count: soFar } = await admin
+        .from("static_stress_jobs")
+        .select("id", { count: "exact", head: true })
+        .eq("batch_id", batchId);
+
       await admin.from("static_stress_batches")
-        .update({ setup_done: companyIndex + 1 })
+        .update({
+          setup_done: companyIndex + 1,
+          total_jobs: soFar ?? 0,
+          ...(jobRows.length ? { status: "running", completed_at: null } : {}),
+        })
         .eq("id", batchId);
 
       // After the first company's jobs are inserted, launch parallel workers.
