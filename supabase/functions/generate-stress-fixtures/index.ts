@@ -558,30 +558,24 @@ Return a JSON object with EXACTLY these fields:
     }
   },
   "cppaCyber": {
-    "company_name": "string",
-    "profile_industry": "string",
-    "profile_audit": "string — e.g. Within 12 months",
-    "industry_sector": "string",
-    "controls": {
-      "c1_auth": ["status string", "notes string"],
-      "c2_encryption": ["status string", "notes string"],
-      "c3_account_access": ["status string", "notes string"],
-      "c4_inventory": ["status string", "notes string"],
-      "c5_secure_config": ["status string", "notes string"],
-      "c6_vuln_mgmt": ["status string", "notes string"],
-      "c7_audit_logs": ["status string", "notes string"],
-      "c8_network_mon": ["status string", "notes string"],
-      "c9_anti_malware": ["status string", "notes string"],
-      "c10_segmentation": ["status string", "notes string"],
-      "c11_port_protocol": ["status string", "notes string"],
-      "c12_awareness": ["status string", "notes string"],
-      "c13_training": ["status string", "notes string"],
-      "c14_secure_dev": ["status string", "notes string"],
-      "c15_third_party": ["status string", "notes string"],
-      "c16_retention": ["status string", "notes string"],
-      "c17_incident": ["status string", "notes string"],
-      "c18_continuity": ["status string", "notes string"]
-    }
+    "profile": {
+      "entity_name": "string — the company name",
+      "industry": "string", "incidents_12mo": "string", "framework": "string",
+      "last_audit": "string", "in_scope_frameworks": ["array"],
+      "audit_scope_rationale": "string", "auditor_engagement_status": "string",
+      "prior_audit_scope": "string", "remediation_owner": "string — name, title",
+      "q1_revenue": "string", "q2_consumers": "string", "q5_sell_share": "string",
+      "q5c_share_revenue_50pct": "string", "q15_sensitive_pi": "string",
+      "q15c_spi_volume": "string", "password_auth_used": "string"
+    },
+    "controls": [
+      {
+        "key": "c1_auth",
+        "label": "string — the control's short name",
+        "maturity": "string", "notes": "string — one specific sentence",
+        "evidence": ["array"]
+      }
+    ]
   },
   "cppaAdmt": {
     "organization_name": "string",
