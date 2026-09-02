@@ -168,18 +168,26 @@ Deno.test("doc142 — an Engaged row with the generic basis cites its qualifying
   );
   const digest = r.tables["executive_summary:3"];
   assert(digest, "trigger digest missing");
+  // DOC 148 — question numbers ("(Q5)") are removed from customer-facing
+  // basis sentences (A-Team Batch-8 P2); the qualifying answer itself is
+  // still required.
   const b1 = digest.rows.find((row) => row[0].includes("7150(b)(1)"));
   assert(b1, "b(1) digest row missing");
   assert(
-    b1[1].includes("the Company answers “Yes — sell only” on selling or sharing personal information (Q5)"),
+    b1[1].includes("the Company answers “Yes — sell only” on selling or sharing personal information"),
     "b(1) digest row lacks the qualifying answer",
   );
+  assert(!b1[1].includes("(Q5)"), "b(1) digest row still carries a question number");
   const b6 = digest.rows.find((row) => row[0].includes("7150(b)(6)"));
   assert(b6, "b(6) digest row missing");
-  assert(b6[1].includes("(Q18b)"), "b(6) digest row lacks the qualifying answer");
+  assert(
+    b6[1].includes("on processing personal information to train an ADMT or identification technology"),
+    "b(6) digest row lacks the qualifying answer",
+  );
+  assert(!b6[1].includes("(Q18b)"), "b(6) digest row still carries a question number");
   const analysis = r.blocks["iii_analysis:2"] ?? "";
   assert(
-    analysis.includes("the Company answers “Yes — sell only” on selling or sharing personal information (Q5)"),
+    analysis.includes("the Company answers “Yes — sell only” on selling or sharing personal information"),
     "§ 3.A lacks the qualifying answer",
   );
   assert(

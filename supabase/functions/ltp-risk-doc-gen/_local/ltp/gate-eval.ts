@@ -5,6 +5,7 @@
  */
 import { CPPA_RISK_GATES } from "../gates/cppa-risk-gates.ts";
 import type { GateRuleOutcome } from "../render-plan/schema.ts";
+import { classifyAdmtSignificantDecision } from "../admt-significant-decision.ts";
 
 type Intake = Record<string, unknown>;
 
@@ -130,6 +131,45 @@ export function evaluateCppaRiskGates(intake: Intake): GateRuleOutcome[] {
           outcomes.push({ gate_id: gate.id, outcome: "block", reason: "q18_admt_use negative → suppress § 7001(ddd) assertions" });
         } else {
           outcomes.push({ gate_id: gate.id, outcome: "pass" });
+        }
+        continue;
+      }
+      if (gate.id === "G.applicability.admt_significant_decision") {
+        // DOC 148 (2026-09-02, A-Team Batch-8 P0) — the generic evaluator
+        // passed this gate on a bare q18_admt_use = "Yes" (and even on a
+        // non-empty q19 description alone, since the alias maps
+        // q_admt_significant_decision → q19_admt_description and any
+        // non-empty text is "not negative"). That bypassed the doc-137
+        // § 7001(ddd) category gate + FSOR advertising exclusion at the ONE
+        // site that feeds the rendered trigger table (composeScope reads
+        // this gate). Same rule as risk-opening.ts S1 / _w9_risk_slots:
+        // the trigger passes only when the described activity names an
+        // enumerated significant-decision category. The two block reasons
+        // are distinct so downstream composers can tell a determined FSOR
+        // exclusion from an unresolved record.
+        const use = readField(intake, "q18_admt_use");
+        if (use === undefined) {
+          outcomes.push({ gate_id: gate.id, outcome: "not_applicable", reason: "q18_admt_use absent" });
+        } else if (isNegative(use)) {
+          outcomes.push({ gate_id: gate.id, outcome: "block", reason: "q18_admt_use negative" });
+        } else {
+          const desc = readField(intake, "q_admt_significant_decision");
+          const cls = classifyAdmtSignificantDecision(typeof desc === "string" ? desc : "");
+          if (cls === "significant") {
+            outcomes.push({ gate_id: gate.id, outcome: "pass" });
+          } else if (cls === "advertising_only") {
+            outcomes.push({
+              gate_id: gate.id,
+              outcome: "block",
+              reason: "b3_advertising_exclusion_fsor_7001_ddd_6 — described decision use is advertising only",
+            });
+          } else {
+            outcomes.push({
+              gate_id: gate.id,
+              outcome: "block",
+              reason: "b3_significant_decision_category_unresolved — no § 7001(ddd) category identified",
+            });
+          }
         }
         continue;
       }

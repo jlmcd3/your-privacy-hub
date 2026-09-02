@@ -101,8 +101,15 @@ export const RISK_SKELETON_PROVENANCE =
  * pin; earlier encodes were pinned by version string only (the
  * RISK_SKELETON_VERSION_V* constants above carry that provenance).
  */
-export const RISK_SKELETON_CONTENT_HASH =
+/** DOC 144 pin, superseded by DOC 148 (subjectAnchor frame correction in
+ * Exec A — "describes those affected" → "identifies the subject of this
+ * assessment"). Kept per the re-pin convention. */
+export const RISK_SKELETON_CONTENT_HASH_V53 =
   "9d6b18fe7a1067da1ba468802797f0d6a74bd7f828aca836936932f40209fc5e";
+// DOC 148 (2026-09-02) — computed by running the digest (deno eval), never
+// hand-derived.
+export const RISK_SKELETON_CONTENT_HASH =
+  "a328a2bc72ebdc6cca06be321e4a6f5307d448e1262da8e920323d16805c2ea8";
 
 // A-TEAM S3 RULING I.24 (doc 115, 2026-08-31) — cover titles follow the fleet
 // Title Case convention (Batch 21a); ADMT's cover set the precedent. Cover
@@ -328,7 +335,13 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     title: "Executive Summary",
     blocks: [
       // 0 — A. Activity Assessed: the defined-term introductions.
-      { kind: "skeleton", text: "A. Activity Assessed. The activity assessed is identified by the Company as follows: “{activityName}” (the “Activity”). The Company describes those affected as follows: “{subjectAnchor}”. The Company states the purpose of the Activity as follows: “{activityPurpose}” (the “Purpose”). This report assesses the Activity and the Purpose under 11 CCR §§ 7150–7157; it does not evaluate the Company’s privacy program or CCPA compliance generally." },
+      // DOC 148 (2026-09-02, A-Team Batch-8 P2) — {subjectAnchor} is the
+      // intake form's "one-line subject of this assessment" (subject_anchor),
+      // NOT an affected-persons field; the old frame ("describes those
+      // affected") mislabeled it, quoting a processing subject as a
+      // population. The affected-consumer facts render in § 2.C from their
+      // own fields.
+      { kind: "skeleton", text: "A. Activity Assessed. The activity assessed is identified by the Company as follows: “{activityName}” (the “Activity”). The Company identifies the subject of this assessment as follows: “{subjectAnchor}”. The Company states the purpose of the Activity as follows: “{activityPurpose}” (the “Purpose”). This report assesses the Activity and the Purpose under 11 CCR §§ 7150–7157; it does not evaluate the Company’s privacy program or CCPA compliance generally." },
       // 1 — B. Why required (law sentence; always true).
       { kind: "skeleton", text: "B. Why a Risk Assessment Is Required. California requires a risk assessment before a business begins processing that falls within a significant-risk category enumerated in 11 CCR § 7150(b)." },
       // 2 — trigger_lines: one "— " line per engaged trigger with its

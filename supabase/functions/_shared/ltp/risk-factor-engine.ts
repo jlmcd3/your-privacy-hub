@@ -30,6 +30,7 @@
 
 import { HARM_PATHWAY_OPTS } from "../intake-contracts/cppa-risk-assessment.ts";
 import { CA_SPI_CATEGORY_KEYS } from "./ca-pi-taxonomy.ts";
+import { classifyAdmtSignificantDecision } from "./admt-significant-decision.ts";
 import type { RenderedTable } from "../prose/skeleton-render.ts";
 import { boundedPassage, firstSentence } from "./clause-bound.ts";
 import { RISK52_FIXED } from "../prose/plans/cppa-risk.spine.ts";
@@ -54,6 +55,49 @@ function isNo(v: unknown): boolean {
 
 function clause(v: unknown): string {
   return s(v).replace(/\.\s*$/, "");
+}
+
+// DOC 148 (2026-09-02, A-Team Batch-8 P0 temporal validation) — the latest
+// EXPLICIT period named in a free-text field, as an ISO end-of-period date.
+// Deliberately narrow (per-instance rule): only unambiguous quarter-year
+// ("Q2 2024") and month-year ("June 2024") tokens count — a bare year is
+// never treated as a date, since free text routinely names years as labels
+// ("the 2023 Advertiser Performance Report", "24 months of logs"). Returns
+// null when no such token appears. An actual dated fact CONTROLS over a
+// generic recency selection wherever the two conflict.
+const MONTH_NAMES = [
+  "january", "february", "march", "april", "may", "june",
+  "july", "august", "september", "october", "november", "december",
+] as const;
+export function latestExplicitPeriodEnd(text: string): string | null {
+  const t = s(text);
+  if (!t) return null;
+  const ends: string[] = [];
+  const qre = /\bQ([1-4])\s*(20\d{2})\b/gi;
+  let m: RegExpExecArray | null;
+  while ((m = qre.exec(t)) !== null) {
+    const q = Number(m[1]);
+    const y = Number(m[2]);
+    const endMonth = q * 3; // 3, 6, 9, 12
+    const lastDay = new Date(Date.UTC(y, endMonth, 0)).getUTCDate();
+    ends.push(`${y}-${String(endMonth).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`);
+  }
+  const mre = new RegExp(`\\b(${MONTH_NAMES.join("|")})\\s+(20\\d{2})\\b`, "gi");
+  while ((m = mre.exec(t)) !== null) {
+    const mi = MONTH_NAMES.indexOf(m[1].toLowerCase() as typeof MONTH_NAMES[number]) + 1;
+    const y = Number(m[2]);
+    const lastDay = new Date(Date.UTC(y, mi, 0)).getUTCDate();
+    ends.push(`${y}-${String(mi).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`);
+  }
+  if (!ends.length) return null;
+  return ends.sort().at(-1) ?? null;
+}
+
+/** DOC 148 — ISO date exactly `days` before an ISO date (UTC arithmetic). */
+function isoDaysBefore(iso: string, days: number): string {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - days);
+  return d.toISOString().slice(0, 10);
 }
 
 // DOC 144 (2026-09-02) — quote discipline for customer free text spliced into
@@ -489,6 +533,10 @@ export interface RiskFactorEngineResult {
      * Conditions to Proceed / Conditions for Reassessment, so the cover
      * panel can state "Number of Conditions" without re-deriving it. */
     readonly conditions_count: number;
+    /** DOC 148 — the RECONCILED engaged-trigger count (§ 7150(b)(3)
+     * reconciliation applied), so no consumer re-derives the count from
+     * raw scope lines and disagrees with the trigger table. */
+    readonly triggers_engaged_count: number;
   };
 }
 
@@ -947,8 +995,36 @@ export function runRiskFactorEngine(
   const necessity = extractNecessity(intake);
   const isAdmt = isYes(intake.q18_admt_use);
   const scopeLines = arr((report.scope_and_triggers as Bag)?.narrative ?? report.scope_and_triggers);
-  const engagedLines = scopeLines.filter((x) => x.startsWith("Engaged — "));
+  const rawEngagedLines = scopeLines.filter((x) => x.startsWith("Engaged — "));
   const uncertainLines = scopeLines.filter((x) => /^uncertain/i.test(x));
+  // DOC 148 (2026-09-02, A-Team Batch-8 P0) — § 7150(b)(3) reconciliation at
+  // the render chokepoint. Doc 137 built the § 7001(ddd) category gate + FSOR
+  // advertising exclusion, but wired it only into risk-opening.ts (S1) and
+  // _w9_risk_slots.ts — the "Engaged" narrative line that feeds the exec
+  // trigger table and § 3.A came from a gate the classifier never reached.
+  // The gate itself is fixed too (gate-eval.ts, this batch); this filter is
+  // the defense-in-depth guarantee for replayed/stored records whose
+  // narrative still carries the line. An affirmative q18 answer never
+  // overrides a materially contradictory q19 description: advertising-only
+  // is a DETERMINED non-engagement (§ 7001(ddd)(6)); an unresolved
+  // description degrades to Additional Information Required. Never the
+  // reverse — a "significant" classification leaves the line untouched.
+  // DOC 148 — the doc-139 SPI-unresolved state, hoisted so the § 7150(b)(2)
+  // trigger row can carry its qualifier from the SAME predicate the § 4.D
+  // follow-up fires on (cross-surface parity; never two derivations).
+  const spiCategoryUnresolved = isYes(intake.q15_sensitive_pi) &&
+    arr(intake.q4_pi_categories).filter((c) => CA_SPI_CATEGORY_KEYS.includes(c)).length === 0;
+  const b3Class = s(intake.q18_admt_use) === "Yes"
+    ? classifyAdmtSignificantDecision(s(intake.q19_admt_description))
+    : null;
+  const b3EngagedLine = rawEngagedLines.find((x) => /§\s*7150\(b\)\(3\)/.test(x));
+  const b3Reconciled: "advertising_only" | "unresolved" | null =
+    b3EngagedLine !== undefined && (b3Class === "advertising_only" || b3Class === "unresolved")
+      ? b3Class
+      : null;
+  const engagedLines = b3Reconciled
+    ? rawEngagedLines.filter((x) => x !== b3EngagedLine)
+    : rawEngagedLines;
   const rc = (report.record_complete ?? null) as
     | { value?: unknown; failed_conditions?: unknown; empty_required_keys?: unknown }
     | null;
@@ -1014,7 +1090,20 @@ export function runRiskFactorEngine(
       `Cease processing, or establish the necessity of, ${asProse(necessity.unnecessary.map((r) => `“${s(r.element)}”`))}`,
     );
   }
+  // DOC 148 (2026-09-02, A-Team Batch-8 P1) — condition deduplication. A
+  // material risk whose only safeguard is PLANNED sits in `gaps` (rank 1 <
+  // 2), so it used to draw BOTH the planned-completion condition above and
+  // this establish-a-safeguard condition — two conditions describing one
+  // closure requirement. The gap condition now fires only where no
+  // safeguard row at all is directed at the risk; `gaps` itself is
+  // unchanged (the § 4.B weighs-against bullet and the § 4.A no-safeguard
+  // branch still read the full set, and both remain true for a
+  // planned-only risk).
   for (const p of gaps) {
+    const plannedCovers = safeguardRows.some((g) =>
+      s(g.harm) === p.harm && s(g.safeguard_status) === "Planned, not yet implemented"
+    );
+    if (plannedCovers) continue;
     conditions.push(
       `Establish and implement a safeguard addressing the material risk: ${p.harm}`,
     );
@@ -1045,13 +1134,39 @@ export function runRiskFactorEngine(
   // unresolved on the record — this mirrors deriveActivitySpiInventory's
   // fallback sentence (risk-skeleton-assemble.ts) and keeps that gap out of
   // a report that otherwise shows zero conditions/follow-ups.
-  if (
-    isYes(intake.q15_sensitive_pi) &&
-    arr(intake.q4_pi_categories).filter((c) => CA_SPI_CATEGORY_KEYS.includes(c)).length === 0
-  ) {
+  if (spiCategoryUnresolved) {
     followUps.push(
       "Identify the qualifying statutory sensitive-personal-information category the Company’s Yes answer relies on; none of the reported personal-information categories maps to a Cal. Civ. Code § 1798.140(ae) sensitive-PI category on the information provided",
     );
+  }
+  // DOC 148 (A-Team Batch-8 P0) — the § 7150(b)(3) unresolved-category state
+  // completes among the Follow-Ups (the advertising-only state is a
+  // determined non-engagement and needs no follow-up).
+  if (b3Reconciled === "unresolved") {
+    followUps.push(
+      "Identify the significant decision the automated decisionmaking technology makes or facilitates; § 7150(b)(3) turns on a decision within the categories enumerated in § 7001(ddd), and the information provided does not identify one",
+    );
+  }
+  // DOC 148 (A-Team Batch-8 P0 temporal validation) — a safeguard row whose
+  // own text names a target period that has already passed cannot rest on
+  // an ordinary "planned" or "untested" state: the recorded date controls,
+  // and the status requires confirmation. Detection is deliberately narrow
+  // (explicit quarter-year / month-year tokens only — latestExplicitPeriodEnd).
+  for (const g of planned) {
+    const end = latestExplicitPeriodEnd(s(g.safeguard));
+    if (end && end < assessmentDate) {
+      followUps.push(
+        `Confirm the implementation status of the planned safeguard ${qName(g.safeguard)} — the target period recorded for it (through ${end}) has passed`,
+      );
+    }
+  }
+  for (const g of untested) {
+    const end = latestExplicitPeriodEnd(s(g.safeguard));
+    if (end && end < assessmentDate) {
+      followUps.push(
+        `Confirm the status of the planned component described within the safeguard ${qName(g.safeguard)} — the target period recorded for it (through ${end}) has passed`,
+      );
+    }
   }
   if (necessity.unsure.length) {
     followUps.push(
@@ -1313,26 +1428,32 @@ export function runRiskFactorEngine(
     /^yes$/i.test(v) ||
     v === "Yes — systematic observation of workers/students/applicants" ||
     /^both$/i.test(v);
+  // DOC 148 (A-Team Batch-8 P2) — intake question numbers ("(Q5)", "(Q18b)")
+  // are form plumbing, not record facts: they are removed from the
+  // customer-facing basis sentences. The qualifying fact itself — the
+  // Company's quoted answer and the question's subject — is unchanged, so
+  // the doc-142 traceability invariant still holds; question-id
+  // traceability lives in the structured intake record.
   const triggerQualifyingFact = (prong: number): string | null => {
     switch (prong) {
       case 1: {
         const v = s(intake.q5_sell_share);
         return q5SellShareAffirmed(v)
-          ? `the Company answers “${v}” on selling or sharing personal information (Q5)`
+          ? `the Company answers “${v}” on selling or sharing personal information`
           : null;
       }
       case 2:
         return s(intake.q15_sensitive_pi) === "Yes"
-          ? "the Company answers “Yes” to processing sensitive personal information (Q15)"
+          ? "the Company answers “Yes” to processing sensitive personal information"
           : null;
       case 3:
         return s(intake.q18_admt_use) === "Yes"
-          ? "the Company answers “Yes” to using automated decisionmaking technology for a significant decision (Q18)"
+          ? "the Company answers “Yes” to using automated decisionmaking technology for a significant decision"
           : null;
       case 4: {
         const v = s(intake.q5b_profiling_observation);
         return v && q5bObservationAffirmed(v)
-          ? `the Company answers “${v}” on inference from systematic observation of workers, students, or applicants (Q5b)`
+          ? `the Company answers “${v}” on inference from systematic observation of workers, students, or applicants`
           : null;
       }
       case 5:
@@ -1342,7 +1463,7 @@ export function runRiskFactorEngine(
       case 6: {
         const v = s(intake.q18b_admt_training);
         return /^Yes/.test(v)
-          ? `the Company answers “${v}” on processing personal information to train an ADMT or identification technology (Q18b)`
+          ? `the Company answers “${v}” on processing personal information to train an ADMT or identification technology`
           : null;
       }
       default:
@@ -1368,7 +1489,18 @@ export function runRiskFactorEngine(
     return idx >= 0
       ? { cite: stripped.slice(0, idx).trim(), label: "", basis: sweepRegister52(stripped.slice(idx + 1).trim()) }
       : { cite: stripped.trim(), label: "", basis: "" };
-  }).map(withQualifyingFact);
+  }).map(withQualifyingFact).map((t): TriggerParsed => {
+    // DOC 148 (A-Team Batch-8 P1) — the § 7150(b)(2) row carries its own
+    // qualifier when the doc-139 SPI-unresolved state holds: the trigger is
+    // engaged on the Company's reported answer, and the row says so rather
+    // than implying the assessment independently established the category.
+    // Same predicate as the § 4.D follow-up (spiCategoryUnresolved).
+    if (!spiCategoryUnresolved || !/§\s*7150\(b\)\(2\)/.test(t.cite)) return t;
+    return {
+      ...t,
+      basis: `${t.basis.replace(/[.!?]\s*$/, "")}; the trigger is engaged on the Company’s reported answer, and the qualifying statutory sensitive-PI category remains to be identified (Follow-Ups, § 4.D)`,
+    };
+  });
   const uncertainSwept = uncertainLines.map((l) => sweepRegister52(l.replace(/^Uncertain\s*—\s*/i, "")));
 
   // ══ EXECUTIVE SUMMARY ══════════════════════════════════════════════════════
@@ -1376,7 +1508,7 @@ export function runRiskFactorEngine(
   // Exec B — BATCH 20b (doc 113 S6.1): the lead sentence stays composed;
   // the per-trigger lines move into the digest table (Trigger | Engaged |
   // Basis). SS III.A keeps the full analysis paragraphs.
-  if (parsedTriggers.length || uncertainSwept.length) {
+  if (parsedTriggers.length || uncertainSwept.length || b3Reconciled) {
     // DOC 127 §10 (Phase B, 2026-09-01) — two-column digest: the old narrow
     // "Engaged" column repeated one word down the page; the status word now
     // leads the Determination cell, with the same basis BYTES carried
@@ -1389,6 +1521,17 @@ export function runRiskFactorEngine(
       triggerRows.push([
         u.replace(/[.!?]\s*$/, ""),
         "Unresolved — the information provided leaves this trigger unresolved; resolving it appears among the Follow-ups in § 4.D.",
+      ]);
+    }
+    // DOC 148 (A-Team Batch-8 P0) — the reconciled § 7150(b)(3) state renders
+    // in the trigger digest instead of silently disappearing: a determined
+    // FSOR non-engagement, or the Additional-Information-Required open state.
+    if (b3Reconciled) {
+      triggerRows.push([
+        "11 CCR § 7150(b)(3) — using ADMT for a significant decision concerning a consumer",
+        b3Reconciled === "advertising_only"
+          ? "Not engaged — the Company answers “Yes” to using automated decisionmaking technology for a significant decision, but the decision use identified in the information provided is advertising to consumers, which § 7001(ddd)(6) excludes from the significant-decision categories; any separate covered significant decision made with this technology should be identified and the assessment updated."
+          : "Additional Information Required — the Company answers “Yes” to using automated decisionmaking technology for a significant decision, but the information provided does not identify a decision within the categories enumerated in § 7001(ddd); identifying that decision appears among the Follow-ups in § 4.D.",
       ]);
     }
     tables["executive_summary:3"] = {
@@ -1651,12 +1794,23 @@ export function runRiskFactorEngine(
         bits.push(`The approximate California scale, as the Company states it, is: “${n}”.`);
       }
       if (relationshipContext) {
+        // DOC 148 (A-Team Batch-8 P2) — the bare enum echo "The affected
+        // consumers are mixed" read as a finding about the people; the
+        // "Mixed" option means more than one relationship category, and the
+        // sentence now says that. Every other enum value keeps the
+        // ratified echo form.
         bits.push(
-          `The affected consumers are ${relationshipContext.toLowerCase()}${
-            dependency
-              ? "; because the relationship involves a dependency the consumer cannot easily exit, the choice-architecture analysis in § 3.C carries correspondingly greater weight"
-              : ""
-          }.`,
+          relationshipContext === "Mixed"
+            ? `The Company records the affected consumers as spanning more than one relationship category (“Mixed”)${
+              dependency
+                ? "; because the relationship involves a dependency the consumer cannot easily exit, the choice-architecture analysis in § 3.C carries correspondingly greater weight"
+                : ""
+            }.`
+            : `The affected consumers are ${relationshipContext.toLowerCase()}${
+              dependency
+                ? "; because the relationship involves a dependency the consumer cannot easily exit, the choice-architecture analysis in § 3.C carries correspondingly greater weight"
+                : ""
+            }.`,
         );
       }
       put(
@@ -1852,17 +2006,35 @@ export function runRiskFactorEngine(
     const retRows = rows(intake.retention_by_pi_category).filter((r) => s(r.pi_category));
     const overallPeriod = clause(intake.i2_retention_period);
     const overallCriteria = clause(intake.i2_retention_criteria);
+    // DOC 148 (A-Team Batch-8 P1) — category completeness: § 7152(a)(3)(B)
+    // requires retention (or the determining criteria) for EACH category of
+    // personal information. A q4 category with no retention row used to
+    // vanish from the table silently; it now renders an honest open-state
+    // row and completes among the Follow-Ups. Matching is by the exact
+    // category label (the retention rows are keyed to the q4 labels).
+    const retCovered = new Set(retRows.map((r) => s(r.pi_category)));
+    const retMissing = arr(intake.q4_pi_categories).filter((c) => !retCovered.has(c));
     if (retRows.length) {
       tables["ii_information:14"] = {
         key: "",
         surface: "retention",
         title: "",
         columns: ["Information category", "Retention period or criterion"],
-        rows: retRows.map((r) => [
-          s(r.pi_category),
-          s(r.retention_period) || s(r.retention_criteria) || "Not stated",
-        ]),
+        rows: [
+          ...retRows.map((r) => [
+            s(r.pi_category),
+            s(r.retention_period) || s(r.retention_criteria) || "Not stated",
+          ]),
+          ...retMissing.map((c) => [c, "Not stated — see the Follow-Ups in § 4.D"]),
+        ],
       };
+      if (retMissing.length) {
+        followUps.push(
+          `Identify the retention period, or the criteria used to determine it, for ${
+            asProse(retMissing.map((c) => `“${c}”`))
+          }; § 7152(a)(3)(B) requires this for each category of personal information`,
+        );
+      }
     } else if (overallPeriod || overallCriteria) {
       tables["ii_information:14"] = {
         key: "",
@@ -1879,6 +2051,10 @@ export function runRiskFactorEngine(
         : "";
       const perCategoryGap = !retRows.length
         ? " Retention is stated for the Activity as a whole and remains to be established category by category."
+        : retMissing.length
+        ? ` Retention is not stated for ${
+          asProse(retMissing.map((c) => `“${c}”`))
+        }; identifying it appears among the Follow-Ups in § 4.D.`
         : "";
       put(
         "ii_information:15",
@@ -1943,6 +2119,15 @@ export function runRiskFactorEngine(
       if (participants.length) parts.push(participants.join("\n"));
       if (internal) parts.push(`Internal participants: ${internal}.`);
       if (external) parts.push(`External participants consulted: ${external}.`);
+      // DOC 148 (A-Team Batch-8 P1) — where the consulted externals include
+      // legal counsel, the § 7152(a)(8) exception is stated expressly so the
+      // roster cannot read as treating counsel's legal advice as an
+      // information-provider entry.
+      if (external && /\b(counsel|attorney|law firm|llp)\b/i.test(external)) {
+        parts.push(
+          "Legal counsel providing legal advice is excepted from the § 7152(a)(8) information-provider record; counsel is noted here to complete the consultation record only.",
+        );
+      }
       parts.push(RISK52_FIXED.providers_close);
       put(
         "ii_information:18",
@@ -1958,7 +2143,9 @@ export function runRiskFactorEngine(
   // ══ III — ANALYSIS ═════════════════════════════════════════════════════════
 
   // III.A — triggers applied (Annex T3).
-  if (parsedTriggers.length) {
+  // DOC 148 — the guard includes the reconciled § 7150(b)(3) state so the
+  // analysis composes even when that was the only asserted trigger.
+  if (parsedTriggers.length || b3Reconciled) {
     const paras = parsedTriggers.map((t) => {
       const nMatch = /§\s*7150\(b\)\((\d)\)/.exec(t.cite);
       const shortCite = nMatch ? `§ 7150(b)(${nMatch[1]})` : t.cite;
@@ -1969,6 +2156,16 @@ export function runRiskFactorEngine(
     for (const u of uncertainSwept) {
       paras.push(
         `${u.replace(/[.!?]\s*$/, "")}: the information provided leaves this trigger unresolved; resolving it appears among the Follow-ups in § 4.D.`,
+      );
+    }
+    // DOC 148 (A-Team Batch-8 P0) — the reconciled § 7150(b)(3) state is
+    // analyzed in place, not silently dropped: the Company's affirmative
+    // answer and the contradicting activity record are both stated.
+    if (b3Reconciled) {
+      paras.push(
+        b3Reconciled === "advertising_only"
+          ? "§ 7150(b)(3) — using ADMT for a significant decision concerning a consumer — is not engaged on the information provided: the Company answers “Yes” to using automated decisionmaking technology for a significant decision, but the decision use the activity record identifies is advertising to consumers, and § 7001(ddd)(6) excludes advertising to a consumer from the significant-decision categories. Any separate covered significant decision made with this technology should be identified and the assessment updated."
+          : "§ 7150(b)(3) — using ADMT for a significant decision concerning a consumer — requires additional information: the Company answers “Yes” to using automated decisionmaking technology for a significant decision, but the information provided does not identify a decision within the categories enumerated in § 7001(ddd). Identifying that decision appears among the Follow-ups in § 4.D.",
       );
     }
     put(
@@ -2305,11 +2502,23 @@ export function runRiskFactorEngine(
         const bits: string[] = [];
         if (desc) bits.push(`The Company identifies the system as: ${quoted(desc)}`);
         if (roleClause) {
-          bits.push(`It classifies the system as ${roleClause}${role ? `: ${quoted(role)}` : "."}`);
+          // DOC 148 (A-Team Batch-8 P1) — the role sentence is the Company's
+          // OWN classification, expressly attributed, and the closer states
+          // the FINAL § 7001(e) test (replaces or substantially replaces
+          // human decisionmaking) instead of leaving the draft-era
+          // "substantial factor" wording to read as the operative standard.
+          bits.push(`The Company classifies the system as ${roleClause}${role ? `: ${quoted(role)}` : "."}`);
+          bits.push(
+            admtRoleType === "The ADMT makes the decision without human involvement"
+              ? "Under § 7001(e), technology that makes the decision without human involvement replaces human decisionmaking, and the testing behind its output is therefore the operative question."
+              : "Under § 7001(e), the operative question is whether the technology replaces or substantially replaces human decisionmaking — whether the reviewer knows how to interpret and use the output, considers it together with other relevant information, and has authority to make or change the decision; the human-review record below is read against that test.",
+          );
         } else if (role) {
           bits.push(`The system participates in the processing as follows: ${quoted(role)}`);
+          bits.push("The reliability of the output and the reviewer’s ability to depart from it are therefore the operative questions.");
+        } else {
+          bits.push("The reliability of the output and the reviewer’s ability to depart from it are therefore the operative questions.");
         }
-        bits.push("The reliability of the output and the reviewer’s ability to depart from it are therefore the operative questions.");
         put(
           "iii_analysis:15",
           "admt_role",
@@ -2369,14 +2578,36 @@ export function runRiskFactorEngine(
     {
       const accuracy = admtTestingFacts.includes("Tested for accuracy or validity");
       const bias = admtTestingFacts.includes("Tested for discriminatory impact or bias");
-      const recent = admtTestingFacts.includes("Testing performed or reviewed within the last 12 months");
+      const recentClaimed = admtTestingFacts.includes("Testing performed or reviewed within the last 12 months");
+      // DOC 148 (A-Team Batch-8 P0 temporal validation) — an ACTUAL dated
+      // testing fact controls over the generic recency selection. Where the
+      // Company's own testing description names an explicit period
+      // (quarter-year / month-year — latestExplicitPeriodEnd) that ended
+      // more than 12 months before the assessment date, the recency claim
+      // is contradicted: the recent credit is withheld, the conflict is
+      // stated, and resolving it completes among the Follow-Ups.
+      const testingDatedEnd = latestExplicitPeriodEnd(s(intake.i5_admt_fairness_testing));
+      const recencyConflict = recentClaimed && testingDatedEnd !== null &&
+        testingDatedEnd < isoDaysBefore(assessmentDate, 365);
+      const recent = recentClaimed && !recencyConflict;
       const providerOnly = admtTestingFacts.includes("Testing performed by the provider rather than the Company");
       const noneTyped = admtTestingFacts.includes("No testing has been performed or confirmed");
       if (admtTestingFacts.length) {
+        if (recencyConflict) {
+          followUps.push(
+            `Resolve the testing-recency conflict: the Company selects testing performed or reviewed within the last 12 months, but its testing description records a most recent explicit testing period ending ${testingDatedEnd}`,
+          );
+        }
         const testGaps: string[] = [];
         if (!accuracy) testGaps.push("accuracy or validity testing");
         if (!bias) testGaps.push("discriminatory-impact testing");
-        if (!recent) testGaps.push("testing within the last 12 months");
+        if (!recent) {
+          testGaps.push(
+            recencyConflict
+              ? "testing within the last 12 months (the recorded testing period ends earlier than the reported recency status; the recorded date controls, and resolving the conflict appears among the Follow-Ups in § 4.D)"
+              : "testing within the last 12 months",
+          );
+        }
         const testingText = noneTyped
           ? "No testing has been performed or confirmed for the system, and accuracy and fairness claims carry no evidentiary support — which weighs against the processing until testing is obtained."
           : accuracy && bias && recent
@@ -2836,7 +3067,11 @@ export function runRiskFactorEngine(
       // A-TEAM S4 RULING S2.15 (doc 119) — the legend states that the two
       // columns are qualitative dimensions, not operands of an equation.
       note:
-        `${CONSEQUENCE_BAND[consequence]} Benefit weight and risk level are separate qualitative dimensions; the determination applies the methodology in Section 1 rather than a numerical equation.`,
+        // DOC 148 (A-Team Batch-8 P1) — the methodology is expressly EUP's:
+        // § 7154 requires the risk-benefit determination; the qualitative
+        // matrix that renders it is product methodology, not a
+        // regulator-prescribed scoring formula, and the subline says so.
+        `${CONSEQUENCE_BAND[consequence]} Benefit weight and risk level are separate qualitative dimensions; the determination applies EUP’s conservative qualitative methodology described in Section 1 — not a regulator-prescribed scoring formula, and not a numerical equation.`,
     };
   }
   // A-TEAM S4 RULING S3.2 (doc 119, ChatGPT panel A3) — one cross-labeling
@@ -2982,12 +3217,32 @@ export function runRiskFactorEngine(
         d.setUTCFullYear(d.getUTCFullYear() + 3);
         return d.toISOString().slice(0, 10);
       })();
+      // DOC 148 (A-Team Batch-8 P0) — update-required, update-completed, and
+      // update-TIMELY are three separate facts. This assessment establishes
+      // the first two; timeliness is verifiable only against the recorded
+      // change date. Without that date the report no longer asserts the
+      // cadence is satisfied — it states the open verification and directs
+      // the record to be completed. With the date, the 45-day arithmetic is
+      // applied and stated honestly either way.
+      const mcDate = s(intake.material_change_date);
+      const mcParsed = /^\d{4}-\d{2}-\d{2}$/.test(mcDate) ? mcDate : null;
+      const mcDeadline = mcParsed
+        ? (() => {
+          const d = new Date(`${mcParsed}T00:00:00Z`);
+          d.setUTCDate(d.getUTCDate() + 45);
+          return d.toISOString().slice(0, 10);
+        })()
+        : null;
       const text = isYes(mc)
-        ? `The Company records a material change since the prior assessment${
-          s(intake.material_change_date) ? `, dated ${s(intake.material_change_date)}` : ""
-        }. The 45-day update rule governs that change, and this assessment serves as the update on the information provided. The governance cadence is satisfied by this assessment; the next scheduled review is ${nextReview}.${
-          s(intake.material_change_date) ? "" : " The date of the material change should be recorded to complete the governance record."
-        }`
+        ? (mcDate
+          ? `The Company records a material change since the prior assessment, dated ${mcDate}. The 45-day update rule governs that change, and this assessment serves as the update on the information provided.${
+            mcDeadline
+              ? (assessmentDate <= mcDeadline
+                ? " The update falls within 45 calendar days of the recorded change, and the governance cadence is satisfied by this assessment."
+                : ` On the recorded dates, this update falls outside the 45-calendar-day window (which ended ${mcDeadline}); the update itself is completed by this assessment, and the timing should be addressed in the governance record.`)
+              : " The governance cadence is satisfied by this assessment."
+          } The next scheduled review is ${nextReview}.`
+          : `The Company records a material change since the prior assessment. The 45-day update rule governs that change, and this assessment serves as the update on the information provided. Whether the update was completed within 45 calendar days of the change cannot be verified until the date of the material change is recorded; record that date to complete the governance record. The next scheduled review is ${nextReview}.`)
         : `No material change since a prior assessment is recorded. The three-year review cadence governs, and the next scheduled review is ${nextReview}.`;
       put(
         "v_governance:6",
@@ -3033,7 +3288,14 @@ export function runRiskFactorEngine(
     composed_factor_ids: Object.keys(factors),
     absent_class_c_ids: RISK_FACTOR_CLASS_C_IDS,
     exec_panel: {
-      assessment_required: engagedLines.length > 0,
+      // DOC 148 — the reconciled § 7150(b)(3) state never flips a report
+      // that asserted a trigger to "assessment not required": with other
+      // engaged triggers the answer is unchanged; where the reconciled b3
+      // was the ONLY asserted trigger, the conservative answer stays Yes
+      // while the trigger table and § 3.A carry the open/excluded state
+      // (never a silent downgrade of the requirement on a contradicted
+      // record — the doc-142 AIR precedent).
+      assessment_required: engagedLines.length > 0 || b3Reconciled !== null,
       inherent: pathways.length ? maxInherent : null,
       residual: pathways.length ? maxResidual : null,
       disposition: consequence,
@@ -3055,6 +3317,7 @@ export function runRiskFactorEngine(
         : null,
       has_unassessed: unassessed.length > 0,
       conditions_count: conditions.length,
+      triggers_engaged_count: engagedLines.length,
     },
   };
 }

@@ -296,7 +296,9 @@ for (const c of CPPA_RISK_PERFECT) {
     });
 
     await t.step("§ 3.E typed analyses render iff ADMT", () => {
-      assertEquals(body.includes("It classifies the system as"), isAdmt, "role analysis gating");
+      // DOC 148 — the role sentence is now expressly attributed ("The
+      // Company classifies the system as …", A-Team Batch-8 P1).
+      assertEquals(body.includes("classifies the system as"), isAdmt, "role analysis gating");
       assertEquals(body.includes("confirms that reviewers"), isAdmt, "human-review analysis gating");
     });
 

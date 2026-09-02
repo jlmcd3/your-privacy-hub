@@ -170,14 +170,26 @@ export { repairRegister } from "./register-repair.ts";
 // ── Canonical California PI / SPI taxonomy (single custody) ──────────────────
 
 import { CA_PI_TAXONOMY } from "./ca-pi-taxonomy.ts";
+// DOC 148 — the § 7150(b)(3) reconciliation classifier (single custody in
+// _shared; see admt-significant-decision.ts).
+import { classifyAdmtSignificantDecision } from "./admt-significant-decision.ts";
 
 // ── DERIVED builders (deterministic, no model) ───────────────────────────────
 
-/** {{DERIVED.applicable_7150_triggers}} — from the live trigger classification. */
-export function deriveApplicable7150Triggers(report: Bag): string | null {
+/** {{DERIVED.applicable_7150_triggers}} — from the live trigger classification.
+ * DOC 148 (A-Team Batch-8 P0) — when `intake` is supplied, the § 7150(b)(3)
+ * reconciliation the factor engine applies (doc-137 classifier: an
+ * advertising-only or category-unresolved q19 description never renders the
+ * b3 prong as engaged) is applied here too, so this slot can never list a
+ * trigger the trigger table does not. */
+export function deriveApplicable7150Triggers(report: Bag, intake?: Bag): string | null {
   const scope = arr((report.scope_and_triggers as Bag)?.narrative ?? report.scope_and_triggers);
+  const b3Suppressed = intake !== undefined &&
+    s(intake.q18_admt_use) === "Yes" &&
+    classifyAdmtSignificantDecision(s(intake.q19_admt_description)) !== "significant";
   const engaged = scope
     .filter((x) => x.startsWith("Engaged — "))
+    .filter((x) => !(b3Suppressed && /§\s*7150\(b\)\(3\)/.test(x)))
     .map((x) => x.replace(/^Engaged — /, "").replace(/:.*$/, "").trim())
     .filter(Boolean);
   return engaged.length ? asProse(engaged) : null;
@@ -229,7 +241,14 @@ export function deriveActivitySpiInventory(intake: Bag): string | null {
   return null;
 }
 
-/** {{DERIVED.initial_assessment_deadline}} — § 7155 timing rules over the status/start facts. */
+/** {{DERIVED.initial_assessment_deadline}} — § 7155 timing rules over the status/start facts.
+ * DOC 148 (A-Team Batch-8 P0) — the deadline is fact-gated: which § 7155
+ * deadline applies to processing already underway depends on WHEN it began.
+ * "Before initiation" was previously the fall-through for an ongoing
+ * activity with no recorded start date — a definitive deadline the record
+ * cannot support. That case now states the pending determination and the
+ * fork the start date resolves. Planned processing and dated starts are
+ * unchanged. */
 export function deriveInitialAssessmentDeadline(intake: Bag): string | null {
   const status = s(intake.processing_status);
   if (!status) return null;
@@ -241,7 +260,10 @@ export function deriveInitialAssessmentDeadline(intake: Bag): string | null {
   if (start && start < "2026-01-01") {
     return "Initial-assessment deadline: December 31, 2027 (transition deadline for covered processing initiated before January 1, 2026 and continuing afterward).";
   }
-  return `Initial-assessment deadline: before initiation of the processing${start ? ` (processing initiated ${start})` : ""}.`;
+  if (start) {
+    return `Initial-assessment deadline: before initiation of the processing (processing initiated ${start}).`;
+  }
+  return "Initial-assessment deadline: determination pending — record when the covered processing began (before initiation applies to processing initiated on or after January 1, 2026; the December 31, 2027 transition deadline applies to covered processing already underway before that date and continuing afterward).";
 }
 
 /** {{DERIVED.next_review_date}} — assessment date + the three-year review rule. */
@@ -379,8 +401,16 @@ export function buildRiskExecDashboard(
   report: Bag,
   intake: Bag,
 ): RiskExecDashboardPanel {
+  // DOC 148 (A-Team Batch-8 P0) — the engine's RECONCILED count is
+  // authoritative (§ 7150(b)(3) reconciliation applied there); the raw
+  // scope-line derivation remains only as the fallback for stored engine
+  // payloads that predate the field (cross-surface parity: the panel count
+  // must match the trigger table).
   const scope = arr((report.scope_and_triggers as Bag)?.narrative ?? report.scope_and_triggers);
-  const triggers_engaged_count = scope.filter((x) => x.startsWith("Engaged — ")).length;
+  const engineCount = (engine.exec_panel as { triggers_engaged_count?: number }).triggers_engaged_count;
+  const triggers_engaged_count = typeof engineCount === "number"
+    ? engineCount
+    : scope.filter((x) => x.startsWith("Engaged — ")).length;
   const ledger = engine.tables["iv_determination:1"];
   const risks_identified_count = ledger && Array.isArray(ledger.rows) ? ledger.rows.length : 0;
   const benefits_credited_count = extractBenefits(intake)
@@ -552,7 +582,11 @@ export function deriveAgencySubmissionChecklistTable(
       ["Point of contact — § 7157(b)(1)", contact],
       ["Phone", v("certContactPhone")],
       ["Email", v("certContactEmail")],
-      ["Processing activity covered by this submission", v("activityName")],
+      // DOC 148 (A-Team Batch-8 P2) — the old label ("covered by this
+      // submission") read as though each assessment is itself routinely
+      // submitted; the normal § 7157 filing is a business-level aggregate,
+      // and this row identifies the activity THIS assessment record covers.
+      ["Processing activity covered by this assessment record", v("activityName")],
       ["Categories of personal information involved", v("piCategories")],
       ["Categories of sensitive personal information involved", deriveActivitySpiInventory(intake) || "Not reported."],
     ],
@@ -761,7 +795,7 @@ export function buildRiskSlotValues(intake: Bag, report: Bag = {}): SlotValues {
     activityName: clause(intake.primary_activity_name) || null,
     subjectAnchor: clause(intake.subject_anchor) || null,
     activityPurpose: clause(intake.primary_activity_purpose) || null,
-    derivedTriggers: deriveApplicable7150Triggers(report),
+    derivedTriggers: deriveApplicable7150Triggers(report, intake),
     piCategories: asProse(arr(intake.q4_pi_categories)) || null,
 
     // § 2.A — DOC 144: the customer-voice intro sentence rides a slot so it
@@ -923,6 +957,22 @@ const FACTOR_MATRIX_ROWS: readonly FactorMatrixRowSpec[] = [
  * trigger row's authority cell carries the compact interpretive citation
  * trail exactly when Appendix B renders. WAVE C1 trail_impact tags carried
  * unchanged. */
+/** DOC 148 (A-Team Batch-8 P2, appendix compression) — bound the embedded
+ * “…” quotations inside an Appendix A determination cell. The matrix is a
+ * cross-reference: the FULL verbatim quote already prints in the body, and
+ * a cell repeating a 60-word quotation was the main driver of appendix
+ * length. A quoted span longer than `maxWords` is clipped to its first
+ * `maxWords` words plus a visible ellipsis INSIDE the quotation marks, so
+ * the elision is explicit and the quote is never silently rewritten. Text
+ * outside quotation marks is untouched. */
+export function clipQuotedPassages(text: string, maxWords = 12): string {
+  return text.replace(/“([^”]*)”/g, (_full, inner: string) => {
+    const words = inner.trim().split(/\s+/);
+    if (words.length <= maxWords + 3) return `“${inner}”`;
+    return `“${words.slice(0, maxWords).join(" ")} …”`;
+  });
+}
+
 export function buildFactorAuthorityMatrixTable(
   report: Bag,
   intake: Bag,
@@ -941,7 +991,9 @@ export function buildFactorAuthorityMatrixTable(
     if (persuasiveTrail && spec.label === "Regulatory trigger and applicability") {
       authority = `${authority}; persuasive (Appendix B): analogous enforcement — ${persuasiveTrail}`;
     }
-    rowsOut.push([spec.label, firstSubstantiveSentence(determination), authority]);
+    // DOC 148 — determination cells clip long embedded quotes (see
+    // clipQuotedPassages); the body keeps every quote in full.
+    rowsOut.push([spec.label, clipQuotedPassages(firstSubstantiveSentence(determination)), authority]);
   }
   if (rowsOut.length === 0) return null;
   return {

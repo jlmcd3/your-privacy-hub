@@ -1623,7 +1623,17 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
     const prop = propById.get(c.id);
     const engagedFromGate = gate?.outcome === "pass";
     const engagedFromProp = (prop as { polarity?: string } | undefined)?.polarity === "positive";
-    const engaged = engagedFromGate || engagedFromProp;
+    // DOC 148 (2026-09-02, A-Team Batch-8 P0) — the § 7150(b)(3) category
+    // gate's classifier block (advertising-only / category-unresolved) is a
+    // DETERMINED negative on the current intake; a stale positive
+    // proposition polarity (replayed record) must not resurrect the prong.
+    // Scoped to the two b3-classifier reasons only — every other prong keeps
+    // the ratified OR fallback.
+    const b3ClassifierBlocked = gate?.outcome === "block" &&
+      /^b3_(advertising_exclusion|significant_decision_category_unresolved)/.test(
+        (gate as { reason?: string }).reason ?? "",
+      );
+    const engaged = (engagedFromGate || engagedFromProp) && !b3ClassifierBlocked;
     // PN-CORPUS-L-RISK-1 — the § 7150(b)(2)(A) personnel carve-out is a
     // DISTINCT not-engaged posture (the record supports the conduct; the
     // subsection removes it from the trigger), keyed off the gate's own
