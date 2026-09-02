@@ -61,6 +61,9 @@ export default function AllProductsTest() {
         scoresAndLogFirst
         showLocalRunLog
         renderLocalBatchActions={localBatchActions}
+        // SERVER-BATCH LAW: batches launched here write static_stress_batches
+        // rows; read them from the server so today's batches always show.
+        showStressBatches
         // Ungraded tail — ONLY the products the orchestrator cannot dispatch or
         // grade. No product appears in both lists.
         extraHistoryTools={["ropa", "us-notice", "eu-notice"]}
