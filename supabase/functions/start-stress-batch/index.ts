@@ -274,9 +274,11 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
     } catch { /* best-effort */ }
   } finally {
     if (!reachedEnd) {
-      selfInvokeNext(batchId, companyIndex + 1);
+      chainNext();
     }
+    console.log(`[start-stress-batch] company ${companyIndex} done for ${batchId} — chained=${chained} reachedEnd=${reachedEnd}`);
   }
+
 }
 
 async function repairFixtureFailures(batchId: string): Promise<{ repaired: number; failed: number }> {
