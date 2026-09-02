@@ -206,6 +206,9 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
         })
         .eq("id", batchId);
 
+      // Hand off to the next company NOW — before any slow best-effort work.
+      chainNext();
+
       // After the first company's jobs are inserted, launch parallel workers.
       // They continuously claim and process jobs as more companies are added by
       // the ongoing setup chain. Workers self-sustain via run-stress-job's own
@@ -220,13 +223,16 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
 
         const WORKER_COUNT = 20;
         for (let w = 0; w < WORKER_COUNT; w++) {
-          // Stagger launches to avoid a thundering-herd claim collision.
-          await new Promise((r) => setTimeout(r, w * 500));
-          invokeFn("run-stress-job", { batch_id: batchId, job_id: null }).catch((e) =>
-            console.warn(`[start-stress-batch] worker ${w} early-start launch failed:`, e)
-          );
+          // Stagger launches without blocking this invocation: an awaited
+          // cumulative sleep (~95s) used to burn the wall clock here.
+          setTimeout(() => {
+            invokeFn("run-stress-job", { batch_id: batchId, job_id: null }).catch((e) =>
+              console.warn(`[start-stress-batch] worker ${w} early-start launch failed:`, e)
+            );
+          }, w * 500);
         }
       }
+
 
     } catch (err) {
       const errMsg = (err as Error).message?.slice(0, 480) ?? "unknown";
