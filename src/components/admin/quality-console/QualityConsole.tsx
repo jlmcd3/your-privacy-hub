@@ -837,9 +837,11 @@ export function QualityConsole({
     } catch (e: any) {
       toast.error(`Load older failed: ${e?.message ?? e}`);
     } finally {
+      if (showStressBatches) setStressLoaded((n) => n + BATCH_PAGE);
       setLoadingOlder(false);
     }
   }
+
 
   // ─── Score matrix data ───────────────────────────────────────────────────
   // BATCH LAW — every batch is its OWN column, ordered oldest → newest:
