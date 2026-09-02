@@ -447,6 +447,10 @@ export interface RiskFactorEngineResult {
     /** True when a named risk lacks the likelihood/severity the balance
      * requires (drives the honest tier text when no risk was assessable). */
     readonly has_unassessed: boolean;
+    /** DOC 135 FOLLOW-UP (deferred item, 2026-09-01) — the count of §4.D
+     * Conditions to Proceed / Conditions for Reassessment, so the cover
+     * panel can state "Number of Conditions" without re-deriving it. */
+    readonly conditions_count: number;
   };
 }
 
@@ -2706,6 +2710,7 @@ export function runRiskFactorEngine(
         ? "Provide the likelihood and severity for the risk or risks identified among the Follow-Ups in § 4.D, and update the assessment."
         : null,
       has_unassessed: unassessed.length > 0,
+      conditions_count: conditions.length,
     },
   };
 }

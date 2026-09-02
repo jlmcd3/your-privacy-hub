@@ -1429,10 +1429,29 @@ const DPIA_MATRIX_ROWS: readonly DpiaMatrixRowSpec[] = [
     // DETERMINATION — the trigger conclusion itself is the point of this factor.
     label: "DPIA requirement / high-risk trigger",
     authority: "GDPR Art. 35(1), (3)–(5); EDPB-endorsed WP248 rev.01; applicable supervisory-authority Art. 35(4) list",
-    reportDetermination: ({ values }) =>
-      values.reasonsToConduct
+    // DOC 135 FOLLOW-UP (deferred item, 2026-09-01) — the generic
+    // reasons_to_conduct sentence is the only trigger text this row ever
+    // showed. doc 131's Art. 35(3)(c) four-branch fact-walk
+    // (engagement-map.ts's R_ART_35_3_C_PUBLIC_MONITORING, LEGAL
+    // REQUIREMENT -> FACTS -> ANALYSIS -> DETERMINATION) has been computed
+    // and attached to report.engagement_map since that batch shipped, but
+    // nothing ever rendered it — confirmed absent from a live graded PDF.
+    // Surfaced here, appended to the existing sentence, ONLY on the typed
+    // branch (intake.imagery_capture answered) — the legacy lexicon
+    // branch's rationale is generic boilerplate that would clutter every
+    // DPIA with no imagery facts at all, so it stays unrendered as before.
+    reportDetermination: ({ values, report, intake }) => {
+      const base = values.reasonsToConduct
         ? `${s(values.organizationName)}’s processing triggers this assessment because ${s(values.reasonsToConduct)}.`
-        : null,
+        : null;
+      if (!s(intake.imagery_capture)) return base;
+      const engagementMap = (report as Bag).engagement_map as Bag | undefined;
+      const entries = asArray(engagementMap?.entries);
+      const art353c = entries.find((e) => s(e.rule_id) === "R_ART_35_3_C_PUBLIC_MONITORING");
+      const rationale = art353c ? s(art353c.rationale) : "";
+      if (!rationale) return base;
+      return base ? `${base} ${rationale}` : rationale;
+    },
   },
   {
     // DESCRIPTIVE — a heterogeneous inventory (controller, processors, planning, team, approval); named by category, not by count, since the five underlying tables carry different kinds of rows.

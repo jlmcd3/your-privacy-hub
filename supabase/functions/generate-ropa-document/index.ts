@@ -624,9 +624,22 @@ function registerHtml(reg: RopaRegisterDocument): string {
                 .join(""),
         )
         .join("");
+      // DOC 135 FOLLOW-UP (deferred item, 2026-09-01) — this 8-column
+      // Art. 30(1)(a)-(g) matrix used the "kv" class, built for narrow
+      // 2-column label/value tables with a fixed 200px column width (8 x
+      // 200px far exceeds the 880px content area). Switched to "grid" —
+      // already proven for this document's 5-column cross-border transfer
+      // table (bordered cells, no fixed width) — plus header-repeat CSS
+      // below. Landscape orientation was tried fleet-wide and reverted
+      // (doc 66 Rule 10, 2026-08-25): PDFShift's Chromium clips text past
+      // the page edge on a rotated named page without any visible warning
+      // in the composed HTML, so it is never reintroduced without a
+      // dedicated per-page text-extraction render test. This document
+      // already offers the A-Team's third alternative (one card per
+      // processing activity, Section 2 below) independently of this fix.
       const table =
         sec.id === "processing_activities" && reg.activity_records.length
-          ? `<table class="kv"><thead><tr>${registerTableAoa(reg)[0]
+          ? `<table class="grid"><thead><tr>${registerTableAoa(reg)[0]
               .map((h) => `<th>${escapeHtml(h)}</th>`)
               .join("")}</tr></thead><tbody>${registerTableAoa(reg)
               .slice(1)
@@ -850,6 +863,8 @@ function buildHtml(d: AssembledData): string {
     h2, h3 { break-after: avoid; page-break-after: avoid; }
     h2 + *, h3 + * { break-before: avoid; page-break-before: avoid; }
     table.kv tr { break-inside: avoid; page-break-inside: avoid; }
+    table.grid thead { display: table-header-group; }
+    table.grid tr { break-inside: avoid; page-break-inside: avoid; }
     ul { break-inside: avoid; page-break-inside: avoid; }
     .signature { break-before: avoid; page-break-before: avoid; }
     .signature + * { break-inside: avoid; page-break-inside: avoid; }
@@ -859,6 +874,8 @@ function buildHtml(d: AssembledData): string {
       h2, h3 { break-after: avoid; page-break-after: avoid; }
       h2 + *, h3 + * { break-before: avoid; page-break-before: avoid; }
       table.kv tr { break-inside: avoid; page-break-inside: avoid; }
+      table.grid thead { display: table-header-group; }
+      table.grid tr { break-inside: avoid; page-break-inside: avoid; }
       ul { break-inside: avoid; page-break-inside: avoid; }
       .signature { break-before: avoid; page-break-before: avoid; }
       .signature + * { break-inside: avoid; page-break-inside: avoid; }

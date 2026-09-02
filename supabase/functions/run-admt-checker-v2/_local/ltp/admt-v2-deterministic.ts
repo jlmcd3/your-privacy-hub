@@ -259,8 +259,21 @@ export function computeScope(intake: Intake): ScopeResult {
         substantive_state: "GAP", decision_effect: "CONDITION",
         factual_basis: "The Company's own system description reports outcomes that are decided automatically (auto-approved or auto-declined), which the reported human review does not cover; for those decisions the System is ADMT and the Article 11 duties apply.",
         authority: humanInvolvementBasis,
-        action_text: "Either extend qualifying human review to every significant decision the System touches, or treat the automatically-decided pathways as in-scope ADMT and put the Article 11 Pre-use Notice, opt-out, and access processes in place for them.",
-        priority: 1, closure_condition: "qualifying human review confirmed for every decision pathway, or the automated pathways brought under Article 11",
+        // DOC 135 FOLLOW-UP (CEO-ratified 2026-09-01) — the choice-of-remedy
+        // sentence doesn't tell the reader what to verify once they pick the
+        // "bring the automated pathways under Article 11" branch: the
+        // Company's Notice/opt-out/access answers are recorded once for the
+        // System as a whole (confirmed against the live intake form — no
+        // question anywhere asks for a per-pathway variant), so a report
+        // cannot state whether those processes actually cover the automated
+        // pathways the same way they cover the human-reviewed one. Rather
+        // than build new per-pathway intake fields (a schema project), the
+        // CEO ratified stating the limitation and asking the Company to
+        // confirm pathway-uniformity — no intake field is quoted, so this
+        // never breaks on an empty/unusual answer and doesn't duplicate the
+        // Assessment Fact Record appendix.
+        action_text: "Either extend qualifying human review to every significant decision the System touches, or treat the automatically-decided pathways as in-scope ADMT and put the Article 11 Pre-use Notice, opt-out, and access processes in place for them. The Company's Pre-use Notice, opt-out, and access processes are recorded for the System as a whole, without distinguishing among decision pathways. Before relying on that record for the automatically-decided pathways, the Company should confirm that each of these processes operates identically there as it does where a human reviews the decision. Any pathway where a process differs has not yet been assessed under Article 11 and should be evaluated separately.",
+        priority: 1, closure_condition: "qualifying human review confirmed for every decision pathway, or the automated pathways brought under Article 11, with pathway-uniformity of the notice/opt-out/access processes confirmed",
       }));
     }
   } else if (humanReviewUnresolved) {

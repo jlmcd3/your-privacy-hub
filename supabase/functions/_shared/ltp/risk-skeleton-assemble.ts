@@ -278,6 +278,15 @@ export function deriveExecStatusPanel(
     ["Residual privacy risk", tier(panel.residual)],
     ["Assessment disposition", disposition],
   ];
+  // DOC 135 FOLLOW-UP (deferred item, 2026-09-01) — A-Team-requested cover
+  // field the panel didn't carry: how many §4.D conditions this
+  // determination depends on. No-padding law: a zero count isn't itself
+  // informative here (the body already states "No conditions to proceed"
+  // when there are none), so the row only appears when there's something
+  // to count.
+  if (panel.conditions_count > 0) {
+    rows.push(["Number of conditions", String(panel.conditions_count)]);
+  }
   // DOC 127 PART I — the path/reason line beneath an adverse or
   // information-gated disposition: no "Do Not Proceed" is ever a dead end.
   if (panel.path_forward) rows.push(["Path forward", panel.path_forward]);

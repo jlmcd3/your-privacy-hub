@@ -222,6 +222,7 @@ Deno.test("doc127 — the cover panel renders the controlled label, the path row
     disposition_label: "Additional Information Required",
     path_forward: "Provide the likelihood and severity for the risk or risks identified among the Follow-Ups in § 4.D, and update the assessment.",
     has_unassessed: true,
+    conditions_count: 0,
   });
   assert(table !== null);
   assertEquals(

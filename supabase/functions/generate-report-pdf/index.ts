@@ -2086,7 +2086,16 @@ export function buildSkeletonReportHTML(doc: SkeletonDocLike, record: any, fallb
   // print pipeline cannot resolve target page numbers, so entries are
   // anchor links without page numbers. Extension to any other product
   // waits for a calibrated batch readout, as its own ruling.
-  const tocHtml = product === "cppa-cyber"
+  //
+  // DOC 135 FOLLOW-UP (deferred item, 2026-09-01, CEO-directed) — extended
+  // to cppa-risk, reusing the identical mechanism proven for Cyber. Page
+  // numbers remain the same known, documented limitation noted above (not
+  // attempted here); PDF outline/bookmark entries were also considered
+  // and not attempted — this pipeline emits plain HTML to PDFShift, which
+  // has no supported path from HTML markup to a PDF's native bookmark
+  // tree without a separate post-processing step, out of scope for this
+  // batch.
+  const tocHtml = (product === "cppa-cyber" || product === "cppa-risk")
     ? (() => {
       const items = (doc.sections ?? [])
         .map((sec, i) => ({ title: (sec.title ?? "").trim(), i }))
