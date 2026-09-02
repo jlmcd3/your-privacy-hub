@@ -299,7 +299,13 @@ export function AllProductsPanel() {
             appendAllProductsLog("batch", `… ${summary}`);
             lastSummary = summary;
           }
-          if (["complete", "completed", "failed", "cancelled"].includes(batch.status)) {
+          // SETUP-GATE LAW (2026-09-02) — see the launching monitor below.
+          const setupFinished =
+            (batch.setup_total ?? 0) > 0 && (batch.setup_done ?? 0) >= batch.setup_total;
+          if (
+            batch.status === "cancelled" ||
+            (setupFinished && ["complete", "completed", "failed"].includes(batch.status))
+          ) {
             // COMPLETION LAW — "batch complete" is only printed once every
             // grading call started by this monitor has settled.
             if (gradingWork.length) {
