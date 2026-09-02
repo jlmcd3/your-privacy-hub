@@ -1978,10 +1978,23 @@ Return JSON:
     // (live batch row 63e7fd51, DB-verified). The full persisted row is what
     // attachLiaDeliverables already reads by design; the map now reads it too.
     try {
+      // DOC 139 (2026-09-02) — pass through the already-computed, already-
+      // ratified eprivacy-gate.ts determination (attached above by ITEM
+      // 311's attachLiaDeliverables, which runs before this block) so
+      // R_EPRIVACY_PECR can key off the SAME fact-precise gate the rest of
+      // the report uses, instead of engagement-map.ts's own coarser regex.
+      // See engagement-map.ts's DOC 139 comment on that rule for the
+      // mapping and _local/ltp/lia-skeleton-assemble.ts's eprivacyOverlayNote
+      // DOC 139 comment for why the pass-through happens here rather than
+      // inside either of those two modules.
+      const _eprivacyDetermination = (
+        (reportData as any)?.eprivacy_short_circuit?.determination
+      ) as string | undefined;
       (reportData as any).engagement_map = buildLiaEngagementMap(
         assessment as unknown as Record<string, unknown>,
         liaTestStates as any,
         engagedFrameworks,
+        _eprivacyDetermination,
       );
     } catch (e) {
       console.warn("[run-li-assessment] engagement_map build skipped:", (e as Error)?.message);

@@ -936,6 +936,23 @@ export function runRiskFactorEngine(
   }
 
   const followUps: string[] = [];
+  // DOC 139 (2026-09-02) — external legal review on doc 137/138 (row
+  // us-ds2-mtjlerdl-tti856): q15_sensitive_pi (Yes/No) and the q4 category
+  // inventory (filtered against CA_SPI_CATEGORY_KEYS, the statutory taxonomy)
+  // are independent intake fields never designed to cross-validate each
+  // other. When q15 answers Yes but none of the reported q4 categories maps
+  // to a true statutory SPI category, the qualifying category is genuinely
+  // unresolved on the record — this mirrors deriveActivitySpiInventory's
+  // fallback sentence (risk-skeleton-assemble.ts) and keeps that gap out of
+  // a report that otherwise shows zero conditions/follow-ups.
+  if (
+    isYes(intake.q15_sensitive_pi) &&
+    arr(intake.q4_pi_categories).filter((c) => CA_SPI_CATEGORY_KEYS.includes(c)).length === 0
+  ) {
+    followUps.push(
+      "Identify the qualifying statutory sensitive-personal-information category the Company’s Yes answer relies on; none of the reported personal-information categories maps to a Cal. Civ. Code § 1798.140(ae) sensitive-PI category on the information provided",
+    );
+  }
   if (necessity.unsure.length) {
     followUps.push(
       `Establish whether the following ${

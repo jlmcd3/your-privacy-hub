@@ -335,11 +335,17 @@ Deno.test("v5.2 — SPI inventory maps the canonical taxonomy with the q15 fallb
   const locusSpi = deriveActivitySpiInventory(locus);
   assert(locusSpi?.includes("Precise geolocation"), locusSpi ?? "");
   const sierraSpi = deriveActivitySpiInventory(sierra);
-  // RE-PIN PANEL RISK-P2 (2026-08-30): the q15-Yes fallback was the circular
-  // placeholder "the sensitive personal information the Company has
-  // identified in its submission"; it now states the limitation honestly.
+  // RE-PIN DOC 139 (2026-09-02): the q15-Yes fallback originally read "the
+  // sensitive personal information the Company has identified in its
+  // submission" (circular placeholder), then PANEL RISK-P2 (2026-08-30)
+  // changed it to "...the specific categories are not named in the activity
+  // record." An external legal review then flagged that RISK-P2 wording as
+  // reading like a completed finding rather than an open statutory-category
+  // gap between the independent q15 Yes/No and the q4 category inventory;
+  // it now states that the qualifying category is unidentified and must be
+  // resolved before the SPI-driven analysis can be finalized.
   assert(
-    sierraSpi?.includes("the specific categories are not named in the activity record"),
+    sierraSpi?.includes("the qualifying statutory category has not been identified"),
     sierraSpi ?? "",
   );
   assertEquals(

@@ -380,13 +380,44 @@ export function precedentClassSentence(report: Bag, deterministic = false): stri
 // can alter the three-part-test outcome on its own regex triggers; this
 // function does not call it, read it, or duplicate its triggers.
 //
-// R_EPRIVACY_PECR's status is "engaged" or "conditional" — engagement-map.ts
-// never assigns it a non-engagement status, so in practice this renders on
-// every record with an engagement_map. The gate below is still written
-// defensively (only "engaged"/"conditional" render; anything else, or a
-// missing entry, renders nothing) so a future narrowing of that rule's
-// status values is honored automatically without a further code change
-// (NO-PADDING LAW — no placeholder for a null/negative result).
+// DOC 139 (2026-09-02) — fact-gating fix for a P1 an external legal review
+// raised against doc 137's overlay: engagement-map.ts's R_EPRIVACY_PECR
+// used to resolve "engaged" on a coarse keyword regex and "conditional" on
+// everything else, but NEVER "not_engaged" on the facts — so the firm
+// "requires a separate consent or exemption..." sentence was reaching every
+// device/wearable-adjacent record regardless of whether the record's own
+// facts (storage on/access to terminal equipment, a network-connected
+// device, the controller actually reading stored device information)
+// establish that PECR Regulation 6 actually engages.
+//
+// FIX LOCATION: the fix lives in `_shared/engagement-map.ts`, NOT here.
+// `buildLiaEngagementMap` now takes the ALREADY-COMPUTED determination from
+// the already-ratified, narrower `eprivacy-gate.ts` (passed through by the
+// caller in index.ts, which computes that gate's finding and has the
+// intake in scope) and uses IT — not its own regex — to decide
+// R_EPRIVACY_PECR's status: "engaged" now means the harder gate's own
+// unmistakable triggers fired (determination "consent_requirement_engaged");
+// "conditional" now means the harder gate is itself ambiguous
+// ("undetermined_on_the_record"); "not_engaged" means the harder gate found
+// no signal at all ("not_engaged_on_the_record"). See that file's own DOC
+// 139 comment for the full mapping.
+//
+// This function is DELIBERATELY UNCHANGED in what it reads — still only
+// `report.engagement_map`'s `R_EPRIVACY_PECR` entry, and it still never
+// reads the harder gate's own report field directly (see
+// tests/edge/run-li-assessment/eprivacy-gate.test.ts's ratified assertion
+// that this file must never consume that finding directly — the typed
+// engine's outcome override is the only door for eprivacy-gate.ts's own
+// prose to reach the Art. 6(1)(f) determination; this overlay's door is the
+// re-mapped engagement_map entry instead, and stays fully separate from
+// that determination). The only change here is the CONTENT for the
+// "conditional" status: since "conditional" now specifically means the
+// harder gate is ambiguous (not just "didn't match the coarse regex"), it
+// renders the qualified statement the reviewer requested instead of the
+// generic rationale text.
+const EPRIVACY_ADDITIONAL_INFO_REQUIRED =
+  "PECR/ePrivacy applicability — Additional Information Required. The assessment record does not establish whether the processing involves storage of information on, or access to information stored on, terminal equipment in a manner that engages PECR Regulation 6. Confirm the device and communications architecture before drawing that conclusion.";
+
 export function eprivacyOverlayNote(report: Bag): string {
   const engagementMap = bag(report.engagement_map);
   const entries = Array.isArray(engagementMap.entries) ? engagementMap.entries : [];
@@ -395,7 +426,8 @@ export function eprivacyOverlayNote(report: Bag): string {
     .find((e) => s(e.rule_id) === "R_EPRIVACY_PECR");
   if (!entry) return "";
   const status = s(entry.status);
-  if (status !== "engaged" && status !== "conditional") return "";
+  if (status === "conditional") return EPRIVACY_ADDITIONAL_INFO_REQUIRED;
+  if (status !== "engaged") return "";
   const rationale = s(entry.rationale);
   if (!rationale) return "";
   const lowered = rationale.charAt(0).toLowerCase() + rationale.slice(1);

@@ -22,7 +22,12 @@
 import {
   GOVERNANCE_SKELETON_SECTIONS,
   GOVERNANCE_SKELETON_TITLE,
-  GOVERNANCE_SKELETON_SUBTITLE,
+  // DOC 139 (2026-09-02) — FIX 1: the bare GOVERNANCE_SKELETON_SUBTITLE
+  // export is no longer read here; the subtitle is jurisdiction-conditional,
+  // selected below by hasGovernanceUkInScope(), same pattern as DPIA's
+  // readDpiaRegime()/DPIA_SKELETON_SUBTITLE_EU/_UK selection.
+  GOVERNANCE_SKELETON_SUBTITLE_NO_UK,
+  GOVERNANCE_SKELETON_SUBTITLE_WITH_UK,
   GOVERNANCE_SKELETON_VERSION,
   GOVERNANCE_V3_BANNED_REGISTER,
 } from "../prose/plans/governance.spine.ts";
@@ -48,6 +53,17 @@ const s = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
 const arr = (v: unknown): string[] =>
   Array.isArray(v) ? v.map((x) => s(x)).filter(Boolean) : s(v) ? [s(v)] : [];
 const isNA = (v: string) => !v || /^(n\/a|not applicable|unknown)$/i.test(v);
+
+// DOC 139 (2026-09-02) — FIX 1 / FIX-1-supporting FIX 2 gate: does the
+// intake's jurisdictions list name the UK? Mirrors the `hasUkInScope` test
+// index.ts already computes for `governanceRegime` (the GDPR-vs-UK-GDPR
+// citation selector at line ~980) — same regex, applied here to the intake
+// directly since this module does not receive index.ts's derived flag. Kept
+// permissive on purpose ("united kingdom" / "uk" / "gb") to match that
+// existing selector rather than introduce a second, narrower UK test.
+function hasGovernanceUkInScope(intake: Bag): boolean {
+  return arr(intake.jurisdictions).some((j) => /united kingdom|^uk$|^gb$/i.test(j));
+}
 
 function asProse(items: readonly string[]): string {
   const xs = items.filter(Boolean);
@@ -441,6 +457,32 @@ function domainSeverityPhrase(report: Bag, needle: RegExp): string {
   return gap ? `assessed with severity ${sev} — ${gap.replace(/\.$/, "")}` : `assessed with severity ${sev}`;
 }
 
+// DOC 139 (2026-09-02) — FIX 2: `dpo.verdict` is a roll-up across
+// designation_trigger / position_and_independence / task_coverage (see
+// buildDpoDetermination, governance-deliverables/build.ts). By that
+// function's own construction, the roll-up can only read "satisfied" when
+// the designation is FORMAL and both adjacent Art. 39 activities (training,
+// DPIA) are recorded — but on exactly that path,
+// position_and_independence.application and task_coverage.application (the
+// DOC 137 fix, 2026-09-01) say the Article 38 operating safeguards and the
+// three untested Article 39 tasks are "not independently assessed", never
+// "evidenced". Feeding that same "satisfied" roll-up through verdictPhrase()
+// produced "the DPO determination is evidenced on the information
+// provided" here — a blanket claim more conclusive than the body it is
+// supposed to restate. This reads the SAME sub-finding data the body
+// composes from (not a second hardcoded string) to keep the crosswalk row
+// honest for that one roll-up value; every other roll-up value (not_satisfied,
+// partially_satisfied, not_applicable, record_insufficient) already reads
+// accurately through verdictPhrase() and is left unchanged.
+function dpoAccountabilityRead(dpo: Bag): string {
+  const verdict = s(dpo.verdict);
+  if (!verdict) return "not separately assessed by this report";
+  if (verdict === "satisfied") {
+    return "formal DPO designation evidenced; the Article 38 operating safeguards and the untested Article 39 tasks are not independently assessed";
+  }
+  return `the DPO determination is ${verdictPhrase(verdict)}`;
+}
+
 // BATCH 20a (Wave C4, doc 113 S5.2) — the crosswalk's ten rows, shared by
 // the table builder; the verdict reads keep their bytes.
 function icoCrosswalkRows(report: Bag): Array<[string, string]> {
@@ -454,7 +496,7 @@ function icoCrosswalkRows(report: Bag): Array<[string, string]> {
     : "not separately assessed by this report";
 
   return [
-    ["Leadership and oversight", s(dpo.verdict) ? `the DPO determination is ${verdictPhrase(s(dpo.verdict))}` : "not separately assessed by this report"],
+    ["Leadership and oversight", dpoAccountabilityRead(dpo)],
     ["Policies and procedures", domainSeverityPhrase(report, /internal.?policy|policy/i)],
     ["Training and awareness", domainSeverityPhrase(report, /training/i)],
     ["Individuals' rights", domainSeverityPhrase(report, /subject.?rights|rights/i)],
@@ -768,6 +810,12 @@ export function assembleGovernanceSkeletonDocument(
     : ((report.organisation_profile ?? {}) as Bag);
   const values = buildGovernanceSlotValues(intake);
   const org = s(intake.organization_name) || "the company";
+  // DOC 139 (2026-09-02) — FIX 1 + FIX 2's gating call: computed once, used
+  // both for the subtitle selection below and to gate the ICO crosswalk
+  // appendix (an ICO-specific — i.e. UK-regulator-specific — framework has
+  // no business appearing in a report for a record with no UK GDPR
+  // exposure).
+  const hasUk = hasGovernanceUkInScope(intake);
 
   const composed: ComposedBlocks = {
     "executive_summary:0": ratingLead(report, org),
@@ -807,11 +855,22 @@ export function assembleGovernanceSkeletonDocument(
     // block is product-supplied (the renderer's contract for rule-kind
     // blocks, same as table_of_authorities:0): its fixed sentence prints
     // verbatim, followed by the ten composed verdict-read entries.
-    "ico_crosswalk:0":
-      "The UK Information Commissioner's Accountability Framework organises accountability into ten categories. This appendix maps the determinations of this assessment onto those categories, so the reader can see the record in the regulator's own structure; each entry restates a determination made above and decides nothing new.",
+    //
+    // DOC 139 (2026-09-02) — FIX 1's ICO-crosswalk half: the UK Information
+    // Commissioner's Accountability Framework has no business appearing in a
+    // report for a record with no UK GDPR exposure. Gated entirely on
+    // `hasUk` rather than reworded, following this renderer's own
+    // NO-PADDING LAW ("lead / generated / conditional / rule — all supplied
+    // by the product composer. No content means the block is honestly
+    // absent," skeleton-render.ts renderSkeletonDocument) — an empty string
+    // here (and an empty table below) drops the entire ico_crosswalk section,
+    // the same mechanism a table with zero rows already relies on.
+    "ico_crosswalk:0": hasUk
+      ? "The UK Information Commissioner's Accountability Framework organises accountability into ten categories. This appendix maps the determinations of this assessment onto those categories, so the reader can see the record in the regulator's own structure; each entry restates a determination made above and decides nothing new."
+      : "",
     // BATCH 20a (doc 113 S5.2) — :1 is the crosswalk table; the detached
     // closing sentence composes at :2.
-    "ico_crosswalk:2": composeIcoCrosswalk(report),
+    "ico_crosswalk:2": hasUk ? composeIcoCrosswalk(report) : "",
   };
 
   // BATCH 19a (doc 113 S3.2) — the scoreboard, keyed to its spine block.
@@ -819,13 +878,20 @@ export function assembleGovernanceSkeletonDocument(
     "executive_summary:3": deriveGovernanceScoreboard(report),
     // BATCH 20a (doc 113 S5.1/S5.2).
     "the_determination:2": deriveRemediationRegisterTable(report),
-    "ico_crosswalk:1": deriveIcoCrosswalkTable(report),
+    // DOC 139 — no UK in scope, no crosswalk table either (see above).
+    "ico_crosswalk:1": hasUk ? deriveIcoCrosswalkTable(report) : null,
   };
+
+  // DOC 139 (2026-09-02) — FIX 1's subtitle half: selected by whether the
+  // intake names the UK, exactly as DPIA's readDpiaRegime() selects between
+  // DPIA_SKELETON_SUBTITLE_EU / _UK — never a render-time .replace over a
+  // ratified constant.
+  const subtitle = hasUk ? GOVERNANCE_SKELETON_SUBTITLE_WITH_UK : GOVERNANCE_SKELETON_SUBTITLE_NO_UK;
 
   const draft = renderSkeletonDocument({
     sections: GOVERNANCE_SKELETON_SECTIONS,
     title: GOVERNANCE_SKELETON_TITLE,
-    subtitle: GOVERNANCE_SKELETON_SUBTITLE,
+    subtitle,
     spineVersion: GOVERNANCE_SKELETON_VERSION,
     values,
     composed,
@@ -837,7 +903,7 @@ export function assembleGovernanceSkeletonDocument(
   const document = renderSkeletonDocument({
     sections: GOVERNANCE_SKELETON_SECTIONS,
     title: GOVERNANCE_SKELETON_TITLE,
-    subtitle: GOVERNANCE_SKELETON_SUBTITLE,
+    subtitle,
     spineVersion: GOVERNANCE_SKELETON_VERSION,
     values,
     composed: { ...composed, "table_of_authorities:0": toa },

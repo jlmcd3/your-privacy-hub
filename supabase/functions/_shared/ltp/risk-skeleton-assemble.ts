@@ -129,7 +129,26 @@ export function deriveActivitySpiInventory(intake: Bag): string | null {
     // circular placeholder posing as data in three table cells. Where the
     // record confirms sensitive PI but names no mapped category, the cell
     // states that limitation honestly instead of describing itself.
-    return "Identified as processed in the Company’s submission; the specific categories are not named in the activity record.";
+    //
+    // DOC 139 (2026-09-02) — external legal review on the doc 137/138
+    // fixture (row us-ds2-mtjlerdl-tti856): the RISK-P2 wording above read as
+    // a completed finding ("identified as processed... categories are not
+    // named") when q15_sensitive_pi and the q4 category inventory are two
+    // INDEPENDENT intake fields that were never designed to cross-validate
+    // each other — q15 is a freestanding Yes/No, and the inventory is
+    // filtered against the statutory taxonomy (CA_PI_TAXONOMY) above this
+    // fallback only when it finds a true match. None of Contact identifiers,
+    // Device identifiers, Internet/network activity, or General location are
+    // sensitive PI under Cal. Civ. Code § 1798.140(ae)/11 CCR § 7001, so a
+    // record with only those categories and q15 = Yes reaches this branch
+    // with the qualifying category genuinely unresolved, not "not named" as
+    // an incidental gap. This does not fabricate a category, does not flip
+    // the trigger to "no SPI," and does not mark this dimension complete —
+    // it states the open question and directs the reader to close it before
+    // relying on the SPI-driven necessity/safeguard/risk analysis. The
+    // matching runRiskFactorEngine follow-up (risk-factor-engine.ts, doc 139)
+    // keeps this out of a false "no conditions" read of the report.
+    return "The Company has indicated that sensitive personal information is processed, but the qualifying statutory category has not been identified. Identify the category before finalizing the sensitive-PI necessity, safeguard, and risk analysis.";
   }
   return null;
 }

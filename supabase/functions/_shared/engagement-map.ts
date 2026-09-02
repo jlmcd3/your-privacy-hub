@@ -55,6 +55,20 @@ export function buildLiaEngagementMap(
   intake: Record<string, unknown>,
   testStates: Record<string, { state?: string; basis?: string; source_fields?: string[] }> | undefined,
   engagedFrameworks: string[] | undefined,
+  // DOC 139 (2026-09-02): the already-computed determination from the
+  // ratified, narrower `eprivacy-gate.ts` hard gate
+  // (run-li-assessment/_local/ltp/lia-deliverables/eprivacy-gate.ts's
+  // `buildEprivacyShortCircuit(intake).determination`), passed through by
+  // the caller (index.ts already has both the intake and
+  // `report.eprivacy_short_circuit` in scope by the time it calls this
+  // function). Optional and additive: this module does NOT import
+  // eprivacy-gate.ts itself (that would run a function-local `_local`
+  // module from `_shared`, backwards from every other dependency in this
+  // codebase) and does NOT re-derive triggers from intake text — it only
+  // consumes the string the harder gate already reached, for the ONE rule
+  // (R_EPRIVACY_PECR) that needs fact-level precision rather than a keyword
+  // regex. Undefined degrades conservatively (see R_EPRIVACY_PECR below).
+  eprivacyGateDetermination?: string,
 ): EngagementMap {
   const balancing = (intake?.balancing_details ?? {}) as Record<string, unknown>;
   const jurisdictions = asArr(intake?.jurisdictions);
@@ -191,13 +205,44 @@ export function buildLiaEngagementMap(
     section_ref: "section_3_balancing_test",
   });
 
+  // DOC 139 (2026-09-02): PREVIOUSLY this rule ran its own coarse keyword
+  // regex (cookie|pixel|sdk|device (id|identifier)|gaid|idfa|fingerprint|
+  // local storage) that resolved "engaged" on a hit and "conditional" on
+  // everything else — NEVER "not_engaged" on the facts — which is what let
+  // the firm "requires a separate consent or exemption..." sentence reach
+  // every device/wearable-adjacent record downstream (Section V of the LIA
+  // report; see lia-skeleton-assemble.ts's eprivacyOverlayNote) regardless
+  // of whether THIS record's facts actually establish PECR relevance. An
+  // external legal review flagged that as a P1.
+  //
+  // FIX: defer entirely to the already-ratified, narrower eprivacy-gate.ts
+  // determination (passed in as `eprivacyGateDetermination`), which is
+  // itself a pure function of the same processing_description/
+  // stated_purpose text, evaluated against deliberately-narrow trigger
+  // lexicons (TERMINAL_EQUIPMENT_TRIGGERS / UNSOLICITED_MESSAGE_TRIGGERS /
+  // ELECTRONIC_MARKETING_INDICATORS) rather than the coarse regex above.
+  // Mapping (three-way, matching that gate's own three determinations):
+  //   "consent_requirement_engaged" -> "engaged"     (unmistakable trigger)
+  //   "not_engaged_on_the_record"   -> "not_engaged" (no signal at all)
+  //   anything else / undefined     -> "conditional" (ambiguous signal, or
+  //                                     the gate result wasn't passed in —
+  //                                     conservative default either way,
+  //                                     per the reviewer's own instruction
+  //                                     to favor the qualified reading over
+  //                                     a firm claim when in doubt)
   entries.push({
     rule_id: "R_EPRIVACY_PECR",
     name: "ePrivacy / PECR device-storage overlay",
-    status: /cookie|pixel|sdk|device (id|identifier)|gaid|idfa|fingerprint|local storage/i.test(`${description} ${stmt}`)
+    status: eprivacyGateDetermination === "consent_requirement_engaged"
       ? "engaged"
-      : "conditional",
-    rationale: "Any storage of or access to information on a user's device requires a separate consent or exemption under the ePrivacy Directive / PECR 2003 in addition to the LI basis.",
+      : eprivacyGateDetermination === "not_engaged_on_the_record"
+        ? "not_engaged"
+        : "conditional",
+    rationale: eprivacyGateDetermination === "consent_requirement_engaged"
+      ? "Any storage of or access to information on a user's device requires a separate consent or exemption under the ePrivacy Directive / PECR 2003 in addition to the LI basis."
+      : eprivacyGateDetermination === "not_engaged_on_the_record"
+        ? "The record's description of the processing does not indicate storage of or access to information on a user's device; the ePrivacy Directive / PECR 2003 overlay is not engaged by the processing as described."
+        : "The record does not establish whether the processing involves storage of or access to information on a user's device in a manner that engages the ePrivacy Directive / PECR 2003; this is an open determination, not a finding either way.",
     intake_signals: ["processing_description", "stated_purpose", "data_categories"],
     section_ref: "section_5_recommendations",
   });

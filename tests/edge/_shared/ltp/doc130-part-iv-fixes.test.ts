@@ -87,7 +87,13 @@ Deno.test("doc130 SIGNOFF — a basis with no risk-acceptance language does NOT 
 });
 
 Deno.test("doc130 REG-1 — the ICO fee-tier conversion assumption is disclosed and rate-straddle flags the boundary", async () => {
-  const src = await Deno.readTextFile("supabase/functions/run-registration-assessment/index.ts");
+  // DOC 139 (2026-09-02) — resolveIcoFeeTier moved out of index.ts into
+  // _local/ico-fee-tier.ts (a testable pure module; index.ts cannot be
+  // imported directly). Updated the source-text path accordingly; the
+  // asserted substrings are unchanged. See
+  // tests/edge/run-registration-assessment/doc139-ico-fee-tier-boundary.test.ts
+  // for the actual computed-fixture regression coverage this batch added.
+  const src = await Deno.readTextFile("supabase/functions/run-registration-assessment/_local/ico-fee-tier.ts");
   assert(
     src.includes("converted from the recorded USD revenue at a 0.80 GBP/USD planning rate"),
     "conversion disclosure missing",

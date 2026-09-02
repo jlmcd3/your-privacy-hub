@@ -43,23 +43,67 @@ export const GOVERNANCE_SKELETON_SOURCE_FILE = "Governance_Assessment_Skeleton_v
 export const GOVERNANCE_SKELETON_PROVENANCE =
   "Governance_Assessment_Skeleton_v3.docx — panel-delegated approval per CEO delegation 2026-08-06";
 /**
- * SHA-256 over the skeleton's paragraph text, newline-joined, in file order —
- * computed DIRECTLY from Governance_Assessment_Skeleton_v3.docx (all 26 `w:p`
- * paragraphs, `w:t` runs concatenated, joined with "\n"). This is the same
- * method that produced the cppa-risk and cppa-admt hashes.
+ * DOC 139 (2026-09-02) r1 CORRECTION: RETAINED FOR THE AUDIT TRAIL ONLY. This
+ * was the docx-basis ("v0") hash — SHA-256 over the skeleton's paragraph
+ * text, newline-joined, in file order, computed DIRECTLY from
+ * Governance_Assessment_Skeleton_v3.docx (all 26 `w:p` paragraphs, `w:t`
+ * runs concatenated, joined with "\n"; the same method that produced the
+ * cppa-risk and cppa-admt hashes). DOC 139 re-pins the subtitle as
+ * jurisdiction-conditional (see GOVERNANCE_SKELETON_SUBTITLE_WITH_UK /
+ * _NO_UK below), which the v0 docx-walk basis cannot represent (it assumes
+ * one fixed subtitle paragraph). GOVERNANCE_SKELETON_CONTENT_HASH below
+ * migrates to the DPIA "BASIS v1" convention instead: SHA-256 over every
+ * `skeleton`-kind block's `text` in GOVERNANCE_SKELETON_SECTIONS order,
+ * newline-joined — the same basis DPIA's DPIA_SKELETON_CONTENT_HASH_V41+
+ * uses, and the same set GOVERNANCE_PROTECTED_FIXED_PROSE already exports.
+ * Title/subtitle carry no fixed prose under either DPIA or this basis, so
+ * this migration is a basis change, not a content change of what it pins.
  *
- * SO-3 r2 CORRECTION: the previous value (91050ecf…) was computed over the
- * encoded block representation in this file rather than over the docx, so it
- * carried the encoding's own block boundaries and heading handling. The text
- * content was and is correct word-for-word; only the hash input was wrong.
+ * SO-3 r2 CORRECTION (superseded by the r1 correction above): the previous
+ * value (91050ecf…) was computed over the encoded block representation in
+ * this file rather than over the docx, so it carried the encoding's own
+ * block boundaries and heading handling. The text content was and is
+ * correct word-for-word; only the hash input was wrong.
+ */
+export const GOVERNANCE_SKELETON_CONTENT_HASH_V1 =
+  "e0717aba9ee74a0bef16c22feafd6a5abe39531d59d4db3b5c69fd29b574c92f";
+
+/**
+ * BASIS v1 — SHA-256 over every `skeleton`-kind block's `text` in
+ * GOVERNANCE_SKELETON_SECTIONS order, joined with "\n" (verified by running
+ * `crypto.subtle.digest` over `GOVERNANCE_PROTECTED_FIXED_PROSE.join("\n")`
+ * with `deno run`, not guessed). Unaffected by the DOC 139 subtitle fix:
+ * title/subtitle are not `skeleton` blocks in GOVERNANCE_SKELETON_SECTIONS,
+ * confirming — as with DPIA's v4.8 basis-v1 finding — that they carry no
+ * fixed prose under this basis.
  */
 export const GOVERNANCE_SKELETON_CONTENT_HASH =
-  "e0717aba9ee74a0bef16c22feafd6a5abe39531d59d4db3b5c69fd29b574c92f";
+  "93e1de929142d807b9efaf5b413185dd359fa3ad082d481597c740d77af10c22";
 
 // A-TEAM S3 RULING I.24 (doc 115, 2026-08-31) — fleet Title Case cover.
 export const GOVERNANCE_SKELETON_TITLE = "Privacy Governance Assessment";
-export const GOVERNANCE_SKELETON_SUBTITLE =
+
+// DOC 139 (2026-09-02) — FIX 1: the subtitle unconditionally claimed "the
+// GDPR and UK GDPR" regardless of whether the intake's jurisdictions ever
+// named the UK. A record scoped to "EU (GDPR)" and "Other" (no UK) still
+// got a title asserting UK GDPR coverage the intake never established. Two
+// ratified spine constants, selected at render time by whether the intake
+// names the UK (see hasGovernanceUkInScope() in governance-skeleton-assemble.ts)
+// — following the same pattern DPIA's readDpiaRegime()/DPIA_SKELETON_SUBTITLE_EU/
+// _UK selection already uses, never a render-time .replace over a ratified
+// constant. This is NOT a reopening of the "Governance is GDPR-only"
+// citation-style ruling (memory: hardcoded GDPR citations are correct by
+// design) — that ruling is about which statute governs a US-scoped record's
+// obligations; this is about a title affirmatively claiming a SECOND
+// jurisdiction's (the UK's) coverage that the intake never selected.
+export const GOVERNANCE_SKELETON_SUBTITLE_WITH_UK =
   "A programme review under the GDPR and UK GDPR, prepared for {organizationName}";
+export const GOVERNANCE_SKELETON_SUBTITLE_NO_UK =
+  "A programme review under the GDPR, prepared for {organizationName}";
+/** Retained so any importer still asking for the bare name gets the
+ * pre-DOC-139 (UK-inclusive) text; assembleGovernanceSkeletonDocument no
+ * longer reads this export — it selects _WITH_UK / _NO_UK directly. */
+export const GOVERNANCE_SKELETON_SUBTITLE = GOVERNANCE_SKELETON_SUBTITLE_WITH_UK;
 /** The v3 register guide, verbatim. Authoring law; never printed to a customer. */
 export const GOVERNANCE_REGISTER_GUIDE = "Register guide (v3 - CEO-ratified counsel register, senior privacy lawyers with the professors editing) - Fixed prose is a lawyer's client document: full flowing sentences, measured connectives, the law stated plainly and applied. The company's facts are always attributed (\"{org} has indicated that ...\", \"the company has described ...\") - \"the record shows\" and its family are banned. No dramatization, no rhetorical questions, no self-narration. Facts enter only through {slots} and [GENERATED] blocks under the ATTRIBUTION RULE: every factual clause names its source and traces to an intake answer or typed analysis; coverage, CSC and refinement police this mechanically. Statutory sentences in fixed prose are registry-verified at encode time. Slot notation: {field - rule}.";
 

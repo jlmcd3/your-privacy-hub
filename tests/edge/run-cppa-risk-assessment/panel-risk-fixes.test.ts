@@ -103,9 +103,15 @@ Deno.test("RISK-P2: q15 Yes with no mapped category yields an honest limitation,
     q4_pi_categories: ["Internet or network activity"],
     q15_sensitive_pi: "Yes",
   } as never);
+  // DOC 139 (2026-09-02) — RE-PIN: an external legal review on the doc
+  // 137/138 fixture flagged the RISK-P2 wording ("Identified as processed...
+  // categories are not named") as reading like a completed finding, when
+  // q15 and the q4 category inventory are independent, non-cross-validating
+  // fields — none of the q4 general categories are statutory SPI, so the
+  // qualifying category is genuinely unresolved, not merely "not named."
   assertEquals(
     spi,
-    "Identified as processed in the Company’s submission; the specific categories are not named in the activity record.",
+    "The Company has indicated that sensitive personal information is processed, but the qualifying statutory category has not been identified. Identify the category before finalizing the sensitive-PI necessity, safeguard, and risk analysis.",
   );
   assert(!String(spi).includes("has identified in its submission"), "circular placeholder survived");
 });

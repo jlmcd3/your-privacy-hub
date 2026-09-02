@@ -63,13 +63,22 @@ Deno.test("C4/S5.2: the ICO crosswalk is a table and the closing sentence is det
     domain_findings: [],
     art30_element_findings: [{ element: "a", verdict: "satisfied" }],
   };
-  const out = assembleGovernanceSkeletonDocument(report, { organization_name: "Halcyon Ltd" });
+  // DOC 139 (2026-09-02) — FIX 1 gates the ICO crosswalk (UK-regulator-
+  // specific) off records with no UK GDPR exposure; this test is about the
+  // crosswalk's own table shape, so the UK is added here to keep it
+  // rendering. Gating itself is covered in doc139-gov-fixes.test.ts.
+  const out = assembleGovernanceSkeletonDocument(report, { organization_name: "Halcyon Ltd", jurisdictions: ["United Kingdom"] });
   const crosswalk = allTables(out.document).find((t) => t.title === "ICO Accountability Framework crosswalk");
   assertExists(crosswalk);
   assertEquals(crosswalk.columns, ["Category", "Position on the record"]);
   assertEquals(crosswalk.rows.length, 10);
   assertEquals(crosswalk.rows[0][0], "Leadership and oversight");
-  assertEquals(crosswalk.rows[0][1], "The DPO determination is evidenced on the information provided");
+  // DOC 139 FIX 2 — a "satisfied" DPO roll-up no longer prints as a blanket
+  // "evidenced"; see governance-skeleton-assemble.ts dpoAccountabilityRead().
+  assertEquals(
+    crosswalk.rows[0][1],
+    "Formal DPO designation evidenced; the Article 38 operating safeguards and the untested Article 39 tasks are not independently assessed",
+  );
   // The closing sentence is its own paragraph, after the table, not glued
   // onto the last crosswalk line.
   const sec = out.document.sections.find((s) => s.id === "ico_crosswalk")!;

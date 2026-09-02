@@ -14,9 +14,15 @@ import {
 } from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-domain-tables.ts";
 import { assembleGovernanceSkeletonDocument } from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-skeleton-assemble.ts";
 
+// DOC 139 (2026-09-02) — FIX 1 gates the ICO crosswalk (a UK-regulator-
+// specific appendix) off records with no UK GDPR exposure. G-3 below tests
+// the crosswalk's own Compliant/Unresolved posture rendering, so the UK is
+// added here to keep the appendix rendering for every test in this file
+// (none of the others depend on a non-UK jurisdiction; G-6 overrides
+// jurisdictions to `[]` for its own narrower assertion, unaffected).
 const STRONG = {
   organization_name: "Acme GmbH",
-  jurisdictions: ["EU (GDPR)"],
+  jurisdictions: ["EU (GDPR)", "United Kingdom"],
   special_category: "No",
   inventory_audit: "Yes — audited + formal approval process",
   technical_controls: "Yes — DLP/content filtering actively enforced",

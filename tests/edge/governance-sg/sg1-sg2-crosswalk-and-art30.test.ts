@@ -9,11 +9,16 @@ import { assembleGovernanceSkeletonDocument } from "../../../supabase/functions/
 
 type Bag = Record<string, unknown>;
 
+// DOC 139 (2026-09-02) — FIX 1 gates the entire ICO crosswalk appendix (a
+// UK-regulator-specific framework) off records with no UK GDPR exposure.
+// This fixture's tests are specifically about crosswalk CONTENT, so the UK
+// is added to jurisdictions here to keep the appendix rendering; the gating
+// itself is covered separately in doc139-gov-fixes.test.ts.
 const INTAKE: Bag = {
   organization_name: "Acme GmbH",
   sector: "SaaS",
   org_size: "51-250",
-  jurisdictions: ["EU (GDPR)"],
+  jurisdictions: ["EU (GDPR)", "United Kingdom"],
   data_categories: ["Contact details"],
 };
 
@@ -98,7 +103,15 @@ Deno.test("S-G1 — the crosswalk renders all ten ICO categories with verdict re
     "Breach response and monitoring",
   ]) assertStringIncludes(t, cat);
   // RE-PIN BATCH 20a (doc 113 S5.1/S5.2): the crosswalk lines and remediation-item fragments moved into table cells (cells initial-capped; label prefixes retired).
-  assertStringIncludes(t, "The DPO determination is evidenced on the information provided");
+  // DOC 139 (2026-09-02) — FIX 2: a "satisfied" DPO roll-up used to render as
+  // a blanket "the DPO determination is evidenced on the information
+  // provided" here, more conclusive than the DOC 137-corrected body, which
+  // reads designation as evidenced but the Article 38 operating safeguards
+  // and the untested Article 39 tasks as not independently assessed.
+  assertStringIncludes(
+    t,
+    "Formal DPO designation evidenced; the Article 38 operating safeguards and the untested Article 39 tasks are not independently assessed",
+  );
   assertStringIncludes(t, "5 of 7 Article 30(1) elements evidenced");
   assertStringIncludes(t, "decides nothing new");
 });

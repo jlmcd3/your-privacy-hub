@@ -238,8 +238,16 @@ function deriveExternalSupportTable(intake: Bag): RenderedTable | null {
 
 // The standing notification-clocks register. State rows carry both statutory
 // deadlines from the typed registry rows; GDPR-family rows carry the
-// Art. 33(1) clock in the regulator cell and "—" for individuals — Art. 34
-// sets no fixed clock and none is invented (doc 113 S2.3).
+// Art. 33(1) clock in the regulator cell. DOC 139 (2026-09-02, A-Team Batch
+// 6 §12.1) — the individuals cell previously read a bare "—", which an
+// external legal review found misleading: Article 34 is a real, conditional
+// communication duty, not a non-issue. It still carries no FIXED clock the
+// way Art. 33(1)'s 72 hours does (doc 113 S2.3's no-invented-clock law still
+// applies — this cell states the statutory STANDARD, never a deadline), so
+// it now states the Art. 34(1) trigger and points to this playbook's own
+// per-incident Art. 34 analysis (built by
+// buildDataSubjectCommunicationDetermination in ir-playbook-deliverables/
+// build.ts) rather than leaving the cell to read as "no duty exists."
 function deriveNotificationClocksTable(report: Bag): RenderedTable | null {
   const rows: string[][] = [];
   for (const d of asArray(report.notification_duties)) {
@@ -248,9 +256,10 @@ function deriveNotificationClocksTable(report: Bag): RenderedTable | null {
     const authority = s(d.supervisory_authority);
     const sa = (d.sa_notification_determination ?? {}) as Bag;
     const citation = s(sa.standard_citation) || (s(sa.regime) === "uk" ? "UK GDPR Art. 33(1)" : "GDPR Art. 33(1)");
+    const individualsCitation = s(sa.regime) === "uk" ? "UK GDPR Art. 34(1)" : "GDPR Art. 34(1)";
     rows.push([
       label,
-      "—",
+      `If the breach is likely to result in a high risk to the rights and freedoms of natural persons — without undue delay (${individualsCitation}). See this playbook's individual-notification determination for whether that threshold is met on the facts of this incident.`,
       `${authority || "The competent supervisory authority"} — without undue delay and, where feasible, not later than 72 hours after awareness`,
       citation,
     ]);
