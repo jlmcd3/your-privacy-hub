@@ -167,6 +167,12 @@ function anyMatch(text: string, res: readonly RegExp[]): boolean {
 const RULE_SENTENCE =
   "Where Article 5(3) of the ePrivacy Directive requires consent for the processing — for example cookies or other access to terminal equipment, or unsolicited electronic messages — legitimate interests under Article 6(1)(f) GDPR cannot substitute for that consent, however the balancing test would otherwise resolve.";
 
+// DOC 161 (2026-09-03, audit A.5) — the UK twin: on a UK-only record the
+// consent requirement arises under PECR, which gives effect to Article 5(3),
+// and the basis foreclosed is Article 6(1)(f) UK GDPR. Ratification queue R10.
+const RULE_SENTENCE_UK =
+  "Where regulation 6 of the Privacy and Electronic Communications (EC Directive) Regulations 2003, which gives effect to Article 5(3) of the ePrivacy Directive, requires consent for the processing — for example cookies or other access to terminal equipment — or regulation 22 requires consent for unsolicited electronic marketing messages, legitimate interests under Article 6(1)(f) UK GDPR cannot substitute for that consent, however the balancing test would otherwise resolve.";
+
 const quoteList = (phrases: readonly string[]): string =>
   phrases.map((p) => `"${p}"`).join(", ");
 
@@ -176,6 +182,9 @@ export function buildEprivacyShortCircuit(intake: unknown): EprivacyShortCircuit
   const description = str(get(intake, "processing_description"));
   const statedPurpose = str(get(intake, "stated_purpose"));
   const scan = `${description} ${statedPurpose}`.trim();
+  const jurisdictions = (Array.isArray(get(intake, "jurisdictions")) ? get(intake, "jurisdictions") as unknown[] : []).map((j) => str(j));
+  const ukOnly = jurisdictions.includes("United Kingdom (UK GDPR)") && !jurisdictions.includes("EU (GDPR)");
+  const ruleSentence = ukOnly ? RULE_SENTENCE_UK : RULE_SENTENCE;
 
   const common = {
     standard,
@@ -226,7 +235,7 @@ export function buildEprivacyShortCircuit(intake: unknown): EprivacyShortCircuit
       record_fact:
         `The record's description of the processing includes ${quoteList(phrases)}, which describes ${covered}.`,
       application:
-        `${RULE_SENTENCE} The processing as recorded involves ${covered}, so for that covered processing legitimate interests is not an available basis and the consent the ePrivacy rules themselves require is the route to lawfulness. This gate is evaluated independently of the balancing test and is not moved by its outcome.`,
+        `${ruleSentence} The processing as recorded involves ${covered}, so for that covered processing legitimate interests is not an available basis and the consent the ePrivacy rules themselves require is the route to lawfulness. This gate is evaluated independently of the balancing test and is not moved by its outcome.`,
       determination: "consent_requirement_engaged",
       li_foreclosed_for_covered_processing: true,
       trigger_basis: basis,
@@ -251,7 +260,7 @@ export function buildEprivacyShortCircuit(intake: unknown): EprivacyShortCircuit
       record_fact:
         `The record's description of the processing ${indicationText}, activity of a kind the ePrivacy consent rules can cover, but it does not resolve whether the consent requirement applies to this processing.`,
       application:
-        `${RULE_SENTENCE} The description is consistent with ePrivacy-covered activity, but the facts that decide whether the consent requirement applies here are not recorded — for example whether any terminal-equipment access is limited to what is strictly necessary for a service the individual has requested, what channels any direct marketing uses, and to whom such messages are sent. The gate is therefore open rather than resolved either way, and the determination above is stated subject to it.`,
+        `${ruleSentence} The description is consistent with ePrivacy-covered activity, but the facts that decide whether the consent requirement applies here are not recorded — for example whether any terminal-equipment access is limited to what is strictly necessary for a service the individual has requested, what channels any direct marketing uses, and to whom such messages are sent. The gate is therefore open rather than resolved either way, and the determination above is stated subject to it.`,
       determination: "undetermined_on_the_record",
       li_foreclosed_for_covered_processing: false,
       trigger_basis: "none_recorded",

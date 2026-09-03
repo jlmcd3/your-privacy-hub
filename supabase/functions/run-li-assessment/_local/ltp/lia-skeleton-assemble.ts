@@ -46,13 +46,16 @@ import {
 } from "../prose/plans/lia.spine.ts";
 import { buildLiaPersuasiveAuthority } from "./lia-persuasive-authority.ts";
 import {
+  LIA_BENEFICIARY_LABELS,
   LIA_CONDITIONAL_TRIGGERS,
   LIA_DATA_CATEGORY_LABELS,
   LIA_EXPECTATION_PHRASES,
   LIA_HARM_SEVERITY_LABELS,
+  LIA_INTEREST_HOLDER_PHRASES,
   LIA_INTEREST_TYPE_LABELS,
   LIA_RELATIONSHIP_LABELS,
 } from "../prose/plans/lia.slotmap.ts";
+import { ANCHOR_KEYS, row } from "./lia-deliverables/elements.ts";
 import {
   renderSkeletonDocument,
   skeletonDocumentToText,
@@ -115,6 +118,12 @@ function labelSet(
 ): string[] {
   const out: string[] = [];
   for (const v of values) {
+    // DOC 161 — the Stage A form folds free text into the value ("Other: <text>").
+    const folded = /^other\s*:\s*(.+)$/i.exec(v);
+    if (folded) {
+      out.push(folded[1].trim());
+      continue;
+    }
     if (/^other$/i.test(v)) {
       if (otherText) out.push(otherText);
       continue;
@@ -127,6 +136,31 @@ function labelSet(
 
 // ── Slot values ─────────────────────────────────────────────────────────────
 
+// DOC 161 (2026-09-03, audit A.2) — the intake form's five expectation options
+// and the contract's three legacy values resolve through one function (the
+// exact-key map alone yielded "" for "Probably — …", "Maybe — …" and
+// "Unlikely — …", which dropped the whole ¶24 sentence on every real record).
+function expectationPhraseFor(answer: string): string {
+  const exact = LIA_EXPECTATION_PHRASES[answer];
+  if (exact) return exact;
+  if (/^yes\b/i.test(answer)) return "would";
+  if (/^probably\b/i.test(answer)) return "would probably";
+  if (/^(?:maybe|partly|unsure)\b/i.test(answer)) return "may not";
+  if (/^unlikely\b/i.test(answer)) return "would probably not";
+  if (/^no\b/i.test(answer)) return "would not";
+  return "";
+}
+
+/** DOC 161 — the severity head word ("Significant — discrimination, …" → "significant"). */
+function harmHeadLabel(answer: string): string {
+  if (!answer) return "";
+  const exact = LIA_HARM_SEVERITY_LABELS[answer];
+  if (exact) return exact;
+  const head = answer.split(/\s+[—–-]\s+/)[0].trim();
+  if (/^none\b/i.test(head)) return "negligible";
+  return lowerEnumLabel(head);
+}
+
 export function buildLiaSlotValues(record: Bag): SlotValues {
   const purpose = bag(record.purpose_details);
   const necessity = bag(record.necessity_details);
@@ -138,30 +172,32 @@ export function buildLiaSlotValues(record: Bag): SlotValues {
     ? (LIA_RELATIONSHIP_LABELS[relationshipRaw] || lowerEnumLabel(relationshipRaw))
     : "";
 
-  const categories = labelSet(
-    strList(record.data_categories),
-    LIA_DATA_CATEGORY_LABELS,
-    s(balancing.additional_context),
-  );
+  // DOC 161 (audit A.5) — the "Other" text for the data categories was read
+  // from balancing_details.additional_context, a different question
+  // ("Anything else about this processing we should weigh?"); the Stage A
+  // form folds the free text into the value itself, which labelSet unwraps.
+  // additional_context now renders in the balancing analysis as the
+  // Company's own further context.
+  const categories = labelSet(strList(record.data_categories), LIA_DATA_CATEGORY_LABELS, "");
 
   const interestTypeRaw = s(purpose.interest_type);
-  const interestTypePhrase = /^other$/i.test(interestTypeRaw)
-    ? s(purpose.interest_type_other)
+  // DOC 161 — the form's "Other (describe below)" value; the free text loses its stop.
+  const interestTypePhrase = /^other\b/i.test(interestTypeRaw)
+    ? noStop(s(purpose.interest_type_other))
     : (LIA_INTEREST_TYPE_LABELS[interestTypeRaw] || (interestTypeRaw ? lowerEnumLabel(interestTypeRaw) : ""));
 
   const holderRaw = s(purpose.interest_holder);
-  const holderPhrase = /^other$/i.test(holderRaw)
-    ? (s(purpose.interest_holder_other) ? `on behalf of ${s(purpose.interest_holder_other)}` : "")
-    : /third/i.test(holderRaw)
-    ? "on behalf of a third party"
-    : holderRaw
-    ? "on the company's own behalf"
-    : "";
+  const holderOther = noStop(s(purpose.interest_holder_other));
+  // DOC 161 (audit A.2) — the six form options map explicitly (the old /third/
+  // test read "The data subject themselves" and "The wider public" as the
+  // company's own interest); a free-text holder is attributed as recorded.
+  const holderPhrase = /^other\b/i.test(holderRaw)
+    ? (holderOther ? `on behalf of ${holderOther}` : "")
+    : (LIA_INTEREST_HOLDER_PHRASES[holderRaw] ?? (holderRaw ? `on behalf of ${noStop(holderRaw)}` : ""));
 
-  const expectationPhrase = LIA_EXPECTATION_PHRASES[s(balancing.reasonable_expectation)] ?? "";
+  const expectationPhrase = expectationPhraseFor(s(balancing.reasonable_expectation));
 
-  const harmLabel = LIA_HARM_SEVERITY_LABELS[s(balancing.potential_harm)] ??
-    (s(balancing.potential_harm) ? lowerEnumLabel(s(balancing.potential_harm)) : "");
+  const harmLabel = harmHeadLabel(s(balancing.potential_harm));
 
   const safeguards = labelSet(
     strList(balancing.safeguards),
@@ -201,23 +237,41 @@ export function buildLiaSlotValues(record: Bag): SlotValues {
     INTEREST_TYPE_PHRASE: orBlank(interestTypePhrase),
     INTEREST_HOLDER_PHRASE: orBlank(holderPhrase),
     specificBenefit: orNull(noStop(s(purpose.specific_benefit))),
-    beneficiary: orNull(lowerEnumLabel(noStop(s(purpose.beneficiary)))),
+    beneficiary: orNull(LIA_BENEFICIARY_LABELS[noStop(s(purpose.beneficiary))] ?? lowerEnumLabel(noStop(s(purpose.beneficiary)))),
     statedPurpose: orNull(s(record.stated_purpose) ? `"${noStop(s(record.stated_purpose))}"` : ""),
 
     alternatives: orNull(
-      asProse(strList(record.alternatives_considered).length
+      asProse((strList(record.alternatives_considered).length
         ? strList(record.alternatives_considered)
-        : strList(necessity.alternatives)),
+        : strList(necessity.alternatives)).map((a) => noStop(a))),
     ),
-    alternativesRationale: orNull(noStop(s(necessity.alternatives_rationale))),
+    // DOC 161 — a multi-line rationale carried its line breaks into the ¶19
+    // sentence; the lines now join as clauses.
+    alternativesRationale: orNull(
+      s(necessity.alternatives_rationale).split(/\r?\n+/).map((l) => noStop(l.trim())).filter(Boolean).join("; "),
+    ),
     whyConsentNotUsed: orNull(noStop(s(necessity.why_consent_not_used))),
 
     RELATIONSHIP_PHRASE: orBlank(relationshipPhrase),
     EXPECTATION_PHRASE: orNull(expectationPhrase),
-    reasonableExpectationDetail: orNull(noStop(s(balancing.reasonable_expectation_detail))),
+    // DOC 161 — the slot map says "the basis clause is dropped" when the
+    // detail is blank, but the renderer drops the whole sentence, and with it
+    // the answered relationship and expectation. The answered facts survive.
+    reasonableExpectationDetail: orNull(
+      noStop(s(balancing.reasonable_expectation_detail)) || (s(balancing.reasonable_expectation) ? "not recorded" : ""),
+    ),
 
     potentialHarm: orNull(harmLabel),
-    potentialHarms: orNull(asProse(labelSet(strList(balancing.potential_harms), {}, ""))),
+    // DOC 161 — same sentence-drop class: an unlisted harm category took the
+    // answered severity down with it. The pathway the company describes stands in.
+    potentialHarms: orNull(
+      asProse(labelSet(strList(balancing.potential_harms), {}, "")) ||
+        (s(balancing.potential_harm)
+          ? (firstSentence(s(balancing.potential_harm_detail))
+            ? `the impact the company describes — ${noStop(firstSentence(s(balancing.potential_harm_detail)))}`
+            : "not itemised by category")
+          : ""),
+    ),
     // PANEL LIA-P2 (2026-08-30) — ¶27's C.-Scale sentence quotes these three
     // answers as recorded, so the values keep the customer's own casing and
     // wording (no lowerEnumLabel) and drop only a terminal stop so the
@@ -591,7 +645,48 @@ export function deriveBalanceTable(report: Bag): RenderedTable | null {
   };
 }
 
-function composeExecPosture(report: Bag, org: string): string {
+// DOC 161 (2026-09-03, audit A.6) — a record whose jurisdictions name neither
+// the EU nor the UK is assessed under Article 6(1)(f) GDPR by default (the
+// instrument slots fall to the EU rail); the document said nothing about that
+// choice. Stated once, first. Ratification queue R8 (doc 161 §C).
+export const LIA_NON_GDPR_JURISDICTION_SENTENCE =
+  "The company has not named the European Union or the United Kingdom among the jurisdictions that apply, so this assessment applies Article 6(1)(f) GDPR as the framework of the assessment the company requested; whether the GDPR governs the processing under Article 3 is not assessed here.";
+
+function nonGdprJurisdictionSentence(record: Bag): string {
+  const js = strList(record.jurisdictions);
+  if (!js.length) return "";
+  const named = js.some((j) => j === "EU (GDPR)" || j === "United Kingdom (UK GDPR)");
+  return named ? "" : LIA_NON_GDPR_JURISDICTION_SENTENCE;
+}
+
+// DOC 161 (audits A.3/A.4) — ¶19's fixed prose promises "Its account of data
+// minimisation is addressed in the analysis below", and the form tells the
+// customer the minimisation finding rests on the exclusions they name; the
+// deterministic path never read necessity_details.data_minimised. The
+// Company's account is quoted, attributed, beside Art. 5(1)(c). Queue R6.
+function minimisationSentence(record: Bag): string {
+  const account = noStop(s(bag(record.necessity_details).data_minimised));
+  const principle = row(ANCHOR_KEYS.data_minimisation);
+  const verbatim = s(principle?.verbatim_quote).replace(/;$/, "");
+  if (!account) {
+    return "The company has not described how the data used are limited to what the purpose needs, so the necessity finding above rests on the comparison of alternatives alone.";
+  }
+  return `On data minimisation, the company has stated: "${account}".${
+    verbatim
+      ? ` Article 5(1)(c) requires personal data to be ${verbatim}; that account is recorded as the company's own statement of how the data used are held to that standard, and this assessment does not verify it.`
+      : ""
+  }`;
+}
+
+// DOC 161 (audit A.4) — balancing_details.additional_context ("Anything else
+// about this processing we should weigh?") was collected and never read on the
+// deterministic path except, wrongly, as the "Other" data-category text.
+function additionalContextSentence(record: Bag): string {
+  const ctx = noStop(s(bag(record.balancing_details).additional_context));
+  return ctx ? `The company adds, as further context for the balance: "${ctx}".` : "";
+}
+
+function composeExecPosture(report: Bag, org: string, record: Bag = {}): string {
   // D1D2B3B8-L2 (2026-08-28) — the executive summary carries a COMPACT
   // three-part read, not the sections' own analysis text. The old form
   // spliced each test's first "sentence", which for the purpose test was the
@@ -618,6 +713,7 @@ function composeExecPosture(report: Bag, org: string): string {
     ? `On the company's answers, ${clauses.join(", ")}; the analysis supporting each appears in the sections below.`
     : "";
   return fromTyped(
+    nonGdprJurisdictionSentence(record),
     summarySentence,
     firstSentence(s(bag(report.lia_determination).why)),
   );
@@ -864,7 +960,7 @@ export function assembleLiaSkeletonDocument(
 
   const composed: ComposedBlocks = {
     "executive_summary:0": execLead,
-    "executive_summary:2": composeExecPosture(report, org),
+    "executive_summary:2": composeExecPosture(report, org, record),
 
     // ¶10 STAGE-A is an authoring rule about how Other values and unanswered
     // optional facts render, enforced in `buildLiaSlotValues`. It prints
@@ -923,6 +1019,7 @@ export function assembleLiaSkeletonDocument(
       : "",
     "necessity_test:3": fromTyped(
       s(bag(tpt.necessity_test).analysis) || s(bag(report.alternatives_considered).application),
+      minimisationSentence(record),
     ),
 
     "balancing_test:0": balancingLead,
@@ -955,6 +1052,7 @@ export function assembleLiaSkeletonDocument(
       s(bag(report.reasonable_expectations).application),
       s(bag(report.potential_harms).application),
       s(bag(report.opt_out_feasibility).application),
+      additionalContextSentence(record),
       specialCategoryBoundary,
       precedentClassSentence(report, deterministic),
     ].map((p) => fromTyped(p)).filter(Boolean).join("\n\n"),

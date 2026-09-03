@@ -527,7 +527,7 @@ const LIAssessmentIntake = () => {
           <div>
             <Label className="text-base">Is your organisation a public authority?</Label>
             <p className="text-xs text-muted-foreground mt-1">Article 6(1)(f) is not available to public authorities for processing carried out in the performance of their tasks.</p>
-            <select value={controllerIsPublicAuthority} onChange={(e) => setControllerIsPublicAuthority(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+            <select value={controllerIsPublicAuthority} onFocusCapture={focusField("controller_is_public_authority")} onChange={(e) => setControllerIsPublicAuthority(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
               <option value="">Select…</option>
               <option>No</option>
               <option>Yes</option>
@@ -538,7 +538,7 @@ const LIAssessmentIntake = () => {
             <div>
               <Label className="text-base">Is this processing carried out in the performance of your public tasks?</Label>
               <p className="text-xs text-muted-foreground mt-1">If it is, legitimate interests is unavailable and Article 6(1)(e) applies instead.</p>
-              <select value={publicTaskProcessing} onChange={(e) => setPublicTaskProcessing(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+              <select value={publicTaskProcessing} onFocusCapture={focusField("public_task_processing")} onChange={(e) => setPublicTaskProcessing(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
                 <option value="">Select…</option>
                 <option>Yes</option>
                 <option>No</option>
@@ -661,7 +661,7 @@ const LIAssessmentIntake = () => {
 
           <div>
             <Label className="text-base">Would data subjects reasonably expect this processing? *</Label>
-            <select value={reasonableExpectation} onChange={(e) => setReasonableExpectation(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+            <select value={reasonableExpectation} onFocusCapture={focusField("reasonable_expectation")} onChange={(e) => setReasonableExpectation(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
               <option value="">Select…</option>
               <option>Yes — directly contemplated by our existing relationship</option>
               <option>Probably — disclosed in privacy notice and consistent with the relationship</option>
@@ -684,7 +684,7 @@ const LIAssessmentIntake = () => {
           <div>
             <Label className="text-base">Are any data subjects children?</Label>
             <p className="text-xs text-muted-foreground mt-1">Article 6(1)(f) singles out children's interests expressly.</p>
-            <select value={childrenDataSubjects} onChange={(e) => setChildrenDataSubjects(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+            <select value={childrenDataSubjects} onFocusCapture={focusField("children_data_subjects")} onChange={(e) => setChildrenDataSubjects(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
               <option value="">Select…</option>
               <option>No</option>
               <option>Yes</option>
@@ -721,7 +721,7 @@ const LIAssessmentIntake = () => {
 
           <div>
             <Label className="text-base">If something went wrong, what's the worst-case impact on data subjects? *</Label>
-            <select value={potentialHarm} onChange={(e) => setPotentialHarm(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+            <select value={potentialHarm} onFocusCapture={focusField("potential_harm")} onChange={(e) => setPotentialHarm(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
               <option value="">Select…</option>
               <option>Negligible — annoyance only</option>
               <option>Limited — minor inconvenience or unwanted contact</option>
@@ -920,7 +920,7 @@ const LIAssessmentIntake = () => {
 
           <div>
             <Label className="text-base">What would trigger a re-review? (select all that apply)</Label>
-            <p className="text-xs text-muted-foreground mt-1">A standard set is applied in the report. Anything you add here is recorded alongside it.</p>
+            <p className="text-xs text-muted-foreground mt-1">The triggers you select are recorded in the assessment as the circumstances the company itself has identified for early re-review.</p>
             <div className="mt-2" onFocusCapture={focusField("attestation_review_triggers")}>
               <Pills
                 options={[

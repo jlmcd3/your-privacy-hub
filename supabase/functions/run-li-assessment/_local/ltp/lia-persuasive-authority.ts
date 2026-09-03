@@ -26,7 +26,10 @@ export const LIA_PERSUASIVE_AUTHORITY_STAMP = "lia-persuasive-authority@l2-2026-
 
 /** The section lead — ratified bytes (CEO-delegated, 2026-08-26 ledger). */
 export const LIA_PERSUASIVE_AUTHORITY_LEAD =
-  "This section collects enforcement decisions issued under the GDPR or UK GDPR that bear on factors assessed in this report. Each entry names the factor it bears on. They are enforcement context, persuasive rather than binding as to this processing, and none decides the outcome recorded above, which turns on this record's own facts.";
+  "This section collects enforcement decisions issued under the GDPR or UK GDPR that bear on factors assessed in this report. Each entry names the factor it bears on. They are enforcement context, persuasive rather than binding as to this processing, and none decides the outcome recorded above, which turns on the facts the company has provided.";
+// DOC 161 (2026-09-03) — "this record's own facts" reached the page as "the
+// information provided's own facts": the shared renderer's register repair
+// rewrites "on this record"; the bytes now say what they mean directly.
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",

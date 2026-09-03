@@ -198,6 +198,26 @@ export const SPECULATIVE_LEXICON: readonly RegExp[] = [
 ];
 
 /**
+ * DOC 161 (2026-09-03, audit A.7) — negated forms. A record that states its
+ * interest is "present rather than speculative" or "not hypothetical" was
+ * matched on the noun inside its own negation and failed the real-and-present
+ * sub-test (the golden perfect record printed "Purpose test: Not met"). These
+ * spans are removed before SPECULATIVE_LEXICON is run; nothing else changes.
+ */
+export const SPECULATIVE_NEGATED: readonly RegExp[] = [
+  /\b(?:not|never|no longer|rather than|instead of|as opposed to)\s+(?:merely\s+|purely\s+|simply\s+)?(?:speculative|hypothetical)\b/gi,
+  /\b(?:present|real|genuine|live)\s+(?:rather than|and not|not)\s+(?:speculative|hypothetical)\b/gi,
+  /\b(?:speculative|hypothetical)\s+(?:interest|benefit)s?\s+(?:is|are)\s+not\b/gi,
+];
+
+/** The text with its negated speculative/hypothetical spans removed. */
+export function stripSpeculativeNegations(text: string): string {
+  let out = text;
+  for (const re of SPECULATIVE_NEGATED) out = out.replace(re, " ");
+  return out;
+}
+
+/**
  * The 7 controlled options on the intake's purpose_details.interest_type
  * select (LIAssessmentIntake.tsx), mirrored here so free-text bundling
  * detection reasons from the SAME categories the record's own structured

@@ -32,6 +32,7 @@ import {
   RELATIONSHIP_CATEGORIES,
   SPECULATIVE_LEXICON,
   row,
+  stripSpeculativeNegations,
 } from "./elements.ts";
 import { liaVerdictLabel } from "../../prose/plans/lia.spine.ts";
 import type {
@@ -269,7 +270,8 @@ export function buildInterestLegitimacy(intake: unknown): InterestLegitimacyFind
   let presentVerdict: SubVerdict;
   let presentReasoning: string;
   let presentNeeded: string | undefined;
-  const speculative = matches(speculativeSource, SPECULATIVE_LEXICON);
+  // DOC 161 — negated forms ("present rather than speculative") are removed first.
+  const speculative = matches(stripSpeculativeNegations(speculativeSource), SPECULATIVE_LEXICON);
   if (!description && !statedPurpose) {
     presentVerdict = "undetermined_on_the_record";
     // DOC 141 (2026-09-02) — informative sentence FIRST (same circularity
@@ -525,7 +527,9 @@ function parseAlternatives(text: string): AlternativeConsidered[] {
   }
   const lines = text
     .split(/\r?\n|(?<=[.;])\s+(?=[A-Z(])/)
-    .map((l) => l.replace(/^[\s•\-*\d.)]+/, "").trim())
+    // DOC 161 — strip list markers only ("- ", "• ", "1. ", "2) "); the old
+    // class ate the leading digit-hyphen of "3-D Secure" ("D Secure step-up").
+    .map((l) => l.replace(/^\s*(?:[•*]|-(?=\s)|\d+[.)])\s*/, "").trim())
     .filter((l) => l.length > 2)
     .filter((l) => !FIELD_POINTER_RE.test(l));
   const out: AlternativeConsidered[] = [];
@@ -913,6 +917,16 @@ function severityOf(text: string): HarmSeverity {
   if (/^limited/i.test(text)) return "limited";
   if (/^negligible/i.test(text)) return "negligible";
   return "unstated";
+}
+
+/** DOC 161 (2026-09-03, audit A.5) — ONE resolver for "material harm". build.ts
+ * ran its own /^significant|^severe/ test, so the contract's "Moderate"
+ * (weighed here at the "significant" tier, FD703575-L1) was material for the
+ * balancing verdict but not for the determination: "Balancing test: Not met"
+ * printed beside "Legitimate interests is available". */
+export function harmIsMaterial(answer: string): boolean {
+  const tier = severityOf(answer);
+  return tier === "severe" || tier === "significant";
 }
 
 const HARM_BEARING: Record<HarmSeverity, string> = {

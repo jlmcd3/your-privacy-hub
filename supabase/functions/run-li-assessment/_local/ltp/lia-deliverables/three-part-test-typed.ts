@@ -88,6 +88,10 @@ const STRENGTH_NOTES: Record<string, string> = {
 export const LIA_EPRIVACY_RULE_SENTENCE =
   "Where Article 5(3) of the ePrivacy Directive requires consent for the processing — for example cookies or other access to terminal equipment, or unsolicited electronic messages — legitimate interests under Article 6(1)(f) GDPR cannot substitute for that consent, however the balancing test would otherwise resolve.";
 
+/** DOC 161 — the UK-only twin (eprivacy-gate.ts RULE_SENTENCE_UK, byte-identical). */
+export const LIA_EPRIVACY_RULE_SENTENCE_UK =
+  "Where regulation 6 of the Privacy and Electronic Communications (EC Directive) Regulations 2003, which gives effect to Article 5(3) of the ePrivacy Directive, requires consent for the processing — for example cookies or other access to terminal equipment — or regulation 22 requires consent for unsolicited electronic marketing messages, legitimate interests under Article 6(1)(f) UK GDPR cannot substitute for that consent, however the balancing test would otherwise resolve.";
+
 // ── Stage 1 replacement — typed classification ──────────────────────────────
 
 const SPECIAL_CATEGORY_TEXT = /health|medical|biometric|genetic|racial|ethnic|political|religio|sex life|sexual orientation|trade[- ]union/i;

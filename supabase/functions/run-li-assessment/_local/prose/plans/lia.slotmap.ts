@@ -252,6 +252,8 @@ export const LIA_RELATIONSHIP_LABELS: Readonly<Record<string, string>> = Object.
   "Website visitor (no account)": "visitors to the company's website who hold no account",
   "B2B contact": "business contacts",
   "Member of the public": "members of the public",
+  // DOC 161 (2026-09-03) — the balancing form's own category label.
+  "Member of the public — no relationship": "members of the public with no prior relationship with the company",
   "Customer": "customers of the company",
   "Employee/worker": "the company's employees and workers",
   "Prospect": "prospective customers",
@@ -279,6 +281,13 @@ export const LIA_HARM_SEVERITY_LABELS: Readonly<Record<string, string>> = Object
   "Moderate": "moderate",
   "Significant": "significant",
   "Severe": "severe",
+  // DOC 161 (2026-09-03, audit A.2) — the intake form's own option strings
+  // and the contract's legacy short values; the head word is the label.
+  "None / negligible": "negligible",
+  "Negligible — annoyance only": "negligible",
+  "Limited — minor inconvenience or unwanted contact": "limited",
+  "Significant — discrimination, financial loss, reputational damage": "significant",
+  "Severe — physical safety, identity theft, loss of livelihood": "severe",
 });
 
 export const LIA_INTEREST_TYPE_LABELS: Readonly<Record<string, string>> = Object.freeze({
@@ -293,6 +302,32 @@ export const LIA_INTEREST_TYPE_LABELS: Readonly<Record<string, string>> = Object
   "Legal or regulatory": "a legal or regulatory interest",
   "Societal": "a societal interest",
   "Individual interest": "an interest of the individuals themselves",
+  // DOC 161 (2026-09-03, audit A.2) — the intake form's seven interest types.
+  "Commercial / revenue-related": "a commercial or revenue-related interest",
+  "Operational / service delivery": "an operational or service-delivery interest",
+  "Security / fraud prevention": "a security or fraud-prevention interest",
+  "Legal / regulatory compliance": "a legal or regulatory-compliance interest",
+  "Public interest / societal benefit": "a public-interest or societal-benefit interest",
+  "Research / product improvement": "a research or product-improvement interest",
+  "Political / electoral campaigning": "a political or electoral-campaigning interest",
+});
+
+/** DOC 161 — the beneficiary select's five options, as prose after "identified … as". */
+export const LIA_BENEFICIARY_LABELS: Readonly<Record<string, string>> = Object.freeze({
+  "Our business": "its own business",
+  "The individuals whose data is processed": "the individuals whose data is processed",
+  "A third party": "a third party",
+  "Our business and the individuals": "its own business and the individuals whose data is processed",
+  "Our business and a third party": "its own business and a third party",
+});
+
+/** DOC 161 — the interest-holder select's options, as the ¶13 "pursued …" phrase. */
+export const LIA_INTEREST_HOLDER_PHRASES: Readonly<Record<string, string>> = Object.freeze({
+  "Our organisation only": "on the company's own behalf",
+  "Our organisation and a third party (e.g. business partner)": "on the company's own behalf and on behalf of a third party",
+  "A third party we share data with": "on behalf of a third party with which the company shares data",
+  "The data subject themselves": "on behalf of the individuals whose data is processed",
+  "The wider public": "in the interest of the wider public",
 });
 
 export const LIA_EXPECTATION_PHRASES: Readonly<Record<string, string>> = Object.freeze({
@@ -300,6 +335,13 @@ export const LIA_EXPECTATION_PHRASES: Readonly<Record<string, string>> = Object.
   "No": "would not",
   "Unsure": "may not",
   "Partly": "may not",
+  // DOC 161 (2026-09-03, audit A.2) — the intake form's five options; the
+  // map alone dropped the whole ¶24 sentence on every real record.
+  "Yes — directly contemplated by our existing relationship": "would",
+  "Probably — disclosed in privacy notice and consistent with the relationship": "would probably",
+  "Maybe — they may not have anticipated this specific use": "may not",
+  "Unlikely — this would surprise most data subjects": "would probably not",
+  "No — we have no relationship with these individuals; they would not expect this": "would not",
 });
 
 /** Every intake key the slot map consumes — the completeness test reads this. */

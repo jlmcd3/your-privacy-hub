@@ -290,19 +290,43 @@ function polarityMatch(value: string, options: readonly string[]): string | null
   return best && best.score > 0 ? best.opt : pool[0];
 }
 
-const SEVERITY_WORDS = ["none", "negligible", "minor", "low", "moderate", "medium", "major", "high", "severe", "critical"];
+// DOC 161 (2026-09-03) — the ladder carries a rank so a scale whose options
+// are not listed low-to-high (the LIA contract now lists the intake form's
+// "Negligible — … / Limited — … / Significant — … / Severe — …" strings
+// before the legacy "None / negligible / Minor / Moderate / Severe" values)
+// still resolves to its low-middle rung, and "significant"/"limited" are
+// severity words.
+const SEVERITY_RANK: Readonly<Record<string, number>> = {
+  none: 0, negligible: 0,
+  minor: 1, low: 1, limited: 1,
+  moderate: 2, medium: 2,
+  major: 3, high: 3, significant: 3,
+  severe: 4, critical: 4,
+};
+const SEVERITY_WORDS = Object.keys(SEVERITY_RANK);
+
+function severityRank(option: string): number | null {
+  const words = norm(option).split(" ");
+  // The head word decides ("Limited — minor inconvenience" is the limited rung).
+  for (const w of words) if (w in SEVERITY_RANK) return SEVERITY_RANK[w];
+  return null;
+}
 
 /** Ordinal severity scales: keyword hit, else the low-middle rung. */
 function severityMatch(value: string, options: readonly string[]): string | null {
-  const isScale = options.length >= 3 && options.every((o) => SEVERITY_WORDS.some((w) => norm(o).split(" ").includes(w)));
+  const ranks = options.map(severityRank);
+  const isScale = options.length >= 3 && ranks.every((r) => r !== null);
   if (!isScale) return null;
   const v = norm(value);
-  for (const w of ["severe", "critical", "major", "high", "moderate", "medium", "minor", "low", "negligible", "none"]) {
+  for (const w of ["severe", "critical", "major", "high", "significant", "moderate", "medium", "minor", "low", "limited", "negligible", "none"]) {
     if (!v.split(" ").includes(w)) continue;
     const hit = options.find((o) => norm(o).split(" ").includes(w));
     if (hit) return hit;
   }
-  return options[Math.floor((options.length - 1) / 2)];
+  const distinct = [...new Set(ranks as number[])].sort((a, b) => a - b);
+  const target = distinct[Math.floor((distinct.length - 1) / 2)];
+  const idx = ranks.indexOf(target);
+  return idx >= 0 ? options[idx] : options[Math.floor((options.length - 1) / 2)];
 }
 
 

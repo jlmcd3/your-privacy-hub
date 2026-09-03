@@ -39,13 +39,13 @@ function get(obj: unknown, path: string): unknown {
 
 const POSTURE_SENTENCE: Record<string, (label: string) => string> = {
   rejected:
-    (label) => `Regulators applying the equivalent EU/UK legitimate-interests test have rejected reliance on it for ${label.toLowerCase()} processing in the decision below. The decision is persuasive context only; it does not decide the outcome recorded above, which turns on this record's own facts.`,
+    (label) => `Regulators applying the equivalent EU/UK legitimate-interests test have rejected reliance on it for ${label.toLowerCase()} processing in the decision below. The decision is persuasive context only; it does not decide the outcome recorded above, which turns on the facts the company has provided.`,
   conditional:
-    (label) => `Regulators applying the equivalent EU/UK legitimate-interests test have treated ${label.toLowerCase()} processing as conditionally defensible, turning on the specific safeguards and scope described in the decision below. The decision is persuasive context only; it does not decide the outcome recorded above, which turns on this record's own facts.`,
+    (label) => `Regulators applying the equivalent EU/UK legitimate-interests test have treated ${label.toLowerCase()} processing as conditionally defensible, turning on the specific safeguards and scope described in the decision below. The decision is persuasive context only; it does not decide the outcome recorded above, which turns on the facts the company has provided.`,
   accepted:
-    (label) => `Regulators applying the equivalent EU/UK legitimate-interests test have accepted reliance on it for ${label.toLowerCase()} processing in circumstances close to the decision below. The decision is persuasive context only; it does not decide the outcome recorded above, which turns on this record's own facts.`,
+    (label) => `Regulators applying the equivalent EU/UK legitimate-interests test have accepted reliance on it for ${label.toLowerCase()} processing in circumstances close to the decision below. The decision is persuasive context only; it does not decide the outcome recorded above, which turns on the facts the company has provided.`,
   contested:
-    (label) => `Regulators applying the equivalent EU/UK legitimate-interests test have reached differing conclusions on ${label.toLowerCase()} processing; the decision below illustrates one outcome. The decision is persuasive context only; it does not decide the outcome recorded above, which turns on this record's own facts.`,
+    (label) => `Regulators applying the equivalent EU/UK legitimate-interests test have reached differing conclusions on ${label.toLowerCase()} processing; the decision below illustrates one outcome. The decision is persuasive context only; it does not decide the outcome recorded above, which turns on the facts the company has provided.`,
 };
 
 export function buildPrecedentClassPosture(intake: unknown): PrecedentClassFinding {
@@ -82,7 +82,7 @@ export function buildPrecedentClassPosture(intake: unknown): PrecedentClassFindi
       standard_citation: "",
       record_fact,
       application:
-        `No ratified regulatory-precedent posture exists yet for ${useCaseLabel.toLowerCase()} processing. This does not affect the determination above, which is reached from this record's own facts under the three-part test.`,
+        `No ratified regulatory-precedent posture exists yet for ${useCaseLabel.toLowerCase()} processing. This does not affect the determination above, which is reached under the three-part test from the facts the company has provided.`,
       use_case_class: useCaseClass,
       use_case_label: useCaseLabel,
       posture: "not_assessed",

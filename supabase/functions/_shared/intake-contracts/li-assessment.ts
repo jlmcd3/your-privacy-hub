@@ -31,13 +31,48 @@ export const JURISDICTIONS = [
   "Australia", "Singapore", "Other",
 ] as const;
 
-// Stage B enum values — verified against LIAssessmentIntake.tsx radio
-// components. Kept locally; parity is asserted by literal-in-source
-// substring at test time is not needed because these are unique inline.
-// Exported (PANEL FIX 11 follow-on, 2026-08-31) so generate-stress-fixtures
-// can type-anchor its deterministic LIA fixture to these exact options.
-export const REASONABLE_EXPECTATION_OPTS = ["Yes", "Partly", "No"] as const;
-export const POTENTIAL_HARM_OPTS = ["None / negligible", "Minor", "Moderate", "Severe"] as const;
+// Stage B enum values. DOC 161 (2026-09-03, audit A.2): the intake form
+// (LIAssessmentIntake.tsx select controls) emits the LONG option strings
+// below; the short values are the legacy vocabulary the golden fixtures and
+// pre-2026-09 rows carry. Both validate; every builder resolves them through
+// one reader (elements.ts EXPECTATION_* / build-upgrade4.ts severityOf), and
+// the slot map labels both. Exported (PANEL FIX 11 follow-on, 2026-08-31) so
+// generate-stress-fixtures can type-anchor its deterministic LIA fixture.
+export const REASONABLE_EXPECTATION_OPTS = [
+  "Yes — directly contemplated by our existing relationship",
+  "Probably — disclosed in privacy notice and consistent with the relationship",
+  "Maybe — they may not have anticipated this specific use",
+  "Unlikely — this would surprise most data subjects",
+  "No — we have no relationship with these individuals; they would not expect this",
+  "Yes", "Partly", "No",
+] as const;
+export const POTENTIAL_HARM_OPTS = [
+  "Negligible — annoyance only",
+  "Limited — minor inconvenience or unwanted contact",
+  "Significant — discrimination, financial loss, reputational damage",
+  "Severe — physical safety, identity theft, loss of livelihood",
+  "None / negligible", "Minor", "Moderate", "Severe",
+] as const;
+// DOC 161 — the purpose selects' option strings (text fields on the contract;
+// "Other (describe below)" carries its free text in the *_other companion).
+export const INTEREST_HOLDER_OPTS = [
+  "Our organisation only",
+  "Our organisation and a third party (e.g. business partner)",
+  "A third party we share data with",
+  "The data subject themselves",
+  "The wider public",
+  "Other (describe below)",
+] as const;
+export const INTEREST_TYPE_OPTS = [
+  "Commercial / revenue-related",
+  "Operational / service delivery",
+  "Security / fraud prevention",
+  "Legal / regulatory compliance",
+  "Public interest / societal benefit",
+  "Research / product improvement",
+  "Political / electoral campaigning",
+  "Other (describe below)",
+] as const;
 
 // ITEM 311 additions — Art. 6(1)(f) child clause and second subparagraph.
 const CHILD_DATA_SUBJECT_OPTS = ["Yes", "No", "Unknown"] as const;

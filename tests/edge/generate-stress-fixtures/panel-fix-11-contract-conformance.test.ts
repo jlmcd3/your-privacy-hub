@@ -107,10 +107,12 @@ Deno.test("PANEL-11b: lia's required enums carry contract options; the prose mov
   assert(!src.includes('potential_harm: "Unexpected profiling'), "lia free-text potential_harm resurfaced");
   assert(!src.includes('jurisdictions: ["EU", "UK"]'), "lia short-code jurisdictions resurfaced");
   // …and the verbatim-option + detail-companion shape must be present.
-  assertStringIncludes(src, 'reasonable_expectation: "Yes" as typeof LIA_REASONABLE_EXPECTATION_OPTS[number]');
-  assertStringIncludes(src, 'reasonable_expectation_detail: "Users expect security and service telemetry"');
-  assertStringIncludes(src, 'potential_harm: "Moderate" as typeof LIA_POTENTIAL_HARM_OPTS[number]');
-  assertStringIncludes(src, 'potential_harm_detail: "Unexpected profiling if safeguards fail"');
+  // DOC 161 (2026-09-03) — the fallback speaks the intake form's own option
+  // strings (contract options since doc 161); the detail companions remain.
+  assertStringIncludes(src, 'reasonable_expectation: "Probably — disclosed in privacy notice and consistent with the relationship" as typeof LIA_REASONABLE_EXPECTATION_OPTS[number]');
+  assertStringIncludes(src, 'reasonable_expectation_detail: "Security screening is standard for an online service');
+  assertStringIncludes(src, 'potential_harm: "Limited — minor inconvenience or unwanted contact" as typeof LIA_POTENTIAL_HARM_OPTS[number]');
+  assertStringIncludes(src, 'potential_harm_detail: "A false positive holds a session');
   assertStringIncludes(src, '["EU (GDPR)", "United Kingdom (UK GDPR)"] as (typeof LIA_JURISDICTIONS[number])[]');
 });
 

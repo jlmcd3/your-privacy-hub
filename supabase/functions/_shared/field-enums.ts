@@ -116,6 +116,37 @@ const LIA_JURISDICTIONS = [
   "California (CCPA/CPRA)", "Other US States", "Canada", "Brazil (LGPD)",
   "Australia", "Singapore", "Other",
 ];
+// DOC 161 (2026-09-03) — the Stage B enum leaves (li-assessment.ts; the form's
+// option strings first, the legacy short values after).
+const LIA_REASONABLE_EXPECTATION = [
+  "Yes — directly contemplated by our existing relationship",
+  "Probably — disclosed in privacy notice and consistent with the relationship",
+  "Maybe — they may not have anticipated this specific use",
+  "Unlikely — this would surprise most data subjects",
+  "No — we have no relationship with these individuals; they would not expect this",
+  "Yes", "Partly", "No",
+];
+const LIA_POTENTIAL_HARM = [
+  "Negligible — annoyance only",
+  "Limited — minor inconvenience or unwanted contact",
+  "Significant — discrimination, financial loss, reputational damage",
+  "Severe — physical safety, identity theft, loss of livelihood",
+  "None / negligible", "Minor", "Moderate", "Severe",
+];
+const LIA_BENEFICIARY = [
+  "Our business", "The individuals whose data is processed", "A third party",
+  "Our business and the individuals", "Our business and a third party",
+];
+const LIA_RELATIONSHIP_CATEGORY = ["Customer", "Employee", "Prospect", "Member of the public — no relationship"];
+const LIA_OPT_OUT_AVAILABLE = [
+  "Yes — unconditional, on request, with no consequence",
+  "Yes — but conditional or subject to review",
+  "No opt-out is available",
+];
+const LIA_PUBLIC_AUTHORITY = ["Yes", "No"];
+const LIA_PUBLIC_TASK = ["Yes", "No", "Not applicable"];
+const LIA_CHILDREN = ["Yes", "No", "Unknown"];
+const LIA_DPO_REVIEWED = ["Yes", "No", "Planned"];
 
 // ── cppa_cybersecurity ─────────────────────────────────────────────────
 // RC-C3.CLOSE-1 / RC-FLIP-2 — mirror of src/pages/CPPACybersecurity.enums.ts MATURITY.
@@ -201,6 +232,15 @@ export const FIELD_ENUM_MIRROR: Record<string, readonly string[]> = {
   "li_assessment:data_categories": LIA_DATA_CATEGORIES,
   "li_assessment:relationship_type": LIA_RELATIONSHIPS,
   "li_assessment:jurisdictions": LIA_JURISDICTIONS,
+  "li_assessment:balancing_details.reasonable_expectation": LIA_REASONABLE_EXPECTATION,
+  "li_assessment:balancing_details.potential_harm": LIA_POTENTIAL_HARM,
+  "li_assessment:balancing_details.relationship_category": LIA_RELATIONSHIP_CATEGORY,
+  "li_assessment:balancing_details.opt_out_available": LIA_OPT_OUT_AVAILABLE,
+  "li_assessment:balancing_details.children_data_subjects": LIA_CHILDREN,
+  "li_assessment:purpose_details.beneficiary": LIA_BENEFICIARY,
+  "li_assessment:purpose_details.controller_is_public_authority": LIA_PUBLIC_AUTHORITY,
+  "li_assessment:purpose_details.public_task_processing": LIA_PUBLIC_TASK,
+  "li_assessment:attestation.dpo_reviewed": LIA_DPO_REVIEWED,
   // cppa_cybersecurity — single maturity enum, shared across 18 controls.
   "cppa_cybersecurity:maturity": CYBER_MATURITY_OPTS,
   // C1.2 — § 7120(a)-(b) applicability predicate inputs; the SAME option

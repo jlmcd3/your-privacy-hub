@@ -28,7 +28,6 @@ import {
   EXPECTATION_PARTIAL,
   EXPECTATION_POSITIVE,
   EXPOSURE_LEXICON,
-  HARM_MATERIAL,
   NOTICE_ONLY_LEXICON,
   row,
   UK_JURISDICTION,
@@ -54,7 +53,7 @@ import { buildEprivacyShortCircuit } from "./eprivacy-gate.ts";
 // verdict read (state-normalization; see three-part-test-typed.ts
 // necessityVerdict). buildAlternativesConsidered is pure over the intake, so
 // calling it here creates no ordering dependency on attachLiaUpgrade4.
-import { buildAlternativesConsidered } from "./build-upgrade4.ts";
+import { buildAlternativesConsidered, buildInterestLegitimacy, harmIsMaterial } from "./build-upgrade4.ts";
 
 export const LIA_DELIVERABLES_VERSION =
   "lia-analytic-deliverables-2026-08-01-item326";
@@ -308,7 +307,7 @@ export function buildChildFactor(intake: unknown): ChildFactorFinding {
   );
   factParts.push(
     vulnerableAnswered
-      ? `On vulnerable groups it records ${JSON.stringify(vulnerable)}.`
+      ? `On vulnerable groups it records ${vulnerable.map((v) => `"${v}"`).join(", ")}.`
       : "It records no answer on vulnerable groups either.",
   );
   const record_fact = factParts.join(" ");
@@ -331,7 +330,7 @@ export function buildChildFactor(intake: unknown): ChildFactorFinding {
     determination = "children_not_in_scope";
     application = saysNo
       ? "The record states that the data subjects are not children, so the Article 6(1)(f) child clause is not engaged by this processing. The determination is bound to that statement: if the processing later reaches children, the balance must be re-run."
-      : `The record answers the vulnerable-groups question as ${JSON.stringify(vulnerable)} and does not include children among them, so the Article 6(1)(f) child clause is not engaged. The determination is bound to that answer: if the processing later reaches children, the balance must be re-run.`;
+      : `The record answers the vulnerable-groups question as ${vulnerable.map((v) => `"${v}"`).join(", ")} and does not include children among them, so the Article 6(1)(f) child clause is not engaged. The determination is bound to that answer: if the processing later reaches children, the balance must be re-run.`;
   } else {
     determination = "undetermined_on_the_record";
     status = "record_insufficient";
@@ -507,6 +506,11 @@ export function buildDetermination(
     .map((a) => a.alternative);
   const altsListed = altsFinding.alternatives.length > 0;
   const altsComplete = altsListed && altsUnexplained.length === 0;
+  // DOC 161 (2026-09-03, audit A.5) — the determination reads the typed
+  // interest_legitimacy verdict the purpose test renders (it used to read
+  // presence only, so "Purpose test: Not met" could sit beside "Legitimate
+  // interests is available"). Pure over the intake; no ordering dependency.
+  const legitimacy = buildInterestLegitimacy(intake);
   const harm = str(get(intake, "balancing_details.potential_harm"));
   const safeguards = arr(get(intake, "balancing_details.safeguards"));
   const optOut = str(get(intake, "balancing_details.opt_out_mechanism"));
@@ -517,7 +521,40 @@ export function buildDetermination(
   const open: LiaFactor[] = [];
   const mitigations: Mitigation[] = [...classifyRecordedMitigations(intake)];
 
-  // ── legitimacy (Op. 1 owns the verdict; this reads only presence) ──
+  // ── legitimacy — the typed verdict, then presence ──
+  const legitimacyFailed = !!interest && legitimacy.verdict === "legitimate_interest_not_established";
+  const legitimacyOpen = !!interest && legitimacy.verdict === "undetermined_on_the_record";
+  const failedSubTest = legitimacy.sub_tests.find((t) => t.verdict === "not_met");
+  const stripFieldPath = (t: string): string => t.replace(/^[a-z_.]+(?:\s+and\s+[a-z_.]+)?\s+—\s+/, "");
+  if (legitimacyFailed) {
+    failing.push("legitimacy");
+    mitigations.push({
+      factor: "legitimacy",
+      anchor_keys: ["purpose_details.interest_statement", "purpose_details.interest_type"],
+      measure: failedSubTest?.information_needed
+        ? stripFieldPath(failedSubTest.information_needed)
+        : "Restate the interest so that it is lawful, precisely articulated, and real and present, and record it in the balancing record.",
+      why_it_moves_the_balance:
+        `${conditions.verbatim} The condition recorded as not met — ${failedSubTest ? lowerFirst(failedSubTest.label) : "the legitimacy of the interest"} — is the first of them, and nothing weighed later can stand in for it.`,
+      goes_beyond_gdpr_obligation: false,
+      citation: conditions.citation || "EDPB Guidelines 1/2024, Section II",
+      ...authorityVerbatim(conditions.verbatim),
+    });
+  } else if (legitimacyOpen) {
+    open.push("legitimacy");
+    mitigations.push({
+      factor: "legitimacy",
+      anchor_keys: ["purpose_details.interest_statement", "purpose_details.interest_type"],
+      measure: legitimacy.information_needed
+        ? stripFieldPath(legitimacy.information_needed)
+        : "Record the category of interest relied on and confirm that the processing is live today.",
+      why_it_moves_the_balance:
+        `The first of the three conditions is open rather than answered on the information provided. ${conditions.verbatim}`,
+      goes_beyond_gdpr_obligation: false,
+      citation: conditions.citation || "EDPB Guidelines 1/2024, Section II",
+      ...authorityVerbatim(conditions.verbatim),
+    });
+  }
   if (!interest) {
     open.push("legitimacy");
     mitigations.push({
@@ -622,7 +659,7 @@ export function buildDetermination(
   }
 
   // ── balancing ──
-  const materialHarm = matches(harm, HARM_MATERIAL);
+  const materialHarm = harmIsMaterial(harm);
   if (!harm) {
     open.push("balancing");
   } else if (materialHarm && safeguards.length === 0) {
@@ -678,6 +715,16 @@ export function buildDetermination(
     rawWhy =
       "Before relying on Article 6(1)(f), this assessment must establish that the legitimate-interests basis is available to the Company. The information provided does not establish whether the public-authority exclusion applies. The lawful-basis decision therefore remains pending until that threshold issue is resolved.";
     information_needed = publicAuthority.information_needed;
+  } else if (failing.includes("legitimacy")) {
+    // DOC 161 — the first cumulative condition fails; no balance can be
+    // struck for an interest that does not qualify. Ratification queue R3.
+    outcome = "legitimate_interests_not_available";
+    rawWhy =
+      `Legitimate interests is not available for this processing as recorded: the first of the three cumulative conditions is not met, because ${
+        failedSubTest
+          ? `${lowerFirst(failedSubTest.label)} is recorded as not met (${firstSentence(failedSubTest.reasoning).replace(/\.$/, "")})`
+          : "the interest as stated does not qualify as legitimate"
+      }, and no balance can be struck for an interest that does not qualify. ${conditions.verbatim} The mitigation below states what would bring the interest within the first condition; once it is recorded, the assessment is to be performed anew.`;
   } else if (child.determination === "children_in_scope" && materialHarm) {
     outcome = "legitimate_interests_not_available";
     rawWhy =
@@ -693,6 +740,7 @@ export function buildDetermination(
         [
           expectations.information_needed,
           child.information_needed,
+          legitimacyOpen ? legitimacy.information_needed : undefined,
           !interest
             ? "purpose_details.interest_statement — the interest pursued, stated precisely enough to be weighed."
             : undefined,

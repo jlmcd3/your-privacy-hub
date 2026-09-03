@@ -126,7 +126,11 @@ export function buildLiaEngagementMap(
 
   // UK GDPR Art. 6(11) DUAA 2025 examples — parameterised on stated purpose
   const uk611Sig = ["jurisdictions", "stated_purpose", "processing_description"];
-  const looksLikeDM = /(direct marketing|marketing (funnel|attribution|efficiency)|marketing analytics)/i;
+  // DOC 161 (2026-09-03, audit A.6) — UK GDPR Art. 6(11)(a) recognises
+  // "processing that is necessary for the purposes of direct marketing";
+  // marketing analytics is not direct marketing, and the old pattern matched
+  // "marketing efficiency" on an analytics record. Direct-marketing language only.
+  const looksLikeDM = /\bdirect[- ]marketing\b|\bmarketing (?:e-?mails?|messages?|texts?|sms|campaigns?)\b/i;
   const looksLikeIntraGroup = /(intra[- ]group|group compan|internal administrative)/i;
   const looksLikeNetSec = /(network security|information security|fraud (scoring|detection|prevention)|security monitor|abuse detection)/i;
   const stmt = `${stated} ${description}`;
@@ -138,7 +142,7 @@ export function buildLiaEngagementMap(
       : "not_applicable",
     rationale: isUk
       ? (looksLikeDM.test(stmt)
-        ? "UK jurisdiction and the record describes marketing analytics; the DUAA 2025 recognised-interests example for direct marketing may be argued (LIA still required)."
+        ? "UK jurisdiction and the record describes direct marketing; the DUAA 2025 recognised-interests example for direct marketing may be argued (LIA still required)."
         : "UK jurisdiction, but the record does not describe direct marketing.")
       : "UK GDPR is not in scope; Art. 6(11) does not apply.",
     intake_signals: uk611Sig,

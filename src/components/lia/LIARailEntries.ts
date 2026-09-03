@@ -57,6 +57,79 @@ export const LIA_RAIL: Record<string, RailEntry> = {
   // describes the SHAPE of a complete answer only; regulationText is left as a
   // placeholder rather than paraphrasing law (byte-exact article text reaches
   // the rail through useGdprRailEntry on the section rail).
+  // ── DOC 161 (2026-09-03) — the verdict-driving enum questions had no coach
+  // entry. Every claim about what the assessment does is true of the
+  // deterministic path (lia-deliverables/build.ts, build-upgrade4.ts).
+  controller_is_public_authority: {
+    fieldLabel: "Is your organisation a public authority?",
+    citation: "GDPR Art. 6(1)(f), second subparagraph",
+    plainSummary:
+      "Legitimate interests is not available to a public authority for processing carried out in the performance of its tasks. The answer decides whether the basis is available before any balancing.",
+    regulationText: "\u2026",
+    coachLead: "Answer for your legal character, not your sector.",
+    coachBody:
+      "A body is a public authority because of what the law makes it, not because of the work it does; a private company delivering a public service is not one. Your assessment does not infer the answer from your name or sector: unanswered, it records the availability of the basis as pending and lists this question among the information required.",
+    goodAnswer:
+      "\u201CNo\u201D for a limited company that contracts with a council; \u201CYes\u201D for the council itself.",
+    commonMistake:
+      "Leaving it blank because it seems obvious. The assessment cannot resolve it for you, so the lawful-basis decision stays pending.",
+  },
+  public_task_processing: {
+    fieldLabel: "Is this processing carried out in the performance of your public tasks?",
+    citation: "GDPR Art. 6(1)(f), second subparagraph",
+    plainSummary:
+      "The exclusion is drawn to the tasks, not to the body. A public authority may rely on legitimate interests only for processing outside the performance of its tasks.",
+    regulationText: "\u2026",
+    coachLead: "Say whether this processing is one of your statutory tasks.",
+    coachBody:
+      "If the processing serves a task the law gives you, legitimate interests is unavailable and Article 6(1)(e) is the basis to assess. If it is an activity outside those tasks, say so and name the activity. \u201CNot applicable\u201D is for controllers that are not public authorities.",
+    goodAnswer:
+      "\u201CNo \u2014 the staff car-park permit scheme is an ancillary activity, not a function conferred by statute.\u201D",
+    commonMistake:
+      "Answering \u201CNo\u201D because the task is administrative. Administration of a statutory function is still performance of the task.",
+  },
+  reasonable_expectation: {
+    fieldLabel: "Would data subjects reasonably expect this processing?",
+    citation: "GDPR Recital 47 (time and context of collection)",
+    plainSummary:
+      "Recital 47 asks what the individual could reasonably expect at the time and in the context of collection, based on their relationship with you. Your selection states a conclusion; the fields beneath it supply the facts the assessment weighs.",
+    regulationText: "\u2026",
+    coachLead: "Pick the option that matches the moment the data were collected.",
+    coachBody:
+      "\u201CYes\u201D weighs with you. \u201CProbably\u201D and \u201CMaybe\u201D count as partly expected and sit on the individuals\u2019 side of the balance without defeating it. \u201CUnlikely\u201D and \u201CNo\u201D count as not expected, weigh against you, and call for a mitigation. Your assessment runs the test on the collection context and the reasoning you give below; without them it records the answer but does not assess it.",
+    goodAnswer:
+      "\u201CProbably\u201D for fraud screening described at checkout to existing customers; \u201CNo\u201D for profiling people you have never dealt with.",
+    commonMistake:
+      "Choosing \u201CYes\u201D because the privacy notice mentions the processing. The Guidelines treat a notice alone as insufficient; the expectation has to arise from the relationship and the setting.",
+  },
+  children_data_subjects: {
+    fieldLabel: "Are any data subjects children?",
+    citation: "GDPR Art. 6(1)(f) (\u201Cin particular where the data subject is a child\u201D)",
+    plainSummary:
+      "Article 6(1)(f) names the child as the case in which the individual\u2019s interests are most likely to override yours. The answer engages or rules out that clause.",
+    regulationText: "\u2026",
+    coachLead: "Answer for who is actually in the data, not who the service is for.",
+    coachBody:
+      "If people under 18 can be among the data subjects, answer \u201CYes\u201D and say how you know their age. \u201CUnknown\u201D leaves the clause open and the balance is stated subject to it. A \u201CYes\u201D together with a significant or severe worst-case impact makes legitimate interests unavailable as recorded.",
+    goodAnswer:
+      "\u201CYes \u2014 the store accepts orders from customers aged 16 and over; age is self-declared at checkout.\u201D",
+    commonMistake:
+      "Answering \u201CNo\u201D because the terms say adults only, when nothing checks it.",
+  },
+  potential_harm: {
+    fieldLabel: "If something went wrong, what\u2019s the worst-case impact on data subjects?",
+    citation: "GDPR Art. 6(1)(f) \u00b7 EDPB Guidelines 1/2024, Section II.C (impact on data subjects)",
+    plainSummary:
+      "The worst realistic outcome for the people affected, on a four-band scale. Significant and severe impacts weigh materially against your interest and must be answered by safeguards that go beyond what the GDPR already requires.",
+    regulationText: "\u2026",
+    coachLead: "Rate the worst realistic case, then describe its pathway below.",
+    coachBody:
+      "Choose the band for what would actually happen to a person if the processing miscarried, not for how likely it is. Your assessment weighs \u201CSignificant\u201D and \u201CSevere\u201D as material: with no safeguard recorded the balance goes against you, and with children in scope the basis is unavailable. The description beneath the rating is what the balance is struck against.",
+    goodAnswer:
+      "\u201CLimited\u201D for a held order delayed by a day; \u201CSignificant\u201D for a credit decision that could exclude someone from a service.",
+    commonMistake:
+      "Rating the harm \u201CNegligible\u201D because safeguards exist. The rating is for the harm; the safeguards are recorded separately and credited separately.",
+  },
   specific_benefit: {
     fieldLabel: "What specific benefit does this processing deliver?",
     citation: "EDPB Guidelines 1/2024, §§ 18–21 (interest must be real and present)",

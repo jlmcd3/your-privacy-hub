@@ -437,12 +437,13 @@ Use the same company name, domain, DPO details, and country as already establish
 Return a JSON object with EXACTLY these fields:
 {
   "lia": {
-    "organization_name": "string", "subject_anchor": "string — one line naming the single interest, e.g. Fraud screening of new account signups", "processing_description": "string", "sector": "string",
+    "organization_name": "string", "subject_anchor": "string — one line naming the single interest, e.g. Fraud screening of new account signups", "processing_description": "string — the mechanism: what data, what is done to it, what it produces", "sector": "string",
     "stated_purpose": "string", "relationship_type": "string", "data_categories": ["array"],
-    "jurisdictions": ["array"], "alternatives_considered": "string",
-    "purpose_details": { "interest_holder": "string", "interest_type": "string", "interest_statement": "string — one full sentence articulating the specific legitimate interest being pursued", "specific_benefit": "string — the concrete benefit the processing delivers", "beneficiary": "string — verbatim option: 'Our business' | 'The individuals whose data is processed' | 'A third party' | 'Our business and the individuals' | 'Our business and a third party'", "controller_is_public_authority": "Yes or No" },
-    "necessity_details": { "alternatives": "string", "why_consent_not_used": "string", "data_minimised": "string", "pseudonymisation_options": "string" },
-    "balancing_details": { "reasonable_expectation": "string", "vulnerable_subjects": [], "potential_harm": "string", "safeguards": ["array"], "opt_out_mechanism": "string", "special_category_data": boolean, "balancing_text": "string" }
+    "jurisdictions": ["array"], "alternatives_considered": "string — one alternative per line",
+    "purpose_details": { "interest_holder": "one of EXACTLY: 'Our organisation only' | 'Our organisation and a third party (e.g. business partner)' | 'A third party we share data with' | 'The data subject themselves' | 'The wider public'", "interest_type": "one of EXACTLY: 'Commercial / revenue-related' | 'Operational / service delivery' | 'Security / fraud prevention' | 'Legal / regulatory compliance' | 'Public interest / societal benefit' | 'Research / product improvement' | 'Political / electoral campaigning'", "interest_statement": "string — one full sentence articulating the specific legitimate interest being pursued, stated as live today (never 'we plan to' or 'might')", "specific_benefit": "string — the concrete benefit the processing delivers", "beneficiary": "string — verbatim option: 'Our business' | 'The individuals whose data is processed' | 'A third party' | 'Our business and the individuals' | 'Our business and a third party'", "controller_is_public_authority": "Yes or No", "public_task_processing": "Yes | No | Not applicable ('Not applicable' when the controller is not a public authority)" },
+    "necessity_details": { "alternatives": "string — one alternative per line", "alternatives_rationale": "string — one line per alternative: '<alternative> — <the outcome it would fail to deliver>'", "why_consent_not_used": "string", "data_minimised": "string — what was excluded as well as what is kept", "pseudonymisation_options": "string, or null when the processing is not analytics" },
+    "balancing_details": { "reasonable_expectation": "one of the form options listed in the enum appendix, e.g. 'Probably — disclosed in privacy notice and consistent with the relationship'", "reasonable_expectation_detail": "string — the reasoning behind the answer", "collection_context": "string — when and in what setting the data were collected and what the data subjects were told at that moment", "relationship_category": "one of EXACTLY: 'Customer' | 'Employee' | 'Prospect' | 'Member of the public — no relationship'", "children_data_subjects": "Yes | No | Unknown", "vulnerable_subjects": ["array — 'None' or verbatim form options such as 'Children under 16', 'Employees'"], "potential_harm": "one of the form options listed in the enum appendix, e.g. 'Limited — minor inconvenience or unwanted contact'", "potential_harm_detail": "string — the pathway to the worst case", "potential_harms": ["array of verbatim form options: 'Financial loss', 'Discrimination or unfair treatment', 'Reputational damage', 'Loss of autonomy or control over data', 'Distress or intrusion', 'Exclusion from a service', 'Physical safety risk', 'Identity theft or fraud exposure'"], "scale_approx": "string", "frequency": "string", "duration": "string", "safeguards": ["array of verbatim form options: 'Encryption at rest and in transit', 'Pseudonymisation', 'Access controls / least privilege', 'Retention limits', 'Independent oversight (DPO / privacy committee)', 'DPIA completed', 'Vendor due diligence'"], "additional_mitigations": "string — measures beyond what the GDPR already requires", "opt_out_available": "one of EXACTLY: 'Yes — unconditional, on request, with no consequence' | 'Yes — but conditional or subject to review' | 'No opt-out is available'", "opt_out_mechanism": "string — the route, the effort, how quickly processing stops", "special_category_data": boolean, "additional_context": "string" },
+    "attestation": { "dpo_reviewed": "Yes | No | Planned", "dpo_reviewer": "string", "dpo_review_date": "YYYY-MM-DD", "approver_name": "string", "approver_position": "string", "approval_date": "YYYY-MM-DD", "review_triggers": ["array of verbatim form options, e.g. 'A change in the purpose of the processing', 'An objection or complaint from a data subject'"] }
   },
   "dpia": {
     "processing_activity_name": "string", "description": "string", "purpose": "string",
@@ -1291,40 +1292,63 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
       // jurisdictions/data_categories/relationship_type snapped to the
       // contract's verbatim vocabulary, type-anchored.
       lia: {
+        // DOC 161 (2026-09-03) — the fallback carries every contract key the
+        // deterministic builders read, in the intake form's own vocabulary
+        // (the old block used the legacy short enums, non-option safeguards
+        // and a `balancing_text` key the contract does not know).
         organization_name: c.companyName,
-        subject_anchor: `${industry} — fraud screening and security monitoring of authenticated users`,
-        processing_description: `${industry} service analytics and fraud prevention`,
+        subject_anchor: `Fraud screening and security monitoring of authenticated ${industry.toLowerCase()} users`,
+        processing_description: `Authenticated user sessions on the ${industry.toLowerCase()} service are scored for account takeover and payment fraud from login velocity, device signals and transaction patterns; sessions above the review threshold are held for manual review by the security team, and no account is suspended on the score alone.`,
         sector: industry,
-        stated_purpose: "Improve reliability, prevent fraud, and support users",
+        stated_purpose: "Detect and prevent fraud and account takeover on the service so that legitimate users keep uninterrupted access.",
         relationship_type: "Existing customer" as typeof LIA_RELATIONSHIPS[number],
         data_categories: ["Contact data", "Browsing/behavioural data", "Device/technical data"] as (typeof LIA_DATA_CATEGORIES[number])[],
         jurisdictions: ["EU (GDPR)", "United Kingdom (UK GDPR)"] as (typeof LIA_JURISDICTIONS[number])[],
-        alternatives_considered: "Consent and aggregate-only analytics were considered but would not support security monitoring",
-        // DOC 141 (2026-09-02) — `purpose_text` was not a contract key
-        // (li-assessment.ts registers purpose_details.interest_statement);
-        // replaced with a real articulation sentence, and the UPGRADE-4 /
-        // ITEM 311 companions (specific_benefit, beneficiary,
-        // controller_is_public_authority) the fallback never emitted are
-        // added with the form's verbatim option strings.
+        alternatives_considered: "Consent-based screening\nAggregate-only analytics\nA fixed transaction-value threshold",
         purpose_details: {
-          interest_holder: c.companyName,
-          interest_type: "Operational security",
-          interest_statement: `${c.companyName} has a legitimate interest in monitoring authenticated user activity to detect fraud and keep its ${industry.toLowerCase()} service secure and reliable for all users.`,
+          interest_holder: "Our organisation only",
+          interest_type: "Security / fraud prevention",
+          interest_statement: `${c.companyName} carries the loss on fraudulent transactions and compromised accounts on its ${industry.toLowerCase()} service; the interest is in identifying those sessions before the loss occurs, and it is live today.`,
           specific_benefit: "Fewer compromised accounts and fraudulent transactions, and uninterrupted service availability for legitimate users.",
           beneficiary: "Our business and the individuals",
           controller_is_public_authority: "No",
+          public_task_processing: "Not applicable",
         },
-        necessity_details: { alternatives: "Aggregate reporting and shorter retention", why_consent_not_used: "Security controls must operate consistently", data_minimised: "Only event metadata is processed", pseudonymisation_options: "User IDs are pseudonymised in analytics" },
+        necessity_details: {
+          alternatives: "Consent-based screening\nAggregate-only analytics\nA fixed transaction-value threshold",
+          alternatives_rationale: "Consent-based screening — a user intending fraud would decline it, and screening only works if it runs on every session.\nAggregate-only analytics — cannot identify the individual session to hold.\nA fixed transaction-value threshold — most fraudulent transactions fall below any workable threshold, so it misses the fraud and holds legitimate high-value activity.",
+          why_consent_not_used: "Security controls must operate consistently on every session; consent could be withdrawn by the very users the screening exists to catch, and it would be a condition of service rather than a free choice.",
+          data_minimised: "Scoring reads login timing, device type and transaction amount only; no location data, no browsing history outside the service and no marketing data are read, and scores are deleted 90 days after the session.",
+          pseudonymisation_options: "User identifiers are pseudonymised in the analytics store; the security team re-identifies a session only when it is held for review.",
+        },
         balancing_details: {
-          reasonable_expectation: "Yes" as typeof LIA_REASONABLE_EXPECTATION_OPTS[number],
-          reasonable_expectation_detail: "Users expect security and service telemetry",
-          vulnerable_subjects: [],
-          potential_harm: "Moderate" as typeof LIA_POTENTIAL_HARM_OPTS[number],
-          potential_harm_detail: "Unexpected profiling if safeguards fail",
-          safeguards: ["opt-out where applicable", "role-based access", "short retention"],
-          opt_out_mechanism: "Privacy centre preference controls",
+          reasonable_expectation: "Probably — disclosed in privacy notice and consistent with the relationship" as typeof LIA_REASONABLE_EXPECTATION_OPTS[number],
+          reasonable_expectation_detail: "Security screening is standard for an online service and is described at sign-up; users would expect their sessions to be checked for account takeover.",
+          collection_context: "Login and session data are collected at each sign-in, where the security notice is shown; transaction data are collected as the user transacts on the service.",
+          relationship_category: "Customer",
+          children_data_subjects: "No",
+          vulnerable_subjects: ["None"],
+          potential_harm: "Limited — minor inconvenience or unwanted contact" as typeof LIA_POTENTIAL_HARM_OPTS[number],
+          potential_harm_detail: "A false positive holds a session for manual review for up to one working day; the user cannot see the reason for the hold.",
+          potential_harms: ["Loss of autonomy or control over data", "Exclusion from a service"],
+          scale_approx: slot === 1 ? "Approximately 250,000 active user accounts" : "Approximately 18,000 active user accounts",
+          frequency: "Every authenticated session is scored in real time",
+          duration: "Session scores retained 90 days; confirmed-fraud case records 24 months",
+          safeguards: ["Access controls / least privilege", "Retention limits", "Pseudonymisation"],
+          additional_mitigations: "A same-day release standard for held sessions, and a quarterly review of hold rates by user segment so a segment that scores anomalously as a group is retuned.",
+          opt_out_available: "Yes — but conditional or subject to review",
+          opt_out_mechanism: "A user may object through the privacy centre; the security team reviews the objection within two working days and, where the account carries no fraud indicators, future sessions bypass the score.",
           special_category_data: false,
-          balancing_text: "Benefits outweigh limited privacy impact with safeguards",
+          additional_context: "No score, signal or outcome is shared with any third party, and none is used for marketing or credit assessment.",
+        },
+        attestation: {
+          dpo_reviewed: "Yes",
+          dpo_reviewer: c.dpoName || "Data Protection Officer",
+          dpo_review_date: "2026-05-14",
+          approver_name: "K. Sørensen",
+          approver_position: "Head of Security",
+          approval_date: "2026-05-21",
+          review_triggers: ["A change in the purpose of the processing", "A change in the categories of data used", "An objection or complaint from a data subject"],
         },
       },
       dpia: (() => {
