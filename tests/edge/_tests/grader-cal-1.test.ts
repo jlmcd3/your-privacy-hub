@@ -378,10 +378,13 @@ Deno.test("GRADER-CAL-3 T2(c): closing-block ownership disclaimer is exempt", ()
 // PROMPT 8I (2026-08-12) — re-pinned for cal_skeleton_5.
 // SKELETON-CAL-3 (2026-08-28, CEO-approved) — re-pinned for cal_skeleton_6
 // (ITEM-204) + the evidence-backed dimension floor.
+// DOC 149 (2026-09-03) — re-pinned for the risk-field-semantics amendment
+// (cppa_risk q5b/q15d/q15 field-semantics block; calibration epoch prefix
+// unchanged, amendment tag appended after the rule-id brackets).
 Deno.test("instrument version pinned to the skeleton-calibration epoch", () => {
   assertEquals(
     GRADER_CONTEXT_VERSION,
-    "gc-2026-08-28-skeleton-cal-3-item204[cal_skeleton_1|cal_skeleton_2|cal_skeleton_3|cal_skeleton_4|cal_skeleton_5|cal_skeleton_6]",
+    "gc-2026-08-28-skeleton-cal-3-item204[cal_skeleton_1|cal_skeleton_2|cal_skeleton_3|cal_skeleton_4|cal_skeleton_5|cal_skeleton_6]+risk-field-semantics-2026-09-03",
   );
 });
 

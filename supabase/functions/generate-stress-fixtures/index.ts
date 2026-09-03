@@ -543,7 +543,7 @@ Return a JSON object with EXACTLY these fields:
     "has_secondary_uses": "string — EXACTLY one of: 'No — this data is used for this activity only' | 'Yes — there are other uses'",
     "q1_revenue": "string", "q2_consumers": "string", "q3_sector": "string",
     "q4_pi_categories": ["array"], "q5_sell_share": "string",
-    "q5b_profiling_observation": "Yes or No — Yes ONLY if consumers are observed acting as employees/contractors/students/applicants; customer or general-consumer profiling is No",
+    "q5b_profiling_observation": "Yes or No — Yes ONLY when the scenario's narrative describes automated processing that INFERS a characteristic (performance, reliability, health, behavior) of the business's OWN workers, students, or educational/job applicants FROM systematic observation of them (productivity scoring, keystroke analytics, telematics driver scoring). Customer/consumer/website-user profiling is ALWAYS No — consumers applying for a loan, account, or service are NOT this trigger. Never answer Yes from sector alone; if the scenario has no employment or educational relationship to the observed people, the answer is No",
     "q6_right_know": "string", "q6_right_know_multi": ["array"],
     "q7_right_delete": "string", "q8_right_correct": "string", "q9_opt_out": "string",
     "q10_id_verification": "string", "q11_policy_review": "string",
@@ -1732,6 +1732,34 @@ function normalizeCppaRiskTriggers<T extends Record<string, any>>(data: T): T {
       triggerYes(r.q18_admt_use) ||
       triggerYes(r.q15b_under16_knowledge);
     if (!hasTrigger) r.q5_sell_share = "Yes — sell only";
+    // DOC 149 (2026-09-03, batch 2c946597) — deterministic q5b coherence
+    // repair. The § 7150(b)(4) trigger question asks about systematic
+    // observation of the business's OWN workers/students/applicants; both
+    // runs of batch 2c946597 answered "Yes" for pure consumer-SaaS/adtech
+    // scenarios DESPITE the prompt guidance (T15 confirmed — the model
+    // disregards the field description). The report renders the answer
+    // faithfully by design (doc 148 ruling: the direct statutory question
+    // is the qualifying fact), so incoherent fixtures burn grader signal
+    // every batch. Mirrors the doc-141 deterministic-fallback rule: q5b
+    // stays "Yes" only when the scenario's own text shows an employment or
+    // educational relationship to the observed people; "applicant" alone
+    // is NOT a cue (loan/account applicants are consumers — the 2026-08-27
+    // batch-3e9ad759 rule, ported from run-quality-batch's guidance).
+    if (typeof r.q5b_profiling_observation === "string" && /^yes/i.test(r.q5b_profiling_observation)) {
+      const scenarioText = [
+        r.subject_anchor,
+        r.primary_activity_name,
+        r.primary_activity_purpose,
+        r.i1_processing_purpose,
+        r.q19_admt_description,
+        r.i5_admt_logic,
+        r.q3_sector,
+      ].filter((v: any) => typeof v === "string").join("\n");
+      const employmentContext =
+        /\b(employees?|employment|workers?|workforce|contractors?|staff|personnel|HR\b|recruit(ing|ment)?|hiring|job applicants?|students?|educational[- ]program|keystroke|productivity (scor|monitor)|telematics)\b/i
+          .test(scenarioText);
+      if (!employmentContext) r.q5b_profiling_observation = "No";
+    }
   }
   return data;
 }

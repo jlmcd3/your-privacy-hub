@@ -750,10 +750,28 @@ function neutralTemplateVersion(stamp: string): string {
   return `report template ${stamp}`;
 }
 
+/** DOC 149 — an evaluation-stage ADMT with at least one technical fact on
+ * the record (the six appendix record areas). Shared predicate for the
+ * appendix table + intro gates; mirrors the engine's admtEvaluationActive. */
+function admtEvaluationWithFacts(intake: Bag): boolean {
+  return s(intake.q18_admt_use) === "In evaluation" && [
+    intake.q19_admt_description,
+    intake.i5_admt_logic,
+    intake.admt_output,
+    intake.i5_admt_human_review,
+    intake.i5_admt_fairness_testing,
+    intake.i5_admt_training_source,
+  ].some((v) => s(v) !== "");
+}
+
 /** Appendix E (was F; DOC 144 re-letter) — {{DERIVED.admt_technical_facts}}
  * (the verbatim technical record that leaves § 3.E under v5.2). */
 export function deriveAdmtTechnicalFacts(intake: Bag): RenderedTable | null {
-  if (!isYes(intake.q18_admt_use)) return null;
+  // DOC 149 (2026-09-03, batch 2c946597) — an "In evaluation" system whose
+  // technical facts are on the record renders the appendix too (the § 3.E
+  // evaluation-posture analysis points here); mirror of the engine's
+  // admtEvaluationActive predicate.
+  if (!isYes(intake.q18_admt_use) && !admtEvaluationWithFacts(intake)) return null;
   const pairs: Array<[string, string]> = [
     ["System description", s(intake.q19_admt_description)],
     ["Operational role", s(intake.admt_operational_role)],
@@ -1128,7 +1146,9 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
   };
 
   // Appendix F — intro / not-applicable record + analytical note.
-  if (isYes(intake.q18_admt_use)) {
+  // DOC 149 — evaluation-stage records with technical facts render the
+  // appendix (mirrors deriveAdmtTechnicalFacts' gate).
+  if (isYes(intake.q18_admt_use) || admtEvaluationWithFacts(intake)) {
     composed["appendix_d:0"] =
       "This appendix preserves the technical and analytical detail supporting § 3.E, including the technology’s role, logic, assumptions and limitations, output, human review, testing, training-data provenance, and facts relevant to § 7153. The verbatim system, logic, assumptions, and training-data descriptions live in this appendix rather than in the body.";
     const techPresent = [
@@ -1147,8 +1167,11 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
     // A-TEAM S3 RULING V.13 (doc 115, 2026-08-31) — the trailing "appendix
     // letter is retained…" sentence explained the template to the customer;
     // removed (the Not-applicable sentence already states the substance).
-    composed["appendix_d:0"] =
-      "Not applicable. The Activity does not involve automated decisionmaking technology, so no ADMT technical and decision record is required.";
+    // DOC 149 — the In-evaluation-no-facts case gets its own sentence; the
+    // generic text would deny a technology the intake answer asserts exists.
+    composed["appendix_d:0"] = s(intake.q18_admt_use) === "In evaluation"
+      ? "The Company records automated decisionmaking technology as under evaluation but provides no technical description of it; there is no record for this appendix to preserve. Record the technology's description if the evaluation proceeds toward deployment."
+      : "Not applicable. The Activity does not involve automated decisionmaking technology, so no ADMT technical and decision record is required.";
   }
 
   // Appendix B (Persuasive Authority): pure CAM attachment over the report's

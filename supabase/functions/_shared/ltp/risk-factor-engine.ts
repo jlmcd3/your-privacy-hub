@@ -1651,8 +1651,20 @@ export function runRiskFactorEngine(
     // dispositions compress under the Conditions-for-Reassessment frame, and
     // the redesign branch never implies the conditions alone could change
     // the determination.
-    const compactLabels = conditions
-      .map((c) => c.split(":")[0].trim().replace(/\.$/, ""))
+    // DOC 149 (2026-09-03, batch 2c946597) — the compact list truncates each
+    // condition at its colon, so two planned-safeguard conditions (distinct,
+    // fully quoted in § 4.D) collapsed to the same head and read as a
+    // duplicated condition ("…: Complete implementation of the planned
+    // safeguard; Complete implementation of the planned safeguard; …").
+    // Identical heads now merge into one counted item; the stated total
+    // still matches conditions.length.
+    const headCounts = new Map<string, number>();
+    for (const c of conditions) {
+      const h = c.split(":")[0].trim().replace(/\.$/, "");
+      headCounts.set(h, (headCounts.get(h) ?? 0) + 1);
+    }
+    const compactLabels = [...headCounts.entries()]
+      .map(([h, n]) => n === 1 ? h : `${h} (${countWord(n)} conditions)`)
       .join("; ");
     const capFirst = (t: string): string => t.charAt(0).toUpperCase() + t.slice(1);
     let compact: string;
@@ -2467,7 +2479,25 @@ export function runRiskFactorEngine(
   }
 
   // III.E — ADMT (compressed to one analytical unit).
-  if (isAdmt) {
+  //
+  // DOC 149 (2026-09-03, batch 2c946597) — q18_admt_use = "In evaluation"
+  // used to fall to the not-applicable branch while the intake carried a
+  // full technical description and § 4.A's own risk text referenced the
+  // evaluation pipeline — an internal contradiction ("the information
+  // provided does not identify automated decisionmaking technology" against
+  // a record that identifies one). An evaluation-stage system with ANY
+  // technical fact on the record now renders this sub-part with an
+  // evaluation-posture frame; the § 7150(b)(3) trigger analysis is
+  // unaffected (evaluation is not deployed use for a significant decision).
+  const admtEvaluationFactsPresent = clause(intake.q19_admt_description) !== "" ||
+    clause(intake.i5_admt_logic) !== "" ||
+    clause(intake.admt_operational_role) !== "" ||
+    admtRoleType !== "" ||
+    humanReviewFacts.length > 0 ||
+    admtTestingFacts.length > 0;
+  const admtEvaluationActive = s(intake.q18_admt_use) === "In evaluation" &&
+    admtEvaluationFactsPresent;
+  if (isAdmt || admtEvaluationActive) {
     // DOC 144 (2026-09-02, task-5 landing restructure) — the sub-part no
     // longer opens on a bare statutory recitation: one reader-first sentence
     // leads (carrying the carried what-it-does-not-the-label principle and
@@ -2479,7 +2509,10 @@ export function runRiskFactorEngine(
       "iii_analysis:14",
       "admt_intro",
       "A",
-      "E. Automated Decisionmaking Technology.\n\nAn automated system that decides, or helps decide, something significant for a consumer stands or falls on what it actually does — not the label applied to it — so this sub-part evaluates the system's role, the human review around it, and the testing behind it; the full technical record appears in Appendix E.\n\nGoverning requirement. Section 7152(a)(3)(G) requires the report to describe the technology’s role, logic, and output, and §§ 7001(e), 7150(b)(3), 7152(a)(5)(B) and 7152(a)(6)(A)(iv) make human review and accuracy-fairness-bias testing relevant to both the risk analysis and the safeguards.",
+      "E. Automated Decisionmaking Technology.\n\nAn automated system that decides, or helps decide, something significant for a consumer stands or falls on what it actually does — not the label applied to it — so this sub-part evaluates the system's role, the human review around it, and the testing behind it; the full technical record appears in Appendix E.\n\nGoverning requirement. Section 7152(a)(3)(G) requires the report to describe the technology’s role, logic, and output, and §§ 7001(e), 7150(b)(3), 7152(a)(5)(B) and 7152(a)(6)(A)(iv) make human review and accuracy-fairness-bias testing relevant to both the risk analysis and the safeguards." +
+        (admtEvaluationActive
+          ? "\n\nThe Company records the technology as under evaluation rather than deployed for decisions. The description is assessed on that posture: the § 7150(b)(3) trigger applies only when the technology is used to make a significant decision concerning a consumer, and the record preserved here supports that analysis if the evaluation proceeds to deployment."
+          : ""),
       ["INTAKE:q18_admt_use"],
       ["11 CCR § 7152(a)(3)(G)"],
     );
@@ -2706,11 +2739,16 @@ export function runRiskFactorEngine(
     }
   } else {
     // Not-applicable record: the D→F lettering never shows an unexplained gap.
+    // DOC 149 — an "In evaluation" answer with NO technical facts gets its
+    // own honest sentence; the generic not-applicable text would deny a
+    // technology the answer itself asserts exists.
     put(
       "iii_analysis:14",
       "admt_intro",
       "A",
-      "E. Automated Decisionmaking Technology. Not applicable. The information provided does not identify automated decisionmaking technology in this Activity, so the analyses this sub-part would carry are not required. The sub-part lettering is retained so the report reads consistently across assessments.",
+      s(intake.q18_admt_use) === "In evaluation"
+        ? "E. Automated Decisionmaking Technology. The Company records automated decisionmaking technology as under evaluation but provides no description of it. No analysis is carried here on that record; if the evaluation proceeds toward deployment for a significant decision, the technology's role, logic, output, human review, and testing should be recorded and this assessment updated."
+        : "E. Automated Decisionmaking Technology. Not applicable. The information provided does not identify automated decisionmaking technology in this Activity, so the analyses this sub-part would carry are not required. The sub-part lettering is retained so the report reads consistently across assessments.",
       ["INTAKE:q18_admt_use"],
       [],
     );

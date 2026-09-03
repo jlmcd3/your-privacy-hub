@@ -23,8 +23,17 @@
 // findings in that dimension is raised to 90 — an unexplained deduction is
 // itself an unsupported claim; see applyEvidenceBackedDimensionFloor in
 // run-quality-batch/index.ts).
+// DOC 149 (2026-09-03, batch 2c946597) — risk-field-semantics amendment:
+// three recurring FALSE-POSITIVE critical findings mis-read specific
+// cppa_risk intake fields (q5b as a consumer-profiling question; q15d as an
+// employees-not-observed assertion; a q15 Yes as unsupported). The new
+// CPPA RISK INTAKE FIELD SEMANTICS block below states what each field
+// actually asks. This is NOT a skeleton-calibration change, so the
+// calibration epoch stays the version PREFIX (the so-final-test suite pins
+// GRADER_CONTEXT_VERSION.startsWith(SKELETON_CAL_VERSION)) and the
+// amendment tag rides behind the rule-id brackets.
 export const GRADER_CONTEXT_VERSION =
-  "gc-2026-08-28-skeleton-cal-3-item204[cal_skeleton_1|cal_skeleton_2|cal_skeleton_3|cal_skeleton_4|cal_skeleton_5|cal_skeleton_6]";
+  "gc-2026-08-28-skeleton-cal-3-item204[cal_skeleton_1|cal_skeleton_2|cal_skeleton_3|cal_skeleton_4|cal_skeleton_5|cal_skeleton_6]+risk-field-semantics-2026-09-03";
 
 import { AMENDMENTS_BLOCK } from "./amendments-block.ts";
 
@@ -71,6 +80,11 @@ CPPA ADMT REGULATIONS — VERIFIED-ANCHOR MAP (primary-source verified 2026-07-1
 CYBER-AUDIT COHORT MAP (corpus-verified house standard; do NOT flag as misapplied):
 - 11 CCR § 7121(a) certification cohorts by revenue band: April 1, 2028 (>$100M) / April 1, 2029 ($50–100M) / April 1, 2030 (<$50M). Reports mapping the "Over $100M" band (V2) or "$100M–$500M" band (legacy V1) to April 1, 2028, and mapping the "$50M to $100M" band (V2) or "$50M–$100M" (legacy) to April 1, 2029, and mapping "Under $25M" / "$25M to under $50M" (V2) or "$25M–$50M" / "Under $25M" (legacy) to April 1, 2030, are all correct.
 - 11 CCR § 7121(a)(3) is the ACCEPTED DEEPER PINPOINT for the April 1, 2030 cohort (annual gross revenue < $50M); § 7121(a) remains accepted as the shallower cite for the same claim. Corpus proof: provision_texts.cppa-7121 approved 2026-07-25 (source PDF SHA-256 7a34306cebf12ae9050490568b1d7ed532cfd38dc6ed8c7c3dc40afb23328650). Do NOT accept § 7121(b) or § 7121(b)(3) for the cohort claim — subsection (b) is the steady-state (post-Apr 1, 2030) rule, not a cohort enumeration.
+
+CPPA RISK INTAKE FIELD SEMANTICS (DOC 149; do NOT flag reports for rendering these fields as they are defined):
+- q5b_profiling_observation asks the 11 CCR § 7150(b)(4) statutory element DIRECTLY: "Does the automated processing derive any personal attributes of your workers, students, or applicants — like their performance, reliability, health, or behavior — based on systematic observation of them?" (the live form question, with helper text limiting it to the business's OWN employees, contractors, students, and educational/job applicants). A "Yes" is the Company's categorical affirmation of that element; a report rendering § 7150(b)(4) as Engaged on it is CORRECTLY rendering the record — it is NEVER a fabricated answer, an unsupported business claim, or a citation misapplication. If the surrounding narrative reads consumer-only, note the intake's internal INCONSISTENCY at LOW severity as an intake-quality observation; the report's rendering of the recorded answer is not the defect.
+- q15d_hr_carveout answers ONLY whether the § 7150(b)(2)(A) personnel carve-out applies to the Company's sensitive-PI processing (sensitive PI of employees/contractors processed solely for exempt personnel-administration purposes). "Not applicable" means the carve-out does not apply — it does NOT assert that no employees are observed, and it is NOT evidence for or against the § 7150(b)(4) trigger.
+- q15_sensitive_pi = "Yes" with no reported category mapping to a Cal. Civ. Code § 1798.140(ae) sensitive-PI category is a DESIGNED state: the report engages § 7150(b)(2) on the reported answer, says so expressly ("engaged on the Company's reported answer"), and directs completion via a Follow-Up. The sentence "The Company additionally identifies sensitive personal information in its submission" is SUPPORTED by the q15 answer — never an unsupported business claim.
 
 CPPA RISK ASSESSMENT — VERIFIED SUBSECTION MAP (primary-source verified; do NOT flag as misapplied or as fabricated subsections):
 - 11 CCR § 7150(b)(3) — "Using ADMT for a significant decision concerning a consumer." VERIFIED against the OAL-approved adopted text (eff. 2026-01-01). Corpus proof: provision_texts.cppa-7150 approved 2026-07-25 (source PDF SHA-256 7a34306cebf12ae9050490568b1d7ed532cfd38dc6ed8c7c3dc40afb23328650); registry match: _shared/registry/admt-verified-authorities.ts row ra_trigger_admt EXACT-MATCH (ledger item 42). ADMT risk-assessment-trigger citations to § 7150(b)(3) are CORRECT — do NOT flag as misapplied, unverified, or fabricated.
