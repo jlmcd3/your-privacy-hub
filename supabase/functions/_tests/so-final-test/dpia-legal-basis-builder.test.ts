@@ -88,10 +88,27 @@ Deno.test("6(1)(c): obligation described generally → record_insufficient with 
 });
 
 // ── 6(1)(d) vital interests ───────────────────────────────────────────
-Deno.test("6(1)(d): health data present → analysed", () => {
+// DOC 160 (2026-09-03, ratification queue R5) — the health-data category no
+// longer satisfies Art. 6(1)(d) by itself: the basis turns on processing
+// "necessary in order to protect the vital interests of the data subject or
+// of another natural person", and a health data set describes what is
+// processed, not why it is vital. The old pin ("health data present →
+// analysed") recorded the proxy this build retires.
+Deno.test("6(1)(d): health data alone → undetermined, naming the health category", () => {
   const f = one({
     legal_basis_proposed: "Vital interests (Art. 6(1)(d))",
     data_categories: ["Health or medical data"],
+  });
+  assertEquals(f.verdict, "undetermined_on_the_record");
+  assertEquals(f.status, "record_insufficient");
+  assert(f.justification.includes("does not by itself describe one"));
+});
+
+Deno.test("6(1)(d): life or safety language → analysed", () => {
+  const f = one({
+    legal_basis_proposed: "Vital interests (Art. 6(1)(d))",
+    data_categories: ["Health or medical data"],
+    necessity_proportionality: "Location is shared with the response team only in a medical emergency raised by a lone worker.",
   });
   assertEquals(f.status, "analysed");
   assertEquals(f.verdict, "basis_supported_on_the_record");

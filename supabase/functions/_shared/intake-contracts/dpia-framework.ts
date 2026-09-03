@@ -124,8 +124,13 @@ export const dpiaFrameworkContract: IntakeContract = {
     // article_9_condition conditional/hiddenValue pattern), so a "No"
     // answer legitimately leaves it hidden-empty.
     { key: "imagery_capture", kind: "enum", required: "optional", options: DPIA_IMAGERY_CAPTURE },
+    // DOC 160 (2026-09-03) — VALUE-EQUALS trigger (the doc 158 lesson): a
+    // conditional leaf without a machine trigger is never counted as asked,
+    // so the coach and the record-complete gate ignored an open spaces
+    // answer. Asked exactly when capture is reported.
     { key: "imagery_capture_spaces", kind: "enum", required: "conditional",
       requiredWhen: 'imagery_capture is answered and is not the "No imagery" value',
+      trigger: { key: "imagery_capture", equals: [DPIA_IMAGERY_CAPTURE[1], DPIA_IMAGERY_CAPTURE[2]] },
       hiddenValue: "", options: DPIA_IMAGERY_SPACES },
     { key: "imagery_capture_detail", kind: "narrative", required: "optional" },
 

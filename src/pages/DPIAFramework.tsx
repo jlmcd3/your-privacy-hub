@@ -67,6 +67,7 @@ export {
 import {
   DATA_CATS, TOOLS, SAFEGUARDS, JURISDICTIONS,
   LEGAL_BASES, ARTICLE_9_CONDITIONS, REASONS_TO_CONDUCT,
+  IMAGERY_CAPTURE, IMAGERY_SPACES,
 } from "@/pages/DPIAFramework.enums";
 import { ClipboardList, Zap } from 'lucide-react';
 // DATA_CATS labels that are Article 9 special categories — drives the conditional Art 9(2) field.
@@ -117,6 +118,11 @@ const DPIAFramework = () => {
   const [article9Condition, setArticle9Condition] = useState("");
   const [necessityProportionality, setNecessityProportionality] = useState("");
   const [retentionPeriod, setRetentionPeriod] = useState("");
+  // DOC 160 (2026-09-03) — the DOC 131 imagery-capture typed facts, wired to
+  // the form (contract keys since 2026-09-01; the UI wiring was open).
+  const [imageryCapture, setImageryCapture] = useState("");
+  const [imageryCaptureSpaces, setImageryCaptureSpaces] = useState("");
+  const [imageryCaptureDetail, setImageryCaptureDetail] = useState("");
   const [purchasing, setPurchasing] = useState(false);
   const [prefilled, setPrefilled] = useState(false);
   const [authGateOpen, setAuthGateOpen] = useState(false);
@@ -348,6 +354,7 @@ const DPIAFramework = () => {
     if (!jurisdictions.length) return "Select at least one jurisdiction.";
     if (!legalBasis) return "Select a legal basis.";
     if (hasSpecialCategory && !article9Condition) return "Select an Article 9(2) condition for the special-category data you indicated.";
+    if (imageryCapture && imageryCapture !== IMAGERY_CAPTURE[0] && !imageryCaptureSpaces) return "Say where the imagery is captured — Article 35(3)(c) turns on it.";
     if (!retentionPeriod.trim()) return "Retention period is required.";
     if (!necessityProportionality.trim()) return "Describe necessity, proportionality and alternatives considered.";
     return null;
@@ -358,6 +365,10 @@ const DPIAFramework = () => {
     processing_activity_name: name,
     description, purpose,
     data_categories: dataCategories,
+    // DOC 160 — imagery-capture typed facts; spaces is hidden-empty unless capture is reported.
+    imagery_capture: imageryCapture,
+    imagery_capture_spaces: imageryCapture && imageryCapture !== IMAGERY_CAPTURE[0] ? imageryCaptureSpaces : "",
+    imagery_capture_detail: imageryCaptureDetail,
     data_subjects: dataSubjects,
     volume_frequency: volume,
     third_party_processors: otherProcessor.trim() ? [...processors, `Other: ${otherProcessor.trim()}`] : processors,
@@ -415,6 +426,7 @@ const DPIAFramework = () => {
   const draftData = useMemo(() => buildIntake(), [
     organizationName, name, description, purpose, dataCategories, dataSubjects, volume,
     processors, otherProcessor, safeguards, jurisdictions, legalBasis, article9Condition,
+    imageryCapture, imageryCaptureSpaces, imageryCaptureDetail,
     necessityProportionality, retentionPeriod, controllerContact, dpoInfo, processorObligations,
     processingVersion, launchDate, endDate, dpiaTeam, dpiaPreparedBy, dpiaApprovedByName,
     dpiaApprovedByTitle, dpiaApprovalDate, dpiaSignoffBasis, referenceMaterials, reasonsToConduct,
@@ -446,6 +458,9 @@ const DPIAFramework = () => {
     S(d.description, setDescription);
     S(d.purpose, setPurpose);
     A(d.data_categories, setDataCategories);
+    S(d.imagery_capture, setImageryCapture);
+    S(d.imagery_capture_spaces, setImageryCaptureSpaces);
+    S(d.imagery_capture_detail, setImageryCaptureDetail);
     S(d.data_subjects, setDataSubjects);
     S(d.volume_frequency, setVolume);
     A(d.third_party_processors, setProcessors);
@@ -776,6 +791,32 @@ const DPIAFramework = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+          {/* DOC 160 (2026-09-03) — the imagery-capture typed facts. Contract keys
+              since DOC 131; the deterministic Art. 35(3)(c) fact-walk and the
+              identifiable-imagery risk read them, so the form now asks them. */}
+          <div data-rail-key="imagery_capture" onFocus={() => handleLocalRailFocus("imagery_capture")}>
+            <Label>Does the activity capture imagery or video of identifiable people?</Label>
+            <select value={imageryCapture} onChange={(e) => { setImageryCapture(e.target.value); if (!e.target.value || e.target.value === IMAGERY_CAPTURE[0]) setImageryCaptureSpaces(""); }} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+              <option value="">Not answered</option>{IMAGERY_CAPTURE.map((o) => <option key={o}>{o}</option>)}
+            </select>
+            <p className="text-meta text-muted-foreground mt-1">Photographs, CCTV, body-worn or dashboard cameras, recorded video calls and screenshots all count. Choose "subjects" when the people are what the imagery is for, and "incidentally" when they appear in the frame without being its subject — passers-by, colleagues in the background. Your assessment reads this answer to decide whether Article 35(3)(c) applies and to add the identifiable-imagery risk to the register. Skipped, that risk is not added and the Article 35(3)(c) analysis is not shown.</p>
+          </div>
+          {imageryCapture && imageryCapture !== IMAGERY_CAPTURE[0] && (
+            <div data-rail-key="imagery_capture_spaces" onFocus={() => handleLocalRailFocus("imagery_capture_spaces")}>
+              <Label>Where is the imagery captured?<Req /></Label>
+              <select value={imageryCaptureSpaces} onChange={(e) => setImageryCaptureSpaces(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+                <option value="">Not answered</option>{IMAGERY_SPACES.map((o) => <option key={o}>{o}</option>)}
+              </select>
+              <p className="text-meta text-muted-foreground mt-1">A publicly accessible space is one the public can enter — a street, a shop floor, a station concourse, a car park — whether or not it is privately owned. Article 35(3)(c) turns on this answer: systematic monitoring of a publicly accessible area on a large scale requires an assessment by law, and monitoring confined to private or controlled premises is tested under the general Article 35(1) rule instead.</p>
+            </div>
+          )}
+          {imageryCapture && (
+            <div data-rail-key="imagery_capture_detail" onFocus={() => handleLocalRailFocus("imagery_capture_detail")}>
+              <Label>Anything the reader should know about the imagery?</Label>
+              <Textarea value={imageryCaptureDetail} onChange={(e) => setImageryCaptureDetail(e.target.value)} className="mt-2 min-h-16" placeholder="Fixed cameras at three entrances, footage kept 30 days, faces blurred before review" />
+              <p className="text-meta text-muted-foreground mt-1">Optional. The cameras and their positions, how long footage is kept, whether faces are blurred or redacted before anyone reviews it, and who can view it. Your assessment quotes this in the Article 35(3)(c) analysis as context; it does not change the finding.</p>
             </div>
           )}
           <div data-rail-key="data_subjects" onFocus={() => handleLocalRailFocus("data_subjects")}>

@@ -463,6 +463,14 @@ export function readDpiaRegime(intake: unknown): DpiaRegime {
   return uk && !eu ? "UK" : "EU";
 }
 
+/** DOC 160 (2026-09-03) — true when `jurisdictions` names an EU/EEA or UK
+ * GDPR regime at all. The selector above defaults to "EU" for every other
+ * answer; the executive summary states that default where it applies. */
+export function namesGdprJurisdiction(intake: unknown): boolean {
+  const js = arr(get(intake, "jurisdictions"));
+  return js.some((j) => /united kingdom|uk gdpr|^eu \(gdpr\)|european|eea/i.test(j));
+}
+
 function anchor(
   key: keyof typeof ANCHOR_KEYS,
   regime: DpiaRegime = "EU",
@@ -1653,10 +1661,16 @@ function checkNonLiBasis(
         };
     }
     case "Art. 6(1)(d)": {
+      // DOC 160 (2026-09-03, audit A.7) — the health-data category no longer
+      // satisfies the branch by itself. Art. 6(1)(d) turns on processing
+      // "necessary in order to protect the vital interests of the data
+      // subject or of another natural person"; a health data set describes
+      // what is processed, not why it is vital, and the label alone read as
+      // "Basis supported". Ratification queue R5 (doc 160 §C).
       const health = fields.categories.includes("Health or medical data");
       const scenario = matches([fields.narrative, fields.description, fields.natureScopeContext]
         .filter(Boolean).join(" "), VITAL_INTEREST_LEXICON);
-      return (health || scenario)
+      return scenario
         ? {
           met: true,
           finding:
@@ -1665,8 +1679,9 @@ function checkNonLiBasis(
         : {
           met: false,
           undetermined: true,
-          finding:
-            "The record does not describe the vital-interest scenario — no life, safety or emergency circumstance is stated, and the data set does not include health or medical data — so the basis cannot be tested on this record.",
+          finding: health
+            ? "The record does not describe the vital-interest scenario — no life, safety or emergency circumstance is stated, and the presence of health or medical data in the data set does not by itself describe one — so the basis cannot be tested on the information provided."
+            : "The record does not describe the vital-interest scenario — no life, safety or emergency circumstance is stated — so the basis cannot be tested on the information provided.",
           information_needed:
             "The life or safety circumstance relied on, and why the processing is necessary to protect the vital interests of the data subject or another natural person.",
         };
@@ -3361,6 +3376,9 @@ export function buildGapLedgerDetailed(
   };
   const raw: Raw[] = [];
   let dropped_empty = 0;
+  // DOC 160 (2026-09-03) — the ledger's provision column read "GDPR Art. …"
+  // on UK records beside "UK GDPR …" everywhere else (PROMPT 8E item 6 rule).
+  const ledgerRegime = readDpiaRegime(_intake);
 
   const push = (field: string, dimensions: string, provision: string, enables: string, tag?: AskTag) => {
     const d = str(dimensions);
@@ -3439,17 +3457,17 @@ export function buildGapLedgerDetailed(
   if (inv) {
     for (const c of inv.controllers) {
       if (c.information_needed === undefined) continue;
-      push("dpo_info", str(c.information_needed), "GDPR Art. 37",
+      push("dpo_info", str(c.information_needed), cit(ledgerRegime, "Art. 37"),
         `the controller record for ${c.name || "the controller"}`, c);
     }
     for (const p of inv.processors) {
       if (p.information_needed === undefined) continue;
-      push("processor_obligations", str(p.information_needed), "GDPR Art. 28",
+      push("processor_obligations", str(p.information_needed), cit(ledgerRegime, "Art. 28"),
         `the processor record for ${p.name}`, p);
     }
     for (const d of inv.data_items) {
       if (d.information_needed === undefined) continue;
-      push("article_9_condition", str(d.information_needed), "GDPR Art. 9(2)",
+      push("article_9_condition", str(d.information_needed), cit(ledgerRegime, "Art. 9(2)"),
         `the special-category entry for ${d.item}`, d);
     }
   }
@@ -3529,7 +3547,7 @@ export function buildGapLedgerDetailed(
       push(
         "imagery_capture_spaces",
         "Whether the spaces in which imagery or video of identifiable individuals is captured are publicly accessible, so the Article 35(3)(c) trigger can be resolved.",
-        "GDPR Art. 35(3)(c)",
+        cit(ledgerRegime, "Art. 35(3)(c)"),
         "the Article 35(3)(c) trigger determination",
         { ask_class: "ask_imagery_spaces", display_label: resolveAskLabel("ask_imagery_spaces") },
       );

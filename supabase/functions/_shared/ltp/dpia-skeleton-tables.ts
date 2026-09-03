@@ -16,6 +16,7 @@
 
 import type { RenderedTable, SkeletonTables } from "../prose/skeleton-render.ts";
 import { DPIA_SKELETON_SECTIONS } from "../prose/plans/dpia.spine.ts";
+import { readDpiaRegime } from "./dpia-deliverables/build.ts";
 
 type Bag = Record<string, unknown>;
 
@@ -605,11 +606,20 @@ function riskRegisterTable(rowsIn: Bag[]): RenderedTable | null {
 
 // ── Section 6 — conclusion ──────────────────────────────────────────────────
 
-function decisionTable(report: Bag): RenderedTable | null {
+// DOC 160 (2026-09-03) — the consultation label names the authority the
+// record's regime names (UK GDPR Art. 36(1): "the Commissioner").
+function determinationLabel(v: unknown, intake: Bag): string {
+  if (s(v) === "consultation_required" && readDpiaRegime(intake) === "UK") {
+    return "Prior consultation with the Commissioner required";
+  }
+  return label(v);
+}
+
+function decisionTable(report: Bag, intake: Bag = {}): RenderedTable | null {
   const d = asBag(report.decision);
   if (Object.keys(d).length === 0) return null;
   return particulars("decision", "Determination", [
-    ["Determination", label(d.determination)],
+    ["Determination", determinationLabel(d.determination, intake)],
     ["Conditions", strList(d.conditions).join("; ")],
     // PROMPT 9A (R1/R3) — the blockers are already ratified compact labels,
     // merged per R4. One short line each; no terminal stop is added, so no
@@ -722,7 +732,7 @@ export function buildDpiaTablesBySurface(report: Bag, intake: Bag): Record<strin
       register.filter((r) => riskClassOf(r) === "incident"),
     ),
     "risk_register": riskRegisterTable(register),
-    "decision": decisionTable(report),
+    "decision": decisionTable(report, intake),
     "gap_ledger": gapLedgerTable(report),
   };
 }

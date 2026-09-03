@@ -447,7 +447,7 @@ Return a JSON object with EXACTLY these fields:
   "dpia": {
     "processing_activity_name": "string", "description": "string", "purpose": "string",
     "data_categories": ["array"], "data_subjects": "string", "volume_frequency": "string",
-    "retention_period": "string", "third_party_processors": ["array"], "automated_decisions": "string",
+    "retention_period": "string", "third_party_processors": ["array"], "nature_scope_context": "string — DOC 160: the nature, scope and context of the processing, including any automated decision-making and the human review applied to it (the contract has no automated_decisions key)",
     "existing_safeguards": ["array"], "jurisdictions": ["array"],
     "legal_basis_proposed": "string", "controller_sector": "string",
     "imagery_capture": "one of EXACTLY: 'No imagery or video of identifiable individuals' | 'Imagery or video in which identifiable individuals are the subjects' | 'Imagery or video in which identifiable individuals appear incidentally' — DOC 131 typed fact, always answer it with the value the scenario supports",
@@ -1328,9 +1328,24 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
         },
       },
       dpia: (() => {
-        const dpiaIntake = getDpiaIntakeForSector(industry, slot);
+        // DOC 160 (2026-09-03) — the sector block's `automated_decisions` is
+        // not a contract key (it raised an unknown-key advisory on every
+        // fallback fixture); its sentence now lands in nature_scope_context
+        // (EDPB § 1.1.4). The DOC 131 imagery typed facts are emitted so the
+        // Art. 35(3)(c) fact-walk and the identifiable-imagery risk run on
+        // fallback fixtures too.
+        const { automated_decisions, ...dpiaIntake } = getDpiaIntakeForSector(industry, slot);
+        const imagery = /retail|logistics|transport|facilit|security|hospitality|real estate/i.test(industry);
         return {
           ...dpiaIntake,
+          nature_scope_context: automated_decisions,
+          imagery_capture: imagery
+            ? "Imagery or video in which identifiable individuals are the subjects"
+            : "No imagery or video of identifiable individuals",
+          imagery_capture_spaces: imagery ? (slot === 1 ? "Both" : "Private or controlled premises") : "",
+          imagery_capture_detail: imagery
+            ? "Fixed cameras at entrances and on the operational floor record continuously; footage is kept 30 days, faces are blurred before review, and viewing is limited to two security supervisors."
+            : "The activity produces no photographs, video or screen recordings of people.",
           organization_name: c.companyName,
           volume_frequency: slot === 1 ? "Large-scale — confirm exact volume from operational data" : "Mid-scale — confirm exact volume from operational data",
           // PANEL FIX 11 follow-on — the contract key is retention_period

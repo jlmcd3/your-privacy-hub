@@ -112,6 +112,49 @@ export const DPIA_RAIL: Record<string, RailEntry> = {
     commonMistake:
       "Writing \u201Ccustomers\u201D or \u201Cusers\u201D alone. That population could be four people or four million, and the severity appraisal has nothing to work with.",
   },
+  // DOC 160 (2026-09-03) — the imagery-capture typed facts (GDPR Art. 35(3)(c)).
+  imagery_capture: {
+    fieldLabel: "Does the activity capture imagery or video of identifiable people?",
+    citation: "GDPR Art. 35(3)(c)",
+    plainSummary:
+      "Whether people can be recognised in any image or video the activity produces, and whether they are its subject or simply in the frame.",
+    regulationText: "\u2026",
+    coachLead: "Answer for the footage, not the intention.",
+    coachBody:
+      "If a face, a number plate or a name badge can be read from what is captured, the person is identifiable. \u201CSubjects\u201D means the people are what the camera is there for; \u201Cincidentally\u201D means they pass through a frame pointed at something else. Your assessment adds the identifiable-imagery risk to the register whenever capture is reported, and it runs the Article 35(3)(c) test on this answer together with the next one.",
+    goodAnswer:
+      "A warehouse safety camera that records staff at work: \u201Csubjects\u201D. A dashboard camera that records the road and, with it, other drivers: \u201Cincidentally\u201D.",
+    commonMistake:
+      "Answering \u201Cno imagery\u201D because the footage is not used to identify anyone. Identifiability is about what the recording contains, not what you do with it.",
+  },
+  imagery_capture_spaces: {
+    fieldLabel: "Where is the imagery captured?",
+    citation: "GDPR Art. 35(3)(c)",
+    plainSummary:
+      "Whether the recorded spaces are open to the public. Article 35(3)(c) makes an assessment mandatory for large-scale systematic monitoring of a publicly accessible area.",
+    regulationText: "\u2026",
+    coachLead: "Ask who can walk into the space, not who owns it.",
+    coachBody:
+      "A privately owned shop floor, forecourt or car park is publicly accessible if the public can enter it. Staff-only areas, private offices and homes are controlled premises. Choose \u201CBoth\u201D when cameras cover each kind. Your assessment reads this answer with the previous one: subjects recorded in a publicly accessible space engage Article 35(3)(c); recording confined to controlled premises is tested under the general Article 35(1) rule instead.",
+    goodAnswer:
+      "\u201CPublicly accessible spaces\u201D for cameras over a station concourse; \u201CPrivate or controlled premises\u201D for cameras inside a staff-only server room.",
+    commonMistake:
+      "Choosing \u201CPrivate or controlled premises\u201D because the building is privately owned. Ownership does not decide the question; public access does.",
+  },
+  imagery_capture_detail: {
+    fieldLabel: "Anything the reader should know about the imagery?",
+    citation: "GDPR Art. 35(3)(c)",
+    plainSummary:
+      "Optional context about the cameras, the retention of footage, blurring or redaction, and who can view it. Quoted as context; it does not decide the Article 35(3)(c) finding.",
+    regulationText: "\u2026",
+    coachLead: "State the facts a regulator would ask for first.",
+    coachBody:
+      "Number and position of cameras, whether recording is continuous or triggered, how long footage is kept, whether faces or plates are blurred before review, and who can view or export it. Your assessment quotes this passage in the Article 35(3)(c) analysis as the Company\u2019s own account; the finding itself rests on the two typed answers above.",
+    goodAnswer:
+      "\u201CFour fixed cameras over the public entrance and forecourt, continuous recording, footage kept 30 days, faces blurred before any review, viewing limited to two security supervisors.\u201D",
+    commonMistake:
+      "Writing the policy intention (\u201Cfootage is handled in line with our CCTV policy\u201D) instead of the facts. The reader needs the cameras, the period and the access, not the policy\u2019s name.",
+  },
   volume_frequency: {
     fieldLabel: "How much data, and how often?",
     citation: "GDPR Art. 35(7)(a)",

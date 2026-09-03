@@ -13,6 +13,15 @@ export const JURISDICTIONS = ["EU (GDPR)", "United Kingdom (UK GDPR)", "United S
 export const LEGAL_BASES = ["Consent (Art. 6(1)(a))", "Contract (Art. 6(1)(b))", "Legal obligation (Art. 6(1)(c))", "Vital interests (Art. 6(1)(d))", "Public task (Art. 6(1)(e))", "Legitimate interest (Art. 6(1)(f))"];
 export const ARTICLE_9_CONDITIONS = ["Explicit consent (Art. 9(2)(a))", "Employment, social security & social protection law (Art. 9(2)(b))", "Vital interests — data subject incapable of consent (Art. 9(2)(c))", "Not-for-profit body's legitimate activities (Art. 9(2)(d))", "Data manifestly made public by the data subject (Art. 9(2)(e))", "Establishment, exercise or defence of legal claims (Art. 9(2)(f))", "Substantial public interest — Union/Member State law (Art. 9(2)(g))", "Preventive/occupational medicine, health or social care (Art. 9(2)(h))", "Public interest in public health (Art. 9(2)(i))", "Archiving, research or statistics — Art. 89(1) (Art. 9(2)(j))"];
 
+// DOC 160 (2026-09-03) — the DOC 131 imagery-capture typed facts, mirrored
+// byte-for-byte from the contract (DPIA_IMAGERY_CAPTURE / DPIA_IMAGERY_SPACES).
+export const IMAGERY_CAPTURE = [
+  "No imagery or video of identifiable individuals",
+  "Imagery or video in which identifiable individuals are the subjects",
+  "Imagery or video in which identifiable individuals appear incidentally",
+];
+export const IMAGERY_SPACES = ["Publicly accessible spaces", "Private or controlled premises", "Both"];
+
 // EDPB template §0.5 — reasons to conduct (condensed: Art. 35(3) + WP248 criteria + beneficial).
 export const REASONS_TO_CONDUCT = [
   "Systematic, extensive evaluation / profiling with significant effects (Art. 35(3)(a))",

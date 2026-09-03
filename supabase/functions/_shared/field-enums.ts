@@ -74,6 +74,13 @@ const DPIA_SAFEGUARDS = ["Encryption at rest", "Encryption in transit", "Access 
 const DPIA_JURISDICTIONS = ["EU (GDPR)", "United Kingdom (UK GDPR)", "United States — Federal", "California (CCPA/CPRA)", "Other US States", "Canada", "Brazil (LGPD)", "Australia", "Singapore", "Other"];
 const DPIA_LEGAL_BASES = ["Consent (Art. 6(1)(a))", "Contract (Art. 6(1)(b))", "Legal obligation (Art. 6(1)(c))", "Vital interests (Art. 6(1)(d))", "Public task (Art. 6(1)(e))", "Legitimate interest (Art. 6(1)(f))"];
 const DPIA_ARTICLE_9_CONDITIONS = ["Explicit consent (Art. 9(2)(a))", "Employment, social security & social protection law (Art. 9(2)(b))", "Vital interests — data subject incapable of consent (Art. 9(2)(c))", "Not-for-profit body's legitimate activities (Art. 9(2)(d))", "Data manifestly made public by the data subject (Art. 9(2)(e))", "Establishment, exercise or defence of legal claims (Art. 9(2)(f))", "Substantial public interest — Union/Member State law (Art. 9(2)(g))", "Preventive/occupational medicine, health or social care (Art. 9(2)(h))", "Public interest in public health (Art. 9(2)(i))", "Archiving, research or statistics — Art. 89(1) (Art. 9(2)(j))"];
+// DOC 160 (2026-09-03) — imagery-capture typed facts (contract DPIA_IMAGERY_*).
+const DPIA_IMAGERY_CAPTURE = [
+  "No imagery or video of identifiable individuals",
+  "Imagery or video in which identifiable individuals are the subjects",
+  "Imagery or video in which identifiable individuals appear incidentally",
+];
+const DPIA_IMAGERY_SPACES = ["Publicly accessible spaces", "Private or controlled premises", "Both"];
 const DPIA_REASONS_TO_CONDUCT = [
   "Systematic, extensive evaluation / profiling with significant effects (Art. 35(3)(a))",
   "Large-scale special-category or criminal-offence data (Art. 35(3)(b))",
@@ -188,6 +195,8 @@ export const FIELD_ENUM_MIRROR: Record<string, readonly string[]> = {
   "dpia_framework:reasons_to_conduct": DPIA_REASONS_TO_CONDUCT,
   "dpia_framework:existing_safeguards": DPIA_SAFEGUARDS,
   "dpia_framework:processors": DPIA_TOOLS,
+  "dpia_framework:imagery_capture": DPIA_IMAGERY_CAPTURE,
+  "dpia_framework:imagery_capture_spaces": DPIA_IMAGERY_SPACES,
   // li_assessment
   "li_assessment:data_categories": LIA_DATA_CATEGORIES,
   "li_assessment:relationship_type": LIA_RELATIONSHIPS,

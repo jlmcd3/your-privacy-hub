@@ -333,6 +333,10 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   jurisdictions: "applicable jurisdictions",
   legal_basis_proposed: "proposed lawful basis",
   article_9_condition: "Article 9 special-category condition",
+  // DOC 160 — imagery-capture typed facts (contract keys since DOC 131).
+  imagery_capture: "whether imagery or video of identifiable people is captured",
+  imagery_capture_spaces: "where the imagery is captured",
+  imagery_capture_detail: "detail about the imagery captured",
   necessity_proportionality: "necessity and proportionality analysis",
   retention_period: "retention period",
   controller_contact: "controller contact",

@@ -43,7 +43,7 @@ import {
 } from "../prose/skeleton-render.ts";
 import { buildDpiaSkeletonTables, buildDpiaTablesBySurface } from "./dpia-skeleton-tables.ts";
 // PROMPT 9H item 3 — the record's regime drives the ToA prefix and the header.
-import { DPIA_NECESSITY_TEST_SENTENCE, dpoFromPreparedBy, readDpiaRegime } from "./dpia-deliverables/build.ts";
+import { DPIA_NECESSITY_TEST_SENTENCE, dpoFromPreparedBy, namesGdprJurisdiction, readDpiaRegime } from "./dpia-deliverables/build.ts";
 import { repairRegister } from "./risk-skeleton-assemble.ts";
 // PROMPT 9J — clause bounding and abbreviation-aware sentence heads live in
 // ONE module so dpia-deliverables/build.ts can share them without a cycle.
@@ -389,16 +389,32 @@ function residualCounts(report: Bag): Record<string, number> {
 // PROMPT 8D (CEO-ratified 2026-08-12) — the executive [DETERMINATION LEAD] is
 // RETIRED with spine v4.2. Its five branch sentences are replaced by the
 // grounded decision sentence that CLOSES the executive body, below.
-function composeExecutiveDecisionSentence(report: Bag, total: number): string {
+// DOC 160 (2026-09-03) — ONE RESOLVER for the authority the record's regime
+// names. UK GDPR Art. 36(1) reads "the Commissioner" where the EU text reads
+// "the supervisory authority" (gdpr_articles, jurisdiction uk, article 36).
+// Before: the executive sentence inferred the noun by regex over the decision
+// text, and Section 6, the decision table and Appendix A printed the EU noun
+// on every record.
+export function supervisoryAuthorityNoun(regime: "EU" | "UK", form: "plain" | "competent" = "plain"): string {
+  if (regime === "UK") return "the Commissioner";
+  return form === "competent" ? "the competent supervisory authority" : "the supervisory authority";
+}
+
+// DOC 160 (2026-09-03) — a record whose jurisdictions name neither the EU/EEA
+// nor the UK is assessed under the GDPR by default (readDpiaRegime); the
+// document said nothing about that choice. Stated once, first, in the
+// executive summary. Ratification queue R4 (doc 160 §C).
+export const DPIA_NON_GDPR_JURISDICTION_SENTENCE =
+  "The company has not named the European Union, the European Economic Area or the United Kingdom among the jurisdictions that apply, so this assessment applies the GDPR as the framework of the assessment the company requested; whether the processing falls within the GDPR's territorial scope under Article 3 is not assessed here.";
+
+function composeExecutiveDecisionSentence(report: Bag, total: number, intake: Bag = {}): string {
   const art36 = art36Determination(report);
   const det = determination(report);
   if (total === 0) {
     return "This assessment reviews no risks, because the company has recorded none and none is otherwise identified here; no determination on whether the processing may proceed can rest on a register that is empty.";
   }
   if (art36 === "consultation_required" || det === "consultation_required") {
-    const authority = /the Commissioner/.test(decisionText(report))
-      ? "the Commissioner"
-      : "the competent supervisory authority";
+    const authority = supervisoryAuthorityNoun(readDpiaRegime(intake), "competent");
     return `Given the noted risks and the mitigating measures, and after the analysis as set forth below, the processing being assessed may not begin until the company has consulted ${authority} under Article 36(1).`;
   }
   // A-TEAM S3 RULINGS IV.1/IV.2 (doc 115, 2026-08-31) — "cannot yet
@@ -482,13 +498,18 @@ function composeExecutiveBody(report: Bag, intake: Bag): string {
   const high = bands["high"] ?? 0;
   const openBand = bands["undetermined"] ?? 0;
   const sentences: string[] = [];
+  // DOC 160 — fires only where jurisdictions were answered and name no GDPR
+  // regime; a blank answer is the required-field gap, handled elsewhere.
+  if (arr(intake.jurisdictions).length > 0 && !namesGdprJurisdiction(intake)) {
+    sentences.push(DPIA_NON_GDPR_JURISDICTION_SENTENCE);
+  }
 
   // BATCH 19b (doc 113 S4.3 — doc 111 D2 supersedes PROMPT 8D's placement):
   // the grounded decision statement OPENS the executive body as the styled
   // "Determination." chunk. Its ratified sentence bytes are unchanged after
   // the prefix (RULING 3.2).
   const determinationChunk = (() => {
-    const closing = composeExecutiveDecisionSentence(report, total);
+    const closing = composeExecutiveDecisionSentence(report, total, intake);
     return closing ? `Determination. ${closing}` : "";
   })();
 
@@ -991,7 +1012,7 @@ function composeSignoffLead(report: Bag, intake: Bag): string {
   const approver = s(intake.dpia_approved_by_name);
   if (det) {
     const head = det === "consultation_required"
-      ? "prior consultation with the supervisory authority before the processing begins"
+      ? `prior consultation with ${supervisoryAuthorityNoun(readDpiaRegime(intake))} before the processing begins`
       : det === "draft_incomplete"
       ? "that the assessment cannot yet be signed off"
       : det === "conditionally_approved"
@@ -1114,6 +1135,12 @@ function composeSignoffBody(report: Bag, intake: Bag, values: SlotValues): strin
 export const ART36_DPO_DISCLOSURE =
   "The company's data protection officer has advised that the supervisory authority be consulted on this processing; that advice is recorded here alongside this assessment's own determination on Article 36(1), which is stated above and is unchanged by it.";
 
+// DOC 160 (2026-09-03) — the UK GDPR twin of the ratified sentence: the
+// Commissioner is the authority UK GDPR Art. 36(1) names. Every other byte is
+// the same. Ratification queue R2 (doc 160 §C).
+export const ART36_DPO_DISCLOSURE_UK =
+  "The company's data protection officer has advised that the Commissioner be consulted on this processing; that advice is recorded here alongside this assessment's own determination on Article 36(1), which is stated above and is unchanged by it.";
+
 // WAVE C2 (2026-08-23, doc 57 §2a / doc 63 §4.2) — the release-1 AOW,
 // bound to the SAME typed consultation_required state Article 36(1)'s own
 // sentence reads. Pure CAM attachment (attachCorpusRows over a one-token
@@ -1170,8 +1197,11 @@ export function buildDpiaAdvisoryCorpusMatches(intake: Bag): RenderedTable | nul
   return { key: "", surface: "advisory_corpus_matches", title: "", columns: [...t.columns], rows: t.rows.map((r) => [...r]) };
 }
 
-function composeArt36Sentence(report: Bag): string {
+function composeArt36Sentence(report: Bag, intake: Bag = {}): string {
   const a36 = (report.art36_consultation ?? {}) as Bag;
+  // DOC 160 — the regime's authority noun (UK GDPR Art. 36(1): "the Commissioner").
+  const regime = readDpiaRegime(intake);
+  const noun = supervisoryAuthorityNoun(regime);
   const det = art36Determination(report);
   let base: string;
   if (det === "consultation_required") {
@@ -1179,17 +1209,20 @@ function composeArt36Sentence(report: Bag): string {
     // trigger: the DPIA concluding the processing would STILL result in a
     // high risk because it cannot be sufficiently mitigated, not merely that
     // a risk level is numerically "high."
-    base = "Because this DPIA concludes that the intended processing would still result in a high risk that the company cannot sufficiently mitigate through the measures it has recorded, Article 36(1) requires prior consultation with the supervisory authority before processing begins";
+    base = `Because this DPIA concludes that the intended processing would still result in a high risk that the company cannot sufficiently mitigate through the measures it has recorded, Article 36(1) requires prior consultation with ${noun} before processing begins`;
   } else if (det === "undetermined_on_the_record") {
     base = "Whether Article 36(1) requires prior consultation cannot be settled based on the information the company provided, because the remaining risk levels on which that duty turns are open on the points named above";
   } else {
-    base = "On this assessment's determination, prior consultation with the supervisory authority under Article 36(1) is not required";
+    base = `On this assessment's determination, prior consultation with ${noun} under Article 36(1) is not required`;
   }
   if (a36.dpo_recommends_consultation === true && det !== "consultation_required") {
-    return `${base}. ${noStop(ART36_DPO_DISCLOSURE)}`;
+    return `${base}. ${noStop(regime === "UK" ? ART36_DPO_DISCLOSURE_UK : ART36_DPO_DISCLOSURE)}`;
   }
   const warning = dpiaConsultationWarning(det);
-  if (warning) return `${base}. ${warning}`;
+  // DOC 160 — the spine block supplies the terminal stop after the slot
+  // ("{ART36_SENTENCE …}."); the warning text carries its own, so the seam
+  // printed "persuasive context only.." on every consultation_required record.
+  if (warning) return `${base}. ${noStop(warning)}`;
   return base;
 }
 
@@ -1748,11 +1781,16 @@ function buildDpiaFactorAuthorityMatrixTable(
   tables: ReturnType<typeof buildDpiaTablesBySurface>,
 ): RenderedTable | null {
   const rowsOut: string[][] = [];
+  // DOC 160 (2026-09-03) — Appendix A replaced the Table of Authorities (v4.6)
+  // but did not inherit its PROMPT 9H regime-prefix rule: a UK record's
+  // matrix printed "GDPR Art. …" in twenty rows beside "UK GDPR …" tables.
+  const regime = readDpiaRegime(intake);
   for (const spec of DPIA_MATRIX_ROWS) {
     const determination = spec.reportDetermination({ report, intake, values, composed, tables });
     if (!determination) continue;
     const tagged = DPIA_CORPUS_MAP.rows.find((r) => r.factor_id === spec.label && r.trail_impact);
-    const authority = tagged?.trail_impact ? `${spec.authority}; ${tagged.trail_impact}` : spec.authority;
+    const cited = toaRegimeForm(regime, spec.authority);
+    const authority = tagged?.trail_impact ? `${cited}; ${tagged.trail_impact}` : cited;
     rowsOut.push([spec.label, determination, authority]);
   }
   if (rowsOut.length === 0) return null;
@@ -1843,7 +1881,7 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
   ) as SlotValues;
   
   // Bound to the typed surface, so it is composed from the report, not the intake.
-  (values as Bag).ART36_SENTENCE = repairDpiaPlaceholders(composeArt36Sentence(report));
+  (values as Bag).ART36_SENTENCE = repairDpiaPlaceholders(composeArt36Sentence(report, intake));
 
   // v4.6.2 — {OUTSTANDING_MATTERS}: the Section 6 lead announces the gap
   // ledger only when the ledger actually carries entries; an empty ledger
