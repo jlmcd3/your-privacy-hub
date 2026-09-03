@@ -1,0 +1,647 @@
+?<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EUP Team Design Concept v2 — CPPA Privacy Risk Assessment</title>
+<style>
+  /* ══ EUP TEAM DESIGN CONCEPT v2 — "SYLLABUS & RECORD" ══
+     Five-role type ramp:
+       R1 Display  — Georgia, titles + quiet numerals
+       R2 Body     — Georgia 10pt justified (italic = the question lines)
+       R3 Table    — Georgia 8.8pt, left-set
+       R4 Label    — Arial 7.5pt bold caps letterspaced (headers, states, eyebrows)
+       R5 Furniture— Arial 7pt (running heads, footers, locators)
+     One rail: every framed element sits on a 2pt rule + 10pt indent.
+     Body justified; print-safe (no transforms, no stacked text, no clipping). */
+  * { margin:0; padding:0; box-sizing:border-box; }
+  @page { size: letter; margin: 0; }
+  body { font-family: Georgia, "Times New Roman", serif; color:#1a1916; background:#fff; }
+  .page { width:8.5in; height:11in; padding:0.8in 0.85in 0.65in 0.85in; position:relative; page-break-after:always; overflow:hidden; }
+  .page:last-child { page-break-after:auto; }
+
+  /* R5 — page furniture */
+  .runhead { position:absolute; top:0.42in; left:0.85in; right:0.85in; display:flex; justify-content:space-between; font-family:Arial; font-size:7pt; letter-spacing:0.12em; color:#8a9eb1; text-transform:uppercase; border-bottom:0.5pt solid #dde5ea; padding-bottom:4pt; }
+  .runfoot { position:absolute; bottom:0.38in; left:0.85in; right:0.85in; display:flex; justify-content:space-between; font-family:Arial; font-size:7pt; letter-spacing:0.08em; color:#8a9eb1; border-top:0.5pt solid #dde5ea; padding-top:4pt; }
+
+  /* R4 — labels and states */
+  .lbl { font-family:Arial; font-size:7.5pt; font-weight:bold; letter-spacing:0.1em; text-transform:uppercase; }
+  .eyebrow { font-family:Arial; font-size:7.5pt; font-weight:bold; letter-spacing:0.1em; color:#5c6d7a; text-transform:uppercase; }
+  .st { font-family:Arial; font-size:7.5pt; font-weight:bold; letter-spacing:0.08em; text-transform:uppercase; white-space:nowrap; }
+  .st-ok { color:#28503a; } .st-hold { color:#6e5518; } .st-hi { color:#6e2323; } .st-n { color:#41505c; }
+
+  /* R1 — display */
+  h1 { font-size:21pt; font-weight:normal; line-height:1.15; color:#0c2a44; }
+  .secnum { font-size:30pt; color:#aab8c5; line-height:1; font-family:Georgia; }
+  .sechead { display:flex; gap:12pt; align-items:baseline; border-bottom:1.5pt solid #0c2a44; padding-bottom:6pt; margin-bottom:10pt; }
+  .sechead h2 { font-size:15.5pt; font-weight:normal; color:#0c2a44; }
+  .sechead .q { font-size:10pt; font-style:italic; color:#5c6d7a; display:block; margin-top:2pt; }
+  h3 { font-size:10.5pt; margin:10pt 0 4pt 0; color:#12212f; }
+  h3 .mk { color:#5c6d7a; font-weight:normal; }
+  h3 u { text-underline-offset:2.5px; text-decoration-thickness:0.5pt; }
+
+  /* R2 — body (justified) */
+  p { font-size:10pt; line-height:1.5; margin:0 0 6pt 0; text-align:justify; }
+  p.q { font-style:italic; color:#41505c; text-align:left; }
+
+  /* The rail — one indent for every framed element */
+  .rail { border-left:2pt solid #0c2a44; padding:3pt 0 3pt 10pt; margin:8pt 0 9pt 0; }
+  .rail .rl { font-family:Arial; font-size:7.5pt; font-weight:bold; letter-spacing:0.1em; color:#0c2a44; text-transform:uppercase; }
+  .rail p { font-size:9.3pt; margin:1pt 0 0 0; }
+  .rail-teal { border-left-color:#2d9b90; }
+  .rail-teal .rl { color:#2d9b90; }
+
+  /* R3 — tables */
+  table { width:100%; border-collapse:collapse; margin:4pt 0 8pt 0; }
+  th { font-family:Arial; font-size:7.5pt; font-weight:bold; letter-spacing:0.06em; text-transform:uppercase; color:#1a1916; text-align:left; border-bottom:1.5pt solid #41505c; padding:3pt 8pt 3pt 4pt; background:#f3f6f8; }
+  td { font-size:8.8pt; line-height:1.4; vertical-align:top; border-bottom:0.5pt solid #dde5ea; padding:4pt 8pt 4pt 4pt; text-align:left; }
+  tr { page-break-inside:avoid; }
+  .arr { color:#8a9eb1; padding:0 2pt; }
+
+  /* Syllabus */
+  .brand { display:flex; justify-content:space-between; align-items:baseline; border-bottom:2pt solid #0c2a44; padding-bottom:8pt; }
+  .brand .l { font-family:Arial; font-size:8pt; font-weight:bold; letter-spacing:0.2em; color:#0c2a44; }
+  .brand .r { font-family:Arial; font-size:7pt; color:#5c6d7a; letter-spacing:0.08em; text-align:right; }
+  .dispo { background:#f3f6f8; border:0.5pt solid #c9d2d9; border-left:2pt solid #0c2a44; padding:10pt 14pt 10pt 10pt; margin:14pt 0 12pt 0; }
+  .dispo .dv { font-size:17pt; color:#0c2a44; margin:2pt 0 4pt 0; font-family:Georgia; }
+  .syltab td { font-size:9.2pt; }
+  .syltab .k { font-family:Arial; font-size:7.5pt; font-weight:bold; text-transform:uppercase; letter-spacing:0.06em; color:#5c6d7a; width:34%; }
+  .cond { border-left:2pt solid #c9d2d9; padding:2pt 0 2pt 10pt; margin:6pt 0 8pt 0; page-break-inside:avoid; }
+  .cond .cn { font-size:10pt; }
+  .cond .cn u { text-underline-offset:2.5px; text-decoration-thickness:0.5pt; }
+  .cond p { font-size:9.3pt; margin:1pt 0 0 0; }
+  .kd { font-family:Arial; font-size:8pt; color:#41505c; border-top:0.5pt solid #c9d2d9; border-bottom:0.5pt solid #c9d2d9; padding:5pt 0; margin-top:10pt; line-height:1.6; }
+  .kd b { letter-spacing:0.05em; }
+
+  /* Balance spread */
+  .bal { display:flex; gap:18pt; margin-top:6pt; }
+  .bal > div { flex:1; }
+  .balh { font-family:Arial; font-size:7.5pt; font-weight:bold; letter-spacing:0.1em; text-transform:uppercase; border-bottom:1.5pt solid #41505c; padding-bottom:3pt; margin-bottom:6pt; }
+  .bi { margin-bottom:7pt; page-break-inside:avoid; }
+  .bi .bh { display:flex; justify-content:space-between; font-size:9.4pt; }
+  .bi p { font-size:8.8pt; color:#41505c; margin:1pt 0 0 0; text-align:left; }
+
+  /* Record */
+  .divider { border-top:3pt solid #0c2a44; border-bottom:0.5pt solid #c9d2d9; padding:20pt 0 16pt 0; margin-top:30pt; }
+  .divider h2 { font-size:19pt; font-weight:normal; color:#0c2a44; font-family:Georgia; }
+  .rec-run { background:#f3f6f8; }
+  .maprow td { padding:6pt 8pt 6pt 4pt; font-size:9.2pt; }
+  .maprow .ml { font-family:Georgia; font-size:13pt; color:#aab8c5; width:8%; }
+  .optlbl { font-family:Arial; font-size:7.5pt; font-weight:bold; letter-spacing:0.1em; color:#8a9eb1; text-transform:uppercase; border:0.5pt dashed #c9d2d9; display:inline-block; padding:2pt 6pt; margin:10pt 0 4pt 0; }
+
+  .concept-note { position:absolute; bottom:0.62in; left:0.85in; right:0.85in; font-family:Arial; font-size:6.8pt; color:#aab8c5; letter-spacing:0.06em; text-align:center; }
+</style>
+</head>
+<body>
+
+<!-- ═════════ PAGE 1 — DETERMINATION SYLLABUS ═════════ -->
+<div class="page">
+  <div class="brand">
+    <div class="l">END USER PRIVACY</div>
+    <div class="r">CPPA PRIVACY RISK ASSESSMENT · 11 CCR §§ 7150–7157<br>REPORT 84FEE4AF · SEPTEMBER 3, 2026</div>
+  </div>
+  <div style="margin-top:16pt;">
+    <div class="eyebrow">Prepared for Vortexia Digital Solutions, Inc.</div>
+    <h1>User Behavioral Profiling for Targeted&nbsp;Advertising</h1>
+    <div style="font-size:9.5pt; color:#5c6d7a; margin-top:3pt;">Risk assessment under 11 CCR §§ 7150–7157 · the “Activity”</div>
+  </div>
+
+  <div class="dispo">
+    <div class="lbl" style="color:#5c6d7a;">ASSESSMENT DISPOSITION</div>
+    <div class="dv">Proceed with Conditions</div>
+    <p>Based on the information provided by the Company, the benefits established by the Activity outweigh
+    the privacy risks remaining after credited safeguards, subject to the two Conditions to Proceed stated
+    below. The reasoning appears in Sections 1–4; the complete supporting record follows Section 5.</p>
+  </div>
+
+  <table class="syltab">
+    <tr><td class="k">Assessment required</td><td>Yes — four § 7150(b) triggers engaged on the information provided</td></tr>
+    <tr><td class="k">Inherent privacy risk</td><td><span class="st st-hi">High</span>&nbsp;&nbsp;<span style="font-size:8.4pt;color:#5c6d7a;">before safeguards</span></td></tr>
+    <tr><td class="k">Residual privacy risk</td><td><span class="st st-hold">Moderate</span>&nbsp;&nbsp;<span style="font-size:8.4pt;color:#5c6d7a;">after credited safeguards — the movement each safeguard buys appears in § 4.A</span></td></tr>
+    <tr><td class="k">Benefits credited</td><td>4 of 4 categories, each on a stated evidentiary basis (§ 3.F)</td></tr>
+    <tr><td class="k">Open record items</td><td>6 Follow-Ups complete the record (§ 4.D); none blocks the disposition</td></tr>
+  </table>
+
+  <div class="eyebrow" style="margin-top:8pt;">CONDITIONS TO PROCEED — the disposition depends on these</div>
+  <div class="cond">
+    <div class="cn">1.&nbsp;&nbsp;<u>Downstream-use restrictions</u></div>
+    <p>Complete implementation of the planned safeguard: contractual restrictions prohibiting audience
+    recipients from using segment data for credit, insurance, employment, or housing eligibility
+    decisions (addresses: (E) Economic harms).</p>
+  </div>
+  <div class="cond">
+    <div class="cn">2.&nbsp;&nbsp;<u>Email minimization</u></div>
+    <p>Cease processing, or establish the necessity of, “User email address” for the assessed Purpose;
+    the Company’s own record states it is collected but not necessary to that Purpose (§ 3.B).</p>
+  </div>
+
+  <div class="kd"><b>KEY DATES</b> &nbsp;·&nbsp; Initial assessment: <span class="st st-hold">Determination pending</span> — record when the covered processing began &nbsp;·&nbsp; Material-change update: <span class="st st-hold">Timeliness pending</span> — record the change date &nbsp;·&nbsp; Three-year review: 2029-09-03 &nbsp;·&nbsp; First § 7157 submission: April 1, 2028</div>
+
+  <div class="concept-note">EUP TEAM DESIGN CONCEPT v2 · 2026-09-03 · SAMPLE DATA (VORTEXIA FIXTURE) · NOT A CUSTOMER DOCUMENT</div>
+  <div class="runfoot"><span>EndUserPrivacy.com · CPPA Privacy Risk Assessment</span><span>Determination Syllabus</span><span>Page 1 of 14</span></div>
+</div>
+
+<!-- ═════════ PAGE 2 — SECTION 1 ═════════ -->
+<div class="page">
+  <div class="runhead"><span>END USER PRIVACY</span><span>CPPA PRIVACY RISK ASSESSMENT · VORTEXIA DIGITAL SOLUTIONS, INC.</span></div>
+  <div style="height:0.35in;"></div>
+  <div class="sechead"><span class="secnum">1</span>
+    <div><h2>How This Assessment Decides</h2><span class="q">The method, stated once — so every conclusion after it can be traced to a step.</span></div>
+  </div>
+
+  <h3><span class="mk">A.</span> <u>The Question</u></h3>
+  <p>Sections 7152 and 7154 of 11 CCR frame a single question: do the privacy risks that this processing
+  creates for consumers outweigh the benefits it produces for the consumer, the business, other
+  stakeholders, and the public, once safeguards are taken into account? Section 7154 states the
+  consequence directly: processing whose risks outweigh its benefits should be restricted or prohibited.</p>
+
+  <h3><span class="mk">B.</span> <u>The EndUserPrivacy (EUP) Decision Logic</u></h3>
+  <p>This assessment follows a five-step process to analyze whether the benefits of the Activity outweigh
+  the risks it poses, after taking into account the safeguards the Company has implemented to mitigate
+  those risks. It is based on the information provided by the Company. The five steps below are applied
+  in order, and each section of this report carries one of them:</p>
+  <table>
+    <tr><td style="width:6%;font-family:Georgia;font-size:11pt;color:#aab8c5;">1</td><td style="width:20%;"><b>Triggers</b></td><td>The Activity is tested against the significant-risk categories of § 7150(b); if none applies, no assessment is required and the analysis ends.</td></tr>
+    <tr><td style="font-family:Georgia;font-size:11pt;color:#aab8c5;">2</td><td><b>Necessity</b></td><td>Each element of personal information is measured for its processing necessity for the Activity (§ 7152(a)(2)).</td></tr>
+    <tr><td style="font-family:Georgia;font-size:11pt;color:#aab8c5;">3</td><td><b>Inherent risk</b></td><td>Each risk the Company identifies is weighted in terms of likelihood and severity.</td></tr>
+    <tr><td style="font-family:Georgia;font-size:11pt;color:#aab8c5;">4</td><td><b>Safeguard mitigation</b></td><td>The type and implementation status of the safeguards identified by the Company are assessed against the corresponding risks.</td></tr>
+    <tr><td style="font-family:Georgia;font-size:11pt;color:#aab8c5;">5</td><td><b>The balance</b></td><td>Each claimed benefit is weighed against the risks, as mitigated by safeguards, and the assessment is rendered.</td></tr>
+  </table>
+  <p style="font-size:9.3pt;color:#41505c;">This is EUP’s conservative qualitative methodology — not a regulator-prescribed scoring formula, and
+  not a numerical equation.</p>
+
+  <h3><span class="mk">C.</span> <u>The Terms This Report Uses</u></h3>
+  <p>Every determination in this report and its supporting record is stated in the fixed terms below,
+  and a term appears only beside the fact that earned it — a state is never asserted from an answer alone:</p>
+  <table>
+    <tr><th style="width:36%;">Term</th><th>Meaning</th></tr>
+    <tr><td><span class="st st-ok">Engaged</span> / <span class="st st-ok">Credited</span></td><td>The record supports the determination; the qualifying fact is stated beside the state, every time.</td></tr>
+    <tr><td><span class="st st-hold">Additional Information Required</span> · <span class="st st-hold">Determination pending</span></td><td>The record does not yet carry an element the determination needs; the completing fact is named, and the completing step appears among the Follow-Ups in § 4.D.</td></tr>
+    <tr><td><span class="st st-n">Not engaged</span> / <span class="st st-n">Not established</span></td><td>A determined negative on the information provided, with its reason.</td></tr>
+    <tr><td><span class="st st-hi">High</span> · <span class="st st-hold">Moderate</span> · <span class="st st-ok">Low</span></td><td>Risk levels, rated from the likelihood and severity the Company records for each risk. Color never carries meaning alone — every state is always written out.</td></tr>
+  </table>
+
+  <div class="runfoot"><span>EndUserPrivacy.com · CPPA Privacy Risk Assessment</span><span>§ 1 · How This Assessment Decides</span><span>Page 2 of 14</span></div>
+</div>
+
+<!-- ═════════ PAGE 3 — SECTION 2 ═════════ -->
+<div class="page">
+  <div class="runhead"><span>END USER PRIVACY</span><span>CPPA PRIVACY RISK ASSESSMENT · VORTEXIA DIGITAL SOLUTIONS, INC.</span></div>
+  <div style="height:0.35in;"></div>
+  <div class="sechead"><span class="secnum">2</span>
+    <div><h2>The Information Provided</h2><span class="q">What is being processed, about whom, and why — in the Company’s own words.</span></div>
+  </div>
+
+  <h3><span class="mk">A.</span> <u>Purpose and Scope</u></h3>
+  <div class="rail rail-teal">
+    <div class="rl">IN VORTEXIA DIGITAL SOLUTIONS, INC.’S WORDS</div>
+    <p><span class="lbl" style="color:#5c6d7a;font-size:7pt;">PROCESSING</span>&nbsp; “User Behavioral Profiling for Targeted Advertising”</p>
+    <p><span class="lbl" style="color:#5c6d7a;font-size:7pt;">PURPOSE</span>&nbsp; “Analyze user browsing behavior, interaction patterns, and device signals to build
+    interest-based profiles used to serve personalized advertisements to platform users.”</p>
+  </div>
+  <div class="rail">
+    <span class="rl">GOVERNING REQUIREMENT · 11 CCR § 7152(a)(1)</span>
+    <p>Section 7152(a)(1) requires the assessment to state the Company’s purpose with enough specificity
+    to evaluate the processing; generic purposes such as “improve our services” do not suffice.</p>
+  </div>
+  <p>The Company confirms the stated Purpose identifies the specific operation supported, the information
+  involved, the consumers affected, and the intended outcome; the assessment proceeds on the Company’s
+  formulation. The out-of-scope description assigns “Financial information”-related processing to a
+  separate payment-data activity while the inventory in Part D lists that category for this Activity;
+  reconciling that scope appears among the Follow-Ups in § 4.D.</p>
+
+  <h3><span class="mk">D.</span> <u>Personal Information and Sensitivity</u></h3>
+  <p>The Activity processes five categories of personal information. The Company states a retention
+  period for three; the two without one render their open state and complete through the Follow-Ups in
+  § 4.D. Each category is mapped to its canonical California category:</p>
+  <table>
+    <tr><th style="width:44%;">Information category</th><th style="width:26%;">Retention period or criterion</th><th>Canonical California category</th></tr>
+    <tr><td>Contact identifiers (name, email, phone)</td><td>Duration of account plus 24 months</td><td>Identifiers</td></tr>
+    <tr><td>Device identifiers (IP, cookies, device IDs)</td><td>13 months rolling</td><td>Unique identifiers</td></tr>
+    <tr><td>Internet or network activity</td><td>90 days</td><td>Internet or other electronic network activity information</td></tr>
+    <tr><td>General location (city, region, ZIP, IP-derived)</td><td><span class="st st-hold">Not stated — see the Follow-Ups in § 4.D</span></td><td>Geolocation data (non-precise)</td></tr>
+    <tr><td>Financial information</td><td><span class="st st-hold">Not stated — see the Follow-Ups in § 4.D</span></td><td>Financial information</td></tr>
+  </table>
+  <p>The Company additionally identifies sensitive personal information in its submission (§§ 3.B, 4.A).
+  The qualifying statutory category has not been identified; identifying it appears among the
+  Follow-Ups in § 4.D.</p>
+
+  <div class="runfoot"><span>EndUserPrivacy.com · CPPA Privacy Risk Assessment</span><span>§ 2 · The Information Provided</span><span>Page 3 of 14</span></div>
+</div>
+
+<!-- ═════════ PAGE 4 — §3.A TRIGGERS ═════════ -->
+<div class="page">
+  <div class="runhead"><span>END USER PRIVACY</span><span>CPPA PRIVACY RISK ASSESSMENT · VORTEXIA DIGITAL SOLUTIONS, INC.</span></div>
+  <div style="height:0.35in;"></div>
+  <div class="sechead"><span class="secnum">3</span>
+    <div><h2>Analysis</h2><span class="q">Does the Company’s account satisfy each element the regulation tests?</span></div>
+  </div>
+
+  <h3><span class="mk">A.</span> <u>The Triggers, Applied</u></h3>
+  <p class="q">Is a risk assessment required at all?</p>
+  <div class="rail">
+    <span class="rl">GOVERNING REQUIREMENT · 11 CCR § 7150(b)</span>
+    <p>Section 7150(b) enumerates the processing activities that present significant risk to consumers’ privacy.</p>
+  </div>
+  <p>On the information provided, the Activity engages § 7150(b) at four prongs, and a risk assessment
+  is required. One asserted prong — § 7150(b)(3) — is a determined non-engagement: the Company’s
+  affirmative answer does not override the contradicting activity record, and the exclusion is stated
+  rather than silently applied. Each row below states the prong, its state, and the qualifying fact
+  or open point the state rests on:</p>
+  <table>
+    <tr><th style="width:30%;">Trigger</th><th style="width:14%;">State</th><th>Qualifying fact · open point</th></tr>
+    <tr>
+      <td>§ 7150(b)(1) — selling or sharing personal information</td>
+      <td><span class="st st-ok">Engaged</span></td>
+      <td>The Company answers “Yes — share for advertising only” on selling or sharing personal information, and the Activity falls within the risk-assessment obligation.</td>
+    </tr>
+    <tr>
+      <td>§ 7150(b)(2) — processing sensitive personal information</td>
+      <td><span class="st st-ok">Engaged</span></td>
+      <td>Engaged on the Company’s reported answer; the qualifying statutory sensitive-PI category remains to be identified <span class="st st-hold" style="font-size:7pt;">(Follow-Ups, § 4.D)</span>.</td>
+    </tr>
+    <tr>
+      <td>§ 7150(b)(3) — using ADMT for a significant decision concerning a consumer</td>
+      <td><span class="st st-n">Not engaged</span></td>
+      <td>The decision use the activity record identifies is advertising to consumers, which § 7001(ddd)(6) excludes from the significant-decision categories; any separate covered significant decision should be identified and the assessment updated.</td>
+    </tr>
+    <tr>
+      <td>§ 7150(b)(4) — inferring characteristics from systematic observation of the business’s workers, students, or applicants</td>
+      <td><span class="st st-ok">Engaged</span></td>
+      <td>Engaged on the Company’s direct affirmation of the statutory element; the observed population’s worker, student, or applicant capacity is not separately described <span class="st st-hold" style="font-size:7pt;">(Follow-Ups, § 4.D)</span>.</td>
+    </tr>
+    <tr>
+      <td>§ 7150(b)(6) — processing personal information to train an ADMT or identification technology</td>
+      <td><span class="st st-ok">Engaged</span></td>
+      <td>Engaged on the Company’s reported answer; the significant decision the trained technology is intended to make or support is not identified <span class="st st-hold" style="font-size:7pt;">(Follow-Ups, § 4.D)</span>.</td>
+    </tr>
+  </table>
+  <p>The full per-prong analysis, with each prong’s statutory text verbatim, follows in the body of this
+  sub-part; the matrix above is its summary, never its substitute.</p>
+
+  <div class="runfoot"><span>EndUserPrivacy.com · CPPA Privacy Risk Assessment</span><span>§ 3.A · The Triggers, Applied</span><span>Page 4 of 14</span></div>
+</div>
+
+<!-- ═════════ PAGE 5 — §3.B-C ═════════ -->
+<div class="page">
+  <div class="runhead"><span>END USER PRIVACY</span><span>CPPA PRIVACY RISK ASSESSMENT · VORTEXIA DIGITAL SOLUTIONS, INC.</span></div>
+  <div style="height:0.35in;"></div>
+  <h3><span class="mk">B.</span> <u>Necessity and Minimization</u></h3>
+  <p class="q">Does every data element the Company collects earn its place?</p>
+  <div class="rail">
+    <span class="rl">GOVERNING REQUIREMENT · 11 CCR § 7152(a)(2)</span>
+    <p>Section 7152(a)(2) requires the assessment to identify the minimum personal information necessary
+    to achieve the Purpose.</p>
+  </div>
+  <p>The Company records four elements against the Purpose. Three are supported as necessary on the
+  Company’s own stated bases, quoted in the table below; the fourth — the user email address — is
+  recorded by the Company itself as collected but not necessary to the stated purpose:</p>
+  <table>
+    <tr><th style="width:26%;">Element</th><th style="width:22%;">Determination</th><th>Basis — the Company’s own words</th></tr>
+    <tr><td>Click-stream and page-view logs</td><td><span class="st st-ok">Necessary to the stated purpose</span></td><td>“Core input to the audience-segmentation model.”</td></tr>
+    <tr><td>Device identifiers</td><td><span class="st st-ok">Necessary to the stated purpose</span></td><td>“Links behavioral events across sessions and activates segments.”</td></tr>
+    <tr><td>General location</td><td><span class="st st-ok">Necessary to the stated purpose</span></td><td>“Supports geo-targeted advertising segments.”</td></tr>
+    <tr><td>User email address</td><td><span class="st st-hi">Collected but not necessary</span></td><td>“Used for account authentication, but not needed for audience-segment generation or activation.”</td></tr>
+  </table>
+  <p>The necessity of “User email address” is not established for the Purpose under assessment. Processing
+  the element creates privacy exposure without a corresponding contribution to the benefits weighed in
+  Section 4, and ceasing or justifying it appears in the Conditions to Proceed — <i>Email minimization</i>,
+  Condition 2.</p>
+
+  <h3><span class="mk">C.</span> <u>Transparency, Expectations, and Choice Architecture</u></h3>
+  <p class="q">What are consumers told, and what would they reasonably expect?</p>
+  <p>The four dimensions below summarize the Company’s transparency and choice posture; each state is
+  earned by the fact beside it, and the weighing follows:</p>
+  <table>
+    <tr><th style="width:28%;">Dimension</th><th style="width:20%;">Posture</th><th>The fact the posture rests on</th></tr>
+    <tr><td>Notice coverage</td><td><span class="st st-hold">Partial</span></td><td>The notice at collection covers only part of the collection points and only some required elements.</td></tr>
+    <tr><td>Reasonable expectations</td><td><span class="st st-hold">Partly outside</span></td><td>Processing continues after the interaction ends and reaches parties the consumer does not directly interact with.</td></tr>
+    <tr><td>Choice symmetry</td><td><span class="st st-ok">Confirmed</span></td><td>Symmetric presentation; declining does not degrade the core service.</td></tr>
+    <tr><td>Steering design</td><td><span class="st st-hold">Unconfirmed</span></td><td>The absence of steering design elements is not confirmed; treated as a live interference risk.</td></tr>
+  </table>
+  <p>A consumer reading the Company’s notices would not learn the full scope of the processing before it
+  occurs; until the notice covers it, the divergence weighs against the processing in Section 4, and the
+  assessment relies on the choice architecture only to the confirmed extent.</p>
+
+  <div class="runfoot"><span>EndUserPrivacy.com · CPPA Privacy Risk Assessment</span><span>§ 3.B–C · Necessity · Transparency</span><span>Page 5 of 14</span></div>
+</div>
+
+<!-- ═════════ PAGE 6 — §3.D & F ═════════ -->
+<div class="page">
+  <div class="runhead"><span>END USER PRIVACY</span><span>CPPA PRIVACY RISK ASSESSMENT · VORTEXIA DIGITAL SOLUTIONS, INC.</span></div>
+  <div style="height:0.35in;"></div>
+  <h3><span class="mk">D.</span> <u>Practical Consumer Control</u></h3>
+  <p>A consumer right reduces risk only where the consumer can use it in practice and exercising it
+  meaningfully changes the processing. The Company reports seven controls; each is formal and
+  exercisable on the information provided, on the reported status shown, and each is credited — which
+  weighs in the Company’s favor:</p>
+  <table>
+    <tr><th style="width:34%;">Control</th><th style="width:44%;">Reported status</th><th>Weight</th></tr>
+    <tr><td>Right to know · delete · correct</td><td>Online form with identity verification; automated deletion; self-service correction</td><td><span class="st st-ok">Credited</span></td></tr>
+    <tr><td>Opt-out of sale or sharing</td><td>Yes, but in footer only</td><td><span class="st st-ok">Credited</span></td></tr>
+    <tr><td>Limit sensitive-PI use · identity verification</td><td>Handled within privacy settings; documented verification process</td><td><span class="st st-ok">Credited</span></td></tr>
+    <tr><td>ADMT opt-out</td><td>Yes, with documented opt-out</td><td><span class="st st-ok">Credited</span></td></tr>
+  </table>
+
+  <h3><span class="mk">F.</span> <u>Benefits</u></h3>
+  <div class="rail">
+    <span class="rl">GOVERNING REQUIREMENT · 11 CCR § 7152(a)(4)</span>
+    <p>Section 7152(a)(4) requires the assessment to identify the benefits the processing produces for the
+    consumer, the business, other stakeholders, and the public — and it rejects generic benefit descriptions.</p>
+  </div>
+  <p>The consumer benefit carries material weight: the Company identifies more relevant advertising, and
+  supports it with a quantified preference-survey basis the balance can credit. The business benefit
+  carries material weight: the targeted advertising activity generates the Company’s primary advertising
+  revenue, supported by a stated share of annual revenue. The other-stakeholder benefit carries material
+  weight on advertiser campaign performance measured against an industry benchmark, and the public
+  benefit carries material weight on advertising-funded free access to digital services. Each narrative
+  and its supporting fact are quoted in full in this sub-part’s body and preserved in the Supporting
+  Assessment Record; the balance in § 4.C weighs the weights established here.</p>
+
+  <div class="runfoot"><span>EndUserPrivacy.com · CPPA Privacy Risk Assessment</span><span>§ 3.D–F · Control · Benefits</span><span>Page 6 of 14</span></div>
+</div>
+
+<!-- ═════════ PAGE 7 — §4.A RISK LEDGER ═════════ -->
+<div class="page">
+  <div class="runhead"><span>END USER PRIVACY</span><span>CPPA PRIVACY RISK ASSESSMENT · VORTEXIA DIGITAL SOLUTIONS, INC.</span></div>
+  <div style="height:0.35in;"></div>
+  <div class="sechead"><span class="secnum">4</span>
+    <div><h2>The Balance and the Determination</h2><span class="q">What could go wrong, how badly, and what stands in the way.</span></div>
+  </div>
+
+  <h3><span class="mk">A.</span> <u>The Risk Ledger</u></h3>
+  <div class="rail">
+    <span class="rl">GOVERNING REQUIREMENT · 11 CCR § 7152(a)(5)–(6)</span>
+    <p>Section 7152(a)(5) requires the assessment to identify the negative impacts the processing may create
+    and their sources and causes; §§ 7152(a)(5)–(6) require those impacts to be considered together with
+    the safeguards directed at them.</p>
+  </div>
+  <p>The privacy risks noted below correspond to the specific privacy risks identified in
+  § 7152(a)(5)(A)–(H); categories not shown present no credible path on the information provided. For
+  each risk, the ledger states the likelihood and severity the Company records, the safeguard credited
+  with its implementation status, and the movement — if any — to the risk that remains. The full source,
+  cause, and actor detail for each row is preserved in the Supporting Assessment Record:</p>
+  <table>
+    <tr><th style="width:24%;">Privacy risk</th><th style="width:12%;">Likelihood</th><th style="width:12%;">Severity</th><th style="width:31%;">Safeguard credited (status)</th><th>Movement to remaining</th></tr>
+    <tr><td>(A) Unauthorized access, destruction, use, modification, or disclosure</td><td>Possible</td><td>Significant</td><td>Role-based access controls and encryption at rest; access logged and reviewed quarterly <span class="st st-ok" style="font-size:7pt;">(implemented and tested)</span></td><td><span class="st st-hi">High</span><span class="arr">→</span><span class="st st-hold">Moderate</span> (reduced)</td></tr>
+    <tr><td>(C) Impairment of consumer control over personal information</td><td>Likely</td><td>Moderate</td><td>Dedicated opt-out via settings and footer link <span class="st st-hold" style="font-size:7pt;">(implemented, not tested)</span></td><td><span class="st st-hold">Moderate</span><span class="arr">→</span><span class="st st-hold">Moderate</span> (unchanged)</td></tr>
+    <tr><td>(E) Economic harms</td><td>Possible</td><td>Moderate</td><td>Contractual downstream-use restrictions <span class="st st-hold" style="font-size:7pt;">(planned, not yet implemented)</span></td><td><span class="st st-hold">Moderate</span><span class="arr">→</span><span class="st st-hold">Moderate</span> (unchanged)</td></tr>
+  </table>
+  <p>Safeguards supported by evidence that they operate earn the assessment’s full credit: the tested
+  controls against risk (A) materially reduce it, and the remaining risk is Moderate. A safeguard without
+  testing or effectiveness evidence is recognized without reliance at full weight, so risk (C) remains
+  Moderate; obtaining that evidence is the identified path to reducing it. A planned safeguard enters
+  this assessment as a Condition to Proceed, not as present protection, so risk (E) remains Moderate and
+  its safeguard is Condition 1. For the remaining harm categories, the information provided identifies
+  no credible path from this Activity to that harm, and they are not treated as material risks.</p>
+
+  <div class="runfoot"><span>EndUserPrivacy.com · CPPA Privacy Risk Assessment</span><span>§ 4.A · The Risk Ledger</span><span>Page 7 of 14</span></div>
+</div>
+
+<!-- ═════════ PAGE 8 — §4.C BALANCE ═════════ -->
+<div class="page">
+  <div class="runhead"><span>END USER PRIVACY</span><span>CPPA PRIVACY RISK ASSESSMENT · VORTEXIA DIGITAL SOLUTIONS, INC.</span></div>
+  <div style="height:0.35in;"></div>
+  <h3><span class="mk">C.</span> <u>The Determination</u></h3>
+  <p class="q">The strongest benefit established, weighed against the most serious risk remaining — on the
+  information provided and nothing else.</p>
+  <p>The determination weighs the four benefits established in § 3.F against the three risks remaining
+  after the credits shown in § 4.A. The two columns below carry each side with its weight or level and
+  the one-line reason established above; the determination follows them:</p>
+
+  <div class="bal">
+    <div>
+      <div class="balh" style="color:#28503a; border-color:#28503a;">Benefits established (weight)</div>
+      <div class="bi"><div class="bh"><span>Consumer — more relevant advertising</span><span class="st st-ok">Material</span></div><p>Quantified preference-survey basis credited.</p></div>
+      <div class="bi"><div class="bh"><span>Business — advertising revenue</span><span class="st st-ok">Material</span></div><p>Stated share of annual revenue.</p></div>
+      <div class="bi"><div class="bh"><span>Other stakeholders — campaign performance</span><span class="st st-ok">Material</span></div><p>Measured against an industry benchmark.</p></div>
+      <div class="bi"><div class="bh"><span>Public — advertising-funded free access</span><span class="st st-ok">Material</span></div><p>Qualitative basis credited.</p></div>
+    </div>
+    <div>
+      <div class="balh" style="color:#6e2323; border-color:#6e2323;">Risks remaining (level)</div>
+      <div class="bi"><div class="bh"><span>(A) Unauthorized access / disclosure</span><span class="st st-hold">Moderate</span></div><p>Reduced from High through tested controls.</p></div>
+      <div class="bi"><div class="bh"><span>(C) Impairment of consumer control</span><span class="st st-hold">Moderate</span></div><p>Control exists; effectiveness evidence incomplete.</p></div>
+      <div class="bi"><div class="bh"><span>(E) Economic harms</span><span class="st st-hold">Moderate</span></div><p>Downstream-use restrictions remain a Condition.</p></div>
+    </div>
+  </div>
+
+  <div class="dispo" style="margin-top:14pt;">
+    <div class="lbl" style="color:#5c6d7a;">DETERMINATION</div>
+    <div class="dv" style="font-size:14pt;">Proceed with Conditions</div>
+    <p>Based on the information provided by the Company, the benefits established by the Activity outweigh
+    the privacy risks remaining after credited safeguards, provided the Conditions to Proceed are
+    satisfied. Benefit weight and risk level are separate qualitative dimensions; the determination
+    applies EUP’s conservative qualitative methodology described in Section 1 — not a regulator-prescribed
+    scoring formula, and not a numerical equation. The determination rests on the remaining-risk
+    conclusion in § 4.A: no high-level risk remains after credited safeguards, and the conditions carry
+    the two identified gaps to closure.</p>
+  </div>
+
+  <p style="font-size:9.3pt;color:#41505c;">For context, the Supporting Assessment Record collects enforcement outcomes reached under analogous
+  data-protection law that bear on the factors weighed here; they are persuasive context only, bind
+  neither the California Privacy Protection Agency nor any court applying California law, and no
+  determination in this report rests on them.</p>
+
+  <div class="runfoot"><span>EndUserPrivacy.com · CPPA Privacy Risk Assessment</span><span>§ 4.C · The Determination</span><span>Page 8 of 14</span></div>
+</div>
+
+<!-- ═════════ PAGE 9 — §4.D ACTIONS ═════════ -->
+<div class="page">
+  <div class="runhead"><span>END USER PRIVACY</span><span>CPPA PRIVACY RISK ASSESSMENT · VORTEXIA DIGITAL SOLUTIONS, INC.</span></div>
+  <div style="height:0.35in;"></div>
+  <h3><span class="mk">D.</span> <u>Conditions, Follow-Ups, and Recommendations</u></h3>
+  <p>The determination above depends on the conditions stated here; the follow-ups complete the
+  information provided; the recommendations strengthen the posture without conditioning the
+  determination. A reader should never confuse the three: a condition blocks, a follow-up completes,
+  a recommendation improves.</p>
+
+  <div class="eyebrow" style="margin-top:10pt;">CONDITIONS TO PROCEED — these condition the determination</div>
+  <p style="margin-top:3pt;">Two conditions attach to the determination, each named for the work it requires and stated in full:</p>
+  <div class="cond">
+    <div class="cn">1.&nbsp;&nbsp;<u>Downstream-use restrictions</u></div>
+    <p>Complete implementation of the planned safeguard: “Finalize and implement contractual restrictions
+    that prohibit audience recipients from using segment data for credit, insurance, employment, or
+    housing eligibility decisions” (addresses: (E) Economic harms).</p>
+  </div>
+  <div class="cond">
+    <div class="cn">2.&nbsp;&nbsp;<u>Email minimization</u></div>
+    <p>Cease processing, or establish the necessity of, “User email address” (§ 3.B).</p>
+  </div>
+
+  <div class="eyebrow" style="margin-top:10pt;">FOLLOW-UPS — these complete the record</div>
+  <p style="font-size:9.3pt; line-height:1.55; text-align:left;">
+  1.&nbsp;Identify the qualifying statutory sensitive-personal-information category the Company’s Yes answer relies on.<br>
+  2.&nbsp;Identify the retention period, or the criteria used to determine it, for “General location” and “Financial information”.<br>
+  3.&nbsp;Describe the population systematically observed for the § 7150(b)(4) trigger and its capacity.<br>
+  4.&nbsp;Identify the significant decision the technology being trained is intended to make or support (§ 7150(b)(6)).<br>
+  5.&nbsp;Reconcile the Activity’s information scope for “Financial information” (§ 2.A).<br>
+  6.&nbsp;Record the date the assessment was reviewed and approved (§ 7152(a)(9)).</p>
+
+  <div class="eyebrow" style="margin-top:10pt;">RECOMMENDATIONS — non-blocking</div>
+  <p style="font-size:9.3pt; text-align:left;">1.&nbsp;Obtain implementation or testing evidence for the control credited without it, so the assessment
+  can rely on it at full weight.&nbsp;&nbsp;2.&nbsp;Track each planned safeguard to completion and update the
+  assessment when it becomes operational.</p>
+
+  <div class="runfoot"><span>EndUserPrivacy.com · CPPA Privacy Risk Assessment</span><span>§ 4.D · Conditions · Follow-Ups · Recommendations</span><span>Page 9 of 14</span></div>
+</div>
+
+<!-- ═════════ PAGE 10 — §5 GOVERNANCE ═════════ -->
+<div class="page">
+  <div class="runhead"><span>END USER PRIVACY</span><span>CPPA PRIVACY RISK ASSESSMENT · VORTEXIA DIGITAL SOLUTIONS, INC.</span></div>
+  <div style="height:0.35in;"></div>
+  <div class="sechead"><span class="secnum">5</span>
+    <div><h2>Governance, Review, and Submission</h2><span class="q">Who approved this assessment, when must it be revisited, and what must be submitted?</span></div>
+  </div>
+
+  <h3><span class="mk">A.</span> <u>Approval and Accountability</u></h3>
+  <p>In the table below, the finalization record identifies the individuals who reviewed or approved the
+  assessment and the state of each element § 7152(a)(9) requires. The Company identifies an approver and
+  a reviewer, and confirms that at least one approver has authority to participate in deciding whether
+  the covered processing will be initiated or continued; the required review-and-approval date is not
+  yet on the record:</p>
+  <table>
+    <tr><th style="width:24%;">Element</th><th style="width:42%;">The record</th><th>State</th></tr>
+    <tr><td>Approved by</td><td>Marcus D. Holloway, Chief Privacy Officer</td><td><span class="st st-ok">Recorded</span></td></tr>
+    <tr><td>Reviewed by</td><td>Priya Nandakumar, VP Legal &amp; Compliance</td><td><span class="st st-ok">Recorded</span></td></tr>
+    <tr><td>Decision authority</td><td>At least one approver confirmed to have authority over whether the processing proceeds</td><td><span class="st st-ok">Confirmed</span></td></tr>
+    <tr><td>Review / approval date</td><td>§ 7152(a)(9) requires the report to document the date the assessment was reviewed and approved</td><td><span class="st st-hold">Additional Information Required</span></td></tr>
+  </table>
+  <p>Approval record — additional information required. The reviewers and approvers are identified, and at
+  least one approver is confirmed to have authority over whether the processing proceeds; § 7152(a)(9)
+  additionally requires the report to document the date the assessment was reviewed and approved. Record
+  that date to complete the finalization record.</p>
+
+  <h3><span class="mk">B.</span> <u>The Operating Calendar</u></h3>
+  <p>Each obligation below carries its authority, its current status on the information provided, and the
+  step that resolves or schedules it. Two statuses are pending because they depend on dates the Company
+  has not yet recorded; each names the fact that resolves it:</p>
+  <table>
+    <tr><th style="width:24%;">Obligation</th><th style="width:20%;">Authority</th><th style="width:22%;">Status / date</th><th>To resolve or schedule</th></tr>
+    <tr><td>Initial risk assessment</td><td>11 CCR § 7155(a)(1)–(b)</td><td><span class="st st-hold">Determination pending</span></td><td>Record when the covered processing began; before-initiation and the Dec 31, 2027 transition rule fork on that date.</td></tr>
+    <tr><td>Update after material change</td><td>11 CCR § 7155(a)(3)</td><td><span class="st st-hold">Timeliness pending</span></td><td>Record the material-change date to verify the 45-calendar-day window; this assessment serves as the update.</td></tr>
+    <tr><td>Three-year review</td><td>11 CCR § 7155(a)(2)</td><td>2029-09-03</td><td>Schedule the next ordinary review.</td></tr>
+    <tr><td>First § 7157 submission</td><td>11 CCR § 7157</td><td>April 1, 2028</td><td>Business-level aggregate submission; this report contributes the assessment-level information.</td></tr>
+    <tr><td>Retention of the record</td><td>11 CCR § 7155(c)</td><td>Later-of rule</td><td>Retain while the processing continues, or five years after completion, whichever is later.</td></tr>
+  </table>
+
+  <div class="runfoot"><span>EndUserPrivacy.com · CPPA Privacy Risk Assessment</span><span>§ 5 · Governance, Review, and Submission</span><span>Page 10 of 14</span></div>
+</div>
+
+<!-- ═════════ PAGE 11 — RECORD DIVIDER ═════════ -->
+<div class="page">
+  <div class="runhead"><span>END USER PRIVACY</span><span>CPPA PRIVACY RISK ASSESSMENT · VORTEXIA DIGITAL SOLUTIONS, INC.</span></div>
+  <div class="divider">
+    <div class="eyebrow">END OF THE DECISION REPORT · PAGES 1–10</div>
+    <h2>Supporting Assessment Record</h2>
+    <p style="margin-top:6pt; max-width:5.6in; text-align:justify;">The record that stands behind every conclusion above: authority traceability, the complete factual
+    inventories, the full risk and safeguard register, the technical record, and the materials considered.
+    A decision-maker may stop at Section 5. Counsel, auditors, and regulators continue here — and every
+    entry cites the body section it supports.</p>
+  </div>
+  <table style="margin-top:14pt;">
+    <tr class="maprow"><td class="ml">A</td><td style="width:34%;"><b>§ 7152(a) Compliance Index</b></td><td>Every element the regulation requires this assessment to contain · where this report provides it · its state on the information provided.</td></tr>
+    <tr class="maprow"><td class="ml">B</td><td><b>Applicable &amp; Persuasive Authority</b></td><td>Relevant CPPA enforcement actions and decisions; analogous enforcement actions and decisions under other data-protection law (e.g. GDPR) for persuasive authority.</td></tr>
+    <tr class="maprow"><td class="ml">C</td><td><b>Processing and Data Inventory</b></td><td>Categories, canonical mappings, sources, recipients, disclosures, per-category retention.</td></tr>
+    <tr class="maprow"><td class="ml">D</td><td><b>Privacy Risk Register and Safeguard Mapping</b></td><td>Full source, cause, actor, and evidence detail behind each § 4.A ledger row.</td></tr>
+    <tr class="maprow"><td class="ml">E</td><td><b>ADMT Technical and Decision Record</b></td><td>The system’s role, logic, output, human review, testing, and training-data provenance — or its honest not-applicable state.</td></tr>
+    <tr class="maprow"><td class="ml">F</td><td><b>Materials Considered</b></td><td>The assessment record, prior assessments, and provenance of this report.</td></tr>
+  </table>
+
+  <div class="runfoot rec-run"><span>EndUserPrivacy.com · Supporting Assessment Record</span><span>Record Map</span><span>Page 11 of 14</span></div>
+</div>
+
+<!-- ═════════ PAGE 12 — APPENDIX A, OPTION 1 ═════════ -->
+<div class="page">
+  <div class="runhead"><span>END USER PRIVACY</span><span>SUPPORTING ASSESSMENT RECORD · VORTEXIA DIGITAL SOLUTIONS, INC.</span></div>
+  <div style="height:0.35in;"></div>
+  <div class="sechead"><span class="secnum" style="font-size:22pt;">A</span>
+    <div><h2>§ 7152(a) Compliance Index</h2><span class="q">Every element the regulation requires this assessment to contain — and where this report provides it.</span></div>
+  </div>
+  <p>The index below lists each element that 11 CCR § 7152(a) requires a risk assessment to contain, the
+  part of this report that provides it, and its state on the information provided. An element that is
+  not yet complete names the Follow-Up that completes it:</p>
+  <table>
+    <tr><th style="width:17%;">Provision</th><th style="width:41%;">Required element</th><th style="width:16%;">Provided at</th><th>State</th></tr>
+    <tr><td>§ 7152(a)(1)</td><td>The processing purpose, stated with specificity</td><td>§ 2.A</td><td><span class="st st-ok">Addressed</span></td></tr>
+    <tr><td>§ 7152(a)(2)</td><td>The minimum personal information necessary to achieve the purpose</td><td>§ 3.B</td><td><span class="st st-ok">Addressed</span> — one element not established; Condition 2 attaches</td></tr>
+    <tr><td>§ 7152(a)(3)(A)</td><td>How the information is collected, used, and processed, with its sources</td><td>§ 2.B–C · Record C</td><td><span class="st st-ok">Addressed</span></td></tr>
+    <tr><td>§ 7152(a)(3)(B)</td><td>Retention period or criteria, for each category</td><td>§ 2.D · Record C</td><td><span class="st st-hold">Open in part</span> — Follow-Up 2</td></tr>
+    <tr><td>§ 7152(a)(3)(C)–(D)</td><td>The consumer interaction and the approximate number of consumers</td><td>§ 2.C</td><td><span class="st st-ok">Addressed</span></td></tr>
+    <tr><td>§ 7152(a)(3)(E)</td><td>Disclosures made or planned to consumers</td><td>§ 3.C</td><td><span class="st st-ok">Addressed</span></td></tr>
+    <tr><td>§ 7152(a)(3)(F)</td><td>Service providers, contractors, and third parties with access, and each disclosure’s purpose</td><td>§ 2.F · Record C</td><td><span class="st st-ok">Addressed</span></td></tr>
+    <tr><td>§ 7152(a)(3)(G)</td><td>The ADMT’s role, logic, and output</td><td>§ 3.E · Record E</td><td><span class="st st-ok">Addressed</span></td></tr>
+    <tr><td>§ 7152(a)(4)</td><td>Benefits to the consumer, the business, other stakeholders, and the public</td><td>§ 3.F</td><td><span class="st st-ok">Addressed</span></td></tr>
+    <tr><td>§ 7152(a)(5)</td><td>Negative impacts, with their sources and causes</td><td>§ 4.A · Record D</td><td><span class="st st-ok">Addressed</span></td></tr>
+    <tr><td>§ 7152(a)(6)</td><td>Safeguards directed at the identified impacts</td><td>§ 4.A</td><td><span class="st st-ok">Addressed</span> — one planned safeguard; Condition 1 attaches</td></tr>
+    <tr><td>§ 7152(a)(7)</td><td>The recommended processing outcome</td><td>§ 4.C</td><td><span class="st st-ok">Addressed</span></td></tr>
+    <tr><td>§ 7152(a)(8)</td><td>The individuals who provided information (legal counsel excepted)</td><td>§ 2.H</td><td><span class="st st-ok">Addressed</span></td></tr>
+    <tr><td>§ 7152(a)(9)</td><td>The names, positions, and the date of review and approval</td><td>§ 5.A</td><td><span class="st st-hold">Open</span> — Follow-Up 6 (the review/approval date)</td></tr>
+  </table>
+  <p>Two elements remain open on the information provided; each completes through the Follow-Up named
+  beside it. Every other element the regulation requires is contained in this report at the section
+  cited.</p>
+
+  <div class="runfoot rec-run"><span>EndUserPrivacy.com · Supporting Assessment Record</span><span>Appendix A · § 7152(a) Compliance Index</span><span>Page 12 of 14</span></div>
+</div>
+
+<!-- ═════════ PAGE 13 — APPENDIX A OPTION 2 + REGISTER EXCERPT ═════════ -->
+<div class="page">
+  <div class="runhead"><span>END USER PRIVACY</span><span>SUPPORTING ASSESSMENT RECORD · VORTEXIA DIGITAL SOLUTIONS, INC.</span></div>
+  <div style="height:0.35in;"></div>
+  <div class="sechead"><span class="secnum" style="font-size:22pt;">B</span>
+    <div><h2>Applicable &amp; Persuasive Authority <span style="font-size:9pt;color:#8a9eb1;">(excerpt)</span></h2><span class="q">CPPA enforcement and enforcement under analogous data-protection law that bear on the factors this report assesses.</span></div>
+  </div>
+  <p>This record collects enforcement decisions issued under CPPA authority and analogous data-protection
+  law. Analogous decisions are persuasive context only and no determination in this report rests on
+  them. Each entry names the factor it bears on; the row below shows one of the record’s entries:</p>
+  <table>
+    <tr><th style="width:20%;">Matter</th><th style="width:30%;">What happened</th><th style="width:28%;">Bearing on this assessment</th><th>Authority</th></tr>
+    <tr>
+      <td>AEPD (Spain) — AENA, S.M.E., S.A. (2025)</td>
+      <td>A fine of EUR 10,043,002 under GDPR Art. 35: the airport operator’s impact assessment for biometric passenger processing omitted the required analysis of the suitability, necessity, and proportionality of the processing (Art. 35(7)).</td>
+      <td>Where an assessment trigger is engaged, the assessment must actually analyze necessity, proportionality, and safeguards; a document that omits those elements did not satisfy the analogous EU duty.</td>
+      <td>AEPD (Spain), decision of 6 November 2025, ref. PS/00431/2024 (Expte. EXP202304532) — persuasive only; decided under the GDPR, not the CCPA</td>
+    </tr>
+  </table>
+
+  <div class="sechead" style="margin-top:14pt;"><span class="secnum" style="font-size:22pt;">C</span>
+    <div><h2>Processing and Data Inventory <span style="font-size:9pt;color:#8a9eb1;">(excerpt)</span></h2><span class="q">The complete § 7152(a)(3) factual record supporting Section 2.</span></div>
+  </div>
+  <p>This inventory carries the complete factual record behind Section 2 — categories, canonical
+  mappings, sources, recipients, disclosures, and per-category retention. The rows below show a portion
+  of the record:</p>
+  <table>
+    <tr><th style="width:26%;">Item</th><th>Detail</th></tr>
+    <tr><td>Personal-information categories (this Activity)</td><td>Contact identifiers (name, email, phone); Device identifiers (IP, cookies, device IDs); Internet or network activity; General location (city, region, ZIP, IP-derived); Financial information</td></tr>
+    <tr><td>Sources</td><td>Directly from consumers during platform use; automatically from user devices via cookies and SDKs; third-party advertising data partners.</td></tr>
+    <tr><td>Recipient</td><td>Audience activation / clean-room provider (third party): device identifiers, network activity, general location — advertising targeting and campaign delivery.</td></tr>
+    <tr><td>Retention</td><td>Device identifiers: 13 months rolling · Internet or network activity: 90 days · Contact identifiers: duration of account plus 24 months · General location and Financial information: <span class="st st-hold">Not stated — see the Follow-Ups in § 4.D</span></td></tr>
+  </table>
+
+  <div class="runfoot rec-run"><span>EndUserPrivacy.com · Supporting Assessment Record</span><span>Appendices B · C (excerpts)</span><span>Page 13 of 14</span></div>
+</div>
+
+<!-- ═════════ PAGE 14 — RECORD SAMPLE: APPENDIX D ═════════ -->
+<div class="page">
+  <div class="runhead"><span>END USER PRIVACY</span><span>SUPPORTING ASSESSMENT RECORD · VORTEXIA DIGITAL SOLUTIONS, INC.</span></div>
+  <div style="height:0.35in;"></div>
+  <div class="sechead"><span class="secnum" style="font-size:22pt;">D</span>
+    <div><h2>Privacy Risk Register and Safeguard Mapping <span style="font-size:9pt;color:#8a9eb1;">(excerpt)</span></h2><span class="q">The full evidentiary depth behind § 4.A — source, cause, actor, and residual description per risk.</span></div>
+  </div>
+  <p>For each § 4.A ledger row, the register preserves the complete record the credit rests on. The row
+  below shows the depth for risk (A); the register carries every risk at this depth:</p>
+  <table>
+    <tr><th style="width:16%;">Risk</th><th style="width:32%;">Information · actor · source · cause</th><th style="width:16%;">Company assessment</th><th style="width:24%;">Safeguard (status)</th><th>Remaining</th></tr>
+    <tr>
+      <td>(A) Unauthorized access, destruction, use, modification, or disclosure</td>
+      <td>Behavioral profiles and inferred interest categories in the profiling datastore; external actors or unauthorized internal personnel; centralized datastore shared between training and partner endpoints; insufficient access controls could allow exfiltration at scale.</td>
+      <td>Likelihood: Possible.<br>Severity: Significant.<br>Before: <span class="st st-hi">High</span></td>
+      <td>Role-based access controls and encryption at rest; access logged and reviewed quarterly. <span class="st st-ok" style="font-size:7pt;">Implemented and tested.</span> Residual exposure: partner-side security not fully auditable.</td>
+      <td><span class="st st-hold">Moderate</span></td>
+    </tr>
+  </table>
+
+  <div class="runfoot rec-run"><span>EndUserPrivacy.com · Supporting Assessment Record</span><span>Appendix D (excerpt)</span><span>Page 14 of 14</span></div>
+</div>
+
+</body>
+</html>
