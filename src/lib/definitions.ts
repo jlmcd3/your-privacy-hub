@@ -14,8 +14,8 @@ export const DEFINITIONS: Record<string, TermDefinition> = {
 
   sensitive_pi: {
     term: "Sensitive personal information",
-    definition: "Personal information revealing a consumer's Social Security, driver's license, state ID, or passport number; account log-in credentials; precise geolocation; racial or ethnic origin, religious or philosophical beliefs, or union membership; the contents of mail, email, or text messages where the business is not the intended recipient; genetic data; biometric information processed to identify a consumer; health data; or data concerning sex life or sexual orientation. (summary)",
-    cite: "Cal. Civ. Code § 1798.140(ae)",
+    definition: "Personal information revealing a consumer's Social Security, driver's license, state ID, or passport number; account log-in credentials; precise geolocation; racial or ethnic origin, religious or philosophical beliefs, or union membership; the contents of mail, email, or text messages where the business is not the intended recipient; genetic data; neural data; biometric information processed to identify a consumer; health data; or data concerning sex life or sexual orientation. Under 11 CCR § 7001(bbb)(4) it also includes the personal information of consumers the business has actual knowledge are under 16. (summary)",
+    cite: "Cal. Civ. Code § 1798.140(ae); 11 CCR § 7001(bbb)",
   },
   ccba: {
     term: "Cross-context behavioral advertising",

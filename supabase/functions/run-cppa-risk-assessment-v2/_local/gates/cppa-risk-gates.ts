@@ -79,7 +79,9 @@ export const CPPA_RISK_GATES: readonly GateSpec[] = [
     // PN-CORPUS-L-RISK-1 (2026-08-22): special-cased in gate-eval.ts; the
     // carve-out reads the dedicated q15d_hr_carveout field.
     description: "Applicability gate — § 7150(b)(2) sensitive PI (with the § 7150(b)(2)(A) personnel carve-out).",
-    intake_fields: ["q_processes_sensitive_pi", "q15d_hr_carveout"],
+    // DOC 157 (2026-09-03): q15b_under16_knowledge joins — § 7001(bbb)(4)
+    // elevation (special-cased in gate-eval.ts).
+    intake_fields: ["q_processes_sensitive_pi", "q15d_hr_carveout", "q15b_under16_knowledge"],
     on_block: "suppress_assertions",
     anchor_pinpoint: "11 CCR § 7150(b)(2)",
   },
@@ -87,7 +89,9 @@ export const CPPA_RISK_GATES: readonly GateSpec[] = [
     id: "G.applicability.admt_significant_decision",
     jurisdiction_tag: CPPA,
     description: "Applicability gate — § 7150(b)(3) ADMT for significant decisions.",
-    intake_fields: ["q18_admt_use", "q_admt_significant_decision"],
+    // DOC 157 (2026-09-03): the categorical § 7001(ddd) answer joins
+    // (special-cased in gate-eval.ts; the classifier is the fallback).
+    intake_fields: ["q18_admt_use", "q_admt_significant_decision", "q19a_decision_categories", "q19b_housing_basis"],
     on_block: "suppress_assertions",
     anchor_pinpoint: "11 CCR § 7150(b)(3)",
   },

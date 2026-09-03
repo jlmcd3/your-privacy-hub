@@ -30,7 +30,11 @@
 
 import { HARM_PATHWAY_OPTS } from "../intake-contracts/cppa-risk-assessment.ts";
 import { CA_SPI_CATEGORY_KEYS } from "./ca-pi-taxonomy.ts";
-import { classifyAdmtSignificantDecision } from "./admt-significant-decision.ts";
+import {
+  type AdmtDecisionClass,
+  classifyAdmtSignificantDecision,
+  resolveAdmtSignificantDecision,
+} from "./admt-significant-decision.ts";
 import type { RenderedTable } from "../prose/skeleton-render.ts";
 import { boundedPassage, firstSentence } from "./clause-bound.ts";
 import { RISK52_FIXED } from "../prose/plans/cppa-risk.spine.ts";
@@ -1089,9 +1093,29 @@ export function runRiskFactorEngine(
   const benefitTier = bestBenefitTier(benefits);
   const necessity = extractNecessity(intake);
   const isAdmt = isYes(intake.q18_admt_use);
+  // DOC 157 (2026-09-03, model-vs-law build; doc 156) — two states hoisted so
+  // every surface below reads ONE derivation: the § 7001(ddd) decision
+  // resolution (categorical q19a/q19b answer first, free-text classifier
+  // fallback — the same resolver gate-eval, the opening, the slots, and the
+  // assembler consume) and the § 7001(bbb)(4) under-16 elevation (actual
+  // knowledge of under-16 processing IS sensitive-PI processing, whatever
+  // the general q15 answer).
+  const admtDecision = resolveAdmtSignificantDecision(intake);
+  const b3Categorical = admtDecision.source === "categorical";
+  const b2Under16Elevated = /^yes/i.test(s(intake.q15b_under16_knowledge)) &&
+    s(intake.q15_sensitive_pi) !== "Yes";
   const scopeLines = arr((report.scope_and_triggers as Bag)?.narrative ?? report.scope_and_triggers);
   const rawEngagedLines = scopeLines.filter((x) => x.startsWith("Engaged — "));
   const uncertainLines = scopeLines.filter((x) => /^uncertain/i.test(x));
+  // DOC 157 — a stored narrative composed before the (bbb)(4) rule carries no
+  // b(2) line for an elevated record; the engaged line is synthesized from
+  // the intake (defense-in-depth for replayed records; the gate now passes it
+  // for new ones), in the composer's own template form.
+  if (b2Under16Elevated && !rawEngagedLines.some((x) => /§\s*7150\(b\)\(2\)/.test(x))) {
+    rawEngagedLines.push(
+      "Engaged — 11 CCR § 7150(b)(2) (processing sensitive personal information): the record supports this trigger and this activity falls within the risk-assessment obligation.",
+    );
+  }
   // DOC 148 (2026-09-02, A-Team Batch-8 P0) — § 7150(b)(3) reconciliation at
   // the render chokepoint. Doc 137 built the § 7001(ddd) category gate + FSOR
   // advertising exclusion, but wired it only into risk-opening.ts (S1) and
@@ -1129,7 +1153,12 @@ export function runRiskFactorEngine(
     // capacity directly; it was previously ignored in favor of keyword
     // scanning of the free text alone.
     const ctx = s(intake.consumer_relationship_context);
-    if (ctx === "Employees or job applicants" || ctx === "Students") return false;
+    // DOC 157 — the two capacities the list lacked (independent contractors;
+    // educational-program applicants) establish it directly.
+    if (
+      ctx === "Employees or job applicants" || ctx === "Students" ||
+      ctx === "Independent contractors" || ctx === "Educational-program applicants"
+    ) return false;
     const scenarioText = [
       intake.subject_anchor,
       intake.primary_activity_name,
@@ -1144,9 +1173,15 @@ export function runRiskFactorEngine(
   })();
   // b(6): the training answer names significant-decision use, but the
   // recorded system description does not identify a § 7001(ddd) decision.
-  const b6TrainedDecisionUnidentified =
-    /^Yes — training ADMT for significant decisions/.test(s(intake.q18b_admt_training)) &&
-    classifyAdmtSignificantDecision(s(intake.q19_admt_description)) !== "significant";
+  // DOC 157 — the categorical answer (also asked for the trained model when
+  // q18 is not "Yes") resolves the trained decision; text is the fallback.
+  // "Unidentified" = no categorical answer and the description names no
+  // category; "contradicted" = the Company's own categorical answer names
+  // no significant-decision category while q18b says the training is for
+  // significant decisions (a reconcile Follow-Up, never "not identified").
+  const b6Training = /^Yes — training ADMT for significant decisions/.test(s(intake.q18b_admt_training));
+  const b6TrainedDecisionUnidentified = b6Training && !b3Categorical && admtDecision.cls !== "significant";
+  const b6TrainedDecisionContradicted = b6Training && b3Categorical && admtDecision.cls !== "significant";
   // DOC 152 (2026-09-03, Batch-9) — the ADMT operand group, hoisted ABOVE
   // the follow-up/condition generators so the § 4.D actions and the § 3.E
   // narrative read ONE state (batch 962f9090: § 3.E promised a Condition
@@ -1228,14 +1263,24 @@ export function runRiskFactorEngine(
       return exclusionSentences.some((x) => re.test(x));
     });
   })();
-  const b3Class = s(intake.q18_admt_use) === "Yes"
-    ? classifyAdmtSignificantDecision(s(intake.q19_admt_description))
-    : null;
+  const b3Class: AdmtDecisionClass | null = s(intake.q18_admt_use) === "Yes" ? admtDecision.cls : null;
   const b3EngagedLine = rawEngagedLines.find((x) => /§\s*7150\(b\)\(3\)/.test(x));
-  const b3Reconciled: "advertising_only" | "unresolved" | null =
-    b3EngagedLine !== undefined && (b3Class === "advertising_only" || b3Class === "unresolved")
+  // DOC 157 — a categorical non-engagement (advertising only / outside every
+  // category / § 7001(ddd)(2) housing exclusion) is intake-derived and renders
+  // whether or not a stored narrative carries an engaged line (the doc-154
+  // construction); the text-derived reconciliation keeps the doc-148 gating.
+  const b3Reconciled: Exclude<AdmtDecisionClass, "significant"> | null = b3Categorical
+    ? (b3Class !== null && b3Class !== "significant" ? b3Class : null)
+    : (b3EngagedLine !== undefined && (b3Class === "advertising_only" || b3Class === "unresolved")
       ? b3Class
-      : null;
+      : null);
+  // DOC 157 — the cross-check on a categorical record: the description names
+  // a § 7001(ddd) category the Company did not select. The categorical answer
+  // governs the trigger row; the contradiction draws a Follow-Up and keeps the
+  // assessment requirement (the doc-148 conservative rule for contradicted
+  // records, applied here in place of a silent downgrade).
+  const b3TextContradiction = b3Categorical && b3Reconciled !== null && admtDecision.textClass === "significant";
+  const admtDecisionRecorded = arr(intake.q19a_decision_categories).join("; ");
   // DOC 154 (2026-09-03, code review) — the other non-Yes trigger answers are
   // reconciled at this same chokepoint (the doc-148 pattern). The gate
   // evaluator treated ANY non-negative answer as engaged, so:
@@ -1249,7 +1294,8 @@ export function runRiskFactorEngine(
   // The gate (gate-eval.ts) now blocks both with distinct reasons; this
   // filter is the defense-in-depth guarantee for stored narratives.
   const b2EngagedLine = rawEngagedLines.find((x) => /§\s*7150\(b\)\(2\)/.test(x));
-  const b2Unresolved = s(intake.q15_sensitive_pi) === "Unsure";
+  // DOC 157 — an under-16 elevated record is engaged, never unresolved.
+  const b2Unresolved = s(intake.q15_sensitive_pi) === "Unsure" && !b2Under16Elevated;
   const b3Evaluation = s(intake.q18_admt_use) === "In evaluation" && b3EngagedLine !== undefined;
   const reconciledLines = new Set<string>();
   if (b3Reconciled && b3EngagedLine) reconciledLines.add(b3EngagedLine);
@@ -1398,6 +1444,23 @@ export function runRiskFactorEngine(
   // DOC 148 (A-Team Batch-8 P0) — the § 7150(b)(3) unresolved-category state
   // completes among the Follow-Ups (the advertising-only state is a
   // determined non-engagement and needs no follow-up).
+  // DOC 157 — § 7001(bbb)(4) elevation: the sensitive-PI sub-questions
+  // (volume, Limit-the-Use mechanism, basis) are asked only on a q15 "Yes",
+  // so an elevated record completes them here; the § 3.A row points here.
+  if (b2Under16Elevated) {
+    followUps.push(
+      `Complete the sensitive-personal-information record for the under-16 information — its volume, the mechanism for consumers to limit its use, and the basis for processing it; the Company ${
+        s(intake.q15_sensitive_pi) ? `answers “${s(intake.q15_sensitive_pi)}” to` : "records no answer to"
+      } processing sensitive personal information, and § 7001(bbb)(4) makes the personal information of consumers it knows are under 16 sensitive personal information`,
+    );
+  }
+  // DOC 157 — the categorical § 7001(ddd) answer contradicted by the
+  // description (same predicate as the § 3.A sentence; cross-surface parity).
+  if (b3TextContradiction) {
+    followUps.push(
+      `Reconcile the decision category recorded for the automated decisionmaking technology (“${admtDecisionRecorded}”) with the system description, which describes a decision within a § 7001(ddd) significant-decision category; § 7150(b)(3) turns on the decision actually made, and the assessment treats the trigger as asserted until the two agree`,
+    );
+  }
   if (b3Reconciled === "unresolved" || admtClaimUnplaced) {
     followUps.push(
       "Identify the significant decision the automated decisionmaking technology makes or facilitates; § 7150(b)(3) turns on a decision within the categories enumerated in § 7001(ddd), and the information provided does not identify one",
@@ -1452,6 +1515,11 @@ export function runRiskFactorEngine(
   if (b4CapacityUndescribed) {
     followUps.push(
       "Describe the population systematically observed for the § 7150(b)(4) trigger and its capacity — employee, independent contractor, student, or job or educational-program applicant of the business — so the record states the facts supporting the Company’s answer",
+    );
+  }
+  if (b6TrainedDecisionContradicted) {
+    followUps.push(
+      `Reconcile the § 7150(b)(6) answer that personal information trains ADMT for significant decisions with the decision category recorded (“${admtDecisionRecorded}”), which names no significant-decision category; § 7150(b)(6) turns on the decision the trained technology is intended to make or support`,
     );
   }
   if (b6TrainedDecisionUnidentified) {
@@ -1758,6 +1826,52 @@ export function runRiskFactorEngine(
       whollyAbsentRisks,
     },
   );
+  // DOC 157 (2026-09-03, doc 156 items 11 and 13) — the Company's OWN answer
+  // to the § 7152(a) weighing (impact_intake.benefitsOutweigh, collected and
+  // never read) and its § 7152(a)(7) decision (final_processing_decision,
+  // emitted by the finalization stage and never read). Both render in § 4.C
+  // beside the determination; a conflict draws a Follow-Up. Neither feeds the
+  // ratified table (pinned by test).
+  const companyOutweigh = s((intake.impact_intake as Bag | undefined)?.benefitsOutweigh);
+  const companyOutweighConflict = (cell.kind === "proceed" && companyOutweigh === "No") ||
+    (cell.kind === "stop" && companyOutweigh === "Yes");
+  const finalDecision = s(intake.final_processing_decision);
+  const finalDecisionAffirmative = /^(initiate|continue)\b/i.test(finalDecision);
+  const finalDecisionNegative = /^(do not initiate|discontinue)\b/i.test(finalDecision);
+  const finalDecisionConflict = (finalDecisionAffirmative && /^do not proceed/.test(consequence)) ||
+    (finalDecisionNegative && (consequence === "proceed" || consequence === "proceed with conditions"));
+  if (companyOutweighConflict) {
+    followUps.push(
+      `Reconcile the Company’s recorded answer that the benefits ${
+        companyOutweigh === "Yes" ? "outweigh" : "do not outweigh"
+      } the risks with the determination in § 4.C, which reaches the opposite conclusion; § 7152(a) makes the weighing the business’s own, and the two must agree before the assessment is finalized`,
+    );
+  }
+  if (finalDecisionConflict) {
+    followUps.push(
+      `Reconcile the Company’s recorded § 7152(a)(7) decision (“${finalDecision}”) with the recommended outcome in § 4.C; the two point in opposite directions, and the decision the business documents must rest on the determination it adopts`,
+    );
+  }
+  const companyRecordSuffix = [
+    companyOutweigh
+      ? ` The Company’s own recorded answer to whether the benefits outweigh the risks is “${companyOutweigh}”.${
+        companyOutweighConflict
+          ? " That answer differs from the determination above; reconciling the two appears among the Follow-Ups in § 4.D."
+          : ""
+      }`
+      : "",
+    finalDecision
+      ? ` The Company records its decision under § 7152(a)(7) as “${finalDecision}”${
+        clause(intake.final_processing_decision_notes)
+          ? ` (“${firstSentence(clause(intake.final_processing_decision_notes)).replace(/[.!?]\s*$/, "")}”)`
+          : ""
+      }.${
+        finalDecisionConflict
+          ? " That decision differs from the recommended outcome; reconciling the two appears among the Follow-Ups in § 4.D."
+          : ""
+      }`
+      : " The Company’s own decision whether it will initiate or continue the processing (§ 7152(a)(7)) is recorded at finalization; none is recorded in the information provided.",
+  ].join("");
   // DOC 127 PART I — shared derived flags for the composition sites below.
   const adverse = consequence === "do not proceed - remediable" ||
     consequence === "do not proceed - redesign required";
@@ -1814,10 +1928,16 @@ export function runRiskFactorEngine(
       case 2:
         return s(intake.q15_sensitive_pi) === "Yes"
           ? "the Company answers “Yes” to processing sensitive personal information"
+          // DOC 157 — § 7001(bbb)(4) elevation.
+          : b2Under16Elevated
+          ? "the Company records actual knowledge that it processes the personal information of consumers under 16, which § 7001(bbb)(4) defines as sensitive personal information"
           : null;
       case 3:
         return s(intake.q18_admt_use) === "Yes"
-          ? "the Company answers “Yes” to using automated decisionmaking technology for a significant decision"
+          // DOC 157 — the categorical answer names the decision category.
+          ? (b3Categorical && admtDecision.categories.length
+            ? `the Company answers “Yes” to using automated decisionmaking technology and records the decision it makes as ${asProse([...admtDecision.categories])}`
+            : "the Company answers “Yes” to using automated decisionmaking technology for a significant decision")
           : null;
       case 4: {
         const v = s(intake.q5b_profiling_observation);
@@ -1870,6 +1990,20 @@ export function runRiskFactorEngine(
     // follow-ups; cross-surface parity).
     const qualify = (basis: string, note: string): string =>
       `${basis.replace(/[.!?]\s*$/, "")}; ${note}`;
+    // DOC 157 — § 7001(bbb)(4) elevation: the row states its own basis.
+    if (b2Under16Elevated && /§\s*7150\(b\)\(2\)/.test(t.cite)) {
+      return {
+        ...t,
+        // The qualifying fact (triggerQualifyingFact, prong 2) already states
+        // the (bbb)(4) basis; the qualifier adds only what is new.
+        basis: qualify(
+          t.basis,
+          `the Company ${
+            s(intake.q15_sensitive_pi) ? `answers “${s(intake.q15_sensitive_pi)}” to` : "records no answer to"
+          } the general sensitive-personal-information question, and completing that record appears among the Follow-Ups in § 4.D`,
+        ),
+      };
+    }
     if (spiCategoryUnresolved && /§\s*7150\(b\)\(2\)/.test(t.cite)) {
       return {
         ...t,
@@ -1880,6 +2014,12 @@ export function runRiskFactorEngine(
       return {
         ...t,
         basis: qualify(t.basis, "the trigger is engaged on the Company’s direct affirmation of the statutory element, and the observed population’s worker, student, or applicant capacity is not separately described in the information provided (Follow-Ups, § 4.D)"),
+      };
+    }
+    if (b6TrainedDecisionContradicted && /§\s*7150\(b\)\(6\)/.test(t.cite)) {
+      return {
+        ...t,
+        basis: qualify(t.basis, "the trigger is engaged on the Company’s reported answer, while the decision category the Company records names no significant-decision category; reconciling the two appears among the Follow-Ups in § 4.D"),
       };
     }
     if (b6TrainedDecisionUnidentified && /§\s*7150\(b\)\(6\)/.test(t.cite)) {
@@ -1908,6 +2048,19 @@ export function runRiskFactorEngine(
       "Additional Information Required — the Company answers “Unsure” to processing sensitive personal information; whether the Activity processes sensitive personal information remains to be determined, and resolving it appears among the Follow-ups in § 4.D.",
     ]);
   }
+  // DOC 157 — the two categorical § 7150(b)(3) non-engagements.
+  if (b3Reconciled === "not_significant") {
+    reconciledRows.push([
+      "11 CCR § 7150(b)(3) — using ADMT for a significant decision concerning a consumer",
+      "Not engaged — the Company answers “Yes” to using automated decisionmaking technology and records that the decision it makes is not within any category § 7001(ddd) defines as a significant decision (financial or lending services, housing, education enrollment or opportunities, employment or independent contracting opportunities or compensation, or healthcare services); on that categorical answer the trigger does not apply.",
+    ]);
+  }
+  if (b3Reconciled === "housing_excluded") {
+    reconciledRows.push([
+      "11 CCR § 7150(b)(3) — using ADMT for a significant decision concerning a consumer",
+      "Not engaged — the Company records that the technology provides or denies housing based solely on the availability or vacancy of the housing or the successful receipt of payment; § 7001(ddd)(2) provides that such a use is not making a significant decision.",
+    ]);
+  }
   if (b3Evaluation) {
     reconciledRows.push([
       "11 CCR § 7150(b)(3) — using ADMT for a significant decision concerning a consumer",
@@ -1932,7 +2085,7 @@ export function runRiskFactorEngine(
     // DOC 148 (A-Team Batch-8 P0) — the reconciled § 7150(b)(3) state renders
     // in the trigger digest instead of silently disappearing: a determined
     // FSOR non-engagement, or the Additional-Information-Required open state.
-    if (b3Reconciled) {
+    if (b3Reconciled === "advertising_only" || b3Reconciled === "unresolved") {
       triggerRows.push([
         "11 CCR § 7150(b)(3) — using ADMT for a significant decision concerning a consumer",
         b3Reconciled === "advertising_only"
@@ -2297,6 +2450,9 @@ export function runRiskFactorEngine(
         } — and ${plural(spiList.length, "its", "their")} presence raises what the information provided must show on necessity, access, disclosure, retention, and the consequences of misuse (§§ 3.B, 4.A).`
         : isYes(intake.q15_sensitive_pi)
         ? "The Company additionally identifies sensitive personal information in its submission, and that identification raises what the information provided must show on necessity, access, disclosure, retention, and the consequences of misuse (§§ 3.B, 4.A)."
+        // DOC 157 — § 7001(bbb)(4): under-16 actual knowledge is sensitive PI.
+        : b2Under16Elevated
+        ? "The Company records actual knowledge that it processes the personal information of consumers under 16; under 11 CCR § 7001(bbb)(4) that information is sensitive personal information, and § 7150(b)(2) is engaged on that basis (§ 3.A)."
         // DOC 154 (item 12) — "Unsure" is an answer, not an absence.
         : b2Unresolved
         ? "The Company is unsure whether the Activity processes sensitive personal information; that question is carried as unresolved in § 3.A, and resolving it appears among the Follow-Ups in § 4.D."
@@ -2794,7 +2950,7 @@ export function runRiskFactorEngine(
     // DOC 148 (A-Team Batch-8 P0) — the reconciled § 7150(b)(3) state is
     // analyzed in place, not silently dropped: the Company's affirmative
     // answer and the contradicting activity record are both stated.
-    if (b3Reconciled) {
+    if (b3Reconciled === "advertising_only" || b3Reconciled === "unresolved") {
       paras.push(
         b3Reconciled === "advertising_only"
           ? "§ 7150(b)(3) — using ADMT for a significant decision concerning a consumer — is not engaged on the information provided: the Company answers “Yes” to using automated decisionmaking technology for a significant decision, but the decision use the activity record identifies is advertising to consumers, and § 7001(ddd)(6) excludes advertising to a consumer from the significant-decision categories. Any separate covered significant decision made with this technology should be identified and the assessment updated."
@@ -2806,6 +2962,23 @@ export function runRiskFactorEngine(
     if (b2Unresolved) {
       paras.push(
         "§ 7150(b)(2) — processing sensitive personal information — requires additional information: the Company answers “Unsure” to processing sensitive personal information, so whether the Activity falls within this category is not determined on the information provided. Resolving that question appears among the Follow-ups in § 4.D.",
+      );
+    }
+    // DOC 157 — the categorical non-engagements, analyzed in place, and the
+    // description cross-check.
+    if (b3Reconciled === "not_significant") {
+      paras.push(
+        "§ 7150(b)(3) — using ADMT for a significant decision concerning a consumer — is not engaged on the information provided: the Company answers “Yes” to using automated decisionmaking technology and records that the decision it makes is not within any category § 7001(ddd) defines as a significant decision; on that categorical answer the trigger does not apply.",
+      );
+    }
+    if (b3Reconciled === "housing_excluded") {
+      paras.push(
+        "§ 7150(b)(3) — using ADMT for a significant decision concerning a consumer — is not engaged on the information provided: the Company records that the technology provides or denies housing based solely on the availability or vacancy of the housing or the successful receipt of payment, and § 7001(ddd)(2) provides that such a use is not making a significant decision.",
+      );
+    }
+    if (b3TextContradiction) {
+      paras.push(
+        "The Company’s description of the system, however, describes a decision within a § 7001(ddd) category that its categorical answer does not select; reconciling the two appears among the Follow-Ups in § 4.D, and the assessment requirement is carried until they agree.",
       );
     }
     if (b3Evaluation) {
@@ -3187,13 +3360,18 @@ export function runRiskFactorEngine(
       const desc = clause(intake.q19_admt_description);
       const role = clause(intake.admt_operational_role);
       if (desc || role || admtRoleType) {
-        const roleClause = admtRoleType === "The ADMT makes the decision without human involvement"
-          ? "making the decision without human involvement"
-          : admtRoleType === "The ADMT is a substantial factor in a human decision"
-          ? "a substantial factor in a human decision"
-          : admtRoleType === "The ADMT supports a human decision without being a substantial factor"
-          ? "supporting a human decision without being a substantial factor in it"
-          : "";
+        // DOC 157 (2026-09-03) — the adopted § 7001(e)(1) labels (doc 156
+        // item 8); the retired draft-era literals still render as recorded
+        // for stored rows.
+        const ROLE_CLAUSES: Record<string, string> = {
+          "The ADMT's output is used to make the decision without human involvement": "making the decision without human involvement",
+          "A human reviewer who meets all three § 7001(e)(1) requirements makes or can change the decision": "informing a decision that a human reviewer meeting all three § 7001(e)(1) requirements makes or can change",
+          "A human is involved, but not all three § 7001(e)(1) requirements are met": "involving a human reviewer who does not meet all three § 7001(e)(1) requirements",
+          "The ADMT makes the decision without human involvement": "making the decision without human involvement",
+          "The ADMT is a substantial factor in a human decision": "a substantial factor in a human decision",
+          "The ADMT supports a human decision without being a substantial factor": "supporting a human decision without being a substantial factor in it",
+        };
+        const roleClause = ROLE_CLAUSES[admtRoleType] ?? "";
         // Company clauses quoted (v5.2 register), each closed with a stop so
         // an intake value without terminal punctuation never runs on.
         const quoted = (t: string): string => `“${firstSentence(t).replace(/[.!?]\s*$/, "")}”.`;
@@ -3231,7 +3409,8 @@ export function runRiskFactorEngine(
           // "substantial factor" wording to read as the operative standard.
           bits.push(`The Company classifies the system as ${roleClause}${role ? `: ${quoted(role)}` : "."}`);
           bits.push(
-            admtRoleType === "The ADMT makes the decision without human involvement"
+            (admtRoleType === "The ADMT makes the decision without human involvement" ||
+              admtRoleType === "The ADMT's output is used to make the decision without human involvement")
               ? "Under § 7001(e), technology that makes the decision without human involvement replaces human decisionmaking, and the testing behind its output is therefore the operative question."
               : "Under § 7001(e), the operative question is whether the technology replaces or substantially replaces human decisionmaking — whether the reviewer knows how to interpret and use the output, considers it together with other relevant information, and has authority to make or change the decision; the human-review record below is read against that test.",
           );
@@ -3861,7 +4040,9 @@ export function runRiskFactorEngine(
     // DOC 142 (2026-09-02) — wholly-absent a5 with a benefit on the record:
     // the ratified cell would assert a favorable balance the report has no
     // risk side for, so the incomplete-state sentence composes instead.
-    whollyAbsentRisks && hasBalanceRecord
+    // DOC 157 — the Company's own § 7152(a) answer and § 7152(a)(7) decision
+    // close the paragraph (companyRecordSuffix).
+    (whollyAbsentRisks && hasBalanceRecord
       ? `The information provided establishes a benefit under § 3.F but identifies no risk under § 4.A, so the balance this report performs has nothing to weigh on the risk side. ${outcome} In this report's executive result, that determination is stated as "${DISPOSITION_LABEL[consequence]}."`
       // DOC 154 (item 5) — a benefit on the record and only unassessable
       // risks: no cell conclusion may render.
@@ -3873,8 +4054,9 @@ export function runRiskFactorEngine(
         unassessed.length
           ? "identifies no risk under § 4.A with a recorded likelihood and severity"
           : "identifies no risk under § 4.A"
-      }, so the balance this report performs has nothing to weigh on either side. ${outcome} In this report's executive result, that determination is stated as "${DISPOSITION_LABEL[consequence]}."`,
-    ["FACTOR:balancing_table", "FACTOR:benefit_weight_table", "FACTOR:residual_rule"],
+      }, so the balance this report performs has nothing to weigh on either side. ${outcome} In this report's executive result, that determination is stated as "${DISPOSITION_LABEL[consequence]}."`) +
+      companyRecordSuffix,
+    ["FACTOR:balancing_table", "FACTOR:benefit_weight_table", "FACTOR:residual_rule", "INTAKE:impact_intake.benefitsOutweigh", "INTAKE:final_processing_decision"],
     ["11 CCR § 7154", "11 CCR § 7152(a)(7)"],
   );
   putFactorOnly(
@@ -4142,7 +4324,12 @@ export function runRiskFactorEngine(
       // asserted-but-open trigger, the same AIR precedent); the b(3)
       // evaluation-stage state is a determined non-engagement on the
       // Company's OWN answer and does not require an assessment by itself.
-      assessment_required: engagedLines.length > 0 || b3Reconciled !== null || b2Unresolved,
+      // DOC 157 — a categorical b(3) non-engagement is the Company's own
+      // determined answer and does not require an assessment by itself (the
+      // evaluation-state rule); a categorical answer contradicted by the
+      // description keeps the conservative Yes.
+      assessment_required: engagedLines.length > 0 || b2Unresolved ||
+        (b3Reconciled !== null && (!b3Categorical || b3TextContradiction)),
       inherent: pathways.length ? maxInherent : null,
       residual: pathways.length ? maxResidual : null,
       disposition: consequence,

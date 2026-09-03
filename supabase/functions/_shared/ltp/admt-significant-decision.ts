@@ -177,3 +177,85 @@ export function classifyAdmtSignificantDecision(
   if (ADVERTISING_ONLY_PATTERN.test(text)) return "advertising_only";
   return "unresolved";
 }
+
+// ── DOC 157 (2026-09-03, model-vs-law build; doc 156 change-list item 7) ──
+// The categorical § 7001(ddd) answer. The regulation defines the seven
+// significant-decision categories precisely and carries two exclusions the
+// free-text classifier above cannot apply ((ddd)(2) housing based solely on
+// availability, vacancy, or receipt of payment; (ddd)(6) advertising). The
+// Company now records the category directly (q19a_decision_categories,
+// q19b_housing_basis); the classifier remains the fallback for records
+// without the answer and the cross-check for records with it. Canonical
+// literals: verbatim copies live in src/pages/CPPARiskAssessment.enums.ts and
+// _shared/intake-contracts/cppa-risk-assessment.ts (parity pinned).
+export const SIGNIFICANT_DECISION_CATEGORY_OPTS = [
+  "Financial or lending services (credit, loans, funds transfer, deposit or checking accounts, check cashing, installment plans)",
+  "Housing (a home, residence, or sleeping place)",
+  "Education enrollment or opportunities (admission, credentials, suspension or expulsion)",
+  "Hiring",
+  "Allocation or assignment of work, or compensation (salary, hourly or per-assignment pay, bonuses, other benefits)",
+  "Promotion, demotion, suspension, or termination",
+  "Healthcare services (diagnosis, prevention, treatment, or assessment or care of health)",
+  "Advertising only — no decision in the categories above",
+  "None of these categories",
+] as const;
+export const HOUSING_DECISION_BASIS_OPTS = [
+  "Yes — based solely on availability or vacancy, or on receipt of payment",
+  "No — other factors are considered",
+] as const;
+export const SIGNIFICANT_DECISION_HOUSING_OPTION: string = SIGNIFICANT_DECISION_CATEGORY_OPTS[1];
+export const SIGNIFICANT_DECISION_ADVERTISING_OPTION: string = SIGNIFICANT_DECISION_CATEGORY_OPTS[7];
+export const SIGNIFICANT_DECISION_NONE_OPTION: string = SIGNIFICANT_DECISION_CATEGORY_OPTS[8];
+const SIGNIFICANT_CATEGORY_SET: ReadonlySet<string> = new Set(
+  SIGNIFICANT_DECISION_CATEGORY_OPTS.slice(0, 7) as readonly string[],
+);
+
+/**
+ * The full decision class: the three text classes plus the two categorical
+ * non-engagements ("not_significant" = the Company records the decision as
+ * outside every § 7001(ddd) category; "housing_excluded" = a housing decision
+ * within the (ddd)(2) availability/vacancy/payment exclusion).
+ */
+export type AdmtDecisionClass = AdmtSignificantDecisionClass | "not_significant" | "housing_excluded";
+
+export interface AdmtDecisionResolution {
+  readonly cls: AdmtDecisionClass;
+  /** "categorical" when q19a carries at least one recognised option; "text" = classifier fallback. */
+  readonly source: "categorical" | "text";
+  /** The significant categories the Company selected, net of the housing exclusion. */
+  readonly categories: readonly string[];
+  /** The free-text classification of q19 (the cross-check on categorical records). */
+  readonly textClass: AdmtSignificantDecisionClass;
+}
+
+export interface AdmtDecisionIntake {
+  readonly q19a_decision_categories?: unknown;
+  readonly q19b_housing_basis?: unknown;
+  readonly q19_admt_description?: unknown;
+}
+
+/**
+ * Resolve the § 7001(ddd) decision class from the intake. Pure and
+ * deterministic. Precedence: a recognised categorical answer governs
+ * (the doc-145 §2.8 categorical-answer ruling); with none, the text
+ * classifier answers as before. A category selected alongside the
+ * advertising or none option wins (the exclusions cover a system used
+ * SOLELY for advertising / outside every category).
+ */
+export function resolveAdmtSignificantDecision(intake: AdmtDecisionIntake | null | undefined): AdmtDecisionResolution {
+  const rawList = Array.isArray(intake?.q19a_decision_categories) ? intake!.q19a_decision_categories : [];
+  const known = (SIGNIFICANT_DECISION_CATEGORY_OPTS as readonly string[]);
+  const raw = rawList.filter((x): x is string => typeof x === "string" && known.includes(x.trim())).map((x) => x.trim());
+  const description = typeof intake?.q19_admt_description === "string" ? intake!.q19_admt_description : "";
+  const textClass = classifyAdmtSignificantDecision(description);
+  if (!raw.length) return { cls: textClass, source: "text", categories: [], textClass };
+  const housingBasis = typeof intake?.q19b_housing_basis === "string" ? intake!.q19b_housing_basis.trim() : "";
+  const housingExcluded = raw.includes(SIGNIFICANT_DECISION_HOUSING_OPTION) &&
+    housingBasis === HOUSING_DECISION_BASIS_OPTS[0];
+  const selected = raw.filter((c) => SIGNIFICANT_CATEGORY_SET.has(c));
+  const effective = selected.filter((c) => !(c === SIGNIFICANT_DECISION_HOUSING_OPTION && housingExcluded));
+  if (effective.length) return { cls: "significant", source: "categorical", categories: effective, textClass };
+  if (selected.length && housingExcluded) return { cls: "housing_excluded", source: "categorical", categories: [], textClass };
+  if (raw.includes(SIGNIFICANT_DECISION_ADVERTISING_OPTION)) return { cls: "advertising_only", source: "categorical", categories: [], textClass };
+  return { cls: "not_significant", source: "categorical", categories: [], textClass };
+}

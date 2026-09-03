@@ -87,6 +87,12 @@ export const cppaRiskFinalizationContract: IntakeContract = {
     { key: "a8_information_providers",
       kind: "narrative", required: "always" },
 
+    // ── DOC 157 (2026-09-03) — § 7157(b)(1): the submission must carry the
+    // point of contact's "name, phone number, and email address". Both stay
+    // optional in the main contract for legacy rows; required here.
+    { key: "i8_contact_phone", kind: "text", required: "always" },
+    { key: "i8_contact_email", kind: "text", required: "always" },
+
     // ── §3 — finalization quality gate (EUP/QA) ───────────────────────────
     // Must be "Yes" before Final-Approved status is granted. Records that
     // any action items or follow-up items flagged in the assessment have

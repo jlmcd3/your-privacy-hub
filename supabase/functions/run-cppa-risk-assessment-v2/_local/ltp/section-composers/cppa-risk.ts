@@ -1634,8 +1634,9 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
     // determined blocks (b(2) "Unsure" = unresolved; b(3) "In evaluation" =
     // not deployed) join the classifier reasons: a stale positive
     // proposition polarity must not resurrect any of them.
+    // DOC 157 (2026-09-03) — the two categorical § 7001(ddd) blocks join.
     const b3ClassifierBlocked = gate?.outcome === "block" &&
-      /^(b3_(advertising_exclusion|significant_decision_category_unresolved|evaluation_not_deployed)|b2_unresolved)/.test(
+      /^(b3_(advertising_exclusion|significant_decision_category_unresolved|evaluation_not_deployed|not_significant_category|housing_availability_exclusion)|b2_unresolved)/.test(
         gateReason,
       );
     const engaged = (engagedFromGate || engagedFromProp) && !b3ClassifierBlocked;
@@ -1648,11 +1649,14 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
       gateReason.includes("7150(b)(2)(A)");
     const unresolved = !engaged && gate?.outcome === "block" && /^b2_unresolved/.test(gateReason);
     const evaluation = !engaged && gate?.outcome === "block" && /^b3_evaluation_not_deployed/.test(gateReason);
+    // DOC 157 (2026-09-03) — determined categorical non-engagements.
+    const notSignificant = !engaged && gate?.outcome === "block" && /^b3_not_significant_category/.test(gateReason);
+    const housingExcluded = !engaged && gate?.outcome === "block" && /^b3_housing_availability_exclusion/.test(gateReason);
     // Item 244 Correction 4: prong index from the pinpoint substring
     // "7150(b)(N)"; used to look up the verbatim § 7150(b) label.
     const m = /7150\(b\)\((\d+)\)/.exec(c.anchor.pinpoint);
     const prongIdx = m ? Number(m[1]) as 1|2|3|4|5|6 : null;
-    return { c, engaged, exemptB2A, unresolved, evaluation, prongIdx };
+    return { c, engaged, exemptB2A, unresolved, evaluation, notSignificant, housingExcluded, prongIdx };
   });
   // DOC 154 — one template chooser for both branches below.
   const itemTemplate = (e: typeof enriched[number]): string =>
@@ -1664,6 +1668,10 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
       ? "T.risk.applicability.unresolved"
       : e.evaluation
       ? "T.risk.applicability.evaluation"
+      : e.notSignificant
+      ? "T.risk.applicability.not_significant"
+      : e.housingExcluded
+      ? "T.risk.applicability.housing_excluded"
       : "T.risk.applicability.not_engaged";
   const engaged = enriched.filter((e) => e.engaged);
   const notEngaged = enriched.filter((e) => !e.engaged);

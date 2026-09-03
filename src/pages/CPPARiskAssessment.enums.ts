@@ -206,6 +206,11 @@ export const CONSUMER_RELATIONSHIP_CONTEXT_OPTS = [
   "Existing customers or account holders",
   "Prospective customers or site visitors",
   "Employees or job applicants",
+  // DOC 157 (2026-09-03) — the two § 7150(b)(4) capacities the list lacked
+  // ("independent contractor for the business"; "educational program
+  // applicant"); the engine's b(4) capacity check reads them directly.
+  "Independent contractors",
+  "Educational-program applicants",
   "Students",
   "Patients or health-service recipients",
   "General public — no direct relationship",
@@ -238,10 +243,15 @@ export const CHOICE_ARCHITECTURE_CHECK_OPTS = [
   "The Company does not use design elements that steer consumers toward permitting the processing",
   "None of the above can be confirmed",
 ] as const;
+// DOC 157 (2026-09-03) — relabelled to the ADOPTED § 7001(e)(1) test. The
+// former "substantial factor" labels were draft-era wording that does not
+// appear in the adopted definition ("substantially replace" = the output is
+// used to make the decision without human involvement meeting (A)–(C)).
+// Legacy stored literals still render as recorded (risk-factor-engine.ts).
 export const ADMT_ROLE_TYPE_OPTS = [
-  "The ADMT makes the decision without human involvement",
-  "The ADMT is a substantial factor in a human decision",
-  "The ADMT supports a human decision without being a substantial factor",
+  "The ADMT's output is used to make the decision without human involvement",
+  "A human reviewer who meets all three § 7001(e)(1) requirements makes or can change the decision",
+  "A human is involved, but not all three § 7001(e)(1) requirements are met",
   "Unsure",
 ] as const;
 export const ADMT_LOGIC_DOCUMENTED_OPTS = [
@@ -300,4 +310,30 @@ export const PLANNED_TIMELINE_OPTS = [
   "Before processing begins or within 3 months",
   "Within 12 months",
   "No committed timeline",
+] as const;
+
+// ── DOC 157 (2026-09-03, model-vs-law build) — categorical § 7001(ddd)
+// significant-decision answer. Canonical literals live in
+// supabase/functions/_shared/ltp/admt-significant-decision.ts (the resolver);
+// verbatim copies here and in cppa-risk-assessment.ts, parity pinned in
+// doc157-law-map-build.test.ts. The seven categories track the adopted
+// § 7001(ddd)(1)–(5) text; the two closing options are the substantive
+// negatives ((ddd)(6) advertising exclusion; outside every category).
+export const SIGNIFICANT_DECISION_CATEGORY_OPTS = [
+  "Financial or lending services (credit, loans, funds transfer, deposit or checking accounts, check cashing, installment plans)",
+  "Housing (a home, residence, or sleeping place)",
+  "Education enrollment or opportunities (admission, credentials, suspension or expulsion)",
+  "Hiring",
+  "Allocation or assignment of work, or compensation (salary, hourly or per-assignment pay, bonuses, other benefits)",
+  "Promotion, demotion, suspension, or termination",
+  "Healthcare services (diagnosis, prevention, treatment, or assessment or care of health)",
+  "Advertising only — no decision in the categories above",
+  "None of these categories",
+] as const;
+// § 7001(ddd)(2): a housing decision "based solely on the availability or
+// vacancy of the housing or the successful receipt of payment" is not a
+// significant decision. Asked only when Housing is selected.
+export const HOUSING_DECISION_BASIS_OPTS = [
+  "Yes — based solely on availability or vacancy, or on receipt of payment",
+  "No — other factors are considered",
 ] as const;

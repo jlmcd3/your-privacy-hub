@@ -7,5 +7,10 @@
 // 4-way _local mirror byte-identical. Edit the _shared copy only.
 export {
   type AdmtSignificantDecisionClass,
+  type AdmtDecisionClass,
+  type AdmtDecisionResolution,
   classifyAdmtSignificantDecision,
+  resolveAdmtSignificantDecision,
+  SIGNIFICANT_DECISION_CATEGORY_OPTS,
+  HOUSING_DECISION_BASIS_OPTS,
 } from "../../_shared/ltp/admt-significant-decision.ts";

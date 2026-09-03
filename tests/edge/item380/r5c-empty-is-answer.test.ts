@@ -109,6 +109,13 @@ const AUTHORIZED = [
   "cppa_risk_assessment::admt_testing_facts",
   "cppa_risk_assessment::a6_safeguards[].risk_pathway_ids",
   "cppa_risk_assessment::a6_safeguards[].planned_timeline",
+  // DOC 157 (2026-09-03, CEO-ratified build) — § 7152(a)(7) decision fields.
+  // Form citation: src/pages/CPPARiskAssessment.tsx "Finalization stage"
+  // panel (final_processing_decision / _notes), completed AFTER the analysis
+  // is reviewed; at intake, empty is the honest "not yet decided" state and
+  // the report states it (doc-28 §4 reserved-decision carve-out).
+  "cppa_risk_assessment::final_processing_decision",
+  "cppa_risk_assessment::final_processing_decision_notes",
 ].sort();
 
 Deno.test("r5c LINT: emptyIsAnswer appears on exactly the authorized fields fleet-wide", () => {

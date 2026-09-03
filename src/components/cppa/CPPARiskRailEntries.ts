@@ -396,7 +396,8 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       { citation: "11 CCR § 7152(a)(5)", label: "Sensitive PI in risk assessment" },
     ],
     coachLead: "Check the statutory list against what your systems actually hold.",
-    coachBody: "Sensitive PI is a defined list: precise geolocation, government IDs, account credentials, race or ethnicity, health, biometrics, and more. Answer from your inventory, not your intentions.",
+    // DOC 157 (2026-09-03) — the § 7001(bbb)(4) under-16 rule joins the list.
+    coachBody: "Sensitive PI is a defined list: precise geolocation, government IDs, account credentials, race or ethnicity, health, biometrics, genetic and neural data, message contents, and more. Under 11 CCR § 7001(bbb)(4) it also includes all personal information of consumers you have actual knowledge are under 16. Answer from your inventory, not your intentions.",
     goodAnswer: "A delivery app answers yes for one reason only: it stores precise geolocation. One listed category is enough.",
     commonMistake: "Equating sensitive with secret. Precise location and login credentials count, however routine they feel.",
   },
@@ -630,20 +631,85 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     commonMistake: "Answering no because the terms say users must be 16+. A terms clause is not knowledge of your actual users.",
   },
 
+  // DOC 157 (2026-09-03, model-vs-law build) — citation corrected to
+  // § 7150(b)(6) (the entry cited (b)(5), which is the sensitive-location
+  // trigger) and regulationText replaced with the ADOPTED text verbatim
+  // (the prior text was a draft-era paraphrase: "capable of being used").
+  // Verbatim source: cppa_authorities row "11 CCR § 7150" full_text.
   q18b_admt_training: {
     fieldLabel: "Training automated decisionmaking or recognition technology",
-    citation: "11 CCR § 7150(b)(5)",
+    citation: "11 CCR § 7150(b)(6)",
     citationUrl: CPPA_URL,
-    plainSummary: "Processing personal information to train automated decisionmaking technology for significant decisions, or to train facial-recognition, emotion-recognition, identity-verification, or physical/biological-identification or profiling technology, independently requires a risk assessment — separate from deploying ADMT against consumers.",
-    regulationText: "Processing the personal information of consumers to train automated decisionmaking technology that is capable of being used for a significant decision concerning a consumer, or to train facial-recognition, emotion-recognition, or other technology used to verify a consumer's identity or to conduct physical or biological identification or profiling of a consumer.",
+    plainSummary: "Processing personal information the business intends to use to train ADMT for a significant decision, or to train facial-recognition, emotion-recognition, or other technology that verifies a consumer's identity or performs physical or biological identification or profiling, independently requires a risk assessment. \"Intends to use\" reaches a business that is using, plans to use, permits or plans to permit others to use, or advertises or markets (or plans to) the use of the technology — so the trigger applies even if the trained system is never deployed against the business's own consumers.",
+    regulationText: "“(6) Processing the personal information of consumers, which the business intends to use to train an ADMT for a significant decision concerning a consumer; or train a facial-recognition, emotion-recognition, or other technology that verifies a consumer’s identity, or conducts physical or biological identification or profiling of a consumer. For purposes of this paragraph, “intends to use” means the business is using, plans to use, permits others to use, plans to permit others to use, is advertising or marketing the use of, or plans to advertise or market the use of.”",
     relatedCitations: [
       { citation: "11 CCR § 7150(b)(3)", label: "Using ADMT for significant decisions" },
       { citation: "11 CCR § 7001(e)", label: "'ADMT' definition" },
+      { citation: "11 CCR § 7001(fff)", label: "'Train' definition" },
+      { citation: "11 CCR § 7001(ee)", label: "'Physical or biological identification or profiling' definition" },
     ],
-    coachLead: "The trigger is training the technology — using it is a separate question.",
-    coachBody: "Check whether consumer data trains ADMT, facial recognition, emotion assessment, or biometric identification. Vendor training on your data counts.",
-    goodAnswer: "A retailer's vendor fine-tunes a detection model on the retailer's CCTV footage. That is a yes — the trigger fires on the data use, wherever the model lives.",
-    commonMistake: "Answering only for models you deploy. Feeding consumer data into anyone's training pipeline is the trigger.",
+    coachLead: "The trigger is training the technology — using it is a separate question, and letting others train on your data counts.",
+    coachBody: "Check three things: whether consumer data trains a model at all (adjusting parameters, improving the learning algorithm, or iterating the datasets fed in); whether that model is ADMT for a significant decision, or an identity-verification, facial-, emotion-, or physical/biological identification or profiling technology; and whether you use, plan to use, permit others to use, or market the trained model. Vendor training on data you permit them to use counts.",
+    goodAnswer: "A retailer's vendor fine-tunes a detection model on the retailer's CCTV footage. That is a yes — the trigger fires on the data use, wherever the model lives. A bank that licenses its customer data to a partner building a credit-scoring model also answers yes: it permits another to use the data for training.",
+    commonMistake: "Answering only for models you deploy, or only for biometric models. Feeding consumer data into anyone's training pipeline for a significant-decision ADMT or an identity-verification technology is the trigger.",
+  },
+
+  // DOC 157 (2026-09-03, model-vs-law build) — the categorical § 7001(ddd)
+  // answer (which kind of decision the ADMT makes). Verbatim source:
+  // cppa_authorities row "11 CCR § 7001" full_text, subdivision (ddd).
+  q19a_decision_categories: {
+    fieldLabel: "Which kind of decision the automated decisionmaking technology makes",
+    citation: "11 CCR § 7001(ddd)",
+    citationUrl: CPPA_URL,
+    plainSummary: "§ 7150(b)(3) applies when ADMT is used for a \"significant decision\" — a defined term with seven categories. The regulation also carries two exclusions the assessment must apply: a housing decision based solely on availability, vacancy, or receipt of payment is not a significant decision ((ddd)(2)), and advertising to a consumer is not a significant decision ((ddd)(6)). Your categorical answer here, not the free-text description, is what the assessment reads for the trigger; the description is cross-checked against it.",
+    regulationText: "“(ddd) “Significant decision” means a decision that results in the provision or denial of financial or lending services, housing, education enrollment or opportunities, employment or independent contracting opportunities or compensation, or healthcare services. For purposes of this definition: (1) “Financial or lending services” means the extension of credit or a loan, transmitting or exchanging funds, the provision of deposit or checking accounts, check cashing, or installment payment plans. (2) “Housing” means any building, structure, or portion thereof that is used or occupied as, or designed, arranged, or intended to be used or occupied as, a home, residence, or sleeping place by one or more consumers including for permanent or temporary occupancy. The use of ADMT that provides or denies housing to a consumer based solely on the availability or vacancy of the housing or the successful receipt of payment for housing from the consumer is not making a significant decision. (3) “Education enrollment or opportunities” means: (A) Admission or acceptance into academic or vocational programs; (B) Educational credentials (e.g., a degree, diploma, or certificate); and (C) Suspension and expulsion. (4) “Employment or independent contracting opportunities or compensation” means: (A) Hiring; (B) Allocation or assignment of work for employees; or salary, hourly or per-assignment compensation, incentive compensation such as a bonus, or another benefit (“allocation/assignment of work and compensation”); (C) Promotion; and (D) Demotion, suspension, and termination. (5) “Healthcare services” means services related to the diagnosis, prevention, or treatment of human disease or impairment, or the assessment or care of an individual's health. (6) Significant decision does not include advertising to a consumer.”",
+    relatedCitations: [
+      { citation: "11 CCR § 7150(b)(3)", label: "Risk assessment trigger — ADMT for a significant decision" },
+      { citation: "11 CCR § 7001(e)", label: "'ADMT' definition" },
+      { citation: "11 CCR § 7152(a)(3)(G)", label: "ADMT logic and output record" },
+    ],
+    coachLead: "Name what the decision provides or denies — not what the model is called or what it predicts.",
+    coachBody: "Trace the output to the consumer's outcome. Ask what the person gets or is refused because of it: a loan, a lease, a place in a program, a job or a shift, a pay rate, a promotion, a termination, a treatment. Select every category that outcome falls in. If the output only changes which advertisement a person sees, select \"Advertising only\". If the outcome is none of the seven, select \"None of these categories\" — and describe the actual decision in the system description so the two can be read together.",
+    goodAnswer: "A scoring model ranks rental applicants and an agent approves only the top tier. The outcome is a lease granted or refused — that is Housing. Because the score considers income and tenancy history, the housing decision is not based solely on availability or payment, so the follow-up is answered \"No\".",
+    commonMistake: "Selecting the category the model's inputs come from (\"financial data\") rather than the outcome it drives, or selecting \"Advertising only\" for a system that also gates eligibility for a product. The category is the provision or denial the consumer experiences.",
+  },
+
+  // DOC 157 (2026-09-03) — the material-change question had no rail entry.
+  // Verbatim source: cppa_authorities row "11 CCR § 7155" full_text.
+  material_change_since_prior: {
+    fieldLabel: "Material change since the last assessment",
+    citation: "11 CCR § 7155(a)(3)",
+    citationUrl: CPPA_URL,
+    plainSummary: "A risk assessment must be updated whenever there is a material change relating to the processing activity, no later than 45 calendar days after the change. The regulation defines the test: the change creates new negative impacts, increases the magnitude or likelihood of previously identified ones, or diminishes the effectiveness of the safeguards.",
+    regulationText: "“(3) Notwithstanding subsection (a)(2) of this section, a business must update a risk assessment whenever there is a material change relating to the processing activity, as soon as feasibly possible, but no later than 45 calendar days from the date of the material change. A change relating to the processing activity is material if it creates new negative impacts or increases the magnitude or likelihood of previously identified negative impacts as set forth in section 7152, subsection (a)(5), or diminishes the effectiveness of the safeguards as set forth in section 7152, subsection (a)(6). Material changes may include, for example, changes to the purpose of the processing; the minimum personal information necessary to achieve the purpose of the processing; or the risks to consumers’ privacy raised by consumers (e.g., numerous consumers complain to a business about the risks that the business’s processing poses to their privacy).”",
+    relatedCitations: [
+      { citation: "11 CCR § 7155(a)(2)", label: "Three-year review and update" },
+      { citation: "11 CCR § 7152(a)(5)", label: "Negative impacts" },
+      { citation: "11 CCR § 7152(a)(6)", label: "Safeguards" },
+    ],
+    coachLead: "Apply the three-part test to what actually changed — new harm, bigger or likelier harm, or weaker safeguard.",
+    coachBody: "List what changed since the last assessment: data, purpose, recipients, systems, safeguards. For each change ask whether it adds a negative impact, raises the likelihood or magnitude of one already identified, or reduces a safeguard's effectiveness. One yes makes the change material, and the 45-day clock runs from the date of that change.",
+    goodAnswer: "\"Yes — 2025-06-01: a new fulfilment partner now receives contact and order data (a new disclosure stage, so a new access-and-disclosure risk).\" The date and the reason the test is met are both stated.",
+    commonMistake: "Answering \"No\" because the purpose is unchanged. A new recipient, a new data category, or a retired safeguard is material even when the purpose is the same.",
+  },
+
+  // DOC 157 (2026-09-03) — the finalization panel had no rail entry.
+  // Verbatim source: cppa_authorities row "11 CCR § 7152" full_text.
+  finalization_stage: {
+    fieldLabel: "Finalization — the processing decision and the approval record",
+    citation: "11 CCR § 7152(a)(7), (a)(9)",
+    citationUrl: CPPA_URL,
+    plainSummary: "The risk assessment report must document the business's own decision whether it will initiate the processing, and the date the assessment was reviewed and approved with the names and positions of the reviewers and approvers. An individual with authority to participate in the initiation decision must review and approve. The assessment's recommended outcome is EUP's determination; the decision recorded here is the business's, and the report states both and reconciles any difference.",
+    regulationText: "“(7) Identify and document in a risk assessment report whether it will initiate the processing subject to the risk assessment.” … “(9) Identify and document in a risk assessment report the date the assessment was reviewed and approved, and the names and positions of the individuals who reviewed or approved the assessment, except for legal counsel who provided legal advice. An individual who has the authority to participate in deciding whether the business will initiate the processing that is the subject of the risk assessment must review and approve the assessment.”",
+    relatedCitations: [
+      { citation: "11 CCR § 7154", label: "Goal of a risk assessment" },
+      { citation: "11 CCR § 7152(a)(8)", label: "Individuals who provided the information" },
+      { citation: "11 CCR § 7157(b)(1)", label: "Submission — point of contact (name, phone, email)" },
+    ],
+    coachLead: "Record the decision the business actually made, after reading the determination — not the outcome it hoped for.",
+    coachBody: "The decision is the business's own. Read the § 4.C determination and the § 4.D conditions first, then record initiate, initiate with conditions, or do not initiate (continue / continue with conditions / discontinue for ongoing processing). If the decision departs from the recommendation, the notes should say why; the report will flag the difference. The approver must be someone with authority over the initiation decision.",
+    goodAnswer: "\"Initiate with conditions — the two Conditions to Proceed in § 4.D are assigned to the platform team with a 60-day target; approved 2026-09-15 by the VP Operations (authority confirmed).\"",
+    commonMistake: "Recording \"Initiate\" while the determination is Do Not Proceed with no note. The report will state the conflict; the notes are where the business explains its reasoning.",
   },
 
   i1b_min_pi: {
@@ -930,10 +996,13 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     fieldLabel: "\u00a7 7153 \u2014 ADMT made available to another business",
     citation: "11 CCR \u00a7 7153",
     citationUrl: CPPA_URL,
+    // DOC 157 (2026-09-03) — § 7153 stated as adopted: a duty to provide facts
+    // to the recipient-business, not a risk-assessment trigger. Verbatim
+    // source: cppa_authorities row "11 CCR § 7153" full_text.
     plainSummary:
-      "A business that makes automated decisionmaking technology available to another business must conduct a risk assessment when the recipient uses the ADMT to make significant decisions about consumers. These fields record whether this applies and, if so, the training-data and downstream-use facts the assessment must address.",
+      "A business that makes ADMT available to another business to make a significant decision must give that recipient-business all the facts it has that the recipient needs to conduct its own risk assessment. The duty applies only to ADMT trained using personal information. These fields record whether the arrangement exists and the training-data and downstream-use facts the provider must be able to hand over.",
     regulationText:
-      "\u00a7 7153(a) \u2014 A business that makes automated decisionmaking technology available to another business must conduct a risk assessment when the recipient uses the ADMT to make significant decisions about consumers. \u00a7 7153(b) \u2014 The assessment must address whether the ADMT was trained using personal information provided by the recipient.",
+      "“(a) A business that makes ADMT available to another business (“recipient-business”) to make a significant decision as set forth in section 7150, subsection (b)(3), must provide to the recipient-business all facts available to the business that are necessary for the recipient-business to conduct its own risk assessment. (b) The requirements of this section apply only to ADMT trained using personal information.”",
     relatedCitations: [
       { citation: "11 CCR \u00a7 7150(b)(3)", label: "ADMT for significant decisions \u2014 primary trigger" },
       { citation: "11 CCR \u00a7 7152(a)(3)(G)", label: "ADMT operational record" },

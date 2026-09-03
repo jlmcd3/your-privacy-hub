@@ -130,7 +130,9 @@ export const RISK_CORPUS_MAP: CorpusMap = {
       logic_bearing: true,
       logic_disposition: {
         kind: "implemented",
-        branch_ref: "src/pages/CPPARiskAssessment.tsx:materially contributes to",
+        // DOC 157 — the q18 stem now carries the adopted § 7001(e) definition
+        // (the draft-era "materially contributes to" wording is retired).
+        branch_ref: "src/pages/CPPARiskAssessment.tsx:replace or substantially replace human decisionmaking",
       },
       provenance: { page_ref: "Appendix, p. 10", verified_on: "2026-08-22" },
       curation_note:

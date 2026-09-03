@@ -176,7 +176,7 @@ export { repairRegister } from "./register-repair.ts";
 import { CA_PI_TAXONOMY } from "./ca-pi-taxonomy.ts";
 // DOC 148 — the § 7150(b)(3) reconciliation classifier (single custody in
 // _shared; see admt-significant-decision.ts).
-import { classifyAdmtSignificantDecision } from "./admt-significant-decision.ts";
+import { classifyAdmtSignificantDecision, resolveAdmtSignificantDecision } from "./admt-significant-decision.ts";
 
 // ── DERIVED builders (deterministic, no model) ───────────────────────────────
 
@@ -188,14 +188,22 @@ import { classifyAdmtSignificantDecision } from "./admt-significant-decision.ts"
  * trigger the trigger table does not. */
 export function deriveApplicable7150Triggers(report: Bag, intake?: Bag): string | null {
   const scope = arr((report.scope_and_triggers as Bag)?.narrative ?? report.scope_and_triggers);
+  // DOC 157 — the shared resolver (categorical answer first, text fallback).
   const b3Suppressed = intake !== undefined &&
     s(intake.q18_admt_use) === "Yes" &&
-    classifyAdmtSignificantDecision(s(intake.q19_admt_description)) !== "significant";
+    resolveAdmtSignificantDecision(intake).cls !== "significant";
   const engaged = scope
     .filter((x) => x.startsWith("Engaged — "))
     .filter((x) => !(b3Suppressed && /§\s*7150\(b\)\(3\)/.test(x)))
     .map((x) => x.replace(/^Engaged — /, "").replace(/:.*$/, "").trim())
     .filter(Boolean);
+  // DOC 157 — § 7001(bbb)(4) elevation: a stored narrative without the b(2)
+  // line still lists the prong (same synthesis as the engine's).
+  const under16Elevated = intake !== undefined &&
+    /^yes/i.test(s(intake.q15b_under16_knowledge)) && s(intake.q15_sensitive_pi) !== "Yes";
+  if (under16Elevated && !engaged.some((x) => /7150\(b\)\(2\)/.test(x))) {
+    engaged.push("11 CCR § 7150(b)(2) (processing sensitive personal information)");
+  }
   return engaged.length ? asProse(engaged) : null;
 }
 
@@ -796,11 +804,17 @@ export function deriveAdmtTechnicalFacts(intake: Bag): RenderedTable | null {
   // body (§ 3.E) rejected.
   const description = s(intake.q19_admt_description);
   const claimsSignificant = /significant\s+decision/i.test(description);
-  const claimClass = claimsSignificant ? classifyAdmtSignificantDecision(description) : null;
+  // DOC 157 — the Company's categorical § 7001(ddd) answer governs the
+  // determination; the text classifier is the fallback (shared resolver).
+  const claimClass = claimsSignificant ? resolveAdmtSignificantDecision(intake).cls : null;
   const eupDetermination = claimClass === "advertising_only"
     ? "The system description above is the Company’s own characterization. Under § 7001(ddd)(6), advertising to a consumer is excluded from the significant-decision categories; a qualifying § 7150(b)(3) significant-decision use is not established on the information provided (§ 3.E)."
     : claimClass === "unresolved"
     ? "The system description above is the Company’s own characterization. It does not identify a decision within the categories enumerated in § 7001(ddd); a qualifying § 7150(b)(3) significant-decision use is not established on the information provided (§ 3.E)."
+    : claimClass === "not_significant"
+    ? "The system description above is the Company’s own characterization. The Company’s categorical answer records the decision as outside every category enumerated in § 7001(ddd); a qualifying § 7150(b)(3) significant-decision use is not established on that answer, and the trigger analysis in § 3.A states the same determination."
+    : claimClass === "housing_excluded"
+    ? "The system description above is the Company’s own characterization. The Company records a housing decision based solely on the availability or vacancy of the housing or the successful receipt of payment; under § 7001(ddd)(2) that use is not making a significant decision, and the trigger analysis in § 3.A states the same determination."
     : "";
   const pairs: Array<[string, string]> = [
     ["System description", description ? `“${description}” (the Company’s description, quoted as given)` : ""],
@@ -818,6 +832,9 @@ export function deriveAdmtTechnicalFacts(intake: Bag): RenderedTable | null {
     // it before, so an evaluation record carrying only structured answers
     // rendered § 3.E with an empty Appendix E behind it.
     ["Role type (as recorded)", s(intake.admt_role_type)],
+    // DOC 157 — the categorical § 7001(ddd) answer and its housing basis.
+    ["Decision category (as recorded)", arr(intake.q19a_decision_categories).join("; ")],
+    ["Housing decision basis (as recorded)", s(intake.q19b_housing_basis)],
     ["Logic documentation (as recorded)", s(intake.admt_logic_documented)],
     ["Human review facts (as recorded)", arr(intake.human_review_facts).join("; ")],
     ["Testing facts (as recorded)", arr(intake.admt_testing_facts).join("; ")],
@@ -1099,11 +1116,19 @@ export function deriveRiskFiredStates(report: Bag, intake?: Bag): Set<string> {
   // persuasive authority (Appendix B) or the Appendix A trail.
   const suppressed = new Set<string>();
   if (intake) {
+    // DOC 157 — the shared resolver (categorical answer first, text fallback).
     if (
       s(intake.q18_admt_use) !== "Yes" ||
-      classifyAdmtSignificantDecision(s(intake.q19_admt_description)) !== "significant"
+      resolveAdmtSignificantDecision(intake).cls !== "significant"
     ) suppressed.add("3");
-    if (s(intake.q15_sensitive_pi) === "Unsure") suppressed.add("2");
+    // DOC 157 — § 7001(bbb)(4): an under-16 elevated record is engaged, never
+    // unresolved, and a stored narrative without the b(2) line still fires.
+    const under16Elevated = /^yes/i.test(s(intake.q15b_under16_knowledge)) && s(intake.q15_sensitive_pi) !== "Yes";
+    if (s(intake.q15_sensitive_pi) === "Unsure" && !under16Elevated) suppressed.add("2");
+    if (under16Elevated) {
+      states.add("7150(b)(2)");
+      states.add("trigger_engaged");
+    }
   }
   for (const line of scope) {
     const m = /^Engaged — .*?7150\(b\)\((\d)\)/.exec(line);

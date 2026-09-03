@@ -21,6 +21,14 @@ import { GOLDEN_BY_TOOL, PERFECT_BY_TOOL, casesForVariant } from "../../../supab
  */
 const EXEMPT = new Set([
   "secondary_activities",
+  // DOC 157 (model-vs-law build) — q19b_housing_basis is asked only when the
+  // categorical § 7001(ddd) answer selects Housing (this record's decision is
+  // a financial or lending service); the two final_processing_decision keys
+  // are FINALIZATION-stage fields (§ 7152(a)(7)), recorded after the analysis
+  // is reviewed, so a complete intake record is honestly silent on them.
+  "q19b_housing_basis",
+  "final_processing_decision",
+  "final_processing_decision_notes",
   "exceptions_intake",
   "q5c_share_revenue_50pct",
   "i9_existing_dpia_summary",

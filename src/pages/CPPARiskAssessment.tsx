@@ -110,20 +110,30 @@ import {
   SENSITIVE_LOCATION_BASIS_OPTS,
 } from "@/pages/CPPARiskAssessment.enums";
 const SECTORS = ["Technology/SaaS", "Healthcare/Life Sciences", "Financial services", "Retail/ecommerce", "Media/advertising", "Professional services", "Education", "Government/public sector", "Legal services", "Manufacturing", "Other"];
+// DOC 157 (2026-09-03, model-vs-law build) — four § 7001(bbb)(1) categories
+// the list lacked ((A) government identifiers, (B) account credentials,
+// (E) message contents, (G) neural data) and the sexual-orientation /
+// gender-identity split (only sexual orientation is sensitive). Verbatim
+// copy in _shared/intake-contracts/cppa-risk-assessment.ts (parity pinned).
 const PI_CATEGORIES = [
   "Contact identifiers (name, email, phone)",
+  "Government identifiers (SSN, driver's license, state ID, passport number)",
   "Device identifiers (IP, cookies, device IDs)",
   "Internet or network activity",
+  "Contents of mail, email, or text messages",
   "Precise geolocation (GPS-level / specific address)",
   "General location (city, region, ZIP, IP-derived)",
   "Financial information",
+  "Account log-in or financial-account credentials",
   "Health or medical information",
   "Biometric information",
   "Genetic data",
+  "Neural data",
   "Racial or ethnic origin",
   "Religious or philosophical beliefs",
   "Union membership",
-  "Sexual orientation or gender identity",
+  "Sexual orientation",
+  "Gender identity",
   "Citizenship or immigration status",
   "Employment information",
   "Education information",
@@ -131,16 +141,22 @@ const PI_CATEGORIES = [
   "Other",
 ];
 
-// Categories that are sensitive PI under Cal. Civ. Code § 1798.140(ae).
+// Categories that are sensitive PI under Cal. Civ. Code § 1798.140(ae) and
+// 11 CCR § 7001(bbb) (which adds under-16 data with actual knowledge).
 // These trigger additional obligations (Q15 follow-ups, § 7152(a)(5) harm categories).
 const SENSITIVE_PI_CATEGORIES = new Set([
+  "Government identifiers (SSN, driver's license, state ID, passport number)",
+  "Account log-in or financial-account credentials",
+  "Contents of mail, email, or text messages",
   "Precise geolocation (GPS-level / specific address)",
   "Health or medical information",
   "Biometric information",
   "Genetic data",
+  "Neural data",
   "Racial or ethnic origin",
   "Religious or philosophical beliefs",
   "Union membership",
+  "Sexual orientation",
   "Sexual orientation or gender identity",
   "Children's data (under 16)",
 ]);
@@ -310,6 +326,8 @@ import {
   EXPECTATION_CHECK_OPTS,
   CHOICE_ARCHITECTURE_CHECK_OPTS,
   ADMT_ROLE_TYPE_OPTS,
+  SIGNIFICANT_DECISION_CATEGORY_OPTS,
+  HOUSING_DECISION_BASIS_OPTS,
   ADMT_LOGIC_DOCUMENTED_OPTS,
   HUMAN_REVIEW_FACTS_OPTS,
   ADMT_TESTING_FACTS_OPTS,
@@ -471,6 +489,10 @@ export default function CPPARiskAssessment() {
   const [q15bUnder16, setQ15bUnder16] = useState("");        // § 7001(bbb) under-16 actual-knowledge -> SPI elevation
   const [q15cSpiVolume, setQ15cSpiVolume] = useState("");    // R1a: § 7120(b)(2)(B) SPI volume band
   const [q18bTraining, setQ18bTraining] = useState("");      // § 7150(b)(6) training ADMT / facial / emotion / biometric
+  // DOC 157 (2026-09-03) — categorical § 7001(ddd) answer (which kind of
+  // decision the ADMT makes) and the § 7001(ddd)(2) housing basis.
+  const [q19aDecisionCategories, setQ19aDecisionCategories] = useState<string[]>([]);
+  const [q19bHousingBasis, setQ19bHousingBasis] = useState("");
   const [i1bMinPi, setI1bMinPi] = useState("");              // § 7152(a)(2) minimum PI necessary
   // ── RK3-A1 (Intake Contract v2.0 §1, doc 31 §2c) — § 7152(a)(3)(A)
   // processing record. `processing_methods` is the CANONICAL structured
@@ -679,6 +701,22 @@ export default function CPPARiskAssessment() {
   // ADMT trigger fires when § 7150(b)(3) or (b)(6) implicated.
   // From Step 5: q18 === "Yes".
   const admtTriggered = q18 === "Yes" || q18 === "In evaluation";
+  // DOC 157 (2026-09-03) — the categorical § 7001(ddd) block, rendered under
+  // the ADMT description and, for a trained-but-not-used model, under q18b.
+  const renderDecisionCategoryBlock = (stem: string) => (
+    <div className="mt-3" data-rail-key="q19a_decision_categories" onFocus={() => focusRail('q19a_decision_categories')}>
+      <Label>{stem} <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(ddd))</span></Label>
+      <p className="text-xs text-muted-foreground mt-1">Select every category that applies. A "significant decision" is one "that results in the provision or denial of financial or lending services, housing, education enrollment or opportunities, employment or independent contracting opportunities or compensation, or healthcare services"; it "does not include advertising to a consumer." "None of these categories" and "Advertising only" are complete answers.</p>
+      <div className="mt-2"><Pills options={[...SIGNIFICANT_DECISION_CATEGORY_OPTS]} value={q19aDecisionCategories} onChange={(v: string[]) => setQ19aDecisionCategories(v)} /></div>
+      {q19aDecisionCategories.includes(SIGNIFICANT_DECISION_CATEGORY_OPTS[1]) && (
+        <div className="mt-3">
+          <Label className="text-sm">Is the housing decision based solely on the availability or vacancy of the housing, or on the successful receipt of payment for it? <Req /> <span className="text-xs text-muted-foreground font-mono">(§ 7001(ddd)(2))</span></Label>
+          <p className="text-xs text-muted-foreground mt-1">Under § 7001(ddd)(2), "the use of ADMT that provides or denies housing to a consumer based solely on the availability or vacancy of the housing or the successful receipt of payment for housing from the consumer is not making a significant decision."</p>
+          <div className="mt-2"><Radio name="q19b_housing_basis" options={[...HOUSING_DECISION_BASIS_OPTS]} value={q19bHousingBasis} onChange={setQ19bHousingBasis} /></div>
+        </div>
+      )}
+    </div>
+  );
 
   const [activeRiskRailKey, setActiveRiskRailKey] = useState<string | null>(null);
   const activeRiskRailEntry: RailEntry | null = activeRiskRailKey ? (CPPA_RISK_RAIL[activeRiskRailKey] ?? null) : null;
@@ -757,9 +795,9 @@ export default function CPPARiskAssessment() {
       {
         citation: "11 CCR § 7150(b)(6)",
         label: "Risk assessment required — processing to train ADMT or recognition technology",
-        triggered:
-          q18bTraining === "Yes — training ADMT for significant decisions" ||
-          q18bTraining === "Yes — training facial/emotion/biometric recognition",
+        // DOC 157 — either "Yes" option (the relabelled second limb and the
+        // retired literal both start with "Yes").
+        triggered: q18bTraining.startsWith("Yes"),
       },
       {
         // Thresholds live at § 7120(b); the first-report timing cohorts live
@@ -841,6 +879,11 @@ export default function CPPARiskAssessment() {
       if (!q5bProfiling) return "Answer the profiling question.";
       if (!q18) return "Answer whether automated decisionmaking technology is in use.";
       if ((q18 === "Yes" || q18 === "In evaluation") && !q19) return "Describe the automated decisionmaking system and the decisions it touches.";
+      // DOC 157 — the categorical § 7001(ddd) answer is required whenever the
+      // ADMT questions are open, and when q18b names significant-decision
+      // training for a model that is not itself in use.
+      if ((admtTriggered || q18bTraining === "Yes — training ADMT for significant decisions") && !q19aDecisionCategories.length) return "Select which kind of decision the automated decisionmaking technology makes or will make — \"None of these categories\" is a complete answer.";
+      if (q19aDecisionCategories.includes(SIGNIFICANT_DECISION_CATEGORY_OPTS[1]) && !q19bHousingBasis) return "Answer whether the housing decision is based solely on availability, vacancy, or receipt of payment.";
       if (q18 === "Yes" && !q20) return "Answer whether consumers can opt out of the automated decisionmaking.";
       if (!q18bTraining) return "Answer whether personal information is processed to train automated decisionmaking or recognition technology.";
       if (admtTriggered && (!i5AdmtLogic || !i5AdmtHumanReview)) return "Describe the automated decisionmaking logic and the human review process.";
@@ -1000,6 +1043,9 @@ export default function CPPARiskAssessment() {
     q15b_under16_knowledge: q15bUnder16,
     q15c_spi_volume: q15cSpiVolume,                 // R1a
     q18b_admt_training: q18bTraining,
+    // DOC 157 — categorical § 7001(ddd) answer; q19b undefined when blank.
+    q19a_decision_categories: q19aDecisionCategories,
+    q19b_housing_basis: q19bHousingBasis || undefined,
     i1b_min_pi: i1bMinPi,
     i4b_sources: i4bSources,
     // RK3-A1 — § 7152(a)(3)(A) processing record (Intake Contract v2.0 §1).
@@ -1126,6 +1172,7 @@ export default function CPPARiskAssessment() {
     entityName, subjectAnchor,
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q15dHrCarveout, q18, q19, q20,
     q5bProfiling, q5cShareRev, bssCount, q15bUnder16, q15cSpiVolume, q18bTraining, i1bMinPi, i4bSources,
+    q19aDecisionCategories, q19bHousingBasis,
     processingEntryPoint, processingMethods, processingResult,
     consumerInteractionMethod, consumerInteractionPurpose, approximateCaConsumers,
     retentionByPiCategory, activityDisclosures, recipientRows, recipientsNoneDeclared,
@@ -1169,7 +1216,7 @@ export default function CPPARiskAssessment() {
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
     exceptionClaims, impactData, harmCategoryReviewStatus,
-    finalProcessingDecision, finalProcessingDecisionNotes,
+    finalProcessingDecision, finalProcessingDecisionNotes, q19aDecisionCategories, q19bHousingBasis,
     assessmentReviewersApprovers, approverAuthorityConfirmed, approverAuthorityBasis,
     finalizationFollowUpResolved,
     rk3d,
@@ -1193,7 +1240,7 @@ export default function CPPARiskAssessment() {
     publicPrivacyPolicyUrl, sensitiveLocationBasis,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
     exceptionClaims, impactData, harmCategoryReviewStatus,
-    finalProcessingDecision, finalProcessingDecisionNotes,
+    finalProcessingDecision, finalProcessingDecisionNotes, q19aDecisionCategories, q19bHousingBasis,
     assessmentReviewersApprovers, approverAuthorityConfirmed, approverAuthorityBasis,
     finalizationFollowUpResolved,
     rk3d,
@@ -1228,6 +1275,8 @@ export default function CPPARiskAssessment() {
     harmCategoryReviewStatus: {} as Record<string, string>,
     finalProcessingDecision: "",
     finalProcessingDecisionNotes: "",
+    q19aDecisionCategories: [] as string[],
+    q19bHousingBasis: "",
     assessmentReviewersApprovers: [{ name: "", position: "", role: "" }] as { name: string; position: string; role: string }[],
     approverAuthorityConfirmed: "",
     approverAuthorityBasis: "",
@@ -1324,6 +1373,8 @@ export default function CPPARiskAssessment() {
     if (typeof d.q15bUnder16 === "string") setQ15bUnder16(d.q15bUnder16);
     if (typeof d.q15cSpiVolume === "string") setQ15cSpiVolume(d.q15cSpiVolume);
     if (typeof d.q18bTraining === "string") setQ18bTraining(d.q18bTraining);
+    if (Array.isArray(d.q19aDecisionCategories)) setQ19aDecisionCategories(d.q19aDecisionCategories.filter((x: unknown) => typeof x === "string"));
+    if (typeof d.q19bHousingBasis === "string") setQ19bHousingBasis(d.q19bHousingBasis);
     if (typeof d.i1bMinPi === "string") setI1bMinPi(d.i1bMinPi);
     if (typeof d.i4bSources === "string") setI4bSources(d.i4bSources);
     // RK3-A1 — absent keys are legal in pre-RK3 drafts.
@@ -2010,8 +2061,9 @@ export default function CPPARiskAssessment() {
                 {renderAssertion("i9_existing_dpia_summary")}
               </div>
               <div data-rail-key="material_change_since_prior" onFocus={() => focusRail('material_change_since_prior')}>
-                <Label>Has this processing activity changed materially since the last assessment?</Label>
-                <p className="text-xs text-muted-foreground mt-1">Cover changes to the data collected, the purpose, the recipients, or the safeguards since you last assessed this activity. If this is the first assessment of this activity, answer "No".</p>
+                <Label>Has this processing activity changed materially since the last assessment? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7155(a)(3))</span></Label>
+                {/* DOC 157 (2026-09-03) — the regulation's own three-part test. */}
+                <p className="text-xs text-muted-foreground mt-1">A change is material under § 7155(a)(3) "if it creates new negative impacts or increases the magnitude or likelihood of previously identified negative impacts as set forth in section 7152, subsection (a)(5), or diminishes the effectiveness of the safeguards as set forth in section 7152, subsection (a)(6)" — for example a change to the purpose, to the minimum personal information necessary, or to the risks raised by consumers. A material change requires the assessment to be updated "as soon as feasibly possible, but no later than 45 calendar days from the date of the material change." If this is the first assessment of this activity, answer "No".</p>
                 <div className="mt-2"><Radio name="material_change_since_prior" options={["Yes", "No"]} value={materialChangeSincePrior} onChange={setMaterialChangeSincePrior} /></div>
                 {materialChangeSincePrior === "Yes" && (
                   <div className="mt-3 space-y-3">
@@ -2037,7 +2089,11 @@ export default function CPPARiskAssessment() {
               <p className="text-sm text-muted-foreground">These answers produce the section of the report that establishes why the assessment is required and records the rights machinery a regulator will test first.</p>
               <div data-rail-key="q1_revenue" onFocus={() => focusRail('q1_revenue')}><Label>What is your business's annual gross revenue? <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(1))</span></Label><p className="text-xs text-muted-foreground mt-1">Total worldwide gross revenue from all sources — not just California.</p><div className="mt-2"><Radio name="q1" options={REVENUE_OPTS} value={q1} onChange={setQ1} /></div></div>
               <div data-rail-key="q2_consumers" onFocus={() => focusRail('q2_consumers')}><Label>How many California consumers' personal information do you process in a year? <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(2)(A))</span></Label><p className="text-xs text-muted-foreground mt-1">Your best estimate of distinct California residents across all processing.</p><div className="mt-2"><Radio name="q2" options={CONSUMER_OPTS} value={q2} onChange={setQ2} /></div></div>
-              <div data-rail-key="q5_sell_share" onFocus={() => focusRail('q5_sell_share')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Do you sell or share personal information for cross-context behavioural advertising? <Req /></Label><DefPopover termKey="ccba" /><EnforcementSignalIcon signalKey="sell_share" signals={enforcementSignals} /></div>
+              {/* DOC 157 (2026-09-03) — "sell" is not limited to advertising
+                  (Cal. Civ. Code § 1798.140(ad): any disclosure for monetary or
+                  other valuable consideration); only "share" (ah) is the
+                  cross-context behavioral advertising concept. */}
+              <div data-rail-key="q5_sell_share" onFocus={() => focusRail('q5_sell_share')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Do you sell personal information (disclose it for money or other valuable consideration), or share it for cross-context behavioural advertising? <Req /></Label><DefPopover termKey="ccba" /><EnforcementSignalIcon signalKey="sell_share" signals={enforcementSignals} /></div>
                 <p className="text-xs text-muted-foreground mt-1">"Sell" and "share" have specific CCPA meanings — tap the definition icon.</p><div className="mt-2"><Radio name="q5" options={Q5_SELL_SHARE_OPTS} value={q5} onChange={setQ5} /></div>
               </div>
               {q5 && q5 !== "No" && (
@@ -2093,10 +2149,15 @@ export default function CPPARiskAssessment() {
                   inference — see the CEO's redesign directive, 2026-08-26. */}
               <div data-rail-key="sensitive_location_basis" onFocus={() => focusRail('sensitive_location_basis')}>
                 <Label>Does the automated processing derive any personal attributes of users, like their intelligence, health, or behavior, based on their presence in a sensitive location, such as a school, medical facility, or place of worship? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(5))</span></Label>
-                <p className="text-xs text-muted-foreground mt-1">This is a separate § 7150(b)(5) trigger. Answer "Yes" only where the processing draws a conclusion about a consumer FROM their detected presence at the location — not merely because your business operates at, or handles data from, a location of this type.</p>
+                <p className="text-xs text-muted-foreground mt-1">This is a separate § 7150(b)(5) trigger. Answer "Yes" only where the processing draws a conclusion about a consumer FROM their detected presence at the location — not merely because your business operates at, or handles data from, a location of this type. The regulation lists the sensitive locations (healthcare facilities including hospitals, doctors' offices, urgent care facilities, and community health clinics; pharmacies; domestic violence shelters; food pantries; housing/emergency shelters; educational institutions; political party offices; legal services offices; union offices; and places of worship) and excludes "a business using a consumer's personal information solely to deliver goods to, or provide transportation for, that consumer at a sensitive location."</p>
                 <div className="mt-2"><Radio name="sensitive_location_basis" options={SENSITIVE_LOCATION_BASIS_OPTS} value={sensitiveLocationBasis} onChange={setSensitiveLocationBasis} /></div>
               </div>
-              <div data-rail-key="q18_admt" onFocus={() => focusRail('q18_admt')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Do you use any ADMT that makes, or materially contributes to, decisions with significant effects on consumers? <Req /></Label><DefPopover termKey="admt" /><span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(e))</span></div><p className="text-xs text-muted-foreground mt-1">"Significant effects" covers credit, housing, employment, education, and healthcare decisions.</p><div className="mt-2"><Radio name="q18" options={["Yes", "No", "In evaluation"]} value={q18} onChange={setQ18} /></div></div>
+              {/* DOC 157 (2026-09-03) — the stem carries the ADOPTED § 7001(e)
+                  definition (the draft-era "materially contributes" wording is
+                  retired); which kind of decision the system makes, and so
+                  whether § 7150(b)(3) is engaged, is recorded in the
+                  categorical question that follows the description. */}
+              <div data-rail-key="q18_admt" onFocus={() => focusRail('q18_admt')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Do you use automated decisionmaking technology — technology that processes personal information and uses computation to replace or substantially replace human decisionmaking — for decisions about consumers? <Req /></Label><DefPopover termKey="admt" /><span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(e))</span></div><p className="text-xs text-muted-foreground mt-1">Answer "Yes" for any deployed use. The questions that follow record which kind of decision the system makes; § 7150(b)(3) applies when that decision is a significant decision under § 7001(ddd) (financial or lending services, housing, education, employment or independent contracting, or healthcare).</p><div className="mt-2"><Radio name="q18" options={["Yes", "No", "In evaluation"]} value={q18} onChange={setQ18} /></div></div>
               {(q18 === "Yes" || q18 === "In evaluation") && (
                 <div><Label>Describe the ADMT system and its decisions <Req /></Label>
                   <div className="mt-2"><AssistedInput
@@ -2108,6 +2169,7 @@ export default function CPPARiskAssessment() {
                     assertionSlot={renderAssertion("q19_admt_description")}
                   /></div>
                   <p className="text-body-tiny text-muted-foreground mt-1">Examples: an automated résumé-screening tool that ranks or rejects job applicants · a credit-decisioning model that sets limits without human review · worker-productivity scoring that drives scheduling or discipline decisions.</p>
+                  {renderDecisionCategoryBlock("Which kind of decision does the automated decisionmaking technology make or contribute to?")}
                 </div>
               )}
               {q18 === "Yes" && (
@@ -2119,7 +2181,10 @@ export default function CPPARiskAssessment() {
               {q18 === "Yes" && (
                 <div data-rail-key="admt_section_7153" onFocus={() => focusRail('admt_section_7153')} className="border-l-4 border-blue-400 pl-4 py-2 bg-blue-50/40 dark:bg-blue-950/10 rounded-r space-y-3">
                   <Label className="font-semibold">§ 7153 — ADMT made available to another business <span className="text-xs text-muted-foreground">(conditional)</span></Label>
-                  <p className="text-xs text-muted-foreground">§ 7153 requires a risk assessment when a business makes automated decisionmaking technology available to another business that uses it for significant decisions about consumers. Answer these questions if this ADMT is or will be shared with another business.</p>
+                  {/* DOC 157 (2026-09-03) — § 7153 stated as written: a duty to
+                      provide facts to the recipient-business, not a
+                      risk-assessment trigger. */}
+                  <p className="text-xs text-muted-foreground">Under § 7153(a), a business that makes ADMT available to another business to make a significant decision "must provide to the recipient-business all facts available to the business that are necessary for the recipient-business to conduct its own risk assessment"; § 7153(b) limits this to ADMT trained using personal information. Answer these questions if this ADMT is or will be made available to another business.</p>
                   <div>
                     <Label className="text-sm">Do you make this ADMT available to another business?</Label>
                     <div className="mt-2"><Radio name="admt_made_available" options={["Yes", "No"]} value={admtMadeAvailableToOtherBusiness} onChange={setAdmtMadeAvailableToOtherBusiness} /></div>
@@ -2139,9 +2204,18 @@ export default function CPPARiskAssessment() {
                 </div>
               )}
               <div data-rail-key="q18b_admt_training" onFocus={() => focusRail('q18b_admt_training')}>
-                <Label>Do you use personal information to train ADMT or biometric-recognition technology? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(5))</span></Label>
-                <p className="text-xs text-muted-foreground mt-1">Training such a model is an independent risk-assessment trigger, separate from <span className="font-medium">using</span> ADMT for a decision. It applies even if the trained system is never deployed against your own consumers — for example, building or fine-tuning a facial-recognition or biometric model on collected data.</p>
-                <div className="mt-2"><Radio name="q21" options={["Yes — training ADMT for significant decisions", "Yes — training facial/emotion/biometric recognition", "No"]} value={q18bTraining} onChange={setQ18bTraining} /></div>
+                {/* DOC 157 (2026-09-03) — the stem, cite, and second option now
+                    track the adopted § 7150(b)(6): both limbs, and the
+                    "intends to use" standard (using, plans to use, permits or
+                    plans to permit others to use, advertises or markets, or
+                    plans to advertise or market the use). The former cite
+                    "(b)(5)" was wrong. */}
+                <Label>Do you process personal information that your business uses, plans to use, permits or plans to permit others to use, or advertises or markets for use, to train either (a) ADMT for a significant decision about a consumer, or (b) facial-recognition, emotion-recognition, or other technology that verifies a consumer's identity or performs physical or biological identification or profiling? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(6))</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">Training such a model is an independent risk-assessment trigger, separate from <span className="font-medium">using</span> ADMT for a decision. It applies even if the trained system is never deployed against your own consumers, and it applies where another party trains on data you permit them to use. "Train" means "the process through which a technology discovers underlying patterns, learns a series of actions, or is taught to generate a desired output" — for example adjusting the parameters of an algorithm, improving the algorithm that determines how a model learns, or iterating the datasets fed into it (§ 7001(fff)).</p>
+                <div className="mt-2"><Radio name="q21" options={["Yes — training ADMT for significant decisions", "Yes — training facial-recognition, emotion-recognition, identity-verification, or physical or biological identification or profiling technology", "No"]} value={q18bTraining} onChange={setQ18bTraining} /></div>
+                {q18 !== "Yes" && q18 !== "In evaluation" && q18bTraining === "Yes — training ADMT for significant decisions" && (
+                  renderDecisionCategoryBlock("Which kind of decision will the technology being trained make or contribute to?")
+                )}
               </div>
               {admtTriggered && (
                 <div data-coach-field="i5_admt_logic" data-rail-key="i5_admt" onFocus={() => focusRail('i5_admt')} className="border-l-4 border-amber-400 pl-4 py-2 bg-amber-50/40 dark:bg-amber-950/10 rounded-r">
@@ -2364,7 +2438,7 @@ export default function CPPARiskAssessment() {
                 </div>
                 {renderAssertion("q4_pi_categories")}
               </div>
-              <div data-rail-key="q15_sensitive_pi" onFocus={() => focusRail('q15_sensitive_pi')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Do you process any sensitive PI? <Req /></Label><DefPopover termKey="sensitive_pi" /><EnforcementSignalIcon signalKey="sensitive_pi" signals={enforcementSignals} /></div><p className="text-xs text-muted-foreground mt-1">Sensitive PI includes health, precise location, race, and more — see the definition.</p><div className="mt-2"><Radio name="q15" options={Q15_SENSITIVE_PI_OPTS} value={q15} onChange={setQ15} /></div></div>
+              <div data-rail-key="q15_sensitive_pi" onFocus={() => focusRail('q15_sensitive_pi')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Do you process any sensitive PI? <Req /></Label><DefPopover termKey="sensitive_pi" /><EnforcementSignalIcon signalKey="sensitive_pi" signals={enforcementSignals} /></div><p className="text-xs text-muted-foreground mt-1">Sensitive PI includes government identifiers, account credentials, precise geolocation, race or ethnicity, health, biometrics, genetic and neural data, message contents, and more — see the definition. Under 11 CCR § 7001(bbb)(4) it also includes all personal information of consumers you have actual knowledge are under 16 (the next question); a "Yes" there engages the § 7150(b)(2) trigger on its own.</p><div className="mt-2"><Radio name="q15" options={Q15_SENSITIVE_PI_OPTS} value={q15} onChange={setQ15} /></div></div>
               {q15 === "Yes" && (<>
                 <div data-rail-key="q15c_spi_volume" onFocus={() => focusRail('q15c_spi_volume')}>
                   <Label>For how many California consumers do you process sensitive personal information annually? <span className="text-xs text-muted-foreground font-mono">(§ 7120(b)(2)(B))</span></Label>

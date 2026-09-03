@@ -41,7 +41,11 @@ Deno.test("content: pass2 templates present with expected ids", () => {
     "T.risk.applicability.evaluation",
     // PN-CORPUS-L-RISK-1 — § 7150(b)(2)(A) personnel carve-out posture.
     "T.risk.applicability.exempt_b2a",
+    // DOC 157 (model-vs-law build) — § 7001(ddd)(2) housing exclusion posture.
+    "T.risk.applicability.housing_excluded",
     "T.risk.applicability.not_engaged",
+    // DOC 157 (model-vs-law build) — categorical outside-every-category posture.
+    "T.risk.applicability.not_significant",
     // DOC 154 (code review) — q15 "Unsure" is an unresolved posture.
     "T.risk.applicability.unresolved",
     "T.risk.balance.factor_line",

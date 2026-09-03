@@ -19,7 +19,7 @@
 
 export const W9_RISK_SLOTS_STAMP = "w9-risk-slots-p1@2026-07-24T09:58:12Z";
 
-import { classifyAdmtSignificantDecision } from "./_local/admt-significant-decision.ts";
+import { resolveAdmtSignificantDecision } from "./_local/admt-significant-decision.ts";
 
 export interface AttestationBlock {
   certifying_executive_name: string;
@@ -149,13 +149,22 @@ export function computeIntakeSelectedSubsections(intake: Intake): string[] {
   // gate for the customer-facing opening paragraph.
   const q18 = clampStr(merged.q18_admt_use);
   const q19 = clampStr(merged.q19_admt_description);
-  if (q18 === "Yes" && classifyAdmtSignificantDecision(q19) === "significant") {
+  // DOC 157 (2026-09-03) — categorical § 7001(ddd) answer first, classifier
+  // fallback (the shared resolver).
+  const admtDecision = resolveAdmtSignificantDecision({
+    q19a_decision_categories: merged.q19a_decision_categories,
+    q19b_housing_basis: merged.q19b_housing_basis,
+    q19_admt_description: q19,
+  });
+  if (q18 === "Yes" && admtDecision.cls === "significant") {
     push("§ 7150(b)(3)");
   }
 
-  // (b)(2) — sensitive PI processing.
+  // (b)(2) — sensitive PI processing. DOC 157: § 7001(bbb)(4) elevation —
+  // actual knowledge of under-16 processing is sensitive-PI processing.
   const q15 = clampStr(merged.q15_sensitive_pi);
-  if (q15 === "Yes") push("§ 7150(b)(2)");
+  const q15b = clampStr(merged.q15b_under16_knowledge);
+  if (q15 === "Yes" || /^yes/i.test(q15b)) push("§ 7150(b)(2)");
 
   // (b)(5) — TURN 1c: sensitive-location predicate, now a direct Yes/No on
   // the statutory element (inference FROM presence at a sensitive location).

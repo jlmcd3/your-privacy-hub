@@ -136,6 +136,9 @@ export const CONSUMER_RELATIONSHIP_CONTEXT_OPTS = [
   "Existing customers or account holders",
   "Prospective customers or site visitors",
   "Employees or job applicants",
+  // DOC 157 (2026-09-03) — § 7150(b)(4) capacities the list lacked.
+  "Independent contractors",
+  "Educational-program applicants",
   "Students",
   "Patients or health-service recipients",
   "General public — no direct relationship",
@@ -168,10 +171,11 @@ export const CHOICE_ARCHITECTURE_CHECK_OPTS = [
   "The Company does not use design elements that steer consumers toward permitting the processing",
   "None of the above can be confirmed",
 ] as const;
+// DOC 157 (2026-09-03) — adopted § 7001(e)(1) wording (see .enums.ts).
 export const ADMT_ROLE_TYPE_OPTS = [
-  "The ADMT makes the decision without human involvement",
-  "The ADMT is a substantial factor in a human decision",
-  "The ADMT supports a human decision without being a substantial factor",
+  "The ADMT's output is used to make the decision without human involvement",
+  "A human reviewer who meets all three § 7001(e)(1) requirements makes or can change the decision",
+  "A human is involved, but not all three § 7001(e)(1) requirements are met",
   "Unsure",
 ] as const;
 export const ADMT_LOGIC_DOCUMENTED_OPTS = [
@@ -230,6 +234,24 @@ export const PLANNED_TIMELINE_OPTS = [
   "Before processing begins or within 3 months",
   "Within 12 months",
   "No committed timeline",
+] as const;
+// DOC 157 (2026-09-03) — categorical § 7001(ddd) answer; verbatim copies of
+// src/pages/CPPARiskAssessment.enums.ts (parity pinned in
+// doc157-law-map-build.test.ts and rk3-d-class-c.test.ts).
+export const SIGNIFICANT_DECISION_CATEGORY_OPTS = [
+  "Financial or lending services (credit, loans, funds transfer, deposit or checking accounts, check cashing, installment plans)",
+  "Housing (a home, residence, or sleeping place)",
+  "Education enrollment or opportunities (admission, credentials, suspension or expulsion)",
+  "Hiring",
+  "Allocation or assignment of work, or compensation (salary, hourly or per-assignment pay, bonuses, other benefits)",
+  "Promotion, demotion, suspension, or termination",
+  "Healthcare services (diagnosis, prevention, treatment, or assessment or care of health)",
+  "Advertising only — no decision in the categories above",
+  "None of these categories",
+] as const;
+export const HOUSING_DECISION_BASIS_OPTS = [
+  "Yes — based solely on availability or vacancy, or on receipt of payment",
+  "No — other factors are considered",
 ] as const;
 
 // RK3-A1 g2 — verbatim copy of CONSUMER_INTERACTION_METHOD_OPTS from
@@ -294,9 +316,15 @@ export const Q15B_UNDER16_OPTS = [
   "Unsure",
 ] as const;
 export const Q20_OPTS = ["Yes, with documented opt-out", "Planned for implementation", "No"] as const;
+// DOC 157 (2026-09-03) — option 2 relabelled to the adopted § 7150(b)(6)
+// second limb ("facial-recognition, emotion-recognition, or other technology
+// that verifies a consumer's identity, or conducts physical or biological
+// identification or profiling"). The retired literal "Yes — training
+// facial/emotion/biometric recognition" is still honoured by every /^Yes/
+// predicate for stored rows.
 export const Q21_TRAINING_OPTS = [
   "Yes — training ADMT for significant decisions",
-  "Yes — training facial/emotion/biometric recognition",
+  "Yes — training facial-recognition, emotion-recognition, identity-verification, or physical or biological identification or profiling technology",
   "No",
 ] as const;
 export const CA_CONSUMER_BAND = ["Fewer than 10,000", "10,000–100,000", "100,000–1,000,000", "More than 1,000,000", "Unsure"] as const;
@@ -336,20 +364,30 @@ export const DIVERGENCE_OPTS = ["Same", "Different", "Not sure"] as const;
 // the field (PI_CATEGORIES includes a literal "Other" pill that is a
 // selectable enum member, not a text input), so they are registered as
 // enum / multi-enum and asserted via CPPA_RISK_INLINE_LISTS parity below.
+// DOC 157 (2026-09-03) — four § 7001(bbb)(1) categories the list lacked
+// ((A) government identifiers, (B) account credentials, (E) message
+// contents, (G) neural data) and the sexual-orientation / gender-identity
+// split (only sexual orientation is sensitive under (bbb)(3)). The retired
+// combined literal stays resolvable in ca-pi-taxonomy.ts for stored rows.
 const PI_CATEGORIES = [
   "Contact identifiers (name, email, phone)",
+  "Government identifiers (SSN, driver's license, state ID, passport number)",
   "Device identifiers (IP, cookies, device IDs)",
   "Internet or network activity",
+  "Contents of mail, email, or text messages",
   "Precise geolocation (GPS-level / specific address)",
   "General location (city, region, ZIP, IP-derived)",
   "Financial information",
+  "Account log-in or financial-account credentials",
   "Health or medical information",
   "Biometric information",
   "Genetic data",
+  "Neural data",
   "Racial or ethnic origin",
   "Religious or philosophical beliefs",
   "Union membership",
-  "Sexual orientation or gender identity",
+  "Sexual orientation",
+  "Gender identity",
   "Citizenship or immigration status",
   "Employment information",
   "Education information",
@@ -499,6 +537,24 @@ export const cppaRiskContract: IntakeContract = {
       requiredWhen: 'q18_admt_use === "Yes"', hiddenValue: "",
       options: Q20_OPTS },
     { key: "q18b_admt_training", kind: "enum",      required: "always", options: Q21_TRAINING_OPTS },
+    // DOC 157 (2026-09-03) — the categorical § 7001(ddd) answer that
+    // § 7150(b)(3) turns on. Asked whenever the ADMT questions are open
+    // (q18 Yes / In evaluation) AND, on the form, whenever q18b names
+    // significant-decision training with q18 = No (the trained model's
+    // decision). The machine trigger carries the first path; the engine's
+    // b(6) Follow-Up completes the second. Multi-enum: a system may make
+    // more than one kind of decision; the two closing options are the
+    // substantive negatives. q19b is asked only when Housing is selected.
+    { key: "q19a_decision_categories", kind: "multi-enum", required: "conditional",
+      requiredWhen: 'q18_admt_use === "Yes" || q18_admt_use === "In evaluation" (form also asks it when q18b names significant-decision training)',
+      trigger: { key: "q18_admt_use", equals: ["Yes", "In evaluation"] },
+      options: SIGNIFICANT_DECISION_CATEGORY_OPTS },
+    { key: "q19b_housing_basis", kind: "enum", required: "conditional",
+      requiredWhen: 'q19a_decision_categories includes the Housing option', hiddenValue: "",
+      // VALUE-EQUALS trigger (ITEM 380 r5b shape): the evaluator array-wraps
+      // the multi-enum, so "includes Housing" is expressible.
+      trigger: { key: "q19a_decision_categories", equals: ["Housing (a home, residence, or sleeping place)"] },
+      options: HOUSING_DECISION_BASIS_OPTS },
 
     // Step 6 — I-series
     { key: "i1_processing_purpose",  kind: "narrative",  required: "always" }, // ≥30 chars in form
@@ -521,6 +577,9 @@ export const cppaRiskContract: IntakeContract = {
     { key: "i7_external_consultees", kind: "narrative",  required: "optional" },
     { key: "i8_certifying_exec_name", kind: "text",      required: "always" },
     { key: "i8_certifying_exec_title", kind: "text",     required: "always" },
+    // DOC 157 (2026-09-03) — § 7157(b)(1) requires the point of contact's
+    // phone number AND email address; both are re-declared required at the
+    // finalization gate (cppa-risk-assessment-finalization.ts).
     { key: "i8_contact_phone",       kind: "text",       required: "optional" },
     { key: "i8_contact_email",       kind: "text",       required: "optional" },
     { key: "i9_has_existing_dpia",   kind: "enum",       required: "always", options: YES_NO_OPTS },
@@ -654,6 +713,20 @@ export const cppaRiskContract: IntakeContract = {
       requiredWhen: "a reviewer row is present", options: ["Reviewed", "Approved", "Both"] },
     { key: "approver_authority_confirmed", kind: "enum", required: "optional", options: YES_NO_OPTS },
     { key: "approver_authority_basis", kind: "narrative", required: "optional" },
+    // DOC 157 (2026-09-03) — § 7152(a)(7): the Company's OWN decision whether
+    // it will initiate (or continue) the processing. The form has emitted
+    // this finalization-stage field since RK3-A3; it was never declared here
+    // and never read by the engine (audit A.4). Optional at the data layer;
+    // the finalization contract requires it at Final-Approved. The engine
+    // renders it in § 4.C beside the recommended outcome and reconciles.
+    // emptyIsAnswer: the decision is made AFTER the analysis is reviewed (the
+    // finalization gate requires it); at intake, empty is the honest state
+    // ("not yet decided") and the report says so, so the record-complete gate
+    // and the intake coach never count it as an unanswered intake question
+    // (the doc-28 §4 reserved-decision carve-out, now carried by the field).
+    { key: "final_processing_decision", kind: "enum", required: "optional", emptyIsAnswer: true,
+      options: ["Initiate", "Initiate with conditions", "Do not initiate", "Continue", "Continue with conditions", "Discontinue"] },
+    { key: "final_processing_decision_notes", kind: "narrative", required: "optional", emptyIsAnswer: true },
 
     // ITEM 380 INTAKE-4a — CEO-approved addition. Question lives in the form
     // at src/pages/CPPARiskAssessment.tsx (~L1330, the block adjacent to the
@@ -786,8 +859,13 @@ export const cppaRiskContract: IntakeContract = {
     // ── RK3-A2 g3 (Intake Contract v2.0 §6, doc 31 §2c) — § 7153 branch.
     // admt_made_available_to_other_business records whether the business
     // provides its ADMT to another business. The two downstream fields
-    // are conditional on that answer being "Yes" and supply the facts
-    // needed for the § 7153(a)/(b) risk-assessment trigger analysis.
+    // are conditional on that answer being "Yes" and supply the facts the
+    // § 7153(a) duty turns on. DOC 157 (2026-09-03): § 7153 is NOT a
+    // risk-assessment trigger — it obliges the provider to give the
+    // recipient-business "all facts available to the business that are
+    // necessary for the recipient-business to conduct its own risk
+    // assessment", and § 7153(b) limits it to ADMT trained using personal
+    // information.
     // emptyIsAnswer: empty when ADMT not provided to other businesses (N/A branch).
     { key: "admt_made_available_to_other_business", kind: "enum", required: "optional",
       options: YES_NO_OPTS, emptyIsAnswer: true },

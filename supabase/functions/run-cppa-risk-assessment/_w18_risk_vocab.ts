@@ -53,6 +53,9 @@ export const RISK_INTAKE_LABELS: Record<string, string> = {
   q19_admt_description: "the ADMT-system description",
   q20_admt_opt_out: "the ADMT opt-out mechanism",
   q18b_admt_training: "the ADMT-training answer",
+  // DOC 157 (model-vs-law build) — the categorical § 7001(ddd) answer.
+  q19a_decision_categories: "the decision-category answer",
+  q19b_housing_basis: "the housing-decision basis answer",
   i1_processing_purpose: "the stated processing purpose",
   i1b_min_pi: "the data-minimisation commitment",
   i2_retention_period: "the stated retention period",
@@ -111,6 +114,9 @@ export const RISK_INTAKE_LABELS: Record<string, string> = {
   assessment_reviewers_approvers: "the reviewers-and-approvers record",
   approver_authority_confirmed: "the approver-authority-confirmed answer",
   approver_authority_basis: "the basis recorded for the approver's authority",
+  // DOC 157 — the § 7152(a)(7) decision the finalization stage records.
+  final_processing_decision: "the Company's recorded processing decision",
+  final_processing_decision_notes: "the notes recorded with the processing decision",
   processing_entry_point: "the processing entry point",
   processing_methods: "the processing-methods record",
   processing_result: "the processing result",

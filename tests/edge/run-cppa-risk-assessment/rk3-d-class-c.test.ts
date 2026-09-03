@@ -242,7 +242,11 @@ Deno.test("v5.2 — a record without the typed operands never composes an operan
 Deno.test("v5.2 — SPI membership has single custody in ca-pi-taxonomy.ts", () => {
   const expected = Object.entries(CA_PI_TAXONOMY).filter(([, r]) => r.spi).map(([k]) => k);
   assertEquals([...CA_SPI_CATEGORY_KEYS].sort(), expected.sort());
-  assertEquals(CA_SPI_CATEGORY_KEYS.length, 9);
+  // DOC 157 (model-vs-law build): 9 + four § 7001(bbb)(1) categories added
+  // (government identifiers, account credentials, message contents, neural
+  // data) + "Children's data (under 16)" now SPI under (bbb)(4) + the split
+  // "Sexual orientation" (the retired combined literal stays for stored rows).
+  assertEquals(CA_SPI_CATEGORY_KEYS.length, 15);
   assert(CA_SPI_CATEGORY_KEYS.includes("Precise geolocation (GPS-level / specific address)"));
 });
 

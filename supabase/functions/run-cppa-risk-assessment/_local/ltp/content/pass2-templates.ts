@@ -98,6 +98,26 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
     intake_slots: [],
     max_chars: 400,
   },
+  // DOC 157 (2026-09-03, model-vs-law build) — two determined categorical
+  // non-engagements of § 7150(b)(3): the Company records the decision as
+  // outside every § 7001(ddd) category, or as a housing decision within the
+  // § 7001(ddd)(2) availability/vacancy/payment exclusion.
+  "T.risk.applicability.not_significant": {
+    id: "T.risk.applicability.not_significant",
+    text: "Not engaged — {{cite:PINPOINT}} ({{plan:prong_subject}}): the Company records that the decision the automated decisionmaking technology makes is not within any category § 7001(ddd) defines as a significant decision; on that categorical answer this trigger does not apply.",
+    citation_slots: ["PINPOINT"],
+    plan_slots: ["prong_subject"],
+    intake_slots: [],
+    max_chars: 420,
+  },
+  "T.risk.applicability.housing_excluded": {
+    id: "T.risk.applicability.housing_excluded",
+    text: "Not engaged — {{cite:PINPOINT}} ({{plan:prong_subject}}): the Company records that the technology provides or denies housing based solely on the availability or vacancy of the housing or the successful receipt of payment; under § 7001(ddd)(2) that use is not making a significant decision.",
+    citation_slots: ["PINPOINT"],
+    plan_slots: ["prong_subject"],
+    intake_slots: [],
+    max_chars: 440,
+  },
   "T.risk.applicability.evaluation": {
     id: "T.risk.applicability.evaluation",
     text: "Not engaged — {{cite:PINPOINT}} ({{plan:prong_subject}}): the Company records the automated decisionmaking technology as under evaluation rather than deployed; this trigger applies when the technology is used to make a significant decision concerning a consumer.",

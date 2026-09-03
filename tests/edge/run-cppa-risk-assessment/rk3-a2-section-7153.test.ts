@@ -101,8 +101,14 @@ Deno.test("RK3-A2 g3 — statute rail carries the admt_section_7153 entry", asyn
   const src = await Deno.readTextFile(RAIL_PATH);
   assert(src.includes("admt_section_7153: {"), "rail must define admt_section_7153");
   assert(src.includes("7153"), "rail entry must reference § 7153");
+  // DOC 157 — the entry now states § 7153 as adopted (a duty to provide facts
+  // to the recipient-business), verbatim from the cppa_authorities row.
   assert(
-    src.includes("makes automated decisionmaking technology available to another business"),
+    src.includes("makes ADMT available to another business"),
     "rail entry must carry the § 7153 plain-summary text",
+  );
+  assert(
+    src.includes("must provide to the recipient-business all facts available to the business"),
+    "rail entry must carry the § 7153(a) text verbatim",
   );
 });

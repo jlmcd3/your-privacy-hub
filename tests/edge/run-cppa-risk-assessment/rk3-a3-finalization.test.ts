@@ -41,8 +41,10 @@ Deno.test("RK3-A3 g3 — finalization contract id and version are stable", () =>
   assertEquals(cppaRiskFinalizationContract.version, "2.0.0");
 });
 
-Deno.test("RK3-A3 g3 — finalization contract has exactly 11 fields", () => {
-  assertEquals(cppaRiskFinalizationContract.fields.length, 11);
+Deno.test("RK3-A3 g3 — finalization contract has exactly 13 fields", () => {
+  // DOC 157 (model-vs-law build): + i8_contact_phone, i8_contact_email
+  // (§ 7157(b)(1) point-of-contact phone and email, required at finalization).
+  assertEquals(cppaRiskFinalizationContract.fields.length, 13);
 });
 
 Deno.test("RK3-A3 g3 — final_processing_decision is always-required enum with 6 options", () => {

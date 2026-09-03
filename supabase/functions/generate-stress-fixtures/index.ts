@@ -550,12 +550,14 @@ Return a JSON object with EXACTLY these fields:
     "q10_id_verification": "string", "q11_policy_review": "string",
     "q12_notice_at_collection": "string", "q13_notice_content": "string",
     "q14_employee_notice": "string", "q15_sensitive_pi": "string",
-    "q15b_under16_knowledge": "Yes or No",
+    "q15b_under16_knowledge": "Yes or No — under 11 CCR § 7001(bbb)(4) actual knowledge of under-16 processing is itself sensitive personal information; when this is Yes, q15_sensitive_pi must also be Yes",
     "q16_sensitive_limit": "string", "q17_sensitive_basis": "string",
     "q18_admt_use": "Yes or No — Yes ONLY if the ADMT makes or facilitates a decision in a regulated significant-decision category (financial/lending, housing, education, employment/hiring, work allocation or compensation, healthcare); serving, targeting, or personalizing advertising is NOT a significant decision and is No",
     "q18b_admt_training": "Yes or No — Yes ONLY when personal information trains an ADMT intended for significant decisions (same categories as q18) or an identity-verification/biometric technology; training an advertising-only model is No",
     "q19_admt_description": "string — the description must be CONSISTENT with q18: if q18 is Yes, describe the significant decision; if the system only does advertising, q18 must be No",
     "q20_admt_opt_out": "string",
+    "q19a_decision_categories": ["array — REQUIRED whenever q18 is Yes or In evaluation, or q18b is 'Yes — training ADMT for significant decisions'; choose verbatim from the allowed list the § 7001(ddd) categories the decision PROVIDES OR DENIES (what the consumer gets or is refused), CONSISTENT with q19: a system that only serves, targets, or personalizes advertising is ['Advertising only — no decision in the categories above']; a system whose outcome is outside every category is ['None of these categories']; otherwise every applicable category (never combine a category with the two closing options)"],
+    "q19b_housing_basis": "string — ONLY when q19a includes the Housing option; 'Yes — based solely on availability or vacancy, or on receipt of payment' or 'No — other factors are considered'; omit otherwise",
     "i1_processing_purpose": "string", "i1b_min_pi": "string",
     "i2_retention_period": "string",
     "i2_retention_criteria": "string", "i2_retention_detail": "string",
@@ -1431,6 +1433,19 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
       q18_admt_use: (/ai|financial|hr|adtech/i.test(industry) ? "Yes" : "No") as typeof Q18_OPTS[number],
       q18b_admt_training: (/ai|adtech|financial|hr/i.test(industry) ? "Yes — training ADMT for significant decisions" : "No") as typeof Q21_TRAINING_OPTS[number],
       q19_admt_description: "Risk scoring and service personalization",
+      // DOC 157 (2026-09-03) — the categorical § 7001(ddd) answer, coherent
+      // with q18/q19 and the industry cue that drives them.
+      q19a_decision_categories: (
+        /financial/i.test(industry)
+          ? ["Financial or lending services (credit, loans, funds transfer, deposit or checking accounts, check cashing, installment plans)"]
+          : /hr/i.test(industry)
+          ? ["Hiring"]
+          : /adtech/i.test(industry)
+          ? ["Advertising only — no decision in the categories above"]
+          : /ai/i.test(industry)
+          ? ["None of these categories"]
+          : []
+      ) as string[],
       q20_admt_opt_out: "Yes, with documented opt-out" as typeof Q20_OPTS[number],
       i1_processing_purpose: "Service delivery, security, analytics, and support",
       i1b_min_pi: "Account identifier, contact email, and transaction history necessary to score risk and deliver service.",
@@ -1767,9 +1782,55 @@ function normalizeCppaRiskTriggers<T extends Record<string, any>>(data: T): T {
       const ctx = typeof r.consumer_relationship_context === "string" ? r.consumer_relationship_context : "";
       const employmentContext =
         ctx === "Employees or job applicants" || ctx === "Students" ||
+        ctx === "Independent contractors" || ctx === "Educational-program applicants" ||
         /\b(employees?|employment|workers?|workforce|contractors?|staff|personnel|HR\b|recruit(ing|ment)?|hiring|job applicants?|students?|educational[- ]program|keystroke|productivity (scor|monitor)|telematics)\b/i
           .test(scenarioText);
       if (!employmentContext) r.q5b_profiling_observation = "No";
+    }
+    // DOC 157 (2026-09-03) — categorical § 7001(ddd) answer hygiene (the T15
+    // pattern: the model ignores field descriptions). (a) Off-list strings are
+    // dropped; (b) a category selected alongside a closing option keeps the
+    // category (the exclusions cover a system used SOLELY for advertising /
+    // outside every category); (c) an ADMT record with NO categorical answer
+    // snaps to "Advertising only" ONLY when the description itself reads as
+    // advertising-only — every other unanswered record stays unanswered, so
+    // the report renders the honest unresolved state instead of an invented
+    // category.
+    {
+      const CATEGORY_OPTS = [
+        "Financial or lending services (credit, loans, funds transfer, deposit or checking accounts, check cashing, installment plans)",
+        "Housing (a home, residence, or sleeping place)",
+        "Education enrollment or opportunities (admission, credentials, suspension or expulsion)",
+        "Hiring",
+        "Allocation or assignment of work, or compensation (salary, hourly or per-assignment pay, bonuses, other benefits)",
+        "Promotion, demotion, suspension, or termination",
+        "Healthcare services (diagnosis, prevention, treatment, or assessment or care of health)",
+        "Advertising only — no decision in the categories above",
+        "None of these categories",
+      ];
+      const ADVERTISING_OPT = CATEGORY_OPTS[7];
+      const NONE_OPT = CATEGORY_OPTS[8];
+      const admtOpen = triggerYes(r.q18_admt_use) ||
+        (typeof r.q18_admt_use === "string" && /^in evaluation$/i.test(r.q18_admt_use.trim())) ||
+        r.q18b_admt_training === "Yes — training ADMT for significant decisions";
+      let cats: string[] = Array.isArray(r.q19a_decision_categories)
+        ? r.q19a_decision_categories.filter((c: any) => typeof c === "string" && CATEGORY_OPTS.includes(c.trim())).map((c: string) => c.trim())
+        : [];
+      const substantive = cats.filter((c) => c !== ADVERTISING_OPT && c !== NONE_OPT);
+      if (substantive.length) cats = substantive;
+      if (!cats.length && admtOpen) {
+        const desc = typeof r.q19_admt_description === "string" ? r.q19_admt_description : "";
+        const advertisingOnly =
+          /\b(advertis(e|ing|ement)|ad\s*targeting|ad\s*personalization|programmatic|real-time\s*bidding|audience[-\s]?segment)/i.test(desc) &&
+          !/\b(credit|loan|lending|mortgage|housing|rental|tenant|admission|enrollment|hiring|recruit|job\s*applicant|compensation|salary|wage|promotion|termination|diagnos|treatment|patient)/i.test(desc);
+        if (advertisingOnly) cats = [ADVERTISING_OPT];
+      }
+      if (cats.length || admtOpen) r.q19a_decision_categories = cats;
+      else delete r.q19a_decision_categories;
+      if (!cats.includes(CATEGORY_OPTS[1])) delete r.q19b_housing_basis;
+      else if (typeof r.q19b_housing_basis !== "string" || !/^(Yes|No) —/.test(r.q19b_housing_basis)) {
+        r.q19b_housing_basis = "No — other factors are considered";
+      }
     }
     // DOC 153 (2026-09-03, batch 736df0ad) — deterministic coherence repairs
     // for three fixture defects the model reproduced across ALL six runs

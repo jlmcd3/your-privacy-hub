@@ -17,6 +17,23 @@ export const CA_PI_TAXONOMY: Record<string, TaxonomyRow> = {
     canonical: "Identifiers (name, email address, telephone number)",
     spi: false,
   },
+  // DOC 157 (2026-09-03, CEO-ratified) — § 7001(bbb)(1)(A), (B), (E), (G).
+  "Government identifiers (SSN, driver's license, state ID, passport number)": {
+    canonical: "Social security, driver's license, state identification card, or passport number",
+    spi: true,
+  },
+  "Account log-in or financial-account credentials": {
+    canonical: "Account log-in, financial account, debit card, or credit card number with the required access credentials",
+    spi: true,
+  },
+  "Contents of mail, email, or text messages": {
+    canonical: "Contents of mail, email, and text messages (business not the intended recipient)",
+    spi: true,
+  },
+  "Neural data": {
+    canonical: "Neural data",
+    spi: true,
+  },
   "Device identifiers (IP, cookies, device IDs)": {
     canonical: "Unique identifiers (IP address, cookies, device identifiers)",
     spi: false,
@@ -61,6 +78,17 @@ export const CA_PI_TAXONOMY: Record<string, TaxonomyRow> = {
     canonical: "Union membership",
     spi: true,
   },
+  // DOC 157 — split: § 7001(bbb)(3) covers sex life or sexual orientation;
+  // gender identity is personal information but not sensitive personal
+  // information. The retired combined literal stays for stored rows.
+  "Sexual orientation": {
+    canonical: "Sex life or sexual orientation",
+    spi: true,
+  },
+  "Gender identity": {
+    canonical: "Gender identity",
+    spi: false,
+  },
   "Sexual orientation or gender identity": {
     canonical: "Sex life or sexual orientation",
     spi: true,
@@ -77,9 +105,14 @@ export const CA_PI_TAXONOMY: Record<string, TaxonomyRow> = {
     canonical: "Education information",
     spi: false,
   },
+  // DOC 157 (2026-09-03, CEO-ratified) — § 7001(bbb)(4): "Personal
+  // information of consumers that the business has actual knowledge are less
+  // than 16 years of age" IS sensitive personal information under the adopted
+  // regulations; selecting this category records that knowledge. The form's
+  // own SENSITIVE_PI_CATEGORIES set already treated it as sensitive.
   "Children's data (under 16)": {
-    canonical: "Personal information of consumers under 16",
-    spi: false,
+    canonical: "Personal information of consumers under 16 (§ 7001(bbb)(4))",
+    spi: true,
   },
   "Other": {
     canonical: "Other personal information described in the assessment record",

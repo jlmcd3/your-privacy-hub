@@ -214,6 +214,9 @@ export const CPPA_RISK_GOLDEN: GoldenCase[] = [
       // character is untouched. Authored to the "Perfect Data" standard.
       q19_admt_description:
         "A scoring model ranks free-tier accounts for proactive outreach; a ranking above the outreach threshold determines whether an account is offered a paid-conversion discount.",
+      // DOC 157 — the categorical § 7001(ddd) answer (required when q18 is
+      // Yes): a discount offer is outside every significant-decision category.
+      q19a_decision_categories: ["None of these categories"],
       q20_admt_opt_out: "Yes, with documented opt-out",
       i5_admt_logic:
         "The model takes three inputs — sessions in the trailing 30 days, count of completed onboarding steps, and seat count — and returns a 0–100 propensity score. Accounts scoring above 70 are queued for outreach; the score is not used for any other decision and no inference about a protected characteristic is an input or an output.",
@@ -363,6 +366,9 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
       q19_admt_description:
         "A gradient-boosted eligibility model scores each application 0–100 from applicant-supplied income, tenure, and credit-bureau data; scores above 70 auto-approve, below 40 decline with human review on request, 40–70 route to a credit analyst. A separate rules layer flags identity-fraud signals for manual verification.",
       q20_admt_opt_out: "Yes, with documented opt-out",
+      // DOC 157 — the categorical § 7001(ddd) answer: credit eligibility is a
+      // financial or lending service (the text classifier agrees).
+      q19a_decision_categories: ["Financial or lending services (credit, loans, funds transfer, deposit or checking accounts, check cashing, installment plans)"],
       q18b_admt_training: "No",
 
       i1_processing_purpose:
@@ -757,7 +763,8 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
         "Declining the processing does not degrade the core service the consumer seeks",
         "The Company does not use design elements that steer consumers toward permitting the processing",
       ],
-      admt_role_type: "The ADMT makes the decision without human involvement",
+      // DOC 157 — the adopted § 7001(e)(1) label.
+      admt_role_type: "The ADMT's output is used to make the decision without human involvement",
       admt_logic_documented: "The logic is documented and reviewed internally",
       human_review_facts: [
         "Reviewers know how to interpret and use the ADMT's output",

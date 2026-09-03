@@ -393,7 +393,8 @@ Deno.test("doc154 §35 — the proceed-with-conditions plain-meaning names the A
 
 Deno.test("doc154 — the grader instrument names the new designed states under the appended tag", async () => {
   const { GRADER_CONTEXT_VERSION, SHARED_GRADER_CONTEXT } = await import("../../../supabase/functions/_shared/grader/context.ts");
-  assert(GRADER_CONTEXT_VERSION.endsWith("+risk-code-review-2026-09-03"), GRADER_CONTEXT_VERSION);
+  // DOC 157 appends its own tag after this one (the prefix-keeps, tags-append rule).
+  assert(GRADER_CONTEXT_VERSION.includes("+risk-code-review-2026-09-03"), GRADER_CONTEXT_VERSION);
   assert(GRADER_CONTEXT_VERSION.startsWith("gc-2026-08-28-skeleton-cal-3-item204"), "calibration prefix lost");
   for (const needle of ["DOC 154 (code-review remediation)", "under evaluation rather than deployed", "does not record that there are none", "Numbers under ten render as words"]) {
     assert(SHARED_GRADER_CONTEXT.includes(needle), `context missing: ${needle}`);

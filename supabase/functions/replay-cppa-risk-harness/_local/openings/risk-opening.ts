@@ -36,7 +36,7 @@ import {
   CCPA_1798_140_D_1_B,
 } from "./ccpa-1798-140-pin.ts";
 import { CCPA_7150_B_LABELS } from "./ccpa-7150-pin.ts";
-import { classifyAdmtSignificantDecision } from "../admt-significant-decision.ts";
+import { resolveAdmtSignificantDecision } from "../admt-significant-decision.ts";
 
 export const RISK_OPENING_VERSION = "risk-opening-item244-l4-epistemic@2026-07-28";
 // ITEM 244 (L4) — CEO-approved courier: EPISTEMIC-METHOD SENTENCE. Inserted
@@ -107,6 +107,11 @@ export interface RiskOpeningInput {
   // fact source for the § 7150(b)(3) category-match gate (classifyAdmtSignificantDecision).
   q19_admt_description?: unknown;
   q18b_admt_training?: unknown;
+  // DOC 157 (2026-09-03) — § 7001(bbb)(4) elevation and the categorical
+  // § 7001(ddd) answer.
+  q15b_under16_knowledge?: unknown;
+  q19a_decision_categories?: unknown;
+  q19b_housing_basis?: unknown;
   sensitive_location_basis?: unknown;
   q4_pi_categories?: unknown;
   i1_processing_purpose?: unknown;
@@ -241,7 +246,9 @@ export function buildRiskOpening(
   // ── S1 — 11 CCR § 7150(b) triggers (all-that-apply, statutory order) ──
   const triggers: number[] = [];
   if (SELL_SHARE_AFFIRMATIVE.has(sellShare)) triggers.push(1);
-  if (str(intake.q15_sensitive_pi) === "Yes") triggers.push(2);
+  // DOC 157 (2026-09-03) — § 7001(bbb)(4): actual knowledge of under-16
+  // processing is sensitive-PI processing (same rule as gate-eval.ts).
+  if (str(intake.q15_sensitive_pi) === "Yes" || /^yes/i.test(str(intake.q15b_under16_knowledge))) triggers.push(2);
   // DOC 137 (2026-09-02) — q18_admt_use === "Yes" alone used to fire (3)
   // with no check of which § 7001(ddd) significant-decision category the
   // described activity falls into, and without the FSOR advertising
@@ -253,13 +260,24 @@ export function buildRiskOpening(
   // no signal the record was even considered — the open question is
   // recorded in `omitted` telemetry rather than left unexplained.
   const admtUse = str(intake.q18_admt_use);
-  const admtDescriptionClass = classifyAdmtSignificantDecision(str(intake.q19_admt_description));
-  if (admtUse === "Yes" && admtDescriptionClass === "significant") {
+  // DOC 157 (2026-09-03) — the categorical § 7001(ddd) answer governs when
+  // present; the text classifier is the fallback (one resolver for every
+  // derivation: gate-eval, engine, assembler, slots, and this opening).
+  const admtDecisionClass = resolveAdmtSignificantDecision({
+    q19a_decision_categories: intake.q19a_decision_categories,
+    q19b_housing_basis: intake.q19b_housing_basis,
+    q19_admt_description: str(intake.q19_admt_description),
+  }).cls;
+  if (admtUse === "Yes" && admtDecisionClass === "significant") {
     triggers.push(3);
   } else if (admtUse === "Yes") {
     omitted.push(
-      admtDescriptionClass === "advertising_only"
+      admtDecisionClass === "advertising_only"
         ? "S1:b3_advertising_exclusion_fsor_7001_ddd_6"
+        : admtDecisionClass === "not_significant"
+        ? "S1:b3_not_significant_category"
+        : admtDecisionClass === "housing_excluded"
+        ? "S1:b3_housing_availability_exclusion_7001_ddd_2"
         : "S1:b3_significant_decision_category_unresolved",
     );
   }

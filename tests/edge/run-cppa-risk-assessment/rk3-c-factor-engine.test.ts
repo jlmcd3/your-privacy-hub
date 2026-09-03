@@ -194,11 +194,21 @@ Deno.test("v5.2 — impact_intake.benefitsOutweigh never feeds the determination
   });
   const yes = runRiskFactorEngine(flip("Yes"), report, "2026-08-18");
   const no = runRiskFactorEngine(flip("No"), report, "2026-08-18");
+  // DOC 157 (model-vs-law build) — the Company's own answer now renders as a
+  // closing sentence in § 4.C (with a reconcile Follow-Up when it conflicts);
+  // the DETERMINATION itself must still be identical, so the comparison
+  // strips that sentence and also pins the typed disposition.
+  const stripCompanyAnswer = (t: string): string =>
+    t.replace(
+      / The Company’s own recorded answer to whether the benefits outweigh the risks is “[^”]*”\.( That answer differs from the determination above; reconciling the two appears among the Follow-Ups in § 4\.D\.)?/,
+      "",
+    );
   assertEquals(
-    yes.factors.determination_text,
-    no.factors.determination_text,
+    stripCompanyAnswer(yes.factors.determination_text),
+    stripCompanyAnswer(no.factors.determination_text),
     "the determination must be identical whatever the customer's perspective answer",
   );
+  assertEquals(yes.exec_panel.disposition, no.exec_panel.disposition);
   assertEquals(yes.factors.recommended_outcome, no.factors.recommended_outcome);
 });
 

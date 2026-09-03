@@ -5,7 +5,7 @@
  */
 import { CPPA_RISK_GATES } from "../gates/cppa-risk-gates.ts";
 import type { GateRuleOutcome } from "../render-plan/schema.ts";
-import { classifyAdmtSignificantDecision } from "../admt-significant-decision.ts";
+import { resolveAdmtSignificantDecision } from "../admt-significant-decision.ts";
 
 type Intake = Record<string, unknown>;
 
@@ -164,8 +164,18 @@ export function evaluateCppaRiskGates(intake: Intake): GateRuleOutcome[] {
             reason: "b3_evaluation_not_deployed — q18_admt_use answers In evaluation; § 7150(b)(3) applies to deployed use",
           });
         } else {
+          // DOC 157 (2026-09-03, model-vs-law build) — the categorical
+          // § 7001(ddd) answer (q19a_decision_categories / q19b_housing_basis)
+          // governs when present; the free-text classifier remains the
+          // fallback for records without it. Two further determined blocks:
+          // the Company records the decision as outside every category, or
+          // as a housing decision within the (ddd)(2) exclusion.
           const desc = readField(intake, "q_admt_significant_decision");
-          const cls = classifyAdmtSignificantDecision(typeof desc === "string" ? desc : "");
+          const cls = resolveAdmtSignificantDecision({
+            q19a_decision_categories: readField(intake, "q19a_decision_categories"),
+            q19b_housing_basis: readField(intake, "q19b_housing_basis"),
+            q19_admt_description: typeof desc === "string" ? desc : "",
+          }).cls;
           if (cls === "significant") {
             outcomes.push({ gate_id: gate.id, outcome: "pass" });
           } else if (cls === "advertising_only") {
@@ -173,6 +183,18 @@ export function evaluateCppaRiskGates(intake: Intake): GateRuleOutcome[] {
               gate_id: gate.id,
               outcome: "block",
               reason: "b3_advertising_exclusion_fsor_7001_ddd_6 — described decision use is advertising only",
+            });
+          } else if (cls === "not_significant") {
+            outcomes.push({
+              gate_id: gate.id,
+              outcome: "block",
+              reason: "b3_not_significant_category — the Company records the decision as outside every § 7001(ddd) significant-decision category",
+            });
+          } else if (cls === "housing_excluded") {
+            outcomes.push({
+              gate_id: gate.id,
+              outcome: "block",
+              reason: "b3_housing_availability_exclusion_7001_ddd_2 — the Company records a housing decision based solely on availability, vacancy, or receipt of payment",
             });
           } else {
             outcomes.push({
@@ -207,6 +229,22 @@ export function evaluateCppaRiskGates(intake: Intake): GateRuleOutcome[] {
         // cppa-risk/regulatory-trigger-and-applicability/01).
         const spi = readField(intake, "q_processes_sensitive_pi");
         const carve = readField(intake, "q15d_hr_carveout");
+        // DOC 157 (2026-09-03, model-vs-law build) — § 7001(bbb)(4): the
+        // personal information of consumers the business has actual
+        // knowledge are under 16 IS sensitive personal information. A "Yes"
+        // on the under-16 question engages (b)(2) even when the general
+        // sensitive-PI answer is No, Unsure, or absent (the form's own
+        // comment promised this "SPI elevation"; it was never implemented).
+        const under16 = readField(intake, "q15b_under16_knowledge");
+        const under16Known = typeof under16 === "string" && /^yes/i.test(under16.trim());
+        if (under16Known && !(typeof spi === "string" && /^yes$/i.test(spi.trim()))) {
+          outcomes.push({
+            gate_id: gate.id,
+            outcome: "pass",
+            reason: "b2_under16_elevation — § 7001(bbb)(4): the Company records actual knowledge that it processes the personal information of consumers under 16",
+          });
+          continue;
+        }
         if (spi === undefined) {
           outcomes.push({ gate_id: gate.id, outcome: "not_applicable", reason: "q15_sensitive_pi absent" });
         } else if (isNegative(spi)) {
