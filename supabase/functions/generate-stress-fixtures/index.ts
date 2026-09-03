@@ -1762,7 +1762,11 @@ function normalizeCppaRiskTriggers<T extends Record<string, any>>(data: T): T {
         r.i5_admt_logic,
         r.q3_sector,
       ].filter((v: any) => typeof v === "string").join("\n");
+      // DOC 154 (item 24) — the structured relationship answer establishes
+      // the employment/educational context directly.
+      const ctx = typeof r.consumer_relationship_context === "string" ? r.consumer_relationship_context : "";
       const employmentContext =
+        ctx === "Employees or job applicants" || ctx === "Students" ||
         /\b(employees?|employment|workers?|workforce|contractors?|staff|personnel|HR\b|recruit(ing|ment)?|hiring|job applicants?|students?|educational[- ]program|keystroke|productivity (scor|monitor)|telematics)\b/i
           .test(scenarioText);
       if (!employmentContext) r.q5b_profiling_observation = "No";

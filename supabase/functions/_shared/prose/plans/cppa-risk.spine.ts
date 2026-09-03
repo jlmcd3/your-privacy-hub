@@ -158,6 +158,12 @@ export const RISK52_FIXED = {
     "On the information provided, the Activity engages the following trigger or triggers:",
   exec_triggers_none:
     "On the information provided, the Activity does not engage any of the significant-risk categories in 11 CCR § 7150(b); a risk assessment is not required for the Activity as described, and this report records that determination.",
+  // DOC 154 (2026-09-03, code review item 6) — the lead for a digest whose
+  // only rows are reconciled states (a § 7150(b)(3) advertising exclusion or
+  // category gap, a § 7150(b)(2) "Unsure" answer, an evaluation-stage
+  // technology): no trigger is engaged, and the lead must not say one is.
+  exec_triggers_asserted_lead:
+    "On the information provided, no significant-risk category in 11 CCR § 7150(b) is engaged; the Company’s answers place the following trigger or triggers in the state recorded below:",
   // PANEL RISK-P3 (2026-08-30): rewritten alongside the exec ledger's
   // compression — the old sentence promised the four-column ledger ("its
   // level before safeguards, the safeguard credited against it") that now
@@ -240,6 +246,12 @@ export const RISK52_FIXED = {
   // conclusion, never appended to one.
   band4_provisional_no_risks:
     "No risk to consumers’ privacy is identified in the intake, so the substantive balance of benefits against risks is not determined. The executive result is stated as “Additional Information Required” until the identified information is completed.",
+  // DOC 154 (2026-09-03, code review item 5) — every named risk lacks the
+  // recorded likelihood or severity the balance requires: no assessed risk
+  // side exists, so no cell conclusion composes; this sentence composes IN
+  // PLACE OF one (the doc-142 construction for the wholly-absent case).
+  band4_provisional_unassessed_only:
+    "No identified risk carries the recorded likelihood and severity the balance requires, so the substantive balance of benefits against risks is not determined. The executive result is stated as “Additional Information Required” until the record is completed.",
   follow_ups_lead: "Follow-Ups.",
   recommendations_lead: "Recommendations.",
   none_attach:
@@ -253,6 +265,10 @@ export const RISK52_FIXED = {
   x_approval_authority:
     "The finalization record confirms that at least one approver has authority to participate in deciding whether the covered processing will be initiated or continued:",
   x_approval_authority_basis: "Basis for the authority determination:",
+  // DOC 154 (code review item 13) — an answered "No" gets its own sentence;
+  // the confirming label above must never be followed by "No".
+  x_approval_authority_no:
+    "The finalization record does not confirm that any approver has authority to participate in deciding whether the covered processing will be initiated or continued (the Company answers “No”).",
   x_timing_post2026:
     "For covered processing initiated on or after January 1, 2026, the risk assessment should be completed before the processing is initiated.",
   x_timing_pre2026:
@@ -285,7 +301,7 @@ export const RISK_PLAIN_MEANING: Readonly<Record<string, string>> = {
   "proceed":
     "the Activity may proceed as described on the information provided; no condition attaches to the determination.",
   "proceed with conditions":
-    "the Activity may proceed while the conditions in § 4.D are completed; none requires suspending the processing.",
+    "the Activity may proceed while the conditions in § 4.D are completed; none requires suspending the Activity as a whole.",
   "additional information required":
     "the information provided does not yet support a processing decision; the processing should not begin or continue in reliance on this assessment until the information identified in § 4.D is completed.",
   "do not proceed - remediable":

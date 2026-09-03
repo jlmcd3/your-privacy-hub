@@ -184,9 +184,21 @@ Deno.test("doc127 — discontinued processing projects No Processing Decision Re
 });
 
 Deno.test("doc127 — favorable bands keep the byte-identical Conditions to Proceed frame", () => {
-  // Low pathway + material benefit, no safeguard: proceed with conditions
-  // (the material-cut gap condition attaches).
-  const r = engineOn({ ...BENEFIT, a5_harm_pathways: [LOW_PATHWAY] });
+  // Low pathway + material benefit + a PLANNED safeguard: proceed with
+  // conditions (the planned-completion condition attaches).
+  // DOC 154 (code review item 4): a Low risk with no safeguard no longer
+  // draws the material-cut gap condition (Low is not material), so the
+  // favorable-with-conditions band is reached through a planned safeguard.
+  const r = engineOn({
+    ...BENEFIT,
+    a5_harm_pathways: [LOW_PATHWAY],
+    a6_safeguards: [{
+      harm: LOW_PATHWAY.harm,
+      safeguard: "A notification-frequency cap will be introduced",
+      safeguard_status: "Planned, not yet implemented",
+      planned_timeline: "Within 12 months",
+    }],
+  });
   assertEquals(r.exec_panel.disposition, "proceed with conditions");
   assertEquals(r.exec_panel.disposition_label, "Proceed with Conditions");
   assertEquals(r.exec_panel.path_forward, null);

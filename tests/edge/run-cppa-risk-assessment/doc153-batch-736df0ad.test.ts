@@ -326,7 +326,7 @@ Deno.test("doc153 — the skeleton payload ends with an END OF DOCUMENT trailer 
 // ── Instrument ───────────────────────────────────────────────────────────────
 
 Deno.test("doc153 — grader context carries the batch-10 amendments under the appended tag; rubric mirror stays byte-synced", async () => {
-  assert(GRADER_CONTEXT_VERSION.endsWith("+batch10-cal-2026-09-03"), "instrument tag missing");
+  assert(GRADER_CONTEXT_VERSION.includes("+batch10-cal-2026-09-03"), "instrument tag missing");
   assert(GRADER_CONTEXT_VERSION.startsWith("gc-2026-08-28-skeleton-cal-3-item204"), "calibration prefix lost");
   for (const needle of [
     "Never assert an intake value you cannot quote from the intake payload",

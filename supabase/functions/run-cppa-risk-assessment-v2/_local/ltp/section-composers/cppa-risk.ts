@@ -1629,9 +1629,14 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
     // proposition polarity (replayed record) must not resurrect the prong.
     // Scoped to the two b3-classifier reasons only — every other prong keeps
     // the ratified OR fallback.
+    const gateReason = (gate as { reason?: string })?.reason ?? "";
+    // DOC 154 (2026-09-03, code review items 1–2) — the two further
+    // determined blocks (b(2) "Unsure" = unresolved; b(3) "In evaluation" =
+    // not deployed) join the classifier reasons: a stale positive
+    // proposition polarity must not resurrect any of them.
     const b3ClassifierBlocked = gate?.outcome === "block" &&
-      /^b3_(advertising_exclusion|significant_decision_category_unresolved)/.test(
-        (gate as { reason?: string }).reason ?? "",
+      /^(b3_(advertising_exclusion|significant_decision_category_unresolved|evaluation_not_deployed)|b2_unresolved)/.test(
+        gateReason,
       );
     const engaged = (engagedFromGate || engagedFromProp) && !b3ClassifierBlocked;
     // PN-CORPUS-L-RISK-1 — the § 7150(b)(2)(A) personnel carve-out is a
@@ -1640,13 +1645,26 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
     // block reason so composer and evaluator can never disagree.
     const exemptB2A = !engaged &&
       gate?.outcome === "block" &&
-      ((gate as { reason?: string }).reason ?? "").includes("7150(b)(2)(A)");
+      gateReason.includes("7150(b)(2)(A)");
+    const unresolved = !engaged && gate?.outcome === "block" && /^b2_unresolved/.test(gateReason);
+    const evaluation = !engaged && gate?.outcome === "block" && /^b3_evaluation_not_deployed/.test(gateReason);
     // Item 244 Correction 4: prong index from the pinpoint substring
     // "7150(b)(N)"; used to look up the verbatim § 7150(b) label.
     const m = /7150\(b\)\((\d+)\)/.exec(c.anchor.pinpoint);
     const prongIdx = m ? Number(m[1]) as 1|2|3|4|5|6 : null;
-    return { c, engaged, exemptB2A, prongIdx };
+    return { c, engaged, exemptB2A, unresolved, evaluation, prongIdx };
   });
+  // DOC 154 — one template chooser for both branches below.
+  const itemTemplate = (e: typeof enriched[number]): string =>
+    e.engaged
+      ? "T.risk.applicability.engaged"
+      : e.exemptB2A
+      ? "T.risk.applicability.exempt_b2a"
+      : e.unresolved
+      ? "T.risk.applicability.unresolved"
+      : e.evaluation
+      ? "T.risk.applicability.evaluation"
+      : "T.risk.applicability.not_engaged";
   const engaged = enriched.filter((e) => e.engaged);
   const notEngaged = enriched.filter((e) => !e.engaged);
 
@@ -1682,11 +1700,7 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
     // non-contiguous ((b)(3) + (b)(4)), so order explicitly rather than
     // relying on registry order.
     const items = [...engaged, ...notEngaged].map<TemplateInstance>((e) => ({
-      template_id: e.engaged
-        ? "T.risk.applicability.engaged"
-        : e.exemptB2A
-        ? "T.risk.applicability.exempt_b2a"
-        : "T.risk.applicability.not_engaged",
+      template_id: itemTemplate(e),
       ctx: {
         prong_subject: e.c.display_label || prongLabelFor(e.prongIdx),
         __cite: { PINPOINT: e.c.anchor.pinpoint },
@@ -1709,7 +1723,7 @@ function composeScope(plan: RenderPlan): TemplateInstance[] {
     },
   };
   const items = enriched.map<TemplateInstance>((e) => ({
-    template_id: e.exemptB2A ? "T.risk.applicability.exempt_b2a" : "T.risk.applicability.not_engaged",
+    template_id: itemTemplate(e),
     ctx: {
       prong_subject: e.c.display_label || prongLabelFor(e.prongIdx),
       __cite: { PINPOINT: e.c.anchor.pinpoint },

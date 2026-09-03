@@ -152,6 +152,17 @@ export function evaluateCppaRiskGates(intake: Intake): GateRuleOutcome[] {
           outcomes.push({ gate_id: gate.id, outcome: "not_applicable", reason: "q18_admt_use absent" });
         } else if (isNegative(use)) {
           outcomes.push({ gate_id: gate.id, outcome: "block", reason: "q18_admt_use negative" });
+        } else if (typeof use === "string" && /^in evaluation$/i.test(use.trim())) {
+          // DOC 154 (2026-09-03, code review item 2) — evaluation is not
+          // deployed use for a significant decision; the prong is a
+          // determined non-engagement on the Company's own answer, with a
+          // distinct reason so the composer renders the evaluation posture
+          // (never the generic "record does not support this trigger").
+          outcomes.push({
+            gate_id: gate.id,
+            outcome: "block",
+            reason: "b3_evaluation_not_deployed — q18_admt_use answers In evaluation; § 7150(b)(3) applies to deployed use",
+          });
         } else {
           const desc = readField(intake, "q_admt_significant_decision");
           const cls = classifyAdmtSignificantDecision(typeof desc === "string" ? desc : "");
@@ -200,6 +211,15 @@ export function evaluateCppaRiskGates(intake: Intake): GateRuleOutcome[] {
           outcomes.push({ gate_id: gate.id, outcome: "not_applicable", reason: "q15_sensitive_pi absent" });
         } else if (isNegative(spi)) {
           outcomes.push({ gate_id: gate.id, outcome: "block", reason: "no sensitive-PI processing on the record" });
+        } else if (typeof spi === "string" && /^unsure$/i.test(spi.trim())) {
+          // DOC 154 (code review item 1) — "Unsure" is an UNRESOLVED state,
+          // not an engagement: the generic any-non-negative-passes rule
+          // rendered § 7150(b)(2) as Engaged with no qualifying fact.
+          outcomes.push({
+            gate_id: gate.id,
+            outcome: "block",
+            reason: "b2_unresolved — q15_sensitive_pi answers Unsure; the trigger is carried as additional information required",
+          });
         } else if (hrCarveoutApplies(carve)) {
           outcomes.push({
             gate_id: gate.id,

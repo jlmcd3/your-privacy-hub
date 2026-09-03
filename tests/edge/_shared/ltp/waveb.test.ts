@@ -90,8 +90,8 @@ Deno.test("pass1 manifest exposes model + prompt version (T-M5 fold-in: direct A
   assert(PASS1_MANIFEST.prompt_version.startsWith("pass1-derive-"));
 });
 
-Deno.test("all 43 templates enumerated (ITEM 241.3 adds 7: golden four-move action, record_sufficiency prose lead-in, 5 CP5 §3.2 section openers; ITEM 276 adds 2: primary-subject lead + § 7156(a) segmentation; ITEM 244 adds 5: LIA present/silent, processing_narrative, record_sufficiency prose v2, scope opener v2; PN-CORPUS-L-RISK-1 adds 1: § 7150(b)(2)(A) exempt posture)", () => {
-  assertEquals(Object.keys(PASS2_TEMPLATES).length, 43);
+Deno.test("all 45 templates enumerated (ITEM 241.3 adds 7: golden four-move action, record_sufficiency prose lead-in, 5 CP5 §3.2 section openers; ITEM 276 adds 2: primary-subject lead + § 7156(a) segmentation; ITEM 244 adds 5: LIA present/silent, processing_narrative, record_sufficiency prose v2, scope opener v2; PN-CORPUS-L-RISK-1 adds 1: § 7150(b)(2)(A) exempt posture; DOC 154 adds 2: § 7150(b)(2) unresolved + § 7150(b)(3) evaluation postures)", () => {
+  assertEquals(Object.keys(PASS2_TEMPLATES).length, 45);
 });
 
 

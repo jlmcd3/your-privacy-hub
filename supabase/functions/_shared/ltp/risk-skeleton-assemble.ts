@@ -43,6 +43,9 @@ import {
   buildRiskAndSafeguardRegisterTable,
   extractBenefits,
   riskApprovalCurrencyFloor,
+  // DOC 154 — the one-state resolvers shared with the engine.
+  resolveRecordedApprovalDate,
+  admtEvaluationActiveFor,
   type RiskFactorEngineResult,
 } from "./risk-factor-engine.ts";
 import { firstSubstantiveSentence } from "./clause-bound.ts";
@@ -509,7 +512,8 @@ export function deriveReviewApprovalTable(intake: Bag, assessmentDateIso?: strin
   // CURRENT recorded date prints; a stale (prior-review) or absent date
   // leaves the fill-in blank, because a prior review's date must never
   // render as this assessment's execution date.
-  const recordedDate = s(intake.a9_approval_date);
+  // DOC 154 (item 21) — the same resolver the engine and § 5.A consume.
+  const recordedDate = resolveRecordedApprovalDate(intake);
   const dateCurrent = recordedDate !== "" &&
     /^\d{4}-\d{2}-\d{2}/.test(recordedDate) &&
     assessmentDateIso !== undefined &&
@@ -621,6 +625,8 @@ function methodLines(intake: Bag): Array<[string, string]> {
 /** {{DERIVED.processing_lifecycle_narrative}} — operational sequence for Appendix C. */
 function lifecycleNarrative(intake: Bag): string | null {
   const m = (intake.processing_methods ?? {}) as Bag;
+  // DOC 154 (item 20) — "N/A" stage values are not narrative.
+  const notApplicable = (v: string): boolean => /^(n\/?a|not applicable|none)\.?$/i.test(v);
   const stages = [
     s(intake.processing_entry_point),
     s(m.collection_method),
@@ -629,7 +635,7 @@ function lifecycleNarrative(intake: Bag): string | null {
     s(m.retention_method),
     s(m.other_processing_method),
     s(intake.processing_result),
-  ].filter(Boolean);
+  ].filter((v) => v && !notApplicable(v));
   return stages.length >= 2 ? stages.join(" ") : null;
 }
 
@@ -663,9 +669,10 @@ export function deriveProcessingAndDataInventory(intake: Bag): RenderedTable | n
     push("Disclosure", `${clause(d.disclosure_content)} (${bits.join("; ")})`);
   }
   for (const r of rows(intake.recipients)) {
+    // DOC 154 (item 37) — no empty "()" when the type is unrecorded.
     push(
       "Recipient",
-      `${s(r.recipient_name_or_category)} (${s(r.recipient_type)}): ${
+      `${s(r.recipient_name_or_category)}${s(r.recipient_type) ? ` (${s(r.recipient_type)})` : ""}: ${
         arr(r.pi_categories_made_available).join(", ")
       } — ${clause(r.disclosure_purpose)}`,
     );
@@ -767,14 +774,10 @@ function neutralTemplateVersion(stamp: string): string {
  * the record (the six appendix record areas). Shared predicate for the
  * appendix table + intro gates; mirrors the engine's admtEvaluationActive. */
 function admtEvaluationWithFacts(intake: Bag): boolean {
-  return s(intake.q18_admt_use) === "In evaluation" && [
-    intake.q19_admt_description,
-    intake.i5_admt_logic,
-    intake.admt_output,
-    intake.i5_admt_human_review,
-    intake.i5_admt_fairness_testing,
-    intake.i5_admt_training_source,
-  ].some((v) => s(v) !== "");
+  // DOC 154 (item 22) — the engine's predicate IS this gate (the two fact
+  // sets used to differ, so § 3.E could point at an Appendix E that said
+  // "no technical description", or the reverse).
+  return admtEvaluationActiveFor(intake);
 }
 
 /** Appendix E (was F; DOC 144 re-letter) — {{DERIVED.admt_technical_facts}}
@@ -809,6 +812,15 @@ export function deriveAdmtTechnicalFacts(intake: Bag): RenderedTable | null {
     ["Use of the output", s(intake.admt_output_use)],
     ["Consumer effect", s(intake.admt_consumer_effect)],
     ["Human review", s(intake.i5_admt_human_review)],
+    // DOC 154 (item 22) — the structured ADMT answers (role type, logic
+    // documentation status, human-review facts, testing facts) are part of
+    // the technical record the appendix preserves; they printed nowhere in
+    // it before, so an evaluation record carrying only structured answers
+    // rendered § 3.E with an empty Appendix E behind it.
+    ["Role type (as recorded)", s(intake.admt_role_type)],
+    ["Logic documentation (as recorded)", s(intake.admt_logic_documented)],
+    ["Human review facts (as recorded)", arr(intake.human_review_facts).join("; ")],
+    ["Testing facts (as recorded)", arr(intake.admt_testing_facts).join("; ")],
     ["Fairness testing", s(intake.i5_admt_fairness_testing)],
     ["Training-data source", s(intake.i5_admt_training_source)],
     ["§ 7153 — made available to another business", yn(intake.admt_made_available_to_other_business)],
@@ -885,7 +897,8 @@ function composeVApproval(intake: Bag, assessmentDateIso?: string): string {
     ? `${s(intake.a9_approver_name)}${s(intake.a9_approver_position) ? `, ${s(intake.a9_approver_position)}` : ""} (Approved)`
     : "";
   const reviewers = reviewerRows || migrated;
-  const approvalDate = s(intake.a9_approval_date);
+  // DOC 154 (item 21) — one approval-date resolver across every surface.
+  const approvalDate = resolveRecordedApprovalDate(intake);
   const authority = yn(intake.approver_authority_confirmed);
   const basis = clause(intake.approver_authority_basis);
   if (!reviewers && !approvalDate && !authority) return "";
@@ -915,7 +928,14 @@ function composeVApproval(intake: Bag, assessmentDateIso?: string): string {
       }
     }
   }
-  if (authority) bits.push(`${RISK52_FIXED.x_approval_authority} ${authority}.`);
+  // DOC 154 (item 13) — an answered "No" never follows the confirming label.
+  if (authority) {
+    bits.push(
+      /^no\b/i.test(authority)
+        ? RISK52_FIXED.x_approval_authority_no
+        : `${RISK52_FIXED.x_approval_authority} ${authority}.`,
+    );
+  }
   if (basis) bits.push(`${RISK52_FIXED.x_approval_authority_basis} ${basis}.`);
   return bits.join(" ");
 }
@@ -1071,12 +1091,23 @@ export const RISK_APPENDIX_I_LEAD =
   "This appendix collects enforcement decisions issued under analogous data-protection law that bear on factors assessed in this report. These decisions were issued under the EU General Data Protection Regulation, not the CCPA or its regulations; they are persuasive context only, are not binding on the California Privacy Protection Agency or on any court applying California law, and are cited because the processing or the failure they address is analogous to a factor this assessment addresses. Each entry names the factor it bears on. The operative determination for every factor remains the analysis in the body of this report.";
 
 /** The report's fired-state tokens for CAM attachment. Exported for tests. */
-export function deriveRiskFiredStates(report: Bag): Set<string> {
+export function deriveRiskFiredStates(report: Bag, intake?: Bag): Set<string> {
   const states = new Set<string>();
   const scope = arr((report.scope_and_triggers as Bag)?.narrative ?? report.scope_and_triggers);
+  // DOC 154 (item 23) — the same reconciliation the trigger table applies:
+  // a prong the engine renders as not engaged / unresolved must not attach
+  // persuasive authority (Appendix B) or the Appendix A trail.
+  const suppressed = new Set<string>();
+  if (intake) {
+    if (
+      s(intake.q18_admt_use) !== "Yes" ||
+      classifyAdmtSignificantDecision(s(intake.q19_admt_description)) !== "significant"
+    ) suppressed.add("3");
+    if (s(intake.q15_sensitive_pi) === "Unsure") suppressed.add("2");
+  }
   for (const line of scope) {
     const m = /^Engaged — .*?7150\(b\)\((\d)\)/.exec(line);
-    if (m) {
+    if (m && !suppressed.has(m[1])) {
       states.add(`7150(b)(${m[1]})`);
       states.add("trigger_engaged");
     }
@@ -1096,8 +1127,8 @@ export interface RiskPersuasiveAuthority {
 
 /** {{DERIVED.persuasive_authority_matrix}} — pure attachment over the Risk
  * CAM. NO-PADDING LAW: no attached row → null table → Appendix B drops. */
-export function buildPersuasiveAuthority(report: Bag): RiskPersuasiveAuthority {
-  const fired = deriveRiskFiredStates(report);
+export function buildPersuasiveAuthority(report: Bag, intake?: Bag): RiskPersuasiveAuthority {
+  const fired = deriveRiskFiredStates(report, intake);
   const ap = attachCorpusRows(RISK_CORPUS_MAP, "S5", fired).filter((r) => r.role === "AP");
   if (ap.length === 0) return { table: null, trail: null, warning: null };
 
@@ -1137,7 +1168,7 @@ function riskFreeText(intake: Bag): string[] {
  * attached above (buildPersuasiveAuthority's own `ap` list), so this
  * appendix surfaces ONLY topics the deterministic triggers did not reach. */
 export function buildAdvisoryCorpusMatches(report: Bag, intake: Bag): RenderedTable | null {
-  const fired = deriveRiskFiredStates(report);
+  const fired = deriveRiskFiredStates(report, intake);
   const alreadyCited = new Set(
     attachCorpusRows(RISK_CORPUS_MAP, "S5", fired)
       .filter((r) => r.role === "AP")
@@ -1191,7 +1222,7 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
   // appendix (mirrors deriveAdmtTechnicalFacts' gate).
   if (isYes(intake.q18_admt_use) || admtEvaluationWithFacts(intake)) {
     composed["appendix_d:0"] =
-      "This appendix preserves the technical and analytical detail supporting § 3.E, including the technology’s role, logic, assumptions and limitations, output, human review, testing, training-data provenance, and facts relevant to § 7153. The verbatim system, logic, assumptions, and training-data descriptions live in this appendix rather than in the body.";
+      "This appendix preserves the technical and analytical detail supporting § 3.E, including the technology’s role, logic, assumptions and limitations, output, human review, testing, training-data provenance, and facts relevant to § 7153. The full verbatim system, logic, assumptions, and training-data descriptions are preserved here; the body quotes them only as its analysis requires.";
     const techPresent = [
       clause(intake.q19_admt_description),
       clause(intake.i5_admt_logic),
@@ -1201,8 +1232,10 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
       clause(intake.i5_admt_training_source),
     ].filter(Boolean).length;
     if (techPresent > 0) {
+      // DOC 154 (item 33) — counts under ten render as words.
+      const COUNT_WORDS = ["zero", "one", "two", "three", "four", "five", "six"];
       composed["appendix_d:2"] =
-        `Analytical note. The record above preserves the Company’s own technical description across ${techPresent} of the six record areas the appendix tracks (system description, logic, output and use, human review, testing, and training data). The body of the report evaluates those facts in § 3.E; this appendix preserves them so a reviewer can trace each conclusion to the description it rests on.`;
+        `Analytical note. The record above preserves the Company’s own technical description across ${COUNT_WORDS[techPresent] ?? String(techPresent)} of the six record areas the appendix tracks (system description, logic, output and use, human review, testing, and training data). The body of the report evaluates those facts in § 3.E; this appendix preserves them so a reviewer can trace each conclusion to the description it rests on.`;
     }
   } else {
     // A-TEAM S3 RULING V.13 (doc 115, 2026-08-31) — the trailing "appendix
@@ -1219,7 +1252,7 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
   // fired trigger states. Computed BEFORE Appendix A so the trigger row's
   // authority cell can carry the S3 citation trail exactly when the appendix
   // renders (Factor-Bearing Law; no dangling pointer).
-  const persuasive = buildPersuasiveAuthority(report);
+  const persuasive = buildPersuasiveAuthority(report, intake);
   composed["appendix_i:0"] = persuasive.table ? RISK_APPENDIX_I_LEAD : null;
   composed["appendix_i:2"] = persuasive.table ? persuasive.warning : null;
 

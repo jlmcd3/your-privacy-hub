@@ -37,9 +37,13 @@ Deno.test("content: pass2 templates present with expected ids", () => {
   const expected = [
     "T.risk.admt.consequence_suppressed",
     "T.risk.applicability.engaged",
+    // DOC 154 (code review) — evaluation-stage ADMT is a not-engaged posture.
+    "T.risk.applicability.evaluation",
     // PN-CORPUS-L-RISK-1 — § 7150(b)(2)(A) personnel carve-out posture.
     "T.risk.applicability.exempt_b2a",
     "T.risk.applicability.not_engaged",
+    // DOC 154 (code review) — q15 "Unsure" is an unresolved posture.
+    "T.risk.applicability.unresolved",
     "T.risk.balance.factor_line",
     "T.risk.balance.firm",
     "T.risk.balance.hedged",

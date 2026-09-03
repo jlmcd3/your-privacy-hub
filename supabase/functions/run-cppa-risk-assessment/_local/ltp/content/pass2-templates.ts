@@ -83,6 +83,29 @@ export const PASS2_TEMPLATES: Readonly<Record<string, Pass2Template>> = {
     intake_slots: [],
     max_chars: 520,
   },
+  // DOC 154 (2026-09-03, code review items 1–2) — two further determined
+  // postures. "Unresolved" carries the Company's own "Unsure" answer as an
+  // additional-information state (never Engaged, never "does not support");
+  // "evaluation" states why an evaluation-stage technology does not engage
+  // the deployed-use trigger. The skeleton engine synthesizes the
+  // customer-facing rows from the intake; these keep the legacy narrative
+  // honest and give the engine a non-"Engaged" line to read.
+  "T.risk.applicability.unresolved": {
+    id: "T.risk.applicability.unresolved",
+    text: "Unresolved — {{cite:PINPOINT}} ({{plan:prong_subject}}): the record does not determine whether this trigger applies; the Company answers that it is unsure, and the question is carried as additional information required.",
+    citation_slots: ["PINPOINT"],
+    plan_slots: ["prong_subject"],
+    intake_slots: [],
+    max_chars: 400,
+  },
+  "T.risk.applicability.evaluation": {
+    id: "T.risk.applicability.evaluation",
+    text: "Not engaged — {{cite:PINPOINT}} ({{plan:prong_subject}}): the Company records the automated decisionmaking technology as under evaluation rather than deployed; this trigger applies when the technology is used to make a significant decision concerning a consumer.",
+    citation_slots: ["PINPOINT"],
+    plan_slots: ["prong_subject"],
+    intake_slots: [],
+    max_chars: 400,
+  },
   "T.risk.cohort": {
     id: "T.risk.cohort",
     text: "Based on the revenue information provided, the Company's applicable compliance timeline is {{plan:cohort_date}} under {{cite:PINPOINT}}.",
