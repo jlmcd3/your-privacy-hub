@@ -84,10 +84,19 @@ export interface StressJobRow {
 }
 
 /**
- * Launch a Claude-intake batch for the given products.
- * geo_filter is always "both" so EU-only (LIA/DPIA/RoPA/EU Notice) and
- * US-only (CPPA suite / US Notice) tools all receive an applicable company.
+ * GEO-DEMAND LAW (2026-09-03): the number of documents a product gets equals
+ * the number of companies in ITS geo. Requesting N runs of a US-only product
+ * (CPPA suite / US Notice) with geo_filter="both" produced only the US wave's
+ * companies — and the old cap of 2 slots meant a 4-document request yielded 2.
+ * geo_filter is now derived from the selected products, and slots_per_geo
+ * carries the requested count (up to 8) so N requested = N produced.
  */
+const STRESS_TOOL_GEO: Record<string, "us" | "eu" | "both"> = {
+  governance: "eu", dpa: "both", "ir-playbook": "both", biometric: "both",
+  registration: "eu", lia: "eu", dpia: "eu", ropa: "eu", "eu-notice": "eu",
+  "us-notice": "us", "cppa-risk": "us", "cppa-cyber": "us", "cppa-admt": "us",
+};
+
 export async function launchClaudeIntakeBatch(opts: {
   userId: string;
   slugs: ToolSlug[];
@@ -99,17 +108,25 @@ export async function launchClaudeIntakeBatch(opts: {
   const tools = Array.from(new Set(opts.slugs.map((s) => SLUG_TO_STRESS_TOOL[s]))).filter(Boolean);
   if (!tools.length) throw new Error("no products selected");
 
+  const geos = new Set<string>();
+  for (const t of tools) {
+    const g = STRESS_TOOL_GEO[t] ?? "both";
+    if (g === "both") { geos.add("us"); geos.add("eu"); } else geos.add(g);
+  }
+  const geoFilter = geos.size === 1 ? [...geos][0] : "both";
+
   const { data, error } = await invokeWithTimeout<{ batch_id?: string; error?: string }>(
     "start-stress-batch",
     {
       run_by: opts.userId,
       industries: [{ id: industry.id, label: industry.label }],
-      geo_filter: "both",
+      geo_filter: geoFilter,
       selected_tools: tools,
-      slots_per_geo: Math.max(1, Math.min(2, opts.companiesPerGeo)),
+      slots_per_geo: Math.max(1, Math.min(8, Math.round(opts.companiesPerGeo || 1))),
     },
     90_000,
   );
+
   if (error || !data?.batch_id) {
     throw new Error(error?.message ?? data?.error ?? "start-stress-batch returned no batch_id");
   }
