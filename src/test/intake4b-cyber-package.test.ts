@@ -29,6 +29,8 @@ describe("INTAKE-4b — contract key/option snapshot (byte-identity guard)", () 
       "Documented, partially implemented",
       "Implemented across organization",
       "Implemented with continuous monitoring",
+      // DOC 159 (2026-09-03) — § 7123(b)(2)/(c) "if applicable".
+      "Not applicable to our information system",
     ]);
     expect(CYBER_CONTROL_SLUGS.length).toBe(18);
     expect(CYBER_EVIDENCE_OPTS.length).toBe(8);
@@ -58,6 +60,8 @@ describe("INTAKE-4b — contract key/option snapshot (byte-identity guard)", () 
       "profile.entity_name",
       "profile.industry",
       "profile.incidents_12mo",
+      // DOC 159 (2026-09-03) — § 7123(e)(9)/(10), conditional on an incident.
+      "profile.incident_notifications",
       "profile.framework",
       "profile.last_audit",
       "profile.in_scope_frameworks",
@@ -77,6 +81,8 @@ describe("INTAKE-4b — contract key/option snapshot (byte-identity guard)", () 
       "controls[].maturity",
       "controls[].notes",
       "controls[].evidence",
+      // DOC 159 (2026-09-03) — § 7123(b)(2), conditional on the not-applicable maturity.
+      "controls[].na_reason",
     ]);
   });
 

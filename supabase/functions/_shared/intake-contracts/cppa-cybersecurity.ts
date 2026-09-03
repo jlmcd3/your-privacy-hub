@@ -86,6 +86,15 @@ export const CYBER_MATURITY_OPTIONS = [
   "Documented, partially implemented",
   "Implemented across organization",
   "Implemented with continuous monitoring",
+  // DOC 159 (2026-09-03) — 11 CCR § 7123(c) assesses the components "if
+  // applicable" and § 7123(b)(2) limits the audit to the components "the
+  // auditor deems applicable to the business's information system". Without
+  // this option a component that cannot apply (no in-house software
+  // development, no owned network) could only be answered "Not implemented",
+  // which the deterministic model reads as a blocking gap. The Company's
+  // position is recorded, with its stated basis (controls[].na_reason), for
+  // the auditor's determination; the report never decides applicability.
+  "Not applicable to our information system",
 ] as const;
 
 // LITERAL COPY of the inline <option> lists in CPPACybersecurity.tsx.
@@ -192,6 +201,22 @@ export const CYBER_APPLICABILITY_SPI_VOLUME_OPTIONS = ["Fewer than 50,000", "50,
 // CYBER_PASSWORD_AUTH_OPTIONS.
 export const CYBER_PASSWORD_AUTH_OPTIONS = ["Yes", "No"] as const;
 
+// DOC 159 (2026-09-03) — 11 CCR § 7123(e)(9)/(10): the audit report must
+// include a sample copy or description of any consumer notification made
+// under Civ. Code § 1798.82(a) and of any required agency notification. The
+// incident count alone cannot say whether either happened, and the
+// deterministic path never infers breach facts from the count (spine v1.1
+// guardrail i3), so the record asks once an incident is reported. LITERAL
+// COPY of src/pages/CPPACybersecurity.enums.ts
+// CYBER_INCIDENT_NOTIFICATION_OPTIONS.
+export const CYBER_INCIDENT_NOTIFICATION_OPTIONS = [
+  "No notification was required",
+  "Affected consumers were notified (Civ. Code § 1798.82(a))",
+  "An agency with jurisdiction over privacy laws in California was notified",
+  "Both affected consumers and an agency were notified",
+  "Unsure",
+] as const;
+
 
 
 export const cppaCybersecurityContract: IntakeContract = {
@@ -203,6 +228,13 @@ export const cppaCybersecurityContract: IntakeContract = {
     { key: "profile.industry",       kind: "text", required: "always" },
     { key: "profile.incidents_12mo", kind: "enum", required: "always",
       options: INCIDENTS_12MO_OPTIONS },
+    // DOC 159 — § 7123(e)(9)/(10) notification facts, asked only when the
+    // Company reports at least one incident (the form shows the row under the
+    // incident count for any non-"None" answer; VALUE-EQUALS trigger, r5b).
+    { key: "profile.incident_notifications", kind: "enum", required: "conditional",
+      options: CYBER_INCIDENT_NOTIFICATION_OPTIONS,
+      requiredWhen: 'profile.incidents_12mo is "1", "2–5" or "More than 5"',
+      trigger: { key: "profile.incidents_12mo", equals: ["1", "2–5", "More than 5"] } },
     { key: "profile.framework",      kind: "enum", required: "always",
       options: FRAMEWORK_OPTIONS },
     { key: "profile.last_audit",     kind: "enum", required: "always",
@@ -274,5 +306,13 @@ export const cppaCybersecurityContract: IntakeContract = {
     // TURN 3 — per-component evidence-availability checklist.
     { key: "controls[].evidence", kind: "multi-enum", required: "optional",
       options: CYBER_EVIDENCE_OPTS, askEligible: true },
+    // DOC 159 — § 7123(b)(2): the basis for a component the Company reports
+    // as not applicable to its information system (11 CCR § 7001(t): the
+    // resources organized for its processing, owned or not). Asked only when
+    // a control row carries the not-applicable maturity (the form shows the
+    // box under that selection; VALUE-EQUALS trigger over the array rows).
+    { key: "controls[].na_reason", kind: "text", required: "conditional",
+      requiredWhen: 'controls[].maturity is "Not applicable to our information system"',
+      trigger: { key: "controls[].maturity", equals: ["Not applicable to our information system"] } },
   ],
 };

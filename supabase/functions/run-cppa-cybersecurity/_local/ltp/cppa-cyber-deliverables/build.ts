@@ -23,6 +23,9 @@ import {
   CYBER_PROGRAM_OBLIGATIONS,
 } from "./components.ts";
 import { maturityPhrase } from "./cyber-factors.ts";
+// DOC 159 (2026-09-03) — the one resolver for the framework and prior-audit
+// answers, shared with cyber-factors.ts, plus the not-applicable maturity.
+import { NOT_APPLICABLE_MATURITY, countWord, frameworkFact, priorAuditFact } from "./record-facts.ts";
 // DOC 137 (2026-09-01) — needed so the record_insufficient headline/
 // reasoning can name § 7120 applicability as an open gate alongside the
 // § 7122 auditor-engagement gate, matching the gating hierarchy already
@@ -69,7 +72,20 @@ const MATURITY_VERDICT: Record<string, Verdict> = {
   "Documented, partially implemented": "partially_satisfied",
   "Implemented across organization": "satisfied",
   "Implemented with continuous monitoring": "satisfied",
+  // DOC 159 — the Company's § 7123(b)(2) position; recorded, never decided.
+  [NOT_APPLICABLE_MATURITY]: "not_applicable",
 };
+
+/**
+ * DOC 159 — evidence types that ARE the program's written documentation for
+ * 11 CCR § 7123(b)(1) ("the related written documentation thereof (e.g.,
+ * policies and procedures)"). The optional notes box describes a control; it
+ * is not documentation.
+ */
+const WRITTEN_DOCUMENTATION = new Set<string>([
+  "Policy / procedure document",
+  "Runbook / SOP",
+]);
 
 /**
  * Evidence types that are testable artifacts. § 7122(d) requires findings to
@@ -116,6 +132,8 @@ export interface CyberControlRecord {
   maturity: string;
   notes: string;
   evidence: string[];
+  /** DOC 159 — the Company's stated basis for a not-applicable position. */
+  na_reason: string;
 }
 
 export interface CyberFacts {
@@ -142,6 +160,7 @@ export function readCyberFacts(intake: unknown): CyberFacts {
         maturity: str(get(c, "maturity")),
         notes: str(get(c, "notes")),
         evidence: arr(get(c, "evidence")),
+        na_reason: str(get(c, "na_reason")),
       };
     }
   }
@@ -192,6 +211,33 @@ export function buildComponentCoverage(facts: CyberFacts): CyberComponentCoverag
       };
     }
 
+    // DOC 159 — the Company's § 7123(b)(2) position. 11 CCR § 7123(c)
+    // assesses the components "if applicable" and § 7123(b)(2) limits the
+    // audit to those "the auditor deems applicable to the business's
+    // information system"; the report records the position and its stated
+    // basis for that determination and never decides applicability itself.
+    if (verdict === "not_applicable") {
+      const reason = rec?.na_reason ?? "";
+      return {
+        ...base,
+        in_scope: false,
+        record_fact: reason
+          ? `The Company reports that ${comp.label} is not applicable to its information system: ${reason}`
+          : `The Company reports that ${comp.label} is not applicable to its information system, without stating the basis.`,
+        application:
+          `${comp.citation} is assessed if applicable, and 11 CCR § 7123(b)(2) limits the audit to the components the auditor ` +
+          `deems applicable to the business's information system. The Company's position is recorded for that determination; ` +
+          `this report does not decide applicability` +
+          (reason ? "." : ", and the auditor will need the basis the Company has not yet stated."),
+        verdict: "not_applicable" as Verdict,
+        status: "analysed" as const,
+        remediation: reason
+          ? "Retain the stated basis for the not-applicable position so the auditor can confirm it (11 CCR § 7123(b)(2))."
+          : "State and retain the basis for treating this component as not applicable; the auditor determines applicability (11 CCR § 7123(b)(2)).",
+        ...(reason ? {} : { information_needed: `State why ${comp.label} does not apply to the Company's information system.` }),
+      };
+    }
+
     if (!verdict) {
       return {
         ...base,
@@ -236,6 +282,17 @@ export function buildComponentCoverage(facts: CyberFacts): CyberComponentCoverag
         `${comp.citation} requires this component to be assessed and documented. The record shows it documented but ` +
         `only partially implemented, so the component is addressed in policy and incompletely in operation.`;
       remediation = `Complete implementation of ${comp.label} across the systems in audit scope and record the completion date.`;
+    } else if (maturity === "Ad hoc / informal") {
+      // DOC 159 — an informal control exists but is undocumented; the audit
+      // reaches the written documentation (11 CCR § 7123(b)(1)), so the
+      // finding names the documentation gap rather than calling the
+      // component absent.
+      application =
+        `${comp.citation} requires this component to be assessed and documented, and 11 CCR § 7123(b)(1) reaches the ` +
+        `written documentation of the program. The record shows a status of "${maturity}": the component operates ` +
+        `informally, without the written policies and procedures the audit assesses, so the audit would report it as ` +
+        `not implemented as a documented component.`;
+      remediation = `Document ${comp.label} in written policies and procedures and implement them across the systems in audit scope before the audit is certified under ${CYBER_7124_CITATION}.`;
     } else {
       application =
         `${comp.citation} requires this component to be assessed and documented. The record shows a status of ` +
@@ -278,6 +335,23 @@ export function buildEvidenceSufficiency(facts: CyberFacts): EvidenceSufficiency
       evidence_offered: offered,
       testable_artifacts: testable,
     };
+
+    // DOC 159 — no evidence is assessed on a component the Company reports
+    // as not applicable (§ 7123(b)(2)); the row says so rather than reading
+    // the empty checklist as an unevidenced component.
+    if (MATURITY_VERDICT[rec?.maturity ?? ""] === "not_applicable") {
+      return {
+        ...base,
+        record_fact: `The Company reports ${comp.label} as not applicable to its information system; no evidence is required for it.`,
+        application:
+          `${EVIDENCE_STANDARD.citation} governs findings on the components the auditor deems applicable. No finding is ` +
+          `made on a component the Company reports as not applicable, subject to the auditor's determination under 11 CCR § 7123(b)(2).`,
+        verdict: "not_applicable" as Verdict,
+        status: "analysed" as const,
+        assessable_on_record: null,
+        sufficiency: "not_applicable" as const,
+      };
+    }
 
     if (!rec || (offered.length === 0 && !declaredNone)) {
       return {
@@ -349,30 +423,64 @@ export function buildEvidenceSufficiency(facts: CyberFacts): EvidenceSufficiency
 // § 7123(b)(1) and (b)(3) — program obligations (never components)
 // ─────────────────────────────────────────────────────────────────────
 export function buildProgramObligationFindings(facts: CyberFacts): Finding[] {
-  const documented = Object.values(facts.controls).filter((c) => c.notes).length;
-  const total = CYBER_7123_COMPONENTS.length;
+  // DOC 159 — § 7123(b)(1) reaches "the related written documentation
+  // thereof (e.g., policies and procedures)". The evidence checklist is where
+  // the record says a written policy, procedure, runbook or SOP exists; the
+  // optional notes box describes a control and is not documentation.
+  // Components the Company reports as not applicable are outside the count,
+  // and "None / informal" / "Other" are read as what they say rather than
+  // spliced as framework names.
+  const applicable = CYBER_7123_COMPONENTS.filter((c) =>
+    MATURITY_VERDICT[facts.controls[c.slug]?.maturity ?? ""] !== "not_applicable"
+  );
+  const documented = applicable.filter((c) =>
+    (facts.controls[c.slug]?.evidence ?? []).some((e) => WRITTEN_DOCUMENTATION.has(e))
+  ).length;
+  const anyEvidenceIdentified = applicable.some((c) =>
+    (facts.controls[c.slug]?.evidence ?? []).some((e) => e !== NO_EVIDENCE_SENTINEL)
+  );
+  const total = applicable.length;
+  const fw = frameworkFact(facts.framework);
 
   const establishment = CYBER_PROGRAM_OBLIGATIONS[0];
   const enforcement = CYBER_PROGRAM_OBLIGATIONS[1];
 
-  const establishmentFinding: Finding = facts.framework
+  const remaining = total - documented;
+  const documentationClause = documented === total
+    ? "written documentation (a policy, procedure, runbook or SOP) across every applicable component"
+    : `written documentation (a policy, procedure, runbook or SOP) for ${countWord(documented)} of ${countWord(total)} applicable components`;
+  const frameworkClause = fw.kind === "named"
+    ? `The record identifies ${fw.answer} as the program framework`
+    : fw.kind === "informal"
+    ? "The Company reports that its program is run informally against no published framework"
+    : "The record identifies a framework outside the listed set";
+  const establishmentVerdict: Verdict = documented === total
+    ? "satisfied"
+    : documented > 0
+    ? "partially_satisfied"
+    : anyEvidenceIdentified
+    ? "not_satisfied"
+    : "record_insufficient";
+
+  const establishmentFinding: Finding = fw.kind !== "blank"
     ? {
       key: "program_establishment",
       label: establishment.label,
       citation: establishment.citation,
       standard: establishment.verbatim,
-      record_fact:
-        `The record identifies ${facts.framework} as the program framework and carries written descriptions for ` +
-        `${documented} of ${total} components.`,
+      record_fact: `${frameworkClause} and carries ${documentationClause}.`,
       application:
         `${establishment.citation} makes the establishment, implementation, and maintenance of the program — and the ` +
         `written documentation of it — an audited matter in its own right, separate from the components in ` +
-        `subsection (c). The record evidences a named framework and ${documented === total ? "written descriptions across every component" : `written descriptions across ${documented} of ${total} components`}.`,
-      verdict: documented === total ? "satisfied" : "partially_satisfied",
-      status: "analysed",
+        `subsection (c). ` +
+        (establishmentVerdict === "record_insufficient"
+          ? "The record identifies no evidence category for any applicable component, so whether the program is documented in writing cannot be read from it."
+          : `The record evidences ${fw.kind === "named" ? "a named framework" : fw.kind === "informal" ? "an informally organized program" : "a framework outside the listed set"} and ${documentationClause}.`),
+      verdict: establishmentVerdict,
+      status: establishmentVerdict === "record_insufficient" ? "record_insufficient" : "analysed",
       ...(documented === total ? {} : {
         information_needed:
-          `Document the remaining ${total - documented} component${total - documented === 1 ? "" : "s"} in the written program.`,
+          `Identify the written documentation (a policy, procedure, runbook or SOP) for the remaining ${countWord(remaining)} applicable component${remaining === 1 ? "" : "s"}.`,
       }),
     }
     : {
@@ -547,29 +655,96 @@ export function buildIndependenceDetermination(facts: CyberFacts): IndependenceD
       };
     }
 
-    // five_year_retention
+    if (cond.key === "no_primary_reliance_on_management") {
+      // DOC 159 — § 7122(d) is the evidence standard for the auditor's
+      // findings, applied per component in Op. B. Before doc 159 it fell
+      // through to the retention branch below and printed prior-audit prose
+      // under the § 7122(d) label on every record. It is reported here on the
+      // evidence posture and never rolled into the § 7122 engagement verdict:
+      // the readiness determination already reads the per-component rows.
+      const applicableD = CYBER_7123_COMPONENTS.filter((c) =>
+        MATURITY_VERDICT[facts.controls[c.slug]?.maturity ?? ""] !== "not_applicable"
+      );
+      const testableD = applicableD.filter((c) =>
+        (facts.controls[c.slug]?.evidence ?? []).some((e) => TESTABLE_EVIDENCE.has(e))
+      ).length;
+      const declaredNoneD = applicableD.filter((c) => {
+        const ev = facts.controls[c.slug]?.evidence ?? [];
+        return ev.includes(NO_EVIDENCE_SENTINEL) && !ev.some((e) => e !== NO_EVIDENCE_SENTINEL);
+      }).length;
+      const verdictD: Verdict = testableD === applicableD.length
+        ? "satisfied"
+        : declaredNoneD > 0
+        ? "not_satisfied"
+        : "partially_satisfied";
+      return {
+        ...base,
+        record_fact:
+          `The record identifies testable evidence (a log, a configuration export, a report, a test result, an auditor letter, ` +
+          `or a training record) for ${countWord(testableD)} of ${countWord(applicableD.length)} applicable components` +
+          `${declaredNoneD ? `, and states that none is on file for ${countWord(declaredNoneD)}` : ""}.`,
+        application:
+          `${cond.citation} bars a finding that rests primarily on management assertion. ` +
+          (verdictD === "satisfied"
+            ? "On the identified evidence an auditor could test every applicable component rather than accept management's account of it."
+            : verdictD === "not_satisfied"
+            ? "Where the record states that no evidence is on file, no supportable finding could be reached on that component; the per-component rows in Section 2 and Appendix B carry the detail."
+            : "Where a component is evidenced by policy documentation alone, a finding on it would rest on management's account until an operating artifact is retained; the per-component rows in Section 2 and Appendix B carry the detail."),
+        verdict: verdictD,
+        status: "analysed" as const,
+      };
+    }
+
+    // five_year_retention — DOC 159: § 7122(g) attaches to "each
+    // cybersecurity audit" once completed. It is a duty on the business AND
+    // the auditor, not a qualification or independence condition, so it is
+    // reported as its own row and never drives the § 7122 verdict below. A
+    // Company with no prior audit ("Never" or blank, no prior scope) has
+    // nothing yet to retain: the row reads not applicable, never
+    // record-insufficient, so a first-time auditee with a fully described
+    // engagement is not told its engagement is undescribed.
+    const prior = priorAuditFact(facts.lastAudit, facts.priorAuditScope);
+    if (!prior.recorded) {
+      return {
+        ...base,
+        applies: false,
+        record_fact: prior.never
+          ? "The Company reports that it has not had an independent cybersecurity audit."
+          : "The Company records no prior cybersecurity audit.",
+        application:
+          `${cond.citation} requires the business and the auditor to retain all documents relevant to each cybersecurity ` +
+          `audit for five years after its completion. With no prior audit there is nothing yet to retain; the duty ` +
+          `attaches to this audit's documents on completion.`,
+        verdict: "not_applicable" as Verdict,
+        status: "analysed" as const,
+      };
+    }
     return {
       ...base,
-      record_fact: facts.priorAuditScope
-        ? `The record describes the prior audit scope as: ${facts.priorAuditScope}`
-        : "The record does not describe any prior audit or its retained documents.",
-      application: facts.priorAuditScope
+      record_fact: prior.scope
+        ? `The record describes the prior audit scope as: ${prior.scope}`
+        : "The record does not describe the prior audit or its retained documents.",
+      application: prior.scope
         ? `${cond.citation} requires the business and the auditor to retain all documents relevant to each audit for ` +
           `five years. A prior audit is described on the record, so the retention duty is live and the retained set ` +
           `should be identified.`
-        : `${cond.citation} requires five-year retention of documents relevant to each audit. The record describes no ` +
-          `prior audit, so there is nothing on the record from which retention can be assessed.`,
-      verdict: (facts.priorAuditScope ? "partially_satisfied" : "record_insufficient") as Verdict,
-      status: (facts.priorAuditScope ? "analysed" : "record_insufficient") as
+        : `${cond.citation} requires five-year retention of documents relevant to each audit. A prior audit is recorded ` +
+          `but its coverage is not described, so the retained set cannot be identified from the record.`,
+      verdict: (prior.scope ? "partially_satisfied" : "record_insufficient") as Verdict,
+      status: (prior.scope ? "analysed" : "record_insufficient") as
         | "analysed"
         | "record_insufficient",
-      ...(facts.priorAuditScope
+      ...(prior.scope
         ? { information_needed: "Confirm where the prior audit's documents are retained and for how long." }
-        : { information_needed: "Describe the prior audit (or state that none has been performed)." }),
+        : { information_needed: "Describe what the prior audit covered and where its documents are retained." }),
     };
   });
 
-  const live = findings.filter((f) => f.verdict !== "not_applicable");
+  // DOC 159 — the § 7122 verdict rolls up the qualification and independence
+  // conditions only ((a), (a)(1), (a)(2), (a)(3)); the § 7122(d) evidence row
+  // and the § 7122(g) retention row are reported, never rolled up.
+  const NOT_ROLLED_UP = new Set(["five_year_retention", "no_primary_reliance_on_management"]);
+  const live = findings.filter((f) => f.verdict !== "not_applicable" && !NOT_ROLLED_UP.has(f.condition_key));
   const unsatisfied = live.filter((f) => f.verdict === "not_satisfied");
   const insufficient = live.filter((f) => f.status === "record_insufficient");
 
@@ -587,7 +762,7 @@ export function buildIndependenceDetermination(facts: CyberFacts): IndependenceD
     : verdict === "record_insufficient"
     ? `The record does not describe the engagement in enough detail to conclude on § 7122 independence.`
     : `The engagement is consistent with § 7122, but the record documents rather than demonstrates the auditor's ` +
-      `qualifications and retention practice.`;
+      `qualifications.`;
 
   return {
     findings,
@@ -622,10 +797,19 @@ export function buildReadinessDetermination(
 
   const blocking: ReadinessDetermination["blocking_components"] = [];
   const unassessable: ReadinessDetermination["unassessable_components"] = [];
+  // DOC 159 — the Company's § 7123(b)(2) positions sit outside every count,
+  // and the items a "subject to named remediation" conclusion names are
+  // collected as they are found.
+  const notApplicable: NonNullable<ReadinessDetermination["not_applicable_components"]> = [];
+  const remediationItems: string[] = [];
   let partial = 0;
 
   for (const c of coverage) {
     const ev = evidenceBySlug.get(c.slug);
+    if (c.verdict === "not_applicable") {
+      notApplicable.push({ slug: c.slug, label: c.label });
+      continue;
+    }
     if (c.verdict === "not_satisfied") {
       blocking.push({ slug: c.slug, label: c.label, reason: c.remediation });
       continue;
@@ -654,7 +838,14 @@ export function buildReadinessDetermination(
       });
       continue;
     }
-    if (c.verdict === "partially_satisfied" || ev?.sufficiency === "partial") partial++;
+    if (c.verdict === "partially_satisfied" || ev?.sufficiency === "partial") {
+      partial++;
+      remediationItems.push(
+        c.verdict === "partially_satisfied"
+          ? `${c.label} (documented, partially implemented)`
+          : `${c.label} (implemented, evidenced by policy documentation only)`,
+      );
+    }
   }
 
   const independenceBlocks = independence.verdict === "not_satisfied";
@@ -669,13 +860,27 @@ export function buildReadinessDetermination(
   else if (partial > 0) conclusion = "ready_subject_to_named_remediation";
   else conclusion = "ready";
 
-  const total = coverage.length;
+  // DOC 159 — § 7122 conditions documented rather than demonstrated are
+  // named alongside the component items when the conclusion is "subject to
+  // named remediation"; the retention row is never one of them.
+  if (conclusion === "ready_subject_to_named_remediation") {
+    for (const f of independence.findings) {
+      if (f.verdict === "partially_satisfied" && f.condition_key !== "five_year_retention" && f.condition_key !== "no_primary_reliance_on_management") {
+        remediationItems.push(`${f.label} (a § 7122 condition documented rather than demonstrated)`);
+      }
+    }
+  }
+  const total = coverage.length - notApplicable.length;
+  const naNote = notApplicable.length
+    ? ` The Company reports ${countWord(notApplicable.length)} component${notApplicable.length === 1 ? "" : "s"} as not applicable to its information system, subject to the auditor's determination under 11 CCR § 7123(b)(2).`
+    : "";
+  const applicableWord = notApplicable.length ? "applicable " : "";
   const headline = conclusion === "ready"
-    ? `On this record the business is ready for a § 7124 certified cybersecurity audit: all ${total} § 7123(c) components are implemented and each is supported by testable evidence.`
+    ? `On the information provided the business is ready for a § 7124 certified cybersecurity audit: all ${countWord(total)} ${applicableWord}§ 7123(c) components are implemented and each is supported by testable evidence.${naNote}`
     : conclusion === "ready_subject_to_named_remediation"
-    ? `On this record the business is ready for a § 7124 certified cybersecurity audit subject to ${partial} named remediation item${partial === 1 ? "" : "s"}; no component is unimplemented and no § 7122 condition is unmet.`
+    ? `On the information provided the business is ready for a § 7124 certified cybersecurity audit subject to ${countWord(remediationItems.length)} named remediation item${remediationItems.length === 1 ? "" : "s"}: ${remediationItems.join("; ")}. No component is unimplemented and no § 7122 condition is unmet.${naNote}`
     : conclusion === "not_ready"
-    ? `On this record the business is not ready for a § 7124 certified cybersecurity audit: ${blocking.length} § 7123(c) component${blocking.length === 1 ? "" : "s"} would be reported as not implemented or unevidenced${independenceBlocks ? ", and the § 7122 independence conditions are not met" : ""}.`
+    ? `On the information provided the business is not ready for a § 7124 certified cybersecurity audit: ${countWord(blocking.length)} § 7123(c) component${blocking.length === 1 ? "" : "s"} would be reported as not implemented or unevidenced${independenceBlocks ? ", and the § 7122 independence conditions are not met" : ""}.${naNote}`
     : (() => {
         // 2026-08-25 — REAL BUG FOUND while investigating C1.1b (prose-gold's
         // CY-5 dangling-clause sub-pass was silently masking it downstream):
@@ -703,13 +908,13 @@ export function buildReadinessDetermination(
       })();
 
   const reasoning = conclusion === "ready"
-    ? `Every enumerated component in § 7123(c) is recorded as implemented, and for each the record identifies at ` +
+    ? `Every ${applicableWord}component in § 7123(c) is recorded as implemented, and for each the record identifies at ` +
       `least one testable artifact, so no finding would rest primarily on management assertion under § 7122(d). ` +
-      `${independence.summary} Nothing on this record prevents an auditor from completing and certifying the audit.`
+      `${independence.summary} Nothing on the information provided prevents an auditor from completing and certifying the audit.${naNote}`
     : conclusion === "ready_subject_to_named_remediation"
-    ? `No component is recorded as unimplemented. ${partial} component${partial === 1 ? " is" : "s are"} either ` +
-      `partially implemented or evidenced only by policy documentation; each carries a named remediation step in ` +
-      `\`component_coverage\` and \`evidence_sufficiency\`. ${independence.summary}`
+    ? `No component is recorded as unimplemented. ${countWord(partial)} component${partial === 1 ? " is" : "s are"} either ` +
+      `partially implemented or evidenced only by policy documentation; each carries a named remediation step in its ` +
+      `component module (Section 3) and in Appendix B. The named items are: ${remediationItems.join("; ")}. ${independence.summary}${naNote}`
     : conclusion === "not_ready"
     ? `The audit cannot be certified while a component enumerated in § 7123(c) is unimplemented or unevidenced. ` +
       `The blocking components are: ${blocking.map((b) => b.label).join("; ")}.` +
@@ -750,6 +955,8 @@ export function buildReadinessDetermination(
     citations: ["11 CCR § 7122", "11 CCR § 7123(b)", "11 CCR § 7123(c)", CYBER_7124_CITATION],
     blocking_components: blocking,
     unassessable_components: unassessable,
+    not_applicable_components: notApplicable,
+    remediation_items: remediationItems,
     status: conclusion === "record_insufficient" ? "record_insufficient" : "analysed",
   };
 }

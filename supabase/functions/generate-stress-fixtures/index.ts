@@ -632,14 +632,17 @@ Return a JSON object with EXACTLY these fields:
       "prior_audit_scope": "string", "remediation_owner": "string — name, title",
       "q1_revenue": "string", "q2_consumers": "string", "q5_sell_share": "string",
       "q5c_share_revenue_50pct": "string", "q15_sensitive_pi": "string",
-      "q15c_spi_volume": "string", "password_auth_used": "string"
+      "q15c_spi_volume": "string", "password_auth_used": "string",
+      "incident_notifications": "verbatim option — ONLY when incidents_12mo is not 'None'; whether any reported incident required notification to consumers (Civ. Code § 1798.82(a)) or to an agency"
     },
     "controls": [
       {
         "key": "c1_auth",
         "label": "string — the control's short name",
-        "maturity": "string", "notes": "string — one specific sentence",
-        "evidence": ["array"]
+        "maturity": "verbatim option; use 'Not applicable to our information system' ONLY for a component that cannot apply to the information system (e.g. secure development for a company that writes no software) and then supply na_reason",
+        "notes": "string — one specific sentence",
+        "evidence": ["array — a realistic mix: policy-only for some components, testable artifacts (config export, sample log, auditor letter, pen-test report, training record) for others"],
+        "na_reason": "string — ONLY when maturity is 'Not applicable to our information system': why the component cannot apply"
       }
     ]
   },
@@ -1621,12 +1624,31 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
     // reader, silently routing every cppa-cyber fixture past the gate as
     // "missing" rather than actually validating it.
     cppaCyber: {
+      // DOC 159 (2026-09-03) — the fallback emitted only the five core
+      // profile fields, so every generated record rendered "insufficient
+      // information" on § 7120 applicability and "not described" on the
+      // § 7122 auditor engagement, and no control carried a testable
+      // artifact. The profile is now complete on every asked field; the
+      // enterprise slot carries a confirmed external auditor and the
+      // mid-market slot an independent internal reporting line.
       profile: {
         entity_name: c.companyName,
         industry,
         incidents_12mo: "None" as typeof INCIDENTS_12MO_OPTIONS[number],
         framework: "NIST CSF" as typeof FRAMEWORK_OPTIONS[number],
         last_audit: "Within 12 months" as typeof LAST_AUDIT_OPTIONS[number],
+        in_scope_frameworks: ["NIST CSF"],
+        audit_scope_rationale: "The audit covers the production estate and every system that stores or processes California personal information; the NIST CSF program is supplemented with direct testing of each § 7123(c) component.",
+        auditor_engagement_status: slot === 1
+          ? "External auditor engaged, independence confirmed in writing"
+          : "Internal auditor engaged, reports to an executive without cybersecurity-program responsibility",
+        prior_audit_scope: "Last year's audit covered the same production estate; the report, sampling worksheets and interview notes are retained in the GRC system.",
+        remediation_owner: "Director of Information Security, reporting to the Chief Financial Officer.",
+        q1_revenue: slot === 1 ? "Over $100M" : "$25M to under $50M",
+        q2_consumers: slot === 1 ? "1,000,000 or more" : "250,000 to under 1,000,000",
+        q5_sell_share: "No",
+        q15_sensitive_pi: "No",
+        password_auth_used: "Yes",
       },
       // DOC 141 (2026-09-02) — all 18 controls previously shared one
       // maturity value and the identical note "Documented and reviewed by
@@ -1662,12 +1684,34 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
           c6_vuln_mgmt: "Documented, partially implemented",
           c16_retention: "Documented, partially implemented",
         };
+        // DOC 159 — testable artifacts on the mature components (policy-only
+        // evidence left the whole record "intent only"), and the § 7123(b)(2)
+        // not-applicable position for secure development where the industry
+        // gives no sign of in-house software.
+        const testableBySlug: Partial<Record<typeof CYBER_CONTROL_SLUGS[number], string[]>> = {
+          c1_auth: ["Policy / procedure document", "Screenshot / config export", "Sample log / report"],
+          c2_encryption: ["Policy / procedure document", "Screenshot / config export"],
+          c7_audit_logs: ["Runbook / SOP", "Sample log / report"],
+          c9_anti_malware: ["Screenshot / config export"],
+          c13_training: ["Training completion record"],
+          c17_incident: ["Runbook / SOP", "Sample log / report"],
+          c18_continuity: ["Runbook / SOP", "Sample log / report"],
+        };
+        const writesSoftware = /software|saas|technolog|platform|fintech|digital|app\b/i.test(industry);
+        const notApplicable = slug === "c14_secure_dev" && !writesSoftware;
         return {
           key: slug,
           label: slug.replace(/^c\d+_/, "").replace(/_/g, " ").replace(/\b\w/g, (m) => m.toUpperCase()),
-          maturity: (maturityBySlug[slug] ?? "Implemented across organization") as typeof CYBER_MATURITY_OPTIONS[number],
-          notes: notesBySlug[slug],
-          evidence: ["Policy / procedure document"] as string[],
+          maturity: (notApplicable
+            ? "Not applicable to our information system"
+            : (maturityBySlug[slug] ?? "Implemented across organization")) as typeof CYBER_MATURITY_OPTIONS[number],
+          notes: notApplicable
+            ? "No in-house software development; every application is vendor-hosted SaaS that the Company configures rather than codes."
+            : notesBySlug[slug],
+          evidence: (notApplicable ? [] : (testableBySlug[slug] ?? ["Policy / procedure document"])) as string[],
+          ...(notApplicable
+            ? { na_reason: "The Company writes no software: every application in its information system is vendor-hosted SaaS, and the vendors' secure-development practices are covered under third-party oversight." }
+            : {}),
         };
       }),
     },

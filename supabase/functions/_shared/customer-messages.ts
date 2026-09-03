@@ -304,6 +304,8 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   "profile.entity_name": "entity name",
   "profile.industry": "industry",
   "profile.incidents_12mo": "cybersecurity incidents in the last 12 months",
+  // DOC 159 — § 7123(e)(9)/(10).
+  "profile.incident_notifications": "breach notifications made for the reported incidents",
   "profile.framework": "cybersecurity framework in use",
   "profile.last_audit": "most recent cybersecurity audit",
   "profile.in_scope_frameworks": "in-scope cybersecurity frameworks",
@@ -315,6 +317,8 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   "controls[].maturity": "control maturity level",
   "controls[].notes": "control notes",
   "controls[].evidence": "evidence available for the control",
+  // DOC 159 — § 7123(b)(2).
+  "controls[].na_reason": "basis for treating the component as not applicable",
 
   // ── DPIA Framework (LEAK-PREV-P0 extension — DPIA-REGISTRY-WIRING) ──
   // (organization_name label lives higher up — do not redeclare here.)

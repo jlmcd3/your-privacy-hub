@@ -162,8 +162,16 @@ function deriveComponentMatrix(
         rec.maturity || "Not stated",
         rec.notes ? "Provided" : "None",
         rec.evidence.length ? rec.evidence.join("; ") : "None identified",
-        cov ? (cov.status === "record_insufficient" ? "Record insufficient" : cov.verdict.replace(/_/g, " ")) : "",
-        ev ? ev.sufficiency : "",
+        // DOC 159 — the Company's § 7123(b)(2) position prints as a position,
+        // never as a coverage verdict; the evidence cell prints plain words.
+        cov
+          ? (cov.status === "record_insufficient"
+            ? "Record insufficient"
+            : cov.verdict === "not_applicable"
+            ? "Not applicable (Company's position)"
+            : cov.verdict.replace(/_/g, " "))
+          : "",
+        ev ? ev.sufficiency.replace(/_/g, " ") : "",
         fa && fa.materiality === "Material" ? "Yes" : "No",
         // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, Cyber
         // P1-2) — split from one "Recommended action" column into the two
@@ -188,9 +196,9 @@ function deriveEvidenceIndex(deliverables: CyberDeliverables): RenderedTable {
     // component alone.
     rows: deliverables.evidence_sufficiency.map((e) => [
       `${e.component_number}. ${e.label.replace(/^Evidence sufficiency — /, "")}`,
-      e.evidence_offered.length ? e.evidence_offered.join("; ") : "None identified",
-      e.testable_artifacts.length ? e.testable_artifacts.join("; ") : "None",
-      e.sufficiency,
+      e.sufficiency === "not_applicable" ? "Not required (reported as not applicable)" : e.evidence_offered.length ? e.evidence_offered.join("; ") : "None identified",
+      e.sufficiency === "not_applicable" ? "—" : e.testable_artifacts.length ? e.testable_artifacts.join("; ") : "None",
+      e.sufficiency.replace(/_/g, " "),
     ]),
   };
 }
@@ -627,6 +635,19 @@ export function assembleCyberSkeletonDocumentV4(
       "11 CCR § 7123(f)",
       "11 CCR § 7124",
       "Cal. Civ. Code § 1798.140(d)(1)",
+      // DOC 159 — authorities the body now cites: the § 7123(b)(2)
+      // applicability limit, the § 7123(c)(1)(B) password condition, the
+      // § 7123(e)(9)/(10) notification content, the § 7001(v) nonbusiness
+      // definition, the § 1798.140(d) business definition and § 1798.82(a).
+      "11 CCR § 7123(b)(1)",
+      "11 CCR § 7123(b)(2)",
+      "11 CCR § 7123(c)(1)(A)",
+      "11 CCR § 7123(c)(1)(B)",
+      "11 CCR § 7123(e)(9)",
+      "11 CCR § 7123(e)(10)",
+      "11 CCR § 7001(v)",
+      "Cal. Civ. Code § 1798.140(d)",
+      "Cal. Civ. Code § 1798.82(a)",
     ])],
     skeletonDocumentToText(draft),
   );

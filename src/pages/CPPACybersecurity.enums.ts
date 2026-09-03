@@ -13,7 +13,13 @@ export const MATURITY = [
   "Documented, partially implemented",
   "Implemented across organization",
   "Implemented with continuous monitoring",
+  // DOC 159 (2026-09-03) — § 7123(b)(2)/(c) "if applicable"; see the
+  // contract's CYBER_MATURITY_OPTIONS comment. Stored value, verbatim.
+  "Not applicable to our information system",
 ] as const;
+
+/** DOC 159 — the not-applicable maturity value, for the form's conditional row. */
+export const CYBER_NOT_APPLICABLE_MATURITY = "Not applicable to our information system";
 
 // TURN 3 — per-component evidence-availability checklist (ISO 19011 evidence
 // typing surface). Parity mirror of intake-contracts/cppa-cybersecurity.ts
@@ -75,3 +81,13 @@ export const CYBER_SPI_VOLUME_OPTS = ["Fewer than 50,000", "50,000 or more", "Un
 // § 7123(b)(2)(A)(ii) password/passphrase requirement is conditional on
 // this; see the intake-contract's header comment for the full rationale.
 export const CYBER_PASSWORD_AUTH_OPTIONS = ["Yes", "No"] as const;
+
+// DOC 159 (2026-09-03) — § 7123(e)(9)/(10) notification facts. LITERAL COPY
+// of the contract's CYBER_INCIDENT_NOTIFICATION_OPTIONS.
+export const CYBER_INCIDENT_NOTIFICATION_OPTIONS = [
+  "No notification was required",
+  "Affected consumers were notified (Civ. Code § 1798.82(a))",
+  "An agency with jurisdiction over privacy laws in California was notified",
+  "Both affected consumers and an agency were notified",
+  "Unsure",
+] as const;

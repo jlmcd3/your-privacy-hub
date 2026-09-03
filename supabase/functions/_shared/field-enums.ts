@@ -120,9 +120,19 @@ const CYBER_MATURITY_OPTS = [
   "Documented, partially implemented",
   "Implemented across organization",
   "Implemented with continuous monitoring",
+  // DOC 159 (2026-09-03) — § 7123(b)(2)/(c) "if applicable".
+  "Not applicable to our information system",
 ];
 // FC-L4 (2026-08-25) — mirror of CYBER_PASSWORD_AUTH_OPTIONS.
 const CYBER_PASSWORD_AUTH_OPTS = ["Yes", "No"];
+// DOC 159 (2026-09-03) — mirror of CYBER_INCIDENT_NOTIFICATION_OPTIONS.
+const CYBER_INCIDENT_NOTIFICATION_OPTS = [
+  "No notification was required",
+  "Affected consumers were notified (Civ. Code § 1798.82(a))",
+  "An agency with jurisdiction over privacy laws in California was notified",
+  "Both affected consumers and an agency were notified",
+  "Unsure",
+];
 
 // enum_ref → options. Keys mirror the client REGISTRY keyPaths in
 // src/components/refine/fieldEnums.ts; the enum_ref emitted on frozen
@@ -194,6 +204,8 @@ export const FIELD_ENUM_MIRROR: Record<string, readonly string[]> = {
   "cppa_cybersecurity:q15_sensitive_pi": Q15_SENSITIVE_PI_OPTS,
   "cppa_cybersecurity:q15c_spi_volume": SPI_VOLUME_OPTS,
   "cppa_cybersecurity:password_auth_used": CYBER_PASSWORD_AUTH_OPTS,
+  // DOC 159 — § 7123(e)(9)/(10) notification facts.
+  "cppa_cybersecurity:incident_notifications": CYBER_INCIDENT_NOTIFICATION_OPTS,
 };
 
 export function resolveEnumRef(enumRef: string | null | undefined): readonly string[] | null {

@@ -43,6 +43,10 @@ import type { ComponentRecommendation, CyberNextStep } from "./cyber-recommendat
 import { recommendationFact, recommendationGap } from "./cyber-recommendations.ts";
 import { CYBER_7123_COMPONENTS } from "./components.ts";
 import { resolveCyberApplicability } from "../cyber-applicability.ts";
+// DOC 159 (2026-09-03) — the one resolver for the framework and prior-audit
+// answers (shared with build.ts), the not-applicable maturity, and the
+// counts-as-words helper.
+import { NOT_APPLICABLE_MATURITY, countWord, frameworkFact, incidentPhrase, priorAuditFact } from "./record-facts.ts";
 
 type Bag = Record<string, unknown>;
 
@@ -165,12 +169,21 @@ export function buildCompanyContextAnalysis(intake: Bag): string {
   const incidents = profileStr(intake, "incidents_12mo");
   const sentences: string[] = [];
   if (industry) sentences.push(`${entity} operates in ${noStop(industry)}.`);
+  // DOC 159 — "None / informal" and "Other" are answers about the framework,
+  // not framework names; "Never" is an answer about the audit, not a date.
+  const fw = frameworkFact(framework);
   sentences.push(
-    framework
-      ? `The Company has indicated that its cybersecurity program is organized around ${noStop(framework)}.`
+    fw.kind === "named"
+      ? `The Company has indicated that its cybersecurity program is organized around ${noStop(fw.answer)}.`
+      : fw.kind === "informal"
+      ? "The Company reports that its cybersecurity program is run informally against no published framework; the component record below is therefore read on its own terms rather than against a named framework."
+      : fw.kind === "other"
+      ? "The Company reports that its cybersecurity program is organized around a framework outside the listed set; the component record below is read on its own terms rather than against a named framework."
       : "The Company has not named a primary cybersecurity framework in the assessment record; the component record below is therefore read on its own terms rather than against a named framework.",
   );
-  if (lastAudit) sentences.push(`Its most recent cybersecurity audit is recorded as ${noStop(lastAudit)}.`);
+  const prior = priorAuditFact(lastAudit, get(intake, "profile.prior_audit_scope"));
+  if (prior.never) sentences.push("The Company reports that it has not had an independent cybersecurity audit.");
+  else if (prior.recorded) sentences.push(`Its most recent cybersecurity audit is recorded as ${noStop(prior.lastAudit)}.`);
   if (incidents) {
     // PANEL CYB-6 (2026-08-30): "reports None security incidents" was the
     // raw enum spliced into prose, followed by a reference to "what those
@@ -178,7 +191,7 @@ export function buildCompanyContextAnalysis(intake: Bag): string {
     // gets its own sentence; any other answer keeps the prior bytes.
     sentences.push(/^none$/i.test(incidents)
       ? "The Company reports no security incidents in the preceding twelve months."
-      : `The Company reports ${noStop(incidents)} security incidents in the preceding twelve months; what those incidents involved is addressed only to the extent the incident-response record states it.`);
+      : `The Company reports ${incidentPhrase(incidents)} in the preceding twelve months; what those incidents involved is addressed only to the extent the incident-response record states it.`);
   }
   return sentences.join(" ");
 }
@@ -209,8 +222,13 @@ export function buildScopeRecordAnalysis(intake: Bag): { analysis: string; suffi
 // ── Prior audit reliance (v1.1: prior_audit_reliance_analysis) ─────────────
 
 export function buildPriorAuditRelianceAnalysis(intake: Bag): string {
-  const lastAudit = profileStr(intake, "last_audit");
-  const priorScope = profileStr(intake, "prior_audit_scope");
+  // DOC 159 — "Never" is an explicit no-prior-audit answer, read as such.
+  const prior = priorAuditFact(profileStr(intake, "last_audit"), profileStr(intake, "prior_audit_scope"));
+  const lastAudit = prior.lastAudit;
+  const priorScope = prior.scope;
+  if (prior.never) {
+    return "The Company reports no prior independent cybersecurity audit, so no reliance on prior coverage is available; the eventual audit record builds from the evidence identified in this assessment.";
+  }
   if (!lastAudit && !priorScope) {
     return "No prior audit work is recorded, so no reliance on prior coverage is available; the eventual audit record builds from the evidence identified in this assessment.";
   }
@@ -237,22 +255,39 @@ export interface RecordSufficiencyResult {
 
 export function buildRecordSufficiency(intake: Bag, d: CyberDeliverables): RecordSufficiencyResult {
   const unassessed = d.component_coverage.filter((c) => c.status === "record_insufficient").length;
+  // DOC 159 — components the Company reports as not applicable are outside
+  // the notes and evidence counts; a blank basis for that position is a
+  // record-completion item of its own.
   let withoutNotes = 0;
   let withoutEvidence = 0;
+  let notApplicable = 0;
+  let notApplicableWithoutBasis = 0;
   for (const comp of CYBER_7123_COMPONENTS) {
     const rec = controlRec(intake, comp.slug);
+    if (rec.maturity === NOT_APPLICABLE_MATURITY) {
+      notApplicable++;
+      const rows = get(intake, "controls");
+      const row = (Array.isArray(rows) ? (rows as Bag[]) : []).find((r) => s(r.key) === comp.slug);
+      if (!s(row?.na_reason)) notApplicableWithoutBasis++;
+      continue;
+    }
     if (!rec.notes) withoutNotes++;
     if (rec.evidence.length === 0 || rec.evidence.every((e) => /^none on file$/i.test(e))) withoutEvidence++;
   }
+  const applicableCount = CYBER_7123_COMPONENTS.length - notApplicable;
+  const scope = notApplicable
+    ? `all ${countWord(applicableCount)} applicable components (the Company reports ${countWord(notApplicable)} as not applicable)`
+    : "all eighteen components";
   const conclusion = unassessed === 0 && withoutEvidence === 0
-    ? "The record is populated across all eighteen components: each carries a stated implementation status and identified evidence, which is the state a readiness conclusion can rest on."
+    ? `The record is populated across ${scope}: each carries a stated implementation status and identified evidence, which is the state a readiness conclusion can rest on.`
     : unassessed === 0
-    ? `The record states an implementation status for all eighteen components; ${withoutEvidence === 1 ? "one component identifies" : `${withoutEvidence} components identify`} no evidence, which limits what an auditor could later test on ${withoutEvidence === 1 ? "that component" : "those components"}.`
-    : `${unassessed === 1 ? "One component is" : `${unassessed} components are`} unassessed or incomplete on the information provided, and the readiness conclusion is qualified to that extent rather than converted into a negative finding.`;
+    ? `The record states an implementation status for ${scope}; ${withoutEvidence === 1 ? "one component identifies" : `${countWord(withoutEvidence)} components identify`} no evidence, which limits what an auditor could later test on ${withoutEvidence === 1 ? "that component" : "those components"}.`
+    : `${unassessed === 1 ? "One component is" : `${countWord(unassessed)} components are`} unassessed or incomplete on the information provided, and the readiness conclusion is qualified to that extent rather than converted into a negative finding.`;
   const followUps: string[] = [];
-  if (unassessed > 0) followUps.push(`record an implementation status for the ${unassessed === 1 ? "unassessed component" : `${unassessed} unassessed components`}`);
-  if (withoutNotes > 0) followUps.push(`add a narrative description for the ${withoutNotes === 1 ? "component" : `${withoutNotes} components`} that carry none`);
-  if (withoutEvidence > 0) followUps.push(`identify the evidence categories available for the ${withoutEvidence === 1 ? "component" : `${withoutEvidence} components`} with none identified`);
+  if (unassessed > 0) followUps.push(`record an implementation status for the ${unassessed === 1 ? "unassessed component" : `${countWord(unassessed)} unassessed components`}`);
+  if (withoutNotes > 0) followUps.push(`add a narrative description for the ${withoutNotes === 1 ? "component" : `${countWord(withoutNotes)} components`} that carry none`);
+  if (withoutEvidence > 0) followUps.push(`identify the evidence categories available for the ${withoutEvidence === 1 ? "component" : `${countWord(withoutEvidence)} components`} with none identified`);
+  if (notApplicableWithoutBasis > 0) followUps.push(`state the basis for the ${notApplicableWithoutBasis === 1 ? "component" : `${countWord(notApplicableWithoutBasis)} components`} reported as not applicable (11 CCR § 7123(b)(2))`);
   // PANEL CYB-3 (2026-08-30): "No record-completion follow-up is
   // identified." used to fire while the same report named two
   // record-completion items in so many words — the undescribed auditor
@@ -262,8 +297,12 @@ export function buildRecordSufficiency(intake: Bag, d: CyberDeliverables): Recor
   if (!["external", "internal", "none"].includes(s(d.independence_determination.auditor_type))) {
     followUps.push("describe the auditor engagement, whose unresolved status Section 2 identifies as a record-completion item");
   }
-  if (profileStr(intake, "last_audit") && !profileStr(intake, "prior_audit_scope")) {
-    followUps.push("record what the prior audit covered, which Section 1 identifies as a record-completion item");
+  {
+    // DOC 159 — never asked of a Company that reports no prior audit.
+    const prior = priorAuditFact(profileStr(intake, "last_audit"), profileStr(intake, "prior_audit_scope"));
+    if (prior.recorded && !prior.scope) {
+      followUps.push("record what the prior audit covered, which Section 1 identifies as a record-completion item");
+    }
   }
   const follow_up = followUps.length
     ? `To improve the record: ${asProse(followUps)}.`
@@ -334,9 +373,16 @@ export function buildProgramReadiness(intake: Bag, d: CyberDeliverables): { anal
   // file, so the two surfaces cannot disagree with each other.
   const untestable = d.evidence_sufficiency.filter((r) => r.sufficiency === "insufficient" || r.sufficiency === "unknown" || r.sufficiency === "partial").length;
   const sentences: string[] = [];
+  // DOC 159 — the same framework resolver as Section 1 and the § 7123(b)(1)
+  // finding, so the three surfaces cannot disagree.
+  const fw = frameworkFact(framework);
   sentences.push(
-    framework
-      ? `The Company describes its cybersecurity program as organized around ${noStop(framework)}.`
+    fw.kind === "named"
+      ? `The Company describes its cybersecurity program as organized around ${noStop(fw.answer)}.`
+      : fw.kind === "informal"
+      ? "The Company reports that its cybersecurity program is run informally against no published framework."
+      : fw.kind === "other"
+      ? "The Company describes its cybersecurity program as organized around a framework outside the listed set."
       : "The Company does not name an organizing framework for the program.",
   );
   sentences.push(
@@ -421,24 +467,52 @@ export function buildComponentAnalyses(inputs: FactorInputs): CyberComponentAnal
     // evidence rows are UNTOUCHED — this narrows only what the body prints.
     const cap = (t: string): string => (t ? t.charAt(0).toUpperCase() + t.slice(1) : t);
     const lines: string[] = [];
-    lines.push(intakeRec.maturity
-      ? `Status. ${cap(maturityPhrase(intakeRec.maturity))}.`
-      : "Status. No implementation status is recorded.");
+    // DOC 159 — the Company's § 7123(b)(2) position renders as a position
+    // with its stated basis, never as a maturity rung; the password line on
+    // Authentication applies the § 7123(c)(1)(B) condition from the
+    // Company's own answer (FC-L4) instead of inferring it from the notes.
+    const notApplicable = intakeRec.maturity === NOT_APPLICABLE_MATURITY;
+    const naReason = (() => {
+      const raw = get(inputs.intake, "controls");
+      if (!Array.isArray(raw)) return "";
+      const row = raw.find((r) => s(get(r, "key")) === comp.slug);
+      return s(get(row, "na_reason"));
+    })();
+    if (notApplicable) {
+      lines.push("Status. Reported by the Company as not applicable to its information system, subject to the auditor's determination under 11 CCR § 7123(b)(2).");
+      lines.push(naReason
+        ? `Basis stated. "${noStop(naReason)}."`
+        : "Basis stated. None recorded, so the auditor has nothing on which to confirm the position; stating it is a record-completion item.");
+    } else {
+      lines.push(intakeRec.maturity
+        ? `Status. ${cap(maturityPhrase(intakeRec.maturity))}.`
+        : "Status. No implementation status is recorded.");
+    }
+    if (comp.slug === "c1_auth" && !notApplicable) {
+      const pw = profileStr(inputs.intake, "password_auth_used");
+      lines.push(pw === "No"
+        ? "Passwords. The Company reports that its authentication method does not use passwords or passphrases, so the strong-password element in 11 CCR § 7123(c)(1)(B) does not apply on that answer; multi-factor authentication under § 7123(c)(1)(A) remains the element assessed."
+        : pw === "Yes"
+        ? "Passwords. The Company reports that passwords or passphrases are part of its authentication method, so 11 CCR § 7123(c)(1)(B) applies: strong, unique passwords or passphrases must be evidenced alongside multi-factor authentication."
+        : "Passwords. Whether passwords or passphrases are part of the authentication method is not recorded; 11 CCR § 7123(c)(1)(B) applies only if they are.");
+    }
     if (c && c.status === "record_insufficient" && s(c.application)) {
       lines.push(stop(s(c.application)));
     }
     if (intakeRec.notes) {
       lines.push(`Controls described. "${noStop(intakeRec.notes)}."`);
-    } else {
+    } else if (!notApplicable) {
       lines.push("Controls described. None recorded, so an auditor would test the assertion rather than accept it.");
     }
-    if (intakeRec.evidence.length && !intakeRec.evidence.every((x) => /^none on file$/i.test(x))) {
+    if (notApplicable) {
+      lines.push("Evidence identified. Not required for a component reported as not applicable.");
+    } else if (intakeRec.evidence.length && !intakeRec.evidence.every((x) => /^none on file$/i.test(x))) {
       // PANEL CYB-6: acronym-safe per-item lowercasing (SOC 2 survives).
       lines.push(`Evidence identified.\n${intakeRec.evidence.map((x) => `— ${lowerItemLabel(x)}`).join("\n")}`);
     } else {
       lines.push("Evidence identified. None.");
     }
-    if (e) {
+    if (e && !notApplicable) {
       lines.push(e.sufficiency === "sufficient"
         ? "Auditor testability. The identified evidence includes material an auditor can examine and test."
         : e.sufficiency === "partial"
@@ -479,7 +553,9 @@ export function buildComponentAnalyses(inputs: FactorInputs): CyberComponentAnal
       slug: comp.slug,
       label: comp.label,
       component_number: comp.number,
-      conclusion: c && c.status !== "record_insufficient"
+      conclusion: notApplicable
+        ? `${comp.label}: reported as not applicable on the Company's answer, subject to the auditor's determination.`
+        : c && c.status !== "record_insufficient"
         ? `${comp.label}: ${c.verdict.replace(/_/g, " ")} on the information provided.`
         : `${comp.label}: the record is insufficient for a readiness finding.`,
       supporting_reasons: supporting,
@@ -570,9 +646,11 @@ export function buildCrossCutting(intake: Bag, d: CyberDeliverables, recs: reado
   // with "Most recent audit: Within 12 months" two sections earlier. Where
   // an audit is recorded but its scope is not described, the sentence says
   // that; only a record with no prior audit at all keeps the old bytes.
-  const prior_audit_dependency_gaps = priorScope
+  // DOC 159 — "Never" is no prior audit, not an undescribed one.
+  const priorFact = priorAuditFact(profileStr(intake, "last_audit"), priorScope);
+  const prior_audit_dependency_gaps = priorFact.scope
     ? "Prior audit work is recorded; where the report relies on it, the reliance is limited to the coverage the Company itself describes."
-    : profileStr(intake, "last_audit")
+    : priorFact.recorded
     ? "A prior audit is recorded, but its coverage is not described, so nothing in this assessment relies on prior work."
     : "No prior audit coverage is recorded, so nothing in this assessment depends on prior work.";
   // A-TEAM DELTA (ChatGPT batch review, 2026-08-31, P0-4) — recordGaps is
@@ -608,16 +686,49 @@ export function buildIncidentReadiness(intake: Bag, d: CyberDeliverables): { ana
     // PANEL CYB-6 (2026-08-30): same None-splice fix as § 1.
     sentences.push(/^none$/i.test(count)
       ? "The Company reports no security incidents in the preceding twelve months."
-      : `The Company reports ${noStop(count)} security incidents in the preceding twelve months.`);
+      : `The Company reports ${incidentPhrase(count)} in the preceding twelve months.`);
   } else {
     sentences.push("The Company has not recorded an incident count for the preceding twelve months.");
   }
   if (c17.maturity) {
     sentences.push(`Its security-incident response management component is recorded as ${maturityPhrase(c17.maturity)}${c17.notes ? `, described as: "${noStop(c17.notes)}"` : ""}.`);
   }
-  sentences.push("Whether any incident involved personal information, required notification, or was notified is addressed only to the extent the incident-response record states it; nothing is inferred from the count alone.");
-  const follow_up = !c17.maturity || c17.evidence.length === 0
-    ? "The incident-record follow-up is to complete the incident-response component's record: its implementation status, its description, and the evidence categories available for it."
+  // DOC 159 — 11 CCR § 7123(e)(9) and (e)(10) make the audit report's
+  // content turn on whether any incident was notified to consumers under
+  // Civ. Code § 1798.82(a) or to an agency. The Company's own answer decides
+  // what is stated; nothing is inferred from the count (guardrail i3).
+  const hasIncidents = !!count && !/^none$/i.test(count);
+  const notif = profileStr(intake, "incident_notifications");
+  const consumersNotified = /^Affected consumers were notified|^Both affected consumers/.test(notif);
+  const agencyNotified = /^An agency with jurisdiction|^Both affected consumers/.test(notif);
+  const notificationOpen = hasIncidents && (!notif || notif === "Unsure");
+  if (hasIncidents && notif === "No notification was required") {
+    sentences.push("The Company reports that no reported incident required notification to affected consumers or to an agency, so 11 CCR § 7123(e)(9) and (e)(10) call for no notification material in the audit report on that answer.");
+  }
+  if (consumersNotified) {
+    sentences.push("The Company reports that affected consumers were notified under Civ. Code § 1798.82(a); 11 CCR § 7123(e)(9) requires the audit report to include a sample copy of the notification, excluding any personal information, or a description of it.");
+  }
+  if (agencyNotified) {
+    sentences.push("The Company reports that an agency with jurisdiction over privacy laws in California was notified; 11 CCR § 7123(e)(10) requires the audit report to include a sample copy of the required notification, excluding any personal information, or a description of it together with the dates and details of the activity that gave rise to it and any related remediation measures.");
+  }
+  if (notificationOpen) {
+    sentences.push(notif === "Unsure"
+      ? "The Company is unsure whether any reported incident required notification to affected consumers or to an agency; resolving that is a record-completion item, because 11 CCR § 7123(e)(9) and (e)(10) turn on it."
+      : "Whether any reported incident required notification to affected consumers or to an agency is not recorded; 11 CCR § 7123(e)(9) and (e)(10) turn on it, so recording it is a record-completion item.");
+  }
+  sentences.push("Whether any incident involved personal information is addressed only to the extent the incident-response record states it; nothing is inferred from the count alone.");
+  const followUps: string[] = [];
+  if (!c17.maturity || c17.evidence.length === 0) {
+    followUps.push("complete the incident-response component's record: its implementation status, its description, and the evidence categories available for it");
+  }
+  if (consumersNotified || agencyNotified) {
+    followUps.push("prepare, for the audit report, the sample copy (personal information excluded) or the description of each notification the Company reports, with the dates, details and remediation measures 11 CCR § 7123(e)(10) requires for an agency notification");
+  }
+  if (notificationOpen) {
+    followUps.push("record whether any reported incident required notification to affected consumers (Civ. Code § 1798.82(a)) or to an agency");
+  }
+  const follow_up = followUps.length
+    ? `The incident-record follow-up is to ${followUps.join("; and to ")}.`
     : "No incident-record follow-up is identified beyond the component-level actions above.";
   return { analysis: sentences.join(" "), follow_up };
 }
@@ -697,13 +808,46 @@ export function buildRecordCompletionExtras(intake: Bag, d: CyberDeliverables): 
       action: "Record the auditor engagement and its independence status; the readiness conclusion waits on completing this item.",
     });
   }
-  const lastAudit = profileStr(intake, "last_audit");
-  const priorScope = profileStr(intake, "prior_audit_scope");
-  if (lastAudit && !priorScope) {
+  // DOC 159 — never asked of a Company that reports no prior audit.
+  const prior = priorAuditFact(profileStr(intake, "last_audit"), profileStr(intake, "prior_audit_scope"));
+  if (prior.recorded && !prior.scope) {
     out.push({
       label: "Prior audit coverage",
       action: "Record what the prior cybersecurity audit covered, so any reliance on it can be assessed.",
     });
+  }
+  // DOC 159 — § 7123(e)(9)/(10): the notification answer beside a reported
+  // incident, and the audit-report material it calls for.
+  {
+    const count = profileStr(intake, "incidents_12mo");
+    const hasIncidents = !!count && !/^none$/i.test(count);
+    const notif = profileStr(intake, "incident_notifications");
+    if (hasIncidents && (!notif || notif === "Unsure")) {
+      out.push({
+        label: "Notification record",
+        action: "Record whether any reported incident required notification to affected consumers (Civ. Code § 1798.82(a)) or to an agency with jurisdiction over privacy laws in California; 11 CCR § 7123(e)(9) and (e)(10) turn on it.",
+      });
+    } else if (hasIncidents && notif !== "No notification was required") {
+      out.push({
+        label: "Notification material for the audit report",
+        action: "Prepare the sample copy (personal information excluded) or the description of each notification the Company reports, with the dates, details and remediation measures 11 CCR § 7123(e)(10) requires for an agency notification, for inclusion in the audit report under 11 CCR § 7123(e)(9) and (e)(10).",
+      });
+    }
+  }
+  // DOC 159 — § 7123(b)(2): a not-applicable position without a stated basis.
+  {
+    const raw = get(intake, "controls");
+    if (Array.isArray(raw)) {
+      for (const row of raw) {
+        if (s(get(row, "maturity")) !== NOT_APPLICABLE_MATURITY || s(get(row, "na_reason"))) continue;
+        const slug = s(get(row, "key"));
+        const label = CYBER_7123_COMPONENTS.find((c) => c.slug === slug)?.label ?? slug;
+        out.push({
+          label,
+          action: "State the basis for reporting this component as not applicable to the Company's information system, so the auditor can confirm the position (11 CCR § 7123(b)(2)).",
+        });
+      }
+    }
   }
   for (const e of d.evidence_sufficiency) {
     if (e.sufficiency === "partial") {
@@ -773,9 +917,20 @@ export function buildOverallReadinessNarrative(intake: Bag, d: CyberDeliverables
     case "ready":
       narrative = "On the Company's present description of its program and the evidence categories identified, the Company appears prepared to proceed to independent audit, subject to auditor verification of the identified evidence.";
       break;
-    case "ready_subject_to_named_remediation":
-      narrative = `On the Company's present description, the Company can prepare to proceed to independent audit once the named items are closed: ${asProse(rd.blocking_components.map((b) => b.label))}. Each is a readiness item, not an auditor finding.`;
+    case "ready_subject_to_named_remediation": {
+      // DOC 159 — the named items are the partially implemented, policy-only
+      // and documented-not-demonstrated items the determination now carries
+      // (blocking_components is empty by definition on this conclusion; the
+      // old sentence printed an empty list).
+      const named = rd.remediation_items && rd.remediation_items.length
+        ? rd.remediation_items
+        : [
+          ...d.component_coverage.filter((c) => c.verdict === "partially_satisfied").map((c) => c.label),
+          ...d.evidence_sufficiency.filter((e) => e.sufficiency === "partial").map((e) => e.label.replace(/^Evidence sufficiency — /, "")),
+        ];
+      narrative = `On the Company's present description, the Company can prepare to proceed to independent audit once the named items are closed: ${asProse(named)}. Each is a readiness item, not an auditor finding.`;
       break;
+    }
     case "not_ready":
       narrative = `On the Company's own description, ${rd.blocking_components.length === 1 ? "a material item stands" : "material items stand"} between the program and audit readiness: ${asProse(rd.blocking_components.map((b) => b.label))}. The readiness actions above sequence the closing work.`;
       break;
@@ -818,12 +973,15 @@ export function buildOverallReadinessNarrative(intake: Bag, d: CyberDeliverables
 
 export function buildEvidencePreservation(intake: Bag, d: CyberDeliverables): { actions: string; observations: string } {
   const withEvidence = d.evidence_sufficiency.filter((e) => e.testable_artifacts.length > 0).length;
-  const lastAudit = profileStr(intake, "last_audit");
+  // DOC 159 — "Never" is no audit history, not a most-recent date.
+  const prior = priorAuditFact(profileStr(intake, "last_audit"), profileStr(intake, "prior_audit_scope"));
   const actions = withEvidence > 0
-    ? `Keep the evidence packages behind the ${withEvidence === 1 ? "component" : `${withEvidence} components`} with testable artifacts organized for auditor access, and preserve everything relevant to the audit for at least five years after its completion.`
+    ? `Keep the evidence packages behind the ${withEvidence === 1 ? "component" : `${countWord(withEvidence)} components`} with testable artifacts organized for auditor access, and preserve everything relevant to the audit for at least five years after its completion.`
     : "As evidence is assembled for the components above, organize it for auditor access and preserve everything relevant to the audit for at least five years after its completion.";
-  const observations = lastAudit
-    ? `Continuing readiness builds on the recorded audit history (most recent: ${noStop(lastAudit)}): the annual cadence means the evidence practices established now recur, and the record built for this cycle is the baseline for the next.`
+  const observations = prior.recorded
+    ? `Continuing readiness builds on the recorded audit history (most recent: ${noStop(prior.lastAudit)}): the annual cadence means the evidence practices established now recur, and the record built for this cycle is the baseline for the next.`
+    : prior.never
+    ? "Continuing readiness is annual: this first cycle sets the evidence practices that recur, and the record built now is the baseline for the next."
     : "Continuing readiness is annual: the evidence practices established for this cycle recur, and the record built now is the baseline for the next.";
   return { actions, observations };
 }
@@ -842,9 +1000,19 @@ export function buildExecutiveSnapshotRows(inputs: FactorInputs): readonly (read
   const evRows = d.evidence_sufficiency;
   const evOk = evRows.filter((r) => r.sufficiency === "sufficient").length;
   const gaps = recs.filter((r) => r.priority === "Immediate" || r.priority === "Within 90 days");
+  // DOC 159 — the Company's § 7123(b)(2) positions: counted out of the
+  // evidence denominator and named in their own row.
+  const naRows = d.readiness_determination.not_applicable_components ?? [];
+  const applicableTotal = CYBER_7123_COMPONENTS.length - naRows.length;
 
   const rows: string[][] = [["Company", entity]];
   if (industry) rows.push(["Operating context", industry]);
+  if (naRows.length) {
+    rows.push([
+      "Components reported not applicable",
+      `${countWord(naRows.length)} — ${asProse(naRows.map((r) => r.label))}; the Company's position, subject to the auditor's determination (11 CCR § 7123(b)(2))`,
+    ]);
+  }
   rows.push([
     "Evidence posture",
     // DOC 142 (2026-09-02, external reviewer P2) — "Testable evidence
@@ -856,7 +1024,7 @@ export function buildExecutiveSnapshotRows(inputs: FactorInputs): readonly (read
     // count asks only whether any evidence category is identified at all.
     // Both labels now name their own concept; see the paired relabel in
     // cyber-skeleton-assemble-v4.ts (purpose_scope_record:10).
-    `Testable operating evidence identified for ${evOk} of 18 components`,
+    `Testable operating evidence identified for ${evOk} of ${applicableTotal}${naRows.length ? " applicable" : ""} components`,
   ]);
   rows.push([
     "Material program gaps identified",

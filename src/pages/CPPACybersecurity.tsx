@@ -53,6 +53,9 @@ import {
   CYBER_REVENUE_OPTS, CYBER_CONSUMER_OPTS, CYBER_SELL_SHARE_OPTS,
   CYBER_SHARE_REVENUE_50PCT_OPTS, CYBER_SENSITIVE_PI_OPTS, CYBER_SPI_VOLUME_OPTS,
   CYBER_PASSWORD_AUTH_OPTIONS,
+  // DOC 159 (2026-09-03) — § 7123(e)(9)/(10) notification facts and the
+  // § 7123(b)(2) not-applicable position.
+  CYBER_INCIDENT_NOTIFICATION_OPTIONS, CYBER_NOT_APPLICABLE_MATURITY,
 } from "./CPPACybersecurity.enums";
 
 // INTAKE-4b — `notesHint` / `evidenceHint` carry the per-component plain-language
@@ -109,6 +112,8 @@ export default function CPPACybersecurity() {
   const [maturity, setMaturity] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [evidence, setEvidence] = useState<Record<string, string[]>>({});
+  // DOC 159 — the Company's stated basis for a not-applicable position, per control.
+  const [naReason, setNaReason] = useState<Record<string, string>>({});
   const [profile, setProfile] = useState({
     entity_name: "", industry: "", incidents_12mo: "", framework: "", last_audit: "",
     in_scope_frameworks: [] as string[], audit_scope_rationale: "",
@@ -125,6 +130,8 @@ export default function CPPACybersecurity() {
     // FC-L4 (2026-08-25, CEO-ordered) — optional; see the intake-contract
     // header comment.
     password_auth_used: "",
+    // DOC 159 — § 7123(e)(9)/(10); asked only when an incident is reported.
+    incident_notifications: "",
   });
   // INTAKE-4b — prefill-confirm for profile.in_scope_frameworks. The earlier
   // "primary security framework in use" answer supplies the same fact for the
@@ -135,6 +142,7 @@ export default function CPPACybersecurity() {
 
   const setM = (k: string, v: string) => setMaturity((s) => ({ ...s, [k]: v }));
   const setN = (k: string, v: string) => setNotes((s) => ({ ...s, [k]: v }));
+  const setNa = (k: string, v: string) => setNaReason((s) => ({ ...s, [k]: v }));
   const toggleEvidence = (k: string, opt: string) =>
     setEvidence((s) => {
       const cur = s[k] || [];
@@ -201,19 +209,22 @@ export default function CPPACybersecurity() {
         maturity: maturity[c.key] || "",
         notes: notes[c.key] || "",
         evidence: evidence[c.key] || [],
+        // DOC 159 — carried only beside the not-applicable maturity.
+        na_reason: maturity[c.key] === CYBER_NOT_APPLICABLE_MATURITY ? (naReason[c.key] || "") : "",
       })),
     }),
-    [profile, maturity, notes, evidence]
+    [profile, maturity, notes, evidence, naReason]
   );
 
   const draftData = useMemo(
-    () => ({ profile, maturity, notes, evidence }),
-    [profile, maturity, notes, evidence],
+    () => ({ profile, maturity, notes, evidence, naReason }),
+    [profile, maturity, notes, evidence, naReason],
   );
   const touched = useMemo(
     () => Object.keys(maturity).length > 0 || Object.keys(notes).length > 0 || Object.keys(evidence).length > 0
+      || Object.keys(naReason).length > 0
       || Object.values(profile).some((v) => Array.isArray(v) ? v.length > 0 : (v ?? "").toString().trim() !== ""),
-    [profile, maturity, notes, evidence],
+    [profile, maturity, notes, evidence, naReason],
   );
   const {
     draftFound, draftUpdatedAt, restoreData, clearDraft,
@@ -226,7 +237,7 @@ export default function CPPACybersecurity() {
     enabled: !!user && touched,
   });
   const applyRestore = () => {
-    const d = restoreData as { profile?: any; maturity?: any; notes?: any; evidence?: any } | null;
+    const d = restoreData as { profile?: any; maturity?: any; notes?: any; evidence?: any; naReason?: any } | null;
     if (!d) return;
     // INTAKE-4b — a restored draft carries the customer's own in-scope answer;
     // the prefill must not overwrite it.
@@ -234,6 +245,7 @@ export default function CPPACybersecurity() {
     if (d.maturity && typeof d.maturity === "object") setMaturity(d.maturity);
     if (d.notes && typeof d.notes === "object") setNotes(d.notes);
     if (d.evidence && typeof d.evidence === "object") setEvidence(d.evidence);
+    if (d.naReason && typeof d.naReason === "object") setNaReason(d.naReason);
   };
   useAutoRestoreDraft(autoRestoreToken, applyRestore);
 
@@ -412,6 +424,21 @@ export default function CPPACybersecurity() {
               <option value="More than 5">More than 5</option>
             </select>
           </div>
+          {/* DOC 159 (2026-09-03) — 11 CCR § 7123(e)(9)/(10): the audit report
+              must include a sample copy or description of any consumer
+              notification under Civ. Code § 1798.82(a) and of any required
+              agency notification. Asked only once an incident is reported;
+              the deterministic path never infers it from the count. */}
+          {profile.incidents_12mo && profile.incidents_12mo !== "None" && (
+            <div data-rail-key="incident_notifications" onFocus={() => focusRail('incident_notifications')}>
+              <Label htmlFor="cyber_incident_notifications">Did any of those incidents require notification to affected consumers or to an agency?<Req /></Label>
+              <p className="text-xs text-muted-foreground mt-1">Why we ask: 11 CCR § 7123(e)(9) and (e)(10) require the audit report to include a sample copy or a description of any consumer notification made under Civ. Code § 1798.82(a) and of any required agency notification. Answer from the incident register, not from memory.</p>
+              <select id="cyber_incident_notifications" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.incident_notifications} onChange={(e) => setProfile({ ...profile, incident_notifications: e.target.value })}>
+                <option value="">Select…</option>
+                {CYBER_INCIDENT_NOTIFICATION_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+            </div>
+          )}
           <div data-rail-key="framework" onFocus={() => focusRail('framework')}>
             <Label htmlFor="cyber_framework">Primary security framework in use<Req /></Label>
             <p className="text-xs text-muted-foreground mt-1">The framework the program is actually run against today, not one the organization intends to adopt.</p>
@@ -573,7 +600,7 @@ export default function CPPACybersecurity() {
             <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR § 7123(c)(1)–(18) — enumerated program components</p>
             <p className="text-sm text-muted-foreground mt-1">Each component becomes one finding in the readiness report. Rate what is running today; a component left unrated is reported as insufficient information rather than as a shortfall.</p>
           </div>
-          <IntakeGuidance>For stronger findings, name the tools in place, the scope they cover, and any exceptions. Specific evidence produces a stronger gap analysis than a vague "in place" rating.</IntakeGuidance>
+          <IntakeGuidance>For stronger findings, name the tools in place, the scope they cover, and any exceptions. Specific evidence produces a stronger gap analysis than a vague "in place" rating. Select "Not applicable to our information system" only for a component that cannot apply to the systems that process personal information (for example, secure development where the Company writes no software), and say why: the auditor makes the final applicability determination under 11 CCR § 7123(b)(2), and the report records your position for it.</IntakeGuidance>
 
           {CONTROLS.map((c, i) => (
             <div key={c.key} className="border-t pt-5 first:border-t-0 first:pt-0">
@@ -599,6 +626,15 @@ export default function CPPACybersecurity() {
                     <option value="">Select…</option>
                     {MATURITY.map((m) => <option key={m} value={m}>{m}</option>)}
                   </select>
+                  {/* DOC 159 — the § 7123(b)(2) basis, shown only beside the
+                      not-applicable selection. */}
+                  {maturity[c.key] === CYBER_NOT_APPLICABLE_MATURITY && (
+                    <div className="mt-2" data-rail-key="component_not_applicable" onFocus={() => focusRail('component_not_applicable')}>
+                      <Label className="text-xs" htmlFor={`na_reason_${c.key}`}>Why does this component not apply to your information system?<Req /></Label>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">The information system includes every resource organized for processing personal information, owned or not (11 CCR § 7001(t)). State the fact that takes this component outside it; the auditor confirms the position.</p>
+                      <Textarea id={`na_reason_${c.key}`} rows={2} value={naReason[c.key] || ""} onChange={(e) => setNa(c.key, e.target.value)} className="mt-1" placeholder="One or two sentences stating the fact" />
+                    </div>
+                  )}
                 </div>
                 <div>
                   <Label className="text-xs" htmlFor={`notes_${c.key}`}>Notes <span className="font-normal text-muted-foreground">(optional)</span></Label>

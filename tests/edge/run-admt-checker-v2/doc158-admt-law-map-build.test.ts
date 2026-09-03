@@ -297,7 +297,9 @@ Deno.test("doc158 §7 — the stress runner invokes v2 and writes the v2 module;
   assert(!runner.includes("invoke(\"run-admt-checker\","), "runner still invokes the retired v1 engine");
   assert(runner.includes("invoke(\"run-admt-checker-v2\"") && runner.includes("module: \"admt_v2\""));
   const { GRADER_CONTEXT_VERSION, SHARED_GRADER_CONTEXT } = await import("../../../supabase/functions/_shared/grader/context.ts");
-  assert(GRADER_CONTEXT_VERSION.endsWith("+admt-law-map-2026-09-03"), GRADER_CONTEXT_VERSION);
+  // DOC 159 appended its own tag after this one; the instrument rule keeps
+  // the prefix and appends, so the pin is "includes", never "endsWith".
+  assert(GRADER_CONTEXT_VERSION.includes("+admt-law-map-2026-09-03"), GRADER_CONTEXT_VERSION);
   for (const needle of ["DOC 158 (ADMT model-vs-law build)", "Exception eligibility", "Opt-out handling duties", "§ 7220(b)(2)"]) {
     assert(SHARED_GRADER_CONTEXT.includes(needle), `context missing: ${needle}`);
   }

@@ -353,4 +353,41 @@ export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
     goodAnswer: "A retailer's programme records that its Chief Information Security Officer is the § 7124(c) signer, the audit period runs March through December 2027, and the privacy office owns the April 1, 2028 submission in the compliance calendar.",
     commonMistake: "Assuming general counsel or the chief executive can sign by default. § 7124(c) turns on direct responsibility for audit compliance and sufficient knowledge of the audit, which is a factual test about one named person.",
   },
+  // DOC 159 (2026-09-03) — the three questions the model-vs-law build added
+  // or wired: the § 7123(e)(9)/(10) notification facts, the § 7123(b)(2)
+  // not-applicable basis, and the § 7123(c)(1)(B) password predicate
+  // (FC-L4, collected since 2026-08-25 and read since doc 159).
+  incident_notifications: {
+    fieldLabel: "Notifications made for the reported incidents",
+    citation: "11 CCR § 7123(e)(9)",
+    citationUrl: CPPA_URL,
+    plainSummary: "The audit report must include a sample copy, with personal information removed, or a description of any notification the business gave to affected consumers under Civ. Code § 1798.82(a), and under § 7123(e)(10) the same for any notification the business was required to give to an agency with jurisdiction over privacy laws in California, together with the dates, details and remediation measures. The answer here tells the readiness report which of that material the business needs to have ready.",
+    regulationText: "(9) If the business provided notification to affected consumer(s) pursuant to Civil Code section 1798.82, subdivision (a), include a sample copy of the notification(s), excluding any personal information; or a description of the notification(s).",
+    coachLead: "Answer from the incident register: who was actually notified, if anyone.",
+    coachBody: "The answer turns on two facts for each reported incident: whether affected consumers were notified under the California breach statute, and whether an agency with jurisdiction over privacy laws in California was notified because the law required it. Check the register and the notification file before selecting; the option covers all reported incidents together.",
+    goodAnswer: "A retailer with one reported incident finds in its register that consumers received a breach letter and the Attorney General received the sample copy, and selects the option covering both consumers and an agency.",
+    commonMistake: "Selecting the no-notification option because the incident felt minor. The question is what the register shows was sent, not how serious the incident seemed.",
+  },
+  component_not_applicable: {
+    fieldLabel: "Basis for a not-applicable component",
+    citation: "11 CCR § 7123(b)(2)",
+    citationUrl: CPPA_URL,
+    plainSummary: "The audit assesses each listed component that the auditor deems applicable to the business's information system, which means every resource organized for processing personal information, whether or not the business owns it. Reporting a component as not applicable records the business's position; the auditor makes the determination, and needs the fact the position rests on.",
+    regulationText: "(2) Each of the components of a cybersecurity program listed in subsection (c) that the auditor deems applicable to the business's information system.",
+    coachLead: "State the fact that takes the component outside the information system, not a preference.",
+    coachBody: "A complete answer names what the business does not do or does not operate, and where the function sits instead. Because the information system includes resources the business does not own, a vendor running the function does not by itself take the component out of scope; say how that vendor is overseen.",
+    goodAnswer: "A logistics operator records that it writes no software, that every application it uses is vendor-hosted, and that vendor secure-development practices are covered under its third-party oversight component.",
+    commonMistake: "Treating a component that is not yet implemented as not applicable. Not applicable means the component cannot apply to the information system; a component that could apply but is absent is reported as not implemented.",
+  },
+  password_auth_used: {
+    fieldLabel: "Passwords or passphrases in the authentication method",
+    citation: "11 CCR § 7123(c)(1)(B)",
+    citationUrl: CPPA_URL,
+    plainSummary: "The authentication component has two elements: multi-factor authentication, and, if the business uses passwords or passphrases, strong unique passwords or passphrases. The second element applies only where passwords are actually part of the method, so this answer decides whether the readiness report assesses it.",
+    regulationText: "(B) If the business uses passwords or passphrases, strong unique passwords or passphrases (e.g., passwords that are at least eight characters in length, not on the business's disallowed list of commonly used passwords, and not reused).",
+    coachLead: "Answer for every system that authenticates access to personal information, not only the main directory.",
+    coachBody: "Passwords count wherever they remain a factor, including a password-plus-push method, a legacy portal, a service account, or a vendor console. Passwordless means no password or passphrase is used as any factor anywhere in the estate that reaches personal information.",
+    goodAnswer: "A firm whose workforce signs in with hardware keys still records Yes, because its warehouse portal accepts a password with an SMS code and two vendor consoles use passwords.",
+    commonMistake: "Answering No because the primary sign-in is passwordless while a legacy system or a vendor console still accepts a password.",
+  },
 };

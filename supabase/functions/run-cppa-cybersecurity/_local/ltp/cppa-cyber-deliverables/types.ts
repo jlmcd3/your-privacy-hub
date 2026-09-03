@@ -62,7 +62,10 @@ export interface EvidenceSufficiency extends Finding {
   testable_artifacts: string[];
   /** Reasoned, not asserted: can an auditor assess this component on this record? */
   assessable_on_record: boolean | null;
-  sufficiency: "sufficient" | "partial" | "insufficient" | "unknown";
+  /** DOC 159 — "not_applicable" when the Company reports the component as
+   * not applicable to its information system (§ 7123(b)(2)); no evidence is
+   * required and none is assessed. */
+  sufficiency: "sufficient" | "partial" | "insufficient" | "unknown" | "not_applicable";
 }
 
 /** Op. D — § 7122 auditor qualification and independence. */
@@ -105,6 +108,13 @@ export interface ReadinessDetermination {
   blocking_components: Array<{ slug: string; label: string; reason: string }>;
   /** Components whose record is too thin for an auditor to assess. */
   unassessable_components: Array<{ slug: string; label: string; information_needed: string }>;
+  /** DOC 159 — components the Company reports as not applicable to its
+   * information system (§ 7123(b)(2)); outside every count above. */
+  not_applicable_components?: Array<{ slug: string; label: string }>;
+  /** DOC 159 — the items a "ready subject to named remediation" conclusion
+   * names: partially implemented or policy-only components, and § 7122
+   * conditions documented rather than demonstrated. */
+  remediation_items?: string[];
   status: FindingStatus;
 }
 

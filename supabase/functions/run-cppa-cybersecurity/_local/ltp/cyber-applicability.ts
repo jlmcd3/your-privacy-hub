@@ -216,6 +216,11 @@ export function buildCyberApplicabilityTable(profile: Bag): RenderedTable {
     ],
     note:
       `${overall} A business meeting either trigger must complete the audit; meeting neither does not exempt the business from § 7120's threshold being met later, as its revenue or processing volume changes. ` +
-      "Each audit component below is assessed subject to the auditor's own applicability determination (§ 7123(b)(2)/(c)). The business, in consultation with qualified legal counsel, confirms this determination against its final figures for the preceding calendar year.",
+      "Each audit component below is assessed subject to the auditor's own applicability determination (§ 7123(b)(2)/(c)). The business, in consultation with qualified legal counsel, confirms this determination against its final figures for the preceding calendar year. " +
+      // DOC 159 — the duty-bearer, stated as law: § 7120 speaks of a
+      // "business", and 11 CCR § 7001(v) defines a nonbusiness as a person
+      // or entity outside Civ. Code § 1798.140(d)'s definition. No entity-
+      // type answer is collected, so nothing is inferred about this Company.
+      "The § 7120 duty attaches to a business as defined in Civ. Code § 1798.140(d); a nonbusiness under 11 CCR § 7001(v), a person or entity outside that definition, is outside § 7120 altogether.",
   };
 }
