@@ -396,7 +396,7 @@ export function AllProductsPanel() {
     const industryLabel = STRESS_INDUSTRIES.find((i) => i.id === industryId)?.label ?? industryId;
     appendAllProductsLog(
       "batch",
-      `▶ Claude intake batch — ${slugs.length} product(s), industry "${industryLabel}", ${Math.min(2, batchNumber)} company slot(s) per geo`,
+      `▶ Claude intake batch — ${slugs.length} product(s), industry "${industryLabel}", ${Math.max(1, Math.min(8, batchNumber))} company slot(s) per applicable geo`,
     );
     for (const f of queue) setRow(fixtureKey(f), { status: "queued", log: [], resultUrl: null });
 
