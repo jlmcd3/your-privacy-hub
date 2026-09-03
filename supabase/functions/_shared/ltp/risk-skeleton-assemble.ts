@@ -42,6 +42,7 @@ import {
   runRiskFactorEngine,
   buildRiskAndSafeguardRegisterTable,
   extractBenefits,
+  riskApprovalCurrencyFloor,
   type RiskFactorEngineResult,
 } from "./risk-factor-engine.ts";
 import { firstSubstantiveSentence } from "./clause-bound.ts";
@@ -500,8 +501,20 @@ export function deriveExecStatusPanel(
  * Name/Title are drawn from the record when present; Signature and Date are
  * NEVER pre-filled.
  */
-export function deriveReviewApprovalTable(intake: Bag): RenderedTable {
+export function deriveReviewApprovalTable(intake: Bag, assessmentDateIso?: string): RenderedTable {
   const BLANK = "________________________";
+  // DOC 152 (2026-09-03, Batch-9 P0, one-state rule) — the Date column
+  // consumes the SAME recorded approval date as the § 5.A narrative and the
+  // engine's sufficiency branch, under the same 365-day currency rule: a
+  // CURRENT recorded date prints; a stale (prior-review) or absent date
+  // leaves the fill-in blank, because a prior review's date must never
+  // render as this assessment's execution date.
+  const recordedDate = s(intake.a9_approval_date);
+  const dateCurrent = recordedDate !== "" &&
+    /^\d{4}-\d{2}-\d{2}/.test(recordedDate) &&
+    assessmentDateIso !== undefined &&
+    recordedDate >= riskApprovalCurrencyFloor(assessmentDateIso);
+  const dateCell = dateCurrent ? recordedDate : BLANK;
   const named: Array<{ role: string; name: string; title: string }> = [];
   for (const r of rows(intake.assessment_reviewers_approvers)) {
     const name = s(r.name);
@@ -528,7 +541,7 @@ export function deriveReviewApprovalTable(intake: Bag): RenderedTable {
     surface: "review_approval_signatures",
     title: "",
     columns: ["Role", "Name", "Title", "Signature", "Date"],
-    rows: named.map((r) => [r.role, r.name || BLANK, r.title || BLANK, BLANK, BLANK]),
+    rows: named.map((r) => [r.role, r.name || BLANK, r.title || BLANK, BLANK, dateCell]),
   };
 }
 
@@ -865,13 +878,26 @@ function composeVApproval(intake: Bag, assessmentDateIso?: string): string {
   const bits: string[] = [RISK52_FIXED.x_approval_head];
   if (reviewers) bits.push(`${RISK52_FIXED.x_approval_reviewers} ${reviewers}.`);
   if (approvalDate) {
-    bits.push(`${RISK52_FIXED.x_approval_date_label} ${approvalDate}.`);
     const apv = /^\d{4}-\d{2}-\d{2}/.exec(approvalDate)?.[0];
     const asm = assessmentDateIso ? /^\d{4}-\d{2}-\d{2}/.exec(assessmentDateIso)?.[0] : undefined;
-    if (apv && asm && apv < asm) {
+    // DOC 152 (2026-09-03, Batch-9 P0) — the 365-day currency rule, one
+    // state with the engine's v_governance branch: a date within the year
+    // before the assessment records THIS assessment's review; an older date
+    // is a PRIOR review record and is labeled as such (never implied to
+    // finalize the current assessment).
+    const stale = apv !== undefined && asm !== undefined &&
+      apv < riskApprovalCurrencyFloor(asm);
+    if (stale) {
       bits.push(
-        "The approval date precedes this report's date because it records the Company's internal review of the assessment record, which occurred before this report was generated.",
+        `Prior review or approval date: ${approvalDate}. That date records an earlier internal review; the review and approval of this assessment, including its date, remains to be recorded (§ 7152(a)(9); Follow-Ups, § 4.D).`,
       );
+    } else {
+      bits.push(`${RISK52_FIXED.x_approval_date_label} ${approvalDate}.`);
+      if (apv && asm && apv < asm) {
+        bits.push(
+          "The approval date precedes this report's date because it records the Company's internal review of the assessment record, which occurred before this report was generated.",
+        );
+      }
     }
   }
   if (authority) bits.push(`${RISK52_FIXED.x_approval_authority} ${authority}.`);
@@ -1211,7 +1237,7 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
 
     "cover:0": deriveCoverTable(values),
     "cover:2": deriveExecStatusPanel(execDashboard),
-    "review_and_approval:1": deriveReviewApprovalTable(intake),
+    "review_and_approval:1": deriveReviewApprovalTable(intake, assessmentDate),
     // BATCH 20b (doc 113 S6.3) — v5.3 index.
     "v_governance:15": deriveKeyDatesTable(intake, assessmentDate),
     "agency_submission_checklist:1": deriveAgencySubmissionChecklistTable(intake, values),

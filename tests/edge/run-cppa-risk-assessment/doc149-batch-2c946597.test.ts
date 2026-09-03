@@ -146,7 +146,7 @@ Deno.test("doc149 — generator carries the q5b deterministic coherence repair a
 });
 
 Deno.test("doc149 — grader context carries the cppa_risk field-semantics block under the bumped instrument", () => {
-  assert(GRADER_CONTEXT_VERSION.endsWith("+risk-field-semantics-2026-09-03"), "instrument not stamped with the field-semantics amendment");
+  assert(GRADER_CONTEXT_VERSION.includes("+risk-field-semantics-2026-09-03"), "instrument not stamped with the field-semantics amendment");
   assert(SHARED_GRADER_CONTEXT.includes("CPPA RISK INTAKE FIELD SEMANTICS"), "field-semantics block missing");
   assert(SHARED_GRADER_CONTEXT.includes("q5b_profiling_observation asks the 11 CCR § 7150(b)(4) statutory element DIRECTLY"), "q5b semantics missing");
   assert(SHARED_GRADER_CONTEXT.includes("q15d_hr_carveout answers ONLY whether the § 7150(b)(2)(A) personnel carve-out applies"), "q15d semantics missing");

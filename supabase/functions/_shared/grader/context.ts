@@ -32,8 +32,13 @@
 // calibration epoch stays the version PREFIX (the so-final-test suite pins
 // GRADER_CONTEXT_VERSION.startsWith(SKELETON_CAL_VERSION)) and the
 // amendment tag rides behind the rule-id brackets.
+// DOC 152 (2026-09-03, batch 962f9090) — batch-9 amendments appended:
+// recipient contract-status and benefit-weight cross-reference semantics
+// (field-semantics block) + the framework-prose and condition-deadline
+// rubric recalibrations. Same rule as doc 149: the skeleton-cal epoch stays
+// the PREFIX; amendments append.
 export const GRADER_CONTEXT_VERSION =
-  "gc-2026-08-28-skeleton-cal-3-item204[cal_skeleton_1|cal_skeleton_2|cal_skeleton_3|cal_skeleton_4|cal_skeleton_5|cal_skeleton_6]+risk-field-semantics-2026-09-03";
+  "gc-2026-08-28-skeleton-cal-3-item204[cal_skeleton_1|cal_skeleton_2|cal_skeleton_3|cal_skeleton_4|cal_skeleton_5|cal_skeleton_6]+risk-field-semantics-2026-09-03+batch9-cal-2026-09-03";
 
 import { AMENDMENTS_BLOCK } from "./amendments-block.ts";
 
@@ -85,6 +90,8 @@ CPPA RISK INTAKE FIELD SEMANTICS (DOC 149; do NOT flag reports for rendering the
 - q5b_profiling_observation asks the 11 CCR § 7150(b)(4) statutory element DIRECTLY: "Does the automated processing derive any personal attributes of your workers, students, or applicants — like their performance, reliability, health, or behavior — based on systematic observation of them?" (the live form question, with helper text limiting it to the business's OWN employees, contractors, students, and educational/job applicants). A "Yes" is the Company's categorical affirmation of that element; a report rendering § 7150(b)(4) as Engaged on it is CORRECTLY rendering the record — it is NEVER a fabricated answer, an unsupported business claim, or a citation misapplication. If the surrounding narrative reads consumer-only, note the intake's internal INCONSISTENCY at LOW severity as an intake-quality observation; the report's rendering of the recorded answer is not the defect.
 - q15d_hr_carveout answers ONLY whether the § 7150(b)(2)(A) personnel carve-out applies to the Company's sensitive-PI processing (sensitive PI of employees/contractors processed solely for exempt personnel-administration purposes). "Not applicable" means the carve-out does not apply — it does NOT assert that no employees are observed, and it is NOT evidence for or against the § 7150(b)(4) trigger.
 - q15_sensitive_pi = "Yes" with no reported category mapping to a Cal. Civ. Code § 1798.140(ae) sensitive-PI category is a DESIGNED state: the report engages § 7150(b)(2) on the reported answer, says so expressly ("engaged on the Company's reported answer"), and directs completion via a Follow-Up. The sentence "The Company additionally identifies sensitive personal information in its submission" is SUPPORTED by the q15 answer — never an unsupported business claim.
+- DOC 152: each recipient row's contract status ("Not confirmed", "No written contract", …) is a PER-RECIPIENT structured answer and is THE record for that recipient. A free-text narrative elsewhere in the intake claiming written service-provider agreements (possibly naming different or additional vendors) does not override a recipient row's own status; where the two diverge, note an intake INCONSISTENCY at LOW severity — the report's faithful rendering of the structured row is never a hallucination or unsupported claim.
+- DOC 152: benefit-weight conclusions ("The strongest benefit established is of material weight (the consumer benefit — § 3.F)") cite § 3.F, where the Company's quoted benefit narrative and its quoted supporting fact live in full. A § 3.F cross-reference IS the supporting evidence; do not flag the weight conclusion as unsupported when the referenced sub-part carries the quoted basis.
 
 CPPA RISK ASSESSMENT — VERIFIED SUBSECTION MAP (primary-source verified; do NOT flag as misapplied or as fabricated subsections):
 - 11 CCR § 7150(b)(3) — "Using ADMT for a significant decision concerning a consumer." VERIFIED against the OAL-approved adopted text (eff. 2026-01-01). Corpus proof: provision_texts.cppa-7150 approved 2026-07-25 (source PDF SHA-256 7a34306cebf12ae9050490568b1d7ed532cfd38dc6ed8c7c3dc40afb23328650); registry match: _shared/registry/admt-verified-authorities.ts row ra_trigger_admt EXACT-MATCH (ledger item 42). ADMT risk-assessment-trigger citations to § 7150(b)(3) are CORRECT — do NOT flag as misapplied, unverified, or fabricated.

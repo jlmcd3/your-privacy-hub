@@ -100,6 +100,16 @@ function isoDaysBefore(iso: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** DOC 152 (Batch-9 P0) — the SINGLE approval-date currency rule: a
+ * review/approval date earlier than this floor (365 days before the
+ * assessment date) is a PRIOR review record, not the approval of the
+ * current assessment. Exported so the § 5.A narrative composer, the
+ * Review-and-Approval table, and the engine's sufficiency branch all
+ * consume one derivation (the one-state rule). */
+export function riskApprovalCurrencyFloor(assessmentDateIso: string): string {
+  return isoDaysBefore(assessmentDateIso, 365);
+}
+
 // DOC 144 (2026-09-02) — quote discipline for customer free text spliced into
 // engine prose (doc 143 §C sweep). Every intake-derived narrative or name
 // renders inside typographic quotes with attribution at the call site, so the
@@ -1047,6 +1057,36 @@ export function runRiskFactorEngine(
   const b6TrainedDecisionUnidentified =
     /^Yes — training ADMT for significant decisions/.test(s(intake.q18b_admt_training)) &&
     classifyAdmtSignificantDecision(s(intake.q19_admt_description)) !== "significant";
+  // DOC 152 (2026-09-03, Batch-9) — the ADMT operand group, hoisted ABOVE
+  // the follow-up/condition generators so the § 4.D actions and the § 3.E
+  // narrative read ONE state (batch 962f9090: § 3.E promised a Condition
+  // the isAdmt-gated generator never created for an "In evaluation"
+  // record — the promise-parity defect).
+  const admtRoleType = s(intake.admt_role_type);
+  const admtLogicDocumented = s(intake.admt_logic_documented);
+  const humanReviewFacts = arr(intake.human_review_facts);
+  const admtTestingFacts = arr(intake.admt_testing_facts);
+  const noHumanReview = humanReviewFacts.includes("There is no human review");
+  const humanReviewConfirmed = humanReviewFacts.filter((x) =>
+    x !== "None of the above can be confirmed" && x !== "There is no human review"
+  );
+  const admtEvaluationFactsPresent = clause(intake.q19_admt_description) !== "" ||
+    clause(intake.i5_admt_logic) !== "" ||
+    clause(intake.admt_operational_role) !== "" ||
+    admtRoleType !== "" ||
+    humanReviewFacts.length > 0 ||
+    admtTestingFacts.length > 0;
+  const admtEvaluationActive = s(intake.q18_admt_use) === "In evaluation" &&
+    admtEvaluationFactsPresent;
+  // One predicate drives the § 3.E logic sentence AND its § 4.D object —
+  // by construction they can never diverge again.
+  const admtLogicUndocumented = admtLogicDocumented === "The logic is not fully documented or understood" ||
+    admtLogicDocumented === "Unsure";
+  // Training-provenance gap is MATERIAL exactly when the Company's own
+  // § 7150(b)(6) answer puts the training record in scope.
+  const admtTrainingProvenanceGap =
+    (!clause(intake.i5_admt_training_source) || /^not applicable/i.test(clause(intake.i5_admt_training_source))) &&
+    /^Yes/.test(s(intake.q18b_admt_training));
   // Activity-scope reconciliation: a q4 category whose leading word appears
   // inside an exclusion-cue sentence of the out-of-scope description is a
   // cross-surface contradiction the record must resolve (sentence-scoped,
@@ -1210,6 +1250,14 @@ export function runRiskFactorEngine(
       "Identify the significant decision the technology being trained is intended to make or support; the Company’s § 7150(b)(6) answer names significant-decision training, and the recorded system description does not identify a decision within the § 7001(ddd) categories",
     );
   }
+  // DOC 152 (Batch-9 promise parity) — training-data provenance is material
+  // exactly when the Company's own § 7150(b)(6) answer puts the training
+  // record in scope; the § 3.E sentence renders the same predicate.
+  if (admtTrainingProvenanceGap && (isAdmt || admtEvaluationActive)) {
+    followUps.push(
+      "Identify the provenance of the personal information used to train the technology; the Company’s § 7150(b)(6) answer makes the training record material, and the information provided does not identify it",
+    );
+  }
   if (scopeConflictCategories.length) {
     followUps.push(
       `Reconcile the Activity’s information scope: the out-of-scope description assigns ${
@@ -1225,12 +1273,19 @@ export function runRiskFactorEngine(
   // report must document the date of review and approval).
   {
     const revRows = rows(intake.assessment_reviewers_approvers);
-    const approvalDateOnRecord = s(intake.a9_approval_date) !== "" ||
-      s(intake.assessment_approval_date) !== "" ||
-      revRows.some((r) => s(r.date) !== "" || s(r.review_date) !== "" || s(r.approval_date) !== "");
-    if ((revRows.length || s(intake.a9_approver_name) || intake.approver_authority_confirmed !== undefined) && !approvalDateOnRecord) {
+    const recordedApprovalDate = s(intake.a9_approval_date) || s(intake.assessment_approval_date) ||
+      revRows.map((r) => s(r.date) || s(r.review_date) || s(r.approval_date)).find(Boolean) || "";
+    // DOC 152 — same 365-day currency rule as v_governance:1 (one state):
+    // a stale date is a PRIOR record and the current assessment's date
+    // remains open.
+    const currentDateOnRecord = recordedApprovalDate !== "" &&
+      /^\d{4}-\d{2}-\d{2}/.test(recordedApprovalDate) &&
+      recordedApprovalDate >= riskApprovalCurrencyFloor(assessmentDate);
+    if ((revRows.length || s(intake.a9_approver_name) || intake.approver_authority_confirmed !== undefined) && !currentDateOnRecord) {
       followUps.push(
-        "Record the date the assessment was reviewed and approved; § 7152(a)(9) requires the report to document it alongside the reviewers’ and approvers’ names and positions",
+        recordedApprovalDate
+          ? `Record the review and approval of this current assessment, including its date; the recorded approval date (${recordedApprovalDate}) is a prior review record, and § 7152(a)(9) requires the report to document the date this assessment was reviewed and approved`
+          : "Record the date the assessment was reviewed and approved; § 7152(a)(9) requires the report to document it alongside the reviewers’ and approvers’ names and positions",
       );
     }
   }
@@ -1373,14 +1428,9 @@ export function runRiskFactorEngine(
   const interdependency = s(intake.risk_interdependency_check);
   const compounding = arr(intake.compounding_pathways);
 
-  const admtRoleType = s(intake.admt_role_type);
-  const admtLogicDocumented = s(intake.admt_logic_documented);
-  const humanReviewFacts = arr(intake.human_review_facts);
-  const admtTestingFacts = arr(intake.admt_testing_facts);
-  const noHumanReview = humanReviewFacts.includes("There is no human review");
-  const humanReviewConfirmed = humanReviewFacts.filter((x) =>
-    x !== "None of the above can be confirmed" && x !== "There is no human review"
-  );
+  // (ADMT operand group hoisted above the § 4.D action-generator region —
+  // DOC 152 promise-parity hoist; see the b6TrainedDecisionUnidentified
+  // block.)
 
   const weakRecipients = rows(intake.recipients).filter((r) =>
     s(r.recipient_name_or_category) &&
@@ -1419,9 +1469,18 @@ export function runRiskFactorEngine(
       "Determine whether the identified risks could compound each other",
     );
   }
-  if (isAdmt && (admtLogicDocumented === "The logic is not fully documented or understood" || admtLogicDocumented === "Unsure")) {
+  // DOC 152 (Batch-9 promise parity) — one predicate, two postures: a
+  // DEPLOYED system's undocumented logic conditions the determination; an
+  // EVALUATION-stage system's is a non-blocking recommendation (it cannot
+  // condition a determination the technology is not yet part of). The § 3.E
+  // sentence renders the SAME branch, so narrative and § 4.D never diverge.
+  if (admtLogicUndocumented && isAdmt) {
     conditions.push(
       "Document the logic of the automated decisionmaking technology, including its assumptions and limitations, so the assessment can evaluate it",
+    );
+  } else if (admtLogicUndocumented && admtEvaluationActive) {
+    recommendations.push(
+      "Document the logic of the technology under evaluation, including its assumptions and limitations, before any deployment for decisions",
     );
   }
   if (
@@ -2605,14 +2664,8 @@ export function runRiskFactorEngine(
   // technical fact on the record now renders this sub-part with an
   // evaluation-posture frame; the § 7150(b)(3) trigger analysis is
   // unaffected (evaluation is not deployed use for a significant decision).
-  const admtEvaluationFactsPresent = clause(intake.q19_admt_description) !== "" ||
-    clause(intake.i5_admt_logic) !== "" ||
-    clause(intake.admt_operational_role) !== "" ||
-    admtRoleType !== "" ||
-    humanReviewFacts.length > 0 ||
-    admtTestingFacts.length > 0;
-  const admtEvaluationActive = s(intake.q18_admt_use) === "In evaluation" &&
-    admtEvaluationFactsPresent;
+  // (admtEvaluationActive and its operands are hoisted to the shared-operand
+  // region — DOC 152 promise-parity hoist.)
   if (isAdmt || admtEvaluationActive) {
     // DOC 144 (2026-09-02, task-5 landing restructure) — the sub-part no
     // longer opens on a bare statutory recitation: one reader-first sentence
@@ -2621,11 +2674,21 @@ export function runRiskFactorEngine(
     // its own "Governing requirement." run-in paragraph.
     // DOC 144 reconciliation (same day) — re-lettered: the ADMT technical
     // record is now Appendix E (old F).
+    // DOC 152 (Batch-9 P1, corpus-confirmed: FSOR commentary on
+    // § 7152(a)(3)(G) — the requirement asks how ADMT output is used "to
+    // make a significant decision") — the governing-requirement sentence is
+    // SCOPED: the full mandate is stated only where a § 7150(b)(3)
+    // significant-decision use is established on the record; otherwise the
+    // sub-part is expressly carried as a supplemental record so the report
+    // never overstates the provision's reach.
     put(
       "iii_analysis:14",
       "admt_intro",
       "A",
-      "E. Automated Decisionmaking Technology.\n\nAn automated system that decides, or helps decide, something significant for a consumer stands or falls on what it actually does — not the label applied to it — so this sub-part evaluates the system's role, the human review around it, and the testing behind it; the full technical record appears in Appendix E.\n\nGoverning requirement. Section 7152(a)(3)(G) requires the report to describe the technology’s role, logic, and output, and §§ 7001(e), 7150(b)(3), 7152(a)(5)(B) and 7152(a)(6)(A)(iv) make human review and accuracy-fairness-bias testing relevant to both the risk analysis and the safeguards." +
+      "E. Automated Decisionmaking Technology.\n\nAn automated system that decides, or helps decide, something significant for a consumer stands or falls on what it actually does — not the label applied to it — so this sub-part evaluates the system's role, the human review around it, and the testing behind it; the full technical record appears in Appendix E.\n\n" +
+        (b3Class === "significant"
+          ? "Governing requirement. Section 7152(a)(3)(G) requires the report to describe the technology’s role, logic, and output, and §§ 7001(e), 7150(b)(3), 7152(a)(5)(B) and 7152(a)(6)(A)(iv) make human review and accuracy-fairness-bias testing relevant to both the risk analysis and the safeguards."
+          : "Governing requirement. Section 7152(a)(3)(G) requires that description where automated decisionmaking technology is used to make a significant decision concerning a consumer (§ 7150(b)(3)); that use is not established on the information provided, and this sub-part is carried as a supplemental record — §§ 7001(e), 7152(a)(5)(B) and 7152(a)(6)(A)(iv) still make human review and accuracy-fairness-bias testing relevant to the risk analysis and the safeguards it weighs.") +
         (admtEvaluationActive
           ? "\n\nThe Company records the technology as under evaluation rather than deployed for decisions. The description is assessed on that posture: the § 7150(b)(3) trigger applies only when the technology is used to make a significant decision concerning a consumer, and the record preserved here supports that analysis if the evaluation proceeds to deployment."
           : ""),
@@ -2650,6 +2713,22 @@ export function runRiskFactorEngine(
         const quoted = (t: string): string => `“${firstSentence(t).replace(/[.!?]\s*$/, "")}”.`;
         const bits: string[] = [];
         if (desc) bits.push(`The Company identifies the system as: ${quoted(desc)}`);
+        // DOC 152 (Batch-9 P0) — fact / law / determination separation: where
+        // the Company's own description calls an advertising use a
+        // "significant decision" while the doc-137 classifier resolves the
+        // described use as advertising-only, the quote is preserved as the
+        // Company's characterization and EUP's determination states the
+        // § 7001(ddd)(6) exclusion in place — the narrative can never carry
+        // the Company's label as a legal conclusion the trigger analysis
+        // rejected.
+        if (
+          desc && /significant\s+decision/i.test(desc) &&
+          classifyAdmtSignificantDecision(s(intake.q19_admt_description)) === "advertising_only"
+        ) {
+          bits.push(
+            "That characterization is preserved as the Company’s own description. Under § 7001(ddd)(6), advertising to a consumer is excluded from the significant-decision categories; no separate covered significant decision is identified on the information provided, and the § 7150(b) determinations in § 3.A carry that state.",
+          );
+        }
         if (roleClause) {
           // DOC 148 (A-Team Batch-8 P1) — the role sentence is the Company's
           // OWN classification, expressly attributed, and the closer states
@@ -2790,23 +2869,37 @@ export function runRiskFactorEngine(
       // record is now Appendix E (old F) across the logic, training, and
       // § 7153 sentences below.
       if (admtLogicDocumented) {
+        // DOC 152 (Batch-9 promise parity) — the sentence renders the SAME
+        // branch that generated (or did not generate) the § 4.D object:
+        // deployed → Condition; evaluation-stage → Recommendation; any
+        // other state promises nothing.
         const logicText = admtLogicDocumented === "The logic is documented and reviewed internally"
           ? "The system’s logic is documented and reviewed internally; the full logic record, including its assumptions and limitations, is preserved in Appendix E."
           : admtLogicDocumented === "The logic is documented by the provider and the Company relies on that documentation"
           ? "The system’s logic is documented by the provider, on whose documentation the Company relies; the record is preserved in Appendix E, with the provider dependency noted in § 2.F."
-          : `The system’s logic is not fully documented or understood on the information provided; documenting it appears among the ${conditionsHeadName} in § 4.D, and the record to date is preserved in Appendix E.`;
+          : admtLogicUndocumented && isAdmt
+          ? `The system’s logic is not fully documented or understood on the information provided; documenting it appears among the ${conditionsHeadName} in § 4.D, and the record to date is preserved in Appendix E.`
+          : admtLogicUndocumented && admtEvaluationActive
+          ? "The system’s logic is not fully documented or understood on the information provided; documenting it before any deployment for decisions appears among the Recommendations in § 4.D, and the record to date is preserved in Appendix E."
+          : "The system’s logic is not fully documented or understood on the information provided; the record to date is preserved in Appendix E.";
         put("iii_analysis:17", "admt_logic_note", "B", logicText, ["INTAKE:admt_logic_documented"], ["11 CCR § 7152(a)(3)(G)(i)"]);
       }
       {
         const source = clause(intake.i5_admt_training_source);
         const noneSrc = !source || /^not applicable/i.test(source);
         if (!noneSrc || s(intake.admt_provider_trained_using_pi) || s(intake.q18b_admt_training)) {
+          // DOC 152 (Batch-9 promise parity) — the Follow-Up pointer renders
+          // only when the admtTrainingProvenanceGap follow-up actually
+          // generated (the Company's § 7150(b)(6) answer makes the record
+          // material); otherwise the gap is stated without a § 4.D promise.
           put(
             "iii_analysis:17",
             "admt_training_note",
             "B",
             noneSrc
-              ? "Training-data provenance is not identified in the information provided; the gap is carried into the Follow-ups where material, and the technical record appears in Appendix E."
+              ? (admtTrainingProvenanceGap
+                ? "Training-data provenance is not identified in the information provided; identifying it appears among the Follow-Ups in § 4.D, and the technical record appears in Appendix E."
+                : "Training-data provenance is not identified in the information provided; the technical record appears in Appendix E.")
               : "Training-data provenance is identified in the information provided and is preserved in Appendix E.",
             ["INTAKE:i5_admt_training_source"],
             ["11 CCR § 7150(b)(6)", "11 CCR § 7153"],
@@ -3342,13 +3435,32 @@ export function runRiskFactorEngine(
     // record states the open element instead of asserting sufficiency.
     const approvalDate = s(intake.a9_approval_date) || s(intake.assessment_approval_date) ||
       reviewers.map((r) => s(r.date) || s(r.review_date) || s(r.approval_date)).find(Boolean) || "";
+    // DOC 152 (2026-09-03, Batch-9 P0) — the recorded date must plausibly
+    // approve THIS assessment: a date more than 365 days before the
+    // assessment date is a PRIOR review/approval record (batch 962f9090:
+    // 2024 approval dates rendered as sufficiency for 2026 assessments).
+    // A stale date is preserved as the prior record and the current
+    // assessment's approval degrades to additional-information-required —
+    // never silently satisfied by history.
+    const approvalDateCurrent = approvalDate !== "" &&
+      /^\d{4}-\d{2}-\d{2}/.test(approvalDate) &&
+      approvalDate >= riskApprovalCurrencyFloor(assessmentDate);
     if (reviewers.length || migrated || authority !== undefined) {
-      if (isYes(authority) && (reviewers.length || migrated) && approvalDate) {
+      if (isYes(authority) && (reviewers.length || migrated) && approvalDateCurrent) {
         put(
           "v_governance:1",
           "approval_sufficiency_conclusion",
           "A",
           `The approval record is sufficient for assessment purposes: the reviewers and approvers are identified, at least one approver is confirmed to have authority over whether the processing proceeds, and the assessment is recorded as reviewed and approved on ${approvalDate}.`,
+          ["FINAL:assessment_reviewers_approvers", "FINAL:approver_authority_confirmed"],
+          ["11 CCR § 7152(a)(9)"],
+        );
+      } else if (isYes(authority) && (reviewers.length || migrated) && approvalDate) {
+        put(
+          "v_governance:1",
+          "approval_follow_up",
+          "B",
+          `Approval record — additional information required. Prior internal review or approval is recorded as of ${approvalDate}; § 7152(a)(9) requires the report to document the date THIS assessment was reviewed and approved. Record the current assessment’s review and approval, including its date, to complete the finalization record.`,
           ["FINAL:assessment_reviewers_approvers", "FINAL:approver_authority_confirmed"],
           ["11 CCR § 7152(a)(9)"],
         );

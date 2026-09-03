@@ -563,6 +563,9 @@ Return a JSON object with EXACTLY these fields:
     "i4b_sources": "string",
     "i5_admt_logic": "string", "i5_admt_training_source": "string",
     "i5_admt_fairness_testing": "string", "i5_admt_human_review": "string",
+    "recipients": [
+      { "recipient_name_or_category": "string", "recipient_role": "string", "information_made_available": "string", "disclosure_purpose": "string", "contractual_protections": "string — the recipient's contract status; keep it COHERENT with any narrative elsewhere in the intake: if the scenario text says a vendor operates under a written agreement, that vendor's row must not say 'Not confirmed' or 'No written contract'" }
+    ],
     "i6_vendors": "string", "i7_internal_contributors": "string",
     "i7_external_consultees": "string", "i8_certifying_exec_name": "string",
     "i8_certifying_exec_title": "string",
@@ -571,7 +574,7 @@ Return a JSON object with EXACTLY these fields:
     "i9_existing_dpia_summary": "string",
     "assessment_reviewers_approvers": [{ "name": "string", "position": "string", "role": "string — 'Approved' or 'Reviewed'" }],
     "approver_authority_confirmed": "Yes or No",
-    "a9_approval_date": "YYYY-MM-DD — the date the assessment was reviewed and approved (§ 7152(a)(9) requires the report to document it); populate on MOST scenarios, leave blank on a minority to exercise the record-completion branch",
+    "a9_approval_date": "YYYY-MM-DD — the date THIS assessment was reviewed and approved (§ 7152(a)(9)); it must fall within the weeks before the assessment date, NEVER a prior-year date (a prior assessment's approval belongs in i9_existing_dpia_summary, not here). Populate on MOST scenarios, leave blank on a minority to exercise the record-completion branch",
     "a2_necessity_set": [
       { "element": "string — one personal-information element collected for the activity", "necessity": "string — verbatim necessity option", "justification": "string — one sentence" }
     ],
@@ -587,7 +590,7 @@ Return a JSON object with EXACTLY these fields:
       { "harm": "string — verbatim harm-pathway option (lettered)", "data_involved": "string — what data the pathway involves", "actor": "string — who could cause the harm", "source": "string — where the exposure arises", "cause": "string — the mechanism of harm", "likelihood": "string — verbatim likelihood option", "severity": "string — verbatim severity option" }
     ],
     "a6_safeguards": [
-      { "harm": "string — verbatim harm-pathway option the safeguard addresses", "safeguard": "string — the safeguard itself", "safeguard_status": "string — verbatim status option", "residual": "string — residual risk after the safeguard", "risk_pathway_ids": ["array of verbatim harm-pathway options"], "effectiveness_basis": "string — verbatim effectiveness-basis option", "planned_timeline": "string — verbatim timeline option, ONLY for planned rows (omit for implemented rows)" }
+      { "harm": "string — verbatim harm-pathway option the safeguard addresses", "safeguard": "string — the safeguard itself; for a PLANNED row describe it in planned/future tense ('contract amendments will prohibit…'), never with implemented-state verbs ('include', 'is in place') — the tense must match safeguard_status", "safeguard_status": "string — verbatim status option", "residual": "string — residual risk after the safeguard", "risk_pathway_ids": ["array of verbatim harm-pathway options"], "effectiveness_basis": "string — verbatim effectiveness-basis option", "planned_timeline": "string — verbatim timeline option, ONLY for planned rows (omit for implemented rows)" }
     ],
     "exceptions_intake": {
       "fraud_detection":    { "claimed": false, "scope": "string or empty", "safeguards": "string or empty" },
