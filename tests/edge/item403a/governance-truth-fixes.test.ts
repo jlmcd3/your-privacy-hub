@@ -34,7 +34,7 @@ import {
   applyVerdictVoice,
   unboundPostureClaims,
 } from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-prose-gold.ts";
-import { GOVERNANCE_PERFECT } from "../../../supabase/functions/_shared/golden/governance-perfect.ts";
+import { GOVERNANCE_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/governance-perfect.ts";
 
 const PERFECT = GOVERNANCE_PERFECT[0].intake as Record<string, unknown>;
 

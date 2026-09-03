@@ -28,7 +28,7 @@ import {
 } from "../../archive/unwired/_shared/prose/plan-render.ts";
 import { buildActivityAnalytics } from "../../supabase/functions/run-cppa-risk-assessment/_local/ltp/analytic-deliverables/build.ts";
 import { buildEuAuthoritySection } from "../../supabase/functions/run-cppa-risk-assessment/_local/ltp/eu-authority/build.ts";
-import { CPPA_RISK_GOLDEN } from "../../supabase/functions/_shared/golden/cppa-risk.ts";
+import { CPPA_RISK_GOLDEN } from "../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk.ts";
 import { lintFrameSet } from "../../supabase/functions/_shared/prose/frames.ts";
 import { lintPlan } from "../../archive/unwired/_shared/prose/plan.ts";
 import { lintDocumentStyle } from "../../archive/unwired/_shared/prose/style-lint.ts";

@@ -16,7 +16,7 @@ import {
   buildCyberNextSteps,
 } from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cppa-cyber-deliverables/cyber-recommendations.ts";
 import { attachCyberCorpus } from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cyber-corpus-attach.ts";
-import { CPPA_CYBER_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-cyber.ts";
+import { CPPA_CYBER_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-cyber.ts";
 
 const REPORT_DATE = "August 26, 2026";
 

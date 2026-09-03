@@ -16,8 +16,8 @@ import {
   terminateSpan,
 } from "../../../supabase/functions/_shared/ltp/dpia-deliverables/build.ts";
 import { assembleDpiaSkeletonDocument, boundedClause } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
-import { DPIA_PERFECT_PINNED } from "../../../supabase/functions/_shared/golden/dpia-perfect-pinned.ts";
-import { DPIA_PERFECT } from "../../../supabase/functions/_shared/golden/dpia.ts";
+import { DPIA_PERFECT_PINNED } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia-perfect-pinned.ts";
+import { DPIA_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia.ts";
 import { runEmitGate } from "../../../supabase/functions/_shared/emit-gate.ts";
 import { applyFrameSubstitution } from "../../../supabase/functions/_shared/prose/frame-substitution.ts";
 import { readDetectFindings } from "../../../supabase/functions/_shared/prose/detect-mode.ts";

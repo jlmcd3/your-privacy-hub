@@ -68,7 +68,7 @@ Deno.test("W3-T1 · BUILD_STAMP bumped to w3-t1 tag", () => {
 
 Deno.test("W3-T1 · DPIA golden fixtures assert source fields on enumerated rows", async () => {
   const golden = await Deno.readTextFile(
-    new URL("../../../supabase/functions/_shared/golden/dpia.ts", import.meta.url),
+    new URL("../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia.ts", import.meta.url),
   );
   // Every fixture must carry the two new assertions.
   const intakeFieldMatches = golden.match(/"row source\.intake_field present"/g) ?? [];

@@ -7,9 +7,9 @@
 // batch dying at dispatch.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { DPIA_PERFECT_SET, casesForVariant } from "../../_shared/golden/registry.ts";
-import { DPIA_PERFECT_PINNED } from "../../_shared/golden/dpia-perfect-pinned.ts";
-import { DPIA_PERFECT } from "../../_shared/golden/dpia.ts";
+import { DPIA_PERFECT_SET, casesForVariant } from "../../quality-batch-orchestrator/_local/golden/registry.ts";
+import { DPIA_PERFECT_PINNED } from "../../quality-batch-orchestrator/_local/golden/dpia-perfect-pinned.ts";
+import { DPIA_PERFECT } from "../../quality-batch-orchestrator/_local/golden/dpia.ts";
 import { checkPerfectDpiaIntake, deficiencyLines } from "../../_shared/quality/perfect-closed-loop.ts";
 import { planPinnedOnly } from "../../quality-batch-orchestrator/_local/quality/pinned-only.shared.ts";
 import { buildDpiaDeliverables } from "../../_shared/ltp/dpia-deliverables/build.ts";

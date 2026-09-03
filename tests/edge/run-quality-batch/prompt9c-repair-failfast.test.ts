@@ -6,8 +6,8 @@ import {
   screenIntake,
 } from "../../../supabase/functions/run-quality-batch/index.ts";
 
-import { DPIA_GOLDEN } from "../../../supabase/functions/_shared/golden/dpia.ts";
-import { CPPA_RISK_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-risk.ts";
+import { DPIA_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia.ts";
+import { CPPA_RISK_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk.ts";
 
 // A contract-valid dpia intake, so the lint path (not contract validation) is
 // what the repair assertions exercise.

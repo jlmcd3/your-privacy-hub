@@ -16,7 +16,7 @@ import {
   CYBER_CONTROL_SLUGS,
   CYBER_AUDITOR_ENGAGEMENT_OPTIONS,
 } from "../../supabase/functions/_shared/intake-contracts/cppa-cybersecurity";
-import { CYBER_PERFECT, CPPA_CYBER_GOLDEN } from "../../supabase/functions/_shared/golden/cppa-cyber";
+import { CYBER_PERFECT, CPPA_CYBER_GOLDEN } from "../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-cyber";
 import { FIELD_LABELS } from "../../supabase/functions/_shared/customer-messages";
 
 const FORM = readFileSync("src/pages/CPPACybersecurity.tsx", "utf8");

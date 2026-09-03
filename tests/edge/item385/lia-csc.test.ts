@@ -10,7 +10,7 @@ import {
   LIA_CSC_SURFACES,
   runLiaCsc,
 } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-csc.ts";
-import { LIA_PERFECT } from "../../../supabase/functions/_shared/golden/lia-perfect.ts";
+import { LIA_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/lia-perfect.ts";
 
 const INTAKE = LIA_PERFECT[0].intake as Record<string, unknown>;
 const ABSENCE = "The record is silent here, and the question is carried forward.";

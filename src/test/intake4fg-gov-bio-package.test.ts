@@ -11,8 +11,8 @@ import { biometricContract } from "../../supabase/functions/_shared/intake-contr
 
 const gov = readFileSync("src/pages/GovernanceAssessment.tsx", "utf8");
 const bio = readFileSync("src/pages/BiometricChecker.tsx", "utf8");
-const perfect = readFileSync("supabase/functions/_shared/golden/biometric-perfect.ts", "utf8");
-const golden = readFileSync("supabase/functions/_shared/golden/biometric.ts", "utf8");
+const perfect = readFileSync("supabase/functions/quality-batch-orchestrator/_local/golden/biometric-perfect.ts", "utf8");
+const golden = readFileSync("supabase/functions/quality-batch-orchestrator/_local/golden/biometric.ts", "utf8");
 const labels = readFileSync("supabase/functions/_shared/customer-messages.ts", "utf8");
 
 describe("INTAKE-4f — governance intake package", () => {

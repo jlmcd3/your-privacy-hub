@@ -16,7 +16,7 @@ import {
   DPIA_RENDERED_CONCLUSION_SURFACES,
   dpiaRenderedConclusionText,
 } from "../../../supabase/functions/_shared/ltp/dpia-rendered-surfaces.ts";
-import { DPIA_PERFECT_SET } from "../../../supabase/functions/_shared/golden/registry.ts";
+import { DPIA_PERFECT_SET } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/registry.ts";
 
 // deno-lint-ignore no-explicit-any
 type Any = any;

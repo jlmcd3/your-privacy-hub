@@ -19,8 +19,8 @@ import { readDetectFindings } from "../../../supabase/functions/_shared/prose/de
 import { assembleDpiaSkeletonDocument } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
 import { checkPerfectDpiaIntake, deficiencyLines } from "../../../supabase/functions/_shared/quality/perfect-closed-loop.ts";
 import { planPinnedOnly } from "../../../supabase/functions/quality-batch-orchestrator/_local/quality/pinned-only.shared.ts";
-import { DPIA_PERFECT_PINNED } from "../../../supabase/functions/_shared/golden/dpia-perfect-pinned.ts";
-import { DPIA_PERFECT_SET, casesForVariant } from "../../../supabase/functions/_shared/golden/registry.ts";
+import { DPIA_PERFECT_PINNED } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia-perfect-pinned.ts";
+import { DPIA_PERFECT_SET, casesForVariant } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/registry.ts";
 
 // deno-lint-ignore no-explicit-any
 type Any = any;

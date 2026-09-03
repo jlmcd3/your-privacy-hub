@@ -29,7 +29,7 @@ import {
   buildSaNotificationDetermination,
   separateExposure,
 } from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-playbook-deliverables/build";
-import { IR_PLAYBOOK_GOLDEN } from "../../../supabase/functions/_shared/golden/ir-playbook";
+import { IR_PLAYBOOK_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/ir-playbook";
 import { irPlaybookContract } from "../../../supabase/functions/_shared/intake-contracts/ir-playbook";
 import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate";
 

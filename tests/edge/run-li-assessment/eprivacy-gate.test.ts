@@ -18,8 +18,8 @@ import {
   LIA_EPRIVACY_GATE_RATIFIED,
 } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/eprivacy-gate.ts";
 import { buildLiaDeliverables } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/build.ts";
-import { LIA_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/lia-corpus-map.ts";
-import { LIA_PERFECT_PINNED } from "../../../supabase/functions/_shared/golden/lia-perfect-pinned.ts";
+import { LIA_CORPUS_MAP } from "../../../supabase/functions/run-li-assessment/_local/corpus/maps/lia-corpus-map.ts";
+import { LIA_PERFECT_PINNED } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/lia-perfect-pinned.ts";
 
 const TERMINAL_INTAKE = {
   processing_description:

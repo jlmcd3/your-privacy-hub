@@ -36,7 +36,7 @@ import {
   runCoverageMatrix,
 } from "../../../supabase/functions/_shared/ltp/coverage-matrix.ts";
 import { FALSE_ABSENCE_CHECK_IDS } from "../../../supabase/functions/_shared/ltp/record-complete.ts";
-import { BIOMETRIC_PERFECT } from "../../../supabase/functions/_shared/golden/biometric-perfect.ts";
+import { BIOMETRIC_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/biometric-perfect.ts";
 import { buildBiometricDeliverables } from "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-deliverables/build.ts";
 import { BIOMETRIC_WATCH_CLASSES } from "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-refinement-config.ts";
 

@@ -20,7 +20,7 @@ import {
   DPIA_S3_STEP3_CONCLUSION,
   DPIA_S3_STEP4_IMPACT_LEAD,
 } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
-import { DPIA_PERFECT_PINNED } from "../../../supabase/functions/_shared/golden/dpia-perfect-pinned.ts";
+import { DPIA_PERFECT_PINNED } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia-perfect-pinned.ts";
 import { checkPerfectDpiaIntake } from "../../../supabase/functions/_shared/quality/perfect-closed-loop.ts";
 
 /** The passage bound every Section 3 customer quote must respect.

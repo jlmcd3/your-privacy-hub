@@ -5151,6 +5151,36 @@ export type Database = {
           },
         ]
       }
+      quality_fixture_labels: {
+        Row: {
+          assessment_id: string
+          created_at: string
+          fixture_id: string | null
+          fixture_set: string | null
+          run_id: string | null
+          source_table: string | null
+          tool: string | null
+        }
+        Insert: {
+          assessment_id: string
+          created_at?: string
+          fixture_id?: string | null
+          fixture_set?: string | null
+          run_id?: string | null
+          source_table?: string | null
+          tool?: string | null
+        }
+        Update: {
+          assessment_id?: string
+          created_at?: string
+          fixture_id?: string | null
+          fixture_set?: string | null
+          run_id?: string | null
+          source_table?: string | null
+          tool?: string | null
+        }
+        Relationships: []
+      }
       quality_loop2_baselines: {
         Row: {
           avg_score: number | null
@@ -5685,6 +5715,8 @@ export type Database = {
           cross_review_complete: boolean
           engine_path: string | null
           error: string | null
+          fixture_ids: Json | null
+          fixture_sets: Json | null
           fixture_variant: string | null
           generation_model: string | null
           gpt_only_count: number
@@ -5733,6 +5765,8 @@ export type Database = {
           cross_review_complete?: boolean
           engine_path?: string | null
           error?: string | null
+          fixture_ids?: Json | null
+          fixture_sets?: Json | null
           fixture_variant?: string | null
           generation_model?: string | null
           gpt_only_count?: number
@@ -5781,6 +5815,8 @@ export type Database = {
           cross_review_complete?: boolean
           engine_path?: string | null
           error?: string | null
+          fixture_ids?: Json | null
+          fixture_sets?: Json | null
           fixture_variant?: string | null
           generation_model?: string | null
           gpt_only_count?: number

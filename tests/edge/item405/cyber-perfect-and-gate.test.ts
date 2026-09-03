@@ -4,14 +4,14 @@
 // preservation. Mirrors the item-393/401 batteries one-for-one.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { CYBER_PERFECT } from "../../../supabase/functions/_shared/golden/cppa-cyber.ts";
+import { CYBER_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-cyber.ts";
 import {
   casesForVariant,
   GOLDEN_BY_TOOL,
   intakesForVariant,
   PERFECT_BY_TOOL,
-} from "../../../supabase/functions/_shared/golden/registry.ts";
-import { MESSY_BY_TOOL } from "../../../supabase/functions/_shared/golden/messy-registry.ts";
+} from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/registry.ts";
+import { MESSY_BY_TOOL } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/messy-registry.ts";
 import {
   cppaCybersecurityContract,
   CYBER_CONTROL_SLUGS,

@@ -7,7 +7,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { dpiaFrameworkContract } from "../../supabase/functions/_shared/intake-contracts/dpia-framework";
-import { DPIA_PERFECT } from "../../supabase/functions/_shared/golden/dpia";
+import { DPIA_PERFECT } from "../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia";
 
 const page = readFileSync("src/pages/DPIAFramework.tsx", "utf8");
 const keys = dpiaFrameworkContract.fields.map((f) => f.key);

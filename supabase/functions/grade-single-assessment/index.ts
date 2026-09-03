@@ -24,7 +24,6 @@ import {
   familyForSingleTool,
 } from "../_shared/grader/payload.ts";
 // R-TURN-1 item 6 — resolve golden fixture-set label for gating header.
-import { matchFixtureSet } from "../_shared/golden/registry.ts";
 // GRADER-CAL-1 A2/A3/A4 — shared post-filter (mirror of run-quality-batch).
 import { applyGraderCal1Filter } from "../_shared/grader/post-filters.ts";
 // SKELETON-MODE CALIBRATION PARITY (2026-08-31) — this grader (used by
@@ -39,7 +38,7 @@ import {
   applyEvidenceBackedDimensionFloor,
   hasSkeletonDocument,
   SKELETON_CAL_VERSION,
-} from "../_shared/grader/skeleton-calibration-mirror.ts";
+} from "./_local/grader/skeleton-calibration-mirror.ts";
 
 // GRADER-1 Task 1 — full intake JSON passed to the grader (mirrors
 // run-quality-batch). Safety cap only for pathological payloads.
@@ -265,7 +264,7 @@ function computeOverall(scores: any, tool: GradedTool): number {
   );
 }
 
-async function gradeOne(role: "claude" | "gpt", tool: GradedTool, intake: any, report: any) {
+async function gradeOne(role: "claude" | "gpt", tool: GradedTool, intake: any, report: any, fixtureSet: string | null = null) {
   const sys = buildRubricSystemPrompt(role);
   // QLB-F3: body-first, metadata-stripped, equal budget across models.
   // DOC 129 §1.2 — registration/session-shaped tools (family null) now
@@ -277,7 +276,7 @@ async function gradeOne(role: "claude" | "gpt", tool: GradedTool, intake: any, r
     family,
     report,
     GRADER_PAYLOAD_BUDGET,
-    { fixtureSet: family ? matchFixtureSet(tool as QL3Tool, intake) : null, customerDocFirst: true },
+    { fixtureSet: family ? fixtureSet : null, customerDocFirst: true },
   );
   if (payload.truncated) {
     console.warn(`[grade-single-assessment] payload_truncated tool=${tool} role=${role} original_length=${payload.original_length} budget=${GRADER_PAYLOAD_BUDGET}`);
@@ -547,7 +546,7 @@ const handler = async (req: Request): Promise<Response> => {
   // the model payload leads with. Runs first, never gates the model calls.
   let deterministicFindings: unknown[] = [];
   try {
-    const { runDeterministicQa } = await import("../_shared/grader/deterministic-qa.ts");
+    const { runDeterministicQa } = await import("./_local/grader/deterministic-qa.ts");
     deterministicFindings = runDeterministicQa(report);
     if (deterministicFindings.length) {
       console.log(`[DETERMINISTIC-QA] tool=${tool} findings=${deterministicFindings.length}`);
@@ -556,11 +555,30 @@ const handler = async (req: Request): Promise<Response> => {
     console.warn("[grade-single-assessment] deterministic QA failed (non-fatal):", (e as Error).message);
   }
 
+  // FIXTURE-LABEL LAW — the fixture set is READ from quality_fixture_labels,
+  // written by run-quality-batch when the document was generated from a pinned
+  // golden. It is no longer re-derived from the golden registry here: the
+  // orchestrator resolved it with the same byte-equality lookup against the
+  // same registry, so the label is identical, and this function no longer
+  // imports the registry. No row ⇒ null, exactly as the old lookup returned
+  // null for a non-golden intake.
+  let persistedFixtureSet: string | null = null;
+  try {
+    const { data: lbl } = await admin
+      .from("quality_fixture_labels")
+      .select("fixture_set")
+      .eq("assessment_id", body.assessment_id)
+      .maybeSingle();
+    persistedFixtureSet = (lbl as { fixture_set?: string | null } | null)?.fixture_set ?? null;
+  } catch (e) {
+    console.warn("[grade-single-assessment] fixture-label lookup failed (non-fatal):", (e as Error).message);
+  }
+
   let claudeRes: any = null, claudeErr: string | null = null;
   let gptRes: any = null, gptErr: string | null = null;
-  try { claudeRes = await gradeOne("claude", tool, intake, report); }
+  try { claudeRes = await gradeOne("claude", tool, intake, report, persistedFixtureSet); }
   catch (e) { claudeErr = (e as Error).message; }
-  try { gptRes = await gradeOne("gpt", tool, intake, report); }
+  try { gptRes = await gradeOne("gpt", tool, intake, report, persistedFixtureSet); }
   catch (e) { gptErr = (e as Error).message; }
 
   const payload = {

@@ -2,7 +2,7 @@
 // and the release ledger, on the ROUTED cppa-risk LTP path (stubbed models).
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { generateCppaRiskReport } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/generate-cppa-risk.ts";
-import { CPPA_RISK_PERFECT } from "../../../supabase/functions/_shared/golden/cppa-risk.ts";
+import { CPPA_RISK_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk.ts";
 import {
   runCoverageMatrix,
   coverageAnchorTokens,

@@ -28,7 +28,7 @@ import {
   buildReviewAndUpdateFinding,
   buildRiskCalibrationFinding,
 } from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-deliverables/build";
-import { GOVERNANCE_GOLDEN } from "../../../supabase/functions/_shared/golden/governance";
+import { GOVERNANCE_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/governance";
 import { governanceContract } from "../../../supabase/functions/_shared/intake-contracts/governance-assessment";
 
 const CORPUS = Object.values(GOVERNANCE_CORPUS_SNAPSHOT).join("\n\n");

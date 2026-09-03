@@ -42,7 +42,7 @@ Deno.test("W3-T2: rubric context declares factor objects as designed output", ()
 });
 
 Deno.test("W3-T2: goldens require factor names + intake_evidence anchors", () => {
-  const golden = Deno.readTextFileSync(new URL("../../../supabase/functions/_shared/golden/lia.ts", import.meta.url));
+  const golden = Deno.readTextFileSync(new URL("../../../supabase/functions/quality-batch-orchestrator/_local/golden/lia.ts", import.meta.url));
   assertStringIncludes(golden, "reasonable_expectations");
   assertStringIncludes(golden, "impact_severity");
   assertStringIncludes(golden, "intake_evidence");

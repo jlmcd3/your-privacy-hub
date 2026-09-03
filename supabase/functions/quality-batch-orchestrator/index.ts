@@ -31,7 +31,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { exportBatchPdfs, makeLiveDeps, writeExportDoneMarker } from "../_shared/qa-pdf-export.ts";
 import { GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
-import { goldenIntakes, GOLDEN_BY_TOOL, intakesForVariant, casesForVariant } from "../_shared/golden/registry.ts";
+import { goldenIntakes, GOLDEN_BY_TOOL, intakesForVariant, casesForVariant, matchFixtureCase } from "./_local/golden/registry.ts";
 // PROMPT 9G item 3 — all-pinned batch mode (deterministic dispatch pre-filter).
 import { planPinnedOnly } from "./_local/quality/pinned-only.shared.ts";
 // PROMPT 12G items 1-3 — pins_mode ("only" | "seed" | "none"); pinned_only is
@@ -425,6 +425,21 @@ async function seedAndResume(tool: string, batchSize: number, createdBy: string,
     return { ok: false, err: `no messy fixtures authored for tool ${tool} — author them in _shared/golden/messy-registry.ts before running the Messy variant` };
   }
   const seed: Record<string, unknown> = buildSeedRow(tool, batchSize, runNumber, createdBy, nowIso, { pins });
+  // FIXTURE-LABEL LAW — the label a pinned intake carries is resolved ONCE,
+  // here, at seed time, and persisted on the run row. run-quality-batch and
+  // grade-single-assessment read it instead of re-deriving it from the golden
+  // registry (same byte-equality lookup, same answer, one owner of the data).
+  // Arrays are positionally aligned with `intakes`; generated intakes appended
+  // after the pins simply run off the end of the array and read as null.
+  {
+    const seededPins = Array.isArray(seed.intakes) ? (seed.intakes as unknown[]) : [];
+    if (seededPins.length) {
+      const matched = seededPins.map((p) => matchFixtureCase(tool, p));
+      seed.fixture_sets = matched.map((m) => m?.set ?? null);
+      seed.fixture_ids = matched.map((m) => m?.id ?? null);
+    }
+  }
+
   if (opts.variant) seed.fixture_variant = opts.variant;
   // MODEL A/B HARNESS (dispatch 1) — the child run carries the generation
   // model it must use and the pair it belongs to. Both stay NULL on legacy

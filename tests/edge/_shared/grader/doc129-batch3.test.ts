@@ -8,7 +8,7 @@ import {
   buildGraderPayload,
   extractCustomerDocument,
 } from "../../../../supabase/functions/_shared/grader/payload.ts";
-import { runDeterministicQa } from "../../../../supabase/functions/_shared/grader/deterministic-qa.ts";
+import { runDeterministicQa } from "../../../../supabase/functions/grade-single-assessment/_local/grader/deterministic-qa.ts";
 import {
   buildPublicAuthorityExclusion,
   buildReasonableExpectations,
@@ -177,8 +177,7 @@ Deno.test("doc129 LIA-E — the advocacy framing is retired from every renderabl
   // The map's citation_source provenance strings quote the ORIGINAL ratified
   // bearing as an audit record — only the `display` blocks are renderable
   // customer-facing text, so the check runs over those.
-  const { LIA_CORPUS_MAP } = await import(
-    "../../../../supabase/functions/_shared/corpus/maps/lia-corpus-map.ts"
+  const { LIA_CORPUS_MAP } = await import("../../../../supabase/functions/run-li-assessment/_local/corpus/maps/lia-corpus-map.ts"
   );
   const displays = JSON.stringify(
     LIA_CORPUS_MAP,

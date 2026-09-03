@@ -14,7 +14,7 @@
 // t.step subtests per fixture.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { CYBER_PERFECT } from "../../../supabase/functions/_shared/golden/cppa-cyber.ts";
+import { CYBER_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-cyber.ts";
 import { buildCyberDeliverables } from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cppa-cyber-deliverables/build.ts";
 import { CYBER_7122_CONDITIONS, CYBER_7123_COMPONENTS, CYBER_PROGRAM_OBLIGATIONS } from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cppa-cyber-deliverables/components.ts";
 

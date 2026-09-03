@@ -11,9 +11,9 @@ import { lintFrameSet, frameSetRenderable } from "../../../supabase/functions/_s
 import { BIOMETRIC_PLAN, BIOMETRIC_FRAMES } from "../../../library/prose/load.ts";
 import { FIELD_LABELS } from "../../../supabase/functions/_shared/customer-messages.ts";
 import { buildBiometricDeliverables } from "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-deliverables/build.ts";
-import { BIOMETRIC_GOLDEN } from "../../../supabase/functions/_shared/golden/biometric.ts";
-import { BIOMETRIC_GOLDEN_EXTRA } from "../../../supabase/functions/_shared/golden/biometric-extra.ts";
-import { MESSY_BY_TOOL } from "../../../supabase/functions/_shared/golden/messy-registry.ts";
+import { BIOMETRIC_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/biometric.ts";
+import { BIOMETRIC_GOLDEN_EXTRA } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/biometric-extra.ts";
+import { MESSY_BY_TOOL } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/messy-registry.ts";
 
 Deno.test("biometric plan: lint-clean, register-clean thesis, not yet approved", () => {
   assertEquals(lintPlan(BIOMETRIC_PLAN), []);
