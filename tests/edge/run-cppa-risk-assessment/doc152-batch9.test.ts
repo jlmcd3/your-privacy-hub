@@ -279,7 +279,7 @@ Deno.test("doc152 — rubric recalibrations present and MIRRORED byte-for-byte",
 });
 
 Deno.test("doc152 — grader context carries the batch-9 amendments under the appended tag", () => {
-  assert(GRADER_CONTEXT_VERSION.endsWith("+batch9-cal-2026-09-03"), "instrument tag missing");
+  assert(GRADER_CONTEXT_VERSION.includes("+batch9-cal-2026-09-03"), "instrument tag missing");
   assert(GRADER_CONTEXT_VERSION.startsWith("gc-2026-08-28-skeleton-cal-3-item204"), "calibration prefix lost");
   assert(SHARED_GRADER_CONTEXT.includes("PER-RECIPIENT structured answer"), "contract-status semantics missing");
   assert(SHARED_GRADER_CONTEXT.includes("A § 3.F cross-reference IS the supporting evidence"), "benefit-weight semantics missing");

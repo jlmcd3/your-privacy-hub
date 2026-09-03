@@ -785,8 +785,23 @@ export function deriveAdmtTechnicalFacts(intake: Bag): RenderedTable | null {
   // evaluation-posture analysis points here); mirror of the engine's
   // admtEvaluationActive predicate.
   if (!isYes(intake.q18_admt_use) && !admtEvaluationWithFacts(intake)) return null;
+  // DOC 153 (2026-09-03, batch 736df0ad, A-Team §4) — the system description
+  // is the Company's own text and renders quoted as such; where it claims a
+  // "significant decision" that the doc-137 classifier does not place in a
+  // § 7001(ddd) category, EUP's determination sits beside it. The appendix
+  // can never carry the Company's characterization as a legal conclusion the
+  // body (§ 3.E) rejected.
+  const description = s(intake.q19_admt_description);
+  const claimsSignificant = /significant\s+decision/i.test(description);
+  const claimClass = claimsSignificant ? classifyAdmtSignificantDecision(description) : null;
+  const eupDetermination = claimClass === "advertising_only"
+    ? "The system description above is the Company’s own characterization. Under § 7001(ddd)(6), advertising to a consumer is excluded from the significant-decision categories; a qualifying § 7150(b)(3) significant-decision use is not established on the information provided (§ 3.E)."
+    : claimClass === "unresolved"
+    ? "The system description above is the Company’s own characterization. It does not identify a decision within the categories enumerated in § 7001(ddd); a qualifying § 7150(b)(3) significant-decision use is not established on the information provided (§ 3.E)."
+    : "";
   const pairs: Array<[string, string]> = [
-    ["System description", s(intake.q19_admt_description)],
+    ["System description", description ? `“${description}” (the Company’s description, quoted as given)` : ""],
+    ["EUP determination", eupDetermination],
     ["Operational role", s(intake.admt_operational_role)],
     ["Logic", s(intake.i5_admt_logic)],
     ["Assumptions and limitations", s(intake.admt_assumptions_limitations)],

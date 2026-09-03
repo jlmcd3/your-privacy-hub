@@ -1087,6 +1087,32 @@ export function runRiskFactorEngine(
   const admtTrainingProvenanceGap =
     (!clause(intake.i5_admt_training_source) || /^not applicable/i.test(clause(intake.i5_admt_training_source))) &&
     /^Yes/.test(s(intake.q18b_admt_training));
+  // DOC 153 (2026-09-03, batch 736df0ad) — the testing sentence in § 3.E and
+  // its § 4.D Recommendation share ONE derivation (the doc-152 promise-parity
+  // rule extended to testing): an "In evaluation" record with testing facts,
+  // or a deployed system whose only gap is recency, used to promise a
+  // Recommendation the isAdmt-gated generator never made.
+  const admtTestAccuracy = admtTestingFacts.includes("Tested for accuracy or validity");
+  const admtTestBias = admtTestingFacts.includes("Tested for discriminatory impact or bias");
+  const admtTestRecentClaimed = admtTestingFacts.includes("Testing performed or reviewed within the last 12 months");
+  const admtTestingDatedEnd = latestExplicitPeriodEnd(s(intake.i5_admt_fairness_testing));
+  const admtTestRecencyConflict = admtTestRecentClaimed && admtTestingDatedEnd !== null &&
+    admtTestingDatedEnd < isoDaysBefore(assessmentDate, 365);
+  const admtTestRecent = admtTestRecentClaimed && !admtTestRecencyConflict;
+  const admtTestNoneTyped = admtTestingFacts.includes("No testing has been performed or confirmed");
+  const admtTestGapKinds: string[] = [];
+  if (!admtTestAccuracy) admtTestGapKinds.push("accuracy or validity testing");
+  if (!admtTestBias) admtTestGapKinds.push("discriminatory-impact testing");
+  if (!admtTestRecent) admtTestGapKinds.push("testing within the last 12 months");
+  const admtTestingRecommended = (isAdmt || admtEvaluationActive) && admtTestingFacts.length > 0 &&
+    !admtTestNoneTyped && admtTestGapKinds.length > 0;
+  // DOC 153 — the Company's "significant decision" characterization is tested
+  // against the FULL description (the doc-152 check read the clipped sentence
+  // and missed a claim in a second sentence); the classifier's three classes
+  // each get their own answer in § 3.E and Appendix E.
+  const admtClaimsSignificant = /significant\s+decision/i.test(clause(intake.q19_admt_description));
+  const admtClaimClass = classifyAdmtSignificantDecision(s(intake.q19_admt_description));
+  const admtClaimUnplaced = admtClaimsSignificant && admtClaimClass === "unresolved";
   // Activity-scope reconciliation: a q4 category whose leading word appears
   // inside an exclusion-cue sentence of the out-of-scope description is a
   // cross-surface contradiction the record must resolve (sentence-scoped,
@@ -1233,9 +1259,27 @@ export function runRiskFactorEngine(
   // DOC 148 (A-Team Batch-8 P0) — the § 7150(b)(3) unresolved-category state
   // completes among the Follow-Ups (the advertising-only state is a
   // determined non-engagement and needs no follow-up).
-  if (b3Reconciled === "unresolved") {
+  if (b3Reconciled === "unresolved" || admtClaimUnplaced) {
     followUps.push(
       "Identify the significant decision the automated decisionmaking technology makes or facilitates; § 7150(b)(3) turns on a decision within the categories enumerated in § 7001(ddd), and the information provided does not identify one",
+    );
+  }
+  // DOC 153 (batch 736df0ad, A-Team §5/§7) — a safeguard recorded as PLANNED
+  // but described in operating terms ("is conducted quarterly", "is active")
+  // is a status/wording conflict. The quoted text is never rewritten and the
+  // conservative planned credit stands; the Company is asked to confirm.
+  const IMPLEMENTED_STATE_RE =
+    /\b(is|are)\s+(conducted|implemented|in place|active|enforced|applied|performed|maintained|operating|operational|deployed)\b|\b(has|have)\s+been\s+(updated|implemented|deployed|conducted)\b|\bwas\s+(updated|implemented|deployed)\b|\b(updated|implemented|deployed)\s+within\b/i;
+  const PLANNED_CUE_RE =
+    /\b(will|planned|plans?\s+to|is\s+being|are\s+being|being\s+drafted|to\s+be|scheduled|has\s+been\s+tasked|intends?\s+to|under\s+development|in\s+progress|next\s+release|roll-?out)\b/i;
+  const plannedWordingConflicts = planned.filter((g) =>
+    IMPLEMENTED_STATE_RE.test(s(g.safeguard)) && !PLANNED_CUE_RE.test(s(g.safeguard))
+  );
+  for (const g of plannedWordingConflicts) {
+    followUps.push(
+      `Confirm the status of the safeguard recorded as planned but described in operating terms — ${qName(g.safeguard)}${
+        s(g.harm) ? ` (addresses: ${s(g.harm)})` : ""
+      }; the assessment credits it as planned only, and if a component is already operating, record that component separately with its testing status`,
     );
   }
   // DOC 150 — trigger-record transparency follow-ups (the triggers stay
@@ -1483,13 +1527,9 @@ export function runRiskFactorEngine(
       "Document the logic of the technology under evaluation, including its assumptions and limitations, before any deployment for decisions",
     );
   }
-  if (
-    isAdmt && admtTestingFacts.length &&
-    !(admtTestingFacts.includes("Tested for accuracy or validity") &&
-      admtTestingFacts.includes("Tested for discriminatory impact or bias"))
-  ) {
+  if (admtTestingRecommended) {
     recommendations.push(
-      "Test the automated system for accuracy and for discriminatory impact, and record the results in the assessment record",
+      `Complete the identified testing of the automated system — ${asProse(admtTestGapKinds)} — and record the results in the assessment record`,
     );
   }
   if (weakRecipients.length) {
@@ -1824,13 +1864,24 @@ export function runRiskFactorEngine(
     // safeguard; Complete implementation of the planned safeguard; …").
     // Identical heads now merge into one counted item; the stated total
     // still matches conditions.length.
-    const headCounts = new Map<string, number>();
+    // DOC 153 (batch 736df0ad) — the compact head names the harm the
+    // condition addresses ("…planned safeguard addressing (E) Economic
+    // harms"); a bare merged head told the executive reader nothing.
+    const headCounts = new Map<string, { n: number; harms: string[] }>();
     for (const c of conditions) {
       const h = c.split(":")[0].trim().replace(/\.$/, "");
-      headCounts.set(h, (headCounts.get(h) ?? 0) + 1);
+      const harm = c.match(/\(addresses: (.+)\)\s*$/)?.[1]?.trim() ?? "";
+      const entry = headCounts.get(h) ?? { n: 0, harms: [] };
+      entry.n += 1;
+      if (harm && !entry.harms.includes(harm)) entry.harms.push(harm);
+      headCounts.set(h, entry);
     }
     const compactLabels = [...headCounts.entries()]
-      .map(([h, n]) => n === 1 ? h : `${h} (${countWord(n)} conditions)`)
+      .map(([h, { n, harms }]) =>
+        n === 1
+          ? (harms.length ? `${h} addressing ${harms[0]}` : h)
+          : `${h} (${countWord(n)} conditions${harms.length ? `, addressing ${asProse(harms)}` : ""})`
+      )
       .join("; ");
     const capFirst = (t: string): string => t.charAt(0).toUpperCase() + t.slice(1);
     let compact: string;
@@ -2126,15 +2177,74 @@ export function runRiskFactorEngine(
   // II.F — recipients (lead/none + table + consequences).
   {
     const recipientRows = rows(intake.recipients).filter((r) => s(r.recipient_name_or_category));
+    // DOC 153 (batch 736df0ad, A-Team §6/§9) — sell/share scope reconciliation.
+    // A § 7150(b)(1) answer is the Company's categorical affirmation (the
+    // trigger stands); what the record must then carry is the recipient of
+    // that selling or sharing (§ 7152(a)(3)(F)) and a stated purpose that
+    // describes it. Where neither does, the gap is stated in § 2.F and
+    // completed among the Follow-Ups — the quoted purpose is never rewritten.
+    const sharingScope = ((): { gapSentence: string | null; followUp: string | null } => {
+      const q5 = s(intake.q5_sell_share);
+      if (!q5SellShareAffirmed(q5)) return { gapSentence: null, followUp: null };
+      const noun = q5 === "Yes — sell only" ? "selling" : q5 === "Both" ? "selling or sharing" : "sharing";
+      const advertisingRecipient = recipientRows.some((r) =>
+        s(r.recipient_type) === "Third party" ||
+        /\b(advertis\w*|ad[- ]?network|ad[- ]?tech\w*|marketing|data broker|DSPs?|SSPs?)\b/i
+          .test(`${s(r.recipient_name_or_category)} ${clause(r.disclosure_purpose)}`)
+      );
+      const purposeText = `${clause(intake.primary_activity_purpose)} ${clause(intake.i1_processing_purpose)}`;
+      const purposeSilent = !/\b(advertis\w*|shar(e|es|ed|ing)|sell\w*|sold|sale|marketing|ad[- ]?network|ad[- ]?tech\w*|data broker)\b/i
+        .test(purposeText);
+      if (!advertisingRecipient) {
+        return {
+          gapSentence:
+            `The Company reports ${noun} of personal information (“${q5}”; § 7150(b)(1), § 3.A), but no recipient of that ${noun} — a third party, or a recipient whose stated purpose is advertising — appears among the recipients recorded for the Activity${
+              purposeSilent ? ", and the Company’s stated purpose does not describe it" : ""
+            }; completing the recipient record appears among the Follow-Ups in § 4.D. If that ${noun} belongs to a separate processing activity, it should be scoped and assessed separately.`,
+          followUp:
+            `Identify the recipient or recipient category, the personal information made available, and the purpose for the ${noun} the Company reports (“${q5}”); § 7152(a)(3)(F) requires the disclosures to third parties to be identified for the Activity`,
+        };
+      }
+      if (purposeSilent) {
+        return {
+          gapSentence:
+            `The Company’s stated purpose does not itself describe the ${noun} of personal information it reports (“${q5}”; § 7150(b)(1), § 3.A); the assessment treats that ${noun} as part of the Activity on the information provided, and confirming its scope appears among the Follow-Ups in § 4.D.`,
+          followUp:
+            `Confirm that the ${noun} of personal information the Company reports (“${q5}”) forms part of this Activity, or scope it as a separate processing activity; the stated purpose does not describe it`,
+        };
+      }
+      return { gapSentence: null, followUp: null };
+    })();
     if (recipientRows.length) {
       put("ii_information:10", "recipients_summary", "A", RISK52_FIXED.recipients_lead, ["INTAKE:recipients"], ["11 CCR § 7152(a)(3)(F)"]);
+      // DOC 153 (batch 736df0ad) — three distinct states, each honest: an
+      // ABSENT optional answer is "Not recorded" and completes among the
+      // Follow-Ups; "Unsure" is not confirmed BY THE COMPANY; a value outside
+      // the enum (import/API paths) renders as the Company's own words rather
+      // than a negative finding the Company never made.
+      const CONTRACT_ENUM = new Set([
+        "Written contract with the CCPA-required restrictions in place",
+        "Written contract without confirmed CCPA restriction terms",
+        "No written contract",
+        "Unsure",
+      ]);
       const contractStatus = (r: Bag): string => {
         const c = s(r.contractual_protections);
         if (c === "Written contract with the CCPA-required restrictions in place") return "Restrictions confirmed";
         if (c === "Written contract without confirmed CCPA restriction terms") return "Restriction terms not confirmed";
         if (c === "No written contract") return "No written contract reported";
-        return "Not confirmed";
+        if (c === "Unsure") return "Not confirmed by the Company";
+        if (c) return `As recorded: “${c}”`;
+        return "Not recorded — see the Follow-Ups in § 4.D";
       };
+      const contractUnrecorded = recipientRows.filter((r) => !s(r.contractual_protections));
+      if (contractUnrecorded.length) {
+        followUps.push(
+          `Record the contractual status of the disclosure to ${
+            asProse(contractUnrecorded.map((r) => `“${s(r.recipient_name_or_category)}”`))
+          } — whether a written contract with the CCPA-required restrictions is in place — so the assessment can weigh the contractual control (Cal. Civ. Code § 1798.100(d); 11 CCR § 7051)`,
+        );
+      }
       tables["ii_information:11"] = {
         key: "",
         surface: "recipients",
@@ -2156,6 +2266,10 @@ export function runRiskFactorEngine(
           consequences.push(
             `For ${name}, the required restriction terms are not confirmed, and the reliance the assessment can place on the contractual control is reduced accordingly in § 4.A.`,
           );
+        } else if (c && !CONTRACT_ENUM.has(c)) {
+          consequences.push(
+            `For ${name}, the recorded contract status does not confirm the CCPA-required restriction terms, and the reliance the assessment can place on the contractual control is reduced accordingly in § 4.A.`,
+          );
         } else if (c === "No written contract") {
           consequences.push(
             `For ${name}, no written contract is reported; the disclosure operates outside a contractual control, and remediation appears among the Recommendations in § 4.D.`,
@@ -2172,20 +2286,32 @@ export function runRiskFactorEngine(
             : `The processing materially depends on one or more vendors the Company records as essential.`,
         );
       }
+      if (sharingScope.gapSentence) consequences.push(sharingScope.gapSentence);
       if (consequences.length) {
         put(
           "ii_information:12",
           "recipient_consequences",
           "B",
           consequences.join(" "),
-          ["INTAKE:recipients", "INTAKE:vendor_dependency", "INTAKE:essential_vendors"],
+          ["INTAKE:recipients", "INTAKE:vendor_dependency", "INTAKE:essential_vendors", "INTAKE:q5_sell_share"],
           ["11 CCR § 7152(a)(3)(F)"],
         );
       }
     } else if (Array.isArray(intake.recipients)) {
       put("ii_information:10", "recipients_summary", "A", RISK52_FIXED.recipients_none, ["INTAKE:recipients"], ["11 CCR § 7152(a)(3)(F)"]);
       tables["ii_information:11"] = null;
+      if (sharingScope.gapSentence) {
+        put(
+          "ii_information:12",
+          "recipient_consequences",
+          "B",
+          sharingScope.gapSentence,
+          ["INTAKE:recipients", "INTAKE:q5_sell_share"],
+          ["11 CCR § 7152(a)(3)(F)"],
+        );
+      }
     }
+    if (sharingScope.followUp) followUps.push(sharingScope.followUp);
   }
 
   // II.G — retention (table + basis).
@@ -2212,14 +2338,29 @@ export function runRiskFactorEngine(
             s(r.pi_category),
             s(r.retention_period) || s(r.retention_criteria) || "Not stated",
           ]),
-          ...retMissing.map((c) => [c, "Not stated — see the Follow-Ups in § 4.D"]),
+          // DOC 153 (batch 736df0ad) — where the Company states an overall
+          // retention period or criterion, an uncovered category is NOT
+          // "not stated": the overall statement is the only period covering
+          // it, and the gap is the category-specific one § 7152(a)(3)(B) asks for.
+          ...retMissing.map((c) => [
+            c,
+            (overallPeriod || overallCriteria)
+              ? "No category-specific period recorded — the Company’s overall retention statement applies; see the Follow-Ups in § 4.D"
+              : "Not stated — see the Follow-Ups in § 4.D",
+          ]),
         ],
       };
       if (retMissing.length) {
         followUps.push(
-          `Identify the retention period, or the criteria used to determine it, for ${
-            asProse(retMissing.map((c) => `“${c}”`))
-          }; § 7152(a)(3)(B) requires this for each category of personal information`,
+          (overallPeriod || overallCriteria)
+            ? `Identify the retention period, or the criteria used to determine it, specifically for ${
+              asProse(retMissing.map((c) => `“${c}”`))
+            }; only the Company’s overall retention statement in § 2.G currently covers ${
+              plural(retMissing.length, "it", "them")
+            }, and § 7152(a)(3)(B) requires this for each category of personal information`
+            : `Identify the retention period, or the criteria used to determine it, for ${
+              asProse(retMissing.map((c) => `“${c}”`))
+            }; § 7152(a)(3)(B) requires this for each category of personal information`,
         );
       }
     } else if (overallPeriod || overallCriteria) {
@@ -2238,6 +2379,12 @@ export function runRiskFactorEngine(
         : "";
       const perCategoryGap = !retRows.length
         ? " Retention is stated for the Activity as a whole and remains to be established category by category."
+        : retMissing.length && (overallPeriod || overallCriteria)
+        ? ` A category-specific retention period is not recorded for ${
+          asProse(retMissing.map((c) => `“${c}”`))
+        }; the Company’s overall retention statement is the only period covering ${
+          plural(retMissing.length, "it", "them")
+        } on the information provided, and category-level identification appears among the Follow-Ups in § 4.D.`
         : retMissing.length
         ? ` Retention is not stated for ${
           asProse(retMissing.map((c) => `“${c}”`))
@@ -2721,12 +2868,20 @@ export function runRiskFactorEngine(
         // § 7001(ddd)(6) exclusion in place — the narrative can never carry
         // the Company's label as a legal conclusion the trigger analysis
         // rejected.
-        if (
-          desc && /significant\s+decision/i.test(desc) &&
-          classifyAdmtSignificantDecision(s(intake.q19_admt_description)) === "advertising_only"
-        ) {
+        // DOC 153 — the quote above is the description's FIRST sentence; the
+        // claim may sit in a later one, so the claim is named before it is
+        // answered (the doc-152 determination sentence itself is unchanged).
+        if (desc && admtClaimsSignificant && admtClaimClass === "advertising_only") {
           bits.push(
-            "That characterization is preserved as the Company’s own description. Under § 7001(ddd)(6), advertising to a consumer is excluded from the significant-decision categories; no separate covered significant decision is identified on the information provided, and the § 7150(b) determinations in § 3.A carry that state.",
+            "The Company’s description also characterizes the system as making a significant decision. That characterization is preserved as the Company’s own description. Under § 7001(ddd)(6), advertising to a consumer is excluded from the significant-decision categories; no separate covered significant decision is identified on the information provided, and the § 7150(b) determinations in § 3.A carry that state.",
+          );
+        } else if (desc && admtClaimUnplaced) {
+          // DOC 153 (batch 736df0ad, A-Team §4) — the third classifier class:
+          // the Company claims a significant decision but names no § 7001(ddd)
+          // category. The claim is preserved as the Company's; the determination
+          // and the completing Follow-Up (pushed above by construction) answer it.
+          bits.push(
+            "The Company’s description also characterizes the system as making a significant decision. That characterization is preserved as the Company’s own description. The description does not identify a decision within the categories enumerated in § 7001(ddd) — financial or lending services, housing, education, employment, healthcare, and the other enumerated categories — on the information provided; no covered significant decision is established, the § 7150(b) determinations in § 3.A carry that state, and identifying the decision appears among the Follow-Ups in § 4.D.",
           );
         }
         if (roleClause) {
@@ -2804,9 +2959,6 @@ export function runRiskFactorEngine(
 
     // Testing + logic + training (each with the ADMT-appendix pointer).
     {
-      const accuracy = admtTestingFacts.includes("Tested for accuracy or validity");
-      const bias = admtTestingFacts.includes("Tested for discriminatory impact or bias");
-      const recentClaimed = admtTestingFacts.includes("Testing performed or reviewed within the last 12 months");
       // DOC 148 (A-Team Batch-8 P0 temporal validation) — an ACTUAL dated
       // testing fact controls over the generic recency selection. Where the
       // Company's own testing description names an explicit period
@@ -2814,12 +2966,14 @@ export function runRiskFactorEngine(
       // more than 12 months before the assessment date, the recency claim
       // is contradicted: the recent credit is withheld, the conflict is
       // stated, and resolving it completes among the Follow-Ups.
-      const testingDatedEnd = latestExplicitPeriodEnd(s(intake.i5_admt_fairness_testing));
-      const recencyConflict = recentClaimed && testingDatedEnd !== null &&
-        testingDatedEnd < isoDaysBefore(assessmentDate, 365);
-      const recent = recentClaimed && !recencyConflict;
+      // DOC 153 — the operands are the hoisted ones the § 4.D generator reads.
+      const accuracy = admtTestAccuracy;
+      const bias = admtTestBias;
+      const testingDatedEnd = admtTestingDatedEnd;
+      const recencyConflict = admtTestRecencyConflict;
+      const recent = admtTestRecent;
       const providerOnly = admtTestingFacts.includes("Testing performed by the provider rather than the Company");
-      const noneTyped = admtTestingFacts.includes("No testing has been performed or confirmed");
+      const noneTyped = admtTestNoneTyped;
       if (admtTestingFacts.length) {
         if (recencyConflict) {
           followUps.push(
@@ -2846,7 +3000,9 @@ export function runRiskFactorEngine(
           }.`
           : `The testing described does not confirm ${asProse(testGaps)}${
             providerOnly ? ", and the testing that exists was performed by the provider rather than the Company" : ""
-          }. The credit the related safeguard receives in § 4.A is limited accordingly, and completing the identified testing appears among the Recommendations in § 4.D.`;
+          }. The credit the related safeguard receives in § 4.A is limited accordingly${
+            admtTestingRecommended ? ", and completing the identified testing appears among the Recommendations in § 4.D." : "."
+          }`;
         put(
           "iii_analysis:17",
           "admt_testing_analysis",

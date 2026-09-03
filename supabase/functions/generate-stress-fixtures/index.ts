@@ -564,7 +564,7 @@ Return a JSON object with EXACTLY these fields:
     "i5_admt_logic": "string", "i5_admt_training_source": "string",
     "i5_admt_fairness_testing": "string", "i5_admt_human_review": "string",
     "recipients": [
-      { "recipient_name_or_category": "string", "recipient_role": "string", "information_made_available": "string", "disclosure_purpose": "string", "contractual_protections": "string — the recipient's contract status; keep it COHERENT with any narrative elsewhere in the intake: if the scenario text says a vendor operates under a written agreement, that vendor's row must not say 'Not confirmed' or 'No written contract'" }
+      { "recipient_name_or_category": "string", "recipient_type": "string — EXACTLY one of: 'Service provider' | 'Contractor' | 'Third party'", "pi_categories_made_available": ["array — q4 category labels made available to this recipient"], "disclosure_purpose": "string", "contractual_protections": "string — REQUIRED on every row, EXACTLY one of: 'Written contract with the CCPA-required restrictions in place' | 'Written contract without confirmed CCPA restriction terms' | 'No written contract' | 'Unsure'. Keep it COHERENT with the narrative: a vendor the scenario says operates under a written agreement gets the first option, never 'Unsure' or 'No written contract'. If q5_sell_share affirms selling or sharing, at least one row must be a 'Third party' recipient of that sharing (e.g. advertising partners) and the purpose text must describe the sharing" }
     ],
     "i6_vendors": "string", "i7_internal_contributors": "string",
     "i7_external_consultees": "string", "i8_certifying_exec_name": "string",
@@ -1766,6 +1766,76 @@ function normalizeCppaRiskTriggers<T extends Record<string, any>>(data: T): T {
         /\b(employees?|employment|workers?|workforce|contractors?|staff|personnel|HR\b|recruit(ing|ment)?|hiring|job applicants?|students?|educational[- ]program|keystroke|productivity (scor|monitor)|telematics)\b/i
           .test(scenarioText);
       if (!employmentContext) r.q5b_profiling_observation = "No";
+    }
+    // DOC 153 (2026-09-03, batch 736df0ad) — deterministic coherence repairs
+    // for three fixture defects the model reproduced across ALL six runs
+    // despite the schema guidance (the T15 pattern again):
+    //  (a) recipients[].contractual_protections emitted as free text or not at
+    //      all — free text snaps to the closest enum option; absent stays
+    //      absent (the report's "Not recorded" branch is an honest state);
+    //  (b) payment-processing scope contamination — "Financial information"
+    //      plus a payment-processor recipient inside an activity whose own
+    //      purpose text never mentions payments is a separate activity leaking
+    //      in; the rows are dropped (never rewritten);
+    //  (c) q5 sell/share affirmed with no third-party/advertising recipient and
+    //      a purpose that never mentions sharing — snapped to "No" only when
+    //      another trigger keeps the fixture assessable.
+    const CONTRACT_OPTS = [
+      "Written contract with the CCPA-required restrictions in place",
+      "Written contract without confirmed CCPA restriction terms",
+      "No written contract",
+      "Unsure",
+    ];
+    const purposeText = [r.primary_activity_purpose, r.i1_processing_purpose, r.subject_anchor]
+      .filter((v: any) => typeof v === "string").join("\n");
+    if (Array.isArray(r.recipients)) {
+      for (const row of r.recipients) {
+        if (!row || typeof row !== "object") continue;
+        const c = typeof row.contractual_protections === "string" ? row.contractual_protections.trim() : "";
+        if (c && !CONTRACT_OPTS.includes(c)) {
+          row.contractual_protections = /\bno\s+(written\s+)?(contract|agreement)\b|\bnone\b/i.test(c)
+            ? CONTRACT_OPTS[2]
+            : /\b(ccpa|1798\.100|7051|required\s+restrictions?|service[- ]provider\s+terms)\b/i.test(c)
+            ? CONTRACT_OPTS[0]
+            : /\b(contract|agreement|dpa|terms)\b/i.test(c)
+            ? CONTRACT_OPTS[1]
+            : CONTRACT_OPTS[3];
+        }
+      }
+      const paymentsInPurpose = /\b(payment|subscription|billing|checkout|purchase|invoice|receipt)s?\b/i.test(purposeText);
+      if (!paymentsInPurpose) {
+        const isPaymentRow = (row: any) =>
+          row && typeof row === "object" &&
+          /\b(payment|billing|subscription|receipt|invoice)s?\b/i.test(
+            `${row.recipient_name_or_category ?? ""} ${row.disclosure_purpose ?? ""}`,
+          );
+        if (r.recipients.some(isPaymentRow)) {
+          r.recipients = r.recipients.filter((row: any) => !isPaymentRow(row));
+          if (Array.isArray(r.q4_pi_categories)) {
+            r.q4_pi_categories = r.q4_pi_categories.filter((c: any) => c !== "Financial information");
+          }
+          if (Array.isArray(r.retention_by_pi_category)) {
+            r.retention_by_pi_category = r.retention_by_pi_category.filter((row: any) =>
+              row?.pi_category !== "Financial information"
+            );
+          }
+        }
+      }
+    }
+    const sellShareAffirmed = typeof r.q5_sell_share === "string" && /^(yes|both)/i.test(r.q5_sell_share);
+    if (sellShareAffirmed) {
+      const recipients = Array.isArray(r.recipients) ? r.recipients : [];
+      const advertisingRecipient = recipients.some((row: any) =>
+        row && typeof row === "object" &&
+        (row.recipient_type === "Third party" ||
+          /\b(advertis\w*|ad[- ]?network|ad[- ]?tech\w*|marketing|data broker)\b/i.test(
+            `${row.recipient_name_or_category ?? ""} ${row.disclosure_purpose ?? ""}`,
+          ))
+      );
+      const purposeMentionsSharing =
+        /\b(advertis\w*|shar(e|es|ed|ing)|sell\w*|sold|sale|marketing|ad[- ]?network|ad[- ]?tech\w*|data broker)\b/i.test(purposeText);
+      const otherTrigger = triggerYes(r.q15_sensitive_pi) || triggerYes(r.q18_admt_use) || triggerYes(r.q15b_under16_knowledge);
+      if (!advertisingRecipient && !purposeMentionsSharing && otherTrigger) r.q5_sell_share = "No";
     }
   }
   return data;

@@ -75,7 +75,7 @@ Deno.test("doc149 — two planned-safeguard conditions merge to one counted head
     compact.split("Complete implementation of the planned safeguard").length - 1;
   assertEquals(headOccurrences, 1, "duplicated head still renders twice");
   assert(
-    compact.includes("Complete implementation of the planned safeguard (two conditions)"),
+    compact.includes("Complete implementation of the planned safeguard (two conditions, addressing"),
     "counted merged head missing",
   );
   // The stated total still matches the real condition count.

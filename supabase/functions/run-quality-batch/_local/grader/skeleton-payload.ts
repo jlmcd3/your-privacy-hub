@@ -164,8 +164,12 @@ export function buildSkeletonGraderPayload(
   const assembled = parts.join("\n\n");
   const original_length = assembled.length;
   if (original_length <= budget) {
+    // DOC 153 (2026-09-03, batch 736df0ad) — an explicit completeness trailer.
+    // A grader inferred "the document truncates before § 4.D" from a payload
+    // that carried the whole document; the trailer makes completeness a fact
+    // the grader reads rather than a judgement it forms.
     return {
-      text: assembled,
+      text: `${assembled}\n\n=== END OF DOCUMENT — ${sections.length} sections, ${paragraphCount} paragraphs; complete, nothing omitted ===`,
       truncated: false,
       original_length,
       section_count: sections.length,
