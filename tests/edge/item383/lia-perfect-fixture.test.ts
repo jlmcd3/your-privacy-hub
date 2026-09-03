@@ -1,8 +1,8 @@
 // ITEM 383 LEG 1 — LIA perfect fixture + registry/variant wiring + gate shape.
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { LIA_PERFECT } from "../../../supabase/functions/_shared/golden/lia-perfect.ts";
-import { PERFECT_BY_TOOL, casesForVariant, intakesForVariant, GOLDEN_BY_TOOL } from "../../../supabase/functions/_shared/golden/registry.ts";
-import { MESSY_BY_TOOL } from "../../../supabase/functions/_shared/golden/messy-registry.ts";
+import { LIA_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/lia-perfect.ts";
+import { PERFECT_BY_TOOL, casesForVariant, intakesForVariant, GOLDEN_BY_TOOL } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/registry.ts";
+import { MESSY_BY_TOOL } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/messy-registry.ts";
 import { liAssessmentStageBContract } from "../../../supabase/functions/_shared/intake-contracts/li-assessment.ts";
 import {
   emptyAskedKeys,

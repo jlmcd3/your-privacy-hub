@@ -31,7 +31,7 @@ import {
 import {
   CYBER_ABSENCE_LABEL_PHRASINGS,
 } from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cyber-prose-gold.ts";
-import { CYBER_PERFECT, CPPA_CYBER_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-cyber.ts";
+import { CYBER_PERFECT, CPPA_CYBER_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-cyber.ts";
 import { FALSE_ABSENCE_CHECK_IDS } from "../../../supabase/functions/_shared/ltp/record-complete.ts";
 import { CYBER_PIPELINE_STAMP } from "../../../supabase/functions/run-cppa-cybersecurity/_local/prose/plans/cyber.spine.ts";
 import {

@@ -13,7 +13,7 @@ import {
   deficiencyLines,
   PERFECT_CPPA_RISK_CLOSED_LOOP_VERSION,
 } from "../../../supabase/functions/_tests/quality/perfect-closed-loop-risk.ts";
-import { CPPA_RISK_PERFECT } from "../../../supabase/functions/_shared/golden/cppa-risk.ts";
+import { CPPA_RISK_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk.ts";
 
 // Reference intake for negative/deficiency tests (always index 0).
 const REFERENCE_INTAKE = CPPA_RISK_PERFECT[0].intake as Record<string, unknown>;

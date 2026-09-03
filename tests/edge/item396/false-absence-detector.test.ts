@@ -22,7 +22,7 @@ import {
   ADMT_RECORD_BACKED_LABEL,
   applyHedgeLedger,
 } from "../../../supabase/functions/run-admt-checker/_local/ltp/admt-prose-gold.ts";
-import { ADMT_PERFECT } from "../../../supabase/functions/_shared/golden/cppa-admt.ts";
+import { ADMT_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-admt.ts";
 
 const PERFECT = ADMT_PERFECT[0].intake as Record<string, unknown>;
 

@@ -42,7 +42,7 @@ import {
 } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/analytic-deliverables/enums.ts";
 import { cppaRiskContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts";
 import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";
-import { CPPA_RISK_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-risk.ts";
+import { CPPA_RISK_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk.ts";
 
 const DECISIONS = [
   "initiate",

@@ -5,7 +5,7 @@
 // tests/edge/item411/biometric-csc-and-coverage.test.ts uses.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { checkStructureConformance } from "../../../supabase/functions/_shared/prose/structure-conformance.ts";
-import { BIOMETRIC_PERFECT } from "../../../supabase/functions/_shared/golden/biometric-perfect.ts";
+import { BIOMETRIC_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/biometric-perfect.ts";
 import { buildBiometricDeliverables } from "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-deliverables/build.ts";
 
 const RECORD = ((BIOMETRIC_PERFECT as unknown as Array<{ intake: Record<string, unknown> }>)[0]

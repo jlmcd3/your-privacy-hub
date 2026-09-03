@@ -31,7 +31,7 @@ import {
   deriveAlternativesTable,
   deriveThreeTestStrip,
 } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-skeleton-assemble.ts";
-import { LIA_PERFECT_PINNED } from "../../../supabase/functions/_shared/golden/lia-perfect-pinned.ts";
+import { LIA_PERFECT_PINNED } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/lia-perfect-pinned.ts";
 
 type Bag = Record<string, unknown>;
 

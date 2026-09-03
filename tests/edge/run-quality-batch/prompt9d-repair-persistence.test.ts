@@ -8,7 +8,7 @@ import {
 } from "../../../supabase/functions/run-quality-batch/index.ts";
 import { fixtureConstraintGuidance } from "../../../supabase/functions/run-quality-batch/_local/quality/fixture-lint.ts";
 import { BLACKLIST_PHRASES } from "../../../supabase/functions/_shared/blacklist-phrases.ts";
-import { DPIA_GOLDEN } from "../../../supabase/functions/_shared/golden/dpia.ts";
+import { DPIA_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia.ts";
 
 function validIntake(over: Record<string, unknown> = {}): Record<string, unknown> {
   return { ...(DPIA_GOLDEN[0].intake as Record<string, unknown>), ...over };

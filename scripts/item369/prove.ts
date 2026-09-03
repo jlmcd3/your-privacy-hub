@@ -10,7 +10,7 @@
 
 import { generateCppaRiskReportItem363Preview } from "../../archive/unwired/_shared/ltp/generate-cppa-risk-item363-preview.ts";
 import { fileLibrarySource } from "../prose/file-source.ts";
-import { CPPA_RISK_GOLDEN } from "../../supabase/functions/_shared/golden/cppa-risk.ts";
+import { CPPA_RISK_GOLDEN } from "../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk.ts";
 import {
   CPPA_RISK_MIN_PARAGRAPHS,
   CPPA_RISK_SECTION_ORDER,

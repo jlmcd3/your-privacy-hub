@@ -2,7 +2,7 @@
 // ledger. Deterministic: the matrix is a pure function of (report, intake),
 // so these tests build documents directly rather than calling models.
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { DPIA_PERFECT } from "../../../supabase/functions/_shared/golden/dpia.ts";
+import { DPIA_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia.ts";
 import { runCoverageMatrix } from "../../../supabase/functions/_shared/ltp/coverage-matrix.ts";
 import { computeReleaseLedger } from "../../../supabase/functions/_shared/ltp/release-ledger.ts";
 

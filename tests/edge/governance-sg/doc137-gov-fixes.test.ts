@@ -27,7 +27,7 @@ import {
   buildArt30ElementFindings,
   buildDpoDetermination,
 } from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-deliverables/build.ts";
-import { GOVERNANCE_PERFECT } from "../../../supabase/functions/_shared/golden/governance-perfect.ts";
+import { GOVERNANCE_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/governance-perfect.ts";
 
 type Bag = Record<string, unknown>;
 

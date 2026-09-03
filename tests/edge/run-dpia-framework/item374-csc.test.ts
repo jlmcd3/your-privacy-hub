@@ -14,7 +14,7 @@ import {
   assertStringIncludes,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
-import { DPIA_PERFECT, DPIA_GOLDEN } from "../../../supabase/functions/_shared/golden/dpia.ts";
+import { DPIA_PERFECT, DPIA_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia.ts";
 import {
   applyFrameSubstitution,
   INFO_NEEDED_LITERAL,

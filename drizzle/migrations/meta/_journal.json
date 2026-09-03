@@ -8,6 +8,13 @@
       "when": 1788385642590,
       "tag": "0000_stress_batch_counters_setup_gate",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788465633302,
+      "tag": "0001_quality_fixture_labels",
+      "breakpoints": true
     }
   ]
 }

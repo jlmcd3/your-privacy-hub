@@ -8,8 +8,8 @@ import { describe, expect, it } from "vitest";
 import { coachEmptyAskedKeys, type CoachContract } from "@/lib/intakeCoach/askedKeys";
 import { COACH_CONTRACTS } from "@/lib/intakeCoach/contracts";
 import { emptyAskedKeys } from "../../supabase/functions/_shared/ltp/record-complete";
-import { DPIA_GOLDEN, DPIA_PERFECT } from "../../supabase/functions/_shared/golden/dpia";
-import { CPPA_RISK_GOLDEN, CPPA_RISK_PERFECT } from "../../supabase/functions/_shared/golden/cppa-risk";
+import { DPIA_GOLDEN, DPIA_PERFECT } from "../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia";
+import { CPPA_RISK_GOLDEN, CPPA_RISK_PERFECT } from "../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk";
 
 type Fx = { id: string; intake: Record<string, unknown> };
 

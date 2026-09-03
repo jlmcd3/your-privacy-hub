@@ -3,8 +3,8 @@
 // directions of the gate: the perfect fixtures pass it, the degraded goldens
 // fail it and keep today's draft framing byte-identical.
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { DPIA_PERFECT, DPIA_GOLDEN } from "../../../supabase/functions/_shared/golden/dpia.ts";
-import { CPPA_RISK_GOLDEN, CPPA_RISK_PERFECT } from "../../../supabase/functions/_shared/golden/cppa-risk.ts";
+import { DPIA_PERFECT, DPIA_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia.ts";
+import { CPPA_RISK_GOLDEN, CPPA_RISK_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk.ts";
 import { dpiaFrameworkContract } from "../../../supabase/functions/_shared/intake-contracts/dpia-framework.ts";
 import { cppaRiskContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts";
 import {

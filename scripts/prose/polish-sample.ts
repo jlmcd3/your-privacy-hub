@@ -17,7 +17,7 @@ import {
 import { renderDocumentFromPlan } from "../../archive/unwired/_shared/prose/plan-render.ts";
 import { buildActivityAnalytics } from "../../supabase/functions/run-cppa-risk-assessment/_local/ltp/analytic-deliverables/build.ts";
 import { buildEuAuthoritySection } from "../../supabase/functions/run-cppa-risk-assessment/_local/ltp/eu-authority/build.ts";
-import { CPPA_RISK_GOLDEN } from "../../supabase/functions/_shared/golden/cppa-risk.ts";
+import { CPPA_RISK_GOLDEN } from "../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk.ts";
 import {
   runSpanSafePolish,
   SPAN_SAFE_POLISH_VERSION,

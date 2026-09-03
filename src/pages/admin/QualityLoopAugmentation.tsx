@@ -89,7 +89,6 @@ export default function QualityLoopAugmentation({
   const [runScores, setRunScores] = useState<RunScores | null>(null);
   const [busy, setBusy] = useState<"none" | "deliberate" | "auto" | "halt" | "consolidate">("none");
   const [override, setOverride] = useState<Set<string>>(new Set());
-  const [validating, setValidating] = useState<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     if (!runId) { setDeliberations([]); setRunScores(null); return; }
@@ -211,33 +210,6 @@ export default function QualityLoopAugmentation({
     }
   };
 
-  const runValidateFix = async (delib: Deliberation) => {
-    if (tool !== "biometric-checker") {
-      toast.error("Validate-fix pilot is biometric-checker only.");
-      return;
-    }
-    if (!delib.recommended_change) {
-      toast.error("Deliberation has no recommended_change to validate.");
-      return;
-    }
-    setValidating((prev) => new Set(prev).add(delib.id));
-    try {
-      const { data, error } = await supabase.functions.invoke("validate-fix", {
-        body: {
-          tool,
-          check_id: delib.check_id,
-          system_prompt_override: delib.recommended_change,
-          run_id: delib.run_id,
-        },
-      });
-      if (error) throw error;
-      toast.success(`Validation started (id ${data?.validate_run_id?.slice(0, 8) ?? "?"}). Results appear in quality_validate_fix_runs.`);
-    } catch (e: any) {
-      toast.error(`Validate failed: ${e.message}`);
-    } finally {
-      setValidating((prev) => { const n = new Set(prev); n.delete(delib.id); return n; });
-    }
-  };
 
   if (!runId) return null;
 
@@ -418,17 +390,6 @@ export default function QualityLoopAugmentation({
                       {d.change_location ?? "(no location)"}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      {tool === "biometric-checker" && !isApplied && d.recommended_change && (
-                        <Button
-                          size="sm" variant="outline"
-                          disabled={validating.has(d.id)}
-                          onClick={() => runValidateFix(d)}
-                          className="h-7 text-xs border-indigo-300 text-indigo-700 hover:bg-indigo-50"
-                          title="Run held-out A/B (baseline vs candidate prompt) on fresh biometric intakes."
-                        >
-                          {validating.has(d.id) ? "Validating…" : "Validate on holdout"}
-                        </Button>
-                      )}
                       <Button
                         size="sm" variant="outline"
                         disabled={!canManualApply}

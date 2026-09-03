@@ -6,8 +6,8 @@
 // exercise the r5 rule — EVERY question the intake ASKED must be answered —
 // through the SAME call shape both pipeline call sites use.
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { DPIA_GOLDEN, DPIA_PERFECT } from "../../../supabase/functions/_shared/golden/dpia.ts";
-import { CPPA_RISK_GOLDEN, CPPA_RISK_PERFECT } from "../../../supabase/functions/_shared/golden/cppa-risk.ts";
+import { DPIA_GOLDEN, DPIA_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia.ts";
+import { CPPA_RISK_GOLDEN, CPPA_RISK_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk.ts";
 import { dpiaFrameworkContract } from "../../../supabase/functions/_shared/intake-contracts/dpia-framework.ts";
 import { cppaRiskContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts";
 import {

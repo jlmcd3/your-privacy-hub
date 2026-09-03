@@ -14,8 +14,8 @@ import { REGISTRATION_PLAN, REGISTRATION_FRAMES } from "../../../library/prose/l
 import { FIELD_LABELS } from "../../../supabase/functions/_shared/customer-messages.ts";
 import { registrationContract } from "../../../supabase/functions/_shared/intake-contracts/registration-assessment.ts";
 import { buildRegistrationDeliverables } from "../../../supabase/functions/run-registration-assessment/_local/ltp/registration-deliverables/build.ts";
-import { REGISTRATION_GOLDEN } from "../../../supabase/functions/_shared/golden/registration.ts";
-import { MESSY_BY_TOOL } from "../../../supabase/functions/_shared/golden/messy-registry.ts";
+import { REGISTRATION_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/registration.ts";
+import { MESSY_BY_TOOL } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/messy-registry.ts";
 
 /** Golden PERFECT + MESSY registration records, as the A9 audit runs them. */
 const REGISTRATION_CASES: Array<{ id: string; intake: unknown }> = [

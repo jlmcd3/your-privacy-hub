@@ -6,7 +6,7 @@
 import { describe, it, expect } from "vitest";
 import { validateIntake } from "../../supabase/functions/_shared/intake-contracts/validate";
 import { cppaRiskContract } from "../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment";
-import { CPPA_RISK_PERFECT, CPPA_RISK_GOLDEN } from "../../supabase/functions/_shared/golden/cppa-risk";
+import { CPPA_RISK_PERFECT, CPPA_RISK_GOLDEN } from "../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk";
 import { FIELD_LABELS } from "../../supabase/functions/_shared/customer-messages";
 
 describe("INTAKE-4a — contract key/option snapshot (byte-identity guard)", () => {

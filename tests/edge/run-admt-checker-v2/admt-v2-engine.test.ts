@@ -1,7 +1,7 @@
 // CPPA ADMT v2 — engine verification against the fleet's existing golden
 // fixtures (the same intakes run-admt-checker v1 is graded against).
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { CPPA_ADMT_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-admt.ts";
+import { CPPA_ADMT_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-admt.ts";
 import { computeAdmtV2 } from "../../../supabase/functions/run-admt-checker-v2/_local/ltp/admt-v2-deterministic.ts";
 import { assembleAdmtV2Document } from "../../../supabase/functions/run-admt-checker-v2/_local/ltp/admt-v2-assemble.ts";
 
@@ -45,7 +45,7 @@ Deno.test("admt-service-eligibility-conservative: fully automated, no domain con
 });
 
 Deno.test("admt-ca-tenant-screening-perfect (ADMT_PERFECT pin): full document assembles with sentence-cited legal blocks, no ToA", async () => {
-  const { ADMT_PERFECT } = await import("../../../supabase/functions/_shared/golden/cppa-admt.ts");
+  const { ADMT_PERFECT } = await import("../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-admt.ts");
   const intake = ADMT_PERFECT[0].intake as Record<string, unknown>;
   const c = computeAdmtV2(intake);
   const doc = assembleAdmtV2Document({ intake, computed: c, exhibit: null, organizationName: String(intake.organization_name ?? ""), systemName: String(intake.system_name ?? "") });

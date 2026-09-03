@@ -28,7 +28,6 @@ import {
   SKELETON_BLOCK_KIND_ADDENDUM,
 } from "./_local/grader/skeleton-payload.ts";
 // R-TURN-1 item 6 — resolve golden fixture-set label for gating header.
-import { matchFixtureSet } from "../_shared/golden/registry.ts";
 import { CONTRACT_BY_TOOL } from "./_local/intake-contracts/registry.ts";
 // ITEM 325 — fixture-variant (Perfect/Messy) plumbing.
 import type { FixtureVariant } from "../_shared/quality/fixture-variant.ts";
@@ -1283,7 +1282,7 @@ function stampVariant(fixtureSet: string | null, variant: FixtureVariant | null)
 // report.skeleton_document as the entire body.
 export type GraderMode = "legacy" | "skeleton";
 
-async function evaluateDocumentClaude(tool: string, intake: any, report: any, fixtureVariant: FixtureVariant | null = null, graderMode: GraderMode = "legacy"): Promise<any> {
+async function evaluateDocumentClaude(tool: string, intake: any, report: any, fixtureVariant: FixtureVariant | null = null, graderMode: GraderMode = "legacy", fixtureSet: string | null = null): Promise<any> {
   // F3: deterministic checks scoped to this tool
   const applicableChecks = CHECKS.filter(c => !c.tools || c.tools.includes(tool));
   const detFindings = applicableChecks.map(c => {
@@ -1306,9 +1305,9 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any, fi
     console.warn(`[run-quality-batch] skeleton_grader_no_document tool=${tool} role=claude — falling back to legacy payload`);
   }
   const payload = useSkeleton
-    ? buildSkeletonGraderPayload(report, SKELETON_GRADER_BUDGET, { fixtureSet: stampVariant(matchFixtureSet(tool, intake), fixtureVariant) })
+    ? buildSkeletonGraderPayload(report, SKELETON_GRADER_BUDGET, { fixtureSet: stampVariant(fixtureSet, fixtureVariant) })
     : family
-    ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET, { fixtureSet: stampVariant(matchFixtureSet(tool, intake), fixtureVariant) })
+    ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET, { fixtureSet: stampVariant(fixtureSet, fixtureVariant) })
     : { text: JSON.stringify(report ?? {}).slice(0, GRADER_PAYLOAD_BUDGET), truncated: (JSON.stringify(report ?? {}).length > GRADER_PAYLOAD_BUDGET), original_length: JSON.stringify(report ?? {}).length };
   if (payload.truncated) {
     console.warn(`[run-quality-batch] payload_truncated tool=${tool} role=claude original_length=${payload.original_length} budget=${useSkeleton ? SKELETON_GRADER_BUDGET : GRADER_PAYLOAD_BUDGET}`);
@@ -1431,7 +1430,7 @@ export function applyEvidenceBackedDimensionFloor(
   return { floored };
 }
 
-async function evaluateDocumentGPT(tool: string, intake: any, report: any, fixtureVariant: FixtureVariant | null = null, graderMode: GraderMode = "legacy"): Promise<{ eval: any | null; skipReason?: string; error?: string; postFilterDropped?: { a2: number; a3: number; a4: number; r15c2: number; dpa_defaults: number }; postFilterSuppressed?: Array<{ rule: string; check_id: string; evidence: string }>; calibrationFiltered?: any[] }> {
+async function evaluateDocumentGPT(tool: string, intake: any, report: any, fixtureVariant: FixtureVariant | null = null, graderMode: GraderMode = "legacy", fixtureSet: string | null = null): Promise<{ eval: any | null; skipReason?: string; error?: string; postFilterDropped?: { a2: number; a3: number; a4: number; r15c2: number; dpa_defaults: number }; postFilterSuppressed?: Array<{ rule: string; check_id: string; evidence: string }>; calibrationFiltered?: any[] }> {
   if (!OPENAI_API_KEY) {
     return { eval: null, skipReason: "OPENAI_API_KEY not set in edge function env" };
   }
@@ -1448,9 +1447,9 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any, fixtu
     }
     const sys = buildRubricSystemPrompt("gpt", tool) + (useSkeleton ? SKELETON_BLOCK_KIND_ADDENDUM : "");
     const payload = useSkeleton
-      ? buildSkeletonGraderPayload(report, SKELETON_GRADER_BUDGET, { fixtureSet: stampVariant(matchFixtureSet(tool, intake), fixtureVariant) })
+      ? buildSkeletonGraderPayload(report, SKELETON_GRADER_BUDGET, { fixtureSet: stampVariant(fixtureSet, fixtureVariant) })
       : family
-      ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET, { fixtureSet: stampVariant(matchFixtureSet(tool, intake), fixtureVariant) })
+      ? buildGraderPayload(family, report, GRADER_PAYLOAD_BUDGET, { fixtureSet: stampVariant(fixtureSet, fixtureVariant) })
       : { text: JSON.stringify(report ?? {}).slice(0, GRADER_PAYLOAD_BUDGET), truncated: (JSON.stringify(report ?? {}).length > GRADER_PAYLOAD_BUDGET), original_length: JSON.stringify(report ?? {}).length };
     if (payload.truncated) {
       console.warn(`[run-quality-batch] payload_truncated tool=${tool} role=gpt original_length=${payload.original_length} budget=${useSkeleton ? SKELETON_GRADER_BUDGET : GRADER_PAYLOAD_BUDGET}`);
@@ -2862,7 +2861,7 @@ async function runBatchInner(runId: string): Promise<void> {
   // Load run state
   const { data: runRow, error: runErr } = await admin
     .from("quality_runs")
-    .select("id, tool, batch_size, run_number, created_by, user_id, status, next_doc_index, intakes, partial_state, progress_log, fixture_variant, engine_path, grader_mode")
+    .select("id, tool, batch_size, run_number, created_by, user_id, status, next_doc_index, intakes, partial_state, progress_log, fixture_variant, engine_path, grader_mode, fixture_sets, fixture_ids")
     .eq("id", runId).single();
   if (runErr || !runRow) {
     clearInterval(heartbeat);
@@ -3111,6 +3110,19 @@ async function runBatchInner(runId: string): Promise<void> {
     }
     const scenarioSetFor = (idx: number) => holdoutSplitEnabled && idx >= holdoutStart ? "holdout" : "tuning";
 
+    // FIXTURE-LABEL LAW — the fixture set/case id is READ from the run row,
+    // where quality-batch-orchestrator persisted it at seed time. It is no
+    // longer re-derived here: the orchestrator resolved it with the same
+    // byte-equality lookup against the same registry, so the label is
+    // identical, and this function no longer imports the golden registry.
+    // Positionally aligned with `intakes`; generated intakes appended after
+    // the pins run off the end of the array and read as null, exactly as the
+    // old lookup returned null for a non-golden intake.
+    const persistedFixtureSets: Array<string | null> = Array.isArray((run as any).fixture_sets) ? (run as any).fixture_sets : [];
+    const persistedFixtureIds: Array<string | null> = Array.isArray((run as any).fixture_ids) ? (run as any).fixture_ids : [];
+    const fixtureSetFor = (idx: number): string | null => persistedFixtureSets[idx] ?? null;
+    const fixtureIdFor = (idx: number): string | null => persistedFixtureIds[idx] ?? null;
+
     for (let i = startIdx; i < endIdx; i++) {
       // Cancel check
       const { data: cancelCheck } = await admin.from("quality_runs").select("cancel_requested").eq("id", runId).single();
@@ -3319,6 +3331,22 @@ async function runBatchInner(runId: string): Promise<void> {
           report_data: reportData, source_table: sourceTable,
           source_row_id: sourceRowId, status: "evaluating",
         }).eq("id", docRowId);
+        // FIXTURE-LABEL LAW — record the label against the generated
+        // assessment row. grade-single-assessment grades an arbitrary
+        // assessment_id with no run row to consult, so this is its source of
+        // truth. Only written when the intake WAS a pinned golden.
+        if (fixtureSetFor(i)) {
+          try {
+            await admin.from("quality_fixture_labels").upsert({
+              assessment_id: sourceRowId,
+              source_table: sourceTable,
+              tool,
+              fixture_set: fixtureSetFor(i),
+              fixture_id: fixtureIdFor(i),
+              run_id: runId,
+            }, { onConflict: "assessment_id" });
+          } catch (e) { console.warn("[fixture-label] non-fatal:", (e as Error).message); }
+        }
         // CV1-R3 F1: propagate fresh-gen source refs to the outer eval
         // locals so the counsel-voice auto-regen gate (below) sees a
         // non-null source on the dispatch/poll fresh-generation path.
@@ -3521,9 +3549,9 @@ async function runBatchInner(runId: string): Promise<void> {
 
       // Run Claude eval and GPT eval in parallel.
       const [claudeEval, gptResult] = await Promise.all([
-        withTimeout(evaluateDocumentClaude(tool, intake, reportData, fixtureVariant, graderMode), EVALUATION_TIMEOUT_MS, "Claude eval")
+        withTimeout(evaluateDocumentClaude(tool, intake, reportData, fixtureVariant, graderMode, fixtureSetFor(i)), EVALUATION_TIMEOUT_MS, "Claude eval")
           .catch(e => { console.warn("Claude eval failed:", e.message); return null; }),
-        withTimeout(evaluateDocumentGPT(tool, intake, reportData, fixtureVariant, graderMode), EVALUATION_TIMEOUT_MS, "GPT-4o eval")
+        withTimeout(evaluateDocumentGPT(tool, intake, reportData, fixtureVariant, graderMode, fixtureSetFor(i)), EVALUATION_TIMEOUT_MS, "GPT-4o eval")
           .catch(e => ({ eval: null as any, error: e.message })),
       ]);
 

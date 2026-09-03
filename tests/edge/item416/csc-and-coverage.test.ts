@@ -30,7 +30,7 @@ import {
   runCoverageMatrix,
 } from "../../../supabase/functions/_shared/ltp/coverage-matrix.ts";
 import { FALSE_ABSENCE_CHECK_IDS } from "../../../supabase/functions/_shared/ltp/record-complete.ts";
-import { IR_PERFECT } from "../../../supabase/functions/_shared/golden/ir-perfect.ts";
+import { IR_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/ir-perfect.ts";
 import { buildStandingPlaybook } from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-playbook-deliverables/standing-playbook.ts";
 
 const PERFECT = IR_PERFECT[0].intake as Record<string, unknown>;

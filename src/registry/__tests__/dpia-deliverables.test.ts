@@ -31,7 +31,7 @@ import {
   buildRiskRegister,
   splitExposure,
 } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-deliverables/build.ts";
-import { DPIA_GOLDEN } from "../../../supabase/functions/_shared/golden/dpia.ts";
+import { DPIA_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia.ts";
 import { dpiaFrameworkContract } from "../../../supabase/functions/_shared/intake-contracts/dpia-framework.ts";
 import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";
 

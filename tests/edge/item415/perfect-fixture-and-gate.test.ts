@@ -3,14 +3,14 @@
 
 import { attachIrPlaybookDeliverables } from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-playbook-deliverables/build.ts";
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { IR_PERFECT } from "../../../supabase/functions/_shared/golden/ir-perfect.ts";
+import { IR_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/ir-perfect.ts";
 import {
   casesForVariant,
   GOLDEN_BY_TOOL,
   intakesForVariant,
   PERFECT_BY_TOOL,
-} from "../../../supabase/functions/_shared/golden/registry.ts";
-import { MESSY_BY_TOOL } from "../../../supabase/functions/_shared/golden/messy-registry.ts";
+} from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/registry.ts";
+import { MESSY_BY_TOOL } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/messy-registry.ts";
 import { irPlaybookContract } from "../../../supabase/functions/_shared/intake-contracts/ir-playbook.ts";
 import {
   computeRecordComplete,

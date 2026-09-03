@@ -12,7 +12,7 @@ import {
   blockingContractViolations,
   INTAKE_CONTRACT_GATE_PREFIX,
 } from "../../../supabase/functions/run-stress-job/_local/intake-gate.ts";
-import { CPPA_ADMT_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-admt.ts";
+import { CPPA_ADMT_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-admt.ts";
 
 Deno.test("gate: a drifted enum label blocks, with the key and reason named", () => {
   const out = blockingContractViolations("biometric", {

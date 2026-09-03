@@ -30,7 +30,7 @@ import {
   classifyRecordedMitigations,
 } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/build";
 import { ANCHOR_KEYS } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/elements";
-import { LIA_GOLDEN } from "../../../supabase/functions/_shared/golden/lia";
+import { LIA_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/lia";
 
 const CORPUS = [
   ...Object.values(EDPB_1_2024_EXCERPTS),

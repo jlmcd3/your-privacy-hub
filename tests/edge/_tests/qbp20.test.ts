@@ -8,7 +8,7 @@
 //   5. shadow score arithmetic.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
-import { GOLDEN_BY_TOOL } from "../../../supabase/functions/_shared/golden/registry.ts";
+import { GOLDEN_BY_TOOL } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/registry.ts";
 import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";
 import { cppaAdmtContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-admt.ts";
 import { cppaRiskContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts";

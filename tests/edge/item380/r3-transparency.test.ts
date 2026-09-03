@@ -22,7 +22,7 @@ import {
 } from "../../../supabase/functions/_shared/prose/ask-categories.ts";
 import { computeRecordComplete } from "../../../supabase/functions/_shared/ltp/record-complete.ts";
 import { dpiaFrameworkContract } from "../../../supabase/functions/_shared/intake-contracts/dpia-framework.ts";
-import { DPIA_PERFECT } from "../../../supabase/functions/_shared/golden/dpia.ts";
+import { DPIA_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia.ts";
 
 const perfectIntake =
   (DPIA_PERFECT as readonly { intake: Record<string, unknown> }[])[0].intake;

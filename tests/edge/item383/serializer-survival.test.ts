@@ -9,7 +9,7 @@ import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.t
 import { serializeCustomerReport } from "../../../supabase/functions/_shared/report-serialize.ts";
 import { LIA_REPORT_SCHEMA } from "../../../supabase/functions/run-li-assessment/_local/report-schemas/lia.ts";
 import { LIA_PIPELINE_STAMP } from "../../../supabase/functions/run-li-assessment/_local/prose/plans/lia.spine.ts";
-import { LIA_PERFECT } from "../../../supabase/functions/_shared/golden/lia-perfect.ts";
+import { LIA_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/lia-perfect.ts";
 import { liAssessmentStageBContract } from "../../../supabase/functions/_shared/intake-contracts/li-assessment.ts";
 import {
   computeRecordComplete,

@@ -14,8 +14,8 @@ import { describe, expect, it } from "vitest";
 import { CYBER_CORPUS_SNAPSHOT } from "./__fixtures__/cyber-corpus-snapshot";
 import { makeCorpusProvisionClient, type ProvisionRow } from "./corpus-client";
 import { buildCyberDeliverables } from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cppa-cyber-deliverables/build";
-import { CPPA_CYBER_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-cyber";
-import { MESSY_BY_TOOL } from "../../../supabase/functions/_shared/golden/messy-registry";
+import { CPPA_CYBER_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-cyber";
+import { MESSY_BY_TOOL } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/messy-registry";
 import {
   buildAuthorityExhibit,
   renderAuthorityExhibitHtml,

@@ -7,7 +7,7 @@ import {
   DPIA_SKELETON_SUBTITLE_EU,
   DPIA_SKELETON_SUBTITLE_UK,
 } from "../../../supabase/functions/_shared/prose/plans/dpia.spine.ts";
-import { DPIA_PERFECT_PINNED } from "../../../supabase/functions/_shared/golden/dpia-perfect-pinned.ts";
+import { DPIA_PERFECT_PINNED } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia-perfect-pinned.ts";
 import { checkPerfectDpiaIntake } from "../../../supabase/functions/_shared/quality/perfect-closed-loop.ts";
 
 // The Harrowgate pinned fixture's ACTUAL secondary_uses text, verbatim.

@@ -10,7 +10,7 @@ import {
   applySkeletonCalibration,
   applyEvidenceBackedDimensionFloor,
   hasSkeletonDocument,
-} from "../../../supabase/functions/_shared/grader/skeleton-calibration-mirror.ts";
+} from "../../../supabase/functions/grade-single-assessment/_local/grader/skeleton-calibration-mirror.ts";
 
 Deno.test("hasSkeletonDocument true only for a report carrying a non-empty skeleton_document.sections", () => {
   assertEquals(hasSkeletonDocument({ skeleton_document: { sections: [{ id: "s1" }] } }), true);

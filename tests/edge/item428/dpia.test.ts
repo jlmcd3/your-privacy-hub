@@ -9,7 +9,7 @@
 // rather than invoking an LLM.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { checkStructureConformance } from "../../../supabase/functions/_shared/prose/structure-conformance.ts";
-import { DPIA_PERFECT } from "../../../supabase/functions/_shared/golden/dpia.ts";
+import { DPIA_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia.ts";
 
 const INTAKE = DPIA_PERFECT[0].intake as Record<string, unknown>;
 

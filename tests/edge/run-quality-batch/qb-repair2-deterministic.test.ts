@@ -16,8 +16,8 @@ import {
   screenIntake,
   uniqueNearestOption,
 } from "../../../supabase/functions/run-quality-batch/index.ts";
-import { DPIA_GOLDEN } from "../../../supabase/functions/_shared/golden/dpia.ts";
-import { IR_PLAYBOOK_GOLDEN } from "../../../supabase/functions/_shared/golden/ir-playbook.ts";
+import { DPIA_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia.ts";
+import { IR_PLAYBOOK_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/ir-playbook.ts";
 
 const DPIA_WITH_REASONS = DPIA_GOLDEN.find((c) =>
   Array.isArray((c.intake as Record<string, unknown>).reasons_to_conduct) &&

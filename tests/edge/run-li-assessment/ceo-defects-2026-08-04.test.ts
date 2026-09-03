@@ -24,7 +24,7 @@ import { SANCTIONED_COUNSEL_REGISTER } from "../../../supabase/functions/_shared
 import { runFormatChecksGeneric } from "../../../supabase/functions/_shared/grader/format-checks.ts";
 import { REPORT_DISCLAIMER } from "../../../supabase/functions/_shared/report-disclaimer.ts";
 import { extractProseFromReport } from "../../../supabase/functions/_shared/advisory-voice.ts";
-import { LIA_GOLDEN } from "../../../supabase/functions/_shared/golden/lia.ts";
+import { LIA_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/lia.ts";
 
 const OFFENDING =
   "No retention period or deletion trigger is stated for either data category, leaving the storage-limitation requirement under Article 5(1)(e) UK GDPR undocumented.";

@@ -124,7 +124,7 @@ Deno.test("registration validate / requires organization_name", () => {
 // registration golden fixture validates cleanly against the newly-wired
 // contract BEFORE the wiring is trusted. Any mismatch here is a contract
 // bug to fix, never a fixture to bend.
-import { REGISTRATION_GOLDEN } from "../../../../supabase/functions/_shared/golden/registration.ts";
+import { REGISTRATION_GOLDEN } from "../../../../supabase/functions/quality-batch-orchestrator/_local/golden/registration.ts";
 
 Deno.test("S-R1 — every registration golden fixture validates cleanly against the wired contract", () => {
   for (const c of REGISTRATION_GOLDEN) {

@@ -15,7 +15,7 @@
 // the Table of Authorities lists it (iff-cited: the label string appears
 // verbatim in this section's body).
 
-import { LIA_CORPUS_MAP } from "../../../_shared/corpus/maps/lia-corpus-map.ts";
+import { LIA_CORPUS_MAP } from "../corpus/maps/lia-corpus-map.ts";
 import { LIA_PRECEDENT_CLASS_RATIFIED } from "./lia-deliverables/precedent-classes.ts";
 
 type Bag = Record<string, unknown>;
