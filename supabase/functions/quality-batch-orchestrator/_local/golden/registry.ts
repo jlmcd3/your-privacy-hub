@@ -45,16 +45,19 @@ export function goldenIntakes(tool: string): unknown[] {
  * run-quality-batch and grade-single-assessment to thread the label into
  * the grader payload header.
  */
-// FIXTURE-LABEL LAW — the same byte-equality lookup, returning the case id
-// alongside the set so the orchestrator can persist BOTH onto the seed row.
-// run-quality-batch and grade-single-assessment read those persisted labels
-// instead of importing this registry.
+// FIXTURE-LABEL LAW — the same byte-equality lookup as matchFixtureSet,
+// returning the case id alongside the set so the orchestrator can persist
+// BOTH onto the seed row. run-quality-batch and grade-single-assessment read
+// those persisted labels instead of importing this registry.
 export function matchFixtureCase(tool: string, intake: unknown): { set: string; id: string } | null {
-  const cases = GOLDEN_BY_TOOL[tool as keyof typeof GOLDEN_BY_TOOL] as Array<{ id: string; intake: unknown; set: string }> | undefined;
-  if (!cases) return null;
-  const needle = JSON.stringify(intake);
+  const cases = GOLDEN_BY_TOOL[tool] ?? [];
+  if (!cases.length || intake == null) return null;
+  let needle = "";
+  try { needle = JSON.stringify(intake); } catch { return null; }
   for (const c of cases) {
-    if (JSON.stringify(c.intake) === needle) return { set: c.set, id: c.id };
+    let hay = "";
+    try { hay = JSON.stringify(c.intake); } catch { continue; }
+    if (hay === needle) return { set: c.set, id: c.id };
   }
   return null;
 }
