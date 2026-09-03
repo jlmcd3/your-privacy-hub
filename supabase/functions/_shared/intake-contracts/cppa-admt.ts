@@ -59,6 +59,44 @@ export const ADMT_NONDISCRIM_TESTING_OPTS = [
   "Unsure",
 ] as const;
 
+// ── DOC 158 (2026-09-03, ADMT model-vs-law build) ─────────────────────
+// Verbatim copies of the src/pages/admt/ADMTChecker.enums.ts additions
+// (parity pinned in doc158-admt-law-map-build.test.ts).
+// § 7001(ddd)(2): a housing decision "based solely on the availability or
+// vacancy of the housing or the successful receipt of payment" is not a
+// significant decision. Asked only when the Housing domain is selected.
+export const ADMT_HOUSING_DECISION_BASIS_OPTS = [
+  "Yes — based solely on availability or vacancy, or on receipt of payment",
+  "No — other factors are considered",
+] as const;
+// § 7220(b)(2): the Pre-use Notice must precede collection (or, for
+// information already collected for another purpose, the first ADMT use).
+export const NOTICE_TIMING_OPTS = [
+  "At or before the point where we collect the personal information the ADMT processes",
+  "Before the ADMT first processes personal information we had already collected for another purpose",
+  "After the ADMT processing has begun",
+  "Unsure / not yet determined",
+] as const;
+// § 7221(f), (i), (j), (k), (m): opt-out handling duties (full opt-out path).
+export const OPT_OUT_HANDLING_OPTS = [
+  "No identity verification is required to submit an opt-out request (§ 7221(f))",
+  "One option opts the consumer out of every use of ADMT we make for significant decisions (§ 7221(i))",
+  "We accept opt-out requests from an authorized agent with the consumer's signed permission (§ 7221(j))",
+  "We do not ask a consumer who opted out to consent again for at least 12 months (§ 7221(k))",
+  "An opt-out received before processing begins prevents that processing (§ 7221(m))",
+  "None of the above can be confirmed",
+] as const;
+// Previously form-only (never registered) admt_detail leaves — verbatim
+// copies of the page's inline option lists (audit A.4: collected, unread).
+export const ADMT_HI_REVIEWER_PRESENT_OPTS = ["Yes — on every decision", "Sometimes / on a subset", "No — fully automated"] as const;
+export const ADMT_HI_STAGE_OPTS = ["Before the decision is issued", "After the decision (review of completed decisions)", "Appeal only"] as const;
+export const ADMT_APPEAL_CONSUMER_SUBMIT_OPTS = ["Free-text statement", "Supporting documents", "Witness statements"] as const;
+export const ADMT_APPEAL_OUTCOME_OPTS = ["Uphold", "Reverse", "Modify", "Remand"] as const;
+export const ADMT_BIAS_PROTECTED_CHARS_OPTS = ["Race", "Sex / gender", "Age", "Disability", "National origin", "Religion", "Veteran status", "Pregnancy", "Genetic info"] as const;
+export const ADMT_BIAS_CADENCE_OPTS = ["Pre-deployment + ongoing monitoring", "Pre-deployment only", "Vendor-supplied only", "None"] as const;
+export const ADMT_BIAS_ADVERSE_IMPACT_OPTS = ["Yes", "No", "Vendor-supplied"] as const;
+export const ADMT_ACCESS_SECURE_TX_OPTS = ["Encrypted self-service portal", "Encrypted email", "Postal mail", "Not yet defined"] as const;
+
 // ── Verbatim inline lists from ADMTChecker.tsx ─────────────────────────
 const SIGNIFICANT_DECISION_DOMAINS = [
   "Financial or lending services (credit decisions, loans, accounts)",
@@ -68,6 +106,9 @@ const SIGNIFICANT_DECISION_DOMAINS = [
   "Work allocation, scheduling, or compensation",
   "Promotion, demotion, suspension, or termination",
   "Healthcare services (diagnosis, treatment, care eligibility)",
+  // DOC 158 — the explicit negative: a record could not say "none of these"
+  // before (an empty selection read as unanswered → Unable to assess).
+  "None of these categories — the decision is outside every § 7001(ddd) category",
 ] as const;
 const HUMAN_REVIEW_OPTIONS = [
   "Yes — reviewer knows how to interpret output, reviews it plus other info, and has authority to change the decision",
@@ -106,6 +147,9 @@ export const NOTICE_OPT_OUT_DESC_OPTS = [
   "Mentions opt-out but without clear instructions",
   "No",
   "We rely on an exception and describe appeal rights instead",
+  // DOC 158 — § 7220(c)(2)(B): on a (b)(2)/(b)(3) exception the notice must
+  // identify the specific exception; the record had no way to say so.
+  "We rely on an exception and the notice identifies the specific exception",
 ] as const;
 export const NOTICE_ACCESS_DESC_OPTS = ["Yes", "No", "Not yet"] as const;
 export const NOTICE_ANTI_RET_OPTS = ["Yes", "No", "Not yet"] as const;
@@ -142,6 +186,9 @@ export const ACCESS_READINESS_ELEMENT_IDS = [
   "b3_output_use",
   "b3_outcome",
   "b3_human_role",
+  // DOC 158 — § 7222(b)(4): the anti-retaliation statement and instructions
+  // (with links) for exercising other CCPA rights, never a readiness element.
+  "b4_rights",
 ] as const;
 
 export const ACCESS_READINESS_OPTS = [
@@ -179,6 +226,8 @@ export const cppaAdmtContract: IntakeContract = {
     { key: "notice_has_anti_retaliation", kind: "enum", required: "always", options: NOTICE_ANTI_RET_OPTS },
     { key: "notice_has_how_it_works",     kind: "enum", required: "always", options: NOTICE_HOW_IT_WORKS_OPTS },
     { key: "notice_has_alternative_process", kind: "enum", required: "always", options: NOTICE_ALT_PROCESS_OPTS },
+    // DOC 158 — § 7220(b)(2) timing (form-required; optional here for legacy rows).
+    { key: "notice_timing", kind: "enum", required: "optional", options: NOTICE_TIMING_OPTS },
 
     { key: "opt_out_exception",             kind: "text",       required: "always" }, // ChoiceWithOther — free-string post-fold; enum list below is advisory
     { key: "opt_out_methods",               kind: "multi-enum", required: "optional", options: OPT_OUT_METHODS },
@@ -190,6 +239,8 @@ export const cppaAdmtContract: IntakeContract = {
       requiredWhen: 'opt_out_exception starts with "Human appeal exception"' },
     { key: "opt_out_fairness_doc",          kind: "narrative",  required: "optional" },
     { key: "opt_out_15_day_process",        kind: "narrative",  required: "optional" },
+    // DOC 158 — § 7221(f), (i), (j), (k), (m) handling duties (full opt-out path).
+    { key: "opt_out_handling_confirmations", kind: "multi-enum", required: "optional", options: OPT_OUT_HANDLING_OPTS },
 
     { key: "access_submission_methods",   kind: "narrative", required: "always" },
     { key: "access_verification_process", kind: "narrative", required: "always" },
@@ -227,6 +278,62 @@ export const cppaAdmtContract: IntakeContract = {
     { key: "admt_detail.sole_factor",           kind: "enum",       required: "optional", options: ADMT_SOLE_FACTOR_OPTS },
     { key: "admt_detail.feeds_future_decisions", kind: "enum",      required: "optional", options: ADMT_YES_NO_UNSURE_OPTS },
     { key: "admt_detail.solely_advertising",    kind: "enum",       required: "optional", options: ADMT_SOLELY_ADVERTISING_OPTS },
+    // DOC 158 — § 7001(ddd)(2) housing exclusion. The form (ADMTChecker.tsx)
+    // shows this row only while decision_domains includes the Housing option
+    // and its step validation requires it there; the contract carries the same
+    // skip logic as a VALUE-EQUALS trigger (ITEM 380 r5b), so the record-
+    // complete gate and the intake coach never count it on any other record.
+    { key: "admt_detail.housing_decision_basis", kind: "enum",      required: "conditional", options: ADMT_HOUSING_DECISION_BASIS_OPTS,
+      requiredWhen: 'decision_domains includes "Housing (rental or purchase eligibility)"',
+      trigger: { key: "decision_domains", equals: ["Housing (rental or purchase eligibility)"] } },
+    // DOC 158 — the § 7001(e)(1) human-involvement self-test (form-only before;
+    // now registered and cross-checked against human_review by the engine).
+    // The self-test's first row is presented unconditionally; the six detail
+    // rows appear only after a "Yes" or "Sometimes" answer to it
+    // (ADMTChecker.tsx: `adv.hi_reviewer_present && !startsWith("No")`).
+    { key: "admt_detail.hi_reviewer_present",   kind: "enum",       required: "optional", options: ADMT_HI_REVIEWER_PRESENT_OPTS },
+    { key: "admt_detail.hi_reviewer_role",      kind: "text",       required: "conditional",
+      requiredWhen: 'admt_detail.hi_reviewer_present is "Yes — on every decision" or "Sometimes / on a subset"',
+      trigger: { key: "admt_detail.hi_reviewer_present", equals: ["Yes — on every decision", "Sometimes / on a subset"] } },
+    { key: "admt_detail.hi_stage",              kind: "enum",       required: "conditional", options: ADMT_HI_STAGE_OPTS,
+      requiredWhen: 'admt_detail.hi_reviewer_present is "Yes — on every decision" or "Sometimes / on a subset"',
+      trigger: { key: "admt_detail.hi_reviewer_present", equals: ["Yes — on every decision", "Sometimes / on a subset"] } },
+    { key: "admt_detail.hi_trained",            kind: "enum",       required: "conditional", options: ADMT_YES_NO_OPTS,
+      requiredWhen: 'admt_detail.hi_reviewer_present is "Yes — on every decision" or "Sometimes / on a subset"',
+      trigger: { key: "admt_detail.hi_reviewer_present", equals: ["Yes — on every decision", "Sometimes / on a subset"] } },
+    { key: "admt_detail.hi_reviews_other_info", kind: "enum",       required: "conditional", options: ADMT_YES_NO_OPTS,
+      requiredWhen: 'admt_detail.hi_reviewer_present is "Yes — on every decision" or "Sometimes / on a subset"',
+      trigger: { key: "admt_detail.hi_reviewer_present", equals: ["Yes — on every decision", "Sometimes / on a subset"] } },
+    { key: "admt_detail.hi_authority_override", kind: "enum",       required: "conditional", options: ADMT_YES_NO_OPTS,
+      requiredWhen: 'admt_detail.hi_reviewer_present is "Yes — on every decision" or "Sometimes / on a subset"',
+      trigger: { key: "admt_detail.hi_reviewer_present", equals: ["Yes — on every decision", "Sometimes / on a subset"] } },
+    { key: "admt_detail.hi_override_rate",      kind: "text",       required: "conditional",
+      requiredWhen: 'admt_detail.hi_reviewer_present is "Yes — on every decision" or "Sometimes / on a subset"',
+      trigger: { key: "admt_detail.hi_reviewer_present", equals: ["Yes — on every decision", "Sometimes / on a subset"] } },
+    // DOC 158 — other form-only leaves, registered so the record carries them.
+    // Each carries the form's own skip logic where a VALUE-EQUALS trigger can
+    // state it; the two vendor rows cannot (the form shows them while the
+    // free-text third_party_admt answer is non-empty), so they stay optional
+    // like the vendor_status rows above them.
+    // other_factors: ADMTChecker.tsx shows the row only when sole_factor is a
+    // non-"Sole" option.
+    { key: "admt_detail.other_factors",         kind: "text",       required: "conditional",
+      requiredWhen: 'admt_detail.sole_factor is "Material factor — heavily weighted alongside others" or "One of many factors"',
+      trigger: { key: "admt_detail.sole_factor", equals: ["Material factor — heavily weighted alongside others", "One of many factors"] } },
+    // ITEM 380 r5c — EMPTY IS A SUBSTANTIVE ANSWER. Form citation:
+    // src/pages/admt/ADMTChecker.tsx, the textarea under the decision-domain
+    // pills, presented unconditionally with the wording "Optional — describe
+    // the decision in one sentence, or leave blank if the categories above
+    // capture it". A blank means the selected categories describe the
+    // decision; it is never an unanswered ask.
+    { key: "admt_detail.decision_domains_other", kind: "text",      required: "optional", emptyIsAnswer: true },
+    // opt_out_exception_other: the ChoiceWithOther free text, shown only when
+    // the "Other" option is selected.
+    { key: "admt_detail.opt_out_exception_other", kind: "text",     required: "conditional",
+      requiredWhen: 'opt_out_exception is "Other — my situation differs (describe)"',
+      trigger: { key: "opt_out_exception", equals: ["Other — my situation differs (describe)"] } },
+    { key: "admt_detail.vendor_product",        kind: "text",       required: "optional" },
+    { key: "admt_detail.vendor_training_rights", kind: "text",      required: "optional" },
 
     // ITEM 308 — intake additions for the three analytic deliverables.
     // (a) Published pre-use notice text, transcribed element by element.
@@ -246,9 +353,55 @@ export const cppaAdmtContract: IntakeContract = {
     { key: "admt_detail.appeal_trained",            kind: "enum", required: "optional", options: ADMT_YES_NO_OPTS },
     { key: "admt_detail.appeal_authority_overturn", kind: "enum", required: "optional", options: ADMT_YES_NO_OPTS },
     { key: "admt_detail.appeal_step_count",         kind: "text", required: "optional" },
+    // DOC 158 — § 7221(b)(1)(A)/(B) evidence, collected by the form and never
+    // registered or read: what the consumer may submit, the response timeline.
+    // The form shows these four rows only on the human-appeal exception
+    // (ADMTChecker.tsx: `optOutException.startsWith("Human appeal")`).
+    { key: "admt_detail.appeal_consumer_submit",    kind: "multi-enum", required: "conditional", options: ADMT_APPEAL_CONSUMER_SUBMIT_OPTS,
+      requiredWhen: 'opt_out_exception is the human-appeal exception (§ 7221(b)(1))',
+      trigger: { key: "opt_out_exception", equals: ["Human appeal exception (§ 7221(b)(1)) — we provide a human reviewer with authority to overturn the decision"] } },
+    { key: "admt_detail.appeal_timeline",           kind: "text", required: "conditional",
+      requiredWhen: 'opt_out_exception is the human-appeal exception (§ 7221(b)(1))',
+      trigger: { key: "opt_out_exception", equals: ["Human appeal exception (§ 7221(b)(1)) — we provide a human reviewer with authority to overturn the decision"] } },
+    { key: "admt_detail.appeal_reversal_rate",      kind: "text", required: "conditional",
+      requiredWhen: 'opt_out_exception is the human-appeal exception (§ 7221(b)(1))',
+      trigger: { key: "opt_out_exception", equals: ["Human appeal exception (§ 7221(b)(1)) — we provide a human reviewer with authority to overturn the decision"] } },
+    { key: "admt_detail.appeal_outcomes",           kind: "multi-enum", required: "conditional", options: ADMT_APPEAL_OUTCOME_OPTS,
+      requiredWhen: 'opt_out_exception is the human-appeal exception (§ 7221(b)(1))',
+      trigger: { key: "opt_out_exception", equals: ["Human appeal exception (§ 7221(b)(1)) — we provide a human reviewer with authority to overturn the decision"] } },
     // (c) § 7221(b)(2) condition evidence.
     { key: "admt_detail.sole_use_attestation",      kind: "enum", required: "optional", options: ADMT_SOLE_USE_ATTESTATION_OPTS },
     { key: "admt_detail.nondiscrimination_testing", kind: "enum", required: "optional", options: ADMT_NONDISCRIM_TESTING_OPTS },
+    // DOC 158 — § 7221(b)(2)(B)/(b)(3)(B) testing evidence, collected by the
+    // form and never registered or read.
+    // The form shows the seven testing rows only on the hiring/admission or
+    // work-allocation exception (ADMTChecker.tsx:
+    // `optOutException.startsWith("Hiring") || startsWith("Work")`).
+    { key: "admt_detail.bias_protected_chars",      kind: "multi-enum", required: "conditional", options: ADMT_BIAS_PROTECTED_CHARS_OPTS,
+      requiredWhen: 'opt_out_exception is the § 7221(b)(2) or (b)(3) exception',
+      trigger: { key: "opt_out_exception", equals: ["Hiring/admission exception (§ 7221(b)(2)) — ADMT used solely to assess ability; no unlawful discrimination", "Work allocation/compensation exception (§ 7221(b)(3)) — ADMT used solely for allocation/compensation; no unlawful discrimination"] } },
+    { key: "admt_detail.bias_proxy_vars",           kind: "narrative", required: "conditional",
+      requiredWhen: 'opt_out_exception is the § 7221(b)(2) or (b)(3) exception',
+      trigger: { key: "opt_out_exception", equals: ["Hiring/admission exception (§ 7221(b)(2)) — ADMT used solely to assess ability; no unlawful discrimination", "Work allocation/compensation exception (§ 7221(b)(3)) — ADMT used solely for allocation/compensation; no unlawful discrimination"] } },
+    { key: "admt_detail.bias_testing_cadence",      kind: "enum", required: "conditional", options: ADMT_BIAS_CADENCE_OPTS,
+      requiredWhen: 'opt_out_exception is the § 7221(b)(2) or (b)(3) exception',
+      trigger: { key: "opt_out_exception", equals: ["Hiring/admission exception (§ 7221(b)(2)) — ADMT used solely to assess ability; no unlawful discrimination", "Work allocation/compensation exception (§ 7221(b)(3)) — ADMT used solely for allocation/compensation; no unlawful discrimination"] } },
+    { key: "admt_detail.bias_last_test",            kind: "text", required: "conditional",
+      requiredWhen: 'opt_out_exception is the § 7221(b)(2) or (b)(3) exception',
+      trigger: { key: "opt_out_exception", equals: ["Hiring/admission exception (§ 7221(b)(2)) — ADMT used solely to assess ability; no unlawful discrimination", "Work allocation/compensation exception (§ 7221(b)(3)) — ADMT used solely for allocation/compensation; no unlawful discrimination"] } },
+    { key: "admt_detail.bias_next_test",            kind: "text", required: "conditional",
+      requiredWhen: 'opt_out_exception is the § 7221(b)(2) or (b)(3) exception',
+      trigger: { key: "opt_out_exception", equals: ["Hiring/admission exception (§ 7221(b)(2)) — ADMT used solely to assess ability; no unlawful discrimination", "Work allocation/compensation exception (§ 7221(b)(3)) — ADMT used solely for allocation/compensation; no unlawful discrimination"] } },
+    { key: "admt_detail.bias_adverse_impact",       kind: "enum", required: "conditional", options: ADMT_BIAS_ADVERSE_IMPACT_OPTS,
+      requiredWhen: 'opt_out_exception is the § 7221(b)(2) or (b)(3) exception',
+      trigger: { key: "opt_out_exception", equals: ["Hiring/admission exception (§ 7221(b)(2)) — ADMT used solely to assess ability; no unlawful discrimination", "Work allocation/compensation exception (§ 7221(b)(3)) — ADMT used solely for allocation/compensation; no unlawful discrimination"] } },
+    { key: "admt_detail.bias_outcome_summary",      kind: "narrative", required: "conditional",
+      requiredWhen: 'opt_out_exception is the § 7221(b)(2) or (b)(3) exception',
+      trigger: { key: "opt_out_exception", equals: ["Hiring/admission exception (§ 7221(b)(2)) — ADMT used solely to assess ability; no unlawful discrimination", "Work allocation/compensation exception (§ 7221(b)(3)) — ADMT used solely for allocation/compensation; no unlawful discrimination"] } },
+    // DOC 158 — § 7222(g) secure transmission and § 7222(f) denial basis,
+    // collected by the form (rail entries existed) and never registered or read.
+    { key: "admt_detail.access_secure_transmission", kind: "enum", required: "optional", options: ADMT_ACCESS_SECURE_TX_OPTS },
+    { key: "admt_detail.access_denial_basis",       kind: "narrative", required: "optional" },
 
     // UPGRADE-3 ITEM 1 — the whole published pre-use notice, verbatim. The
     // § 7220(c) element findings TEST the business's own words against the

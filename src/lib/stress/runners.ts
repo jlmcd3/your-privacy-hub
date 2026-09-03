@@ -700,12 +700,16 @@ const runCppaAdmt: Runner = async ({ userId, log }) => {
     access_response_timeline: "Our process is not yet defined",
     access_trade_secret_policy: "",
   };
-  log("Inserting cppa_assessments (admt)…");
+  // DOC 158 (2026-09-03, CEO: "for ADMT we need to invoke V2") — the stress
+  // runner still wrote module "admt" and invoked the retired v1 engine; the
+  // quality batch, the sample fixtures, and customers run module "admt_v2" →
+  // run-admt-checker-v2 (which filters on its own module value).
+  log("Inserting cppa_assessments (admt_v2)…");
   const { data: rec, error: insErr } = await supabase
     .from("cppa_assessments")
     .insert({
       user_id: userId,
-      module: "admt",
+      module: "admt_v2",
       status: "pending",
       intake_data: intake as never,
     })
@@ -713,8 +717,8 @@ const runCppaAdmt: Runner = async ({ userId, log }) => {
     .single();
   if (insErr || !rec) throw new Error(`insert: ${insErr?.message}`);
 
-  log(`Invoking run-admt-checker (id ${rec.id})…`);
-  const { error: fnErr } = await supabase.functions.invoke("run-admt-checker", {
+  log(`Invoking run-admt-checker-v2 (id ${rec.id})…`);
+  const { error: fnErr } = await supabase.functions.invoke("run-admt-checker-v2", {
     body: { assessment_id: rec.id },
   });
   if (fnErr) log(`Async generation started (background worker); polling for completion…`);

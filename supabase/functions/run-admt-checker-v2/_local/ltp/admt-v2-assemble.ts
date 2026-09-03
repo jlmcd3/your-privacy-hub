@@ -667,7 +667,7 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
     // qualifying human review. The conditions under which it holds are
     // stated with the determination, from facts already in the record.
     ...(scope.scopeState === "OUT_OF_SCOPE"
-      ? buildOutOfScopeConditions(intake, systemName || "the System")
+      ? buildOutOfScopeConditions(scope, systemName || "the System")
       : []),
     ...admtS4.flatMap((att): RenderedParagraph[] => [
       // A-TEAM S3 RULING V.10 (doc 115) — professional register heading.
@@ -720,6 +720,7 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
       key: "notice:2", surface: "notice_elements", title: "",
       columns: ["Required notice element", "Company response", "Evidence"],
       rows: [
+        factorRow("Timing", notice.timing),
         factorRow("Specific purpose", notice.purpose),
         factorRow("Opt-out / exception or appeal", notice.optoutDesc),
         factorRow("Access right", notice.accessDesc),
@@ -751,6 +752,8 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
           factorRow("No account required", optOut.account),
           factorRow("15-business-day process", optOut.fifteenDay),
           factorRow("Confirmation mechanism", optOut.confirmation),
+          factorRow("Online form and link title", optOut.linkTitle),
+          factorRow("Opt-out handling duties", optOut.handling),
         ],
       }},
       { kind: "generated", text: composeFullOptOutAnalysis(optOut) },
@@ -773,6 +776,8 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
           factorRow("Reviewer training", optOut.appealTraining),
           factorRow("Authority to overturn", optOut.appealAuthority),
           factorRow("Steps to reviewer", optOut.appealSteps),
+          factorRow("Consumer submissions on appeal", optOut.appealSubmissions),
+          factorRow("Appeal response timeline", optOut.appealTimeline),
         ],
       }},
       { kind: "generated", text: composeHumanAppealAnalysis(optOut) },
@@ -791,6 +796,7 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
         key: "optout:4.3", surface: "employment_exception_factors", title: "",
         columns: ["Exception factor", "Company response", "Evidence"],
         rows: [
+          factorRow("Exception eligibility", optOut.eligibility),
           factorRow("Sole-use condition", optOut.exceptionSoleUse),
           factorRow("Non-discrimination testing", optOut.exceptionTesting),
           factorRow("Fairness documentation", optOut.exceptionFairnessDoc),
@@ -810,7 +816,11 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
     { kind: "table", text: "", table: {
       key: "access:2", surface: "access_process_factors", title: "",
       columns: ["Process requirement", "Company response", "Evidence"],
-      rows: [factorRow("Response timeline", access.timeline)],
+      rows: [
+        factorRow("Response timeline", access.timeline),
+        factorRow("Secure transmission", access.secureTransmission),
+        factorRow("Denial explanation", access.denialEvidence),
+      ],
     }},
     { kind: "table", text: "", table: {
       key: "access:3", surface: "access_readiness", title: "Explanation Readiness",
@@ -821,6 +831,7 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
         factorRow("Output and use", access.readiness["b3_output_use_ready"]),
         factorRow("Outcome / future use", access.readiness["b3_outcome_ready"]),
         factorRow("Human role", access.readiness["b3_human_role_ready"]),
+        factorRow("Anti-retaliation and other rights", access.readiness["b4_rights_ready"]),
       ],
     }},
     { kind: "skeleton", text: `Withholding and Security: ${str((intake as any)?.access_trade_secret_policy) || "The Company has not described a trade-secret or security withholding policy."}` },
@@ -1083,7 +1094,20 @@ const NOT_REACHED_PHRASE_PATHWAY =
  * with the determination (panel-B memo 2 (e), unanimous). The band sentence
  * fires on a lexical signal in the Company's OWN system description —
  * nothing is inferred beyond what the description says. */
-function buildOutOfScopeConditions(intake: Record<string, unknown>, systemName: string): RenderedParagraph[] {
+function buildOutOfScopeConditions(scope: AdmtV2Computed["scope"], systemName: string): RenderedParagraph[] {
+  // DOC 158 — the scope qualification names ITS basis: a categorical
+  // negative (outside every § 7001(ddd) category, or the (ddd)(2) housing
+  // exclusion) rests on the Company's decision-domain answer, not on human
+  // review; an advertising-only exclusion carries no human-review condition.
+  if (scope.categoricalNone) {
+    return [
+      { kind: "skeleton", text: "Scope qualification — conditions on this determination" },
+      { kind: "skeleton", text: scope.housingExcluded && scope.significantDecisionLabel.startsWith("Housing")
+        ? `This determination rests on the Company's answer that ${systemName} provides or denies housing based solely on the availability or vacancy of the housing or the successful receipt of payment; under 11 CCR § 7001(ddd)(2) that use is not making a significant decision. If the decision also turns on any other factor about the consumer, it is a significant decision and Article 11 applies.`
+        : `This determination rests on the Company's answer that the decision ${systemName} makes is outside every category 11 CCR § 7001(ddd) defines as a significant decision. If the System's output provides or denies financial or lending services, housing, education enrollment or opportunities, employment or independent contracting opportunities or compensation, or healthcare services, Article 11 applies.` },
+    ];
+  }
+  if (scope.humanInvolvementEffect !== "WEIGHS_AGAINST") return [];
   const paras: RenderedParagraph[] = [
     // A-TEAM S3 RULING V.9 (doc 115, 2026-08-31) — "Conditions on this
     // determination" read against Priority Matters' "no conditions to
@@ -1092,8 +1116,9 @@ function buildOutOfScopeConditions(intake: Record<string, unknown>, systemName: 
     { kind: "skeleton", text: "Scope qualification — conditions on this determination" },
     { kind: "skeleton", text: `This determination rests on the reported human review operating in practice for every significant decision ${systemName} touches. Qualifying review under 11 CCR § 7001(e)(1) means the reviewer knows how to interpret the output, considers it together with other information, and has authority to change the decision — for each decision, not in the aggregate. Where a decision is made without that review, the System is ADMT for that decision, and the Article 11 duties this report does not reach — the Pre-use Notice, the opt-out or exception, and consumer access and explanation — apply to it.` },
   ];
-  const desc = str((intake as any)?.system_description);
-  if (/auto(?:matic(?:ally)?|-)\s*(?:approv|declin|reject|deni)/i.test(desc)) {
+  // DOC 158 — one predicate (the engine's AUTOMATED_PATHWAY_RE, already
+  // applied when computeScope set pathwayDependent).
+  if (scope.pathwayDependent) {
     paras.push({
       kind: "skeleton",
       text: "The Company's own description of the System routes some outcomes automatically. Decisions reached that way are not covered by the reported human review, and for them the determination above does not hold: the Article 11 duties would apply to those decisions.",
@@ -1289,6 +1314,10 @@ function buildFactRecordTable(
   const decisionCadence = str(d.decision_cadence);
   const soleFactor = str(d.sole_factor);
   const feedsFuture = str(d.feeds_future_decisions);
+  // DOC 158 — facts the record carried and never printed.
+  const otherFactors = str(d.other_factors);
+  const housingBasis = str(d.housing_decision_basis);
+  const vendorAvailable = str(d.vendor_makes_available);
   const training = str((intake as any)?.training_data_use);
   const profiling = str((intake as any)?.profiling_use);
   const consumerCount = str((intake as any)?.ca_consumer_count);
@@ -1316,6 +1345,9 @@ function buildFactRecordTable(
     ["Decision role",
       factOr([decisionEffects && `Effects: ${decisionEffects}.`, decisionCadence && `Cadence: ${decisionCadence}.`, soleFactor && `Role of output: ${soleFactor}.`, feedsFuture && `Feeds future decisions: ${feedsFuture}.`].filter(Boolean).join(" "))],
     ["Human review", factOr(str((intake as any)?.human_review))],
+    ...(otherFactors ? [["Other decision factors", factOr(otherFactors)]] : []),
+    ...(housingBasis ? [["Housing decision basis (§ 7001(ddd)(2))", factOr(housingBasis)]] : []),
+    ...(vendorAvailable ? [["Vendor makes the ADMT available to other businesses", factOr(vendorAvailable)]] : []),
     ["Training / profiling",
       factOr([training && `Training data use: ${training}.`, profiling && `Profiling use: ${profiling}.`].filter(Boolean).join(" "))],
     ["Scale",

@@ -79,9 +79,27 @@ Deno.test("fixture: sufficiency lint — narratives meaningful, self-test detail
 
   // The archived render degraded precisely because the self-test details were
   // unanswered. Every admt_detail leaf the contract declares is answered here.
+  // DOC 158 — the contract now carries the form's skip logic for the
+  // conditional leaves (VALUE-EQUALS triggers, r5b) and one r5c empty-is-
+  // answer control, so the lint asks exactly what the form asks of this
+  // record: every unconditional leaf, and every conditional leaf whose
+  // trigger the record shows.
   const detail = INTAKE.admt_detail as Record<string, unknown>;
+  const readPath = (path: string): unknown =>
+    path.split(".").reduce<unknown>(
+      (acc, seg) => (acc && typeof acc === "object" ? (acc as Record<string, unknown>)[seg] : undefined),
+      INTAKE,
+    );
+  const askedHere = (f: (typeof cppaAdmtContract.fields)[number]): boolean => {
+    if (f.emptyIsAnswer === true) return false;
+    if (f.required !== "conditional") return true;
+    if (!f.trigger) return false;
+    const v = readPath(f.trigger.key);
+    const vals = Array.isArray(v) ? v : [v];
+    return vals.some((x) => typeof x === "string" && f.trigger!.equals.includes(x));
+  };
   const leaves = cppaAdmtContract.fields
-    .filter((f) => f.key.startsWith("admt_detail.") )
+    .filter((f) => f.key.startsWith("admt_detail.") && askedHere(f))
     .map((f) => f.key.slice("admt_detail.".length));
   for (const k of leaves) {
     const v = detail[k];

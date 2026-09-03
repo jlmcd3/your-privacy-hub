@@ -489,18 +489,20 @@ Return a JSON object with EXACTLY these fields:
   "cppaCyber": null,
   "cppaAdmt": {
     "organization_name": "string", "system_name": "string", "system_type": "string",
-    "system_description": "string", "decision_domains": ["array"], "human_review": "string",
+    "system_description": "string", "decision_domains": ["array — verbatim options; select the § 7001(ddd) categories the decision PROVIDES OR DENIES; a system whose decision is outside every category selects ONLY 'None of these categories — the decision is outside every § 7001(ddd) category'; never combine that option with a category"], "human_review": "string — verbatim option; MUST be consistent with admt_detail.hi_* (a 'Yes — reviewer knows how…' answer requires hi_trained, hi_reviews_other_info, and hi_authority_override all 'Yes' and hi_stage 'Before the decision is issued')",
     "training_data_use": "Yes or No", "profiling_use": "Yes or No",
     "notice_delivery": ["array"], "notice_has_specific_purpose": "Yes or No",
     "notice_purpose_text": "string",
-    "notice_has_opt_out_desc": "Yes or No", "notice_has_access_desc": "Yes or No",
+    "notice_has_opt_out_desc": "verbatim option — on a full opt-out use a 'Yes …' / 'Mentions …' / 'No' answer; on the human-appeal exception 'We rely on an exception and describe appeal rights instead'; on the hiring or work-allocation exception 'We rely on an exception and the notice identifies the specific exception'", "notice_has_access_desc": "Yes or No",
     "notice_has_anti_retaliation": "Yes or No", "notice_has_how_it_works": "Yes or No",
     "notice_has_alternative_process": "Yes or No",
+    "notice_timing": "string — REQUIRED whenever a Pre-use Notice is provided; verbatim one of the allowed values (at or before collection / before first ADMT processing of previously collected data / after processing began (a gap) / unsure)",
     "opt_out_exception": "string — EXACTLY one of the four canonical options: 'Human appeal exception (§ 7221(b)(1)) — we provide a human reviewer with authority to overturn the decision' | 'Hiring/admission exception (§ 7221(b)(2)) — ADMT used solely to assess ability; no unlawful discrimination' | 'Work allocation/compensation exception (§ 7221(b)(3)) — ADMT used solely for allocation/compensation; no unlawful discrimination' | 'No exception — we provide a full opt-out right'", "opt_out_methods": ["array"], "opt_out_link_title": "string",
     "opt_out_no_cookie_banner": "Yes or No", "opt_out_no_account_required": "Yes or No",
     "opt_out_confirmation_mechanism": "string", "opt_out_appeal_process": "string",
     "opt_out_fairness_doc": "string",
     "opt_out_15_day_process": "string",
+    "opt_out_handling_confirmations": ["array — on the full opt-out path only: the § 7221(f)/(i)/(j)/(k)/(m) duties the business can confirm, verbatim from the allowed list; ['None of the above can be confirmed'] when none; a realistic mix, not always all five"],
     "access_submission_methods": "string", "access_verification_process": "string",
     "access_logic_disclosure": "string", "access_outcome_disclosure": "string",
     "access_response_timeline": "string", "access_trade_secret_policy": "string",
@@ -514,7 +516,16 @@ Return a JSON object with EXACTLY these fields:
       "b3_outcome_ready": "string — same four options", "b3_outcome_process": "string — how the outcome record would be produced",
       "b3_human_role_ready": "string — same four options", "b3_human_role_process": "string — how the human-role record would be produced"
     },
-    "admt_detail": {}
+    "admt_detail": {
+      "solely_advertising": "verbatim option — 'Yes — solely advertising' ONLY for a system that does nothing but serve or target advertising (then decision_domains must be empty or the None option)",
+      "sole_factor": "verbatim option", "feeds_future_decisions": "Yes/No/Unsure", "hosting": "verbatim option",
+      "housing_decision_basis": "ONLY when decision_domains includes Housing: 'Yes — based solely on availability or vacancy, or on receipt of payment' or 'No — other factors are considered'",
+      "hi_reviewer_present": "verbatim option, consistent with human_review", "hi_stage": "verbatim option", "hi_trained": "Yes/No", "hi_reviews_other_info": "Yes/No", "hi_authority_override": "Yes/No",
+      "appeal_trained": "Yes/No (human-appeal exception only)", "appeal_authority_overturn": "Yes/No", "appeal_consumer_submit": ["array — verbatim options"], "appeal_timeline": "string, e.g. '30 calendar days'",
+      "sole_use_attestation": "verbatim option (hiring or work-allocation exception only)", "nondiscrimination_testing": "verbatim option", "bias_testing_cadence": "verbatim option, consistent with nondiscrimination_testing", "bias_protected_chars": ["array — verbatim options"],
+      "access_secure_transmission": "verbatim option",
+      "vendor_status": "verbatim option (only when third_party_admt is not No)", "vendor_docs": ["array"], "v_audit": "Yes/No", "v_assist": "Yes/No", "v_optout": "Yes/No", "v_appeal": "Yes/No", "v_incident": "Yes/No"
+    }
   }
 }
 
@@ -635,19 +646,21 @@ Return a JSON object with EXACTLY these fields:
   "cppaAdmt": {
     "organization_name": "string",
     "system_name": "string", "system_type": "string", "system_description": "string",
-    "decision_domains": ["array"], "human_review": "string",
+    "decision_domains": ["array — verbatim options; select the § 7001(ddd) categories the decision PROVIDES OR DENIES; a system whose decision is outside every category selects ONLY 'None of these categories — the decision is outside every § 7001(ddd) category'; never combine that option with a category"], "human_review": "string — verbatim option; MUST be consistent with admt_detail.hi_* (a 'Yes — reviewer knows how…' answer requires hi_trained, hi_reviews_other_info, and hi_authority_override all 'Yes' and hi_stage 'Before the decision is issued')",
     "training_data_use": "Yes or No", "profiling_use": "Yes or No",
     "notice_delivery": ["array"], "notice_has_specific_purpose": "Yes or No",
     "notice_purpose_text": "string",
-    "notice_has_opt_out_desc": "Yes or No", "notice_has_access_desc": "Yes or No",
+    "notice_has_opt_out_desc": "verbatim option — on a full opt-out use a 'Yes …' / 'Mentions …' / 'No' answer; on the human-appeal exception 'We rely on an exception and describe appeal rights instead'; on the hiring or work-allocation exception 'We rely on an exception and the notice identifies the specific exception'", "notice_has_access_desc": "Yes or No",
     "notice_has_anti_retaliation": "Yes or No", "notice_has_how_it_works": "Yes or No",
     "notice_has_alternative_process": "Yes or No",
+    "notice_timing": "string — REQUIRED whenever a Pre-use Notice is provided; verbatim one of the allowed values (at or before collection / before first ADMT processing of previously collected data / after processing began (a gap) / unsure)",
     "opt_out_exception": "string — EXACTLY one of the four canonical options: 'Human appeal exception (§ 7221(b)(1)) — we provide a human reviewer with authority to overturn the decision' | 'Hiring/admission exception (§ 7221(b)(2)) — ADMT used solely to assess ability; no unlawful discrimination' | 'Work allocation/compensation exception (§ 7221(b)(3)) — ADMT used solely for allocation/compensation; no unlawful discrimination' | 'No exception — we provide a full opt-out right'", "opt_out_methods": ["array"],
     "opt_out_link_title": "string",
     "opt_out_no_cookie_banner": "Yes or No", "opt_out_no_account_required": "Yes or No",
     "opt_out_confirmation_mechanism": "string", "opt_out_appeal_process": "string",
     "opt_out_fairness_doc": "string",
     "opt_out_15_day_process": "string",
+    "opt_out_handling_confirmations": ["array — on the full opt-out path only: the § 7221(f)/(i)/(j)/(k)/(m) duties the business can confirm, verbatim from the allowed list; ['None of the above can be confirmed'] when none; a realistic mix, not always all five"],
     "access_submission_methods": "string", "access_verification_process": "string",
     "access_logic_disclosure": "string", "access_outcome_disclosure": "string",
     "access_response_timeline": "string", "access_trade_secret_policy": "string",
@@ -661,7 +674,16 @@ Return a JSON object with EXACTLY these fields:
       "b3_outcome_ready": "string — same four options", "b3_outcome_process": "string — how the outcome record would be produced",
       "b3_human_role_ready": "string — same four options", "b3_human_role_process": "string — how the human-role record would be produced"
     },
-    "admt_detail": {}
+    "admt_detail": {
+      "solely_advertising": "verbatim option — 'Yes — solely advertising' ONLY for a system that does nothing but serve or target advertising (then decision_domains must be empty or the None option)",
+      "sole_factor": "verbatim option", "feeds_future_decisions": "Yes/No/Unsure", "hosting": "verbatim option",
+      "housing_decision_basis": "ONLY when decision_domains includes Housing: 'Yes — based solely on availability or vacancy, or on receipt of payment' or 'No — other factors are considered'",
+      "hi_reviewer_present": "verbatim option, consistent with human_review", "hi_stage": "verbatim option", "hi_trained": "Yes/No", "hi_reviews_other_info": "Yes/No", "hi_authority_override": "Yes/No",
+      "appeal_trained": "Yes/No (human-appeal exception only)", "appeal_authority_overturn": "Yes/No", "appeal_consumer_submit": ["array — verbatim options"], "appeal_timeline": "string, e.g. '30 calendar days'",
+      "sole_use_attestation": "verbatim option (hiring or work-allocation exception only)", "nondiscrimination_testing": "verbatim option", "bias_testing_cadence": "verbatim option, consistent with nondiscrimination_testing", "bias_protected_chars": ["array — verbatim options"],
+      "access_secure_transmission": "verbatim option",
+      "vendor_status": "verbatim option (only when third_party_admt is not No)", "vendor_docs": ["array"], "v_audit": "Yes/No", "v_assist": "Yes/No", "v_optout": "Yes/No", "v_appeal": "Yes/No", "v_incident": "Yes/No"
+    }
   },
   "lia": null,
   "dpia": null,
@@ -1185,6 +1207,14 @@ function buildAdmtFallback(companyName: string, industry: string, slot: number) 
     opt_out_appeal_process: "Consumer may request human review within 30 days",
     opt_out_fairness_doc: isAdtech || isGaming ? "" : "Fairness testing documented in the model card and reviewed quarterly.",
     opt_out_15_day_process: "Requests actioned within 15 business days; log maintained.",
+    // DOC 158 — § 7220(b)(2) timing and the § 7221(f)/(i)/(j)/(k)/(m) duties
+    // (a realistic mix: two duties unconfirmed so the follow-up path renders).
+    notice_timing: "At or before the point where we collect the personal information the ADMT processes",
+    opt_out_handling_confirmations: [
+      "No identity verification is required to submit an opt-out request (§ 7221(f))",
+      "One option opts the consumer out of every use of ADMT we make for significant decisions (§ 7221(i))",
+      "An opt-out received before processing begins prevents that processing (§ 7221(m))",
+    ],
     access_submission_methods: "Webform at privacy.example.com/access-request",
     access_verification_process: "Email verification plus last-4 of account identifier",
     access_logic_disclosure: isAdtech
@@ -1206,6 +1236,9 @@ function buildAdmtFallback(companyName: string, industry: string, slot: number) 
     access_readiness: {
       b1_purpose_ready: "Yes — we can produce this today" as typeof ACCESS_READINESS_OPTS[number],
       b1_purpose_process: "The consumer-request handler inserts the published purpose paragraph from the current Pre-use Notice register entry.",
+      // DOC 158 — § 7222(b)(4) readiness element.
+      b4_rights_ready: "Yes — we can produce this today" as typeof ACCESS_READINESS_OPTS[number],
+      b4_rights_process: "The response template carries the anti-retaliation statement and a link to the rights-request section of the privacy policy.",
       b2_logic_ready: (isAdtech ? "No — we cannot produce this today" : "Yes — we can produce this today") as typeof ACCESS_READINESS_OPTS[number],
       b2_logic_process: isAdtech
         ? ""
@@ -1220,7 +1253,25 @@ function buildAdmtFallback(companyName: string, industry: string, slot: number) 
         : "The audit trail confirms no human reviewer role in individual decisions, but the dispute-routing record is not yet linked to it.",
     },
     // prior_access_requests_12mo removed (RC-P6).
-    admt_detail: {},
+    // DOC 158 — the detail block was always empty, so every admt_detail
+    // factor (advertising exclusion, output role, self-test, secure
+    // transmission) rendered "Not reported"; now consistent with the answers
+    // above (a qualifying-review HR record carries a consistent self-test).
+    admt_detail: {
+      solely_advertising: "No",
+      sole_factor: isHr ? "One of many factors" : "Sole factor — output alone determines the outcome",
+      feeds_future_decisions: "No",
+      hosting: "Hosted internally",
+      hi_reviewer_present: isHr ? "Yes — on every decision" : "No — fully automated",
+      hi_stage: isHr ? "Before the decision is issued" : "",
+      hi_trained: isHr ? "Yes" : "",
+      hi_reviews_other_info: isHr ? "Yes" : "",
+      hi_authority_override: isHr ? "Yes" : "",
+      hi_reviewer_role: isHr ? "Hiring manager for the requisition" : "",
+      hi_override_rate: isHr ? "About one scored application in twenty" : "",
+      other_factors: isHr ? "Structured interview scores and reference checks" : "",
+      access_secure_transmission: "Encrypted self-service portal",
+    },
   };
 }
 

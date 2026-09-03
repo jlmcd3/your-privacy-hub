@@ -47,3 +47,28 @@ export const ADMT_NONDISCRIM_TESTING_OPTS = [
   "No testing performed",
   "Unsure",
 ];
+
+// ── DOC 158 (2026-09-03, ADMT model-vs-law build) ────────────────────────
+// Verbatim copies live in supabase/functions/_shared/intake-contracts/
+// cppa-admt.ts; parity pinned in doc158-admt-law-map-build.test.ts.
+// § 7001(ddd)(2) housing exclusion — asked only when Housing is selected.
+export const ADMT_HOUSING_DECISION_BASIS_OPTS = [
+  "Yes — based solely on availability or vacancy, or on receipt of payment",
+  "No — other factors are considered",
+] as const;
+// § 7220(b)(2) Pre-use Notice timing.
+export const NOTICE_TIMING_OPTS = [
+  "At or before the point where we collect the personal information the ADMT processes",
+  "Before the ADMT first processes personal information we had already collected for another purpose",
+  "After the ADMT processing has begun",
+  "Unsure / not yet determined",
+] as const;
+// § 7221(f), (i), (j), (k), (m) opt-out handling duties (full opt-out path).
+export const OPT_OUT_HANDLING_OPTS = [
+  "No identity verification is required to submit an opt-out request (§ 7221(f))",
+  "One option opts the consumer out of every use of ADMT we make for significant decisions (§ 7221(i))",
+  "We accept opt-out requests from an authorized agent with the consumer's signed permission (§ 7221(j))",
+  "We do not ask a consumer who opted out to consent again for at least 12 months (§ 7221(k))",
+  "An opt-out received before processing begins prevents that processing (§ 7221(m))",
+  "None of the above can be confirmed",
+] as const;

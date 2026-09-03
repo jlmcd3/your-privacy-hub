@@ -358,7 +358,8 @@ Deno.test("doc157 §8 — the two categorical templates exist and read as determ
 
 Deno.test("doc157 §8 — the grader instrument names the designed states under the appended tag", async () => {
   const { GRADER_CONTEXT_VERSION, SHARED_GRADER_CONTEXT } = await import("../../../supabase/functions/_shared/grader/context.ts");
-  assert(GRADER_CONTEXT_VERSION.endsWith("+risk-law-map-2026-09-03"), GRADER_CONTEXT_VERSION);
+  // DOC 158 appends its own tag after this one (tags append, prefix keeps).
+  assert(GRADER_CONTEXT_VERSION.includes("+risk-law-map-2026-09-03"), GRADER_CONTEXT_VERSION);
   assert(GRADER_CONTEXT_VERSION.startsWith("gc-2026-08-28-skeleton-cal-3-item204"), "calibration prefix lost");
   for (const needle of ["DOC 157 (model-vs-law build", "§ 7001(bbb)(4)", "q19a_decision_categories", "recorded answer to whether the benefits outweigh the risks", "Reconcile the decision category recorded"]) {
     assert(SHARED_GRADER_CONTEXT.includes(needle), `context missing: ${needle}`);

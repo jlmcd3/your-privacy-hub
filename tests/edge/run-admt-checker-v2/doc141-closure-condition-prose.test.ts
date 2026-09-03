@@ -89,13 +89,13 @@ Deno.test("DOC141 — unresolved opt-out pathway closure is prose, not the opt_o
   assert(!RAW_TOKEN_RE.test(f!.closure_condition) && !SNAKE_CASE_RE.test(f!.closure_condition), `raw token: "${f!.closure_condition}"`);
 });
 
-Deno.test("DOC141 — all five access-readiness closures are prose built from the element's human label", () => {
-  // No access_readiness answers → all five fire as INSUFFICIENT_RECORD
-  // follow-ups, which §8.2 renders.
+Deno.test("DOC141 — all six access-readiness closures are prose built from the element's human label", () => {
+  // No access_readiness answers → all six fire as INSUFFICIENT_RECORD
+  // follow-ups, which §8.2 renders. DOC 158 added the § 7222(b)(4) element.
   const c = computeAdmtV2({ ...BASE_INTAKE });
   const readinessFindings = (c.allFindings as Finding[]).filter((x) => x.area === "Access" && x.criterion.startsWith("Explanation readiness"));
-  assertEquals(readinessFindings.length, 5, "expected all five readiness elements to fire");
-  const expectedLabels = ["Specific purpose", "Logic / parameters", "Output and use", "Outcome / future use", "Human role"];
+  assertEquals(readinessFindings.length, 6, "expected all six readiness elements to fire");
+  const expectedLabels = ["Specific purpose", "Logic / parameters", "Output and use", "Outcome / future use", "Human role", "Anti-retaliation and other rights"];
   for (const label of expectedLabels) {
     const f = readinessFindings.find((x) => x.criterion === `Explanation readiness — ${label}`);
     assert(f, `missing readiness finding for "${label}"`);

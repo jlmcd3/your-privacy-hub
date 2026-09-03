@@ -60,6 +60,20 @@ function readiness(intake: Intake): Record<string, unknown> {
   return d && typeof d === "object" ? d : {};
 }
 
+// DOC 158 (2026-09-03, ADMT model-vs-law build) — ONE predicate for the
+// automatically-decided-pathway signal (the assembler duplicated this regex).
+export const AUTOMATED_PATHWAY_RE = /auto(?:matic(?:ally)?|-)\s*(?:approv|declin|reject|deni)/i;
+// DOC 158 — the explicit-negative decision-domain option and the domain the
+// § 7001(ddd)(2) housing exclusion attaches to (verbatim contract literals).
+export const ADMT_NONE_DOMAIN = "None of these categories — the decision is outside every § 7001(ddd) category";
+export const ADMT_HOUSING_DOMAIN = "Housing (rental or purchase eligibility)";
+/** VA registry lookup by pinpoint — returns the pinpoint ONLY where a verified
+ * row carries it (citations are never authored here). */
+function vaCiteSub(subsection: string): string {
+  return Object.values(ADMT_VERIFIED_AUTHORITIES as Record<string, { subsection?: string }>)
+    .some((r) => r?.subsection === subsection) ? subsection : "";
+}
+
 /** Section-string helper — pulls the canonical citation for a CitationId. */
 function cite(id: keyof typeof CITATION_REGISTRY): string {
   return CITATION_REGISTRY[id]?.section ?? "";
@@ -110,10 +124,26 @@ export interface ScopeResult {
   // metadata the assemble layer uses to make the headline pathway-aware
   // instead of contradicting the caveat two paragraphs later.
   pathwayDependent: boolean;
+  // DOC 158 — categorical negatives: "None of these categories" alone, or a
+  // housing decision inside the § 7001(ddd)(2) exclusion with no other domain.
+  categoricalNone: boolean;
+  housingExcluded: boolean;
 }
 
 export function computeScope(intake: Intake): ScopeResult {
-  const domains = arr((intake as any)?.decision_domains);
+  const rawDomains = arr((intake as any)?.decision_domains);
+  // DOC 158 — the explicit negative and the § 7001(ddd)(2) housing exclusion.
+  // `domains` below is the EFFECTIVE regulated set (the negative removed, an
+  // excluded housing decision removed); every downstream read is unchanged.
+  const noneSelected = rawDomains.includes(ADMT_NONE_DOMAIN);
+  const regulatedDomains = rawDomains.filter((d) => d !== ADMT_NONE_DOMAIN);
+  const housingBasis = str(detail(intake).housing_decision_basis);
+  const housingExcluded = regulatedDomains.includes(ADMT_HOUSING_DOMAIN) && housingBasis.startsWith("Yes");
+  const domains = regulatedDomains.filter((d) => !(d === ADMT_HOUSING_DOMAIN && housingExcluded));
+  const noneConflict = noneSelected && regulatedDomains.length > 0;
+  const categoricalNone = !noneConflict &&
+    ((noneSelected && regulatedDomains.length === 0) ||
+      (housingExcluded && domains.length === 0 && regulatedDomains.length === 1));
   const humanReview = str((intake as any)?.human_review);
   const solelyAdvertising = str(detail(intake).solely_advertising);
   const soleFactor = str(detail(intake).sole_factor);
@@ -152,9 +182,15 @@ export function computeScope(intake: Intake): ScopeResult {
   // regulated § 7001(ddd) category (the enum carries no "advertising" or
   // "other/unregulated" member) — so "one or more regulated domains" reduces
   // to "decision_domains is non-empty."
-  const significantDecisionEffect: DecisionEffect = domains.length > 0 ? "SUPPORTS" : "NEUTRAL";
+  const significantDecisionEffect: DecisionEffect = domains.length > 0 ? "SUPPORTS" : categoricalNone ? "WEIGHS_AGAINST" : "NEUTRAL";
   const significantDecisionLabel = domains.length > 0
-    ? `Regulated significant-decision ${domains.length === 1 ? "domain" : "domains"} identified: ${domains.join("; ")}`
+    ? `Regulated significant-decision ${domains.length === 1 ? "domain" : "domains"} identified: ${domains.join("; ")}${
+      housingExcluded ? " (the housing decision is excluded under § 7001(ddd)(2): based solely on availability, vacancy, or receipt of payment)" : ""
+    }`
+    : categoricalNone && noneSelected
+    ? "Company records the decision as outside every § 7001(ddd) significant-decision category"
+    : categoricalNone
+    ? "Housing decision based solely on availability, vacancy, or receipt of payment — not a significant decision under § 7001(ddd)(2)"
     : "No significant-decision domain identified";
   const significantDecisionBasis = vaCite("sig_decision") || cite("sig_decision");
 
@@ -189,7 +225,8 @@ export function computeScope(intake: Intake): ScopeResult {
     humanInvolvementLabel = "Human review not resolved";
   }
   const humanInvolvementBasis = vaCite("human_involvement") || cite("human_involvement");
-  if (humanReviewUnresolved && !clearAdvertisingExclusion) {
+  // DOC 158 — human review is moot on a categorical non-application too.
+  if (humanReviewUnresolved && !clearAdvertisingExclusion && !categoricalNone) {
     findings.push(mkFinding({
       area: "Applicability", criterion: "Human involvement",
       source_fields: ["human_review"], substantive_state: "INSUFFICIENT_RECORD",
@@ -226,6 +263,25 @@ export function computeScope(intake: Intake): ScopeResult {
   const outputRoleLabel = soleFactor || "Not reported";
   const outputRoleBasis = "";
 
+  // DOC 158 — the § 7001(e)(1) self-test (admt_detail.hi_*) was collected and
+  // never read. It cross-checks the categorical human_review answer: a
+  // "Yes — qualifying" answer beside a self-test that denies one of (A)–(C),
+  // reports no reviewer, or places the review after the decision is a record
+  // conflict. The categorical answer is never silently overridden; the
+  // conflict is stated and blocks the determination (the advertising-conflict
+  // pattern).
+  const hd = detail(intake);
+  const hiPresent = str(hd.hi_reviewer_present);
+  const hiStage = str(hd.hi_stage);
+  const hiDenials: string[] = [];
+  if (str(hd.hi_trained) === "No") hiDenials.push("the reviewer is not trained to interpret the output (§ 7001(e)(1)(A))");
+  if (str(hd.hi_reviews_other_info) === "No") hiDenials.push("the reviewer considers nothing beyond the output (§ 7001(e)(1)(B))");
+  if (str(hd.hi_authority_override) === "No") hiDenials.push("the reviewer cannot change the decision (§ 7001(e)(1)(C))");
+  if (/^No/.test(hiPresent)) hiDenials.push("no human reviewer is involved");
+  if (/^After the decision/.test(hiStage)) hiDenials.push("the review occurs after the decision issues");
+  else if (hiStage === "Appeal only") hiDenials.push("the review occurs on appeal only");
+  const hiContradiction = humanReview.startsWith("Yes") && hiDenials.length > 0 && domains.length > 0;
+
   // -- Composite scope state --
   const advertisingConflict = solelyAdvertising.startsWith("Yes") && domains.length > 0;
   let scopeState: ScopeState;
@@ -244,7 +300,36 @@ export function computeScope(intake: Intake): ScopeResult {
       // at the human-review finding above).
       priority: 1, closure_condition: "The Company reconciles its decision-domain selection with its solely-advertising answer",
     }));
+  } else if (noneConflict) {
+    // DOC 158 — "None of these categories" beside a regulated domain.
+    scopeState = "INCONSISTENT_RECORD";
+    findings.push(mkFinding({
+      area: "Applicability", criterion: "Scope conflict",
+      source_fields: ["decision_domains"],
+      substantive_state: "GAP", decision_effect: "CONDITION",
+      factual_basis: `The Company selected "None of these categories" together with a regulated significant-decision domain (${regulatedDomains.join("; ")}). These answers conflict.`,
+      authority: significantDecisionBasis,
+      action_text: "Reconcile the decision-domain selection: select the regulated domain(s) the decision falls in, or \"None of these categories\" alone.",
+      priority: 1, closure_condition: "The Company records either the regulated decision domain(s) or \"None of these categories\", not both",
+    }));
+  } else if (hiContradiction) {
+    // DOC 158 — qualifying-review answer contradicted by the self-test.
+    scopeState = "INCONSISTENT_RECORD";
+    findings.push(mkFinding({
+      area: "Applicability", criterion: "Human-involvement self-test",
+      source_fields: ["human_review", "admt_detail.hi_trained", "admt_detail.hi_reviews_other_info", "admt_detail.hi_authority_override", "admt_detail.hi_reviewer_present", "admt_detail.hi_stage"],
+      substantive_state: "GAP", decision_effect: "CONDITION",
+      factual_basis: `The Company reports qualifying human review, but its § 7001(e)(1) self-test records that ${hiDenials.join("; ")}. Human involvement requires all three elements, before the decision issues.`,
+      authority: humanInvolvementBasis,
+      action_text: "Reconcile the human-review answer with the self-test; if any element is absent, the System is ADMT for this decision and Article 11 applies.",
+      priority: 1, closure_condition: "The Company reconciles its human-review answer with the § 7001(e)(1) self-test",
+    }));
   } else if (clearAdvertisingExclusion) {
+    scopeState = "OUT_OF_SCOPE";
+  } else if (categoricalNone) {
+    // DOC 158 — the Company's own categorical negative (outside every
+    // § 7001(ddd) category, or the (ddd)(2) housing exclusion) is a determined
+    // non-application, never "unable to assess".
     scopeState = "OUT_OF_SCOPE";
   } else if (domains.length === 0) {
     scopeState = "UNABLE_TO_ASSESS";
@@ -261,7 +346,7 @@ export function computeScope(intake: Intake): ScopeResult {
     // all-clear (live batch row a7c99a7e, DB-verified). The OUT_OF_SCOPE
     // determination itself is unchanged (RULING 3.2).
     const sysDesc = str((intake as any)?.system_description);
-    if (/auto(?:matic(?:ally)?|-)\s*(?:approv|declin|reject|deni)/i.test(sysDesc)) {
+    if (AUTOMATED_PATHWAY_RE.test(sysDesc)) {
       pathwayDependent = true;
       findings.push(mkFinding({
         area: "Applicability", criterion: "Automated decision pathways",
@@ -315,7 +400,10 @@ export function computeScope(intake: Intake): ScopeResult {
   // Record grade for §2 / §7.
   let recordGrade: RecordGrade;
   const disambiguatorsMissing = !soleFactor && !feedsFuture;
-  if (domains.length > 0 && !humanReviewUnresolved && !advertisingConflict) {
+  if (categoricalNone) {
+    // DOC 158 — the decision-domain question is answered in the negative.
+    recordGrade = "COMPLETE";
+  } else if (domains.length > 0 && !humanReviewUnresolved && !advertisingConflict && !noneConflict && !hiContradiction) {
     recordGrade = disambiguatorsMissing ? "QUALIFIED" : "COMPLETE";
   } else if (domains.length === 0 && !humanReview) {
     recordGrade = "MATERIALLY_INCOMPLETE";
@@ -329,6 +417,7 @@ export function computeScope(intake: Intake): ScopeResult {
     advertisingEffect, advertisingLabel, advertisingBasis,
     outputRoleEffect: "NEUTRAL", outputRoleLabel, outputRoleBasis,
     scopeState, recordGrade, findings, pathwayDependent,
+    categoricalNone, housingExcluded,
   };
 }
 
@@ -369,6 +458,8 @@ export interface NoticeFactor {
 
 export interface NoticeResult {
   delivery: NoticeFactor;
+  /** DOC 158 — § 7220(b)(2) timing. */
+  timing: NoticeFactor;
   purpose: NoticeFactor;
   optoutDesc: NoticeFactor;
   accessDesc: NoticeFactor;
@@ -415,6 +506,25 @@ export function computeNotice(intake: Intake, optOutPath: PathState): NoticeResu
     // computeScope's human-review finding).
     1, "The Company confirms a Pre-use Notice has been provided");
 
+  // DOC 158 — § 7220(b)(2) timing was never asked: a delivery method alone does
+  // not establish that the notice precedes collection, or precedes the first
+  // ADMT use of information already collected for another purpose.
+  const timingAns = str((intake as any)?.notice_timing);
+  let timingStatus: SubstantiveState = "INSUFFICIENT_RECORD";
+  if (/^At or before/.test(timingAns) || /^Before the ADMT/.test(timingAns)) timingStatus = "MEETS_REPORTED";
+  else if (/^After/.test(timingAns)) timingStatus = "GAP";
+  if (deliveryGap) timingStatus = "NOT_APPLICABLE";
+  const timingFactor: NoticeFactor = {
+    status: timingStatus, label: timingAns || "Not reported", effect: statusEffect(timingStatus),
+    authority: vaCiteSub("11 CCR § 7220(b)(2)"),
+  };
+  push("Pre-use Notice", "Timing", timingFactor, ["notice_timing"],
+    timingStatus === "GAP"
+      ? "The Company reports that the Pre-use Notice is presented after the ADMT processing has begun."
+      : `The Company reports: "${timingAns || "(not answered)"}".`,
+    "Present the Pre-use Notice at or before the point of collecting the personal information the ADMT processes, or before the ADMT first processes information already collected for another purpose.",
+    timingStatus === "GAP" ? 1 : 3, "The Company confirms the Pre-use Notice precedes collection or the first ADMT processing");
+
   const purposeAns = str((intake as any)?.notice_has_specific_purpose);
   const purposeStatus: SubstantiveState = purposeAns === "Yes" ? "MEETS_REPORTED" : purposeAns ? "GAP" : "INSUFFICIENT_RECORD";
   const purposeFactor: NoticeFactor = {
@@ -434,14 +544,50 @@ export function computeNotice(intake: Intake, optOutPath: PathState): NoticeResu
   if (optoutDescAns.startsWith("Yes")) optoutDescStatus = "MEETS_REPORTED";
   else if (optoutDescAns.startsWith("Mentions")) optoutDescStatus = "PARTIAL";
   else if (optoutDescAns === "No") optoutDescStatus = "GAP";
-  else if (optoutDescAns.startsWith("We rely on an exception")) optoutDescStatus = "NOT_APPLICABLE"; // path-dependent, not an automatic gap
+  else if (optoutDescAns.startsWith("We rely on an exception")) {
+    // DOC 158 — path-aware (§ 7220(c)(2)(A)/(B)). Two exception answers:
+    // "describe appeal rights" satisfies the element on the human-appeal
+    // pathway ((A)) and is partial on a (b)(2)/(b)(3) pathway ((B) requires
+    // the specific exception be identified); "identifies the specific
+    // exception" satisfies (B) on a (b)(2)/(b)(3) pathway and is partial on
+    // the human-appeal pathway ((A) requires the ability to appeal and how).
+    // Either answer beside a FULL opt-out is a conflict: the notice must
+    // describe the opt-out right. An unresolved pathway leaves it not
+    // applicable.
+    const identifiesException = optoutDescAns.startsWith("We rely on an exception and the notice identifies");
+    const onEmploymentPath = optOutPath === "HIRING_ADMISSION_EXCEPTION" || optOutPath === "WORK_ALLOCATION_COMP_EXCEPTION";
+    optoutDescStatus = optOutPath === "FULL_OPT_OUT"
+      ? "GAP"
+      : optOutPath === "HUMAN_APPEAL_EXCEPTION"
+      ? (identifiesException ? "PARTIAL" : "MEETS_REPORTED")
+      : onEmploymentPath
+      ? (identifiesException ? "MEETS_REPORTED" : "PARTIAL")
+      : "NOT_APPLICABLE";
+  }
+  const optoutDescExceptionMismatch = optoutDescAns.startsWith("We rely on an exception") &&
+    (optoutDescStatus === "GAP" || optoutDescStatus === "PARTIAL");
+  const optoutDescIdentifies = optoutDescAns.startsWith("We rely on an exception and the notice identifies");
   const optoutDescFactor: NoticeFactor = {
     status: optoutDescStatus, label: optoutDescAns || "Not reported", effect: statusEffect(optoutDescStatus),
     authority: elementCite("notice_optout", intake),
   };
-  push("Pre-use Notice", "Opt-out / exception description", optoutDescFactor, ["notice_has_opt_out_desc"],
-    `The Company reports: "${optoutDescAns || "(not answered)"}".`, "Describe the opt-out right (or the exception relied on) in the Pre-use Notice with specific instructions.",
-    optoutDescStatus === "GAP" ? 2 : 3, "The Company confirms the Pre-use Notice gives specific opt-out (or exception) instructions");
+  push("Pre-use Notice", "Opt-out / exception description", optoutDescFactor, ["notice_has_opt_out_desc", "opt_out_exception"],
+    optoutDescExceptionMismatch
+      ? (optOutPath === "FULL_OPT_OUT"
+        ? `The Company offers a full opt-out right, but its notice ${optoutDescIdentifies ? "identifies an exception" : "describes appeal rights"} in place of the opt-out right; § 7220(c)(2) requires the notice to describe the right to opt out and how to submit a request.`
+        : optOutPath === "HUMAN_APPEAL_EXCEPTION"
+        ? "The Company relies on the human-appeal exception, but its notice identifies the exception without informing the consumer of the ability to appeal and how to submit an appeal; § 7220(c)(2)(A) requires both."
+        : "The Company relies on a § 7221(b)(2) or (b)(3) exception, but its notice describes appeal rights; § 7220(c)(2)(B) requires the notice to identify the specific exception relied upon.")
+      : `The Company reports: "${optoutDescAns || "(not answered)"}".`,
+    optoutDescExceptionMismatch
+      ? (optOutPath === "FULL_OPT_OUT"
+        ? "Describe the opt-out right and how to submit a request in the Pre-use Notice."
+        : optOutPath === "HUMAN_APPEAL_EXCEPTION"
+        ? "Inform the consumer of the ability to appeal the decision and give instructions for submitting an appeal in the Pre-use Notice."
+        : "Identify the specific § 7221(b) exception relied upon in the Pre-use Notice.")
+      : "Describe the opt-out right (or the exception relied on) in the Pre-use Notice with specific instructions.",
+    optoutDescStatus === "GAP" ? (optoutDescExceptionMismatch ? 1 : 2) : optoutDescStatus === "PARTIAL" ? 2 : 3,
+    "The Company confirms the Pre-use Notice gives specific opt-out (or exception) instructions");
 
   const accessDescAns = str((intake as any)?.notice_has_access_desc);
   const accessDescStatus: SubstantiveState = accessDescAns === "Yes" ? "MEETS_REPORTED" : accessDescAns ? "GAP" : "INSUFFICIENT_RECORD";
@@ -485,7 +631,10 @@ export function computeNotice(intake: Intake, optOutPath: PathState): NoticeResu
     else if (altProcessAns.startsWith("Not applicable")) { altProcessStatus = "GAP"; altConflict = true; } // mismatch: exception NA claimed on a full-opt-out path
     else altProcessStatus = "INSUFFICIENT_RECORD";
   } else {
-    altProcessStatus = altProcessAns.startsWith("Not applicable") ? "NOT_APPLICABLE" : (altProcessAns ? "MEETS_REPORTED" : "INSUFFICIENT_RECORD");
+    // DOC 158 — on an exception pathway the element is not required
+    // (§ 7220(c)(5)(C): "unless an exception … applies"); the answer is
+    // recorded as given and never graded as met or insufficient.
+    altProcessStatus = "NOT_APPLICABLE";
   }
   const altProcessFactor: NoticeFactor = {
     status: altProcessStatus, label: altProcessAns || "Not reported", effect: statusEffect(altProcessStatus),
@@ -509,7 +658,7 @@ export function computeNotice(intake: Intake, optOutPath: PathState): NoticeResu
   else recordGrade = "MATERIALLY_INCOMPLETE";
 
   // Composite posture.
-  const applicable = [deliveryFactor, purposeFactor, optoutDescFactor, accessDescFactor, antiRetFactor, howWorksFactor, altProcessFactor]
+  const applicable = [deliveryFactor, timingFactor, purposeFactor, optoutDescFactor, accessDescFactor, antiRetFactor, howWorksFactor, altProcessFactor]
     .filter((f) => f.status !== "NOT_APPLICABLE");
   let posture: SubstantiveState;
   if (applicable.some((f) => f.status === "GAP")) posture = "GAP";
@@ -518,7 +667,7 @@ export function computeNotice(intake: Intake, optOutPath: PathState): NoticeResu
   else posture = "MEETS_REPORTED";
 
   return {
-    delivery: deliveryFactor, purpose: purposeFactor, optoutDesc: optoutDescFactor,
+    delivery: deliveryFactor, timing: timingFactor, purpose: purposeFactor, optoutDesc: optoutDescFactor,
     accessDesc: accessDescFactor, antiRet: antiRetFactor, howWorks: howWorksFactor,
     altProcess: altProcessFactor, recordGrade, posture, findings,
   };
@@ -545,6 +694,14 @@ export interface OptOutResult {
   exceptionSoleUse: NoticeFactor;
   exceptionTesting: NoticeFactor;
   exceptionFairnessDoc: NoticeFactor;
+  // DOC 158 — exception eligibility (§ 7221(b)(2)/(b)(3) decision-domain limits),
+  // § 7221(c)(1) online form and link title, the § 7221(f)/(i)/(j)/(k)/(m)
+  // handling duties, and the § 7221(b)(1)(A)/(B) appeal evidence.
+  eligibility: NoticeFactor;
+  linkTitle: NoticeFactor;
+  handling: NoticeFactor;
+  appealSubmissions: NoticeFactor;
+  appealTimeline: NoticeFactor;
   recordGrade: RecordGrade;
   posture: SubstantiveState;
   findings: AdmtV2Finding[];
@@ -698,13 +855,173 @@ export function computeOptOut(intake: Intake, path: PathState): OptOutResult {
     fairnessDocText ? `The Company describes its fairness documentation as: "${fairnessDocText}".` : "The Company has not supplied fairness/non-discrimination documentation supporting the exception.",
     "Supply the underlying fairness or non-discrimination testing documentation.", 3, "The Company supplies the supporting fairness or non-discrimination documentation");
 
+  // DOC 158 — exception eligibility: § 7221(b)(2) is limited to "admission,
+  // acceptance, or hiring decisions" ((ddd)(3)(A), (ddd)(4)(A)); (b)(3) to
+  // "allocation/assignment of work and compensation" ((ddd)(4)(B)). An
+  // exception selected for a decision domain it does not cover is not
+  // available, whatever the other conditions show.
+  const domainsSel = arr((intake as any)?.decision_domains);
+  const HIRE_ELIGIBLE = ["Hiring or admission decisions", "Education enrollment or opportunities (admission, credentials, suspension)"];
+  const WORK_ELIGIBLE = ["Work allocation, scheduling, or compensation"];
+  const eligibleDomains = path === "HIRING_ADMISSION_EXCEPTION" ? HIRE_ELIGIBLE : path === "WORK_ALLOCATION_COMP_EXCEPTION" ? WORK_ELIGIBLE : [];
+  const eligibilityMet = !onEmpExc || domainsSel.some((d) => eligibleDomains.includes(d));
+  const eligibilityStatus: SubstantiveState = !onEmpExc ? "NOT_APPLICABLE" : eligibilityMet ? "MEETS_REPORTED" : "GAP";
+  const eligibility: NoticeFactor = {
+    status: eligibilityStatus,
+    label: !onEmpExc
+      ? "Not applicable"
+      : eligibilityMet
+      ? `Decision domain within the exception: ${domainsSel.filter((d) => eligibleDomains.includes(d)).join("; ")}`
+      : `No eligible decision domain recorded (${domainsSel.join("; ") || "none"})`,
+    effect: statusEffect(eligibilityStatus), authority: cite("optout_exc_hire"),
+  };
+  push("Opt-Out", "Exception eligibility", eligibility, ["opt_out_exception", "decision_domains"],
+    `The Company relies on the ${path === "HIRING_ADMISSION_EXCEPTION" ? "hiring/admission" : "work-allocation/compensation"} exception, but the decision domains it records (${domainsSel.join("; ") || "none"}) are not the decisions that exception covers.`,
+    "Select the opt-out pathway that matches the recorded decision domain, or record the decision domain the exception covers.", 1,
+    "The Company's selected exception matches a recorded decision domain it covers");
+
+  // DOC 158 — § 7221(c)(1): an online business must offer an interactive
+  // opt-out form via a link in the Pre-use Notice, and the link title must
+  // state what the consumer is opting out of. opt_out_link_title was collected
+  // and never read; online interaction is inferred from the Company's own
+  // notice-delivery answers (in-app or onboarding-flow delivery).
+  const linkTitle = str((intake as any)?.opt_out_link_title);
+  const onlineForm = methodsSel.includes("Interactive online form linked from the Pre-use Notice");
+  const onlineSignals = arr((intake as any)?.notice_delivery).some((d) => /^In-app/.test(d) || /^Account-creation/.test(d));
+  // "State what the consumer is opting out of" = the title names the
+  // automated decisionmaking (the regulation's own example is "Opt-out of
+  // Automated Decisionmaking Technology"); a title naming only the
+  // alternative ("Request manual review") or a generic label ("Your Privacy
+  // Choices") does not.
+  const titleStatesOptOut = /(automat|algorithm|ADMT|decision-?making|scoring|profiling)/i.test(linkTitle);
+  let linkStatus: SubstantiveState = "NOT_APPLICABLE";
+  let linkWhy = "";
+  let linkAction = "";
+  if (onFullOptOut) {
+    if (onlineForm) {
+      linkStatus = !linkTitle ? "INSUFFICIENT_RECORD" : titleStatesOptOut ? "MEETS_REPORTED" : "PARTIAL";
+      linkWhy = !linkTitle
+        ? "The Company has not recorded the title of the opt-out link in its Pre-use Notice."
+        : `The Company records the opt-out link title as "${linkTitle}", which does not state what the consumer is opting out of.`;
+      linkAction = "Title the opt-out link so it states what the consumer is opting out of — for example \"Opt-out of Automated Decisionmaking Technology\".";
+    } else if (onlineSignals) {
+      linkStatus = "GAP";
+      linkWhy = "The Company's notice-delivery answers show it interacts with consumers online, but its opt-out methods do not include an interactive online form linked from the Pre-use Notice.";
+      linkAction = "Provide an interactive online opt-out form accessible via a link in the Pre-use Notice.";
+    }
+  }
+  const linkTitleFactor: NoticeFactor = {
+    status: linkStatus,
+    label: !onFullOptOut
+      ? "Not applicable"
+      : onlineForm
+      ? (linkTitle || "Not reported")
+      : onlineSignals
+      ? "No interactive online form"
+      : "Not applicable (no online form reported)",
+    effect: statusEffect(linkStatus), authority: elementCite("optout_designated_methods", intake),
+  };
+  push("Opt-Out", "Online form and link title", linkTitleFactor, ["opt_out_link_title", "opt_out_methods", "notice_delivery"],
+    linkWhy, linkAction, linkStatus === "GAP" || linkStatus === "PARTIAL" ? 2 : 3,
+    "The Company confirms an interactive online opt-out form whose link title states what is being opted out of");
+
+  // DOC 158 — § 7221(f), (i), (j), (k), (m): handling duties never examined
+  // before. Unconfirmed is a record gap (follow-up), never a substantive gap:
+  // the Company did not deny the duty, it did not confirm it.
+  const HANDLING_DUTIES = [
+    "No identity verification is required to submit an opt-out request (§ 7221(f))",
+    "One option opts the consumer out of every use of ADMT we make for significant decisions (§ 7221(i))",
+    "We accept opt-out requests from an authorized agent with the consumer's signed permission (§ 7221(j))",
+    "We do not ask a consumer who opted out to consent again for at least 12 months (§ 7221(k))",
+    "An opt-out received before processing begins prevents that processing (§ 7221(m))",
+  ];
+  const handlingSel = arr((intake as any)?.opt_out_handling_confirmations);
+  const confirmedDuties = HANDLING_DUTIES.filter((d) => handlingSel.includes(d));
+  const unconfirmedDuties = HANDLING_DUTIES.filter((d) => !handlingSel.includes(d));
+  const handlingStatus: SubstantiveState = !onFullOptOut ? "NOT_APPLICABLE" : unconfirmedDuties.length === 0 ? "MEETS_REPORTED" : "INSUFFICIENT_RECORD";
+  const handling: NoticeFactor = {
+    status: handlingStatus,
+    label: !onFullOptOut ? "Not applicable" : handlingSel.length === 0 ? "Not reported" : `${confirmedDuties.length} of ${HANDLING_DUTIES.length} duties confirmed`,
+    effect: statusEffect(handlingStatus), authority: cite("optout_offer"),
+  };
+  push("Opt-Out", "Opt-out handling duties", handling, ["opt_out_handling_confirmations"],
+    handlingSel.length === 0
+      ? "The Company has not confirmed how it handles opt-out requests against the § 7221(f), (i), (j), (k), and (m) duties."
+      : `The Company has not confirmed the following: ${unconfirmedDuties.join("; ")}.`,
+    "Confirm each opt-out handling duty the Company meets: no verification required, a single opt-out-of-all option, authorized-agent requests, no re-consent request for 12 months, and no initiation after a pre-processing opt-out.",
+    3, "The Company confirms each § 7221(f), (i), (j), (k), and (m) handling duty");
+
+  // DOC 158 — § 7221(b)(1)(A)/(B) evidence collected and never read: what the
+  // consumer may submit on appeal (the reviewer "must consider the information
+  // provided by the consumer in support of their appeal") and the appeal
+  // response timeline (§ 7021(b): 45 calendar days, extendable to 90).
+  const appealSubmitSel = arr(detail(intake).appeal_consumer_submit);
+  const appealSubmitStatus: SubstantiveState = !onHumanAppeal ? "NOT_APPLICABLE" : appealSubmitSel.length ? "MEETS_REPORTED" : "INSUFFICIENT_RECORD";
+  const appealSubmissions: NoticeFactor = {
+    status: appealSubmitStatus,
+    label: !onHumanAppeal ? "Not applicable" : appealSubmitSel.length ? appealSubmitSel.join("; ") : "Not reported",
+    effect: statusEffect(appealSubmitStatus), authority: cite("optout_offer"),
+  };
+  push("Opt-Out", "Consumer submissions on appeal", appealSubmissions, ["admt_detail.appeal_consumer_submit"],
+    "The Company has not recorded what a consumer may submit in support of an appeal; the human reviewer must consider the information the consumer provides.",
+    "Confirm that consumers can submit information in support of their appeal, and what forms it may take.", 2,
+    "The Company confirms consumers can submit information in support of an appeal");
+  const appealTimelineText = str(detail(intake).appeal_timeline);
+  const timelineDays = (() => {
+    const m = /(\d+)\s*(?:business\s+|calendar\s+)?days?/i.exec(appealTimelineText);
+    return m ? Number(m[1]) : null;
+  })();
+  const appealTimelineStatus: SubstantiveState = !onHumanAppeal
+    ? "NOT_APPLICABLE"
+    : !appealTimelineText
+    ? "INSUFFICIENT_RECORD"
+    : timelineDays !== null && timelineDays > 45
+    ? "GAP"
+    : "MEETS_REPORTED";
+  const appealTimeline: NoticeFactor = {
+    status: appealTimelineStatus, label: !onHumanAppeal ? "Not applicable" : (appealTimelineText || "Not reported"),
+    effect: statusEffect(appealTimelineStatus), authority: vaCiteSub("11 CCR § 7021(b)") || cite("optout_offer"),
+  };
+  push("Opt-Out", "Appeal response timeline", appealTimeline, ["admt_detail.appeal_timeline"],
+    appealTimelineStatus === "GAP"
+      ? `The Company records an appeal response timeline of "${appealTimelineText}", which exceeds the 45 calendar days § 7021(b) allows for a request to appeal ADMT.`
+      : "The Company has not recorded its target response timeline for appeals; § 7021(b) requires a response within 45 calendar days (extendable to 90 with notice).",
+    "Set and record an appeal response timeline within 45 calendar days (extendable to 90 with notice to the consumer).",
+    appealTimelineStatus === "GAP" ? 2 : 3, "The Company records an appeal response timeline within 45 calendar days");
+
+  // DOC 158 — § 7221(b)(2)(B)/(b)(3)(B) testing evidence collected and never
+  // read (bias_*): it labels the testing factor's evidence, and a documented
+  // testing record beside a "None" testing cadence is a conflict to reconcile.
+  const biasCadence = str(detail(intake).bias_testing_cadence);
+  const biasChars = arr(detail(intake).bias_protected_chars);
+  const biasLast = str(detail(intake).bias_last_test);
+  if (onEmpExc && (biasCadence || biasChars.length || biasLast)) {
+    exceptionTesting.evidence = "DOCUMENTED";
+    exceptionTesting.evidenceLabel = [
+      biasCadence ? `Cadence: ${biasCadence}` : "",
+      biasChars.length ? `${biasChars.length} protected ${biasChars.length === 1 ? "characteristic" : "characteristics"} tested` : "",
+      biasLast ? `Last test: ${biasLast}` : "",
+    ].filter(Boolean).join("; ");
+  }
+  if (onEmpExc && testingAns.startsWith("Yes") && biasCadence === "None") {
+    findings.push(mkFinding({
+      area: "Opt-Out", criterion: "Non-discrimination testing",
+      source_fields: ["admt_detail.nondiscrimination_testing", "admt_detail.bias_testing_cadence"],
+      substantive_state: "PARTIAL", decision_effect: "WEIGHS_AGAINST",
+      factual_basis: "The Company reports a documented non-discrimination testing record while recording a fairness-testing cadence of \"None\". These answers conflict.",
+      authority: cite("optout_exc_hire"),
+      action_text: "Reconcile the testing record with the testing cadence; the exception requires that the ADMT does not unlawfully discriminate.",
+      priority: 2, closure_condition: "The Company reconciles its testing record with its fairness-testing cadence",
+    }));
+  }
+
   // -- Record grade + composite posture, scoped to the selected path --
   const pathFactors: NoticeFactor[] = onFullOptOut
-    ? [methods, cookie, account, fifteenDay, confirmation]
+    ? [methods, cookie, account, fifteenDay, confirmation, linkTitleFactor, handling]
     : onHumanAppeal
-    ? [appealProcess, appealTraining, appealAuthority, appealSteps]
+    ? [appealProcess, appealTraining, appealAuthority, appealSteps, appealSubmissions, appealTimeline]
     : onEmpExc
-    ? [exceptionSoleUse, exceptionTesting, exceptionFairnessDoc]
+    ? [eligibility, exceptionSoleUse, exceptionTesting, exceptionFairnessDoc]
     : [];
 
   let recordGrade: RecordGrade;
@@ -737,6 +1054,7 @@ export function computeOptOut(intake: Intake, path: PathState): OptOutResult {
     path, methods, cookie, account, fifteenDay, confirmation,
     appealProcess, appealTraining, appealAuthority, appealSteps,
     exceptionSoleUse, exceptionTesting, exceptionFairnessDoc,
+    eligibility, linkTitle: linkTitleFactor, handling, appealSubmissions, appealTimeline,
     recordGrade, posture, findings,
   };
 }
@@ -751,6 +1069,9 @@ const READINESS_ELEMENTS = [
   { id: "b3_output_use_ready", processId: "b3_output_use_process", label: "Output and use", elementCiteId: "access_outcome_sole_factor" as ElementId },
   { id: "b3_outcome_ready", processId: "b3_outcome_process", label: "Outcome / future use", elementCiteId: "access_outcome_sole_factor" as ElementId },
   { id: "b3_human_role_ready", processId: "b3_human_role_process", label: "Human role", elementCiteId: "access_outcome_sole_factor" as ElementId },
+  // DOC 158 — § 7222(b)(4): the anti-retaliation statement and instructions
+  // (with links) for exercising other CCPA rights.
+  { id: "b4_rights_ready", processId: "b4_rights_process", label: "Anti-retaliation and other rights", elementCiteId: "access_antiretal_link" as ElementId },
 ] as const;
 
 export interface AccessResult {
@@ -760,6 +1081,9 @@ export interface AccessResult {
   readiness: Record<string, NoticeFactor>;
   readinessComposite: SubstantiveState;
   withholdingEvidence: EvidenceState;
+  /** DOC 158 — § 7222(g) secure transmission (closed answer) and § 7222(f) denial basis (evidence). */
+  secureTransmission: NoticeFactor;
+  denialEvidence: NoticeFactor;
   recordGrade: RecordGrade;
   posture: SubstantiveState;
   findings: AdmtV2Finding[];
@@ -847,6 +1171,27 @@ export function computeAccess(intake: Intake): AccessResult {
   const withholdingText = str((intake as any)?.access_trade_secret_policy);
   const withholdingEvidence: EvidenceState = withholdingText ? "DOCUMENTED" : "NOT_DOCUMENTED";
 
+  // DOC 158 — § 7222(g) secure transmission and § 7222(f) denial explanation:
+  // both collected (admt_detail; rail entries existed) and never read.
+  const secureTx = str(detail(intake).access_secure_transmission);
+  const secureStatus: SubstantiveState = !secureTx ? "INSUFFICIENT_RECORD" : /^Not yet defined/.test(secureTx) ? "GAP" : "MEETS_REPORTED";
+  const secureTransmission: NoticeFactor = {
+    status: secureStatus, label: secureTx || "Not reported", effect: statusEffect(secureStatus),
+    authority: vaCiteSub("11 CCR § 7222(g)"),
+  };
+  push("Access", "Secure transmission", secureTransmission, ["admt_detail.access_secure_transmission"],
+    secureStatus === "GAP"
+      ? "The Company reports it has not yet defined how it securely transmits access responses."
+      : "The Company has not described how it transmits access responses.",
+    "Define reasonable security measures for transmitting the access response to the consumer.", secureStatus === "GAP" ? 2 : 3,
+    "The Company confirms a secure method for transmitting access responses");
+  const denialText = str(detail(intake).access_denial_basis);
+  const denialEvidence = evidenceOnlyFactor(denialText, true, vaCiteSub("11 CCR § 7222(f)"));
+  push("Access", "Denial explanation", denialEvidence, ["admt_detail.access_denial_basis"],
+    "The Company has not recorded the grounds on which it would deny an access request or the explanation it gives; § 7222(f) requires the requestor to be informed of the basis for any denial.",
+    "Record the grounds on which an access request may be denied and the explanation provided to the requestor.", 3,
+    "The Company records its denial grounds and the explanation it gives requestors");
+
   // Record grade.
   const coreDocumented = !!submissionText && !!verificationText;
   const readinessResolved = !readinessStates.includes("INSUFFICIENT_RECORD");
@@ -858,12 +1203,12 @@ export function computeAccess(intake: Intake): AccessResult {
   // Composite posture — timeline + readiness closed answers only (narrative
   // submission/verification affect evidence/record grade, not posture).
   let posture: SubstantiveState;
-  if (timelineStatus === "GAP" || readinessComposite === "GAP") posture = "GAP";
+  if (timelineStatus === "GAP" || readinessComposite === "GAP" || secureStatus === "GAP") posture = "GAP";
   else if (readinessComposite === "PARTIAL") posture = "PARTIAL";
-  else if (timelineStatus === "INSUFFICIENT_RECORD" || readinessComposite === "INSUFFICIENT_RECORD") posture = "INSUFFICIENT_RECORD";
+  else if (timelineStatus === "INSUFFICIENT_RECORD" || readinessComposite === "INSUFFICIENT_RECORD" || secureStatus === "INSUFFICIENT_RECORD") posture = "INSUFFICIENT_RECORD";
   else posture = "MEETS_REPORTED";
 
-  return { submissionEvidence, verificationEvidence, timeline, readiness: readinessFactors, readinessComposite, withholdingEvidence, recordGrade, posture, findings };
+  return { submissionEvidence, verificationEvidence, timeline, readiness: readinessFactors, readinessComposite, withholdingEvidence, secureTransmission, denialEvidence, recordGrade, posture, findings };
 }
 
 // ---------------------------------------------------------------------------

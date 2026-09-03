@@ -618,4 +618,44 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
     commonMistake:
       "Denying because the request is inconvenient or the record is spread across several systems. Neither is an enumerated ground, and the burden of demonstrating the ground sits with the business.",
   },
+  // DOC 158 (2026-09-03, ADMT model-vs-law build) — the § 7221(f), (i), (j),
+  // (k), (m) handling duties (a question the form never asked). Verbatim
+  // source: cppa_authorities row "11 CCR § 7221" full_text.
+  optout_handling: {
+    coachLead: "Confirm only the duties your process actually performs today — an unconfirmed duty is a follow-up, not a violation.",
+    coachBody: "Walk the opt-out request from receipt to completion. Do you ask for identity proof (you may not, beyond what is needed to act)? Is there one control that stops every ADMT use at once? Do you take requests from an authorized agent with signed permission? Do you wait twelve months before asking an opted-out consumer to consent again? Does a request received before processing starts stop that processing?",
+    goodAnswer: "A lender confirms four duties and leaves the authorized-agent duty unconfirmed because its intake form has no agent field yet. The report lists that one duty as a follow-up item.",
+    commonMistake: "Confirming every duty because the policy document says so. The test is what the request-handling process does, not what the policy promises.",
+    fieldLabel: "Opt-out handling duties",
+    citation: "11 CCR § 7221(f), (i), (j), (k), (m)",
+    plainSummary:
+      "Beyond offering the opt-out, the regulation governs how requests are handled: no verifiable-request requirement, a single option to opt out of every ADMT use, authorized-agent requests, a twelve-month wait before re-asking for consent, and no initiation of processing after a pre-processing opt-out.",
+    regulationText:
+      "\u201C(f) A business must not require a verifiable consumer request for a request to opt-out of ADMT set forth in subsection (a). A business may ask the consumer for information necessary to complete the request, such as information necessary to identify the consumer whose information is subject to the business\u2019s use of ADMT. However, to the extent that the business can comply with a request to opt-out of ADMT without additional information, it must do so.\u201D \u2026 \u201C(i) In responding to a request to opt-out of ADMT, a business may present the consumer with the choice to allow specific uses of ADMT as long as the business also offers a single option to opt-out of all of the business\u2019s uses of ADMT set forth in subsection (a). (j) A consumer may use an authorized agent to submit a request to opt-out of ADMT as set forth in subsection (a) on the consumer\u2019s behalf if the consumer provides the authorized agent written permission signed by the consumer. \u2026 (k) Except as allowed by these regulations, a business must wait at least 12 months from the date the business receives the consumer\u2019s request to opt-out of ADMT before asking a consumer who has exercised their right to opt-out of ADMT, to consent to the business\u2019s use of the ADMT for which the consumer previously opted out.\u201D \u2026 \u201C(m) If the consumer submits a request to opt-out of ADMT before the business has initiated that processing, the business must not initiate processing of the consumer\u2019s personal information using that ADMT.\u201D",
+    relatedCitations: [
+      { citation: "11 CCR § 7221(c)", label: "Designated opt-out methods" },
+      { citation: "11 CCR § 7221(n)", label: "Cessation within 15 business days; notifying service providers" },
+      { citation: "11 CCR § 7004", label: "Ease-of-use requirements for request methods" },
+    ],
+  },
+
+  // DOC 158 — § 7222(b)(4) readiness element (the readiness loop's rail key).
+  // Verbatim source: cppa_authorities row "11 CCR § 7222" full_text.
+  access_readiness_b4_rights: {
+    coachLead: "The access response must say you cannot retaliate and tell the consumer how to exercise their other rights — with a link that lands on the instructions.",
+    coachBody: "Check the response template for two things: the anti-retaliation statement, and instructions for the consumer\u2019s other CCPA rights (know, delete, correct, opt-out) with a link straight to the request form or portal, or to the exact privacy-policy section that holds the instructions.",
+    goodAnswer: "\u201CYes \u2014 the template ends with the anti-retaliation statement and a deep link to the rights-request section of our privacy policy.\u201D A link to the top of the privacy policy would be a No.",
+    commonMistake: "Linking to the beginning of the privacy policy. The regulation says a link that makes the consumer scroll to find the instructions does not satisfy the requirement.",
+    fieldLabel: "Anti-retaliation statement and other-rights instructions",
+    citation: "11 CCR § 7222(b)(4)",
+    plainSummary:
+      "The response to a request to access ADMT must state that the business is prohibited from retaliating against consumers for exercising their CCPA rights, and give instructions \u2014 including any links to an online request form or portal \u2014 for exercising their other CCPA rights.",
+    regulationText:
+      "\u201C(4) That the business is prohibited from retaliating against consumers for exercising their CCPA rights, and instructions for how the consumer can exercise their other CCPA rights. These instructions must include any links to an online request form or portal for making such a request, if offered by the business. (A) The business may comply with the instructions requirement by providing a link that takes the consumer directly to the specific section of the business\u2019s privacy policy that contains these instructions. Directing the consumer to the beginning of the privacy policy, or to another section of the privacy policy that does not contain these instructions, so that the consumer is required to scroll through other information in order to find the instructions, does not satisfy the instructions requirement.\u201D",
+    relatedCitations: [
+      { citation: "11 CCR § 7222(k)", label: "Substantive prohibition on retaliation" },
+      { citation: "11 CCR § 7220(c)(4)", label: "Pre-use Notice counterpart" },
+    ],
+  },
+
 };

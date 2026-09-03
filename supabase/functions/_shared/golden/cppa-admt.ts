@@ -68,6 +68,15 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
       profiling_use: "Yes",
       ...commonNotice,
       opt_out_exception: "No exception — we provide a full opt-out right",
+      // DOC 158 — § 7221(f), (i), (j), (k), (m) handling duties (a complete
+      // full-opt-out record confirms all five).
+      opt_out_handling_confirmations: [
+        "No identity verification is required to submit an opt-out request (§ 7221(f))",
+        "One option opts the consumer out of every use of ADMT we make for significant decisions (§ 7221(i))",
+        "We accept opt-out requests from an authorized agent with the consumer's signed permission (§ 7221(j))",
+        "We do not ask a consumer who opted out to consent again for at least 12 months (§ 7221(k))",
+        "An opt-out received before processing begins prevents that processing (§ 7221(m))",
+      ],
     },
     assertions: [
       { kind: "must_include", pattern: "opt[- ]?out", flags: "i", label: "opt-out framed" },
@@ -89,6 +98,15 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
       profiling_use: "No",
       ...commonNotice,
       opt_out_exception: "No exception — we provide a full opt-out right",
+      // DOC 158 — § 7221(f), (i), (j), (k), (m) handling duties (a complete
+      // full-opt-out record confirms all five).
+      opt_out_handling_confirmations: [
+        "No identity verification is required to submit an opt-out request (§ 7221(f))",
+        "One option opts the consumer out of every use of ADMT we make for significant decisions (§ 7221(i))",
+        "We accept opt-out requests from an authorized agent with the consumer's signed permission (§ 7221(j))",
+        "We do not ask a consumer who opted out to consent again for at least 12 months (§ 7221(k))",
+        "An opt-out received before processing begins prevents that processing (§ 7221(m))",
+      ],
       admt_detail: { solely_advertising: "Yes — solely advertising" },
     },
     assertions: [
@@ -124,6 +142,15 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
       profiling_use: "No",
       ...commonNotice,
       opt_out_exception: "No exception — we provide a full opt-out right",
+      // DOC 158 — § 7221(f), (i), (j), (k), (m) handling duties (a complete
+      // full-opt-out record confirms all five).
+      opt_out_handling_confirmations: [
+        "No identity verification is required to submit an opt-out request (§ 7221(f))",
+        "One option opts the consumer out of every use of ADMT we make for significant decisions (§ 7221(i))",
+        "We accept opt-out requests from an authorized agent with the consumer's signed permission (§ 7221(j))",
+        "We do not ask a consumer who opted out to consent again for at least 12 months (§ 7221(k))",
+        "An opt-out received before processing begins prevents that processing (§ 7221(m))",
+      ],
     },
     assertions: [
       { kind: "must_include", pattern: "\"determination_basis\"\\s*:\\s*\"conservative_assumption\"", flags: "", label: "determination_basis=conservative_assumption" },
@@ -170,6 +197,8 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
       ca_consumer_count: "42000",
 
       notice_delivery: ["Separate standalone Pre-use Notice"],
+      // DOC 158 — § 7220(b)(2) timing (a complete record answers it).
+      notice_timing: "At or before the point where we collect the personal information the ADMT processes",
       notice_has_specific_purpose: "Yes",
       notice_purpose_text:
         "We use NurseMatch v4 to rank registered-nurse applicants for a specific inpatient staff-nurse requisition against that unit's competency rubric.",
@@ -255,6 +284,9 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
         b3_outcome_ready: "Yes — we can produce this today",
         b3_outcome_process:
           "Requisition decision record returns the final hiring outcome for the applicant.",
+        // DOC 158 — § 7222(b)(4) readiness element.
+        b4_rights_ready: "Yes — we can produce this today",
+        b4_rights_process: "The response template carries the anti-retaliation statement and a link to the rights-request section of the privacy policy.",
         b3_human_role_ready: "Yes — we can produce this today",
         b3_human_role_process:
           "Recruiter review is stamped in the ATS with reviewer identity, the information reviewed, and the action taken.",
@@ -293,6 +325,11 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
         appeal_reviewer_role:
           "Senior nurse recruiter (RN, Talent Acquisition) who took no part in the original screen",
         appeal_trained: "Yes",
+        // DOC 158 — § 7221(b)(1)(A)/(B) evidence and § 7222(g) transmission.
+        appeal_consumer_submit: ["Free-text statement", "Supporting documents"],
+        appeal_timeline: "30 calendar days",
+        access_denial_basis: "Conflict with federal or state law, or a CCPA exception, explained in writing to the requestor.",
+        access_secure_transmission: "Encrypted self-service portal",
         appeal_authority_overturn: "Yes",
         appeal_step_count: "3",
         // ITEM 308 (c) — § 7221(b)(2) condition evidence.
@@ -435,10 +472,21 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
       admt_system_count: "1",
       third_party_admt: "No",
       ca_consumer_count: "68000",
+      // DOC 158 — the detail block the complete full-opt-out record lacked.
+      admt_detail: {
+        solely_advertising: "No",
+        sole_factor: "Sole factor — output alone determines the outcome",
+        // DOC 158 — the § 7001(e)(1) self-test row, consistent with human_review.
+        hi_reviewer_present: "No — fully automated",
+        access_secure_transmission: "Encrypted self-service portal",
+        access_denial_basis: "Conflict with federal or state law, explained in writing to the requestor.",
+      },
       affected_population_band: "10,001 – 100,000",
       role_roster: ["Executive sponsor", "Privacy officer / DPO", "Product owner", "Data scientist / ML engineer"],
 
       notice_delivery: ["Separate standalone Pre-use Notice"],
+      // DOC 158 — § 7220(b)(2) timing (a complete record answers it).
+      notice_timing: "At or before the point where we collect the personal information the ADMT processes",
       notice_has_specific_purpose: "Yes",
       notice_purpose_text:
         "We use CreditLine Decision Engine v3 to evaluate your personal-loan application and determine your approval status and interest-rate tier.",
@@ -466,12 +514,23 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
         "If you opt out, a Meridian underwriter manually reviews your application by hand.",
 
       opt_out_exception: "No exception — we provide a full opt-out right",
+      // DOC 158 — § 7221(f), (i), (j), (k), (m) handling duties (a complete
+      // full-opt-out record confirms all five).
+      opt_out_handling_confirmations: [
+        "No identity verification is required to submit an opt-out request (§ 7221(f))",
+        "One option opts the consumer out of every use of ADMT we make for significant decisions (§ 7221(i))",
+        "We accept opt-out requests from an authorized agent with the consumer's signed permission (§ 7221(j))",
+        "We do not ask a consumer who opted out to consent again for at least 12 months (§ 7221(k))",
+        "An opt-out received before processing begins prevents that processing (§ 7221(m))",
+      ],
       opt_out_methods: [
         "Interactive online form linked from the Pre-use Notice",
         "Toll-free phone number",
         "Designated email address",
       ],
-      opt_out_link_title: "Request manual underwriting",
+      // DOC 158 — § 7221(c)(1): the link title must state what the consumer is
+      // opting out of; "Request manual underwriting" named only the alternative.
+      opt_out_link_title: "Opt-out of Automated Decisionmaking Technology (request manual underwriting)",
       opt_out_no_cookie_banner: "Confirmed — we provide at least one ADMT-specific opt-out method in addition",
       opt_out_no_account_required: "Confirmed — no account required",
       opt_out_confirmation_mechanism:
@@ -497,6 +556,9 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
         b3_output_use_process: "The application audit trail records the recommendation, the reviewing analyst, and the funding decision.",
         b3_outcome_ready: "Yes — we can produce this today",
         b3_outcome_process: "The loan decision, rate tier, and any manual-review referral are read from the application record.",
+        // DOC 158 — § 7222(b)(4) readiness element.
+        b4_rights_ready: "Yes — we can produce this today",
+        b4_rights_process: "The response template carries the anti-retaliation statement and a link to the rights-request section of the privacy policy.",
         b3_human_role_ready: "Yes — we can produce this today",
         b3_human_role_process: "The audit trail names the underwriting analyst who reviewed the recommendation and the authority held over the funding decision.",
       },
@@ -527,6 +589,8 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
       role_roster: ["Privacy officer / DPO", "Product owner", "Human reviewer"],
 
       notice_delivery: ["Separate standalone Pre-use Notice"],
+      // DOC 158 — § 7220(b)(2) timing (a complete record answers it).
+      notice_timing: "At or before the point where we collect the personal information the ADMT processes",
       notice_has_specific_purpose: "Yes",
       notice_purpose_text: "We use TenantFit Screening v2 to evaluate your rental application against our leasing criteria.",
       notice_has_opt_out_desc: "We rely on an exception and describe appeal rights instead",
@@ -578,13 +642,26 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
         b3_output_use_process: "The application audit trail records the recommendation, the leasing agent who reviewed it, and the decision issued.",
         b3_outcome_ready: "Yes — we can produce this today",
         b3_outcome_process: "The leasing decision and any appeal outcome are read from the application record.",
+        // DOC 158 — § 7222(b)(4) readiness element.
+        b4_rights_ready: "Yes — we can produce this today",
+        b4_rights_process: "The response template carries the anti-retaliation statement and a link to the rights-request section of the privacy policy.",
         b3_human_role_ready: "Yes — we can produce this today",
         b3_human_role_process: "The audit trail names the leasing agent and, on appeal, the senior leasing manager, with the authority each held over the decision.",
       },
 
       admt_detail: {
+        // DOC 158 — the § 7001(e)(1) self-test row, consistent with human_review.
+        hi_reviewer_present: "No — fully automated",
         appeal_reviewer_role: "Senior Leasing Manager",
+        // DOC 158 — appeal evidence the human-appeal path asks for.
+        appeal_reversal_rate: "About one appeal in nine over the last twelve months",
+        appeal_outcomes: ["Uphold", "Reverse", "Modify"],
         appeal_trained: "Yes",
+        // DOC 158 — § 7221(b)(1)(A)/(B) evidence and § 7222(g) transmission.
+        appeal_consumer_submit: ["Free-text statement", "Supporting documents"],
+        appeal_timeline: "30 calendar days",
+        access_denial_basis: "Conflict with federal or state law, or a CCPA exception, explained in writing to the requestor.",
+        access_secure_transmission: "Encrypted self-service portal",
         appeal_authority_overturn: "Yes",
         appeal_step_count: "Three steps: request submission, senior-manager re-review, written decision.",
       },
@@ -615,9 +692,11 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
       role_roster: ["Privacy officer / DPO", "Product owner", "Human reviewer"],
 
       notice_delivery: ["Separate standalone Pre-use Notice"],
+      // DOC 158 — § 7220(b)(2) timing (a complete record answers it).
+      notice_timing: "At or before the point where we collect the personal information the ADMT processes",
       notice_has_specific_purpose: "Yes",
       notice_purpose_text: "We use NurseMatch v5 to rank registered-nurse applicants against the competency rubric for the specific unit requisition.",
-      notice_has_opt_out_desc: "We rely on an exception and describe appeal rights instead",
+      notice_has_opt_out_desc: "We rely on an exception and the notice identifies the specific exception",
       notice_has_access_desc: "Yes",
       notice_has_anti_retaliation: "Yes",
       notice_has_how_it_works: "Yes — included inline in the notice",
@@ -666,11 +745,28 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
         b3_output_use_process: "The applicant tracking system logs the band and rank shown to the recruiter and the action taken.",
         b3_outcome_ready: "Yes — we can produce this today",
         b3_outcome_process: "The requisition decision record returns the final hiring outcome for the applicant.",
+        // DOC 158 — § 7222(b)(4) readiness element.
+        b4_rights_ready: "Yes — we can produce this today",
+        b4_rights_process: "The response template carries the anti-retaliation statement and a link to the rights-request section of the privacy policy.",
         b3_human_role_ready: "Yes — we can produce this today",
         b3_human_role_process: "Recruiter review is stamped in the ATS with reviewer identity and the action taken.",
       },
 
       admt_detail: {
+        // DOC 158 — § 7222(g) transmission and the testing-cadence evidence.
+        access_secure_transmission: "Encrypted self-service portal",
+        // DOC 158 — the § 7001(e)(1) self-test row, consistent with human_review.
+        hi_reviewer_present: "No — fully automated",
+        // DOC 158 — the § 7221(b)(2)(B)/(b)(3)(B) testing record the exception
+        // path asks for, element by element.
+        bias_protected_chars: ["Race", "Sex / gender", "Age", "Disability", "National origin"],
+        bias_proxy_vars: "Postal code and commute distance were identified as proxies for race and national origin and were removed from the feature set before deployment; the remaining features are reviewed at every retraining.",
+        bias_testing_cadence: "Pre-deployment + ongoing monitoring",
+        bias_last_test: "June 2026",
+        bias_next_test: "December 2026",
+        bias_adverse_impact: "Yes",
+        bias_outcome_summary: "Selection rates by group fall within the four-fifths band, and the false-negative rate differs by under two points between groups; the full tables are held in the testing record.",
+        access_denial_basis: "Conflict with federal or state law, or a CCPA exception, explained in writing to the requestor.",
         sole_use_attestation: "Yes — solely to assess ability to perform",
         nondiscrimination_testing: "Yes — documented testing record",
       },
@@ -701,9 +797,11 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
       role_roster: ["Privacy officer / DPO", "Product owner"],
 
       notice_delivery: ["In-app just-in-time notice before data collection"],
+      // DOC 158 — § 7220(b)(2) timing.
+      notice_timing: "At or before the point where we collect the personal information the ADMT processes",
       notice_has_specific_purpose: "Yes",
       notice_purpose_text: "We use RouteAssign v2 to assign your delivery routes and calculate your per-route compensation.",
-      notice_has_opt_out_desc: "We rely on an exception and describe appeal rights instead",
+      notice_has_opt_out_desc: "We rely on an exception and the notice identifies the specific exception",
       notice_has_access_desc: "Yes",
       notice_has_anti_retaliation: "Yes",
       notice_has_how_it_works: "Yes — via hyperlink or layered notice",
@@ -752,11 +850,28 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
         b3_output_use_process: "The dispatch log records the assignment and compensation issued to the driver app.",
         b3_outcome_ready: "Yes — we can produce this today",
         b3_outcome_process: "The assignment and compensation record is read from the dispatch log.",
+        // DOC 158 — § 7222(b)(4) readiness element.
+        b4_rights_ready: "Yes — we can produce this today",
+        b4_rights_process: "The response template carries the anti-retaliation statement and a link to the rights-request section of the privacy policy.",
         b3_human_role_ready: "Yes — we can produce this today",
         b3_human_role_process: "The dispatch log confirms no human reviewer role in individual assignments; disputes route to the Operations Manager.",
       },
 
       admt_detail: {
+        // DOC 158 — § 7222(g) transmission and the testing-cadence evidence.
+        access_secure_transmission: "Encrypted self-service portal",
+        // DOC 158 — the § 7001(e)(1) self-test row, consistent with human_review.
+        hi_reviewer_present: "No — fully automated",
+        // DOC 158 — the § 7221(b)(2)(B)/(b)(3)(B) testing record the exception
+        // path asks for, element by element.
+        bias_protected_chars: ["Race", "Sex / gender", "Age", "Disability", "National origin"],
+        bias_proxy_vars: "Postal code and commute distance were identified as proxies for race and national origin and were removed from the feature set before deployment; the remaining features are reviewed at every retraining.",
+        bias_testing_cadence: "Pre-deployment + ongoing monitoring",
+        bias_last_test: "June 2026",
+        bias_next_test: "December 2026",
+        bias_adverse_impact: "Yes",
+        bias_outcome_summary: "Selection rates by group fall within the four-fifths band, and the false-negative rate differs by under two points between groups; the full tables are held in the testing record.",
+        access_denial_basis: "Conflict with federal or state law, or a CCPA exception, explained in writing to the requestor.",
         sole_use_attestation: "Yes — solely to assess ability to perform",
         nondiscrimination_testing: "Yes — documented testing record",
       },
@@ -876,6 +991,15 @@ export const ADMT_PERFECT: GoldenCase[] = [
       // ── Opt-out ────────────────────────────────────────────────────────
       // No exception is claimed: a full opt-out right is offered.
       opt_out_exception: "No exception — we provide a full opt-out right",
+      // DOC 158 — § 7221(f), (i), (j), (k), (m) handling duties (a complete
+      // full-opt-out record confirms all five).
+      opt_out_handling_confirmations: [
+        "No identity verification is required to submit an opt-out request (§ 7221(f))",
+        "One option opts the consumer out of every use of ADMT we make for significant decisions (§ 7221(i))",
+        "We accept opt-out requests from an authorized agent with the consumer's signed permission (§ 7221(j))",
+        "We do not ask a consumer who opted out to consent again for at least 12 months (§ 7221(k))",
+        "An opt-out received before processing begins prevents that processing (§ 7221(m))",
+      ],
       // Three named opt-out channels.
       opt_out_methods: [
         "Interactive online form linked from the Pre-use Notice",
@@ -884,6 +1008,8 @@ export const ADMT_PERFECT: GoldenCase[] = [
       ],
       // The published link title, verbatim.
       opt_out_link_title: "Decide My Application Without Automated Scoring",
+      // DOC 158 — § 7220(b)(2) timing.
+      notice_timing: "At or before the point where we collect the personal information the ADMT processes",
       // Confirms an ADMT-specific method exists beyond any cookie banner.
       opt_out_no_cookie_banner:
         "Confirmed — we provide at least one ADMT-specific opt-out method in addition",
@@ -977,11 +1103,36 @@ export const ADMT_PERFECT: GoldenCase[] = [
         feeds_future_decisions: "Yes",
         // Advertising-only status.
         solely_advertising: "No",
+        // DOC 158 — § 7001(ddd)(2): a rental-eligibility decision that weighs
+        // income, rental history and the applicant's statement is not based
+        // solely on availability, vacancy or receipt of payment.
+        housing_decision_basis: "No — other factors are considered",
+        // DOC 158 — the § 7001(e)(1) self-test, answered consistently with the
+        // human_review answer above (a qualifying reviewer on every decision).
+        hi_reviewer_present: "Yes — on every decision",
+        hi_reviewer_role: "Regional underwriting manager (Alderwood Leasing Operations)",
+        hi_stage: "Before the decision is issued",
+        hi_trained: "Yes",
+        hi_reviews_other_info: "Yes",
+        hi_authority_override: "Yes",
+        hi_override_rate: "About one scored application in twenty-five over the last twelve months",
+        // DOC 158 — the other factors weighed beside the score (sole_factor is
+        // "Material factor").
+        other_factors: "Income-to-rent ratio, rental history verified by the leasing agent, and the applicant's own explanatory statement",
+        // DOC 158 — the named vendor product and its training rights, matching
+        // the third_party_admt answer.
+        vendor_product: "Cascade Verify LLC — eviction-record search (RentalScreen API)",
+        vendor_training_rights: "No — the service-provider addendum prohibits Cascade Verify from using applicant data to train or improve its models",
         // § 7221(b)(1) evidence — the reviewer's role, named.
         appeal_reviewer_role:
           "Regional underwriting manager (Alderwood Leasing Operations), independent of the leasing agent who handled the application",
         // Reviewer training.
         appeal_trained: "Yes",
+        // DOC 158 — § 7221(b)(1)(A)/(B) evidence and § 7222(g) transmission.
+        appeal_consumer_submit: ["Free-text statement", "Supporting documents"],
+        appeal_timeline: "30 calendar days",
+        access_denial_basis: "Conflict with federal or state law, or a CCPA exception, explained in writing to the requestor.",
+        access_secure_transmission: "Encrypted self-service portal",
         // Reviewer authority.
         appeal_authority_overturn: "Yes",
         // Steps in the appeal path.
@@ -1040,6 +1191,9 @@ export const ADMT_PERFECT: GoldenCase[] = [
         b3_outcome_process:
           "The tenancy decision, any deposit uplift and any referral to manual underwriting are read from the application record and stated in the response with their dates.",
         // (b)(3) human role.
+        // DOC 158 — § 7222(b)(4) readiness element.
+        b4_rights_ready: "Yes \u2014 we can produce this today",
+        b4_rights_process: "The response template carries the anti-retaliation statement and a link to the rights-request section of the privacy policy.",
         b3_human_role_ready: "Yes \u2014 we can produce this today",
         b3_human_role_process:
           "The audit trail names the leasing agent who reviewed the band and, where reconsideration was requested, the regional underwriting manager who re-reviewed it; the response names the role, the review date and the authority each held over the decision.",

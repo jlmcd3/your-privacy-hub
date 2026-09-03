@@ -28,6 +28,8 @@ import BenchLayout from "@/components/intake/BenchLayout";
 import ValidationErrorSummary from "@/components/intake/ValidationErrorSummary";
 
 import { useRunMeter } from "@/hooks/useRunMeter";
+// DOC 158 (2026-09-03, ADMT model-vs-law build) — the three new option sets.
+import { ADMT_HOUSING_DECISION_BASIS_OPTS, NOTICE_TIMING_OPTS, OPT_OUT_HANDLING_OPTS } from "./ADMTChecker.enums";
 import { ExhibitTextarea, isExhibit } from "@/components/ExhibitTextarea";
 import { AssistedInput } from "@/components/AssistedInput";
 import { ASSISTED_INPUT_REGISTRY } from "@/config/assistedInput";
@@ -60,7 +62,12 @@ const SIGNIFICANT_DECISION_DOMAINS = [
   "Work allocation, scheduling, or compensation",
   "Promotion, demotion, suspension, or termination",
   "Healthcare services (diagnosis, treatment, care eligibility)",
+  // DOC 158 (2026-09-03) — the explicit negative (verbatim copy in
+  // _shared/intake-contracts/cppa-admt.ts).
+  "None of these categories — the decision is outside every § 7001(ddd) category",
 ];
+const ADMT_NONE_DOMAIN = SIGNIFICANT_DECISION_DOMAINS[7];
+const ADMT_HOUSING_DOMAIN = SIGNIFICANT_DECISION_DOMAINS[1];
 
 const HUMAN_REVIEW_OPTIONS = [
   "Yes — reviewer knows how to interpret output, reviews it plus other info, and has authority to change the decision",
@@ -307,6 +314,9 @@ export default function ADMTChecker() {
   const [noticeElementText, setNoticeElementText] = useState<Record<string, string>>({});
   const setNET = (k: string, v: string) => setNoticeElementText((p) => ({ ...p, [k]: v }));
   const [adv, setAdv] = useState<Record<string, any>>({});
+  // DOC 158 — § 7220(b)(2) timing and the § 7221(f)/(i)/(j)/(k)/(m) handling duties.
+  const [noticeTiming, setNoticeTiming] = useState("");
+  const [optOutHandling, setOptOutHandling] = useState<string[]>([]);
   const setA = (k: string, v: any) => setAdv((a) => ({ ...a, [k]: v }));
 
   // ── INTAKE-4c — PREFILL BLOCK ────────────────────────────────────────────
@@ -422,11 +432,20 @@ export default function ADMTChecker() {
       if (!systemDescription || systemDescription.length < 30)
         return "Describe what the system does — at least 30 characters.";
       if (!decisionDomains.length)
-        return "Select the decision domains this system affects.";
+        return "Select the decision domains this system affects — \"None of these categories\" is a complete answer.";
+      // DOC 158 — the explicit negative cannot be combined; Housing carries the
+      // § 7001(ddd)(2) follow-up.
+      if (decisionDomains.includes(ADMT_NONE_DOMAIN) && decisionDomains.length > 1)
+        return "\"None of these categories\" cannot be combined with a decision domain — select the domain(s) or the negative, not both.";
+      if (decisionDomains.includes(ADMT_HOUSING_DOMAIN) && !adv.housing_decision_basis)
+        return "Answer whether the housing decision is based solely on availability, vacancy, or receipt of payment (§ 7001(ddd)(2)).";
       if (!humanReview) return "Describe the human review applied to this system's outputs.";
     }
     if (step === 2) {
       if (!noticeDelivery.length) return "Select how the Pre-use Notice reaches consumers.";
+      // DOC 158 — § 7220(b)(2) timing, whenever a notice is provided.
+      if (!noticeDelivery.includes("We have not yet provided a Pre-use Notice") && !noticeTiming)
+        return "Say when the Pre-use Notice is presented relative to collection and the first ADMT processing (§ 7220(b)(2)).";
       if (!noticeHasSpecificPurpose) return "Answer whether the notice states a specific purpose.";
       if (noticeHasSpecificPurpose === "Yes" && !noticePurposeText.trim())
         return "Provide the specific purpose statement as published.";
@@ -449,6 +468,9 @@ export default function ADMTChecker() {
         return "Give the title of the opt-out link (§ 7221(c)(1)).";
       if (provideOptOut && !optOutConfirmationMechanism)
         return "Describe how a consumer confirms an opt-out was processed (§ 7221(h)).";
+      // DOC 158 — the handling duties checklist on the full opt-out path.
+      if (provideOptOut && !optOutHandling.length)
+        return "Select the opt-out handling duties you can confirm — \"None of the above can be confirmed\" is a complete answer.";
       if (optOutException.startsWith("Human appeal") && !optOutAppealProcess.trim())
         return "Describe the human appeal process (§ 7221(b)(1)).";
       if ((optOutException.startsWith("Hiring") || optOutException.startsWith("Work")) && !optOutFairnessDoc.trim())
@@ -500,6 +522,8 @@ export default function ADMTChecker() {
       notice_has_anti_retaliation: noticeHasAntiRetaliation,
       notice_has_how_it_works: noticeHasHowItWorks,
       notice_has_alternative_process: noticeHasAlternativeProcess,
+      // DOC 158 — § 7220(b)(2) timing.
+      notice_timing: noticeTiming,
       opt_out_exception: optOutException,
       opt_out_methods: optOutMethods,
       opt_out_link_title: optOutLinkTitle,
@@ -523,6 +547,8 @@ export default function ADMTChecker() {
       role_roster: roleRoster,
       // prior_access_requests_12mo removed (RC-P6).
       opt_out_15_day_process: optOut15DayProcess,
+      // DOC 158 — § 7221(f)/(i)/(j)/(k)/(m) handling duties.
+      opt_out_handling_confirmations: optOutHandling,
       admt_detail: adv,
     }),
     [
@@ -536,6 +562,7 @@ export default function ADMTChecker() {
       accessLogicDisclosure, accessOutcomeDisclosure, accessResponseTimeline,
       accessTradeSecretPolicy, accessReadiness,
       caConsumerCount, thirdPartyAdmt, admtSystemCount, affectedPopulationBand, roleRoster, optOut15DayProcess, adv,
+      noticeTiming, optOutHandling,
     ],
   );
 
@@ -604,6 +631,7 @@ export default function ADMTChecker() {
     if (typeof d.training_data_use === "string") setTrainingDataUse(d.training_data_use);
     if (typeof d.profiling_use === "string") setProfilingUse(d.profiling_use);
     if (Array.isArray(d.notice_delivery)) setNoticeDelivery(d.notice_delivery);
+    if (typeof d.notice_timing === "string") setNoticeTiming(d.notice_timing);
     if (typeof d.notice_has_specific_purpose === "string") setNoticeHasSpecificPurpose(d.notice_has_specific_purpose);
     if (typeof d.notice_purpose_text === "string") setNoticePurposeText(d.notice_purpose_text);
     if (d.notice_element_text && typeof d.notice_element_text === "object") setNoticeElementText(d.notice_element_text as Record<string, string>);
@@ -615,6 +643,7 @@ export default function ADMTChecker() {
     if (typeof d.notice_has_alternative_process === "string") setNoticeHasAlternativeProcess(d.notice_has_alternative_process);
     if (typeof d.opt_out_exception === "string") setOptOutException(d.opt_out_exception);
     if (Array.isArray(d.opt_out_methods)) setOptOutMethods(d.opt_out_methods);
+    if (Array.isArray(d.opt_out_handling_confirmations)) setOptOutHandling(d.opt_out_handling_confirmations.filter((x: unknown) => typeof x === "string"));
     if (typeof d.opt_out_link_title === "string") setOptOutLinkTitle(d.opt_out_link_title);
     if (typeof d.opt_out_no_cookie_banner === "string") setOptOutNoCookieBanner(d.opt_out_no_cookie_banner);
     if (typeof d.opt_out_no_account_required === "string") setOptOutNoAccountRequired(d.opt_out_no_account_required);
@@ -1032,9 +1061,9 @@ export default function ADMTChecker() {
 
                   <div>
                     <Label data-rail-key="scope_significant_decision_domain" onFocus={() => focus("scope_significant_decision_domain")}>
-                      What significant decision(s) does this system make or materially contribute to? <DefPopover termKey="significant_decision" /> <Req />
+                      What significant decision(s) does this system make? <DefPopover termKey="significant_decision" /> <Req />
                     </Label>
-                    <p className="text-xs text-muted-foreground mt-1">Select all that apply — or none, if this system only affects advertising or ordinary profiling. <span className="font-medium text-foreground">Why we ask:</span> only these specific decisions trigger the ADMT rules; advertising is expressly excluded.</p>
+                    <p className="text-xs text-muted-foreground mt-1">Select all that apply. If the decision is outside every category, select "None of these categories" — that is a complete answer. <span className="font-medium text-foreground">Why we ask:</span> § 7200(a) applies the ADMT rules to a business that uses ADMT to make a significant decision, a defined term (§ 7001(ddd)); advertising to a consumer is expressly excluded (§ 7001(ddd)(6)), and a housing decision based solely on availability, vacancy, or receipt of payment is not a significant decision (§ 7001(ddd)(2)).</p>
                     <div className="mt-2">
                       <Pills
                         options={SIGNIFICANT_DECISION_DOMAINS}
@@ -1049,10 +1078,18 @@ export default function ADMTChecker() {
                       value={adv.decision_domains_other || ""}
                       onChange={(e) => setA("decision_domains_other", e.target.value)}
                       data-rail-key="scope_significant_decision_domain" onFocus={() => focus("scope_significant_decision_domain")}
-                      placeholder="Describe it in one sentence"
+                      placeholder="Optional — describe the decision in one sentence, or leave blank if the categories above capture it"
                     />
                   </div>
 
+                  {/* DOC 158 — § 7001(ddd)(2) housing exclusion, asked only when Housing is selected. */}
+                  {decisionDomains.includes(ADMT_HOUSING_DOMAIN) && (
+                    <div data-rail-key="scope_significant_decision_domain" onFocus={() => focus("scope_significant_decision_domain")}>
+                      <Label className="text-[12px]">Is the housing decision based solely on the availability or vacancy of the housing, or on the successful receipt of payment for it? <Req /> <span className="text-[11px] text-muted-foreground font-mono">(§ 7001(ddd)(2))</span></Label>
+                      <p className="text-[11px] text-muted-foreground">Under § 7001(ddd)(2), "the use of ADMT that provides or denies housing to a consumer based solely on the availability or vacancy of the housing or the successful receipt of payment for housing from the consumer is not making a significant decision."</p>
+                      <div className="mt-1"><Radio name="housing_basis" options={[...ADMT_HOUSING_DECISION_BASIS_OPTS]} value={adv.housing_decision_basis || ""} onChange={(v) => setA("housing_decision_basis", v)} /></div>
+                    </div>
+                  )}
                   <div className="rounded-md border bg-muted/20 p-4 space-y-3" data-rail-key="scope_significant_decision_domain" onFocus={() => focus("scope_significant_decision_domain")}>
                     <p className="text-[12px] font-semibold">System &amp; decision detail (optional)</p>
                     <p className="text-[12px] text-muted-foreground">Helps an auditor identify the exact system and decision under review, and shapes the access-response analysis.</p>
@@ -1191,7 +1228,7 @@ export default function ADMTChecker() {
                     <div className="space-y-3">
                       <div>
                         <Label className="text-[12px]">Do you use personal information to train any automated decision system?</Label>
-                        <p className="text-[11px] text-muted-foreground">Why we ask: § 7153 brings training on personal information into risk-assessment scope on its own, even where no significant decision is made.</p>
+                        <p className="text-[11px] text-muted-foreground">Why we ask: § 7150(b)(6) makes processing personal information to train ADMT for a significant decision (or facial-, emotion-, identity-verification, or physical/biological identification technology) a risk-assessment trigger on its own, even where no significant decision is made; § 7153 separately obliges a business that makes ADMT available to another business to give it the facts its risk assessment needs.</p>
                         <div className="mt-1">
                           <Radio
                             name="training_data"
@@ -1246,6 +1283,18 @@ export default function ADMTChecker() {
                     </div>
                   </div>
 
+                  {/* DOC 158 — § 7220(b)(2) timing (never asked before). */}
+                  {!noticeDelivery.includes("We have not yet provided a Pre-use Notice") && (
+                    <div data-rail-key="notice_timing" onFocus={() => focus("notice_timing")}>
+                      <Label data-rail-key="notice_timing" onFocus={() => focus("notice_timing")}>
+                        When is the Pre-use Notice presented? <Req />
+                      </Label>
+                      <p className="text-xs text-muted-foreground mt-1">§ 7220(b)(2): the notice must be presented "prominently and conspicuously to the consumer at or before the point when the business collects the consumer's personal information that the business plans to process using ADMT"; where the information was already collected for a different purpose, the notice must be provided "before processing the consumer's personal information for that purpose."</p>
+                      <div className="mt-2">
+                        <Radio name="notice_timing" options={[...NOTICE_TIMING_OPTS]} value={noticeTiming} onChange={setNoticeTiming} data-rail-key="notice_timing" onFocus={() => focus("notice_timing")} />
+                      </div>
+                    </div>
+                  )}
                   <div>
                     <Label data-rail-key="notice_specific_purpose" onFocus={() => focus("notice_specific_purpose")}>
                       Does your Pre-use Notice state the specific purpose for ADMT use in plain language? <Req />
@@ -1344,7 +1393,7 @@ export default function ADMTChecker() {
                     <div className="mt-2">
                       <Radio
                         name="notice_opt_out"
-                        options={["Yes — with specific opt-out instructions", "Mentions opt-out but without clear instructions", "No", "We rely on an exception and describe appeal rights instead"]}
+                        options={["Yes — with specific opt-out instructions", "Mentions opt-out but without clear instructions", "No", "We rely on an exception and describe appeal rights instead", "We rely on an exception and the notice identifies the specific exception"]}
                         value={noticeHasOptOutDesc}
                         onChange={setNoticeHasOptOutDesc}
                         data-rail-key="notice_opt_out_description" onFocus={() => focus("notice_opt_out_description")}
@@ -1634,6 +1683,12 @@ export default function ADMTChecker() {
 
                       <div className="rounded-md border p-4 space-y-3 bg-muted/20">
                         <p className="text-[12px] font-semibold">Confirm opt-out process compliance</p>
+                        {/* DOC 158 — § 7221(f), (i), (j), (k), (m) handling duties (never asked before). */}
+                        <div data-rail-key="optout_handling" onFocus={() => focus("optout_handling")}>
+                          <Label className="text-[12px]">Which of the following can you confirm about how opt-out requests are handled? <Req /></Label>
+                          <p className="text-[11px] text-muted-foreground">Select every duty you can confirm. "None of the above can be confirmed" is a complete answer; unconfirmed duties are recorded as follow-up items, never as violations.</p>
+                          <div className="mt-1"><Pills options={[...OPT_OUT_HANDLING_OPTS]} value={optOutHandling} onChange={setOptOutHandling} data-rail-key="optout_handling" onFocus={() => focus("optout_handling")} /></div>
+                        </div>
                         <div>
                           <Label className="text-[12px]">Is a cookie banner your only way to opt out?</Label>
                           <p className="text-[11px] text-muted-foreground">Why we ask: § 7221(c)(4) does not accept a cookie banner as the sole opt-out route, so the report has to know whether another route exists.</p>
@@ -1693,6 +1748,8 @@ export default function ADMTChecker() {
                         ["b3_output_use", "What the system produced, and how you used it (§ 7222(b)(3))"],
                         ["b3_outcome", "What the person's decision ended up being (§ 7222(b)(3))"],
                         ["b3_human_role", "What a human did, if anything (§ 7222(b)(3))"],
+                        // DOC 158 — § 7222(b)(4), never a readiness element before.
+                        ["b4_rights", "That you cannot retaliate, and how to exercise other CCPA rights — with links to the request form or portal (§ 7222(b)(4))"],
                       ].map(([k, label]) => (
                         <div key={k}>
                           <Label className="text-[12px]" data-rail-key={`access_readiness_${k}`} onFocus={() => focus(`access_readiness_${k}`)}>{label}</Label>

@@ -116,6 +116,11 @@ const AUTHORIZED = [
   // the report states it (doc-28 §4 reserved-decision carve-out).
   "cppa_risk_assessment::final_processing_decision",
   "cppa_risk_assessment::final_processing_decision_notes",
+  // DOC 158 (2026-09-03) — the free-text box under the ADMT decision-domain
+  // pills. Form citation: src/pages/admt/ADMTChecker.tsx, textarea wording
+  // "Optional — describe the decision in one sentence, or leave blank if the
+  // categories above capture it"; blank means the categories describe it.
+  "cppa_admt::admt_detail.decision_domains_other",
 ].sort();
 
 Deno.test("r5c LINT: emptyIsAnswer appears on exactly the authorized fields fleet-wide", () => {
