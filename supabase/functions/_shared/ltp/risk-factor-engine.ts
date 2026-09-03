@@ -1014,6 +1014,57 @@ export function runRiskFactorEngine(
   // follow-up fires on (cross-surface parity; never two derivations).
   const spiCategoryUnresolved = isYes(intake.q15_sensitive_pi) &&
     arr(intake.q4_pi_categories).filter((c) => CA_SPI_CATEGORY_KEYS.includes(c)).length === 0;
+  // DOC 150 (2026-09-03, Batch-8 A-Team round 2) — trigger-record
+  // transparency states, same construction as the b(2) qualifier: the
+  // trigger STAYS engaged on the Company's categorical answer (the doc-148
+  // §C.2/§C.3 ruling stands — never inferred wrong), and the row says what
+  // the record does not yet describe, completable through existing
+  // free-text fields.
+  // b(4): the q5b question asks the worker/student/applicant element
+  // directly; where NO recorded scenario text shows an employment or
+  // educational relationship, the row notes that the observed population's
+  // capacity is not separately described.
+  const b4CapacityUndescribed = (() => {
+    const v = s(intake.q5b_profiling_observation);
+    const affirmed = /^yes$/i.test(v) ||
+      v === "Yes — systematic observation of workers/students/applicants" ||
+      /^both$/i.test(v);
+    if (!affirmed) return false;
+    const scenarioText = [
+      intake.subject_anchor,
+      intake.primary_activity_name,
+      intake.primary_activity_purpose,
+      intake.i1_processing_purpose,
+      intake.q19_admt_description,
+      intake.i5_admt_logic,
+      intake.q3_sector,
+    ].map(s).join("\n");
+    return !/\b(employees?|employment|workers?|workforce|contractors?|staff|personnel|HR\b|recruit(ing|ment)?|hiring|job applicants?|students?|educational[- ]program|keystroke|productivity (scor|monitor)|telematics)\b/i
+      .test(scenarioText);
+  })();
+  // b(6): the training answer names significant-decision use, but the
+  // recorded system description does not identify a § 7001(ddd) decision.
+  const b6TrainedDecisionUnidentified =
+    /^Yes — training ADMT for significant decisions/.test(s(intake.q18b_admt_training)) &&
+    classifyAdmtSignificantDecision(s(intake.q19_admt_description)) !== "significant";
+  // Activity-scope reconciliation: a q4 category whose leading word appears
+  // inside an exclusion-cue sentence of the out-of-scope description is a
+  // cross-surface contradiction the record must resolve (sentence-scoped,
+  // per the doc-138 negation-scoping pattern; short generic heads skipped).
+  const scopeConflictCategories = (() => {
+    const oosText = clause(intake.out_of_scope_activities);
+    if (!oosText) return [] as string[];
+    const exclusionSentences = oosText.split(/(?<=[.!?])\s+/).filter((x) =>
+      /\b(not included|excluded|not part of|outside (of )?this|handled under a separate)\b/i.test(x)
+    );
+    if (!exclusionSentences.length) return [] as string[];
+    return arr(intake.q4_pi_categories).filter((c) => {
+      const head = c.split("(")[0].trim().split(/\s+/)[0];
+      if (head.length < 5) return false;
+      const re = new RegExp(`\\b${head}\\b`, "i");
+      return exclusionSentences.some((x) => re.test(x));
+    });
+  })();
   const b3Class = s(intake.q18_admt_use) === "Yes"
     ? classifyAdmtSignificantDecision(s(intake.q19_admt_description))
     : null;
@@ -1146,6 +1197,42 @@ export function runRiskFactorEngine(
     followUps.push(
       "Identify the significant decision the automated decisionmaking technology makes or facilitates; § 7150(b)(3) turns on a decision within the categories enumerated in § 7001(ddd), and the information provided does not identify one",
     );
+  }
+  // DOC 150 — trigger-record transparency follow-ups (the triggers stay
+  // engaged; these complete the record through existing free-text fields).
+  if (b4CapacityUndescribed) {
+    followUps.push(
+      "Describe the population systematically observed for the § 7150(b)(4) trigger and its capacity — employee, independent contractor, student, or job or educational-program applicant of the business — so the record states the facts supporting the Company’s answer",
+    );
+  }
+  if (b6TrainedDecisionUnidentified) {
+    followUps.push(
+      "Identify the significant decision the technology being trained is intended to make or support; the Company’s § 7150(b)(6) answer names significant-decision training, and the recorded system description does not identify a decision within the § 7001(ddd) categories",
+    );
+  }
+  if (scopeConflictCategories.length) {
+    followUps.push(
+      `Reconcile the Activity’s information scope: the out-of-scope description assigns ${
+        asProse(scopeConflictCategories.map((c) => `“${c}”`))
+      }-related processing to a separate activity, while this Activity’s personal-information inventory lists ${
+        plural(scopeConflictCategories.length, "that category", "those categories")
+      }; state what portion is processed for the assessed Purpose, or remove ${
+        plural(scopeConflictCategories.length, "it", "them")
+      } from this Activity’s inventory`,
+    );
+  }
+  // DOC 150 — § 7152(a)(9) approval date (primary-source verified: the
+  // report must document the date of review and approval).
+  {
+    const revRows = rows(intake.assessment_reviewers_approvers);
+    const approvalDateOnRecord = s(intake.a9_approval_date) !== "" ||
+      s(intake.assessment_approval_date) !== "" ||
+      revRows.some((r) => s(r.date) !== "" || s(r.review_date) !== "" || s(r.approval_date) !== "");
+    if ((revRows.length || s(intake.a9_approver_name) || intake.approver_authority_confirmed !== undefined) && !approvalDateOnRecord) {
+      followUps.push(
+        "Record the date the assessment was reviewed and approved; § 7152(a)(9) requires the report to document it alongside the reviewers’ and approvers’ names and positions",
+      );
+    }
   }
   // DOC 148 (A-Team Batch-8 P0 temporal validation) — a safeguard row whose
   // own text names a target period that has already passed cannot rest on
@@ -1495,11 +1582,31 @@ export function runRiskFactorEngine(
     // engaged on the Company's reported answer, and the row says so rather
     // than implying the assessment independently established the category.
     // Same predicate as the § 4.D follow-up (spiCategoryUnresolved).
-    if (!spiCategoryUnresolved || !/§\s*7150\(b\)\(2\)/.test(t.cite)) return t;
-    return {
-      ...t,
-      basis: `${t.basis.replace(/[.!?]\s*$/, "")}; the trigger is engaged on the Company’s reported answer, and the qualifying statutory sensitive-PI category remains to be identified (Follow-Ups, § 4.D)`,
-    };
+    // DOC 150 — the same construction extends to b(4) and b(6): engaged on
+    // the Company's categorical answer, with the row stating what the
+    // record does not yet describe (same predicates as the § 4.D
+    // follow-ups; cross-surface parity).
+    const qualify = (basis: string, note: string): string =>
+      `${basis.replace(/[.!?]\s*$/, "")}; ${note}`;
+    if (spiCategoryUnresolved && /§\s*7150\(b\)\(2\)/.test(t.cite)) {
+      return {
+        ...t,
+        basis: qualify(t.basis, "the trigger is engaged on the Company’s reported answer, and the qualifying statutory sensitive-PI category remains to be identified (Follow-Ups, § 4.D)"),
+      };
+    }
+    if (b4CapacityUndescribed && /§\s*7150\(b\)\(4\)/.test(t.cite)) {
+      return {
+        ...t,
+        basis: qualify(t.basis, "the trigger is engaged on the Company’s direct affirmation of the statutory element, and the observed population’s worker, student, or applicant capacity is not separately described in the information provided (Follow-Ups, § 4.D)"),
+      };
+    }
+    if (b6TrainedDecisionUnidentified && /§\s*7150\(b\)\(6\)/.test(t.cite)) {
+      return {
+        ...t,
+        basis: qualify(t.basis, "the trigger is engaged on the Company’s reported answer, and the significant decision the trained technology is intended to make or support is not identified in the information provided (Follow-Ups, § 4.D)"),
+      };
+    }
+    return t;
   });
   const uncertainSwept = uncertainLines.map((l) => sweepRegister52(l.replace(/^Uncertain\s*—\s*/i, "")));
 
@@ -1717,13 +1824,22 @@ export function runRiskFactorEngine(
   // II.A — out-of-scope branch.
   if (outOfScope === "The affected information is also processed for other activities not covered by this assessment") {
     const oos = clause(intake.out_of_scope_activities);
+    // DOC 150 — the scope contradiction is stated where the reader meets
+    // it, not only in § 4.D (same categories as the follow-up).
+    const scopeNote = scopeConflictCategories.length
+      ? ` This description assigns ${
+        asProse(scopeConflictCategories.map((c) => `“${c}”`))
+      }-related processing to a separate activity while the inventory in Part D lists ${
+        plural(scopeConflictCategories.length, "that category", "those categories")
+      } for this Activity; reconciling that scope appears among the Follow-Ups in § 4.D.`
+      : "";
     put(
       "ii_information:3",
       "out_of_scope",
       "B",
       `${RISK52_FIXED.out_of_scope_lead} ${
         oos ? `“${oos}”.` : "the Company records the additional activities without describing them."
-      } ${RISK52_FIXED.out_of_scope_note}`,
+      } ${RISK52_FIXED.out_of_scope_note}${scopeNote}`,
       ["INTAKE:out_of_scope_confirmation", "INTAKE:out_of_scope_activities"],
       ["11 CCR § 7156"],
     );
@@ -3215,13 +3331,33 @@ export function runRiskFactorEngine(
     const reviewers = rows(intake.assessment_reviewers_approvers);
     const migrated = s(intake.a9_approver_name);
     const authority = intake.approver_authority_confirmed;
+    // DOC 150 (2026-09-03, Batch-8 A-Team round 2) — § 7152(a)(9) requires
+    // the report to document "the date the assessment was reviewed and
+    // approved" (primary-source verified verbatim: registry row
+    // ra_content_approval, risk-verified-authorities.ts). The old
+    // sufficiency sentence claimed a complete § 7152(a)(9) record on
+    // names + authority alone; doc 148's contrary reading is RETRACTED.
+    // The date is read from the reviewer rows or a top-level field so the
+    // branch completes the day the intake collects it; until then the
+    // record states the open element instead of asserting sufficiency.
+    const approvalDate = s(intake.a9_approval_date) || s(intake.assessment_approval_date) ||
+      reviewers.map((r) => s(r.date) || s(r.review_date) || s(r.approval_date)).find(Boolean) || "";
     if (reviewers.length || migrated || authority !== undefined) {
-      if (isYes(authority) && (reviewers.length || migrated)) {
+      if (isYes(authority) && (reviewers.length || migrated) && approvalDate) {
         put(
           "v_governance:1",
           "approval_sufficiency_conclusion",
           "A",
-          "The approval record is sufficient for assessment purposes: the reviewers and approvers are identified, and at least one approver is confirmed to have authority over whether the processing proceeds.",
+          `The approval record is sufficient for assessment purposes: the reviewers and approvers are identified, at least one approver is confirmed to have authority over whether the processing proceeds, and the assessment is recorded as reviewed and approved on ${approvalDate}.`,
+          ["FINAL:assessment_reviewers_approvers", "FINAL:approver_authority_confirmed"],
+          ["11 CCR § 7152(a)(9)"],
+        );
+      } else if (isYes(authority) && (reviewers.length || migrated)) {
+        put(
+          "v_governance:1",
+          "approval_follow_up",
+          "B",
+          "Approval record — additional information required. The reviewers and approvers are identified, and at least one approver is confirmed to have authority over whether the processing proceeds; § 7152(a)(9) additionally requires the report to document the date the assessment was reviewed and approved. Record that date to complete the finalization record.",
           ["FINAL:assessment_reviewers_approvers", "FINAL:approver_authority_confirmed"],
           ["11 CCR § 7152(a)(9)"],
         );

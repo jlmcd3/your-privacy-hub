@@ -859,8 +859,13 @@ export const RISK_CORPUS_MAP: CorpusMap = {
           "Analogous to the risk-assessment obligation this report addresses: where an assessment trigger is engaged, the assessment must actually analyze necessity, proportionality, and safeguards. A document that omits those elements did not satisfy the analogous EU duty.",
         // Wave C1 citation-form upgrade (doc 63 §2.1, CF-ENF): full date +
         // docket-shaped case_reference, replacing the year-only form.
+        // DOC 150 (2026-09-03) — both official identifiers carried: the
+        // AEPD publishes the resolution as procedure PS/00431/2024 whose
+        // own header reads "Expediente N.º: EXP202304532" (verified against
+        // the primary source, doc 148 §C.5). Neither identifier is wrong;
+        // the pair is the most precise cite.
         authority_label:
-          "AEPD (Spain), AENA, S.M.E., S.A., decision of 6 November 2025, ref. EXP202304532 — persuasive only; decided under the GDPR, not the CCPA",
+          "AEPD (Spain), AENA, S.M.E., S.A., decision of 6 November 2025, ref. PS/00431/2024 (Expte. EXP202304532) — persuasive only; decided under the GDPR, not the CCPA",
         trail_cite: "AEPD, AENA (2025)",
       },
       citation_source: {

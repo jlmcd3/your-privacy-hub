@@ -450,8 +450,11 @@ export const DPIA_CORPUS_MAP: CorpusMap = {
           "Spain's supervisory authority fined the national airport operator €10,043,002 for breaching Article 35(7): its impact assessment for biometric passenger processing omitted the required analysis of the suitability, necessity and proportionality of the processing.",
         bearing:
           "The fine attached to the QUALITY of the assessment itself — an incomplete Article 35(7) analysis was treated as a standalone violation. The rigor of this report's necessity-and-proportionality section is what that class of enforcement tests.",
+        // DOC 150 (2026-09-03) — both official identifiers carried (AEPD
+        // procedure PS/00431/2024; its header reads "Expediente N.º:
+        // EXP202304532" — primary-source verified, doc 148 §C.5).
         authority_label:
-          "AEPD (Spain), AENA, S.M.E., S.A., decision of 6 November 2025, ref. EXP202304532 — persuasive authority",
+          "AEPD (Spain), AENA, S.M.E., S.A., decision of 6 November 2025, ref. PS/00431/2024 (Expte. EXP202304532) — persuasive authority",
         trail_cite: "AEPD, AENA (2025)",
       },
       citation_source: {

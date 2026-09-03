@@ -542,7 +542,8 @@ Return a JSON object with EXACTLY these fields:
     "primary_activity_purpose": "string — one sentence: what this activity does with personal information",
     "has_secondary_uses": "string — EXACTLY one of: 'No — this data is used for this activity only' | 'Yes — there are other uses'",
     "q1_revenue": "string", "q2_consumers": "string", "q3_sector": "string",
-    "q4_pi_categories": ["array"], "q5_sell_share": "string",
+    "q4_pi_categories": ["array — ONLY categories processed for THIS assessed activity; never list a category the scenario's own text assigns to a separate or excluded activity (e.g. payment data handled under a separate payment-processing activity)"],
+    "q5_sell_share": "string",
     "q5b_profiling_observation": "Yes or No — Yes ONLY when the scenario's narrative describes automated processing that INFERS a characteristic (performance, reliability, health, behavior) of the business's OWN workers, students, or educational/job applicants FROM systematic observation of them (productivity scoring, keystroke analytics, telematics driver scoring). Customer/consumer/website-user profiling is ALWAYS No — consumers applying for a loan, account, or service are NOT this trigger. Never answer Yes from sector alone; if the scenario has no employment or educational relationship to the observed people, the answer is No",
     "q6_right_know": "string", "q6_right_know_multi": ["array"],
     "q7_right_delete": "string", "q8_right_correct": "string", "q9_opt_out": "string",
@@ -568,6 +569,9 @@ Return a JSON object with EXACTLY these fields:
     "i8_contact_email": "string", "i8_contact_phone": "string",
     "i9_has_existing_dpia": "string",
     "i9_existing_dpia_summary": "string",
+    "assessment_reviewers_approvers": [{ "name": "string", "position": "string", "role": "string — 'Approved' or 'Reviewed'" }],
+    "approver_authority_confirmed": "Yes or No",
+    "a9_approval_date": "YYYY-MM-DD — the date the assessment was reviewed and approved (§ 7152(a)(9) requires the report to document it); populate on MOST scenarios, leave blank on a minority to exercise the record-completion branch",
     "a2_necessity_set": [
       { "element": "string — one personal-information element collected for the activity", "necessity": "string — verbatim necessity option", "justification": "string — one sentence" }
     ],
