@@ -15,7 +15,7 @@ import {
 import { FIELD_ENUM_MIRROR } from "../../../supabase/functions/_shared/field-enums.ts";
 import { FIELD_LABELS } from "../../../supabase/functions/_shared/customer-messages.ts";
 import { GRADER_CONTEXT_VERSION } from "../../../supabase/functions/_shared/grader/context.ts";
-import { CYBER_PERFECT } from "../../../supabase/functions/_shared/golden/cppa-cyber.ts";
+import { CYBER_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-cyber.ts";
 import { emptyAskedKeys } from "../../../supabase/functions/_shared/ltp/record-complete.ts";
 import { buildCyberDeliverables } from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cppa-cyber-deliverables/build.ts";
 import {
