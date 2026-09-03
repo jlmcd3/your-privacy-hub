@@ -18,8 +18,8 @@
 // versa) — drift between the two shows up as a score gap between the two
 // admin consoles, which is exactly the bug this file fixes.
 
-import type { LlmFinding } from "./post-filters.ts";
-import { DPIA_ASK_LABELS } from "../ltp/dpia-ask-labels.ts";
+import type { LlmFinding } from "../../../_shared/grader/post-filters.ts";
+import { DPIA_ASK_LABELS } from "../../../_shared/ltp/dpia-ask-labels.ts";
 
 export const SKELETON_CAL_VERSION = "gc-2026-08-28-skeleton-cal-3-item204";
 
