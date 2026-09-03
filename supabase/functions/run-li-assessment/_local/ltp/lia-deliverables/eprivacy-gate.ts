@@ -61,7 +61,7 @@
  * quotes the Directive itself; a registry anchor must be ingested before
  * any pinpoint citation to the Directive can ratify (flagged in PN-L6).
  */
-import { LIA_CORPUS_MAP } from "../../../../_shared/corpus/maps/lia-corpus-map.ts";
+import { LIA_CORPUS_MAP } from "../../corpus/maps/lia-corpus-map.ts";
 import { classifyLiaUseCase, USE_CASE_LABELS } from "../../../../_shared/lia/lia-use-case-classifier.ts";
 import type { EprivacyShortCircuitFinding, EprivacyTriggerBasis } from "./types.ts";
 

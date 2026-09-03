@@ -14,8 +14,8 @@ import {
 } from "../../../supabase/functions/_shared/ltp/dpia-deliverables/build.ts";
 import { assembleDpiaSkeletonDocument } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
 import { boundedClause, splitClauses } from "../../../supabase/functions/_shared/ltp/clause-bound.ts";
-import { DPIA_PERFECT_PINNED } from "../../../supabase/functions/_shared/golden/dpia-perfect-pinned.ts";
-import { DPIA_PERFECT } from "../../../supabase/functions/_shared/golden/dpia.ts";
+import { DPIA_PERFECT_PINNED } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia-perfect-pinned.ts";
+import { DPIA_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia.ts";
 import { checkPerfectDpiaIntake } from "../../../supabase/functions/_shared/quality/perfect-closed-loop.ts";
 
 // deno-lint-ignore no-explicit-any

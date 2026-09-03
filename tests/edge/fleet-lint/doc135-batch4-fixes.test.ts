@@ -96,7 +96,7 @@ Deno.test("doc135 — LIA: a reason already ending in terminal punctuation is no
 // ── CPPA ADMT — pathway-dependent findings now flow through ────────────────
 
 import { computeAdmtV2 } from "../../../supabase/functions/run-admt-checker-v2/_local/ltp/admt-v2-deterministic.ts";
-import { CPPA_ADMT_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-admt.ts";
+import { CPPA_ADMT_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-admt.ts";
 
 Deno.test("doc135 — ADMT: a pathway-dependent record's per-duty findings are no longer suppressed", () => {
   const base = CPPA_ADMT_GOLDEN.find((g) => g.id === "admt-hr-significant-tuning")!.intake as Bag;

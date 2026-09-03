@@ -14,7 +14,7 @@
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { runCoverageMatrix } from "../../../supabase/functions/_shared/ltp/coverage-matrix.ts";
-import { LIA_PERFECT } from "../../../supabase/functions/_shared/golden/lia-perfect.ts";
+import { LIA_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/lia-perfect.ts";
 import { buildLiaDeliverables } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/build.ts";
 import { buildLiaUpgrade4 } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/build-upgrade4.ts";
 import {

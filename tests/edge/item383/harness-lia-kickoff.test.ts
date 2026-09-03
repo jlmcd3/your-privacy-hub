@@ -9,12 +9,12 @@
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { RUN_QUALITY_BATCH_SLUGS } from "../../../supabase/functions/quality-batch-orchestrator/index.ts";
 import { buildSeedRow } from "../../../supabase/functions/quality-batch-orchestrator/_local/quality/seed-row.ts";
-import { intakesForVariant } from "../../../supabase/functions/_shared/golden/registry.ts";
+import { intakesForVariant } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/registry.ts";
 import {
   normalizeToolVariants,
   resolveToolVariant,
 } from "../../../supabase/functions/_shared/quality/fixture-variant.ts";
-import { LIA_PERFECT } from "../../../supabase/functions/_shared/golden/lia-perfect.ts";
+import { LIA_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/lia-perfect.ts";
 
 Deno.test("harness: lia is an accepted batch slug", () => {
   assert(RUN_QUALITY_BATCH_SLUGS.has("lia"));

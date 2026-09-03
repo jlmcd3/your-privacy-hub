@@ -6,7 +6,7 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { checkStructureConformance } from "../../../supabase/functions/_shared/prose/structure-conformance.ts";
 import { attachIrPlaybookDeliverables } from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-playbook-deliverables/build.ts";
-import { IR_PERFECT } from "../../../supabase/functions/_shared/golden/ir-perfect.ts";
+import { IR_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/ir-perfect.ts";
 import { buildStandingPlaybook } from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-playbook-deliverables/standing-playbook.ts";
 import { buildIncidentWorksheet } from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-playbook-deliverables/incident-worksheet.ts";
 import { runIrFinalizeBattery } from "../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-finalize.ts";

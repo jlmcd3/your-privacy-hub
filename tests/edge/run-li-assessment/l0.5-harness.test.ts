@@ -24,7 +24,7 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import { buildLiaDeliverables } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/build.ts";
 import { buildLiaUpgrade4 } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/build-upgrade4.ts";
 import { buildPrecedentClassPosture } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/precedent-class.ts";
-import { LIA_PERFECT_PINNED } from "../../../supabase/functions/_shared/golden/lia-perfect-pinned.ts";
+import { LIA_PERFECT_PINNED } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/lia-perfect-pinned.ts";
 import type { AnalysisShape, DeliverableStatus } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/types.ts";
 
 const VALID_STATUS: readonly DeliverableStatus[] = ["analysed", "record_insufficient"];

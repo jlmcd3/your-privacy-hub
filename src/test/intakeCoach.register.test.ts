@@ -9,8 +9,8 @@ import { buildCoach, COACH_COPY, COACH_MAX_CARDS, isThin, UNANSWERED_CONSEQUENCE
 import { THIN_SPOTS } from "@/lib/intakeCoach/thinSpots";
 import { COACH_CONTRACTS } from "@/lib/intakeCoach/contracts";
 import { INTAKE_COACH_ENABLED } from "@/config/intakeCoach";
-import { DPIA_PERFECT } from "../../supabase/functions/_shared/golden/dpia";
-import { CPPA_RISK_PERFECT } from "../../supabase/functions/_shared/golden/cppa-risk";
+import { DPIA_PERFECT } from "../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia";
+import { CPPA_RISK_PERFECT } from "../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk";
 
 type Fx = { id: string; intake: Record<string, unknown> };
 const perfectDpia = (DPIA_PERFECT as unknown as Fx[])[0];

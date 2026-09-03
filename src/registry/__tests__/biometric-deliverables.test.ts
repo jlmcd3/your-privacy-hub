@@ -41,7 +41,7 @@ import {
   BIO_DISCLOSURE_BASES,
 } from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/biometric-checker";
 import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate";
-import { BIOMETRIC_GOLDEN } from "../../../supabase/functions/_shared/golden/biometric";
+import { BIOMETRIC_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/biometric";
 import {
   BIO_TRI as CLIENT_TRI,
   BIO_NOTICE as CLIENT_NOTICE,

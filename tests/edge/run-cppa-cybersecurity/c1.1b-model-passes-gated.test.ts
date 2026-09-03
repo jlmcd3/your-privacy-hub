@@ -27,7 +27,7 @@ import {
 import { applyCyberBoilerplateGuard } from "../../../supabase/functions/run-cppa-cybersecurity/_w17_cyber_boiler.ts";
 import { applyCyberProseGold } from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cyber-prose-gold.ts";
 import { attachCyberCsc } from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cyber-csc.ts";
-import { CPPA_CYBER_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-cyber.ts";
+import { CPPA_CYBER_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-cyber.ts";
 
 // ── Bug fix pin: independenceUnknown as the SOLE record_insufficient trigger ──
 

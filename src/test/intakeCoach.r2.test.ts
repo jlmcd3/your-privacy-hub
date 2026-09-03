@@ -11,8 +11,8 @@ import { describe, expect, it } from "vitest";
 import { buildCoach, isThin, spotText, weakSubFields } from "@/lib/intakeCoach/buildCoach";
 import { THIN_SPOTS, type ThinSpot } from "@/lib/intakeCoach/thinSpots";
 import { COACH_CONTRACTS } from "@/lib/intakeCoach/contracts";
-import { DPIA_GOLDEN, DPIA_PERFECT } from "../../supabase/functions/_shared/golden/dpia";
-import { CPPA_RISK_GOLDEN, CPPA_RISK_PERFECT } from "../../supabase/functions/_shared/golden/cppa-risk";
+import { DPIA_GOLDEN, DPIA_PERFECT } from "../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia";
+import { CPPA_RISK_GOLDEN, CPPA_RISK_PERFECT } from "../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk";
 
 type Fx = { id: string; intake: Record<string, unknown> };
 const dpiaPerfect = DPIA_PERFECT as unknown as Fx[];

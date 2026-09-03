@@ -14,9 +14,9 @@
 import { describe, it, expect } from "vitest";
 import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate";
 import { cppaRiskContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment";
-import { CPPA_RISK_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-risk";
+import { CPPA_RISK_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk";
 import { CPPA_RISK_CONTRACT_FIXTURES } from "../../../supabase/functions/_shared/cppa-risk-contract-fixtures";
-import { MESSY_BY_TOOL } from "../../../supabase/functions/_shared/golden/messy-registry";
+import { MESSY_BY_TOOL } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/messy-registry";
 
 // ── ITEM 337 (§ OPEN-3 of Item 324) — DERIVED REQUIRED-ALWAYS COVERAGE ──────
 // The list below is a HISTORICAL pin of the eight operands Item 305 added; it

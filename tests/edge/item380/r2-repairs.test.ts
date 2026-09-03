@@ -18,8 +18,8 @@ import {
 import { applyRiskRecordCompleteFraming } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/generate-cppa-risk.ts";
 import { cppaRiskContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts";
 import { dpiaFrameworkContract } from "../../../supabase/functions/_shared/intake-contracts/dpia-framework.ts";
-import { CPPA_RISK_PERFECT } from "../../../supabase/functions/_shared/golden/cppa-risk.ts";
-import { DPIA_PERFECT } from "../../../supabase/functions/_shared/golden/dpia.ts";
+import { CPPA_RISK_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk.ts";
+import { DPIA_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia.ts";
 
 const CLEAN_COVERAGE = { crashed: false, counts: { orphans: 0 } } as never;
 const riskIntake = (CPPA_RISK_PERFECT as readonly { intake: Record<string, unknown> }[])[0].intake;

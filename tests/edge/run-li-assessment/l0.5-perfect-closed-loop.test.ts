@@ -19,7 +19,7 @@ import {
   deficiencyLines,
   PERFECT_LIA_CLOSED_LOOP_VERSION,
 } from "../../../supabase/functions/_tests/quality/perfect-closed-loop-lia.ts";
-import { LIA_PERFECT_PINNED } from "../../../supabase/functions/_shared/golden/lia-perfect-pinned.ts";
+import { LIA_PERFECT_PINNED } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/lia-perfect-pinned.ts";
 
 // deno-lint-ignore no-explicit-any
 function clone(o: unknown): any {

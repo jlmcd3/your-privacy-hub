@@ -84,7 +84,7 @@
 // No row added or removed; every row stays render_eligible: false per the
 // RENDER-READINESS NOTE above (the three-part test is still model-authored).
 
-import type { CorpusMap } from "../cam-types.ts";
+import type { CorpusMap } from "../../../../_shared/corpus/cam-types.ts";
 
 /** LIA's 11-label factor vocabulary (doc 58 §1, ratified as filed via doc
  * 62 §5). This becomes L1's Determination-appendix spine — the appendix

@@ -21,7 +21,7 @@ type Bag = Record<string, unknown>;
 // ── ADMT — pathway-uniformity confirmation sentence ─────────────────────────
 
 import { computeAdmtV2 } from "../../../supabase/functions/run-admt-checker-v2/_local/ltp/admt-v2-deterministic.ts";
-import { CPPA_ADMT_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-admt.ts";
+import { CPPA_ADMT_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-admt.ts";
 
 Deno.test("doc136 — ADMT: pathway-dependent condition asks for pathway-uniformity confirmation", () => {
   const base = CPPA_ADMT_GOLDEN.find((g) => g.id === "admt-hr-significant-tuning")!.intake as Bag;

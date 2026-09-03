@@ -35,7 +35,7 @@ import {
   readinessLine,
   readinessLineForRender,
 } from "../../../supabase/functions/_shared/ltp/governance-readiness.ts";
-import { GOVERNANCE_PERFECT } from "../../../supabase/functions/_shared/golden/governance-perfect.ts";
+import { GOVERNANCE_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/governance-perfect.ts";
 import {
   GOVERNANCE_CRITIC_WATCHLIST,
   GOVERNANCE_WATCH_CLASSES,

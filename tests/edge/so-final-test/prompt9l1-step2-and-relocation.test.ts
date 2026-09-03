@@ -12,8 +12,8 @@ import {
 import { extractionClause, splitClauses } from "../../../supabase/functions/_shared/ltp/clause-bound.ts";
 import { buildDpiaDeliverables, IMPACT_LEXICON, impactSpan } from "../../../supabase/functions/_shared/ltp/dpia-deliverables/build.ts";
 import { DPIA_SKELETON_SECTIONS, DPIA_SKELETON_VERSION } from "../../../supabase/functions/_shared/prose/plans/dpia.spine.ts";
-import { DPIA_PERFECT_PINNED } from "../../../supabase/functions/_shared/golden/dpia-perfect-pinned.ts";
-import { DPIA_PERFECT } from "../../../supabase/functions/_shared/golden/dpia.ts";
+import { DPIA_PERFECT_PINNED } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia-perfect-pinned.ts";
+import { DPIA_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia.ts";
 
 // deno-lint-ignore no-explicit-any
 type Any = any;

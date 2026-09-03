@@ -8,7 +8,7 @@
 // admission rule (dark FC-J rows never leak into the document).
 
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { CPPA_ADMT_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-admt.ts";
+import { CPPA_ADMT_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-admt.ts";
 import { computeAdmtV2 } from "../../../supabase/functions/run-admt-checker-v2/_local/ltp/admt-v2-deterministic.ts";
 import {
   assembleAdmtV2Document,

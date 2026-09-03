@@ -15,7 +15,7 @@
 //   item412d stamp is item412d
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { runCoverageMatrix } from "../../../supabase/functions/_shared/ltp/coverage-matrix.ts";
-import { BIOMETRIC_PERFECT } from "../../../supabase/functions/_shared/golden/biometric-perfect.ts";
+import { BIOMETRIC_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/biometric-perfect.ts";
 import { buildBiometricDeliverables } from "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-deliverables/build.ts";
 import { BIOMETRIC_PIPELINE_STAMP } from "../../../supabase/functions/check-biometric-compliance/_local/prose/plans/biometric.spine.ts";
 

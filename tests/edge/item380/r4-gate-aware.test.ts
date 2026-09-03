@@ -18,7 +18,7 @@ import {
   RECORD_COMPLETE_VERSION,
 } from "../../../supabase/functions/_shared/ltp/record-complete.ts";
 import { RISK_PIPELINE_STAMP } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/risk-stamp.ts";
-import { DPIA_PERFECT } from "../../../supabase/functions/_shared/golden/dpia.ts";
+import { DPIA_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia.ts";
 
 const intake = {
   ...((DPIA_PERFECT as readonly { intake: Record<string, unknown> }[])[0].intake),

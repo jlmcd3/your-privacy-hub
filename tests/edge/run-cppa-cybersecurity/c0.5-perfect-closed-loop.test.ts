@@ -17,7 +17,7 @@ import {
   deficiencyLines,
   PERFECT_CPPA_CYBER_CLOSED_LOOP_VERSION,
 } from "../../../supabase/functions/_tests/quality/perfect-closed-loop-cyber.ts";
-import { CYBER_PERFECT } from "../../../supabase/functions/_shared/golden/cppa-cyber.ts";
+import { CYBER_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-cyber.ts";
 import { buildCyberDeliverables } from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cppa-cyber-deliverables/build.ts";
 
 // Reference intake for negative/deficiency tests (always index 0).

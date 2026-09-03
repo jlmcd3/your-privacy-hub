@@ -16,7 +16,7 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import { runAdmtCsc } from "../../../supabase/functions/run-admt-checker/_local/ltp/admt-csc.ts";
 import { runCoverageMatrix } from "../../../supabase/functions/_shared/ltp/coverage-matrix.ts";
 import { FALSE_ABSENCE_CHECK_IDS } from "../../../supabase/functions/_shared/ltp/record-complete.ts";
-import { ADMT_PERFECT } from "../../../supabase/functions/_shared/golden/cppa-admt.ts";
+import { ADMT_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-admt.ts";
 
 const ABSENT = "The record is silent here, and the question is carried forward.";
 

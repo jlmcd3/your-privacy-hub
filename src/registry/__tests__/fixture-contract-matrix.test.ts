@@ -19,8 +19,8 @@
 import { describe, it, expect } from "vitest";
 import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate";
 import { CONTRACT_BY_TOOL } from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/registry";
-import { GOLDEN_BY_TOOL } from "../../../supabase/functions/_shared/golden/registry";
-import { MESSY_BY_TOOL } from "../../../supabase/functions/_shared/golden/messy-registry";
+import { GOLDEN_BY_TOOL } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/registry";
+import { MESSY_BY_TOOL } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/messy-registry";
 import { CPPA_RISK_CONTRACT_FIXTURES } from "../../../supabase/functions/_shared/cppa-risk-contract-fixtures";
 
 type Variant = "perfect" | "messy";

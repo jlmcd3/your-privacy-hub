@@ -6,7 +6,7 @@
 // posture tests below pin exactly which planes each product has opened.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { mapInvariants } from "../../../supabase/functions/_shared/corpus/cam-verify.ts";
+import { mapInvariants } from "../../../archive/unwired/_shared/corpus/cam-verify.ts";
 import type { CamRow, CorpusMap } from "../../../supabase/functions/_shared/corpus/cam-types.ts";
 import { RISK_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/risk-corpus-map.ts";
 import { ADMT_CORPUS_MAP } from "../../../supabase/functions/run-admt-checker-v2/_local/corpus/maps/admt-corpus-map.ts";
@@ -15,8 +15,8 @@ import {
   CYBER_CORPUS_MAP,
   CYBER_PROCEDURAL_FACTORS,
 } from "../../../supabase/functions/run-cppa-cybersecurity/_local/corpus/maps/cyber-corpus-map.ts";
-import { LIA_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/lia-corpus-map.ts";
-import { NOTICES_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/notices-corpus-map.ts";
+import { LIA_CORPUS_MAP } from "../../../supabase/functions/run-li-assessment/_local/corpus/maps/lia-corpus-map.ts";
+import { NOTICES_CORPUS_MAP } from "../../../archive/unwired/_shared/corpus/maps/notices-corpus-map.ts";
 
 // All maps landed so far.
 const MAPS: readonly CorpusMap[] = [
@@ -229,8 +229,7 @@ Deno.test("notices: groundwork-audit posture — 13 AQ rows, all dark (no s2_rat
 });
 
 Deno.test("LIA_CORPUS_MAP: every factor_id matches the ratified LIA_FACTOR_VOCABULARY (doc 58 §1)", async () => {
-  const { LIA_FACTOR_VOCABULARY } = await import(
-    "../../../supabase/functions/_shared/corpus/maps/lia-corpus-map.ts"
+  const { LIA_FACTOR_VOCABULARY } = await import("../../../supabase/functions/run-li-assessment/_local/corpus/maps/lia-corpus-map.ts"
   );
   const vocab = new Set<string>(LIA_FACTOR_VOCABULARY);
   for (const row of LIA_CORPUS_MAP.rows) {

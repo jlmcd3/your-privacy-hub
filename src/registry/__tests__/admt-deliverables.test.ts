@@ -235,7 +235,7 @@ describe("cppa-admt deliverables — determination separation", () => {
 // path it exists to avoid).
 import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";
 import { cppaAdmtContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-admt.ts";
-import { CPPA_ADMT_GOLDEN } from "../../../supabase/functions/_shared/golden/cppa-admt.ts";
+import { CPPA_ADMT_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-admt.ts";
 
 describe("ITEM 309 — cppa-admt golden fixtures clear the batch's own validator", () => {
   it("every CPPA_ADMT_GOLDEN intake validates against cppaAdmtContract", () => {

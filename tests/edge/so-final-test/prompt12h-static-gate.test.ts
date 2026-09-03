@@ -14,7 +14,7 @@ import {
   resolvePinsMode,
 } from "../../../supabase/functions/quality-batch-orchestrator/_local/quality/pins-mode.ts";
 import { planPinnedOnly } from "../../../supabase/functions/quality-batch-orchestrator/_local/quality/pinned-only.shared.ts";
-import { casesForVariant, goldenIntakes, intakesForVariant } from "../../../supabase/functions/_shared/golden/registry.ts";
+import { casesForVariant, goldenIntakes, intakesForVariant } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/registry.ts";
 
 const HERE = dirname(fromFileUrl(import.meta.url));
 function repoRoot(start: string): string {

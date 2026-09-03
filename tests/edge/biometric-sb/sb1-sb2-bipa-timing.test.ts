@@ -14,7 +14,7 @@
 import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { buildBiometricDeliverables } from "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-deliverables/build.ts";
 import { assembleBiometricSkeletonDocument } from "../../../supabase/functions/check-biometric-compliance/_local/ltp/biometric-skeleton-assemble.ts";
-import { BIOMETRIC_PERFECT } from "../../../supabase/functions/_shared/golden/biometric-perfect.ts";
+import { BIOMETRIC_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/biometric-perfect.ts";
 
 type Bag = Record<string, unknown>;
 

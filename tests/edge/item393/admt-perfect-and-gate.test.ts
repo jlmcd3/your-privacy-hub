@@ -1,14 +1,14 @@
 // ITEM 393 LEG B — ADMT perfect fixture, registry/variant wiring, harness
 // kickoff, fail-closed gate shape, output neutrality, serializer survival.
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { ADMT_PERFECT } from "../../../supabase/functions/_shared/golden/cppa-admt.ts";
+import { ADMT_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-admt.ts";
 import {
   PERFECT_BY_TOOL,
   casesForVariant,
   intakesForVariant,
   GOLDEN_BY_TOOL,
-} from "../../../supabase/functions/_shared/golden/registry.ts";
-import { MESSY_BY_TOOL } from "../../../supabase/functions/_shared/golden/messy-registry.ts";
+} from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/registry.ts";
+import { MESSY_BY_TOOL } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/messy-registry.ts";
 import { cppaAdmtContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-admt.ts";
 import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";
 import {

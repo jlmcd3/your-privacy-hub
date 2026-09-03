@@ -16,7 +16,7 @@
 // See supabase/functions/_shared/grader/deterministic-qa.ts for the fixes.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { runDeterministicQa } from "../../../../supabase/functions/_shared/grader/deterministic-qa.ts";
+import { runDeterministicQa } from "../../../../supabase/functions/grade-single-assessment/_local/grader/deterministic-qa.ts";
 
 function docWithText(text: string) {
   return {

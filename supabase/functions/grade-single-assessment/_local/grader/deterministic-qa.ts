@@ -18,7 +18,7 @@
 // alongside the model findings with classification "customer_visible_defect"
 // and never gate or replace the model call.
 
-import { extractCustomerDocument } from "./payload.ts";
+import { extractCustomerDocument } from "../../../_shared/grader/payload.ts";
 
 export interface DeterministicQaFinding {
   readonly check_id: string;

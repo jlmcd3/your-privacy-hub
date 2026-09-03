@@ -6,14 +6,14 @@
 // serializer survival, and live call-site parity.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { GOVERNANCE_PERFECT } from "../../../supabase/functions/_shared/golden/governance-perfect.ts";
+import { GOVERNANCE_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/governance-perfect.ts";
 import {
   casesForVariant,
   GOLDEN_BY_TOOL,
   intakesForVariant,
   PERFECT_BY_TOOL,
-} from "../../../supabase/functions/_shared/golden/registry.ts";
-import { MESSY_BY_TOOL } from "../../../supabase/functions/_shared/golden/messy-registry.ts";
+} from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/registry.ts";
+import { MESSY_BY_TOOL } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/messy-registry.ts";
 import { RUN_QUALITY_BATCH_SLUGS } from "../../../supabase/functions/quality-batch-orchestrator/index.ts";
 import {
   normalizeToolVariants,

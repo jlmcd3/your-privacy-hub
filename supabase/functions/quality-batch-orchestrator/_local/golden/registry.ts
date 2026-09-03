@@ -45,7 +45,11 @@ export function goldenIntakes(tool: string): unknown[] {
  * run-quality-batch and grade-single-assessment to thread the label into
  * the grader payload header.
  */
-export function matchFixtureSet(tool: string, intake: unknown): string | null {
+// FIXTURE-LABEL LAW — the same byte-equality lookup as matchFixtureSet,
+// returning the case id alongside the set so the orchestrator can persist
+// BOTH onto the seed row. run-quality-batch and grade-single-assessment read
+// those persisted labels instead of importing this registry.
+export function matchFixtureCase(tool: string, intake: unknown): { set: string; id: string } | null {
   const cases = GOLDEN_BY_TOOL[tool] ?? [];
   if (!cases.length || intake == null) return null;
   let needle = "";
@@ -53,9 +57,13 @@ export function matchFixtureSet(tool: string, intake: unknown): string | null {
   for (const c of cases) {
     let hay = "";
     try { hay = JSON.stringify(c.intake); } catch { continue; }
-    if (hay === needle) return c.set;
+    if (hay === needle) return { set: c.set, id: c.id };
   }
   return null;
+}
+
+export function matchFixtureSet(tool: string, intake: unknown): string | null {
+  return matchFixtureCase(tool, intake)?.set ?? null;
 }
 
 // ─── ITEM 325 — variant-aware pin resolution ────────────────────────────────
@@ -74,7 +82,7 @@ export function matchFixtureSet(tool: string, intake: unknown): string | null {
 //
 // variant === null remains the legacy, unlabelled path: GOLDEN_BY_TOOL.
 
-import type { FixtureVariant } from "../quality/fixture-variant.ts";
+import type { FixtureVariant } from "../../../_shared/quality/fixture-variant.ts";
 import { MESSY_BY_TOOL } from "./messy-registry.ts";
 import { DPIA_PERFECT } from "./dpia.ts";
 import { CPPA_RISK_PERFECT } from "./cppa-risk.ts";
