@@ -106,6 +106,10 @@ export default function AdminSampleReports() {
   const [busy, setBusy] = useState<string | null>(null);
   const [runningAll, setRunningAll] = useState(false);
   const cancelAll = useRef(false);
+  const missingPreviews = useMemo(
+    () => samples.filter((s) => s.status === "published" && !s.preview_built_at).length,
+    [samples],
+  );
 
   const samplesByKey = useMemo(() => {
     const m: Record<string, SampleRow> = {};
