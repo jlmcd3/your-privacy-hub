@@ -1,41 +1,34 @@
 // DOC 166 (2026-09-04) — presentation-only helpers over a raw per-activity
 // answer bag (the shape `ropa_answers` rows collapse into, keyed by
-// `question_key`, BEFORE `buildRopaAssembleInput` in
-// generate-ropa-document/index.ts converts it to the typed
-// `RopaActivityInput` the register assembler consumes). Split out so these
-// are safely importable from a test — index.ts calls `Deno.serve(...)` at
-// module scope, so importing it directly (rather than reading its source as
-// text) would start an HTTP listener.
+// `question_key`), shared by the HTML, DOCX and XLSX activity tables so the
+// three formats cannot drift. Importable from a test — index.ts calls
+// `Deno.serve(...)` at module scope, so importing it directly would start an
+// HTTP listener.
+//
+// DOC 168 (2026-09-04) — reads the transfer facts through the ONE resolver
+// (`resolveTransfer` in assemble-input.ts) so this row, register cell (e) and
+// the cross-border table all describe the same state; mechanism option codes
+// render as reader labels.
 
-function answerToString(value: unknown): string {
-  if (value === null || value === undefined) return "—";
-  if (Array.isArray(value)) {
-    return value.length === 0 ? "—" : value.map((v) => answerToString(v)).join(", ");
-  }
-  if (typeof value === "object") return JSON.stringify(value);
-  if (value === "") return "—";
-  return String(value);
-}
+import { resolveTransfer } from "./assemble-input.ts";
+
+type Bag = Record<string, unknown>;
 
 /**
- * The per-activity "Cross-border transfers" cell (HTML and DOCX). Before
- * this doc it read `transfer_destination ?? "None"` and appended
- * `(${transfer_mechanism})` whenever a mechanism was answered, with no check
- * that a destination was ALSO recorded — and no question ever asked for one
- * (see the THIRD_PARTY_TRANSFERS intake fix in
- * src/data/ropa-questions/index.ts), so every activity that answered the
- * transfer-mechanism question rendered the self-contradictory "None (sccs)":
- * a stated mechanism beside an asserted absence of any transfer. New records
- * ask for the destination directly; this stays defensive for records
- * answered before the fix landed. One resolver, consumed by both the HTML
- * and DOCX per-activity cells so they cannot diverge again.
+ * The per-activity "Cross-border transfers" row. Honest in every state:
+ *   - the Company recorded that no transfer takes place  → says so;
+ *   - neither destination nor mechanism recorded         → "None recorded";
+ *   - destination only                                   → the destination;
+ *   - destination + mechanism                            → "dest (mechanism)";
+ *   - mechanism only (Art. 30(1)(e) gap)                 → "Destination not recorded (mechanism stated: …)".
+ * Before doc 166 this cell read `transfer_destination ?? "None"` and appended
+ * the mechanism whenever one was answered, so every legacy record rendered
+ * the self-contradictory "None (sccs)".
  */
-export function transferDisplayForActivity(ans: Record<string, unknown>): string {
-  const destStr = answerToString(ans.transfer_destination);
-  const hasDest = destStr !== "—";
-  const mechStr = answerToString(ans.transfer_mechanism);
-  const hasMech = mechStr !== "—";
-  if (!hasDest && !hasMech) return "None recorded";
-  if (!hasDest) return `Destination not recorded (mechanism stated: ${mechStr})`;
-  return hasMech ? `${destStr} (${mechStr})` : destStr;
+export function transferDisplayForActivity(ans: Bag): string {
+  const t = resolveTransfer(ans);
+  if (t.declaredNone) return "None — the Company records no transfer to a third country or international organisation";
+  if (!t.destination && !t.mechanism) return "None recorded";
+  if (!t.destination) return `Destination not recorded (mechanism stated: ${t.mechanism})`;
+  return t.mechanism ? `${t.destination} (${t.mechanism})` : t.destination;
 }

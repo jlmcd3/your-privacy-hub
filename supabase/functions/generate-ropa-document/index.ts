@@ -28,6 +28,21 @@ import {
   BorderStyle,
 } from "https://esm.sh/docx@9.6.1";
 import * as XLSX from "https://esm.sh/xlsx@0.18.5";
+// DOC 168 (2026-09-04) — the answers → register mapping and its label
+// helpers live in an importable module so tests can drive the full pipeline.
+import {
+  answerDisplayFor,
+  answerToString,
+  buildRopaAssembleInput,
+  collectTransfers,
+  humanize,
+  lawfulBasisLabel,
+  lawLabelShort,
+  processingOperationsLabel,
+  recipientsDisplay,
+  resolveTransfer,
+  retentionByCategory,
+} from "./register/assemble-input.ts";
 
 // Machine-checkable manifest of statutory assertions carried by the hardcoded
 // templates below. lint-deterministic-legal-text resolves each `citation`
@@ -146,16 +161,6 @@ function escapeHtml(value: unknown): string {
     .replace(/'/g, "&#39;");
 }
 
-function answerToString(value: unknown): string {
-  if (value === null || value === undefined) return "—";
-  if (Array.isArray(value)) {
-    return value.length === 0 ? "—" : value.map((v) => answerToString(v)).join(", ");
-  }
-  if (typeof value === "object") return JSON.stringify(value);
-  if (value === "" ) return "—";
-  return String(value);
-}
-
 const LAW_NAMES: Record<string, string> = {
   EU_GDPR: "EU General Data Protection Regulation (Regulation 2016/679)",
   UK_GDPR: "UK GDPR / Data Protection Act 2018",
@@ -173,18 +178,6 @@ const LAW_NAMES: Record<string, string> = {
   JP_APPI: "Japan Act on the Protection of Personal Information (APPI)",
   KR_PIPA: "South Korea Personal Information Protection Act (PIPA)",
 };
-
-const LAW_NAMES_SHORT: Record<string, string> = {
-  EU_GDPR: "EU GDPR", UK_GDPR: "UK GDPR", CH_FADP: "Swiss FADP",
-  US_CCPA: "CCPA/CPRA", US_VA: "VCDPA", US_CO: "CPA", US_CT: "CTDPA", US_TX: "TDPSA",
-  BR_LGPD: "LGPD", CA_PIPEDA: "PIPEDA", AU_PRIVACY: "AU Privacy Act",
-  SG_PDPA: "SG PDPA", IN_DPDP: "DPDP", JP_APPI: "APPI", KR_PIPA: "PIPA",
-};
-
-function humanize(token: string): string {
-  if (!token) return "—";
-  return token.replace(/_/g, " ");
-}
 
 const EU_EEA_MEMBER_STATE_NAMES: Record<string, string> = {
   AT: "Austria",  BE: "Belgium",  BG: "Bulgaria",  HR: "Croatia",
@@ -206,21 +199,9 @@ function lawLabel(j: string): string {
   }
   return humanize(j);
 }
-function lawLabelShort(j: string): string {
-  return LAW_NAMES_SHORT[j] ?? humanize(j);
-}
 function jurisdictionList(arr: string[], short = false): string {
   return (arr || []).map((j) => short ? lawLabelShort(j) : lawLabel(j)).join(", ");
 }
-
-const LAWFUL_BASIS_LABELS: Record<string, string> = {
-  consent: "Consent — Art. 6(1)(a)",
-  contract: "Contract — Art. 6(1)(b)",
-  legal_obligation: "Legal obligation — Art. 6(1)(c)",
-  vital_interests: "Vital interests — Art. 6(1)(d)",
-  public_task: "Public task — Art. 6(1)(e)",
-  legitimate_interests: "Legitimate interests — Art. 6(1)(f)",
-};
 
 const CATEGORY_LABELS: Record<string, string> = {
   customer_service:  "Customer Service",
@@ -235,11 +216,6 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 function categoryLabel(code: string): string {
   return CATEGORY_LABELS[code] ?? humanize(code);
-}
-
-function lawfulBasisLabel(value: unknown): string {
-  const v = answerToString(value);
-  return LAWFUL_BASIS_LABELS[v] ?? v;
 }
 
 // S-P1 — module-level string reader for answer values (the builder-local str() is out of scope here).
@@ -285,6 +261,8 @@ const QUESTION_LABELS: Record<string, string> = {
   transfer_country: "Transfer country",
   cross_border_destination: "Cross-border destination",
   transfer_mechanism: "Transfer mechanism",
+  transfers_third_country: "Transfer to a third country or international organisation",
+  transfer_international_org: "International organisation (transfer recipient)",
   transfer_safeguard: "Transfer safeguard",
   transfer_basis: "Transfer basis",
   transfer_lawful_basis: "Transfer lawful basis",
@@ -292,6 +270,8 @@ const QUESTION_LABELS: Record<string, string> = {
   security_measures: "Security measures",
   access_controls: "Access controls",
   uses_processors: "Uses third-party processors",
+  recipient_categories: "Categories of recipients",
+  processing_regularity: "Processing regularity",
   unsubscribe_mechanism: "Unsubscribe mechanism",
   incident_log: "Breach / incident register",
   notices_displayed: "Surveillance notices displayed",
@@ -377,33 +357,6 @@ function readDocumentSettings(body: RequestBody): DocumentSettings {
   };
 }
 
-// Art. 4(2) GDPR operations taxonomy — value → register label. Mirrors
-// PROCESSING_OPERATION_OPTIONS in src/data/ropa-questions/index.ts.
-const PROCESSING_OPERATION_LABELS: Record<string, string> = {
-  collection: "Collection",
-  recording: "Recording",
-  organisation: "Organisation",
-  structuring: "Structuring",
-  storage: "Storage",
-  adaptation: "Adaptation or alteration",
-  retrieval: "Retrieval",
-  consultation: "Consultation",
-  use: "Use",
-  disclosure_transmission: "Disclosure by transmission",
-  dissemination: "Dissemination",
-  combination: "Combination",
-  restriction: "Restriction",
-  erasure: "Erasure or destruction",
-};
-
-function processingOperationsLabel(value: unknown): string {
-  const list = Array.isArray(value) ? value : value ? [value] : [];
-  if (list.length === 0) return "—";
-  return list
-    .map((v) => PROCESSING_OPERATION_LABELS[String(v)] ?? answerToString(v))
-    .join(", ");
-}
-
 function relatedAssessmentsLabel(value: unknown): string {
   const list = Array.isArray(value) ? value.filter(Boolean) : value ? [value] : [];
   if (list.length === 0) return "None on file";
@@ -420,16 +373,6 @@ function rightsHandlingLabel(
   const base = answerToString(profile?.rights_handling_process);
   return base;
 }
-
-// Optional retention-by-category breakdown: renders only when the
-// "retention varies by category" follow-up has actually been answered.
-function retentionByCategory(ans: Record<string, unknown>): string | null {
-  const varies = answerToString(ans.retention_varies_by_category).toLowerCase();
-  if (varies !== "yes") return null;
-  const detail = answerToString(ans.retention_by_category);
-  return detail === "—" ? null : detail;
-}
-
 
 function resolveFormatsToGenerate(body: RequestBody): Format[] {
   if (body.format) return [body.format];
@@ -458,50 +401,6 @@ interface AssembledData {
   register: RopaRegisterDocument;
 }
 
-interface CrossBorderTransfer {
-  activity: string;
-  data: string;
-  destination: string;
-  mechanism: string;
-  basis: string;
-}
-
-function collectTransfers(d: AssembledData): CrossBorderTransfer[] {
-  const out: CrossBorderTransfer[] = [];
-  for (const a of d.activities) {
-    const ans = d.answersByActivity[a.id] ?? {};
-    const destination =
-      ans["transfer_destination"] ??
-      ans["transfer_country"] ??
-      ans["cross_border_destination"];
-    if (!destination) continue;
-    const destStr = answerToString(destination);
-    if (/no\s+third[- ]country\s+transfer/i.test(destStr) || /^none$/i.test(destStr.trim())) continue;
-    const mechanism =
-      ans["transfer_mechanism"] ??
-      ans["transfer_safeguard"] ??
-      "Not specified";
-    const explicitBasis =
-      ans["transfer_basis"] ?? ans["transfer_lawful_basis"];
-    const mechanismStr = answerToString(mechanism);
-    const basisStr = explicitBasis
-      ? answerToString(explicitBasis)
-      : (mechanismStr && mechanismStr !== "—" && mechanismStr !== "Not specified"
-          ? mechanismStr
-          : "Not recorded — complete before relying on this register");
-    const data =
-      ans["data_categories"] ?? ans["personal_data_types"] ?? "—";
-    out.push({
-      activity: a.display_name,
-      data: answerToString(data),
-      destination: destStr,
-      mechanism: mechanismStr,
-      basis: basisStr,
-    });
-  }
-  return out;
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // SO-10 — THE BYTE-PINNED REGISTER (one assembly, three formats)
 //
@@ -509,87 +408,12 @@ function collectTransfers(d: AssembledData): CrossBorderTransfer[] {
 // PDF (HTML), the DOCX and the XLSX all render the SAME assembled object, so
 // the three formats cannot drift. The assembled object is persisted on
 // `ropa_sessions.register_document`, which is what /ropa/documents reads.
+//
+// DOC 168 (2026-09-04) — the answers → RopaAssembleInput mapping
+// (`buildRopaAssembleInput`), the cross-border transfer collector and the
+// label helpers now live in ./register/assemble-input.ts so a test can drive
+// the full pipeline; this module only renders.
 // ─────────────────────────────────────────────────────────────────────────────
-
-function buildRopaAssembleInput(d: AssembledData): RopaAssembleInput {
-  const p = d.profile ?? {};
-  const activities: RopaActivityInput[] = (d.activities ?? []).map((a: any) => {
-    const ans = d.answersByActivity[a.id] ?? {};
-    const str = (v: unknown) => {
-      const t = answerToString(v);
-      return t === "—" ? "" : t;
-    };
-    const related = Array.isArray(ans.related_assessments)
-      ? (ans.related_assessments as unknown[]).map((v) => answerToString(v)).filter((v) => v && v !== "—")
-      : str(ans.related_assessments)
-        ? [str(ans.related_assessments)]
-        : [];
-    return {
-      id: String(a.id),
-      name: String(a.display_name ?? ""),
-      // DOC 166 (2026-09-04) — lets the completeness composer know which
-      // per-template questions this activity's own form could ever surface
-      // (see NOTICES_DISPLAYED_TEMPLATES / INCIDENT_LOG_TEMPLATES in
-      // ropa-skeleton-assemble.ts). Not used for any legal determination.
-      templateKey: String(a.template_key ?? ""),
-      owner: str(ans.activity_owner),
-      purpose: str(ans.purpose),
-      // S-P1 (doc 80, 2026-08-27) — per-activity role. An explicit answer
-      // wins; legacy records fall back to the org-level flags (processor
-      // only when the profile is processor-and-not-controller, matching the
-      // pre-S-P1 footer logic exactly).
-      activityRole: str(ans.activity_role) ||
-        (p?.is_processor === true && p?.is_controller !== true ? "processor" : "controller"),
-      actingFor: str(ans.acting_for_controller),
-      lawfulBasis: ans.lawful_basis ? lawfulBasisLabel(ans.lawful_basis) : "",
-      dataSubjects: str(ans.data_subjects),
-      dataCategories: str(ans.data_categories ?? ans.personal_data_types),
-      collectionSources: str(ans.collection_sources),
-      processingOperations: ans.processing_operations
-        ? processingOperationsLabel(ans.processing_operations)
-        : "",
-      recipients: str(ans.processor_platform ?? ans.recipients),
-      retention: str(ans.retention_period),
-      retentionByCategory: retentionByCategory(ans),
-      security: str(ans.security_measures),
-      // INTAKE-2 rule: the two-part access-controls question is ONE recorded
-      // answer and renders as one fact, never as two.
-      accessControls: str(ans.access_controls),
-      transferDestination: str(
-        ans.transfer_destination ?? ans.transfer_country ?? ans.cross_border_destination,
-      ),
-      transferMechanism: str(ans.transfer_mechanism ?? ans.transfer_safeguard),
-      transferBasis: str(ans.transfer_basis ?? ans.transfer_lawful_basis),
-      rightsHandling: str(p?.rights_handling_process),
-      rightsOverride: str(ans.rights_handling_override),
-      relatedAssessments: related,
-      noticesDisplayed: str(ans.notices_displayed),
-      incidentLog: str(ans.incident_log),
-    };
-  });
-
-  return {
-    organisationName: String(d.client?.name ?? ""),
-    legalEntityType: String(p?.legal_entity_type ?? ""),
-    incorporationJurisdiction: String(p?.incorporation_jurisdiction ?? ""),
-    registrationNumber: String(p?.registration_number ?? ""),
-    registeredAddress: String(p?.registered_address ?? ""),
-    isController: p?.is_controller === true,
-    isProcessor: p?.is_processor === true,
-    dpoName: String(p?.dpo_name ?? ""),
-    dpoEmail: String(p?.dpo_email ?? ""),
-    dpoPhone: String(p?.dpo_phone ?? ""),
-    euRepName: String(p?.eu_rep_name ?? ""),
-    euRepEmail: String(p?.eu_rep_email ?? ""),
-    ukRepName: String(p?.uk_rep_name ?? ""),
-    ukRepEmail: String(p?.uk_rep_email ?? ""),
-    homeBase: String(p?.home_base ?? ""),
-    employeeBand: String(p?.employee_band ?? ""),
-    jurisdictionCodes: d.jurisdictions,
-    jurisdictionLabels: d.jurisdictions.map((j) => lawLabelShort(j)),
-    activities,
-  };
-}
 
 // ── Register renderers (shared by all three formats) ────────────────────────
 
@@ -736,14 +560,15 @@ function buildHtml(d: AssembledData): string {
               <tr><th>Activity owner</th><td>${escapeHtml(answerToString(ans.activity_owner))}</td></tr>
               <tr><th>Purpose</th><td>${escapeHtml(answerToString(ans.purpose))}</td></tr>
               <tr><th>Lawful basis</th><td>${escapeHtml(lawfulBasisLabel(ans.lawful_basis))}</td></tr>
-              <tr><th>Special category basis</th><td>${escapeHtml(answerToString(ans.special_category_basis))}</td></tr>`;
+              <tr><th>Special category basis</th><td>${escapeHtml(answerDisplayFor("special_category_basis", ans.special_category_basis))}</td></tr>`;
           })()}
               <tr><th>Data subjects</th><td>${escapeHtml(answerToString(ans.data_subjects))}</td></tr>
               <tr><th>Data categories</th><td>${escapeHtml(answerToString(ans.data_categories))}</td></tr>
               <tr><th>Collection sources</th><td>${escapeHtml(answerToString(ans.collection_sources))}</td></tr>
               <tr><th>Processing operations performed</th><td>${escapeHtml(processingOperationsLabel(ans.processing_operations))}</td></tr>
-              <tr><th>Processors / recipients</th><td>${escapeHtml(answerToString(ans.processor_platform ?? ans.recipients))}</td></tr>
+              <tr><th>Processors / recipients</th><td>${escapeHtml(recipientsDisplay(ans) || "—")}</td></tr>
               <tr><th>Cross-border transfers</th><td>${escapeHtml(transferDisplayForActivity(ans))}</td></tr>
+              <tr><th>Processing regularity</th><td>${escapeHtml(answerDisplayFor("processing_regularity", ans.processing_regularity))}</td></tr>
               <tr><th>Retention period</th><td>${escapeHtml(answerToString(ans.retention_period))}</td></tr>
               ${(() => {
                 const byCat = retentionByCategory(ans);
@@ -776,9 +601,7 @@ function buildHtml(d: AssembledData): string {
       const rows = Object.entries(ans)
         .filter(([key]) => !skip.has(key))
         .map(([key, value]) => {
-          const display = key === "lawful_basis"
-            ? lawfulBasisLabel(value)
-            : answerToString(value);
+          const display = answerDisplayFor(key, value);
           return `
           <tr>
             <th>${escapeHtml(questionLabel(key))}</th>
@@ -1106,7 +929,7 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
           kvRow("Activity owner", answerToString(ans.activity_owner)),
           kvRow("Purpose", answerToString(ans.purpose)),
           kvRow("Lawful basis", lawfulBasisLabel(ans.lawful_basis)),
-          kvRow("Special category basis", answerToString(ans.special_category_basis)),
+          kvRow("Special category basis", answerDisplayFor("special_category_basis", ans.special_category_basis)),
           kvRow("Data subjects", answerToString(ans.data_subjects)),
           kvRow("Data categories", answerToString(ans.data_categories)),
           kvRow("Collection sources", answerToString(ans.collection_sources)),
@@ -1116,12 +939,13 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
           ),
           kvRow(
             "Processors / recipients",
-            answerToString(ans.processor_platform ?? ans.recipients),
+            recipientsDisplay(ans) || "—",
           ),
           kvRow(
             "Cross-border transfers",
             transferDisplayForActivity(ans),
           ),
+          kvRow("Processing regularity", answerDisplayFor("processing_regularity", ans.processing_regularity)),
           kvRow("Retention period", answerToString(ans.retention_period)),
           ...(retentionByCategory(ans)
             ? [kvRow("Retention by data category", retentionByCategory(ans) as string)]
@@ -1147,7 +971,7 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
     allAnswerBlocks.push(
       new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
-        rows: entries.map(([key, value]) => kvRow(questionLabel(key), answerToString(value))),
+        rows: entries.map(([key, value]) => kvRow(questionLabel(key), answerDisplayFor(key, value))),
       }),
     );
     allAnswerBlocks.push(p(""));
@@ -1326,6 +1150,7 @@ function buildXlsx(d: AssembledData): Uint8Array {
     "Processors / recipients",
     "Transfer destination",
     "Transfer mechanism",
+    "Processing regularity",
     "Retention",
     "Retention by data category",
     "Rights-handling process",
@@ -1336,6 +1161,9 @@ function buildXlsx(d: AssembledData): Uint8Array {
   ];
   const activityRows = d.activities.map((a) => {
     const ans = d.answersByActivity[a.id] ?? {};
+    // DOC 168 — the same transfer resolver the register cell and the HTML/DOCX
+    // rows read; a recorded "no transfer" is a fact, not an empty cell.
+    const transfer = resolveTransfer(ans);
     return [
       a.display_name,
       activityRole(ans, d.profile),
@@ -1347,14 +1175,15 @@ function buildXlsx(d: AssembledData): Uint8Array {
       answerToString(ans.purpose),
       // S-P1 — Art. 30(2) requires no processor-own basis.
       isProcessorActivity(ans, d.profile) ? "n/a — processor (Art. 30(2))" : lawfulBasisLabel(ans.lawful_basis),
-      answerToString(ans.special_category_basis),
+      answerDisplayFor("special_category_basis", ans.special_category_basis),
       answerToString(ans.data_subjects),
       answerToString(ans.data_categories),
       answerToString(ans.collection_sources),
       processingOperationsLabel(ans.processing_operations),
-      answerToString(ans.processor_platform ?? ans.recipients),
-      answerToString(ans.transfer_destination ?? "None"),
-      answerToString(ans.transfer_mechanism),
+      recipientsDisplay(ans) || "—",
+      transfer.declaredNone ? "None — no third-country transfer recorded by the Company" : (transfer.destination || "—"),
+      transfer.declaredNone ? "—" : (transfer.mechanism || "—"),
+      answerDisplayFor("processing_regularity", ans.processing_regularity),
       answerToString(ans.retention_period),
       retentionByCategory(ans) ?? "—",
       rightsHandlingLabel(ans, d.profile),
@@ -1374,7 +1203,7 @@ function buildXlsx(d: AssembledData): Uint8Array {
       const ans = d.answersByActivity[a.id] ?? {};
       return Object.entries(ans)
         .filter(([key]) => key !== "info_card")
-        .map(([key, value]) => [a.display_name, key, questionLabel(key), answerToString(value)]);
+        .map(([key, value]) => [a.display_name, key, questionLabel(key), answerDisplayFor(key, value)]);
     }),
   ]);
   XLSX.utils.book_append_sheet(wb, answerSheet, "All answers");

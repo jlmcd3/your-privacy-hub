@@ -832,6 +832,19 @@ function QuestionInput({
 
     case "multi_choice": {
       const selected = Array.isArray(v) ? (v as string[]) : [];
+      // DOC 168 (2026-09-04) — a closed list too long for a button grid (the
+      // transfer-destination country list) renders as a filterable checklist
+      // instead; the stored value shape (array of option values) is unchanged.
+      if ((question.options ?? []).length > 16) {
+        return (
+          <LargeMultiSelect
+            questionKey={question.key}
+            options={question.options ?? []}
+            selected={selected}
+            onChange={onChange}
+          />
+        );
+      }
       return (
         <div role="group" aria-labelledby={`q-${question.key}`} className="grid sm:grid-cols-2 gap-2">
           {(question.options ?? []).map((opt) => {
@@ -843,13 +856,7 @@ function QuestionInput({
                 role="checkbox"
                 aria-checked={on}
                 aria-label={opt.label}
-                onClick={() =>
-                  onChange(
-                    on
-                      ? selected.filter((s) => s !== opt.value)
-                      : [...selected, opt.value]
-                  )
-                }
+                onClick={() => onChange(toggleMultiChoice(selected, opt.value, on))}
                 className={`text-left p-3 rounded-lg border min-h-[44px] text-sm ${
                   on
                     ? "border-primary bg-primary/10 font-semibold"
@@ -899,6 +906,87 @@ function QuestionInput({
         />
       );
   }
+}
+
+// DOC 168 (2026-09-04) — ONE multi-choice toggle rule. The "none" option is
+// exclusive: choosing it clears every other option and choosing any other
+// option clears "none", so a stored answer can never assert both "none" and
+// a basis or a recipient category.
+export function toggleMultiChoice(selected: string[], value: string, on: boolean): string[] {
+  if (on) return selected.filter((s) => s !== value);
+  if (value === "none") return ["none"];
+  return [...selected.filter((s) => s !== "none"), value];
+}
+
+// DOC 168 (2026-09-04) — filterable checklist for a long closed list (used by
+// the transfer-destination country picker). Selected values stay listed
+// above the filter so a customer never loses sight of what is chosen.
+function LargeMultiSelect({
+  questionKey,
+  options,
+  selected,
+  onChange,
+}: {
+  questionKey: string;
+  options: { value: string; label: string }[];
+  selected: string[];
+  onChange: (v: unknown) => void;
+}) {
+  const [filter, setFilter] = useState("");
+  const needle = filter.trim().toLowerCase();
+  const visible = needle ? options.filter((o) => o.label.toLowerCase().includes(needle)) : options;
+  const labelOf = (val: string) => options.find((o) => o.value === val)?.label ?? val;
+  const toggle = (val: string) => onChange(toggleMultiChoice(selected, val, selected.includes(val)));
+  return (
+    <div role="group" aria-labelledby={`q-${questionKey}`} className="space-y-2">
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1.5" aria-label="Selected">
+          {selected.map((val) => (
+            <button
+              key={val}
+              type="button"
+              onClick={() => toggle(val)}
+              aria-label={`Remove ${labelOf(val)}`}
+              className="text-xs px-2 py-1 rounded-full border border-primary bg-primary/10"
+            >
+              {labelOf(val)} ×
+            </button>
+          ))}
+        </div>
+      )}
+      <input
+        type="text"
+        value={filter}
+        onChange={(e) => setFilter(e.target.value)}
+        aria-label="Filter the list"
+        placeholder="Type to filter…"
+        className="w-full px-3 py-2 border border-border rounded-lg bg-background min-h-[44px]"
+      />
+      <div className="max-h-64 overflow-y-auto border border-border rounded-lg divide-y divide-border">
+        {visible.length === 0 && (
+          <div className="px-3 py-2 text-sm text-muted-foreground">No match — clear the filter to see the full list.</div>
+        )}
+        {visible.map((opt) => {
+          const on = selected.includes(opt.value);
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              role="checkbox"
+              aria-checked={on}
+              aria-label={opt.label}
+              onClick={() => toggle(opt.value)}
+              className={`w-full text-left px-3 py-2 text-sm min-h-[40px] ${
+                on ? "bg-primary/10 font-semibold" : "hover:bg-muted/40"
+              }`}
+            >
+              {on ? "☑ " : "☐ "}{opt.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 // Cross-reference picker for question type "assessment_reference".

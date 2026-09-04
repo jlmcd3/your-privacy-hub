@@ -1,5 +1,6 @@
 import type { Question, FlagCondition } from "./types";
 import { JC } from "../jurisdiction-codes";
+import { COUNTRY_OPTIONS } from "../countries";
 
 const RETENTION_FLAG: FlagCondition = {
   operator: "equals",
@@ -48,6 +49,62 @@ const PROCESSING_OPERATION_OPTIONS = [
   { value: "erasure", label: "Erasure or destruction" },
 ];
 
+
+// DOC 168 (2026-09-04) — CEO rule: where the law's answer set is closed, the
+// intake shows the options (single / multi-select) and never a free-text box.
+// Every list below is MIRRORED, value for value, in
+// supabase/functions/generate-ropa-document/register/answer-labels.ts (the
+// edge function cannot import this browser module); the vitest parity test
+// pins the two sides. Legacy free-text answers stored under these keys keep
+// rendering as written.
+
+// Art. 9(2)(a)–(j) conditions (verbatim-faithful short forms) + Art. 10 —
+// both named by Art. 30(5) as defeating the small-organisation derogation.
+const SPECIAL_CATEGORY_BASIS_OPTIONS = [
+  { value: "none", label: "Not applicable — no special category or criminal-offence data is processed" },
+  { value: "art9_2_a", label: "Art. 9(2)(a) — the data subject has given explicit consent for one or more specified purposes" },
+  { value: "art9_2_b", label: "Art. 9(2)(b) — necessary for obligations or rights in the field of employment, social security or social protection law" },
+  { value: "art9_2_c", label: "Art. 9(2)(c) — necessary to protect vital interests where the data subject is physically or legally incapable of giving consent" },
+  { value: "art9_2_d", label: "Art. 9(2)(d) — legitimate activities of a not-for-profit body with a political, philosophical, religious or trade-union aim, relating to its members" },
+  { value: "art9_2_e", label: "Art. 9(2)(e) — personal data manifestly made public by the data subject" },
+  { value: "art9_2_f", label: "Art. 9(2)(f) — necessary for the establishment, exercise or defence of legal claims, or where courts act in their judicial capacity" },
+  { value: "art9_2_g", label: "Art. 9(2)(g) — necessary for reasons of substantial public interest, on the basis of law" },
+  { value: "art9_2_h", label: "Art. 9(2)(h) — preventive or occupational medicine, assessment of working capacity, medical diagnosis, or health or social care" },
+  { value: "art9_2_i", label: "Art. 9(2)(i) — public interest in the area of public health, on the basis of law" },
+  { value: "art9_2_j", label: "Art. 9(2)(j) — archiving in the public interest, scientific or historical research or statistical purposes" },
+  { value: "art10", label: "Art. 10 — criminal convictions and offences data, under official authority or as authorised by law" },
+];
+
+// Art. 30(1)(d): "the categories of recipients to whom the personal data have
+// been or will be disclosed including recipients in third countries or
+// international organisations" — a required element, answered by category;
+// named vendors are optional detail (an open set) captured separately.
+const RECIPIENT_CATEGORY_OPTIONS = [
+  { value: "processors", label: "Processors and service providers acting on our instructions", example: "Hosting, SaaS, payroll, support tools" },
+  { value: "group", label: "Companies in our corporate group" },
+  { value: "advertising_analytics", label: "Advertising, marketing or analytics partners" },
+  { value: "payment_financial", label: "Payment, banking or financial service providers" },
+  { value: "public_authorities", label: "Public authorities and regulators, where required by law" },
+  { value: "professional_advisers", label: "Professional advisers (legal, audit, insurance)" },
+  { value: "business_partners", label: "Business partners, resellers or joint controllers" },
+  { value: "third_country", label: "Recipients in a third country or an international organisation" },
+  { value: "none", label: "None — the data is not disclosed to any recipient outside the organisation" },
+];
+
+// Art. 30(5): the derogation is lost where "the processing is not occasional".
+const PROCESSING_REGULARITY_OPTIONS = [
+  { value: "regular", label: "Regular or ongoing — part of normal operations" },
+  { value: "occasional", label: "Occasional — one-off or infrequent" },
+  { value: "unsure", label: "Unsure" },
+];
+
+const TRANSFER_MECHANISM_OPTIONS = [
+  { value: "sccs", label: "Standard Contractual Clauses (SCCs)" },
+  { value: "adequacy", label: "Adequacy decision" },
+  { value: "bcrs", label: "Binding Corporate Rules" },
+  { value: "derogations", label: "Art. 49 derogations" },
+  { value: "none", label: "None / unclear" },
+];
 
 function baseSequence(opts: {
   lawfulBasisFlags?: FlagCondition[];
@@ -132,18 +189,18 @@ function baseSequence(opts: {
     // generate-ropa-document's per-activity table) but never asked anywhere
     // in the intake, so the Art. 30(5) small-organisation derogation note
     // could never detect a real special-category activity from customer
-    // data and always fell to its negative branch. State "Not applicable"
-    // when it does not apply — a blank answer reads the same as a stated
-    // negative, so leaving it blank changes nothing about today's behaviour.
+    // data and always fell to its negative branch.
+    // DOC 168 — structured per the CEO rule: the Art. 9(2) conditions and
+    // Art. 10 are a closed list, so they are options, not free text.
     {
       key: "special_category_basis",
-      text: "Does this activity involve special category data under Article 9 GDPR?",
-      followUpPrompt:
-        "If yes, state the Article 9(2) condition it is processed under. If not, state \"Not applicable\".",
+      text: "Which Article 9(2) condition (or Article 10) applies to any special category or criminal-offence data in this activity?",
+      followUpPrompt: "Select every condition that applies, or \"Not applicable\".",
       whyWeAsk:
-        "Art. 9(1) prohibits processing special categories of data — health, biometric or genetic data, racial or ethnic origin, political opinions, religious or philosophical beliefs, trade union membership, sex life or sexual orientation, or criminal-offence data — unless an Art. 9(2) condition applies. The register's Article 30(5) derogation note turns on this fact, and naming the Art. 9(2) condition (rather than a bare \"yes\") is what makes the entry defensible.",
-      type: "text_short",
-      isRequired: false,
+        "Art. 9(1) prohibits processing special categories of data — racial or ethnic origin, political opinions, religious or philosophical beliefs, trade union membership, genetic or biometric data, health, sex life or sexual orientation — unless an Art. 9(2) condition applies; Art. 10 governs criminal-offence data. Art. 30(5) names both as defeating the small-organisation derogation, so the register's Article 30(5) note turns on this answer.",
+      type: "multi_choice",
+      options: SPECIAL_CATEGORY_BASIS_OPTIONS,
+      isRequired: true,
     },
     {
       key: "data_subjects",
@@ -247,14 +304,104 @@ function baseSequence(opts: {
     // DOC 166 (2026-09-04) — Art. 30(1)(d) ("the categories of recipients")
     // is a required register element, not qualified "where applicable" the
     // way (e) and (f) are. It was previously asked only via `extras` on 7 of
-    // 24 activity templates, so the other 17 (including "Third-Party Data
-    // Sharing", which names the concept in its own title) could never record
-    // a recipient and could never satisfy this element of the register's own
-    // completeness check, regardless of what the customer answered. Moved
-    // into the universal sequence so every activity can both state its
-    // recipients and honestly state that it has none.
-    { ...DPA_CROSSSELL_Q },
+    // 24 activity templates, so the other 17 could never record a recipient
+    // and could never satisfy this element of the register's own
+    // completeness check.
+    // DOC 168 — the required element is answered by CATEGORY (a closed list,
+    // per the CEO rule), on every template; "None" is an affirmative answer.
+    // The former `uses_processors` yes/no is retired as redundant with the
+    // "processors" category, and the DPA cross-sell now hangs on that
+    // category. Named vendors remain optional detail (an open set).
+    {
+      key: "recipient_categories",
+      text: "To which categories of recipient is the personal data disclosed?",
+      followUpPrompt: "Select every category that applies, or \"None\".",
+      whyWeAsk:
+        "Art. 30(1)(d) requires the record to state the categories of recipients to whom the personal data have been or will be disclosed, including recipients in third countries or international organisations. Processors count as recipients, and Art. 28 requires a written agreement with each of them.",
+      type: "multi_choice",
+      options: RECIPIENT_CATEGORY_OPTIONS,
+      isRequired: true,
+      flagIf: [
+        {
+          operator: "contains",
+          value: "processors",
+          flagType: "cross_sell",
+          severity: "recommendation",
+          message: "You'll need a DPA with each processor.",
+          consequence:
+            "GDPR Art. 28 makes a written DPA mandatory for every processor relationship.",
+          actionLabel: "Generate a DPA",
+          actionRoute: "/dpa-generator",
+        },
+      ],
+    },
     { ...PROCESSOR_PLATFORM_Q },
+    // DOC 168 — Art. 30(1)(e) on every template: a yes/no gate, then the
+    // destination (a country list; an international organisation is the one
+    // open-set answer, named in a conditional field) and the mechanism.
+    // Previously only the dedicated transfers template asked anything, and it
+    // asked the mechanism without the destination (doc 166).
+    {
+      key: "transfers_third_country",
+      text: "Is personal data for this activity transferred to a country outside the EU/EEA or the United Kingdom, or to an international organisation?",
+      whyWeAsk:
+        "Art. 30(1)(e) requires the record to identify, where applicable, transfers of personal data to a third country or an international organisation, including the identification of that third country or international organisation. Remote access by a vendor abroad counts as a transfer alongside storage.",
+      type: "yes_no",
+      isRequired: true,
+    },
+    {
+      key: "transfer_destination",
+      text: "Which country or countries (or international organisation) does the data go to?",
+      followUpPrompt: "Select every destination that applies.",
+      whyWeAsk:
+        "Art. 30(1)(e) requires the third country or international organisation to be identified by name; a region or \"outside the EU\" does not satisfy it.",
+      type: "multi_choice",
+      options: [...COUNTRY_OPTIONS],
+      isRequired: true,
+      showIf: { questionKey: "transfers_third_country", operator: "equals", value: "yes" },
+    },
+    {
+      key: "transfer_international_org",
+      text: "Name the international organisation the data is transferred to.",
+      whyWeAsk:
+        "An international organisation is not a country, so it cannot be picked from the list; Art. 30(1)(e) still requires it to be identified.",
+      type: "text_short",
+      isRequired: true,
+      showIf: { questionKey: "transfer_destination", operator: "contains", value: "__international_organisation__" },
+    },
+    {
+      key: "transfer_mechanism",
+      text: "Which transfer mechanism do you rely on?",
+      whyWeAsk:
+        "Chapter V permits transfers to a third country only where a listed mechanism carries them. Record the mechanism relied on for this activity, and treat remote support access as a transfer alongside storage.",
+      type: "single_choice",
+      options: TRANSFER_MECHANISM_OPTIONS,
+      isRequired: true,
+      showIf: { questionKey: "transfers_third_country", operator: "equals", value: "yes" },
+      flagIf: [
+        {
+          operator: "equals",
+          value: "none",
+          flagType: "transfer_undocumented",
+          severity: "warning",
+          message: "No documented transfer mechanism.",
+          consequence:
+            "Transfers without a Chapter V mechanism are a common enforcement target post-Schrems II.",
+        },
+      ],
+    },
+    // DOC 168 — Art. 30(5): the derogation is unavailable where "the
+    // processing is not occasional". Doc 166's note had to leave this limb
+    // "not recorded"; it is now a closed-list answer per activity.
+    {
+      key: "processing_regularity",
+      text: "How often is this processing carried out?",
+      whyWeAsk:
+        "Art. 30(5) exempts organisations employing fewer than 250 persons from the record-keeping duty unless, among other things, the processing is not occasional. The register's Article 30(5) note turns on this answer for every activity.",
+      type: "single_choice",
+      options: PROCESSING_REGULARITY_OPTIONS,
+      isRequired: true,
+    },
     ...(opts.extras ?? []),
 
   ];
@@ -282,38 +429,19 @@ const DPIA_CROSSSELL: FlagCondition = {
   actionRoute: "/dpia-framework",
 };
 
-const DPA_CROSSSELL_Q: Question = {
-  key: "uses_processors",
-  text: "Do third-party processors handle this data?",
-  whyWeAsk:
-    "Art. 28 requires a written agreement with every processor, and Art. 30(1)(d) requires processors to appear in the register as recipients. Answer yes if anyone outside the organisation handles this data on your instructions, including hosting and support providers.",
-  type: "yes_no",
-  isRequired: true,
-  flagIf: [
-    {
-      operator: "equals",
-      value: "yes",
-      flagType: "cross_sell",
-      severity: "recommendation",
-      message: "You'll need a DPA with each processor.",
-      consequence:
-        "GDPR Art. 28 makes a written DPA mandatory for every processor relationship.",
-      actionLabel: "Generate a DPA",
-      actionRoute: "/dpa-generator",
-    },
-  ],
-};
-
-// Captured only when uses_processors === "yes". Populates the
-// "Processors / recipients" row in the generated RoPA document.
+// DOC 168 — `uses_processors` (yes/no) retired: the "processors" recipient
+// category asks the same fact; the DPA cross-sell moved onto that category.
+// Named vendors are optional supporting detail shown when that category is
+// selected — the only free text kept here, because vendor names are an open
+// set the law does not enumerate (Art. 30(1)(d) asks for categories).
 const PROCESSOR_PLATFORM_Q: Question = {
   key: "processor_platform",
   text: "Which processors or platforms handle this data?",
   whyWeAsk:
-    "Art. 30(1)(d) requires the categories of recipient to be listed, processors included. Name the contracting entity for each one, since that is the party the Art. 28 agreement binds.",
+    "Optional detail beneath the recipient categories above. Naming the contracting entity for each processor identifies the party the Art. 28 agreement binds and lets the register cite it.",
   type: "text_long",
-  isRequired: true,
-  showIf: { questionKey: "uses_processors", operator: "equals", value: "yes" },
+  isRequired: false,
+  showIf: { questionKey: "recipient_categories", operator: "contains", value: "processors" },
 };
 
 
@@ -425,55 +553,15 @@ const LEGAL_COMPLIANCE = baseSequence({});
 
 const THIRD_PARTY_VENDORS = baseSequence({});
 const THIRD_PARTY_SHARING = baseSequence({});
+// DOC 168 — the transfer questions (gate, destination, mechanism) now live in
+// the universal sequence for every template (Art. 30(1)(e) is "where
+// applicable", so the gate asks whether it applies); this template keeps its
+// enforcement info card only.
 const THIRD_PARTY_TRANSFERS = baseSequence({
   staticInfoCard: {
     title: "Cross-border transfers require specific mechanisms",
     body: "Invalid transfer mechanisms are among the highest-value enforcement priorities.",
   },
-  extras: [
-    // DOC 166 (2026-09-04) — the document's Cross-border transfer register
-    // and the per-activity Art. 30(1)(e) cell both gate on a recorded
-    // destination, but no question ever asked for one: this activity
-    // recorded only the mechanism, so a customer who answered "SCCs" here
-    // saw their own transfer render as "No cross-border transfers have been
-    // recorded" everywhere else in the document. Destination asked first —
-    // Art. 30(1)(e) requires identifying the third country, and the
-    // mechanism question below is meaningless without it.
-    {
-      key: "transfer_destination",
-      text: "Which country or countries does the data get transferred to?",
-      whyWeAsk:
-        "Art. 30(1)(e) requires the register to identify the third country or international organisation personal data is transferred to. Name the destination before recording the transfer mechanism below — remote support or vendor access counts as a transfer alongside storage.",
-      type: "text_short",
-      isRequired: true,
-    },
-    {
-      key: "transfer_mechanism",
-      text: "Which transfer mechanism do you rely on?",
-      whyWeAsk:
-        "Chapter V permits transfers to a third country only where a listed mechanism carries them. Record the mechanism relied on for this activity, and treat remote support access as a transfer alongside storage.",
-      type: "single_choice",
-      options: [
-        { value: "sccs", label: "Standard Contractual Clauses (SCCs)" },
-        { value: "adequacy", label: "Adequacy decision" },
-        { value: "bcrs", label: "Binding Corporate Rules" },
-        { value: "derogations", label: "Art. 49 derogations" },
-        { value: "none", label: "None / unclear" },
-      ],
-      isRequired: true,
-      flagIf: [
-        {
-          operator: "equals",
-          value: "none",
-          flagType: "transfer_undocumented",
-          severity: "warning",
-          message: "No documented transfer mechanism.",
-          consequence:
-            "Transfers without a Chapter V mechanism are a common enforcement target post-Schrems II.",
-        },
-      ],
-    },
-  ],
 });
 
 const OPS_FACILITIES = baseSequence({

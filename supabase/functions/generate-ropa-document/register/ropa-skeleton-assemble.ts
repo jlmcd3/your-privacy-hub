@@ -158,6 +158,13 @@ export interface RopaActivityInput {
   readonly transferDestination: string;
   readonly transferMechanism: string;
   readonly transferBasis: string;
+  /** DOC 168 — the Company recorded that NO transfer to a third country or
+   *  international organisation takes place (a fact, distinct from an
+   *  unrecorded destination). */
+  readonly transfersDeclaredNone?: boolean;
+  /** DOC 168 — the Company chose the "none" mechanism option: a transfer it
+   *  records with no documented mechanism (its own fact, not a gap). */
+  readonly transferMechanismUndocumented?: boolean;
   readonly rightsHandling: string;
   readonly rightsOverride: string;
   /** References to the company's OWN completed assessments (LIA / DPIA). */
@@ -346,8 +353,17 @@ function retentionPhrase(a: RopaActivityInput): string {
 }
 
 function transferClause(a: RopaActivityInput): string {
+  // DOC 168 — a recorded "no transfer" is stated as the Company's own fact.
+  if (a.transfersDeclaredNone === true) {
+    return "The company has indicated that no personal data are transferred to a third country or an international organisation";
+  }
   const dest = s(a.transferDestination);
   if (!recorded(dest) || /^no\b|^none\b|no third[- ]country/i.test(dest)) return "";
+  // DOC 168 — the "none" mechanism option is the Company's own statement,
+  // distinct from a mechanism it simply did not record.
+  if (a.transferMechanismUndocumented === true) {
+    return `The company has indicated that personal data are transferred to ${noStop(dest)} and records no transfer mechanism for that transfer`;
+  }
   const mech = recorded(a.transferMechanism) ? s(a.transferMechanism) : "";
   const basis = recorded(a.transferBasis) ? s(a.transferBasis) : "";
   const named = mech || basis;
@@ -442,11 +458,16 @@ export function buildActivityRecord(
   const values = buildActivitySlots(a);
   const sentence = renderFixed(ROPA_ACTIVITY_SENTENCE_TEMPLATE, values);
 
-  const transferValue = recorded(a.transferDestination)
-    ? [s(a.transferDestination), recorded(a.transferMechanism) ? s(a.transferMechanism) : ""]
-        .filter(Boolean)
-        .join(" \u2014 ")
-    : "No third-country transfer recorded";
+  // DOC 168 \u2014 three honest states for Art. 30(1)(e): a recorded "no
+  // transfer" (the Company's fact), a recorded destination (with the
+  // mechanism when recorded), or nothing recorded either way.
+  const transferValue = a.transfersDeclaredNone === true
+    ? "No transfer to a third country or international organisation (recorded by the Company)"
+    : recorded(a.transferDestination)
+      ? [s(a.transferDestination), recorded(a.transferMechanism) ? s(a.transferMechanism) : ""]
+          .filter(Boolean)
+          .join(" \u2014 ")
+      : "No third-country transfer recorded";
 
   const cellFor: Record<string, { value: string; recorded: boolean }> = {
     a: { value: contactCell(input, a), recorded: recorded(input.organisationName) },

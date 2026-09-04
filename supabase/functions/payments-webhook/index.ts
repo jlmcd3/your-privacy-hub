@@ -14,6 +14,12 @@ import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-
 import { createStripeClient, type StripeEnv, verifyWebhook } from "../_shared/stripe.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
 
+// DOC 168 (2026-09-04) — Supabase's edge runtime provides `EdgeRuntime` as a
+// global that the Deno type set does not declare (TS2304 at the two
+// `EdgeRuntime.waitUntil(...)` calls below). Same typed declaration the
+// generators use (generate-eu-notice/index.ts). Runtime behaviour unchanged.
+declare const EdgeRuntime: { waitUntil: (p: Promise<unknown>) => void };
+
 // Fire-and-forget dispatch of a downstream generator via RAW fetch.
 //
 // WHY NOT supabase.functions.invoke:

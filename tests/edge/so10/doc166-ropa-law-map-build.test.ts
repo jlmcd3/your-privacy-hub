@@ -88,17 +88,20 @@ Deno.test("doc166 — 'LLC' is spelled out so 'is a LLC' (wrong article) can nev
 
 // ── Item 2 — the cross-border transfer cell never asserts "None (mechanism)" ─
 
+// DOC 168 (2026-09-04) — the mechanism option code now renders as its reader
+// label (answer-labels.ts); the two asserts below were updated from the raw
+// "sccs" they had pinned by accident.
 Deno.test("doc166 — destination and mechanism both recorded renders coherently", () => {
   assertEquals(
     transferDisplayForActivity({ transfer_destination: "United States", transfer_mechanism: "sccs" }),
-    "United States (sccs)",
+    "the United States (Standard Contractual Clauses (SCCs))",
   );
 });
 
 Deno.test("doc166 — mechanism recorded, NO destination (the pre-fix legacy case) never says 'None'", () => {
   const out = transferDisplayForActivity({ transfer_mechanism: "sccs" });
   assert(!out.toLowerCase().startsWith("none"), `must not assert absence beside a stated mechanism: "${out}"`);
-  assertStringIncludes(out, "sccs");
+  assertStringIncludes(out, "Standard Contractual Clauses (SCCs)");
   assertStringIncludes(out.toLowerCase(), "not recorded");
 });
 
