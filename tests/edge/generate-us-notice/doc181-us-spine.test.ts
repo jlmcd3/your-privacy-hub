@@ -192,7 +192,7 @@ Deno.test("doc181 — the law registry supplies the enforcement contact; the sta
 
   const without = buildNoticeHtml(VA, FULL, AT);
   assertStringIncludes(without, "Enforcement: the Virginia Attorney General");
-  assertStringIncludes(without, "Virginia Consumer Data Protection Act (VCDPA) (Va. Code Ann. §59.1-571 et seq.)");
+  assertStringIncludes(without, "Virginia Consumer Data Protection Act (VCDPA) (Va. Code Ann. §§59.1-575 to 59.1-585)");
   assert(!without.includes(", effective "), "no effective date without a registry row");
 });
 

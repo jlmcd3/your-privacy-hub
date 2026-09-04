@@ -135,8 +135,9 @@ Deno.test("S-D1 — no unfilled slots survive into any mode's document", () => {
   }
 });
 
-Deno.test("DOC-81 D-1 — the deterministic mode gate covers exactly the GDPR-family modes", () => {
-  assertEquals([...DPA_DETERMINISTIC_MODES].sort(), ["dual-eu-ca", "dual-eu-us", "gdpr", "uk"]);
+Deno.test("DOC-81 D-1 — the deterministic mode gate covers the GDPR family plus us-state", () => {
+  assertEquals([...DPA_DETERMINISTIC_MODES].sort(), ["dual-eu-ca", "dual-eu-us", "gdpr", "uk", "us-state"]);
+  assert(!(DPA_DETERMINISTIC_MODES as readonly string[]).includes("canada"));
 });
 
 Deno.test("DOC-81 D-2 — UK mode substitutes domestic law for Union or Member State law", () => {
