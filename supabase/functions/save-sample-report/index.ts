@@ -570,6 +570,8 @@ async function backfillAll(admin: ReturnType<typeof createClient>, body: any) {
       }
       const { error: upErr } = await admin.from("sample_reports").update(patch).eq("id", r.id);
       if (upErr) { summary.errors.push({ id: r.id, message: upErr.message }); continue; }
+      // Content changed → the trigger cleared the preview; rebuild it now.
+      await tryBuildPreviewForRow(admin, r.id);
       summary.updated++;
     } catch (e) {
       summary.errors.push({ id: r.id, message: (e as Error).message });
