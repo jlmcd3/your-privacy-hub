@@ -532,7 +532,8 @@ async function generatePdf(admin: ReturnType<typeof createClient>, body: any) {
     .select()
     .single();
   if (error) return json({ error: `upsert: ${error.message}` }, 400);
-  return json({ row, bytes: pdfBytes.byteLength });
+  const preview = await tryBuildPreviewForRow(admin, (row as { id: string }).id);
+  return json({ row, bytes: pdfBytes.byteLength, preview });
 }
 
 // P3 — Backfill every sample_report row in one pass via the shared hydrator.
