@@ -104,6 +104,12 @@ export const dpaGeneratorContract: IntakeContract = {
     // S-D7 (doc 80, 2026-08-27) — the Art. 28(2) authorisation-model axis.
     // Absent -> "general" (the pre-S-D7 behavior exactly).
     { key: "subprocessorAuthorizationModel", kind: "enum", required: "optional", options: ["general", "specific"] },
+    // INTAKE-2 — the advance-notice window (days) before a Sub-processor
+    // change under the general authorisation; the page sends it as digits
+    // and the handler parses it (absent/unparseable -> the 30-day default).
+    // DOC 183 (2026-09-04): listed here so the sample-fixture contract check
+    // recognises the key the page has been sending.
+    { key: "subprocessorChangeNoticePeriod", kind: "text", required: "optional" },
     // S-D2 (doc 80, 2026-08-27) — the structured TOMs intake (PN-D6): ids
     // from the DPA_TOMS_TAXONOMY registry (unknown ids are dropped by the
     // resolver, never invented) plus optional free-text specifics.

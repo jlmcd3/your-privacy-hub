@@ -275,7 +275,17 @@ const F_DPA_EU: SampleFixture = {
       subProcessorList:
         "Whiteout Watch Ltd (UK, managed security monitoring for the payroll/HR systems).",
       auditRights: "Annual audit — third-party audit summary plus right of on-site inspection on reasonable notice",
+      // DOC 183 (2026-09-04): the scenario's "SCCs + UK IDTA addendum" only
+      // attaches the doc-182 transfer exhibits when the transfer question
+      // is answered Yes (the page sends includeTransferClause: true), and
+      // the structured TOMs / authorisation-model answers are real intake
+      // keys the page sends — without them Annex C is a fill-in checklist.
+      includeTransferClause: true,
       transferMechanism: "UK IDTA / UK Addendum to EU SCCs",
+      subprocessorAuthorizationModel: "general",
+      subprocessorChangeNoticePeriod: "30",
+      securityMeasuresSelected: ["encryption_at_rest", "encryption_in_transit", "access_control", "mfa", "logging_monitoring", "backup_resilience", "incident_response"],
+      securityMeasuresDetails: "AES-256 at rest; TLS 1.2+ in transit; FIDO2 keys for administrator access; SOC-monitored logging.",
     },
     invoke: { fn: "generate-dpa", returns_id: true },
     poll: null,
@@ -1124,6 +1134,23 @@ const F_US_NOTICE: SampleFixture = {
       sensitive_data_types: "Precise geolocation (delivery and pickup coordinates).",
       data_sources:
         "Directly from individuals (account signup and in-app); from carriers (delivery scans and exceptions); from authentication providers (sign-in metadata).",
+      // DOC 183 (2026-09-04): the doc-181 spine renders the California and
+      // Virginia-model answers below; a fixture without them is a valid
+      // record that reads as a page of customer-completion prompts. Every key
+      // is a real intake question (src/data/us-notice-questions).
+      ccpa_sensitive_data: "yes",
+      ccpa_minors: "no",
+      ccpa_financial_incentive: "no",
+      ccpa_admt: "no",
+      vam_controller_processor_role: "controller",
+      vam_sensitive_data_consent: "yes_consent",
+      vam_targeted_advertising_optout: "not_applicable",
+      vam_profiling: "no",
+      vam_dpa_or_assessment: "yes",
+      vam_appeals_process: "yes",
+      vam_appeals_method:
+        "Reply to our decision email with 'Appeal' in the subject line; a privacy team member not involved in the original decision reviews it and we respond in writing within 45 days.",
+      co_uoom_honored: "yes",
     },
     invoke: { fn: "generate-us-notice" },
   },
@@ -1164,6 +1191,14 @@ const F_EU_NOTICE: SampleFixture = {
       special_category_basis: "Not applicable — no special-category data collected from customers.",
       supervisory_authority_eu: "Irish Data Protection Commission (DPC)",
       supervisory_authority_uk: "Information Commissioner's Office (ICO)",
+      // DOC 183 (2026-09-04): the doc-180 spine renders the source,
+      // establishment and transfer-destination answers; each key is a real
+      // universal question (src/data/eu-notice-questions/universal-questions.ts).
+      collection_source: "mixed",
+      data_source_categories: ["partners", "public_sources"],
+      establishment_jurisdiction: "eea",
+      transfer_destinations: "United States (marketing-automation and analytics providers)",
+      adequacy_status: "No adequacy decision is relied on; the transfers proceed under the EU SCCs and the UK Addendum.",
     },
     invoke: { fn: "generate-eu-notice" },
   },

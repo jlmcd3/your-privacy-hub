@@ -17,6 +17,26 @@ import CPPARiskReportBody from "@/components/report-bodies/CPPARiskReportBody";
 import { CybersecurityReportBody } from "@/components/cppa/CybersecurityReportBody";
 import { SampleReportBody } from "@/components/SampleReportBody";
 import { isSkeletonDocument, SkeletonDocumentView } from "@/components/reports/SkeletonDocumentView";
+import { readSyllabus } from "@/lib/syllabus-record";
+
+// DOC 183 (2026-09-04) — the sample surface renders every Syllabus & Record
+// product with the same product key its live result page passes (docs
+// 170–178): the skeleton's page one IS the Syllabus, so a preview that kept
+// it shows the contents page the customer sees. ADMT is version-gated the
+// way its result page gates it (only admt_v2 projects a syllabus).
+export function sampleSrProduct(toolSlug: string, doc: unknown): string | undefined {
+  switch (toolSlug) {
+    case "cppa_risk": return "cppa-risk";
+    case "dpia": return "dpia";
+    case "li_assessment": return "lia";
+    case "governance": return "governance";
+    case "cppa_cyber": return "cppa-cyber";
+    case "ir_playbook": return "ir-playbook";
+    case "registration": return "registration";
+    case "cppa_admt": return readSyllabus(doc) ? "cppa-admt-v2" : undefined;
+    default: return undefined;
+  }
+}
 
 export interface SampleToolReportProps {
   toolSlug: string;
@@ -44,24 +64,24 @@ export function SampleToolReport({ toolSlug, documentText, reportData, published
     // DOC 171/172/173/175/177 (2026-09-04) — DPIA, LIA, Governance, Cyber
     // and IR Playbook join Syllabus & Record the same way
     // (SkeletonDocumentView's own readSyllabus() guard keeps a v3 Cyber
-    // sample on its unchanged view).
-    const srProduct = toolSlug === "cppa_risk"
-      ? "cppa-risk"
-      : toolSlug === "dpia"
-      ? "dpia"
-      : toolSlug === "li_assessment"
-      ? "lia"
-      : toolSlug === "governance"
-      ? "governance"
-      : toolSlug === "cppa_cyber"
-      ? "cppa-cyber"
-      : toolSlug === "ir_playbook"
-      ? "ir-playbook"
-      : undefined;
-    return <SkeletonDocumentView doc={sk} product={srProduct} />;
+    // sample on its unchanged view). DOC 183 — ADMT v2 and Registration
+    // added through sampleSrProduct().
+    return <SkeletonDocumentView doc={sk} product={sampleSrProduct(toolSlug, sk)} />;
   }
   if (typeof sk === "string" && sk.trim().length > 0) {
     return <AssessmentReport text={sk} sectionChipLabel={null} />;
+  }
+
+  // DOC 183 (2026-09-04) — a preview whose deliverable is the stored PDF
+  // (the file-driven Notices and RoPA, and the DPA's formal instrument,
+  // doc 182) carries no row content: embed the PDF before any prose branch
+  // could render an empty shell around it.
+  const hasRowContent = Boolean(
+    (documentText && documentText.trim().length > 0) ||
+      (reportData && Object.keys(reportData).length > 0),
+  );
+  if (!hasRowContent && pdfPath) {
+    return <SamplePdfEmbed pdfPath={pdfPath} />;
   }
 
   // Prose tools: render markdown/plaintext through AssessmentReport (same as
@@ -115,15 +135,8 @@ export function SampleToolReport({ toolSlug, documentText, reportData, published
 
   // PANEL SAMP-3 (2026-08-30): the file-driven samples (RoPA, US/EU
   // notices) carry their deliverable as a stored PDF and no row content —
-  // the page used to say "No rendered content is available". Embed the PDF.
-  const hasRowContent = Boolean(
-    (documentText && documentText.trim().length > 0) ||
-      (reportData && Object.keys(reportData).length > 0),
-  );
-  if (!hasRowContent && pdfPath) {
-    return <SamplePdfEmbed pdfPath={pdfPath} />;
-  }
-
+  // the page used to say "No rendered content is available". The embed now
+  // sits above the prose branches (DOC 183); this is the honest empty state.
   // Fallback for notice / ropa (no structured report_data yet).
   return <SampleReportBody documentText={documentText} reportData={reportData} />;
 }

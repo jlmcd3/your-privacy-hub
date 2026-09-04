@@ -12,6 +12,7 @@ import {
   removePreviewObjects,
   tryBuildPreviewForRow,
 } from "../_shared/sample-preview-build.ts";
+import { extractHtmlOutline } from "../_shared/sample-preview.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -323,11 +324,16 @@ function slugifyTitle(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "report";
 }
 
+// DOC 183 (2026-09-04) — the formal-instrument Notices (docs 180/181) number
+// their sections as <h2> headings; the outline captured at generation time
+// (extractHtmlOutline, _shared/sample-preview.ts) becomes the public
+// preview's table of contents — the preview itself is the first two PDF
+// pages, which carry no contents page of their own.
 async function fetchRealPdfBytes(
   admin: ReturnType<typeof createClient>,
   tool_slug: string,
   source_row_id: string | null,
-): Promise<Uint8Array> {
+): Promise<{ bytes: Uint8Array; outline: string[] }> {
   if (!source_row_id) throw new Error("source_row_id is required — click 'Generate Report' first so the live tool produces an output to render");
 
   // --- RoPA: bytes live in `ropa-documents` bucket at version.file_path ----
@@ -343,7 +349,7 @@ async function fetchRealPdfBytes(
     const filePath = (ver as { file_path: string }).file_path;
     const { data, error: dlErr } = await admin.storage.from("ropa-documents").download(filePath);
     if (dlErr || !data) throw new Error(`ropa-documents download: ${dlErr?.message || "no data"}`);
-    return new Uint8Array(await data.arrayBuffer());
+    return { bytes: new Uint8Array(await data.arrayBuffer()), outline: [] };
   }
 
   // --- US / EU Notices: combined document is stored as HTML; render to PDF.
@@ -376,11 +382,11 @@ async function fetchRealPdfBytes(
     const { data, error: dlErr } = await admin.storage.from(bucket).download(row.file_path);
     if (dlErr || !data) throw new Error(`${bucket} download: ${dlErr?.message || "no data"}`);
     if ((row.document_format ?? "").toLowerCase() === "pdf") {
-      return new Uint8Array(await data.arrayBuffer());
+      return { bytes: new Uint8Array(await data.arrayBuffer()), outline: [] };
     }
-    // Render HTML → PDF via PDFShift
+    // Render HTML → PDF via PDFShift; keep the heading outline for the preview TOC.
     const html = await data.text();
-    return await renderHtmlViaPdfShift(html);
+    return { bytes: await renderHtmlViaPdfShift(html), outline: extractHtmlOutline(html) };
   }
 
   // --- Assessment-style tools: drive the canonical generate-report-pdf -----
@@ -410,7 +416,7 @@ async function fetchRealPdfBytes(
     if (r.ok && payload.pdf_url) {
       const pdfRes = await fetch(payload.pdf_url, { signal: AbortSignal.timeout(60_000) });
       if (!pdfRes.ok) throw new Error(`download rendered PDF: HTTP ${pdfRes.status}`);
-      return new Uint8Array(await pdfRes.arrayBuffer());
+      return { bytes: new Uint8Array(await pdfRes.arrayBuffer()), outline: [] };
     }
     const parts = [payload.error || `HTTP ${r.status}`];
     if (payload.missing) parts.push(`missing=${payload.missing}`);
@@ -463,8 +469,11 @@ async function generatePdf(admin: ReturnType<typeof createClient>, body: any) {
   }
 
   let pdfBytes: Uint8Array;
+  let htmlOutline: string[] = [];
   try {
-    pdfBytes = await fetchRealPdfBytes(admin, tool_slug, source_row_id ?? null);
+    const fetched = await fetchRealPdfBytes(admin, tool_slug, source_row_id ?? null);
+    pdfBytes = fetched.bytes;
+    htmlOutline = fetched.outline;
   } catch (e) {
     return json({ error: (e as Error).message }, 502);
   }
@@ -509,6 +518,11 @@ async function generatePdf(admin: ReturnType<typeof createClient>, body: any) {
     } catch (e) {
       console.warn(`[generate_pdf] hydrateContent failed: ${(e as Error).message}`);
     }
+  }
+  // DOC 183 — a file-driven sample (the Notices) has no row content; its
+  // captured heading outline is the only thing the preview needs from the row.
+  if (reportData == null && htmlOutline.length > 0) {
+    reportData = { document_outline: htmlOutline };
   }
 
 

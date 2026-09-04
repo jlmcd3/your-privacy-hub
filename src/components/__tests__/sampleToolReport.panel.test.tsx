@@ -75,6 +75,53 @@ describe("SAMP-2 — the generic renderer never dumps engine telemetry", () => {
   });
 });
 
+// DOC 183 (2026-09-04) — the sample surface after the Syllabus & Record and
+// formal-instrument rebuilds: ADMT v2 / Registration previews render through
+// the Syllabus & Record view like their result pages, and a DPA preview whose
+// deliverable is the PDF embeds it instead of an empty prose shell.
+describe("DOC 183 — Syllabus & Record products and PDF-first previews on the sample surface", () => {
+  const SYLLABUS = {
+    _typed: "syllabus@sr-2026-09-04",
+    instrument_line: "ADMT COMPLIANCE ASSESSMENT",
+    prepared_for: "Busted Sled Solutions, Inc.",
+    activity: "Automated dispatch scoring",
+    subtitle: "11 CCR §§ 7200–7222",
+    disposition_label: "OUTCOME",
+    disposition: "Proceed with Conditions",
+    disposition_tone: "hold",
+    paragraph: "The determination is carried on this page.",
+    rows: [["Significant decision", "Engaged"]],
+    conditions_heading: "",
+    conditions: [],
+    key_dates: [],
+    record_map: [],
+    running_head: "ADMT · BUSTED SLED",
+  };
+  const SR_SKELETON = { ...SKELETON, syllabus: SYLLABUS };
+
+  it("renders an ADMT v2 skeleton (syllabus present) through the Syllabus & Record view", () => {
+    const { container } = render(<SampleToolReport toolSlug="cppa_admt" documentText={null} reportData={{ skeleton_document: SR_SKELETON }} />);
+    expect(container.querySelector('[data-sr="1"]')).not.toBeNull();
+    expect(screen.getByText("Automated dispatch scoring")).toBeTruthy();
+  });
+
+  it("keeps a syllabus-less ADMT skeleton on the legacy view (the result page's version gate)", () => {
+    const { container } = render(<SampleToolReport toolSlug="cppa_admt" documentText={null} reportData={{ skeleton_document: SKELETON }} />);
+    expect(container.querySelector('[data-sr="1"]')).toBeNull();
+  });
+
+  it("renders a Registration skeleton through the Syllabus & Record view", () => {
+    const { container } = render(<SampleToolReport toolSlug="registration" documentText={null} reportData={{ skeleton_document: SR_SKELETON }} />);
+    expect(container.querySelector('[data-sr="1"]')).not.toBeNull();
+  });
+
+  it("embeds the DPA's preview PDF when the row carries no content", async () => {
+    render(<SampleToolReport toolSlug="dpa" documentText={null} reportData={null} pdfPath="dpa/eu--preview.pdf" />);
+    const frame = await screen.findByTitle("Sample document (PDF)");
+    expect(frame.getAttribute("src")).toBe("https://signed.example/sample.pdf");
+  });
+});
+
 describe("SAMP-3 — a file-driven sample embeds its PDF", () => {
   it("renders the PDF embed when the row has no content but carries pdf_path", async () => {
     render(
