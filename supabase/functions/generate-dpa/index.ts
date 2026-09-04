@@ -1578,7 +1578,13 @@ ${ADVISORY_VOICE_RULES}`;
       ? { text: parsed.dpa_text, suppressed: false }
       : suppressSubProcessorFramework(parsed.dpa_text, !!body.hasSubProcessors);
     parsed = { ...parsed, dpa_text: subprocSup1.text } as typeof parsed;
-    let lint = lintReportText(parsed.dpa_text, { checkClauseNumbering: true });
+    // DOC 182 (2026-09-04) — the clause-numbering collision net exists to
+    // catch MODEL-numbered clauses (a "1798.140" that is really a clause
+    // number). Deterministic assembly numbers its clauses by construction
+    // and cites statutes with decimals ("Cal. Civ. Code § 1798.140" in the
+    // ratified Section 12), so the net is a false positive there and would
+    // fail the path loud on correct law; every other hard net still runs.
+    let lint = lintReportText(parsed.dpa_text, { checkClauseNumbering: !dpaDeterministicPath });
     // REBUILD-DPA T2/T3/T5 — deterministic net: speculative modules,
     // baseline-standard misuse, and blacklist-phrase hits merge in as HARD
     // violations so the existing retry gate at hasHardViolations(lint)

@@ -29,6 +29,20 @@ import {
   US_REQUIRED_TERMS_SECTION,
 } from "./dpa-clause-library.ts";
 import { DPA_TOMS_TAXONOMY, renderTomsBlock, resolveTomsSelection } from "../registry/dpa-toms-taxonomy.ts";
+// DOC 182 (2026-09-04) — the Canonical DPA Package v2.0 port: independent
+// geography flags, the v2.0 supplementary sections after the ratified core,
+// the jurisdiction-neutral skeleton for us-state mode, and the four addenda/
+// exhibits attached per engaged geography. The ratified core bytes above
+// this line are untouched.
+import {
+  coveredStateLaw,
+  deriveDpaEngagement,
+  type DpaEngagement,
+  neutralBaseSections,
+  neutralSubprocessorAuthorisationClause,
+  supplementarySections,
+} from "./dpa-v2-supplement.ts";
+import { addendumText, buildAddenda, type DpaAddendum } from "./dpa-addenda.ts";
 
 export interface DpaAssembleInput {
   readonly documentType: DpaMode;
@@ -88,9 +102,13 @@ export interface DpaContractStructured {
   readonly annexB: DpaContractAnnex;
   readonly annexC: DpaContractAnnex;
   readonly annexD: DpaContractAnnex;
+  /** DOC 182 — the jurisdiction-specific addenda and transfer exhibits the record engages, in package order. */
+  readonly addenda: readonly DpaAddendum[];
+  /** DOC 182 — the independent geography flags the addenda were attached on. */
+  readonly engagement: DpaEngagement;
 }
 
-export const DPA_ASSEMBLER_STAMP = "dpa-assembler@s-d1-2026-08-27";
+export const DPA_ASSEMBLER_STAMP = "dpa-assembler@s-d1-2026-08-27+v2-2026-09-04";
 
 const s = (v: unknown): string => String(v ?? "").trim();
 
@@ -321,6 +339,15 @@ function buildExecution(input: DpaAssembleInput): DpaContractExecution {
 
 export function assembleDpaDocument(input: DpaAssembleInput): DpaAssembledDocument {
   const mode = input.documentType;
+  // DOC 182 — every geography carries its own flag; the mode stays the gate.
+  const engagement = deriveDpaEngagement({
+    documentType: mode,
+    controllerJurisdiction: s(input.controllerJurisdiction),
+    processorJurisdiction: s(input.processorJurisdiction),
+    includeTransferClause: input.includeTransferClause,
+    transferMechanism: input.transferMechanism,
+    californiaEngaged: input.californiaEngaged,
+  });
   const slots: Record<string, string> = {
     controllerName: s(input.controllerName) || "[TO BE COMPLETED: controller name]",
     processorName: s(input.processorName) || "[TO BE COMPLETED: processor name]",
@@ -336,7 +363,9 @@ export function assembleDpaDocument(input: DpaAssembleInput): DpaAssembledDocume
     frameworkCitation: frameworkCitationFor(mode, {
       ukAlsoEngaged: ukEngaged(s(input.controllerJurisdiction), s(input.processorJurisdiction)),
     }),
-    subprocessorAuthorisationClause: subprocessorAuthorisationClause(
+    // DOC 182 — the neutral skeleton takes the caption-free 5.1 (the ratified
+    // clause's "Art. 28(2)" caption is wrong law outside the GDPR family).
+    subprocessorAuthorisationClause: (mode === "us-state" ? neutralSubprocessorAuthorisationClause : subprocessorAuthorisationClause)(
       input.subprocessorAuthorizationModel,
       input.subprocessorNoticeDays,
       input.hasSubProcessors,
@@ -350,7 +379,9 @@ export function assembleDpaDocument(input: DpaAssembleInput): DpaAssembledDocume
     }),
     governingLawClause: governingLawClause(input.controllerJurisdiction),
     dpoRepresentationClause: dpoRepresentationClause(mode),
-    roleRecitalClause: roleRecitalClause(input.services, s(input.processorName)),
+    // DOC 182 — the risky-services recital cites GDPR Article 28; the
+    // jurisdiction-neutral skeleton (us-state) carries no such recital.
+    roleRecitalClause: mode === "us-state" ? "" : roleRecitalClause(input.services, s(input.processorName)),
     frameworkBaselineClause: frameworkBaselineClause(mode, input.controllerJurisdiction, input.processorJurisdiction),
     tomsSourceSentence: resolveTomsSelection(input.securityMeasuresSelected).length > 0 || s(input.securityMeasuresDetails)
       ? "Annex C carries the measures the Controller has recorded, in the Controller's own terms."
@@ -362,7 +393,11 @@ export function assembleDpaDocument(input: DpaAssembleInput): DpaAssembledDocume
   // from the SAME clause array before it is joined into `body`, so
   // `document_text`/`sections[].body` below are computed exactly as before.
   const contractSections: DpaContractSection[] = [];
-  for (const sec of baseSections()) {
+  // DOC 182 — the GDPR family (and canada) keep the ratified Art. 28
+  // skeleton byte-for-byte; us-state takes the jurisdiction-neutral v2.0
+  // skeleton (the Art. 28 citations are wrong law there).
+  const skeleton = mode === "us-state" ? neutralBaseSections() : baseSections();
+  for (const sec of skeleton) {
     const clauseLines = sec.clauses
       .map((c) => fillSlots(c, slots))
       // DOC-81 D-2 — UK GDPR's own wording: "domestic law", not the EU
@@ -392,6 +427,46 @@ export function assembleDpaDocument(input: DpaAssembleInput): DpaAssembledDocume
     });
   }
 
+  // DOC 182 — the v2.0 supplementary sections follow the core (and the CCPA
+  // terms where present) for every mode except canada (CEO 2026-09-04:
+  // Canada mode untouched). Numbering continues from the last section.
+  if (mode !== "canada") {
+    const startAt = sections.length + 1;
+    for (const sec of supplementarySections({
+      startAt,
+      dataCategories: input.dataCategories,
+      engagement,
+      gdprCore: mode !== "us-state",
+      subprocessorNoticeDays: input.subprocessorNoticeDays,
+    })) {
+      sections.push({ heading: sec.heading, body: sec.clauses.join("\n") });
+      contractSections.push({ heading: sec.heading, clauses: [...sec.clauses] });
+    }
+  }
+
+  // DOC 182 — addenda and exhibits, attached per engaged geography.
+  const annexDRows = annexDStructured(input).rows.filter((r) => !/^(None engaged|\[TO BE COMPLETED)/.test(String(r[0] ?? "")));
+  const addenda = mode === "canada" ? [] : buildAddenda({
+    controllerName: s(input.controllerName),
+    controllerJurisdiction: s(input.controllerJurisdiction),
+    processorName: s(input.processorName),
+    processorJurisdiction: s(input.processorJurisdiction),
+    services: s(input.services),
+    dataCategories: input.dataCategories.map((c) => s(c)).filter(Boolean),
+    retention: s(input.retention).replace(/\s*\.+\s*$/, ""),
+    auditRights: s(input.auditRights),
+    hasSubProcessors: input.hasSubProcessors,
+    subProcessorRows: annexDRows,
+    subprocessorAuthorizationModel: input.subprocessorAuthorizationModel,
+    subprocessorNoticeDays: input.subprocessorNoticeDays,
+    securityMeasureLabels: resolveTomsSelection(input.securityMeasuresSelected).map((t) => t.label),
+    securityMeasuresDetails: s(input.securityMeasuresDetails),
+    includeTransferClause: input.includeTransferClause,
+    transferMechanism: s(input.transferMechanism),
+    engagement,
+    coveredLaws: engagement.usStatesEngaged.map((st) => coveredStateLaw(st)).filter((l): l is NonNullable<typeof l> => Boolean(l)),
+  });
+
   const annexes = [annexA(input), annexB(input), annexC(input), annexD(input)].join("\n\n");
   const document_text = [
     ...sections.map((x) => `${x.heading}\n${x.body}`),
@@ -399,6 +474,7 @@ export function assembleDpaDocument(input: DpaAssembleInput): DpaAssembledDocume
     // downstream consumes such a marker, so it would print verbatim.
     "EXECUTION\nIN WITNESS WHEREOF, the Parties have executed this DPA by their duly authorised representatives.\nController: ______________________  Date: ________\nProcessor: ______________________  Date: ________",
     annexes,
+    ...addenda.map((a) => addendumText(a, s(input.controllerName), s(input.processorName))),
   ].join("\n\n");
 
   const contract: DpaContractStructured = {
@@ -408,6 +484,8 @@ export function assembleDpaDocument(input: DpaAssembleInput): DpaAssembledDocume
     annexB: annexBStructured(input),
     annexC: annexCStructured(input),
     annexD: annexDStructured(input),
+    addenda,
+    engagement,
   };
 
   return { document_text, sections, mode, assembler: DPA_ASSEMBLER_STAMP, contract };

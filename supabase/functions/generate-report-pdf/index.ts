@@ -2887,18 +2887,9 @@ export function buildSkeletonReportHTML(doc: SkeletonDocLike, record: any, fallb
 // is called here: contract mode carries no underlining anywhere (doc 109
 // §1.7 item 9).
 // ─────────────────────────────────────────────────────────────────────────
-interface DpaContractSectionLike { heading?: string; clauses?: string[] }
-interface DpaContractPartyLike { label?: string; name?: string }
-interface DpaContractExecutionLike { statement?: string; parties?: DpaContractPartyLike[] }
-interface DpaContractAnnexLike { title?: string; rows?: string[][]; note?: string }
-interface DpaContractLike {
-  sections?: DpaContractSectionLike[];
-  execution?: DpaContractExecutionLike;
-  annexA?: DpaContractAnnexLike;
-  annexB?: DpaContractAnnexLike;
-  annexC?: DpaContractAnnexLike;
-  annexD?: DpaContractAnnexLike;
-}
+// DOC 182 — the contract shape (sections, execution, Annexes A–D, addenda)
+// is typed in _local/dpa-formal-instrument.ts, the module that renders it.
+import { buildDpaFormalInstrumentHTML, type DpaContractLike } from "./_local/dpa-formal-instrument.ts";
 interface DpaCoverageClauseLike {
   clause?: string;
   requirement?: string;
@@ -2912,134 +2903,24 @@ interface DpaCoverageLike {
   absent_count?: number;
 }
 
-// Whitelist-bounded, not a heuristic — the only acronyms the DPA clause
-// library ever names in a heading ("...CCPA REQUIRED TERMS").
-const DPA_HEADING_ACRONYMS = new Set(["CCPA", "CPRA", "GDPR", "EEA", "EU", "UK"]);
-const DPA_HEADING_SMALL_WORDS = new Set(["and", "or", "of", "the", "in", "for", "to", "a", "an", "on", "as", "by", "with"]);
-/**
- * Display-only ALL-CAPS→Title Case conversion for DPA part heads (doc 109
- * §1.7 item 9 bullet 2 — the piece doc 113 Part H correctly deferred to
- * contract mode rather than the fleet-wide report Title-Case sweep).
- * `sections[].heading`/`document_text` are never touched — every other
- * consumer (`checkDpaCompleteness`'s case-insensitive match, the legacy
- * grader payload) reads the untouched original string.
- */
-function titleCaseHeading(h: string): string {
-  return h.replace(/\S+/g, (word: string, offset: number) => {
-    if (/^\d+\.$/.test(word)) return word;
-    const bare = word.replace(/[^A-Za-z]/g, "");
-    if (bare && DPA_HEADING_ACRONYMS.has(bare.toUpperCase()) && bare === bare.toUpperCase()) return word;
-    const lower = word.toLowerCase();
-    if (offset !== 0 && DPA_HEADING_SMALL_WORDS.has(lower.replace(/[^a-z]/g, ""))) return lower;
-    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-  });
-}
-
-// doc 109 §1.7 item 9 bullet 5 — `[TO BE COMPLETED: …]` and `[N]`-style
-// negotiables render as a styled fill-in, never raw brackets in body ink.
-const DPA_FILLIN_RE = /\[TO BE COMPLETED:[^\]]*\]|\[\d+\]/g;
-function styleDpaFillIns(escapedText: string): string {
-  return escapedText.replace(DPA_FILLIN_RE, (m) =>
-    `<span style="background:#fdf6e7;color:#8a5a12;border-radius:3px;padding:1px 4px;">${m}</span>`);
-}
-
-// A clause number, optionally followed by a caption parenthetical ending
-// `.)`, then the operative text — doc 109's whitelist-free, shape-driven
-// caption rule ("a clause-opening parenthetical ending `.)` is the
-// caption"). The caption body itself may contain parens (e.g. "Art.
-// 28(3)(a)"), so the caption group is `[\s\S]` (any char, including `)`),
-// lazily matched up to the first literal `.)` — not `[^)]*`, which a
-// nested-paren caption would defeat. Bounded to 150 chars so a clause with
-// no real caption can never be mis-matched against a distant, unrelated
-// ".)" much later in the text.
-const DPA_CLAUSE_RE = /^(\d+(?:\.\d+)*)\s+(\([\s\S]{1,150}?\.\))?\s*([\s\S]*)$/;
-function renderDpaClauseHtml(clause: string): string {
-  const trimmed = String(clause ?? "").trim();
-  if (!trimmed) return "";
-  const m = DPA_CLAUSE_RE.exec(trimmed);
-  const style = "margin:0 0 8px;padding-left:28px;text-indent:-28px;font-size:11px;line-height:1.5;color:#1a1916;";
-  if (!m) return `<p style="${style}">${styleDpaFillIns(escHtml(trimmed))}</p>`;
-  const [, num, captionRaw, rest] = m;
-  const captionHtml = captionRaw
-    ? `<strong style="font-weight:bold;">${escHtml(captionRaw)}</strong> `
-    : "";
-  return `<p style="${style}"><span style="font-weight:bold;">${escHtml(num)}</span> ${captionHtml}${styleDpaFillIns(escHtml(rest))}</p>`;
-}
-
-function dpaAnnexTableHtml(annex: DpaContractAnnexLike | undefined, columns: string[], hideHeader?: boolean): string {
-  if (!annex || !Array.isArray(annex.rows) || annex.rows.length === 0) return "";
-  return skeletonTableHtml({ title: annex.title, columns, rows: annex.rows, note: annex.note, hideHeader });
-}
-
+// DOC 182 (2026-09-04) — contract mode is a FORMAL INSTRUMENT (CEO design
+// principle 7): the cover, numbered sections, execution blocks, Annexes A–D
+// and the jurisdiction-specific addenda/exhibits render through
+// _local/dpa-formal-instrument.ts (Georgia, bold+underlined headings, italic
+// bracketed prompts with a completion banner, no navy chrome). This wrapper
+// keeps the one piece doc 113 Part F / RULING D3 placed here: the
+// Art. 28(3) clause-coverage Schedule, sourced from the SAME structured
+// `clause_coverage` the deterministic path persists (the flat-text annex
+// stays, unchanged, in `document_text` for the coverage checker and the
+// legacy grader). No report-prose heuristic touches contract mode.
 function buildDpaContractHTML(
   contract: DpaContractLike,
   coverage: DpaCoverageLike | null | undefined,
   opts: { title: string; metaLine?: string },
 ): string {
-  const sections = Array.isArray(contract.sections) ? contract.sections : [];
-  const parties = Array.isArray(contract.execution?.parties) ? contract.execution!.parties! : [];
-
-  // §1.7 item 9 bullet 1 — chrome exile: the instrument opens with a
-  // centered title and party blocks, own page, ahead of Part 1.
-  const coverHtml = parties.length
-    ? `<div style="text-align:center;padding:36px 20px 56px;break-after:always;page-break-after:always;">
-        <h1 style="font-family:'Georgia','Times New Roman',serif;font-size:20px;color:#0c2a44;margin:0 0 26px;">Data Processing Agreement</h1>
-        ${parties.map((p) => `<p style="margin:0 0 6px;font-size:12px;color:#1a1916;"><strong>${escHtml(p.label ?? "")}:</strong> ${escHtml(p.name ?? "")}</p>`).join("")}
-      </div>`
-    : "";
-
-  const sectionsHtml = sections.map((sec) => {
-    const clauses = Array.isArray(sec.clauses) ? sec.clauses : [];
-    if (!clauses.length) return "";
-    return `<section class="section" style="margin-bottom:16px;">
-      <h2 style="font-family:'Georgia','Times New Roman',serif;font-weight:bold;color:#0c2a44;font-size:13px;margin:0 0 10px;break-after:avoid;page-break-after:avoid;">${escHtml(titleCaseHeading(sec.heading ?? ""))}</h2>
-      ${clauses.map(renderDpaClauseHtml).join("")}
-    </section>`;
-  }).join("\n");
-
-  // §1.7 item 9 bullet 6 — per-party execution blocks, own page. Reuses
-  // skeletonTableHtml's existing bottom-border fill-in rule (R7) for the
-  // signature/name/title/date blanks — no new fill-in visual invented.
-  const executionHtml = parties.length
-    ? `<section class="section" style="break-before:always;page-break-before:always;margin-bottom:16px;">
-        <h2 style="font-family:'Georgia','Times New Roman',serif;font-weight:bold;color:#0c2a44;font-size:13px;margin:0 0 10px;">Execution</h2>
-        <p style="font-size:11px;margin:0 0 16px;color:#1a1916;">${escHtml(contract.execution?.statement ?? "")}</p>
-        ${parties.map((p) => `<div style="margin-bottom:22px;">
-          <p style="font-weight:bold;font-size:11.5px;margin:0 0 8px;">SIGNED for and on behalf of ${escHtml(p.name ?? "")} (${escHtml(p.label ?? "")}):</p>
-          ${skeletonTableHtml({
-            columns: ["Field", "Value"],
-            hideHeader: true,
-            rows: [
-              ["By", "______________________"],
-              ["Name", "______________________"],
-              ["Title", "______________________"],
-              ["Date", "______________________"],
-            ],
-          })}
-        </div>`).join("")}
-      </section>`
-    : "";
-
-  // §1.7 item 9 bullet 6 / §2.8 items 3–4 — Annexes A–D as real tables, via
-  // the same fleet-wide table primitive every other product uses.
-  const annexBlocks = [
-    dpaAnnexTableHtml(contract.annexA, ["Field", "Value"], true),
-    dpaAnnexTableHtml(contract.annexB, ["Field", "Value"], true),
-    dpaAnnexTableHtml(contract.annexC, ["Measure", "Status"]),
-    dpaAnnexTableHtml(contract.annexD, ["Name", "Service", "Location", "Date Authorised"]),
-  ].filter(Boolean);
-  const annexesHtml = annexBlocks.length
-    ? `<section class="section" style="break-before:always;page-break-before:always;margin-bottom:16px;">${annexBlocks.join("<div style=\"height:14px;\"></div>")}</section>`
-    : "";
-
-  // §2.8 item 5 — the Art. 28(3) checklist as a labeled informational
-  // Schedule table, sourced from the SAME structured `clause_coverage` the
-  // deterministic path already persists (doc 113 Part F / RULING D3 named
-  // this heading; the flat-text annex stays, unchanged, in `document_text`
-  // for the coverage checker and legacy grader).
   const coverageClauses = Array.isArray(coverage?.clauses) ? coverage!.clauses! : [];
   const scheduleHtml = coverageClauses.length
-    ? `<section class="section" style="break-before:always;page-break-before:always;margin-bottom:16px;">${skeletonTableHtml({
+    ? skeletonTableHtml({
         title: "Schedule — Article 28(3) Clause-Coverage (Informational)",
         columns: ["Clause", "Requirement", "Status", "Location"],
         rows: coverageClauses.map((c) => [
@@ -3049,16 +2930,9 @@ function buildDpaContractHTML(
           c.location ?? "—",
         ]),
         note: `Deterministic coverage check against ${coverage?.citation ?? "GDPR Art. 28"}(3). ${coverage?.present_count ?? 0} present, ${coverage?.absent_count ?? 0} absent. A clause marked Absent has not been drafted into this document and requires attention before execution.`,
-      })}</section>`
+      })
     : "";
-
-  return buildTextReportHTML({
-    title: opts.title,
-    metaLine: opts.metaLine,
-    text: "",
-    showJurisdictionChip: false,
-    htmlPrefix: coverHtml + sectionsHtml + executionHtml + annexesHtml + scheduleHtml,
-  });
+  return buildDpaFormalInstrumentHTML(contract, { title: opts.title, metaLine: opts.metaLine, scheduleHtml });
 }
 
 
