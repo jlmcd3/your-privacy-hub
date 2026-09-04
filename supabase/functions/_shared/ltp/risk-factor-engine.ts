@@ -556,6 +556,11 @@ export interface RiskFactorEngineResult {
      * reconciliation applied), so no consumer re-derives the count from
      * raw scope lines and disagrees with the trigger table. */
     readonly triggers_engaged_count: number;
+    /** DOC 170 (2026-09-04) — the § 4.D conditions VERBATIM (the same array
+     * conditions_count counts) and the Follow-Up tally, so the page-1
+     * Determination Syllabus projects them without re-deriving anything. */
+    readonly conditions: readonly string[];
+    readonly follow_ups_count: number;
   };
 }
 
@@ -4626,6 +4631,9 @@ export function runRiskFactorEngine(
       has_unassessed: unassessed.length > 0,
       conditions_count: conditions.length,
       triggers_engaged_count: engagedLines.length,
+      // DOC 170 — projected verbatim for the Determination Syllabus.
+      conditions: conditions.map((c) => String(c)),
+      follow_ups_count: followUps.length,
     },
   };
 }

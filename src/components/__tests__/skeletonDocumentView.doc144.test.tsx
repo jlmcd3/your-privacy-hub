@@ -122,57 +122,64 @@ const DOC: SkeletonDocument = {
   ],
 };
 
+// DOC 170 (2026-09-04) — RE-PINNED. Syllabus & Record (doc 151) supersedes
+// the doc-144 Wave-2 Risk presentation for cppa-risk: the Assessment-at-a-
+// Glance panel is replaced by the page-1 Determination Syllabus, the framed
+// law-cite by the Governing-Requirement rail (label now carries the cite),
+// filled badges by the tinted-text State Lexicon, and the section opener by
+// the quiet-numeral head with the question line. The cases below pin the
+// design intent that SURVIVES (token strip, customer voice, rail, numeral,
+// marker never underlined); the retired components are asserted absent.
+// The non-Risk default case is unchanged.
 describe("doc144 — Wave-2 Risk presentation (web twin)", () => {
-  it("renders the Assessment-at-a-Glance panel from the persisted panel + key-dates surfaces", () => {
-    const { getByText, getAllByText } = render(<SkeletonDocumentView doc={DOC} product="cppa-risk" />);
-    expect(getByText("Assessment at a Glance")).toBeTruthy();
-    expect(getAllByText("Triggers engaged").length).toBeGreaterThanOrEqual(1);
-    expect(getByText(/Three-year review: 2029-09-02/)).toBeTruthy();
-    expect(getAllByText(/may proceed once each condition/).length).toBeGreaterThanOrEqual(1);
+  it("DOC 170 — the glance panel is retired for cppa-risk (page one carries the projection)", () => {
+    const { container } = render(<SkeletonDocumentView doc={DOC} product="cppa-risk" />);
+    expect(container.textContent).not.toContain("Assessment at a Glance");
+    expect(container.querySelector('[data-sr="1"]')).not.toBeNull();
   });
 
-  it("strips the [Q] token and renders the italic landing line", () => {
+  it("strips the [Q] token and renders the landing line in the section head", () => {
     const { container } = render(<SkeletonDocumentView doc={DOC} product="cppa-risk" />);
     expect(container.textContent).not.toContain("[Q]");
-    const q = Array.from(container.querySelectorAll("p")).find((el) =>
+    const q = Array.from(container.querySelectorAll("span, p")).find((el) =>
       (el.textContent ?? "").startsWith("What is being processed")
     );
     expect(q).toBeTruthy();
     expect(q!.className).toContain("italic");
   });
 
-  it("renders the customer-voice block with attribution eyebrow and labeled quoted rows", () => {
+  it("renders the customer-voice rail with attribution label and labeled quoted rows", () => {
     const { getByText } = render(<SkeletonDocumentView doc={DOC} product="cppa-risk" />);
     expect(getByText("In Acme’s words")).toBeTruthy();
     expect(getByText("Processing")).toBeTruthy();
     expect(getByText(/“Shipment-tracking advertising profiles”/)).toBeTruthy();
   });
 
-  it("frames a Governing-requirement chunk as the law-cite box with the caps eyebrow", () => {
+  it("frames a Governing-requirement chunk as the rail, the label carrying the cite the sentence names", () => {
     const { getByText } = render(<SkeletonDocumentView doc={DOC} product="cppa-risk" />);
-    const eyebrow = getByText("Governing requirement");
-    expect(eyebrow.className).toContain("uppercase");
+    const label = getByText("Governing requirement · 11 CCR § 7152(a)(1)");
+    expect(label.className).toContain("uppercase");
     expect(getByText(/Section 7152\(a\)\(1\) requires/)).toBeTruthy();
   });
 
-  it("badges the six-column ledger (likelihood/severity scale words, before/remaining levels)", () => {
+  it("tints the ledger's state words as text (never a filled chip)", () => {
     const { getAllByText } = render(<SkeletonDocumentView doc={DOC} product="cppa-risk" />);
-    for (const word of ["Possible", "Significant", "High", "Moderate"]) {
-      const badged = getAllByText(word).filter((el) => el.className.includes("border"));
-      expect(badged.length).toBeGreaterThanOrEqual(1);
+    for (const word of ["High", "Moderate"]) {
+      const tinted = getAllByText(word).filter((el) => el.className.includes("uppercase") && !el.className.includes("border"));
+      expect(tinted.length).toBeGreaterThanOrEqual(1);
     }
   });
 
-  it("badges the necessity Determination column on the engine's exact words", () => {
+  it("tints the necessity Determination column on the engine's exact words", () => {
     const { getByText } = render(<SkeletonDocumentView doc={DOC} product="cppa-risk" />);
-    expect(getByText("Necessary to the stated purpose").className).toContain("emerald");
-    expect(getByText("Collected but not necessary to the stated purpose").className).toContain("red");
+    expect(getByText("Necessary to the stated purpose").className).toContain("text-[#28503a]");
+    expect(getByText("Collected but not necessary to the stated purpose").className).toContain("text-[#6e2323]");
   });
 
   it("opens numbered main sections with the quiet numeral — marker never underlined", () => {
     const { container } = render(<SkeletonDocumentView doc={DOC} product="cppa-risk" />);
     const numeral = Array.from(container.querySelectorAll("span")).find(
-      (el) => el.textContent === "2" && el.className.includes("text-[40px]"),
+      (el) => el.textContent === "2" && el.className.includes("text-[36px]"),
     );
     expect(numeral).toBeTruthy();
     expect(numeral!.className).not.toContain("underline");

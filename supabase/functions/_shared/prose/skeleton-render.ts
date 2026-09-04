@@ -19,6 +19,7 @@
 //     shipped document. Fixed spine prose is byte-pinned law and untouched.
 
 import { repairRegister } from "../ltp/register-repair.ts";
+import type { SyllabusProjection } from "./syllabus.ts";
 
 export interface SpineBlockLike {
   readonly kind: string;
@@ -96,6 +97,10 @@ export interface RenderedSkeletonDocument {
   readonly sections: readonly RenderedSection[];
   /** PROMPT 8 — every table rendered in this document, in document order. */
   readonly tables?: readonly RenderedTable[];
+  /** DOC 170 (2026-09-04) — the Syllabus & Record page-1 projection the
+   *  product's assembler attaches (see ./syllabus.ts). Additive: a document
+   *  without it renders exactly as before. */
+  readonly syllabus?: SyllabusProjection;
 }
 
 const SENTINEL = "\u0000";

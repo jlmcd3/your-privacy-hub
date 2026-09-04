@@ -43,6 +43,14 @@
 // far more than that (a 115K-char document is ~30K tokens).
 export const SKELETON_GRADER_BUDGET = 240_000;
 
+// DOC 170 (2026-09-04) — Syllabus & Record: (a) the persisted page-1
+// projection (document.syllabus) is graded like every other customer-visible
+// page, printed ahead of the sections; (b) the "[Q] " landing-line token is
+// a RENDER directive (both renderers strip it), so the graders see the
+// customer-visible question line, never the raw token (doc 145 §4.1).
+import { readSyllabus, syllabusToText } from "../../../_shared/prose/syllabus.ts";
+const Q_TOKEN_RE = /^\[Q\] /;
+
 export interface SkeletonParagraphLike {
   kind?: string;
   text?: string;
@@ -159,6 +167,10 @@ export function buildSkeletonGraderPayload(
   if (doc.spine_version) head.push(`SPINE_VERSION: ${doc.spine_version}`);
   if (head.length) parts.push(head.join("\n"));
 
+  // DOC 170 — page one (the Determination Syllabus) leads the graded text.
+  const syllabus = readSyllabus(doc);
+  if (syllabus) parts.push(`[kind=syllabus] ${syllabusToText(syllabus)}`);
+
   let paragraphCount = 0;
   const body: string[] = [];
   for (const section of sections) {
@@ -168,7 +180,10 @@ export function buildSkeletonGraderPayload(
     ];
     for (const p of paragraphs) {
       paragraphCount += 1;
-      lines.push(`[kind=${p?.kind ?? "unknown"}] ${typeof p?.text === "string" ? p.text : String(p?.text ?? "")}`);
+      const raw = typeof p?.text === "string" ? p.text : String(p?.text ?? "");
+      // DOC 170 — the "[Q] " render token never reaches a grader.
+      const text = raw.split(/\n{2,}/).map((c) => c.replace(Q_TOKEN_RE, "")).join("\n\n");
+      lines.push(`[kind=${p?.kind ?? "unknown"}] ${text}`);
     }
     body.push(lines.join("\n"));
   }

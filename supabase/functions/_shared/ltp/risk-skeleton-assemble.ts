@@ -38,6 +38,8 @@ import {
   type SkeletonTables,
   type SlotValues,
 } from "../prose/skeleton-render.ts";
+// DOC 170 (2026-09-04) — the Syllabus & Record page-1 projection type.
+import { dispositionTone, type SyllabusProjection } from "../prose/syllabus.ts";
 import {
   runRiskFactorEngine,
   buildRiskAndSafeguardRegisterTable,
@@ -1194,6 +1196,148 @@ export function buildAdvisoryCorpusMatches(report: Bag, intake: Bag): RenderedTa
 
 // ── Assembly ────────────────────────────────────────────────────────────────
 
+// ─────────────────────────────────────────────────────────────────────────
+// DOC 170 (2026-09-04) — THE DETERMINATION SYLLABUS (Syllabus & Record p.1).
+// Every value below is a PROJECTION of a determination the engine or this
+// assembler already made (doc 127 §28 law): the disposition label and the
+// two levels from the exec panel, the disposition paragraph = the executive
+// determination lead exactly as composed, the conditions verbatim from the
+// engine's § 4.D array, the key dates from the same key_dates table § 5
+// prints, the record map from the rendered appendix titles.
+// ─────────────────────────────────────────────────────────────────────────
+
+/** The record-map descriptions (design system § 6.9), keyed by appendix
+ *  letter as the v5.3 spine letters them. A letter with no description
+ *  still lists (title only). */
+const RISK_RECORD_MAP_DESCRIPTIONS: Readonly<Record<string, string>> = {
+  A: "The factors analyzed, the determination made for each on the information provided, and the controlling authority.",
+  B: "Relevant CPPA enforcement actions and decisions; analogous enforcement actions and decisions under other data-protection law (e.g. GDPR) for persuasive authority.",
+  C: "Categories, canonical mappings, sources, recipients, disclosures, per-category retention.",
+  D: "Full source, cause, actor, and evidence detail behind each § 4.A ledger row.",
+  E: "The system’s role, logic, output, human review, testing, and training-data provenance — or its honest not-applicable state.",
+  F: "The assessment record, prior assessments, and provenance of this report.",
+};
+
+/** The run-in name for a § 4.D condition: the fixed condition templates the
+ *  engine composes each carry a stable head; the name is derived from that
+ *  head, never from free text. Anything unrecognised falls back to a
+ *  numbered label rather than an invented name. */
+export function riskConditionName(text: string, index: number): string {
+  const t = text.trim();
+  // Head-anchored: each template's closure text may continue after the
+  // quoted element (the doc-149/153 clauses), so only the head is matched.
+  // The "(addresses: …)" clause closes the template, and the harm labels
+  // inside it carry their own parentheses ("(C) Impairment …"), so the
+  // capture runs to the clause's closing paren at the END of the text.
+  let m = /^Complete implementation of the planned safeguard: “[^”]*”(?: \(addresses: (.+)\)\.?)?\s*$/.exec(t);
+  if (m) return m[1] ? `Planned safeguard — ${m[1].trim()}` : "Planned safeguard";
+  if (/^Complete implementation of the planned safeguard: “/.test(t)) return "Planned safeguard";
+  m = /^Cease processing, or establish the necessity of, “([^”]+)”/.exec(t);
+  if (m) return `Necessity of “${m[1]}”`;
+  m = /^Obtain and record the results or effectiveness evidence of the testing the Company describes for the safeguard credited against the risk: (\([A-H]\) [^.;]+)/.exec(t);
+  if (m) return `Testing results — ${m[1].trim()}`;
+  m = /^Obtain implementation and testing evidence for the safeguard credited against the risk: (\([A-H]\) [^.;]+)/.exec(t);
+  if (m) return `Testing evidence — ${m[1].trim()}`;
+  m = /^Establish a safeguard directed at (\([A-H]\) [^.;]+)/.exec(t);
+  if (m) return `Safeguard for ${m[1].trim()}`;
+  return `Condition ${index + 1}`;
+}
+
+/** Counts under ten render as words (doc 154 item 33 house style). */
+function countWordSr(n: number): string {
+  const W = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+  return n >= 0 && n < W.length ? W[n] : String(n);
+}
+
+export function buildRiskSyllabus(
+  rendered: RenderedSkeletonDocument,
+  panel: RiskExecDashboardPanel,
+  values: SlotValues,
+  intake: Bag,
+  assessmentDateIso: string,
+): SyllabusProjection {
+  const str = (k: string): string => {
+    const v = values[k];
+    return typeof v === "string" ? v.trim() : "";
+  };
+  const entity = str("entityName") || "the Company";
+  const activity = str("activityName");
+  const disposition = panel.disposition_label ??
+    panel.disposition.charAt(0).toUpperCase() + panel.disposition.slice(1);
+  const tier = (t: string | null): string =>
+    t ?? (panel.has_unassessed ? "Not assessed — risk information incomplete" : "Not assessed — no risks recorded");
+  // The disposition paragraph IS the executive determination lead, as composed.
+  const lead = rendered.sections.find((s) => s.id === "executive_summary")
+    ?.paragraphs.find((p) => p.kind === "lead")?.text?.trim() ?? "";
+  const triggers = panel.triggers_engaged_count;
+  const rows: Array<readonly [string, string]> = [
+    [
+      "Assessment required",
+      panel.assessment_required
+        ? (triggers > 0
+          ? `Yes — ${countWordSr(triggers)} § 7150(b) trigger${triggers === 1 ? "" : "s"} engaged on the information provided`
+          : "Yes")
+        : "No",
+    ],
+    ["Inherent privacy risk", `${tier(panel.inherent)} — before safeguards`],
+    ["Residual privacy risk", `${tier(panel.residual)} — after credited safeguards; the movement each safeguard buys appears in § 4.A`],
+  ];
+  if (typeof panel.benefits_credited_count === "number") {
+    rows.push(["Benefits credited", `${countWordSr(panel.benefits_credited_count)} of four categories (§ 3.F)`]);
+  }
+  const followUps = (panel as { follow_ups_count?: number }).follow_ups_count ?? 0;
+  const conditionsCount = panel.conditions_count;
+  rows.push([
+    "Open record items",
+    followUps > 0
+      ? `${countWordSr(followUps)} Follow-Up${followUps === 1 ? "" : "s"} complete the record (§ 4.D)${conditionsCount === 0 ? "; none blocks the disposition" : ""}`
+      : "None — the record is complete on the information provided (§ 4.D)",
+  ]);
+  const conditionTexts = (panel as { conditions?: readonly string[] }).conditions ?? [];
+  const adverse = /do not proceed/i.test(disposition);
+  const conditions = conditionTexts.map((text, i) => ({ name: riskConditionName(text, i), text: text.trim() }));
+  const keyDates = deriveKeyDatesTable(intake, assessmentDateIso)?.rows ?? [];
+  const keyDateOf = (label: string): string => {
+    const row = keyDates.find((r) => String(r?.[0] ?? "") === label);
+    return row ? String(row[2] ?? "") : "";
+  };
+  const key_dates: Array<readonly [string, string]> = [];
+  const init = keyDateOf("Initial risk assessment");
+  if (init) key_dates.push(["Initial assessment", init]);
+  const review = keyDateOf("Three-year review");
+  if (review) key_dates.push(["Three-year review", review]);
+  const first = keyDateOf("First § 7157 submission (2026–2027 assessments)");
+  if (first) key_dates.push(["First § 7157 submission", first]);
+  const record_map: Array<readonly [string, string, string]> = [];
+  for (const sec of rendered.sections) {
+    const m = /^Appendix ([A-Z]) — (.+)$/.exec(sec.title ?? "");
+    if (m) record_map.push([m[1], m[2], RISK_RECORD_MAP_DESCRIPTIONS[m[1]] ?? ""]);
+  }
+  return {
+    _typed: "syllabus@sr-2026-09-04",
+    instrument_line: "CPPA PRIVACY RISK ASSESSMENT · 11 CCR §§ 7150–7157",
+    prepared_for: entity,
+    activity: activity || "Processing activity not named on the record",
+    subtitle: activity
+      ? "Risk assessment under 11 CCR §§ 7150–7157 · the “Activity”"
+      : "Risk assessment under 11 CCR §§ 7150–7157",
+    disposition_label: "ASSESSMENT DISPOSITION",
+    disposition,
+    disposition_tone: dispositionTone(disposition),
+    paragraph: lead,
+    rows,
+    conditions_heading: conditions.length
+      ? (adverse
+        ? "CONDITIONS FOR REASSESSMENT — a different disposition depends on these"
+        : "CONDITIONS TO PROCEED — the disposition depends on these")
+      : "",
+    conditions,
+    key_dates,
+    record_map,
+    running_head: `CPPA PRIVACY RISK ASSESSMENT · ${entity.toUpperCase()}`,
+  };
+}
+
 export interface RiskSkeletonResult {
   readonly document: RenderedSkeletonDocument;
   readonly conformance: ReturnType<typeof verifySkeletonConformance>;
@@ -1312,7 +1456,7 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
     "appendix_i:4": advisoryMatches,
   };
 
-  const document = renderSkeletonDocument({
+  const rendered = renderSkeletonDocument({
     sections: SKELETON_SECTIONS,
     title: RISK_SKELETON_TITLE,
     subtitle: RISK_SKELETON_SUBTITLE,
@@ -1321,6 +1465,14 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
     composed,
     tables,
   });
+  // DOC 170 (2026-09-04) — the Determination Syllabus (page 1 of the
+  // Syllabus & Record presentation) attached as a projection of the
+  // determinations above. Additive: sections, hash and conformance are
+  // untouched; a renderer that does not know the field ignores it.
+  const document: RenderedSkeletonDocument = {
+    ...rendered,
+    syllabus: buildRiskSyllabus(rendered, execDashboard, values, intake, assessmentDate),
+  };
 
   const body = skeletonDocumentToText(document).toLowerCase();
   const register_findings = RISK_V3_BANNED_REGISTER.filter((b) => body.includes(b));

@@ -1,8 +1,16 @@
 // DOC 127 PHASE B (2026-09-01) — web-twin guards for the CPPA-Risk
 // presentation system: marker/heading split (no underline beneath the
-// section marker), the Assessment Result card with the Path-forward line,
-// the Assessment Profile fact panel, the methodology strip, and the
-// non-Risk default staying byte-identical to the doc 66 Rule 2 treatment.
+// section marker) and the non-Risk default staying byte-identical to the
+// doc 66 Rule 2 treatment.
+//
+// DOC 170 (2026-09-04) — RE-PINNED. Syllabus & Record (doc 151, the CEO-
+// ratified fleet design) supersedes the doc-127 Risk presentation for
+// cppa-risk: the cover fact panel, the Assessment Result card, the
+// methodology strip and the executive Determination card are replaced by
+// the page-1 Determination Syllabus and the one-rail body. The cases that
+// pinned those retired components are removed here (their replacements are
+// pinned in skeletonDocumentView.doc170.test.tsx); the marker split and the
+// non-Risk default — design intent that survives the redesign — stay.
 
 import { describe, expect, it } from "vitest";
 import { render } from "@testing-library/react";
@@ -16,20 +24,6 @@ const RISK_DOC: SkeletonDocument = {
       id: "cover",
       title: "Assessment Profile",
       paragraphs: [
-        {
-          kind: "table",
-          text: "",
-          table: {
-            surface: "cover_summary",
-            columns: ["Field", "Value"],
-            hideHeader: true,
-            rows: [
-              ["Prepared for", "Acme Logistics Ltd (the “Company”)"],
-              ["Processing activity", "Shipment-tracking advertising profiles (the “Activity”)"],
-              ["Assessment date", "September 1, 2026"],
-            ],
-          },
-        },
         {
           kind: "table",
           text: "",
@@ -77,20 +71,7 @@ const RISK_DOC: SkeletonDocument = {
 };
 
 describe("doc127 Phase B — Risk presentation system (web twin)", () => {
-  it("renders the Assessment Result card with disposition badge and Path forward line", () => {
-    const { getByText, getAllByText } = render(<SkeletonDocumentView doc={RISK_DOC} product="cppa-risk" />);
-    expect(getAllByText("Do Not Proceed").length).toBeGreaterThanOrEqual(1);
-    expect(getByText(/satisfy the Conditions for Reassessment in § 4\.D\./)).toBeTruthy();
-    expect(getByText("Assessment disposition")).toBeTruthy();
-  });
-
-  it("renders the Assessment Profile as a fact panel (no Field/Value header)", () => {
-    const { container, getByText } = render(<SkeletonDocumentView doc={RISK_DOC} product="cppa-risk" />);
-    expect(getByText("Prepared for")).toBeTruthy();
-    expect(container.textContent).not.toContain("Field");
-  });
-
-  it("splits the lettered lead: marker bold and NOT underlined, heading words bold+underlined", () => {
+  it("splits the lettered lead: marker NOT underlined, heading words underlined (survives DOC 170)", () => {
     const { container } = render(<SkeletonDocumentView doc={RISK_DOC} product="cppa-risk" />);
     const markers = Array.from(container.querySelectorAll("strong")).filter((el) => el.textContent === "A.");
     expect(markers.length).toBeGreaterThanOrEqual(1);
@@ -101,17 +82,17 @@ describe("doc127 Phase B — Risk presentation system (web twin)", () => {
     expect(heading).toBeTruthy();
   });
 
-  it("renders the methodology strip row for a Step paragraph", () => {
+  it("DOC 170 — without a persisted syllabus the raw cover table is the page-one fallback, the lead still renders in its section, and the Step paragraph renders as prose", () => {
     const { container } = render(<SkeletonDocumentView doc={RISK_DOC} product="cppa-risk" />);
-    const chip = Array.from(container.querySelectorAll("span")).find((el) => el.textContent === "1" && el.className.includes("rounded-full"));
-    expect(chip).toBeTruthy();
-    const bold = Array.from(container.querySelectorAll("strong")).find((el) => el.textContent === "Triggers");
-    expect(bold).toBeTruthy();
-  });
-
-  it("marks the executive determination lead as the Determination card", () => {
-    const { getByText } = render(<SkeletonDocumentView doc={RISK_DOC} product="cppa-risk" />);
-    expect(getByText("Determination")).toBeTruthy();
+    // No syllabus was persisted on this fixture (an assembler that always
+    // attaches one for cppa-risk never produces this shape in production),
+    // so the raw exec_status_panel table is the intended fallback — it is
+    // NOT suppressed the way it is once a syllabus takes over the surface.
+    expect(container.textContent).toContain("Assessment Result");
+    expect(container.textContent).toContain("the residual privacy risks remaining after credited safeguards are substantial");
+    expect(container.textContent).toContain("The Activity is tested against the significant-risk categories");
+    // The retired doc-127 badge chrome does not render either way.
+    expect(Array.from(container.querySelectorAll("span")).some((el) => el.className.includes("rounded-full"))).toBe(false);
   });
 
   it("leaves the non-Risk default treatment unchanged (whole label bold+underlined, generic tables)", () => {

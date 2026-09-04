@@ -9,6 +9,13 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { applyUniversalDisclaimerHtml } from "../_shared/report-disclaimer.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { readAdmtScope } from "../_shared/admt-scope-contract.ts";
+// DOC 170 (2026-09-04) — Syllabus & Record: the fleet presentation system.
+import {
+  isSyllabusRecordProduct,
+  readSyllabus,
+  toneForState,
+  type SyllabusProjection,
+} from "../_shared/prose/syllabus.ts";
 import {
   coerceNarrativeScalar,
   coerceNarrativeList,
@@ -129,9 +136,22 @@ function footerTitleFromAttachment(attachmentName: string): string {
 // The footer now carries the document's own <h1>; the filename derivation
 // survives only as the fallback for builders that emit no <h1>.
 function footerTitleFromDocument(html: string, attachmentName: string): string {
+  // DOC 170 (2026-09-04) — a Syllabus & Record document names its own
+  // footer (its <h1> is the ACTIVITY title, not the product title).
+  const sr = /data-sr-footer="([^"]*)"/.exec(html);
+  if (sr && sr[1].trim()) return sr[1].replace(/&amp;/g, "&").replace(/&quot;/g, '"').trim();
   const m = /<h1[^>]*>([\s\S]*?)<\/h1>/i.exec(html);
   const raw = m ? m[1].replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim() : "";
   return raw ? `End User Privacy · ${raw}` : footerTitleFromAttachment(attachmentName);
+}
+
+/** DOC 170 — the Syllabus & Record running head ("END USER PRIVACY | <product>
+ * · <company>"), declared by the document itself; null for every other
+ * document, which keeps today's header-less request byte-for-byte. */
+function runningHeadFromDocument(html: string): string | null {
+  const m = /data-sr-runhead="([^"]*)"/.exec(html);
+  const v = m ? m[1].replace(/&amp;/g, "&").replace(/&quot;/g, '"').trim() : "";
+  return v || null;
 }
 
 async function generatePDF(
@@ -150,6 +170,21 @@ async function generatePDF(
     return null;
   }
 
+  // DOC 170 (2026-09-04) — Syllabus & Record documents carry a running head
+  // (R5 furniture: END USER PRIVACY | product · company). PDFShift's header
+  // option takes the same {source, spacing} shape as the footer below; the
+  // top margin grows to make room. Every other document sends no header.
+  const runhead = runningHeadFromDocument(html);
+  const header = runhead
+    ? {
+      source:
+        '<div style="font-family:Helvetica,Arial,sans-serif;font-size:7px;letter-spacing:0.12em;text-transform:uppercase;color:#8a9eb1;width:100%;padding:0 14mm;display:flex;justify-content:space-between;border-bottom:0.5px solid #dde5ea;padding-bottom:3px;">' +
+        "<span>END USER PRIVACY</span>" +
+        `<span>${runhead.replace(/</g, "&lt;")}</span>` +
+        "</div>",
+      spacing: 6,
+    }
+    : undefined;
   try {
     const response = await fetch("https://api.pdfshift.io/v3/convert/pdf", {
       method: "POST",
@@ -161,7 +196,8 @@ async function generatePDF(
         source: html,
         landscape: false,
         format: "Letter",
-        margin: { top: "16mm", right: "14mm", bottom: "18mm", left: "14mm" },
+        margin: { top: header ? "20mm" : "16mm", right: "14mm", bottom: "18mm", left: "14mm" },
+        ...(header ? { header } : {}),
         // A-TEAM S3 RULING I.4 (doc 115, 2026-08-31): multi-page tables were
         // not repeating their <thead> on continuation pages in production
         // even though the markup and `display:table-header-group` are
@@ -2352,10 +2388,384 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
   }).join("\n");
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// DOC 170 (2026-09-04) — SYLLABUS & RECORD, the fleet presentation system
+// (docs 143/144 → doc 151, CEO-ratified 2026-09-03; canonical record
+// docs/design/SYLLABUS-RECORD-DESIGN-SYSTEM.md; reference implementation
+// docs/design/syllabus-record/design-concept-v2.html).
+//
+// The model: the holding on page one (the Determination Syllabus), the
+// reasoning in the body, the record behind a divider (the Supporting
+// Assessment Record). Five type roles (Georgia display/body/table, Arial
+// label/furniture), one rail geometry for every framed element, states as
+// tinted TEXT never filled chips, justified body, two filled surfaces per
+// document (the disposition panel and the divider foot). Gated per product
+// by SR_PRODUCTS (../_shared/prose/syllabus.ts); every other product keeps
+// the presentation it has today, byte-for-byte.
+//
+// PRODUCTION DEVIATIONS from the reference (design system § 9): no fixed-
+// height pages (content flows; page breaks are declared, never measured);
+// the reference's per-page locator FOOTERS cannot vary per page under
+// Chromium print (one PDFShift footer template per document), so the
+// running head carries the product + company and the section head carries
+// the locator instead; multi-column constructs are tables, never flexbox.
+// The renderer stays dumb: no re-wording, no re-ordering, no added prose —
+// page one is a projection the assembler persisted (document.syllabus).
+// ─────────────────────────────────────────────────────────────────────────
+
+const SR_CSS = `
+  * { box-sizing:border-box; }
+  body.sr { font-family:Georgia,'Times New Roman',serif; color:#1a1916; background:#fff; margin:0; font-size:10pt; line-height:1.5; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .sr p { font-size:10pt; line-height:1.5; margin:0 0 6pt; text-align:justify; }
+  .sr p.q { font-style:italic; color:#41505c; text-align:left; }
+  .sr .lbl, .sr .eyebrow { font-family:Arial,Helvetica,sans-serif; font-size:7.5pt; font-weight:bold; letter-spacing:0.1em; text-transform:uppercase; }
+  .sr .eyebrow { color:#5c6d7a; }
+  .sr .st { font-family:Arial,Helvetica,sans-serif; font-size:7.5pt; font-weight:bold; letter-spacing:0.08em; text-transform:uppercase; white-space:nowrap; }
+  .sr .st-ok { color:#28503a; } .sr .st-hold { color:#6e5518; } .sr .st-hi { color:#6e2323; } .sr .st-neutral { color:#41505c; }
+  .sr .st-rest { font-size:8.4pt; color:#5c6d7a; white-space:normal; }
+  .sr h1 { font-size:21pt; font-weight:normal; line-height:1.15; color:#0c2a44; margin:0; }
+  .sr table.sechead { width:100%; border-collapse:collapse; border-bottom:1.5pt solid #0c2a44; margin:0 0 10pt; break-after:avoid; page-break-after:avoid; }
+  .sr table.sechead td { border:none; padding:0 0 6pt; vertical-align:baseline; }
+  .sr table.sechead td.secnum { width:40pt; font-family:Georgia,'Times New Roman',serif; font-size:30pt; color:#aab8c5; line-height:1; padding-right:12pt; }
+  .sr table.sechead td.secnum.letter { font-size:22pt; }
+  .sr table.sechead h2 { font-size:15.5pt; font-weight:normal; color:#0c2a44; margin:0; }
+  .sr table.sechead .q { font-size:10pt; font-style:italic; color:#5c6d7a; display:block; margin-top:2pt; }
+  .sr table.sechead .loc { display:block; font-family:Arial,Helvetica,sans-serif; font-size:7pt; letter-spacing:0.08em; color:#8a9eb1; text-transform:uppercase; margin-top:3pt; }
+  .sr h2.plain { font-size:15.5pt; font-weight:normal; color:#0c2a44; margin:0 0 10pt; padding-bottom:6pt; border-bottom:1.5pt solid #0c2a44; break-after:avoid; page-break-after:avoid; }
+  .sr h3 { font-size:10.5pt; margin:10pt 0 4pt; color:#12212f; font-weight:bold; break-after:avoid; page-break-after:avoid; }
+  .sr h3 .mk { color:#5c6d7a; font-weight:normal; }
+  .sr h3 u, .sr .cond .cn u, .sr .runin { text-decoration:underline; text-underline-offset:2.5px; text-decoration-thickness:0.5pt; }
+  .sr .rail { border-left:2pt solid #0c2a44; padding:3pt 0 3pt 10pt; margin:8pt 0 9pt; break-inside:avoid; page-break-inside:avoid; }
+  .sr .rail .rl { display:block; font-family:Arial,Helvetica,sans-serif; font-size:7.5pt; font-weight:bold; letter-spacing:0.1em; color:#0c2a44; text-transform:uppercase; }
+  .sr .rail p { font-size:9.3pt; margin:1pt 0 0; }
+  .sr .rail ul.body-list { font-size:9.3pt; margin:1pt 0 0; }
+  .sr .rail-teal { border-left-color:#2d9b90; } .sr .rail-teal .rl { color:#2d9b90; }
+  .sr .rail-hair { border-left-color:#c9d2d9; } .sr .rail-hair .rl { color:#5c6d7a; }
+  .sr .rail-hold { border-left-color:#6e5518; } .sr .rail-hold .rl { color:#6e5518; }
+  .sr table.srt { width:100%; border-collapse:collapse; margin:4pt 0 8pt; table-layout:fixed; }
+  .sr table.srt th { font-family:Arial,Helvetica,sans-serif; font-size:7.5pt; font-weight:bold; letter-spacing:0.06em; text-transform:uppercase; color:#1a1916; text-align:left; border-bottom:1.5pt solid #41505c; padding:3pt 8pt 3pt 4pt; background:#f3f6f8; }
+  .sr table.srt td { font-size:8.8pt; line-height:1.4; vertical-align:top; border-bottom:0.5pt solid #dde5ea; padding:4pt 8pt 4pt 4pt; text-align:left; word-wrap:break-word; }
+  .sr table.srt.kv td.k { font-family:Arial,Helvetica,sans-serif; font-size:7.5pt; font-weight:bold; text-transform:uppercase; letter-spacing:0.06em; color:#5c6d7a; width:30%; }
+  .sr .tbl-title { font-family:Arial,Helvetica,sans-serif; font-size:7.5pt; font-weight:bold; letter-spacing:0.1em; text-transform:uppercase; color:#5c6d7a; margin:6pt 0 2pt; break-after:avoid; page-break-after:avoid; }
+  .sr .tbl-note { font-size:8.4pt; color:#41505c; margin:-4pt 0 8pt; }
+  .sr thead { display:table-header-group; }
+  .sr tr { page-break-inside:avoid; break-inside:avoid; }
+  .sr table.brand { width:100%; border-collapse:collapse; border-bottom:2pt solid #0c2a44; }
+  .sr table.brand td { border:none; padding:0 0 8pt; vertical-align:baseline; }
+  .sr table.brand td.l { font-family:Arial,Helvetica,sans-serif; font-size:8pt; font-weight:bold; letter-spacing:0.2em; color:#0c2a44; }
+  .sr table.brand td.r { font-family:Arial,Helvetica,sans-serif; font-size:7pt; color:#5c6d7a; letter-spacing:0.08em; text-align:right; line-height:1.5; }
+  .sr .dispo { background:#f3f6f8; border:0.5pt solid #c9d2d9; border-left:2pt solid #0c2a44; padding:10pt 14pt 10pt 10pt; margin:14pt 0 12pt; break-inside:avoid; page-break-inside:avoid; }
+  .sr .dispo .dv { font-size:17pt; color:#0c2a44; margin:2pt 0 4pt; font-family:Georgia,'Times New Roman',serif; }
+  .sr .dispo p { margin:0; }
+  .sr table.syltab td { font-size:9.2pt; border-bottom:0.5pt solid #dde5ea; padding:4pt 8pt 4pt 4pt; vertical-align:top; }
+  .sr table.syltab td.k { font-family:Arial,Helvetica,sans-serif; font-size:7.5pt; font-weight:bold; text-transform:uppercase; letter-spacing:0.06em; color:#5c6d7a; width:34%; }
+  .sr .cond { border-left:2pt solid #c9d2d9; padding:2pt 0 2pt 10pt; margin:6pt 0 8pt; break-inside:avoid; page-break-inside:avoid; }
+  .sr .cond .cn { font-size:10pt; }
+  .sr .cond p { font-size:9.3pt; margin:1pt 0 0; }
+  .sr .kd { font-family:Arial,Helvetica,sans-serif; font-size:8pt; color:#41505c; border-top:0.5pt solid #c9d2d9; border-bottom:0.5pt solid #c9d2d9; padding:5pt 0; margin-top:10pt; line-height:1.6; }
+  .sr .kd b { letter-spacing:0.05em; }
+  .sr .divider { border-top:3pt solid #0c2a44; border-bottom:0.5pt solid #c9d2d9; padding:20pt 0 16pt; margin-top:30pt; }
+  .sr .divider h2 { font-size:19pt; font-weight:normal; color:#0c2a44; margin:4pt 0 0; }
+  .sr table.maprow { width:100%; border-collapse:collapse; margin-top:14pt; }
+  .sr table.maprow td { padding:6pt 8pt 6pt 4pt; font-size:9.2pt; border-bottom:0.5pt solid #dde5ea; vertical-align:top; }
+  .sr table.maprow td.ml { font-family:Georgia,'Times New Roman',serif; font-size:13pt; color:#aab8c5; width:8%; }
+  .sr .page-break { break-before:always; page-break-before:always; }
+  .sr section.section { margin-bottom:14pt; }
+  .sr ul.body-list { font-size:10pt; line-height:1.5; margin:0 0 8pt; padding-left:18pt; }
+  .sr ul.body-list li { margin-bottom:3pt; text-align:justify; }
+  .sr table.toa-table td { font-size:8.8pt; }
+  .sr .statute-quote { font-size:9.3pt; }
+`;
+
+/** A state word (the fleet lexicon) tinted as text; a value that OPENS with
+ * a state word followed by " — " tints the word and sets the rest small and
+ * slate; anything else renders verbatim. Never a filled chip. */
+function srTintHtml(value: string): string {
+  const v = value.trim();
+  const whole = toneForState(v);
+  if (whole) return `<span class="st st-${whole}">${escHtml(v)}</span>`;
+  const m = /^([^—\n]{2,60}?)\s+—\s+([\s\S]+)$/.exec(v);
+  if (m) {
+    const tone = toneForState(m[1]);
+    if (tone) return `<span class="st st-${tone}">${escHtml(m[1])}</span>&nbsp;&nbsp;<span class="st-rest">${escHtml(m[2])}</span>`;
+  }
+  return escHtml(v);
+}
+
+/** Section-head marker split (Rule 1 — markers never underlined): "A." /
+ * "1." / "(B)" / "Step N —" in the quiet marker colour, the title words
+ * underline-only. Input is already-escaped text. */
+function srHeadHtml(escapedLabel: string): string {
+  const m = /^([A-Z]\.|\([A-H]\)|Step \d+ —|\d{1,2}\.)\s+([\s\S]*)$/.exec(escapedLabel);
+  const body = m ? m[2] : escapedLabel;
+  const stop = /\.$/.test(body) ? "." : "";
+  const core = stop ? body.slice(0, -1) : body;
+  return `${m ? `<span class="mk">${m[1]}</span> ` : ""}<u>${core}</u>${stop}`;
+}
+
+/** The Governing-Requirement rail label with the cite the sentence itself
+ * names ("Section 7152(a)(1) requires…" → "11 CCR § 7152(a)(1)"); the label
+ * alone when the sentence names none. Statutory text stays verbatim. */
+function srGoverningLabel(rest: string): string {
+  const m = /^Sections?\s+(\d{4}[()\w.–-]*(?:(?:,\s*|\s+and\s+|–)\d{4}[()\w.–-]*)*)/.exec(rest.trim());
+  if (!m) return "GOVERNING REQUIREMENT";
+  const cites = m[1].split(/,\s*|\s+and\s+/).map((c) => c.trim()).filter(Boolean);
+  const sym = cites.length > 1 || /–/.test(m[1]) ? "§§" : "§";
+  return `GOVERNING REQUIREMENT · 11 CCR ${sym} ${escHtml(cites.join(", "))}`;
+}
+
+function srRailHtml(label: string, innerHtml: string, tone: "" | "teal" | "hair" | "hold" = ""): string {
+  return `<div class="rail${tone ? ` rail-${tone}` : ""}"><span class="rl">${label}</span>${innerHtml}</div>`;
+}
+
+/** The R3/R4 table: Arial caps header, hairline rows, state words tinted as
+ * text; a hidden-header key/value surface renders its keys as R4 labels. */
+function srTableHtml(t: SkeletonTableLike, product?: string): string {
+  const cols = Array.isArray(t.columns) ? t.columns : [];
+  const rows = Array.isArray(t.rows) ? t.rows.filter((r) => Array.isArray(r)) : [];
+  if (rows.length === 0 || cols.length === 0) return "";
+  const kv = t.hideHeader === true && cols.length === 2;
+  const spec = product === "cppa-risk" ? (RISK_TABLE_SPECS[t.surface ?? ""] ?? {}) : {};
+  const colgroup = spec.widths
+    ? `<colgroup>${spec.widths.map((w) => `<col style="width:${w};">`).join("")}</colgroup>`
+    : "";
+  const head = kv || t.hideHeader
+    ? ""
+    : `<thead><tr>${cols.map((c) => `<th>${escHtml(c)}</th>`).join("")}</tr></thead>`;
+  const body = rows.map((r) =>
+    `<tr>${cols.map((_c, i) => {
+      const v = String(r[i] ?? "");
+      const cell = /^_{6,}$/.test(v.trim())
+        ? `<span style="display:inline-block;min-width:220px;border-bottom:0.75pt solid #0c2a44;">&nbsp;</span>`
+        : srTintHtml(v);
+      return `<td${kv && i === 0 ? ' class="k"' : ""}>${cell}</td>`;
+    }).join("")}</tr>`
+  ).join("");
+  return `<div class="sr-table sr-${escHtml(t.surface ?? "table")}">
+    ${t.title ? `<div class="tbl-title">${escHtml(t.title)}</div>` : ""}
+    <table class="srt${kv ? " kv" : ""}">${colgroup}${head}<tbody>${body}</tbody></table>
+    ${t.note ? `<div class="tbl-note">${escHtml(t.note)}</div>` : ""}
+  </div>`;
+}
+
+/** Page 1 — the Determination Syllabus, from the persisted projection. */
+function srSyllabusPageHtml(s: SyllabusProjection, record: any): string {
+  const created = record?.created_at ? new Date(record.created_at) : new Date();
+  const date = created.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }).toUpperCase();
+  const reportId = typeof record?.id === "string" && record.id.length >= 8 ? `REPORT ${record.id.slice(0, 8).toUpperCase()} · ` : "";
+  const rows = s.rows.map(([k, v]) => `<tr><td class="k">${escHtml(k)}</td><td>${srTintHtml(v)}</td></tr>`).join("");
+  const conditions = s.conditions.length
+    ? `<div class="eyebrow" style="margin-top:8pt;">${escHtml(s.conditions_heading)}</div>` +
+      s.conditions.map((c, i) =>
+        `<div class="cond"><div class="cn">${i + 1}.&nbsp;&nbsp;<u>${escHtml(c.name)}</u></div><p>${escHtml(c.text)}</p></div>`
+      ).join("")
+    : "";
+  const kd = s.key_dates.length
+    ? `<div class="kd"><b>KEY DATES</b> &nbsp;·&nbsp; ${
+      s.key_dates.map(([k, v]) => `${escHtml(k)}: ${srTintHtml(v)}`).join(" &nbsp;·&nbsp; ")
+    }</div>`
+    : "";
+  return `<section class="sr-syllabus">
+    <table class="brand"><tr><td class="l">END USER PRIVACY</td><td class="r">${escHtml(s.instrument_line)}<br>${reportId}${escHtml(date)}</td></tr></table>
+    <div style="margin-top:16pt;">
+      <div class="eyebrow">Prepared for ${escHtml(s.prepared_for)}</div>
+      <h1>${escHtml(s.activity)}</h1>
+      ${s.subtitle ? `<div style="font-size:9.5pt;color:#5c6d7a;margin-top:3pt;">${escHtml(s.subtitle)}</div>` : ""}
+    </div>
+    <div class="dispo">
+      <div class="lbl" style="color:#5c6d7a;">${escHtml(s.disposition_label)}</div>
+      <div class="dv">${escHtml(s.disposition)}</div>
+      ${s.paragraph ? `<p>${escHtml(s.paragraph)}</p>` : ""}
+    </div>
+    ${rows ? `<table class="syltab" style="width:100%;border-collapse:collapse;"><tbody>${rows}</tbody></table>` : ""}
+    ${conditions}
+    ${kd}
+  </section>`;
+}
+
+/** The Record Divider page: end of the decision report, the ratified
+ * paragraph, and the A–F map from the projection (or the titles alone). */
+function srRecordDividerHtml(s: SyllabusProjection | null, appendices: Array<{ letter: string; title: string }>): string {
+  const rows = appendices.map((a) => {
+    const desc = s?.record_map.find((r) => r[0] === a.letter)?.[2] ?? "";
+    return `<tr><td class="ml">${escHtml(a.letter)}</td><td style="width:34%;"><b>${escHtml(a.title)}</b></td><td>${escHtml(desc)}</td></tr>`;
+  }).join("");
+  return `<section class="sr-divider page-break">
+    <div class="divider">
+      <div class="eyebrow">END OF THE DECISION REPORT</div>
+      <h2>Supporting Assessment Record</h2>
+      <p style="margin-top:6pt;">The record that stands behind every conclusion above: authority traceability, the complete factual inventories, the full risk and safeguard register, the technical record, and the materials considered. A decision-maker may stop at the last numbered section. Counsel, auditors, and regulators continue here — and every entry cites the body section it supports.</p>
+    </div>
+    ${rows ? `<table class="maprow">${rows}</table>` : ""}
+  </section>`;
+}
+
+/** The three-part action taxonomy leads and their rail labels. */
+const SR_ACTION_LEADS: ReadonlyArray<[RegExp, string, "" | "hair" | "hold"]> = [
+  [/^(?:Conditions? to Proceed\.)/, "CONDITIONS TO PROCEED — these condition the determination", "hold"],
+  [/^(?:Conditions for Reassessment\.)/, "CONDITIONS FOR REASSESSMENT — a different disposition depends on these", "hold"],
+  [/^(?:Follow-Ups?\.|Required Follow-Up\.|Assessment Follow-Up Required\.)/, "FOLLOW-UPS — these complete the record", "hair"],
+  [/^(?:Recommendations?\.)/, "RECOMMENDATIONS — non-blocking", "hair"],
+];
+
+function srSectionsHtml(doc: SkeletonDocLike, product?: string): string {
+  const footnotesOn = product === "cppa-admt-v2";
+  const syllabus = readSyllabus(doc);
+  const sections = doc.sections ?? [];
+  const appendices = sections
+    .map((sec) => /^Appendix ([A-Z])\s*[—–-]\s*(.+)$/.exec(sec.title ?? ""))
+    .filter((m): m is RegExpExecArray => !!m)
+    .map((m) => ({ letter: m[1], title: m[2] }));
+  let dividerDone = false;
+  const mark = (html: string) => {
+    const underlined = linkifyBareUrls(underlineAppendixRefs(html));
+    return footnotesOn ? substituteFootnoteMarkers(underlined) : underlined;
+  };
+  const paragraphHtml = (text: string): string =>
+    `<p style="white-space:pre-line;">${mark(styleLeadPhrases(escHtml(text), true))}</p>`;
+  const chunkHtml = (chunk: string, sec: { id?: string }): string => {
+    const trimmed = chunk.trim();
+    if (!trimmed) return "";
+    if (trimmed.startsWith("[Q] ")) return `<p class="q">${mark(escHtml(trimmed.slice(4)))}</p>`;
+    if (trimmed.startsWith("Governing requirement.")) {
+      const rest = trimmed.slice("Governing requirement.".length).trim();
+      return srRailHtml(srGoverningLabel(rest), `<p style="white-space:pre-line;">${mark(styleLeadPhrases(escHtml(rest), true))}</p>`);
+    }
+    if (trimmed.length <= 96 && H3_CHUNK_RE.test(trimmed)) return `<h3>${srHeadHtml(escHtml(trimmed))}</h3>`;
+    if (QUOTE_CHUNK_RE.test(trimmed) && trimmed.split(/\s+/).length >= 25) {
+      return srRailHtml("STATUTORY TEXT", `<p style="white-space:pre-line;">${escHtml(trimmed)}</p>`);
+    }
+    for (const [re, label, tone] of SR_ACTION_LEADS) {
+      const m = re.exec(trimmed);
+      if (m) {
+        const body = trimmed.slice(m[0].length).trim();
+        return srRailHtml(label, body ? `<p style="white-space:pre-line;">${mark(escHtml(body))}</p>` : "", tone);
+      }
+    }
+    if (/^The Activity should not proceed in its present form\./.test(trimmed)) {
+      return srRailHtml("CONDITIONS FOR REASSESSMENT — a different disposition depends on these", `<p style="white-space:pre-line;">${mark(escHtml(trimmed))}</p>`, "hold");
+    }
+    if (trimmed.startsWith("Rulemaking context — persuasive only.")) {
+      return srRailHtml("RULEMAKING CONTEXT · PERSUASIVE ONLY", `<p style="white-space:pre-line;">${mark(escHtml(trimmed.slice("Rulemaking context — persuasive only.".length).trim()))}</p>`, "hair");
+    }
+    const lead = /^(Deadline|Readiness|Determination)\.\s*/.exec(trimmed);
+    if (lead) {
+      const body = trimmed.slice(lead[0].length);
+      const hold = lead[1] === "Deadline" || /would not carry|may not begin|should not begin|cannot yet determine/.test(body);
+      return srRailHtml(lead[1].toUpperCase(), `<p style="white-space:pre-line;">${mark(styleLeadPhrases(escHtml(body), true))}</p>`, hold ? "hold" : "");
+    }
+    if (trimmed.length <= 600 && /not yet assessable/i.test(trimmed)) {
+      return srRailHtml("NOT YET ASSESSABLE", `<p style="white-space:pre-line;">${mark(escHtml(trimmed))}</p>`, "hair");
+    }
+    const segments = segmentDashText(chunk);
+    if (segments) {
+      return segments.map((seg) =>
+        seg.kind === "list" && seg.parts.length >= 2
+          ? `<ul class="body-list">${seg.parts.map((item) => `<li>${underlineAppendixRefs(escHtml(item))}</li>`).join("")}</ul>`
+          : paragraphHtml(seg.parts.join(" "))
+      ).join("");
+    }
+    void sec;
+    return paragraphHtml(chunk);
+  };
+
+  return sections.map((sec) => {
+    const title = (sec.title ?? "").trim();
+    const appendixM = /^Appendix ([A-Z])\s*[—–-]\s*(.+)$/.exec(title);
+    const numM = /^(\d{1,2})\.\s+(.+)$/.exec(title) ?? /^Section (\d{1,2})\s*[—–-]\s*(.+)$/.exec(title);
+    let pre = "";
+    if (appendixM && !dividerDone) { pre = srRecordDividerHtml(syllabus, appendices); dividerDone = true; }
+
+    // The section question-line rides in the head when the section's first
+    // prose chunk is a "[Q] " landing line (kind-agnostic; token stripped).
+    let headQ = "";
+    const paras = sec.paragraphs ?? [];
+    const firstText = paras.find((p) => typeof p?.text === "string" && p.text.trim() && p.kind !== "table");
+    if (firstText && firstText.text!.trim().startsWith("[Q] ")) {
+      const chunks = firstText.text!.split(/\n{2,}/);
+      headQ = chunks[0].trim().slice(4);
+      firstText.text = chunks.slice(1).join("\n\n");
+    }
+
+    const body = paras.map((p) => {
+      if (p?.kind === "table" && p.table) {
+        // Consumed by page one: the cover panel and the executive result
+        // panel (the syllabus carries the same persisted values).
+        if (syllabus && (p.table.surface === "cover_summary" || p.table.surface === "exec_status_panel")) return "";
+        return srTableHtml(p.table, product);
+      }
+      const t = typeof p?.text === "string" ? p.text : "";
+      if (!t.trim()) return "";
+      if (syllabus && sec.id === "executive_summary" && p?.kind === "lead") return ""; // rendered on page one
+      if (p?.kind === "customer_voice") {
+        const lines = t.split("\n").map((l) => l.trim()).filter(Boolean);
+        const [attribution, ...rest] = lines;
+        const rows = rest.map((line) => {
+          const m = /^(Processing|Purpose)\.\s*([\s\S]*)$/.exec(line);
+          return m
+            ? `<p><span class="lbl" style="color:#5c6d7a;font-size:7pt;">${escHtml(m[1])}</span>&nbsp; ${escHtml(m[2])}</p>`
+            : `<p>${escHtml(line)}</p>`;
+        }).join("");
+        return srRailHtml(escHtml(attribution ?? ""), rows, "teal");
+      }
+      if (p?.kind === "legal_requirement") {
+        return srRailHtml(srGoverningLabel(t.trim()), `<p style="white-space:pre-line;">${mark(styleLeadPhrases(escHtml(t.trim()), true))}</p>`);
+      }
+      if (p?.kind === "quoted_authority") {
+        return srRailHtml("STATUTORY TEXT", `<p style="white-space:pre-line;">${escHtml(t.trim())}</p>`);
+      }
+      if (sec.id === "table_of_authorities" && p?.kind !== "skeleton") {
+        const rows = toaLines(t).map((l) => {
+          if (l.is_heading) return `<tr><td style="padding:6px 0 2px;font-weight:bold;font-size:9.5pt;color:#0c2a44;">${escHtml(l.text)}</td></tr>`;
+          const { id, rest } = footnotesOn ? toaAnchorId(l.text) : { id: null, rest: l.text };
+          return `<tr><td${id ? ` id="${id}"` : ""} style="padding:1px 0 1px 18px;font-size:8.8pt;">${escHtml(rest)}</td></tr>`;
+        }).join("");
+        return rows ? `<table class="toa-table" style="width:100%;border-collapse:collapse;margin:0 0 8px;"><tbody>${rows}</tbody></table>` : "";
+      }
+      if (syllabus && sec.id === "executive_summary" && p?.kind === "lead") return "";
+      return t.split(/\n{2,}/).map((c) => chunkHtml(c, sec)).join("");
+    }).join("");
+    if (!body.trim() && !headQ) return pre;
+
+    const forceBreak = !!appendixM || sec.id === "table_of_authorities" || SIGNATURE_PAGE_IDS.has(sec.id ?? "")
+      || (sec.id === "incident_worksheet" && product === "ir-playbook");
+    const qHtml = headQ ? `<span class="q">${mark(escHtml(headQ))}</span>` : "";
+    const headingHtml = numM
+      ? `<table class="sechead"><tr><td class="secnum">${escHtml(numM[1])}</td><td><h2>${escHtml(numM[2])}</h2>${qHtml}</td></tr></table>`
+      : appendixM
+      ? `<table class="sechead"><tr><td class="secnum letter">${escHtml(appendixM[1])}</td><td><h2>${escHtml(appendixM[2])}</h2>${qHtml}<span class="loc">Supporting Assessment Record · Appendix ${escHtml(appendixM[1])}</span></td></tr></table>`
+      : `<h2 class="plain">${escHtml(title)}</h2>${qHtml ? `<p class="q" style="margin-top:-6pt;">${mark(escHtml(headQ))}</p>` : ""}`;
+    return `${pre}<section class="section${forceBreak && !(appendixM && pre) ? " page-break" : ""}" data-section="${escHtml(sec.id ?? "")}">
+      ${headingHtml}
+      ${body}
+    </section>`;
+  }).join("\n");
+}
+
+/** The whole Syllabus & Record document: page one, then the sections. */
+function buildSyllabusRecordHTML(doc: SkeletonDocLike, record: any, fallbackTitle: string, product?: string): string {
+  const syllabus = readSyllabus(doc);
+  const title = doc.title || fallbackTitle;
+  const runhead = syllabus?.running_head ?? title.toUpperCase();
+  const page1 = syllabus
+    ? srSyllabusPageHtml(syllabus, record)
+    : `<section class="sr-syllabus"><table class="brand"><tr><td class="l">END USER PRIVACY</td><td class="r">${escHtml(title.toUpperCase())}</td></tr></table><div style="margin-top:16pt;"><h1>${escHtml(title)}</h1>${doc.subtitle ? `<div style="font-size:9.5pt;color:#5c6d7a;margin-top:3pt;">${escHtml(doc.subtitle)}</div>` : ""}</div></section>`;
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escHtml(title)}</title>
+<style>${SR_CSS}</style></head>
+<body class="sr" data-sr-runhead="${escHtml(runhead)}" data-sr-footer="${escHtml(`EndUserPrivacy.com · ${title}`)}">
+${page1}
+<div class="page-break"></div>
+${srSectionsHtml(doc, product)}
+</body></html>`;
+}
+
 // DOC 127 PHASE C (2026-09-01) — exported for the local print-media QA
 // harness (the edge entrypoint itself cannot be imported without serving;
 // the harness imports this builder directly). No behavior change.
 export function buildSkeletonReportHTML(doc: SkeletonDocLike, record: any, fallbackTitle: string, product?: string, eyebrow?: string): string {
+  // DOC 170 (2026-09-04) — Syllabus & Record products render through the
+  // fleet presentation system; every other product is byte-unchanged.
+  if (isSyllabusRecordProduct(product)) return buildSyllabusRecordHTML(doc, record, fallbackTitle, product);
   const created = record?.created_at ? new Date(record.created_at) : new Date();
   // A-TEAM S4 RULING S4 (doc 119) — the cover meta line carries a Report ID
   // derived from the row id, so a printed report can be traced to its record.

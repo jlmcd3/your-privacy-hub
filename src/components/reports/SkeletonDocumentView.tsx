@@ -10,6 +10,15 @@
 
 import { toaLines } from "@/lib/toa-lines";
 import { renderBodyText, renderWithFootnotes, toaAnchorId } from "@/lib/footnote-marks";
+// DOC 170 (2026-09-04) — Syllabus & Record, the fleet presentation system
+// (web twin of generate-report-pdf's buildSyllabusRecordHTML; keep in sync).
+import {
+  isSyllabusRecordProduct,
+  readSyllabus,
+  SR_TONE_CLASS,
+  toneForState,
+  type SyllabusProjection,
+} from "@/lib/syllabus-record";
 
 // CEO report review 2026-08-24 — web twin of generate-report-pdf/index.ts's
 // segmentDashText (which see for the full rationale: groups consecutive
@@ -345,6 +354,8 @@ export interface SkeletonDocument {
   title: string;
   subtitle?: string;
   sections: SkeletonSection[];
+  /** DOC 170 — the Syllabus & Record page-1 projection (see @/lib/syllabus-record). */
+  syllabus?: SyllabusProjection;
 }
 
 /** Type guard used by the result pages to decide which body to render. */
@@ -355,6 +366,9 @@ export function isSkeletonDocument(value: unknown): value is SkeletonDocument {
 }
 
 export function SkeletonDocumentView({ doc, product }: { doc: SkeletonDocument; product?: string }) {
+  // DOC 170 (2026-09-04) — Syllabus & Record products render through the
+  // fleet presentation system; every other product is unchanged.
+  if (isSyllabusRecordProduct(product)) return <SyllabusRecordView doc={doc} product={product} />;
   // BATCH 16 (R6): one amber Deadline box per document maximum.
   const deadlineUsedRef = { used: false };
   // DOC 127 PHASE B (2026-09-01) — the Risk presentation system gate (web
@@ -625,6 +639,350 @@ export function SkeletonDocumentView({ doc, product }: { doc: SkeletonDocument; 
             ),
           )}
         </section>
+        );
+      })}
+    </article>
+  );
+}
+
+// ─── DOC 170 (2026-09-04) — SYLLABUS & RECORD (web twin of the PDF's
+// buildSyllabusRecordHTML; docs 143/144 → 151, canonical record
+// docs/design/SYLLABUS-RECORD-DESIGN-SYSTEM.md). The holding on page one
+// (the Determination Syllabus, read from the persisted projection), the
+// reasoning in the body, the record behind a divider. States are tinted
+// TEXT, never filled chips; one rail geometry for every framed element;
+// markers never underlined. Keep every rule in sync with the PDF twin. ───
+
+const SR_LABEL = "font-sans text-[10px] font-bold uppercase tracking-[0.1em]";
+const SR_STATE = "font-sans text-[10px] font-bold uppercase tracking-[0.08em] whitespace-nowrap";
+const SR_U = "underline underline-offset-[2.5px] decoration-[0.5px]";
+
+/** A state word tinted as text; "State — rest" tints the word and sets the
+ *  rest small and slate; anything else renders verbatim. */
+function SrState({ value }: { value: string }) {
+  const v = value.trim();
+  const whole = toneForState(v);
+  if (whole) return <span className={`${SR_STATE} ${SR_TONE_CLASS[whole]}`}>{v}</span>;
+  const m = /^([^—\n]{2,60}?)\s+—\s+([\s\S]+)$/.exec(v);
+  if (m) {
+    const tone = toneForState(m[1]);
+    if (tone) {
+      return (
+        <>
+          <span className={`${SR_STATE} ${SR_TONE_CLASS[tone]}`}>{m[1]}</span>
+          {"  "}
+          <span className="text-[12px] text-slate-600 dark:text-slate-400">{m[2]}</span>
+        </>
+      );
+    }
+  }
+  return <>{renderWithFootnotes(value)}</>;
+}
+
+function SrRail({ label, tone, children }: { label: string; tone?: "teal" | "hair" | "hold"; children: React.ReactNode }) {
+  const border = tone === "teal"
+    ? "border-l-[#2d9b90]"
+    : tone === "hair"
+    ? "border-l-[#c9d2d9]"
+    : tone === "hold"
+    ? "border-l-[#6e5518]"
+    : "border-l-[#0c2a44] dark:border-l-slate-300";
+  const labelColor = tone === "teal"
+    ? "text-[#2d9b90]"
+    : tone === "hair"
+    ? "text-slate-500"
+    : tone === "hold"
+    ? "text-[#6e5518] dark:text-amber-300"
+    : "text-[#0c2a44] dark:text-slate-200";
+  return (
+    <div className={`my-3 border-l-2 pl-3 py-0.5 ${border}`}>
+      <span className={`block ${SR_LABEL} ${labelColor}`}>{label}</span>
+      <div className="text-[13px] leading-relaxed text-foreground">{children}</div>
+    </div>
+  );
+}
+
+/** The Governing-Requirement rail label with the cite the sentence names. */
+function srGoverningLabel(rest: string): string {
+  const m = /^Sections?\s+(\d{4}[()\w.–-]*(?:(?:,\s*|\s+and\s+|–)\d{4}[()\w.–-]*)*)/.exec(rest.trim());
+  if (!m) return "Governing requirement";
+  const cites = m[1].split(/,\s*|\s+and\s+/).map((c) => c.trim()).filter(Boolean);
+  const sym = cites.length > 1 || /–/.test(m[1]) ? "§§" : "§";
+  return `Governing requirement · 11 CCR ${sym} ${cites.join(", ")}`;
+}
+
+/** Marker split for sub-heads (Rule 1): marker never underlined, title underline-only. */
+function SrHead({ label }: { label: string }) {
+  const m = /^([A-Z]\.|\([A-H]\)|Step \d+ —|\d{1,2}\.)\s+([\s\S]*)$/.exec(label);
+  const body = m ? m[2] : label;
+  const stop = /\.$/.test(body) ? "." : "";
+  const core = stop ? body.slice(0, -1) : body;
+  return (
+    <h4 className="mt-3 mb-1 font-serif text-[15px] font-bold text-foreground">
+      {m && <span className="font-normal text-slate-500">{m[1]} </span>}
+      <u className={SR_U}>{core}</u>{stop}
+    </h4>
+  );
+}
+
+function SrTable({ table }: { table: SkeletonTable }) {
+  if (!table.rows?.length) return null;
+  const kv = table.hideHeader === true && table.columns.length === 2;
+  return (
+    <figure className="my-3 space-y-1">
+      {table.title && <figcaption className={`${SR_LABEL} text-slate-500`}>{table.title}</figcaption>}
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-[12px]">
+          {!kv && !table.hideHeader && (
+            <thead>
+              <tr>
+                {table.columns.map((c, i) => (
+                  <th key={i} scope="col" className="border-b-2 border-slate-500 bg-[#f3f6f8] px-2 py-1 text-left font-sans text-[10px] font-bold uppercase tracking-wide text-foreground dark:bg-slate-900/40">
+                    {c}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+          )}
+          <tbody>
+            {table.rows.map((row, r) => (
+              <tr key={r} className="align-top">
+                {row.map((cell, c) => (
+                  <td key={c} className={`border-b border-border px-2 py-1.5 leading-relaxed text-foreground${kv && c === 0 ? ` w-[30%] ${SR_LABEL} text-slate-500` : ""}`}>
+                    {/^_{6,}$/.test(String(cell).trim()) ? cellContent(String(cell)) : <SrState value={String(cell ?? "")} />}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {table.note && <figcaption className="text-xs text-muted-foreground">{table.note}</figcaption>}
+    </figure>
+  );
+}
+
+/** Page one — the Determination Syllabus. */
+function SrSyllabus({ s }: { s: SyllabusProjection }) {
+  return (
+    <section className="space-y-3">
+      <div className="flex items-baseline justify-between border-b-2 border-[#0c2a44] pb-2 dark:border-slate-300">
+        <span className="font-sans text-[11px] font-bold tracking-[0.2em] text-[#0c2a44] dark:text-slate-200">END USER PRIVACY</span>
+        <span className="text-right font-sans text-[10px] tracking-[0.08em] text-slate-500">{s.instrument_line}</span>
+      </div>
+      <div className="pt-2">
+        <div className={`${SR_LABEL} text-slate-500`}>Prepared for {s.prepared_for}</div>
+        <h2 className="font-serif text-[26px] font-normal leading-tight text-[#0c2a44] dark:text-slate-100">{s.activity}</h2>
+        {s.subtitle && <div className="text-[13px] text-slate-500">{s.subtitle}</div>}
+      </div>
+      <div className="border border-[#c9d2d9] border-l-2 border-l-[#0c2a44] bg-[#f3f6f8] px-4 py-3 dark:border-slate-600 dark:bg-slate-900/40">
+        <div className={`${SR_LABEL} text-slate-500`}>{s.disposition_label}</div>
+        <div className="my-1 font-serif text-[22px] text-[#0c2a44] dark:text-slate-100">{s.disposition}</div>
+        {s.paragraph && <p className="text-[13px] leading-relaxed text-foreground">{s.paragraph}</p>}
+      </div>
+      {s.rows.length > 0 && (
+        <table className="w-full border-collapse text-[12.5px]">
+          <tbody>
+            {s.rows.map(([k, v]) => (
+              <tr key={k} className="align-top">
+                <td className={`w-[34%] border-b border-border py-1.5 pr-3 ${SR_LABEL} text-slate-500`}>{k}</td>
+                <td className="border-b border-border py-1.5"><SrState value={v} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {s.conditions.length > 0 && (
+        <div>
+          <div className={`${SR_LABEL} mt-2 text-slate-500`}>{s.conditions_heading}</div>
+          {s.conditions.map((c, i) => (
+            <div key={i} className="my-2 border-l-2 border-[#c9d2d9] pl-3">
+              <div className="text-[13.5px]">{i + 1}.&nbsp;&nbsp;<u className={SR_U}>{c.name}</u></div>
+              <p className="text-[12.5px] leading-relaxed text-foreground">{c.text}</p>
+            </div>
+          ))}
+        </div>
+      )}
+      {s.key_dates.length > 0 && (
+        <div className="mt-2 border-y border-[#c9d2d9] py-1.5 font-sans text-[11px] leading-relaxed text-slate-600 dark:text-slate-300">
+          <b className="tracking-[0.05em]">KEY DATES</b>
+          {s.key_dates.map(([k, v]) => (
+            <span key={k}> &nbsp;·&nbsp; {k}: <SrState value={v} /></span>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function SrDivider({ s, appendices }: { s: SyllabusProjection | null; appendices: Array<{ letter: string; title: string }> }) {
+  return (
+    <section className="mt-8 border-t-[3px] border-[#0c2a44] pt-5 dark:border-slate-300">
+      <div className={`${SR_LABEL} text-slate-500`}>End of the decision report</div>
+      <h3 className="font-serif text-[22px] font-normal text-[#0c2a44] dark:text-slate-100">Supporting Assessment Record</h3>
+      <p className="mt-1 max-w-prose text-[13px] leading-relaxed text-foreground">
+        The record that stands behind every conclusion above: authority traceability, the complete factual inventories, the full risk and safeguard register, the technical record, and the materials considered. A decision-maker may stop at the last numbered section. Counsel, auditors, and regulators continue here — and every entry cites the body section it supports.
+      </p>
+      {appendices.length > 0 && (
+        <table className="mt-3 w-full border-collapse text-[12.5px]">
+          <tbody>
+            {appendices.map((a) => (
+              <tr key={a.letter} className="align-top">
+                <td className="w-[8%] border-b border-border py-1.5 font-serif text-[17px] text-slate-400">{a.letter}</td>
+                <td className="w-[34%] border-b border-border py-1.5 font-semibold">{a.title}</td>
+                <td className="border-b border-border py-1.5 text-foreground">{s?.record_map.find((r) => r[0] === a.letter)?.[2] ?? ""}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </section>
+  );
+}
+
+const SR_ACTION_LEADS: ReadonlyArray<[RegExp, string, "hair" | "hold"]> = [
+  [/^(?:Conditions? to Proceed\.)/, "Conditions to proceed — these condition the determination", "hold"],
+  [/^(?:Conditions for Reassessment\.)/, "Conditions for reassessment — a different disposition depends on these", "hold"],
+  [/^(?:Follow-Ups?\.|Required Follow-Up\.|Assessment Follow-Up Required\.)/, "Follow-ups — these complete the record", "hair"],
+  [/^(?:Recommendations?\.)/, "Recommendations — non-blocking", "hair"],
+];
+
+function SrChunk({ chunk }: { chunk: string }) {
+  const trimmed = chunk.trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith("[Q] ")) {
+    return <p className="text-[13.5px] italic leading-snug text-slate-600 dark:text-slate-400">{renderBodyText(trimmed.slice(4))}</p>;
+  }
+  if (trimmed.startsWith("Governing requirement.")) {
+    const rest = trimmed.slice("Governing requirement.".length).trim();
+    return <SrRail label={srGoverningLabel(rest)}><p className="whitespace-pre-line">{renderLeadStyledText(rest, true)}</p></SrRail>;
+  }
+  if (trimmed.length <= 96 && H3_CHUNK_RE.test(trimmed)) return <SrHead label={trimmed} />;
+  if (QUOTE_CHUNK_RE.test(trimmed) && trimmed.split(/\s+/).length >= 25) {
+    return <SrRail label="Statutory text"><p className="whitespace-pre-line">{trimmed}</p></SrRail>;
+  }
+  for (const [re, label, tone] of SR_ACTION_LEADS) {
+    const m = re.exec(trimmed);
+    if (m) {
+      const body = trimmed.slice(m[0].length).trim();
+      return <SrRail label={label} tone={tone}>{body && <p className="whitespace-pre-line">{renderBodyText(body)}</p>}</SrRail>;
+    }
+  }
+  if (/^The Activity should not proceed in its present form\./.test(trimmed)) {
+    return <SrRail label="Conditions for reassessment — a different disposition depends on these" tone="hold"><p className="whitespace-pre-line">{renderBodyText(trimmed)}</p></SrRail>;
+  }
+  if (trimmed.startsWith("Rulemaking context — persuasive only.")) {
+    return <SrRail label="Rulemaking context · persuasive only" tone="hair"><p className="whitespace-pre-line">{renderBodyText(trimmed.slice("Rulemaking context — persuasive only.".length).trim())}</p></SrRail>;
+  }
+  const lead = /^(Deadline|Readiness|Determination)\.\s*/.exec(trimmed);
+  if (lead) {
+    const body = trimmed.slice(lead[0].length);
+    const hold = lead[1] === "Deadline" || /would not carry|may not begin|should not begin|cannot yet determine/.test(body);
+    return <SrRail label={lead[1]} tone={hold ? "hold" : undefined}><p className="whitespace-pre-line">{renderLeadStyledText(body, true)}</p></SrRail>;
+  }
+  if (trimmed.length <= 600 && /not yet assessable/i.test(trimmed)) {
+    return <SrRail label="Not yet assessable" tone="hair"><p className="whitespace-pre-line">{renderBodyText(trimmed)}</p></SrRail>;
+  }
+  const segments = segmentDashText(chunk);
+  if (segments) {
+    return (
+      <div>
+        {segments.map((seg, k) =>
+          seg.kind === "list" && seg.parts.length >= 2 ? (
+            <ul key={k} className="list-disc space-y-1 pl-5 text-justify leading-relaxed text-foreground">
+              {seg.parts.map((item, m) => <li key={m}>{renderBodyText(item)}</li>)}
+            </ul>
+          ) : (
+            <p key={k} className="text-justify leading-relaxed text-foreground whitespace-pre-line">{renderLeadStyledText(seg.parts.join(" "), true)}</p>
+          )
+        )}
+      </div>
+    );
+  }
+  return <p className="text-justify leading-relaxed text-foreground whitespace-pre-line">{renderLeadStyledText(chunk, true)}</p>;
+}
+
+export function SyllabusRecordView({ doc, product }: { doc: SkeletonDocument; product?: string }) {
+  const syllabus = readSyllabus(doc);
+  const appendices = doc.sections
+    .map((sec) => /^Appendix ([A-Z])\s*[—–-]\s*(.+)$/.exec(sec.title))
+    .filter((m): m is RegExpExecArray => !!m)
+    .map((m) => ({ letter: m[1], title: m[2] }));
+  let dividerDone = false;
+  void product;
+  return (
+    <article className="font-serif-text space-y-8" data-sr="1">
+      {syllabus ? (
+        <SrSyllabus s={syllabus} />
+      ) : (
+        <header className="space-y-1">
+          <h2 className="font-serif text-display-card">{doc.title}</h2>
+          {doc.subtitle && <p className="text-sm text-muted-foreground">{doc.subtitle}</p>}
+        </header>
+      )}
+      {doc.sections.map((section) => {
+        const title = section.title.trim();
+        const appendixM = /^Appendix ([A-Z])\s*[—–-]\s*(.+)$/.exec(title);
+        const numM = /^(\d{1,2})\.\s+(.+)$/.exec(title) ?? /^Section (\d{1,2})\s*[—–-]\s*(.+)$/.exec(title);
+        const divider = appendixM && !dividerDone ? (dividerDone = true, <SrDivider s={syllabus} appendices={appendices} />) : null;
+        // The section question-line rides in the head when the first prose
+        // chunk is a "[Q] " landing line (token stripped).
+        let headQ = "";
+        const paragraphs = section.paragraphs.map((p) => ({ ...p }));
+        const firstText = paragraphs.find((p) => p.kind !== "table" && typeof p.text === "string" && p.text.trim());
+        if (firstText && firstText.text.trim().startsWith("[Q] ")) {
+          const chunks = firstText.text.split(/\n{2,}/);
+          headQ = chunks[0].trim().slice(4);
+          firstText.text = chunks.slice(1).join("\n\n");
+        }
+        const numeral = numM ? numM[1] : appendixM ? appendixM[1] : "";
+        const heading = numM ? numM[2] : appendixM ? appendixM[2] : title;
+        return (
+          <div key={section.id}>
+            {divider}
+            <section className="space-y-3">
+              <div className="border-b-[1.5px] border-[#0c2a44] pb-1.5 dark:border-slate-300">
+                <div className="flex items-baseline gap-3">
+                  {numeral && <span className={`font-serif ${appendixM ? "text-[28px]" : "text-[36px]"} leading-none text-slate-300 dark:text-slate-600`}>{numeral}</span>}
+                  <span>
+                    <h3 className="font-serif text-[19px] font-normal text-[#0c2a44] dark:text-slate-100">{heading}</h3>
+                    {headQ && <span className="block text-[13px] italic text-slate-500">{renderBodyText(headQ)}</span>}
+                    {appendixM && <span className={`block ${SR_LABEL} text-slate-400`}>Supporting Assessment Record · Appendix {appendixM[1]}</span>}
+                  </span>
+                </div>
+              </div>
+              {paragraphs.map((p, i) => {
+                if (p.kind === "table" && p.table) {
+                  if (syllabus && (p.table.surface === "cover_summary" || p.table.surface === "exec_status_panel")) return null;
+                  return <SrTable key={i} table={p.table} />;
+                }
+                if (!p.text.trim()) return null;
+                if (syllabus && section.id === "executive_summary" && p.kind === "lead") return null;
+                if (p.kind === "customer_voice") {
+                  const lines = p.text.split("\n").map((l) => l.trim()).filter(Boolean);
+                  const [attribution, ...rest] = lines;
+                  return (
+                    <SrRail key={i} label={attribution ?? ""} tone="teal">
+                      {rest.map((line, j) => {
+                        const m = /^(Processing|Purpose)\.\s*([\s\S]*)$/.exec(line);
+                        return m
+                          ? <p key={j}><span className={`${SR_LABEL} mr-1 text-slate-500`}>{m[1]}</span> {m[2]}</p>
+                          : <p key={j}>{line}</p>;
+                      })}
+                    </SrRail>
+                  );
+                }
+                if (p.kind === "legal_requirement") {
+                  return <SrRail key={i} label={srGoverningLabel(p.text.trim())}><p className="whitespace-pre-line">{renderLeadStyledText(p.text.trim(), true)}</p></SrRail>;
+                }
+                if (p.kind === "quoted_authority") {
+                  return <SrRail key={i} label="Statutory text"><p className="whitespace-pre-line">{p.text.trim()}</p></SrRail>;
+                }
+                if (section.id === "table_of_authorities" && p.kind !== "skeleton") return <ToaView key={i} text={p.text} />;
+                return <div key={i}>{p.text.split(/\n{2,}/).map((chunk, j) => <SrChunk key={j} chunk={chunk} />)}</div>;
+              })}
+            </section>
+          </div>
         );
       })}
     </article>
