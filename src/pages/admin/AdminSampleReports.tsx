@@ -32,7 +32,20 @@ type SampleRow = {
   verification: Record<string, unknown> | null;
   pdf_path: string | null;
   updated_at: string;
+  // TRUNCATED SAMPLES (2026-09-04): public excerpt state. Content edits clear
+  // these automatically, so "none" always means the public page shows nothing.
+  preview_built_at?: string | null;
+  preview_pdf_path?: string | null;
+  withheld_section_count?: number | null;
+  preview_toc?: Array<{ title?: string }> | null;
 };
+
+function previewLabel(s: SampleRow): string {
+  if (!s.preview_built_at) return "Public preview: none — not shown on /samples";
+  const unit = s.preview_pdf_path ? "pages" : "sections";
+  const kept = s.preview_pdf_path ? "first 2 pages" : "opening sections";
+  return `Public preview: built · ${kept} shown · ${s.withheld_section_count ?? 0} ${unit} withheld`;
+}
 
 type RunState = {
   status: "idle" | "running" | "complete" | "failed";
@@ -93,6 +106,10 @@ export default function AdminSampleReports() {
   const [busy, setBusy] = useState<string | null>(null);
   const [runningAll, setRunningAll] = useState(false);
   const cancelAll = useRef(false);
+  const missingPreviews = useMemo(
+    () => samples.filter((s) => s.status === "published" && !s.preview_built_at).length,
+    [samples],
+  );
 
   const samplesByKey = useMemo(() => {
     const m: Record<string, SampleRow> = {};
@@ -279,6 +296,11 @@ export default function AdminSampleReports() {
                 /samples/report-output
               </Link>.
             </p>
+            <p className="text-sm mt-1">
+              {missingPreviews === 0
+                ? "All published samples have a public preview."
+                : `${missingPreviews} published sample${missingPreviews === 1 ? "" : "s"} without a public preview — not shown on /samples.`}
+            </p>
           </div>
           <div className="flex gap-2 shrink-0">
             <Button variant="outline" onClick={onRebuildAllPreviews} disabled={busy !== null}>
@@ -346,6 +368,12 @@ export default function AdminSampleReports() {
                     </Button>
                   )}
                 </div>
+
+                {sample && (
+                  <p className={`text-xs ${sample.preview_built_at ? "text-muted-foreground" : "text-destructive"}`}>
+                    {previewLabel(sample)}
+                  </p>
+                )}
 
                 <details className="text-xs">
                   <summary className="cursor-pointer text-muted-foreground">Curation</summary>

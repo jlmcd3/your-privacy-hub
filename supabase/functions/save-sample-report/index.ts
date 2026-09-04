@@ -1,7 +1,17 @@
 // save-sample-report — admin-guarded backend for the sample-reports curation
 // flow. Actions: snapshot · set_status · attach_pdf · list.
+//
+// TRUNCATED SAMPLES (2026-09-04): every action that writes a sample's content
+// rebuilds the public preview (first sections / first two PDF pages + TOC) in
+// the same operation, so a generated sample is publishable immediately and no
+// preview is ever computed from stale content. A database trigger clears the
+// preview whenever content changes, so a failed rebuild fails closed.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  removePreviewObjects,
+  tryBuildPreviewForRow,
+} from "../_shared/sample-preview-build.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -125,7 +135,8 @@ async function snapshot(admin: ReturnType<typeof createClient>, body: any) {
     .select()
     .single();
   if (error) return json({ error: `upsert: ${error.message}` }, 400);
-  return json({ row, preserved_existing_content: preserveContent });
+  const preview = await tryBuildPreviewForRow(admin, (row as { id: string }).id);
+  return json({ row, preserved_existing_content: preserveContent, preview });
 }
 
 async function setStatus(admin: ReturnType<typeof createClient>, body: any) {
@@ -150,7 +161,13 @@ async function setStatus(admin: ReturnType<typeof createClient>, body: any) {
   if (status === "published") patch.published_at = new Date().toISOString();
   const { data, error } = await admin.from("sample_reports").update(patch).eq("id", id).select().single();
   if (error) return json({ error: error.message }, 400);
-  return json({ row: data });
+  // Publishing without a preview would show nothing publicly: rebuild if the
+  // row has none (first publish, or the trigger cleared it after a content edit).
+  let preview: unknown = null;
+  if (status === "published" && !(data as { preview_built_at: string | null }).preview_built_at) {
+    preview = await tryBuildPreviewForRow(admin, id);
+  }
+  return json({ row: data, preview });
 }
 
 async function attachPdf(admin: ReturnType<typeof createClient>, body: any) {
@@ -178,13 +195,14 @@ async function attachPdf(admin: ReturnType<typeof createClient>, body: any) {
     .select()
     .single();
   if (error) return json({ error: error.message }, 400);
-  return json({ row: data, filename });
+  const preview = await tryBuildPreviewForRow(admin, id);
+  return json({ row: data, filename, preview });
 }
 
 async function list(admin: ReturnType<typeof createClient>) {
   const { data, error } = await admin
     .from("sample_reports")
-    .select("id, tool_slug, variant, title, status, source_row_id, source_table, verification, pdf_path, updated_at")
+    .select("id, tool_slug, variant, title, status, source_row_id, source_table, verification, pdf_path, updated_at, preview_built_at, preview_pdf_path, withheld_section_count, preview_toc")
     .order("tool_slug", { ascending: true })
     .order("variant", { ascending: true });
   if (error) return json({ error: error.message }, 400);
@@ -217,6 +235,7 @@ async function deleteSample(admin: ReturnType<typeof createClient>, body: any) {
     .maybeSingle();
   if (row?.pdf_path) {
     await admin.storage.from("sample-reports").remove([row.pdf_path]);
+    await removePreviewObjects(admin, [row.pdf_path as string]);
     await clearStressJobRefs(admin, [row.pdf_path]);
   }
   const { error } = await admin.from("sample_reports").delete().eq("id", id);
@@ -256,6 +275,7 @@ async function deleteSamples(admin: ReturnType<typeof createClient>, body: any) 
     const { error } = await admin.storage.from("sample-reports").remove(paths);
     if (error) storageErrors.push(error.message);
   }
+  await removePreviewObjects(admin, allPaths);
   await clearStressJobRefs(admin, allPaths);
 
   let deleted = 0;
@@ -512,7 +532,8 @@ async function generatePdf(admin: ReturnType<typeof createClient>, body: any) {
     .select()
     .single();
   if (error) return json({ error: `upsert: ${error.message}` }, 400);
-  return json({ row, bytes: pdfBytes.byteLength });
+  const preview = await tryBuildPreviewForRow(admin, (row as { id: string }).id);
+  return json({ row, bytes: pdfBytes.byteLength, preview });
 }
 
 // P3 — Backfill every sample_report row in one pass via the shared hydrator.
@@ -549,6 +570,8 @@ async function backfillAll(admin: ReturnType<typeof createClient>, body: any) {
       }
       const { error: upErr } = await admin.from("sample_reports").update(patch).eq("id", r.id);
       if (upErr) { summary.errors.push({ id: r.id, message: upErr.message }); continue; }
+      // Content changed → the trigger cleared the preview; rebuild it now.
+      await tryBuildPreviewForRow(admin, r.id);
       summary.updated++;
     } catch (e) {
       summary.errors.push({ id: r.id, message: (e as Error).message });
