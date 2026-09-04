@@ -135,7 +135,8 @@ async function snapshot(admin: ReturnType<typeof createClient>, body: any) {
     .select()
     .single();
   if (error) return json({ error: `upsert: ${error.message}` }, 400);
-  return json({ row, preserved_existing_content: preserveContent });
+  const preview = await tryBuildPreviewForRow(admin, (row as { id: string }).id);
+  return json({ row, preserved_existing_content: preserveContent, preview });
 }
 
 async function setStatus(admin: ReturnType<typeof createClient>, body: any) {
