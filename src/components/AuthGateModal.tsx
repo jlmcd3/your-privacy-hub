@@ -11,6 +11,10 @@ interface Props {
   heading?: string;
   /** Optional override for the body copy. */
   body?: string;
+  /** Optional override for the small print under the buttons. */
+  footnote?: string;
+  /** Optional sample-report slug — renders a "See a finished sample" link. */
+  sampleSlug?: string;
 }
 
 /**
@@ -23,7 +27,10 @@ export default function AuthGateModal({
   redirectTo,
   heading = "Sign in or create a free account to continue",
   body = "Your report will be saved to your account and emailed to you.",
+  footnote = "Intelligence subscribers receive subscriber pricing on every tool.",
+  sampleSlug,
 }: Props) {
+
   const location = useLocation();
   const fireConversion = useConversionEvent();
   const target = redirectTo ?? `${location.pathname}${location.search}`;
