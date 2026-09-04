@@ -67,6 +67,25 @@ async function callSaveSampleReport(action: string, payload: Record<string, unkn
   return data;
 }
 
+// TRUNCATED SAMPLES (2026-09-04): the public /samples pages read only the
+// preview columns, so a published row without a built preview renders the
+// fail-closed state. Publishing therefore always rebuilds the preview.
+async function callBuildSamplePreview(payload: Record<string, unknown>) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) throw new Error("Not signed in — sign in as an admin first");
+  const r = await fetch(`${SUPABASE_URL}/functions/v1/build-sample-preview`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data?.error || `HTTP ${r.status}`);
+  return data;
+}
+
 export default function AdminSampleReports() {
   const { user } = useAuth();
   const [runs, setRuns] = useState<Record<string, RunState>>({});
