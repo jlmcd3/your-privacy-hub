@@ -40,6 +40,9 @@ import { buildCyberFactors, buildRecordCompletionExtras, type CyberFactorOutputs
 import { CYBER_7123_COMPONENTS } from "./cppa-cyber-deliverables/components.ts";
 import { CYBER_CORPUS_MAP } from "../corpus/maps/cyber-corpus-map.ts";
 import { ADVISORY_APPENDIX_PREAMBLE, advisoryMatchesTable, matchAdvisoryRows } from "../../../_shared/corpus/advisory-surfacing.ts";
+// DOC 175 (2026-09-04) — Syllabus & Record (doc 151); Cyber v4 is the sixth
+// product migrated onto the fleet presentation system, opening Tier 2.
+import { dispositionTone, type SyllabusProjection } from "../../../_shared/prose/syllabus.ts";
 
 export const CYBER_V4_ASSEMBLER_STAMP = "cyber-skeleton-assembler@c2-spine-v1.1-2026-08-26";
 
@@ -426,6 +429,73 @@ function bullets(items: readonly string[]): string {
 
 // ── Assembly ────────────────────────────────────────────────────────────────
 
+// DOC 175 (2026-09-04) — THE DETERMINATION SYLLABUS (Syllabus & Record p.1).
+// Every value below is a PROJECTION of a determination this assembler
+// already made (doc 127 §28 law): the disposition is `coverVerdictPhrase()`
+// applied to the SAME `readiness_determination.conclusion` the cover
+// table's own "Overall assessment" row already prints; the paragraph is the
+// SAME `leadSentence` composed into `executive_summary:1`'s `kind: "lead"`
+// block; `rows` OPENS with `factors.executive_snapshot_rows` verbatim (the
+// SAME rows the "Readiness snapshot" table prints — consumed here, so that
+// table is suppressed in the renderer to avoid repeating it, the identical
+// pattern Risk's exec_status_panel already established), minus its own
+// "Company" row (redundant with `prepared_for`); the conditions are
+// `readiness_determination.blocking_components` verbatim (the typed "must
+// be fixed before an audit can be certified" array — Cyber's genuine
+// conditions-to-proceed surface, unlike LIA/Governance which have none);
+// the record map reuses the same "Appendix X — …" regex Risk/DPIA/ADMT v2
+// already use, since Cyber v4's four appendices are lettered that way.
+function buildCyberV4Syllabus(
+  rendered: RenderedSkeletonDocument,
+  deliverables: CyberDeliverables,
+  leadSentence: string,
+  entity: string,
+  snapshotRows: readonly (readonly string[])[],
+): SyllabusProjection {
+  const rd = deliverables.readiness_determination;
+  const disposition = coverVerdictPhrase(rd.conclusion);
+  const conditions = rd.blocking_components.map((c) => ({ name: c.label, text: c.reason }));
+
+  const rows: Array<readonly [string, string]> = snapshotRows
+    .filter((r) => (r[0] ?? "").toLowerCase() !== "company")
+    .map((r) => [String(r[0] ?? ""), String(r[1] ?? "")] as const);
+
+  const unassessableCount = rd.unassessable_components.length;
+  rows.push([
+    "Blocking components",
+    conditions.length > 0
+      ? `${conditions.length} of the eighteen § 7123(b) components must be fixed before certification (Appendix A)`
+      : "None — no component blocks certification on the information provided (Appendix A)",
+  ]);
+  if (unassessableCount > 0) {
+    rows.push(["Components too thin to assess", `${unassessableCount} of the eighteen § 7123(b) components (Appendix A)`]);
+  }
+
+  const record_map: Array<readonly [string, string, string]> = [];
+  for (const sec of rendered.sections) {
+    const m = /^Appendix ([A-Z]) — (.+)$/.exec(sec.title ?? "");
+    if (m) record_map.push([m[1], m[2], ""]);
+  }
+
+  return {
+    _typed: "syllabus@sr-2026-09-04",
+    instrument_line: "CPPA CYBERSECURITY AUDIT READINESS REPORT · 11 CCR §§ 7120–7124",
+    prepared_for: entity,
+    activity: "Cybersecurity Audit Readiness",
+    subtitle: "Cybersecurity audit readiness assessment under 11 CCR §§ 7120–7124",
+    disposition_label: "OVERALL ASSESSMENT",
+    disposition,
+    disposition_tone: dispositionTone(disposition),
+    paragraph: leadSentence,
+    rows,
+    conditions_heading: conditions.length ? "CONDITIONS TO PROCEED — the audit-readiness determination depends on these" : "",
+    conditions,
+    key_dates: [],
+    record_map,
+    running_head: `CPPA CYBERSECURITY AUDIT READINESS REPORT · ${entity.toUpperCase()}`,
+  };
+}
+
 export interface CyberV4SkeletonResult {
   readonly document: RenderedSkeletonDocument;
   readonly conformance: ReturnType<typeof verifySkeletonConformance>;
@@ -659,12 +729,13 @@ export function assembleCyberSkeletonDocumentV4(
   // code change, the day the corpus first gains a curated enforcement row).
   const advisoryMatches = advisoryMatchesTable(matchAdvisoryRows(CYBER_CORPUS_MAP, [], new Set()));
 
-  const document = renderSkeletonDocument({
+  const entity = s((intake.profile as Bag | undefined)?.entity_name) || "the company";
+  const renderedDoc = renderSkeletonDocument({
     sections: CYBER_V4_SKELETON_SECTIONS,
     title: CYBER_V4_SKELETON_TITLE,
     subtitle: CYBER_V4_SKELETON_SUBTITLE,
     spineVersion: CYBER_V4_SKELETON_VERSION,
-    values: { "profile.entity_name": s((intake.profile as Bag | undefined)?.entity_name) || "the company" },
+    values: { "profile.entity_name": entity },
     composed: {
       ...composedBase,
       "table_of_authorities:0": toa,
@@ -677,6 +748,14 @@ export function assembleCyberSkeletonDocumentV4(
         : {}),
     },
   });
+  // DOC 175 (2026-09-04) — the Determination Syllabus (page 1 of the
+  // Syllabus & Record presentation) attached as a projection of the
+  // determinations above. Additive: sections, hash and conformance are
+  // untouched; a renderer that does not know the field ignores it.
+  const document: RenderedSkeletonDocument = {
+    ...renderedDoc,
+    syllabus: buildCyberV4Syllabus(renderedDoc, deliverables, leadSentence, entity, factors.executive_snapshot_rows),
+  };
 
   const body = skeletonDocumentToText(document).toLowerCase();
   const register_findings = CYBER_V4_BANNED_REGISTER.filter((b) => body.includes(b.toLowerCase()));

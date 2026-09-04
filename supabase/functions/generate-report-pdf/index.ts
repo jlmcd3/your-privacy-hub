@@ -2698,12 +2698,19 @@ function srSectionsHtml(doc: SkeletonDocLike, product?: string): string {
         // heading that already sits under page one's copy. DOC 174
         // (2026-09-04) — ADMT v2's cover table (surface "header": Organization
         // / System reviewed / Overall assessment / Record sufficiency /
-        // Regulatory framework) is the same pattern again.
+        // Regulatory framework) is the same pattern again. DOC 175
+        // (2026-09-04) — Cyber v4's cover table (surface "cyber_v4_cover":
+        // Entity / Report date / Assessment / Regulatory reference / Overall
+        // assessment) is a fourth instance of the identical shape; its
+        // Readiness snapshot table (surface "cyber_v4_readiness_snapshot")
+        // is now ALSO consumed into the syllabus's own rows
+        // (buildCyberV4Syllabus), the same way Risk's exec_status_panel was.
         if (
           syllabus &&
           (p.table.surface === "cover_summary" || p.table.surface === "exec_status_panel" ||
             p.table.surface === "art30_element_findings+demonstrability_findings+domain_element_findings+remediation_plan" ||
-            p.table.surface === "header")
+            p.table.surface === "header" || p.table.surface === "cyber_v4_cover" ||
+            p.table.surface === "cyber_v4_readiness_snapshot")
         ) return "";
         return srTableHtml(p.table, product);
       }
@@ -2789,7 +2796,17 @@ ${srSectionsHtml(doc, product)}
 export function buildSkeletonReportHTML(doc: SkeletonDocLike, record: any, fallbackTitle: string, product?: string, eyebrow?: string): string {
   // DOC 170 (2026-09-04) — Syllabus & Record products render through the
   // fleet presentation system; every other product is byte-unchanged.
-  if (isSyllabusRecordProduct(product)) return buildSyllabusRecordHTML(doc, record, fallbackTitle, product);
+  // DOC 175 (2026-09-04) — Cyber shares its "cppa-cyber" product string
+  // across two live assemblers (v3, byte-unchanged; v4, the only one that
+  // projects a syllabus). This ONE-PRODUCT override keeps a v3 row (no
+  // persisted syllabus) OFF the SR path — avoiding both the doc170-designed
+  // no-syllabus fallback panel (a real, non-hypothetical case for Cyber,
+  // unlike Risk's) and losing today's Contents-page eligibility below
+  // (which still reads the ORIGINAL `product` string, unaffected by this
+  // override). Every other gated product is untouched — none of them
+  // shares its product string with an unmigrated engine.
+  const srEffectiveProduct = (product === "cppa-cyber" && !readSyllabus(doc)) ? undefined : product;
+  if (isSyllabusRecordProduct(srEffectiveProduct)) return buildSyllabusRecordHTML(doc, record, fallbackTitle, srEffectiveProduct);
   const created = record?.created_at ? new Date(record.created_at) : new Date();
   // A-TEAM S4 RULING S4 (doc 119) — the cover meta line carries a Report ID
   // derived from the row id, so a printed report can be traced to its record.
@@ -5196,6 +5213,11 @@ Deno.serve(async (req) => {
       // document IS the customer report — the legacy narrative path is bypassed.
       const skelCyber = readSkeletonDocument(record.report_data);
       if (skelCyber) {
+        // "cppa-cyber" is passed for both v3 and v4 rows (unchanged from
+        // before doc175 — it also drives the Contents-page logic below,
+        // which both spines want); buildSkeletonReportHTML's own
+        // readSyllabus() guard is what keeps a v3 row (no persisted
+        // syllabus) on the unchanged legacy template.
         html = buildSkeletonReportHTML(skelCyber, record, "CPPA Cybersecurity Audit Readiness Report", "cppa-cyber");
       } else if (parts.length === 0 && hasStructured) {
         // Structured report path: render via dedicated HTML template that

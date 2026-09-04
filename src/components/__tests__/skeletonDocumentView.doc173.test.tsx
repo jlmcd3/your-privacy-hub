@@ -63,7 +63,9 @@ describe("DOC 173 — Syllabus & Record web twin, Governance", () => {
   });
 
   it("leaves a non-gated product on the existing renderer", () => {
-    const { container } = render(<SkeletonDocumentView doc={DOC} product="cppa-cyber" />);
+    // DOC 175 note: cppa-cyber joined SR_PRODUCTS after this test was
+    // written; ir-playbook remains outside the gate.
+    const { container } = render(<SkeletonDocumentView doc={DOC} product="ir-playbook" />);
     expect(container.querySelector('[data-sr="1"]')).toBeNull();
   });
 });

@@ -368,7 +368,13 @@ export function isSkeletonDocument(value: unknown): value is SkeletonDocument {
 export function SkeletonDocumentView({ doc, product }: { doc: SkeletonDocument; product?: string }) {
   // DOC 170 (2026-09-04) — Syllabus & Record products render through the
   // fleet presentation system; every other product is unchanged.
-  if (isSyllabusRecordProduct(product)) return <SyllabusRecordView doc={doc} product={product} />;
+  // DOC 175 (2026-09-04) — Cyber shares its "cppa-cyber" product string
+  // across two live assemblers (v3, no syllabus; v4, the only one that
+  // projects one); a v3 row is kept OFF the SR path, matching the PDF
+  // renderer's identical one-product override. Every other gated product
+  // is untouched.
+  const srEffectiveProduct = (product === "cppa-cyber" && !readSyllabus(doc)) ? undefined : product;
+  if (isSyllabusRecordProduct(srEffectiveProduct)) return <SyllabusRecordView doc={doc} product={srEffectiveProduct} />;
   // BATCH 16 (R6): one amber Deadline box per document maximum.
   const deadlineUsedRef = { used: false };
   // DOC 127 PHASE B (2026-09-01) — the Risk presentation system gate (web
@@ -959,11 +965,16 @@ export function SyllabusRecordView({ doc, product }: { doc: SkeletonDocument; pr
                   // renderer's identical suppression. DOC 174 (2026-09-04) —
                   // ADMT v2's cover table (surface "header") is the same
                   // pattern again.
+                  // DOC 175 (2026-09-04) — Cyber v4's cover table (surface
+                  // "cyber_v4_cover") is a fourth instance of the same shape;
+                  // its Readiness snapshot table is now ALSO consumed into
+                  // the syllabus's own rows.
                   if (
                     syllabus &&
                     (p.table.surface === "cover_summary" || p.table.surface === "exec_status_panel" ||
                       p.table.surface === "art30_element_findings+demonstrability_findings+domain_element_findings+remediation_plan" ||
-                      p.table.surface === "header")
+                      p.table.surface === "header" || p.table.surface === "cyber_v4_cover" ||
+                      p.table.surface === "cyber_v4_readiness_snapshot")
                   ) return null;
                   return <SrTable key={i} table={p.table} />;
                 }

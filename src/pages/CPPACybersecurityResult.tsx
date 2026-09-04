@@ -214,7 +214,11 @@ export default function CPPACybersecurityResult() {
             return (
             <div dir={dir} style={{ display: "contents" }}>
               {skeletonDoc
-                ? <SkeletonDocumentView doc={skeletonDoc} />
+                // DOC 175 (2026-09-04) — the product string activates the
+                // Syllabus & Record presentation system; the component's own
+                // readSyllabus() guard keeps a v3 row (no persisted
+                // syllabus) on the unchanged legacy view.
+                ? <SkeletonDocumentView doc={skeletonDoc} product="cppa-cyber" />
                 : <CybersecurityReportBody row={viewRow} hideHeader />}
               <EnforcementPrecedents
                 precedents={(viewRow?.report_data as any)?.enforcement_precedents}
