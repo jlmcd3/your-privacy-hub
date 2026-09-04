@@ -85,15 +85,50 @@ Deno.serve(async (req) => {
         { status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    const slug = title.replace(/[^a-z0-9]+/gi, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "report";
+
+    // ── CACHE (2026-09-04) ────────────────────────────────────────────────
+    // Callers that render an immutable artifact (a stored notice version)
+    // pass a stable `cache_key`. The PDF is then written to a deterministic
+    // path and reused on every later download — no repeat PDFShift call.
+    // `force: true` bypasses the cache and re-renders.
+    const cacheKey = typeof body.cache_key === "string" && body.cache_key.trim()
+      ? body.cache_key.trim().replace(/[^a-z0-9._-]+/gi, "-").slice(0, 120)
+      : null;
+    const force = body.force === true;
+    const cachedPath = cacheKey ? `adhoc/${userId}/cache/${cacheKey}.pdf` : null;
+
+    if (cachedPath && !force) {
+      try {
+        const dir = cachedPath.slice(0, cachedPath.lastIndexOf("/"));
+        const name = cachedPath.slice(cachedPath.lastIndexOf("/") + 1);
+        const { data: existing } = await supabase.storage
+          .from("assessment-reports")
+          .list(dir, { limit: 100, search: name });
+        if ((existing || []).some((f) => f.name === name)) {
+          const { data: signed } = await supabase.storage
+            .from("assessment-reports")
+            .createSignedUrl(cachedPath, 3600);
+          if (signed?.signedUrl) {
+            return new Response(
+              JSON.stringify({ success: true, pdf_url: signed.signedUrl, cached: true }),
+              { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+        }
+      } catch (cacheErr) {
+        console.warn("render-html-to-pdf cache lookup failed:", cacheErr);
+      }
+    }
+
     const pdfBytes = await renderViaPdfShift(html, title);
     if (!pdfBytes) {
       return new Response(JSON.stringify({ error: "PDF generation failed. Check PDFSHIFT_API_KEY." }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const slug = title.replace(/[^a-z0-9]+/gi, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "report";
     const ts = new Date().toISOString().replace(/[:.]/g, "-");
-    const storagePath = `adhoc/${userId}/${slug}-${ts}.pdf`;
+    const storagePath = cachedPath ?? `adhoc/${userId}/${slug}-${ts}.pdf`;
     const { error: storageError } = await supabase.storage
       .from("assessment-reports")
       .upload(storagePath, pdfBytes, { contentType: "application/pdf", upsert: true });
