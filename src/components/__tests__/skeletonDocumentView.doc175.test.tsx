@@ -77,7 +77,9 @@ describe("DOC 175 — Syllabus & Record web twin, Cyber v4", () => {
   });
 
   it("leaves a non-gated product on the existing renderer", () => {
-    const { container } = render(<SkeletonDocumentView doc={DOC} product="ir-playbook" />);
+    // DOC 177 note: ir-playbook joined SR_PRODUCTS after this test was
+    // written; biometric is permanently excluded (CEO scope).
+    const { container } = render(<SkeletonDocumentView doc={DOC} product="biometric" />);
     expect(container.querySelector('[data-sr="1"]')).toBeNull();
   });
 });

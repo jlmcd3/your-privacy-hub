@@ -2718,7 +2718,12 @@ function srSectionsHtml(doc: SkeletonDocLike, product?: string): string {
       }
       const t = typeof p?.text === "string" ? p.text : "";
       if (!t.trim()) return "";
-      if (syllabus && sec.id === "executive_summary" && p?.kind === "lead") return ""; // rendered on page one
+      // DOC 177 (2026-09-04) — IR Playbook's own determination lead lives in
+      // "standing_playbook" (Part One), not "executive_summary" (every
+      // other product's section id for this same block) — a second
+      // section id, not a generalization, since the fleet's convention has
+      // been one hardcoded id per product's own section-naming choice.
+      if (syllabus && (sec.id === "executive_summary" || sec.id === "standing_playbook") && p?.kind === "lead") return ""; // rendered on page one
       if (p?.kind === "customer_voice") {
         const lines = t.split("\n").map((l) => l.trim()).filter(Boolean);
         const [attribution, ...rest] = lines;

@@ -41,9 +41,10 @@ export function SampleToolReport({ toolSlug, documentText, reportData, published
   if (isSkeletonDocument(sk)) {
     // DOC 127 PHASE B (2026-09-01) — the sample surface renders CPPA Risk
     // with the same Risk presentation system as the live result page.
-    // DOC 171/172/173/175 (2026-09-04) — DPIA, LIA, Governance and Cyber
-    // join Syllabus & Record the same way (SkeletonDocumentView's own
-    // readSyllabus() guard keeps a v3 Cyber sample on its unchanged view).
+    // DOC 171/172/173/175/177 (2026-09-04) — DPIA, LIA, Governance, Cyber
+    // and IR Playbook join Syllabus & Record the same way
+    // (SkeletonDocumentView's own readSyllabus() guard keeps a v3 Cyber
+    // sample on its unchanged view).
     const srProduct = toolSlug === "cppa_risk"
       ? "cppa-risk"
       : toolSlug === "dpia"
@@ -54,6 +55,8 @@ export function SampleToolReport({ toolSlug, documentText, reportData, published
       ? "governance"
       : toolSlug === "cppa_cyber"
       ? "cppa-cyber"
+      : toolSlug === "ir_playbook"
+      ? "ir-playbook"
       : undefined;
     return <SkeletonDocumentView doc={sk} product={srProduct} />;
   }

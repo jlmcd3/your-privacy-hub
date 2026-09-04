@@ -56,6 +56,9 @@ import { STATE_WALK_GATES } from "./ir-playbook-deliverables/us-state-duties.ts"
 // folds into "eu" (build.ts readIncidentFacts), read here only to echo the
 // customer's own recorded member-state selections on the EU clocks row.
 import { EEA_JURISDICTIONS } from "./ir-playbook-deliverables/elements.ts";
+// DOC 177 (2026-09-04) — Syllabus & Record (doc 151); IR Playbook is the
+// eighth product migrated onto the fleet presentation system.
+import { dispositionTone, type SyllabusProjection } from "../../../_shared/prose/syllabus.ts";
 
 export const IR_SKELETON_ASSEMBLER_STAMP = "ir-skeleton-assembler@so7-wire-in-2026-08-10";
 
@@ -1468,6 +1471,81 @@ function irToa(report: Bag, body: string): string {
 
 // ── Assembly ────────────────────────────────────────────────────────────────
 
+// DOC 177 (2026-09-04) — THE DETERMINATION SYLLABUS (Syllabus & Record p.1).
+// Every value below is a PROJECTION of a determination this assembler
+// already made (doc 127 §28 law): the disposition is a three-bucket read of
+// the SAME `standingSections()`/`standingGapLedger()` state
+// `composeStandingLead()` already reads (no sections recorded → no
+// determination; a gap ledger with rows or a record_insufficient status →
+// not ready; otherwise ready); the paragraph is `composeStandingLead()`'s
+// own text, verbatim — the SAME string composed into `standing_playbook:0`'s
+// `kind: "lead"` block; the conditions are the standing gap ledger verbatim
+// (the SAME `{heading, completes}` pairs the Preparedness Gaps table
+// prints — IR's genuine typed conditions surface). IR Playbook has no
+// lettered appendices, so `record_map` is honestly empty, same precedent as
+// LIA/Governance/Registration. Part Two (the incident worksheet) is,
+// BY DESIGN, blank absent a recorded incident — the syllabus projects Part
+// One's standing-preparedness determination only, since that is the one
+// state the document actually asserts at generation time; an incident, when
+// one is recorded, is a working document the syllabus does not summarize.
+function irDispositionLabel(report: Bag): string {
+  const sections = standingSections(report);
+  if (sections.length === 0) return "No Determination Recorded";
+  const sp = standing(report);
+  const gaps = standingGapLedger(report);
+  if (s(sp.status) === "record_insufficient" || gaps.length > 0) return "Not Ready";
+  return "Ready";
+}
+
+function buildIrSyllabus(
+  rendered: RenderedSkeletonDocument,
+  report: Bag,
+  leadText: string,
+  entity: string,
+): SyllabusProjection {
+  const disposition = irDispositionLabel(report);
+  const gaps = standingGapLedger(report);
+  const sections = standingSections(report);
+
+  const rows: Array<readonly [string, string]> = [];
+  if (sections.length > 0) {
+    const recorded = sections.filter((x) => s(x.status) !== "record_insufficient").length;
+    rows.push(["Standing sections recorded", `${recorded} of ${sections.length}`]);
+    rows.push([
+      "Preparedness gaps",
+      gaps.length > 0
+        ? `${gaps.length} standing ${gaps.length === 1 ? "section is" : "sections are"} unrecorded`
+        : "None — every standing section is recorded and complete on the company's answers",
+    ]);
+  }
+
+  const conditions = gaps.map((g) => ({ name: g.heading, text: g.completes }));
+
+  const record_map: Array<readonly [string, string, string]> = [];
+  for (const sec of rendered.sections) {
+    const m = /^Appendix ([A-Z]) — (.+)$/.exec(sec.title ?? "");
+    if (m) record_map.push([m[1], m[2], ""]);
+  }
+
+  return {
+    _typed: "syllabus@sr-2026-09-04",
+    instrument_line: "INCIDENT RESPONSE PLAYBOOK",
+    prepared_for: entity,
+    activity: "Standing Incident-Response Preparedness",
+    subtitle: "Part One — the standing playbook; Part Two — the incident worksheet, blank by design absent a recorded incident",
+    disposition_label: "READINESS",
+    disposition,
+    disposition_tone: dispositionTone(disposition),
+    paragraph: leadText,
+    rows,
+    conditions_heading: conditions.length ? "PREPAREDNESS GAPS — what would complete the standing record" : "",
+    conditions,
+    key_dates: [],
+    record_map,
+    running_head: `INCIDENT RESPONSE PLAYBOOK · ${entity.toUpperCase()}`,
+  };
+}
+
 export interface IrSkeletonResult {
   readonly document: RenderedSkeletonDocument;
   readonly conformance: ReturnType<typeof verifySkeletonConformance>;
@@ -1544,7 +1622,7 @@ export function assembleIRSkeletonDocument(report: Bag, intakeInput: Bag): IrSke
 
   const toa = irToa(report, skeletonDocumentToText(draft));
 
-  const document = renderSkeletonDocument({
+  const renderedDoc = renderSkeletonDocument({
     sections: IR_SKELETON_SECTIONS,
     title: IR_SKELETON_TITLE,
     subtitle: IR_SKELETON_SUBTITLE,
@@ -1553,6 +1631,14 @@ export function assembleIRSkeletonDocument(report: Bag, intakeInput: Bag): IrSke
     composed: { ...composed, "table_of_authorities:0": toa },
     tables,
   });
+  // DOC 177 (2026-09-04) — the Determination Syllabus (page 1 of the
+  // Syllabus & Record presentation) attached as a projection of the
+  // determinations above. Additive: sections, hash and conformance are
+  // untouched; a renderer that does not know the field ignores it.
+  const document: RenderedSkeletonDocument = {
+    ...renderedDoc,
+    syllabus: buildIrSyllabus(renderedDoc, report, String(composed["standing_playbook:0"] ?? ""), org),
+  };
 
   const body = skeletonDocumentToText(document).toLowerCase();
   const register_findings = IR_V3_BANNED_REGISTER.filter((b) => body.includes(b));

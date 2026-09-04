@@ -102,9 +102,9 @@ describe("DOC 170 — Syllabus & Record web twin", () => {
   });
 
   it("leaves a product outside the gate on the existing renderer", () => {
-    // DOC 175 note: cppa-cyber joined SR_PRODUCTS after this test was
-    // written; ir-playbook remains outside the gate.
-    const { container } = render(<SkeletonDocumentView doc={DOC} product="ir-playbook" />);
+    // DOC 175/177 note: cppa-cyber and ir-playbook joined SR_PRODUCTS after
+    // this test was written; biometric is permanently excluded (CEO scope).
+    const { container } = render(<SkeletonDocumentView doc={DOC} product="biometric" />);
     expect(container.querySelector('[data-sr="1"]')).toBeNull();
     expect(container.textContent).toContain("CPPA Privacy Risk Assessment");
   });

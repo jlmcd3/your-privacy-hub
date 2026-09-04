@@ -979,7 +979,9 @@ export function SyllabusRecordView({ doc, product }: { doc: SkeletonDocument; pr
                   return <SrTable key={i} table={p.table} />;
                 }
                 if (!p.text.trim()) return null;
-                if (syllabus && section.id === "executive_summary" && p.kind === "lead") return null;
+                // DOC 177 (2026-09-04) — IR Playbook's determination lead
+                // lives in "standing_playbook", not "executive_summary".
+                if (syllabus && (section.id === "executive_summary" || section.id === "standing_playbook") && p.kind === "lead") return null;
                 if (p.kind === "customer_voice") {
                   const lines = p.text.split("\n").map((l) => l.trim()).filter(Boolean);
                   const [attribution, ...rest] = lines;

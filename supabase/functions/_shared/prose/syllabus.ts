@@ -70,6 +70,7 @@ export const SR_PRODUCTS: ReadonlySet<string> = new Set<string>([
   "cppa-admt-v2",
   "cppa-cyber",
   "registration",
+  "ir-playbook",
 ]);
 
 export function isSyllabusRecordProduct(product: string | undefined | null): boolean {
@@ -79,9 +80,9 @@ export function isSyllabusRecordProduct(product: string | undefined | null): boo
 /** The fleet State Lexicon (design system § 5): tinted as TEXT, never a
  *  filled chip; color never the sole carrier — the word is always written. */
 export const SR_STATE_TONES: ReadonlyArray<readonly [RegExp, SyllabusTone]> = [
-  [/^(Engaged|Credited|Addressed|Recorded|Confirmed|Yes|Low|Proceed|Necessary to the stated purpose|Implemented and tested|Complete|Approved|Available|Evidenced|Meets on reported facts|Ready for the independent audit on the Company's answers)$/i, "ok"],
+  [/^(Engaged|Credited|Addressed|Recorded|Confirmed|Yes|Low|Proceed|Necessary to the stated purpose|Implemented and tested|Complete|Approved|Available|Evidenced|Meets on reported facts|Ready for the independent audit on the Company's answers|Ready)$/i, "ok"],
   [/^(Additional Information Required|Determination pending|Timeliness pending|Open|Partial|Open in part|Moderate|Unsure|Unconfirmed|Partly outside|Proceed with Conditions|Implemented, not tested|Planned, not yet implemented|Not stated — see the Follow-Ups in § 4\.D|Conditionally Approved|Partly evidenced|Not yet determinable|Pathway-dependent|Qualified — follow-up needed|Unable to assess — scope cannot be determined on the current record|Ready subject to the named remediation|No readiness conclusion on the information provided)$/i, "hold"],
-  [/^(High|Critical|Do Not Proceed|Collected but not necessary to the stated purpose|Collected but not necessary|Prior Consultation Required|Not Available|Not evidenced|Gaps identified|Record conflict — resolve before a determination can be reached|Not yet ready — blocking items named in this report)$/i, "hi"],
+  [/^(High|Critical|Do Not Proceed|Collected but not necessary to the stated purpose|Collected but not necessary|Prior Consultation Required|Not Available|Not evidenced|Gaps identified|Record conflict — resolve before a determination can be reached|Not yet ready — blocking items named in this report|Not Ready)$/i, "hi"],
   [/^(Not engaged|Not established|Not applicable|Not assessed|No|Neutral|No Processing Decision Required|Not recorded|No Determination Recorded|Out of scope on reported facts)$/i, "neutral"],
 ];
 

@@ -61,9 +61,9 @@ describe("DOC 174 — Syllabus & Record web twin, ADMT v2", () => {
   });
 
   it("leaves a non-gated product on the existing renderer", () => {
-    // DOC 175 note: cppa-cyber joined SR_PRODUCTS after this test was
-    // written; ir-playbook remains outside the gate.
-    const { container } = render(<SkeletonDocumentView doc={DOC} product="ir-playbook" />);
+    // DOC 175/177 note: cppa-cyber and ir-playbook joined SR_PRODUCTS after
+    // this test was written; biometric is permanently excluded (CEO scope).
+    const { container } = render(<SkeletonDocumentView doc={DOC} product="biometric" />);
     expect(container.querySelector('[data-sr="1"]')).toBeNull();
   });
 });

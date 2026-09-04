@@ -163,7 +163,9 @@ export default function IRPlaybookResult() {
                 standing-playbook section view are suppressed behind it. The
                 worksheet (Artifact B) still ships its blank forms by design. */}
             {skeletonDoc
-              ? <SkeletonDocumentView doc={skeletonDoc} />
+              // DOC 177 (2026-09-04) — the product string activates the
+              // Syllabus & Record presentation system.
+              ? <SkeletonDocumentView doc={skeletonDoc} product="ir-playbook" />
               : <AssessmentReport text={(translated?.playbook_text ?? row.playbook_text) || ""} sectionChipLabel={null} />}
             <EnforcementPrecedents
               precedents={(row?.report_data as any)?.enforcement_precedents}

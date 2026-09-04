@@ -105,9 +105,10 @@ Deno.test("doc170 — CPPA Risk renders through Syllabus & Record: page one, no 
 Deno.test("doc170 — a non-S&R product is byte-unchanged (the legacy template still renders the cover block)", async () => {
   const pdf = await pdfModule();
   const res = assembleRiskSkeletonDocument(REPORT, LUMINARY as never);
-  // DOC 175 note: cppa-cyber joined SR_PRODUCTS after this test was
-  // written; ir-playbook remains outside the gate as of doc175.
-  const html: string = pdf.buildSkeletonReportHTML(res.document as never, RECORD, "Some Other Product", "ir-playbook");
+  // DOC 175/177 note: cppa-cyber and ir-playbook joined SR_PRODUCTS after
+  // this test was written; biometric is permanently excluded from this
+  // redesign (CEO scope), so it stays outside the gate for good.
+  const html: string = pdf.buildSkeletonReportHTML(res.document as never, RECORD, "Some Other Product", "biometric");
   assertStringIncludes(html, 'class="header"');
   assert(!html.includes('class="sr-syllabus"'));
 });
