@@ -178,6 +178,35 @@ export function classifyAdmtSignificantDecision(
   return "unresolved";
 }
 
+// DOC 167 (2026-09-04, Batch 13 A-Team + automated-grader review) — the
+// literal phrase "significant decision" appearing anywhere in the free text
+// is NOT itself an affirmative claim: an intake that writes "No significant
+// decisions ... are made" or "do not constitute a significant decision" is
+// an express DISCLAIMER, not a self-characterization. The render chokepoint
+// (risk-factor-engine.ts) tested this phrase with a bare negation-blind
+// regex, so two Batch 13 fixtures whose own description explicitly denied a
+// significant decision (NestGrid: "No significant decisions in CPPA
+// § 7001(ddd) categories are made solely by this system"; Luminary: "do not
+// constitute a significant decision under § 7001(ddd)") both rendered "The
+// Company's description also characterizes the system as making a
+// significant decision" — inverting the Company's own stated position in
+// the customer's legal document. Reuses the SAME sentence-scoped negation
+// test the category patterns above already rely on, rather than a second,
+// unaudited negation heuristic.
+const SIGNIFICANT_DECISION_PHRASE_PATTERN = /significant\s+decision/i;
+
+/**
+ * Whether the Company's free-text description affirmatively CLAIMS the
+ * system makes or facilitates a significant decision — i.e. the phrase
+ * "significant decision" appears in some sentence without a negation cue
+ * governing it earlier in that same sentence. Pure, deterministic.
+ */
+export function claimsSignificantDecisionUnnegated(description: string): boolean {
+  const text = (description ?? "").trim();
+  if (!text) return false;
+  return textHasUnnegatedCategoryMatch(text, SIGNIFICANT_DECISION_PHRASE_PATTERN);
+}
+
 // ── DOC 157 (2026-09-03, model-vs-law build; doc 156 change-list item 7) ──
 // The categorical § 7001(ddd) answer. The regulation defines the seven
 // significant-decision categories precisely and carries two exclusions the

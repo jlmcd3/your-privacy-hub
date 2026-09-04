@@ -46,6 +46,8 @@ import {
   // DOC 154 — the one-state resolvers shared with the engine.
   resolveRecordedApprovalDate,
   admtEvaluationActiveFor,
+  // DOC 167 — the Appendix E training-data reconciliation predicate.
+  admtTrainingPiReconcileNeeded,
   type RiskFactorEngineResult,
 } from "./risk-factor-engine.ts";
 import { firstSubstantiveSentence } from "./clause-bound.ts";
@@ -253,46 +255,21 @@ export function deriveActivitySpiInventory(intake: Bag): string | null {
   return null;
 }
 
-/** {{DERIVED.initial_assessment_deadline}} — § 7155 timing rules over the status/start facts.
- * DOC 148 (A-Team Batch-8 P0) — the deadline is fact-gated: which § 7155
- * deadline applies to processing already underway depends on WHEN it began.
- * "Before initiation" was previously the fall-through for an ongoing
- * activity with no recorded start date — a definitive deadline the record
- * cannot support. That case now states the pending determination and the
- * fork the start date resolves. Planned processing and dated starts are
- * unchanged. */
-export function deriveInitialAssessmentDeadline(intake: Bag): string | null {
-  const status = s(intake.processing_status);
-  if (!status) return null;
-  const start = s(intake.processing_start_date);
-  const planned = s(intake.planned_start_date);
-  if (/^planned/i.test(status)) {
-    return `Initial-assessment deadline: before the processing is initiated${planned ? ` (planned start: ${planned})` : ""}.`;
-  }
-  if (start && start < "2026-01-01") {
-    return "Initial-assessment deadline: December 31, 2027 (transition deadline for covered processing initiated before January 1, 2026 and continuing afterward).";
-  }
-  if (start) {
-    return `Initial-assessment deadline: before initiation of the processing (processing initiated ${start}).`;
-  }
-  return "Initial-assessment deadline: determination pending — record when the covered processing began (before initiation applies to processing initiated on or after January 1, 2026; the December 31, 2027 transition deadline applies to covered processing already underway before that date and continuing afterward).";
-}
+// DOC 167 (2026-09-04) — the § 7155 timing derivations moved to
+// ./risk-timing.ts so the engine can consume the same resolver without an
+// import cycle (this module imports the engine). Re-exported here so the
+// existing import sites (doc148 / rk3-b tests) are unchanged.
+import {
+  deriveAssessmentRetentionEnd,
+  deriveInitialAssessmentDeadline,
+} from "./risk-timing.ts";
+export { deriveAssessmentRetentionEnd, deriveInitialAssessmentDeadline };
 
 /** {{DERIVED.next_review_date}} — assessment date + the three-year review rule. */
 export function deriveNextReviewDate(assessmentDateIso: string): string {
   const d = new Date(`${assessmentDateIso}T00:00:00Z`);
   d.setUTCFullYear(d.getUTCFullYear() + 3);
   return d.toISOString().slice(0, 10);
-}
-
-/** {{DERIVED.assessment_retention_end_date_or_rule}} — § 7155 later-of rule over the status facts. */
-export function deriveAssessmentRetentionEnd(intake: Bag): string | null {
-  const status = s(intake.processing_status);
-  if (!status) return null;
-  if (/^discontinued/i.test(status)) {
-    return "Because the processing is recorded as discontinued, the assessment record must be retained for five years after completion of this assessment, or until the end of the processing if that is later";
-  }
-  return "Because the processing continues on the information provided, the retention end date is not yet determinable; the later-of rule above governs";
 }
 
 // BATCH 20b (Wave C4, doc 113 S6.3) — the § 5 Key Dates and Deadlines
@@ -841,7 +818,16 @@ export function deriveAdmtTechnicalFacts(intake: Bag): RenderedTable | null {
     ["Fairness testing", s(intake.i5_admt_fairness_testing)],
     ["Training-data source", s(intake.i5_admt_training_source)],
     ["§ 7153 — made available to another business", yn(intake.admt_made_available_to_other_business)],
-    ["§ 7153 — trained using personal information", yn(intake.admt_provider_trained_using_pi)],
+    // DOC 167 (Batch 13 A-Team §10) — the Company's own categorical answer is
+    // preserved; where its training-data description reads as pseudonymized
+    // or aggregated without the deidentified standard, the cell points at the
+    // reconciliation Follow-Up rather than silently carrying a "No" beside it.
+    [
+      "§ 7153 — trained using personal information",
+      `${yn(intake.admt_provider_trained_using_pi)}${
+        admtTrainingPiReconcileNeeded(intake) ? " — reconciliation pending (Follow-Ups, § 4.D)" : ""
+      }`,
+    ],
     ["§ 7153 — recipient uses it for a significant decision", yn(intake.recipient_business_uses_admt_for_significant_decision)],
   ];
   const rowsOut = pairs.filter(([, v]) => v).map(([k, v]) => [k, v]);

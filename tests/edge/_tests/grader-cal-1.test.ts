@@ -387,10 +387,14 @@ Deno.test("GRADER-CAL-3 T2(c): closing-block ownership disclaimer is exempt", ()
 // DOC 165 (2026-09-04) — re-pinned for the batch-08f13650 triage (cppa_risk
 // choice-architecture confirmed/unconfirmed sentence, fixed-methodology
 // Section 1 restatement, and the "is not identified" trigger-row phrasing).
+// DOC 167 (2026-09-04) — re-pinned for the batch-52f83146 / A-Team Batch 13
+// triage (six cppa_risk false-positive classes: credentials as sensitive PI,
+// the executive Conditions digest, the Do-Not-Proceed frame, § 7150(b)(1) on
+// advertising sharing, the § 3.E recital, attribution-register sentences).
 Deno.test("instrument version pinned to the skeleton-calibration epoch", () => {
   assertEquals(
     GRADER_CONTEXT_VERSION,
-    "gc-2026-08-28-skeleton-cal-3-item204[cal_skeleton_1|cal_skeleton_2|cal_skeleton_3|cal_skeleton_4|cal_skeleton_5|cal_skeleton_6]+risk-field-semantics-2026-09-03+batch9-cal-2026-09-03+batch10-cal-2026-09-03+risk-code-review-2026-09-03+risk-law-map-2026-09-03+admt-law-map-2026-09-03+cyber-law-map-2026-09-03+dpia-law-map-2026-09-03+lia-law-map-2026-09-03+gov-law-map-2026-09-03+registration-law-map-2026-09-03+gov-dpa2018-wp243-2026-09-04+batch08f13650-cal-2026-09-04",
+    "gc-2026-08-28-skeleton-cal-3-item204[cal_skeleton_1|cal_skeleton_2|cal_skeleton_3|cal_skeleton_4|cal_skeleton_5|cal_skeleton_6]+risk-field-semantics-2026-09-03+batch9-cal-2026-09-03+batch10-cal-2026-09-03+risk-code-review-2026-09-03+risk-law-map-2026-09-03+admt-law-map-2026-09-03+cyber-law-map-2026-09-03+dpia-law-map-2026-09-03+lia-law-map-2026-09-03+gov-law-map-2026-09-03+registration-law-map-2026-09-03+gov-dpa2018-wp243-2026-09-04+batch08f13650-cal-2026-09-04+batch13-cal-2026-09-04",
   );
 });
 

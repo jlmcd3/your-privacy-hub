@@ -320,7 +320,13 @@ for (const c of CPPA_RISK_PERFECT) {
 // ── DERIVED builder unit pins ────────────────────────────────────────────────
 
 Deno.test("v5.2 — deriveInitialAssessmentDeadline (§ 7155 timing rules)", () => {
-  assertEquals(deriveInitialAssessmentDeadline({}), null);
+  // DOC 167 (2026-09-04, Batch 13 A-Team §9) — pin moved: an unrecorded
+  // processing status (optional on the live form) used to return null and
+  // silently drop the Key Dates row and the § 5.B conclusion; it now takes
+  // the same honest "determination pending" fallback doc 148 gave the
+  // ongoing-without-start-date case. Confirmed against the NestGrid fixture
+  // (batch 52f83146), which rendered no timing state at all.
+  assert(deriveInitialAssessmentDeadline({})?.includes("determination pending — record when the covered processing began"));
   const planned = deriveInitialAssessmentDeadline({
     processing_status: "Planned",
     planned_start_date: "2026-11-01",
@@ -345,7 +351,11 @@ Deno.test("v5.2 — deriveNextReviewDate adds the three-year review rule", () =>
 });
 
 Deno.test("v5.2 — deriveAssessmentRetentionEnd (§ 7155 later-of rule)", () => {
-  assertEquals(deriveAssessmentRetentionEnd({}), null);
+  // DOC 167 — pin moved for the same gate defect: a blank status now states
+  // the open question instead of dropping the § 5.D conclusion (and it does
+  // NOT borrow the "processing continues" sentence, which a blank status
+  // cannot support).
+  assert(deriveAssessmentRetentionEnd({})?.includes("Whether the processing is ongoing or discontinued is not recorded"));
   assert(
     deriveAssessmentRetentionEnd({ processing_status: "Discontinued" })
       ?.includes("five years after completion"),

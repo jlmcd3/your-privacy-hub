@@ -32,9 +32,13 @@ import { HARM_PATHWAY_OPTS } from "../intake-contracts/cppa-risk-assessment.ts";
 import { CA_SPI_CATEGORY_KEYS } from "./ca-pi-taxonomy.ts";
 import {
   type AdmtDecisionClass,
+  claimsSignificantDecisionUnnegated,
   classifyAdmtSignificantDecision,
   resolveAdmtSignificantDecision,
 } from "./admt-significant-decision.ts";
+// DOC 167 — the § 7155 timing resolver the assembler renders; read here so
+// the completing Follow-Up is drawn from the same fact (one resolver).
+import { initialAssessmentDeadlinePending } from "./risk-timing.ts";
 import type { RenderedTable } from "../prose/skeleton-render.ts";
 import { boundedPassage, firstSentence } from "./clause-bound.ts";
 import { RISK52_FIXED } from "../prose/plans/cppa-risk.spine.ts";
@@ -1019,6 +1023,119 @@ const SCOPE_CONFLICT_STEMS: Readonly<Record<string, RegExp>> = {
 
 // ── The engine ────────────────────────────────────────────────────────────────
 
+// ── DOC 167 (2026-09-04, CPPA Risk Batch 13 triage) — shared predicates ──────
+
+// Batch 13 A-Team §8 (NestGrid) — a safeguard the Company records as
+// "Implemented, not tested" whose own description reports a testing activity
+// ("tabletop exercises are conducted semi-annually"). "Not tested" collapses
+// three states the record keeps apart: the control is implemented; testing
+// is REPORTED to occur; testing RESULTS or effectiveness evidence were
+// supplied. The § 4.A sentence and the § 4.D condition both read this one
+// predicate, so the ask names what is actually missing (results/evidence)
+// instead of denying testing the Company described. Credit is unchanged:
+// a reported exercise is not evidence it was effective.
+const TESTING_REPORTED_RE =
+  /\b(tabletop|table-top|exercise[sd]?|drill[s]?|penetration[- ]test\w*|pen[- ]?test\w*|red[- ]team\w*|tested|testing|audit\w*|simulat\w*|validat\w*)\b/i;
+
+export function safeguardReportsTesting(g: Bag): boolean {
+  return s(g.safeguard_status) === "Implemented, not tested" && TESTING_REPORTED_RE.test(s(g.safeguard));
+}
+
+// Batch 13 A-Team §10 (NestWave, Luminary) — the Company answers that the
+// technology is NOT trained using personal information while describing the
+// training data as pseudonymized / anonymized / aggregated. Under Cal. Civ.
+// Code § 1798.140(aa) pseudonymization is a way of processing personal
+// information; only deidentified (§ 1798.140(m)) or aggregate consumer
+// information (§ 1798.140(b)) falls outside personal information
+// (§ 1798.140(v)(3)). The answer is the Company's and is never overridden;
+// the tension is stated and completed among the Follow-Ups. Read by the
+// § 3.E sentence, the Follow-Up, and the Appendix E cell (assembler).
+const TRAINING_PSEUDONYMIZED_RE = /\b(pseudonymi[sz]\w*|anonymi[sz]\w*|aggregat\w*)\b/i;
+const TRAINING_DEIDENTIFIED_RE = /\bde-?identif\w*\b/i;
+
+export function admtTrainingPiReconcileNeeded(intake: Bag): boolean {
+  if (s(intake.admt_provider_trained_using_pi) !== "No") return false;
+  const text = `${s(intake.i5_admt_training_source)} ${s(intake.i5_admt_logic)}`;
+  return TRAINING_PSEUDONYMIZED_RE.test(text) && !TRAINING_DEIDENTIFIED_RE.test(text);
+}
+
+// Batch 13 A-Team §5 (NestGrid, Luminary; NestWave is the deliberate
+// partial-overlap case) — the same disclosure work was rendered both as
+// part of a planned-safeguard Condition and as a planned-disclosure
+// Recommendation. Overlap is measured on content stems (stopwords and short
+// tokens dropped, crude suffix stemming): the disclosure is "carried" by a
+// planned safeguard when at least five of its stems appear in that
+// safeguard's text and they are at least half of the disclosure's stems.
+// The two clear duplicates share ≥ 8 stems at ≥ 0.67; NestWave's
+// vendor-naming disclosure shares 5 at 0.33 and keeps its distinct
+// Recommendation, which is the A-Team's own reading of that fixture.
+const STEM_STOPWORDS = new Set([
+  "the", "and", "for", "with", "will", "that", "this", "from", "into", "onto", "are", "was",
+  "were", "been", "being", "its", "their", "they", "them", "all", "any", "each", "who", "which",
+  "what", "when", "where", "before", "after", "than", "then", "also", "not", "but", "per", "via",
+  "has", "have", "had", "does", "did", "can", "may", "must", "should", "would", "could", "our",
+  "your", "about", "under", "over", "within", "between", "new", "added", "add", "page", "screen",
+  "section", "company", "consumer", "consumers", "user", "users", "data", "information",
+  "personal", "update", "updated",
+]);
+function contentStems(text: string): Set<string> {
+  const out = new Set<string>();
+  for (const raw of s(text).toLowerCase().split(/[^a-z0-9]+/)) {
+    if (raw.length < 3 || STEM_STOPWORDS.has(raw)) continue;
+    const stem = raw.length > 4 ? raw.replace(/(ing|ies|ed|es|ly|s)$/, "") : raw;
+    if (stem.length >= 3) out.add(stem);
+  }
+  return out;
+}
+export function disclosureCarriedBySafeguard(disclosure: string, safeguard: string): boolean {
+  const d = contentStems(disclosure);
+  if (d.size === 0) return false;
+  const g = contentStems(safeguard);
+  let shared = 0;
+  for (const stem of d) if (g.has(stem)) shared += 1;
+  return shared >= 5 && shared / d.size >= 0.5;
+}
+
+// Batch 13 A-Team §7 (NestGrid; Batch 12 §11, 88B4FA24) — payment/billing
+// facts inside an Activity whose Purpose does not describe payment
+// processing. Cues are read from the Activity-level facts only (sources,
+// retention, recipient rows, necessity elements) — NOT from the general
+// vendor list (i6_vendors names Stripe on nearly every record) and NOT from
+// the q4 "Account log-in or financial-account credentials" label, which also
+// covers ordinary log-in credentials. Purpose vocabulary is deliberately
+// broad so a Purpose that names payments, billing, subscriptions, purchases,
+// invoicing, checkout or transactions is never second-guessed.
+const PAYMENT_CUE_RE =
+  /\b(payments?|payment processor\w*|billing|chargebacks?|invoic\w*|checkout|subscription (?:fees?|payments?|billing)|stripe|credit card|debit card|card (?:number|data))\b/i;
+const PAYMENT_PURPOSE_RE =
+  /\b(payments?|billing|subscriptions?|purchas\w*|invoic\w*|checkout|transactions?|orders? fulfil\w*|e-?commerce)\b/i;
+function firstSentenceMatching(text: string, re: RegExp): string {
+  return s(text).split(/(?<=[.!?])\s+/).find((x) => re.test(x)) ?? s(text);
+}
+export function paymentScopeFor(intake: Bag): { cue: string; sourceCue: boolean } | null {
+  const purposeText = `${clause(intake.primary_activity_purpose)} ${clause(intake.i1_processing_purpose)}`;
+  if (PAYMENT_PURPOSE_RE.test(purposeText)) return null;
+  const cues: string[] = [];
+  const src = s(intake.i4b_sources);
+  const sourceCue = PAYMENT_CUE_RE.test(src);
+  if (sourceCue) cues.push(firstSentenceMatching(src, PAYMENT_CUE_RE));
+  for (const f of [s(intake.i2_retention_detail), s(intake.i2_retention_period)]) {
+    if (PAYMENT_CUE_RE.test(f)) cues.push(firstSentenceMatching(f, PAYMENT_CUE_RE));
+  }
+  const recipientRows = Array.isArray(intake.recipients) ? (intake.recipients as Bag[]) : [];
+  for (const r of recipientRows) {
+    const t = `${s(r.recipient_name_or_category)} ${clause(r.disclosure_purpose)}`.trim();
+    if (PAYMENT_CUE_RE.test(t)) cues.push(t);
+  }
+  const elements = Array.isArray(intake.a2_necessity_set) ? (intake.a2_necessity_set as Bag[]) : [];
+  for (const e of elements) {
+    const t = s(e.element);
+    if (PAYMENT_CUE_RE.test(t)) cues.push(t);
+  }
+  if (!cues.length) return null;
+  return { cue: cues[0], sourceCue };
+}
+
 export function runRiskFactorEngine(
   intake: Bag,
   report: Bag,
@@ -1239,9 +1356,19 @@ export function runRiskFactorEngine(
   // against the FULL description (the doc-152 check read the clipped sentence
   // and missed a claim in a second sentence); the classifier's three classes
   // each get their own answer in § 3.E and Appendix E.
-  const admtClaimsSignificant = /significant\s+decision/i.test(clause(intake.q19_admt_description));
+  // DOC 167 (Batch 13 review) — the bare regex this used to be
+  // (`/significant\s+decision/i.test(...)`) matched the phrase inside an
+  // express disclaimer ("No significant decisions ... are made") just as
+  // readily as an affirmative claim, so a Company that explicitly denied a
+  // significant decision was rendered as having "characterized" one.
+  // `claimsSignificantDecisionUnnegated` applies the same sentence-scoped
+  // negation test the category classifier already uses.
+  const admtClaimsSignificant = claimsSignificantDecisionUnnegated(s(intake.q19_admt_description));
   const admtClaimClass = classifyAdmtSignificantDecision(s(intake.q19_admt_description));
   const admtClaimUnplaced = admtClaimsSignificant && admtClaimClass === "unresolved";
+  // DOC 167 — one predicate for the § 3.E sentence, the Follow-Up and the
+  // Appendix E cell (see admtTrainingPiReconcileNeeded above).
+  const admtTrainingPiUnreconciled = admtTrainingPiReconcileNeeded(intake);
   // Activity-scope reconciliation: a q4 category whose leading word appears
   // inside an exclusion-cue sentence of the out-of-scope description is a
   // cross-surface contradiction the record must resolve (sentence-scoped,
@@ -1406,8 +1533,14 @@ export function runRiskFactorEngine(
   }
   // (2) The untested-safeguard stop drivers (see untestedStopDrivers above).
   for (const p of untestedStopDrivers) {
+    // DOC 167 (Batch 13 A-Team §8) — where the untested safeguard's own text
+    // reports a testing activity, the ask names the missing results or
+    // effectiveness evidence rather than testing itself (same predicate as
+    // the § 4.A sentence).
     conditions.push(
-      `Obtain implementation and testing evidence for the safeguard credited against the risk: ${p.harm}`,
+      p.safeguards.some(safeguardReportsTesting)
+        ? `Obtain and record the results or effectiveness evidence from the testing the Company reports for the safeguard credited against the risk: ${p.harm}`
+        : `Obtain implementation and testing evidence for the safeguard credited against the risk: ${p.harm}`,
     );
   }
 
@@ -1464,6 +1597,24 @@ export function runRiskFactorEngine(
   if (b3Reconciled === "unresolved" || admtClaimUnplaced) {
     followUps.push(
       "Identify the significant decision the automated decisionmaking technology makes or facilitates; § 7150(b)(3) turns on a decision within the categories enumerated in § 7001(ddd), and the information provided does not identify one",
+    );
+  }
+  // DOC 167 (Batch 13 A-Team §9) — § 5.B and the Key Dates strip state the
+  // initial-assessment deadline as "determination pending — record when the
+  // covered processing began"; no Follow-Up ever completed that instruction
+  // on any record (promise parity). Drawn from the assembler's own resolver.
+  if (initialAssessmentDeadlinePending(intake)) {
+    followUps.push(
+      "Record when the covered processing began, or will begin; § 7155(a)(1) requires the assessment before the Company initiates processing within § 7150(b), and the December 31, 2027 transition deadline in § 7155(b) applies only to covered processing already underway before January 1, 2026 — the applicable deadline turns on that date",
+    );
+  }
+  // DOC 167 (Batch 13 A-Team §10) — the training-data classification
+  // tension; the Company's "No" is preserved, never overridden.
+  if (admtTrainingPiUnreconciled) {
+    followUps.push(
+      `Reconcile the answer that the technology is not trained using personal information with the recorded training-data source ${
+        qPassage(s(intake.i5_admt_training_source) || s(intake.i5_admt_logic))
+      }: pseudonymization is defined in Cal. Civ. Code § 1798.140(aa) as a manner of processing personal information, and § 1798.140(v)(3) provides that personal information does not include consumer information that is deidentified (§ 1798.140(m)) or aggregate consumer information (§ 1798.140(b)); confirm which of those standards the training data met before training, and update the Appendix E record`,
     );
   }
   // DOC 153 (batch 736df0ad, A-Team §5/§7) — a safeguard recorded as PLANNED
@@ -2231,13 +2382,23 @@ export function runRiskFactorEngine(
       const harm = c.match(/\(addresses: (.+)\)\s*$/)?.[1]?.trim() ?? "";
       const entry = headCounts.get(h) ?? { n: 0, harms: [] };
       entry.n += 1;
-      if (harm && !entry.harms.includes(harm)) entry.harms.push(harm);
+      // DOC 167 (Batch 13 A-Team §11, NestWave) — the captured "addresses"
+      // text is a PROSE LIST of harm labels ("(G) … and (C) …"); deduping the
+      // whole string let two conditions whose lists overlapped re-list the
+      // shared harm ("(C) … and (G) … and (C) …"). Split on the "(letter) "
+      // markers every HARM_PATHWAY_OPTS label carries (harm (A) contains
+      // commas of its own, so the marker — not the comma — is the delimiter),
+      // then dedupe label by label.
+      for (const raw of harm.split(/(?=\([A-H]\) )/)) {
+        const label = raw.replace(/[\s,]*(\band\b)?[\s,]*$/, "").trim();
+        if (label && !entry.harms.includes(label)) entry.harms.push(label);
+      }
       headCounts.set(h, entry);
     }
     const compactLabels = [...headCounts.entries()]
       .map(([h, { n, harms }]) =>
         n === 1
-          ? (harms.length ? `${h} addressing ${harms[0]}` : h)
+          ? (harms.length ? `${h} addressing ${asProse(harms)}` : h)
           : `${h} (${countWord(n)} conditions${harms.length ? `, addressing ${asProse(harms)}` : ""})`
       )
       .join("; ");
@@ -2559,11 +2720,18 @@ export function runRiskFactorEngine(
     } else if (i4b) {
       // DOC 144 (2026-09-02, doc 143 §C sweep) — the same intake value is
       // quoted in § 2.C's fallback; this splice now matches that treatment.
+      // DOC 167 — where the quoted sources themselves carry the payment cue,
+      // the sentence points at the scope Follow-Up (same resolver).
+      const paymentInSources = paymentScopeFor(intake)?.sourceCue === true;
       put(
         "ii_information:8",
         "sources_analysis",
         "A",
-        `E. Sources. The Company identifies the following source or sources: “${i4b}”.`,
+        `E. Sources. The Company identifies the following source or sources: “${i4b}”.${
+          paymentInSources
+            ? " The stated purpose does not describe the payment processing those sources include; confirming its scope appears among the Follow-Ups in § 4.D."
+            : ""
+        }`,
         ["INTAKE:i4b_sources"],
         ["11 CCR § 7152(a)(3)(A)"],
       );
@@ -2588,37 +2756,62 @@ export function runRiskFactorEngine(
     // that selling or sharing (§ 7152(a)(3)(F)) and a stated purpose that
     // describes it. Where neither does, the gap is stated in § 2.F and
     // completed among the Follow-Ups — the quoted purpose is never rewritten.
-    const sharingScope: { gapSentence: string | null; followUp: string | null } = (() => {
+    const sharingScope: { gapSentence: string | null; followUps: string[] } = (() => {
       const q5 = s(intake.q5_sell_share);
-      if (!q5SellShareAffirmed(q5)) return { gapSentence: null, followUp: null };
+      if (!q5SellShareAffirmed(q5)) return { gapSentence: null, followUps: [] };
       const noun = q5 === "Yes — sell only" ? "selling" : q5 === "Both" ? "selling or sharing" : "sharing";
-      const advertisingRecipient = recipientRows.some((r) =>
-        s(r.recipient_type) === "Third party" ||
-        /\b(advertis\w*|ad[- ]?network|ad[- ]?tech\w*|marketing|data broker|DSPs?|SSPs?)\b/i
-          .test(`${s(r.recipient_name_or_category)} ${clause(r.disclosure_purpose)}`)
-      );
+      // DOC 167 (Batch 13 A-Team §6, NestGrid) — two silent misses in the
+      // doc-153 predicate. (1) ANY "Third party" row counted as the recipient
+      // of the sharing, so a utility partner receiving "aggregated,
+      // anonymized energy telemetry" covered a "share for advertising only"
+      // answer; a third-party disclosure the Company itself describes as
+      // aggregated / anonymized / de-identified is not a recipient of
+      // personal-information sharing. (2) The purpose test accepted the bare
+      // word "sharing", so "sharing anonymized, aggregated usage statistics
+      // with analytics partners" read as describing advertising sharing.
+      // "Sharing" under Cal. Civ. Code § 1798.140(ah) is disclosure for
+      // cross-context behavioral advertising, so a sharing answer is described
+      // only by advertising vocabulary; a selling answer by sale vocabulary.
+      const ADVERTISING_RE =
+        /\b(advertis\w*|ad[- ]?network|ad[- ]?tech\w*|marketing|data broker|DSPs?|SSPs?|retarget\w*|cross-context|behavio(u)?ral advertising)\b/i;
+      const NON_PI_DISCLOSURE_RE = /\b(aggregat\w*|anonymi[sz]\w*|de-?identif\w*)\b/i;
+      const advertisingRecipient = recipientRows.some((r) => {
+        const text = `${s(r.recipient_name_or_category)} ${clause(r.disclosure_purpose)}`;
+        if (ADVERTISING_RE.test(text)) return true;
+        return s(r.recipient_type) === "Third party" && !NON_PI_DISCLOSURE_RE.test(text);
+      });
       const purposeText = `${clause(intake.primary_activity_purpose)} ${clause(intake.i1_processing_purpose)}`;
-      const purposeSilent = !/\b(advertis\w*|shar(e|es|ed|ing)|sell\w*|sold|sale|marketing|ad[- ]?network|ad[- ]?tech\w*|data broker)\b/i
-        .test(purposeText);
+      const describesSelling = /\b(sell\w*|sold|sales?)\b/i.test(purposeText);
+      const describesSharing = ADVERTISING_RE.test(purposeText);
+      const purposeSilent = q5 === "Yes — sell only"
+        ? !describesSelling
+        : q5 === "Both"
+        ? !(describesSelling || describesSharing)
+        : !describesSharing;
+      const scopeFollowUp =
+        `Confirm that the ${noun} of personal information the Company reports (“${q5}”) forms part of this Activity, or scope it as a separate processing activity; the stated purpose does not describe it`;
       if (!advertisingRecipient) {
         return {
           gapSentence:
             `The Company reports ${noun} of personal information (“${q5}”; § 7150(b)(1), § 3.A), but no recipient of that ${noun} — a third party, or a recipient whose stated purpose is advertising — appears among the recipients recorded for the Activity${
               purposeSilent ? ", and the Company’s stated purpose does not describe it" : ""
             }; completing the recipient record appears among the Follow-Ups in § 4.D. If that ${noun} belongs to a separate processing activity, it should be scoped and assessed separately.`,
-          followUp:
+          // Both open questions complete: the § 7152(a)(3)(F) recipient record,
+          // and (where the purpose is silent too) the scope of the Activity.
+          followUps: [
             `Identify the recipient or recipient category, the personal information made available, and the purpose for the ${noun} the Company reports (“${q5}”); § 7152(a)(3)(F) requires the disclosures to third parties to be identified for the Activity`,
+            ...(purposeSilent ? [scopeFollowUp] : []),
+          ],
         };
       }
       if (purposeSilent) {
         return {
           gapSentence:
             `The Company’s stated purpose does not itself describe the ${noun} of personal information it reports (“${q5}”; § 7150(b)(1), § 3.A); the assessment treats that ${noun} as part of the Activity on the information provided, and confirming its scope appears among the Follow-Ups in § 4.D.`,
-          followUp:
-            `Confirm that the ${noun} of personal information the Company reports (“${q5}”) forms part of this Activity, or scope it as a separate processing activity; the stated purpose does not describe it`,
+          followUps: [scopeFollowUp],
         };
       }
-      return { gapSentence: null, followUp: null };
+      return { gapSentence: null, followUps: [] };
     })();
     if (recipientRows.length) {
       put("ii_information:10", "recipients_summary", "A", RISK52_FIXED.recipients_lead, ["INTAKE:recipients"], ["11 CCR § 7152(a)(3)(F)"]);
@@ -2743,10 +2936,27 @@ export function runRiskFactorEngine(
       followUps.push(
         "Identify the service providers, contractors, and third parties that receive or can access the personal information for the Activity, with the purpose of each disclosure, or record that there are none; § 7152(a)(3)(F) requires the recipient record",
       );
-      // The generic recipient Follow-Up above covers the sharing gap too.
-      sharingScope.followUp = null;
+      // The generic recipient Follow-Up above covers the recipient-completion
+      // half of the sharing gap; the scope-confirmation Follow-Up (if any) is
+      // a distinct open question and stays.
+      sharingScope.followUps = sharingScope.followUps.filter((f) => f.startsWith("Confirm that the"));
     }
-    if (sharingScope.followUp) followUps.push(sharingScope.followUp);
+    for (const f of sharingScope.followUps) followUps.push(f);
+    // DOC 167 (Batch 13 A-Team §7; the Batch 12 §11 finding recurring) —
+    // payment/billing facts carried in the Activity's sources, retention, or
+    // recipients while the stated Purpose describes no payment processing.
+    // The facts are never removed and the Purpose is never rewritten; the
+    // scope question completes among the Follow-Ups (same architecture as
+    // the sell/share reconciliation above). One resolver, read here and by
+    // the § 2.E sources sentence.
+    const paymentScope = paymentScopeFor(intake);
+    if (paymentScope) {
+      followUps.push(
+        `Confirm whether the payment or billing processing the information provided records (${
+          qPassage(paymentScope.cue)
+        }) forms part of this Activity, or scope it as a separate processing activity; the stated purpose does not describe it, and payment records enter this assessment’s sources, retention, and recipients only if it does`,
+      );
+    }
   }
 
   // II.G — retention (table + basis).
@@ -3161,9 +3371,17 @@ export function runRiskFactorEngine(
       noticeGaps.push("no employee-specific notice is in place for the workers whose information the Activity processes");
     }
     const plannedD = dRows.filter((d) => /^planned/i.test(s(d.status)));
+    // DOC 167 (Batch 13 A-Team §5) — a planned disclosure already carried
+    // inside a PLANNED safeguard (whose completion is a Condition in § 4.D)
+    // is not also an optional Recommendation: one customer action, one
+    // class. The § 3.C sentence below points at whichever class carries it.
+    const carriedD = plannedD.filter((d) =>
+      planned.some((g) => disclosureCarriedBySafeguard(s(d.disclosure_content), s(g.safeguard)))
+    );
+    const openD = plannedD.filter((d) => !carriedD.includes(d));
     // DOC 154 (item 8) — each planned disclosure draws the Recommendation the
     // sentence below promises (no generator existed).
-    for (const d of plannedD) {
+    for (const d of openD) {
       recommendations.push(
         `Complete the planned disclosure ${qName(d.disclosure_content)} and update the assessment when it is made`,
       );
@@ -3174,9 +3392,23 @@ export function runRiskFactorEngine(
         : `The Company’s notice posture leaves gaps: ${
           asProse(noticeGaps)
         }. A consumer reading the Company’s notices would not learn the full scope of the processing before it occurs — which weighs against the processing until the notice covers it.`;
-      const plannedBranch = plannedD.length
+      // DOC 167 — the pointer names the class that actually carries each
+      // planned disclosure (Condition where a planned safeguard carries it,
+      // Recommendation otherwise), so the sentence never promises an object
+      // § 4.D does not render.
+      const plannedBranch = !plannedD.length
+        ? ""
+        : !carriedD.length
         ? ` ${plannedD.length === 1 ? "A planned disclosure is" : "Planned disclosures are"} treated as part of the transparency posture only on completion, and completion appears among the Recommendations in § 4.D.`
-        : "";
+        : !openD.length
+        ? ` ${plannedD.length === 1 ? "A planned disclosure is" : "Planned disclosures are"} treated as part of the transparency posture only on completion; ${
+          plannedD.length === 1 ? "it is" : "each is"
+        } carried within a planned safeguard whose completion is a Condition in § 4.D.`
+        : ` Planned disclosures are treated as part of the transparency posture only on completion; ${
+          countWord(carriedD.length)
+        } ${plural(carriedD.length, "is", "are")} carried within a planned safeguard whose completion is a Condition in § 4.D, and completion of the ${
+          plural(openD.length, "other", "others")
+        } appears among the Recommendations in § 4.D.`;
       put(
         "iii_analysis:8",
         "notice_application",
@@ -3574,6 +3806,10 @@ export function runRiskFactorEngine(
               ? (admtTrainingProvenanceGap
                 ? "Training-data provenance is not identified in the information provided; identifying it appears among the Follow-Ups in § 4.D, and the technical record appears in Appendix E."
                 : "Training-data provenance is not identified in the information provided; the technical record appears in Appendix E.")
+              // DOC 167 (Batch 13 A-Team §10) — same predicate as the
+              // Follow-Up and the Appendix E cell.
+              : admtTrainingPiUnreconciled
+              ? "Training-data provenance is identified in the information provided and is preserved in Appendix E; the Company records that source as pseudonymized or aggregated while answering that the technology is not trained using personal information, and reconciling the two appears among the Follow-Ups in § 4.D."
               : "Training-data provenance is identified in the information provided and is preserved in Appendix E.",
             ["INTAKE:i5_admt_training_source"],
             ["11 CCR § 7150(b)(6)", "11 CCR § 7153"],
@@ -3769,9 +4005,16 @@ export function runRiskFactorEngine(
         branch =
           `Against it the Company has implemented and tested ${asProse(testedList)}. Safeguards supported by evidence that they operate earn the assessment’s full credit: they materially reduce this risk, and the remaining risk is ${p.residual} — which weighs in the Company’s favor.`;
       } else if (untestedList.length) {
+        // DOC 167 (Batch 13 A-Team §8) — reported testing is acknowledged as
+        // reported; the missing element is its results/effectiveness evidence.
+        const reportsTesting = p.safeguards.some(safeguardReportsTesting);
         branch = `The Company’s ${asProse(untestedList)} ${
           plural(untestedList.length, "is", "are")
-        } directed at it, but the information provided includes no testing or effectiveness evidence, so the assessment recognizes the ${
+        } directed at it${
+          reportsTesting
+            ? "; the Company reports that testing takes place, but the information provided includes no testing results or effectiveness evidence"
+            : ", but the information provided includes no testing or effectiveness evidence"
+        }, so the assessment recognizes the ${
           plural(untestedList.length, "control", "controls")
         } without relying on ${
           plural(untestedList.length, "it", "them")
