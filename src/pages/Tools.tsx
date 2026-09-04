@@ -608,7 +608,7 @@ export default function Tools() {
     setSearchParams(next, { replace: true });
   };
 
-  const sections: ToolSection[] = ["assessments", "documents", "cppa"];
+  const sections: ToolSection[] = ["cppa", "assessments", "documents"];
   const toolsBySection = sections
     .map((sec) => ({
       section: sec,
