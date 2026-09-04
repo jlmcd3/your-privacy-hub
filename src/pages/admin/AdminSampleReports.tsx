@@ -363,6 +363,16 @@ export default function AdminSampleReports() {
                         <option value="published">published</option>
                       </select>
                     )}
+                    {sample && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onRebuildPreview(sample)}
+                        disabled={busy === `preview::${sample.id}`}
+                      >
+                        {busy === `preview::${sample.id}` ? "Rebuilding…" : "Rebuild public preview"}
+                      </Button>
+                    )}
                     {sample?.pdf_path && <span className="font-mono text-muted-foreground">{sample.pdf_path}</span>}
                   </div>
                 </details>
