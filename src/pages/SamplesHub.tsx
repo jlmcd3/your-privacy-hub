@@ -50,10 +50,11 @@ export default function SamplesHub() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      // TRUNCATED SAMPLES (2026-09-04): the hub reads the anon-facing view,
+      // which is already scoped to published rows and preview columns.
       const { data, error } = await supabase
-        .from("sample_reports")
+        .from("sample_reports_public")
         .select("id, tool_slug, variant, title, scenario_summary")
-        .eq("status", "published")
         .order("tool_slug")
         .order("variant");
       if (cancelled) return;
