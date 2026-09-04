@@ -43,8 +43,71 @@ export const SLUG_TO_PDF_TOOL_TYPE: Partial<Record<ToolSlug, string>> = {
 /** Products the zip can render even though generate-report-pdf has no branch. */
 const DIRECT_PDF_SLUGS: ReadonlySet<ToolSlug> = new Set<ToolSlug>(["ropa" as ToolSlug]);
 
+/**
+ * NOTICE-PDF LAW (2026-09-04): the two Notice builders store their output as
+ * HTML files in storage, exactly like the customer download buttons do. The
+ * zip fetches that stored HTML and renders it through `render-html-to-pdf`
+ * (PDFShift) with the same stable `cache_key` the customer page uses, so a
+ * document already downloaded once is reused rather than re-rendered.
+ */
+const NOTICE_PDF_CONFIG: Partial<
+  Record<ToolSlug, { table: "us_notice_documents" | "eu_notice_documents"; bucket: string; prefix: string }>
+> = {
+  ["us_notice" as ToolSlug]: { table: "us_notice_documents", bucket: "us-notices", prefix: "us-notice" },
+  ["eu_notice" as ToolSlug]: { table: "eu_notice_documents", bucket: "eu-notices", prefix: "eu-notice" },
+};
+
 const isRenderable = (o: RunOutcome) =>
-  Boolean(SLUG_TO_PDF_TOOL_TYPE[o.tool_slug]) || DIRECT_PDF_SLUGS.has(o.tool_slug);
+  Boolean(SLUG_TO_PDF_TOOL_TYPE[o.tool_slug]) ||
+  DIRECT_PDF_SLUGS.has(o.tool_slug) ||
+  Boolean(NOTICE_PDF_CONFIG[o.tool_slug]);
+
+/**
+ * Render every CURRENT document of a notice session to PDF via PDFShift and
+ * return one entry per document (a session can hold several state notices).
+ */
+async function renderNoticePdfs(o: RunOutcome): Promise<Array<{ name: string; url: string }>> {
+  const cfg = NOTICE_PDF_CONFIG[o.tool_slug]!;
+  const { data, error } = await supabase
+    .from(cfg.table)
+    .select("id, file_path, document_format, version_number, is_combined")
+    .eq("session_id", o.sourceRowId as string)
+    .eq("is_current", true)
+    .order("is_combined", { ascending: false });
+  if (error) throw new Error(`notice documents: ${error.message}`);
+  const docs = (data ?? []) as Array<{
+    id: string; file_path: string; document_format: string | null;
+    version_number: number | null; is_combined: boolean | null;
+  }>;
+  if (!docs.length) throw new Error("no current notice documents for this session");
+
+  const out: Array<{ name: string; url: string }> = [];
+  for (const d of docs) {
+    const file = await supabase.storage.from(cfg.bucket).download(d.file_path);
+    if (file.error || !file.data) throw file.error ?? new Error("couldn't fetch notice file");
+    const raw = await file.data.text();
+    const fmt = (d.document_format || "").toLowerCase();
+    const isHtml = fmt === "html" || /<\/?[a-z][\s\S]*>/i.test(raw);
+    const html = isHtml
+      ? raw
+      : `<!doctype html><html><head><meta charset="utf-8"><style>body{font-family:Georgia,'Times New Roman',serif;font-size:11pt;line-height:1.5;color:#1a1a1a;white-space:pre-wrap;}</style></head><body>${raw
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")}</body></html>`;
+    const title = `${cfg.prefix}${d.is_combined ? "-combined" : ""}-v${d.version_number ?? 1}`;
+    const { data: pdf, error: pdfErr } = await invokeWithTimeout<{ pdf_url?: string; error?: string }>(
+      "render-html-to-pdf",
+      { html, title, cache_key: `${cfg.prefix}-${d.id}` },
+      240_000,
+    );
+    if (pdfErr || !pdf?.pdf_url) {
+      throw new Error(pdfErr?.message || pdf?.error || "notice PDF render failed");
+    }
+    out.push({ name: `${title}-${d.id.slice(0, 8)}`, url: pdf.pdf_url });
+  }
+  return out;
+}
+
 
 /**
  * RoPA: the run's sourceRowId is a ropa_document_versions id (or, for legacy
@@ -190,7 +253,7 @@ export async function downloadBatchPdfZip(batchId: string, outcomes: RunOutcome[
    * after the client gave up.
    */
   async function signOnly(o: RunOutcome): Promise<string | null> {
-    if (DIRECT_PDF_SLUGS.has(o.tool_slug)) return null;
+    if (DIRECT_PDF_SLUGS.has(o.tool_slug) || NOTICE_PDF_CONFIG[o.tool_slug]) return null;
     const { data } = await invokeWithTimeout<{ pdf_url?: string; error?: string }>(
       "generate-report-pdf",
       {
@@ -230,8 +293,21 @@ export async function downloadBatchPdfZip(batchId: string, outcomes: RunOutcome[
     return data.pdf_url;
   }
 
+  const safe = (s: string) => s.replace(/[^\w.-]+/g, "_");
+
   for (const o of rows) {
     try {
+      if (NOTICE_PDF_CONFIG[o.tool_slug]) {
+        const docs = await renderNoticePdfs(o);
+        for (const d of docs) {
+          const res = await fetch(d.url);
+          if (!res.ok) throw new Error(`download ${res.status}`);
+          zip.file(`${o.tool_slug}/${safe(o.variant)}-${safe(d.name)}.pdf`, await res.blob());
+        }
+        ok += 1;
+        toast.loading(`Rendered ${ok}/${rows.length} PDFs…`, { id: tid });
+        continue;
+      }
       const fresh = o.pdfUrl && o.pdfUrlAt && Date.now() - o.pdfUrlAt < SIGNED_URL_TTL_MS;
       let pdfUrl =
         (fresh ? (o.pdfUrl as string) : null) ??
@@ -246,7 +322,7 @@ export async function downloadBatchPdfZip(batchId: string, outcomes: RunOutcome[
       }
       if (!res.ok) throw new Error(`download ${res.status}`);
       const blob = await res.blob();
-      zip.file(`${o.tool_slug}/${o.variant.replace(/[^\w.-]+/g, "_")}-${o.id}.pdf`, blob);
+      zip.file(`${o.tool_slug}/${safe(o.variant)}-${o.id}.pdf`, blob);
       ok += 1;
       toast.loading(`Rendered ${ok}/${rows.length} PDFs…`, { id: tid });
     } catch (e) {
@@ -254,6 +330,7 @@ export async function downloadBatchPdfZip(batchId: string, outcomes: RunOutcome[
       failures.push(`${o.tool_slug}/${o.variant}: ${(e as Error).message}`);
     }
   }
+
 
 
   if (!ok) {
