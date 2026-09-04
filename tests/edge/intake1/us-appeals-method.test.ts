@@ -60,7 +60,14 @@ Deno.test("INTAKE-1: US follow-up question shape mirrors the parent jurisdiction
   assertEquals(q!.type, "text_long");
   assertEquals(q!.isRequired, false);
   assertEquals(q!.jurisdictionOnly, parent.jurisdictionOnly);
-  assertEquals(q!.jurisdictionOnly, ["US_VA", "US_CO", "US_CT", "US_TX"]);
+  // DOC 181 (2026-09-04): the pack is scoped to EVERY Virginia-model state,
+  // not the four early adopters the original pin recorded (that scope was the
+  // routing bug the A-Team review found — twelve states got the pack and then
+  // had every question filtered back out).
+  assertEquals(q!.jurisdictionOnly, [
+    "US_VA", "US_CO", "US_CT", "US_UT", "US_IA", "US_IN", "US_TN", "US_TX", "US_MT",
+    "US_OR", "US_DE", "US_NJ", "US_NH", "US_KY", "US_RI", "US_MN", "US_NE",
+  ]);
   assertEquals(q!.showIf, {
     questionKey: "vam_appeals_process",
     operator: "equals",

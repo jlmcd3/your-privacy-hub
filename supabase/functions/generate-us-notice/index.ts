@@ -1,31 +1,39 @@
 // supabase/functions/generate-us-notice/index.ts
 //
-// Generates per-state US privacy notices (HTML) from a us_notice_session's
-// answers + state selections, uploads each file to the private `us-notices`
-// storage bucket, records rows in us_notice_documents, and marks the session
-// as completed.
+// Generates US privacy notices (HTML) from a us_notice_session's answers +
+// state selections, uploads each file to the private `us-notices` storage
+// bucket, records rows in us_notice_documents, and marks the session as
+// completed.
+//
+// DOC 181 (2026-09-04) — every document is the U.S. Privacy Notice spine:
+// each per-state row is a STATE EDITION (the state addendum limited to that
+// state; the California layer only for California), and the combined row is
+// the NATIONAL notice covering every selected state. The us_state_privacy_laws
+// registry is read for the enforcement contact, law name and effective date
+// the State-Specific Addendum cites (static STATE_LAW_NAMES fallback when the
+// read fails or a row is absent).
 //
 // Auth: requires a valid Supabase JWT. Ownership is enforced via
 // public.owns_client() called as the requesting user.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
-import { REPORT_DISCLAIMER } from "../_shared/report-disclaimer.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 // S-N5 — the pure render layer lives in _local/render.ts (testable without
-// this module's Deno.serve listener); moved verbatim, re-exported below.
+// this module's Deno.serve listener); re-exported below.
 import {
-  answerString,
+  buildNationalNoticeHtml,
   buildNoticeHtml,
-  escapeHtml,
-  LOGO_URL,
   missingRequiredUsFields,
-  resolveLawLabel,
   type StateRow,
-  usDraftBannerHtml,
+  type UsLawRow,
 } from "./_local/render.ts";
-export { buildNoticeHtml, missingRequiredUsFields, type StateRow } from "./_local/render.ts";
-
-
+export {
+  buildNationalNoticeHtml,
+  buildNoticeHtml,
+  missingRequiredUsFields,
+  type StateRow,
+  type UsLawRow,
+} from "./_local/render.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,15 +42,13 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Machine-checkable manifest of statutory assertions carried by the hardcoded
-// templates below. lint-deterministic-legal-text resolves each `citation`
-// against the corpus (cppa_authorities) and verifies every `mustContain`
-// phrase appears in the corpus full_text. Update the shared module alongside
-// any template edit that changes a statutory claim.
+// Machine-checkable manifest of statutory assertions carried by the spine.
+// lint-deterministic-legal-text resolves each `citation` against the corpus
+// (cppa_authorities) and verifies every `mustContain` phrase appears in the
+// corpus full_text. Update the shared module alongside any spine edit that
+// changes a statutory claim.
 import { US_NOTICE_LEGAL_TEXT_ASSERTIONS } from "../_shared/legal-text-assertions.ts";
 export const LEGAL_TEXT_ASSERTIONS = US_NOTICE_LEGAL_TEXT_ASSERTIONS;
-
-
 
 interface RequestBody {
   session_id?: string;
@@ -56,14 +62,10 @@ interface SessionRow {
   version_number: number | null;
 }
 
-
 interface AnswerRow {
   question_key: string;
   answer_value: unknown;
 }
-
-
-
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -78,7 +80,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    
     const caller = await verifyCaller(req);
     if (!caller.userId && !caller.internal) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -98,7 +99,6 @@ Deno.serve(async (req) => {
       : createClient(supabaseUrl, anonKey, {
           global: { headers: { Authorization: authHeader } },
         });
-
 
     // Parse + validate body.
     let body: RequestBody;
@@ -157,7 +157,6 @@ Deno.serve(async (req) => {
       ownsClient = !!clientCheck;
     }
 
-
     if (!ownsClient) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
@@ -202,6 +201,24 @@ Deno.serve(async (req) => {
       answers[r.question_key] = r.answer_value;
     }
 
+    // DOC 181 — the law registry feeds the State-Specific Addendum's
+    // enforcement contact and effective date. A failed read degrades to the
+    // static fallback inside the spine; it never blocks generation.
+    const laws: Record<string, UsLawRow> = {};
+    try {
+      const { data: lawRows, error: lawErr } = await admin
+        .from("us_state_privacy_laws")
+        .select("state_code, law_name, effective_date, enforcement_body, enforcement_url")
+        .in("state_code", states.map((s) => s.state_code));
+      if (lawErr) {
+        console.warn(`[generate-us-notice] us_state_privacy_laws read failed; using static law table — ${lawErr.message}`);
+      } else {
+        for (const row of (lawRows ?? []) as UsLawRow[]) laws[row.state_code] = row;
+      }
+    } catch (e) {
+      console.warn(`[generate-us-notice] us_state_privacy_laws read threw; using static law table — ${e instanceof Error ? e.message : String(e)}`);
+    }
+
     // S-N5 (doc 80, 2026-08-27) — server-side required-field screen. The
     // generated documents render a visible do-not-publish banner naming the
     // missing fields; this log line is the server-side record of the same
@@ -230,86 +247,14 @@ Deno.serve(async (req) => {
 
     const generated: { state: string; path: string; size: number; combined?: boolean }[] = [];
 
-    // ---------- Combined "all-states suite" master notice ----------
-    // When the session covers multiple states, also produce a single master
-    // notice that aggregates every per-state section into one document.
+    // ---------- National U.S. Privacy Notice (the combined row) ----------
+    // When the session covers multiple states, also produce the national
+    // notice: the spine with every selected state in the addendum.
     const isSuite =
       ((session as SessionRow).scope === "all_states") || states.length > 1;
 
     if (isSuite) {
-      const businessName = answerString(answers["business_name"]) || "[Business name]";
-      const contactEmail = answerString(answers["contact_email"]) || "[contact email]";
-      const sectionsHtml = states
-        .map((s) => {
-          const label = resolveLawLabel(s);
-          return `<section style="margin-top:2.5rem;padding-top:1.5rem;border-top:2px solid #e5e7eb;">
-  <h2 style="font-size:1.35rem;">${escapeHtml(s.state_name)}</h2>
-  <p style="color:#666;font-size:0.85rem;margin-top:-0.25rem;">${escapeHtml(label)}</p>
-  <p>This section applies to residents of <strong>${escapeHtml(s.state_name)}</strong>. ${escapeHtml(businessName)} honors the rights granted under ${escapeHtml(label)}, including access, correction, deletion, portability, and (where applicable) the right to opt out of sale, sharing, or targeted advertising.</p>
-  <p>To exercise these rights as a ${escapeHtml(s.state_name)} resident, contact us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a>.</p>
-</section>`;
-        })
-        .join("\n");
-
-      const tocHtml = states
-        .map(
-          (s) =>
-            `<li><a href="#${escapeHtml(s.state_code)}" style="color:#2d9b90;">${escapeHtml(s.state_name)}</a> — <span style="color:#5c6d7a;font-size:0.85rem;">${escapeHtml(resolveLawLabel(s))}</span></li>`,
-        )
-        .join("");
-
-      const combinedHtml = `<!doctype html>
-<html lang="en"><head><meta charset="utf-8" />
-<title>US Privacy Notice Suite — ${escapeHtml(businessName)}</title>
-<style>
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 820px; margin: 2rem auto; padding: 0 1.5rem; color: #1a1a1a; line-height: 1.55; }
-  .eup-bar { background:#0c2a44; padding:9px 1.5rem; display:flex; align-items:center;
-    gap:12px; margin:-2rem -1.5rem 2rem -1.5rem; }
-  .eup-bar img { height:22px; width:auto; display:block; }
-  .eup-bar span { font-size:9px; font-weight:600; text-transform:uppercase;
-    letter-spacing:0.12em; color:#93b5c6; }
-  h1, h2 { color:#0c2a44; }
-  h1 { font-size: 1.9rem; margin-bottom: 0.25rem; }
-  h2 { font-size: 1.35rem; border-bottom: 2px solid #2d9b90; padding-bottom:0.25rem; }
-  a { color:#2d9b90; }
-  .meta { color:#5c6d7a; font-size: 0.85rem; margin-bottom: 2rem; }
-  ul.toc { background:#edf2f5;border:1px solid #dde5ea;padding:1rem 1.25rem 1rem 2.25rem;border-radius:0.5rem; }
-  .opt-out { background:#e5f4f2; border:1px solid #2d9b90; padding:1rem; border-radius:0.375rem; margin:1rem 0; }
-  footer { color:#5c6d7a; font-size: 0.75rem; margin-top: 3rem; border-top: 2px solid #2d9b90; padding-top: 1rem; }
-</style></head><body>
-<div class="eup-bar">
-  <img src="${LOGO_URL}" alt="End User Privacy" />
-  <span>Privacy Intelligence</span>
-</div>
-<h1>US State Privacy Notice Suite</h1>
-<div class="meta">${escapeHtml(businessName)} · Last updated: ${escapeHtml(generatedAtHuman)} · ${states.length} state${states.length === 1 ? "" : "s"} covered</div>
-${usDraftBannerHtml(missingRequiredUsFields(answers))}
-${states.length < 10
-  ? `<div style="background:#fff8e1;border:1px solid #f59e0b;border-radius:0.375rem;padding:0.75rem 1rem;margin-bottom:1.5rem;font-size:0.85rem;color:#92400e;">
-      <strong>Scope note:</strong> This suite covers ${states.length} state${states.length === 1 ? "" : "s"} (${states.map((s) => escapeHtml(s.state_name)).join(", ")}). As of 2024–2026, approximately 20 US states have enacted comprehensive privacy laws. This document does not constitute a complete US national privacy notice; the applicability of additional state laws depends on where your organisation directs business and processes residents' personal information, and further clarification is advisable.
-    </div>`
-  : ""
-}
-<p>This suite consolidates the privacy notices ${escapeHtml(businessName)} maintains for residents of each US state listed below. Each state's section incorporates the rights and disclosures required by that state's privacy law. Use the table of contents to jump to the section that applies to you.</p>
-<h2>Table of contents</h2>
-<ul class="toc">${tocHtml}</ul>
-${states
-  .map(
-    (s) =>
-      `<a id="${escapeHtml(s.state_code)}"></a>${
-        // Reuse the per-state body sections so the suite stays consistent.
-        buildNoticeHtml(s, answers, generatedAtHuman, false)
-          .replace(/^[\s\S]*?<body>/, "")
-          .replace(/<\/body>[\s\S]*$/, "")
-          .replace(/<div class="eup-bar">[\s\S]*?<\/div>/, "")
-          .replace(/<h1>[^<]*<\/h1>/, `<h2>${escapeHtml(s.state_name)} Privacy Notice</h2>`)
-      }`,
-  )
-  .join("\n")}
-<footer>Generated by <strong>EndUserPrivacy</strong> · enduserprivacy.com ·
-${REPORT_DISCLAIMER}</footer>
-</body></html>`;
-
+      const combinedHtml = buildNationalNoticeHtml(states, answers, generatedAtHuman, laws);
       const combinedBytes = new TextEncoder().encode(combinedHtml);
       const combinedPath = `${(session as SessionRow).client_id}/${sessionId}/v${nextVersion}/_suite.html`;
       const { error: combinedUploadErr } = await admin.storage
@@ -342,8 +287,9 @@ ${REPORT_DISCLAIMER}</footer>
       generated.push({ state: "_suite", path: combinedPath, size: combinedBytes.byteLength, combined: true });
     }
 
+    // ---------- State editions ----------
     for (const state of states) {
-      const html = buildNoticeHtml(state, answers, generatedAtHuman);
+      const html = buildNoticeHtml(state, answers, generatedAtHuman, true, laws);
       const bytes = new TextEncoder().encode(html);
       const path = `${(session as SessionRow).client_id}/${sessionId}/v${nextVersion}/${state.state_code}.html`;
 

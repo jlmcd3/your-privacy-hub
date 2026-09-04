@@ -40,6 +40,45 @@ export const US_NOTICE_LEGAL_TEXT_ASSERTIONS: LegalTextAssertion[] = [
   // determine it. The phrase below is verbatim from the live
   // cppa_authorities row (verified 2026-08-27).
   { citation: "11 CCR " + SECTION + " 7012", mustContain: ["privacy policy", "sensitive personal information", "criteria used to determine the period"] },
+
+  // DOC 181 (2026-09-04) — the U.S. Privacy Notice spine's additional
+  // statutory assertions, each phrase verified live against cppa_authorities
+  // (status 'current', full_text) this session. The corpus holds the CCPA
+  // statute and the 7000-series regulations only — no other state's statute
+  // and no 7200-series ADMT text — so the State-Specific Addendum and the
+  // ADMT appendix carry no manifest entries.
+  // § 1798.115 — right to know what is sold or shared and to whom.
+  { citation: "Cal. Civ. Code " + SECTION + " 1798.115", mustContain: ["sells or shares"] },
+  // § 1798.120(c) — no sale or sharing of consumers under 16 without opt-in.
+  { citation: "Cal. Civ. Code " + SECTION + " 1798.120", mustContain: ["16 years of age"] },
+  // § 1798.121 — the Right to Limit.
+  { citation: "Cal. Civ. Code " + SECTION + " 1798.121", mustContain: ["sensitive personal information"] },
+  // § 1798.125 — non-discrimination / non-retaliation.
+  { citation: "Cal. Civ. Code " + SECTION + " 1798.125", mustContain: ["shall not discriminate against a consumer"] },
+  // § 1798.135 — the "Do Not Sell or Share My Personal Information" link.
+  { citation: "Cal. Civ. Code " + SECTION + " 1798.135", mustContain: ["Do Not Sell or Share My Personal Information"] },
+  // § 7003 — disclosures easy to read and understandable.
+  { citation: "11 CCR " + SECTION + " 7003", mustContain: ["easy to read and understandable"] },
+  // § 7013 — Notice of Right to Opt-out of Sale/Sharing.
+  { citation: "11 CCR " + SECTION + " 7013", mustContain: ["Do Not Sell or Share"] },
+  // § 7014 — Notice of Right to Limit and its link.
+  { citation: "11 CCR " + SECTION + " 7014", mustContain: ["Limit the Use of My Sensitive Personal Information"] },
+  // § 7016 — Notice of Financial Incentive: material terms.
+  { citation: "11 CCR " + SECTION + " 7016", mustContain: ["material terms"] },
+  // § 7021 — the 45-calendar-day response window.
+  { citation: "11 CCR " + SECTION + " 7021", mustContain: ["45 calendar days"] },
+  // § 7025 — opt-out preference signals.
+  { citation: "11 CCR " + SECTION + " 7025", mustContain: ["opt-out preference signal"] },
+  // § 7027 — requests to limit (the Right to Limit gate).
+  { citation: "11 CCR " + SECTION + " 7027", mustContain: ["sensitive personal information"] },
+  // § 7060 — verification of requests.
+  { citation: "11 CCR " + SECTION + " 7060", mustContain: ["verify"] },
+  // § 7063 — authorized agents.
+  { citation: "11 CCR " + SECTION + " 7063", mustContain: ["authorized agent"] },
+  // §§ 7070–7072 — consumers under 13 / 13-to-15 opt-in, described in the privacy policy.
+  { citation: "11 CCR " + SECTION + " 7070", mustContain: ["actual knowledge"] },
+  { citation: "11 CCR " + SECTION + " 7071", mustContain: ["13 years of age and less than 16"] },
+  { citation: "11 CCR " + SECTION + " 7072", mustContain: ["privacy policy"] },
 ];
 
 // ---------------------------------------------------------------------------

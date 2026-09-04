@@ -37,6 +37,10 @@ export const STATE_TO_JURISDICTION: Record<string, string> = {
   KY: "US_KY",
   RI: "US_RI",
   MN: "US_MN",
+  // DOC 181 (2026-09-04) — Nebraska was recognised by the renderer's law
+  // table but absent here and from VIRGINIA_MODEL_STATES, so a Nebraska-
+  // selecting customer never received the Virginia-model questions.
+  NE: "US_NE",
   MD: "US_MD",
   FL: "US_FL",
 };
@@ -44,7 +48,7 @@ export const STATE_TO_JURISDICTION: Record<string, string> = {
 /** Set of state codes that follow the Virginia model. */
 export const VIRGINIA_MODEL_STATES = new Set([
   "VA", "CO", "CT", "UT", "IA", "IN", "TN", "TX", "MT",
-  "OR", "DE", "NJ", "NH", "KY", "RI", "MN",
+  "OR", "DE", "NJ", "NH", "KY", "RI", "MN", "NE",
 ]);
 
 /**

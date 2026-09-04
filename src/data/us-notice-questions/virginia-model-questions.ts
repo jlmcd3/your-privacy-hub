@@ -1,8 +1,21 @@
 import type { Question } from "./types";
 
 /**
- * Virginia Model questions — shared across the 16 "Virginia-style" states:
- * VA, CO, CT, UT, IA, IN, TN, TX, MT, OR, DE, NJ, NH, KY, RI, MN
+ * DOC 181 (2026-09-04) — the jurisdictions the shared Virginia-model pack
+ * applies to: every Virginia-model state in VIRGINIA_MODEL_STATES. Before
+ * this fix each question below was scoped to only VA/CO/CT/TX, so the twelve
+ * other Virginia-model states (OR, DE, IN, KY, MN, UT, IA, TN, MT, NJ, NH,
+ * RI — and NE, added the same day) received the pack from buildQuestionSet
+ * and then had every question in it filtered back out by isQuestionInScope.
+ */
+export const VAM_JURISDICTIONS = [
+  "US_VA", "US_CO", "US_CT", "US_UT", "US_IA", "US_IN", "US_TN", "US_TX", "US_MT",
+  "US_OR", "US_DE", "US_NJ", "US_NH", "US_KY", "US_RI", "US_MN", "US_NE",
+];
+
+/**
+ * Virginia Model questions — shared across the 17 "Virginia-style" states:
+ * VA, CO, CT, UT, IA, IN, TN, TX, MT, OR, DE, NJ, NH, KY, RI, MN, NE
  *
  * These laws share a common structural framework derived from Virginia's CDPA.
  * Asked once when ANY Virginia-model state is selected.
@@ -22,9 +35,7 @@ export const VIRGINIA_MODEL_QUESTIONS: Question[] = [
       { value: "unsure", label: "Unsure — flag for review" },
     ],
     isRequired: true,
-    jurisdictionOnly: [
-      "US_VA", "US_CO", "US_CT", "US_TX", "US_FL",
-    ],
+    jurisdictionOnly: [...VAM_JURISDICTIONS, "US_FL"],
   },
   {
     key: "vam_sensitive_data_consent",
@@ -40,7 +51,7 @@ export const VIRGINIA_MODEL_QUESTIONS: Question[] = [
       { value: "unsure", label: "Unsure" },
     ],
     isRequired: true,
-    jurisdictionOnly: ["US_VA", "US_CO", "US_CT", "US_TX"],
+    jurisdictionOnly: VAM_JURISDICTIONS,
     flagIf: [
       {
         operator: "equals",
@@ -66,7 +77,7 @@ export const VIRGINIA_MODEL_QUESTIONS: Question[] = [
       { value: "not_applicable", label: "Not applicable — we don't engage in targeted advertising" },
     ],
     isRequired: true,
-    jurisdictionOnly: ["US_VA", "US_CO", "US_CT", "US_TX"],
+    jurisdictionOnly: VAM_JURISDICTIONS,
     flagIf: [
       {
         operator: "equals",
@@ -95,7 +106,7 @@ export const VIRGINIA_MODEL_QUESTIONS: Question[] = [
       "Virginia-model laws give individuals the right to opt out of profiling for significant decisions. Notice must disclose this practice. [Virginia CDPA § 59.1-577(A)(5)(iii)]",
     type: "yes_no_unsure",
     isRequired: true,
-    jurisdictionOnly: ["US_VA", "US_CO", "US_CT", "US_TX"],
+    jurisdictionOnly: VAM_JURISDICTIONS,
     flagIf: [
       {
         operator: "equals",
@@ -115,7 +126,7 @@ export const VIRGINIA_MODEL_QUESTIONS: Question[] = [
       "Virginia, Colorado, Connecticut, Texas, and other Virginia-model states require DPAs for high-risk processing. Not displayed in the notice but flagged for compliance. [Virginia CDPA § 59.1-580]",
     type: "yes_no_unsure",
     isRequired: false,
-    jurisdictionOnly: ["US_VA", "US_CO", "US_CT", "US_TX"],
+    jurisdictionOnly: VAM_JURISDICTIONS,
     flagIf: [
       {
         operator: "equals",
@@ -135,7 +146,7 @@ export const VIRGINIA_MODEL_QUESTIONS: Question[] = [
       "Virginia-model laws require controllers to provide an appeals mechanism within 60 days of denial, and to inform individuals of their right to contact the state attorney general. [Virginia CDPA § 59.1-577(C)]",
     type: "yes_no",
     isRequired: true,
-    jurisdictionOnly: ["US_VA", "US_CO", "US_CT", "US_TX"],
+    jurisdictionOnly: VAM_JURISDICTIONS,
     flagIf: [
       {
         operator: "equals",
@@ -155,7 +166,7 @@ export const VIRGINIA_MODEL_QUESTIONS: Question[] = [
       "The notice must describe the appeals mechanism itself: how to submit an appeal, the written response within 60 days, and the right to contact the state attorney general if the appeal is denied. [Va. Code § 59.1-577(C); Colo. Rev. Stat. § 6-1-1306(3); Conn. Gen. Stat. § 42-518(c); Tex. Bus. & Com. Code § 541.054]",
     type: "text_long",
     isRequired: false,
-    jurisdictionOnly: ["US_VA", "US_CO", "US_CT", "US_TX"],
+    jurisdictionOnly: VAM_JURISDICTIONS,
     showIf: { questionKey: "vam_appeals_process", operator: "equals", value: "yes" },
   },
 ];

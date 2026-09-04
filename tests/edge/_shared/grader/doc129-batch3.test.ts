@@ -278,7 +278,11 @@ Deno.test("doc129 DPA — inline slot values are sanitised at substitution", () 
 // ── US notice ────────────────────────────────────────────────────────────
 
 Deno.test("doc129 US-notice — invented disclosure practices are removed from the template", async () => {
-  const src = await Deno.readTextFile("supabase/functions/generate-us-notice/_local/render.ts");
+  // DOC 181 (2026-09-04): the template prose moved from render.ts into the
+  // spine builder (_local/spine.ts); the pin reads both so it keeps biting on
+  // whichever file carries the sentence.
+  const src = (await Deno.readTextFile("supabase/functions/generate-us-notice/_local/render.ts")) +
+    (await Deno.readTextFile("supabase/functions/generate-us-notice/_local/spine.ts"));
   assert(!src.includes("payment processing"), "invented payment-processing function survived");
   assert(!src.includes("Professional advisers"), "invented professional-advisers category survived");
   assert(!src.includes("such as cloud hosting and analytics"), "invented provider examples survived");

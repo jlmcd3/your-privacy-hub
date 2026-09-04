@@ -377,7 +377,7 @@ export default function USNoticeDocuments() {
         </Card>
       )}
 
-      {/* Combined all-states suite */}
+      {/* National U.S. Privacy Notice — every selected state (DOC 181: the spine with the full addendum) */}
       {hasAny && currentDocs.some((d) => d.is_combined) && (
         <Card className="mb-6 border-primary/30 bg-primary/5">
           <CardContent className="p-4 md:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -386,7 +386,7 @@ export default function USNoticeDocuments() {
                 <Sparkles className="h-5 w-5 text-primary" aria-hidden />
               </div>
               <div className="min-w-0">
-                <div className="font-medium">All-states suite (combined)</div>
+                <div className="font-medium">National U.S. Privacy Notice (all selected states)</div>
                 <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-0.5">
                   <Badge variant="secondary" className="text-meta">
                     {states.length} state{states.length === 1 ? "" : "s"}
@@ -416,10 +416,10 @@ export default function USNoticeDocuments() {
                       onClick={() => handleDownload(d)}
                       disabled={!d.file_path}
                       className="w-full sm:w-auto min-h-[44px]"
-                      aria-label="Download combined all-states suite"
+                      aria-label="Download the national U.S. Privacy Notice"
                     >
                       <Download className="h-3.5 w-3.5 mr-1.5" aria-hidden />
-                      Download suite
+                      Download national notice
                     </Button>
                     {isAdmin && (
                       <Button
@@ -530,7 +530,7 @@ export default function USNoticeDocuments() {
                       v{d.version_number}
                     </span>
                     <span className="truncate">
-                      {d.is_combined ? "Combined notice" : d.state_code}
+                      {d.is_combined ? "National notice" : d.state_code}
                     </span>
                     <span className="text-xs text-muted-foreground">
                       {formatDate(d.generated_at)}
