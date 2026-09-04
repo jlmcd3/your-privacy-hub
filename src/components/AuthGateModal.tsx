@@ -105,9 +105,21 @@ export default function AuthGateModal({
           </Link>
         </div>
 
+        {sampleSlug && (
+          <p className="text-center mt-3">
+            <Link
+              to={`/samples/${sampleSlug}`}
+              className="text-[12px] text-primary underline underline-offset-2"
+            >
+              See a finished sample →
+            </Link>
+          </p>
+        )}
+
         <p className="text-[11px] text-brand-mist text-center mt-4">
-          Intelligence subscribers receive subscriber pricing on every tool.
+          {footnote}
         </p>
+
       </div>
     </div>
   );
