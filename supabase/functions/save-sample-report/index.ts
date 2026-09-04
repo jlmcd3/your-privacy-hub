@@ -235,6 +235,7 @@ async function deleteSample(admin: ReturnType<typeof createClient>, body: any) {
     .maybeSingle();
   if (row?.pdf_path) {
     await admin.storage.from("sample-reports").remove([row.pdf_path]);
+    await removePreviewObjects(admin, [row.pdf_path as string]);
     await clearStressJobRefs(admin, [row.pdf_path]);
   }
   const { error } = await admin.from("sample_reports").delete().eq("id", id);
