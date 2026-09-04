@@ -405,7 +405,8 @@ export function supervisoryAuthorityNoun(regime: "EU" | "UK", form: "plain" | "c
 // document said nothing about that choice. Stated once, first, in the
 // executive summary. Ratification queue R4 (doc 160 §C).
 export const DPIA_NON_GDPR_JURISDICTION_SENTENCE =
-  "The company has not named the European Union, the European Economic Area or the United Kingdom among the jurisdictions that apply, so this assessment applies the GDPR as the framework of the assessment the company requested; whether the processing falls within the GDPR's territorial scope under Article 3 is not assessed here.";
+  // Team clarity review (CEO delegation 2026-09-03): two plain sentences.
+  "The company has not named the European Union, the European Economic Area or the United Kingdom among the jurisdictions that apply. This assessment is written under the GDPR, and it does not decide whether the GDPR governs the processing under Article 3.";
 
 function composeExecutiveDecisionSentence(report: Bag, total: number, intake: Bag = {}): string {
   const art36 = art36Determination(report);

@@ -650,7 +650,8 @@ export function deriveBalanceTable(report: Bag): RenderedTable | null {
 // instrument slots fall to the EU rail); the document said nothing about that
 // choice. Stated once, first. Ratification queue R8 (doc 161 §C).
 export const LIA_NON_GDPR_JURISDICTION_SENTENCE =
-  "The company has not named the European Union or the United Kingdom among the jurisdictions that apply, so this assessment applies Article 6(1)(f) GDPR as the framework of the assessment the company requested; whether the GDPR governs the processing under Article 3 is not assessed here.";
+  // Team clarity review (CEO delegation 2026-09-03): two plain sentences.
+  "The company has not named the European Union or the United Kingdom among the jurisdictions that apply. This assessment is written under Article 6(1)(f) GDPR, and it does not decide whether the GDPR governs the processing under Article 3.";
 
 function nonGdprJurisdictionSentence(record: Bag): string {
   const js = strList(record.jurisdictions);
@@ -673,7 +674,7 @@ function minimisationSentence(record: Bag): string {
   }
   return `On data minimisation, the company has stated: "${account}".${
     verbatim
-      ? ` Article 5(1)(c) requires personal data to be ${verbatim}; that account is recorded as the company's own statement of how the data used are held to that standard, and this assessment does not verify it.`
+      ? ` Article 5(1)(c) requires personal data to be ${verbatim}. The company's account is recorded as its own statement against that standard; this assessment does not verify it.`
       : ""
   }`;
 }
