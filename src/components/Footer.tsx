@@ -32,6 +32,8 @@ const Footer = () => {
             <h4 className="text-[11px] font-bold tracking-[0.09em] uppercase text-silver mb-3.5">Product</h4>
             {[
               { label: "Newsfeed", href: "/updates" },
+              { label: "Explore Free Tools", href: "/explore" },
+              { label: "Privacy Research", href: "/research" },
               { label: "Compliance Tools", href: "/tools" },
               { label: "Sample Reports", href: "/samples" },
               { label: "Pricing", href: "/subscribe" },

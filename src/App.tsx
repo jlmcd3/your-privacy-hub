@@ -81,6 +81,8 @@ import { PaymentTestModeBanner } from "./components/PaymentTestModeBanner.tsx";
 import BlankScreenDiagnostic from "./components/BlankScreenDiagnostic.tsx";
 import DocU32Harness from "./pages/dev/DocU32Harness.tsx";
 const JurisdictionsHub = lazy(() => import("./pages/JurisdictionsHub.tsx"));
+const Explore = lazy(() => import("./pages/Explore.tsx"));
+const ResearchHub = lazy(() => import("./pages/ResearchHub.tsx"));
 const LegislationTracker = lazy(() => import("./pages/LegislationTracker.tsx"));
 const BriefPreferences = lazy(() => import("./pages/BriefPreferences.tsx"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword.tsx"));
@@ -246,6 +248,8 @@ const App = () => (
             <Route path="/global-privacy-laws" element={<GlobalPrivacyLaws />} />
             <Route path="/jurisdiction/:slug" element={<JurisdictionPage />} />
             <Route path="/jurisdictions" element={<JurisdictionsHub />} />
+            <Route path="/explore" element={<Explore />} />
+            <Route path="/research" element={<ResearchHub />} />
             <Route path="/regulator/:slug" element={<RegulatorPage />} />
             <Route path="/category/:slug" element={<CategoryRedirect />} />
             <Route path="/topics/:slug" element={<TopicRedirect />} />

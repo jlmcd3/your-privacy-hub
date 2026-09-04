@@ -12,7 +12,6 @@ import HomepageBriefSection from "@/components/home/HomepageBriefSection";
 import HomepageToolsSection from "@/components/home/HomepageToolsSection";
 import HomepagePricingStrip from "@/components/home/HomepagePricingStrip";
 import { PRICING } from "@/config/pricing";
-import { Brain, Satellite, Scale } from 'lucide-react';
 
 const Index = () => (
   <div className="min-h-screen bg-brand-cloud">
@@ -34,44 +33,6 @@ const Index = () => (
         <HomepageFeedSection />
       </div>
       <HomepageBriefSection />
-
-      <section className="max-w-4xl mx-auto px-6 py-10 border-t border-gray-100">
-        <p className="text-eyebrow !text-sm text-brand-steel mb-3">How it fits together</p>
-        <h2 className="text-section-h2 text-brand-navy mb-8">
-          From intelligence to action, in the same platform.
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div>
-            <div className="text-2xl mb-2"><Satellite aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></div>
-            <h3 className="text-brand-navy mb-1">Monitor</h3>
-            <p className="text-sm text-gray-600">
-              Worldwide privacy authorities tracked daily. Every enforcement action,
-              regulatory guidance, and legislative development, enriched
-              with AI analysis before it reaches you.
-            </p>
-          </div>
-          <div>
-            <div className="text-2xl mb-2"><Brain aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></div>
-            <h3 className="text-brand-navy mb-1">Analyse</h3>
-            <p className="text-sm text-gray-600">
-              Your weekly Privacy Intelligence Report synthesises what
-              matters for your role, jurisdiction, and industry. Not a
-              news digest: a decision-ready briefing.
-            </p>
-          </div>
-          <div>
-            <div className="text-2xl mb-2"><Scale aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></div>
-            <h3 className="text-brand-navy mb-1">Act</h3>
-            <p className="text-sm text-gray-600">
-              Run an LIA. Draft a DPA. Generate an IR playbook. Assess
-              GDPR governance, CPPA readiness, or biometric risk. Fourteen compliance tools,
-              each calibrated to enforcement. Nine of them
-              include your initial report generation; revisions are temporarily disabled while
-              we ship the Revision Contract program, with a free Errata channel for corrections.
-            </p>
-          </div>
-        </div>
-      </section>
 
       <div id="tools" className="scroll-mt-20">
         <HomepageToolsSection />
