@@ -210,8 +210,30 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
     case "lia": {
       // Raw column-spread insert — li_assessments has fixed columns (organization_name, not entity_name).
       // Use the original fixture only; do NOT inject synthesized names here.
+      // 2026-09-04: the LIA contract carries `preview_assessment_id` (a
+      // checkout-time analytics field the intake page supplies), which is NOT
+      // a column on li_assessments. Generated fixtures include it and the
+      // insert died with a schema-cache error, so column-spread inserts are
+      // filtered to the table's real columns.
+      const LIA_COLUMNS = new Set([
+        "alternatives_considered", "attestation", "balancing_details", "client_id",
+        "data_categories", "is_subscriber_credit", "jurisdictions", "necessity_details",
+        "organization_name", "preview_signal", "processing_description",
+        "purchase_price_cents", "purchased_as_standalone", "purpose_details",
+        "relationship_type", "report_version", "sector", "stage", "stated_purpose",
+        "status", "subject_anchor", "supplemental_context", "supplemental_responses",
+      ]);
+      const liaRaw = (job.fixture_data ?? {}) as Record<string, unknown>;
+      const liaInsert: Record<string, unknown> = {};
+      const liaDropped: string[] = [];
+      for (const [k, v] of Object.entries(liaRaw)) {
+        if (LIA_COLUMNS.has(k)) liaInsert[k] = v; else liaDropped.push(k);
+      }
+      if (liaDropped.length) {
+        console.log(JSON.stringify({ evt: "lia_insert_non_columns_dropped", fn: "run-stress-job", keys: liaDropped }));
+      }
       const { data: rec, error } = await admin.from("li_assessments")
-        .insert({ ...(job.fixture_data ?? {}), user_id: userId }).select("id").single();
+        .insert({ ...liaInsert, user_id: userId }).select("id").single();
       if (error || !rec) throw new Error(`lia insert: ${error?.message}`);
       await invokeFn("run-li-assessment", { assessment_id: rec.id })
         .catch((e) => console.warn("[run-stress-job] run-li-assessment trigger failed (will poll):", e));
