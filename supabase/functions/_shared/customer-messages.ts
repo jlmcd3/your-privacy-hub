@@ -436,6 +436,7 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   dsr_capability: "data-subject request handling capability",
   dsr_rights_tested: "data-subject rights tested",
   inventory_audit: "tool inventory and audit status",
+  retention_schedule_status: "documented retention periods per data category",
   additional_context: "additional context provided by the customer",
   // ── DPA (generate-dpa) ──
   entityName: "entity name",

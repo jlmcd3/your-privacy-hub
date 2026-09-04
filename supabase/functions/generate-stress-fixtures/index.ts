@@ -277,9 +277,15 @@ Return a JSON object with EXACTLY these top-level fields:
     "sector": "string", "org_size": "string", "jurisdictions": ["array"],
     "eu_uk_data": "Yes", "tools": ["array"], "data_categories": ["array"],
     "special_category": "Yes or No", "special_categories_list": [],
-    "privacy_policy": "string", "dpo_status": "string",
-    "dpia_status": "string", "incident_response": "string", "training_status": "string",
-    "tool_instruction": "string", "dpa_status": "string", "transfer_status": "string"
+    "privacy_policy": "string", "privacy_notice_coverage": "verbatim option when privacy_policy starts with Yes, else 'n/a'", "dpo_status": "string",
+    "dpia_status": "string", "dpia_ai_coverage": "verbatim option when dpia_status starts with Yes, else 'n/a'", "incident_response": "string", "training_status": "string", "training_ai_coverage": "verbatim option when training_status starts with Yes, else 'n/a'",
+    "tool_instruction": "string", "dpa_status": "string", "dpa_art28_verified": "verbatim option when dpa_status is 'Yes, all vendors' or 'Most vendors', else 'n/a'", "transfer_status": "string", "transfer_mechanism": "verbatim option when transfer_status starts with Yes, else 'n/a'",
+    "technical_controls": "string", "technical_controls_list": ["array of verbatim options when technical_controls is Yes or Partial"], "dsr_capability": "string", "dsr_rights_tested": ["array of verbatim options when dsr_capability is the tested option"], "inventory_audit": "string",
+    "retention_schedule_status": "one of EXACTLY: 'Yes — retention periods documented for each category of data' | 'Partially — documented for some categories only' | 'No — no documented retention periods' | 'Unsure' — DOC 162, Art. 30(1)(f)",
+    "measures_review_cadence": "verbatim option", "measures_last_review_date": "YYYY-MM-DD",
+    "processing_nature": "string — what is done to the data, operation by operation", "processing_scope": "string — volumes, data subjects, geography, retention", "processing_context": "string — the relationship, expectations, imbalance", "processing_purposes": "string — the specific purposes",
+    "remediation_default_owner": "string — a single standing role", "remediation_default_target_date": "YYYY-MM-DD", "remediation_default_priority": "verbatim option", "remediation_default_validation_method": "verbatim option",
+    "additional_context": "string"
   },` : ""}
   "dpa": {
     "controllerName": "string", "controllerJurisdiction": "string",
@@ -873,27 +879,65 @@ function buildDeterministicProfile(industry: string, geo: string, slot: number, 
 
   return {
     ...c,
-    governance: {
-      sector: GOV_SECTOR_BY_BUCKET[bucket],
-      org_size: (slot === 1 ? "251-1000" as const : "51-250" as const),
-      jurisdictions: jurisdictionsGov,
-      eu_uk_data: (geo === "eu" ? "Yes" as const : "No" as const),
-      tools: [GOV_TOOLS[0], GOV_TOOLS[3]],
-      data_categories: govDataCategories,
-      special_category: (usesBiometric || bucket === "healthcare" || bucket === "education" ? "Yes" as const : "No" as const),
-      special_categories_list: usesBiometric ? ["Biometric data" as const] : [],
-      privacy_policy: "Yes, current (reviewed in last 12 months)" as const,
-      dpo_status: (geo === "eu" ? "Yes, formal DPO" as const : "Yes, informal privacy lead" as const),
-      dpia_status: "Yes, one DPIA completed" as const,
-      incident_response: "Yes, tested in last 12 months" as const,
-      training_status: "Yes, formal onboarding + annual refresh" as const,
-      tool_instruction: "Yes, written policy with specific prohibitions" as const,
-      dpa_status: "Yes, all vendors" as const,
-      transfer_status: (geo === "eu" ? "Yes, US-based tools" as const : "Unsure" as const),
-      technical_controls: "Partial — some tools or categories" as const,
-      dsr_capability: "Documented but not tested" as const,
-      inventory_audit: "Inventory exists, no formal audit/approval" as const,
-    },
+    governance: (() => {
+      // DOC 162 (2026-09-03) — the fallback carries every contract key the
+      // deterministic builders read, with the form's own gates applied: the
+      // DPO, processor-contract and transfer questions are put only where EU
+      // or UK personal data is indicated (the DPO question also for 251+),
+      // and each conditional child follows its parent. Before this, every
+      // fallback record fell to "Not determinable" on the Art. 24(1)
+      // calibration and review findings the form asks for and the fallback
+      // never supplied.
+      const euUk = geo === "eu";
+      const size = slot === 1 ? "251-1000" as const : "51-250" as const;
+      const dpoAsked = euUk || size === "251-1000";
+      const special = usesBiometric || bucket === "healthcare" || bucket === "education";
+      const specialList = usesBiometric ? ["Biometric data" as const] : bucket === "healthcare" ? ["Health data" as const] : [];
+      const dpaStatus = euUk ? "Yes, all vendors" as const : "n/a" as const;
+      const transferStatus = euUk ? "Yes, US-based tools" as const : "n/a" as const;
+      return {
+        sector: GOV_SECTOR_BY_BUCKET[bucket],
+        org_size: size,
+        jurisdictions: jurisdictionsGov,
+        eu_uk_data: (euUk ? "Yes" as const : "No" as const),
+        tools: [GOV_TOOLS[0], GOV_TOOLS[3]],
+        data_categories: govDataCategories,
+        special_category: (special ? "Yes" as const : "No" as const),
+        special_categories_list: special ? specialList : [],
+        privacy_policy: "Yes, current (reviewed in last 12 months)" as const,
+        privacy_notice_coverage: "Partially — some activities or tools not yet reflected" as const,
+        dpo_status: dpoAsked ? (euUk ? "Yes, formal DPO" as const : "Yes, informal privacy lead" as const) : "n/a" as const,
+        dpia_status: "Yes, one DPIA completed" as const,
+        dpia_ai_coverage: "Some covered" as const,
+        incident_response: "Yes, tested in last 12 months" as const,
+        training_status: "Yes, formal onboarding + annual refresh" as const,
+        training_ai_coverage: "Generally covers data handling" as const,
+        tool_instruction: "Yes, written policy with specific prohibitions" as const,
+        dpa_status: dpaStatus,
+        dpa_art28_verified: euUk ? "Partially" as const : "n/a" as const,
+        transfer_status: transferStatus,
+        transfer_mechanism: euUk ? "EU Standard Contractual Clauses (SCCs)" as const : "n/a" as const,
+        technical_controls: "Partial — some tools or categories" as const,
+        technical_controls_list: ["DLP rules", "Content filtering"] as const,
+        dsr_capability: "Documented but not tested" as const,
+        dsr_rights_tested: [] as string[],
+        inventory_audit: "Inventory exists, no formal audit/approval" as const,
+        retention_schedule_status: "Partially — documented for some categories only" as const,
+        measures_review_cadence: "Annually or more often" as const,
+        measures_last_review_date: "2026-02-09",
+        processing_nature: `Customer account and service records are held in the ${industry.toLowerCase()} platform; ${GOV_TOOLS[0]} handles internal documents and ${GOV_TOOLS[3]} is used by support staff for drafting, with personal data in prompts prohibited by policy. No automated decision produces a legal or similarly significant effect.`,
+        processing_scope: slot === 1
+          ? "Approximately 180,000 customer records and 1,100 employee records, refreshed daily; customer records retained for six years after the end of the relationship and employee records for six years after employment ends, each deleted by a scheduled job."
+          : "Approximately 12,000 customer records and 140 employee records, refreshed daily; customer records retained for six years after the end of the relationship and employee records for six years after employment ends, each deleted by a scheduled job.",
+        processing_context: "The people are customers of the service and the company's own employees; customers can close their account at any time, and employees cannot practically decline the employer's record-keeping, so the imbalance is material for the employee records.",
+        processing_purposes: "Service delivery and billing, support, workforce administration, and security monitoring of the service; no secondary research use and no onward sale.",
+        remediation_default_owner: "Head of Compliance",
+        remediation_default_target_date: "2026-12-31",
+        remediation_default_priority: "Medium — remediate this year" as const,
+        remediation_default_validation_method: "Documentary evidence review" as const,
+        additional_context: "The company is migrating its support tooling this year; the vendor list will change and the processor-contract review is scheduled to follow the migration.",
+      };
+    })(),
     dpa: {
       entityName: c.companyName,
       controllerName: c.companyName,

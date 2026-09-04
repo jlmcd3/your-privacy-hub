@@ -78,6 +78,44 @@ function unanswered(v: string): boolean {
   return !v || v === "n/a" || v.toLowerCase() === "unsure";
 }
 
+// DOC 162 (2026-09-03, audits A.2/A.6) — A GATED-OFF QUESTION IS NOT AN
+// UNANSWERED ONE. The intake form hides the DPO, processor-contract and
+// transfer questions unless the company processes EU or UK personal data
+// (the DPO question also shows for organisations of 251 or more), and stores
+// the contract's hiddenValue "n/a" for a question it never put. The builders
+// read that "n/a" as an unrecognised or missing answer and raised remediation
+// items asking the company to answer a question the form never showed
+// (three DPO items and a processor-contract item on every US-only record).
+// This resolver states, from the record's own gate answers, whether a key
+// was asked; the findings degrade to "not requested" where it was not.
+const GATED_BY_EU_UK: readonly string[] = ["dpa_status", "dpa_art28_verified", "transfer_status", "transfer_mechanism"];
+const LARGE_ORG_SIZES: readonly string[] = ["251-1000", "1001+"];
+export function questionNotAsked(intake: unknown, key: string): boolean {
+  const euUk = str(get(intake, "eu_uk_data")).toLowerCase();
+  if (euUk !== "no") return false;
+  if (key === "dpo_status") return !LARGE_ORG_SIZES.includes(str(get(intake, "org_size")));
+  return GATED_BY_EU_UK.includes(key);
+}
+/** The sentence that names why a question was not put to the company. */
+export function notAskedSentence(intake: unknown, key: string): string {
+  const size = str(get(intake, "org_size"));
+  if (key === "dpo_status") {
+    return `The designation question was not put to the company: it has indicated that it does not process the personal data of individuals in the EU or the UK${size ? ` and its headcount band (${sizeProse(size)}) is below the level at which the question is asked regardless` : ""}.`;
+  }
+  return "This question was not put to the company, because it has indicated that it does not process the personal data of individuals in the EU or the UK.";
+}
+const ORG_SIZE_WORDS: Record<string, string> = {
+  "1-10": "1 to 10 people",
+  "11-50": "11 to 50 people",
+  "51-250": "51 to 250 people",
+  "251-1000": "251 to 1,000 people",
+  "1001+": "more than 1,000 people",
+};
+/** DOC 162 (audit A.2) — the headcount band as prose, never the raw enum. */
+export function sizeProse(size: string): string {
+  return ORG_SIZE_WORDS[size] ?? size;
+}
+
 // ── shared facts ─────────────────────────────────────────────────────
 export interface GovernanceFacts {
   org: string;
@@ -120,7 +158,9 @@ export function readGovernanceFacts(intake: unknown): GovernanceFacts {
     scope: str(get(intake, "processing_scope")),
     context: str(get(intake, "processing_context")),
     purposes: str(get(intake, "processing_purposes")),
-    cadence: str(get(intake, "measures_review_cadence")),
+    // DOC 162 (audit A.6) — "Unsure" is an answer that resolves nothing; it
+    // used to fall through as a defined-but-infrequent cadence.
+    cadence: unanswered(str(get(intake, "measures_review_cadence"))) ? "" : str(get(intake, "measures_review_cadence")),
     lastReview: str(get(intake, "measures_last_review_date")),
     under250: UNDER_250_SIZES.includes(size),
     largeScale: LARGE_SCALE_SIZES.includes(size),
@@ -145,6 +185,25 @@ export function buildDemonstrabilityFindings(intake: unknown): DemonstrabilityFi
     const standard = acct.verbatim
       ? `${acct.verbatim} ${a.verbatim}`.trim()
       : a.verbatim;
+
+    if (present === "unknown" && questionNotAsked(intake, d.intake_key)) {
+      // DOC 162 — not asked, so neither evidenced nor unevidenced; no
+      // remediation item and no adverse weight (the 403-A rule).
+      return {
+        key: d.key,
+        label: d.duty,
+        duty: d.duty,
+        evidencing_artifact: d.artifact,
+        artifact_present: present,
+        citation: `${acct.citation}; ${a.citation}`,
+        standard,
+        record_fact: notAskedSentence(intake, d.intake_key),
+        application:
+          `Whether ${d.artifact.charAt(0).toLowerCase()}${d.artifact.slice(1)} exists is not assessed here, because the question was not put to the company; nothing adverse is read from that.`,
+        verdict: "not_applicable",
+        status: "analysed",
+      } satisfies DemonstrabilityFinding;
+    }
 
     if (present === "unknown") {
       return {
@@ -230,9 +289,44 @@ export function buildArt30ElementFindings(intake: unknown): Art30ElementFinding[
         if (k === "special_categories_list" && unanswered(text) && specialCategoryAnsweredNo(intake)) {
           return `${govFieldLabel(k)}: none recorded (special-category processing answered "No")`;
         }
+        // DOC 162 — a question the form never put is answered by the gate.
+        if (unanswered(text) && questionNotAsked(intake, k)) {
+          return `${govFieldLabel(k)}: not requested (no EU or UK personal data indicated)`;
+        }
         return unanswered(text) ? "" : `${govFieldLabel(k)}: ${text}`;
       })
       .filter(Boolean);
+
+    // DOC 162 (2026-09-03) — Art. 30(1)(f) reads the documented-retention
+    // answer for its MEANING, not its presence: "No" is an unmet element and
+    // "Partially" a partly met one, never "content addresses the element".
+    if (el.element === "f") {
+      const answer = str(get(intake, "retention_schedule_status"));
+      if (!unanswered(answer)) {
+        const documented = /^Yes\b/i.test(answer);
+        const partial = /^Partially\b/i.test(answer);
+        return {
+          key: `art30_${el.element}`,
+          element: el.element,
+          label: el.label,
+          citation: a.citation,
+          standard: a.verbatim,
+          record_fact: `The company answers the retention question "${answer}".`,
+          application: documented
+            ? "Retention periods documented for each category of data address Article 30(1)(f) on its face. Whether the record states them category by category — the unit Article 30(1)(f) uses — must be confirmed against the record itself."
+            : partial
+            ? "Retention periods documented for some categories only address Article 30(1)(f) in part: the element asks for the envisaged time limits for the different categories of data, so the categories without a documented period leave the record incomplete for this element."
+            : "No documented retention periods leaves Article 30(1)(f) unmet: the record cannot state the envisaged time limits for erasure of the different categories of data until they are set and written down.",
+          verdict: documented ? "satisfied" : partial ? "partially_satisfied" : "not_satisfied",
+          status: "analysed",
+          ...(documented ? {} : {
+            information_needed: partial
+              ? "Document the envisaged retention period for each remaining category of personal data and record it against the Article 30 entry for that category."
+              : "Set and document the envisaged retention period for each category of personal data, and record it in the Article 30 record.",
+          }),
+        } satisfies Art30ElementFinding;
+      }
+    }
 
     if (evidence.length === 0) {
       return {
@@ -262,6 +356,7 @@ export function buildArt30ElementFindings(intake: unknown): Art30ElementFinding[
       // takes special_categories_list out of the missing-keys set so no
       // remediation item asks the customer to supply a list of nothing.
       if (k === "special_categories_list" && specialCategoryAnsweredNo(intake)) return false;
+      if (questionNotAsked(intake, k)) return false; // DOC 162
       const v = get(intake, k);
       const text = Array.isArray(v) ? arr(v).join(", ") : str(v);
       return unanswered(text);
@@ -281,7 +376,8 @@ export function buildArt30ElementFindings(intake: unknown): Art30ElementFinding[
       ...(partial
         ? {
           information_needed:
-            `Supply ${missingKeys.map(govFieldLabel).join(" and ")} to complete the Article 30(1)(${el.element}) content — ${el.label.toLowerCase()} — for each processing activity.`,
+            // DOC 162 (audit A.2) — the element label keeps its case ("DPO", not "dpo").
+            `Supply ${missingKeys.map(govFieldLabel).join(" and ")} to complete the Article 30(1)(${el.element}) content — ${el.label} — for each processing activity.`,
         }
         : {}),
     } satisfies Art30ElementFinding;
@@ -500,7 +596,31 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
   const LIMB_B_INFO_NEEDED =
     "Whether any core activity involves the regular and systematic monitoring of data subjects (for example tracking, profiling, or sustained behavioural observation), and at what scale — the Article 37(1)(b) limb turns on that, not on the categories of data held.";
 
-  const designation_trigger: Finding = !f.dpoStatus || f.dpoStatus === "n/a"
+  // DOC 162 (audits A.2/A.6) — "n/a" on a question the form never put is
+  // not an unrecognised answer. The trigger limbs are still tested (they
+  // read sector, size and data categories, not the designation); the
+  // designation itself is recorded as not requested.
+  const dpoNotAsked = f.dpoStatus === "n/a" && questionNotAsked(intake, "dpo_status");
+  const designation_trigger: Finding = dpoNotAsked
+    ? {
+      key: "dpo_designation_trigger",
+      label: "Article 37 designation trigger",
+      citation: trig.citation,
+      standard: [trig.verbatim, trigA.verbatim, trigB.verbatim, trigC.verbatim].filter(Boolean).join(" "),
+      record_fact: notAskedSentence(intake, "dpo_status"),
+      application: required
+        ? `Designation would be mandatory on the trigger limbs the record does establish. ${triggerReasons.join(" ")} Whether an officer is designated is not recorded, because the question was not put to the company; that is recorded here as the fact to confirm, not as a failure.`
+        : `None of the three limbs of Article 37(1) is established on the information provided: the controller is not recorded as a public authority or body, and core activities are not shown to consist of large-scale regular and systematic monitoring or of large-scale Article 9 processing. Designation would be voluntary, and whether one has been made is not recorded because the question was not put to the company.`,
+      verdict: required ? "record_insufficient" : "not_applicable",
+      status: required ? "record_insufficient" : "analysed",
+      ...(required
+        ? {
+          information_needed:
+            "Whether a data protection officer has been designated. The trigger limbs established above make designation mandatory, so the designation itself is the fact to confirm.",
+        }
+        : {}),
+    }
+    : !f.dpoStatus || f.dpoStatus === "n/a"
     ? {
       key: "dpo_designation_trigger",
       label: "Article 37 designation trigger",
@@ -518,7 +638,7 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
       label: "Article 37 designation trigger",
       citation: trig.citation,
       standard: [trig.verbatim, trigA.verbatim, trigB.verbatim, trigC.verbatim].filter(Boolean).join(" "),
-      record_fact: `The record answers the DPO question "${f.dpoStatus}" for a ${f.size} organisation in the ${f.sector === "Other" ? "Other (as reported)" : (f.sector || "unstated")} sector.`,
+      record_fact: `The record answers the DPO question "${f.dpoStatus}" for an organisation of ${sizeProse(f.size)} in the ${f.sector === "Other" ? "Other (as reported)" : (f.sector || "unstated")} sector.`,
       application: required
         ? `Designation is mandatory here, not discretionary. ${triggerReasons.join(" ")} ${limbBOpenClause ? `${limbBOpenClause} Nothing turns on the open limb: designation is already required on the ${limbA ? "(a)" : "(c)"} limb established above. ` : ""}${hasFormal ? "A formal DPO is designated, which meets the trigger; what remains to be tested is position and task coverage, not existence." : hasInformal ? "An informal privacy lead is not a designated data protection officer for Article 37 purposes unless the designation is formal and the contact details have been published and communicated to the supervisory authority." : "No designation is recorded, so the Article 37(1) duty is unmet on the face of the record."}`
         : limbBIndicated
@@ -583,15 +703,19 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
       // Art. 39 finding's ask is differentiated instead of duplicated.
       record_fact: none
         ? "No data protection officer or privacy lead is recorded."
+        : dpoNotAsked
+        ? notAskedSentence(intake, "dpo_status")
         : f.dpoStatus
         ? `The record answers the designation question "${f.dpoStatus}", which does not match a designation state this assessment recognises.`
         : "The record does not answer the DPO question.",
       application: none
         ? "Article 38 has no subject on the record as documented: there is no designated officer whose position could be tested. If designation is required under Article 37(1), the Article 38 duties crystallise on appointment."
+        : dpoNotAsked
+        ? "Article 38 has no recorded subject: the designation question was not put to the company, so the position of an officer, if one exists, is not assessed here and nothing adverse is read from that."
         : "",
-      verdict: none ? "not_applicable" : "record_insufficient",
-      status: none ? "analysed" : "record_insufficient",
-      information_needed: none ? undefined : "State whether a data protection officer has been designated, using one of the designation states the assessment questionnaire offers.",
+      verdict: none || dpoNotAsked ? "not_applicable" : "record_insufficient",
+      status: none || dpoNotAsked ? "analysed" : "record_insufficient",
+      information_needed: none || dpoNotAsked ? undefined : "State whether a data protection officer has been designated, using one of the designation states the assessment questionnaire offers.",
     };
 
   const bothAdjacent = str(get(intake, "dpia_status")).startsWith("Yes") &&
@@ -637,25 +761,35 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
       // the same missing fact WITHOUT duplicating the Art. 38 ask verbatim.
       record_fact: none
         ? "No data protection officer is recorded."
+        : dpoNotAsked
+        ? notAskedSentence(intake, "dpo_status")
         : f.dpoStatus
         ? `The designation answer "${f.dpoStatus}" does not match a recognised state, so Article 39 task coverage cannot be assessed from it.`
         : "The record does not answer the DPO question.",
       application: none
         ? "Article 39 has no subject on the record as documented. Where no officer is designated the tasks it lists are not extinguished — they remain controller duties under Articles 5(2) and 24(1) and must be owned by someone."
+        : dpoNotAsked
+        ? "Article 39 task coverage is not assessed here, because the designation question was not put to the company. The tasks it lists remain controller duties under Articles 5(2) and 24(1) whether or not an officer is designated."
         : "",
-      verdict: none ? "not_applicable" : "record_insufficient",
-      status: none ? "analysed" : "record_insufficient",
-      information_needed: none ? undefined : "Article 39 task coverage is resolved by the same designation answer named under Article 38.",
+      verdict: none || dpoNotAsked ? "not_applicable" : "record_insufficient",
+      status: none || dpoNotAsked ? "analysed" : "record_insufficient",
+      information_needed: none || dpoNotAsked ? undefined : "Article 39 task coverage is resolved by the same designation answer named under Article 38.",
     };
 
   const subs = [designation_trigger, position_and_independence, task_coverage];
   const status: DpoDetermination["status"] = subs.every((s) => s.status === "analysed")
     ? "analysed"
     : "record_insufficient";
+  // DOC 162 (audit A.6) — three not-applicable sub-findings (no officer and
+  // none required; or the question not put) rolled up to "satisfied", and
+  // the ICO crosswalk then printed "formal DPO designation evidenced" for a
+  // company with no DPO. The roll-up now carries not_applicable through.
   const verdict: Verdict = designation_trigger.verdict === "not_satisfied"
     ? "not_satisfied"
     : status !== "analysed"
     ? "record_insufficient"
+    : subs.every((s) => s.verdict === "not_applicable")
+    ? "not_applicable"
     : subs.some((s) => s.verdict === "partially_satisfied")
     ? "partially_satisfied"
     : "satisfied";
@@ -766,6 +900,18 @@ export function buildReviewAndUpdateFinding(intake: unknown): Finding {
       : `A cadence of "${f.cadence}" is long enough that the measure set can fall out of step with the processing between reviews. The second sentence of Article 24(1) is triggered by necessity, not by the calendar, so this cadence must be paired with an event trigger — material change to processing, to vendors, or to the risk profile — to be defensible.`,
     verdict: noCadence ? "not_satisfied" : adequate ? "satisfied" : "partially_satisfied",
     status: "analysed",
+    // DOC 162 — the register's Action cell read "—" on these two branches.
+    ...(noCadence
+      ? {
+        information_needed:
+          "Define a review cadence for the technical and organisational measures — annually, or on any material change to the processing, the vendors or the risk profile — and record each executed review with its date and the changes it produced.",
+      }
+      : adequate
+      ? {}
+      : {
+        information_needed:
+          `Pair the "${f.cadence}" cadence with an event trigger — a material change to the processing, to the vendors, or to the risk profile — so the measures are updated where necessary between scheduled reviews, and record each review with its date and the changes it produced.`,
+      }),
   };
 }
 
@@ -861,7 +1007,15 @@ export function buildAccountabilityDetermination(
     // PANEL GOV-1 — branch-aware ask: names only the leg(s) actually open,
     // never "complete the unanswered accountability duties" on a record
     // whose duties are all answered.
-    information_needed: status === "record_insufficient" ? asksText : undefined,
+    // DOC 162 — a partly or not evidenced determination names the duties
+    // to close; each carries its own register item.
+    information_needed: status === "record_insufficient"
+      ? asksText
+      : worst === "satisfied"
+      ? undefined
+      : unevidenced.length
+      ? `Evidence the ${unevidenced.length === 1 ? "duty" : `${unevidenced.length} duties`} recorded as unevidenced — ${unevidenced.join("; ")} — each of which carries its own item in this register; the headline determination follows the weakest of them.`
+      : "Close the adverse determination read alongside the accountability duties — the Article 24(1) calibration or review finding named above — which carries its own item in this register.",
   };
 }
 

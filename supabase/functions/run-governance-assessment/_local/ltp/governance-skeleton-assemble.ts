@@ -43,6 +43,8 @@ import {
 } from "../../../_shared/prose/skeleton-render.ts";
 // A-TEAM S3 RULING III.10 (doc 115) — acronym-safe mid-sentence casing.
 import { lowerFirstWordSafe } from "../../../_shared/ltp/splice-case.ts";
+// DOC 162 — the CEO-ratified numeric citation order (citation-order.ts).
+import { naturalCitationCompare } from "../../../_shared/ltp/citation-order.ts";
 
 export const GOVERNANCE_SKELETON_ASSEMBLER_STAMP =
   "governance-skeleton-assembler@so3-wire-in-2026-08-10";
@@ -187,6 +189,22 @@ const TRANSFER_PHRASES: Record<string, string> = {
   "Unsure": "that it is unsure whether transfers outside the EU or the UK occur",
 };
 
+// DOC 162 (audit A.2) — the two coverage enums were spliced raw into the
+// fixed prose ("with coverage the company describes as yes — notice covers
+// all current activities, transfers, retention, and rights"). Reader labels.
+const PRIVACY_NOTICE_COVERAGE_PHRASES: Record<string, string> = {
+  "Yes — notice covers all current activities, transfers, retention, and rights": "covering all current activities, transfers, retention and rights",
+  "Partially — some activities or tools not yet reflected": "partial, with some activities or tools not yet reflected",
+  "No — notice not updated for current tools": "not updated for the current tools",
+  "Unsure": "uncertain",
+};
+const TRAINING_AI_COVERAGE_PHRASES: Record<string, string> = {
+  "Yes — explicitly covers AI tools": "explicit coverage of the AI tools",
+  "Generally covers data handling": "general data-handling coverage without AI-specific content",
+  "No — not AI-specific": "no AI-specific coverage",
+  "Unsure": "uncertain",
+};
+
 const ORG_SIZE_PROSE: Record<string, string> = {
   "1-10": "1 to 10 people",
   "11-50": "11 to 50 people",
@@ -268,10 +286,10 @@ export function buildGovernanceSlotValues(intake: Bag): SlotValues {
       ? (/^No\b/i.test(policy)
         ? "not applicable, since the company reports no privacy notice"
         : "not stated in its answers")
-      : lower(coverage),
+      : (PRIVACY_NOTICE_COVERAGE_PHRASES[coverage] ?? lower(coverage)),
 
     TRAINING_PHRASE: labelled(TRAINING_PHRASES, s(intake.training_status)),
-    TRAINING_AI_CLAUSE: isNA(aiCoverage) ? "" : `, with coverage of AI tools recorded as ${lower(aiCoverage)}`,
+    TRAINING_AI_CLAUSE: isNA(aiCoverage) ? "" : `, with coverage of AI tools recorded as ${TRAINING_AI_COVERAGE_PHRASES[aiCoverage] ?? lower(aiCoverage)}`,
     tools: namedTools.length ? asProse(namedTools) : "none that its answers record",
     OTHER_TOOL_CLAUSE: other ? `, together with ${other.replace(/^Other\s*:\s*/i, "")}` : "",
     TOOL_INSTRUCTION_PHRASE: labelled(TOOL_INSTRUCTION_PHRASES, s(intake.tool_instruction)),
@@ -760,7 +778,8 @@ function governanceToa(report: Bag, body: string): string {
   }
   const lines: string[] = [];
   for (const group of Object.keys(groups)) {
-    const inGroup = groups[group].sort();
+    // DOC 162 — numeric order ("Art. 5" before "Art. 28"), not lexicographic.
+    const inGroup = groups[group].sort(naturalCitationCompare);
     if (!inGroup.length) continue;
     lines.push(group === "Guidance and Persuasive Authority" ? `${group} (persuasive)` : group);
     for (const c of inGroup) lines.push(`    ${c}`);

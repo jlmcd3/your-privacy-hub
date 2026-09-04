@@ -132,6 +132,18 @@ const INVENTORY_AUDIT = [
   "Inventory exists, no formal audit/approval",
   "No formal inventory", "Unsure",
 ] as const;
+// DOC 162 (2026-09-03) — Art. 30(1)(f) "where possible, the envisaged time
+// limits for erasure of the different categories of data". The Art. 30
+// element walk has read `retention_schedule_status` since ITEM 313, but no
+// form question ever supplied it, so every record printed "The record
+// carries nothing on this element" and a remediation item for a question
+// the form never asked (the 403-A unrequested-fact rule).
+export const RETENTION_SCHEDULE_STATUS = [
+  "Yes — retention periods documented for each category of data",
+  "Partially — documented for some categories only",
+  "No — no documented retention periods",
+  "Unsure",
+] as const;
 // ITEM 313 — Art. 24(1) second sentence ("Those measures shall be reviewed and
 // updated where necessary") is unanswerable without a cadence and a date.
 const REVIEW_CADENCE = [
@@ -193,6 +205,8 @@ export const governanceContract: IntakeContract = {
       requiredWhen: 'dsr_capability === "Yes — documented and tested across all vendors"',
       options: DSR_RIGHTS_TESTED },
     { key: "inventory_audit", kind: "enum", required: "always", options: INVENTORY_AUDIT },
+    // DOC 162 — Art. 30(1)(f); optional so legacy rows validate.
+    { key: "retention_schedule_status", kind: "enum", required: "optional", options: RETENTION_SCHEDULE_STATUS },
     { key: "dpia_ai_coverage", kind: "enum", required: "conditional",
       requiredWhen: 'dpia_status starts with "Yes"',
       hiddenValue: "n/a", options: [...DPIA_AI_COVERAGE, "n/a"] as unknown as readonly string[] },
@@ -235,6 +249,6 @@ export const GOVERNANCE_INLINE_LISTS = {
   DPIA_STATUS, DPIA_AI_COVERAGE, INCIDENT_RESPONSE, TRAINING_STATUS,
   TRAINING_AI_COVERAGE, TOOL_INSTRUCTION, DPA_STATUS, DPA_ART28,
   TRANSFER_STATUS, TRANSFER_MECHANISM, TECHNICAL_CONTROLS,
-  TECHNICAL_CONTROLS_LIST, DSR_CAPABILITY, DSR_RIGHTS_TESTED, INVENTORY_AUDIT, REVIEW_CADENCE,
+  TECHNICAL_CONTROLS_LIST, DSR_CAPABILITY, DSR_RIGHTS_TESTED, INVENTORY_AUDIT, RETENTION_SCHEDULE_STATUS, REVIEW_CADENCE,
   REMEDIATION_PRIORITY, VALIDATION_METHOD,
 };

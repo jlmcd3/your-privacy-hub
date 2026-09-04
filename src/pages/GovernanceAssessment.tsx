@@ -137,6 +137,9 @@ const GovernanceAssessment = () => {
   const [dsrCapability, setDsrCapability] = useState("");
   const [dsrRightsTested, setDsrRightsTested] = useState<string[]>([]);
   const [inventoryAudit, setInventoryAudit] = useState("");
+  // DOC 162 (2026-09-03) — Art. 30(1)(f) retention periods; the element walk
+  // read this key since ITEM 313 but the form never asked it.
+  const [retentionScheduleStatus, setRetentionScheduleStatus] = useState("");
   const [dpiaAiCoverage, setDpiaAiCoverage] = useState("");
   const [trainingAiCoverage, setTrainingAiCoverage] = useState("");
   const [dpaArt28Verified, setDpaArt28Verified] = useState("");
@@ -191,6 +194,7 @@ const GovernanceAssessment = () => {
       if (showDpoQ && !dpoStatus) return "Answer whether a data protection officer or equivalent is designated.";
       if (!dsrCapability) return "Answer whether you can fulfil data subject rights across your vendors.";
       if (!inventoryAudit) return "Answer whether your tool inventory is audited for unauthorised tools.";
+      if (!retentionScheduleStatus) return "Answer whether retention periods are documented for each category of data.";
       if (dpiaStatus.startsWith("Yes") && !dpiaAiCoverage) return "Answer whether your DPIAs cover your current AI and high-risk tools.";
       if (privacyPolicy.startsWith("Yes") && !privacyNoticeCoverage) return "Answer whether your published notice describes all current processing.";
     }
@@ -238,6 +242,7 @@ const GovernanceAssessment = () => {
     dsr_capability: dsrCapability,
     dsr_rights_tested: dsrCapability === "Yes — documented and tested across all vendors" ? dsrRightsTested : [],
     inventory_audit: inventoryAudit,
+    retention_schedule_status: retentionScheduleStatus,
     dpia_ai_coverage: dpiaStatus.startsWith("Yes") ? dpiaAiCoverage : "n/a",
     training_ai_coverage: trainingStatus.startsWith("Yes") ? trainingAiCoverage : "n/a",
     dpa_art28_verified: (showStep5 && (dpaStatus === "Yes, all vendors" || dpaStatus === "Most vendors")) ? dpaArt28Verified : "n/a",
@@ -367,6 +372,7 @@ const GovernanceAssessment = () => {
     S(d.dsr_capability, setDsrCapability);
     A(d.dsr_rights_tested, setDsrRightsTested);
     S(d.inventory_audit, setInventoryAudit);
+    S(d.retention_schedule_status, setRetentionScheduleStatus);
     S(d.dpia_ai_coverage, setDpiaAiCoverage);
     S(d.training_ai_coverage, setTrainingAiCoverage);
     S(d.dpa_art28_verified, setDpaArt28Verified);
@@ -755,6 +761,12 @@ const GovernanceAssessment = () => {
               <div><Label>Is your tool and processing inventory audited for unauthorised tools, with an approval route for new ones?<Req /> <DefPopover termKey="gdpr_accountability" /> <span className="text-xs text-muted-foreground font-mono">(Art. 24 GDPR)</span></Label>
                 <p className="text-meta text-muted-foreground mt-1">Two separate facts: whether the inventory is checked against reality, and whether adopting a new tool passes through a gate.</p>
                 <div className="mt-2"><Radio name="inv" options={["Yes — audited + formal approval process", "Inventory exists, no formal audit/approval", "No formal inventory", "Unsure"]} value={inventoryAudit} onChange={setInventoryAudit} /></div></div>
+              {/* DOC 162 (2026-09-03) — Art. 30(1)(f). The record of processing must state, where possible,
+                  the envisaged time limits for erasure of each category of data; the assessment's Art. 30
+                  element walk reads this answer, and until now nothing on the form supplied it. */}
+              <div><Label>Are retention periods documented for each category of personal data?<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 30(1)(f) GDPR)</span></Label>
+                <p className="text-meta text-muted-foreground mt-1">Article 30(1)(f) asks the record of processing to state, where possible, the envisaged time limit for erasing each category of data. Your assessment reads this answer for that element: documented periods evidence it, partial documentation leaves it open for the categories without a period, and none leaves the element unmet.</p>
+                <div className="mt-2"><Radio name="retention" options={["Yes — retention periods documented for each category of data", "Partially — documented for some categories only", "No — no documented retention periods", "Unsure"]} value={retentionScheduleStatus} onChange={setRetentionScheduleStatus} /></div></div>
 
             </>
           )}

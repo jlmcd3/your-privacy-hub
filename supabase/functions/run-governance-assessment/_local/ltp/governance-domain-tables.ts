@@ -406,10 +406,16 @@ function dpiaStatus(intake: Bag): TypedDomainFinding {
 
 function subjectRights(intake: Bag): TypedDomainFinding {
   const v = s(intake.dsr_capability);
+  // DOC 162 (audit A.4) — the rights the company records as tested end to
+  // end were collected and never read; named on the tested branch.
+  const tested = (Array.isArray(intake.dsr_rights_tested) ? intake.dsr_rights_tested : []).map((r) => s(r)).filter(Boolean);
+  const testedTail = tested.length
+    ? ` The rights the company records as tested end to end are ${tested.join(", ")}.`
+    : " The company does not name which rights were tested.";
   const table: Record<string, Cell> = {
     "Yes — documented and tested across all vendors": {
       severity: "Compliant",
-      current_state: "The data subject rights process is documented and tested across all vendors.",
+      current_state: "The data subject rights process is documented and tested across all vendors." + testedTail,
       gap_description: null,
       recommended_action: "Keep the vendor coverage current as tools change.",
     },
