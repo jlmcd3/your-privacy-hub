@@ -202,7 +202,7 @@ async function attachPdf(admin: ReturnType<typeof createClient>, body: any) {
 async function list(admin: ReturnType<typeof createClient>) {
   const { data, error } = await admin
     .from("sample_reports")
-    .select("id, tool_slug, variant, title, status, source_row_id, source_table, verification, pdf_path, updated_at")
+    .select("id, tool_slug, variant, title, status, source_row_id, source_table, verification, pdf_path, updated_at, preview_built_at, preview_pdf_path, withheld_section_count, preview_toc")
     .order("tool_slug", { ascending: true })
     .order("variant", { ascending: true });
   if (error) return json({ error: error.message }, 400);
