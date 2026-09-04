@@ -5621,6 +5621,13 @@ export type Database = {
             referencedRelation: "sample_reports"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "quality_reviews_sample_report_id_fkey"
+            columns: ["sample_report_id"]
+            isOneToOne: false
+            referencedRelation: "sample_reports_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       quality_run_documents: {
@@ -7869,6 +7876,11 @@ export type Database = {
           fixture: Json
           id: string
           pdf_path: string | null
+          preview_built_at: string | null
+          preview_document_text: string | null
+          preview_pdf_path: string | null
+          preview_report_data: Json | null
+          preview_toc: Json | null
           published_at: string | null
           report_data: Json | null
           scenario_summary: string
@@ -7880,6 +7892,7 @@ export type Database = {
           updated_at: string
           variant: string
           verification: Json | null
+          withheld_section_count: number | null
         }
         Insert: {
           created_at?: string
@@ -7887,6 +7900,11 @@ export type Database = {
           fixture?: Json
           id?: string
           pdf_path?: string | null
+          preview_built_at?: string | null
+          preview_document_text?: string | null
+          preview_pdf_path?: string | null
+          preview_report_data?: Json | null
+          preview_toc?: Json | null
           published_at?: string | null
           report_data?: Json | null
           scenario_summary: string
@@ -7898,6 +7916,7 @@ export type Database = {
           updated_at?: string
           variant?: string
           verification?: Json | null
+          withheld_section_count?: number | null
         }
         Update: {
           created_at?: string
@@ -7905,6 +7924,11 @@ export type Database = {
           fixture?: Json
           id?: string
           pdf_path?: string | null
+          preview_built_at?: string | null
+          preview_document_text?: string | null
+          preview_pdf_path?: string | null
+          preview_report_data?: Json | null
+          preview_toc?: Json | null
           published_at?: string | null
           report_data?: Json | null
           scenario_summary?: string
@@ -7916,6 +7940,7 @@ export type Database = {
           updated_at?: string
           variant?: string
           verification?: Json | null
+          withheld_section_count?: number | null
         }
         Relationships: []
       }
@@ -9544,6 +9569,51 @@ export type Database = {
           upgrade_cta_clicks: number | null
           user_id: string | null
           user_role: string | null
+        }
+        Relationships: []
+      }
+      sample_reports_public: {
+        Row: {
+          id: string | null
+          preview_document_text: string | null
+          preview_pdf_path: string | null
+          preview_report_data: Json | null
+          preview_toc: Json | null
+          published_at: string | null
+          scenario_summary: string | null
+          title: string | null
+          tool_slug: string | null
+          variant: string | null
+          verification: Json | null
+          withheld_section_count: number | null
+        }
+        Insert: {
+          id?: string | null
+          preview_document_text?: string | null
+          preview_pdf_path?: string | null
+          preview_report_data?: Json | null
+          preview_toc?: Json | null
+          published_at?: string | null
+          scenario_summary?: string | null
+          title?: string | null
+          tool_slug?: string | null
+          variant?: string | null
+          verification?: Json | null
+          withheld_section_count?: number | null
+        }
+        Update: {
+          id?: string | null
+          preview_document_text?: string | null
+          preview_pdf_path?: string | null
+          preview_report_data?: Json | null
+          preview_toc?: Json | null
+          published_at?: string | null
+          scenario_summary?: string | null
+          title?: string | null
+          tool_slug?: string | null
+          variant?: string | null
+          verification?: Json | null
+          withheld_section_count?: number | null
         }
         Relationships: []
       }
