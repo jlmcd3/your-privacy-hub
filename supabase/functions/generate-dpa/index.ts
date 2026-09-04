@@ -568,7 +568,10 @@ Deno.serve(async (req) => {
     try {
       const semanticQuery =
         `Controller-processor DPA: ${body.controllerName} (${body.controllerJurisdiction}) engages ${body.processorName} (${body.processorJurisdiction}) for ${body.services}. Data: ${(Array.isArray(body.dataCategories) ? body.dataCategories : []).join(", ")}.`;
-      const r = await getGdprContext(supabase, {
+      // Type debt: the shared helper takes a structural SupabaseLike whose
+      // query-builder chain is narrower than supabase-js's. Runtime shape is
+      // identical; cast only at the call site.
+      const r = await getGdprContext(supabase as unknown as Parameters<typeof getGdprContext>[0], {
         articles: ["28", "32", "33"],
         jurisdiction: dpaJurisdiction,
         guidelineArticles: ["28"],

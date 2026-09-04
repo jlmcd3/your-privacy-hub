@@ -9055,14 +9055,14 @@ export type Database = {
           enforcement_body: string | null
           enforcement_url: string | null
           framework_type: string
-          has_appeal_right: boolean
+          has_appeal_right: boolean | null
           has_correction_right: boolean
           has_opt_out_right: boolean
           has_sensitive_data_category: boolean
           is_active: boolean
           law_name: string
           notes: string | null
-          requires_gpc: boolean
+          requires_gpc: boolean | null
           state_code: string
           state_name: string
         }
@@ -9072,14 +9072,14 @@ export type Database = {
           enforcement_body?: string | null
           enforcement_url?: string | null
           framework_type: string
-          has_appeal_right?: boolean
+          has_appeal_right?: boolean | null
           has_correction_right?: boolean
           has_opt_out_right?: boolean
           has_sensitive_data_category?: boolean
           is_active?: boolean
           law_name: string
           notes?: string | null
-          requires_gpc?: boolean
+          requires_gpc?: boolean | null
           state_code: string
           state_name: string
         }
@@ -9089,14 +9089,14 @@ export type Database = {
           enforcement_body?: string | null
           enforcement_url?: string | null
           framework_type?: string
-          has_appeal_right?: boolean
+          has_appeal_right?: boolean | null
           has_correction_right?: boolean
           has_opt_out_right?: boolean
           has_sensitive_data_category?: boolean
           is_active?: boolean
           law_name?: string
           notes?: string | null
-          requires_gpc?: boolean
+          requires_gpc?: boolean | null
           state_code?: string
           state_name?: string
         }
