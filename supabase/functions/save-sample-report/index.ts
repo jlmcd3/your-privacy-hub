@@ -195,7 +195,8 @@ async function attachPdf(admin: ReturnType<typeof createClient>, body: any) {
     .select()
     .single();
   if (error) return json({ error: error.message }, 400);
-  return json({ row: data, filename });
+  const preview = await tryBuildPreviewForRow(admin, id);
+  return json({ row: data, filename, preview });
 }
 
 async function list(admin: ReturnType<typeof createClient>) {
