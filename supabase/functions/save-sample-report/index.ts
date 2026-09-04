@@ -275,6 +275,7 @@ async function deleteSamples(admin: ReturnType<typeof createClient>, body: any) 
     const { error } = await admin.storage.from("sample-reports").remove(paths);
     if (error) storageErrors.push(error.message);
   }
+  await removePreviewObjects(admin, allPaths);
   await clearStressJobRefs(admin, allPaths);
 
   let deleted = 0;
