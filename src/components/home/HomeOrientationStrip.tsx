@@ -73,8 +73,9 @@ export default function HomeOrientationStrip() {
               className="border-b md:border-b-0 md:border-r border-brand-cloud"
             >
               <p className="text-sm text-slate text-center leading-relaxed">
-                Research privacy laws and authorities, compare jurisdictions, and use the Weekly
-                Intelligence Brief to see what developments mean for your organization.
+                Research privacy laws and authorities, compare jurisdictions, and get your personalized
+                Weekly Intelligence Brief to follow developments relevant to your role, industry or
+                interests.
               </p>
               <div
                 className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-sm"
