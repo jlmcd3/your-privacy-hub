@@ -17,6 +17,8 @@ import { invokeWithTimeout } from "@/lib/sampleGenerators";
 import { supabase } from "@/integrations/supabase/client";
 import { updateOutcome, type RunOutcome } from "@/lib/allProductsOutcomes";
 import type { ToolSlug } from "@/lib/sampleFixtures";
+import { STRESS_TOOL_TO_SLUG } from "@/lib/claudeIntake";
+
 
 /**
  * Panel slug → generate-report-pdf tool_type. Session-shaped products (the two
