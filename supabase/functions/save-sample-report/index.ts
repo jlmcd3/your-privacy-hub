@@ -161,7 +161,13 @@ async function setStatus(admin: ReturnType<typeof createClient>, body: any) {
   if (status === "published") patch.published_at = new Date().toISOString();
   const { data, error } = await admin.from("sample_reports").update(patch).eq("id", id).select().single();
   if (error) return json({ error: error.message }, 400);
-  return json({ row: data });
+  // Publishing without a preview would show nothing publicly: rebuild if the
+  // row has none (first publish, or the trigger cleared it after a content edit).
+  let preview: unknown = null;
+  if (status === "published" && !(data as { preview_built_at: string | null }).preview_built_at) {
+    preview = await tryBuildPreviewForRow(admin, id);
+  }
+  return json({ row: data, preview });
 }
 
 async function attachPdf(admin: ReturnType<typeof createClient>, body: any) {
