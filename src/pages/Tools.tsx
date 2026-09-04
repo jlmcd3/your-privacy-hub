@@ -8,7 +8,12 @@ import { RequirementBadge } from "@/components/RequirementBadge";
 import SampleReportLink from "@/components/SampleReportLink";
 import ToolsSelector from "@/components/tools/ToolsSelector";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
-import { PRICING, isSmartTool, INTELLIGENCE_PRICING, PLATFORM_PRICING, INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
+import { PRICING, isSmartTool, INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
+
+// Tools-page copy for the metered-generation line. Mirrors INCLUDED_GENERATIONS_COPY
+// from pricing.ts but without the Errata-channel phrase (not surfaced on /tools).
+const INCLUDED_GENERATIONS_COPY_TOOLS =
+  "Includes your initial report generation. Revisions are temporarily disabled while we ship the Revision Contract program.";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
 import { useAuth } from "@/hooks/useAuth";
 import { Bot, CheckCircle2, ClipboardList, FileSignature, FileText, Fingerprint, Folder, Lock, MoveRight, Scale, Search, Shield, ShieldAlert, Siren, Square, Wrench } from 'lucide-react';
