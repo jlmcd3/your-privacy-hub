@@ -40,7 +40,7 @@ export const FRAMEWORK_LABELS: Record<string, string> = {
 
 export const STATE_LAW_NAMES: Record<string, { name: string; cite: string }> = {
   CA: { name: "California Consumer Privacy Act / California Privacy Rights Act (CCPA/CPRA)", cite: "Cal. Civ. Code §1798.100 et seq." },
-  VA: { name: "Virginia Consumer Data Protection Act (VCDPA)", cite: "Va. Code Ann. §59.1-571 et seq." },
+  VA: { name: "Virginia Consumer Data Protection Act (VCDPA)", cite: "Va. Code Ann. §§59.1-575 to 59.1-585" },
   CO: { name: "Colorado Privacy Act (CPA)", cite: "C.R.S. §6-1-1301 et seq." },
   CT: { name: "Connecticut Data Privacy Act (CTDPA)", cite: "Conn. Pub. Acts 22-15" },
   UT: { name: "Utah Consumer Privacy Act (UCPA)", cite: "Utah Code §13-61-101 et seq." },

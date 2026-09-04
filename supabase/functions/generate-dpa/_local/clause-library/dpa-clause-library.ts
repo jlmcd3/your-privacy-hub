@@ -25,11 +25,10 @@ export type DpaMode = "gdpr" | "uk" | "us-state" | "canada" | "dual-eu-us" | "du
 
 /**
  * DOC-81 D-1 — the modes the deterministic assembler may serve. The GDPR
- * skeleton's Art. 28 citations are correct law only for the GDPR family;
- * us-state and canada stay on the model path until citation-native section
- * sets are drafted and ratified as their own landing.
+ * family plus us-state; canada stays on the model path until a citation-native
+ * section set is drafted and ratified as its own landing.
  */
-export const DPA_DETERMINISTIC_MODES: readonly DpaMode[] = ["gdpr", "uk", "dual-eu-us", "dual-eu-ca"];
+export const DPA_DETERMINISTIC_MODES: readonly DpaMode[] = ["gdpr", "uk", "us-state", "dual-eu-us", "dual-eu-ca"];
 
 /**
  * DOC-81 D-2 — the UK GDPR substitutes "domestic law" for the EU text's

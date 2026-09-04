@@ -43,9 +43,8 @@ const BASE: DpaAssembleInput = {
   californiaEngaged: false,
 };
 
-Deno.test("D-1 — the deterministic-mode set is exactly the GDPR family", () => {
-  assertEquals([...DPA_DETERMINISTIC_MODES].sort(), ["dual-eu-ca", "dual-eu-us", "gdpr", "uk"]);
-  assert(!(DPA_DETERMINISTIC_MODES as readonly string[]).includes("us-state"));
+Deno.test("D-1 — the deterministic-mode set is the GDPR family plus us-state", () => {
+  assertEquals([...DPA_DETERMINISTIC_MODES].sort(), ["dual-eu-ca", "dual-eu-us", "gdpr", "uk", "us-state"]);
   assert(!(DPA_DETERMINISTIC_MODES as readonly string[]).includes("canada"));
 });
 
