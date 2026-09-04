@@ -108,6 +108,14 @@ const SEED_REGISTRY: RegistryEntry[] = [
     pdf_url: "https://www.edpb.europa.eu/system/files/2023-04/edpb_guidelines_202201_data_subject_rights_access_v2_en.pdf",
   },
   {
+    guideline_ref: "WP243 rev.01",
+    title: "Guidelines on Data Protection Officers (\'DPOs\')",
+    adopted_date: "2017-04-05",
+    related_articles: ["37", "38", "39"],
+    topic_tags: ["dpo", "governance", "accountability"],
+    pdf_url: "https://ec.europa.eu/newsroom/document.cfm?doc_id=44100",
+  },
+  {
     guideline_ref: "WP260 rev.01",
     title: "Guidelines on transparency under Regulation 2016/679",
     adopted_date: "2018-04-11",
