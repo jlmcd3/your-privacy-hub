@@ -41,10 +41,10 @@ type SampleRow = {
 };
 
 function previewLabel(s: SampleRow): string {
-  if (!s.preview_built_at) return "public preview: none — rebuild needed";
+  if (!s.preview_built_at) return "Public preview: none — not shown on /samples";
   const unit = s.preview_pdf_path ? "pages" : "sections";
-  const kept = s.preview_pdf_path ? 2 : (s.preview_toc?.length ? "first" : "first");
-  return `public preview: built · ${kept} ${unit} shown · ${s.withheld_section_count ?? 0} ${unit} withheld`;
+  const kept = s.preview_pdf_path ? "first 2 pages" : "opening sections";
+  return `Public preview: built · ${kept} shown · ${s.withheld_section_count ?? 0} ${unit} withheld`;
 }
 
 type RunState = {
