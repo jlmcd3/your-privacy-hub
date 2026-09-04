@@ -296,10 +296,16 @@ export default function SampleReportView() {
               <div id="sample-report-body" className="scroll-mt-24">
                 <SampleToolReport
                   toolSlug={row.tool_slug}
-                  documentText={row.document_text}
-                  reportData={row.report_data}
+                  documentText={row.preview_document_text}
+                  reportData={row.preview_report_data}
                   publishedAt={row.published_at}
-                  pdfPath={row.pdf_path}
+                  pdfPath={row.preview_pdf_path}
+                />
+                <SampleTocPanel
+                  entries={row.preview_toc ?? []}
+                  withheldCount={row.withheld_section_count ?? 0}
+                  toolRoute={toolRoute}
+                  unit={row.preview_pdf_path ? "pages" : "sections"}
                 />
               </div>
 
