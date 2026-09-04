@@ -109,12 +109,9 @@ export default function SampleReport() {
     (async () => {
       if (!toolSlug) return;
       const { data, error } = await supabase
-        .from("sample_reports")
-        .select(
-          "id, tool_slug, variant, title, scenario_summary, document_text, report_data, verification, published_at, pdf_path",
-        )
+        .from("sample_reports_public")
+        .select(PUBLIC_SAMPLE_COLUMNS)
         .eq("tool_slug", toolSlug)
-        .eq("status", "published")
         .order("variant");
       if (cancelled) return;
       if (error) {
@@ -122,7 +119,7 @@ export default function SampleReport() {
         setRows([]);
         return;
       }
-      setRows((data ?? []) as SampleRow[]);
+      setRows(((data ?? []) as unknown as SampleRow[]).filter(hasPreview));
     })();
     return () => {
       cancelled = true;
