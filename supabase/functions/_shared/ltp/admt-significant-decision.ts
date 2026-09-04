@@ -145,6 +145,15 @@ function textHasUnnegatedCategoryMatch(text: string, pattern: RegExp): boolean {
 }
 
 /**
+ * DOC 167 (§C.2 ratification) — the fleet's ONE sentence-scoped negation test,
+ * exported so other free-text cue readers (the risk engine's testing-activity
+ * cue) use it rather than a second, unaudited negation heuristic.
+ */
+export function hasUnnegatedMatch(text: string, pattern: RegExp): boolean {
+  return textHasUnnegatedCategoryMatch((text ?? "").trim(), pattern);
+}
+
+/**
  * Classify a free-text ADMT activity description against the § 7001(ddd)
  * significant-decision categories. Pure, deterministic, no model call.
  *

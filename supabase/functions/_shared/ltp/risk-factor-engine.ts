@@ -34,6 +34,7 @@ import {
   type AdmtDecisionClass,
   claimsSignificantDecisionUnnegated,
   classifyAdmtSignificantDecision,
+  hasUnnegatedMatch,
   resolveAdmtSignificantDecision,
 } from "./admt-significant-decision.ts";
 // DOC 167 — the § 7155 timing resolver the assembler renders; read here so
@@ -1034,11 +1035,16 @@ const SCOPE_CONFLICT_STEMS: Readonly<Record<string, RegExp>> = {
 // predicate, so the ask names what is actually missing (results/evidence)
 // instead of denying testing the Company described. Credit is unchanged:
 // a reported exercise is not evidence it was effective.
+// Team ratification (doc 167 §C.2): the cue vocabulary is testing-specific —
+// no bare "exercise" (privacy text says "exercise their opt-out"), "audit"
+// (audit logs are a control, not a test of one) or "validat-" — and the
+// match is negation-aware through the fleet's one sentence-scoped negation
+// test, so "has not been tested" never reads as describing testing.
 const TESTING_REPORTED_RE =
-  /\b(tabletop|table-top|exercise[sd]?|drill[s]?|penetration[- ]test\w*|pen[- ]?test\w*|red[- ]team\w*|tested|testing|audit\w*|simulat\w*|validat\w*)\b/i;
+  /\b(tabletop|table-top|(?:incident[- ]response|response|recovery|breach|security|disaster[- ]recovery)[- ](?:exercise|drill)s?|penetration[- ]test\w*|pen[- ]?test\w*|red[- ]team\w*|tested|testing|phishing[- ]simulation\w*)\b/i;
 
 export function safeguardReportsTesting(g: Bag): boolean {
-  return s(g.safeguard_status) === "Implemented, not tested" && TESTING_REPORTED_RE.test(s(g.safeguard));
+  return s(g.safeguard_status) === "Implemented, not tested" && hasUnnegatedMatch(s(g.safeguard), TESTING_REPORTED_RE);
 }
 
 // Batch 13 A-Team §10 (NestWave, Luminary) — the Company answers that the
@@ -1057,6 +1063,21 @@ export function admtTrainingPiReconcileNeeded(intake: Bag): boolean {
   if (s(intake.admt_provider_trained_using_pi) !== "No") return false;
   const text = `${s(intake.i5_admt_training_source)} ${s(intake.i5_admt_logic)}`;
   return TRAINING_PSEUDONYMIZED_RE.test(text) && !TRAINING_DEIDENTIFIED_RE.test(text);
+}
+
+/** Team ratification (doc 167 §C.2): the Company's OWN cue word(s), as
+ * written (lower-cased, deduped, source first), so the § 3.E sentence quotes
+ * what the record actually says instead of a fixed "pseudonymized or
+ * aggregated" that may name a term the record never used. */
+export function admtTrainingPiCueTerms(intake: Bag): string[] {
+  const text = `${s(intake.i5_admt_training_source)} ${s(intake.i5_admt_logic)}`;
+  const re = new RegExp(TRAINING_PSEUDONYMIZED_RE.source, "gi");
+  const out: string[] = [];
+  for (const m of text.matchAll(re)) {
+    const w = m[0].toLowerCase();
+    if (!out.includes(w)) out.push(w);
+  }
+  return out;
 }
 
 // Batch 13 A-Team §5 (NestGrid, Luminary; NestWave is the deliberate
@@ -1539,7 +1560,7 @@ export function runRiskFactorEngine(
     // the § 4.A sentence).
     conditions.push(
       p.safeguards.some(safeguardReportsTesting)
-        ? `Obtain and record the results or effectiveness evidence from the testing the Company reports for the safeguard credited against the risk: ${p.harm}`
+        ? `Obtain and record the results or effectiveness evidence of the testing the Company describes for the safeguard credited against the risk: ${p.harm}`
         : `Obtain implementation and testing evidence for the safeguard credited against the risk: ${p.harm}`,
     );
   }
@@ -1612,9 +1633,15 @@ export function runRiskFactorEngine(
   // tension; the Company's "No" is preserved, never overridden.
   if (admtTrainingPiUnreconciled) {
     followUps.push(
+      // Team ratification (doc 167 §C.2): the § 1798.140(aa) clause is stated
+      // only where the record's own cue is pseudonymization.
       `Reconcile the answer that the technology is not trained using personal information with the recorded training-data source ${
         qPassage(s(intake.i5_admt_training_source) || s(intake.i5_admt_logic))
-      }: pseudonymization is defined in Cal. Civ. Code § 1798.140(aa) as a manner of processing personal information, and § 1798.140(v)(3) provides that personal information does not include consumer information that is deidentified (§ 1798.140(m)) or aggregate consumer information (§ 1798.140(b)); confirm which of those standards the training data met before training, and update the Appendix E record`,
+      }: ${
+        admtTrainingPiCueTerms(intake).some((t) => /^pseudonym/.test(t))
+          ? "pseudonymization is defined in Cal. Civ. Code § 1798.140(aa) as a manner of processing personal information, and § 1798.140(v)(3)"
+          : "Cal. Civ. Code § 1798.140(v)(3)"
+      } provides that personal information does not include consumer information that is deidentified (§ 1798.140(m)) or aggregate consumer information (§ 1798.140(b)); confirm which of those standards the training data met before training, and update the Appendix E record`,
     );
   }
   // DOC 153 (batch 736df0ad, A-Team §5/§7) — a safeguard recorded as PLANNED
@@ -2760,18 +2787,19 @@ export function runRiskFactorEngine(
       const q5 = s(intake.q5_sell_share);
       if (!q5SellShareAffirmed(q5)) return { gapSentence: null, followUps: [] };
       const noun = q5 === "Yes — sell only" ? "selling" : q5 === "Both" ? "selling or sharing" : "sharing";
-      // DOC 167 (Batch 13 A-Team §6, NestGrid) — two silent misses in the
-      // doc-153 predicate. (1) ANY "Third party" row counted as the recipient
-      // of the sharing, so a utility partner receiving "aggregated,
-      // anonymized energy telemetry" covered a "share for advertising only"
-      // answer; a third-party disclosure the Company itself describes as
-      // aggregated / anonymized / de-identified is not a recipient of
-      // personal-information sharing. (2) The purpose test accepted the bare
-      // word "sharing", so "sharing anonymized, aggregated usage statistics
-      // with analytics partners" read as describing advertising sharing.
-      // "Sharing" under Cal. Civ. Code § 1798.140(ah) is disclosure for
-      // cross-context behavioral advertising, so a sharing answer is described
-      // only by advertising vocabulary; a selling answer by sale vocabulary.
+      // DOC 167 (Batch 13 A-Team §6, NestGrid) — ANY "Third party" row used
+      // to count as the recipient of the sharing, so a utility partner
+      // receiving "aggregated, anonymized energy telemetry" covered a "share
+      // for advertising only" answer; a third-party disclosure the Company
+      // itself describes as aggregated / anonymized / de-identified is not a
+      // recipient of personal-information sharing.
+      // CEO RULING (doc 167 §C.2.7, 2026-09-04) — whether the Purpose text
+      // mentions the sharing is NOT relevant once the Company has identified
+      // in q5 that it shares for advertising: the categorical answer IS the
+      // identification. The doc-153 purpose-vocabulary test and its
+      // "confirm that the sharing forms part of this Activity" Follow-Up are
+      // retired; what the record must still carry is the § 7152(a)(3)(F)
+      // recipient of that sharing, completed below where none is recorded.
       const ADVERTISING_RE =
         /\b(advertis\w*|ad[- ]?network|ad[- ]?tech\w*|marketing|data broker|DSPs?|SSPs?|retarget\w*|cross-context|behavio(u)?ral advertising)\b/i;
       const NON_PI_DISCLOSURE_RE = /\b(aggregat\w*|anonymi[sz]\w*|de-?identif\w*)\b/i;
@@ -2780,35 +2808,17 @@ export function runRiskFactorEngine(
         if (ADVERTISING_RE.test(text)) return true;
         return s(r.recipient_type) === "Third party" && !NON_PI_DISCLOSURE_RE.test(text);
       });
-      const purposeText = `${clause(intake.primary_activity_purpose)} ${clause(intake.i1_processing_purpose)}`;
-      const describesSelling = /\b(sell\w*|sold|sales?)\b/i.test(purposeText);
-      const describesSharing = ADVERTISING_RE.test(purposeText);
-      const purposeSilent = q5 === "Yes — sell only"
-        ? !describesSelling
-        : q5 === "Both"
-        ? !(describesSelling || describesSharing)
-        : !describesSharing;
-      const scopeFollowUp =
-        `Confirm that the ${noun} of personal information the Company reports (“${q5}”) forms part of this Activity, or scope it as a separate processing activity; the stated purpose does not describe it`;
       if (!advertisingRecipient) {
         return {
           gapSentence:
-            `The Company reports ${noun} of personal information (“${q5}”; § 7150(b)(1), § 3.A), but no recipient of that ${noun} — a third party, or a recipient whose stated purpose is advertising — appears among the recipients recorded for the Activity${
-              purposeSilent ? ", and the Company’s stated purpose does not describe it" : ""
-            }; completing the recipient record appears among the Follow-Ups in § 4.D. If that ${noun} belongs to a separate processing activity, it should be scoped and assessed separately.`,
-          // Both open questions complete: the § 7152(a)(3)(F) recipient record,
-          // and (where the purpose is silent too) the scope of the Activity.
+            // Team ratification (doc 167 §C.2): the dash clause states the
+            // test the predicate actually applies, so a third-party row the
+            // Company describes as aggregated / anonymized / de-identified is
+            // not contradicted by a sentence saying no third party appears.
+            `The Company reports ${noun} of personal information (“${q5}”; § 7150(b)(1), § 3.A), but no recipient of that ${noun} — a third party receiving personal information rather than information the Company describes as aggregated, anonymized, or de-identified, or a recipient whose stated purpose is advertising — appears among the recipients recorded for the Activity; completing the recipient record appears among the Follow-Ups in § 4.D. If that ${noun} belongs to a separate processing activity, it should be scoped and assessed separately.`,
           followUps: [
             `Identify the recipient or recipient category, the personal information made available, and the purpose for the ${noun} the Company reports (“${q5}”); § 7152(a)(3)(F) requires the disclosures to third parties to be identified for the Activity`,
-            ...(purposeSilent ? [scopeFollowUp] : []),
           ],
-        };
-      }
-      if (purposeSilent) {
-        return {
-          gapSentence:
-            `The Company’s stated purpose does not itself describe the ${noun} of personal information it reports (“${q5}”; § 7150(b)(1), § 3.A); the assessment treats that ${noun} as part of the Activity on the information provided, and confirming its scope appears among the Follow-Ups in § 4.D.`,
-          followUps: [scopeFollowUp],
         };
       }
       return { gapSentence: null, followUps: [] };
@@ -2936,10 +2946,8 @@ export function runRiskFactorEngine(
       followUps.push(
         "Identify the service providers, contractors, and third parties that receive or can access the personal information for the Activity, with the purpose of each disclosure, or record that there are none; § 7152(a)(3)(F) requires the recipient record",
       );
-      // The generic recipient Follow-Up above covers the recipient-completion
-      // half of the sharing gap; the scope-confirmation Follow-Up (if any) is
-      // a distinct open question and stays.
-      sharingScope.followUps = sharingScope.followUps.filter((f) => f.startsWith("Confirm that the"));
+      // The generic recipient Follow-Up above covers the sharing gap too.
+      sharingScope.followUps = [];
     }
     for (const f of sharingScope.followUps) followUps.push(f);
     // DOC 167 (Batch 13 A-Team §7; the Batch 12 §11 finding recurring) —
@@ -2952,9 +2960,13 @@ export function runRiskFactorEngine(
     const paymentScope = paymentScopeFor(intake);
     if (paymentScope) {
       followUps.push(
-        `Confirm whether the payment or billing processing the information provided records (${
+        // Team ratification (doc 167 §C.2): states the model's actual posture —
+        // the facts stay in the record and are treated as part of the Activity
+        // on the information provided (the sell/share pattern) — never a
+        // conditional removal the generator does not perform.
+        `Confirm whether the payment or billing processing recorded in the information provided (${
           qPassage(paymentScope.cue)
-        }) forms part of this Activity, or scope it as a separate processing activity; the stated purpose does not describe it, and payment records enter this assessment’s sources, retention, and recipients only if it does`,
+        }) forms part of this Activity, or scope it as a separate processing activity; the stated purpose does not describe it, and the assessment treats the payment facts it records as part of the Activity on the information provided`,
       );
     }
   }
@@ -3406,7 +3418,9 @@ export function runRiskFactorEngine(
         } carried within a planned safeguard whose completion is a Condition in § 4.D.`
         : ` Planned disclosures are treated as part of the transparency posture only on completion; ${
           countWord(carriedD.length)
-        } ${plural(carriedD.length, "is", "are")} carried within a planned safeguard whose completion is a Condition in § 4.D, and completion of the ${
+        } ${plural(carriedD.length, "is", "are")} carried within ${
+          plural(carriedD.length, "a planned safeguard", "planned safeguards")
+        } whose completion is a Condition in § 4.D, and completion of the ${
           plural(openD.length, "other", "others")
         } appears among the Recommendations in § 4.D.`;
       put(
@@ -3809,7 +3823,9 @@ export function runRiskFactorEngine(
               // DOC 167 (Batch 13 A-Team §10) — same predicate as the
               // Follow-Up and the Appendix E cell.
               : admtTrainingPiUnreconciled
-              ? "Training-data provenance is identified in the information provided and is preserved in Appendix E; the Company records that source as pseudonymized or aggregated while answering that the technology is not trained using personal information, and reconciling the two appears among the Follow-Ups in § 4.D."
+              ? `Training-data provenance is identified in the information provided and is preserved in Appendix E; the Company describes that source as ${
+                asProse(admtTrainingPiCueTerms(intake).map((t) => `“${t}”`))
+              } while answering that the technology is not trained using personal information, and reconciling the two appears among the Follow-Ups in § 4.D.`
               : "Training-data provenance is identified in the information provided and is preserved in Appendix E.",
             ["INTAKE:i5_admt_training_source"],
             ["11 CCR § 7150(b)(6)", "11 CCR § 7153"],
@@ -4011,8 +4027,10 @@ export function runRiskFactorEngine(
         branch = `The Company’s ${asProse(untestedList)} ${
           plural(untestedList.length, "is", "are")
         } directed at it${
+          // "describes testing" is exactly what an un-negated testing cue in
+          // the Company's own text establishes — not that it took place.
           reportsTesting
-            ? "; the Company reports that testing takes place, but the information provided includes no testing results or effectiveness evidence"
+            ? "; the Company describes testing, but the information provided includes no testing results or effectiveness evidence"
             : ", but the information provided includes no testing or effectiveness evidence"
         }, so the assessment recognizes the ${
           plural(untestedList.length, "control", "controls")

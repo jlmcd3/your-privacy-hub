@@ -175,7 +175,11 @@ Deno.test("doc153 — sharing affirmed with no third-party/advertising recipient
   });
   const cons = r.factors["recipient_consequences"] ?? "";
   assert(cons.includes("The Company reports sharing of personal information (“Yes — share for advertising only”; § 7150(b)(1), § 3.A), but no recipient of that sharing"), cons);
-  assert(cons.includes("and the Company’s stated purpose does not describe it"), "purpose-silent clause missing");
+  // DOC 167 CEO RULING (2026-09-04) — pin inverted: the Purpose text's
+  // silence about the sharing is not a scope finding once q5 identifies the
+  // sharing as advertising; the recipient record is the only completing
+  // object, so the purpose-silent clause no longer renders.
+  assert(!cons.includes("stated purpose does not describe it"), "retired purpose-silent clause must not render");
   assert(cons.includes("If that sharing belongs to a separate processing activity, it should be scoped and assessed separately."), cons);
   assert(
     (r.blocks["iv_determination:12"] ?? "").includes("Identify the recipient or recipient category, the personal information made available, and the purpose for the sharing the Company reports"),
@@ -183,7 +187,11 @@ Deno.test("doc153 — sharing affirmed with no third-party/advertising recipient
   );
 });
 
-Deno.test("doc153 — a third-party advertising recipient plus a purpose that names the sharing raises nothing; a silent purpose alone raises the scope confirmation", () => {
+// DOC 167 CEO RULING (2026-09-04) — the second half of this pin ("a silent
+// purpose alone raises the scope confirmation") is retired: whether the
+// Purpose mentions the sharing is not relevant once q5 identifies it, so a
+// recorded advertising recipient raises nothing either way.
+Deno.test("doc153 — a recorded advertising recipient raises nothing, whether or not the Purpose names the sharing (doc 167 CEO ruling)", () => {
   const complete = engineOn({
     q5_sell_share: "Yes — share for advertising only",
     primary_activity_purpose: "Cloverpath shares browsing behavior with advertising network partners to enable targeted advertising.",
@@ -201,8 +209,9 @@ Deno.test("doc153 — a third-party advertising recipient plus a purpose that na
       SP_ROW("Advertising technology partners (ad network SDKs)", { recipient_type: "Third party", disclosure_purpose: "Cross-context behavioral advertising targeting", contractual_protections: "Written contract with the CCPA-required restrictions in place" }),
     ],
   });
-  assert((silent.factors["recipient_consequences"] ?? "").includes("The Company’s stated purpose does not itself describe the sharing of personal information it reports"), silent.factors["recipient_consequences"]);
-  assert((silent.blocks["iv_determination:12"] ?? "").includes("Confirm that the sharing of personal information the Company reports"), "scope-confirmation follow-up missing");
+  assert(!(silent.factors["recipient_consequences"] ?? "").includes("§ 7150(b)(1)"), "gap sentence fired although an advertising recipient is recorded");
+  assert(!(silent.factors["recipient_consequences"] ?? "").includes("stated purpose does not itself describe"), "retired purpose-silent branch must not render");
+  assert(!(silent.blocks["iv_determination:12"] ?? "").includes("Confirm that the sharing of personal information the Company reports"), "retired scope-confirmation follow-up must not render");
 });
 
 // ── Planned safeguard in operating terms ─────────────────────────────────────

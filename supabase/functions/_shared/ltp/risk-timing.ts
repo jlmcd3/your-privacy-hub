@@ -60,7 +60,10 @@ export function deriveAssessmentRetentionEnd(intake: Bag): string | null {
   // the processing continues, which an unrecorded status cannot support — so
   // the blank case gets its own honest open-question sentence.
   if (!status) {
-    return "Whether the processing is ongoing or discontinued is not recorded, so which retention rule governs — five years after completion of this assessment, or the end of the processing if that is later — is not yet determinable; record the processing status to resolve it";
+    // Team ratification (doc 167 §C.2, CEO-delegated): § 7155(c) is ONE
+    // later-of rule that governs regardless of status; what a blank status
+    // leaves undeterminable is the END DATE, not which rule applies.
+    return "Whether the processing is ongoing or discontinued is not recorded; the later-of rule above governs in either case, and the retention end date — the later of five years after completion of this assessment and the end of the processing — is not yet determinable; record the processing status to resolve it";
   }
   return "Because the processing continues on the information provided, the retention end date is not yet determinable; the later-of rule above governs";
 }

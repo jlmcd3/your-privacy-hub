@@ -19,11 +19,14 @@
 //   5. The same planned disclosure rendered as part of a Condition AND as a
 //      Recommendation (NestGrid, Luminary); NestWave's is the deliberate
 //      partial-overlap case that keeps its distinct Recommendation.
-//   6. NestGrid's "share for advertising only" answer drew no scope /
-//      recipient Follow-Up: a utility partner receiving "aggregated,
-//      anonymized" telemetry counted as the advertising recipient, and the
-//      word "sharing" in "sharing anonymized, aggregated usage statistics"
-//      counted as the Purpose describing advertising sharing.
+//   6. NestGrid's "share for advertising only" answer drew no recipient
+//      Follow-Up: a utility partner receiving "aggregated, anonymized"
+//      telemetry counted as the advertising recipient. CEO RULING (doc 167
+//      §C.2.7): the Purpose text's silence about the sharing is NOT a scope
+//      question once q5 identifies the sharing — the doc-153 purpose test and
+//      its "confirm that the sharing forms part of this Activity" Follow-Up
+//      are retired; the § 7152(a)(3)(F) recipient record is the only
+//      completing object.
 //   7. Payment facts (sources, retention) inside a telemetry Activity whose
 //      Purpose describes no payment processing drew no scope question.
 //   8. "no testing or effectiveness evidence" on a safeguard whose own text
@@ -119,6 +122,10 @@ Deno.test("doc167 — retention end: blank status states the open question; Ongo
   const blank = deriveAssessmentRetentionEnd({});
   assert(blank !== null && blank.includes("Whether the processing is ongoing or discontinued is not recorded"), String(blank));
   assert(!blank!.includes("processing continues"), "a blank status must not assert that the processing continues");
+  // Ratification criterion: § 7155(c) is one later-of rule; a blank status
+  // leaves the END DATE undeterminable, never "which rule governs".
+  assertStringIncludes(blank!, "the later-of rule above governs in either case");
+  assert(!blank!.includes("which retention rule governs"), "must not frame the later-of rule as a choice between rules");
   assertStringIncludes(String(deriveAssessmentRetentionEnd({ processing_status: "Ongoing" })), "Because the processing continues");
   assertStringIncludes(String(deriveAssessmentRetentionEnd({ processing_status: "Discontinued" })), "recorded as discontinued");
 });
@@ -175,18 +182,24 @@ Deno.test("doc167 — NestWave keeps its distinct planned-disclosure Recommendat
 
 // ── 6. Advertising-sharing scope reconciliation (NestGrid) ──────────────────
 
-Deno.test("doc167 — NestGrid draws the recipient-completion AND scope-confirmation Follow-Ups; the trigger stays engaged", () => {
+Deno.test("doc167 — NestGrid draws the § 7152(a)(3)(F) recipient-completion Follow-Up; the trigger stays engaged; no Purpose-based scope question (CEO ruling)", () => {
   const text = docText(NESTGRID, [B1, B2]);
   assertStringIncludes(text, "§ 7150(b)(1) — selling or sharing personal information — is engaged");
-  assertStringIncludes(text, "but no recipient of that sharing — a third party, or a recipient whose stated purpose is advertising — appears among the recipients recorded for the Activity, and the Company’s stated purpose does not describe it");
+  assertStringIncludes(text, "but no recipient of that sharing — a third party receiving personal information rather than information the Company describes as aggregated, anonymized, or de-identified, or a recipient whose stated purpose is advertising — appears among the recipients recorded for the Activity; completing the recipient record appears among the Follow-Ups in § 4.D.");
   assertStringIncludes(text, "Identify the recipient or recipient category, the personal information made available, and the purpose for the sharing the Company reports");
-  assertStringIncludes(text, "Confirm that the sharing of personal information the Company reports (“Yes — share for advertising only”) forms part of this Activity, or scope it as a separate processing activity");
+  // The retired SHARING sentences specifically — the payment-scope Follow-Up
+  // legitimately keeps its own "the stated purpose does not describe it".
+  assert(!text.includes("appears among the recipients recorded for the Activity, and the Company’s stated purpose does not describe it"), "the retired purpose-silent clause must not render");
+  assert(!text.includes("stated purpose does not itself describe the sharing"), "the retired purpose-silent branch must not render");
+  assert(!text.includes("Confirm that the sharing of personal information the Company reports"), "the retired scope-confirmation Follow-Up must not render");
 });
 
-Deno.test("doc167 — Luminary's scope Follow-Up is unchanged (its DSP recipient is an advertising recipient)", () => {
+Deno.test("doc167 — Luminary records an advertising recipient, so no sharing gap sentence and no scope Follow-Up render (CEO ruling)", () => {
   const text = docText(LUMINARY, [B1, B2]);
-  assertStringIncludes(text, "Confirm that the sharing of personal information the Company reports (“Yes — share for advertising only”) forms part of this Activity");
+  assertStringIncludes(text, "§ 7150(b)(1) — selling or sharing personal information — is engaged");
   assert(!text.includes("but no recipient of that sharing"), "Luminary has an advertising recipient; the no-recipient branch must not fire");
+  assert(!text.includes("stated purpose does not itself describe the sharing"), "the retired purpose-silent branch must not render");
+  assert(!text.includes("Confirm that the sharing of personal information the Company reports"), "the retired scope-confirmation Follow-Up must not render");
 });
 
 // ── 7. Payment scope ──────────────────────────────────────────────────────
@@ -201,7 +214,9 @@ Deno.test("doc167 — payment cues are read from Activity facts, never from the 
 
 Deno.test("doc167 — NestGrid renders the payment-scope Follow-Up and the § 2.E pointer", () => {
   const text = docText(NESTGRID, [B1, B2]);
-  assertStringIncludes(text, "Confirm whether the payment or billing processing the information provided records");
+  assertStringIncludes(text, "Confirm whether the payment or billing processing recorded in the information provided");
+  assertStringIncludes(text, "the assessment treats the payment facts it records as part of the Activity on the information provided");
+  assert(!text.includes("only if it does"), "the Follow-Up must not promise a conditional removal the generator does not perform");
   assertStringIncludes(text, "The stated purpose does not describe the payment processing those sources include");
 });
 
@@ -212,9 +227,14 @@ Deno.test("doc167 — reported testing is acknowledged; the ask names the missin
   assertEquals(safeguardReportsTesting(g), true);
   assertEquals(safeguardReportsTesting({ ...g, safeguard_status: "Implemented and tested" }), false);
   assertEquals(safeguardReportsTesting({ safeguard_status: "Implemented, not tested", safeguard: "Access is restricted to the security team." }), false);
+  // Ratification criteria (doc 167 §C.2): negation-aware, and no bare
+  // "exercise" / "audit" cue — privacy text uses both for other things.
+  assertEquals(safeguardReportsTesting({ safeguard_status: "Implemented, not tested", safeguard: "The incident response plan has not been tested." }), false);
+  assertEquals(safeguardReportsTesting({ safeguard_status: "Implemented, not tested", safeguard: "Consumers may exercise their opt-out at any time; audit logs are retained." }), false);
+  assertEquals(safeguardReportsTesting({ safeguard_status: "Implemented, not tested", safeguard: "Annual penetration testing is performed by an external firm." }), true);
   const text = docText(NESTGRID, [B1, B2]);
-  assertStringIncludes(text, "the Company reports that testing takes place, but the information provided includes no testing results or effectiveness evidence");
-  assertStringIncludes(text, "Obtain and record the results or effectiveness evidence from the testing the Company reports for the safeguard credited against the risk: (G) Reputational harms");
+  assertStringIncludes(text, "the Company describes testing, but the information provided includes no testing results or effectiveness evidence");
+  assertStringIncludes(text, "Obtain and record the results or effectiveness evidence of the testing the Company describes for the safeguard credited against the risk: (G) Reputational harms");
   assert(!text.includes("Obtain implementation and testing evidence for the safeguard credited against the risk: (G)"), "old wording must not co-render");
   assertStringIncludes(text, "Do Not Proceed");
 });
@@ -236,6 +256,9 @@ Deno.test("doc167 — NestWave and Luminary render the § 3.E sentence, the Foll
   for (const [intake, scope] of [[NESTWAVE, [B2]], [LUMINARY, [B1, B2]]] as const) {
     const text = docText(intake, [...scope]);
     assertStringIncludes(text, "while answering that the technology is not trained using personal information, and reconciling the two appears among the Follow-Ups in § 4.D");
+    // The § 3.E sentence quotes the Company's own cue word(s), never a fixed pair.
+    assertStringIncludes(text, "the Company describes that source as “");
+    assert(!text.includes("as pseudonymized or aggregated while"), "fixed cue pair must not render");
     assertStringIncludes(text, "Reconcile the answer that the technology is not trained using personal information with the recorded training-data source");
     assertStringIncludes(text, "§ 1798.140(aa)");
     assertStringIncludes(text, "§ 1798.140(v)(3)");
