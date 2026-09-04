@@ -180,15 +180,45 @@ export async function downloadBatchPdfZip(batchId: string, outcomes: RunOutcome[
   /** Signed URLs live 600s; only reuse a cached one well inside that window. */
   const SIGNED_URL_TTL_MS = 8 * 60 * 1000;
 
+  /**
+   * CACHE-FIRST LAW (2026-09-04, batch 138): a full render can take longer than
+   * the client is willing to wait, and every retry burns another PDFShift call.
+   * `mode: "sign-only"` returns a fresh signed URL for an ALREADY-rendered PDF
+   * without rendering, so the zip asks for that first and only renders when the
+   * document has never been produced. It is also the recovery path after a
+   * client-side timeout: the server usually finished and stored the file just
+   * after the client gave up.
+   */
+  async function signOnly(o: RunOutcome): Promise<string | null> {
+    if (DIRECT_PDF_SLUGS.has(o.tool_slug)) return null;
+    const { data } = await invokeWithTimeout<{ pdf_url?: string; error?: string }>(
+      "generate-report-pdf",
+      {
+        tool_type: SLUG_TO_PDF_TOOL_TYPE[o.tool_slug],
+        assessment_id: o.sourceRowId,
+        mode: "sign-only",
+      },
+      60_000,
+    );
+    return data?.pdf_url ?? null;
+  }
+
   async function renderFresh(o: RunOutcome): Promise<string> {
     if (DIRECT_PDF_SLUGS.has(o.tool_slug)) return renderRopaPdf(o);
     const { data, error } = await invokeWithTimeout<{ pdf_url?: string; error?: string }>(
 
       "generate-report-pdf",
       { tool_type: SLUG_TO_PDF_TOOL_TYPE[o.tool_slug], assessment_id: o.sourceRowId },
-      180_000,
+      240_000,
     );
     if (error || !data?.pdf_url) {
+      // The render may have completed server-side after the client timed out —
+      // one cheap sign-only probe recovers it instead of failing the row.
+      const recovered = await signOnly(o).catch(() => null);
+      if (recovered) {
+        updateOutcome(o.id, { pdfUrl: recovered, pdfUrlAt: Date.now() });
+        return recovered;
+      }
       const raw = error?.message || data?.error || "no pdf_url returned";
       throw new Error(
         /auth_expired|401|Session expired/i.test(raw)
@@ -196,6 +226,7 @@ export async function downloadBatchPdfZip(batchId: string, outcomes: RunOutcome[
           : raw,
       );
     }
+    updateOutcome(o.id, { pdf_url: data.pdf_url, pdfUrlAt: Date.now() } as never);
     updateOutcome(o.id, { pdfUrl: data.pdf_url, pdfUrlAt: Date.now() });
     return data.pdf_url;
   }
@@ -203,10 +234,14 @@ export async function downloadBatchPdfZip(batchId: string, outcomes: RunOutcome[
   for (const o of rows) {
     try {
       const fresh = o.pdfUrl && o.pdfUrlAt && Date.now() - o.pdfUrlAt < SIGNED_URL_TTL_MS;
-      let pdfUrl = fresh ? (o.pdfUrl as string) : await renderFresh(o);
+      let pdfUrl =
+        (fresh ? (o.pdfUrl as string) : null) ??
+        (await signOnly(o).catch(() => null)) ??
+        (await renderFresh(o));
       let res = await fetch(pdfUrl);
-      if (!res.ok && fresh) {
-        // Cached link rejected (expired/rotated) — re-render once, then retry.
+      if (!res.ok) {
+        // Link rejected (expired/rotated) or the cached object is gone —
+        // render once, then retry the download.
         pdfUrl = await renderFresh(o);
         res = await fetch(pdfUrl);
       }
