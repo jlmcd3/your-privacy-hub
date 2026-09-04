@@ -4,10 +4,14 @@
 // on failure. Completed drafts are flagged, not deleted (retention policy).
 //
 // Anonymous capture: when nobody is signed in, the same payload is mirrored
-// to localStorage so intake typed before the sign-in gate survives the trip
-// through /login or /signup. On the next render with a user present, the
-// pending local draft is migrated into tool_sessions and auto-restored
-// silently (no Resume banner) via `autoRestoreToken`.
+// to sessionStorage so intake typed before the sign-in gate survives the trip
+// through /login or /signup within the same browsing session. It is session
+// scoped on purpose (2026-09-04 policy): an anonymous visitor who leaves does
+// not get to return later and finish — the decision is made in-session. On the
+// next render with a user present, the pending session draft is migrated into
+// tool_sessions and auto-restored silently (no Resume banner) via
+// `autoRestoreToken`. Legacy localStorage copies are purged on read.
+
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
