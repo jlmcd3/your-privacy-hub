@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
+import { intakeGate } from "@/components/intake/intakeGateCopy";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
@@ -85,7 +86,7 @@ export function HARM_PREFILL(detail: string): string[] {
 const LIAssessmentIntake = () => {
 
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { clientId } = useActiveClient();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -98,6 +99,12 @@ const LIAssessmentIntake = () => {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [intakeForCheckout, setIntakeForCheckout] = useState<Record<string, unknown> | null>(null);
   const [acknowledged, setAcknowledged] = useState(false);
+
+  // Step 2 is the account gate for the LIA: anonymous visitors get the full
+  // Step 1 screening, then must create an account / subscribe to continue.
+  useEffect(() => {
+    if (!authLoading && !user) setAuthGateOpen(true);
+  }, [authLoading, user]);
 
   
   const guidanceTier = useGuidanceTier();
@@ -961,7 +968,7 @@ const LIAssessmentIntake = () => {
 
 
 
-        <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo={`/li-assessment/intake/${row.id}`} />
+        <AuthGateModal open={authGateOpen} onClose={() => { setAuthGateOpen(false); if (!user) navigate("/li-assessment"); }} redirectTo={`/li-assessment/intake/${row.id}`} {...intakeGate("li_assessment")} />
         <ToolCheckoutModal
           open={checkoutOpen}
           toolType="li_assessment"
