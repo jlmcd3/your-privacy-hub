@@ -160,8 +160,12 @@ Our DPO is designated under UK GDPR Art. 37 and reviews each of these annually.`
 
 Deno.test("item 4 — the doc-4 narrative reads four enumerated risks, never 37", () => {
   const n = statedResidualRiskCount(DOC4);
-  assert(n === 4 || n === null, String(n));
+  // The "never 37" guard runs BEFORE the narrowing assert below: once `n`
+  // is asserted to be `4 | null`, TS statically knows `n === 37` can never
+  // hold (TS2367) — reordering keeps both runtime checks, in a sequence the
+  // type checker accepts, with no change to what the test actually proves.
   assertEquals(n === 37, false);
+  assert(n === 4 || n === null, String(n));
 });
 
 Deno.test("item 4 — a citation-only narrative yields no count", () => {

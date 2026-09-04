@@ -71,6 +71,15 @@ export interface EmitGateReport {
   degraded_paths?: string[];
   /** ITEM 352 — internal rows stripped from the customer array. */
   customer_rows_filtered?: number;
+  /** PROMPT 9K item 2 — DETECT MODE. Set only when `opts.detectOnly` is on:
+   *  every check ran and every finding was recorded, but nothing was
+   *  degraded and no customer array was rewritten. */
+  detect_only?: boolean;
+  /** DETECT MODE — count of leaves that WOULD have been degraded had the
+   *  gate been allowed to write. */
+  writes_suppressed?: number;
+  /** DETECT MODE — dot-paths of the leaves that would have been degraded. */
+  would_degrade_paths?: string[];
 }
 
 
@@ -573,10 +582,9 @@ export function runEmitGate(
     // is degraded, no customer array is rewritten, the builders' output ships
     // as built.
     if (opts.detectOnly) {
-      (gateReport as Record<string, unknown>).detect_only = true;
-      (gateReport as Record<string, unknown>).writes_suppressed = leavesToDegrade.length;
-      (gateReport as Record<string, unknown>).would_degrade_paths =
-        leavesToDegrade.map((l) => l.path);
+      gateReport.detect_only = true;
+      gateReport.writes_suppressed = leavesToDegrade.length;
+      gateReport.would_degrade_paths = leavesToDegrade.map((l) => l.path);
       gateReport.degraded_count = 0;
     } else {
       for (const leaf of leavesToDegrade) degrade(leaf, degradedPaths);
@@ -622,7 +630,7 @@ export function runEmitGate(
         path: f.path,
         evidence: f.evidence,
       })),
-      { writes_suppressed: (gateReport as Record<string, unknown>).writes_suppressed ?? 0, crashed: !!gateReport.crashed },
+      { writes_suppressed: gateReport.writes_suppressed ?? 0, crashed: !!gateReport.crashed },
     );
   }
 
