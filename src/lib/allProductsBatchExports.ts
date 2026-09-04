@@ -226,7 +226,6 @@ export async function downloadBatchPdfZip(batchId: string, outcomes: RunOutcome[
           : raw,
       );
     }
-    updateOutcome(o.id, { pdf_url: data.pdf_url, pdfUrlAt: Date.now() } as never);
     updateOutcome(o.id, { pdfUrl: data.pdf_url, pdfUrlAt: Date.now() });
     return data.pdf_url;
   }
