@@ -157,5 +157,7 @@ Deno.test("DOC 164 — the new prose is register-clean", () => {
 });
 
 Deno.test("DOC 164 — the grader instrument carries the new tag", () => {
-  assert(GRADER_CONTEXT_VERSION.endsWith("+gov-dpa2018-wp243-2026-09-04"));
+  // Not endsWith: later amendments (e.g. doc 165) append further tags after
+  // this one — the tag only needs to be present, not terminal.
+  assert(GRADER_CONTEXT_VERSION.includes("+gov-dpa2018-wp243-2026-09-04"));
 });
