@@ -158,7 +158,7 @@ export default function EUNoticeDocuments() {
             .replace(/>/g, "&gt;")}</body></html>`;
       const title = labelForDoc(d);
       const { data, error } = await supabase.functions.invoke("render-html-to-pdf", {
-        body: { html, title },
+        body: { html, title, cache_key: `eu-notice-${d.id}` },
       });
       if (error) throw error;
       if (!data?.pdf_url) throw new Error(data?.error || "PDF generation failed");

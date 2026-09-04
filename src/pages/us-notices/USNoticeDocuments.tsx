@@ -235,7 +235,7 @@ export default function USNoticeDocuments() {
         `v${doc.version_number}`,
       ];
       const { data, error } = await supabase.functions.invoke("render-html-to-pdf", {
-        body: { html, title: titleParts.join("-") },
+        body: { html, title: titleParts.join("-"), cache_key: `us-notice-${doc.id}` },
       });
       if (error) throw error;
       if (!data?.pdf_url) throw new Error(data?.error || "PDF generation failed");
