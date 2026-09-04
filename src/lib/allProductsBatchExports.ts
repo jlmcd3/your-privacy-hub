@@ -265,7 +265,13 @@ export async function downloadBatchErrorsMarkdown(batchId: string, outcomes: Run
   lines.push(`- Grading failures: ${gradeFailures.length}`);
   lines.push(`- Completed but unscored: ${noScore.length}`);
   lines.push(`- Runs with a grade payload: ${rows.filter((o) => o.gradePayload != null).length}`);
+  if (serverOnly) {
+    lines.push(
+      "- Source: rebuilt from server job rows (`static_stress_jobs`) — this browser holds no local run records for this batch, so grader findings/scores are not available here.",
+    );
+  }
   lines.push("");
+
 
   const section = (title: string, items: RunOutcome[], field: (o: RunOutcome) => string) => {
     lines.push(`## ${title}`);
