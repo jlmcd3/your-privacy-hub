@@ -236,8 +236,15 @@ export async function downloadBatchPdfZip(batchId: string, outcomes: RunOutcome[
 }
 
 /** Write every error of the batch into a markdown file and download it. */
-export function downloadBatchErrorsMarkdown(batchId: string, outcomes: RunOutcome[]) {
-  const rows = outcomesForBatch(outcomes, batchId);
+export async function downloadBatchErrorsMarkdown(batchId: string, outcomes: RunOutcome[]) {
+  let rows = outcomesForBatch(outcomes, batchId);
+  let serverOnly = false;
+  if (!rows.length) {
+    // SERVER-ROW LAW (2026-09-04): same fallback as the zip — a server stress
+    // batch has no local RunOutcome rows after a reload or in another browser.
+    rows = await serverRowsForStressBatch(batchId, { allStatuses: true });
+    serverOnly = rows.length > 0;
+  }
   if (!rows.length) {
     toast.error("No runs recorded for this batch.");
     return;
@@ -245,6 +252,8 @@ export function downloadBatchErrorsMarkdown(batchId: string, outcomes: RunOutcom
   const runFailures = rows.filter((o) => o.status === "failed" || o.error);
   const gradeFailures = rows.filter((o) => o.gradeError);
   const noScore = rows.filter((o) => o.status === "complete" && !o.gradeError && o.meanScore == null);
+
+
 
   const lines: string[] = [];
   lines.push(`# All-products batch errors — ${shortId(batchId)}`);
