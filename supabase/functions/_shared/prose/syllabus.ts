@@ -69,6 +69,7 @@ export const SR_PRODUCTS: ReadonlySet<string> = new Set<string>([
   "governance",
   "cppa-admt-v2",
   "cppa-cyber",
+  "registration",
 ]);
 
 export function isSyllabusRecordProduct(product: string | undefined | null): boolean {

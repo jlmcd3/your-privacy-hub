@@ -54,6 +54,9 @@ import {
 import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
 // A-TEAM S3 RULING I.23 (doc 115) — customer-facing dates in long form.
 import { formatReportDateLong } from "../../../_shared/report-dates.ts";
+// DOC 176 (2026-09-04) — Syllabus & Record (doc 151); Registration is the
+// seventh product migrated onto the fleet presentation system.
+import { dispositionTone, type SyllabusProjection } from "../../../_shared/prose/syllabus.ts";
 import { firstSentence, firstSentences } from "../../../_shared/ltp/dpia-skeleton-assemble.ts";
 
 export const REGISTRATION_SKELETON_ASSEMBLER_STAMP =
@@ -1480,6 +1483,94 @@ function registrationToa(report: Bag, body: string): string {
 
 // ── Assembly ────────────────────────────────────────────────────────────────
 
+// DOC 176 (2026-09-04) — THE DETERMINATION SYLLABUS (Syllabus & Record p.1).
+// Every value below is a PROJECTION of a determination this assembler
+// already made (doc 127 §28 law): the disposition is a three-bucket
+// simplification of the SAME `duty_counts` the cover table's own "Overall
+// status" row already composes from (reserved > 0 outranks attached, since
+// an open determination is the dominant "needs attention" signal) — reusing
+// existing fleet lexicon words rather than inventing new ones, since
+// "duty attaches" is the same class of fact CPPA Risk's "Engaged" already
+// names; the paragraph is `execLead`, verbatim — the SAME text composed
+// into `executive_summary:0`'s `kind: "lead"` block; the conditions are the
+// open (`conditional`/`record_insufficient`) `determinations` verbatim —
+// Registration's genuine per-jurisdiction typed conditions surface, read
+// from `open_questions`/`headline` exactly as recorded, never re-derived.
+// Registration has no lettered appendices, so `record_map` is honestly
+// empty, same precedent as LIA/Governance.
+function registrationDispositionLabel(counts: RegistrationDutyCounts): string {
+  if (counts.reserved > 0) return "Determination pending";
+  if (counts.attached > 0) return "Engaged";
+  return "Not engaged";
+}
+
+function buildRegistrationSyllabus(
+  rendered: RenderedSkeletonDocument,
+  report: Bag,
+  counts: RegistrationDutyCounts,
+  execLead: string,
+  intake: Bag,
+  entity: string,
+): SyllabusProjection {
+  const disposition = registrationDispositionLabel(counts);
+  const juris = buildJurisdictionProse(intake);
+
+  const rows: Array<readonly [string, string]> = [];
+  if (juris) rows.push(["Jurisdictions assessed", juris]);
+  rows.push([
+    "Registration duties",
+    counts.attached > 0
+      ? `${count(counts.attached, "duty attaches", "duties attach")}${counts.attached_names.length ? ` — ${counts.attached_names.join("; ")}` : ""}`
+      : "None attach on the information provided",
+  ]);
+  rows.push([
+    "Open determinations",
+    counts.reserved > 0
+      ? `${count(counts.reserved, "determination remains", "determinations remain")} open because required information was not provided`
+      : "None — every determination is resolved on the information provided",
+  ]);
+
+  const openDets = determinations(report).filter((d) => {
+    const v = s(d.verdict);
+    return v === "conditional" || v === "record_insufficient";
+  });
+  const conditions = openDets.map((d) => {
+    const questions = strList(d.open_questions);
+    return {
+      name: s(d.state_name) || s(d.jurisdiction) || "Open determination",
+      text: questions.length ? questions.join(" ") : s(d.headline),
+    };
+  });
+
+  const key_dates: Array<readonly [string, string]> = [
+    ["Assessment date", formatReportDateLong(new Date().toISOString().slice(0, 10))],
+  ];
+
+  const record_map: Array<readonly [string, string, string]> = [];
+  for (const sec of rendered.sections) {
+    const m = /^Appendix ([A-Z]) — (.+)$/.exec(sec.title ?? "");
+    if (m) record_map.push([m[1], m[2], ""]);
+  }
+
+  return {
+    _typed: "syllabus@sr-2026-09-04",
+    instrument_line: "REGISTRATION ASSESSMENT",
+    prepared_for: entity,
+    activity: "Registration and Filing Duties",
+    subtitle: "Registration and notification duties across the jurisdictions assessed",
+    disposition_label: "OVERALL STATUS",
+    disposition,
+    disposition_tone: dispositionTone(disposition),
+    paragraph: execLead,
+    rows,
+    conditions_heading: conditions.length ? "OPEN DETERMINATIONS — the assessment depends on these" : "",
+    conditions,
+    key_dates,
+    record_map,
+    running_head: `REGISTRATION ASSESSMENT · ${entity.toUpperCase()}`,
+  };
+}
+
 export interface RegistrationSkeletonResult {
   readonly document: RenderedSkeletonDocument;
   readonly conformance: ReturnType<typeof verifySkeletonConformance>;
@@ -1606,7 +1697,7 @@ export function assembleRegistrationSkeletonDocument(
 
   const toa = registrationToa(report, skeletonDocumentToText(draft));
 
-  const document = renderSkeletonDocument({
+  const renderedDoc = renderSkeletonDocument({
     sections: REGISTRATION_SKELETON_SECTIONS,
     title: REGISTRATION_SKELETON_TITLE,
     subtitle: REGISTRATION_SKELETON_SUBTITLE,
@@ -1615,6 +1706,14 @@ export function assembleRegistrationSkeletonDocument(
     composed: { ...composed, "table_of_authorities:0": toa },
     tables,
   });
+  // DOC 176 (2026-09-04) — the Determination Syllabus (page 1 of the
+  // Syllabus & Record presentation) attached as a projection of the
+  // determinations above. Additive: sections, hash and conformance are
+  // untouched; a renderer that does not know the field ignores it.
+  const document: RenderedSkeletonDocument = {
+    ...renderedDoc,
+    syllabus: buildRegistrationSyllabus(renderedDoc, report, counts, execLead, intake, org),
+  };
 
   const body = skeletonDocumentToText(document).toLowerCase();
   const register_findings = REGISTRATION_V3_BANNED_REGISTER.filter((b) => body.includes(b));

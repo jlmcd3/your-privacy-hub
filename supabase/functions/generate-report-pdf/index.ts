@@ -2705,12 +2705,14 @@ function srSectionsHtml(doc: SkeletonDocLike, product?: string): string {
         // Readiness snapshot table (surface "cyber_v4_readiness_snapshot")
         // is now ALSO consumed into the syllabus's own rows
         // (buildCyberV4Syllabus), the same way Risk's exec_status_panel was.
+        // DOC 176 (2026-09-04) — Registration's cover table (surface
+        // "registration_profile") is a fifth instance of the same shape.
         if (
           syllabus &&
           (p.table.surface === "cover_summary" || p.table.surface === "exec_status_panel" ||
             p.table.surface === "art30_element_findings+demonstrability_findings+domain_element_findings+remediation_plan" ||
             p.table.surface === "header" || p.table.surface === "cyber_v4_cover" ||
-            p.table.surface === "cyber_v4_readiness_snapshot")
+            p.table.surface === "cyber_v4_readiness_snapshot" || p.table.surface === "registration_profile")
         ) return "";
         return srTableHtml(p.table, product);
       }
@@ -5256,7 +5258,9 @@ Deno.serve(async (req) => {
       // only for rows generated before the wire-in.
       const skelReg = readSkeletonDocument(record.result_summary);
       html = skelReg
-        ? buildSkeletonReportHTML(skelReg, record, "Registration Assessment")
+        // DOC 176 (2026-09-04) — the "registration" product string activates
+        // the Syllabus & Record presentation system (SR_PRODUCTS).
+        ? buildSkeletonReportHTML(skelReg, record, "Registration Assessment", "registration")
         : buildRegistrationReportHTML(record);
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "registration_document") {

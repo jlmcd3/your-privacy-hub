@@ -974,7 +974,7 @@ export function SyllabusRecordView({ doc, product }: { doc: SkeletonDocument; pr
                     (p.table.surface === "cover_summary" || p.table.surface === "exec_status_panel" ||
                       p.table.surface === "art30_element_findings+demonstrability_findings+domain_element_findings+remediation_plan" ||
                       p.table.surface === "header" || p.table.surface === "cyber_v4_cover" ||
-                      p.table.surface === "cyber_v4_readiness_snapshot")
+                      p.table.surface === "cyber_v4_readiness_snapshot" || p.table.surface === "registration_profile")
                   ) return null;
                   return <SrTable key={i} table={p.table} />;
                 }

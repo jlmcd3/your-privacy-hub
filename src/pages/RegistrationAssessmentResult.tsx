@@ -298,7 +298,9 @@ export default function RegistrationAssessmentResult() {
             {skeletonDoc && (
               <Card className="mb-6">
                 <CardContent className="py-6">
-                  <SkeletonDocumentView doc={skeletonDoc} />
+                  {/* DOC 176 (2026-09-04) — the product string activates the
+                      Syllabus & Record presentation system. */}
+                  <SkeletonDocumentView doc={skeletonDoc} product="registration" />
                 </CardContent>
               </Card>
             )}
