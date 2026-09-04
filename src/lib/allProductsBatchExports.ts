@@ -114,31 +114,42 @@ const shortId = (id: string) => id.replace(/^local-(stress-)?/, "").slice(0, 8);
  * renderable for a `local-stress-<uuid>` column, rebuild the row list from
  * static_stress_jobs so the zip still renders.
  */
-async function serverRowsForStressBatch(batchId: string): Promise<RunOutcome[]> {
+async function serverRowsForStressBatch(
+  batchId: string,
+  opts: { allStatuses?: boolean } = {},
+): Promise<RunOutcome[]> {
   const serverId = batchId.replace(/^local-stress-/, "");
   if (serverId === batchId) return [];
-  const { data } = await supabase
+  let q = supabase
     .from("static_stress_jobs")
-    .select("id, tool_slug, status, source_row_id, company_name")
-    .eq("batch_id", serverId)
-    .eq("status", "complete");
+    .select("id, tool_slug, status, source_row_id, company_name, error_message, created_at, completed_at")
+    .eq("batch_id", serverId);
+  if (!opts.allStatuses) q = q.eq("status", "complete");
+  const { data } = await q;
   const jobs = (data ?? []) as Array<{
     id: string; tool_slug: string; status: string;
     source_row_id: string | null; company_name: string | null;
+    error_message: string | null; created_at: string | null; completed_at: string | null;
   }>;
   return jobs
-    .filter((j) => j.source_row_id)
+    .filter((j) => (opts.allStatuses ? true : j.source_row_id))
     .map((j) => ({
       id: j.id,
       batchId,
-      startedAt: new Date().toISOString(),
+      startedAt: j.created_at ?? new Date().toISOString(),
+      finishedAt: j.completed_at ?? null,
       tool_slug: (STRESS_TOOL_TO_SLUG[j.tool_slug] ?? j.tool_slug) as ToolSlug,
       variant: `server/${j.company_name ?? "company"}`,
       source: "claude",
-      status: "complete",
+      status: j.status === "complete" ? "complete" : "failed",
       sourceRowId: j.source_row_id,
+      error: j.error_message ?? undefined,
+      claudeScore: null,
+      gptScore: null,
+      meanScore: null,
     })) as unknown as RunOutcome[];
 }
+
 
 /** Create + download a zip of the batch's report PDFs. */
 export async function downloadBatchPdfZip(batchId: string, outcomes: RunOutcome[]) {
