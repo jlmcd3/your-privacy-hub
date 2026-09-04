@@ -7,25 +7,42 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SampleToolReport } from "@/components/SampleToolReport";
+import { SampleTocPanel, type SampleTocEntry } from "@/components/SampleTocPanel";
 import { TOOL_ROUTE } from "@/lib/sampleToolRoutes";
 import { fmtDate } from "@/lib/dates";
 import { fireSampleOpened } from "@/lib/analyticsEvents";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
 
+// TRUNCATED SAMPLES (2026-09-04): reads the anon-facing
+// `sample_reports_public` view — preview columns only.
 type Row = {
   id: string;
   tool_slug: string;
   variant: string;
   title: string;
   scenario_summary: string | null;
-  document_text: string | null;
-  report_data: Record<string, unknown> | null;
   verification: Record<string, unknown> | null;
   published_at: string | null;
-  // PANEL SAMP-3 (2026-08-30): the file-driven samples (RoPA, US/EU
-  // notices) carry their deliverable as a stored PDF, not row content.
-  pdf_path: string | null;
+  preview_document_text: string | null;
+  preview_report_data: Record<string, unknown> | null;
+  preview_toc: SampleTocEntry[] | null;
+  // The file-driven samples (RoPA, US/EU notices) carry a truncated preview PDF.
+  preview_pdf_path: string | null;
+  withheld_section_count: number | null;
 };
+
+const PUBLIC_SAMPLE_COLUMNS =
+  "id, tool_slug, variant, title, scenario_summary, verification, published_at, preview_document_text, preview_report_data, preview_toc, preview_pdf_path, withheld_section_count";
+
+/** Fail closed: a row with no preview built yet is not shown publicly. */
+function hasPreview(r: Row | null): r is Row {
+  return Boolean(
+    r &&
+      ((r.preview_document_text && r.preview_document_text.trim().length > 0) ||
+        (r.preview_report_data && Object.keys(r.preview_report_data).length > 0) ||
+        r.preview_pdf_path),
+  );
+}
 
 const TOOL_DISPLAY: Record<string, string> = {
   li_assessment: "Legitimate Interests Assessment",
@@ -94,19 +111,15 @@ export default function SampleReportView() {
       if (!toolSlug || !variant) return;
       const [{ data, error }, { data: sibData }] = await Promise.all([
         supabase
-          .from("sample_reports")
-          .select(
-            "id, tool_slug, variant, title, scenario_summary, document_text, report_data, verification, published_at, pdf_path",
-          )
+          .from("sample_reports_public")
+          .select(PUBLIC_SAMPLE_COLUMNS)
           .eq("tool_slug", toolSlug)
           .eq("variant", variant)
-          .eq("status", "published")
           .maybeSingle(),
         supabase
-          .from("sample_reports")
+          .from("sample_reports_public")
           .select("variant, title")
           .eq("tool_slug", toolSlug)
-          .eq("status", "published")
           .order("variant"),
       ]);
       if (cancelled) return;
@@ -115,7 +128,8 @@ export default function SampleReportView() {
         setRow(null);
         return;
       }
-      setRow((data as Row) ?? null);
+      const loaded = (data ?? null) as unknown as Row | null;
+      setRow(hasPreview(loaded) ? loaded : null);
       setSiblings((sibData ?? []) as Array<{ variant: string; title: string }>);
     })();
     return () => {
@@ -282,10 +296,16 @@ export default function SampleReportView() {
               <div id="sample-report-body" className="scroll-mt-24">
                 <SampleToolReport
                   toolSlug={row.tool_slug}
-                  documentText={row.document_text}
-                  reportData={row.report_data}
+                  documentText={row.preview_document_text}
+                  reportData={row.preview_report_data}
                   publishedAt={row.published_at}
-                  pdfPath={row.pdf_path}
+                  pdfPath={row.preview_pdf_path}
+                />
+                <SampleTocPanel
+                  entries={row.preview_toc ?? []}
+                  withheldCount={row.withheld_section_count ?? 0}
+                  toolRoute={toolRoute}
+                  unit={row.preview_pdf_path ? "pages" : "sections"}
                 />
               </div>
 

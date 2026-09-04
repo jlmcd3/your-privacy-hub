@@ -67,6 +67,25 @@ async function callSaveSampleReport(action: string, payload: Record<string, unkn
   return data;
 }
 
+// TRUNCATED SAMPLES (2026-09-04): the public /samples pages read only the
+// preview columns, so a published row without a built preview renders the
+// fail-closed state. Publishing therefore always rebuilds the preview.
+async function callBuildSamplePreview(payload: Record<string, unknown>) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) throw new Error("Not signed in — sign in as an admin first");
+  const r = await fetch(`${SUPABASE_URL}/functions/v1/build-sample-preview`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data?.error || `HTTP ${r.status}`);
+  return data;
+}
+
 export default function AdminSampleReports() {
   const { user } = useAuth();
   const [runs, setRuns] = useState<Record<string, RunState>>({});
@@ -209,10 +228,38 @@ export default function AdminSampleReports() {
     setBusy(`status::${sample.id}`);
     try {
       await callSaveSampleReport("set_status", { id: sample.id, status });
-      toast.success(`Status → ${status}`);
+      if (status === "published") {
+        await callBuildSamplePreview({ id: sample.id });
+        toast.success("Status → published · public preview rebuilt");
+      } else {
+        toast.success(`Status → ${status}`);
+      }
       await reloadSamples();
     } catch (e) {
       toast.error(`Status change failed: ${(e as Error).message}`);
+    } finally { setBusy(null); }
+  }
+
+  async function onRebuildPreview(sample: SampleRow) {
+    setBusy(`preview::${sample.id}`);
+    try {
+      await callBuildSamplePreview({ id: sample.id });
+      toast.success("Public preview rebuilt");
+    } catch (e) {
+      toast.error(`Preview rebuild failed: ${(e as Error).message}`);
+    } finally { setBusy(null); }
+  }
+
+  async function onRebuildAllPreviews() {
+    setBusy("preview::all");
+    try {
+      const res = await callBuildSamplePreview({});
+      const failures = Array.isArray(res?.failures) ? res.failures.length : 0;
+      const built = Array.isArray(res?.results) ? res.results.length : 0;
+      if (failures > 0) toast.error(`${built} rebuilt · ${failures} failed`);
+      else toast.success(`${built} public previews rebuilt`);
+    } catch (e) {
+      toast.error(`Preview rebuild failed: ${(e as Error).message}`);
     } finally { setBusy(null); }
   }
 
@@ -234,6 +281,9 @@ export default function AdminSampleReports() {
             </p>
           </div>
           <div className="flex gap-2 shrink-0">
+            <Button variant="outline" onClick={onRebuildAllPreviews} disabled={busy !== null}>
+              {busy === "preview::all" ? "Rebuilding…" : "Rebuild all public previews"}
+            </Button>
             {runningAll ? (
               <Button variant="destructive" onClick={() => { cancelAll.current = true; }}>
                 Stop after current
@@ -315,6 +365,16 @@ export default function AdminSampleReports() {
                         <option value="approved">approved</option>
                         <option value="published">published</option>
                       </select>
+                    )}
+                    {sample && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onRebuildPreview(sample)}
+                        disabled={busy === `preview::${sample.id}`}
+                      >
+                        {busy === `preview::${sample.id}` ? "Rebuilding…" : "Rebuild public preview"}
+                      </Button>
                     )}
                     {sample?.pdf_path && <span className="font-mono text-muted-foreground">{sample.pdf_path}</span>}
                   </div>

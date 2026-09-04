@@ -15,6 +15,13 @@
       "when": 1788465633302,
       "tag": "0001_quality_fixture_labels",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788531370226,
+      "tag": "0002_sample_report_previews",
+      "breakpoints": true
     }
   ]
 }
