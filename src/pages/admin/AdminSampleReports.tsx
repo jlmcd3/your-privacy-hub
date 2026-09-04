@@ -281,6 +281,9 @@ export default function AdminSampleReports() {
             </p>
           </div>
           <div className="flex gap-2 shrink-0">
+            <Button variant="outline" onClick={onRebuildAllPreviews} disabled={busy !== null}>
+              {busy === "preview::all" ? "Rebuilding…" : "Rebuild all public previews"}
+            </Button>
             {runningAll ? (
               <Button variant="destructive" onClick={() => { cancelAll.current = true; }}>
                 Stop after current
