@@ -100,8 +100,9 @@ export default function HomeOrientationStrip() {
               icon={<ClipboardCheck className="w-6 h-6" strokeWidth={1.75} aria-hidden="true" />}
             >
               <p className="text-sm text-slate text-center leading-relaxed">
-                Generate CPPA Risk Assessments, plus DPIAs, DPAs, LIAs, governance reviews, and
-                other compliance tools calibrated to enforcement.
+                Generate CPPA Risk Assessments, DPIAs, DPAs, LIAs, governance reviews, and other
+                compliance tools with laws, regulations, regulatory background, and answer context guiding
+                you along the way.
               </p>
               <div className="text-center mt-4">
                 <Link to="/tools" className={inlineLink}>
