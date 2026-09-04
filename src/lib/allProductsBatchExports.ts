@@ -114,31 +114,42 @@ const shortId = (id: string) => id.replace(/^local-(stress-)?/, "").slice(0, 8);
  * renderable for a `local-stress-<uuid>` column, rebuild the row list from
  * static_stress_jobs so the zip still renders.
  */
-async function serverRowsForStressBatch(batchId: string): Promise<RunOutcome[]> {
+async function serverRowsForStressBatch(
+  batchId: string,
+  opts: { allStatuses?: boolean } = {},
+): Promise<RunOutcome[]> {
   const serverId = batchId.replace(/^local-stress-/, "");
   if (serverId === batchId) return [];
-  const { data } = await supabase
+  let q = supabase
     .from("static_stress_jobs")
-    .select("id, tool_slug, status, source_row_id, company_name")
-    .eq("batch_id", serverId)
-    .eq("status", "complete");
+    .select("id, tool_slug, status, source_row_id, company_name, error_message, created_at, completed_at")
+    .eq("batch_id", serverId);
+  if (!opts.allStatuses) q = q.eq("status", "complete");
+  const { data } = await q;
   const jobs = (data ?? []) as Array<{
     id: string; tool_slug: string; status: string;
     source_row_id: string | null; company_name: string | null;
+    error_message: string | null; created_at: string | null; completed_at: string | null;
   }>;
   return jobs
-    .filter((j) => j.source_row_id)
+    .filter((j) => (opts.allStatuses ? true : j.source_row_id))
     .map((j) => ({
       id: j.id,
       batchId,
-      startedAt: new Date().toISOString(),
+      startedAt: j.created_at ?? new Date().toISOString(),
+      finishedAt: j.completed_at ?? null,
       tool_slug: (STRESS_TOOL_TO_SLUG[j.tool_slug] ?? j.tool_slug) as ToolSlug,
       variant: `server/${j.company_name ?? "company"}`,
       source: "claude",
-      status: "complete",
+      status: j.status === "complete" ? "complete" : "failed",
       sourceRowId: j.source_row_id,
+      error: j.error_message ?? undefined,
+      claudeScore: null,
+      gptScore: null,
+      meanScore: null,
     })) as unknown as RunOutcome[];
 }
+
 
 /** Create + download a zip of the batch's report PDFs. */
 export async function downloadBatchPdfZip(batchId: string, outcomes: RunOutcome[]) {
@@ -225,8 +236,15 @@ export async function downloadBatchPdfZip(batchId: string, outcomes: RunOutcome[
 }
 
 /** Write every error of the batch into a markdown file and download it. */
-export function downloadBatchErrorsMarkdown(batchId: string, outcomes: RunOutcome[]) {
-  const rows = outcomesForBatch(outcomes, batchId);
+export async function downloadBatchErrorsMarkdown(batchId: string, outcomes: RunOutcome[]) {
+  let rows = outcomesForBatch(outcomes, batchId);
+  let serverOnly = false;
+  if (!rows.length) {
+    // SERVER-ROW LAW (2026-09-04): same fallback as the zip — a server stress
+    // batch has no local RunOutcome rows after a reload or in another browser.
+    rows = await serverRowsForStressBatch(batchId, { allStatuses: true });
+    serverOnly = rows.length > 0;
+  }
   if (!rows.length) {
     toast.error("No runs recorded for this batch.");
     return;
@@ -234,6 +252,8 @@ export function downloadBatchErrorsMarkdown(batchId: string, outcomes: RunOutcom
   const runFailures = rows.filter((o) => o.status === "failed" || o.error);
   const gradeFailures = rows.filter((o) => o.gradeError);
   const noScore = rows.filter((o) => o.status === "complete" && !o.gradeError && o.meanScore == null);
+
+
 
   const lines: string[] = [];
   lines.push(`# All-products batch errors — ${shortId(batchId)}`);
@@ -245,7 +265,13 @@ export function downloadBatchErrorsMarkdown(batchId: string, outcomes: RunOutcom
   lines.push(`- Grading failures: ${gradeFailures.length}`);
   lines.push(`- Completed but unscored: ${noScore.length}`);
   lines.push(`- Runs with a grade payload: ${rows.filter((o) => o.gradePayload != null).length}`);
+  if (serverOnly) {
+    lines.push(
+      "- Source: rebuilt from server job rows (`static_stress_jobs`) — this browser holds no local run records for this batch, so grader findings/scores are not available here.",
+    );
+  }
   lines.push("");
+
 
   const section = (title: string, items: RunOutcome[], field: (o: RunOutcome) => string) => {
     lines.push(`## ${title}`);

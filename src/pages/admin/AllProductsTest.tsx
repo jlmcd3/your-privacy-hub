@@ -38,7 +38,7 @@ export default function AllProductsTest() {
       <button
         type="button"
         className="text-[10px] underline text-brand-teal-text hover:no-underline"
-        onClick={() => downloadBatchErrorsMarkdown(batchId, outcomes)}
+        onClick={() => void downloadBatchErrorsMarkdown(batchId, outcomes)}
         title="Download this batch's errors (.md)"
       >md</button>
     </>
