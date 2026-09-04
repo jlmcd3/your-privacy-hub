@@ -360,6 +360,12 @@ export default function AdminSampleReports() {
                   )}
                 </div>
 
+                {sample && (
+                  <p className={`text-xs ${sample.preview_built_at ? "text-muted-foreground" : "text-destructive"}`}>
+                    {previewLabel(sample)}
+                  </p>
+                )}
+
                 <details className="text-xs">
                   <summary className="cursor-pointer text-muted-foreground">Curation</summary>
                   <div className="flex flex-wrap items-center gap-2 pt-2">
