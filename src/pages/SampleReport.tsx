@@ -13,20 +13,36 @@ import { fmtDate } from "@/lib/dates";
 import { fireSampleOpened } from "@/lib/analyticsEvents";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
 
+// TRUNCATED SAMPLES (2026-09-04): the public pages read the anon-facing
+// `sample_reports_public` view, which exposes ONLY the preview columns —
+// the withheld remainder of each document never reaches the browser.
 type SampleRow = {
   id: string;
   tool_slug: string;
   variant: string;
   title: string;
   scenario_summary: string | null;
-  document_text: string | null;
-  report_data: Record<string, unknown> | null;
   verification: Record<string, unknown> | null;
   published_at: string | null;
-  // PANEL SAMP-3 (2026-08-30): file-driven samples (RoPA, notices) carry
-  // their deliverable as a stored PDF, not row content.
-  pdf_path: string | null;
+  preview_document_text: string | null;
+  preview_report_data: Record<string, unknown> | null;
+  preview_toc: SampleTocEntry[] | null;
+  // File-driven samples (RoPA, notices) carry a truncated preview PDF.
+  preview_pdf_path: string | null;
+  withheld_section_count: number | null;
 };
+
+const PUBLIC_SAMPLE_COLUMNS =
+  "id, tool_slug, variant, title, scenario_summary, verification, published_at, preview_document_text, preview_report_data, preview_toc, preview_pdf_path, withheld_section_count";
+
+/** Fail closed: a row with no preview built yet is not shown publicly. */
+function hasPreview(r: SampleRow): boolean {
+  return Boolean(
+    (r.preview_document_text && r.preview_document_text.trim().length > 0) ||
+      (r.preview_report_data && Object.keys(r.preview_report_data).length > 0) ||
+      r.preview_pdf_path,
+  );
+}
 
 const TOOL_DISPLAY: Record<string, string> = {
   li_assessment: "Legitimate Interests Assessment",
