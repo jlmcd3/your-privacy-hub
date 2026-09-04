@@ -56,8 +56,9 @@ export default function HomeOrientationStrip() {
               className="border-b md:border-b-0 md:border-r border-brand-cloud"
             >
               <p className="text-sm text-slate text-center leading-relaxed">
-                Worldwide privacy authorities monitored daily — enforcement actions, regulatory
-                guidance, and legislation, enriched with analysis before it reaches you.
+                Worldwide privacy news and authorities monitored daily — enforcement actions, regulatory
+                guidance, and legislative developments, enriched with analysis for insights applicable to
+                your organization.
               </p>
               <div className="text-center mt-4">
                 <a href="#updates" className={inlineLink}>
@@ -72,8 +73,9 @@ export default function HomeOrientationStrip() {
               className="border-b md:border-b-0 md:border-r border-brand-cloud"
             >
               <p className="text-sm text-slate text-center leading-relaxed">
-                Research privacy laws and authorities, compare jurisdictions, and use the Weekly
-                Intelligence Brief to see what developments mean for your organization.
+                Research privacy laws and authorities, compare jurisdictions, and get your personalized
+                Weekly Intelligence Brief to follow developments relevant to your role, industry or
+                interests.
               </p>
               <div
                 className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-sm"
@@ -98,8 +100,9 @@ export default function HomeOrientationStrip() {
               icon={<ClipboardCheck className="w-6 h-6" strokeWidth={1.75} aria-hidden="true" />}
             >
               <p className="text-sm text-slate text-center leading-relaxed">
-                Generate CPPA Risk Assessments, plus DPIAs, DPAs, LIAs, governance reviews, and
-                other compliance tools calibrated to enforcement.
+                Generate CPPA Risk Assessments, DPIAs, DPAs, LIAs, governance reviews, and other
+                compliance tools with laws, regulations, regulatory background, and answer context guiding
+                you along the way.
               </p>
               <div className="text-center mt-4">
                 <Link to="/tools" className={inlineLink}>
