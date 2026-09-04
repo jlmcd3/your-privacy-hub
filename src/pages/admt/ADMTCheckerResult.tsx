@@ -480,7 +480,10 @@ export default function ADMTCheckerResult() {
           </div>
         )}
 
-        {skeletonDoc && <SkeletonDocumentView doc={skeletonDoc} />}
+        {/* DOC 174 (2026-09-04) — the "cppa-admt-v2" product string activates
+            the Syllabus & Record presentation system; only v2 rows carry a
+            syllabus projection (legacy v1 rows render unchanged). */}
+        {skeletonDoc && <SkeletonDocumentView doc={skeletonDoc} product={assessment?.module === "admt_v2" ? "cppa-admt-v2" : undefined} />}
 
         {!skeletonDoc && (<>
         {report.scope_analysis && (

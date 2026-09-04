@@ -2695,11 +2695,15 @@ function srSectionsHtml(doc: SkeletonDocLike, product?: string): string {
         // pattern: its rows are read straight into the syllabus's
         // determination table (buildGovernanceSyllabus), so the in-body copy
         // would otherwise repeat identical rows directly under the section
-        // heading that already sits under page one's copy.
+        // heading that already sits under page one's copy. DOC 174
+        // (2026-09-04) — ADMT v2's cover table (surface "header": Organization
+        // / System reviewed / Overall assessment / Record sufficiency /
+        // Regulatory framework) is the same pattern again.
         if (
           syllabus &&
           (p.table.surface === "cover_summary" || p.table.surface === "exec_status_panel" ||
-            p.table.surface === "art30_element_findings+demonstrability_findings+domain_element_findings+remediation_plan")
+            p.table.surface === "art30_element_findings+demonstrability_findings+domain_element_findings+remediation_plan" ||
+            p.table.surface === "header")
         ) return "";
         return srTableHtml(p.table, product);
       }

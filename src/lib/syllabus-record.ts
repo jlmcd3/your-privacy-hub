@@ -35,6 +35,7 @@ export const SR_PRODUCTS: ReadonlySet<string> = new Set<string>([
   "dpia",
   "lia",
   "governance",
+  "cppa-admt-v2",
 ]);
 
 export function isSyllabusRecordProduct(product: string | undefined | null): boolean {
@@ -42,10 +43,10 @@ export function isSyllabusRecordProduct(product: string | undefined | null): boo
 }
 
 export const SR_STATE_TONES: ReadonlyArray<readonly [RegExp, SyllabusTone]> = [
-  [/^(Engaged|Credited|Addressed|Recorded|Confirmed|Yes|Low|Proceed|Necessary to the stated purpose|Implemented and tested|Complete|Approved|Available|Evidenced)$/i, "ok"],
-  [/^(Additional Information Required|Determination pending|Timeliness pending|Open|Partial|Open in part|Moderate|Unsure|Unconfirmed|Partly outside|Proceed with Conditions|Implemented, not tested|Planned, not yet implemented|Not stated — see the Follow-Ups in § 4\.D|Conditionally Approved|Partly evidenced|Not yet determinable)$/i, "hold"],
-  [/^(High|Critical|Do Not Proceed|Collected but not necessary to the stated purpose|Collected but not necessary|Prior Consultation Required|Not Available|Not evidenced)$/i, "hi"],
-  [/^(Not engaged|Not established|Not applicable|Not assessed|No|Neutral|No Processing Decision Required|Not recorded|No Determination Recorded)$/i, "neutral"],
+  [/^(Engaged|Credited|Addressed|Recorded|Confirmed|Yes|Low|Proceed|Necessary to the stated purpose|Implemented and tested|Complete|Approved|Available|Evidenced|Meets on reported facts)$/i, "ok"],
+  [/^(Additional Information Required|Determination pending|Timeliness pending|Open|Partial|Open in part|Moderate|Unsure|Unconfirmed|Partly outside|Proceed with Conditions|Implemented, not tested|Planned, not yet implemented|Not stated — see the Follow-Ups in § 4\.D|Conditionally Approved|Partly evidenced|Not yet determinable|Pathway-dependent|Qualified — follow-up needed|Unable to assess — scope cannot be determined on the current record)$/i, "hold"],
+  [/^(High|Critical|Do Not Proceed|Collected but not necessary to the stated purpose|Collected but not necessary|Prior Consultation Required|Not Available|Not evidenced|Gaps identified|Record conflict — resolve before a determination can be reached)$/i, "hi"],
+  [/^(Not engaged|Not established|Not applicable|Not assessed|No|Neutral|No Processing Decision Required|Not recorded|No Determination Recorded|Out of scope on reported facts)$/i, "neutral"],
 ];
 
 export function toneForState(value: string): SyllabusTone | null {

@@ -956,11 +956,14 @@ export function SyllabusRecordView({ doc, product }: { doc: SkeletonDocument; pr
                   // DOC 173 (2026-09-04) — Governance's programme scoreboard
                   // is read straight into the syllabus's determination table
                   // (buildGovernanceSyllabus); the mirror of the PDF
-                  // renderer's identical suppression.
+                  // renderer's identical suppression. DOC 174 (2026-09-04) —
+                  // ADMT v2's cover table (surface "header") is the same
+                  // pattern again.
                   if (
                     syllabus &&
                     (p.table.surface === "cover_summary" || p.table.surface === "exec_status_panel" ||
-                      p.table.surface === "art30_element_findings+demonstrability_findings+domain_element_findings+remediation_plan")
+                      p.table.surface === "art30_element_findings+demonstrability_findings+domain_element_findings+remediation_plan" ||
+                      p.table.surface === "header")
                   ) return null;
                   return <SrTable key={i} table={p.table} />;
                 }

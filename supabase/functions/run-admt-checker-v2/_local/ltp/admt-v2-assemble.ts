@@ -71,6 +71,9 @@ import { ADMT_CORPUS_MAP } from "../corpus/maps/admt-corpus-map.ts";
 import { ADVISORY_APPENDIX_PREAMBLE, ADVISORY_APPENDIX_TITLE, advisoryMatchesTable, matchAdvisoryRows } from "../../../_shared/corpus/advisory-surfacing.ts";
 // A-TEAM S3 RULING V.7 (doc 115) — acronym-safe mid-sentence casing.
 import { lowerFirstWordSafe } from "../../../_shared/ltp/splice-case.ts";
+// DOC 174 (2026-09-04) — Syllabus & Record (doc 151); ADMT v2 is the fifth
+// product migrated onto the fleet presentation system, closing Tier 1.
+import { dispositionTone, type SyllabusProjection } from "../../../_shared/prose/syllabus.ts";
 
 // v3.2.1 (2026-08-24, CEO report review) — adds the "Review of This
 // Assessment" section between Section 9 (Conclusion) and Appendix A: a
@@ -119,6 +122,9 @@ export interface RenderedSkeletonDocument {
   title: string;
   subtitle: string;
   sections: RenderedSection[];
+  // DOC 174 (2026-09-04) — the Determination Syllabus (Syllabus & Record
+  // page 1), additive; a renderer that does not know the field ignores it.
+  syllabus?: SyllabusProjection;
 }
 
 function reader(arr: string[]): string {
@@ -502,6 +508,71 @@ export interface AssembleArgs {
   exhibit: AuthorityExhibit | null;
   organizationName: string;
   systemName: string;
+}
+
+// DOC 174 (2026-09-04) — THE DETERMINATION SYLLABUS (Syllabus & Record p.1).
+// Every value below is a PROJECTION of a determination this assembler
+// already made (doc 127 §28 law): the disposition is the SAME expression
+// the cover table's own "Overall assessment" row already prints
+// (`scope.pathwayDependent ? "Pathway-dependent" : computed.overallPostureLabel`);
+// the paragraph is the executive lead exactly as composed, passed in by the
+// caller rather than recomputed; the conditions are the priority-1 findings
+// verbatim from `computed.allFindings` (never re-derived — the SAME array
+// Section 8's "Conditions to Proceed" table reads); the record map reuses
+// the same "Appendix X — …" regex Risk/DPIA already use, since ADMT v2's
+// appendices ARE lettered that way. No pathway logic is read, computed, or
+// touched here — only its already-decided outputs.
+function admtV2ConditionName(index: number): string {
+  return `Condition ${index + 1}`;
+}
+
+function buildAdmtV2Syllabus(
+  sections: RenderedSection[],
+  computed: AdmtV2Computed,
+  execLead: string,
+  organizationName: string,
+  systemName: string,
+): SyllabusProjection {
+  const entity = organizationName?.trim() || "the Company";
+  const { scope } = computed;
+  const disposition = scope.pathwayDependent ? "Pathway-dependent" : computed.overallPostureLabel;
+
+  const rows: Array<readonly [string, string]> = [
+    ["Record sufficiency", `${gradeCell(computed.overallRecordGrade)}${String(computed.overallRecordGrade).toLowerCase() === "qualified" ? " — one or more supporting fields were not provided" : ""}`],
+  ];
+  const conditionFindings = computed.allFindings.filter((f) => f.priority === 1);
+  rows.push([
+    "Conditions to proceed",
+    conditionFindings.length > 0
+      ? `${conditionFindings.length} of ${conditionFindings.length === 1 ? "one condition" : `${conditionFindings.length} conditions`} outstanding (Section 8)`
+      : "None — no conditions to proceed were identified from the Company's current responses (Section 8)",
+  ]);
+
+  const conditions = conditionFindings.map((f, i) => ({ name: admtV2ConditionName(i), text: f.action_text }));
+
+  const record_map: Array<readonly [string, string, string]> = [];
+  for (const sec of sections) {
+    const m = /^Appendix ([A-Z]) — (.+)$/.exec(sec.title ?? "");
+    if (m) record_map.push([m[1], m[2], ""]);
+  }
+
+  return {
+    _typed: "syllabus@sr-2026-09-04",
+    instrument_line: "CPPA ADMT COMPLIANCE ASSESSMENT · 11 CCR §§ 7001, 7220–7222",
+    prepared_for: entity,
+    activity: systemName?.trim() || "System not named on the record",
+    subtitle: "ADMT compliance assessment under 11 CCR §§ 7001, 7220–7222",
+    disposition_label: "OVERALL ASSESSMENT",
+    disposition,
+    disposition_tone: dispositionTone(disposition),
+    paragraph: execLead,
+    rows,
+    conditions_heading: conditions.length ? "CONDITIONS TO PROCEED — the assessment depends on these" : "",
+    conditions,
+    key_dates: [],
+    record_map,
+    running_head: `CPPA ADMT COMPLIANCE ASSESSMENT · ${entity.toUpperCase()}`,
+  };
 }
 
 export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocument {
@@ -1015,6 +1086,9 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
     title: "CPPA ADMT Compliance Assessment",
     subtitle: `Prepared for ${organizationName || "(organization not provided)"}`,
     sections,
+    // DOC 174 (2026-09-04) — the Determination Syllabus, attached as a
+    // projection of the determinations above.
+    syllabus: buildAdmtV2Syllabus(sections, computed, execLead, organizationName, systemName),
   };
 }
 
