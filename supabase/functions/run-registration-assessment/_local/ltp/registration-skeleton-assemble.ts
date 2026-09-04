@@ -39,6 +39,8 @@ import {
   REGISTRATION_JURISDICTION_LABELS,
   REGISTRATION_ORG_SIZE_MAP,
 } from "../prose/plans/registration.slotmap.ts";
+// DOC 163 (2026-09-03) — the reader label for a claimed exclusion family.
+import { exemptionLabel } from "./registration-deliverables/build.ts";
 import {
   renderSkeletonDocument,
   skeletonDocumentToText,
@@ -127,8 +129,11 @@ const isTrue = (v: unknown): boolean => v === true || s(v).toLowerCase() === "tr
 // survive (mirrors cyber/biometric/IR).
 const repairPreserving = (t: string): string => t.split("\n").map((l) => repairRegister(l)).join("\n");
 
+// DOC 163 — counts under ten as words in prose (doc 155 §5); table cells keep numerals.
+const NUM_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+const numWord = (n: number): string => NUM_WORDS[n] ?? String(n);
 const count = (n: number, one: string, many: string): string =>
-  n === 1 ? `one ${one}` : `${n} ${many}`;
+  n === 1 ? `one ${one}` : `${numWord(n)} ${many}`;
 
 // SO-3 DEFECT CLASS 1 — curated enum labels only. Never an organisation name,
 // a person's name, a state name, an authority or any free-text answer.
@@ -272,7 +277,8 @@ function icoFeeAmountLabel(j: Bag): string | null {
 
 function icoFeeDutyName(j: Bag): string {
   const name = s(j.name) || s(j.code) || "the United Kingdom";
-  const amount = icoFeeAmountLabel(j);
+  // DOC 163 R12 — an unresolved tier names its range, never a single amount.
+  const amount = icoFeeAmountLabel(j) ?? (s(j.fee_range_label) || null);
   return amount ? `the ${name} ICO annual data-protection fee (${amount})` : `the ${name} ICO annual data-protection fee`;
 }
 
@@ -307,6 +313,9 @@ export interface RegistrationDutyCounts {
    *  duties folded into `attached` above (see icoFeeJurisdictions). Always
    *  0 or 1 today because Rule R4 only ever tags the UK jurisdiction. */
   readonly ico_fee_attached: number;
+  /** DOC 163 R10 — the EU AI Act Art. 49(1) registration, counted as attached
+   *  where the Company states it provides the system. */
+  readonly ai_act_attached: number;
 }
 
 export function computeDutyCounts(report: Bag): RegistrationDutyCounts {
@@ -348,8 +357,29 @@ export function computeDutyCounts(report: Bag): RegistrationDutyCounts {
   // question produced reserved=1 while the table rendered two open rows
   // (live batch 6068cc0a: cover/exec/§3 all said "one determination," the
   // table and Authorities Cited section carried two).
-  const osumForCounts = (report.obligations_summary ?? {}) as Bag;
-  if (/BDSG/i.test(s(osumForCounts.dpo_condition))) reserved += 1;
+  // DOC 163 R8 — the typed BDSG § 38(1) determination is counted like the
+  // other surfaces; the engine-text regex survives only for records
+  // persisted before the typed surface existed.
+  const bdsgForCounts = (deliverables(report).bdsg_determination ?? null) as Bag | null;
+  if (bdsgForCounts && s(bdsgForCounts.verdict)) {
+    const v = s(bdsgForCounts.verdict);
+    if (v === "engaged") {
+      attached += 1;
+      attachedNames.push("the designation of a data protection officer under BDSG § 38(1) (Germany)");
+    } else if (v === "conditional" || v === "record_insufficient") reserved += 1;
+  } else {
+    const osumForCounts = (report.obligations_summary ?? {}) as Bag;
+    if (/BDSG/i.test(s(osumForCounts.dpo_condition))) reserved += 1;
+  }
+  // DOC 163 R10 — the Art. 49 determination is counted: engaged attaches,
+  // conditional reserves (it was never counted, so the lead understated).
+  let aiActAttached = 0;
+  const aiForCounts = (deliverables(report).ai_act_registration ?? null) as Bag | null;
+  if (aiForCounts && s(aiForCounts.verdict) === "engaged") {
+    attached += 1;
+    aiActAttached += 1;
+    attachedNames.push("the EU AI Act Article 49(1) registration of the high-risk system");
+  } else if (aiForCounts && s(aiForCounts.verdict) === "conditional") reserved += 1;
 
   // DOC 137 (2026-09-02) — fourth branch: the ICO fee obligation (see
   // icoFeeJurisdictions above). Unconditional once Rule R4 tags it — the
@@ -378,9 +408,12 @@ export function computeDutyCounts(report: Bag): RegistrationDutyCounts {
     reserved,
     attached_names: attachedNames,
     filing_attached: filingAttached,
-    designation_attached: Math.max(attached - filingAttached, 0),
+    // DOC 163 — a fee and a database registration are neither filings nor
+    // designations; each carries its own satisfaction clause in the lead.
+    designation_attached: Math.max(attached - filingAttached - icoFeeAttached - aiActAttached, 0),
     corpus_pending: asArray(deliverables(report).corpus_pending).length,
     ico_fee_attached: icoFeeAttached,
+    ai_act_attached: aiActAttached,
   };
 }
 
@@ -554,7 +587,7 @@ function dutyStatusWord(verdict: string): string {
 function closesCell(text: string): string {
   const t = noStop(s(text));
   if (!t) return "—";
-  const m = /^What would complete the determination is\s+(.+)$/i.exec(t);
+  const m = /^What (?:would complete the determination|closes the duty) is\s+(.+)$/i.exec(t);
   const out = m ? m[1] : t;
   return out.charAt(0).toUpperCase() + out.slice(1);
 }
@@ -629,14 +662,34 @@ export function deriveDutyStatusTable(report: Bag): RenderedTable | null {
   // BDSG §38 conditional (obligations_summary.dpo_condition), the open
   // national-law question gets its own row; previously it contradicted the
   // GDPR row silently.
-  const osum = (report.obligations_summary ?? {}) as Bag;
-  if (/BDSG/i.test(s(osum.dpo_condition))) {
-    rows.push([
-      "Data protection officer — BDSG §38 (Germany)",
-      "Germany",
-      "Additional information required",
-      "How many persons are constantly engaged in automated processing (the §38 threshold counts engaged persons, not total headcount)",
-    ]);
+  // DOC 163 R8 — the typed BDSG determination drives the row; the engine-text
+  // regex survives for records persisted before the typed surface existed.
+  const bdsgRow = (deliverables(report).bdsg_determination ?? null) as Bag | null;
+  if (bdsgRow && s(bdsgRow.verdict)) {
+    const v = s(bdsgRow.verdict);
+    const word = dutyStatusWord(v === "conditional" ? "record_insufficient" : v);
+    if (word) {
+      rows.push([
+        "Data protection officer — BDSG § 38(1) (Germany)",
+        "Germany",
+        word,
+        v === "engaged"
+          ? "Written designation of the officer"
+          : v === "not_engaged"
+          ? "—"
+          : closesCell(s(bdsgRow.information_needed)),
+      ]);
+    }
+  } else {
+    const osum = (report.obligations_summary ?? {}) as Bag;
+    if (/BDSG/i.test(s(osum.dpo_condition))) {
+      rows.push([
+        "Data protection officer — BDSG §38 (Germany)",
+        "Germany",
+        "Additional information required",
+        "How many persons are constantly engaged in automated processing (the §38 threshold counts engaged persons, not total headcount)",
+      ]);
+    }
   }
 
   // DOC 137 (2026-09-02) — the ICO fee obligation earns its own Duty-status
@@ -651,7 +704,7 @@ export function deriveDutyStatusTable(report: Bag): RenderedTable | null {
       "Required on reported facts",
       icoFeeAmountLabel(j)
         ? `Payment of ${icoFeeAmountLabel(j)} to the ICO — confirm the tier via the ICO fee self-assessment before filing`
-        : "Confirm the fee tier via the ICO fee self-assessment",
+        : s(j.fee_tier_ask) || "Confirm the fee tier via the ICO fee self-assessment",
     ]);
   }
 
@@ -714,13 +767,20 @@ function composeExecLead(counts: RegistrationDutyCounts, org: string): string {
           : counts.filing_attached === 1
           ? "the filing duty is not presently satisfied"
           : `none of the ${count(counts.filing_attached, "filing duty", "filing duties")} is presently satisfied`)
-        : `${counts.satisfied} of the ${count(counts.filing_attached, "filing duty", "filing duties")} ${counts.satisfied === 1 ? "is" : "are"} presently satisfied`,
+        : counts.satisfied === counts.filing_attached
+        ? (counts.filing_attached === 1 ? "the filing duty is presently satisfied" : `all ${numWord(counts.filing_attached)} filing duties are presently satisfied`)
+        : `${numWord(counts.satisfied)} of the ${count(counts.filing_attached, "filing duty", "filing duties")} ${counts.satisfied === 1 ? "is" : "are"} presently satisfied`,
     );
   }
+  // DOC 163 — the duties no intake fact can show as met, in one clause.
+  const unknownBits: string[] = [];
   if (counts.designation_attached > 0) {
-    satisfactionBits.push(
-      `whether the ${counts.designation_attached === 1 ? "designation duty is" : "designation duties are"} already met is not recorded in the information supplied`,
-    );
+    unknownBits.push(`whether the ${counts.designation_attached === 1 ? "designation duty is" : "designation duties are"} already met`);
+  }
+  if (counts.ai_act_attached > 0) unknownBits.push("whether the EU database registration has been made");
+  if (counts.ico_fee_attached > 0) unknownBits.push("whether the fee has been paid");
+  if (unknownBits.length) {
+    satisfactionBits.push(`${asProse(unknownBits)} ${unknownBits.length === 1 ? "is" : "are"} not recorded in the information supplied`);
   }
   const satisfaction = satisfactionBits.join(", and ");
   // "of which …" reads only off a measurable filing clause; a
@@ -814,18 +874,32 @@ function composeExecPosture(report: Bag, counts: RegistrationDutyCounts, org: st
 
 /** Section I lead — broker duties and the states they attach in. */
 function composeBrokerLead(report: Bag, intake: Bag, counts: RegistrationDutyCounts, org: string): string {
-  if (!isTrue(intake.acts_as_data_broker)) {
+  // DOC 163 R11 — the lead follows the typed determinations, not the
+  // self-identification flag: a met definition attaches a duty whether or not
+  // the company calls itself a broker (live: Texas attached beside a lead
+  // that said no broker duty attaches).
+  if (counts.broker_states.length) {
     return stop(
-      `${org} has indicated that it does not act as a data broker, so no data-broker registration duty attaches on its answers`,
+      isTrue(intake.acts_as_data_broker)
+        ? `${org} has indicated broker activity, and a data-broker registration duty attaches in ${asProse(counts.broker_states)}`
+        : `${org} has not described itself as a data broker, but on its answers the ${asProse(counts.broker_states)} data-broker ${counts.broker_states.length === 1 ? "definition is" : "definitions are"} met and a registration duty attaches there`,
     );
   }
-  if (counts.broker_states.length === 0) {
+  const open = determinations(report)
+    .filter((d) => s(d.verdict) === "conditional" || s(d.verdict) === "record_insufficient")
+    .map(stateName);
+  if (isTrue(intake.acts_as_data_broker)) {
     return stop(
       `${org} has indicated broker activity, but on the facts stated no state's data-broker registration duty is established, and each position is set out below`,
     );
   }
+  if (open.length) {
+    return stop(
+      `${org} has indicated that it does not act as a data broker; whether the ${asProse(open)} data-broker ${open.length === 1 ? "definition is" : "definitions are"} met on its answers is not settled, and each position is set out below`,
+    );
+  }
   return stop(
-    `${org} has indicated broker activity, and a data-broker registration duty attaches in ${asProse(counts.broker_states)}`,
+    `${org} has indicated that it does not act as a data broker, so no data-broker registration duty attaches on its answers`,
   );
 }
 
@@ -835,7 +909,10 @@ function composeBrokerLead(report: Bag, intake: Bag, counts: RegistrationDutyCou
  * beside each state's own verified definitional passage.
  */
 function composeBrokerConditional(report: Bag, intake: Bag, org: string): string {
-  if (!isTrue(intake.acts_as_data_broker)) {
+  // DOC 163 R11 — the trigger also fires where a state's definition is met or
+  // conditional on the answers (widens the 2026-08-10 binding).
+  const live = determinations(report).some((d) => s(d.verdict) === "registrable" || s(d.verdict) === "conditional");
+  if (!isTrue(intake.acts_as_data_broker) && !live) {
     // D1D2B3B8-R5 — the outside-frameworks scope statement renders on the
     // non-broker path too; the live silent-on-AU record was a non-broker.
     const outside = composeOutsideFrameworks(intake);
@@ -847,7 +924,7 @@ function composeBrokerConditional(report: Bag, intake: Bag, org: string): string
     ].join("\n\n");
   }
   const facts: string[] = [];
-  facts.push(`${org} has indicated that it acts as a data broker`);
+  facts.push(isTrue(intake.acts_as_data_broker) ? "that it acts as a data broker" : "that it does not describe itself as a data broker");
   if (isTrue(intake.sells_or_licenses_brokered_data)) {
     facts.push("that it sells or licenses the data it brokers");
   }
@@ -866,10 +943,12 @@ function composeBrokerConditional(report: Bag, intake: Bag, org: string): string
     facts.push(`that brokered data accounts for approximately ${pct}% of its revenue`);
   }
   const exemption = s(intake.data_broker_exemption_claimed);
-  if (exemption && exemption.toLowerCase() !== "none") {
-    facts.push(`and that it claims the ${exemption} exclusion`);
+  if (exemption === "unknown") {
+    facts.push("that it is not sure whether a statutory exclusion applies");
+  } else if (exemption && exemption.toLowerCase() !== "none") {
+    facts.push(`that it claims the ${exemptionLabel(exemption)} exclusion`);
   }
-  const blocks: string[] = [stop(asProse(facts))];
+  const blocks: string[] = [stop(`${org} has indicated ${asProse(facts)}`)];
 
   for (const d of determinations(report)) {
     const threshold = (d.threshold ?? {}) as Bag;
@@ -925,6 +1004,13 @@ function composeBrokerConditional(report: Bag, intake: Bag, org: string): string
 // the assessment to cover the listed markets is owed a scoped-out statement,
 // not silence. Rendered on EVERY posture (the live record was a non-broker,
 // whose Section I takes the early-return path above).
+// DOC 163 R13 — the EU/EEA Member States (the UK is its own wing).
+const EEA_MEMBER_CODES = new Set([
+  "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR",
+  "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK",
+  "SI", "ES", "SE", "IS", "LI", "NO",
+]);
+
 const GDPR_WING_CODES = new Set([
   "EU", "EEA", "UK", "GB",
   "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR",
@@ -999,7 +1085,9 @@ function composeBrokerAnalysis(report: Bag): string {
     }
     const open = strList(d.open_questions);
     if (open.length) {
-      tailBits.push(stop(`What would settle the remaining question is ${asProse(open.map((q) => noStop(lowerEnumLabel(q))))}`));
+      // DOC 163 — the asks are lower-case clauses already; nothing case-folds
+      // a state name here any more.
+      tailBits.push(stop(`What would settle the remaining ${open.length === 1 ? "question" : "questions"} is ${asProse(open.map((q) => noStop(q)))}`));
     }
     blocks.push(
       [heading, bits.join(" "), ...quoteBits, tailBits.join(" ")]
@@ -1036,8 +1124,13 @@ function composeSupervisoryLead(report: Bag, org: string): string {
   // while the BDSG conditional stays open, or vice versa); naming only
   // whichever was already reserved undercounted the open items this lead
   // sentence claims to summarise.
-  if (/Conditional on BDSG §38/.test(s(ai.dpo_condition))) reserved.push("the German BDSG § 38 DPO threshold");
-  if (ai.ai_act_obligations_engaged === true) engaged.push("EU AI Act registration duties");
+  // DOC 163 R8/R10 — the typed BDSG and Art. 49 determinations drive the
+  // lead; the engine's Chapter III/V boolean never meant "registration".
+  const bdsgLead = (deliverables(report).bdsg_determination ?? null) as Bag | null;
+  if (bdsgLead && s(bdsgLead.verdict)) push("a data protection officer under BDSG § 38(1) (Germany)", s(bdsgLead.verdict));
+  else if (/Conditional on BDSG §38/.test(s(ai.dpo_condition))) reserved.push("the German BDSG § 38 DPO threshold");
+  const aiLead = (deliverables(report).ai_act_registration ?? {}) as Bag;
+  push("the EU AI Act Article 49(1) registration", s(aiLead.verdict));
 
   if (engaged.length === 0 && reserved.length === 0) {
     return stop(`Based on the information supplied, ${org} carries no EU, UK or AI Act filing duty of this kind`);
@@ -1053,7 +1146,7 @@ function composeSupervisoryLead(report: Bag, org: string): string {
 }
 
 /** Section II body — representatives, DPO and the AI Act determinations. */
-function composeSupervisoryAnalysis(report: Bag): string {
+function composeSupervisoryAnalysis(report: Bag, intake: Bag): string {
   const blocks: string[] = [];
   for (const r of representatives(report)) {
     // BATCH 18b (doc 113 S2.15/S2.16) — heading chunk / statute-quote chunk
@@ -1129,14 +1222,38 @@ function composeSupervisoryAnalysis(report: Bag): string {
   // concatenates GDPR text, then BDSG text), so it is extracted by its fixed
   // opening words rather than duplicating the whole (possibly GDPR-prefixed)
   // dpo_condition string.
-  const dpoConditionFull = s((report.obligations_summary as Bag | undefined)?.dpo_condition);
-  const bdsgMatch = dpoConditionFull.match(/Conditional on BDSG §38[\s\S]*/);
-  if (bdsgMatch) {
+  // DOC 163 R8 — the typed BDSG § 38(1) determination renders like the DPO
+  // block; the engine-text regex survives for records persisted before it.
+  const bdsg = (deliverables(report).bdsg_determination ?? null) as Bag | null;
+  if (bdsg && (s(bdsg.headline) || asArray(bdsg.findings).length)) {
+    const bits: string[] = [];
+    if (s(bdsg.headline)) bits.push(stop(noStop(s(bdsg.headline))));
+    if (s(bdsg.reasoning)) bits.push(stop(noStop(firstSentences(s(bdsg.reasoning), 3))));
+    if (s(bdsg.closing_act)) bits.push(stop(noStop(s(bdsg.closing_act))));
+    const limbLines: string[] = [];
+    for (const f of asArray(bdsg.findings)) {
+      const standard = s(f.standard);
+      const application = s(f.application);
+      if (!standard && !application) continue;
+      limbLines.push(
+        `${s(f.label) || s(f.citation) || "The limb"}: ${standard ? `"${quoteEnd(standard)}." ` : ""}${application ? stop(noStop(firstSentence(application))) : ""}`.trim(),
+      );
+    }
     blocks.push(
-      ["Germany — data protection officer, BDSG § 38.", stop(noStop(bdsgMatch[0]))]
+      ["Germany — data protection officer, BDSG § 38(1)", bits.join(" "), limbLines.join("\n")]
         .filter(Boolean)
         .join("\n\n"),
     );
+  } else {
+    const dpoConditionFull = s((report.obligations_summary as Bag | undefined)?.dpo_condition);
+    const bdsgMatch = dpoConditionFull.match(/Conditional on BDSG §38[\s\S]*/);
+    if (bdsgMatch) {
+      blocks.push(
+        ["Germany — data protection officer, BDSG § 38.", stop(noStop(bdsgMatch[0]))]
+          .filter(Boolean)
+          .join("\n\n"),
+      );
+    }
   }
 
   // REG-1 (doc 106, 2026-08-29) — the EU AI Act registration determination.
@@ -1169,6 +1286,20 @@ function composeSupervisoryAnalysis(report: Bag): string {
     );
   }
 
+  // DOC 163 R13 — honest-posture parity for EU/EEA markets: no Member State
+  // registration or notification statute is among the authorities relied on,
+  // so none is stated (the D1D2B3B8-R5 rule, applied to the GDPR wing).
+  const euMarkets = Array.from(new Set(
+    [...(Array.isArray(intake.markets_served) ? (intake.markets_served as unknown[]) : []), intake.organization_country]
+      .map((m) => String(m ?? "").toUpperCase())
+      .filter((m) => EEA_MEMBER_CODES.has(m))
+      .map((m) => REGISTRATION_JURISDICTION_LABELS[m] ?? m),
+  ));
+  if (euMarkets.length) {
+    blocks.push(stop(
+      `The markets served also name ${asProse(euMarkets)}. No Member State registration or notification statute is among the authorities relied on in this assessment, so no such duty is stated for ${euMarkets.length === 1 ? "it" : "them"} here; the Article 27 and Article 37 determinations above apply to ${euMarkets.length === 1 ? "that market" : "those markets"}, and any Member State filing remains for separate advice`,
+    ));
+  }
   for (const cp of asArray(deliverables(report).corpus_pending)) {
     const topic = s(cp.topic);
     const note = s(cp.note);
@@ -1192,9 +1323,10 @@ function composeReadinessLead(report: Bag, counts: RegistrationDutyCounts, org: 
     // 3E9AD759-R2 — when no filing-content list applies but a designation
     // duty IS engaged, the section names the outstanding act instead of
     // reading as an all-clear beside an engaged duty.
-    if (counts.designation_attached > 0) {
+    const nonFiling = counts.attached - counts.filing_attached;
+    if (nonFiling > 0) {
       return stop(
-        `No filing-content list applies to ${org} on the current assessment record; the outstanding ${counts.designation_attached === 1 ? "act recorded above is" : "acts recorded above are"} ${asProse(counts.attached_names.slice(counts.filing_attached))}`,
+        `No filing-content list applies to ${org} on the current assessment record; the outstanding ${nonFiling === 1 ? "act recorded above is" : "acts recorded above are"} ${asProse(counts.attached_names.slice(counts.filing_attached))}`,
       );
     }
     // A-TEAM S4 RULING S2.17e (doc 119) — the all-clear names any duty
@@ -1204,7 +1336,7 @@ function composeReadinessLead(report: Bag, counts: RegistrationDutyCounts, org: 
       // "N duty determinations remain open above and are not a filing
       // item" reads as an awkward compound predicate; two clauses instead,
       // with "neither"/"none" chosen by count rather than fixed at two.
-      `No filing is required of ${org} on the current assessment record; accordingly, no filing-readiness items apply${counts.reserved > 0 ? `. ${counts.reserved === 1 ? "One duty determination remains" : `${counts.reserved === 2 ? "Two" : counts.reserved} duty determinations remain`} open above; ${counts.reserved === 1 ? "it is" : counts.reserved === 2 ? "neither is" : "none is"} a filing item` : ""}`,
+      `No filing is required of ${org} on the current assessment record; accordingly, no filing-readiness items apply${counts.reserved > 0 ? `. ${counts.reserved === 1 ? "One duty determination remains" : `${numWord(counts.reserved).charAt(0).toUpperCase() + numWord(counts.reserved).slice(1)} duty determinations remain`} open above; ${counts.reserved === 1 ? "it is not" : counts.reserved === 2 ? "neither is" : "none is"} a filing item` : ""}`,
     );
   }
   const open = rows.filter((r) => r.ready_to_file !== true);
@@ -1374,11 +1506,14 @@ function checkLeadCoherence(
   if (counts.attached > 0 && /no registration duty attaches/.test(execLead)) {
     findings.push("executive lead denies attachment where the typed determinations carry one");
   }
-  if (!isTrue(intake.acts_as_data_broker) && /duty attaches in /.test(brokerLead)) {
-    findings.push("broker lead asserts a broker duty where no broker activity is recorded");
-  }
-  if (counts.broker_states.length === 0 && /duty attaches in /.test(brokerLead)) {
+  // DOC 163 R11 — the lead is bound to the typed determinations in both
+  // directions: no state attached → no "attaches"; a state attached → the
+  // lead must say so whether or not the company calls itself a broker.
+  if (counts.broker_states.length === 0 && /duty attaches (in|there)/.test(brokerLead)) {
     findings.push("broker lead names states the typed determinations do not carry");
+  }
+  if (counts.broker_states.length > 0 && !/duty attaches (in|there)/.test(brokerLead)) {
+    findings.push("broker lead omits a duty the typed determinations carry");
   }
   return findings;
 }
@@ -1402,7 +1537,7 @@ function deriveRegistrationProfileTable(
     ["Organization", org],
     ...(juris ? [["Jurisdictions assessed", juris]] : []),
     ["Assessment date", formatReportDateLong(new Date().toISOString().slice(0, 10))],
-    ["Overall status", status],
+    ["Overall status", status.charAt(0).toUpperCase() + status.slice(1)],
   ];
   return {
     key: "",
@@ -1441,7 +1576,7 @@ export function assembleRegistrationSkeletonDocument(
     "data_broker_registration:4": composeBrokerAnalysis(report),
 
     "supervisory_and_ai_act:0": composeSupervisoryLead(report, org),
-    "supervisory_and_ai_act:1": composeSupervisoryAnalysis(report),
+    "supervisory_and_ai_act:1": composeSupervisoryAnalysis(report, intake),
 
     "filing_readiness:0": composeReadinessLead(report, counts, org),
     "filing_readiness:1": composeReadinessBody(report, intake),

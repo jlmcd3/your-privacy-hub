@@ -49,6 +49,7 @@ interface IntakeState {
   uses_ai_systems: boolean;
   ai_high_risk: boolean;
   ai_general_purpose_provider: boolean;
+  ai_high_risk_role: string;
   cross_border_transfers: boolean;
   acts_as_data_broker: boolean;
   sells_or_shares_personal_info: boolean;
@@ -67,6 +68,10 @@ interface IntakeState {
   filing_minors_data_practices_documented: boolean;
   filing_metrics_documented: boolean;
   filing_rights_instructions_documented: boolean;
+  // DOC 163 R7 — Tex. Bus. & Com. Code § 510.005(b)(3), (4), (6).
+  filing_tx_categories_documented: boolean;
+  filing_tx_credentialing_statement_documented: boolean;
+  filing_tx_breach_count_documented: boolean;
   // Attestation (optional)
   approved_by_name: string;
   approved_by_title: string;
@@ -92,6 +97,18 @@ const BROKER_EXEMPTION_OPTIONS = [
   { value: "unknown", label: "Not sure" },
 ] as const;
 
+// DOC 163 R1 — mirrors REGISTRATION_AI_HIGH_RISK_ROLES in the intake contract.
+const AI_ROLE_OPTIONS = [
+  { value: "provider", label: "We developed it, or place it on the market under our own name or trademark (provider)" },
+  { value: "deployer", label: "We use a third party's system (deployer)" },
+  { value: "both", label: "Both — we provide one system and use another" },
+  { value: "unsure", label: "Not sure" },
+] as const;
+
+// DOC 163 R2 — the states with a data-broker registry (and the nationwide
+// code): selecting one puts the data-broker detail on the form.
+const REGISTRY_STATE_CODES = ["US", "US-CA", "US-OR", "US-TX", "US-VT"];
+
 const EMPTY: IntakeState = {
   organization_name: "",
   is_public_authority: false,
@@ -110,6 +127,7 @@ const EMPTY: IntakeState = {
   uses_ai_systems: false,
   ai_high_risk: false,
   ai_general_purpose_provider: false,
+  ai_high_risk_role: "",
   cross_border_transfers: false,
   acts_as_data_broker: false,
   sells_or_shares_personal_info: false,
@@ -125,6 +143,9 @@ const EMPTY: IntakeState = {
   filing_minors_data_practices_documented: false,
   filing_metrics_documented: false,
   filing_rights_instructions_documented: false,
+  filing_tx_categories_documented: false,
+  filing_tx_credentialing_statement_documented: false,
+  filing_tx_breach_count_documented: false,
   approved_by_name: "",
   approved_by_title: "",
   approval_date: "",
@@ -202,6 +223,16 @@ export default function RegistrationAssessment() {
     return m;
   }, []);
 
+  // DOC 163 R2 — the data-broker detail decides the four state registrations,
+  // so it is shown whenever a registry state is a market or the home country,
+  // not only when the company describes itself as a broker or seller. Left
+  // hidden, the state determinations were reading the form's defaults as the
+  // company's answers.
+  const registryStateSelected = REGISTRY_STATE_CODES.includes(intake.organization_country) ||
+    intake.markets_served.some((code) => REGISTRY_STATE_CODES.includes(code));
+  const brokerFlagsOn = intake.acts_as_data_broker || intake.sells_or_shares_personal_info;
+  const showBrokerDetail = brokerFlagsOn || registryStateSelected;
+
   function toggleMarket(code: string) {
     setIntake((s) => ({
       ...s,
@@ -236,6 +267,7 @@ export default function RegistrationAssessment() {
           ? Number(intake.brokered_data_revenue_share_pct) : undefined,
         data_broker_exemption_claimed: intake.data_broker_exemption_claimed || undefined,
         role: intake.role || undefined,
+        ai_high_risk_role: intake.ai_high_risk_role || undefined,
         eu_lead_member_state: intake.eu_lead_member_state || undefined,
       };
       const { data, error } = await supabase.functions.invoke(
@@ -253,6 +285,86 @@ export default function RegistrationAssessment() {
     }
   }
 
+
+  // DOC 163 R2/R7 — the data-broker detail, rendered in Step 2 (when the
+  // gate is open) and in Step 3 (when a registry state is selected without
+  // the broker flags), so the answers the state registrations turn on are
+  // always put to the company that needs them.
+  const brokerDetailBlock = (
+    <div className="ml-6 space-y-3 border-l-2 border-muted pl-4">
+      <Label className="text-base">Data-broker registration detail</Label>
+      <p className="text-xs text-muted-foreground">
+        California and Vermont only reach consumers you have no direct
+        relationship with; Oregon has no such exception; Texas turns on a
+        revenue or volume test instead. Each box is read as your answer, ticked
+        or not; the two numbers and the exclusion can be left blank, and a blank
+        leaves that state's determination open rather than guessed.
+      </p>
+      <CheckRow checked={intake.collects_data_not_directly_from_individuals}
+        onChange={(v) => setIntake({ ...intake, collects_data_not_directly_from_individuals: v })}
+        label="We handle personal data we did not collect directly from the individuals concerned" />
+      <CheckRow checked={intake.has_direct_relationship_with_data_subjects}
+        onChange={(v) => setIntake({ ...intake, has_direct_relationship_with_data_subjects: v })}
+        label="We have a direct relationship with those individuals (customer, client, subscriber, user or registered user)" />
+      <CheckRow checked={intake.sells_or_licenses_brokered_data}
+        onChange={(v) => setIntake({ ...intake, sells_or_licenses_brokered_data: v })}
+        label="We sell OR LICENSE that data to third parties" />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1">
+          <Label className="text-sm">Individuals whose data we handle without collecting it directly</Label>
+          <Input type="number" min="0" value={intake.brokered_data_individual_count}
+            onChange={(e) => setIntake({ ...intake, brokered_data_individual_count: e.target.value })}
+            placeholder="Whole number" />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-sm">Share of revenue from processing or transferring that data (%)</Label>
+          <Input type="number" min="0" max="100" value={intake.brokered_data_revenue_share_pct}
+            onChange={(e) => setIntake({ ...intake, brokered_data_revenue_share_pct: e.target.value })}
+            placeholder="0-100" />
+          <p className="text-xs text-muted-foreground">Texas turns on revenue derived from that data: enter 0 if none is derived from it.</p>
+        </div>
+      </div>
+      <div className="space-y-1">
+        <Label className="text-sm">Statutory exclusion claimed, if any</Label>
+        <p className="text-xs text-muted-foreground">Each state has its own list: California excludes FCRA, GLBA, insurance and HIPAA-exempt entities; Texas excludes service providers, affiliates, governmental entities, FCRA and GLBA entities; Vermont excludes certain platform, directory and public-information activities; Oregon states none. A claim is recorded and measured against that state's text, never accepted on its own.</p>
+        <Select value={intake.data_broker_exemption_claimed}
+          onValueChange={(v) => setIntake({ ...intake, data_broker_exemption_claimed: v })}>
+          <SelectTrigger><SelectValue placeholder="None claimed" /></SelectTrigger>
+          <SelectContent>
+            {BROKER_EXEMPTION_OPTIONS.map((o) => (
+              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <Label className="text-sm">Registration filing readiness</Label>
+      <p className="text-xs text-muted-foreground">These describe what you could file today, element by element as each statute lists them. Anything left unticked appears in the report as an outstanding filing prerequisite rather than as a failure.</p>
+      <CheckRow checked={intake.filing_contact_details_ready}
+        onChange={(v) => setIntake({ ...intake, filing_contact_details_ready: v })}
+        label="Our legal name, contact person, physical address, email, telephone and website details are ready to file" />
+      <CheckRow checked={intake.filing_opt_out_mechanism_documented}
+        onChange={(v) => setIntake({ ...intake, filing_opt_out_mechanism_documented: v })}
+        label="Our consumer opt-out arrangements are documented — the method, what it covers, and whether a third party may opt out for the consumer (Vermont)" />
+      <CheckRow checked={intake.filing_minors_data_practices_documented}
+        onChange={(v) => setIntake({ ...intake, filing_minors_data_practices_documented: v })}
+        label="Our position on collecting the personal information of minors is documented (California), including, for Texas, the practices and policies applicable to a known child's data" />
+      <CheckRow checked={intake.filing_metrics_documented}
+        onChange={(v) => setIntake({ ...intake, filing_metrics_documented: v })}
+        label="The consumer-request metrics required by Cal. Civ. Code § 1798.99.85(a)(1)-(2) are compiled" />
+      <CheckRow checked={intake.filing_rights_instructions_documented}
+        onChange={(v) => setIntake({ ...intake, filing_rights_instructions_documented: v })}
+        label="We have a page giving consumers prominently displayed instructions on exercising their rights (Texas)" />
+      <CheckRow checked={intake.filing_tx_categories_documented}
+        onChange={(v) => setIntake({ ...intake, filing_tx_categories_documented: v })}
+        label="A description of the categories of data we process and transfer is ready (Texas)" />
+      <CheckRow checked={intake.filing_tx_credentialing_statement_documented}
+        onChange={(v) => setIntake({ ...intake, filing_tx_credentialing_statement_documented: v })}
+        label="A statement of whether we implement a purchaser credentialing process is ready (Texas)" />
+      <CheckRow checked={intake.filing_tx_breach_count_documented}
+        onChange={(v) => setIntake({ ...intake, filing_tx_breach_count_documented: v })}
+        label="The number of security breaches in the preceding year, and the consumers affected by each if known, is compiled (Texas)" />
+    </div>
+  );
 
   return (
     <>
@@ -366,18 +478,18 @@ export default function RegistrationAssessment() {
 
                     <div className="grid sm:grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="emp">Employees handling personal data <DefPopover termKey="gdpr_dpo" /></Label>
+                        <Label htmlFor="emp">Employees (total headcount) <DefPopover termKey="gdpr_dpo" /></Label>
                         <Input id="emp" type="number" min={0} placeholder="Whole number"
                           value={intake.employee_count}
                           onChange={(e) => setIntake({ ...intake, employee_count: e.target.value })} />
-                        <p className="text-xs text-muted-foreground">Count everyone who touches personal data as part of their job, including part-time staff and contractors under your direction — not headcount overall. Germany requires a data protection officer once twenty or more people are constantly engaged in automated processing (BDSG § 38).</p>
+                        <p className="text-xs text-muted-foreground">Total staff of the whole entity — employees, workers, partners and office holders. The UK ICO fee tier and the size band are measured against it. Germany's BDSG § 38 counts a narrower group, persons constantly engaged in automated processing; the report names that as a question rather than inferring it from headcount.</p>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="rev">Annual revenue (USD)</Label>
                         <Input id="rev" type="number" min={0} placeholder="Whole number, USD"
                           value={intake.annual_revenue_usd}
                           onChange={(e) => setIntake({ ...intake, annual_revenue_usd: e.target.value })} />
-                        <p className="text-xs text-muted-foreground">Gross annual revenue of the whole entity, worldwide, for the last full year. Several US state privacy laws apply only above a revenue floor, and California&apos;s sits at $25 million.</p>
+                        <p className="text-xs text-muted-foreground">Gross annual revenue of the whole entity, worldwide, for the last full year. The report uses it for the UK ICO fee tier only, converted to sterling at a disclosed planning rate; left blank with a UK market, the report states the two tiers the staff count leaves possible instead of asserting one.</p>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="ds">Data subjects / year</Label>
@@ -453,6 +565,21 @@ export default function RegistrationAssessment() {
                         <CheckRow checked={intake.ai_high_risk}
                           onChange={(v) => setIntake({ ...intake, ai_high_risk: v })}
                           label="At least one of our AI systems is high-risk under the EU AI Act (employment, credit, biometrics, education, critical infrastructure)" />
+                        {intake.ai_high_risk && (
+                          <div className="ml-6 space-y-1">
+                            <Label className="text-sm">Our role for the high-risk system</Label>
+                            <p className="text-xs text-muted-foreground">The EU database registration under Article 49(1) is the provider's duty — the organisation that developed the system or places it on the market under its own name. A private organisation that only uses another provider's system registers nothing; a public authority registers its use.</p>
+                            <Select value={intake.ai_high_risk_role}
+                              onValueChange={(v) => setIntake({ ...intake, ai_high_risk_role: v })}>
+                              <SelectTrigger className="max-w-md"><SelectValue placeholder="Select our role" /></SelectTrigger>
+                              <SelectContent>
+                                {AI_ROLE_OPTIONS.map((o) => (
+                                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
                         <CheckRow checked={intake.ai_general_purpose_provider}
                           onChange={(v) => setIntake({ ...intake, ai_general_purpose_provider: v })}
                           label="We are a provider of a general-purpose AI model placed on the EU market" />
@@ -472,69 +599,7 @@ export default function RegistrationAssessment() {
                         use. California, Oregon, Texas and Vermont each define
                         "data broker" differently, so these are asked once and
                         applied separately against each state's own definition. */}
-                    {(intake.acts_as_data_broker || intake.sells_or_shares_personal_info) && (
-                      <div className="ml-6 space-y-3 border-l-2 border-muted pl-4">
-                        <Label className="text-base">Data-broker registration detail</Label>
-                        <p className="text-xs text-muted-foreground">
-                          California and Vermont only reach consumers you have no direct
-                          relationship with; Oregon has no such exception; Texas turns on a
-                          revenue or volume test instead. Left blank, a state's determination
-                          will say the record is insufficient rather than guess.
-                        </p>
-                        <CheckRow checked={intake.collects_data_not_directly_from_individuals}
-                          onChange={(v) => setIntake({ ...intake, collects_data_not_directly_from_individuals: v })}
-                          label="We handle personal data we did not collect directly from the individuals concerned" />
-                        <CheckRow checked={intake.has_direct_relationship_with_data_subjects}
-                          onChange={(v) => setIntake({ ...intake, has_direct_relationship_with_data_subjects: v })}
-                          label="We have a direct relationship with those individuals (customer, client, subscriber, user or registered user)" />
-                        <CheckRow checked={intake.sells_or_licenses_brokered_data}
-                          onChange={(v) => setIntake({ ...intake, sells_or_licenses_brokered_data: v })}
-                          label="We sell OR LICENSE that data to third parties" />
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          <div className="space-y-1">
-                            <Label className="text-sm">Individuals whose data we handle without collecting it directly</Label>
-                            <Input type="number" min="0" value={intake.brokered_data_individual_count}
-                              onChange={(e) => setIntake({ ...intake, brokered_data_individual_count: e.target.value })}
-                              placeholder="Whole number" />
-                          </div>
-                          <div className="space-y-1">
-                            <Label className="text-sm">Share of revenue from processing or transferring that data (%)</Label>
-                            <Input type="number" min="0" max="100" value={intake.brokered_data_revenue_share_pct}
-                              onChange={(e) => setIntake({ ...intake, brokered_data_revenue_share_pct: e.target.value })}
-                              placeholder="0-100" />
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-sm">Statutory exclusion claimed, if any</Label>
-                          <Select value={intake.data_broker_exemption_claimed}
-                            onValueChange={(v) => setIntake({ ...intake, data_broker_exemption_claimed: v })}>
-                            <SelectTrigger><SelectValue placeholder="None claimed" /></SelectTrigger>
-                            <SelectContent>
-                              {BROKER_EXEMPTION_OPTIONS.map((o) => (
-                                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <Label className="text-sm">Registration filing readiness</Label>
-                        <p className="text-xs text-muted-foreground">These describe what you could file today. Anything left unticked appears in the report as an outstanding filing prerequisite rather than as a failure.</p>
-                        <CheckRow checked={intake.filing_contact_details_ready}
-                          onChange={(v) => setIntake({ ...intake, filing_contact_details_ready: v })}
-                          label="Our legal name, physical address, email, telephone and website details are ready to file" />
-                        <CheckRow checked={intake.filing_opt_out_mechanism_documented}
-                          onChange={(v) => setIntake({ ...intake, filing_opt_out_mechanism_documented: v })}
-                          label="Our deletion / opt-out arrangements are documented" />
-                        <CheckRow checked={intake.filing_minors_data_practices_documented}
-                          onChange={(v) => setIntake({ ...intake, filing_minors_data_practices_documented: v })}
-                          label="Our position on collecting the personal information of minors is documented" />
-                        <CheckRow checked={intake.filing_metrics_documented}
-                          onChange={(v) => setIntake({ ...intake, filing_metrics_documented: v })}
-                          label="The consumer-request metrics required by Cal. Civ. Code § 1798.99.85(a)(1)-(2) are compiled" />
-                        <CheckRow checked={intake.filing_rights_instructions_documented}
-                          onChange={(v) => setIntake({ ...intake, filing_rights_instructions_documented: v })}
-                          label="We have a page giving consumers prominently displayed instructions on exercising their rights" />
-                      </div>
-                    )}
+                    {showBrokerDetail && brokerDetailBlock}
                   </div>
                 )}
 
@@ -589,6 +654,15 @@ export default function RegistrationAssessment() {
                         ))}
                       </div>
                     </div>
+
+                    {registryStateSelected && !brokerFlagsOn && (
+                      <div className="space-y-3 border-t pt-4">
+                        <p className="text-sm text-muted-foreground">
+                          You selected a state with a data-broker registry. Its registration turns on the answers below, which Step 2 shows only to companies that describe themselves as brokers or sellers.
+                        </p>
+                        {brokerDetailBlock}
+                      </div>
+                    )}
 
                     <div className="space-y-3 border-t pt-4">
                       <Label className="text-base">Approval and review (optional)</Label>

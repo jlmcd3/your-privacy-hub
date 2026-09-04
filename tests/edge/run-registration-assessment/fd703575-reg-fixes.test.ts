@@ -64,9 +64,11 @@ Deno.test("R1 — an engaged DPO determination states its closing act without qu
   // what happened to the reasoning-appended version in batch 3e9ad759).
   const act = String(dpo.closing_act ?? "");
   assertStringIncludes(act, "What closes the duty is a written designation");
-  assertStringIncludes(act, "communicating them to the supervisory authority");
-  // RE-PIN PANEL LEAK-1 (2026-08-30).
-  assertStringIncludes(act, "not yet among the authorities relied on in this assessment and is not quoted");
+  // DOC 163 R9 (2026-09-03) — Art. 37(7) is in gdpr_articles (both regimes)
+  // and is now a registry row, so the step is quoted, not named as un-ingested.
+  assertStringIncludes(act, "GDPR Art. 37(7) step");
+  assertStringIncludes(act, "publish the contact details of the data protection officer and communicate them to the supervisory authority");
+  assert(!act.includes("not yet among the authorities"), "Art. 37(7) is among the authorities relied on");
 });
 
 Deno.test("R2 — named US-state markets outside the four registries earn a corpus-bounded scope statement", () => {

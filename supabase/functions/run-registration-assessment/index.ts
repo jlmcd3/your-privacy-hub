@@ -206,6 +206,12 @@ Deno.serve(async (req) => {
       })(),
       jurisdictions: engineOutput.jurisdictions.map((j) => {
         const r = reqByCode.get(j.code);
+        // DOC 163 R12 — the ICO tier resolved once per jurisdiction; an
+        // unresolved tier asserts no amount and carries its range and ask.
+        const isIcoUkJ = j.code === "GB" || j.code === "UK" ||
+          (r?.authority_name ?? "").toLowerCase().includes("ico") ||
+          (r?.jurisdiction_name ?? "").toLowerCase().includes("united kingdom");
+        const icoTier = isIcoUkJ ? resolveIcoFeeTier(intake) : null;
         const regRequired = r?.registration_required ?? null;
         // Reconcile: the engine's per-jurisdiction `obligations` array and the
         // DB-row `registration_required` flag must agree. The DB row is the
@@ -323,15 +329,13 @@ Deno.serve(async (req) => {
           representative_required: obligations.includes("eu_representative")
             ? true
             : (obligations.includes("uk_representative") ? true : false),
-          filing_fee_cents: (() => {
-            // QB-P22 item 5a — resolve ICO tier deterministically from intake.
-            const isIcoUk = j.code === "GB" || j.code === "UK" ||
-              (r?.authority_name ?? "").toLowerCase().includes("ico") ||
-              (r?.jurisdiction_name ?? "").toLowerCase().includes("united kingdom");
-            if (!isIcoUk) return r?.filing_fee_cents ?? null;
-            const tier = resolveIcoFeeTier(intake);
-            return tier.fee_cents ?? r?.filing_fee_cents ?? null;
-          })(),
+          // QB-P22 item 5a — resolve ICO tier deterministically from intake.
+          // DOC 163 R12 — never fall back to the table's default amount when
+          // the tier is unresolved: the card omits the fee row and the
+          // document names the range instead.
+          filing_fee_cents: icoTier ? (icoTier.fee_cents ?? null) : (r?.filing_fee_cents ?? null),
+          fee_range_label: icoTier?.fee_range_label ?? null,
+          fee_tier_ask: icoTier?.tier_ask ?? null,
           filing_currency: r?.filing_currency ?? null,
           renewal_period_months: r?.renewal_period_months ?? null,
           notes: (() => {
@@ -340,13 +344,10 @@ Deno.serve(async (req) => {
             const existing = wasLeadAuthority ? (baseNotes ? `${baseNotes} ${leadNote}` : leadNote) : baseNotes;
             // QB-P22 item 5a — replace generic ICO fee caveat with the resolved tier + basis;
             // keep a confirm note ONLY when the intake straddles a boundary.
-            const isIcoUk = j.code === "GB" || j.code === "UK" ||
-              (r?.authority_name ?? "").toLowerCase().includes("ico") ||
-              (r?.jurisdiction_name ?? "").toLowerCase().includes("united kingdom");
-            if (isIcoUk) {
-              const tier = resolveIcoFeeTier(intake);
-              const parts = [tier.narrative];
-              if (tier.boundary) parts.push("Confirm the tier with the ICO fee self-assessment before filing (the intake sits near a tier boundary).");
+            if (icoTier) {
+              const parts = [icoTier.narrative];
+              // DOC 163 — an unresolved tier's narrative already carries its ask.
+              if (icoTier.boundary && icoTier.tier !== null) parts.push("Confirm the tier with the ICO fee self-assessment before filing (the intake sits near a tier boundary).");
               const icoNote = parts.join(" ");
               return existing ? `${existing} ${icoNote}` : icoNote;
             }
@@ -570,55 +571,56 @@ Deno.serve(async (req) => {
       (result_summary as any).narrative = deliverables.narrative;
       (result_summary as any).deliverables_version = REGISTRATION_DELIVERABLES_VERSION;
 
-      // ── ITEM 337 (PROSE PROGRAM 1, Part D2) — CONTRADICTION GUARD ──────
-      // The jurisdiction matrix (`obligations_summary`) and the reasoned
-      // deliverables must never tell the customer two different things on the
-      // same page. Where the reasoned determination says the record does not
-      // support a conclusion, the reasoned output WINS: the matrix boolean is
-      // suppressed to `null` and the deciding question is named. The matrix is
-      // a lookup; the deliverable is the analysis.
+      // ── DOC 163 R14 (2026-09-03) — ONE RESOLVER ─────────────────────────
+      // The reasoned deliverables are the analysis; the engine's booleans,
+      // dpo_precision and the per-card DPO facts are DERIVED from them here.
+      // (The ITEM 337 guard this replaces read `deliverables.dpo` — a key that
+      // never existed, so it never fired; the JSON and the document could say
+      // two different things about the same duty.)
       try {
-        const dpoVerdict = (deliverables as any)?.dpo?.verdict;
         const os = (result_summary as any).obligations_summary as any;
-        const contradictions: string[] = [];
-        if (os && dpoVerdict === "record_insufficient" && os.dpo_required === true) {
-          os.dpo_required = null;
-          os.dpo_condition = os.dpo_condition ||
-            "The Art. 37(1) branches cannot be evaluated from the facts recorded; the jurisdiction lookup alone does not establish the duty.";
-          os.dpo_trigger = null;
-          contradictions.push("dpo_required");
+        const dpo = deliverables.dpo_determination;
+        const bdsg = deliverables.bdsg_determination ?? null;
+        const engagedGdpr = dpo.verdict === "engaged";
+        const engagedBdsg = bdsg?.verdict === "engaged";
+        const openGdpr = dpo.verdict === "record_insufficient" || dpo.verdict === "conditional";
+        const openBdsg = bdsg?.verdict === "conditional" || bdsg?.verdict === "record_insufficient";
+        const dpoRequired: boolean | null = engagedGdpr || engagedBdsg ? true : openGdpr || openBdsg ? null : false;
+        const triggers = [
+          ...(engagedGdpr ? dpo.engaged_branches : []),
+          ...(engagedBdsg && bdsg ? [`${bdsg.citations[1] ?? bdsg.citations[0]} — commercial processing of personal data for the purpose of transfer, regardless of headcount`] : []),
+        ];
+        const conditions = [
+          ...(openGdpr ? [dpo.information_needed ? `Open under ${dpo.citations.join(", ")}: ${dpo.information_needed}.` : dpo.headline] : []),
+          ...(bdsg && !engagedBdsg && openBdsg ? [bdsg.headline] : []),
+        ];
+        os.dpo_required = dpoRequired;
+        os.dpo_trigger = triggers.length ? triggers.join("; ") : null;
+        os.dpo_condition = conditions.length ? conditions.join(" ") : null;
+        os.citations = Array.from(new Set([
+          ...(engagedGdpr || openGdpr ? dpo.citations : []),
+          ...(bdsg ? bdsg.citations : []),
+        ]));
+        const repVal = (v: string): boolean | null =>
+          v === "engaged" ? true : v === "conditional" || v === "record_insufficient" ? null : false;
+        for (const rd of deliverables.representative_determinations) {
+          if (rd.jurisdiction === "EU") os.eu_representative_required = repVal(rd.verdict);
+          else os.uk_representative_required = repVal(rd.verdict);
         }
-        if (os && dpoVerdict === "not_engaged" && os.dpo_required === true) {
-          // A jurisdictional threshold (e.g. BDSG §38) may still bite where no
-          // Art. 37(1) branch is engaged — that is not a contradiction, but it
-          // must be stated rather than left implicit.
-          os.dpo_condition = os.dpo_condition ||
-            "No Art. 37(1) branch is engaged; the duty arises, if at all, from the national threshold named in the trigger.";
+        if ((result_summary as any).dpo_precision || os.dpo_trigger || os.dpo_condition) {
+          (result_summary as any).dpo_precision = { required: dpoRequired, trigger: os.dpo_trigger, condition: os.dpo_condition };
         }
-        const rep = (deliverables as any)?.representatives;
-        for (
-          const [k, v] of [
-            ["eu_representative_required", rep?.eu?.status],
-            ["uk_representative_required", rep?.uk?.status],
-          ] as const
-        ) {
-          if (os && v === "record_insufficient" && os[k] === true) {
-            os[k] = null;
-            contradictions.push(k);
-          }
+        for (const card of (result_summary.jurisdictions as any[])) {
+          const isDe = card.code === "DE";
+          card.dpo_required = engagedGdpr || (isDe && engagedBdsg);
+          card.dpo_basis = isDe && bdsg ? `${dpo.headline} ${bdsg.headline}` : dpo.headline;
         }
-        if (contradictions.length) {
-          (result_summary as any)._meta = {
-            ...((result_summary as any)._meta || {}),
-            matrix_contradictions_suppressed: contradictions,
-          };
-          if ((result_summary as any).dpo_precision && contradictions.includes("dpo_required")) {
-            (result_summary as any).dpo_precision.required = null;
-            (result_summary as any).dpo_precision.trigger = null;
-          }
-        }
+        (result_summary as any)._meta = {
+          ...((result_summary as any)._meta || {}),
+          dpo_resolver: "registration_deliverables (doc 163)",
+        };
       } catch (e) {
-        console.warn("[run-registration-assessment] contradiction guard skipped:", (e as Error)?.message);
+        console.warn("[run-registration-assessment] deliverables derivation skipped:", (e as Error)?.message);
       }
     } catch (e) {
       console.error("[run-registration-assessment] deliverables build failed:", (e as Error)?.message);

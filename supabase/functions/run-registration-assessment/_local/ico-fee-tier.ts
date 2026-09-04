@@ -47,6 +47,12 @@ export type IcoTierResolution = {
   fee_cents: number | null;
   narrative: string;
   boundary: boolean;
+  /** DOC 163 R12 — the tiers the recorded axes leave possible (one when fixed). */
+  possible_tiers: Array<1 | 2 | 3>;
+  /** "£78.00 or £3,763.00, depending on turnover" where the tier is not fixed. */
+  fee_range_label: string | null;
+  /** The ask that fixes an unresolved tier. */
+  tier_ask: string | null;
 };
 
 export function resolveIcoFeeTier(intake: any): IcoTierResolution {
@@ -72,27 +78,42 @@ export function resolveIcoFeeTier(intake: any): IcoTierResolution {
     : null;
   let tier: 1 | 2 | 3 | null = null;
   let boundary = false;
-  if (hasStaff || hasRevenue) {
-    const staffOverT2 = hasStaff && staff > T2_STAFF;
-    const revOverT2 = hasRevenue && revenueGbp > T2_TURNOVER_GBP;
-    const staffLeT1 = hasStaff && staff <= T1_STAFF;
-    const revLeT1 = hasRevenue && revenueGbp <= T1_TURNOVER_GBP;
+  // DOC 163 R12 (2026-09-03) — the tiers the recorded axes leave possible. One
+  // axis fixes a tier only where that axis alone decides it (Tier 1 is
+  // turnover ≤ £632k OR ≤ 10 staff); Tier 3 needs BOTH axes above their
+  // thresholds, so staff alone never fixes Tier 2 against Tier 3. Where two
+  // tiers remain, no amount is asserted and the missing axis is the ask
+  // (live: 300 staff, no turnover, rendered "Tier 2 (£78.00)").
+  let possible: Array<1 | 2 | 3> = [];
+  if (hasStaff && hasRevenue) {
+    const staffOverT2 = staff > T2_STAFF;
+    const revOverT2 = revenueGbp > T2_TURNOVER_GBP;
+    const staffLeT1 = staff <= T1_STAFF;
+    const revLeT1 = revenueGbp <= T1_TURNOVER_GBP;
     if (staffOverT2 && revOverT2) {
       tier = 3;
     } else if (staffLeT1 || revLeT1) {
       tier = 1;
-      // Boundary if the other axis, when present, pushes above Tier 1.
-      if ((hasStaff && staff > T1_STAFF) || (hasRevenue && revenueGbp > T1_TURNOVER_GBP)) boundary = true;
+      // Boundary if the other axis pushes above Tier 1.
+      if (staff > T1_STAFF || revenueGbp > T1_TURNOVER_GBP) boundary = true;
     } else {
       tier = 2;
       // Boundary if either axis sits within 10% of the T2/T3 threshold.
-      if (hasStaff && staff > T2_STAFF * 0.9 && staff <= T2_STAFF) boundary = true;
-      if (hasRevenue && revenueGbp > T2_TURNOVER_GBP * 0.9 && revenueGbp <= T2_TURNOVER_GBP) boundary = true;
+      if (staff > T2_STAFF * 0.9 && staff <= T2_STAFF) boundary = true;
+      if (revenueGbp > T2_TURNOVER_GBP * 0.9 && revenueGbp <= T2_TURNOVER_GBP) boundary = true;
     }
+    possible = [tier];
+  } else if (hasStaff) {
+    possible = staff <= T1_STAFF ? [1] : staff > T2_STAFF ? [2, 3] : [1, 2];
+  } else if (hasRevenue) {
+    possible = revenueGbp <= T1_TURNOVER_GBP ? [1] : revenueGbp > T2_TURNOVER_GBP ? [2, 3] : [1, 2];
   } else if (sizeTier) {
     tier = sizeTier;
+    possible = [sizeTier];
     boundary = true; // organization_size alone can't confirm the axis-based tier.
   }
+  if (possible.length === 1 && tier === null) tier = possible[0];
+  if (possible.length > 1) boundary = true;
   // DOC 130 REG-1 (Batch 3 follow-up, 2026-09-01) — the 0.80 GBP/USD
   // planning-rate conversion is an assumption, and where a plausible-rate
   // range (0.72-0.88) would straddle a tier threshold, the conversion is
@@ -116,7 +137,7 @@ export function resolveIcoFeeTier(intake: any): IcoTierResolution {
   const fee_cents = tier ? feeMap[tier] : null;
   const basisBits: string[] = [];
   if (hasStaff) basisBits.push(`staff count ${staff}`);
-  if (hasRevenue) basisBits.push(`turnover ≈ £${Math.round(revenueGbp).toLocaleString("en-GB")} (from annual_revenue_usd)`);
+  if (hasRevenue) basisBits.push(`turnover ≈ £${Math.round(revenueGbp).toLocaleString("en-GB")} (converted from the recorded annual revenue in US dollars)`);
   if (!basisBits.length && sizeTier) basisBits.push(`organization_size "${orgSize}"`);
   const basis = basisBits.length ? basisBits.join(" and ") : "no distinguishing intake fields";
   // DOC 130 REG-1 — the conversion assumption is always disclosed where it
@@ -135,8 +156,26 @@ export function resolveIcoFeeTier(intake: any): IcoTierResolution {
   const conversionNote = hasRevenue
     ? ` The turnover figure is converted from the recorded USD revenue at a 0.80 GBP/USD planning rate.${rangeStableNote} Confirm the organisation's GBP turnover against the ICO thresholds before filing.`
     : "";
+  const amount = (t: 1 | 2 | 3): string => `£${(feeMap[t] / 100).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  // The narrative keeps the doc-139 pinned format; the customer-facing ask uses
+  // the thousands separator the duty name already uses.
+  const tierDesc = (t: 1 | 2 | 3): string => `Tier ${t} (£${(feeMap[t] / 100).toFixed(2)})`;
+  const tierDescPretty = (t: 1 | 2 | 3): string => `Tier ${t} (${amount(t)})`;
+  const missingAxis = hasStaff && !hasRevenue ? "turnover" : !hasStaff && hasRevenue ? "staff count" : null;
+  const unresolved = possible.length > 1 && missingAxis !== null;
+  const deciding = unresolved
+    ? (possible[0] === 2
+      ? " (Tier 3 requires both turnover above £36 million and more than 250 staff)"
+      : " (Tier 1 requires turnover of £632,000 or less, or 10 staff or fewer)")
+    : "";
   const narrative = tier
-    ? `ICO Data-Protection Fee resolved to Tier ${tier} (£${(feeMap[tier] / 100).toFixed(2)}) from ${basis}.${conversionNote}`
+    ? `ICO Data-Protection Fee resolved to ${tierDesc(tier)} from ${basis}.${conversionNote}`
+    : unresolved
+    ? `ICO Data-Protection Fee tier cannot be fixed from the record: with ${basis} and no ${missingAxis} recorded, the tier is ${tierDesc(possible[0])} or ${tierDesc(possible[1])}, and the missing ${missingAxis} decides which${deciding}.${conversionNote}${hasRevenue ? "" : " Confirm the tier via the ICO fee self-assessment before filing."}`
     : `ICO Data-Protection Fee tier could not be resolved from the record (${basis}); confirm the tier via the ICO fee self-assessment.`;
-  return { tier, fee_cents, narrative, boundary };
+  const fee_range_label = unresolved ? `${amount(possible[0])} or ${amount(possible[1])}, depending on ${missingAxis}` : null;
+  const tier_ask = unresolved
+    ? `Record the organisation's ${missingAxis} to fix the tier (${tierDescPretty(possible[0])} or ${tierDescPretty(possible[1])}), then confirm it via the ICO fee self-assessment before filing`
+    : null;
+  return { tier, fee_cents, narrative, boundary, possible_tiers: possible, fee_range_label, tier_ask };
 }

@@ -17,6 +17,11 @@
 // The engine is pure — no Supabase, no fetch — so it can be unit-tested
 // with `deno test` and reused by the edge function.
 
+// DOC 163 (2026-09-03) — reader names for the codes the engine's own reasons
+// carry (they reach the result page's jurisdiction cards).
+import { REGISTRATION_JURISDICTION_LABELS } from "./prose/plans/registration.slotmap.ts";
+const juris = (c: string): string => REGISTRATION_JURISDICTION_LABELS[c] ?? c;
+
 // ---------- Types ----------
 
 export type Role = "controller" | "processor" | "both";
@@ -257,7 +262,7 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
   for (const c of markets) {
     if (EU_EEA_CODES.has(c)) continue; // handled by R2
     ensure(map, c, "R3_MARKET",
-      `Offers goods/services to residents of ${c}`,
+      `Offers goods or services to residents of ${juris(c)}`,
       "registration");
   }
   if (markets.size > 0) fired.push("R3_MARKET");
@@ -301,12 +306,19 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
   const isSmallController =
     (intake.organization_size === "small" || intake.organization_size === "micro") &&
     (intake.employee_count ?? 0) < 50;
+  // DOC 163 R14 — the instrument the DPO citations name follows the regime
+  // the record engages: UK GDPR where the organisation touches the United
+  // Kingdom and not the Union; GDPR otherwise (a UK-only record used to cite
+  // "GDPR Art. 37(1)(c)" and put both instruments in Authorities Cited).
+  const touchesUk = intake.has_uk_establishment === true || markets.has("UK") || markets.has("GB") || home === "UK" || home === "GB";
+  const touchesEu = intake.has_eu_establishment === true || euMarkets.length > 0 || (home !== undefined && EU_EEA_CODES.has(home));
+  const gdprRegime = touchesUk && !touchesEu ? "UK GDPR" : "GDPR";
   if (hasEuOrUkScope) {
     // Art. 37(1)(b) — systematic monitoring on a large scale. Requires the
     // large_scale_monitoring flag; special-categories alone does not engage it.
     if (intake.large_scale_monitoring) {
       dpoRequired = true;
-      dpoTrigger = "GDPR Art. 37(1)(b) — core activities require regular and systematic monitoring of data subjects on a large scale";
+      dpoTrigger = `${gdprRegime} Art. 37(1)(b) — core activities require regular and systematic monitoring of data subjects on a large scale`;
       dpoReasons.push(dpoTrigger);
     }
     // Art. 37(1)(c) — core activities consist of large-scale processing of
@@ -320,16 +332,16 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
     ) {
       dpoRequired = true;
       dpoTrigger = dpoTrigger
-        ? `${dpoTrigger}; and GDPR Art. 37(1)(c) — large-scale processing of special categories`
-        : "GDPR Art. 37(1)(c) — core activities consist of large-scale processing of special categories of personal data";
-      dpoReasons.push("GDPR Art. 37(1)(c): large-scale special-category processing");
+        ? `${dpoTrigger}; and ${gdprRegime} Art. 37(1)(c) — large-scale processing of special categories`
+        : `${gdprRegime} Art. 37(1)(c) — core activities consist of large-scale processing of special categories of personal data`;
+      dpoReasons.push(`${gdprRegime} Art. 37(1)(c): large-scale special-category processing`);
     } else if (intake.processes_special_categories && isSmallController) {
       // Small controller processes special categories but neither large_scale
       // nor a >100k subject base is declared — emit conditional per the
       // addendum instead of an over-inclusive `true`.
       dpoCondition =
-        "Conditional on GDPR Art. 37(1)(c): DPO becomes mandatory if the special-category processing declared in the intake constitutes the organisation's 'core activity' AND is carried out 'on a large scale' (EDPB WP 243 rev.01 factors: number of data subjects, volume, duration, geographic extent). For a small controller of this size these thresholds are not established by the intake; confirm before concluding either way.";
-      citations.push("GDPR Art. 37(1)(c)");
+        `Conditional on ${gdprRegime} Art. 37(1)(c): DPO becomes mandatory if the special-category processing declared in the intake constitutes the organisation's 'core activity' AND is carried out 'on a large scale' (EDPB WP 243 rev.01 factors: number of data subjects, volume, duration, geographic extent). For a small controller of this size these thresholds are not established by the intake; confirm before concluding either way.`;
+      citations.push(`${gdprRegime} Art. 37(1)(c)`);
     }
   }
   if (
@@ -430,7 +442,7 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
       // Register if you target that state OR if you target US broadly.
       if (markets.has(state) || markets.has("US")) {
         ensure(map, state, "R7_DATA_BROKER",
-          `Data broker registration required (${state})`,
+          `Data broker registration required (${juris(state)})`,
           "data_broker_registration");
         dataBrokerStates.push(state);
       }
@@ -477,7 +489,7 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
     for (const c of CCPA_STATES) {
       if (markets.has(c)) {
         ensure(map, c, "R8_CCPA_SELL",
-          `Sells/shares personal info — sale/share opt-out and consumer disclosures required (${c})`,
+          `Sells/shares personal info — sale/share opt-out and consumer disclosures required (${juris(c)})`,
           "sale_share_opt_out");
         r8Fired = true;
       }

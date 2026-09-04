@@ -22,6 +22,7 @@ import {
 import type {
   AiActRegistrationDetermination,
   Attestation,
+  BdsgDetermination,
   CorpusPendingFlag,
   DpoDetermination,
   FilingReadiness,
@@ -72,6 +73,15 @@ export interface RegistrationIntakeForDeliverables {
   // metrics and TX § 510.005(b)(2-a) rights-instructions link.
   filing_metrics_documented?: boolean | null;
   filing_rights_instructions_documented?: boolean | null;
+  // DOC 163 R7 — Tex. Bus. & Com. Code § 510.005(b)(3), (4), (6).
+  filing_tx_categories_documented?: boolean | null;
+  filing_tx_credentialing_statement_documented?: boolean | null;
+  filing_tx_breach_count_documented?: boolean | null;
+  // DOC 163 R1/R3/R8 — facts the document now reads.
+  ai_high_risk_role?: string | null;
+  data_subjects_count?: number | null;
+  employee_count?: number | null;
+  eu_lead_member_state?: string | null;
 
   // Attestation intake (optional). No date is computed from these.
   approved_by_name?: string | null;
@@ -83,6 +93,35 @@ export interface RegistrationIntakeForDeliverables {
 }
 
 type I = RegistrationIntakeForDeliverables;
+
+// DOC 163 R5 (2026-09-03) — reader labels for a claimed statutory-exclusion
+// family (the form's own words); the raw key never reaches the document.
+const BROKER_EXEMPTION_LABELS: Record<string, string> = {
+  fcra_consumer_reporting: "consumer-reporting (FCRA)",
+  glba_financial: "financial-institution (GLBA)",
+  hipaa_health: "health-data (HIPAA)",
+  insurance: "insurance",
+  service_provider_processor: "service-provider or processor",
+  affiliate_or_subsidiary: "affiliate or subsidiary transfers",
+  publicly_available_information: "publicly available information",
+};
+export function exemptionLabel(v: string): string {
+  return BROKER_EXEMPTION_LABELS[v] ?? v.replace(/_/g, " ");
+}
+
+// DOC 163 R3/R4 — the one scale fact the form collects for "large scale": the
+// engine's own > 100,000-data-subject proxy (QB-P24 addendum item 9(a)). The
+// form tells the company the count "is what the 'large scale' test for a
+// mandatory data protection officer turns on", so the document reads it.
+export const LARGE_SCALE_SUBJECTS = 100_000;
+export function recordedLargeScale(intake: I): boolean | null {
+  const n = num(intake.data_subjects_count);
+  return n === null ? null : n > LARGE_SCALE_SUBJECTS;
+}
+function subjectsProse(intake: I): string {
+  const n = num(intake.data_subjects_count);
+  return n === null ? "" : `${n.toLocaleString("en-US")} data subjects a year`;
+}
 
 const UNKNOWN = "The record does not state this.";
 
@@ -149,7 +188,14 @@ interface StateSpec {
   state_name: string;
   filing_body: string;
   definition_keys: string[];
-  exclusion_key: string | null;
+  /** DOC 163 R5 — every registry row reproducing the state's exclusion text. */
+  exclusion_keys: string[];
+  /** Claimed-exclusion family → the state's own words for it. */
+  exclusion_families: Record<string, string>;
+  /** True when every subdivision of the state's exclusion list is reproduced. */
+  exclusions_complete: boolean;
+  /** Registry row whose text takes a governmental entity outside the chapter. */
+  public_body_exclusion_key: string | null;
   requirement_key: string;
   window_key: string | null;
   fee_key: string | null;
@@ -278,7 +324,10 @@ function txLimbs(intake: I): ThresholdAnalysis["limbs"] {
   const pct = num(intake.brokered_data_revenue_share_pct);
   const count = num(intake.brokered_data_individual_count);
   const revenueLimb = pct === null ? null : pct > 50;
-  const volumeLimb = count === null ? null : count > 50000;
+  // DOC 163 R6 — limb (2) is REVENUE derived from the data of more than 50,000
+  // individuals: the count alone establishes no revenue. A recorded 0 % share
+  // defeats it; a blank share leaves it open; a count of 50,000 or fewer fails it.
+  const volumeLimb = count === null ? null : count <= 50000 ? false : pct === null ? null : pct > 0;
   return [
     {
       limb: "Collects, processes, or transfers personal data not collected directly from the individual",
@@ -299,7 +348,7 @@ function txLimbs(intake: I): ThresholdAnalysis["limbs"] {
       citation: app.citation,
       standard: "more than 50 percent of the data broker's revenue directly from processing or transferring personal data not collected by the data broker directly from the individuals to whom the data pertains",
       record_fact: pct === null
-        ? UNKNOWN
+        ? "The record does not state the share of revenue derived from processing or transferring indirectly-obtained personal data."
         : `The record states ${pct}% of revenue derives from processing or transferring indirectly-obtained personal data.`,
       met: revenueLimb,
       reasoning: pct === null
@@ -313,14 +362,18 @@ function txLimbs(intake: I): ThresholdAnalysis["limbs"] {
       citation: app.citation,
       standard: "revenue directly from processing or transferring the personal data of more than 50,000 individuals not collected by the data broker directly from the individuals to whom the data pertains",
       record_fact: count === null
-        ? UNKNOWN
-        : `The record states the personal data of ${count.toLocaleString("en-US")} individuals is handled without direct collection.`,
+        ? "The record does not state the number of individuals whose personal data is handled without direct collection."
+        : `The record states the personal data of ${count.toLocaleString("en-US")} individuals is handled without direct collection${pct === null ? ", and does not state the share of revenue derived from it" : `, and that ${pct}% of revenue derives from it`}.`,
       met: volumeLimb,
       reasoning: count === null
         ? "Cannot be evaluated: the record does not state the number of individuals whose data is handled indirectly."
-        : volumeLimb
-        ? `${count.toLocaleString("en-US")} exceeds the statutory 50,000 threshold, so this limb is met.`
-        : `${count.toLocaleString("en-US")} does not exceed the statutory 50,000 threshold, so this limb is not met on its own.`,
+        : count <= 50000
+        ? `${count.toLocaleString("en-US")} does not exceed the statutory 50,000 threshold, so this limb is not met on its own.`
+        : pct === null
+        ? `${count.toLocaleString("en-US")} exceeds the statutory 50,000 threshold, but the limb turns on revenue derived from that data and the record does not state whether any revenue is derived from it.`
+        : pct > 0
+        ? `${count.toLocaleString("en-US")} exceeds the statutory 50,000 threshold and the record states revenue is derived from that data, so this limb is met.`
+        : `${count.toLocaleString("en-US")} exceeds the statutory 50,000 threshold, but the record states no revenue derives from that data, so this limb is not met.`,
     },
   ];
 }
@@ -385,7 +438,15 @@ const STATE_SPECS: StateSpec[] = [
     state_name: "California",
     filing_body: "the California Privacy Protection Agency",
     definition_keys: ["ca_data_broker_definition"],
-    exclusion_key: "ca_data_broker_exclusions",
+    exclusion_keys: ["ca_data_broker_exclusions"],
+    exclusion_families: {
+      fcra_consumer_reporting: "an entity to the extent that it is covered by the federal Fair Credit Reporting Act (subdivision (c)(1))",
+      glba_financial: "an entity to the extent that it is covered by the Gramm-Leach-Bliley Act (subdivision (c)(2))",
+      insurance: "an entity to the extent that it is covered by the Insurance Information and Privacy Protection Act (subdivision (c)(3))",
+      hipaa_health: "an entity, or a business associate of a covered entity, to the extent its processing is exempt under Section 1798.146 (subdivision (c)(4))",
+    },
+    exclusions_complete: true,
+    public_body_exclusion_key: null,
     requirement_key: "ca_registration_requirement",
     window_key: "ca_registration_requirement",
     fee_key: "ca_registration_fee",
@@ -398,7 +459,10 @@ const STATE_SPECS: StateSpec[] = [
     state_name: "Oregon",
     filing_body: "the Oregon Department of Consumer and Business Services",
     definition_keys: ["or_data_broker_definition"],
-    exclusion_key: null,
+    exclusion_keys: [],
+    exclusion_families: {},
+    exclusions_complete: true,
+    public_body_exclusion_key: null,
     requirement_key: "or_registration_requirement",
     window_key: "or_registration_term",
     fee_key: "or_registration_fee",
@@ -411,7 +475,17 @@ const STATE_SPECS: StateSpec[] = [
     state_name: "Texas",
     filing_body: "the Texas Secretary of State",
     definition_keys: ["tx_data_broker_definition", "tx_applicability_threshold"],
-    exclusion_key: "tx_applicability_exclusions",
+    exclusion_keys: ["tx_applicability_exclusions", "tx_applicability_exclusions_fcra", "tx_applicability_exclusions_glba"],
+    exclusion_families: {
+      service_provider_processor: "a service provider (subsection (b)(1))",
+      affiliate_or_subsidiary: "a person or entity collecting personal data from a related person or entity under common ownership or corporate control, where a reasonable consumer would expect the sharing (subsection (b)(2))",
+      fcra_consumer_reporting: "a consumer reporting agency or a person furnishing or obtaining consumer credit reports, to the extent regulated by the Fair Credit Reporting Act (subsection (b)(5))",
+      glba_financial: "a financial institution subject to Title V of the Gramm-Leach-Bliley Act (subsection (b)(6))",
+    },
+    // The approved corpus row elides subsection (b)(4); a family absent from
+    // the reproduced text is therefore unresolved, never "no footing".
+    exclusions_complete: false,
+    public_body_exclusion_key: "tx_applicability_exclusions",
     requirement_key: "tx_registration_requirement",
     window_key: "tx_registration_term",
     fee_key: "tx_registration_requirement",
@@ -424,7 +498,12 @@ const STATE_SPECS: StateSpec[] = [
     state_name: "Vermont",
     filing_body: "the Vermont Secretary of State",
     definition_keys: ["vt_data_broker_definition"],
-    exclusion_key: "vt_activity_exclusions",
+    exclusion_keys: ["vt_activity_exclusions"],
+    exclusion_families: {
+      publicly_available_information: "providing publicly available information related to a consumer's business or profession, or via real-time or near-real-time alert services for health or safety purposes (subdivision (4)(C)(iii)–(iv)) — narrower than publicly available information generally",
+    },
+    exclusions_complete: true,
+    public_body_exclusion_key: null,
     requirement_key: "vt_registration_requirement",
     window_key: "vt_registration_requirement",
     fee_key: "vt_registration_requirement",
@@ -460,15 +539,41 @@ function buildThreshold(intake: I, spec: StateSpec): ThresholdAnalysis {
   const limbs = spec.limbs(intake);
   const met = combineLimbs(spec.code, limbs);
   const defRows = spec.definition_keys.map(dutyRow);
+  // DOC 163 R5 — a claimed exclusion is measured against the state's OWN
+  // reproduced exclusion text. "unknown" ("Not sure" on the form) is a
+  // question, not a claim, and is never read as "claims no exclusion".
   const claimed = (intake.data_broker_exemption_claimed || "").trim();
-  const hasClaim = claimed !== "" && claimed !== "none" && claimed !== "unknown";
-  const exclusionRow = spec.exclusion_key ? dutyRow(spec.exclusion_key) : null;
-
-  const exclusion_analysis = !exclusionRow
-    ? `The ${spec.state_name} registration provision states no exclusion list in its operative text, so no exclusion is applied here.`
+  const unsure = claimed === "unknown";
+  const hasClaim = claimed !== "" && claimed !== "none" && !unsure;
+  const exclusionRows = spec.exclusion_keys.map(dutyRow);
+  const exclusionCites = Array.from(new Set(exclusionRows.map((r) => r.citation))).join("; ");
+  const family = hasClaim ? spec.exclusion_families[claimed] : undefined;
+  const label = hasClaim ? exemptionLabel(claimed) : "";
+  const exclusion_effect: ThresholdAnalysis["exclusion_effect"] = unsure
+    ? "unsure"
     : !hasClaim
-    ? `The record claims no statutory exclusion. ${spec.state_name}'s exclusion text (${exclusionRow.citation}) is reproduced with this finding and is not applied absent a claimed and evidenced basis.`
-    : `The record claims the "${claimed}" exclusion. Whether that claim succeeds turns on the entity's own facts measured against ${exclusionRow.citation}, which the record does not establish; the claim is recorded, not accepted.`;
+    ? "none"
+    : family
+    ? "conditional"
+    : spec.exclusions_complete
+    ? "no_footing"
+    : "unresolved";
+
+  const exclusion_analysis = exclusionRows.length === 0
+    ? (exclusion_effect === "no_footing"
+      ? `The company's claimed ${label} exclusion has no footing in the ${spec.state_name} provisions this assessment relies on, which state no exclusion list, so the claim is recorded without effect and the duty turns on the definition alone.`
+      : exclusion_effect === "unsure"
+      ? `The company is not sure whether a statutory exclusion applies. The ${spec.state_name} provisions this assessment relies on state no exclusion list, so none is applied.`
+      : `The ${spec.state_name} registration provision states no exclusion list in its operative text, so no exclusion is applied here.`)
+    : exclusion_effect === "none"
+    ? `The company claims no statutory exclusion. ${spec.state_name}'s exclusion text (${exclusionCites}) is reproduced with this finding and is not applied absent a claimed and evidenced basis.`
+    : exclusion_effect === "unsure"
+    ? `The company is not sure whether a statutory exclusion applies. ${spec.state_name}'s exclusion text (${exclusionCites}) is reproduced with this finding; no exclusion is applied, and the question is named below so it can be settled.`
+    : exclusion_effect === "conditional"
+    ? `The company's claimed ${label} exclusion is one ${spec.state_name}'s text provides, for ${family}, and whether it succeeds turns on the entity's own facts measured against ${exclusionCites}, which the record does not establish, so the claim is recorded, not accepted.`
+    : exclusion_effect === "no_footing"
+    ? `The company's claimed ${label} exclusion has no footing in ${spec.state_name}'s exclusion text (${exclusionCites}), reproduced in full here, which provides no exclusion of that kind, so the duty turns on the definition alone.`
+    : `The company's claimed ${label} exclusion is not among the ${spec.state_name} exclusions reproduced here (${exclusionCites}), but the reproduction omits one subdivision, so the claim is recorded and left for counsel against the full text.`;
 
   const failed = limbs.filter((l) => l.met === false).map((l) => l.limb);
   const open = limbs.filter((l) => l.met === null).map((l) => l.limb);
@@ -491,6 +596,7 @@ function buildThreshold(intake: I, spec: StateSpec): ThresholdAnalysis {
     limbs,
     exclusion_claimed: hasClaim ? claimed : null,
     exclusion_analysis,
+    exclusion_effect,
     ...(met === null ? { information_needed: open.join("; ") } : {}),
   };
 }
@@ -499,10 +605,19 @@ function buildDetermination(intake: I, spec: StateSpec): RegistrationDeterminati
   const threshold = buildThreshold(intake, spec);
   const reqRow = dutyRow(spec.requirement_key);
   const met = threshold.verdict;
-  const conditional = threshold.exclusion_claimed !== null && met === "satisfied";
+  // DOC 163 R5 — the verdict is conditional only where the claimed exclusion
+  // has footing (or cannot be excluded) in the state's reproduced text.
+  const conditional = met === "satisfied" &&
+    (threshold.exclusion_effect === "conditional" || threshold.exclusion_effect === "unresolved");
+  // DOC 163 R5 — Tex. § 510.003(b)(3): the chapter does not apply to a
+  // governmental entity; a recorded public-authority answer resolves Texas.
+  const publicBodyRow = spec.public_body_exclusion_key ? dutyRow(spec.public_body_exclusion_key) : null;
+  const publicBody = publicBodyRow !== null && intake.is_public_authority === true;
 
   const verdict: RegistrationDetermination["verdict"] =
-    met === "record_insufficient"
+    publicBody
+      ? "not_registrable"
+      : met === "record_insufficient"
       ? "record_insufficient"
       : met === "not_satisfied"
       ? "not_registrable"
@@ -522,20 +637,24 @@ function buildDetermination(intake: I, spec: StateSpec): RegistrationDeterminati
         ? `${orgName(intake)} does not meet the ${spec.state_name} data-broker definition as the record stands.`
         : `Whether ${orgName(intake)} meets the ${spec.state_name} definition is not resolvable from the facts recorded.`,
     application:
-      met === "satisfied"
+      publicBody
+        ? `${publicBodyRow!.citation} provides that the chapter does not apply to a federal, state, tribal, territorial, or local governmental entity, and the record states ${orgName(intake)} is a public authority or body, so the duty in ${reqRow.citation} does not attach.`
+        : met === "satisfied"
         ? `Because the definition is met, the registration duty in ${reqRow.citation} attaches and must be discharged with ${spec.filing_body}.`
         : met === "not_satisfied"
         ? `The duty in ${reqRow.citation} is predicated on meeting the definition. It does not attach as matters stand; it would attach in any year in which the definition is met.`
         : `The duty in ${reqRow.citation} cannot be resolved until the definitional limbs above are evidenced.`,
-    verdict: met === "satisfied" ? "engaged" : met === "not_satisfied" ? "not_engaged" : "record_insufficient",
-    status: met === "record_insufficient" ? "record_insufficient" : "analysed",
+    verdict: publicBody ? "not_engaged" : met === "satisfied" ? "engaged" : met === "not_satisfied" ? "not_engaged" : "record_insufficient",
+    status: !publicBody && met === "record_insufficient" ? "record_insufficient" : "analysed",
     ...(met === "record_insufficient"
       ? { information_needed: threshold.information_needed || "Definitional limbs unevidenced." }
       : {}),
   };
 
   const headline =
-    verdict === "registrable"
+    publicBody
+      ? `${orgName(intake)} is a governmental entity on its answers, which ${publicBodyRow!.citation} places outside the Texas data-broker chapter, so no Texas registration duty attaches.`
+      : verdict === "registrable"
       ? `${orgName(intake)} is required to register as a data broker in ${spec.state_name} with ${spec.filing_body}.`
       : verdict === "not_registrable"
       ? `${orgName(intake)} is not required to register as a data broker in ${spec.state_name} as the record stands.`
@@ -543,18 +662,24 @@ function buildDetermination(intake: I, spec: StateSpec): RegistrationDeterminati
       ? `${orgName(intake)} meets the ${spec.state_name} data-broker definition, but has claimed a statutory exclusion that the record does not establish; registration turns on that claim.`
       : `Whether ${orgName(intake)} must register in ${spec.state_name} cannot be determined from the facts recorded.`;
 
+  // DOC 163 — asks are named only where the determination is open; a
+  // not-registrable determination has no remaining question. Each ask is a
+  // lower-case clause (no leading state label, so nothing case-folds a
+  // proper noun downstream).
   const open_questions: string[] = [];
-  for (const l of threshold.limbs) {
-    // PANEL LEAK-1 (2026-08-30): was "california: evidence needed on — …"
-    // (key:value + floating dash); reads as a sentence now.
-    if (l.met === null) open_questions.push(`${spec.state_name}: evidence is still needed on ${l.limb}.`);
+  if (verdict === "record_insufficient") {
+    for (const l of threshold.limbs) {
+      if (l.met === null) open_questions.push(`evidence for ${spec.state_name} on the limb "${l.limb}"`);
+    }
   }
   if (verdict === "conditional") {
+    const cites = Array.from(new Set(spec.exclusion_keys.map((k) => dutyRow(k).citation))).join("; ") || reqRow.citation;
     open_questions.push(
-      `${spec.state_name}: substantiate the claimed "${threshold.exclusion_claimed}" exclusion against ${
-        spec.exclusion_key ? dutyRow(spec.exclusion_key).citation : reqRow.citation
-      }.`,
+      `substantiation of the claimed ${exemptionLabel(threshold.exclusion_claimed ?? "")} exclusion for ${spec.state_name} against ${cites}`,
     );
+  }
+  if ((verdict === "registrable" || verdict === "conditional") && threshold.exclusion_effect === "unsure") {
+    open_questions.push(`whether any statutory exclusion applies in ${spec.state_name}; the company is not sure`);
   }
 
   return {
@@ -598,29 +723,35 @@ function buildSchedule(spec: StateSpec): ScheduleAndFee {
 
 // ── Op. 5 — filing-content readiness ────────────────────────────────────────
 
-const FILING_ITEM_MAP: Record<string, Array<{ item: string; intake_key: string | null }>> = {
+// DOC 163 R7 (2026-09-03) — each list is the statute's own list AS REPRODUCED
+// in the approved corpus row, element for element: CA § 1798.99.82(b)(2)(A)–(C);
+// OR 646A.593(3)(a)(A)–(C); TX § 510.005(b)(1), (2), (2-a), (3), (4), (5), (6);
+// VT § 2446(a)(3)(A)–(B). Items the reproduced text does not carry (a CA
+// opt-out element, a VT minors statement) are gone; the summary claims
+// completeness only against the reproduced text.
+const FILING_ITEM_MAP: Record<string, Array<{ item: string; intake_key: string | null; required_when?: (intake: I) => boolean | null }>> = {
   "US-CA": [
     { item: "Name and primary physical, email and website addresses of the data broker", intake_key: "filing_contact_details_ready" },
-    { item: "How a consumer may exercise deletion and opt-out rights", intake_key: "filing_opt_out_mechanism_documented" },
-    { item: "Whether the data broker collects the personal information of minors", intake_key: "filing_minors_data_practices_documented" },
-    // COVERAGE FIX (2026-08-04): § 1798.99.82(b)(2)(B) requires the metrics
-    // compiled under § 1798.99.85(a)(1)-(2). The list previously omitted it.
     { item: "The metrics compiled pursuant to paragraphs (1) and (2) of subdivision (a) of Section 1798.99.85", intake_key: "filing_metrics_documented" },
+    { item: "Whether the data broker collects the personal information of minors", intake_key: "filing_minors_data_practices_documented" },
   ],
   "US-OR": [
     { item: "Name, street address, telephone number, primary website and electronic mail address", intake_key: "filing_contact_details_ready" },
   ],
   "US-TX": [
     { item: "Legal name, contact person, physical address, e-mail, telephone and website", intake_key: "filing_contact_details_ready" },
-    // COVERAGE FIX (2026-08-04): § 510.005(b)(2-a) requires a link to a page
-    // giving consumers prominently displayed instructions on exercising their
-    // rights under § 541.051. The list previously omitted it.
     { item: "Link to a page providing consumers with prominently displayed instructions on exercising their rights under Section 541.051", intake_key: "filing_rights_instructions_documented" },
+    { item: "Description of the categories of data the data broker processes and transfers", intake_key: "filing_tx_categories_documented" },
+    { item: "Statement of whether the data broker implements a purchaser credentialing process", intake_key: "filing_tx_credentialing_statement_documented" },
+    // (5) applies only where the data broker has actual knowledge that it
+    // possesses personal data of a known child; the children's-data answer
+    // is the record's statement on that.
+    { item: "Statements on the collection practices, databases, sales activities, opt-out policies and legal compliance applicable to the personal data of a known child", intake_key: "filing_minors_data_practices_documented", required_when: (i) => tri(i.processes_children_data) },
+    { item: "Number of security breaches in the preceding year and, if known, the consumers affected by each", intake_key: "filing_tx_breach_count_documented" },
   ],
   "US-VT": [
     { item: "Name and primary physical, e-mail and Internet addresses of the data broker", intake_key: "filing_contact_details_ready" },
-    { item: "Opt-out arrangements, if any are offered", intake_key: "filing_opt_out_mechanism_documented" },
-    { item: "Statement concerning the collection of the personal information of minors", intake_key: "filing_minors_data_practices_documented" },
+    { item: "Opt-out method, scope and third-party authorisation, where an opt-out is permitted", intake_key: "filing_opt_out_mechanism_documented" },
   ],
 };
 
@@ -628,29 +759,35 @@ function buildFilingReadiness(intake: I, spec: StateSpec): FilingReadiness {
   const row = dutyRow(spec.filing_key);
   const defs = FILING_ITEM_MAP[spec.code] || [];
   const items = defs.map((d) => {
+    const requiredState = d.required_when ? d.required_when(intake) : true;
+    const required = requiredState !== false;
     const v = d.intake_key ? tri(intake[d.intake_key]) : null;
     return {
       item: d.item,
       intake_key: d.intake_key,
-      ready: v,
-      record_fact: yn(v,
-        "The record states this element is documented and available to file.",
-        "The record states this element is not yet documented.",
-        // RG-3 — name the element, not "this".
-        `The record does not state whether "${d.item}" is documented and available to file.`),
+      ready: required ? v : true,
+      required,
+      record_fact: !required
+        ? "The company has not indicated that it processes children's data, so this element is not required on its answers."
+        : yn(v,
+          "The record states this element is documented and available to file.",
+          "The record states this element is not yet documented.",
+          // RG-3 — name the element, not "this".
+          `The record does not state whether "${d.item}" is documented and available to file.`),
     };
   });
-  const unknown = items.filter((i) => i.ready === null);
-  const missing = items.filter((i) => i.ready === false);
+  const live = items.filter((i) => i.required);
+  const unknown = live.filter((i) => i.ready === null);
+  const missing = live.filter((i) => i.ready === false);
   const ready_to_file = unknown.length ? null : missing.length === 0;
   const status: FilingReadiness["status"] = ready_to_file === null ? "record_insufficient" : "analysed";
 
   const summary =
     ready_to_file === true
-      ? `Every element ${row.citation} requires the filing to contain is documented, so the filing is ready on its face. Readiness on its face is not a substitute for review of the filing itself.`
+      ? `Every element ${row.citation} requires the filing to contain, as reproduced here, is documented, so the filing is ready on its face. Readiness on its face is not a substitute for review of the filing itself.`
       : ready_to_file === false
-      ? `The company has not documented ${missing.length} element(s) ${row.citation} requires: ${missing.map((m) => m.item).join("; ")}. The filing is not ready.`
-      : `Readiness cannot be assessed: the record is silent on ${unknown.length} element(s) ${row.citation} requires.`;
+      ? `The company has not documented ${missing.length === 1 ? "one element" : `${missing.length} elements`} ${row.citation} requires: ${missing.map((m) => m.item).join("; ")}. The filing is not ready.`
+      : `Readiness cannot be assessed: the record is silent on ${unknown.length === 1 ? "one element" : `${unknown.length} elements`} ${row.citation} requires.`;
 
   return {
     jurisdiction: spec.code,
@@ -679,16 +816,19 @@ function buildRepresentative(intake: I, which: "EU" | "UK"): RepresentativeDeter
   const territory = which === "EU" ? "the Union" : "the United Kingdom";
 
   const isPublic = intake.is_public_authority === true;
-  const exemptionRow = dutyRow("eu_representative_exemption");
-  const publicRow = dutyRow("eu_representative_public_authority");
-  // D1D2B3B8-R3 — the UK determination cites the UK instrument, not the EU
-  // one: the corpus rows are the EU text, and the UK GDPR's Art. 27(2)
-  // carries the same operative words, so only the instrument label shifts.
-  const exemptionCite = which === "UK" ? regimeCite(exemptionRow.citation, "UK GDPR") : exemptionRow.citation;
-  const publicCite = which === "UK" ? regimeCite(publicRow.citation, "UK GDPR") : publicRow.citation;
+  // DOC 163 R9 — the UK determination quotes the UK instrument's own rows
+  // (gdpr_articles 'uk' 27), not the EU rows relabelled.
+  const exemptionRow = dutyRow(which === "EU" ? "eu_representative_exemption" : "uk_representative_exemption");
+  const publicRow = dutyRow(which === "EU" ? "eu_representative_public_authority" : "uk_representative_public_authority");
+  const exemptionCite = exemptionRow.citation;
+  const publicCite = publicRow.citation;
+  // DOC 163 R4 — Art. 27(2)(a) is defeated by special categories only "on a
+  // large scale"; a bare special-categories answer leaves the exemption live.
+  const specialAtScale = intake.processes_special_categories === true && recordedLargeScale(intake) === true;
+  const specialUnscaled = intake.processes_special_categories === true && !specialAtScale;
   const occasional =
     intake.large_scale_monitoring !== true &&
-    intake.processes_special_categories !== true &&
+    !specialAtScale &&
     intake.acts_as_data_broker !== true;
   // E8973164 (2026-08-28, flagged HIGH) — the "occasional" exemption is
   // defeated when ANY ONE of three conditions is true, but the sentence
@@ -700,7 +840,7 @@ function buildRepresentative(intake: I, which: "EU" | "UK"): RepresentativeDeter
   // possibilities rather than naming the one the record actually shows.
   // Name only the ground(s) the record actually establishes.
   const engagedGrounds = [
-    intake.processes_special_categories === true ? "large-scale special-category processing" : null,
+    specialAtScale ? `large-scale special-category processing (${subjectsProse(intake)})` : null,
     intake.large_scale_monitoring === true ? "large-scale monitoring" : null,
     intake.acts_as_data_broker === true ? "broker activity" : null,
   ].filter((g): g is string => g !== null);
@@ -729,7 +869,9 @@ function buildRepresentative(intake: I, which: "EU" | "UK"): RepresentativeDeter
     application = `The designation duty does not apply to ${publicRow.verbatim_quote.replace(/\.$/, "")}, and the record states ${orgName(intake)} is a public authority or body (${publicCite}).`;
   } else if (occasional) {
     verdict = "conditional";
-    application = `Article 3(2) is engaged, so Art. 27(1) prima facie requires a written designation. The record does not show large-scale special-category processing, large-scale monitoring or broker activity, so the ${exemptionCite} exemption for occasional low-risk processing is live but not established: the record does not evidence that the processing is occasional, and "occasional" is the limb the exemption turns on.`;
+    application = specialUnscaled
+      ? `Article 3(2) is engaged, so Art. 27(1) prima facie requires a written designation. The record states special-category processing but not its scale, and does not state whether the processing is occasional or unlikely to result in a risk, so the ${exemptionCite} exemption is live but not established: it is defeated by special categories only on a large scale, and "occasional" and "unlikely to result in a risk" are limbs the record does not answer.`
+      : `Article 3(2) is engaged, so Art. 27(1) prima facie requires a written designation. The record does not show large-scale special-category processing, large-scale monitoring or broker activity, so the ${exemptionCite} exemption for occasional low-risk processing is live but not established: the record does not evidence that the processing is occasional, and "occasional" is the limb the exemption turns on.`;
   } else {
     verdict = "engaged";
     application = `Article 3(2) is engaged and the ${exemptionCite} exemption is unavailable: the record states ${engagedGroundsText}, so the processing is not occasional. A representative in ${territory} must be designated in writing.`;
@@ -773,6 +915,8 @@ function buildRepresentative(intake: I, which: "EU" | "UK"): RepresentativeDeter
       : "",
     ...(status === "record_insufficient"
       ? { information_needed: `Whether ${orgName(intake)} is established in ${territory}.` }
+      : verdict === "conditional"
+      ? { information_needed: `whether the processing is occasional, whether special-category data is processed on a large scale${specialUnscaled ? " (special categories are recorded without a scale)" : ""}, and whether the processing is unlikely to result in a risk to the rights and freedoms of natural persons` }
       : {}),
   };
 }
@@ -808,7 +952,7 @@ export function dpoRegimeLabel(intake: I): "GDPR" | "UK GDPR" {
 
 
 /** Re-label a corpus citation string for the regime actually applied. */
-function regimeCite(citation: string, regime: "GDPR" | "UK GDPR"): string {
+export function regimeCite(citation: string, regime: "GDPR" | "UK GDPR"): string {
   if (regime === "GDPR") return citation;
   return citation.replace(/\bUK GDPR\b/g, "GDPR").replace(/\bGDPR\b/g, "UK GDPR");
 }
@@ -828,7 +972,7 @@ const DPO_BRANCH_MISSING_FACT: Record<string, string> = {
   dpo_trigger_regular_systematic_monitoring:
     "whether the organisation's core activities involve regular and systematic monitoring of data subjects on a large scale",
   dpo_trigger_special_categories:
-    "whether the organisation processes special categories of personal data or criminal-offence data",
+    "whether the special-category processing is a core activity carried out on a large scale (the number of data subjects a year, and whether that processing is central to what the organisation does)",
 };
 
 function buildDpo(intake: I): DpoDetermination {
@@ -901,6 +1045,15 @@ function buildDpo(intake: I): DpoDetermination {
       ? ` The record states the organisation operates in ${industry}; ${branch} is assessed against that activity, so the answer determines whether the branch is reached at all.`
       : "";
 
+  // DOC 163 R3 — branch (c) reads the one scale fact the form collects. It is
+  // engaged outright where special categories are recorded at more than
+  // 100,000 data subjects a year; otherwise it is OPEN, naming the two facts
+  // the branch turns on. This replaces the D1D2B3B8-R2 "treated as engaged on
+  // a conservative basis" verdict, which printed "Required on reported facts".
+  const special = tri(intake.processes_special_categories);
+  const scale = recordedLargeScale(intake);
+  const specialMet: boolean | null = special === false ? false : special === null ? null : scale === true ? true : null;
+  const subjects = subjectsProse(intake);
   const branches: Array<{
     key: string;
     label: string;
@@ -937,10 +1090,12 @@ function buildDpo(intake: I): DpoDetermination {
     {
       key: "dpo_trigger_special_categories",
       label: `${art}(c) — large-scale special-category or criminal-offence data`,
-      met: tri(intake.processes_special_categories),
-      fact: yn(tri(intake.processes_special_categories),
-        "The record states the organisation processes special categories of personal data.",
-        "The record states the organisation does not process special categories of personal data."),
+      met: specialMet,
+      fact: special === true
+        ? `The record states the organisation processes special categories of personal data${subjects ? `, and records ${subjects}` : ", and records no data-subject count"}.`
+        : yn(special,
+          "The record states the organisation processes special categories of personal data.",
+          "The record states the organisation does not process special categories of personal data."),
       // D1D2B3B8-R2 (2026-08-28, flagged HIGH in two documents) — ONE
       // sentence, conclusion-with-basis first: the old first sentence was a
       // bare recital of the branch test ("Branch (c) is engaged where such
@@ -951,19 +1106,22 @@ function buildDpo(intake: I): DpoDetermination {
       // is treated as engaged on a stated conservative basis, not asserted
       // as established.
       why: (m) => m === null
-        ? "Cannot be evaluated: the record does not state whether special categories of data are processed."
+        ? (special === null
+          ? "Cannot be evaluated: the record does not state whether special categories of data are processed."
+          : `The record evidences special-category processing but does not establish that it is a core activity carried out on a large scale, the two qualifiers branch (c) requires${subjects ? ` (the recorded ${subjects} do not by themselves establish large scale)` : " (no data-subject count is recorded)"}; the branch is open, not engaged.`)
         : m
-        ? "The record evidences special-category processing; the record does not separately state whether that processing is a core activity on a large scale — the two qualifiers branch (c) requires — so the branch is treated as engaged on a conservative basis rather than established on the facts recorded."
+        ? `Branch (c) is engaged: the record evidences special-category processing at ${subjects}, which this assessment treats as large scale; the record does not separately state that the processing is a core activity, and the company's answer is read as a statement about its own activities.`
         : "Branch (c) is not engaged by the facts recorded.",
     },
   ];
 
+  // DOC 163 R9 — the UK regime quotes its own rows (uk_ prefix).
   const findings: Finding[] = branches.map((b) => {
-    const row = dutyRow(b.key);
+    const row = dutyRow(regime === "UK GDPR" ? `uk_${b.key}` : b.key);
     return {
       key: b.key,
       label: b.label,
-      citation: regimeCite(row.citation, regime),
+      citation: row.citation,
       standard: row.verbatim_quote,
       record_fact: b.fact,
       application: b.why(b.met),
@@ -975,11 +1133,7 @@ function buildDpo(intake: I): DpoDetermination {
 
   const engaged = findings.filter((f) => f.verdict === "engaged");
   const unknown = findings.filter((f) => f.verdict === "record_insufficient");
-  // D1D2B3B8-R2 — branch (c) is engaged only on a conservative basis (see
-  // its why above); the headline and the Engaged list say which footing each
-  // engaged branch stands on instead of flattening both into one claim.
-  const firm = engaged.filter((f) => f.key !== "dpo_trigger_special_categories");
-  const conservative = engaged.filter((f) => f.key === "dpo_trigger_special_categories");
+  const pubRow = dutyRow(regime === "UK GDPR" ? "uk_dpo_publication" : "dpo_publication");
 
   const verdict: DpoDetermination["verdict"] = engaged.length
     ? "engaged"
@@ -989,44 +1143,132 @@ function buildDpo(intake: I): DpoDetermination {
 
   return {
     verdict,
-    headline: firm.length
-      ? `A data protection officer must be designated: ${firm.length === 1 ? "one" : firm.length === 2 ? "two" : "all three"} of the three ${art} branches ${firm.length === 1 ? "is" : "are"} engaged by the facts recorded${conservative.length ? ", and a further branch is treated as engaged on a conservative basis" : ""}.`
-      : conservative.length
-      ? `A data protection officer should be designated on the conservative reading this assessment applies: no ${art} branch is established outright on the facts recorded, but the special-category branch is treated as engaged pending the core-activity answer.`
+    headline: engaged.length
+      ? `A data protection officer must be designated: ${engaged.length === 1 ? "one" : engaged.length === 2 ? "two" : "all three"} of the three ${art} branches ${engaged.length === 1 ? "is" : "are"} engaged by the facts recorded.`
       : unknown.length
       ? `Whether a data protection officer must be designated cannot be determined from the facts recorded.`
       : `No ${art} branch is engaged by the facts recorded, so designation is not mandatory.`,
-    // FD703575-R1 / 3E9AD759-R2 — an engaged DPO duty carries its closing
-    // act. Batch 3e9ad759 showed the act appended inside `reasoning` never
-    // reached the reader: the skeleton renders reasoning's first THREE
-    // sentences and the act was the fourth. It now travels in its own
-    // `closing_act` field, immune to the sentence budget. Art. 37(7)'s
-    // operative text is not in this product's verified corpus, so the
-    // publication-and-communication step is named as follow-up, never quoted.
     reasoning: engaged.length
-      ? `The provision is disjunctive, so one branch suffices.${firm.length ? ` Engaged: ${firm.map((f) => f.citation).join(", ")}.` : ""}${conservative.length ? ` Treated as engaged on a conservative basis: ${conservative.map((f) => f.citation).join(", ")} (the record evidences special-category processing but does not answer whether it is a core activity on a large scale).` : ""} The remaining branches are recorded above and do not need to be reached.`
+      ? `The provision is disjunctive, so one branch suffices. Engaged: ${engaged.map((f) => f.citation).join(", ")}.${unknown.length ? ` ${unknown.map((f) => f.citation).join(", ")} ${unknown.length === 1 ? "remains" : "remain"} open on the facts recorded but need not be reached.` : " The remaining branches are recorded above and do not need to be reached."}`
       : unknown.length
       ? `No branch is affirmatively engaged, but ${unknown.map((f) => f.citation).join(", ")} cannot be evaluated from the facts recorded, so a negative conclusion would be unsafe.`
       : "Each of the three branches was evaluated against the record and none is engaged. Voluntary designation remains available and is often prudent.",
+    // FD703575-R1 / 3E9AD759-R2 — the closing act rides its own field.
+    // DOC 163 R9 — Art. 37(7) is quoted from the registry, not named as
+    // un-ingested.
     ...(engaged.length
       ? {
         closing_act:
-          `What closes the duty is a written designation the company records so it can be evidenced, followed by publishing the officer's contact details and communicating them to the supervisory authority (the ${regime} Art. 37(7) step, named here as follow-up; its operative text is not yet among the authorities relied on in this assessment and is not quoted).`,
+          `What closes the duty is a written designation the company records so it can be evidenced, followed by the ${pubRow.citation} step: "${pubRow.verbatim_quote}".`,
       }
       : {}),
     findings,
     engaged_branches: engaged.map((f) => f.citation),
-    citations: findings.map((f) => f.citation),
+    citations: [...findings.map((f) => f.citation), ...(engaged.length ? [pubRow.citation] : [])],
     status: verdict === "record_insufficient" ? "record_insufficient" : "analysed",
-    // DOC 142 — see DPO_BRANCH_MISSING_FACT above: an open determination
-    // names the deciding fact(s) at the top level so the Duty-status table
-    // never renders a dash for a pending DPO row.
+    // DOC 142 — an open determination names the deciding fact(s) at the top
+    // level so the Duty-status table never renders a dash for a pending row.
     ...(verdict === "record_insufficient" && unknown.length
       ? {
         information_needed: unknown
-          .map((f) => `${DPO_BRANCH_MISSING_FACT[f.key] ?? f.label} — the fact ${f.citation} turns on`)
+          .map((f) => `${f.key === "dpo_trigger_special_categories" && special === null
+            ? "whether the organisation processes special categories of personal data or criminal-offence data"
+            : DPO_BRANCH_MISSING_FACT[f.key] ?? f.label} — the fact ${f.citation} turns on`)
           .join("; "),
       }
+      : {}),
+  };
+}
+
+// ── DOC 163 R8 (2026-09-03) — BDSG § 38(1), typed ───────────────────────────
+//
+// Germany is in scope where it is the home country, the lead authority or a
+// market (BDSG § 1(4) reaches a non-established controller under Art. 3(2)).
+// First sentence: 20 persons constantly engaged in automated processing — the
+// S1.1 conditional channel is kept (total headcount never flips it), and a
+// total below 20 cannot meet it. Second sentence: a DPO regardless of
+// headcount for commercial processing for the purpose of transfer — engaged on
+// broker activity or a sale, licence or share of personal data. The second
+// sentence's Article 35 limb is named as not assessed: the intake does not ask.
+
+export function germanyInScope(intake: I): boolean {
+  const markets = (Array.isArray(intake.markets_served) ? intake.markets_served : []).map((m) => String(m).toUpperCase());
+  return String(intake.organization_country || "").toUpperCase() === "DE" ||
+    String(intake.eu_lead_member_state || "").toUpperCase() === "DE" ||
+    markets.includes("DE");
+}
+
+export function buildBdsg(intake: I): BdsgDetermination | null {
+  if (!germanyInScope(intake)) return null;
+  const s1 = dutyRow("dpo_trigger_bdsg_de");
+  const s2 = dutyRow("dpo_trigger_bdsg_de_regardless");
+  const headcount = num(intake.employee_count);
+  const transfer = intake.acts_as_data_broker === true ||
+    intake.sells_or_licenses_brokered_data === true ||
+    intake.sells_or_shares_personal_info === true;
+  const org = orgName(intake);
+
+  const headcountVerdict: Verdict = headcount === null
+    ? "record_insufficient"
+    : headcount < 20
+    ? "not_engaged"
+    : "conditional";
+  const headcountFinding: Finding = {
+    key: "bdsg_38_1_headcount",
+    label: "BDSG § 38(1), first sentence — 20 persons constantly engaged in automated processing",
+    citation: s1.citation,
+    standard: s1.verbatim_quote,
+    record_fact: headcount === null
+      ? "The record does not state the organisation's headcount."
+      : `The record states ${headcount.toLocaleString("en-US")} employees in total.`,
+    application: headcount === null
+      ? "Cannot be evaluated: the threshold counts persons constantly engaged in automated processing, and the record states no headcount at all."
+      : headcount < 20
+      ? `With ${headcount} employees in total, fewer than 20 persons can be constantly engaged in automated processing, so this limb is not met.`
+      : `The threshold counts persons constantly engaged in the automated processing of personal data, a narrower group than the ${headcount.toLocaleString("en-US")} employees the record states; the record does not state that number, so this limb is open.`,
+    verdict: headcountVerdict,
+    status: headcountVerdict === "record_insufficient" ? "record_insufficient" : "analysed",
+    ...(headcountVerdict === "conditional"
+      ? { information_needed: "how many persons are constantly engaged in the automated processing of personal data (the § 38(1) threshold counts engaged persons, not total headcount)" }
+      : headcountVerdict === "record_insufficient"
+      ? { information_needed: "the organisation's headcount, and how many persons are constantly engaged in the automated processing of personal data" }
+      : {}),
+  };
+  const transferFinding: Finding = {
+    key: "bdsg_38_1_transfer",
+    label: "BDSG § 38(1), second sentence — commercial processing for the purpose of transfer",
+    citation: s2.citation,
+    standard: s2.verbatim_quote,
+    record_fact: transfer
+      ? "The record states the organisation acts as a data broker, or sells, licenses or shares personal data."
+      : "The record does not state that the organisation acts as a data broker or sells, licenses or shares personal data.",
+    application: transfer
+      ? "Commercial processing of personal data for the purpose of transfer engages the second sentence, which requires a data protection officer regardless of the number of persons employed in processing."
+      : "The commercial-transfer limb is not engaged by the facts recorded.",
+    verdict: transfer ? "engaged" : "not_engaged",
+    status: "analysed",
+  };
+
+  const verdict: Verdict = transfer ? "engaged" : headcountVerdict;
+  return {
+    verdict,
+    headline: transfer
+      ? `${org} must designate a data protection officer as a matter of German law: BDSG § 38(1), second sentence, is engaged by its commercial processing of personal data for the purpose of transfer, regardless of headcount.`
+      : verdict === "conditional"
+      ? `Whether ${org} must designate a data protection officer under BDSG § 38(1) turns on how many persons are constantly engaged in automated processing, which the record does not state.`
+      : verdict === "record_insufficient"
+      ? `Whether ${org} must designate a data protection officer under BDSG § 38(1) cannot be determined: the record states no headcount.`
+      : `No BDSG § 38(1) limb this assessment can evaluate is engaged for ${org}: fewer than 20 persons can be constantly engaged in automated processing, and no commercial processing for transfer is recorded.`,
+    reasoning:
+      "The provision adds two German triggers to Article 37(1)(b) and (c) of the GDPR: the first sentence at 20 persons constantly engaged in the automated processing of personal data, and the second sentence, regardless of headcount, for processing subject to a data protection impact assessment or for commercial processing for the purpose of transfer, anonymised transfer, or market or opinion research. The Article 35 limb of the second sentence is not assessed here: the intake does not ask whether the processing is subject to a data protection impact assessment.",
+    ...(transfer
+      ? { closing_act: "What closes the duty is a written designation the company records so it can be evidenced." }
+      : {}),
+    findings: [headcountFinding, transferFinding],
+    citations: [s1.citation, s2.citation],
+    status: verdict === "record_insufficient" ? "record_insufficient" : "analysed",
+    ...((verdict === "conditional" || verdict === "record_insufficient") && headcountFinding.information_needed
+      ? { information_needed: headcountFinding.information_needed }
       : {}),
   };
 }
@@ -1111,6 +1353,63 @@ function buildAiActRegistration(intake: I): AiActRegistrationDetermination | nul
         "What would complete the determination is the Annex III point under which the system in use is classified.",
       findings: [deployer, national],
       citations: [deployer.citation, national.citation],
+      status: "analysed",
+    };
+  }
+
+  // DOC 163 R1 — the company's role for the high-risk system, where answered.
+  const role = (str(intake.ai_high_risk_role) ?? "").toLowerCase();
+  if (highRisk && (role === "provider" || role === "both")) {
+    const provider = aiActFinding(
+      "aiact_registration_provider",
+      "AI Act Art. 49(1) — provider registration",
+      `The record states the company ${role === "both" ? "provides and uses" : "provides"} a high-risk AI system: it developed the system or places it on the market under its own name or trademark.`,
+      "The provider, or its authorised representative, registers itself and the system in the EU database before placing it on the market or putting it into service, with the information listed in Annex VIII, Section A.",
+      "engaged",
+    );
+    const deployer = aiActFinding(
+      "aiact_registration_public_deployer",
+      "AI Act Art. 49(3) — deployer registration reaches public authorities only",
+      "The record states the organisation is not a public authority, or does not state that it is one.",
+      "A deployer registers only where it is a public authority, a Union institution, body, office or agency, or a person acting on behalf of one; no deployer-side registration duty arises for the company from this record.",
+      "not_engaged",
+    );
+    return {
+      verdict: "engaged",
+      headline:
+        `The company has indicated that it ${role === "both" ? "provides and uses" : "provides"} a high-risk AI system, so the EU-database registration duty of Article 49(1) is the company's own.`,
+      reasoning:
+        `Article 49(1) of Regulation (EU) 2024/1689 requires the provider of an Annex III high-risk system, or its authorised representative, to register itself and the system in the EU database established under Article 71 before placing the system on the market or putting it into service, with the information listed in Annex VIII, Section A. The company has indicated that it holds the provider role, so the duty is the company's.${role === "both" ? " As deployer it registers only if it is a public authority (Article 49(3)), which the record does not state." : ""}${scope}`,
+      closing_act:
+        "What closes the duty is the registration itself in the EU database referred to in Article 71, with the Annex VIII, Section A information, before the system is placed on the market or put into service; whether the system falls within point 2 of Annex III, which Article 49(5) sends to national registration instead, is not asked by this assessment.",
+      findings: [provider, deployer],
+      citations: [provider.citation, deployer.citation],
+      status: "analysed",
+    };
+  }
+  if (highRisk && role === "deployer") {
+    const deployer = aiActFinding(
+      "aiact_registration_public_deployer",
+      "AI Act Art. 49(3) — deployer registration reaches public authorities only",
+      "The record states the company uses a third party's high-risk AI system as its deployer, and does not state that it is a public authority.",
+      "A deployer registers only where it is a public authority, a Union institution, body, office or agency, or a person acting on behalf of one; no deployer-side registration duty arises for the company from this record.",
+      "not_engaged",
+    );
+    const provider = aiActFinding(
+      "aiact_registration_provider",
+      "AI Act Art. 49(1) — provider registration",
+      "The record states the company does not provide the system.",
+      "The EU-database registration duty for the system rests on its provider or the provider's authorised representative, not on the company.",
+      "not_engaged",
+    );
+    return {
+      verdict: "not_engaged",
+      headline:
+        "The company has indicated that it uses a third party's high-risk AI system as its deployer; the EU-database registration duty for that system rests on its provider under Article 49(1), and a deployer registers only where it is a public authority, which the record does not state.",
+      reasoning:
+        `Under Regulation (EU) 2024/1689, registration of an Annex III high-risk system in the EU database is the provider's duty (Article 49(1)); a deployer registers only where it is a public authority or acts on behalf of one (Article 49(3)). The company has indicated the deployer role and has not indicated public-authority status, so no EU-database registration duty arises for it on its answers. Its Chapter III deployer duties are outside this registration determination.${scope}`,
+      findings: [deployer, provider],
+      citations: [deployer.citation, provider.citation],
       status: "analysed",
     };
   }
@@ -1216,6 +1515,7 @@ function buildNarrative(
   dpo: DpoDetermination,
   pending: CorpusPendingFlag[],
   combinedCallout: string | null,
+  bdsg: BdsgDetermination | null = null,
 ): RegistrationNarrative {
   const name = orgName(intake);
   const assessed = determinations.map((d) => d.state_name);
@@ -1252,7 +1552,7 @@ function buildNarrative(
     verdictOpener,
     `The determinations rest on the legal authorities listed in Authorities Cited and on nothing else.`,
     assessed.length
-      ? `Four US state data-broker registration regimes were considered and ${assessed.length} was in scope here: ${assessed.join(", ")}. Each state's own definitional threshold was applied; the definitions differ materially and are not treated as interchangeable — California and Vermont turn on the absence of a direct relationship with the consumer, Oregon contains no such carve-out, and Texas reaches processing and transfer rather than sale and adds a separate revenue-or-volume applicability test.`
+      ? `Four US state data-broker registration regimes were considered and ${assessed.length === 1 ? "one was" : `${["", "one", "two", "three", "four"][assessed.length] ?? String(assessed.length)} were`} in scope here: ${assessed.join(", ")}. Each state's own definitional threshold was applied; the definitions differ materially and are not treated as interchangeable — California and Vermont turn on the absence of a direct relationship with the consumer, Oregon contains no such carve-out, and Texas reaches processing and transfer rather than sale and adds a separate revenue-or-volume applicability test.`
       : "No US state data-broker registration regime in the corpus was in scope on the markets and activities this record describes.",
     "The GDPR and UK GDPR Art. 27 representative duties and the Art. 37(1) data protection officer triggers were each assessed against the record rather than inferred from organisation size.",
     "Every conclusion below states the provision it rests on, reproduces that provision's operative text, records the fact from the intake it was measured against, and gives the reasoning. Where the record does not support a conclusion, none is given.",
@@ -1290,6 +1590,7 @@ function buildNarrative(
   if (combinedCallout) parts.push(combinedCallout);
   for (const r of reps) parts.push(`${r.label}: ${r.application}`);
   parts.push(`Data protection officer: ${dpo.headline} ${dpo.reasoning}${dpo.closing_act ? ` ${dpo.closing_act}` : ""}`);
+  if (bdsg) parts.push(`Germany: ${bdsg.headline}`);
   for (const p of pending) {
     // CORPUS-PENDING REGISTER (ITEM 364 D3): name the topic, say why it cannot
     // be answered, and say what follows meanwhile. Never talked around, never
@@ -1418,6 +1719,7 @@ export function buildRegistrationDeliverables(
     ? `Both representative duties are engaged. This processing requires appointing TWO separate representatives: one established in a Member State where the relevant data subjects are (GDPR Art. 27(1), (3)), and one established in the United Kingdom (UK GDPR Art. 27(1), (3)). Neither designation satisfies the other — the two regimes have applied independently since the United Kingdom left the Union, and a single person or entity may only serve both roles if it is separately established in each territory and separately designated in writing for each.`
     : null;
   const dpo_determination = buildDpo(intake);
+  const bdsg_determination = buildBdsg(intake);
   const ai_act_registration = buildAiActRegistration(intake);
   const corpus_pending = buildCorpusPending(intake);
 
@@ -1431,6 +1733,7 @@ export function buildRegistrationDeliverables(
       ? { combined_representative_callout }
       : {}),
     dpo_determination,
+    bdsg_determination,
     ...(ai_act_registration ? { ai_act_registration } : {}),
     corpus_pending,
     narrative: buildNarrative(
@@ -1440,6 +1743,7 @@ export function buildRegistrationDeliverables(
       dpo_determination,
       corpus_pending,
       combined_representative_callout,
+      bdsg_determination,
     ),
     attestation: buildRegistrationAttestation(intake),
   };

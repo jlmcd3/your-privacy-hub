@@ -52,6 +52,12 @@ export interface ThresholdAnalysis extends Finding {
   /** Named exclusion the record claims, if any. */
   exclusion_claimed: string | null;
   exclusion_analysis: string;
+  /** DOC 163 R5 — what the claimed exclusion does to the verdict: none
+   *  claimed; "unsure" (the company is not sure — a question, not a claim);
+   *  "conditional" (the state's reproduced text provides that exclusion);
+   *  "no_footing" (the state's completely reproduced text provides none of
+   *  that kind); "unresolved" (absent from an incompletely reproduced text). */
+  exclusion_effect: "none" | "unsure" | "conditional" | "no_footing" | "unresolved";
 }
 
 export type RegistrationVerdict =
@@ -110,6 +116,9 @@ export interface FilingReadiness {
     intake_key: string | null;
     ready: boolean | null;
     record_fact: string;
+    /** DOC 163 R7 — false where the statute makes the element conditional and
+     *  the condition is not met on the company's answers (Tex. § 510.005(b)(5)). */
+    required?: boolean;
   }>;
   /** Reasoned: is the record ready to file, on its face? */
   ready_to_file: boolean | null;
@@ -192,6 +201,25 @@ export interface AiActRegistrationDetermination {
   status: FindingStatus;
 }
 
+/**
+ * DOC 163 R8 (2026-09-03) — BDSG § 38(1) as a typed determination: the
+ * first-sentence headcount limb (conditional at 20 or more employees, per the
+ * S1.1 ruling), the second-sentence commercial-transfer limb (engaged on broker
+ * activity or a sale, licence or share of personal data), and the second
+ * sentence's Article 35 limb named as not assessed (the intake does not ask).
+ * Built only where Germany is the home country, the lead authority or a market.
+ */
+export interface BdsgDetermination {
+  verdict: Verdict;
+  headline: string;
+  reasoning: string;
+  closing_act?: string;
+  findings: Finding[];
+  citations: string[];
+  status: FindingStatus;
+  information_needed?: string;
+}
+
 /** Op. 7 — the prose surface this product previously did not have at all. */
 export interface RegistrationNarrative {
   /** Part 1 — what was assessed and on what record. */
@@ -216,6 +244,8 @@ export interface RegistrationDeliverables {
   /** Present only when both_representatives_required is true. */
   combined_representative_callout?: string;
   dpo_determination: DpoDetermination;
+  /** DOC 163 R8 — null when Germany is neither home, lead authority nor market. */
+  bdsg_determination?: BdsgDetermination | null;
   /** REG-1 — null when the record raises no AI signal at all. */
   ai_act_registration?: AiActRegistrationDetermination | null;
   corpus_pending: CorpusPendingFlag[];

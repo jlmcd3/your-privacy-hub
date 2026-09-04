@@ -40,14 +40,26 @@ Deno.test("E8973164-R1 — the engaged sentence names only the ground(s) actuall
   assert(!uk.application.includes("brokered data"), `must not assert a false ground: ${uk.application}`);
 });
 
+// DOC 163 R4 (2026-09-03) — Art. 27(2)(a) is defeated by special categories
+// only "on a large scale"; the second ground is named at the recorded scale,
+// and a bare special-categories answer beside monitoring names monitoring alone.
 Deno.test("E8973164-R1 — two true grounds are both named, joined with 'and'", () => {
+  const built = buildRegistrationDeliverables(
+    baseIntake({ processes_special_categories: true, data_subjects_count: 250_000 }) as never,
+  );
+  const uk = built.representative_determinations.find((r) => r.jurisdiction === "UK")!;
+  assertStringIncludes(uk.application, "large-scale special-category processing (250,000 data subjects a year)");
+  assertStringIncludes(uk.application, "large-scale monitoring");
+  assertStringIncludes(uk.application, " and ");
+});
+
+Deno.test("DOC 163 R4 — special categories without a recorded scale are not a ground beside monitoring", () => {
   const built = buildRegistrationDeliverables(
     baseIntake({ processes_special_categories: true }) as never,
   );
   const uk = built.representative_determinations.find((r) => r.jurisdiction === "UK")!;
-  assertStringIncludes(uk.application, "large-scale special-category processing");
   assertStringIncludes(uk.application, "large-scale monitoring");
-  assertStringIncludes(uk.application, " and ");
+  assert(!uk.application.includes("special-category"), `scale is not recorded, so the ground is not asserted: ${uk.application}`);
 });
 
 Deno.test("E8973164-R2 — the exec posture never contradicts a live EU/UK or DPO determination", () => {

@@ -308,16 +308,25 @@ Return a JSON object with EXACTLY these top-level fields:
     "jurisdictions": ["array"]
   }${isEU ? `,
   "registration": {
-    "organization_name": "string", "organization_country": "string",
-    "organization_size": "string", "industry": "string", "email": "string",
+    "organization_name": "string", "is_public_authority": boolean, "organization_country": "string — ISO-2 or a US state code such as US-CA",
+    "organization_size": "one of EXACTLY: micro | small | medium | large | enterprise", "industry": "string", "email": "string",
     "employee_count": number, "annual_revenue_usd": number, "data_subjects_count": number,
-    "role": "controller or processor", "processes_personal_data": boolean,
+    "role": "one of EXACTLY: controller | processor | both", "processes_personal_data": boolean,
     "processes_special_categories": boolean, "processes_children_data": boolean,
     "large_scale_monitoring": boolean, "uses_ai_systems": boolean, "ai_high_risk": boolean,
+    "ai_high_risk_role": "when ai_high_risk: one of EXACTLY: provider | deployer | both | unsure",
     "ai_general_purpose_provider": boolean, "cross_border_transfers": boolean,
-    "markets_served": ["array"], "has_eu_establishment": boolean, "has_uk_establishment": boolean,
+    "markets_served": ["array of ISO-2 / US-state codes, the UK spelled UK"], "has_eu_establishment": boolean, "has_uk_establishment": boolean,
+    "eu_lead_member_state": "ISO-2 of the EU member state when has_eu_establishment, else omit",
     "acts_as_data_broker": boolean, "sells_or_shares_personal_info": boolean,
-    "processes_biometrics_for_id": boolean
+    "processes_biometrics_for_id": boolean,
+    "collects_data_not_directly_from_individuals": boolean, "has_direct_relationship_with_data_subjects": boolean,
+    "sells_or_licenses_brokered_data": boolean, "brokered_data_individual_count": number, "brokered_data_revenue_share_pct": number,
+    "data_broker_exemption_claimed": "one of EXACTLY: none | fcra_consumer_reporting | glba_financial | hipaa_health | insurance | service_provider_processor | affiliate_or_subsidiary | publicly_available_information | unknown",
+    "filing_contact_details_ready": boolean, "filing_opt_out_mechanism_documented": boolean, "filing_minors_data_practices_documented": boolean,
+    "filing_metrics_documented": boolean, "filing_rights_instructions_documented": boolean,
+    "filing_tx_categories_documented": boolean, "filing_tx_credentialing_statement_documented": boolean, "filing_tx_breach_count_documented": boolean,
+    "approved_by_name": "string — Full Name", "approved_by_title": "string", "approval_date": "YYYY-MM-DD", "next_review_due": "YYYY-MM-DD"
   }` : ""}
 }
 
@@ -971,31 +980,69 @@ function buildDeterministicProfile(industry: string, geo: string, slot: number, 
       purpose: BIO_PURPOSE_BY_BUCKET[bucket],
       jurisdictions: bioJurs,
     },
-    registration: {
-      organization_name: c.companyName,
-      organization_country: c.countryCode,
-      organization_size: (slot === 1 ? "large" as const : "medium" as const),
-      industry: REG_INDUSTRY_BY_BUCKET[bucket],
-      email: c.privacyEmail,
-      employee_count: c.employeeCount,
-      annual_revenue_usd: slot === 1 ? 310000000 : 72000000,
-      data_subjects_count: slot === 1 ? 1200000 : 95000,
-      role: "controller" as const,
-      processes_personal_data: true,
-      processes_special_categories: usesBiometric,
-      processes_children_data: bucket === "education",
-      large_scale_monitoring: slot === 1,
-      uses_ai_systems: bucket === "tech" || bucket === "media_adtech" || bucket === "financial" || bucket === "healthcare",
-      ai_high_risk: bucket === "hr" || bucket === "healthcare" || bucket === "financial",
-      ai_general_purpose_provider: bucket === "tech",
-      cross_border_transfers: true,
-      markets_served: jurisdictionsIso,
-      has_eu_establishment: geo === "eu",
-      has_uk_establishment: geo === "eu",
-      acts_as_data_broker: bucket === "media_adtech",
-      sells_or_shares_personal_info: bucket === "media_adtech" || bucket === "retail",
-      processes_biometrics_for_id: usesBiometric,
-    },
+    // DOC 163 (2026-09-03) — every contract key the form can emit, with the
+    // data-broker detail supplied whenever a registry state is a market (the
+    // form now shows it then), the readiness flags element by element, the
+    // AI role, the public-authority flag for the government bucket, and the
+    // attestation. Fallback records used to leave every state determination
+    // "Additional information required".
+    registration: (() => {
+      const broker = bucket === "media_adtech";
+      const seller = broker || bucket === "retail";
+      const highRisk = bucket === "hr" || bucket === "healthcare" || bucket === "financial";
+      const approver = String(c.dpoName ?? "").split(",");
+      const isEuGeo = geo === "eu";
+      return {
+        organization_name: c.companyName,
+        organization_country: c.countryCode,
+        is_public_authority: bucket === "government",
+        organization_size: (slot === 1 ? "large" as const : "medium" as const),
+        industry: REG_INDUSTRY_BY_BUCKET[bucket],
+        email: c.privacyEmail,
+        employee_count: c.employeeCount,
+        annual_revenue_usd: slot === 1 ? 310000000 : 72000000,
+        data_subjects_count: slot === 1 ? 1200000 : 95000,
+        role: (broker ? "both" : "controller") as "controller" | "processor" | "both",
+        processes_personal_data: true,
+        processes_special_categories: usesBiometric || bucket === "healthcare",
+        processes_children_data: bucket === "education",
+        large_scale_monitoring: slot === 1,
+        uses_ai_systems: highRisk || bucket === "tech" || bucket === "media_adtech",
+        ai_high_risk: highRisk,
+        ...(highRisk ? { ai_high_risk_role: bucket === "financial" ? "provider" : "deployer" } : {}),
+        ai_general_purpose_provider: bucket === "tech",
+        cross_border_transfers: true,
+        markets_served: jurisdictionsIso,
+        has_eu_establishment: isEuGeo,
+        has_uk_establishment: isEuGeo,
+        ...(isEuGeo && c.countryCode !== "GB" ? { eu_lead_member_state: c.countryCode } : {}),
+        acts_as_data_broker: broker,
+        sells_or_shares_personal_info: seller,
+        processes_biometrics_for_id: usesBiometric,
+        collects_data_not_directly_from_individuals: broker,
+        has_direct_relationship_with_data_subjects: !broker,
+        sells_or_licenses_brokered_data: broker,
+        ...(broker
+          ? {
+            brokered_data_individual_count: slot === 1 ? 3400000 : 420000,
+            brokered_data_revenue_share_pct: slot === 1 ? 72 : 38,
+            data_broker_exemption_claimed: "none",
+          }
+          : {}),
+        filing_contact_details_ready: seller,
+        filing_opt_out_mechanism_documented: broker,
+        filing_minors_data_practices_documented: broker && slot === 1,
+        filing_metrics_documented: broker && slot === 1,
+        filing_rights_instructions_documented: broker,
+        filing_tx_categories_documented: broker && slot === 1,
+        filing_tx_credentialing_statement_documented: broker && slot === 1,
+        filing_tx_breach_count_documented: broker,
+        approved_by_name: approver[0]?.trim() || "Privacy Lead",
+        approved_by_title: approver.slice(1).join(",").trim() || "Head of Privacy",
+        approval_date: "2026-08-15",
+        next_review_due: "2027-08-15",
+      };
+    })(),
   };
 }
 

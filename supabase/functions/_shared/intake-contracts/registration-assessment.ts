@@ -114,6 +114,10 @@ export const REGISTRATION_BROKER_EXEMPTIONS = [
   "unknown",
 ] as const;
 
+// DOC 163 R1 (2026-09-03) — the company's role for its high-risk AI system
+// (AI Act Art. 49(1) provider registration vs Art. 49(3) public deployers).
+export const REGISTRATION_AI_HIGH_RISK_ROLES = ["provider", "deployer", "both", "unsure"] as const;
+
 export const registrationContract: IntakeContract = {
   tool_type: "registration_assessment",
   // The edge function persists intake at registration_assessments.intake_data;
@@ -147,6 +151,9 @@ export const registrationContract: IntakeContract = {
     { key: "uses_ai_systems",               kind: "boolean", required: "optional" },
     { key: "ai_high_risk",                  kind: "boolean", required: "optional" },
     { key: "ai_general_purpose_provider",   kind: "boolean", required: "optional" },
+    // DOC 163 R1 — shown when ai_high_risk is ticked.
+    { key: "ai_high_risk_role",             kind: "enum",    required: "optional",
+      options: REGISTRATION_AI_HIGH_RISK_ROLES },
     { key: "cross_border_transfers",        kind: "boolean", required: "optional" },
     { key: "acts_as_data_broker",           kind: "boolean", required: "optional" },
     { key: "sells_or_shares_personal_info", kind: "boolean", required: "optional" },
@@ -170,6 +177,10 @@ export const registrationContract: IntakeContract = {
     // TX rights-instructions coverage gaps in the filing-readiness deliverable.
     { key: "filing_metrics_documented",                   kind: "boolean", required: "optional" },
     { key: "filing_rights_instructions_documented",       kind: "boolean", required: "optional" },
+    // DOC 163 R7 — Tex. Bus. & Com. Code § 510.005(b)(3), (4), (6).
+    { key: "filing_tx_categories_documented",              kind: "boolean", required: "optional" },
+    { key: "filing_tx_credentialing_statement_documented", kind: "boolean", required: "optional" },
+    { key: "filing_tx_breach_count_documented",            kind: "boolean", required: "optional" },
 
     // ── Attestation intake (2026-08-04) — optional accountability record ──
     { key: "approved_by_name",  kind: "text", required: "optional" },

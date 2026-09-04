@@ -70,7 +70,12 @@ Deno.test("R1 — no headcount keeps the band label unchanged", () => {
   assertEquals(v.orgSize, "medium (50–249 employees)");
 });
 
-Deno.test("R2 — branch (c) states its conservative basis in one sentence, never the bare test recital", () => {
+// DOC 163 R3 (2026-09-03) — branch (c) reads the one scale fact the form
+// collects: it is engaged outright at more than 100,000 data subjects a year;
+// otherwise it is OPEN, naming the two facts it turns on. The former
+// "treated as engaged on a conservative basis" verdict printed "Required on
+// reported facts" for a bare special-categories checkbox.
+Deno.test("R2 — branch (c) states its open basis in one sentence, never the bare test recital", () => {
   const d = buildRegistrationDeliverables(aurabloomIntake() as never) as unknown as Bag;
   const dpo = d.dpo_determination as Bag;
   const findings = dpo.findings as Bag[];
@@ -81,29 +86,35 @@ Deno.test("R2 — branch (c) states its conservative basis in one sentence, neve
     !app.startsWith("Branch (c) is engaged where"),
     "the bare test recital must not lead the application",
   );
-  assertStringIncludes(app, "The record evidences special-category processing");
-  assertStringIncludes(app, "treated as engaged on a conservative basis");
+  assertStringIncludes(app, "does not establish that it is a core activity carried out on a large scale");
+  assertStringIncludes(app, "no data-subject count is recorded");
+  assertEquals(String(c!.verdict), "record_insufficient");
 });
 
-Deno.test("R2 — a conservative-only engagement hedges the headline; reasoning separates the footings", () => {
+Deno.test("R2 — special categories without a recorded scale leave the determination open, and the ask names both facts", () => {
   const d = buildRegistrationDeliverables(aurabloomIntake() as never) as unknown as Bag;
   const dpo = d.dpo_determination as Bag;
-  // large_scale_monitoring false, not public → only branch (c), conservatively.
-  assertStringIncludes(String(dpo.headline), "conservative reading");
-  assertStringIncludes(String(dpo.reasoning), "Treated as engaged on a conservative basis");
-  assert(
-    !String(dpo.reasoning).match(/(?<!conservative basis: )Engaged: /),
-    "no flat Engaged list when every engaged branch is conservative",
-  );
+  assertEquals(String(dpo.verdict), "record_insufficient");
+  assertStringIncludes(String(dpo.headline), "cannot be determined from the facts recorded");
+  assertStringIncludes(String(dpo.information_needed), "core activity carried out on a large scale");
+  assert(!JSON.stringify(dpo).includes("conservative"), "the conservative-basis verdict is retired");
 });
 
-Deno.test("R2 — a firm branch keeps the mandatory headline and lists footings separately", () => {
+Deno.test("R2 — special categories at more than 100,000 data subjects engage branch (c) outright", () => {
+  const d = buildRegistrationDeliverables(aurabloomIntake({ data_subjects_count: 250_000 }) as never) as unknown as Bag;
+  const dpo = d.dpo_determination as Bag;
+  assertEquals(String(dpo.verdict), "engaged");
+  assertStringIncludes(String(dpo.headline), "A data protection officer must be designated");
+  const c = (dpo.findings as Bag[]).find((f) => String(f.key) === "dpo_trigger_special_categories")!;
+  assertStringIncludes(String(c.application), "250,000 data subjects a year, which this assessment treats as large scale");
+});
+
+Deno.test("R2 — a firm branch keeps the mandatory headline; the open branch is noted, not counted", () => {
   const d = buildRegistrationDeliverables(aurabloomIntake({ large_scale_monitoring: true }) as never) as unknown as Bag;
   const dpo = d.dpo_determination as Bag;
   assertStringIncludes(String(dpo.headline), "A data protection officer must be designated");
-  assertStringIncludes(String(dpo.headline), "treated as engaged on a conservative basis");
   assertStringIncludes(String(dpo.reasoning), "Engaged: ");
-  assertStringIncludes(String(dpo.reasoning), "Treated as engaged on a conservative basis: ");
+  assertStringIncludes(String(dpo.reasoning), "remains open on the facts recorded but need not be reached");
 });
 
 Deno.test("R3 — an established entity renders no Art. 27(2) exemption recital", () => {

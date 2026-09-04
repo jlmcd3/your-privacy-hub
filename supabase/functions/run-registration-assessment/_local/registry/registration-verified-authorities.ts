@@ -231,7 +231,11 @@ export const REGISTRATION_SERVED_JURISDICTIONS: ReadonlyArray<string> = [
 // REG-1 (2026-08-29): +6 AI Act rows (Art. 49(1)/(2)/(3)/(5), Art. 71(1),
 // Annex VIII Section A head), keyed to the aiact-* corpus rows approved
 // 2026-08-10 and re-confirmed live 2026-08-29.
-export const REGISTRATION_DUTY_VERSION = "registration-duty-reg1-2026-08-29";
+// DOC 163 (2026-09-03): exclusion lists reproduced in full (CA (1)–(4), TX (1)–(3)
+// plus (5) and (6) as their own rows because the approved row elides (4), VT
+// (C)(i)–(iv)); BDSG § 38(1) second sentence; Art. 37(7) for both regimes; UK
+// twins for Art. 27(2) and Art. 37(1) from gdpr_articles (jurisdiction 'uk').
+export const REGISTRATION_DUTY_VERSION = "registration-duty-doc163-2026-09-03";
 
 export type RegistrationDutyRole =
   | "definitional_threshold"
@@ -242,7 +246,8 @@ export type RegistrationDutyRole =
   | "filing_content"
   | "representative"
   | "representative_exemption"
-  | "dpo_trigger";
+  | "dpo_trigger"
+  | "dpo_publication";
 
 export interface RegistrationDutyRow {
   readonly key: string;
@@ -274,7 +279,7 @@ export const REGISTRATION_DUTY_AUTHORITIES: ReadonlyArray<RegistrationDutyRow> =
     jurisdiction: "US-CA",
     citation: "Cal. Civ. Code § 1798.99.80(c)",
     verbatim_quote:
-      "\"Data broker\" does not include any of the following: (1) An entity to the extent that it is covered by the federal Fair Credit Reporting Act (15 U.S.C. Sec. 1681 et seq.). (2) An entity to the extent that it is covered by the Gramm-Leach-Bliley Act (Public Law 106-102) and implementing regulations.",
+      "\"Data broker\" does not include any of the following: (1) An entity to the extent that it is covered by the federal Fair Credit Reporting Act (15 U.S.C. Sec. 1681 et seq.). (2) An entity to the extent that it is covered by the Gramm-Leach-Bliley Act (Public Law 106-102) and implementing regulations. (3) An entity to the extent that it is covered by the Insurance Information and Privacy Protection Act (Article 6.6 (commencing with Section 791) of Chapter 1 of Part 2 of Division 1 of the Insurance Code). (4) An entity, or a business associate of a covered entity, to the extent their processing of personal information is exempt under Section 1798.146.",
     corpus_key: "ca-delete-act-1798-99-80",
     role: "threshold_exclusion",
     primary_source_url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.99.80",
@@ -395,11 +400,33 @@ export const REGISTRATION_DUTY_AUTHORITIES: ReadonlyArray<RegistrationDutyRow> =
     jurisdiction: "US-TX",
     citation: "Tex. Bus. & Com. Code § 510.003(b)",
     verbatim_quote:
-      "This chapter does not apply to: (1) a service provider, including a service provider that engages in the business of processing employee data for a third-party employer for the sole purpose of providing benefits to the third-party employer's employees; (2) a person or entity that collects personal data from another person or entity to which the person or entity is related by common ownership or corporate control, provided a reasonable consumer would expect the persons or entities to share data;",
+      "This chapter does not apply to: (1) a service provider, including a service provider that engages in the business of processing employee data for a third-party employer for the sole purpose of providing benefits to the third-party employer's employees; (2) a person or entity that collects personal data from another person or entity to which the person or entity is related by common ownership or corporate control, provided a reasonable consumer would expect the persons or entities to share data; (3) a federal, state, tribal, territorial, or local governmental entity, including a body, authority, board, bureau, commission, district, agency, or political subdivision of a governmental entity;",
     corpus_key: "tx-bc-510-003",
     role: "threshold_exclusion",
     primary_source_url: "https://statutes.capitol.texas.gov/Docs/BC/htm/BC.510.htm",
-    verified_on: "2026-07-31",
+    verified_on: "2026-09-03",
+  },
+  {
+    key: "tx_applicability_exclusions_fcra",
+    jurisdiction: "US-TX",
+    citation: "Tex. Bus. & Com. Code § 510.003(b)",
+    verbatim_quote:
+      "(5) a consumer reporting agency or other person or entity that furnishes information for inclusion in a consumer credit report or obtains a consumer credit report, but only to the extent the person or entity engages in activity regulated or authorized by the Fair Credit Reporting Act (15 U.S.C. Section 1681 et seq.)",
+    corpus_key: "tx-bc-510-003",
+    role: "threshold_exclusion",
+    primary_source_url: "https://statutes.capitol.texas.gov/Docs/BC/htm/BC.510.htm",
+    verified_on: "2026-09-03",
+  },
+  {
+    key: "tx_applicability_exclusions_glba",
+    jurisdiction: "US-TX",
+    citation: "Tex. Bus. & Com. Code § 510.003(b)",
+    verbatim_quote:
+      "(6) a financial institution subject to Title V, Gramm-Leach-Bliley Act (15 U.S.C. Section 6801 et seq.).",
+    corpus_key: "tx-bc-510-003",
+    role: "threshold_exclusion",
+    primary_source_url: "https://statutes.capitol.texas.gov/Docs/BC/htm/BC.510.htm",
+    verified_on: "2026-09-03",
   },
   {
     key: "tx_registration_requirement",
@@ -461,7 +488,7 @@ export const REGISTRATION_DUTY_AUTHORITIES: ReadonlyArray<RegistrationDutyRow> =
     jurisdiction: "US-VT",
     citation: "9 V.S.A. § 2430(4)(C)",
     verbatim_quote:
-      "The following activities conducted by a business, and the collection and sale or licensing of brokered personal information incidental to conducting these activities, do not qualify the business as a data broker:",
+      "The following activities conducted by a business, and the collection and sale or licensing of brokered personal information incidental to conducting these activities, do not qualify the business as a data broker: (i) developing or maintaining third-party e-commerce or application platforms; (ii) providing 411 directory assistance or directory information services, including name, address, and telephone number, on behalf of or as a function of a telecommunications carrier; (iii) providing publicly available information related to a consumer's business or profession; or (iv) providing publicly available information via real-time or near-real-time alert services for health or safety purposes.",
     corpus_key: "vt-9vsa-2430",
     role: "threshold_exclusion",
     primary_source_url: "https://legislature.vermont.gov/statutes/section/09/062/02430",
@@ -566,6 +593,91 @@ export const REGISTRATION_DUTY_AUTHORITIES: ReadonlyArray<RegistrationDutyRow> =
     primary_source_url: "https://eur-lex.europa.eu/eli/reg/2016/679/oj",
     verified_on: "2026-07-31",
   },
+  // DOC 163 R9 (2026-09-03) — Art. 37(7), both regimes, so the DPO closing act
+  // quotes the publication-and-communication step instead of naming it as
+  // un-ingested. Substrings of gdpr_articles eu/uk 37 (UK: "the Commissioner").
+  {
+    key: "dpo_publication",
+    jurisdiction: "EU",
+    citation: "GDPR Art. 37(7)",
+    verbatim_quote:
+      "The controller or the processor shall publish the contact details of the data protection officer and communicate them to the supervisory authority.",
+    corpus_key: "gdpr-articles:eu:37",
+    role: "dpo_publication",
+    primary_source_url: "https://eur-lex.europa.eu/eli/reg/2016/679/oj",
+    verified_on: "2026-09-03",
+  },
+  {
+    key: "uk_dpo_publication",
+    jurisdiction: "UK",
+    citation: "UK GDPR Art. 37(7)",
+    verbatim_quote:
+      "The controller or the processor shall publish the contact details of the data protection officer and communicate them to the Commissioner",
+    corpus_key: "gdpr-articles:uk:37",
+    role: "dpo_publication",
+    primary_source_url: "https://www.legislation.gov.uk/eur/2016/679/article/37",
+    verified_on: "2026-09-03",
+  },
+  // DOC 163 R9 — the UK instrument's own Art. 37(1) branches (gdpr_articles
+  // 'uk' 37): "courts and tribunals" in (a); "Article 9 or personal data" in (c).
+  // A UK-only record cites these, not the EU rows relabelled.
+  {
+    key: "uk_dpo_trigger_public_authority",
+    jurisdiction: "UK",
+    citation: "UK GDPR Art. 37(1)(a)",
+    verbatim_quote:
+      "the processing is carried out by a public authority or body, except for courts and tribunals acting in their judicial capacity;",
+    corpus_key: "gdpr-articles:uk:37",
+    role: "dpo_trigger",
+    primary_source_url: "https://www.legislation.gov.uk/eur/2016/679/article/37",
+    verified_on: "2026-09-03",
+  },
+  {
+    key: "uk_dpo_trigger_regular_systematic_monitoring",
+    jurisdiction: "UK",
+    citation: "UK GDPR Art. 37(1)(b)",
+    verbatim_quote:
+      "the core activities of the controller or the processor consist of processing operations which, by virtue of their nature, their scope and/or their purposes, require regular and systematic monitoring of data subjects on a large scale;",
+    corpus_key: "gdpr-articles:uk:37",
+    role: "dpo_trigger",
+    primary_source_url: "https://www.legislation.gov.uk/eur/2016/679/article/37",
+    verified_on: "2026-09-03",
+  },
+  {
+    key: "uk_dpo_trigger_special_categories",
+    jurisdiction: "UK",
+    citation: "UK GDPR Art. 37(1)(c)",
+    verbatim_quote:
+      "the core activities of the controller or the processor consist of processing on a large scale of special categories of data pursuant to Article 9 or personal data relating to criminal convictions and offences referred to in Article 10.",
+    corpus_key: "gdpr-articles:uk:37",
+    role: "dpo_trigger",
+    primary_source_url: "https://www.legislation.gov.uk/eur/2016/679/article/37",
+    verified_on: "2026-09-03",
+  },
+  // DOC 163 R9 — the UK instrument's own Art. 27(2) exemptions (gdpr_articles
+  // 'uk' 27), so the UK representative walk no longer relabels the EU rows.
+  {
+    key: "uk_representative_exemption",
+    jurisdiction: "UK",
+    citation: "UK GDPR Art. 27(2)(a)",
+    verbatim_quote:
+      "processing which is occasional, does not include, on a large scale, processing of special categories of data as referred to in Article 9(1) or processing of personal data relating to criminal convictions and offences referred to in Article 10, and is unlikely to result in a risk to the rights and freedoms of natural persons, taking into account the nature, context, scope and purposes of the processing",
+    corpus_key: "gdpr-articles:uk:27",
+    role: "representative_exemption",
+    primary_source_url: "https://www.legislation.gov.uk/eur/2016/679/article/27",
+    verified_on: "2026-09-03",
+  },
+  {
+    key: "uk_representative_public_authority",
+    jurisdiction: "UK",
+    citation: "UK GDPR Art. 27(2)(b)",
+    verbatim_quote:
+      "a public authority or body",
+    corpus_key: "gdpr-articles:uk:27",
+    role: "representative_exemption",
+    primary_source_url: "https://www.legislation.gov.uk/eur/2016/679/article/27",
+    verified_on: "2026-09-03",
+  },
   // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, closes
   // Registration P0-3) — the German national-law DPO trigger the S1.1 (doc
   // 119) conditional already names in customer prose but never had an
@@ -594,6 +706,21 @@ export const REGISTRATION_DUTY_AUTHORITIES: ReadonlyArray<RegistrationDutyRow> =
     role: "dpo_trigger",
     primary_source_url: "https://www.gesetze-im-internet.de/englisch_bdsg/englisch_bdsg.html",
     verified_on: "2026-08-31",
+  },
+  // DOC 163 R8 (2026-09-03) — § 38(1) second sentence: a DPO regardless of
+  // headcount for DPIA-subject processing and for commercial processing for
+  // transfer, anonymised transfer, or market or opinion research. Same
+  // approved row (de-bdsg-38), same official convenience translation.
+  {
+    key: "dpo_trigger_bdsg_de_regardless",
+    jurisdiction: "DE",
+    citation: "BDSG § 38(1)",
+    verbatim_quote:
+      "If the controller or processor undertake processing subject to a data protection impact assessment pursuant to Article 35 of Regulation (EU) 2016/679, or if they commercially process personal data for the purpose of transfer, of anonymized transfer or for purposes of market or opinion research, they shall designate a data protection officer regardless of the number of persons employed in processing.",
+    corpus_key: "de-bdsg-38",
+    role: "dpo_trigger",
+    primary_source_url: "https://www.gesetze-im-internet.de/englisch_bdsg/englisch_bdsg.html",
+    verified_on: "2026-09-03",
   },
 
   // ── REG-1 (doc 106, 2026-08-29) — EU AI Act Art. 49 registration duties.

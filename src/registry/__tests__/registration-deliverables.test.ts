@@ -107,8 +107,11 @@ describe("ITEM 316 — corpus pin", () => {
   // REG-1 (doc 106, 2026-08-29): +6 EU AI Act rows (Art. 49(1)/(2)/(3)/(5),
   // Art. 71(1), Annex VIII Section A head) — 28 -> 34, jurisdictions unchanged.
   // BDSG (2026-08-31): +1 DE row (§ 38(1) DPO-designation threshold) — 34 -> 35.
-  it("carries 35 duty rows across seven jurisdictions", () => {
-    expect(REGISTRATION_DUTY_AUTHORITIES.length).toBe(35);
+  // DOC 163 (2026-09-03): +2 TX exclusion rows ((b)(5), (b)(6)), +1 BDSG § 38(1)
+  // sentence two, +2 Art. 37(7) (EU/UK), +3 UK Art. 37(1) branches, +2 UK
+  // Art. 27(2) exemptions — 35 -> 45; jurisdictions unchanged.
+  it("carries 45 duty rows across seven jurisdictions", () => {
+    expect(REGISTRATION_DUTY_AUTHORITIES.length).toBe(45);
     expect(new Set(REGISTRATION_DUTY_AUTHORITIES.map((r) => r.jurisdiction))).toEqual(
       new Set(["US-CA", "US-OR", "US-TX", "US-VT", "EU", "UK", "DE"]),
     );
@@ -133,7 +136,7 @@ describe("ITEM 316 — corpus pin", () => {
     // REG-1: the AI Act rows carry their own verification date (2026-08-29,
     // re-confirmed live against provision_texts); the Item 316 rows keep
     // 2026-07-31. Pin the known set, not a single date.
-    const KNOWN_VERIFICATION_DATES = new Set(["2026-07-31", "2026-08-29", "2026-08-31"]);
+    const KNOWN_VERIFICATION_DATES = new Set(["2026-09-03", "2026-07-31", "2026-08-29", "2026-08-31"]);
     for (const row of REGISTRATION_DUTY_AUTHORITIES) {
       expect(row.citation.length).toBeGreaterThan(8);
       expect(row.primary_source_url).toMatch(/^https:\/\//);
@@ -285,17 +288,26 @@ describe("ITEM 316 — analysis shape", () => {
     expect(ca.headline).toContain("cannot be determined");
   });
 
-  it("a claimed exclusion produces a conditional verdict, never an auto-accepted one", () => {
+  // DOC 163 R5 (2026-09-03) — a claimed exclusion is measured against the
+  // state's own reproduced text: California provides a GLBA exclusion
+  // ((c)(2)), so the claim is conditional; Vermont's (C) list, reproduced in
+  // full, provides none of that kind, so the claim has no footing there and
+  // the duty turns on the definition. Never auto-accepted in either state.
+  it("a claimed exclusion produces a conditional verdict where the state's text provides it, and no footing where it does not", () => {
     const out = buildRegistrationDeliverables({
       ...CA_VT_BROKER,
       data_broker_exemption_claimed: "glba_financial",
     } as never);
-    for (const d of out.determinations) {
-      expect(d.verdict).toBe("conditional");
-      expect(d.threshold.exclusion_claimed).toBe("glba_financial");
-      expect(d.threshold.exclusion_analysis).toContain("recorded, not accepted");
-      expect(d.open_questions.join(" ")).toContain("substantiate");
-    }
+    const ca = out.determinations.find((d) => d.jurisdiction === "US-CA")!;
+    expect(ca.verdict).toBe("conditional");
+    expect(ca.threshold.exclusion_claimed).toBe("glba_financial");
+    expect(ca.threshold.exclusion_effect).toBe("conditional");
+    expect(ca.threshold.exclusion_analysis).toContain("recorded, not accepted");
+    expect(ca.open_questions.join(" ")).toContain("substantiation of the claimed financial-institution (GLBA) exclusion");
+    const vt = out.determinations.find((d) => d.jurisdiction === "US-VT")!;
+    expect(vt.verdict).toBe("registrable");
+    expect(vt.threshold.exclusion_effect).toBe("no_footing");
+    expect(vt.threshold.exclusion_analysis).toContain("no footing");
   });
 
   it("EU/UK representative and DPO determinations are reasoned, not booleans", () => {
@@ -436,9 +448,11 @@ describe("ITEM 316 — analysis shape", () => {
         dutyRow(f.jurisdiction === "US-CA" ? "ca_filing_content" : "vt_filing_content").verbatim_quote,
       );
     }
+    // DOC 163 R7 — the lists are the statutes' own as reproduced; the contact
+    // element is common to both, the minors statement is California's only.
     const notReady = buildRegistrationDeliverables({
       ...CA_VT_BROKER,
-      filing_minors_data_practices_documented: false,
+      filing_contact_details_ready: false,
     } as never);
     for (const f of notReady.filing_readiness) {
       expect(f.ready_to_file).toBe(false);
@@ -446,7 +460,7 @@ describe("ITEM 316 — analysis shape", () => {
     }
     const silent = buildRegistrationDeliverables({
       ...CA_VT_BROKER,
-      filing_opt_out_mechanism_documented: undefined,
+      filing_contact_details_ready: undefined,
     } as never);
     expect(silent.filing_readiness[0].ready_to_file).toBeNull();
     expect(silent.filing_readiness[0].status).toBe("record_insufficient");
