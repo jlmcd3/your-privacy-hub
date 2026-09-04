@@ -292,6 +292,11 @@ export default function AdminSampleReports() {
                 /samples/report-output
               </Link>.
             </p>
+            <p className="text-sm mt-1">
+              {missingPreviews === 0
+                ? "All published samples have a public preview."
+                : `${missingPreviews} published sample${missingPreviews === 1 ? "" : "s"} without a public preview — not shown on /samples.`}
+            </p>
           </div>
           <div className="flex gap-2 shrink-0">
             <Button variant="outline" onClick={onRebuildAllPreviews} disabled={busy !== null}>
