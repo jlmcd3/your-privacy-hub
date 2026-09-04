@@ -21,6 +21,7 @@ import ProductInfoCards from "@/components/product/ProductInfoCards";
 import HeroAccessLine from "@/components/product/HeroAccessLine";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import AuthGateModal from "@/components/AuthGateModal";
+import { intakeGate } from "@/components/intake/intakeGateCopy";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
 import { useToolPrice } from "@/hooks/useToolPrice";
@@ -285,7 +286,7 @@ export default function DPAGenerator() {
 
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
-        <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpa-generator" />
+        <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpa-generator" {...intakeGate("dpa")} />
         <div className="mb-4">
           <DraftRestoreBanner
             draftFound={draftFound}
@@ -506,7 +507,15 @@ export default function DPAGenerator() {
             </div>
             <div className="border-t border-border pt-4 mt-4 text-meta text-muted-foreground">Sample preview:</div>
             <pre className="whitespace-pre-wrap font-sans text-meta text-slate leading-relaxed">{SAMPLE}</pre>
-            <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
+            <DisclaimerCheckbox
+              checked={acknowledged}
+              onChange={(v) => {
+                // Section 4 (Review & Generate) is the account gate for
+                // anonymous visitors — the acknowledgement is what opens it.
+                if (v && !access.user) { setAuthGateOpen(true); return; }
+                setAcknowledged(v);
+              }}
+            />
             <ValidationErrorSummary message={validationError} />
 
             <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm">
