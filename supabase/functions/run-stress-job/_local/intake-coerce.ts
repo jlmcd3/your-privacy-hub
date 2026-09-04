@@ -391,7 +391,22 @@ function coerceField(intake: Record<string, unknown>, f: IntakeField, notes: str
       return v;
     });
   } else if (f.kind === "multi-enum" || f.kind === "string-array") {
-    mapLeaf(intake, f.key, (v) => {
+    mapLeaf(intake, f.key, (raw) => {
+      // 2026-09-04 (batch defect: admt_detail.bias_protected_chars) — the
+      // generator sometimes answers a multi-select with ONE string, or with a
+      // comma/semicolon-joined list. That is a shape drift, not a substantive
+      // one, so lift it to an array here and let the element pass below decide
+      // whether each part is expressible. Unresolvable parts still fail the gate.
+      let v = raw;
+      if (typeof v === "string") {
+        const s = v.trim();
+        if (!s) return raw;
+        const parts = opts.includes(s)
+          ? [s]
+          : s.split(/\s*[;,]\s*|\s+\/\s+/).map((p) => p.trim()).filter(Boolean);
+        notes.push(`${f.key}: string → array (${parts.length})`);
+        v = parts;
+      }
       if (!Array.isArray(v)) return v;
       const out: string[] = [];
       const dropped: string[] = [];
