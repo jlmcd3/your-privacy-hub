@@ -42,6 +42,9 @@ import {
   type SlotValues,
 } from "../prose/skeleton-render.ts";
 import { buildDpiaSkeletonTables, buildDpiaTablesBySurface } from "./dpia-skeleton-tables.ts";
+// DOC 171 (2026-09-04) — Syllabus & Record (doc 151); DPIA is the second
+// product migrated onto the fleet presentation system.
+import { dispositionTone, type SyllabusProjection } from "../prose/syllabus.ts";
 // PROMPT 9H item 3 — the record's regime drives the ToA prefix and the header.
 import { DPIA_NECESSITY_TEST_SENTENCE, dpoFromPreparedBy, namesGdprJurisdiction, readDpiaRegime } from "./dpia-deliverables/build.ts";
 import { repairRegister } from "./risk-skeleton-assemble.ts";
@@ -1806,6 +1809,122 @@ function buildDpiaFactorAuthorityMatrixTable(
   };
 }
 
+// DOC 171 (2026-09-04) — THE DETERMINATION SYLLABUS (Syllabus & Record p.1).
+// Every value below is a PROJECTION of a determination this assembler already
+// made (doc 127 §28 law): the disposition label from `determination`/
+// `art36Determination`, the disposition paragraph = the executive
+// determination sentence exactly as composed, the conditions verbatim from
+// `report.decision.conditions`, the record map from the rendered appendix
+// title (DPIA carries a single Appendix A).
+
+/** The disposition label DPIA's own executive-decision branches already
+ *  distinguish (composeExecutiveDecisionSentence, above) — restated here as
+ *  the controlled word for the syllabus's determination table. Reuses the
+ *  fleet lexicon's "Determination pending" word for both open-record states
+ *  (draft incomplete / Article 36 undetermined) rather than inventing a
+ *  third synonym. */
+function dpiaDispositionLabel(report: Bag, intake: Bag): string {
+  const art36 = art36Determination(report);
+  const det = determination(report);
+  if (art36 === "consultation_required" || det === "consultation_required") {
+    return "Prior Consultation Required";
+  }
+  if (art36 === "undetermined_on_the_record" || det === "draft_incomplete") {
+    return "Determination pending";
+  }
+  if (det === "conditionally_approved") return "Conditionally Approved";
+  if (det === "approved") return "Approved";
+  return "No Determination Recorded";
+}
+
+export function buildDpiaSyllabus(
+  rendered: RenderedSkeletonDocument,
+  report: Bag,
+  values: SlotValues,
+  intake: Bag,
+): SyllabusProjection {
+  const str = (k: string): string => {
+    const v = (values as Bag)[k];
+    return typeof v === "string" ? v.trim() : "";
+  };
+  const entity = str("organizationName") || "the Company";
+  const activity = str("name");
+  const disposition = dpiaDispositionLabel(report, intake);
+  const regime = readDpiaRegime(intake);
+  const total = Object.values(residualCounts(report)).reduce((a, b) => a + b, 0);
+  // The disposition paragraph IS the executive determination sentence, as
+  // composed (composeExecutiveBody prepends it to the executive body as the
+  // "Determination. …" chunk).
+  const paragraph = composeExecutiveDecisionSentence(report, total, intake);
+
+  const bands = residualCounts(report);
+  const highestBand = (bands["high"] ?? 0) > 0
+    ? "High"
+    : (bands["moderate"] ?? 0) > 0
+    ? "Moderate"
+    : (bands["low"] ?? 0) > 0
+    ? "Low"
+    : (bands["undetermined"] ?? 0) > 0
+    ? "Undetermined"
+    : "";
+  const rows: Array<readonly [string, string]> = [
+    [
+      "Risks reviewed",
+      total > 0
+        ? `${numberWord(total)} risk${total === 1 ? "" : "s"} on the record, with the measures the company records against each (Section 4)`
+        : "None — the risk register is empty on the information provided",
+    ],
+  ];
+  if (highestBand) {
+    rows.push(["Highest residual risk", `${highestBand} — after the recorded mitigating measures are taken into account`]);
+  }
+  const approver = str("dpiaApprovedByName");
+  rows.push(["Sign-off", approver ? `Recorded — ${approver} (Section 6)` : "Not recorded"]);
+  const outstandingRows = asArray(report.gap_ledger).filter((g) => s(g.dimensions) && s(g.field)).length;
+  rows.push([
+    "Open record items",
+    outstandingRows > 0
+      ? `${numberWord(outstandingRows)} matter${outstandingRows === 1 ? "" : "s"} outstanding on the record (Section 6)`
+      : "None — the record is complete on the information provided (Section 6)",
+  ]);
+
+  const decisionObj = decisionSurface(report);
+  const conditionTexts = determination(report) === "conditionally_approved" && decisionObj && Array.isArray(decisionObj.conditions)
+    ? (decisionObj.conditions as unknown[]).map((c) => s(c)).filter(Boolean)
+    : [];
+  const conditions = conditionTexts.map((text, i) => ({ name: `Condition ${i + 1}`, text: text.trim() }));
+
+  const key_dates: Array<readonly [string, string]> = [];
+  const endDate = str("endDate");
+  if (endDate) key_dates.push(["Review window ends", endDate]);
+
+  const record_map: Array<readonly [string, string, string]> = [];
+  for (const sec of rendered.sections) {
+    const m = /^Appendix ([A-Z]) — (.+)$/.exec(sec.title ?? "");
+    if (m) record_map.push([m[1], m[2], ""]);
+  }
+
+  return {
+    _typed: "syllabus@sr-2026-09-04",
+    instrument_line: `DATA PROTECTION IMPACT ASSESSMENT · ${regime === "UK" ? "UK GDPR Art. 35" : "GDPR Art. 35"}`,
+    prepared_for: entity,
+    activity: activity || "Processing activity not named on the record",
+    subtitle: activity
+      ? `Data protection impact assessment under ${regime === "UK" ? "UK GDPR" : "GDPR"} Art. 35 · the “Processing”`
+      : `Data protection impact assessment under ${regime === "UK" ? "UK GDPR" : "GDPR"} Art. 35`,
+    disposition_label: "DETERMINATION",
+    disposition,
+    disposition_tone: dispositionTone(disposition),
+    paragraph,
+    rows,
+    conditions_heading: conditions.length ? "CONDITIONS TO PROCEED — the disposition depends on these" : "",
+    conditions,
+    key_dates,
+    record_map,
+    running_head: `DATA PROTECTION IMPACT ASSESSMENT · ${entity.toUpperCase()}`,
+  };
+}
+
 // ── Assembly ────────────────────────────────────────────────────────────────
 
 export interface DpiaSkeletonResult {
@@ -1988,7 +2107,7 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
     "table_of_authorities:3": advisoryMatches,
   };
 
-  const document = renderSkeletonDocument({
+  const renderedDoc = renderSkeletonDocument({
     sections: sectionsForRender,
     title: DPIA_SKELETON_TITLE,
     subtitle,
@@ -1997,6 +2116,14 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
     composed,
     tables: tablesWithMatrix,
   });
+  // DOC 171 (2026-09-04) — the Determination Syllabus (page 1 of the
+  // Syllabus & Record presentation) attached as a projection of the
+  // determinations above. Additive: sections, hash and conformance are
+  // untouched; a renderer that does not know the field ignores it.
+  const document: RenderedSkeletonDocument = {
+    ...renderedDoc,
+    syllabus: buildDpiaSyllabus(renderedDoc, report, values, intake),
+  };
 
   const body = skeletonDocumentToText(document).toLowerCase();
   const register_findings = DPIA_V3_BANNED_REGISTER.filter((b) => body.includes(b));

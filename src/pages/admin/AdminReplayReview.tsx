@@ -483,7 +483,7 @@ export default function AdminReplayReview() {
                 through SkeletonDocumentView, the shipped DPIA viewer. */}
             {!showLegacy && open.tool === "dpia" && toSkeletonDocument(open.assembled_report) ? (
               <div data-testid="dpia-skeleton-body">
-                <SkeletonDocumentView doc={toSkeletonDocument(open.assembled_report)} />
+                <SkeletonDocumentView doc={toSkeletonDocument(open.assembled_report)} product="dpia" />
               </div>
             ) : (
               <CPPARiskReportBody

@@ -64,6 +64,7 @@ export interface SyllabusProjection {
  *  syllabus; a product absent here keeps its current presentation. */
 export const SR_PRODUCTS: ReadonlySet<string> = new Set<string>([
   "cppa-risk",
+  "dpia",
 ]);
 
 export function isSyllabusRecordProduct(product: string | undefined | null): boolean {
@@ -73,10 +74,10 @@ export function isSyllabusRecordProduct(product: string | undefined | null): boo
 /** The fleet State Lexicon (design system § 5): tinted as TEXT, never a
  *  filled chip; color never the sole carrier — the word is always written. */
 export const SR_STATE_TONES: ReadonlyArray<readonly [RegExp, SyllabusTone]> = [
-  [/^(Engaged|Credited|Addressed|Recorded|Confirmed|Yes|Low|Proceed|Necessary to the stated purpose|Implemented and tested|Complete)$/i, "ok"],
-  [/^(Additional Information Required|Determination pending|Timeliness pending|Open|Partial|Open in part|Moderate|Unsure|Unconfirmed|Partly outside|Proceed with Conditions|Implemented, not tested|Planned, not yet implemented|Not stated — see the Follow-Ups in § 4\.D)$/i, "hold"],
-  [/^(High|Critical|Do Not Proceed|Collected but not necessary to the stated purpose|Collected but not necessary)$/i, "hi"],
-  [/^(Not engaged|Not established|Not applicable|Not assessed|No|Neutral|No Processing Decision Required|Not recorded)$/i, "neutral"],
+  [/^(Engaged|Credited|Addressed|Recorded|Confirmed|Yes|Low|Proceed|Necessary to the stated purpose|Implemented and tested|Complete|Approved)$/i, "ok"],
+  [/^(Additional Information Required|Determination pending|Timeliness pending|Open|Partial|Open in part|Moderate|Unsure|Unconfirmed|Partly outside|Proceed with Conditions|Implemented, not tested|Planned, not yet implemented|Not stated — see the Follow-Ups in § 4\.D|Conditionally Approved)$/i, "hold"],
+  [/^(High|Critical|Do Not Proceed|Collected but not necessary to the stated purpose|Collected but not necessary|Prior Consultation Required)$/i, "hi"],
+  [/^(Not engaged|Not established|Not applicable|Not assessed|No|Neutral|No Processing Decision Required|Not recorded|No Determination Recorded)$/i, "neutral"],
 ];
 
 export function toneForState(value: string): SyllabusTone | null {

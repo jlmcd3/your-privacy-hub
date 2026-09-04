@@ -280,7 +280,10 @@ const DPIAFrameworkResult = () => {
 
           {status === "complete" && skeletonDoc && (
             <div className="space-y-6">
-              <SkeletonDocumentView doc={skeletonDoc} />
+              {/* DOC 171 (2026-09-04) — the product string activates the
+                  Syllabus & Record presentation system in the shared skeleton
+                  renderer. */}
+              <SkeletonDocumentView doc={skeletonDoc} product="dpia" />
               <EnforcementPrecedents
                 precedents={report?.enforcement_precedents}
                 context="Recent regulator decisions on similar processing activities — review these alongside the risks and measures above."

@@ -2723,7 +2723,18 @@ function srSectionsHtml(doc: SkeletonDocLike, product?: string): string {
         return rows ? `<table class="toa-table" style="width:100%;border-collapse:collapse;margin:0 0 8px;"><tbody>${rows}</tbody></table>` : "";
       }
       if (syllabus && sec.id === "executive_summary" && p?.kind === "lead") return "";
-      return t.split(/\n{2,}/).map((c) => chunkHtml(c, sec)).join("");
+      const chunks = t.split(/\n{2,}/);
+      // DOC 171 (2026-09-04) — a product whose executive body OPENS with a
+      // run-in-labeled "Determination. …" chunk (rather than carrying it as
+      // its own `kind: "lead"` paragraph, the CPPA Risk shape) restates the
+      // same sentence page one already prints under DETERMINATION. Dropped
+      // here, presentation-only: the composed bytes and every other product
+      // are untouched (a product outside SR_PRODUCTS never reaches this
+      // branch; `syllabus` is null for it).
+      const filtered = syllabus && sec.id === "executive_summary"
+        ? chunks.filter((c) => !/^Determination\.\s/.test(c.trim()))
+        : chunks;
+      return filtered.map((c) => chunkHtml(c, sec)).join("");
     }).join("");
     if (!body.trim() && !headQ) return pre;
 
@@ -4933,7 +4944,9 @@ Deno.serve(async (req) => {
       // only for reports generated before the wire-in.
       const skelDpia = readSkeletonDocument(report);
       html = skelDpia
-        ? buildSkeletonReportHTML(skelDpia, record, "Data Protection Impact Assessment")
+        // DOC 171 (2026-09-04) — the "dpia" product string activates the
+        // Syllabus & Record presentation system (SR_PRODUCTS).
+        ? buildSkeletonReportHTML(skelDpia, record, "Data Protection Impact Assessment", "dpia")
         : buildDPIAReportHTML(report, record);
       generatedAt = report.generated_at || record.created_at || new Date().toISOString();
 
