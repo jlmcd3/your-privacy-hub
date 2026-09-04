@@ -19,6 +19,7 @@ import ProductInfoCards from "@/components/product/ProductInfoCards";
 import HeroAccessLine from "@/components/product/HeroAccessLine";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import AuthGateModal from "@/components/AuthGateModal";
+import { intakeGate } from "@/components/intake/intakeGateCopy";
 import AssessmentReport from "@/components/AssessmentReport";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useToolAccess } from "@/hooks/useToolAccess";
@@ -701,9 +702,8 @@ export default function BiometricChecker() {
       <AuthGateModal
         open={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
-        heading="Create a free account to run your analysis"
-        body="A free End User Privacy account is required to use this tool. Creating one takes under a minute."
         redirectTo="/biometric-checker"
+        {...intakeGate("biometric")}
       />
       <ToolCheckoutModal
         open={checkoutOpen}

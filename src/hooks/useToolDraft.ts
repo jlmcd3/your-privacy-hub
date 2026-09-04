@@ -4,10 +4,14 @@
 // on failure. Completed drafts are flagged, not deleted (retention policy).
 //
 // Anonymous capture: when nobody is signed in, the same payload is mirrored
-// to localStorage so intake typed before the sign-in gate survives the trip
-// through /login or /signup. On the next render with a user present, the
-// pending local draft is migrated into tool_sessions and auto-restored
-// silently (no Resume banner) via `autoRestoreToken`.
+// to sessionStorage so intake typed before the sign-in gate survives the trip
+// through /login or /signup within the same browsing session. It is session
+// scoped on purpose (2026-09-04 policy): an anonymous visitor who leaves does
+// not get to return later and finish — the decision is made in-session. On the
+// next render with a user present, the pending session draft is migrated into
+// tool_sessions and auto-restored silently (no Resume banner) via
+// `autoRestoreToken`. Legacy localStorage copies are purged on read.
+
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,7 +57,10 @@ function hasContent(value: unknown): boolean {
 function readLocalDraft(toolType: string, clientId: string | null):
   { data: Record<string, unknown>; currentStage: number; updatedAt: string } | null {
   try {
-    const raw = localStorage.getItem(localKey(toolType, clientId));
+    // Purge any legacy cross-session copy left by the previous localStorage
+    // implementation — anonymous drafts are session scoped now.
+    try { localStorage.removeItem(localKey(toolType, clientId)); } catch { /* ignore */ }
+    const raw = sessionStorage.getItem(localKey(toolType, clientId));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object" || !parsed.data) return null;
@@ -69,17 +76,21 @@ function readLocalDraft(toolType: string, clientId: string | null):
 
 function writeLocalDraft(toolType: string, clientId: string | null, payload: unknown) {
   try {
-    localStorage.setItem(localKey(toolType, clientId), JSON.stringify(payload));
+    sessionStorage.setItem(localKey(toolType, clientId), JSON.stringify(payload));
   } catch (e) {
-    console.warn("[useToolDraft] local save failed", e);
+    console.warn("[useToolDraft] session save failed", e);
   }
 }
 
 function removeLocalDraft(toolType: string, clientId: string | null) {
   try {
+    sessionStorage.removeItem(localKey(toolType, clientId));
+  } catch { /* ignore */ }
+  try {
     localStorage.removeItem(localKey(toolType, clientId));
   } catch { /* ignore */ }
 }
+
 
 export function useToolDraft({
   toolType,

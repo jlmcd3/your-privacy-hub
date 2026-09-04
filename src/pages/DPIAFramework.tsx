@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import ToolSamplePreview from "@/components/tools/ToolSamplePreview";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
+import { intakeGate } from "@/components/intake/intakeGateCopy";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
@@ -1211,7 +1212,7 @@ const DPIAFramework = () => {
           onClose={() => setCoachOpen(false)}
           onContinue={() => { setCoachOpen(false); void handlePurchase(); }}
         />
-        <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpia-framework" />
+        <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpia-framework" {...intakeGate("dpia")} />
         <ToolCheckoutModal
           open={checkoutOpen}
           toolType="dpia_framework"

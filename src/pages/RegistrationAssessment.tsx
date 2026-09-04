@@ -20,6 +20,7 @@ import {
 } from "@/data/registration_jurisdictions";
 import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
 import AuthGateModal from "@/components/AuthGateModal";
+import { intakeGate } from "@/components/intake/intakeGateCopy";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
@@ -701,7 +702,7 @@ export default function RegistrationAssessment() {
                     Back
                   </Button>
                   {step < 3 ? (
-                    <Button onClick={() => { setValidationError(null); setStep(step + 1); }}>Next</Button>
+                    <Button onClick={() => { if (isAnon && step + 1 === 3) { setAuthGateOpen(true); return; } setValidationError(null); setStep(step + 1); }}>Next</Button>
 
                   ) : (
                     <Button onClick={submit} disabled={submitting}>
@@ -719,8 +720,7 @@ export default function RegistrationAssessment() {
             <AuthGateModal
               open={authGateOpen}
               onClose={() => setAuthGateOpen(false)}
-              heading="Create a free account to use the Registration Manager"
-              body="The Registration Manager assessment is free, but requires an account so we can save your answers and email your results."
+              {...intakeGate("registration")}
             />
           </div>
         </PageContainer>

@@ -21,6 +21,7 @@ import HeroAccessLine from "@/components/product/HeroAccessLine";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import ToolSampleOverlay from "@/components/ToolSampleOverlay";
 import AuthGateModal from "@/components/AuthGateModal";
+import { intakeGate } from "@/components/intake/intakeGateCopy";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import FreeRunIndicator from "@/components/FreeRunIndicator";
 import { useToolAccess } from "@/hooks/useToolAccess";
@@ -286,7 +287,7 @@ export default function IRPlaybook() {
       <ToolAlsoAvailableRow currentTool="ir_playbook" />
       <section className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
-        <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/ir-playbook" />
+        <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/ir-playbook" {...intakeGate("ir_playbook")} />
 
         {refine.isRefine && refine.intake && !refine.loading ? (
           <RefinePanel
