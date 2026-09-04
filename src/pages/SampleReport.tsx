@@ -235,10 +235,17 @@ export default function SampleReport() {
 
                 <SampleToolReport
                   toolSlug={r.tool_slug}
-                  documentText={r.document_text}
-                  reportData={r.report_data}
+                  documentText={r.preview_document_text}
+                  reportData={r.preview_report_data}
                   publishedAt={r.published_at}
-                  pdfPath={r.pdf_path}
+                  pdfPath={r.preview_pdf_path}
+                />
+
+                <SampleTocPanel
+                  entries={r.preview_toc ?? []}
+                  withheldCount={r.withheld_section_count ?? 0}
+                  toolRoute={toolRoute}
+                  unit={r.preview_pdf_path ? "pages" : "sections"}
                 />
 
                 {toolRoute && (
