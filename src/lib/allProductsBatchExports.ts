@@ -253,7 +253,7 @@ export async function downloadBatchPdfZip(batchId: string, outcomes: RunOutcome[
    * after the client gave up.
    */
   async function signOnly(o: RunOutcome): Promise<string | null> {
-    if (DIRECT_PDF_SLUGS.has(o.tool_slug)) return null;
+    if (DIRECT_PDF_SLUGS.has(o.tool_slug) || NOTICE_PDF_CONFIG[o.tool_slug]) return null;
     const { data } = await invokeWithTimeout<{ pdf_url?: string; error?: string }>(
       "generate-report-pdf",
       {
@@ -293,8 +293,21 @@ export async function downloadBatchPdfZip(batchId: string, outcomes: RunOutcome[
     return data.pdf_url;
   }
 
+  const safe = (s: string) => s.replace(/[^\w.-]+/g, "_");
+
   for (const o of rows) {
     try {
+      if (NOTICE_PDF_CONFIG[o.tool_slug]) {
+        const docs = await renderNoticePdfs(o);
+        for (const d of docs) {
+          const res = await fetch(d.url);
+          if (!res.ok) throw new Error(`download ${res.status}`);
+          zip.file(`${o.tool_slug}/${safe(o.variant)}-${safe(d.name)}.pdf`, await res.blob());
+        }
+        ok += 1;
+        toast.loading(`Rendered ${ok}/${rows.length} PDFs…`, { id: tid });
+        continue;
+      }
       const fresh = o.pdfUrl && o.pdfUrlAt && Date.now() - o.pdfUrlAt < SIGNED_URL_TTL_MS;
       let pdfUrl =
         (fresh ? (o.pdfUrl as string) : null) ??
@@ -309,7 +322,7 @@ export async function downloadBatchPdfZip(batchId: string, outcomes: RunOutcome[
       }
       if (!res.ok) throw new Error(`download ${res.status}`);
       const blob = await res.blob();
-      zip.file(`${o.tool_slug}/${o.variant.replace(/[^\w.-]+/g, "_")}-${o.id}.pdf`, blob);
+      zip.file(`${o.tool_slug}/${safe(o.variant)}-${o.id}.pdf`, blob);
       ok += 1;
       toast.loading(`Rendered ${ok}/${rows.length} PDFs…`, { id: tid });
     } catch (e) {
@@ -317,6 +330,7 @@ export async function downloadBatchPdfZip(batchId: string, outcomes: RunOutcome[
       failures.push(`${o.tool_slug}/${o.variant}: ${(e as Error).message}`);
     }
   }
+
 
 
   if (!ok) {
