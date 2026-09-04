@@ -64,6 +64,14 @@ import {
 //     correct corpus table for a GDPR product.
 // Neither mechanism may be edited to make a statutory claim the other denies.
 import { ROPA_LEGAL_TEXT_ASSERTIONS } from "../_shared/legal-text-assertions.ts";
+// DOC 178 (2026-09-04) — Syllabus & Record page one (doc 151), the ninth and
+// final product in the fleet redesign. RoPA renders its own standalone HTML
+// (never through generate-report-pdf's shared renderer), so page one is
+// built from the shared syllabus-page-html module rather than a product
+// gate — every RoPA document carries a syllabus (assembleRopaRegister
+// always attaches one), so no legacy/no-syllabus fallback is needed here.
+import { readSyllabus } from "../_shared/prose/syllabus.ts";
+import { SR_SYLLABUS_CSS, srSyllabusPageHtml } from "../_shared/prose/syllabus-page-html.ts";
 // S-P2 (doc 80, 2026-08-27) — the Article 30(5) informational note.
 import { art305NoteHtml } from "./register/art305-note.ts";
 // DOC 166 (2026-09-04) — one resolver for the per-activity transfer cell,
@@ -129,7 +137,7 @@ interface RequestBody {
   };
 }
 
-interface DocumentSettings {
+export interface DocumentSettings {
   documentDate: string;
   authorName: string;
   internalReference: string | null;
@@ -386,7 +394,7 @@ function resolveFormatsToGenerate(body: RequestBody): Format[] {
 // Document builders
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface AssembledData {
+export interface AssembledData {
   session: any;
   client: any;
   profile: any;
@@ -444,9 +452,17 @@ const ART30_HEADER_FALLBACK = [
 ];
 
 function registerHtml(reg: RopaRegisterDocument): string {
+  // DOC 178 (2026-09-04) — the completeness determination lead (RoPA's own
+  // section id for this block, a fourth hardcoded id alongside
+  // "executive_summary"/"standing_playbook"/"completeness_review" — see the
+  // fleet's established one-id-per-product suppression pattern) is dropped
+  // here, presentation-only, when a syllabus is present: it already reads
+  // as page one's own paragraph, verbatim.
+  const syllabus = readSyllabus(reg.document);
   const sections = reg.document.sections
     .map((sec) => {
       const paras = sec.paragraphs
+        .filter((p) => !(syllabus && sec.id === "completeness_review" && p.kind === "lead"))
         .map((p) =>
           p.kind === "rule"
             ? `<pre style="font-family:inherit;white-space:pre-wrap;margin:0 0 10px;">${escapeHtml(p.text)}</pre>`
@@ -484,10 +500,19 @@ function registerHtml(reg: RopaRegisterDocument): string {
     })
     .join("");
 
+  // DOC 178 — the title/subtitle line duplicates page one's own title and
+  // subtitle verbatim (the fleet's recurring page-one/body duplicate class,
+  // already caught and fixed this way in Governance/ADMT v2/Cyber v4/IR
+  // Playbook); suppressed here, presentation-only, when a syllabus is
+  // present.
+  const titleBlock = syllabus
+    ? ""
+    : `<h1 style="font-size:20px;margin-top:8px;">${escapeHtml(reg.document.title)}</h1>
+    <p class="footer-note">${escapeHtml(reg.document.subtitle)}</p>`;
+
   return `
   <section class="register">
-    <h1 style="font-size:20px;margin-top:8px;">${escapeHtml(reg.document.title)}</h1>
-    <p class="footer-note">${escapeHtml(reg.document.subtitle)}</p>
+    ${titleBlock}
     ${sections}
   </section>`;
 }
@@ -525,7 +550,38 @@ function registerDocxChildren(reg: RopaRegisterDocument): any[] {
 
 // ── HTML (used as the "PDF") ────────────────────────────────────────────────
 
-function buildHtml(d: AssembledData): string {
+/** DOC 178 (2026-09-04) — the fleet-standard navy cover block, kept only as
+ *  a fallback for a persisted register that predates the Syllabus & Record
+ *  landing (no `document.syllabus`). Every register assembled from here on
+ *  carries one, so `ropaCoverHtml` below reaches this branch only for old
+ *  data, never for a live generation. */
+function legacyHeaderHtml(d: AssembledData): string {
+  return `<header class="header">
+    <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
+    <p class="eyebrow">Compliance Document · Article 30 Record</p>
+    <h1>${escapeHtml(d.client?.name ?? "")} — Records of Processing Activities</h1>
+    <div class="meta">
+      ${escapeHtml(d.settings.documentDate)} · Jurisdictions: ${escapeHtml(jurisdictionList(d.jurisdictions, true) || "—")} · Version ${d.session.version_number}
+      ${d.settings.authorName ? ` · Author: ${escapeHtml(d.settings.authorName)}` : ""}
+      ${d.settings.internalReference ? ` · Ref: ${escapeHtml(d.settings.internalReference)}` : ""}
+    </div>
+    <div class="confidential">Confidential — Internal Compliance Record</div>
+  </header>`;
+}
+
+/** Page one replaces the navy cover block — the same "no cover, page one
+ *  carries the projection" pattern doc170 established for every other
+ *  product in this redesign. */
+function ropaCoverHtml(d: AssembledData): string {
+  const syllabus = readSyllabus(d.register.document);
+  return syllabus ? srSyllabusPageHtml(syllabus, d.session) : legacyHeaderHtml(d);
+}
+
+// DOC 178 (2026-09-04) — exported for the doc178 test/preview harness (the
+// edge entrypoint itself cannot be imported without serving; the harness
+// stubs Deno.serve the same way generate-report-pdf's own tests do). No
+// behavior change.
+export function buildHtml(d: AssembledData): string {
   const lawList = d.jurisdictions
     .map((j) => `<li>${escapeHtml(lawLabel(j))}</li>`)
     .join("");
@@ -711,22 +767,13 @@ function buildHtml(d: AssembledData): string {
       .signature + * { break-inside: avoid; page-break-inside: avoid; }
       .footer-note:last-child { break-before: avoid; page-break-before: avoid; }
     }
+    ${SR_SYLLABUS_CSS}
   </style>
 </head>
 <body>
 
   <div class="shell">
-  <header class="header">
-    <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-    <p class="eyebrow">Compliance Document · Article 30 Record</p>
-    <h1>${escapeHtml(d.client?.name ?? "")} — Records of Processing Activities</h1>
-    <div class="meta">
-      ${escapeHtml(d.settings.documentDate)} · Jurisdictions: ${escapeHtml(jurisdictionList(d.jurisdictions, true) || "—")} · Version ${d.session.version_number}
-      ${d.settings.authorName ? ` · Author: ${escapeHtml(d.settings.authorName)}` : ""}
-      ${d.settings.internalReference ? ` · Ref: ${escapeHtml(d.settings.internalReference)}` : ""}
-    </div>
-    <div class="confidential">Confidential — Internal Compliance Record</div>
-  </header>
+  ${ropaCoverHtml(d)}
   <div class="body">
 
   <p style="font-size: 13px; margin-top: 24px;">This record is maintained in accordance with Article 30 of the General Data Protection Regulation (EU) 2016/679 (GDPR) and, where applicable, Article 30 of the UK GDPR as retained by the Data Protection Act 2018. It is intended to document the processing activities carried out by the controller and, where relevant, the processor. <strong>${

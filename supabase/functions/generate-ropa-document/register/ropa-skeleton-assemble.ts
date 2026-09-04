@@ -44,6 +44,9 @@ import {
   type RenderedSkeletonDocument,
   type SlotValues,
 } from "../../_shared/prose/skeleton-render.ts";
+// DOC 178 (2026-09-04) — Syllabus & Record (doc 151); RoPA is the ninth and
+// final product migrated onto the fleet presentation system.
+import { dispositionTone, type SyllabusProjection } from "../../_shared/prose/syllabus.ts";
 
 /** SO-10 pipeline stamp. Survives serialization on the persisted document. */
 export const ROPA_PIPELINE_STAMP = "ropa-pipeline@item-so10-2026-08-10";
@@ -681,6 +684,69 @@ export function checkRegister(body: string): string[] {
 
 // ── Assembly ────────────────────────────────────────────────────────────────
 
+// DOC 178 (2026-09-04) — THE DETERMINATION SYLLABUS (Syllabus & Record p.1).
+// Every value below is a PROJECTION of a determination this assembler
+// already made (doc 127 §28 law): the disposition is a three-bucket read of
+// the SAME `completeness` object `composeCompletenessLead()` already reads
+// (no activities recorded → no determination; some required entries missing
+// → incomplete; otherwise complete — reusing "Complete", already in the
+// shared lexicon from Cyber's own record-sufficiency vocabulary); the
+// paragraph is `composeCompletenessLead()`'s own text, verbatim — the SAME
+// string composed into `completeness_review:0`'s `kind: "lead"` block
+// (RoPA's own section name for this block, a fourth hardcoded id alongside
+// "executive_summary"/"standing_playbook"); the conditions are
+// `completeness.missing_by_activity` verbatim — RoPA's genuine typed
+// "what's missing, per activity" surface. RoPA has no lettered appendices,
+// so `record_map` is honestly empty, same precedent as LIA/Governance/
+// Registration/IR Playbook.
+function ropaDispositionLabel(c: RopaCompleteness): string {
+  if (c.activities_total === 0) return "No Determination Recorded";
+  if (!c.complete) return "Incomplete";
+  return "Complete";
+}
+
+function buildRopaSyllabus(
+  completeness: RopaCompleteness,
+  leadText: string,
+  entity: string,
+): SyllabusProjection {
+  const disposition = ropaDispositionLabel(completeness);
+
+  const rows: Array<readonly [string, string]> = [];
+  if (completeness.activities_total > 0) {
+    rows.push(["Processing activities recorded", String(completeness.activities_total)]);
+    rows.push([
+      "Complete against Article 30",
+      completeness.activities_incomplete > 0
+        ? `${completeness.activities_total - completeness.activities_incomplete} of ${completeness.activities_total} activities`
+        : `All ${completeness.activities_total} activities`,
+    ]);
+  }
+
+  const conditions = completeness.missing_by_activity.map((m) => ({
+    name: m.activity,
+    text: `Missing: ${m.missing.join(", ")}`,
+  }));
+
+  return {
+    _typed: "syllabus@sr-2026-09-04",
+    instrument_line: "RECORD OF PROCESSING ACTIVITIES · Article 30 GDPR",
+    prepared_for: entity,
+    activity: "Article 30 Processing Register",
+    subtitle: "Record of processing activities under Article 30 GDPR",
+    disposition_label: "COMPLETENESS",
+    disposition,
+    disposition_tone: dispositionTone(disposition),
+    paragraph: leadText,
+    rows,
+    conditions_heading: conditions.length ? "MISSING ENTRIES — what would complete the register" : "",
+    conditions,
+    key_dates: [],
+    record_map: [],
+    running_head: `RECORD OF PROCESSING ACTIVITIES · ${entity.toUpperCase()}`,
+  };
+}
+
 export function assembleRopaRegister(input: RopaAssembleInput): RopaRegisterDocument {
   const values = buildSlotValues(input);
   const records = input.activities.map((a) => buildActivityRecord(input, a));
@@ -748,6 +814,15 @@ export function assembleRopaRegister(input: RopaAssembleInput): RopaRegisterDocu
 
   const findings = verifySkeletonConformance(withToa, ROPA_SKELETON_SECTIONS);
   const text = skeletonDocumentToText(withToa);
+  // DOC 178 (2026-09-04) — the Determination Syllabus (page 1 of the
+  // Syllabus & Record presentation) attached as a projection of the
+  // determinations above. Additive: sections, hash and conformance are
+  // untouched; a renderer that does not know the field ignores it (this
+  // includes the DOCX/XLSX renderers this same assembled object feeds).
+  const documentWithSyllabus: RenderedSkeletonDocument = {
+    ...withToa,
+    syllabus: buildRopaSyllabus(completeness, composed["completeness_review:0"] as string, input.organisationName || "the company"),
+  };
 
   return {
     _typed: "ropa-register-document@so10",
@@ -756,7 +831,7 @@ export function assembleRopaRegister(input: RopaAssembleInput): RopaRegisterDocu
     spine_version: ROPA_SKELETON_VERSION,
     skeleton_hash: ROPA_SKELETON_CONTENT_HASH,
     provenance: ROPA_SKELETON_PROVENANCE,
-    document: withToa,
+    document: documentWithSyllabus,
     activity_records: records,
     table_of_authorities: toa,
     citation_ledger: ledger,
