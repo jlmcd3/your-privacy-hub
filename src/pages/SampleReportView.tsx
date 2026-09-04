@@ -111,19 +111,15 @@ export default function SampleReportView() {
       if (!toolSlug || !variant) return;
       const [{ data, error }, { data: sibData }] = await Promise.all([
         supabase
-          .from("sample_reports")
-          .select(
-            "id, tool_slug, variant, title, scenario_summary, document_text, report_data, verification, published_at, pdf_path",
-          )
+          .from("sample_reports_public")
+          .select(PUBLIC_SAMPLE_COLUMNS)
           .eq("tool_slug", toolSlug)
           .eq("variant", variant)
-          .eq("status", "published")
           .maybeSingle(),
         supabase
-          .from("sample_reports")
+          .from("sample_reports_public")
           .select("variant, title")
           .eq("tool_slug", toolSlug)
-          .eq("status", "published")
           .order("variant"),
       ]);
       if (cancelled) return;
@@ -132,7 +128,8 @@ export default function SampleReportView() {
         setRow(null);
         return;
       }
-      setRow((data as Row) ?? null);
+      const loaded = (data ?? null) as unknown as Row | null;
+      setRow(hasPreview(loaded) ? loaded : null);
       setSiblings((sibData ?? []) as Array<{ variant: string; title: string }>);
     })();
     return () => {
