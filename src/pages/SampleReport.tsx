@@ -8,6 +8,7 @@ import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SampleToolReport } from "@/components/SampleToolReport";
+import { SampleTocPanel, type SampleTocEntry } from "@/components/SampleTocPanel";
 import { TOOL_ROUTE } from "@/lib/sampleToolRoutes";
 import { fmtDate } from "@/lib/dates";
 import { fireSampleOpened } from "@/lib/analyticsEvents";
