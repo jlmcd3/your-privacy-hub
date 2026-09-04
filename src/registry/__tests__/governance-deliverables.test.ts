@@ -13,6 +13,9 @@ import { describe, expect, it } from "vitest";
 import { GOVERNANCE_CORPUS_SNAPSHOT } from "./__fixtures__/governance-corpus-snapshot";
 import { GOVERNANCE_ACCOUNTABILITY_AUTHORITIES } from "../../../supabase/functions/run-governance-assessment/_local/registry/governance-accountability-authorities";
 import { GOVERNANCE_VERIFIED_AUTHORITIES } from "../../../supabase/functions/run-governance-assessment/_local/registry/governance-verified-authorities";
+// DOC 164 (2026-09-04) — UK DPA 2018 sliver + WP243 rev.01; elements.ts
+// merges all three registries, so this mirror must too.
+import { GOVERNANCE_DPA2018_WP243_AUTHORITIES } from "../../../supabase/functions/run-governance-assessment/_local/registry/governance-dpa2018-wp243-authorities";
 import {
   ANCHOR_KEYS,
   ART30_ELEMENTS,
@@ -53,13 +56,15 @@ describe("ITEM 313 — corpus pins", () => {
     }
   });
 
-  // Item 327: `elements.ts` resolves against BOTH governance registries
-  // (accountability + verified), so the resolution surface asserted here is
-  // the same merged map the builder uses — not the accountability map alone.
+  // Item 327 / DOC 164: `elements.ts` resolves against all THREE governance
+  // registries (verified + accountability + dpa2018/wp243), so the
+  // resolution surface asserted here is the same merged map the builder
+  // uses — not any one registry alone.
   it("every anchor key the builder may cite resolves to a registry row", () => {
     const MERGED = {
       ...GOVERNANCE_VERIFIED_AUTHORITIES,
       ...GOVERNANCE_ACCOUNTABILITY_AUTHORITIES,
+      ...GOVERNANCE_DPA2018_WP243_AUTHORITIES,
     };
     for (const key of Object.values(ANCHOR_KEYS)) {
       expect(

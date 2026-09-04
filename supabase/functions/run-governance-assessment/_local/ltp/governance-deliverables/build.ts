@@ -280,6 +280,9 @@ function specialCategoryAnsweredNo(intake: unknown): boolean {
 }
 
 export function buildArt30ElementFindings(intake: unknown): Art30ElementFinding[] {
+  // DOC 164 (2026-09-04) — the UK Sch. 1 note on element (c) needs the
+  // record's own special-category and jurisdiction facts.
+  const f164 = readGovernanceFacts(intake);
   return ART30_ELEMENTS.map((el) => {
     const a = anchor(el.anchorKey, `GDPR Art. 30(1)(${el.element})`);
     const evidence = el.evidence_keys
@@ -368,9 +371,26 @@ export function buildArt30ElementFindings(intake: unknown): Art30ElementFinding[
       citation: a.citation,
       standard: a.verbatim,
       record_fact: `The record carries: ${evidence.join("; ")}.`,
-      application: partial
+      application: (partial
         ? `That content addresses Article 30(1)(${el.element}) in part only. The element is drafted as a mandatory content requirement, so a partial entry leaves the record incomplete for this element.`
-        : `That content addresses Article 30(1)(${el.element}) on its face. Whether it does so activity by activity — the unit Article 30(1) uses — must be confirmed against the record itself.`,
+        : `That content addresses Article 30(1)(${el.element}) on its face. Whether it does so activity by activity — the unit Article 30(1) uses — must be confirmed against the record itself.`) +
+        // DOC 164 — element (c) carries the categories of personal data; where
+        // the record shows special-category processing AND UK scope, Article
+        // 9(2) special-category processing needs a domestic condition, and
+        // for most of them (Sch. 1 Parts 1-3) a written policy document under
+        // Part 4 is a precondition of the condition being met at all, not an
+        // optional extra. The record does not say which condition is relied
+        // on — the intake does not ask — so this names the mechanism rather
+        // than asserting a condition the record cannot support.
+        (el.element === "c" && (f164.specialCategory || f164.specialList.length > 0) && f164.jurisdictions.includes(UK_JURISDICTION)
+          ? (() => {
+            const req = anchor("sch1_policy_document_requirement", "DPA 2018, Sch. 1, para. 5(1)");
+            const contents = anchor("sch1_policy_document_contents", "DPA 2018, Sch. 1, para. 39");
+            const retention = anchor("sch1_policy_document_retention", "DPA 2018, Sch. 1, para. 40(1)");
+            const record = anchor("sch1_processing_record", "DPA 2018, Sch. 1, para. 41");
+            return ` Where UK GDPR applies, special-category processing also needs a domestic condition under Data Protection Act 2018, Schedule 1 (Part 1 employment, health and research; Part 2 substantial public interest; Part 3 additional criminal-convictions conditions) — the record does not state which condition, if any, is relied on. For most of those conditions the condition is met only with a written policy document: "${req.verbatim}" That document must "${contents.verbatim}" and the controller must, for as long as the condition is relied on and 6 months after, "${retention.verbatim}" The Article 30 record itself must additionally state "${record.verbatim}"`;
+          })()
+          : ""),
       verdict: partial ? "partially_satisfied" : "satisfied",
       status: "analysed",
       ...(partial
@@ -585,9 +605,20 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
   const limbC = f.largeScale && (f.specialCategory || f.specialList.length > 0);
   const required = limbA || limbC;
 
+  // DOC 164 (2026-09-04) — WP243 rev.01 names the factors "large scale" and
+  // "core activities" actually turn on. This is elaboration on an already-
+  // engaged limb, not a new trigger: `f.largeScale` still comes from the
+  // organisation-size band (see LARGE_SCALE_SIZES), which the Governance law
+  // map (doc 162) already flagged as a proxy pending a CEO ruling on whether
+  // headcount may stand in for WP243's own factors — that question stays
+  // open here; this only names what the authoritative factors are.
+  const wp243Scale = limbC ? anchor("dpo_wp243_large_scale", "WP243 rev.01 §2.1.3") : null;
+  const wp243Core = limbC ? anchor("dpo_wp243_core_activities", "WP243 rev.01 §2.1.2") : null;
   const triggerReasons = [
     limbA ? `(a) applies: the record puts the controller in the ${f.sector} sector, processing carried out by a public authority or body.` : "",
-    limbC ? `(c) applies: the company has indicated large-scale processing of special categories (${(f.specialList.length ? f.specialList : ["special-category data"]).join(", ")}).` : "",
+    limbC
+      ? `(c) applies: the company has indicated large-scale processing of special categories (${(f.specialList.length ? f.specialList : ["special-category data"]).join(", ")}). ${wp243Core!.citation} describes core activities as "${wp243Core!.verbatim}" ${wp243Scale!.citation} names the factors for "large scale": "${wp243Scale!.verbatim}" The record's own large-scale signal here is the organisation's size band (${f.size}), not an answer to those four factors directly — the intake does not separately ask the number of data subjects, the volume of data, the duration of the processing, or its geographical extent.`
+      : "",
   ].filter(Boolean);
 
   const limbBOpenClause = limbBIndicated
@@ -1101,6 +1132,10 @@ export function buildTransferAnalysis(intake: unknown): TransferAnalysis {
   const ukOwnAssessment = anchor("uk_transfers_own_assessment", "UK GDPR Art. 46(1A)(a)(ii)");
   const ukSosClauses = anchor("uk_transfers_sos_clauses", "UK GDPR Art. 46(2)(c)");
   const ukIcoClauses = anchor("uk_transfers_ico_clauses", "UK GDPR Art. 46(2)(d)");
+  // DOC 164 (2026-09-04) — the domestic statutory procedure behind the
+  // Commissioner's clauses Article 46(2)(d) already names.
+  const ukCommissionerPower = anchor("uk_commissioner_clauses_power", "DPA 2018, s. 119A(1)");
+  const ukCommissionerConsultation = anchor("uk_commissioner_clauses_consultation", "DPA 2018, s. 119A(4)");
   const ukBcrs = anchor("uk_transfers_bcrs", "UK GDPR Art. 46(2)(b)");
   const ukTest = anchor("uk_transfers_test", "UK GDPR Art. 46(6)");
   const ukProportionate = anchor("uk_transfers_proportionate", "UK GDPR Art. 46(7)");
@@ -1176,8 +1211,10 @@ export function buildTransferAnalysis(intake: unknown): TransferAnalysis {
       cite(ukSosClauses.citation);
       cite(ukIcoClauses.citation);
       cite(ukSosPower.citation);
+      cite(ukCommissionerPower.citation);
+      cite(ukCommissionerConsultation.citation);
       parts.push(
-        `The recorded mechanism is a safeguards route. Under Article 46(1A) a UK transfer "${ukSafeguards.verbatim}" where the listed safeguards are provided and the exporter itself judges the data protection test met. The UK clause sets are not Commission standard contractual clauses: they are those specified by the Secretary of State under Article 47A(1) — Article 46(2)(c): "${ukSosClauses.verbatim}" — and those issued by the Commissioner under section 119A of the Data Protection Act 2018 — Article 46(2)(d): "${ukIcoClauses.verbatim}" The Secretary of State's power reads: "${ukSosPower.verbatim}"`,
+        `The recorded mechanism is a safeguards route. Under Article 46(1A) a UK transfer "${ukSafeguards.verbatim}" where the listed safeguards are provided and the exporter itself judges the data protection test met. The UK clause sets are not Commission standard contractual clauses: they are those specified by the Secretary of State under Article 47A(1) — Article 46(2)(c): "${ukSosClauses.verbatim}" — and those issued by the Commissioner under section 119A of the Data Protection Act 2018 — Article 46(2)(d): "${ukIcoClauses.verbatim}" The Secretary of State's power reads: "${ukSosPower.verbatim}" Section 119A itself fixes what the Commissioner may issue — "${ukCommissionerPower.verbatim}" — and the process for issuing it: "${ukCommissionerConsultation.verbatim}", after which any document issued must be laid before Parliament and is treated as never issued if either House resolves against it within 40 days.`,
       );
       if (/Binding Corporate Rules/i.test(f.mechanism)) {
         cite(ukBcrs.citation);

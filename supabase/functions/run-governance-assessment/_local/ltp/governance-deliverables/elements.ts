@@ -9,11 +9,15 @@
  */
 import { GOVERNANCE_VERIFIED_AUTHORITIES } from "../../registry/governance-verified-authorities.ts";
 import { GOVERNANCE_ACCOUNTABILITY_AUTHORITIES } from "../../registry/governance-accountability-authorities.ts";
+// DOC 164 (2026-09-04) — UK DPA 2018 sliver (Sch. 1 paras 5/39/40/41,
+// s.119A) + WP243 rev.01 ('large scale' / 'core activities').
+import { GOVERNANCE_DPA2018_WP243_AUTHORITIES } from "../../registry/governance-dpa2018-wp243-authorities.ts";
 import { requireVerified } from "../../../../_shared/verified-authority-resolver.ts";
 
 const MERGED = {
   ...GOVERNANCE_VERIFIED_AUTHORITIES,
   ...GOVERNANCE_ACCOUNTABILITY_AUTHORITIES,
+  ...GOVERNANCE_DPA2018_WP243_AUTHORITIES,
 };
 
 /** Resolve a governance registry row, or null when the key is absent. */
@@ -85,6 +89,16 @@ export const ANCHOR_KEYS = {
   uk_transfers_proportionate: "uk_transfers_reasonable_and_proportionate",
   uk_bcr_approval: "uk_bcr_commissioner_approval",
   uk_sos_clauses_power: "uk_standard_clauses_secretary_of_state",
+
+  // ── DOC 164 — UK DPA 2018 sliver + WP243 rev.01 ───────────────────
+  uk_commissioner_clauses_power: "dpa2018_s119a_power",
+  uk_commissioner_clauses_consultation: "dpa2018_s119a_consultation",
+  sch1_policy_document_requirement: "dpa2018_sch1_para5",
+  sch1_policy_document_contents: "dpa2018_sch1_para39",
+  sch1_policy_document_retention: "dpa2018_sch1_para40",
+  sch1_processing_record: "dpa2018_sch1_para41",
+  dpo_wp243_large_scale: "wp243_large_scale_factors",
+  dpo_wp243_core_activities: "wp243_core_activities",
 } as const;
 
 
