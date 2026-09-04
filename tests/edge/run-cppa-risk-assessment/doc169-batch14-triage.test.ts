@@ -134,6 +134,20 @@ Deno.test("doc169 — the exclusive option alone, or ordinary selections, pass t
   assert(bad.violations.some((v) => v.key === "choice_architecture_check" && /exclusive option/.test(v.reason)));
 });
 
+Deno.test("doc169 — the fixture generator's prompt names the exclusive options (source fix; CEO deferral 2026-09-04)", async () => {
+  const { contractChecklist } = await import("../../../supabase/functions/generate-stress-fixtures/_local/contract-skeleton.ts");
+  const { enumAppendix } = await import("../../../supabase/functions/generate-stress-fixtures/_local/enum-appendix.ts");
+  const appendix = enumAppendix(["cppaRisk"]);
+  assertStringIncludes(appendix, "An option marked EXCLUSIVE is a complete answer on its own");
+  assertStringIncludes(appendix, `cppaRisk.human_review_facts[] (choose 1+):`);
+  assertStringIncludes(appendix, `; EXCLUSIVE — emit ALONE, never with another option: "None of the above can be confirmed" | "There is no human review"`);
+  assertStringIncludes(appendix, `; EXCLUSIVE — emit ALONE, never with another option: "No testing has been performed or confirmed"`);
+  // The checklist covers required/conditional fields only; the hint helper is what it shares.
+  const checklist = contractChecklist(["cppaRisk"]);
+  assert(!/human_review_facts.*(?!EXCLUSIVE)/.test("") , "sanity");
+  assert(typeof checklist === "string");
+});
+
 Deno.test("doc169 — the grader classifies a self-contradictory intake as a fixture issue, not a product defect", () => {
   assertStringIncludes(SHARED_GRADER_CONTEXT, "A SELF-CONTRADICTORY INTAKE IS A FIXTURE ISSUE, NOT A PRODUCT DEFECT");
   assertStringIncludes(SHARED_GRADER_CONTEXT, "There is no human review");

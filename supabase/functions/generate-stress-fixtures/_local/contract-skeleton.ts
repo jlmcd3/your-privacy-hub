@@ -38,12 +38,22 @@ const CHECKLIST_CONTRACTS: Record<string, IntakeContract> = {
   cppaCyber: cppaCybersecurityContract,
 };
 
+// DOC 169 (2026-09-04, batch 50b8bcd4) — the model authoring the fixture is
+// told which options the FORM makes exclusive (its toggle clears the others),
+// read from the contract's own `exclusive` marker — the same marker the
+// stress-job gate checks — so the prompt and the gate cannot drift.
+export function exclusiveHint(f: IntakeField): string {
+  return f.exclusive?.length
+    ? `; EXCLUSIVE — emit ALONE, never with another option: ${f.exclusive.map((o) => JSON.stringify(o)).join(" | ")}`
+    : "";
+}
+
 function typeHint(f: IntakeField): string {
   if (f.options?.length) {
     const many = f.kind !== "enum";
     return `${many ? "array — choose 1+" : "choose exactly 1"} VERBATIM from: ${
       f.options.map((o) => JSON.stringify(o)).join(" | ")
-    }`;
+    }${many ? exclusiveHint(f) : ""}`;
   }
   switch (f.kind) {
     case "boolean": return "true or false";

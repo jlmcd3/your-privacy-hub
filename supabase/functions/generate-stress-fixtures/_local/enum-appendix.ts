@@ -11,6 +11,7 @@
 // contract option changes, the appendix changes with it.
 
 import type { IntakeContract } from "../../_shared/intake-contracts/types.ts";
+import { exclusiveHint } from "./contract-skeleton.ts";
 import { governanceContract } from "../../_shared/intake-contracts/governance-assessment.ts";
 import { dpaGeneratorContract } from "../../_shared/intake-contracts/dpa-generator.ts";
 import { irPlaybookContract } from "../../_shared/intake-contracts/ir-playbook.ts";
@@ -52,7 +53,7 @@ export function enumAppendix(objectNames: string[]): string {
       lines.push(
         `- ${name}.${f.key}${many ? "[] (choose 1+)" : " (choose exactly 1)"}: ${
           f.options.map((o) => JSON.stringify(o)).join(" | ")
-        }`,
+        }${many ? exclusiveHint(f) : ""}`,
       );
     }
     if (lines.length) blocks.push(lines.join("\n"));
@@ -66,6 +67,10 @@ here, character for character (including punctuation, dashes and casing). Do
 not paraphrase, translate, abbreviate, use ISO country codes, or invent a new
 label. If none of the options is a perfect fit, choose the closest one (or the
 "Other" option where one exists). Fields not listed here are free text.
+An option marked EXCLUSIVE is a complete answer on its own: when it applies,
+emit it as the ONLY element of that array — the form clears every other
+selection when it is chosen, and a fixture carrying it beside another option
+is rejected by the intake gate before the product runs.
 
 ${blocks.join("\n")}`;
 }
