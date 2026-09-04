@@ -21,6 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
+import { intakeGate } from "@/components/intake/intakeGateCopy";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 // ITEM 381 — intake completeness coach (Layer 1), per-product flag, default off.
 import IntakeCoachStep from "@/components/intake/IntakeCoachStep";
@@ -999,6 +1000,10 @@ export default function CPPARiskAssessment() {
   const next = () => {
     const err = stepValid();
     if (err) { setValidationError(err); return; }
+    // Mid-intake account gate: anonymous visitors stop one step before the
+    // summary (2026-09-04 policy). Answers survive the signup round-trip in
+    // sessionStorage via useToolDraft's anonymous capture.
+    if (!user && step + 1 === totalSteps - 1) { setAuthGateOpen(true); return; }
     setValidationError(null);
     setStep((s) => s + 1);
   };
@@ -3574,7 +3579,7 @@ export default function CPPARiskAssessment() {
           onClose={() => setCoachOpen(false)}
           onContinue={() => { setCoachOpen(false); handlePurchase(); }}
         />
-        <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo={isSuite ? "/cppa-risk-assessment?suite=true" : "/cppa-risk-assessment"} />
+        <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo={isSuite ? "/cppa-risk-assessment?suite=true" : "/cppa-risk-assessment"} {...intakeGate("cppa_risk")} />
         <ToolCheckoutModal
           open={checkoutOpen}
           toolType={isSuite ? "cppa_suite" : "cppa_risk_assessment"}

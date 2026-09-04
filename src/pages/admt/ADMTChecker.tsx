@@ -38,6 +38,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
+import { intakeGate } from "@/components/intake/intakeGateCopy";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
@@ -496,6 +497,8 @@ export default function ADMTChecker() {
       setValidationError(err);
       return;
     }
+    // Mid-intake account gate: stop anonymous visitors one step before review.
+    if (!user && step + 1 === totalSteps - 1) { setAuthGateOpen(true); return; }
     setValidationError(null);
     setStep((s) => s + 1);
   };
@@ -2008,7 +2011,7 @@ export default function ADMTChecker() {
 
       </main>
 
-      <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/cppa-admt-checker" />
+      <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/cppa-admt-checker" {...intakeGate("cppa_admt")} />
       <ToolCheckoutModal
         open={checkoutOpen}
         toolType={"cppa_admt" as any}

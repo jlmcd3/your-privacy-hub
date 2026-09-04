@@ -16,6 +16,7 @@ import ValidationErrorSummary from "@/components/intake/ValidationErrorSummary";
 
 import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
+import { intakeGate } from "@/components/intake/intakeGateCopy";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import StatuteRail from "@/components/intake/StatuteRail";
 import IntakeMasthead from "@/components/intake/IntakeMasthead";
@@ -217,6 +218,9 @@ const GovernanceAssessment = () => {
   const next = () => {
     const err = stepValid();
     if (err) { setValidationError(err); return; }
+    // Mid-intake account gate: stop anonymous visitors entering the final
+    // input step (the one before the summary).
+    if (!user && step + 1 === totalSteps - 1) { setAuthGateOpen(true); return; }
     setValidationError(null);
     setStep((s) => s + 1);
   };
@@ -1009,7 +1013,7 @@ const GovernanceAssessment = () => {
 
 
 
-        <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/governance-assessment" />
+        <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/governance-assessment" {...intakeGate("governance")} />
         <ToolCheckoutModal
           open={checkoutOpen}
           toolType="governance_assessment"
