@@ -106,15 +106,24 @@ export default function AuthGateModal({
         </div>
 
         {sampleSlug && (
-          <p className="text-center mt-3">
-            <Link
-              to={`/samples/${sampleSlug}`}
-              className="text-[12px] text-primary underline underline-offset-2"
-            >
-              See a finished sample →
-            </Link>
-          </p>
+          <Link
+            to={`/samples/${sampleSlug}`}
+            target="_blank"
+            rel="noopener"
+            className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-border bg-brand-cloud px-4 py-3 no-underline hover:border-primary/50 transition-all"
+          >
+            <span className="text-left">
+              <span className="block text-[13px] font-semibold text-brand-navy">
+                See a finished sample first
+              </span>
+              <span className="block text-[11px] text-brand-mist">
+                Full report, exactly what you receive — opens in a new tab
+              </span>
+            </span>
+            <span className="text-primary text-[16px] shrink-0">→</span>
+          </Link>
         )}
+
 
         <p className="text-[11px] text-brand-mist text-center mt-4">
           {footnote}
