@@ -57,7 +57,10 @@ function hasContent(value: unknown): boolean {
 function readLocalDraft(toolType: string, clientId: string | null):
   { data: Record<string, unknown>; currentStage: number; updatedAt: string } | null {
   try {
-    const raw = localStorage.getItem(localKey(toolType, clientId));
+    // Purge any legacy cross-session copy left by the previous localStorage
+    // implementation — anonymous drafts are session scoped now.
+    try { localStorage.removeItem(localKey(toolType, clientId)); } catch { /* ignore */ }
+    const raw = sessionStorage.getItem(localKey(toolType, clientId));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object" || !parsed.data) return null;
@@ -73,17 +76,21 @@ function readLocalDraft(toolType: string, clientId: string | null):
 
 function writeLocalDraft(toolType: string, clientId: string | null, payload: unknown) {
   try {
-    localStorage.setItem(localKey(toolType, clientId), JSON.stringify(payload));
+    sessionStorage.setItem(localKey(toolType, clientId), JSON.stringify(payload));
   } catch (e) {
-    console.warn("[useToolDraft] local save failed", e);
+    console.warn("[useToolDraft] session save failed", e);
   }
 }
 
 function removeLocalDraft(toolType: string, clientId: string | null) {
   try {
+    sessionStorage.removeItem(localKey(toolType, clientId));
+  } catch { /* ignore */ }
+  try {
     localStorage.removeItem(localKey(toolType, clientId));
   } catch { /* ignore */ }
 }
+
 
 export function useToolDraft({
   toolType,
