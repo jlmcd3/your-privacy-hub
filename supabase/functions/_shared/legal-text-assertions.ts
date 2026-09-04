@@ -60,4 +60,39 @@ export const EU_NOTICE_LEGAL_TEXT_ASSERTIONS: LegalTextAssertion[] = [
   { citation: "gdpr:eu:46", mustContain: ["appropriate safeguards"] },
   // Article 49 GDPR — derogations for specific situations for transfers.
   { citation: "gdpr:eu:49", mustContain: ["appropriate safeguards"] },
+
+  // DOC 180 (2026-09-04) — the EU/UK GDPR notice spine's additional
+  // statutory assertions, each verified live against gdpr_articles this
+  // session (jurisdiction 'eu' / 'uk', body_text). The UK entries carry the
+  // Data (Use and Access) Act 2025 regime: Article 22 UK GDPR is NOT in force
+  // (the corpus row says so) — the UK spine cites Articles 22A–22C, the
+  // Article 12A time period and Article 77's "complaint with the Commissioner".
+  // Article 7(3) — withdrawal of consent.
+  { citation: "gdpr:eu:7", mustContain: ["withdraw his or her consent at any time"] },
+  // Article 12(3) — the one-month response period the EU rights section states.
+  { citation: "gdpr:eu:12", mustContain: ["within one month"] },
+  // Article 13(1)(d), (2)(e), (2)(f) — legitimate interest, provision requirement, ADM detail.
+  { citation: "gdpr:eu:13", mustContain: ["statutory or contractual requirement", "legitimate interests pursued by the controller or by a third party", "meaningful information about the logic involved"] },
+  // Articles 15–18, 20 — the rights list.
+  { citation: "gdpr:eu:15", mustContain: ["confirmation as to whether or not personal data"] },
+  { citation: "gdpr:eu:16", mustContain: ["rectification of inaccurate personal data"] },
+  { citation: "gdpr:eu:17", mustContain: ["erasure of personal data"] },
+  { citation: "gdpr:eu:18", mustContain: ["restriction of processing"] },
+  { citation: "gdpr:eu:20", mustContain: ["structured, commonly used and machine-readable format"] },
+  // Article 21(2)–(4) — direct-marketing objection, presented clearly and separately.
+  { citation: "gdpr:eu:21", mustContain: ["direct marketing", "presented clearly and separately"] },
+  // Article 22(3) — human intervention safeguard.
+  { citation: "gdpr:eu:22", mustContain: ["human intervention"] },
+  // Article 77 — complaint to a supervisory authority.
+  { citation: "gdpr:eu:77", mustContain: ["lodge a complaint with a supervisory authority"] },
+  // UK GDPR Article 12 — the response period now lives in Article 12A.
+  { citation: "gdpr:uk:12", mustContain: ["applicable time period"] },
+  // UK GDPR Article 13 — Commissioner complaint, Article 22C safeguards, provision requirement.
+  { citation: "gdpr:uk:13", mustContain: ["lodge a complaint with the Commissioner", "safeguards under Article 22C", "statutory or contractual requirement"] },
+  // UK GDPR Article 21 — direct-marketing objection.
+  { citation: "gdpr:uk:21", mustContain: ["direct marketing", "presented clearly and separately"] },
+  // UK GDPR Article 22C — the safeguards for solely automated significant decisions.
+  { citation: "gdpr:uk:22C", mustContain: ["obtain human intervention", "contest such decisions"] },
+  // UK GDPR Article 77 — complaint with the Commissioner.
+  { citation: "gdpr:uk:77", mustContain: ["lodge a complaint with the Commissioner"] },
 ];

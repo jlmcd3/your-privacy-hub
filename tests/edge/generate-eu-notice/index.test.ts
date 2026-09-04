@@ -6,10 +6,18 @@
 // These tests do NOT touch the network or the database — they exercise the
 // pure HTML generation logic only. They lock down:
 //   1. Multi-select option codes are rendered as human labels (bug fix (a)).
-//   2. All four conditional sections render correctly across the matrix:
-//        DPO yes/no, transfers yes/no, automated yes/no, special-cat yes/no.
+//   2. The conditional sections render correctly across the matrix:
+//        DPO yes/no, transfers yes/no, automated yes/no.
 //   3. Section numbering is contiguous regardless of which conditionals fire.
 //   4. The combined notice contains a TOC entry and section header per fw.
+//
+// DOC 180 (2026-09-04) — the GDPR family (EU_GDPR / UK_GDPR) now renders
+// through the spine (_local/spine.ts): the section arc below is the spine's.
+// International Transfers is ALWAYS a section (a no-transfer record states
+// that no Chapter V mechanism is relied on); the Article 27 representative
+// lives inside Section 1, not as its own section; "Profiling and Automated
+// Decision-Making" is the conditional section; direct marketing gets its
+// own Article 21(4) section. The pre-doc180 pins are in git history.
 
 import {
   assert,
@@ -117,39 +125,41 @@ Deno.test("buildNoticeHtml escapes user-controlled controller name", () => {
 
 // ----- conditional sections (matrix) ---------------------------------------
 //
-// ITEM 389 (a) — STALE PIN, UPDATED OLD→NEW WITH EVIDENCE.
-// These four pins were authored 2026-08-01 against a 4-conditional model that
-// never matched shipped code. The Art. 27 "EU representative" section has been
-// emitted by buildNoticeHtml since commit f84f79c73 (2026-06-12) — seven weeks
-// BEFORE these pins were written — under the in-source declaration:
-//   "// Representative (Art. 27): render only when establishment differs from
-//    the framework's jurisdiction. We infer establishment from intake fields
-//    when available; otherwise we render a placeholder so the controller
-//    addresses it."
-// baseAnswers carries no `establishment_jurisdiction`, so the placeholder
-// branch fires and the representative renders at position 6 for EU_GDPR,
-// shifting every later section by +1. Nothing is weakened: contiguity from 1,
-// the exact ordinal of each conditional section, and the "no extra section"
-// exclusivity bound are all still asserted — against the real section arc.
+// DOC 180 spine arc for baseAnswers (no DPO, no transfers, no automated,
+// marketing selected, no establishment answer):
+//   1 Who Is Responsible / 2 What Personal Data / 3 Where Do We Obtain /
+//   4 How and Why / 5 Who Receives / 6 International Transfers /
+//   7 How Long / 8 Your Data Protection Rights /
+//   9 Your Right to Object to Direct Marketing / 10 How Do We Protect /
+//   11 Complaints / 12 Changes / 13 Contact Us.
+// Cookies (needs internet_activity, analytics or advertising) and Children
+// (needs the children category) do not fire for baseAnswers.
 
-Deno.test("baseline (no DPO, no transfers, no automated) has 8 sections", () => {
+Deno.test("baseline (no DPO, no transfers, no automated) has 13 sections", () => {
   const html = buildNoticeHtml({
     fw: FW_GDPR,
     answers: baseAnswers,
     generatedAtHuman: "May 2, 2026",
   });
-  for (const n of [1, 2, 3, 4, 5, 6, 7, 8]) {
+  for (const n of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]) {
     assertStringIncludes(html, `<h2>${n}.`);
   }
-  assert(!html.includes("<h2>9."), "Unexpected 9th section");
-  assertStringIncludes(html, "<h2>6. EU representative");
-  assertStringIncludes(html, "<h2>7. Retention");
-  assertStringIncludes(html, "<h2>8. Your rights");
-  assert(!html.includes("International transfers"));
-  assert(!html.includes("Automated decision-making"));
+  assert(!html.includes("<h2>14."), "Unexpected 14th section");
+  assertStringIncludes(html, "<h2>1. Who Is Responsible for Your Personal Data?");
+  assertStringIncludes(html, "<h2>6. International Transfers");
+  assertStringIncludes(html, "<h2>7. How Long Do We Keep Personal Data?");
+  assertStringIncludes(html, "<h2>8. Your Data Protection Rights");
+  assertStringIncludes(html, "<h2>9. Your Right to Object to Direct Marketing");
+  assertStringIncludes(html, "<h2>13. Contact Us");
+  // The Article 27 representative is a sub-heading of Section 1 now, never
+  // its own numbered section; with no establishment answer it renders.
+  assertStringIncludes(html, "<h3>EU representative</h3>");
+  assert(!html.includes("<h2>6. EU representative"), "representative must not be a numbered section");
+  assert(!html.includes("Profiling and Automated Decision-Making"));
+  assert(!html.includes("Cookies and Similar Technologies"));
 });
 
-Deno.test("transfers=yes inserts International transfers section in order", () => {
+Deno.test("transfers=yes fills the International Transfers section; UK Addendum stays out of the EU section", () => {
   const html = buildNoticeHtml({
     fw: FW_GDPR,
     answers: {
@@ -159,31 +169,34 @@ Deno.test("transfers=yes inserts International transfers section in order", () =
     },
     generatedAtHuman: "May 2, 2026",
   });
-  // 1 Who / 2 Data / 3 Purposes / 4 Basis / 5 Recipients / 6 EU representative
-  // / 7 Transfers / 8 Retention / 9 Rights.
-  assertStringIncludes(html, "<h2>7. International transfers");
-  assertStringIncludes(html, "<h2>8. Retention");
-  assertStringIncludes(html, "<h2>9. Your rights");
-  assert(!html.includes("<h2>10."), "Unexpected 10th section");
+  // The arc is unchanged — transfers is always section 6.
+  assertStringIncludes(html, "<h2>6. International Transfers");
+  assertStringIncludes(html, "<h2>7. How Long Do We Keep Personal Data?");
+  assert(!html.includes("<h2>14."), "Unexpected 14th section");
   assertStringIncludes(html, "Standard Contractual Clauses (SCCs)");
   // The UK IDTA/Addendum is a UK-specific instrument with no status under EU
   // GDPR Art. 46 — it must not appear in the EU_GDPR section's safeguards
   // line (citation-misapplication fix, 2026-08-31).
   assert(!html.includes("UK International Data Transfer Addendum"), "UK Addendum should not appear under EU GDPR Art. 46");
+  // DOC 180 P0s: no placeholder, no fabricated transfer impact assessment.
+  assert(!html.includes("[destination countries to be specified]"));
+  assert(!html.includes("Transfer Impact Assessment"));
 });
 
-Deno.test("automated=yes adds Automated decision-making as last section", () => {
+Deno.test("automated=yes adds Profiling and Automated Decision-Making after transfers", () => {
   const html = buildNoticeHtml({
     fw: FW_GDPR,
     answers: { ...baseAnswers, automated_decisions: "yes" },
     generatedAtHuman: "May 2, 2026",
   });
-  // No transfers, so automated becomes section 9 behind the representative.
-  assertStringIncludes(html, "<h2>9. Automated decision-making");
-  assert(!html.includes("<h2>10."), "Unexpected 10th section");
+  // No cookies section, so the conditional lands at 7 and pushes the arc to 14.
+  assertStringIncludes(html, "<h2>7. Profiling and Automated Decision-Making");
+  assertStringIncludes(html, "<h2>14. Contact Us");
+  assert(!html.includes("<h2>15."), "Unexpected 15th section");
+  assertStringIncludes(html, "human intervention");
 });
 
-Deno.test("transfers=yes AND automated=yes produces 10 contiguous sections", () => {
+Deno.test("transfers=yes AND automated=yes produces 14 contiguous sections", () => {
   const html = buildNoticeHtml({
     fw: FW_GDPR,
     answers: {
@@ -194,11 +207,11 @@ Deno.test("transfers=yes AND automated=yes produces 10 contiguous sections", () 
     },
     generatedAtHuman: "May 2, 2026",
   });
-  for (const n of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
+  for (const n of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]) {
     assertStringIncludes(html, `<h2>${n}.`);
   }
-  assert(!html.includes("<h2>11."), "Unexpected 11th section");
-  assertStringIncludes(html, "<h2>10. Automated decision-making");
+  assert(!html.includes("<h2>15."), "Unexpected 15th section");
+  assertStringIncludes(html, "<h2>7. Profiling and Automated Decision-Making");
 });
 
 Deno.test("dpo_details=yes renders DPO contact line with name", () => {
@@ -243,7 +256,7 @@ Deno.test("buildCombinedHtml produces TOC + per-framework sections, no regex str
   assertStringIncludes(html, `id="EU_GDPR"`);
   assertStringIncludes(html, `id="UK_GDPR"`);
   // Each framework has its own first section header
-  const matches = html.match(/<h2>1\. Who we are<\/h2>/g);
+  const matches = html.match(/<h2>1\. Who Is Responsible for Your Personal Data\?<\/h2>/g);
   assertEquals(matches?.length, 2, "Each framework should restart at section 1");
   // No leaked raw codes anywhere
   assert(!html.includes("service_delivery"));

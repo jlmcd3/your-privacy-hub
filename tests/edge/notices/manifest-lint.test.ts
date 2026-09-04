@@ -94,7 +94,9 @@ async function loadFixture(): Promise<Fixture> {
 Deno.test("notices manifest-lint: every EU_NOTICE_LEGAL_TEXT_ASSERTIONS entry resolves, every phrase present", async () => {
   const fixture = await loadFixture();
   const results = lintAgainstFixture(EU_NOTICE_LEGAL_TEXT_ASSERTIONS, fixture);
-  assertEquals(results.length, 7, "EU manifest entry count changed — update this test and re-verify doc 05 §5's corrected '13' figure");
+  // DOC 180 (2026-09-04): 7 → 23 — the EU/UK GDPR notice spine's sixteen
+  // additional corpus-verified assertions (see _shared/legal-text-assertions.ts).
+  assertEquals(results.length, 23, "EU manifest entry count changed — update this test and the combined-count pin below");
   for (const r of results) {
     assert(r.corpus_row_found, `${r.citation}: no fixture row (would be corpus_rows_missing in the live lint)`);
     assert(r.all_phrases_present, `${r.citation}: missing phrase(s) — ${JSON.stringify(r.phrases.filter((p) => !p.present))}`);
@@ -111,8 +113,8 @@ Deno.test("notices manifest-lint: every US_NOTICE_LEGAL_TEXT_ASSERTIONS entry re
   }
 });
 
-Deno.test("notices manifest-lint: combined US+EU entry count is 13, not the stale doc figure of 19", () => {
-  assertEquals(EU_NOTICE_LEGAL_TEXT_ASSERTIONS.length + US_NOTICE_LEGAL_TEXT_ASSERTIONS.length, 13);
+Deno.test("notices manifest-lint: combined US+EU entry count is 29 (doc 05's 13 + doc 180's 16 EU-spine entries)", () => {
+  assertEquals(EU_NOTICE_LEGAL_TEXT_ASSERTIONS.length + US_NOTICE_LEGAL_TEXT_ASSERTIONS.length, 29);
 });
 
 // ---- Seeded-mutation meta-tests: prove the checker actually bites ----

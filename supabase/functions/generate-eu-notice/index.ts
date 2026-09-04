@@ -17,7 +17,11 @@ declare const EdgeRuntime: { waitUntil: (p: Promise<unknown>) => void };
 
 
 
-const LOGO_URL = `${Deno.env.get("SITE_URL") || "https://enduserprivacy.com"}/logo.png`;
+// DOC 180 (2026-09-04) — the GDPR-family spine and the formal-instrument
+// presentation primitives. See _local/spine.ts and
+// _shared/prose/formal-instrument.ts for the design record.
+import { buildGdprSpine } from "./_local/spine.ts";
+import { completionBannerHtml, countFills, FI_CSS, fill } from "../_shared/prose/formal-instrument.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -148,6 +152,36 @@ const OPTION_LABELS: Record<string, Record<string, string>> = {
     derogations: "Derogations (Art.49)",
     other: "Other safeguard",
   },
+  // DOC 180 (2026-09-04) — the spine renders four more intake questions the
+  // legacy template never read. Labels mirror universal-questions.ts byte-
+  // for-byte. establishment_jurisdiction is deliberately NOT mapped: its raw
+  // tokens ("eea" / "uk" / "outside") feed the EEA/UK establishment regexes,
+  // and a label such as "Outside the EU/EEA and UK" would match both.
+  collection_source: {
+    direct: "Directly from the individuals it relates to",
+    indirect: "From third-party sources (not from the individual)",
+    mixed: "Both — some direct, some from third-party sources",
+  },
+  data_source_categories: {
+    data_brokers: "Data brokers / list providers",
+    public_sources: "Publicly accessible sources (public registers, websites)",
+    partners: "Business partners / affiliates",
+    public_authorities: "Public authorities",
+    social_web: "Social media / web scraping",
+    other: "Other third-party source",
+  },
+  special_category_basis: {
+    explicit_consent: "Explicit consent — Art.9(2)(a)",
+    employment_law: "Employment / social security law — Art.9(2)(b)",
+    vital_interests: "Vital interests — Art.9(2)(c)",
+    non_profit: "Not-for-profit body activities — Art.9(2)(d)",
+    manifestly_public: "Data made manifestly public by the data subject — Art.9(2)(e)",
+    legal_claims: "Legal claims — Art.9(2)(f)",
+    substantial_public_interest: "Substantial public interest — Art.9(2)(g)",
+    health_medicine: "Preventive / occupational medicine — Art.9(2)(h)",
+    public_health: "Public health — Art.9(2)(i)",
+    archiving_research: "Archiving / research — Art.9(2)(j)",
+  },
 };
 
 export function escapeHtml(s: unknown): string {
@@ -215,6 +249,12 @@ interface NoticeSection {
  * Returned as a list so callers can compose either a standalone document or a
  * combined international notice without regex-stripping HTML.
  */
+/** DOC 180 — the frameworks that render through the GDPR spine; every other
+ *  framework keeps the legacy section builder below byte-for-byte. */
+export function isGdprSpineFramework(code: string): boolean {
+  return code === "EU_GDPR" || code === "UK_GDPR";
+}
+
 export function buildNoticeSections(opts: BuildNoticeOptions): {
   lawName: string;
   controllerName: string;
@@ -224,8 +264,33 @@ export function buildNoticeSections(opts: BuildNoticeOptions): {
   // S-N4 — the formatted Key points bag (this function is the single
   // writer for reader-label values; the block renders from it alone).
   keyPoints: import("./_local/key-points.ts").EuKeyPointsBag;
+  // DOC 180 — the Privacy at a Glance first layer (GDPR spine only; the
+  // legacy frameworks keep the S-N4 Key points block).
+  glance?: string;
 } {
   const { fw, answers, generatedAtHuman } = opts;
+
+  // DOC 180 (2026-09-04) — EU_GDPR / UK_GDPR render through the spine. The
+  // spine formats nothing itself: it reads through this module's
+  // formatAnswer/OPTION_LABELS (the single writer for reader labels).
+  if (isGdprSpineFramework(fw.framework_code)) {
+    const list = (key: string): string[] => {
+      const v = answers[key];
+      if (Array.isArray(v)) return v.map(String);
+      if (typeof v === "string" && v.trim()) return [v];
+      return [];
+    };
+    return buildGdprSpine({
+      fw,
+      answers,
+      generatedAtHuman,
+      fmt: (key) => formatAnswer(key, answers[key]),
+      token: (key) => answerToken(answers[key]),
+      list,
+      label: (key, code) => OPTION_LABELS[key]?.[code] ?? code,
+      esc: escapeHtml,
+    });
+  }
   const lawName = FRAMEWORK_FULL_NAMES[fw.framework_code] ?? fw.framework_name;
   const controllerName = formatAnswer("controller_name", answers["controller_name"]) || "[Controller name]";
   const controllerAddress = formatAnswer("controller_address", answers["controller_address"]) || "";
@@ -396,9 +461,15 @@ export function buildNoticeSections(opts: BuildNoticeOptions): {
   }
 
   if (transfersYes) {
-    const destCountries = formatAnswer("transfer_destinations", answers["transfer_destinations"]) ||
-      formatAnswer("transfer_countries", answers["transfer_countries"]) ||
-      "[destination countries to be specified]";
+    // DOC 180 — a blank destination is a customer-completion prompt, never
+    // the old "[destination countries to be specified]" placeholder (which
+    // could reach a published notice: the field is optional and outside the
+    // required-field screen).
+    const destCountriesText = formatAnswer("transfer_destinations", answers["transfer_destinations"]) ||
+      formatAnswer("transfer_countries", answers["transfer_countries"]);
+    const destCountries = destCountriesText
+      ? escapeHtml(destCountriesText)
+      : fill("insert the countries or regions to which personal data is transferred");
     const adequacyNote = formatAnswer("adequacy_status", answers["adequacy_status"]);
     const dpiaRef = formatAnswer("transfer_impact_assessment", answers["transfer_impact_assessment"]);
     // Framework-specific transfer safeguards label. Art. 46 GDPR is an EU
@@ -416,10 +487,10 @@ export function buildNoticeSections(opts: BuildNoticeOptions): {
     }
     sections.push({
       title: "International transfers",
-      html: `<p>We transfer personal data outside the relevant jurisdiction to recipients in: ${escapeHtml(destCountries)}.</p>
+      html: `<p>We transfer personal data outside the relevant jurisdiction to recipients in: ${destCountries}.</p>
 ${safeguardsLine}
 ${adequacyNote ? `<p>Adequacy status: ${escapeHtml(adequacyNote)}.</p>` : ""}
-${dpiaRef ? `<p>Transfer impact assessment: ${escapeHtml(dpiaRef)}.</p>` : `<p>Where adequacy is not relied upon, a Transfer Impact Assessment is maintained and available on request.</p>`}
+${dpiaRef ? `<p>Transfer impact assessment: ${escapeHtml(dpiaRef)}.</p>` : ""}
 <p>You may request a copy of the safeguards by contacting us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a>.</p>`,
     });
   }
@@ -539,44 +610,52 @@ function renderSections(sections: NoticeSection[], startNumber = 1): string {
     .join("\n");
 }
 
-export function buildNoticeHtml(opts: BuildNoticeOptions): string {
-  const { fw, generatedAtHuman } = opts;
-  const { lawName, controllerName, contactEmail, intro, sections, keyPoints } = buildNoticeSections(opts);
-
+// DOC 180 (2026-09-04) — the formal-instrument document wrapper (CEO design
+// principles 2026-09-03 pt. 7: Notices inherit none of the Syllabus & Record
+// components — Georgia, numbered sections, bold+underlined section headings,
+// no navy bar, minimal colour). The required-fields banner (S-N5) stays; the
+// customer-completion banner (formal-instrument.ts) joins it whenever the
+// body carries a bracketed prompt.
+function formalDocument(opts: {
+  title: string;
+  metaHtml: string;
+  answers: Record<string, unknown>;
+  bodyHtml: string;
+}): string {
+  const fills = countFills(opts.bodyHtml);
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8" />
-<title>${escapeHtml(fw.framework_name)} Privacy Notice — ${escapeHtml(controllerName)}</title>
-<style>
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1.5rem; color: #1a1a1a; line-height: 1.55; }
-  .eup-bar { background:#0c2a44; padding:9px 1.5rem; display:flex; align-items:center;
-    gap:12px; margin:-2rem -1.5rem 2rem -1.5rem; }
-  .eup-bar img { height:22px; width:auto; display:block; }
-  .eup-bar span { font-size:9px; font-weight:600; text-transform:uppercase;
-    letter-spacing:0.12em; color:#93b5c6; }
-  h1 { font-size: 1.75rem; margin-bottom: 0.25rem; color:#0c2a44; }
-  h2 { font-size: 1.15rem; margin-top: 2rem; border-bottom: 2px solid #2d9b90; padding-bottom: 0.25rem; color:#0c2a44; }
-  h3 { font-size: 1rem; margin-top: 1.5rem; color:#0c2a44; }
-  a { color:#2d9b90; }
-  .meta { color: #5c6d7a; font-size: 0.85rem; margin-bottom: 2rem; }
-  .badge { display: inline-block; background: #edf2f5; padding: 0.15rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; }
-  footer { color: #5c6d7a; font-size: 0.75rem; margin-top: 3rem; border-top: 2px solid #2d9b90; padding-top: 1rem; }
-</style></head><body>
-<div class="eup-bar">
-  <img src="${LOGO_URL}" alt="End User Privacy" />
-  <span>Privacy Intelligence</span>
-</div>
-<h1>${escapeHtml(fw.framework_name)} Privacy Notice</h1>
-<div class="meta">
-  <span class="badge">${escapeHtml(lawName)}</span>
-  &nbsp;·&nbsp; Last updated: ${escapeHtml(generatedAtHuman)}
-</div>
+<title>${escapeHtml(opts.title)}</title>
+<style>${FI_CSS}</style></head><body>
+<h1>${escapeHtml(opts.title)}</h1>
+<div class="fi-meta">${opts.metaHtml}</div>
 ${draftBannerHtml(missingRequiredEuFields(opts.answers))}
-${buildEuKeyPointsHtml(keyPoints)}
-${intro}
-${renderSections(sections, 1)}
-<footer>Generated by <strong>EndUserPrivacy</strong> · enduserprivacy.com · 
+${completionBannerHtml(fills)}
+${opts.bodyHtml}
+<footer class="fi-footer">Generated by <strong>EndUserPrivacy</strong> · enduserprivacy.com ·
 ${REPORT_DISCLAIMER}</footer>
 </body></html>`;
+}
+
+export function buildNoticeHtml(opts: BuildNoticeOptions): string {
+  const { fw, generatedAtHuman } = opts;
+  const { lawName, controllerName, intro, sections, keyPoints, glance } = buildNoticeSections(opts);
+  const spine = isGdprSpineFramework(fw.framework_code);
+  const displayName = controllerName || "Privacy Notice";
+  return formalDocument({
+    title: spine
+      ? `${displayName} — ${fw.framework_code === "UK_GDPR" ? "UK" : "EU"} Privacy Notice`
+      : `${fw.framework_name} Privacy Notice — ${displayName}`,
+    metaHtml: `${escapeHtml(lawName)} &nbsp;·&nbsp; Last updated: ${escapeHtml(generatedAtHuman)}`,
+    answers: opts.answers,
+    // Spine order (the ratified spine document): the intro paragraphs, then
+    // the Privacy at a Glance layer, then the numbered sections. The legacy
+    // frameworks keep S-N4's Key points block ahead of their intro.
+    bodyHtml: (spine
+      ? [intro, glance ?? "", renderSections(sections, 1)]
+      : [buildEuKeyPointsHtml(keyPoints), intro, renderSections(sections, 1)]
+    ).join("\n"),
+  });
 }
 
 export function buildCombinedHtml(
@@ -589,52 +668,34 @@ export function buildCombinedHtml(
   const tocHtml = fws
     .map(
       (f) =>
-        `<li><a href="#${escapeHtml(f.framework_code)}" style="color:#2d9b90;">${escapeHtml(f.framework_name)}</a> — <span style="color:#5c6d7a;font-size:0.85rem;">${escapeHtml(FRAMEWORK_FULL_NAMES[f.framework_code] ?? f.framework_name)}</span></li>`,
+        `<li><a href="#${escapeHtml(f.framework_code)}">${escapeHtml(f.framework_name)}</a> — ${escapeHtml(FRAMEWORK_FULL_NAMES[f.framework_code] ?? f.framework_name)}</li>`,
     )
     .join("");
 
+  // DOC 180 — each framework renders its own body (spine or legacy) under a
+  // framework heading; the GDPR-family sections carry their own Privacy at a
+  // Glance, the legacy frameworks their S-N4 Key points block.
   const sectionsHtml = fws
     .map((f) => {
       const built = buildNoticeSections({ fw: f, answers, generatedAtHuman });
+      const body = isGdprSpineFramework(f.framework_code)
+        ? [built.intro, built.glance ?? "", renderSections(built.sections, 1)]
+        : [buildEuKeyPointsHtml(built.keyPoints), built.intro, renderSections(built.sections, 1)];
       return `<a id="${escapeHtml(f.framework_code)}"></a>
-<h2 style="font-size:1.4rem;margin-top:2.5rem;">${escapeHtml(f.framework_name)}</h2>
-${built.intro}
-${renderSections(built.sections, 1)}`;
+<h2>${escapeHtml(f.framework_name)}</h2>
+${body.join("\n")}`;
     })
     .join("\n");
 
-  return `<!doctype html>
-<html lang="en"><head><meta charset="utf-8" />
-<title>International Privacy Notice — ${escapeHtml(controllerName)}</title>
-<style>
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 820px; margin: 2rem auto; padding: 0 1.5rem; color: #1a1a1a; line-height: 1.55; }
-  .eup-bar { background:#0c2a44; padding:9px 1.5rem; display:flex; align-items:center;
-    gap:12px; margin:-2rem -1.5rem 2rem -1.5rem; }
-  .eup-bar img { height:22px; width:auto; display:block; }
-  .eup-bar span { font-size:9px; font-weight:600; text-transform:uppercase;
-    letter-spacing:0.12em; color:#93b5c6; }
-  h1 { font-size: 1.9rem; margin-bottom: 0.25rem; color:#0c2a44; }
-  h2 { font-size: 1.15rem; margin-top: 2rem; border-bottom: 2px solid #2d9b90; padding-bottom: 0.25rem; color:#0c2a44; }
-  h3 { font-size: 1rem; margin-top: 1.5rem; color:#0c2a44; }
-  a { color:#2d9b90; }
-  .meta { color: #5c6d7a; font-size: 0.85rem; margin-bottom: 2rem; }
-  ul.toc { background:#edf2f5;border:1px solid #dde5ea;padding:1rem 1.25rem 1rem 2.25rem;border-radius:0.5rem; }
-  footer { color:#5c6d7a; font-size: 0.75rem; margin-top: 3rem; border-top: 2px solid #2d9b90; padding-top: 1rem; }
-</style></head><body>
-<div class="eup-bar">
-  <img src="${LOGO_URL}" alt="End User Privacy" />
-  <span>Privacy Intelligence</span>
-</div>
-<h1>International Privacy Notice</h1>
-<div class="meta">${escapeHtml(controllerName)} · Last updated: ${escapeHtml(generatedAtHuman)} · ${fws.length} framework${fws.length === 1 ? "" : "s"}</div>
-<p>This notice consolidates the privacy disclosures ${escapeHtml(controllerName)} maintains across each privacy framework listed below. Use the table of contents to jump to the section that applies to you. To exercise your rights, contact us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a>.</p>
-${draftBannerHtml(missingRequiredEuFields(answers))}
-<h2>Table of contents</h2>
-<ul class="toc">${tocHtml}</ul>
-${sectionsHtml}
-<footer>Generated by <strong>EndUserPrivacy</strong> · enduserprivacy.com · 
-${REPORT_DISCLAIMER}</footer>
-</body></html>`;
+  return formalDocument({
+    title: `${controllerName} — International Privacy Notice`,
+    metaHtml: `Last updated: ${escapeHtml(generatedAtHuman)} &nbsp;·&nbsp; ${fws.length} framework${fws.length === 1 ? "" : "s"}`,
+    answers,
+    bodyHtml: `<p>This notice consolidates the privacy disclosures ${escapeHtml(controllerName)} maintains across each privacy framework listed below. Use the table of contents to find the section that applies to you. To exercise your rights, contact us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a>.</p>
+<p class="fi-run">Table of contents</p>
+<ul class="fi-toc">${tocHtml}</ul>
+${sectionsHtml}`,
+  });
 }
 
 // ---------------------------------------------------------------------------
