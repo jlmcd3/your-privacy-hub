@@ -2690,8 +2690,17 @@ function srSectionsHtml(doc: SkeletonDocLike, product?: string): string {
     const body = paras.map((p) => {
       if (p?.kind === "table" && p.table) {
         // Consumed by page one: the cover panel and the executive result
-        // panel (the syllabus carries the same persisted values).
-        if (syllabus && (p.table.surface === "cover_summary" || p.table.surface === "exec_status_panel")) return "";
+        // panel (the syllabus carries the same persisted values). DOC 173
+        // (2026-09-04) — Governance's programme scoreboard is the same
+        // pattern: its rows are read straight into the syllabus's
+        // determination table (buildGovernanceSyllabus), so the in-body copy
+        // would otherwise repeat identical rows directly under the section
+        // heading that already sits under page one's copy.
+        if (
+          syllabus &&
+          (p.table.surface === "cover_summary" || p.table.surface === "exec_status_panel" ||
+            p.table.surface === "art30_element_findings+demonstrability_findings+domain_element_findings+remediation_plan")
+        ) return "";
         return srTableHtml(p.table, product);
       }
       const t = typeof p?.text === "string" ? p.text : "";
@@ -4936,7 +4945,9 @@ Deno.serve(async (req) => {
       // survives only for reports generated before the wire-in.
       const skelGov = readSkeletonDocument(report);
       html = skelGov
-        ? buildSkeletonReportHTML(skelGov, record, "GDPR Accountability Assessment")
+        // DOC 173 (2026-09-04) — the "governance" product string activates
+        // the Syllabus & Record presentation system (SR_PRODUCTS).
+        ? buildSkeletonReportHTML(skelGov, record, "GDPR Accountability Assessment", "governance")
         : buildGovernanceReportHTML(report, record);
       generatedAt = report.generated_at || record.created_at || new Date().toISOString();
     } else if (tool_type === "dpia_framework") {

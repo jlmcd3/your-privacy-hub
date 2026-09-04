@@ -43,6 +43,9 @@ import {
 } from "../../../_shared/prose/skeleton-render.ts";
 // A-TEAM S3 RULING III.10 (doc 115) — acronym-safe mid-sentence casing.
 import { lowerFirstWordSafe } from "../../../_shared/ltp/splice-case.ts";
+// DOC 173 (2026-09-04) — Syllabus & Record (doc 151); Governance is the
+// fourth product migrated onto the fleet presentation system.
+import { dispositionTone, type SyllabusProjection } from "../../../_shared/prose/syllabus.ts";
 // DOC 162 — the CEO-ratified numeric citation order (citation-order.ts).
 import { naturalCitationCompare } from "../../../_shared/ltp/citation-order.ts";
 
@@ -789,6 +792,59 @@ function governanceToa(report: Bag, body: string): string {
 
 // ── Assembly ────────────────────────────────────────────────────────────────
 
+// DOC 173 (2026-09-04) — THE DETERMINATION SYLLABUS (Syllabus & Record p.1).
+// Every value below is a PROJECTION of a determination this assembler
+// already made (doc 127 §28 law): the disposition IS
+// `readiness_determination.rating`, the fixed four-value controlled
+// vocabulary the 403-A one-voice law already governs (RATING_PHRASE, above);
+// the paragraph is `ratingLead()`'s own text, verbatim — the SAME text
+// composed into `executive_summary:0`'s `kind: "lead"` block, so the
+// existing renderer suppression already drops the page-one duplicate.
+// `rows` reuse `deriveGovernanceScoreboard()`'s own rows outright (never
+// re-derived). Governance has no typed "conditions to proceed" concept (it
+// is a maturity determination, not a proceed/do-not-proceed gate like
+// Risk/DPIA/LIA) and no date field anywhere on its typed surfaces, and its
+// one back-matter appendix ("Appendix: ICO Accountability Framework
+// Crosswalk") is titled without a letter and is inside
+// GOVERNANCE_SKELETON_CONTENT_HASH — retitling it to fit the
+// "Appendix X — …" pattern would risk a ratified-hash bump for a cosmetic
+// change, so `conditions`, `key_dates` and `record_map` are honestly empty,
+// same precedent as doc172's LIA.
+
+const GOVERNANCE_RATING_FALLBACK = "Not yet determinable";
+
+export function buildGovernanceSyllabus(
+  rendered: RenderedSkeletonDocument,
+  report: Bag,
+  org: string,
+): SyllabusProjection {
+  const rd = (report.readiness_determination ?? {}) as Bag;
+  const disposition = s(rd.rating) || GOVERNANCE_RATING_FALLBACK;
+  const paragraph = ratingLead(report, org);
+  const scoreboard = deriveGovernanceScoreboard(report);
+  const rows: Array<readonly [string, string]> = scoreboard
+    ? scoreboard.rows.map((r) => [String(r[0] ?? ""), String(r[1] ?? "")] as const)
+    : [];
+
+  return {
+    _typed: "syllabus@sr-2026-09-04",
+    instrument_line: "GDPR ACCOUNTABILITY ASSESSMENT · Articles 5(2) and 24(1)",
+    prepared_for: org,
+    activity: "The Accountability Programme",
+    subtitle: "Accountability assessment under GDPR Articles 5(2) and 24(1)",
+    disposition_label: "DETERMINATION",
+    disposition,
+    disposition_tone: dispositionTone(disposition),
+    paragraph,
+    rows,
+    conditions_heading: "",
+    conditions: [],
+    key_dates: [],
+    record_map: [],
+    running_head: `GDPR ACCOUNTABILITY ASSESSMENT · ${org.toUpperCase()}`,
+  };
+}
+
 export interface GovernanceSkeletonResult {
   readonly document: RenderedSkeletonDocument;
   readonly conformance: ReturnType<typeof verifySkeletonConformance>;
@@ -1059,7 +1115,7 @@ export function assembleGovernanceSkeletonDocument(
 
   const toa = governanceToa(report, skeletonDocumentToText(draft));
 
-  const document = renderSkeletonDocument({
+  const renderedDoc = renderSkeletonDocument({
     sections: GOVERNANCE_SKELETON_SECTIONS,
     title: GOVERNANCE_SKELETON_TITLE,
     subtitle,
@@ -1068,6 +1124,14 @@ export function assembleGovernanceSkeletonDocument(
     composed: { ...composed, "table_of_authorities:0": toa },
     tables,
   });
+  // DOC 173 (2026-09-04) — the Determination Syllabus (page 1 of the
+  // Syllabus & Record presentation) attached as a projection of the
+  // determinations above. Additive: sections, hash and conformance are
+  // untouched; a renderer that does not know the field ignores it.
+  const document: RenderedSkeletonDocument = {
+    ...renderedDoc,
+    syllabus: buildGovernanceSyllabus(renderedDoc, report, org),
+  };
 
   const body = skeletonDocumentToText(document).toLowerCase();
   const register_findings = GOVERNANCE_V3_BANNED_REGISTER.filter((b) => body.includes(b));

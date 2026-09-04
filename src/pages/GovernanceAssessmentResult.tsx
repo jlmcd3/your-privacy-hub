@@ -338,8 +338,10 @@ const GovernanceAssessmentResult = () => {
                 </section>
               )}
 
-              {/* SO-3: the byte-pinned skeleton document IS the customer report. */}
-              {skeletonDoc && <SkeletonDocumentView doc={skeletonDoc} />}
+              {/* SO-3: the byte-pinned skeleton document IS the customer report.
+                  DOC 173 (2026-09-04) — the product string activates the
+                  Syllabus & Record presentation system. */}
+              {skeletonDoc && <SkeletonDocumentView doc={skeletonDoc} product="governance" />}
 
               {/* GOVERNANCE UPGRADE — generalised control walk + remediation */}
               {!skeletonDoc && (

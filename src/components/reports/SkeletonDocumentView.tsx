@@ -953,7 +953,15 @@ export function SyllabusRecordView({ doc, product }: { doc: SkeletonDocument; pr
               </div>
               {paragraphs.map((p, i) => {
                 if (p.kind === "table" && p.table) {
-                  if (syllabus && (p.table.surface === "cover_summary" || p.table.surface === "exec_status_panel")) return null;
+                  // DOC 173 (2026-09-04) — Governance's programme scoreboard
+                  // is read straight into the syllabus's determination table
+                  // (buildGovernanceSyllabus); the mirror of the PDF
+                  // renderer's identical suppression.
+                  if (
+                    syllabus &&
+                    (p.table.surface === "cover_summary" || p.table.surface === "exec_status_panel" ||
+                      p.table.surface === "art30_element_findings+demonstrability_findings+domain_element_findings+remediation_plan")
+                  ) return null;
                   return <SrTable key={i} table={p.table} />;
                 }
                 if (!p.text.trim()) return null;
