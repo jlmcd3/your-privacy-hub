@@ -1188,7 +1188,8 @@ ${AUTHORITY_EXHIBIT_CSS}
   /* A-TEAM S3 RULING I.5 (doc 115) — callouts, condition boxes and the
      final notice never split across a page break (a taller-than-page block
      is exempt per the fragmentation spec, which is the right failure mode). */
-  .callout, .condition-callout, .disclaimer, .eup-report-disclaimer {
+  .callout, .condition-callout, .followup-callout, .recommendation-callout,
+  .disclaimer, .eup-report-disclaimer {
     break-inside:avoid; page-break-inside:avoid; }
   /* 2026-08-25 polish round — Conditions to Proceed render inside a bordered
      amber callout so the condition can't be missed against a favorable
@@ -1197,6 +1198,19 @@ ${AUTHORITY_EXHIBIT_CSS}
   .condition-callout { border:1.5px solid #b9822d; background:#fdf6e7;
     border-radius:5px; padding:9px 13px; margin:0 0 10px; }
   .condition-callout p.body-p:last-child { margin-bottom:0; }
+  /* CEO report review 2026-09-04 (§ 4.D palette) — Follow-Ups and
+     Recommendations get their own boxes, colors chosen to read distinctly
+     from the amber "can't miss this" condition box and from each other:
+     Follow-Ups (light blue) is informational/tracked, not urgent;
+     Recommendations (light green) reuses the report's own "ok"/positive
+     badge tint (RISK_BADGE_PALETTE.ok) so it matches rather than
+     introduces a new hue. Keep in sync with SkeletonDocumentView.tsx. */
+  .followup-callout { border:1.5px solid #6f9bc4; background:#eef4f7;
+    border-radius:5px; padding:9px 13px; margin:0 0 10px; }
+  .followup-callout p.body-p:last-child { margin-bottom:0; }
+  .recommendation-callout { border:1.5px solid #a4bfae; background:#f2f7f4;
+    border-radius:5px; padding:9px 13px; margin:0 0 10px; }
+  .recommendation-callout p.body-p:last-child { margin-bottom:0; }
   /* 2026-08-25 batch be0f9e02 — the wide-landscape named page was removed:
      PDFShift/Chromium honored the page SIZE but kept a single content
      layout width, clipping text on the rotated pages, and the 5-column
@@ -2196,10 +2210,27 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
         const conditionCallout = deadlineCallout || readinessNegative || determinationBlocking ||
           /^(?:[A-Z]\.\s+[^.]+\.\s+)?Conditions? to Proceed\./.test(chunk.trim()) ||
           /^The Activity should not proceed in its present form\./.test(chunk.trim());
+        // CEO report review 2026-09-04 (§ 4.D palette) — the same lead-string
+        // family the H3_CHUNK_RE trigger list already recognizes ("Follow-
+        // Ups.", "Required Follow-Up.", "Assessment Follow-Up Required." /
+        // "Recommendation.", "Recommendations."), matched on the raw chunk
+        // ahead of both render branches so list-shaped chunks get the box
+        // too, same as conditionCallout above. Keep in sync with
+        // SkeletonDocumentView.tsx.
+        const followupCallout =
+          /^(?:[A-Z]\.\s+[^.]+\.\s+)?(?:Follow-Ups?\.|Required Follow-Up\.|Assessment Follow-Up Required\.)/.test(chunk.trim());
+        const recommendationCallout =
+          /^(?:[A-Z]\.\s+[^.]+\.\s+)?Recommendations?\./.test(chunk.trim());
         const wrapChunk = (html: string): string => {
           if (!html) return html;
           if (conditionCallout) {
             return `<div class="condition-callout" style="border:1.5px solid #b9822d;background:#fdf6e7;border-radius:5px;padding:9px 13px;margin:0 0 10px;">${html}</div>`;
+          }
+          if (followupCallout) {
+            return `<div class="followup-callout" style="border:1.5px solid #6f9bc4;background:#eef4f7;border-radius:5px;padding:9px 13px;margin:0 0 10px;">${html}</div>`;
+          }
+          if (recommendationCallout) {
+            return `<div class="recommendation-callout" style="border:1.5px solid #a4bfae;background:#f2f7f4;border-radius:5px;padding:9px 13px;margin:0 0 10px;">${html}</div>`;
           }
           if (readinessCallout || determinationCallout) {
             return `<div class="readiness-callout" style="border:1.5px solid #94a3b8;background:#f8fafc;border-radius:5px;padding:9px 13px;margin:0 0 10px;">${html}</div>`;

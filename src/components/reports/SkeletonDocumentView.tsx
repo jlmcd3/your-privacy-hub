@@ -555,8 +555,19 @@ export function SkeletonDocumentView({ doc, product }: { doc: SkeletonDocument; 
                 const conditionCallout = deadlineCallout || readinessNegative || determinationBlocking ||
                   /^(?:[A-Z]\.\s+[^.]+\.\s+)?Conditions? to Proceed\./.test(chunk.trim()) ||
                   /^The Activity should not proceed in its present form\./.test(chunk.trim());
+                // CEO report review 2026-09-04 (§ 4.D palette) — same lead-
+                // string family the PDF renderer recognizes. Keep in sync
+                // with generate-report-pdf/index.ts.
+                const followupCallout =
+                  /^(?:[A-Z]\.\s+[^.]+\.\s+)?(?:Follow-Ups?\.|Required Follow-Up\.|Assessment Follow-Up Required\.)/.test(chunk.trim());
+                const recommendationCallout =
+                  /^(?:[A-Z]\.\s+[^.]+\.\s+)?Recommendations?\./.test(chunk.trim());
                 const calloutClass = conditionCallout
                   ? "rounded-md border-[1.5px] border-amber-600/70 bg-amber-50 px-3 py-2 dark:bg-amber-950/30"
+                  : followupCallout
+                  ? "rounded-md border-[1.5px] border-sky-600/70 bg-sky-50 px-3 py-2 dark:bg-sky-950/30"
+                  : recommendationCallout
+                  ? "rounded-md border-[1.5px] border-emerald-600/70 bg-emerald-50 px-3 py-2 dark:bg-emerald-950/30"
                   : readinessCallout || determinationCallout
                   ? "rounded-md border-[1.5px] border-slate-400/70 bg-slate-50 px-3 py-2 dark:bg-slate-900/30"
                   : guidancePanel
