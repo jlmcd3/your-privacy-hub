@@ -1,7 +1,17 @@
 // save-sample-report — admin-guarded backend for the sample-reports curation
 // flow. Actions: snapshot · set_status · attach_pdf · list.
+//
+// TRUNCATED SAMPLES (2026-09-04): every action that writes a sample's content
+// rebuilds the public preview (first sections / first two PDF pages + TOC) in
+// the same operation, so a generated sample is publishable immediately and no
+// preview is ever computed from stale content. A database trigger clears the
+// preview whenever content changes, so a failed rebuild fails closed.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  removePreviewObjects,
+  tryBuildPreviewForRow,
+} from "../_shared/sample-preview-build.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
