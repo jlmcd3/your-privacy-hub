@@ -311,6 +311,37 @@ Deno.test("doc168 — the 'none' mechanism option reads as the Company's own sta
   assertStringIncludes(e.value, "India — no documented transfer mechanism");
 });
 
+// ── §9 — the rights-handling sentence (CEO wording, re-pinned spine) ───────
+
+Deno.test("doc168 §9 — a process written as a sentence no longer renders 'handled Requests handled by'", () => {
+  const input = buildRopaAssembleInput(data({ a1: { ...FULL, recipient_categories: ["none"], transfers_third_country: "no" } }, { rights_handling_process: "Requests handled by the DPO within one month" }));
+  const reg = assembleRopaRegister(input);
+  assertStringIncludes(reg.text, "The company has indicated that rights requests are handled as follows: Requests handled by the DPO within one month.");
+  assert(!reg.text.includes("handled Requests handled"), reg.text);
+  assert(!reg.text.includes("Rights requests are handled "), "the old fixed lead-in must be gone from the rendered record");
+  assertEquals(reg.conformance.ok, true, JSON.stringify(reg.conformance.findings));
+});
+
+Deno.test("doc168 §9 — the activity-specific override folds into the same sentence", () => {
+  const input = buildRopaAssembleInput(data({ a1: { ...FULL, recipient_categories: ["none"], transfers_third_country: "no", rights_handling_override: "escalated to Legal within five days" } }, { rights_handling_process: "via the privacy inbox" }));
+  const reg = assembleRopaRegister(input);
+  assertStringIncludes(reg.text, "handled as follows: via the privacy inbox, subject to the activity-specific process the company has described: escalated to Legal within five days.");
+});
+
+Deno.test("doc168 §9 — override recorded but no general process: both facts stated honestly", () => {
+  const input = buildRopaAssembleInput(data({ a1: { ...FULL, recipient_categories: ["none"], transfers_third_country: "no", rights_handling_override: "escalated to Legal within five days" } }, { rights_handling_process: "" }));
+  const reg = assembleRopaRegister(input);
+  assertStringIncludes(reg.text, "The company has not recorded a general process for handling rights requests; for this activity it has indicated that they are handled as follows: escalated to Legal within five days.");
+});
+
+Deno.test("doc168 §9 — nothing recorded: the honest sentence, never the old 'by a process it has not recorded' fragment", () => {
+  const input = buildRopaAssembleInput(data({ a1: { ...FULL, recipient_categories: ["none"], transfers_third_country: "no" } }, { rights_handling_process: "" }));
+  const reg = assembleRopaRegister(input);
+  assertStringIncludes(reg.text, "How rights requests are handled is not recorded.");
+  assert(!reg.text.includes("by a process it has not recorded"));
+  assertEquals(reg.conformance.ok, true, JSON.stringify(reg.conformance.findings));
+});
+
 Deno.test("doc168 — a legacy record (free-text answers, no gate) still assembles exactly as before", () => {
   const input = buildRopaAssembleInput(data({
     a1: { ...FULL, special_category_basis: "Not applicable", processor_platform: "AWS", transfer_destination: "India", transfer_mechanism: "SCCs (2021)" },

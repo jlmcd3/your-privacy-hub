@@ -374,10 +374,26 @@ function transferClause(a: RopaActivityInput): string {
 
 const s2 = (v: unknown): string => (typeof v === "string" ? v : String(v ?? ""));
 
+// DOC 168 (2026-09-04, CEO wording) — the rights-handling sentence composes
+// WHOLE (the TRANSFER_CLAUSE pattern). The old fixed lead-in "Rights requests
+// are handled {answer}" read the customer's free-text process straight after
+// a verb, so an answer written as a sentence rendered "handled Requests
+// handled by ...". Four honest branches; the activity-specific override
+// folds into the same sentence.
+function rightsSentence(a: RopaActivityInput): string {
+  const base = recorded(a.rightsHandling) ? noStop(s(a.rightsHandling)) : "";
+  const over = recorded(a.rightsOverride) ? noStop(s(a.rightsOverride)) : "";
+  if (base && over) {
+    return `The company has indicated that rights requests are handled as follows: ${base}, subject to the activity-specific process the company has described: ${over}`;
+  }
+  if (base) return `The company has indicated that rights requests are handled as follows: ${base}`;
+  if (over) {
+    return `The company has not recorded a general process for handling rights requests; for this activity it has indicated that they are handled as follows: ${over}`;
+  }
+  return "How rights requests are handled is not recorded";
+}
+
 export function buildActivitySlots(a: RopaActivityInput): SlotValues {
-  const override = recorded(a.rightsOverride)
-    ? `, subject to the activity-specific process the company has described: ${noStop(s(a.rightsOverride))}`
-    : "";
   return {
     // DOC 141 (2026-09-02) — under the fixed lead-in "The activity {slot}",
     // the old fallback "an activity it has not named" doubled the noun
@@ -419,8 +435,7 @@ export function buildActivitySlots(a: RopaActivityInput): SlotValues {
       ? `; access is controlled as the company describes: ${noStop(s(a.accessControls))}`
       : "; how access is controlled is not recorded",
     TRANSFER_CLAUSE: transferClause(a) || null,
-    rights_handling: orUnrecorded(a.rightsHandling, "by a process it has not recorded"),
-    OVERRIDE_CLAUSE: override,
+    RIGHTS_SENTENCE: rightsSentence(a),
   };
 }
 
