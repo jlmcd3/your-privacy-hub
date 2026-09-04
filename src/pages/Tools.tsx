@@ -809,7 +809,7 @@ export default function Tools() {
                     {INCLUDED_GENERATIONS_SLUGS.has(tool.slug) && (
                       <>
                         <p className="text-body-small text-ink mt-1">
-                          {INCLUDED_GENERATIONS_COPY}
+                          {INCLUDED_GENERATIONS_COPY_TOOLS}
                         </p>
                         {TOPUP_TIER1_SLUGS.has(tool.slug) && (
                           <p className="text-body-small text-ink mt-1">
