@@ -68,6 +68,9 @@ import {
   type SlotValues,
 } from "../../../_shared/prose/skeleton-render.ts";
 import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
+// DOC 172 (2026-09-04) — Syllabus & Record (doc 151); LIA is the third
+// product migrated onto the fleet presentation system.
+import { dispositionTone, type SyllabusProjection } from "../../../_shared/prose/syllabus.ts";
 import { firstSentence } from "../../../_shared/ltp/dpia-skeleton-assemble.ts";
 import { naturalCitationCompare } from "../../../_shared/ltp/citation-order.ts";
 // DOC 73 §4 (R2/R5, 2026-08-26) — the precedent-class posture finding.
@@ -838,6 +841,88 @@ function pruneOrphanSubheads(text: string): string {
 }
 
 
+// DOC 172 (2026-09-04) — THE DETERMINATION SYLLABUS (Syllabus & Record p.1).
+// Every value below is a PROJECTION of a determination this assembler already
+// made (doc 127 §28 law): the disposition label from `readTypedVerdicts`/
+// `verdictIsPositive`, the disposition paragraph = `composeExecLead` exactly
+// as composed (the same text `executive_summary:0` carries as its `kind:
+// "lead"` block, so the existing renderer suppression already drops the
+// duplicate — LIA's spine gives the determination its own lead paragraph,
+// unlike DPIA's run-in-labeled chunk). LIA has no typed conditions array and
+// no appendix-lettered back matter (Authorities Cited/Persuasive Authority
+// are ordinary numbered sections, not "Appendix X"), so `conditions` and
+// `record_map` are honestly empty rather than invented.
+
+/** The disposition label the three-part-test verdict already distinguishes
+ *  (composeExecLead, above) — restated as the controlled word for the
+ *  syllabus's determination table. */
+function liaDispositionLabel(v: LiaTypedVerdicts): string {
+  if (v.public_authority_bar) return "Not Available";
+  const positive = verdictIsPositive(v.outcome);
+  if (positive === true) return "Available";
+  if (positive === false) return "Not Available";
+  return "Determination pending";
+}
+
+function verdictRow(label: string, verdict: string, positiveText: string, negativeText: string): readonly [string, string] {
+  const p = verdictIsPositive(verdict);
+  return [
+    label,
+    p === true ? positiveText : p === false ? negativeText : "Not resolved on the record",
+  ];
+}
+
+export function buildLiaSyllabus(
+  rendered: RenderedSkeletonDocument,
+  v: LiaTypedVerdicts,
+  execLead: string,
+  values: SlotValues,
+  record: Bag,
+): SyllabusProjection {
+  const str = (k: string): string => {
+    const val = (values as Bag)[k];
+    return typeof val === "string" ? val.trim() : "";
+  };
+  const entity = str("organizationName") || "the organisation";
+  const disposition = liaDispositionLabel(v);
+
+  const rows: Array<readonly [string, string]> = [
+    verdictRow("Purpose test", v.purpose, "The identified interest qualifies as legitimate", "The identified interest does not qualify as legitimate"),
+    verdictRow("Necessity test", v.necessity, "The processing is necessary to the identified interest", "The processing is not necessary — a less intrusive means is on the record"),
+    verdictRow("Balancing test", v.balancing, "Favours the interest pursued", "Favours the people affected"),
+  ];
+  if (v.children_in_scope) rows.push(["Children in scope", "Yes — the balancing test accounts for the imbalance this creates"]);
+  if (v.public_authority_bar) rows.push(["Public authority bar", "Applies — the basis is unavailable for processing in performance of public tasks"]);
+
+  const dpoReview = str("dpoReviewDate");
+  const approval = str("approvalDate");
+  const key_dates: Array<readonly [string, string]> = [];
+  if (dpoReview) key_dates.push(["DPO review", dpoReview]);
+  if (approval) key_dates.push(["Approval", approval]);
+
+  return {
+    _typed: "syllabus@sr-2026-09-04",
+    instrument_line: "LEGITIMATE INTERESTS ASSESSMENT · Article 6(1)(f)",
+    prepared_for: entity,
+    // LIA's intake has no activity-name field at all (unlike Risk/DPIA,
+    // where a blank name is the rare degrade case) — a calm, permanent
+    // title, not a "not named on the record" gap message that would read
+    // as an anomaly on every single report.
+    activity: "The Processing Under Assessment",
+    subtitle: "Legitimate interests assessment under Article 6(1)(f)",
+    disposition_label: "DETERMINATION",
+    disposition,
+    disposition_tone: dispositionTone(disposition),
+    paragraph: execLead,
+    rows,
+    conditions_heading: "",
+    conditions: [],
+    key_dates,
+    record_map: [],
+    running_head: `LEGITIMATE INTERESTS ASSESSMENT · ${entity.toUpperCase()}`,
+  };
+}
+
 // ── Assembly ────────────────────────────────────────────────────────────────
 
 export interface LiaSkeletonResult {
@@ -1192,16 +1277,22 @@ export function assembleLiaSkeletonDocument(
     composed: { ...composed, "table_of_authorities:0": toa },
   });
 
+  const prunedSections = rendered.sections.map((sec) => ({
+    ...sec,
+    paragraphs: sec.paragraphs
+      .map((p) => (p.kind === "skeleton" ? { ...p, text: pruneOrphanSubheads(p.text) } : p))
+      // BATCH 19a (doc 113 S3.1) — table paragraphs carry no text by
+      // design; the empty-text prune must not drop them.
+      .filter((p) => p.kind === "table" || p.text.trim().length > 0),
+  }));
+  const preSyllabusDocument: RenderedSkeletonDocument = { ...rendered, sections: prunedSections };
+  // DOC 172 (2026-09-04) — the Determination Syllabus (page 1 of the
+  // Syllabus & Record presentation) attached as a projection of the
+  // determinations above. Additive: sections, hash and conformance are
+  // untouched; a renderer that does not know the field ignores it.
   const document: RenderedSkeletonDocument = {
-    ...rendered,
-    sections: rendered.sections.map((sec) => ({
-      ...sec,
-      paragraphs: sec.paragraphs
-        .map((p) => (p.kind === "skeleton" ? { ...p, text: pruneOrphanSubheads(p.text) } : p))
-        // BATCH 19a (doc 113 S3.1) — table paragraphs carry no text by
-        // design; the empty-text prune must not drop them.
-        .filter((p) => p.kind === "table" || p.text.trim().length > 0),
-    })),
+    ...preSyllabusDocument,
+    syllabus: buildLiaSyllabus(preSyllabusDocument, v, execLead, values, record),
   };
 
   const body = skeletonDocumentToText(document).toLowerCase();

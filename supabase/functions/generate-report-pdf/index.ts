@@ -4923,7 +4923,9 @@ Deno.serve(async (req) => {
       // only for reports generated before the wire-in.
       const skelLia = readSkeletonDocument(report);
       html = skelLia
-        ? buildSkeletonReportHTML(skelLia, record, "Legitimate Interests Assessment")
+        // DOC 172 (2026-09-04) — the "lia" product string activates the
+        // Syllabus & Record presentation system (SR_PRODUCTS).
+        ? buildSkeletonReportHTML(skelLia, record, "Legitimate Interests Assessment", "lia")
         : buildLIReportHTML(report, record);
       generatedAt = report.generated_at || record.created_at || new Date().toISOString();
 

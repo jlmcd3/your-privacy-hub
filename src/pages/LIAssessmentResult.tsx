@@ -358,7 +358,10 @@ const LIAssessmentResult = () => {
               {/* SO-11: the byte-pinned skeleton document IS the customer report. */}
               {skeletonDoc && (
                 <section className="rounded-lg border bg-card p-6">
-                  <SkeletonDocumentView doc={skeletonDoc} />
+                  {/* DOC 172 (2026-09-04) — the product string activates the
+                      Syllabus & Record presentation system in the shared
+                      skeleton renderer. */}
+                  <SkeletonDocumentView doc={skeletonDoc} product="lia" />
                 </section>
               )}
 
