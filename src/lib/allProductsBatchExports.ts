@@ -105,19 +105,59 @@ function downloadBlob(name: string, blob: Blob) {
 const stamp = () => new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
 const shortId = (id: string) => id.replace(/^local-(stress-)?/, "").slice(0, 8);
 
+/**
+ * SERVER-ROW LAW (2026-09-04): a stress batch column comes from the SERVER, so
+ * the browser may hold no local RunOutcome rows for it (different browser,
+ * cleared storage, page reloaded mid-batch). When the local store has nothing
+ * renderable for a `local-stress-<uuid>` column, rebuild the row list from
+ * static_stress_jobs so the zip still renders.
+ */
+async function serverRowsForStressBatch(batchId: string): Promise<RunOutcome[]> {
+  const serverId = batchId.replace(/^local-stress-/, "");
+  if (serverId === batchId) return [];
+  const { data } = await supabase
+    .from("static_stress_jobs")
+    .select("id, tool_slug, status, source_row_id, company_name")
+    .eq("batch_id", serverId)
+    .eq("status", "complete");
+  const jobs = (data ?? []) as Array<{
+    id: string; tool_slug: string; status: string;
+    source_row_id: string | null; company_name: string | null;
+  }>;
+  return jobs
+    .filter((j) => j.source_row_id)
+    .map((j) => ({
+      id: j.id,
+      batchId,
+      startedAt: new Date().toISOString(),
+      tool_slug: (STRESS_TOOL_TO_SLUG[j.tool_slug] ?? j.tool_slug) as ToolSlug,
+      variant: `server/${j.company_name ?? "company"}`,
+      source: "claude",
+      status: "complete",
+      sourceRowId: j.source_row_id,
+    })) as unknown as RunOutcome[];
+}
+
 /** Create + download a zip of the batch's report PDFs. */
 export async function downloadBatchPdfZip(batchId: string, outcomes: RunOutcome[]) {
-  const rows = outcomesForBatch(outcomes, batchId).filter(
+  let rows = outcomesForBatch(outcomes, batchId).filter(
     (o) => o.status === "complete" && o.sourceRowId && isRenderable(o),
   );
+  let skipped = outcomesForBatch(outcomes, batchId).length - rows.length;
 
-  const skipped = outcomesForBatch(outcomes, batchId).length - rows.length;
+  if (!rows.length) {
+    const serverRows = await serverRowsForStressBatch(batchId);
+    rows = serverRows.filter((o) => isRenderable(o));
+    skipped = serverRows.length - rows.length;
+  }
+
   if (!rows.length) {
     toast.error("No renderable documents recorded for this batch.");
     return;
   }
   const tid = `zip-${batchId}`;
   toast.loading(`Rendering ${rows.length} PDF${rows.length === 1 ? "" : "s"}…`, { id: tid });
+
 
   const zip = new JSZip();
   let ok = 0;
