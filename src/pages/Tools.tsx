@@ -8,7 +8,12 @@ import { RequirementBadge } from "@/components/RequirementBadge";
 import SampleReportLink from "@/components/SampleReportLink";
 import ToolsSelector from "@/components/tools/ToolsSelector";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
-import { PRICING, isSmartTool, INTELLIGENCE_PRICING, PLATFORM_PRICING, INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
+import { PRICING, isSmartTool, INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
+
+// Tools-page copy for the metered-generation line. Mirrors INCLUDED_GENERATIONS_COPY
+// from pricing.ts but without the Errata-channel phrase (not surfaced on /tools).
+const INCLUDED_GENERATIONS_COPY_TOOLS =
+  "Includes your initial report generation. Revisions are temporarily disabled while we ship the Revision Contract program.";
 import { useConversionEvent } from "@/hooks/useConversionEvent";
 import { useAuth } from "@/hooks/useAuth";
 import { Bot, CheckCircle2, ClipboardList, FileSignature, FileText, Fingerprint, Folder, Lock, MoveRight, Scale, Search, Shield, ShieldAlert, Siren, Square, Wrench } from 'lucide-react';
@@ -511,7 +516,7 @@ const TOOLS: ToolDef[] = [
     body: [
       "The CPPA's risk assessment regulations require businesses processing personal information that presents a significant risk to consumers' privacy or security to conduct and document a structured risk assessment. The substance of that assessment — not the cover sheet — is what determines whether it satisfies the regulation.",
       "The CPPA Risk Assessment walks through the categories the CPPA specifies: the purpose of processing, the categories of personal information involved, the operational elements of the processing, the benefits, the negative impacts to consumers, and the safeguards that mitigate those impacts. Follow our guided assessment process, with relevant regulations, regulator commentary, and answer context provided to you along the way to help you produce a comprehensive risk assessment document.",
-      "Every domain finding cites the underlying authority — the statute (Cal. Civ. Code § 1798.x), the implementing regulation (Cal. Code Regs. tit. 11 § 7150 et seq.), the CPPA's own reasoning in the Final Statement of Reasons, and any on-point AG or CPPA enforcement action. The result is a current obligation snapshot you can defend in regulatory review, with the source text attached to each conclusion. After completion, a Control-Drift Monitor schedules an annual re-run nudge so the assessment doesn't go stale.",
+      "Every domain finding cites the underlying authority — the statute (Cal. Civ. Code § 1798.x), the implementing regulation (Cal. Code Regs. tit. 11 § 7150 et seq.), the CPPA's own reasoning in the Final Statement of Reasons, and any on-point AG or CPPA enforcement action. The result is a current obligation snapshot you can defend in regulatory review, with the source text attached to each conclusion.",
       `Standalone per-use price: ${PRICING.tools.cppa_risk.display}.`,
       "Your assessments are your Subscriber Confidential Information and, as such, are protected as described in our Privacy Policy.",
     ],
@@ -809,7 +814,7 @@ export default function Tools() {
                     {INCLUDED_GENERATIONS_SLUGS.has(tool.slug) && (
                       <>
                         <p className="text-body-small text-ink mt-1">
-                          {INCLUDED_GENERATIONS_COPY}
+                          {INCLUDED_GENERATIONS_COPY_TOOLS}
                         </p>
                         {TOPUP_TIER1_SLUGS.has(tool.slug) && (
                           <p className="text-body-small text-ink mt-1">
