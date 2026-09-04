@@ -29,6 +29,13 @@
       "when": 1788531788873,
       "tag": "0003_sample_preview_auto_invalidate",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788532001000,
+      "tag": "0004_sample_reports_public_requires_preview",
+      "breakpoints": true
     }
   ]
 }
