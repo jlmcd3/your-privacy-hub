@@ -39,6 +39,20 @@ import {
   hasSkeletonDocument,
   SKELETON_CAL_VERSION,
 } from "./_local/grader/skeleton-calibration-mirror.ts";
+// DOC 169 (2026-09-04, batch 50b8bcd4) — SKELETON-MODE PAYLOAD PARITY. This
+// grader had been building its payload through buildGraderPayload with the
+// 30,000-character legacy budget, which sliced every converted document to
+// roughly its first third (two graders reported the report "truncated at
+// § 4.B"). run-quality-batch's skeleton mode renders the WHOLE
+// skeleton_document with the END OF DOCUMENT trailer and appends the
+// block-kind addendum to the system prompt; this path now does the same,
+// through a mirror of that builder (same bundling reason as the calibration
+// mirror above).
+import {
+  buildSkeletonGraderPayload,
+  SKELETON_BLOCK_KIND_ADDENDUM,
+  SKELETON_GRADER_BUDGET,
+} from "./_local/grader/skeleton-payload-mirror.ts";
 
 // GRADER-1 Task 1 — full intake JSON passed to the grader (mirrors
 // run-quality-batch). Safety cap only for pathological payloads.
@@ -265,21 +279,27 @@ function computeOverall(scores: any, tool: GradedTool): number {
 }
 
 async function gradeOne(role: "claude" | "gpt", tool: GradedTool, intake: any, report: any, fixtureSet: string | null = null) {
-  const sys = buildRubricSystemPrompt(role);
+  // DOC 169 — skeleton-mode parity with run-quality-batch: the block-kind
+  // addendum rides on the system prompt and the payload is the WHOLE
+  // skeleton document (END OF DOCUMENT trailer included).
+  const useSkeleton = hasSkeletonDocument(report);
+  const sys = buildRubricSystemPrompt(role) + (useSkeleton ? SKELETON_BLOCK_KIND_ADDENDUM : "");
   // QLB-F3: body-first, metadata-stripped, equal budget across models.
   // DOC 129 §1.2 — registration/session-shaped tools (family null) now
   // route through the SAME customer-document-first builder instead of a raw
   // whole-JSON slice, so their hidden structured fields are labeled
   // evidence rather than gradeable copy.
   const family = familyForSingleTool(tool as QL3Tool);
-  const payload = buildGraderPayload(
-    family,
-    report,
-    GRADER_PAYLOAD_BUDGET,
-    { fixtureSet: family ? fixtureSet : null, customerDocFirst: true },
-  );
+  const payload = useSkeleton
+    ? buildSkeletonGraderPayload(report, SKELETON_GRADER_BUDGET, { fixtureSet: family ? fixtureSet : null })
+    : buildGraderPayload(
+      family,
+      report,
+      GRADER_PAYLOAD_BUDGET,
+      { fixtureSet: family ? fixtureSet : null, customerDocFirst: true },
+    );
   if (payload.truncated) {
-    console.warn(`[grade-single-assessment] payload_truncated tool=${tool} role=${role} original_length=${payload.original_length} budget=${GRADER_PAYLOAD_BUDGET}`);
+    console.warn(`[grade-single-assessment] payload_truncated tool=${tool} role=${role} skeleton=${useSkeleton} original_length=${payload.original_length} budget=${useSkeleton ? SKELETON_GRADER_BUDGET : GRADER_PAYLOAD_BUDGET}`);
   }
   const user = `TOOL: ${tool}\nINTAKE: ${sliceIntakeForGrader(intake)}\nREPORT:\n${payload.text}\nEvaluate this report. Quote actual text as evidence for each finding.`;
   const raw = role === "claude" ? await claudeCall(sys, user) : await gptCall(sys, user);
@@ -294,9 +314,8 @@ async function gradeOne(role: "claude" | "gpt", tool: GradedTool, intake: any, r
   // PROMPT 10A false-positive filter first, then the evidence-backed dimension
   // floor (which needs the POST-calibration finding list so a filtered-out
   // finding can't itself supply the "support" that keeps a low score honest).
-  const useSkeleton = hasSkeletonDocument(report);
   const skelCal = useSkeleton
-    ? applySkeletonCalibration(kept as any, { report })
+    ? applySkeletonCalibration(kept as any, { report, payloadComplete: !payload.truncated })
     : { kept: kept as any[], filtered: [] as any[], counts: null as any };
   if (skelCal.filtered.length) {
     console.log(`[SKELETON-CAL][${role}] tool=${tool} version=${SKELETON_CAL_VERSION} filtered=${skelCal.filtered.map((c: any) => c.rule).join(",")}`);

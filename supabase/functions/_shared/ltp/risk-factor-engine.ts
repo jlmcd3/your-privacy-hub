@@ -2406,7 +2406,13 @@ export function runRiskFactorEngine(
     const headCounts = new Map<string, { n: number; harms: string[] }>();
     for (const c of conditions) {
       const h = c.split(":")[0].trim().replace(/\.$/, "");
-      const harm = c.match(/\(addresses: (.+)\)\s*$/)?.[1]?.trim() ?? "";
+      // DOC 169 (batch 50b8bcd4, Velospan) — a condition of the form "…for
+      // the safeguard credited against the risk: (G) Reputational harms"
+      // names its harm AFTER the colon, not in an "(addresses: …)" suffix;
+      // the compact head kept "the risk" and dropped the label, so the
+      // executive reader could not tell which risk the condition meant.
+      const tail = c.includes(":") ? c.slice(c.indexOf(":") + 1).trim().replace(/\.$/, "") : "";
+      const harm = c.match(/\(addresses: (.+)\)\s*$/)?.[1]?.trim() ?? (/^\([A-H]\) /.test(tail) ? tail : "");
       const entry = headCounts.get(h) ?? { n: 0, harms: [] };
       entry.n += 1;
       // DOC 167 (Batch 13 A-Team §11, NestWave) — the captured "addresses"
@@ -2422,10 +2428,17 @@ export function runRiskFactorEngine(
       }
       headCounts.set(h, entry);
     }
+    // DOC 169 — a "credited against the risk" head takes its harm in place of
+    // "the risk" ("…credited against (G) Reputational harms"), never
+    // "…against the risk addressing (G) …".
+    const labelFor = (head: string, harms: string[]): string =>
+      /credited against the risk$/.test(head)
+        ? `${head.replace(/ the risk$/, "")} ${asProse(harms)}`
+        : `${head} addressing ${asProse(harms)}`;
     const compactLabels = [...headCounts.entries()]
       .map(([h, { n, harms }]) =>
         n === 1
-          ? (harms.length ? `${h} addressing ${asProse(harms)}` : h)
+          ? (harms.length ? labelFor(h, harms) : h)
           : `${h} (${countWord(n)} conditions${harms.length ? `, addressing ${asProse(harms)}` : ""})`
       )
       .join("; ");

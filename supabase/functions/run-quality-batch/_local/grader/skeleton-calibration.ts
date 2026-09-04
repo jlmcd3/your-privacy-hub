@@ -13,6 +13,17 @@
 
 import type { LlmFinding } from "../../../_shared/grader/post-filters.ts";
 
+// DOC 169 (2026-09-04, batch 50b8bcd4) — three deterministic rules for
+// false-positive classes the PROSE calibration (DOC 165 (1)–(2), DOC 167 (4),
+// (6), DOC 153 trailer) had already ratified but which both graders kept
+// re-raising in the same words: cal_skeleton_7 (ratified fixed frames flagged
+// as boilerplate), cal_skeleton_8 (a "truncated / cut off" claim against a
+// whole-document payload), cal_skeleton_9 (§ 7150(b)(1) engaged on the
+// categorical "share for advertising" answer flagged as a misapplied
+// citation). Each cites the batch findings it answers. Per the doc-149
+// INSTRUMENT RULE (nine tests pin it) the epoch PREFIX below is kept; the new
+// rules are stamped on GRADER_CONTEXT_VERSION as the appended tag
+// "+skeleton-cal-4-doc169[cal_skeleton_7|cal_skeleton_8|cal_skeleton_9]".
 export const SKELETON_CAL_VERSION = "gc-2026-08-28-skeleton-cal-3-item204";
 
 export type SkeletonCalRuleId =
@@ -21,7 +32,10 @@ export type SkeletonCalRuleId =
   | "cal_skeleton_3"
   | "cal_skeleton_4"
   | "cal_skeleton_5"
-  | "cal_skeleton_6";
+  | "cal_skeleton_6"
+  | "cal_skeleton_7"
+  | "cal_skeleton_8"
+  | "cal_skeleton_9";
 
 export const SKELETON_CAL_RULE_IDS: readonly SkeletonCalRuleId[] = [
   "cal_skeleton_1",
@@ -30,6 +44,9 @@ export const SKELETON_CAL_RULE_IDS: readonly SkeletonCalRuleId[] = [
   "cal_skeleton_4",
   "cal_skeleton_5",
   "cal_skeleton_6",
+  "cal_skeleton_7",
+  "cal_skeleton_8",
+  "cal_skeleton_9",
 ];
 
 /**
@@ -391,6 +408,67 @@ function matchesRule6(ev: string): boolean {
   return true;
 }
 
+// RULE 7 — RATIFIED FIXED FRAMES ARE NOT BOILERPLATE. DOC 169 (batch
+// 50b8bcd4, 2026-09-04): five rubric_generic_boilerplate findings across
+// four cppa_risk documents quoted, in the same words, sentences the prose
+// calibration had already ratified as fixed frames — the § 3.C choice-
+// architecture confirmed/unconfirmed sentence (DOC 165 (1): Velospan,
+// Cloverpath, Velostream), Section 1 "How This Assessment Decides" (DOC 165
+// (2): Claritex, Velospan) and the § 3.B closer "The necessity analysis is
+// qualified" (DOC 167 (6): Velostream). The match is on the ratified
+// sentence's own invariant words, never on a paraphrase.
+const R7_RATIFIED_FRAME_RES: readonly RegExp[] = [
+  /How This Assessment Decides/i,
+  /EUP Decision Logic/i,
+  /Qualitative Refinement/i,
+  /\bSection 1\b[^.]{0,160}\b(?:fixed|framework|methodology)\b/i,
+  /does not confirm the absence of steering design elements/i,
+  /Each unconfirmed fact is treated as a live interference risk/i,
+  /The necessity analysis is qualified/i,
+  /the Activity may proceed while the conditions in § ?4\.D are completed/i,
+  /The Company states the purpose of the Activity as follows/i,
+];
+
+// RULE 8 — A TRUNCATION CLAIM AGAINST A WHOLE-DOCUMENT PAYLOAD. DOC 153 made
+// completeness a fact the grader reads (the END OF DOCUMENT trailer); DOC 169
+// (batch 50b8bcd4): two rubric_actionability findings (Clearpath, Velostream)
+// reported the report "truncated at" § 4.B — the all-products path had in
+// fact sliced the document to a 30,000-character budget, which DOC 169 also
+// fixed. With the payload whole, a truncation claim is the grader's own
+// inference, not a defect; callers that KNOW the payload was cut pass
+// `payloadComplete: false` and the rule stands down.
+const R8_TRUNCATION_CLAIM_RES: readonly RegExp[] = [
+  /\b(?:document|report|text|section)\b[^.]{0,80}\b(?:is|was|appears(?: to be)?|seems(?: to be)?)\s+truncated\b/i,
+  /\btruncated at\b/i,
+  /\bcut(?:s)? off\b/i,
+  /\bnot visible in the graded text\b/i,
+  /\b(?:is|was|appears) (?:incomplete|missing) (?:in|from) the graded (?:text|document|payload)\b/i,
+];
+
+// RULE 9 — § 7150(b)(1) ENGAGED ON THE CATEGORICAL SELL/SHARE ANSWER (DOC 167
+// (4), restated in DOC 169): "Yes — share for advertising only" is the
+// paradigm case of "sharing" (cross-context behavioral advertising, Cal. Civ.
+// Code § 1798.140(ah)); a citation finding that the trigger row "does not
+// mention cross-context behavioral advertising" (Velospan, batch 50b8bcd4)
+// asks the row to restate the statutory definition, which is not a defect.
+const R9_B1_SUBJECT_RE = /7150\s*\(\s*b\s*\)\s*\(\s*1\s*\)/i;
+const R9_B1_SHARING_RES: readonly RegExp[] = [
+  /cross-?context behavio(?:u)?ral advertising/i,
+  /share(?:s|d)? for advertising/i,
+  /\bsharing\b[^.]{0,80}\badvertising\b/i,
+];
+
+export function matchesRule7(checkId: string, ev: string): boolean {
+  return checkId === "rubric_generic_boilerplate" && R7_RATIFIED_FRAME_RES.some((r) => r.test(ev));
+}
+export function matchesRule8(ev: string, payloadComplete: boolean | undefined): boolean {
+  if (payloadComplete === false) return false;
+  return R8_TRUNCATION_CLAIM_RES.some((r) => r.test(ev));
+}
+export function matchesRule9(checkId: string, ev: string): boolean {
+  return checkId === "rubric_citation_misapplied" && R9_B1_SUBJECT_RE.test(ev) && R9_B1_SHARING_RES.some((r) => r.test(ev));
+}
+
 export type SkeletonCalFiltered = {
   rule: SkeletonCalRuleId;
   template_id: string | null;
@@ -401,6 +479,9 @@ export type SkeletonCalFiltered = {
 export type SkeletonCalContext = {
   /** The persisted report whose register rule 5 consults. */
   readonly report?: unknown;
+  /** DOC 169 — false when the caller KNOWS the payload was sliced; rule 8
+   *  then stands down. Undefined/true = the payload carried the whole document. */
+  readonly payloadComplete?: boolean;
 };
 
 /**
@@ -422,6 +503,9 @@ export function applySkeletonCalibration(
     cal_skeleton_4: 0,
     cal_skeleton_5: 0,
     cal_skeleton_6: 0,
+    cal_skeleton_7: 0,
+    cal_skeleton_8: 0,
+    cal_skeleton_9: 0,
   };
   const filtered: SkeletonCalFiltered[] = [];
   const kept: LlmFinding[] = [];
@@ -442,7 +526,12 @@ export function applySkeletonCalibration(
     if (checkId === "rubric_generic_boilerplate") {
       const t = matchRatifiedTemplate(ev);
       if (t) { drop("cal_skeleton_1", t); continue; }
+      // RULE 7 — DOC 169: the ratified fixed frames (DOC 165 (1)–(2), DOC 167 (6)).
+      if (matchesRule7(checkId, ev)) { drop("cal_skeleton_7", null); continue; }
     }
+
+    // RULE 9 — DOC 169: § 7150(b)(1) on the categorical sell/share answer (DOC 167 (4)).
+    if (matchesRule9(checkId, ev)) { drop("cal_skeleton_9", null); continue; }
 
     // RULE 2 — faithful reproduction of the controller's selection is not miscitation.
     if (checkId === "rubric_citation_misapplied") {
@@ -468,6 +557,10 @@ export function applySkeletonCalibration(
     // cohort; the recurring omission complaint enforces a superseded
     // expectation, not a defect (run 19d83cb4 and two prior batches).
     if (matchesRule6(ev)) { drop("cal_skeleton_6", null); continue; }
+
+    // RULE 8 — DOC 169: a truncation claim against a whole-document payload
+    // (DOC 153's END OF DOCUMENT trailer makes completeness a read fact).
+    if (matchesRule8(ev, ctx.payloadComplete)) { drop("cal_skeleton_8", null); continue; }
 
     kept.push(f);
   }

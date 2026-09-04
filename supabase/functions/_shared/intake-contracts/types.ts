@@ -57,6 +57,17 @@ export interface IntakeField {
   kind: FieldKind;
   /** VERBATIM form options — for enum/multi-enum only. */
   options?: readonly string[];
+  /**
+   * DOC 169 (2026-09-04) — multi-enum only: the options the FORM makes
+   * exclusive (its toggle clears every other selection when one of these is
+   * chosen — "There is no human review", "None of the above …"). A stored
+   * array that carries one of these beside any other option is a state the
+   * form cannot produce; validateIntake reports it and the stress-harness
+   * gate blocks the fixture, because the product's faithful reading of the
+   * exclusive answer would otherwise be graded as a hallucination (batch
+   * 50b8bcd4, Velostream). Cite the form file/line on the field.
+   */
+  exclusive?: readonly string[];
   required: Requiredness;
   /** Human-readable predicate mirroring the form's gating logic. */
   requiredWhen?: string;

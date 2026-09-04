@@ -43,13 +43,17 @@ export function contractForStressTool(tool: string): IntakeContract | undefined 
  * and corrupt the grade. Missing-required and unknown-key findings are
  * logged but do not block — the harness synthesizes some fields per tool
  * (e.g. governance's organization_name from job.company_name), and an
- * honestly sparse record is legitimate product input. */
+ * honestly sparse record is legitimate product input.
+ * DOC 169 (2026-09-04, batch 50b8bcd4) — an EXCLUSIVE multi-enum option
+ * selected beside other options (a state the form cannot produce) blocks
+ * too: the product's faithful reading of the exclusive answer is then graded
+ * as a hallucination, which is a fixture defect wearing a product score. */
 export function blockingContractViolations(tool: string, intake: Record<string, unknown>): string[] {
   const contract = CONTRACT_BY_STRESS_TOOL[tool];
   if (!contract) return [];
   const { violations } = validateIntake(contract, intake);
   const blocking = violations.filter((v) =>
-    /not in options|expected array|expected a JSON array|is not a non-empty string/.test(v.reason)
+    /not in options|expected array|expected a JSON array|is not a non-empty string|exclusive option/.test(v.reason)
   );
   const advisory = violations.filter((v) => !blocking.includes(v));
   if (advisory.length) {

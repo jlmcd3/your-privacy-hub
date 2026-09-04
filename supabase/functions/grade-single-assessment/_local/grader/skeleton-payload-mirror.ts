@@ -1,3 +1,10 @@
+// READ-ONLY MIRROR of run-quality-batch/_local/grader/skeleton-payload.ts (DOC 169, 2026-09-04).
+// Source of truth: supabase/functions/run-quality-batch/_local/grader/skeleton-payload.ts —
+// mirrored, not imported, because run-quality-batch/_local/** is not bundled for any other
+// function at deploy time (see skeleton-calibration-mirror.ts for the same rationale).
+// Everything below this header is a verbatim copy; doc169-batch14-triage.test.ts pins the
+// two files byte-identical after the header. Change the source, then re-copy.
+
 // SO-FINAL-TEST — ADDITIVE skeleton-document grader payload.
 //
 // This module is NEW and standalone. It does not import from, wrap, or modify

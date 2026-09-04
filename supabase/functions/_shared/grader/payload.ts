@@ -282,14 +282,18 @@ export function buildGraderPayload(
       return { text: head + docBlock + evidenceBlock, truncated: false, original_length };
     }
     // The customer document gets the budget FIRST; evidence takes what is
-    // left; the document itself is sliced only when it alone exceeds the
-    // budget (and says so).
+    // left. DOC 169 (2026-09-04, batch 50b8bcd4): the document itself is
+    // NEVER sliced on this path — the 30,000-character default budget had
+    // been handing the graders roughly the first third of a 100K-character
+    // report, and two graders duly reported the report "truncated at § 4.B".
+    // When the document alone exceeds the budget, the evidence is omitted
+    // and the payload says so; the document stays whole.
     const docBudget = budget - head.length;
     if (docBlock.length >= docBudget) {
       return {
-        text: head + docBlock.slice(0, Math.max(0, docBudget)) +
-          "\n[...customer document truncated for grader budget; structured evidence omitted...]",
-        truncated: true,
+        text: head + docBlock +
+          "\n[...structured evidence omitted for grader budget; the customer document above is complete, nothing omitted...]",
+        truncated: false,
         original_length,
       };
     }

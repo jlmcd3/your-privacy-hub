@@ -903,8 +903,10 @@ export const cppaRiskContract: IntakeContract = {
     // negative; an empty array means unanswered, never "none".
     //
     // Section I/II operands.
+    // DOC 169 — exclusive per CPPARiskAssessment.tsx (the NONE toggle on
+    // purpose_specificity_facts clears every other selection).
     { key: "purpose_specificity_facts", kind: "multi-enum", required: "optional",
-      options: PURPOSE_SPECIFICITY_FACTS_OPTS },
+      options: PURPOSE_SPECIFICITY_FACTS_OPTS, exclusive: ["None of the above"] },
     { key: "out_of_scope_confirmation", kind: "enum", required: "optional",
       options: OUT_OF_SCOPE_CONFIRMATION_OPTS },
     { key: "out_of_scope_activities", kind: "narrative", required: "conditional",
@@ -932,10 +934,12 @@ export const cppaRiskContract: IntakeContract = {
       emptyIsAnswer: true },
 
     // Section IV operands (§ 7002(b)-factor typed; doc 33 D-L3).
+    // DOC 169 — exclusive per CPPARiskAssessment.tsx (the NONE toggles on
+    // expectation_check and choice_architecture_check clear the others).
     { key: "expectation_check", kind: "multi-enum", required: "optional",
-      options: EXPECTATION_CHECK_OPTS },
+      options: EXPECTATION_CHECK_OPTS, exclusive: ["None of the above apply"] },
     { key: "choice_architecture_check", kind: "multi-enum", required: "optional",
-      options: CHOICE_ARCHITECTURE_CHECK_OPTS },
+      options: CHOICE_ARCHITECTURE_CHECK_OPTS, exclusive: ["None of the above can be confirmed"] },
 
     // Section V ADMT operands — logically conditional on ADMT use, same
     // emptyIsAnswer posture as the RK3-A2 admt_* block above.
@@ -943,10 +947,18 @@ export const cppaRiskContract: IntakeContract = {
       options: ADMT_ROLE_TYPE_OPTS, emptyIsAnswer: true },
     { key: "admt_logic_documented", kind: "enum", required: "optional",
       options: ADMT_LOGIC_DOCUMENTED_OPTS, emptyIsAnswer: true },
+    // DOC 169 (batch 50b8bcd4, Velostream) — exclusive per
+    // CPPARiskAssessment.tsx: the human_review_facts EXCLUSIVE pair and the
+    // admt_testing_facts NONE toggle clear every other selection. A fixture
+    // carrying "There is no human review" beside a positive review fact is
+    // self-contradictory intake, and the product's faithful reading of the
+    // exclusive answer was graded as a hallucination; the gate now blocks it.
     { key: "human_review_facts", kind: "multi-enum", required: "optional",
-      options: HUMAN_REVIEW_FACTS_OPTS, emptyIsAnswer: true },
+      options: HUMAN_REVIEW_FACTS_OPTS, emptyIsAnswer: true,
+      exclusive: ["None of the above can be confirmed", "There is no human review"] },
     { key: "admt_testing_facts", kind: "multi-enum", required: "optional",
-      options: ADMT_TESTING_FACTS_OPTS, emptyIsAnswer: true },
+      options: ADMT_TESTING_FACTS_OPTS, emptyIsAnswer: true,
+      exclusive: ["No testing has been performed or confirmed"] },
 
     // Section VII operand.
     { key: "risk_interdependency_check", kind: "enum", required: "optional",

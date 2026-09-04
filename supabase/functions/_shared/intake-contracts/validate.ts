@@ -5,6 +5,8 @@
 //     enumerated in ALLOWED_TOPLEVEL_EXTRAS) → violation.
 //   - enum values not verbatim-in-options → violation.
 //   - multi-enum values with any element not in options → violation.
+//   - DOC 169: a multi-enum EXCLUSIVE option selected beside any other
+//     option (a state the form's toggle cannot produce) → violation.
 //   - required: "always" empty → violation.
 //   - required: "conditional" is only mechanically checkable when
 //     requiredWhen carries a supported predicate; otherwise it is left
@@ -115,6 +117,19 @@ function checkField(intake: Record<string, unknown>, f: IntakeField, out: Violat
       for (const el of v) {
         if (typeof el !== "string" || !f.options.includes(el)) {
           out.push({ key: f.key, reason: `multi-enum element ${JSON.stringify(el)} not in options`, options: f.options });
+        }
+      }
+      // DOC 169 (2026-09-04, batch 50b8bcd4) — an exclusive option beside any
+      // other option is self-contradictory intake the form cannot produce.
+      if (f.exclusive && v.length > 1) {
+        for (const ex of f.exclusive) {
+          if (v.includes(ex)) {
+            out.push({
+              key: f.key,
+              reason: `multi-enum exclusive option ${JSON.stringify(ex)} selected with other options`,
+              options: f.options,
+            });
+          }
         }
       }
     }
