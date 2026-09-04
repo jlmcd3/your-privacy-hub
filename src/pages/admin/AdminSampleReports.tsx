@@ -228,10 +228,38 @@ export default function AdminSampleReports() {
     setBusy(`status::${sample.id}`);
     try {
       await callSaveSampleReport("set_status", { id: sample.id, status });
-      toast.success(`Status → ${status}`);
+      if (status === "published") {
+        await callBuildSamplePreview({ id: sample.id });
+        toast.success("Status → published · public preview rebuilt");
+      } else {
+        toast.success(`Status → ${status}`);
+      }
       await reloadSamples();
     } catch (e) {
       toast.error(`Status change failed: ${(e as Error).message}`);
+    } finally { setBusy(null); }
+  }
+
+  async function onRebuildPreview(sample: SampleRow) {
+    setBusy(`preview::${sample.id}`);
+    try {
+      await callBuildSamplePreview({ id: sample.id });
+      toast.success("Public preview rebuilt");
+    } catch (e) {
+      toast.error(`Preview rebuild failed: ${(e as Error).message}`);
+    } finally { setBusy(null); }
+  }
+
+  async function onRebuildAllPreviews() {
+    setBusy("preview::all");
+    try {
+      const res = await callBuildSamplePreview({});
+      const failures = Array.isArray(res?.failures) ? res.failures.length : 0;
+      const built = Array.isArray(res?.results) ? res.results.length : 0;
+      if (failures > 0) toast.error(`${built} rebuilt · ${failures} failed`);
+      else toast.success(`${built} public previews rebuilt`);
+    } catch (e) {
+      toast.error(`Preview rebuild failed: ${(e as Error).message}`);
     } finally { setBusy(null); }
   }
 
