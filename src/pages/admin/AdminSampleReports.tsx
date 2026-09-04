@@ -32,7 +32,20 @@ type SampleRow = {
   verification: Record<string, unknown> | null;
   pdf_path: string | null;
   updated_at: string;
+  // TRUNCATED SAMPLES (2026-09-04): public excerpt state. Content edits clear
+  // these automatically, so "none" always means the public page shows nothing.
+  preview_built_at?: string | null;
+  preview_pdf_path?: string | null;
+  withheld_section_count?: number | null;
+  preview_toc?: Array<{ title?: string }> | null;
 };
+
+function previewLabel(s: SampleRow): string {
+  if (!s.preview_built_at) return "public preview: none — rebuild needed";
+  const unit = s.preview_pdf_path ? "pages" : "sections";
+  const kept = s.preview_pdf_path ? 2 : (s.preview_toc?.length ? "first" : "first");
+  return `public preview: built · ${kept} ${unit} shown · ${s.withheld_section_count ?? 0} ${unit} withheld`;
+}
 
 type RunState = {
   status: "idle" | "running" | "complete" | "failed";
