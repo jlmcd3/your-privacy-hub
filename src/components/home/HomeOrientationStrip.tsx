@@ -56,8 +56,9 @@ export default function HomeOrientationStrip() {
               className="border-b md:border-b-0 md:border-r border-brand-cloud"
             >
               <p className="text-sm text-slate text-center leading-relaxed">
-                Worldwide privacy authorities monitored daily — enforcement actions, regulatory
-                guidance, and legislation, enriched with analysis before it reaches you.
+                Worldwide privacy news and authorities monitored daily — enforcement actions, regulatory
+                guidance, and legislative developments, enriched with analysis for insights applicable to
+                your organization.
               </p>
               <div className="text-center mt-4">
                 <a href="#updates" className={inlineLink}>
