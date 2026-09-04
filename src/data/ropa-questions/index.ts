@@ -128,6 +128,23 @@ function baseSequence(opts: {
       type: "text_long",
       isRequired: true,
     },
+    // DOC 166 (2026-09-04) — was read by the register (art305-note.ts,
+    // generate-ropa-document's per-activity table) but never asked anywhere
+    // in the intake, so the Art. 30(5) small-organisation derogation note
+    // could never detect a real special-category activity from customer
+    // data and always fell to its negative branch. State "Not applicable"
+    // when it does not apply — a blank answer reads the same as a stated
+    // negative, so leaving it blank changes nothing about today's behaviour.
+    {
+      key: "special_category_basis",
+      text: "Does this activity involve special category data under Article 9 GDPR?",
+      followUpPrompt:
+        "If yes, state the Article 9(2) condition it is processed under. If not, state \"Not applicable\".",
+      whyWeAsk:
+        "Art. 9(1) prohibits processing special categories of data — health, biometric or genetic data, racial or ethnic origin, political opinions, religious or philosophical beliefs, trade union membership, sex life or sexual orientation, or criminal-offence data — unless an Art. 9(2) condition applies. The register's Article 30(5) derogation note turns on this fact, and naming the Art. 9(2) condition (rather than a bare \"yes\") is what makes the entry defensible.",
+      type: "text_short",
+      isRequired: false,
+    },
     {
       key: "data_subjects",
       text: "Who are the data subjects?",
@@ -227,6 +244,17 @@ function baseSequence(opts: {
       type: "text_long",
       isRequired: false,
     },
+    // DOC 166 (2026-09-04) — Art. 30(1)(d) ("the categories of recipients")
+    // is a required register element, not qualified "where applicable" the
+    // way (e) and (f) are. It was previously asked only via `extras` on 7 of
+    // 24 activity templates, so the other 17 (including "Third-Party Data
+    // Sharing", which names the concept in its own title) could never record
+    // a recipient and could never satisfy this element of the register's own
+    // completeness check, regardless of what the customer answered. Moved
+    // into the universal sequence so every activity can both state its
+    // recipients and honestly state that it has none.
+    { ...DPA_CROSSSELL_Q },
+    { ...PROCESSOR_PLATFORM_Q },
     ...(opts.extras ?? []),
 
   ];
@@ -300,7 +328,6 @@ const HR_MONITORING = baseSequence({
     title: "Employee monitoring is high-risk",
     body: "Closely scrutinised by EU, UK, and US regulators. This activity is treated as high-risk by default.",
   },
-  extras: [{ ...DPA_CROSSSELL_Q }, { ...PROCESSOR_PLATFORM_Q }],
 });
 
 const MARKETING_EMAIL = baseSequence({
@@ -348,17 +375,17 @@ const MARKETING_ADVERTISING = baseSequence({
   ],
 });
 
-const CUSTOMER_ACCOUNTS = baseSequence({ extras: [{ ...DPA_CROSSSELL_Q }, { ...PROCESSOR_PLATFORM_Q }] });
-const CUSTOMER_SUPPORT = baseSequence({ extras: [{ ...DPA_CROSSSELL_Q }, { ...PROCESSOR_PLATFORM_Q }] });
+const CUSTOMER_ACCOUNTS = baseSequence({});
+const CUSTOMER_SUPPORT = baseSequence({});
 const CUSTOMER_KYC = baseSequence({
   staticInfoCard: {
     title: "Customer due diligence is high-risk",
     body: "KYC carries simultaneous AML and privacy obligations. DPIA is strongly recommended.",
   },
 });
-const CUSTOMER_CRM = baseSequence({ extras: [{ ...DPA_CROSSSELL_Q }, { ...PROCESSOR_PLATFORM_Q }] });
+const CUSTOMER_CRM = baseSequence({});
 
-const TECH_IT_SYSTEMS = baseSequence({ extras: [{ ...DPA_CROSSSELL_Q }, { ...PROCESSOR_PLATFORM_Q }] });
+const TECH_IT_SYSTEMS = baseSequence({});
 const TECH_SECURITY = baseSequence({
   extras: [
     {
@@ -384,7 +411,7 @@ const TECH_SECURITY = baseSequence({
     },
   ],
 });
-const TECH_CLOUD = baseSequence({ extras: [{ ...DPA_CROSSSELL_Q }, { ...PROCESSOR_PLATFORM_Q }] });
+const TECH_CLOUD = baseSequence({});
 
 const FINANCE_INVOICING = baseSequence({});
 const FINANCE_CREDIT = baseSequence({
@@ -396,7 +423,7 @@ const FINANCE_CREDIT = baseSequence({
 const LEGAL_CONTRACTS = baseSequence({});
 const LEGAL_COMPLIANCE = baseSequence({});
 
-const THIRD_PARTY_VENDORS = baseSequence({ extras: [{ ...DPA_CROSSSELL_Q }, { ...PROCESSOR_PLATFORM_Q }] });
+const THIRD_PARTY_VENDORS = baseSequence({});
 const THIRD_PARTY_SHARING = baseSequence({});
 const THIRD_PARTY_TRANSFERS = baseSequence({
   staticInfoCard: {
@@ -404,6 +431,22 @@ const THIRD_PARTY_TRANSFERS = baseSequence({
     body: "Invalid transfer mechanisms are among the highest-value enforcement priorities.",
   },
   extras: [
+    // DOC 166 (2026-09-04) — the document's Cross-border transfer register
+    // and the per-activity Art. 30(1)(e) cell both gate on a recorded
+    // destination, but no question ever asked for one: this activity
+    // recorded only the mechanism, so a customer who answered "SCCs" here
+    // saw their own transfer render as "No cross-border transfers have been
+    // recorded" everywhere else in the document. Destination asked first —
+    // Art. 30(1)(e) requires identifying the third country, and the
+    // mechanism question below is meaningless without it.
+    {
+      key: "transfer_destination",
+      text: "Which country or countries does the data get transferred to?",
+      whyWeAsk:
+        "Art. 30(1)(e) requires the register to identify the third country or international organisation personal data is transferred to. Name the destination before recording the transfer mechanism below — remote support or vendor access counts as a transfer alongside storage.",
+      type: "text_short",
+      isRequired: true,
+    },
     {
       key: "transfer_mechanism",
       text: "Which transfer mechanism do you rely on?",

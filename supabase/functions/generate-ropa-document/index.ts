@@ -51,6 +51,9 @@ import * as XLSX from "https://esm.sh/xlsx@0.18.5";
 import { ROPA_LEGAL_TEXT_ASSERTIONS } from "../_shared/legal-text-assertions.ts";
 // S-P2 (doc 80, 2026-08-27) — the Article 30(5) informational note.
 import { art305NoteHtml } from "./register/art305-note.ts";
+// DOC 166 (2026-09-04) — one resolver for the per-activity transfer cell,
+// shared by the HTML and DOCX builders below.
+import { transferDisplayForActivity } from "./register/activity-answer-display.ts";
 export const LEGAL_TEXT_ASSERTIONS = ROPA_LEGAL_TEXT_ASSERTIONS;
 
 import {
@@ -524,6 +527,11 @@ function buildRopaAssembleInput(d: AssembledData): RopaAssembleInput {
     return {
       id: String(a.id),
       name: String(a.display_name ?? ""),
+      // DOC 166 (2026-09-04) — lets the completeness composer know which
+      // per-template questions this activity's own form could ever surface
+      // (see NOTICES_DISPLAYED_TEMPLATES / INCIDENT_LOG_TEMPLATES in
+      // ropa-skeleton-assemble.ts). Not used for any legal determination.
+      templateKey: String(a.template_key ?? ""),
       owner: str(ans.activity_owner),
       purpose: str(ans.purpose),
       // S-P1 (doc 80, 2026-08-27) — per-activity role. An explicit answer
@@ -735,7 +743,7 @@ function buildHtml(d: AssembledData): string {
               <tr><th>Collection sources</th><td>${escapeHtml(answerToString(ans.collection_sources))}</td></tr>
               <tr><th>Processing operations performed</th><td>${escapeHtml(processingOperationsLabel(ans.processing_operations))}</td></tr>
               <tr><th>Processors / recipients</th><td>${escapeHtml(answerToString(ans.processor_platform ?? ans.recipients))}</td></tr>
-              <tr><th>Cross-border transfers</th><td>${escapeHtml(answerToString(ans.transfer_destination ?? "None"))}${ans.transfer_mechanism ? ` (${escapeHtml(answerToString(ans.transfer_mechanism))})` : ""}</td></tr>
+              <tr><th>Cross-border transfers</th><td>${escapeHtml(transferDisplayForActivity(ans))}</td></tr>
               <tr><th>Retention period</th><td>${escapeHtml(answerToString(ans.retention_period))}</td></tr>
               ${(() => {
                 const byCat = retentionByCategory(ans);
@@ -941,7 +949,7 @@ function buildHtml(d: AssembledData): string {
   <p class="footer-note">This record is maintained pursuant to <strong>Article 30</strong> of the General Data Protection Regulation (GDPR) and UK GDPR, which requires controllers and processors to maintain records of processing activities. It satisfies the requirements of:</p>
   <ul>${lawList}</ul>
 
-  ${art305NoteHtml(d.activities, d.answersByActivity as Record<string, Record<string, unknown>>, escapeHtml)}
+  ${art305NoteHtml(d.activities, d.answersByActivity as Record<string, Record<string, unknown>>, escapeHtml, d.profile?.employee_band ?? null)}
 
   <h2>2. Processing activities</h2>
   ${activitySections || "<p><em>No activities recorded.</em></p>"}
@@ -1112,7 +1120,7 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
           ),
           kvRow(
             "Cross-border transfers",
-            answerToString(ans.transfer_destination ?? "None"),
+            transferDisplayForActivity(ans),
           ),
           kvRow("Retention period", answerToString(ans.retention_period)),
           ...(retentionByCategory(ans)

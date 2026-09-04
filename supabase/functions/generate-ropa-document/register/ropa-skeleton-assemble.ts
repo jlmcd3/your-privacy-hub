@@ -66,21 +66,44 @@ export const ROPA_HOME_BASE_LABELS: Record<string, string> = {
   OTHER: "a region it has recorded only as \u201Cother\u201D",
 };
 
+// DOC 166 (2026-09-04) — this map's keys never matched what the setup wizard
+// (RopaSetup.tsx ENTITY_TYPES) actually writes to `legal_entity_type`: the
+// form stores the option's own display text ("Limited company", "LLC",
+// "Sole trader", …), not a snake_case code. Every real record missed this
+// lookup and fell through to the old fallback
+// `s(input.legalEntityType).replace(/_/g, " ")`, which for these values is a
+// no-op — so the byte-pinned sentence "is a {legal_entity_type} incorporated
+// in …" rendered the option text's original capitalisation verbatim ("is a
+// Limited company incorporated in …"). Keyed to the form's real vocabulary
+// and phrased for the fixed lead-in "is a {slot}" (never "is an {slot}" —
+// the article is part of the protected leaf and cannot be changed per
+// value), so "LLC" is spelled out rather than left as a bare acronym after
+// "a". `other: "Other"` is included since the form's literal value is
+// "Other"; the OLD fallback fires unchanged for any value this map still
+// misses (e.g. UNRECORDED_ENTITY_TYPE, or a future option added to the form
+// before this map is updated to match).
 const LEGAL_ENTITY_LABELS: Record<string, string> = {
-  private_limited: "private limited company",
-  public_limited: "public limited company",
-  llc: "limited liability company",
-  corporation: "corporation",
-  partnership: "partnership",
-  sole_trader: "sole trader",
-  nonprofit: "not-for-profit organisation",
-  public_body: "public body",
-  other: "legal entity of another form",
+  "Limited company": "limited company",
+  "LLC": "limited liability company (LLC)",
+  "Partnership": "partnership",
+  "Sole trader": "sole trader",
+  "Charity": "registered charity",
+  "Public body": "public body",
+  "Other": "legal entity of another form",
 };
 
+// DOC 166 (2026-09-04) — this map's keys never matched the DB-constrained
+// vocabulary RopaSetup.tsx actually writes (`employee_band CHECK (... IN
+// ('<50','50-249','250-999','1000+'))`, migration
+// 20260501221552_c634bf83-0266-4fd1-af41-dcf75fc6d499.sql): "1-9" and
+// "10-49" have never been a real value, and "<50" — the band most small
+// businesses select — had NO entry at all, so it fell through to the old
+// fallback `s(input.employeeBand)` and rendered the literal comparison
+// operator "<50" inside the flowing sentence ("... with a workforce of
+// <50."). Keyed to the real four-band vocabulary; the fallback stays for
+// any value this map still misses.
 const EMPLOYEE_BAND_LABELS: Record<string, string> = {
-  "1-9": "fewer than ten people",
-  "10-49": "between ten and forty-nine people",
+  "<50": "fewer than fifty people",
   "50-249": "between fifty and two hundred and forty-nine people",
   "250-999": "between two hundred and fifty and nine hundred and ninety-nine people",
   "1000+": "one thousand people or more",
@@ -102,6 +125,18 @@ const UNRECORDED_BAND = "a size it has not recorded";
 export interface RopaActivityInput {
   readonly id: string;
   readonly name: string;
+  /**
+   * DOC 166 (2026-09-04) — the activity's template key (e.g. "ops_facilities",
+   * "tech_security"), or "" for a custom activity. Used ONLY to know which
+   * completeness-gap sentences are honest to compose: some intake questions
+   * (notices_displayed, incident_log) are surfaced by only a subset of
+   * templates, per ASKABLE_ONLY_BY in this module — mirrors
+   * src/data/ropa-questions/index.ts, which this edge function cannot import
+   * (browser module, different runtime). Never used for any legal
+   * determination, only to avoid inviting the customer to record an answer
+   * the product never lets them give.
+   */
+  readonly templateKey?: string;
   readonly owner: string;
   readonly purpose: string;
   // S-P1 (doc 80, 2026-08-27) — per-activity role: "controller" | "processor"
@@ -492,6 +527,16 @@ function composeCompletenessLead(c: RopaCompleteness): string {
   return `The register is not complete on its face against Article 30: ${c.activities_incomplete} of ${c.activities_total} recorded ${c.activities_total === 1 ? "activity is" : "activities are"} missing required entries \u2014 ${named.join("; ")}${tail}.`;
 }
 
+// DOC 166 (2026-09-04) — the ONLY activity templates whose intake surfaces
+// each of these questions (src/data/ropa-questions/index.ts: OPS_FACILITIES
+// carries `notices_displayed`, TECH_SECURITY carries `incident_log`; no
+// other template's extras include either key). This edge function cannot
+// import that frontend module (different runtime, browser-only path), so the
+// two keys are mirrored here — same pattern as PROCESSING_OPERATION_LABELS
+// in generate-ropa-document/index.ts. Keep in sync with that file.
+const NOTICES_DISPLAYED_TEMPLATES = new Set(["ops_facilities"]);
+const INCIDENT_LOG_TEMPLATES = new Set(["tech_security"]);
+
 function composeCompletenessFindings(
   input: RopaAssembleInput,
   records: readonly RopaActivityRecord[],
@@ -499,25 +544,36 @@ function composeCompletenessFindings(
 ): string {
   const sentences: string[] = [];
 
+  // Positive facts are asserted from whatever is actually recorded,
+  // regardless of the owning activity's current template (a legacy record
+  // may carry an answer its activity was later re-templated away from). The
+  // template allow-list gates ONLY whether the negative "not stated" gap
+  // sentence is fair to compose.
+  const noticesAskable = input.activities.filter((a) => NOTICES_DISPLAYED_TEMPLATES.has(s(a.templateKey)));
   const notices = input.activities.filter((a) => recorded(a.noticesDisplayed));
   if (notices.length) {
     sentences.push(
       `On notices, the company has indicated ${asProse(notices.map((a) => `${s(a.name)}: ${noStop(s(a.noticesDisplayed))}`))}`,
     );
-  } else {
+  } else if (noticesAskable.length) {
+    // DOC 135 (Batch 4 A-Team review, 2026-09-01) — customer-facing
+    // vocabulary filter: "intake" is an internal term.
+    // DOC 166 — only composed when a recorded activity's own template can
+    // actually be asked this question; otherwise the invitation to "record"
+    // it is one the product cannot fulfil, so the point is omitted rather
+    // than asserted as an open gap.
     sentences.push(
-      // DOC 135 (Batch 4 A-Team review, 2026-09-01) — customer-facing
-      // vocabulary filter: "intake" is an internal term.
       "The information supplied by the Company does not state whether processing notices are displayed; recording that answer for each activity would close the point",
     );
   }
 
+  const logsAskable = input.activities.filter((a) => INCIDENT_LOG_TEMPLATES.has(s(a.templateKey)));
   const logs = input.activities.filter((a) => recorded(a.incidentLog));
   if (logs.length) {
     sentences.push(
       `On the incident log, the company has described ${asProse(logs.map((a) => noStop(s(a.incidentLog))))}`,
     );
-  } else {
+  } else if (logsAskable.length) {
     sentences.push(
       "No breach or incident register has been described; naming the register and the person who maintains it would close the point",
     );

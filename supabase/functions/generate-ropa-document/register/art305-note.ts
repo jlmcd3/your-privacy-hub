@@ -62,9 +62,29 @@ export interface Art305Note {
   body: string;
 }
 
+// DOC 166 (2026-09-04) — the negative branch below used to assert that
+// headcount "is not recorded", unconditionally, even though the setup
+// wizard (RopaSetup.tsx) DOES capture it as `employee_band` and the caller
+// already has it on hand (`d.profile.employee_band` in
+// generate-ropa-document/index.ts). A company that had told the product it
+// employs 1,000+ people was still told the derogation's headcount limb was
+// an open question, when Article 30(5) itself closes it: "fewer than 250
+// persons" is not met at 250 or more, full stop, independent of regularity.
+// Bands mirror the DB CHECK constraint on ropa_client_profiles.employee_band
+// (migration 20260501221552, values '<50','50-249','250-999','1000+').
+const UNDER_250_BANDS = new Set(["<50", "50-249"]);
+const AT_LEAST_250_BANDS = new Set(["250-999", "1000+"]);
+const EMPLOYEE_BAND_PHRASE: Record<string, string> = {
+  "<50": "fewer than fifty people",
+  "50-249": "between fifty and two hundred and forty-nine people",
+  "250-999": "between two hundred and fifty and nine hundred and ninety-nine people",
+  "1000+": "one thousand people or more",
+};
+
 export function buildArt305Note(
   activities: ReadonlyArray<{ id: string; display_name: string }>,
   answersByActivity: Record<string, Bag>,
+  employeeBand?: string | null,
 ): Art305Note {
   const special = specialCategoryActivities(activities, answersByActivity);
   const heading = "Article 30(5) note";
@@ -75,6 +95,26 @@ export function buildArt305Note(
       body:
         `The Article 30(5) derogation for organisations employing fewer than 250 persons does not turn on headcount alone: it is unavailable where the processing includes special categories of data under Article 9(1). ` +
         `This register records a special-category basis for ${special.length === 1 ? "the activity" : `${special.length} activities`} ${list}, so the Article 30 record-keeping obligation applies to the company regardless of its size.`,
+    };
+  }
+
+  const band = (employeeBand ?? "").trim();
+  if (AT_LEAST_250_BANDS.has(band)) {
+    return {
+      heading,
+      body:
+        "Organisations employing fewer than 250 persons are exempt from Article 30 record-keeping unless the processing is likely to result in a risk to rights and freedoms, is other than occasional, or includes special categories of data or criminal-conviction data. " +
+        `On the recorded activities, no special-category exception is engaged, but the derogation is unavailable regardless: the Company reports a workforce of ${EMPLOYEE_BAND_PHRASE[band]}, which is not fewer than 250 persons. ` +
+        "Maintaining the register is required, not merely good practice, on this record.",
+    };
+  }
+  if (UNDER_250_BANDS.has(band)) {
+    return {
+      heading,
+      body:
+        "Organisations employing fewer than 250 persons are exempt from Article 30 record-keeping unless the processing is likely to result in a risk to rights and freedoms, is other than occasional, or includes special categories of data or criminal-conviction data. " +
+        `On the recorded activities, no special-category exception is engaged, and the Company reports a workforce of ${EMPLOYEE_BAND_PHRASE[band]}, which is fewer than 250 persons; whether the derogation could apply therefore turns on the regularity of the Company's processing, which this register does not record. ` +
+        "Maintaining the register is good practice and accountability evidence in either case.",
     };
   }
   return {
@@ -90,8 +130,9 @@ export function art305NoteHtml(
   activities: ReadonlyArray<{ id: string; display_name: string }>,
   answersByActivity: Record<string, Bag>,
   escapeHtml: (s: unknown) => string,
+  employeeBand?: string | null,
 ): string {
-  const note = buildArt305Note(activities, answersByActivity);
+  const note = buildArt305Note(activities, answersByActivity, employeeBand);
   return `<section class="art305-note" style="background:#edf2f5;border:1px solid #dde5ea;border-radius:0.375rem;padding:0.9rem 1.1rem;margin:1.25rem 0;">
     <h3 style="margin:0 0 0.4rem 0;font-size:0.95rem;">${escapeHtml(note.heading)}</h3>
     <p style="margin:0;font-size:0.85rem;">${escapeHtml(note.body)}</p>
