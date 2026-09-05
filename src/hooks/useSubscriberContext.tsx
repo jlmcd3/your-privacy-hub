@@ -112,13 +112,16 @@ export function SubscriberContextProvider({ children }: { children: ReactNode })
   }, [isPremium, user, authLoading]);
 
   const setRole = useCallback((role: string | undefined) => {
-    setContext((prev) => (prev ? { ...prev, role: role || undefined } : prev));
+    setContext((prev) =>
+      prev
+        ? { ...prev, role: role || undefined }
+        : deriveFromWatchlist(role || undefined, [])
+    );
   }, []);
 
   const setWatchlist = useCallback((items: WatchlistRow[]) => {
     setContext((prev) => {
-      if (!prev) return prev;
-      const next = deriveFromWatchlist(prev.role, items);
+      const next = deriveFromWatchlist(prev?.role, items);
       return next;
     });
   }, []);
