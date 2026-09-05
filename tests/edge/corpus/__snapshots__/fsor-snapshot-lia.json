@@ -69,6 +69,57 @@
     },
     "286ddf26-7ca4-468c-9831-2c55ce4ac7ac": {
       "excerpt_text": "116 In particular, it highlighted that, when performing a balancing exercise to assess whether a processing may be based on Article 6(1)(f) GDPR, special care must be taken in relation to the status of children as data subjects, using their best interest as a guide.117 112 See Article 18(2) GDPR. 113 See inter alia Recital 38 GDPR. 114 The concept of the child’s best interests should be assessed on a case-by-case basis, either in relation to an individual child or children in general. The assessment should include the impact on all the rights enshrined in the Convention on the Rights of the Child and its Optional Protocols and not only the impact on the rights to privacy and to data protection. 115 Convention on the Rights of the Child, signed on 20 November 1989 and ratified by all the Member States. 116 WP29, Opinion 2/2009 on the protection of children’s personal data (General Guidelines and the special case of schools), adopted on 11 February 2009. 117 Ibid., page 9. 27 Adopted - version for public consultation 94. While this does not mean that there will never be a situation in which the interests of the child can be overridden, it does mean that the interests of children as data subjects should have high priority and will very often outweigh the interests of the controller or third parties.118 95. The EDPB considers that Article 6(1)(f) GDPR may be invoked as a legal basis by a controller where the legitimate interests pursued coincide with the interests of the child."
+    },
+    "dcd75c1d-a21f-4939-b2a0-d8cb1b96545a": {
+      "key_compliance_failure": "Meta IE's processing of personal data for behavioral advertising was found to be unlawful, as the 'consent' obtained from users was not freely given, specific, or granular, and was bundled with terms of service."
+    },
+    "c1a28f21-71cd-472e-b549-c0d4b986ec2a": {
+      "key_compliance_failure": "The controller unlawfully collected and processed a massive database of biometric data from individuals, including minors, without a valid legal basis or consent, and failed to adequately respond to data subject access and erasure requests."
+    },
+    "75cce78c-78a8-47a3-97bc-517575cdaf88": {
+      "key_compliance_failure": "The online advertising group Criteo failed to ensure that data subjects gave their consent to the placement of tracking cookies on their devices and subsequently failed to process their data lawfully and transparently, as well as handle their data subject rights requests properly."
+    },
+    "7edab77e-1403-4bdb-a834-9aa626f97dd1": {
+      "key_compliance_failure": "The media outlet published an audio recording of a rape victim's testimony without sufficient justification, violating data minimization principles and the victim's right to privacy."
+    },
+    "d47222c4-c7db-4564-9074-831a5753ee52": {
+      "key_compliance_failure": "The company processed highly sensitive personal data without a legitimate basis, specifically by publishing an audio recording of a rape victim's testimony."
+    },
+    "0d01d954-f90b-4859-a022-68e497bdd37a": {
+      "key_compliance_failure": "The company performed a credit check on an individual without a valid legal basis as required by GDPR Article 6(1)."
+    },
+    "d2df70c3-d59d-4c13-9aa5-701f47774649": {
+      "key_compliance_failure": "Accor failed to obtain valid consent for direct marketing, did not provide adequate information about data processing, did not properly respond to data subject access and unsubscribe requests, and used a weak password for an account managing email communications."
+    },
+    "64ee4d90-9ead-4155-b379-868932d05c5f": {
+      "key_compliance_failure": "se han publicado sus datos personales (nombre y apellidos y, además, la imagen de uno de ellos) sin su consentimiento, acusándoles de haber ocupado un inmueble y no haber abonado el precio correspondiente al alquiler."
+    },
+    "99d0804e-9263-4569-94bc-1d20cdbf9140": {
+      "key_compliance_failure": "los datos de empresarios autónomos que coinciden con sus datos personales queden expuestos e incluso sean vendidos en internet, sin consentimiento de los interesados ni base legal para tal tratamiento."
+    },
+    "a51194ee-6bf4-49b6-94d1-1dd8c7647029": {
+      "key_compliance_failure": "Se constata que la entidad reclamada contrató los servicios de empresas dedicadas a la promoción de actividades relacionadas con comercialización de energía eléctrica sin verificar adecuadamente cómo estas empresas obtenían y procesaban los datos personales de los clientes potenciales, permitiendo que se realizasen llamadas telefónicas y se utilizasen datos personales (nombre completo, DNI, dirección, número de CUP y dígitos del número de cuenta bancaria) de la reclamante sin consentimiento previo, en el marco de una actividad comercial que se llevó a cabo de forma engañosa haciéndose pasar por una comercializadora autorizada."
+    },
+    "94312858-b48c-4a93-92ea-2b8e6edaf147": {
+      "key_compliance_failure": "SC Grupex 2000 SRL a prelucrat ilegal datele personale ale unor persoane fizice, bolnavi instituționalizați, în cadrul unui material filmat disponibil pe site-ul operatorului, prin încălcarea dispozițiilor art. 6 și art. 9 prin raportare la principiile prevăzute de art. 5 alin. (1) lit. a), b), c) și f) și alin. (2) din RGPD."
+    },
+    "8419bcb5-847e-48f2-b9a2-51d3616f638e": {
+      "key_compliance_failure": "ceder los datos personales del reclamante a la empresa de CALDERERIA Y SOLDADURA DE ESTRUCTURAS METALICAS, S.L. sin el consentimiento previo del titular de dichos datos personales supone una infracción del art. 6 del RGPD."
+    },
+    "d6d05fbe-8f5b-49d7-bbb1-6f66f85d7e17": {
+      "key_compliance_failure": "ceder los datos personales del reclamante a la empresa de CALDERERIA Y SOLDADURA DE ESTRUCTURAS METALICAS, S.L. sin el consentimiento previo del titular de dichos datos personales"
+    },
+    "eb4cfde4-90c3-42f6-a829-5c83f0844db1": {
+      "key_compliance_failure": "recepción el 31 de enero de 2020, a las 11:34 horas, de una llamada comercial en nombre de \"Vodafone España, S.A.U.\", a su línea telefónica que se encuentra inscrita en la lista de exclusión publicitaria Robinson."
+    },
+    "ad36611f-1840-4d06-b330-8cbff6cb5882": {
+      "key_compliance_failure": "el denunciado, con la relación de encargado del tratamiento ya finalizada, ha seguido tratando los datos de los clientes del denunciante llegando incluso a establecer contactos telefónicos con sus clientes para ofertarle los servicios que el denunciante les estaba prestando."
+    },
+    "c0e5e0bf-e940-484c-9f1c-504b32e015eb": {
+      "key_compliance_failure": "la reclamante contrató los servicios del reclamado para descargarse menús semanales, descubriendo días después que dicha empresa ha utilizado sus datos personales nombre y apellidos completos y foto de perfil, e información sobre sus analíticas de colesterol y su enfermedad de hipotiroidismo para dar publicidad a sus productos, sin su previo consentimiento."
+    },
+    "8d710906-539f-4ca8-8e43-1dad789b6acb": {
+      "key_compliance_failure": "una trabajadora de la tienda de Vodafone se hizo pasar por él dándose de alta en otra compañía y así realizar la portabilidad aportando DNI y sus datos sin consentimiento y falsificando su firma."
     }
   }
 }
