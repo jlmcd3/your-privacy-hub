@@ -473,6 +473,7 @@ Return a JSON object with EXACTLY these fields:
   "ropa": {
     "org_name": "string", "legal_entity_type": "string", "employee_band": "string",
     "dpo_name": "string", "dpo_email": "string",
+    "rights_handling_process": "string — one or two sentences in the company's own words: how data-subject rights requests are received, logged, verified and fulfilled (this company's own channel and timings; never another company's)",
     "jurisdictions": [{ "code": "string", "name": "string", "region": "string" }],
     "activities": [
       {
@@ -493,12 +494,27 @@ Return a JSON object with EXACTLY these fields:
   },
   "euNotice": {
     "controller_name": "string", "controller_address": "string", "contact_email": "string",
-    "dpo_details": "string", "dpo_name": "string", "dpo_email": "string",
-    "processing_purposes": ["array"], "data_categories": ["array"], "lawful_basis": ["array"],
-    "third_party_recipients": ["array"], "transfer_outside_eea": "string",
-    "transfer_safeguards": ["array"], "retention_period": "string",
-    "automated_decisions": "string", "special_category_basis": "string or null",
-    "supervisory_authority_eu": "string", "supervisory_authority_uk": "string or null"
+    "dpo_details": "EXACTLY 'yes' or 'no' — the form asks this as yes/no; never a name or prose (the name and email go in the two keys below)",
+    "dpo_name": "string", "dpo_email": "string",
+    "processing_purposes": ["array of tokens from EXACTLY: service_delivery | account_management | marketing | analytics | advertising | legal_compliance | security | research | payment | other"],
+    "data_categories": ["array of tokens from EXACTLY: identifiers | commercial | internet_activity | geolocation | audio_visual | professional | education | financial | health_medical | biometric | race_ethnicity | religion | sexual_orientation | political_opinions | trade_union | criminal | children"],
+    "special_category_basis": ["array of tokens from EXACTLY: explicit_consent | employment_law | vital_interests | non_profit | manifestly_public | legal_claims | substantial_public_interest | health_medicine | public_health | archiving_research — empty array when no special category is selected"],
+    "lawful_basis": ["array of tokens from EXACTLY: consent | contract | legal_obligation | vital_interests | public_task | legitimate_interests — the codes only, never 'Contract (Art. 6(1)(b)) — …' prose"],
+    "third_party_recipients": ["array of tokens from EXACTLY: service_providers | analytics | advertising | regulators | affiliates | other"],
+    "transfer_outside_eea": "EXACTLY 'yes' or 'no' — yes/no question; the destinations and safeguards go in the two keys below, never here",
+    "transfer_safeguards": ["array of tokens from EXACTLY: adequacy | sccs | bcrs | uk_addendum | derogations | other — empty array when transfer_outside_eea is 'no'"],
+    "transfer_destinations": "string — countries or regions, e.g. 'United States' (empty string when transfer_outside_eea is 'no')",
+    "retention_period": "string — the period or the criteria, in prose",
+    "automated_decisions": "EXACTLY 'yes', 'no' or 'unsure' — solely automated decisions with legal or similarly significant effects; never prose",
+    "automated_decisions_detail": "string — the logic, significance and consequences when automated_decisions is 'yes'; empty string otherwise",
+    "collection_source": "EXACTLY 'direct', 'indirect' or 'mixed'",
+    "data_source_categories": ["array of tokens from EXACTLY: data_brokers | public_sources | partners | public_authorities | social_web | other — empty array when collection_source is 'direct'"],
+    "establishment_jurisdiction": "EXACTLY 'eea', 'uk' or 'outside' — where the controller is established",
+    "gdpr_dpa_contact": "string — the supervisory authority with jurisdiction, e.g. 'Data Protection Commission (Ireland)'",
+    "gdpr_right_to_withdraw": "string — how consent is withdrawn (when lawful_basis includes consent; empty string otherwise)",
+    "gdpr_right_to_object": "string — how individuals object (when lawful_basis includes legitimate_interests; empty string otherwise)",
+    "gdpr_profiling": "EXACTLY 'yes', 'no' or 'unsure'",
+    "gdpr_profiling_info": "string — what the profiling is for and its consequences when gdpr_profiling is 'yes'; empty string otherwise"
   },
   "usNotice": null,
   "cppaRisk": null,
@@ -765,6 +781,19 @@ const COUNTRY_JURISDICTION: Record<string, string> = {
   IE: "Ireland",
   NL: "Netherlands",
   ES: "Spain",
+};
+
+// Batch b83ea3c4 (2026-09-05) — the EU notice form's `gdpr_dpa_contact` is
+// free text naming the supervisory authority; the fallback names the
+// authority of the controller's country (harness content, not law content —
+// the spine renders the answer verbatim and derives nothing from it).
+const EU_NOTICE_DPA_CONTACT: Record<string, string> = {
+  GB: "Information Commissioner's Office (ICO)",
+  DE: "Der Bundesbeauftragte für den Datenschutz und die Informationsfreiheit (BfDI)",
+  FR: "Commission Nationale de l'Informatique et des Libertés (CNIL)",
+  IE: "Data Protection Commission (Ireland)",
+  NL: "Autoriteit Persoonsgegevens (AP)",
+  ES: "Agencia Española de Protección de Datos (AEPD)",
 };
 
 const COUNTRY_ADDRESS: Record<string, string> = {
@@ -1518,6 +1547,10 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
         })(),
         dpo_name: c.dpoName,
         dpo_email: c.dpoEmail,
+        // Batch b83ea3c4 (2026-09-05): the profile-level rights-handling answer
+        // is this company's own; the harness writes it explicitly so no other
+        // company's text survives on the shared stress client profile.
+        rights_handling_process: `Requests reach ${c.privacyEmail} or the account settings page, are logged in the rights-request register on receipt, verified against the account record, and fulfilled by the privacy team within one month (extendable by two further months with notice under Art. 12(3)).`,
         jurisdictions: [
           { code: "EU_GDPR", name: "European Union", region: "EU & UK" },
           { code: "UK_GDPR", name: "United Kingdom", region: "EU & UK" },
@@ -1532,7 +1565,10 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
         dpo_details: "yes",            // token: "yes" means DPO is designated
         dpo_name: c.dpoName ?? "",
         dpo_email: c.dpoEmail ?? "",
-        establishment_jurisdiction: COUNTRY_JURISDICTION[c.countryCode] ?? "Ireland",
+        // Batch b83ea3c4 (2026-09-05): the form stores a TOKEN here ("eea" /
+        // "uk" / "outside"), not a country name — the spine's representative
+        // and supervisory-authority logic reads the token's label.
+        establishment_jurisdiction: c.countryCode === "GB" ? "uk" : "eea",
         processing_purposes: getEuNoticePurposesForSector(industry),
         data_categories: getEuNoticeCategoriesForSector(industry),
         lawful_basis: getEuNoticeBasisForSector(industry),
@@ -1543,6 +1579,12 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
         retention_period: "24 months after account closure, unless a longer period is required by applicable law",
         automated_decisions: getEuNoticeAutomatedDecisions(industry),
         special_category_basis: null,
+        // Batch b83ea3c4 — the form's own keys for the questions the spine
+        // reads (collection route; the supervisory authority is
+        // `gdpr_dpa_contact`, not `supervisory_authority_eu`).
+        collection_source: "direct",
+        gdpr_dpa_contact: EU_NOTICE_DPA_CONTACT[c.countryCode] ?? "Data Protection Commission (Ireland)",
+        gdpr_profiling: getEuNoticeAutomatedDecisions(industry) === "yes" ? "yes" : "no",
       },
       usNotice: null,
       cppaRisk: null,

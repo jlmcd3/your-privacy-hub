@@ -464,7 +464,9 @@ function domainSeverityPhrase(report: Bag, needle: RegExp): string {
   const d = domainEntries(report).find((x) => needle.test(`${s(x.domain_name)} ${s(x.domain)}`));
   if (!d) return "not separately assessed by this report";
   const sev = s(d.severity).toLowerCase();
-  if (!sev) return "assessed in Section III without a recorded severity";
+  // Batch b83ea3c4 (2026-09-05): the Syllabus & Record document numbers its
+  // sections 1–5; "Section III" was a pre-doc-173 remnant.
+  if (!sev) return "assessed in the domain sections without a recorded severity";
   // DOC-81 G-3 — "Compliant" and "Unresolved" are postures, not severities;
   // render them in the determination register instead.
   if (sev === "compliant") return "evidenced";

@@ -48,6 +48,17 @@ export interface Art28CoverageResult {
 // bonus now needs at least two distinctive tokens in the heading.
 export const DPA_CLAUSE_COVERAGE_VERSION = "dpa-art28-coverage-v2-2026-09-05";
 
+// Batch b83ea3c4 (2026-09-05, four US-only engagements): the us-state mode
+// assembles the jurisdiction-neutral v2.0 skeleton (doc 182 — "the Art. 28
+// citations are wrong law there"), so a GDPR Art. 28(3) coverage check of
+// that instrument is a checklist for the wrong law: the neutral wording put
+// (a) in Section 21, (c) in Section 6 and marked (d) "Absent — requires
+// attention before execution" on a DPA the GDPR does not govern. The schedule
+// renders only where a GDPR-family instrument is assembled.
+export function art28CoverageApplies(documentType: string): boolean {
+  return documentType !== "us-state";
+}
+
 const STOPWORDS = new Set([
   "shall", "which", "there", "these", "those", "their", "other", "under",
   "where", "with", "that", "this", "such", "from", "into", "have", "been",

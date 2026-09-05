@@ -17,13 +17,18 @@ import { irPlaybookContract } from "../../_shared/intake-contracts/ir-playbook.t
 import { dpaGeneratorContract } from "../../_shared/intake-contracts/dpa-generator.ts";
 import { registrationContract } from "../../_shared/intake-contracts/registration-assessment.ts";
 import { usNoticeContract } from "../../_shared/intake-contracts/us-notice.ts";
+import { euNoticeContract } from "../../_shared/intake-contracts/eu-notice.ts";
 
-// Session-shaped products: ropa and the EU notice still have no single intake
-// contract. Batch 4ed05f22 (2026-09-05) — the US notice now has one for its
-// token-read questions (see us-notice.ts), after a prose sale/sharing answer
-// went through ungated and the generated notice could not state its position.
+// Session-shaped products: ropa still has no single intake contract. Batch
+// 4ed05f22 (2026-09-05) — the US notice has one for its token-read questions
+// (see us-notice.ts), after a prose sale/sharing answer went through ungated
+// and the generated notice could not state its position. Batch b83ea3c4
+// (2026-09-05) — the EU notice has one too (see eu-notice.ts), after prose in
+// the yes/no transfer and DPO questions made every notice in the batch deny
+// the transfers the record described and omit the DPO it named.
 const CONTRACT_BY_STRESS_TOOL: Record<string, IntakeContract | undefined> = {
   "us-notice": usNoticeContract,
+  "eu-notice": euNoticeContract,
   "lia": liAssessmentStageBContract,
   "dpia": dpiaFrameworkContract,
   "governance": governanceContract,

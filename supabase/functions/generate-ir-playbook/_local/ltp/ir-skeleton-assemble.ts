@@ -51,11 +51,11 @@ import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
 import { firstSentence, firstSentences } from "../../../_shared/ltp/dpia-skeleton-assemble.ts";
 import { buildIrPlaybookDeliverables, normalizeBreachNoticeContracts, normalizeResponseTeamRoster, processorNameFromContracts, resolveProcessorName } from "./ir-playbook-deliverables/build.ts";
 // IR-F tranche 2 — the verified per-state walk gates (CA/TX/NY this tranche).
-import { STATE_WALK_GATES } from "./ir-playbook-deliverables/us-state-duties.ts";
+import { STATE_WALK_GATES, isUsStateJurisdiction } from "./ir-playbook-deliverables/us-state-duties.ts";
 // DOC 141 (2026-09-02) — the same jurisdiction list the regime derivation
 // folds into "eu" (build.ts readIncidentFacts), read here only to echo the
 // customer's own recorded member-state selections on the EU clocks row.
-import { EEA_JURISDICTIONS } from "./ir-playbook-deliverables/elements.ts";
+import { EEA_JURISDICTIONS, UK_JURISDICTION } from "./ir-playbook-deliverables/elements.ts";
 // DOC 177 (2026-09-04) — Syllabus & Record (doc 151); IR Playbook is the
 // eighth product migrated onto the fleet presentation system.
 import { dispositionTone, type SyllabusProjection } from "../../../_shared/prose/syllabus.ts";
@@ -255,6 +255,38 @@ function deriveExternalSupportTable(intake: Bag): RenderedTable | null {
 // per-incident Art. 34 analysis (built by
 // buildDataSubjectCommunicationDetermination in ir-playbook-deliverables/
 // build.ts) rather than leaving the cell to read as "no duty exists."
+/** Batch b83ea3c4 (2026-09-05) — the cell for a recorded jurisdiction that
+ * produced no duty row. A scope statement, not a determination: the
+ * playbook's statutes do not reach it, so nothing is asserted either way. */
+export const UNCOVERED_JURISDICTION_NOTE =
+  "No notification statute this playbook covers attaches to this jurisdiction; no clock is stated for it and its position remains for separate advice.";
+
+/**
+ * Batch b83ea3c4 (2026-09-05) — the recorded jurisdictions the document would
+ * otherwise be silent about: not an EU/EEA or UK selection (those ride
+ * `notification_duties`), not a US state the state-duty registry covers, and
+ * not the origin of any `state_notification_duties` row (HIPAA, SEC 8-K,
+ * PIPEDA and the provinces all leave a row whose `jurisdiction` names the
+ * recorded value, or "HIPAA" for the organisation-type-gated HIPAA rows).
+ * Pure; order follows the record; duplicates collapse.
+ */
+export function uncoveredRecordedJurisdictions(report: Bag, intake: Bag): string[] {
+  const recorded = arr(intake.jurisdictions);
+  if (!recorded.length) return [];
+  const rowJurisdictions = new Set(asArray(report.state_notification_duties).map((d) => s(d.jurisdiction)).filter(Boolean));
+  const hipaaRows = rowJurisdictions.has("HIPAA");
+  const out: string[] = [];
+  for (const j of recorded) {
+    if (out.includes(j)) continue;
+    if (j === "EU/EEA" || EEA_JURISDICTIONS.includes(j) || j === UK_JURISDICTION) continue;
+    if (isUsStateJurisdiction(j)) continue;
+    if (rowJurisdictions.has(j)) continue;
+    if (j === "United States (HIPAA)" && hipaaRows) continue;
+    out.push(j);
+  }
+  return out;
+}
+
 function deriveNotificationClocksTable(report: Bag, intake: Bag): RenderedTable | null {
   const rows: string[][] = [];
   for (const d of asArray(report.notification_duties)) {
@@ -286,6 +318,13 @@ function deriveNotificationClocksTable(report: Bag, intake: Bag): RenderedTable 
     const individual = s(d.individual_deadline);
     if (!state || !individual) continue;
     rows.push([state, cellCap(individual), cellCap(s(d.regulator_deadline)) || "—", s(d.citation) || "—"]);
+  }
+  // Batch b83ea3c4 (2026-09-05, Clarivex/Cloverpath): "United States (FTC)"
+  // is a form option the record carried and the document said nothing about
+  // it — no clock, no scope statement. A recorded jurisdiction this playbook
+  // states no duty for now gets its own row saying so; nothing is invented.
+  for (const j of uncoveredRecordedJurisdictions(report, intake)) {
+    rows.push([j, UNCOVERED_JURISDICTION_NOTE, "—", "—"]);
   }
   if (!rows.length) return null;
   return {

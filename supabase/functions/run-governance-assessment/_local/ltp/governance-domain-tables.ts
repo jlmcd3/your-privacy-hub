@@ -519,7 +519,7 @@ export function composeExecutiveSummaryTyped(findings: Record<string, TypedDomai
     parts.push(`The domains requiring action first are: ${adverse.map((f) => f.domain_name).join("; ")}.`);
   }
   if (flagged.length > 0) {
-    parts.push(`${flagged.length === 1 ? "One domain carries a recorded gap" : `${flagged.length} domains carry recorded gaps`} below the immediate-priority threshold; the actions are set out in Section III.`);
+    parts.push(`${flagged.length === 1 ? "One domain carries a recorded gap" : `${flagged.length} domains carry recorded gaps`} below the immediate-priority threshold; the actions are set out in the remediation register below.`);
   }
   if (unresolved.length > 0) {
     parts.push(`${unresolved.length === 1 ? "One domain remains" : `${unresolved.length} domains remain`} unresolved on the information provided.`);

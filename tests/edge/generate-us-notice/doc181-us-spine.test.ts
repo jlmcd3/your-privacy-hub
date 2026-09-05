@@ -274,3 +274,18 @@ Deno.test("doc181 — a fully answered record still carries prompts only for fac
   assert(!html.includes("[insert the email address for privacy questions"));
   assert(!html.includes("[insert the retention period"));
 });
+
+// Batch b83ea3c4 (2026-09-05, all four US companies): Section 2 promised that
+// "each category is also mapped to the applicable statutory category in the
+// California Privacy Disclosures below", but a free-text categories answer
+// renders CA-1 as ONE row, so the promise was false on every stress fixture.
+// The sentence keeps the promise only when the categories arrived as tokens.
+Deno.test("batch b83ea3c4 — the statutory-category mapping promise is made only when CA-1 can keep it", () => {
+  const tokens = buildNoticeHtml(CA, FULL, AT);
+  assertStringIncludes(tokens, "each category is also mapped to the applicable statutory category");
+  const prose = buildNoticeHtml(CA, { ...FULL, data_categories: "We collect contact identifiers, account log-in credentials, device identifiers and payment information." }, AT);
+  assert(!prose.includes("mapped to the applicable statutory category"), "a one-row CA-1 must not promise a per-category mapping");
+  assertStringIncludes(prose, "The categories are described in reader-friendly terms.");
+  // The Virginia edition never made the promise.
+  assert(!buildNoticeHtml(VA, FULL, AT).includes("mapped to the applicable statutory category"));
+});

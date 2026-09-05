@@ -64,6 +64,15 @@ const SKIP_SUBTREE_KEYS = new Set<string>([
   "_revision", "deterministic_checks", "annotations", "lint_warnings",
   "engagement_map", "enforcement_meta", "enforcement_precedents",
   "enforcement_context", "citation_ledger",
+  // Batch b83ea3c4 (2026-09-05): on the deterministic path `dpa_contract`
+  // carries the RATIFIED clause library text and `clause_coverage` the Art.
+  // 28(3) statutory requirement text — neither is a model-authored business
+  // claim. Class B rewrote clause 10.1 ("…all information necessary to
+  // demonstrate compliance…") to the neutral prompt and destroyed its
+  // caption on a US-only engagement whose thin intake shared no content noun
+  // with the clause, and rewrote requirement (h) of the schedule the same
+  // way.
+  "dpa_contract", "clause_coverage",
 ]);
 
 // Keys that MUST NOT be mutated as prose (identifiers, anchors, verified

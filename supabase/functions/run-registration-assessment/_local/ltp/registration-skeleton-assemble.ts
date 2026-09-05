@@ -610,8 +610,10 @@ export function deriveDutyStatusTable(report: Bag): RenderedTable | null {
       closes = f && f.ready_to_file === true
         ? "Ready to file on its face"
         : open > 0
-        ? `${open} content ${open === 1 ? "element" : "elements"} — see Section III`
-        : "Filing content — see Section III";
+        // Batch b83ea3c4 (2026-09-05): the document numbers its sections
+        // 1–3 (Filing Readiness is Section 3); "Section III" was a remnant.
+        ? `${open} content ${open === 1 ? "element" : "elements"} — see Section 3`
+        : "Filing content — see Section 3";
     } else if (verdict === "conditional") {
       closes = "Substantiate the claimed exclusion";
     } else if (verdict === "record_insufficient") {

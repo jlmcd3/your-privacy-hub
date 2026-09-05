@@ -152,7 +152,20 @@ export function readGovernanceFacts(intake: unknown): GovernanceFacts {
       jurisdictions.some((j) => j === "EU (GDPR)" || j === "United Kingdom (UK GDPR)"),
     dataCategories: arr(get(intake, "data_categories")),
     specialCategory: str(get(intake, "special_category")).toLowerCase() === "yes",
-    specialList: arr(get(intake, "special_categories_list")),
+    // Batch b83ea3c4 (2026-09-05, three of four GDPR companies): the form only
+    // SHOWS the category pills when the categorical answer is "Yes"
+    // (GovernanceAssessment.tsx `{specialCategory === "Yes" && …}`), but it
+    // submitted the pills' state regardless, so a record could carry
+    // special_category "No" beside special_categories_list ["Health data"].
+    // The engine then read the list on its own and engaged Art. 37(1)(c) and
+    // defeated the Art. 30(5) derogation on special-category processing the
+    // company had answered "No" to. The categorical answer governs: the list
+    // is the "which categories" follow-up to a "Yes", never evidence on its
+    // own (the same conditional-field rule DOC 137 applied to the missing-key
+    // scan below).
+    specialList: str(get(intake, "special_category")).toLowerCase() === "yes"
+      ? arr(get(intake, "special_categories_list"))
+      : [],
     dpoStatus: str(get(intake, "dpo_status")),
     nature: str(get(intake, "processing_nature")),
     scope: str(get(intake, "processing_scope")),

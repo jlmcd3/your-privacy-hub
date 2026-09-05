@@ -1699,7 +1699,14 @@ ${ADVISORY_VOICE_RULES}`;
     const applyArt28Annex = async (contractText: string): Promise<string> => {
       try {
         const { resolveProvisionForRender } = await import("../_shared/provision-store.ts");
-        const { checkArt28Coverage, renderArt28CoverageAnnex } = await import("./_local/dpa-clause-coverage.ts");
+        const { art28CoverageApplies, checkArt28Coverage, renderArt28CoverageAnnex } = await import("./_local/dpa-clause-coverage.ts");
+        // Batch b83ea3c4 (2026-09-05): no GDPR Art. 28(3) checklist on the
+        // jurisdiction-neutral us-state instrument (see art28CoverageApplies).
+        if (!art28CoverageApplies(documentType)) {
+          clause_coverage = null;
+          console.log("[generate-dpa] DPA-ANNEX skipped — us-state instrument is not governed by GDPR Art. 28(3)");
+          return contractText;
+        }
         if (!art28Provision) {
           art28Provision = await resolveProvisionForRender(supabase as unknown as { from: (t: string) => any }, "gdpr-art-28");
         }

@@ -16,6 +16,7 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 // canonical contract the product form emits, BEFORE the product runs.
 import { blockingContractViolations, contractForStressTool, INTAKE_CONTRACT_GATE_PREFIX } from "./_local/intake-gate.ts";
 import { coerceIntakeToContract } from "./_local/intake-coerce.ts";
+import { ropaAnswerRows, ropaProfileRow } from "./_local/ropa-rows.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -321,13 +322,11 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
     case "ropa": {
       const persona = intake;
       const clientId = await getOrCreateClientId(admin, userId);
-      await admin.from("ropa_client_profiles").upsert({
-        client_id: clientId,
-        legal_entity_type: persona.legal_entity_type,
-        employee_band: persona.employee_band,
-        is_controller: true, is_processor: false,
-        dpo_name: persona.dpo_name, dpo_email: persona.dpo_email,
-      }, { onConflict: "client_id" });
+      // Batch b83ea3c4 (2026-09-05): every owned profile column is written
+      // (null when the persona is silent) so nothing from an earlier fixture
+      // on the shared stress client leaks into this company's register — the
+      // graded RoPAs all carried another company's rights-handling sentence.
+      await admin.from("ropa_client_profiles").upsert(ropaProfileRow(persona, clientId), { onConflict: "client_id" });
 
       // Write sector to clients table — generate-ropa-document reads sector from clients.sector
       if (persona.sector) {
@@ -358,28 +357,12 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
         })),
       ).select("id, display_order");
       if (aErr || !actRows) throw new Error(`ropa activities: ${aErr?.message}`);
-      const ansRows: any[] = [];
-      for (const a of actRows) {
-        const src = acts[a.display_order];
-        const map: Record<string, unknown> = {
-          purpose: src.purpose, lawful_basis: src.lawful_basis,
-          special_category_basis: src.special_category_basis,
-          data_subjects: src.data_subjects, data_categories: src.data_categories,
-          recipients: src.recipients, transfer_destination: src.transfer_destination,
-          transfer_mechanism: src.transfer_mechanism,
-          retention_period: src.retention_period, security_measures: src.security_measures,
-        };
-        for (const [k, v] of Object.entries(map)) {
-          // Batch 4ed05f22 (2026-09-05): an undefined value made this row's key
-          // set differ from its neighbours', and PostgREST refuses a bulk
-          // insert whose rows do not share one key set — the WHOLE answer set
-          // was dropped (5 activities, 0 answers on the graded RoPA), and the
-          // warn below was the only trace. Unanswered questions are simply not
-          // rows.
-          if (v === undefined || v === null) continue;
-          ansRows.push({ activity_id: a.id, session_id: session.id, question_key: k, answer_value: v });
-        }
-      }
+      // Batch 4ed05f22 (2026-09-05): unanswered questions are not rows (a
+      // null made the bulk insert fail as a unit). Batch b83ea3c4: the key
+      // list now covers the doc-168 structured elements the generator already
+      // produced and the register read as "not recorded" — see
+      // _local/ropa-rows.ts.
+      const ansRows = ropaAnswerRows(acts, actRows, session.id);
       await insertAnswerRows(admin, "ropa_answers", ansRows);
       await invokeFn("generate-ropa-document", {
         session_id: session.id, format: "pdf",
@@ -444,8 +427,10 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
       if (sErr || !session) throw new Error(`eu-notice session: ${sErr?.message}`);
       // Derive whether UK GDPR applies from the controller's country code.
       // Only UK-established controllers are subject to UK GDPR.
+      // Batch b83ea3c4 (2026-09-05): the form stores the token "uk" (not a
+      // country name) — accept both.
       const noticeCountry = (intake as any).establishment_jurisdiction ?? "";
-      const isUKEstablished = /united kingdom|england|scotland|wales/i.test(String(noticeCountry));
+      const isUKEstablished = /^uk$|united kingdom|england|scotland|wales/i.test(String(noticeCountry).trim());
       const frameworks = [
         { session_id: session.id, framework_code: "EU_GDPR", framework_name: "EU GDPR", region: "EU" },
         ...(isUKEstablished

@@ -212,7 +212,11 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
     const parts: string[] = [];
     parts.push(p(`We collect the following categories of personal information: ${categories ? `<strong>${esc(categories)}</strong>` : fill("insert the categories of personal information collected")}.`));
     if (categoryCodes.includes("other")) parts.push(p(`${fill("describe the other categories of personal information collected")}.`));
-    parts.push(p(`The categories are described in reader-friendly terms${hasCA ? "; for California, each category is also mapped to the applicable statutory category in the California Privacy Disclosures below" : ""}. The fact that a category appears in this Notice does not mean that every item within that category is collected about every individual or used for every purpose.`));
+    // Batch b83ea3c4 (2026-09-05, all four US companies): the mapping promise
+    // is only kept when the categories arrived as the form's tokens (CA-1
+    // renders one row per token). A free-text answer renders as one row, so
+    // the sentence does not promise a mapping the table does not perform.
+    parts.push(p(`The categories are described in reader-friendly terms${hasCA && categoryCodes.length ? "; for California, each category is also mapped to the applicable statutory category in the California Privacy Disclosures below" : ""}. The fact that a category appears in this Notice does not mean that every item within that category is collected about every individual or used for every purpose.`));
     sections.push({ id: "sec-collect", title: "Categories of Personal Information We Collect", html: parts.join("\n") });
   }
 

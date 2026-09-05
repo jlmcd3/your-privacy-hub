@@ -232,7 +232,10 @@ const GovernanceAssessment = () => {
     sector, org_size: orgSize, jurisdictions, eu_uk_data: euUkData,
     tools: otherTool.trim() ? [...tools, `Other: ${otherTool.trim()}`] : tools,
     data_categories: dataCategories,
-    special_category: specialCategory, special_categories_list: specialCategoriesList,
+    // Batch b83ea3c4 (2026-09-05): the pills are only shown on "Yes"; a list
+    // left over from an earlier "Yes" must not travel with a "No" (same rule
+    // as privacy_notice_coverage below).
+    special_category: specialCategory, special_categories_list: specialCategory === "Yes" ? specialCategoriesList : [],
     privacy_policy: privacyPolicy,
     privacy_notice_coverage: privacyPolicy.startsWith("Yes") ? privacyNoticeCoverage : "n/a",
     

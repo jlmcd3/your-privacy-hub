@@ -394,7 +394,9 @@ export function buildProgramReadiness(intake: Bag, d: CyberDeliverables): { anal
     sentences.push(`${gaps === 1 ? "One material weakness cuts" : `${gaps} material weaknesses cut`} across the readiness picture; the cross-cutting section consolidates ${gaps === 1 ? "it" : "them"}.`);
   }
   if (gaps === 0 && rs.unassessed_count === 0 && untestable > 0) {
-    sentences.push(`No material implementation weakness is described, but ${untestable === 1 ? "one component" : `${untestable} components`} do not yet have a testable operating artifact identified behind the described control.`);
+    // Batch b83ea3c4 (2026-09-05, Veltrix): "one component do not yet have" —
+    // the verb now agrees with the count.
+    sentences.push(`No material implementation weakness is described, but ${untestable === 1 ? "one component does not" : `${untestable} components do not`} yet have a testable operating artifact identified behind the described control.`);
   }
   // DOC 129 CY-1 (Batch 3 A-Team ruling, 2026-09-01) — the "appear prepared"
   // all-clear now requires the Section-2 readiness determination itself to

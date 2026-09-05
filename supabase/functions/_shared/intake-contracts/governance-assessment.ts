@@ -178,7 +178,11 @@ export const governanceContract: IntakeContract = {
     { key: "tools", kind: "multi-enum", required: "optional", options: GOV_TOOLS },
     { key: "data_categories", kind: "multi-enum", required: "always", options: GOV_DATA_CATS },
     { key: "special_category", kind: "enum", required: "always", options: YES_NO },
-    { key: "special_categories_list", kind: "multi-enum", required: "optional", options: GOV_SPECIAL_CATS },
+    // Batch b83ea3c4 (2026-09-05): the form shows the category pills only when
+    // special_category is "Yes" (GovernanceAssessment.tsx); the engine reads
+    // the list only under that answer.
+    { key: "special_categories_list", kind: "multi-enum", required: "conditional", options: GOV_SPECIAL_CATS,
+      requiredWhen: 'special_category === "Yes"', trigger: { key: "special_category", equals: ["Yes"] }, hiddenValue: "[]" },
     { key: "privacy_policy", kind: "enum", required: "always", options: PRIVACY_POLICY },
     { key: "privacy_notice_coverage", kind: "enum", required: "conditional",
       requiredWhen: 'privacy_policy starts with "Yes"',

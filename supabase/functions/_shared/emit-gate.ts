@@ -122,6 +122,13 @@ const RESERVED = new Set<string>([
   "_normalized_intake",
   "regen_prior_deterministic_checks",
   "regen_nonce",
+  // Batch b83ea3c4 (2026-09-05, generate-dpa): the deterministic DPA's
+  // ratified contract clauses (`dpa_contract`) and the Art. 28(3) coverage
+  // schedule's statutory requirement text (`clause_coverage`) are not model
+  // prose. The gate degraded requirement (b) and (f) — GDPR text — to the
+  // information-needed literal on every live DPA of the batch.
+  "dpa_contract",
+  "clause_coverage",
 ]);
 
 // A leaf is a "prose node" if the string is long enough to plausibly carry a
