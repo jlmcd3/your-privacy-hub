@@ -217,6 +217,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <SubscriberContextProvider>
         <BrowserRouter>
           <ScrollToTop />
           <ScrollToTopButton />
