@@ -652,7 +652,13 @@ export function deriveDutyStatusTable(report: Bag): RenderedTable | null {
     if (word) {
       rows.push([
         "Data protection officer",
-        "GDPR / UK GDPR",
+        // QA batch 2026-09-05 — this cell hardcoded "GDPR / UK GDPR" for
+        // every record, but buildDpo() gates the Art. 37(1) branch walk to
+        // whichever ONE regime actually reaches the organisation
+        // (dpoRegimeLabel) and the body only ever analyses that one regime's
+        // Art. 37(1)(a)-(c) — a UK-only record's body carried nothing but
+        // "UK GDPR Art. 37(1)" while this row still named both regimes.
+        s(dpo.regime) || "GDPR / UK GDPR",
         word,
         dpoVerdict === "engaged"
           ? "Written designation and the Art. 37(7) steps"
@@ -703,12 +709,19 @@ export function deriveDutyStatusTable(report: Bag): RenderedTable | null {
   // `registration_deliverables` arrays this table otherwise reads, and had
   // no row at all before this fix.
   for (const j of icoFeeJurisdictions(report)) {
+    // QA batch 2026-09-05 — a resolved-but-boundary tier (e.g. FX-estimated
+    // turnover a few thousand pounds either side of a threshold) rendered
+    // the SAME confident "£78.00 — confirm the tier" text as a record with
+    // no boundary risk at all; the reader had no way to tell the two apart
+    // from this cell. The full basis (what was converted, at what rate, and
+    // why the tier is or isn't robust to that conversion) is in Section 3.
+    const boundary = j.ico_fee_boundary === true;
     rows.push([
       "ICO annual data-protection fee",
       s(j.name) || s(j.code) || "United Kingdom",
       "Required on reported facts",
       icoFeeAmountLabel(j)
-        ? `Payment of ${icoFeeAmountLabel(j)} to the ICO — confirm the tier via the ICO fee self-assessment before filing`
+        ? `Payment of ${icoFeeAmountLabel(j)} to the ICO — confirm the tier via the ICO fee self-assessment before filing${boundary ? " (the recorded figures sit close to a tier threshold — see Section 3)" : ""}`
         : s(j.fee_tier_ask) || "Confirm the fee tier via the ICO fee self-assessment",
     ]);
   }
@@ -922,8 +935,17 @@ function composeBrokerConditional(report: Bag, intake: Bag, org: string): string
     // non-broker path too; the live silent-on-AU record was a non-broker.
     const outside = composeOutsideFrameworks(intake);
     return [
+      // QA batch 2026-09-05 — this sentence always read "has not recorded
+      // broker activity" regardless of what the record actually says, so it
+      // followed the lead sentence's "has indicated that it does not act as
+      // a data broker" (an explicit `false` answer) with wording that implies
+      // the opposite — that the question was simply never asked. The two
+      // record states are distinguished: an explicit `false` reads as an
+      // indication, and an unanswered field reads as unrecorded.
       stop(
-        `${org} has not recorded broker activity, and no data-broker registration duty attaches on its answers`,
+        intake.acts_as_data_broker === false
+          ? `${org} has indicated that it does not act as a data broker, and no data-broker registration duty attaches on its answers`
+          : `${org} has not recorded broker activity, and no data-broker registration duty attaches on its answers`,
       ),
       ...(outside ? [repairRegister(outside)] : []),
     ].join("\n\n");
@@ -1321,8 +1343,8 @@ function composeSupervisoryAnalysis(report: Bag, intake: Bag): string {
   return blocks.map(repairPreserving).join("\n\n");
 }
 
-/** Section III lead — what stands between the answers and complete filings. */
-function composeReadinessLead(report: Bag, counts: RegistrationDutyCounts, org: string): string {
+/** Section 3 lead — what stands between the answers and complete filings. */
+export function composeReadinessLead(report: Bag, counts: RegistrationDutyCounts, org: string): string {
   const rows = readiness(report);
   if (rows.length === 0) {
     // 3E9AD759-R2 — when no filing-content list applies but a designation
@@ -1330,9 +1352,19 @@ function composeReadinessLead(report: Bag, counts: RegistrationDutyCounts, org: 
     // reading as an all-clear beside an engaged duty.
     const nonFiling = counts.attached - counts.filing_attached;
     if (nonFiling > 0) {
-      return stop(
+      const lead = stop(
         `No filing-content list applies to ${org} on the current assessment record; the outstanding ${nonFiling === 1 ? "act recorded above is" : "acts recorded above are"} ${asProse(counts.attached_names.slice(counts.filing_attached))}`,
       );
+      // QA batch 2026-09-05 — the ICO fee tier's resolution basis (which
+      // intake fields decided it, whether a USD→GBP conversion was involved,
+      // and the boundary confirm-note where the record sits near a
+      // threshold) was computed by resolveIcoFeeTier and stored on the
+      // jurisdiction's `notes`, but nothing in this document ever read that
+      // field — the Duty-status table cell is deliberately terse and never
+      // carried it either. Surfaced here, where the ICO fee's outstanding
+      // act is already named.
+      const icoNotes = icoFeeJurisdictions(report).map((j) => s(j.notes)).filter(Boolean);
+      return icoNotes.length ? `${lead} ${icoNotes.join(" ")}` : lead;
     }
     // A-TEAM S4 RULING S2.17e (doc 119) — the all-clear names any duty
     // determination that remains open above, so it cannot read as settled.

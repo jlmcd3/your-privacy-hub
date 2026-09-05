@@ -136,6 +136,12 @@ export interface RepresentativeDetermination extends Finding {
 
 export interface DpoDetermination {
   verdict: Verdict;
+  /** QA batch 2026-09-05 — the ONE regime buildDpo() actually walked
+   *  (dpoRegimeLabel gates the branch analysis to whichever single instrument
+   *  reaches the organisation). The Duty-status table's jurisdiction cell
+   *  used to hardcode "GDPR / UK GDPR" for every record regardless of this,
+   *  disagreeing with the body's own regime-specific analysis. */
+  regime: "GDPR" | "UK GDPR";
   headline: string;
   reasoning: string;
   /** 3E9AD759-R2 — the closing act for an engaged duty, in its own field so

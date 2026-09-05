@@ -336,6 +336,13 @@ Deno.serve(async (req) => {
           filing_fee_cents: icoTier ? (icoTier.fee_cents ?? null) : (r?.filing_fee_cents ?? null),
           fee_range_label: icoTier?.fee_range_label ?? null,
           fee_tier_ask: icoTier?.tier_ask ?? null,
+          // QA batch 2026-09-05 — a fixed tier resolved near a boundary (e.g.
+          // FX-estimated turnover a few thousand pounds either side of a
+          // threshold) carried the caveat only in `notes`, which the Duty-
+          // status table never reads; the table then stated the fee with no
+          // visible hedge at all. Exposed as its own flag so the table can
+          // signal it without string-matching `notes`.
+          ico_fee_boundary: icoTier?.boundary === true && icoTier?.tier !== null,
           filing_currency: r?.filing_currency ?? null,
           renewal_period_months: r?.renewal_period_months ?? null,
           notes: (() => {

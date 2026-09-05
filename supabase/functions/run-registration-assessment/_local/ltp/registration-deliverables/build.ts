@@ -1010,6 +1010,7 @@ function buildDpo(intake: I): DpoDetermination {
     if (euEstablished === false && ukEstablished === false) {
       return {
         verdict: "not_engaged",
+        regime,
         headline:
           `A data protection officer is not required under the GDPR or UK GDPR: neither instrument reaches ${orgName(intake)} on the facts recorded.`,
         reasoning:
@@ -1022,6 +1023,7 @@ function buildDpo(intake: I): DpoDetermination {
     }
     return {
       verdict: "record_insufficient",
+      regime,
       headline:
         `Whether a data protection officer must be designated cannot be determined: whether the GDPR or UK GDPR applies to ${orgName(intake)} turns on establishment and markets the record does not state.`,
       reasoning:
@@ -1143,6 +1145,7 @@ function buildDpo(intake: I): DpoDetermination {
 
   return {
     verdict,
+    regime,
     headline: engaged.length
       ? `A data protection officer must be designated: ${engaged.length === 1 ? "one" : engaged.length === 2 ? "two" : "all three"} of the three ${art} branches ${engaged.length === 1 ? "is" : "are"} engaged by the facts recorded.`
       : unknown.length
@@ -1637,9 +1640,16 @@ export function registrationReviewTriggers(intake: I): string[] {
     .filter((s) => stateInScope(intake, s.code))
     .map((s) => STATE_BROKER_STATUTE[s.code])
     .filter((x): x is string => Boolean(x));
+  // QA batch 2026-09-05 — the non-engaged branch used to append "No US state
+  // data-broker statute was in scope here, so none is named." to this
+  // sentence. It read as a stray aside glued onto an unrelated general
+  // amendment-trigger clause, breaking the parallel one-sentence-per-bullet
+  // structure the other three triggers keep, and it told the reader nothing
+  // they needed: the sentence never claims to name a statute in the first
+  // place, so there is nothing to explain the absence of.
   const amendment = engaged.length
     ? `Amendment of any data-broker registration statute named in this assessment (${engaged.join("; ")}).`
-    : "Amendment of any registration or designation statute in force in the jurisdictions assessed here. No US state data-broker statute was in scope here, so none is named.";
+    : "Amendment of any registration or designation statute in force in the jurisdictions assessed here.";
   return [
     amendment,
     "A change in the organisation's own facts that moves it across a statutory applicability threshold, in either direction.",
