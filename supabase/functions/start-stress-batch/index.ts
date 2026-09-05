@@ -412,11 +412,14 @@ Deno.serve(async (req) => {
 
   const caller = await verifyCaller(req);
   if (!caller.internal) {
-    if (!caller.userId) return json({ error: "forbidden" }, 403);
+    // Missing/expired token is an auth failure (401), not an authorization
+    // failure (403) — the client uses this to prompt a re-sign-in.
+    if (!caller.userId) return json({ error: "unauthorized", reason: caller.error ?? "no_session" }, 401);
     const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
     const { data: isAdmin } = await admin.rpc("has_role", { _user_id: caller.userId, _role: "admin" });
     if (!isAdmin) return json({ error: "forbidden" }, 403);
   }
+
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "invalid json" }, 400); }
