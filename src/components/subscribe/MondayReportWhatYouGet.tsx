@@ -56,8 +56,8 @@ const MondayReportWhatYouGet = ({ variant = "default", className = "" }: Props) 
           developments for your preferences.
         </li>
         <li>
-          Preferences are editable at any time; changes apply to the next
-          Monday send.
+          Preferences are editable at any time; changes apply immediately to
+          your article prompts and to the your next Weekly Brief.
         </li>
       </ul>
     </div>
