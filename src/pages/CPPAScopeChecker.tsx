@@ -807,6 +807,11 @@ function ResultsPanel({
   navigate: (to: string) => void;
   isAuthed: boolean;
 }) {
+  // Viewer-resolved prices for the "Next steps" buttons (QA batch 2026-09-05, SC 03).
+  const riskPricing = useToolPrice("cppa_risk_assessment");
+  const cyberPricing = useToolPrice("cppa_cybersecurity");
+  const admtPricing = useToolPrice("cppa_admt");
+
   // Out of scope, no Unsure: confidently out of scope
   if (!evaluation.inScope) {
     const isGeoOut = q1 === "No";
