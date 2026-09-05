@@ -883,7 +883,7 @@ export const LIA_CORPUS_MAP: CorpusMap = {
       source_row_id: "dcd75c1d-a21f-4939-b2a0-d8cb1b96545a",
       excerpt_field: "key_compliance_failure",
       pinned_excerpt:
-        "Meta IE's processing of personal data for behavioral advertising was found to be unlawful, as it improperly relied on contractual necessity as a legal basis rather than obtaining valid consent.",
+        "Meta IE's processing of personal data for behavioral advertising was found to be unlawful, as the 'consent' obtained from users was not freely given, specific, or granular, and was bundled with terms of service.",
       render_eligible: false,
       citation_source: {
         regulator: "DPC (Ireland)",
@@ -895,7 +895,7 @@ export const LIA_CORPUS_MAP: CorpusMap = {
       logic_bearing: false,
       provenance: { source_url: "https://gdprhub.eu/index.php?title=DPC_(Ireland)_-_Meta_Platforms_Ireland_Limited_(Instagram)_-_IN-18-5-7", verified_on: "2026-09-05" },
       curation_note:
-        "Doc 73 watch row, wired 2026-09-05 (v5). DPC (Ireland), Meta Platforms Ireland Limited (Instagram), 31 December 2022, EUR 180,000,000. Source language: English (no translation required). Bearing (this factor): the asserted basis must be the one that actually fits the processing — a controller that names the wrong Article 6 basis for behavioural advertising fails at interest legitimacy before any balancing is reached. DARK: no doc 63 ratification exists for these bytes; render only after separate ratification (doc 48 SII.6).",
+        "Doc 73 watch row, wired 2026-09-05 (v5). DPC (Ireland), Meta Platforms Ireland Limited (Instagram), 31 December 2022, EUR 180,000,000. Source language: English (no translation required). Bearing (this factor): the asserted basis must be the one that actually fits the processing — a controller whose behavioural-advertising basis collapses on inspection fails at interest legitimacy before any balancing is reached. DARK: no doc 63 ratification exists for these bytes; render only after separate ratification (doc 48 SII.6).",
     },
     {
       id: "lia/f05-expectations/ap-w5-02",
