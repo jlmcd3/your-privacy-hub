@@ -92,12 +92,20 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
       )
       .select()
       .single();
-    if (data) setItems(prev => (prev.find(i => i.id === data.id) ? prev : [...prev, data]));
+    if (data) setItems(prev => {
+      const next = prev.find(i => i.id === data.id) ? prev : [...prev, data];
+      pushWatchlist(next);
+      return next;
+    });
   };
 
   const removeItem = async (id: string) => {
     await (supabase as any).from("user_watchlist").delete().eq("id", id);
-    setItems(prev => prev.filter(i => i.id !== id));
+    setItems(prev => {
+      const next = prev.filter(i => i.id !== id);
+      pushWatchlist(next);
+      return next;
+    });
   };
 
   const selectRole = async (id: string) => {
@@ -109,6 +117,7 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
       .update({ brief_role: next || null })
       .eq("id", user.id);
     if (error) toast.error("Couldn't save role");
+    else pushRole(next || undefined);
   };
 
   const selectFormat = async (id: string) => {
