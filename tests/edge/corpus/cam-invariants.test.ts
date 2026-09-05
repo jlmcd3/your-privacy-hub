@@ -186,11 +186,11 @@ Deno.test("lia: L2 posture — 4 live AP + 1 live AOW on S5, everything else dar
   const aow = LIA_CORPUS_MAP.rows.filter((r) => r.role === "AOW");
   const logicBearing = LIA_CORPUS_MAP.rows.filter((r) => r.logic_bearing);
   const fcJ = LIA_CORPUS_MAP.rows.filter((r) => r.role === "FC" && !r.logic_bearing);
-  assertEquals(ap.length, 28);
+  assertEquals(ap.length, 40);
   assertEquals(aow.length, 1);
   assertEquals(logicBearing.length, 3);
   assertEquals(fcJ.length, 14);
-  assertEquals(LIA_CORPUS_MAP.rows.length, 46);
+  assertEquals(LIA_CORPUS_MAP.rows.length, 58);
   const liveAp = ap.filter((r) => r.render_eligible);
   assertEquals(
     new Set(liveAp.map((r) => r.id)),

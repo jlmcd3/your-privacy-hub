@@ -1249,6 +1249,281 @@ export const LIA_CORPUS_MAP: CorpusMap = {
       curation_note:
         "Doc 73 watch row, wired 2026-09-05 (v5). AEPD (Spain), Vodafone Espana, S.A.U., 4 March 2020, EUR 60,000. SOURCE LANGUAGE: Spanish; pin verbatim. WORKING ENGLISH TRANSLATION: 'an employee of the Vodafone store impersonated him, registering with another operator to carry out the number port and supplying his identity document and data without consent, forging his signature.' Bearing (this factor): a commercial objective pursued by fraud is not a legitimate interest at all - the first limb of the three-part test fails before necessity or balancing is reached. DARK pending ratification.",
     },
+    // ---- v5.1 EXCERPT-EXTRACTION PASS (2026-09-05) ----------------------
+    // The 20 watch rows with an EMPTY `key_compliance_failure` were logged
+    // by v5 as "not pinnable and not wired". That was a statement about ONE
+    // column, not about the rows: every one of the 20 carries the stored
+    // decision text in `source_document_text`. This pass reads that column,
+    // pins an exact clause from the decision itself (excerpt_field flips to
+    // "source_document_text" on these rows only), and wires the 12 rows that
+    // carry a real legitimate-interests determination. The other 8 matched
+    // the watch only on recited statute text and are logged below the
+    // exclusions. All 12 land DARK; ratification is unchanged.
+    {
+      id: "lia/f03-necessity/ap-w6-01",
+      factor_id: "Necessity and less-intrusive means",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "0791afb8-6580-4613-a89a-9d4964451e07",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "the DPC held that the data controller could not validly rely on Article 6(1)(f) GDPR as a legal basis for processing the data subject's ID and supplemental photograph to verify his identity because there were other means of validating the data subject's ID.",
+      render_eligible: false,
+      citation_source: {
+        regulator: "DPC (Ireland)",
+        subject: "AirBnb Ireland UC",
+        jurisdiction: "Ireland",
+        decision_date: "2023-09-28",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=DPC_(Ireland)_-_Inquiry_into_Airbnb_Ireland_UC_-_28_September_2023", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). DPC (Ireland), AirBnb Ireland UC, 2023-09-28, 28.09.2023 (complaint reference redacted). No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): where an equally effective, less intrusive verification route exists, Article 6(1)(f) fails at the necessity limb even though the safety interest itself was accepted as legitimate. DARK pending ratification.",
+    },
+    {
+      id: "lia/f01-interest-legitimacy/ap-w6-02",
+      factor_id: "Interest legitimacy",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "7f44d8f1-94c2-4e43-beac-3ddedc48b021",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "the DPC carried out the three-step test needed to establish the legitimacy of the interest pursued: first, the DPC held that a legitimate interest is given, as it is stated in the controller\u2019s LIA document that it has an interest in preserving the integrity of police investigations,",
+      render_eligible: false,
+      citation_source: {
+        regulator: "DPC (Ireland)",
+        subject: "Airbnb Ireland UC",
+        jurisdiction: "Ireland",
+        decision_date: "2023-09-14",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=DPC_(Ireland)_-_Inquiry_into_Airbnb_Ireland_UC_-_14_September_2023", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). DPC (Ireland), Airbnb Ireland UC, 2023-09-14, Inquiry into Airbnb Ireland UC - 14 September 2023. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): the authority worked from the controller's own written LIA when identifying the interest - a documented interest statement is what the first limb is tested against. DARK pending ratification.",
+    },
+    {
+      id: "lia/f08-safeguards/ap-w6-03",
+      factor_id: "Safeguards and mitigations",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "2b685584-e0e6-4ef7-93be-c42947f32991",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "The Archbishop may lawfully rely on legitimate interests under Article 6(1)(f)\nGDPR as a legal basis for the processing of personal data of individuals which\nare recorded in the Baptism Register, even in such instances where an individual\nno longer wishes to be associated with the Catholic Church;",
+      render_eligible: false,
+      citation_source: {
+        regulator: "DPC (Ireland)",
+        subject: "Archbishop of Dublin",
+        jurisdiction: "Ireland",
+        decision_date: "2023-02-27",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=DPC_(Ireland)_-_IN-19-7-6", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). DPC (Ireland), Archbishop of Dublin, 2023-02-27, IN-19-7-6. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): legitimate interests survived an erasure challenge only because retention was hedged with safeguards; the safeguard package is doing the balancing work. DARK pending ratification.",
+    },
+    {
+      id: "lia/f04-balancing/ap-w6-04",
+      factor_id: "Balancing of interests, rights and freedoms",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "91474d2b-b024-44f5-ae28-3adf6ab9090a",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "Airbnb did not demonstrate that the ID request was either proportionate or necessary in the context of an erasure request. Therefore, it could not be considered that a \u201clegitimate interest\u201d exists for the processing of data and so the controller had infringed Article 6(1) GDPR",
+      render_eligible: false,
+      citation_source: {
+        regulator: "DPC (Ireland)",
+        subject: "Airbnb Ireland UC",
+        jurisdiction: "Ireland",
+        decision_date: "2022-09-14",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=DPC_(Ireland)_-_IN-21-3-1", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). DPC (Ireland), Airbnb Ireland UC, 2022-09-14, IN-21-3-1. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): an undemonstrated proportionality case collapses the balance - the controller carries the burden of showing the interest outweighs the individual's rights. DARK pending ratification.",
+    },
+    {
+      id: "lia/f05-reasonable-expectations/ap-w6-05",
+      factor_id: "Reasonable expectations of the data subject",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "96fa14f8-3811-4cd6-a520-50ccf054d387",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "The company had no legitimate interest to collect and process such sensitive data and therefore had to rely on a consent-based approach",
+      render_eligible: false,
+      citation_source: {
+        regulator: "CNIL (France)",
+        subject: "CLEARVIEW AI",
+        jurisdiction: "France",
+        decision_date: "2021-11-26",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=CNIL_(France)_-_MED-2021-134", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). CNIL (France), CLEARVIEW AI, 2021-11-26, MED-2021-134. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): scraping publicly accessible images defeats reasonable expectations, so no legitimate interest was available and consent became the only route. DARK pending ratification.",
+    },
+    {
+      id: "lia/f06-relationship/ap-w6-06",
+      factor_id: "Relationship with the individual",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "6c76ba4e-d9ed-4ea7-887e-259c88a42881",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "when the processing has as a legal basis the legitimate interest of the controller, the latter must comply with the request for erasure made by the data subject.",
+      render_eligible: false,
+      citation_source: {
+        regulator: "CNIL (France)",
+        subject: "Soci\u00e9t\u00e9 nouvelle de l\u2019annuaire fran\u00e7ais (SNAF)",
+        jurisdiction: "France",
+        decision_date: "2021-09-15",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=CNIL_(France)_-_SAN-2021-014", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). CNIL (France), Soci\u00e9t\u00e9 nouvelle de l\u2019annuaire fran\u00e7ais (SNAF), 2021-09-15, SAN-2021-014. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): relying on legitimate interests imports a live objection and erasure route; the interest must be re-defended as compelling once the individual objects. DARK pending ratification.",
+    },
+    {
+      id: "lia/f04-balancing/ap-w6-07",
+      factor_id: "Balancing of interests, rights and freedoms",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "e98e0e5f-d0a6-467f-a37b-736dd8072b3c",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "This balancing between the different interests involved requires in particular taking into account the reasonable expectations of the persons concerned as to the nature of the data collected and the way in which they are processed for the constitution of the processing in dispute,",
+      render_eligible: false,
+      citation_source: {
+        regulator: "CNIL (France)",
+        subject: "Monsanto Company",
+        jurisdiction: "France",
+        decision_date: "2021-08-26",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=CNIL_(France)_-_SAN-2021-012", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). CNIL (France), Monsanto Company, 2021-08-26, SAN-2021-012. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): the authority anchored the balancing exercise in reasonable expectations about the data collected and how it is used. DARK pending ratification.",
+    },
+    {
+      id: "lia/f01-interest-legitimacy/ap-w6-08",
+      factor_id: "Interest legitimacy",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "5c406c0e-d256-4aab-98e1-559ce66abfa7",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "The DPC originally held this information was provided in a clear and meaningful way, but amended its finding to comply with the EDPB",
+      render_eligible: false,
+      citation_source: {
+        regulator: "DPC (Ireland)",
+        subject: "WhatsApp Ireland Limited",
+        jurisdiction: "Ireland",
+        decision_date: "2021-08-20",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=DPC_(Ireland)_-_WhatsApp_Ireland_Limited_-_IN-18-12-2", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). DPC (Ireland), WhatsApp Ireland Limited, 2021-08-20, WhatsApp Ireland Limited - IN-18-12-2. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): Article 13(1)(d) requires the specific legitimate interests pursued to be stated to the reader; a generic interest statement is a transparency failure as well as a weak first limb. DARK pending ratification.",
+    },
+    {
+      id: "lia/f11-eprivacy/ap-w6-09",
+      factor_id: "Special-category and ePrivacy interplay",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "dfcc63f9-cb9a-412c-9966-ea41da99a454",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "The CNIL dismissed Nestor's allegation that this processing of personal data relied on their legitimate interest as a legal basis (and therefore Nestor's claim that they did not need prior consent).",
+      render_eligible: false,
+      citation_source: {
+        regulator: "CNIL (France)",
+        subject: "Nestor SAS",
+        jurisdiction: "France",
+        decision_date: "2020-12-08",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=CNIL_(France)_-_SAN-2020-018", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). CNIL (France), Nestor SAS, 2020-12-08, SAN-2020-018. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): electronic-marketing rules impose consent and displace legitimate interests, so the Article 6(1)(f) route is unavailable no matter how the balance reads. DARK pending ratification.",
+    },
+    {
+      id: "lia/f01-interest-legitimacy/ap-w6-10",
+      factor_id: "Interest legitimacy",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "2c7fe8e4-3bdb-4a24-9057-54b595c4b66e",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "Recalling that recital 41 of the GDPR requires that the legal basis for processing be clear and precise, it considers that the company cannot aim solely within its data confidentiality policy as the legal basis of consent for all the processing operations implemented.",
+      render_eligible: false,
+      citation_source: {
+        regulator: "CNIL (France)",
+        subject: "SPARTOO SAS",
+        jurisdiction: "France",
+        decision_date: "2020-07-28",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=CNIL_(France)_-_SAN-2020-003", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). CNIL (France), SPARTOO SAS, 2020-07-28, SAN-2020-003. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): a blanket legal-basis statement is not precise enough; each purpose must name its own basis, and legitimate interests must be identified as such where relied on. DARK pending ratification.",
+    },
+    {
+      id: "lia/f06-relationship/ap-w6-11",
+      factor_id: "Relationship with the individual",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "6ca23a52-cceb-4ecb-bfd2-bdb3aefee8fe",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "if the withdrawal of consent is not successful, the information obtained would be processed by the Company on the basis of Article 6(1)(f) of Regulation 2016/679, i.e. on the basis of the legitimate interest of the controller.",
+      render_eligible: false,
+      citation_source: {
+        regulator: "UODO (Poland)",
+        subject: "ClickQuickNow Sp. z o",
+        jurisdiction: "Poland",
+        decision_date: "2019-10-16",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=UODO_(Poland)_-_ZSPR.421.7.2019", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). UODO (Poland), ClickQuickNow Sp. z o, 2019-10-16, ZSPR.421.7.2019. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. RECORDED BASIS, NOT A FINDING: this pin is the controller's own asserted position as recorded by the authority. Bearing (this factor): legitimate interests cannot be used as a fallback to keep processing that the individual has just withdrawn consent for. DARK pending ratification.",
+    },
+    {
+      id: "lia/f01-interest-legitimacy/ap-w6-12",
+      factor_id: "Interest legitimacy",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "cc2e878b-5e81-4d51-90d4-1b43e248d070",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "Base Jur\u00eddica: El inter\u00e9s leg\u00edtimo de Amadeus en comprender mejor nuestros servicios y mejorarlos, identificar tendencias de uso y desarrollar nuevos productos.",
+      render_eligible: false,
+      citation_source: {
+        regulator: "AEPD (Spain)",
+        subject: "AMADEUS IT GROUP, S.A.",
+        jurisdiction: "Spain",
+        decision_date: "2016-04-27",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://www.aepd.es/documento/ps-00005-2025.pdf", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). AEPD (Spain), AMADEUS IT GROUP, S.A., 2016-04-27, EXP202315175. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. SOURCE LANGUAGE: Spanish; pin verbatim. WORKING ENGLISH TRANSLATION: 'Legal basis: Amadeus's legitimate interest in better understanding our services and improving them, identifying usage trends and developing new products.' Bearing (this factor): a legitimate interest stated at this level of generality (analytics, product development) is what the authority tested against the controller's own legitimate-interests assessment annexed to its DPIA. DARK pending ratification.",
+    },
+
     // v5 EXCLUSIONS (matched the watch, deliberately NOT wired):
     //   • 20cf9537 — KFC Restaurants Spain, S.L.U. (AN, 2026-07-16): the
     //     finding is a DPO-appointment and transparency failure; it does
@@ -1259,5 +1534,28 @@ export const LIA_CORPUS_MAP: CorpusMap = {
     //   • 771e1908 — "XXXXXXXX" (CNIL, 2022-06-23, €1,000,000): the subject
     //     is redacted in the source row, so no citable respondent exists;
     //     an AP row must name its matter. Logged for T2 re-sourcing.
+  //   ---- v5.1 EXCERPT-PASS EXCLUSIONS (no LI determination to pin) ----
+  //   The watch matched these 8 only on recited statute/notice text, so
+  //   there is no legitimate-interests holding, and no controller position,
+  //   to pin. They stay logged, not wired:
+  //   • 978c36c5 UODO - Minister of Digitalisation (2025-03-17): Article
+  //     6(1) recited in full; the finding is Article 5(1)(a)/6(1) lawfulness
+  //     generally, not the 6(1)(f) route.
+  //   • 1a28450a UODO - National Public Prosecutor's Office (2024-09-02):
+  //     same recital-of-Article-6 match; the case turns on Article 9/33/34.
+  //   • ccf0a806 CNIL - University of Bordeaux (2023-09-07): stored source
+  //     text is 644 characters and contains no legitimate-interests passage;
+  //     the case runs on Article 6(1)(e) public task.
+  //   • 2fcb9f54 DPC - WhatsApp Ireland (2023-01-12): a generic sentence
+  //     listing the available legal bases; no 6(1)(f) determination.
+  //   • 6b52d8ab CNIL - Ministry of Interior (2021-01-12): the only match is
+  //     "the public has demonstrated a legitimate interest in matters" -
+  //     the ordinary-language sense, not Article 6(1)(f). False positive.
+  //   • 0f433267 CNIL - French Ministry of Health (2020-07-15): the match is
+  //     inside the recited Article 35(7)(a) DPIA content requirement.
+  //   • 7e4606c9 CNIL - Futura International (2019-11-21): matches are the
+  //     recited Article 13/14 information duties.
+  //   • 000fda38 UODO - Bisnode (2019-03-15): match is the recited Article
+  //     14(2)(b) text; the finding is an Article 14 notification failure.
   ],
 };
