@@ -1019,7 +1019,28 @@ Deno.serve(async (req) => {
 
         console.log(`[generate-eu-notice] background finish session=${sessionId} v=${nextVersion}`);
       } catch (e) {
-        const message = e instanceof Error ? e.message : "Internal error";
+        // QA batch 2026-09-05 (EU 04) — session 93c8d3e0's repeat generation
+        // failed with generation_error "Internal error": every `throw fwRes.error`
+        // / `throw upErr` / `throw commitErr` above throws a PostgrestError /
+        // StorageError, which is a plain object, not an Error instance, so the
+        // real message was discarded. Read message/code/details off any shape
+        // and stamp the phase so the review page can say what happened.
+        const err = e as { message?: unknown; code?: unknown; details?: unknown; hint?: unknown } | null;
+        const message =
+          e instanceof Error
+            ? e.message
+            : err && typeof err.message === "string" && err.message
+              ? `${err.message}${typeof err.code === "string" ? ` (${err.code})` : ""}${typeof err.details === "string" && err.details ? ` — ${err.details}` : ""}`
+              : "Internal error";
+        console.error(JSON.stringify({
+          evt: "eu_notice_generation_failed",
+          fn: "generate-eu-notice",
+          session_id: sessionId,
+          message,
+          code: err?.code ?? null,
+          details: err?.details ?? null,
+          hint: err?.hint ?? null,
+        }));
         console.error(`[generate-eu-notice] background failure session=${sessionId}`, e);
         await failSession(message);
       }

@@ -1128,6 +1128,18 @@ function composeBrokerAnalysis(report: Bag): string {
   return blocks.map(repairPreserving).join("\n\n");
 }
 
+/** True when any assessed jurisdiction attaches the UK ICO data-protection fee. */
+function icoFeeAttached(report: Bag): boolean {
+  const js = Array.isArray(report.jurisdictions) ? (report.jurisdictions as Bag[]) : [];
+  return js.some((j) => Array.isArray(j.obligations) && (j.obligations as unknown[]).includes("ico_fee"));
+}
+
+/** True when the ICO fee tier was resolved from an estimate that sits near a tier threshold. */
+function icoFeeBoundary(report: Bag): boolean {
+  const js = Array.isArray(report.jurisdictions) ? (report.jurisdictions as Bag[]) : [];
+  return js.some((j) => j.ico_fee_boundary === true);
+}
+
 /** Section II lead — the EU, UK and AI Act posture in one sentence. */
 function composeSupervisoryLead(report: Bag, org: string): string {
   const reps = representatives(report);
@@ -1159,12 +1171,21 @@ function composeSupervisoryLead(report: Bag, org: string): string {
   const aiLead = (deliverables(report).ai_act_registration ?? {}) as Bag;
   push("the EU AI Act Article 49(1) registration", s(aiLead.verdict));
 
+  // QA batch 2026-09-05 (REG 02) — "no EU, UK or AI Act filing duty of this
+  // kind" sat beside a Section III that attached the ICO data-protection fee,
+  // and the reader could not tell what "of this kind" excluded. The sentence
+  // now names the duties this section decides (representative and DPO
+  // designations, AI Act registration) and, where the ICO fee attaches, says
+  // in the same breath that the fee is a separate obligation handled below.
+  const icoFeeAside = icoFeeAttached(report)
+    ? "; the UK ICO data-protection fee is a separate payment obligation and is addressed in Section III"
+    : "";
   if (engaged.length === 0 && reserved.length === 0) {
-    return stop(`Based on the information supplied, ${org} carries no EU, UK or AI Act filing duty of this kind`);
+    return stop(`Based on the information supplied, ${org} carries no EU or UK representative or data protection officer designation duty and no EU AI Act registration duty${icoFeeAside}`);
   }
   if (engaged.length === 0) {
     return stop(
-      `Based on the information supplied, ${org} carries no established EU, UK or AI Act filing duty of this kind, and the position on ${asProse(reserved)} remains open because required information was not provided`,
+      `Based on the information supplied, ${org} carries no established EU or UK representative or data protection officer designation duty and no established EU AI Act registration duty, and the position on ${asProse(reserved)} remains open because required information was not provided${icoFeeAside}`,
     );
   }
   return stop(
@@ -1557,11 +1578,18 @@ function buildRegistrationSyllabus(
       ? `${count(counts.attached, "duty attaches", "duties attach")}${counts.attached_names.length ? ` — ${counts.attached_names.join("; ")}` : ""}`
       : "None attach on the information provided",
   ]);
+  // QA batch 2026-09-05 (REG 02) — "None — every determination is resolved"
+  // sat in the same document as an ICO fee tier resolved from an FX estimate
+  // a few thousand pounds from a threshold. A boundary tier is an open
+  // verification item and the row now says so.
+  const feeBoundary = icoFeeBoundary(report);
   rows.push([
     "Open determinations",
     counts.reserved > 0
-      ? `${count(counts.reserved, "determination remains", "determinations remain")} open because required information was not provided`
-      : "None — every determination is resolved on the information provided",
+      ? `${count(counts.reserved, "determination remains", "determinations remain")} open because required information was not provided${feeBoundary ? "; the ICO fee tier also requires confirmation before filing" : ""}`
+      : feeBoundary
+        ? "Every duty determination is resolved on the information provided; the ICO fee tier requires confirmation before filing because the recorded turnover sits near a tier threshold"
+        : "None — every determination is resolved on the information provided",
   ]);
 
   const openDets = determinations(report).filter((d) => {

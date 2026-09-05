@@ -4,6 +4,7 @@
 // when ADMT trigger fires; I-9 only when user has a prior DPIA.
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { REVISIONS_ENABLED } from "@/lib/revisionGate";
 import Navbar from "@/components/Navbar";
 import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
@@ -1288,7 +1289,17 @@ export default function CPPARiskAssessment() {
     finalizationFollowUpResolved: "",
     rk3d: RK3D_EMPTY,
   }), []);
-  const touched = useMemo(() => JSON.stringify(draftData) !== INITIAL_DRAFT_JSON, [draftData, INITIAL_DRAFT_JSON]);
+  // QA batch 2026-09-05 (RA 01) — `touched` compared the live draft against
+  // INITIAL_DRAFT_JSON, a HAND-MAINTAINED empty snapshot that had drifted from
+  // draftData (q15dHrCarveout was in one and not the other). The comparison
+  // was therefore always true: the blank first render autosaved over the
+  // customer's server draft, the Resume banner never showed and ?resume=1
+  // never fired. The baseline is now the first render of draftData itself;
+  // INITIAL_DRAFT_JSON stays as documentation of the empty shape only.
+  void INITIAL_DRAFT_JSON;
+  const initialDraftJsonRef = useRef<string | null>(null);
+  if (initialDraftJsonRef.current === null) initialDraftJsonRef.current = JSON.stringify(draftData);
+  const touched = useMemo(() => JSON.stringify(draftData) !== initialDraftJsonRef.current, [draftData]);
   const {
     draftFound, draftUpdatedAt, restoreData, restoreStage,
     saving: draftSaving, lastSavedAt, clearDraft, dismissDraft,
@@ -1648,7 +1659,7 @@ export default function CPPARiskAssessment() {
               : undefined
           }
           meter={meter ?? null}
-          preRunHint="Entity and subject lock after the first generation; other answers remain editable across included generations."
+          preRunHint={REVISIONS_ENABLED ? "Entity and subject lock after the first generation; other answers remain editable across included generations." : undefined}
           clientSlot={<ActiveClientLabel variant="masthead" />}
         />
         <IntakeGuidance className="mt-3">For a more precise report, name the systems, data, and steps; list multiple items separately.</IntakeGuidance>

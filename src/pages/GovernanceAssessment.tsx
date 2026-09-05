@@ -1,5 +1,6 @@
 
 import { useState, useMemo, useEffect } from "react";
+import { REVISIONS_ENABLED } from "@/lib/revisionGate";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { RequirementBadge } from "@/components/RequirementBadge";
 import { useNavigate } from "react-router-dom";
@@ -627,7 +628,7 @@ const GovernanceAssessment = () => {
               : undefined
           }
           meter={meter ?? null}
-          preRunHint="Organisation name locks after the first generation; other answers remain editable across included generations."
+          preRunHint={REVISIONS_ENABLED ? "Organisation name locks after the first generation; other answers remain editable across included generations." : undefined}
         />
         <BenchLayout
           toolType="governance"

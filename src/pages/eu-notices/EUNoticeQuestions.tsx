@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useEuNoticeSessionGuard } from "@/hooks/useEuNoticeSessionGuard";
 import { buildEuQuestionSections } from "@/data/eu-notice-questions";
+import { evaluateShowIf } from "@/data/eu-notice-questions/showIf";
 import type { EuFrameworkCode } from "@/data/eu-notice-questions/types";
 import type { Question, FlagCondition } from "@/data/ropa-questions/types";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
@@ -39,20 +40,6 @@ function popoverKeyForQuestion(key: string): string | null {
 }
 
 type AnswerValue = string | string[] | null;
-
-function evaluateShowIf(q: Question, answers: Record<string, AnswerValue>): boolean {
-  if (!q.showIf) return true;
-  const v = answers[q.showIf.questionKey];
-  switch (q.showIf.operator) {
-    case "equals": return v === q.showIf.value;
-    case "not_equals": return v !== q.showIf.value;
-    case "contains": {
-      const targets = Array.isArray(q.showIf.value) ? q.showIf.value : [q.showIf.value];
-      if (Array.isArray(v)) return targets.some((t) => v.includes(t));
-      return false;
-    }
-  }
-}
 
 function evaluateFlag(flag: FlagCondition, value: AnswerValue): boolean {
   if (value == null) return false;

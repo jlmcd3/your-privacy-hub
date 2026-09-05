@@ -1,5 +1,25 @@
 #!/usr/bin/env node
 /**
+ * SUPERSEDED (QA batch 2026-09-05). This v7 script parsed hand-copied cents
+ * tables out of get-tool-price and create-tool-checkout with regexes and
+ * compared them against SUBSCRIBER_OVERRIDE_CENTS constants of its own — a
+ * fourth mirror, itself stale at v7. Those tables no longer exist: the edge
+ * functions read supabase/functions/_shared/pricing-snapshot.ts, a GENERATED
+ * projection of src/config/pricing.ts.
+ *
+ *   Regenerate:  deno run --allow-read --allow-write scripts/pricing/generate-pricing-snapshot.ts
+ *   Verify:      deno run --allow-read scripts/pricing/generate-pricing-snapshot.ts --check
+ *                npx vitest run src/test/pricingSnapshot.test.ts
+ *   Push to Stripe: sync-pricing edge function (Admin → Pricing → Sync), then
+ *                /admin/pricing-reconciliation.
+ *
+ * The script now exits 2 with that pointer. Body retained below for history.
+ */
+console.error("check-pricing-drift.mjs is superseded — run `deno run --allow-read scripts/pricing/generate-pricing-snapshot.ts --check` and `npx vitest run src/test/pricingSnapshot.test.ts` instead.");
+process.exit(2);
+
+/* eslint-disable */
+/**
  * Pricing drift check (v7).
  *
  * Compares three sources of truth and fails (non-zero exit) on divergence:

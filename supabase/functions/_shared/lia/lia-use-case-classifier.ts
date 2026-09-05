@@ -20,16 +20,35 @@
 // are allowed to diverge only if a future landing reconciles them
 // deliberately; this module is the one to extend either way.
 
+// QA batch 2026-09-05 (LIA 01) — "account-takeover prevention using device,
+// IP and failed-login logs to protect customers" classified as
+// contractual_administration (hits: "account", "customer") because the
+// security list had no authentication vocabulary. The security list now
+// carries the credential / login / takeover terms, and the two generic
+// contractual words ("account", "customer") are excluded when they appear
+// inside a security phrase (see SECURITY_PHRASES) so they cannot outvote it.
 export const USE_CASE_KEYWORDS: Record<string, string[]> = {
   direct_marketing: ["marketing", "promotional", "newsletter", "campaign", "outreach", "email"],
-  fraud_prevention: ["fraud", "abuse", "risk scor", "anti-money", "aml", "kyc"],
+  fraud_prevention: ["fraud", "abuse", "risk scor", "anti-money", "aml", "kyc", "scam", "chargeback"],
   employee_monitoring: ["employee", "worker", "workplace", "staff", "monitor"],
   behavioral_advertising: ["behavioural", "behavioral", "advertis", "targeting", "tracking", "profiling for ads"],
   research_analytics: ["research", "analytics", "statistics", "insights", "measurement"],
-  it_security: ["security", "intrusion", "logging", "audit", "network", "cyber"],
+  it_security: [
+    "security", "intrusion", "logging", "audit", "network", "cyber",
+    "takeover", "account takeover", "account-takeover", "credential", "login", "log-in", "authentication",
+    "unauthori", "brute force", "brute-force", "malicious", "threat", "breach", "phishing", "bot ",
+  ],
   contractual_administration: ["account", "billing", "service delivery", "support", "customer"],
   product_improvement: ["improve", "develop", "feature", "personalis", "personaliz", "recommend"],
 };
+
+/** Security phrases whose generic words must not score for contractual_administration. */
+const SECURITY_PHRASES = [
+  /account[\s-]*takeover/g,
+  /account[\s-]*(?:compromise|hijack|security|protection|abuse)/g,
+  /(?:protect|secur|safeguard)\w*\s+(?:our\s+|the\s+)?customers?/g,
+  /customers?['’]?\s+accounts?\s+(?:from|against)/g,
+];
 
 export const USE_CASE_LABELS: Record<string, string> = {
   direct_marketing: "Direct marketing",
@@ -50,10 +69,15 @@ export type LiaUseCaseClass = keyof typeof USE_CASE_KEYWORDS | "other";
  * precedent-class posture finding — one classifier, both surfaces. */
 export function classifyLiaUseCase(description: string): LiaUseCaseClass {
   const text = (description ?? "").toLowerCase();
+  // Text with security phrases masked — the contractual list scores on this
+  // so "account" in "account-takeover" or "customer" in "protect customers"
+  // counts for security, not for contract administration.
+  const contractualText = SECURITY_PHRASES.reduce((t, re) => t.replace(re, " "), text);
   let best: LiaUseCaseClass = "other";
   let bestScore = 0;
   for (const [code, keywords] of Object.entries(USE_CASE_KEYWORDS)) {
-    const score = keywords.reduce((n, kw) => n + (text.includes(kw) ? 1 : 0), 0);
+    const haystack = code === "contractual_administration" ? contractualText : text;
+    const score = keywords.reduce((n, kw) => n + (haystack.includes(kw) ? 1 : 0), 0);
     if (score > bestScore) {
       bestScore = score;
       best = code as LiaUseCaseClass;

@@ -59,8 +59,13 @@ Deno.serve(async (req) => {
       return jsonError("Forbidden", 403);
     }
 
-    if (!source.payment_confirmed) {
-      return jsonError("Source session has not been paid", 400);
+    // QA batch 2026-09-05 (ROPA 04) — an INCLUDED first generation (annual
+    // subscriber, create-tool-checkout bypass) reaches status "generated" with
+    // payment_confirmed = false, so every refresh from it was refused as
+    // "not paid". A generated register is the thing being refreshed; payment
+    // confirmation is one of two ways it got there.
+    if (!source.payment_confirmed && source.status !== "generated") {
+      return jsonError("The source register has not been generated yet — generate it before starting a refresh.", 400);
     }
 
     // Compute next version number for this client

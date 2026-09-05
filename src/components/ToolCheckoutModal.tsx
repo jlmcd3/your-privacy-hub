@@ -22,6 +22,13 @@ export type ToolType =
   | "cppa_suite"
   | "cppa_admt";
 
+/** Generator to start when the server bypasses checkout for an included tool. */
+const INCLUDED_GENERATOR: Partial<Record<ToolType, string>> = {
+  biometric_checker: "check-biometric-compliance",
+  ir_playbook: "generate-ir-playbook",
+  dpa_generator: "generate-dpa",
+};
+
 interface Props {
   open: boolean;
   toolType: ToolType;
@@ -60,6 +67,27 @@ export default function ToolCheckoutModal({
         embedded: true,
       },
     });
+    // QA batch 2026-09-05 (BIO 01 / IR 02 / DPA 01) — create-tool-checkout
+    // answers `{ bypassed: true, assessment_id }` (no client_secret) when the
+    // caller's plan includes the tool: the row already exists, so start the
+    // generation against it and hand off exactly as a paid completion would.
+    // Before this, a bypass threw "Failed to create checkout session".
+    if (!error && data?.bypassed && data?.assessment_id) {
+      lastAssessmentIdRef.current = data.assessment_id;
+      const fn = INCLUDED_GENERATOR[toolType];
+      if (fn) {
+        void supabase.functions.invoke(fn, {
+          body: {
+            assessment_id: data.assessment_id,
+            // The biometric generator validates jurisdictions/biometricTypes
+            // from the request body rather than hydrating them from the row.
+            ...(fn === "check-biometric-compliance" ? (intakeData ?? {}) : {}),
+          },
+        });
+      }
+      onComplete?.(data.assessment_id);
+      throw new Error("Included with your plan — no payment is needed.");
+    }
     if (error || !data?.client_secret) {
       throw new Error(error?.message || data?.error || "Failed to create checkout session");
     }

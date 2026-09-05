@@ -274,7 +274,11 @@ export default function USNoticeDocuments() {
   }, [currentDocs]);
 
   const hasAny = currentDocs.length > 0;
+  // "review" is the constraint-allowed status the Questions and Review pages
+  // now write (QA batch 2026-09-05, US 01); the two legacy values are kept
+  // for rows written before that fix.
   const isReadyToGenerate =
+    session?.status === "review" ||
     session?.status === "ready_to_generate" ||
     session?.status === "questions_complete";
 

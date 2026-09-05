@@ -69,8 +69,15 @@ export default function ScopeDocumentView({ doc }: { doc: ScopeDocument }) {
         ))}
       </div>
 
-      <p className="text-[11px] font-mono text-muted-foreground pt-4 border-t">
-        {doc.stamp} · spine {doc.spine_hash.slice(0, 8)}
+      {/* QA batch 2026-09-05 (SC 02) — the pipeline stamp and spine hash are
+          implementation identifiers, not customer information. They stay on
+          the element for support (data attributes) and leave the visible page. */}
+      <p
+        className="text-[11px] text-muted-foreground pt-4 border-t"
+        data-scope-stamp={doc.stamp}
+        data-scope-spine={doc.spine_hash}
+      >
+        Deterministic assessment — every statement above is derived from your answers and the cited authorities.
       </p>
     </article>
   );

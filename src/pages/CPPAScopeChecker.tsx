@@ -29,7 +29,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { RequirementBadge } from "@/components/RequirementBadge";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useToolPrice } from "@/hooks/useToolPrice";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -236,6 +237,10 @@ export default function CPPAScopeChecker() {
 
   const navigate = useNavigate();
   const { user } = useAuth();
+  // Viewer-specific prices for the next-step upsells (SC 03).
+  const riskPricing = useToolPrice("cppa_risk_assessment");
+  const cyberPricing = useToolPrice("cppa_cybersecurity");
+  const admtPricing = useToolPrice("cppa_admt");
   const [entityName, setEntityName] = useState("");
   const [q1, setQ1] = useState<Q1>("");
   const [q2, setQ2] = useState<Q2>("");
@@ -399,6 +404,49 @@ export default function CPPAScopeChecker() {
     setShowResults(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  // QA batch 2026-09-05 (SC 01) — My Reports links a saved run as
+  // /cppa-scope-checker?check=<id>. Reload its answers and show the result
+  // instead of a blank form. The insert effect below is told the restored
+  // answers are already persisted so a re-open never writes a duplicate row.
+  const [searchParams] = useSearchParams();
+  const restoredCheckRef = useRef<string | null>(null);
+  useEffect(() => {
+    const checkId = searchParams.get("check");
+    if (!checkId || !user || restoredCheckRef.current === checkId) return;
+    restoredCheckRef.current = checkId;
+    (async () => {
+      const { data } = await supabase
+        .from("cppa_scope_checks" as any)
+        .select("id, answers")
+        .eq("id", checkId)
+        .maybeSingle();
+      const a = (data as any)?.answers as Record<string, string> | undefined;
+      if (!a) return;
+      const restored = {
+        entity_name: (a.entity_name ?? "").trim(),
+        q1: a.q1 ?? "",
+        q2: a.q2 ?? "",
+        q2_legacy_confirm: a.q2_legacy_confirm ?? "",
+        q3: a.q3 ?? "",
+        q4: a.q4 ?? "",
+        q5: a.q5 ?? "",
+        q6: a.q6 ?? "",
+        q7: a.q7 ?? "",
+        q9_250k: a.q9_250k ?? "",
+        q10_spi_50k: a.q10_spi_50k ?? "",
+        q8a_meets_definition: a.q8a_meets_definition ?? "",
+        q8b_registered_cppa: a.q8b_registered_cppa ?? "",
+      };
+      insertedKeyRef.current = JSON.stringify(restored);
+      setEntityName(restored.entity_name);
+      setQ1(restored.q1 as Q1); setQ2(restored.q2 as Q2); setQ2LegacyConfirm(restored.q2_legacy_confirm as LegacyConfirm);
+      setQ3(restored.q3 as Q3); setQ4(restored.q4 as Q4); setQ5(restored.q5 as Q5); setQ6(restored.q6 as Q6); setQ7(restored.q7 as Q7);
+      setQ9(restored.q9_250k as YNU); setQ10(restored.q10_spi_50k as YNU);
+      setQ8a(restored.q8a_meets_definition as Q8a); setQ8b(restored.q8b_registered_cppa as Q8b);
+      setShowResults(true);
+    })();
+  }, [searchParams, user]);
 
   useEffect(() => {
     if (!showResults) return;
@@ -887,7 +935,11 @@ function ResultsPanel({
         <h2 className="">
           {evaluation.inScopeConfident
             ? "CCPA/CPRA applies to your business."
-            : "CCPA/CPRA likely applies — one or more answers were marked 'Unsure'."}
+            // QA batch 2026-09-05 (SC 03) — with no threshold answered "Yes"
+            // there is no affirmative evidence; "likely applies" contradicted
+            // the narrative's "cannot be determined". Say what the answers
+            // support: the determination is open pending the unsure facts.
+            : "CCPA/CPRA applicability cannot be determined from your answers — one or more threshold answers were marked 'Unsure'."}
         </h2>
         {thresholdSummary && (
           <p className="text-sm text-foreground mt-2">{thresholdSummary}</p>
@@ -1022,19 +1074,23 @@ function ResultsPanel({
       <section className="bg-card border rounded-lg p-6 space-y-3">
         <h3 className="">Next steps</h3>
         <div className="flex flex-wrap gap-3">
+          {/* QA batch 2026-09-05 (SC 03) — these buttons quoted the standalone
+              price to an active subscriber ($299 / $399 / $149) while the
+              product pages showed the subscriber rate. useToolPrice resolves
+              the viewer's own rate from the master price list. */}
           {evaluation.riskAssessment === "required" && (
             <Button onClick={() => navigate("/cppa-risk-assessment")}>
-              Run CPPA Risk Assessment (Module 1) · {PRICING_REGISTRY.cppa_risk_standalone.displayPrice} →
+              Run CPPA Risk Assessment (Module 1) · ${riskPricing.price} →
             </Button>
           )}
           {evaluation.cyberScope === "required" && (
             <Button variant="outline" onClick={() => navigate("/cppa-cybersecurity")}>
-              Run CPPA Cybersecurity Readiness (Module 2) · {PRICING_REGISTRY.cppa_cyber_standalone.displayPrice} →
+              Run CPPA Cybersecurity Readiness (Module 2) · ${cyberPricing.price} →
             </Button>
           )}
           {evaluation.admtResult === "required" && (
             <Button variant="outline" onClick={() => navigate("/cppa-admt-checker")}>
-              Run ADMT Compliance Assessment (Module 3) · {PRICING_REGISTRY.cppa_admt_standalone.displayPrice} →
+              Run ADMT Compliance Assessment (Module 3) · ${admtPricing.price} →
             </Button>
           )}
         </div>

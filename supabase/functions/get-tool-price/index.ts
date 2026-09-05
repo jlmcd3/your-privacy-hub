@@ -1,6 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { type StripeEnv, createStripeClient, resolvePriceId } from "../_shared/stripe.ts";
+import {
+  ANNUAL_GATED_TOOLS,
+  PROFESSIONAL_INCLUDED_TOOLS,
+  TOOL_CATALOG,
+  resolveToolSlug,
+  toolStandaloneCents,
+  toolSubscriberCents,
+} from "../_shared/pricing.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,225 +15,19 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// PRICE MIRROR — these cents MUST mirror src/config/pricing.ts (v11). (v11 deployed 2026-06-11)
-// Any price change updates BOTH files in the same commit. Verify with
-// /admin/pricing-reconciliation.
-const ANNUAL_GATED_TOOLS = new Set([
-  "governance_assessment",
-  "healthcheck",
-  "li_assessment",
-  "li_analyzer",
-  "dpia_framework",
-  "dpia_builder",
-  "cppa_risk_assessment",
-  "cppa_cybersecurity",
-  "cppa_suite",
-  "cppa_admt",
-]);
-const TOOLS: Record<
-  string,
-  {
-    name: string;
-    standalone_lookup: string;
-    subscriber_lookup: string | null;
-    fallback_standalone_cents: number;
-    fallback_subscriber_cents: number;
-    classification: "smart" | "convenience";
-  }
-> = {
-  healthcheck: {
-    name: "Privacy Program Assessment Tool",
-    standalone_lookup: "hc_standalone_v2",
-    subscriber_lookup: "hc_subscriber_v2",
-    fallback_standalone_cents: 8900,
-    fallback_subscriber_cents: 4900,
-    classification: "smart",
-  },
-  governance_assessment: {
-    name: "Privacy Program Assessment Tool",
-    standalone_lookup: "hc_standalone_v2",
-    subscriber_lookup: "hc_subscriber_v2",
-    fallback_standalone_cents: 8900,
-    fallback_subscriber_cents: 4900,
-    classification: "smart",
-  },
-  li_analyzer: {
-    name: "Legitimate Interests Assessment Tool",
-    standalone_lookup: "li_standalone_v2",
-    subscriber_lookup: "li_subscriber_v2",
-    fallback_standalone_cents: 9900,
-    fallback_subscriber_cents: 4900,
-    classification: "smart",
-  },
-  li_assessment: {
-    name: "Legitimate Interests Assessment Tool",
-    standalone_lookup: "li_standalone_v2",
-    subscriber_lookup: "li_subscriber_v2",
-    fallback_standalone_cents: 9900,
-    fallback_subscriber_cents: 4900,
-    classification: "smart",
-  },
-  dpia_builder: {
-    name: "DPIA Builder",
-    standalone_lookup: "dpia_standalone_v2",
-    subscriber_lookup: "dpia_subscriber_v2",
-    fallback_standalone_cents: 9900,
-    fallback_subscriber_cents: 4900,
-    classification: "smart",
-  },
-  dpia_framework: {
-    name: "DPIA Builder",
-    standalone_lookup: "dpia_standalone_v2",
-    subscriber_lookup: "dpia_subscriber_v2",
-    fallback_standalone_cents: 9900,
-    fallback_subscriber_cents: 4900,
-    classification: "smart",
-  },
-  ropa_initial: {
-    name: "RoPA Builder — Initial Generation",
-    standalone_lookup: "ropa_initial_standalone",
-    subscriber_lookup: "ropa_initial_subscriber",
-    fallback_standalone_cents: 0,
-    fallback_subscriber_cents: 0,
-    classification: "convenience",
-  },
-  ropa_refresh: {
-    name: "RoPA Builder — Annual Refresh",
-    standalone_lookup: "ropa_refresh_standalone",
-    subscriber_lookup: "ropa_refresh_subscriber",
-    fallback_standalone_cents: 0,
-    fallback_subscriber_cents: 0,
-    classification: "convenience",
-  },
-  us_notice_single: {
-    name: "US Privacy Notice — Single State",
-    standalone_lookup: "us_notice_v7_standalone",
-    subscriber_lookup: "us_notice_v7_subscriber",
-    fallback_standalone_cents: 0,
-    fallback_subscriber_cents: 0,
-    classification: "convenience",
-  },
-  us_notice_all_states: {
-    name: "US Privacy Notice — All States Suite",
-    standalone_lookup: "us_notice_v7_standalone",
-    subscriber_lookup: "us_notice_v7_subscriber",
-    fallback_standalone_cents: 0,
-    fallback_subscriber_cents: 0,
-    classification: "convenience",
-  },
-  us_notice_refresh: {
-    name: "US Notice — Annual Refresh",
-    standalone_lookup: "us_notice_v7_standalone",
-    subscriber_lookup: "us_notice_v7_subscriber",
-    fallback_standalone_cents: 0,
-    fallback_subscriber_cents: 0,
-    classification: "convenience",
-  },
-  eu_notice_single: {
-    name: "EU & Global Notice — Single Framework",
-    standalone_lookup: "eu_notice_v7_standalone",
-    subscriber_lookup: "eu_notice_v7_subscriber",
-    fallback_standalone_cents: 0,
-    fallback_subscriber_cents: 0,
-    classification: "convenience",
-  },
-  eu_notice_suite: {
-    name: "EU Notice Suite",
-    standalone_lookup: "eu_notice_v7_standalone",
-    subscriber_lookup: "eu_notice_v7_subscriber",
-    fallback_standalone_cents: 0,
-    fallback_subscriber_cents: 0,
-    classification: "convenience",
-  },
-  eu_notice_full_international: {
-    name: "EU & Global Notice — Full International",
-    standalone_lookup: "eu_notice_v7_standalone",
-    subscriber_lookup: "eu_notice_v7_subscriber",
-    fallback_standalone_cents: 0,
-    fallback_subscriber_cents: 0,
-    classification: "convenience",
-  },
-  eu_notice_refresh: {
-    name: "EU Notice — Annual Refresh",
-    standalone_lookup: "eu_notice_v7_standalone",
-    subscriber_lookup: "eu_notice_v7_subscriber",
-    fallback_standalone_cents: 0,
-    fallback_subscriber_cents: 0,
-    classification: "convenience",
-  },
-  cppa_risk_assessment: {
-    name: "CPPA Risk Assessment — Module 1",
-    standalone_lookup: "cppa_risk_standalone",
-    subscriber_lookup: "cppa_risk_subscriber",
-    fallback_standalone_cents: 22900,
-    fallback_subscriber_cents: 12900,
-    classification: "smart",
-  },
-  cppa_cybersecurity: {
-    name: "CPPA Cybersecurity Readiness — Module 2",
-    standalone_lookup: "cppa_cyber_standalone",
-    subscriber_lookup: "cppa_cyber_subscriber",
-    fallback_standalone_cents: 29900,
-    fallback_subscriber_cents: 16900,
-    classification: "smart",
-  },
-  cppa_suite: {
-    name: "CPPA Full Audit Suite",
-    standalone_lookup: "cppa_suite_standalone",
-    subscriber_lookup: "cppa_suite_subscriber",
-    fallback_standalone_cents: 44900,
-    fallback_subscriber_cents: 24900,
-    classification: "smart",
-  },
-  cppa_admt: {
-    name: "ADMT Compliance Assessment — Module 3",
-    standalone_lookup: "cppa_admt_standalone",
-    subscriber_lookup: "cppa_admt_subscriber",
-    fallback_standalone_cents: 9900,
-    fallback_subscriber_cents: 4900,
-    classification: "smart",
-  },
-  dpa_generator: {
-    name: "Your Custom DPA",
-    standalone_lookup: "dpa_standalone_v2",
-    subscriber_lookup: "dpa_subscriber_v2",
-    fallback_standalone_cents: 4900,
-    fallback_subscriber_cents: 0,
-
-    classification: "smart",
-  },
-  ir_playbook: {
-    name: "Incident Response Playbook",
-    standalone_lookup: "ir_standalone_v2",
-    subscriber_lookup: "ir_subscriber_v2",
-    fallback_standalone_cents: 5900,
-    fallback_subscriber_cents: 0,
-    classification: "convenience",
-  },
-  biometric_checker: {
-    name: "Biometric Privacy Compliance Assessment",
-    standalone_lookup: "biometric_standalone_v2",
-    subscriber_lookup: "biometric_subscriber_v2",
-    fallback_standalone_cents: 4900,
-    fallback_subscriber_cents: 0,
-    classification: "smart",
-  },
-};
-
-// v9: Tools that bypass Stripe entirely for ANY active subscriber (FREE).
-const SUBSCRIBER_FREE_TOOLS = new Set(["ir_playbook", "biometric_checker", "dpa_generator"]);
-
-function detectEnv(): StripeEnv {
-  return Deno.env.get("STRIPE_LIVE_API_KEY") ? "live" : "sandbox";
-}
+// QA batch 2026-09-05 — this function used to carry its own hand-copied cents
+// table (still on v10 when the site was on v13). Every amount now comes from
+// _shared/pricing.ts → _shared/pricing-snapshot.ts, the generated projection
+// of src/config/pricing.ts. Verify with /admin/pricing-reconciliation.
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const url = new URL(req.url);
-    const tool_slug = url.searchParams.get("tool_slug") || "";
-    const tool = TOOLS[tool_slug];
+    const requestedSlug = url.searchParams.get("tool_slug") || "";
+    const tool_slug = resolveToolSlug(requestedSlug);
+    const tool = TOOL_CATALOG[tool_slug];
     if (!tool) {
       return new Response(JSON.stringify({ error: "Unknown tool_slug" }), {
         status: 400,
@@ -238,12 +39,13 @@ serve(async (req) => {
       "cppa_risk_assessment",
       "cppa_cybersecurity",
       "cppa_suite",
+      "cppa_admt",
     ]);
     const isCppa = CPPA_TOOLS.has(tool_slug);
 
-    // v9: Resolve subscriber identity. Any active subscription (is_premium
-    // OR is_pro) qualifies for subscriber-free Layer-1 tools and subscriber
-    // pricing on Layer-2 tools.
+    // Resolve subscriber identity. Any active subscription (is_premium OR
+    // is_pro) qualifies for subscriber pricing on Layer-2 tools; the three
+    // Professional-included tools require is_pro (v13).
     let subscriptionType: string | null = null;
     let isPro = false;
     let isPremium = false;
@@ -282,23 +84,29 @@ serve(async (req) => {
       professionalAnnual ||
       String(subscriptionType ?? "").toLowerCase().includes("annual");
 
-    // Canonical PRICING (src/config/pricing.ts) is the source of truth.
-    const standaloneCents = tool.fallback_standalone_cents;
-    const subscriberCents = tool.fallback_subscriber_cents;
-    const stripeConfigured = tool.fallback_standalone_cents > 0;
+    // Canonical amounts — src/config/pricing.ts via the generated snapshot.
+    const standaloneCents = toolStandaloneCents(tool_slug);
+    const subscriberCents = toolSubscriberCents(tool_slug);
+    const stripeConfigured = standaloneCents > 0;
 
-    const subscriberFree = SUBSCRIBER_FREE_TOOLS.has(tool_slug);
-    const isSubscriberFree = subscriberFree && isPremium;
-    // v10: Layer-2 subscriber rates require annual; monthly subs pay standalone.
+    // v13: DPA / IR Playbook / Biometric are included for PROFESSIONAL
+    // subscribers only. QA batch 2026-09-05 (DPA 01 / BIO 01 / IR 02): this
+    // flag used to say "included" for ANY subscriber, so an Intelligence
+    // annual account saw "Included with your plan" and then met a $49 Stripe
+    // checkout. `is_included` now matches create-tool-checkout's bypass rule.
+    const professionalIncluded = PROFESSIONAL_INCLUDED_TOOLS.has(tool_slug);
+    const isSubscriberFree = professionalIncluded && isPro;
     const gated = ANNUAL_GATED_TOOLS.has(tool_slug);
     const effectiveCents = isPremium
-      ? (subscriberFree ? 0 : (gated && !isAnnual ? standaloneCents : subscriberCents))
+      ? (professionalIncluded
+          ? (isPro ? 0 : standaloneCents)
+          : (gated && !isAnnual ? standaloneCents : subscriberCents))
       : standaloneCents;
 
     return new Response(
       JSON.stringify({
         tier: isPremium ? "subscriber" : "standalone",
-        tool_slug,
+        tool_slug: requestedSlug,
         tool_name: tool.name,
         subscription_type: subscriptionType,
         is_pro: isPro,

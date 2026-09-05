@@ -1,5 +1,16 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { type StripeEnv, createStripeClient, resolvePriceId, resolveOrCreateCustomer } from "../_shared/stripe.ts";
+import {
+  ANNUAL_GATED_TOOLS,
+  PROFESSIONAL_INCLUDED_TOOLS,
+  SUBSCRIPTION_ONLY_TOOLS,
+  TOOL_CATALOG,
+  describePriceDrift,
+  toolStandaloneCents,
+  toolSubscriberCents,
+} from "../_shared/pricing.ts";
+import { registryCents } from "../_shared/pricing-snapshot.ts";
+import { REVISIONS_ENABLED } from "../regenerate-assessment/_local/revision-gate.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -12,205 +23,20 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// PRICE MIRROR — these cents MUST mirror src/config/pricing.ts (v11). (v11 deployed 2026-06-11)
-// Any price change updates BOTH files in the same commit. Verify with
-// /admin/pricing-reconciliation.
-const ANNUAL_GATED_TOOLS = new Set([
-  "li_assessment",
-  "governance_assessment",
-  "dpia_framework",
-  "cppa_risk_assessment",
-  "cppa_cybersecurity",
-  "cppa_suite",
-  "cppa_admt",
-]);
-const TOOLS: Record<
-  string,
-  {
-    name: string;
-    standalone_lookup: string;
-    subscriber_lookup: string | null;
-    table: string;
-    fallback_standalone_cents: number;
-    fallback_subscriber_cents: number;
-  }
-> = {
-  li_assessment: {
-    name: "Legitimate Interests Assessment Tool",
-    standalone_lookup: "li_standalone_v2",
-    subscriber_lookup: "li_subscriber_v2",
-    table: "li_assessments",
-    fallback_standalone_cents: 13900,
-    fallback_subscriber_cents: 8900,
-  },
-  governance_assessment: {
-    name: "Privacy Program Assessment Tool",
-    standalone_lookup: "hc_standalone_v2",
-    subscriber_lookup: "hc_subscriber_v2",
-    table: "governance_assessments",
-    fallback_standalone_cents: 11900,
-    fallback_subscriber_cents: 7900,
-  },
-  dpia_framework: {
-    name: "DPIA Builder",
-    standalone_lookup: "dpia_standalone_v2",
-    subscriber_lookup: "dpia_subscriber_v2",
-    table: "dpia_frameworks",
-    fallback_standalone_cents: 14900,
-    fallback_subscriber_cents: 9900,
-  },
-  dpa_generator: {
-    name: "Your Custom DPA",
-    standalone_lookup: "dpa_standalone_v2",
-    subscriber_lookup: "dpa_subscriber_v2",
-    table: "dpa_documents",
-    fallback_standalone_cents: 6900,
-    fallback_subscriber_cents: 0,
-  },
-  ir_playbook: {
-    name: "Your Incident Response Playbook",
-    standalone_lookup: "ir_standalone_v2",
-    subscriber_lookup: "ir_subscriber_v2",
-    table: "ir_playbooks",
-    fallback_standalone_cents: 8900,
-    fallback_subscriber_cents: 0,
-  },
-  biometric_checker: {
-    name: "Biometric Privacy Compliance Checker",
-    standalone_lookup: "biometric_standalone_v2",
-    subscriber_lookup: "biometric_subscriber_v2",
-    table: "biometric_assessments",
-    fallback_standalone_cents: 7900,
-    fallback_subscriber_cents: 0,
-  },
-
-  ropa_initial: {
-    name: "RoPA Builder — Initial Generation",
-    standalone_lookup: "ropa_initial_standalone",
-    subscriber_lookup: "ropa_initial_subscriber",
-    table: "ropa_sessions",
-    fallback_standalone_cents: 0,
-    fallback_subscriber_cents: 0,
-  },
-  ropa_refresh: {
-    name: "RoPA Builder — Annual Refresh",
-    standalone_lookup: "ropa_refresh_standalone",
-    subscriber_lookup: "ropa_refresh_subscriber",
-    table: "ropa_sessions",
-    fallback_standalone_cents: 0,
-    fallback_subscriber_cents: 0,
-  },
-  us_notice_single: {
-    name: "US Privacy Notice — Single State",
-    standalone_lookup: "us_notice_v7_standalone",
-    subscriber_lookup: "us_notice_v7_subscriber",
-    table: "us_notice_sessions",
-    fallback_standalone_cents: 0,
-    fallback_subscriber_cents: 0,
-  },
-  us_notice_all_states: {
-    name: "US Privacy Notice — All States Suite",
-    standalone_lookup: "us_notice_v7_standalone",
-    subscriber_lookup: "us_notice_v7_subscriber",
-    table: "us_notice_sessions",
-    fallback_standalone_cents: 0,
-    fallback_subscriber_cents: 0,
-  },
-  us_notice_refresh: {
-    name: "US Notice — Annual Refresh",
-    standalone_lookup: "us_notice_v7_standalone",
-    subscriber_lookup: "us_notice_v7_subscriber",
-    table: "us_notice_sessions",
-    fallback_standalone_cents: 0,
-    fallback_subscriber_cents: 0,
-  },
-  eu_notice_single: {
-    name: "EU & Global Notice — Single Framework",
-    standalone_lookup: "eu_notice_v7_standalone",
-    subscriber_lookup: "eu_notice_v7_subscriber",
-    table: "eu_notice_sessions",
-    fallback_standalone_cents: 0,
-    fallback_subscriber_cents: 0,
-  },
-  eu_notice_suite: {
-    name: "EU Notice Suite — GDPR + UK GDPR + FADP",
-    standalone_lookup: "eu_notice_v7_standalone",
-    subscriber_lookup: "eu_notice_v7_subscriber",
-    table: "eu_notice_sessions",
-    fallback_standalone_cents: 0,
-    fallback_subscriber_cents: 0,
-  },
-  eu_notice_full_international: {
-    name: "EU & Global Notice — Full International",
-    standalone_lookup: "eu_notice_v7_standalone",
-    subscriber_lookup: "eu_notice_v7_subscriber",
-    table: "eu_notice_sessions",
-    fallback_standalone_cents: 0,
-    fallback_subscriber_cents: 0,
-  },
-  eu_notice_refresh: {
-    name: "EU & Global Notice — Annual Refresh",
-    standalone_lookup: "eu_notice_v7_standalone",
-    subscriber_lookup: "eu_notice_v7_subscriber",
-    table: "eu_notice_sessions",
-    fallback_standalone_cents: 0,
-    fallback_subscriber_cents: 0,
-  },
-  cppa_risk_assessment: {
-    name: "CPPA Risk Assessment — Module 1",
-    standalone_lookup: "cppa_risk_standalone",
-    subscriber_lookup: "cppa_risk_subscriber",
-    table: "cppa_assessments",
-    fallback_standalone_cents: 29900,
-    fallback_subscriber_cents: 17900,
-  },
-  cppa_cybersecurity: {
-    name: "CPPA Cybersecurity Readiness — Module 2",
-    standalone_lookup: "cppa_cyber_standalone",
-    subscriber_lookup: "cppa_cyber_subscriber",
-    table: "cppa_assessments",
-    fallback_standalone_cents: 39900,
-    fallback_subscriber_cents: 23900,
-  },
-  cppa_suite: {
-    name: "CPPA Full Audit Suite",
-    standalone_lookup: "cppa_suite_standalone",
-    subscriber_lookup: "cppa_suite_subscriber",
-    table: "cppa_assessments",
-    fallback_standalone_cents: 59900,
-    fallback_subscriber_cents: 34900,
-  },
-  cppa_admt: {
-    name: "ADMT Compliance Assessment — Module 3",
-    standalone_lookup: "cppa_admt_standalone",
-    subscriber_lookup: "cppa_admt_subscriber",
-    table: "cppa_assessments",
-    fallback_standalone_cents: 14900,
-    fallback_subscriber_cents: 9900,
-  },
-
-};
+// QA batch 2026-09-05 — the hand-copied TOOLS cents table that used to live
+// here is gone. Slug → lookup key / table wiring comes from
+// _shared/pricing.ts; every amount comes from _shared/pricing-snapshot.ts,
+// the GENERATED projection of src/config/pricing.ts (regenerate with
+// scripts/pricing/generate-pricing-snapshot.ts; guarded by
+// src/test/pricingSnapshot.test.ts). Verify with /admin/pricing-reconciliation.
+const TOOLS = TOOL_CATALOG;
 
 // v13 (2026-08-29, LAUNCH REPRICING): tools that bypass Stripe entirely for
 // PROFESSIONAL subscribers (any cadence). Intelligence subscribers pay the
 // standalone rate on these three — the tier split that closes the
 // $20-month → generate-everything → cancel arbitrage. (v9 granted these to
 // ANY active subscriber.)
-const SUBSCRIBER_FREE_TOOLS = new Set(["ir_playbook", "biometric_checker", "dpa_generator"]);
-
-// Tools that are subscription-only (never sold standalone). Active monthly
-// or annual subscription required; free / unauthenticated users are blocked.
-const SUBSCRIPTION_ONLY_TOOLS = new Set([
-  "ropa_initial",
-  "ropa_refresh",
-  "us_notice_single",
-  "us_notice_all_states",
-  "us_notice_refresh",
-  "eu_notice_single",
-  "eu_notice_suite",
-  "eu_notice_full_international",
-  "eu_notice_refresh",
-]);
+const SUBSCRIBER_FREE_TOOLS = PROFESSIONAL_INCLUDED_TOOLS;
 
 // Tools whose row insert needs a `module` discriminator (CPPA family).
 const MODULE_FOR_TOOL: Record<string, string> = {
@@ -297,17 +123,12 @@ Deno.serve(async (req) => {
       }
       const topupEnv = detectEnv(environment);
       const topupStripe = createStripeClient(topupEnv);
+      // QA batch 2026-09-05 — the registry is authoritative for the amount;
+      // Stripe's Price object is consulted only to log drift.
+      const topupCents = registryCents(topupLookup);
       const topupPrice = await resolvePriceId(topupStripe, topupLookup);
-      if (!topupPrice || typeof topupPrice.unit_amount !== "number") {
-        return new Response(
-          JSON.stringify({
-            error: "topup_price_not_found",
-            lookup_key: topupLookup,
-            message: "Top-up price is not yet synced to Stripe. Run sync-pricing from Admin → Pricing.",
-          }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      }
+      const topupDrift = describePriceDrift(topupLookup, topupCents, topupPrice?.unit_amount);
+      if (topupDrift) console.warn(JSON.stringify({ ...topupDrift, fn: "create-tool-checkout", tool_type, topup: true }));
       const rawOriginTop =
         return_url || req.headers.get("origin") || Deno.env.get("SITE_URL") || "";
       const originTop = /^https?:\/\//i.test(rawOriginTop)
@@ -321,7 +142,7 @@ Deno.serve(async (req) => {
           price_data: {
             currency: "usd",
             product_data: { name: `${tool.name} — 4 additional generations` },
-            unit_amount: topupPrice.unit_amount,
+            unit_amount: topupCents,
           },
           quantity: 1,
         }],
@@ -654,13 +475,17 @@ Deno.serve(async (req) => {
     // (ropa_annual_additional) for ANNUAL subscribers beyond the included
     // initial generation + one yearly update.
     const ropaLookup = isAnnualSubscriber ? "ropa_annual_additional" : "ropa_paid_generation";
-    const ropaFallbackCents = isAnnualSubscriber ? 3900 : 4900;
     const lookupKey = ropaPaidCharge
       ? ropaLookup
       : (useSubscriberPrice ? tool.subscriber_lookup! : tool.standalone_lookup);
-    const fallbackCents = ropaPaidCharge
-      ? ropaFallbackCents
-      : (useSubscriberPrice ? tool.fallback_subscriber_cents : tool.fallback_standalone_cents);
+    // QA batch 2026-09-05 — the REGISTRY amount is what the customer pays.
+    // Before this change `resolved.unit_amount ?? fallback` let a stale Stripe
+    // Price object (last synced at v11) override the v13 registry: seven
+    // observed checkouts charged $139/$169/$59/$59/$59/$49/$45 against site
+    // prices of $179/$239/$99/$99/$89/$69/$79.
+    const registryAmountCents = ropaPaidCharge
+      ? registryCents(ropaLookup)
+      : (useSubscriberPrice ? toolSubscriberCents(tool_type) : toolStandaloneCents(tool_type));
 
     const env = checkoutEnv;
     const stripe = createStripeClient(env);
@@ -676,20 +501,32 @@ Deno.serve(async (req) => {
     }
 
 
-    const standaloneCents = fallbackCents;
-
     // NOTE: free convenience-run consumption is enforced client-side via
     // checkFreeConvenienceRun()/consumeFreeConvenienceRun() in
     // src/lib/freeConvenienceRun.ts. Stripe disallows $0 sessions, so when
     // a free run is available the client should mark the row as paid
     // directly and skip create-tool-checkout entirely.
 
-    const resolved = await resolvePriceId(stripe, lookupKey);
-    const amountCents: number = resolved?.unit_amount ?? standaloneCents;
+    // Stripe's Price object under this lookup key is read ONLY to detect
+    // drift; the line item below charges `amountCents` via price_data, so a
+    // stale or missing Stripe price can never change what the customer pays.
+    // Operators fix drift by running sync-pricing (Admin → Pricing).
+    const amountCents: number = registryAmountCents;
+    if (amountCents <= 0) {
+      return new Response(
+        JSON.stringify({ error: "zero_amount", message: "This product has no chargeable price for this tier." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+    try {
+      const resolved = await resolvePriceId(stripe, lookupKey);
+      const drift = describePriceDrift(lookupKey, amountCents, resolved?.unit_amount);
+      if (drift) console.warn(JSON.stringify({ ...drift, fn: "create-tool-checkout", tool_type, env }));
+    } catch (driftErr) {
+      console.warn(JSON.stringify({ evt: "pricing_drift_check_failed", fn: "create-tool-checkout", lookup_key: lookupKey, message: (driftErr as Error)?.message }));
+    }
 
 
-    // Preserve legacy variable names referenced later in the file.
-    const stripePrice: { id: string; unit_amount?: number | null } | null = null;
     // Tier bookkeeping mirrors the entitlement read used for pricing: any
     // active subscription (monthly, annual, annual_founding) records its
     // real tier. "standalone" is reserved for non-premium buyers. Without
@@ -699,7 +536,7 @@ Deno.serve(async (req) => {
     // corrected.
     const isProfessionalSubscriber = isPremium && isPro;
     const isIntelligenceSubscriber = isPremium && !isPro;
-    void stripePrice; void isIntelligenceSubscriber; void isProfessionalSubscriber;
+    void isIntelligenceSubscriber; void isProfessionalSubscriber;
 
 
 
@@ -717,22 +554,29 @@ Deno.serve(async (req) => {
       "cppa_cybersecurity",
       "cppa_admt",
     ]);
-    const includedGenerationsDescription =
-      "Includes 4 generations — refine your answers and regenerate up to 3 times at no extra cost.";
+    // QA batch 2026-09-05 (CY 02 / RA 04 / AD 01 / DPIA 01 / LIA 02): the
+    // Stripe line item promised "4 generations … regenerate up to 3 times"
+    // while the product page said revisions are disabled. The description now
+    // follows the same REVISIONS_ENABLED gate as the site copy
+    // (src/config/pricing.ts INCLUDED_GENERATIONS_COPY).
+    const includedGenerationsDescription = REVISIONS_ENABLED
+      ? "Includes 4 generations — refine your answers and regenerate up to 3 times at no extra cost."
+      : "Includes your initial report generation.";
     const productDataWithDescription = INCLUDED_GEN_TOOLS.has(tool_type)
       ? { name: tool.name, description: includedGenerationsDescription }
       : { name: tool.name };
 
-    const lineItemBase = stripePrice
-      ? { price: stripePrice.id, quantity: 1 }
-      : {
-          price_data: {
-            currency: "usd",
-            product_data: productDataWithDescription,
-            unit_amount: amountCents,
-          },
-          quantity: 1,
-        };
+    // Always price_data: the amount is the registry amount resolved above. A
+    // Stripe Price object is never placed on the line item, so Stripe-side
+    // drift cannot change the charge.
+    const lineItemBase = {
+      price_data: {
+        currency: "usd",
+        product_data: productDataWithDescription,
+        unit_amount: amountCents,
+      },
+      quantity: 1,
+    };
 
     // ── Session-based tools (RoPA / US Notice / EU Notice) ──
     // The session row already exists from the Q&A flow. Do NOT insert a new

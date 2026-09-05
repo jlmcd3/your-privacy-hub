@@ -420,7 +420,11 @@ export function buildGdprSpine(ctx: SpineCtx): SpineResult {
   // 10 ────────────────────────────────────────────────────────────────────
   {
     const parts: string[] = [];
-    parts.push(p(`We retain personal data only for as long as reasonably necessary for the purposes for which it is processed, including where necessary to meet legal, accounting, tax, regulatory, security, fraud-prevention, dispute-resolution or recordkeeping requirements. Our retention position is: ${retention ? `<strong>${esc(retention)}</strong>` : fill("insert the retention period or the criteria used to determine it")}.`));
+    // QA batch 2026-09-05 (EU 03, Low) — a customer retention answer that
+    // already ends in a full stop produced "…seven years.." once the
+    // sentence's own stop was appended. Strip one trailing terminator.
+    const retentionText = retention ? retention.replace(/[.;:,\s]+$/u, "") : "";
+    parts.push(p(`We retain personal data only for as long as reasonably necessary for the purposes for which it is processed, including where necessary to meet legal, accounting, tax, regulatory, security, fraud-prevention, dispute-resolution or recordkeeping requirements. Our retention position is: ${retentionText ? `<strong>${esc(retentionText)}</strong>` : fill("insert the retention period or the criteria used to determine it")}.`));
     parts.push(p(`Where a fixed retention period cannot be specified, we use meaningful criteria to determine the retention period. Those criteria may include:`));
     parts.push(ul([
       "the duration of an account or customer relationship;",

@@ -237,11 +237,16 @@ export default function USNoticeQuestions() {
     }
 
     // Last question — mark session and move to review.
+    // QA batch 2026-09-05 (US 01) — this wrote "questions_complete", which the
+    // DB check constraint us_notice_sessions_status_check does not allow
+    // ('in_progress','review','generated','archived'); every session stuck at
+    // the last question with a raw constraint error. "review" is the allowed
+    // value for "answers complete, awaiting review".
     setSaving(true);
     const { error } = await supabase
       .from("us_notice_sessions")
       .update({
-        status: "questions_complete",
+        status: "review",
         last_activity_at: new Date().toISOString(),
       })
       .eq("id", sessionId!);
@@ -251,7 +256,7 @@ export default function USNoticeQuestions() {
       console.error("[USNoticeQuestions] session update error", error);
       toast({
         title: "Couldn't save progress",
-        description: error.message,
+        description: "Your answers are saved, but we couldn't mark them complete. Try again in a moment; if it keeps failing, contact support and quote this session.",
         variant: "destructive",
       });
       return;

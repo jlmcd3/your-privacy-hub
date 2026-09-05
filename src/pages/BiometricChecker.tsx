@@ -158,7 +158,10 @@ export default function BiometricChecker() {
 
   const [phase, setPhase] = useState<"form" | "generating" | "result">("form");
   // bipa_risk retired 2026-07-14 — dropped from result state shape.
-  const [result, setResult] = useState<{ assessment_text: string; jurisdictions_analysed: string[] } | null>(null);
+  // Inline results are no longer produced — every generation hands off to the
+  // result page (QA batch 2026-09-05, BIO 01). The state stays for the legacy
+  // render branch until that branch is retired.
+  const [result] = useState<{ assessment_text: string; jurisdictions_analysed: string[] } | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -203,18 +206,64 @@ export default function BiometricChecker() {
   const showIllinois = form.jurisdictions.some(j => j.includes("Illinois"));
   const showPractices = showIllinois || showTexas || showWashington;
 
-  const handleGenerate = async () => {
+  // QA batch 2026-09-05 (BIO 01) — check-biometric-compliance rejects a
+  // non-service caller that sends raw intake without an existing row (403
+  // "forbidden"); this handler did exactly that, so EVERY included and
+  // first-run-free generation ended in "Generation failed. Try again." with no
+  // retry control. Row-first, then invoke with assessment_id (the DPA
+  // generator's pattern): the server decides the entitlement against the row
+  // (Professional inclusion, or the claimed first-run quota on a row marked
+  // is_free_tier). The function streams for up to ~2 minutes, so we race a
+  // short window to surface an immediate refusal and otherwise hand off to
+  // the result page, which polls the row.
+  const [generationError, setGenerationError] = useState<string | null>(null);
+  const handleGenerate = async (mode: "included" | "free_run") => {
+    if (!access.user) { setAuthModalOpen(true); return; }
+    setGenerationError(null);
     setPhase("generating");
-    const { data, error } = await supabase.functions.invoke("check-biometric-compliance", { body: { ...form, user_id: access.user?.id, client_id: clientId ?? null } });
-    if (error || !data?.assessment_text) {
-      setResult({ assessment_text: "Generation failed. Try again.", jurisdictions_analysed: [] });
-      setPhase("result");
+    const fail = (message: string) => {
+      setGenerationError(message);
+      setPhase("form");
+    };
+    const { data: row, error: insErr } = await supabase
+      .from("biometric_assessments")
+      .insert({
+        user_id: access.user.id,
+        client_id: clientId ?? null,
+        status: "pending",
+        intake_data: { ...form },
+        jurisdictions: form.jurisdictions,
+        purchased_as_standalone: false,
+        is_subscriber_credit: mode === "included",
+        is_free_tier: mode === "free_run",
+        purchase_price_cents: 0,
+      })
+      .select("id")
+      .single();
+    if (insErr || !row) {
+      fail(`We couldn't start the assessment: ${insErr?.message || "the record could not be created"}. Your answers are still here — try again.`);
       return;
     }
-    setResult(data);
+    const invocation = supabase.functions.invoke("check-biometric-compliance", {
+      body: { ...form, assessment_id: row.id, client_id: clientId ?? null },
+    });
+    const early = await Promise.race([
+      invocation.then((r) => ({ kind: "done" as const, error: r.error })),
+      new Promise<{ kind: "timeout" }>((resolve) => window.setTimeout(() => resolve({ kind: "timeout" }), 8_000)),
+    ]);
+    if (early.kind === "done" && early.error) {
+      const status = (early.error as { context?: { status?: number } }).context?.status;
+      fail(
+        status === 403
+          ? (mode === "free_run"
+              ? "Your free first run could not be confirmed for this account. Your answers are kept — use the purchase button to continue."
+              : "Your plan doesn't include the Biometric Assessment at no charge. Your answers are kept — use the purchase button to continue, or upgrade to Professional.")
+          : `Generation didn't start (${early.error.message || "unknown error"}). Your answers are kept — try again in a moment.`,
+      );
+      return;
+    }
     void clearDraft();
-    if (data?.id) { navigate(`/biometric-checker/result/${data.id}`); return; }
-    setPhase("result");
+    navigate(`/biometric-checker/result/${row.id}?purchased=true&${mode === "free_run" ? "free_run=true" : "subscriber_free=true"}`);
   };
 
   const [biometricFreeRunAvailable, setBiometricFreeRunAvailable] = useState(false);
@@ -233,13 +282,17 @@ export default function BiometricChecker() {
   const handleAnalyse = async () => {
     logToolAcknowledgment("biometric_checker", access.user?.id ?? null);
     if (!access.user) { setAuthModalOpen(true); return; }
-    if (access.isPremium) { handleGenerate(); return; }
+    // v13: included for PROFESSIONAL subscribers only (pricing.isIncluded).
+    // An Intelligence subscriber falls through to the first-run / checkout
+    // path exactly like a non-subscriber (QA batch 2026-09-05, BIO 01: the
+    // old `access.isPremium` gate promised inclusion to any subscriber).
+    if (pricing.isIncluded) { void handleGenerate("included"); return; }
     if (biometricFreeRunAvailable) {
       // ITEM 360 — the quota column is service-role-only; claim it atomically
       // through the security-definer routine (returns false if already used).
       const { data: claimed } = await (supabase as any).rpc("claim_biometric_free_run");
       setBiometricFreeRunAvailable(false);
-      if (claimed === true) { handleGenerate(); return; }
+      if (claimed === true) { void handleGenerate("free_run"); return; }
       setCheckoutOpen(true);
       return;
     }
@@ -249,7 +302,7 @@ export default function BiometricChecker() {
 
   const ctaLabel = !access.user
     ? "Sign in to analyse"
-    : access.isPremium
+    : pricing.isIncluded
       ? "Analyse (included with your plan)"
       : biometricFreeRunAvailable
         ? "Run your first Biometric Check free →"
@@ -268,9 +321,14 @@ export default function BiometricChecker() {
         showIntakeCta={false}
       >
         <HeroAccessLine toolKey="biometric" />
+        {/* QA batch 2026-09-05 (BIO 02) — without `toolHref` this block sent
+            an entitled subscriber to /subscribe. Any signed-in visitor can use
+            the intake (included, first-run-free or paid), so the hero CTA now
+            lands on it; anonymous visitors still see the plans. */}
         <ToolCTABlock
           toolSlug="biometric"
-          hasAccess={Boolean(access.isPremium)}
+          hasAccess={Boolean(access.user)}
+          toolHref="/biometric-checker#biometric-intake"
           ctaPosition="hero"
           onDark
           pagePath="/biometric-checker"
@@ -300,8 +358,14 @@ export default function BiometricChecker() {
           },
         ]}
       />
-      <section className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <section id="biometric-intake" className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10 scroll-mt-24">
         <ActiveClientLabel />
+        {generationError && phase === "form" && (
+          <div role="alert" className="mb-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30 p-3 rounded-r text-sm text-red-900 dark:text-red-200">
+            <p className="font-semibold">Generation didn't start</p>
+            <p className="mt-1">{generationError}</p>
+          </div>
+        )}
         <div className="mb-4">
           <DraftRestoreBanner
             draftFound={draftFound}

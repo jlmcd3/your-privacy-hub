@@ -24,6 +24,9 @@ import { REGISTRATION_DUTY_AUTHORITIES } from "./_local/registry/registration-ve
 // resolver can be unit-tested directly; see that file's header for the
 // investigation this batch ran against an external review's P0 claim.
 import { resolveIcoFeeTier } from "./_local/ico-fee-tier.ts";
+// QA batch 2026-09-05 (REG 03) — rewrites the seeded blanket ICO "exemptions"
+// sentence to the ICO's activity-based rule on the way out.
+import { correctIcoExemptionNote } from "./_local/ico-fee-exemption-note.ts";
 
 
 /**
@@ -181,6 +184,20 @@ Deno.serve(async (req) => {
     // 1. Run the pure rules engine
     const engineOutput = runRegistrationAssessment(intake);
     const codes = engineOutput.jurisdictions.map((j) => j.code);
+    // QA batch 2026-09-05 (REG 02) — a UK-only record whose ICO fee tier was
+    // resolved from an FX-estimated turnover a few thousand pounds from a
+    // threshold still reported "high confidence — ready to file". A boundary
+    // tier caps confidence at medium and records why.
+    if (codes.includes("UK") && engineOutput.confidence === "high") {
+      const t = resolveIcoFeeTier(intake);
+      if (t.boundary === true && t.tier !== null) {
+        engineOutput.confidence = "medium";
+        engineOutput.confidence_reasons = [
+          ...(engineOutput.confidence_reasons ?? []),
+          "The ICO fee tier is resolved from an estimated GBP turnover that sits near a tier threshold; confirm the tier with the ICO self-assessment before filing.",
+        ];
+      }
+    }
 
     // 2. Look up requirement metadata for every recommended jurisdiction
     const { data: reqs, error: reqsErr } = await supabase
@@ -347,7 +364,7 @@ Deno.serve(async (req) => {
           renewal_period_months: r?.renewal_period_months ?? null,
           notes: (() => {
             const leadNote = "This jurisdiction serves as the organisation's lead supervisory authority under the GDPR one-stop-shop mechanism.";
-            const baseNotes = r?.notes ?? null;
+            const baseNotes = correctIcoExemptionNote(r?.notes ?? null, j.code);
             const existing = wasLeadAuthority ? (baseNotes ? `${baseNotes} ${leadNote}` : leadNote) : baseNotes;
             // QB-P22 item 5a — replace generic ICO fee caveat with the resolved tier + basis;
             // keep a confirm note ONLY when the intake straddles a boundary.

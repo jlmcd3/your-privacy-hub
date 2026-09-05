@@ -106,7 +106,19 @@ export default function RopaRefresh() {
       const { data, error } = await supabase.functions.invoke("start-ropa-refresh", {
         body: { source_session_id: sessionId },
       });
-      if (error) throw error;
+      if (error) {
+        // QA batch 2026-09-05 (ROPA 04) — surface the function's own reason
+        // instead of "Edge Function returned a non-2xx status code".
+        let detail = error.message;
+        try {
+          const ctx = (error as { context?: Response }).context;
+          if (ctx && typeof ctx.json === "function") {
+            const body = await ctx.clone().json();
+            if (body?.error && typeof body.error === "string") detail = body.error;
+          }
+        } catch { /* keep the generic message */ }
+        throw new Error(detail);
+      }
       const newId = data?.new_session_id as string | undefined;
       if (!newId) throw new Error("No new session returned");
       toast({

@@ -20,6 +20,7 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import { useEuNoticeSessionGuard } from "@/hooks/useEuNoticeSessionGuard";
 import { waitForSessionPaid } from "@/lib/checkoutConfirmation";
 import { buildEuQuestionSections } from "@/data/eu-notice-questions";
+import { evaluateShowIf } from "@/data/eu-notice-questions/showIf";
 import type { EuFrameworkCode } from "@/data/eu-notice-questions/types";
 import type { Question } from "@/data/ropa-questions/types";
 import SessionCheckoutModal, { type SessionToolType } from "@/components/SessionCheckoutModal";
@@ -213,11 +214,16 @@ export default function EUNoticeReview() {
       const bucket = map.get(fwCode);
       if (!bucket) continue;
       for (const q of section.questions) {
+        // QA batch 2026-09-05 (EU 02) — count only the questions this route
+        // actually presented (showIf), and read the real `isRequired` flag
+        // (the old `required` property does not exist on Question, so every
+        // question counted as optional and none as required).
+        if (!evaluateShowIf(q, answers)) continue;
         bucket.total += 1;
         const a = answers[q.key];
         const filled = Array.isArray(a) ? a.length > 0 : a != null && a !== "";
         if (filled) bucket.answered += 1;
-        const isRequired = (q as Question & { required?: boolean }).required === true;
+        const isRequired = (q as Question).isRequired === true;
         if (isRequired) {
           bucket.required += 1;
           if (filled) bucket.requiredAnswered += 1;
@@ -739,9 +745,13 @@ export default function EUNoticeReview() {
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" /> Generating…
                   </>
-                ) : session?.payment_confirmed ? (
+                ) : session?.payment_confirmed || pricing.isSubscriber ? (
+                  // QA batch 2026-09-05 (EU 01) — an included subscriber saw
+                  // "Continue to payment — $30" on a button that (correctly)
+                  // started generation with no payment. Label follows the same
+                  // rule handleGenerateClick applies.
                   <>
-                    Generate notices <ArrowRight className="w-4 h-4" />
+                    {pricing.isSubscriber && !session?.payment_confirmed ? "Generate notices — included with your subscription" : "Generate notices"} <ArrowRight className="w-4 h-4" />
                   </>
                 ) : (
                   <>Continue to payment — ${pricing.price}</>

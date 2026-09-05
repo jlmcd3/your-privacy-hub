@@ -5,6 +5,7 @@
 // regulation text, plain summary, and FSOR context for every field.
 
 import { useEffect, useMemo, useRef, useState, type ComponentProps } from "react";
+import { REVISIONS_ENABLED } from "@/lib/revisionGate";
 import Navbar from "@/components/Navbar";
 import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
@@ -409,10 +410,15 @@ export default function ADMTChecker() {
     !optOutException.startsWith("Hiring") &&
     !optOutException.startsWith("Work allocation");
 
+  // QA batch 2026-09-05 (AD 02) — "None of these categories" is the explicit
+  // negative (DOC 158), not a significant-decision domain. Counting it as one
+  // told an out-of-scope system that Article 11 "appears to apply".
+  const outOfScopeByDomain =
+    decisionDomains.length > 0 && decisionDomains.every((d) => d === ADMT_NONE_DOMAIN);
   const admtScopeVerdict = useMemo(() => {
-    const hasSignificant = decisionDomains.length > 0;
+    const hasSignificant = decisionDomains.some((d) => d !== ADMT_NONE_DOMAIN);
     const answeredHuman = !!humanReview;
-    if (!hasSignificant && !answeredHuman) return null;
+    if (!hasSignificant && !answeredHuman && decisionDomains.length === 0) return null;
     const humanQualifies =
       humanReview.startsWith("Yes — reviewer knows") ||
       (adv.hi_trained === "Yes" && adv.hi_reviews_other_info === "Yes" && adv.hi_authority_override === "Yes");
@@ -442,6 +448,14 @@ export default function ADMTChecker() {
         return "Answer whether the housing decision is based solely on availability, vacancy, or receipt of payment (§ 7001(ddd)(2)).";
       if (!humanReview) return "Describe the human review applied to this system's outputs.";
     }
+    // QA batch 2026-09-05 (AD 02) — Steps 2–4 test the Article 11 notice,
+    // opt-out and access duties. When Step 1 records "None of these
+    // categories" alone, those duties may not attach, so the steps become
+    // optional: nothing is invented to satisfy a validator (the QA pass had
+    // to fabricate a second opt-out method to get past § 7221(c)). Whatever
+    // IS answered still flows to the engine, which records the scope
+    // position on its own terms (DOC 158 categorical negative).
+    if (outOfScopeByDomain && step >= 2 && step <= 4) return null;
     if (step === 2) {
       if (!noticeDelivery.length) return "Select how the Pre-use Notice reaches consumers.";
       // DOC 158 — § 7220(b)(2) timing, whenever a notice is provided.
@@ -587,18 +601,16 @@ export default function ADMTChecker() {
       }),
     [],
   );
-  const touched =
-    JSON.stringify({
-      organizationName, systemName, systemType, systemDescription, decisionDomains, humanReview,
-      trainingDataUse, profilingUse, noticeDelivery, noticeHasSpecificPurpose,
-      noticePurposeText, noticeElementText, noticeHasOptOutDesc, noticeHasAccessDesc,
-      noticeHasAntiRetaliation, noticeHasHowItWorks, noticeHasAlternativeProcess,
-      optOutException, optOutMethods, optOutLinkTitle, optOutNoCookieBanner,
-      optOutNoAccountRequired, optOutConfirmationMechanism, optOutAppealProcess,
-      optOutFairnessDoc, accessSubmissionMethods, accessVerificationProcess,
-      accessLogicDisclosure, accessOutcomeDisclosure, accessResponseTimeline,
-      accessTradeSecretPolicy,
-    }) !== INITIAL_DRAFT;
+  // QA batch 2026-09-05 (AD 03) — `touched` compared a hand-listed object
+  // (which included noticeElementText) against INITIAL_DRAFT (which did not),
+  // so it was ALWAYS true: the blank first render autosaved over the server
+  // draft, the Resume banner never showed and ?resume=1 never fired. The
+  // baseline is now the first render of the same draftData the hook saves;
+  // INITIAL_DRAFT stays as documentation of the empty shape only.
+  void INITIAL_DRAFT;
+  const initialDraftJsonRef = useRef<string | null>(null);
+  if (initialDraftJsonRef.current === null) initialDraftJsonRef.current = JSON.stringify(draftData);
+  const touched = JSON.stringify(draftData) !== initialDraftJsonRef.current;
 
   const {
     draftFound, draftUpdatedAt, restoreData, restoreStage,
@@ -823,7 +835,7 @@ export default function ADMTChecker() {
               : undefined
           }
           meter={meter ?? null}
-          preRunHint="Assessment subject locks after the first generation; other answers remain editable across included generations."
+          preRunHint={REVISIONS_ENABLED ? "Assessment subject locks after the first generation; other answers remain editable across included generations." : undefined}
           clientSlot={<ActiveClientLabel variant="masthead" />}
         />
 
@@ -1259,6 +1271,11 @@ export default function ADMTChecker() {
                 </>
               )}
 
+              {outOfScopeByDomain && step >= 2 && step <= 4 && (
+                <div className="mb-4 border-l-4 border-amber-400 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-r text-sm text-amber-900 dark:text-amber-200">
+                  <span className="font-semibold">Optional for this system.</span> In Step 1 you recorded that the decision falls in none of the § 7001(ddd) categories, so the Article 11 notice, opt-out and access duties this step checks may not attach. Answer only what you actually provide — leave the rest blank and continue; the report records the scope position from your Step 1 answer.
+                </div>
+              )}
               {step === 2 && (
                 <>
                  <h2 className="font-serif text-xl">Step 2 · Do people get the right heads-up?</h2>

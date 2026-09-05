@@ -38,6 +38,7 @@ import {
   composeReadinessLead,
 } from "../../../supabase/functions/run-registration-assessment/_local/ltp/registration-skeleton-assemble.ts";
 import { resolveIcoFeeTier } from "../../../supabase/functions/run-registration-assessment/_local/ico-fee-tier.ts";
+import { correctIcoExemptionNote } from "../../../supabase/functions/run-registration-assessment/_local/ico-fee-exemption-note.ts";
 
 type Bag = Record<string, unknown>;
 
@@ -197,4 +198,63 @@ Deno.test("QA 2026-09-05 #4 — an engaged data-broker record still names its st
   const triggers = registrationReviewTriggers(caBroker as never);
   assertStringIncludes(triggers[0], "Amendment of any data-broker registration statute named in this assessment");
   assertStringIncludes(triggers[0], "Cal. Civ. Code");
+});
+
+// ── Codex QA report (same day), REG 02 / REG 03 ──────────────────────────────
+// The automated buy-path review of the same PDF added four more findings:
+// (a) "Approval and review" repeated the missing-facts list twice (statement +
+//     information_needed);
+// (b) the Section II lead said "no EU, UK or AI Act filing duty of this kind"
+//     beside a Section III that attached the ICO fee;
+// (c) "Open determinations: None — every determination is resolved" beside an
+//     FX-estimated ICO tier the document itself said must be confirmed;
+// (d) the free report's jurisdiction card listed sole traders and charities as
+//     blanket ICO fee exemptions (DB content contradicting ICO guidance).
+
+Deno.test("REG 02 (a) — the pending attestation statement no longer repeats the information_needed list", () => {
+  const d = buildRegistrationDeliverables(eupQaIntake as never) as unknown as Bag;
+  const att = d.attestation as Bag;
+  assertEquals(att.status, "record_insufficient");
+  assert(!String(att.statement).includes("does not state"), "statement must not carry the missing-facts list");
+  assertStringIncludes(String(att.statement), "Approval status: pending");
+  assertStringIncludes(String(att.information_needed), "the name of the person approving this assessment");
+  assertStringIncludes(String(att.information_needed), "the date this assessment is next due for review");
+});
+
+Deno.test("REG 02 (b) — the Section II lead names the duties it decides and points the ICO fee to Section III", () => {
+  const text = JSON.stringify(assembleRegistrationSkeletonDocument(reportFor(eupQaIntake), eupQaIntake));
+  assertStringIncludes(text, "carries no EU or UK representative or data protection officer designation duty and no EU AI Act registration duty");
+  assertStringIncludes(text, "the UK ICO data-protection fee is a separate payment obligation and is addressed in Section III");
+  assert(!text.includes("filing duty of this kind"), "the vague 'of this kind' sentence must be gone");
+});
+
+Deno.test("REG 02 (b) — without an ICO fee jurisdiction the lead carries no fee aside", () => {
+  const text = skeletonText(eupQaIntake); // jurisdictions: [] — no ico_fee obligation
+  assert(!text.includes("separate payment obligation"));
+});
+
+Deno.test("REG 02 (c) — a boundary ICO tier is an open verification item on page one", () => {
+  const boundary = JSON.stringify(assembleRegistrationSkeletonDocument(reportFor(eupQaIntake), eupQaIntake));
+  assertStringIncludes(boundary, "the ICO fee tier requires confirmation before filing because the recorded turnover sits near a tier threshold");
+  assert(!boundary.includes("None — every determination is resolved"), "a boundary record must not claim every determination is resolved");
+
+  const stable = { ...eupQaIntake, employee_count: 60, annual_revenue_usd: 5_000_000 };
+  const stableText = JSON.stringify(assembleRegistrationSkeletonDocument(reportFor(stable), stable));
+  assertStringIncludes(stableText, "None — every determination is resolved on the information provided");
+  assert(!stableText.includes("requires confirmation before filing because"));
+});
+
+Deno.test("REG 03 — the seeded blanket ICO exemption sentence is rewritten to the ICO's activity-based rule", () => {
+  const seeded =
+    "Annual ICO data protection fee (current rates effective April 2024): Tier 1 £52 … Tier 3 £3,763. £5 discount for direct debit payment. " +
+    "Exemptions: sole traders, charities, small occupational pension schemes, maintained schools. Confirm tier and exemptions at https://ico.org.uk/.";
+  const fixed = correctIcoExemptionNote(seeded, "UK")!;
+  assert(!fixed.includes("Exemptions: sole traders"), "blanket list must be gone");
+  assertStringIncludes(fixed, "Exemptions are activity-based, not organisation-based");
+  assertStringIncludes(fixed, "including a sole trader) pays the fee unless every purpose");
+  assertStringIncludes(fixed, "Charities and small occupational pension schemes that are not otherwise exempt pay the Tier 1 fee regardless of size or turnover");
+  assertStringIncludes(fixed, "Tier 1 £52", "the surrounding fee text survives");
+  // Other jurisdictions and empty notes pass through untouched.
+  assertEquals(correctIcoExemptionNote(seeded, "DE"), seeded);
+  assertEquals(correctIcoExemptionNote(null, "UK"), null);
 });

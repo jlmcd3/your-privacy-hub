@@ -1671,9 +1671,14 @@ export function buildRegistrationAttestation(intake: I): Attestation {
   if (!date) missing.push("the date of approval");
   if (!review) missing.push("the date this assessment is next due for review");
 
+  // QA batch 2026-09-05 (REG 02, "report repeats … approval paragraphs") —
+  // the pending statement listed the missing facts AND information_needed
+  // listed the same facts again one line below. The statement now states the
+  // status and the completion condition; the list lives in information_needed
+  // alone.
   const statement = missing.length === 0
     ? `${name}, ${title}, approved this registration assessment on ${date}. It is next due for review on ${review}, or earlier on any of the triggers below.`
-    : `Approval status: pending. The record does not state ${missing.join(", ")}. Approval is complete when an accountable person is named and the approval recorded.`;
+    : "Approval status: pending. Approval is complete when an accountable person is named and the approval and next review dates are recorded.";
 
   return {
     heading: "Approval and review",

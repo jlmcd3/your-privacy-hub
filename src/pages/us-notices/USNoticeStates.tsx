@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { US_NOTICE_PRICING } from "@/config/pricing";
 import { US_STATE_COUNT } from "@/data/usStateNoticeCoverage";
 import {
   Dialog,
@@ -50,7 +49,9 @@ interface StateLaw {
 // user manual overrides via toggle() are unchanged. useState defaults for
 // `volume` and `revenue` are `null` (unchanged) — no silent definite default.
 type ConsumerVolume = "<35k" | "35k-100k" | "100k-175k" | ">175k";
-type RevenueShare = "none" | "<20" | "20-25" | ">=50";
+// QA batch 2026-09-05 (US 02) — the bands skipped 25–50%; a business earning
+// 30% of revenue from selling personal data had no truthful answer.
+type RevenueShare = "none" | "<20" | "20-25" | "25-50" | ">=50";
 
 const VOLUME_OPTIONS: { value: ConsumerVolume; label: string }[] = [
   { value: "<35k", label: "Under 35,000" },
@@ -63,6 +64,7 @@ const REVENUE_OPTIONS: { value: RevenueShare; label: string }[] = [
   { value: "none", label: "None" },
   { value: "<20", label: "Less than 20%" },
   { value: "20-25", label: "20–25%" },
+  { value: "25-50", label: "More than 25%, less than 50%" },
   { value: ">=50", label: "50% or more" },
 ];
 
@@ -98,7 +100,7 @@ function isLikelyObligated(
     (volume === "35k-100k" && law.state_code === "MT");
 
   const revenueDriven =
-    (revenue === ">=50" || revenue === "20-25") &&
+    (revenue === ">=50" || revenue === "25-50" || revenue === "20-25") &&
     (volume === "35k-100k" || volume === "100k-175k" || volume === ">175k");
 
   if (volumeMeets) {
@@ -457,7 +459,7 @@ export default function USNoticeStates() {
           </section>
 
           <p className="text-xs text-muted-foreground text-center mb-24">
-            Answering questions is free · Notices from {US_NOTICE_PRICING.singleSubscriber()}
+            Answering questions is free · Notices are included with your subscription
           </p>
 
           {/* Sticky bottom bar */}

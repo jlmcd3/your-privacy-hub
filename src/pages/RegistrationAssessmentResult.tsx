@@ -178,9 +178,15 @@ export default function RegistrationAssessmentResult() {
   const crpTotal = Math.round(
     (((PRICING_REGISTRY as any).registration_counsel_review?.amountCents ?? 29900) as number) / 100,
   );
-  const diyPrice = Math.round(
-    (((PRICING_REGISTRY as any).registration_standalone?.amountCents ?? 4500) as number) / 100,
-  );
+  // QA batch 2026-09-05 (REG 01) — v13 multi-jurisdiction ladder from the
+  // master price list: registration_standalone for the first jurisdiction,
+  // registration_additional_filing for each additional one in the same order.
+  // create-registration-checkout computes the same ladder server-side from the
+  // generated pricing snapshot; the two can no longer disagree ($79 vs $45).
+  const diyFirstCents = PRICING_REGISTRY.registration_standalone.amountCents;
+  const diyAdditionalCents = PRICING_REGISTRY.registration_additional_filing.amountCents;
+  const diyPrice = Math.round(diyFirstCents / 100);
+  const diyTotalFor = (n: number) => Math.round((diyFirstCents + Math.max(0, n - 1) * diyAdditionalCents) / 100);
 
   // Confidence-tier copy: rewrite CTA framing so users understand WHY to upgrade
   const confidenceCopy: Record<string, { headline: string; subline: string }> = {
@@ -392,9 +398,13 @@ export default function RegistrationAssessmentResult() {
               <CardContent className="grid md:grid-cols-3 gap-4">
                 <PlanCard
                   title="DIY Toolkit"
-                  price={`$${diyPrice}`}
-                  priceFootnote={`Flat — any jurisdiction count`}
-                  blurb={`One-time. Documents and a step-by-step filing checklist for each jurisdiction you select. Flat ${PRICING.tools.registration.display} regardless of count.`}
+                  price={`$${diyTotalFor(Math.max(1, selectedCount))}`}
+                  priceFootnote={
+                    selectedCount > 1
+                      ? `${PRICING_REGISTRY.registration_standalone.displayPrice} first jurisdiction + ${PRICING_REGISTRY.registration_additional_filing.displayPrice} × ${selectedCount - 1} additional`
+                      : `${PRICING_REGISTRY.registration_standalone.displayPrice} for one jurisdiction · ${PRICING_REGISTRY.registration_additional_filing.displayPrice} for each additional jurisdiction in the same order`
+                  }
+                  blurb={`One-time. Documents and a step-by-step filing checklist for each jurisdiction you select. ${PRICING.tools.registration.display} for the first jurisdiction and ${PRICING_REGISTRY.registration_additional_filing.displayPrice} for each additional jurisdiction filed in the same order.`}
                   cta={purchasing === "diy" ? "Loading…" : selectedCount === 0 ? "Select a jurisdiction" : "Get the toolkit"}
                   onClick={() => purchase("diy")}
                   disabled={purchasing !== null || selectedCount === 0}

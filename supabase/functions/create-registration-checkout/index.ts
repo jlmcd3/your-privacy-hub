@@ -1,19 +1,17 @@
 // Create a Stripe checkout session for the Registration Manager.
 // Uses inline price_data so the feature works without pre-provisioned Stripe products.
 //
-// Tiers (we never submit filings on the user's behalf):
-//   "diy"             — one-time tiered fee by jurisdiction count
-//                       1 jurisdiction        = $59
-//                       up to 3 jurisdictions = $149
-//                       up to 7 jurisdictions = $275
-//                       8+ (unlimited)        = $499
-//   "counsel_review"  — one-time $399 flat (Counsel-Ready Pack: enhanced docs + handoff)
-//   "renewal"         — recurring $79/yr × N jurisdictions (renewal monitoring + regenerated docs)
+// Tiers (we never submit filings on the user's behalf) — amounts come from
+// src/config/pricing.ts via _shared/pricing-snapshot.ts:
+//   "diy"             — one-time: registration_standalone for the first
+//                       jurisdiction + registration_additional_filing for
+//                       each additional jurisdiction in the same order
+//   "counsel_review"  — one-time registration_counsel_review flat
+//                       (Counsel-Ready Pack: enhanced docs + handoff)
+//   "renewal"         — RETIRED (V7-B3): bundled with any active subscription
 //
-// Subscriber discounts (Professional plan):
-//   - 20% off all DIY packages
+// Subscriber discounts (Professional plan only):
 //   - $75 off the Counsel-Ready Pack
-//   - Renewal monitoring is unchanged
 //
 // Backwards-compat: legacy "done_for_you" tier is silently mapped to "counsel_review".
 //
@@ -22,6 +20,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { type StripeEnv, createStripeClient, resolveOrCreateCustomer } from "../_shared/stripe.ts";
+import { registryCents } from "../_shared/pricing-snapshot.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -38,12 +37,16 @@ function detectEnv(override?: string): StripeEnv {
   return Deno.env.get("STRIPE_LIVE_API_KEY") ? "live" : "sandbox";
 }
 
-// DIY pricing — flat per-filing price (May 2026 memo). One price regardless
-// of jurisdiction count. Mirror this in src/pages/RegistrationAssessmentResult.tsx
-// and src/config/pricing.ts (registration_standalone).
-const DIY_STANDALONE_CENTS = 4500;   // $45
-function diyPriceCents(_numJurisdictions: number): number {
-  return DIY_STANDALONE_CENTS;
+// DIY pricing — v13 (2026-08-29) multi-jurisdiction ladder, read from the
+// master price list through the generated snapshot (QA batch 2026-09-05,
+// REG 01: this file charged a hand-copied $45 flat while the site said $79):
+//   first jurisdiction            registration_standalone          ($79)
+//   each additional jurisdiction  registration_additional_filing   ($49)
+// src/pages/RegistrationAssessmentResult.tsx computes the same ladder from
+// PRICING_REGISTRY for display.
+export function diyPriceCents(numJurisdictions: number): number {
+  const n = Math.max(1, numJurisdictions);
+  return registryCents("registration_standalone") + (n - 1) * registryCents("registration_additional_filing");
 }
 function diyPriceLabel(numJurisdictions: number): string {
   const suffix = numJurisdictions === 1
@@ -52,8 +55,11 @@ function diyPriceLabel(numJurisdictions: number): string {
   return `Registration Manager — DIY Toolkit (${suffix})`;
 }
 
-const COUNSEL_REVIEW_CENTS = 29900; // $299 flat — MIRRORS pricing.ts registration_counsel_review
-const COUNSEL_REVIEW_SUBSCRIBER_DISCOUNT_CENTS = 7500; // -$75 for Pro — MIRRORS pricing.ts
+const COUNSEL_REVIEW_CENTS = registryCents("registration_counsel_review"); // $299 flat
+// -$75 off the Counsel-Ready Pack for PROFESSIONAL subscribers (header rule
+// above; the line-item label says "Professional $75 off"). Not a registry
+// entry — a discount, not a price.
+const COUNSEL_REVIEW_SUBSCRIBER_DISCOUNT_CENTS = 7500;
 // V7-B3: "renewal" tier retired — renewal tracking now bundled with any active subscription.
 
 const PRICING = {
@@ -123,18 +129,22 @@ serve(async (req) => {
       .eq("id", user.id)
       .single();
     const isSubscriber = !!(profile?.is_premium || profile?.is_pro);
+    // QA batch 2026-09-05 — the Counsel-Ready discount is labelled
+    // "Professional $75 off" on the line item and in the header rule; it was
+    // granted to ANY subscriber. Gate it on is_pro so label and charge agree.
+    const isProfessional = profile?.is_pro === true;
 
     // Pricing rules (must match src/pages/RegistrationAssessmentResult.tsx):
-    //   diy            -> flat $45
-    //   counsel_review -> flat $399, -$75 for subscribers
-    //   renewal        -> $79/yr × N jurisdictions (no subscriber discount)
+    //   diy            -> $79 first jurisdiction + $49 each additional (registry)
+    //   counsel_review -> flat $299 (registry), -$75 for Professional subscribers
+    //   renewal        -> retired (410 above)
     let unitAmount: number = cfg.unit_amount;
     let quantity = 1;
     let productName: string = cfg.name;
     if (tier === "diy") {
       unitAmount = diyPriceCents(codes.length);
       productName = diyPriceLabel(codes.length);
-    } else if (tier === "counsel_review" && isSubscriber) {
+    } else if (tier === "counsel_review" && isProfessional) {
       unitAmount = Math.max(0, unitAmount - COUNSEL_REVIEW_SUBSCRIBER_DISCOUNT_CENTS);
       productName = `${productName} — Professional $75 off`;
     }
@@ -215,16 +225,18 @@ serve(async (req) => {
         embedded: embedded ? "true" : "false",
         jurisdictions: codes.join(","),
       },
-      ...(cfg.recurring && {
-        subscription_data: {
-          metadata: {
-            type: "registration_order",
-            product: "registration_manager",
-            order_id: order.id,
-            user_id: user.id,
-          },
-        },
-      }),
+      ...(cfg.recurring
+        ? {
+            subscription_data: {
+              metadata: {
+                type: "registration_order",
+                product: "registration_manager",
+                order_id: order.id,
+                user_id: user.id,
+              },
+            },
+          }
+        : {}),
       ...(embedded
         ? {
             ui_mode: "embedded",

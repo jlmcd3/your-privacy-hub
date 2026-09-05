@@ -321,10 +321,15 @@ export default function USNoticeReview() {
       return;
     }
     setGenerating(true);
+    // QA batch 2026-09-05 (US 01) — "ready_to_generate" is not an allowed
+    // status (us_notice_sessions_status_check: in_progress / review /
+    // generated / archived). The session stays in "review" until the
+    // generator writes "generated"; the Documents page reads "review" as
+    // ready-to-generate.
     const { error } = await supabase
       .from("us_notice_sessions")
       .update({
-        status: "ready_to_generate",
+        status: "review",
         last_activity_at: new Date().toISOString(),
       })
       .eq("id", sessionId);

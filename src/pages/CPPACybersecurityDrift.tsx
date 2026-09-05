@@ -1,6 +1,6 @@
 // Sprint 3 — CPPA Cyber drift comparison page.
 // Side-by-side view of two cybersecurity assessments for the same user, sorted by
-// the 18 § 7122(a) controls. Highlights status changes (improved / worsened / same)
+// the 18 § 7123(c) controls. Highlights status changes (improved / worsened / same)
 // and overall-score delta. URL: /cppa-cybersecurity/drift/:newId/:oldId
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
@@ -80,7 +80,7 @@ export default function CPPACybersecurityDrift() {
           <h1 className="font-serif mt-1">Year-over-Year Control Drift</h1>
           <p className="text-sm text-muted-foreground mt-2">
             Side-by-side comparison of your cybersecurity assessments. Use this to show the auditor what
-            changed since the prior year and to evidence remediation progress against § 7122(a) components.
+            changed since the prior year and to evidence remediation progress against the § 7123(c) components.
           </p>
         </header>
 

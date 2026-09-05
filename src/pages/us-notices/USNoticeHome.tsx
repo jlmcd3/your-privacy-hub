@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { formatDistanceToNow } from "date-fns";
-import { US_NOTICE_PRICING } from "@/config/pricing";
+import { PRICING } from "@/config/pricing";
 import { ArrowRight, CheckCircle2, Clock, FileText, Loader2, MapPin, Plus, RefreshCw } from 'lucide-react';
 
 interface SessionRow {
@@ -26,8 +26,14 @@ interface SessionRow {
   state_count?: number;
 }
 
+// Allowed DB statuses (us_notice_sessions_status_check): in_progress, review,
+// generated, archived. The legacy keys below are kept for rows written before
+// QA batch 2026-09-05 (US 01) aligned the writers to the constraint.
 const STATUS_LABELS: Record<string, { label: string; tone: "default" | "secondary" | "outline" }> = {
   in_progress: { label: "In progress", tone: "secondary" },
+  review: { label: "Ready to review", tone: "secondary" },
+  generated: { label: "Generated", tone: "default" },
+  archived: { label: "Archived", tone: "outline" },
   questions_complete: { label: "Ready to review", tone: "secondary" },
   ready_to_generate: { label: "Ready to generate", tone: "secondary" },
   completed: { label: "Completed", tone: "default" },
@@ -110,9 +116,11 @@ export default function USNoticeHome() {
   function resumeRoute(s: SessionRow): string {
     switch (s.status) {
       case "completed":
+      case "generated":
         return `/us-notices/${s.id}/documents`;
       case "ready_to_generate":
         return `/us-notices/${s.id}/documents`;
+      case "review":
       case "questions_complete":
         return `/us-notices/${s.id}/review`;
       default:
@@ -204,9 +212,11 @@ export default function USNoticeHome() {
       chip=" US State Notice Builder"
       description="Generate state-specific privacy notices that match your data practices and the laws that apply to you — California (CCPA/CPRA), the Virginia model (16 states), Maryland (MODPA), and Florida (FDBR) — in one guided session, with version control and refresh built in."
     >
+      {/* QA batch 2026-09-05 (US 03) — this line quoted the RETIRED $20 / $25
+          per-state prices while the catalogue says notices are included with
+          any subscription (PRICING.tools.us_notice, INTELLIGENCE_INCLUDED_TOOL_KEYS). */}
       <p className="text-sm text-muted-foreground mb-8">
-        From <span className="font-medium text-foreground">{US_NOTICE_PRICING.singleSubscriber()}</span> (Intelligence subscriber) ·{" "}
-        <span className="font-medium text-foreground">{US_NOTICE_PRICING.singleStandalone()}</span> standalone per state
+        <span className="font-medium text-foreground">{PRICING.tools.us_notice.display}</span> · every state edition and annual refresh, no per-state charge
       </p>
 
       {/* Empty state */}

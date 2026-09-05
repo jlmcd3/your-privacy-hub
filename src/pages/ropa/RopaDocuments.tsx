@@ -427,7 +427,15 @@ export default function RopaDocuments() {
                           : `Updated ${format(new Date(s.last_activity_at), "MMM d, yyyy")}`}
                         {" · "}
                         {s.total_activities} {s.total_activities === 1 ? "activity" : "activities"}
-                        {s.open_flags_count > 0 && ` · ${s.open_flags_count} open flags`}
+                        {s.open_flags_count > 0 && (
+                          <>
+                            {" · "}
+                            {/* QA batch 2026-09-05 (ROPA 01) — the count had no way to inspect the flags. */}
+                            <Link to={`/ropa/review/${s.id}`} className="underline underline-offset-2 hover:text-brand-navy">
+                              {s.open_flags_count} open {s.open_flags_count === 1 ? "flag" : "flags"} — review
+                            </Link>
+                          </>
+                        )}
                       </p>
                       {s.register_document?.stamp && (
                         <p className="font-mono text-xs text-muted-foreground mt-1">

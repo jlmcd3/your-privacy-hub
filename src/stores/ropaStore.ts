@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
+// QA batch 2026-09-05 (ROPA 01) — advisory flags never count as "open".
+import { countsAsOpenFlag } from "@/lib/ropaFlags";
 
 type JsonValue =
   | string
@@ -337,7 +339,7 @@ export const useRopaStore = create<RopaStore>()((set, get) => ({
     const { data: removedFlags } = await SUPA.from("ropa_flags")
       .delete()
       .eq("activity_id", activityId)
-      .select("id, resolved");
+      .select("id, resolved, flag_type");
     const { error } = await SUPA.from("ropa_processing_activities")
       .delete()
       .eq("id", activityId);
@@ -347,7 +349,7 @@ export const useRopaStore = create<RopaStore>()((set, get) => ({
     }
 
     const openRemoved = (removedFlags ?? []).filter(
-      (f: { resolved: boolean }) => !f.resolved
+      (f: { resolved: boolean; flag_type?: string }) => !f.resolved && countsAsOpenFlag(f.flag_type)
     ).length;
 
     if (session && openRemoved > 0) {
@@ -422,6 +424,15 @@ export const useRopaStore = create<RopaStore>()((set, get) => ({
       set({ saveError: error.message });
       return;
     }
+    // QA batch 2026-09-05 (ROPA 01) — advisory flags (recommendation /
+    // cross_sell, e.g. "You'll need a DPA with each processor") were counted
+    // in open_flags_count, so the Documents page said "1 open flags" while
+    // the Review page correctly said nothing was flagged. Only flags that
+    // block or warn count as open.
+    if (!countsAsOpenFlag(flag.flag_type)) {
+      set((s) => ({ flags: [data as RopaFlag, ...s.flags] }));
+      return;
+    }
     const newCount = (get().currentSession?.open_flags_count ?? 0) + 1;
     await SUPA.from("ropa_sessions")
       .update({ open_flags_count: newCount })
@@ -442,6 +453,12 @@ export const useRopaStore = create<RopaStore>()((set, get) => ({
       .eq("id", flagId);
     if (error) {
       set({ saveError: error.message });
+      return;
+    }
+    if (!countsAsOpenFlag(flag.flag_type)) {
+      set((s) => ({
+        flags: s.flags.map((f) => (f.id === flagId ? { ...f, resolved: true } : f)),
+      }));
       return;
     }
     const newCount = Math.max(

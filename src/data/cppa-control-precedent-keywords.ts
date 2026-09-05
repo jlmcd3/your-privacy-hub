@@ -1,5 +1,5 @@
 // Sprint 3 — Breach Precedent Map (dynamic)
-// Maps each of the 18 § 7122(a) cyber controls to deterministic keyword patterns
+// Maps each of the 18 § 7123(c) cyber controls to deterministic keyword patterns
 // used to search the existing `enforcement_actions` table. No new ingestion,
 // no AI: pure keyword matching against `key_compliance_failure` and `violation`,
 // scoped to actions with CCPA/CPPA relevance.

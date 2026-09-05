@@ -9,9 +9,12 @@
 //   (a) service-role invocation — payments-webhook, cron, harness (trusted);
 //   (b) row.stripe_payment_intent_id populated by the Stripe webhook — the
 //       only proof of payment we accept for a paid generation; or
-//   (c) an active subscription in profiles for products that the pricing
-//       registry marks as INCLUDED free with any active subscription
-//       (ir_playbook, biometric_checker, dpa_generator).
+//   (c) an active PROFESSIONAL subscription in profiles for products that the
+//       pricing registry marks as included with Professional (v13:
+//       ir_playbook, biometric_checker, dpa_generator); or
+//   (d) the Biometric first-run-free quota (profiles.biometric_free_run_claimed
+//       set by claim_biometric_free_run) against a row the client marked
+//       is_free_tier, once per user.
 //
 // The row's own is_subscriber_credit / purchased_as_standalone booleans are
 // never used as entitlement evidence — they are bookkeeping labels that a
@@ -51,8 +54,8 @@ const PRODUCT_TABLE: Record<EntitlementProduct, string> = {
   cppa_cybersecurity: "cppa_assessments",
 };
 
-// Products included FREE with any active subscription. Mirrors
-// SUBSCRIBER_FREE_TOOLS in get-tool-price/index.ts. Any drift here is a
+// Products included FREE with a PROFESSIONAL subscription (v13). Mirrors
+// PROFESSIONAL_INCLUDED_TOOLS in _shared/pricing.ts. Any drift here is a
 // pricing bug — keep the two lists identical.
 const SUBSCRIBER_FREE: Set<EntitlementProduct> = new Set([
   "ir_playbook",
@@ -150,15 +153,51 @@ export async function requireEntitlement(
   }
 
   // (d) subscriber-included product? Consult profiles server-side.
+  // v13 (2026-08-29, LAUNCH REPRICING): DPA / IR Playbook / Biometric are
+  // included for PROFESSIONAL subscribers only — create-tool-checkout's
+  // bypass and get-tool-price's is_included both gate on is_pro. QA batch
+  // 2026-09-05: this gate still granted them to ANY subscriber, so a client
+  // that inserted its own pending row could generate for free on an
+  // Intelligence plan. Aligned to is_pro.
   if (SUBSCRIBER_FREE.has(product)) {
     const { data: profile } = await admin
       .from("profiles")
-      .select("is_premium, is_pro")
+      .select("is_premium, is_pro, biometric_free_run_claimed")
       .eq("id", caller.userId)
       .maybeSingle();
-    const included = !!((profile as any)?.is_premium || (profile as any)?.is_pro);
-    if (included) return { ok: true, reason: "subscriber_included" };
-    return { ok: false, status: 403, error: "forbidden", reason: "subscriber_required" };
+    if ((profile as any)?.is_pro === true) return { ok: true, reason: "subscriber_included" };
+
+    // (e) Biometric first-run-free (ITEM 360): the client claims the quota
+    // atomically through claim_biometric_free_run(), then inserts a row with
+    // is_free_tier = true and invokes with that row. The row alone proves
+    // nothing (any authenticated insert can set is_free_tier); the evidence
+    // is the claimed quota on the profile AND no earlier completed free-tier
+    // row for this user.
+    if (product === "biometric_checker" && (profile as any)?.biometric_free_run_claimed === true) {
+      const { data: bioRow } = await admin
+        .from("biometric_assessments")
+        .select("id, is_free_tier, status")
+        .eq("id", opts.rowId)
+        .maybeSingle();
+      if ((bioRow as any)?.is_free_tier === true) {
+        const { count } = await admin
+          .from("biometric_assessments")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", caller.userId)
+          .eq("is_free_tier", true)
+          .eq("status", "complete")
+          .neq("id", opts.rowId);
+        if ((count ?? 0) === 0) return { ok: true, reason: "biometric_free_run" };
+        return { ok: false, status: 403, error: "forbidden", reason: "free_run_already_used" };
+      }
+    }
+
+    return {
+      ok: false,
+      status: 403,
+      error: "forbidden",
+      reason: (profile as any)?.is_premium ? "professional_required" : "subscriber_required",
+    };
   }
 
   // Paid product, no payment intent, not subscriber-included → deny.

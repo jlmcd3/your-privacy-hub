@@ -92,8 +92,18 @@ describe("item381 r2 — degraded records still coach", () => {
   });
 
   it("the risk degraded golden raises at least one card", () => {
-    const r = buildCoach("cppa_risk", COACH_CONTRACTS.cppa_risk, riskDegraded.intake);
+    // QA batch 2026-09-05 (RA 05): this golden (base + a profiling trigger,
+    // ADMT in use = "No", no ADMT answers) used to satisfy this assertion ONLY
+    // through the ADMT card — a false positive for a record with no ADMT, now
+    // suppressed. The golden is degraded at engine level, not in any coached
+    // answer, so it is coached here on a genuinely thin answer instead.
+    const r = buildCoach("cppa_risk", COACH_CONTRACTS.cppa_risk, {
+      ...riskDegraded.intake,
+      i1b_min_pi: "We collect what we need.",
+    });
     expect(r.cards.length).toBeGreaterThanOrEqual(1);
+    expect(r.cards.some((c) => c.key === "i1b_min_pi")).toBe(true);
+    expect(r.cards.some((c) => c.key === "i5_admt_logic")).toBe(false);
   });
 });
 

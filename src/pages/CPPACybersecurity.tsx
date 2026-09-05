@@ -1,5 +1,6 @@
 // CPPA Cybersecurity Audit Readiness — Module 2 intake. Covers 18 program components.
 import { useMemo, useState , useEffect} from "react";
+import { REVISIONS_ENABLED } from "@/lib/revisionGate";
 import Navbar from "@/components/Navbar";
 import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
@@ -390,7 +391,10 @@ export default function CPPACybersecurity() {
               : undefined
           }
           meter={meter ?? null}
-          preRunHint="Entity name locks after the first generation; other answers remain editable across included generations."
+          // QA batch 2026-09-05 (CY 02 / RA 03) — the "editable across included
+          // generations" hint contradicted the "revisions are temporarily
+          // disabled" substrip on the same page. Shown only when revisions are on.
+          preRunHint={REVISIONS_ENABLED ? "Entity name locks after the first generation; other answers remain editable across included generations." : undefined}
           clientSlot={<ActiveClientLabel variant="masthead" />}
         />
         <BenchLayout

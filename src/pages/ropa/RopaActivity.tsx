@@ -1017,15 +1017,20 @@ function RelatedAssessmentPicker({
         }
         return;
       }
+      // QA batch 2026-09-05 (ROPA 02) — only COMPLETED assessments can stand
+      // as a supporting LIA / DPIA; pending intakes (checkout opened, never
+      // paid or generated) were offered here as if they were reports.
       const [{ data: lias }, { data: dpias }] = await Promise.all([
         SUPA.from("li_assessments")
           .select("id, organization_name, processing_description, created_at")
           .eq("user_id", uid)
+          .eq("status", "complete")
           .order("created_at", { ascending: false })
           .limit(25),
         SUPA.from("dpia_frameworks")
           .select("id, organization_name, created_at")
           .eq("user_id", uid)
+          .eq("status", "complete")
           .order("created_at", { ascending: false })
           .limit(25),
       ]);

@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useMemo } from "react";
+import { REVISIONS_ENABLED } from "@/lib/revisionGate";
 import Navbar from "@/components/Navbar";
 import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
@@ -665,7 +666,7 @@ const DPIAFramework = () => {
               : undefined
           }
           meter={meter ?? null}
-          preRunHint="Processing activity locks after the first generation; other answers remain editable across included generations."
+          preRunHint={REVISIONS_ENABLED ? "Processing activity locks after the first generation; other answers remain editable across included generations." : undefined}
         />
 
         <BenchLayout

@@ -497,7 +497,7 @@ const LIAssessment = () => {
               {preview.precedents.length > 0 ? (
                 <div className="pt-5 border-t border-brand-cloud">
                   <h3 className="text-eyebrow text-brand-mist mb-3">
-                    Most analogous regulator decisions ({preview.precedents_matched} matched)
+                    Most analogous regulator decisions — showing {preview.precedents.length} of {preview.precedents_matched} matched
                   </h3>
                   <div className="space-y-5">
                     {preview.precedents.map((p, i) => (

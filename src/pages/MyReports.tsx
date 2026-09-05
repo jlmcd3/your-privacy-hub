@@ -405,7 +405,11 @@ export default function MyReports() {
 
       (cppa.data || []).forEach((r: any) => {
         const isCyber = r.module === "cybersecurity";
-        const isAdmt = r.module === "admt";
+        // QA batch 2026-09-05 (library observation) — new ADMT purchases are
+        // stamped module "admt_v2" (create-tool-checkout MODULE_FOR_TOOL,
+        // 2026-08-20); only "admt" was recognised here, so a pending ADMT row
+        // was listed as "CPPA Risk Assessment" with the Risk result route.
+        const isAdmt = r.module === "admt" || r.module === "admt_v2";
         const tool = isAdmt ? "cppa_admt" : isCyber ? "cppa_cyber" : "cppa_risk";
         const basePath = isAdmt
           ? "/cppa-admt-checker/result"
@@ -451,8 +455,9 @@ export default function MyReports() {
           created_at: r.created_at,
           status: r.in_scope === null ? "in_progress" : "complete",
           summary: outcome,
-          // No per-result page exists; the checker re-renders the latest run.
-          view_path: "/cppa-scope-checker",
+          // QA batch 2026-09-05 (SC 01) — "View" used to open the blank
+          // checker. The checker now reloads a saved run from ?check=<id>.
+          view_path: `/cppa-scope-checker?check=${r.id}`,
           client_id: null,
           client_name: null,
           is_personal_client: false,
@@ -466,7 +471,7 @@ export default function MyReports() {
         if (r.status !== "complete" && !r.report_data) return;
         const key =
           r.module === "cybersecurity" ? "cppa_cybersecurity" :
-          r.module === "admt" ? "cppa_admt" :
+          (r.module === "admt" || r.module === "admt_v2") ? "cppa_admt" :
           r.module === "risk_assessment" ? "cppa_risk" : null;
         if (!key) return;
         const ts = new Date(r.created_at).getTime();

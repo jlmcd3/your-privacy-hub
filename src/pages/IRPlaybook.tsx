@@ -29,6 +29,7 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
+import { nowDatetimeLocalValue } from "@/lib/datetimeLocal";
 import { toast } from "sonner";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
@@ -111,7 +112,8 @@ export default function IRPlaybook() {
   const [phase, setPhase] = useState<"sample" | "form" | "generating" | "result">("sample");
   const [form, setForm] = useState({
     organizationName: "",
-    discoveryDateTime: new Date().toISOString().slice(0, 16),
+    // QA batch 2026-09-05 (IR 01) — local wall clock, not UTC (see src/lib/datetimeLocal.ts).
+    discoveryDateTime: nowDatetimeLocalValue(),
     cause: CAUSES[0], dataTypes: [] as string[], affectedCount: COUNTS[2],
     jurisdictions: [] as string[], processorInvolved: false, processorName: "",
     contained: "Unknown", organisationType: "Company",
@@ -143,7 +145,10 @@ export default function IRPlaybook() {
     nextTabletopDate: "",
   });
 
-  const [result, setResult] = useState("");
+  const [result] = useState("");
+  // QA batch 2026-09-05 (IR 02) — an actionable failure message shown above
+  // the (still populated) form instead of a dead-end "result" screen.
+  const [generationError, setGenerationError] = useState<string | null>(null);
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -170,9 +175,9 @@ export default function IRPlaybook() {
   useAutoRestoreDraft(autoRestoreToken, applyRestore);
 
   useEffect(() => {
-    if (access.isPremium === true) setPhase("form");
+    if (pricing.isIncluded === true) setPhase("form");
     else if (params.get("session_id") || params.get("purchased")) setPhase("form");
-  }, [access.isPremium, params]);
+  }, [pricing.isIncluded, params]);
 
   const toggle = (key: "dataTypes" | "jurisdictions", v: string) =>
     setForm(f => ({ ...f, [key]: f[key].includes(v) ? f[key].filter(x => x !== v) : [...f[key], v] }));
@@ -225,20 +230,56 @@ export default function IRPlaybook() {
       breachNoticeContracts: cols(breachNoticeContractsText, ["counterparty", "deadline", "clause"]),
     });
     const payload = { ...base, ...standing };
-    const { data, error } = await supabase.functions.invoke("generate-ir-playbook", { body: { ...payload, user_id: access.user?.id, client_id: clientId ?? null } });
-    if (error || !data?.id) {
-      setResult("Generation failed — try again.");
-      setPhase("result");
+    // QA batch 2026-09-05 (IR 02) — generate-ir-playbook rejects a non-service
+    // caller that sends raw intake without an existing row (403 "forbidden"),
+    // which is exactly what this handler did, so every included generation
+    // ended in "Generation failed — try again." Row-first, then invoke with
+    // assessment_id (the DPA generator's pattern). The server decides the
+    // entitlement against the row; the client never claims it.
+    const fail = (message: string) => {
+      setGenerationError(message);
+      setPhase("form");
+    };
+    if (!access.user) { setAuthGateOpen(true); setPhase("form"); return; }
+    const { data: row, error: insErr } = await supabase
+      .from("ir_playbooks")
+      .insert({
+        user_id: access.user.id,
+        client_id: clientId ?? null,
+        organization_name: form.organizationName || null,
+        status: "pending",
+        intake_data: payload,
+        purchased_as_standalone: false,
+        is_subscriber_credit: true,
+        purchase_price_cents: 0,
+      })
+      .select("id")
+      .single();
+    if (insErr || !row) {
+      fail(`We couldn't start the playbook: ${insErr?.message || "the record could not be created"}. Your answers are still here — try again.`);
+      return;
+    }
+    const { error } = await supabase.functions.invoke("generate-ir-playbook", { body: { assessment_id: row.id } });
+    if (error) {
+      const status = (error as { context?: { status?: number } }).context?.status;
+      fail(
+        status === 403
+          ? "Your plan doesn't include the Incident Response Playbook at no charge. Your answers are kept — use the purchase button to continue, or upgrade to Professional."
+          : `Generation didn't start (${error.message || "unknown error"}). Your answers are kept — try again in a moment.`,
+      );
       return;
     }
     // Backend returns 202 + { id }; result page polls ir_playbooks.status.
+    setGenerationError(null);
     void clearDraft();
-    navigate(`/ir-playbook/result/${data.id}`);
+    navigate(`/ir-playbook/result/${row.id}?purchased=true&subscriber_free=true`);
   };
 
   const handlePurchase = async () => {
     logToolAcknowledgment("ir_playbook", access.user?.id ?? null);
-    if (access.isPremium) { setPhase("form"); return; }
+    // v13: included for PROFESSIONAL subscribers only (pricing.isIncluded);
+    // an Intelligence subscriber pays the standalone rate through checkout.
+    if (pricing.isIncluded) { setPhase("form"); return; }
     if (!access.user) { setAuthGateOpen(true); return; }
     setCheckoutOpen(true);
   };
@@ -319,6 +360,12 @@ export default function IRPlaybook() {
           </div>
         ) : phase === "form" ? (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
+            {generationError && (
+              <div role="alert" className="border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30 p-3 rounded-r text-sm text-red-900 dark:text-red-200">
+                <p className="font-semibold">Generation didn't start</p>
+                <p className="mt-1">{generationError}</p>
+              </div>
+            )}
             <DraftRestoreBanner
               draftFound={draftFound}
               touched={touched}
@@ -335,7 +382,7 @@ export default function IRPlaybook() {
               <input type="text" placeholder="Legal entity name" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.organizationName} onChange={e => setForm(f => ({ ...f, organizationName: e.target.value }))} /></label>
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Date and time of discovery<Req /></span>
               <span className="block text-meta text-muted-foreground">Every deadline in the playbook is counted from this timestamp, so record it in UTC as it was actually logged.</span>
-              <input type="datetime-local" max={new Date().toISOString().slice(0, 16)} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.discoveryDateTime} onChange={e => setForm(f => ({ ...f, discoveryDateTime: e.target.value }))} /></label>
+              <input type="datetime-local" max={nowDatetimeLocalValue()} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.discoveryDateTime} onChange={e => setForm(f => ({ ...f, discoveryDateTime: e.target.value }))} /></label>
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Apparent cause <DefPopover termKey="gdpr_personal_data_breach" /> <span className="text-xs text-muted-foreground font-mono">(Art. 4(12) GDPR)</span></span>
               <span className="block text-meta text-muted-foreground">The working hypothesis, not a conclusion. "Unknown — still investigating" is an honest early answer and the playbook is written accordingly.</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.cause} onChange={e => setForm(f => ({ ...f, cause: e.target.value }))}>

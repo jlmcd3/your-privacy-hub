@@ -159,6 +159,22 @@ export function buildCoach(
   const strong: string[] = [];
 
   for (const spot of [...spots].sort((a, b) => a.rank - b.rank)) {
+    // QA batch 2026-09-05 (RA 05) — a spot whose PRIMARY field is a conditional
+    // the record never triggered (ADMT in use = "No" → i5_admt_logic) was still
+    // walked: its OPTIONAL companion box (i5_admt_fairness_testing) counted as
+    // asked-and-empty in the sub-field branch below, so the coach asked how
+    // the ADMT works and what fairness testing was run for a record with no
+    // ADMT. A conditional spot the intake did not present, and into which the
+    // customer typed nothing, is not coached at all. (A triggered conditional,
+    // or one the customer answered anyway, is coached exactly as before.)
+    const primaryField = contract.fields.find((f) => f.key === spot.key);
+    if (
+      primaryField?.required === "conditional" &&
+      !fieldWasAsked(contract, spot.key, intake) &&
+      flattenText(intake, spot.key).trim().length === 0
+    ) {
+      continue;
+    }
     const text = spotText(intake, spot);
     const isEmpty = !text || keysOf(spot).every((k) => {
       const vals = readPath(intake, k);

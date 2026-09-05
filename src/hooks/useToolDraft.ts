@@ -45,14 +45,10 @@ function localKey(toolType: string, clientId: string | null): string {
   return `${LOCAL_PREFIX}:${toolType}:${clientId ?? "none"}`;
 }
 
-function hasContent(value: unknown): boolean {
-  if (value == null) return false;
-  if (typeof value === "string") return value.trim() !== "";
-  if (typeof value === "number" || typeof value === "boolean") return true;
-  if (Array.isArray(value)) return value.some(hasContent);
-  if (typeof value === "object") return Object.values(value as Record<string, unknown>).some(hasContent);
-  return false;
-}
+// QA batch 2026-09-05 (RA 01 / AD 03) — the blank-payload guard lives in a
+// pure module so it is testable; re-exported here for callers.
+import { hasContent } from "@/lib/draftContent";
+export { hasContent };
 
 function readLocalDraft(toolType: string, clientId: string | null):
   { data: Record<string, unknown>; currentStage: number; updatedAt: string } | null {
@@ -211,6 +207,11 @@ export function useToolDraft({
     }
 
     if (!enabled) return;
+    // QA batch 2026-09-05 (RA 01 / AD 03) — never write a blank form to the
+    // server. When a page's `enabled` gate misfires on an empty first render,
+    // this UPDATEs the existing server draft (draftIdRef is set by the lookup
+    // above) with nothing, and the customer's saved answers are gone.
+    if (!hasContent(data)) return;
     if (serialized === lastSerializedRef.current) return;
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(async () => {

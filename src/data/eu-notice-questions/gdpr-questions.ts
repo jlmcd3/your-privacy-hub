@@ -13,6 +13,11 @@ export const GDPR_ART13_QUESTIONS: Question[] = [
       "GDPR Art.27 requires non-EU/EEA controllers who process EU resident data to appoint a representative.",
     type: "yes_no_unsure",
     isRequired: false,
+    // QA batch 2026-09-05 (EU 02) — an EU-established controller has no Art. 27
+    // duty; the question was asked regardless (and its "no" answer raised a
+    // representative warning). Shown only when the establishment answer is
+    // not "In the EU/EEA".
+    showIf: { questionKey: "establishment_jurisdiction", operator: "not_equals", value: "eea" },
     flagIf: [
       {
         operator: "equals",
@@ -32,6 +37,9 @@ export const GDPR_ART13_QUESTIONS: Question[] = [
     type: "yes_no_unsure",
     isRequired: false,
     jurisdictionOnly: ["UK_GDPR"],
+    // QA batch 2026-09-05 (EU 02) — mirror of the EU rule: a UK-established
+    // controller has no UK representative duty.
+    showIf: { questionKey: "establishment_jurisdiction", operator: "not_equals", value: "uk" },
     flagIf: [
       {
         operator: "equals",
