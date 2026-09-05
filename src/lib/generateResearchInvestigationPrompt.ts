@@ -1,4 +1,5 @@
 import {
+  getRolePromptOpening,
   ROLE_LABELS,
   ROLE_INVESTIGATION_FOCUS,
   INDUSTRY_SHORT_LABELS,
@@ -124,7 +125,7 @@ export function generateResearchInvestigationPrompt(
   const tasksBlock = tasks.join('\n\n');
   const divider = '─'.repeat(60);
 
-  return `You are a senior privacy counsel advising our organization. A recent regulatory development in a specific area of privacy law requires your analysis. Review the topic, the recent developments, and our organizational context — then complete each investigation task.
+  return `${getRolePromptOpening(role)} A recent regulatory development in a specific area of privacy law requires your analysis. Review the topic, the recent developments, and our organizational context — then complete each investigation task.
 
 ${divider}
 TOPIC AREA: ${sectionHeading}

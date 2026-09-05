@@ -139,6 +139,7 @@ Each action should name a specific owner role.`;
 
 import type { SubscriberContext } from '@/lib/generateResearchInvestigationPrompt';
 import {
+  getRolePromptOpening,
   ROLE_LABELS,
   ROLE_INVESTIGATION_FOCUS,
   INDUSTRY_SHORT_LABELS,
@@ -495,7 +496,7 @@ export function generatePersonalizedInvestigationPrompt(
   // 7. Assemble
   const divider = '─'.repeat(60);
   return (
-    `You are a senior privacy counsel advising our organization. ` +
+    `${getRolePromptOpening(role)} ` +
     `A regulatory development requires your analysis. Review the context ` +
     `below, then complete each investigation task in order.\n\n` +
     `${divider}\n` +

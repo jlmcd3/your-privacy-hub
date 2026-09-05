@@ -18,6 +18,17 @@ export const ROLE_INVESTIGATION_FOCUS: Record<string, string> = {
   policy_affairs:   'Focus on rulemaking proceedings, comment periods, regulatory trajectory, and policy advocacy.',
 };
 
+/**
+ * Uses the subscriber's selected Watchlist role in the prompt's opening
+ * instruction. Unknown or unset roles retain the safe generic default.
+ */
+export function getRolePromptOpening(role?: string): string {
+  const label = role ? ROLE_LABELS[role] : undefined;
+  return label
+    ? `You are advising our organization in the role of ${label}.`
+    : 'You are a senior privacy counsel advising our organization.';
+}
+
 export const INDUSTRY_SHORT_LABELS: Record<string, string> = {
   'online-web':      'Online / Web services',
   'mobile-apps':     'Mobile applications',
