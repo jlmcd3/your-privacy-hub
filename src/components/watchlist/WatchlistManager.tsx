@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscriberContext } from "@/hooks/useSubscriberContext";
 import { Bell, Plus, Lock, CheckCircle2, Factory, FileText, Folder, Globe, User } from 'lucide-react';
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -42,6 +43,9 @@ interface WatchItem { id: string; type: string; slug: string; label: string; fla
 
 export default function WatchlistManager({ isPremium }: { isPremium: boolean }) {
   const { user } = useAuth();
+  // Push role/watchlist changes straight into the shared subscriber context
+  // so already-mounted feed prompts re-render with the new role immediately.
+  const { setRole: pushRole, setWatchlist: pushWatchlist } = useSubscriberContext();
   const [items, setItems] = useState<WatchItem[]>([]);
   const [loading, setLoading] = useState(true);
   // Single-select choices — stored separately from the watchlist multi-selects.
