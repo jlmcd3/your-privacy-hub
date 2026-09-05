@@ -800,7 +800,7 @@ const DPIAFramework = () => {
               identifiable-imagery risk read them, so the form now asks them. */}
           <div data-rail-key="imagery_capture" onFocus={() => handleLocalRailFocus("imagery_capture")}>
             <Label>Does the activity capture imagery or video of identifiable people?</Label>
-            <select value={imageryCapture} onChange={(e) => { setImageryCapture(e.target.value); if (!e.target.value || e.target.value === IMAGERY_CAPTURE[0]) setImageryCaptureSpaces(""); }} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+            <select value={imageryCapture} onChange={(e) => { setImageryCapture(e.target.value); if (!e.target.value || e.target.value === IMAGERY_CAPTURE[0]) { setImageryCaptureSpaces(""); setImageryCaptureDetail(""); } }} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
               <option value="">Not answered</option>{IMAGERY_CAPTURE.map((o) => <option key={o}>{o}</option>)}
             </select>
             <p className="text-meta text-muted-foreground mt-1">Photographs, CCTV, body-worn or dashboard cameras, recorded video calls and screenshots all count. Choose "subjects" when the people are what the imagery is for, and "incidentally" when they appear in the frame without being its subject — passers-by, colleagues in the background. Your assessment reads this answer to decide whether Article 35(3)(c) applies and to add the identifiable-imagery risk to the register. Skipped, that risk is not added and the Article 35(3)(c) analysis is not shown.</p>
@@ -814,7 +814,11 @@ const DPIAFramework = () => {
               <p className="text-meta text-muted-foreground mt-1">A publicly accessible space is one the public can enter — a street, a shop floor, a station concourse, a car park — whether or not it is privately owned. Article 35(3)(c) turns on this answer: systematic monitoring of a publicly accessible area on a large scale requires an assessment by law, and monitoring confined to private or controlled premises is tested under the general Article 35(1) rule instead.</p>
             </div>
           )}
-          {imageryCapture && (
+          {/* QA batch 2026-09-05 (DPIA 02, CEO-approved) — the optional detail box
+              (cameras, positions, footage retention) only makes sense when imagery
+              IS captured; it used to appear after "No imagery" too. The contract
+              leaf is optional, so hiding it changes nothing in the gate. */}
+          {imageryCapture && imageryCapture !== IMAGERY_CAPTURE[0] && (
             <div data-rail-key="imagery_capture_detail" onFocus={() => handleLocalRailFocus("imagery_capture_detail")}>
               <Label>Anything the reader should know about the imagery?</Label>
               <Textarea value={imageryCaptureDetail} onChange={(e) => setImageryCaptureDetail(e.target.value)} className="mt-2 min-h-16" placeholder="Fixed cameras at three entrances, footage kept 30 days, faces blurred before review" />
