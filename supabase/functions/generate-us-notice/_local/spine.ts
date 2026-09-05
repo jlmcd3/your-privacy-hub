@@ -210,7 +210,11 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
   // 2 ──────────────────────────────────────────────────────────────────────
   {
     const parts: string[] = [];
-    parts.push(p(`We collect the following categories of personal information: ${categories ? `<strong>${esc(categories)}</strong>` : fill("insert the categories of personal information collected")}.`));
+    // DOC 188 P8 (batch e38460, us + us-ds3) — an intake value that ends in
+    // its own full stop met the sentence's stop ("preferences)..", three per
+    // document). The seam strips trailing stops/space the way the sources
+    // sentence (§ 3) already does; the value is otherwise verbatim.
+    parts.push(p(`We collect the following categories of personal information: ${categories ? `<strong>${esc(categories.replace(/[.\s]+$/, ""))}</strong>` : fill("insert the categories of personal information collected")}.`));
     if (categoryCodes.includes("other")) parts.push(p(`${fill("describe the other categories of personal information collected")}.`));
     // Batch b83ea3c4 (2026-09-05, all four US companies): the mapping promise
     // is only kept when the categories arrived as the form's tokens (CA-1
@@ -231,7 +235,7 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
   // 4 ──────────────────────────────────────────────────────────────────────
   {
     const parts: string[] = [];
-    parts.push(p(`We collect and use personal information for the following purposes: ${purposes ? `<strong>${esc(purposes)}</strong>` : fill("insert the purposes for which personal information is collected and used")}. We use personal information only for purposes reasonably related to our products, services, operations, legal obligations and other disclosed activities.`));
+    parts.push(p(`We collect and use personal information for the following purposes: ${purposes ? `<strong>${esc(purposes.replace(/[.\s]+$/, ""))}</strong>` : fill("insert the purposes for which personal information is collected and used")}. We use personal information only for purposes reasonably related to our products, services, operations, legal obligations and other disclosed activities.`));
     if (purposeCodes.length > 0) {
       parts.push(p(`Each purpose is described separately below; a category is not used for every purpose merely because both appear in this Notice.`));
       for (const code of purposeCodes) {
@@ -354,7 +358,7 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
   {
     const parts: string[] = [];
     if (retentionPeriod) {
-      parts.push(p(`Our general retention description: <strong>${esc(retentionPeriod)}</strong>.`));
+      parts.push(p(`Our general retention description: <strong>${esc(retentionPeriod.replace(/[.\s]+$/, ""))}</strong>.`));
     } else if (retentionCriteria) {
       parts.push(p(`We are not able to state a single fixed retention period for every category of personal information. The criteria we use to determine how long each category is retained: <strong>${esc(retentionCriteria)}</strong>.`));
     } else if (hasCA) {

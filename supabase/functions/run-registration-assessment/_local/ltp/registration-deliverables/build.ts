@@ -877,11 +877,37 @@ function buildRepresentative(intake: I, which: "EU" | "UK"): RepresentativeDeter
     application = `Article 3(2) is engaged and the ${exemptionCite} exemption is unavailable: the record states ${engagedGroundsText}, so the processing is not occasional. A representative in ${territory} must be designated in writing.`;
   }
 
+  // DOC 188 P1 (batch e38460, both Registration runs) — the "what is
+  // missing" list recited the large-scale special-category limb even where
+  // the record answers processes_special_categories === false. A record with
+  // no special categories cannot process them on a large scale, so that limb
+  // is ANSWERED, not missing; only an unstated answer (null) leaves it open.
+  const specialLimbOpen = intake.processes_special_categories !== false;
+  const conditionalInformationNeeded = [
+    "whether the processing is occasional",
+    specialLimbOpen
+      ? `whether special-category data is processed on a large scale${specialUnscaled ? " (special categories are recorded without a scale)" : ""}`
+      : null,
+    "whether the processing is unlikely to result in a risk to the rights and freedoms of natural persons",
+  ].filter((x): x is string => x !== null);
+  const informationNeededText = conditionalInformationNeeded.length === 2
+    ? `${conditionalInformationNeeded[0]} and ${conditionalInformationNeeded[1]}`
+    : `${conditionalInformationNeeded.slice(0, -1).join(", ")}, and ${conditionalInformationNeeded[conditionalInformationNeeded.length - 1]}`;
+
   return {
     key: which === "EU" ? "eu_representative" : "uk_representative",
     jurisdiction: which,
     label: `${which} representative (Art. 27)`,
     citation: reqRow.citation,
+    // DOC 188 P2 (batch e38460) — the Art. 27(2)(a)/(b) exemption recital
+    // cites both exemption rows in the body, but only `citation` (Art. 27(1))
+    // reached index.ts's walkCites, so Authorities Cited omitted the two
+    // provisions the conditional determination actually turns on. The keyed
+    // sibling is emitted only where the recital itself renders (the same
+    // D1D2B3B8-R3 gate below), so the exhibit stays iff-cited.
+    ...(verdict === "conditional" || verdict === "engaged"
+      ? { citations: [reqRow.citation, exemptionCite, publicCite] }
+      : {}),
     standard: reqRow.verbatim_quote,
     // ITEM 413 RG-2 — the record fact is a sentence, not a form. The previous
     // rendering was "Establishment in EU: yes Markets served include EU: not
@@ -916,7 +942,7 @@ function buildRepresentative(intake: I, which: "EU" | "UK"): RepresentativeDeter
     ...(status === "record_insufficient"
       ? { information_needed: `Whether ${orgName(intake)} is established in ${territory}.` }
       : verdict === "conditional"
-      ? { information_needed: `whether the processing is occasional, whether special-category data is processed on a large scale${specialUnscaled ? " (special categories are recorded without a scale)" : ""}, and whether the processing is unlikely to result in a risk to the rights and freedoms of natural persons` }
+      ? { information_needed: informationNeededText }
       : {}),
   };
 }

@@ -146,11 +146,18 @@ const PERSON_KEYS = new Set([
   "certifying_exec_name", "signatory_name", "contact_name", "preparer_name",
 ]);
 
+// DOC 188 F2 (2026-09-05, batch e38460): "Busted Sled Solutions, Inc." lost
+// only " Inc." to this pattern, so its short form came out as "Busted Sled
+// Solutions," — comma included — and the prose occurrences ("Busted Sled
+// Solutions operates a consumer shipment-tracking app…") were never
+// substituted: dataset us-ds3 rendered Glacier Creek Mining as the business
+// name over a description of Busted Sled. The optional comma before the
+// suffix is now part of the pattern, and any trailing punctuation is trimmed.
 const LEGAL_SUFFIX =
-  /\s+(?:Ltd\.?|Limited|LLC|L\.L\.C\.|Inc\.?|Incorporated|PLC|plc|GmbH|AB|AS|A\/S|SE|SA|S\.A\.|NV|N\.V\.|BV|B\.V\.|SAS|Oy|SpA|Corp\.?|Corporation|Company|Co\.?|Group|Holdings|GbR|KG|AG)$/;
+  /,?\s+(?:Ltd\.?|Limited|LLC|L\.L\.C\.|Inc\.?|Incorporated|PLC|plc|GmbH|AB|AS|A\/S|SE|SA|S\.A\.|NV|N\.V\.|BV|B\.V\.|SAS|Oy|SpA|Corp\.?|Corporation|Company|Co\.?|Group|Holdings|GbR|KG|AG)$/;
 
-function shortForm(name: string): string {
-  return name.replace(LEGAL_SUFFIX, "").trim();
+export function shortForm(name: string): string {
+  return name.replace(LEGAL_SUFFIX, "").replace(/[\s,;.]+$/, "").trim();
 }
 
 function walkStrings(node: unknown, visit: (s: string, key: string) => void, key = ""): void {

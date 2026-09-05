@@ -721,7 +721,9 @@ export const US_NOTICE_VARIANTS = [
     third_party_categories: "Cloud infrastructure; payroll (US); email marketing (US); regulators",
     sale_or_sharing: "neither",
     retention_general: "Risk scores 24 months; marketing 2 years post-engagement.",
-    sensitive_data_types: "Health information; precise geolocation",
+    // DOC 188 F1 (2026-09-05): `sensitive_data_types` is not a US-notice
+    // question (the form asks `ccpa_sensitive_data`); phantom key removed from
+    // every variant.
     data_sources: "Directly from individuals; Clinic EHR systems; analytics vendors",
   },
   {
@@ -734,7 +736,6 @@ export const US_NOTICE_VARIANTS = [
     third_party_categories: "Cloud infrastructure; identity verification; credit reporting; regulators",
     sale_or_sharing: "sharing_only",
     retention_general: "Transaction records 6 years (regulatory); marketing 2 years post-engagement.",
-    sensitive_data_types: "Financial account information; precise geolocation",
     data_sources: "Directly from individuals; credit bureaus; identity-verification vendors",
   },
   {
@@ -747,7 +748,6 @@ export const US_NOTICE_VARIANTS = [
     third_party_categories: "Advertising partners; email/SMS vendors; logistics carriers; payment processors",
     sale_or_sharing: "both",
     retention_general: "Engagement events 18 months; orders 7 years (tax).",
-    sensitive_data_types: "Precise geolocation",
     data_sources: "Directly from individuals; advertising partners; analytics vendors",
   },
   {
@@ -760,7 +760,6 @@ export const US_NOTICE_VARIANTS = [
     third_party_categories: "Cloud infrastructure; telematics vendor; HR/payroll; regulators",
     sale_or_sharing: "neither",
     retention_general: "Telemetry 12 months; employment records active + 6 years.",
-    sensitive_data_types: "Precise geolocation",
     data_sources: "Directly from individuals; in-vehicle devices; HR systems",
   },
 ];
@@ -783,9 +782,11 @@ export const EU_NOTICE_VARIANTS = [
     transfer_safeguards: ["sccs", "uk_addendum"],
     retention_period: "Risk scores 24 months; HR records active+6yr; marketing 2yr.",
     automated_decisions: "yes",
-    special_category_basis: "Article 9(2)(a) explicit consent for health data",
-    supervisory_authority_eu: "Irish Data Protection Commission (DPC)",
-    supervisory_authority_uk: "Information Commissioner's Office (ICO)",
+    // DOC 188 F1 (2026-09-05): the form's Art. 9(2) codes, not prose; the
+    // supervisory authority under its real key `gdpr_dpa_contact` (the
+    // phantom `supervisory_authority_eu/_uk` keys left Section 12 blank).
+    special_category_basis: ["explicit_consent"],
+    gdpr_dpa_contact: "Data Protection Commission (Ireland)",
   },
   {
     controller_name: "Moonracer Capital Bank plc",
@@ -802,9 +803,7 @@ export const EU_NOTICE_VARIANTS = [
     transfer_safeguards: [],
     retention_period: "Transaction records 6 years (regulatory); marketing 2 years.",
     automated_decisions: "yes",
-    special_category_basis: "n/a",
-    supervisory_authority_eu: "Central Bank of Ireland (joint with DPC)",
-    supervisory_authority_uk: "Information Commissioner's Office (ICO)",
+    gdpr_dpa_contact: "Data Protection Commission (Ireland)",
   },
   {
     controller_name: "Misfit Toys Trading Co. International Ltd",
@@ -821,9 +820,7 @@ export const EU_NOTICE_VARIANTS = [
     transfer_safeguards: ["sccs", "dpf"],
     retention_period: "Engagement events 18 months; orders 7 years (tax).",
     automated_decisions: "no",
-    special_category_basis: "n/a",
-    supervisory_authority_eu: "Irish Data Protection Commission (DPC)",
-    supervisory_authority_uk: "Information Commissioner's Office (ICO)",
+    gdpr_dpa_contact: "Data Protection Commission (Ireland)",
   },
   {
     controller_name: "Silver & Gold Logistics Ltd",
@@ -840,9 +837,7 @@ export const EU_NOTICE_VARIANTS = [
     transfer_safeguards: ["adequacy"],
     retention_period: "Telemetry 12 months; employment records active+6yr.",
     automated_decisions: "no",
-    special_category_basis: "n/a",
-    supervisory_authority_eu: "Commission nationale de l'informatique et des libertés (CNIL)",
-    supervisory_authority_uk: "n/a",
+    gdpr_dpa_contact: "Commission nationale de l'informatique et des libertés (CNIL)",
   },
 ];
 
@@ -1034,6 +1029,10 @@ export const CPPA_RISK_VARIANTS = [
     q3_sector: "Financial services",
     q4_pi_categories: [
       "Financial information",
+      // DOC 188 F3 (2026-09-05): q15 answers "Yes", so a qualifying sensitive
+      // category must be selected — a bank's account log-in and financial-
+      // account credentials (Cal. Civ. Code § 1798.140(ae)(1)(A)).
+      "Account log-in or financial-account credentials",
       "Contact identifiers (name, email, phone)",
       "Device identifiers (IP, cookies, device IDs)",
       "Internet or network activity",
@@ -1151,6 +1150,9 @@ export const CPPA_RISK_VARIANTS = [
     q4_pi_categories: [
       "Employment information",
       "General location (city, region, ZIP, IP-derived)",
+      // DOC 188 F3 (2026-09-05): q15 answers "Yes" — driver telematics is
+      // GPS-level location (Cal. Civ. Code § 1798.140(ae)(1)(C)).
+      "Precise geolocation (GPS-level / specific address)",
       "Device identifiers (IP, cookies, device IDs)",
       "Contact identifiers (name, email, phone)",
     ],
@@ -1210,6 +1212,9 @@ export const CPPA_RISK_VARIANTS = [
       "Device identifiers (IP, cookies, device IDs)",
       "Internet or network activity",
       "General location (city, region, ZIP, IP-derived)",
+      // DOC 188 F3 (2026-09-05): q15 answers "Yes" — look-alike audience
+      // modelling on GPS-level location (Cal. Civ. Code § 1798.140(ae)(1)(C)).
+      "Precise geolocation (GPS-level / specific address)",
     ],
     q5_sell_share: "Yes — share for advertising only",
     q5c_share_revenue_50pct: "Yes",

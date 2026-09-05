@@ -514,6 +514,51 @@ const FIELD_POINTER_RE =
 const ALT_MARKER_PAIR_RE =
   /Alternative\s+considered\s*:\s*([\s\S]*?)\s*Rejected\s+because\s*:\s*([\s\S]*?)(?=\n\n|Alternative\s+considered\s*:|$)/gi;
 
+// DOC 188 P9 (batch e38460, both LIA runs) — a customer paragraph written as
+// "Alternatives considered: (1) X — why; (2) Y — why; (3) Z — why. <closing
+// sentence>" was shredded: the heading words became an alternative labelled
+// "Alternatives considered" (its reason being item (1)), and the inline
+// "(2) …; (3) …" items never split because the line splitter only breaks
+// after ".;" followed by a capital and the items begin lowercase. Two
+// pre-passes, both lexical: strip a leading heading ("Alternatives
+// considered:" / "Alternatives:"), and turn inline "(n) " / "n) " markers
+// into line breaks so each numbered item is parsed on its own.
+const ALT_HEADING_RE = /^\s*(?:the\s+)?alternatives?(?:\s+(?:considered|assessed|evaluated))?\s*:\s*/i;
+// A parenthesised or close-paren marker only — "(1) ", "2) ". The dotted form
+// ("1. ") is left to the line parser's own start-of-line stripper, because an
+// inline "over 5. Then" is a sentence boundary, not a list item.
+const INLINE_NUMBERED_ITEM_RE = /(?:^|[\s;,])(\(?\d{1,2}\))\s+(?=\S)/g;
+
+export function normaliseAlternativesText(text: string): string {
+  const headingStripped = text
+    .split(/\r?\n/)
+    .map((line) => line.replace(ALT_HEADING_RE, ""))
+    .join("\n");
+  return headingStripped.replace(INLINE_NUMBERED_ITEM_RE, (m, marker: string) => {
+    // The one separator character consumed ahead of the marker, if any: a
+    // newline is kept (the item already starts its line); a space, ";" or
+    // "," becomes the line break that isolates the item.
+    const lead = m.startsWith(marker) ? "" : m[0];
+    const n = marker.replace(/[()]/g, "");
+    return `${lead === "" || /[\r\n]/.test(lead) ? lead : "\n"}${n}. `;
+  });
+}
+
+/**
+ * DOC 188 P9 — a SUMMARY label ("Scheduled check-ins; zone sensors only;
+ * voluntary opt-in") that names several short alternatives with one shared
+ * reason ("each rejected as insufficient…") is one row per named
+ * alternative, not one row carrying three. The paraphrase dedup in
+ * buildAlternativesConsidered then folds each onto its detailed sibling and
+ * keeps the longer reason.
+ */
+function summaryListSegments(label: string): string[] | null {
+  const segments = label.split(/;\s*/).map((x) => x.trim().replace(/[.,]$/, "")).filter(Boolean);
+  if (segments.length < 2) return null;
+  if (!segments.every((seg) => seg.split(/\s+/).length <= 6 && !/[:—–]/.test(seg))) return null;
+  return segments;
+}
+
 function parseAlternatives(text: string): AlternativeConsidered[] {
   if (!text) return [];
   if (/Alternative\s+considered\s*:/i.test(text)) {
@@ -525,7 +570,7 @@ function parseAlternatives(text: string): AlternativeConsidered[] {
     }
     if (pairs.length) return pairs;
   }
-  const lines = text
+  const lines = normaliseAlternativesText(text)
     .split(/\r?\n|(?<=[.;])\s+(?=[A-Z(])/)
     // DOC 161 — strip list markers only ("- ", "• ", "1. ", "2) "); the old
     // class ate the leading digit-hyphen of "3-D Secure" ("D Secure step-up").
@@ -538,11 +583,15 @@ function parseAlternatives(text: string): AlternativeConsidered[] {
       /^(.*?)(?:\s*[—–]\s*|\s*:\s*|\s+because\s+|\s+but\s+|\s+however\s+|\s+which\s+would\s+)(.+)$/i,
     );
     if (m && m[1].trim() && m[2].trim()) {
-      out.push({
-        alternative: m[1].trim().replace(/[.,;]$/, ""),
-        why_inadequate: m[2].trim(),
-        rationale_recorded: true,
-      });
+      const label = m[1].trim().replace(/[.,;]$/, "");
+      const why = m[2].trim();
+      // DOC 188 P9 — one row per alternative named in a summary label.
+      const segments = summaryListSegments(label);
+      if (segments) {
+        for (const seg of segments) out.push({ alternative: seg, why_inadequate: why, rationale_recorded: true });
+      } else {
+        out.push({ alternative: label, why_inadequate: why, rationale_recorded: true });
+      }
     } else if (out.length > 0) {
       const prev = out[out.length - 1];
       // Merge into the preceding entry's reason when it has one; a

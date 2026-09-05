@@ -67,7 +67,10 @@ Deno.test("G-2 — a genuinely clean record still gets the all-clear sentence an
   // operational domains walked in the sections below" so it can no longer be
   // read against the ICO crosswalk's DIFFERENT ten categories (whose tally
   // is 8 on the published sample); the all-clear is scoped the same way.
-  assertStringIncludes(exec, "Across the ten operational domains assessed in the sections below");
+  // RE-PIN DOC 188 P4 (2026-09-05, batch e38460): the sentence renders in
+  // Section 5, after the Sections 2–4 domain walk — "above", not "below".
+  assertStringIncludes(exec, "Across the ten operational domains assessed in the sections above");
+  assert(!exec.includes("in the sections below"), "positional wording must point back at Sections 2–4");
   assertStringIncludes(exec, "leaves 9 of the ten fully evidenced");
   // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31,
   // Governance P0-1) — scoped to what the composer actually knows.

@@ -1158,10 +1158,23 @@ function composeNotificationWalk(report: Bag, intake: Bag): string {
         engagedNamed.push(`${hits.join(" and ")} — ${limb.limb}`);
       }
     }
+    // DOC 188 P11 (batch e38460, us-ds4/us-ds5) — true when at least one
+    // matched limb reaches its element only in combination with the
+    // individual's name AND the record lists names: the combination step the
+    // statutes require is then stated rather than skipped.
+    let namedLimbNeedsName = false;
+    for (const limb of gates.element_limbs) {
+      if (limb.requires_name && namesRecorded && limb.intake_types.some((t) => dataTypes.includes(t))) namedLimbNeedsName = true;
+    }
     if (engagedNamed.length) {
       elementBits.push(stop(
         `On the recorded data types, the following fall within the statute's covered elements: ${engagedNamed.join("; ")}`,
       ));
+      if (namedLimbNeedsName) {
+        elementBits.push(
+          "Each of those elements is covered in combination with the individual's first name or first initial and last name; the recorded data types include names and contact details, so that combination is present.",
+        );
+      }
     }
     if (engagedConditional.length) {
       elementBits.push(stop(
@@ -1169,7 +1182,18 @@ function composeNotificationWalk(report: Bag, intake: Bag): string {
       ));
     }
     const unmatched = dataTypes.filter((t) => !matchedTypes.has(t) && t !== "Names and contact details");
-    if (unmatched.length && gates.uncovered_note) {
+    if (unmatched.length && gates.element_list_citation && gates.covered_term) {
+      // DOC 188 P10 — name only the RECORDED types that fall outside the
+      // list; the statute's own catalogue of uncovered types is not the
+      // record's. The pinpoint and the statute's term are the gate's.
+      const plural = unmatched.length > 1;
+      const listed = plural
+        ? `${unmatched.slice(0, -1).join(", ")} and ${unmatched[unmatched.length - 1]}`
+        : unmatched[0];
+      elementBits.push(stop(
+        `The remaining recorded ${plural ? "types" : "type"} — ${listed} — ${plural ? "fall" : "falls"} outside ${gates.element_list_citation}'s element list and ${plural ? "do" : "does"} not, by ${plural ? "themselves" : "itself"}, constitute ${gates.covered_term}${gates.element_list_note ? `; ${noStop(gates.element_list_note)}` : ""}`,
+      ));
+    } else if (unmatched.length && gates.uncovered_note) {
       elementBits.push(stop(
         `Of the remaining recorded types (${unmatched.join("; ")}): ${noStop(gates.uncovered_note)}`,
       ));

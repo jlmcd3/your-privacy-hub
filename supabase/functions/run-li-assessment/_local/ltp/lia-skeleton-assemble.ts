@@ -779,6 +779,66 @@ function publicAuthorityInformationNeededSentence(report: Bag): string {
   return `The information needed to resolve that threshold issue is ${ask}`;
 }
 
+/**
+ * DOC 188 P3 (batch e38460, both LIA runs) — the pinpoints the ASSEMBLER's
+ * own composed sentences cite (not the spine's fixed prose, which
+ * LIA_SKELETON_PINPOINTS already covers): the Art. 9 boundary paragraph
+ * (`specialCategoryBoundary`, Article 9(1)/9(2)), the data-minimisation
+ * standard sentence (Article 5(1)(c)) and the consent alternative row
+ * (Article 6(1)(a), lia-deliverables/build-upgrade4.ts). The Table of
+ * Authorities listed only Article 6(1)(f) while the body cited all four.
+ * Each anchor was verified against the live corpus on 2026-09-05 (the
+ * provision_texts rows are `approved`; the gdpr_articles spans are byte
+ * substrings of the `eu` body_text). The ToA stays iff-cited: an entry
+ * renders only where the body carries its pinpoint (renderLiaToa).
+ */
+export interface LiaComposedPinpoint {
+  readonly pinpoint: string;
+  readonly corpus_table: string;
+  readonly corpus_key: string;
+  readonly verbatim: string;
+  readonly composed_in: string;
+}
+
+export const LIA_COMPOSED_PINPOINTS: readonly LiaComposedPinpoint[] = [
+  {
+    pinpoint: "Article 9(1) GDPR",
+    corpus_table: "provision_texts",
+    corpus_key: "gdpr-art-9-1",
+    verbatim:
+      "Processing of personal data revealing racial or ethnic origin, political opinions, religious or philosophical beliefs, or trade union membership, and the processing of genetic data, biometric data for the purpose of uniquely identifying a natural person, data concerning health or data concerning a natural person's sex life or sexual orientation shall be prohibited.",
+    composed_in: "specialCategoryBoundary (lia-skeleton-assemble.ts)",
+  },
+  {
+    pinpoint: "Article 9(2) GDPR",
+    corpus_table: "gdpr_articles",
+    corpus_key: "gdpr-articles:eu:9",
+    verbatim: "Paragraph 1 shall not apply if one of the following applies",
+    composed_in: "specialCategoryBoundary (lia-skeleton-assemble.ts)",
+  },
+  {
+    pinpoint: "Article 5(1)(c) GDPR",
+    corpus_table: "provision_texts",
+    corpus_key: "gdpr-art-5-1-c",
+    verbatim:
+      "adequate, relevant and limited to what is necessary in relation to the purposes for which they are processed ('data minimisation');",
+    composed_in: "deriveMinimisationSentence (lia-skeleton-assemble.ts)",
+  },
+  {
+    pinpoint: "Article 6(1)(a) GDPR",
+    corpus_table: "gdpr_articles",
+    corpus_key: "gdpr-articles:eu:6",
+    verbatim:
+      "the data subject has given consent to the processing of his or her personal data for one or more specific purposes",
+    composed_in: "buildAlternativesConsidered (lia-deliverables/build-upgrade4.ts)",
+  },
+];
+
+/** The pinpoint without its instrument suffix ("Article 9(1) GDPR" → "Article 9(1)"). */
+export function bareLiaPinpoint(citation: string): string {
+  return citation.replace(/ (?:UK )?GDPR$/, "");
+}
+
 function composeToaLedger(report: Bag): string[] {
   // ITEM SO-11 CITATION LAW: the ledger carries ONLY authorities whose pinpoint
   // is corpus-verified (`pin_verified` with a `corpus_key`), plus the skeleton's
@@ -793,7 +853,9 @@ function composeToaLedger(report: Bag): string[] {
     .map((e) => s(e.citation))
     .filter(Boolean);
   const pinned = LIA_SKELETON_PINPOINTS.map((p) => p.pinpoint);
-  return [...new Set([...pinned, ...verified])];
+  // DOC 188 P3 — the assembler's own composed pinpoints (corpus-anchored above).
+  const composedPins = LIA_COMPOSED_PINPOINTS.map((p) => p.pinpoint);
+  return [...new Set([...pinned, ...composedPins, ...verified])];
 }
 
 /**
@@ -809,7 +871,17 @@ export function liaAuthorityGroup(citation: string): "Regulations" | "Statutes" 
 }
 
 export function renderLiaToa(ledger: readonly string[], assembledBody: string): string {
-  const cited = [...new Set(ledger.filter((c) => c && assembledBody.includes(c)))];
+  // DOC 188 P3 — the composed sentences cite the bare pinpoint ("Article
+  // 9(1)", "Article 5(1)(c)") while the ledger names the instrument; the
+  // iff-cited test therefore accepts the ledger entry when the body carries
+  // either the full form or its bare pinpoint. Entries with no instrument
+  // suffix (EDPB guidance, decisions) are matched exactly as before.
+  const bodyCites = (c: string): boolean => {
+    if (assembledBody.includes(c)) return true;
+    const bare = bareLiaPinpoint(c);
+    return bare !== c && assembledBody.includes(bare);
+  };
+  const cited = [...new Set(ledger.filter((c) => c && bodyCites(c)))];
   if (cited.length === 0) return "";
   const groups: ["Regulations" | "Statutes" | "Guidance and Persuasive Authority", string][] = [];
   for (const g of ["Regulations", "Statutes", "Guidance and Persuasive Authority"] as const) {
@@ -1249,8 +1321,12 @@ export function assembleLiaSkeletonDocument(
   // the ToA's iff-cited check).
   const mixedEuUk = liaJurisdictions.includes("United Kingdom (UK GDPR)") &&
     liaJurisdictions.includes("EU (GDPR)");
+  // DOC 188 P3 — generalised from the Art. 6(1)(f)-only relabel so every
+  // GDPR article pinpoint in the ledger (now including the composed
+  // Article 9(1)/9(2)/5(1)(c)/6(1)(a) entries) names the UK instrument on a
+  // UK-only record. Recitals and guidance entries are untouched.
   const instrumentLabel = (c: string): string =>
-    ukOnly ? c.replace(/^Article 6\(1\)\(f\) GDPR/, "Article 6(1)(f) UK GDPR") : c;
+    ukOnly ? c.replace(/^(Article \d+(?:\([^)]*\))*) GDPR\b/, "$1 UK GDPR") : c;
   const mixedInstrumentNote = mixedEuUk
     ? "The record puts both the EU GDPR and the UK GDPR in scope. Article 6(1)(f) UK GDPR is materially identical to its EU counterpart, and the analysis in this assessment applies under each instrument; citations follow the EU text, and the UK GDPR applies in parallel to the processing of the UK data subjects."
     : "";

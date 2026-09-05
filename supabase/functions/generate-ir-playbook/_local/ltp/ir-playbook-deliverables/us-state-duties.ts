@@ -217,8 +217,21 @@ export interface StateWalkGates {
   readonly breach_definition: string;
   readonly element_limbs: readonly StateGateElementLimb[];
   /** Data types the statute's element list does NOT reach, stated so the
-   *  walk can resolve honest negatives. */
+   *  walk can resolve honest negatives. Retained as the fallback sentence
+   *  for a gate that carries no `element_list_citation`. */
   readonly uncovered_note?: string;
+  /** DOC 188 P10 (batch e38460, us-ds4/us-ds5) — the pinpoint of the
+   *  statute's covered-element list, so the walk can say which RECORDED
+   *  types fall outside it instead of reciting the statute's own list of
+   *  uncovered types (health, passwords, location, children's data …) as if
+   *  they were on the record. */
+  readonly element_list_citation?: string;
+  /** The statute's own term for what the list defines, with its unit
+   *  ("personal information under this section"). */
+  readonly covered_term?: string;
+  /** Optional statute-specific clarification appended after the
+   *  recorded-types sentence (e.g. a limb the statute lacks). */
+  readonly element_list_note?: string;
   /** The statute's encryption formulation, with pinpoint. */
   readonly encryption_formulation: string;
   /** Harm-threshold carve-out where the statute has one. */
@@ -263,6 +276,8 @@ export const STATE_WALK_GATES: Record<string, StateWalkGates> = {
     ],
     uncovered_note:
       "location data and other types outside § 1798.82(h)'s element list do not, by themselves, constitute covered personal information under this section",
+    element_list_citation: "§ 1798.82(h)",
+    covered_term: "covered personal information under this section",
     encryption_formulation:
       "the duty attaches to unencrypted personal information, or to encrypted personal information where the encryption key or security credential was also acquired and could render the information readable or usable (§ 1798.82(a)(1)); \"encrypted\" means rendered unusable, unreadable, or indecipherable through a generally accepted security technology or methodology (§ 1798.82(i)(4))",
     verified_on: "2026-08-29",
@@ -292,6 +307,9 @@ export const STATE_WALK_GATES: Record<string, StateWalkGates> = {
     ],
     uncovered_note:
       "§ 521.002(a)(2) carries no standalone biometric or online-credential limb, so biometric data and passwords or credentials do not, by themselves, constitute sensitive personal information under this chapter",
+    element_list_citation: "§ 521.002(a)(2)",
+    covered_term: "sensitive personal information under this chapter",
+    element_list_note: "§ 521.002(a)(2) carries no standalone biometric or online-credential limb",
     encryption_formulation:
       "the name-plus-element limbs reach items only if the name and the items are not encrypted (§ 521.002(a)(2)(A)), while acquisition of encrypted data is nonetheless a breach where the person accessing it has the decryption key (§ 521.053(a))",
     verified_on: "2026-08-29",
@@ -333,6 +351,8 @@ export const STATE_WALK_GATES: Record<string, StateWalkGates> = {
     ],
     uncovered_note:
       "location data and other types outside § 899-aa(1)(b)'s element list do not, by themselves, constitute private information under this section",
+    element_list_citation: "§ 899-aa(1)(b)",
+    covered_term: "private information under this section",
     encryption_formulation:
       "elements count where the data element, or the combination with personal information, is not encrypted — or is encrypted with an encryption key that has also been accessed or acquired (§ 899-aa(1)(b))",
     harm_carveout:
@@ -392,6 +412,8 @@ export const STATE_WALK_GATES: Record<string, StateWalkGates> = {
     ],
     uncovered_note:
       "location data, children's data, and other types outside § 6-1-716(1)(g)'s element list do not, by themselves, constitute personal information under this section",
+    element_list_citation: "§ 6-1-716(1)(g)",
+    covered_term: "personal information under this section",
     encryption_formulation:
       "the duty attaches to unencrypted personal information, and the breach of encrypted or otherwise secured personal information must also be disclosed if the confidential process, encryption key, or other means to decipher it was also acquired (§ 6-1-716(1)(h), (2)(a.4))",
     harm_carveout:
@@ -420,6 +442,8 @@ export const STATE_WALK_GATES: Record<string, StateWalkGates> = {
     ],
     uncovered_note:
       "children's data and other types outside § 501.171(1)(g)'s element list do not, by themselves, constitute personal information under this section",
+    element_list_citation: "§ 501.171(1)(g)",
+    covered_term: "personal information under this section",
     encryption_formulation:
       "the definition excludes information that is encrypted, secured, or otherwise rendered unusable, or modified to remove the elements that personally identify an individual (§ 501.171(1)(g)2)",
     harm_carveout:
@@ -463,6 +487,8 @@ export const STATE_WALK_GATES: Record<string, StateWalkGates> = {
     ],
     uncovered_note:
       "location data, children's data, and other types outside RCW 19.255.005(2)(a)'s element list do not, by themselves, constitute personal information under this section",
+    element_list_citation: "RCW 19.255.005(2)(a)",
+    covered_term: "personal information under this section",
     encryption_formulation:
       "the duty attaches to unencrypted personal information, and the breach of secured personal information must also be disclosed if the confidential process, encryption key, or other means to decipher it was acquired by an unauthorized person (RCW 19.255.010(1))",
     harm_carveout:
@@ -510,6 +536,8 @@ export const STATE_WALK_GATES: Record<string, StateWalkGates> = {
     ],
     uncovered_note:
       "children's data and other types outside § 36a-701b(a)(2)'s element list do not, by themselves, constitute personal information under this section",
+    element_list_citation: "§ 36a-701b(a)(2)",
+    covered_term: "personal information under this section",
     encryption_formulation:
       "the definition of a reportable breach excludes personal information that has been secured by encryption or another method rendering it unreadable or unusable (§ 36a-701b(a)(1))",
     harm_carveout:
@@ -553,6 +581,8 @@ export const STATE_WALK_GATES: Record<string, StateWalkGates> = {
     ],
     uncovered_note:
       "location data, children's data, and other types outside ORS 646A.602(12)(a)'s element list do not, by themselves, constitute personal information under this section",
+    element_list_citation: "ORS 646A.602(12)(a)",
+    covered_term: "personal information under this section",
     encryption_formulation:
       "the duty attaches only where encryption, redaction, or another method has not rendered the data elements unusable, or where the elements are encrypted but the encryption key has also been acquired (ORS 646A.602(12)(a))",
     verified_on: "2026-08-29",
@@ -592,6 +622,8 @@ export const STATE_WALK_GATES: Record<string, StateWalkGates> = {
     ],
     uncovered_note:
       "location data, children's data, and other types outside 815 ILCS 530/5's element list do not, by themselves, constitute personal information under this section",
+    element_list_citation: "815 ILCS 530/5",
+    covered_term: "personal information under this section",
     encryption_formulation:
       "the duty attaches only where the name or the data elements are not encrypted or redacted (815 ILCS 530/5)",
     verified_on: "2026-08-29",
@@ -614,6 +646,9 @@ export const STATE_WALK_GATES: Record<string, StateWalkGates> = {
     ],
     uncovered_note:
       "health or medical records, biometric data, passwords or credentials standing alone, location data, children's data, and other types outside ch. 93H, § 1's three-element list do not, by themselves, constitute personal information under this chapter — Massachusetts has no health, biometric, or online-account-credential limb",
+    element_list_citation: "ch. 93H, § 1",
+    covered_term: "personal information under this chapter",
+    element_list_note: "Massachusetts has no health, biometric, or online-account-credential limb",
     encryption_formulation:
       "\"encrypted\" means data transformed through a 128-bit or higher algorithmic process into a form with a low probability of assigning meaning without the confidential process or key; the duty otherwise attaches to unencrypted data, or to encrypted data acquired together with the means to decipher it (ch. 93H, § 1)",
     verified_on: "2026-08-29",
@@ -636,6 +671,8 @@ export const STATE_WALK_GATES: Record<string, StateWalkGates> = {
     ],
     uncovered_note:
       "health or medical records, biometric data, passwords or credentials standing alone, location data, children's data, and other types outside § 18.2-186.6(A)'s element list do not, by themselves, constitute personal information under this section",
+    element_list_citation: "§ 18.2-186.6(A)",
+    covered_term: "personal information under this section",
     encryption_formulation:
       "the duty attaches only to unencrypted and unredacted personal information (§ 18.2-186.6(A))",
     verified_on: "2026-08-29",

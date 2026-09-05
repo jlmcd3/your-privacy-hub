@@ -83,7 +83,10 @@ const F_LIA_UK: SampleFixture = {
         why_consent_not_used:
           "Workers are in a clear power imbalance with the employer; consent could not be freely given for safety monitoring that is uniformly applied across all underground shifts.",
         data_minimised:
-          "Only beacon-proximity zone (not GPS-precise location) and heart-rate (not ECG) are processed. No surface or break-room monitoring. Per-category retention and deletion triggers: (a) Location data (beacon proximity) — 90 days from the capture timestamp, deletion trigger is capture_ts + 90d enforced by an automated storage-lifecycle job that runs daily and writes a deletion attestation; (b) Health data (heart rate) — 90 days from the capture timestamp on the same daily automated job as (a); (c) Employee records (worker-to-shift-ID mapping used for identity re-link on alarm) — retained for the duration of the employment relationship, with a deletion trigger of employment termination + 6 years (UK statutory retention for occupational-health-adjacent records), after which the mapping row is purged by the HR system's leaver job. Aggregate safety metrics (no individual identifiers) — 12 months from computation, deletion trigger is computation_ts + 12m on the same automated lifecycle job.",
+          // DOC 188 F4 (2026-09-05, batch e38460): the two code-style tokens
+          // ("capture_ts + 90d", "computation_ts + 12m") read as leaked field
+          // names to the deterministic scanner; the same facts in words.
+          "Only beacon-proximity zone (not GPS-precise location) and heart-rate (not ECG) are processed. No surface or break-room monitoring. Per-category retention and deletion triggers: (a) Location data (beacon proximity) — 90 days from the capture timestamp, deletion trigger is the capture timestamp plus 90 days, enforced by an automated storage-lifecycle job that runs daily and writes a deletion attestation; (b) Health data (heart rate) — 90 days from the capture timestamp on the same daily automated job as (a); (c) Employee records (worker-to-shift-ID mapping used for identity re-link on alarm) — retained for the duration of the employment relationship, with a deletion trigger of employment termination + 6 years (UK statutory retention for occupational-health-adjacent records), after which the mapping row is purged by the HR system's leaver job. Aggregate safety metrics (no individual identifiers) — 12 months from computation, deletion trigger is the computation timestamp plus 12 months on the same automated lifecycle job.",
         pseudonymisation_options:
           "Dashboards display shift-ID and zone, not name. Identity is re-linked only when an alarm is triggered and only for the named on-call supervisor and medic.",
       },
@@ -192,6 +195,22 @@ const F_DPIA_EU: SampleFixture = {
         jurisdictions: ["EU (GDPR)"],
         legal_basis_proposed: "Legitimate interest (Art. 6(1)(f))",
         article_9_condition: "",
+        // DOC 188 F5 (2026-09-05, batch e38460): the DPO is named as the
+        // accountable preparer below, but `dpo_advice` was blank and the
+        // Swiss photogrammetry processor named in third_party_processors had
+        // no `transfer_flows` row — so the record read "DPO advice not
+        // recorded" and "transfer determination open" on both runs. Both are
+        // real intake fields (dpia-framework.ts) and both are now answered.
+        dpo_advice:
+          "The DPO (Donna Dasher) reviewed the draft on 9 April 2026 and advised that the processing may proceed on the basis of the blurring pipeline and the 30-day raw-frame deletion, subject to the production verification of the deletion job before the next campaign; no prior consultation with the supervisory authority was recommended.",
+        transfer_flows: [
+          {
+            recipient: "OrthoMosaic Alpine SA (photogrammetry processing)",
+            destination_country: "CH",
+            transfer_mechanism: "Adequacy decision — Switzerland (Commission Decision 2000/518/EC, confirmed by the 15 January 2024 review)",
+            notes: "Raw frames are processed in Switzerland under the signed DPA and deleted at 30 days; blurred mosaics return to the German tenant.",
+          },
+        ],
         necessity_proportionality:
           "The blurring pipeline plus 30-day raw-frame deletion is the least-intrusive means of producing usable geological mosaics; alternatives (ground surveys, satellite imagery at lower resolution) were considered and rejected as insufficient for drill-target identification.",
         // ALL-PRODUCTS-TEST FIX (2026-08-29): the form emits ISO-2 country
@@ -464,6 +483,14 @@ const F_IR_EU: SampleFixture = {
       affectedCount: "1,000–10,000",
       jurisdictions: ["Denmark", "EU/EEA"],
       processorInvolved: true,
+      // DOC 188 F5 (2026-09-05, batch e38460): the scenario names the WMS
+      // hosting processor (breachNoticeContracts below) and the discovery
+      // timestamp is the confirmed moment of awareness; both intake fields
+      // (ir-playbook.ts `processorName`, `awarenessConfirmed`) were blank, so
+      // the record read as unnamed / "confirmed or assumed" and was graded
+      // as if the playbook had ignored them.
+      processorName: "Nordisk WMS Hosting ApS",
+      awarenessConfirmed: "Confirmed — discovery timestamp verified as the moment of awareness",
       contained: "Yes",
       organisationType: "Company",
       // ── ITEM 369-IR — STANDING-PLAYBOOK INTAKE ────────────────────────
@@ -616,6 +643,13 @@ const F_CPPA_RISK_US: SampleFixture = {
           "Device identifiers (IP, cookies, device IDs)",
           "Internet or network activity",
           "General location (city, region, ZIP, IP-derived)",
+          // DOC 188 F3 (2026-09-05, batch e38460): q15 answers "Yes" to
+          // sensitive PI, so the record must name a qualifying category —
+          // delivery and pickup coordinates are precise geolocation (Cal. Civ.
+          // Code § 1798.140(ae)(1)(C)). Without it the report honestly said
+          // "the qualifying statutory category has not been identified" and
+          // three graders asked which category.
+          "Precise geolocation (GPS-level / specific address)",
         ],
         q5_sell_share: "Both",
         q5b_profiling_observation: "No",
@@ -1131,7 +1165,9 @@ const F_US_NOTICE: SampleFixture = {
       sale_or_sharing: "neither",
       retention_general:
         "Account data is retained while the account is active and for 36 months after last activity. Shipment records are retained 7 years for carrier-dispute resolution. Marketing contacts are retained until opt-out.",
-      sensitive_data_types: "Precise geolocation (delivery and pickup coordinates).",
+      // DOC 188 F1 (2026-09-05, batch e38460): `sensitive_data_types` was never
+      // a US-notice question (the form asks `ccpa_sensitive_data`, below); the
+      // phantom key made the grader read a category the notice "ignored".
       data_sources:
         "Directly from individuals (account signup and in-app); from carriers (delivery scans and exceptions); from authentication providers (sign-in metadata).",
       // DOC 183 (2026-09-04): the doc-181 spine renders the California and
@@ -1188,9 +1224,13 @@ const F_EU_NOTICE: SampleFixture = {
       retention_period:
         "Order records: 7 years for tax. Customer accounts: duration of relationship plus 24 months. Marketing contacts: until opt-out.",
       automated_decisions: "no",
-      special_category_basis: "Not applicable — no special-category data collected from customers.",
-      supervisory_authority_eu: "Irish Data Protection Commission (DPC)",
-      supervisory_authority_uk: "Information Commissioner's Office (ICO)",
+      // DOC 188 F1 (2026-09-05, batch e38460): the EU form asks the supervisory
+      // authority as `gdpr_dpa_contact` (gdpr-questions.ts); the phantom
+      // `supervisory_authority_eu/_uk` keys left Section 12 a bracketed prompt
+      // although the record "supplied" the DPC. `special_category_basis` is a
+      // multi-choice of Art. 9(2) codes — a record with no special-category
+      // data leaves it unanswered rather than writing prose into it.
+      gdpr_dpa_contact: "Data Protection Commission (Ireland)",
       // DOC 183 (2026-09-04): the doc-180 spine renders the source,
       // establishment and transfer-destination answers; each key is a real
       // universal question (src/data/eu-notice-questions/universal-questions.ts).
@@ -1254,7 +1294,8 @@ const F_LIA_UK_SUPP = withSupplemental(F_LIA_UK, "insert", {
 
 const F_DPIA_EU_SUPP = withSupplemental(F_DPIA_EU, "insert.intake_data", {
   supplemental_responses: [
-    { ref_field: "necessity_proportionality", ask: "Confirm the raw-frame deletion job is automated end-to-end.", response: "Yes — nightly lifecycle job on the survey-imagery bucket at 02:00 UTC deletes any object with a capture_ts older than 30 days and writes an attestation row to the deletion_ledger table." },
+    // DOC 188 F4 (2026-09-05): plain words for the two code-style tokens.
+    { ref_field: "necessity_proportionality", ask: "Confirm the raw-frame deletion job is automated end-to-end.", response: "Yes — nightly lifecycle job on the survey-imagery bucket at 02:00 UTC deletes any object whose capture timestamp is older than 30 days and writes an attestation row to the deletion ledger." },
     { ref_field: "retention_period", ask: "State the retention for the blurred derivative products.", response: "Blurred orthomosaics: 5 years to support the mineral-permit lifecycle; retention trigger is permit-cycle close + 5y, enforced by the same lifecycle job." },
   ],
   supplemental_context: "Landesdatenschutzbehörde consultation letter dated 12 May confirms no prior authorisation required given the blurring pipeline and 30-day raw-frame cap.",

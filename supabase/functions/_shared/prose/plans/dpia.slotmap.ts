@@ -40,6 +40,11 @@ export const DPIA_SLOT_MAP: readonly DpiaSlotBinding[] = [
     absent: "required — the form gates submit on it" },
 
   // Executive Summary
+  // DOC 188 P6 (v4.10, 2026-09-05) — the opener's instrument name, selected
+  // from the record's jurisdictions (readDpiaRegimeScope): EU-only, UK-only,
+  // or the former "for the EU and UK" literal where both are named.
+  { slot: "gdprInstrument", kind: "composed", source: "jurisdictions", render: "label-map",
+    absent: "never absent — an unnamed regime reads as the EU instrument (readDpiaRegime default)" },
   { slot: "reasonsToConduct", kind: "intake", source: "reasons_to_conduct", render: "list-as-prose",
     absent: "the sentence is dropped, never padded" },
   { slot: "description", kind: "intake", source: "description", render: "quoted-attributed",

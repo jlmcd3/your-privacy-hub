@@ -46,7 +46,7 @@ import { buildDpiaSkeletonTables, buildDpiaTablesBySurface } from "./dpia-skelet
 // product migrated onto the fleet presentation system.
 import { dispositionTone, type SyllabusProjection } from "../prose/syllabus.ts";
 // PROMPT 9H item 3 — the record's regime drives the ToA prefix and the header.
-import { DPIA_NECESSITY_TEST_SENTENCE, dpoFromPreparedBy, namesGdprJurisdiction, readDpiaRegime } from "./dpia-deliverables/build.ts";
+import { DPIA_NECESSITY_TEST_SENTENCE, dpoFromPreparedBy, namesGdprJurisdiction, readDpiaRegime, readDpiaRegimeScope } from "./dpia-deliverables/build.ts";
 import { repairRegister } from "./risk-skeleton-assemble.ts";
 // PROMPT 9J — clause bounding and abbreviation-aware sentence heads live in
 // ONE module so dpia-deliverables/build.ts can share them without a cycle.
@@ -192,6 +192,13 @@ export function firstSentencesQuoteAware(text: string, n: number): string {
 
 // ── Slot values ─────────────────────────────────────────────────────────────
 
+/** DOC 188 P6 — the {gdprInstrument} slot's three ratified readings. */
+export const DPIA_GDPR_INSTRUMENT_BY_SCOPE: Record<"EU" | "UK" | "EU+UK", string> = {
+  "EU": "General Data Protection Regulation (“GDPR”)",
+  "UK": "UK General Data Protection Regulation (“UK GDPR”)",
+  "EU+UK": "General Data Protection Regulation for the EU and UK (“GDPR”)",
+};
+
 export function buildDpiaSlotValues(intake: Bag): SlotValues {
   const version = s(intake.processing_version);
   const launch = s(intake.estimated_launch_date);
@@ -213,6 +220,13 @@ export function buildDpiaSlotValues(intake: Bag): SlotValues {
     // PROMPT 9L item 1 — the regime-conditional prefix, on the ratified
     // subtitle pattern: selected by readDpiaRegime, never rewritten at render.
     regimeName: readDpiaRegime(intake) === "UK" ? "UK GDPR" : "GDPR",
+
+    // DOC 188 P6 (batch e38460, both DPIA runs) — the executive opener named
+    // "the General Data Protection Regulation for the EU and UK" on an
+    // EU-only record. The instrument is now the {gdprInstrument} slot,
+    // selected from the record's jurisdictions on the same regime-conditional
+    // pattern as regimeName; the mixed EU+UK record keeps the former bytes.
+    gdprInstrument: DPIA_GDPR_INSTRUMENT_BY_SCOPE[readDpiaRegimeScope(intake)],
 
     // PROMPT 2A(a) — must read grammatically after "…is required because ".
     // PROMPT 9L item 1 (JOINER) — the reasons-to-conduct splice takes the
@@ -1970,25 +1984,43 @@ export function repairDpiaPlaceholders(text: string): string {
  */
 const DESIGN_TABLE_SURFACE = "risk_register.design";
 
+// DOC 188 P5 (batch e38460, both DPIA runs) — the Section 2 "Article 9." framing
+// paragraph ("The condition under Article 9(2) that the company has selected
+// … are set forth below.") rendered with nothing under it on a record with no
+// special-category data: its table follows the no-padding law, the intro did
+// not. Same PROMPT 12J mechanism, second surface; the spine bytes are untouched.
+const SPECIAL_CATEGORY_TABLE_SURFACE = "section2_coverage.special_category_conditions";
+
+/** The table surfaces whose immediately preceding skeleton intro renders iff the table renders. */
+export const CONDITIONAL_INTRO_TABLE_SURFACES: readonly string[] = [
+  DESIGN_TABLE_SURFACE,
+  SPECIAL_CATEGORY_TABLE_SURFACE,
+];
+
 export function renderSectionsWithConditionalDesignIntro(
   tables: ReturnType<typeof buildDpiaSkeletonTables>,
 ): typeof DPIA_SKELETON_SECTIONS {
   // deno-lint-ignore no-explicit-any
   const out = (DPIA_SKELETON_SECTIONS as any[]).map((section) => {
     // deno-lint-ignore no-explicit-any
-    const blocks = section.blocks as any[];
-    const designIdx = blocks.findIndex(
-      (b) => b.kind === "table" && String(b.text).trim() === DESIGN_TABLE_SURFACE,
-    );
-    if (designIdx < 1) return section;
-    const t = tables[`${section.id}:${designIdx}`];
-    const renders = !!t && Array.isArray(t.rows) && t.rows.length > 0;
-    if (renders) return section;
-    const introIdx = designIdx - 1;
-    if (blocks[introIdx]?.kind !== "skeleton") return section;
-    const next = blocks.slice();
-    next[introIdx] = { ...blocks[introIdx], text: "" };
-    return { ...section, blocks: next };
+    let blocks = section.blocks as any[];
+    let changed = false;
+    for (const surface of CONDITIONAL_INTRO_TABLE_SURFACES) {
+      const tableIdx = blocks.findIndex(
+        (b) => b.kind === "table" && String(b.text).trim() === surface,
+      );
+      if (tableIdx < 1) continue;
+      const t = tables[`${section.id}:${tableIdx}`];
+      const renders = !!t && Array.isArray(t.rows) && t.rows.length > 0;
+      if (renders) continue;
+      const introIdx = tableIdx - 1;
+      if (blocks[introIdx]?.kind !== "skeleton") continue;
+      const next = blocks.slice();
+      next[introIdx] = { ...blocks[introIdx], text: "" };
+      blocks = next;
+      changed = true;
+    }
+    return changed ? { ...section, blocks } : section;
   });
   return out as typeof DPIA_SKELETON_SECTIONS;
 }

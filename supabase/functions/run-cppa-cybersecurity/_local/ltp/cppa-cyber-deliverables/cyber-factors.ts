@@ -908,8 +908,15 @@ export function buildReadinessActions(intake: Bag, recs: readonly ComponentRecom
   // as the thing to complete "above all." The ratified gating hierarchy
   // (applicability → first-audit timing → auditor engagement → evidence
   // readiness) now governs here too, matching the other two surfaces.
+  // DOC 188 P7 (batch e38460, us-ds3) — when the § 7120 applicability ask is
+  // promoted to THE priority action below, the same ask must not print again
+  // as the first record-completion bullet (FD703575-CY4: an action appears
+  // ONCE). The Appendix C register still carries its ranked row — it reads
+  // buildRecordCompletionExtras directly, not this list.
+  let applicabilityPromoted = false;
   if (d && d.readiness_determination.conclusion === "record_insufficient" && priority_actions.length === 0) {
     const applicabilityUnresolved = resolveCyberApplicability((intake.profile ?? {}) as Bag).auditRequired.value === null;
+    applicabilityPromoted = applicabilityUnresolved;
     priority_actions.push(
       applicabilityUnresolved
         ? "Resolve whether an independent cybersecurity audit is required (§ 7120) — the record does not yet state the revenue and sale/share facts the trigger table depends on. This precedes auditor engagement and every other item, so the readiness conclusion cannot be reached until it is resolved."
@@ -921,7 +928,9 @@ export function buildReadinessActions(intake: Bag, recs: readonly ComponentRecom
   const extras = d ? buildRecordCompletionExtras(intake, d) : [];
   const record_completion_actions = [
     ...byClass(["no_record", "no_maturity_stated"]),
-    ...extras.map((x) => `${x.label} — ${x.action} (Audit-readiness record-completion item.)`),
+    ...extras
+      .filter((x) => !(applicabilityPromoted && x.label === "Audit applicability"))
+      .map((x) => `${x.label} — ${x.action} (Audit-readiness record-completion item.)`),
   ];
   const sequencing = recs.length === 0 && extras.length === 0
     ? "No readiness actions are identified; the preparation focus is organizing the identified evidence for auditor access."

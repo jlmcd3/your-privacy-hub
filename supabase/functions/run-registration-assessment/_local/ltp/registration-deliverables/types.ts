@@ -132,6 +132,10 @@ export interface RepresentativeDetermination extends Finding {
   jurisdiction: "EU" | "UK";
   /** Art. 27(2) exemption limbs, evaluated rather than ignored. */
   exemption_analysis: string;
+  /** DOC 188 P2 — every provision the determination cites (Art. 27(1) plus
+   *  the Art. 27(2)(a)/(b) exemption rows), present only where the exemption
+   *  recital renders, so index.ts's walkCites carries them to the exhibit. */
+  citations?: string[];
 }
 
 export interface DpoDetermination {

@@ -158,8 +158,12 @@ Deno.test("IR-F3: Virginia excludes biometric and health data from its narrow el
     jurisdictions: ["Virginia"],
     dataTypes: ["Names and contact details", "Biometric data", "Health / medical records"],
   });
-  assertStringIncludes(text, "health or medical records, biometric data");
+  // RE-PIN DOC 188 P10 (2026-09-05, batch e38460): the sentence names the
+  // RECORDED types that fall outside § 18.2-186.6(A)'s list, not the
+  // statute's own catalogue of uncovered types.
+  assertStringIncludes(text, "Biometric data and Health / medical records — fall outside § 18.2-186.6(A)'s element list");
   assertStringIncludes(text, "do not, by themselves, constitute personal information under this section");
+  assert(!text.includes("passwords or credentials standing alone"), "types not on the record must not be recited as remaining recorded types");
 });
 
 Deno.test("IR-F3: a multi-state record renders every recorded state's paragraph once", () => {

@@ -81,5 +81,7 @@ Deno.test("9L.2 — version string re-pins to the current encode", () => {
   // RE-PIN BATCH 19b (doc 113 Part D): v4.7 — exec verdict-first re-encode.
   // RE-PIN BATCH 21a (doc 113 S7.2): v4.8 — subtitle/section-title
   // spaced hyphens became em dashes; skeleton-block prose is unchanged.
-  assertEquals(DPIA_SKELETON_VERSION, "dpia-v4.8-2026-08-30");
+  // RE-PIN DOC 188 P6 (2026-09-05, batch e38460): v4.10 — the exec opener's
+  // instrument became the {gdprInstrument} slot.
+  assertEquals(DPIA_SKELETON_VERSION, "dpia-v4.10-2026-09-05");
 });

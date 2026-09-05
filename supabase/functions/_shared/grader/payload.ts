@@ -211,7 +211,15 @@ const FAMILY_CALIBRATION: Partial<Record<GraderReportFamily, string>> = {
   "dpa":
     "CALIBRATION (DPA): standard Article 28 operative clauses are legally conventional and EXPECTED to be standardized — never flag them as generic boilerplate. Judge tailoring only of the party facts, services and processing descriptions, transfers, retention, TOMs, subprocessors, and the [TO BE COMPLETED] placeholders.",
   "cppa-risk":
-    "CALIBRATION (CPPA Risk): impact_intake.benefitsOutweigh is the customer's own perspective answer and is DELIBERATELY excluded from the deterministic § 7154 balance (pinned by test) — a determination differing from it is not an error. Safeguard crediting requires per-risk a6_safeguards rows with an implementation status; a general safeguards description not attributed to a specific risk is deliberately not credited, and the report says so.",
+    "CALIBRATION (CPPA Risk): impact_intake.benefitsOutweigh is the customer's own perspective answer and is DELIBERATELY excluded from the deterministic § 7154 balance (pinned by test) — a determination differing from it is not an error. Safeguard crediting requires per-risk a6_safeguards rows with an implementation status; a general safeguards description not attributed to a specific risk is deliberately not credited, and the report says so. DOC 188 (batch e38460): the intake carries NESTED objects (impact_intake, exceptions_intake, admt_detail) — read them before reporting a value as \"not in the intake\"; impact_intake.benefitsOutweigh IS an intake answer.",
+  // DOC 188 (2026-09-05, batch e38460) — two grader misreads on IR us-ds5: a
+  // CRITICAL "omits statutory notification deadlines" against a playbook whose
+  // Notification Clocks table and Deadline Board state the California 30-day /
+  // 15-day AG, Colorado 30-day and Illinois clocks; and "processor involved but
+  // not named" graded as a hallucination on a record with processorInvolved
+  // true and no processorName.
+  "ir-playbook":
+    "CALIBRATION (IR Playbook): the statutory notification clocks (each state's day count or 'most expedient time' standard, regulator sample-copy deadlines, the GDPR 72-hour clock) are stated in the Notification Clocks table and the Deadline Board — read both tables before reporting an omitted or unstated deadline. `processorInvolved: true` with no `processorName` is a record the customer left unnamed; the playbook saying the processor is not named is record-correct, not a hallucination.",
 };
 
 const CUSTOMER_DOC_HEADER =

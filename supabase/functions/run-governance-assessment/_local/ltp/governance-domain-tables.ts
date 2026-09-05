@@ -514,7 +514,11 @@ export function composeExecutiveSummaryTyped(findings: Record<string, TypedDomai
   //     determination (rendered above it) can be unresolved — and carry a
   //     High register row — while every operational domain is clean; the
   //     unscoped sentence read as contradicting both.
-  parts.push(`Across the ten operational domains assessed in the sections below, the information provided leaves ${clean.length === 0 ? "none" : clean.length} of the ten fully evidenced.`);
+  // DOC 188 P4 (batch e38460, both Governance runs) — this sentence renders
+  // in Section 5 "The Determination", AFTER the domain walk of Sections 2–4,
+  // so "the sections below" pointed the wrong way. Scope wording unchanged
+  // (PANEL GOV-5); only the direction is corrected.
+  parts.push(`Across the ten operational domains assessed in the sections above, the information provided leaves ${clean.length === 0 ? "none" : clean.length} of the ten fully evidenced.`);
   if (adverse.length > 0) {
     parts.push(`The domains requiring action first are: ${adverse.map((f) => f.domain_name).join("; ")}.`);
   }

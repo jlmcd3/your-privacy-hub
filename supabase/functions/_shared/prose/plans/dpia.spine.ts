@@ -60,7 +60,16 @@
 //       keys, variable names, and reasoning traces are never printed in
 //       the customer report") — internal product documentation, not
 //       customer prose.
-export const DPIA_SKELETON_VERSION = "dpia-v4.8-2026-08-30";
+// v4.10 (DOC 188 P6, 2026-09-05, batch e38460): the executive opener's
+// instrument becomes the {gdprInstrument} slot (see the block comment in
+// executive_summary). One fixed-prose edit; slot inventory +1; both hash
+// bases move. (The v4.9 label was used by the DOC 132 spine-hash entry
+// below, which added the advisory-corpus table block without a version
+// bump; this bump takes the next number to keep the audit trail monotonic.)
+export const DPIA_SKELETON_VERSION = "dpia-v4.10-2026-09-05";
+
+/** The v4.8 spine version — retained for the audit trail. */
+export const DPIA_SKELETON_VERSION_V48 = "dpia-v4.8-2026-08-30";
 
 /** The v4.7 spine version — retained for the audit trail. */
 export const DPIA_SKELETON_VERSION_V47 = "dpia-v4.7-2026-08-30";
@@ -189,8 +198,20 @@ export const DPIA_SKELETON_CONTENT_HASH_V462 =
  * newline-joined, in document order; verified by reproducing the v4.6.2
  * value first).
  */
-export const DPIA_SKELETON_CONTENT_HASH =
+export const DPIA_SKELETON_CONTENT_HASH_V47 =
   "35d9a83b15c7bb538a0dd48c6bf83978fe35f6de11431aa9ed59ce5bd81c6c18";
+
+/**
+ * FIXED-PROSE HASH (BASIS v1) at spine v4.10 — DOC 188 P6 (2026-09-05,
+ * batch e38460): the executive opener's "General Data Protection Regulation
+ * for the EU and UK (“GDPR”)" literal became the {gdprInstrument} slot
+ * (regime-selected by the assembler; the mixed EU+UK record renders the
+ * former bytes). One block changed; recomputed with the same method as
+ * every prior encode (skeleton-block text, newline-joined, in document
+ * order; verified by reproducing the v4.7 value first).
+ */
+export const DPIA_SKELETON_CONTENT_HASH =
+  "4e401fe574a8c4043974b8b61d87604dc1b5605051a7ffcee9eb49861103bc9a";
 
 
 
@@ -261,7 +282,14 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
       // retires from the exec (the provision stays cited; the cases live in
       // the record's own reasons-to-conduct and Appendix A's authorities);
       // the WP248 sentence moved VERBATIM to the Appendix A intro.
-      { kind: "skeleton", text: "Article 35(1) of the General Data Protection Regulation for the EU and UK (“GDPR”) requires a data protection impact assessment before processing that, taking into account its nature, scope, context and purposes, is likely to result in a high risk to the rights and freedoms of natural persons, and Article 35(3) identifies the cases in which one is required in particular. {organizationName} believes that this assessment may be required because {reasonsToConduct - reader phrases as prose}. The processing under assessment is described as the following: {description - own sentence}{VERSION_CLAUSE - \", version \" + processingVersion; absent => omitted}{LAUNCH_CLAUSE - \", planned to commence \" + launchDate; absent => omitted}." },
+      // DOC 188 P6 (v4.10, 2026-09-05): the instrument is the
+      // {gdprInstrument} slot (dpia-skeleton-assemble.ts
+      // DPIA_GDPR_INSTRUMENT_BY_SCOPE) — "General Data Protection
+      // Regulation (“GDPR”)" on an EU-only record, "UK General Data
+      // Protection Regulation (“UK GDPR”)" on a UK-only record, and the
+      // former literal "General Data Protection Regulation for the EU and
+      // UK (“GDPR”)" where the record names both. No other byte moved.
+      { kind: "skeleton", text: "Article 35(1) of the {gdprInstrument - regime-selected instrument name} requires a data protection impact assessment before processing that, taking into account its nature, scope, context and purposes, is likely to result in a high risk to the rights and freedoms of natural persons, and Article 35(3) identifies the cases in which one is required in particular. {organizationName} believes that this assessment may be required because {reasonsToConduct - reader phrases as prose}. The processing under assessment is described as the following: {description - own sentence}{VERSION_CLAUSE - \", version \" + processingVersion; absent => omitted}{LAUNCH_CLAUSE - \", planned to commence \" + launchDate; absent => omitted}." },
     ],
   },
   {
@@ -500,9 +528,16 @@ export const DPIA_SPINE_HASH_V48 =
  * table_of_authorities section gains the advisory-corpus-surfacing
  * generated preamble + `advisory_corpus_matches` table block (additive
  * only — no other block moved or changed). Method verified by reproducing
- * the v4.8 value first. */
-export const DPIA_SPINE_HASH =
+ * the v4.8 value first. Retained for the audit trail. */
+export const DPIA_SPINE_HASH_V49 =
   "edc29494c02631d7e9846cbbf0e6c34befcaddcd998ac0249fa4b7f184554ae3";
+
+/** v4.10 spine hash — DOC 188 P6 (2026-09-05, batch e38460): the executive
+ * opener's instrument became the {gdprInstrument} slot (one skeleton block
+ * changed; nothing moved). Both bases move. Method verified by reproducing
+ * the v4.9 value first. */
+export const DPIA_SPINE_HASH =
+  "c8f4b0b90966b1f94c9bc9be5416ce7c1919e55a6bb42bca7e28fc220458517f";
 
 /** The v4.5.1 spine under basis v2 — retained for the audit trail. */
 export const DPIA_SPINE_HASH_V451 =

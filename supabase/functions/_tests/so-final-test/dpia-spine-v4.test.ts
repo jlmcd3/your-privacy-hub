@@ -89,6 +89,10 @@ Deno.test("spine v4.6 — the slot inventory drops regimeName entirely", () => {
     "dataSubjectsViews",
     "description",
     "functionalDescription",
+    // DOC 188 P6 (v4.10, 2026-09-05): the executive opener's instrument is
+    // regime-selected through {gdprInstrument} (EU / UK / both) instead of
+    // the fixed "for the EU and UK" literal.
+    "gdprInstrument",
     "natureScopeContext",
     "organizationName",
     "organizationName",

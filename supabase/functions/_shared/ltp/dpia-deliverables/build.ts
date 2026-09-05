@@ -463,6 +463,20 @@ export function readDpiaRegime(intake: unknown): DpiaRegime {
   return uk && !eu ? "UK" : "EU";
 }
 
+/** DOC 188 P6 (batch e38460) — the regimes the record actually names, for
+ * the executive opener's {gdprInstrument} slot: "EU" (EU only, or neither
+ * named — the readDpiaRegime default), "UK" (UK only) or "EU+UK" (both).
+ * Same jurisdiction patterns as readDpiaRegime, never a third reading. */
+export type DpiaRegimeScope = "EU" | "UK" | "EU+UK";
+export function readDpiaRegimeScope(intake: unknown): DpiaRegimeScope {
+  const js = arr(get(intake, "jurisdictions"));
+  const uk = js.some((j) => /united kingdom|uk gdpr/i.test(j));
+  const eu = js.some((j) => /^eu \(gdpr\)|european|eea/i.test(j));
+  if (uk && eu) return "EU+UK";
+  if (uk) return "UK";
+  return "EU";
+}
+
 /** DOC 160 (2026-09-03) — true when `jurisdictions` names an EU/EEA or UK
  * GDPR regime at all. The selector above defaults to "EU" for every other
  * answer; the executive summary states that default where it applies. */

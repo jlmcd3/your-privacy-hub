@@ -97,11 +97,38 @@ function excerptAround(text: string, index: number, len: number): string {
 }
 
 /**
+ * DOC 188 F4 — the camel/snake tokens present in the intake's own STRING
+ * VALUES (keys are deliberately not scanned: a field NAME appearing in the
+ * document is exactly the leak the scanner exists to catch). Nested objects
+ * and arrays are walked; non-string leaves are ignored.
+ */
+export function intakeTokenSet(intake: unknown): Set<string> {
+  const out = new Set<string>();
+  const visit = (v: unknown, depth: number): void => {
+    if (depth > 8 || v === null || v === undefined) return;
+    if (typeof v === "string") {
+      for (const re of [CAMEL_RE, SNAKE_RE]) {
+        re.lastIndex = 0;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(v)) !== null) out.add(m[0]);
+      }
+      return;
+    }
+    if (Array.isArray(v)) { for (const x of v) visit(x, depth + 1); return; }
+    if (typeof v === "object") {
+      for (const x of Object.values(v as Record<string, unknown>)) visit(x, depth + 1);
+    }
+  };
+  visit(intake, 0);
+  return out;
+}
+
+/**
  * Run the deterministic QA checks over a report's customer document.
  * Returns [] when the report carries no extractable customer document
  * (legacy-shaped rows are not lintable this way).
  */
-export function runDeterministicQa(report: unknown): DeterministicQaFinding[] {
+export function runDeterministicQa(report: unknown, intake?: unknown): DeterministicQaFinding[] {
   const rd = (report && typeof report === "object")
     ? (report as Record<string, unknown>)
     : {};
@@ -109,6 +136,13 @@ export function runDeterministicQa(report: unknown): DeterministicQaFinding[] {
   if (!doc) return [];
   const text = doc.text;
   const findings: DeterministicQaFinding[] = [];
+  // DOC 188 F4 (batch e38460, both LIA runs) — a code-like token the CUSTOMER
+  // wrote ("deletion trigger is capture_ts + 90d") is the customer's own
+  // words reproduced faithfully, not a leaked field name. Tokens that appear
+  // verbatim in the intake's own text are excluded from the raw-field-token
+  // scan; every other token still fires. Callers that pass no intake get the
+  // unchanged behaviour.
+  const intakeTokens = intakeTokenSet(intake);
 
   for (const term of REJECT_TERMS) {
     const m = term.re.exec(text);
@@ -136,6 +170,7 @@ export function runDeterministicQa(report: unknown): DeterministicQaFinding[] {
     while ((m = re.exec(tokenScanText)) !== null && tokenHits.size < 5) {
       const tok = m[0];
       if (TOKEN_WHITELIST.has(tok)) continue;
+      if (intakeTokens.has(tok)) continue;
       if (tokenHits.has(tok)) continue;
       tokenHits.add(tok);
       findings.push({

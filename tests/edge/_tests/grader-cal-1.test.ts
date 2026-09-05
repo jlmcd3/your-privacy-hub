@@ -396,10 +396,14 @@ Deno.test("GRADER-CAL-3 T2(c): closing-block ownership disclaimer is exempt", ()
 // whole payload, § 7150(b)(1) on the categorical answer) ride behind the KEPT
 // skeleton-cal-3 prefix as an appended tag with their own rule-id bracket
 // (doc-149 INSTRUMENT RULE), followed by the batch-14 prose tag.
+// DOC 188 (2026-09-05) — re-pinned for the batch-e38460 triage:
+// cal_skeleton_10/11 (missing-deadline claim against a tabled clocks
+// document; HTML entity in an HTML-sourced payload) as the appended
+// skeleton-cal-5 tag, followed by the batch-e38460 prose tag.
 Deno.test("instrument version pinned to the skeleton-calibration epoch", () => {
   assertEquals(
     GRADER_CONTEXT_VERSION,
-    "gc-2026-08-28-skeleton-cal-3-item204[cal_skeleton_1|cal_skeleton_2|cal_skeleton_3|cal_skeleton_4|cal_skeleton_5|cal_skeleton_6]+risk-field-semantics-2026-09-03+batch9-cal-2026-09-03+batch10-cal-2026-09-03+risk-code-review-2026-09-03+risk-law-map-2026-09-03+admt-law-map-2026-09-03+cyber-law-map-2026-09-03+dpia-law-map-2026-09-03+lia-law-map-2026-09-03+gov-law-map-2026-09-03+registration-law-map-2026-09-03+gov-dpa2018-wp243-2026-09-04+batch08f13650-cal-2026-09-04+batch13-cal-2026-09-04+skeleton-cal-4-doc169[cal_skeleton_7|cal_skeleton_8|cal_skeleton_9]+batch14-cal-2026-09-04",
+    "gc-2026-08-28-skeleton-cal-3-item204[cal_skeleton_1|cal_skeleton_2|cal_skeleton_3|cal_skeleton_4|cal_skeleton_5|cal_skeleton_6]+risk-field-semantics-2026-09-03+batch9-cal-2026-09-03+batch10-cal-2026-09-03+risk-code-review-2026-09-03+risk-law-map-2026-09-03+admt-law-map-2026-09-03+cyber-law-map-2026-09-03+dpia-law-map-2026-09-03+lia-law-map-2026-09-03+gov-law-map-2026-09-03+registration-law-map-2026-09-03+gov-dpa2018-wp243-2026-09-04+batch08f13650-cal-2026-09-04+batch13-cal-2026-09-04+skeleton-cal-4-doc169[cal_skeleton_7|cal_skeleton_8|cal_skeleton_9]+batch14-cal-2026-09-04+skeleton-cal-5-doc188[cal_skeleton_10|cal_skeleton_11]+batch-e38460-cal-2026-09-05",
   );
 });
 

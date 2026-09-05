@@ -308,7 +308,11 @@ Deno.test("SO-11 — the Table of Authorities is iff-cited and carries no unveri
   assert(!text.includes("GDPR Articles 13"), "an unverified exhibit fragment reached the ToA");
   const body = skeletonDocumentToText(r.document);
   for (const line of text.split("\n").map((l) => l.trim()).filter((l) => l && !/^(Regulations|Statutes|Guidance)/.test(l))) {
-    assert(body.includes(line), `ToA lists ${line}, which is not cited in the body`);
+    // DOC 188 P3 (2026-09-05): the assembler's composed sentences cite the
+    // bare pinpoint ("Article 9(1)", "Article 5(1)(c)") while the ledger
+    // names the instrument; either form in the body satisfies iff-cited.
+    const bare = line.replace(/ (?:UK )?GDPR$/, "");
+    assert(body.includes(line) || (bare !== line && body.includes(bare)), `ToA lists ${line}, which is not cited in the body`);
   }
 });
 

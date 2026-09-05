@@ -398,7 +398,10 @@ const runRoPA: Runner = async ({ userId, log }) => {
 // ─── US Notice ───────────────────────────────────────────────────────────────
 
 const runUSNotice: Runner = async ({ userId, log }) => {
-  const universal = blend(US_NOTICE_VARIANTS, ["business_name"]);
+  // DOC 188 F2 (2026-09-05): the description and contact email name the
+  // business too — anchored with it so a blended notice never describes one
+  // company under another's name.
+  const universal = blend(US_NOTICE_VARIANTS, ["business_name", "business_description", "contact_email"]);
   log(`Blended US Notice fixture (business anchor: ${universal.business_name})`);
   const clientId = await getOrCreateClientId(userId);
 
@@ -454,7 +457,9 @@ const runUSNotice: Runner = async ({ userId, log }) => {
 // ─── EU Notice ───────────────────────────────────────────────────────────────
 
 const runEUNotice: Runner = async ({ userId, log }) => {
-  const universal = blend(EU_NOTICE_VARIANTS, ["controller_name"]);
+  // DOC 188 F2 (2026-09-05): address, contact and DPO details identify the
+  // controller too — anchored with the name.
+  const universal = blend(EU_NOTICE_VARIANTS, ["controller_name", "controller_address", "contact_email", "dpo_name", "dpo_email"]);
   log(`Blended EU Notice fixture (controller anchor: ${universal.controller_name})`);
   const clientId = await getOrCreateClientId(userId);
 

@@ -340,15 +340,38 @@ function isSessionTool(x: unknown): x is SessionTool {
   return typeof x === "string" && (SESSION_TOOL_SLUGS as readonly string[]).includes(x);
 }
 
+// DOC 188 (batch e38460, US Notice us-ds3) — the notice HTML escapes an
+// apostrophe as `&#39;`; only the four entities below were decoded, so the
+// grader read "with &#39;Appeal&#39; in the subject line" and reported an
+// internal-reasoning leak the rendered PDF never shows. Numeric (decimal and
+// hex) and the common named entities now decode before the text reaches the
+// graders; `&amp;` is decoded LAST so a literal "&amp;lt;" cannot double-decode.
+const NAMED_ENTITIES: Record<string, string> = {
+  quot: "\"", apos: "'", lt: "<", gt: ">", nbsp: " ",
+  rsquo: "’", lsquo: "‘", ldquo: "“", rdquo: "”", mdash: "—", ndash: "–", hellip: "…",
+  sect: "§", para: "¶", copy: "©", reg: "®", trade: "™", euro: "€", pound: "£",
+};
+export function decodeHtmlEntities(text: string): string {
+  return text
+    .replace(/&#(\d{1,7});/g, (_m, d: string) => {
+      const cp = Number(d);
+      return Number.isFinite(cp) && cp > 0 && cp <= 0x10ffff ? String.fromCodePoint(cp) : _m;
+    })
+    .replace(/&#x([0-9a-f]{1,6});/gi, (_m, h: string) => {
+      const cp = parseInt(h, 16);
+      return Number.isFinite(cp) && cp > 0 && cp <= 0x10ffff ? String.fromCodePoint(cp) : _m;
+    })
+    .replace(/&([a-z]+);/gi, (m, name: string) => NAMED_ENTITIES[name.toLowerCase()] ?? m)
+    .replace(/&amp;/g, "&");
+}
+
 function stripHtml(html: string): string {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
+  return decodeHtmlEntities(
+    html
+      .replace(/<script[\s\S]*?<\/script>/gi, " ")
+      .replace(/<style[\s\S]*?<\/style>/gi, " ")
+      .replace(/<[^>]+>/g, " "),
+  )
     .replace(/[ \t]+/g, " ")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
@@ -566,7 +589,9 @@ const handler = async (req: Request): Promise<Response> => {
   let deterministicFindings: unknown[] = [];
   try {
     const { runDeterministicQa } = await import("./_local/grader/deterministic-qa.ts");
-    deterministicFindings = runDeterministicQa(report);
+    // DOC 188 F4 — the intake rides along so the customer's own code-like
+    // words are not reported as leaked field names.
+    deterministicFindings = runDeterministicQa(report, intake);
     if (deterministicFindings.length) {
       console.log(`[DETERMINISTIC-QA] tool=${tool} findings=${deterministicFindings.length}`);
     }

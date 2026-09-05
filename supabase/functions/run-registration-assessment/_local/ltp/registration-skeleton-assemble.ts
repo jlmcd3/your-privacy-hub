@@ -1514,9 +1514,17 @@ function registrationToa(report: Bag, body: string): string {
   };
   const seen = new Set<string>();
   for (const e of entries) {
-    const citation = s(e.citation);
-    if (!citation || seen.has(citation)) continue;
-    if (!body.includes(citation)) continue; // iff-cited
+    const base = s(e.citation);
+    if (!base) continue;
+    // DOC 188 P2 (batch e38460) — the shared exhibit de-duplicates § cites on
+    // their base section and parks the pinpoint in `as_cited` ("(1)"), so the
+    // table printed "BDSG § 38" while the body cites "BDSG § 38(1)". Where the
+    // pinpoint is a bare parenthetical, the table lists the cited pinpoint;
+    // GDPR "Art. 27(1)" forms carry no § and keep their pinpoint in `citation`.
+    const pin = s(e.as_cited);
+    const citation = pin && /^\(/.test(pin) && !/,/.test(pin) ? `${base}${pin}` : base;
+    if (seen.has(citation)) continue;
+    if (!body.includes(citation) && !body.includes(base)) continue; // iff-cited
     seen.add(citation);
     const cls = s(e.authority_class);
     const group = cls === "regulation" || /GDPR|Reg\. \(EU\)/i.test(citation)

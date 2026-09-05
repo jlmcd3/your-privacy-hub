@@ -32,6 +32,11 @@ import { DPIA_ASK_LABELS } from "../../../_shared/ltp/dpia-ask-labels.ts";
 // INSTRUMENT RULE (nine tests pin it) the epoch PREFIX below is kept; the new
 // rules are stamped on GRADER_CONTEXT_VERSION as the appended tag
 // "+skeleton-cal-4-doc169[cal_skeleton_7|cal_skeleton_8|cal_skeleton_9]".
+// DOC 188 (2026-09-05, batch e38460) — cal_skeleton_10 (a missing-deadline
+// claim against a document that tables its notification clocks) and
+// cal_skeleton_11 (an HTML character entity in an HTML-sourced payload read as
+// customer text). Same PREFIX rule; stamped as the appended tag
+// "+skeleton-cal-5-doc188[cal_skeleton_10|cal_skeleton_11]".
 export const SKELETON_CAL_VERSION = "gc-2026-08-28-skeleton-cal-3-item204";
 
 export type SkeletonCalRuleId =
@@ -43,7 +48,9 @@ export type SkeletonCalRuleId =
   | "cal_skeleton_6"
   | "cal_skeleton_7"
   | "cal_skeleton_8"
-  | "cal_skeleton_9";
+  | "cal_skeleton_9"
+  | "cal_skeleton_10"
+  | "cal_skeleton_11";
 
 export const SKELETON_CAL_RULE_IDS: readonly SkeletonCalRuleId[] = [
   "cal_skeleton_1",
@@ -55,6 +62,8 @@ export const SKELETON_CAL_RULE_IDS: readonly SkeletonCalRuleId[] = [
   "cal_skeleton_7",
   "cal_skeleton_8",
   "cal_skeleton_9",
+  "cal_skeleton_10",
+  "cal_skeleton_11",
 ];
 
 /**
@@ -475,6 +484,60 @@ export function matchesRule9(checkId: string, ev: string): boolean {
   return checkId === "rubric_citation_misapplied" && R9_B1_SUBJECT_RE.test(ev) && R9_B1_SHARING_RES.some((r) => r.test(ev));
 }
 
+// RULE 10 — A MISSING-DEADLINE CLAIM AGAINST A DOCUMENT THAT TABLES ITS CLOCKS.
+// DOC 188 (batch e38460, IR us-ds5): a CRITICAL finding that the playbook
+// "omits statutory notification deadlines (California 30-day / 15-day AG,
+// Colorado 30-day, Illinois)" — while the Notification Clocks table and the
+// Deadline Board state exactly those clocks (Cal. Civ. Code § 1798.82 as
+// amended by SB 446; § 6-1-716; 815 ILCS 530/10). DELIBERATELY NARROW: the
+// omission verb shape only, and only where the graded document actually
+// carries the clocks table; a finding that a stated deadline is WRONG carries
+// an affirmative-error verb and passes straight through.
+const R10_DEADLINE_OMISSION_RES: readonly RegExp[] = [
+  /\b(?:omits?|omitted|omitting|missing|lacks?|absent|does not (?:state|specify|surface|provide|include|identify|set out|give|mention)|fails? to (?:state|specify|provide|identify|set out|give|mention)|no(?:where)? (?:states?|specif(?:y|ies)|mentions?|gives?|provides?))\b[^.]{0,160}\b(?:deadlines?|notification (?:clocks?|timelines?|windows?|periods?|timeframes?)|day[- ]counts?|\d+[- ]day)/i,
+  /\b(?:deadlines?|notification (?:clocks?|timelines?|windows?|periods?|timeframes?))\b[^.]{0,100}\b(?:are|is) (?:not|never|nowhere) (?:stated|specified|provided|surfaced|given|set out|mentioned|identified)\b/i,
+];
+const R10_AFFIRMATIVE_ERROR_RE = /\b(?:misstat\w*|incorrect\w*|wrong\w*|should (?:be|read)|instead of|rather than|contradict\w*|overstat\w*|understat\w*)\b/i;
+const R10_CLOCKS_TABLE_RE = /Notification Clocks|Deadline Board/i;
+
+/** True when the persisted report's customer document carries the clocks table. */
+export function reportCarriesNotificationClocks(report: unknown): boolean {
+  if (!report || typeof report !== "object") return false;
+  try {
+    return R10_CLOCKS_TABLE_RE.test(JSON.stringify(report));
+  } catch {
+    return false;
+  }
+}
+
+export function matchesRule10(ev: string, report: unknown): boolean {
+  if (!R10_DEADLINE_OMISSION_RES.some((r) => r.test(ev))) return false;
+  if (R10_AFFIRMATIVE_ERROR_RE.test(ev)) return false;
+  return reportCarriesNotificationClocks(report);
+}
+
+// RULE 11 — AN HTML CHARACTER ENTITY IN THE PAYLOAD IS NOT CUSTOMER TEXT.
+// DOC 188 (batch e38460, US Notice us-ds3): "`&#39;` visible in customer
+// text" was raised as an internal-reasoning leak. The notice products reach
+// the grader as their HTML flattened to text (document_text); an entity in
+// that flattening is a fact about the payload — the rendered PDF shows the
+// apostrophe. BOUNDED to HTML-sourced documents: a skeleton_document (JSON
+// prose, rendered escaped) that carried a literal "&amp;" WOULD print it, so
+// the rule stands down whenever the report has a skeleton_document.
+const R11_ENTITY_RE = /&(?:#\d{2,7}|#x[0-9a-f]{2,6}|amp|quot|apos|nbsp|lt|gt|rsquo|lsquo|ldquo|rdquo|mdash|ndash|hellip|sect);/i;
+
+export function reportIsHtmlSourced(report: unknown): boolean {
+  if (!report || typeof report !== "object") return false;
+  const rd = report as Record<string, unknown>;
+  const sk = rd.skeleton_document as { sections?: unknown[] } | undefined;
+  if (sk && typeof sk === "object" && Array.isArray(sk.sections) && sk.sections.length > 0) return false;
+  return typeof rd.document_text === "string" && rd.document_text.length > 0;
+}
+
+export function matchesRule11(ev: string, report: unknown): boolean {
+  return R11_ENTITY_RE.test(ev) && reportIsHtmlSourced(report);
+}
+
 export type SkeletonCalFiltered = {
   rule: SkeletonCalRuleId;
   template_id: string | null;
@@ -512,6 +575,8 @@ export function applySkeletonCalibration(
     cal_skeleton_7: 0,
     cal_skeleton_8: 0,
     cal_skeleton_9: 0,
+    cal_skeleton_10: 0,
+    cal_skeleton_11: 0,
   };
   const filtered: SkeletonCalFiltered[] = [];
   const kept: LlmFinding[] = [];
@@ -567,6 +632,14 @@ export function applySkeletonCalibration(
     // RULE 8 — DOC 169: a truncation claim against a whole-document payload
     // (DOC 153's END OF DOCUMENT trailer makes completeness a read fact).
     if (matchesRule8(ev, ctx.payloadComplete)) { drop("cal_skeleton_8", null); continue; }
+
+    // RULE 10 — DOC 188: a missing-deadline claim against a document whose
+    // Notification Clocks table / Deadline Board states the clocks.
+    if (matchesRule10(ev, ctx.report)) { drop("cal_skeleton_10", null); continue; }
+
+    // RULE 11 — DOC 188: an HTML character entity in an HTML-sourced payload
+    // is not customer text.
+    if (matchesRule11(ev, ctx.report)) { drop("cal_skeleton_11", null); continue; }
 
     kept.push(f);
   }
