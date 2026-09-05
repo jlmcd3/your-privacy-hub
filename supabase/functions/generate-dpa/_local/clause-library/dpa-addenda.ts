@@ -95,6 +95,20 @@ function sensitiveCategories(cats: readonly string[]): string[] {
   return cats.filter((c) => /health|medical|biometric|genetic|criminal|children|minor|financial|location/i.test(String(c)));
 }
 
+// Batch 4ed05f22 (2026-09-05): the US-state "sensitive data" list above
+// (financial account, precise geolocation, children) is NOT the GDPR list.
+// The EU SCC and UK Addendum exhibits describe transfers under the GDPR /
+// UK GDPR, whose "sensitive data" means the Art. 9(1) special categories
+// (plus Art. 10 criminal-offence data). Location data and financial data are
+// personal data, not special-category data, and children's data is
+// protected under Recital 38, not Art. 9. The Velorix run listed "Location
+// data" as sensitive data in Annex I.B — a GDPR-incorrect statement.
+function gdprSpecialCategories(cats: readonly string[]): string[] {
+  return cats.filter((c) =>
+    /health|medical|biometric|genetic|criminal|offen[cs]e|racial|ethnic|political|religio|philosoph|trade.?union|sex(?:ual)? (?:life|orientation)|sexual/i.test(String(c)),
+  );
+}
+
 // ── 02 — CCPA Service Provider Addendum ───────────────────────────────
 
 export function ccpaAddendum(ctx: DpaAddendaCtx): DpaAddendum {
@@ -115,7 +129,7 @@ export function ccpaAddendum(ctx: DpaAddendaCtx): DpaAddendum {
       heading: "2. SPECIFIC PROCESSING DESCRIPTION",
       clauses: numbered(2, [
         `(Limited and specified purposes.) The Business discloses or makes available California Personal Information to the Service Provider only for the limited and specified Business Purposes in Schedule A. The Service Provider shall process the information only as reasonably necessary and proportionate to those purposes, to perform the Services, on the Business's lawful instructions, or as otherwise permitted by the CCPA.`,
-        `(Categories of personal information.) The categories actually processed are identified in Schedule A using the categories recorded in the DPA intake and any California-specific detail completed by the Parties. The Service Provider shall not intentionally expand those categories without the Business's documented authorisation.`,
+        `(Categories of personal information.) The categories actually processed are identified in Schedule A using the categories the Parties have recorded and any California-specific detail completed by the Parties. The Service Provider shall not intentionally expand those categories without the Business's documented authorisation.`,
         sens.length
           ? `(Sensitive Personal Information.) The record identifies categories that may constitute Sensitive Personal Information (${sens.join(", ")}). Schedule A identifies the relevant category and purpose; the Service Provider shall not use Sensitive Personal Information for a purpose beyond the purposes permitted by the CCPA and the Business's instructions. ${TBC("confirm which recorded categories constitute Sensitive Personal Information as the CCPA defines that term, and the purpose for each")}`
           : `(Sensitive Personal Information.) The record identifies no category of Sensitive Personal Information. If Sensitive Personal Information is later processed, Schedule A shall be amended to identify the relevant category and purpose before that processing commences.`,
@@ -383,7 +397,7 @@ export function usMultiStateAddendum(ctx: DpaAddendaCtx): DpaAddendum {
 export function euSccExhibit(ctx: DpaAddendaCtx): DpaAddendum {
   const specific = ctx.subprocessorAuthorizationModel === "specific";
   const days = Math.max(15, ctx.subprocessorNoticeDays || 30);
-  const sens = sensitiveCategories(ctx.dataCategories);
+  const sens = gdprSpecialCategories(ctx.dataCategories);
   const sections: DpaAddendumSection[] = [
     {
       heading: "1. INCORPORATION AND MODULE ELECTION",
@@ -495,7 +509,7 @@ export function euSccExhibit(ctx: DpaAddendaCtx): DpaAddendum {
 export function ukAddendumExhibit(ctx: DpaAddendaCtx): DpaAddendum {
   const specific = ctx.subprocessorAuthorizationModel === "specific";
   const days = Math.max(15, ctx.subprocessorNoticeDays || 30);
-  const sens = sensitiveCategories(ctx.dataCategories);
+  const sens = gdprSpecialCategories(ctx.dataCategories);
   const sections: DpaAddendumSection[] = [
     {
       heading: "1. APPROVED INSTRUMENT",
@@ -555,7 +569,7 @@ export function ukAddendumExhibit(ctx: DpaAddendaCtx): DpaAddendum {
     columns: ["Appendix Information", "Location / Completion"],
     rows: [
       ["Annex I.A — List of Parties", "Table 1 above and EU SCC Exhibit Annex I.A, with any UK-specific completion needed for the restricted transfer."],
-      ["Annex I.B — Description of Transfer", "EU SCC Exhibit Annex I.B and Annex B of the DPA. Categories of data subjects, transfer frequency and destination remain party-completion fields where not recorded in the intake."],
+      ["Annex I.B — Description of Transfer", "EU SCC Exhibit Annex I.B and Annex B of the DPA. Categories of data subjects, transfer frequency and destination remain party-completion fields where the Parties have not recorded them."],
       ["Annex I.C — Supervisory Authority", "For the UK Addendum, the Information Commissioner exercises the functions assigned by the Approved Addendum Mandatory Clauses; EU SCC Annex I.C remains completed for EU transfers where separately applicable."],
       ["Annex II — TOMs", "Annex C of the DPA and EU SCC Exhibit Annex II."],
       ["Annex III — Sub-processors", specific ? "EU SCC Exhibit Annex III (Clause 9 Option 1 applies)." : "Annex D of the DPA provides the agreed Sub-processor list and notice mechanism (Clause 9 Option 2 applies)."],

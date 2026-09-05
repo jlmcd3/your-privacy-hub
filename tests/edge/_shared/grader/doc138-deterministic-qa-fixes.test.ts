@@ -54,6 +54,25 @@ Deno.test("doc138 (b) — a genuine leaking camelCase field name still triggers 
   assert(hit!.evidence.includes("someInternalFieldName"), "evidence missing the offending token");
 });
 
+// Batch 4ed05f22 (2026-09-05): the DPA's EU SCC exhibit cites the official
+// text at a EUR-Lex address whose path segment "dec_impl" is snake_case. A web
+// address is not a leaked field name.
+Deno.test("batch 4ed05f22 — a snake_case segment inside a URL is not a raw field token; a real token beside it still is", () => {
+  const clean = runDeterministicQa(docWithText(
+    "The official text is published at https://eur-lex.europa.eu/eli/dec_impl/2021/914/oj and is incorporated by reference.",
+  ));
+  assert(
+    !clean.some((f) => f.check_id === "deterministic_raw_field_token"),
+    `URL segment flagged as a field token: ${JSON.stringify(clean)}`,
+  );
+  const dirty = runDeterministicQa(docWithText(
+    "See https://eur-lex.europa.eu/eli/dec_impl/2021/914/oj; the value of some_leaking_field remains unresolved.",
+  ));
+  const hit = dirty.find((f) => f.check_id === "deterministic_raw_field_token");
+  assert(hit, "a genuine snake_case token outside the URL must still be detected");
+  assert(hit!.evidence.includes("some_leaking_field") && !hit!.evidence.startsWith('"dec_impl"'), hit!.evidence);
+});
+
 Deno.test("doc138 (c) — excerptAround never starts or ends mid-word", () => {
   // 80 chars before "ePrivacy" lands inside "information" (mid-word) under
   // the old fixed-count slice; the fix must snap outward to a whole word.

@@ -1260,7 +1260,7 @@ export function buildBdsg(intake: I): BdsgDetermination | null {
       ? `Whether ${org} must designate a data protection officer under BDSG § 38(1) cannot be determined: the record states no headcount.`
       : `No BDSG § 38(1) limb this assessment can evaluate is engaged for ${org}: fewer than 20 persons can be constantly engaged in automated processing, and no commercial processing for transfer is recorded.`,
     reasoning:
-      "The provision adds two German triggers to Article 37(1)(b) and (c) of the GDPR: the first sentence at 20 persons constantly engaged in the automated processing of personal data, and the second sentence, regardless of headcount, for processing subject to a data protection impact assessment or for commercial processing for the purpose of transfer, anonymised transfer, or market or opinion research. The Article 35 limb of the second sentence is not assessed here: the intake does not ask whether the processing is subject to a data protection impact assessment.",
+      "The provision adds two German triggers to Article 37(1)(b) and (c) of the GDPR: the first sentence at 20 persons constantly engaged in the automated processing of personal data, and the second sentence, regardless of headcount, for processing subject to a data protection impact assessment or for commercial processing for the purpose of transfer, anonymised transfer, or market or opinion research. The Article 35 limb of the second sentence is not assessed here: the record does not state whether the processing is subject to a data protection impact assessment.",
     ...(transfer
       ? { closing_act: "What closes the duty is a written designation the company records so it can be evidenced." }
       : {}),

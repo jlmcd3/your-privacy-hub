@@ -38,7 +38,15 @@ export interface Art28CoverageResult {
   checker_version: string;
 }
 
-export const DPA_CLAUSE_COVERAGE_VERSION = "dpa-art28-coverage-v1-2026-08-04";
+// v2 (batch 4ed05f22, 2026-09-05): the location rule no longer lets a SINGLE
+// generic heading token relocate a clause. Doc 182 added Sections 12–21 to the
+// core; "PROHIBITED PROCESSING AND CCPA REQUIRED TERMS" carries the (a) token
+// "prohib" and "DATA PROTECTION ASSESSMENTS…" carries the second-subparagraph
+// token "protec", and the 3× heading bonus sent Art. 28(3)(a) to Section 12
+// and the second subparagraph to Section 13 on both live DPAs — the real
+// homes (Section 4) had more body hits but no heading token. The heading
+// bonus now needs at least two distinctive tokens in the heading.
+export const DPA_CLAUSE_COVERAGE_VERSION = "dpa-art28-coverage-v2-2026-09-05";
 
 const STOPWORDS = new Set([
   "shall", "which", "there", "these", "those", "their", "other", "under",
@@ -214,8 +222,14 @@ export function checkArt28Coverage(
         const headingTokens = new Set(words(s.heading).map(stem));
         const bodyHits = sig.filter((t) => s.tokens.has(t)).length;
         // A section whose HEADING carries the clause's distinctive terms is
-        // the clause's home; body mentions alone are weaker evidence.
-        const hits = bodyHits + 3 * sig.filter((t) => headingTokens.has(t)).length;
+        // the clause's home; body mentions alone are weaker evidence. v2: one
+        // heading token is not a home — "prohib" or "protec" alone is a
+        // generic word shared by unrelated sections (see the version note).
+        const headingHits = sig.filter((t) => headingTokens.has(t)).length;
+        const hits = bodyHits + (headingHits >= 2 ? 3 * headingHits : 0);
+        // Ties resolve to the EARLIER section (strict ">"), which is where the
+        // core Art. 28(3) obligations sit; the doc-182 supplementary sections
+        // that echo their vocabulary come later in the instrument.
         if (bodyHits > 0 && (!best || hits > best.hits)) best = { heading: s.heading, hits };
       }
 

@@ -337,6 +337,23 @@ function buildExecution(input: DpaAssembleInput): DpaContractExecution {
   };
 }
 
+// Batch 4ed05f22 (2026-09-05): clause 1.2 reads "to provide {services} (the
+// "Services")", which assumes a noun phrase ("cloud hosting services"). The
+// intake field is free text and customers write whole sentences ("Cloudaxis
+// provides cloud hosting … on behalf of Velostream."), which shipped as
+// "to provide Cloudaxis provides cloud hosting…". A sentence-shaped answer is
+// framed as a quoted description; a noun phrase is used as before. The clause
+// template itself (ratified, hash-pinned) is untouched — only the slot value.
+const SENTENCE_SHAPED_SERVICES =
+  /^[A-Z][^.!?]{0,200}?\b(?:provides?|offers?|delivers?|operates?|performs?|supplies|supports?|hosts?|processes|is|are|will|includes?)\b/;
+export function servicesSlot(raw: string): string {
+  const text = raw.trim();
+  if (!text) return "[TO BE COMPLETED: description of the services]";
+  const sentenceShaped = /[.!?]\s*$/.test(text) || SENTENCE_SHAPED_SERVICES.test(text);
+  if (!sentenceShaped) return text;
+  return `the following services: “${text.replace(/[.!?]+\s*$/, "")}”`;
+}
+
 export function assembleDpaDocument(input: DpaAssembleInput): DpaAssembledDocument {
   const mode = input.documentType;
   // DOC 182 — every geography carries its own flag; the mode stays the gate.
@@ -351,7 +368,7 @@ export function assembleDpaDocument(input: DpaAssembleInput): DpaAssembledDocume
   const slots: Record<string, string> = {
     controllerName: s(input.controllerName) || "[TO BE COMPLETED: controller name]",
     processorName: s(input.processorName) || "[TO BE COMPLETED: processor name]",
-    services: s(input.services) || "[TO BE COMPLETED: description of the services]",
+    services: servicesSlot(s(input.services)),
     // BATCH 17 (Wave C2): the {retention} slot precedes a literal period in
     // clause 3.3 — trim a recorded terminal stop so ".." never ships.
     retention: s(input.retention).replace(/\s*\.+\s*$/, "") || "[TO BE COMPLETED: retention period or criteria]",

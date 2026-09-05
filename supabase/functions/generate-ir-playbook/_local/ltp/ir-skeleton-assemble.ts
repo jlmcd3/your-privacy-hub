@@ -735,16 +735,26 @@ function composeFramingNote(): string {
 // all-recorded state takes one count sentence and nothing else; the mixed
 // state takes one count sentence plus the ledger sentence, and the gap rows
 // themselves move to the Preparedness gaps table (deduped, S2.4).
-function composeStandingPosture(report: Bag): string {
+// Batch 4ed05f22 (2026-09-05): ONE count for the standing sections. The
+// syllabus printed "12 of 21" (raw section count) while this posture sentence
+// printed "12 of the 20" (recorded + deduped gap ledger, S2.4) on the same
+// document. Both readers now take the pair from here.
+function standingCounts(report: Bag): { recordedCount: number; total: number; gaps: number } {
   const sections = standingSections(report);
-  if (sections.length === 0) return "";
   const titled = sections.filter((x) => noStop(s(x.heading)));
   const gaps = standingGapLedger(report);
   const recordedCount = titled.filter((x) => s(x.status) !== "record_insufficient").length;
   // The stated total rides the DEDUPED ledger (S2.4): a collapsed
   // finding/table pair counts as one section everywhere, so recorded +
   // unrecorded always sums to the total the reader can check.
-  const total = recordedCount + gaps.length;
+  return { recordedCount, total: recordedCount + gaps.length, gaps: gaps.length };
+}
+
+function composeStandingPosture(report: Bag): string {
+  const sections = standingSections(report);
+  if (sections.length === 0) return "";
+  const gaps = standingGapLedger(report);
+  const { recordedCount, total } = standingCounts(report);
   // A-TEAM DELTA (ChatGPT batch review, 2026-08-31, fleet P0-3) — this
   // sentence promised "each is set out below", but the doc 113 S2.4 /
   // doc 109 S2.10 fix that retired the old 13-22-item comma enumeration
@@ -1509,8 +1519,9 @@ function buildIrSyllabus(
 
   const rows: Array<readonly [string, string]> = [];
   if (sections.length > 0) {
-    const recorded = sections.filter((x) => s(x.status) !== "record_insufficient").length;
-    rows.push(["Standing sections recorded", `${recorded} of ${sections.length}`]);
+    // Batch 4ed05f22 — same pair the Section II posture sentence prints.
+    const { recordedCount, total } = standingCounts(report);
+    rows.push(["Standing sections recorded", `${recordedCount} of ${total}`]);
     rows.push([
       "Preparedness gaps",
       gaps.length > 0

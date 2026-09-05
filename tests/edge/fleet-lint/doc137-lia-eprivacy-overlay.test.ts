@@ -40,6 +40,7 @@
 import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   assembleLiaSkeletonDocument,
+  eprivacyOverlayNote,
   readTypedVerdicts,
 } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-skeleton-assemble.ts";
 import { buildLiaEngagementMap } from "../../../supabase/functions/_shared/engagement-map.ts";
@@ -163,6 +164,31 @@ Deno.test("doc139 — LIA: firm requirement text renders only when eprivacy-gate
     "requires a separate consent or exemption under the ePrivacy Directive / PECR 2003",
   );
   assertStringIncludes(text, "does not affect, and is not affected by, the Article 6(1)(f) determination above");
+});
+
+// Batch 4ed05f22 (2026-09-05, Velorix): page one said Not Available BECAUSE of
+// the ePrivacy gate while this overlay said the gate "does not affect … the
+// Article 6(1)(f) determination above". The typed engine's persisted
+// foreclosure flag (the sanctioned door — this file still never reads the gate
+// finding) now reconciles the overlay's closing sentence.
+Deno.test("batch 4ed05f22 — LIA: under foreclosure the overlay names the gate as the reason, never 'does not affect'", () => {
+  const engagement_map = engagementMapFor(COOKIE_RECORD);
+  const plain = eprivacyOverlayNote({ engagement_map });
+  assertStringIncludes(plain, "does not affect, and is not affected by, the Article 6(1)(f) determination above");
+  const foreclosedNote = eprivacyOverlayNote({ engagement_map }, true);
+  assertStringIncludes(foreclosedNote, "Separately,");
+  assertStringIncludes(foreclosedNote, "is the reason legitimate interests is not available for the covered processing");
+  assert(!foreclosedNote.includes("does not affect"), "the contradicting sentence must not render under foreclosure");
+
+  // The flag rides the typed engine's telemetry, not the gate finding.
+  const v = readTypedVerdicts({ _meta: { internal: { lia_typed_test: { eprivacy_foreclosed: true } } } });
+  assertEquals(v.eprivacy_foreclosed, true);
+  assertEquals(readTypedVerdicts({}).eprivacy_foreclosed, false);
+
+  // End to end through the assembler: the document carries the reconciled sentence.
+  const text = documentText({ engagement_map, _meta: { internal: { lia_typed_test: { eprivacy_foreclosed: true } } } }, COOKIE_RECORD);
+  assertStringIncludes(text, "is the reason legitimate interests is not available");
+  assert(!text.includes("does not affect, and is not affected by"), "assembled document must not carry the contradiction");
 });
 
 Deno.test("doc139 — LIA: qualified 'Additional Information Required' text renders when the harder gate's own triggers don't clearly fire (ambiguous signal)", () => {

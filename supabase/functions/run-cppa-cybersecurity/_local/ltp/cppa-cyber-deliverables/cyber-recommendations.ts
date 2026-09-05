@@ -114,8 +114,15 @@ export const CYBER_RECOMMENDATION_LIBRARY: readonly RecommendationSlot[] = [
 
   { key: { gapClass: "partially_implemented", variant: "fact_absent" }, ratified: true,
     template: "Complete implementation of this component across the systems in audit scope and record the completion date." },
+  // Batch 4ed05f22 (2026-09-05), team decision within the ratified design:
+  // "{fact}" is the first SENTENCE of the company's note — a full clause with
+  // its own subject ("A software and hardware asset inventory exists for core
+  // infrastructure, but coverage … is incomplete"). Embedded after
+  // "extending" it read "extending A software and hardware asset inventory
+  // exists…" on four components of the live run. A parenthetical carries a
+  // clause without needing it to be a noun phrase.
   { key: { gapClass: "partially_implemented", variant: "fact_anchored" }, ratified: true,
-    template: "Complete implementation of this component across the systems in audit scope, extending {fact}, and record the completion date." },
+    template: "Complete implementation of this component across the systems in audit scope (recorded position: {fact}) and record the completion date." },
 
   { key: { gapClass: "evidence_insufficient", variant: "fact_absent" }, ratified: true,
     template: "A finding on this component would rest primarily on management assertion; retain a testable artifact (a log, a configuration export, an audit letter) rather than a description alone." },

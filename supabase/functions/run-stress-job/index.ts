@@ -146,6 +146,34 @@ const VALID_ROPA_CATEGORIES = new Set([
   "technology", "finance_legal", "third_party", "operations", "other",
 ]);
 
+// Batch 4ed05f22 (2026-09-05) — shared by the ropa / us-notice / eu-notice
+// arms. A bulk insert is all-or-nothing under PostgREST: one null into a
+// NOT NULL `answer_value` (the EU notice's special_category_basis) or one row
+// with a different key set (a RoPA answer left undefined) dropped EVERY
+// answer, and the only trace was a single warn — the graded RoPA had 5
+// activities and 0 answers, the graded EU notice 0 answers from a 17-key
+// fixture. Callers now pass only real answers; if the bulk insert still
+// fails, rows are inserted one by one so the session keeps what CAN land and
+// the log names exactly which could not.
+async function insertAnswerRows(
+  // deno-lint-ignore no-explicit-any
+  db: any,
+  table: "ropa_answers" | "us_notice_answers" | "eu_notice_answers",
+  rows: Record<string, unknown>[],
+): Promise<void> {
+  if (!rows.length) return;
+  const { error } = await db.from(table).insert(rows);
+  if (!error) return;
+  console.warn(`[run-stress-job] ${table} bulk insert failed (${rows.length} rows): ${error.message} — retrying row by row`);
+  let landed = 0;
+  for (const row of rows) {
+    const { error: rowErr } = await db.from(table).insert(row);
+    if (rowErr) console.warn(`[run-stress-job] ${table} row ${String(row.question_key)} failed: ${rowErr.message}`);
+    else landed++;
+  }
+  console.log(JSON.stringify({ evt: "answer_rows_row_by_row", fn: "run-stress-job", table, attempted: rows.length, landed }));
+}
+
 function normalizeRopaCategory(raw: string | null | undefined): string {
   if (!raw) return "other";
   const lower = raw.toLowerCase();
@@ -342,16 +370,17 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
           retention_period: src.retention_period, security_measures: src.security_measures,
         };
         for (const [k, v] of Object.entries(map)) {
+          // Batch 4ed05f22 (2026-09-05): an undefined value made this row's key
+          // set differ from its neighbours', and PostgREST refuses a bulk
+          // insert whose rows do not share one key set — the WHOLE answer set
+          // was dropped (5 activities, 0 answers on the graded RoPA), and the
+          // warn below was the only trace. Unanswered questions are simply not
+          // rows.
+          if (v === undefined || v === null) continue;
           ansRows.push({ activity_id: a.id, session_id: session.id, question_key: k, answer_value: v });
         }
       }
-      if (ansRows.length) {
-        try {
-          await admin.from("ropa_answers").insert(ansRows);
-        } catch (e) {
-          console.warn("[run-stress-job] ropa_answers insert failed:", e);
-        }
-      }
+      await insertAnswerRows(admin, "ropa_answers", ansRows);
       await invokeFn("generate-ropa-document", {
         session_id: session.id, format: "pdf",
         document_date: new Date().toISOString().slice(0, 10),
@@ -394,15 +423,13 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
       } catch (e) {
         console.warn("[run-stress-job] us_notice_state_selections insert failed:", e);
       }
-      try {
-        await admin.from("us_notice_answers").insert(
-          Object.entries(withNames(intake)).map(([k, v]) => ({
-            session_id: session.id, question_key: k, answer_value: v as any,
-          })),
-        );
-      } catch (e) {
-        console.warn("[run-stress-job] us_notice_answers insert failed:", e);
-      }
+      await insertAnswerRows(
+        admin,
+        "us_notice_answers",
+        Object.entries(withNames(intake))
+          .filter(([, v]) => v !== undefined && v !== null)
+          .map(([k, v]) => ({ session_id: session.id, question_key: k, answer_value: v as any })),
+      );
 
       const gen = await invokeFn("generate-us-notice", { session_id: session.id });
       if (!gen?.documents?.length) throw new Error("us-notice: no documents");
@@ -430,15 +457,18 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
       } catch (e) {
         console.warn("[run-stress-job] eu_notice_framework_selections insert failed:", e);
       }
-      try {
-        await admin.from("eu_notice_answers").insert(
-          Object.entries(intake).map(([k, v]) => ({
-            session_id: session.id, question_key: k, answer_value: v as any,
-          })),
-        );
-      } catch (e) {
-        console.warn("[run-stress-job] eu_notice_answers insert failed:", e);
-      }
+      // Batch 4ed05f22 (2026-09-05): the graded EU notice had ZERO answers
+      // although its fixture carried 17 keys — one of them null
+      // (special_category_basis). The bulk insert failed as a unit and the
+      // notice rendered as brackets only. Null/undefined are not rows; a
+      // failing bulk insert now falls back to per-row inserts.
+      await insertAnswerRows(
+        admin,
+        "eu_notice_answers",
+        Object.entries(intake)
+          .filter(([, v]) => v !== undefined && v !== null)
+          .map(([k, v]) => ({ session_id: session.id, question_key: k, answer_value: v as any })),
+      );
       await invokeFn("generate-eu-notice", { session_id: session.id })
         .catch((e) => console.warn("[run-stress-job] generate-eu-notice trigger failed (will poll):", e));
       await pollStatus(admin, "eu_notice_sessions", session.id, "generated");

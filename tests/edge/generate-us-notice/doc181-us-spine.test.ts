@@ -128,6 +128,37 @@ Deno.test("doc181 — sale, CCPA sharing and targeted advertising are distinct d
   assert(headings(taYes).some((h) => h.endsWith("Your Privacy Choices")));
 });
 
+// Batch 4ed05f22 (2026-09-05): an unanswered sale/sharing or sensitive-PI
+// question is a customer-completion prompt everywhere — never an affirmative
+// denial. The live run asserted "we do not sell or share" (CA-8) and "we do
+// not collect … sensitive personal information" (Section 9, CA-2) on a record
+// that left both questions unanswered, while its sibling sections prompted.
+Deno.test("batch 4ed05f22 — unanswered sale/sharing and sensitive-PI questions prompt; they never deny", () => {
+  const blank = buildNoticeHtml(CA, {
+    ...FULL,
+    sale_or_sharing: "",
+    vam_targeted_advertising_optout: "",
+    ccpa_sensitive_data: "",
+  }, AT);
+  assert(!blank.includes("Because we do not sell or share personal information"), "CA-8 must not deny sale/sharing on an unanswered record");
+  assertStringIncludes(blank, "state whether personal information is sold or shared and, if it is, confirm that recognised opt-out preference signals");
+  assert(!blank.includes("We do not collect or use personal information that qualifies as sensitive personal information"), "Section 9 must not deny SPI on an unanswered record");
+  assert(!blank.includes("We do not use or disclose sensitive personal information for purposes that require"), "CA-2 must not deny SPI on an unanswered record");
+  assertStringIncludes(blank, "confirm whether sensitive personal information as defined by the CCPA is collected");
+  // Unknown SPI keeps the Right to Limit line and Appendix C as prompts rather than dropping them.
+  assertStringIncludes(blank, "Right to Limit qualifying use or disclosure of sensitive personal information");
+  assertStringIncludes(blank, "Appendix C — California Notice of Right to Limit");
+
+  // A recorded "no" still denies, exactly as before.
+  const no = buildNoticeHtml(CA, { ...FULL, sale_or_sharing: "no", ccpa_sensitive_data: "no" }, AT);
+  assertStringIncludes(no, "Because we do not sell or share personal information");
+  assertStringIncludes(no, "We do not collect or use personal information that qualifies as sensitive personal information");
+  assertStringIncludes(no, "We do not use or disclose sensitive personal information for purposes that require");
+
+  // Register: the customer-facing document never says "intake".
+  assert(!/\bintake\b/i.test(buildNationalNoticeHtml([CA, VA], FULL, AT)), "the word 'intake' is internal vocabulary");
+});
+
 Deno.test("doc181 — sources render the intake answer verbatim, else a prompt; no invented source list", () => {
   const withSources = buildNoticeHtml(CA, FULL, AT);
   assertStringIncludes(withSources, "Directly from you; automatically from your use of our website");

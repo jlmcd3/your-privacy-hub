@@ -93,8 +93,23 @@ export const TERMINAL_EQUIPMENT_TRIGGERS: readonly RegExp[] = [
   /\bcookies?\b/i,
   /\btracking pixels?\b/i,
   /\bweb beacons?\b/i,
-  /\b(?:device|browser) fingerprint\w*/i,
   /\bterminal equipment\b/i,
+];
+
+/**
+ * Batch 4ed05f22 (2026-09-05), CEO-ratified lexicon move: "device/browser
+ * fingerprint" is COVERED activity (the EDPB's Guidelines 2/2023 on Art. 5(3)
+ * treat active fingerprinting as gaining access to terminal equipment; the ICO
+ * said the same in December 2024) but the phrase alone does not establish
+ * that CONSENT is required — a fingerprint used for account-security fraud
+ * detection sits in the strictly-necessary-for-a-requested-service territory
+ * the gate never adjudicates. The Velorix run flipped a three-limbs-met LIA to
+ * "Not Available" on this word alone. It now routes to the indicated-but-
+ * unresolved branch: determination stated subject to the gate, with the
+ * strictly-necessary question asked. Cookies/pixels/beacons stay conclusive.
+ */
+export const DEVICE_ACCESS_INDICATORS: readonly RegExp[] = [
+  /\b(?:device|browser) fingerprint\w*/i,
 ];
 
 export const UNSOLICITED_MESSAGE_TRIGGERS: readonly RegExp[] = [
@@ -215,6 +230,7 @@ export function buildEprivacyShortCircuit(intake: unknown): EprivacyShortCircuit
   const terminalHits = collectHits(scan, TERMINAL_EQUIPMENT_TRIGGERS);
   const unsolicitedHits = collectHits(scan, UNSOLICITED_MESSAGE_TRIGGERS);
   const marketingIndications = collectHits(scan, ELECTRONIC_MARKETING_INDICATORS);
+  const deviceIndications = collectHits(scan, DEVICE_ACCESS_INDICATORS);
   const strictlyNecessary = anyMatch(scan, STRICTLY_NECESSARY_QUALIFIER);
   const useCaseClass = classifyLiaUseCase(description);
 
@@ -248,9 +264,9 @@ export function buildEprivacyShortCircuit(intake: unknown): EprivacyShortCircuit
   // ── Indicated but unresolved: degrade, never adjudicate. ─────────────
   const classIndicated = EPRIVACY_ADJACENT_CLASSES.includes(useCaseClass);
   const strictlyNecessaryUnresolved = terminalHits.length > 0 && strictlyNecessary;
-  if (strictlyNecessaryUnresolved || marketingIndications.length > 0 || classIndicated) {
+  if (strictlyNecessaryUnresolved || marketingIndications.length > 0 || deviceIndications.length > 0 || classIndicated) {
     const indicationPhrases = [
-      ...new Set([...terminalHits, ...marketingIndications]),
+      ...new Set([...terminalHits, ...deviceIndications, ...marketingIndications]),
     ];
     const indicationText = indicationPhrases.length > 0
       ? `includes ${quoteList(indicationPhrases)}`

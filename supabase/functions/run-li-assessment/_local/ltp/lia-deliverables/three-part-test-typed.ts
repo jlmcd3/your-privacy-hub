@@ -497,6 +497,12 @@ export function buildThreePartTestTyped(report: Bag, intake: Bag): LiaTypedStage
     }
     : null;
   const outcome = foreclosed ? "legitimate_interests_not_available" : s(determination.outcome);
+  // Batch 4ed05f22 (2026-09-05): the shared "weak" note points the reader to
+  // Information Needed, but a foreclosed record may carry none (Velorix: all
+  // three limbs met, no open items, and a note telling the reader to record
+  // items that do not exist). Under foreclosure the note states the reason.
+  const STRENGTH_NOTE_FORECLOSED =
+    "Weak: the three-part test is assessed on the record as documented, but the ePrivacy consent requirement identified in the ePrivacy section forecloses legitimate interests for the covered processing, whatever the balance; the consent those rules require is the route to lawfulness for that processing.";
 
   // ── overall_assessment (UI surface; registered honest strings). ────────
   const allPass = pv === "passes" && nv === "passes" && bv === "likely_passes";
@@ -572,7 +578,9 @@ export function buildThreePartTestTyped(report: Bag, intake: Bag): LiaTypedStage
       blocking_issues,
       // Parity with the model path's normalize block: the plain-language
       // note attaches on every run (existing shipped bytes, reused verbatim).
-      argument_strength_note: STRENGTH_NOTES[argument_strength] ?? STRENGTH_NOTES.uncertain,
+      argument_strength_note: foreclosed
+        ? STRENGTH_NOTE_FORECLOSED
+        : (STRENGTH_NOTES[argument_strength] ?? STRENGTH_NOTES.uncertain),
     },
     annotations: [],
   };

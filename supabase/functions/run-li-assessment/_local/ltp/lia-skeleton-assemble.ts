@@ -327,10 +327,17 @@ export interface LiaTypedVerdicts {
   readonly balancing: string;
   readonly children_in_scope: boolean;
   readonly public_authority_bar: boolean;
+  /** Batch 4ed05f22 (2026-09-05): the typed engine's own record that its
+   *  outcome override fired for the ePrivacy gate. Read from the typed
+   *  engine's persisted telemetry (`_meta.internal.lia_typed_test`, written
+   *  by run-li-assessment beside the override) — the typed engine remains the
+   *  single render door; this file still never reads the gate finding. */
+  readonly eprivacy_foreclosed: boolean;
 }
 
 export function readTypedVerdicts(report: Bag): LiaTypedVerdicts {
   const tpt = bag(report.three_part_test);
+  const typedTest = bag(bag(bag(report._meta).internal).lia_typed_test);
   return {
     outcome: s(bag(report.lia_determination).outcome),
     purpose: s(bag(tpt.purpose_test).verdict) || s(bag(report.interest_legitimacy).verdict),
@@ -339,6 +346,7 @@ export function readTypedVerdicts(report: Bag): LiaTypedVerdicts {
     children_in_scope: s(bag(report.child_factor).determination) === "children_in_scope",
     public_authority_bar: s(bag(report.public_authority_exclusion).determination) === "excluded" ||
       bag(report.public_authority_exclusion).basis_unavailable === true,
+    eprivacy_foreclosed: typedTest.eprivacy_foreclosed === true,
   };
 }
 
@@ -475,7 +483,7 @@ export function precedentClassSentence(report: Bag, deterministic = false): stri
 const EPRIVACY_ADDITIONAL_INFO_REQUIRED =
   "PECR/ePrivacy applicability — Additional Information Required. The assessment record does not establish whether the processing involves storage of information on, or access to information stored on, terminal equipment in a manner that engages PECR Regulation 6. Confirm the device and communications architecture before drawing that conclusion.";
 
-export function eprivacyOverlayNote(report: Bag): string {
+export function eprivacyOverlayNote(report: Bag, foreclosed = false): string {
   const engagementMap = bag(report.engagement_map);
   const entries = Array.isArray(engagementMap.entries) ? engagementMap.entries : [];
   const entry = entries
@@ -488,6 +496,16 @@ export function eprivacyOverlayNote(report: Bag): string {
   const rationale = s(entry.rationale);
   if (!rationale) return "";
   const lowered = rationale.charAt(0).toLowerCase() + rationale.slice(1);
+  // Batch 4ed05f22 (2026-09-05): when the typed engine's outcome override has
+  // fired for the ePrivacy gate, the document's page one already says
+  // legitimate interests is Not Available BECAUSE of this consent requirement.
+  // The informational form below then contradicted it ("does not affect …
+  // the Article 6(1)(f) determination above" — Velorix). The overlay's own
+  // content is unchanged; only its closing sentence acknowledges the
+  // determination it sits under.
+  if (foreclosed) {
+    return `Separately, ${lowered} This consent requirement under the ePrivacy Directive and the UK's Privacy and Electronic Communications Regulations (PECR) is the reason legitimate interests is not available for the covered processing, as the determination above records; it operates as a gate on that determination, not as a factor weighed within the balancing test.`;
+  }
   return `Separately, ${lowered} This is a separate, additional obligation under the ePrivacy Directive and the UK's Privacy and Electronic Communications Regulations (PECR); it does not affect, and is not affected by, the Article 6(1)(f) determination above.`;
 }
 
@@ -1198,7 +1216,9 @@ export function assembleLiaSkeletonDocument(
   // from or write to v.outcome / three_part_test, so it cannot influence
   // the Art. 6(1)(f) determination, and it never touches eprivacy-gate.ts.
   if (deterministic) {
-    const eprivacyNote = eprivacyOverlayNote(report);
+    // Batch 4ed05f22 — the typed engine's foreclosure flag (readTypedVerdicts)
+    // reconciles the overlay's closing sentence with page one.
+    const eprivacyNote = eprivacyOverlayNote(report, v.eprivacy_foreclosed);
     // DOC 141 (2026-09-02) — the UK GDPR Art. 6(11)/DUAA recognised-interest
     // overlay (ukArt611OverlayNote, defined above) shares the v2-only
     // "findings:5" generated block: the spine is byte-mirrored into

@@ -315,10 +315,14 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
       if (spiTok === "yes" || (!spiTok && sensitiveCodesPresent.length > 0)) {
         parts.push(p(`We collect or use personal information that qualifies as sensitive personal information under California law${sensitiveCodesPresent.length ? `, including ${esc(sensitiveCodesPresent.map((c) => label("data_categories", c)).join(", "))}` : ""}. The purposes: ${fill("insert the purposes for which sensitive personal information is used or disclosed")}.`));
         parts.push(p(`A California Right to Limit exists only where sensitive personal information is used or disclosed for purposes other than those permitted by 11 CCR § 7027(m). ${fill("confirm whether sensitive personal information is used or disclosed for purposes outside those permitted by 11 CCR § 7027(m); if it is, insert the “Limit the Use of My Sensitive Personal Information” link, and if it is not, state that no Right to Limit is offered because the uses fall within the permitted purposes")}.`));
-      } else if (spiTok === "unsure") {
-        parts.push(p(`${fill("confirm whether sensitive personal information as defined by the CCPA is collected or used and, if so, complete the sensitive-information disclosures and the Right to Limit determination")}.`));
-      } else {
+      } else if (spiTok === "no") {
         parts.push(p(`We do not collect or use personal information that qualifies as sensitive personal information under California law, and we therefore do not offer the California Right to Limit.`));
+      } else {
+        // Batch 4ed05f22 (2026-09-05): "unsure" AND an unanswered question both
+        // land here. An unanswered question is never an affirmative denial — it
+        // is a customer-completion prompt, the same as every other uncollected
+        // fact in this instrument.
+        parts.push(p(`${fill("confirm whether sensitive personal information as defined by the CCPA is collected or used and, if so, complete the sensitive-information disclosures and the Right to Limit determination")}.`));
       }
     }
     if (nonCA.length) {
@@ -469,7 +473,7 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
   // 20 ─────────────────────────────────────────────────────────────────────
   {
     const parts: string[] = [];
-    parts.push(p(`This addendum supplements the national core of this Notice for residents of the states below, identifying the law that applies and any state-specific practice recorded in our intake. Rights are described in general terms above; the exact rights available under each law are those the law provides.`));
+    parts.push(p(`This addendum supplements the national core of this Notice for residents of the states below, identifying the law that applies and any state-specific practice the business has recorded. Rights are described in general terms above; the exact rights available under each law are those the law provides.`));
     for (const s of states) {
       parts.push(`<h3>${esc(s.state_name)}</h3>`);
       const law = ctx.laws?.[s.state_code];
@@ -539,7 +543,7 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
     parts.push(p(optOutUnknown ? `${fill("state whether any category of personal information was sold or shared in the preceding 12 months")}.` : (sells || shares) ? `In the preceding 12 months we have ${[sells ? "sold" : "", shares ? "shared" : ""].filter(Boolean).join(" and ")} personal information as described in the table above.` : `We have not sold or shared California consumers' personal information during the 12 months preceding the Last Updated date.`));
 
     parts.push(`<h3>CA-2. Sensitive personal information</h3>`);
-    parts.push(p(spiTok === "yes" ? `The sensitive personal information we process, the purposes, and the Right to Limit determination are set out in the Sensitive Personal Information section above.` : spiTok === "unsure" ? `${fill("confirm whether sensitive personal information is collected and complete the sensitive-information disclosures")}.` : `We do not use or disclose sensitive personal information for purposes that require a California consumer to exercise the Right to Limit.`));
+    parts.push(p(spiTok === "yes" ? `The sensitive personal information we process, the purposes, and the Right to Limit determination are set out in the Sensitive Personal Information section above.` : spiTok === "no" ? `We do not use or disclose sensitive personal information for purposes that require a California consumer to exercise the Right to Limit.` : `${fill("confirm whether sensitive personal information is collected and complete the sensitive-information disclosures")}.`));
 
     parts.push(`<h3>CA-3. Sale, sharing and consumers under 16</h3>`);
     parts.push(p(`${optOutUnknown ? fill("state whether personal information is sold") : sells ? "We sell personal information" : "We do not sell personal information"}. ${optOutUnknown ? fill("state whether personal information is shared for cross-context behavioral advertising") : shares ? "We share personal information for cross-context behavioral advertising" : "We do not share personal information for cross-context behavioral advertising"}. ${childrenPresent ? "The opt-in process for consumers under 16 is described under Children and Minors above." : "We do not have actual knowledge that we sell or share the personal information of consumers under 16."}`));
@@ -550,7 +554,7 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
       `the right to delete;`,
       `the right to correct inaccurate personal information;`,
       `the right to opt out of sale or sharing;`,
-      ...(spiTok === "yes" || spiTok === "unsure" ? [`the Right to Limit qualifying use or disclosure of sensitive personal information, where applicable;`] : []),
+      ...(spiTok !== "no" ? [`the Right to Limit qualifying use or disclosure of sensitive personal information, where applicable;`] : []),
       ...(admtTok === "yes" || admtTok === "unsure" ? [`applicable ADMT rights under the compliance timing and scope of the final regulations;`] : []),
       `the right not to be discriminated or retaliated against for exercising CCPA rights.`,
     ]));
@@ -562,7 +566,14 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
     parts.push(`<h3>CA-7. Authorized agents</h3>`);
     parts.push(p(`An authorized agent may submit a CCPA request on a consumer's behalf as described under Authorized Agents above; we may require the agent to provide proof of authorisation and may require the consumer to verify identity directly where permitted.`));
     parts.push(`<h3>CA-8. Opt-out preference signals</h3>`);
-    parts.push(p(sells || shares ? `We process applicable opt-out preference signals as required by California law; the signals recognised and how they apply are described under Universal Opt-Out Preference Signals above.` : `Because we do not sell or share personal information, no opt-out preference signal processing is required; if that changes, this Notice will describe how signals are processed.`));
+    // Batch 4ed05f22 (2026-09-05): the sale/sharing answer can be unknown
+    // (unanswered, or "not_sure"). Sections 6, CA-1 and CA-3 already prompt in
+    // that state; this sentence asserted "we do not sell or share" instead.
+    parts.push(p(optOutUnknown
+      ? `${fill("state whether personal information is sold or shared and, if it is, confirm that recognised opt-out preference signals are processed as California law requires")}.`
+      : sells || shares
+      ? `We process applicable opt-out preference signals as required by California law; the signals recognised and how they apply are described under Universal Opt-Out Preference Signals above.`
+      : `Because we do not sell or share personal information, no opt-out preference signal processing is required; if that changes, this Notice will describe how signals are processed.`));
     parts.push(`<h3>CA-9. Last updated</h3>`);
     parts.push(p(`Last updated: ${esc(generatedAt)}. ${fill("where 11 CCR § 7102 metrics reporting applies, insert the request metrics or a link to them")}.`));
     sections.push({ title: "California Privacy Disclosures", html: parts.join("\n") });
@@ -575,7 +586,7 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
         `<table class="fi-table"><thead><tr><th>Category to be collected</th><th>Purpose(s) for collection and use</th><th>Sold or shared?</th><th>Retention period or criteria</th></tr></thead><tbody>${(catRows.length ? catRows : [""]).map((cat) => `<tr><td>${cat ? esc(cat) : fill("insert the category")}</td><td>${purposes ? esc(purposes.replace(/[.\s]+$/, "")) : fill("insert the purposes")}</td><td>${optOutUnknown ? fill("state") : (sells || shares) ? "Yes" : "No"}</td><td>${retentionPeriod ? esc(retentionPeriod) : retentionCriteria ? esc(retentionCriteria) : fill("insert the retention period or criteria")}</td></tr>`).join("")}</tbody></table>`,
         p(`${fill("confirm the current collection state row by row — the Notice at Collection must consume CURRENT collection, not the preceding-12-month record")}.`),
         (sells || shares || optOutUnknown) ? p(`You may opt out at: ${fill("insert the “Do Not Sell or Share My Personal Information” / “Your Privacy Choices” link")}.`) : "",
-        (spiTok === "yes" || spiTok === "unsure") ? p(`Where the Right to Limit applies, you may limit certain use and disclosure of sensitive personal information at: ${fill("insert the “Limit the Use of My Sensitive Personal Information” link")}.`) : "",
+        (spiTok !== "no") ? p(`Where the Right to Limit applies, you may limit certain use and disclosure of sensitive personal information at: ${fill("insert the “Limit the Use of My Sensitive Personal Information” link")}.`) : "",
         p(`For our full privacy practices and rights, see our Privacy Policy: ${fill("insert the Privacy Policy URL")}.`),
       ].filter(Boolean).join("\n"),
     });
@@ -588,7 +599,7 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
         ].join("\n"),
       });
     }
-    if (spiTok === "yes" || spiTok === "unsure") {
+    if (spiTok !== "no") {
       sections.push({
         title: "Appendix C — California Notice of Right to Limit",
         html: [

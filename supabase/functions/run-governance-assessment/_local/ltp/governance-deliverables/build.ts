@@ -617,7 +617,7 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
   const triggerReasons = [
     limbA ? `(a) applies: the record puts the controller in the ${f.sector} sector, processing carried out by a public authority or body.` : "",
     limbC
-      ? `(c) applies: the company has indicated large-scale processing of special categories (${(f.specialList.length ? f.specialList : ["special-category data"]).join(", ")}). ${wp243Core!.citation} describes core activities as "${wp243Core!.verbatim}" ${wp243Scale!.citation} names the factors for "large scale": "${wp243Scale!.verbatim}" The record's own large-scale signal here is the organisation's size band (${f.size}), not an answer to those four factors directly — the intake does not separately ask the number of data subjects, the volume of data, the duration of the processing, or its geographical extent.`
+      ? `(c) applies: the company has indicated large-scale processing of special categories (${(f.specialList.length ? f.specialList : ["special-category data"]).join(", ")}). ${wp243Core!.citation} describes core activities as "${wp243Core!.verbatim}" ${wp243Scale!.citation} names the factors for "large scale": "${wp243Scale!.verbatim}" The record's own large-scale signal here is the organisation's size band (${f.size}), not an answer to those four factors directly — the record does not separately state the number of data subjects, the volume of data, the duration of the processing, or its geographical extent.`
       : "",
   ].filter(Boolean);
 

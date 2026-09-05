@@ -559,9 +559,15 @@ Return a JSON object with EXACTLY these fields:
   "usNotice": {
     "business_name": "string", "business_description": "string", "contact_email": "string",
     "data_categories": "string — prose description", "collection_purposes": "string",
-    "third_party_sharing": "string", "third_party_categories": "string",
-    "sale_or_sharing": "string", "retention_general": "string",
-    "sensitive_data_types": "string", "data_sources": "string"
+    "third_party_sharing": "EXACTLY one of: 'yes' | 'no' — the form asks this as yes/no; never prose",
+    "third_party_categories": "string",
+    "sale_or_sharing": "EXACTLY one of: 'sell_and_share' | 'sell_only' | 'share_only' | 'no' | 'not_sure' — the form's single-choice tokens (batch 4ed05f22: prose here left the generated notice unable to state its sale/sharing position and it asserted the opposite of the scenario); never a sentence",
+    "retention_general": "string",
+    "ccpa_sensitive_data": "EXACTLY one of: 'yes' | 'no' | 'unsure' — does the business collect or use California sensitive personal information (account log-in credentials, precise geolocation, health, biometric, government IDs, racial/ethnic origin, etc.)? A scenario that collects account credentials is 'yes'",
+    "ccpa_minors": "EXACTLY one of: 'yes' | 'no'",
+    "ccpa_admt": "EXACTLY one of: 'yes' | 'no' | 'unsure'",
+    "ccpa_financial_incentive": "EXACTLY one of: 'yes' | 'no'",
+    "data_sources": "string"
   },
   "cppaRisk": {
     "entity_name": "string", "subject_anchor": "string — one line naming the specific processing",
@@ -1563,16 +1569,26 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
       contact_email: c.privacyEmail,
       data_categories: "Identifiers, contact details, device data, usage data, transaction records, and support communications",
       collection_purposes: "Provide services, secure accounts, process transactions, support users, and improve products",
-      third_party_sharing: "Shared with service providers for hosting, analytics, payments, and support",
+      // Batch 4ed05f22 (2026-09-05): the form's own tokens, not prose — the
+      // US-Notice spine reads `third_party_sharing` as yes/no,
+      // `sale_or_sharing` as one of its five single-choice tokens ("no_sale"
+      // was never one of them) and the sensitive-PI answer under the
+      // question key `ccpa_sensitive_data`, not `sensitive_data_types`.
+      third_party_sharing: "yes",
       third_party_categories: "Cloud hosting, analytics, payment, customer support, and security vendors",
       sale_or_sharing: (() => {
         const s = industry.toLowerCase();
         if (/adtech|data broker|social media|social platform/i.test(s)) return "sell_and_share";
         if (/gaming|media|publishing|retail|mobile app|web service|online/i.test(s)) return "share_only";
-        return "no_sale";
+        return "no";
       })(),
       retention_general: "Retained for the account life plus 24 months unless law requires longer",
-      sensitive_data_types: /health|financial|hr/i.test(industry) ? "Account credentials and sector-specific sensitive data" : "Account credentials only",
+      // Account credentials are California sensitive PI (Cal. Civ. Code
+      // § 1798.140(ae)(1)(A)), so every fallback scenario answers "yes".
+      ccpa_sensitive_data: "yes",
+      ccpa_minors: "no",
+      ccpa_admt: "no",
+      ccpa_financial_incentive: "no",
       data_sources: "Provided by users, generated during service use, and received from service providers",
     },
     cppaRisk: {

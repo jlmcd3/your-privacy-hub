@@ -532,9 +532,15 @@ export function buildComponentAnalyses(inputs: FactorInputs): CyberComponentAnal
     // whole narrative. 3E9AD759-CY3 — the action then locates the remaining
     // work in the record's own gap sentence, so it never reads identically
     // across components that reported different gaps.
-    const gapSentence = rec ? recommendationGap(intakeRec.notes) : "";
+    // Batch 4ed05f22 (2026-09-05): when the note is a single sentence, the
+    // "fact" and the "gap sentence" are the SAME sentence — the live run
+    // printed the company's note twice in adjacent clauses on four
+    // components. The gap sentence is appended only when it adds something.
+    const factText = rec ? noStop(recommendationFact(intakeRec.notes, intakeRec.maturity)) : "";
+    const gapRaw = rec ? recommendationGap(intakeRec.notes) : "";
+    const gapSentence = gapRaw && !sameSentence(gapRaw, factText) ? gapRaw : "";
     const action = rec
-      ? `${rec.slot.template.replace("{fact}", noStop(recommendationFact(intakeRec.notes, intakeRec.maturity)))}${gapSentence ? ` The recorded description locates the remaining work: ${gapSentence}.` : ""}`
+      ? `${rec.slot.template.replace("{fact}", factText)}${gapSentence ? ` The recorded description locates the remaining work: ${gapSentence}.` : ""}`
       : "No remediation identified for this component.";
     // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, Cyber P1-2)
     // — same condition the narrative above already states in prose (line
@@ -753,10 +759,25 @@ function actionSentence(r: ComponentRecommendation, intake: Bag): string {
   // the profile and never on the actions, leaving every action unassigned on
   // its face. The owner is the intake's own remediation_owner, never an
   // inferred assignment.
-  const text = r.slot.template.replace("{fact}", noStop(recommendationFact(rec.notes, rec.maturity)));
-  const gapSentence = recommendationGap(rec.notes);
+  const factText = noStop(recommendationFact(rec.notes, rec.maturity));
+  const text = r.slot.template.replace("{fact}", factText);
+  // Batch 4ed05f22 — see the per-component action above: never the same
+  // sentence twice.
+  const gapRaw = recommendationGap(rec.notes);
+  const gapSentence = gapRaw && !sameSentence(gapRaw, factText) ? gapRaw : "";
   const owner = profileStr(intake, "remediation_owner");
   return `Rank ${r.rank} — ${r.label} - ${text}${gapSentence ? ` Remaining work, as recorded: ${gapSentence}.` : ""}${owner ? ` Recorded remediation owner: ${noStop(owner)}.` : ""} (EUP readiness recommendation; priority: ${r.priority}.)`;
+}
+
+/** Two note fragments are the same sentence when they match after trimming
+ *  terminal punctuation, whitespace and case — the shape recommendationFact
+ *  (first sentence, stop removed) and recommendationGap (the gap sentence)
+ *  both return for a one-sentence note. Exported for the batch-4ed05f22 pin. */
+export function sameSentence(a: string, b: string): boolean {
+  const norm = (t: string) => t.trim().replace(/[.!?]+$/, "").replace(/\s+/g, " ").toLowerCase();
+  const x = norm(a);
+  const y = norm(b);
+  return x.length > 0 && x === y;
 }
 
 // A-TEAM S4 RULING S2.6 (doc 119, 2026-08-31) — TWO ACTION CLASSES. The

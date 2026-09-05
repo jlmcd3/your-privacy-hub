@@ -122,11 +122,18 @@ export function runDeterministicQa(report: unknown): DeterministicQaFinding[] {
     }
   }
 
+  // Batch 4ed05f22 (2026-09-05): a web address is not a raw field token. The
+  // DPA's EU SCC exhibit cites the official text at
+  // https://eur-lex.europa.eu/eli/dec_impl/2021/914/oj and the snake-case
+  // scanner flagged "dec_impl" as a leaked field name (HIGH). URLs are blanked
+  // to same-length spaces before the token scan so every match index still
+  // points into the original text for the excerpt.
+  const tokenScanText = text.replace(/https?:\/\/[^\s<>"')\]]+/g, (u) => " ".repeat(u.length));
   const tokenHits = new Set<string>();
   for (const re of [CAMEL_RE, SNAKE_RE]) {
     re.lastIndex = 0;
     let m: RegExpExecArray | null;
-    while ((m = re.exec(text)) !== null && tokenHits.size < 5) {
+    while ((m = re.exec(tokenScanText)) !== null && tokenHits.size < 5) {
       const tok = m[0];
       if (TOKEN_WHITELIST.has(tok)) continue;
       if (tokenHits.has(tok)) continue;
