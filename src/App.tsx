@@ -5,6 +5,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { SubscriberContextProvider } from "@/hooks/useSubscriberContext";
 import Index from "./pages/Index.tsx";
 
 const GlobalAuthorities = lazy(() => import("./pages/GlobalAuthorities.tsx"));
