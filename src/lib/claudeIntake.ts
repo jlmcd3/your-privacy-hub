@@ -103,10 +103,20 @@ export async function launchClaudeIntakeBatch(opts: {
   industryId: string;
   companiesPerGeo: number;
 }): Promise<string> {
+  // AUTH-GATE (2026-09-05): start-stress-batch is admin-only. When the browser
+  // session has lapsed, supabase-js falls back to the publishable key as the
+  // bearer, which the auth server rejects (bad_jwt) and the function answers
+  // 403 forbidden. Refresh/verify the session first and fail with a clear message.
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData.session?.access_token) {
+    throw new Error("Your session has expired — sign in again to start a batch.");
+  }
+
   const industry = STRESS_INDUSTRIES.find((i) => i.id === opts.industryId);
   if (!industry) throw new Error(`unknown industry: ${opts.industryId}`);
   const tools = Array.from(new Set(opts.slugs.map((s) => SLUG_TO_STRESS_TOOL[s]))).filter(Boolean);
   if (!tools.length) throw new Error("no products selected");
+
 
   const geos = new Set<string>();
   for (const t of tools) {
