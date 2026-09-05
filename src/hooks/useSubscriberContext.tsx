@@ -111,16 +111,18 @@ export function SubscriberContextProvider({ children }: { children: ReactNode })
     };
   }, [isPremium, user, authLoading]);
 
+  // Push updaters must work even if the initial fetch has not landed yet
+  // (context still null) — otherwise a role change is silently dropped.
   const setRole = useCallback((role: string | undefined) => {
-    setContext((prev) => (prev ? { ...prev, role: role || undefined } : prev));
+    setContext((prev) =>
+      prev
+        ? { ...prev, role: role || undefined }
+        : { role: role || undefined, industries: [], jurisdictions: [], topics: [], watchlist: [] }
+    );
   }, []);
 
   const setWatchlist = useCallback((items: WatchlistRow[]) => {
-    setContext((prev) => {
-      if (!prev) return prev;
-      const next = deriveFromWatchlist(prev.role, items);
-      return next;
-    });
+    setContext((prev) => deriveFromWatchlist(prev?.role, items));
   }, []);
 
   return (
