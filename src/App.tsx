@@ -1019,6 +1019,7 @@ const App = () => (
           </Routes>
 </Suspense>
         </BrowserRouter>
+        </SubscriberContextProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </HelmetProvider>
