@@ -1348,7 +1348,7 @@ export const LIA_CORPUS_MAP: CorpusMap = {
         "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). DPC (Ireland), Airbnb Ireland UC, 2022-09-14, IN-21-3-1. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): an undemonstrated proportionality case collapses the balance - the controller carries the burden of showing the interest outweighs the individual's rights. DARK pending ratification.",
     },
     {
-      id: "lia/f05-expectations/ap-w6-05",
+      id: "lia/f05-reasonable-expectations/ap-w6-05",
       factor_id: "Reasonable expectations of the data subject",
       role: "AP",
       source_table: "enforcement_actions",
