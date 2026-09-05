@@ -421,11 +421,13 @@ export default function BriefBuilder() {
           >
             Generate Brief →
           </button>
-          {!canGenerate && (
-            <p className="text-[12px] text-slate mt-2">
-              Select jurisdiction, role, and at least one track to generate
-            </p>
-          )}
+          <p className="text-[12px] text-slate mt-2 max-w-md mx-auto leading-relaxed">
+            Select jurisdiction, role, and at least one track to generate.
+            And then after you subscribe, in your Watchlist you can change
+            your role, the jurisdictions, topics, and industries you follow,
+            and your changes will apply immediately to your article prompts
+            and to the your next Weekly Brief.
+          </p>
         </div>
       )}
 
