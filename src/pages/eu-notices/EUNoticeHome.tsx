@@ -120,11 +120,11 @@ export default function EUNoticeHome() {
   const heading =
     isMultiClient && clientName
       ? `EU & Global Notices — ${clientName}`
-      : "EU & Global Notice Builder";
+      : "EU / Global Privacy Notice";
 
   if (loading) {
     return (
-      <EUNoticeShell title="EU & Global Notice Builder — End User Privacy" heading={heading}>
+      <EUNoticeShell title="EU / Global Privacy Notice — End User Privacy" heading={heading}>
         <Skeleton className="h-32 w-full mb-4" />
         <Skeleton className="h-32 w-full" />
       </EUNoticeShell>
@@ -137,7 +137,7 @@ export default function EUNoticeHome() {
 
   return (
     <EUNoticeShell
-      title="EU & Global Notice Builder — End User Privacy"
+      title="EU / Global Privacy Notice — End User Privacy"
       heading={heading}
       chip=" Global Notice Builder"
       description="Generate aligned privacy notices for the EU GDPR, UK GDPR, Swiss FADP, Brazil LGPD, Japan APPI, India DPDPA, South Africa POPIA and five other global frameworks — in a single guided session, calibrated to each regulator's disclosure expectations."

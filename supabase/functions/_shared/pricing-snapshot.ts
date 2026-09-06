@@ -44,8 +44,8 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "biometric_standalone_v2": {
       "lookupKey": "biometric_standalone_v2",
       "productKey": "biometric_v8",
-      "productName": "Biometric Compliance Check (Standalone)",
-      "description": "Standalone per-use price for the Biometric Compliance Check.",
+      "productName": "Biometric Compliance Assessment (Standalone)",
+      "description": "Standalone per-use price for the Biometric Compliance Assessment.",
       "amountCents": 7900,
       "currency": "usd",
       "displayPrice": "$79",
@@ -56,7 +56,7 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "biometric_subscriber_v2": {
       "lookupKey": "biometric_subscriber_v2",
       "productKey": "biometric_v8",
-      "productName": "Biometric Compliance Check (Subscriber)",
+      "productName": "Biometric Compliance Assessment (Subscriber)",
       "description": "Free for subscribers — bypasses Stripe checkout.",
       "amountCents": 0,
       "currency": "usd",
@@ -70,8 +70,8 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "biometric_topup_v1": {
       "lookupKey": "biometric_topup_v1",
       "productKey": "biometric_v8",
-      "productName": "Biometric Compliance Check — 4 additional generations",
-      "description": "Meter top-up: adds 4 additional generations on an existing Biometric Compliance Check. Half-price policy.",
+      "productName": "Biometric Compliance Assessment — 4 additional generations",
+      "description": "Meter top-up: adds 4 additional generations on an existing Biometric Compliance Assessment. Half-price policy.",
       "amountCents": 3950,
       "currency": "usd",
       "displayPrice": "$39.50",
@@ -230,7 +230,7 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "dpa_standalone_v2": {
       "lookupKey": "dpa_standalone_v2",
       "productKey": "dpa_v8",
-      "productName": "Custom DPA Generator (Standalone)",
+      "productName": "Custom DPA (Standalone)",
       "description": "Standalone per-use price for the DPA Generator.",
       "amountCents": 6900,
       "currency": "usd",
@@ -242,7 +242,7 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "dpa_subscriber_v2": {
       "lookupKey": "dpa_subscriber_v2",
       "productKey": "dpa_v8",
-      "productName": "Custom DPA Generator (Subscriber)",
+      "productName": "Custom DPA (Subscriber)",
       "description": "Free for subscribers — bypasses Stripe checkout.",
       "amountCents": 0,
       "currency": "usd",
@@ -256,7 +256,7 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "dpa_topup_v1": {
       "lookupKey": "dpa_topup_v1",
       "productKey": "dpa_v8",
-      "productName": "Custom DPA Generator — 4 additional generations",
+      "productName": "Custom DPA — 4 additional generations",
       "description": "Meter top-up: adds 4 additional generations on an existing DPA. Half-price policy.",
       "amountCents": 3450,
       "currency": "usd",
@@ -270,7 +270,7 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "dpia_standalone_v2": {
       "lookupKey": "dpia_standalone_v2",
       "productKey": "dpia_v8",
-      "productName": "DPIA Builder (Standalone)",
+      "productName": "Data Protection Impact Assessment (DPIA) (Standalone)",
       "description": "Standalone per-use price for the DPIA Tool.",
       "amountCents": 14900,
       "currency": "usd",
@@ -282,7 +282,7 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "dpia_subscriber_v2": {
       "lookupKey": "dpia_subscriber_v2",
       "productKey": "dpia_v8",
-      "productName": "DPIA Builder (Subscriber)",
+      "productName": "Data Protection Impact Assessment (DPIA) (Subscriber)",
       "description": "Subscriber per-use price for the DPIA Tool.",
       "amountCents": 9900,
       "currency": "usd",
@@ -296,7 +296,7 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "dpia_topup_v1": {
       "lookupKey": "dpia_topup_v1",
       "productKey": "dpia_v8",
-      "productName": "DPIA Builder — 4 additional generations",
+      "productName": "Data Protection Impact Assessment (DPIA) — 4 additional generations",
       "description": "Meter top-up: adds 4 additional generations on an existing DPIA. Half-price policy.",
       "amountCents": 7450,
       "currency": "usd",
@@ -310,8 +310,8 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "eu_notice_v7_standalone": {
       "lookupKey": "eu_notice_v7_standalone",
       "productKey": "eu_notice_v8",
-      "productName": "EU & Global Privacy Notice Builder (Standalone — RETIRED)",
-      "description": "Retired: EU & Global Privacy Notice Builder is subscriber-only. Not sold standalone.",
+      "productName": "EU / Global Privacy Notice (Standalone — RETIRED)",
+      "description": "Retired: EU / Global Privacy Notice is subscriber-only. Not sold standalone.",
       "amountCents": 4000,
       "currency": "usd",
       "displayPrice": "$40",
@@ -322,7 +322,7 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "eu_notice_v7_subscriber": {
       "lookupKey": "eu_notice_v7_subscriber",
       "productKey": "eu_notice_v8",
-      "productName": "EU & Global Privacy Notice Builder (Subscriber alias)",
+      "productName": "EU / Global Privacy Notice (Subscriber alias)",
       "description": "Subscriber-rate alias (mirrors standalone — no longer discounted) for any EU/global notice variant.",
       "amountCents": 3000,
       "currency": "usd",
@@ -562,7 +562,7 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "registration_additional_filing": {
       "lookupKey": "registration_additional_filing",
       "productKey": "registration",
-      "productName": "Registration Filings — Additional Concurrent Jurisdiction",
+      "productName": "Registration Filings Manager — Additional Concurrent Jurisdiction",
       "description": "$49 for each additional concurrent jurisdiction filed in the same order ($79 first filing).",
       "amountCents": 4900,
       "currency": "usd",
@@ -586,7 +586,7 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "registration_standalone": {
       "lookupKey": "registration_standalone",
       "productKey": "registration",
-      "productName": "Registration Filings — DIY Toolkit (Standalone)",
+      "productName": "Registration Filings Manager — DIY Toolkit (Standalone)",
       "description": "Flat per-filing price for the DPO / DPA / AI Act registration document pack. One price regardless of jurisdiction count.",
       "amountCents": 7900,
       "currency": "usd",
@@ -598,7 +598,7 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "registration_subscriber": {
       "lookupKey": "registration_subscriber",
       "productKey": "registration",
-      "productName": "Registration Filings — DIY Toolkit (Subscriber alias)",
+      "productName": "Registration Filings Manager — DIY Toolkit (Subscriber alias)",
       "description": "Subscriber-rate alias (mirrors standalone — no longer discounted) for the DPO / DPA / AI Act registration document pack.",
       "amountCents": 7900,
       "currency": "usd",
@@ -612,7 +612,7 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "ropa_annual_additional": {
       "lookupKey": "ropa_annual_additional",
       "productKey": "rofa",
-      "productName": "RoPA Builder — Additional Generation (Annual Subscriber)",
+      "productName": "Record of Processing Activities (RoPA) — Additional Generation (Annual Subscriber)",
       "description": "$39 additional RoPA generation/update for annual subscribers beyond the included initial generation and one update per subscription year.",
       "amountCents": 3900,
       "currency": "usd",
@@ -624,8 +624,8 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "ropa_initial_standalone": {
       "lookupKey": "ropa_initial_standalone",
       "productKey": "rofa",
-      "productName": "RoPA Builder — Initial Generation (Standalone — RETIRED)",
-      "description": "Retired: RoPA Builder is subscriber-only. Not sold standalone.",
+      "productName": "Record of Processing Activities (RoPA) — Initial Generation (Standalone — RETIRED)",
+      "description": "Retired: Record of Processing Activities (RoPA) is subscriber-only. Not sold standalone.",
       "amountCents": 9900,
       "currency": "usd",
       "displayPrice": "$99",
@@ -636,7 +636,7 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "ropa_initial_subscriber": {
       "lookupKey": "ropa_initial_subscriber",
       "productKey": "rofa",
-      "productName": "RoPA Builder — Initial (Annual Subscriber)",
+      "productName": "Record of Processing Activities (RoPA) — Initial (Annual Subscriber)",
       "description": "Free for ANNUAL subscribers — the first RoPA generation, once, bypasses Stripe checkout. Monthly subscribers pay ropa_paid_generation ($49).",
       "amountCents": 0,
       "currency": "usd",
@@ -650,7 +650,7 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "ropa_paid_generation": {
       "lookupKey": "ropa_paid_generation",
       "productKey": "rofa",
-      "productName": "RoPA Builder — Generation or Update",
+      "productName": "Record of Processing Activities (RoPA) — Generation or Update",
       "description": "$49 RoPA generation/update (monthly subscribers and non-entitled actions). Annual subscribers use ropa_annual_additional ($39) beyond the included initial + one yearly update. NOTE: one-time Stripe Prices with these lookup keys must exist in Stripe before go-live.",
       "amountCents": 4900,
       "currency": "usd",
@@ -662,8 +662,8 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "ropa_refresh_standalone": {
       "lookupKey": "ropa_refresh_standalone",
       "productKey": "rofa",
-      "productName": "RoPA Builder — Annual Refresh (Standalone — RETIRED)",
-      "description": "Retired: RoPA Builder is subscriber-only. Not sold standalone.",
+      "productName": "Record of Processing Activities (RoPA) — Annual Refresh (Standalone — RETIRED)",
+      "description": "Retired: Record of Processing Activities (RoPA) is subscriber-only. Not sold standalone.",
       "amountCents": 7900,
       "currency": "usd",
       "displayPrice": "$79",
@@ -674,7 +674,7 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "ropa_refresh_subscriber": {
       "lookupKey": "ropa_refresh_subscriber",
       "productKey": "rofa",
-      "productName": "RoPA Builder — Annual Update (Annual Subscriber, credit)",
+      "productName": "Record of Processing Activities (RoPA) — Annual Update (Annual Subscriber, credit)",
       "description": "Free for ANNUAL subscribers on the FIRST update of each subscription year, redeemed against the RoPA annual credit (1 per year, both tiers). Later updates in the same year cost ropa_annual_additional ($39).",
       "amountCents": 0,
       "currency": "usd",
@@ -688,8 +688,8 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "us_notice_v7_standalone": {
       "lookupKey": "us_notice_v7_standalone",
       "productKey": "us_notice_v8",
-      "productName": "US Privacy Notice Builder (Standalone — RETIRED)",
-      "description": "Retired: US Privacy Notice Builder is subscriber-only. Not sold standalone.",
+      "productName": "US Privacy Notice (Standalone — RETIRED)",
+      "description": "Retired: US Privacy Notice is subscriber-only. Not sold standalone.",
       "amountCents": 2500,
       "currency": "usd",
       "displayPrice": "$25",
@@ -700,7 +700,7 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "us_notice_v7_subscriber": {
       "lookupKey": "us_notice_v7_subscriber",
       "productKey": "us_notice_v8",
-      "productName": "US Privacy Notice Builder (Subscriber alias)",
+      "productName": "US Privacy Notice (Subscriber alias)",
       "description": "Subscriber-rate alias (mirrors standalone — no longer discounted) for any US notice variant.",
       "amountCents": 2000,
       "currency": "usd",
@@ -714,7 +714,7 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
   },
   "tools": {
     "biometric": {
-      "name": "Biometric Compliance Check",
+      "name": "Biometric Compliance Assessment",
       "dollars": 79,
       "cents": 7900,
       "display": "$79",
@@ -791,7 +791,7 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
       "stripePriceId": "cppa_suite_standalone"
     },
     "dpa": {
-      "name": "Custom DPA Generator",
+      "name": "Custom DPA",
       "dollars": 69,
       "cents": 6900,
       "display": "$69",
@@ -805,14 +805,14 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
       "stripePriceId": "dpia_standalone_v2"
     },
     "euNotice": {
-      "name": "EU / Global Privacy Notice Builder",
+      "name": "EU / Global Privacy Notice",
       "dollars": 0,
       "cents": 0,
       "display": "Included with subscription",
       "stripePriceId": null
     },
     "eu_notice": {
-      "name": "EU / Global Privacy Notice Builder",
+      "name": "EU / Global Privacy Notice",
       "dollars": 0,
       "cents": 0,
       "display": "Included with subscription",
@@ -826,14 +826,14 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
       "stripePriceId": "hc_standalone_v2"
     },
     "irPlaybook": {
-      "name": "Breach IR Playbook",
+      "name": "Incident Response Playbook",
       "dollars": 89,
       "cents": 8900,
       "display": "$89",
       "stripePriceId": "ir_standalone_v2"
     },
     "ir_playbook": {
-      "name": "Breach IR Playbook",
+      "name": "Incident Response Playbook",
       "dollars": 89,
       "cents": 8900,
       "display": "$89",
@@ -847,28 +847,28 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
       "stripePriceId": "li_standalone_v2"
     },
     "registration": {
-      "name": "Registration Filings",
+      "name": "Registration Filings Manager",
       "dollars": 79,
       "cents": 7900,
       "display": "$79",
       "stripePriceId": "registration_standalone"
     },
     "ropa": {
-      "name": "RoPA Builder",
+      "name": "Record of Processing Activities (RoPA)",
       "dollars": 49,
       "cents": 4900,
       "display": "Free (annual) · $49/generation ($39 additional for annual)",
       "stripePriceId": "ropa_paid_generation"
     },
     "usNotice": {
-      "name": "US Privacy Notice Builder",
+      "name": "US Privacy Notice",
       "dollars": 0,
       "cents": 0,
       "display": "Included with subscription",
       "stripePriceId": null
     },
     "us_notice": {
-      "name": "US Privacy Notice Builder",
+      "name": "US Privacy Notice",
       "dollars": 0,
       "cents": 0,
       "display": "Included with subscription",

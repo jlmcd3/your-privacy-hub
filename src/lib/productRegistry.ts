@@ -214,7 +214,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
   },
   {
     slug: "ropa",
-    name: "RoPA Builder",
+    name: "Record of Processing Activities (RoPA)",
     route: "/ropa-builder",
     shortPitch:
       "Build and maintain your GDPR Article 30 Record of Processing Activities — included free with any active subscription.",
@@ -230,7 +230,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
   },
   {
     slug: "us-notice",
-    name: "US Privacy Notice Builder",
+    name: "US Privacy Notice",
     route: "/us-notice-builder",
     shortPitch:
       "Generate a CCPA/CPRA-compliant US privacy notice tailored to each state where you do business.",
@@ -246,7 +246,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
   },
   {
     slug: "eu-global-notice",
-    name: "EU & Global Privacy Notice Builder",
+    name: "EU / Global Privacy Notice",
     route: "/eu-global-notice-builder",
     shortPitch:
       "GDPR- and global-aligned privacy notice with cookie disclosures, legal basis tables and data-subject rights wording.",

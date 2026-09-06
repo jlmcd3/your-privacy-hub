@@ -118,7 +118,7 @@ export default function EUNoticeFrameworks() {
 
   if (verifying || loading) {
     return (
-      <EUNoticeShell title="Frameworks — EU & Global Notice Builder" heading="Pick your frameworks" step="frameworks" sessionId={sessionId}>
+      <EUNoticeShell title="Frameworks — EU / Global Privacy Notice" heading="Pick your frameworks" step="frameworks" sessionId={sessionId}>
         <Skeleton className="h-32 w-full mb-4" />
         <Skeleton className="h-48 w-full" />
       </EUNoticeShell>
@@ -126,7 +126,7 @@ export default function EUNoticeFrameworks() {
   }
 
   return (
-    <EUNoticeShell title="Frameworks — EU & Global Notice Builder" heading="Which frameworks apply to you?" step="frameworks" sessionId={sessionId}>
+    <EUNoticeShell title="Frameworks — EU / Global Privacy Notice" heading="Which frameworks apply to you?" step="frameworks" sessionId={sessionId}>
       <p className="text-muted-foreground text-base mb-6 max-w-2xl">
         Select every privacy framework you need to comply with. We'll generate a separate notice for each, plus an optional combined international notice.
       </p>

@@ -178,14 +178,14 @@ export default function HealthDataPrivacyPage() {
           heading: "Use this in your workflow",
           items: [
             { label: "Incident-Response Playbook", href: "/ir-playbook", description: "HIPAA §§ 164.404/408 + FTC HBNR breach runbook wired to your stack." },
-            { label: "EU & Global Notice Builder", href: "/eu-global-notice-builder", description: "Privacy notice with health-data disclosures for MHMDA and analogues." },
+            { label: "EU / Global Privacy Notice", href: "/eu-global-notice-builder", description: "Privacy notice with health-data disclosures for MHMDA and analogues." },
             { label: "Weekly Enforcement Intelligence", href: "/subscribe", description: "Every material HHS-OCR and FTC health-data action, curated weekly." },
           ],
         }}
 
         pageSynthesisKey="health__page"
         topToolCta={{
-          toolName: "DPIA Builder",
+          toolName: "Data Protection Impact Assessment (DPIA)",
           toolDescription:
             "Structured DPIA for high-risk health-data processing — HIPAA overlap, FTC Health Breach Rule, and state consumer-health regimes.",
           href: "/dpia-framework",

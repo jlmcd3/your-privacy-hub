@@ -23,12 +23,12 @@ const ASSESSMENTS: Product[] = [
     href: "/li-assessment",
   },
   {
-    title: "DPIA Builder (DPIA)",
+    title: "Data Protection Impact Assessment (DPIA) (DPIA)",
     blurb: "Article 35-aligned DPIA with necessity and proportionality analysis — annotated with supervisory authority decisions.",
     href: "/dpia-framework",
   },
   {
-    title: "Biometric Privacy Compliance Assessment",
+    title: "Biometric Compliance Assessment",
     blurb: "Pressure-test biometric processing against BIPA, GDPR Art. 9, and emerging state statutes — priority actions backed by cited enforcement decisions.",
     href: "/biometric-checker",
   },
@@ -71,7 +71,7 @@ const DOCUMENTS: Product[] = [
     href: "/ir-playbook",
   },
   {
-    title: "RoPA Builder (Article 30)",
+    title: "Record of Processing Activities (RoPA) (Article 30)",
     blurb: "Build and maintain your Article 30 Record of Processing Activities — calibrated to your platforms and jurisdictions.",
     href: ({ hasToolAccess }) => (hasToolAccess ? "/ropa" : "/ropa-builder"),
   },

@@ -128,7 +128,7 @@ export function BiometricDecisionChecklist() {
               to="/biometric-checker"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent text-white text-sm font-semibold hover:opacity-90 no-underline"
             >
-              Run the Biometric Compliance Check →
+              Run the Biometric Compliance Assessment →
             </Link>
             <button
               onClick={() => setAnswers({})}

@@ -55,8 +55,8 @@ const comparisonRows: ComparisonRow[] = [
   { feature: "IR Playbook (Convenience)", free: false, intel: `${PRICING.tools.ir_playbook.display} per playbook`, platform: "Included" },
   { feature: "Biometric Privacy Checker (Smart Tool)", free: false, intel: `${PRICING.tools.biometric.display} per assessment`, platform: "Included" },
   { feature: "Records of Processing (RoPA), subscriber-only", free: "—", intel: "Free on annual (1 update/yr, then $39) · $49/generation monthly", platform: "Free on annual (1 update/yr, then $39) · $49/generation monthly" },
-  { feature: "US Privacy Notice Builder, subscriber-only", free: "—", intel: "Included", platform: "Included" },
-  { feature: "EU & Global Privacy Notice Builder, subscriber-only", free: "—", intel: "Included", platform: "Included" },
+  { feature: "US Privacy Notice, subscriber-only", free: "—", intel: "Included", platform: "Included" },
+  { feature: "EU / Global Privacy Notice, subscriber-only", free: "—", intel: "Included", platform: "Included" },
   { feature: "Registration Manager (Convenience)", free: false, intel: T.registration.display, platform: T.registration.display },
   { feature: "Free Smart Tool runs per year (Governance, LIA, or DPIA)", free: false, intel: "1 / year (annual only)", platform: "3 / year (annual only)" },
 
@@ -325,7 +325,7 @@ const Subscribe = () => {
             to="/registration-manager"
             className="text-brand-navy font-semibold underline underline-offset-2 hover:text-brand-ocean"
           >
-            Try Registration Filings →
+            Try Registration Filings Manager →
           </Link>{" "}
           <span className="text-brand-navy/70">({T.registration.display} per filing).</span>
         </div>

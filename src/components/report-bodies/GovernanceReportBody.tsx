@@ -209,7 +209,7 @@ export default function GovernanceReportBody({ report = {}, organizationName, sa
           </ul>
           <Button asChild>
             <Link to={sampleMode || !assessmentId ? "/dpia-framework" : `/dpia-framework?source=${assessmentId}`}>
-              Open DPIA Builder for {report.dpia_scope[0]?.processing_activity || report.dpia_scope[0]?.name} →
+              Open Data Protection Impact Assessment (DPIA) for {report.dpia_scope[0]?.processing_activity || report.dpia_scope[0]?.name} →
             </Link>
           </Button>
         </section>

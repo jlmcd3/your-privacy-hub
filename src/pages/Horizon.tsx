@@ -273,7 +273,7 @@ export default function Horizon() {
           <div className="flex items-center gap-3 min-w-0">
             <span className="text-[11px] font-bold uppercase tracking-widest text-amber-800">Act on signals</span>
             <span className="text-sm text-slate truncate">
-              <span className="font-semibold text-brand-navy">Your Registration Filings</span>
+              <span className="font-semibold text-brand-navy">Your Registration Filings Manager</span>
               <span className="text-brand-mist"> — Get ahead of upcoming filing & DPO obligations</span>
             </span>
           </div>

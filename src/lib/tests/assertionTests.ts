@@ -562,7 +562,7 @@ export const ROPA_TEST_FIXTURE = ROPA_VARIANTS[0];
 
 export const ROPA_TEST: AssertionTest = {
   toolId: "ropa",
-  toolName: "RoPA Builder",
+  toolName: "Record of Processing Activities (RoPA)",
   edgeFunction: "generate-ropa-document",
   testInput: ROPA_TEST_FIXTURE as unknown as Record<string, unknown>,
   expectedSeconds: 45,

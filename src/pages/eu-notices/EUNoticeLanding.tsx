@@ -30,7 +30,7 @@ export default function EUNoticeLanding() {
       <Navbar />
       <DashboardSubnav />
       <Helmet>
-        <title>EU & Global Privacy Notice Builder | EndUserPrivacy</title>
+        <title>EU / Global Privacy Notice | EndUserPrivacy</title>
         <meta name="description" content={`One guided intake. Privacy notices for GDPR, UK GDPR and ${EU_NOTICE_FRAMEWORK_COUNT - 2}+ more global frameworks, with jurisdiction-specific disclosures built in.`} />
         <link rel="canonical" href="https://enduserprivacy.com/eu-global-notice-builder" />
       </Helmet>
@@ -39,7 +39,7 @@ export default function EUNoticeLanding() {
       <ProductHero
         geography="global"
         eyebrowLabel={<><Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("eu_notice")}</>}
-        title="EU & Global Privacy Notice Builder"
+        title="EU / Global Privacy Notice"
         showIntakeCta={false}
         valueProposition={`One guided intake. Privacy notices for GDPR, UK GDPR, and ${EU_NOTICE_FRAMEWORK_COUNT - 2}+ global frameworks — with jurisdiction-specific disclosures built in.`}
         citationLine="GDPR Arts. 13–14 and equivalent notice requirements mapped across every supported framework"

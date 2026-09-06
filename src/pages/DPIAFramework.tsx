@@ -654,7 +654,7 @@ const DPIAFramework = () => {
 
         <IntakeMasthead
           kicker="Data Protection Impact Assessment · GDPR Art. 35"
-          title="DPIA Builder"
+          title="Data Protection Impact Assessment (DPIA)"
           subjectLabel={meter ? "Assessment subject · locked" : undefined}
           subjectValue={
             meter
@@ -1232,7 +1232,7 @@ const DPIAFramework = () => {
         />
         <ToolSamplePreview
           toolType="dpia"
-          toolName="DPIA Builder"
+          toolName="Data Protection Impact Assessment (DPIA)"
           price={pricing.price}
           standalonePrice={pricing.standalonePrice}
           subscriberPrice={pricing.subscriberPrice}

@@ -126,7 +126,7 @@ export default function NoticeBuilderLanding() {
                 <CardContent className="p-6 space-y-4">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl"><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>
-                    <h3 className="font-serif text-xl">US Privacy Notice Builder</h3>
+                    <h3 className="font-serif text-xl">US Privacy Notice</h3>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     CCPA/CPRA, Virginia CDPA, Texas TDPSA, Maryland MODPA, Florida FDBR
@@ -161,7 +161,7 @@ export default function NoticeBuilderLanding() {
                 <CardContent className="p-6 space-y-4">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl"><Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>
-                    <h3 className="font-serif text-xl">EU & Global Notice Builder</h3>
+                    <h3 className="font-serif text-xl">EU / Global Privacy Notice</h3>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     GDPR-aligned notices for the EU/EEA, UK, Switzerland and the world's

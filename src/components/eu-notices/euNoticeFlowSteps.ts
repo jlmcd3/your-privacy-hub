@@ -1,4 +1,4 @@
-// Single source of truth for the EU & Global Notice Builder flow.
+// Single source of truth for the EU / Global Privacy Notice flow.
 // Shown on: mode · frameworks · questions · review · documents (and refresh).
 // NOT shown on: /eu-notices (home) or /eu-global-notice-builder (landing).
 

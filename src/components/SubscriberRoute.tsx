@@ -9,7 +9,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
  * redirected to /subscribe with a contextual message.
  *
  * Used for tools that are bundled with subscriptions and never sold
- * standalone (RoPA Builder, US Privacy Notice Builder, EU/Global Privacy
+ * standalone (Record of Processing Activities (RoPA), US Privacy Notice, EU/Global Privacy
  * Notice Builder).
  */
 export default function SubscriberRoute({ children }: { children: React.ReactNode }) {

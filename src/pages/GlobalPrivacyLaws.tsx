@@ -46,7 +46,7 @@ const GlobalPrivacyLaws = () => (
     merchandisingRail={{
       heading: "Use this in your workflow",
       items: [
-        { label: "EU & Global Notice Builder", href: "/eu-global-notice-builder", description: "Full international privacy notice with multi-jurisdiction overlays." },
+        { label: "EU / Global Privacy Notice", href: "/eu-global-notice-builder", description: "Full international privacy notice with multi-jurisdiction overlays." },
         { label: "Legitimate-Interest Assessment", href: "/li-assessment", description: "GDPR-shaped LIA that ports cleanly to Brazilian LGPD and UK GDPR." },
         { label: "DPIA Framework", href: "/dpia-framework", description: "High-risk processing assessment aligned to Art. 35 and its analogues." },
       ],

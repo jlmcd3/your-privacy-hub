@@ -1351,7 +1351,7 @@ Deno.serve(async (req: Request) => {
   }
 
   // Require payment confirmation before generating — unless the user has
-  // an active subscription (monthly or annual). RoPA Builder is included
+  // an active subscription (monthly or annual). Record of Processing Activities (RoPA) is included
   // free with any active subscription. Skipped for internal callers.
   if (!isInternal && !session.payment_confirmed) {
     const { data: profile } = await admin

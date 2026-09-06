@@ -310,12 +310,12 @@ export default function BiometricChecker() {
 
   return (
     <WorkspaceLayout className="bg-paper">
-      <Helmet><title>Biometric Privacy Compliance Assessment | End User Privacy</title>
+      <Helmet><title>Biometric Compliance Assessment | End User Privacy</title>
         <meta name="description" content="Per-jurisdiction biometric privacy compliance covering BIPA, CUBI, MHMD, GDPR Article 9 and other regimes — with cited enforcement decisions behind every priority action." /></Helmet>
       <ProductHero
         geography="global"
         eyebrowLabel={<><Dna aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("biometric")}</>}
-        title="Biometric Privacy Compliance Assessment"
+        title="Biometric Compliance Assessment"
         valueProposition="One intake. A jurisdiction-by-jurisdiction compliance map for your biometric processing, with prioritized actions and cited authority."
         citationLine="BIPA · CUBI · MHMD · GDPR Art. 9 · Statute- and enforcement-cited findings"
         showIntakeCta={false}
@@ -408,7 +408,7 @@ export default function BiometricChecker() {
           <>
           <IntakeMasthead
             kicker="Biometric Privacy · BIPA · CUBI · MHMD · GDPR Art. 9"
-            title="Biometric Privacy Compliance Assessment"
+            title="Biometric Compliance Assessment"
             subjectLabel={meter ? "Assessment subject · locked" : undefined}
             subjectValue={
               meter && typeof meter.lockedFields?.orgName === "string"

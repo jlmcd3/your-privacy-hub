@@ -72,7 +72,7 @@ const NAV_HIERARCHY = [
     items: [
       { label: "GDPR Accountability Assessment", href: "/governance-assessment", badge: "PRO" },
       { label: "Legitimate Interests Assessment", href: "/li-assessment", badge: "PRO" },
-      { label: "DPIA Builder (DPIA)", href: "/dpia-framework", badge: "PRO" },
+      { label: "Data Protection Impact Assessment (DPIA) (DPIA)", href: "/dpia-framework", badge: "PRO" },
       { label: "Custom DPA", href: "/dpa-generator", badge: "PRO" },
       { label: "Incident Response Playbook", href: "/ir-playbook", badge: "PRO" },
       { label: "Biometric Compliance Assessment", href: "/biometric-checker", badge: "PRO" },

@@ -62,7 +62,7 @@ const TOOLS: Tool[] = [
   },
   {
     icon: FileSearch,
-    title: "DPIA Builder (DPIA)",
+    title: "Data Protection Impact Assessment (DPIA) (DPIA)",
     blurb: "Article 35-aligned DPIA — risk items annotated with cited supervisory authority decisions.",
     price: T.dpia.display,
     cta: "Build DPIA",
@@ -78,7 +78,7 @@ const TOOLS: Tool[] = [
   },
   {
     icon: Fingerprint,
-    title: "Biometric Compliance Check",
+    title: "Biometric Compliance Assessment",
     blurb: "Pressure-test biometric processing against BIPA, GDPR Art. 9, and emerging state statutes — priority actions cited to enforcement actions.",
     price: includedSuffix(T.biometric.display),
     cta: "Check compliance",
@@ -94,7 +94,7 @@ const TOOLS: Tool[] = [
   },
   {
     icon: Database,
-    title: "RoPA Builder",
+    title: "Record of Processing Activities (RoPA)",
     blurb: "Build and maintain your Article 30 Record of Processing Activities — calibrated to your platforms and jurisdictions.",
     price: "Free on annual plans · $49 per build on monthly",
     cta: "Build RoPA",

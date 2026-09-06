@@ -191,12 +191,12 @@ export default function USNoticeHome() {
   const heading =
     isMultiClient && clientName
       ? `US Privacy Notices — ${clientName}`
-      : "US Privacy Notice Builder";
+      : "US Privacy Notice";
 
   if (loading) {
     return (
       <USNoticeShell
-        title="US Privacy Notice Builder — End User Privacy"
+        title="US Privacy Notice — End User Privacy"
         heading={heading}
       >
         <Skeleton className="h-32 w-full mb-4" />
@@ -207,7 +207,7 @@ export default function USNoticeHome() {
 
   return (
     <USNoticeShell
-      title="US Privacy Notice Builder — End User Privacy"
+      title="US Privacy Notice — End User Privacy"
       heading={heading}
       chip=" US State Notice Builder"
       description="Generate state-specific privacy notices that match your data practices and the laws that apply to you — California (CCPA/CPRA), the Virginia model (16 states), Maryland (MODPA), and Florida (FDBR) — in one guided session, with version control and refresh built in."

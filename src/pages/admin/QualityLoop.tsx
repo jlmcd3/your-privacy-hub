@@ -27,7 +27,7 @@ const TOOLS = [
   { id: "cppa-risk",         label: "CPPA Risk Assessment",      slug: "cppa_risk" },
   { id: "cppa-cyber",        label: "CPPA Cybersecurity Audit",  slug: "cppa_cyber" },
   { id: "lia",               label: "LIA Tool",                  slug: "li_assessment" },
-  { id: "dpia",              label: "DPIA Builder", slug: "dpia" },
+  { id: "dpia",              label: "Data Protection Impact Assessment (DPIA)", slug: "dpia" },
   { id: "governance",        label: "Accountability Assessment",     slug: "governance" },
   { id: "dpa-generator",     label: "DPA Generator",             slug: "dpa" },
   { id: "ir-playbook",       label: "IR Playbook",               slug: "ir_playbook" },

@@ -295,7 +295,7 @@ export default function RopaActivity() {
 
   if (!activityReady || !currentActivity) {
     return (
-      <RopaShell title="Activity — RoPA Builder" heading="Loading activity…">
+      <RopaShell title="Activity — Record of Processing Activities (RoPA)" heading="Loading activity…">
         <p className="text-muted-foreground text-sm">Loading…</p>
       </RopaShell>
     );
@@ -304,7 +304,7 @@ export default function RopaActivity() {
   if (visibleQuestions.length === 0) {
     return (
       <RopaShell
-        title={`${currentActivity.display_name} — RoPA Builder`}
+        title={`${currentActivity.display_name} — Record of Processing Activities (RoPA)`}
         heading={currentActivity.display_name}
       >
         <p className="text-muted-foreground">No questions configured.</p>
@@ -326,7 +326,7 @@ export default function RopaActivity() {
 
   return (
     <RopaShell
-      title={`${currentActivity.display_name} — RoPA Builder`}
+      title={`${currentActivity.display_name} — Record of Processing Activities (RoPA)`}
       heading=""
     >
       {(() => {

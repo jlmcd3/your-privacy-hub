@@ -904,7 +904,7 @@ const App = () => (
             <Route path="/horizon" element={<Horizon />} />
             {/* Combined Notices & RoPA hub */}
             <Route path="/notices-ropa" element={<ProtectedRoute><NoticesRopaHub /></ProtectedRoute>} />
-            {/* RoPA Builder */}
+            {/* Record of Processing Activities (RoPA) */}
             <Route path="/ropa" element={<SubscriberRoute><RopaHome /></SubscriberRoute>} />
             <Route path="/ropa/setup" element={<SubscriberRoute><RopaSetup /></SubscriberRoute>} />
             <Route path="/ropa/activities" element={<SubscriberRoute><RopaActivities /></SubscriberRoute>} />
@@ -932,7 +932,7 @@ const App = () => (
             <Route path="/us-notices/review" element={<SubscriberRoute><USNoticeReview /></SubscriberRoute>} />
             <Route path="/us-notices/refresh/:sessionId" element={<SubscriberRoute><USNoticeRefresh /></SubscriberRoute>} />
             <Route path="/us-notice-builder" element={<USNoticeLanding />} />
-            {/* EU & Global Notice Builder */}
+            {/* EU / Global Privacy Notice */}
             <Route path="/eu-notices" element={<SubscriberRoute><EUNoticeHome /></SubscriberRoute>} />
             <Route path="/eu-notices/mode" element={<SubscriberRoute><EUNoticeMode /></SubscriberRoute>} />
             <Route path="/eu-notices/frameworks/:sessionId" element={<SubscriberRoute><EUNoticeFrameworks /></SubscriberRoute>} />

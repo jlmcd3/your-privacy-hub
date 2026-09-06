@@ -42,8 +42,8 @@ const DISPLAY_NAMES: Record<string, string> = {
   li_assessment:                "Legitimate Interests Assessment",
   governance_assessment:        "GDPR Accountability Assessment",
   dpia_framework:               "Data Protection Impact Assessment",
-  ropa_initial:                 "RoPA Builder — Initial Generation",
-  ropa_refresh:                 "RoPA Builder — Annual Refresh",
+  ropa_initial:                 "Record of Processing Activities (RoPA) — Initial Generation",
+  ropa_refresh:                 "Record of Processing Activities (RoPA) — Annual Refresh",
   us_notice_single:             "US Privacy Notice — Single State",
   us_notice_all_states:         "US Privacy Notice — All States",
   us_notice_refresh:            "US Notice — Annual Refresh",
@@ -57,7 +57,7 @@ const DISPLAY_NAMES: Record<string, string> = {
   cppa_admt:                    "ADMT Compliance Assessment — Module 3",
   dpa_generator:                "Your Custom DPA",
   ir_playbook:                  "Incident Response Playbook",
-  biometric_checker:            "Biometric Privacy Compliance Assessment",
+  biometric_checker:            "Biometric Compliance Assessment",
 };
 
 export type ToolSlug = keyof typeof SLUG_TO_TOOL_KEY;

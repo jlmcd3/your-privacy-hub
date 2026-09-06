@@ -58,7 +58,7 @@ export default function RegistrationLanding() {
       <Navbar />
       <DashboardSubnav />
       <Helmet>
-        <title>Privacy Registration Manager | End User Privacy</title>
+        <title>Registration Filings Manager | End User Privacy</title>
         <meta
           name="description"
           content="Generate DPO appointment letters, RoPA templates, EU AI Act registration documents, and Article 27 representative letters — tailored to your jurisdictions. You file; we draft and track."
@@ -74,7 +74,7 @@ export default function RegistrationLanding() {
       <ProductHero
         geography="us"
         eyebrowLabel={<><Folder aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("registration")}</>}
-        title="Privacy Registration Manager"
+        title="Registration Filings Manager"
         valueProposition={`Find where you need to register for free. Generate authority-specific filing packs only when you need them — ${formatPrice("registration_standalone")} per filing.`}
         citationLine={`Free scope assessment · No card required · ${formatPrice("registration_standalone")} only when you generate a filing`}
         showIntakeCta={false}

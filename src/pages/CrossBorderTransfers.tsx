@@ -148,7 +148,7 @@ export default function CrossBorderTransfersPage() {
 
         pageSynthesisKey="crossborder__page"
         topToolCta={{
-          toolName: "Custom DPA Generator",
+          toolName: "Custom DPA",
           toolDescription:
             "Generate an Article 28-compliant DPA with the SCC modules and supplementary measures your transfer profile requires.",
           href: "/dpa-generator",

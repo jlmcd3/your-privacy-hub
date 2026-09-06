@@ -66,7 +66,7 @@ export default function USNoticeLanding() {
   const userType = user ? "authenticated" : "anonymous";
   useEffect(() => {
     document.title =
-      "US Privacy Notice Builder | End User Privacy";
+      "US Privacy Notice | End User Privacy";
     const meta =
       document.querySelector('meta[name="description"]') ||
       Object.assign(document.createElement("meta"), { name: "description" });
@@ -84,7 +84,7 @@ export default function USNoticeLanding() {
       <ProductHero
         geography="us"
         eyebrowLabel={<><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("us_notice")}</>}
-        title="US Privacy Notice Builder"
+        title="US Privacy Notice"
         valueProposition="Generate publish-ready privacy notices for every active U.S. state privacy law in one guided session."
         citationLine="State-specific disclosures mapped to each law's notice requirements"
         showIntakeCta={false}
@@ -335,7 +335,7 @@ export default function USNoticeLanding() {
               One subscription. Every covered US notice.
             </h2>
             <p className="text-muted-foreground mb-8">
-              Unlock the US Privacy Notice Builder with Intelligence or Professional and
+              Unlock the US Privacy Notice with Intelligence or Professional and
               generate notices for all covered states at no per-notice charge.
             </p>
             {hasToolAccess ? (

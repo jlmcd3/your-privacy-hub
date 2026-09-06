@@ -84,11 +84,11 @@ const DRAFT_TOOL_MAP: Record<string, { route: string; labelKey: string }> = {
 
 const TOOL_LABEL: Record<string, string> = {
   li: "Legitimate Interests Assessment",
-  dpia: "DPIA Builder",
+  dpia: "Data Protection Impact Assessment (DPIA)",
   governance: "Accountability Assessment",
   dpa: "Custom DPA",
   ir: "Incident Response Playbook",
-  biometric: "Biometric Compliance Check",
+  biometric: "Biometric Compliance Assessment",
   registration: "Registration Order",
   ropa: "RoPA (Article 30)",
   us_notice: "US Privacy Notice",

@@ -26,7 +26,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 
 const TITLE =
-  "RoPA Builder · Records of Processing | End User Privacy";
+  "Record of Processing Activities (RoPA) · Records of Processing | End User Privacy";
 const META_DESCRIPTION =
   "Build a GDPR-compliant Records of Processing Activities in under an hour. Covers 25+ jurisdictions including EU GDPR, UK GDPR, LGPD, and CCPA.";
 
@@ -132,7 +132,7 @@ export default function RopaLanding() {
       <ProductHero
         geography="gdpr"
         eyebrowLabel={<><BookOpen aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("ropa")}</>}
-        title="Record of Processing Activities (RoPA) Builder"
+        title="Record of Processing Activities (RoPA)"
         valueProposition="Build and maintain an Article 30 RoPA across 25+ privacy frameworks with guided questions, reusable records, and an annual refresh."
         showIntakeCta={false}
       >
@@ -335,9 +335,9 @@ export default function RopaLanding() {
           <Button asChild size="lg">
             <Link
               to={isAnnual ? "/ropa" : "/subscribe"}
-              onClick={() => { fireConversion("subscribe_cta_click", { cta_label: isAnnual ? "Open RoPA Builder" : "Choose an annual plan", cta_position: "article-footer" }); fireConversion("tool_start_click", { tool_slug: "ropa", page_path: "/ropa-builder", user_type: userType }); }}
+              onClick={() => { fireConversion("subscribe_cta_click", { cta_label: isAnnual ? "Open Record of Processing Activities (RoPA)" : "Choose an annual plan", cta_position: "article-footer" }); fireConversion("tool_start_click", { tool_slug: "ropa", page_path: "/ropa-builder", user_type: userType }); }}
             >
-              {isAnnual ? "Open RoPA Builder" : "Choose an annual plan"} <ArrowRight className="ml-1.5 h-4 w-4" />
+              {isAnnual ? "Open Record of Processing Activities (RoPA)" : "Choose an annual plan"} <ArrowRight className="ml-1.5 h-4 w-4" />
             </Link>
           </Button>
 

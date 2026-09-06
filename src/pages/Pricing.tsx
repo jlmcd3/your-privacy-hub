@@ -44,7 +44,7 @@ const SMART_TOOL_ROWS: SmartToolRow[] = [
     topupKey: "li_topup_v1",
   },
   {
-    tool: "DPIA Builder (DPIA)",
+    tool: "Data Protection Impact Assessment (DPIA) (DPIA)",
     standaloneKey: "dpia_standalone_v2",
     subscriberKey: "dpia_subscriber_v2",
     annualCredit: "1 credit / yr",
@@ -87,21 +87,21 @@ interface IncludedRow {
 }
 
 const INCLUDED_ROWS: IncludedRow[] = [
-  { tool: "Custom DPA Generator", standalone: PRICING.tools.dpa.display, access: "Free with Professional plans · Intelligence pays standalone" },
+  { tool: "Custom DPA", standalone: PRICING.tools.dpa.display, access: "Free with Professional plans · Intelligence pays standalone" },
   {
     tool: "Incident Response Playbook",
     standalone: PRICING.tools.ir_playbook.display,
     access: "Free with Professional plans · Intelligence pays standalone",
   },
   {
-    tool: "Biometric Compliance Check",
+    tool: "Biometric Compliance Assessment",
     standalone: PRICING.tools.biometric.display,
     access: "Free with Professional plans · Intelligence pays standalone",
   },
-  { tool: "RoPA Builder — Initial Generation", standalone: "—", access: "Annual plans: free · Monthly plans: $49" },
-  { tool: "RoPA Builder — Update", standalone: "—", access: "Annual plans: 1 free update/yr, then $39 · Monthly plans: $49" },
-  { tool: "US Privacy Notice Builder", standalone: "—", access: "Subscriber-only (free)" },
-  { tool: "EU & Global Privacy Notice Builder", standalone: "—", access: "Subscriber-only (free)" },
+  { tool: "Record of Processing Activities (RoPA) — Initial Generation", standalone: "—", access: "Annual plans: free · Monthly plans: $49" },
+  { tool: "Record of Processing Activities (RoPA) — Update", standalone: "—", access: "Annual plans: 1 free update/yr, then $39 · Monthly plans: $49" },
+  { tool: "US Privacy Notice", standalone: "—", access: "Subscriber-only (free)" },
+  { tool: "EU / Global Privacy Notice", standalone: "—", access: "Subscriber-only (free)" },
   { tool: "CPPA Scope Checker", standalone: "Free", access: "Free (no account required)" },
 ];
 
