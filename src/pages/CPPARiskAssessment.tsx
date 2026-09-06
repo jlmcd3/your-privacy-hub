@@ -1226,6 +1226,24 @@ export default function CPPARiskAssessment() {
     assessmentReviewersApprovers, approverAuthorityConfirmed, approverAuthorityBasis,
     finalizationFollowUpResolved,
     rk3d,
+    // QA round two (RA-A-05, High, 2026-09-06) — the ITEM 305 / UPGRADE-2
+    // analytic deliverables were never written to the draft, so Save/Resume
+    // silently dropped every § 7152(a)(2)/(4)/(5)/(6) narrative while leaving
+    // the Yes gates and magnitude-basis selections that depend on them
+    // selected — an assessment asserting benefits whose supporting evidence
+    // had vanished. The § 7152(a)(8)-(9) provider and approver fields were
+    // lost the same way, which is how a recorded approver could disappear
+    // between drafting and generation. Every canonical answer field in this
+    // component is now in the draft; the only state left out is UI state
+    // (open/step/validationError/authGateOpen/checkoutOpen/coachOpen/
+    // coachSeen/finalizationOpen/activeRiskRailKey), and `step` travels
+    // separately as currentStage.
+    a2NecessitySet,
+    a4BenefitBusiness, a4BenefitConsumer, a4BenefitOtherStakeholders, a4BenefitPublic,
+    a4BenefitBusinessFact, a4BenefitConsumerFact, a4BenefitOtherStakeholdersFact, a4BenefitPublicFact,
+    a5HarmPathways, a6Safeguards,
+    a8InformationProviders, a9ApproverName, a9ApproverPosition, a9ApprovalDate,
+    assertions,
 
   }), [
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q15dHrCarveout, q18, q19, q20,
@@ -1250,6 +1268,12 @@ export default function CPPARiskAssessment() {
     assessmentReviewersApprovers, approverAuthorityConfirmed, approverAuthorityBasis,
     finalizationFollowUpResolved,
     rk3d,
+    a2NecessitySet,
+    a4BenefitBusiness, a4BenefitConsumer, a4BenefitOtherStakeholders, a4BenefitPublic,
+    a4BenefitBusinessFact, a4BenefitConsumerFact, a4BenefitOtherStakeholdersFact, a4BenefitPublicFact,
+    a5HarmPathways, a6Safeguards,
+    a8InformationProviders, a9ApproverName, a9ApproverPosition, a9ApprovalDate,
+    assertions,
 
   ]);
   const INITIAL_DRAFT_JSON = useMemo(() => JSON.stringify({
@@ -1482,6 +1506,61 @@ export default function CPPARiskAssessment() {
     // RK3-D (doc 33 D-L3) — grouped operand object; old drafts without it, or
     // with a partial shape, merge over the empty defaults.
     if (d.rk3d && typeof d.rk3d === "object") setRk3d({ ...RK3D_EMPTY, ...d.rk3d });
+    // QA round two (RA-A-05, High) — ITEM 305 / UPGRADE-2 analytic
+    // deliverables and the § 7152(a)(8)-(9) provider/approver fields.
+    // Absent keys are legal in drafts saved before this fix.
+    if (Array.isArray(d.a2NecessitySet) && d.a2NecessitySet.length > 0) {
+      setA2NecessitySet(
+        d.a2NecessitySet.map((r: any) => ({
+          element: typeof r?.element === "string" ? r.element : "",
+          necessity: typeof r?.necessity === "string" ? r.necessity : "",
+          justification: typeof r?.justification === "string" ? r.justification : "",
+        })),
+      );
+    }
+    if (typeof d.a4BenefitBusiness === "string") setA4BenefitBusiness(d.a4BenefitBusiness);
+    if (typeof d.a4BenefitConsumer === "string") setA4BenefitConsumer(d.a4BenefitConsumer);
+    if (typeof d.a4BenefitOtherStakeholders === "string") setA4BenefitOtherStakeholders(d.a4BenefitOtherStakeholders);
+    if (typeof d.a4BenefitPublic === "string") setA4BenefitPublic(d.a4BenefitPublic);
+    if (typeof d.a4BenefitBusinessFact === "string") setA4BenefitBusinessFact(d.a4BenefitBusinessFact);
+    if (typeof d.a4BenefitConsumerFact === "string") setA4BenefitConsumerFact(d.a4BenefitConsumerFact);
+    if (typeof d.a4BenefitOtherStakeholdersFact === "string") setA4BenefitOtherStakeholdersFact(d.a4BenefitOtherStakeholdersFact);
+    if (typeof d.a4BenefitPublicFact === "string") setA4BenefitPublicFact(d.a4BenefitPublicFact);
+    if (Array.isArray(d.a5HarmPathways) && d.a5HarmPathways.length > 0) {
+      setA5HarmPathways(
+        d.a5HarmPathways.map((r: any) => ({
+          harm: typeof r?.harm === "string" ? r.harm : "",
+          data_involved: typeof r?.data_involved === "string" ? r.data_involved : "",
+          actor: typeof r?.actor === "string" ? r.actor : "",
+          source: typeof r?.source === "string" ? r.source : "",
+          cause: typeof r?.cause === "string" ? r.cause : "",
+          likelihood: typeof r?.likelihood === "string" ? r.likelihood : "",
+          severity: typeof r?.severity === "string" ? r.severity : "",
+        })),
+      );
+    }
+    if (Array.isArray(d.a6Safeguards) && d.a6Safeguards.length > 0) {
+      setA6Safeguards(
+        d.a6Safeguards.map((r: any) => ({
+          harm: typeof r?.harm === "string" ? r.harm : "",
+          safeguard: typeof r?.safeguard === "string" ? r.safeguard : "",
+          safeguard_status: typeof r?.safeguard_status === "string" ? r.safeguard_status : "",
+          residual: typeof r?.residual === "string" ? r.residual : "",
+          risk_pathway_ids: Array.isArray(r?.risk_pathway_ids)
+            ? r.risk_pathway_ids.filter((x: unknown) => typeof x === "string")
+            : [],
+          effectiveness_basis: typeof r?.effectiveness_basis === "string" ? r.effectiveness_basis : "",
+          planned_timeline: typeof r?.planned_timeline === "string" ? r.planned_timeline : "",
+        })),
+      );
+    }
+    if (typeof d.a8InformationProviders === "string") setA8InformationProviders(d.a8InformationProviders);
+    if (typeof d.a9ApproverName === "string") setA9ApproverName(d.a9ApproverName);
+    if (typeof d.a9ApproverPosition === "string") setA9ApproverPosition(d.a9ApproverPosition);
+    if (typeof d.a9ApprovalDate === "string") setA9ApprovalDate(d.a9ApprovalDate);
+    if (d.assertions && typeof d.assertions === "object" && !Array.isArray(d.assertions)) {
+      setAssertions(d.assertions as AssertionMap);
+    }
     if (typeof restoreStage === "number") setStep(restoreStage);
     dismissDraft();
   };
