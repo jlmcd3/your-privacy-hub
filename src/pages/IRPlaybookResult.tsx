@@ -25,6 +25,7 @@ import WordConversionPromptButton from "@/components/WordConversionPromptButton"
 import { AnnotationCallout } from "@/components/AnnotationCallout";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import { useGenerationStatus } from "@/hooks/useGenerationStatus";
+import { IR_TERMINAL_STATUSES, needsIncidentIntake } from "@/lib/irFulfilment";
 import GenerationStalledCard from "@/components/GenerationStalledCard";
 import { useToolCompletedOnce } from "@/hooks/useToolCompletedOnce";
 // ITEM 369-IR — two-artifact model + authority exhibit.
@@ -35,7 +36,9 @@ import AuthorityExhibit from "@/components/report/AuthorityExhibit";
 import { SkeletonDocumentView, isSkeletonDocument } from "@/components/reports/SkeletonDocumentView";
 
 
-const TERMINAL_STATUSES = new Set(["complete", "error", "failed", "refunded", "failed_resolved"]);
+// QA round two (IR-A-01, 2026-09-06) — the terminal set and the
+// "paid but no incident facts" predicate live in src/lib/irFulfilment.ts.
+const TERMINAL_STATUSES = IR_TERMINAL_STATUSES;
 
 export default function IRPlaybookResult() {
   const { id } = useParams();
@@ -52,6 +55,7 @@ export default function IRPlaybookResult() {
   useToolCompletedOnce("ir_playbook", row?.status === "complete" && (!!row?.playbook_text || !!row?.report_data));
 
   const intake = row?.intake_data || {};
+  const needsIntake = needsIncidentIntake(row);
   // SO-7: the assembled byte-pinned skeleton IS the customer document when
   // present; the legacy narrative sections are suppressed behind it.
   const skeletonDoc = isSkeletonDocument((row?.report_data as any)?.skeleton_document)
@@ -79,6 +83,39 @@ export default function IRPlaybookResult() {
             retryHref="/ir-playbook"
             onRefresh={refresh}
           />
+        ) : needsIntake ? (
+          /* QA round two (IR-A-01, Critical) — the paid row has no incident
+             facts. Previously this fell through to ReportShell and rendered
+             "No assessment content available", which read as a lost purchase.
+             The purchase is intact; only the intake is missing. */
+          <div className="bg-card border border-border rounded-2xl p-8">
+            <h1 className="font-display text-brand-navy text-xl mb-2">Your incident details are still needed</h1>
+            <p className="text-slate text-sm">
+              Your purchase is recorded against this playbook, but the incident facts it is written
+              from have not been supplied yet — so there is nothing to show here. Continue to the
+              incident form and this playbook will be generated from your answers. You will not be
+              charged again.
+            </p>
+            <Button asChild className="mt-5">
+              <Link to={`/ir-playbook?assessment=${row.id}`}>Enter incident details</Link>
+            </Button>
+          </div>
+        ) : phase === "failed" ? (
+          /* A genuine generation failure — distinct from the missing-intake
+             case above, and never rendered as an empty report. */
+          <div className="bg-card border border-border rounded-2xl p-8">
+            <h1 className="font-display text-brand-navy text-xl mb-2">This playbook didn't finish generating</h1>
+            <p className="text-slate text-sm">
+              Your purchase is recorded and your answers are saved. The generation run did not
+              complete, so there is no report to show yet.
+              {row.status === "refunded" ? " This purchase has been refunded." : ""}
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Button onClick={() => void refresh()} variant="outline">Check again</Button>
+              <Button asChild><Link to={`/ir-playbook?assessment=${row.id}`}>Review answers and retry</Link></Button>
+              <Button asChild variant="ghost"><Link to="/contact">Contact support</Link></Button>
+            </div>
+          </div>
         ) : phase === "running" || phase === "slow" ? (
           <div className="bg-card border border-border rounded-2xl p-10 text-center" role="status" aria-live="polite">
             <Loader2 className="w-6 h-6 animate-spin text-brand-navy mx-auto mb-3" aria-hidden="true" />

@@ -149,6 +149,11 @@ export default function IRPlaybook() {
   // QA batch 2026-09-05 (IR 02) — an actionable failure message shown above
   // the (still populated) form instead of a dead-end "result" screen.
   const [generationError, setGenerationError] = useState<string | null>(null);
+  // QA round two (IR-A-01, 2026-09-06) — IR is PURCHASE-FIRST: the intake is
+  // only reachable after payment. The paid row id is held here so the intake
+  // fills IN that row instead of orphaning it and inserting a second one.
+  const [paidAssessmentId, setPaidAssessmentId] = useState<string | null>(null);
+  const [justPurchased, setJustPurchased] = useState(false);
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -178,6 +183,35 @@ export default function IRPlaybook() {
     if (pricing.isIncluded === true) setPhase("form");
     else if (params.get("session_id") || params.get("purchased")) setPhase("form");
   }, [pricing.isIncluded, params]);
+
+  // QA round two (IR-A-01) — resume a purchase whose incident intake was never
+  // completed: /ir-playbook?assessment=<id>. The result page links here when it
+  // finds a paid row parked in `awaiting_intake`, so a customer who paid and
+  // walked away is never asked to buy the playbook twice.
+  const resumeAssessmentId = params.get("assessment");
+  useEffect(() => {
+    if (!resumeAssessmentId || !user) return;
+    let cancelled = false;
+    void (async () => {
+      const { data } = await supabase
+        .from("ir_playbooks")
+        .select("id, intake_data, organization_name, status")
+        .eq("id", resumeAssessmentId)
+        .maybeSingle();
+      if (cancelled || !data) return;
+      setPaidAssessmentId(data.id);
+      setPhase("form");
+      const saved = (data.intake_data ?? {}) as Record<string, unknown>;
+      // Only rehydrate a genuinely populated intake; an empty purchase-time
+      // payload must not overwrite the form's own defaults.
+      if (Object.keys(saved).length > 0) {
+        setForm((prev) => ({ ...prev, ...(saved as any) }));
+      } else if (data.organization_name) {
+        setForm((prev) => ({ ...prev, organizationName: data.organization_name as string }));
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [resumeAssessmentId, user]);
 
   const toggle = (key: "dataTypes" | "jurisdictions", v: string) =>
     setForm(f => ({ ...f, [key]: f[key].includes(v) ? f[key].filter(x => x !== v) : [...f[key], v] }));
@@ -241,25 +275,49 @@ export default function IRPlaybook() {
       setPhase("form");
     };
     if (!access.user) { setAuthGateOpen(true); setPhase("form"); return; }
-    const { data: row, error: insErr } = await supabase
-      .from("ir_playbooks")
-      .insert({
-        user_id: access.user.id,
-        client_id: clientId ?? null,
-        organization_name: form.organizationName || null,
-        status: "pending",
-        intake_data: payload,
-        purchased_as_standalone: false,
-        is_subscriber_credit: true,
-        purchase_price_cents: 0,
-      })
-      .select("id")
-      .single();
-    if (insErr || !row) {
-      fail(`We couldn't start the playbook: ${insErr?.message || "the record could not be created"}. Your answers are still here — try again.`);
-      return;
+    // QA round two (IR-A-01) — when the customer reached this form by PAYING,
+    // create-tool-checkout already wrote the row (with an empty intake, because
+    // the form had not been shown yet) and Stripe already stamped its
+    // payment intent. Fill that row in. Inserting a fresh one here orphaned the
+    // purchase and produced a row the entitlement gate rejects for a
+    // non-Professional buyer.
+    let rowId = paidAssessmentId;
+    if (rowId) {
+      const { error: updErr } = await supabase
+        .from("ir_playbooks")
+        .update({
+          organization_name: form.organizationName || null,
+          client_id: clientId ?? null,
+          intake_data: payload,
+          status: "pending",
+        })
+        .eq("id", rowId);
+      if (updErr) {
+        fail(`We couldn't save your incident details: ${updErr.message}. Your answers are still here — try again.`);
+        return;
+      }
+    } else {
+      const { data: row, error: insErr } = await supabase
+        .from("ir_playbooks")
+        .insert({
+          user_id: access.user.id,
+          client_id: clientId ?? null,
+          organization_name: form.organizationName || null,
+          status: "pending",
+          intake_data: payload,
+          purchased_as_standalone: false,
+          is_subscriber_credit: true,
+          purchase_price_cents: 0,
+        })
+        .select("id")
+        .single();
+      if (insErr || !row) {
+        fail(`We couldn't start the playbook: ${insErr?.message || "the record could not be created"}. Your answers are still here — try again.`);
+        return;
+      }
+      rowId = row.id;
     }
-    const { error } = await supabase.functions.invoke("generate-ir-playbook", { body: { assessment_id: row.id } });
+    const { error } = await supabase.functions.invoke("generate-ir-playbook", { body: { assessment_id: rowId } });
     if (error) {
       const status = (error as { context?: { status?: number } }).context?.status;
       fail(
@@ -272,7 +330,11 @@ export default function IRPlaybook() {
     // Backend returns 202 + { id }; result page polls ir_playbooks.status.
     setGenerationError(null);
     void clearDraft();
-    navigate(`/ir-playbook/result/${row.id}?purchased=true&subscriber_free=true`);
+    navigate(
+      paidAssessmentId
+        ? `/ir-playbook/result/${rowId}?purchased=true`
+        : `/ir-playbook/result/${rowId}?purchased=true&subscriber_free=true`,
+    );
   };
 
   const handlePurchase = async () => {
@@ -360,6 +422,21 @@ export default function IRPlaybook() {
           </div>
         ) : phase === "form" ? (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
+            {/* QA round two (IR-A-01) — purchase-first confirmation. The
+                customer has paid; the playbook is generated from the answers
+                below, and this purchase stays open until they are supplied. */}
+            {paidAssessmentId && (
+              <div role="status" className="border-l-4 border-brand-teal bg-brand-cloud p-3 rounded-r text-sm text-brand-navy">
+                <p className="font-semibold">
+                  {justPurchased ? "Your purchase is confirmed." : "This purchase is still open."}
+                </p>
+                <p className="mt-1">
+                  Your playbook is written from the incident details below — nothing has been generated yet.
+                  Your purchase stays open until you submit them, so you can leave this page and come back
+                  without paying again.
+                </p>
+              </div>
+            )}
             {generationError && (
               <div role="alert" className="border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30 p-3 rounded-r text-sm text-red-900 dark:text-red-200">
                 <p className="font-semibold">Generation didn't start</p>
@@ -586,7 +663,15 @@ export default function IRPlaybook() {
         onClose={() => setCheckoutOpen(false)}
         onComplete={(id) => {
           setCheckoutOpen(false);
-          if (id) navigate(`/ir-playbook/result/${id}?purchased=true`);
+          // QA round two (IR-A-01, Critical) — this used to jump straight to
+          // /ir-playbook/result/<id>. IR is purchase-first: at this moment the
+          // customer has paid but has NOT yet been shown the incident form, so
+          // that row holds an empty intake and the result page rendered
+          // "No assessment content available". Payment now opens the intake.
+          if (id) setPaidAssessmentId(id);
+          setJustPurchased(true);
+          setPhase("form");
+          window.scrollTo({ top: 0, behavior: "smooth" });
         }}
       />
     </WorkspaceLayout>

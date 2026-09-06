@@ -270,6 +270,27 @@ export default function ADMTCheckerResult() {
     }
     let attempts = 0;
     let cancelled = false;
+    // QA round two (ADMT-A-01 / ADMT-B-02, Critical, 2026-09-06) — after a
+    // verified test-mode purchase the result page told the buyer to
+    // "sign in with the account that created this ADMT assessment" while that
+    // same account was signed in. Two defects combined:
+    //
+    //  1. `.eq("user_id", user.id)` duplicated the RLS predicate
+    //     (cppa_owner_select USING user_id = auth.uid()), so any momentary
+    //     mismatch in the client's cached user id after the embedded-checkout
+    //     redirect turned a readable row into a false ownership error. Every
+    //     other result page in the fleet (useGenerationStatus) filters on id
+    //     alone and lets RLS decide. ADMT is the only bespoke poll left.
+    //
+    //  2. A SINGLE read that returned an error or no row latched notFound
+    //     permanently, with no retry — so one transient failure ended a paid
+    //     flow. QA customer B recovered on a manual refresh, which is the
+    //     evidence that the read was transient rather than unauthorized.
+    //
+    // The row is now read by id, and absence must persist across several
+    // attempts before it is reported as unavailable.
+    let missStreak = 0;
+    const MAX_MISSES = 5;
 
     const poll = async () => {
       if (cancelled) return;
@@ -277,15 +298,20 @@ export default function ADMTCheckerResult() {
         .from("cppa_assessments")
         .select("*")
         .eq("id", id)
-        .eq("user_id", user.id)
         .maybeSingle();
 
       if (error || !data) {
-        setAssessment(null);
-        setNotFound(true);
-        setPolling(false);
+        missStreak += 1;
+        if (missStreak >= MAX_MISSES) {
+          setAssessment(null);
+          setNotFound(true);
+          setPolling(false);
+          return;
+        }
+        setTimeout(poll, 2000);
         return;
       }
+      missStreak = 0;
 
       // Kick off generation if the row is still pending and we haven't already.
       // CONVERSION SWAP (2026-08-20): new purchases are stamped
@@ -325,13 +351,25 @@ export default function ADMTCheckerResult() {
         <Navbar />
         <DashboardSubnav />
         <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-          <p className="text-foreground mb-2 font-medium">Assessment not available.</p>
+          {/* QA round two (ADMT-A-01) — the old copy asserted the reader was
+              signed in as the wrong account, which was untrue for both QA
+              purchases. State what is actually known: the record could not be
+              read, and offer a retry before anything else. */}
+          <p className="text-foreground mb-2 font-medium">We couldn't load this assessment.</p>
           <p className="text-muted-foreground text-sm mb-4">
-            Sign in with the account that created this ADMT assessment, then reopen the result link.
+            If you have just paid, your purchase is recorded — the record may take a few more
+            seconds to become readable. Try again, or open it from My Reports. If it still does
+            not load, check that you are signed in with the account that created it.
           </p>
-          <Link to="/cppa-admt-checker">
-            <Button variant="outline">Back to ADMT Checker</Button>
-          </Link>
+          <div className="flex flex-wrap gap-3 justify-center">
+            <Button onClick={() => window.location.reload()}>Try again</Button>
+            <Link to="/dashboard/reports">
+              <Button variant="outline">My Reports</Button>
+            </Link>
+            <Link to="/cppa-admt-checker">
+              <Button variant="ghost">Back to ADMT Checker</Button>
+            </Link>
+          </div>
         </div>
         <Footer />
       </div>

@@ -659,10 +659,37 @@ Deno.serve(serveWithGenerationModel(async (req) => {
       // { assessment_id } invocations don't fail the jurisdictions check.
       body = { ...((row.intake_data as any) ?? {}), ...body };
       if (!Array.isArray(body.jurisdictions) || body.jurisdictions.length === 0) {
-        return new Response(JSON.stringify({ error: "At least one jurisdiction required" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        // QA round two (IR-A-01 / IR B / IR C, 2026-09-06) — the Incident
+        // Response Playbook is PURCHASE-FIRST: create-tool-checkout writes the
+        // row from whatever the landing page held, which is an untouched empty
+        // form because the intake is only shown after payment. payments-webhook
+        // then dispatched this generator against that empty row. Returning 400
+        // made dispatchGenerator stamp the PAID row status='error', and
+        // IRPlaybookResult had no failed branch, so all three QA customers
+        // landed on "No assessment content available" with the purchase spent
+        // and no route back to the intake.
+        //
+        // An empty intake is not a generation failure — it is a paid row still
+        // waiting for its incident facts. Park it in a terminal, recoverable
+        // state and answer 200 so payments-webhook leaves the row alone; the
+        // result page routes the customer into the intake, and IRPlaybook.tsx
+        // then fills in THIS row rather than creating a second one.
+        await lifecycleUpdate(
+          supabase,
+          "ir_playbooks",
+          row.id,
+          { status: "awaiting_intake", updated_at: new Date().toISOString() },
+          { fn: "generate-ir-playbook", phase: "awaiting_intake" },
+        );
+        return new Response(
+          JSON.stringify({
+            awaiting_intake: true,
+            id: row.id,
+            status: "awaiting_intake",
+            message: "Incident details have not been supplied for this playbook yet.",
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
       }
       rowId = row.id;
       const procWrite = await lifecycleUpdate(supabase, "ir_playbooks", rowId, { status: "processing", updated_at: new Date().toISOString() }, { fn: "generate-ir-playbook", phase: "pre_generation" });
