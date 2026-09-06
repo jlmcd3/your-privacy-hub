@@ -625,21 +625,58 @@ export const cppaRiskContract: IntakeContract = {
     // "as applicable" answer; "No" is a substantive no-benefit record. Data
     // layer optional (legacy rows lack the gates); the form requires
     // narrative + fact when a gate is "Yes" (stepValid step 6).
-    { key: "a4_benefit_business",           kind: "narrative",  required: "optional", askEligible: true },
-    { key: "a4_benefit_consumer",           kind: "narrative",  required: "optional", askEligible: true },
-    { key: "a4_benefit_other_stakeholders", kind: "narrative",  required: "optional", askEligible: true },
-    { key: "a4_benefit_public",             kind: "narrative",  required: "optional", askEligible: true },
+    //
+    // QA round two (R2 RA A 01 / RA-B-01, Medium, 2026-09-06) — the gate
+    // semantics stated in the comment above were never ENCODED. The four
+    // narratives and their four supporting facts were `required: "optional"`,
+    // which askedKeys and record-complete both read as ASKED, so a customer
+    // who answered "No" to a benefit gate — a complete, substantive
+    // no-benefit record, and the only honest answer available — was told the
+    // narrative was "unanswered" and advised to "name who gains and provide
+    // supporting facts". Reproduced on customer A (the other-stakeholder and
+    // public gates) and again on customer B (the public gate). The form does
+    // not present these boxes at all when the gate reads "No".
+    //
+    // They are now what the comment always said they were: conditional on
+    // their own gate reading "Yes". validateIntake does not mechanically
+    // evaluate `conditional` (validate.ts ~168), so no record's validation
+    // status changes. What changes is that an untriggered box is no longer
+    // counted as an asked question left empty — in the coach AND in the
+    // record-complete gate the coach mirrors, which was printing an open item
+    // for a benefit the customer had correctly declined to claim.
+    { key: "a4_benefit_business",           kind: "narrative",  required: "conditional", askEligible: true,
+      requiredWhen: "benefit_business_identified is Yes",
+      trigger: { key: "benefit_business_identified", equals: ["Yes"] } },
+    { key: "a4_benefit_consumer",           kind: "narrative",  required: "conditional", askEligible: true,
+      requiredWhen: "benefit_consumer_identified is Yes",
+      trigger: { key: "benefit_consumer_identified", equals: ["Yes"] } },
+    { key: "a4_benefit_other_stakeholders", kind: "narrative",  required: "conditional", askEligible: true,
+      requiredWhen: "benefit_other_stakeholders_identified is Yes",
+      trigger: { key: "benefit_other_stakeholders_identified", equals: ["Yes"] } },
+    { key: "a4_benefit_public",             kind: "narrative",  required: "conditional", askEligible: true,
+      requiredWhen: "benefit_public_identified is Yes",
+      trigger: { key: "benefit_public_identified", equals: ["Yes"] } },
     { key: "benefit_business_identified",           kind: "enum", required: "optional", options: YES_NO_OPTS },
     { key: "benefit_consumer_identified",           kind: "enum", required: "optional", options: YES_NO_OPTS },
     { key: "benefit_other_stakeholders_identified", kind: "enum", required: "optional", options: YES_NO_OPTS },
     { key: "benefit_public_identified",             kind: "enum", required: "optional", options: YES_NO_OPTS },
 
-    // UPGRADE-2 (ITEM 4) — § 7152(a)(4) supporting record facts. Optional so
-    // legacy rows keep validating; without them the weighing reserves.
-    { key: "a4_benefit_business_fact",           kind: "narrative", required: "optional", askEligible: true },
-    { key: "a4_benefit_consumer_fact",           kind: "narrative", required: "optional", askEligible: true },
-    { key: "a4_benefit_other_stakeholders_fact", kind: "narrative", required: "optional", askEligible: true },
-    { key: "a4_benefit_public_fact",             kind: "narrative", required: "optional", askEligible: true },
+    // UPGRADE-2 (ITEM 4) — § 7152(a)(4) supporting record facts. Conditional
+    // on the same gate as the benefit they support, for the reason above:
+    // there is no fact to show for a benefit the record says does not exist.
+    // Where the gate IS "Yes" and the fact is missing, the weighing reserves.
+    { key: "a4_benefit_business_fact",           kind: "narrative", required: "conditional", askEligible: true,
+      requiredWhen: "benefit_business_identified is Yes",
+      trigger: { key: "benefit_business_identified", equals: ["Yes"] } },
+    { key: "a4_benefit_consumer_fact",           kind: "narrative", required: "conditional", askEligible: true,
+      requiredWhen: "benefit_consumer_identified is Yes",
+      trigger: { key: "benefit_consumer_identified", equals: ["Yes"] } },
+    { key: "a4_benefit_other_stakeholders_fact", kind: "narrative", required: "conditional", askEligible: true,
+      requiredWhen: "benefit_other_stakeholders_identified is Yes",
+      trigger: { key: "benefit_other_stakeholders_identified", equals: ["Yes"] } },
+    { key: "a4_benefit_public_fact",             kind: "narrative", required: "conditional", askEligible: true,
+      requiredWhen: "benefit_public_identified is Yes",
+      trigger: { key: "benefit_public_identified", equals: ["Yes"] } },
 
     { key: "a5_harm_pathways",              kind: "structured", required: "always" },
     { key: "a5_harm_pathways[].harm",       kind: "enum",       required: "always",

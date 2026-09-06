@@ -1619,6 +1619,29 @@ export default function CPPARiskAssessment() {
     setCheckoutOpen(true);
   };
 
+  // QA round two (R2 RA A 04, Medium) — the coach's "Jump to this question"
+  // closed the dialog and left the form at step 8. Only the CURRENT step is in
+  // the DOM, so the card's anchor did not exist and IntakeCoachStep's
+  // querySelector returned null. This maps each coach anchor to the step that
+  // renders it (verified against the `{step === N && (` blocks in this file);
+  // the coach switches step first, then scrolls and focuses.
+  const jumpToCoachStep = (selector: string): boolean => {
+    const anchor = selector.match(/data-coach-field="([^"]+)"/)?.[1];
+    if (!anchor) return false;
+    const stepForAnchor: Record<string, number> = {
+      i5_admt_logic: 2,
+      i1b_min_pi: 4,
+      exceptions_intake: 4,
+      a5_harm_pathways: 5,
+      a6_safeguards: 5,
+      a4_benefits: 6,
+    };
+    const target = stepForAnchor[anchor];
+    if (!target || target === step) return false;
+    setStep(target);
+    return true;
+  };
+
   // ── QA round two (SUITE-A-02, High) — CPPA Suite two-module hand-off ──
   // The bundle is two assessments. Buying it from this page alone wrote the
   // Risk answers into BOTH rows, so the paid Cybersecurity report came back
@@ -3707,6 +3730,7 @@ export default function CPPARiskAssessment() {
           intake={intake}
           onClose={() => setCoachOpen(false)}
           onContinue={() => { setCoachOpen(false); handlePurchase(); }}
+          onJumpToStep={jumpToCoachStep}
         />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo={isSuite ? "/cppa-risk-assessment?suite=true" : "/cppa-risk-assessment"} {...intakeGate("cppa_risk")} />
         <ToolCheckoutModal

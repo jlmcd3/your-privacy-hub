@@ -25,22 +25,51 @@ interface Props {
   userId?: string | null;
   referenceKind?: string | null;
   referenceId?: string | null;
+  /**
+   * QA round two (R2 RA A 04, Medium, 2026-09-06) — "Jump to this question"
+   * closed the dialog and left the form where it was.
+   *
+   * jumpTo() queried the document for the card's anchor, but a stepped intake
+   * renders only the CURRENT step, so on CPPA Risk the anchor for a step-6
+   * benefit card simply does not exist in the DOM while the coach is open at
+   * step 8: querySelector returned null and the function returned silently.
+   * (The DPIA intake renders every field on one page, which is why the same
+   * control worked there.)
+   *
+   * A stepped host supplies this to move to the step that owns the anchor.
+   * Return true when navigation was performed, so the scroll is deferred until
+   * the new step has rendered. Absent, behaviour is exactly as before.
+   */
+  onJumpToStep?: (selector: string) => boolean;
 }
 
-function jumpTo(selector: string, onClose: () => void) {
+/** Scroll the card's anchor into view and focus its first control. */
+export function focusCoachTarget(selector: string): boolean {
+  const el = document.querySelector(selector) as HTMLElement | null;
+  if (!el) return false;
+  el.scrollIntoView({ behavior: "smooth", block: "center" });
+  const focusable = el.querySelector("input, textarea, select") as HTMLElement | null;
+  focusable?.focus({ preventScroll: true });
+  return true;
+}
+
+function jumpTo(selector: string, onClose: () => void, onJumpToStep?: (s: string) => boolean) {
   onClose();
+  // A stepped host has to re-render before the anchor exists, so give it a
+  // longer beat than the same-page case.
+  const navigated = onJumpToStep?.(selector) ?? false;
   window.setTimeout(() => {
-    const el = document.querySelector(selector) as HTMLElement | null;
-    if (!el) return;
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
-    const focusable = el.querySelector("input, textarea, select") as HTMLElement | null;
-    focusable?.focus({ preventScroll: true });
-  }, 60);
+    if (focusCoachTarget(selector)) return;
+    // Still not present (the host does not know this anchor, or the step did
+    // not change): try once more after the next paint rather than failing
+    // silently, which is what the customer experienced.
+    window.setTimeout(() => { focusCoachTarget(selector); }, 250);
+  }, navigated ? 180 : 60);
 }
 
 const IntakeCoachStep = ({
   open, product, contract, intake, onContinue, onClose,
-  userId, referenceKind, referenceId,
+  userId, referenceKind, referenceId, onJumpToStep,
 }: Props) => {
   const result = useMemo(
     () => (open ? buildCoach(product, contract, intake) : null),
@@ -151,7 +180,7 @@ const IntakeCoachStep = ({
                 <button
                   type="button"
                   className="text-sm font-medium text-[hsl(var(--brand-teal))] underline underline-offset-2"
-                  onClick={() => jumpTo(card.jumpSelector, handleClose)}
+                  onClick={() => jumpTo(card.jumpSelector, handleClose, onJumpToStep)}
                 >
                   {COACH_COPY.jumpLabel}
                 </button>
