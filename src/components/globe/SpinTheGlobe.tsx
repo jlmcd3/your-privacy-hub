@@ -191,8 +191,10 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     const scene = new THREE.Scene();
     sceneRef.current = scene;
 
-    const camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 200);
-    camera.position.set(0, 0, 3.0);
+    // Slightly closer camera with a touch more FOV adds visible edge
+    // foreshortening so the globe reads as a sphere, not a flat disc.
+    const camera = new THREE.PerspectiveCamera(46, W / H, 0.1, 200);
+    camera.position.set(0, 0, 2.85);
     camera.lookAt(0, 0, 0);
 
     // Stars removed — the globe sits directly against the hero background
@@ -207,20 +209,23 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     scene.add(globe);
     globeRef.current = globe;
 
-    // UX-3 follow-up: no separate atmosphere mesh. The lit globe sits
-    // directly against the hero's starfield background; the day/night
-    // terminator and specular ocean highlight provide all the shape cues.
+    // Atmosphere fresnel rim shell removed — on the hero's navy→ocean→teal
+    // gradient it consistently read as a distinct ring regardless of glow
+    // color or alpha. The 3D depth cue now comes from the day/night lighting
+    // contrast, off-center specular highlight, and stronger perspective.
 
 
     // Latitude/longitude grid removed — at the silhouette the wireframe
     // segments concentrated into a visible dark ring against the hero.
     // The photographic Blue Marble texture already carries geographic detail.
 
-    // Lighting — side-lit sun preserves a real day/night terminator while
-    // brighter ambient/fill/rim light keeps terrain visible and dimensional.
-    scene.add(new THREE.AmbientLight(0xffffff, 0.34));
-    const sun = new THREE.DirectionalLight(0xfff1cf, 3.1);
-    sun.position.set(5.6, 1.3, 2.2);
+    // Lighting — low ambient lets the day/night terminator fall off properly
+    // so the globe reads as a sphere; fill/rim keep the dark side visible.
+    scene.add(new THREE.AmbientLight(0xffffff, 0.16));
+    const sun = new THREE.DirectionalLight(0xfff1cf, 3.3);
+    // Sun pulled further right/forward so the ocean specular glint sits
+    // clearly off-center, tracing the globe's curvature.
+    sun.position.set(4.6, 1.8, 2.8);
     scene.add(sun);
     // Cool Earthshine rim/fill from opposite side
     const fill = new THREE.DirectionalLight(0x6fa7f0, 1.05);
@@ -243,9 +248,12 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       tex.anisotropy = renderer.capabilities.getMaxAnisotropy?.() ?? 4;
       globeRef.current.material = new THREE.MeshPhongMaterial({
         map: tex,
-        specularMap: tex,
-        specular: new THREE.Color(0x5e9fc6),
-        shininess: 48,
+        // No specularMap: the Blue Marble texture's baked-in atmospheric
+        // limb lit up as a light-blue ring under specular. Keep a faint,
+        // uniform specular only — the day/night terminator from the
+        // directional light already carries the 3D depth cue.
+        specular: new THREE.Color(0x223040),
+        shininess: 24,
         emissive: new THREE.Color(0x071c34),
         emissiveIntensity: 0.1,
         // Reuse the color map as a bump map for cheap terrain relief — gives

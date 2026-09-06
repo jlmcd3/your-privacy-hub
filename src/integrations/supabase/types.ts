@@ -1824,6 +1824,7 @@ export type Database = {
           legacy_summary_text: string | null
           legacy_summary_url: string | null
           li_processed: boolean
+          matter_type: string | null
           memo_eligible: boolean
           original_amount: number | null
           original_currency: string | null
@@ -1911,6 +1912,7 @@ export type Database = {
           legacy_summary_text?: string | null
           legacy_summary_url?: string | null
           li_processed?: boolean
+          matter_type?: string | null
           memo_eligible?: boolean
           original_amount?: number | null
           original_currency?: string | null
@@ -1998,6 +2000,7 @@ export type Database = {
           legacy_summary_text?: string | null
           legacy_summary_url?: string | null
           li_processed?: boolean
+          matter_type?: string | null
           memo_eligible?: boolean
           original_amount?: number | null
           original_currency?: string | null
