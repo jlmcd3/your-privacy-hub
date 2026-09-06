@@ -33,8 +33,20 @@ export default function RunMeterBar({
           ))}
         </div>
       </div>
+      {/* QA round two (DPA-A-02, DPIA/Governance/LIA/Risk/Cyber/Suite, 2026-09-06)
+          — every result page showed "Generation 1 of 4" and invited the
+          customer to "refine your answers and regenerate", while the Refine
+          control below is hidden whenever REVISIONS_ENABLED is false. Across
+          seven products the QA reviewer looked for a control that copy had
+          promised and found none, then recorded revisions as blocked.
+          The flag being off is deliberate (the Revision Contract / ROO
+          programme), so the fix is for the copy to stop promising an action
+          the build does not offer — never to flip the gate to fix wording,
+          which src/config/pricing.ts explicitly warns against. */}
       <div className="text-body-small text-ink-soft max-w-sm">
-        {exhausted
+        {!REVISIONS_ENABLED
+          ? "Your initial report generation is included. Revisions are temporarily disabled while we ship the Revision Contract programme."
+          : exhausted
           ? "Need more? Add 4 additional generations for half the tool price."
           : infoNeededCount && infoNeededCount > 0
           ? `This report names ${infoNeededCount} item${infoNeededCount === 1 ? "" : "s"} that would sharpen it — refine those answers and regenerate.`
@@ -52,7 +64,9 @@ export default function RunMeterBar({
             Refine inputs
           </Link>
         )}
-        {exhausted && (
+        {/* The extension purchase adds generations to refine WITH, so it is
+            offered only while refinement itself is available. */}
+        {exhausted && REVISIONS_ENABLED && (
           <button
             onClick={onExtend}
             className="px-4 py-2 rounded-lg bg-teal-action hover:bg-[hsl(var(--teal-action-hover))] text-white text-body-small font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-action focus-visible:ring-offset-2"

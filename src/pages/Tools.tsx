@@ -8,7 +8,29 @@ import { RequirementBadge } from "@/components/RequirementBadge";
 import SampleReportLink from "@/components/SampleReportLink";
 import ToolsSelector from "@/components/tools/ToolsSelector";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
-import { PRICING, isSmartTool, INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
+import { PRICING, PRICING_REGISTRY, isSmartTool, INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
+
+// QA round two (cluster 12 — "prices and entitlements disagree", 2026-09-06).
+// Every entry below set `subscriberPrice` to PRICING.tools.<x>.display, which
+// is the STANDALONE price. The badge that renders it is the one shown to a
+// signed-in subscriber under the label "Paid: subscriber rate applied", so a
+// subscriber browsing /tools saw $299 for CPPA Risk and $399 for Cyber against
+// the $179 / $239 their product page and checkout charge.
+//
+// No dollar amount is changed here: the subscriber badge now reads the
+// SUBSCRIBER entry of the same canonical registry (src/config/pricing.ts), so
+// the two displays can no longer disagree. Only the four CPPA_TOOL_SLUGS
+// currently render this field; the rest are bound correctly for when they do.
+const SUB = {
+  governance: PRICING_REGISTRY.hc_subscriber_v2.displayPrice,
+  lia: PRICING_REGISTRY.li_subscriber_v2.displayPrice,
+  dpia: PRICING_REGISTRY.dpia_subscriber_v2.displayPrice,
+  dpa: PRICING_REGISTRY.dpa_subscriber_v2.displayPrice,
+  ir: PRICING_REGISTRY.ir_subscriber_v2.displayPrice,
+  cppaRisk: PRICING_REGISTRY.cppa_risk_subscriber.displayPrice,
+  cppaCyber: PRICING_REGISTRY.cppa_cyber_subscriber.displayPrice,
+  cppaAdmt: PRICING_REGISTRY.cppa_admt_subscriber.displayPrice,
+} as const;
 
 // Tools-page copy for the metered-generation line. Mirrors INCLUDED_GENERATIONS_COPY
 // from pricing.ts but without the Errata-channel phrase (not surfaced on /tools).
@@ -264,7 +286,7 @@ const TOOLS: ToolDef[] = [
     tagline: "A structured assessment of your privacy programme across the domains regulators actually inspect.",
     href: "/governance-assessment",
     requirement: { tier: "supports", text: "Demonstrates Art. 5(2) accountability" },
-    subscriberPrice: PRICING.tools.governance.display,
+    subscriberPrice: SUB.governance,
     standalonePrice: PRICING.tools.governance.display,
     freeBadge: "Quick scan free",
     body: [
@@ -288,7 +310,7 @@ const TOOLS: ToolDef[] = [
     tagline: "Build a complete, documented Legitimate Interests Assessment: the three-part test, done properly.",
     href: "/li-assessment",
     requirement: { tier: "expected", text: "Expected — to rely on Art. 6(1)(f)" },
-    subscriberPrice: PRICING.tools.lia.display,
+    subscriberPrice: SUB.lia,
     standalonePrice: PRICING.tools.lia.display,
     freeBadge: "Step 1 free",
     body: [
@@ -312,7 +334,7 @@ const TOOLS: ToolDef[] = [
     tagline: "A complete Data Protection Impact Assessment for high-risk processing, structured to EDPB guidelines.",
     href: "/dpia-framework",
     requirement: { tier: "required", text: "Required — GDPR Art. 35" },
-    subscriberPrice: PRICING.tools.dpia.display,
+    subscriberPrice: SUB.dpia,
     standalonePrice: PRICING.tools.dpia.display,
     body: [
       "Article 35 requires a DPIA before high-risk processing begins. What regulators assess when they review a DPIA is not whether the form was completed — it is whether the risks were genuinely considered before the processing was authorised, and whether the safeguards implemented reflect that analysis.",
@@ -360,7 +382,7 @@ const TOOLS: ToolDef[] = [
     tagline: "Your custom GDPR Article 28-compliant Data Processing Agreement, calibrated to real enforcement failures.",
     href: "/dpa-generator",
     requirement: { tier: "required", text: "Required — GDPR Art. 28" },
-    subscriberPrice: PRICING.tools.dpa.display,
+    subscriberPrice: SUB.dpa,
     standalonePrice: PRICING.tools.dpa.display,
     body: [
       "A Data Processing Agreement that satisfies the statutory text of Article 28 is table stakes. The agreements that hold up under regulatory scrutiny are those whose specific provisions address the failure patterns that supervisory authorities have actually penalised — absent sub-processor notification timelines, inadequate audit right formulations, vague security measure specifications.",
@@ -381,7 +403,7 @@ const TOOLS: ToolDef[] = [
     tagline: "Your complete breach response playbook: deadlines, regulator portal links, and notification templates.",
     href: "/ir-playbook",
     requirement: { tier: "supports", text: "Supports breach-notification duties" },
-    subscriberPrice: PRICING.tools.ir_playbook.display,
+    subscriberPrice: SUB.ir,
     standalonePrice: PRICING.tools.ir_playbook.display,
     freeBadge: "Deadline lookup free",
     body: [
@@ -511,7 +533,7 @@ const TOOLS: ToolDef[] = [
     tagline: "California-specific risk assessment aligned to the CPPA's risk assessment regulations.",
     href: "/cppa-risk-assessment",
     requirement: { tier: "conditional", text: "Required if in scope — due Dec 31, 2027" },
-    subscriberPrice: PRICING.tools.cppa_risk.display,
+    subscriberPrice: SUB.cppaRisk,
     standalonePrice: PRICING.tools.cppa_risk.display,
     body: [
       "The CPPA's risk assessment regulations require businesses processing personal information that presents a significant risk to consumers' privacy or security to conduct and document a structured risk assessment. The substance of that assessment — not the cover sheet — is what determines whether it satisfies the regulation.",
@@ -533,7 +555,7 @@ const TOOLS: ToolDef[] = [
     tagline: "Structured cybersecurity audit aligned to the CPPA's cybersecurity audit regulations.",
     href: "/cppa-cybersecurity",
     requirement: { tier: "conditional", text: "Required above CCPA thresholds — first cert Apr 1, 2028" },
-    subscriberPrice: PRICING.tools.cppa_cyber.display,
+    subscriberPrice: SUB.cppaCyber,
     standalonePrice: PRICING.tools.cppa_cyber.display,
     body: [
       "The CPPA's cybersecurity audit regulations require qualifying businesses to conduct annual cybersecurity audits covering specified components — access controls, multi-factor authentication, encryption, vulnerability management, incident response, and more. The audit must be thorough, independent, and documented.",
@@ -554,8 +576,10 @@ const TOOLS: ToolDef[] = [
     tagline: "Module 3 — pre-use notice, opt-out, and access right gap analysis for automated decisionmaking systems. January 1, 2027 deadline.",
     href: "/cppa-admt-checker",
     requirement: { tier: "conditional", text: "Required for ADMT decisions — by Jan 1, 2027" },
-    subscriberPrice: (PRICING.tools as any).cppa_admt?.display ?? "$59",
-    standalonePrice: (PRICING.tools as any).cppa_admt?.display ?? "$149",
+    subscriberPrice: SUB.cppaAdmt,
+    // This card carried hand-copied dollar fallbacks; pricing.ts is the only
+    // place a price is typed, so both sides read the registry entry.
+    standalonePrice: PRICING_REGISTRY.cppa_admt_standalone.displayPrice,
     body: [
       "The CPPA's automated decisionmaking technology regulations take effect January 1, 2027. Businesses that use ADMT for significant decisions — credit, housing, education, employment, healthcare — must provide a pre-use notice, offer two opt-out methods (or qualify for a narrow exception), and respond to consumer access requests with plain-language information about the logic and outcome of the decision.",
       "The ADMT Compliance Assessment walks through one ADMT system at a time. Each answer updates a persistent Statute Rail showing the exact regulation text, the agency's reasoning in the Final Statement of Reasons, and enforcement notes. The output is a gap analysis — every finding cites the specific paragraph of 11 CCR §§ 7220–7222 it relates to, with a concrete remediation step.",
@@ -582,7 +606,7 @@ const PRICING_GRID: [string, string][] = [
   ["CPPA Scope Checker", PRICING.tools.cppa_scope.display],
   ["CPPA Risk Assessment", `${PRICING.tools.cppa_risk.display} (Smart)`],
   ["CPPA Cybersecurity Audit", `${PRICING.tools.cppa_cyber.display} (Smart)`],
-  ["ADMT Compliance Assessment", `${(PRICING.tools as any).cppa_admt?.display ?? '$149'} (Smart)`],
+  ["ADMT Compliance Assessment", `${PRICING_REGISTRY.cppa_admt_standalone.displayPrice} (Smart)`],
   ["Annual subscription bonus", "1 free Smart Tool run/yr (Intelligence) · 3 free Smart Tool runs/yr (Professional): Governance, LIA, or DPIA"],
 ];
 
