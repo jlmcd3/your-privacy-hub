@@ -654,7 +654,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
 
       {/* Controls */}
       <div className={compact
-        ? "mt-2 flex flex-col items-center justify-start w-full max-w-[360px] h-[130px]"
+        ? "mt-2 flex flex-col items-center justify-start w-full max-w-[360px] h-[210px]"
         : "mt-6 h-[260px] flex flex-col items-center justify-start w-full max-w-sm px-4"
       }>
 
