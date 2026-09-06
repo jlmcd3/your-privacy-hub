@@ -191,8 +191,10 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     const scene = new THREE.Scene();
     sceneRef.current = scene;
 
-    const camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 200);
-    camera.position.set(0, 0, 3.0);
+    // Slightly closer camera with a touch more FOV adds visible edge
+    // foreshortening so the globe reads as a sphere, not a flat disc.
+    const camera = new THREE.PerspectiveCamera(46, W / H, 0.1, 200);
+    camera.position.set(0, 0, 2.85);
     camera.lookAt(0, 0, 0);
 
     // Stars removed — the globe sits directly against the hero background
