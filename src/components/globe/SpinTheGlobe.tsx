@@ -218,9 +218,10 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
         transparent: true,
         side: THREE.BackSide,
         depthWrite: false,
-        // Match the hero navy background so the fresnel rim blends away
-        // instead of reading as a distinct blue ring (prior fix pattern).
-        uniforms: { glowColor: { value: new THREE.Color(0x0d2a45) } },
+        // Match the right-side hero gradient color where the globe sits
+        // (from-brand-navy via-brand-ocean to-[#1f6674]) so the fresnel
+        // rim blends away instead of reading as a distinct ring.
+        uniforms: { glowColor: { value: new THREE.Color(0x1f6674) } },
         vertexShader: `
           varying float vRim;
           void main() {
