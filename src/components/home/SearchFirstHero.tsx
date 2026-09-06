@@ -147,10 +147,10 @@ export default function SearchFirstHero() {
           </div>
 
           {/* Right: Spinning Globe — preserved in BOTH variants (G1). */}
-          <div className="hidden sm:block flex-shrink-0 w-full lg:w-[400px]">
-            <div className="rounded-xl overflow-hidden relative" style={{ height: "420px", width: "100%", minWidth: 0, aspectRatio: "auto" }}>
+          <div className="hidden sm:block flex-shrink-0 w-full lg:w-[520px]">
+            <div className="rounded-xl overflow-hidden relative" style={{ height: "640px", width: "100%", minWidth: 0, aspectRatio: "auto" }}>
               <div className="relative z-10 flex items-center justify-center w-full h-full">
-                <Suspense fallback={<div style={{ width: 400, height: 420 }} aria-hidden />}>
+                <Suspense fallback={<div style={{ width: 520, height: 560 }} aria-hidden />}>
                   <SpinTheGlobe compact />
                 </Suspense>
               </div>

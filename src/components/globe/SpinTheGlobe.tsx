@@ -201,7 +201,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
 
     // Globe — placeholder material while texture loads
     const globe = new THREE.Mesh(
-      new THREE.SphereGeometry(1, 64, 64),
+      new THREE.SphereGeometry(0.96, 64, 64),
       new THREE.MeshPhongMaterial({ color: 0x0d2744, shininess: 20 }),
     );
     scene.add(globe);
@@ -519,7 +519,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       if (ref.current) { globe.remove(ref.current); (ref as any).current = null; }
     });
 
-    const pos = latLonToVec3(jur.lat, jur.lon, 1.055);
+    const pos = latLonToVec3(jur.lat, jur.lon, 1.015);
 
     // Gold dot — large enough to be clearly visible
     const dot = new THREE.Mesh(
@@ -642,7 +642,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
         ref={mountRef}
         className={`relative rounded-full overflow-hidden cursor-pointer ${compact ? "" : "shadow-eup-lg"}`}
         style={compact
-          ? { width: 240, height: 240, background: ready ? "transparent" : "transparent" }
+          ? { width: 360, height: 360, background: ready ? "transparent" : "transparent" }
           : { width: 380, height: 380, background: ready ? "transparent" : "transparent" }
         }
         onClick={phase === "idle" ? handleSpin : undefined}
@@ -654,7 +654,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
 
       {/* Controls */}
       <div className={compact
-        ? "mt-2 flex flex-col items-center justify-start w-full max-w-[240px] h-[130px]"
+        ? "mt-2 flex flex-col items-center justify-start w-full max-w-[360px] h-[210px]"
         : "mt-6 h-[260px] flex flex-col items-center justify-start w-full max-w-sm px-4"
       }>
 
@@ -662,8 +662,8 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
           <button
             onClick={handleSpin}
             className={compact
-              ? "group relative overflow-hidden bg-white/15 border border-white/20 text-white font-bold text-[12px] px-6 py-2 rounded-xl hover:bg-white/25 transition-all cursor-pointer w-full"
-              : "group relative overflow-hidden bg-gradient-to-br from-brand-navy to-brand-steel text-white font-bold text-[15px] px-10 py-4 rounded-2xl shadow-eup-md hover:shadow-eup-lg transition-all hover:-translate-y-0.5 cursor-pointer border-none w-full"
+              ? "group relative overflow-hidden bg-white/15 border border-white/20 text-white font-bold text-[14px] px-6 py-2 rounded-xl hover:bg-white/25 transition-all cursor-pointer w-full"
+              : "group relative overflow-hidden bg-gradient-to-br from-brand-navy to-brand-steel text-white font-bold text-[17px] px-10 py-4 rounded-2xl shadow-eup-md hover:shadow-eup-lg transition-all hover:-translate-y-0.5 cursor-pointer border-none w-full"
             }
           >
             <span className="relative z-10 flex items-center justify-center gap-2.5">
