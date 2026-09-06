@@ -642,7 +642,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
         ref={mountRef}
         className={`relative rounded-full overflow-hidden cursor-pointer ${compact ? "" : "shadow-eup-lg"}`}
         style={compact
-          ? { width: 240, height: 240, background: ready ? "transparent" : "transparent" }
+          ? { width: 360, height: 360, background: ready ? "transparent" : "transparent" }
           : { width: 380, height: 380, background: ready ? "transparent" : "transparent" }
         }
         onClick={phase === "idle" ? handleSpin : undefined}
@@ -654,7 +654,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
 
       {/* Controls */}
       <div className={compact
-        ? "mt-2 flex flex-col items-center justify-start w-full max-w-[240px] h-[130px]"
+        ? "mt-2 flex flex-col items-center justify-start w-full max-w-[360px] h-[130px]"
         : "mt-6 h-[260px] flex flex-col items-center justify-start w-full max-w-sm px-4"
       }>
 
