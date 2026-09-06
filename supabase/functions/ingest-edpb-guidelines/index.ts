@@ -32,6 +32,8 @@ interface RegistryEntry {
   related_articles: string[];
   topic_tags: string[];
   pdf_url: string;
+  doc_version?: string;
+  endorsement_status?: "edpb_adopted" | "wp29_endorsed_2018" | "wp29_not_endorsed" | "draft_consultation";
 }
 
 const SEED_REGISTRY: RegistryEntry[] = [
@@ -42,6 +44,7 @@ const SEED_REGISTRY: RegistryEntry[] = [
     related_articles: ["6"],
     topic_tags: ["legitimate-interest", "lawful-basis"],
     pdf_url: "https://www.edpb.europa.eu/system/files/2024-10/edpb_guidelines_202401_legitimateinterest_en.pdf",
+    endorsement_status: "draft_consultation",
   },
   {
     guideline_ref: "EDPB Guidelines 2/2019",
@@ -50,6 +53,7 @@ const SEED_REGISTRY: RegistryEntry[] = [
     related_articles: ["6"],
     topic_tags: ["contract", "lawful-basis", "online-services"],
     pdf_url: "https://edpb.europa.eu/sites/default/files/files/file1/edpb_guidelines-art_6-1-b-adopted_after_public_consultation_en.pdf",
+    endorsement_status: "edpb_adopted",
   },
   {
     guideline_ref: "WP248 rev.01",
@@ -58,6 +62,7 @@ const SEED_REGISTRY: RegistryEntry[] = [
     related_articles: ["35", "36"],
     topic_tags: ["dpia", "risk-assessment"],
     pdf_url: "https://ec.europa.eu/newsroom/just/document.cfm?doc_id=47711",
+    endorsement_status: "wp29_endorsed_2018",
   },
   {
     guideline_ref: "EDPB Guidelines 9/2022",
@@ -66,6 +71,7 @@ const SEED_REGISTRY: RegistryEntry[] = [
     related_articles: ["33", "34"],
     topic_tags: ["breach-notification", "incident-response"],
     pdf_url: "https://www.edpb.europa.eu/system/files/2023-04/edpb_guidelines_202209_personal_data_breach_notification_v2.0_en.pdf",
+    endorsement_status: "edpb_adopted",
   },
   {
     guideline_ref: "EDPB Guidelines 07/2020",
@@ -74,6 +80,7 @@ const SEED_REGISTRY: RegistryEntry[] = [
     related_articles: ["4", "26", "28"],
     topic_tags: ["controller", "processor", "joint-controllers"],
     pdf_url: "https://edpb.europa.eu/system/files/2021-07/eppb_guidelines_202007_controllerprocessor_final_en.pdf",
+    endorsement_status: "edpb_adopted",
   },
   {
     guideline_ref: "EDPB Guidelines 05/2020",
@@ -82,6 +89,7 @@ const SEED_REGISTRY: RegistryEntry[] = [
     related_articles: ["4", "7"],
     topic_tags: ["consent", "lawful-basis"],
     pdf_url: "https://www.edpb.europa.eu/sites/default/files/files/file1/edpb_guidelines_202005_consent_en.pdf",
+    endorsement_status: "edpb_adopted",
   },
   {
     guideline_ref: "EDPB Guidelines 3/2018",
@@ -90,6 +98,7 @@ const SEED_REGISTRY: RegistryEntry[] = [
     related_articles: ["3"],
     topic_tags: ["territorial-scope", "extraterritoriality"],
     pdf_url: "https://www.edpb.europa.eu/sites/default/files/files/file1/edpb_guidelines_3_2018_territorial_scope_after_public_consultation_en_0.pdf",
+    endorsement_status: "edpb_adopted",
   },
   {
     guideline_ref: "EDPB Recommendations 01/2020",
@@ -98,6 +107,7 @@ const SEED_REGISTRY: RegistryEntry[] = [
     related_articles: ["44", "45", "46", "49"],
     topic_tags: ["international-transfers", "schrems-ii", "supplementary-measures"],
     pdf_url: "https://www.edpb.europa.eu/system/files/2021-06/edpb_recommendations_202001vo.2.0_supplementarymeasurestransferstools_en.pdf",
+    endorsement_status: "edpb_adopted",
   },
   {
     guideline_ref: "EDPB Guidelines 01/2022",
@@ -106,6 +116,7 @@ const SEED_REGISTRY: RegistryEntry[] = [
     related_articles: ["15"],
     topic_tags: ["data-subject-rights", "right-of-access", "dsar"],
     pdf_url: "https://www.edpb.europa.eu/system/files/2023-04/edpb_guidelines_202201_data_subject_rights_access_v2_en.pdf",
+    endorsement_status: "edpb_adopted",
   },
   {
     guideline_ref: "WP243 rev.01",
@@ -114,6 +125,7 @@ const SEED_REGISTRY: RegistryEntry[] = [
     related_articles: ["37", "38", "39"],
     topic_tags: ["dpo", "governance", "accountability"],
     pdf_url: "https://ec.europa.eu/newsroom/document.cfm?doc_id=44100",
+    endorsement_status: "wp29_endorsed_2018",
   },
   {
     guideline_ref: "WP260 rev.01",
@@ -122,46 +134,57 @@ const SEED_REGISTRY: RegistryEntry[] = [
     related_articles: ["12", "13", "14"],
     topic_tags: ["transparency", "privacy-notice"],
     pdf_url: "https://www.edpb.europa.eu/system/files/2023-09/wp260rev01_en.pdf",
+    endorsement_status: "wp29_endorsed_2018",
   },
   {
     guideline_ref: "WP29 Opinion 2/2017",
     title: "Opinion 2/2017 on data processing at work",
     adopted_date: "2017-06-08",
     related_articles: ["6", "88"],
-    topic_tags: ["employment", "workplace-monitoring", "persuasive-not-endorsed"],
+    topic_tags: ["employment", "workplace-monitoring", "legitimate-interest", "lawful-basis"],
     pdf_url: "https://ec.europa.eu/newsroom/article29/redirection/document/45631",
+    doc_version: "1.0",
+    endorsement_status: "wp29_not_endorsed",
   },
   {
     guideline_ref: "WP29 Opinion 1/2006",
     title: "Opinion 1/2006 on the application of EU data protection rules to internal whistleblowing schemes",
     adopted_date: "2006-02-01",
     related_articles: ["6"],
-    topic_tags: ["whistleblowing", "internal-reporting", "persuasive-not-endorsed"],
+    topic_tags: ["whistleblowing", "internal-reporting", "legitimate-interest", "lawful-basis"],
     pdf_url: "https://ec.europa.eu/justice/article-29/documentation/opinion-recommendation/files/2006/wp117_en.pdf",
+    doc_version: "1.0",
+    endorsement_status: "wp29_not_endorsed",
   },
   {
     guideline_ref: "EDPB Guidelines 3/2019",
-    title: "Guidelines 3/2019 on processing of personal data through video devices (Version 2.0)",
+    title: "Guidelines 3/2019 on processing of personal data through video devices",
     adopted_date: "2020-01-29",
     related_articles: ["6", "9"],
-    topic_tags: ["video-surveillance", "cctv"],
+    topic_tags: ["video-surveillance", "cctv", "legitimate-interest", "lawful-basis"],
     pdf_url: "https://www.edpb.europa.eu/system/files/documents/files/file1/edpb_guidelines_201903_video_devices_en_0.pdf",
+    doc_version: "2.1",
+    endorsement_status: "edpb_adopted",
   },
   {
     guideline_ref: "EDPB Guidelines 06/2020",
-    title: "Guidelines 06/2020 on the interplay of the Second Payment Services Directive and the GDPR (Version 2.0)",
+    title: "Guidelines 06/2020 on the interplay of the Second Payment Services Directive and the GDPR",
     adopted_date: "2020-12-15",
-    related_articles: ["6"],
-    topic_tags: ["psd2", "open-banking", "aisp-pisp"],
+    related_articles: ["6", "9"],
+    topic_tags: ["psd2", "open-banking", "legitimate-interest", "lawful-basis"],
     pdf_url: "https://www.edpb.europa.eu/system/files/documents/files/file1/edpb_guidelines_202006_psd2_afterpublicconsultation_en.pdf",
+    doc_version: "2.0",
+    endorsement_status: "edpb_adopted",
   },
   {
     guideline_ref: "EDPB Opinion 28/2024",
     title: "Opinion 28/2024 on certain data protection aspects related to the processing of personal data in the context of AI models",
     adopted_date: "2024-12-17",
-    related_articles: ["6", "5"],
-    topic_tags: ["ai-models", "anonymisation", "legitimate-interest"],
+    related_articles: ["5", "6"],
+    topic_tags: ["ai-models", "anonymisation", "legitimate-interest", "lawful-basis"],
     pdf_url: "https://www.edpb.europa.eu/system/files/documents/2024-12/edpb_opinion_202428_ai-models_en.pdf",
+    doc_version: "1.0",
+    endorsement_status: "edpb_adopted",
   },
 ];
 
@@ -372,6 +395,8 @@ Deno.serve(async (req) => {
           section_heading: ch.section_heading,
           excerpt_text: ch.text,
           source_url: entry.pdf_url,
+          doc_version: entry.doc_version ?? null,
+          endorsement_status: entry.endorsement_status ?? null,
           content_hash,
           embedding: embedding as any,
           embedding_model: embedding ? EMBEDDING_MODEL : null,
