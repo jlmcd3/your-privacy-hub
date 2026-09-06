@@ -37,7 +37,7 @@ export interface SnapshotToolEntry {
 }
 
 /** SHA-256 of the canonical JSON of the master projection at generation time. */
-export const PRICING_SNAPSHOT_SOURCE_HASH = "85c544c5ea1b47d85e673696f168c7a558df2068f7ec1e0dfa8068be6047cb23";
+export const PRICING_SNAPSHOT_SOURCE_HASH = "08b77cbf46d3b0b2005126a1a34c4390127e18c8828d79b88ad25512d470deba";
 
 const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record<string, SnapshotToolEntry> } = /* SNAPSHOT-JSON-BEGIN */ {
   "registry": {
