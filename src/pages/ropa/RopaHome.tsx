@@ -137,7 +137,7 @@ export default function RopaHome() {
     <RopaShell
       title="Record of Processing Activities (RoPA) — End User Privacy"
       heading="Record of Processing Activities (RoPA)"
-      chip=" Article 30 Record Builder"
+      chip=" Record of Processing Activities (RoPA)"
       description="Build and maintain the Article 30 GDPR Record of Processing Activities your DPO is expected to produce on request — a guided wizard captures each processing activity, legal basis, data category, and transfer detail, then outputs the documented record as a .pdf."
     >
       {loading ? (

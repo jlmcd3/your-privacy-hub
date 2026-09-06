@@ -95,8 +95,8 @@ const PrivacyPolicy = () => {
               <li>
                 Compliance tool inputs — such as details about your organisation's processing
                 activities, data transfers, incident scenarios, or legal basis assessments — which
-                you enter when using tools such as the LIA, DPIA, Custom DPA, IR Playbook, RoPA
-                Builder, or CPPA Suite
+                you enter when using tools such as the LIA, DPIA, Custom DPA, IR Playbook, RoPA,
+                or CPPA Suite
               </li>
               <li>
                 Payment information (collected and processed by Stripe; we do not store your card

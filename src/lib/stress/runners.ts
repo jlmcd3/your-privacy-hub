@@ -757,7 +757,7 @@ export const TOOLS: ToolDef[] = [
   { id: "biometric",   label: "Biometric Compliance",           group: "Assessments", runner: runBiometric,  expectedSeconds: 60 },
   { id: "dpa",         label: "Custom DPA",                  group: "Documents",   runner: runDPA,        expectedSeconds: 60 },
   { id: "ir-playbook", label: "IR Playbook",                    group: "Documents",   runner: runIRPlaybook, expectedSeconds: 60 },
-  { id: "ropa",        label: "RoPA (Article 30) Builder",      group: "Documents",   runner: runRoPA,       expectedSeconds: 45 },
+  { id: "ropa",        label: "Record of Processing Activities (RoPA)",      group: "Documents",   runner: runRoPA,       expectedSeconds: 45 },
   { id: "us-notice",   label: "US Privacy Notice",      group: "Notices",     runner: runUSNotice,   expectedSeconds: 30 },
   { id: "eu-notice",   label: "EU / Global Privacy Notice", group: "Notices", runner: runEUNotice,   expectedSeconds: 30 },
   { id: "registration",label: "Registration Filings Manager (DIY)",     group: "Registration",runner: runRegistration, expectedSeconds: 90 },

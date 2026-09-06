@@ -23,7 +23,7 @@ const PRODUCT_META: Record<string, any> = {
   cppa_risk:              { name: 'CPPA Risk Assessment',            url: '/tools/cppa-risk',              price_subscriber: '$79',  price_standalone: '$149' },
   cppa_cybersecurity:     { name: 'CPPA Cybersecurity Readiness',    url: '/tools/cppa-cybersecurity',     price_subscriber: '$99',  price_standalone: '$199' },
   cppa_bundle:            { name: 'CPPA Full Suite Bundle',          url: '/tools/cppa-bundle',            price_subscriber: '$149', price_standalone: '$299' },
-  rofa:                   { name: 'Article 30 RoFA Builder',         url: '/tools/rofa',                   price_subscriber: '$49',  price_standalone: '$79'  },
+  rofa:                   { name: 'Record of Processing Activities (RoPA)',         url: '/tools/rofa',                   price_subscriber: '$49',  price_standalone: '$79'  },
   privacy_notice_us:      { name: 'Privacy Notice Generator',        url: '/tools/privacy-notice',         price_subscriber: '$29',  price_standalone: '$49'  },
   privacy_notice_global:  { name: 'Global Privacy Notice Generator', url: '/tools/global-privacy-notice',  price_subscriber: '$49',  price_standalone: '$79'  },
   registration_suite:     { name: 'Registration Filings Manager',            url: '/tools/registration',           price_subscriber: '$90',  price_standalone: '$90'  },
