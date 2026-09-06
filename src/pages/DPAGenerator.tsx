@@ -172,6 +172,15 @@ export default function DPAGenerator() {
       dataCategories: form.dataCategories,
       retention,
       hasSubProcessors: form.hasSubProcessors,
+      // QA round two (DPA-A-01 / DPA-C01, High, 2026-09-06) — this intake has
+      // NO sub-processor-inventory question. `hasSubProcessors` is initialised
+      // false and nothing ever sets it, so the generator read that default as
+      // "the Controller confirmed there are none", asserted an empty list, and
+      // drafted the SPECIFIC clause over the customer's own GENERAL Art. 28(2)
+      // selection. Declaring the inventory uncollected keeps the selected
+      // regime and renders Annex D as a completion prompt instead of a claim.
+      // Remove this flag if and when an inventory question is added.
+      subProcessorInventoryCollected: false,
       subProcessorList: form.subProcessorList,
       subprocessorChangeNoticePeriod: form.subprocessorChangeNoticePeriod.trim() || undefined,
       subprocessorAuthorizationModel: form.subprocessorAuthorizationModel,

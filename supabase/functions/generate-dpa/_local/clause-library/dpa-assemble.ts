@@ -54,6 +54,15 @@ export interface DpaAssembleInput {
   readonly dataCategories: readonly string[];
   readonly retention: string;
   readonly hasSubProcessors: boolean;
+  /**
+   * QA round two (DPA-A-01 / DPA-C01) — whether the record was ever ASKED for
+   * a Sub-processor inventory. `hasSubProcessors: false` alone cannot tell
+   * "the Controller says there are none" from "nobody asked", and the DPA
+   * intake asks no such question, so every document asserted emptiness and
+   * overrode the customer's Art. 28(2) selection. Absent ⇒ true, so existing
+   * callers and pinned fixtures are unchanged.
+   */
+  readonly subProcessorInventoryCollected?: boolean;
   readonly subProcessorList: string;
   readonly subprocessorAuthorizationModel: "general" | "specific";
   readonly subprocessorNoticeDays: number;
@@ -190,6 +199,16 @@ function annexC(input: DpaAssembleInput): string {
 function annexD(input: DpaAssembleInput): string {
   const head = "ANNEX D — SUB-PROCESSORS (Name / Service / Location / Date Authorised)";
   if (!input.hasSubProcessors) {
+    // QA round two (DPA-A-01) — "None engaged as of the Effective Date" is a
+    // statement of fact about the Controller's supply chain. It may only be
+    // made where the record was actually asked. Where it was not, the annex
+    // says so and asks for the list, rather than asserting an empty one.
+    if (input.subProcessorInventoryCollected === false) {
+      return [
+        head,
+        "[TO BE COMPLETED: list the Sub-processors engaged for the Services, or record that none are engaged. This agreement does not state either position, because the inventory was not part of the information supplied.]",
+      ].join("\n");
+    }
     return [head, "None engaged as of the Effective Date."].join("\n");
   }
   const list = s(input.subProcessorList);
@@ -386,6 +405,7 @@ export function assembleDpaDocument(input: DpaAssembleInput): DpaAssembledDocume
       input.subprocessorAuthorizationModel,
       input.subprocessorNoticeDays,
       input.hasSubProcessors,
+      input.subProcessorInventoryCollected ?? true,
     ),
     transferClause: transferClause({
       mode,

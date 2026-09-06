@@ -234,8 +234,30 @@ export const CANADA_ACCOUNTABILITY_CLAUSES: readonly string[] = [
 
 // ── Slot-dependent clause builders (pure; the assembler calls these) ───────
 
-export function subprocessorAuthorisationClause(model: "general" | "specific", noticeDays: number, hasSubProcessors: boolean): string {
-  if (!hasSubProcessors) {
+/**
+ * QA round two (DPA-A-01 / DPA-C01, High, 2026-09-06) — customers A and C both
+ * selected GENERAL authorisation with 30 days' notice and received the SPECIFIC
+ * clause, prefaced by an assertion that no Sub-processors are engaged. Neither
+ * had said that: `hasSubProcessors` defaults to false in DPAGenerator's form
+ * state and NO question ever sets it, so the no-Sub-processor branch fired on
+ * every record and silently overrode the one Art. 28(2) answer the intake does
+ * collect. (Customer B looked correct only because B chose "specific", which
+ * happens to read the same.) The optional clause 20.6 then cross-referenced a
+ * 30-day notice that section 5 no longer contained.
+ *
+ * `inventoryCollected` separates "the record says there are none" from "the
+ * record was never asked". False means never asked: the chosen regime is
+ * drafted as selected and Annex D becomes a completion prompt rather than an
+ * assertion of emptiness. It defaults TRUE, so every existing caller, fixture
+ * and pinned test is byte-unchanged.
+ */
+export function subprocessorAuthorisationClause(
+  model: "general" | "specific",
+  noticeDays: number,
+  hasSubProcessors: boolean,
+  inventoryCollected = true,
+): string {
+  if (!hasSubProcessors && inventoryCollected) {
     return `5.1 No Sub-processors are engaged as of the Effective Date. Any future engagement of a Sub-processor requires the Controller's prior specific written authorisation obtained before the engagement commences.`;
   }
   if (model === "specific") {

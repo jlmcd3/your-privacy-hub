@@ -335,8 +335,16 @@ export function optionalProvisionClauses(n: number, ctx: { childrens: boolean; b
  * ratified clause carries (wrong law outside the GDPR family). Same
  * branches, same floored 15-day objection window (DOC-81 D-10).
  */
-export function neutralSubprocessorAuthorisationClause(model: "general" | "specific", noticeDays: number, hasSubProcessors: boolean): string {
-  if (!hasSubProcessors) {
+export function neutralSubprocessorAuthorisationClause(
+  model: "general" | "specific",
+  noticeDays: number,
+  hasSubProcessors: boolean,
+  // QA round two (DPA-A-01) — see subprocessorAuthorisationClause in
+  // dpa-clause-library.ts. False = the inventory was never collected, so the
+  // selected regime is drafted and emptiness is not asserted. Defaults true.
+  inventoryCollected = true,
+): string {
+  if (!hasSubProcessors && inventoryCollected) {
     return `5.1 No Sub-processors are engaged as of the Effective Date. Any future engagement of a Sub-processor requires the Controller's prior specific written authorisation obtained before the engagement commences.`;
   }
   if (model === "specific") {

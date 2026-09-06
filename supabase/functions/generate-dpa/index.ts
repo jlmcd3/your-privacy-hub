@@ -58,6 +58,15 @@ interface Body {
   // applied below so replays don't 400 — but the current form never omits them.
   retention?: string;
   hasSubProcessors: boolean;
+  /**
+   * QA round two (DPA-A-01 / DPA-C01, High, 2026-09-06) — whether the record
+   * was ever ASKED for a Sub-processor inventory. `hasSubProcessors` defaults
+   * to false in DPAGenerator's form state and no question sets it, so every
+   * DPA asserted "No Sub-processors are engaged" and drafted the SPECIFIC
+   * clause over the customer's own GENERAL Art. 28(2) selection. Absent ⇒
+   * true, so replays and pinned fixtures behave exactly as before.
+   */
+  subProcessorInventoryCollected?: boolean;
   subProcessorList?: string;
   // INTAKE-2 — optional advance-notice window (in days) the Processor must give
   // before adding or replacing a sub-processor under the Art. 28(2) general
@@ -719,7 +728,7 @@ Processor: ${body.processorName} (${body.processorJurisdiction})
 Services: ${body.services}
 Data categories: ${body.dataCategories.join(", ")}
 Retention: ${body.retention}
-Sub-processors: ${body.hasSubProcessors ? "Yes — " + (body.subProcessorList || "(list to be provided)") : "None — the Controller has confirmed on the record that no sub-processors are engaged for the Services"}
+Sub-processors: ${body.hasSubProcessors ? "Yes — " + (body.subProcessorList || "(list to be provided)") : body.subProcessorInventoryCollected === false ? "Not collected — the record does not state whether any sub-processors are engaged. Draft the authorisation regime the record SELECTS, and treat the list of sub-processors as a [TO BE COMPLETED] item; do NOT assert that none are engaged." : "None — the Controller has confirmed on the record that no sub-processors are engaged for the Services"}
 Audit rights: ${body.auditRights}${additionalFrameworksLine}${frameworkFallbackNote}${(() => { const t = renderTomsBlock(body.securityMeasuresSelected, body.securityMeasuresDetails); return t ? String.fromCharCode(10) + t : ""; })()}
 NOTE ON THE JURISDICTION FIELDS: the jurisdiction shown in parentheses beside each Party is the jurisdiction in which that Party OPERATES / whose law the record engages. It is NOT the Party's jurisdiction of formation or incorporation, and the record does NOT establish either Party's legal form (entity type). Neither may be inferred from the operating jurisdiction or from the name suffix.`;
 
@@ -1537,6 +1546,7 @@ ${ADVISORY_VOICE_RULES}`;
         dataCategories: Array.isArray(body.dataCategories) ? body.dataCategories : [],
         retention: body.retention ?? "",
         hasSubProcessors: !!body.hasSubProcessors,
+        subProcessorInventoryCollected: body.subProcessorInventoryCollected ?? true,
         subProcessorList: body.subProcessorList ?? "",
         subprocessorAuthorizationModel: body.subprocessorAuthorizationModel === "specific" ? "specific" : "general",
         subprocessorNoticeDays: Number.isFinite(_days) && _days > 0 && _days <= 365 ? Math.trunc(_days) : 30,
@@ -1579,7 +1589,7 @@ ${ADVISORY_VOICE_RULES}`;
     // assembled no-sub-processor document. Ratified bytes are not repaired.
     const subprocSup1 = dpaDeterministicPath
       ? { text: parsed.dpa_text, suppressed: false }
-      : suppressSubProcessorFramework(parsed.dpa_text, !!body.hasSubProcessors);
+      : suppressSubProcessorFramework(parsed.dpa_text, !!body.hasSubProcessors || body.subProcessorInventoryCollected === false);
     parsed = { ...parsed, dpa_text: subprocSup1.text } as typeof parsed;
     // DOC 182 (2026-09-04) — the clause-numbering collision net exists to
     // catch MODEL-numbered clauses (a "1798.140" that is really a clause
@@ -1613,7 +1623,7 @@ ${ADVISORY_VOICE_RULES}`;
       const engagedStateViolations = detectNonEngagedStateAssertions(parsed.dpa_text, engagedStates);
       // HF1 Task 2 — sub-processor contradiction (Schedule-1 / general-authorisation
       // framework where hasSubProcessors===false).
-      const subprocContradictions = detectSubProcessorContradiction(parsed.dpa_text, !!body.hasSubProcessors);
+      const subprocContradictions = detectSubProcessorContradiction(parsed.dpa_text, !!body.hasSubProcessors || body.subProcessorInventoryCollected === false);
       const s150 = detectSection150BreachMisapplication(parsed.dpa_text);
       const extras = [...spec, ...baseline, ...blacklist, ...engagedStateViolations, ...subprocContradictions, ...s150];
       if (extras.length) {
@@ -1840,7 +1850,7 @@ ${ADVISORY_VOICE_RULES}`;
         );
         const retryParsedRaw = parseDpa(retryCall.text);
         // IR-HF1 T4 — attempt-2 suppression BEFORE lint (idempotent).
-        const subprocSup2 = suppressSubProcessorFramework(retryParsedRaw.dpa_text, !!body.hasSubProcessors);
+        const subprocSup2 = suppressSubProcessorFramework(retryParsedRaw.dpa_text, !!body.hasSubProcessors || body.subProcessorInventoryCollected === false);
         const retryParsed = { ...retryParsedRaw, dpa_text: subprocSup2.text } as typeof retryParsedRaw;
         const retryLint = lintReportText(retryParsed.dpa_text, { checkClauseNumbering: true });
         {
@@ -1859,7 +1869,7 @@ ${ADVISORY_VOICE_RULES}`;
             detected.procCanonical,
           ]);
           const engagedStateViolations2 = detectNonEngagedStateAssertions(retryParsed.dpa_text, engagedStates2);
-          const subprocContradictions2 = detectSubProcessorContradiction(retryParsed.dpa_text, !!body.hasSubProcessors);
+          const subprocContradictions2 = detectSubProcessorContradiction(retryParsed.dpa_text, !!body.hasSubProcessors || body.subProcessorInventoryCollected === false);
           const s150_2 = detectSection150BreachMisapplication(retryParsed.dpa_text);
           const extras = [...spec, ...baseline, ...blacklist, ...engagedStateViolations2, ...subprocContradictions2, ...s150_2];
           if (extras.length) {
