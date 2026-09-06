@@ -586,13 +586,23 @@ export default function CPPACybersecurity() {
             ) : (
               <p className="text-xs text-muted-foreground mt-1">Pick every framework whose existing evidence this audit will lean on. Left blank, the report treats the audit as standing alone and credits no prior framework work. Why we ask: § 7123(f) lets an audit leverage work already done under another framework, but only for what that framework actually covered.</p>
             )}
-            <div className="mt-2 flex flex-wrap gap-2">
+            {/* Same accessibility fix as the per-component evidence pills
+                below: selection was conveyed by colour alone. This group is
+                also where the QA tester's NIST selection was toggled off
+                without them noticing — an announced pressed state makes the
+                current selection legible rather than inferred from hue. */}
+            <div
+              role="group"
+              aria-label="Frameworks in scope for this audit"
+              className="mt-2 flex flex-wrap gap-2"
+            >
               {CYBER_IN_SCOPE_FRAMEWORKS.map((opt) => {
                 const selected = profile.in_scope_frameworks.includes(opt);
                 return (
                   <button
                     key={opt}
                     type="button"
+                    aria-pressed={selected}
                     onClick={() => toggleInScopeFramework(opt)}
                     className={`text-xs px-3 py-1 rounded-full border ${selected ? "bg-primary text-primary-foreground border-primary" : "bg-background text-foreground border-input"}`}
                   >{opt}</button>
@@ -685,13 +695,26 @@ export default function CPPACybersecurity() {
               <div className="mt-3">
                 <Label className="text-xs">Evidence available <span className="font-normal text-muted-foreground">(optional)</span></Label>
                 <p className="text-[11px] text-muted-foreground mt-0.5">{c.evidenceHint ?? "Select every artefact an auditor could test for this component. Left blank, the evidence checklist records nothing on file for it."}</p>
-                <div className="mt-1 flex flex-wrap gap-2">
+                {/* QA round two (Cyber accessibility, Low, 2026-09-06) — these
+                    pills are real buttons, so they were already keyboard
+                    operable, but selection was carried by colour alone: a
+                    screen reader announced eighteen identical "button" names
+                    with no way to tell which artefacts were selected. They are
+                    toggle buttons, so they take aria-pressed, and the set is
+                    named as a group so each pill is announced in the context of
+                    its component. */}
+                <div
+                  role="group"
+                  aria-label={`Evidence available for ${c.label}`}
+                  className="mt-1 flex flex-wrap gap-2"
+                >
                   {CYBER_EVIDENCE_OPTS.map((opt) => {
                     const selected = (evidence[c.key] || []).includes(opt);
                     return (
                       <button
                         key={opt}
                         type="button"
+                        aria-pressed={selected}
                         onClick={() => toggleEvidence(c.key, opt)}
                         className={`text-xs px-3 py-1 rounded-full border ${selected ? "bg-primary text-primary-foreground border-primary" : "bg-background text-foreground border-input"}`}
                       >{opt}</button>

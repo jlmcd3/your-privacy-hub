@@ -880,7 +880,27 @@ export function buildReadinessDetermination(
     : conclusion === "ready_subject_to_named_remediation"
     ? `On the information provided the business is ready for a § 7124 certified cybersecurity audit subject to ${countWord(remediationItems.length)} named remediation item${remediationItems.length === 1 ? "" : "s"}: ${remediationItems.join("; ")}. No component is unimplemented and no § 7122 condition is unmet.${naNote}`
     : conclusion === "not_ready"
-    ? `On the information provided the business is not ready for a § 7124 certified cybersecurity audit: ${countWord(blocking.length)} § 7123(c) component${blocking.length === 1 ? "" : "s"} would be reported as not implemented or unevidenced${independenceBlocks ? ", and the § 7122 independence conditions are not met" : ""}.${naNote}`
+    ? (() => {
+        // QA round two (CY-A-01 / CY-B-02, 2026-09-06) — same root cause the
+        // record_insufficient branch below already fixed, in the branch above
+        // it. "not_ready" is reached by ANY of three triggers (line ~858:
+        // blocking components, failed § 7122 independence, or failed § 7123(b)(3)
+        // enforcement), but this sentence always asserted the component clause.
+        // With no blocking component and only the independence gate failing —
+        // customer A's exact record, where the report correctly identified the
+        // absent independent auditor — it read "zero § 7123(c) components would
+        // be reported as not implemented". State each clause only when it
+        // applies. Byte-identical to the prior wording when both apply.
+        const bits: string[] = [];
+        if (blocking.length > 0) {
+          bits.push(`${countWord(blocking.length)} § 7123(c) component${blocking.length === 1 ? "" : "s"} would be reported as not implemented or unevidenced`);
+        }
+        if (independenceBlocks) bits.push("the § 7122 independence conditions are not met");
+        if (enforcementBlocks && blocking.length === 0) {
+          bits.push("§ 7123(b)(3) implementation-and-enforcement evidence is unmet on this record");
+        }
+        return `On the information provided the business is not ready for a § 7124 certified cybersecurity audit: ${bits.join(", and ")}.${naNote}`;
+      })()
     : (() => {
         // 2026-08-25 — REAL BUG FOUND while investigating C1.1b (prose-gold's
         // CY-5 dangling-clause sub-pass was silently masking it downstream):
@@ -916,9 +936,18 @@ export function buildReadinessDetermination(
       `partially implemented or evidenced only by policy documentation; each carries a named remediation step in its ` +
       `component module (Section 3) and in Appendix B. The named items are: ${remediationItems.join("; ")}. ${independence.summary}${naNote}`
     : conclusion === "not_ready"
-    ? `The audit cannot be certified while a component enumerated in § 7123(c) is unimplemented or unevidenced. ` +
-      `The blocking components are: ${blocking.map((b) => b.label).join("; ")}.` +
-      `${independenceBlocks ? ` Separately, ${independence.summary}` : ""}` +
+    // QA round two (CY-A-01 / CY-B-02, Low) — the executive summary printed
+    // the literal sentence "The blocking components are: ." whenever
+    // "not_ready" was reached by the § 7122 independence or § 7123(b)(3)
+    // enforcement gate rather than by a blocking component. Both the lead-in
+    // and the list are now stated only when a component actually blocks: with
+    // none, the § 7122 / § 7123(b)(3) sentences below carry the finding on
+    // their own, which is what customer A's record actually established.
+    ? `${blocking.length > 0
+        ? `The audit cannot be certified while a component enumerated in § 7123(c) is unimplemented or unevidenced. `
+          + `The blocking components are: ${blocking.map((b) => b.label).join("; ")}.`
+        : `No component enumerated in § 7123(c) is recorded as unimplemented or unevidenced; the audit is nevertheless not certifiable on this record for the reason${independenceBlocks && enforcementBlocks ? "s" : ""} below.`}` +
+      `${independenceBlocks ? ` ${blocking.length > 0 ? "Separately, " : ""}${independence.summary}` : ""}` +
       // FD703575-CY2 — the (b)(3) sentence must carry its basis in the same
       // sentence (this function's own § 7123(b)(1)/(b)(3) usage discipline);
       // the bare "is also unmet" form was flagged as an unsupported claim.
