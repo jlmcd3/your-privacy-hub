@@ -6,6 +6,13 @@ import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import {
+  clearSuiteHandoff,
+  nextSuiteStep,
+  readSuiteHandoff,
+  saveSuiteModule,
+  suiteCheckoutIntake,
+} from "@/lib/suiteIntakeHandoff";
 import { Helmet } from "react-helmet-async";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
 import { Button } from "@/components/ui/button";
@@ -267,6 +274,34 @@ export default function CPPACybersecurity() {
     }
     notifyUnassessed();
     if (!user) { setAuthGateOpen(true); return; }
+    setCheckoutOpen(true);
+  };
+
+  // ── QA round two (SUITE-B03, High) — CPPA Suite two-module hand-off ──
+  // Mirror of the Risk page. This entry point collected only the Cyber intake
+  // and then bought the bundle, so both rows were written with it. Module 1 is
+  // now required before checkout, and the purchase carries an explicit
+  // per-module envelope that create-tool-checkout also enforces.
+  const suiteModules = useMemo(
+    () => (isSuite ? { ...readSuiteHandoff(), cybersecurity: intake as Record<string, unknown> } : {}),
+    [isSuite, intake],
+  );
+  const suiteNextStep = useMemo(
+    () => (isSuite ? nextSuiteStep(suiteModules) : null),
+    [isSuite, suiteModules],
+  );
+  const handleSuiteContinue = () => {
+    if (!allComplete) {
+      toast({ title: "Required", description: "Complete the organization profile: entity name, industry, incidents, framework, and last audit.", variant: "destructive" });
+      return;
+    }
+    notifyUnassessed();
+    if (!user) { setAuthGateOpen(true); return; }
+    saveSuiteModule("cybersecurity", intake as Record<string, unknown>);
+    if (suiteNextStep) {
+      navigate(suiteNextStep.path);
+      return;
+    }
     setCheckoutOpen(true);
   };
 
@@ -677,8 +712,13 @@ export default function CPPACybersecurity() {
 
         <div className="bg-card border rounded-lg p-6 flex justify-end flex-wrap gap-3">
           {isSuite ? (
-            <Button onClick={() => { if (!allComplete) { toast({ title: "Required", description: "Complete the organization profile: entity name, industry, incidents, framework, and last audit.", variant: "destructive" }); return; } notifyUnassessed(); if (!user) { setAuthGateOpen(true); return; } setCheckoutOpen(true); }}>
-              Purchase CPPA Suite (${suitePricing.price})
+            /* QA round two (SUITE-B03, High) — the bundle is two assessments.
+               Bought from this page alone, both rows were written with the
+               Cyber answers. Module 1 is collected before checkout opens. */
+            <Button onClick={handleSuiteContinue}>
+              {suiteNextStep
+                ? `Continue to ${suiteNextStep.label}`
+                : `Purchase CPPA Suite ($${suitePricing.price})`}
             </Button>
           ) : (
             <Button onClick={handlePurchase}>
@@ -699,12 +739,13 @@ export default function CPPACybersecurity() {
           toolType={isSuite ? "cppa_suite" : "cppa_cybersecurity"}
           userId={user?.id}
           clientId={clientId}
-          intakeData={intake}
+          intakeData={isSuite ? suiteCheckoutIntake(suiteModules) : intake}
           onClose={() => setCheckoutOpen(false)}
           onComplete={(id, suiteCyberId) => {
             setCheckoutOpen(false);
             if (!id) return;
             void clearDraft();
+            if (isSuite) clearSuiteHandoff();
             if (isSuite && suiteCyberId) {
               // When entered via /cppa-cybersecurity?suite=true, the risk_id is the
               // first assessment created (stored as id) and cyber_id is suiteCyberId.

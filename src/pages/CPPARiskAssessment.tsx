@@ -10,6 +10,13 @@ import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import {
+  clearSuiteHandoff,
+  nextSuiteStep,
+  readSuiteHandoff,
+  saveSuiteModule,
+  suiteCheckoutIntake,
+} from "@/lib/suiteIntakeHandoff";
 import { Helmet } from "react-helmet-async";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
 import { Button } from "@/components/ui/button";
@@ -1607,6 +1614,31 @@ export default function CPPARiskAssessment() {
     }
     if (!pricing.stripeConfigured) {
       toast({ title: "Payments unavailable", description: "Payments are not yet configured.", variant: "destructive" });
+      return;
+    }
+    setCheckoutOpen(true);
+  };
+
+  // ── QA round two (SUITE-A-02, High) — CPPA Suite two-module hand-off ──
+  // The bundle is two assessments. Buying it from this page alone wrote the
+  // Risk answers into BOTH rows, so the paid Cybersecurity report came back
+  // "Insufficient basis to assess, 0/100, all 18 controls not assessable" —
+  // a score that reflected the missing questionnaire, not the customer's
+  // controls. Module 2 is collected first; only then is checkout opened, with
+  // an explicit per-module envelope that create-tool-checkout also enforces.
+  const suiteModules = useMemo(
+    () => (isSuite ? { ...readSuiteHandoff(), risk_assessment: intake as Record<string, unknown> } : {}),
+    [isSuite, intake],
+  );
+  const suiteNextStep = useMemo(
+    () => (isSuite ? nextSuiteStep(suiteModules) : null),
+    [isSuite, suiteModules],
+  );
+  const handleSuiteContinue = () => {
+    if (!user) { setAuthGateOpen(true); return; }
+    saveSuiteModule("risk_assessment", intake as Record<string, unknown>);
+    if (suiteNextStep) {
+      navigate(suiteNextStep.path);
       return;
     }
     setCheckoutOpen(true);
@@ -3639,8 +3671,15 @@ export default function CPPARiskAssessment() {
               ) : (
                 <div className="flex gap-2 flex-wrap">
                   {isSuite ? (
-                    <Button onClick={() => { if (!user) { setAuthGateOpen(true); return; } setCheckoutOpen(true); }}>
-                      Purchase CPPA Suite (${suitePricing.price})
+                    /* QA round two (SUITE-A-02, High) — this used to open
+                       checkout on the Risk answers alone, and both bundle rows
+                       were written with them, so the paid Cybersecurity report
+                       said "Insufficient basis to assess, 0/100". Module 2 is
+                       now collected before the bundle can be bought. */
+                    <Button onClick={handleSuiteContinue}>
+                      {suiteNextStep
+                        ? `Continue to ${suiteNextStep.label}`
+                        : `Purchase CPPA Suite ($${suitePricing.price})`}
                     </Button>
                   ) : (
                     <Button onClick={handlePurchase} disabled={!pricing.stripeConfigured}>
@@ -3675,12 +3714,13 @@ export default function CPPARiskAssessment() {
           toolType={isSuite ? "cppa_suite" : "cppa_risk_assessment"}
           userId={user?.id}
           clientId={clientId}
-          intakeData={intake}
+          intakeData={isSuite ? suiteCheckoutIntake(suiteModules) : intake}
           onClose={() => setCheckoutOpen(false)}
           onComplete={(id, suiteCyberId) => {
             setCheckoutOpen(false);
             if (!id) return;
             void clearDraft();
+            if (isSuite) clearSuiteHandoff();
             if (isSuite && suiteCyberId) {
               navigate(`/cppa-suite/result?risk_id=${id}&cyber_id=${suiteCyberId}&purchased=true`);
             } else if (isSuite && !suiteCyberId) {

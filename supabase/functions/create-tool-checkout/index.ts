@@ -11,6 +11,7 @@ import {
 } from "../_shared/pricing.ts";
 import { registryCents } from "../_shared/pricing-snapshot.ts";
 import { REVISIONS_ENABLED } from "../regenerate-assessment/_local/revision-gate.ts";
+import { missingSuiteModules, readSuiteModules } from "../_shared/suite-intake.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -644,10 +645,48 @@ Deno.serve(async (req) => {
       };
 
       if (tool_type === "cppa_suite") {
-        // Suite purchase creates one row per module so each can be processed independently.
+        // Suite purchase creates one row per module so each can be processed
+        // independently.
+        //
+        // QA round two (SUITE-A-02 / SUITE-B03, High, 2026-09-06) — the Suite
+        // has two entry points (/cppa-risk-assessment?suite=true and
+        // /cppa-cybersecurity?suite=true) and each collects only its OWN
+        // module's intake. Both rows were then written with that single
+        // payload, so the Cybersecurity module ran against Risk answers and
+        // produced a paid "Insufficient basis to assess, 0/100, all 18
+        // controls not assessable" document. That 0 reflected that no answers
+        // were ever collected, not that the customer has no controls — and
+        // customer B had a complete standalone Cyber record sitting unused.
+        //
+        // The bundle now carries an explicit per-module envelope, and the
+        // purchase is REFUSED unless both modules are genuinely answered. A
+        // legacy single-module payload resolves to one module and is refused
+        // here rather than being duplicated across both rows.
+        const suiteModules = readSuiteModules(intake_data);
+        const missingModules = missingSuiteModules(suiteModules);
+        if (missingModules.length > 0) {
+          console.warn(JSON.stringify({
+            evt: "suite_intake_incomplete", fn: "create-tool-checkout",
+            user_id: user_id || null, missing: missingModules,
+          }));
+          return new Response(
+            JSON.stringify({
+              error: "suite_intake_incomplete",
+              missing_modules: missingModules,
+              message:
+                "The CPPA Suite covers two assessments, and both questionnaires have to be completed before it can be purchased. Still to complete: "
+                + missingModules
+                  .map((m) => (m === "cybersecurity" ? "Cybersecurity Audit Readiness (Module 2)" : "Risk Assessment (Module 1)"))
+                  .join(" and ")
+                + ".",
+            }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+        // Each row carries its OWN module's answers.
         const { data: riskRow, error: riskErr } = await supabase
           .from("cppa_assessments")
-          .insert({ ...baseRow, module: "risk_assessment" })
+          .insert({ ...baseRow, module: "risk_assessment", intake_data: suiteModules.risk_assessment ?? {} })
           .select("id")
           .single();
         if (riskErr || !riskRow) {
@@ -656,7 +695,7 @@ Deno.serve(async (req) => {
         }
         const { data: cyberRow, error: cyberErr } = await supabase
           .from("cppa_assessments")
-          .insert({ ...baseRow, module: "cybersecurity" })
+          .insert({ ...baseRow, module: "cybersecurity", intake_data: suiteModules.cybersecurity ?? {} })
           .select("id")
           .single();
         if (cyberErr || !cyberRow) {

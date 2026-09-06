@@ -89,7 +89,24 @@ export default function ToolCheckoutModal({
       throw new Error("Included with your plan — no payment is needed.");
     }
     if (error || !data?.client_secret) {
-      throw new Error(error?.message || data?.error || "Failed to create checkout session");
+      // QA round two (SUITE-A-02) — create-tool-checkout now refuses an
+      // incomplete CPPA Suite purchase with a 400 and an explanatory
+      // `message`. supabase-js turns any non-2xx into the generic "Edge
+      // Function returned a non-2xx status code", so read the function's own
+      // body first (the pattern RopaRefresh already uses) and show the
+      // customer why the purchase was stopped.
+      let detail = "";
+      try {
+        const ctx = (error as { context?: Response } | null)?.context;
+        if (ctx && typeof ctx.json === "function") {
+          const body = await ctx.clone().json();
+          if (typeof body?.message === "string") detail = body.message;
+          else if (typeof body?.error === "string") detail = body.error;
+        }
+      } catch { /* fall through to the generic message */ }
+      throw new Error(
+        detail || data?.message || error?.message || data?.error || "Failed to create checkout session",
+      );
     }
     lastAssessmentIdRef.current = data.assessment_id;
     lastSuiteCyberIdRef.current = data.suite_cyber_id || "";
