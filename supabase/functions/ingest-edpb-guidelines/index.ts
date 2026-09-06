@@ -123,6 +123,46 @@ const SEED_REGISTRY: RegistryEntry[] = [
     topic_tags: ["transparency", "privacy-notice"],
     pdf_url: "https://www.edpb.europa.eu/system/files/2023-09/wp260rev01_en.pdf",
   },
+  {
+    guideline_ref: "WP29 Opinion 2/2017",
+    title: "Opinion 2/2017 on data processing at work",
+    adopted_date: "2017-06-08",
+    related_articles: ["6", "88"],
+    topic_tags: ["employment", "workplace-monitoring", "persuasive-not-endorsed"],
+    pdf_url: "https://ec.europa.eu/newsroom/article29/redirection/document/45631",
+  },
+  {
+    guideline_ref: "WP29 Opinion 1/2006",
+    title: "Opinion 1/2006 on the application of EU data protection rules to internal whistleblowing schemes",
+    adopted_date: "2006-02-01",
+    related_articles: ["6"],
+    topic_tags: ["whistleblowing", "internal-reporting", "persuasive-not-endorsed"],
+    pdf_url: "https://ec.europa.eu/justice/article-29/documentation/opinion-recommendation/files/2006/wp117_en.pdf",
+  },
+  {
+    guideline_ref: "EDPB Guidelines 3/2019",
+    title: "Guidelines 3/2019 on processing of personal data through video devices (Version 2.0)",
+    adopted_date: "2020-01-29",
+    related_articles: ["6", "9"],
+    topic_tags: ["video-surveillance", "cctv"],
+    pdf_url: "https://www.edpb.europa.eu/system/files/documents/files/file1/edpb_guidelines_201903_video_devices_en_0.pdf",
+  },
+  {
+    guideline_ref: "EDPB Guidelines 06/2020",
+    title: "Guidelines 06/2020 on the interplay of the Second Payment Services Directive and the GDPR (Version 2.0)",
+    adopted_date: "2020-12-15",
+    related_articles: ["6"],
+    topic_tags: ["psd2", "open-banking", "aisp-pisp"],
+    pdf_url: "https://www.edpb.europa.eu/system/files/documents/files/file1/edpb_guidelines_202006_psd2_afterpublicconsultation_en.pdf",
+  },
+  {
+    guideline_ref: "EDPB Opinion 28/2024",
+    title: "Opinion 28/2024 on certain data protection aspects related to the processing of personal data in the context of AI models",
+    adopted_date: "2024-12-17",
+    related_articles: ["6", "5"],
+    topic_tags: ["ai-models", "anonymisation", "legitimate-interest"],
+    pdf_url: "https://www.edpb.europa.eu/system/files/documents/2024-12/edpb_opinion_202428_ai-models_en.pdf",
+  },
 ];
 
 function json(b: unknown, s = 200) {
