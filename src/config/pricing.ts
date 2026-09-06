@@ -1075,11 +1075,11 @@ export const PRICING = {
 // flips true. Do NOT flip the flag to fix copy.
 export const INCLUDED_GENERATIONS_SHORT = "Initial report generation included";
 export const INCLUDED_GENERATIONS_COPY =
-  "Includes your initial report generation. Revisions are temporarily disabled while we ship the Revision Contract program — use the free Errata channel for verbatim corrections in the meantime.";
+  "Includes your initial report generation. Revisions are temporarily disabled while we ship the Revision Contract program.";
 // Pre-intake redesign (2026-08-26): the hero support line used on product
 // pages. Same mechanics as INCLUDED_GENERATIONS_COPY, phrased for the hero.
 export const INCLUDED_GENERATIONS_HERO =
-  "Your initial report generation is included. Revisions are temporarily disabled — free Errata channel available for verbatim corrections.";
+  "Your initial report generation is included. Revisions are temporarily disabled while we ship the Revision Contract program.";
 
 export type ToolKey = keyof typeof PRICING.tools;
 

@@ -82,7 +82,7 @@ export default function OpenItemsList({ items, onSubmit, submitting, advisoryNot
 
       {open.length === 0 && (
         <div className="rounded border bg-muted p-4 text-sm text-muted-foreground">
-          All open items resolved. You may still submit corrections via the Errata channel.
+          All open items resolved. Contact support@enduserprivacy.com if you still need to submit a correction.
         </div>
       )}
 

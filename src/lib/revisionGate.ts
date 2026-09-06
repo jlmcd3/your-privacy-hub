@@ -5,4 +5,4 @@ export const REVISIONS_ENABLED: boolean =
   String(import.meta.env.VITE_REVISIONS_ENABLED ?? "").toLowerCase() === "true";
 
 export const REVISIONS_DISABLED_MESSAGE =
-  "Revisions are temporarily disabled while we ship the Revision Contract program. Please use the free Errata channel for verbatim corrections, or wait for revisions to be re-enabled.";
+  "Revisions are temporarily disabled while we ship the Revision Contract program. Please wait for revisions to be re-enabled, or contact support@enduserprivacy.com for corrections in the meantime.";

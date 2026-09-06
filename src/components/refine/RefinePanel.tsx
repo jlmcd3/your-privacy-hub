@@ -252,7 +252,7 @@ export default function RefinePanel({
           }}
         />
         <p className="text-xs text-muted-foreground pt-2 border-t border-brand-cloud">
-          Need to correct a name or date verbatim? Use the free Errata channel from your report page.
+          Need to correct a name or date verbatim? Contact support@enduserprivacy.com.
         </p>
       </section>
     );

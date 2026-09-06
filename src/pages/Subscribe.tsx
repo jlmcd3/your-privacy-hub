@@ -47,7 +47,7 @@ const comparisonRows: ComparisonRow[] = [
 
   { isSection: true, feature: "The action layer: compliance tools with cited enforcement evidence" },
   { feature: "Sample preview of all tools", free: true, intel: true, platform: true },
-  { feature: "Initial report generation on the nine metered tools (Accountability, LIA, DPIA, DPA, IR Playbook, Biometric, CPPA Risk, CPPA Cybersecurity, ADMT). Revisions are temporarily disabled while we ship the Revision Contract program — use the free Errata channel for verbatim corrections in the meantime. Does not apply to RoPA, the Notice Builders, Registration Manager, or the free CPPA Scope Checker", free: true, intel: true, platform: true },
+  { feature: "Initial report generation on the nine metered tools (Accountability, LIA, DPIA, DPA, IR Playbook, Biometric, CPPA Risk, CPPA Cybersecurity, ADMT). Revisions are temporarily disabled while we ship the Revision Contract program. Does not apply to RoPA, the Notice Builders, Registration Manager, or the free CPPA Scope Checker", free: true, intel: true, platform: true },
   { feature: "Accountability Assessment (Smart Tool)", free: false, intel: T.governance.display, platform: T.governance.display },
   { feature: "Legitimate Interests Assessment (Smart Tool)", free: false, intel: T.lia.display, platform: T.lia.display },
   { feature: "DPIA / Impact Assessment (Smart Tool)", free: false, intel: T.dpia.display, platform: T.dpia.display },
