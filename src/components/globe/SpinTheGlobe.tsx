@@ -248,9 +248,12 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       tex.anisotropy = renderer.capabilities.getMaxAnisotropy?.() ?? 4;
       globeRef.current.material = new THREE.MeshPhongMaterial({
         map: tex,
-        specularMap: tex,
-        specular: new THREE.Color(0x5e9fc6),
-        shininess: 48,
+        // No specularMap: the Blue Marble texture's baked-in atmospheric
+        // limb lit up as a light-blue ring under specular. Keep a faint,
+        // uniform specular only — the day/night terminator from the
+        // directional light already carries the 3D depth cue.
+        specular: new THREE.Color(0x223040),
+        shininess: 24,
         emissive: new THREE.Color(0x071c34),
         emissiveIntensity: 0.1,
         // Reuse the color map as a bump map for cheap terrain relief — gives
