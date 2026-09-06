@@ -551,7 +551,7 @@ const TOOLS: ToolDef[] = [
     slug: "cppa-cybersecurity",
     section: "cppa",
     icon: iconEl(Lock),
-    name: "CPPA Cybersecurity Audit",
+    name: "CPPA Cybersecurity Audit Readiness",
     tagline: "Structured cybersecurity audit aligned to the CPPA's cybersecurity audit regulations.",
     href: "/cppa-cybersecurity",
     requirement: { tier: "conditional", text: "Required above CCPA thresholds — first cert Apr 1, 2028" },
@@ -559,7 +559,7 @@ const TOOLS: ToolDef[] = [
     standalonePrice: PRICING.tools.cppa_cyber.display,
     body: [
       "The CPPA's cybersecurity audit regulations require qualifying businesses to conduct annual cybersecurity audits covering specified components — access controls, multi-factor authentication, encryption, vulnerability management, incident response, and more. The audit must be thorough, independent, and documented.",
-      "The CPPA Cybersecurity Audit Tool produces a structured assessment across each of the 18 components enumerated at Cal. Code Regs. tit. 11 § 7123(c), and tests the auditor-independence requirements at § 7122 and the scope and audit-report requirements at § 7123. Each control finding is anchored to the regulatory text, the CPPA's reasoning in the Final Statement of Reasons, and a dynamic Breach Precedent Map that surfaces the most relevant recent CPPA and California AG enforcement actions for any gap or critical gap. An Auditor Independence Advisor, Audit Scope Memo Generator, and combined Auditor Handoff Package are included.",
+      "The CPPA Cybersecurity Audit Readiness Tool produces a structured assessment across each of the 18 components enumerated at Cal. Code Regs. tit. 11 § 7123(c), and tests the auditor-independence requirements at § 7122 and the scope and audit-report requirements at § 7123. Each control finding is anchored to the regulatory text, the CPPA's reasoning in the Final Statement of Reasons, and a dynamic Breach Precedent Map that surfaces the most relevant recent CPPA and California AG enforcement actions for any gap or critical gap. An Auditor Independence Advisor, Audit Scope Memo Generator, and combined Auditor Handoff Package are included.",
       `Standalone per-use price: ${PRICING.tools.cppa_cyber.display}. The April 1, 2028 certification deadline applies to businesses with annual revenue exceeding $100M. The output is ready for review by your audit team.`,
       "The output of this tool is your Subscriber Confidential Information and, as such, is protected as described in our Privacy Policy.",
     ],
@@ -605,7 +605,7 @@ const PRICING_GRID: [string, string][] = [
   ["Registration Filings Manager", `${PRICING.tools.registration.display} (Convenience)`],
   ["CPPA Scope Checker", PRICING.tools.cppa_scope.display],
   ["CPPA Risk Assessment", `${PRICING.tools.cppa_risk.display} (Smart)`],
-  ["CPPA Cybersecurity Audit", `${PRICING.tools.cppa_cyber.display} (Smart)`],
+  ["CPPA Cybersecurity Audit Readiness", `${PRICING.tools.cppa_cyber.display} (Smart)`],
   ["ADMT Compliance Assessment", `${PRICING_REGISTRY.cppa_admt_standalone.displayPrice} (Smart)`],
   ["Annual subscription bonus", "1 free Smart Tool run/yr (Intelligence) · 3 free Smart Tool runs/yr (Professional): Governance, LIA, or DPIA"],
 ];

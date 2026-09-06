@@ -283,7 +283,7 @@ export function computeUpsellSignals(
           'Your CPPA scope check confirmed obligations — the CPPA Risk Assessment (Module 1) evaluates your full posture.',
           'high', 1);
         push('cppa_cybersecurity',
-          'CPPA cybersecurity audit requirements may apply — the Cybersecurity Readiness module identifies your gap-to-certification path.',
+          'CPPA cybersecurity audit requirements may apply — the CPPA Cybersecurity Audit Readiness module identifies your gap-to-certification path.',
           'medium', 2);
       }
 
@@ -297,7 +297,7 @@ export function computeUpsellSignals(
       const jurs   = norm(intake?.jurisdictions ?? []);
 
       push('cppa_cybersecurity',
-        'Complete your CPPA picture with the Cybersecurity Readiness module — gap-to-certification analysis.',
+        'Complete your CPPA picture with the CPPA Cybersecurity Audit Readiness module — gap-to-certification analysis.',
         'high', 1);
 
       if (intake?.eu_uk_data === true || isEuUk(jurs))
@@ -341,7 +341,7 @@ export function computeUpsellSignals(
           'high', 2);
 
       push('cppa_risk',
-        'Pair your Cybersecurity Readiness with the CPPA Risk Assessment for complete California audit readiness.',
+        'Pair your CPPA Cybersecurity Audit Readiness with the CPPA Risk Assessment for complete California audit readiness.',
         'medium', 4);
 
       break;

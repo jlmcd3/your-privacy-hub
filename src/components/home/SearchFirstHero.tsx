@@ -35,7 +35,7 @@ const EU_UK_PRODUCTS: Array<{ href: string; title: string; sub: string }> = [
 
 const US_PRODUCTS: Array<{ href: string; title: string; sub: string; bundle?: boolean }> = [
   { href: "/cppa-admt", title: "ADMT Compliance Check", sub: priceLine(CPPA_ADMT_PRICE, CPPA_ADMT_SUB) },
-  { href: "/cppa-cybersecurity", title: "CPPA Cybersecurity Readiness", sub: priceLine(CPPA_CYBER_PRICE, CPPA_CYBER_SUB) },
+  { href: "/cppa-cybersecurity", title: "CPPA Cybersecurity Audit Readiness", sub: priceLine(CPPA_CYBER_PRICE, CPPA_CYBER_SUB) },
   { href: "/cppa", title: "CPPA Full Audit Suite", sub: `${priceLine(CPPA_SUITE_PRICE, CPPA_SUITE_SUB)} · bundle`, bundle: true },
 ];
 

@@ -66,7 +66,7 @@ const MAPS: Readonly<Record<EnumNamespace, LabelMap>> = {
   // Internal tool_type identifiers → catalog display names.
   tool_type: {
     cppa_risk_assessment: "CPPA Risk Assessment",
-    cppa_cybersecurity: "CPPA Cybersecurity Audit",
+    cppa_cybersecurity: "CPPA Cybersecurity Audit Readiness",
     cppa_admt: "ADMT Checker",
     cppa_suite: "CPPA Full Audit Suite",
     dpia_framework: "DPIA",

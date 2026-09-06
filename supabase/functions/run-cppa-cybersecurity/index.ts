@@ -2561,7 +2561,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
           source_tool: "cppa_cybersecurity",
           source_assessment_id: assessment_id,
           display_name: "Cybersecurity & threat monitoring",
-          source_summary: "Drafted from CPPA Cybersecurity Audit — review control gaps and link safeguards.",
+          source_summary: "Drafted from CPPA Cybersecurity Audit Readiness — review control gaps and link safeguards.",
           is_high_risk: false,
           category: "technology",
         },

@@ -4,7 +4,7 @@
  *
  * The ratified refinement template (item376/377 DPIA, item378 cppa-risk,
  * item386 LIA, item395 ADMT, item403 Governance) applied to the CPPA
- * Cybersecurity Audit Readiness product. The engine — ./refinement-core.ts —
+ * CPPA Cybersecurity Audit Readiness product. The engine — ./refinement-core.ts —
  * is UNTOUCHED (item-407 acceptance: a zero-line diff on the core): this
  * module is CONFIG ONLY, consuming the mined W1–W8 watchlist, `W-COPYEDIT`
  * and the xp-cyber designed-output exemplars from

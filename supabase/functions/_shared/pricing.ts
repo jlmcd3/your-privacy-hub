@@ -152,7 +152,7 @@ export const TOOL_CATALOG: Record<string, ToolCatalogEntry> = {
     classification: "smart",
   },
   cppa_cybersecurity: {
-    name: "CPPA Cybersecurity Readiness — Module 2",
+    name: "CPPA Cybersecurity Audit Readiness — Module 2",
     standalone_lookup: "cppa_cyber_standalone",
     subscriber_lookup: "cppa_cyber_subscriber",
     table: "cppa_assessments",

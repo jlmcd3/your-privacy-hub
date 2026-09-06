@@ -144,7 +144,7 @@ const navItems: NavItem[] = [
           },
           {
             icon: <Lock aria-hidden="true" strokeWidth={1.75} />,
-            label: "CPPA Cybersecurity Readiness",
+            label: "CPPA Cybersecurity Audit Readiness",
             href: "/cppa-cybersecurity",
             tooltip: "18-control gap analysis for the April 2028 certification deadline",
           },

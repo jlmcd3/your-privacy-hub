@@ -144,7 +144,7 @@ function renderCyber(row: any) {
   <section class="module">
     <div class="module-head">
       <p class="kicker">MODULE 2 · 11 CCR §§ 7120–7124</p>
-      <h2>Cybersecurity Audit Readiness</h2>
+      <h2>CPPA Cybersecurity Audit Readiness</h2>
       <div class="meta">
         ${r.overall_score != null ? `<span class="pill">Score: <strong>${esc(r.overall_score)} / 100</strong></span>` : ""}
         ${r.readiness_level ? `<span class="pill">${esc(r.readiness_level)}</span>` : ""}
@@ -214,7 +214,7 @@ function buildHTML(riskRow: any, cyberRow: any) {
   <div class="cover">
     <p class="kicker">CPPA AUDIT READINESS SUITE</p>
     <h1>Combined CPPA Audit Readiness Report</h1>
-    <p class="sub">Module 1 (Privacy Risk Assessment) and Module 2 (Cybersecurity Audit Readiness) — prepared ${esc(today)}.</p>
+    <p class="sub">Module 1 (Privacy Risk Assessment) and Module 2 (CPPA Cybersecurity Audit Readiness) — prepared ${esc(today)}.</p>
     <div class="grid">
       <div><span>Risk assessment ID:</span> <span style="font-family:monospace">${esc(riskRow?.id || "—")}</span></div>
       <div><span>Cybersecurity ID:</span> <span style="font-family:monospace">${esc(cyberRow?.id || "—")}</span></div>

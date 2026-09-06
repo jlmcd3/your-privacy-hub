@@ -342,7 +342,7 @@ export default function CPPACybersecurity() {
           standalonePrice={activePricing.standalonePrice}
           subscriberPrice={activePricing.subscriberPrice}
           isSubscriber={activePricing.isSubscriber && activePricing.price === activePricing.subscriberPrice}
-          primaryLabel={isSuite ? "Start Full Audit Suite" : "Start Cybersecurity Readiness Assessment"}
+          primaryLabel={isSuite ? "Start Full Audit Suite" : "Start CPPA Cybersecurity Audit Readiness Assessment"}
           toolSlug="cppa_cyber"
           sampleSlug="cppa_cyber"
         />
@@ -745,7 +745,7 @@ export default function CPPACybersecurity() {
             </Button>
           ) : (
             <Button onClick={handlePurchase}>
-              Run Cybersecurity Readiness (${displayPrice})
+              Run CPPA Cybersecurity Audit Readiness (${displayPrice})
             </Button>
           )}
         </div>

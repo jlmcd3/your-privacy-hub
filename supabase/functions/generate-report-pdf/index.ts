@@ -131,7 +131,7 @@ function footerTitleFromAttachment(attachmentName: string): string {
 }
 
 // A-TEAM S3 RULING I.25 (doc 115, 2026-08-31) — the page footer printed a
-// filename-derived short form ("CPPA Cybersecurity Audit") that drifted from
+// filename-derived short form ("CPPA Cybersecurity Audit Readiness") that drifted from
 // the document's formal title ("CPPA Cybersecurity Audit Readiness Report").
 // The footer now carries the document's own <h1>; the filename derivation
 // survives only as the fallback for builders that emit no <h1>.
@@ -3911,7 +3911,7 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
     intake?.org_name ||
     "";
 
-  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CPPA Cybersecurity Audit — Readiness Assessment</title>
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CPPA Cybersecurity Audit Readiness Report</title>
 <style>
   :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#0d2a45; --red-soft:#e8eff2; --orange:#1a4a6e; --orange-soft:#eef4f7; --amber:#24606c; --amber-soft:#eaf2f5; --green:#1c6960; --green-soft:#e5f4f2; }
   * { box-sizing:border-box; }
@@ -3954,7 +3954,7 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
   <header class="header">
     <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
     <p class="eyebrow">CPPA Audit Readiness · Module 2 · Assessment</p>
-    <h1>CPPA Cybersecurity Audit — Readiness Assessment</h1>
+    <h1>CPPA Cybersecurity Audit Readiness Report</h1>
     ${buildReportMetaLine({ generatedAt: record.created_at || report?.generated_at || Date.now(), organizationName: orgName || null, jurisdictionLabel: "California (CPPA)" })}
     <div class="summary-bar">
       ${report?.overall_score !== undefined ? `<span class="pill">Overall score: ${text(report.overall_score)} / 100</span>` : ""}
@@ -5111,7 +5111,7 @@ Deno.serve(async (req) => {
           ? parts.join("\n\n──────────────────────────────\n\n")
           : summaryToText(record.report_data);
         html = buildTextReportHTML({
-          title: "CPPA Cybersecurity Audit",
+          title: "CPPA Cybersecurity Audit Readiness",
           metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
             (intake.organizationName ? ` · ${intake.organizationName}` : "") + " · California (CPPA)",
           text,

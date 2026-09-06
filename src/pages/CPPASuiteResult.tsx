@@ -274,7 +274,7 @@ export default function CPPASuiteResult() {
             CPPA AUDIT READINESS SUITE
           </span>
           <h1 className="font-serif">Combined CPPA Audit Readiness Report</h1>
-          <p className="text-slate-300 mt-2 text-sm">Module 1 (Privacy Risk Assessment) and Module 2 (Cybersecurity Audit Readiness) for your organization.</p>
+          <p className="text-slate-300 mt-2 text-sm">Module 1 (Privacy Risk Assessment) and Module 2 (CPPA Cybersecurity Audit Readiness) for your organization.</p>
         </header>
 
         {loading && <p>Loading…</p>}
@@ -290,7 +290,7 @@ export default function CPPASuiteResult() {
               {riskRow?.status === "complete" && <RiskReportBody row={riskRow} />}
             </TabsContent>
             <TabsContent value="cyber" className="mt-6 space-y-6 font-serif-text">
-              <StatusBlock row={cyberRow} label="Cybersecurity Readiness Report" ctaTo="/cppa-cybersecurity?suite=true" phase={cyber.phase} onRefresh={cyber.refresh} />
+              <StatusBlock row={cyberRow} label="CPPA Cybersecurity Audit Readiness Report" ctaTo="/cppa-cybersecurity?suite=true" phase={cyber.phase} onRefresh={cyber.refresh} />
               {cyberRow?.status === "complete" && <CybersecurityReportBody row={cyberRow} />}
             </TabsContent>
           </Tabs>

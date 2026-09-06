@@ -126,7 +126,7 @@ const TOOLS: Tool[] = [
   },
   {
     icon: Lock,
-    title: "CPPA Cybersecurity Audit",
+    title: "CPPA Cybersecurity Audit Readiness",
     blurb: "Structured cybersecurity audit aligned to CPPA regulations — control gap findings supported by cited enforcement and regulatory guidance.",
     price: `${T.cppaCyber.display} per run`,
     cta: "Run cybersecurity audit",

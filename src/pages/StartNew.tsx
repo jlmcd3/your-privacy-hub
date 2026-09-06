@@ -163,7 +163,7 @@ const TOOLS: ToolDef[] = [
   },
   {
     key: "cppa_cyber",
-    label: "CPPA Cybersecurity Audit",
+    label: "CPPA Cybersecurity Audit Readiness",
     blurb: "Structured cybersecurity audit aligned to CPPA regulations.",
     startPath: "/cppa-cybersecurity",
     viewPath: "/dashboard/reports",

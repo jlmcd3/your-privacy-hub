@@ -94,7 +94,7 @@ const TOOL_LABEL: Record<string, string> = {
   us_notice: "US Privacy Notice",
   eu_notice: "EU Privacy Notice",
   cppa_risk: "CPPA Risk Assessment",
-  cppa_cyber: "CPPA Cybersecurity Audit",
+  cppa_cyber: "CPPA Cybersecurity Audit Readiness",
   cppa_admt: "ADMT Compliance Assessment",
   cppa_scope: "CPPA Scope Check",
 };
@@ -425,7 +425,7 @@ export default function MyReports() {
         const fallback = isAdmt
           ? "ADMT Compliance Assessment"
           : isCyber
-          ? "CPPA Cybersecurity Audit"
+          ? "CPPA Cybersecurity Audit Readiness"
           : "CPPA Risk Assessment";
         all.push({
           id: r.id, tool, tool_label: TOOL_LABEL[tool],

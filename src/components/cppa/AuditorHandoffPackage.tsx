@@ -63,7 +63,7 @@ export function AuditorHandoffCover({ row }: { row: any }) {
   const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
   return (
     <section className="handoff-cover bg-card border rounded-lg p-10">
-      <p className="text-[11px] font-mono tracking-widest text-muted-foreground uppercase">CPPA Cybersecurity Audit — 11 CCR §§ 7120–7124</p>
+      <p className="text-[11px] font-mono tracking-widest text-muted-foreground uppercase">CPPA Cybersecurity Audit Readiness — 11 CCR §§ 7120–7124</p>
       <h1 className="font-serif mt-2 mb-1">Auditor Handoff Package</h1>
       <p className="text-sm text-muted-foreground mb-6">
         Prepared {today}. This document compiles the materials the business has prepared in advance of its

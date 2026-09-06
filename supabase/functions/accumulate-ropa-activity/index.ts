@@ -35,7 +35,7 @@ const TOOL_LABEL: Record<string, string> = {
   dpa_generator: "Data Processing Agreement",
   biometric_checker: "Biometric Compliance Assessment",
   governance_assessment: "Accountability Assessment",
-  cppa_cybersecurity: "CPPA Cybersecurity Audit",
+  cppa_cybersecurity: "CPPA Cybersecurity Audit Readiness",
 };
 
 // Active session statuses we will accumulate into. Once a session is

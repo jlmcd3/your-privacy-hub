@@ -53,7 +53,7 @@ const fmt = (d: string) => new Date(d).toLocaleString("en-US", { dateStyle: "med
 
 const moduleLabel: Record<string, string> = {
   risk: "Privacy Risk Assessment",
-  cybersecurity: "Cybersecurity Audit Readiness",
+  cybersecurity: "CPPA Cybersecurity Audit Readiness",
   "cybersecurity-drift": "Cybersecurity Drift Comparison",
   admt: "ADMT Compliance Assessment",
 };

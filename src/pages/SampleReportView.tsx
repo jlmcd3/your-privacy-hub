@@ -52,7 +52,7 @@ const TOOL_DISPLAY: Record<string, string> = {
   ir_playbook: "Incident Response Playbook",
   biometric: "Biometric Compliance Assessment",
   cppa_risk: "CPPA Risk Assessment",
-  cppa_cyber: "CPPA Cybersecurity Audit",
+  cppa_cyber: "CPPA Cybersecurity Audit Readiness",
   cppa_admt: "ADMT Compliance Assessment",
   ropa: "Record of Processing Activities (RoPA)",
   us_notice: "US State Privacy Notice",
