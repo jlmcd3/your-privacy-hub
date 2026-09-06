@@ -3,7 +3,7 @@
 // DOC 180 (2026-09-04) — FORMAL INSTRUMENT presentation primitives, shared
 // by the products the CEO carved OUT of the Syllabus & Record system (design
 // principles 2026-09-03, point 7): the EU/Global Notice, the US Notice and
-// the DPA Generator "stay formal instrument format: numbered sections,
+// the Custom DPA "stay formal instrument format: numbered sections,
 // bold+underlined Section headings, underlined-not-bold subsections". One
 // typeface (Georgia, per the CEO's 2026-09-04 ruling — Garamond/Palatino are
 // not guaranteed in headless-Chromium PDF rendering), Normal-size text

@@ -1,4 +1,4 @@
-// Shared disclaimer mounted on every Registration Manager surface.
+// Shared disclaimer mounted on every Registration Filings Manager surface.
 // Plain English, conservative, and consistent.
 
 export default function RegistrationDisclaimer({
@@ -9,7 +9,7 @@ export default function RegistrationDisclaimer({
   if (variant === "compact") {
     return (
       <p className="text-meta text-muted-foreground leading-relaxed border-t border-border/40 pt-3 mt-4">
-        End User Privacy's Registration Manager generates filings and checklists tailored to your inputs.
+        End User Privacy's Registration Filings Manager generates filings and checklists tailored to your inputs.
         It is not legal advice, does not create an attorney-client relationship, and does not guarantee
         acceptance by any data protection authority. Filing requirements change — always verify current
         requirements with the relevant authority before submission.
@@ -21,7 +21,7 @@ export default function RegistrationDisclaimer({
     <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-xs leading-relaxed text-amber-900">
       <div className="font-semibold mb-1">Important — Please read</div>
       <p>
-        End User Privacy's Registration Manager produces <strong>filing documents and checklists</strong> based
+        End User Privacy's Registration Filings Manager produces <strong>filing documents and checklists</strong> based
         on the information you provide and our most recent verified jurisdiction data. It is{" "}
         <strong>not legal advice</strong> and does not create an attorney–client relationship.
       </p>

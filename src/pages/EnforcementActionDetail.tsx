@@ -343,7 +343,7 @@ export default function EnforcementActionDetail() {
           </div>
         )}
 
-        {/* Registration Manager cross-link — many enforcement actions stem from missing/expired filings */}
+        {/* Registration Filings Manager cross-link — many enforcement actions stem from missing/expired filings */}
         <Card className="mb-8 border-amber-200 bg-amber-50/60">
           <CardContent className="p-5 flex items-start justify-between gap-4 flex-wrap">
             <div className="min-w-0 flex-1">
@@ -355,7 +355,7 @@ export default function EnforcementActionDetail() {
               </h3>
               <p className="text-sm text-muted-foreground">
                 A meaningful share of enforcement actions begin with missing or lapsed filings.
-                Run a free assessment with Registration Manager to see your obligations.
+                Run a free assessment with Registration Filings Manager to see your obligations.
               </p>
             </div>
             <Link to="/registration-manager" className="shrink-0">

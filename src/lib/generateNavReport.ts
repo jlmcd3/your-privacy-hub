@@ -72,11 +72,11 @@ const NAV_HIERARCHY = [
     items: [
       { label: "GDPR Accountability Assessment", href: "/governance-assessment", badge: "PRO" },
       { label: "Legitimate Interests Assessment", href: "/li-assessment", badge: "PRO" },
-      { label: "DPIA Builder (DPIA)", href: "/dpia-framework", badge: "PRO" },
+      { label: "Data Protection Impact Assessment (DPIA) (DPIA)", href: "/dpia-framework", badge: "PRO" },
       { label: "Custom DPA", href: "/dpa-generator", badge: "PRO" },
       { label: "Incident Response Playbook", href: "/ir-playbook", badge: "PRO" },
       { label: "Biometric Compliance Assessment", href: "/biometric-checker", badge: "PRO" },
-      { label: "Registration Manager", href: "/registration-manager", badge: "PRO" },
+      { label: "Registration Filings Manager", href: "/registration-manager", badge: "PRO" },
     ],
   },
   {
@@ -134,7 +134,7 @@ const ACCESS_TIERS: Array<[string, string, string, string]> = [
   ["Weekly Privacy Intelligence Report", "Sample brief only", "Sample brief only", "Full 8-section brief, custom synthesis"],
   ["Enforcement archive", "Recent fines", "Recent fines", "Full archive + pattern intelligence"],
   ["Horizon (forecast feed)", "Visible (leak — see §3)", "Visible (leak — see §3)", "Visible + watchlist filter"],
-  ["Registration Manager", "Free assessment + pricing", "Free assessment + pricing", "20% off DIY · -$75 Counsel-Ready"],
+  ["Registration Filings Manager", "Free assessment + pricing", "Free assessment + pricing", "20% off DIY · -$75 Counsel-Ready"],
   ["Per-use assessment tools", "Pay full standalone price", "Pay full standalone price", "Subscriber rates · IR + Biometric included"],
   ["Privacy laws map / jurisdictions", "Full access", "Full access", "Full access"],
   ["Glossary, calendar, timelines", "Full access", "Full access", "Full access"],

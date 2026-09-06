@@ -1,4 +1,4 @@
-// Single source of truth for the US Notice Builder flow.
+// Single source of truth for the US Privacy Notice flow.
 // Shown on: mode · states · questions · review · documents (and refresh).
 // NOT shown on: /us-notices (home) or /us-notice-builder (landing).
 

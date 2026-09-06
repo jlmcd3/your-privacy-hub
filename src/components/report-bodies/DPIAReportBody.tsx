@@ -1,4 +1,4 @@
-// Pure presentational body for DPIA Builder (DPIA) reports.
+// Pure presentational body for Data Protection Impact Assessment (DPIA) (DPIA) reports.
 // Extracted from DPIAFrameworkResult so sample pages render the same UI.
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import { AnnotationCallout } from "@/components/AnnotationCallout";

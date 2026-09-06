@@ -43,7 +43,7 @@ export function RopaShell({ title, heading, children, description, chip }: RopaS
             )}
             {children ?? (
               <p className="text-muted-foreground text-sm">
-                This page is part of the RoPA Builder. Implementation in progress.
+                This page is part of the Record of Processing Activities (RoPA). Implementation in progress.
               </p>
             )}
           </RopaAccessGate>

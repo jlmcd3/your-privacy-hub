@@ -1,4 +1,4 @@
-// RC-REM-P1-C — DPA Generator intake contract.
+// RC-REM-P1-C — Custom DPA intake contract.
 // CEO ruling 2026-07-14: retention / auditRights / transfer question are ASKED
 // with fold-in "Other: …" / "Fixed period: …" conventions; legalFramework and
 // includeTransferClause are DERIVED server-side (frameworkFor(documentType);

@@ -84,7 +84,7 @@ export default function RegistrationMyFilings() {
   return (
     <WorkspaceLayout>
       <Helmet>
-        <title>{ownerLabel} Filings | Registration Manager | End User Privacy</title>
+        <title>{ownerLabel} Filings | Registration Filings Manager | End User Privacy</title>
       </Helmet>
       <PageContainer>
         <div className="py-6">

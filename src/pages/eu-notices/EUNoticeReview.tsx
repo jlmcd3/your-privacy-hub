@@ -427,7 +427,7 @@ export default function EUNoticeReview() {
   if (loading) {
     return (
       <EUNoticeShell
-        title="Review — EU & Global Notice Builder"
+        title="Review — EU / Global Privacy Notice"
         heading="Review your answers"
         step="review"
         sessionId={sessionId}
@@ -445,7 +445,7 @@ export default function EUNoticeReview() {
 
   return (
     <EUNoticeShell
-      title="Review — EU & Global Notice Builder"
+      title="Review — EU / Global Privacy Notice"
       heading="Review before generating your EU & global privacy notices"
       step="review"
       sessionId={sessionId}

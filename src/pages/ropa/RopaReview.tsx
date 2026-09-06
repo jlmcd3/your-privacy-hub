@@ -553,7 +553,7 @@ export default function RopaReview() {
           </button>
           {!currentSession?.payment_confirmed && !pricing.isSubscriber && !pricing.loading && (
             <p className="text-meta text-brand-teal-text mt-2 text-center">
-              RoPA Builder is free on annual plans (first build plus one update a year, then $39) with any{" "}
+              Record of Processing Activities (RoPA) is free on annual plans (first build plus one update a year, then $39) with any{" "}
               <a
                 href="/get-intelligence"
                 target="_blank"

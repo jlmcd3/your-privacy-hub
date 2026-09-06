@@ -9,7 +9,7 @@
 // about the SO row separation changes.
 //
 // Added below it: <AllProductsPanel />, which covers the products the SO batch
-// cannot dispatch (DPA Generator, RoPA, US Notice, EU Notice) plus, optionally,
+// cannot dispatch (Custom DPA, RoPA, US Notice, EU Notice) plus, optionally,
 // the SO products themselves as an end-to-end sample-data run. Every run is
 // gated by the intake preflight so no failure originates in intake data.
 
@@ -54,7 +54,7 @@ export default function AllProductsTest() {
         caption="quality-batch-orchestrator · skeleton_document grading"
         showVariants
         graderMode="skeleton"
-        // Graded rows (Claude + GPT scored by run-quality-batch). DPA Generator
+        // Graded rows (Claude + GPT scored by run-quality-batch). Custom DPA
         // is dispatchable and gradable by the orchestrator, so it belongs in the
         // scored matrix rather than in the ungraded tail.
         toolsOverride={[...SO_SKELETON_TOOLS, "dpa-generator"]}

@@ -57,7 +57,7 @@ export default function NoticeBuilderLanding() {
       <Navbar />
       <DashboardSubnav />
       <Helmet>
-        <title>Privacy Notice Builder · US & EU/Global | End User Privacy</title>
+        <title>Privacy Privacy Notice · US & EU/Global | End User Privacy</title>
         <meta
           name="description"
           content="One builder, two flows: US state notices (CCPA + 19 more) and EU/Global notices (GDPR, UK GDPR, LGPD, APPI, DPDPA, PIPEDA + more). Included with any subscription."
@@ -78,7 +78,7 @@ export default function NoticeBuilderLanding() {
         geography="global"
         showIntakeCta={false}
         eyebrowLabel={<><Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("notice_suite", "Included with any subscription")}</>}
-        title="Privacy Notice Builder"
+        title="Privacy Privacy Notice"
         valueProposition={`Two guided builders, one workspace. Cover all ${US_STATE_COUNT} US state privacy laws and every major non-US framework (GDPR, UK GDPR, LGPD, APPI, DPDPA, POPIA, PIPEDA and more). Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product.`}
         citationLine="Built from each law's own notice content requirements — every disclosure traces to the statute that requires it"
       >
@@ -126,7 +126,7 @@ export default function NoticeBuilderLanding() {
                 <CardContent className="p-6 space-y-4">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl"><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>
-                    <h3 className="font-serif text-xl">US Privacy Notice Builder</h3>
+                    <h3 className="font-serif text-xl">US Privacy Notice</h3>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     CCPA/CPRA, Virginia CDPA, Texas TDPSA, Maryland MODPA, Florida FDBR
@@ -150,7 +150,7 @@ export default function NoticeBuilderLanding() {
                   </div>
                   <Button asChild className="w-full mt-2">
                     <Link to={usHref} onClick={() => hasToolAccess ? fireConversion("tool_start_click", { tool_slug: "us_notice", page_path: "/notice-builder", user_type: userType }) : fireConversion("subscribe_cta_click", { cta_label: "Subscribe to access", cta_position: "pricing-card-intelligence" })}>
-                      {hasToolAccess ? "Open US Notice Builder" : "Subscribe to access"}
+                      {hasToolAccess ? "Open US Privacy Notice" : "Subscribe to access"}
                       <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
                     </Link>
                   </Button>
@@ -161,7 +161,7 @@ export default function NoticeBuilderLanding() {
                 <CardContent className="p-6 space-y-4">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl"><Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>
-                    <h3 className="font-serif text-xl">EU & Global Notice Builder</h3>
+                    <h3 className="font-serif text-xl">EU / Global Privacy Notice</h3>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     GDPR-aligned notices for the EU/EEA, UK, Switzerland and the world's
@@ -185,7 +185,7 @@ export default function NoticeBuilderLanding() {
                   </div>
                   <Button asChild className="w-full mt-2">
                     <Link to={euHref} onClick={() => hasToolAccess ? fireConversion("tool_start_click", { tool_slug: "eu_notice", page_path: "/notice-builder", user_type: userType }) : fireConversion("subscribe_cta_click", { cta_label: "Subscribe to access", cta_position: "pricing-card-intelligence" })}>
-                      {hasToolAccess ? "Open EU/Global Notice Builder" : "Subscribe to access"}
+                      {hasToolAccess ? "Open EU / Global Privacy Notice" : "Subscribe to access"}
                       <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
                     </Link>
                   </Button>

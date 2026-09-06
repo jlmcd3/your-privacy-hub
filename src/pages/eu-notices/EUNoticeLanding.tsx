@@ -30,7 +30,7 @@ export default function EUNoticeLanding() {
       <Navbar />
       <DashboardSubnav />
       <Helmet>
-        <title>EU & Global Privacy Notice Builder | EndUserPrivacy</title>
+        <title>EU / Global Privacy Notice | EndUserPrivacy</title>
         <meta name="description" content={`One guided intake. Privacy notices for GDPR, UK GDPR and ${EU_NOTICE_FRAMEWORK_COUNT - 2}+ more global frameworks, with jurisdiction-specific disclosures built in.`} />
         <link rel="canonical" href="https://enduserprivacy.com/eu-global-notice-builder" />
       </Helmet>
@@ -39,7 +39,7 @@ export default function EUNoticeLanding() {
       <ProductHero
         geography="global"
         eyebrowLabel={<><Globe aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("eu_notice")}</>}
-        title="EU & Global Privacy Notice Builder"
+        title="EU / Global Privacy Notice"
         showIntakeCta={false}
         valueProposition={`One guided intake. Privacy notices for GDPR, UK GDPR, and ${EU_NOTICE_FRAMEWORK_COUNT - 2}+ global frameworks — with jurisdiction-specific disclosures built in.`}
         citationLine="GDPR Arts. 13–14 and equivalent notice requirements mapped across every supported framework"
@@ -54,7 +54,7 @@ export default function EUNoticeLanding() {
             {hasToolAccess ? (
               <>
                 <Button asChild size="lg">
-                  <Link to="/eu-notices" onClick={() => fireConversion("tool_start_click", { tool_slug: "eu_notice", page_path: "/eu-notice-builder", user_type: userType })}>Open Notice Builder <ArrowRight className="h-4 w-4 ml-2" /></Link>
+                  <Link to="/eu-notices" onClick={() => fireConversion("tool_start_click", { tool_slug: "eu_notice", page_path: "/eu-notice-builder", user_type: userType })}>Open Privacy Notice <ArrowRight className="h-4 w-4 ml-2" /></Link>
                 </Button>
                 <Button
                   asChild
@@ -144,7 +144,7 @@ export default function EUNoticeLanding() {
             </p>
             {hasToolAccess ? (
               <Button asChild size="lg">
-                <Link to="/eu-notices" onClick={() => fireConversion("tool_start_click", { tool_slug: "eu_notice", page_path: "/eu-notice-builder", user_type: userType })}>Open Global Notice Builder <ArrowRight className="h-4 w-4 ml-2" /></Link>
+                <Link to="/eu-notices" onClick={() => fireConversion("tool_start_click", { tool_slug: "eu_notice", page_path: "/eu-notice-builder", user_type: userType })}>Open EU / Global Privacy Notice <ArrowRight className="h-4 w-4 ml-2" /></Link>
               </Button>
             ) : (
               <Button asChild size="lg">
@@ -152,7 +152,7 @@ export default function EUNoticeLanding() {
               </Button>
             )}
             <p className="text-sm text-muted-foreground mt-4">
-              The <Link to="/us-notice-builder" className="underline">US Notice Builder</Link> is included too.
+              The <Link to="/us-notice-builder" className="underline">US Privacy Notice</Link> is included too.
             </p>
           </div>
         </section>

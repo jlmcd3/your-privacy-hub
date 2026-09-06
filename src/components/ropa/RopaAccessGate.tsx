@@ -9,7 +9,7 @@ interface RopaAccessGateProps {
 }
 
 /**
- * Gates all /ropa/* pages. RoPA Builder requires an active subscription.
+ * Gates all /ropa/* pages. Record of Processing Activities (RoPA) requires an active subscription.
  * v12 (2026-08-11): access is no longer free-for-all inside the gate —
  * annual plans get the first build plus one update a year at no charge,
  * everything else is $49 per generation ($39 annual-additional), priced
@@ -41,7 +41,7 @@ export function RopaAccessGate({ children }: RopaAccessGateProps) {
           <Lock className="w-5 h-5" />
         </div>
         <h2 className="font-serif text-brand-navy mb-3">
-          RoPA Builder requires a subscription
+          Record of Processing Activities (RoPA) requires a subscription
         </h2>
         <p className="text-muted-foreground mb-6 leading-relaxed">
           The Record of Processing Activities builder is available to

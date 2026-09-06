@@ -373,7 +373,7 @@ export default function RopaActivities() {
 
   if (!clientId) {
     return (
-      <RopaShell title="Select Activities — RoPA Builder" heading="Select Activities">
+      <RopaShell title="Select Activities — Record of Processing Activities (RoPA)" heading="Select Activities">
         <p className="text-muted-foreground">
           Select an organisation from the switcher to begin.
         </p>
@@ -382,7 +382,7 @@ export default function RopaActivities() {
   }
 
   return (
-    <RopaShell title="Select Activities — RoPA Builder" heading="">
+    <RopaShell title="Select Activities — Record of Processing Activities (RoPA)" heading="">
       <SectorPrimerDialog
         open={primerOpen}
         sector={sector}
@@ -430,7 +430,7 @@ export default function RopaActivities() {
                 li_assessment: "LIA",
                 dpia_framework: "DPIA",
                 dpa_generator: "DPA",
-                biometric_checker: "Biometric Check",
+                biometric_checker: "Biometric Compliance Assessment",
                 governance_assessment: "Governance",
                 cppa_cybersecurity: "CPPA Cyber",
               };

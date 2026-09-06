@@ -65,7 +65,7 @@ const TOOLS: ToolDef[] = [
   },
   {
     key: "dpia",
-    label: "DPIA Builder",
+    label: "Data Protection Impact Assessment (DPIA)",
     blurb: "Structured Data Protection Impact Assessment for high-risk processing.",
     startPath: "/dpia-framework",
     viewPath: "/dashboard/reports",
@@ -85,7 +85,7 @@ const TOOLS: ToolDef[] = [
   },
   {
     key: "ropa",
-    label: "RoPA Builder",
+    label: "Record of Processing Activities (RoPA)",
     blurb: "Records of Processing Activities for Art. 30 / equivalent obligations.",
     startPath: "/ropa",
     viewPath: "/ropa",
@@ -131,7 +131,7 @@ const TOOLS: ToolDef[] = [
   },
   {
     key: "biometric",
-    label: "Biometric Compliance Check",
+    label: "Biometric Compliance Assessment",
     blurb: "BIPA / CCPA / GDPR biometric-data exposure scan.",
     startPath: "/biometric-checker",
     viewPath: "/dashboard/reports",
@@ -141,7 +141,7 @@ const TOOLS: ToolDef[] = [
   },
   {
     key: "registration",
-    label: "Registration Manager",
+    label: "Registration Filings Manager",
     blurb: "DPA / DPO registrations across jurisdictions.",
     startPath: "/registration-manager",
     viewPath: "/registration-manager/my-filings",

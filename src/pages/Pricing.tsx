@@ -44,7 +44,7 @@ const SMART_TOOL_ROWS: SmartToolRow[] = [
     topupKey: "li_topup_v1",
   },
   {
-    tool: "DPIA Builder (DPIA)",
+    tool: "Data Protection Impact Assessment (DPIA) (DPIA)",
     standaloneKey: "dpia_standalone_v2",
     subscriberKey: "dpia_subscriber_v2",
     annualCredit: "1 credit / yr",
@@ -87,21 +87,21 @@ interface IncludedRow {
 }
 
 const INCLUDED_ROWS: IncludedRow[] = [
-  { tool: "Custom DPA Generator", standalone: PRICING.tools.dpa.display, access: "Free with Professional plans · Intelligence pays standalone" },
+  { tool: "Custom DPA", standalone: PRICING.tools.dpa.display, access: "Free with Professional plans · Intelligence pays standalone" },
   {
     tool: "Incident Response Playbook",
     standalone: PRICING.tools.ir_playbook.display,
     access: "Free with Professional plans · Intelligence pays standalone",
   },
   {
-    tool: "Biometric Compliance Check",
+    tool: "Biometric Compliance Assessment",
     standalone: PRICING.tools.biometric.display,
     access: "Free with Professional plans · Intelligence pays standalone",
   },
-  { tool: "RoPA Builder — Initial Generation", standalone: "—", access: "Annual plans: free · Monthly plans: $49" },
-  { tool: "RoPA Builder — Update", standalone: "—", access: "Annual plans: 1 free update/yr, then $39 · Monthly plans: $49" },
-  { tool: "US Privacy Notice Builder", standalone: "—", access: "Subscriber-only (free)" },
-  { tool: "EU & Global Privacy Notice Builder", standalone: "—", access: "Subscriber-only (free)" },
+  { tool: "Record of Processing Activities (RoPA) — Initial Generation", standalone: "—", access: "Annual plans: free · Monthly plans: $49" },
+  { tool: "Record of Processing Activities (RoPA) — Update", standalone: "—", access: "Annual plans: 1 free update/yr, then $39 · Monthly plans: $49" },
+  { tool: "US Privacy Notice", standalone: "—", access: "Subscriber-only (free)" },
+  { tool: "EU / Global Privacy Notice", standalone: "—", access: "Subscriber-only (free)" },
   { tool: "CPPA Scope Checker", standalone: "Free", access: "Free (no account required)" },
 ];
 
@@ -157,7 +157,7 @@ export default function Pricing() {
                 <Check {...iconProps} className="text-brand-teal mt-0.5 shrink-0" /> Weekly Intelligence Brief
               </li>
               <li className="flex gap-2">
-                <Check {...iconProps} className="text-brand-teal mt-0.5 shrink-0" /> Notice Builders included · RoPA free on annual plans (first build + 1 update/yr, then $39)
+                <Check {...iconProps} className="text-brand-teal mt-0.5 shrink-0" /> Privacy Notices included · RoPA free on annual plans (first build + 1 update/yr, then $39)
               </li>
               <li className="flex gap-2">
                 <Check {...iconProps} className="text-brand-teal mt-0.5 shrink-0" /> 1 free Smart Tool run / year
@@ -231,7 +231,7 @@ export default function Pricing() {
             </div>
             <ul className="space-y-2 text-sm mb-6 flex-1">
               <li className="flex justify-between">
-                <span>Biometric Check</span>
+                <span>Biometric Compliance Assessment</span>
                 <span className="tabular-nums">{PRICING.tools.biometric.display}</span>
               </li>
               <li className="flex justify-between">
@@ -239,7 +239,7 @@ export default function Pricing() {
                 <span className="tabular-nums">{PRICING.tools.ir_playbook.display}</span>
               </li>
               <li className="flex justify-between">
-                <span>DPA Generator</span>
+                <span>Custom DPA</span>
                 <span className="tabular-nums">{PRICING.tools.dpa.display}</span>
               </li>
               <li className="flex justify-between">

@@ -46,14 +46,14 @@ const GlobalPrivacyLaws = () => (
     merchandisingRail={{
       heading: "Use this in your workflow",
       items: [
-        { label: "EU & Global Notice Builder", href: "/eu-global-notice-builder", description: "Full international privacy notice with multi-jurisdiction overlays." },
+        { label: "EU / Global Privacy Notice", href: "/eu-global-notice-builder", description: "Full international privacy notice with multi-jurisdiction overlays." },
         { label: "Legitimate-Interest Assessment", href: "/li-assessment", description: "GDPR-shaped LIA that ports cleanly to Brazilian LGPD and UK GDPR." },
         { label: "DPIA Framework", href: "/dpia-framework", description: "High-risk processing assessment aligned to Art. 35 and its analogues." },
       ],
     }}
 
     topToolCta={{
-      toolName: "Registration Manager",
+      toolName: "Registration Filings Manager",
       toolDescription:
         "See which registrations, DPO appointments, and EU-representative filings your operations trigger across every jurisdiction on this page.",
       href: "/registration-manager",
@@ -112,7 +112,7 @@ const GlobalPrivacyLaws = () => (
       { label: "Cross-Border Transfers Guide", href: "/cross-border-transfers" },
       { label: "Global Privacy Authority Directory", href: "/global-privacy-authorities" },
       { label: "Enforcement Tracker", href: "/enforcement-tracker" },
-      { label: "Registration Manager", href: "/registration-manager" },
+      { label: "Registration Filings Manager", href: "/registration-manager" },
     ]}
     intelligenceUpsellTopic="global privacy law developments"
   />

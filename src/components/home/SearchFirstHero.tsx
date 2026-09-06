@@ -30,7 +30,7 @@ const EU_UK_PRODUCTS: Array<{ href: string; title: string; sub: string }> = [
   { href: "/li-assessment", title: "Legitimate Interests Assessment", sub: priceLine(LIA_PRICE, LIA_SUB) },
   { href: "/dpia-framework", title: "DPIA / Impact Assessment", sub: priceLine(PRICING.tools.dpia.display, DPIA_SUB) },
   { href: "/governance-assessment", title: "GDPR Accountability Assessment", sub: priceLine(PRICING.tools.governance.display, GOV_SUB) },
-  { href: "/ropa-builder", title: "RoPA Builder", sub: "Article 30 record · free on annual plans" },
+  { href: "/ropa-builder", title: "Record of Processing Activities (RoPA)", sub: "Article 30 record · free on annual plans" },
 ];
 
 const US_PRODUCTS: Array<{ href: string; title: string; sub: string; bundle?: boolean }> = [

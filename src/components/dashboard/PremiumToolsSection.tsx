@@ -35,7 +35,7 @@ const TOOLS = [
   },
   {
     icon: <ClipboardList aria-hidden="true" strokeWidth={1.75} className="w-6 h-6 text-brand-teal" />,
-    title: "DPIA Builder",
+    title: "Data Protection Impact Assessment (DPIA)",
     description:
       "Structured Data Protection Impact Assessment (DPIA) framework for a specific processing activity, built against GDPR Article 35 requirements. Pre-populated with your inputs. Requires DPO or counsel sign-off to complete.",
     cta: "View Sample & Purchase",
@@ -65,7 +65,7 @@ const TOOLS = [
   },
   {
     icon: <Fingerprint aria-hidden="true" strokeWidth={1.75} className="w-6 h-6 text-brand-teal" />,
-    title: "Biometric Privacy Compliance Assessment",
+    title: "Biometric Compliance Assessment",
     description:
       "Check biometric processing (face, fingerprint, voice, iris) against BIPA, GDPR Art. 9, and global biometric laws. Included with Annual Platform.",
     cta: "View Sample & Purchase",
@@ -75,7 +75,7 @@ const TOOLS = [
   },
   {
     icon: <Folder aria-hidden="true" strokeWidth={1.75} className="w-6 h-6 text-brand-teal" />,
-    title: "Your Registration Filings",
+    title: "Your Registration Filings Manager",
     description:
       "Free assessment maps where your organisation must register (DPO, RoPA, AI Act, Article 27 rep). Then generate a counsel-ready filing pack you submit yourself. You file; we draft and track.",
     cta: "Start Free Assessment",
@@ -88,7 +88,7 @@ const TOOLS = [
 const TYPE_LABEL: Record<AssessmentRow["type"], string> = {
   li: "LI Assessment Tool",
   governance: "GDPR Accountability Assessment",
-  dpia: "DPIA Builder",
+  dpia: "Data Protection Impact Assessment (DPIA)",
 };
 
 const TYPE_BADGE: Record<AssessmentRow["type"], string> = {
@@ -231,7 +231,7 @@ export default function PremiumToolsSection({ isPremium }: Props) {
               to="/registration-manager/my-filings"
               className="text-[12px] font-semibold text-primary hover:underline no-underline"
             >
-              <Folder aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Your Registration Filings →
+              <Folder aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> Your Registration Filings Manager →
             </Link>
           )}
         </div>

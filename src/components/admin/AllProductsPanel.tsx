@@ -2,7 +2,7 @@
 //
 // /admin/SO-final-test grades the nine skeleton-encoded products through the
 // quality-batch orchestrator. Four shipped products are NOT dispatchable
-// there — DPA Generator (dispatchable but not skeleton-encoded) and the three
+// there — Custom DPA (dispatchable but not skeleton-encoded) and the three
 // workspace-scoped builders (RoPA, US Notice, EU Notice). This panel runs
 // those products end-to-end against their canonical sample fixtures using the
 // EXACT insert/invoke/poll sequences that /admin/sample-reports ships
@@ -69,7 +69,7 @@ export const EXTENDED_SLUGS: ToolSlug[] = ["dpa", "ropa", "us_notice", "eu_notic
 export const SLUG_LABEL: Record<ToolSlug, string> = {
   li_assessment: "LIA (Legitimate Interests)",
   dpia: "DPIA Framework",
-  dpa: "DPA Generator",
+  dpa: "Custom DPA",
   governance: "GDPR Governance",
   ir_playbook: "IR Playbook",
   biometric: "Biometric Compliance",
@@ -77,9 +77,9 @@ export const SLUG_LABEL: Record<ToolSlug, string> = {
   cppa_cyber: "CPPA Cybersecurity Audit",
   cppa_admt: "CPPA ADMT Assessment",
   ropa: "RoPA (Article 30)",
-  us_notice: "US Notice Builder",
-  eu_notice: "EU Notice Builder",
-  registration: "Registration Manager",
+  us_notice: "US Privacy Notice",
+  eu_notice: "EU / Global Privacy Notice",
+  registration: "Registration Filings Manager",
 };
 
 type RunStatus = "idle" | "queued" | "running" | "complete" | "failed";

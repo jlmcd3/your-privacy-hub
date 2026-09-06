@@ -199,7 +199,7 @@ export default function EUNoticeDocuments() {
     `${d.is_combined ? "combined-international-notice" : d.framework_code}-v${d.version_number}`;
 
   return (
-    <EUNoticeShell title="Documents — EU & Global Notice Builder" heading="Your generated notices" step="documents">
+    <EUNoticeShell title="Documents — EU / Global Privacy Notice" heading="Your generated notices" step="documents">
       <div className="mb-6 flex items-center justify-between gap-3 flex-wrap">
         <Button asChild variant="ghost" size="sm">
           <Link to="/dashboard"><ArrowLeft className="h-4 w-4 mr-1.5" /> Back to dashboard</Link>

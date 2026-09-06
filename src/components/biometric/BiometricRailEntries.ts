@@ -13,7 +13,7 @@
 // facts mapped to a selection — illustrating method, not a preferred outcome.
 
 // src/components/biometric/BiometricRailEntries.ts
-// StatuteRail entries for the Biometric Privacy Compliance Assessment.
+// StatuteRail entries for the Biometric Compliance Assessment.
 // Citations: 740 ILCS 14/ (BIPA), Tex. Bus. & Com. Code § 503.001 (CUBI),
 // Wash. Rev. Code 19.373 / RCW 71.05 (Wash. biometric + MHMD), GDPR Arts. 4(14) & 9.
 

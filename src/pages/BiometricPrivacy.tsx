@@ -117,7 +117,7 @@ export default function BiometricPrivacyPage() {
           heading: "Use this in your workflow",
           items: [
             { label: "Biometric Compliance Assessment", href: "/biometric-checker", description: "State-by-state BIPA/CUBI/HB1493 compliance diagnostic." },
-            { label: "EU & Global Notice Builder", href: "/eu-global-notice-builder", description: "Art. 13/14 notice with Art. 9(2) legal-basis language for biometrics." },
+            { label: "EU / Global Privacy Notice", href: "/eu-global-notice-builder", description: "Art. 13/14 notice with Art. 9(2) legal-basis language for biometrics." },
             { label: "Weekly Enforcement Intelligence", href: "/subscribe", description: "Every material biometric enforcement action, curated weekly." },
           ],
         }}

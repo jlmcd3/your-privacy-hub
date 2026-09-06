@@ -574,7 +574,7 @@ const DPIAFramework = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <DashboardSubnav />
-      <Helmet><title>{`Data Protection Impact Assessment (DPIA) Builder · from $${pricing.subscriberPrice ?? ""} | End User Privacy`}</title></Helmet>
+      <Helmet><title>{`Data Protection Impact Assessment (DPIA) · from $${pricing.subscriberPrice ?? ""} | End User Privacy`}</title></Helmet>
       {refine.isRefine && refine.intake && !refine.loading ? (
         <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <RefinePanel
@@ -600,7 +600,7 @@ const DPIAFramework = () => {
       <ProductHero
         geography="gdpr"
         eyebrowLabel={<><ClipboardList aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("dpia")}</>}
-        title={<>Data Protection Impact Assessment (DPIA) Builder <DefPopover termKey="gdpr_dpia" /></>}
+        title={<>Data Protection Impact Assessment (DPIA) <DefPopover termKey="gdpr_dpia" /></>}
         valueProposition="Build an EDPB-structured DPIA for one high-risk processing activity, ready for DPO or counsel review."
         citationLine="GDPR Art. 35 · EDPB-structured impact assessment · Regulator guidance cited throughout"
         showIntakeCta={false}
@@ -654,7 +654,7 @@ const DPIAFramework = () => {
 
         <IntakeMasthead
           kicker="Data Protection Impact Assessment · GDPR Art. 35"
-          title="DPIA Builder"
+          title="Data Protection Impact Assessment (DPIA)"
           subjectLabel={meter ? "Assessment subject · locked" : undefined}
           subjectValue={
             meter
@@ -1232,7 +1232,7 @@ const DPIAFramework = () => {
         />
         <ToolSamplePreview
           toolType="dpia"
-          toolName="DPIA Builder"
+          toolName="Data Protection Impact Assessment (DPIA)"
           price={pricing.price}
           standalonePrice={pricing.standalonePrice}
           subscriberPrice={pricing.subscriberPrice}

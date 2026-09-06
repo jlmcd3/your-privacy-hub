@@ -177,7 +177,7 @@ export default function EUNoticeQuestions() {
 
   if (loading || !currentQ) {
     return (
-      <EUNoticeShell title="Questions — EU & Global Notice Builder" heading="Tell us about your processing" step="questions" sessionId={sessionId}>
+      <EUNoticeShell title="Questions — EU / Global Privacy Notice" heading="Tell us about your processing" step="questions" sessionId={sessionId}>
         <Skeleton className="h-48 w-full" />
       </EUNoticeShell>
     );
@@ -209,7 +209,7 @@ export default function EUNoticeQuestions() {
 
 
   return (
-    <EUNoticeShell title="Questions — EU & Global Notice Builder" heading="Tell us about your processing" step="questions" sessionId={sessionId}>
+    <EUNoticeShell title="Questions — EU / Global Privacy Notice" heading="Tell us about your processing" step="questions" sessionId={sessionId}>
       <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
         <DefPopover termKey="gdpr_transparency" />
         <RequiredLegend />

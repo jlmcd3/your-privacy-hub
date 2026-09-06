@@ -152,7 +152,7 @@ export default function RopaRefresh() {
 
   if (loading) {
     return (
-      <RopaShell title="Annual Refresh — RoPA Builder" heading="Annual Refresh">
+      <RopaShell title="Annual Refresh — Record of Processing Activities (RoPA)" heading="Annual Refresh">
         <div className="space-y-4">
           <Skeleton className="h-32 w-full" />
           <Skeleton className="h-64 w-full" />
@@ -163,7 +163,7 @@ export default function RopaRefresh() {
 
   if (!source) {
     return (
-      <RopaShell title="Annual Refresh — RoPA Builder" heading="Annual Refresh">
+      <RopaShell title="Annual Refresh — Record of Processing Activities (RoPA)" heading="Annual Refresh">
         <Alert variant="destructive">
           <AlertTitle>Session not found</AlertTitle>
           <AlertDescription>
@@ -209,7 +209,7 @@ export default function RopaRefresh() {
 
   return (
     <RopaShell
-      title="Annual Refresh — RoPA Builder"
+      title="Annual Refresh — Record of Processing Activities (RoPA)"
       heading={`Refresh: Version ${source.version_number}`}
     >
       {(() => {

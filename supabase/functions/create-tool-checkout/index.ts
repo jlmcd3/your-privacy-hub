@@ -230,7 +230,7 @@ Deno.serve(async (req) => {
       isProfessionalAnnual ||
       String(subscriptionType ?? "").toLowerCase().includes("annual");
 
-    // ── Subscription-only tools (RoPA, US/EU Notice Builders) ──
+    // ── Subscription-only tools (RoPA, US/EU / Global Privacy Notices) ──
     // These are included with any active subscription (monthly or annual)
     // and are not sold on a standalone basis. Reject free / unauthenticated
     // checkout attempts; subscribers bypass Stripe entirely via their
@@ -245,7 +245,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ── Professional FREE bypass (IR Playbook, Biometric Checker, DPA) ──
+    // ── Professional FREE bypass (IR Playbook, Biometric Compliance Assessment, DPA) ──
     // v13: gated on isPro (Professional, any cadence). Intelligence
     // subscribers fall through to standard checkout at the standalone rate.
     // Stripe disallows $0 sessions; insert the assessment row directly

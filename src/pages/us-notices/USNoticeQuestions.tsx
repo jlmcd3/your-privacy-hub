@@ -274,7 +274,7 @@ export default function USNoticeQuestions() {
 
   if (loading) {
     return (
-      <USNoticeShell title="Questions — US Notice Builder" heading="Questions" step="questions" sessionId={sessionId}>
+      <USNoticeShell title="Questions — US Privacy Notice" heading="Questions" step="questions" sessionId={sessionId}>
         <Skeleton className="h-3 w-full mb-6" />
         <Skeleton className="h-40 w-full" />
       </USNoticeShell>
@@ -283,7 +283,7 @@ export default function USNoticeQuestions() {
 
   if (!currentQuestion) {
     return (
-      <USNoticeShell title="Questions — US Notice Builder" heading="Questions" step="questions" sessionId={sessionId}>
+      <USNoticeShell title="Questions — US Privacy Notice" heading="Questions" step="questions" sessionId={sessionId}>
         <p className="text-muted-foreground text-sm">
           No questions to display for the selected states.
         </p>
@@ -319,7 +319,7 @@ export default function USNoticeQuestions() {
 
 
   return (
-    <USNoticeShell title="Questions — US Notice Builder" heading="Questions" step="questions" sessionId={sessionId}>
+    <USNoticeShell title="Questions — US Privacy Notice" heading="Questions" step="questions" sessionId={sessionId}>
       {/* Progress */}
       <div className="mb-8">
         <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">

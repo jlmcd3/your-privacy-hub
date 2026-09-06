@@ -70,7 +70,7 @@ export function computeUpsellSignals(
 
       if (cats.some((d: string) => /biometric/i.test(d)))
         push('biometric_checker',
-          'Your processing includes biometric data — run a Biometric Compliance Check.',
+          'Your processing includes biometric data — run a Biometric Compliance Assessment.',
           'high', 2);
 
       if (docs.some((r: any) => /dpia|data.protection.impact/i.test(String(r?.document ?? ''))))
@@ -161,7 +161,7 @@ export function computeUpsellSignals(
 
       if (cats.some((d: string) => /biometric/i.test(d)))
         push('biometric_checker',
-          'Your DPIA covers biometric data — run a Biometric Compliance Check for jurisdiction-specific obligations.',
+          'Your DPIA covers biometric data — run a Biometric Compliance Assessment for jurisdiction-specific obligations.',
           'high', 1);
 
       if ((Array.isArray(tp) && tp.length > 0) || (typeof tp === 'string' && tp.trim()))
