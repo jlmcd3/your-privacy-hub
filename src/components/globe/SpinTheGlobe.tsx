@@ -662,8 +662,8 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
           <button
             onClick={handleSpin}
             className={compact
-              ? "group relative overflow-hidden bg-white/15 border border-white/20 text-white font-bold text-[12px] px-6 py-2 rounded-xl hover:bg-white/25 transition-all cursor-pointer w-full"
-              : "group relative overflow-hidden bg-gradient-to-br from-brand-navy to-brand-steel text-white font-bold text-[15px] px-10 py-4 rounded-2xl shadow-eup-md hover:shadow-eup-lg transition-all hover:-translate-y-0.5 cursor-pointer border-none w-full"
+              ? "group relative overflow-hidden bg-white/15 border border-white/20 text-white font-bold text-[14px] px-6 py-2 rounded-xl hover:bg-white/25 transition-all cursor-pointer w-full"
+              : "group relative overflow-hidden bg-gradient-to-br from-brand-navy to-brand-steel text-white font-bold text-[17px] px-10 py-4 rounded-2xl shadow-eup-md hover:shadow-eup-lg transition-all hover:-translate-y-0.5 cursor-pointer border-none w-full"
             }
           >
             <span className="relative z-10 flex items-center justify-center gap-2.5">
