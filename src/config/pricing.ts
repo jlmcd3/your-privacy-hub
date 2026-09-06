@@ -1041,7 +1041,7 @@ export const PRICING = {
     ir_playbook:  { name: 'Incident Response Playbook',                 dollars: 89,  display: '$89',  stripePriceId: 'ir_standalone_v2' },
     lia:          { name: 'Legitimate Interests Assessment',     dollars: 139, display: '$139',  stripePriceId: 'li_standalone_v2' },
     us_notice:    { name: 'US Privacy Notice',          dollars: 0,   display: 'Included with subscription', stripePriceId: null },
-    dpia:         { name: 'Data Protection Impact Assessment',  dollars: 149, display: '$149',  stripePriceId: 'dpia_standalone_v2' },
+    dpia:         { name: 'Data Protection Impact Assessment (DPIA)',  dollars: 149, display: '$149',  stripePriceId: 'dpia_standalone_v2' },
     dpa:          { name: 'Custom DPA',               dollars: 69,  display: '$69',  stripePriceId: 'dpa_standalone_v2' },
     ropa:         { name: 'Record of Processing Activities (RoPA)',                       dollars: 49,  display: 'Free (annual) · $49/generation ($39 additional for annual)', stripePriceId: 'ropa_paid_generation' },
     eu_notice:    { name: 'EU / Global Privacy Notice', dollars: 0,   display: 'Included with subscription', stripePriceId: null },

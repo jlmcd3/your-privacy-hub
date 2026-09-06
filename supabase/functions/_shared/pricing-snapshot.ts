@@ -798,7 +798,7 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
       "stripePriceId": "dpa_standalone_v2"
     },
     "dpia": {
-      "name": "Data Protection Impact Assessment",
+      "name": "Data Protection Impact Assessment (DPIA)",
       "dollars": 149,
       "cents": 14900,
       "display": "$149",
