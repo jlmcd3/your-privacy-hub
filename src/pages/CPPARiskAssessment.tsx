@@ -1151,6 +1151,31 @@ export default function CPPARiskAssessment() {
     a9_approver_position: a9ApproverPosition.trim(),
     a9_approval_date: a9ApprovalDate,
     a8_information_providers: a8InformationProviders.trim(),
+    // ── QA round two (RA-A-09 / RA-B-02 / SUITE-A-02 / SUITE-B04, High,
+    // 2026-09-06) — THE STAGE-8 FINALISATION RECORD WAS COLLECTED AND
+    // DISCARDED. Every one of these fields is held in state, rendered in the
+    // form (step 8), autosaved and restored — and none of them was written
+    // into this payload or listed in its dependency array, so the generator
+    // never saw them. The § 7152(a)(7) contract entry even carries the note
+    // "The form has emitted this finalization-stage field since RK3-A3"; it
+    // never did.
+    //
+    // That single omission produced the reported contradictions: customer A
+    // recorded "Do not initiate, pending tests and review" and the report said
+    // "Proceed · Initiate the processing · No conditions attach" without
+    // mentioning the hold; customer B recorded "Do not initiate, Priya Shah
+    // reviewed only, no approval authority" and the report said no company
+    // initiation decision was recorded, then mapped the LEGACY a9_* approver
+    // fields (the only approval signal that did reach it) to "Approved". Both
+    // Suites reproduced it.
+    final_processing_decision: finalProcessingDecision,
+    final_processing_decision_notes: finalProcessingDecisionNotes.trim(),
+    assessment_reviewers_approvers: assessmentReviewersApprovers.filter(
+      (r) => r.name.trim() || r.position.trim() || r.role,
+    ),
+    approver_authority_confirmed: approverAuthorityConfirmed,
+    approver_authority_basis: approverAuthorityBasis.trim(),
+    finalization_follow_up_resolved: finalizationFollowUpResolved,
     // RK3-D (doc 33 D-L3) — Class C→B operands; blank/empty answers emit
     // undefined so legacy semantics are preserved and the record-complete
     // gate reads honest absence, never a defaulted answer.
@@ -1206,6 +1231,11 @@ export default function CPPARiskAssessment() {
     assertions,
     primaryActivityName, primaryActivityPurpose, hasSecondaryUses, secondaryActivities,
     rk3d,
+    // QA round two — the stage-8 finalisation record. Absent from this array,
+    // the payload above would not recompute when the customer records their
+    // decision, which is the other half of the same defect.
+    finalProcessingDecision, finalProcessingDecisionNotes, assessmentReviewersApprovers,
+    approverAuthorityConfirmed, approverAuthorityBasis, finalizationFollowUpResolved,
 
   ]);
 

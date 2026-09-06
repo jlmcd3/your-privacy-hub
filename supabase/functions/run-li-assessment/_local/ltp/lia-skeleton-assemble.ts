@@ -1271,15 +1271,27 @@ export function assembleLiaSkeletonDocument(
     // approval sentence now says what was approved: the assessment RECORD
     // (the documented analysis) is distinct from the lawful-basis /
     // processing decision, which remains open until the outcome resolves.
-    "findings:3": s(attestation.approver_name)
+    // QA round two (LIA-B-05, High, 2026-09-06) — this asserted "The
+    // assessment record was approved by X" from a NON-EMPTY NAME alone, with
+    // the date appended only if one happened to exist. Customer B recorded
+    // approval explicitly withheld and left the date blank — correctly, there
+    // being no approval — and the report still said the record was approved.
+    //
+    // A name in the approver field is a NAMED PERSON. Approval is asserted
+    // only where the record carries the approval FACT: an approval date.
+    "findings:3": !s(attestation.approver_name)
+      ? ""
+      : s(attestation.approval_date)
       ? `The assessment record was approved by ${s(attestation.approver_name)}${
         s(attestation.approver_position) ? `, ${s(attestation.approver_position)}` : ""
-      }${s(attestation.approval_date) ? `, on ${s(attestation.approval_date)}` : ""}.${
+      }, on ${s(attestation.approval_date)}.${
         verdictIsPositive(v.outcome) === null && !v.public_authority_bar
           ? " That approval covers the assessment record itself; the lawful-basis and processing decision remain pending until the outcome above is resolved."
           : ""
       }`
-      : "",
+      : `${s(attestation.approver_name)}${
+        s(attestation.approver_position) ? `, ${s(attestation.approver_position)}` : ""
+      } is named as the approver of the assessment record, but the record carries no approval date, so no approval is recorded.`,
   };
 
   // L2 — the Persuasive Authority section (deterministic path only). The

@@ -195,9 +195,29 @@ Deno.test("RK3-A1 g6 — contract carries the four benefit gates and demotes a4 
     assert(gate, `benefit_${cls}_identified missing from cppaRiskContract`);
     assertEquals(gate!.kind, "enum");
     assertEquals([...(gate!.options ?? [])], ["Yes", "No"]);
-    const narrative = field(`a4_benefit_${cls}`);
-    assert(narrative, `a4_benefit_${cls} missing`);
-    assertEquals(narrative!.required, "optional", `a4_benefit_${cls} must be demoted to optional (gate-driven; never force a benefit)`);
+    // QA round two (R2 RA A 01 / RA-B-01, 2026-09-06) — RK3-A1's intent was
+    // always "gate-driven; never force a benefit", but `optional` did not
+    // ENCODE it: askedKeys and record-complete both read optional as ASKED, so
+    // a customer who answered "No" to a gate was told the narrative behind it
+    // was unanswered and advised to name who gains and supply facts. The
+    // narratives and their supporting facts are now literally gate-driven —
+    // conditional on their own gate reading "Yes" — which is the same intent,
+    // now machine-evaluable.
+    for (const key of [`a4_benefit_${cls}`, `a4_benefit_${cls}_fact`]) {
+      const narrative = field(key);
+      assert(narrative, `${key} missing`);
+      assertEquals(
+        narrative!.required,
+        "conditional",
+        `${key} must be gate-driven, never forced: conditional on its own benefit gate`,
+      );
+      assertEquals(
+        narrative!.trigger?.key,
+        `benefit_${cls}_identified`,
+        `${key} must be triggered by its own gate`,
+      );
+      assertEquals([...(narrative!.trigger?.equals ?? [])], ["Yes"]);
+    }
   }
 });
 

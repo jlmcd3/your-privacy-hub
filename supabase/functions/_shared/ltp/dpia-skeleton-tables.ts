@@ -320,15 +320,28 @@ function validationApprovalTable(report: Bag): RenderedTable | null {
   const dateNote = approvalIso && approvalIso < renderIso
     ? "The approval date records the company's approval of the assessment record; this report was rendered from that record on the generation date shown on the cover."
     : "";
+  // QA round two (DPIA-A-02 / DPIA-B-04, High, 2026-09-06) — this row was
+  // labelled "Approved by" whenever a name was present. Customer A's record
+  // read "proposed Elena Brooks, NOT approved, no date"; the table published
+  // that negative under an approval label. The label now follows the approval
+  // FACT the record carries — an approval date — not the presence of a name.
+  const approvalRecorded = s(v.approval_date) !== "";
   return particulars("validation_approval", "Validation and approval", [
     ["Attested", v.attested === true ? "Yes" : "Not attested on the record"],
-    ["Approved by", s(v.approved_by_name)],
+    [approvalRecorded ? "Approved by" : "Named as approver (approval not recorded)", s(v.approved_by_name)],
     ["Title", s(v.approved_by_title)],
-    ["Date of approval", s(v.approval_date)],
+    ["Date of approval", s(v.approval_date) || "Not recorded"],
     // A-TEAM S4 RULING S2.12 (doc 119) — the approval's MEANING renders
     // beside it, so "Approved by X" cannot read against Section 6's
     // pending processing decision.
-    ["Meaning", s(v.approved_by_name) ? "Approval of the factual assessment record only; the decision on the processing itself is stated in Section 6." : ""],
+    [
+      "Meaning",
+      !s(v.approved_by_name)
+        ? ""
+        : approvalRecorded
+        ? "Approval of the factual assessment record only; the decision on the processing itself is stated in Section 6."
+        : "The record names this person but carries no approval date, so no approval of the assessment record is recorded. The decision on the processing itself is stated in Section 6.",
+    ],
     ["Note", dateNote],
     ["Basis for sign-off", s(v.basis_for_sign_off)],
     ["What is still needed", s(v.information_needed)],

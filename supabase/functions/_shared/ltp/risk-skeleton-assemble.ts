@@ -512,14 +512,31 @@ export function deriveReviewApprovalTable(intake: Bag, assessmentDateIso?: strin
     const title = s(r.position);
     if (!name && !title) continue;
     const role = s(r.role);
+    // QA round two (RA-A-08 / RA-B-02 / B Suite, High, 2026-09-06) — the role
+    // select offers "Reviewed" / "Approved" / "Both" and defaults to a BLANK
+    // option ("Role…"). Everything that was not "Reviewed" or "Approved" fell
+    // through to "Reviewed and approved by", so a row whose role was left
+    // unselected was printed as an approval the customer never gave. Customer
+    // B recorded "Priya Shah — Reviewed only, no approval authority" and the
+    // PDF still carried an "Approved by" row. An unrecorded role is now
+    // reported as unrecorded; approval is never the fallback.
     const label = role === "Reviewed" ? "Reviewed by"
       : role === "Approved" ? "Approved by"
-      : "Reviewed and approved by";
+      : role === "Both" ? "Reviewed and approved by"
+      : "Role not recorded";
     named.push({ role: label, name, title });
   }
   if (named.length === 0 && s(intake.a9_approver_name)) {
     named.push({
-      role: "Approved by",
+      // QA round two (RA-A-08) — a name in the approver field is a NAMED
+      // PERSON, not a completed approval. Customer A entered "Not yet
+      // approved — Elena Brooks is the proposed reviewer and COO — approval
+      // pending" (there being no pending option to select) and the table
+      // labelled the row "Approved by". The label now follows the one
+      // approval FACT the record carries: a current recorded approval date,
+      // resolved above by the same doc-152/154 rule the § 5.A narrative and
+      // the engine's sufficiency branch use.
+      role: dateCurrent ? "Approved by" : "Named as approver — approval not recorded",
       name: s(intake.a9_approver_name),
       title: s(intake.a9_approver_position),
     });
@@ -898,12 +915,23 @@ function composeVApproval(intake: Bag, assessmentDateIso?: string): string {
     .map((r) => [s(r.name), s(r.position), s(r.role)].filter(Boolean).join(", "))
     .filter(Boolean)
     .join("; ");
-  const migrated = s(intake.a9_approver_name)
-    ? `${s(intake.a9_approver_name)}${s(intake.a9_approver_position) ? `, ${s(intake.a9_approver_position)}` : ""} (Approved)`
-    : "";
-  const reviewers = reviewerRows || migrated;
   // DOC 154 (item 21) — one approval-date resolver across every surface.
   const approvalDate = resolveRecordedApprovalDate(intake);
+  // QA round two (RA-A-08 / RA-B-02 / B Suite, High, 2026-09-06) — this
+  // appended "(Approved)" to whatever stood in the approver-name field. On
+  // customer A that field read "Not yet approved — Elena Brooks is the
+  // proposed reviewer and COO — approval pending deletion, necessity and
+  // physical-harm review", so the report published a negative decision with
+  // the word "(Approved)" bolted onto the end of it; the B Suite PDF did the
+  // same to "Priya Shah — reviewed only; NOT approved".
+  //
+  // A name in the approver field is a NAMED PERSON. Approval is asserted only
+  // where the record carries the approval fact — a recorded approval date, on
+  // the same resolver every other surface uses.
+  const migrated = s(intake.a9_approver_name)
+    ? `${s(intake.a9_approver_name)}${s(intake.a9_approver_position) ? `, ${s(intake.a9_approver_position)}` : ""}${approvalDate ? " (Approved)" : " (named as approver; no approval recorded)"}`
+    : "";
+  const reviewers = reviewerRows || migrated;
   const authority = yn(intake.approver_authority_confirmed);
   const basis = clause(intake.approver_authority_basis);
   if (!reviewers && !approvalDate && !authority) return "";

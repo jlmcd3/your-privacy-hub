@@ -1059,9 +1059,24 @@ function composeSignoffBody(report: Bag, intake: Bag, values: SlotValues): strin
   const bands = residualCounts(report);
   const total = Object.values(bands).reduce((a, b) => a + b, 0);
 
-  if (approver) {
+  // QA round two (DPIA-A-02 / DPIA-B-04, High, 2026-09-06) — this asserted
+  // acceptance of the residual risks from a NON-EMPTY NAME alone. Customer A
+  // recorded "proposed Elena Brooks, NOT approved, no date" and the report
+  // still said she "is recorded as the person accepting the remaining risk
+  // levels", while stating elsewhere that sign-off was unavailable. Customer B
+  // reproduced it against an explicitly withheld approval.
+  //
+  // A name in the approver field is a NAMED PERSON. Acceptance is asserted
+  // only where the record carries the approval FACT — dpia_approval_date, the
+  // same field the validation-and-approval particulars already read.
+  const approvalDate = s(intake.dpia_approval_date);
+  if (approver && approvalDate) {
     parts.push(
       `${approver}${title ? `, ${title},` : ""} is recorded as the person accepting the remaining risk levels${total ? ` across the ${total === 1 ? "single risk" : `${total} risks`} this assessment reviews` : ""}.`,
+    );
+  } else if (approver) {
+    parts.push(
+      `${approver}${title ? `, ${title},` : ""} is named as the approver, but the record carries no approval date, so the remaining risk levels set out above are not recorded as accepted.`,
     );
   } else {
     parts.push("No approver has been recorded, so the remaining risk levels set out above have not yet been accepted by anyone on the company's behalf.");
