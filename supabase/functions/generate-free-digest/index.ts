@@ -69,12 +69,13 @@ Deno.serve(async (req) => {
   const periodStart = new Date(now.getTime() - 7 * 86400000).toISOString().split("T")[0];
   const weekLabel = `Week of ${periodStart} – ${periodEnd}`;
 
-  // Fetch users with digest preferences
+  const TARGET_ITEMS = 8;
+
+  // Fetch users who opted into the digest (region and/or topic selections may be empty)
   const { data: users, error: usersErr } = await supabase
     .from("profiles")
     .select("id, digest_jurisdictions, digest_topics")
-    .not("digest_jurisdictions", "is", null)
-    .gt("digest_jurisdictions", "{}");
+    .or("digest_jurisdictions.not.is.null,digest_topics.not.is.null");
 
   if (usersErr || !users) {
     return new Response(JSON.stringify({ error: "Failed to fetch users", detail: usersErr }), {
@@ -83,12 +84,27 @@ Deno.serve(async (req) => {
     });
   }
 
+  // Single shared pool of the week's articles (most recent first)
+  const { data: pool } = await supabase
+    .from("updates")
+    .select("id, title, summary, category, source_name, url, published_at, ai_summary")
+    .gte("published_at", periodStart)
+    .order("published_at", { ascending: false })
+    .limit(300);
+
+  const allArticles: any[] = pool || [];
+  if (allArticles.length === 0) {
+    return new Response(
+      JSON.stringify({ success: true, users_processed: users.length, digests_generated: 0, note: "no articles in window" }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
   let digestsGenerated = 0;
 
   for (const user of users) {
     const jurisdictions: string[] = user.digest_jurisdictions || [];
     const topics: string[] = user.digest_topics || [];
-    if (jurisdictions.length === 0) continue;
 
     // Build category list from jurisdictions
     const categories = new Set<string>();
@@ -101,49 +117,55 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Fetch articles from past 7 days in matching categories
-    const { data: articles } = await supabase
-      .from("updates")
-      .select("id, title, summary, category, source_name, url, published_at, ai_summary")
-      .in("category", Array.from(categories))
-      .gte("published_at", periodStart)
-      .order("published_at", { ascending: false })
-      .limit(100);
-
-    if (!articles || articles.length === 0) continue;
-
-    // Filter: for global category, apply keyword matching for apac/latam/mea
-    let filtered = articles.filter((a: any) => {
+    const matchesRegion = (a: any): boolean => {
+      if (jurisdictions.length === 0) return false;
+      if (!categories.has(a.category)) return false;
       if (a.category !== "global") return true;
-      // Check if any region keyword matches
+      const titleLower = (a.title || "").toLowerCase();
       for (const [, kws] of Object.entries(needsKeywordFilter)) {
-        const titleLower = (a.title || "").toLowerCase();
         if (kws.some((kw) => titleLower.includes(kw.toLowerCase()))) return true;
       }
-      // If user has a non-global region that includes global, and no keyword filter needed
-      if (!Object.keys(needsKeywordFilter).length) return true;
-      return false;
-    });
+      return !Object.keys(needsKeywordFilter).length;
+    };
 
-    // Apply topic filter
-    if (topics.length > 0) {
-      filtered = filtered.filter((a: any) => {
-        for (const t of topics) {
-          const tf = TOPIC_FILTERS[t];
-          if (!tf) continue;
-          if (tf.category && a.category === tf.category) return true;
-          if (tf.keywords) {
-            const text = ((a.title || "") + " " + (a.summary || "")).toLowerCase();
-            if (tf.keywords.some((kw) => text.includes(kw.toLowerCase()))) return true;
-          }
+    const matchesTopic = (a: any): boolean => {
+      if (topics.length === 0) return false;
+      for (const t of topics) {
+        const tf = TOPIC_FILTERS[t];
+        if (!tf) continue;
+        if (tf.category && a.category === tf.category) return true;
+        if (tf.keywords) {
+          const text = ((a.title || "") + " " + (a.summary || "")).toLowerCase();
+          if (tf.keywords.some((kw) => text.includes(kw.toLowerCase()))) return true;
         }
-        return false;
-      });
+      }
+      return false;
+    };
+
+    // Tier 1: matches the user's region AND topic selections (or the only one they set)
+    // Tier 2: matches either their region or their topic
+    // Tier 3: any article from the week
+    const hasRegion = jurisdictions.length > 0;
+    const hasTopic = topics.length > 0;
+
+    const tier1 = allArticles.filter((a) =>
+      hasRegion && hasTopic ? matchesRegion(a) && matchesTopic(a) : hasRegion ? matchesRegion(a) : hasTopic ? matchesTopic(a) : false
+    );
+    const tier2 = allArticles.filter((a) => matchesRegion(a) || matchesTopic(a));
+
+    const digestArticles: any[] = [];
+    const seen = new Set<string>();
+    for (const tier of [tier1, tier2, allArticles]) {
+      for (const a of tier) {
+        if (digestArticles.length >= TARGET_ITEMS) break;
+        if (seen.has(a.id)) continue;
+        seen.add(a.id);
+        digestArticles.push(a);
+      }
+      if (digestArticles.length >= TARGET_ITEMS) break;
     }
 
-    // Limit to 8
-    const digestArticles = filtered.slice(0, 8);
-    if (digestArticles.length < 3) continue;
+    if (digestArticles.length === 0) continue;
 
     // Format digest items
     const digestItems = digestArticles.map((a: any) => ({
