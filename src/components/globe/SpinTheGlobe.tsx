@@ -209,35 +209,10 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     scene.add(globe);
     globeRef.current = globe;
 
-    // Atmosphere rim glow: thin, slightly larger fresnel shell that stays
-    // transparent at face-on angles and glows only at the silhouette —
-    // the strongest "this is a sphere in space" cue.
-    const atmosphere = new THREE.Mesh(
-      new THREE.SphereGeometry(0.96 * 1.045, 64, 64),
-      new THREE.ShaderMaterial({
-        transparent: true,
-        side: THREE.BackSide,
-        depthWrite: false,
-        // Match the hero navy background so the fresnel rim blends away
-        // instead of reading as a distinct blue ring (prior fix pattern).
-        uniforms: { glowColor: { value: new THREE.Color(0x0d2a45) } },
-        vertexShader: `
-          varying float vRim;
-          void main() {
-            vec3 viewNormal = normalize(normalMatrix * normal);
-            vec3 viewPos = normalize(-(modelViewMatrix * vec4(position, 1.0)).xyz);
-            vRim = pow(1.0 - abs(dot(viewNormal, viewPos)), 3.0);
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-          }`,
-        fragmentShader: `
-          uniform vec3 glowColor;
-          varying float vRim;
-          void main() {
-            gl_FragColor = vec4(glowColor, vRim * 0.85);
-          }`,
-      }),
-    );
-    scene.add(atmosphere);
+    // Atmosphere fresnel rim shell removed — on the hero's navy→ocean→teal
+    // gradient it consistently read as a distinct ring regardless of glow
+    // color or alpha. The 3D depth cue now comes from the day/night lighting
+    // contrast, off-center specular highlight, and stronger perspective.
 
 
     // Latitude/longitude grid removed — at the silhouette the wireframe
@@ -273,9 +248,12 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       tex.anisotropy = renderer.capabilities.getMaxAnisotropy?.() ?? 4;
       globeRef.current.material = new THREE.MeshPhongMaterial({
         map: tex,
-        specularMap: tex,
-        specular: new THREE.Color(0x5e9fc6),
-        shininess: 48,
+        // No specularMap: the Blue Marble texture's baked-in atmospheric
+        // limb lit up as a light-blue ring under specular. Keep a faint,
+        // uniform specular only — the day/night terminator from the
+        // directional light already carries the 3D depth cue.
+        specular: new THREE.Color(0x223040),
+        shininess: 24,
         emissive: new THREE.Color(0x071c34),
         emissiveIntensity: 0.1,
         // Reuse the color map as a bump map for cheap terrain relief — gives
