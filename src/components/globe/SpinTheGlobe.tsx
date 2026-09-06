@@ -642,7 +642,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
         ref={mountRef}
         className={`relative rounded-full overflow-hidden cursor-pointer ${compact ? "" : "shadow-eup-lg"}`}
         style={compact
-          ? { width: 240, height: 240, background: ready ? "transparent" : "transparent" }
+          ? { width: 360, height: 360, background: ready ? "transparent" : "transparent" }
           : { width: 380, height: 380, background: ready ? "transparent" : "transparent" }
         }
         onClick={phase === "idle" ? handleSpin : undefined}
