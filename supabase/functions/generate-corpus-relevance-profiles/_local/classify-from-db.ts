@@ -119,7 +119,7 @@ export function resultRows(args: {
       pipeline_version: args.pipelineVersion,
       excerpt_chars,
       outcome,
-      stage2: stage2.has(candidate.id) ? { candidate_id: candidate.id } : null,
+      stage2: stage2.has(candidate.id) ? candidate.id : null,
       promoted: promoted.has(candidate.id),
     };
   });

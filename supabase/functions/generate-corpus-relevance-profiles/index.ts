@@ -83,8 +83,10 @@ const CLASSIFIER_MODEL = Deno.env.get("CORPUS_CLASSIFIER_MODEL") ?? DEFAULT_CLAS
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 
 function anthropicCall(model: string, onFailure?: (status: number, message: string) => void): LlmCall {
+  let blocked: { status: number; message: string } | null = null;
   return async (system: string, user: string): Promise<string> => {
     if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
+    if (blocked) throw Object.assign(new Error(blocked.message), { status: blocked.status });
     for (let attempt = 0; attempt < 3; attempt += 1) {
       const r = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
@@ -101,9 +103,18 @@ function anthropicCall(model: string, onFailure?: (status: number, message: stri
       }
       const errText = await r.text().catch(() => "no body");
       const message = `Anthropic ${r.status}: ${errText.slice(0, 300)}`;
-      onFailure?.(r.status, message);
-      if (r.status !== 429 && r.status < 500) throw Object.assign(new Error(message), { status: r.status });
-      if (attempt === 2) throw Object.assign(new Error(message), { status: r.status });
+      if (r.status !== 429 && r.status < 500) {
+        blocked = { status: r.status, message };
+        onFailure?.(r.status, message);
+        throw Object.assign(new Error(message), { status: r.status });
+      }
+      if (attempt === 2) {
+        if (r.status === 429) {
+          blocked = { status: r.status, message };
+          onFailure?.(r.status, message);
+        }
+        throw Object.assign(new Error(message), { status: r.status });
+      }
       const retryAfter = Number(r.headers.get("Retry-After") ?? 0);
       const delayMs = retryAfter > 0 ? retryAfter * 1_000 : (2 ** attempt) * 1_000 + Math.floor(Math.random() * 250);
       await new Promise((resolve) => setTimeout(resolve, delayMs));
