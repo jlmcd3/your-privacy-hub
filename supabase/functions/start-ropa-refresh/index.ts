@@ -4,6 +4,7 @@
 
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { nextLineageVersion, type LineageRow } from "./_local/version-lineage.ts";
 
 interface RequestBody {
   source_session_id?: string;
@@ -45,7 +46,12 @@ Deno.serve(async (req) => {
     // Load source session and verify ownership via clients.owner_id
     const { data: source, error: srcErr } = await admin
       .from("ropa_sessions")
-      .select("id, client_id, version_number, status, payment_confirmed")
+      // QA round two (ROPA-B-01 / ROPA-C01, High) — org_name is the company
+      // this register documents. It was not selected here and not cloned
+      // below, so every refreshed session carried org_name = null and both
+      // RopaReview and generate-ropa-document fell back to clients.name, which
+      // for a single-workspace account is the default "My Workspace" row.
+      .select("id, client_id, version_number, status, payment_confirmed, org_name, parent_session_id")
       .eq("id", sourceSessionId)
       .maybeSingle();
     if (srcErr || !source) return jsonError("Source session not found", 404);
@@ -68,21 +74,36 @@ Deno.serve(async (req) => {
       return jsonError("The source register has not been generated yet — generate it before starting a refresh.", 400);
     }
 
-    // Compute next version number for this client
-    const { data: maxRow } = await admin
+    // QA round two (ROPA-B-02 / ROPA-C02, Medium) — version numbers did not
+    // form a per-register sequence. The max was taken across the WHOLE client,
+    // and a workspace that documents several companies against one client row
+    // shares that counter: the QA account produced 1–5 for customer A, then
+    // 6–8 for B, then 9–11 for C, so a refresh the UI promised as "v2" was
+    // generated as "Version 9".
+    //
+    // A version belongs to its own register, so the sequence is scoped to the
+    // refresh LINEAGE — the chain of parent_session_id links this session
+    // descends from. Sessions per client are few, so the chain is resolved in
+    // memory rather than with a recursive query.
+    const { data: clientSessions } = await admin
       .from("ropa_sessions")
-      .select("version_number")
-      .eq("client_id", source.client_id)
-      .order("version_number", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const nextVersion = (maxRow?.version_number ?? source.version_number) + 1;
+      .select("id, parent_session_id, version_number")
+      .eq("client_id", source.client_id);
+
+    const nextVersion = nextLineageVersion(
+      (clientSessions ?? []) as LineageRow[],
+      source.id as string,
+      Number(source.version_number ?? 0),
+    );
 
     // Create new session
     const { data: newSession, error: newErr } = await admin
       .from("ropa_sessions")
       .insert({
         client_id: source.client_id,
+        // ROPA-B-01 / ROPA-C01 — carry the customer identity forward. Without
+        // this the refreshed register is titled with the workspace name.
+        org_name: source.org_name ?? null,
         status: "in_progress",
         version_number: nextVersion,
         is_refresh: true,
