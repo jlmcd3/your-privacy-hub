@@ -218,10 +218,10 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
         transparent: true,
         side: THREE.BackSide,
         depthWrite: false,
-        // Match the right-side hero gradient color where the globe sits
-        // (from-brand-navy via-brand-ocean to-[#1f6674]) so the fresnel
-        // rim blends away instead of reading as a distinct ring.
-        uniforms: { glowColor: { value: new THREE.Color(0x1f6674) } },
+        // Match the hero gradient's mid (brand-ocean #1a4a6e) where the
+        // globe sits and soften the rim alpha so the fresnel shell reads
+        // as a subtle depth cue, not a hard ring against the gradient.
+        uniforms: { glowColor: { value: new THREE.Color(0x1a4a6e) } },
         vertexShader: `
           varying float vRim;
           void main() {
@@ -234,7 +234,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
           uniform vec3 glowColor;
           varying float vRim;
           void main() {
-            gl_FragColor = vec4(glowColor, vRim * 0.85);
+            gl_FragColor = vec4(glowColor, vRim * 0.45);
           }`,
       }),
     );
