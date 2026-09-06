@@ -43,6 +43,13 @@
       "when": 1788545719438,
       "tag": "0005_audit_us_state_privacy_law_flags",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788659816190,
+      "tag": "0006_grant_admin_role_yahoo_user",
+      "breakpoints": true
     }
   ]
 }
