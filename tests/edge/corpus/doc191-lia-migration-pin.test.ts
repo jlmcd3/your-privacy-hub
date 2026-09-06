@@ -12,8 +12,16 @@
 // scorer (cam-relevance.ts) reads exactly eight fields — country, instrument,
 // factor_ids, use_case_class, outcome_posture, relationship, data_categories,
 // flags — and nothing else on a profile reaches a customer. So the pin is:
-// those eight fields, canonically serialised, identical per row, for all 39
-// of the 40 CAM rows that were not reclassified.
+// those eight fields, canonically serialised, identical per row, for all 38
+// of the 39 CAM rows that were not reclassified.
+//
+// DOC 205 §13 item 6 / doc 205C (2026-09-06): the "SNAF" row
+// (lia/f06-relationship/ap-w6-06, enforcement_actions 6c76ba4e-...) was
+// removed from the corpus entirely — it took no position on Article 6(1)(f)
+// reliance, failing the product's own LI-relevance test. It was DARK
+// (render_eligible: false), so the removal is not customer-facing. The
+// counts below (39 CAM rows / 34 sources / 38 non-reclassified) reflect its
+// removal from the original 40 CAM rows / 35 sources.
 //
 // WHERE THE DATA COMES FROM. The test runs OFFLINE against
 // __snapshots__/authority-relevance-profiles-lia.json, which was produced by
@@ -72,16 +80,17 @@ function run() {
 
 // ── Shape of the migration itself ───────────────────────────────────────────
 
-Deno.test("doc191 §7.3 — the migration covers every AP source exactly once (35 sources behind 40 CAM rows)", () => {
+Deno.test("doc191 §7.3 — the migration covers every AP source exactly once (34 sources behind 39 CAM rows)", () => {
   const sources = new Set(AP_ROWS.map((r) => `${r.source_table}::${r.source_row_id}`));
   assertEquals(snapshot.row_count, snapshot.rows.length);
   assertEquals(snapshot.rows.length, sources.size);
-  // Docs 191 §1/§7.3 and 196 §1 say "44 profiles". The live count is 40 CAM
-  // row keys over 35 distinct sources — recorded here so the discrepancy is
-  // a checked fact rather than a number carried forward from a spec.
-  assertEquals(Object.keys(LIA_RELEVANCE_PROFILES).length, 40);
-  assertEquals(AP_ROWS.length, 40);
-  assertEquals(sources.size, 35);
+  // Docs 191 §1/§7.3 and 196 §1 say "44 profiles". The live count is 39 CAM
+  // row keys over 34 distinct sources (post doc 205C SNAF removal) —
+  // recorded here so the discrepancy is a checked fact rather than a number
+  // carried forward from a spec.
+  assertEquals(Object.keys(LIA_RELEVANCE_PROFILES).length, 39);
+  assertEquals(AP_ROWS.length, 39);
+  assertEquals(sources.size, 34);
   for (const r of snapshot.rows) {
     assert(sources.has(`${r.source_table}::${r.source_row_id}`), `${r.source_row_id} names no AP source`);
   }
@@ -137,7 +146,7 @@ Deno.test("doc191 §7.3 — the generator runs clean on the migrated LIA data", 
 Deno.test("doc191 §7.3 — THE PIN: every non-reclassified row's scorer-visible profile is byte-identical", () => {
   const r = run();
   const expected = AP_ROWS.filter((row) => row.id !== RECLASSIFIED_ROW_ID);
-  assertEquals(expected.length, 39);
+  assertEquals(expected.length, 38);
 
   const drift: string[] = [];
   for (const camRow of expected) {
@@ -152,7 +161,7 @@ Deno.test("doc191 §7.3 — THE PIN: every non-reclassified row's scorer-visible
     if (a !== b) drift.push(`${camRow.id}:\n  hand-authored ${a}\n  generated     ${b}`);
   }
   assertEquals(drift, [], `the migration must change nothing customer-facing:\n${drift.join("\n")}`);
-  assertEquals(Object.keys(r.pattern).length, 39);
+  assertEquals(Object.keys(r.pattern).length, 38);
 });
 
 Deno.test("doc191 §5/§8 — the reclassified row ships NOWHERE until the CEO ratifies it", () => {
@@ -192,7 +201,7 @@ Deno.test("doc191 §7.3 — the generated file is deterministic and follows map 
   assertEquals(a.file, b.file);
   const order = new Map(LIA_CORPUS_MAP.rows.map((r, i) => [r.id, i] as const));
   const emittedIds = [...a.file.matchAll(/^  "(lia\/[^"]+)": \{$/gm)].map((m) => m[1]);
-  assertEquals(emittedIds.length, 39);
+  assertEquals(emittedIds.length, 38);
   for (let i = 1; i < emittedIds.length; i++) {
     assert(
       (order.get(emittedIds[i - 1]) ?? 0) < (order.get(emittedIds[i]) ?? 0),

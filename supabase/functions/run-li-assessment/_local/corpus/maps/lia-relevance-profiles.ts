@@ -17,7 +17,7 @@
 // fails the battery instead of silently never ranking.
 //
 // WHAT RENDERS: only render-eligible AP rows (four today) reach the customer;
-// the forty dark rows' profiles carry no customer-facing effect until the
+// the thirty-nine dark rows' profiles carry no customer-facing effect until the
 // CEO ratifies their display blocks, at which point the profile is reviewed
 // with the display. Fields the curation note does not establish are null /
 // empty (a null class scores nothing — it never mis-scores).
@@ -310,15 +310,6 @@ const CLEARVIEW_2021: CamRelevanceProfile = {
   flags: ["special_category", "large_scale"],
 };
 
-const SNAF_2021: CamRelevanceProfile = {
-  country: "FR", instrument: EU,
-  factor_ids: [F_RELATIONSHIP, F_INTEREST],
-  use_case_class: null, outcome_posture: "conditional",
-  relationship: "public",
-  data_categories: ["Contact data"],
-  flags: ["large_scale"],
-};
-
 const MONSANTO_2021: CamRelevanceProfile = {
   country: "FR", instrument: EU,
   factor_ids: [F_BALANCING, F_EXPECTATIONS],
@@ -415,7 +406,6 @@ export const LIA_RELEVANCE_PROFILES: Readonly<Record<string, CamRelevanceProfile
   "lia/f08-safeguards/ap-w6-03": ARCHBISHOP_DUBLIN_2023,
   "lia/f04-balancing/ap-w6-04": AIRBNB_2022,
   "lia/f05-reasonable-expectations/ap-w6-05": CLEARVIEW_2021,
-  "lia/f06-relationship/ap-w6-06": SNAF_2021,
   "lia/f04-balancing/ap-w6-07": MONSANTO_2021,
   "lia/f01-interest-legitimacy/ap-w6-08": WHATSAPP_2021,
   "lia/f11-eprivacy/ap-w6-09": NESTOR_2020,

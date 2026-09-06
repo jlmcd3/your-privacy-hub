@@ -1370,28 +1370,6 @@ export const LIA_CORPUS_MAP: CorpusMap = {
         "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). CNIL (France), CLEARVIEW AI, 2021-11-26, MED-2021-134. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): scraping publicly accessible images defeats reasonable expectations, so no legitimate interest was available and consent became the only route. DARK pending ratification.",
     },
     {
-      id: "lia/f06-relationship/ap-w6-06",
-      factor_id: "Relationship with the individual",
-      role: "AP",
-      source_table: "enforcement_actions",
-      source_row_id: "6c76ba4e-d9ed-4ea7-887e-259c88a42881",
-      excerpt_field: "source_document_text",
-      pinned_excerpt:
-        "when the processing has as a legal basis the legitimate interest of the controller, the latter must comply with the request for erasure made by the data subject.",
-      render_eligible: false,
-      citation_source: {
-        regulator: "CNIL (France)",
-        subject: "Soci\u00e9t\u00e9 nouvelle de l\u2019annuaire fran\u00e7ais (SNAF)",
-        jurisdiction: "France",
-        decision_date: "2021-09-15",
-      },
-      direction: "limits",
-      logic_bearing: false,
-      provenance: { source_url: "https://gdprhub.eu/index.php?title=CNIL_(France)_-_SAN-2021-014", verified_on: "2026-09-05" },
-      curation_note:
-        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). CNIL (France), Soci\u00e9t\u00e9 nouvelle de l\u2019annuaire fran\u00e7ais (SNAF), 2021-09-15, SAN-2021-014. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): relying on legitimate interests imports a live objection and erasure route; the interest must be re-defended as compelling once the individual objects. DARK pending ratification.",
-    },
-    {
       id: "lia/f04-balancing/ap-w6-07",
       factor_id: "Balancing of interests, rights and freedoms",
       role: "AP",
