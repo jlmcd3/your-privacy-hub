@@ -30,7 +30,11 @@ export interface ProductVocabulary {
 
 export const PRODUCT_REGISTRY: Readonly<Record<string, ProductVocabulary>> = {
   lia: {
-    instruments: ["EU GDPR", "UK GDPR", "EU GDPR (pre-2021 UK)"],
+    // "Directive 95/46" (doc 205 §12 item 3 / doc 205B §5 / doc 205B2):
+    // pre-GDPR decisions (before 2018-05-25), e.g. Amadeus (AEPD, 2016).
+    // Registered for classification/history only — cam-relevance.ts's
+    // rankByRelevance excludes this instrument from ranking entirely.
+    instruments: ["EU GDPR", "UK GDPR", "EU GDPR (pre-2021 UK)", "Directive 95/46"],
     // Supplied by the caller from LIA_FACTOR_VOCABULARY (lia-corpus-map.ts) —
     // see resolveVocabulary(); the literal list is not duplicated here so the
     // map stays the single source of truth.

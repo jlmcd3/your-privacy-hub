@@ -157,7 +157,15 @@ export function rankByRelevance(
   const candidates = rows
     .filter((r) => r.role === "AP" && r.render_eligible && r.display)
     .map((row) => ({ row, profile: opts.profileOf(row) }))
-    .filter((x): x is { row: CamRow; profile: CamRelevanceProfile } => !!x.profile);
+    .filter((x): x is { row: CamRow; profile: CamRelevanceProfile } => !!x.profile)
+    // doc 205 §12 item 3 / doc 205B2: a "Directive 95/46" profile is a
+    // pre-GDPR decision, registered in cam-types.ts / product-registry.ts
+    // for classification/history only. It must never surface as a same-
+    // instrument OR cross-instrument authority in a GDPR-era assessment, so
+    // it is excluded from ranking entirely here — before the same-instrument
+    // split below, which would otherwise fold it into the EU GDPR pool via
+    // instrumentOf's default (left unchanged for the genuine GDPR-era values).
+    .filter((c) => c.profile.instrument !== "Directive 95/46");
 
   const sameInstrument = candidates.filter((c) => instrumentOf(c.profile) === query.instrument);
   const pool = sameInstrument.length > 0 ? sameInstrument : candidates;

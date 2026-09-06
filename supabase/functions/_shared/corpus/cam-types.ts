@@ -86,7 +86,11 @@ export interface CamRelevanceProfile {
   /** ISO-2 country of the deciding authority ("IE", "FR", "ES", "GB"…). */
   readonly country: string;
   /** The instrument the decision was taken under. */
-  readonly instrument: "EU GDPR" | "UK GDPR" | "EU GDPR (pre-2021 UK)";
+  readonly instrument: "EU GDPR" | "UK GDPR" | "EU GDPR (pre-2021 UK)" | "Directive 95/46";
+  // "Directive 95/46" (doc 205 §12 item 3 / doc 205B §5): pre-GDPR decisions
+  // (before 2018-05-25). Registered for classification/history only — never
+  // ranked as an authority (see the explicit exclusion in cam-relevance.ts's
+  // rankByRelevance, doc 205 §12 item 3).
   /** Every factor (the product's own vocabulary) the authority bears on —
    *  multi-valued, so one profile covers what the map used to split across
    *  sibling rows. */

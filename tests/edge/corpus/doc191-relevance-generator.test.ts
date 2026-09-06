@@ -137,6 +137,24 @@ Deno.test("doc191 §5 check 2 — an unregistered instrument FAILS the build", (
   assert(r.errors.some((e) => e.includes('instrument "Swiss FADP"')), JSON.stringify(r.errors));
 });
 
+// DOC 205 §12 item 3 / doc 205B §5 / doc 205B2 — Phase B wrote a
+// "Directive 95/46" instrument value (the Amadeus/AEPD 2016 pre-GDPR
+// profile) that blocked the ENTIRE lia build under validation 2 until this
+// value was registered in PRODUCT_REGISTRY.lia.instruments. This pins that
+// the real lia registry now accepts it, and that a "lia" product build with
+// such a row passes check 2 (product "lia" here, not the "test" fixture
+// default, specifically to exercise the real registered list).
+Deno.test("doc205 §12 item 3 — a 'Directive 95/46' instrument row passes validation 2 for product lia", () => {
+  const liaInstruments = PRODUCT_REGISTRY.lia.instruments;
+  assert(liaInstruments.includes("Directive 95/46"), "PRODUCT_REGISTRY.lia.instruments must register Directive 95/46");
+  const r = gen([row({ product: "lia", instrument: "Directive 95/46" })], {
+    product: "lia",
+    vocabulary: { factors: FACTORS, instruments: liaInstruments },
+  });
+  assertEquals(r.ok, true, JSON.stringify(r.errors));
+  assert(!r.errors.some((e) => e.includes("instrument")), JSON.stringify(r.errors));
+});
+
 // ── VALIDATION 3: rule-row completeness + THE JUDGMENT CALL ─────────────────
 
 Deno.test("doc191 §5 check 3 — an UNRATIFIED rule row is EXCLUDED with a warning; the rest of the batch still ships", () => {

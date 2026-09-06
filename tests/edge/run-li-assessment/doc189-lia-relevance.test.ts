@@ -84,7 +84,11 @@ Deno.test("doc189 — profiles speak the map's vocabularies (factors, classes, d
     for (const c of p.data_categories) assert(CATS.has(c), `${r.id}: data category "${c}" not in DATA_CATEGORIES`);
     for (const fl of p.flags) assert(FLAGS.has(fl), `${r.id}: flag "${fl}" unknown`);
     assert(/^[A-Z]{2}$/.test(p.country), `${r.id}: country must be ISO-2`);
-    assert(["EU GDPR", "UK GDPR", "EU GDPR (pre-2021 UK)"].includes(p.instrument));
+    // "Directive 95/46" (doc 205 §12 item 3 / doc 205B2) widened this union
+    // for pre-GDPR decisions such as Amadeus (AEPD, 2016) — registered for
+    // classification/history only, never ranked (see rankByRelevance's
+    // explicit exclusion, and the dedicated test below).
+    assert(["EU GDPR", "UK GDPR", "EU GDPR (pre-2021 UK)", "Directive 95/46"].includes(p.instrument));
   }
 });
 
@@ -227,6 +231,32 @@ Deno.test("doc189 — instrument gating: a UK record over an EU-only pool is ser
   const gated = rankByRelevance([eu, uk], q, { profileOf: (r) => profiles.get(r.id), elementOf: liaElementOf });
   assertEquals(gated.map((s) => s.row.id), ["t/uk"]);
   assertEquals(gated[0].match.cross_instrument, false);
+});
+
+Deno.test("doc205 §12 item 3 — a 'Directive 95/46' profile is never returned by rankByRelevance, same-instrument or cross-instrument", () => {
+  const pre1946: CamRelevanceProfile = { ...EMPLOYEE_MONITORING, instrument: "Directive 95/46" };
+  const preRow = row("t/pre", "srcPre", pre1946, "2016-04-27");
+  // Case 1: an EU GDPR query, with only a Directive 95/46 candidate in the
+  // pool. Pre-doc-205B2, instrumentOf's default would fold "Directive 95/46"
+  // into the EU GDPR same-instrument bucket and rank it; it must instead be
+  // excluded outright, exactly like a dark row or a zero score.
+  const q = query({ use_case_class: "employee_monitoring" });
+  const onlyPre = rankByRelevance([preRow], q, { profileOf: () => pre1946, elementOf: liaElementOf });
+  assertEquals(onlyPre, [], "a Directive 95/46 profile must never rank, even with no same-instrument alternative");
+
+  // Case 2: mixed pool — a genuine EU GDPR authority alongside the
+  // Directive 95/46 one. Only the EU GDPR row may surface.
+  const euRow = row("t/eu2", "srcEU2", EMPLOYEE_MONITORING, "2023-01-01");
+  const profiles = new Map<string, CamRelevanceProfile>([["t/pre", pre1946], ["t/eu2", EMPLOYEE_MONITORING]]);
+  const mixed = rankByRelevance([preRow, euRow], q, { profileOf: (r) => profiles.get(r.id), elementOf: liaElementOf });
+  assertEquals(mixed.map((s) => s.row.id), ["t/eu2"]);
+
+  // Case 3: a UK GDPR query — the pre-GDPR row must not even surface as
+  // cross-instrument context (the only other member of doc189's
+  // cross-instrument fallback pool).
+  const ukQ = query({ instrument: "UK GDPR", use_case_class: "employee_monitoring" });
+  const crossPool = rankByRelevance([preRow], ukQ, { profileOf: () => pre1946, elementOf: liaElementOf });
+  assertEquals(crossPool, [], "Directive 95/46 must not surface even as cross-instrument context");
 });
 
 // ── The LIA query from typed states ──────────────────────────────────────────
