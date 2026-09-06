@@ -103,7 +103,9 @@ function anthropicCall(model: string): LlmCall {
     });
     if (!r.ok) {
       const errText = await r.text().catch(() => "no body");
-      throw new Error(`Anthropic ${r.status}: ${errText.slice(0, 300)}`);
+      const error = new Error(`Anthropic ${r.status}: ${errText.slice(0, 300)}`) as Error & { status?: number };
+      error.status = r.status;
+      throw error;
     }
     const body = await r.json();
     const block = Array.isArray(body?.content) ? body.content[0] : null;
@@ -132,6 +134,25 @@ async function greatestProcessedProfileId(runId: string): Promise<string | null>
     .select("profile_id").eq("run_id", runId).order("profile_id", { ascending: false }).limit(1).maybeSingle();
   if (error) throw new Error(`classification cursor read failed: ${error.message}`);
   return data?.profile_id ?? null;
+}
+
+async function classificationRunStatus(runId: string): Promise<{
+  status: "ready" | "paused" | "rate_limited";
+  pause_status: number | null;
+} | null> {
+  const { data, error } = await admin().from("corpus_classification_job_state")
+    .select("status,pause_status").eq("run_id", runId).maybeSingle();
+  if (error) throw new Error(`classification job-state read failed: ${error.message}`);
+  return data as { status: "ready" | "paused" | "rate_limited"; pause_status: number | null } | null;
+}
+
+async function setClassificationRunStatus(runId: string, status: "ready" | "paused" | "rate_limited",
+  pauseStatus: number | null, pauseMessage: string | null) {
+  const { error } = await admin().from("corpus_classification_job_state").upsert({
+    run_id: runId, status, pause_status: pauseStatus, pause_message: pauseMessage,
+    paused_at: status === "ready" ? null : new Date().toISOString(), updated_at: new Date().toISOString(),
+  });
+  if (error) throw new Error(`classification job-state write failed: ${error.message}`);
 }
 
 async function loadClassificationProfiles(product: string, cursor: string | null, batchSize: number,
@@ -235,6 +256,10 @@ Deno.serve(async (req) => {
     try {
       const parsed = parseClassifyFromDbRequest(body);
       const db = admin();
+      const jobState = await classificationRunStatus(parsed.run_id);
+      if (jobState?.status === "paused") {
+        return json({ error: "classification run paused", run_id: parsed.run_id, status: jobState.pause_status }, 409);
+      }
       leaseKey = `corpus-classify:${parsed.run_id}`;
       const { data: acquired, error: leaseError } = await db.rpc("try_acquire_job_lease", {
         _key: leaseKey, _seconds: CLASSIFICATION_LEASE_SECONDS, _holder: crypto.randomUUID(),
@@ -263,6 +288,7 @@ Deno.serve(async (req) => {
         const { error } = await db.from("corpus_classification_results").upsert(rows, { onConflict: "run_id,profile_id" });
         if (error) throw new Error(`classification result upsert failed: ${error.message}`);
       }
+      await setClassificationRunStatus(parsed.run_id, "ready", null, null);
       return json({
         action, product: parsed.product, run_id: parsed.run_id, model: CLASSIFIER_MODEL,
         processed: rows.length, next_cursor: profiles.at(-1)?.id ?? null,
@@ -270,6 +296,14 @@ Deno.serve(async (req) => {
       });
     } catch (error) {
       const message = (error as Error).message;
+      const providerStatus = (error as Error & { status?: number }).status ??
+        Number(message.match(/^Anthropic (\d{3}):/)?.[1] ?? 0) || null;
+      const runId = typeof body.run_id === "string" ? body.run_id : null;
+      if (runId && (providerStatus === 402 || providerStatus === 403)) {
+        await setClassificationRunStatus(runId, "paused", providerStatus, message);
+      } else if (runId && providerStatus === 429) {
+        await setClassificationRunStatus(runId, "rate_limited", providerStatus, message);
+      }
       const status = message.startsWith("classify_from_db requires") || message.startsWith("batch_size") ||
           message.startsWith("cursor") || message.startsWith("only_unclassified") ? 400 : 502;
       return json({ error: "classify_from_db failed", detail: message }, status);
