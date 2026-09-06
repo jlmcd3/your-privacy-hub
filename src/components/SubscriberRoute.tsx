@@ -10,7 +10,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
  *
  * Used for tools that are bundled with subscriptions and never sold
  * standalone (Record of Processing Activities (RoPA), US Privacy Notice, EU/Global Privacy
- * Notice Builder).
+ * Privacy Notice).
  */
 export default function SubscriberRoute({ children }: { children: React.ReactNode }) {
   return (

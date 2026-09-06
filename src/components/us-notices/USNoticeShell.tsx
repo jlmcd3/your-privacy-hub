@@ -66,7 +66,7 @@ export function USNoticeShell({
             )}
             {children ?? (
               <p className="text-muted-foreground text-sm">
-                This page is part of the US Notice Builder. Implementation in progress.
+                This page is part of the US Privacy Notice. Implementation in progress.
               </p>
             )}
           </NoticeAccessGate>

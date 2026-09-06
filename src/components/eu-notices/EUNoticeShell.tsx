@@ -66,7 +66,7 @@ export function EUNoticeShell({
             )}
             {children ?? (
               <p className="text-muted-foreground text-sm">
-                This page is part of the EU &amp; Global Notice Builder.
+                This page is part of the EU &amp; EU / Global Privacy Notice.
               </p>
             )}
           </NoticeAccessGate>

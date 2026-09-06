@@ -139,7 +139,7 @@ export default function EUNoticeHome() {
     <EUNoticeShell
       title="EU / Global Privacy Notice — End User Privacy"
       heading={heading}
-      chip=" Global Notice Builder"
+      chip=" EU / Global Privacy Notice"
       description="Generate aligned privacy notices for the EU GDPR, UK GDPR, Swiss FADP, Brazil LGPD, Japan APPI, India DPDPA, South Africa POPIA and five other global frameworks — in a single guided session, calibrated to each regulator's disclosure expectations."
     >
       <p className="text-sm text-muted-foreground mb-8">

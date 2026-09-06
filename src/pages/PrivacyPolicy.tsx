@@ -95,7 +95,7 @@ const PrivacyPolicy = () => {
               <li>
                 Compliance tool inputs — such as details about your organisation's processing
                 activities, data transfers, incident scenarios, or legal basis assessments — which
-                you enter when using tools such as the LIA, DPIA, DPA Generator, IR Playbook, RoPA
+                you enter when using tools such as the LIA, DPIA, Custom DPA, IR Playbook, RoPA
                 Builder, or CPPA Suite
               </li>
               <li>

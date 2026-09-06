@@ -53,7 +53,7 @@ const ASSESSMENTS: Product[] = [
     href: "/cppa-admt-checker",
   },
   {
-    title: "Registration Manager",
+    title: "Registration Filings Manager",
     blurb: "Identify DPO, RoPA, EU AI Act, and Article 27 registration obligations across your jurisdictions.",
     href: "/registration-manager",
   },
@@ -61,7 +61,7 @@ const ASSESSMENTS: Product[] = [
 
 const DOCUMENTS: Product[] = [
   {
-    title: "DPA Generator",
+    title: "Custom DPA",
     blurb: "Generate a controller-to-processor DPA tailored to your jurisdictions — with a Drafting Notes appendix citing the enforcement decisions behind every clause choice.",
     href: "/dpa-generator",
   },
@@ -76,12 +76,12 @@ const DOCUMENTS: Product[] = [
     href: ({ hasToolAccess }) => (hasToolAccess ? "/ropa" : "/ropa-builder"),
   },
   {
-    title: "Privacy Notice Builder (US + EU/Global)",
+    title: "Privacy Privacy Notice (US + EU/Global)",
     blurb: "Generate US state notices (CCPA + 19 more) and GDPR/UK GDPR/LGPD/APPI/DPDPA notices — one builder, one workspace. Included with any subscription.",
     href: ({ hasToolAccess }) => (hasToolAccess ? "/notices-ropa" : "/notice-builder"),
   },
   {
-    title: "Registration Manager",
+    title: "Registration Filings Manager",
     blurb: "DPO appointments, RoPA templates, EU AI Act registrations, and Article 27 letters — ready for filing.",
     href: "/registration-manager",
   },
@@ -125,7 +125,7 @@ export default function HomepageToolsSection() {
     <SectionShell
       eyebrow="Compliance Toolkit"
       headline="Assessments and documents in a two-column catalogue"
-      subline={`Per-use compliance tools calibrated against 3,700+ enforcement decisions. Any subscription includes the Notice Builders; Professional plans also include the IR Playbook, Biometric Checker, and DPA Generator; RoPA is free on annual plans (first build plus one update a year, then $39 — $49 per build on monthly plans); annual Professional plans add 3 free Smart Tool runs/year (annual Intelligence adds 1).`}
+      subline={`Per-use compliance tools calibrated against 3,700+ enforcement decisions. Any subscription includes the Privacy Notices; Professional plans also include the IR Playbook, Biometric Compliance Assessment, and Custom DPA; RoPA is free on annual plans (first build plus one update a year, then $39 — $49 per build on monthly plans); annual Professional plans add 3 free Smart Tool runs/year (annual Intelligence adds 1).`}
       ctaLabel="Browse tools →"
       ctaHref="/tools"
     >

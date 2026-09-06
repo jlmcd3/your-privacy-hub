@@ -835,7 +835,7 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv, eventId?: s
 
 
 
-  // Registration Manager order
+  // Registration Filings Manager order
   if (session.metadata?.type === "registration_order" && session.metadata?.order_id) {
     const orderId = session.metadata.order_id;
     const tier = session.metadata.tier;

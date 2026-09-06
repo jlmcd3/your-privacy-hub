@@ -22,16 +22,16 @@ import {
 import { Link } from "react-router-dom";
 
 const TOOLS = [
-  { id: "biometric-checker", label: "Biometric Checker",         slug: "biometric" },
+  { id: "biometric-checker", label: "Biometric Compliance Assessment",         slug: "biometric" },
   { id: "cppa-admt",         label: "CPPA ADMT Assessment",      slug: "cppa_admt" },
   { id: "cppa-risk",         label: "CPPA Risk Assessment",      slug: "cppa_risk" },
   { id: "cppa-cyber",        label: "CPPA Cybersecurity Audit",  slug: "cppa_cyber" },
   { id: "lia",               label: "LIA Tool",                  slug: "li_assessment" },
   { id: "dpia",              label: "Data Protection Impact Assessment (DPIA)", slug: "dpia" },
   { id: "governance",        label: "Accountability Assessment",     slug: "governance" },
-  { id: "dpa-generator",     label: "DPA Generator",             slug: "dpa" },
+  { id: "dpa-generator",     label: "Custom DPA",             slug: "dpa" },
   { id: "ir-playbook",       label: "IR Playbook",               slug: "ir_playbook" },
-  { id: "registration",      label: "Registration Manager",      slug: "registration" },
+  { id: "registration",      label: "Registration Filings Manager",      slug: "registration" },
 ] as const;
 
 const SLUG_TO_LABEL = Object.fromEntries(TOOLS.map(t => [t.slug, t.label])) as Record<string, string>;

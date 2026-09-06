@@ -120,7 +120,7 @@ export default function USNoticeMode() {
 
   return (
     <USNoticeShell
-      title="Choose Your Path — US Notice Builder"
+      title="Choose Your Path — US Privacy Notice"
       heading="US Privacy Notice"
       step="mode"
     >

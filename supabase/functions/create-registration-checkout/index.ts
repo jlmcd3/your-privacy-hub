@@ -1,4 +1,4 @@
-// Create a Stripe checkout session for the Registration Manager.
+// Create a Stripe checkout session for the Registration Filings Manager.
 // Uses inline price_data so the feature works without pre-provisioned Stripe products.
 //
 // Tiers (we never submit filings on the user's behalf) — amounts come from
@@ -52,7 +52,7 @@ function diyPriceLabel(numJurisdictions: number): string {
   const suffix = numJurisdictions === 1
     ? "1 jurisdiction"
     : `${numJurisdictions} jurisdictions`;
-  return `Registration Manager — DIY Toolkit (${suffix})`;
+  return `Registration Filings Manager — DIY Toolkit (${suffix})`;
 }
 
 const COUNSEL_REVIEW_CENTS = registryCents("registration_counsel_review"); // $299 flat
@@ -63,8 +63,8 @@ const COUNSEL_REVIEW_SUBSCRIBER_DISCOUNT_CENTS = 7500;
 // V7-B3: "renewal" tier retired — renewal tracking now bundled with any active subscription.
 
 const PRICING = {
-  diy: { unit_amount: 0 /* dynamic */, name: "Registration Manager — DIY Toolkit", recurring: false, per_jurisdiction: false },
-  counsel_review: { unit_amount: COUNSEL_REVIEW_CENTS, name: "Registration Manager — Counsel-Ready Pack", recurring: false, per_jurisdiction: false },
+  diy: { unit_amount: 0 /* dynamic */, name: "Registration Filings Manager — DIY Toolkit", recurring: false, per_jurisdiction: false },
+  counsel_review: { unit_amount: COUNSEL_REVIEW_CENTS, name: "Registration Filings Manager — Counsel-Ready Pack", recurring: false, per_jurisdiction: false },
 } as const;
 
 serve(async (req) => {

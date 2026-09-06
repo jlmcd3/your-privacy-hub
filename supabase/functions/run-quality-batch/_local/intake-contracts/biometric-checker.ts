@@ -1,4 +1,4 @@
-// RC-REM-P1-C — Biometric Checker intake contract (re-export shim).
+// RC-REM-P1-C — Biometric Compliance Assessment intake contract (re-export shim).
 //
 // ITEM 408 — the contract itself now lives at
 // `_shared/intake-contracts/biometric.ts` alongside every other product's

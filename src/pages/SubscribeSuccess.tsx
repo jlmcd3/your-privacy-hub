@@ -84,13 +84,13 @@ export default function SubscribeSuccess() {
     : "Your Intelligence Feed is active.";
 
   const subheadline = hasToolAccess
-    ? "Your client workspace is live. RoPA, Notice Builders, IR Playbook, Biometric Checker, and DPA Generator are now included — annual Professional plans also get 3 free Smart Tool runs this year (Intelligence annual gets 1)."
+    ? "Your client workspace is live. RoPA, Privacy Notices, IR Playbook, Biometric Compliance Assessment, and Custom DPA are now included — annual Professional plans also get 3 free Smart Tool runs this year (Intelligence annual gets 1)."
     : "Your weekly report is configured. You'll receive your first issue this coming Monday morning.";
 
   const stepIcon = "w-6 h-6 text-brand-teal";
   const NEXT_STEPS = hasToolAccess
     ? [
-        { icon: <Wrench aria-hidden="true" strokeWidth={1.75} className={stepIcon} />, title: "Use your included tools", body: "Record of Processing Activities (RoPA), US + EU/Global Notice Builders, IR Playbook, Biometric Checker, and DPA Generator are included with your subscription. Smart Tools (Governance, LIA, DPIA, CPPA) are per-run; annual Intelligence subscribers get 1 free Smart Tool run per year and annual Professional subscribers get 3." },
+        { icon: <Wrench aria-hidden="true" strokeWidth={1.75} className={stepIcon} />, title: "Use your included tools", body: "Record of Processing Activities (RoPA), US + EU / Global Privacy Notices, IR Playbook, Biometric Compliance Assessment, and Custom DPA are included with your subscription. Smart Tools (Governance, LIA, DPIA, CPPA) are per-run; annual Intelligence subscribers get 1 free Smart Tool run per year and annual Professional subscribers get 3." },
         { icon: <Target aria-hidden="true" strokeWidth={1.75} className={stepIcon} />, title: "Configure your Privacy Intelligence Report", body: "Tell us your industry, primary jurisdictions, and subject-matter priorities. Your report is only as tailored as the context you provide." },
         { icon: <Mail aria-hidden="true" strokeWidth={1.75} className={stepIcon} />, title: "Report arrives Monday", body: "Your first Privacy Intelligence Report will land in your inbox this coming Monday morning — customized and analyzed for your priorities and responsibilities." },
         { icon: <Folder aria-hidden="true" strokeWidth={1.75} className={stepIcon} />, title: "Documents saved permanently", body: "Every document you generate stays in your workspace — refresh, revise, or download anytime." },

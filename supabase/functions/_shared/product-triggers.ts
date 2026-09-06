@@ -224,7 +224,7 @@ export const PRODUCT_DISPLAY: Record<string, { name: string; route: string }> = 
   "ropa": { name: "Record of Processing Activities (RoPA)", route: "/ropa-builder" },
   "us-notice": { name: "US Privacy Notice", route: "/us-notice-builder" },
   "eu-global-notice": { name: "EU / Global Privacy Notice", route: "/eu-global-notice-builder" },
-  "registration-manager": { name: "Registration Manager", route: "/registration-manager" },
+  "registration-manager": { name: "Registration Filings Manager", route: "/registration-manager" },
   "intelligence-report": { name: "Privacy Intelligence Report", route: "/pricing" },
   "intelligence-feed": { name: "Privacy Intelligence Feed", route: "/updates" },
 };

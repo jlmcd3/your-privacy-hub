@@ -1,4 +1,4 @@
-// Registration Manager — public landing page.
+// Registration Filings Manager — public landing page.
 // Implements the 10-section spec: hero, problem, how-it-works, what-you-get,
 // confidence model, pricing, jurisdictions, trust signals, FAQ, final CTA.
 
@@ -24,7 +24,7 @@ import { useAuth } from "@/hooks/useAuth";
 const FAQS = [
   {
     q: "Is this legal advice?",
-    a: "No. The Registration Manager generates filings and checklists tailored to your inputs. You should always have qualified counsel review filings before submission, especially for high-risk processing or AI Act registrations.",
+    a: "No. The Registration Filings Manager generates filings and checklists tailored to your inputs. You should always have qualified counsel review filings before submission, especially for high-risk processing or AI Act registrations.",
   },
   {
     q: "How current is your jurisdiction data?",
@@ -65,7 +65,7 @@ export default function RegistrationLanding() {
         />
         <link rel="canonical" href="https://enduserprivacy.com/registration-manager" />
       </Helmet>
-      <main id="main-content" aria-label="Registration Manager">
+      <main id="main-content" aria-label="Registration Filings Manager">
 
       {/* PRE-INTAKE REDESIGN (2026-08-26): nav-only chip (price moves to the
           pricing section), name-led H1; the legal trigger moves into the

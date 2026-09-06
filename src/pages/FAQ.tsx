@@ -39,11 +39,11 @@ const faqs = [
   },
   {
     q: "What are the enforcement citations in tool outputs?",
-    a: "Smart Tools (LIA, DPIA, Accountability Assessment, DPA Generator, Biometric Check, CPPA Risk, CPPA Cybersecurity, ADMT) show enforcement corpus citations alongside their findings: the specific regulatory decisions that supported each conclusion. Citations link directly to the enforcement action record. Primary sources should be validated before relying on any regulatory position.",
+    a: "Smart Tools (LIA, DPIA, Accountability Assessment, Custom DPA, Biometric Compliance Assessment, CPPA Risk, CPPA Cybersecurity, ADMT) show enforcement corpus citations alongside their findings: the specific regulatory decisions that supported each conclusion. Citations link directly to the enforcement action record. Primary sources should be validated before relying on any regulatory position.",
   },
   {
     q: "How many generations do I get per Smart Tool report?",
-    a: "The nine metered tools (Accountability Assessment, LIA, DPIA, DPA Generator, IR Playbook, Biometric Check, CPPA Risk, CPPA Cybersecurity, ADMT) include your initial report generation. Revisions are temporarily disabled while we ship the Revision Contract program, and we will restore included revisions when the program ships. Contact support@enduserprivacy.com for corrections in the meantime. RoPA, the Notice Builders, Registration Manager, and the free CPPA Scope Checker are not metered this way.",
+    a: "The nine metered tools (Accountability Assessment, LIA, DPIA, Custom DPA, IR Playbook, Biometric Compliance Assessment, CPPA Risk, CPPA Cybersecurity, ADMT) include your initial report generation. Revisions are temporarily disabled while we ship the Revision Contract program, and we will restore included revisions when the program ships. Contact support@enduserprivacy.com for corrections in the meantime. RoPA, the Privacy Notices, Registration Filings Manager, and the free CPPA Scope Checker are not metered this way.",
   },
   {
     q: "How do I cancel my subscription?",
@@ -58,11 +58,11 @@ const faqs = [
 const pricingFaqs = [
   {
     q: "How much does End User Privacy cost?",
-    a: `Privacy Intelligence is ${I_MO} (or ${I_YR}, save ${I_ANNUAL_SAVING}) and includes the weekly Privacy Intelligence Report, enforcement tracking of privacy developments across the world, and all reference content. Every paid subscription also includes Record of Processing Activities (RoPA), US + EU/Global Notice Builders, IR Playbook, Biometric Checker, and DPA Generator at no extra charge. It starts with a 10-day free trial. Professional is ${P_MO} base + ${P_CLIENT} and adds client/matter workspaces. Annual Intelligence plans include 1 free Smart Tool run per year; annual Professional plans include 3 free Smart Tool runs per year (Governance, LIA, or DPIA).`,
+    a: `Privacy Intelligence is ${I_MO} (or ${I_YR}, save ${I_ANNUAL_SAVING}) and includes the weekly Privacy Intelligence Report, enforcement tracking of privacy developments across the world, and all reference content. Every paid subscription also includes Record of Processing Activities (RoPA), US + EU / Global Privacy Notices, IR Playbook, Biometric Compliance Assessment, and Custom DPA at no extra charge. It starts with a 10-day free trial. Professional is ${P_MO} base + ${P_CLIENT} and adds client/matter workspaces. Annual Intelligence plans include 1 free Smart Tool run per year; annual Professional plans include 3 free Smart Tool runs per year (Governance, LIA, or DPIA).`,
   },
   {
     q: "What is included in Professional?",
-    a: `Professional (${P_MO} base + ${P_CLIENT}) includes everything in Intelligence for the account holder, plus a dedicated client/matter workspace. Record of Processing Activities (RoPA), US + EU/Global Notice Builders, IR Playbook, Biometric Checker, and DPA Generator are bundled in. Smart Tools (Governance, LIA, DPIA, CPPA) are per-use for all tiers; annual Intelligence subscribers receive 1 free Smart Tool run per year and annual Professional subscribers receive 3 (Governance, LIA, or DPIA). The CPPA Scope Checker is always free.`,
+    a: `Professional (${P_MO} base + ${P_CLIENT}) includes everything in Intelligence for the account holder, plus a dedicated client/matter workspace. Record of Processing Activities (RoPA), US + EU / Global Privacy Notices, IR Playbook, Biometric Compliance Assessment, and Custom DPA are bundled in. Smart Tools (Governance, LIA, DPIA, CPPA) are per-use for all tiers; annual Intelligence subscribers receive 1 free Smart Tool run per year and annual Professional subscribers receive 3 (Governance, LIA, or DPIA). The CPPA Scope Checker is always free.`,
   },
   {
     q: "Can I try the tools before subscribing?",

@@ -430,7 +430,7 @@ export default function RopaActivities() {
                 li_assessment: "LIA",
                 dpia_framework: "DPIA",
                 dpa_generator: "DPA",
-                biometric_checker: "Biometric Check",
+                biometric_checker: "Biometric Compliance Assessment",
                 governance_assessment: "Governance",
                 cppa_cybersecurity: "CPPA Cyber",
               };

@@ -209,7 +209,7 @@ export default function USNoticeHome() {
     <USNoticeShell
       title="US Privacy Notice — End User Privacy"
       heading={heading}
-      chip=" US State Notice Builder"
+      chip=" US Privacy Notice"
       description="Generate state-specific privacy notices that match your data practices and the laws that apply to you — California (CCPA/CPRA), the Virginia model (16 states), Maryland (MODPA), and Florida (FDBR) — in one guided session, with version control and refresh built in."
     >
       {/* QA batch 2026-09-05 (US 03) — this line quoted the RETIRED $20 / $25

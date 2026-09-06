@@ -141,7 +141,7 @@ const TOOLS: ToolDef[] = [
   },
   {
     key: "registration",
-    label: "Registration Manager",
+    label: "Registration Filings Manager",
     blurb: "DPA / DPO registrations across jurisdictions.",
     startPath: "/registration-manager",
     viewPath: "/registration-manager/my-filings",

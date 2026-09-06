@@ -943,7 +943,7 @@ const App = () => (
             <Route path="/eu-notices/refresh/:sessionId" element={<SubscriberRoute><EUNoticeRefresh /></SubscriberRoute>} />
             <Route path="/eu-global-notice-builder" element={<EUNoticeLanding />} />
             <Route path="/eu-notice-builder" element={<Navigate to="/notice-builder" replace />} />
-            {/* Merged Notice Builder landing (D3) */}
+            {/* Merged Privacy Notice landing (D3) */}
             <Route path="/notice-builder" element={<NoticeBuilderLanding />} />
             <Route path="/notices" element={<Navigate to="/notice-builder" replace />} />
             <Route path="/registration-manager" element={<RegistrationLanding />} />

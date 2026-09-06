@@ -100,7 +100,7 @@ export default function USNoticeLanding() {
               <>
                 <Button asChild size="lg" className="min-h-[48px]">
                   <Link to="/us-notices" onClick={() => fireConversion("tool_start_click", { tool_slug: "us_notice", page_path: "/us-notice-builder", user_type: userType })}>
-                    Open Notice Builder <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+                    Open Privacy Notice <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
                   </Link>
                 </Button>
                 <Button
@@ -341,7 +341,7 @@ export default function USNoticeLanding() {
             {hasToolAccess ? (
               <Button asChild size="lg" className="min-h-[48px]">
                 <Link to="/us-notices" onClick={() => fireConversion("tool_start_click", { tool_slug: "us_notice", page_path: "/us-notice-builder", user_type: userType })}>
-                  Open Notice Builder <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+                  Open Privacy Notice <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
                 </Link>
               </Button>
             ) : (

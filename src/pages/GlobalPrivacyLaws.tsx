@@ -53,7 +53,7 @@ const GlobalPrivacyLaws = () => (
     }}
 
     topToolCta={{
-      toolName: "Registration Manager",
+      toolName: "Registration Filings Manager",
       toolDescription:
         "See which registrations, DPO appointments, and EU-representative filings your operations trigger across every jurisdiction on this page.",
       href: "/registration-manager",
@@ -112,7 +112,7 @@ const GlobalPrivacyLaws = () => (
       { label: "Cross-Border Transfers Guide", href: "/cross-border-transfers" },
       { label: "Global Privacy Authority Directory", href: "/global-privacy-authorities" },
       { label: "Enforcement Tracker", href: "/enforcement-tracker" },
-      { label: "Registration Manager", href: "/registration-manager" },
+      { label: "Registration Filings Manager", href: "/registration-manager" },
     ]}
     intelligenceUpsellTopic="global privacy law developments"
   />

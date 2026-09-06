@@ -305,7 +305,7 @@ export default function BiometricChecker() {
     : pricing.isIncluded
       ? "Analyse (included with your plan)"
       : biometricFreeRunAvailable
-        ? "Run your first Biometric Check free →"
+        ? "Run your first Biometric Compliance Assessment free →"
         : `Analyse ($${pricing.price})`;
 
   return (

@@ -54,7 +54,7 @@ export default function EUNoticeLanding() {
             {hasToolAccess ? (
               <>
                 <Button asChild size="lg">
-                  <Link to="/eu-notices" onClick={() => fireConversion("tool_start_click", { tool_slug: "eu_notice", page_path: "/eu-notice-builder", user_type: userType })}>Open Notice Builder <ArrowRight className="h-4 w-4 ml-2" /></Link>
+                  <Link to="/eu-notices" onClick={() => fireConversion("tool_start_click", { tool_slug: "eu_notice", page_path: "/eu-notice-builder", user_type: userType })}>Open Privacy Notice <ArrowRight className="h-4 w-4 ml-2" /></Link>
                 </Button>
                 <Button
                   asChild
@@ -144,7 +144,7 @@ export default function EUNoticeLanding() {
             </p>
             {hasToolAccess ? (
               <Button asChild size="lg">
-                <Link to="/eu-notices" onClick={() => fireConversion("tool_start_click", { tool_slug: "eu_notice", page_path: "/eu-notice-builder", user_type: userType })}>Open Global Notice Builder <ArrowRight className="h-4 w-4 ml-2" /></Link>
+                <Link to="/eu-notices" onClick={() => fireConversion("tool_start_click", { tool_slug: "eu_notice", page_path: "/eu-notice-builder", user_type: userType })}>Open EU / Global Privacy Notice <ArrowRight className="h-4 w-4 ml-2" /></Link>
               </Button>
             ) : (
               <Button asChild size="lg">
@@ -152,7 +152,7 @@ export default function EUNoticeLanding() {
               </Button>
             )}
             <p className="text-sm text-muted-foreground mt-4">
-              The <Link to="/us-notice-builder" className="underline">US Notice Builder</Link> is included too.
+              The <Link to="/us-notice-builder" className="underline">US Privacy Notice</Link> is included too.
             </p>
           </div>
         </section>

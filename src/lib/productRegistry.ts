@@ -263,7 +263,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
   },
   {
     slug: "registration-manager",
-    name: "Registration Manager",
+    name: "Registration Filings Manager",
     route: "/registration-manager",
     shortPitch:
       "DPO, DPA and AI Act registration filings with attorney-review-ready document packs and renewal monitoring.",

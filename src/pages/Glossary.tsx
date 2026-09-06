@@ -63,7 +63,7 @@ const TOOL_LINKS: Record<string, { href: string; label: string }> = {
   consent: { href: "/cookie-consent", label: "Configure a consent banner" },
   "data-breach-notification": { href: "/breach-notification", label: "Breach notification workflow" },
   "privacy-by-design": { href: "/governance-assessment", label: "See Governance framework" },
-  "standard-contractual-clauses": { href: "/dpa-generator", label: "Add SCCs via DPA Generator" },
+  "standard-contractual-clauses": { href: "/dpa-generator", label: "Add SCCs via Custom DPA" },
   profiling: { href: "/cppa-risk-assessment", label: "CPPA ADMT Risk Assessment" },
   "automated-decision-making": { href: "/cppa-risk-assessment", label: "CPPA ADMT Risk Assessment" },
 };

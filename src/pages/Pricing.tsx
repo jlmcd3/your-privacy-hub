@@ -157,7 +157,7 @@ export default function Pricing() {
                 <Check {...iconProps} className="text-brand-teal mt-0.5 shrink-0" /> Weekly Intelligence Brief
               </li>
               <li className="flex gap-2">
-                <Check {...iconProps} className="text-brand-teal mt-0.5 shrink-0" /> Notice Builders included · RoPA free on annual plans (first build + 1 update/yr, then $39)
+                <Check {...iconProps} className="text-brand-teal mt-0.5 shrink-0" /> Privacy Notices included · RoPA free on annual plans (first build + 1 update/yr, then $39)
               </li>
               <li className="flex gap-2">
                 <Check {...iconProps} className="text-brand-teal mt-0.5 shrink-0" /> 1 free Smart Tool run / year
@@ -231,7 +231,7 @@ export default function Pricing() {
             </div>
             <ul className="space-y-2 text-sm mb-6 flex-1">
               <li className="flex justify-between">
-                <span>Biometric Check</span>
+                <span>Biometric Compliance Assessment</span>
                 <span className="tabular-nums">{PRICING.tools.biometric.display}</span>
               </li>
               <li className="flex justify-between">
@@ -239,7 +239,7 @@ export default function Pricing() {
                 <span className="tabular-nums">{PRICING.tools.ir_playbook.display}</span>
               </li>
               <li className="flex justify-between">
-                <span>DPA Generator</span>
+                <span>Custom DPA</span>
                 <span className="tabular-nums">{PRICING.tools.dpa.display}</span>
               </li>
               <li className="flex justify-between">
