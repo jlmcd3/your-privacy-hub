@@ -82,34 +82,33 @@ const DEFAULT_CLASSIFIER_MODEL = "claude-opus-5";
 const CLASSIFIER_MODEL = Deno.env.get("CORPUS_CLASSIFIER_MODEL") ?? DEFAULT_CLASSIFIER_MODEL;
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 
-function anthropicCall(model: string): LlmCall {
+function anthropicCall(model: string, onFailure?: (status: number, message: string) => void): LlmCall {
   return async (system: string, user: string): Promise<string> => {
     if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
-    const r = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: 1024,
-        temperature: 0,
-        system,
-        messages: [{ role: "user", content: user }],
-      }),
-      signal: AbortSignal.timeout(120_000),
-    });
-    if (!r.ok) {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const r = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json", "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({ model, max_tokens: 1024, temperature: 0, system, messages: [{ role: "user", content: user }] }),
+        signal: AbortSignal.timeout(120_000),
+      });
+      if (r.ok) {
+        const body = await r.json();
+        const block = Array.isArray(body?.content) ? body.content[0] : null;
+        return block && block.type === "text" ? String(block.text) : "";
+      }
       const errText = await r.text().catch(() => "no body");
-      const error = new Error(`Anthropic ${r.status}: ${errText.slice(0, 300)}`) as Error & { status?: number };
-      error.status = r.status;
-      throw error;
+      const message = `Anthropic ${r.status}: ${errText.slice(0, 300)}`;
+      onFailure?.(r.status, message);
+      if (r.status !== 429 && r.status < 500) throw Object.assign(new Error(message), { status: r.status });
+      if (attempt === 2) throw Object.assign(new Error(message), { status: r.status });
+      const retryAfter = Number(r.headers.get("Retry-After") ?? 0);
+      const delayMs = retryAfter > 0 ? retryAfter * 1_000 : (2 ** attempt) * 1_000 + Math.floor(Math.random() * 250);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
-    const body = await r.json();
-    const block = Array.isArray(body?.content) ? body.content[0] : null;
-    return block && block.type === "text" ? String(block.text) : "";
+    throw new Error("Anthropic retry budget exhausted");
   };
 }
 
@@ -272,14 +271,24 @@ Deno.serve(async (req) => {
         parsed.product, cursor ?? null, parsed.batch_size, parsed.run_id, parsed.only_unclassified,
       );
       const candidates = await buildDbCandidates(profiles);
+      let providerFailure: { status: number; message: string } | null = null;
       const allRows = await loadRows();
       const conflictSources = new Set(
         siblingConsistencyWarnings(allRows).map((warning) => warning.match(/source_row_id ([0-9a-f-]{36})/i)?.[1])
           .filter((value): value is string => !!value),
       );
       const run = await runClassificationPipeline(candidates.map((item) => item.candidate), {
-        llm: anthropicCall(CLASSIFIER_MODEL), siblingConflicts: conflictSources,
+        llm: anthropicCall(CLASSIFIER_MODEL, (status, message) => {
+          if (status === 402 || status === 403 || status === 429) providerFailure = { status, message };
+        }),
+        siblingConflicts: conflictSources,
       });
+      if (providerFailure) {
+        const failure = providerFailure as { status: number; message: string };
+        const state = failure.status === 429 ? "rate_limited" : "paused";
+        await setClassificationRunStatus(parsed.run_id, state, failure.status, failure.message);
+        throw Object.assign(new Error(failure.message), { status: failure.status });
+      }
       const rows = resultRows({
         runId: parsed.run_id, model: CLASSIFIER_MODEL, pipelineVersion: run.pipeline_version,
         candidates, outcomes: run.outcomes, stage2CandidateIds: run.stage2_candidates, promotedIds: run.promoted_ids,
@@ -297,7 +306,7 @@ Deno.serve(async (req) => {
     } catch (error) {
       const message = (error as Error).message;
       const providerStatus = (error as Error & { status?: number }).status ??
-        Number(message.match(/^Anthropic (\d{3}):/)?.[1] ?? 0) || null;
+        (Number(message.match(/^Anthropic (\d{3}):/)?.[1] ?? 0) || null);
       const runId = typeof body.run_id === "string" ? body.run_id : null;
       if (runId && (providerStatus === 402 || providerStatus === 403)) {
         await setClassificationRunStatus(runId, "paused", providerStatus, message);
