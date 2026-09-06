@@ -25,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import FreeRunIndicator from "@/components/FreeRunIndicator";
 import { useUsNoticeSessionGuard } from "@/hooks/useUsNoticeSessionGuard";
+import { retentionDisclosureMissing } from "@/lib/usNoticeReviewChecks";
 import {
   buildQuestionSet,
   isQuestionInScope,
@@ -238,60 +239,46 @@ export default function USNoticeReview() {
       }
     }
 
-    // 2) Sale-vs-opt-out consistency: if you sell or share data, you must offer an opt-out mechanism.
-    const sellsData = answers["sells_personal_info"] === "yes" || answers["shares_for_targeted_ads"] === "yes";
-    const hasOptOut =
-      answers["opt_out_mechanism"] != null &&
-      answers["opt_out_mechanism"] !== "none" &&
-      answers["opt_out_mechanism"] !== "";
-    if (sellsData && !hasOptOut) {
-      issues.push({
-        id: "sale-without-optout",
-        severity: "warning",
-        message:
-          "You indicated you sell or share personal information for targeted advertising, but no opt-out mechanism is configured. CCPA, CPA, CTDPA and most Virginia-model laws require a clear, easy-to-use opt-out (e.g. a 'Do Not Sell or Share' link or GPC honoring).",
-      });
-    }
+    // QA round two (US-A-01, 2026-09-06) — every key the checks below read was
+    // audited against the actual question set in src/data/us-notice-questions/.
+    // ALL EIGHT were phantom keys from an earlier vocabulary:
+    //   sells_personal_info, shares_for_targeted_ads, opt_out_mechanism,
+    //   collects_from_minors, audience_includes, minor_data_handling,
+    //   ad_platforms_used, data_retention_period
+    // The retention one was visible (it warned "No retention period specified"
+    // over a fully answered Q9/Q10, for A and again for B); the other four
+    // checks simply never fired.
+    //
+    // Removed rather than rewired, because each one either duplicates a flag
+    // the real question already declares or has no question behind it at all:
+    //
+    //  · sale-without-optout  — the real key is `sale_or_sharing`, whose own
+    //    flagIf already raises "Do Not Sell or Share link required" for
+    //    sell_and_share / sell_only / share_only. There is no opt-out-mechanism
+    //    question to check the second half against.
+    //  · minor-data-undisclosed — the real key is `ccpa_minors`, whose own
+    //    flagIf already raises "Opt-in consent required for minors aged 13–15".
+    //    There is no children's-data-handling narrative question.
+    //  · ad-platform-inconsistency — there is no structured ad-platform
+    //    question; `tools_used` is free text, and inferring advertising from
+    //    free text is exactly the negation error this QA round found elsewhere
+    //    (an explicit "no advertising" read as advertising). Left uncollected
+    //    rather than guessed. Flagged as an intake-coverage gap.
 
-    // 3) Children's data handling must be disclosed when collecting from minors.
-    const collectsFromMinors =
-      answers["collects_from_minors"] === "yes" ||
-      (Array.isArray(answers["audience_includes"]) &&
-        (answers["audience_includes"] as string[]).some((x) => x === "minors_13_16" || x === "children_under_13"));
-    const hasMinorDisclosure =
-      answers["minor_data_handling"] != null && answers["minor_data_handling"] !== "";
-    if (collectsFromMinors && !hasMinorDisclosure) {
-      issues.push({
-        id: "minor-data-undisclosed",
-        severity: "warning",
-        message:
-          "Your audience includes minors but you haven't disclosed how children's data is handled. Most state laws (and COPPA federally) require explicit consent flows and disclosure for users under 16.",
-      });
-    }
-
-    // 4) Ad-platform inconsistency: declared ad platforms but said you don't share data for ads.
-    const adPlatforms = Array.isArray(answers["ad_platforms_used"])
-      ? (answers["ad_platforms_used"] as string[])
-      : [];
-    const declaresAds = adPlatforms.length > 0 && !adPlatforms.includes("none");
-    if (declaresAds && answers["shares_for_targeted_ads"] === "no") {
-      issues.push({
-        id: "ad-platform-inconsistency",
-        severity: "info",
-        message: `You listed ad platforms (${adPlatforms.join(", ")}) but indicated you don't share data for targeted advertising. Many ad platforms automatically receive identifiers — confirm with each platform whether your usage qualifies as "sharing" under CCPA/CPRA.`,
-      });
-    }
-
-    // 5) Retention default fallback — recommend a sensible default if missing.
-    const retention = answers["data_retention_period"];
-    const retentionEmpty =
-      retention == null || retention === "" || (Array.isArray(retention) && retention.length === 0);
-    if (retentionEmpty) {
+    // 2) Retention disclosure — 11 CCR § 7012(e)(4) is satisfied by EITHER a
+    // stated period (Q9 retention_general) OR the criteria used to determine
+    // it (Q10 retention_criteria). Warn only when both are absent, which is
+    // the same test the generator applies (generate-us-notice/_local/spine.ts).
+    if (retentionDisclosureMissing(answers)) {
       issues.push({
         id: "retention-default",
         severity: "recommendation",
+        // The old copy also promised a default the generator does not apply:
+        // there is no 90-day fallback anywhere in generate-us-notice. With
+        // neither answer supplied the notice prints a bracketed completion
+        // prompt, which is what this now says.
         message:
-          "No retention period specified. We'll default to 'as long as necessary for the purposes described, then deleted within 90 days.' You can customize this in your final notice.",
+          "No retention period or retention criteria supplied. California requires the notice to state how long each category of personal information is kept, or the criteria used to determine it. Left blank, your notice will carry a bracketed prompt for you to complete before publishing — answer either question to have it written for you.",
       });
     }
 
