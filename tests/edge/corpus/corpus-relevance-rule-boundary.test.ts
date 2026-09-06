@@ -1,0 +1,211 @@
+// DOC 191 §5 — THE RULE/PATTERN BOUNDARY. Fleet-wide, greps the repo.
+//
+// "A gate or outcome-override file (anything matching `*-gate.ts`,
+// `*-override.ts`, or a product's `three-part-test-typed.ts`-equivalent) may
+// import RULE_PROFILES only. A fleet-wide test greps every gate/override file
+// in every product and fails if it imports PATTERN_PROFILES or a bare profile
+// object without going through the split. THIS IS THE ACTUAL ENFORCEMENT of
+// 'pattern content can never carry deterministic weight' — not a comment, a
+// test."
+//
+// It generalises the single-door pattern this codebase already proved on LIA:
+// doc137-lia-eprivacy-overlay.test.ts asserts that the skeleton assembler's
+// SOURCE TEXT does not contain `eprivacy_short_circuit`, so the gate's own
+// prose can reach the Article 6(1)(f) determination through exactly one
+// sanctioned door. Same shape here, one level up: the door is the export
+// split, and the files barred from the wrong side of it are every product's
+// gates and overrides.
+//
+// It exists and passes BEFORE any real `rule` row does, and that is the point
+// — the boundary has to be standing before the first row can cross it.
+
+import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { walk } from "https://deno.land/std@0.224.0/fs/walk.ts";
+
+/** Files that decide or override a legal outcome. */
+const GATE_FILE_PATTERNS: readonly RegExp[] = [
+  /-gate\.ts$/,
+  /-override\.ts$/,
+  // A product's typed three-part-test equivalent: the module that computes a
+  // determination from typed states. LIA's is the shipped instance; the
+  // suffix match catches a future product's own.
+  /three-part-test-typed\.ts$/,
+  /-typed-test\.ts$/,
+];
+
+/** Roots to sweep. `archive/` is excluded deliberately: it is unwired code by
+ *  definition (archive/unwired/…), it ships nothing, and cam-invariants.test.ts
+ *  already treats it as a fixture source rather than live product code. */
+const ROOTS = ["supabase/functions", "src"];
+const SKIP_DIRS = new Set(["node_modules", "dist", ".git", "archive", "__snapshots__"]);
+
+/** A generated relevance-profiles module, by filename. */
+const PROFILE_MODULE = /relevance-profiles(\.generated)?\.ts$/;
+
+/** The barred names: the pattern half, and any BARE (unsplit) profile map. */
+const BARRED_IMPORT = /^[A-Z0-9_]*PATTERN_PROFILES$|^[A-Z0-9_]*RELEVANCE_PROFILES$/;
+const ALLOWED_IMPORT = /^[A-Z0-9_]*RULE_PROFILES$|^[A-Z0-9_]*PROFILES_VERSION$/;
+
+interface ImportStatement {
+  readonly names: readonly string[];
+  readonly from: string;
+  readonly raw: string;
+}
+
+/** Parse `import { A, B as C } from "..."` and `import * as N from "..."`. */
+export function parseImports(src: string): ImportStatement[] {
+  const out: ImportStatement[] = [];
+  const re = /import\s+(type\s+)?({[^}]*}|\*\s+as\s+\w+|\w+)\s+from\s+["']([^"']+)["']/g;
+  for (const m of src.matchAll(re)) {
+    const clause = m[2].trim();
+    let names: string[];
+    if (clause.startsWith("{")) {
+      names = clause
+        .slice(1, -1)
+        .split(",")
+        .map((s) => s.trim().replace(/^type\s+/, "").split(/\s+as\s+/)[0].trim())
+        .filter(Boolean);
+    } else if (clause.startsWith("*")) {
+      names = ["*"];
+    } else {
+      names = [clause];
+    }
+    out.push({ names, from: m[3], raw: m[0] });
+  }
+  return out;
+}
+
+/** The rule itself, over one file's source. Kept separate from the sweep so
+ *  the NEGATIVE case below can prove it actually rejects a violation — a
+ *  boundary test that has only ever seen compliant files proves nothing. */
+export function violationsFor(path: string, src: string): string[] {
+  const violations: string[] = [];
+  for (const imp of parseImports(src)) {
+    if (!PROFILE_MODULE.test(imp.from)) continue;
+    for (const name of imp.names) {
+      if (name === "*") {
+        violations.push(
+          `${path}: namespace-imports "${imp.from}" — a namespace import reaches the pattern half too; import RULE_PROFILES by name`,
+        );
+      } else if (BARRED_IMPORT.test(name)) {
+        violations.push(
+          `${path}: imports "${name}" from "${imp.from}". A gate/override may import RULE_PROFILES only — pattern content is persuasive-only and can never carry deterministic legal weight (doc 191 §2, §5).`,
+        );
+      } else if (!ALLOWED_IMPORT.test(name)) {
+        violations.push(
+          `${path}: imports "${name}" from "${imp.from}", which is neither RULE_PROFILES nor a version stamp. Route it through the split or move the logic out of the gate.`,
+        );
+      }
+    }
+  }
+  return violations;
+}
+
+async function collect(): Promise<{ gateFiles: string[]; profileModules: string[] }> {
+  const gateFiles: string[] = [];
+  const profileModules: string[] = [];
+  for (const root of ROOTS) {
+    for await (
+      const entry of walk(root, {
+        exts: [".ts"],
+        includeDirs: false,
+        skip: [...SKIP_DIRS].map((d) => new RegExp(`[\\\\/]${d}[\\\\/]`)),
+      })
+    ) {
+      const p = entry.path.replace(/\\/g, "/");
+      if (/\.test\.ts$/.test(p)) continue;
+      if (GATE_FILE_PATTERNS.some((re) => re.test(p))) gateFiles.push(p);
+      if (PROFILE_MODULE.test(p)) profileModules.push(p);
+    }
+  }
+  return { gateFiles, profileModules };
+}
+
+Deno.test("doc191 §5 — the sweep actually finds gate/override files (a zero-match grep proves nothing)", async () => {
+  const { gateFiles } = await collect();
+  assert(gateFiles.length >= 5, `expected the fleet's gate/override files, found ${gateFiles.length}: ${gateFiles.join(", ")}`);
+  // The two the spec names by shape must be in the sweep, or the patterns drifted.
+  assert(
+    gateFiles.some((p) => p.endsWith("lia-deliverables/eprivacy-gate.ts")),
+    "LIA's ePrivacy gate must be swept",
+  );
+  assert(
+    gateFiles.some((p) => p.endsWith("three-part-test-typed.ts")),
+    "LIA's typed three-part test must be swept",
+  );
+});
+
+Deno.test("doc191 §5 — NO gate/override file imports PATTERN_PROFILES or a bare, unsplit profile map", async () => {
+  const { gateFiles } = await collect();
+  const violations: string[] = [];
+  for (const path of gateFiles) {
+    violations.push(...violationsFor(path, await Deno.readTextFile(path)));
+  }
+  assertEquals(violations, [], violations.join("\n"));
+});
+
+Deno.test("doc191 §5 — the boundary rule REJECTS every way pattern content could reach a gate", () => {
+  const cases: readonly [string, string][] = [
+    ["the pattern half by name", `import { LIA_PATTERN_PROFILES } from "./lia-relevance-profiles.generated.ts";`],
+    ["the pattern half aliased", `import { LIA_PATTERN_PROFILES as p } from "./lia-relevance-profiles.generated.ts";`],
+    ["a bare, unsplit map", `import { LIA_RELEVANCE_PROFILES } from "./lia-relevance-profiles.ts";`],
+    ["a namespace import", `import * as all from "./lia-relevance-profiles.generated.ts";`],
+    ["a helper that resolves either half", `import { liaProfileOf } from "./lia-relevance-profiles.ts";`],
+    ["a type-only pattern import", `import type { LIA_PATTERN_PROFILES } from "./risk-relevance-profiles.generated.ts";`],
+  ];
+  for (const [label, src] of cases) {
+    const v = violationsFor("some-product/x-gate.ts", src);
+    assert(v.length === 1, `${label}: expected exactly one violation, got ${JSON.stringify(v)}`);
+  }
+  // And the one permitted shape passes.
+  assertEquals(
+    violationsFor(
+      "some-product/x-gate.ts",
+      `import { LIA_RULE_PROFILES, LIA_PROFILES_VERSION } from "./lia-relevance-profiles.generated.ts";
+import type { AuthorityRelevanceProfile } from "../../_shared/corpus/authority-relevance-profile.ts";`,
+    ),
+    [],
+  );
+});
+
+Deno.test("doc191 §5 — every generated relevance-profiles module exports BOTH halves of the split", async () => {
+  const { profileModules } = await collect();
+  for (const path of profileModules) {
+    const src = await Deno.readTextFile(path);
+    if (!/GENERATED FILE/.test(src)) {
+      // The hand-authored LIA sidecar (doc 189) predates the split and is
+      // still the live one until the CEO ratifies the re-point (doc 196 §3.1).
+      // It is exempt from the shape rule and covered instead by the boundary
+      // rule above: no gate file may import its bare map either.
+      continue;
+    }
+    assert(/export const [A-Z0-9_]*RULE_PROFILES/.test(src), `${path}: no RULE_PROFILES export`);
+    assert(/export const [A-Z0-9_]*PATTERN_PROFILES/.test(src), `${path}: no PATTERN_PROFILES export`);
+    assert(/export const [A-Z0-9_]*PROFILES_VERSION/.test(src), `${path}: no PROFILES_VERSION stamp`);
+  }
+});
+
+Deno.test("doc191 §5 — the parser catches every import shape the barred names could arrive in", () => {
+  const src = `
+import { LIA_RULE_PROFILES } from "./lia-relevance-profiles.generated.ts";
+import { LIA_PATTERN_PROFILES, LIA_PROFILES_VERSION } from "./lia-relevance-profiles.generated.ts";
+import type { AuthorityRelevanceProfile } from "../../_shared/corpus/authority-relevance-profile.ts";
+import * as profiles from "./risk-relevance-profiles.generated.ts";
+import { LIA_RELEVANCE_PROFILES as bare } from "./lia-relevance-profiles.ts";
+`;
+  const imports = parseImports(src);
+  assertEquals(imports.length, 5);
+  assertEquals(imports[0].names, ["LIA_RULE_PROFILES"]);
+  assertEquals(imports[1].names, ["LIA_PATTERN_PROFILES", "LIA_PROFILES_VERSION"]);
+  assertEquals(imports[2].names, ["AuthorityRelevanceProfile"]);
+  assertEquals(imports[3].names, ["*"]);
+  // Aliasing must not launder the barred name.
+  assertEquals(imports[4].names, ["LIA_RELEVANCE_PROFILES"]);
+
+  assert(BARRED_IMPORT.test("LIA_PATTERN_PROFILES"));
+  assert(BARRED_IMPORT.test("LIA_RELEVANCE_PROFILES"));
+  assert(BARRED_IMPORT.test("PATTERN_PROFILES"));
+  assert(!BARRED_IMPORT.test("LIA_RULE_PROFILES"));
+  assert(ALLOWED_IMPORT.test("LIA_RULE_PROFILES"));
+  assert(ALLOWED_IMPORT.test("LIA_PROFILES_VERSION"));
+});
