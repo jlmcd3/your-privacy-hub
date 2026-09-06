@@ -15,18 +15,18 @@ const COOLDOWN_DAYS = 30;
 const PRODUCT_META: Record<string, any> = {
   governance_assessment:  { name: 'Accountability Assessment',           url: '/tools/governance-assessment',  price_subscriber: '$25',  price_standalone: '$49'  },
   li_assessment:          { name: 'Legitimate Interests Assessment',  url: '/tools/li-assessment',          price_subscriber: '$35',  price_standalone: '$79'  },
-  dpia_framework:         { name: 'DPIA Builder',                    url: '/tools/dpia-framework',         price_subscriber: '$49',  price_standalone: '$99'  },
-  biometric_checker:      { name: 'Biometric Checker',               url: '/tools/biometric-checker',      price_subscriber: 'Free', price_standalone: '$49'  },
-  ir_playbook:            { name: 'Breach IR Playbook',              url: '/tools/ir-playbook',            price_subscriber: 'Free', price_standalone: '$59'  },
-  dpa_generator:          { name: 'Custom DPA Generator',            url: '/tools/dpa-generator',          price_subscriber: '$49',  price_standalone: '$99'  },
+  dpia_framework:         { name: 'Data Protection Impact Assessment (DPIA)',                    url: '/tools/dpia-framework',         price_subscriber: '$49',  price_standalone: '$99'  },
+  biometric_checker:      { name: 'Biometric Compliance Assessment',               url: '/tools/biometric-checker',      price_subscriber: 'Free', price_standalone: '$49'  },
+  ir_playbook:            { name: 'Incident Response Playbook',              url: '/tools/ir-playbook',            price_subscriber: 'Free', price_standalone: '$59'  },
+  dpa_generator:          { name: 'Custom DPA',            url: '/tools/dpa-generator',          price_subscriber: '$49',  price_standalone: '$99'  },
   cppa_scope:             { name: 'CPPA Scope Checker (Free)',        url: '/tools/cppa-scope',             price_subscriber: 'Free', price_standalone: 'Free' },
   cppa_risk:              { name: 'CPPA Risk Assessment',            url: '/tools/cppa-risk',              price_subscriber: '$79',  price_standalone: '$149' },
   cppa_cybersecurity:     { name: 'CPPA Cybersecurity Readiness',    url: '/tools/cppa-cybersecurity',     price_subscriber: '$99',  price_standalone: '$199' },
   cppa_bundle:            { name: 'CPPA Full Suite Bundle',          url: '/tools/cppa-bundle',            price_subscriber: '$149', price_standalone: '$299' },
-  rofa:                   { name: 'Article 30 RoFA Builder',         url: '/tools/rofa',                   price_subscriber: '$49',  price_standalone: '$79'  },
+  rofa:                   { name: 'Record of Processing Activities (RoPA)',         url: '/tools/rofa',                   price_subscriber: '$49',  price_standalone: '$79'  },
   privacy_notice_us:      { name: 'Privacy Notice Generator',        url: '/tools/privacy-notice',         price_subscriber: '$29',  price_standalone: '$49'  },
   privacy_notice_global:  { name: 'Global Privacy Notice Generator', url: '/tools/global-privacy-notice',  price_subscriber: '$49',  price_standalone: '$79'  },
-  registration_suite:     { name: 'Registration Manager',            url: '/tools/registration',           price_subscriber: '$90',  price_standalone: '$90'  },
+  registration_suite:     { name: 'Registration Filings Manager',            url: '/tools/registration',           price_subscriber: '$90',  price_standalone: '$90'  },
 };
 
 // Table lookup: maps tool_type to the Supabase table holding the completed row.

@@ -193,7 +193,7 @@ export default function CookieConsentPage() {
         merchandisingRail={{
           heading: "Use this in your workflow",
           items: [
-            { label: "EU & Global Notice Builder", href: "/eu-global-notice-builder", description: "Cookie/privacy notice tuned to your jurisdiction stack." },
+            { label: "EU / Global Privacy Notice", href: "/eu-global-notice-builder", description: "Cookie/privacy notice tuned to your jurisdiction stack." },
             { label: "Legitimate-Interest Assessment", href: "/li-assessment", description: "For advertising/analytics uses of Art. 6(1)(f)." },
             { label: "Weekly Enforcement Intelligence", href: "/subscribe", description: "Every material adtech / consent enforcement action, curated weekly." },
           ],
@@ -201,7 +201,7 @@ export default function CookieConsentPage() {
 
         pageSynthesisKey="cookie__page"
         topToolCta={{
-          toolName: "EU & Global Notice Builder",
+          toolName: "EU / Global Privacy Notice",
           toolDescription:
             "Generate a GDPR- and ePrivacy-aligned privacy notice with cookie disclosures, legal-basis tables and DSR wording.",
           href: "/eu-global-notice-builder",

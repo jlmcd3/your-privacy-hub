@@ -4,7 +4,7 @@
  *
  * The ratified refinement template (item376/377 DPIA, item378 cppa-risk,
  * item386 LIA, item395 ADMT, item403 Governance, item407 Cyber) applied to the
- * Biometric Compliance Checker. The engine — ./refinement-core.ts — is
+ * Biometric Compliance Assessmenter. The engine — ./refinement-core.ts — is
  * UNTOUCHED (item-412 acceptance: a zero-line diff on the core): this module is
  * CONFIG ONLY, consuming the mined W1–W8 watchlist, `W-COPYEDIT` and the
  * xp-bio designed-output exemplars from `./biometric-refinement-config.ts`

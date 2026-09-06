@@ -265,7 +265,7 @@ export default function Horizon() {
           <span className="text-sm text-brand-mist group-hover:text-brand-navy transition-colors shrink-0">→</span>
         </Link>
 
-        {/* Action card → Registration Manager */}
+        {/* Action card → Registration Filings Manager */}
         <Link
           to="/registration-manager"
           className="group mb-8 flex items-center justify-between gap-4 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 no-underline transition-colors hover:border-amber-300"
@@ -273,7 +273,7 @@ export default function Horizon() {
           <div className="flex items-center gap-3 min-w-0">
             <span className="text-[11px] font-bold uppercase tracking-widest text-amber-800">Act on signals</span>
             <span className="text-sm text-slate truncate">
-              <span className="font-semibold text-brand-navy">Your Registration Filings</span>
+              <span className="font-semibold text-brand-navy">Your Registration Filings Manager</span>
               <span className="text-brand-mist"> — Get ahead of upcoming filing & DPO obligations</span>
             </span>
           </div>

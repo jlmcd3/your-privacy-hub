@@ -270,13 +270,13 @@ export const GOVERNANCE_TEST: AssertionTest = {
   ],
 };
 
-// ─── 4. DPA Generator ────────────────────────────────────────────────────────
+// ─── 4. Custom DPA ────────────────────────────────────────────────────────
 
 const DPA_INPUT = { ...DPA_VARIANTS[0] };
 
 export const DPA_TEST: AssertionTest = {
   toolId: "dpa",
-  toolName: "DPA Generator",
+  toolName: "Custom DPA",
   edgeFunction: "generate-dpa",
   testInput: DPA_INPUT,
   expectedSeconds: 60,
@@ -370,13 +370,13 @@ export const IR_TEST: AssertionTest = {
   ],
 };
 
-// ─── 6. Biometric Checker ─────────────────────────────────────────────────────
+// ─── 6. Biometric Compliance Assessment ─────────────────────────────────────────────────────
 
 const BIOMETRIC_INPUT = { ...BIOMETRIC_VARIANTS[0] };
 
 export const BIOMETRIC_TEST: AssertionTest = {
   toolId: "biometric",
-  toolName: "Biometric Checker",
+  toolName: "Biometric Compliance Assessment",
   edgeFunction: "check-biometric-compliance",
   testInput: BIOMETRIC_INPUT,
   expectedSeconds: 30,
@@ -562,7 +562,7 @@ export const ROPA_TEST_FIXTURE = ROPA_VARIANTS[0];
 
 export const ROPA_TEST: AssertionTest = {
   toolId: "ropa",
-  toolName: "RoPA Builder",
+  toolName: "Record of Processing Activities (RoPA)",
   edgeFunction: "generate-ropa-document",
   testInput: ROPA_TEST_FIXTURE as unknown as Record<string, unknown>,
   expectedSeconds: 45,
@@ -710,13 +710,13 @@ export const EU_NOTICE_TEST: AssertionTest = {
   ],
 };
 
-// ─── 13. Registration Manager ─────────────────────────────────────────────────
+// ─── 13. Registration Filings Manager ─────────────────────────────────────────────────
 
 const REG_INPUT = { ...REG_VARIANTS[0] };
 
 export const REGISTRATION_TEST: AssertionTest = {
   toolId: "registration",
-  toolName: "Registration Manager",
+  toolName: "Registration Filings Manager",
   edgeFunction: "generate-registration-docs",
   testInput: REG_INPUT,
   expectedSeconds: 240,
@@ -746,7 +746,7 @@ export const REGISTRATION_TEST: AssertionTest = {
       description: "Must not contain Gemini API response artifacts",
       category: "prohibition",
       check: (output) => !/gemini-flash|gemini-pro/i.test(getText(output)) && !/google ai studio/i.test(getText(output)),
-      errorMessage: "Output contains Gemini model references. Registration Manager must use Claude.",
+      errorMessage: "Output contains Gemini model references. Registration Filings Manager must use Claude.",
     },
     {
       id: "reg-disclaimer-present",
@@ -810,7 +810,7 @@ const WORD_REMOVAL_LOCATIONS: Array<{ id: string; surface: string }> = [
   { id: "dpia-result", surface: "DPIA Framework result page" },
   { id: "dpa-result", surface: "DPA result page" },
   { id: "ir-playbook-result", surface: "Incident Response Playbook result page" },
-  { id: "biometric-result", surface: "Biometric Checker result page" },
+  { id: "biometric-result", surface: "Biometric Compliance Assessment result page" },
   { id: "cppa-risk-result", surface: "CPPA Risk Assessment result page" },
   { id: "cppa-cyber-result", surface: "CPPA Cybersecurity result page" },
   { id: "cppa-suite-result", surface: "CPPA Suite result page" },

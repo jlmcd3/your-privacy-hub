@@ -278,7 +278,7 @@ export default function AssessmentReport({
   const sections = splitSections(text);
 
   // If the document has no `###` headings at all, render as one card so
-  // tools like the IR Playbook and DPA Generator still get the polished look.
+  // tools like the IR Playbook and Custom DPA still get the polished look.
   const hasJurisdictions = sections.some((s) => s.heading);
 
   return (

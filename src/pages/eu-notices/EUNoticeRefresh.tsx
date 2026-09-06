@@ -94,14 +94,14 @@ export default function EUNoticeRefresh() {
 
   if (loading || !session) {
     return (
-      <EUNoticeShell title="Refresh — EU & Global Notice Builder" heading="Refresh your notices" step="refresh" sessionId={sessionId}>
+      <EUNoticeShell title="Refresh — EU / Global Privacy Notice" heading="Refresh your notices" step="refresh" sessionId={sessionId}>
         <Skeleton className="h-32 w-full" />
       </EUNoticeShell>
     );
   }
 
   return (
-    <EUNoticeShell title="Refresh — EU & Global Notice Builder" heading="Refresh your notices" step="refresh" sessionId={sessionId}>
+    <EUNoticeShell title="Refresh — EU / Global Privacy Notice" heading="Refresh your notices" step="refresh" sessionId={sessionId}>
       <Card className="mb-6">
         <CardContent className="p-6">
           <div className="flex items-start gap-3 mb-4">

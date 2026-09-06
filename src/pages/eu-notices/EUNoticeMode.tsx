@@ -109,7 +109,7 @@ export default function EUNoticeMode() {
   }
 
   return (
-    <EUNoticeShell title="Choose Your Path — EU & Global Notice Builder" heading="EU & Global Notice Builder" step="mode">
+    <EUNoticeShell title="Choose Your Path — EU / Global Privacy Notice" heading="EU / Global Privacy Notice" step="mode">
       <p className="text-muted-foreground text-base mb-2">Choose how you'd like to start.</p>
       {clientName && (
         <p className="text-xs text-muted-foreground mb-8">

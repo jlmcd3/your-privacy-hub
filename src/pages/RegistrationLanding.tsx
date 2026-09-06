@@ -1,4 +1,4 @@
-// Registration Manager — public landing page.
+// Registration Filings Manager — public landing page.
 // Implements the 10-section spec: hero, problem, how-it-works, what-you-get,
 // confidence model, pricing, jurisdictions, trust signals, FAQ, final CTA.
 
@@ -24,7 +24,7 @@ import { useAuth } from "@/hooks/useAuth";
 const FAQS = [
   {
     q: "Is this legal advice?",
-    a: "No. The Registration Manager generates filings and checklists tailored to your inputs. You should always have qualified counsel review filings before submission, especially for high-risk processing or AI Act registrations.",
+    a: "No. The Registration Filings Manager generates filings and checklists tailored to your inputs. You should always have qualified counsel review filings before submission, especially for high-risk processing or AI Act registrations.",
   },
   {
     q: "How current is your jurisdiction data?",
@@ -58,14 +58,14 @@ export default function RegistrationLanding() {
       <Navbar />
       <DashboardSubnav />
       <Helmet>
-        <title>Privacy Registration Manager | End User Privacy</title>
+        <title>Registration Filings Manager | End User Privacy</title>
         <meta
           name="description"
           content="Generate DPO appointment letters, RoPA templates, EU AI Act registration documents, and Article 27 representative letters — tailored to your jurisdictions. You file; we draft and track."
         />
         <link rel="canonical" href="https://enduserprivacy.com/registration-manager" />
       </Helmet>
-      <main id="main-content" aria-label="Registration Manager">
+      <main id="main-content" aria-label="Registration Filings Manager">
 
       {/* PRE-INTAKE REDESIGN (2026-08-26): nav-only chip (price moves to the
           pricing section), name-led H1; the legal trigger moves into the
@@ -74,7 +74,7 @@ export default function RegistrationLanding() {
       <ProductHero
         geography="us"
         eyebrowLabel={<><Folder aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("registration")}</>}
-        title="Privacy Registration Manager"
+        title="Registration Filings Manager"
         valueProposition={`Find where you need to register for free. Generate authority-specific filing packs only when you need them — ${formatPrice("registration_standalone")} per filing.`}
         citationLine={`Free scope assessment · No card required · ${formatPrice("registration_standalone")} only when you generate a filing`}
         showIntakeCta={false}

@@ -251,12 +251,12 @@ export default function DPAGenerator() {
     <div className="min-h-screen flex flex-col bg-brand-cloud">
       <Navbar />
       <DashboardSubnav />
-      <Helmet><title>Custom DPA Generator | End User Privacy</title>
+      <Helmet><title>Custom DPA | End User Privacy</title>
         <meta name="description" content="Draft a controller-processor DPA tailored to your jurisdictions — GDPR Article 28, US state processor agreements (CCPA, TDPSA, CTDPA, VCDPA, CPA), Canadian PIPEDA/Law 25, or dual-compliance for cross-border arrangements. Every clause calibrated to enforcement decisions." /></Helmet>
       <ProductHero
         geography="gdpr"
         eyebrowLabel={<><FileText aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("dpa")}</>}
-        title="Custom Data Processing Agreement"
+        title="Custom DPA"
         valueProposition="Draft a controller–processor agreement tailored to your jurisdictions, services, data, and security terms — with every required clause mapped to the governing rules."
         sampleReportToolSlug="dpa"
         citationLine="GDPR Art. 28 · Jurisdiction-specific processor clauses · Enforcement-informed drafting"

@@ -45,7 +45,7 @@ export const TOOL_CATALOG: Record<string, ToolCatalogEntry> = {
     classification: "smart",
   },
   dpia_framework: {
-    name: "DPIA Builder",
+    name: "Data Protection Impact Assessment (DPIA)",
     standalone_lookup: "dpia_standalone_v2",
     subscriber_lookup: "dpia_subscriber_v2",
     table: "dpia_frameworks",
@@ -73,7 +73,7 @@ export const TOOL_CATALOG: Record<string, ToolCatalogEntry> = {
     classification: "smart",
   },
   ropa_initial: {
-    name: "RoPA Builder — Initial Generation",
+    name: "Record of Processing Activities (RoPA) — Initial Generation",
     standalone_lookup: "ropa_initial_standalone",
     subscriber_lookup: "ropa_initial_subscriber",
     table: "ropa_sessions",
@@ -81,7 +81,7 @@ export const TOOL_CATALOG: Record<string, ToolCatalogEntry> = {
     subscription_only: true,
   },
   ropa_refresh: {
-    name: "RoPA Builder — Annual Refresh",
+    name: "Record of Processing Activities (RoPA) — Annual Refresh",
     standalone_lookup: "ropa_refresh_standalone",
     subscriber_lookup: "ropa_refresh_subscriber",
     table: "ropa_sessions",

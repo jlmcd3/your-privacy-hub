@@ -33,7 +33,7 @@ const TOOL_LABEL: Record<string, string> = {
   li_assessment: "Legitimate Interests Assessment",
   dpia_framework: "Impact Assessment (DPIA)",
   dpa_generator: "Data Processing Agreement",
-  biometric_checker: "Biometric Compliance Check",
+  biometric_checker: "Biometric Compliance Assessment",
   governance_assessment: "Accountability Assessment",
   cppa_cybersecurity: "CPPA Cybersecurity Audit",
 };

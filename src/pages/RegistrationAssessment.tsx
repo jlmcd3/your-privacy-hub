@@ -406,7 +406,7 @@ export default function RegistrationAssessment() {
               {isAnon && (
                 <button
                   type="button"
-                  aria-label="Create an account to use the Registration Manager"
+                  aria-label="Create an account to use the Registration Filings Manager"
                   onClick={() => setAuthGateOpen(true)}
                   onFocus={() => setAuthGateOpen(true)}
                   className="absolute inset-0 z-20 w-full h-full bg-transparent cursor-pointer border-0 p-0 m-0"

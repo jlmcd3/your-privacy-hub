@@ -47,11 +47,11 @@ function hasPreview(r: SampleRow): boolean {
 
 const TOOL_DISPLAY: Record<string, string> = {
   li_assessment: "Legitimate Interests Assessment",
-  dpia: "DPIA Builder",
+  dpia: "Data Protection Impact Assessment (DPIA)",
   dpa: "Data Processing Agreement",
   governance: "Accountability Assessment",
   ir_playbook: "Incident Response Playbook",
-  biometric: "Biometric Compliance Check",
+  biometric: "Biometric Compliance Assessment",
   cppa_risk: "CPPA Risk Assessment",
   cppa_cyber: "CPPA Cybersecurity Audit",
   cppa_admt: "ADMT Compliance Assessment",

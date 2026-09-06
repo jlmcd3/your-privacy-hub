@@ -272,7 +272,7 @@ export default function USNoticeStates() {
   if (verifyingClient) {
     return (
       <USNoticeShell
-        title="Select States — US Notice Builder"
+        title="Select States — US Privacy Notice"
         heading="Which states do your customers live in?"
         step="states"
         sessionId={sessionId}
@@ -285,7 +285,7 @@ export default function USNoticeStates() {
 
   return (
     <USNoticeShell
-      title="Select States — US Notice Builder"
+      title="Select States — US Privacy Notice"
       heading="Which states do your customers live in?"
       step="states"
       sessionId={sessionId}

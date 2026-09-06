@@ -1,4 +1,4 @@
-// Single source of truth for the EU & Global Notice Builder framework list.
+// Single source of truth for the EU / Global Privacy Notice framework list.
 // The landing page must never hand-type this list — add or remove a framework
 // here and both the marketing coverage section and any consumer stay in sync.
 

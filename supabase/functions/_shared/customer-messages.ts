@@ -537,7 +537,7 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   eu_lead_member_state: "the Member State of the organization's main establishment",
   markets_served: "the markets the organization serves",
 
-  // ── Biometric Compliance Checker (ITEM 364 dispatch 4) ──
+  // ── Biometric Compliance Assessmenter (ITEM 364 dispatch 4) ──
   // Curated in the register: each label says what the field asks in the
   // reader's words, not a de-underscored field id. The Texas, Washington and
   // MHMDA blocks name their statute's own limb so a message that quotes one

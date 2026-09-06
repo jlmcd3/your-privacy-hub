@@ -396,7 +396,7 @@ export default function RopaDocuments() {
             <p className="font-body text-muted-foreground mb-6">
               Complete the RoPA builder to generate your first Record of Processing Activities.
             </p>
-            <Button onClick={() => navigate("/ropa/setup?new=1")}>Start RoPA Builder</Button>
+            <Button onClick={() => navigate("/ropa/setup?new=1")}>Start Record of Processing Activities (RoPA)</Button>
           </CardContent>
         </Card>
       ) : (

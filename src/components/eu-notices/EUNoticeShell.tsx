@@ -52,7 +52,7 @@ export function EUNoticeShell({
       ) : null}
       <main className="flex-1 max-w-[1280px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         <RopaErrorBoundary>
-          <NoticeAccessGate toolName="EU & Global Privacy Notice Builder">
+          <NoticeAccessGate toolName="EU / Global Privacy Notice">
             {breadcrumb && (
               <RopaBreadcrumb
                 steps={breadcrumb.steps}
@@ -66,7 +66,7 @@ export function EUNoticeShell({
             )}
             {children ?? (
               <p className="text-muted-foreground text-sm">
-                This page is part of the EU &amp; Global Notice Builder.
+                This page is part of the EU &amp; EU / Global Privacy Notice.
               </p>
             )}
           </NoticeAccessGate>

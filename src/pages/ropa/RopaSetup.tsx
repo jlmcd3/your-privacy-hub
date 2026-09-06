@@ -422,7 +422,7 @@ export default function RopaSetup() {
 
   if (!clientId) {
     return (
-      <RopaShell title="Setup — RoPA Builder" heading="Setup — RoPA Builder">
+      <RopaShell title="Setup — Record of Processing Activities (RoPA)" heading="Setup — Record of Processing Activities (RoPA)">
         <p className="text-muted-foreground">
           Select an organisation from the switcher to begin.
         </p>
@@ -431,7 +431,7 @@ export default function RopaSetup() {
   }
 
   return (
-    <RopaShell title="Setup — RoPA Builder" heading="Setup — RoPA Builder">
+    <RopaShell title="Setup — Record of Processing Activities (RoPA)" heading="Setup — Record of Processing Activities (RoPA)">
       <div className="flex justify-between items-start mb-4">
         <RopaBreadcrumb
           steps={STEPS.map((label) => ({ label }))}

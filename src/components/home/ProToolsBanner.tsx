@@ -38,7 +38,7 @@ type Tool = {
 const TOOLS: Tool[] = [
   {
     icon: ClipboardList,
-    title: "Registration Manager",
+    title: "Registration Filings Manager",
     blurb: "DPO appointments, RoPA templates, EU AI Act registrations, and Article 27 letters — tailored to your jurisdictions.",
     price: "Free assessment · pay only when you generate",
     cta: "Start free assessment",
@@ -62,7 +62,7 @@ const TOOLS: Tool[] = [
   },
   {
     icon: FileSearch,
-    title: "DPIA Builder (DPIA)",
+    title: "Data Protection Impact Assessment (DPIA) (DPIA)",
     blurb: "Article 35-aligned DPIA — risk items annotated with cited supervisory authority decisions.",
     price: T.dpia.display,
     cta: "Build DPIA",
@@ -70,7 +70,7 @@ const TOOLS: Tool[] = [
   },
   {
     icon: FileSignature,
-    title: "DPA Generator",
+    title: "Custom DPA",
     blurb: "Generate a controller-to-processor DPA — includes a Drafting Notes appendix citing the enforcement decisions behind every clause choice.",
     price: includedSuffix(T.dpa.display),
     cta: "Generate DPA",
@@ -78,7 +78,7 @@ const TOOLS: Tool[] = [
   },
   {
     icon: Fingerprint,
-    title: "Biometric Compliance Check",
+    title: "Biometric Compliance Assessment",
     blurb: "Pressure-test biometric processing against BIPA, GDPR Art. 9, and emerging state statutes — priority actions cited to enforcement actions.",
     price: includedSuffix(T.biometric.display),
     cta: "Check compliance",
@@ -94,7 +94,7 @@ const TOOLS: Tool[] = [
   },
   {
     icon: Database,
-    title: "RoPA Builder",
+    title: "Record of Processing Activities (RoPA)",
     blurb: "Build and maintain your Article 30 Record of Processing Activities — calibrated to your platforms and jurisdictions.",
     price: "Free on annual plans · $49 per build on monthly",
     cta: "Build RoPA",
@@ -102,7 +102,7 @@ const TOOLS: Tool[] = [
   },
   {
     icon: FileText,
-    title: "U.S. Privacy Notice Builder",
+    title: "US Privacy Notice",
     blurb: "Generate state-specific consumer privacy notices for CCPA, Virginia, Colorado, and other US state laws.",
     price: "Included with any subscription",
     cta: "Build U.S. notice",
@@ -110,7 +110,7 @@ const TOOLS: Tool[] = [
   },
   {
     icon: Globe,
-    title: "EU/UK Privacy Notice Builder",
+    title: "EU / Global Privacy Notice",
     blurb: "GDPR & UK GDPR-aligned notices with Article 13/14 disclosures and international transfer language.",
     price: "Included with any subscription",
     cta: "Build EU/UK notice",
@@ -159,7 +159,7 @@ export default function ProToolsBanner() {
               Structured assessments and generated documents that draw from 3,700+ enforcement
               decisions — designed for professional review. U.S. and EU/UK notices are included
               with any active subscription; Professional plans also include the IR Playbook,
-              Biometric Check, and DPA Generator; RoPA is free on annual plans (first build
+              Biometric Compliance Assessment, and Custom DPA; RoPA is free on annual plans (first build
               plus one update a year, then $39) and $49 per build on monthly plans. {ANNUAL_CREDIT.marketingLabel}.
             </p>
           </div>

@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 
 interface NoticeAccessGateProps {
   children: ReactNode;
-  /** Display name of the gated builder (e.g. "US Privacy Notice Builder"). */
+  /** Display name of the gated builder (e.g. "US Privacy Notice"). */
   toolName: string;
 }
 

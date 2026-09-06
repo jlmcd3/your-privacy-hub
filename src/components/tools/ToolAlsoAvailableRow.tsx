@@ -15,7 +15,7 @@ type ToolId = "governance" | "dpia" | "dpa" | "lia" | "ir_playbook";
 const ALL: Array<{ id: ToolId; label: string; href: string }> = [
   { id: "governance", label: "GDPR Accountability Assessment", href: "/governance-assessment" },
   { id: "dpia",       label: "Impact Assessment (DPIA)",   href: "/dpia-framework" },
-  { id: "dpa",        label: "Custom DPA Generator",       href: "/dpa-generator" },
+  { id: "dpa",        label: "Custom DPA",       href: "/dpa-generator" },
   { id: "lia",        label: "Legitimate Interests Assessment", href: "/li-assessment" },
   { id: "ir_playbook",label: "Incident Response Playbook", href: "/ir-playbook" },
 ];

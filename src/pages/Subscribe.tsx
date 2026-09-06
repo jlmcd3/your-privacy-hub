@@ -47,17 +47,17 @@ const comparisonRows: ComparisonRow[] = [
 
   { isSection: true, feature: "The action layer: compliance tools with cited enforcement evidence" },
   { feature: "Sample preview of all tools", free: true, intel: true, platform: true },
-  { feature: "Initial report generation on the nine metered tools (Accountability, LIA, DPIA, DPA, IR Playbook, Biometric, CPPA Risk, CPPA Cybersecurity, ADMT). Revisions are temporarily disabled while we ship the Revision Contract program. Does not apply to RoPA, the Notice Builders, Registration Manager, or the free CPPA Scope Checker", free: true, intel: true, platform: true },
+  { feature: "Initial report generation on the nine metered tools (Accountability, LIA, DPIA, DPA, IR Playbook, Biometric, CPPA Risk, CPPA Cybersecurity, ADMT). Revisions are temporarily disabled while we ship the Revision Contract program. Does not apply to RoPA, the Privacy Notices, Registration Filings Manager, or the free CPPA Scope Checker", free: true, intel: true, platform: true },
   { feature: "Accountability Assessment (Smart Tool)", free: false, intel: T.governance.display, platform: T.governance.display },
   { feature: "Legitimate Interests Assessment (Smart Tool)", free: false, intel: T.lia.display, platform: T.lia.display },
   { feature: "DPIA / Impact Assessment (Smart Tool)", free: false, intel: T.dpia.display, platform: T.dpia.display },
-  { feature: "DPA Generator (Smart Tool)", free: false, intel: `${PRICING.tools.dpa.display} per document`, platform: "Included" },
+  { feature: "Custom DPA (Smart Tool)", free: false, intel: `${PRICING.tools.dpa.display} per document`, platform: "Included" },
   { feature: "IR Playbook (Convenience)", free: false, intel: `${PRICING.tools.ir_playbook.display} per playbook`, platform: "Included" },
   { feature: "Biometric Privacy Checker (Smart Tool)", free: false, intel: `${PRICING.tools.biometric.display} per assessment`, platform: "Included" },
   { feature: "Records of Processing (RoPA), subscriber-only", free: "—", intel: "Free on annual (1 update/yr, then $39) · $49/generation monthly", platform: "Free on annual (1 update/yr, then $39) · $49/generation monthly" },
-  { feature: "US Privacy Notice Builder, subscriber-only", free: "—", intel: "Included", platform: "Included" },
-  { feature: "EU & Global Privacy Notice Builder, subscriber-only", free: "—", intel: "Included", platform: "Included" },
-  { feature: "Registration Manager (Convenience)", free: false, intel: T.registration.display, platform: T.registration.display },
+  { feature: "US Privacy Notice, subscriber-only", free: "—", intel: "Included", platform: "Included" },
+  { feature: "EU / Global Privacy Notice, subscriber-only", free: "—", intel: "Included", platform: "Included" },
+  { feature: "Registration Filings Manager (Convenience)", free: false, intel: T.registration.display, platform: T.registration.display },
   { feature: "Free Smart Tool runs per year (Governance, LIA, or DPIA)", free: false, intel: "1 / year (annual only)", platform: "3 / year (annual only)" },
 
   { isSection: true, feature: "CPPA tools" },
@@ -119,7 +119,7 @@ const Subscribe = () => {
         <title>Pricing & Plans | End User Privacy</title>
         <meta
           name="description"
-          content={`Privacy Intelligence at ${PRICING.intelligence.monthly.display}/month with a 10-day free trial. Professional from ${PRICING.professional.monthly.display}/month; annual Professional adds client/matter workspaces. Any subscription includes the Notice Builders; Professional also includes the IR Playbook, Biometric Checker, and DPA Generator; RoPA is free on annual plans (first build plus one update a year, then $39) and $49 per generation on monthly plans; annual plans add free Smart Tool runs (1 with Intelligence annual, 3 with Professional annual).`}
+          content={`Privacy Intelligence at ${PRICING.intelligence.monthly.display}/month with a 10-day free trial. Professional from ${PRICING.professional.monthly.display}/month; annual Professional adds client/matter workspaces. Any subscription includes the Privacy Notices; Professional also includes the IR Playbook, Biometric Compliance Assessment, and Custom DPA; RoPA is free on annual plans (first build plus one update a year, then $39) and $49 per generation on monthly plans; annual plans add free Smart Tool runs (1 with Intelligence annual, 3 with Professional annual).`}
         />
       </Helmet>
       <Navbar />
@@ -317,7 +317,7 @@ const Subscribe = () => {
       </div>
 
 
-      {/* Registration Manager mention */}
+      {/* Registration Filings Manager mention */}
       <div className="bg-white border-b border-brand-cloud py-4 px-4 mt-6">
         <div className="max-w-[720px] mx-auto text-center text-sm text-slate">
           Need DPO appointments, ROPAs, or AI Act registrations filed?{" "}
@@ -325,7 +325,7 @@ const Subscribe = () => {
             to="/registration-manager"
             className="text-brand-navy font-semibold underline underline-offset-2 hover:text-brand-ocean"
           >
-            Try Registration Filings →
+            Try Registration Filings Manager →
           </Link>{" "}
           <span className="text-brand-navy/70">({T.registration.display} per filing).</span>
         </div>

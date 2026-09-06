@@ -148,7 +148,7 @@ export default function CrossBorderTransfersPage() {
 
         pageSynthesisKey="crossborder__page"
         topToolCta={{
-          toolName: "Custom DPA Generator",
+          toolName: "Custom DPA",
           toolDescription:
             "Generate an Article 28-compliant DPA with the SCC modules and supplementary measures your transfer profile requires.",
           href: "/dpa-generator",
@@ -168,7 +168,7 @@ export default function CrossBorderTransfersPage() {
             ],
             content: MECHANISM_TABLE,
             toolCta: {
-              toolName: "SCC & DPA Generator",
+              toolName: "SCC & Custom DPA",
               toolDescription:
                 "Draft 2021 SCCs and the surrounding DPA in minutes — module selection, annexes and sub-processor schedule included.",
               href: "/dpa-generator",

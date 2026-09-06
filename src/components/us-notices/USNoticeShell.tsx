@@ -52,7 +52,7 @@ export function USNoticeShell({
       ) : null}
       <main className="flex-1 max-w-[1280px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         <RopaErrorBoundary>
-          <NoticeAccessGate toolName="US Privacy Notice Builder">
+          <NoticeAccessGate toolName="US Privacy Notice">
             {breadcrumb && (
               <RopaBreadcrumb
                 steps={breadcrumb.steps}
@@ -66,7 +66,7 @@ export function USNoticeShell({
             )}
             {children ?? (
               <p className="text-muted-foreground text-sm">
-                This page is part of the US Notice Builder. Implementation in progress.
+                This page is part of the US Privacy Notice. Implementation in progress.
               </p>
             )}
           </NoticeAccessGate>
