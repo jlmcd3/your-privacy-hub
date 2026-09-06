@@ -201,7 +201,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
 
     // Globe — placeholder material while texture loads
     const globe = new THREE.Mesh(
-      new THREE.SphereGeometry(1, 64, 64),
+      new THREE.SphereGeometry(0.96, 64, 64),
       new THREE.MeshPhongMaterial({ color: 0x0d2744, shininess: 20 }),
     );
     scene.add(globe);
@@ -519,7 +519,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       if (ref.current) { globe.remove(ref.current); (ref as any).current = null; }
     });
 
-    const pos = latLonToVec3(jur.lat, jur.lon, 1.055);
+    const pos = latLonToVec3(jur.lat, jur.lon, 1.015);
 
     // Gold dot — large enough to be clearly visible
     const dot = new THREE.Mesh(
