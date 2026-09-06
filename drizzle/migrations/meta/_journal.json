@@ -57,6 +57,13 @@
       "when": 1788736874307,
       "tag": "0007_add_edpb_guideline_endorsement_status",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788739075474,
+      "tag": "0008_add_corpus_classification_batches",
+      "breakpoints": true
     }
   ]
 }

@@ -38,6 +38,16 @@ import { LAYER_B_CLOSED_PRODUCTS, registryFor } from "./_local/product-registry.
 import { mapSourceFor } from "./_local/map-sources.ts";
 import { runClassificationPipeline, PIPELINE_VERSION } from "./_local/classify/pipeline.ts";
 import type { ClassificationCandidate, LlmCall } from "./_local/classify/types.ts";
+import {
+  candidateFor,
+  CLASSIFICATION_LEASE_SECONDS,
+  enforcementExcerpt,
+  parseClassifyFromDbRequest,
+  regulatoryGuidanceExcerpt,
+  resultRows,
+  type CandidateWithLength,
+  type ProfileForClassification,
+} from "./_local/classify-from-db.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -72,32 +82,44 @@ const DEFAULT_CLASSIFIER_MODEL = "claude-opus-5";
 const CLASSIFIER_MODEL = Deno.env.get("CORPUS_CLASSIFIER_MODEL") ?? DEFAULT_CLASSIFIER_MODEL;
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 
-function anthropicCall(model: string): LlmCall {
+function anthropicCall(model: string, onFailure?: (status: number, message: string) => void): LlmCall {
+  let blocked: { status: number; message: string } | null = null;
   return async (system: string, user: string): Promise<string> => {
     if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
-    const r = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: 1024,
-        temperature: 0,
-        system,
-        messages: [{ role: "user", content: user }],
-      }),
-      signal: AbortSignal.timeout(120_000),
-    });
-    if (!r.ok) {
+    if (blocked) throw Object.assign(new Error(blocked.message), { status: blocked.status });
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const r = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json", "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({ model, max_tokens: 1024, temperature: 0, system, messages: [{ role: "user", content: user }] }),
+        signal: AbortSignal.timeout(120_000),
+      });
+      if (r.ok) {
+        const body = await r.json();
+        const block = Array.isArray(body?.content) ? body.content[0] : null;
+        return block && block.type === "text" ? String(block.text) : "";
+      }
       const errText = await r.text().catch(() => "no body");
-      throw new Error(`Anthropic ${r.status}: ${errText.slice(0, 300)}`);
+      const message = `Anthropic ${r.status}: ${errText.slice(0, 300)}`;
+      if (r.status !== 429 && r.status < 500) {
+        blocked = { status: r.status, message };
+        onFailure?.(r.status, message);
+        throw Object.assign(new Error(message), { status: r.status });
+      }
+      if (attempt === 2) {
+        if (r.status === 429) {
+          blocked = { status: r.status, message };
+          onFailure?.(r.status, message);
+        }
+        throw Object.assign(new Error(message), { status: r.status });
+      }
+      const retryAfter = Number(r.headers.get("Retry-After") ?? 0);
+      const delayMs = retryAfter > 0 ? retryAfter * 1_000 : (2 ** attempt) * 1_000 + Math.floor(Math.random() * 250);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
-    const body = await r.json();
-    const block = Array.isArray(body?.content) ? body.content[0] : null;
-    return block && block.type === "text" ? String(block.text) : "";
+    throw new Error("Anthropic retry budget exhausted");
   };
 }
 
@@ -115,6 +137,93 @@ async function loadRows(product?: string): Promise<AuthorityRelevanceProfileRow[
   const { data, error } = await query;
   if (error) throw new Error(`authority_relevance_profiles read failed: ${error.message}`);
   return (data ?? []) as AuthorityRelevanceProfileRow[];
+}
+
+async function greatestProcessedProfileId(runId: string): Promise<string | null> {
+  const { data, error } = await admin().from("corpus_classification_results")
+    .select("profile_id").eq("run_id", runId).order("profile_id", { ascending: false }).limit(1).maybeSingle();
+  if (error) throw new Error(`classification cursor read failed: ${error.message}`);
+  return data?.profile_id ?? null;
+}
+
+async function classificationRunStatus(runId: string): Promise<{
+  status: "ready" | "paused" | "rate_limited";
+  pause_status: number | null;
+} | null> {
+  const { data, error } = await admin().from("corpus_classification_job_state")
+    .select("status,pause_status").eq("run_id", runId).maybeSingle();
+  if (error) throw new Error(`classification job-state read failed: ${error.message}`);
+  return data as { status: "ready" | "paused" | "rate_limited"; pause_status: number | null } | null;
+}
+
+async function setClassificationRunStatus(runId: string, status: "ready" | "paused" | "rate_limited",
+  pauseStatus: number | null, pauseMessage: string | null) {
+  const { error } = await admin().from("corpus_classification_job_state").upsert({
+    run_id: runId, status, pause_status: pauseStatus, pause_message: pauseMessage,
+    paused_at: status === "ready" ? null : new Date().toISOString(), updated_at: new Date().toISOString(),
+  });
+  if (error) throw new Error(`classification job-state write failed: ${error.message}`);
+}
+
+async function loadClassificationProfiles(product: string, cursor: string | null, batchSize: number,
+  runId: string, onlyUnclassified: boolean): Promise<ProfileForClassification[]> {
+  const db = admin();
+  const fetchLimit = onlyUnclassified ? Math.max(batchSize * 4, 40) : batchSize;
+  let query = db.from("authority_relevance_profiles")
+    .select("id,product,source_table,source_row_id,rule_or_pattern,curation_note")
+    .eq("product", product).order("id", { ascending: true }).limit(fetchLimit);
+  if (cursor) query = query.gt("id", cursor);
+  const { data, error } = await query;
+  if (error) throw new Error(`classification profile read failed: ${error.message}`);
+  const profiles = (data ?? []) as ProfileForClassification[];
+  if (!onlyUnclassified || profiles.length === 0) return profiles.slice(0, batchSize);
+  const ids = profiles.map((profile) => profile.id);
+  const { data: existing, error: existingError } = await db.from("corpus_classification_results")
+    .select("profile_id").eq("run_id", runId).in("profile_id", ids);
+  if (existingError) throw new Error(`classification result lookup failed: ${existingError.message}`);
+  const done = new Set((existing ?? []).map((row) => row.profile_id));
+  return profiles.filter((profile) => !done.has(profile.id)).slice(0, batchSize);
+}
+
+async function buildDbCandidates(profiles: readonly ProfileForClassification[]): Promise<CandidateWithLength[]> {
+  const db = admin();
+  const grouped = new Map<string, ProfileForClassification[]>();
+  for (const profile of profiles) grouped.set(profile.source_table, [...(grouped.get(profile.source_table) ?? []), profile]);
+  const excerpts = new Map<string, string>();
+
+  for (const [sourceTable, rows] of grouped) {
+    const ids = rows.map((row) => row.source_row_id);
+    if (sourceTable === "edpb_guidelines") {
+      const { data, error } = await db.from("edpb_guidelines").select("id,excerpt_text").in("id", ids);
+      if (error) throw new Error(`edpb_guidelines read failed: ${error.message}`);
+      for (const row of data ?? []) excerpts.set(`${sourceTable}:${row.id}`, row.excerpt_text ?? "");
+    } else if (sourceTable === "regulatory_guidance") {
+      const { data, error } = await db.from("regulatory_guidance").select("id,full_text").in("id", ids);
+      if (error) throw new Error(`regulatory_guidance read failed: ${error.message}`);
+      for (const row of data ?? []) {
+        const profile = rows.find((item) => item.source_row_id === row.id);
+        excerpts.set(`${sourceTable}:${row.id}`, regulatoryGuidanceExcerpt(row.full_text, profile?.curation_note ?? null));
+      }
+    } else if (sourceTable === "enforcement_actions") {
+      const { data, error } = await db.from("enforcement_actions")
+        .select("id,source_document_text,raw_text,legacy_summary_text,key_compliance_failure").in("id", ids);
+      if (error) throw new Error(`enforcement_actions read failed: ${error.message}`);
+      for (const row of data ?? []) {
+        const profile = rows.find((item) => item.source_row_id === row.id);
+        excerpts.set(`${sourceTable}:${row.id}`, enforcementExcerpt(
+          row.source_document_text, row.raw_text, row.legacy_summary_text, row.key_compliance_failure,
+          profile?.curation_note ?? null,
+        ));
+      }
+    } else {
+      throw new Error(`unsupported classification source_table: ${sourceTable}`);
+    }
+  }
+  return profiles.map((profile) => {
+    const key = `${profile.source_table}:${profile.source_row_id}`;
+    if (!excerpts.has(key)) throw new Error(`source row not found for profile ${profile.id}`);
+    return candidateFor(profile, excerpts.get(key) ?? "");
+  });
 }
 
 function productError(product: unknown): string | null {
@@ -150,6 +259,78 @@ Deno.serve(async (req) => {
   if (perr) return json({ error: perr }, 400);
   const productName = product as string;
   const registry = registryFor(productName)!;
+
+  if (action === "classify_from_db") {
+    const started = Date.now();
+    let leaseKey: string | null = null;
+    try {
+      const parsed = parseClassifyFromDbRequest(body);
+      const db = admin();
+      const jobState = await classificationRunStatus(parsed.run_id);
+      if (jobState?.status === "paused") {
+        return json({ error: "classification run paused", run_id: parsed.run_id, status: jobState.pause_status }, 409);
+      }
+      leaseKey = `corpus-classify:${parsed.run_id}`;
+      const { data: acquired, error: leaseError } = await db.rpc("try_acquire_job_lease", {
+        _key: leaseKey, _seconds: CLASSIFICATION_LEASE_SECONDS, _holder: crypto.randomUUID(),
+      });
+      if (leaseError) throw new Error(`classification lease failed: ${leaseError.message}`);
+      if (!acquired) return json({ error: "classification run already active", run_id: parsed.run_id }, 409);
+
+      const cursor = parsed.cursor === undefined ? await greatestProcessedProfileId(parsed.run_id) : parsed.cursor;
+      const profiles = await loadClassificationProfiles(
+        parsed.product, cursor ?? null, parsed.batch_size, parsed.run_id, parsed.only_unclassified,
+      );
+      const candidates = await buildDbCandidates(profiles);
+      let providerFailure: { status: number; message: string } | null = null;
+      const allRows = await loadRows();
+      const conflictSources = new Set(
+        siblingConsistencyWarnings(allRows).map((warning) => warning.match(/source_row_id ([0-9a-f-]{36})/i)?.[1])
+          .filter((value): value is string => !!value),
+      );
+      const run = await runClassificationPipeline(candidates.map((item) => item.candidate), {
+        llm: anthropicCall(CLASSIFIER_MODEL, (status, message) => {
+          if (status === 402 || status === 403 || status === 429) providerFailure = { status, message };
+        }),
+        siblingConflicts: conflictSources,
+      });
+      if (providerFailure) {
+        const failure = providerFailure as { status: number; message: string };
+        const state = failure.status === 429 ? "rate_limited" : "paused";
+        await setClassificationRunStatus(parsed.run_id, state, failure.status, failure.message);
+        throw Object.assign(new Error(failure.message), { status: failure.status });
+      }
+      const rows = resultRows({
+        runId: parsed.run_id, model: CLASSIFIER_MODEL, pipelineVersion: run.pipeline_version,
+        candidates, outcomes: run.outcomes, stage2CandidateIds: run.stage2_candidates, promotedIds: run.promoted_ids,
+      });
+      if (rows.length > 0) {
+        const { error } = await db.from("corpus_classification_results").upsert(rows, { onConflict: "run_id,profile_id" });
+        if (error) throw new Error(`classification result upsert failed: ${error.message}`);
+      }
+      await setClassificationRunStatus(parsed.run_id, "ready", null, null);
+      return json({
+        action, product: parsed.product, run_id: parsed.run_id, model: CLASSIFIER_MODEL,
+        processed: rows.length, next_cursor: profiles.at(-1)?.id ?? null,
+        done: profiles.length < parsed.batch_size, elapsed_ms: Date.now() - started,
+      });
+    } catch (error) {
+      const message = (error as Error).message;
+      const providerStatus = (error as Error & { status?: number }).status ??
+        (Number(message.match(/^Anthropic (\d{3}):/)?.[1] ?? 0) || null);
+      const runId = typeof body.run_id === "string" ? body.run_id : null;
+      if (runId && (providerStatus === 402 || providerStatus === 403)) {
+        await setClassificationRunStatus(runId, "paused", providerStatus, message);
+      } else if (runId && providerStatus === 429) {
+        await setClassificationRunStatus(runId, "rate_limited", providerStatus, message);
+      }
+      const status = message.startsWith("classify_from_db requires") || message.startsWith("batch_size") ||
+          message.startsWith("cursor") || message.startsWith("only_unclassified") ? 400 : 502;
+      return json({ error: "classify_from_db failed", detail: message }, status);
+    } finally {
+      if (leaseKey) await admin().rpc("release_job_lease", { _key: leaseKey });
+    }
+  }
 
   // Vocabulary + CAM rows: wired source first, request override second.
   const wired = mapSourceFor(productName);
@@ -235,7 +416,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    return json({ error: `unknown action "${action}" — expected "generate" or "classify"` }, 400);
+    return json({ error: `unknown action "${action}" — expected "generate", "classify", or "classify_from_db"` }, 400);
   } catch (e) {
     return json({ error: "corpus relevance profile step failed", detail: (e as Error).message }, 502);
   }

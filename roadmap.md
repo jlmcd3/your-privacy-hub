@@ -1,6 +1,7 @@
 # Current tasks
 
-- [x] Extend and correct the EDPB guideline registry attributes.
-- [x] Apply the endorsement-status database migration and backfill.
-- [x] Deploy the ingestion function and run the five-entry live ingestion.
-- [x] Verify per-guideline results and database aggregates.
+- [x] Split wired corpus map loading into local-test-only and deploy-safe modules.
+- [x] Add and test the cursor-batched `classify_from_db` action without invoking it.
+- [x] Add the service-only classification results and job-state schema.
+- [x] Add `corpus-classify-driver` on a two-minute schedule and leave it inactive.
+- [x] Run corpus tests, deploy the function, and verify no pipeline run occurred.

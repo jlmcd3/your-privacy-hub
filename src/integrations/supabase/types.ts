@@ -670,6 +670,89 @@ export type Database = {
         }
         Relationships: []
       }
+      corpus_classification_job_state: {
+        Row: {
+          pause_message: string | null
+          pause_status: number | null
+          paused_at: string | null
+          run_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          pause_message?: string | null
+          pause_status?: number | null
+          paused_at?: string | null
+          run_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          pause_message?: string | null
+          pause_status?: number | null
+          paused_at?: string | null
+          run_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      corpus_classification_results: {
+        Row: {
+          created_at: string
+          excerpt_chars: number
+          id: string
+          model: string
+          outcome: Json
+          pipeline_version: string
+          product: string
+          profile_id: string
+          promoted: boolean
+          run_id: string
+          source_row_id: string
+          source_table: string
+          stage2: Json | null
+        }
+        Insert: {
+          created_at?: string
+          excerpt_chars: number
+          id?: string
+          model: string
+          outcome: Json
+          pipeline_version: string
+          product: string
+          profile_id: string
+          promoted?: boolean
+          run_id: string
+          source_row_id: string
+          source_table: string
+          stage2?: Json | null
+        }
+        Update: {
+          created_at?: string
+          excerpt_chars?: number
+          id?: string
+          model?: string
+          outcome?: Json
+          pipeline_version?: string
+          product?: string
+          profile_id?: string
+          promoted?: boolean
+          run_id?: string
+          source_row_id?: string
+          source_table?: string
+          stage2?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "corpus_classification_results_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "authority_relevance_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       corpus_drift_log: {
         Row: {
           detected_at: string
