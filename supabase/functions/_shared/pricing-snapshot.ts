@@ -37,7 +37,7 @@ export interface SnapshotToolEntry {
 }
 
 /** SHA-256 of the canonical JSON of the master projection at generation time. */
-export const PRICING_SNAPSHOT_SOURCE_HASH = "85c544c5ea1b47d85e673696f168c7a558df2068f7ec1e0dfa8068be6047cb23";
+export const PRICING_SNAPSHOT_SOURCE_HASH = "08b77cbf46d3b0b2005126a1a34c4390127e18c8828d79b88ad25512d470deba";
 
 const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record<string, SnapshotToolEntry> } = /* SNAPSHOT-JSON-BEGIN */ {
   "registry": {
@@ -124,8 +124,8 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "cppa_cyber_standalone": {
       "lookupKey": "cppa_cyber_standalone",
       "productKey": "cppa_cybersecurity",
-      "productName": "CPPA Cybersecurity Readiness — Module 2 (Standalone)",
-      "description": "Standalone per-use price for the CPPA Cybersecurity Readiness assessment.",
+      "productName": "CPPA Cybersecurity Audit Readiness — Module 2 (Standalone)",
+      "description": "Standalone per-use price for the CPPA Cybersecurity Audit Readiness assessment.",
       "amountCents": 39900,
       "currency": "usd",
       "displayPrice": "$399",
@@ -136,8 +136,8 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "cppa_cyber_subscriber": {
       "lookupKey": "cppa_cyber_subscriber",
       "productKey": "cppa_cybersecurity",
-      "productName": "CPPA Cybersecurity Readiness — Module 2 (Subscriber)",
-      "description": "Subscriber per-use price for the CPPA Cybersecurity Readiness assessment.",
+      "productName": "CPPA Cybersecurity Audit Readiness — Module 2 (Subscriber)",
+      "description": "Subscriber per-use price for the CPPA Cybersecurity Audit Readiness assessment.",
       "amountCents": 23900,
       "currency": "usd",
       "displayPrice": "$239",
@@ -150,8 +150,8 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
     "cppa_cybersecurity_topup_v1": {
       "lookupKey": "cppa_cybersecurity_topup_v1",
       "productKey": "cppa_cybersecurity",
-      "productName": "CPPA Cybersecurity Readiness — 4 additional generations",
-      "description": "Meter top-up: adds 4 additional generations on an existing CPPA Cybersecurity Readiness assessment. Half-price policy.",
+      "productName": "CPPA Cybersecurity Audit Readiness — 4 additional generations",
+      "description": "Meter top-up: adds 4 additional generations on an existing CPPA Cybersecurity Audit Readiness assessment. Half-price policy.",
       "amountCents": 19950,
       "currency": "usd",
       "displayPrice": "$199.50",
@@ -728,7 +728,7 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
       "stripePriceId": "cppa_admt_standalone"
     },
     "cppaCyber": {
-      "name": "CPPA Cybersecurity Readiness",
+      "name": "CPPA Cybersecurity Audit Readiness",
       "dollars": 399,
       "cents": 39900,
       "display": "$399",
@@ -763,7 +763,7 @@ const SNAPSHOT: { registry: Record<string, SnapshotRegistryEntry>; tools: Record
       "stripePriceId": "cppa_admt_standalone"
     },
     "cppa_cyber": {
-      "name": "CPPA Cybersecurity Readiness",
+      "name": "CPPA Cybersecurity Audit Readiness",
       "dollars": 399,
       "cents": 39900,
       "display": "$399",

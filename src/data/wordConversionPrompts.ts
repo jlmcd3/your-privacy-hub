@@ -255,7 +255,7 @@ export const WORD_CONVERSION_PROMPTS: Record<WordPromptDocumentType, WordPromptE
 
   cppa_cybersecurity: {
     documentType: "cppa_cybersecurity",
-    label: "CPPA Cybersecurity Audit",
+    label: "CPPA Cybersecurity Audit Readiness",
     structureAnchors: [
       "Scope",
       "Independent auditor",
@@ -265,7 +265,7 @@ export const WORD_CONVERSION_PROMPTS: Record<WordPromptDocumentType, WordPromptE
       "Deadlines",
     ],
     prompt: buildPrompt(
-      "Convert the attached CPPA Cybersecurity Audit PDF into a Microsoft Word (.docx) file. Section 7120 / 7121 references and phased deadlines are outcome-determinative — treat them as VERBATIM.",
+      "Convert the attached CPPA Cybersecurity Audit Readiness PDF into a Microsoft Word (.docx) file. Section 7120 / 7121 references and phased deadlines are outcome-determinative — treat them as VERBATIM.",
       [
         "Scope",
         "Independent auditor",

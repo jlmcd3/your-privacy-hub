@@ -1,4 +1,4 @@
-// Sprint 2 #1 — Auditor Independence Advisor (CPPA Cybersecurity Audit, § 7122(b))
+// Sprint 2 #1 — Auditor Independence Advisor (CPPA Cybersecurity Audit Readiness, § 7122(b))
 // Pure client-side interactive checklist. No backend changes. Customer can answer
 // six § 7122(b) questions about a candidate auditor (internal or external) and
 // generate a short memo to attach to the engagement letter / board record.
@@ -218,7 +218,7 @@ export default function AuditorIndependenceAdvisor() {
       {showMemo && verdict !== "incomplete" && (
         <div className="mt-4 bg-muted/30 border rounded p-4 text-xs leading-relaxed font-mono whitespace-pre-wrap">
 {`AUDITOR INDEPENDENCE DETERMINATION
-CPPA Cybersecurity Audit — 11 CCR § 7122(b)
+CPPA Cybersecurity Audit Readiness — 11 CCR § 7122(b)
 
 Date:               ${today}
 Candidate auditor:  ${auditorName || "[name]"}

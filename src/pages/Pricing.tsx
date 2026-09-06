@@ -58,7 +58,7 @@ const SMART_TOOL_ROWS: SmartToolRow[] = [
     topupKey: "cppa_risk_topup_v1",
   },
   {
-    tool: "CPPA Cybersecurity Readiness — Module 2",
+    tool: "CPPA Cybersecurity Audit Readiness — Module 2",
     standaloneKey: "cppa_cyber_standalone",
     subscriberKey: "cppa_cyber_subscriber",
     annualCredit: "Not eligible",

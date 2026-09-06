@@ -62,7 +62,7 @@ const comparisonRows: ComparisonRow[] = [
 
   { isSection: true, feature: "CPPA tools" },
   { feature: "CPPA Risk Assessment (Smart Tool)", free: false, intel: T.cppa_risk.display, platform: T.cppa_risk.display },
-  { feature: "CPPA Cybersecurity Audit (Smart Tool)", free: false, intel: T.cppa_cyber.display, platform: T.cppa_cyber.display },
+  { feature: "CPPA Cybersecurity Audit Readiness (Smart Tool)", free: false, intel: T.cppa_cyber.display, platform: T.cppa_cyber.display },
   { feature: "ADMT Compliance Assessment (Smart Tool)", free: false, intel: T.cppa_admt.display, platform: T.cppa_admt.display },
 ];
 

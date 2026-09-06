@@ -87,7 +87,7 @@ export function nextSuiteStep(modules: SuiteModuleIntakes): { module: SuiteModul
     return {
       module: "cybersecurity",
       path: "/cppa-cybersecurity?suite=true",
-      label: "Cybersecurity Audit Readiness (Module 2)",
+      label: "CPPA Cybersecurity Audit Readiness (Module 2)",
     };
   }
   return {

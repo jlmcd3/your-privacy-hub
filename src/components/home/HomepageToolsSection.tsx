@@ -43,7 +43,7 @@ const ASSESSMENTS: Product[] = [
     href: "/cppa-risk-assessment",
   },
   {
-    title: "CPPA Cybersecurity Audit",
+    title: "CPPA Cybersecurity Audit Readiness",
     blurb: "Structured cybersecurity audit aligned to CPPA regulations — control gaps supported by cited enforcement and regulatory guidance.",
     href: "/cppa-cybersecurity",
   },

@@ -100,7 +100,7 @@
       },
       {
         "key": "cppa_cybersecurity",
-        "name": "CPPA Cybersecurity Readiness — Module 2",
+        "name": "CPPA Cybersecurity Audit Readiness — Module 2",
         "standalone_cents": 29900,
         "subscriber_cents": 16900
       },
@@ -296,7 +296,7 @@
       "unmigrated": true
     },
     {
-      "product": "CPPA Cybersecurity Readiness — Module 2",
+      "product": "CPPA Cybersecurity Audit Readiness — Module 2",
       "server_standalone": "$299",
       "server_subscriber": "$169",
       "ui_prices_seen": [

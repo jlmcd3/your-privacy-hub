@@ -557,7 +557,7 @@ async function runAssessment(assessment_id: string): Promise<void> {
       // startIdx/endIdx are 1-based inclusive
       const slice = ALL_COMPONENTS.slice(startIdx - 1, endIdx);
       const numbered = slice.map((c, i) => `${startIdx + i}. ${c}`).join("\n");
-      return `Based on this organisation's CPPA cybersecurity readiness intake, assess CPPA cybersecurity programme components ${startIdx}–${endIdx} ONLY (one object per component, in the exact order listed below). Do NOT emit any other components, and do NOT emit executive_summary, overall_score, readiness_level, top_risks, enforcement_context, or next_steps.
+      return `Based on this organisation's CPPA Cybersecurity Audit Readiness intake, assess CPPA cybersecurity programme components ${startIdx}–${endIdx} ONLY (one object per component, in the exact order listed below). Do NOT emit any other components, and do NOT emit executive_summary, overall_score, readiness_level, top_risks, enforcement_context, or next_steps.
 
 Intake data:
 ${intakeJson}
@@ -615,7 +615,7 @@ GOVERNMENT/NONPROFIT APPLICABILITY — add a sentence to the finding for each co
     }
 
     function buildSynthesisPrompt(controlsDigest: string, computedScore: number): string {
-      return `Based on this organisation's CPPA cybersecurity readiness intake and the per-control assessment digest below, produce the summary sections of the report. Do NOT emit controls or annotations.
+      return `Based on this organisation's CPPA Cybersecurity Audit Readiness intake and the per-control assessment digest below, produce the summary sections of the report. Do NOT emit controls or annotations.
 
 Intake data:
 ${intakeJson}
@@ -2561,7 +2561,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
           source_tool: "cppa_cybersecurity",
           source_assessment_id: assessment_id,
           display_name: "Cybersecurity & threat monitoring",
-          source_summary: "Drafted from CPPA Cybersecurity Audit — review control gaps and link safeguards.",
+          source_summary: "Drafted from CPPA Cybersecurity Audit Readiness — review control gaps and link safeguards.",
           is_high_risk: false,
           category: "technology",
         },

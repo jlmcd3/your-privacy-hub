@@ -481,7 +481,7 @@ function buildCyberV4Syllabus(
     _typed: "syllabus@sr-2026-09-04",
     instrument_line: "CPPA CYBERSECURITY AUDIT READINESS REPORT · 11 CCR §§ 7120–7124",
     prepared_for: entity,
-    activity: "Cybersecurity Audit Readiness",
+    activity: "CPPA Cybersecurity Audit Readiness",
     subtitle: "Cybersecurity audit readiness assessment under 11 CCR §§ 7120–7124",
     disposition_label: "OVERALL ASSESSMENT",
     disposition,

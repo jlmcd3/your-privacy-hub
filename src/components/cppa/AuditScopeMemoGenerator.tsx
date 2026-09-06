@@ -1,4 +1,4 @@
-// Sprint 2 #2 — Audit Scope Memo Generator (CPPA Cybersecurity Audit, 11 CCR § 7123)
+// Sprint 2 #2 — Audit Scope Memo Generator (CPPA Cybersecurity Audit Readiness, 11 CCR § 7123)
 // Drafts a § 7123 audit-scope statement from the intake the customer already gave us,
 // pre-fills sensible defaults the customer can edit, and renders a memo block they can
 // attach to the engagement letter. Pure client-side, no backend changes.
@@ -164,7 +164,7 @@ export default function AuditScopeMemoGenerator({ intake, report }: Props) {
       <details open className="mt-4 bg-muted/30 border rounded p-4">
         <summary className="text-xs font-semibold cursor-pointer">Generated memo (copy into engagement letter)</summary>
         <pre ref={preRef} className="mt-3 text-xs leading-relaxed font-mono whitespace-pre-wrap">{`AUDIT SCOPE MEMO
-CPPA Cybersecurity Audit — 11 CCR § 7123
+CPPA Cybersecurity Audit Readiness — 11 CCR § 7123
 Date prepared: ${today}
 
 1. AUDIT PERIOD

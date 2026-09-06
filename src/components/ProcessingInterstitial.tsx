@@ -42,7 +42,7 @@ const TOOLS: Record<ToolKey, ToolConfig> = {
     stages: ["Mapping CPPA obligations", "Assessing risk factors", "Drafting the assessment", "Building your PDF"],
   },
   cppa_cyber: {
-    label: "CPPA Cybersecurity Readiness assessment",
+    label: "CPPA Cybersecurity Audit Readiness assessment",
     etaText: "about 2–4 minutes",
     etaSeconds: 240,
     stages: ["Checking the 18 control areas", "Identifying deficiencies", "Drafting the readiness report", "Building your PDF"],

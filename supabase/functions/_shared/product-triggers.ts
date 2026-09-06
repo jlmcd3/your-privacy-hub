@@ -213,7 +213,7 @@ export function matchProductCtas(
 // Used by edge functions (e.g. email rendering) that cannot import frontend code.
 export const PRODUCT_DISPLAY: Record<string, { name: string; route: string }> = {
   "cppa-risk-assessment": { name: "CPPA Risk Assessment — Module 1", route: "/cppa-risk-assessment" },
-  "cppa-cybersecurity": { name: "CPPA Cybersecurity Readiness — Module 2", route: "/cppa-cybersecurity" },
+  "cppa-cybersecurity": { name: "CPPA Cybersecurity Audit Readiness — Module 2", route: "/cppa-cybersecurity" },
   "cppa-scope-checker": { name: "CPPA Scope Checker", route: "/cppa-scope-checker" },
   "governance-assessment": { name: "Privacy Program Assessment", route: "/governance-assessment" },
   "dpia": { name: "Data Protection Impact Assessment (DPIA)", route: "/dpia-framework" },

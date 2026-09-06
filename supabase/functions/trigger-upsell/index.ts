@@ -21,7 +21,7 @@ const PRODUCT_META: Record<string, any> = {
   dpa_generator:          { name: 'Custom DPA',            url: '/tools/dpa-generator',          price_subscriber: '$49',  price_standalone: '$99'  },
   cppa_scope:             { name: 'CPPA Scope Checker (Free)',        url: '/tools/cppa-scope',             price_subscriber: 'Free', price_standalone: 'Free' },
   cppa_risk:              { name: 'CPPA Risk Assessment',            url: '/tools/cppa-risk',              price_subscriber: '$79',  price_standalone: '$149' },
-  cppa_cybersecurity:     { name: 'CPPA Cybersecurity Readiness',    url: '/tools/cppa-cybersecurity',     price_subscriber: '$99',  price_standalone: '$199' },
+  cppa_cybersecurity:     { name: 'CPPA Cybersecurity Audit Readiness',    url: '/tools/cppa-cybersecurity',     price_subscriber: '$99',  price_standalone: '$199' },
   cppa_bundle:            { name: 'CPPA Full Suite Bundle',          url: '/tools/cppa-bundle',            price_subscriber: '$149', price_standalone: '$299' },
   rofa:                   { name: 'Record of Processing Activities (RoPA)',         url: '/tools/rofa',                   price_subscriber: '$49',  price_standalone: '$79'  },
   privacy_notice_us:      { name: 'Privacy Notice Generator',        url: '/tools/privacy-notice',         price_subscriber: '$29',  price_standalone: '$49'  },

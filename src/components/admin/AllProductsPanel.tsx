@@ -74,7 +74,7 @@ export const SLUG_LABEL: Record<ToolSlug, string> = {
   ir_playbook: "IR Playbook",
   biometric: "Biometric Compliance",
   cppa_risk: "CPPA Risk Assessment",
-  cppa_cyber: "CPPA Cybersecurity Audit",
+  cppa_cyber: "CPPA Cybersecurity Audit Readiness",
   cppa_admt: "CPPA ADMT Assessment",
   ropa: "RoPA (Article 30)",
   us_notice: "US Privacy Notice",

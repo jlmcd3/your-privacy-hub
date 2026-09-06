@@ -1046,7 +1046,7 @@ function ResultsPanel({
       {evaluation.cyberScope === "required" && (
         <div className="mt-3">
           <Button asChild size="sm" variant="outline">
-            <Link to="/cppa-cybersecurity">CPPA Cybersecurity Readiness tool →</Link>
+            <Link to="/cppa-cybersecurity">CPPA Cybersecurity Audit Readiness tool →</Link>
           </Button>
         </div>
       )}
@@ -1183,7 +1183,7 @@ function ResultsPanel({
             <p className="mt-1">
               Find this result any time in{" "}
               <Link to="/dashboard/reports" className="underline">My Reports</Link>.
-              For a formal, downloadable assessment use the CPPA Risk Assessment or CPPA Cybersecurity Readiness tools.
+              For a formal, downloadable assessment use the CPPA Risk Assessment or CPPA Cybersecurity Audit Readiness tools.
             </p>
           </>
         ) : (
@@ -1191,7 +1191,7 @@ function ResultsPanel({
             <p className="font-medium">
               <Link to="/signup" className="underline">Create a free account</Link> to keep this result and see it in My Reports.
             </p>
-            <p className="mt-1">Run it again any time. For a formal, downloadable assessment use the CPPA Risk Assessment or CPPA Cybersecurity Readiness tools.</p>
+            <p className="mt-1">Run it again any time. For a formal, downloadable assessment use the CPPA Risk Assessment or CPPA Cybersecurity Audit Readiness tools.</p>
           </>
         )}
       </section>
@@ -1210,7 +1210,7 @@ function ResultsPanel({
           </p>
           <h3 className="font-serif text-2xl text-brand-navy">CPPA Full Audit Suite (M1 + M2)</h3>
           <p className="text-sm text-foreground">
-            Covers Risk Assessment (Module 1) and Cybersecurity Readiness (Module 2) together,{" "}
+            Covers Risk Assessment (Module 1) and CPPA Cybersecurity Audit Readiness (Module 2) together,{" "}
             <span className="font-semibold">
               {PRICING_REGISTRY.cppa_suite_standalone.displayPrice}
             </span>{" "}
@@ -1243,7 +1243,7 @@ function ResultsPanel({
           )}
           {evaluation.cyberScope === "required" && (
             <Button variant="outline" onClick={() => navigate("/cppa-cybersecurity")}>
-              Run CPPA Cybersecurity Readiness (Module 2) · ${cyberPricing.price} →
+              Run CPPA Cybersecurity Audit Readiness (Module 2) · ${cyberPricing.price} →
             </Button>
           )}
           {evaluation.admtResult === "required" && (

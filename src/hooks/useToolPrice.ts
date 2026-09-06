@@ -52,7 +52,7 @@ const DISPLAY_NAMES: Record<string, string> = {
   eu_notice_full_international: "EU & Global Notice — Full International",
   eu_notice_refresh:            "EU & Global Notice — Annual Refresh",
   cppa_risk_assessment:         "CPPA Risk Assessment — Module 1",
-  cppa_cybersecurity:           "CPPA Cybersecurity Readiness — Module 2",
+  cppa_cybersecurity:           "CPPA Cybersecurity Audit Readiness — Module 2",
   cppa_suite:                   "CPPA Full Audit Suite (Modules 1 + 2)",
   cppa_admt:                    "ADMT Compliance Assessment — Module 3",
   dpa_generator:                "Your Custom DPA",

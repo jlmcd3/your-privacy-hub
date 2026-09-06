@@ -676,7 +676,7 @@ Deno.serve(async (req) => {
               message:
                 "The CPPA Suite covers two assessments, and both questionnaires have to be completed before it can be purchased. Still to complete: "
                 + missingModules
-                  .map((m) => (m === "cybersecurity" ? "Cybersecurity Audit Readiness (Module 2)" : "Risk Assessment (Module 1)"))
+                  .map((m) => (m === "cybersecurity" ? "CPPA Cybersecurity Audit Readiness (Module 2)" : "Risk Assessment (Module 1)"))
                   .join(" and ")
                 + ".",
             }),

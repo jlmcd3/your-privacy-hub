@@ -25,7 +25,7 @@ const TOOLS = [
   { id: "biometric-checker", label: "Biometric Compliance Assessment",         slug: "biometric" },
   { id: "cppa-admt",         label: "CPPA ADMT Assessment",      slug: "cppa_admt" },
   { id: "cppa-risk",         label: "CPPA Risk Assessment",      slug: "cppa_risk" },
-  { id: "cppa-cyber",        label: "CPPA Cybersecurity Audit",  slug: "cppa_cyber" },
+  { id: "cppa-cyber",        label: "CPPA Cybersecurity Audit Readiness",  slug: "cppa_cyber" },
   { id: "lia",               label: "LIA Tool",                  slug: "li_assessment" },
   { id: "dpia",              label: "Data Protection Impact Assessment (DPIA)", slug: "dpia" },
   { id: "governance",        label: "Accountability Assessment",     slug: "governance" },
