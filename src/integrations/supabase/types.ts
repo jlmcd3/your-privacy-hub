@@ -312,6 +312,108 @@ export type Database = {
         }
         Relationships: []
       }
+      authority_relevance_profiles: {
+        Row: {
+          cam_row_id: string | null
+          classified_at: string
+          confidence_tier: string
+          country: string
+          created_at: string
+          curated_at: string
+          curated_by: string
+          curation_note: string
+          data_categories: string[]
+          extracted_quote: string | null
+          factor_ids: string[]
+          flags: string[]
+          id: string
+          instrument: string
+          ledger_ref: string | null
+          map_version_generated_into: string | null
+          outcome_posture: string
+          pipeline_stage: string
+          pipeline_version: string
+          product: string
+          quote_verified: boolean
+          ratified_at: string | null
+          ratified_by: string | null
+          relationship: string | null
+          rule_or_pattern: string
+          rule_statement: string | null
+          self_consistency_agreement: boolean | null
+          source_row_id: string
+          source_table: string
+          updated_at: string
+          use_case_class: string | null
+        }
+        Insert: {
+          cam_row_id?: string | null
+          classified_at?: string
+          confidence_tier: string
+          country: string
+          created_at?: string
+          curated_at?: string
+          curated_by: string
+          curation_note: string
+          data_categories?: string[]
+          extracted_quote?: string | null
+          factor_ids?: string[]
+          flags?: string[]
+          id?: string
+          instrument: string
+          ledger_ref?: string | null
+          map_version_generated_into?: string | null
+          outcome_posture: string
+          pipeline_stage: string
+          pipeline_version: string
+          product: string
+          quote_verified?: boolean
+          ratified_at?: string | null
+          ratified_by?: string | null
+          relationship?: string | null
+          rule_or_pattern?: string
+          rule_statement?: string | null
+          self_consistency_agreement?: boolean | null
+          source_row_id: string
+          source_table: string
+          updated_at?: string
+          use_case_class?: string | null
+        }
+        Update: {
+          cam_row_id?: string | null
+          classified_at?: string
+          confidence_tier?: string
+          country?: string
+          created_at?: string
+          curated_at?: string
+          curated_by?: string
+          curation_note?: string
+          data_categories?: string[]
+          extracted_quote?: string | null
+          factor_ids?: string[]
+          flags?: string[]
+          id?: string
+          instrument?: string
+          ledger_ref?: string | null
+          map_version_generated_into?: string | null
+          outcome_posture?: string
+          pipeline_stage?: string
+          pipeline_version?: string
+          product?: string
+          quote_verified?: boolean
+          ratified_at?: string | null
+          ratified_by?: string | null
+          relationship?: string | null
+          rule_or_pattern?: string
+          rule_statement?: string | null
+          self_consistency_agreement?: boolean | null
+          source_row_id?: string
+          source_table?: string
+          updated_at?: string
+          use_case_class?: string | null
+        }
+        Relationships: []
+      }
       biometric_assessments: {
         Row: {
           analysis_text: string | null
