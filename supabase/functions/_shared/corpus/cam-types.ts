@@ -72,6 +72,40 @@ export interface CamApDisplay {
   readonly trail_cite: string;
 }
 
+/**
+ * DOC 189 (2026-09-05, CEO-approved attribute set) — the RELEVANCE PROFILE:
+ * curation-time attributes that let a product select and rank enforcement
+ * authorities against the customer's own typed intake states, deterministically
+ * (cam-relevance.ts). Authored from the source row and the curation note, never
+ * at generation; a profile is data about the authority, not customer prose.
+ * Products may inline it on the row (`CamRow.relevance_profile`) or keep a
+ * sidecar keyed by row id (LIA: lia-relevance-profiles.ts) — the scorer takes
+ * whichever the product resolves.
+ */
+export interface CamRelevanceProfile {
+  /** ISO-2 country of the deciding authority ("IE", "FR", "ES", "GB"…). */
+  readonly country: string;
+  /** The instrument the decision was taken under. */
+  readonly instrument: "EU GDPR" | "UK GDPR" | "EU GDPR (pre-2021 UK)";
+  /** Every factor (the product's own vocabulary) the authority bears on —
+   *  multi-valued, so one profile covers what the map used to split across
+   *  sibling rows. */
+  readonly factor_ids: readonly string[];
+  /** The product's use-case class vocabulary (LIA: the classifier's eight
+   *  classes); null where the matter does not fit any class honestly. */
+  readonly use_case_class: string | null;
+  /** What the regulator did with the legitimate-interests (or analogous) reliance. */
+  readonly outcome_posture: "accepted" | "conditional" | "rejected" | "contested";
+  /** The data-subject relationship the matter concerned. */
+  readonly relationship: "employee" | "customer" | "prospect" | "public" | "child" | null;
+  /** Data categories, in the product's intake vocabulary. */
+  readonly data_categories: readonly string[];
+  /** Cross-cutting flags: "special_category", "children",
+   *  "eprivacy_terminal_equipment", "electronic_marketing",
+   *  "public_authority", "large_scale", "automated_decision". */
+  readonly flags: readonly string[];
+}
+
 export interface CamRow {
   readonly id: string; // "<product>/<factor_id>/<nn>"
   readonly factor_id: string; // EXACT Determination-appendix label
@@ -127,6 +161,8 @@ export interface CamRow {
    * free-text intake fields, never a model call. Advisory surfacing
    * decides NOTHING — it is a signpost, never a determination input. */
   readonly advisory_terms?: readonly string[];
+  /** DOC 189 — optional inline relevance profile (see CamRelevanceProfile). */
+  readonly relevance_profile?: CamRelevanceProfile;
   /** For S0 rows: the intake field/rail key the callout attaches to. */
   readonly s0_field?: string;
   readonly direction: "supports" | "limits" | "neutral";

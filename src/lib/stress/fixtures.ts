@@ -75,6 +75,8 @@ export const LIA_VARIANTS = [
       interest_holder: "Controller and treating clinicians",
       interest_type: "Clinical / public-interest health benefit",
       purpose_text: "Predictive risk stratification for direct clinical benefit.",
+      // DOC 189 — clinic records, no patient devices touched.
+      device_access: "No",
     },
     necessity_details: {
       alternatives: "See alternatives_considered.",
@@ -112,6 +114,9 @@ export const LIA_VARIANTS = [
       interest_holder: "Controller and its customers (shared interest in fraud prevention)",
       interest_type: "Fraud prevention; regulatory expectation under PSD2/PSR",
       purpose_text: "Real-time scoring of card-not-present transactions to block high-risk authorisations.",
+      // DOC 189 — device IDs are read for account security: the exemption claim.
+      device_access: "Yes",
+      device_access_strictly_necessary: "Yes — all of it is strictly necessary",
     },
     necessity_details: {
       alternatives: "Static rule-based filters miss ~40% of novel fraud patterns.",
@@ -148,6 +153,9 @@ export const LIA_VARIANTS = [
       interest_holder: "Controller (commercial)",
       interest_type: "Direct marketing of own goods to existing customers",
       purpose_text: "Surface relevant products to logged-in shoppers; suppress irrelevant categories.",
+      // DOC 189 — on-site behavioural signals for personalisation go past strict necessity.
+      device_access: "Yes",
+      device_access_strictly_necessary: "No — some or all of it goes further",
     },
     necessity_details: {
       alternatives: "Non-personalised search degrades discovery for >70% of users.",
@@ -185,6 +193,8 @@ export const LIA_VARIANTS = [
       interest_holder: "Controller (employer) and the wider public (road safety)",
       interest_type: "Safety, compliance, cost control",
       purpose_text: "Monitor in-vehicle behaviour during working hours only.",
+      // DOC 189 — vehicle telematics units, not drivers' phones or browsers.
+      device_access: "No",
     },
     necessity_details: {
       alternatives: "Aggregate telemetry cannot satisfy tachograph audit obligations.",

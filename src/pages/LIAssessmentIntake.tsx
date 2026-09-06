@@ -183,6 +183,11 @@ const LIAssessmentIntake = () => {
   const [controllerIsPublicAuthority, setControllerIsPublicAuthority] = useState("");
   const [publicTaskProcessing, setPublicTaskProcessing] = useState("");
   const [additionalMitigations, setAdditionalMitigations] = useState("");
+  // DOC 189 (2026-09-05, CEO-approved wording; PN-L6 resolution) — the two
+  // device-access questions the ePrivacy gate reads directly. Q2 is shown
+  // only when Q1 is "Yes".
+  const [deviceAccess, setDeviceAccess] = useState("");
+  const [deviceAccessStrictlyNecessary, setDeviceAccessStrictlyNecessary] = useState("");
 
   // Added flexibility — core interest field, free-form companions, catch-all
   const [interestStatement, setInterestStatement] = useState("");
@@ -230,6 +235,7 @@ const LIAssessmentIntake = () => {
     reasonableExpectationDetail, potentialHarmDetail, vulnerableSubjectsOther, safeguardsOther, additionalContext,
     statutoryRestrictions, pseudonymisationOptions, employmentSafeguards,
     collectionContext, childrenDataSubjects, controllerIsPublicAuthority, publicTaskProcessing, additionalMitigations,
+    deviceAccess, deviceAccessStrictlyNecessary,
     specificBenefit, beneficiary, alternativesRationale, relationshipCategory,
     scaleApprox, frequency, duration, potentialHarms, optOutAvailable,
     dpoReviewed, dpoReviewer, dpoReviewDate, approverName, approverPosition, approvalDate, reviewTriggers,
@@ -240,6 +246,7 @@ const LIAssessmentIntake = () => {
     reasonableExpectationDetail, potentialHarmDetail, vulnerableSubjectsOther, safeguardsOther, additionalContext,
     statutoryRestrictions, pseudonymisationOptions, employmentSafeguards,
     collectionContext, childrenDataSubjects, controllerIsPublicAuthority, publicTaskProcessing, additionalMitigations,
+    deviceAccess, deviceAccessStrictlyNecessary,
     specificBenefit, beneficiary, alternativesRationale, relationshipCategory,
     scaleApprox, frequency, duration, potentialHarms, optOutAvailable,
     dpoReviewed, dpoReviewer, dpoReviewDate, approverName, approverPosition, approvalDate, reviewTriggers,
@@ -290,6 +297,8 @@ const LIAssessmentIntake = () => {
     S(d.childrenDataSubjects, setChildrenDataSubjects);
     S(d.controllerIsPublicAuthority, setControllerIsPublicAuthority);
     S(d.publicTaskProcessing, setPublicTaskProcessing);
+    S(d.deviceAccess, setDeviceAccess);
+    S(d.deviceAccessStrictlyNecessary, setDeviceAccessStrictlyNecessary);
     S(d.additionalMitigations, setAdditionalMitigations);
     S(d.specificBenefit, setSpecificBenefit);
     S(d.beneficiary, setBeneficiary);
@@ -385,7 +394,13 @@ const LIAssessmentIntake = () => {
       // Stage B
       stated_purpose: statedPurpose,
       alternatives_considered: alternatives,
-      purpose_details: { specific_benefit: specificBenefit, beneficiary, interest_holder: interestHolder, interest_type: interestType, interest_statement: interestStatement, interest_holder_other: interestHolderOther, interest_type_other: interestTypeOther, controller_is_public_authority: controllerIsPublicAuthority, public_task_processing: publicTaskProcessing },
+      purpose_details: {
+        specific_benefit: specificBenefit, beneficiary, interest_holder: interestHolder, interest_type: interestType, interest_statement: interestStatement, interest_holder_other: interestHolderOther, interest_type_other: interestTypeOther, controller_is_public_authority: controllerIsPublicAuthority, public_task_processing: publicTaskProcessing,
+        // DOC 189 — the device-access pair; Q2 only travels when Q1 is "Yes"
+        // (a hidden answer must not outlive the question that revealed it).
+        device_access: deviceAccess,
+        device_access_strictly_necessary: deviceAccess === "Yes" ? deviceAccessStrictlyNecessary : "",
+      },
       necessity_details: {
         alternatives,
         alternatives_rationale: alternativesRationale,
@@ -550,6 +565,33 @@ const LIAssessmentIntake = () => {
                 <option>Yes</option>
                 <option>No</option>
                 <option>Not applicable</option>
+              </select>
+            </div>
+          )}
+
+          {/* DOC 189 (2026-09-05, CEO-approved wording) — the ePrivacy
+              availability gate's own two questions. Q1 always shown; Q2 only
+              when Q1 is "Yes". The gate reads these ahead of its lexicons. */}
+          <div>
+            <Label className="text-base">Does this processing store information on, or read information from, people's phones, computers or browsers?</Label>
+            <p className="text-xs text-muted-foreground mt-1">Cookies, pixels and web beacons, SDK or advertising identifiers, and device or browser fingerprinting all count, whether or not the person notices. Answer for the processing described above, not for your website generally.</p>
+            <select value={deviceAccess} onFocusCapture={focusField("device_access")} onChange={(e) => setDeviceAccess(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+              <option value="">Select…</option>
+              <option>Yes</option>
+              <option>No</option>
+              <option>Not sure</option>
+            </select>
+          </div>
+
+          {deviceAccess === "Yes" && (
+            <div>
+              <Label className="text-base">Is that device access limited to what is strictly necessary to provide a service the person has asked for?</Label>
+              <p className="text-xs text-muted-foreground mt-1">Strictly necessary means the service cannot be delivered without it — keeping someone signed in, remembering a basket, or protecting their account. Analytics, advertising, personalisation and audience measurement are not strictly necessary in this sense.</p>
+              <select value={deviceAccessStrictlyNecessary} onFocusCapture={focusField("device_access_strictly_necessary")} onChange={(e) => setDeviceAccessStrictlyNecessary(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+                <option value="">Select…</option>
+                <option>Yes — all of it is strictly necessary</option>
+                <option>No — some or all of it goes further</option>
+                <option>Not sure</option>
               </select>
             </div>
           )}

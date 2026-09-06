@@ -73,6 +73,9 @@ const F_LIA_UK: SampleFixture = {
         specific_benefit:
           "Underground medical events and restricted-zone entries are detected within seconds rather than at the next scheduled check-in, so evacuation and medic dispatch begin before a worker becomes unresponsive.",
         beneficiary: "Our business and the individuals",
+        // DOC 189 — the ePrivacy device-access question: wearable telemetry
+        // over the mine's own network, no phones/browsers touched.
+        device_access: "No",
       },
       necessity_details: {
         alternatives:

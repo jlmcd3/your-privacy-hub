@@ -23,3 +23,15 @@ export const JURISDICTIONS = [
   "California (CCPA/CPRA)", "Other US States", "Canada", "Brazil (LGPD)",
   "Australia", "Singapore", "Other",
 ];
+
+// DOC 189 (2026-09-05, CEO-approved wording; the PN-L6 resolution) — the
+// two device-access questions that feed the ePrivacy gate directly instead
+// of leaving it to lexicons over the free-text description. Q2 is shown only
+// when Q1 is "Yes". Verbatim copies live in the intake contract
+// (_shared/intake-contracts/li-assessment.ts).
+export const DEVICE_ACCESS_OPTS = ["Yes", "No", "Not sure"];
+export const DEVICE_ACCESS_NECESSITY_OPTS = [
+  "Yes — all of it is strictly necessary",
+  "No — some or all of it goes further",
+  "Not sure",
+];

@@ -23,6 +23,11 @@ export interface EngagementEntry {
   rationale: string;              // one sentence
   intake_signals: string[];       // intake field paths inspected
   section_ref?: string;           // where in the report this determination surfaces
+  /** DOC 189 (2026-09-05) — optional typed basis for a status, where the
+   *  same status can arise from different facts a renderer must tell apart
+   *  (R_EPRIVACY_PECR: "not_engaged" on silence vs. on the company's
+   *  strict-necessity claim, which the overlay must render). */
+  basis?: string;
 }
 
 export interface EngagementMap {
@@ -234,21 +239,39 @@ export function buildLiaEngagementMap(
   //                                     per the reviewer's own instruction
   //                                     to favor the qualified reading over
   //                                     a firm claim when in doubt)
+  //
+  // DOC 189 (2026-09-05) — a fourth gate determination,
+  // "exemption_claimed_on_the_record" (the company answered the device-access
+  // question "Yes" and the strict-necessity question "Yes"): the overlay is
+  // NOT engaged on the company's own statement, which the document must
+  // attribute and never verify. Carried as status "not_engaged" with
+  // basis "exemption_claimed" so eprivacyOverlayNote can render the claim
+  // sentence while the silent not_engaged case stays silent.
+  const eprivacyExemptionClaimed = eprivacyGateDetermination === "exemption_claimed_on_the_record";
   entries.push({
     rule_id: "R_EPRIVACY_PECR",
     name: "ePrivacy / PECR device-storage overlay",
     status: eprivacyGateDetermination === "consent_requirement_engaged"
       ? "engaged"
-      : eprivacyGateDetermination === "not_engaged_on_the_record"
+      : (eprivacyGateDetermination === "not_engaged_on_the_record" || eprivacyExemptionClaimed)
         ? "not_engaged"
         : "conditional",
     rationale: eprivacyGateDetermination === "consent_requirement_engaged"
       ? "Any storage of or access to information on a user's device requires a separate consent or exemption under the ePrivacy Directive / PECR 2003 in addition to the LI basis."
-      : eprivacyGateDetermination === "not_engaged_on_the_record"
-        ? "The record's description of the processing does not indicate storage of or access to information on a user's device; the ePrivacy Directive / PECR 2003 overlay is not engaged by the processing as described."
-        : "The record does not establish whether the processing involves storage of or access to information on a user's device in a manner that engages the ePrivacy Directive / PECR 2003; this is an open determination, not a finding either way.",
-    intake_signals: ["processing_description", "stated_purpose", "data_categories"],
+      : eprivacyExemptionClaimed
+        ? "The company states that the processing stores information on, or reads information from, individuals' devices only to the extent strictly necessary to provide a service the individual has requested. On that statement the ePrivacy Directive / PECR 2003 consent requirement is not engaged; this assessment records the statement and does not verify it, and the Article 6(1)(f) determination above is stated subject to it."
+        : eprivacyGateDetermination === "not_engaged_on_the_record"
+          ? "The record's description of the processing does not indicate storage of or access to information on a user's device; the ePrivacy Directive / PECR 2003 overlay is not engaged by the processing as described."
+          : "The record does not establish whether the processing involves storage of or access to information on a user's device in a manner that engages the ePrivacy Directive / PECR 2003; this is an open determination, not a finding either way.",
+    intake_signals: [
+      "processing_description",
+      "stated_purpose",
+      "data_categories",
+      "purpose_details.device_access",
+      "purpose_details.device_access_strictly_necessary",
+    ],
     section_ref: "section_5_recommendations",
+    ...(eprivacyExemptionClaimed ? { basis: "exemption_claimed" } : {}),
   });
 
   entries.push({

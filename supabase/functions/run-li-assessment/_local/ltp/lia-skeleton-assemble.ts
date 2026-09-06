@@ -492,6 +492,17 @@ export function eprivacyOverlayNote(report: Bag, foreclosed = false): string {
   if (!entry) return "";
   const status = s(entry.status);
   if (status === "conditional") return EPRIVACY_ADDITIONAL_INFO_REQUIRED;
+  // DOC 189 (2026-09-05): the company's strict-necessity CLAIM (device-access
+  // question "Yes", strict-necessity question "Yes") arrives as not_engaged
+  // with basis "exemption_claimed". It renders in the attribution register
+  // — the entry's rationale already carries the whole sentence set (the
+  // statement, the not-engaged consequence, the never-verified caveat); the
+  // silent not_engaged case (no basis) stays silent as before.
+  if (status === "not_engaged" && s(entry.basis) === "exemption_claimed") {
+    const claim = s(entry.rationale);
+    if (!claim) return "";
+    return `Separately, ${claim.charAt(0).toLowerCase()}${claim.slice(1)}`;
+  }
   if (status !== "engaged") return "";
   const rationale = s(entry.rationale);
   if (!rationale) return "";
@@ -1274,8 +1285,10 @@ export function assembleLiaSkeletonDocument(
   // L2 — the Persuasive Authority section (deterministic path only). The
   // "balancing_fails" render_when state is the typed balancing verdict,
   // now code-computed (the render-readiness law's condition).
+  // DOC 189 (2026-09-05): the record travels too — the relevance ranking
+  // reads its closed-list facts (jurisdictions, data categories, relationship).
   const persuasive = deterministic
-    ? buildLiaPersuasiveAuthority(report, v.balancing === "likely_fails")
+    ? buildLiaPersuasiveAuthority(report, v.balancing === "likely_fails", { intake: record })
     : { body: "", ledger: [] as readonly string[], entry_count: 0, aow_fired: false };
   if (deterministic && persuasive.body) {
     composed["persuasive_authority:0"] = persuasive.body;

@@ -276,14 +276,22 @@ Deno.test("doc161 — the UK Art. 6(11) direct-marketing note fires on direct ma
 // ── R10: the UK ePrivacy twin ───────────────────────────────────────────────
 
 Deno.test("doc161 — the ePrivacy foreclosure sentence names PECR and Article 6(1)(f) UK GDPR on a UK-only record", () => {
+  // DOC 189 (2026-09-05): both perfect fixtures now answer the device-access
+  // pair (UK: "Yes" / "all strictly necessary" for the checkout's device
+  // signals; EU: "No"), and an explicit answer outranks the cookie lexicon. To
+  // exercise the FORECLOSURE sentence the record must say the access goes
+  // further — the "Yes"/"No" pair a real cookie-tracking record would give.
+  const goesFurther = { device_access: "Yes", device_access_strictly_necessary: "No — some or all of it goes further" };
   const uk = UK();
   uk.processing_description = `${uk.processing_description} Behavioural signals are collected through cookies and tracking pixels on the site.`;
+  uk.purpose_details = { ...(uk.purpose_details as Record<string, unknown>), ...goesFurther };
   const gate = buildEprivacyShortCircuit(uk);
   assertEquals(gate.determination, "consent_requirement_engaged");
   assertStringIncludes(gate.application, LIA_EPRIVACY_RULE_SENTENCE_UK);
   assert(!gate.application.includes(LIA_EPRIVACY_RULE_SENTENCE));
   const eu = EU();
   eu.processing_description = `${eu.processing_description} Behavioural signals are collected through cookies and tracking pixels on the site.`;
+  eu.purpose_details = { ...(eu.purpose_details as Record<string, unknown>), ...goesFurther };
   assertStringIncludes(buildEprivacyShortCircuit(eu).application, LIA_EPRIVACY_RULE_SENTENCE);
 });
 

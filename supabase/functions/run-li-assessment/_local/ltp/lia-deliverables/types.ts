@@ -187,7 +187,12 @@ export interface LiaDeliverables {
 export type EprivacyGateDetermination =
   | "consent_requirement_engaged"
   | "not_engaged_on_the_record"
-  | "undetermined_on_the_record";
+  | "undetermined_on_the_record"
+  // DOC 189 (2026-09-05) — the company answers the device-access question
+  // "Yes" and the strict-necessity question "Yes": the exemption is claimed
+  // on the record. LI is not foreclosed; the determination is stated subject
+  // to the claim, which this assessment records and never verifies.
+  | "exemption_claimed_on_the_record";
 
 export type EprivacyTriggerBasis =
   | "terminal_equipment_access"
@@ -208,6 +213,11 @@ export interface EprivacyShortCircuitFinding extends AnalysisShape {
   /** True where ePrivacy-covered activity is indicated but the record
    * does not resolve whether the consent requirement applies. */
   readonly indication_unresolved: boolean;
+  /** DOC 189 — the company's own answers to the two device-access questions
+   * (purpose_details.device_access / …_strictly_necessary), echoed verbatim
+   * so the audit trail shows what the gate read; "" where unanswered. */
+  readonly device_access_recorded: string;
+  readonly device_access_strictly_necessary_recorded: string;
   readonly supporting_citation: string;
   readonly supporting_verbatim: string;
   /** The CAM row this gate implements: "lia/f11-eprivacy/fcl-01". */

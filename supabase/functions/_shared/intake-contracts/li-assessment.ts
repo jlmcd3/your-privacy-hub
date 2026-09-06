@@ -79,6 +79,19 @@ const CHILD_DATA_SUBJECT_OPTS = ["Yes", "No", "Unknown"] as const;
 const PUBLIC_AUTHORITY_OPTS = ["Yes", "No"] as const;
 const PUBLIC_TASK_OPTS = ["Yes", "No", "Not applicable"] as const;
 
+// DOC 189 (2026-09-05, CEO-approved; the PN-L6 resolution — an explicit
+// exception to the fleet-redesign "no new intake" rule) — the two
+// device-access questions the ePrivacy gate reads ahead of its lexicons.
+// Verbatim copies of src/pages/LIAssessment.enums.ts DEVICE_ACCESS_OPTS /
+// DEVICE_ACCESS_NECESSITY_OPTS. Both optional so legacy rows validate; the
+// gate keeps its lexicon behaviour where the questions are unanswered.
+export const DEVICE_ACCESS_OPTS = ["Yes", "No", "Not sure"] as const;
+export const DEVICE_ACCESS_NECESSITY_OPTS = [
+  "Yes — all of it is strictly necessary",
+  "No — some or all of it goes further",
+  "Not sure",
+] as const;
+
 // UPGRADE-4 additions — ICO three-part-arc inputs and the attestation close.
 // All optional so legacy rows continue to validate.
 const BENEFICIARY_OPTS = [
@@ -145,6 +158,15 @@ export const liAssessmentStageBContract: IntakeContract = {
       options: PUBLIC_AUTHORITY_OPTS },
     { key: "purpose_details.public_task_processing",   kind: "enum",       required: "optional",
       options: PUBLIC_TASK_OPTS },
+    // DOC 189 — the ePrivacy availability gate's own two questions (the
+    // other availability gate beside the public-authority pair above).
+    // Q1 always shown; Q2 shown only when Q1 === "Yes".
+    { key: "purpose_details.device_access",            kind: "enum",       required: "optional",
+      options: DEVICE_ACCESS_OPTS },
+    { key: "purpose_details.device_access_strictly_necessary", kind: "enum", required: "conditional",
+      options: DEVICE_ACCESS_NECESSITY_OPTS,
+      requiredWhen: 'purpose_details.device_access === "Yes"',
+      trigger: { key: "purpose_details.device_access", equals: ["Yes"] } },
     // UPGRADE-4 — the specific benefit and who receives it.
     { key: "purpose_details.specific_benefit",         kind: "narrative",  required: "optional" },
     { key: "purpose_details.beneficiary",              kind: "enum",       required: "optional",

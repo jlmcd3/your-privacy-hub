@@ -58,6 +58,10 @@ const base = {
       "Meridian's interest is to help existing members get more value from their membership by recommending class times and equipment availability that match their own recorded gym habits, which in turn supports member retention.",
     controller_is_public_authority: "No",
     public_task_processing: "Not applicable",
+    // DOC 189 (2026-09-05) — the ePrivacy device-access question: check-ins
+    // and bookings are recorded server-side when the member scans in; the
+    // app stores or reads nothing on the device for this processing.
+    device_access: "No",
     specific_benefit:
       "Members receive personalised scheduling recommendations that reduce time spent waiting for equipment and increase the classes they can attend, and Meridian sees improved membership retention as a result.",
     beneficiary: "Our business and the individuals",

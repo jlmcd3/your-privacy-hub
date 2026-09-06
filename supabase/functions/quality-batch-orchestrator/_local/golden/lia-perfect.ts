@@ -60,6 +60,16 @@ export const LIA_PERFECT: GoldenCase[] = [
         beneficiary: "Our business and the individuals",
         controller_is_public_authority: "No",
         public_task_processing: "Not applicable",
+        // DOC 189 (2026-09-05) — the ePrivacy device-access pair. The checkout
+        // page reads four device signals (browser/OS version, screen resolution,
+        // timezone offset, hashed device identifier): that IS reading
+        // information from the customer's terminal equipment, done only to
+        // screen the card order the customer has just asked to place — the
+        // strict-necessity exemption territory. A perfect record answers
+        // honestly: Yes, and all of it strictly necessary (the exemption is
+        // CLAIMED on the record; the gate never verifies it).
+        device_access: "Yes",
+        device_access_strictly_necessary: "Yes — all of it is strictly necessary",
       },
 
       // ── Stage B — necessity ────────────────────────────────────────────

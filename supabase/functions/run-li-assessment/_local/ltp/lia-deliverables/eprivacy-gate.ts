@@ -24,48 +24,58 @@
  * SINGLE-WRITER LAW: this module is the ONLY producer of
  * report.eprivacy_short_circuit (attached via attachLiaDeliverables).
  *
- * DETERMINISM: trigger detection runs closed lexicons over the two intake
- * fields that DEFINE the assessed processing (processing_description,
- * stated_purpose — both required "always" by the contract) plus the
- * shared deterministic use-case classifier. No model output is read.
+ * DETERMINISM: the gate reads, in this order, (1) the company's own answers
+ * to the two device-access questions (purpose_details.device_access and
+ * purpose_details.device_access_strictly_necessary — DOC 189, 2026-09-05,
+ * the PN-L6 resolution; CEO-approved wording, an explicit exception to the
+ * fleet-redesign "no new intake" rule), then (2) closed lexicons over the two
+ * intake fields that DEFINE the assessed processing (processing_description,
+ * stated_purpose) plus the shared deterministic use-case classifier. No model
+ * output is read.
  *
- * INTAKE GAP (PN-L6, decision queue "Open — LIA", filed 2026-08-26): the
- * intake contract has NO field recording whether the processing involves
- * cookies/terminal-equipment access or electronic direct marketing. Until
- * the CEO rules on the proposed field, this gate works only from what the
- * record's own free text states, and it is conservative in one direction
- * ONLY: `consent_requirement_engaged` fires solely on unmistakable
- * recorded triggers; anything indicated but unresolved (including the
- * strictly-necessary cookie exemption and the existing-customer
- * "soft opt-in" question, neither of which this gate ever adjudicates)
- * degrades to `undetermined_on_the_record` with a specific
- * information_needed. A record whose description carries no indication of
- * ePrivacy-covered activity determines `not_engaged_on_the_record` —
- * bound to the record as the application text states, re-run if the facts
- * are otherwise.
+ * ANSWER-FIRST LAW (doc 189 §1.4): an explicit answer outranks the lexicons
+ * on the terminal-equipment limb. "No" resolves that limb not engaged on the
+ * company's statement; "Yes" + "goes further" engages the hard gate; "Yes" +
+ * "all strictly necessary" records the exemption CLAIM (a new determination,
+ * `exemption_claimed_on_the_record` — LI is not foreclosed, the determination
+ * is stated subject to the claim, and this assessment never verifies it);
+ * "Yes" + "Not sure" and "Not sure" alone stay undetermined with a narrower
+ * information_needed. A "No" beside a description that itself names cookies,
+ * pixels, beacons or fingerprinting is a record CONTRADICTION: undetermined,
+ * both facts stated, never a silent override in either direction. Unanswered
+ * (legacy records, the harness) keeps the lexicon behaviour byte-for-byte.
+ * The unsolicited-messages limb is untouched by the answers — it is a
+ * different question (the optional marketing pair is listed in doc 189 §1.4).
  *
- * RENDER-READINESS (doc 48 §II.6) + RATIFICATION GATE: this finding is
- * computed and persisted on every run (telemetry + audit), but NO
- * renderer may splice any of its prose into skeleton_document until
- * LIA_EPRIVACY_GATE_RATIFIED flips — the sentences authored here are
- * DRAFTS proposed to the CEO in PN-L6, exactly the
- * LIA_PRECEDENT_CLASS_RATIFIED pattern (precedent-classes.ts). No
- * skeleton wiring exists yet at all; the flag is declared now so the
- * later wiring has its gate waiting.
+ * The lexicon path is conservative in one direction ONLY:
+ * `consent_requirement_engaged` fires solely on unmistakable recorded
+ * triggers; anything indicated but unresolved (including the strictly-
+ * necessary cookie exemption and the existing-customer "soft opt-in"
+ * question, neither of which this gate ever adjudicates) degrades to
+ * `undetermined_on_the_record` with a specific information_needed. A record
+ * whose description carries no indication of ePrivacy-covered activity
+ * determines `not_engaged_on_the_record` — bound to the record as the
+ * application text states, re-run if the facts are otherwise.
+ *
+ * RENDER-READINESS (doc 48 §II.6) + RATIFICATION GATE: the finding's prose
+ * is ratified (LIA_EPRIVACY_GATE_RATIFIED, below) and reaches the document
+ * ONLY through the typed engine's outcome override (three-part-test-typed.ts)
+ * and the engagement map's R_EPRIVACY_PECR entry — the skeleton assembler
+ * never reads this finding directly (pinned by eprivacy-gate.test.ts).
  *
  * AUTHORITY: the standard is the CAM row lia/f11-eprivacy/fcl-01's
  * pinned excerpt (EDPB Guidelines 1/2024, verified live 2026-08-25,
  * snapshot-pinned by cam-pins.test.ts) — never re-typed here. NOTE for
  * ratification: the corpus holds NO ePrivacy Directive provision text
- * (no provision_texts row for Art. 5(3)/Art. 13), so no draft below
+ * (no provision_texts row for Art. 5(3)/Art. 13), so no sentence below
  * quotes the Directive itself; a registry anchor must be ingested before
- * any pinpoint citation to the Directive can ratify (flagged in PN-L6).
+ * any pinpoint citation to the Directive can ratify.
  */
 import { LIA_CORPUS_MAP } from "../../corpus/maps/lia-corpus-map.ts";
 import { classifyLiaUseCase, USE_CASE_LABELS } from "../../../../_shared/lia/lia-use-case-classifier.ts";
-import type { EprivacyShortCircuitFinding, EprivacyTriggerBasis } from "./types.ts";
+import type { EprivacyGateDetermination, EprivacyShortCircuitFinding, EprivacyTriggerBasis } from "./types.ts";
 
-export const LIA_EPRIVACY_GATE_VERSION = "lia-eprivacy-gate-2026-08-26-v1";
+export const LIA_EPRIVACY_GATE_VERSION = "lia-eprivacy-gate-2026-09-05-v2-device-access-question";
 
 /**
  * RATIFICATION GATE (PN-L6). Flipped TRUE 2026-08-26 under the CEO's
@@ -74,7 +84,8 @@ export const LIA_EPRIVACY_GATE_VERSION = "lia-eprivacy-gate-2026-08-26-v1";
  * (LIA_EPRIVACY_RULE_SENTENCE, three-part-test-typed.ts), are ratified
  * bytes. Rendering happens ONLY on the deterministic path (the typed
  * engine's outcome override carries the rule into the document); the
- * legacy model path remains byte-untouched.
+ * legacy model path remains byte-untouched. DOC 189 (2026-09-05): the
+ * answer-first sentences below were approved with doc 189 §1.4.
  */
 export const LIA_EPRIVACY_GATE_RATIFIED = true;
 
@@ -107,6 +118,8 @@ export const TERMINAL_EQUIPMENT_TRIGGERS: readonly RegExp[] = [
  * "Not Available" on this word alone. It now routes to the indicated-but-
  * unresolved branch: determination stated subject to the gate, with the
  * strictly-necessary question asked. Cookies/pixels/beacons stay conclusive.
+ * DOC 189: the device-access questions are the direct route out of this
+ * branch — the company answers the question the lexicon could only raise.
  */
 export const DEVICE_ACCESS_INDICATORS: readonly RegExp[] = [
   /\b(?:device|browser) fingerprint\w*/i,
@@ -148,6 +161,16 @@ const EPRIVACY_ADJACENT_CLASSES: readonly string[] = [
   "direct_marketing",
 ];
 
+// DOC 189 — the two questions' option strings (verbatim copies of the
+// intake contract's DEVICE_ACCESS_OPTS / DEVICE_ACCESS_NECESSITY_OPTS; the
+// contract test pins the parity). Matching is exact after trim.
+export const DEVICE_ACCESS_YES = "Yes";
+export const DEVICE_ACCESS_NO = "No";
+export const DEVICE_ACCESS_NOT_SURE = "Not sure";
+export const DEVICE_ACCESS_NECESSARY_YES = "Yes — all of it is strictly necessary";
+export const DEVICE_ACCESS_NECESSARY_NO = "No — some or all of it goes further";
+export const DEVICE_ACCESS_NECESSARY_NOT_SURE = "Not sure";
+
 function str(v: unknown): string {
   return typeof v === "string" ? v.trim() : "";
 }
@@ -175,9 +198,8 @@ function anyMatch(text: string, res: readonly RegExp[]): boolean {
 }
 
 /**
- * The ratified B5 rule, stated as one sentence. DRAFT customer prose
- * (PN-L6): a light grammatical normalisation of the doc 62 §5 ruling
- * text; dark until LIA_EPRIVACY_GATE_RATIFIED.
+ * The ratified B5 rule, stated as one sentence (PN-L6(c), ratified
+ * 2026-08-26; byte-identical to LIA_EPRIVACY_RULE_SENTENCE).
  */
 const RULE_SENTENCE =
   "Where Article 5(3) of the ePrivacy Directive requires consent for the processing — for example cookies or other access to terminal equipment, or unsolicited electronic messages — legitimate interests under Article 6(1)(f) GDPR cannot substitute for that consent, however the balancing test would otherwise resolve.";
@@ -191,6 +213,59 @@ const RULE_SENTENCE_UK =
 const quoteList = (phrases: readonly string[]): string =>
   phrases.map((p) => `"${p}"`).join(", ");
 
+// DOC 189 §1.4 — the company's-own-statement sentences (approved wording).
+const STATEMENT_NO_DEVICE_ACCESS =
+  "The company states that the processing does not store information on, or read information from, individuals' devices.";
+const STATEMENT_DEVICE_ACCESS_GOES_FURTHER =
+  "The company states that the processing stores information on, or reads information from, individuals' devices, and that this access goes beyond what is strictly necessary to provide a service the individual has requested.";
+const STATEMENT_DEVICE_ACCESS_STRICTLY_NECESSARY =
+  "The company states that the processing stores information on, or reads information from, individuals' devices, and that the device access is limited to what is strictly necessary for a service the individual has requested.";
+const STATEMENT_DEVICE_ACCESS_NECESSITY_NOT_SURE =
+  "The company states that the processing stores information on, or reads information from, individuals' devices, but has not resolved whether that access is limited to what is strictly necessary for a service the individual has requested.";
+const STATEMENT_DEVICE_ACCESS_NOT_SURE =
+  "The company has answered that it is not sure whether the processing stores information on, or reads information from, individuals' devices.";
+
+const INFORMATION_NEEDED_NECESSITY_ONLY =
+  "whether every storage of information on, or read of information from, individuals' devices that this processing involves is strictly necessary to provide a service the individual has asked for (keeping someone signed in, remembering a basket, protecting their account), or whether any of it serves analytics, advertising, personalisation or audience measurement — the second device-access question on the intake.";
+const INFORMATION_NEEDED_DEVICE_ACCESS =
+  "whether the processing stores information on, or reads information from, people's phones, computers or browsers (cookies, pixels and web beacons, SDK or advertising identifiers, device or browser fingerprinting) — the device-access question on the intake — and, if it does, whether all of that access is strictly necessary to provide a service the individual has asked for.";
+const INFORMATION_NEEDED_MESSAGING =
+  "whether the processing involves electronic messages to individuals (e-mail, SMS, push) and on what basis recipients receive them — in particular whether they are existing customers being contacted about similar products or services.";
+
+/** The terminal-equipment limb as resolved by the two answers, if answered. */
+interface DeviceLeg {
+  readonly kind: "engaged" | "exemption_claimed" | "not_engaged" | "unresolved";
+  readonly statement: string;
+  readonly information_needed?: string;
+}
+
+function readDeviceLeg(q1: string, q2: string): DeviceLeg | null {
+  if (q1 === DEVICE_ACCESS_NO) {
+    return { kind: "not_engaged", statement: STATEMENT_NO_DEVICE_ACCESS };
+  }
+  if (q1 === DEVICE_ACCESS_NOT_SURE) {
+    return {
+      kind: "unresolved",
+      statement: STATEMENT_DEVICE_ACCESS_NOT_SURE,
+      information_needed: INFORMATION_NEEDED_DEVICE_ACCESS,
+    };
+  }
+  if (q1 === DEVICE_ACCESS_YES) {
+    if (q2 === DEVICE_ACCESS_NECESSARY_NO) {
+      return { kind: "engaged", statement: STATEMENT_DEVICE_ACCESS_GOES_FURTHER };
+    }
+    if (q2 === DEVICE_ACCESS_NECESSARY_YES) {
+      return { kind: "exemption_claimed", statement: STATEMENT_DEVICE_ACCESS_STRICTLY_NECESSARY };
+    }
+    return {
+      kind: "unresolved",
+      statement: STATEMENT_DEVICE_ACCESS_NECESSITY_NOT_SURE,
+      information_needed: INFORMATION_NEEDED_NECESSITY_ONLY,
+    };
+  }
+  return null;
+}
+
 export function buildEprivacyShortCircuit(intake: unknown): EprivacyShortCircuitFinding {
   const standard = CAM_ROW?.pinned_excerpt ?? "";
   const standard_citation = CAM_ROW ? "EDPB Guidelines 1/2024" : "";
@@ -201,15 +276,24 @@ export function buildEprivacyShortCircuit(intake: unknown): EprivacyShortCircuit
   const ukOnly = jurisdictions.includes("United Kingdom (UK GDPR)") && !jurisdictions.includes("EU (GDPR)");
   const ruleSentence = ukOnly ? RULE_SENTENCE_UK : RULE_SENTENCE;
 
+  // DOC 189 — the company's own answers, read before any lexicon.
+  const q1 = str(get(intake, "purpose_details.device_access"));
+  const q2 = str(get(intake, "purpose_details.device_access_strictly_necessary"));
+  const deviceLeg = readDeviceLeg(q1, q2);
+
   const common = {
     standard,
     standard_citation,
     supporting_citation: standard_citation,
     supporting_verbatim: standard,
     corpus_row_id: EPRIVACY_CAM_ROW_ID,
+    device_access_recorded: q1,
+    device_access_strictly_necessary_recorded: q1 === DEVICE_ACCESS_YES ? q2 : "",
   };
 
   // ── No description at all: the fact the gate runs on is absent. ──────
+  // (The answers alone cannot carry the gate: the covered PROCESSING must be
+  // described before the gate can say what it is evaluated against.)
   if (!scan) {
     return {
       ...common,
@@ -223,7 +307,7 @@ export function buildEprivacyShortCircuit(intake: unknown): EprivacyShortCircuit
       indication_unresolved: false,
       status: "record_insufficient",
       information_needed:
-        "processing_description — what is done, over what channels and technologies, so the ePrivacy gate can be evaluated. A dedicated intake field for ePrivacy-covered activity (cookies/terminal-equipment access; electronic direct marketing and its recipients) is separately proposed in the decision queue (PN-L6).",
+        "processing_description — what is done, over what channels and technologies, so the ePrivacy gate can be evaluated, together with the two device-access questions on the intake.",
     };
   }
 
@@ -233,9 +317,134 @@ export function buildEprivacyShortCircuit(intake: unknown): EprivacyShortCircuit
   const deviceIndications = collectHits(scan, DEVICE_ACCESS_INDICATORS);
   const strictlyNecessary = anyMatch(scan, STRICTLY_NECESSARY_QUALIFIER);
   const useCaseClass = classifyLiaUseCase(description);
+  const classIndicated = EPRIVACY_ADJACENT_CLASSES.includes(useCaseClass);
 
-  const terminalEngaged = terminalHits.length > 0 && !strictlyNecessary;
   const unsolicitedEngaged = unsolicitedHits.length > 0;
+  const deviceLexiconHits = [...new Set([...terminalHits, ...deviceIndications])];
+
+  // ═══ DOC 189 — ANSWER-FIRST PATH (terminal-equipment limb resolved by the
+  // company's own answers; the unsolicited-messages limb keeps its lexicon). ═══
+  if (deviceLeg) {
+    // Contradiction: "No" beside a description that itself names device access.
+    if (deviceLeg.kind === "not_engaged" && deviceLexiconHits.length > 0) {
+      return {
+        ...common,
+        record_fact:
+          `${STATEMENT_NO_DEVICE_ACCESS} The record's description of the processing, however, includes ${quoteList(deviceLexiconHits)}, which describes storing information on, or reading information from, individuals' devices. The two statements contradict each other.`,
+        application:
+          `${ruleSentence} The record answers the device-access question "No" while describing device access in its own words, so the facts that decide whether the consent requirement applies here are contradicted rather than recorded. The gate is therefore open rather than resolved either way, and the determination above is stated subject to it.`,
+        determination: "undetermined_on_the_record",
+        li_foreclosed_for_covered_processing: false,
+        trigger_basis: "none_recorded",
+        trigger_phrases: deviceLexiconHits,
+        indication_unresolved: true,
+        status: "record_insufficient",
+        information_needed:
+          `reconcile the device-access answer ("No") with the description's reference to ${quoteList(deviceLexiconHits)}: either the processing does store or read information on individuals' devices, in which case answer "Yes" and say whether all of that access is strictly necessary for a service the individual has asked for, or it does not, in which case remove the reference from the description.`,
+      };
+    }
+
+    // Hard gate engaged on the company's own statement, or on a conclusive
+    // unsolicited-messages trigger.
+    if (deviceLeg.kind === "engaged" || unsolicitedEngaged) {
+      const terminalEngaged = deviceLeg.kind === "engaged";
+      const basis: EprivacyTriggerBasis = terminalEngaged
+        ? "terminal_equipment_access"
+        : "unsolicited_electronic_messages";
+      const covered = terminalEngaged
+        ? "storing information, or gaining access to information already stored, in users' terminal equipment"
+        : "unsolicited electronic messages";
+      const recordFact = terminalEngaged
+        ? `${STATEMENT_DEVICE_ACCESS_GOES_FURTHER}${
+          unsolicitedEngaged ? ` The record's description of the processing also includes ${quoteList(unsolicitedHits)}, which describes unsolicited electronic messages.` : ""
+        }`
+        : `${deviceLeg.statement} The record's description of the processing includes ${quoteList(unsolicitedHits)}, which describes unsolicited electronic messages.`;
+      return {
+        ...common,
+        record_fact: recordFact,
+        application:
+          `${ruleSentence} The processing as recorded involves ${covered}, so for that covered processing legitimate interests is not an available basis and the consent the ePrivacy rules themselves require is the route to lawfulness. This gate is evaluated independently of the balancing test and is not moved by its outcome.`,
+        determination: "consent_requirement_engaged",
+        li_foreclosed_for_covered_processing: true,
+        trigger_basis: basis,
+        trigger_phrases: terminalEngaged ? [...deviceLexiconHits, ...unsolicitedHits] : [...unsolicitedHits],
+        indication_unresolved: false,
+        status: "analysed",
+      };
+    }
+
+    // The messaging limb is unresolved by lexicon (indication or class):
+    // the gate stays open on that limb whatever the device answers say, and
+    // the record_fact carries both.
+    const messagingOpen = marketingIndications.length > 0 || classIndicated;
+
+    if (deviceLeg.kind === "unresolved" || messagingOpen) {
+      const facts: string[] = [deviceLeg.statement];
+      if (messagingOpen) {
+        facts.push(
+          marketingIndications.length > 0
+            ? `The record's description of the processing also includes ${quoteList(marketingIndications)}, activity of a kind the ePrivacy consent rules can cover, but it does not resolve whether the consent requirement applies to those messages.`
+            : `The record's description of the processing is also classified as ${(USE_CASE_LABELS[useCaseClass] ?? USE_CASE_LABELS.other).toLowerCase()}, activity of a kind the ePrivacy consent rules can cover, but it does not resolve whether any electronic messages are sent or on what basis.`,
+        );
+      }
+      const needed: string[] = [];
+      if (deviceLeg.kind === "unresolved" && deviceLeg.information_needed) needed.push(deviceLeg.information_needed);
+      if (messagingOpen) needed.push(INFORMATION_NEEDED_MESSAGING);
+      return {
+        ...common,
+        record_fact: facts.join(" "),
+        application:
+          `${ruleSentence} The facts that decide whether the consent requirement applies here are not fully recorded — ${
+            deviceLeg.kind === "unresolved"
+              ? "the company has not resolved the device-access question"
+              : "the device-access question is answered"
+          }${messagingOpen ? `${deviceLeg.kind === "unresolved" ? ", and" : ", but"} the channels and recipients of any electronic messages are not recorded` : ""}. The gate is therefore open rather than resolved either way, and the determination above is stated subject to it.`,
+        determination: "undetermined_on_the_record",
+        li_foreclosed_for_covered_processing: false,
+        trigger_basis: "none_recorded",
+        trigger_phrases: [...new Set([...deviceLexiconHits, ...marketingIndications])],
+        indication_unresolved: true,
+        status: "record_insufficient",
+        information_needed: needed.join(" Also: "),
+      };
+    }
+
+    // The exemption is claimed on the record: LI is not foreclosed; the
+    // determination is stated subject to the claim, which is never verified.
+    if (deviceLeg.kind === "exemption_claimed") {
+      const determination: EprivacyGateDetermination = "exemption_claimed_on_the_record";
+      return {
+        ...common,
+        record_fact: STATEMENT_DEVICE_ACCESS_STRICTLY_NECESSARY,
+        application:
+          `${ruleSentence} On the company's statement the device access falls within the strict-necessity exemption, so the consent requirement is not engaged for that access and legitimate interests is not foreclosed by it. This assessment records the statement and does not verify it: whether each storage or read is in fact strictly necessary for a service the individual has requested is a question of fact the company must be able to demonstrate, and the determination above is stated subject to it. This gate is evaluated independently of the balancing test and is not moved by its outcome.`,
+        determination,
+        li_foreclosed_for_covered_processing: false,
+        trigger_basis: "none_recorded",
+        trigger_phrases: deviceLexiconHits,
+        indication_unresolved: false,
+        status: "analysed",
+      };
+    }
+
+    // "No", uncontradicted, nothing open on the messaging limb.
+    return {
+      ...common,
+      record_fact:
+        `${STATEMENT_NO_DEVICE_ACCESS} The record's description of the processing does not include electronic direct marketing or other electronic messages to individuals.`,
+      application:
+        "On the company's statement the processing does not involve storing or reading information on users' terminal equipment, and as the record describes it the processing does not involve sending unsolicited electronic messages, so the ePrivacy consent requirement is not engaged on that statement and legitimate interests is not foreclosed by it. The determination is bound to that statement and description: if the processing in fact uses cookies or similar technologies, or sends electronic marketing messages, this gate must be re-run.",
+      determination: "not_engaged_on_the_record",
+      li_foreclosed_for_covered_processing: false,
+      trigger_basis: "none_recorded",
+      trigger_phrases: [],
+      indication_unresolved: false,
+      status: "analysed",
+    };
+  }
+
+  // ═══ LEXICON PATH (questions unanswered — legacy records, the harness). ═══
+  const terminalEngaged = terminalHits.length > 0 && !strictlyNecessary;
 
   // ── Hard gate engaged: an unmistakable recorded trigger. ─────────────
   if (terminalEngaged || unsolicitedEngaged) {
@@ -262,7 +471,6 @@ export function buildEprivacyShortCircuit(intake: unknown): EprivacyShortCircuit
   }
 
   // ── Indicated but unresolved: degrade, never adjudicate. ─────────────
-  const classIndicated = EPRIVACY_ADJACENT_CLASSES.includes(useCaseClass);
   const strictlyNecessaryUnresolved = terminalHits.length > 0 && strictlyNecessary;
   if (strictlyNecessaryUnresolved || marketingIndications.length > 0 || deviceIndications.length > 0 || classIndicated) {
     const indicationPhrases = [
@@ -284,7 +492,7 @@ export function buildEprivacyShortCircuit(intake: unknown): EprivacyShortCircuit
       indication_unresolved: true,
       status: "record_insufficient",
       information_needed:
-        "whether the processing stores or reads information on users' devices (cookies or similar technologies) beyond what is strictly necessary for a service the individual has requested, and whether it involves electronic messages to individuals and on what basis recipients receive them. No intake field currently records this; a dedicated field is proposed in the decision queue (PN-L6).",
+        `${INFORMATION_NEEDED_DEVICE_ACCESS} Also: ${INFORMATION_NEEDED_MESSAGING}`,
     };
   }
 

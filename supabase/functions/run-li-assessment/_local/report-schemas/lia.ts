@@ -119,6 +119,9 @@ const EPRIVACY_SHORT_CIRCUIT_KEYS = [
   "trigger_basis",
   "trigger_phrases",
   "indication_unresolved",
+  // DOC 189 (2026-09-05) — the two device-access answers the gate read.
+  "device_access_recorded",
+  "device_access_strictly_necessary_recorded",
   "corpus_row_id",
 ] as const;
 

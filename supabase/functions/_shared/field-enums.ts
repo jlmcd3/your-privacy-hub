@@ -145,6 +145,14 @@ const LIA_OPT_OUT_AVAILABLE = [
 ];
 const LIA_PUBLIC_AUTHORITY = ["Yes", "No"];
 const LIA_PUBLIC_TASK = ["Yes", "No", "Not applicable"];
+// DOC 189 (2026-09-05) — the ePrivacy device-access pair (li-assessment.ts
+// DEVICE_ACCESS_OPTS / DEVICE_ACCESS_NECESSITY_OPTS, verbatim).
+const LIA_DEVICE_ACCESS = ["Yes", "No", "Not sure"];
+const LIA_DEVICE_ACCESS_NECESSITY = [
+  "Yes — all of it is strictly necessary",
+  "No — some or all of it goes further",
+  "Not sure",
+];
 const LIA_CHILDREN = ["Yes", "No", "Unknown"];
 const LIA_DPO_REVIEWED = ["Yes", "No", "Planned"];
 
@@ -240,6 +248,8 @@ export const FIELD_ENUM_MIRROR: Record<string, readonly string[]> = {
   "li_assessment:purpose_details.beneficiary": LIA_BENEFICIARY,
   "li_assessment:purpose_details.controller_is_public_authority": LIA_PUBLIC_AUTHORITY,
   "li_assessment:purpose_details.public_task_processing": LIA_PUBLIC_TASK,
+  "li_assessment:purpose_details.device_access": LIA_DEVICE_ACCESS,
+  "li_assessment:purpose_details.device_access_strictly_necessary": LIA_DEVICE_ACCESS_NECESSITY,
   "li_assessment:attestation.dpo_reviewed": LIA_DPO_REVIEWED,
   // cppa_cybersecurity — single maturity enum, shared across 18 controls.
   "cppa_cybersecurity:maturity": CYBER_MATURITY_OPTS,
