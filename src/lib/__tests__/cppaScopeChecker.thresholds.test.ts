@@ -165,6 +165,13 @@ describe("independence of the three CCPA prongs (§ 1798.140(d)(1))", () => {
       revenueMet: false,
       revenueUnsure: false,
       q3: "Over 1 million",
+      // QA round two (Scope-A-01, 2026-09-06) — the § 1798.140(d)(1)(B) limb
+      // now needs the buy/sell/share ACTIVITY as well as the volume band,
+      // because Q3 counts PI the business merely RECEIVES for commercial
+      // purposes. This case is about prong INDEPENDENCE, so the activity is
+      // supplied and the limb is genuinely met; the receipt-only case has its
+      // own coverage in src/test/qa-round-two-scope-thresholds.test.ts.
+      q4: "Both",
       q5: "No",
       q9_250k: "No",
       q10_spi_50k: "No",

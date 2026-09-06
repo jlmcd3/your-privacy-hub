@@ -90,6 +90,15 @@ type Q4 =
   | "Unsure";
 type Q5 = "" | "Yes" | "No" | "Unsure";
 type Q6 = "" | "Yes" | "No" | "Unsure";
+/**
+ * QA round two (Scope-A-02, High overstatement, 2026-09-06) — the use test the
+ * § 1798.121 limitation right turns on. Asked only when Q6 is "Yes".
+ */
+type Q6a =
+  | ""
+  | "Yes — used beyond the permitted purposes, or to infer characteristics"
+  | "No — used only for the permitted operational purposes"
+  | "Unsure";
 type Q7 = "" | "Yes" | "No" | "In evaluation" | "Unsure";
 type YNU = "" | "Yes" | "No" | "Unsure";
 type Q8a = YNU;
@@ -167,17 +176,88 @@ export function evaluateSection7150Triggers(args: {
   return { result: anyUnsure ? "needs_counsel_review" : "not_triggered_on_answers", triggeringFacts: [] };
 }
 
+/**
+ * QA round two (Scope-A-01, High legal-logic defect, 2026-09-06) — the
+ * consumer-volume limb was decided by Q3's band ALONE.
+ *
+ * Q3 asks how many California consumers' PI the business "buys, sells, shares,
+ * OR RECEIVES for commercial purposes". Its answer was then applied directly as
+ * the § 1798.140(d)(1)(B) test, so customer A — 360,000 ordinary retail
+ * customers, and an explicit "No" to Q4 on selling or sharing — was reported as
+ * meeting a threshold that concerns buying, selling and sharing. A's overall
+ * coverage happened to rest on the revenue limb, but the reasoning on THIS limb
+ * was wrong and would false-positive a business that neither buys, sells nor
+ * shares. Customer B reproduced it.
+ *
+ * The volume a business PROCESSES and the volume it BUYS/SELLS/SHARES are now
+ * separate quantities. Q3 stays the all-PI count — it is the only volume
+ * question the intake asks and other surfaces read it as such — and this limb
+ * additionally requires the buy/sell/share ACTIVITY the record establishes
+ * through Q4.
+ *
+ * NOTE FOR LEGAL REVIEW: no citation text is altered by this change. The
+ * pinpoint carried on this limb (Cal. Civ. Code § 1798.140(d)(1)(B)) is
+ * unverified here and should be confirmed by the CEO or counsel before it
+ * ships.
+ */
+export type VolumeProng = "met" | "not_met" | "unsure";
+
+const HUNDRED_K_BANDS = ["100,000–249,999", "250,000–1 million", "100,000–1 million", "Over 1 million"];
+
+export function consumerVolumeProng(q3: Q3, q4: Q4 | undefined): VolumeProng {
+  if (q3 === "Unsure") return "unsure";
+  if (!HUNDRED_K_BANDS.includes(q3)) return "not_met";
+  // The band is met. The limb also needs the buy/sell/share activity.
+  // Unanswered ("") and "Unsure" both leave it unresolved — never met.
+  if (q4 === undefined || q4 === "" || q4 === "Unsure") return "unsure";
+  if (q4 === "No") return "not_met";
+  return "met";
+}
+
+/**
+ * QA round two (Scope-A-02, High overstatement, 2026-09-06) — the § 1798.121
+ * Right to Limit was declared "Required" from Q6 alone: the mere presence of a
+ * sensitive category. No question asked how the information is used, so a
+ * business using sensitive information only for the permitted operational
+ * purposes was told to publish a limitation link it does not owe.
+ *
+ * The right turns on USE. Q6a asks it, and this resolves the finding:
+ *   · no sensitive information at all           → not triggered
+ *   · sensitive information used beyond the
+ *     permitted purposes, or to infer           → required
+ *   · used only for the permitted purposes      → not triggered on these answers
+ *   · either question unsure / unanswered       → review with counsel
+ *
+ * NOTE FOR LEGAL REVIEW: no citation text is altered. The pinpoint carried on
+ * this finding (Cal. Civ. Code § 1798.121(a), (d)) is unverified by this change
+ * and should be confirmed by the CEO or counsel before shipping.
+ */
+export function evaluateSensitiveLimitRight(q6: Q6, q6a: Q6a): TriState {
+  if (q6 === "No") return "not_triggered_on_answers";
+  if (q6 !== "Yes") return "needs_counsel_review";
+  if (q6a === "Yes — used beyond the permitted purposes, or to infer characteristics") return "required";
+  if (q6a === "No — used only for the permitted operational purposes") return "not_triggered_on_answers";
+  return "needs_counsel_review";
+}
+
 export function evaluateSection7120Scope(args: {
   q1: Q1;
   revenueMet: boolean;
   revenueUnsure: boolean;
-  q3: Q3; // 100k+ consumers prong
+  q3: Q3; // ALL California PI volume — bought, sold, shared OR received
+  /**
+   * Scope-A-01 — the buy/sell/share activity the (d)(1)(B) limb turns on.
+   * Optional so any existing caller still compiles; absent, the limb reads as
+   * unresolved rather than met, which is the conservative direction.
+   */
+  q4?: Q4;
   q5: Q5; // 50%+ revenue from sale/share
   q9_250k: YNU; // ≥250,000 consumers/households PI processed
   q10_spi_50k: YNU; // ≥50,000 consumers' SPI processed
 }): { scope: TriState; triggeringFacts: { fact: string; pinpoint: string }[] } {
-  const consumerProngMet = ["100,000–249,999", "250,000–1 million", "100,000–1 million", "Over 1 million"].includes(args.q3);
-  const consumerProngUnsure = args.q3 === "Unsure";
+  const volumeProng = consumerVolumeProng(args.q3, args.q4);
+  const consumerProngMet = volumeProng === "met";
+  const consumerProngUnsure = volumeProng === "unsure";
   const saleShareMet = args.q5 === "Yes";
   const saleShareUnsure = args.q5 === "Unsure";
   // A "business" for § 7120 purposes exists if ANY of the three CCPA prongs is met.
@@ -249,6 +329,8 @@ export default function CPPAScopeChecker() {
   const [q4, setQ4] = useState<Q4>("");
   const [q5, setQ5] = useState<Q5>("");
   const [q6, setQ6] = useState<Q6>("");
+  // Scope-A-02 — the § 1798.121 use test, asked only when Q6 is "Yes".
+  const [q6aBeyondPermitted, setQ6aBeyondPermitted] = useState<Q6a>("");
   const [q7, setQ7] = useState<Q7>("");
   const [q9_250k, setQ9] = useState<YNU>("");
   const [q10_spi_50k, setQ10] = useState<YNU>("");
@@ -275,6 +357,9 @@ export default function CPPAScopeChecker() {
       q4 &&
       q5 &&
       q6 &&
+      // Scope-A-02 — when sensitive information IS processed, the use test is
+      // what the limitation-right finding turns on, so it must be answered.
+      (q6 !== "Yes" || q6aBeyondPermitted) &&
       q7 &&
       q9_250k &&
       q10_spi_50k &&
@@ -293,18 +378,24 @@ export default function CPPAScopeChecker() {
       q4,
       q5,
       q6,
+      // Scope-A-02 — the § 1798.121 use test travels with the saved answers, so
+      // a reopened screening reproduces the same limitation-right finding.
+      q6a_beyond_permitted: q6aBeyondPermitted,
       q7,
       q9_250k,
       q10_spi_50k,
       q8a_meets_definition: q8a,
       q8b_registered_cppa: q8b,
     }),
-    [entityName, q1, q2, q2LegacyConfirm, q3, q4, q5, q6, q7, q9_250k, q10_spi_50k, q8a, q8b],
+    [entityName, q1, q2, q2LegacyConfirm, q3, q4, q5, q6, q6aBeyondPermitted, q7, q9_250k, q10_spi_50k, q8a, q8b],
   );
 
   const evaluation = useMemo(() => {
-    const consumerProngMet = ["100,000–249,999", "250,000–1 million", "100,000–1 million", "Over 1 million"].includes(q3);
-    const consumerProngUnsure = q3 === "Unsure";
+    // Scope-A-01 — the (d)(1)(B) limb needs the buy/sell/share activity, not
+    // just the volume band. See consumerVolumeProng above.
+    const volumeProng = consumerVolumeProng(q3, q4);
+    const consumerProngMet = volumeProng === "met";
+    const consumerProngUnsure = volumeProng === "unsure";
     const saleShareMet = q5 === "Yes";
     const saleShareUnsure = q5 === "Unsure";
 
@@ -319,6 +410,7 @@ export default function CPPAScopeChecker() {
       revenueMet: revenue.met,
       revenueUnsure: revenue.unsure,
       q3,
+      q4,
       q5,
       q9_250k,
       q10_spi_50k,
@@ -327,11 +419,15 @@ export default function CPPAScopeChecker() {
     const deadline = cyberDeadline(q2, q2LegacyConfirm);
 
     // Sensitive PI: independent operational duty (Right to Limit) — not gated
-    // by significant-risk analysis. Kept as tri-state on q6 alone.
-    let sensitiveResult: TriState;
-    if (q6 === "Yes") sensitiveResult = "required";
-    else if (q6 === "Unsure") sensitiveResult = "needs_counsel_review";
-    else sensitiveResult = "not_triggered_on_answers";
+    // by significant-risk analysis.
+    //
+    // QA round two (Scope-A-02, High overstatement, 2026-09-06) — this was
+    // decided on q6 ALONE, so every business that processes any sensitive
+    // category was told the limitation right is "Required". The right turns on
+    // USE, not on the presence of the category: where sensitive information is
+    // used only for the permitted operational purposes and not to infer
+    // characteristics, it is not engaged. Q6a supplies that fact.
+    const sensitiveResult = evaluateSensitiveLimitRight(q6, q6aBeyondPermitted);
 
     // ADMT disclosure/opt-out is triggered by significant-decision use (q7).
     let admtResult: TriState;
@@ -359,7 +455,7 @@ export default function CPPAScopeChecker() {
       brokerObligation,
       brokerRegistered: q8b,
     };
-  }, [q1, q2, q2LegacyConfirm, q3, q4, q5, q6, q7, q8a, q8b, q9_250k, q10_spi_50k, revenue]);
+  }, [q1, q2, q2LegacyConfirm, q3, q4, q5, q6, q6aBeyondPermitted, q7, q8a, q8b, q9_250k, q10_spi_50k, revenue]);
 
   const liveFootprint = useMemo(() => {
     const items: { citation: string; label: string; triggered: boolean }[] = [
@@ -432,6 +528,8 @@ export default function CPPAScopeChecker() {
         q4: a.q4 ?? "",
         q5: a.q5 ?? "",
         q6: a.q6 ?? "",
+        // Scope-A-02 — absent on screenings saved before this question existed.
+        q6a_beyond_permitted: a.q6a_beyond_permitted ?? "",
         q7: a.q7 ?? "",
         q9_250k: a.q9_250k ?? "",
         q10_spi_50k: a.q10_spi_50k ?? "",
@@ -441,7 +539,7 @@ export default function CPPAScopeChecker() {
       insertedKeyRef.current = JSON.stringify(restored);
       setEntityName(restored.entity_name);
       setQ1(restored.q1 as Q1); setQ2(restored.q2 as Q2); setQ2LegacyConfirm(restored.q2_legacy_confirm as LegacyConfirm);
-      setQ3(restored.q3 as Q3); setQ4(restored.q4 as Q4); setQ5(restored.q5 as Q5); setQ6(restored.q6 as Q6); setQ7(restored.q7 as Q7);
+      setQ3(restored.q3 as Q3); setQ4(restored.q4 as Q4); setQ5(restored.q5 as Q5); setQ6(restored.q6 as Q6); setQ6aBeyondPermitted(restored.q6a_beyond_permitted as Q6a); setQ7(restored.q7 as Q7);
       setQ9(restored.q9_250k as YNU); setQ10(restored.q10_spi_50k as YNU);
       setQ8a(restored.q8a_meets_definition as Q8a); setQ8b(restored.q8b_registered_cppa as Q8b);
       setShowResults(true);
@@ -473,7 +571,7 @@ export default function CPPAScopeChecker() {
   const reset = () => {
     setEntityName("");
     setQ1(""); setQ2(""); setQ2LegacyConfirm(""); setQ3(""); setQ4("");
-    setQ5(""); setQ6(""); setQ7(""); setQ9(""); setQ10(""); setQ8a(""); setQ8b("");
+    setQ5(""); setQ6(""); setQ6aBeyondPermitted(""); setQ7(""); setQ9(""); setQ10(""); setQ8a(""); setQ8b("");
     setShowResults(false);
     insertedKeyRef.current = null;
   };
@@ -617,6 +715,46 @@ export default function CPPAScopeChecker() {
               </div>
             </div>
 
+            {/* QA round two (Scope-A-02, High overstatement, 2026-09-06) — the
+                screening declared "Right to Limit required" from Q6 alone, with
+                no question about how the sensitive information is actually
+                used. The right turns on USE, not on the mere presence of the
+                category, so a business that uses sensitive information only for
+                the permitted operational purposes was told it must publish a
+                limitation link it does not owe. This question supplies the fact
+                the finding needs; it is asked only when Q6 is "Yes".
+
+                NOTE FOR LEGAL REVIEW: no citation text is altered by this
+                change, and the pinpoint carried on the finding
+                (Cal. Civ. Code § 1798.121(a), (d)) is unverified here. The
+                wording of the permitted-purpose list below should be confirmed
+                by the CEO or counsel against current primary law before it
+                ships. */}
+            {q6 === "Yes" && (
+              <div className="pl-4 border-l-2 border-muted" onFocus={() => focusScopeRail("q6_sensitive_pi")}>
+                <Label>Q6a: Do you use or disclose that sensitive personal information for anything beyond the permitted operational purposes — for example to infer characteristics about a consumer, or for advertising, profiling or resale? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.121(a), (d))</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Permitted operational purposes are the narrow set the statute allows without engaging the
+                  limitation right — performing the service the consumer asked for, security and integrity,
+                  short-term transient use, and similar. Answer "No" if the sensitive information is used only
+                  for those. Answer "Yes" if any of it is used to infer characteristics about a consumer, or for
+                  advertising, profiling, sale, or sharing.
+                </p>
+                <div className="mt-2">
+                  <Radio
+                    name="q6a"
+                    options={[
+                      "Yes — used beyond the permitted purposes, or to infer characteristics",
+                      "No — used only for the permitted operational purposes",
+                      "Unsure",
+                    ]}
+                    value={q6aBeyondPermitted}
+                    onChange={(v) => setQ6aBeyondPermitted(v as Q6a)}
+                  />
+                </div>
+              </div>
+            )}
+
             <div onFocus={() => focusScopeRail("q7_admt")}>
               <Label>Q7: Does your business use automated decision-making technology (ADMT) to make, or factor into, a <strong>significant decision</strong> about a California consumer — such as employment, credit, housing, insurance, healthcare, education, or access to essential goods/services? <span className="text-xs text-muted-foreground font-mono">(11 CCR §§ 7001(e), 7150(b)(3))</span></Label>
               <div className="mt-2">
@@ -685,6 +823,7 @@ export default function CPPAScopeChecker() {
             q1={q1}
             q2={q2}
             q3={q3}
+            q4={q4}
             q5={q5}
             revenueMet={revenue.met}
             onReset={reset}
@@ -791,6 +930,7 @@ function ResultsPanel({
   q1,
   q2,
   q3,
+  q4,
   q5,
   revenueMet,
   onReset,
@@ -801,6 +941,8 @@ function ResultsPanel({
   q1: string;
   q2: string;
   q3: string;
+  // Scope-A-01 — the buy/sell/share activity the (d)(1)(B) limb turns on.
+  q4: string;
   q5: string;
   revenueMet: boolean;
   onReset: () => void;
@@ -853,11 +995,22 @@ function ResultsPanel({
     );
   }
 
-  const consumerMet = ["100,000–249,999", "250,000–1 million", "100,000–1 million", "Over 1 million"].includes(q3);
+  // Scope-A-01 — the same separation the evaluation uses: the volume band on
+  // its own does not meet this limb, because Q3 counts PI the business merely
+  // RECEIVES for commercial purposes alongside PI it buys, sells or shares.
+  const volumeProngSummary = consumerVolumeProng(q3 as Q3, q4 as Q4);
+  const consumerMet = volumeProngSummary === "met";
+  const receiptOnlyVolume =
+    volumeProngSummary === "not_met" && HUNDRED_K_BANDS.includes(q3) && q4 === "No";
   const salesMet = q5 === "Yes";
   const thresholdSentences: string[] = [];
   if (revenueMet) thresholdSentences.push(`meets the annual revenue threshold ($26,625,000, § 1798.140(d)(1)(A))`);
   if (consumerMet) thresholdSentences.push(`meets the consumer volume threshold (${q3} California consumers/households, § 1798.140(d)(1)(B))`);
+  if (receiptOnlyVolume) {
+    thresholdSentences.push(
+      `processes the personal information of ${q3} California consumers/households, but does not buy, sell or share it, so the consumer volume threshold (§ 1798.140(d)(1)(B)) is not met on these answers`,
+    );
+  }
   if (salesMet) thresholdSentences.push(`meets the 50%+ revenue from data sales threshold (§ 1798.140(d)(1)(C))`);
   const thresholdSummary =
     thresholdSentences.length > 0
