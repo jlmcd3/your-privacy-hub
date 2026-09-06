@@ -1619,6 +1619,7 @@ export type Database = {
           doc_version: string | null
           embedding: string | null
           embedding_model: string
+          endorsement_status: string | null
           excerpt_text: string
           excerpt_text_norm: string | null
           guideline_ref: string
@@ -1638,6 +1639,7 @@ export type Database = {
           doc_version?: string | null
           embedding?: string | null
           embedding_model?: string
+          endorsement_status?: string | null
           excerpt_text: string
           excerpt_text_norm?: string | null
           guideline_ref: string
@@ -1657,6 +1659,7 @@ export type Database = {
           doc_version?: string | null
           embedding?: string | null
           embedding_model?: string
+          endorsement_status?: string | null
           excerpt_text?: string
           excerpt_text_norm?: string | null
           guideline_ref?: string
