@@ -101,6 +101,22 @@ export function processingOperationsLabel(value: unknown): string {
     .join(", ");
 }
 
+/**
+ * QA round two (ROPA-A-01, Medium, 2026-09-06) — the retention question offers
+ * a "Custom" option that had no input behind it, on all three customers, so the
+ * register would print the bare token "custom" as its Art. 30(1)(f) time limit.
+ * The follow-up question (retention_period_custom) now supplies the period.
+ * Where "Custom" is selected this returns that text; where it is selected and
+ * still blank, it says so rather than printing a token the reader cannot
+ * interpret. Every other selection is byte-unchanged.
+ */
+export function retentionDisplay(ans: AnswerBag): string {
+  const selected = answerToString(ans.retention_period);
+  if (selected.trim().toLowerCase() !== "custom") return selected;
+  const custom = answerText(ans.retention_period_custom).trim();
+  return custom || "A custom retention period was selected but has not been stated.";
+}
+
 // Optional retention-by-category breakdown: renders only when the
 // "retention varies by category" follow-up has actually been answered.
 export function retentionByCategory(ans: AnswerBag): string | null {
@@ -271,7 +287,8 @@ export function buildRopaAssembleInput(d: RopaAnswerData): RopaAssembleInput {
         : "",
       // DOC 168 — structured recipient categories (+ named processor).
       recipients: recipientsDisplay(ans),
-      retention: str(ans.retention_period),
+      // ROPA-A-01 — resolves the "Custom" selection to the period actually given.
+      retention: retentionDisplay(ans),
       retentionByCategory: retentionByCategory(ans),
       security: str(ans.security_measures),
       // INTAKE-2 rule: the two-part access-controls question is ONE recorded

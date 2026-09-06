@@ -253,6 +253,26 @@ function baseSequence(opts: {
       isRequired: true,
       flagIf: [RETENTION_FLAG],
     },
+    // QA round two (ROPA-A-01, Medium, 2026-09-06) — selecting "Custom" on the
+    // retention question revealed no field to enter the custom period, on all
+    // three customers. Customer A worked around it by typing the real period
+    // (24 hours active, 30 days backup) into the security description, where it
+    // never reaches the register's retention column. The option now has the
+    // input it implies, and the register reads it — see
+    // generate-ropa-document/register/assemble-input.ts, retentionDisplay.
+    {
+      key: "retention_period_custom",
+      text: "What is that retention period?",
+      whyWeAsk:
+        "Art. 30(1)(f) asks for the envisaged time limit for erasure. Give the period, and where it runs from an event rather than a fixed clock say which event — for example \"24 hours after the delivery completes or is cancelled; encrypted backups expire after 30 days\".",
+      type: "text_short",
+      isRequired: true,
+      showIf: {
+        questionKey: "retention_period",
+        operator: "equals",
+        value: "custom",
+      },
+    },
     {
       key: "retention_varies_by_category",
       text: "Does the retention period differ by data category?",

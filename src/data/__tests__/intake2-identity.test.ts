@@ -4,6 +4,12 @@
  * The wording and prefill-confirm work is presentation-only: no persisted key,
  * no stored option value, and no answer shape may change. These tests fail if
  * any of them drift.
+ *
+ * QA round two (ROPA-A-01, 2026-09-06) — the RoPA snapshot moved once, purely
+ * by INSERTION: `retention_period_custom|text_short|` was added behind the
+ * existing "Custom" retention option, which had no input field of its own. No
+ * existing key, type or stored option value changed, which is what this guard
+ * protects.
  */
 import { describe, it, expect } from "vitest";
 import { buildQuestionSet } from "@/data/us-notice-questions";

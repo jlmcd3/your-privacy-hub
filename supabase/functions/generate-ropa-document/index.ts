@@ -42,6 +42,8 @@ import {
   recipientsDisplay,
   resolveTransfer,
   retentionByCategory,
+  // ROPA-A-01 — resolves the "Custom" retention selection to the period given.
+  retentionDisplay,
 } from "./register/assemble-input.ts";
 
 // Machine-checkable manifest of statutory assertions carried by the hardcoded
@@ -625,7 +627,7 @@ export function buildHtml(d: AssembledData): string {
               <tr><th>Processors / recipients</th><td>${escapeHtml(recipientsDisplay(ans) || "—")}</td></tr>
               <tr><th>Cross-border transfers</th><td>${escapeHtml(transferDisplayForActivity(ans))}</td></tr>
               <tr><th>Processing regularity</th><td>${escapeHtml(answerDisplayFor("processing_regularity", ans.processing_regularity))}</td></tr>
-              <tr><th>Retention period</th><td>${escapeHtml(answerToString(ans.retention_period))}</td></tr>
+              <tr><th>Retention period</th><td>${escapeHtml(retentionDisplay(ans))}</td></tr>
               ${(() => {
                 const byCat = retentionByCategory(ans);
                 return byCat
@@ -993,7 +995,7 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
             transferDisplayForActivity(ans),
           ),
           kvRow("Processing regularity", answerDisplayFor("processing_regularity", ans.processing_regularity)),
-          kvRow("Retention period", answerToString(ans.retention_period)),
+          kvRow("Retention period", retentionDisplay(ans)),
           ...(retentionByCategory(ans)
             ? [kvRow("Retention by data category", retentionByCategory(ans) as string)]
             : []),
@@ -1231,7 +1233,7 @@ function buildXlsx(d: AssembledData): Uint8Array {
       transfer.declaredNone ? "None — no third-country transfer recorded by the Company" : (transfer.destination || "—"),
       transfer.declaredNone ? "—" : (transfer.mechanism || "—"),
       answerDisplayFor("processing_regularity", ans.processing_regularity),
-      answerToString(ans.retention_period),
+      retentionDisplay(ans),
       retentionByCategory(ans) ?? "—",
       rightsHandlingLabel(ans, d.profile),
       relatedAssessmentsLabel(ans.related_assessments),
