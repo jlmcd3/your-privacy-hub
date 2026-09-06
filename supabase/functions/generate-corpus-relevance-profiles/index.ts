@@ -68,7 +68,7 @@ function json(body: unknown, status = 200) {
 // what the law categorically requires?), so it defaults to the model this
 // codebase already trusts with legal judgment, and the default is a named,
 // overridable constant rather than a literal buried in a fetch call.
-const DEFAULT_CLASSIFIER_MODEL = "claude-opus-4-6";
+const DEFAULT_CLASSIFIER_MODEL = "claude-opus-5";
 const CLASSIFIER_MODEL = Deno.env.get("CORPUS_CLASSIFIER_MODEL") ?? DEFAULT_CLASSIFIER_MODEL;
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 
