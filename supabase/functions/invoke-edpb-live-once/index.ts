@@ -18,11 +18,11 @@ Deno.serve(async (req) => {
     headers: { Authorization: `Bearer ${serviceKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       only: [
+        "EDPB Opinion 28/2024",
         "WP29 Opinion 2/2017",
         "WP29 Opinion 1/2006",
         "EDPB Guidelines 3/2019",
         "EDPB Guidelines 06/2020",
-        "EDPB Opinion 28/2024",
       ],
     }),
   });
