@@ -5111,7 +5111,7 @@ Deno.serve(async (req) => {
           ? parts.join("\n\n──────────────────────────────\n\n")
           : summaryToText(record.report_data);
         html = buildTextReportHTML({
-          title: "CPPA Cybersecurity Audit Readiness",
+          title: "CPPA Cybersecurity Audit Readiness Report",
           metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
             (intake.organizationName ? ` · ${intake.organizationName}` : "") + " · California (CPPA)",
           text,
