@@ -178,16 +178,19 @@ Deno.test("CYBER_CORPUS_MAP: every factor_id is a canonical component name or a 
 // FOUR doc-63 §6.1 release-1 AP rows and the doc-63 §6.2 AOW are LIVE on
 // S5 (the skeleton's Persuasive Authority section, deterministic path
 // only). Sibling factor-tags and doc-73 additions stay dark.
+// v5 (2026-09-05, doc 73 standing-watch backfill): 17 new AP rows land
+// DARK — the live posture below is unchanged (still exactly 4 live AP +
+// 1 live AOW on S5). Wiring is not ratification.
 Deno.test("lia: L2 posture — 4 live AP + 1 live AOW on S5, everything else dark; 3 logic-bearing FC, 14 FC-J", () => {
   const ap = LIA_CORPUS_MAP.rows.filter((r) => r.role === "AP");
   const aow = LIA_CORPUS_MAP.rows.filter((r) => r.role === "AOW");
   const logicBearing = LIA_CORPUS_MAP.rows.filter((r) => r.logic_bearing);
   const fcJ = LIA_CORPUS_MAP.rows.filter((r) => r.role === "FC" && !r.logic_bearing);
-  assertEquals(ap.length, 11);
+  assertEquals(ap.length, 40);
   assertEquals(aow.length, 1);
   assertEquals(logicBearing.length, 3);
   assertEquals(fcJ.length, 14);
-  assertEquals(LIA_CORPUS_MAP.rows.length, 29);
+  assertEquals(LIA_CORPUS_MAP.rows.length, 58);
   const liveAp = ap.filter((r) => r.render_eligible);
   assertEquals(
     new Set(liveAp.map((r) => r.id)),

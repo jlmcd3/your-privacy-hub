@@ -84,6 +84,19 @@
 // No row added or removed; every row stays render_eligible: false per the
 // RENDER-READINESS NOTE above (the three-part test is still model-authored).
 
+// v5 UPDATE (2026-09-05, doc 73 standing-watch backfill): the watch query
+// named in the v2 note was missing from the tree (lost in the corpus
+// relocation) and has been reconstructed at
+// run-li-assessment/_local/corpus/lia-li-relevant-watch.sql — inside the
+// product tree so it cannot be orphaned again. HONEST COUNT CORRECTION:
+// the reconstructed definition returns 48 verified LIA-relevant rows, not
+// the 58 recorded in doc 73; 58 is not reproducible from any surviving
+// query text. Of the 48, 28 carry a pinnable key_compliance_failure; 8
+// were already wired; 17 are wired by this pass; 3 are excluded with
+// reasons (see the v5 block at the end of `rows`); 20 have no excerpt
+// field at all and are logged for a separate excerpt-extraction pass, not
+// wired. Every v5 row is DARK — wiring is not ratification.
+
 import type { CorpusMap } from "../../../../_shared/corpus/cam-types.ts";
 
 /** LIA's 11-label factor vocabulary (doc 58 §1, ratified as filed via doc
@@ -117,7 +130,7 @@ export const LIA_FACTOR_VOCABULARY = [
 // (lia-persuasive-authority.ts), rendered only on the deterministic path.
 export const LIA_CORPUS_MAP: CorpusMap = {
   product: "lia",
-  map_version: "lia-cam-v4-2026-08-26",
+  map_version: "lia-cam-v5-2026-09-05",
   snapshot_file: "tests/edge/corpus/__snapshots__/fsor-snapshot-lia.json",
   rows: [
     // ── AP — doc 58 §3 / doc 63 §6.1's release-1 sources, 4 sources × 2
@@ -850,5 +863,699 @@ export const LIA_CORPUS_MAP: CorpusMap = {
       curation_note:
         "EDPB Guidelines 1/2024 — children's best interests carry high priority in the balancing exercise and will very often outweigh the controller's or a third party's interests. Raises the bar factor 9 must clear before balancing can favor the processing.",
     },
+
+    // ══ v5 (2026-09-05) — the doc 73 standing-watch backfill. Seventeen
+    // verified enforcement rows from the reconstructed watch query
+    // (_local/corpus/lia-li-relevant-watch.sql), each individually pinned
+    // against its own live source field, posture-sentenced for one factor,
+    // and banked DARK per doc 48 §II.6. Ten of the seventeen have
+    // non-English source text (Spanish ×9, Romanian ×1): the pin is the
+    // verbatim source text in its own language, and a working English
+    // translation sits in the curation_note as a curation aid — it is NOT
+    // customer-facing prose and must be re-checked at ratification.
+    // Excluded from wiring, with reasons, at the end of this block. ══
+
+    {
+      id: "lia/f01-interest-legitimacy/ap-w5-01",
+      factor_id: "Interest legitimacy",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "dcd75c1d-a21f-4939-b2a0-d8cb1b96545a",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt:
+        "Meta IE's processing of personal data for behavioral advertising was found to be unlawful, as the 'consent' obtained from users was not freely given, specific, or granular, and was bundled with terms of service.",
+      render_eligible: false,
+      citation_source: {
+        regulator: "DPC (Ireland)",
+        subject: "Meta Platforms Ireland Limited (Instagram)",
+        jurisdiction: "Ireland",
+        decision_date: "2022-12-31",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=DPC_(Ireland)_-_Meta_Platforms_Ireland_Limited_(Instagram)_-_IN-18-5-7", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, wired 2026-09-05 (v5). DPC (Ireland), Meta Platforms Ireland Limited (Instagram), 31 December 2022, EUR 180,000,000. Source language: English (no translation required). Bearing (this factor): the asserted basis must be the one that actually fits the processing — a controller whose behavioural-advertising basis collapses on inspection fails at interest legitimacy before any balancing is reached. DARK: no doc 63 ratification exists for these bytes; render only after separate ratification (doc 48 SII.6).",
+    },
+    {
+      id: "lia/f05-expectations/ap-w5-02",
+      factor_id: "Reasonable expectations of the data subject",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "c1a28f21-71cd-472e-b549-c0d4b986ec2a",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt:
+        "The controller unlawfully collected and processed a massive database of biometric data from individuals, including minors, without a valid legal basis or consent, and failed to adequately respond to data subject access and erasure requests.",
+      render_eligible: false,
+      citation_source: {
+        regulator: "CNIL (France)",
+        subject: "Clearview AI",
+        jurisdiction: "France",
+        decision_date: "2022-10-17",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=CNIL_(France)_-_SAN-2022-019", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, wired 2026-09-05 (v5). CNIL (France), Clearview AI, 17 October 2022, EUR 20,000,000. Source language: English. Bearing (this factor): data scraped at scale from public sources still defeats reasonable expectations - publicity of a source is not consent to secondary processing, and the presence of minors raises the bar further (factor 9 sibling). DARK pending ratification.",
+    },
+    {
+      id: "lia/f11-eprivacy/ap-w5-03",
+      factor_id: "Special-category and ePrivacy interplay",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "75cce78c-78a8-47a3-97bc-517575cdaf88",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt:
+        "The online advertising group Criteo failed to ensure that data subjects gave their consent",
+      render_eligible: false,
+      citation_source: {
+        regulator: "CNIL (France)",
+        subject: "Criteo",
+        jurisdiction: "France",
+        decision_date: "2023-06-22",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=CNIL_(France)_-_SAN-2023-009", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, wired 2026-09-05 (v5). CNIL (France), Criteo, 22 June 2023, EUR 40,000,000. Source language: English. Pinned excerpt is a leading clause of the source field (clause-boundary truncation discipline). Bearing (this factor): where consent is the required basis for the tracking layer, legitimate interests cannot substitute for it downstream - the ePrivacy short-circuit already implemented at lia/f11-eprivacy/fcl-01. DATA-QUALITY FLAG: the live source_url recorded on this row could not be independently re-fetched at curation; the citation facts, not the URL, are what this row asserts. DARK pending ratification.",
+    },
+    {
+      id: "lia/f07-harms/ap-w5-04",
+      factor_id: "Potential harms and severity",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "7edab77e-1403-4bdb-a834-9aa626f97dd1",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt:
+        "The media outlet published an audio recording of a rape victim's testimony without sufficient",
+      render_eligible: false,
+      citation_source: {
+        regulator: "AEPD (Spain)",
+        subject: "DIARIO ABC, S.L.",
+        jurisdiction: "Spain",
+        decision_date: "2023-03-21",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://www.aepd.es/es/documento/ps-00193-2022.pdf", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, wired 2026-09-05 (v5). AEPD (Spain), DIARIO ABC, S.L., 21 March 2023, EUR 50,000. Source language: English summary of a Spanish decision. Pinned excerpt is a leading clause (clause-boundary truncation). Bearing (this factor): severity is assessed on the consequence to the individual, not on the controller's editorial purpose; where the harm is irreversible reputational and psychological injury, no asserted interest carries the balance. DARK pending ratification.",
+    },
+    {
+      id: "lia/f11-eprivacy/ap-w5-05",
+      factor_id: "Special-category and ePrivacy interplay",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "d47222c4-c7db-4564-9074-831a5753ee52",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt:
+        "The company processed highly sensitive personal data without a legitimate basis, specifically by publishing an audio recording of a rape victim's testimony.",
+      render_eligible: false,
+      citation_source: {
+        regulator: "AEPD (Spain)",
+        subject: "EUROPA PRESS DE CATALUNYA, S.A.",
+        jurisdiction: "Spain",
+        decision_date: "2023-09-26",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://www.aepd.es/documento/ps-00249-2023.pdf", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, wired 2026-09-05 (v5). AEPD (Spain), EUROPA PRESS DE CATALUNYA, S.A., 26 September 2023, EUR 30,000. Source language: English. Bearing (this factor): Article 9 special-category data cannot be reached by Article 6(1)(f) at all - the special-category gate is anterior to the balancing test. NOTE: same underlying facts as the DIARIO ABC row above (two controllers, two decisions, distinct source rows) - both are wired because each is its own verified decision, not a duplicate. DARK pending ratification.",
+    },
+    {
+      id: "lia/f03-necessity/ap-w5-06",
+      factor_id: "Necessity and less-intrusive means",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "0d01d954-f90b-4859-a022-68e497bdd37a",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt:
+        "The company performed a credit check on an individual without a valid legal basis as required by GDPR Article 6(1).",
+      render_eligible: false,
+      citation_source: {
+        regulator: "AEPD (Spain)",
+        subject: "ARRENDAMIENTOS DEUDORES, S.L.",
+        jurisdiction: "Spain",
+        decision_date: "2024-05-07",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://www.aepd.es/documento/ps-00034-2024.pdf", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, wired 2026-09-05 (v5). AEPD (Spain), ARRENDAMIENTOS DEUDORES, S.L., 7 May 2024, EUR 1,200. Source language: English summary of a Spanish decision. Bearing (this factor): a solvency or credit enquiry about a counterparty is exactly the class of processing controllers assume legitimate interests covers; the decision shows the enquiry must still be necessary and no less-intrusive route available. DARK pending ratification.",
+    },
+    {
+      id: "lia/f05-expectations/ap-w5-07",
+      factor_id: "Reasonable expectations of the data subject",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "d2df70c3-d59d-4c13-9aa5-701f47774649",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt:
+        "Accor failed to obtain valid consent for direct marketing, did not provide adequate information about data processing, did not properly respond to data subject access and unsubscribe requests",
+      render_eligible: false,
+      citation_source: {
+        regulator: "CNIL (France)",
+        subject: "Accor",
+        jurisdiction: "France",
+        decision_date: "2022-08-03",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=CNIL_(France)_-_SAN-2022-017", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, wired 2026-09-05 (v5). CNIL (France), Accor, 3 August 2022, EUR 600,000. Source language: English. Pinned excerpt is a leading clause (the source field continues into an unrelated password-strength finding, excluded deliberately). Bearing (this factor): an unhonoured objection or unsubscribe request is direct evidence that the processing sits outside what the individual expected and accepted. DARK pending ratification.",
+    },
+    {
+      id: "lia/f07-harms/ap-w5-08",
+      factor_id: "Potential harms and severity",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "64ee4d90-9ead-4155-b379-868932d05c5f",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt:
+        "se han publicado sus datos personales (nombre y apellidos y, adem\u00e1s, la imagen de uno de ellos) sin su consentimiento, acus\u00e1ndoles de haber ocupado un inmueble y no haber abonado el precio correspondiente al alquiler.",
+      render_eligible: false,
+      citation_source: {
+        regulator: "AEPD (Spain)",
+        subject: "HIGHCLIFFE ESTATES MARBELLA, S.L.",
+        jurisdiction: "Spain",
+        decision_date: "2026-03-02",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://www.aepd.es/documento/ps-00294-2024.pdf", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, wired 2026-09-05 (v5). AEPD (Spain), HIGHCLIFFE ESTATES MARBELLA, S.L., 2 March 2026, EUR 8,500, EXP202409340. SOURCE LANGUAGE: Spanish; pinned_excerpt is the verbatim Spanish source text (never a translation - the pin must match the source field byte-for-byte). WORKING ENGLISH TRANSLATION (curation aid, not customer-facing bytes): 'their personal data (full name and, in addition, a photograph of one of them) was published without their consent, accusing them of having occupied a property and of not having paid the corresponding rent.' Bearing (this factor): publishing accusatory personal data to pressure a debtor inflicts reputational harm that no asserted debt-recovery interest outweighs. DARK pending ratification.",
+    },
+    {
+      id: "lia/f01-interest-legitimacy/ap-w5-09",
+      factor_id: "Interest legitimacy",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "99d0804e-9263-4569-94bc-1d20cdbf9140",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt:
+        "los datos de empresarios aut\u00f3nomos que coinciden con sus datos personales queden expuestos e incluso sean vendidos en internet, sin consentimiento de los interesados ni base legal para tal tratamiento.",
+      render_eligible: false,
+      citation_source: {
+        regulator: "AEPD (Spain)",
+        subject: "CAMERDATA, S.A.",
+        jurisdiction: "Spain",
+        decision_date: "2022-12-27",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://www.aepd.es/documento/ps-00146-2024.pdf", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, wired 2026-09-05 (v5). AEPD (Spain), CAMERDATA, S.A., 27 December 2022, EUR 260,000, EXP202404641. SOURCE LANGUAGE: Spanish; pin is verbatim. WORKING ENGLISH TRANSLATION: 'the data of self-employed business owners, which coincides with their personal data, was left exposed and even sold on the internet, without the consent of the data subjects and without any legal basis for that processing.' Bearing (this factor): sole-trader business data is still personal data; a commercial interest in selling it is not on that account a legitimate interest. DATA-QUALITY FLAG: decision_date 2022-12-27 sits against a source URL whose filename reads 'ps-00146-2024.pdf' - the same date/filename mismatch already flagged for the Camara de Comercio row (sibling AEPD case, adjacent file number). Neither URL is asserted as authoritative; flagged for T2. DARK pending ratification.",
+    },
+    {
+      id: "lia/f08-safeguards/ap-w5-10",
+      factor_id: "Safeguards and mitigations",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "a51194ee-6bf4-49b6-94d1-1dd8c7647029",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt:
+        "Se constata que la entidad reclamada contrat\u00f3 los servicios de empresas dedicadas a la promoci\u00f3n de actividades relacionadas con comercializaci\u00f3n de energ\u00eda el\u00e9ctrica sin verificar adecuadamente c\u00f3mo estas empresas obten\u00edan y procesaban los datos personales de los clientes potenciales",
+      render_eligible: false,
+      citation_source: {
+        regulator: "AEPD (Spain)",
+        subject: "SILVANERGIA 2022, S.L.",
+        jurisdiction: "Spain",
+        decision_date: "2023-08-16",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://www.aepd.es/documento/ps-00201-2025.pdf", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, wired 2026-09-05 (v5). AEPD (Spain), SILVANERGIA 2022, S.L., 16 August 2023, EUR 3,000, EXP202313830. SOURCE LANGUAGE: Spanish; pin is verbatim and clause-truncated (the full source field runs 634 characters, over the 300-character build-time pin budget; cut at a clause boundary, nothing rewritten). WORKING ENGLISH TRANSLATION of the pinned clause: 'It is established that the respondent engaged the services of companies dedicated to promoting electricity-marketing activities without adequately verifying how those companies obtained and processed the personal data of prospective customers.' Bearing (this factor): safeguards that exist only on paper - unverified supplier assurances - do not count as mitigations in the balancing test. DATA-QUALITY FLAG: decision_date 2023-08-16 against a source filename reading 'ps-00201-2025.pdf'; flagged for T2, URL not asserted as authoritative. DARK pending ratification.",
+    },
+    {
+      id: "lia/f04-balancing/ap-w5-11",
+      factor_id: "Balancing of interests, rights and freedoms",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "94312858-b48c-4a93-92ea-2b8e6edaf147",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt:
+        "SC Grupex 2000 SRL a prelucrat ilegal datele personale ale unor persoane fizice, bolnavi institu\u021bionaliza\u021bi, \u00een cadrul unui material filmat disponibil pe site-ul operatorului",
+      render_eligible: false,
+      citation_source: {
+        regulator: "ANSPDCP (Romania)",
+        subject: "SC Grupex 2000 SRL",
+        jurisdiction: "Romania",
+        decision_date: "2022-02-01",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://www.dataprotection.ro/?page=Comunicat_Presa_01_02_2022_2&lang=ro", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, wired 2026-09-05 (v5). ANSPDCP (Romania), SC Grupex 2000 SRL, 1 February 2022, EUR 1,000. SOURCE LANGUAGE: Romanian; pin is verbatim and clause-truncated (full field 327 characters, tail is a bare article list). WORKING ENGLISH TRANSLATION of the pinned clause: 'SC Grupex 2000 SRL unlawfully processed the personal data of individuals - institutionalised patients - in filmed material made available on the controller's website.' Bearing (this factor): where data subjects are in a position of dependence and cannot practically object, the balance tilts against the controller regardless of the communications purpose asserted. DARK pending ratification.",
+    },
+    {
+      id: "lia/f01-interest-legitimacy/ap-w5-12",
+      factor_id: "Interest legitimacy",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "8419bcb5-847e-48f2-b9a2-51d3616f638e",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt:
+        "ceder los datos personales del reclamante a la empresa de CALDERERIA Y SOLDADURA DE ESTRUCTURAS METALICAS, S.L. sin el consentimiento previo del titular de dichos datos personales supone una infracci\u00f3n del art. 6 del RGPD.",
+      render_eligible: false,
+      citation_source: {
+        regulator: "AEPD (Spain)",
+        subject: "CALDERERIA Y SOLDADURA DE ESTRUCTURAS METALICAS, S.L.",
+        jurisdiction: "Spain",
+        decision_date: "2021-10-04",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://www.aepd.es/es/documento/ps-00245-2021.pdf", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, wired 2026-09-05 (v5). AEPD (Spain), CALDERERIA Y SOLDADURA DE ESTRUCTURAS METALICAS, S.L., 4 October 2021, EUR 5,000, PS/00245/2021. SOURCE LANGUAGE: Spanish; pin verbatim. WORKING ENGLISH TRANSLATION: 'disclosing the complainant's personal data to CALDERERIA Y SOLDADURA DE ESTRUCTURAS METALICAS, S.L. without the prior consent of the data subject constitutes an infringement of Article 6 GDPR.' Bearing (this factor): onward disclosure to a third party is its own processing operation and needs its own basis; the discloser's convenience is not an interest that survives naming. DATA-QUALITY FLAG: the CYNGASA row (d6d05fbe, sibling below) carries a near-identical excerpt naming this same company - the two AEPD decisions are the two sides of one disclosure, but the shared wording means neither excerpt alone identifies its own respondent. Preserved as found, not corrected. DARK pending ratification.",
+    },
+    {
+      id: "lia/f06-relationship/ap-w5-13",
+      factor_id: "Relationship with the individual",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "d6d05fbe-8f5b-49d7-bbb1-6f66f85d7e17",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt:
+        "ceder los datos personales del reclamante a la empresa de CALDERERIA Y SOLDADURA DE ESTRUCTURAS METALICAS, S.L. sin el consentimiento previo del titular de dichos datos personales",
+      render_eligible: false,
+      citation_source: {
+        regulator: "AEPD (Spain)",
+        subject: "CYNGASA, S.L.",
+        jurisdiction: "Spain",
+        decision_date: "2021-09-29",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://www.aepd.es/es/documento/ps-00244-2021.pdf", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, wired 2026-09-05 (v5). AEPD (Spain), CYNGASA, S.L., 29 September 2021, EUR 5,000, PS/00244/2021. SOURCE LANGUAGE: Spanish; pin verbatim. WORKING ENGLISH TRANSLATION: 'disclosing the complainant's personal data to CALDERERIA Y SOLDADURA DE ESTRUCTURAS METALICAS, S.L. without the prior consent of the data subject.' Bearing (this factor): an existing commercial relationship with the individual does not extend to passing that individual's data to a business partner. DATA-QUALITY FLAG: excerpt duplicates the CALDERERIA row's wording (see above); the excerpt names the recipient, not this respondent. Preserved as found. DARK pending ratification.",
+    },
+    {
+      id: "lia/f05-expectations/ap-w5-14",
+      factor_id: "Reasonable expectations of the data subject",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "eb4cfde4-90c3-42f6-a829-5c83f0844db1",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt:
+        "recepci\u00f3n el 31 de enero de 2020, a las 11:34 horas, de una llamada comercial en nombre de \"Vodafone Espa\u00f1a, S.A.U.\", a su l\u00ednea telef\u00f3nica que se encuentra inscrita en la lista de exclusi\u00f3n publicitaria Robinson.",
+      render_eligible: false,
+      citation_source: {
+        regulator: "AEPD (Spain)",
+        subject: "Vamavi Phone S.L.",
+        jurisdiction: "Spain",
+        decision_date: "2021-02-11",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://www.aepd.es/es/documento/ps-00026-2021.pdf", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, wired 2026-09-05 (v5). AEPD (Spain), Vamavi Phone S.L., 11 February 2021, EUR 24,000, PS/00026/2021. SOURCE LANGUAGE: Spanish; pin verbatim. WORKING ENGLISH TRANSLATION: 'receipt, on 31 January 2020 at 11:34, of a marketing call made on behalf of Vodafone Espana, S.A.U. to a telephone line registered on the Robinson advertising-exclusion list.' Bearing (this factor): a registered opt-out list is a recorded, checkable statement of the individual's expectation; processing that ignores it fails this factor on the face of the record. DARK pending ratification.",
+    },
+    {
+      id: "lia/f06-relationship/ap-w5-15",
+      factor_id: "Relationship with the individual",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "ad36611f-1840-4d06-b330-8cbff6cb5882",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt:
+        "el denunciado, con la relaci\u00f3n de encargado del tratamiento ya finalizada, ha seguido tratando los datos de los clientes del denunciante llegando incluso a establecer contactos telef\u00f3nicos con sus clientes para ofertarle los servicios que el denunciante les estaba prestando.",
+      render_eligible: false,
+      citation_source: {
+        regulator: "AEPD (Spain)",
+        subject: "Avata Hispania, S.L.",
+        jurisdiction: "Spain",
+        decision_date: "2020-10-03",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://www.aepd.es/es/documento/ps-00245-2020.pdf", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, wired 2026-09-05 (v5). AEPD (Spain), Avata Hispania, S.L., 3 October 2020, EUR 3,000, PS/00245/2020. SOURCE LANGUAGE: Spanish; pin verbatim. WORKING ENGLISH TRANSLATION: 'the respondent, the processor relationship having already ended, continued to process the complainant's customers' data, going so far as to make telephone contact with those customers to offer them the services the complainant was providing.' Bearing (this factor): the relationship that once justified access is the same relationship whose end withdraws it - a former processor has no residual legitimate interest in the data it held. DARK pending ratification.",
+    },
+    {
+      id: "lia/f11-eprivacy/ap-w5-16",
+      factor_id: "Special-category and ePrivacy interplay",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "c0e5e0bf-e940-484c-9f1c-504b32e015eb",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt:
+        "la reclamante contrat\u00f3 los servicios del reclamado para descargarse men\u00fas semanales, descubriendo d\u00edas despu\u00e9s que dicha empresa ha utilizado sus datos personales nombre y apellidos completos y foto de perfil, e informaci\u00f3n sobre sus anal\u00edticas de colesterol y su enfermedad de hipotiroidismo",
+      render_eligible: false,
+      citation_source: {
+        regulator: "AEPD (Spain)",
+        subject: "Venu Sanz Chef, S.L.",
+        jurisdiction: "Spain",
+        decision_date: "2020-09-30",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://www.aepd.es/es/documento/ps-00249-2020.pdf", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, wired 2026-09-05 (v5). AEPD (Spain), Venu Sanz Chef, S.L., 30 September 2020, EUR 3,000, PS/00249/2020. SOURCE LANGUAGE: Spanish; pin verbatim and clause-truncated (full field 359 characters, over the pin budget). WORKING ENGLISH TRANSLATION of the pinned clause: 'the complainant engaged the respondent's services to download weekly menus, discovering days later that the company had used her personal data - full name and profile photograph - and information about her cholesterol test results and her hypothyroidism condition.' Bearing (this factor): health data pulled into a marketing purpose engages Article 9, which Article 6(1)(f) cannot reach past. DARK pending ratification.",
+    },
+    {
+      id: "lia/f01-interest-legitimacy/ap-w5-17",
+      factor_id: "Interest legitimacy",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "8d710906-539f-4ca8-8e43-1dad789b6acb",
+      excerpt_field: "key_compliance_failure",
+      pinned_excerpt:
+        "una trabajadora de la tienda de Vodafone se hizo pasar por \u00e9l d\u00e1ndose de alta en otra compa\u00f1\u00eda y as\u00ed realizar la portabilidad aportando DNI y sus datos sin consentimiento y falsificando su firma.",
+      render_eligible: false,
+      citation_source: {
+        regulator: "AEPD (Spain)",
+        subject: "Vodafone Espa\u00f1a, S.A.U.",
+        jurisdiction: "Spain",
+        decision_date: "2020-03-04",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://www.aepd.es/es/documento/ps-00429-2019.pdf", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, wired 2026-09-05 (v5). AEPD (Spain), Vodafone Espana, S.A.U., 4 March 2020, EUR 60,000. SOURCE LANGUAGE: Spanish; pin verbatim. WORKING ENGLISH TRANSLATION: 'an employee of the Vodafone store impersonated him, registering with another operator to carry out the number port and supplying his identity document and data without consent, forging his signature.' Bearing (this factor): a commercial objective pursued by fraud is not a legitimate interest at all - the first limb of the three-part test fails before necessity or balancing is reached. DARK pending ratification.",
+    },
+    // ---- v5.1 EXCERPT-EXTRACTION PASS (2026-09-05) ----------------------
+    // The 20 watch rows with an EMPTY `key_compliance_failure` were logged
+    // by v5 as "not pinnable and not wired". That was a statement about ONE
+    // column, not about the rows: every one of the 20 carries the stored
+    // decision text in `source_document_text`. This pass reads that column,
+    // pins an exact clause from the decision itself (excerpt_field flips to
+    // "source_document_text" on these rows only), and wires the 12 rows that
+    // carry a real legitimate-interests determination. The other 8 matched
+    // the watch only on recited statute text and are logged below the
+    // exclusions. All 12 land DARK; ratification is unchanged.
+    {
+      id: "lia/f03-necessity/ap-w6-01",
+      factor_id: "Necessity and less-intrusive means",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "0791afb8-6580-4613-a89a-9d4964451e07",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "the DPC held that the data controller could not validly rely on Article 6(1)(f) GDPR as a legal basis for processing the data subject's ID and supplemental photograph to verify his identity because there were other means of validating the data subject's ID.",
+      render_eligible: false,
+      citation_source: {
+        regulator: "DPC (Ireland)",
+        subject: "AirBnb Ireland UC",
+        jurisdiction: "Ireland",
+        decision_date: "2023-09-28",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=DPC_(Ireland)_-_Inquiry_into_Airbnb_Ireland_UC_-_28_September_2023", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). DPC (Ireland), AirBnb Ireland UC, 2023-09-28, 28.09.2023 (complaint reference redacted). No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): where an equally effective, less intrusive verification route exists, Article 6(1)(f) fails at the necessity limb even though the safety interest itself was accepted as legitimate. DARK pending ratification.",
+    },
+    {
+      id: "lia/f01-interest-legitimacy/ap-w6-02",
+      factor_id: "Interest legitimacy",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "7f44d8f1-94c2-4e43-beac-3ddedc48b021",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "the DPC carried out the three-step test needed to establish the legitimacy of the interest pursued: first, the DPC held that a legitimate interest is given, as it is stated in the controller\u2019s LIA document that it has an interest in preserving the integrity of police investigations,",
+      render_eligible: false,
+      citation_source: {
+        regulator: "DPC (Ireland)",
+        subject: "Airbnb Ireland UC",
+        jurisdiction: "Ireland",
+        decision_date: "2023-09-14",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=DPC_(Ireland)_-_Inquiry_into_Airbnb_Ireland_UC_-_14_September_2023", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). DPC (Ireland), Airbnb Ireland UC, 2023-09-14, Inquiry into Airbnb Ireland UC - 14 September 2023. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): the authority worked from the controller's own written LIA when identifying the interest - a documented interest statement is what the first limb is tested against. DARK pending ratification.",
+    },
+    {
+      id: "lia/f08-safeguards/ap-w6-03",
+      factor_id: "Safeguards and mitigations",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "2b685584-e0e6-4ef7-93be-c42947f32991",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "The Archbishop may lawfully rely on legitimate interests under Article 6(1)(f)\nGDPR as a legal basis for the processing of personal data of individuals which\nare recorded in the Baptism Register, even in such instances where an individual\nno longer wishes to be associated with the Catholic Church;",
+      render_eligible: false,
+      citation_source: {
+        regulator: "DPC (Ireland)",
+        subject: "Archbishop of Dublin",
+        jurisdiction: "Ireland",
+        decision_date: "2023-02-27",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=DPC_(Ireland)_-_IN-19-7-6", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). DPC (Ireland), Archbishop of Dublin, 2023-02-27, IN-19-7-6. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): legitimate interests survived an erasure challenge only because retention was hedged with safeguards; the safeguard package is doing the balancing work. DARK pending ratification.",
+    },
+    {
+      id: "lia/f04-balancing/ap-w6-04",
+      factor_id: "Balancing of interests, rights and freedoms",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "91474d2b-b024-44f5-ae28-3adf6ab9090a",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "Airbnb did not demonstrate that the ID request was either proportionate or necessary in the context of an erasure request. Therefore, it could not be considered that a \u201clegitimate interest\u201d exists for the processing of data and so the controller had infringed Article 6(1) GDPR",
+      render_eligible: false,
+      citation_source: {
+        regulator: "DPC (Ireland)",
+        subject: "Airbnb Ireland UC",
+        jurisdiction: "Ireland",
+        decision_date: "2022-09-14",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=DPC_(Ireland)_-_IN-21-3-1", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). DPC (Ireland), Airbnb Ireland UC, 2022-09-14, IN-21-3-1. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): an undemonstrated proportionality case collapses the balance - the controller carries the burden of showing the interest outweighs the individual's rights. DARK pending ratification.",
+    },
+    {
+      id: "lia/f05-reasonable-expectations/ap-w6-05",
+      factor_id: "Reasonable expectations of the data subject",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "96fa14f8-3811-4cd6-a520-50ccf054d387",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "The company had no legitimate interest to collect and process such sensitive data and therefore had to rely on a consent-based approach",
+      render_eligible: false,
+      citation_source: {
+        regulator: "CNIL (France)",
+        subject: "CLEARVIEW AI",
+        jurisdiction: "France",
+        decision_date: "2021-11-26",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=CNIL_(France)_-_MED-2021-134", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). CNIL (France), CLEARVIEW AI, 2021-11-26, MED-2021-134. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): scraping publicly accessible images defeats reasonable expectations, so no legitimate interest was available and consent became the only route. DARK pending ratification.",
+    },
+    {
+      id: "lia/f06-relationship/ap-w6-06",
+      factor_id: "Relationship with the individual",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "6c76ba4e-d9ed-4ea7-887e-259c88a42881",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "when the processing has as a legal basis the legitimate interest of the controller, the latter must comply with the request for erasure made by the data subject.",
+      render_eligible: false,
+      citation_source: {
+        regulator: "CNIL (France)",
+        subject: "Soci\u00e9t\u00e9 nouvelle de l\u2019annuaire fran\u00e7ais (SNAF)",
+        jurisdiction: "France",
+        decision_date: "2021-09-15",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=CNIL_(France)_-_SAN-2021-014", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). CNIL (France), Soci\u00e9t\u00e9 nouvelle de l\u2019annuaire fran\u00e7ais (SNAF), 2021-09-15, SAN-2021-014. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): relying on legitimate interests imports a live objection and erasure route; the interest must be re-defended as compelling once the individual objects. DARK pending ratification.",
+    },
+    {
+      id: "lia/f04-balancing/ap-w6-07",
+      factor_id: "Balancing of interests, rights and freedoms",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "e98e0e5f-d0a6-467f-a37b-736dd8072b3c",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "This balancing between the different interests involved requires in particular taking into account the reasonable expectations of the persons concerned as to the nature of the data collected and the way in which they are processed for the constitution of the processing in dispute,",
+      render_eligible: false,
+      citation_source: {
+        regulator: "CNIL (France)",
+        subject: "Monsanto Company",
+        jurisdiction: "France",
+        decision_date: "2021-08-26",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=CNIL_(France)_-_SAN-2021-012", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). CNIL (France), Monsanto Company, 2021-08-26, SAN-2021-012. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): the authority anchored the balancing exercise in reasonable expectations about the data collected and how it is used. DARK pending ratification.",
+    },
+    {
+      id: "lia/f01-interest-legitimacy/ap-w6-08",
+      factor_id: "Interest legitimacy",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "5c406c0e-d256-4aab-98e1-559ce66abfa7",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "The DPC originally held this information was provided in a clear and meaningful way, but amended its finding to comply with the EDPB",
+      render_eligible: false,
+      citation_source: {
+        regulator: "DPC (Ireland)",
+        subject: "WhatsApp Ireland Limited",
+        jurisdiction: "Ireland",
+        decision_date: "2021-08-20",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=DPC_(Ireland)_-_WhatsApp_Ireland_Limited_-_IN-18-12-2", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). DPC (Ireland), WhatsApp Ireland Limited, 2021-08-20, WhatsApp Ireland Limited - IN-18-12-2. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): Article 13(1)(d) requires the specific legitimate interests pursued to be stated to the reader; a generic interest statement is a transparency failure as well as a weak first limb. DARK pending ratification.",
+    },
+    {
+      id: "lia/f11-eprivacy/ap-w6-09",
+      factor_id: "Special-category and ePrivacy interplay",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "dfcc63f9-cb9a-412c-9966-ea41da99a454",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "The CNIL dismissed Nestor's allegation that this processing of personal data relied on their legitimate interest as a legal basis (and therefore Nestor's claim that they did not need prior consent).",
+      render_eligible: false,
+      citation_source: {
+        regulator: "CNIL (France)",
+        subject: "Nestor SAS",
+        jurisdiction: "France",
+        decision_date: "2020-12-08",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=CNIL_(France)_-_SAN-2020-018", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). CNIL (France), Nestor SAS, 2020-12-08, SAN-2020-018. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): electronic-marketing rules impose consent and displace legitimate interests, so the Article 6(1)(f) route is unavailable no matter how the balance reads. DARK pending ratification.",
+    },
+    {
+      id: "lia/f01-interest-legitimacy/ap-w6-10",
+      factor_id: "Interest legitimacy",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "2c7fe8e4-3bdb-4a24-9057-54b595c4b66e",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "Recalling that recital 41 of the GDPR requires that the legal basis for processing be clear and precise, it considers that the company cannot aim solely within its data confidentiality policy as the legal basis of consent for all the processing operations implemented.",
+      render_eligible: false,
+      citation_source: {
+        regulator: "CNIL (France)",
+        subject: "SPARTOO SAS",
+        jurisdiction: "France",
+        decision_date: "2020-07-28",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=CNIL_(France)_-_SAN-2020-003", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). CNIL (France), SPARTOO SAS, 2020-07-28, SAN-2020-003. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. Bearing (this factor): a blanket legal-basis statement is not precise enough; each purpose must name its own basis, and legitimate interests must be identified as such where relied on. DARK pending ratification.",
+    },
+    {
+      id: "lia/f06-relationship/ap-w6-11",
+      factor_id: "Relationship with the individual",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "6ca23a52-cceb-4ecb-bfd2-bdb3aefee8fe",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "if the withdrawal of consent is not successful, the information obtained would be processed by the Company on the basis of Article 6(1)(f) of Regulation 2016/679, i.e. on the basis of the legitimate interest of the controller.",
+      render_eligible: false,
+      citation_source: {
+        regulator: "UODO (Poland)",
+        subject: "ClickQuickNow Sp. z o",
+        jurisdiction: "Poland",
+        decision_date: "2019-10-16",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://gdprhub.eu/index.php?title=UODO_(Poland)_-_ZSPR.421.7.2019", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). UODO (Poland), ClickQuickNow Sp. z o, 2019-10-16, ZSPR.421.7.2019. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. RECORDED BASIS, NOT A FINDING: this pin is the controller's own asserted position as recorded by the authority. Bearing (this factor): legitimate interests cannot be used as a fallback to keep processing that the individual has just withdrawn consent for. DARK pending ratification.",
+    },
+    {
+      id: "lia/f01-interest-legitimacy/ap-w6-12",
+      factor_id: "Interest legitimacy",
+      role: "AP",
+      source_table: "enforcement_actions",
+      source_row_id: "cc2e878b-5e81-4d51-90d4-1b43e248d070",
+      excerpt_field: "source_document_text",
+      pinned_excerpt:
+        "Base Jur\u00eddica: El inter\u00e9s leg\u00edtimo de Amadeus en comprender mejor nuestros servicios y mejorarlos, identificar tendencias de uso y desarrollar nuevos productos.",
+      render_eligible: false,
+      citation_source: {
+        regulator: "AEPD (Spain)",
+        subject: "AMADEUS IT GROUP, S.A.",
+        jurisdiction: "Spain",
+        decision_date: "2016-04-27",
+      },
+      direction: "limits",
+      logic_bearing: false,
+      provenance: { source_url: "https://www.aepd.es/documento/ps-00005-2025.pdf", verified_on: "2026-09-05" },
+      curation_note:
+        "Doc 73 watch row, excerpt-extraction pass, wired 2026-09-05 (v5.1). AEPD (Spain), AMADEUS IT GROUP, S.A., 2016-04-27, EXP202315175. No key_compliance_failure on this row, so the pin is an exact substring of `source_document_text` (the stored decision text), clause-truncated to the pin budget. SOURCE LANGUAGE: Spanish; pin verbatim. WORKING ENGLISH TRANSLATION: 'Legal basis: Amadeus's legitimate interest in better understanding our services and improving them, identifying usage trends and developing new products.' Bearing (this factor): a legitimate interest stated at this level of generality (analytics, product development) is what the authority tested against the controller's own legitimate-interests assessment annexed to its DPIA. DARK pending ratification.",
+    },
+
+    // v5 EXCLUSIONS (matched the watch, deliberately NOT wired):
+    //   • 20cf9537 — KFC Restaurants Spain, S.L.U. (AN, 2026-07-16): the
+    //     finding is a DPO-appointment and transparency failure; it does
+    //     not turn on Article 6(1)(f). Watch false positive (raw-text arm).
+    //   • 1a7cfe65 — Microsoft Ireland Operations Limited (DPC, 2025-09-01):
+    //     an access-request handling failure; no legitimate-interests
+    //     determination to pin. Watch false positive.
+    //   • 771e1908 — "XXXXXXXX" (CNIL, 2022-06-23, €1,000,000): the subject
+    //     is redacted in the source row, so no citable respondent exists;
+    //     an AP row must name its matter. Logged for T2 re-sourcing.
+  //   ---- v5.1 EXCERPT-PASS EXCLUSIONS (no LI determination to pin) ----
+  //   The watch matched these 8 only on recited statute/notice text, so
+  //   there is no legitimate-interests holding, and no controller position,
+  //   to pin. They stay logged, not wired:
+  //   • 978c36c5 UODO - Minister of Digitalisation (2025-03-17): Article
+  //     6(1) recited in full; the finding is Article 5(1)(a)/6(1) lawfulness
+  //     generally, not the 6(1)(f) route.
+  //   • 1a28450a UODO - National Public Prosecutor's Office (2024-09-02):
+  //     same recital-of-Article-6 match; the case turns on Article 9/33/34.
+  //   • ccf0a806 CNIL - University of Bordeaux (2023-09-07): stored source
+  //     text is 644 characters and contains no legitimate-interests passage;
+  //     the case runs on Article 6(1)(e) public task.
+  //   • 2fcb9f54 DPC - WhatsApp Ireland (2023-01-12): a generic sentence
+  //     listing the available legal bases; no 6(1)(f) determination.
+  //   • 6b52d8ab CNIL - Ministry of Interior (2021-01-12): the only match is
+  //     "the public has demonstrated a legitimate interest in matters" -
+  //     the ordinary-language sense, not Article 6(1)(f). False positive.
+  //   • 0f433267 CNIL - French Ministry of Health (2020-07-15): the match is
+  //     inside the recited Article 35(7)(a) DPIA content requirement.
+  //   • 7e4606c9 CNIL - Futura International (2019-11-21): matches are the
+  //     recited Article 13/14 information duties.
+  //   • 000fda38 UODO - Bisnode (2019-03-15): match is the recited Article
+  //     14(2)(b) text; the finding is an Article 14 notification failure.
   ],
 };

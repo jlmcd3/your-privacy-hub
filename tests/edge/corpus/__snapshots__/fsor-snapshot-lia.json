@@ -1,5 +1,5 @@
 {
-  "captured_at": "2026-08-26",
+  "captured_at": "2026-09-05",
   "rows": {
     "69eee35f-a280-47be-8159-bf778767ff31": {
       "key_compliance_failure": "LinkedIn unlawfully processed personal data for behavioural analysis and targeted advertising without a valid legal basis and failed to provide sufficient transparency to data subjects."
@@ -69,6 +69,93 @@
     },
     "286ddf26-7ca4-468c-9831-2c55ce4ac7ac": {
       "excerpt_text": "116 In particular, it highlighted that, when performing a balancing exercise to assess whether a processing may be based on Article 6(1)(f) GDPR, special care must be taken in relation to the status of children as data subjects, using their best interest as a guide.117 112 See Article 18(2) GDPR. 113 See inter alia Recital 38 GDPR. 114 The concept of the child’s best interests should be assessed on a case-by-case basis, either in relation to an individual child or children in general. The assessment should include the impact on all the rights enshrined in the Convention on the Rights of the Child and its Optional Protocols and not only the impact on the rights to privacy and to data protection. 115 Convention on the Rights of the Child, signed on 20 November 1989 and ratified by all the Member States. 116 WP29, Opinion 2/2009 on the protection of children’s personal data (General Guidelines and the special case of schools), adopted on 11 February 2009. 117 Ibid., page 9. 27 Adopted - version for public consultation 94. While this does not mean that there will never be a situation in which the interests of the child can be overridden, it does mean that the interests of children as data subjects should have high priority and will very often outweigh the interests of the controller or third parties.118 95. The EDPB considers that Article 6(1)(f) GDPR may be invoked as a legal basis by a controller where the legitimate interests pursued coincide with the interests of the child."
+    },
+    "dcd75c1d-a21f-4939-b2a0-d8cb1b96545a": {
+      "key_compliance_failure": "Meta IE's processing of personal data for behavioral advertising was found to be unlawful, as the 'consent' obtained from users was not freely given, specific, or granular, and was bundled with terms of service."
+    },
+    "c1a28f21-71cd-472e-b549-c0d4b986ec2a": {
+      "key_compliance_failure": "The controller unlawfully collected and processed a massive database of biometric data from individuals, including minors, without a valid legal basis or consent, and failed to adequately respond to data subject access and erasure requests."
+    },
+    "75cce78c-78a8-47a3-97bc-517575cdaf88": {
+      "key_compliance_failure": "The online advertising group Criteo failed to ensure that data subjects gave their consent to the placement of tracking cookies on their devices and subsequently failed to process their data lawfully and transparently, as well as handle their data subject rights requests properly."
+    },
+    "7edab77e-1403-4bdb-a834-9aa626f97dd1": {
+      "key_compliance_failure": "The media outlet published an audio recording of a rape victim's testimony without sufficient justification, violating data minimization principles and the victim's right to privacy."
+    },
+    "d47222c4-c7db-4564-9074-831a5753ee52": {
+      "key_compliance_failure": "The company processed highly sensitive personal data without a legitimate basis, specifically by publishing an audio recording of a rape victim's testimony."
+    },
+    "0d01d954-f90b-4859-a022-68e497bdd37a": {
+      "key_compliance_failure": "The company performed a credit check on an individual without a valid legal basis as required by GDPR Article 6(1)."
+    },
+    "d2df70c3-d59d-4c13-9aa5-701f47774649": {
+      "key_compliance_failure": "Accor failed to obtain valid consent for direct marketing, did not provide adequate information about data processing, did not properly respond to data subject access and unsubscribe requests, and used a weak password for an account managing email communications."
+    },
+    "64ee4d90-9ead-4155-b379-868932d05c5f": {
+      "key_compliance_failure": "se han publicado sus datos personales (nombre y apellidos y, además, la imagen de uno de ellos) sin su consentimiento, acusándoles de haber ocupado un inmueble y no haber abonado el precio correspondiente al alquiler."
+    },
+    "99d0804e-9263-4569-94bc-1d20cdbf9140": {
+      "key_compliance_failure": "los datos de empresarios autónomos que coinciden con sus datos personales queden expuestos e incluso sean vendidos en internet, sin consentimiento de los interesados ni base legal para tal tratamiento."
+    },
+    "a51194ee-6bf4-49b6-94d1-1dd8c7647029": {
+      "key_compliance_failure": "Se constata que la entidad reclamada contrató los servicios de empresas dedicadas a la promoción de actividades relacionadas con comercialización de energía eléctrica sin verificar adecuadamente cómo estas empresas obtenían y procesaban los datos personales de los clientes potenciales, permitiendo que se realizasen llamadas telefónicas y se utilizasen datos personales (nombre completo, DNI, dirección, número de CUP y dígitos del número de cuenta bancaria) de la reclamante sin consentimiento previo, en el marco de una actividad comercial que se llevó a cabo de forma engañosa haciéndose pasar por una comercializadora autorizada."
+    },
+    "94312858-b48c-4a93-92ea-2b8e6edaf147": {
+      "key_compliance_failure": "SC Grupex 2000 SRL a prelucrat ilegal datele personale ale unor persoane fizice, bolnavi instituționalizați, în cadrul unui material filmat disponibil pe site-ul operatorului, prin încălcarea dispozițiilor art. 6 și art. 9 prin raportare la principiile prevăzute de art. 5 alin. (1) lit. a), b), c) și f) și alin. (2) din RGPD."
+    },
+    "8419bcb5-847e-48f2-b9a2-51d3616f638e": {
+      "key_compliance_failure": "ceder los datos personales del reclamante a la empresa de CALDERERIA Y SOLDADURA DE ESTRUCTURAS METALICAS, S.L. sin el consentimiento previo del titular de dichos datos personales supone una infracción del art. 6 del RGPD."
+    },
+    "d6d05fbe-8f5b-49d7-bbb1-6f66f85d7e17": {
+      "key_compliance_failure": "ceder los datos personales del reclamante a la empresa de CALDERERIA Y SOLDADURA DE ESTRUCTURAS METALICAS, S.L. sin el consentimiento previo del titular de dichos datos personales"
+    },
+    "eb4cfde4-90c3-42f6-a829-5c83f0844db1": {
+      "key_compliance_failure": "recepción el 31 de enero de 2020, a las 11:34 horas, de una llamada comercial en nombre de \"Vodafone España, S.A.U.\", a su línea telefónica que se encuentra inscrita en la lista de exclusión publicitaria Robinson."
+    },
+    "ad36611f-1840-4d06-b330-8cbff6cb5882": {
+      "key_compliance_failure": "el denunciado, con la relación de encargado del tratamiento ya finalizada, ha seguido tratando los datos de los clientes del denunciante llegando incluso a establecer contactos telefónicos con sus clientes para ofertarle los servicios que el denunciante les estaba prestando."
+    },
+    "c0e5e0bf-e940-484c-9f1c-504b32e015eb": {
+      "key_compliance_failure": "la reclamante contrató los servicios del reclamado para descargarse menús semanales, descubriendo días después que dicha empresa ha utilizado sus datos personales nombre y apellidos completos y foto de perfil, e información sobre sus analíticas de colesterol y su enfermedad de hipotiroidismo para dar publicidad a sus productos, sin su previo consentimiento."
+    },
+    "8d710906-539f-4ca8-8e43-1dad789b6acb": {
+      "key_compliance_failure": "una trabajadora de la tienda de Vodafone se hizo pasar por él dándose de alta en otra compañía y así realizar la portabilidad aportando DNI y sus datos sin consentimiento y falsificando su firma."
+    },
+    "0791afb8-6580-4613-a89a-9d4964451e07": {
+      "source_document_text": "DPC had received the request from the data subject on 20 April 2020.\n \n Holding \n\n After concluding its inquiry, the DPC issued its final decision on 28 September 2023. \n\n As regards the first issue, the DPC held that the data controller could not validly rely on Article 6(1)(f) GDPR as a legal basis for processing the data subject's ID and supplemental photograph to verify his identity because there were other means of validating the data subject's ID. The DPC further stated that the host's request for ID verification should not have been given priority over the data subject's rights, although the DPC agreed that the controller had a legitimate int"
+    },
+    "7f44d8f1-94c2-4e43-beac-3ddedc48b021": {
+      "source_document_text": " a legitimate interest under Article 6(1)(f) GDPR to retain each of the complainant’s eight accounts, including identity, financial and tax information about him, after his deletion request. In this, the DPC carried out the three-step test needed to establish the legitimacy of the interest pursued: first, the DPC held that a legitimate interest is given, as it is stated in the controller’s LIA document that it has an interest in preserving the integrity of police investigations, in protecting itself from liability and keeping the platform safe. Secondly, the DPC held, with respect to necessity, that the controller rightfully stated that, in light of Cypriot legal advice, it "
+    },
+    "2b685584-e0e6-4ef7-93be-c42947f32991": {
+      "source_document_text": "l data processed\nin church registers. All of the individuals had written to either their parish or to the\nArchdiocese asking for the erasure of their data pursuant to Article 17 GDPR .\n\n Holding \n\n • The Archbishop may lawfully rely on legitimate interests under Article 6(1)(f)\nGDPR as a legal basis for the processing of personal data of individuals which\nare recorded in the Baptism Register, even in such instances where an individual\nno longer wishes to be associated with the Catholic Church;\n• Subject to safeguards, the Archbishop’s interests in retaining the personal data\ncontained in the Baptism Registers are not overridden by the interests or\nfundamental rights and freedoms of the ind"
+    },
+    "91474d2b-b024-44f5-ae28-3adf6ab9090a": {
+      "source_document_text": "y requirement for submitting an erasure request does constitute processing for the purposes of Article 4(2) GDPR . In addition, while the processing of photo ID may be required in some circumstances, Airbnb did not demonstrate that the ID request was either proportionate or necessary in the context of an erasure request. Therefore, it could not be considered that a “legitimate interest” exists for the processing of data and so the controller had infringed Article 6(1) GDPR , in addition to violating the principle of data minimisation in Article 5(1)(c) GDPR . \n\n Concerning the second issue of the controller’s handling of the erasure request, the DPC advised that, once "
+    },
+    "96fa14f8-3811-4cd6-a520-50ccf054d387": {
+      "source_document_text": "gations revealed two main breaches of the GDPR.\n\n First, Clearview AI was illegally processing personal data. Indeed, as stated in Article 6 GDPR , a legal basis is required to process personal data. The company had no legitimate interest to collect and process such sensitive data and therefore had to rely on a consent-based approach (Article 6(1)(b) GDPR). Since the the company did not appear to seek any consent from individuals the processing operations were deemed unlawful.\n\n Second, Clearview AI had been unlawfully hindering "
+    },
+    "6c76ba4e-d9ed-4ea7-887e-259c88a42881": {
+      "source_document_text": "nly disseminates data published each month by INSEE, and previously updated by the latter.\n\n46. The restricted committee considers that it emerges from the aforementioned provisions of the GDPR that, when the processing has as a legal basis the legitimate interest of the controller, the latter must comply with the request for erasure made by the data subject. when the latter has objected to the processing of his personal data and the data controller does not demonstrate compelling legitimate grounds for the processing.\n\n47. The restricted committee notes "
+    },
+    "e98e0e5f-d0a6-467f-a37b-736dd8072b3c": {
+      "source_document_text": " by the pursuit of the legitimate interest of the data controller provided that the interests and fundamental rights of the persons concerned do not prevail over the interests of the data controller. This balancing between the different interests involved requires in particular taking into account the reasonable expectations of the persons concerned as to the nature of the data collected and the way in which they are processed for the constitution of the processing in dispute, as provided for in recital 47 of the GDPR.\n\n75. In the present case, the restricted panel notes that the persons whose data appeared in the disputed file could reasonably expect that company X, or mo"
+    },
+    "5c406c0e-d256-4aab-98e1-559ce66abfa7": {
+      "source_document_text": "ieved this in regard to the individual legal bases it identified in its Privacy Policy and found the company did not. \n\n Article 13(1)(d) – where applicable, the Legitimate Interests being pursued \n\n The DPC originally held this information was provided in a clear and meaningful way, but amended its finding to comply with the EDPB’s binding decision .\n\n Article 13(1)(e) – the Recipients or Categories of Recipients \n\n The DPC held “ the information provided does not enable the user to understand what categories of personal data"
+    },
+    "dfcc63f9-cb9a-412c-9966-ea41da99a454": {
+      "source_document_text": "as achieved by combining the name of the natural person with the company they work for and collating it in a database. Nestor revealed that 635,033 commercial emails were send that way since 2017. \n\n The CNIL dismissed Nestor's allegation that this processing of personal data relied on their legitimate interest as a legal basis (and therefore Nestor's claim that they did not need prior consent). The CNIL held that sending commercial emails to natural persons had no link to the recipients' professional activity as it concerned lunch meals. The CNIL therefore held that Nestor sent emails and S"
+    },
+    "2c7fe8e4-3bdb-4a24-9057-54b595c4b66e": {
+      "source_document_text": "ork of purchases made on the company's website cannot be based on the consent of individuals, but, as the rapporteur has indicated, on the contract or the legitimate interests pursued by the company. Recalling that recital 41 of the GDPR requires that the legal basis for processing be clear and precise, it considers that the company cannot aim solely within its data confidentiality policy as the legal basis of consent for all the processing operations implemented. artwork.\n\n70. Consequently, if the company has indeed, as the texts require, integrated information on the legal basis and taken care to retain the most protective basis, according to it, of the righ"
+    },
+    "6ca23a52-cceb-4ecb-bfd2-bdb3aefee8fe": {
+      "source_document_text": "g further data processing should be considered as collection of additional data by the Company, which would be removed anyway if the revocation of consent was considered effective. On the other hand, if the withdrawal of consent is not successful, the information obtained would be processed by the Company on the basis of Article 6(1)(f) of Regulation 2016/679, i.e. on the basis of the legitimate interest of the controller.\n\n(12) Referring to the content of the Communication: \"Your withdrawal of consent today [...]\". Thank you for your reply! In this case, I would like to inform you that you have the right of access, de"
+    },
+    "cc2e878b-5e81-4d51-90d4-1b43e248d070": {
+      "source_document_text": "s GDS (por ejemplo, su agencia de viajes). • Propósito: Realizar análisis de datos, auditorías, estadísticas, desarrollar nuevos productos, mejorar nuestros servicios e identificar tendencias de uso. Base Jurídica: El interés legítimo de Amadeus en comprender mejor nuestros servicios y mejorarlos, identificar tendencias de uso y desarrollar nuevos productos. • Propósito: Proceso de anonimziación y agregación con el fin de utilizar los datos con fines analíticos. Los datos agregados que no se pueden utilizar para identificar a los viajeros pueden ser comp"
     }
   }
 }
