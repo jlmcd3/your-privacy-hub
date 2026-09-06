@@ -292,7 +292,7 @@ const GDPR_TOOLS_ITEM: NavItem = {
       items: [
         { icon: <Scale aria-hidden="true" strokeWidth={1.75} />, label: "Legitimate Interests Assessment", href: "/li-assessment",
           tooltip: "Three-part LIA — purpose, necessity, balancing — calibrated to EDPB enforcement" },
-        { icon: <FileText aria-hidden="true" strokeWidth={1.75} />, label: "DPIA / Impact Assessment", href: "/dpia-framework",
+        { icon: <FileText aria-hidden="true" strokeWidth={1.75} />, label: "Data Protection Impact Assessment (DPIA)", href: "/dpia-framework",
           tooltip: "EDPB-aligned DPIA template for high-risk processing" },
         { icon: <Shield aria-hidden="true" strokeWidth={1.75} />, label: "GDPR Accountability Assessment", href: "/governance-assessment",
           tooltip: "Programme health check against what regulators actually enforce" },
