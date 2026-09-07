@@ -1,5 +1,13 @@
 // DOC 207C — generate-corpus-rules: validation classes, round-trip, exclusion.
-import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
+//
+// The grammar under test is the CANONICAL one in
+// `_shared/corpus/rule-types.ts`: trigger clauses are `all_of` / `any_of` /
+// `none_of`, `parseAtom` THROWS on a malformed atom (it does not return
+// null), and there is no negation prefix or operator beyond `=` on
+// `verdict:` / `state:`. The generator's own helpers (effect-kind arrays,
+// `triggerAtomStrings`) live in its `_local/atoms.ts`, not in the canonical
+// module.
+import { assert, assertEquals, assertStringIncludes, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   generateRules,
   typeImportSpecifier,
@@ -9,7 +17,8 @@ import {
 } from "../../../supabase/functions/generate-corpus-rules/_local/generate.ts";
 import { ruleRegistryFor } from "../../../supabase/functions/generate-corpus-rules/_local/product-registry.ts";
 import { LIA_RULE_CONTEXT_BLOCK } from "../../../supabase/functions/generate-corpus-rules/_local/lia-rule-context.ts";
-import { parseAtom, triggerAtomStrings } from "../../../supabase/functions/_shared/corpus/rule-types.ts";
+import { triggerAtomStrings } from "../../../supabase/functions/generate-corpus-rules/_local/atoms.ts";
+import { parseAtom } from "../../../supabase/functions/_shared/corpus/rule-types.ts";
 
 const registry = ruleRegistryFor("lia")!;
 const VOCAB = registry.typed_state_vocabulary;
@@ -22,6 +31,8 @@ function ratifiedProfile(id: string, over: Partial<RuleProfileRow> = {}): RulePr
   return {
     id,
     rule_or_pattern: "rule",
+    source_table: "edpb_guidelines",
+    source_row_id: `row-${id.slice(0, 4)}`,
     ratified_by: "ceo",
     ratified_at: "2026-09-07T00:00:00Z",
     ledger_ref: "ledger-1",
@@ -43,8 +54,8 @@ function ruleRow(over: Partial<AuthorityRuleRow> = {}): AuthorityRuleRow {
     regulator_scope: null,
     bears_on_factor_ids: ["reasonable_expectations"],
     bears_on_element: "balancing",
-    trigger: { all: ["flag:special_category", "class:direct_marketing"] },
-    effect: { kind: "cap_verdict", element: "balancing", cap: "fails" },
+    trigger: { all_of: ["flag:special_category", "class:direct_marketing"] },
+    effect: { kind: "cap_verdict", element: "balancing", max: "likely_fails" },
     reason_sentence: "Special category data processed for direct marketing cannot pass the balancing test on this record.",
     authority_citation: "EDPB Guidelines 1/2024, Section II.C",
     fixture_fires: { flags: ["special_category"] },
@@ -64,11 +75,12 @@ function favorableRow(over: Partial<AuthorityRuleRow> = {}): AuthorityRuleRow {
     id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
     rule_id: "LIA-R-002",
     profile_id: PROFILE_B,
+    supporting_profile_ids: [PROFILE_A],
     direction: "favorable",
     settledness: "R1",
     bears_on_element: "purpose",
-    trigger: { any: ["class:fraud_prevention", "state:intake.purpose_details.controller_is_public_authority=false"] },
-    effect: { kind: "recognise_interest", element: "purpose", interest: "fraud prevention" },
+    trigger: { any_of: ["class:fraud_prevention", "state:intake.purpose_details.controller_is_public_authority=false"] },
+    effect: { kind: "recognise_interest", element: "purpose", value: "passes" },
     reason_sentence: "Fraud prevention is expressly recognised as a legitimate interest of the controller.",
     ...over,
   });
@@ -93,27 +105,24 @@ const PROFILES = new Map<string, RuleProfileRow>([
   [PROFILE_B, ratifiedProfile(PROFILE_B)],
 ]);
 
-// ── atom grammar ────────────────────────────────────────────────────────
-Deno.test("parseAtom: kinds, operators and rejections", () => {
-  assertEquals(parseAtom("flag:special_category")?.kind, "flag");
-  assertEquals(parseAtom("data:Health or medical data")?.key, "Health or medical data");
-  const v = parseAtom("verdict:necessity=fails");
-  assertEquals(v?.kind, "verdict");
-  assertEquals(v?.op, "=");
-  assertEquals(v?.value, "fails");
-  assertEquals(parseAtom("!flag:children")?.negated, true);
-  assertEquals(parseAtom("nonsense"), null);
-  assertEquals(parseAtom("bogus:thing"), null);
-  assertEquals(parseAtom("flag:"), null);
-  assertEquals(parseAtom("flag:children=true"), null); // operators only on verdict/state
-  assertEquals(parseAtom(42), null);
+// ── atom grammar (canonical: throws, no negation, no extra operators) ────
+Deno.test("parseAtom: kinds, keyed atoms and rejections", () => {
+  assertEquals(parseAtom("flag:special_category").kind, "flag");
+  assertEquals(parseAtom("data_category:Health or medical data").key, "Health or medical data");
+  const v = parseAtom("verdict:necessity=passes");
+  assertEquals(v.kind, "verdict");
+  assertEquals(v.value, "passes");
+  assertThrows(() => parseAtom("nonsense"), Error, 'malformed atom (no ":")');
+  assertThrows(() => parseAtom("bogus:thing"), Error, "unknown atom kind");
+  assertThrows(() => parseAtom("flag:"), Error, "empty key");
+  assertThrows(() => parseAtom("verdict:necessity"), Error, 'no "="');
 });
 
 Deno.test("triggerAtomStrings rejects non-object and unknown keys", () => {
-  assertEquals(triggerAtomStrings({ all: ["flag:children"] }), ["flag:children"]);
+  assertEquals(triggerAtomStrings({ all_of: ["flag:children"] }), ["flag:children"]);
   assertEquals(triggerAtomStrings({ some: ["x"] }), null);
   assertEquals(triggerAtomStrings(["flag:children"]), null);
-  assertEquals(triggerAtomStrings({ all: [3] }), null);
+  assertEquals(triggerAtomStrings({ all_of: [3] }), null);
 });
 
 // ── validation failure classes ──────────────────────────────────────────
@@ -124,13 +133,14 @@ const CASES: ReadonlyArray<[string, Partial<AuthorityRuleRow>, string]> = [
   ["favorable precedent on necessity", { direction: "favorable", settledness: "R3", effect: { kind: "precedent_verdict", element: "necessity" } }, "requires settledness R1|R2"],
   ["adverse override eligibility", { settledness: "R3", effect: { kind: "override_outcome" } }, "override_outcome requires settledness R1|R2"],
   ["bad element", { bears_on_element: "vibes" }, "bears_on_element"],
-  ["unparseable atom", { trigger: { all: ["not an atom"] } }, "does not parse"],
-  ["unknown flag", { trigger: { all: ["flag:moon_phase"] } }, "unknown flag"],
-  ["unknown class", { trigger: { all: ["class:astrology"] } }, "unknown class"],
-  ["unknown relationship", { trigger: { all: ["relationship:alien"] } }, "unknown relationship"],
-  ["unknown data category", { trigger: { all: ["data:Shoe size"] } }, "unknown data category"],
-  ["unknown verdict element", { trigger: { all: ["verdict:outcome=fails"] } }, "unknown verdict element"],
-  ["unregistered state root", { trigger: { all: ["state:random.path"] } }, "not under a registered root"],
+  ["unparseable atom", { trigger: { all_of: ["not an atom"] } }, "does not parse"],
+  ["unknown flag", { trigger: { all_of: ["flag:moon_phase"] } }, "unknown flag"],
+  ["unknown class", { trigger: { all_of: ["class:astrology"] } }, "unknown class"],
+  ["unknown relationship", { trigger: { all_of: ["relationship:alien"] } }, "unknown relationship"],
+  ["unknown data category", { trigger: { all_of: ["data_category:Shoe size"] } }, "unknown data category"],
+  ["unknown verdict element", { trigger: { all_of: ["verdict:outcome=fails"] } }, "unknown verdict element"],
+  ["unregistered state root", { trigger: { all_of: ["state:random.path=1"] } }, "not under a registered root"],
+  ["trigger is not a RuleTrigger", { trigger: { all: ["flag:children"] } }, "all/any/none"],
   ["empty trigger", { trigger: {} }, "names no atom"],
   ["unregistered instrument", { instrument_scope: ["US CCPA"] }, "is not registered"],
   ["empty instrument scope", { instrument_scope: [] }, "instrument_scope is empty"],
@@ -149,7 +159,7 @@ for (const [name, patch, needle] of CASES) {
 }
 
 Deno.test("an invalid EMITTED row makes the whole run ok:false with no contents", () => {
-  const result = generateRules(baseInput([ruleRow({ trigger: { all: ["flag:moon_phase"] } })], PROFILES));
+  const result = generateRules(baseInput([ruleRow({ trigger: { all_of: ["flag:moon_phase"] } })], PROFILES));
   assertEquals(result.ok, false);
   assertEquals(result.emitted, 0);
   assertEquals(result.contents, null);
@@ -196,16 +206,25 @@ Deno.test("two-rule fixture set round-trips into well-formed contents", () => {
   assertEquals(result.emitted, 2);
   // sorted by rule_id
   assert(result.contents!.indexOf('"LIA-R-001"') < result.contents!.indexOf('"LIA-R-002"'));
-  assertStringIncludes(result.contents!, 'import type { AuthorityRule } from "../../../../_shared/corpus/rule-types.ts";');
+  assertStringIncludes(result.contents!, 'import type { AuthorityRule, RuleContext } from "../../../../_shared/corpus/rule-types.ts";');
   assertStringIncludes(result.contents!, 'export const LIA_RULES_VERSION = "lia-rules-v1-2026-09-07-1";');
   assertStringIncludes(result.contents!, "export const LIA_RULES: readonly AuthorityRule[] = [");
-  assertStringIncludes(result.contents!, "export const LIA_RULE_CONTEXT = {");
+  assertStringIncludes(result.contents!, "export const LIA_RULE_CONTEXT: RuleContext = {");
   // The emitted array is valid JSON once the TS wrapper is stripped.
   const arrayText = result.contents!.slice(
     result.contents!.indexOf("readonly AuthorityRule[] = [") + "readonly AuthorityRule[] = ".length,
   );
   const parsed = JSON.parse(arrayText.slice(0, arrayText.indexOf("\n];") + 2));
   assertEquals(parsed.map((r: { rule_id: string }) => r.rule_id), ["LIA-R-001", "LIA-R-002"]);
+  // Canonical shape only: no DB-only curation columns leak into the file.
+  for (const key of ["family", "direction", "bears_on_factor_ids", "fixture_fires", "fixture_silent", "retire_when", "worksheet_ref", "ratified_by"]) {
+    assertEquals(Object.hasOwn(parsed[0], key), false, `${key} must not be emitted`);
+  }
+  // sources: primary profile first, then supporting profiles in array order.
+  assertEquals(parsed[1].sources, [
+    { table: "edpb_guidelines", row_id: "row-2222" },
+    { table: "edpb_guidelines", row_id: "row-1111" },
+  ]);
 });
 
 Deno.test({
@@ -236,11 +255,11 @@ Deno.test({
   },
 });
 
-Deno.test("the emitted context block is byte-identical to the pinned lia-rules.ts block", async () => {
+Deno.test("the emitted context block is byte-identical to the canonical lia-rules.ts block", async () => {
   const pinned = await Deno.readTextFile(
     new URL("../../../supabase/functions/run-li-assessment/_local/corpus/maps/lia-rules.ts", import.meta.url),
   );
-  const marker = "// ── LIA_RULE_CONTEXT ";
+  const marker = "export const LIA_RULE_CONTEXT: RuleContext = {";
   assertStringIncludes(pinned, marker);
   assertEquals(pinned.slice(pinned.indexOf(marker)), LIA_RULE_CONTEXT_BLOCK);
 });

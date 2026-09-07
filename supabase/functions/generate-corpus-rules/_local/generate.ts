@@ -12,15 +12,15 @@
 //   ERROR — an EMITTED row that does not validate. `ok:false`, HTTP 422,
 //     nothing emitted. A ratified row that is malformed is a build break.
 
+import { parseAtom, type AuthorityRule } from "../../_shared/corpus/rule-types.ts";
 import {
   ADVERSE_EFFECT_KINDS,
   EFFECT_KINDS,
   FAVORABLE_EFFECT_KINDS,
-  parseAtom,
   triggerAtomStrings,
-  type AuthorityRule,
-} from "../../_shared/corpus/rule-types.ts";
+} from "./atoms.ts";
 import type { TypedStateVocabulary } from "./product-registry.ts";
+
 
 export interface AuthorityRuleRow {
   readonly id: string;
@@ -53,10 +53,13 @@ export interface AuthorityRuleRow {
 export interface RuleProfileRow {
   readonly id: string;
   readonly rule_or_pattern: string;
+  readonly source_table: string;
+  readonly source_row_id: string;
   readonly ratified_by: string | null;
   readonly ratified_at: string | null;
   readonly ledger_ref: string | null;
 }
+
 
 export interface Exclusion {
   readonly rule_id: string;
@@ -152,21 +155,26 @@ export function validateRuleRow(
     fail("trigger names no atom");
   } else {
     for (const raw of atoms) {
-      const atom = parseAtom(raw);
-      if (!atom) {
-        fail(`trigger atom "${raw}" does not parse`);
+      // The canonical `parseAtom` THROWS on a malformed atom; at build time
+      // that is a named validation failure, never a crash.
+      let atom;
+      try {
+        atom = parseAtom(raw);
+      } catch (e) {
+        fail(`trigger atom "${raw}" does not parse: ${(e as Error).message}`);
         continue;
       }
       const inSet = (list: readonly string[]) => list.includes(atom.key);
       if (atom.kind === "flag" && !inSet(vocabulary.flags)) fail(`trigger atom "${raw}": unknown flag`);
       if (atom.kind === "class" && !inSet(vocabulary.classes)) fail(`trigger atom "${raw}": unknown class`);
       if (atom.kind === "relationship" && !inSet(vocabulary.relationships)) fail(`trigger atom "${raw}": unknown relationship`);
-      if (atom.kind === "data" && !inSet(vocabulary.data_categories)) fail(`trigger atom "${raw}": unknown data category`);
+      if (atom.kind === "data_category" && !inSet(vocabulary.data_categories)) fail(`trigger atom "${raw}": unknown data category`);
       if (atom.kind === "verdict" && !inSet(vocabulary.verdict_elements)) fail(`trigger atom "${raw}": unknown verdict element`);
       if (atom.kind === "state" && !vocabulary.state_roots.some((root) => atom.key.startsWith(root))) {
         fail(`trigger atom "${raw}": state path is not under a registered root`);
       }
     }
+
   }
 
   // Instrument scope.
@@ -189,25 +197,41 @@ export function validateRuleRow(
   return errors;
 }
 
-function shippedRule(row: AuthorityRuleRow): AuthorityRule {
+/**
+ * The canonical `AuthorityRule` shape and nothing else. The DB-only columns
+ * (`family`, `direction`, `bears_on_factor_ids`, `fixture_*`, `retire_when`,
+ * `worksheet_ref`, the ratification stamps) are validated above but never
+ * emitted — the interpreter has no use for them and a shipped file must not
+ * carry curation metadata.
+ *
+ * `sources` is the primary profile first, then each supporting profile in
+ * `supporting_profile_ids` array order.
+ */
+function shippedRule(
+  row: AuthorityRuleRow,
+  profiles: ReadonlyMap<string, RuleProfileRow>,
+): AuthorityRule {
+  const sources: { table: string; row_id: string }[] = [];
+  for (const id of [row.profile_id, ...(row.supporting_profile_ids ?? [])]) {
+    const profile = profiles.get(id);
+    if (profile) sources.push({ table: profile.source_table, row_id: profile.source_row_id });
+  }
   return {
     rule_id: row.rule_id,
-    family: row.family,
     product: row.product,
     settledness: row.settledness as AuthorityRule["settledness"],
-    direction: row.direction as AuthorityRule["direction"],
-    instrument_scope: row.instrument_scope ?? [],
+    instrument_scope: [...(row.instrument_scope ?? [])],
     regulator_scope: row.regulator_scope ?? null,
-    bears_on_factor_ids: row.bears_on_factor_ids ?? [],
-    bears_on_element: row.bears_on_element as AuthorityRule["bears_on_element"],
+    bears_on_element: row.bears_on_element,
     trigger: row.trigger as AuthorityRule["trigger"],
     effect: row.effect as AuthorityRule["effect"],
     reason_sentence: row.reason_sentence,
     authority_citation: row.authority_citation,
-    retire_when: row.retire_when,
-    worksheet_ref: row.worksheet_ref,
+    sources,
+    retired_at: row.retired_at ?? null,
   };
 }
+
 
 /** Relative specifier from the output file to _shared/corpus/rule-types.ts. */
 export function typeImportSpecifier(outputPath: string): string {
@@ -257,7 +281,7 @@ export function generateRules(input: GenerateRulesInput): GenerateRulesResult {
   }
 
   const sorted = [...emitted].sort((a, b) => (a.rule_id < b.rule_id ? -1 : a.rule_id > b.rule_id ? 1 : 0));
-  const body = sorted.map((row) => JSON.stringify(shippedRule(row), null, 2)
+  const body = sorted.map((row) => JSON.stringify(shippedRule(row, input.profiles), null, 2)
     .split("\n").map((line) => `  ${line}`).join("\n")).join(",\n");
 
   const excludedLines = excluded.length === 0
@@ -274,7 +298,8 @@ export function generateRules(input: GenerateRulesInput): GenerateRulesResult {
 // EXCLUDED ROWS (named, not silently dropped):
 ${excludedLines}
 
-import type { AuthorityRule } from "${typeImportSpecifier(input.outputPath)}";
+import type { AuthorityRule, RuleContext } from "${typeImportSpecifier(input.outputPath)}";
+
 
 export const ${prefix}_RULES_VERSION = ${JSON.stringify(input.rulesVersion)};
 
