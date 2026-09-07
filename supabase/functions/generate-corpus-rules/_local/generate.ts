@@ -155,21 +155,26 @@ export function validateRuleRow(
     fail("trigger names no atom");
   } else {
     for (const raw of atoms) {
-      const atom = parseAtom(raw);
-      if (!atom) {
-        fail(`trigger atom "${raw}" does not parse`);
+      // The canonical `parseAtom` THROWS on a malformed atom; at build time
+      // that is a named validation failure, never a crash.
+      let atom;
+      try {
+        atom = parseAtom(raw);
+      } catch (e) {
+        fail(`trigger atom "${raw}" does not parse: ${(e as Error).message}`);
         continue;
       }
       const inSet = (list: readonly string[]) => list.includes(atom.key);
       if (atom.kind === "flag" && !inSet(vocabulary.flags)) fail(`trigger atom "${raw}": unknown flag`);
       if (atom.kind === "class" && !inSet(vocabulary.classes)) fail(`trigger atom "${raw}": unknown class`);
       if (atom.kind === "relationship" && !inSet(vocabulary.relationships)) fail(`trigger atom "${raw}": unknown relationship`);
-      if (atom.kind === "data" && !inSet(vocabulary.data_categories)) fail(`trigger atom "${raw}": unknown data category`);
+      if (atom.kind === "data_category" && !inSet(vocabulary.data_categories)) fail(`trigger atom "${raw}": unknown data category`);
       if (atom.kind === "verdict" && !inSet(vocabulary.verdict_elements)) fail(`trigger atom "${raw}": unknown verdict element`);
       if (atom.kind === "state" && !vocabulary.state_roots.some((root) => atom.key.startsWith(root))) {
         fail(`trigger atom "${raw}": state path is not under a registered root`);
       }
     }
+
   }
 
   // Instrument scope.
