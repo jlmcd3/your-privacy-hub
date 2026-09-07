@@ -31,7 +31,9 @@ import {
   parseDraftPayload, refusedForConsultationDraft, settleDecision, settlednessFor,
   verifyCritique, verifyDraft, type Objection, type SourceEndorsement,
 } from "./_local/verify.ts";
-import { generateHooks, type HookProfileRow, type HookRow } from "./_local/generate.ts";
+import { generateHooks, type HookProfileRow, type HookRow, type HookSourceRow } from "./_local/generate.ts";
+import { liaElementOf } from "./_local/factor-element.ts";
+import { LIA_HOOK_CONTEXT_BLOCK } from "./_local/hook-context-block.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -54,7 +56,26 @@ const CRITIC_MODEL = "gpt-4o"; // exactly the model id grade-single-assessment u
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY") ?? "";
 
-/** Opus, adaptive thinking (effort high), structured output, no temperature. */
+/**
+ * Anthropic's structured-output schema dialect rejects array bounds
+ * (`maxItems` / `minItems`) — Anthropic 400, run r1 third attempt. Strip them
+ * before sending; the bounds are still enforced locally by verify.ts, which is
+ * where they were ever load-bearing.
+ */
+function stripUnsupportedSchemaKeywords(node: unknown): unknown {
+  if (Array.isArray(node)) return node.map(stripUnsupportedSchemaKeywords);
+  if (node && typeof node === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
+      if (k === "maxItems" || k === "minItems") continue;
+      out[k] = stripUnsupportedSchemaKeywords(v);
+    }
+    return out;
+  }
+  return node;
+}
+
+/** Opus, adaptive thinking (default), structured output, no temperature. */
 async function opusCall(system: string, user: string, schema: Record<string, unknown>): Promise<{ text: string; responseId: string | null }> {
   if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
   const r = await fetch("https://api.anthropic.com/v1/messages", {
@@ -65,8 +86,11 @@ async function opusCall(system: string, user: string, schema: Record<string, unk
     body: JSON.stringify({
       model: DRAFTER_MODEL,
       max_tokens: 2048,
-      thinking: { type: "adaptive", effort: "high" },
-      output_format: { type: "json_schema", schema },
+      // Opus 5 thinks adaptively by default; an explicit `thinking` block is
+      // rejected (Anthropic 400, run r1 second attempt).
+      // `output_format` is deprecated (Anthropic 400, 2026-09-07 run r1).
+      output_config: { format: { type: "json_schema", schema: stripUnsupportedSchemaKeywords(schema) } },
+
       system,
       messages: [{ role: "user", content: user }],
     }),
@@ -354,43 +378,81 @@ async function actionGenerate(product: string) {
 
   const profileIds = [...new Set(rows.map((row) => row.profile_id))];
   const profiles = new Map<string, HookProfileRow>();
+  const sources = new Map<string, HookSourceRow>();
   if (profileIds.length > 0) {
-    const { data: profileRows, error: profileErr } = await db.from("authority_relevance_profiles")
-      .select("id,source_table,source_row_id,outcome_posture,instrument,factor_ids,ratified_by,ratified_at,ledger_ref")
+    const { data: profileRowsRaw, error: profileErr } = await db.from("authority_relevance_profiles")
+      .select(
+        "id,source_table,source_row_id,outcome_posture,instrument,factor_ids," +
+          "use_case_class,relationship,data_categories,flags,curation_note," +
+          "ratified_by,ratified_at,ledger_ref",
+      )
       .in("id", profileIds);
     if (profileErr) return json({ error: `profile read failed: ${profileErr.message}` }, 500);
-    const edpbIds = (profileRows ?? []).filter((p) => p.source_table === "edpb_guidelines").map((p) => p.source_row_id);
+    // The select list is a concatenated string, so PostgREST cannot infer the
+    // row shape; name it here rather than repeat a cast at every use.
+    const profileRows = (profileRowsRaw ?? []) as unknown as (HookProfileRow & { source_row_id: string })[];
+    const edpbIds = profileRows.filter((p) => p.source_table === "edpb_guidelines").map((p) => p.source_row_id);
     const endorsements = new Map<string, string | null>();
+    const edpbTitles = new Map<string, string | null>();
     if (edpbIds.length > 0) {
-      const { data: guidelines } = await db.from("edpb_guidelines").select("id,endorsement_status").in("id", edpbIds);
-      for (const g of guidelines ?? []) endorsements.set(String(g.id), g.endorsement_status ?? null);
+      const { data: guidelines } = await db.from("edpb_guidelines").select("id,title,endorsement_status").in("id", edpbIds);
+      for (const g of guidelines ?? []) {
+        endorsements.set(String(g.id), g.endorsement_status ?? null);
+        edpbTitles.set(String(g.id), g.title ?? null);
+      }
     }
-    for (const p of profileRows ?? []) {
-      profiles.set(p.id, { ...p, endorsement: endorsements.get(p.source_row_id) ?? null } as HookProfileRow);
+
+    // Citation facts, read from the SAME source rows the drafter was given.
+    const enfIds = profileRows.filter((p) => p.source_table === "enforcement_actions").map((p) => p.source_row_id);
+    const enf = new Map<string, { regulator: string | null; subject: string | null; decision_date: string | null }>();
+    if (enfIds.length > 0) {
+      const { data: actions } = await db.from("enforcement_actions")
+        .select("id,regulator,subject,decision_date").in("id", enfIds);
+      for (const a of actions ?? []) {
+        enf.set(String(a.id), { regulator: a.regulator ?? null, subject: a.subject ?? null, decision_date: a.decision_date ?? null });
+      }
+    }
+    const guidIds = profileRows.filter((p) => p.source_table === "regulatory_guidance").map((p) => p.source_row_id);
+    const guid = new Map<string, { regulator: string | null; title: string | null }>();
+    if (guidIds.length > 0) {
+      const { data: guidance } = await db.from("regulatory_guidance").select("id,title,regulator").in("id", guidIds);
+      for (const g of guidance ?? []) guid.set(String(g.id), { regulator: g.regulator ?? null, title: g.title ?? null });
+    }
+
+    for (const p of profileRows) {
+      profiles.set(p.id, { ...p, endorsement: endorsements.get(p.source_row_id) ?? null } as unknown as HookProfileRow);
+      if (p.source_table === "enforcement_actions") {
+        const a = enf.get(p.source_row_id);
+        sources.set(p.id, { source_table: p.source_table, regulator: a?.regulator ?? null, subject: a?.subject ?? null, decision_date: a?.decision_date ?? null });
+      } else if (p.source_table === "edpb_guidelines") {
+        sources.set(p.id, { source_table: p.source_table, title: edpbTitles.get(p.source_row_id) ?? null });
+      } else if (p.source_table === "regulatory_guidance") {
+        const g = guid.get(p.source_row_id);
+        sources.set(p.id, { source_table: p.source_table, title: g?.title ?? null, regulator: g?.regulator ?? null });
+      }
     }
   }
 
   const day = new Date().toISOString().slice(0, 10);
   const result = generateHooks({
-    product, rows, profiles,
+    product, rows, profiles, sources,
+    elementOf: liaElementOf,
     hooksVersion: `${registry.export_prefix.toLowerCase()}-hooks-v1-${day}-0`,
     outputPath: registry.output_path,
     exportPrefix: registry.export_prefix,
-    // The pinned lia-hooks.ts does not exist yet, so the direction /
-    // vocabulary / shape blocks are emitted as EMPTY PLACEHOLDERS. Say so.
-    contextBlock: [
-      "// DIRECTION BLOCK — placeholder (no pinned lia-hooks.ts existed at generation time).",
-      "// VOCABULARY BLOCK — placeholder (no pinned lia-hooks.ts existed at generation time).",
-      "// SHAPE BLOCK — placeholder (no pinned lia-hooks.ts existed at generation time).",
-    ].join("\n"),
+    // The three [RATIFY] blocks, copied VERBATIM from the canonical pinned
+    // file (_local/hook-context-block.ts; pinned by test after CRLF/LF
+    // normalisation) — no longer a placeholder.
+    contextBlock: LIA_HOOK_CONTEXT_BLOCK,
   });
 
   return json({
     ...result,
     output_path: registry.output_path,
-    context_blocks: "placeholders — no pinned lia-hooks.ts exists yet",
+    context_blocks: "verbatim copy of the canonical [RATIFY] blocks",
   }, result.ok ? 200 : 422);
 }
+
 
 async function actionStatus(runId?: string) {
   const db = admin();

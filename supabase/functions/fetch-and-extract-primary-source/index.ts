@@ -42,7 +42,9 @@ const corsHeaders = {
 const BROWSER_UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15";
 const MAX_RESPONSE_BYTES = 2_000_000;
-const MAX_TEXT_CHARS = 60_000;
+// LEDGER B5-5 (2026-09-07, CEO-authorised): the 60,000-character extraction
+// cap is REMOVED. It silently truncated 93 verified decisions mid-document,
+// so a verbatim pin could sit beyond the stored text. Full text is stored.
 
 // Map regulator (canonical alias OR display string) -> primary source-document
 // language. Per-regulator known-language fallback ONLY: valid where a regulator
@@ -158,7 +160,7 @@ async function pdfBytesToText(bytes: ArrayBuffer): Promise<string> {
     const pdf = await getDocumentProxy(new Uint8Array(bytes));
     const { text } = await extractText(pdf, { mergePages: true });
     const joined = Array.isArray(text) ? text.join("\n") : String(text ?? "");
-    return joined.replace(/\s+/g, " ").slice(0, MAX_TEXT_CHARS).trim();
+    return joined.replace(/\s+/g, " ").trim();
   } catch (e) {
     console.warn(`[fetch-extract] unpdf failed: ${(e as Error).message}`);
     return "";

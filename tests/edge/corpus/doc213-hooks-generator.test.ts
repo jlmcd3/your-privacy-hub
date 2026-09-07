@@ -14,10 +14,13 @@ import {
   type DraftPayload,
 } from "../../../supabase/functions/generate-corpus-hooks/_local/verify.ts";
 import {
+  citationFor,
   generateHooks,
   type HookProfileRow,
   type HookRow,
+  type HookSourceRow,
 } from "../../../supabase/functions/generate-corpus-hooks/_local/generate.ts";
+import { liaElementOf } from "../../../supabase/functions/generate-corpus-hooks/_local/factor-element.ts";
 import type { ProfileForHook } from "../../../supabase/functions/generate-corpus-hooks/_local/prompts.ts";
 
 const REGISTRY = hookRegistryFor("lia")!;
@@ -223,15 +226,26 @@ function hookRow(over: Partial<HookRow> = {}): HookRow {
 function profileRow(over: Partial<HookProfileRow> = {}): HookProfileRow {
   return {
     id: PROFILE_A, source_table: "edpb_guidelines", source_row_id: "row-1", outcome_posture: "rejected",
-    instrument: "EU GDPR", factor_ids: ["balancing"], endorsement: "edpb_adopted",
+    instrument: "EU GDPR", factor_ids: [F_BALANCING], endorsement: "edpb_adopted",
+    use_case_class: "direct_marketing", relationship: "customer",
+    data_categories: ["contact_details"], flags: ["children"],
+    curation_note: "EDPB Guidelines 8/2020 ¶150 — curated",
     ratified_by: "ceo", ratified_at: "2026-09-07T00:00:00Z", ledger_ref: "doc213-1", ...over,
   };
 }
 
-function run(rows: HookRow[], profiles: HookProfileRow[]) {
+const F_BALANCING = "Balancing of interests, rights and freedoms";
+
+function sourceRow(over: Partial<HookSourceRow> = {}): HookSourceRow {
+  return { source_table: "edpb_guidelines", title: "Guidelines 8/2020 on the targeting of social media users", ...over };
+}
+
+function run(rows: HookRow[], profiles: HookProfileRow[], sources?: Map<string, HookSourceRow>) {
   return generateHooks({
     product: "lia", rows,
     profiles: new Map(profiles.map((p) => [p.id, p])),
+    sources: sources ?? new Map(profiles.map((p) => [p.id, sourceRow({ source_table: p.source_table })])),
+    elementOf: liaElementOf,
     hooksVersion: "lia-hooks-v1-2026-09-07-0",
     outputPath: REGISTRY.output_path,
     exportPrefix: REGISTRY.export_prefix,
@@ -275,4 +289,64 @@ Deno.test("generate: an empty corpus emits a valid, empty file", () => {
   assert(result.ok);
   assertEquals(result.emitted, 0);
   assert(result.contents!.includes("LIA_HOOKS: readonly AuthorityHook[] = []"));
+});
+
+// ── Doc 213 second pass (A): the emitted shape IS the runtime type ─────────
+
+/** The hooks array as data, parsed back out of the generated file. */
+function emittedHooks(contents: string): Record<string, unknown>[] {
+  const m = /LIA_HOOKS: readonly AuthorityHook\[\] = (\[[\s\S]*?\n\]);/.exec(contents);
+  if (!m) throw new Error("no LIA_HOOKS array in generated contents");
+  return JSON.parse(m[1]);
+}
+
+Deno.test("generate: an emitted hook carries exactly AuthorityHook's fields plus relevance", () => {
+  const result = run([hookRow()], [profileRow()]);
+  assertEquals(result.emitted, 1);
+  const emitted = emittedHooks(result.contents!)[0] as Record<string, any>;
+  assertEquals(Object.keys(emitted).sort(), [
+    "authority_label", "bears_on_element", "distinguishing_atoms", "fact_atoms",
+    "fact_pattern_paraphrase", "factor_id", "finding_paraphrase", "finding_span",
+    "hook_id", "not_distinguishable", "posture", "profile_id", "regulator",
+    "relevance", "required_atoms", "settledness", "source_row_id",
+  ].sort());
+  assertEquals(emitted.posture, "rejected");
+  assertEquals(emitted.source_row_id, "row-1");
+  assertEquals(emitted.factor_id, F_BALANCING);
+  assertEquals(emitted.bears_on_element, "balancing");
+  assertEquals(emitted.relevance.instrument, "EU GDPR");
+  assertEquals(emitted.relevance.use_case_class, "direct_marketing");
+  assertEquals(emitted.relevance.outcome_posture, "rejected");
+  assertEquals(emitted.authority_label, "Guidelines 8/2020 on the targeting of social media users ¶150");
+  assertEquals(emitted.regulator, "EDPB");
+});
+
+Deno.test("generate: no factor_ids[0], or an element that does not resolve, excludes by name", () => {
+  const none = run([hookRow()], [profileRow({ factor_ids: [] })]);
+  assertEquals(none.emitted, 0);
+  assert(none.excluded[0].reason.includes("no factor_ids[0]"));
+  const gate = run([hookRow()], [profileRow({ factor_ids: ["Special-category and ePrivacy interplay"] })]);
+  assertEquals(gate.emitted, 0);
+  assert(gate.excluded[0].reason.includes("no three-part-test element"));
+});
+
+Deno.test("generate: incomplete citation facts exclude the hook rather than ship a blank", () => {
+  const result = run([hookRow()], [profileRow()], new Map([[PROFILE_A, { source_table: "edpb_guidelines", title: null }]]));
+  assertEquals(result.emitted, 0);
+  assert(result.excluded[0].reason.includes("citation facts incomplete"));
+});
+
+Deno.test("generate: a posture outside the hook union excludes the hook", () => {
+  const result = run([hookRow()], [profileRow({ outcome_posture: "unknown" })]);
+  assertEquals(result.emitted, 0);
+  assert(result.excluded[0].reason.includes("not a hook posture"));
+});
+
+Deno.test("citationFor: enforcement label is the persuasive section's citation form", () => {
+  const cite = citationFor(
+    profileRow({ source_table: "enforcement_actions" }),
+    { source_table: "enforcement_actions", regulator: "DPC (Ireland)", subject: "LinkedIn", decision_date: "2024-10-22" },
+  );
+  assertEquals(cite?.authority_label, "DPC (Ireland), LinkedIn, decision of 22 October 2024");
+  assertEquals(cite?.regulator, "DPC (Ireland)");
 });
