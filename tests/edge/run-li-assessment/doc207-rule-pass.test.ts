@@ -16,7 +16,7 @@
 import { assert, assertEquals, assertStrictEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { applyLiaRules } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/rule-pass.ts";
 import { buildLiaRuleStates } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/rule-states.ts";
-import { LIA_RULES } from "../../../supabase/functions/run-li-assessment/_local/corpus/maps/lia-rules.ts";
+import { LIA_RULES, LIA_RULES_VERSION } from "../../../supabase/functions/run-li-assessment/_local/corpus/maps/lia-rules.ts";
 import { guardInformationNeeded } from "../../../supabase/functions/_shared/insufficient-info-guard.ts";
 import type { AuthorityRule, RuleEffect } from "../../../supabase/functions/_shared/corpus/rule-types.ts";
 import type { LiaTypedStage2Result } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/three-part-test-typed.ts";
