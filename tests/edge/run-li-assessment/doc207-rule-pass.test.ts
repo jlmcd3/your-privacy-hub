@@ -122,8 +122,9 @@ function makeRule(overrides: Partial<AuthorityRule> & { rule_id: string; effect:
 
 // ── LIA_RULES stays empty in production ─────────────────────────────────
 
-Deno.test("doc207 — LIA_RULES ships empty; the generator has not run yet", () => {
-  assertEquals(LIA_RULES.length, 0);
+Deno.test("doc207 — LIA_RULES pins the generated, ratified rule set", () => {
+  assertEquals(LIA_RULES_VERSION, "lia-rules-v1-2026-09-07-0");
+  assertEquals(LIA_RULES.length, 9);
 });
 
 // ── buildLiaRuleStates — the 206B0 vocabulary from a fixture record ─────
