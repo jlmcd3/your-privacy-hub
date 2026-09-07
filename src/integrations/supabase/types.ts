@@ -3082,6 +3082,24 @@ export type Database = {
         }
         Relationships: []
       }
+      internal_driver_tokens: {
+        Row: {
+          created_at: string
+          name: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          name: string
+          token?: string
+        }
+        Update: {
+          created_at?: string
+          name?: string
+          token?: string
+        }
+        Relationships: []
+      }
       ir_playbooks: {
         Row: {
           client_id: string | null
