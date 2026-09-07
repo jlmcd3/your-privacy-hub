@@ -85,7 +85,11 @@ async function opusCall(system: string, user: string, schema: Record<string, unk
     },
     body: JSON.stringify({
       model: DRAFTER_MODEL,
-      max_tokens: 2048,
+      // LEDGER B5-6 item 3 — adaptive thinking spends this same budget, so a
+      // 2048 ceiling let a revise finish its thinking block and emit no text
+      // (stop_reason=max_tokens, blocks=[thinking]); that exception was the
+      // reason two hooks stranded at 'critiqued'. Budget raised to 16k.
+      max_tokens: 16_000,
       // Opus 5 thinks adaptively by default; an explicit `thinking` block is
       // rejected (Anthropic 400, run r1 second attempt).
       // `output_format` is deprecated (Anthropic 400, 2026-09-07 run r1).
