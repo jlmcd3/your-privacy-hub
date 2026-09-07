@@ -310,7 +310,14 @@ Deno.test("applyLiaHooks — an adverse shape (S2) is never reached against a pa
 // tests in this fleet already use (doc 149's GRADER_CONTEXT_VERSION rule).
 
 const EXPECTED_MATRIX_SHA256 = "8551d54249b26c51849d9022b7aebdc9d2b51653887accb40bf2388271ad4a95";
-const EXPECTED_PHRASES_SHA256 = "4ff52b0379e2ebf81641bbcfc74dd7888b5ae0c632e9438ef6c98b0cf5a89764";
+// RE-PIN 2026-09-07 (Track H2 orchestrator review): LIA_ATOM_PHRASES extended
+// from 38 to 75 entries so it covers EVERY closed option the hook drafter's
+// vocabulary admits (interest type ×8, Art. 9(2) condition ×12, necessity ×3,
+// opt-out ×3, children/special-category booleans, six marketing channels ×2)
+// — tests/edge/corpus/doc213-vocabulary-phrase-coverage.test.ts pins the two
+// sets to each other. Prior pin:
+// 4ff52b0379e2ebf81641bbcfc74dd7888b5ae0c632e9438ef6c98b0cf5a89764.
+const EXPECTED_PHRASES_SHA256 = "4d85af6444248a14c6ba9d6e0e0dcc2e4d8321e92c355eac841dd4688214cf2f";
 const EXPECTED_SHAPES_SHA256 = "3407f0eca43f9b0dfb10e673a3f78b54d684567f082ed5834b74673cf2d8ca46";
 
 async function sha256Hex(text: string): Promise<string> {

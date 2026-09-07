@@ -41,12 +41,28 @@ export const STATE_ATOM_ENUMS: Readonly<Record<string, readonly string[]>> = {
     "No — personal data is required (explain why below)",
     "Not assessed",
   ],
+  // CLOSED 2026-09-07 (doc 213 Track H2 review): the intake's own control is
+  // a closed <select> (src/pages/LIAssessmentIntake.tsx, "What type of
+  // interest is this?"), so the path is closed here too — every option has a
+  // ratified phrase in the LIA hook map (LIA_ATOM_PHRASES), and an open value
+  // would have no phrase to render.
+  "intake.purpose_details.interest_type": [
+    "Commercial / revenue-related",
+    "Operational / service delivery",
+    "Security / fraud prevention",
+    "Legal / regulatory compliance",
+    "Public interest / societal benefit",
+    "Research / product improvement",
+    "Political / electoral campaigning",
+    "Other (describe below)",
+  ],
 };
 
-/** `state:` paths admitted with an open value (no closed option set). */
-export const OPEN_STATE_PATHS: readonly string[] = [
-  "intake.purpose_details.interest_type",
-];
+/** `state:` paths admitted with an open value (no closed option set).
+ *  EMPTY by design: a hook atom must have a ratified phrase to render, and a
+ *  phrase can only be ratified for a closed option
+ *  (tests/edge/corpus/doc213-vocabulary-phrase-coverage.test.ts pins this). */
+export const OPEN_STATE_PATHS: readonly string[] = [];
 
 export interface AtomCheck {
   readonly ok: boolean;

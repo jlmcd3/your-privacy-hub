@@ -163,20 +163,91 @@ export const LIA_ATOM_PHRASES: Readonly<Record<string, string>> = {
   "instrument:EU GDPR": "its processing is assessed under the EU GDPR",
   "instrument:UK GDPR": "its processing is assessed under the UK GDPR",
 
-  // — state: combinations (doc 213 §5's own examples, verbatim) —
+  // — state: atoms — ONE PHRASE PER CLOSED OPTION the hook drafter may emit.
+  // The drafter (generate-corpus-hooks/_local/vocabulary.ts, STATE_ATOM_ENUMS)
+  // admits exactly these `state:intake.` paths and option strings; a drafted
+  // hook holding an atom with no phrase here would fail at render as an
+  // `unresolved_slot` AFTER the drafting spend, so the map covers the whole
+  // closed vocabulary and tests/edge/corpus/doc213-vocabulary-phrase-coverage
+  // .test.ts pins the two sets to each other in both directions. Doc 213
+  // §5's own three examples are reproduced verbatim; the rest are this
+  // build's drafting in the same register, for the CEO's ratification pass.
+
+  // opt-out (intake.balancing_details.opt_out_available — three options)
   "state:intake.balancing_details.opt_out_available=No opt-out is available": "no opt-out is available",
   "state:intake.balancing_details.opt_out_available=Yes — unconditional, on request, with no consequence":
     "an unconditional opt-out is available",
-  "state:intake.purpose_details.interest_type=Security / fraud prevention": "its interest is security or fraud prevention",
+  "state:intake.balancing_details.opt_out_available=Yes — but conditional or subject to review":
+    "an opt-out is available only on conditions or subject to review",
 
-  // — state: combinations added from the ratified W4/W7 rule triggers
-  // (lia-rules.ts) — the first hook batch (doc 213 §3 item 1) is drawn from
-  // exactly these rules' own primaries, so these two are the atoms most
-  // likely to appear on the first ratified hooks.
+  // interest type (intake.purpose_details.interest_type — the intake's eight
+  // closed options, LIAssessmentIntake.tsx "What type of interest is this?")
+  "state:intake.purpose_details.interest_type=Commercial / revenue-related": "its interest is commercial or revenue-related",
+  "state:intake.purpose_details.interest_type=Operational / service delivery": "its interest is operational or concerns service delivery",
+  "state:intake.purpose_details.interest_type=Security / fraud prevention": "its interest is security or fraud prevention",
+  "state:intake.purpose_details.interest_type=Legal / regulatory compliance": "its interest is legal or regulatory compliance",
+  "state:intake.purpose_details.interest_type=Public interest / societal benefit": "its interest is a public interest or societal benefit",
+  "state:intake.purpose_details.interest_type=Research / product improvement": "its interest is research or product improvement",
+  "state:intake.purpose_details.interest_type=Political / electoral campaigning": "its interest is political or electoral campaigning",
+  "state:intake.purpose_details.interest_type=Other (describe below)": "its interest is of a kind it has described in its own words",
+
+  // Article 9(2) condition (intake.balancing_details.art9_condition — twelve
+  // options; doc 206E field N1)
+  "state:intake.balancing_details.art9_condition=Explicit consent (Art. 9(2)(a))":
+    "it relies on explicit consent as its Article 9(2) condition",
+  "state:intake.balancing_details.art9_condition=Employment, social security or social protection law (Art. 9(2)(b))":
+    "it relies on employment, social security or social protection law as its Article 9(2) condition",
+  "state:intake.balancing_details.art9_condition=Vital interests (Art. 9(2)(c))":
+    "it relies on vital interests as its Article 9(2) condition",
+  "state:intake.balancing_details.art9_condition=Not-for-profit body's legitimate activities (Art. 9(2)(d))":
+    "it relies on the legitimate activities of a not-for-profit body as its Article 9(2) condition",
+  "state:intake.balancing_details.art9_condition=Data manifestly made public by the individual (Art. 9(2)(e))":
+    "it relies on data manifestly made public by the individual as its Article 9(2) condition",
+  "state:intake.balancing_details.art9_condition=Legal claims or judicial acts (Art. 9(2)(f))":
+    "it relies on legal claims or judicial acts as its Article 9(2) condition",
+  "state:intake.balancing_details.art9_condition=Substantial public interest (Art. 9(2)(g))":
+    "it relies on substantial public interest as its Article 9(2) condition",
+  "state:intake.balancing_details.art9_condition=Health or social care (Art. 9(2)(h))":
+    "it relies on health or social care as its Article 9(2) condition",
+  "state:intake.balancing_details.art9_condition=Public health (Art. 9(2)(i))":
+    "it relies on public health as its Article 9(2) condition",
+  "state:intake.balancing_details.art9_condition=Archiving, research or statistics (Art. 9(2)(j))":
+    "it relies on archiving, research or statistics as its Article 9(2) condition",
+  "state:intake.balancing_details.art9_condition=None identified":
+    "it has identified no Article 9(2) condition for the special-category data",
   "state:intake.balancing_details.art9_condition=Not yet assessed":
     "the Article 9(2) condition for the special-category data has not yet been assessed",
+
+  // necessity (intake.necessity_details.achievable_without_personal_data —
+  // three options; doc 206E field N6)
+  "state:intake.necessity_details.achievable_without_personal_data=Yes — the purpose could be achieved without personal data, or with anonymised or synthetic data":
+    "it has recorded that the purpose could be achieved without personal data, or with anonymised or synthetic data",
+  "state:intake.necessity_details.achievable_without_personal_data=No — personal data is required (explain why below)":
+    "it has recorded that personal data is required for the purpose",
   "state:intake.necessity_details.achievable_without_personal_data=Not assessed":
     "whether the purpose could be achieved without personal data has not yet been assessed",
+
+  // booleans the intake records directly (each `true` mirrors a flag above;
+  // the `false` forms are the only way to phrase an ABSENCE)
+  "state:intake.balancing_details.special_category_data=true": "special-category data is processed",
+  "state:intake.balancing_details.special_category_data=false": "no special-category data is processed",
+  "state:intake.balancing_details.children_data_subjects=true": "children are among the people affected",
+  "state:intake.balancing_details.children_data_subjects=false": "children are not among the people affected",
+
+  // direct-marketing channels (intake.purpose_details.marketing_channels.* —
+  // doc 206E field N4)
+  "state:intake.purpose_details.marketing_channels.automated_calls=true": "it markets by automated calls",
+  "state:intake.purpose_details.marketing_channels.automated_calls=false": "it does not market by automated calls",
+  "state:intake.purpose_details.marketing_channels.live_calls=true": "it markets by live calls",
+  "state:intake.purpose_details.marketing_channels.live_calls=false": "it does not market by live calls",
+  "state:intake.purpose_details.marketing_channels.email_sms=true": "it markets by e-mail or SMS",
+  "state:intake.purpose_details.marketing_channels.email_sms=false": "it does not market by e-mail or SMS",
+  "state:intake.purpose_details.marketing_channels.post=true": "it markets by post",
+  "state:intake.purpose_details.marketing_channels.post=false": "it does not market by post",
+  "state:intake.purpose_details.marketing_channels.online_advertising=true": "it markets by online advertising",
+  "state:intake.purpose_details.marketing_channels.online_advertising=false": "it does not market by online advertising",
+  "state:intake.purpose_details.marketing_channels.none=true": "it uses no direct-marketing channel",
+  "state:intake.purpose_details.marketing_channels.none=false": "it uses at least one direct-marketing channel",
 };
 
 // ── [RATIFY] — the four sentence shapes (doc 213 §5), verbatim ──────────
