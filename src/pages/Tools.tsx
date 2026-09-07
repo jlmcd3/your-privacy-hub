@@ -330,7 +330,7 @@ const TOOLS: ToolDef[] = [
     slug: "dpia",
     section: "assessments",
     icon: iconEl(Search),
-    name: "Data Protection Impact Assessment (DPIA) (DPIA)",
+    name: "Data Protection Impact Assessment (DPIA)",
     tagline: "A complete Data Protection Impact Assessment for high-risk processing, structured to EDPB guidelines.",
     href: "/dpia-framework",
     requirement: { tier: "required", text: "Required — GDPR Art. 35" },

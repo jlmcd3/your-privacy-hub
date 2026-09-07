@@ -44,7 +44,7 @@ const SMART_TOOL_ROWS: SmartToolRow[] = [
     topupKey: "li_topup_v1",
   },
   {
-    tool: "Data Protection Impact Assessment (DPIA) (DPIA)",
+    tool: "Data Protection Impact Assessment (DPIA)",
     standaloneKey: "dpia_standalone_v2",
     subscriberKey: "dpia_subscriber_v2",
     annualCredit: "1 credit / yr",

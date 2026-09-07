@@ -23,7 +23,7 @@ const ASSESSMENTS: Product[] = [
     href: "/li-assessment",
   },
   {
-    title: "Data Protection Impact Assessment (DPIA) (DPIA)",
+    title: "Data Protection Impact Assessment (DPIA)",
     blurb: "Article 35-aligned DPIA with necessity and proportionality analysis — annotated with supervisory authority decisions.",
     href: "/dpia-framework",
   },
