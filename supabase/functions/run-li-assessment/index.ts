@@ -1961,8 +1961,33 @@ Return JSON:
 
     // SO-FT2 FIX 8 — remove controller-harm characterisations the record does
     // not support (fail-open; telemetry only).
+    //
+    // BATCH a81e0240 DEFECT (2026-09-07, first live LIA_DETERMINISTIC_ENABLED
+    // batch) — the evidence check was run against `liaIntakeObject`, which is
+    // DELIBERATELY TRIMMED (built above, ~line 1797) and never carries
+    // purpose_details/necessity_details/balancing_details. A company whose
+    // OWN purpose_details.specific_benefit says "...reducing financial and
+    // reputational harm to users..." therefore always failed the evidence
+    // check (the one place "reputation" appears in the record was excluded
+    // from what the check could see), so the term was always treated as
+    // unsupported and scrubStrng's list-conjunct repair deleted "and
+    // reputational harm" from EVERY string in reportData that contained it —
+    // including the customer's own quoted benefit sentence, which is not a
+    // harm claim about data subjects at all and was never at risk of the
+    // false claim this function exists to catch. Reproduced in 3/3 fixtures
+    // in that batch (Velorant/Velantrix/Velorex all describe the benefit as
+    // avoiding harm "to users"); confirmed via `report_data.benefit_and_
+    // beneficiary.benefit` stored truncated in the DB while the source
+    // `purpose_details.specific_benefit` was intact. Fix: check evidence
+    // against the full record (`assessment`, already in scope, already read
+    // unfiltered by attachLiaDeliverables et al. per the comment above) —
+    // the customer's own words are exactly the evidence this check is
+    // looking for; `liaIntakeObject`'s trim was for a different purpose
+    // (guardInformationNeeded / verifyLiaIntakeEvidence's pointer checks,
+    // untouched here) and no evidence corpus should ever be narrower than
+    // the record it is meant to search.
     try {
-      const harmScrub = stripUnsupportedHarmClaims(reportData as Record<string, unknown>, liaIntakeObject);
+      const harmScrub = stripUnsupportedHarmClaims(reportData as Record<string, unknown>, assessment);
       if (harmScrub.removed > 0) {
         ((( reportData as any)._meta ??= {}).internal ??= {}).lia_unsupported_harm_scrub = harmScrub;
         console.log(JSON.stringify({ evt: "_lia_unsupported_harm_scrub", fn: "run-li-assessment", build_stamp: BUILD_STAMP, ...harmScrub }));
