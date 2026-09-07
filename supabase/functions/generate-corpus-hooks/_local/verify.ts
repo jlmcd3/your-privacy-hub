@@ -181,7 +181,21 @@ export interface CritiqueVerification {
   readonly discarded: string[];
 }
 
-export function verifyCritique(raw: string, hookId: string, excerpt: string): CritiqueVerification {
+// LEDGER B5-6 item 4 — a `state:` atom describes the CUSTOMER RECORD the hook
+// is matched against, not a fact the authority must state. Source-presence
+// objections against `state:` atoms are category errors and are discarded.
+const SOURCE_PRESENCE_CODES = new Set(["fact_atom_not_in_source"]);
+
+export function isStateAtom(atom: unknown): boolean {
+  return typeof atom === "string" && atom.trim().startsWith("state:");
+}
+
+export function verifyCritique(
+  raw: string,
+  hookId: string,
+  excerpt: string,
+  factAtoms: readonly string[] = [],
+): CritiqueVerification {
   let parsed: Record<string, unknown>;
   try {
     parsed = JSON.parse(raw) as Record<string, unknown>;
@@ -211,6 +225,13 @@ export function verifyCritique(raw: string, hookId: string, excerpt: string): Cr
       continue;
     }
     const index = typeof item?.index === "number" ? item.index : null;
+    if (
+      SOURCE_PRESENCE_CODES.has(code) && target === "fact_atoms" &&
+      index !== null && isStateAtom(factAtoms[index])
+    ) {
+      discarded.push(`"${code}" raised against a state: atom (index ${index}) — record-side, not source-side`);
+      continue;
+    }
     objections.push({ code, target, index, source_span: span, severity });
   }
   const verdict = objections.length === 0 ? "no_objection" : "objections";
