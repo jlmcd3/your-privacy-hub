@@ -239,8 +239,19 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
+  // Internal driver auth: pg_cron cannot read edge-function env secrets, so the
+  // scheduled driver presents a DB-held handshake token instead. Auth only.
   const adminTok = req.headers.get("x-admin-token");
-  const internalByToken = !!adminTok && adminTok === Deno.env.get("ADMIN_SECRET_TOKEN");
+  const driverTok = req.headers.get("x-driver-token");
+  let internalByToken = !!adminTok && adminTok === Deno.env.get("ADMIN_SECRET_TOKEN");
+  if (!internalByToken && driverTok) {
+    const { data: tokenRow } = await admin()
+      .from("internal_driver_tokens")
+      .select("token")
+      .eq("name", "corpus-classify")
+      .maybeSingle();
+    if (tokenRow?.token && tokenRow.token === driverTok) internalByToken = true;
+  }
   if (!internalByToken) {
     const caller = await verifyCaller(req);
     if (!caller.internal) {
@@ -249,6 +260,7 @@ Deno.serve(async (req) => {
       if (!isAdmin) return json({ error: "forbidden" }, 403);
     }
   }
+
 
 
   let body: Record<string, unknown>;
