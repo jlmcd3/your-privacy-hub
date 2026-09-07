@@ -98,8 +98,11 @@ function anthropicCall(model: string, onFailure?: (status: number, message: stri
       });
       if (r.ok) {
         const body = await r.json();
-        const block = Array.isArray(body?.content) ? body.content[0] : null;
-        return block && block.type === "text" ? String(block.text) : "";
+        // Opus 5 runs adaptive thinking: content[0] can be a thinking block,
+        // so take the first TEXT block rather than the first block.
+        const blocks = Array.isArray(body?.content) ? body.content : [];
+        const text = blocks.find((b: { type?: string }) => b?.type === "text");
+        return text ? String(text.text) : "";
       }
       const errText = await r.text().catch(() => "no body");
       const message = `Anthropic ${r.status}: ${errText.slice(0, 300)}`;
