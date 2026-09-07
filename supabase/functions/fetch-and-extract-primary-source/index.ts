@@ -338,7 +338,18 @@ async function processOne(
   }
 
   const sourceText = (fetchOutcome.text ?? "").trim();
-  if (sourceText.length < 200) {
+
+  // LEDGER B5-6 — OVERWRITE GUARD. Stored decision text is never replaced by a
+  // bot-check page, a stub, or anything shorter than what we already hold.
+  const verdict = evaluateSourceTextReplacement(sourceText, existingText);
+  if (!verdict.ok) {
+    if (existingText.length > 0) {
+      await recordRejection(verdict.reason);
+      console.warn(`[fetch-extract] row=${rowId} overwrite REJECTED: ${verdict.reason}`);
+      return { row_id: rowId, primary_source_status: row.primary_source_status, rejected: verdict.reason };
+    }
+    // No stored text to protect: keep the historic first-fetch behaviour but
+    // still record why the document is not usable.
     if (!dryRun) {
       const { error: wErr } = await supabase
         .from("enforcement_actions")
@@ -348,11 +359,14 @@ async function processOne(
           source_document_hash_at_ingest: fetchOutcome.hash,
           primary_source_status: "fetched_partial",
           ingestion_confidence: "medium",
+          refetch_last_error: verdict.reason,
+          refetch_attempts: attempts + 1,
+          refetch_last_attempt_at: new Date().toISOString(),
         })
         .eq("id", rowId);
       if (wErr) throw new Error(`write fetched_partial failed: ${wErr.message}`);
     }
-    return { row_id: rowId, primary_source_status: "fetched_partial", text_len: sourceText.length };
+    return { row_id: rowId, primary_source_status: "fetched_partial", text_len: sourceText.length, rejected: verdict.reason };
   }
 
   // KCF extraction (Haiku, native language, 40-char verbatim check).
