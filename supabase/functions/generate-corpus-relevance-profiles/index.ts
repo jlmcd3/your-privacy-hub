@@ -305,9 +305,19 @@ Deno.serve(async (req) => {
       if (!acquired) return json({ error: "classification run already active", run_id: parsed.run_id }, 409);
 
       const cursor = parsed.cursor === undefined ? await greatestProcessedProfileId(parsed.run_id) : parsed.cursor;
-      const profiles = await loadClassificationProfiles(
+      let profiles = await loadClassificationProfiles(
         parsed.product, cursor ?? null, parsed.batch_size, parsed.run_id, parsed.only_unclassified,
       );
+      // WRAPAROUND: profiles created after this run passed their id (e.g. rows
+      // handed off by corpus-triage) sort below the cursor and would otherwise
+      // never be picked up. only_unclassified keeps the restart idempotent.
+      let wrapped = false;
+      if (profiles.length === 0 && cursor && parsed.only_unclassified) {
+        profiles = await loadClassificationProfiles(
+          parsed.product, null, parsed.batch_size, parsed.run_id, true,
+        );
+        wrapped = profiles.length > 0;
+      }
       const candidates = await buildDbCandidates(profiles);
       let providerFailure: { status: number; message: string } | null = null;
       const allRows = await loadRows();
@@ -339,7 +349,7 @@ Deno.serve(async (req) => {
       await setClassificationRunStatus(parsed.run_id, "ready", null, null);
       return json({
         action, product: parsed.product, run_id: parsed.run_id, model: CLASSIFIER_MODEL,
-        processed: rows.length, next_cursor: profiles.at(-1)?.id ?? null,
+        processed: rows.length, next_cursor: profiles.at(-1)?.id ?? null, wrapped,
         done: profiles.length < parsed.batch_size, elapsed_ms: Date.now() - started,
       });
     } catch (error) {
