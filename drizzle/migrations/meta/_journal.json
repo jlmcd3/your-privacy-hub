@@ -64,6 +64,13 @@
       "when": 1788739075474,
       "tag": "0008_add_corpus_classification_batches",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788739722694,
+      "tag": "0009_activate_corpus_classify_driver",
+      "breakpoints": true
     }
   ]
 }
