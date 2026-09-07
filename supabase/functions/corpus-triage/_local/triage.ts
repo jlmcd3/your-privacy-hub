@@ -95,11 +95,38 @@ const HANDOFF_CLASSES = [
   "regulator_guidance",
 ];
 
-export function isLiaHandoff(outcome: TriageOutcome): boolean {
+/**
+ * B5-1 (doc 210 ledger) — INSTRUMENT GATE. Article 6(1)(f) is a GDPR-family
+ * provision. A PIPEDA / PIPA / HIPAA / FTC Act / CCPA matter cannot be an
+ * authority on the legitimate-interests balance no matter how the triage model
+ * rated it, so the instrument recorded on the row decides eligibility before
+ * anything else is considered.
+ */
+export function isGdprFamilyInstrument(instrument: string | null | undefined): boolean {
+  const raw = (instrument ?? "").trim();
+  if (!raw) return false;
+  const norm = raw.toLowerCase();
+  if (/\bdirective\s*95\/46\b/.test(norm)) return true;
+  // "GDPR", "EU GDPR", "UK GDPR", "GDPR (Art. 6(1)(f))", "Regulation (EU) 2016/679".
+  if (/\bgdpr\b/.test(norm)) return true;
+  if (/\b2016\/679\b/.test(norm)) return true;
+  return false;
+}
+
+/**
+ * B5-1 — the handoff predicate. `li_precedent_candidate` in proposed_usable_for
+ * no longer qualifies a row on its own: it swept in 53 GDPR rows the model had
+ * itself rated 'none'. Both halves must now hold — an explicit direct/adjacent
+ * LI rating AND a GDPR-family instrument.
+ */
+export function isLiaHandoff(
+  outcome: TriageOutcome,
+  instrument?: string | null,
+): boolean {
   if (outcome.status !== "ok") return false;
   if (!outcome.proposed_record_class || !HANDOFF_CLASSES.includes(outcome.proposed_record_class)) return false;
-  if (outcome.proposed_usable_for.includes("li_precedent_candidate")) return true;
-  return outcome.proposed_li_relevance === "direct" || outcome.proposed_li_relevance === "adjacent";
+  if (outcome.proposed_li_relevance !== "direct" && outcome.proposed_li_relevance !== "adjacent") return false;
+  return isGdprFamilyInstrument(instrument);
 }
 
 export function parseTriageRequest(body: Record<string, unknown>): TriageRequest {
