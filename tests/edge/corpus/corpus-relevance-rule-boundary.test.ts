@@ -185,6 +185,105 @@ Deno.test("doc191 §5 — every generated relevance-profiles module exports BOTH
   }
 });
 
+// --- rule-interpreter.ts / rule-types.ts import boundary (doc 206/207) ---
+//
+// Same shape as the RULE_PROFILES/PATTERN_PROFILES split above, one level
+// deeper: the generic rule interpreter is where a rule's *effect* actually
+// changes a determination, so it may only be reached through a product's
+// `rule-pass.ts`, a `*-gate.ts` / `*-gates.ts` file, or a test. An index.ts,
+// a prose assembler, or any other product module must go through one of
+// those doors — never import the interpreter directly.
+
+/** The barred modules: doc206/207's generic interpreter and its types. */
+const RULE_INTERPRETER_MODULE = /(^|\/)rule-(interpreter|types)\.ts$/;
+
+/** The only path shapes allowed to import them. */
+const RULE_INTERPRETER_ALLOWED_IMPORTERS: readonly RegExp[] = [
+  /(^|\/)rule-pass\.ts$/,
+  /-gate\.ts$/,
+  /-gates\.ts$/,
+  /(^|\/)tests\//,
+];
+
+/** Roots to sweep for this boundary — includes `tests/` since test files are
+ *  one of the allowed importer shapes and the sweep must see them to prove
+ *  the mechanism doesn't just get lucky by never looking there. */
+const RULE_INTERPRETER_SWEEP_ROOTS = ["supabase/functions", "src", "tests"];
+
+/** The rule itself, over one file's source — kept separate from the sweep
+ *  for the same reason `violationsFor` is: the negative-case test below has
+ *  to prove it actually rejects a violation. */
+export function ruleInterpreterViolationsFor(path: string, src: string): string[] {
+  const normalizedPath = path.replace(/\\/g, "/");
+  // rule-interpreter.ts importing its own sibling rule-types.ts is intra-
+  // module, not an external consumer reaching around the gate — exempt the
+  // guarded pair from being treated as importers of each other.
+  if (RULE_INTERPRETER_MODULE.test(normalizedPath)) {
+    return [];
+  }
+  if (RULE_INTERPRETER_ALLOWED_IMPORTERS.some((re) => re.test(normalizedPath))) {
+    return [];
+  }
+  const violations: string[] = [];
+  for (const imp of parseImports(src)) {
+    if (RULE_INTERPRETER_MODULE.test(imp.from)) {
+      violations.push(
+        `${path}: imports "${imp.from}" but this file's path matches none of rule-pass.ts, *-gate.ts, *-gates.ts, or tests/ — rule-interpreter.ts/rule-types.ts may only be imported by those (doc 206/207).`,
+      );
+    }
+  }
+  return violations;
+}
+
+async function collectRuleInterpreterImporters(): Promise<{ path: string; src: string }[]> {
+  const results: { path: string; src: string }[] = [];
+  for (const root of RULE_INTERPRETER_SWEEP_ROOTS) {
+    for await (
+      const entry of walk(root, {
+        exts: [".ts"],
+        includeDirs: false,
+        skip: [...SKIP_DIRS].map((d) => new RegExp(`[\\\\/]${d}[\\\\/]`)),
+      })
+    ) {
+      const p = entry.path.replace(/\\/g, "/");
+      const src = await Deno.readTextFile(entry.path);
+      if (parseImports(src).some((imp) => RULE_INTERPRETER_MODULE.test(imp.from))) {
+        results.push({ path: p, src });
+      }
+    }
+  }
+  return results;
+}
+
+Deno.test("rule-interpreter/rule-types boundary — every real importer matches an allowed path shape", async () => {
+  const importers = await collectRuleInterpreterImporters();
+  const violations: string[] = [];
+  for (const { path, src } of importers) {
+    violations.push(...ruleInterpreterViolationsFor(path, src));
+  }
+  assertEquals(violations, [], violations.join("\n"));
+});
+
+Deno.test("rule-interpreter/rule-types boundary — REJECTS an importer outside rule-pass/gate/gates/tests", () => {
+  const src = `import { applyRules } from "../_shared/corpus/rule-interpreter.ts";
+import type { AuthorityRule } from "../_shared/corpus/rule-types.ts";`;
+
+  const v = ruleInterpreterViolationsFor("supabase/functions/some-product/index.ts", src);
+  assert(v.length === 2, `expected exactly two violations (one per barred import), got ${JSON.stringify(v)}`);
+
+  // Every allowed shape passes, including nested tests/ directories.
+  assertEquals(ruleInterpreterViolationsFor("supabase/functions/some-product/rule-pass.ts", src), []);
+  assertEquals(ruleInterpreterViolationsFor("supabase/functions/some-product/lia-eligibility-gate.ts", src), []);
+  assertEquals(ruleInterpreterViolationsFor("supabase/functions/some-product/lia-eligibility-gates.ts", src), []);
+  assertEquals(ruleInterpreterViolationsFor("tests/edge/corpus/rule-interpreter.test.ts", src), []);
+  assertEquals(ruleInterpreterViolationsFor("tests/edge/some-product/anything.ts", src), []);
+
+  // A file that merely contains the substring "gate" is not a match — only
+  // the fixed suffixes are, same discipline as the PATTERN_PROFILES sweep.
+  const v2 = ruleInterpreterViolationsFor("supabase/functions/some-product/delegate-helper.ts", src);
+  assertEquals(v2.length, 2);
+});
+
 Deno.test("doc191 §5 — the parser catches every import shape the barred names could arrive in", () => {
   const src = `
 import { LIA_RULE_PROFILES } from "./lia-relevance-profiles.generated.ts";
