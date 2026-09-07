@@ -414,6 +414,104 @@ export type Database = {
         }
         Relationships: []
       }
+      authority_rules: {
+        Row: {
+          authority_citation: string
+          bears_on_element: string
+          bears_on_factor_ids: string[]
+          created_at: string
+          direction: string
+          effect: Json
+          family: string
+          fixture_fires: Json
+          fixture_silent: Json
+          id: string
+          instrument_scope: string[]
+          ledger_ref: string | null
+          product: string
+          profile_id: string
+          ratified_at: string | null
+          ratified_by: string | null
+          reason_sentence: string
+          regulator_scope: string | null
+          retire_when: string
+          retired_at: string | null
+          retired_reason: string | null
+          rule_id: string
+          settledness: string
+          supporting_profile_ids: string[]
+          trigger: Json
+          updated_at: string
+          worksheet_ref: string
+        }
+        Insert: {
+          authority_citation: string
+          bears_on_element: string
+          bears_on_factor_ids: string[]
+          created_at?: string
+          direction: string
+          effect: Json
+          family: string
+          fixture_fires: Json
+          fixture_silent: Json
+          id?: string
+          instrument_scope: string[]
+          ledger_ref?: string | null
+          product: string
+          profile_id: string
+          ratified_at?: string | null
+          ratified_by?: string | null
+          reason_sentence: string
+          regulator_scope?: string | null
+          retire_when: string
+          retired_at?: string | null
+          retired_reason?: string | null
+          rule_id: string
+          settledness: string
+          supporting_profile_ids?: string[]
+          trigger: Json
+          updated_at?: string
+          worksheet_ref: string
+        }
+        Update: {
+          authority_citation?: string
+          bears_on_element?: string
+          bears_on_factor_ids?: string[]
+          created_at?: string
+          direction?: string
+          effect?: Json
+          family?: string
+          fixture_fires?: Json
+          fixture_silent?: Json
+          id?: string
+          instrument_scope?: string[]
+          ledger_ref?: string | null
+          product?: string
+          profile_id?: string
+          ratified_at?: string | null
+          ratified_by?: string | null
+          reason_sentence?: string
+          regulator_scope?: string | null
+          retire_when?: string
+          retired_at?: string | null
+          retired_reason?: string | null
+          rule_id?: string
+          settledness?: string
+          supporting_profile_ids?: string[]
+          trigger?: Json
+          updated_at?: string
+          worksheet_ref?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "authority_rules_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "authority_relevance_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       biometric_assessments: {
         Row: {
           analysis_text: string | null
@@ -669,6 +767,89 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      corpus_classification_job_state: {
+        Row: {
+          pause_message: string | null
+          pause_status: number | null
+          paused_at: string | null
+          run_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          pause_message?: string | null
+          pause_status?: number | null
+          paused_at?: string | null
+          run_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          pause_message?: string | null
+          pause_status?: number | null
+          paused_at?: string | null
+          run_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      corpus_classification_results: {
+        Row: {
+          created_at: string
+          excerpt_chars: number
+          id: string
+          model: string
+          outcome: Json
+          pipeline_version: string
+          product: string
+          profile_id: string
+          promoted: boolean
+          run_id: string
+          source_row_id: string
+          source_table: string
+          stage2: Json | null
+        }
+        Insert: {
+          created_at?: string
+          excerpt_chars: number
+          id?: string
+          model: string
+          outcome: Json
+          pipeline_version: string
+          product: string
+          profile_id: string
+          promoted?: boolean
+          run_id: string
+          source_row_id: string
+          source_table: string
+          stage2?: Json | null
+        }
+        Update: {
+          created_at?: string
+          excerpt_chars?: number
+          id?: string
+          model?: string
+          outcome?: Json
+          pipeline_version?: string
+          product?: string
+          profile_id?: string
+          promoted?: boolean
+          run_id?: string
+          source_row_id?: string
+          source_table?: string
+          stage2?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "corpus_classification_results_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "authority_relevance_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       corpus_drift_log: {
         Row: {
@@ -1619,6 +1800,7 @@ export type Database = {
           doc_version: string | null
           embedding: string | null
           embedding_model: string
+          endorsement_status: string | null
           excerpt_text: string
           excerpt_text_norm: string | null
           guideline_ref: string
@@ -1638,6 +1820,7 @@ export type Database = {
           doc_version?: string | null
           embedding?: string | null
           embedding_model?: string
+          endorsement_status?: string | null
           excerpt_text: string
           excerpt_text_norm?: string | null
           guideline_ref: string
@@ -1657,6 +1840,7 @@ export type Database = {
           doc_version?: string | null
           embedding?: string | null
           embedding_model?: string
+          endorsement_status?: string | null
           excerpt_text?: string
           excerpt_text_norm?: string | null
           guideline_ref?: string
@@ -2993,6 +3177,24 @@ export type Database = {
           status?: string | null
           strategy_method?: string | null
           summaries_generated?: number | null
+        }
+        Relationships: []
+      }
+      internal_driver_tokens: {
+        Row: {
+          created_at: string
+          name: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          name: string
+          token?: string
+        }
+        Update: {
+          created_at?: string
+          name?: string
+          token?: string
         }
         Relationships: []
       }

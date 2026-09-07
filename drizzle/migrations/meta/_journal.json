@@ -50,6 +50,34 @@
       "when": 1788659816190,
       "tag": "0006_grant_admin_role_yahoo_user",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1788736874307,
+      "tag": "0007_add_edpb_guideline_endorsement_status",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788739075474,
+      "tag": "0008_add_corpus_classification_batches",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788739722694,
+      "tag": "0009_activate_corpus_classify_driver",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788751207885,
+      "tag": "0010_create_authority_rules",
+      "breakpoints": true
     }
   ]
 }
