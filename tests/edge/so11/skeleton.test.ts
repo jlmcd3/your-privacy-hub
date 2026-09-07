@@ -137,9 +137,12 @@ Deno.test("SO-11 — the encoded skeleton is 37 paragraphs and hashes to the rat
   // quote the record with a colon; ¶27's B./C./D. gain blank-line breaks
   // (count still 37). Prior pin:
   // 7ad66336c0c06f7b732715ba78902bf5e3831a4d8c1c29b541d5d67b8e208e1f.
+  // RE-PIN a81e0240 FOLLOW-UP (2026-09-07): ¶24's verb travels with the slot
+  // value ("is: "…"" / "is not recorded"). Prior pin:
+  // 34fdf99e8b62ccdf6fde9976bcfbf97a262e49c9c48ff6cc4dcaea44cef97680.
   assertEquals(
     LIA_SKELETON_CONTENT_HASH,
-    "34fdf99e8b62ccdf6fde9976bcfbf97a262e49c9c48ff6cc4dcaea44cef97680",
+    "808a3017211ee702fb8839ba4658c9041ec4462e69c68e90490720e09ce95aa9",
   );
 });
 

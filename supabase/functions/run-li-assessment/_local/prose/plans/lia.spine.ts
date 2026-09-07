@@ -325,8 +325,14 @@ export const LIA_SKELETON_PROVENANCE = LIA_PLAN_PROVENANCE;
 // paragraphs (blank-line breaks inside the one pinned paragraph — the count
 // stays 37). Old-hash reproduction verified before re-pin. Prior pin:
 // 7ad66336c0c06f7b732715ba78902bf5e3831a4d8c1c29b541d5d67b8e208e1f.
+// RE-PIN BATCH a81e0240 FOLLOW-UP (2026-09-07): ¶24's verb moved into the
+// slot value so the colon precedes only a quotation ("the basis it offers
+// is: "…"" / "the basis it offers is not recorded"); the template form
+// rendered "is: not recorded" (doc161 test). Old-hash reproduction verified
+// before re-pin. Prior pin:
+// 34fdf99e8b62ccdf6fde9976bcfbf97a262e49c9c48ff6cc4dcaea44cef97680.
 export const LIA_SKELETON_CONTENT_HASH =
-  "34fdf99e8b62ccdf6fde9976bcfbf97a262e49c9c48ff6cc4dcaea44cef97680";
+  "808a3017211ee702fb8839ba4658c9041ec4462e69c68e90490720e09ce95aa9";
 
 export const LIA_SKELETON_PARAGRAPH_COUNT = 37;
 
@@ -511,8 +517,11 @@ export const LIA_SKELETON_SECTIONS: readonly LiaSkeletonSection[] = [
     blocks: [
       { kind: "lead", paragraph: 23, text: "[DETERMINATION LEAD] One sentence stating where the balance comes out and the principal reason." },
       // RE-PIN 2026-09-07 (CEO-directed): reasonableExpectationDetail now
-      // carries its own quote marks.
-      { kind: "skeleton", paragraph: 24, text: "A. Relationship and reasonable expectations. The company has indicated that the people affected are {RELATIONSHIP_PHRASE - reader label as prose}, and that in its assessment they {EXPECTATION_PHRASE - would / would not / may not} reasonably expect this processing; the basis it offers is: {reasonableExpectationDetail - attributed, quoted}." },
+      // carries its own quote marks. RE-PIN 2026-09-07 (second): the verb
+      // moved into the slot value so the colon appears only before a
+      // quotation — "is: "…"" when the detail is recorded, "is not recorded"
+      // when it is not (the template colon rendered "is: not recorded").
+      { kind: "skeleton", paragraph: 24, text: "A. Relationship and reasonable expectations. The company has indicated that the people affected are {RELATIONSHIP_PHRASE - reader label as prose}, and that in its assessment they {EXPECTATION_PHRASE - would / would not / may not} reasonably expect this processing; the basis it offers {reasonableExpectationDetail - \"is: <quoted detail>\" or \"is not recorded\"}." },
       { kind: "conditional", paragraph: 25, conditional: "children", text: "[CONDITIONAL] CHILDREN - trigger {childrenDataSubjects}=yes: fixed first words \"Children are among the people affected.\" followed by generated weighing that addresses that fact expressly, citing Recital 38. Negative case: the section is silent." },
       { kind: "conditional", paragraph: 26, conditional: "vulnerable_groups", text: "[CONDITIONAL] VULNERABLE GROUPS - trigger {vulnerableSubjects} non-empty: fixed first words \"The processing reaches people whose circumstances call for particular care: {LIST - reader labels, Other verbatim}.\" followed by generated weighing." },
       // RE-PIN 2026-09-07 (CEO-directed): B/C/D each start their own visual

@@ -268,9 +268,14 @@ export function buildLiaSlotValues(record: Bag): SlotValues {
     // the answered relationship and expectation. The answered facts survive.
     // RE-PIN 2026-09-07: the customer's own detail is quoted; "not
     // recorded" is this assessment's own word, not the record's, and stays
-    // unquoted.
+    // unquoted. The verb travels with the value so the colon appears only
+    // when a quotation follows ("is: "…"" / "is not recorded") — the
+    // colon-in-template form rendered "the basis it offers is: not
+    // recorded" (doc161 test, caught after batch a81e0240's formatting pass).
     reasonableExpectationDetail: orNull(
-      s(balancing.reasonable_expectation_detail) ? `"${noStop(s(balancing.reasonable_expectation_detail))}"` : (s(balancing.reasonable_expectation) ? "not recorded" : ""),
+      s(balancing.reasonable_expectation_detail)
+        ? `is: "${noStop(s(balancing.reasonable_expectation_detail))}"`
+        : (s(balancing.reasonable_expectation) ? "is not recorded" : ""),
     ),
 
     potentialHarm: orNull(harmLabel),
