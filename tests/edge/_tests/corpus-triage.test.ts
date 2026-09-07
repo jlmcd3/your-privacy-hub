@@ -82,19 +82,47 @@ Deno.test("isLiaHandoff: only usable LI-bearing authority records are handed off
   const ok = parseTriageOutcome(
     '{"record_class":"enforcement_decision","usable_for":["enforcement_database"],"li_relevance":"direct","confidence":0.9}',
   );
-  assertEquals(isLiaHandoff(ok), true);
+  assertEquals(isLiaHandoff(ok, "EU GDPR"), true);
   const adjacentGuidance = parseTriageOutcome(
     '{"record_class":"regulator_guidance","usable_for":["guidance_corpus"],"li_relevance":"adjacent"}',
   );
-  assertEquals(isLiaHandoff(adjacentGuidance), true);
+  assertEquals(isLiaHandoff(adjacentGuidance, "UK GDPR"), true);
   const newsLi = parseTriageOutcome(
     '{"record_class":"news_or_press","usable_for":["news_digest"],"li_relevance":"direct"}',
   );
-  assertEquals(isLiaHandoff(newsLi), false);
+  assertEquals(isLiaHandoff(newsLi, "EU GDPR"), false);
   const noLi = parseTriageOutcome(
     '{"record_class":"enforcement_decision","usable_for":["enforcement_database"],"li_relevance":"none"}',
   );
-  assertEquals(isLiaHandoff(noLi), false);
+  assertEquals(isLiaHandoff(noLi, "EU GDPR"), false);
   const junk = parseTriageOutcome('{"record_class":"junk_asset","usable_for":["discard"]}');
-  assertEquals(isLiaHandoff(junk), false);
+  assertEquals(isLiaHandoff(junk, "EU GDPR"), false);
+});
+
+// B5-1 (doc 210 ledger) — both halves of the tightened predicate.
+Deno.test("isLiaHandoff: a non-GDPR instrument never hands off, however it is rated", () => {
+  const direct = parseTriageOutcome(
+    '{"record_class":"enforcement_decision","usable_for":["enforcement_database","li_precedent_candidate"],"li_relevance":"direct","confidence":0.95}',
+  );
+  for (const instrument of ["PIPEDA", "Alberta PIPA", "HIPAA", "FTC Act s.5", "CCPA/CPRA", "", null]) {
+    assertEquals(isLiaHandoff(direct, instrument), false);
+  }
+});
+
+Deno.test("isLiaHandoff: a GDPR row rated 'none' never hands off on li_precedent_candidate alone", () => {
+  const none = parseTriageOutcome(
+    '{"record_class":"enforcement_decision","usable_for":["enforcement_database","li_precedent_candidate"],"li_relevance":"none"}',
+  );
+  assertEquals(isLiaHandoff(none, "EU GDPR"), false);
+});
+
+Deno.test("isGdprFamilyInstrument: accepted and refused instrument spellings", () => {
+  for (
+    const ok of ["GDPR", "EU GDPR", "UK GDPR", "GDPR (Art. 6(1)(f))", "Regulation (EU) 2016/679", "Directive 95/46/EC"]
+  ) {
+    assertEquals(isGdprFamilyInstrument(ok), true, ok);
+  }
+  for (const no of ["PIPEDA", "PIPA", "FOIP", "HIA", "HIPAA", "COPPA", "FCRA", "CCPA/CPRA", "unknown", "", null]) {
+    assertEquals(isGdprFamilyInstrument(no), false, String(no));
+  }
 });
