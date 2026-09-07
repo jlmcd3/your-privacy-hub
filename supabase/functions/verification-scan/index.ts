@@ -59,6 +59,36 @@ async function sweepSpentSoFar(sweep_id: string): Promise<number> {
 
 const CACHED_MIN_DOC_CHARS = 200;
 
+// LEDGER B5-5 — TEXT-COMPLETENESS. A verbatim pin is only as good as the text
+// it is checked against, so a document must be long enough to be the decision,
+// must not be a bot-check interstitial, and must not sit exactly at the old
+// 60,000-character extraction cap (a truncated document, not a short one).
+export const MIN_COMPLETE_DOC_CHARS = 2_000;
+export const RETIRED_EXTRACTION_CAP = 60_000;
+export const BOT_CHECK_MARKERS: readonly string[] = [
+  "performing security verification",
+  "checking your browser",
+  "enable javascript and cookies to continue",
+  "verify you are human",
+  "vérification de sécurité",
+];
+
+export function checkTextCompleteness(text: string): { ok: true } | { ok: false; reason: string } {
+  const t = (text ?? "").trim();
+  const lower = t.toLowerCase();
+  for (const marker of BOT_CHECK_MARKERS) {
+    if (lower.includes(marker)) return { ok: false, reason: `source_text_bot_check_page ("${marker}")` };
+  }
+  if (t.length < MIN_COMPLETE_DOC_CHARS) {
+    return { ok: false, reason: `source_text_too_short (${t.length} chars < ${MIN_COMPLETE_DOC_CHARS})` };
+  }
+  if (text.length === RETIRED_EXTRACTION_CAP) {
+    return { ok: false, reason: `source_text_truncated_at_retired_cap (${RETIRED_EXTRACTION_CAP} chars)` };
+  }
+  return { ok: true };
+}
+
+
 // Item 333: hard cap on the document text passed to any model in a single
 // invocation (was an implicit 60k inside each helper, applied twice per row).
 const MAX_MODEL_DOC_CHARS = 40_000;
@@ -359,8 +389,35 @@ async function processRow(row: any, mode: Mode = "initial") {
       reason: `fetch_${fetched.reason ?? "unavailable"}`,
       tokens: { haiku_in: 0, haiku_out: 0, sonnet_in: 0, sonnet_out: 0 },
     };
-
   }
+
+  // LEDGER B5-5 — TEXT-COMPLETENESS PRECHECK. A row can "fetch ok" and still
+  // hold text no verbatim pin can be trusted against: a bot-check interstitial,
+  // a stub of a few hundred characters, or a document truncated at the old
+  // 60,000-character extraction cap. The SCANNER routes those to
+  // requires_review; verification_status is never hand-set.
+  const completeness = checkTextCompleteness((fetched.content_text ?? "") as string);
+  if (!completeness.ok) {
+    await logResult(id, "source_text_completeness", "deterministic",
+      { verdict: "fail", evidence_text: completeness.reason }, {
+        source_document_hash: fetched.content_hash ?? null,
+      });
+    await sb.from("enforcement_actions").update({
+      verification_status: "requires_review",
+      review_reason: "corpus_defect_source_text",
+      verification_deterministic_pass: false,
+      memo_eligible: false,
+      verification_last_run_at: new Date().toISOString(),
+      last_source_fetch_at: new Date().toISOString(),
+    }).eq("id", id);
+    return {
+      verdict: "requires_review",
+      reason: completeness.reason,
+      tokens: { haiku_in: 0, haiku_out: 0, sonnet_in: 0, sonnet_out: 0 },
+    };
+  }
+
+
 
   const doc = fetched.content_text!;
   // Item 333: cap the text handed to the models per invocation. Deterministic
