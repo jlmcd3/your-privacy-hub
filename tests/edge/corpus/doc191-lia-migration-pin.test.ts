@@ -43,7 +43,6 @@ import {
 } from "../../../supabase/functions/run-li-assessment/_local/corpus/maps/lia-corpus-map.ts";
 import {
   LIA_RELEVANCE_PROFILES,
-  liaProfileOf,
 } from "../../../supabase/functions/run-li-assessment/_local/corpus/maps/lia-relevance-profiles.ts";
 import { registryFor } from "../../../supabase/functions/generate-corpus-relevance-profiles/_local/product-registry.ts";
 
@@ -148,6 +147,16 @@ Deno.test("doc191 §7.3 — THE PIN: every non-reclassified row's scorer-visible
   const expected = AP_ROWS.filter((row) => row.id !== RECLASSIFIED_ROW_ID);
   assertEquals(expected.length, 38);
 
+  // DOC 207 TRACK 2 (2026-09-07) NOTE: this test's claim is "the migration
+  // from the hand-authored literal to the DB-backed pipeline changed nothing
+  // customer-facing" — a claim about the ORIGINAL LIA_RELEVANCE_PROFILES
+  // literal captured at doc 191/196 time, compared against a fresh
+  // regeneration of the (older, pre-doc-205-backfill) snapshot fixture below.
+  // `liaProfileOf` was re-pointed by doc 207 Track 2 to prefer the live
+  // generated file first — reading through it here would compare today's
+  // corrected profiles against yesterday's uncorrected snapshot and drift on
+  // the 4 rows doc207-track2-repoint.test.ts documents. Read the literal
+  // directly so this test keeps testing what it always tested.
   const drift: string[] = [];
   for (const camRow of expected) {
     const generated = r.pattern[camRow.id];
@@ -155,7 +164,7 @@ Deno.test("doc191 §7.3 — THE PIN: every non-reclassified row's scorer-visible
       drift.push(`${camRow.id}: MISSING from the generated PATTERN_PROFILES`);
       continue;
     }
-    const handAuthored = liaProfileOf(camRow)!;
+    const handAuthored = LIA_RELEVANCE_PROFILES[camRow.id]!;
     const a = canonicalCamProfileBytes(handAuthored);
     const b = canonicalCamProfileBytes(generated);
     if (a !== b) drift.push(`${camRow.id}:\n  hand-authored ${a}\n  generated     ${b}`);

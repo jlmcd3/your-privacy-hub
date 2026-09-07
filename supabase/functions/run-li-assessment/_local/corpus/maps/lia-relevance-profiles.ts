@@ -30,6 +30,10 @@
 // §2.3(b); ingestion commissioned, doc 189 §5).
 
 import type { CamRelevanceProfile, CamRow } from "../../../../_shared/corpus/cam-types.ts";
+import {
+  LIA_PATTERN_PROFILES,
+  LIA_RULE_PROFILES,
+} from "./lia-relevance-profiles.generated.ts";
 
 export const LIA_RELEVANCE_PROFILES_VERSION = "lia-relevance-profiles-v1-2026-09-05";
 
@@ -414,9 +418,41 @@ export const LIA_RELEVANCE_PROFILES: Readonly<Record<string, CamRelevanceProfile
   "lia/f01-interest-legitimacy/ap-w6-12": AMADEUS_2016,
 };
 
-/** The LIA resolver: an inline profile wins; otherwise the sidecar by id. */
+/**
+ * DOC 207 TRACK 2 (2026-09-07) — re-pointed to the generated file.
+ *
+ * Lookup order: an inline profile on the row wins first; then the doc 191
+ * generated file's pattern half (`lia-relevance-profiles.generated.ts`,
+ * `LIA_PATTERN_PROFILES`); then its rule half (`LIA_RULE_PROFILES`, empty
+ * until a rule is ratified — doc 206C); the hand-authored
+ * `LIA_RELEVANCE_PROFILES` literal below is now a FALLBACK ONLY.
+ *
+ * It was not deleted. Doc 207 §4 step 2 requires proving byte-identical
+ * equivalence between the literal and the generated profiles before
+ * deleting the literal, and (`tests/edge/corpus/doc207-track2-repoint.test.ts`)
+ * found the two disagree on 4 of the 39 keys — all four are doc205-backfill
+ * corrections (2026-09-06, CEO-approved per doc 205 §12 item 3 / doc 205A
+ * §8.4) already baked into the generated file that this literal was never
+ * hand-updated to reflect:
+ *   lia/f03-necessity/ap-w6-01            outcome_posture: conditional -> rejected
+ *   lia/f01-interest-legitimacy/ap-w6-02  factor_ids gains "Balancing of interests, rights and freedoms"; outcome_posture: conditional -> accepted
+ *   lia/f04-balancing/ap-w6-04            outcome_posture: conditional -> rejected
+ *   lia/f01-interest-legitimacy/ap-w6-12  instrument: "EU GDPR" -> "Directive 95/46"
+ * Every one of the 39 AP row ids is present in `LIA_PATTERN_PROFILES`, so
+ * this fallback is unreachable in production today — it stays in the
+ * lookup order per doc 207 §4 step 2's explicit instruction, not deleted,
+ * until a future pass either hand-corrects these 4 literal entries (then
+ * proves re-equivalence) or removes the literal outright. The generator
+ * run is now the only way a profile changes; never hand-edit a value here
+ * to chase drift.
+ */
 export function liaProfileOf(row: CamRow): CamRelevanceProfile | undefined {
-  return row.relevance_profile ?? LIA_RELEVANCE_PROFILES[row.id];
+  return (
+    row.relevance_profile ??
+    (LIA_PATTERN_PROFILES[row.id] as unknown as CamRelevanceProfile | undefined) ??
+    (LIA_RULE_PROFILES[row.id] as unknown as CamRelevanceProfile | undefined) ??
+    LIA_RELEVANCE_PROFILES[row.id]
+  );
 }
 
 /**
