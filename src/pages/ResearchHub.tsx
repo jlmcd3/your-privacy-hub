@@ -119,7 +119,7 @@ const premiumItems: PremiumItem[] = [
     href: "/enforcement?view=archive",
     cta: "Preview the archive",
     image: "/images/research/enforcement-database-archive.webp",
-    imageAlt: "Global Enforcement Database full archive showing the subscriber upgrade panel",
+    imageAlt: "Enforcement Tracker full archive page showing filters and enriched enforcement decisions",
   },
 ];
 
