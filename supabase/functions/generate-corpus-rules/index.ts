@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
     if (profileIds.size > 0) {
       const { data: profileRows, error: profileError } = await db
         .from("authority_relevance_profiles")
-        .select("id,rule_or_pattern,ratified_by,ratified_at,ledger_ref")
+        .select("id,rule_or_pattern,source_table,source_row_id,ratified_by,ratified_at,ledger_ref")
         .in("id", [...profileIds]);
       if (profileError) throw new Error(`authority_relevance_profiles read failed: ${profileError.message}`);
       for (const row of (profileRows ?? []) as RuleProfileRow[]) profiles.set(row.id, row);
