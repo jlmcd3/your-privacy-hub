@@ -44,7 +44,7 @@ const SMART_TOOL_ROWS: SmartToolRow[] = [
     topupKey: "li_topup_v1",
   },
   {
-    tool: "Data Protection Impact Assessment (DPIA) (DPIA)",
+    tool: "Data Protection Impact Assessment (DPIA)",
     standaloneKey: "dpia_standalone_v2",
     subscriberKey: "dpia_subscriber_v2",
     annualCredit: "1 credit / yr",
@@ -204,7 +204,7 @@ export default function Pricing() {
                 (annual)
               </li>
               <li className="flex gap-2">
-                <Check {...iconProps} className="text-brand-teal mt-0.5 shrink-0" /> Free IR Playbook, DPA, Biometric
+                <Check {...iconProps} className="text-brand-teal mt-0.5 shrink-0" /> Free Incident Response Playbook, Custom DPA, Biometric Compliance Assessment
               </li>
             </ul>
             <Link
@@ -235,7 +235,7 @@ export default function Pricing() {
                 <span className="tabular-nums">{PRICING.tools.biometric.display}</span>
               </li>
               <li className="flex justify-between">
-                <span>IR Playbook</span>
+                <span>Incident Response Playbook</span>
                 <span className="tabular-nums">{PRICING.tools.ir_playbook.display}</span>
               </li>
               <li className="flex justify-between">
@@ -243,15 +243,15 @@ export default function Pricing() {
                 <span className="tabular-nums">{PRICING.tools.dpa.display}</span>
               </li>
               <li className="flex justify-between">
-                <span>LIA / DPIA</span>
+                <span>LIA / DPIA (each)</span>
                 <span className="tabular-nums">{PRICING.tools.lia.display}</span>
               </li>
               <li className="flex justify-between">
-                <span>Governance</span>
+                <span>GDPR Accountability Assessment</span>
                 <span className="tabular-nums">{PRICING.tools.governance.display}</span>
               </li>
               <li className="flex justify-between">
-                <span>CPPA Suite</span>
+                <span>CPPA Full Audit Suite</span>
                 <span className="tabular-nums">{PRICING.tools.cppa_suite.display}</span>
               </li>
             </ul>

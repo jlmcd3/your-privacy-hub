@@ -183,7 +183,7 @@ const SECTION_HEADERS: Record<ToolSection, {
   documents: {
     label: "Compliance documents",
     title: "Produce the documents tailored to your jurisdictions and stack",
-    note: "Privacy Notices with any subscription · DPA & IR Playbook with Professional",
+    note: "Privacy Notices with any subscription · Custom DPA & Incident Response Playbook with Professional",
     iconPath: "M5 3h8l4 4v10a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z M13 3v4h4 M7 11h8 M7 14h6",
     colors: {
       bg: "bg-amber-50",
@@ -330,7 +330,7 @@ const TOOLS: ToolDef[] = [
     slug: "dpia",
     section: "assessments",
     icon: iconEl(Search),
-    name: "Data Protection Impact Assessment (DPIA) (DPIA)",
+    name: "Data Protection Impact Assessment (DPIA)",
     tagline: "A complete Data Protection Impact Assessment for high-risk processing, structured to EDPB guidelines.",
     href: "/dpia-framework",
     requirement: { tier: "required", text: "Required — GDPR Art. 35" },

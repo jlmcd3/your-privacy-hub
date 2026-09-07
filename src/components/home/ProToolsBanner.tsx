@@ -62,7 +62,7 @@ const TOOLS: Tool[] = [
   },
   {
     icon: FileSearch,
-    title: "Data Protection Impact Assessment (DPIA) (DPIA)",
+    title: "Data Protection Impact Assessment (DPIA)",
     blurb: "Article 35-aligned DPIA — risk items annotated with cited supervisory authority decisions.",
     price: T.dpia.display,
     cta: "Build DPIA",

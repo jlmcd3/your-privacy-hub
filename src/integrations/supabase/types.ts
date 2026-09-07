@@ -1213,6 +1213,95 @@ export type Database = {
         }
         Relationships: []
       }
+      corpus_triage_job_state: {
+        Row: {
+          pause_message: string | null
+          pause_status: number | null
+          paused_at: string | null
+          run_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          pause_message?: string | null
+          pause_status?: number | null
+          paused_at?: string | null
+          run_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          pause_message?: string | null
+          pause_status?: number | null
+          paused_at?: string | null
+          run_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      corpus_triage_results: {
+        Row: {
+          action_id: string
+          confidence: number | null
+          created_at: string
+          id: string
+          model: string
+          promoted: boolean
+          proposed_li_relevance: string | null
+          proposed_record_class: string | null
+          proposed_subject: string | null
+          proposed_topic_tags: string[]
+          proposed_usable_for: string[]
+          rationale: string | null
+          raw_head: string | null
+          run_id: string
+          status: string
+        }
+        Insert: {
+          action_id: string
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          model: string
+          promoted?: boolean
+          proposed_li_relevance?: string | null
+          proposed_record_class?: string | null
+          proposed_subject?: string | null
+          proposed_topic_tags?: string[]
+          proposed_usable_for?: string[]
+          rationale?: string | null
+          raw_head?: string | null
+          run_id: string
+          status?: string
+        }
+        Update: {
+          action_id?: string
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          model?: string
+          promoted?: boolean
+          proposed_li_relevance?: string | null
+          proposed_record_class?: string | null
+          proposed_subject?: string | null
+          proposed_topic_tags?: string[]
+          proposed_usable_for?: string[]
+          rationale?: string | null
+          raw_head?: string | null
+          run_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "corpus_triage_results_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "enforcement_actions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       corpus_versions: {
         Row: {
           memo_eligible_count: number
