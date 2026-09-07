@@ -133,9 +133,13 @@ Deno.test("SO-11 — the encoded skeleton is 37 paragraphs and hashes to the rat
   // RE-PIN BATCH 21a (Wave C5, doc 113 S7.2): the subtitle's " - scope:"
   // spaced hyphen became an em dash. Prior pin:
   // de3fd62a1e7c77af0bc92ebaa1e14399f31a5ed1617519254eba8f6b3e351eed.
+  // RE-PIN BATCH a81e0240 (2026-09-07, CEO-directed, doc 211): ¶9/¶13/¶19/¶24
+  // quote the record with a colon; ¶27's B./C./D. gain blank-line breaks
+  // (count still 37). Prior pin:
+  // 7ad66336c0c06f7b732715ba78902bf5e3831a4d8c1c29b541d5d67b8e208e1f.
   assertEquals(
     LIA_SKELETON_CONTENT_HASH,
-    "7ad66336c0c06f7b732715ba78902bf5e3831a4d8c1c29b541d5d67b8e208e1f",
+    "34fdf99e8b62ccdf6fde9976bcfbf97a262e49c9c48ff6cc4dcaea44cef97680",
   );
 });
 

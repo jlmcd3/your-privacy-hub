@@ -232,14 +232,18 @@ export function buildLiaSlotValues(record: Bag): SlotValues {
     organizationName: s(record.organization_name) || "the organisation",
     subjectAnchor: orNull(s(record.subject_anchor)),
 
-    processingDescription: orNull(noStop(s(record.processing_description))),
+    // RE-PIN 2026-09-07 (CEO-directed): every "own sentence" splice of the
+    // record's free text is quoted, matching statedPurpose's existing
+    // pattern below — the document recites the record, it does not adopt
+    // the record's words as its own prose.
+    processingDescription: orNull(s(record.processing_description) ? `"${noStop(s(record.processing_description))}"` : ""),
     SUBJECTS_PHRASE: orBlank(relationshipPhrase),
     dataCategories: orBlank(asProse(categories)),
 
-    interestStatement: orNull(noStop(s(purpose.interest_statement))),
+    interestStatement: orNull(s(purpose.interest_statement) ? `"${noStop(s(purpose.interest_statement))}"` : ""),
     INTEREST_TYPE_PHRASE: orBlank(interestTypePhrase),
     INTEREST_HOLDER_PHRASE: orBlank(holderPhrase),
-    specificBenefit: orNull(noStop(s(purpose.specific_benefit))),
+    specificBenefit: orNull(s(purpose.specific_benefit) ? `"${noStop(s(purpose.specific_benefit))}"` : ""),
     beneficiary: orNull(LIA_BENEFICIARY_LABELS[noStop(s(purpose.beneficiary))] ?? lowerEnumLabel(noStop(s(purpose.beneficiary)))),
     statedPurpose: orNull(s(record.stated_purpose) ? `"${noStop(s(record.stated_purpose))}"` : ""),
 
@@ -249,19 +253,24 @@ export function buildLiaSlotValues(record: Bag): SlotValues {
         : strList(necessity.alternatives)).map((a) => noStop(a))),
     ),
     // DOC 161 — a multi-line rationale carried its line breaks into the ¶19
-    // sentence; the lines now join as clauses.
-    alternativesRationale: orNull(
-      s(necessity.alternatives_rationale).split(/\r?\n+/).map((l) => noStop(l.trim())).filter(Boolean).join("; "),
-    ),
-    whyConsentNotUsed: orNull(noStop(s(necessity.why_consent_not_used))),
+    // sentence; the lines now join as clauses. RE-PIN 2026-09-07: the joined
+    // clause is quoted as one block, matching the other own-sentence slots.
+    alternativesRationale: orNull((() => {
+      const joined = s(necessity.alternatives_rationale).split(/\r?\n+/).map((l) => noStop(l.trim())).filter(Boolean).join("; ");
+      return joined ? `"${joined}"` : "";
+    })()),
+    whyConsentNotUsed: orNull(s(necessity.why_consent_not_used) ? `"${noStop(s(necessity.why_consent_not_used))}"` : ""),
 
     RELATIONSHIP_PHRASE: orBlank(relationshipPhrase),
     EXPECTATION_PHRASE: orNull(expectationPhrase),
     // DOC 161 — the slot map says "the basis clause is dropped" when the
     // detail is blank, but the renderer drops the whole sentence, and with it
     // the answered relationship and expectation. The answered facts survive.
+    // RE-PIN 2026-09-07: the customer's own detail is quoted; "not
+    // recorded" is this assessment's own word, not the record's, and stays
+    // unquoted.
     reasonableExpectationDetail: orNull(
-      noStop(s(balancing.reasonable_expectation_detail)) || (s(balancing.reasonable_expectation) ? "not recorded" : ""),
+      s(balancing.reasonable_expectation_detail) ? `"${noStop(s(balancing.reasonable_expectation_detail))}"` : (s(balancing.reasonable_expectation) ? "not recorded" : ""),
     ),
 
     potentialHarm: orNull(harmLabel),
@@ -287,8 +296,9 @@ export function buildLiaSlotValues(record: Bag): SlotValues {
     // than in place is bounded explicitly (batch 3e9ad759: four dated,
     // owner-named planned mitigations were reproduced with no statement of
     // whether the favourable balance is conditional on them).
+    // RE-PIN 2026-09-07 (CEO-directed): the recorded measure is quoted.
     ADDITIONAL_MITIGATIONS_CLAUSE: mitigations
-      ? `; it has additionally recorded ${noStop(mitigations)}. Where a measure recorded there is planned rather than in place, it strengthens the balance only once implemented; the determination in this assessment rests on the measures in force as described, and the balance must be re-run if a planned measure does not land as recorded`
+      ? `; it has additionally recorded: "${noStop(mitigations)}". Where a measure recorded there is planned rather than in place, it strengthens the balance only once implemented; the determination in this assessment rests on the measures in force as described, and the balance must be re-run if a planned measure does not land as recorded`
       : "",
 
     reviewTriggers: orNull(asProse(strList(attestation.review_triggers))),
@@ -360,13 +370,22 @@ function verdictIsPositive(v: string): boolean | null {
   return null;
 }
 
-function composeExecLead(v: LiaTypedVerdicts, org: string): string {
+// BATCH a81e0240 (2026-09-07, CEO-directed) — this promised "the conditions
+// recorded below" unconditionally, even when the record carries no actual
+// condition: every rule that fired in the batch's three fixtures was purely
+// favorable, so nothing was ever recorded to point to. `hasConditions` is
+// true iff a require_condition rule fired (renderRuleClause's own source)
+// or the typed engine left an information_needed item on the record; the
+// clause now only promises what the document actually delivers.
+function composeExecLead(v: LiaTypedVerdicts, org: string, hasConditions: boolean): string {
   if (v.public_authority_bar) {
     return `${org} may not rely on legitimate interests for this processing, because the basis is unavailable to a public authority acting in the performance of its tasks.`;
   }
   const positive = verdictIsPositive(v.outcome);
   if (positive === true) {
-    return `Legitimate interests is available to ${org} for the processing described, on the facts the company has provided and subject to the conditions recorded below.`;
+    return hasConditions
+      ? `Legitimate interests is available to ${org} for the processing described, on the facts the company has provided and subject to the conditions recorded below.`
+      : `Legitimate interests is available to ${org} for the processing described, on the facts the company has provided.`;
   }
   if (positive === false) {
     return `Legitimate interests is not available to ${org} for the processing as described.`;
@@ -811,7 +830,7 @@ function composeExecPosture(report: Bag, org: string, record: Bag = {}): string 
   const summarySentence = clauses.length === 3
     ? `On the company's answers, ${clauses[0]}, ${clauses[1]}, and ${clauses[2]}; the analysis supporting each appears in Sections II to IV.`
     : clauses.length
-    ? `On the company's answers, ${clauses.join(", ")}; the analysis supporting each appears in the sections below.`
+    ? `On the company's answers, ${clauses.join(", ")}; the analysis supporting each appears in Sections II to IV.`
     : "";
   return fromTyped(
     nonGdprJurisdictionSentence(record),
@@ -1069,16 +1088,23 @@ export function buildLiaSyllabus(
   if (dpoReview) key_dates.push(["DPO review", dpoReview]);
   if (approval) key_dates.push(["Approval", approval]);
 
+  // BATCH a81e0240 (2026-09-07, CEO-directed) — page one's heading folds the
+  // "Prepared for" line and the title together ("<Company>: Legitimate
+  // Interests Assessment"), and the line under it names the instrument(s)
+  // the record puts in scope. `prepared_for` stays populated (the running
+  // head and the record map read it); srSyllabusPageHtml suppresses the
+  // eyebrow when the heading already leads with the entity.
+  const jurisdictions = strList(record.jurisdictions);
+  const uk = jurisdictions.includes("United Kingdom (UK GDPR)");
+  const eu = jurisdictions.includes("EU (GDPR)");
+  const instrument = uk && eu ? "UK and EU GDPR" : uk ? "UK GDPR" : eu ? "EU GDPR" : "GDPR";
+
   return {
     _typed: "syllabus@sr-2026-09-04",
     instrument_line: "LEGITIMATE INTERESTS ASSESSMENT · Article 6(1)(f)",
     prepared_for: entity,
-    // LIA's intake has no activity-name field at all (unlike Risk/DPIA,
-    // where a blank name is the rare degrade case) — a calm, permanent
-    // title, not a "not named on the record" gap message that would read
-    // as an anomaly on every single report.
-    activity: "The Processing Under Assessment",
-    subtitle: "Legitimate interests assessment under Article 6(1)(f)",
+    activity: `${entity}: Legitimate Interests Assessment`,
+    subtitle: `Under ${instrument} Article 6(1)(f).`,
     disposition_label: "DETERMINATION",
     disposition,
     disposition_tone: dispositionTone(disposition),
@@ -1155,8 +1181,16 @@ export function assembleLiaSkeletonDocument(
   const ruleApplications: Bag[] = deterministic && Array.isArray(report.rule_applications)
     ? report.rule_applications as Bag[]
     : [];
+  // BATCH a81e0240 — "subject to the conditions recorded below" is the
+  // ratified lead for the MITIGATIONS outcome (doc 161: the conditions are
+  // the mitigations), and is also earned by a require_condition rule or an
+  // information_needed item. A plain "available" record with none of those
+  // — every fixture in the batch — has nothing below to point at.
+  const hasConditions = v.outcome === "available_only_with_mitigations" ||
+    ruleApplications.some((a) => s(bag(a.effect).kind) === "require_condition") ||
+    (Array.isArray(report.information_needed) && report.information_needed.length > 0);
 
-  const execLead = composeExecLead(v, org);
+  const execLead = composeExecLead(v, org, hasConditions);
   const purposeLead = composeTestLead(
     v.purpose,
     "Whether the identified interest qualifies as legitimate",
@@ -1175,7 +1209,7 @@ export function assembleLiaSkeletonDocument(
     "The balance favours the interest pursued: the interests, rights and freedoms of the people affected do not override it on the facts recorded.",
     "The balance favours the people affected: their interests, rights and freedoms override the interest pursued on the facts recorded.",
   ) + renderRuleClause(ruleApplications, "balancing");
-  const findingsLead = composeExecLead(v, org);
+  const findingsLead = composeExecLead(v, org, hasConditions);
 
   // Conditionals. Each fires only from its own live trigger; a trigger that
   // does not fire composes nothing, and the block is omitted entirely.

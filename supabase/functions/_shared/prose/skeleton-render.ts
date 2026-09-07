@@ -145,7 +145,20 @@ export function renderFixed(text: string, values: SlotValues): string {
     out = out.split(SENTINEL).join("");
   }
 
-  return out.replace(/\s{2,}/g, " ").replace(/\s+([.,;])/g, "$1").trim();
+  // BATCH a81e0240 (2026-09-07, CEO-directed) — a fixed ("skeleton") block
+  // can now carry its own blank-line paragraph breaks, the same convention
+  // "composed" blocks already use (PROMPT 9I, 2026-08-15) and
+  // generate-report-pdf's chunkHtml already splits on unconditionally
+  // (`t.split(/\n{2,}/)`, kind-agnostic). Split on the paragraph break
+  // FIRST, clean whitespace within each resulting piece exactly as before,
+  // then rejoin on a normalised break — a fixed block with no `\n\n` in it
+  // (every other product's, and most of this one's) round-trips through a
+  // single-element split unchanged.
+  return out
+    .split(/\n{2,}/)
+    .map((part) => part.replace(/\s{2,}/g, " ").replace(/\s+([.,;])/g, "$1").trim())
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 /**

@@ -434,12 +434,12 @@ export function buildBenefitAndBeneficiary(intake: unknown): BenefitAndBeneficia
       "purpose_details.beneficiary — whether the benefit accrues to the controller's business, to the data subjects, or to a third party, and where it is shared, in what proportion.";
   } else if (benefit_is_generic) {
     application =
-      `The record identifies ${beneficiary_labels.join(" and ")} as the beneficiary, but the benefit is stated in terms that would fit any processing: "${benefit}". A benefit expressed at that level cannot be weighed against a specific intrusion, so it is recorded as stated and carries correspondingly little weight in the balance below.`;
+      `The record identifies ${beneficiary_labels.join(" and ")} as the beneficiary, but the benefit is stated in terms that would fit any processing: "${benefit}". A benefit expressed at that level cannot be weighed against a specific intrusion, so it is recorded as stated and carries correspondingly little weight in the balancing analysis (Section IV).`;
     information_needed =
       "purpose_details.specific_benefit — restate the benefit in terms particular to this processing: what changes, by how much, and for whom.";
   } else {
     application =
-      `The record states a benefit particular to this processing — "${benefit}" — and identifies ${beneficiary_labels.join(" and ")} as receiving it. Both sides of the balance therefore have a named quantity, and the balancing analysis below weighs this benefit against the intrusion the record describes.`;
+      `The record states a benefit particular to this processing — "${benefit}" — and identifies ${beneficiary_labels.join(" and ")} as receiving it. Both sides of the balance therefore have a named quantity, and the balancing analysis in Section IV weighs this benefit against the intrusion the record describes.`;
   }
 
   return {
@@ -875,7 +875,7 @@ export function buildRelationshipWithIndividual(intake: unknown): RelationshipFi
   if (category === "undetermined_on_the_record") {
     status = "record_insufficient";
     application =
-      "Recital 47 makes the relationship between controller and data subject a direct input to what the data subject can reasonably expect. The record does not place the data subjects in a relationship category, so the expectations factor below runs without the input the Recital treats as central, and this finding is left open rather than inferred.";
+      "Recital 47 makes the relationship between controller and data subject a direct input to what the data subject can reasonably expect. The record does not place the data subjects in a relationship category, so the reasonable-expectations factor runs without the input the Recital treats as central, and this finding is left open rather than inferred.";
     information_needed =
       "balancing_details.relationship_category — whether the data subjects are customers, employees, prospects, or members of the public with no prior relationship, and when that relationship began.";
   } else if (power_imbalance) {
@@ -963,21 +963,21 @@ export function buildScaleFrequencyDuration(intake: unknown): ScaleFrequencyDura
   if (dimensions_recorded === 0) {
     status = "record_insufficient";
     application =
-      "The intrusion a processing operation causes is a function of how many people it reaches, how often it runs, and how long the data are held. The record supplies none of the three, so the intrusion cannot be sized and the balance below is stated subject to that.";
+      "The intrusion a processing operation causes is a function of how many people it reaches, how often it runs, and how long the data are held. The record supplies none of the three, so the intrusion cannot be sized and the balancing analysis is stated subject to that.";
     information_needed =
       "balancing_details.scale_approx, balancing_details.frequency and balancing_details.duration — approximately how many data subjects are affected, how often the processing runs, and how long the personal data are retained for this purpose.";
   } else if (dimensions_recorded < 3) {
     status = "record_insufficient";
     const missing = dimensions.filter((d) => !d.recorded).map((d) => d.id);
     application =
-      `The record sizes the processing on ${dimensions_recorded} of the three dimensions the balance turns on. What is recorded is set out below; ${missing.join(" and ")} ${missing.length === 1 ? "is" : "are"} absent, so the intrusion is only partly sized and the weight placed on the data subjects' side is correspondingly provisional.`;
-    information_needed = `balancing_details.${missing.map((m) => m === "scale" ? "scale_approx" : m).join(" and balancing_details.")} — the missing dimension${missing.length === 1 ? "" : "s"} above.`;
+      `The record sizes the processing on ${dimensions_recorded} of the three dimensions the balance turns on: scale, frequency and duration. ${missing.join(" and ")} ${missing.length === 1 ? "is" : "are"} absent, so the intrusion is only partly sized and the weight placed on the data subjects' side is correspondingly provisional.`;
+    information_needed = `balancing_details.${missing.map((m) => m === "scale" ? "scale_approx" : m).join(" and balancing_details.")} — the missing dimension${missing.length === 1 ? "" : "s"}.`;
   } else if (large_scale_indicated) {
     application =
-      `All three dimensions are recorded, and the scale the record states puts this processing in the large-scale range. Scale does not by itself defeat a legitimate interest, but it multiplies whatever intrusion the processing causes: the same operation run across an entire population is a materially larger interference than the same operation run on an exception basis. That multiplier is carried into the balance below.`;
+      `All three dimensions are recorded, and the scale the record states puts this processing in the large-scale range. Scale does not by itself defeat a legitimate interest, but it multiplies whatever intrusion the processing causes: the same operation run across an entire population is a materially larger interference than the same operation run on an exception basis. That multiplier is carried into the balancing analysis.`;
   } else {
     application =
-      `All three dimensions are recorded, so the intrusion can be sized rather than assumed. The scale, frequency and duration the record states are the quantities weighed against the benefit in the balancing analysis below.`;
+      `All three dimensions are recorded, so the intrusion can be sized rather than assumed. The scale, frequency and duration the record states are the quantities weighed against the benefit in the balancing analysis.`;
   }
 
   return {
@@ -1104,7 +1104,7 @@ export function buildPotentialHarms(intake: unknown): PotentialHarmsFinding {
   if (!harms.length && worst_case_severity === "unstated") {
     status = "record_insufficient";
     application =
-      "The balance weighs the controller's interest against the impact on the data subjects. The record names no harm and does not characterise the worst case, so the data subjects' side of the scale is empty — not because there is no impact, but because none has been recorded. The balancing analysis below proceeds subject to that.";
+      "The balance weighs the controller's interest against the impact on the data subjects. The record names no harm and does not characterise the worst case, so the data subjects' side of the scale is empty — not because there is no impact, but because none has been recorded. The balancing analysis proceeds subject to that.";
     information_needed =
       "balancing_details.potential_harms and balancing_details.potential_harm — the specific harms considered (financial, reputational, autonomy, distress, discrimination, physical safety) and how serious the worst case would be.";
   } else if (!harms.length) {
@@ -1129,7 +1129,7 @@ export function buildPotentialHarms(intake: unknown): PotentialHarmsFinding {
         : "No mitigating measure is recorded against these harms.",
       optOutText ? `A route by which the data subject can stop the processing is also recorded: ${q(optOutText)}.` : "",
       "The consideration cutting the other way is that measures of this kind are operational rather than structural: they hold only for as long as they are applied as described, and if they lapse the same harms recur at the frequency of the processing itself.",
-      "Weighed on those facts the harms named are bounded and remediable, and each is carried into the balancing analysis individually below rather than collapsed into a single rating; the severity band itself remains open.",
+      "Weighed on those facts the harms named are bounded and remediable, and each is carried into the balancing analysis individually rather than collapsed into a single rating; the severity band itself remains open.",
     ].filter(Boolean).join(" ");
     information_needed =
       "balancing_details.potential_harm — the worst-case severity for the harms already listed, expressed in one of the recorded severity bands.";
@@ -1146,7 +1146,7 @@ export function buildPotentialHarms(intake: unknown): PotentialHarmsFinding {
     // "significant". Both labels are now named, so the internal grading is
     // transparent rather than substituted for the record's own word.
     application =
-      `The record identifies ${harms.length} harm${harms.length === 1 ? "" : "s"} and characterises the worst case as ${q(severityAnswer)}, which this balancing test weighs at the "${worst_case_severity}" tier. At that level the harms are not incidental to the balance; they are the principal weight on the data subjects' side, and the balance can only fall in the controller's favour if measures beyond those the Regulation already requires reduce them. Each harm is carried into the balancing analysis individually below rather than collapsed into a single severity rating.`;
+      `The record identifies ${harms.length} harm${harms.length === 1 ? "" : "s"} and characterises the worst case as ${q(severityAnswer)}, which this balancing test weighs at the "${worst_case_severity}" tier. At that level the harms are not incidental to the balance; they are the principal weight on the data subjects' side, and the balance can only fall in the controller's favour if measures beyond those the Regulation already requires reduce them. Each harm is carried into the balancing analysis individually rather than collapsed into a single severity rating.`;
   } else {
     application = [
       `The record identifies ${harms.length} harm${
@@ -1159,7 +1159,7 @@ export function buildPotentialHarms(intake: unknown): PotentialHarmsFinding {
         }.`
         : "No mitigating measure is recorded, so the characterisation rests on the nature of the harms alone.",
       "Against that, a low characterisation is the controller's own and holds only while those measures hold; if they lapse, the harms are neither bounded nor reversible by anything the data subject can do.",
-      "Each harm is carried into the balancing analysis individually below, so the balance is struck against named consequences rather than against a single rating.",
+      "Each harm is carried into the balancing analysis individually, so the balance is struck against named consequences rather than against a single rating.",
     ].filter(Boolean).join(" ");
   }
 
@@ -1251,14 +1251,14 @@ export function buildOptOutFeasibility(intake: unknown): OptOutFeasibilityFindin
       break;
     case "no_opt_out_available":
       application =
-        "The record states that data subjects cannot opt out of this processing. Where the data subject has no practical route to stop processing grounded on legitimate interests, the whole of the protection sits in the balance itself, and the weight the balance must carry rises accordingly. The determination below reflects that.";
+        "The record states that data subjects cannot opt out of this processing. Where the data subject has no practical route to stop processing grounded on legitimate interests, the whole of the protection sits in the balance itself, and the weight the balance must carry rises accordingly.";
       information_needed =
         "balancing_details.opt_out_mechanism — whether any route to object exists, including a manual one, and if none does, the reason it cannot be offered.";
       break;
     default:
       status = "record_insufficient";
       application =
-        "Recital 47 and the information duties both proceed on the footing that a data subject can object to processing grounded on legitimate interests. The record does not state whether that is possible here or by what route, so this factor cannot be weighed and the balance below is stated subject to it.";
+        "Recital 47 and the information duties both proceed on the footing that a data subject can object to processing grounded on legitimate interests. The record does not state whether that is possible here or by what route, so this factor cannot be weighed and the balancing analysis is stated subject to it.";
       information_needed =
         "balancing_details.opt_out_available and balancing_details.opt_out_mechanism — whether data subjects can object or opt out, whether that is unconditional or assessed case by case, and the mechanism by which it is exercised.";
   }
@@ -1321,7 +1321,7 @@ export function buildLiaAttestation(intake: unknown): LiaAttestationBlock {
   if (!approverName) missing.push("attestation.approver_name — the person who approved this assessment");
   if (!approverPosition) missing.push("attestation.approver_position — that person's role and the authority under which they approve");
   if (!approvalDate) missing.push("attestation.approval_date — the date approval was given");
-  if (dpo_review.status !== "analysed") missing.push("the data protection review recorded above");
+  if (dpo_review.status !== "analysed") missing.push("attestation.dpo_reviewer and attestation.dpo_review_date — the data protection review");
 
   const text = attested
     ? `This legitimate interests assessment was reviewed by ${dpoReviewer} on ${dpoDate} and approved by ${approverName}${approverPosition ? `, ${approverPosition}` : ""}, on ${approvalDate}. It records the assessment the controller carried out before the processing described in it was relied on, and it is to be performed anew on the occurrence of any trigger listed below.`

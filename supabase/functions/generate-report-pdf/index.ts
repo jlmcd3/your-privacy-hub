@@ -2568,7 +2568,7 @@ function srSyllabusPageHtml(s: SyllabusProjection, record: any): string {
   return `<section class="sr-syllabus">
     <table class="brand"><tr><td class="l">END USER PRIVACY</td><td class="r">${escHtml(s.instrument_line)}<br>${reportId}${escHtml(date)}</td></tr></table>
     <div style="margin-top:16pt;">
-      <div class="eyebrow">Prepared for ${escHtml(s.prepared_for)}</div>
+      ${s.prepared_for && s.activity.startsWith(`${s.prepared_for}:`) ? "" : `<div class="eyebrow">Prepared for ${escHtml(s.prepared_for)}</div>`}
       <h1>${escHtml(s.activity)}</h1>
       ${s.subtitle ? `<div style="font-size:9.5pt;color:#5c6d7a;margin-top:3pt;">${escHtml(s.subtitle)}</div>` : ""}
     </div>
