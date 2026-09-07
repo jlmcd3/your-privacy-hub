@@ -1093,6 +1093,126 @@ export type Database = {
           },
         ]
       }
+      corpus_sweep_v2: {
+        Row: {
+          action_id: string
+          authority_tier: string | null
+          citability: string | null
+          confidence: number
+          content_score: number
+          dedupe_signature: string | null
+          duplicate_of: string | null
+          evidence: Json
+          forum: string | null
+          has_date: boolean
+          has_fine: boolean
+          has_source_document: boolean
+          has_source_hash: boolean
+          has_subject: boolean
+          id: string
+          jurisdiction_code: string | null
+          language_original: string | null
+          ledger_ref: string | null
+          li_factor_tags: string[]
+          li_posture: string | null
+          li_relevance: string | null
+          needs_ai_review: boolean
+          pin_ready: boolean
+          ratified_at: string | null
+          ratified_by: string | null
+          record_class: string
+          regulator_canonical: string | null
+          review_state: string
+          settledness: string | null
+          source_type: string | null
+          sweep_version: string
+          swept_at: string
+          tagged_by: string
+          text_len: number
+          topic_tags: string[]
+          translation_state: string | null
+          usable_for: string[]
+        }
+        Insert: {
+          action_id: string
+          authority_tier?: string | null
+          citability?: string | null
+          confidence?: number
+          content_score?: number
+          dedupe_signature?: string | null
+          duplicate_of?: string | null
+          evidence?: Json
+          forum?: string | null
+          has_date?: boolean
+          has_fine?: boolean
+          has_source_document?: boolean
+          has_source_hash?: boolean
+          has_subject?: boolean
+          id?: string
+          jurisdiction_code?: string | null
+          language_original?: string | null
+          ledger_ref?: string | null
+          li_factor_tags?: string[]
+          li_posture?: string | null
+          li_relevance?: string | null
+          needs_ai_review?: boolean
+          pin_ready?: boolean
+          ratified_at?: string | null
+          ratified_by?: string | null
+          record_class: string
+          regulator_canonical?: string | null
+          review_state?: string
+          settledness?: string | null
+          source_type?: string | null
+          sweep_version?: string
+          swept_at?: string
+          tagged_by?: string
+          text_len?: number
+          topic_tags?: string[]
+          translation_state?: string | null
+          usable_for?: string[]
+        }
+        Update: {
+          action_id?: string
+          authority_tier?: string | null
+          citability?: string | null
+          confidence?: number
+          content_score?: number
+          dedupe_signature?: string | null
+          duplicate_of?: string | null
+          evidence?: Json
+          forum?: string | null
+          has_date?: boolean
+          has_fine?: boolean
+          has_source_document?: boolean
+          has_source_hash?: boolean
+          has_subject?: boolean
+          id?: string
+          jurisdiction_code?: string | null
+          language_original?: string | null
+          ledger_ref?: string | null
+          li_factor_tags?: string[]
+          li_posture?: string | null
+          li_relevance?: string | null
+          needs_ai_review?: boolean
+          pin_ready?: boolean
+          ratified_at?: string | null
+          ratified_by?: string | null
+          record_class?: string
+          regulator_canonical?: string | null
+          review_state?: string
+          settledness?: string | null
+          source_type?: string | null
+          sweep_version?: string
+          swept_at?: string
+          tagged_by?: string
+          text_len?: number
+          topic_tags?: string[]
+          translation_state?: string | null
+          usable_for?: string[]
+        }
+        Relationships: []
+      }
       corpus_versions: {
         Row: {
           memo_eligible_count: number
