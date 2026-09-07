@@ -318,8 +318,21 @@ export const LIA_SKELETON_PROVENANCE = LIA_PLAN_PROVENANCE;
  */
 // RE-PIN A-TEAM S4 (doc 119 S3.1, 2026-08-31): fleet ToA rename — the "Table of Authorities" section title became "Authorities Cited" (CEO-ratified, panel A1); ids and assembly rules unchanged. Old-hash reproduction verified before re-pin. Prior pin:
 // 053c21be0d7c72b4eef88186ec791ddb1ba380f6f18f7b724ef9f2380b6f65f0.
+// RE-PIN BATCH a81e0240 (2026-09-07, CEO-directed in chat after the first live
+// deterministic batch; doc 211): ¶9, ¶13, ¶19, ¶24 recite the record in
+// quotation marks introduced by a colon (the slot values carry the quotes,
+// the templates the colons); ¶27's B./C./D. become their own visual
+// paragraphs (blank-line breaks inside the one pinned paragraph — the count
+// stays 37). Old-hash reproduction verified before re-pin. Prior pin:
+// 7ad66336c0c06f7b732715ba78902bf5e3831a4d8c1c29b541d5d67b8e208e1f.
+// RE-PIN BATCH a81e0240 FOLLOW-UP (2026-09-07): ¶24's verb moved into the
+// slot value so the colon precedes only a quotation ("the basis it offers
+// is: "…"" / "the basis it offers is not recorded"); the template form
+// rendered "is: not recorded" (doc161 test). Old-hash reproduction verified
+// before re-pin. Prior pin:
+// 34fdf99e8b62ccdf6fde9976bcfbf97a262e49c9c48ff6cc4dcaea44cef97680.
 export const LIA_SKELETON_CONTENT_HASH =
-  "7ad66336c0c06f7b732715ba78902bf5e3831a4d8c1c29b541d5d67b8e208e1f";
+  "808a3017211ee702fb8839ba4658c9041ec4462e69c68e90490720e09ce95aa9";
 
 export const LIA_SKELETON_PARAGRAPH_COUNT = 37;
 
@@ -462,7 +475,13 @@ export const LIA_SKELETON_SECTIONS: readonly LiaSkeletonSection[] = [
     id: "the_processing",
     title: "I. The Processing",
     blocks: [
-      { kind: "skeleton", paragraph: 9, text: "{organizationName} has described the proposed processing as {processingDescription - own sentence where narrative}. The company has indicated that the people affected are {SUBJECTS_PHRASE - reader phrase from the relationship answer}, and that the categories of data involved are {dataCategories - reader labels, with any Other value incorporated verbatim into the sentence}." },
+      // RE-PIN 2026-09-07 (CEO-directed): the record's own processing
+      // description is quoted, not spliced as if it were the assessment's
+      // own prose — matching ¶27's C.-Scale quoted-attribution precedent
+      // (2026-08-30). {processingDescription} now carries its own quote
+      // marks (lia-skeleton-assemble.ts's slot construction), so the
+      // template supplies only the colon that introduces them.
+      { kind: "skeleton", paragraph: 9, text: "{organizationName} has described the proposed processing as: {processingDescription - own sentence where narrative, quoted}. The company has indicated that the people affected are {SUBJECTS_PHRASE - reader phrase from the relationship answer}, and that the categories of data involved are {dataCategories - reader labels, with any Other value incorporated verbatim into the sentence}." },
       { kind: "conditional", paragraph: 10, conditional: "stage_a", text: "[CONDITIONAL] Stage-A Other values render naturally within the sentence above, never as a label-and-colon fragment. A sentence asserting an unanswered optional fact is omitted, never left with a blank." },
     ],
   },
@@ -471,7 +490,10 @@ export const LIA_SKELETON_SECTIONS: readonly LiaSkeletonSection[] = [
     title: "II. The Purpose Test",
     blocks: [
       { kind: "lead", paragraph: 12, text: "[DETERMINATION LEAD] One sentence stating whether the identified interest qualifies as legitimate." },
-      { kind: "skeleton", paragraph: 13, text: "The company has identified the interest it pursues as {interestStatement - noun phrase; a full-sentence answer takes its own sentence}. As described in its submission, this is {INTEREST_TYPE_PHRASE - reader label rendered as prose}, pursued {INTEREST_HOLDER_PHRASE - \"on the company's own behalf\" / \"on behalf of \" + third party}. The specific benefit the company expects is {specificBenefit}, and it has identified {beneficiary - as prose} as the expected beneficiary. In its privacy notice, the company states the purpose of the processing as {statedPurpose - quoted and attributed to the notice}." },
+      // RE-PIN 2026-09-07 (CEO-directed): interestStatement and
+      // specificBenefit now carry their own quote marks (matching
+      // statedPurpose's existing pattern), introduced by a colon.
+      { kind: "skeleton", paragraph: 13, text: "The company has identified the interest it pursues as: {interestStatement - noun phrase, quoted; a full-sentence answer takes its own sentence}. As described in its submission, this is {INTEREST_TYPE_PHRASE - reader label rendered as prose}, pursued {INTEREST_HOLDER_PHRASE - \"on the company's own behalf\" / \"on behalf of \" + third party}. The specific benefit the company expects is: {specificBenefit - quoted}, and it has identified {beneficiary - as prose} as the expected beneficiary. In its privacy notice, the company states the purpose of the processing as {statedPurpose - quoted and attributed to the notice}." },
       { kind: "conditional", paragraph: 14, conditional: "public_authority", text: "[CONDITIONAL] PUBLIC AUTHORITY - trigger {controllerIsPublicAuthority}=yes: fixed first words \"Because the controller is a public authority, a further limitation applies.\" followed by the {publicTaskProcessing} analysis; the generated text must address the unavailability of Article 6(1)(f) for processing in performance of public tasks." },
       { kind: "conditional", paragraph: 15, conditional: "marketing", text: "[CONDITIONAL] MARKETING - trigger {statutoryRestrictions} collected: fixed first words \"Because the identified interest involves direct marketing, the analysis must also address the rules specific to that activity.\" followed by the recorded position." },
       { kind: "generated", paragraph: 16, text: "[GENERATED] The purpose-test analysis in counsel's voice: whether the interest is lawful, sufficiently specific, genuine and present, argued from the company's answers; the conclusion must match the lead." },
@@ -482,7 +504,9 @@ export const LIA_SKELETON_SECTIONS: readonly LiaSkeletonSection[] = [
     title: "III. The Necessity Test",
     blocks: [
       { kind: "lead", paragraph: 18, text: "[DETERMINATION LEAD] One sentence stating whether the processing is necessary rather than merely useful." },
-      { kind: "skeleton", paragraph: 19, text: "Necessity under Article 6(1)(f) of {instrumentName - the GDPR; UK-only the UK GDPR} asks whether the identified interest could reasonably be achieved by less intrusive means. The company has indicated that it considered {alternatives - rendered as prose}, and its reasons for not adopting them are recorded as {alternativesRationale - attributed}. As to consent, the company has explained why it does not rely on it: {whyConsentNotUsed - own clause}. Its account of data minimisation is addressed in the analysis below." },
+      // RE-PIN 2026-09-07 (CEO-directed): alternativesRationale and
+      // whyConsentNotUsed now carry their own quote marks.
+      { kind: "skeleton", paragraph: 19, text: "Necessity under Article 6(1)(f) of {instrumentName - the GDPR; UK-only the UK GDPR} asks whether the identified interest could reasonably be achieved by less intrusive means. The company has indicated that it considered {alternatives - rendered as prose}, and its reasons for not adopting them are recorded as: {alternativesRationale - attributed, quoted}. As to consent, the company has explained why it does not rely on it: {whyConsentNotUsed - own clause, quoted}. Its account of data minimisation is addressed in the analysis below." },
       { kind: "conditional", paragraph: 20, conditional: "analytics", text: "[CONDITIONAL] ANALYTICS - trigger {pseudonymisationOptions} collected: fixed first words \"For the analytical processing described, the company has recorded its consideration of pseudonymisation.\" followed by the recorded position." },
       { kind: "generated", paragraph: 21, text: "[GENERATED] The necessity analysis: less-intrusive-means discipline applied to the company's stated alternatives and minimisation answers; record facts only." },
     ],
@@ -492,10 +516,20 @@ export const LIA_SKELETON_SECTIONS: readonly LiaSkeletonSection[] = [
     title: "IV. The Balancing Test",
     blocks: [
       { kind: "lead", paragraph: 23, text: "[DETERMINATION LEAD] One sentence stating where the balance comes out and the principal reason." },
-      { kind: "skeleton", paragraph: 24, text: "A. Relationship and reasonable expectations. The company has indicated that the people affected are {RELATIONSHIP_PHRASE - reader label as prose}, and that in its assessment they {EXPECTATION_PHRASE - would / would not / may not} reasonably expect this processing; the basis it offers is {reasonableExpectationDetail - attributed}." },
+      // RE-PIN 2026-09-07 (CEO-directed): reasonableExpectationDetail now
+      // carries its own quote marks. RE-PIN 2026-09-07 (second): the verb
+      // moved into the slot value so the colon appears only before a
+      // quotation — "is: "…"" when the detail is recorded, "is not recorded"
+      // when it is not (the template colon rendered "is: not recorded").
+      { kind: "skeleton", paragraph: 24, text: "A. Relationship and reasonable expectations. The company has indicated that the people affected are {RELATIONSHIP_PHRASE - reader label as prose}, and that in its assessment they {EXPECTATION_PHRASE - would / would not / may not} reasonably expect this processing; the basis it offers {reasonableExpectationDetail - \"is: <quoted detail>\" or \"is not recorded\"}." },
       { kind: "conditional", paragraph: 25, conditional: "children", text: "[CONDITIONAL] CHILDREN - trigger {childrenDataSubjects}=yes: fixed first words \"Children are among the people affected.\" followed by generated weighing that addresses that fact expressly, citing Recital 38. Negative case: the section is silent." },
       { kind: "conditional", paragraph: 26, conditional: "vulnerable_groups", text: "[CONDITIONAL] VULNERABLE GROUPS - trigger {vulnerableSubjects} non-empty: fixed first words \"The processing reaches people whose circumstances call for particular care: {LIST - reader labels, Other verbatim}.\" followed by generated weighing." },
-      { kind: "skeleton", paragraph: 27, text: "B. Potential impact. The company assesses the most serious realistic impact as {potentialHarm - reader label rendered as prose}, and has identified the following categories of possible harm: {potentialHarms - introduced by this sentence, rendered as a short list}. C. Scale. The company describes the scale of the processing as \"{scaleApprox - quoted as recorded}\"; its frequency as \"{frequency - quoted as recorded}\"; and its duration as \"{duration - quoted as recorded}\". D. Safeguards. The measures the company has implemented are {safeguards - reader labels as prose}{ADDITIONAL_MITIGATIONS_CLAUSE - \"; it has additionally recorded \" + additionalMitigations; absent => omitted}." },
+      // RE-PIN 2026-09-07 (CEO-directed): B/C/D each start their own visual
+      // paragraph (blank-line breaks; generate-report-pdf's chunkHtml splits
+      // any paragraph's text on `\n{2,}`, kind-agnostic, so this needs no
+      // change to the block/paragraph-numbering structure). additionalMitigations
+      // now carries its own quote marks, matching the other own-sentence slots.
+      { kind: "skeleton", paragraph: 27, text: "B. Potential impact. The company assesses the most serious realistic impact as {potentialHarm - reader label rendered as prose}, and has identified the following categories of possible harm: {potentialHarms - introduced by this sentence, rendered as a short list}.\n\nC. Scale. The company describes the scale of the processing as \"{scaleApprox - quoted as recorded}\"; its frequency as \"{frequency - quoted as recorded}\"; and its duration as \"{duration - quoted as recorded}\".\n\nD. Safeguards. The measures the company has implemented are {safeguards - reader labels as prose}{ADDITIONAL_MITIGATIONS_CLAUSE - \"; it has additionally recorded: \" + additionalMitigations (quoted); absent => omitted}." },
       { kind: "conditional", paragraph: 28, conditional: "employee_monitoring", text: "[CONDITIONAL] EMPLOYEE MONITORING - trigger {employmentSafeguards} collected: fixed first words \"Because the people affected are employees, the imbalance inherent in that relationship must be addressed.\" followed by the recorded safeguards." },
       { kind: "generated", paragraph: 29, text: "[GENERATED] The balancing analysis: two-sided and concrete, engaging the strongest consideration against the conclusion, and ending on the finding rather than a formula." },
     ],
