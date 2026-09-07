@@ -53,10 +53,13 @@ export interface AuthorityRuleRow {
 export interface RuleProfileRow {
   readonly id: string;
   readonly rule_or_pattern: string;
+  readonly source_table: string;
+  readonly source_row_id: string;
   readonly ratified_by: string | null;
   readonly ratified_at: string | null;
   readonly ledger_ref: string | null;
 }
+
 
 export interface Exclusion {
   readonly rule_id: string;
