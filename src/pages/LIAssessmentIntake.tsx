@@ -28,6 +28,12 @@ import { useScrollActiveRail } from "@/components/intake/useScrollActiveRail";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
+import {
+  ART9_CONDITIONS,
+  MARKETING_CHANNELS,
+  MARKETING_CONSENT_BASES,
+  ACHIEVABLE_WITHOUT_PERSONAL_DATA,
+} from "@/pages/LIAssessment.enums";
 
 
 interface PreviewRow {
@@ -224,6 +230,15 @@ const LIAssessmentIntake = () => {
   const [pseudonymisationOptions, setPseudonymisationOptions] = useState(""); // shown for analytics / research
   const [employmentSafeguards, setEmploymentSafeguards] = useState(""); // shown for employee monitoring
 
+  // DOC 206E (2026-09-07) — N1/N4/N4b/N6. N1 shown only when hasSpecialCategory;
+  // N4/N4b shown in the marketing branch (N4b only when N4 includes email/SMS);
+  // N6 always shown.
+  const [art9Condition, setArt9Condition] = useState("");
+  const [marketingChannels, setMarketingChannels] = useState<string[]>([]);
+  const [marketingConsentBasis, setMarketingConsentBasis] = useState("");
+  const [achievableWithoutPersonalData, setAchievableWithoutPersonalData] = useState("");
+  const [achievableWithoutPersonalDataRationale, setAchievableWithoutPersonalDataRationale] = useState("");
+
   // Autosave payload — includes assessment id so a stale draft from a
   // different preview row does NOT overwrite fields on the current row.
   const draftPayload = useMemo(() => ({
@@ -239,6 +254,8 @@ const LIAssessmentIntake = () => {
     specificBenefit, beneficiary, alternativesRationale, relationshipCategory,
     scaleApprox, frequency, duration, potentialHarms, optOutAvailable,
     dpoReviewed, dpoReviewer, dpoReviewDate, approverName, approverPosition, approvalDate, reviewTriggers,
+    art9Condition, marketingChannels, marketingConsentBasis,
+    achievableWithoutPersonalData, achievableWithoutPersonalDataRationale,
   }), [
     id, interestHolder, interestType, statedPurpose, alternatives, whyConsentNotUsed, dataMinimised,
     reasonableExpectation, vulnerableSubjects, potentialHarm, safeguards, optOutMechanism,
@@ -250,6 +267,8 @@ const LIAssessmentIntake = () => {
     specificBenefit, beneficiary, alternativesRationale, relationshipCategory,
     scaleApprox, frequency, duration, potentialHarms, optOutAvailable,
     dpoReviewed, dpoReviewer, dpoReviewDate, approverName, approverPosition, approvalDate, reviewTriggers,
+    art9Condition, marketingChannels, marketingConsentBasis,
+    achievableWithoutPersonalData, achievableWithoutPersonalDataRationale,
   ]);
   const initialLiaRef = useMemo(() => JSON.stringify({ ...draftPayload, assessment_id: id }), [id]);
   const touched = useMemo(() => JSON.stringify(draftPayload) !== initialLiaRef, [draftPayload, initialLiaRef]);
@@ -316,6 +335,12 @@ const LIAssessmentIntake = () => {
     S(d.approverPosition, setApproverPosition);
     S(d.approvalDate, setApprovalDate);
     A(d.reviewTriggers, setReviewTriggers);
+    // DOC 206E — N1/N4/N4b/N6.
+    S(d.art9Condition, setArt9Condition);
+    A(d.marketingChannels, setMarketingChannels);
+    S(d.marketingConsentBasis, setMarketingConsentBasis);
+    S(d.achievableWithoutPersonalData, setAchievableWithoutPersonalData);
+    S(d.achievableWithoutPersonalDataRationale, setAchievableWithoutPersonalDataRationale);
   };
   useAutoRestoreDraft(autoRestoreToken, applyRestore);
 
@@ -355,6 +380,8 @@ const LIAssessmentIntake = () => {
     dataCategories.includes("Special category data") ||
     dataCategories.includes("Health or medical data") ||
     dataCategories.includes("Biometric data");
+  // DOC 206E — N4b shows only when N4 includes email/SMS to individuals.
+  const showMarketingConsentBasis = marketingChannels.includes("Email or SMS to individuals");
 
   const validate = (): string | null => {
     if (!interestHolder) return "Tell us whose interest is being served.";
@@ -367,6 +394,14 @@ const LIAssessmentIntake = () => {
     if (!reasonableExpectation) return "Tell us whether data subjects would reasonably expect this.";
     if (!potentialHarm) return "Estimate the potential harm severity.";
     if (!optOutMechanism.trim()) return "Describe your opt-out / objection mechanism.";
+    // DOC 206E — N1/N4/N4b/N6, required when shown.
+    if (hasSpecialCategory && !art9Condition) return "Tell us which Article 9(2) condition applies to the special-category data.";
+    if (showMarketingBranch && marketingChannels.length === 0) return "Tell us which channels the direct marketing uses.";
+    if (showMarketingBranch && showMarketingConsentBasis && !marketingConsentBasis) return "Tell us what permission has been obtained for e-mail or SMS marketing.";
+    if (!achievableWithoutPersonalData) return "Tell us whether this purpose could be achieved without personal data.";
+    if (achievableWithoutPersonalData === "No — personal data is required (explain why below)" && !achievableWithoutPersonalDataRationale.trim()) {
+      return "Explain why personal data is required.";
+    }
     return null;
   };
 
@@ -400,6 +435,11 @@ const LIAssessmentIntake = () => {
         // (a hidden answer must not outlive the question that revealed it).
         device_access: deviceAccess,
         device_access_strictly_necessary: deviceAccess === "Yes" ? deviceAccessStrictlyNecessary : "",
+        // DOC 206E — N4/N4b. marketing_channels null when the marketing
+        // branch is hidden; marketing_consent_basis null unless N4 includes
+        // email/SMS to individuals.
+        marketing_channels: showMarketingBranch ? marketingChannels : null,
+        marketing_consent_basis: showMarketingBranch && showMarketingConsentBasis ? marketingConsentBasis : null,
       },
       necessity_details: {
         alternatives,
@@ -407,6 +447,13 @@ const LIAssessmentIntake = () => {
         why_consent_not_used: whyConsentNotUsed,
         data_minimised: dataMinimised,
         pseudonymisation_options: showAnalyticsBranch ? pseudonymisationOptions : null,
+        // DOC 206E — N6. Rationale required only when the answer is "No…";
+        // otherwise sent as "" (not null — the question itself is always shown).
+        achievable_without_personal_data: achievableWithoutPersonalData,
+        achievable_without_personal_data_rationale:
+          achievableWithoutPersonalData === "No — personal data is required (explain why below)"
+            ? achievableWithoutPersonalDataRationale
+            : "",
       },
       balancing_details: {
         reasonable_expectation: reasonableExpectation,
@@ -428,6 +475,8 @@ const LIAssessmentIntake = () => {
         duration,
         potential_harms: potentialHarms,
         special_category_data: hasSpecialCategory,
+        // DOC 206E — N1. null when special-category data is not indicated.
+        art9_condition: hasSpecialCategory ? art9Condition : null,
         statutory_restrictions: showMarketingBranch ? statutoryRestrictions : null,
         employment_safeguards: showEmploymentBranch ? employmentSafeguards : null,
         additional_context: additionalContext,
@@ -631,6 +680,27 @@ const LIAssessmentIntake = () => {
               <Textarea value={statutoryRestrictions} onChange={(e) => setStatutoryRestrictions(e.target.value)} rows={2} placeholder="One line per restriction" />
             </div>
           )}
+
+          {/* DOC 206E (N4) — direct-marketing channels (family F2). */}
+          {showMarketingBranch && (
+            <div className="border-l-2 border-amber-300 pl-4">
+              <Label className="text-base">Which channels does the direct marketing use? *</Label>
+              <div className="mt-2" onFocusCapture={focusField("marketing_channels")}>
+                <Pills options={MARKETING_CHANNELS} value={marketingChannels} onChange={setMarketingChannels} />
+              </div>
+
+              {/* DOC 206E (N4b) — shown only when N4 includes email/SMS. */}
+              {showMarketingConsentBasis && (
+                <div className="mt-4">
+                  <Label className="text-base">For e-mail or SMS marketing to individuals, what permission has been obtained? *</Label>
+                  <select value={marketingConsentBasis} onFocusCapture={focusField("marketing_consent_basis")} onChange={(e) => setMarketingConsentBasis(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+                    <option value="">Select…</option>
+                    {MARKETING_CONSENT_BASES.map((opt) => <option key={opt}>{opt}</option>)}
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
         </section>
 
         {/* Necessity */}
@@ -656,6 +726,25 @@ const LIAssessmentIntake = () => {
             <p className="text-xs text-muted-foreground mt-1">Take them one at a time, on separate lines. State what outcome each alternative would fail to deliver.</p>
             <Textarea value={alternativesRationale} onFocusCapture={focusField("alternatives_rationale")} onChange={(e) => setAlternativesRationale(e.target.value)} className="mt-2" rows={3}
               placeholder={"One alternative per line, then the shortfall"} />
+          </div>
+
+          {/* DOC 206E (N6) — achievable without personal data (family F6). */}
+          <div>
+            <Label className="text-base">Could this purpose be achieved without personal data, or with anonymised or synthetic data? *</Label>
+            <select value={achievableWithoutPersonalData} onFocusCapture={focusField("achievable_without_personal_data")} onChange={(e) => setAchievableWithoutPersonalData(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+              <option value="">Select…</option>
+              {ACHIEVABLE_WITHOUT_PERSONAL_DATA.map((opt) => <option key={opt}>{opt}</option>)}
+            </select>
+            {achievableWithoutPersonalData === "No — personal data is required (explain why below)" && (
+              <Textarea
+                value={achievableWithoutPersonalDataRationale}
+                onFocusCapture={focusField("achievable_without_personal_data_rationale")}
+                onChange={(e) => setAchievableWithoutPersonalDataRationale(e.target.value)}
+                className="mt-2"
+                rows={2}
+                placeholder="Explain why personal data is required"
+              />
+            )}
           </div>
 
           <div>
@@ -694,6 +783,20 @@ const LIAssessmentIntake = () => {
             <p className="text-sm text-muted-foreground">Do data subjects' interests, rights and freedoms override yours?</p>
             <p className="text-sm text-muted-foreground mt-2">This stage establishes the balancing section — expectations, impact, safeguards, and the right to object weighed against the interest.</p>
           </div>
+
+          {/* DOC 206E (N1) — Article 9(2) condition. Shown only when
+              hasSpecialCategory is true (family F3): Art. 6(1)(f) alone
+              never authorises special-category data. */}
+          {hasSpecialCategory && (
+            <div>
+              <Label className="text-base">Which Article 9(2) condition applies to the special-category data? *</Label>
+              <p className="text-xs text-muted-foreground mt-1">Legitimate interests under Article 6(1)(f) never authorise special-category data on its own; an Article 9(2) condition is needed as well.</p>
+              <select value={art9Condition} onFocusCapture={focusField("art9_condition")} onChange={(e) => setArt9Condition(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+                <option value="">Select…</option>
+                {ART9_CONDITIONS.map((opt) => <option key={opt}>{opt}</option>)}
+              </select>
+            </div>
+          )}
 
           {/* UPGRADE-4 — relationship category, stated rather than inferred */}
           <div>
@@ -843,6 +946,10 @@ const LIAssessmentIntake = () => {
                   "Independent oversight (DPO / privacy committee)",
                   "DPIA completed",
                   "Vendor due diligence",
+                  // DOC 206E (N3, family F10) — appended before "Other"; do
+                  // not change any existing option string.
+                  "Notice at collection (privacy information given when the data is collected)",
+                  "Opt-out offered",
                   "Other",
                 ]}
                 value={safeguards}

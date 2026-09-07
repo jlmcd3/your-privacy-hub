@@ -108,6 +108,43 @@ const OPT_OUT_AVAILABLE_OPTS = [
 ] as const;
 const DPO_REVIEWED_OPTS = ["Yes", "No", "Planned"] as const;
 
+// DOC 206E (2026-09-07, CEO-approved 206D §3 / doc 210 ruling A2-4/A2-5) —
+// N1/N4/N4b/N6. Verbatim copies of src/pages/LIAssessment.enums.ts
+// ART9_CONDITIONS / MARKETING_CHANNELS / MARKETING_CONSENT_BASES /
+// ACHIEVABLE_WITHOUT_PERSONAL_DATA. All marked "optional"/"conditional"
+// (never "always") at the CONTRACT level — matching the UPGRADE-4
+// convention above ("all optional so legacy rows continue to validate"):
+// Law B2 requires older/legacy records made before these fields existed to
+// keep validating, with rule-states.ts supplying a sentinel for the absent
+// answer. The FORM still blocks submission on these when shown (client-side
+// required-field mechanism) — that is a stricter, separate gate.
+const ART9_CONDITION_OPTS = [
+  "Explicit consent (Art. 9(2)(a))",
+  "Employment, social security or social protection law (Art. 9(2)(b))",
+  "Vital interests (Art. 9(2)(c))",
+  "Not-for-profit body's legitimate activities (Art. 9(2)(d))",
+  "Data manifestly made public by the individual (Art. 9(2)(e))",
+  "Legal claims or judicial acts (Art. 9(2)(f))",
+  "Substantial public interest (Art. 9(2)(g))",
+  "Health or social care (Art. 9(2)(h))",
+  "Public health (Art. 9(2)(i))",
+  "Archiving, research or statistics (Art. 9(2)(j))",
+  "None identified",
+  "Not yet assessed",
+] as const;
+const MARKETING_CONSENT_BASIS_OPTS = [
+  "Consent obtained",
+  "Soft opt-in (existing customers; the organisation's own similar products or services)",
+  "Soft opt-in (charity supporters)",
+  "None",
+  "Not yet assessed",
+] as const;
+const ACHIEVABLE_WITHOUT_PERSONAL_DATA_OPTS = [
+  "Yes — the purpose could be achieved without personal data, or with anonymised or synthetic data",
+  "No — personal data is required (explain why below)",
+  "Not assessed",
+] as const;
+
 
 /** Stage A — the row inserted at preview time (LIAssessment.tsx ~L158). */
 export const liAssessmentStageAContract: IntakeContract = {
@@ -171,6 +208,21 @@ export const liAssessmentStageBContract: IntakeContract = {
     { key: "purpose_details.specific_benefit",         kind: "narrative",  required: "optional" },
     { key: "purpose_details.beneficiary",              kind: "enum",       required: "optional",
       options: BENEFICIARY_OPTS },
+    // DOC 206E (N4/N4b) — direct-marketing channels (family F2). No machine
+    // trigger for marketing_channels: the showMarketingBranch gate reads
+    // row.preview_signal.use_case_code, a Stage-A preview field that is
+    // never re-sent inside intake_data, so requiredWhen stays prose-only
+    // (same pattern as balancing_details.statutory_restrictions below).
+    { key: "purpose_details.marketing_channels",       kind: "string-array", required: "conditional",
+      requiredWhen: "processing engages the marketing branch (showMarketingBranch === true)",
+      hiddenValue: "" /* stored value when gated off is literal null */ },
+    // marketing_consent_basis DOES have a machine trigger: its controlling
+    // answer (marketing_channels) IS on the intake record.
+    { key: "purpose_details.marketing_consent_basis",  kind: "enum",       required: "conditional",
+      options: MARKETING_CONSENT_BASIS_OPTS,
+      requiredWhen: 'purpose_details.marketing_channels includes "Email or SMS to individuals"',
+      trigger: { key: "purpose_details.marketing_channels[]", equals: ["Email or SMS to individuals"] },
+      hiddenValue: "" /* stored value when gated off is literal null */ },
 
 
     // necessity_details
@@ -184,6 +236,15 @@ export const liAssessmentStageBContract: IntakeContract = {
     { key: "necessity_details.pseudonymisation_options", kind: "structured", required: "conditional",
       requiredWhen: "processing engages the analytics branch (showAnalyticsBranch === true)",
       hiddenValue: "" /* stored value when gated off is literal null */ },
+    // DOC 206E (N6, family F6) — always shown; contract-level "optional" so
+    // legacy records (before this field existed) keep validating (Law B2 —
+    // rule-states.ts supplies the "Not assessed" sentinel for the absence).
+    { key: "necessity_details.achievable_without_personal_data", kind: "enum", required: "optional",
+      options: ACHIEVABLE_WITHOUT_PERSONAL_DATA_OPTS },
+    { key: "necessity_details.achievable_without_personal_data_rationale", kind: "narrative", required: "conditional",
+      requiredWhen: 'necessity_details.achievable_without_personal_data === "No — personal data is required (explain why below)"',
+      trigger: { key: "necessity_details.achievable_without_personal_data", equals: ["No — personal data is required (explain why below)"] },
+      hiddenValue: "" /* stored value when not required is the literal empty string, not null */ },
 
     // balancing_details
     { key: "balancing_details",                              kind: "structured", required: "always" },
@@ -208,6 +269,16 @@ export const liAssessmentStageBContract: IntakeContract = {
 
     { key: "balancing_details.opt_out_mechanism",            kind: "narrative",  required: "always" },
     { key: "balancing_details.special_category_data",        kind: "boolean",    required: "optional" },
+    // DOC 206E (N1, family F3) — shown only when hasSpecialCategory is true.
+    // Machine trigger is on data_categories (the field the form actually
+    // derives hasSpecialCategory from), not on the boolean
+    // special_category_data above — FieldTrigger.equals only compares
+    // strings, and special_category_data is stored as a boolean.
+    { key: "balancing_details.art9_condition",               kind: "enum",       required: "conditional",
+      options: ART9_CONDITION_OPTS,
+      requiredWhen: "processing involves special-category data (hasSpecialCategory === true)",
+      trigger: { key: "data_categories[]", equals: ["Special category data", "Health or medical data", "Biometric data"] },
+      hiddenValue: "" /* stored value when gated off is literal null */ },
     // UPGRADE-4 — balancing inputs stated rather than inferred.
     { key: "balancing_details.relationship_category",        kind: "enum",       required: "optional", options: RELATIONSHIP_CATEGORY_OPTS },
     { key: "balancing_details.scale_approx",                 kind: "text",       required: "optional" },

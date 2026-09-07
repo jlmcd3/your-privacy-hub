@@ -89,7 +89,69 @@ const INTAKE_STATE_PATHS: readonly string[] = [
   "attestation.review_triggers",
   "stage",
   "preview_assessment_id",
+  // DOC 206E (2026-09-07) — N1/N4b/N6 (§2). The absent-answer sentinels for
+  // these three, and the per-option booleans for the two multi-selects
+  // (safeguards, marketing_channels), are applied AFTER this loop below.
+  "balancing_details.art9_condition",
+  "purpose_details.marketing_consent_basis",
+  "necessity_details.achievable_without_personal_data",
 ];
+
+// DOC 206E §2 item 2 — the FIXED slug map for `balancing_details.safeguards`.
+// "Encryption at rest and in transit" is a pre-existing form option
+// (LIAssessmentIntake.tsx safeguards Pills) that is NOT in doc 206E §2's
+// named map; added here with an obvious slug and reported in the doc 206E
+// build log per the spec's own instruction to report any such gap.
+const SAFEGUARDS_OPTION_SLUGS: Readonly<Record<string, string>> = {
+  "Encryption at rest and in transit": "encryption",
+  "Pseudonymisation": "pseudonymisation",
+  "Access controls / least privilege": "access_controls",
+  "Retention limits": "retention_limits",
+  "Independent oversight (DPO / privacy committee)": "independent_oversight",
+  "DPIA completed": "dpia_completed",
+  "Vendor due diligence": "vendor_due_diligence",
+  "Notice at collection (privacy information given when the data is collected)": "notice_at_collection",
+  "Opt-out offered": "opt_out_offered",
+  "Other": "other",
+};
+
+// DOC 206E §2 item 2 — the slug map for `purpose_details.marketing_channels`.
+const MARKETING_CHANNEL_OPTION_SLUGS: Readonly<Record<string, string>> = {
+  "Automated calls (recorded messages)": "automated_calls",
+  "Live calls": "live_calls",
+  "Email or SMS to individuals": "email_sms",
+  "Post": "post",
+  "Online advertising": "online_advertising",
+  "None of these": "none",
+};
+
+/** DOC 206E §2 item 2 — writes `<statePrefix>.<slug> = true|false` for every
+ *  slug in `slugMap` (matched by exact string against `raw`), plus
+ *  `<statePrefix>.recorded = (raw non-empty)`. An element of `raw` that
+ *  matches no option in `slugMap` sets nothing and is added to `unknown`
+ *  (the caller warns once per `buildLiaRuleStates` call, not per element). */
+function applyMultiSelectSlugs(
+  states: Record<string, string | number | boolean | null>,
+  statePrefix: string,
+  raw: unknown,
+  slugMap: Readonly<Record<string, string>>,
+  unknown: Set<string>,
+): void {
+  const arr = Array.isArray(raw) ? raw : [];
+  for (const slug of new Set(Object.values(slugMap))) {
+    states[`${statePrefix}.${slug}`] = false;
+  }
+  for (const v of arr) {
+    const s = String(v);
+    const slug = slugMap[s];
+    if (slug) {
+      states[`${statePrefix}.${slug}`] = true;
+    } else {
+      unknown.add(s);
+    }
+  }
+  states[`${statePrefix}.recorded`] = arr.length > 0;
+}
 
 export function buildLiaRuleStates(report: Bag, intake: Bag, typed: LiaTypedStage2Result): TypedStateBag {
   const query = buildLiaRelevanceQuery(report, intake);
@@ -124,6 +186,52 @@ export function buildLiaRuleStates(report: Bag, intake: Bag, typed: LiaTypedStag
 
   for (const path of INTAKE_STATE_PATHS) {
     states[`intake.${path}`] = stateValue(get(intake, path));
+  }
+
+  // ── DOC 206E §2 — sentinels for absent answers (Law B2: records made
+  // before these fields existed, which revisions re-run, must still resolve
+  // a state rather than leaving a rule permanently unable to fire). ────────
+  if (
+    states["intake.balancing_details.special_category_data"] === true &&
+    states["intake.balancing_details.art9_condition"] === null
+  ) {
+    states["intake.balancing_details.art9_condition"] = "Not yet assessed";
+  }
+  // When special-category is not true, the art9 state stays null (no
+  // sentinel) — the question was never applicable, not merely unanswered.
+
+  if (states["intake.necessity_details.achievable_without_personal_data"] === null) {
+    states["intake.necessity_details.achievable_without_personal_data"] = "Not assessed";
+  }
+
+  const rawMarketingChannels = get(intake, "purpose_details.marketing_channels");
+  const marketingChannelsArr = Array.isArray(rawMarketingChannels) ? rawMarketingChannels : [];
+  const includesEmailSms = marketingChannelsArr.some((v) => String(v) === "Email or SMS to individuals");
+  if (includesEmailSms && states["intake.purpose_details.marketing_consent_basis"] === null) {
+    states["intake.purpose_details.marketing_consent_basis"] = "Not yet assessed";
+  }
+
+  // ── DOC 206E §2 item 2 — per-option booleans for the two multi-selects. ─
+  const unknownOptions = new Set<string>();
+  applyMultiSelectSlugs(
+    states,
+    "intake.balancing_details.safeguards",
+    get(intake, "balancing_details.safeguards"),
+    SAFEGUARDS_OPTION_SLUGS,
+    unknownOptions,
+  );
+  applyMultiSelectSlugs(
+    states,
+    "intake.purpose_details.marketing_channels",
+    rawMarketingChannels,
+    MARKETING_CHANNEL_OPTION_SLUGS,
+    unknownOptions,
+  );
+  if (unknownOptions.size > 0) {
+    console.warn(JSON.stringify({
+      evt: "lia_rule_states_unknown_option",
+      options: [...unknownOptions],
+    }));
   }
 
   return {

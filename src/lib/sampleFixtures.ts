@@ -152,6 +152,116 @@ const F_LIA_UK: SampleFixture = {
   },
 };
 
+// --- 1b. LIA / EU — DOC 206E N1/N4/N4b/N6 exercise ------------------------
+// Answers all four new closed-list fields on their ANSWERED branch (special
+// category true + "None identified"; safeguards incl. notice-at-collection +
+// retention limits; marketing branch with email/SMS + consent basis "None";
+// N6 "Yes"). F_LIA_UK above exercises the ABSENT/sentinel branch (none of
+// the four keys set) so both paths through rule-states.ts §2 are covered.
+const F_LIA_206E: SampleFixture = {
+  tool_slug: "li_assessment",
+  variant: "eu-marketing-206e",
+  title: "Email and SMS wellness marketing to existing subscribers using health-engagement data",
+  scenario_summary:
+    "Vixen Wellness Group (EU subscription fitness app) proposes email and SMS marketing of premium coaching tiers to existing subscribers, selected using in-app health-engagement metrics. DPO Vixen Blitzen is running the Article 6(1)(f) analysis with the Article 9(2) condition for the health-engagement signal still an open point, alongside the doc 206E direct-marketing-channel and necessity questions.",
+  source_table: "li_assessments",
+  result_url_pattern: "/li-assessment/result/{id}",
+  fixture: {
+    insert: {
+      stage: "submitted",
+      // NOTE (2026-09-07, doc 206E): unlike F_LIA_UK above,
+      // `preview_assessment_id` IS included here. run-stress-job/index.ts's
+      // LIA_COLUMNS column-spread filter (added 2026-09-04) already drops
+      // any key that is not a real li_assessments column before the live
+      // insert, so this no longer reproduces the schema-cache error F_LIA_UK's
+      // comment warns about — and the contract lists the key `required:
+      // "always"`, so the sample-fixtures contract-conformance test
+      // (src/lib/__tests__/sampleFixtures.contract.test.ts) requires it.
+      preview_assessment_id: "sample-206e-preview",
+      organization_name: "Vixen Wellness Group",
+      subject_anchor:
+        "Email and SMS marketing of premium coaching tiers to existing subscribers, selected using in-app health-engagement metrics",
+      processing_description:
+        "Vixen Wellness Group operates an EU subscription fitness and wellness app. It proposes to send email and SMS marketing about premium coaching tiers to existing subscribers, using in-app health-engagement metrics (workout-completion trends, self-reported wellness check-ins) to decide which offer each subscriber receives.",
+      relationship_type: "Existing customer",
+      data_categories: ["Contact data", "Health or medical data", "Communications data"],
+      jurisdictions: ["EU (GDPR)"],
+      stated_purpose:
+        "To promote premium coaching tiers to existing subscribers by email and SMS, using each subscriber's own in-app wellness activity to select a relevant offer.",
+      alternatives_considered:
+        "Alternatives considered: (1) untargeted marketing to all subscribers regardless of engagement — rejected as less relevant and more likely to be perceived as unwanted; (2) marketing based on subscription tier alone, without the health-engagement signal — tested directly under the necessity question below.",
+      purpose_details: {
+        interest_holder: "Our organisation only",
+        interest_type: "Commercial / revenue-related",
+        interest_statement:
+          "Growing premium-tier subscription revenue by promoting relevant coaching upgrades to existing subscribers who are already engaged with the app.",
+        specific_benefit:
+          "Subscribers who are actively engaging with the app receive an offer for the coaching tier suited to their activity level, rather than a generic upsell.",
+        beneficiary: "Our business and the individuals",
+        device_access: "No",
+        // DOC 206E — N4/N4b.
+        marketing_channels: ["Email or SMS to individuals"],
+        marketing_consent_basis: "None",
+      },
+      necessity_details: {
+        alternatives:
+          "Untargeted marketing to all subscribers; marketing based on subscription tier alone without the health-engagement signal.",
+        alternatives_rationale:
+          "Untargeted marketing to all subscribers — would not identify which coaching tier is actually relevant to a given subscriber's activity level, depressing response rates and raising unsubscribe volume.\nSubscription tier alone — plausible, and is the alternative the N6 necessity question below tests directly.",
+        why_consent_not_used:
+          "Consent for the email/SMS marketing channel itself is obtained separately at signup under national ePrivacy-implementing law; this assessment covers the Article 6(1)(f) basis for using the health-engagement signal to select which offer a consenting subscriber receives.",
+        data_minimised:
+          "Only workout-completion trend and self-reported wellness check-in status feed the offer-selection logic; no individual health-metric values appear in the marketing decision or the message content.",
+        // DOC 206E — N6, answered "Yes"; rationale sent as "" per the spec
+        // (required only on the "No" branch).
+        achievable_without_personal_data:
+          "Yes — the purpose could be achieved without personal data, or with anonymised or synthetic data",
+        achievable_without_personal_data_rationale: "",
+      },
+      balancing_details: {
+        reasonable_expectation: "Probably — disclosed in privacy notice and consistent with the relationship",
+        reasonable_expectation_detail:
+          "Existing subscribers are told in the privacy notice that in-app activity may be used to personalise the offers they receive; the email/SMS marketing channel itself is separately consented to at signup.",
+        vulnerable_subjects: ["None"],
+        potential_harm: "Limited — minor inconvenience or unwanted contact",
+        potential_harm_detail:
+          "Worst case is an irrelevant or unwelcome marketing message; offer-tier selection alone presents no financial, safety or discrimination harm pathway.",
+        safeguards: [
+          "Access controls / least privilege",
+          "Retention limits",
+          "Notice at collection (privacy information given when the data is collected)",
+        ],
+        opt_out_mechanism:
+          "Unsubscribe link on every email; STOP keyword for SMS; in-account marketing-preference toggle disables both channels immediately.",
+        special_category_data: true,
+        // DOC 206E — N1, answered "None identified" (the open point this
+        // fixture is built to exercise).
+        art9_condition: "None identified",
+        relationship_category: "Customer",
+        scale_approx: "Approximately 40,000 EU subscribers opted in to marketing communications",
+        frequency: "Up to two campaigns per subscriber per month",
+        duration: "Health-engagement signal used at send time only; not retained beyond the current 30-day campaign cycle",
+        potential_harms: ["Distress or intrusion"],
+        opt_out_available: "Yes — unconditional, on request, with no consequence",
+        statutory_restrictions:
+          "National ePrivacy/PECR-equivalent consent already obtained for the email/SMS channel itself; this assessment covers the additional Article 6(1)(f) basis for the health-engagement targeting layer.",
+        additional_context:
+          "No Article 9(2) condition has yet been identified for using the health-engagement signal in marketing selection; that is the open point this assessment is testing.",
+      },
+      attestation: {
+        dpo_reviewed: "Planned",
+        dpo_reviewer: "Vixen Blitzen, Data Protection Officer",
+        review_triggers: [
+          "A change in the categories of data used",
+          "New or amended regulatory guidance",
+        ],
+      },
+    },
+    invoke: { fn: "run-li-assessment", id_key: "assessment_id" },
+    poll: { table: "li_assessments", terminal: ["complete", "failed"], max: 75, interval_ms: 4000 },
+  },
+};
+
 // --- 2. DPIA / EU --------------------------------------------------------
 const F_DPIA_EU: SampleFixture = {
   tool_slug: "dpia",
@@ -1531,6 +1641,7 @@ const F_REGISTRATION_BROKER_US: SampleFixture = {
 
 export const SAMPLE_FIXTURES: SampleFixture[] = [
   F_LIA_UK,
+  F_LIA_206E,
   F_DPIA_EU,
   F_DPA_EU,
   F_GOV_EU,
