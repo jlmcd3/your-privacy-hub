@@ -278,7 +278,7 @@ async function processOne(
   const { data: row, error } = await supabase
     .from("enforcement_actions")
     .select(
-      "id, regulator, regulator_canonical, law, subject, decision_date, primary_source_url, primary_source_status, statutory_provisions, statutory_provisions_extraction_method, key_compliance_failure",
+      "id, regulator, regulator_canonical, law, subject, decision_date, primary_source_url, primary_source_status, statutory_provisions, statutory_provisions_extraction_method, key_compliance_failure, source_document_text, refetch_attempts",
     )
     .eq("id", rowId)
     .maybeSingle();
@@ -286,6 +286,32 @@ async function processOne(
   if (!row) throw new Error(`row not found: ${rowId}`);
   if (!row.primary_source_url) {
     throw new Error(`row ${rowId} has no primary_source_url`);
+  }
+
+  const existingText = (row.source_document_text as string | null) ?? "";
+  const attempts = Number(row.refetch_attempts ?? 0);
+
+  // LEDGER B5-6 — record a rejected fetch WITHOUT touching stored text or
+  // source_document_fetched_at.
+  const recordRejection = async (reason: string) => {
+    if (dryRun) return;
+    const { error: wErr } = await supabase
+      .from("enforcement_actions")
+      .update({
+        refetch_last_error: reason,
+        refetch_attempts: attempts + 1,
+        refetch_last_attempt_at: new Date().toISOString(),
+      })
+      .eq("id", rowId);
+    if (wErr) throw new Error(`write refetch rejection failed: ${wErr.message}`);
+  };
+
+  // Legifrance serves a bot-check interstitial to datacenter traffic that reads
+  // as valid HTML; CNIL decisions must be sourced from www.cnil.fr instead.
+  if (isBotGatedSourceHost(row.primary_source_url as string) && existingText.length > 0) {
+    const reason = "source_host_bot_gated (legifrance.gouv.fr — use www.cnil.fr for CNIL rows)";
+    await recordRejection(reason);
+    return { row_id: rowId, primary_source_status: row.primary_source_status, rejected: reason };
   }
 
   const fetchOutcome = await fetchAndExtractText(row.primary_source_url as string);
