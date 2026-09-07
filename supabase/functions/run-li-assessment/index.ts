@@ -8,6 +8,12 @@ import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 // false: the legacy model path is byte-untouched until the CEO flips the
 // env var at a deploy.
 import { LIA_DETERMINISTIC_ENABLED } from "./_local/ltp/lia-deterministic-flag.ts";
+// DOC 207 TRACK 1 (2026-09-07) — the two legacy-only fetches
+// (get-enforcement-context, li_tracker_entries) are skipped on the
+// deterministic path; see _local/legacy-fetch-policy.ts's header for why
+// this is safe (206B0 §7-8: no deterministic-path renderer reads their
+// output) and why the decision lives in its own pure module.
+import { shouldFetchEnforcementContext, shouldFetchTrackerPrecedents } from "./_local/legacy-fetch-policy.ts";
 import { enforceStorageLimitationCrossRead } from './_lia_storage_limitation.ts';
 // run-meter deploy-check v1
 // REBUILD-LIA BUILD_STAMP: rebuild-lia@2026-07-18T00:00Z (advocate-drafter voice; framework-fidelity; deterministic net)
@@ -857,17 +863,19 @@ async function runAssessment(assessment_id: string, assessment: any, opts?: { re
         500
       ),
 
-      supabase.functions.invoke("get-enforcement-context", {
-        body: {
-          tool: "LIA",
-          data_categories: assessment.data_categories || [],
-          jurisdictions: liaJurisdictions,
-          sector: assessment.sector || undefined,
-          articles: ["gdpr:6"],
-          regime: enforcementRegime,
-          limit: 5,
-        },
-      }).catch((e: Error) => { console.error("get-enforcement-context failed (non-fatal):", e); return { data: null }; }),
+      shouldFetchEnforcementContext(LIA_DETERMINISTIC_ENABLED)
+        ? supabase.functions.invoke("get-enforcement-context", {
+          body: {
+            tool: "LIA",
+            data_categories: assessment.data_categories || [],
+            jurisdictions: liaJurisdictions,
+            sector: assessment.sector || undefined,
+            articles: ["gdpr:6"],
+            regime: enforcementRegime,
+            limit: 5,
+          },
+        }).catch((e: Error) => { console.error("get-enforcement-context failed (non-fatal):", e); return { data: null }; })
+        : Promise.resolve({ data: null } as { data: null }),
       getGdprContext(supabase as any, {
         // Extend beyond Art. 6: LIA reasoning routinely cites Art. 5 (principles,
         // esp. 5(1)(a) fairness/lawfulness/transparency) and Art. 21 (right to
@@ -959,12 +967,15 @@ async function runAssessment(assessment_id: string, assessment: any, opts?: { re
       gdprMeta.engaged_frameworks = engagedFrameworks;
     }
 
-    // Fetch precedents from li_tracker_entries
-    const { data: allPrecedents } = await supabase
-      .from("li_tracker_entries")
-      .select("*")
-      .order("last_confirmed", { ascending: false })
-      .limit(80);
+    // Fetch precedents from li_tracker_entries (legacy model path only —
+    // DOC 207 TRACK 1: skipped on the deterministic path).
+    const { data: allPrecedents } = shouldFetchTrackerPrecedents(LIA_DETERMINISTIC_ENABLED)
+      ? await supabase
+        .from("li_tracker_entries")
+        .select("*")
+        .order("last_confirmed", { ascending: false })
+        .limit(80)
+      : { data: [] as any[] };
 
     const precedents = (allPrecedents || []).filter((p: any) => {
       const activity = (p.processing_activity || "").toLowerCase();
