@@ -206,7 +206,7 @@ Deno.test("a source cited as determinative is removed from the ranked persuasive
   // the determinative entry, never both.
   report.rule_applications = [determinativeFixture()];
   const withRule = buildLiaPersuasiveAuthority(report, false, { intake: LIA_PERFECT_PINNED[0].intake as Bag });
-  assertStringIncludes(withRule.body, "determinative: see balancing finding.");
+  assertStringIncludes(withRule.body, "— see balancing finding.");
   assert(
     !withRule.body.includes("LinkedIn"),
     "the LinkedIn CAM row still rendered as a plain persuasive entry alongside the determinative one",

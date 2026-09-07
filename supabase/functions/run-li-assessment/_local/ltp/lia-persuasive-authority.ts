@@ -69,10 +69,14 @@ export const LIA_PERSUASIVE_AUTHORITY_LEAD =
 // (below). `LIA_RULES_LEAD_RATIFIED` gates whether the amended lead below
 // replaces the byte-frozen one; false today (LIA_RULES ships empty), so
 // `LIA_PERSUASIVE_AUTHORITY_LEAD` above is what every live report renders.
-// [RATIFY] when the CEO ratifies the first rule — see 207A-WIRING-LOG.
+// TEXT ratified 2026-09-07 (doc 206C §E item 3 / doc 210 ledger, CEO's own
+// wording, verbatim). The FLAG below still gates when it goes live — per
+// this file's original note, that flip happens with the first live rule
+// (LIA_DETERMINISTIC_ENABLED), not merely on text ratification.
+// [RATIFY] flip this flag with the first live rule — see 207A-WIRING-LOG.
 export const LIA_RULES_LEAD_RATIFIED = false;
 export const LIA_PERSUASIVE_AUTHORITY_LEAD_WITH_RULES =
-  "This section collects the authorities that bear on factors assessed in this report. Determinative authorities are named first; each names the finding it determines. Every other entry is enforcement context, persuasive rather than binding as to this processing, and none of those persuasive entries decides the outcome recorded above, which turns on the facts the company has provided.";
+  "This section collects the authorities that bear on factors assessed in this report. The most relevant authorities are named first; each names the finding it determines. Every other entry is further enforcement background relevant to this assessment based on the facts the company has provided.";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -334,7 +338,10 @@ function determinativeEntries(applications: readonly Bag[]): PersuasiveEntry[] {
     if (!(app.changed === true || app.concurred === true)) continue;
     const element = s(eff.element) || "outcome";
     const citation = s(app.authority_citation);
-    const label = `${citation} — determinative: see ${element} finding.`;
+    // DOC 206C §E item 1 — ratified 2026-09-07 (doc 210 ledger, CEO): the
+    // recommended short form, not "— determinative: see ...", since the
+    // citation text itself already says "determinative authority".
+    const label = `${citation} — see ${element} finding.`;
     out.push({
       source_row_id: firstSourceRowId(app),
       label,
