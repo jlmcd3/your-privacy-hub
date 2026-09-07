@@ -96,7 +96,30 @@ Deno.serve(async (req) => {
         .select("id,rule_or_pattern,source_table,source_row_id,ratified_by,ratified_at,ledger_ref")
         .in("id", [...profileIds]);
       if (profileError) throw new Error(`authority_relevance_profiles read failed: ${profileError.message}`);
-      for (const row of (profileRows ?? []) as RuleProfileRow[]) profiles.set(row.id, row);
+      const raw = (profileRows ?? []) as RuleProfileRow[];
+
+      // DOC 209 §5 — the source's endorsement, joined per source table.
+      const guidelineIds = [...new Set(raw.filter((r) => r.source_table === "edpb_guidelines").map((r) => r.source_row_id))];
+      const endorsementById = new Map<string, string | null>();
+      if (guidelineIds.length > 0) {
+        const { data: guidelineRows, error: guidelineError } = await db
+          .from("edpb_guidelines")
+          .select("id,endorsement_status")
+          .in("id", guidelineIds);
+        if (guidelineError) throw new Error(`edpb_guidelines read failed: ${guidelineError.message}`);
+        for (const g of (guidelineRows ?? []) as { id: string; endorsement_status: string | null }[]) {
+          endorsementById.set(g.id, g.endorsement_status);
+        }
+      }
+      const endorsementFor = (row: RuleProfileRow) => {
+        if (row.source_table === "edpb_guidelines") return endorsementById.get(row.source_row_id) ?? null;
+        if (row.source_table === "regulatory_guidance") return "regulator_guidance";
+        if (row.source_table === "enforcement_actions") return "decision";
+        return null;
+      };
+      for (const row of raw) {
+        profiles.set(row.id, { ...row, endorsement: endorsementFor(row) as RuleProfileRow["endorsement"] });
+      }
     }
 
     const rulesVersion = typeof body.rules_version === "string" && body.rules_version !== ""
@@ -123,6 +146,7 @@ Deno.serve(async (req) => {
       row_count: rows.length,
       emitted: result.emitted,
       excluded: result.excluded,
+      warnings: result.warnings,
       errors: result.errors,
       contents: result.contents,
     }, result.ok ? 200 : 422);
