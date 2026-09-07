@@ -197,25 +197,41 @@ export function validateRuleRow(
   return errors;
 }
 
-function shippedRule(row: AuthorityRuleRow): AuthorityRule {
+/**
+ * The canonical `AuthorityRule` shape and nothing else. The DB-only columns
+ * (`family`, `direction`, `bears_on_factor_ids`, `fixture_*`, `retire_when`,
+ * `worksheet_ref`, the ratification stamps) are validated above but never
+ * emitted — the interpreter has no use for them and a shipped file must not
+ * carry curation metadata.
+ *
+ * `sources` is the primary profile first, then each supporting profile in
+ * `supporting_profile_ids` array order.
+ */
+function shippedRule(
+  row: AuthorityRuleRow,
+  profiles: ReadonlyMap<string, RuleProfileRow>,
+): AuthorityRule {
+  const sources: { table: string; row_id: string }[] = [];
+  for (const id of [row.profile_id, ...(row.supporting_profile_ids ?? [])]) {
+    const profile = profiles.get(id);
+    if (profile) sources.push({ table: profile.source_table, row_id: profile.source_row_id });
+  }
   return {
     rule_id: row.rule_id,
-    family: row.family,
     product: row.product,
     settledness: row.settledness as AuthorityRule["settledness"],
-    direction: row.direction as AuthorityRule["direction"],
-    instrument_scope: row.instrument_scope ?? [],
+    instrument_scope: [...(row.instrument_scope ?? [])],
     regulator_scope: row.regulator_scope ?? null,
-    bears_on_factor_ids: row.bears_on_factor_ids ?? [],
-    bears_on_element: row.bears_on_element as AuthorityRule["bears_on_element"],
+    bears_on_element: row.bears_on_element,
     trigger: row.trigger as AuthorityRule["trigger"],
     effect: row.effect as AuthorityRule["effect"],
     reason_sentence: row.reason_sentence,
     authority_citation: row.authority_citation,
-    retire_when: row.retire_when,
-    worksheet_ref: row.worksheet_ref,
+    sources,
+    retired_at: row.retired_at ?? null,
   };
 }
+
 
 /** Relative specifier from the output file to _shared/corpus/rule-types.ts. */
 export function typeImportSpecifier(outputPath: string): string {
