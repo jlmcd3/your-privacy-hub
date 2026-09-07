@@ -206,11 +206,21 @@ const RULE_INTERPRETER_MODULE = /(^|\/)rule-(interpreter|types)\.ts$/;
  *  `rule-interpreter.ts`'s executable `applyRules`; both are data/typing
  *  companions to the one sanctioned door, not new doors of their own — the
  *  companion boundary test below (lia-rules.ts boundary) still restricts
- *  who may import THOSE files to that product's own rule-pass.ts. */
+ *  who may import THOSE files to that product's own rule-pass.ts.
+ *
+ *  DOC 213 adds a third companion shape, one level over: a product's
+ *  hook-join pass (`hook-join.ts`), which evaluates a ratified hook's
+ *  `fact_atoms`/`distinguishing_atoms`/`required_atoms` against the SAME
+ *  atom grammar (`evaluateAtom`) and `TypedStateBag` a rule's trigger does
+ *  — doc 213 §0 defines a hook's atoms in exactly those terms. It never
+ *  imports `applyRules` either: a hook only ever reads the grammar to pick
+ *  a sentence to print, never to change a verdict (hook-types.ts's own
+ *  header comment). */
 const RULE_INTERPRETER_ALLOWED_IMPORTERS: readonly RegExp[] = [
   /(^|\/)rule-pass\.ts$/,
   /(^|\/)rule-states\.ts$/,
   /(^|\/)corpus\/maps\/[a-z0-9-]+-rules\.ts$/,
+  /(^|\/)hook-join\.ts$/,
   /-gate\.ts$/,
   /-gates\.ts$/,
   /(^|\/)tests\//,

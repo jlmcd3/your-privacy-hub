@@ -44,6 +44,18 @@ import {
 } from "../../../_shared/corpus/cam-relevance.ts";
 import type { CamRelevanceProfile } from "../../../_shared/corpus/cam-types.ts";
 import { classifyLiaUseCase, USE_CASE_LABELS } from "../../../_shared/lia/lia-use-case-classifier.ts";
+// DOC 213 TRACK H2 — offline analogy hooks, dark behind LIA_HOOKS_ENABLED
+// (default false; LIA_HOOKS ships [] until the first ratified row, so the
+// block below is a no-op in production today regardless of the flag). This
+// file is not one of the doors the doc 206/207 import boundary allows onto
+// rule-types.ts (see that file's own header comment) — `TypedStateBag` is
+// imported here as a TYPE ONLY, re-exported by hook-join.ts (an allowed
+// door) rather than from rule-types.ts directly, exactly the same
+// structural-read discipline this file already applies to `RuleApplication`
+// below.
+import { LIA_HOOKS_ENABLED } from "./lia-hooks-flag.ts";
+import { LIA_HOOKS } from "../corpus/maps/lia-hooks.ts";
+import { applyLiaHooks, LIA_HOOK_OMIT_REASONS, type TypedStateBag } from "./lia-deliverables/hook-join.ts";
 
 type Bag = Record<string, unknown>;
 const s = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
@@ -388,6 +400,12 @@ export interface LiaPersuasiveAuthorityResult {
   readonly aow_fired: boolean;
   /** DOC 189 — the ranking that produced the AP entries (telemetry/tests). */
   readonly ranked: readonly LiaRankedAuthority[];
+  /** DOC 213 — assessor flags from the hook join (`invalid_atom`,
+   *  `rule_missing`, `s3_missing_distinguishing_atom`, `adverse_under_pass`,
+   *  `unresolved_slot`, or a plain `omitted`). Always `[]` while the flag is
+   *  off, or while `ctx.states`/`ctx.verdicts` are not supplied, or while
+   *  `LIA_HOOKS` ships empty — never surfaced in the rendered body itself. */
+  readonly hook_flags: readonly { hook_id: string; reason: string }[];
 }
 
 export interface LiaPersuasiveContext {
@@ -395,6 +413,16 @@ export interface LiaPersuasiveContext {
    *  (jurisdictions, data_categories, relationship). Omitted → the query is
    *  built from the report alone (no relationship / category matches). */
   readonly intake?: Bag;
+  /** DOC 213 — the record's typed state bag (the same shape
+   *  `buildLiaRuleStates` produces), needed to evaluate a hook's atoms.
+   *  Omitted → hooks are skipped entirely, even with the flag on and
+   *  `LIA_HOOKS` non-empty (doc 213 §6: hook-join needs a states bag to
+   *  nominate anything). */
+  readonly states?: TypedStateBag;
+  /** DOC 213 — the current three-part-test verdicts by element ("purpose" |
+   *  "necessity" | "balancing" -> verdict string), used only for the
+   *  direction matrix's own verdict check. Omitted → hooks are skipped. */
+  readonly verdicts?: Record<string, string>;
 }
 
 /**
@@ -420,11 +448,50 @@ export function buildLiaPersuasiveAuthority(
   const ap = apEntries(query, determinativeSourceIds);
   const precedent = precedentEntries(report).filter((e) => !determinativeSourceIds.has(e.source_row_id));
 
+  // DOC 213 TRACK H2 — offline analogy hooks. Off by default (LIA_HOOKS_
+  // ENABLED defaults false) and a no-op today regardless of the flag's
+  // value (LIA_HOOKS ships [] until the first ratified row) — this whole
+  // block, and every byte it could touch, is identity-gated on
+  // `LIA_HOOKS.length > 0` on top of the flag, so nothing here changes
+  // production output before both a flag flip AND a ratified hook exist.
+  // A caller that omits `ctx.states`/`ctx.verdicts` also gets no hooks,
+  // even with the flag on and hooks ratified — hook-join has nothing to
+  // nominate against without a states bag (doc 213 §6).
+  let hookFlags: readonly { hook_id: string; reason: string }[] = [];
+  let apEntriesForBody = ap.entries;
+  if (LIA_HOOKS_ENABLED && LIA_HOOKS.length > 0 && ctx.states && ctx.verdicts) {
+    const rankedSourceIds = ap.ranked.map((sr) => sr.row.source_row_id);
+    const { applications, flags } = applyLiaHooks(
+      LIA_HOOKS,
+      ctx.states,
+      ctx.verdicts,
+      rankedSourceIds,
+      determinativeSourceIds,
+    );
+    hookFlags = flags;
+    const bySource = new Map(applications.map((a) => [a.source_row_id, a] as const));
+    const dropSourceIds = new Set<string>();
+    for (const f of flags) {
+      if (!LIA_HOOK_OMIT_REASONS.has(f.reason)) continue;
+      const hook = LIA_HOOKS.find((h) => h.hook_id === f.hook_id);
+      if (hook) dropSourceIds.add(hook.source_row_id);
+    }
+    // FIRST BUILD LIMITATION (doc 213 §6): an entry the matrix omits is
+    // dropped, not back-filled from the next-ranked row — the top-five
+    // list can render fewer than five entries when a hook omits one.
+    apEntriesForBody = ap.entries
+      .filter((e) => !dropSourceIds.has(e.source_row_id))
+      .map((e) => {
+        const applied = bySource.get(e.source_row_id);
+        return applied ? { ...e, text: applied.sentence } : e;
+      });
+  }
+
   const seen = new Set<string>();
   const entries: PersuasiveEntry[] = [];
   // Determinative authorities list FIRST, ahead of the ranked persuasive
   // candidates; contrary-authority entries join the persuasive tail.
-  for (const e of [...determinative, ...ap.entries, ...precedent, ...contrary]) {
+  for (const e of [...determinative, ...apEntriesForBody, ...precedent, ...contrary]) {
     if (seen.has(e.source_row_id)) continue;
     seen.add(e.source_row_id);
     entries.push(e);
@@ -436,7 +503,9 @@ export function buildLiaPersuasiveAuthority(
     tier: sr.tier,
     cross_instrument: sr.match.cross_instrument,
   }));
-  if (entries.length === 0) return { body: "", ledger: [], entry_count: 0, aow_fired: false, ranked };
+  if (entries.length === 0) {
+    return { body: "", ledger: [], entry_count: 0, aow_fired: false, ranked, hook_flags: hookFlags };
+  }
 
   const aow = LIA_CORPUS_MAP.rows.find((r) => r.role === "AOW" && r.render_eligible && r.warning_text);
   const aowFires = balancingFails && !!aow;
@@ -451,5 +520,6 @@ export function buildLiaPersuasiveAuthority(
     entry_count: entries.length,
     aow_fired: aowFires,
     ranked,
+    hook_flags: hookFlags,
   };
 }
