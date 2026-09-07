@@ -175,18 +175,33 @@ async function setClassificationRunStatus(runId: string, status: "ready" | "paus
   if (error) throw new Error(`classification job-state write failed: ${error.message}`);
 }
 
+/**
+ * B5-1 (doc 210 ledger) — TRIAGE-STUB EXCLUSION. corpus-triage briefly inserted
+ * unratified stub profiles (pipeline_version 'corpus-triage-v1-...'): no quote,
+ * no factors, blanket 'contested' posture. The live driver picked them up and
+ * classified them at Opus 5 prices. Triage no longer creates profiles at all,
+ * and this prefix is excluded here as well so no future run can repeat it.
+ */
+export const EXCLUDED_PIPELINE_VERSION_PREFIX = "corpus-triage-";
+
 async function loadClassificationProfiles(product: string, cursor: string | null, batchSize: number,
   runId: string, onlyUnclassified: boolean): Promise<ProfileForClassification[]> {
   const db = admin();
-  const fetchLimit = onlyUnclassified ? Math.max(batchSize * 4, 40) : batchSize;
+  const fetchLimit = Math.max(batchSize * 4, 40);
   let query = db.from("authority_relevance_profiles")
-    .select("id,product,source_table,source_row_id,rule_or_pattern,curation_note")
-    .eq("product", product).order("id", { ascending: true }).limit(fetchLimit);
+    .select("id,product,source_table,source_row_id,rule_or_pattern,curation_note,pipeline_version")
+    .eq("product", product)
+    // Excluded at the query, so triage stubs never even count against the batch.
+    .not("pipeline_version", "like", `${EXCLUDED_PIPELINE_VERSION_PREFIX}%`)
+    .order("id", { ascending: true }).limit(fetchLimit);
   if (cursor) query = query.gt("id", cursor);
   const { data, error } = await query;
   if (error) throw new Error(`classification profile read failed: ${error.message}`);
   const profiles = (data ?? []) as ProfileForClassification[];
-  if (!onlyUnclassified || profiles.length === 0) return profiles.slice(0, batchSize);
+  if (profiles.length === 0) return profiles;
+  // Same-run dedupe is now unconditional: a row already carrying a result for
+  // this run_id is never re-picked, even when its updated_at moves (the
+  // ratification stamp on 164d80ea re-picked it once under the old rule).
   const ids = profiles.map((profile) => profile.id);
   const { data: existing, error: existingError } = await db.from("corpus_classification_results")
     .select("profile_id").eq("run_id", runId).in("profile_id", ids);

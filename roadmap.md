@@ -7,3 +7,4 @@
 - [x] Run corpus tests, deploy the function, and verify no pipeline run occurred.
 - [ ] Swap /research "Global Enforcement Database" image for a clean full-page /enforcement shot without the ad banner.
 - [ ] Classifier: first-text-block extraction in anthropicCall, deploy, probe2 run `lia-classify-2026-09-07-r2-probe2`, then real r2 run.
+- [ ] B5-1 corpus pipeline fix: triage no longer creates profiles; GDPR-only handoff predicate; classify driver off.

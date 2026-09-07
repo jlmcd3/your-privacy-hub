@@ -153,59 +153,34 @@ async function loadActions(ids: readonly string[]): Promise<(ActionText & { law:
 
 
 /**
- * REPAIR + HANDOFF. When triage finds a legitimate-interests matter, the record
- * is completed where it is safely derivable (a subject the sweep could not
- * parse) and an UNRATIFIED `authority_relevance_profiles` row is created so the
- * LIA classifier picks it up on its next tick. Nothing becomes customer-facing:
- * the profile carries no ratification stamp, exactly like every other dark row.
+ * REPAIR ONLY (B5-1, doc 210 ledger).
+ *
+ * Triage used to insert an UNRATIFIED `authority_relevance_profiles` stub for
+ * every LI handoff. That was wrong: the stubs carried no quote, no factors, no
+ * use-case class and a blanket 'contested' posture, and the live classifier
+ * then spent Opus 5 calls on them. Profiles are now created ONLY by the classify
+ * pipeline (generate-corpus-relevance-profiles, r2 shape) followed by
+ * verification, exactly as the curated 254 were.
+ *
+ * What survives here is the record repair: a subject the deterministic sweep
+ * could not parse, copied from text the model quoted, only when it is confident.
+ * The handoff itself is recorded on the corpus_triage_results row and nowhere
+ * else; handoff_profile_id stays null from now on.
  */
-const HANDOFF_CURATOR = "corpus-triage-handoff";
-
-async function repairAndHandOff(
+async function repairSubjectOnly(
   row: ActionText & { law: string | null },
   outcome: TriageOutcome,
-  runId: string,
 ): Promise<{ profile_id: string | null; repaired_subject: string | null }> {
   const db = admin();
   let repaired: string | null = null;
 
-  // Record repair: only a missing subject, only from text the model copied out,
-  // only when it is confident. Everything else stays untouched.
   if (!row.subject?.trim() && outcome.proposed_subject && (outcome.confidence ?? 0) >= 0.6) {
     const { error } = await db.from("enforcement_actions")
       .update({ subject: outcome.proposed_subject }).eq("id", row.id).is("subject", null);
     if (!error) repaired = outcome.proposed_subject;
   }
 
-  const { data: existing } = await db.from("authority_relevance_profiles")
-    .select("id").eq("product", "lia").eq("source_table", "enforcement_actions")
-    .eq("source_row_id", row.id).limit(1).maybeSingle();
-  if (existing?.id) return { profile_id: existing.id, repaired_subject: repaired };
-
-  const note = [
-    `Handed off by ${TRIAGE_PIPELINE_VERSION} (run ${runId}).`,
-    outcome.rationale ?? "",
-    `li_relevance=${outcome.proposed_li_relevance ?? "unknown"}`,
-    `record_class=${outcome.proposed_record_class ?? "unknown"}`,
-    row.source_url ? `source=${row.source_url}` : "",
-  ].filter(Boolean).join(" ");
-
-  const { data: inserted, error } = await db.from("authority_relevance_profiles").insert({
-    product: "lia",
-    source_table: "enforcement_actions",
-    source_row_id: row.id,
-    country: row.jurisdiction ?? "unknown",
-    instrument: row.law ?? "unknown",
-    outcome_posture: "contested",
-    rule_or_pattern: "pattern",
-    curation_note: note,
-    curated_by: HANDOFF_CURATOR,
-    pipeline_stage: "stage0_prior",
-    confidence_tier: (outcome.confidence ?? 0) >= 0.8 ? "medium" : "low",
-    pipeline_version: TRIAGE_PIPELINE_VERSION,
-  }).select("id").maybeSingle();
-  if (error) throw new Error(`handoff profile insert failed: ${error.message}`);
-  return { profile_id: inserted?.id ?? null, repaired_subject: repaired };
+  return { profile_id: null, repaired_subject: repaired };
 }
 
 /** Bounded-concurrency map that preserves input order. */
@@ -354,9 +329,12 @@ Deno.serve(async (req) => {
 
         let handoff: { profile_id: string | null; repaired_subject: string | null } =
           { profile_id: null, repaired_subject: null };
-        if (!parsed.dry_run && isLiaHandoff(outcome)) {
-          handoff = await repairAndHandOff(result.row, outcome, parsed.run_id);
-          if (handoff.profile_id) handedOffTotal += 1;
+        // B5-1: the handoff is recorded on the triage row only. No profile is
+        // created here, so handoff_profile_id stays null; the counter now
+        // measures rows MARKED for the classify pipeline, not rows inserted.
+        if (!parsed.dry_run && isLiaHandoff(outcome, result.row.law)) {
+          handoff = await repairSubjectOnly(result.row, outcome);
+          handedOffTotal += 1;
           if (handoff.repaired_subject) repairedTotal += 1;
         }
 

@@ -312,6 +312,140 @@ export type Database = {
         }
         Relationships: []
       }
+      authority_hook_runs: {
+        Row: {
+          cursor: number
+          finished_at: string | null
+          notes: Json | null
+          product: string
+          profile_ids: string[]
+          run_id: string
+          started_at: string
+          status: string
+        }
+        Insert: {
+          cursor?: number
+          finished_at?: string | null
+          notes?: Json | null
+          product: string
+          profile_ids: string[]
+          run_id: string
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          cursor?: number
+          finished_at?: string | null
+          notes?: Json | null
+          product?: string
+          profile_ids?: string[]
+          run_id?: string
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      authority_hooks: {
+        Row: {
+          created_at: string
+          critic: Json | null
+          distinguishing_atoms: string[]
+          drafter: Json
+          fact_atoms: string[]
+          fact_pattern_paraphrase: string
+          finding_paraphrase: string
+          finding_span: string
+          hook_status: string
+          hook_version: number
+          id: string
+          lawyer_edits: Json | null
+          ledger_ref: string | null
+          not_distinguishable: boolean
+          product: string
+          profile_id: string
+          ratified_at: string | null
+          ratified_by: string | null
+          rendered_samples_reviewed: string[]
+          required_atoms: string[]
+          retired_at: string | null
+          retired_reason: string | null
+          round: number
+          settledness: string
+          substring_checks_passed: boolean
+          trigger_terms: string[]
+          updated_at: string
+          vocabulary_checks_passed: boolean
+        }
+        Insert: {
+          created_at?: string
+          critic?: Json | null
+          distinguishing_atoms?: string[]
+          drafter: Json
+          fact_atoms?: string[]
+          fact_pattern_paraphrase: string
+          finding_paraphrase: string
+          finding_span: string
+          hook_status: string
+          hook_version?: number
+          id?: string
+          lawyer_edits?: Json | null
+          ledger_ref?: string | null
+          not_distinguishable?: boolean
+          product?: string
+          profile_id: string
+          ratified_at?: string | null
+          ratified_by?: string | null
+          rendered_samples_reviewed?: string[]
+          required_atoms?: string[]
+          retired_at?: string | null
+          retired_reason?: string | null
+          round?: number
+          settledness: string
+          substring_checks_passed?: boolean
+          trigger_terms?: string[]
+          updated_at?: string
+          vocabulary_checks_passed?: boolean
+        }
+        Update: {
+          created_at?: string
+          critic?: Json | null
+          distinguishing_atoms?: string[]
+          drafter?: Json
+          fact_atoms?: string[]
+          fact_pattern_paraphrase?: string
+          finding_paraphrase?: string
+          finding_span?: string
+          hook_status?: string
+          hook_version?: number
+          id?: string
+          lawyer_edits?: Json | null
+          ledger_ref?: string | null
+          not_distinguishable?: boolean
+          product?: string
+          profile_id?: string
+          ratified_at?: string | null
+          ratified_by?: string | null
+          rendered_samples_reviewed?: string[]
+          required_atoms?: string[]
+          retired_at?: string | null
+          retired_reason?: string | null
+          round?: number
+          settledness?: string
+          substring_checks_passed?: boolean
+          trigger_terms?: string[]
+          updated_at?: string
+          vocabulary_checks_passed?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "authority_hooks_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "authority_relevance_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       authority_relevance_profiles: {
         Row: {
           cam_row_id: string | null
