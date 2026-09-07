@@ -1037,6 +1037,182 @@ export type Database = {
         }
         Relationships: []
       }
+      corpus_sweep_results: {
+        Row: {
+          action_id: string
+          content_score: number
+          evidence: Json
+          has_date: boolean
+          has_fine: boolean
+          has_subject: boolean
+          id: string
+          needs_ai_review: boolean
+          record_class: string
+          sweep_version: string
+          swept_at: string
+          text_len: number
+          usable_for: string[]
+        }
+        Insert: {
+          action_id: string
+          content_score?: number
+          evidence?: Json
+          has_date?: boolean
+          has_fine?: boolean
+          has_subject?: boolean
+          id?: string
+          needs_ai_review?: boolean
+          record_class: string
+          sweep_version: string
+          swept_at?: string
+          text_len?: number
+          usable_for?: string[]
+        }
+        Update: {
+          action_id?: string
+          content_score?: number
+          evidence?: Json
+          has_date?: boolean
+          has_fine?: boolean
+          has_subject?: boolean
+          id?: string
+          needs_ai_review?: boolean
+          record_class?: string
+          sweep_version?: string
+          swept_at?: string
+          text_len?: number
+          usable_for?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "corpus_sweep_results_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: true
+            referencedRelation: "enforcement_actions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      corpus_sweep_v2: {
+        Row: {
+          action_id: string
+          authority_tier: string | null
+          citability: string | null
+          confidence: number
+          content_score: number
+          dedupe_signature: string | null
+          duplicate_of: string | null
+          evidence: Json
+          forum: string | null
+          has_date: boolean
+          has_fine: boolean
+          has_source_document: boolean
+          has_source_hash: boolean
+          has_subject: boolean
+          id: string
+          jurisdiction_code: string | null
+          language_original: string | null
+          ledger_ref: string | null
+          li_factor_tags: string[]
+          li_posture: string | null
+          li_relevance: string | null
+          needs_ai_review: boolean
+          pin_ready: boolean
+          ratified_at: string | null
+          ratified_by: string | null
+          record_class: string
+          regulator_canonical: string | null
+          review_state: string
+          settledness: string | null
+          source_type: string | null
+          sweep_version: string
+          swept_at: string
+          tagged_by: string
+          text_len: number
+          topic_tags: string[]
+          translation_state: string | null
+          usable_for: string[]
+        }
+        Insert: {
+          action_id: string
+          authority_tier?: string | null
+          citability?: string | null
+          confidence?: number
+          content_score?: number
+          dedupe_signature?: string | null
+          duplicate_of?: string | null
+          evidence?: Json
+          forum?: string | null
+          has_date?: boolean
+          has_fine?: boolean
+          has_source_document?: boolean
+          has_source_hash?: boolean
+          has_subject?: boolean
+          id?: string
+          jurisdiction_code?: string | null
+          language_original?: string | null
+          ledger_ref?: string | null
+          li_factor_tags?: string[]
+          li_posture?: string | null
+          li_relevance?: string | null
+          needs_ai_review?: boolean
+          pin_ready?: boolean
+          ratified_at?: string | null
+          ratified_by?: string | null
+          record_class: string
+          regulator_canonical?: string | null
+          review_state?: string
+          settledness?: string | null
+          source_type?: string | null
+          sweep_version?: string
+          swept_at?: string
+          tagged_by?: string
+          text_len?: number
+          topic_tags?: string[]
+          translation_state?: string | null
+          usable_for?: string[]
+        }
+        Update: {
+          action_id?: string
+          authority_tier?: string | null
+          citability?: string | null
+          confidence?: number
+          content_score?: number
+          dedupe_signature?: string | null
+          duplicate_of?: string | null
+          evidence?: Json
+          forum?: string | null
+          has_date?: boolean
+          has_fine?: boolean
+          has_source_document?: boolean
+          has_source_hash?: boolean
+          has_subject?: boolean
+          id?: string
+          jurisdiction_code?: string | null
+          language_original?: string | null
+          ledger_ref?: string | null
+          li_factor_tags?: string[]
+          li_posture?: string | null
+          li_relevance?: string | null
+          needs_ai_review?: boolean
+          pin_ready?: boolean
+          ratified_at?: string | null
+          ratified_by?: string | null
+          record_class?: string
+          regulator_canonical?: string | null
+          review_state?: string
+          settledness?: string | null
+          source_type?: string | null
+          sweep_version?: string
+          swept_at?: string
+          tagged_by?: string
+          text_len?: number
+          topic_tags?: string[]
+          translation_state?: string | null
+          usable_for?: string[]
+        }
+        Relationships: []
+      }
       corpus_versions: {
         Row: {
           memo_eligible_count: number
@@ -10052,6 +10228,7 @@ export type Database = {
         Args: { _key: string; _max: number; _window_seconds: number }
         Returns: boolean
       }
+      corpus_sweep_v2_batch: { Args: { p_limit?: number }; Returns: number }
       cppa_supersede_and_insert: {
         Args: {
           p_authority_type: string
@@ -10205,6 +10382,13 @@ export type Database = {
           id: string
           intake_data: Json
           report_data: Json
+        }[]
+      }
+      run_corpus_deterministic_sweep: {
+        Args: { p_limit?: number; p_version?: string }
+        Returns: {
+          n: number
+          record_class: string
         }[]
       }
       set_self_declared_role: {
