@@ -71,6 +71,13 @@
       "when": 1788739722694,
       "tag": "0009_activate_corpus_classify_driver",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788751207885,
+      "tag": "0010_create_authority_rules",
+      "breakpoints": true
     }
   ]
 }
