@@ -532,3 +532,27 @@ Deno.test("doc213b — a hook that ranks into the top five but fails its own req
   assertEquals(result.entry_count, 0);
   assert(!result.body.includes(hook.authority_label));
 });
+
+// ── Orchestrator review (2026-09-07) — the production call site ──────────
+//
+// H2 wired the hook join INSIDE buildLiaPersuasiveAuthority but the one
+// production caller (lia-skeleton-assemble.ts) kept passing `{ intake }`
+// alone, so with the flag on and hooks ratified no hook could ever have
+// fired in a real report. The wiring now passes `states` and `verdicts`.
+// This test reads the assembler's source and pins two things: the call
+// supplies both, and it never supplies `hooks` — that field is the test
+// seam that opens the gate regardless of LIA_HOOKS_ENABLED (Deviation 1 in
+// 213C), and production must reach hooks only through the flag.
+
+Deno.test("doc213b — production call site passes states + verdicts to buildLiaPersuasiveAuthority and never the `hooks` seam", async () => {
+  const src = await Deno.readTextFile(
+    new URL("../../../supabase/functions/run-li-assessment/_local/ltp/lia-skeleton-assemble.ts", import.meta.url),
+  );
+  const callStart = src.indexOf("buildLiaPersuasiveAuthority(report");
+  assert(callStart >= 0, "the assembler must call buildLiaPersuasiveAuthority");
+  const call = src.slice(callStart, src.indexOf("})", callStart) + 2);
+  assert(/\bstates:\s*hookStates\b/.test(call), `states not passed: ${call}`);
+  assert(/\bverdicts:\s*hookStates\?\.verdicts\b/.test(call), `verdicts not passed: ${call}`);
+  assert(!/\bhooks\s*:/.test(call), `production must never pass the hooks seam: ${call}`);
+  assert(src.includes('from "./lia-deliverables/rule-states.ts"'), "the assembler must build states through rule-states.ts");
+});

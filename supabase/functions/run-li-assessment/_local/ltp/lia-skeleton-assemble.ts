@@ -77,6 +77,13 @@ import { naturalCitationCompare } from "../../../_shared/ltp/citation-order.ts";
 // LIA_PRECEDENT_CLASS_RATIFIED gates whether it reaches the document at
 // all; see precedent-classes.ts's own header for the ratification law.
 import { LIA_PRECEDENT_CLASS_RATIFIED } from "./lia-deliverables/precedent-classes.ts";
+// DOC 213/213B wiring (2026-09-07): the hook join inside
+// buildLiaPersuasiveAuthority needs the record's typed state bag and the
+// post-rule verdicts by element; H2 wired the builder but not this call
+// site, so a ratified hook could never have fired in a real report. Pure,
+// reads report + record only; nothing changes while LIA_HOOKS ships [].
+import { buildLiaRuleStates } from "./lia-deliverables/rule-states.ts";
+import type { LiaTypedStage2Result } from "./lia-deliverables/three-part-test-typed.ts";
 
 export const LIA_SKELETON_ASSEMBLER_STAMP =
   "lia-skeleton-assembler@so11-wire-in-2026-08-10";
@@ -1420,8 +1427,24 @@ export function assembleLiaSkeletonDocument(
   // now code-computed (the render-readiness law's condition).
   // DOC 189 (2026-09-05): the record travels too — the relevance ranking
   // reads its closed-list facts (jurisdictions, data categories, relationship).
+  // DOC 213/213B (2026-09-07): the typed state bag and the post-rule-pass
+  // verdicts travel too, so the hook join (dark behind LIA_HOOKS_ENABLED)
+  // has something to nominate against — `report.three_part_test` here is
+  // the post-rule-pass object index.ts wrote, so the verdicts a hook's
+  // direction is checked against are the ones the report states. Never
+  // pass `hooks` from here: that field is the test seam that opens the
+  // gate regardless of the flag (doc213b test "production call site").
+  const hookStates = deterministic
+    ? buildLiaRuleStates(report, record, {
+      three_part_test: report.three_part_test as LiaTypedStage2Result["three_part_test"],
+    })
+    : undefined;
   const persuasive = deterministic
-    ? buildLiaPersuasiveAuthority(report, v.balancing === "likely_fails", { intake: record })
+    ? buildLiaPersuasiveAuthority(report, v.balancing === "likely_fails", {
+      intake: record,
+      states: hookStates,
+      verdicts: hookStates?.verdicts,
+    })
     : { body: "", ledger: [] as readonly string[], entry_count: 0, aow_fired: false };
   if (deterministic && persuasive.body) {
     composed["persuasive_authority:0"] = persuasive.body;

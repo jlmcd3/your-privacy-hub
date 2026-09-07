@@ -153,7 +153,15 @@ function applyMultiSelectSlugs(
   states[`${statePrefix}.recorded`] = arr.length > 0;
 }
 
-export function buildLiaRuleStates(report: Bag, intake: Bag, typed: LiaTypedStage2Result): TypedStateBag {
+// DOC 213B wiring (2026-09-07): only `typed.three_part_test` is read here, so
+// the parameter is typed to exactly that — the skeleton assembler, which
+// holds the post-rule-pass `report.three_part_test` but not the stage-2
+// result object, can supply it without a cast (lia-skeleton-assemble.ts).
+export function buildLiaRuleStates(
+  report: Bag,
+  intake: Bag,
+  typed: Pick<LiaTypedStage2Result, "three_part_test">,
+): TypedStateBag {
   const query = buildLiaRelevanceQuery(report, intake);
 
   const tpt = bag(typed.three_part_test);
