@@ -329,9 +329,12 @@ Deno.serve(async (req) => {
 
         let handoff: { profile_id: string | null; repaired_subject: string | null } =
           { profile_id: null, repaired_subject: null };
-        if (!parsed.dry_run && isLiaHandoff(outcome)) {
-          handoff = await repairAndHandOff(result.row, outcome, parsed.run_id);
-          if (handoff.profile_id) handedOffTotal += 1;
+        // B5-1: the handoff is recorded on the triage row only. No profile is
+        // created here, so handoff_profile_id stays null; the counter now
+        // measures rows MARKED for the classify pipeline, not rows inserted.
+        if (!parsed.dry_run && isLiaHandoff(outcome, result.row.law)) {
+          handoff = await repairSubjectOnly(result.row, outcome);
+          handedOffTotal += 1;
           if (handoff.repaired_subject) repairedTotal += 1;
         }
 
