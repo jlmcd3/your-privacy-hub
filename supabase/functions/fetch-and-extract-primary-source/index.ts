@@ -32,6 +32,10 @@ import {
   extractKeyComplianceFailure,
 } from "../_shared/llm-extraction.ts";
 import { constrainedExtract } from "../_shared/constrained-extraction.ts";
+import {
+  evaluateSourceTextReplacement,
+  isBotGatedSourceHost,
+} from "./_local/text-guard.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
