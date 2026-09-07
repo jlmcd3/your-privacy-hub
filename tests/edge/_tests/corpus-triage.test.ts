@@ -1,6 +1,7 @@
 // Unit tests for the corpus triage pass (dark, additive).
 import { assertEquals, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
+  isGdprFamilyInstrument,
   isLiaHandoff,
   MAX_BATCH_SIZE,
   parseTriageOutcome,
