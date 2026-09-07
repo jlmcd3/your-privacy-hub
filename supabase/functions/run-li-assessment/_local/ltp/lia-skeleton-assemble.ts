@@ -381,6 +381,74 @@ function composeTestLead(verdict: string, subject: string, positive: string, neg
   return `${subject} cannot be resolved on the facts recorded.`;
 }
 
+// DOC 207 TRACK 3b — the rule pass's customer-visible clause. `report.
+// rule_applications` is untyped `Bag[]` here by design: this file is not
+// one of the doors the doc 206/207 import boundary allows onto
+// rule-types.ts (rule-pass.ts, a product's rule-states builder, its
+// generated rules map, gate files, and tests — a renderer is none of
+// those), so the shape is read structurally, the same way every other
+// report field in this module already is. Empty until LIA_RULES ships a
+// ratified row (rule-pass.ts).
+
+/** For every application targeting `element` that landed this pass
+ *  (changed or concurred, never suppressed), appends
+ *  " <reason_sentence> (<authority_citation>.)" to the test's lead — the
+ *  same inline citation form the Persuasive Authority section uses
+ *  (206B0 §6). "" when nothing landed for this element. */
+function renderRuleClause(applications: readonly Bag[], element: string): string {
+  const parts: string[] = [];
+  for (const raw of applications) {
+    const app = bag(raw);
+    const eff = bag(app.effect);
+    if (s(eff.element) !== element) continue;
+    if (app.suppressed_by) continue;
+    if (!(app.changed === true || app.concurred === true)) continue;
+    const reason = stop(s(app.reason_sentence));
+    if (!reason) continue;
+    const citation = s(app.authority_citation);
+    parts.push(citation ? `${reason} (${citation}.)` : reason);
+  }
+  return parts.length ? ` ${parts.join(" ")}` : "";
+}
+
+/** The first landed `override_outcome` application's citation, for
+ *  appending onto `lia_determination.why` (which rule-pass.ts already
+ *  composed with the reason sentence) — "" when none landed. */
+function ruleOverrideCitation(applications: readonly Bag[]): string {
+  for (const raw of applications) {
+    const app = bag(raw);
+    if (s(bag(app.effect).kind) !== "override_outcome") continue;
+    if (app.suppressed_by) continue;
+    if (!(app.changed === true || app.concurred === true)) continue;
+    return s(app.authority_citation);
+  }
+  return "";
+}
+
+/** `flag_risk` is the one effect kind `renderRuleClause` puts into a test
+ *  lead that carries NO ledger entry of its own from
+ *  `buildLiaPersuasiveAuthority` (override_outcome/cap_verdict/
+ *  route_to_basis/recognise_interest/precedent_verdict all produce a
+ *  determinative entry there, whose label already carries the citation —
+ *  adding the bare citation again here would double-list it in the ToA).
+ *  Fed into the Table of Authorities ledger so a flag_risk citation is
+ *  still iff-cited, the same pin law every other authority answers to. */
+function allRuleCitations(applications: readonly Bag[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of applications) {
+    const app = bag(raw);
+    if (s(bag(app.effect).kind) !== "flag_risk") continue;
+    if (app.suppressed_by) continue;
+    if (!(app.changed === true || app.concurred === true)) continue;
+    const citation = s(app.authority_citation);
+    if (!citation || seen.has(citation)) continue;
+    seen.add(citation);
+    out.push(citation);
+  }
+  return out;
+}
+
 // ── Generated blocks, composed from the typed surfaces ──────────────────────
 
 /**
@@ -1082,25 +1150,31 @@ export function assembleLiaSkeletonDocument(
   const attestation = bag(record.attestation);
   const tpt = bag(report.three_part_test);
 
+  // DOC 207 TRACK 3b — rule_applications only exists (and is only trusted)
+  // on the deterministic path; the legacy model path never sees it.
+  const ruleApplications: Bag[] = deterministic && Array.isArray(report.rule_applications)
+    ? report.rule_applications as Bag[]
+    : [];
+
   const execLead = composeExecLead(v, org);
   const purposeLead = composeTestLead(
     v.purpose,
     "Whether the identified interest qualifies as legitimate",
     "The interest the company has identified qualifies as a legitimate interest.",
     "The interest the company has identified does not qualify as a legitimate interest for the purposes of Article 6(1)(f).",
-  );
+  ) + renderRuleClause(ruleApplications, "purpose");
   const necessityLead = composeTestLead(
     v.necessity,
     "Whether the processing is necessary",
     "The processing is necessary to the identified interest, and not merely useful to it.",
     "The processing is not necessary to the identified interest: the record discloses a less intrusive means of achieving it.",
-  );
+  ) + renderRuleClause(ruleApplications, "necessity");
   const balancingLead = composeTestLead(
     v.balancing,
     "Where the balance falls",
     "The balance favours the interest pursued: the interests, rights and freedoms of the people affected do not override it on the facts recorded.",
     "The balance favours the people affected: their interests, rights and freedoms override the interest pursued on the facts recorded.",
-  );
+  ) + renderRuleClause(ruleApplications, "balancing");
   const findingsLead = composeExecLead(v, org);
 
   // Conditionals. Each fires only from its own live trigger; a trigger that
@@ -1251,8 +1325,16 @@ export function assembleLiaSkeletonDocument(
     // unresolved (see the function's header). No-op (empty string, filtered
     // by fromTyped) in every other outcome, including the general
     // multi-factor "open" case and the resolved-either-way cases.
+    // DOC 207 TRACK 3b — an override_outcome rule's `why` composition
+    // already happened in rule-pass.ts (the reason sentence is prepended);
+    // the citation is appended here at render time, the same inline form
+    // every other rule clause uses.
     "findings:1": fromTyped(
-      s(bag(report.lia_determination).why),
+      (() => {
+        const why = s(bag(report.lia_determination).why);
+        const citation = ruleOverrideCitation(ruleApplications);
+        return citation ? `${stop(why)} (${citation}.)` : why;
+      })(),
       publicAuthorityInformationNeededSentence(report),
       ...strList(report.documentation_recommendations).slice(0, 4),
     ),
@@ -1389,6 +1471,10 @@ export function assembleLiaSkeletonDocument(
       // ukgdpr-art-6-1-f, verified at encode time (see 3E9AD759-L1).
       ...(mixedEuUk ? ["Article 6(1)(f) UK GDPR"] : []),
       ...persuasive.ledger,
+      // DOC 207 TRACK 3b — a rule clause rendered into a test lead
+      // (renderRuleClause) cites the SAME way; its citation must be
+      // iff-cited into the ToA too, not just the persuasive-section ones.
+      ...allRuleCitations(ruleApplications),
     ],
     skeletonDocumentToText(draft),
   );

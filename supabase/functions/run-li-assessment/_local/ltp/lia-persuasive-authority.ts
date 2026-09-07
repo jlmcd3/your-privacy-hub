@@ -49,18 +49,30 @@ type Bag = Record<string, unknown>;
 const s = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
 const bag = (v: unknown): Bag => (v && typeof v === "object" && !Array.isArray(v) ? v as Bag : {});
 const strs = (v: unknown): string[] => (Array.isArray(v) ? v.map(s).filter(Boolean) : []);
+const stop = (t: string): string => (t ? (/[.!?]$/.test(t) ? t : `${t}.`) : "");
 
 export const LIA_PERSUASIVE_AUTHORITY_STAMP = "lia-persuasive-authority@doc189-relevance-2026-09-05";
 
 /** The section renders at most this many ranked enforcement authorities. */
 export const LIA_PERSUASIVE_AUTHORITY_LIMIT = 5;
 
-/** The section lead — ratified bytes (CEO-delegated, 2026-08-26 ledger). */
+/** The section lead — ratified bytes (CEO-delegated, 2026-08-26 ledger).
+ *  Byte-frozen: DOC 207 §3 never edits this constant. */
 export const LIA_PERSUASIVE_AUTHORITY_LEAD =
   "This section collects enforcement decisions issued under the GDPR or UK GDPR that bear on factors assessed in this report. Each entry names the factor it bears on. They are enforcement context, persuasive rather than binding as to this processing, and none decides the outcome recorded above, which turns on the facts the company has provided.";
 // DOC 161 (2026-09-03) — "this record's own facts" reached the page as "the
 // information provided's own facts": the shared renderer's register repair
 // rewrites "on this record"; the bytes now say what they mean directly.
+
+// DOC 207 §3 — once a ratified rule fires, this section also carries
+// determinative authorities ahead of the ranked persuasive candidates
+// (below). `LIA_RULES_LEAD_RATIFIED` gates whether the amended lead below
+// replaces the byte-frozen one; false today (LIA_RULES ships empty), so
+// `LIA_PERSUASIVE_AUTHORITY_LEAD` above is what every live report renders.
+// [RATIFY] when the CEO ratifies the first rule — see 207A-WIRING-LOG.
+export const LIA_RULES_LEAD_RATIFIED = false;
+export const LIA_PERSUASIVE_AUTHORITY_LEAD_WITH_RULES =
+  "This section collects the authorities that bear on factors assessed in this report. Determinative authorities are named first; each names the finding it determines. Every other entry is enforcement context, persuasive rather than binding as to this processing, and none of those persuasive entries decides the outcome recorded above, which turns on the facts the company has provided.";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -233,8 +245,18 @@ export function relevanceSentence(scored: ScoredRow, query: RelevanceQuery): str
 
 // ── Entries ──────────────────────────────────────────────────────────────────
 
-function apEntries(query: RelevanceQuery): { entries: PersuasiveEntry[]; ranked: ScoredRow[] } {
-  const ranked = rankByRelevance(LIA_CORPUS_MAP.rows, query, {
+function apEntries(
+  query: RelevanceQuery,
+  // DOC 207 §3 — a source row already carrying a determinative rule
+  // citation is removed from the ranked persuasive candidates before
+  // ranking runs, so it can never also occupy one of the top-5 relevance
+  // slots as merely persuasive (the same authority never appears twice).
+  excludeSourceIds: ReadonlySet<string> = new Set(),
+): { entries: PersuasiveEntry[]; ranked: ScoredRow[] } {
+  const candidateRows = excludeSourceIds.size
+    ? LIA_CORPUS_MAP.rows.filter((r) => !excludeSourceIds.has(r.source_row_id))
+    : LIA_CORPUS_MAP.rows;
+  const ranked = rankByRelevance(candidateRows, query, {
     profileOf: liaProfileOf,
     elementOf: liaElementOf,
     limit: LIA_PERSUASIVE_AUTHORITY_LIMIT,
@@ -276,6 +298,72 @@ function precedentEntries(report: Bag): PersuasiveEntry[] {
   });
 }
 
+// ── DOC 207 §3 — determinative / contrary-authority entries ──────────────
+//
+// Sourced from `report.rule_applications` (rule-pass.ts's application
+// trail — empty until LIA_RULES ships a ratified row). Untyped `Bag`
+// reads throughout: this file is not one of the doors the doc 206/207
+// import boundary allows onto `rule-types.ts` (that is rule-pass.ts, a
+// product's rule-states builder, its generated rules map, gate files, and
+// tests — a renderer is none of those), so `RuleApplication`'s shape is
+// read structurally, the same way every other report field in this module
+// already is.
+
+/** The effect kinds whose LANDED application is "determinative" — it
+ *  actually set or capped a verdict or the outcome. `require_condition`
+ *  and `flag_risk` are additive asks/notes, not determinations, and
+ *  surface instead through `renderRuleClause` (lia-skeleton-assemble.ts)
+ *  and `information_needed` — never here. */
+const DETERMINATIVE_KINDS = new Set(["override_outcome", "cap_verdict", "route_to_basis", "recognise_interest", "precedent_verdict"]);
+
+function firstSourceRowId(app: Bag): string {
+  const sources = Array.isArray(app.sources) ? app.sources as Bag[] : [];
+  return sources.length ? s(sources[0].row_id) : "";
+}
+
+/** One entry per fired rule's primary source, in application order (the
+ *  order rule-pass.ts's applications trail already carries — fixed
+ *  kind-then-rule_id order, per rule-interpreter.ts). */
+function determinativeEntries(applications: readonly Bag[]): PersuasiveEntry[] {
+  const out: PersuasiveEntry[] = [];
+  for (const raw of applications) {
+    const app = bag(raw);
+    const eff = bag(app.effect);
+    if (!DETERMINATIVE_KINDS.has(s(eff.kind))) continue;
+    if (app.suppressed_by) continue;
+    if (!(app.changed === true || app.concurred === true)) continue;
+    const element = s(eff.element) || "outcome";
+    const citation = s(app.authority_citation);
+    const label = `${citation} — determinative: see ${element} finding.`;
+    out.push({
+      source_row_id: firstSourceRowId(app),
+      label,
+      text: `${stop(s(app.reason_sentence))} (${label})`,
+    });
+  }
+  return out;
+}
+
+/** A favorable rule a same-element adverse rule suppressed this pass
+ *  (`contrary_authority`, set only by rule-interpreter.ts's cap_verdict
+ *  suppression path) — included in the persuasive list, never the
+ *  determinative one, since its own effect never actually applied. */
+function contraryAuthorityEntries(applications: readonly Bag[]): PersuasiveEntry[] {
+  const out: PersuasiveEntry[] = [];
+  for (const raw of applications) {
+    const app = bag(raw);
+    if (app.contrary_authority !== true) continue;
+    const citation = s(app.authority_citation);
+    const label = `${citation} — contrary authority (persuasive)`;
+    out.push({
+      source_row_id: firstSourceRowId(app),
+      label,
+      text: `${stop(s(app.reason_sentence))} (${label})`,
+    });
+  }
+  return out;
+}
+
 export interface LiaRankedAuthority {
   readonly row_id: string;
   readonly source_row_id: string;
@@ -313,10 +401,23 @@ export function buildLiaPersuasiveAuthority(
   ctx: LiaPersuasiveContext = {},
 ): LiaPersuasiveAuthorityResult {
   const query = buildLiaRelevanceQuery(report, bag(ctx.intake));
-  const ap = apEntries(query);
+
+  // DOC 207 §3 — rule_applications is empty until LIA_RULES ships a
+  // ratified row (rule-pass.ts), so `determinative`/`contrary` are always
+  // [] today and every branch below degrades to the doc 189 behavior.
+  const applications = Array.isArray(report.rule_applications) ? report.rule_applications as Bag[] : [];
+  const determinative = determinativeEntries(applications);
+  const contrary = contraryAuthorityEntries(applications);
+  const determinativeSourceIds = new Set(determinative.map((e) => e.source_row_id).filter(Boolean));
+
+  const ap = apEntries(query, determinativeSourceIds);
+  const precedent = precedentEntries(report).filter((e) => !determinativeSourceIds.has(e.source_row_id));
+
   const seen = new Set<string>();
   const entries: PersuasiveEntry[] = [];
-  for (const e of [...ap.entries, ...precedentEntries(report)]) {
+  // Determinative authorities list FIRST, ahead of the ranked persuasive
+  // candidates; contrary-authority entries join the persuasive tail.
+  for (const e of [...determinative, ...ap.entries, ...precedent, ...contrary]) {
     if (seen.has(e.source_row_id)) continue;
     seen.add(e.source_row_id);
     entries.push(e);
@@ -333,7 +434,8 @@ export function buildLiaPersuasiveAuthority(
   const aow = LIA_CORPUS_MAP.rows.find((r) => r.role === "AOW" && r.render_eligible && r.warning_text);
   const aowFires = balancingFails && !!aow;
 
-  const parts: string[] = [LIA_PERSUASIVE_AUTHORITY_LEAD, ...entries.map((e) => e.text)];
+  const lead = LIA_RULES_LEAD_RATIFIED ? LIA_PERSUASIVE_AUTHORITY_LEAD_WITH_RULES : LIA_PERSUASIVE_AUTHORITY_LEAD;
+  const parts: string[] = [lead, ...entries.map((e) => e.text)];
   if (aowFires && aow?.warning_text) parts.push(aow.warning_text);
 
   return {
