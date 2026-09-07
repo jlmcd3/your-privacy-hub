@@ -16,7 +16,7 @@
 import { assert, assertEquals, assertStrictEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { applyLiaRules } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/rule-pass.ts";
 import { buildLiaRuleStates } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/rule-states.ts";
-import { LIA_RULES } from "../../../supabase/functions/run-li-assessment/_local/corpus/maps/lia-rules.ts";
+import { LIA_RULES, LIA_RULES_VERSION } from "../../../supabase/functions/run-li-assessment/_local/corpus/maps/lia-rules.ts";
 import { guardInformationNeeded } from "../../../supabase/functions/_shared/insufficient-info-guard.ts";
 import type { AuthorityRule, RuleEffect } from "../../../supabase/functions/_shared/corpus/rule-types.ts";
 import type { LiaTypedStage2Result } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/three-part-test-typed.ts";
@@ -122,8 +122,9 @@ function makeRule(overrides: Partial<AuthorityRule> & { rule_id: string; effect:
 
 // ── LIA_RULES stays empty in production ─────────────────────────────────
 
-Deno.test("doc207 — LIA_RULES ships empty; the generator has not run yet", () => {
-  assertEquals(LIA_RULES.length, 0);
+Deno.test("doc207 — LIA_RULES pins the generated, ratified rule set", () => {
+  assertEquals(LIA_RULES_VERSION, "lia-rules-v1-2026-09-07-0");
+  assertEquals(LIA_RULES.length, 9);
 });
 
 // ── buildLiaRuleStates — the 206B0 vocabulary from a fixture record ─────
