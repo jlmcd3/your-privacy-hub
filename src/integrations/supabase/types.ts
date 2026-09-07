@@ -1245,6 +1245,7 @@ export type Database = {
           action_id: string
           confidence: number | null
           created_at: string
+          handoff_profile_id: string | null
           id: string
           model: string
           promoted: boolean
@@ -1255,6 +1256,7 @@ export type Database = {
           proposed_usable_for: string[]
           rationale: string | null
           raw_head: string | null
+          repaired_subject: string | null
           run_id: string
           status: string
         }
@@ -1262,6 +1264,7 @@ export type Database = {
           action_id: string
           confidence?: number | null
           created_at?: string
+          handoff_profile_id?: string | null
           id?: string
           model: string
           promoted?: boolean
@@ -1272,6 +1275,7 @@ export type Database = {
           proposed_usable_for?: string[]
           rationale?: string | null
           raw_head?: string | null
+          repaired_subject?: string | null
           run_id: string
           status?: string
         }
@@ -1279,6 +1283,7 @@ export type Database = {
           action_id?: string
           confidence?: number | null
           created_at?: string
+          handoff_profile_id?: string | null
           id?: string
           model?: string
           promoted?: boolean
@@ -1289,6 +1294,7 @@ export type Database = {
           proposed_usable_for?: string[]
           rationale?: string | null
           raw_head?: string | null
+          repaired_subject?: string | null
           run_id?: string
           status?: string
         }
