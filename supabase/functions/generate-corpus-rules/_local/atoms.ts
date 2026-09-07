@@ -6,7 +6,7 @@
 // trigger-flattening used for atom validation — lives here instead, so the
 // canonical file never grows an export for our benefit.
 
-import { ADVERSE_KINDS, FAVORABLE_KINDS, type RuleEffect } from "../../_shared/corpus/rule-types.ts";
+import { ADVERSE_KINDS, FAVORABLE_KINDS, type RuleEffect } from "./rules-gate.ts";
 
 export const ADVERSE_EFFECT_KINDS: readonly string[] = [...ADVERSE_KINDS];
 export const FAVORABLE_EFFECT_KINDS: readonly string[] = [...FAVORABLE_KINDS];
