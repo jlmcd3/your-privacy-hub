@@ -1887,12 +1887,43 @@ Return JSON:
           reportData as Record<string, unknown>,
           assessment as unknown as Record<string, unknown>,
         );
-        (reportData as any).three_part_test = typed.three_part_test;
-        if (typed.determination_override) {
-          (reportData as any).lia_determination = typed.determination_override;
+
+        // ── DOC 207 TRACK 3a — THE RULE PASS (2026-09-07) ────────────────
+        // Runs LIA_RULES (empty until the CEO stamps a rule and the doc 206
+        // §6.2 generator re-runs) through the generic interpreter against
+        // this record's typed states. Fail-open into the un-ruled `typed`
+        // on any invariant violation — see rule-interpreter.ts's own
+        // monotonicity note for what that guards against. `guardInformationNeeded`
+        // (below) validates `information_needed.field` against the intake
+        // roster; a `require_condition` rule's default field
+        // (balancing_details.additional_mitigations) needs that root
+        // present on the roster to survive the guard's nested-path walk —
+        // the trimmed `liaIntakeObject` otherwise omits every *_details
+        // bag (see the comment where liaIntakeObject is built). Added only
+        // on the deterministic path, so the legacy model path's shared
+        // helpers (guardInformationNeeded, stripUnsupportedHarmClaims,
+        // verifyLiaIntakeEvidence, enforceStorageLimitationCrossRead — all
+        // of which read liaIntakeObject unconditionally) are byte-untouched.
+        (liaIntakeObject as any).balancing_details = (assessment as any).balancing_details ?? null;
+        const { applyLiaRules, LIA_RULES_VERSION } = await import("./_local/ltp/lia-deliverables/rule-pass.ts");
+        const ruled = applyLiaRules(
+          typed,
+          reportData as Record<string, unknown>,
+          assessment as unknown as Record<string, unknown>,
+        );
+        if (ruled.invariant_violations.length) {
+          console.error(JSON.stringify({ evt: "lia_rule_invariant_violation", violations: ruled.invariant_violations }));
         }
-        (reportData as any).information_needed = typed.information_needed;
+        // Fall back to the un-ruled `typed` on an invariant violation.
+        const effective = ruled.invariant_violations.length ? typed : ruled.typed;
+
+        (reportData as any).three_part_test = effective.three_part_test;
+        if (effective.determination_override) {
+          (reportData as any).lia_determination = effective.determination_override;
+        }
+        (reportData as any).information_needed = effective.information_needed;
         (reportData as any).annotations = [];
+        (reportData as any).rule_applications = ruled.invariant_violations.length ? [] : ruled.applications;
         (reportData as any).documentation_recommendations = buildDocumentationTyped(
           reportData as Record<string, unknown>,
           REPORT_DISCLAIMER,
@@ -1900,14 +1931,24 @@ Return JSON:
         const _m = ((reportData as any)._meta ??= {});
         (_m.internal ??= {}).lia_typed_test = {
           stamp: LIA_TYPED_TEST_STAMP,
-          purpose: (typed.three_part_test as any)?.purpose_test?.verdict,
-          necessity: (typed.three_part_test as any)?.necessity_test?.verdict,
-          balancing: (typed.three_part_test as any)?.balancing_test?.verdict,
-          eprivacy_foreclosed: typed.eprivacy_foreclosed,
+          purpose: (effective.three_part_test as any)?.purpose_test?.verdict,
+          necessity: (effective.three_part_test as any)?.necessity_test?.verdict,
+          balancing: (effective.three_part_test as any)?.balancing_test?.verdict,
+          eprivacy_foreclosed: effective.eprivacy_foreclosed,
+        };
+        (_m.internal as any).lia_rules = {
+          version: LIA_RULES_VERSION,
+          fired: (reportData as any).rule_applications.map((a: any) => a.rule_id),
+          applications: (reportData as any).rule_applications.length,
+          invariant_violations: ruled.invariant_violations.length,
         };
         console.log(JSON.stringify({
           evt: "lia_typed_three_part_test", fn: "run-li-assessment",
           build_stamp: BUILD_STAMP, ...(_m.internal as any).lia_typed_test,
+        }));
+        console.log(JSON.stringify({
+          evt: "lia_rules_applied", fn: "run-li-assessment",
+          build_stamp: BUILD_STAMP, ...(_m.internal as any).lia_rules,
         }));
       } catch (e) {
         console.warn("[run-li-assessment] typed three-part test failed (non-fatal):", (e as Error)?.message);

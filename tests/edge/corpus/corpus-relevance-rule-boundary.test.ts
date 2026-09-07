@@ -197,9 +197,20 @@ Deno.test("doc191 §5 — every generated relevance-profiles module exports BOTH
 /** The barred modules: doc206/207's generic interpreter and its types. */
 const RULE_INTERPRETER_MODULE = /(^|\/)rule-(interpreter|types)\.ts$/;
 
-/** The only path shapes allowed to import them. */
+/** The only path shapes allowed to import them. DOC 207 adds two companion
+ *  shapes alongside `rule-pass.ts` itself: a product's own rule-states
+ *  builder (`rule-states.ts`, needs the `TypedStateBag` type) and a
+ *  product's generated rules map (`corpus/maps/<product>-rules.ts`, needs
+ *  `AuthorityRule`/`RuleContext` to type its own exports — including once
+ *  the doc 206 §6.2 generator fills it with real rows). Neither imports
+ *  `rule-interpreter.ts`'s executable `applyRules`; both are data/typing
+ *  companions to the one sanctioned door, not new doors of their own — the
+ *  companion boundary test below (lia-rules.ts boundary) still restricts
+ *  who may import THOSE files to that product's own rule-pass.ts. */
 const RULE_INTERPRETER_ALLOWED_IMPORTERS: readonly RegExp[] = [
   /(^|\/)rule-pass\.ts$/,
+  /(^|\/)rule-states\.ts$/,
+  /(^|\/)corpus\/maps\/[a-z0-9-]+-rules\.ts$/,
   /-gate\.ts$/,
   /-gates\.ts$/,
   /(^|\/)tests\//,
@@ -282,6 +293,87 @@ import type { AuthorityRule } from "../_shared/corpus/rule-types.ts";`;
   // the fixed suffixes are, same discipline as the PATTERN_PROFILES sweep.
   const v2 = ruleInterpreterViolationsFor("supabase/functions/some-product/delegate-helper.ts", src);
   assertEquals(v2.length, 2);
+});
+
+// --- lia-rules.ts import boundary (doc 207) ---
+//
+// Same "one sanctioned door" shape as the rule-interpreter boundary above,
+// one level closer to the product: `LIA_RULES`/`LIA_RULE_CONTEXT`/
+// `LIA_RULES_VERSION` (the generated-target file the doc 206 §6.2 generator
+// will overwrite) may only be imported by LIA's own `rule-pass.ts` — never
+// by index.ts, a prose assembler, or any other module. `rule-pass.ts`
+// itself re-exports `LIA_RULES_VERSION` for index.ts's telemetry, so that
+// one binding legitimately crosses the door once, at its one sanctioned
+// point of re-export.
+
+/** The barred module: LIA's generated rules map. */
+const LIA_RULES_MODULE = /(^|\/)lia-rules\.ts$/;
+
+/** The only path shape allowed to import it directly. */
+const LIA_RULES_ALLOWED_IMPORTERS: readonly RegExp[] = [
+  /(^|\/)rule-pass\.ts$/,
+  /(^|\/)tests\//,
+];
+
+export function liaRulesViolationsFor(path: string, src: string): string[] {
+  const normalizedPath = path.replace(/\\/g, "/");
+  if (LIA_RULES_MODULE.test(normalizedPath)) return []; // lia-rules.ts importing its own types is not a consumer
+  if (LIA_RULES_ALLOWED_IMPORTERS.some((re) => re.test(normalizedPath))) return [];
+  const violations: string[] = [];
+  for (const imp of parseImports(src)) {
+    if (LIA_RULES_MODULE.test(imp.from)) {
+      violations.push(
+        `${path}: imports "${imp.from}" but this file's path matches neither rule-pass.ts nor tests/ — lia-rules.ts may only be imported by LIA's rule-pass.ts (doc 207).`,
+      );
+    }
+  }
+  return violations;
+}
+
+async function collectLiaRulesImporters(): Promise<{ path: string; src: string }[]> {
+  const results: { path: string; src: string }[] = [];
+  for (const root of RULE_INTERPRETER_SWEEP_ROOTS) {
+    for await (
+      const entry of walk(root, {
+        exts: [".ts"],
+        includeDirs: false,
+        skip: [...SKIP_DIRS].map((d) => new RegExp(`[\\\\/]${d}[\\\\/]`)),
+      })
+    ) {
+      const p = entry.path.replace(/\\/g, "/");
+      const src = await Deno.readTextFile(entry.path);
+      if (parseImports(src).some((imp) => LIA_RULES_MODULE.test(imp.from))) {
+        results.push({ path: p, src });
+      }
+    }
+  }
+  return results;
+}
+
+Deno.test("lia-rules.ts boundary — every real importer is rule-pass.ts or a test", async () => {
+  const importers = await collectLiaRulesImporters();
+  const violations: string[] = [];
+  for (const { path, src } of importers) {
+    violations.push(...liaRulesViolationsFor(path, src));
+  }
+  assertEquals(violations, [], violations.join("\n"));
+  // The sweep must actually find rule-pass.ts as an importer, or the
+  // pattern drifted and this test would pass vacuously.
+  assert(
+    importers.some((i) => i.path.endsWith("lia-deliverables/rule-pass.ts")),
+    "rule-pass.ts must be found importing lia-rules.ts",
+  );
+});
+
+Deno.test("lia-rules.ts boundary — REJECTS an importer outside rule-pass.ts/tests", () => {
+  const src = `import { LIA_RULES, LIA_RULE_CONTEXT } from "../../corpus/maps/lia-rules.ts";`;
+  const v = liaRulesViolationsFor("supabase/functions/run-li-assessment/index.ts", src);
+  assertEquals(v.length, 1, JSON.stringify(v));
+  assertEquals(
+    liaRulesViolationsFor("supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/rule-pass.ts", src),
+    [],
+  );
+  assertEquals(liaRulesViolationsFor("tests/edge/run-li-assessment/doc207-rule-pass.test.ts", src), []);
 });
 
 Deno.test("doc191 §5 — the parser catches every import shape the barred names could arrive in", () => {

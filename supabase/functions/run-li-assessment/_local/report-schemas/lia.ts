@@ -213,6 +213,9 @@ export const LIA_REPORT_SCHEMA: ReportSchema = {
     "lint_warnings",
     "deterministic_checks",
     "citation_ledger",
+    // DOC 207 §2.5 — the rule pass's application trail (empty until
+    // LIA_RULES ships a ratified row; see rule-pass.ts).
+    "rule_applications",
     // Engagement Map v1 (C1-d)
     "engagement_map",
     // Build-stamp echo (STAMP-ECHO WHITELIST KEY — dispatch §3)

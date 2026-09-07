@@ -157,8 +157,18 @@ export function buildLiaRelevanceQuery(report: Bag, intake: Bag): RelevanceQuery
   }
   if (useCase === "direct_marketing") flags.add("electronic_marketing");
   const pa = bag(report.public_authority_exclusion);
-  if (s(pa.determination) === "excluded" || pa.basis_unavailable === true) flags.add("public_authority");
+  // DOC 207 ledger B3-6 — the real PublicAuthorityDetermination union
+  // (types.ts:89-92) never carries "excluded"; the affirmative value is
+  // "exclusion_applies" (206B0 §1.5's dead-branch note). This was a dead
+  // condition before this fix — the flag fired only via basis_unavailable.
+  if (s(pa.determination) === "exclusion_applies" || pa.basis_unavailable === true) flags.add("public_authority");
   if (bag(report.scale_frequency_duration).large_scale_indicated === true) flags.add("large_scale");
+  // DOC 207 ledger B3-7 — `automated_decision` was previously a display
+  // label only (FLAG_LABELS below) with no derivation anywhere in this
+  // function; report.automated_decision_analysis was never read. Any
+  // engaged regime (eu/uk/dual) sets the flag; "not_engaged" does not.
+  const admRegime = s(bag(report.automated_decision_analysis).regime);
+  if (admRegime && admRegime !== "not_engaged") flags.add("automated_decision");
 
   return {
     instrument: liaInstrumentOf(intake),

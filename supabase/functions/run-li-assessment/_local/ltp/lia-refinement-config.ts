@@ -189,6 +189,10 @@ export const LIA_PROTECTED_PATH_PREFIXES = [
   "precedent_class_posture",
   "eprivacy_short_circuit",
   "skeleton_document",
+  // DOC 207 §2.5 — the rule pass's application trail is itself a
+  // single-writer deterministic surface (rule-pass.ts), not a narrative
+  // field refinement exists to touch.
+  "rule_applications",
 ];
 
 // ── ITEM 386 LEG 3 — PROTECTED LEAF CLASSES ─────────────────────────────────
