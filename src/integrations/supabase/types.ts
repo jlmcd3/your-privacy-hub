@@ -10228,6 +10228,7 @@ export type Database = {
         Args: { _key: string; _max: number; _window_seconds: number }
         Returns: boolean
       }
+      corpus_sweep_v2_batch: { Args: { p_limit?: number }; Returns: number }
       cppa_supersede_and_insert: {
         Args: {
           p_authority_type: string
