@@ -186,30 +186,48 @@ Deno.test("typeImportSpecifier resolves from the lia output path", () => {
   assertEquals(typeImportSpecifier(registry.output_path), "../../../../_shared/corpus/rule-types.ts");
 });
 
-Deno.test("two-rule fixture set round-trips into contents deno check accepts", async () => {
+const canRunDenoCheck = (await Deno.permissions.query({ name: "run", command: "deno" })).state === "granted" &&
+  (await Deno.permissions.query({ name: "write" })).state === "granted";
+
+Deno.test("two-rule fixture set round-trips into well-formed contents", () => {
   const result = generateRules(baseInput([favorableRow(), ruleRow()], PROFILES));
   assertEquals(result.errors, []);
   assertEquals(result.ok, true);
   assertEquals(result.emitted, 2);
   // sorted by rule_id
   assert(result.contents!.indexOf('"LIA-R-001"') < result.contents!.indexOf('"LIA-R-002"'));
+  assertStringIncludes(result.contents!, 'import type { AuthorityRule } from "../../../../_shared/corpus/rule-types.ts";');
   assertStringIncludes(result.contents!, 'export const LIA_RULES_VERSION = "lia-rules-v1-2026-09-07-1";');
+  assertStringIncludes(result.contents!, "export const LIA_RULES: readonly AuthorityRule[] = [");
   assertStringIncludes(result.contents!, "export const LIA_RULE_CONTEXT = {");
-
-  const dir = await Deno.makeTempDir();
-  const target = `${dir}/lia-rules.ts`;
-  const specifier = new URL(
-    "../../../supabase/functions/_shared/corpus/rule-types.ts",
-    import.meta.url,
-  ).pathname;
-  await Deno.writeTextFile(
-    target,
-    result.contents!.replace("../../../../_shared/corpus/rule-types.ts", specifier),
+  // The emitted array is valid JSON once the TS wrapper is stripped.
+  const arrayText = result.contents!.slice(
+    result.contents!.indexOf("readonly AuthorityRule[] = [") + "readonly AuthorityRule[] = ".length,
   );
-  const check = new Deno.Command("deno", { args: ["check", target], stdout: "piped", stderr: "piped" });
-  const out = await check.output();
-  assertEquals(out.code, 0, new TextDecoder().decode(out.stderr));
-  await Deno.remove(dir, { recursive: true });
+  const parsed = JSON.parse(arrayText.slice(0, arrayText.indexOf("\n];") + 2));
+  assertEquals(parsed.map((r: { rule_id: string }) => r.rule_id), ["LIA-R-001", "LIA-R-002"]);
+});
+
+Deno.test({
+  name: "emitted contents are accepted by deno check",
+  ignore: !canRunDenoCheck,
+  fn: async () => {
+    const result = generateRules(baseInput([favorableRow(), ruleRow()], PROFILES));
+    const dir = await Deno.makeTempDir();
+    const target = `${dir}/lia-rules.ts`;
+    const specifier = new URL(
+      "../../../supabase/functions/_shared/corpus/rule-types.ts",
+      import.meta.url,
+    ).href;
+    await Deno.writeTextFile(
+      target,
+      result.contents!.replace("../../../../_shared/corpus/rule-types.ts", specifier),
+    );
+    const check = new Deno.Command("deno", { args: ["check", target], stdout: "piped", stderr: "piped" });
+    const out = await check.output();
+    assertEquals(out.code, 0, new TextDecoder().decode(out.stderr));
+    await Deno.remove(dir, { recursive: true });
+  },
 });
 
 Deno.test("the emitted context block is byte-identical to the pinned lia-rules.ts block", async () => {
