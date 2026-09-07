@@ -414,6 +414,104 @@ export type Database = {
         }
         Relationships: []
       }
+      authority_rules: {
+        Row: {
+          authority_citation: string
+          bears_on_element: string
+          bears_on_factor_ids: string[]
+          created_at: string
+          direction: string
+          effect: Json
+          family: string
+          fixture_fires: Json
+          fixture_silent: Json
+          id: string
+          instrument_scope: string[]
+          ledger_ref: string | null
+          product: string
+          profile_id: string
+          ratified_at: string | null
+          ratified_by: string | null
+          reason_sentence: string
+          regulator_scope: string | null
+          retire_when: string
+          retired_at: string | null
+          retired_reason: string | null
+          rule_id: string
+          settledness: string
+          supporting_profile_ids: string[]
+          trigger: Json
+          updated_at: string
+          worksheet_ref: string
+        }
+        Insert: {
+          authority_citation: string
+          bears_on_element: string
+          bears_on_factor_ids: string[]
+          created_at?: string
+          direction: string
+          effect: Json
+          family: string
+          fixture_fires: Json
+          fixture_silent: Json
+          id?: string
+          instrument_scope: string[]
+          ledger_ref?: string | null
+          product: string
+          profile_id: string
+          ratified_at?: string | null
+          ratified_by?: string | null
+          reason_sentence: string
+          regulator_scope?: string | null
+          retire_when: string
+          retired_at?: string | null
+          retired_reason?: string | null
+          rule_id: string
+          settledness: string
+          supporting_profile_ids?: string[]
+          trigger: Json
+          updated_at?: string
+          worksheet_ref: string
+        }
+        Update: {
+          authority_citation?: string
+          bears_on_element?: string
+          bears_on_factor_ids?: string[]
+          created_at?: string
+          direction?: string
+          effect?: Json
+          family?: string
+          fixture_fires?: Json
+          fixture_silent?: Json
+          id?: string
+          instrument_scope?: string[]
+          ledger_ref?: string | null
+          product?: string
+          profile_id?: string
+          ratified_at?: string | null
+          ratified_by?: string | null
+          reason_sentence?: string
+          regulator_scope?: string | null
+          retire_when?: string
+          retired_at?: string | null
+          retired_reason?: string | null
+          rule_id?: string
+          settledness?: string
+          supporting_profile_ids?: string[]
+          trigger?: Json
+          updated_at?: string
+          worksheet_ref?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "authority_rules_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "authority_relevance_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       biometric_assessments: {
         Row: {
           analysis_text: string | null
