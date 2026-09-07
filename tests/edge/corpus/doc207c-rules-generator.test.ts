@@ -223,7 +223,13 @@ Deno.test({
       target,
       result.contents!.replace("../../../../_shared/corpus/rule-types.ts", specifier),
     );
-    const check = new Deno.Command("deno", { args: ["check", target], stdout: "piped", stderr: "piped" });
+    const check = new Deno.Command("deno", {
+      args: ["check", target],
+      clearEnv: true,
+      env: { HOME: Deno.env.get("HOME") ?? "/root", PATH: Deno.env.get("PATH") ?? "/usr/bin" },
+      stdout: "piped",
+      stderr: "piped",
+    });
     const out = await check.output();
     assertEquals(out.code, 0, new TextDecoder().decode(out.stderr));
     await Deno.remove(dir, { recursive: true });
