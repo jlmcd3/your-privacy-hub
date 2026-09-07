@@ -49,12 +49,27 @@ export interface AuthorityRuleRow {
   readonly retired_at?: string | null;
 }
 
+/**
+ * Endorsement of the SOURCE a profile pins (doc 209 §5). For
+ * `edpb_guidelines` it is the row's own `endorsement_status`; for
+ * `regulatory_guidance` it is always `regulator_guidance`; for
+ * `enforcement_actions` it is always `decision`. `null` means unknown.
+ */
+export type SourceEndorsement =
+  | "edpb_adopted"
+  | "wp29_endorsed_2018"
+  | "wp29_not_endorsed"
+  | "draft_consultation"
+  | "regulator_guidance"
+  | "decision";
+
 /** The subset of an `authority_relevance_profiles` row this step needs. */
 export interface RuleProfileRow {
   readonly id: string;
   readonly rule_or_pattern: string;
   readonly source_table: string;
   readonly source_row_id: string;
+  readonly endorsement?: SourceEndorsement | null;
   readonly ratified_by: string | null;
   readonly ratified_at: string | null;
   readonly ledger_ref: string | null;
@@ -64,6 +79,49 @@ export interface RuleProfileRow {
 export interface Exclusion {
   readonly rule_id: string;
   readonly reason: string;
+}
+
+export interface RuleWarning {
+  readonly rule_id: string;
+  readonly warning: string;
+}
+
+/**
+ * DOC 209 §5 — settledness must be earned by the PRIMARY source, not merely
+ * asserted by the curation row. Returns a named failure, or a warning where
+ * the spec accepts the row but the claim is not derivable from the source.
+ */
+export function checkSettlednessAgainstSource(
+  row: AuthorityRuleRow,
+  endorsement: SourceEndorsement | null | undefined,
+): { error?: string; warning?: string } {
+  const s = row.settledness;
+  switch (endorsement) {
+    case "edpb_adopted":
+    case "wp29_endorsed_2018":
+    case "regulator_guidance":
+      return {};
+    case "wp29_not_endorsed":
+      return s === "R3"
+        ? {}
+        : { error: `settledness ${s} is not available on a wp29_not_endorsed primary source (max R3)` };
+    case "decision": {
+      if (s === "R3") return {};
+      if (s === "R2") {
+        const singleInstrument = (row.instrument_scope ?? []).length === 1;
+        if (row.regulator_scope === null && singleInstrument) return { warning: "r2_on_single_decision" };
+        return {
+          error:
+            "settledness R2 on a decision primary source requires regulator_scope null and exactly one instrument_scope entry",
+        };
+      }
+      return { error: `settledness ${s} is not available on a decision primary source (max R2)` };
+    }
+    default:
+      return s === "R3"
+        ? {}
+        : { error: `settledness ${s} requires a known primary source endorsement (unknown endorsement allows R3 only)` };
+  }
 }
 
 export interface GenerateRulesInput {
@@ -83,6 +141,7 @@ export interface GenerateRulesResult {
   readonly ok: boolean;
   readonly emitted: number;
   readonly excluded: readonly Exclusion[];
+  readonly warnings: readonly RuleWarning[];
   readonly errors: readonly string[];
   readonly contents: string | null;
 }
@@ -244,6 +303,7 @@ export function typeImportSpecifier(outputPath: string): string {
 
 export function generateRules(input: GenerateRulesInput): GenerateRulesResult {
   const excluded: Exclusion[] = [];
+  const warnings: RuleWarning[] = [];
   const errors: string[] = [];
   const emitted: AuthorityRuleRow[] = [];
 
@@ -269,15 +329,26 @@ export function generateRules(input: GenerateRulesInput): GenerateRulesResult {
       excluded.push({ rule_id: row.rule_id, reason: `primary profile ${row.profile_id} is rule_or_pattern="${profile.rule_or_pattern}", not "rule"` });
       continue;
     }
+    // DOC 209 §5 — a consultation draft is not a rule source, whatever the
+    // row's own settledness claims.
+    if (profile.source_table === "edpb_guidelines" && profile.endorsement === "draft_consultation") {
+      excluded.push({ rule_id: row.rule_id, reason: "primary_source_is_consultation_draft" });
+      warnings.push({ rule_id: row.rule_id, warning: "primary_source_is_consultation_draft" });
+      continue;
+    }
     emitted.push(row);
   }
 
   for (const row of emitted) {
     errors.push(...validateRuleRow(row, input.vocabulary, input.instrumentScope));
+    const primary = input.profiles.get(row.profile_id);
+    const settled = checkSettlednessAgainstSource(row, primary?.endorsement ?? null);
+    if (settled.error) errors.push(`${row.rule_id}: ${settled.error}`);
+    if (settled.warning) warnings.push({ rule_id: row.rule_id, warning: settled.warning });
   }
 
   if (errors.length > 0) {
-    return { ok: false, emitted: 0, excluded, errors, contents: null };
+    return { ok: false, emitted: 0, excluded, warnings, errors, contents: null };
   }
 
   const sorted = [...emitted].sort((a, b) => (a.rule_id < b.rule_id ? -1 : a.rule_id > b.rule_id ? 1 : 0));
@@ -307,5 +378,5 @@ export const ${prefix}_RULES: readonly AuthorityRule[] = [${sorted.length === 0 
 
 ${input.ruleContextBlock}`;
 
-  return { ok: true, emitted: sorted.length, excluded, errors: [], contents };
+  return { ok: true, emitted: sorted.length, excluded, warnings, errors: [], contents };
 }
