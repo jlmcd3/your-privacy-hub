@@ -97,6 +97,17 @@ async function authorised(req: Request): Promise<boolean> {
   const adminSecret = Deno.env.get("ADMIN_SECRET_TOKEN");
   if (adminSecret && token === adminSecret) return true;
 
+  const driverTok = req.headers.get("x-driver-token");
+  if (driverTok) {
+    const c = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    const { data: row } = await c.from("internal_driver_tokens")
+      .select("token").eq("name", "admin-recover-source-text").maybeSingle();
+    if (row?.token && row.token === driverTok) return true;
+  }
+
   const auth = req.headers.get("authorization") ?? "";
   const jwt = auth.startsWith("Bearer ") ? auth.slice(7) : "";
   if (!jwt) return false;
