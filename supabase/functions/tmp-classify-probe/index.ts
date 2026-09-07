@@ -6,7 +6,7 @@ Deno.serve(async () => {
   const r = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/generate-corpus-relevance-profiles`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-driver-token": String(data?.token ?? "") },
-    body: JSON.stringify({ action: "classify_from_db", product: "lia", run_id: "lia-classify-2026-09-07-r2-probe", batch_size: 2 }),
+    body: JSON.stringify({ action: "classify_from_db", product: "lia", run_id: "lia-classify-2026-09-07-r2-probe2", batch_size: 2 }),
   });
   return new Response(await r.text(), { status: r.status, headers: { "Content-Type": "application/json" } });
 });
