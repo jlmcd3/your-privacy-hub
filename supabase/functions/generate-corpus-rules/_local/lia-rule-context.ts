@@ -7,49 +7,21 @@
 // which is the file the rule pass imports — the pin test in
 // tests/edge/corpus/doc207c-rules-generator.test.ts holds the two together
 // so the context can never drift.
+//
+// It is a `RuleContext` (scales + adverse/favorable outcomes), NOT a
+// vocabulary. The typed state vocabulary the generator validates trigger
+// atoms against lives in ./product-registry.ts and is never emitted.
 
-export const LIA_RULE_CONTEXT_BLOCK = `// ── LIA_RULE_CONTEXT ────────────────────────────────────────────────────
-// The typed state the LIA rule pass supplies to every trigger. A rule may
-// only name a flag, class, relationship, data category, verdict element or
-// state root listed here; the build-time generator
-// (generate-corpus-rules) rejects anything else, so a shipped rule can
-// never reference state the pass does not populate.
-export const LIA_RULE_CONTEXT = {
-  flags: [
-    "special_category",
-    "children",
-    "eprivacy_terminal_equipment",
-    "electronic_marketing",
-    "public_authority",
-    "large_scale",
-    "automated_decision",
+export const LIA_RULE_CONTEXT_BLOCK = `export const LIA_RULE_CONTEXT: RuleContext = {
+  scales: [
+    { element: "purpose", order: ["passes", "uncertain", "fails"] },
+    { element: "necessity", order: ["passes", "uncertain"] },
+    { element: "balancing", order: ["likely_passes", "uncertain", "likely_fails"] },
   ],
-  classes: [
-    "direct_marketing",
-    "fraud_prevention",
-    "employee_monitoring",
-    "behavioral_advertising",
-    "research_analytics",
-    "it_security",
-    "contractual_administration",
-    "product_improvement",
-  ],
-  relationships: ["customer", "employee", "prospect", "public"],
-  verdict_elements: ["purpose", "necessity", "balancing"],
-  state_roots: [
-    "intake.",
-    "interest_legitimacy.",
-    "child_factor.",
-    "public_authority_exclusion.",
-    "scale_frequency_duration.",
-    "eprivacy_short_circuit.",
-    "precedent_class_posture.",
-    "reasonable_expectations.",
-    "potential_harms.",
-    "opt_out_feasibility.",
-    "relationship_with_individual.",
-    "automated_decision_analysis.",
-    "alternatives_considered.",
-  ],
-} as const;
+  adverse_outcomes: ["legitimate_interests_not_available"],
+  // \`recognised_legitimate_interest_applies\` (W11) enters here only after
+  // ruling B2-18 — the new LiaOutcome value does not exist in the product
+  // yet, so no \`route_to_basis\` rule can be eligible until it does.
+  favorable_outcomes: [],
+};
 `;
