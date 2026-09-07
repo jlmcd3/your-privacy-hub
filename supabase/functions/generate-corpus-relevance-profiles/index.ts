@@ -93,7 +93,7 @@ function anthropicCall(model: string, onFailure?: (status: number, message: stri
         headers: {
           "Content-Type": "application/json", "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01",
         },
-        body: JSON.stringify({ model, max_tokens: 1024, temperature: 0, system, messages: [{ role: "user", content: user }] }),
+        body: JSON.stringify({ model, max_tokens: 4096, system, messages: [{ role: "user", content: user }] }),
         signal: AbortSignal.timeout(120_000),
       });
       if (r.ok) {
@@ -319,7 +319,8 @@ Deno.serve(async (req) => {
       }
       const rows = resultRows({
         runId: parsed.run_id, model: CLASSIFIER_MODEL, pipelineVersion: run.pipeline_version,
-        candidates, outcomes: run.outcomes, stage2CandidateIds: run.stage2_candidates, promotedIds: run.promoted_ids,
+        candidates, outcomes: run.outcomes, stage2CandidateIds: run.stage2_candidates,
+        stage2Raw: run.stage2_raw, promotedIds: run.promoted_ids,
       });
       if (rows.length > 0) {
         const { error } = await db.from("corpus_classification_results").upsert(rows, { onConflict: "run_id,profile_id" });
