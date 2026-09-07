@@ -204,7 +204,7 @@ export default function Pricing() {
                 (annual)
               </li>
               <li className="flex gap-2">
-                <Check {...iconProps} className="text-brand-teal mt-0.5 shrink-0" /> Free IR Playbook, DPA, Biometric
+                <Check {...iconProps} className="text-brand-teal mt-0.5 shrink-0" /> Free Incident Response Playbook, Custom DPA, Biometric Compliance Assessment
               </li>
             </ul>
             <Link

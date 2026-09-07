@@ -47,7 +47,7 @@ const comparisonRows: ComparisonRow[] = [
 
   { isSection: true, feature: "The action layer: compliance tools with cited enforcement evidence" },
   { feature: "Sample preview of all tools", free: true, intel: true, platform: true },
-  { feature: "Initial report generation on the nine metered tools (Accountability, LIA, DPIA, DPA, IR Playbook, Biometric, CPPA Risk, CPPA Cybersecurity, ADMT). Revisions are temporarily disabled while we ship the Revision Contract program. Does not apply to RoPA, the Privacy Notices, Registration Filings Manager, or the free CPPA Scope Checker", free: true, intel: true, platform: true },
+  { feature: "Initial report generation on the nine metered tools (GDPR Accountability Assessment, LIA, DPIA, Custom DPA, Incident Response Playbook, Biometric Compliance Assessment, CPPA Risk Assessment, CPPA Cybersecurity Audit Readiness, ADMT Compliance Assessment). Revisions are temporarily disabled while we ship the Revision Contract program. Does not apply to RoPA, the Privacy Notices, Registration Filings Manager, or the free CPPA Scope Checker", free: true, intel: true, platform: true },
   { feature: "GDPR Accountability Assessment (Smart Tool)", free: false, intel: T.governance.display, platform: T.governance.display },
   { feature: "Legitimate Interests Assessment (Smart Tool)", free: false, intel: T.lia.display, platform: T.lia.display },
   { feature: "Data Protection Impact Assessment (DPIA) (Smart Tool)", free: false, intel: T.dpia.display, platform: T.dpia.display },
@@ -119,7 +119,7 @@ const Subscribe = () => {
         <title>Pricing & Plans | End User Privacy</title>
         <meta
           name="description"
-          content={`Privacy Intelligence at ${PRICING.intelligence.monthly.display}/month with a 10-day free trial. Professional from ${PRICING.professional.monthly.display}/month; annual Professional adds client/matter workspaces. Any subscription includes the Privacy Notices; Professional also includes the IR Playbook, Biometric Compliance Assessment, and Custom DPA; RoPA is free on annual plans (first build plus one update a year, then $39) and $49 per generation on monthly plans; annual plans add free Smart Tool runs (1 with Intelligence annual, 3 with Professional annual).`}
+          content={`Privacy Intelligence at ${PRICING.intelligence.monthly.display}/month with a 10-day free trial. Professional from ${PRICING.professional.monthly.display}/month; annual Professional adds client/matter workspaces. Any subscription includes the Privacy Notices; Professional also includes the Incident Response Playbook, Biometric Compliance Assessment, and Custom DPA; RoPA is free on annual plans (first build plus one update a year, then $39) and $49 per generation on monthly plans; annual plans add free Smart Tool runs (1 with Intelligence annual, 3 with Professional annual).`}
         />
       </Helmet>
       <Navbar />
