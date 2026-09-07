@@ -1037,6 +1037,62 @@ export type Database = {
         }
         Relationships: []
       }
+      corpus_sweep_results: {
+        Row: {
+          action_id: string
+          content_score: number
+          evidence: Json
+          has_date: boolean
+          has_fine: boolean
+          has_subject: boolean
+          id: string
+          needs_ai_review: boolean
+          record_class: string
+          sweep_version: string
+          swept_at: string
+          text_len: number
+          usable_for: string[]
+        }
+        Insert: {
+          action_id: string
+          content_score?: number
+          evidence?: Json
+          has_date?: boolean
+          has_fine?: boolean
+          has_subject?: boolean
+          id?: string
+          needs_ai_review?: boolean
+          record_class: string
+          sweep_version: string
+          swept_at?: string
+          text_len?: number
+          usable_for?: string[]
+        }
+        Update: {
+          action_id?: string
+          content_score?: number
+          evidence?: Json
+          has_date?: boolean
+          has_fine?: boolean
+          has_subject?: boolean
+          id?: string
+          needs_ai_review?: boolean
+          record_class?: string
+          sweep_version?: string
+          swept_at?: string
+          text_len?: number
+          usable_for?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "corpus_sweep_results_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: true
+            referencedRelation: "enforcement_actions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       corpus_versions: {
         Row: {
           memo_eligible_count: number
@@ -10205,6 +10261,13 @@ export type Database = {
           id: string
           intake_data: Json
           report_data: Json
+        }[]
+      }
+      run_corpus_deterministic_sweep: {
+        Args: { p_limit?: number; p_version?: string }
+        Returns: {
+          n: number
+          record_class: string
         }[]
       }
       set_self_declared_role: {
