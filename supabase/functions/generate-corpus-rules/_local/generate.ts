@@ -12,15 +12,15 @@
 //   ERROR — an EMITTED row that does not validate. `ok:false`, HTTP 422,
 //     nothing emitted. A ratified row that is malformed is a build break.
 
+import { parseAtom, type AuthorityRule } from "../../_shared/corpus/rule-types.ts";
 import {
   ADVERSE_EFFECT_KINDS,
   EFFECT_KINDS,
   FAVORABLE_EFFECT_KINDS,
-  parseAtom,
   triggerAtomStrings,
-  type AuthorityRule,
-} from "../../_shared/corpus/rule-types.ts";
+} from "./atoms.ts";
 import type { TypedStateVocabulary } from "./product-registry.ts";
+
 
 export interface AuthorityRuleRow {
   readonly id: string;
