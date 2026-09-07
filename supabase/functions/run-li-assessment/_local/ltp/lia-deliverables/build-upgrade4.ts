@@ -559,10 +559,21 @@ function summaryListSegments(label: string): string[] | null {
   return segments;
 }
 
-function parseAlternatives(text: string): AlternativeConsidered[] {
+// BATCH a81e0240 (2026-09-07) — `merged` marks an entry whose why_inadequate
+// is an ACCUMULATION of a clean match plus one or more non-matching
+// continuation lines glued on (the branch below at "out.length > 0"), as
+// opposed to a single clean "label — reason" match. Purely a parse-time
+// signal for buildAlternativesConsidered's cross-source dedup (see the
+// BATCH a81e0240 comment there); stripped before the public
+// AlternativeConsidered[] is returned, so the shared type is untouched.
+interface ParsedAlternative extends AlternativeConsidered {
+  merged?: boolean;
+}
+
+function parseAlternatives(text: string): ParsedAlternative[] {
   if (!text) return [];
   if (/Alternative\s+considered\s*:/i.test(text)) {
-    const pairs: AlternativeConsidered[] = [];
+    const pairs: ParsedAlternative[] = [];
     for (const m of text.matchAll(ALT_MARKER_PAIR_RE)) {
       const alt = m[1].trim().replace(/[.,;]$/, "");
       const why = m[2].trim();
@@ -577,7 +588,7 @@ function parseAlternatives(text: string): AlternativeConsidered[] {
     .map((l) => l.replace(/^\s*(?:[•*]|-(?=\s)|\d+[.)])\s*/, "").trim())
     .filter((l) => l.length > 2)
     .filter((l) => !FIELD_POINTER_RE.test(l));
-  const out: AlternativeConsidered[] = [];
+  const out: ParsedAlternative[] = [];
   for (const line of lines) {
     const m = line.match(
       /^(.*?)(?:\s*[—–]\s*|\s*:\s*|\s+because\s+|\s+but\s+|\s+however\s+|\s+which\s+would\s+)(.+)$/i,
@@ -597,7 +608,9 @@ function parseAlternatives(text: string): AlternativeConsidered[] {
       // Merge into the preceding entry's reason when it has one; a
       // continuation of a bare label (no reason recorded at all) is
       // dropped rather than promoted into its own spurious alternative.
-      if (prev.why_inadequate) out[out.length - 1] = { ...prev, why_inadequate: `${prev.why_inadequate} ${line}` };
+      if (prev.why_inadequate) {
+        out[out.length - 1] = { ...prev, why_inadequate: `${prev.why_inadequate} ${line}`, merged: true };
+      }
     } else {
       out.push({ alternative: line.replace(/[.,;]$/, ""), why_inadequate: "", rationale_recorded: false });
     }
@@ -618,14 +631,36 @@ export function buildAlternativesConsidered(intake: unknown): AlternativesConsid
   // is already inside the first (some intakes mirror one into the other).
   const necAlts = str(get(intake, "necessity_details.alternatives"));
   const flatAlts = str(get(intake, "alternatives_considered"));
-  const alternativesText = [
-    necAlts,
-    flatAlts && !necAlts.includes(flatAlts) ? flatAlts : "",
-  ].filter(Boolean).join("\n");
   const rationaleText = str(get(intake, "necessity_details.alternatives_rationale"));
   const whyConsent = str(get(intake, "necessity_details.why_consent_not_used"));
 
-  const alternatives = parseAlternatives([alternativesText, rationaleText].filter(Boolean).join("\n"));
+  // BATCH a81e0240 (2026-09-07) — each SOURCE is parsed on its own, never
+  // concatenated with another source's text first. D1D2B3B8-L5 (below,
+  // unchanged) already established that necessity_details.alternatives and
+  // the flat alternatives_considered field can carry genuinely different
+  // renditions of the same list; feeding them (and alternatives_rationale)
+  // into ONE text blob meant a bare-label line with no "label — reason"
+  // separator at the end of one field's text silently absorbed the FIRST
+  // line of the NEXT field's text as if it were a continuation of the same
+  // reason (parseAlternatives' "merge into the preceding entry" branch has
+  // no way to know a source boundary sits between two lines). Live batch
+  // a81e0240 reproduced this in 3/3 fixtures: e.g. necessity_details.
+  // alternatives = "Consent-based monitoring — users could opt in to
+  // security checks\nFull anonymisation of session data before analysis"
+  // (its own second item has no dash) followed straight into
+  // alternatives_considered's bare names, producing one row whose
+  // why_inadequate ran "...security checks Full anonymisation of session
+  // data before analysis Consent-based opt-in to security monitoring
+  // Contract basis under account terms." — four unrelated fragments run
+  // together. Parsing per-source confines any such merge to within its own
+  // field; the cross-field reconciliation happens below, in the existing
+  // paraphrase dedup, which is the mechanism already designed to pick
+  // between differently-worded renditions of the same alternative.
+  const alternatives: ParsedAlternative[] = [
+    ...parseAlternatives(necAlts),
+    ...parseAlternatives(flatAlts && !necAlts.includes(flatAlts) ? flatAlts : ""),
+    ...parseAlternatives(rationaleText),
+  ];
   const consent_addressed = !!whyConsent ||
     alternatives.some((a) => /\bconsent\b/i.test(`${a.alternative} ${a.why_inadequate}`));
 
@@ -684,6 +719,7 @@ export function buildAlternativesConsidered(intake: unknown): AlternativesConsid
       alternative: a.alternative,
       why_inadequate: stripSeam(a.why_inadequate),
       rationale_recorded: a.rationale_recorded,
+      merged: !!a.merged,
     }));
     const summaryIdx = new Set<number>();
     for (let i = 0; i < trimmed.length; i++) {
@@ -695,7 +731,17 @@ export function buildAlternativesConsidered(intake: unknown): AlternativesConsid
       }
       if (contained >= 2) summaryIdx.add(i);
     }
-    const kept: { alternative: string; why_inadequate: string; rationale_recorded: boolean }[] = [];
+    // BATCH a81e0240 (2026-09-07) — QUALITY RANK, checked before length.
+    // Without this, "longer why_inadequate wins" preferred a merged
+    // (accumulated-continuation) reason over a clean single-match reason
+    // whenever the accumulation happened to be longer — which it usually
+    // is, since it is several unrelated fragments run together. A clean,
+    // recorded reason from ANY source now always beats a merged one,
+    // regardless of length; among two reasons of the same rank, the
+    // existing "longer is more complete" heuristic still decides.
+    const rank = (e: { rationale_recorded: boolean; merged: boolean }): number =>
+      e.rationale_recorded && !e.merged ? 2 : e.rationale_recorded ? 1 : 0;
+    const kept: { alternative: string; why_inadequate: string; rationale_recorded: boolean; merged: boolean }[] = [];
     for (let i = 0; i < trimmed.length; i++) {
       if (summaryIdx.has(i)) continue;
       const cand = trimmed[i];
@@ -705,16 +751,18 @@ export function buildAlternativesConsidered(intake: unknown): AlternativesConsid
         continue;
       }
       const dup = kept[dupIdx];
+      const candRank = rank(cand);
+      const dupRank = rank(dup);
+      const preferCand = candRank !== dupRank ? candRank > dupRank : cand.why_inadequate.length > dup.why_inadequate.length;
       kept[dupIdx] = {
-        alternative: cand.why_inadequate.length > dup.why_inadequate.length && cand.alternative.length > dup.alternative.length
-          ? cand.alternative
-          : dup.alternative,
-        why_inadequate: cand.why_inadequate.length > dup.why_inadequate.length ? cand.why_inadequate : dup.why_inadequate,
+        alternative: preferCand && cand.alternative.length > dup.alternative.length ? cand.alternative : dup.alternative,
+        why_inadequate: preferCand ? cand.why_inadequate : dup.why_inadequate,
         rationale_recorded: dup.rationale_recorded || cand.rationale_recorded,
+        merged: preferCand ? cand.merged : dup.merged,
       };
     }
     alternatives.length = 0;
-    alternatives.push(...kept);
+    alternatives.push(...kept.map(({ merged: _merged, ...rest }) => rest));
   }
 
   const count_with_rationale = alternatives.filter((a) => a.rationale_recorded).length;
