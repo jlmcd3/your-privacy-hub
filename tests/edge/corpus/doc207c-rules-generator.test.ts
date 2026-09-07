@@ -33,6 +33,7 @@ function ratifiedProfile(id: string, over: Partial<RuleProfileRow> = {}): RulePr
     rule_or_pattern: "rule",
     source_table: "edpb_guidelines",
     source_row_id: `row-${id.slice(0, 4)}`,
+    endorsement: "edpb_adopted",
     ratified_by: "ceo",
     ratified_at: "2026-09-07T00:00:00Z",
     ledger_ref: "ledger-1",
@@ -262,4 +263,52 @@ Deno.test("the emitted context block is byte-identical to the canonical lia-rule
   const marker = "export const LIA_RULE_CONTEXT: RuleContext = {";
   assertStringIncludes(pinned, marker);
   assertEquals(pinned.slice(pinned.indexOf(marker)), LIA_RULE_CONTEXT_BLOCK);
+});
+
+// ── DOC 209 §5: settledness by source ────────────────────────────────────
+Deno.test("209§5: draft-consultation primary is excluded with a named warning", () => {
+  const profiles = new Map<string, RuleProfileRow>(PROFILES);
+  profiles.set(PROFILE_A, ratifiedProfile(PROFILE_A, { endorsement: "draft_consultation" }));
+  const result = generateRules(baseInput([ruleRow()], profiles));
+  assert(result.ok);
+  assertEquals(result.emitted, 0);
+  assertEquals(result.excluded[0].reason, "primary_source_is_consultation_draft");
+  assertEquals(result.warnings[0].warning, "primary_source_is_consultation_draft");
+});
+
+Deno.test("209§5: R1 on a wp29_not_endorsed primary is rejected", () => {
+  const profiles = new Map<string, RuleProfileRow>(PROFILES);
+  profiles.set(PROFILE_A, ratifiedProfile(PROFILE_A, { endorsement: "wp29_not_endorsed" }));
+  const result = generateRules(baseInput([ruleRow({ settledness: "R1" })], profiles));
+  assertEquals(result.ok, false);
+  assertEquals(result.contents, null);
+  assertStringIncludes(result.errors.join("\n"), "wp29_not_endorsed");
+});
+
+Deno.test("209§5: R3 on a wp29_not_endorsed primary is accepted", () => {
+  const profiles = new Map<string, RuleProfileRow>(PROFILES);
+  profiles.set(PROFILE_A, ratifiedProfile(PROFILE_A, { endorsement: "wp29_not_endorsed" }));
+  const result = generateRules(baseInput([ruleRow({ settledness: "R3" })], profiles));
+  assert(result.ok, result.errors.join("\n"));
+  assertEquals(result.emitted, 1);
+});
+
+Deno.test("209§5: R1 on a decision primary is rejected", () => {
+  const profiles = new Map<string, RuleProfileRow>(PROFILES);
+  profiles.set(PROFILE_A, ratifiedProfile(PROFILE_A, { source_table: "enforcement_actions", endorsement: "decision" }));
+  const result = generateRules(baseInput([ruleRow({ settledness: "R1" })], profiles));
+  assertEquals(result.ok, false);
+  assertStringIncludes(result.errors.join("\n"), "decision primary source");
+});
+
+Deno.test("209§5: R2 on a single decision emits with the r2_on_single_decision warning", () => {
+  const profiles = new Map<string, RuleProfileRow>(PROFILES);
+  profiles.set(PROFILE_A, ratifiedProfile(PROFILE_A, { source_table: "enforcement_actions", endorsement: "decision" }));
+  const result = generateRules(baseInput(
+    [ruleRow({ settledness: "R2", regulator_scope: null, instrument_scope: ["EU GDPR"] })],
+    profiles,
+  ));
+  assert(result.ok, result.errors.join("\n"));
+  assertEquals(result.emitted, 1);
+  assertEquals(result.warnings[0].warning, "r2_on_single_decision");
 });
