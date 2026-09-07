@@ -80,6 +80,35 @@ export interface AuthorityHook {
   readonly bears_on_element: string;
   readonly authority_label: string;
   readonly regulator: string;
+  /** DOC 213B — the source profile's relevance fields, copied verbatim by
+   *  `generate-corpus-hooks` at generate time so a hook is a self-contained
+   *  persuasive candidate: `lia-persuasive-authority.ts` builds a
+   *  `CamRelevanceProfile` (cam-types.ts) straight off this block for a
+   *  synthetic ranking candidate, without resolving anything through
+   *  `liaProfileOf`/the CAM map (a hook's source need not even be a CAM
+   *  row — doc 213 §3's own note: "hooks are keyed to profiles so the 215
+   *  non-CAM profiles are ready the day precedents render from profiles
+   *  directly"). `outcome_posture` here is expected to always equal
+   *  `posture` above (copied from the same profile field); it is kept as
+   *  its own string rather than reused so this block is a complete,
+   *  independent `CamRelevanceProfile` projection on its own. */
+  readonly relevance: AuthorityHookRelevance;
+}
+
+/** The `CamRelevanceProfile` (cam-types.ts) fields a hook carries, in the
+ *  hook's own product-agnostic vocabulary (plain strings, not the LIA-typed
+ *  unions `CamRelevanceProfile` itself declares — the same generalisation
+ *  `AuthorityRelevanceProfile`, doc 191, already makes for this exact
+ *  reason). Declared as its own named type so a product's persuasive-
+ *  authority renderer can narrow/validate it once, in one place. */
+export interface AuthorityHookRelevance {
+  readonly instrument: string;
+  readonly factor_ids: readonly string[];
+  readonly use_case_class: string | null;
+  readonly relationship: string | null;
+  readonly data_categories: readonly string[];
+  readonly flags: readonly string[];
+  readonly outcome_posture: string;
 }
 
 /** One hook that actually rendered. A dropped or omitted hook never reaches

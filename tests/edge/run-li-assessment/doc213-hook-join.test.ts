@@ -71,6 +71,20 @@ function makeHook(overrides: Partial<AuthorityHook> & { hook_id: string }): Auth
     bears_on_element: "balancing",
     authority_label: "Test DPA, Test Matter, decision of 1 January 2024",
     regulator: "Test DPA",
+    // DOC 213B — a neutral EU GDPR relevance block (this file's fixtures
+    // exercise directionFor/applyLiaHooks, neither of which reads
+    // `relevance` at all; the field exists only so `AuthorityHook` type-
+    // checks — see doc213b-profile-backed-candidates.test.ts for fixtures
+    // that actually exercise it).
+    relevance: {
+      instrument: "EU GDPR",
+      factor_ids: ["Balancing of interests, rights and freedoms"],
+      use_case_class: null,
+      relationship: null,
+      data_categories: [],
+      flags: [],
+      outcome_posture: "rejected",
+    },
     ...overrides,
   };
 }

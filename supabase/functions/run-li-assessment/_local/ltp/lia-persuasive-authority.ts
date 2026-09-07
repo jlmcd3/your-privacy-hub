@@ -42,7 +42,7 @@ import {
   type RelevanceQuery,
   type ScoredRow,
 } from "../../../_shared/corpus/cam-relevance.ts";
-import type { CamRelevanceProfile } from "../../../_shared/corpus/cam-types.ts";
+import type { CamRelevanceProfile, CamRow } from "../../../_shared/corpus/cam-types.ts";
 import { classifyLiaUseCase, USE_CASE_LABELS } from "../../../_shared/lia/lia-use-case-classifier.ts";
 // DOC 213 TRACK H2 — offline analogy hooks, dark behind LIA_HOOKS_ENABLED
 // (default false; LIA_HOOKS ships [] until the first ratified row, so the
@@ -56,6 +56,13 @@ import { classifyLiaUseCase, USE_CASE_LABELS } from "../../../_shared/lia/lia-us
 import { LIA_HOOKS_ENABLED } from "./lia-hooks-flag.ts";
 import { LIA_HOOKS } from "../corpus/maps/lia-hooks.ts";
 import { applyLiaHooks, LIA_HOOK_OMIT_REASONS, type TypedStateBag } from "./lia-deliverables/hook-join.ts";
+// DOC 213B TRACK H3 — profile-backed persuasive candidates. `AuthorityHook`
+// is declared in `_shared/corpus/hook-types.ts`, which this file is already
+// one of the two sanctioned doors onto (that module's own header comment:
+// "a product's persuasive-authority renderer consuming a hook-join result
+// under its own _HOOKS_ENABLED flag"). A type-only import — no executable
+// hook-types.ts code is called from here beyond the type itself.
+import type { AuthorityHook } from "../../../_shared/corpus/hook-types.ts";
 
 type Bag = Record<string, unknown>;
 const s = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
@@ -259,6 +266,139 @@ export function relevanceSentence(scored: ScoredRow, query: RelevanceQuery): str
   return `Relevance (${scored.tier}): ${clauses.join("; ")}; decided under the ${scored.profile.instrument}${cross}.`;
 }
 
+// ── DOC 213B — hook-backed ranking candidates ─────────────────────────────
+//
+// A ratified hook is a self-contained persuasive candidate (its own
+// `relevance` block, doc 213B §1.1): `hookCandidateRows` projects each one
+// onto a synthetic `CamRow` so it competes in the SAME relevance ranking as
+// the map's hand-curated AP rows (`LIA_PERSUASIVE_AUTHORITY_LIMIT`, the join
+// caps) — never a separate, unranked channel. The synthetic row's `display`
+// text is filled only so it satisfies `apEntries`' shared construction below
+// (every field that code touches, nothing else); THAT TEXT NEVER REACHES A
+// CUSTOMER — `buildLiaPersuasiveAuthority` renders a hook-backed entry only
+// when `hook-join.ts`'s `applyLiaHooks` actually produced an application for
+// it (doc 213B §1.3), and drops it otherwise, however far it ranked.
+
+const KNOWN_HOOK_RELATIONSHIPS: ReadonlySet<string> = new Set(["employee", "customer", "prospect", "public", "child"]);
+const KNOWN_HOOK_INSTRUMENTS: ReadonlySet<string> = new Set(["EU GDPR", "UK GDPR", "EU GDPR (pre-2021 UK)", "Directive 95/46"]);
+const KNOWN_CAM_SOURCE_TABLES: ReadonlySet<string> = new Set([
+  "cppa_fsor_commentary",
+  "cppa_authorities",
+  "provision_texts",
+  "edpb_guidelines",
+  "gdpr_articles",
+  "gdpr_recitals",
+  "enforcement_actions",
+]);
+
+/** Build the `CamRelevanceProfile` the scorer needs from a hook's own
+ *  `relevance` block. `country` has no hook-vocabulary equivalent and is
+ *  never read by `scoreRelevance`/`relevanceSentence` — left "". A
+ *  `relationship`/`instrument` value outside the CAM-typed union degrades to
+ *  null/"EU GDPR" (never scores a false match, never throws) rather than
+ *  reject the whole hook — the same "never trust an atom blindly" posture
+ *  hook-join.ts already applies to a hook's atoms. */
+function hookRelevanceProfile(hook: AuthorityHook): CamRelevanceProfile {
+  const rel = hook.relevance;
+  const relationship = rel.relationship !== null && KNOWN_HOOK_RELATIONSHIPS.has(rel.relationship)
+    ? (rel.relationship as CamRelevanceProfile["relationship"])
+    : null;
+  const instrument = KNOWN_HOOK_INSTRUMENTS.has(rel.instrument)
+    ? (rel.instrument as CamRelevanceProfile["instrument"])
+    : "EU GDPR";
+  return {
+    country: "",
+    instrument,
+    factor_ids: rel.factor_ids,
+    use_case_class: rel.use_case_class,
+    // `rel.outcome_posture` is expected to always equal `hook.posture`
+    // (hook-types.ts's own doc comment) — `hook.posture` is used here
+    // because it is already typed to the exact union CamRelevanceProfile
+    // declares, with no further narrowing needed.
+    outcome_posture: hook.posture,
+    relationship,
+    data_categories: rel.data_categories,
+    flags: rel.flags,
+  };
+}
+
+/** `enforcement_actions:<row_id>:v<n>` is the shipped `hook_id` form
+ *  (213A-TRACK-H2-BUILD-LOG-2026-09-07.md's Lovable message, item A) — the
+ *  prefix names the CAM `source_table`. An unrecognised or missing prefix
+ *  degrades to "enforcement_actions" (every first-batch source is one,
+ *  doc 213 §3) rather than reject the hook outright. */
+function sourceTableForHookId(hookId: string): CamRow["source_table"] {
+  const prefix = hookId.slice(0, hookId.indexOf(":"));
+  return (KNOWN_CAM_SOURCE_TABLES.has(prefix) ? prefix : "enforcement_actions") as CamRow["source_table"];
+}
+
+/**
+ * One synthetic `CamRow` per hook eligible to become a NEW ranking
+ * candidate. A hook is excluded from `rows` (never duplicated, never
+ * suppressed twice) when:
+ *   - its `source_row_id` is already cited as a fired rule's determinative
+ *     authority (`excludeSourceIds`) — the same exclusion the map's own
+ *     rows already receive, applied symmetrically (doc 213B §1.3's
+ *     "determinative suppression stands");
+ *   - its `source_row_id` is already a render-eligible CAM AP row — "the
+ *     CAM row wins on duplicate source_row_id" (doc 213B §1.2). The hook
+ *     itself is NOT excluded from `applyLiaHooks`'s own input in this case
+ *     — that is what lets it re-text the existing CAM entry (H2 behaviour).
+ * `hookSourceIds` names every source_row_id a synthetic row was built for,
+ * so the caller can tell a hook-backed candidate from a CAM one after
+ * ranking (a hook-backed entry with no join application is dropped, never
+ * rendered with this row's own display text — doc 213B §1.3).
+ */
+function hookCandidateRows(
+  hooks: readonly AuthorityHook[],
+  excludeSourceIds: ReadonlySet<string>,
+): { rows: CamRow[]; profiles: ReadonlyMap<string, CamRelevanceProfile>; hookSourceIds: ReadonlySet<string> } {
+  const camApSourceIds = new Set(
+    LIA_CORPUS_MAP.rows
+      .filter((r) => r.role === "AP" && r.render_eligible && r.display)
+      .map((r) => r.source_row_id),
+  );
+  const rows: CamRow[] = [];
+  const profiles = new Map<string, CamRelevanceProfile>();
+  const hookSourceIds = new Set<string>();
+  for (const hook of hooks) {
+    if (excludeSourceIds.has(hook.source_row_id)) continue;
+    if (camApSourceIds.has(hook.source_row_id)) continue;
+    const row: CamRow = {
+      id: `lia/hook/${hook.hook_id}`,
+      factor_id: hook.factor_id,
+      role: "AP",
+      source_table: sourceTableForHookId(hook.hook_id),
+      source_row_id: hook.source_row_id,
+      excerpt_field: "",
+      pinned_excerpt: "",
+      render_eligible: true,
+      render_surface: "S5",
+      purpose_class: "authority",
+      display: {
+        matter: hook.authority_label,
+        what_happened: hook.finding_paraphrase,
+        bearing: hook.finding_paraphrase,
+        authority_label: hook.authority_label,
+        trail_cite: hook.authority_label,
+      },
+      direction: "neutral",
+      logic_bearing: false,
+      // "" rather than the actual curation date: this row is never curated,
+      // never verified independently of the hook itself — the hook's own
+      // ratification stamp (public.authority_hooks, doc 213 §1) is its
+      // provenance, not a CAM curation pass.
+      provenance: { verified_on: "" },
+      curation_note:
+        "DOC 213B — synthetic ranking candidate for a ratified hook (lia-persuasive-authority.ts hookCandidateRows). This row's own display text never reaches a customer: a hook-backed entry renders only when hook-join.ts's applyLiaHooks produces an application for it, and is dropped otherwise, however far it ranked.",
+    };
+    rows.push(row);
+    profiles.set(row.id, hookRelevanceProfile(hook));
+    hookSourceIds.add(hook.source_row_id);
+  }
+  return { rows, profiles, hookSourceIds };
+}
+
 // ── Entries ──────────────────────────────────────────────────────────────────
 
 function apEntries(
@@ -268,12 +408,18 @@ function apEntries(
   // ranking runs, so it can never also occupy one of the top-5 relevance
   // slots as merely persuasive (the same authority never appears twice).
   excludeSourceIds: ReadonlySet<string> = new Set(),
-): { entries: PersuasiveEntry[]; ranked: ScoredRow[] } {
-  const candidateRows = excludeSourceIds.size
+  // DOC 213B — ratified hooks in play for THIS render (already resolved by
+  // the caller to [] when hooks are not active — see buildLiaPersuasiveAuthority).
+  hooks: readonly AuthorityHook[] = [],
+): { entries: PersuasiveEntry[]; ranked: ScoredRow[]; hookSourceIds: ReadonlySet<string> } {
+  const baseRows = excludeSourceIds.size
     ? LIA_CORPUS_MAP.rows.filter((r) => !excludeSourceIds.has(r.source_row_id))
     : LIA_CORPUS_MAP.rows;
+  const { rows: hookRows, profiles: hookProfiles, hookSourceIds } = hookCandidateRows(hooks, excludeSourceIds);
+  const candidateRows = hookRows.length > 0 ? [...baseRows, ...hookRows] : baseRows;
+  const profileOfRow = (row: CamRow): CamRelevanceProfile | undefined => hookProfiles.get(row.id) ?? liaProfileOf(row);
   const ranked = rankByRelevance(candidateRows, query, {
-    profileOf: liaProfileOf,
+    profileOf: profileOfRow,
     elementOf: liaElementOf,
     limit: LIA_PERSUASIVE_AUTHORITY_LIMIT,
   });
@@ -288,7 +434,7 @@ function apEntries(
       }`,
     };
   });
-  return { entries, ranked };
+  return { entries, ranked, hookSourceIds };
 }
 
 function precedentEntries(report: Bag): PersuasiveEntry[] {
@@ -423,6 +569,28 @@ export interface LiaPersuasiveContext {
    *  "necessity" | "balancing" -> verdict string), used only for the
    *  direction matrix's own verdict check. Omitted → hooks are skipped. */
   readonly verdicts?: Record<string, string>;
+  /** DOC 213B §1.5 — the test seam: inject fixture hooks directly, in place
+   *  of `LIA_HOOKS` (which ships empty until the first ratified row —
+   *  doc213-hook-join.test.ts's `makeHook` fixtures use exactly this field,
+   *  never `LIA_HOOKS` itself, "the same seam H2's tests use on
+   *  applyLiaHooks"). Omitted → `LIA_HOOKS`.
+   *
+   *  Supplying this field is ALSO what activates the hook block for a test,
+   *  independent of `LIA_HOOKS_ENABLED`: that flag is a module-scope
+   *  constant read once from `Deno.env.get` at first import
+   *  (lia-hooks-flag.ts), so a test running inside the fleet's shared `deno
+   *  test <dir>` process can never observe it flip to true — the very
+   *  constraint 213A-TRACK-H2-BUILD-LOG-2026-09-07.md's Deviation 5
+   *  documents (H2 worked around it by testing `applyLiaHooks` directly,
+   *  which has no notion of the flag at all; H3's ranking/candidate logic
+   *  lives inside THIS gated function, so the equivalent bypass has to be a
+   *  field here rather than a different function to call). Production
+   *  never sets this field — the one real call site
+   *  (lia-skeleton-assemble.ts) supplies only `intake` — so the flag still
+   *  governs every actual report exactly as H2 shipped it: "everything
+   *  ships dark behind LIA_HOOKS_ENABLED" (doc 213 line 3) is unchanged for
+   *  any caller that does not deliberately reach for this seam. */
+  readonly hooks?: readonly AuthorityHook[];
 }
 
 /**
@@ -445,24 +613,40 @@ export function buildLiaPersuasiveAuthority(
   const contrary = contraryAuthorityEntries(applications);
   const determinativeSourceIds = new Set(determinative.map((e) => e.source_row_id).filter(Boolean));
 
-  const ap = apEntries(query, determinativeSourceIds);
+  // DOC 213B — hooks are "in play" for this render only when a hook source
+  // is actually available AND the caller supplied both `ctx.states` and
+  // `ctx.verdicts` (hook-join has nothing to nominate against without a
+  // states bag, and — new to H3 — a hook-backed candidate must never
+  // surface its own synthetic display text merely for having ranked well;
+  // it renders only through an actual join application, doc 213B §1.3).
+  // `ctx.hooks`, when supplied, both NAMES the hook source and OPENS the
+  // gate that `LIA_HOOKS_ENABLED` otherwise controls — see that field's own
+  // doc comment on `LiaPersuasiveContext` for why a test seam has to work
+  // this way here. The default path (`ctx.hooks` omitted) is untouched:
+  // `LIA_HOOKS_ENABLED && LIA_HOOKS.length > 0`, exactly as H2 shipped it,
+  // and `LIA_HOOKS` ships `[]` today regardless, so `hooksInPlay` is always
+  // `[]` in production this build lands into.
+  const hooksGateOpen = ctx.hooks !== undefined || LIA_HOOKS_ENABLED;
+  const hooksSource = ctx.hooks ?? LIA_HOOKS;
+  const hooksInPlay: readonly AuthorityHook[] = hooksGateOpen && hooksSource.length > 0 && ctx.states && ctx.verdicts
+    ? hooksSource
+    : [];
+
+  const ap = apEntries(query, determinativeSourceIds, hooksInPlay);
   const precedent = precedentEntries(report).filter((e) => !determinativeSourceIds.has(e.source_row_id));
 
-  // DOC 213 TRACK H2 — offline analogy hooks. Off by default (LIA_HOOKS_
-  // ENABLED defaults false) and a no-op today regardless of the flag's
-  // value (LIA_HOOKS ships [] until the first ratified row) — this whole
-  // block, and every byte it could touch, is identity-gated on
-  // `LIA_HOOKS.length > 0` on top of the flag, so nothing here changes
-  // production output before both a flag flip AND a ratified hook exist.
-  // A caller that omits `ctx.states`/`ctx.verdicts` also gets no hooks,
-  // even with the flag on and hooks ratified — hook-join has nothing to
-  // nominate against without a states bag (doc 213 §6).
+  // DOC 213/213B — offline analogy hooks. `hooksInPlay` is always `[]`
+  // unless BOTH the gate above is open AND at least one hook is supplied —
+  // so this whole block, and every byte it could touch, remains identity-
+  // gated exactly as H2 shipped it whenever a caller relies on the default
+  // (`ctx.hooks` omitted): nothing here changes production output before
+  // both a flag flip AND a ratified hook exist.
   let hookFlags: readonly { hook_id: string; reason: string }[] = [];
   let apEntriesForBody = ap.entries;
-  if (LIA_HOOKS_ENABLED && LIA_HOOKS.length > 0 && ctx.states && ctx.verdicts) {
+  if (hooksInPlay.length > 0 && ctx.states && ctx.verdicts) {
     const rankedSourceIds = ap.ranked.map((sr) => sr.row.source_row_id);
     const { applications, flags } = applyLiaHooks(
-      LIA_HOOKS,
+      hooksInPlay,
       ctx.states,
       ctx.verdicts,
       rankedSourceIds,
@@ -473,7 +657,7 @@ export function buildLiaPersuasiveAuthority(
     const dropSourceIds = new Set<string>();
     for (const f of flags) {
       if (!LIA_HOOK_OMIT_REASONS.has(f.reason)) continue;
-      const hook = LIA_HOOKS.find((h) => h.hook_id === f.hook_id);
+      const hook = hooksInPlay.find((h) => h.hook_id === f.hook_id);
       if (hook) dropSourceIds.add(hook.source_row_id);
     }
     // FIRST BUILD LIMITATION (doc 213 §6): an entry the matrix omits is
@@ -484,7 +668,17 @@ export function buildLiaPersuasiveAuthority(
       .map((e) => {
         const applied = bySource.get(e.source_row_id);
         return applied ? { ...e, text: applied.sentence } : e;
-      });
+      })
+      // DOC 213B §1.3 — a hook-backed (synthetic) candidate renders ONLY
+      // through an actual join application; it never falls back to the
+      // text `apEntries` built from its display block (that text exists
+      // only so the synthetic row satisfies `apEntries`' shared
+      // PersuasiveEntry construction — it is never ratified prose). This
+      // also catches a hook that ranked into the top five but was never
+      // nominated (its `required_atoms` did not hold) or lost the join's
+      // own report/factor cap — neither produces a flag, so `dropSourceIds`
+      // above cannot see it.
+      .filter((e) => !ap.hookSourceIds.has(e.source_row_id) || bySource.has(e.source_row_id));
   }
 
   const seen = new Set<string>();
