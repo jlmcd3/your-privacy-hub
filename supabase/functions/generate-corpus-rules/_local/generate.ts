@@ -281,7 +281,7 @@ export function generateRules(input: GenerateRulesInput): GenerateRulesResult {
   }
 
   const sorted = [...emitted].sort((a, b) => (a.rule_id < b.rule_id ? -1 : a.rule_id > b.rule_id ? 1 : 0));
-  const body = sorted.map((row) => JSON.stringify(shippedRule(row), null, 2)
+  const body = sorted.map((row) => JSON.stringify(shippedRule(row, input.profiles), null, 2)
     .split("\n").map((line) => `  ${line}`).join("\n")).join(",\n");
 
   const excludedLines = excluded.length === 0
@@ -298,7 +298,8 @@ export function generateRules(input: GenerateRulesInput): GenerateRulesResult {
 // EXCLUDED ROWS (named, not silently dropped):
 ${excludedLines}
 
-import type { AuthorityRule } from "${typeImportSpecifier(input.outputPath)}";
+import type { AuthorityRule, RuleContext } from "${typeImportSpecifier(input.outputPath)}";
+
 
 export const ${prefix}_RULES_VERSION = ${JSON.stringify(input.rulesVersion)};
 
