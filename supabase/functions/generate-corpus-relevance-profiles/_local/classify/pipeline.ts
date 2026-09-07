@@ -61,6 +61,9 @@ export interface PipelineRun {
   readonly checkpoints: readonly CheckpointReport[];
   readonly pipeline_version: string;
   readonly stage2_candidates: readonly string[];
+  /** Per candidate id, the truncated raw model answers from both stage-2
+   *  framings, so provider errors are visible in persisted output. */
+  readonly stage2_raw: Readonly<Record<string, { find_rule_raw: string; argue_pattern_raw: string }>>;
   readonly promoted_ids: readonly string[];
 }
 
@@ -235,6 +238,12 @@ export async function runClassificationPipeline(
     checkpoints,
     pipeline_version,
     stage2_candidates: shortlist.map((c) => c.id),
+    stage2_raw: Object.fromEntries(
+      [...consistency.entries()].map(([id, r]) => [id, {
+        find_rule_raw: String(r.find_rule.raw ?? "").slice(0, 600),
+        argue_pattern_raw: String(r.argue_pattern.raw ?? "").slice(0, 600),
+      }]),
+    ),
     promoted_ids: outcomes.filter((o) => o.rule_or_pattern === "rule").map((o) => o.candidate.id),
   };
 }

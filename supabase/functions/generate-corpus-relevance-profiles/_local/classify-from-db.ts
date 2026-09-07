@@ -101,6 +101,7 @@ export function resultRows(args: {
   candidates: readonly CandidateWithLength[];
   outcomes: readonly ClassificationOutcome[];
   stage2CandidateIds: readonly string[];
+  stage2Raw?: Readonly<Record<string, { find_rule_raw: string; argue_pattern_raw: string }>>;
   promotedIds: readonly string[];
 }) {
   const outcomes = new Map(args.outcomes.map((outcome) => [outcome.candidate.id, outcome]));
@@ -119,7 +120,7 @@ export function resultRows(args: {
       pipeline_version: args.pipelineVersion,
       excerpt_chars,
       outcome,
-      stage2: stage2.has(candidate.id) ? candidate.id : null,
+      stage2: args.stage2Raw?.[candidate.id] ?? (stage2.has(candidate.id) ? candidate.id : null),
       promoted: promoted.has(candidate.id),
     };
   });
