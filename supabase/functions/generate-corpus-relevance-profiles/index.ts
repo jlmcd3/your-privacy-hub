@@ -99,10 +99,17 @@ function anthropicCall(model: string, onFailure?: (status: number, message: stri
       if (r.ok) {
         const body = await r.json();
         // Opus 5 runs adaptive thinking: content[0] can be a thinking block,
-        // so take the first TEXT block rather than the first block.
+        // so take the first TEXT block rather than the first block. An answer
+        // with no text block must never read downstream as "not a rule".
         const blocks = Array.isArray(body?.content) ? body.content : [];
         const text = blocks.find((b: { type?: string }) => b?.type === "text");
-        return text ? String(text.text) : "";
+        if (!text || typeof text.text !== "string" || text.text.length === 0) {
+          const types = blocks.map((b: { type?: string }) => String(b?.type ?? "unknown")).join(",") || "none";
+          throw new Error(
+            `Anthropic returned no text block (stop_reason=${String(body?.stop_reason ?? "unknown")}; blocks=[${types}])`,
+          );
+        }
+        return String(text.text);
       }
       const errText = await r.text().catch(() => "no body");
       const message = `Anthropic ${r.status}: ${errText.slice(0, 300)}`;
