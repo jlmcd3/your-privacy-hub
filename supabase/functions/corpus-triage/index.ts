@@ -1,5 +1,5 @@
 // build-marker: corpus-triage-v1-2026-09-07
-console.log("[build-marker] corpus-triage v1-2026-09-07");
+console.log("[build-marker] corpus-triage v2-2026-09-07 (sharded + LIA handoff)");
 //
 // BACKGROUND TRIAGE PASS over the `needs_triage` bucket left by the
 // deterministic sweep (corpus_sweep_v2). Cheap model, small bounded batches,
@@ -13,11 +13,16 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
   type ActionText,
+  isLiaHandoff,
   MAX_BATCH_SIZE,
+  INVOCATION_BUDGET_MS,
+  MAX_CONCURRENCY,
   parseTriageOutcome,
   parseTriageRequest,
   TRIAGE_LEASE_SECONDS,
   TRIAGE_PIPELINE_VERSION,
+  shardBounds,
+  type TriageOutcome,
   TRIAGE_SYSTEM,
   triageExcerpt,
 } from "./_local/triage.ts";
@@ -101,22 +106,31 @@ async function setRunStatus(
   if (error) throw new Error(`triage job-state write failed: ${error.message}`);
 }
 
-async function cursorFor(runId: string): Promise<string | null> {
-  const { data, error } = await admin().from("corpus_triage_results")
-    .select("action_id").eq("run_id", runId).order("action_id", { ascending: false }).limit(1).maybeSingle();
+async function cursorFor(runId: string, shard: { lo: string; hi: string | null }): Promise<string | null> {
+  let query = admin().from("corpus_triage_results")
+    .select("action_id").eq("run_id", runId).gte("action_id", shard.lo)
+    .order("action_id", { ascending: false }).limit(1);
+  if (shard.hi) query = query.lt("action_id", shard.hi);
+  const { data, error } = await query.maybeSingle();
   if (error) throw new Error(`triage cursor read failed: ${error.message}`);
   return data?.action_id ?? null;
 }
 
 /** Next unprocessed `needs_triage` action ids, ascending, past the cursor. */
-async function nextActionIds(runId: string, cursor: string | null, batchSize: number): Promise<string[]> {
+async function nextActionIds(
+  runId: string,
+  cursor: string | null,
+  batchSize: number,
+  shard: { lo: string; hi: string | null },
+): Promise<string[]> {
   const db = admin();
   let query = db.from("corpus_sweep_v2")
     .select("action_id")
     .contains("usable_for", ["needs_triage"])
     .order("action_id", { ascending: true })
     .limit(Math.max(batchSize * 4, 40));
-  if (cursor) query = query.gt("action_id", cursor);
+  query = query.gte("action_id", cursor ?? shard.lo);
+  if (shard.hi) query = query.lt("action_id", shard.hi);
   const { data, error } = await query;
   if (error) throw new Error(`triage candidate read failed: ${error.message}`);
   const ids = (data ?? []).map((row) => row.action_id as string);
@@ -125,16 +139,88 @@ async function nextActionIds(runId: string, cursor: string | null, batchSize: nu
     .select("action_id").eq("run_id", runId).in("action_id", ids);
   if (doneError) throw new Error(`triage result lookup failed: ${doneError.message}`);
   const seen = new Set((done ?? []).map((row) => row.action_id as string));
-  return ids.filter((id) => !seen.has(id)).slice(0, batchSize);
+  return ids.filter((id) => id !== cursor && !seen.has(id)).slice(0, batchSize);
 }
 
-async function loadActions(ids: readonly string[]): Promise<ActionText[]> {
+async function loadActions(ids: readonly string[]): Promise<(ActionText & { law: string | null })[]> {
   if (ids.length === 0) return [];
   const { data, error } = await admin().from("enforcement_actions")
-    .select("id,subject,regulator,jurisdiction,source_url,source_database,decision_date,source_document_text,raw_text,legacy_summary_text")
+    .select("id,subject,regulator,jurisdiction,law,source_url,source_database,decision_date,source_document_text,raw_text,legacy_summary_text")
     .in("id", ids as string[]);
   if (error) throw new Error(`enforcement_actions read failed: ${error.message}`);
-  return (data ?? []) as ActionText[];
+  return (data ?? []) as (ActionText & { law: string | null })[];
+}
+
+
+/**
+ * REPAIR + HANDOFF. When triage finds a legitimate-interests matter, the record
+ * is completed where it is safely derivable (a subject the sweep could not
+ * parse) and an UNRATIFIED `authority_relevance_profiles` row is created so the
+ * LIA classifier picks it up on its next tick. Nothing becomes customer-facing:
+ * the profile carries no ratification stamp, exactly like every other dark row.
+ */
+const HANDOFF_CURATOR = "corpus-triage-handoff";
+
+async function repairAndHandOff(
+  row: ActionText & { law: string | null },
+  outcome: TriageOutcome,
+  runId: string,
+): Promise<{ profile_id: string | null; repaired_subject: string | null }> {
+  const db = admin();
+  let repaired: string | null = null;
+
+  // Record repair: only a missing subject, only from text the model copied out,
+  // only when it is confident. Everything else stays untouched.
+  if (!row.subject?.trim() && outcome.proposed_subject && (outcome.confidence ?? 0) >= 0.6) {
+    const { error } = await db.from("enforcement_actions")
+      .update({ subject: outcome.proposed_subject }).eq("id", row.id).is("subject", null);
+    if (!error) repaired = outcome.proposed_subject;
+  }
+
+  const { data: existing } = await db.from("authority_relevance_profiles")
+    .select("id").eq("product", "lia").eq("source_table", "enforcement_actions")
+    .eq("source_row_id", row.id).limit(1).maybeSingle();
+  if (existing?.id) return { profile_id: existing.id, repaired_subject: repaired };
+
+  const note = [
+    `Handed off by ${TRIAGE_PIPELINE_VERSION} (run ${runId}).`,
+    outcome.rationale ?? "",
+    `li_relevance=${outcome.proposed_li_relevance ?? "unknown"}`,
+    `record_class=${outcome.proposed_record_class ?? "unknown"}`,
+    row.source_url ? `source=${row.source_url}` : "",
+  ].filter(Boolean).join(" ");
+
+  const { data: inserted, error } = await db.from("authority_relevance_profiles").insert({
+    product: "lia",
+    source_table: "enforcement_actions",
+    source_row_id: row.id,
+    country: row.jurisdiction ?? "unknown",
+    instrument: row.law ?? "unknown",
+    outcome_posture: "contested",
+    rule_or_pattern: "pattern",
+    curation_note: note,
+    curated_by: HANDOFF_CURATOR,
+    pipeline_stage: "stage0_prior",
+    confidence_tier: (outcome.confidence ?? 0) >= 0.8 ? "medium" : "low",
+    pipeline_version: TRIAGE_PIPELINE_VERSION,
+  }).select("id").maybeSingle();
+  if (error) throw new Error(`handoff profile insert failed: ${error.message}`);
+  return { profile_id: inserted?.id ?? null, repaired_subject: repaired };
+}
+
+/** Bounded-concurrency map that preserves input order. */
+async function pooled<T, R>(items: readonly T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const out = new Array<R>(items.length);
+  let next = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (true) {
+      const index = next++;
+      if (index >= items.length) return;
+      out[index] = await fn(items[index]);
+    }
+  });
+  await Promise.all(workers);
+  return out;
 }
 
 Deno.serve(async (req) => {
@@ -201,76 +287,120 @@ Deno.serve(async (req) => {
     const paused = state?.status === "paused";
     const batchSize = paused ? 1 : parsed.batch_size; // probe a single item while paused
 
-    leaseKey = `corpus-triage:${parsed.run_id}`;
+    // Lease per shard: workers on disjoint slices must not block each other.
+    leaseKey = `corpus-triage:${parsed.run_id}:${parsed.shard_index}/${parsed.shard_count}`;
     const { data: acquired, error: leaseError } = await db.rpc("try_acquire_job_lease", {
       _key: leaseKey, _seconds: TRIAGE_LEASE_SECONDS, _holder: crypto.randomUUID(),
     });
     if (leaseError) throw new Error(`triage lease failed: ${leaseError.message}`);
     if (!acquired) return json({ error: "triage run already active", run_id: parsed.run_id }, 409);
 
-    const cursor = parsed.cursor === undefined ? await cursorFor(parsed.run_id) : parsed.cursor;
-    const ids = await nextActionIds(parsed.run_id, cursor ?? null, batchSize);
-    if (ids.length === 0) {
-      return json({
-        ok: true, run_id: parsed.run_id, done: true, processed: 0, cursor,
-        message: "queue drained — stop the driver",
-      });
-    }
+    const shard = shardBounds(parsed.shard_index, parsed.shard_count);
+    // WAVES: one invocation keeps pulling bounded batches until its wall-clock
+    // budget is spent or the queue drains, so a single scheduled tick clears far
+    // more of the finite backlog than one batch could.
+    let cursor = parsed.cursor === undefined ? await cursorFor(parsed.run_id, shard) : parsed.cursor;
+    const totals = { ok: 0, unusable: 0, error: 0 };
+    let processedTotal = 0;
+    let handedOffTotal = 0;
+    let repairedTotal = 0;
+    let waves = 0;
+    let drained = false;
 
-    const actions = await loadActions(ids);
-    const byId = new Map(actions.map((row) => [row.id, row]));
-    const rows: Record<string, unknown>[] = [];
-    let lastId = cursor ?? null;
-    let counted = { ok: 0, unusable: 0, error: 0 };
+    while (Date.now() - started < INVOCATION_BUDGET_MS) {
+      const ids = await nextActionIds(parsed.run_id, cursor ?? null, batchSize, shard);
+      if (ids.length === 0) { drained = true; break; }
+      waves += 1;
 
-    for (const id of ids) {
-      const row = byId.get(id);
-      if (!row) continue;
-      let raw = "";
-      try {
-        raw = await callModel(triageExcerpt(row));
-      } catch (e) {
-        const status = (e as { status?: number }).status ?? 0;
-        const message = e instanceof Error ? e.message : String(e);
-        if (status === 402 || status === 403 || status === 429) {
-          // Circuit breaker: halt the whole run, not just this item.
-          await setRunStatus(parsed.run_id, status === 429 ? "rate_limited" : "paused", status, message);
-          if (rows.length > 0) await db.from("corpus_triage_results").upsert(rows, { onConflict: "run_id,action_id" });
-          return json({ ok: false, run_id: parsed.run_id, paused: true, status, error: message, processed: rows.length }, status);
+      const actions = await loadActions(ids);
+      const byId = new Map(actions.map((row) => [row.id, row]));
+      const rows: Record<string, unknown>[] = [];
+      let lastId = cursor ?? null;
+      let breaker: { status: number; message: string } | null = null;
+
+      // Model calls run in parallel (bounded) — a batch is dominated by
+      // round-trip latency. Persistence stays sequential and idempotent.
+      const results = await pooled(ids, MAX_CONCURRENCY, async (id) => {
+        const row = byId.get(id);
+        if (!row) return { id, row: null, raw: "", failure: null as null | { status: number; message: string } };
+        try {
+          return { id, row, raw: await callModel(triageExcerpt(row)), failure: null };
+        } catch (e) {
+          const status = (e as { status?: number }).status ?? 0;
+          const message = e instanceof Error ? e.message : String(e);
+          return { id, row, raw: "", failure: { status, message } };
         }
-        rows.push({
-          run_id: parsed.run_id, action_id: id, model: TRIAGE_MODEL,
-          status: "error", rationale: message.slice(0, 400),
-        });
-        counted.error += 1;
-        lastId = id;
-        continue;
-      }
-      const outcome = parseTriageOutcome(raw);
-      counted[outcome.status] += 1;
-      rows.push({
-        run_id: parsed.run_id,
-        action_id: id,
-        model: TRIAGE_MODEL,
-        proposed_subject: outcome.proposed_subject,
-        proposed_record_class: outcome.proposed_record_class,
-        proposed_usable_for: outcome.proposed_usable_for,
-        proposed_topic_tags: outcome.proposed_topic_tags,
-        proposed_li_relevance: outcome.proposed_li_relevance,
-        confidence: outcome.confidence,
-        rationale: outcome.rationale,
-        raw_head: raw.slice(0, 600),
-        status: outcome.status,
       });
-      lastId = id;
+
+      for (const result of results) {
+        if (!result.row) continue;
+        if (result.failure) {
+          const { status, message } = result.failure;
+          if (status === 402 || status === 403 || status === 429) {
+            // Circuit breaker: halt the whole run, not just this item.
+            breaker = { status, message };
+            continue;
+          }
+          rows.push({
+            run_id: parsed.run_id, action_id: result.id, model: TRIAGE_MODEL,
+            status: "error", rationale: message.slice(0, 400),
+          });
+          totals.error += 1;
+          lastId = result.id;
+          continue;
+        }
+        const outcome = parseTriageOutcome(result.raw);
+        totals[outcome.status] += 1;
+
+        let handoff: { profile_id: string | null; repaired_subject: string | null } =
+          { profile_id: null, repaired_subject: null };
+        if (!parsed.dry_run && isLiaHandoff(outcome)) {
+          handoff = await repairAndHandOff(result.row, outcome, parsed.run_id);
+          if (handoff.profile_id) handedOffTotal += 1;
+          if (handoff.repaired_subject) repairedTotal += 1;
+        }
+
+        rows.push({
+          run_id: parsed.run_id,
+          action_id: result.id,
+          model: TRIAGE_MODEL,
+          proposed_subject: outcome.proposed_subject,
+          proposed_record_class: outcome.proposed_record_class,
+          proposed_usable_for: outcome.proposed_usable_for,
+          proposed_topic_tags: outcome.proposed_topic_tags,
+          proposed_li_relevance: outcome.proposed_li_relevance,
+          confidence: outcome.confidence,
+          rationale: outcome.rationale,
+          raw_head: result.raw.slice(0, 600),
+          status: outcome.status,
+          handoff_profile_id: handoff.profile_id,
+          repaired_subject: handoff.repaired_subject,
+        });
+        lastId = result.id;
+      }
+
+      if (!parsed.dry_run && rows.length > 0) {
+        const { error } = await db.from("corpus_triage_results").upsert(rows, { onConflict: "run_id,action_id" });
+        if (error) throw new Error(`triage result write failed: ${error.message}`);
+      }
+      processedTotal += rows.length;
+      cursor = lastId;
+
+      if (breaker) {
+        await setRunStatus(parsed.run_id, breaker.status === 429 ? "rate_limited" : "paused",
+          breaker.status, breaker.message);
+        return json({
+          ok: false, run_id: parsed.run_id, paused: true, status: breaker.status,
+          error: breaker.message, processed: processedTotal, cursor,
+        }, breaker.status);
+      }
+      if (paused) break; // single probe item while paused
     }
 
-    if (!parsed.dry_run && rows.length > 0) {
-      const { error } = await db.from("corpus_triage_results").upsert(rows, { onConflict: "run_id,action_id" });
-      if (error) throw new Error(`triage result write failed: ${error.message}`);
-    }
     // A successful batch clears an earlier pause (probe recovery).
-    if (paused && counted.error === 0) await setRunStatus(parsed.run_id, "ready", null, null);
+    if (paused && totals.error === 0 && processedTotal > 0) {
+      await setRunStatus(parsed.run_id, "ready", null, null);
+    }
 
     return json({
       ok: true,
@@ -279,10 +409,15 @@ Deno.serve(async (req) => {
       model: TRIAGE_MODEL,
       dry_run: parsed.dry_run,
       probe: paused,
-      processed: rows.length,
-      counts: counted,
-      cursor: lastId,
-      done: false,
+      waves,
+      processed: processedTotal,
+      counts: totals,
+      shard: `${parsed.shard_index}/${parsed.shard_count}`,
+      handed_off_to_lia: handedOffTotal,
+      repaired_subjects: repairedTotal,
+      cursor,
+      done: drained,
+      message: drained ? "shard queue drained" : undefined,
       elapsed_ms: Date.now() - started,
     });
   } catch (e) {

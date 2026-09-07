@@ -11,8 +11,13 @@
 // taxonomy document requires.
 
 export const TRIAGE_PIPELINE_VERSION = "corpus-triage-v1-2026-09-07";
-export const TRIAGE_LEASE_SECONDS = 240;
-export const MAX_BATCH_SIZE = 12;
+export const TRIAGE_LEASE_SECONDS = 330;
+export const MAX_BATCH_SIZE = 24;
+export const MAX_CONCURRENCY = 8;
+/** Wall-clock budget for one invocation; waves keep running until it is spent. */
+export const INVOCATION_BUDGET_MS = 240_000;
+/** Shard counts must divide the 16 leading hex values of a uuid evenly. */
+export const SHARD_COUNTS = [1, 2, 4, 8, 16] as const;
 export const EXCERPT_CHARS = 6000;
 
 export const RECORD_CLASSES = [
@@ -62,6 +67,39 @@ export interface TriageRequest {
   batch_size: number;
   cursor?: string | null;
   dry_run: boolean;
+  shard_index: number;
+  shard_count: number;
+}
+
+/**
+ * Inclusive lower / exclusive upper uuid bound for a shard. Sharding on the
+ * leading hex nibble lets several workers walk disjoint slices of the same
+ * queue in parallel without any coordination beyond their own cursor.
+ */
+export function shardBounds(index: number, count: number): { lo: string; hi: string | null } {
+  const per = 16 / count;
+  const loNibble = Math.round(index * per);
+  const hiNibble = Math.round((index + 1) * per);
+  const hex = (n: number) => n.toString(16);
+  return {
+    lo: `${hex(loNibble)}0000000-0000-0000-0000-000000000000`,
+    hi: hiNibble >= 16 ? null : `${hex(hiNibble)}0000000-0000-0000-0000-000000000000`,
+  };
+}
+
+/** Records worth handing to the LIA classifier once triage has labelled them. */
+const HANDOFF_CLASSES = [
+  "enforcement_decision",
+  "enforcement_procedural",
+  "court_judgment",
+  "regulator_guidance",
+];
+
+export function isLiaHandoff(outcome: TriageOutcome): boolean {
+  if (outcome.status !== "ok") return false;
+  if (!outcome.proposed_record_class || !HANDOFF_CLASSES.includes(outcome.proposed_record_class)) return false;
+  if (outcome.proposed_usable_for.includes("li_precedent_candidate")) return true;
+  return outcome.proposed_li_relevance === "direct" || outcome.proposed_li_relevance === "adjacent";
 }
 
 export function parseTriageRequest(body: Record<string, unknown>): TriageRequest {
@@ -74,7 +112,22 @@ export function parseTriageRequest(body: Record<string, unknown>): TriageRequest
   const cursor = body.cursor === undefined
     ? undefined
     : (body.cursor === null ? null : String(body.cursor));
-  return { run_id: runId, batch_size: raw, cursor, dry_run: body.dry_run === true };
+  const shardCount = typeof body.shard_count === "number" ? Math.floor(body.shard_count) : 1;
+  if (!(SHARD_COUNTS as readonly number[]).includes(shardCount)) {
+    throw new Error(`shard_count must be one of ${SHARD_COUNTS.join(", ")}`);
+  }
+  const shardIndex = typeof body.shard_index === "number" ? Math.floor(body.shard_index) : 0;
+  if (!Number.isInteger(shardIndex) || shardIndex < 0 || shardIndex >= shardCount) {
+    throw new Error(`shard_index must be between 0 and ${shardCount - 1}`);
+  }
+  return {
+    run_id: runId,
+    batch_size: raw,
+    cursor,
+    dry_run: body.dry_run === true,
+    shard_index: shardIndex,
+    shard_count: shardCount,
+  };
 }
 
 export interface ActionText {
