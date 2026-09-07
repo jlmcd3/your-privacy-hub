@@ -235,7 +235,7 @@ export default function Pricing() {
                 <span className="tabular-nums">{PRICING.tools.biometric.display}</span>
               </li>
               <li className="flex justify-between">
-                <span>IR Playbook</span>
+                <span>Incident Response Playbook</span>
                 <span className="tabular-nums">{PRICING.tools.ir_playbook.display}</span>
               </li>
               <li className="flex justify-between">
@@ -243,15 +243,15 @@ export default function Pricing() {
                 <span className="tabular-nums">{PRICING.tools.dpa.display}</span>
               </li>
               <li className="flex justify-between">
-                <span>LIA / DPIA</span>
+                <span>LIA / DPIA (each)</span>
                 <span className="tabular-nums">{PRICING.tools.lia.display}</span>
               </li>
               <li className="flex justify-between">
-                <span>Governance</span>
+                <span>GDPR Accountability Assessment</span>
                 <span className="tabular-nums">{PRICING.tools.governance.display}</span>
               </li>
               <li className="flex justify-between">
-                <span>CPPA Suite</span>
+                <span>CPPA Full Audit Suite</span>
                 <span className="tabular-nums">{PRICING.tools.cppa_suite.display}</span>
               </li>
             </ul>
