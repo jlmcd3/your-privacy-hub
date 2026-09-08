@@ -47,6 +47,9 @@ export default function AdminEmailSignups() {
   const [search, setSearch] = useState<string>("");
 
   useEffect(() => {
+    // Wait for auth to resolve before concluding "not admin" — otherwise the
+    // guard below redirects to "/" before the role check ever runs.
+    if (authLoading) return;
     if (!user) { setIsAdmin(false); return; }
     supabase
       .from("user_roles")
@@ -55,7 +58,7 @@ export default function AdminEmailSignups() {
       .eq("role", "admin")
       .maybeSingle()
       .then(({ data }) => setIsAdmin(!!data));
-  }, [user]);
+  }, [user, authLoading]);
 
   useEffect(() => {
     if (!isAdmin) return;
