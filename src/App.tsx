@@ -436,6 +436,17 @@ const App = () => (
               }
             />
             <Route
+              path="/admin/enforcement-quality"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <AdminEnforcementQuality />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
               path="/admin/briefgen-status"
               element={
                 <ProtectedRoute>
