@@ -3585,6 +3585,120 @@ export type Database = {
         }
         Relationships: []
       }
+      intake_gate_results: {
+        Row: {
+          answer_hash: string
+          assessment_id: string | null
+          created_at: string | null
+          customer_action: string | null
+          field_id: string
+          id: string
+          model: string
+          other_limb_field: string | null
+          product: string
+          prompt_hash: string
+          question_text: string
+          raw: string
+          reason_codes: string[]
+          verdict: string
+        }
+        Insert: {
+          answer_hash: string
+          assessment_id?: string | null
+          created_at?: string | null
+          customer_action?: string | null
+          field_id: string
+          id?: string
+          model: string
+          other_limb_field?: string | null
+          product: string
+          prompt_hash: string
+          question_text: string
+          raw: string
+          reason_codes?: string[]
+          verdict: string
+        }
+        Update: {
+          answer_hash?: string
+          assessment_id?: string | null
+          created_at?: string | null
+          customer_action?: string | null
+          field_id?: string
+          id?: string
+          model?: string
+          other_limb_field?: string | null
+          product?: string
+          prompt_hash?: string
+          question_text?: string
+          raw?: string
+          reason_codes?: string[]
+          verdict?: string
+        }
+        Relationships: []
+      }
+      intake_readings: {
+        Row: {
+          answer_hash: string
+          assessment_id: string
+          created_at: string | null
+          decision_id: string
+          disposed_at: string | null
+          disposition: string
+          evidence_span: string
+          field_id: string
+          id: string
+          product: string
+          prop_id: string
+          question_text: string
+          revision_no: number
+        }
+        Insert: {
+          answer_hash: string
+          assessment_id: string
+          created_at?: string | null
+          decision_id: string
+          disposed_at?: string | null
+          disposition: string
+          evidence_span: string
+          field_id: string
+          id?: string
+          product: string
+          prop_id: string
+          question_text: string
+          revision_no?: number
+        }
+        Update: {
+          answer_hash?: string
+          assessment_id?: string
+          created_at?: string | null
+          decision_id?: string
+          disposed_at?: string | null
+          disposition?: string
+          evidence_span?: string
+          field_id?: string
+          id?: string
+          product?: string
+          prop_id?: string
+          question_text?: string
+          revision_no?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intake_readings_decision_id_fkey"
+            columns: ["decision_id"]
+            isOneToOne: false
+            referencedRelation: "proposition_decisions"
+            referencedColumns: ["decision_id"]
+          },
+          {
+            foreignKeyName: "intake_readings_prop_id_fkey"
+            columns: ["prop_id"]
+            isOneToOne: false
+            referencedRelation: "proposition_inventory"
+            referencedColumns: ["prop_id"]
+          },
+        ]
+      }
       internal_driver_tokens: {
         Row: {
           created_at: string
@@ -4143,6 +4257,7 @@ export type Database = {
           created_at: string | null
           data_categories: string[] | null
           id: string
+          intake_hash: string | null
           is_subscriber_credit: boolean | null
           jurisdictions: string[] | null
           last_attempt_at: string | null
@@ -4152,10 +4267,12 @@ export type Database = {
           pdf_url: string | null
           preview_assessment_id: string | null
           preview_signal: Json | null
+          preview_token: string | null
           processing_description: string
           purchase_price_cents: number | null
           purchased_as_standalone: boolean | null
           purpose_details: Json | null
+          readings_state: string | null
           relationship_type: string | null
           report_data: Json | null
           report_version: number | null
@@ -4170,6 +4287,7 @@ export type Database = {
           supplemental_responses: Json | null
           updated_at: string | null
           user_id: string | null
+          v3_flags: Json | null
         }
         Insert: {
           alternatives_considered?: string | null
@@ -4179,6 +4297,7 @@ export type Database = {
           created_at?: string | null
           data_categories?: string[] | null
           id?: string
+          intake_hash?: string | null
           is_subscriber_credit?: boolean | null
           jurisdictions?: string[] | null
           last_attempt_at?: string | null
@@ -4188,10 +4307,12 @@ export type Database = {
           pdf_url?: string | null
           preview_assessment_id?: string | null
           preview_signal?: Json | null
+          preview_token?: string | null
           processing_description: string
           purchase_price_cents?: number | null
           purchased_as_standalone?: boolean | null
           purpose_details?: Json | null
+          readings_state?: string | null
           relationship_type?: string | null
           report_data?: Json | null
           report_version?: number | null
@@ -4206,6 +4327,7 @@ export type Database = {
           supplemental_responses?: Json | null
           updated_at?: string | null
           user_id?: string | null
+          v3_flags?: Json | null
         }
         Update: {
           alternatives_considered?: string | null
@@ -4215,6 +4337,7 @@ export type Database = {
           created_at?: string | null
           data_categories?: string[] | null
           id?: string
+          intake_hash?: string | null
           is_subscriber_credit?: boolean | null
           jurisdictions?: string[] | null
           last_attempt_at?: string | null
@@ -4224,10 +4347,12 @@ export type Database = {
           pdf_url?: string | null
           preview_assessment_id?: string | null
           preview_signal?: Json | null
+          preview_token?: string | null
           processing_description?: string
           purchase_price_cents?: number | null
           purchased_as_standalone?: boolean | null
           purpose_details?: Json | null
+          readings_state?: string | null
           relationship_type?: string | null
           report_data?: Json | null
           report_version?: number | null
@@ -4242,6 +4367,7 @@ export type Database = {
           supplemental_responses?: Json | null
           updated_at?: string | null
           user_id?: string | null
+          v3_flags?: Json | null
         }
         Relationships: [
           {
@@ -4886,6 +5012,126 @@ export type Database = {
           subscription_type?: string | null
           updated_at?: string
           user_role?: string | null
+        }
+        Relationships: []
+      }
+      proposition_decisions: {
+        Row: {
+          conformance: Json | null
+          created_at: string | null
+          decision_id: string
+          field_id: string
+          input_hash: string
+          inventory_version: string
+          primary_model: string
+          primary_raw: string
+          product: string
+          prompt_hash: string
+          readings: Json
+          schema_hash: string
+          second_model: string
+          second_raw: string
+        }
+        Insert: {
+          conformance?: Json | null
+          created_at?: string | null
+          decision_id: string
+          field_id: string
+          input_hash: string
+          inventory_version: string
+          primary_model: string
+          primary_raw: string
+          product: string
+          prompt_hash: string
+          readings: Json
+          schema_hash: string
+          second_model: string
+          second_raw: string
+        }
+        Update: {
+          conformance?: Json | null
+          created_at?: string | null
+          decision_id?: string
+          field_id?: string
+          input_hash?: string
+          inventory_version?: string
+          primary_model?: string
+          primary_raw?: string
+          product?: string
+          prompt_hash?: string
+          readings?: Json
+          schema_hash?: string
+          second_model?: string
+          second_raw?: string
+        }
+        Relationships: []
+      }
+      proposition_inventory: {
+        Row: {
+          created_at: string | null
+          definition: string
+          drafted_at: string | null
+          drafted_by: string | null
+          effect_class: string
+          field_id: string
+          gate_eligible: boolean
+          label: string
+          ledger_ref: string | null
+          negative_examples: string[]
+          positive_examples: string[]
+          product: string
+          prop_id: string
+          ratified_at: string | null
+          ratified_by: string | null
+          retired_at: string | null
+          retired_reason: string | null
+          sibling_group: string | null
+          updated_at: string | null
+          version: number
+        }
+        Insert: {
+          created_at?: string | null
+          definition: string
+          drafted_at?: string | null
+          drafted_by?: string | null
+          effect_class: string
+          field_id: string
+          gate_eligible?: boolean
+          label: string
+          ledger_ref?: string | null
+          negative_examples?: string[]
+          positive_examples?: string[]
+          product: string
+          prop_id: string
+          ratified_at?: string | null
+          ratified_by?: string | null
+          retired_at?: string | null
+          retired_reason?: string | null
+          sibling_group?: string | null
+          updated_at?: string | null
+          version?: number
+        }
+        Update: {
+          created_at?: string | null
+          definition?: string
+          drafted_at?: string | null
+          drafted_by?: string | null
+          effect_class?: string
+          field_id?: string
+          gate_eligible?: boolean
+          label?: string
+          ledger_ref?: string | null
+          negative_examples?: string[]
+          positive_examples?: string[]
+          product?: string
+          prop_id?: string
+          ratified_at?: string | null
+          ratified_by?: string | null
+          retired_at?: string | null
+          retired_reason?: string | null
+          sibling_group?: string | null
+          updated_at?: string | null
+          version?: number
         }
         Relationships: []
       }
