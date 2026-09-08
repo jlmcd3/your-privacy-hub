@@ -124,9 +124,18 @@ export function parseIcoActionPage(url: string, html: string): IcoAction | null 
   const decisionDate = parseIcoDate(metaField(html, "Date"));
   const sector = metaField(html, "Sector");
 
-  const prose = html.match(/<div class="prose[^"]*">([\s\S]*?)<\/div>/i);
-  const narrative = prose ? stripTags(prose[1]) : "";
-  if (narrative.length < 60) return null;
+  // Older ICO pages open with a site-wide notice block rendered in the same
+  // `prose` wrapper as the case narrative, so every candidate block is scanned
+  // and boilerplate notices are skipped.
+  let narrative = "";
+  for (const m of html.matchAll(/<div class="prose[^"]*">([\s\S]*?)<\/div>/gi)) {
+    const text = stripTags(m[1]);
+    if (text.length < 60) continue;
+    if (isBoilerplateNotice(text)) continue;
+    narrative = text;
+    break;
+  }
+  if (!narrative) return null;
 
   const pdfMatch = html.match(/x-href="([^"]*\.pdf[^"]*)"/i) ??
     html.match(/href="([^"]*\/media2\/[^"]*\.pdf[^"]*)"/i);
