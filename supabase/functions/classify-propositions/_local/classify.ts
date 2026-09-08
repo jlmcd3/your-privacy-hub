@@ -13,9 +13,10 @@ import {
   type InventoryRow,
 } from "./prompts.ts";
 import { mergeLegs, verifyLeg, type MergedReading } from "./merge.ts";
-
-export const PRIMARY_MODEL = "claude-sonnet-5";
-export const SECOND_MODEL = "claude-haiku-4-5-20251001";
+// DOC 224 §3 — the two legs are cross-vendor now (Sonnet 5 + GPT-4o, the
+// grader's pattern); both ids are part of every decision key.
+export { PRIMARY_MODEL, SECOND_MODEL } from "./model-call.ts";
+import { PRIMARY_MODEL, SECOND_MODEL } from "./model-call.ts";
 
 export interface StoredDecision {
   decision_id: string;

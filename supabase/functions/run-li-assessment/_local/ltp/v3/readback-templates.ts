@@ -1,16 +1,20 @@
-// DOC 217 §5.8 / DOC 217A §2 — THE READ-BACK TEMPLATES. [RATIFY] — every
-// string below is presented for the CEO's ratification and is transcribed
-// from doc 217A §2 (the full set; doc 217 §5.8's three examples are
-// superseded by 217A's later, complete table). Nothing here is ever printed
-// by a model; the gate (`lia-intake-gate`) and the classifier
-// (`classify-propositions`) return DATA — reason codes, spans, prop ids —
-// and the UI maps them onto these templates.
+// DOC 217 §5.8 / DOC 217A §2, as amended by DOC 224 / 224A (2026-09-08) —
+// THE CUSTOMER-FACING TEMPLATES. [RATIFY] — every string below is presented
+// for the CEO's ratification. Nothing here is ever printed by a model; the
+// gate (`lia-intake-gate`) returns DATA — reason codes, spans — and the UI
+// maps them onto these templates; the engine emits the ROO ask (below) into
+// `information_needed` where the two-leg selection could not settle.
 //
-// LAW L6 (doc 217): the read-back never coaches a passing answer. Every
-// template says what the answer failed to do or what it was read as, and
-// offers revise / keep / confirm / correct / stand — never what a passing
-// answer would say. tests/edge/run-li-assessment/doc217-v3-engine.test.ts
-// asserts no template carries coaching language.
+// THE CONSTRUCT (CEO, 2026-09-08): readings are NEVER shown to a customer.
+// Doc 217A's reading template, its stood template and its confirm / correct /
+// "not what I meant" actions are WITHDRAWN. What remains customer-facing: the six conformance
+// reason codes (matter 1 — a garbled answer is caught before paying) and
+// the one ROO ask, which names the question and the nature of the gap and
+// never the authority, the fact, or what a passing answer would say.
+//
+// LAW L6 (doc 217): no template coaches a passing answer.
+// tests/edge/run-li-assessment/doc217-v3-engine.test.ts asserts no template
+// carries coaching language.
 //
 // Slots are record substrings or displayed question text only:
 //   {question}        the question as displayed (field-labels.ts)
@@ -18,20 +22,18 @@
 //   {closed_question} the closed question the answer disagrees with
 //   {closed_answer}   the customer's own closed answer
 //   {other_question}  the question the fact belongs to (field-labels.ts)
-//   {label}           the proposition's inventory label
-//   {date}            the date the customer stood on the answer
 //
 // SIX reason codes, not seven: doc 217A §2 corrects doc 217 §3.3 —
 // `other_limb_field` is a COLUMN of `intake_gate_results` (the field a
 // `fact_belongs_to_other_limb` fact belongs to), not a reason code.
 //
 // MIRROR: this file has no imports and is mirrored byte-for-byte into
-// src/lib/lia/readbackTemplates.ts so the intake read-back component
+// src/lib/lia/readbackTemplates.ts so the intake component
 // (src/components/lia/V3ReadBack.tsx) renders the SAME bytes the engine
 // ratifies; tests/edge/run-li-assessment/doc217-v3-engine.test.ts pins the
 // two copies identical (after line-ending normalisation).
 
-export const LIA_READBACK_TEMPLATES_VERSION = "lia-readback-templates-v1-217A-2026-09-07";
+export const LIA_READBACK_TEMPLATES_VERSION = "lia-readback-templates-v3-ceo-ratified-2026-09-08";
 
 export type LiaGateReasonCode =
   | "non_responsive"
@@ -70,24 +72,21 @@ export const LIA_READBACK_REASON_TEMPLATES: Readonly<Record<LiaGateReasonCode, s
     "Part of this answer, \"{span}\", concerns \"{other_question}\". It has been noted there; you may move or repeat it.",
 };
 
-// ── [RATIFY] — the reading template (doc 217A §2; the markdown bold around
-// {label} in the source table is presentation, rendered by the component,
-// not bytes of the sentence) ────────────────────────────────────────────
-export const LIA_READBACK_READING_TEMPLATE =
-  "We read this answer as stating: {label} — based on: \"{span}\".";
+// ── RATIFIED by the CEO 2026-09-08 (his bytes; the ruling's two double
+// spaces normalised to single) — the ROO ask (doc 224A §8 D5) — the
+// `information_needed` entry the engine emits for a free-text answer on
+// which the two-leg selection could not settle. Names the question (the
+// entry's own `field`), the nature of the gap, and that no regulator action
+// was found; never the authority, the fact, or what a passing answer says.
+// Emitted once per answer; an unrevised answer is let go on the next
+// generation (224A §3.4) ──────────────────────────────────────────────────
+export const LIA_ROO_UNSETTLED_TEMPLATE =
+  "The specificity of your answer here is important to check whether a relevant regulator action in our database may be related to your situation. Given the facts you've provided, our database has not found applicable regulator actions. If you can describe the facts more specifically, revise this answer with those additional facts; otherwise keep it as written and the assessment will not address any regulator action for this issue.";
 
-// ── [RATIFY] — the record of a stood answer (doc 217A §2) ───────────────
-export const LIA_READBACK_STOOD_TEMPLATE =
-  "You kept this answer as written on {date}; the assessment uses it exactly as given.";
-
-// ── [RATIFY] — the action words (doc 217 §6 for the gate; doc 217A §2 for
-// the reading) ───────────────────────────────────────────────────────────
+// ── [RATIFY] — the action words (doc 217 §6 for the gate) ────────────────
 export const LIA_READBACK_ACTIONS = {
   revise: "Revise",
   keep_as_written: "Keep as written",
-  confirm: "Confirm",
-  correct: "Correct my answer",
-  not_what_i_meant: "This is not what I meant",
 } as const;
 
 export type LiaReadbackSlotName =
@@ -95,9 +94,7 @@ export type LiaReadbackSlotName =
   | "span"
   | "closed_question"
   | "closed_answer"
-  | "other_question"
-  | "label"
-  | "date";
+  | "other_question";
 
 export type LiaReadbackSlots = Partial<Record<LiaReadbackSlotName, string>>;
 

@@ -35,7 +35,6 @@
 
 import {
   LIA_PROTECTED_FIXED_PROSE,
-  LIA_SCHEDULE_OF_READINGS_LEAD,
   LIA_SKELETON_PINPOINTS,
   LIA_SKELETON_SECTIONS,
   LIA_SKELETON_SECTIONS_V2,
@@ -90,133 +89,81 @@ import type { LiaTypedStage2Result } from "./lia-deliverables/three-part-test-ty
 // statement (§5.5) and the v3 record this result carries for index.ts's
 // `_meta.internal.lia_v3` block (§5.6). Pure data modules; no model.
 import type { ConfirmedReading, ReadingDisposition } from "./v3/readings.ts";
-import { liaV3Answer, liaV3FieldLabel, liaV3FieldOrder } from "./v3/field-labels.ts";
+// DOC 224 — the two-leg selections the caller resolved (type only; the
+// pure half of the pass — no model client on this path).
+import type { HookSelectionMap } from "../../../_shared/corpus/hook-selection.ts";
+import { liaV3Answer } from "./v3/field-labels.ts";
 import { LIA_HOOKS_VERSION } from "../corpus/maps/lia-hooks.ts";
 
 export const LIA_SKELETON_ASSEMBLER_STAMP =
   "lia-skeleton-assembler@so11-wire-in-2026-08-10";
 
 // ── DOC 217 §5.5 / DOC 212 §4 (ii) — THE METHOD STATEMENT ─────────────────
-// [RATIFY] — the exact text of doc 212 §4 (ii), the method statement every
-// product prints (Law L5). "Schedule [X]" is the spec's own placeholder for
-// the schedule's designation and is kept byte-for-byte here; the CEO
-// resolves it at ratification (this file's Schedule is titled "Schedule of
-// Readings"). Rendered into the Findings section ("findings:6", v2 spine)
-// ONLY while the caller passes `v3Enabled: true` (index.ts passes
-// LIA_V3_ENABLED) — it becomes unconditional on the deterministic path when
-// LIA_METHOD_STATEMENT_RATIFIED flips, the same switch shape as
-// LIA_RULES_LEAD_RATIFIED (lia-persuasive-authority.ts).
+// BYTES RATIFIED by the CEO 2026-09-08 (verbatim, one double space in the
+// ruling normalised): doc 212 §4 (ii)'s method statement (Law L5), amended
+// by doc 224 — readings are never shown to a customer (ledger 210 A10-6) and
+// there is no Schedule. Rendered into the Findings section ("findings:6",
+// v2 spine) while the caller passes `v3Enabled: true` (index.ts passes
+// LIA_V3_ENABLED). LIA_METHOD_STATEMENT_RATIFIED stays FALSE on purpose:
+// flipping it prints the statement on EVERY deterministic report, V3 off or
+// on — a live-output change the CEO orders separately, not implied by
+// ratifying the text.
 export const LIA_METHOD_STATEMENT_RATIFIED = false;
 export const LIA_METHOD_STATEMENT =
-  "This assessment was produced by a rules-based engine applying ratified rules and authority patterns to the company's answers. Readings of free-text answers are listed in Schedule [X] and should be confirmed by the company. Authorities are cited as persuasive patterns with their status marked. The assessment is the company's own record; it is not legal advice.";
+  "This assessment was produced by a rules-based engine applying ratified rules and authority patterns to the company's answers. Authorities are cited as persuasive patterns based on the company's own record; it is not legal advice.";
 
-// ── DOC 217 §5.4 — THE SCHEDULE OF READINGS ───────────────────────────────
-// [RATIFY] — the column labels of the one-row-per-reading table under the
-// Schedule's lead (LIA_SCHEDULE_OF_READINGS_LEAD, lia.spine.ts ¶38).
-export const LIA_SCHEDULE_OF_READINGS_COLUMNS: readonly string[] = [
-  "Question",
-  "Evidence (verbatim)",
-  "Read as",
-  "Disposition",
-];
+// DOC 224 — READINGS ARE NEVER SHOWN (doc 217 §5.4's Schedule of Readings
+// is withdrawn; ledger 210 A10-6). The assembler only COUNTS the readings
+// for the record block and asserts Law L8 on the agreed ones (an agreed
+// reading whose span is not a byte-substring of the answer it claims is
+// named here — fail-visible, never printed, never blocking).
 
-/** The dispositions the Schedule prints — the three the lead defines. A
- *  `corrected` reading is one the customer superseded by editing the answer
- *  (the replacement reading is its own row) and is not printed. */
-export const LIA_SCHEDULE_DISPOSITIONS: readonly ReadingDisposition[] = ["confirmed", "unconfirmed", "stood"];
-
-const SCHEDULE_DISPOSITION_ORDER: Readonly<Record<ReadingDisposition, number>> = {
-  confirmed: 0,
-  unconfirmed: 1,
-  stood: 2,
-  corrected: 3,
-};
-
-export interface LiaScheduleOfReadings {
-  /** The table for "schedule_of_readings:1"; null when no row survives. */
-  readonly table: RenderedTable | null;
-  readonly rows: number;
-  /** Every reading given, by disposition (before the Schedule's own filter). */
+export interface LiaReadingsRecord {
+  /** Every reading given, by disposition. */
   readonly counts: Readonly<Record<ReadingDisposition, number>>;
-  /** doc 217 §5.7 (L8) — a reading whose evidence span is not a byte-
-   *  substring of the answer it claims to be drawn from is DROPPED from the
-   *  Schedule and named here; never printed, never blocking. */
+  /** doc 217 §5.7 (L8) — named, never printed, never blocking. */
   readonly assertion_failures: readonly string[];
 }
 
-/**
- * One row per reading (doc 217 §5.4): field label, evidence span quoted
- * verbatim, proposition label, disposition word. Deterministic: rows are
- * deduplicated and sorted (field order, field id, prop id, span, disposition)
- * so the same readings in any store order render byte-identically (the
- * replay law, §5.7). The assembler holds the intake, so Law L8 is asserted
- * here: a span must be a substring of the answer at the field's path.
- */
-export function deriveScheduleOfReadings(
+export function countReadings(
   readings: readonly ConfirmedReading[],
   record: Bag,
-): LiaScheduleOfReadings {
-  const counts: Record<ReadingDisposition, number> = { confirmed: 0, corrected: 0, stood: 0, unconfirmed: 0 };
-  for (const r of readings) counts[r.disposition] = (counts[r.disposition] ?? 0) + 1;
+): LiaReadingsRecord {
+  const counts: Record<ReadingDisposition, number> = { agreed: 0, disagreed: 0, unsettled_final: 0, superseded: 0 };
   const failures: string[] = [];
-  const seen = new Set<string>();
-  const kept: ConfirmedReading[] = [];
   for (const r of readings) {
-    if (!LIA_SCHEDULE_DISPOSITIONS.includes(r.disposition)) continue;
+    counts[r.disposition] = (counts[r.disposition] ?? 0) + 1;
+    if (r.disposition !== "agreed") continue;
     const span = typeof r.evidence_span === "string" ? r.evidence_span : "";
     if (!span) {
-      failures.push(`schedule_reading_without_span:${r.field_id}:${r.prop_id}`);
+      failures.push(`agreed_reading_without_span:${r.field_id}:${r.prop_id}`);
       continue;
     }
-    const answer = liaV3Answer(record, r.field_id);
-    if (!answer.includes(span)) {
-      failures.push(`schedule_span_not_in_answer:${r.field_id}:${r.prop_id}`);
-      continue;
+    if (!liaV3Answer(record, r.field_id).includes(span)) {
+      failures.push(`agreed_span_not_in_answer:${r.field_id}:${r.prop_id}`);
     }
-    const key = [r.field_id, r.prop_id, span, r.disposition].join(" ");
-    if (seen.has(key)) continue;
-    seen.add(key);
-    kept.push(r);
   }
-  kept.sort((a, b) =>
-    (liaV3FieldOrder(a.field_id) - liaV3FieldOrder(b.field_id)) ||
-    a.field_id.localeCompare(b.field_id) ||
-    a.prop_id.localeCompare(b.prop_id) ||
-    a.evidence_span.localeCompare(b.evidence_span) ||
-    (SCHEDULE_DISPOSITION_ORDER[a.disposition] - SCHEDULE_DISPOSITION_ORDER[b.disposition])
-  );
-  const rows = kept.map((r) => [
-    liaV3FieldLabel(r.field_id),
-    `"${r.evidence_span}"`,
-    r.prop_label || r.prop_id,
-    r.disposition,
-  ]);
-  return {
-    table: rows.length
-      ? {
-        key: "",
-        surface: "intake_readings",
-        title: "",
-        columns: LIA_SCHEDULE_OF_READINGS_COLUMNS,
-        rows,
-      }
-      : null,
-    rows: rows.length,
-    counts,
-    assertion_failures: failures,
-  };
+  failures.sort();
+  return { counts, assertion_failures: failures };
 }
 
-/** DOC 217 §5.6 — what index.ts writes into `_meta.internal.lia_v3` (the
- *  parts the assembler knows; the loader's decision ids / inventory version
- *  / fetch error join it there). */
+/** DOC 217 §5.6 as amended by DOC 224 — what index.ts writes into
+ *  `_meta.internal.lia_v3` (the parts the assembler knows; the loader's
+ *  decision ids / inventory version / fetch error and the selection
+ *  accounting join it there). */
 export interface LiaSkeletonV3Record {
   readonly readings: Readonly<Record<ReadingDisposition, number>>;
-  readonly schedule_rows: number;
-  readonly schedule_rendered: boolean;
   readonly method_statement_rendered: boolean;
   readonly hooks: { readonly version: string; readonly applied_ids: readonly string[] };
   readonly hook_flags: readonly { hook_id: string; reason: string }[];
+  /** DOC 224 — hooks the join applied from a stored selection, and hooks
+   *  left pending / unsettled / lapsed (the flags, summarised). */
+  readonly selection: {
+    readonly applied_from_selection: readonly string[];
+    readonly pending: readonly string[];
+    readonly unsettled: readonly string[];
+    readonly lapsed: readonly string[];
+  };
   readonly assertion_failures: readonly string[];
 }
 
@@ -1316,7 +1263,19 @@ export function assembleLiaSkeletonDocument(
   // by index.ts as LIA_V3_ENABLED (the call-site law: the flag is verified
   // where it is wired, not read here), gating the method statement until
   // LIA_METHOD_STATEMENT_RATIFIED.
-  opts: { deterministic?: boolean; readings?: readonly ConfirmedReading[]; v3Enabled?: boolean } = {},
+  // DOC 224 (2026-09-08): `selections` / `unsettled` — the two-leg pass's
+  // settled selections by hook_id and the hooks whose legs disagreed,
+  // resolved by index.ts from the service's rows BEFORE assembly (the same
+  // call-site law: the assembler never calls a model; it only consults what
+  // the caller already stored).
+  opts: {
+    deterministic?: boolean;
+    readings?: readonly ConfirmedReading[];
+    v3Enabled?: boolean;
+    selections?: HookSelectionMap;
+    unsettled?: ReadonlySet<string>;
+    lapsed?: ReadonlySet<string>;
+  } = {},
 ): LiaSkeletonResult {
   const deterministic = opts.deterministic === true;
   const readings: readonly ConfirmedReading[] = Array.isArray(opts.readings) ? opts.readings : [];
@@ -1589,6 +1548,9 @@ export function assembleLiaSkeletonDocument(
       intake: record,
       states: hookStates,
       verdicts: hookStates?.verdicts,
+      selections: opts.selections,
+      unsettled: opts.unsettled,
+      lapsed: opts.lapsed,
     })
     : {
       body: "",
@@ -1597,21 +1559,15 @@ export function assembleLiaSkeletonDocument(
       aow_fired: false,
       hook_flags: [] as readonly { hook_id: string; reason: string }[],
       hook_applied_ids: [] as readonly string[],
+      hook_selection_ids: [] as readonly string[],
     };
   if (deterministic && persuasive.body) {
     composed["persuasive_authority:0"] = persuasive.body;
   }
 
-  // DOC 217 §5.4 — the Schedule of Readings (v2-only section after Section
-  // IV). Composes ONLY when at least one reading survives the Law-L8 check;
-  // otherwise neither the lead nor the table exists and the renderer omits
-  // the section entirely (NO-PADDING LAW; the dark-mode byte-identity law).
-  const schedule = deterministic
-    ? deriveScheduleOfReadings(readings, record)
-    : deriveScheduleOfReadings([], record);
-  if (deterministic && schedule.table) {
-    composed["schedule_of_readings:0"] = LIA_SCHEDULE_OF_READINGS_LEAD;
-  }
+  // DOC 224 — readings are counted for the record block only; nothing about
+  // them reaches the document (ledger 210 A10-6).
+  const readingsRecord = countReadings(deterministic ? readings : [], record);
 
   // DOC 217 §5.5 — the method statement ("findings:6", v2-only): while the
   // caller says V3 is on, or unconditionally once ratified.
@@ -1679,8 +1635,6 @@ export function assembleLiaSkeletonDocument(
     "executive_summary:3": deriveThreeTestStrip(report),
     "necessity_test:4": deriveAlternativesTable(report),
     "balancing_test:7": deriveBalanceTable(report),
-    // DOC 217 §5.4 — the Schedule's rows (null → block omitted).
-    "schedule_of_readings:1": deterministic ? schedule.table : null,
   };
 
   const args = {
@@ -1774,13 +1728,17 @@ export function assembleLiaSkeletonDocument(
     conditionals_fired,
     verdicts: v,
     v3: {
-      readings: schedule.counts,
-      schedule_rows: schedule.rows,
-      schedule_rendered: deterministic && schedule.table !== null,
+      readings: readingsRecord.counts,
       method_statement_rendered: methodStatementRenders,
       hooks: { version: LIA_HOOKS_VERSION, applied_ids: persuasive.hook_applied_ids },
       hook_flags: persuasive.hook_flags,
-      assertion_failures: schedule.assertion_failures,
+      selection: {
+        applied_from_selection: persuasive.hook_selection_ids,
+        pending: persuasive.hook_flags.filter((f) => f.reason === "selection_pending").map((f) => f.hook_id),
+        unsettled: persuasive.hook_flags.filter((f) => f.reason === "selection_unsettled").map((f) => f.hook_id),
+        lapsed: persuasive.hook_flags.filter((f) => f.reason === "selection_lapsed").map((f) => f.hook_id),
+      },
+      assertion_failures: readingsRecord.assertion_failures,
     },
   };
 }

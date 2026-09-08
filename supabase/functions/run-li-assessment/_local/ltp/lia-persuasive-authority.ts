@@ -55,7 +55,16 @@ import { classifyLiaUseCase, USE_CASE_LABELS } from "../../../_shared/lia/lia-us
 // below.
 import { LIA_HOOKS_ENABLED } from "./lia-hooks-flag.ts";
 import { LIA_HOOKS } from "../corpus/maps/lia-hooks.ts";
-import { applyLiaHooks, LIA_HOOK_OMIT_REASONS, type TypedStateBag } from "./lia-deliverables/hook-join.ts";
+import {
+  applyLiaHooks,
+  LIA_HOOK_OMIT_REASONS,
+  planLiaHookSelection,
+  type LiaHookSelectionPlan,
+  type TypedStateBag,
+} from "./lia-deliverables/hook-join.ts";
+// DOC 224 — the selection map type only (the pure half of the two-leg
+// pass; no model client — the doc 217 boundary walk reaches it from here).
+import type { HookSelectionMap } from "../../../_shared/corpus/hook-selection.ts";
 // DOC 213B TRACK H3 — profile-backed persuasive candidates. `AuthorityHook`
 // is declared in `_shared/corpus/hook-types.ts`, which this file is already
 // one of the two sanctioned doors onto (that module's own header comment:
@@ -557,6 +566,9 @@ export interface LiaPersuasiveAuthorityResult {
    *  not listed). Always `[]` while hooks are off, unsupplied, or empty —
    *  the record block's `hooks.applied_ids`. */
   readonly hook_applied_ids: readonly string[];
+  /** DOC 224 — the subset of `hook_applied_ids` whose agreement came from a
+   *  stored two-leg selection rather than the atoms alone. */
+  readonly hook_selection_ids: readonly string[];
 }
 
 export interface LiaPersuasiveContext {
@@ -596,6 +608,55 @@ export interface LiaPersuasiveContext {
    *  ships dark behind LIA_HOOKS_ENABLED" (doc 213 line 3) is unchanged for
    *  any caller that does not deliberately reach for this seam. */
   readonly hooks?: readonly AuthorityHook[];
+  /** DOC 224 — the settled two-leg selections (by hook_id) and the hooks
+   *  whose legs disagreed, resolved by the caller from the service's rows
+   *  (`resolveHookSelections`, hook-join.ts). The join consults them only
+   *  where its own atom agreement is `unknown`. Omitted → every unknown
+   *  pair is `selection_pending` (or plainly omitted where the matrix
+   *  pre-filter says no answer could print). */
+  readonly selections?: HookSelectionMap;
+  readonly unsettled?: ReadonlySet<string>;
+  readonly lapsed?: ReadonlySet<string>;
+}
+
+// DOC 224 — index.ts reaches the selection helpers through THIS door (the
+// sanctioned persuasive-authority renderer), never hook-join.ts directly.
+export { resolveHookSelections, type HookSelectionRow, type ResolvedHookSelections } from "./lia-deliverables/hook-join.ts";
+export { canonicalAnswerHash, canonicalAnswerText, type HookSelection } from "../../../_shared/corpus/hook-selection.ts";
+
+/** DOC 224 — what index.ts asks before the assembler runs: the batched
+ *  request for this generation's two-leg pass (empty when nothing needs a
+ *  call), plus the ranking it was planned against and every hook's
+ *  disposition (D10). Runs the SAME ranking `buildLiaPersuasiveAuthority`
+ *  runs, so the join and the plan agree on the cap. Pure; no model. */
+export interface LiaHookSelectionPlanResult extends LiaHookSelectionPlan {
+  readonly ranked_source_ids: readonly string[];
+  readonly hooks_in_play: number;
+}
+
+export function planLiaHookSelectionForReport(
+  report: Bag,
+  ctx: LiaPersuasiveContext & { readonly states: TypedStateBag; readonly verdicts: Record<string, string> },
+): LiaHookSelectionPlanResult {
+  const query = buildLiaRelevanceQuery(report, bag(ctx.intake));
+  const applications = Array.isArray(report.rule_applications) ? report.rule_applications as Bag[] : [];
+  const determinativeSourceIds = new Set(determinativeEntries(applications).map((e) => e.source_row_id).filter(Boolean));
+  const hooksGateOpen = ctx.hooks !== undefined || LIA_HOOKS_ENABLED;
+  const hooksSource = ctx.hooks ?? LIA_HOOKS;
+  const hooksInPlay: readonly AuthorityHook[] = hooksGateOpen && hooksSource.length > 0 ? hooksSource : [];
+  if (hooksInPlay.length === 0) return { items: [], considered: [], ranked_source_ids: [], hooks_in_play: 0 };
+  const ap = apEntries(query, determinativeSourceIds, hooksInPlay);
+  const rankedSourceIds = ap.ranked.map((sr) => sr.row.source_row_id);
+  const plan = planLiaHookSelection(
+    hooksInPlay,
+    ctx.states,
+    ctx.verdicts,
+    rankedSourceIds,
+    determinativeSourceIds,
+    bag(ctx.intake),
+    { selections: ctx.selections, unsettled: ctx.unsettled, lapsed: ctx.lapsed },
+  );
+  return { ...plan, ranked_source_ids: rankedSourceIds, hooks_in_play: hooksInPlay.length };
 }
 
 /**
@@ -648,6 +709,7 @@ export function buildLiaPersuasiveAuthority(
   // both a flag flip AND a ratified hook exist.
   let hookFlags: readonly { hook_id: string; reason: string }[] = [];
   let hookAppliedIds: readonly string[] = [];
+  let hookSelectionIds: readonly string[] = [];
   let apEntriesForBody = ap.entries;
   if (hooksInPlay.length > 0 && ctx.states && ctx.verdicts) {
     const rankedSourceIds = ap.ranked.map((sr) => sr.row.source_row_id);
@@ -657,8 +719,10 @@ export function buildLiaPersuasiveAuthority(
       ctx.verdicts,
       rankedSourceIds,
       determinativeSourceIds,
+      { selections: ctx.selections, unsettled: ctx.unsettled, lapsed: ctx.lapsed },
     );
     hookFlags = flags;
+    hookSelectionIds = applications.filter((a) => a.selection_field_id).map((a) => a.hook_id);
     const bySource = new Map(applications.map((a) => [a.source_row_id, a] as const));
     const dropSourceIds = new Set<string>();
     for (const f of flags) {
@@ -710,7 +774,7 @@ export function buildLiaPersuasiveAuthority(
     cross_instrument: sr.match.cross_instrument,
   }));
   if (entries.length === 0) {
-    return { body: "", ledger: [], entry_count: 0, aow_fired: false, ranked, hook_flags: hookFlags, hook_applied_ids: hookAppliedIds };
+    return { body: "", ledger: [], entry_count: 0, aow_fired: false, ranked, hook_flags: hookFlags, hook_applied_ids: hookAppliedIds, hook_selection_ids: hookSelectionIds };
   }
 
   const aow = LIA_CORPUS_MAP.rows.find((r) => r.role === "AOW" && r.render_eligible && r.warning_text);
@@ -728,5 +792,6 @@ export function buildLiaPersuasiveAuthority(
     ranked,
     hook_flags: hookFlags,
     hook_applied_ids: hookAppliedIds,
+    hook_selection_ids: hookSelectionIds,
   };
 }

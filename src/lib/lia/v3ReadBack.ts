@@ -1,90 +1,30 @@
-// DOC 217 §6 — THE READ-BACK CLIENT MODULE (dark behind
-// VITE_LIA_V3_READBACK_ENABLED; mounted only by src/components/lia/V3ReadBack.tsx).
+// DOC 217 §6 as amended by DOC 224 / 224A (2026-09-08) — THE INTAKE GATE
+// CLIENT MODULE (dark behind VITE_LIA_V3_READBACK_ENABLED; mounted only by
+// src/components/lia/V3ReadBack.tsx).
 //
-// Typed to the doc 217 §3 rows and §4 function contracts EXACTLY as written
-// (Lovable builds the tables and the two functions in parallel; nothing here
-// may depend on them existing — every call fails open and returns a typed
-// error). The module never composes customer-facing text: it moves DATA
-// (verdicts, reason codes, spans, prop ids, dispositions) between the
-// functions, the store and the component, which renders the ratified
-// templates (src/lib/lia/readbackTemplates.ts, the byte-mirror of the
-// engine's v3/readback-templates.ts).
+// THE CONSTRUCT (CEO, 2026-09-08): readings are NEVER shown to a customer,
+// so the reading half of doc 217 §6 (classify at intake, insert readings,
+// confirm / correct / stand) is WITHDRAWN. What remains client-side is the
+// conformance gate (matter 1 — a garbled answer is caught before paying):
+// one call at SUBMIT for the fields whose text is new (the gate stores by
+// answer hash; unchanged answers cost nothing — 224A §8 D3), Revise / Keep
+// as written, and the intake hash the engine's replay keys on. Readings and
+// hook selections are written by the ENGINE at paid generation (doc 224
+// §2), never from the browser.
 //
-// Transport: the app's existing `supabase.functions.invoke` pattern for the
-// two edge functions; `supabase.from(...)` for the store writes. The four
-// V3 tables are service-role-RLS per doc 217 §3 — the direct writes below
-// are the spec's §6 design ("records dispositions by upserting
-// intake_readings") and need an owner policy, or a `dispose` action on
-// classify-propositions, before they succeed in production; until then
-// they fail open (logged, never thrown). Recorded in 217B as a contract
-// item for Lovable's half.
+// The module never composes customer-facing text: it moves DATA (verdicts,
+// reason codes, spans) between the function, the store and the component,
+// which renders the ratified templates (src/lib/lia/readbackTemplates.ts,
+// the byte-mirror of the engine's v3/readback-templates.ts). Every call
+// fails open and returns a typed error.
 
 import { supabase } from "@/integrations/supabase/client";
 import { isLiaGateReasonCode, type LiaGateReasonCode } from "./readbackTemplates";
 
-// ── doc 217 §3 — the rows ──────────────────────────────────────────────────
+// ── doc 217 §3 — the rows this module still touches ────────────────────────
 
-export type ReadingDisposition = "confirmed" | "corrected" | "stood" | "unconfirmed";
-export type ReadingStance = "asserted" | "abstain";
 export type GateVerdict = "conforms" | "non_conforming";
 export type GateCustomerAction = "revised" | "stood" | "pending";
-export type ReadingsState = "none" | "pending" | "complete";
-export type EffectClass = "persuasive_only" | "flag_risk" | "require_condition" | "verdict_bearing";
-
-/** §3.1 proposition_inventory */
-export interface PropositionInventoryRow {
-  prop_id: string;
-  product: string;
-  field_id: string;
-  label: string;
-  definition: string;
-  positive_examples: string[];
-  negative_examples: string[];
-  sibling_group: string | null;
-  gate_eligible: boolean;
-  effect_class: EffectClass;
-  version: number;
-  drafted_by: string | null;
-  drafted_at: string | null;
-  ratified_by: string | null;
-  ratified_at: string | null;
-  ledger_ref: string | null;
-  retired_at: string | null;
-  retired_reason: string | null;
-  created_at?: string;
-  updated_at?: string;
-}
-
-/** One entry of proposition_decisions.readings (§3.2) — plus the inventory
- *  label the UI needs to render the reading template; the classifier
- *  response is expected to carry it (217B contract item). */
-export interface PropositionReading {
-  prop_id: string;
-  stance: ReadingStance;
-  evidence_span: string | null;
-  span_verified: boolean;
-  legs_agree: boolean;
-  confidence: number;
-  label?: string;
-}
-
-/** §3.2 proposition_decisions */
-export interface PropositionDecisionRow {
-  decision_id: string;
-  product: string;
-  field_id: string;
-  input_hash: string;
-  inventory_version: string;
-  prompt_hash: string;
-  schema_hash: string;
-  primary_model: string;
-  second_model: string;
-  primary_raw: string;
-  second_raw: string;
-  readings: PropositionReading[];
-  conformance: unknown;
-  created_at?: string;
-}
 
 /** §3.3 intake_gate_results */
 export interface IntakeGateResultRow {
@@ -101,23 +41,6 @@ export interface IntakeGateResultRow {
   prompt_hash: string;
   raw: string;
   customer_action: GateCustomerAction | null;
-  created_at?: string;
-}
-
-/** §3.4 intake_readings */
-export interface IntakeReadingRow {
-  id?: string;
-  product: string;
-  assessment_id: string;
-  field_id: string;
-  question_text: string;
-  answer_hash: string;
-  decision_id: string;
-  prop_id: string;
-  evidence_span: string;
-  disposition: ReadingDisposition;
-  disposed_at: string | null;
-  revision_no: number;
   created_at?: string;
 }
 
@@ -139,13 +62,6 @@ export interface GateFieldResult {
   other_limb_field: string | null;
   evidence_span: string | null;
   gate_result_id: string | null;
-}
-
-/** §4.2 classify output. */
-export interface ClassifyResult {
-  decision_id: string | null;
-  inventory_version: string | null;
-  readings: PropositionReading[];
 }
 
 export interface Outcome {
@@ -218,23 +134,23 @@ export function canonicalJson(value: unknown): string {
   return JSON.stringify(value ?? null);
 }
 
-/** `intake_readings.answer_hash` / `intake_gate_results.answer_hash`. */
+/** DOC 224A §8 D2 — the canonical text the engine hashes (NFC, whitespace
+ *  collapsed, trimmed); mirrors `_shared/corpus/hook-selection.ts`. */
+export function canonicalAnswerText(text: unknown): string {
+  return String(text ?? "").normalize("NFC").replace(/\s+/g, " ").trim();
+}
+
+/** `intake_gate_results.answer_hash` — sha256 of the canonical answer. */
 export function answerHash(answer: string): string {
-  return sha256Hex(answer);
+  return sha256Hex(canonicalAnswerText(answer));
 }
 
 /** `li_assessments.intake_hash` (doc 217 stage 3): sha256 of the canonical
  *  JSON of every free-text answer keyed by field id. */
 export function intakeHash(fields: readonly { field_id: string; answer: string }[]): string {
   const obj: Record<string, string> = {};
-  for (const f of fields) obj[f.field_id] = f.answer ?? "";
+  for (const f of fields) obj[f.field_id] = canonicalAnswerText(f.answer ?? "");
   return sha256Hex(canonicalJson(obj));
-}
-
-/** `li_assessments.readings_state`. */
-export function readingsStateOf(dispositions: readonly ReadingDisposition[]): ReadingsState {
-  if (dispositions.length === 0) return "none";
-  return dispositions.some((d) => d === "unconfirmed") ? "pending" : "complete";
 }
 
 // ── transport ──────────────────────────────────────────────────────────────
@@ -249,14 +165,10 @@ function errorText(e: unknown): string {
 }
 
 /** The subset of the query builder this module uses, typed loosely because
- *  the four V3 tables are not in the generated Database type yet (Lovable's
- *  half) — the codebase's own pattern for a table outside the types. */
+ *  the V3 tables are not in the generated Database type (Lovable's half). */
 interface LooseQuery extends PromiseLike<{ data: unknown; error: unknown }> {
   update(values: Record<string, unknown>): LooseQuery;
-  insert(values: Record<string, unknown>): LooseQuery;
-  select(columns: string): LooseQuery;
   eq(column: string, value: string): LooseQuery;
-  single(): LooseQuery;
 }
 
 function table(name: string): LooseQuery {
@@ -277,11 +189,13 @@ function parseGateResult(raw: unknown, fallbackFieldId: string): GateFieldResult
   };
 }
 
-/** §4.1 `lia-intake-gate` action `gate`. Never throws. */
+/** §4.1 `lia-intake-gate` action `gate` — ONE call for every field given.
+ *  Never throws. */
 export async function runIntakeGate(args: {
   assessment_id?: string;
   fields: readonly GateFieldInput[];
 }): Promise<{ results: GateFieldResult[]; error: string | null }> {
+  if (args.fields.length === 0) return { results: [], error: null };
   try {
     const { data, error } = await supabase.functions.invoke("lia-intake-gate", {
       body: {
@@ -308,120 +222,60 @@ export async function runIntakeGate(args: {
   }
 }
 
-function parseReading(raw: unknown): PropositionReading | null {
-  const r = bag(raw);
-  const prop_id = str(r.prop_id);
-  if (!prop_id) return null;
-  return {
-    prop_id,
-    stance: str(r.stance) === "asserted" ? "asserted" : "abstain",
-    evidence_span: str(r.evidence_span) || null,
-    span_verified: r.span_verified === true,
-    legs_agree: r.legs_agree === true,
-    confidence: typeof r.confidence === "number" ? r.confidence : 0,
-    ...(str(r.label) ? { label: str(r.label) } : {}),
-  };
-}
-
-/** §4.2 `classify-propositions` action `classify`. Never throws; a field
- *  with no ratified inventory comes back as `{ readings: [] }`. */
-export async function classifyField(args: {
-  field_id: string;
-  question_text: string;
-  answer: string;
-  inventory_version?: string;
-}): Promise<ClassifyResult & { error: string | null }> {
+/** §3.3 — `intake_gate_results.customer_action` (through the function's
+ *  owner-or-preview-token authorisation). */
+export async function recordGateAction(args: {
+  assessment_id: string;
+  gate_result_id: string;
+  customer_action: GateCustomerAction;
+  preview_token?: string | null;
+}): Promise<Outcome> {
   try {
-    const { data, error } = await supabase.functions.invoke("classify-propositions", {
+    const { error } = await supabase.functions.invoke("classify-propositions", {
       body: {
-        action: "classify",
-        product: "lia",
-        field_id: args.field_id,
-        question_text: args.question_text,
-        answer: args.answer,
-        ...(args.inventory_version ? { inventory_version: args.inventory_version } : {}),
+        action: "gate_action",
+        assessment_id: args.assessment_id,
+        result_id: args.gate_result_id,
+        customer_action: args.customer_action,
+        ...(args.preview_token ? { preview_token: args.preview_token } : {}),
       },
     });
-    if (error) return { decision_id: null, inventory_version: null, readings: [], error: errorText(error) };
-    const d = bag(data);
-    const readings = (Array.isArray(d.readings) ? d.readings : [])
-      .map(parseReading)
-      .filter((r: PropositionReading | null): r is PropositionReading => r !== null);
-    return {
-      decision_id: str(d.decision_id) || null,
-      inventory_version: str(d.inventory_version) || null,
-      readings,
-      error: null,
-    };
-  } catch (e) {
-    return { decision_id: null, inventory_version: null, readings: [], error: errorText(e) };
-  }
-}
-
-/** §3.3 — `intake_gate_results.customer_action`. */
-export async function recordGateAction(args: { gate_result_id: string; customer_action: GateCustomerAction }): Promise<Outcome> {
-  try {
-    const { error } = await table("intake_gate_results")
-      .update({ customer_action: args.customer_action })
-      .eq("id", args.gate_result_id);
     return { ok: !error, error: error ? errorText(error) : null };
   } catch (e) {
     return { ok: false, error: errorText(e) };
   }
 }
 
-/** §3.4 — insert one reading row (initially `unconfirmed`, §4.3). */
-export async function insertReading(row: Omit<IntakeReadingRow, "id" | "created_at">): Promise<{ id: string | null; error: string | null }> {
+/** §6 "Submit records intake_hash" (li_assessments). */
+export async function recordSubmitState(args: { assessment_id: string; intake_hash: string; preview_token?: string | null }): Promise<Outcome> {
   try {
-    const { data, error } = await table("intake_readings").insert(row).select("id").single();
-    if (error) return { id: null, error: errorText(error) };
-    return { id: str(bag(data).id) || null, error: null };
-  } catch (e) {
-    return { id: null, error: errorText(e) };
-  }
-}
-
-/** §3.4 — the customer's disposition of a reading. */
-export async function updateReadingDisposition(args: { id: string; disposition: ReadingDisposition; disposed_at?: string }): Promise<Outcome> {
-  try {
-    const { error } = await table("intake_readings")
-      .update({ disposition: args.disposition, disposed_at: args.disposed_at ?? new Date().toISOString() })
-      .eq("id", args.id);
+    const { error } = await supabase.functions.invoke("classify-propositions", {
+      body: {
+        action: "submit_state",
+        assessment_id: args.assessment_id,
+        intake_hash: args.intake_hash,
+        ...(args.preview_token ? { preview_token: args.preview_token } : {}),
+      },
+    });
     return { ok: !error, error: error ? errorText(error) : null };
   } catch (e) {
     return { ok: false, error: errorText(e) };
   }
 }
 
-/** §6 "Submit records intake_hash and readings_state" (li_assessments). */
-export async function recordSubmitState(args: { assessment_id: string; intake_hash: string; readings_state: ReadingsState }): Promise<Outcome> {
-  try {
-    const { error } = await table("li_assessments")
-      .update({ intake_hash: args.intake_hash, readings_state: args.readings_state })
-      .eq("id", args.assessment_id);
-    return { ok: !error, error: error ? errorText(error) : null };
-  } catch (e) {
-    return { ok: false, error: errorText(e) };
-  }
-}
-
-/** Intake-time rows are keyed on the preview row's id (the only id the form
- *  has); checkout inserts a NEW li_assessments row and does not persist
- *  `preview_assessment_id`, so the rows are re-keyed to the paid id at
- *  `onComplete` (217B contract item). */
+/** Intake-time gate rows are keyed on the preview row's id (the only id the
+ *  form has); checkout inserts a NEW li_assessments row, so the rows are
+ *  re-keyed to the paid id at `onComplete`. Readings and hook selections are
+ *  written by the engine under the paid id and need no re-key. */
 export async function rekeyReadings(args: { from_assessment_id: string; to_assessment_id: string }): Promise<Outcome> {
   if (!args.from_assessment_id || !args.to_assessment_id || args.from_assessment_id === args.to_assessment_id) {
     return { ok: true, error: null };
   }
   try {
-    const { error } = await table("intake_readings")
+    const { error } = await table("intake_gate_results")
       .update({ assessment_id: args.to_assessment_id })
       .eq("assessment_id", args.from_assessment_id);
-    const { error: gateError } = await table("intake_gate_results")
-      .update({ assessment_id: args.to_assessment_id })
-      .eq("assessment_id", args.from_assessment_id);
-    const err = error ?? gateError;
-    return { ok: !err, error: err ? errorText(err) : null };
+    return { ok: !error, error: error ? errorText(error) : null };
   } catch (e) {
     return { ok: false, error: errorText(e) };
   }

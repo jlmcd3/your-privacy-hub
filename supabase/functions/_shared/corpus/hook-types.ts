@@ -3,10 +3,22 @@
 // authority's material facts with a customer record's own typed facts, so
 // that RENDERING code — never a model — can say whether the record's facts
 // are the same as, or distinguished from, the authority's, and print one of
-// four ratified sentence shapes (or nothing). A hook never changes a
+// the ratified sentence shapes (or nothing). A hook never changes a
 // verdict; it only decides what PROSE cites an already-computed verdict
 // sits beside (§2's "generate" note: "a hook is persuasive rendering, not a
 // verdict").
+//
+// DOC 222 (hooks contract v2, 2026-09-08) + DOC 224 (two-leg selection):
+//   - `conditional` posture has its OWN matrix rows (S5a / S5b / S6 / S6x)
+//     — the doc 218 D1 defect was folding it into `rejected`;
+//   - R4 renders the boundary shape (S4) on SAME facts only;
+//   - `unknown` agreement is no longer a silent omit: the join consults a
+//     stored two-leg selection where one exists (hook-join.ts), and the
+//     three outcomes it can reach are named flags, never prose;
+//   - the v2 fields (source status, pinpoint, material facts, distinguishing
+//     pairs, the proposition split) are OPTIONAL on the runtime type so a
+//     v1 fixture still type-checks; the join renders S3/S6/S6x ONLY from a
+//     distinguishing pair (doc 222 §2.4).
 //
 // That is also why the atom grammar this module's callers evaluate against
 // (hook-join.ts) is a narrower, INDEPENDENTLY-DEFINED subset of
@@ -29,7 +41,7 @@
 // module — an index.ts, an unrelated prose assembler, anything else —
 // reaches a hook's rendered sentence only through one of those doors.
 
-export type HookShape = "S1" | "S2" | "S3" | "S4";
+export type HookShape = "S1" | "S2" | "S3" | "S4" | "S5a" | "S5b" | "S6" | "S6x";
 
 /** R1-R3 mirror rule-types.ts's `Settledness`; R4 ("under appeal /
  *  contested") exists only in the hook vocabulary — a rule can never fire
@@ -49,6 +61,52 @@ export type HookPosture = "accepted" | "conditional" | "rejected" | "contested";
  *  `distinguishing_atoms` — computed by the hook-join pass (§4), never
  *  authored on the hook itself. */
 export type FactAgreement = "same" | "different" | "unknown";
+
+/** DOC 222 §2.7 — the printed status is DERIVED from the source row at
+ *  generate time, never drafted. `settledness` stays the ranking key. */
+export type HookSourceStatus =
+  | "edpb_guidelines_final"
+  | "edpb_opinion"
+  | "wp29_opinion"
+  | "regulator_guidance"
+  | "sa_decision"
+  | "sa_decision_affirmed"
+  | "sa_decision_appeal_pending";
+
+/** The verb a shape uses for the authority — decisions "found", guidance
+ *  "states", a WP29 opinion "advised" (doc 222 §2.7). */
+export type HookVerb = "found" | "states" | "advised";
+
+export interface HookPinpoint {
+  readonly kind: "paragraph" | "section" | "page" | "recital" | "heading";
+  readonly ref: string;
+  /** Verbatim anchor in the source text (checked at settle, doc 222 §2.5). */
+  readonly anchor_span: string;
+}
+
+export interface HookMaterialFact {
+  readonly atom: string;
+  readonly materiality_reason: string;
+  readonly source_span: string | null;
+}
+
+/** DOC 222 §2.4 — a hook-specific, polarity-aware source/record fact pair.
+ *  S3 and S6/S6x render ONLY from one of these (never from an atom's
+ *  generic phrase — the doc 218 D2 self-contradiction). */
+export interface HookDistinguishingPair {
+  /** The source's own fact, verbatim (what the finding turned on). */
+  readonly source_fact_span: string;
+  readonly source_polarity: "present" | "absent";
+  /** The record atom whose PRESENCE (or absence) distinguishes. */
+  readonly record_atom: string;
+  readonly record_polarity: "present" | "absent";
+  readonly why_material: string;
+  /** Only this unlocks "does not extend" language (S6x). */
+  readonly source_expressly_excludes: boolean;
+  readonly exclusion_span?: string | null;
+  /** Clause form; printed in S6x as `{exclusion_paraphrase}`. */
+  readonly exclusion_paraphrase?: string | null;
+}
 
 /**
  * A ratified hook (§0). Every field is either a closed-list atom, a
@@ -93,6 +151,29 @@ export interface AuthorityHook {
    *  its own string rather than reused so this block is a complete,
    *  independent `CamRelevanceProfile` projection on its own. */
   readonly relevance: AuthorityHookRelevance;
+
+  // ── DOC 222 — the v2 contract (optional on the runtime type; the
+  // generator emits them from the v2 columns; a v1 hook renders without
+  // them where a shape permits, and never reaches S3/S6/S6x) ──────────────
+  /** Short label used inline (e.g. "EDPB Guidelines 06/2020"); the full
+   *  `authority_label` + pinpoint is the trailing citation. */
+  readonly authority_label_short?: string;
+  readonly hook_version?: number;
+  readonly source_status?: HookSourceStatus;
+  /** The printed status label (derived, doc 222 §2.7). */
+  readonly status_label?: string;
+  readonly verb?: HookVerb;
+  readonly appeal_note?: string | null;
+  readonly verified_as_of?: string | null;
+  readonly pinpoint?: HookPinpoint | null;
+  /** `conditional` sources only (doc 222 §2.1). */
+  readonly recognised_proposition?: string | null;
+  readonly condition_text?: string | null;
+  /** Record atoms that, if ALL held, satisfy the condition; null when the
+   *  condition is a verdict, not a fact (then S5b is unreachable). */
+  readonly condition_atoms?: readonly string[] | null;
+  readonly material_facts?: readonly HookMaterialFact[];
+  readonly distinguishing_pairs?: readonly HookDistinguishingPair[];
 }
 
 /** The `CamRelevanceProfile` (cam-types.ts) fields a hook carries, in the
@@ -122,18 +203,26 @@ export interface HookApplication {
   readonly shape: HookShape;
   readonly sentence: string;
   readonly label: string;
+  /** DOC 224 — set when the agreement came from a stored two-leg selection
+   *  rather than the atoms alone. */
+  readonly selection_field_id?: string;
 }
 
 export interface HookDirectionShape {
   readonly shape: HookShape;
 }
 
+/** The omit reasons a direction can name. `rule_missing` is the lawyer's
+ *  rule (§4): an adverse authority on the same facts under a passing
+ *  verdict means a rule is missing, never a risk noted.
+ *  `authority_not_dispositive` (doc 222 §3): a conditional source that does
+ *  not reach the record's facts under a pass — nothing is missing, the
+ *  source is silent. Every other omit row is silent (no reason). */
+export type HookOmitReason = "rule_missing" | "authority_not_dispositive";
+
 export interface HookDirectionOmit {
   readonly omit: true;
-  /** Set only for the one row the lawyer's rule names by name (§4): an
-   *  adverse authority on the same facts under a passing verdict means a
-   *  rule is missing, never a risk noted. Every other omit row is silent. */
-  readonly reason?: "rule_missing";
+  readonly reason?: HookOmitReason;
 }
 
 export type HookDirection = HookDirectionShape | HookDirectionOmit;
@@ -144,31 +233,46 @@ export type HookDirection = HookDirectionShape | HookDirectionOmit;
  *  same self-containment reason as the rest of this module). */
 const PASSING_VERDICTS: ReadonlySet<string> = new Set(["passes", "likely_passes"]);
 
+export function isPassingVerdict(verdict: string | null): boolean {
+  return verdict !== null && PASSING_VERDICTS.has(verdict);
+}
+
+/** DOC 222 §3 — the two facts the `conditional` rows key on beyond the
+ *  four every row keys on. Both resolved by the caller (hook-join.ts). */
+export interface ConditionalDirectionFacts {
+  /** All `condition_atoms` hold on the record (null when the hook has none
+   *  or the condition is a verdict — S5b is then unreachable). */
+  readonly conditionAtomsHeld?: boolean | null;
+  /** The distinguishing pair that holds carries `source_expressly_excludes`. */
+  readonly expresslyExcludes?: boolean;
+}
+
 /**
- * The direction matrix (§4), as code. `LIA_HOOK_DIRECTION_MATRIX` in
- * corpus/maps/lia-hooks.ts is the SAME table transcribed as ratified data —
- * kept only so a byte-pin test can catch drift between the two; this
- * function is the actual behaviour a report renders through.
+ * The direction matrix (doc 213 §4 as amended by doc 222 §3), as code.
+ * `LIA_HOOK_DIRECTION_MATRIX` in corpus/maps/lia-hooks.ts is the SAME table
+ * transcribed as ratified data — kept only so a byte-pin test can catch
+ * drift between the two; this function is the actual behaviour a report
+ * renders through.
  *
- * Nomination (`required_atoms`) and `factAgreement` are the caller's job
- * (hook-join.ts's `applyLiaHooks`): this function never reads a hook or a
- * state bag, only the four already-resolved facts the matrix keys on, so it
- * can never throw.
+ * Nomination (`required_atoms`), `factAgreement` and the two conditional
+ * facts are the caller's job (hook-join.ts's `applyLiaHooks`): this
+ * function never reads a hook or a state bag, only the already-resolved
+ * facts the matrix keys on, so it can never throw.
  */
 export function directionFor(
   posture: HookPosture,
   factAgreement: FactAgreement,
   engineVerdict: string | null,
   settledness: HookSettledness,
+  facts: ConditionalDirectionFacts = {},
 ): HookDirection {
-  // A contested (R4) settledness always renders as the boundary shape,
-  // regardless of the authority's own posture — the finding itself is
-  // under appeal, so no relation to the record's verdict is ever drawn.
+  const passing = isPassingVerdict(engineVerdict);
+
+  // A contested (R4) settledness renders the boundary shape on SAME facts
+  // only (doc 222 §3 — a contested decision on different facts adds
+  // nothing and may imply a relation that was never established).
   if (settledness === "R4") {
-    if (factAgreement === "same" || factAgreement === "different") {
-      return { shape: "S4" };
-    }
-    return { omit: true }; // unknown — nothing to say either way
+    return factAgreement === "same" ? { shape: "S4" } : { omit: true };
   }
 
   if (posture === "accepted") {
@@ -176,9 +280,26 @@ export function directionFor(
     return { omit: true }; // different or unknown — nothing to say
   }
 
-  if (posture === "rejected" || posture === "conditional") {
+  if (posture === "conditional") {
     if (factAgreement === "same") {
-      const passing = engineVerdict !== null && PASSING_VERDICTS.has(engineVerdict);
+      // S5b only when the record satisfies the stated condition AND the
+      // engine agrees (a passing verdict); the hook never overrules the
+      // engine, so held atoms under a non-passing verdict stay S5a.
+      return facts.conditionAtomsHeld === true && passing ? { shape: "S5b" } : { shape: "S5a" };
+    }
+    if (factAgreement === "different") {
+      if (passing) {
+        // An express exclusion under a pass is the adverse-under-pass case
+        // — the lawyer's rule applies; a merely silent source is not.
+        return { omit: true, reason: facts.expresslyExcludes ? "rule_missing" : "authority_not_dispositive" };
+      }
+      return { shape: facts.expresslyExcludes ? "S6x" : "S6" };
+    }
+    return { omit: true }; // unknown
+  }
+
+  if (posture === "rejected") {
+    if (factAgreement === "same") {
       // The lawyer's rule (§4): an adverse authority on the same facts
       // under a pass means a rule is missing — never printed as a risk
       // noted. Every non-passing verdict (fails/uncertain, and any value
@@ -193,4 +314,22 @@ export function directionFor(
   // contested posture ships R4 settledness in practice (§0); omit rather
   // than guess at a shape the matrix never named for this combination.
   return { omit: true };
+}
+
+/**
+ * DOC 224A §8 D1 — the matrix pre-filter. A (record, hook) pair whose
+ * agreement is `unknown` is worth a model call ONLY if at least one of the
+ * two answers the legs could give (`same`, `different`) would put a
+ * sentence on the page under the current verdict. Pure; used by the
+ * planner in hook-join.ts.
+ */
+export function couldPrintEitherWay(
+  posture: HookPosture,
+  engineVerdict: string | null,
+  settledness: HookSettledness,
+  facts: ConditionalDirectionFacts = {},
+): boolean {
+  const same = directionFor(posture, "same", engineVerdict, settledness, facts);
+  const different = directionFor(posture, "different", engineVerdict, settledness, facts);
+  return "shape" in same || "shape" in different;
 }

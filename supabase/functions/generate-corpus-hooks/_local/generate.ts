@@ -1,4 +1,5 @@
-// DOC 213 §2 — the pure generation core for analogy hooks.
+// DOC 213 §2 — the pure generation core for analogy hooks, as amended by
+// DOC 222 (hooks contract v2, 2026-09-08).
 //
 // No I/O. The edge function does the DB read and the response; this module
 // decides what is emitted and returns the CONTENTS of the product's pinned
@@ -6,7 +7,13 @@
 //
 // EXCLUSION vs ERROR is the same discipline as generate-corpus-rules: an
 // unratified or draft-consultation row is EXCLUDED by name; there is no
-// silent drop.
+// silent drop. DOC 222 adds three more named exclusions: no pinpoint (§2.5
+// — mandatory for EVERY source table before activation), a source status
+// that cannot be derived (§2.7 — vacated/remanded decisions, EDPB front
+// matter, a WP29 source with no `verified_as_of`), and a `conditional` hook
+// with no proposition split (§2.1).
+
+import type { HookDistinguishingPair, HookMaterialFact, HookPinpoint, HookSourceStatus, HookVerb } from "../../_shared/corpus/hook-types.ts";
 
 export interface HookRow {
   readonly id: string;
@@ -27,6 +34,15 @@ export interface HookRow {
   readonly ratified_at: string | null;
   readonly ledger_ref: string | null;
   readonly retired_at: string | null;
+  // ── DOC 222 v2 columns (nullable; the settle gate fills them) ────────
+  readonly recognised_proposition?: string | null;
+  readonly condition_text?: string | null;
+  readonly condition_atoms?: readonly string[] | null;
+  readonly material_facts?: readonly HookMaterialFact[] | null;
+  readonly distinguishing_pairs?: readonly HookDistinguishingPair[] | null;
+  readonly pinpoint?: HookPinpoint | null;
+  readonly appeal_note?: string | null;
+  readonly verified_as_of?: string | null;
 }
 
 export interface HookProfileRow {
@@ -49,9 +65,9 @@ export interface HookProfileRow {
 }
 
 /**
- * The citation facts read from the profile's own source row — the same row the
- * drafter was given. `authority_label` is composed here (never by a model) in
- * the persuasive section's ratified citation form.
+ * The citation and status facts read from the profile's own source row —
+ * the same row the drafter was given. `authority_label`, the short label and
+ * the printed status are composed here (never by a model).
  */
 export interface HookSourceRow {
   readonly source_table: string;
@@ -59,6 +75,12 @@ export interface HookSourceRow {
   readonly subject?: string | null;
   readonly decision_date?: string | null;
   readonly title?: string | null;
+  // ── DOC 222 §2.7 — status derivation inputs ──────────────────────────
+  readonly adopted_date?: string | null; // edpb_guidelines
+  readonly source_url?: string | null; // edpb_guidelines (WP29 host)
+  readonly status?: string | null; // edpb_guidelines: final | front_matter
+  readonly appeal_status?: string | null; // enforcement_actions
+  readonly document_type?: string | null; // regulatory_guidance
 }
 
 const MONTHS = [
@@ -75,16 +97,127 @@ export function citationDate(iso: string | null | undefined): string | null {
   return `${Number(m[3])} ${MONTHS[monthIdx]} ${m[1]}`;
 }
 
-/** The "¶150" pin a curated EDPB profile records in its curation note. */
+/** The "¶150" pin a curated EDPB profile records in its curation note —
+ *  kept only as a fallback for a v1 row with no structured `pinpoint`. */
 export function paragraphPin(curationNote: string | null | undefined): string | null {
   const m = /¶\s*(\d+)/.exec(String(curationNote ?? ""));
   return m ? `¶${m[1]}` : null;
 }
 
+const WP29_CUTOVER = "2018-05-25";
+
+/** The short label used inline (doc 222 §5). */
+export function shortLabelFor(profile: HookProfileRow, source: HookSourceRow): string | null {
+  if (profile.source_table === "enforcement_actions") {
+    const regulator = (source.regulator ?? "").trim();
+    const subject = (source.subject ?? "").trim();
+    return regulator && subject ? `${regulator}, ${subject}` : null;
+  }
+  const title = (source.title ?? "").trim();
+  if (!title) return null;
+  if (profile.source_table === "edpb_guidelines") {
+    const m = /^(Guidelines|Opinion|Recommendations)\s+([0-9]+\/[0-9]{4})/i.exec(title);
+    const wp29 = isWp29(source);
+    if (m) return `${wp29 ? "WP29" : "EDPB"} ${m[1][0].toUpperCase()}${m[1].slice(1).toLowerCase()} ${m[2]}`;
+    return `${wp29 ? "WP29" : "EDPB"}, ${title}`;
+  }
+  if (profile.source_table === "regulatory_guidance") {
+    const regulator = (source.regulator ?? "").trim();
+    return regulator ? `${regulator}, ${title}` : title;
+  }
+  return null;
+}
+
+function isWp29(source: HookSourceRow): boolean {
+  const url = String(source.source_url ?? "");
+  if (/ec\.europa\.eu\/newsroom\/article29/i.test(url)) return true;
+  const adopted = String(source.adopted_date ?? "");
+  return /^\d{4}-\d{2}-\d{2}/.test(adopted) && adopted.slice(0, 10) < WP29_CUTOVER;
+}
+
+export interface DerivedStatus {
+  readonly source_status: HookSourceStatus;
+  readonly verb: HookVerb;
+  readonly status_label: string;
+}
+
+/**
+ * DOC 222 §2.7 — the printed status, DERIVED from source-row columns. Returns
+ * `{ exclude: reason }` where no status can honestly be printed.
+ */
+export function deriveSourceStatus(
+  profile: HookProfileRow,
+  source: HookSourceRow | undefined,
+  hook: Pick<HookRow, "appeal_note" | "verified_as_of">,
+): DerivedStatus | { exclude: string } {
+  if (!source) return { exclude: "source row missing for status derivation" };
+  const note = (profile.curation_note ?? "").toLowerCase();
+
+  if (profile.source_table === "enforcement_actions") {
+    const appeal = String(source.appeal_status ?? "unknown").toLowerCase();
+    if (appeal === "vacated" || appeal === "remanded") return { exclude: `decision ${appeal} on appeal — never a hook source (doc 222 §2.7)` };
+    if (appeal === "appeal_pending" || note.includes("under appeal") || profile.outcome_posture === "contested") {
+      // CEO ruling 2026-09-08: a known appeal is printed by the join as the
+      // FIXED sentence LIA_APPEAL_SENTENCE (lia-hooks.ts), never composed
+      // from `appeal_note` — that column is record-block detail (docket,
+      // date) and is emitted but not printed.
+      return { source_status: "sa_decision_appeal_pending", verb: "found", status_label: "under appeal" };
+    }
+    if (appeal === "affirmed") {
+      return { source_status: "sa_decision_affirmed", verb: "found", status_label: "supervisory-authority decision, affirmed on appeal" };
+    }
+    return {
+      source_status: "sa_decision",
+      verb: "found",
+      status_label: "supervisory-authority decision — persuasive, non-binding outside its jurisdiction",
+    };
+  }
+
+  if (profile.source_table === "edpb_guidelines") {
+    if (String(source.status ?? "final") !== "final") return { exclude: `edpb row status "${source.status}" is not final` };
+    const date = citationDate(source.adopted_date);
+    if (isWp29(source)) {
+      const verified = (hook.verified_as_of ?? "").trim();
+      if (!verified) return { exclude: "WP29 source requires verified_as_of (doc 222 §2.7)" };
+      const endorsed = profile.endorsement === "wp29_endorsed_2018"
+        ? ", endorsed by the EDPB on 25 May 2018"
+        : profile.endorsement === "wp29_not_endorsed"
+        ? ", not endorsed by the EDPB"
+        : "";
+      return {
+        source_status: "wp29_opinion",
+        verb: "advised",
+        status_label: `Article 29 Working Party opinion${date ? `, ${date}` : ""} — historical interpretive guidance${endorsed}; current relevance verified ${verified}`,
+      };
+    }
+    const title = String(source.title ?? "");
+    if (/^(Opinion|Recommendations)\b/i.test(title)) {
+      return {
+        source_status: "edpb_opinion",
+        verb: "states",
+        status_label: `EDPB Article 64 opinion${date ? `, adopted ${date}` : ""} — Board opinion, not a judicial decision`,
+      };
+    }
+    return {
+      source_status: "edpb_guidelines_final",
+      verb: "states",
+      status_label: `EDPB Guidelines${date ? `, adopted ${date}` : ""} — interpretive guidance, not binding law`,
+    };
+  }
+
+  if (profile.source_table === "regulatory_guidance") {
+    const regulator = (source.regulator ?? "").trim();
+    if (!regulator) return { exclude: "regulatory_guidance row has no regulator" };
+    return { source_status: "regulator_guidance", verb: "states", status_label: `${regulator} regulatory guidance — non-binding` };
+  }
+  return { exclude: `no status derivation for source table "${profile.source_table}"` };
+}
+
 /**
  * regulator + authority_label for the emitted hook. Returns null when a part
  * is missing — the caller EXCLUDES that hook by name rather than shipping a
- * blank citation.
+ * blank citation. DOC 222: the label carries NO pinpoint (the join composes
+ * `{citation}` = label + the structured `pinpoint`).
  */
 export function citationFor(
   profile: HookProfileRow,
@@ -100,20 +233,32 @@ export function citationFor(
   }
   if (profile.source_table === "edpb_guidelines") {
     const title = (source.title ?? "").trim();
-    const pin = paragraphPin(profile.curation_note);
-    if (!title || !pin) return null;
-    return { regulator: "EDPB", authority_label: `${title} ${pin}` };
+    if (!title) return null;
+    const wp29 = isWp29(source);
+    return { regulator: wp29 ? "the Article 29 Working Party" : "the EDPB", authority_label: wp29 ? `Article 29 Working Party, ${title}` : `EDPB, ${title}` };
   }
   if (profile.source_table === "regulatory_guidance") {
     const title = (source.title ?? "").trim();
     if (!title) return null;
     const regulator = (source.regulator ?? "").trim();
     if (!regulator) return null;
-    return { regulator, authority_label: title };
+    return { regulator: `the ${regulator}`, authority_label: `${regulator}, ${title}` };
   }
   return null;
 }
 
+/** A v1 row's `¶N` in the curation note, promoted to a structured pinpoint
+ *  with the finding span as its anchor — the migration path for the seven
+ *  stamped EDPB profiles; a v2 row carries its own. */
+export function pinpointFor(row: HookRow, profile: HookProfileRow): HookPinpoint | null {
+  const p = row.pinpoint;
+  if (p && typeof p === "object" && typeof (p as HookPinpoint).ref === "string" && (p as HookPinpoint).ref.length > 0 && typeof (p as HookPinpoint).anchor_span === "string") {
+    return { kind: (p as HookPinpoint).kind, ref: (p as HookPinpoint).ref, anchor_span: (p as HookPinpoint).anchor_span };
+  }
+  const legacy = paragraphPin(profile.curation_note);
+  if (legacy && row.finding_span) return { kind: "paragraph", ref: legacy.slice(1), anchor_span: row.finding_span };
+  return null;
+}
 
 export interface Exclusion {
   readonly hook_id: string;
@@ -124,7 +269,7 @@ export interface GenerateHooksInput {
   readonly product: string;
   readonly rows: readonly HookRow[];
   readonly profiles: ReadonlyMap<string, HookProfileRow>;
-  /** Citation facts from each profile's source row, keyed by profile id. */
+  /** Citation + status facts from each profile's source row, keyed by profile id. */
   readonly sources: ReadonlyMap<string, HookSourceRow>;
   /** factor label -> three-part-test element (_local/factor-element.ts). */
   readonly elementOf: (factorId: string) => string | null;
@@ -132,12 +277,9 @@ export interface GenerateHooksInput {
   readonly hooksVersion: string;
   readonly outputPath: string;
   readonly exportPrefix: string;
-  /** The direction / vocabulary / shape blocks copied verbatim from the
-   *  existing pinned file. Empty placeholders when that file does not exist
-   *  yet — the caller says so in its response. */
+  /** The [RATIFY] blocks copied verbatim from the existing pinned file. */
   readonly contextBlock: string;
 }
-
 
 export interface GenerateHooksResult {
   readonly ok: boolean;
@@ -163,13 +305,17 @@ const POSTURES = new Set(["accepted", "conditional", "rejected", "contested"]);
 
 /**
  * The RUNTIME projection — exactly the fields `AuthorityHook`
- * (_shared/corpus/hook-types.ts) declares, plus Track H3's `relevance` block.
- * Nothing else: an emitted file must pass `deno check` against that type.
+ * (_shared/corpus/hook-types.ts) declares, plus Track H3's `relevance` block
+ * and the doc 222 v2 fields. Nothing else: an emitted file must pass
+ * `deno check` against that type.
  */
 function shippedHook(
   row: HookRow,
   profile: HookProfileRow,
   citation: { regulator: string; authority_label: string },
+  short: string,
+  status: DerivedStatus,
+  pinpoint: HookPinpoint,
   factorId: string,
   element: string,
 ) {
@@ -200,6 +346,20 @@ function shippedHook(
       flags: [...(profile.flags ?? [])],
       outcome_posture: profile.outcome_posture,
     },
+    // DOC 222 — the v2 contract.
+    authority_label_short: short,
+    hook_version: row.hook_version,
+    source_status: status.source_status,
+    status_label: status.status_label,
+    verb: status.verb,
+    appeal_note: row.appeal_note ?? null,
+    verified_as_of: row.verified_as_of ?? null,
+    pinpoint,
+    recognised_proposition: row.recognised_proposition ?? null,
+    condition_text: row.condition_text ?? null,
+    condition_atoms: row.condition_atoms ? [...row.condition_atoms] : null,
+    material_facts: [...(row.material_facts ?? [])],
+    distinguishing_pairs: [...(row.distinguishing_pairs ?? [])],
   };
 }
 
@@ -210,6 +370,9 @@ export function generateHooks(input: GenerateHooksInput): GenerateHooksResult {
     row: HookRow;
     profile: HookProfileRow;
     citation: { regulator: string; authority_label: string };
+    short: string;
+    status: DerivedStatus;
+    pinpoint: HookPinpoint;
     factorId: string;
     element: string;
   }[] = [];
@@ -244,31 +407,42 @@ export function generateHooks(input: GenerateHooksInput): GenerateHooksResult {
       excluded.push({ hook_id: label, reason: `factor "${factorId}" maps to no three-part-test element` });
       continue;
     }
-    const citation = citationFor(profile, input.sources.get(row.profile_id));
+    const source = input.sources.get(row.profile_id);
+    const citation = citationFor(profile, source);
     if (!citation) {
       excluded.push({ hook_id: label, reason: `citation facts incomplete for ${profile.source_table} row ${profile.source_row_id}` });
       continue;
     }
-    emitted.push({ row, profile, citation, factorId, element });
+    const short = source ? shortLabelFor(profile, source) : null;
+    if (!short) { excluded.push({ hook_id: label, reason: "short citation label could not be composed" }); continue; }
+    // DOC 222 §2.7 — the printed status is derived or the hook is not shipped.
+    const status = deriveSourceStatus(profile, source, row);
+    if ("exclude" in status) { excluded.push({ hook_id: label, reason: status.exclude }); continue; }
+    // DOC 222 §2.5 — a pinpoint is mandatory for EVERY source before activation.
+    const pinpoint = pinpointFor(row, profile);
+    if (!pinpoint) { excluded.push({ hook_id: label, reason: "pinpoint missing — mandatory before activation (doc 222 §2.5)" }); continue; }
+    // DOC 222 §2.1 — a conditional hook needs its proposition split.
+    if (profile.outcome_posture === "conditional" && (!row.recognised_proposition || !row.condition_text)) {
+      excluded.push({ hook_id: label, reason: "conditional hook without recognised_proposition / condition_text (doc 222 §2.1)" });
+      continue;
+    }
+    emitted.push({ row, profile, citation, short, status, pinpoint, factorId, element });
   }
-
-
 
   if (errors.length > 0) return { ok: false, emitted: 0, excluded, errors, contents: null };
 
   const sorted = [...emitted].sort((a, b) => (a.row.profile_id < b.row.profile_id ? -1 : a.row.profile_id > b.row.profile_id ? 1 : 0));
-  const body = sorted.map(({ row, profile, citation, factorId, element }) =>
-    JSON.stringify(shippedHook(row, profile, citation, factorId, element), null, 2)
+  const body = sorted.map(({ row, profile, citation, short, status, pinpoint, factorId, element }) =>
+    JSON.stringify(shippedHook(row, profile, citation, short, status, pinpoint, factorId, element), null, 2)
       .split("\n").map((line) => `  ${line}`).join("\n")
   ).join(",\n");
-
 
   const excludedLines = excluded.length === 0
     ? "//   (none)"
     : excluded.map((item) => `//   ${item.hook_id} — ${item.reason}`).join("\n");
 
   const prefix = input.exportPrefix;
-  const contents = `// ${input.product.toUpperCase()} ANALOGY HOOKS — pinned, generated file (doc 213).
+  const contents = `// ${input.product.toUpperCase()} ANALOGY HOOKS — pinned, generated file (doc 213 / doc 222).
 //
 // Generated by \`generate-corpus-hooks\` (action "generate") from RATIFIED
 // \`public.authority_hooks\` rows. Do not hand-edit the hooks array:

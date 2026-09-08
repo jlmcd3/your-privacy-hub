@@ -223,7 +223,12 @@ Deno.test("doc213b — fact_agreement unknown yields an omitted hook-backed entr
     verdicts: states.verdicts,
   });
 
-  assertEquals(result.hook_flags, [{ hook_id: hook.hook_id, reason: "omitted" }]);
+  // DOC 224 — an unknown pair that ranked and could print is `selection_pending`
+  // (the two-leg pass has not settled it); an unknown pair that could never
+  // print is plainly `omitted`. Either way: a flag, never a rendered entry.
+  assertEquals(result.hook_flags.length, 1);
+  assertEquals(result.hook_flags[0].hook_id, hook.hook_id);
+  assert(["selection_pending", "omitted"].includes(result.hook_flags[0].reason), result.hook_flags[0].reason);
   assertEquals(result.entry_count, baseline.entry_count);
   assert(!result.ledger.includes(hook.authority_label));
   assert(!result.body.includes(hook.authority_label));

@@ -13,6 +13,8 @@ import { LIA_DETERMINISTIC_ENABLED } from "./_local/ltp/lia-deterministic-flag.t
 // `_meta.internal.lia_v3` record block — nothing else changes while false.
 import { LIA_V3_ENABLED } from "./_local/ltp/lia-v3-flag.ts";
 import type { LoadedReadings, ReadingsClientLike } from "./_local/ltp/v3/load-readings.ts";
+// DOC 224 — the selection map type (pure half of the two-leg pass).
+import type { HookSelectionMap } from "../_shared/corpus/hook-selection.ts";
 // DOC 207 TRACK 1 (2026-09-07) — the two legacy-only fetches
 // (get-enforcement-context, li_tracker_entries) are skipped on the
 // deterministic path; see _local/legacy-fetch-policy.ts's header for why
@@ -1909,7 +1911,13 @@ Return JSON:
         console.warn("[run-li-assessment] V3 readings load failed (non-fatal):", (e as Error)?.message);
       }
     }
-    const v3Readings = v3Load?.readings ?? [];
+    let v3Readings = v3Load?.readings ?? [];
+    // ── DOC 224 — THE TWO-LEG HOOK SELECTION: accounting for the record
+    // block, and the selections the assembler consumes (filled between the
+    // typed test and the rule pass below; empty while LIA_V3_ENABLED is off).
+    let v3Selection: Record<string, unknown> | null = null;
+    let v3SelectionOpts: { selections?: HookSelectionMap; unsettled?: ReadonlySet<string>; lapsed?: ReadonlySet<string> } = {};
+    const v3RooAsks: Record<string, unknown>[] = [];
 
     // ── LIA CONVERSION L1-B/L3 — THE TYPED THREE-PART TEST (2026-08-26) ──
     // Deterministic path only: replaces the model's Stage-2 bag with the
@@ -1929,6 +1937,193 @@ Return JSON:
           assessment as unknown as Record<string, unknown>,
         );
 
+        // ── DOC 224 / 224A — THE TWO-LEG HOOK SELECTION (generation time,
+        // dark behind LIA_V3_ENABLED; the ROO rides the same path — a
+        // regeneration re-enters here and the store makes unchanged answers
+        // free). Runs BETWEEN the typed test and the rule pass: a preliminary
+        // rule pass (pure, cheap) gives the post-rule verdicts the matrix
+        // pre-filter keys on; the real rule pass below then runs over the
+        // readings the service wrote. Sequence: prior `hook_selections` rows
+        // → lock (agreed, same canonical answer hash), let go (disagreed,
+        // same hash → `unsettled_final`, 224A §3.4), supersede (hash changed)
+        // → plan the pairs still worth a call (the matrix pre-filter, D1; no
+        // call on an unanswered field, D4) → ONE request to
+        // classify-propositions `select_hooks` (one model call per leg over
+        // every item; its store is consulted first; it also classifies the
+        // free-text fields with a ratified proposition inventory and writes
+        // `intake_readings`) → reload readings → resolve per hook → the ROO
+        // ask (`information_needed`, question-only template) for each pair
+        // the legs could not settle → the assembler consumes the selections.
+        // FAIL-OPEN: any error leaves every pair pending and the V2 document
+        // ships; the record block names the error.
+        if (LIA_V3_ENABLED) {
+          type SelRow = import("./_local/ltp/lia-persuasive-authority.ts").HookSelectionRow;
+          const selStarted = Date.now();
+          const acct: Record<string, unknown> = {
+            enabled: true, generation_no: null, cap: null, hooks_in_play: 0, items_planned: 0,
+            calls_made: 0, from_store: 0, from_model: 0, locked: 0, lapsed: 0, superseded: 0,
+            unsettled: [], conflicts: [], asks_emitted: 0, readings_written: 0, considered: [], error: null,
+          };
+          try {
+            const pa = await import("./_local/ltp/lia-persuasive-authority.ts");
+            const { buildLiaRuleStates } = await import("./_local/ltp/lia-deliverables/rule-states.ts");
+            const { applyLiaRules: applyLiaRulesPre } = await import("./_local/ltp/lia-deliverables/rule-pass.ts");
+            const { liaV3Answer, LIA_V3_FIELDS } = await import("./_local/ltp/v3/field-labels.ts");
+            const { LIA_ROO_UNSETTLED_TEMPLATE } = await import("./_local/ltp/v3/readback-templates.ts");
+            const intakeRec = assessment as unknown as Record<string, unknown>;
+            // Post-rule verdicts for the pre-filter (readings loaded so far;
+            // prop: rules are never verdict-bearing — L3 restated — so this
+            // equals the final pass's verdicts).
+            const pre = applyLiaRulesPre(typed, reportData as Record<string, unknown>, intakeRec, undefined, v3Readings);
+            const preTyped = pre.invariant_violations.length ? typed : pre.typed;
+            const selStates = buildLiaRuleStates(
+              reportData as Record<string, unknown>,
+              intakeRec,
+              { three_part_test: preTyped.three_part_test } as any,
+              v3Readings,
+            );
+            // Generation number = the meter's runs_used + 1 (no row yet → 1);
+            // the cap is 2 calls per generation × runs_allowed (doc 224 §3).
+            let generationNo = 1;
+            let runsAllowed = 4;
+            try {
+              const { data: meterRow } = await supabase
+                .from("tool_run_meter").select("runs_used,runs_allowed")
+                .eq("tool_type", "li_assessment").eq("assessment_id", assessment_id).maybeSingle();
+              if (meterRow) {
+                generationNo = Number((meterRow as any).runs_used ?? 0) + 1;
+                runsAllowed = Number((meterRow as any).runs_allowed ?? 4);
+              }
+            } catch { /* first generation */ }
+            acct.generation_no = generationNo;
+            acct.cap = 2 * runsAllowed;
+
+            // Prior rows: lock / let go / supersede by canonical answer hash.
+            const priorRes = await supabase.from("hook_selections")
+              .select("id,field_id,hook_id,answer_hash,decision_id,agreement,matched_atom,evidence_span,legs_disagreed,status,generation_no")
+              .eq("assessment_id", assessment_id).in("status", ["agreed", "disagreed"]);
+            const prior = Array.isArray(priorRes.data) ? priorRes.data as any[] : [];
+            const hashByField = new Map<string, string>();
+            const hashOf = async (field_id: string): Promise<string> => {
+              let h = hashByField.get(field_id);
+              if (h === undefined) {
+                h = await pa.canonicalAnswerHash(liaV3Answer(intakeRec, field_id));
+                hashByField.set(field_id, h);
+              }
+              return h;
+            };
+            const lockedRows: SelRow[] = [];
+            const lapsed = new Set<string>();
+            const supersededIds: string[] = [];
+            const lapsedIds: string[] = [];
+            for (const r of prior) {
+              const cur = await hashOf(String(r.field_id));
+              if (cur !== String(r.answer_hash ?? "")) { supersededIds.push(String(r.id)); continue; }
+              if (r.status === "agreed") {
+                lockedRows.push({
+                  field_id: String(r.field_id), hook_id: String(r.hook_id),
+                  agreement: r.agreement === "same" || r.agreement === "different" ? r.agreement : "unknown",
+                  matched_atom: r.matched_atom ?? null, evidence_span: r.evidence_span ?? null,
+                  decision_id: String(r.decision_id ?? ""), legs_disagreed: false, source: "store",
+                });
+              } else {
+                lapsed.add(String(r.hook_id));
+                lapsedIds.push(String(r.id));
+              }
+            }
+            const nowIso = new Date().toISOString();
+            if (supersededIds.length) await supabase.from("hook_selections").update({ status: "superseded", updated_at: nowIso }).in("id", supersededIds);
+            if (lapsedIds.length) await supabase.from("hook_selections").update({ status: "unsettled_final", updated_at: nowIso }).in("id", lapsedIds);
+            const locked = pa.resolveHookSelections(lockedRows);
+            acct.locked = locked.selections.size;
+            acct.lapsed = lapsed.size;
+            acct.superseded = supersededIds.length;
+
+            // Plan: only the pairs the matrix says could print, on fields
+            // the customer actually answered, with no stored decision.
+            const plan = pa.planLiaHookSelectionForReport(reportData as Record<string, unknown>, {
+              intake: intakeRec, states: selStates, verdicts: selStates.verdicts,
+              selections: locked.selections, lapsed,
+            });
+            acct.hooks_in_play = plan.hooks_in_play;
+            acct.items_planned = plan.items.length;
+            acct.considered = plan.considered;
+
+            // The proposition fields (matter 2): every free-text field with a
+            // usable answer is offered; the service classifies only those
+            // with a ratified inventory, store first.
+            const classifyFields = LIA_V3_FIELDS
+              .map((f) => ({ field_id: f.field_id, question_text: f.label, answer: pa.canonicalAnswerText(liaV3Answer(intakeRec, f.field_id)) }))
+              .filter((f) => f.answer.length >= 12);
+
+            const rows: SelRow[] = [...lockedRows];
+            if (plan.items.length > 0 || classifyFields.length > 0) {
+              const { invokeGated } = await import("../_shared/invoke-gated.ts");
+              const r = await invokeGated("classify-propositions", {
+                action: "select_hooks", product: "lia", assessment_id, generation_no: generationNo,
+                items: plan.items, classify_fields: classifyFields,
+              }, { timeoutMs: 240_000, maxBodyChars: 0 });
+              if (!r.ok) {
+                acct.error = `select_hooks ${r.status}: ${String(r.error ?? r.body).slice(0, 300)}`;
+              } else {
+                const body = JSON.parse(r.body || "{}");
+                acct.calls_made = Number(body.calls_made ?? 0);
+                acct.from_store = Number(body.from_store ?? 0);
+                acct.from_model = Number(body.from_model ?? 0);
+                acct.readings_written = Number(body.readings_written ?? 0);
+                acct.cap_reached = body.cap_reached === true;
+                for (const x of Array.isArray(body.rows) ? body.rows : []) {
+                  rows.push({
+                    field_id: String(x.field_id), hook_id: String(x.hook_id),
+                    agreement: x.agreement === "same" || x.agreement === "different" ? x.agreement : "unknown",
+                    matched_atom: x.matched_atom ?? null, evidence_span: x.evidence_span ?? null,
+                    decision_id: String(x.decision_id ?? ""), legs_disagreed: x.legs_disagreed === true,
+                    source: x.source === "model" ? "model" : "store",
+                  });
+                }
+                // The service may have written readings for this generation:
+                // reload so the rule pass below sees them (call site 1 of 2).
+                if (Number(body.readings_written ?? 0) > 0 || Number(body.readings_touched ?? 0) > 0) {
+                  const { loadIntakeReadings } = await import("./_local/ltp/v3/load-readings.ts");
+                  const previewId = typeof (assessment as any)?.preview_assessment_id === "string" ? String((assessment as any).preview_assessment_id) : "";
+                  const reloaded = await loadIntakeReadings(supabase as unknown as ReadingsClientLike, [assessment_id, previewId]);
+                  v3Load = reloaded;
+                  v3Readings = reloaded.readings;
+                }
+              }
+            }
+            const resolved = pa.resolveHookSelections(rows);
+            v3SelectionOpts = { selections: resolved.selections, unsettled: resolved.unsettled, lapsed };
+            acct.unsettled = [...resolved.unsettled];
+            acct.conflicts = resolved.conflicts;
+
+            // The ROO ask — one per unsettled hook, on the first field its
+            // legs read; names the question only (LIA_ROO_UNSETTLED_TEMPLATE).
+            const asked = new Set<string>();
+            for (const hookId of resolved.unsettled) {
+              const row = rows.find((x) => x.hook_id === hookId && x.legs_disagreed) ?? rows.find((x) => x.hook_id === hookId);
+              const field = row?.field_id;
+              if (!field || asked.has(field)) continue;
+              asked.add(field);
+              v3RooAsks.push({
+                field, dimensions: LIA_ROO_UNSETTLED_TEMPLATE, ask: LIA_ROO_UNSETTLED_TEMPLATE,
+                provision: "GDPR Art. 6(1)(f)", enables: "the persuasive-authority comparison",
+                source: "hook_selection", hook_id: hookId,
+              });
+            }
+            acct.asks_emitted = asked.size;
+          } catch (e) {
+            acct.error = String((e as Error)?.message ?? e);
+            console.warn("[run-li-assessment] hook selection failed (non-fatal):", (e as Error)?.message);
+          }
+          acct.elapsed_ms = Date.now() - selStarted;
+          v3Selection = acct;
+          console.log(JSON.stringify({
+            evt: "lia_v3_hook_selection", fn: "run-li-assessment", build_stamp: BUILD_STAMP,
+            ...acct, considered: undefined, considered_count: (acct.considered as unknown[]).length,
+          }));
+        }
+
         // ── DOC 207 TRACK 3a — THE RULE PASS (2026-09-07) ────────────────
         // Runs LIA_RULES (empty until the CEO stamps a rule and the doc 206
         // §6.2 generator re-runs) through the generic interpreter against
@@ -1946,6 +2141,10 @@ Return JSON:
         // verifyLiaIntakeEvidence, enforceStorageLimitationCrossRead — all
         // of which read liaIntakeObject unconditionally) are byte-untouched.
         (liaIntakeObject as any).balancing_details = (assessment as any).balancing_details ?? null;
+        // DOC 224 — the ROO ask names a free-text leaf under purpose_details /
+        // necessity_details too; the guard's nested walk needs those roots.
+        (liaIntakeObject as any).purpose_details = (assessment as any).purpose_details ?? null;
+        (liaIntakeObject as any).necessity_details = (assessment as any).necessity_details ?? null;
         const { applyLiaRules, LIA_RULES_VERSION } = await import("./_local/ltp/lia-deliverables/rule-pass.ts");
         // DOC 217 §5.2 — `undefined` keeps the LIA_RULES default; the V3
         // readings (call site 1 of 2) reach buildLiaRuleStates through here.
@@ -1969,6 +2168,13 @@ Return JSON:
         (reportData as any).information_needed = effective.information_needed;
         (reportData as any).annotations = [];
         (reportData as any).rule_applications = ruled.invariant_violations.length ? [] : ruled.applications;
+        // DOC 224 — the ROO asks the selection pass emitted (below the typed
+        // test, above) ride into `information_needed` here, after the rule
+        // pass's own asks; the guard validates their dotted fields.
+        if (v3RooAsks.length > 0) {
+          const infoNeeded: any[] = Array.isArray((reportData as any).information_needed) ? (reportData as any).information_needed : [];
+          (reportData as any).information_needed = [...infoNeeded, ...v3RooAsks];
+        }
         (reportData as any).documentation_recommendations = buildDocumentationTyped(
           reportData as Record<string, unknown>,
           REPORT_DISCLAIMER,
@@ -2512,7 +2718,8 @@ Return JSON:
         // DOC 217 §5.2/§5.4/§5.5: the V3 readings (call site 2 of 2 — the
         // Schedule of Readings and the hook join's state bag) and the V3
         // flag (the method statement, until LIA_METHOD_STATEMENT_RATIFIED).
-        { deterministic: LIA_DETERMINISTIC_ENABLED, readings: v3Readings, v3Enabled: LIA_V3_ENABLED },
+        // DOC 224: the two-leg selections resolved above (empty while dark).
+        { deterministic: LIA_DETERMINISTIC_ENABLED, readings: v3Readings, v3Enabled: LIA_V3_ENABLED, ...v3SelectionOpts },
       );
       (reportData as Record<string, unknown>).skeleton_document = assembled.document;
       const _m = ((reportData as Record<string, unknown>)._meta ??= {}) as Record<string, unknown>;
@@ -2536,10 +2743,12 @@ Return JSON:
           readings: assembled.v3.readings,
           decision_ids: v3Load?.decision_ids ?? [],
           hooks: assembled.v3.hooks,
-          schedule_rows: assembled.v3.schedule_rows,
-          schedule_rendered: assembled.v3.schedule_rendered,
           method_statement_rendered: assembled.v3.method_statement_rendered,
           hook_flags: assembled.v3.hook_flags,
+          // DOC 224 — the selection accounting (D10): every pair considered
+          // and why it was or was not called, plus what the join applied.
+          selection: v3Selection,
+          selection_join: assembled.v3.selection,
           assertion_failures: assembled.v3.assertion_failures,
           readings_error: v3Load?.error ?? null,
           readings_warnings: v3Load?.warnings ?? [],
@@ -2548,7 +2757,8 @@ Return JSON:
       console.log(JSON.stringify({
         evt: "lia_v3", fn: "run-li-assessment", build_stamp: BUILD_STAMP,
         enabled: LIA_V3_ENABLED, readings: v3Readings.length,
-        schedule_rendered: assembled.v3.schedule_rendered,
+        selection_applied: assembled.v3.selection.applied_from_selection.length,
+        selection_unsettled: assembled.v3.selection.unsettled.length,
         method_statement_rendered: assembled.v3.method_statement_rendered,
         hooks_applied: assembled.v3.hooks.applied_ids.length,
         assertion_failures: assembled.v3.assertion_failures.length,

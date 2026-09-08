@@ -1,7 +1,9 @@
-// build-marker: generate-corpus-hooks-doc213-2026-09-07
-console.log("[build-marker] generate-corpus-hooks doc213-2026-09-07");
+// build-marker: generate-corpus-hooks-doc222-2026-09-08
+console.log("[build-marker] generate-corpus-hooks doc222-2026-09-08");
 //
-// DOC 213 — the OFFLINE ANALOGY-HOOK pipeline for the LIA corpus. DARK and
+// DOC 213 — the OFFLINE ANALOGY-HOOK pipeline for the LIA corpus, as amended
+// by DOC 222 (hooks contract v2: material facts, distinguishing pairs,
+// proposition split, structured pinpoint, derived source status). DARK and
 // ADDITIVE: nothing here is read by any product at run time, and no file
 // under run-li-assessment/ is touched. The `generate` action returns file
 // CONTENTS; a human commits them, and only ratified rows are ever emitted.
@@ -176,11 +178,35 @@ async function loadHook(hookId: string): Promise<Record<string, unknown> | null>
 function hookForModel(hook: Record<string, unknown>) {
   return {
     hook_id: hook.id,
+    material_facts: hook.material_facts ?? null,
     fact_atoms: hook.fact_atoms, distinguishing_atoms: hook.distinguishing_atoms,
+    distinguishing_pairs: hook.distinguishing_pairs ?? null,
     not_distinguishable: hook.not_distinguishable, required_atoms: hook.required_atoms,
     finding_span: hook.finding_span, fact_pattern_paraphrase: hook.fact_pattern_paraphrase,
     finding_paraphrase: hook.finding_paraphrase, trigger_terms: hook.trigger_terms,
+    recognised_proposition: hook.recognised_proposition ?? null,
+    condition_text: hook.condition_text ?? null,
+    condition_atoms: hook.condition_atoms ?? null,
+    pinpoint: hook.pinpoint ?? null,
     settledness: hook.settledness,
+  };
+}
+
+/** DOC 222 — the v2 columns a draft or revise writes (DDL: doc 225 §3). */
+function draftColumns(draft: import("./_local/verify.ts").DraftPayload) {
+  return {
+    fact_atoms: draft.fact_atoms, distinguishing_atoms: draft.distinguishing_atoms,
+    not_distinguishable: draft.not_distinguishable, required_atoms: draft.required_atoms,
+    finding_span: draft.finding_span,
+    fact_pattern_paraphrase: draft.fact_pattern_paraphrase,
+    finding_paraphrase: draft.finding_paraphrase,
+    trigger_terms: draft.trigger_terms,
+    material_facts: draft.material_facts,
+    distinguishing_pairs: draft.distinguishing_pairs,
+    recognised_proposition: draft.recognised_proposition,
+    condition_text: draft.condition_text,
+    condition_atoms: draft.condition_atoms,
+    pinpoint: draft.pinpoint,
   };
 }
 
@@ -226,17 +252,13 @@ async function actionDraft(profileId: string) {
   const row = await upsertHook({
     profile_id: profileId, product: profile.product,
     hook_status: verification.hook_status,
-    fact_atoms: draft.fact_atoms, distinguishing_atoms: draft.distinguishing_atoms,
-    not_distinguishable: draft.not_distinguishable, required_atoms: draft.required_atoms,
-    finding_span: draft.finding_span,
-    fact_pattern_paraphrase: draft.fact_pattern_paraphrase,
-    finding_paraphrase: draft.finding_paraphrase,
-    trigger_terms: draft.trigger_terms,
+    ...draftColumns(draft),
     settledness: settlednessFor(full, endorsement),
     substring_checks_passed: verification.substring_checks_passed,
     vocabulary_checks_passed: verification.vocabulary_checks_passed,
     drafter: {
       model: DRAFTER_MODEL,
+      contract: "doc222-v2",
       prompt_sha256: await sha256(`${system}\n\n${user}`),
       schema_sha256: await sha256(JSON.stringify(schema)),
       response_id: responseId,
@@ -244,11 +266,12 @@ async function actionDraft(profileId: string) {
       raw: text,
       abstain_reason: draft.abstain_reason,
       verification_errors: verification.errors,
+      verification_warnings: verification.warnings,
     },
   });
   return json({
     ok: true, hook_id: row?.id ?? null, hook_status: verification.hook_status,
-    errors: verification.errors, abstain_reason: draft.abstain_reason,
+    errors: verification.errors, warnings: verification.warnings, abstain_reason: draft.abstain_reason,
   });
 }
 
@@ -330,20 +353,18 @@ async function actionRevise(hookId: string) {
   const verification = verifyDraft(draft, full, excerpt, registry);
 
   const { error } = await admin().from("authority_hooks").update({
-    fact_atoms: draft.fact_atoms, distinguishing_atoms: draft.distinguishing_atoms,
-    not_distinguishable: draft.not_distinguishable, required_atoms: draft.required_atoms,
-    finding_span: draft.finding_span, fact_pattern_paraphrase: draft.fact_pattern_paraphrase,
-    finding_paraphrase: draft.finding_paraphrase, trigger_terms: draft.trigger_terms,
+    ...draftColumns(draft),
     settledness: settlednessFor(full, endorsement),
     substring_checks_passed: verification.substring_checks_passed,
     vocabulary_checks_passed: verification.vocabulary_checks_passed,
     hook_status: verification.hook_status,
     round: round + 1,
     drafter: {
-      model: DRAFTER_MODEL, prompt_sha256: await sha256(`${system}\n\n${user}`),
+      model: DRAFTER_MODEL, contract: "doc222-v2", prompt_sha256: await sha256(`${system}\n\n${user}`),
       schema_sha256: await sha256(JSON.stringify(schema)), response_id: responseId,
       drafted_at: new Date().toISOString(), raw: text, abstain_reason: draft.abstain_reason,
-      verification_errors: verification.errors, revision_of_round: round,
+      verification_errors: verification.errors, verification_warnings: verification.warnings,
+      revision_of_round: round,
     },
     updated_at: new Date().toISOString(),
   }).eq("id", hookId);
@@ -357,6 +378,8 @@ async function actionSettle(hookId: string) {
   if (!hook) return json({ error: `hook ${hookId} not found` }, 404);
   const profile = await loadProfile(String(hook.profile_id));
   const objections = (hook.critic as { objections?: Objection[] } | null)?.objections ?? [];
+  const drafter = (hook.drafter as { verification_errors?: unknown[] } | null) ?? null;
+  const pin = hook.pinpoint as { ref?: unknown; anchor_span?: unknown } | null;
   const decision = settleDecision({
     substring_checks_passed: hook.substring_checks_passed === true,
     vocabulary_checks_passed: hook.vocabulary_checks_passed === true,
@@ -365,6 +388,11 @@ async function actionSettle(hookId: string) {
     not_distinguishable: hook.not_distinguishable === true,
     distinguishing_atoms: (hook.distinguishing_atoms as string[] | null) ?? [],
     round: Number(hook.round ?? 1),
+    // DOC 222 — settle gates on the v2 fields the join will need.
+    pinpoint_present: !!pin && typeof pin.ref === "string" && pin.ref.length > 0 && typeof pin.anchor_span === "string",
+    proposition_split_present: typeof hook.recognised_proposition === "string" && hook.recognised_proposition.length > 0 &&
+      typeof hook.condition_text === "string" && hook.condition_text.length > 0,
+    verification_errors: Array.isArray(drafter?.verification_errors) ? drafter.verification_errors.length : 0,
   });
   if (decision.hook_status === null) {
     return json({ ok: true, hook_id: hookId, hook_status: hook.hook_status, pending: decision.reasons });
@@ -400,45 +428,58 @@ async function actionGenerate(product: string) {
     // The select list is a concatenated string, so PostgREST cannot infer the
     // row shape; name it here rather than repeat a cast at every use.
     const profileRows = (profileRowsRaw ?? []) as unknown as (HookProfileRow & { source_row_id: string })[];
+    // Citation + status facts (doc 222 §2.7), read from the SAME source rows
+    // the drafter was given. A read error is returned, never swallowed into
+    // "citation facts incomplete" for every row.
     const edpbIds = profileRows.filter((p) => p.source_table === "edpb_guidelines").map((p) => p.source_row_id);
     const endorsements = new Map<string, string | null>();
-    const edpbTitles = new Map<string, string | null>();
+    const edpb = new Map<string, HookSourceRow>();
     if (edpbIds.length > 0) {
-      const { data: guidelines } = await db.from("edpb_guidelines").select("id,title,endorsement_status").in("id", edpbIds);
+      const { data: guidelines, error } = await db.from("edpb_guidelines")
+        .select("id,title,endorsement_status,adopted_date,source_url,status").in("id", edpbIds);
+      if (error) return json({ error: `edpb_guidelines read failed: ${error.message}` }, 500);
       for (const g of guidelines ?? []) {
         endorsements.set(String(g.id), g.endorsement_status ?? null);
-        edpbTitles.set(String(g.id), g.title ?? null);
+        edpb.set(String(g.id), {
+          source_table: "edpb_guidelines", title: g.title ?? null, adopted_date: g.adopted_date ?? null,
+          source_url: g.source_url ?? null, status: g.status ?? null,
+        });
       }
     }
-
-    // Citation facts, read from the SAME source rows the drafter was given.
     const enfIds = profileRows.filter((p) => p.source_table === "enforcement_actions").map((p) => p.source_row_id);
-    const enf = new Map<string, { regulator: string | null; subject: string | null; decision_date: string | null }>();
+    const enf = new Map<string, HookSourceRow>();
     if (enfIds.length > 0) {
-      const { data: actions } = await db.from("enforcement_actions")
-        .select("id,regulator,subject,decision_date").in("id", enfIds);
+      const { data: actions, error } = await db.from("enforcement_actions")
+        .select("id,regulator,subject,decision_date,appeal_status").in("id", enfIds);
+      if (error) return json({ error: `enforcement_actions read failed: ${error.message}` }, 500);
       for (const a of actions ?? []) {
-        enf.set(String(a.id), { regulator: a.regulator ?? null, subject: a.subject ?? null, decision_date: a.decision_date ?? null });
+        enf.set(String(a.id), {
+          source_table: "enforcement_actions", regulator: a.regulator ?? null, subject: a.subject ?? null,
+          decision_date: a.decision_date ?? null, appeal_status: a.appeal_status ?? null,
+        });
       }
     }
     const guidIds = profileRows.filter((p) => p.source_table === "regulatory_guidance").map((p) => p.source_row_id);
-    const guid = new Map<string, { regulator: string | null; title: string | null }>();
+    const guid = new Map<string, HookSourceRow>();
     if (guidIds.length > 0) {
-      const { data: guidance } = await db.from("regulatory_guidance").select("id,title,regulator").in("id", guidIds);
-      for (const g of guidance ?? []) guid.set(String(g.id), { regulator: g.regulator ?? null, title: g.title ?? null });
+      const { data: guidance, error } = await db.from("regulatory_guidance")
+        .select("id,title,regulator,document_type").in("id", guidIds);
+      if (error) return json({ error: `regulatory_guidance read failed: ${error.message}` }, 500);
+      for (const g of guidance ?? []) {
+        guid.set(String(g.id), { source_table: "regulatory_guidance", title: g.title ?? null, regulator: g.regulator ?? null, document_type: g.document_type ?? null });
+      }
     }
 
     for (const p of profileRows) {
       profiles.set(p.id, { ...p, endorsement: endorsements.get(p.source_row_id) ?? null } as unknown as HookProfileRow);
-      if (p.source_table === "enforcement_actions") {
-        const a = enf.get(p.source_row_id);
-        sources.set(p.id, { source_table: p.source_table, regulator: a?.regulator ?? null, subject: a?.subject ?? null, decision_date: a?.decision_date ?? null });
-      } else if (p.source_table === "edpb_guidelines") {
-        sources.set(p.id, { source_table: p.source_table, title: edpbTitles.get(p.source_row_id) ?? null });
-      } else if (p.source_table === "regulatory_guidance") {
-        const g = guid.get(p.source_row_id);
-        sources.set(p.id, { source_table: p.source_table, title: g?.title ?? null, regulator: g?.regulator ?? null });
-      }
+      const src = p.source_table === "enforcement_actions"
+        ? enf.get(p.source_row_id)
+        : p.source_table === "edpb_guidelines"
+        ? edpb.get(p.source_row_id)
+        : p.source_table === "regulatory_guidance"
+        ? guid.get(p.source_row_id)
+        : undefined;
+      if (src) sources.set(p.id, src);
     }
   }
 
@@ -446,7 +487,7 @@ async function actionGenerate(product: string) {
   const result = generateHooks({
     product, rows, profiles, sources,
     elementOf: liaElementOf,
-    hooksVersion: `${registry.export_prefix.toLowerCase()}-hooks-v1-${day}-0`,
+    hooksVersion: `${registry.export_prefix.toLowerCase()}-hooks-v2-${day}-0`,
     outputPath: registry.output_path,
     exportPrefix: registry.export_prefix,
     // The three [RATIFY] blocks, copied VERBATIM from the canonical pinned

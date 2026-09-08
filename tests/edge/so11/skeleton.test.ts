@@ -117,16 +117,10 @@ const PERFECT_REPORT = {
 
 // ── 1. The hash and the shape of the governing skeleton ─────────────────────
 
-Deno.test("SO-11 — the encoded skeleton is 38 paragraphs (37 docx + the doc 217 Schedule lead) and hashes to the ratified value", async () => {
+Deno.test("SO-11 — the encoded skeleton is 37 paragraphs and hashes to the ratified value", async () => {
   assertEquals(LIA_SKELETON_PARAGRAPHS.length, LIA_SKELETON_PARAGRAPH_COUNT);
-  assertEquals(LIA_SKELETON_PARAGRAPHS.length, 38);
+  assertEquals(LIA_SKELETON_PARAGRAPHS.length, 37);
   assertEquals(await sha256(LIA_SKELETON_PARAGRAPHS.join("\n")), LIA_SKELETON_CONTENT_HASH);
-  // RE-PIN DOC 217 §5.4 (2026-09-07): the 37 docx paragraphs are byte-
-  // unchanged — their own hash still reproduces the prior pin exactly.
-  assertEquals(
-    await sha256(LIA_SKELETON_PARAGRAPHS.slice(0, 37).join("\n")),
-    "808a3017211ee702fb8839ba4658c9041ec4462e69c68e90490720e09ce95aa9",
-  );
   // RE-PIN 2026-08-28 (CEO-approved, the SO-11 UK-instrument landing): the
   // subtitle and ¶6/¶19 gained {instrumentCitation}/{instrumentName} slots so
   // UK-only records name the UK GDPR in the fixed prose. Original docx pin
@@ -147,13 +141,15 @@ Deno.test("SO-11 — the encoded skeleton is 38 paragraphs (37 docx + the doc 21
   // value ("is: "…"" / "is not recorded"). Prior pin:
   // 34fdf99e8b62ccdf6fde9976bcfbf97a262e49c9c48ff6cc4dcaea44cef97680.
   // RE-PIN DOC 217 §5.4 (2026-09-07, V3 LIA build 217B): the hash basis
-  // gains ¶38, the [RATIFY] Schedule of Readings lead (v2-only section after
-  // Section IV, rendered only when a reading exists); the 37 docx
-  // paragraphs are unchanged (asserted above). Prior pin:
-  // 808a3017211ee702fb8839ba4658c9041ec4462e69c68e90490720e09ce95aa9.
+  // gained ¶38, the Schedule of Readings lead. Pin at that point:
+  // 7d1f44f7677137478099c4c0ab31c2cf7d6d8caed42db1f1a74b0d29379e1304.
+  // RE-PIN DOC 224 (2026-09-08, CEO: readings are never shown to a customer):
+  // the Schedule and its ¶38 are withdrawn; the basis is the 37 docx
+  // paragraphs again, byte-unchanged, so the pin returns to the a81e0240
+  // follow-up value.
   assertEquals(
     LIA_SKELETON_CONTENT_HASH,
-    "7d1f44f7677137478099c4c0ab31c2cf7d6d8caed42db1f1a74b0d29379e1304",
+    "808a3017211ee702fb8839ba4658c9041ec4462e69c68e90490720e09ce95aa9",
   );
 });
 

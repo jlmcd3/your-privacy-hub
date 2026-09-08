@@ -331,17 +331,18 @@ export const LIA_SKELETON_PROVENANCE = LIA_PLAN_PROVENANCE;
 // rendered "is: not recorded" (doc161 test). Old-hash reproduction verified
 // before re-pin. Prior pin:
 // 34fdf99e8b62ccdf6fde9976bcfbf97a262e49c9c48ff6cc4dcaea44cef97680.
-// RE-PIN DOC 217 §5.4 (2026-09-07, V3 LIA build 217B): the hash basis gains a
-// 38th paragraph — the [RATIFY] lead of the Schedule of Readings
-// (LIA_SCHEDULE_OF_READINGS_LEAD below, a v2-only section after Section IV
-// that renders ONLY when at least one reading exists). None of the 37 docx
-// paragraphs changed a byte; the count becomes 38 (the docx's 37 plus the
-// spine's own ¶38). Old-hash reproduction verified before re-pin. Prior pin:
-// 808a3017211ee702fb8839ba4658c9041ec4462e69c68e90490720e09ce95aa9.
+// RE-PIN DOC 217 §5.4 (2026-09-07, V3 LIA build 217B): the hash basis gained
+// a 38th paragraph — the [RATIFY] lead of the Schedule of Readings. Pin at
+// that point: 7d1f44f7677137478099c4c0ab31c2cf7d6d8caed42db1f1a74b0d29379e1304.
+// RE-PIN DOC 224 (2026-09-08, CEO ruling — readings are NEVER shown to a
+// customer, ledger 210 A10-6): the Schedule of Readings and its ¶38 lead are
+// WITHDRAWN; the hash basis is the 37 docx paragraphs again, byte-unchanged
+// since the a81e0240 follow-up pin (808a3017…), which this constant
+// therefore reproduces exactly.
 export const LIA_SKELETON_CONTENT_HASH =
-  "7d1f44f7677137478099c4c0ab31c2cf7d6d8caed42db1f1a74b0d29379e1304";
+  "808a3017211ee702fb8839ba4658c9041ec4462e69c68e90490720e09ce95aa9";
 
-export const LIA_SKELETON_PARAGRAPH_COUNT = 38;
+export const LIA_SKELETON_PARAGRAPH_COUNT = 37;
 
 export const LIA_SKELETON_TITLE = "LEGITIMATE INTERESTS ASSESSMENT";
 // SO-11 RE-PIN 2026-08-28 (CEO-approved in-chat) — the governing instrument
@@ -573,32 +574,10 @@ export const LIA_SKELETON_SECTIONS: readonly LiaSkeletonSection[] = [
 // no empty shell (the NO-PADDING law).
 export const LIA_SKELETON_VERSION_V2 = "prose-plans-2026-08-30-lia-c4-balance-alternatives";
 
-// ── DOC 217 §5.4 (2026-09-07) — THE SCHEDULE OF READINGS. [RATIFY] ──────
-// A v2-only section placed after Section IV. Its lead is the ratified
-// sentence below, VERBATIM from doc 217 §5.4 (the markdown emphasis marks
-// around the three disposition words in the spec's own text are
-// presentation and are not bytes of the sentence — the same convention
-// 213A applied to the direction matrix). One row per reading follows as a
-// table (lia-skeleton-assemble.ts deriveScheduleOfReadings): field label,
-// evidence span quoted verbatim, proposition label, disposition word. The
-// section renders ONLY when at least one reading exists — a record with no
-// readings renders the v2 document byte-identically (NO-PADDING LAW; doc
-// 217's dark-mode law). The lead is ¶38 of the hash basis
-// (LIA_SKELETON_PARAGRAPHS): ratified skeleton prose is pinned there.
-export const LIA_SCHEDULE_OF_READINGS_LEAD =
-  "Schedule — Readings of free-text answers. The engine read the following answers as stating the propositions listed. A reading marked confirmed was confirmed by the company at intake; a reading marked unconfirmed was not put to the company and did not affect any finding; a reading marked stood was declined and the company's answer stands as written.";
-
-export const LIA_SCHEDULE_OF_READINGS_SECTION: LiaSkeletonSection = {
-  id: "schedule_of_readings",
-  title: "Schedule of Readings",
-  blocks: [
-    // The lead is composed by the assembler (kind "lead") from the constant
-    // above ONLY when a reading exists — a "skeleton" block would render
-    // unconditionally and break the no-readings byte-identity.
-    { kind: "lead", paragraph: 38, text: LIA_SCHEDULE_OF_READINGS_LEAD },
-    { kind: "table", paragraph: 0, text: "intake_readings (schedule of readings)" },
-  ],
-};
+// DOC 224 (2026-09-08): the Schedule of Readings section doc 217 §5.4 added
+// here is WITHDRAWN — readings are never shown to a customer (ledger 210
+// A10-6). The v2 list below is v1 + the composed table blocks + the
+// Persuasive Authority section, exactly as before doc 217.
 
 export const LIA_SKELETON_SECTIONS_V2: readonly LiaSkeletonSection[] = [
   // BATCH 19a (Wave C3, doc 113 S3.1) + BATCH 20a (Wave C4, doc 113
@@ -630,8 +609,6 @@ export const LIA_SKELETON_SECTIONS_V2: readonly LiaSkeletonSection[] = [
           ...sec,
           blocks: [...sec.blocks, { kind: "table", paragraph: 0, text: "three_part_test.balancing_test.factors (balance table)" }],
         },
-        // DOC 217 §5.4 — the Schedule of Readings, after Section IV.
-        LIA_SCHEDULE_OF_READINGS_SECTION,
       ];
     }
     // DOC 137 (2026-09-01) — the ePrivacy/PECR engagement-map overlay
@@ -660,7 +637,7 @@ export const LIA_SKELETON_SECTIONS_V2: readonly LiaSkeletonSection[] = [
           kind: "generated",
           paragraph: 0,
           text:
-            "[GENERATED, OPTIONAL] The method statement (doc 212 §4 (ii) / doc 217 §5.5): how this assessment was produced — a rules-based engine over ratified rules and authority patterns, readings of free-text answers listed in the Schedule for the company's confirmation, authorities cited as persuasive patterns with status marked, the assessment the company's own record and not legal advice.",
+            "[GENERATED, OPTIONAL] The method statement (doc 212 §4 (ii) / doc 217 §5.5, as amended by doc 224): how this assessment was produced — a rules-based engine over ratified rules and authority patterns, authorities cited as persuasive patterns with status marked, the assessment the company's own record and not legal advice.",
         }],
       }];
     }
@@ -670,20 +647,19 @@ export const LIA_SKELETON_SECTIONS_V2: readonly LiaSkeletonSection[] = [
     id: "persuasive_authority",
     title: "VI. Persuasive Authority",
     blocks: [
-      // DOC 217 §5.4: paragraph 39 (was 38) — the Schedule of Readings' lead
-      // now holds ¶38 in file order. Metadata only; not hash-basis text.
-      { kind: "generated", paragraph: 39, text: "[GENERATED] The persuasive-authority entries: the ratified release-1 enforcement decisions, each naming the factor it bears on; the precedent-class citations where a tracked posture fired; and the adverse-outcome caution when the balancing verdict is likely_fails. Composed deterministically from the CAM and the typed surfaces; iff-cited into the Table of Authorities." },
+      // Paragraph 38 in file order (doc 224 withdrew the Schedule's ¶38).
+      // Metadata only; not hash-basis text.
+      { kind: "generated", paragraph: 38, text: "[GENERATED] The persuasive-authority entries: the ratified release-1 enforcement decisions, each naming the factor it bears on; the precedent-class citations where a tracked posture fired; and the adverse-outcome caution when the balancing verdict is likely_fails. Composed deterministically from the CAM and the typed surfaces; iff-cited into the Table of Authorities." },
     ],
   },
   LIA_SKELETON_SECTIONS[LIA_SKELETON_SECTIONS.length - 1],
 ] as const;
 
 /**
- * The 37 docx paragraphs in file order, verbatim, plus ¶38 — the doc 217
- * §5.4 Schedule of Readings lead (the spine's own ratified addition, v2-only,
- * appended so the docx numbering 1–37 the pinpoints cite is untouched). The
- * hash constant above is a SHA-256 over these joined with "\n"; the SO-11
- * battery recomputes it.
+ * The 37 docx paragraphs in file order, verbatim. The hash constant above is
+ * a SHA-256 over these joined with "\n"; the SO-11 battery recomputes it.
+ * (Doc 217 §5.4's ¶38 — the Schedule of Readings lead — was withdrawn by doc
+ * 224 on 2026-09-08.)
  */
 export const LIA_SKELETON_PARAGRAPHS: readonly string[] = [
   LIA_SKELETON_TITLE,
@@ -723,7 +699,5 @@ export const LIA_SKELETON_PARAGRAPHS: readonly string[] = [
   LIA_SKELETON_SECTIONS[5].blocks[4].text,
   "Authorities Cited",
   LIA_SKELETON_SECTIONS[6].blocks[0].text,
-  // ¶38 — DOC 217 §5.4, the Schedule of Readings lead ([RATIFY]).
-  LIA_SCHEDULE_OF_READINGS_LEAD,
 ] as const;
 

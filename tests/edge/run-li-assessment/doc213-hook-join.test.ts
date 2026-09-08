@@ -101,31 +101,30 @@ Deno.test("directionFor — accepted: same -> S1 for any verdict/settledness; di
   assertEquals(directionFor("accepted", "unknown", "passes", "R1"), { omit: true });
 });
 
-Deno.test("directionFor — rejected/conditional + same: fails/uncertain -> S2; passes/likely_passes -> omit(rule_missing)", () => {
-  for (const posture of ["rejected", "conditional"] as const) {
-    for (const verdict of ["fails", "uncertain", "likely_fails"]) {
-      assertEquals(directionFor(posture, "same", verdict, "R1"), { shape: "S2" });
-    }
-    for (const verdict of ["passes", "likely_passes"]) {
-      assertEquals(directionFor(posture, "same", verdict, "R1"), { omit: true, reason: "rule_missing" });
-    }
+Deno.test("directionFor — rejected + same: fails/uncertain -> S2; passes/likely_passes -> omit(rule_missing)", () => {
+  for (const verdict of ["fails", "uncertain", "likely_fails"]) {
+    assertEquals(directionFor("rejected", "same", verdict, "R1"), { shape: "S2" });
+  }
+  for (const verdict of ["passes", "likely_passes"]) {
+    assertEquals(directionFor("rejected", "same", verdict, "R1"), { omit: true, reason: "rule_missing" });
   }
 });
 
-Deno.test("directionFor — rejected/conditional + different -> S3 for any verdict; + unknown -> omit", () => {
-  for (const posture of ["rejected", "conditional"] as const) {
-    for (const verdict of ["passes", "fails", "uncertain", null]) {
-      assertEquals(directionFor(posture, "different", verdict, "R1"), { shape: "S3" });
-    }
-    assertEquals(directionFor(posture, "unknown", "fails", "R1"), { omit: true });
+Deno.test("directionFor — rejected + different -> S3 for any verdict; + unknown -> omit; conditional has its OWN rows (doc 222 §3, pinned in doc224-hook-selection.test.ts)", () => {
+  for (const verdict of ["passes", "fails", "uncertain", null]) {
+    assertEquals(directionFor("rejected", "different", verdict, "R1"), { shape: "S3" });
   }
+  assertEquals(directionFor("rejected", "unknown", "fails", "R1"), { omit: true });
+  // DOC 222 D1 — `conditional` is no longer folded into `rejected`.
+  assertEquals(directionFor("conditional", "same", "uncertain", "R1"), { shape: "S5a" });
+  assertEquals(directionFor("conditional", "different", "uncertain", "R1"), { shape: "S6" });
 });
 
-Deno.test("directionFor — settledness R4 overrides posture: same/different -> S4; unknown -> omit", () => {
+Deno.test("directionFor — settledness R4 overrides posture: same -> S4; different/unknown -> omit (doc 222 §3: a contested decision on different facts adds nothing)", () => {
   const postures: readonly HookPosture[] = ["accepted", "conditional", "rejected", "contested"];
   for (const posture of postures) {
     assertEquals(directionFor(posture, "same", "passes", "R4"), { shape: "S4" });
-    assertEquals(directionFor(posture, "different", "fails", "R4"), { shape: "S4" });
+    assertEquals(directionFor(posture, "different", "fails", "R4"), { omit: true });
     assertEquals(directionFor(posture, "unknown", "fails", "R4"), { omit: true });
   }
 });
@@ -196,6 +195,15 @@ Deno.test("applyLiaHooks — LinkedIn case: required_atoms gates nomination; the
     distinguishing_atoms: [
       "state:intake.balancing_details.opt_out_available=Yes — unconditional, on request, with no consequence",
     ],
+    // DOC 222 §2.4 — S3 renders only from an authored, polarity-aware pair.
+    distinguishing_pairs: [{
+      source_fact_span: "no opt-out was offered to members",
+      source_polarity: "present",
+      record_atom: "state:intake.balancing_details.opt_out_available=Yes — unconditional, on request, with no consequence",
+      record_polarity: "present",
+      why_material: "the finding turned on the absence of an objection route",
+      source_expressly_excludes: false,
+    }],
     required_atoms: ["class:behavioral_advertising"],
     authority_label: "DPC (Ireland), LinkedIn, decision of 22 October 2024",
     regulator: "DPC (Ireland)",
@@ -323,7 +331,13 @@ Deno.test("applyLiaHooks — an adverse shape (S2) is never reached against a pa
 // deliberately update these constants, the same discipline other byte-pin
 // tests in this fleet already use (doc 149's GRADER_CONTEXT_VERSION rule).
 
-const EXPECTED_MATRIX_SHA256 = "8551d54249b26c51849d9022b7aebdc9d2b51653887accb40bf2388271ad4a95";
+// RE-PIN DOC 222 §3 / DOC 224 (2026-09-08): the matrix gains the `conditional`
+// rows (S5a/S5b/S6/S6x), narrows R4 to same facts, and names the stored-
+// selection row; the shapes gain S5a/S5b/S6/S6x and the derived
+// {verb}/{citation}/{status} slots. Prior pins:
+// matrix 8551d54249b26c51849d9022b7aebdc9d2b51653887accb40bf2388271ad4a95,
+// shapes 3407f0eca43f9b0dfb10e673a3f78b54d684567f082ed5834b74673cf2d8ca46.
+const EXPECTED_MATRIX_SHA256 = "5bf3bb7ec0e179c1a6e0868e9d7451c665ece803e3caf7f6ec660e4d83870316";
 // RE-PIN 2026-09-07 (Track H2 orchestrator review): LIA_ATOM_PHRASES extended
 // from 38 to 75 entries so it covers EVERY closed option the hook drafter's
 // vocabulary admits (interest type ×8, Art. 9(2) condition ×12, necessity ×3,
@@ -332,7 +346,7 @@ const EXPECTED_MATRIX_SHA256 = "8551d54249b26c51849d9022b7aebdc9d2b51653887accb4
 // sets to each other. Prior pin:
 // 4ff52b0379e2ebf81641bbcfc74dd7888b5ae0c632e9438ef6c98b0cf5a89764.
 const EXPECTED_PHRASES_SHA256 = "4d85af6444248a14c6ba9d6e0e0dcc2e4d8321e92c355eac841dd4688214cf2f";
-const EXPECTED_SHAPES_SHA256 = "3407f0eca43f9b0dfb10e673a3f78b54d684567f082ed5834b74673cf2d8ca46";
+const EXPECTED_SHAPES_SHA256 = "e38756a7e39dfa06904f8bdbd313b0f300da9742f3472d63a5314cd67f7f43e1";
 
 async function sha256Hex(text: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));

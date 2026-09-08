@@ -50,10 +50,10 @@ export interface LoadedReadings {
 }
 
 const EMPTY_COUNTS: Readonly<Record<ReadingDisposition, number>> = Object.freeze({
-  confirmed: 0,
-  corrected: 0,
-  stood: 0,
-  unconfirmed: 0,
+  agreed: 0,
+  disagreed: 0,
+  unsettled_final: 0,
+  superseded: 0,
 });
 
 function errText(e: unknown): string {

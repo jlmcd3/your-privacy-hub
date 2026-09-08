@@ -12,16 +12,16 @@
 // SAME "unstamped hook is inert" law an unstamped rule already answers to
 // (lia-rules.ts).
 //
-// The three `[RATIFY]` blocks below (`LIA_HOOK_DIRECTION_MATRIX`,
-// `LIA_ATOM_PHRASES`, `LIA_HOOK_SHAPES`) are doc 213 §4/§5's own proposed
-// bytes, transcribed here verbatim for the CEO to ratify (§8: "The direction
-// matrix, the atom-phrase map and the four shapes — presented with rendered
-// samples from the first settled hooks, not as JSON"). `LIA_HOOK_DIRECTION_
-// MATRIX` is data only — `directionFor` (hook-types.ts) is the code that
-// actually implements the matrix; the table exists so a byte-pin test can
-// catch the two drifting apart. `generate-corpus-hooks`'s own `generate`
-// action copies `LIA_ATOM_PHRASES` and `LIA_HOOK_DIRECTION_MATRIX` verbatim
-// from this canonical file (doc 213 §2) once that function ships.
+// The `[RATIFY]` blocks below (`LIA_HOOK_DIRECTION_MATRIX`, `LIA_ATOM_PHRASES`,
+// `LIA_HOOK_SHAPES`, and — doc 222 — `LIA_ATOM_CONCEPTS`, `LIA_FACTOR_PHRASES`,
+// `LIA_SOURCE_STATUS_LABELS`) are doc 213 §4/§5's bytes as amended by doc 222
+// (hooks contract v2, CEO ruling of 2026-09-08 adopting ChatGPT's review of
+// doc 221) and doc 224 (two-leg selection). `LIA_HOOK_DIRECTION_MATRIX` is
+// data only — `directionFor` (hook-types.ts) is the code that actually
+// implements the matrix; the table exists so a byte-pin test can catch the
+// two drifting apart. `generate-corpus-hooks`'s own `generate` action copies
+// every block from the marker below to the end of this file verbatim
+// (_local/hook-context-block.ts, pinned by test).
 
 import type { AuthorityHook } from "../../../../_shared/corpus/hook-types.ts";
 
@@ -29,14 +29,13 @@ export const LIA_HOOKS_VERSION = "lia-hooks-v0-empty-2026-09-07";
 
 export const LIA_HOOKS: readonly AuthorityHook[] = [];
 
-// ── [RATIFY] — the direction matrix (doc 213 §4), as data ───────────────
+// ── [RATIFY] — the direction matrix (doc 213 §4, as amended by doc 222 §3 and doc 224), as data ──
 //
-// Mirrors the table in doc 213 §4 cell-for-cell (markdown emphasis and
-// backtick styling dropped — this is a data structure, not markdown).
-// `directionFor` (hook-types.ts) is what a report actually renders through;
-// this table exists only so the byte-pin test in
-// tests/edge/run-li-assessment/doc213-hook-join.test.ts can catch the two
-// drifting apart.
+// Mirrors `directionFor` (hook-types.ts) row-for-row; that function is what
+// a report actually renders through. This table exists only so the byte-pin
+// test in tests/edge/run-li-assessment/doc213-hook-join.test.ts can catch
+// the two drifting apart. Rows 14–15 are the join's own rows (hook-join.ts):
+// the stored two-leg selection and nomination happen before `directionFor`.
 
 export interface LiaHookMatrixRow {
   readonly posture: string;
@@ -62,14 +61,49 @@ export const LIA_HOOK_DIRECTION_MATRIX: readonly LiaHookMatrixRow[] = [
     note: "nothing to say",
   },
   {
-    posture: "rejected / conditional",
+    posture: "conditional",
+    fact_agreement: "same",
+    engine_verdict: "passes, and every condition_atom holds on the record",
+    shape: "S5b recognised + condition satisfied",
+    note: "the engine's pass is what satisfies the condition; the hook only echoes it (doc 222 §3)",
+  },
+  {
+    posture: "conditional",
+    fact_agreement: "same",
+    engine_verdict: "otherwise (fails / uncertain, or condition_atoms null / not all held)",
+    shape: "S5a recognised, condition unresolved",
+    note: "the guidance is relevant; whether its condition is met is Section {section}'s question — never asserted here (the doc 218 D1 defect)",
+  },
+  {
+    posture: "conditional",
+    fact_agreement: "different (a distinguishing pair holds)",
+    engine_verdict: "passes",
+    shape: "omit + assessor flag `authority_not_dispositive` (`rule_missing` when the pair expressly excludes)",
+    note: "a silent source under a pass is nothing missing; an express exclusion under a pass is the lawyer's rule",
+  },
+  {
+    posture: "conditional",
+    fact_agreement: "different (a distinguishing pair holds)",
+    engine_verdict: "fails / uncertain",
+    shape: "S6 source silent (S6x where the pair expressly excludes)",
+    note: "\"does not extend\" only from an authored `source_expressly_excludes` pair with a verified exclusion span (doc 222 §2.4)",
+  },
+  {
+    posture: "conditional",
+    fact_agreement: "unknown",
+    engine_verdict: "any",
+    shape: "omit",
+    note: "",
+  },
+  {
+    posture: "rejected",
     fact_agreement: "same",
     engine_verdict: "fails / uncertain",
     shape: "S2 cuts against and applied",
     note: "the verdict already reflects it",
   },
   {
-    posture: "rejected / conditional",
+    posture: "rejected",
     fact_agreement: "same",
     engine_verdict: "passes",
     shape: "omit + assessor flag `rule_missing`",
@@ -77,14 +111,14 @@ export const LIA_HOOK_DIRECTION_MATRIX: readonly LiaHookMatrixRow[] = [
       "the lawyer's rule: an adverse authority on the same facts under a pass means a rule is missing — never printed as \"risk noted\"",
   },
   {
-    posture: "rejected / conditional",
-    fact_agreement: "different",
+    posture: "rejected",
+    fact_agreement: "different (a distinguishing pair holds)",
     engine_verdict: "any",
     shape: "S3 cuts against but distinguished",
-    note: "requires the distinguishing atom on the record; hedged",
+    note: "renders only from the pair (source fact / record fact); never from an atom's generic phrase",
   },
   {
-    posture: "rejected / conditional",
+    posture: "rejected",
     fact_agreement: "unknown",
     engine_verdict: "any",
     shape: "omit",
@@ -92,10 +126,24 @@ export const LIA_HOOK_DIRECTION_MATRIX: readonly LiaHookMatrixRow[] = [
   },
   {
     posture: "contested (R4)",
-    fact_agreement: "same or different",
+    fact_agreement: "same",
     engine_verdict: "any",
     shape: "S4 noted as a boundary",
-    note: "prints the status (\"under appeal, reported 1 April 2026\"); no relation",
+    note: "prints the derived status and the appeal note; no relation drawn",
+  },
+  {
+    posture: "contested (R4)",
+    fact_agreement: "different / unknown",
+    engine_verdict: "any",
+    shape: "omit",
+    note: "a contested decision on different facts adds nothing (doc 222 §3)",
+  },
+  {
+    posture: "any",
+    fact_agreement: "unknown from atoms",
+    engine_verdict: "—",
+    shape: "the stored two-leg selection's agreement, if one exists; else omit + flag `selection_pending`; legs disagreed → omit + flag `selection_unsettled` (the ROO item)",
+    note: "doc 224 §1: a call is made only where no stored decision exists AND the pre-filter says either answer could print",
   },
   {
     posture: "any",
@@ -250,20 +298,113 @@ export const LIA_ATOM_PHRASES: Readonly<Record<string, string>> = {
   "state:intake.purpose_details.marketing_channels.none=false": "it uses at least one direct-marketing channel",
 };
 
-// ── [RATIFY] — the four sentence shapes (doc 213 §5), verbatim ──────────
+// ── [RATIFY] — the sentence shapes (doc 213 §5 as amended by doc 222 §4), verbatim ──
 //
-// Every slot is a record substring, a ratified phrase (LIA_ATOM_PHRASES),
-// or a ratified paraphrase (a hook's own `fact_pattern_paraphrase` /
-// `finding_paraphrase`). Reproduced byte-for-byte from doc 213 §5 — this
-// build does not improve the wording.
+// Every slot is a record substring, a ratified phrase (LIA_ATOM_PHRASES /
+// LIA_FACTOR_PHRASES / the derived status label), a ratified paraphrase (a
+// hook's own paraphrases and proposition split), or a pair's authored
+// facts. {verb} is derived from the source status (found / states / advised);
+// {authority} is the short label, {citation} the full label plus pinpoint.
+// "does not extend" appears only in S6x, reachable only from a pair whose
+// exclusion span verified (doc 222 §2.4).
 
-export const LIA_HOOK_SHAPES: Readonly<Record<"S1" | "S2" | "S3" | "S4", string>> = {
+export const LIA_HOOK_SHAPES: Readonly<Record<"S1" | "S2" | "S3" | "S4" | "S5a" | "S5b" | "S6" | "S6x", string>> = {
   S1:
-    "The company has stated that {customer_fact}. In {authority}, {regulator} found that where {fact_pattern}, {finding}. That finding supports the company's position on {factor}. ({authority} — {status}.)",
+    "The company has stated that {customer_fact}. In {authority}, {regulator} {verb} that where {fact_pattern}, {finding}. That finding supports the company's position on the {factor}. ({citation}; {status}.)",
   S2:
-    "The company has stated that {customer_fact}. In {authority}, {regulator} found that where {fact_pattern}, {finding}. That finding cuts against the company's position on {factor}, and the {factor} finding in Section {section} reflects it. ({authority} — {status}.)",
+    "The company has stated that {customer_fact}. In {authority}, {regulator} found that where {fact_pattern}, {finding}. That finding cuts against the company's position on the {factor}, and the {factor} finding in Section {section} reflects it. ({citation}; {status}.)",
   S3:
-    "In {authority}, {regulator} found that where {fact_pattern}, {finding}. The feature the regulator objected to — {distinguishing_feature} — is absent on this record: the company has stated that {customer_fact}. The decision marks the boundary the company's processing stays inside, not a finding against it. ({authority} — {status}.)",
+    "In {authority}, {regulator} found that where {fact_pattern}, {finding}. That finding turned on the fact that {source_fact}; on this record the company has instead stated that {record_fact}. The decision marks a boundary rather than a finding against the company. ({citation}; {status}.)",
   S4:
-    "In {authority}, {regulator} found that where {fact_pattern}, {finding}; the decision is {status} and is noted as a boundary rather than applied. ({authority}.)",
+    "In {authority}, {regulator} found that where {fact_pattern}, {finding}. The company has stated that {customer_fact}. That decision is {status}; it is noted as a boundary and is not applied. ({citation}.)",
+  S5a:
+    "In {authority}, {regulator} {verb} that {proposition}, subject to {condition}. That guidance is relevant to the company's asserted {factor}; whether its condition is satisfied is addressed in Section {section}. ({citation}; {status}.)",
+  S5b:
+    "In {authority}, {regulator} {verb} that {proposition}, subject to {condition}. That guidance is relevant to the company's asserted {factor}; whether its condition is satisfied is addressed in Section {section}. The facts identified in Section {section} satisfy that stated condition. ({citation}; {status}.)",
+  S6:
+    "The company has stated that {record_fact}. In {authority}, {regulator} {verb} that {proposition}, subject to {condition}, but does not address whether legitimate interests is available where {record_fact}. The conclusion in Section {section} therefore rests on the separately identified rules and facts, not on that guidance. ({citation}; {status}.)",
+  S6x:
+    "The company has stated that {record_fact}. In {authority}, {regulator} {verb} that {proposition}, subject to {condition}, and that {exclusion_paraphrase}; that exclusion applies to processing of the kind the company describes, and the {factor} finding in Section {section} reflects it. ({citation}; {status}.)",
+};
+
+// ── [RATIFY] — concept equivalence (doc 222 §2.3) ────────────────────────
+//
+// Two atoms naming the SAME underlying fact share a concept; the render
+// dedupes `{customer_fact}` by concept (the doc 218 D4 "special-category
+// data is processed; it processes special-category data" defect). This
+// table carries no legal meaning — only "these two atoms say one thing" —
+// which is why it may be generic where the withdrawn objected-phrase map
+// could not. An atom absent here is its own concept. NOTE (build deviation
+// from doc 222 §2.3's example table): the interest-type state atoms
+// "Security / fraud prevention" and "Research / product improvement" each
+// straddle two classes, so they are their own concepts rather than being
+// conflated with one class — under-deduping is the safe direction.
+
+export const LIA_ATOM_CONCEPTS: Readonly<Record<string, string>> = {
+  "flag:special_category": "special_category",
+  "data_category:Special category data": "special_category",
+  "state:intake.balancing_details.special_category_data=true": "special_category",
+  "flag:children": "children",
+  "state:intake.balancing_details.children_data_subjects=true": "children",
+  "class:direct_marketing": "direct_marketing",
+  "flag:electronic_marketing": "electronic_marketing",
+  "state:intake.purpose_details.marketing_channels.email_sms=true": "electronic_marketing",
+};
+
+/** The concept an atom names — itself when the table has no entry. */
+export function liaAtomConcept(atom: string): string {
+  return LIA_ATOM_CONCEPTS[atom] ?? atom;
+}
+
+// ── [RATIFY] — factor phrases (doc 222 §5): the `{factor}` slot, without a
+// leading article (every shape supplies "the") ──────────────────────────
+
+export const LIA_FACTOR_PHRASES: Readonly<Record<string, string>> = {
+  "Interest legitimacy": "legitimacy of its interest",
+  "Necessity and less-intrusive means": "necessity",
+  "Balancing of interests, rights and freedoms": "balance",
+  "Reasonable expectations of the data subject": "reasonable expectations",
+  "Potential harms and severity": "potential harms",
+  "Safeguards and mitigations": "safeguards",
+  "Relationship with the individual": "relationship with the people affected",
+  "Children's data": "children's data",
+  "Special-category and ePrivacy interplay": "special-category data and ePrivacy",
+  "Third-party interests": "third-party interests",
+  "Scale, frequency and duration": "scale",
+};
+
+// ── [RATIFY] — source status labels (doc 222 §2.7) ───────────────────────
+//
+// The PRINTED status is derived from the source row at generate time
+// (`status_label`, dated where the source carries a date); these are the
+// undated fallbacks by `source_status`, and — for a v1 hook with no source
+// status at all — the legacy settledness labels. "Settled law or adopted
+// guidance" is withdrawn: it conflated binding law with interpretive
+// guidance (ChatGPT review of doc 221, adopted 2026-09-08).
+
+export const LIA_SOURCE_STATUS_LABELS: Readonly<Record<string, string>> = {
+  edpb_guidelines_final: "EDPB guidelines — interpretive guidance, not binding law",
+  edpb_opinion: "EDPB Article 64 opinion — Board opinion, not a judicial decision",
+  wp29_opinion: "Article 29 Working Party opinion — historical interpretive guidance",
+  regulator_guidance: "regulatory guidance — non-binding",
+  sa_decision: "supervisory-authority decision — persuasive, non-binding outside its jurisdiction",
+  sa_decision_affirmed: "supervisory-authority decision, affirmed on appeal",
+  sa_decision_appeal_pending: "under appeal",
+};
+
+// ── RATIFIED by the CEO 2026-09-08 — the appeal sentence ─────────────────
+//
+// Where an appeal is known to have been made (`source_status` =
+// sa_decision_appeal_pending, derived at generate time from the source row's
+// appeal_status or the curation note), the join appends this sentence,
+// verbatim, after the hook's sentence. The appeal's particulars
+// (`appeal_note`: docket, date) are record-block data and are never printed.
+
+export const LIA_APPEAL_SENTENCE = "This matter is subject to an appeal which could invalidate this ruling.";
+
+export const LIA_SETTLEDNESS_LABELS: Readonly<Record<"R1" | "R2" | "R3" | "R4", string>> = {
+  R1: "adopted guidance or settled authority",
+  R2: "a settled line of decisions",
+  R3: "a single supervisory authority's decision",
+  R4: "under appeal / contested",
 };
