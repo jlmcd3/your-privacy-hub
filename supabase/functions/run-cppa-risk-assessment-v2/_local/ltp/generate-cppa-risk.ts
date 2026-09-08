@@ -100,6 +100,25 @@ import { cppaRiskContract } from "../../../_shared/intake-contracts/cppa-risk-as
 // ships empty — see risk-v3-selection.ts's header for the zero-call
 // guarantee this wiring relies on).
 import { attachRiskHookSelection, type RiskV3DbClient, type RiskV3SelectionRecord } from "./risk-v3-selection.ts";
+// DOC 231A — CPPA RISK V3 hook selection's rankedSourceIds/determinativeSourceIds
+// (doc 231 build-log NEED #3), now wired from the H3-style Persuasive
+// Authority ranking; and the finalize-time splice of riskV3.applications
+// onto eu_persuasive_authority.hook_authorities / persuasive_authority_hooks
+// (the CEO's scope ruling — see hook-persuasive.ts's header for the design).
+import { RISK_HOOKS } from "../corpus/maps/risk-hooks.ts";
+import {
+  applyRiskPersuasiveHookSplice,
+  riskDeterminativeSourceIds,
+  riskPersuasiveRankedSourceIds,
+} from "./eu-authority/hook-persuasive.ts";
+// DOC 231A — the ROO surface (doc 231 build-log NEED #5). See
+// risk-v3-selection.ts's `RiskV3InformationNeededEntry` header for the
+// investigated finding this append relies on: report.information_needed's
+// PRODUCTION shape is `string[]` (pass2-assembler.ts's renderTemplateSection
+// never sets `structured`/`typedSufficiency` for this key), so a plain
+// string survives `serializeCustomerReport` untouched (report-serialize.ts's
+// `pruneEntry` returns a non-object entry as-is) — no allow-list edit needed.
+import { RISK_ROO_UNSETTLED_TEMPLATE } from "./v3/readback-templates.ts";
 
 
 export const CPPA_RISK_GENERATOR_STAMP = "generate-cppa-risk@2026-08-01-item357";
@@ -278,6 +297,45 @@ function attachAuthorityExhibit(
 }
 
 /**
+ * DOC 231A — the ROO surface (doc 231 build-log NEED #5, closed).
+ *
+ * CONCLUSION (investigated, not guessed — see the doc 231A follow-up log
+ * for the full finding): `report.information_needed`'s PRODUCTION shape is
+ * a plain `string[]` — pass2-assembler.ts's `renderTemplateSection` only
+ * ever sets `structured`/`typedSufficiency` for OTHER keys
+ * (priority_actions / record_sufficiency); for `information_needed`,
+ * `value` is always `rendered` (the plain string array) or `undefined`. A
+ * plain string entry therefore survives `serializeCustomerReport`
+ * COMPLETELY UNTOUCHED (_shared/report-serialize.ts's `pruneEntry` returns
+ * any non-object array entry as-is) — no allow-list edit, no invented
+ * object keys (`field`/`ask`/`hook_id`/`source`, which `RISK_ENTRY_KEYS`
+ * does not admit, are never put on this entry at all).
+ *
+ * Each unsettled hook's ask is the ratified `RISK_ROO_UNSETTLED_TEMPLATE`
+ * BYTES VERBATIM — never re-worded, never concatenated with the field name
+ * (the CEO's ratified text stands alone, exactly as LIA's own template
+ * does). The field/hook_id pairing survives instead in
+ * `_meta.internal.risk_v3.information_needed_entries` (written by the
+ * caller just before this runs), which is where a future revise-path
+ * integration would read it from (doc 231A follow-up log's revise-path
+ * finding). Deduplicated: the same ratified sentence is never pushed twice
+ * even if several hooks are unsettled in one generation, and never pushed
+ * at all when `unsettledCount` is 0 — the exact byte-identity the doc 231
+ * dark-mode law requires (RISK_HOOKS ships empty today, so `unsettledCount`
+ * is always 0 in production, and `report.information_needed` is therefore
+ * always left exactly as `composeInformationNeeded` rendered it).
+ *
+ * Exported (not inlined in `finalizeCppaRiskPayload`) so it is directly
+ * unit-testable, mirroring `applyRiskPersuasiveHookSplice`'s own shape.
+ */
+export function appendRiskRooAsk(report: Record<string, unknown>, unsettledCount: number): void {
+  if (unsettledCount <= 0) return;
+  const existing = Array.isArray(report.information_needed) ? report.information_needed as unknown[] : [];
+  if (existing.includes(RISK_ROO_UNSETTLED_TEMPLATE)) return;
+  report.information_needed = [...existing, RISK_ROO_UNSETTLED_TEMPLATE];
+}
+
+/**
  * Finalize an assembled body into the exact persisted payload.
  *
  * ITEM 378 (CORRECTION) — this is THE finalize point every completed
@@ -329,6 +387,46 @@ export function finalizeCppaRiskPayload(
       calls_this_generation: 0, considered: [], applications: [], information_needed_entries: [], error: null,
     };
   } catch { /* non-fatal */ }
+
+  // (1a-ii) DOC 231A — the CEO's Persuasive Authority scope ruling, wired.
+  // Splices riskV3.applications onto the two customer-facing render
+  // surfaces (eu_persuasive_authority.hook_authorities for GDPR-enforcement
+  // / EDPB-guidance hooks; persuasive_authority_hooks for FSOR hooks) — see
+  // eu-authority/hook-persuasive.ts's header for the full design and why
+  // this is additive to, not a rewrite of, build.ts's topic-triggered
+  // eu_persuasive_authority logic. Inert today: RISK_HOOKS_ENABLED defaults
+  // false AND riskV3.applications is always [] while RISK_HOOKS ships empty
+  // — either alone already guarantees report_data stays byte-identical.
+  try {
+    applyRiskPersuasiveHookSplice(report, extras?.riskV3?.applications ?? []);
+  } catch (e) {
+    console.warn("[generate-cppa-risk] persuasive hook splice failed (non-fatal):", (e as Error)?.message);
+  }
+
+  // (1a-iii) DOC 231A — the ROO surface (doc 231 build-log NEED #5, closed).
+  // CONCLUSION (investigated, not guessed): `report.information_needed`'s
+  // production shape is a plain `string[]` — pass2-assembler.ts's
+  // `renderTemplateSection` only ever sets `structured`/`typedSufficiency`
+  // for OTHER keys (priority_actions / record_sufficiency), so for
+  // `information_needed` `value` is always `rendered` (the plain string
+  // array) or `undefined`. A plain string entry therefore survives
+  // `serializeCustomerReport` completely untouched
+  // (_shared/report-serialize.ts `pruneEntry` returns any non-object entry
+  // as-is, line ~99) — no allow-list edit, no invented object keys. Each
+  // unsettled hook's ask is the ratified `RISK_ROO_UNSETTLED_TEMPLATE`
+  // BYTES VERBATIM (never re-worded, never concatenated with the field
+  // name — the CEO's ratified text stands alone, exactly as LIA's own
+  // template does); the field/hook_id pairing survives instead in
+  // `_meta.internal.risk_v3.information_needed_entries` (step 1a above),
+  // which is where a future revise-path integration would read it from
+  // (see the doc 231A follow-up log's revise-path finding). Deduplicated:
+  // the same ratified sentence is never pushed twice even if multiple
+  // hooks are unsettled in one generation.
+  try {
+    appendRiskRooAsk(report, extras?.riskV3?.information_needed_entries?.length ?? 0);
+  } catch (e) {
+    console.warn("[generate-cppa-risk] ROO append failed (non-fatal):", (e as Error)?.message);
+  }
 
   // (1b) ITEM 426 — `exception_analysis` CANONICAL EMISSION. LAW 3 SINGLE
   // WRITE SITE for the SHAPE of that surface: claimed exceptions become
@@ -762,17 +860,37 @@ export async function generateCppaRiskReport(
   // ships a different surface, that surface is refined and finalized again.
   const refinement = await refineRiskBase(base, rawIntake, options);
 
-  // DOC 231 — CPPA RISK V3 hook selection (dark). Computed once here (not
-  // inside finalizeCppaRiskPayload, which stays synchronous) and reused by
-  // Pass-2R's own finalize calls below, mirroring `refinement`'s shape.
-  // `verdicts`/`rankedSourceIds`/`determinativeSourceIds` are `[NEEDS]`
-  // (doc 231 build log): no per-factor deterministic verdict record, CAM
-  // ranking list, or determinative-source-id set is threaded through this
-  // pipeline to this call site yet. Passed empty, which is inert — every
-  // hook evaluates `verdicts[factor] ?? null` safely — and moot today
-  // regardless, since RISK_HOOKS ships empty (attachRiskHookSelection
-  // returns before reading any of these arguments).
-  const riskV3 = await attachRiskHookSelection(rawIntake, {}, [], new Set(), {
+  // DOC 231 / DOC 231A — CPPA RISK V3 hook selection (dark). Computed once
+  // here (not inside finalizeCppaRiskPayload, which stays synchronous) and
+  // reused by Pass-2R's own finalize calls below, mirroring `refinement`'s
+  // shape.
+  //
+  // `verdicts` — `[NEEDS]` still (doc 231 build-log NEED #2, INVESTIGATED
+  // this build and left empty, not guessed at: no clean, already-computed
+  // `Record<CAM_factor_id, "passes"|"likely_passes"|"fails"|"uncertain">`
+  // exists anywhere in this pipeline — see the doc 231A follow-up log for
+  // the file/line evidence across risk-factor-engine.ts's `factors` (a
+  // DIFFERENT, prose-valued, internal-key-space record, not this
+  // vocabulary), analytic-deliverables/types.ts's `NecessityAnalysisEntry.verdict`
+  // (a different closed vocabulary, per-activity not per-factor, and only
+  // for necessity), and `_local/factors/cppa-risk-factors.ts`'s factor_table
+  // (a presence boolean for 4 of the 17 factors, not a verdict). Passed
+  // empty, which is inert — every hook evaluates `verdicts[factor] ?? null`
+  // safely.
+  //
+  // `rankedSourceIds` / `determinativeSourceIds` — NOW WIRED (closes NEED
+  // #3): the H3-style Persuasive Authority ranking
+  // (eu-authority/hook-persuasive.ts), run against `base` (already carries
+  // `eu_persuasive_authority` — a deterministic passthrough shard, doc 231A
+  // verified — and every other typed surface `deriveRiskFiredStates` reads)
+  // and `rawIntake`. Both degrade to `[]`/`new Set()` today regardless,
+  // since RISK_HOOKS ships empty (attachRiskHookSelection returns before
+  // reading either) and RISK_CORPUS_MAP carries no relevance_profile —
+  // this call is real, wired plumbing, not yet a live ranking.
+  const riskV3Verdicts: Record<string, string> = {};
+  const determinativeSourceIds = riskDeterminativeSourceIds(base, rawIntake);
+  const rankedSourceIds = riskPersuasiveRankedSourceIds(rawIntake, riskV3Verdicts, RISK_HOOKS, determinativeSourceIds);
+  const riskV3 = await attachRiskHookSelection(rawIntake, riskV3Verdicts, rankedSourceIds, determinativeSourceIds, {
     db: options.riskV3Db as RiskV3DbClient | undefined,
     assessmentId: runId,
     runsAllowed: options.riskV3Meter?.runsAllowed ?? 4,

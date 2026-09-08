@@ -17,11 +17,19 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import { HOOK_PRODUCT_REGISTRY } from "../../../supabase/functions/generate-corpus-hooks/_local/product-registry.ts";
 import {
   OPEN_STATE_PATHS,
+  RISK_ONLY_STATE_ATOM_PATHS,
   STATE_ATOM_ENUMS,
 } from "../../../supabase/functions/generate-corpus-hooks/_local/vocabulary.ts";
 import { LIA_ATOM_PHRASES } from "../../../supabase/functions/run-li-assessment/_local/corpus/maps/lia-hooks.ts";
 
-/** Every atom `checkAtom` (vocabulary.ts) would admit for the LIA product. */
+/** Every atom `checkAtom` (vocabulary.ts) would admit for the LIA product.
+ *
+ * DOC 231A — `STATE_ATOM_ENUMS` is one flat, product-unscoped dict shared by
+ * every registry (`checkAtom`'s `"state"` case never consults which product
+ * is asking); since doc 231A added CPPA Risk's own six state paths to that
+ * same dict, this LIA-scoped helper excludes them by name
+ * (`RISK_ONLY_STATE_ATOM_PATHS`) rather than assuming every entry is LIA's —
+ * an assumption that held only while CPPA Risk carried no state atoms. */
 function draftableAtoms(): string[] {
   const registry = HOOK_PRODUCT_REGISTRY.lia;
   const v = registry.typed_state_vocabulary;
@@ -31,7 +39,9 @@ function draftableAtoms(): string[] {
   for (const x of v.relationships) atoms.push(`relationship:${x}`);
   for (const x of v.data_categories) atoms.push(`data_category:${x}`);
   for (const x of registry.instrument_scope) atoms.push(`instrument:${x}`);
+  const riskOnly = new Set(RISK_ONLY_STATE_ATOM_PATHS);
   for (const [path, options] of Object.entries(STATE_ATOM_ENUMS)) {
+    if (riskOnly.has(path)) continue;
     for (const option of options) atoms.push(`state:${path}=${option}`);
   }
   return atoms;

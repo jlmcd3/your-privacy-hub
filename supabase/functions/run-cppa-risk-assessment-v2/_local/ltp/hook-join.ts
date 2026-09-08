@@ -106,29 +106,90 @@ const SETTLEDNESS_RANK: Readonly<Record<HookSettledness, number>> = { R1: 0, R2:
  *  outside this map resolves to `undefined`, which fails that hook's
  *  render as an unresolved slot rather than printing a wrong or blank
  *  section reference — the same fail-closed discipline LIA's
- *  SECTION_FOR_ELEMENT uses. ORCHESTRATOR DEFAULT — CEO may override; the
- *  provision subsections beyond (a)(1)/(a)(4)/(a)(5)/(a)(6), which doc 229
- *  itself ties to specific factors, are this build's best-effort reading of
- *  11 CCR §§ 7150–7157 and should be verified against the regulation text
- *  before ratification (doc 231 build log carries the row-by-row reasoning). */
+ *  SECTION_FOR_ELEMENT uses.
+ *
+ *  DOC 231A (2026-09-08) — CLOSES doc 231 build-log NEED #9: every row
+ *  below was VERIFIED (or corrected) against the OAL-approved regulation
+ *  text this session (`provision_texts` table, keys `cppa-7150`…`cppa-7157`,
+ *  project 75bce9a1-c7dc-4628-aea5-12baa2e26bf2, read-only; the full
+ *  §7150-§7157 excerpts are reproduced in the doc 231A follow-up log). NINE
+ *  of seventeen rows were WRONG in the prior build's best-effort table and
+ *  are corrected here; the remaining eight were already right. Per-row
+ *  status ("verified" = the prior citation was already correct; "corrected"
+ *  = the prior citation named the wrong subsection or section entirely) is
+ *  recorded in the follow-up log's table, not repeated per line here.
+ *  ORCHESTRATOR DEFAULT — CEO may still override any row. */
 export const FACTOR_SECTION: Readonly<Record<string, string>> = {
   "Regulatory trigger and applicability": "§ 7150",
   "Material privacy risks": "§ 7152(a)(5)",
   "Processing purpose specificity": "§ 7152(a)(1)",
   "Safeguards": "§ 7152(a)(6)",
-  "Approval and authority": "§ 7152(a)(8)",
+  // CORRECTED — (a)(9), not (a)(8): (a)(9) is "the date the assessment was
+  // reviewed and approved, and the names and positions of the individuals
+  // who reviewed or approved" it, and requires review/approval by "an
+  // individual who has the authority to participate in deciding whether
+  // the business will initiate the processing" — exactly this factor.
+  // (a)(8) is "the individuals who provided the information for the risk
+  // assessment" (a DIFFERENT fact, closer to the next row below).
+  "Approval and authority": "§ 7152(a)(9)",
   "Stakeholder involvement and information providers": "§ 7151",
-  "Processing methods and coherence": "§ 7152(a)(3)",
-  "Retention": "§ 7152(a)(2)",
-  "Consumer interaction and scale": "§ 7152(a)(2)",
-  "Transparency and disclosures": "§ 7152(a)(3)",
+  // CORRECTED (precision) — (a)(3)(A) specifically: "the business's
+  // planned method for collecting, using, disclosing, retaining, or
+  // otherwise processing personal information, and the sources of the
+  // personal information" — the bare "(a)(3)" cited the whole seven-item
+  // operational-elements list, of which (A) is this factor's own item.
+  "Processing methods and coherence": "§ 7152(a)(3)(A)",
+  // CORRECTED — (a)(3)(B) ("how long the business plans to retain each
+  // category of personal information... or the criteria... to determine
+  // that retention period"), not (a)(2) (categories of PI / data
+  // minimisation — a different factor entirely; the prior table's own
+  // "weakest guess" flag on the sibling row below was the tell).
+  "Retention": "§ 7152(a)(3)(B)",
+  // CORRECTED — (a)(3)(C)+(D) ("the business's method of interacting with
+  // the consumers... and the purpose of the interaction" + "the
+  // approximate number of consumers... the business plans to process"),
+  // not (a)(2) (categories of PI). Two subsections cited together because
+  // "interaction" and "scale" are each a distinct letter.
+  "Consumer interaction and scale": "§ 7152(a)(3)(C), (D)",
+  // CORRECTED (precision) — (a)(3)(E) specifically: "what disclosures the
+  // business has made or plans to make to the consumer... and how these
+  // disclosures were or will be made."
+  "Transparency and disclosures": "§ 7152(a)(3)(E)",
   "Consumer benefit": "§ 7152(a)(4)",
-  "ADMT made available to another business": "§ 7152(a)(3)(G)",
+  // CORRECTED — § 7153 is titled "Additional Requirements for Businesses
+  // that... [make] ADMT available to another business ('recipient-
+  // business')" — the factor's own name. § 7152(a)(3)(G) is a DIFFERENT
+  // ADMT duty (identifying the ADMT's logic/output for a significant
+  // decision the business itself makes), not availability to another
+  // business.
+  "ADMT made available to another business": "§ 7153",
   "Benefits-risks balancing": "§ 7154",
-  "Assessment timing and material changes": "§ 7155",
-  "Assessment retention": "§ 7156",
-  "Prior DPIA or other assessment": "§ 7152(a)(9)",
-  "CPPA submission and certifying executive": "§ 7153",
+  // Refined to the timing subsection specifically now that "Assessment
+  // retention" (below) carries its own, different subsection of the same
+  // section — § 7155(a) is "the following timing requirements," including
+  // the 45-day material-change update duty doc 229 already tied here.
+  "Assessment timing and material changes": "§ 7155(a)",
+  // CORRECTED — § 7155(c): "A business must retain its risk assessments...
+  // for as long as the processing continues or for five years after the
+  // completion of the risk assessment, whichever is later." § 7156 (the
+  // prior citation) is about reusing ONE assessment for a comparable set
+  // of processing activities or another law's assessment — a different
+  // subject entirely (see the next row).
+  "Assessment retention": "§ 7155(c)",
+  // CORRECTED — § 7156 is titled "Conducting Risk Assessments for a
+  // Comparable Set of Processing Activities or in Compliance with Other
+  // Laws or Regulations" — subsection (b) names exactly this factor: "A
+  // business may utilize a risk assessment that it has prepared for
+  // another purpose to meet the requirements in section 7152." (a)(9) (the
+  // prior citation) is Approval and authority (see above) — an unrelated
+  // factor this table had mapped TWO DIFFERENT factors onto by mistake.
+  "Prior DPIA or other assessment": "§ 7156",
+  // CORRECTED — § 7157 is titled "Submission of Risk Assessments to the
+  // Agency" and names the certifying individual's "name and business
+  // title" and "the date of the certification." § 7153 (the prior
+  // citation) is the ADMT-made-available-to-another-business duty, now
+  // correctly reassigned above.
+  "CPPA submission and certifying executive": "§ 7157",
 };
 
 /** DOC 224A §3 — the fields the legs read for a hook bearing on `factorId`:

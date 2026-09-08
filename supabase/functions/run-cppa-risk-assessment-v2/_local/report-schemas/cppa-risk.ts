@@ -210,22 +210,34 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
     // (a)(5), (a)(6), (a)(7)). Structured, deterministic; produced solely by
     // _shared/ltp/analytic-deliverables/build.ts.
     "activity_analytics",
+    // DOC 231 / DOC 231A — CPPA RISK V3 hook-rendered persuasive-authority
+    // sentences (dark; RISK_HOOKS_ENABLED). SEPARATE key from
+    // `eu_persuasive_authority` by design: hook sources include CPPA's OWN
+    // FSOR guidance (doc 229 §8 default #2), not only GDPR-regime material,
+    // so folding into the EU-labelled section would misstate a CPPA-source
+    // hook's regime. Present ONLY when at least one FSOR hook actually
+    // rendered (eu-authority/hook-persuasive.ts's
+    // `applyRiskPersuasiveHookSplice` — RISK_HOOKS_ENABLED and RISK_HOOKS
+    // non-empty; both false/empty today, doc 229 §5.3) — absent, not an
+    // empty envelope, otherwise. ORDER NOTE (doc 231A): listed here, BEFORE
+    // `eu_persuasive_authority`, per the CEO's ORCHESTRATOR-DEFAULT render
+    // position ("one block after the Appendix I authority exhibit and
+    // before eu_persuasive_authority") — this array's order is documentation
+    // only (`serializeCustomerReport` preserves the SOURCE report's own key
+    // insertion order, not this list's order — _shared/report-serialize.ts);
+    // the actual on-page position is a FRONTEND concern
+    // (src/components/cppa/*.tsx), out of this backend build's scope and
+    // moot today regardless, since nothing populates this key yet — see the
+    // doc 231A follow-up log's [NEEDS] note.
+    "persuasive_authority_hooks",
     // ITEM 341 — "Persuasive authority from EU practice". SEPARATE key by
     // design: EU/EEA material is a different legal regime and must never be
     // folded into the CPPA-scoped enforcement_context / enforcement_precedents.
+    // DOC 231A — now also carries an OPTIONAL `hook_authorities` field (see
+    // the `objects.eu_persuasive_authority` allow-list below); the CEO's
+    // scope ruling's H3-style extension, additive to ITEM 341's own
+    // topic-triggered content.
     "eu_persuasive_authority",
-    // DOC 231 — CPPA RISK V3 hook-rendered persuasive-authority sentences
-    // (dark; RISK_HOOKS_ENABLED). SEPARATE key from `eu_persuasive_authority`
-    // by design: hook sources include CPPA's OWN FSOR guidance (doc 229 §8
-    // default #2), not only GDPR-regime material, so folding into the
-    // EU-labelled section would misstate a CPPA-source hook's regime. Always
-    // present as an envelope (mirrors eu_persuasive_authority); `applications`
-    // is empty today because RISK_HOOKS ships empty (doc 229 §5.3) — see
-    // risk-v3-selection.ts's header for why this key is not yet actually
-    // populated from `_meta.internal.risk_v3` at finalize time (that wiring
-    // is `[NEEDS]`, doc 231 build log; the schema slot is reserved now so
-    // the eventual write site needs no further schema change).
-    "persuasive_authority_hooks",
     "risk_assessment_by_activity",
 
     "risk_register",
@@ -286,6 +298,13 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
     ],
     // ITEM 341 — EU persuasive-authority envelope. Nested topic records pass
     // through whole (serializer prunes the top level of an object key only).
+    // DOC 231A — `hook_authorities` added: the CEO's scope ruling H3-style
+    // extension (eu-authority/hook-persuasive.ts's
+    // `applyRiskPersuasiveHookSplice`), spliced in at finalize time from
+    // `riskV3.applications`. Present ONLY when at least one GDPR-enforcement
+    // / EDPB-guidance hook actually rendered (RISK_HOOKS_ENABLED and
+    // RISK_HOOKS non-empty — both false/empty today), so its absence leaves
+    // this object byte-identical to before this key existed.
     eu_persuasive_authority: [
       "section_title",
       "version",
@@ -293,6 +312,7 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
       "framing",
       "topics",
       "information_needed",
+      "hook_authorities",
     ],
     // DOC 231 — reserved shape for the (not yet populated — see the
     // topLevel comment above) hook-rendered persuasive-authority envelope.

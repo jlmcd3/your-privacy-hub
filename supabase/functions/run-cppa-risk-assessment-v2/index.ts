@@ -87,6 +87,30 @@ async function runPipeline(assessmentId: string): Promise<void> {
     .single();
   if (error || !row) throw new Error(`load assessment: ${error?.message ?? "not found"}`);
 
+  // DOC 231A — CPPA RISK V3 meter pre-read (closes doc 231 build-log NEED
+  // #4). Mirrors run-li-assessment/index.ts's own pre-read (~line 1985-1999):
+  // generation number = the meter's runs_used + 1 (no row yet, i.e. the
+  // first generation for this assessment, -> 1); the cap `attachRiskHookSelection`
+  // applies is 2 calls per generation x runs_allowed (doc 224 §3). Read
+  // BEFORE `generateCppaRiskReport` so `riskV3Meter` carries the REAL
+  // values into that call, rather than the conservative defaults
+  // (runsAllowed:4, generationNo:1) `generate-cppa-risk.ts` falls back to
+  // when this option is omitted. Fail-open: any read error leaves the same
+  // conservative defaults in place (first-generation-shaped), never throws
+  // and never blocks the pipeline — matches every other finalize step's
+  // discipline in this pipeline.
+  let riskV3GenerationNo = 1;
+  let riskV3RunsAllowed = 4;
+  try {
+    const { data: meterRow } = await supabase
+      .from("tool_run_meter").select("runs_used,runs_allowed")
+      .eq("tool_type", "cppa_risk_assessment").eq("assessment_id", assessmentId).maybeSingle();
+    if (meterRow) {
+      riskV3GenerationNo = Number((meterRow as { runs_used?: number }).runs_used ?? 0) + 1;
+      riskV3RunsAllowed = Number((meterRow as { runs_allowed?: number }).runs_allowed ?? 4);
+    }
+  } catch { /* first generation — the conservative defaults above stand */ }
+
   const options = {
     db: supabase,
     buildStamp: BUILD_STAMP,
@@ -102,14 +126,13 @@ async function runPipeline(assessmentId: string): Promise<void> {
     refinementEnabled: RISK_REFINEMENT_ENABLED,
     // DOC 231 — CPPA RISK V3 hook selection (dark). Wiring the DB client
     // now (inert while RISK_V3_ENABLED is false) so the CEO's flag flip
-    // does not also require a code change here. `riskV3Meter` is
-    // deliberately NOT set — `[NEEDS]` (doc 231 build log): this shell
-    // does not read `tool_run_meter` before generation (only after, via
-    // `recordRunMeterAndVersion` below); generate-cppa-risk.ts's
-    // conservative defaults (runsAllowed:4, generationNo:1) apply until
-    // that read is added, which must happen before RISK_V3_ENABLED is
-    // ever set true in a live environment.
+    // does not also require a code change here.
     riskV3Db: supabase,
+    // DOC 231A — the real cap/generation number, pre-read above. Inert
+    // today regardless (RISK_V3_ENABLED defaults false and RISK_HOOKS
+    // ships empty), but required before RISK_V3_ENABLED is ever set true
+    // in a live environment (doc 231 build-log NEED #4, now closed).
+    riskV3Meter: { runsAllowed: riskV3RunsAllowed, generationNo: riskV3GenerationNo },
   };
 
   // ── ONE CALL. The module returns the exact payload to persist. ──────
