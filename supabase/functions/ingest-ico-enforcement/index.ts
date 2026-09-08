@@ -105,7 +105,21 @@ function rowFor(a: IcoAction): Record<string, unknown> {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  const caller = await verifyCaller(req, "admin");
+  // DB-held handshake token (same pattern as enforcement-cleanup) so scheduled
+  // and internal callers that cannot read function secrets can still run.
+  const driverTok = req.headers.get("x-driver-token");
+  let authorised = false;
+  if (driverTok) {
+    const { data: tokenRow } = await supabase
+      .from("internal_driver_tokens")
+      .select("token")
+      .eq("name", "ingest-ico-enforcement")
+      .maybeSingle();
+    if (tokenRow?.token && tokenRow.token === driverTok) authorised = true;
+  }
+  const caller = authorised
+    ? { ok: true as const, userId: null, internal: true }
+    : await verifyCaller(req, "admin");
   if (!caller.ok) {
     return new Response(JSON.stringify({ error: caller.error }), {
       status: caller.status ?? 401,
