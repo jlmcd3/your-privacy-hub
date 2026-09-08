@@ -4403,6 +4403,53 @@ export type Database = {
           },
         ]
       }
+      li_ingest_candidates: {
+        Row: {
+          confirmed: boolean
+          downstream_state: string
+          enforcement_action_id: string
+          id: string
+          instrument: string | null
+          reason: string | null
+          screen_version: string
+          screened_at: string
+          signal_hits: string[]
+          updated_at: string
+        }
+        Insert: {
+          confirmed?: boolean
+          downstream_state?: string
+          enforcement_action_id: string
+          id?: string
+          instrument?: string | null
+          reason?: string | null
+          screen_version: string
+          screened_at?: string
+          signal_hits?: string[]
+          updated_at?: string
+        }
+        Update: {
+          confirmed?: boolean
+          downstream_state?: string
+          enforcement_action_id?: string
+          id?: string
+          instrument?: string | null
+          reason?: string | null
+          screen_version?: string
+          screened_at?: string
+          signal_hits?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "li_ingest_candidates_enforcement_action_id_fkey"
+            columns: ["enforcement_action_id"]
+            isOneToOne: true
+            referencedRelation: "enforcement_actions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       li_tracker_entries: {
         Row: {
           case_reference: string | null
@@ -4412,13 +4459,16 @@ export type Database = {
           id: string
           jurisdiction: string
           last_confirmed: string | null
+          loader_version: string | null
           outcome: string
           processing_activity: string
           signal_type: string
           source_article_id: string | null
           source_enforcement_id: string | null
+          source_profile_id: string | null
           source_url: string | null
           summary: string
+          synced_at: string | null
           updated_at: string | null
         }
         Insert: {
@@ -4429,13 +4479,16 @@ export type Database = {
           id?: string
           jurisdiction: string
           last_confirmed?: string | null
+          loader_version?: string | null
           outcome: string
           processing_activity: string
           signal_type: string
           source_article_id?: string | null
           source_enforcement_id?: string | null
+          source_profile_id?: string | null
           source_url?: string | null
           summary: string
+          synced_at?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -4446,13 +4499,16 @@ export type Database = {
           id?: string
           jurisdiction?: string
           last_confirmed?: string | null
+          loader_version?: string | null
           outcome?: string
           processing_activity?: string
           signal_type?: string
           source_article_id?: string | null
           source_enforcement_id?: string | null
+          source_profile_id?: string | null
           source_url?: string | null
           summary?: string
+          synced_at?: string | null
           updated_at?: string | null
         }
         Relationships: [
