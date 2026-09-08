@@ -16,6 +16,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import EnforcementStats from "@/components/enforcement/EnforcementStats";
 import AdBanner from "@/components/AdBanner";
 import { toast } from "sonner";
+import { displaySubject } from "@/lib/enforcementSubject";
+
 
 interface Row {
   id: string;
