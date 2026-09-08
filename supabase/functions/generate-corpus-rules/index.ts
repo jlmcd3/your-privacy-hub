@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
     // and `props` fixture entries must name.
     const ratifiedPropIds = new Set<string>();
     {
-      const { data: props } = await supabase
+      const { data: props } = await db
         .from("proposition_inventory")
         .select("prop_id")
         .eq("product", product)
