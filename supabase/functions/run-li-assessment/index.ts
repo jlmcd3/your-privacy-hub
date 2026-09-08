@@ -8,6 +8,11 @@ import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 // false: the legacy model path is byte-untouched until the CEO flips the
 // env var at a deploy.
 import { LIA_DETERMINISTIC_ENABLED } from "./_local/ltp/lia-deterministic-flag.ts";
+// DOC 217 (2026-09-07) — the V3 (B+ pipeline) flag; default false. Governs
+// the readings load, the Schedule of Readings, the method statement and the
+// `_meta.internal.lia_v3` record block — nothing else changes while false.
+import { LIA_V3_ENABLED } from "./_local/ltp/lia-v3-flag.ts";
+import type { LoadedReadings, ReadingsClientLike } from "./_local/ltp/v3/load-readings.ts";
 // DOC 207 TRACK 1 (2026-09-07) — the two legacy-only fetches
 // (get-enforcement-context, li_tracker_entries) are skipped on the
 // deterministic path; see _local/legacy-fetch-policy.ts's header for why
@@ -1870,6 +1875,42 @@ Return JSON:
 
 
 
+    // ── DOC 217 §5.2 — V3 READINGS (dark behind LIA_V3_ENABLED) ──────────
+    // Loaded ONCE here, then passed to BOTH consumers — the rule pass below
+    // (confirmed readings → `prop:` atoms) and the skeleton assembler at the
+    // SO-11 wire-in (the Schedule of Readings; the state bag the hook join
+    // reads) — the call-site discipline the H3 review fixed (213C). Guarded
+    // fetch, FAILS OPEN: a missing table or any error yields no readings and
+    // a `readings_error` on the record block; the V2 document ships. While
+    // LIA_V3_ENABLED is false nothing is loaded and `v3Readings` is [] —
+    // no `prop:` atom can exist, no Schedule renders (doc 217 dark-mode law).
+    let v3Load: LoadedReadings | null = null;
+    if (LIA_DETERMINISTIC_ENABLED && LIA_V3_ENABLED) {
+      try {
+        const { loadIntakeReadings } = await import("./_local/ltp/v3/load-readings.ts");
+        const previewId = typeof (assessment as any)?.preview_assessment_id === "string"
+          ? String((assessment as any).preview_assessment_id)
+          : "";
+        // The loader is typed to the three query calls it makes (so tests
+        // drive it with a stub); the real client satisfies that shape but
+        // its generic `from` defeats TS's structural check (TS2589).
+        v3Load = await loadIntakeReadings(supabase as unknown as ReadingsClientLike, [assessment_id, previewId]);
+        console.log(JSON.stringify({
+          evt: "lia_v3_readings_loaded", fn: "run-li-assessment", build_stamp: BUILD_STAMP,
+          readings: v3Load.readings.length, counts: v3Load.counts,
+          decision_ids: v3Load.decision_ids.length, inventory_version: v3Load.inventory_version,
+          error: v3Load.error, warnings: v3Load.warnings,
+        }));
+      } catch (e) {
+        const { emptyLoadedReadings } = await import("./_local/ltp/v3/load-readings.ts").catch(() => ({ emptyLoadedReadings: null }));
+        v3Load = emptyLoadedReadings
+          ? emptyLoadedReadings(`load_failed: ${String((e as Error)?.message ?? e)}`)
+          : null;
+        console.warn("[run-li-assessment] V3 readings load failed (non-fatal):", (e as Error)?.message);
+      }
+    }
+    const v3Readings = v3Load?.readings ?? [];
+
     // ── LIA CONVERSION L1-B/L3 — THE TYPED THREE-PART TEST (2026-08-26) ──
     // Deterministic path only: replaces the model's Stage-2 bag with the
     // typed test derived from the deliverables that just attached, applies
@@ -1906,10 +1947,14 @@ Return JSON:
         // of which read liaIntakeObject unconditionally) are byte-untouched.
         (liaIntakeObject as any).balancing_details = (assessment as any).balancing_details ?? null;
         const { applyLiaRules, LIA_RULES_VERSION } = await import("./_local/ltp/lia-deliverables/rule-pass.ts");
+        // DOC 217 §5.2 — `undefined` keeps the LIA_RULES default; the V3
+        // readings (call site 1 of 2) reach buildLiaRuleStates through here.
         const ruled = applyLiaRules(
           typed,
           reportData as Record<string, unknown>,
           assessment as unknown as Record<string, unknown>,
+          undefined,
+          v3Readings,
         );
         if (ruled.invariant_violations.length) {
           console.error(JSON.stringify({ evt: "lia_rule_invariant_violation", violations: ruled.invariant_violations }));
@@ -2464,7 +2509,10 @@ Return JSON:
         assessment as unknown as Record<string, unknown>,
         // L2/L3 (2026-08-26): the deterministic path renders the v2 spine
         // (Persuasive Authority section + the ratified precedent sentence).
-        { deterministic: LIA_DETERMINISTIC_ENABLED },
+        // DOC 217 §5.2/§5.4/§5.5: the V3 readings (call site 2 of 2 — the
+        // Schedule of Readings and the hook join's state bag) and the V3
+        // flag (the method statement, until LIA_METHOD_STATEMENT_RATIFIED).
+        { deterministic: LIA_DETERMINISTIC_ENABLED, readings: v3Readings, v3Enabled: LIA_V3_ENABLED },
       );
       (reportData as Record<string, unknown>).skeleton_document = assembled.document;
       const _m = ((reportData as Record<string, unknown>)._meta ??= {}) as Record<string, unknown>;
@@ -2478,6 +2526,33 @@ Return JSON:
         lead_coherence: assembled.lead_coherence,
         conditionals_fired: assembled.conditionals_fired,
       };
+      // ── DOC 217 §5.6 — THE V3 RECORD BLOCK. Written ONLY while
+      // LIA_V3_ENABLED (the dark-mode law: report_data is byte-identical
+      // while the flag is off); the console line below is unconditional.
+      if (LIA_V3_ENABLED) {
+        _i.lia_v3 = {
+          enabled: true,
+          inventory_version: v3Load?.inventory_version ?? null,
+          readings: assembled.v3.readings,
+          decision_ids: v3Load?.decision_ids ?? [],
+          hooks: assembled.v3.hooks,
+          schedule_rows: assembled.v3.schedule_rows,
+          schedule_rendered: assembled.v3.schedule_rendered,
+          method_statement_rendered: assembled.v3.method_statement_rendered,
+          hook_flags: assembled.v3.hook_flags,
+          assertion_failures: assembled.v3.assertion_failures,
+          readings_error: v3Load?.error ?? null,
+          readings_warnings: v3Load?.warnings ?? [],
+        };
+      }
+      console.log(JSON.stringify({
+        evt: "lia_v3", fn: "run-li-assessment", build_stamp: BUILD_STAMP,
+        enabled: LIA_V3_ENABLED, readings: v3Readings.length,
+        schedule_rendered: assembled.v3.schedule_rendered,
+        method_statement_rendered: assembled.v3.method_statement_rendered,
+        hooks_applied: assembled.v3.hooks.applied_ids.length,
+        assertion_failures: assembled.v3.assertion_failures.length,
+      }));
       console.log(JSON.stringify({
         evt: "lia_skeleton_assembled", fn: "run-li-assessment",
         pipeline_stamp: LIA_PIPELINE_STAMP,

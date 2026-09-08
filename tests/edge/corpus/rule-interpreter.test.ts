@@ -146,6 +146,76 @@ Deno.test("evaluateAtom — state:<path>=<value> matches String(states.states[pa
 });
 
 // --------------------------------------------------------------------------
+// DOC 217 §5.1 — the `prop:` atom kind (V3 confirmed proposition readings)
+// --------------------------------------------------------------------------
+
+Deno.test("doc217 parseAtom — prop:<prop_id>=asserted parses; the key may carry '/' and '.'; any other stance, or none, is malformed (D5)", () => {
+  assertEquals(parseAtom("prop:lia/consent.bundled_in_terms=asserted"), {
+    kind: "prop",
+    key: "lia/consent.bundled_in_terms",
+    value: "asserted",
+  });
+  assertThrows(() => parseAtom("prop:lia/consent.bundled_in_terms=abstain"), Error, 'stance must be "asserted"');
+  assertThrows(() => parseAtom("prop:lia/consent.bundled_in_terms=denied"), Error, 'stance must be "asserted"');
+  assertThrows(() => parseAtom("prop:lia/consent.bundled_in_terms"), Error, 'malformed prop atom (no "=")');
+  assertThrows(() => parseAtom("prop:=asserted"), Error, "malformed prop atom");
+});
+
+Deno.test("doc217 evaluateAtom — prop: matches only a confirmed prop in states.props; an absent prop, or no props bag at all, never matches (Law B2)", () => {
+  const withProp = makeStates({ props: { "lia/consent.bundled_in_terms": "asserted" } });
+  assert(evaluateAtom("prop:lia/consent.bundled_in_terms=asserted", withProp));
+  assert(!evaluateAtom("prop:lia/consent.separate_affirmative_act=asserted", withProp));
+  // The pre-doc-217 bag shape (no `props` key) never matches and never throws.
+  const noBag = makeStates();
+  assert(!("props" in noBag));
+  assert(!evaluateAtom("prop:lia/consent.bundled_in_terms=asserted", noBag));
+  const emptyBag = makeStates({ props: {} });
+  assert(!evaluateAtom("prop:lia/consent.bundled_in_terms=asserted", emptyBag));
+});
+
+Deno.test("doc217 evaluateAtom — every other kind is untouched by the prop: addition", () => {
+  const s = makeStates({ flags: ["a"], props: { "lia/x": "asserted" } });
+  assert(evaluateAtom("flag:a", s));
+  assert(!evaluateAtom("flag:b", s));
+  assert(evaluateAtom("class:marketing", s));
+  assert(evaluateAtom("verdict:purpose=passes", s));
+  assert(!evaluateAtom("state:missing.path=anything", s));
+});
+
+Deno.test("doc217 evaluateTrigger — Law B2 for prop: a none_of prop atom over an ABSENT prop blocks firing; a present prop blocks too; only a bag that positively lacks it after... never — absence never helps", () => {
+  const t: RuleTrigger = { all_of: ["flag:a"], none_of: ["prop:lia/consent.bundled_in_terms=asserted"] };
+  // No props bag: absence must not satisfy the negative clause.
+  assert(!evaluateTrigger(t, makeStates({ flags: ["a"] })));
+  // Empty props bag: still absent, still blocks.
+  assert(!evaluateTrigger(t, makeStates({ flags: ["a"], props: {} })));
+  // Present and asserted: none_of correctly blocks.
+  assert(!evaluateTrigger(t, makeStates({ flags: ["a"], props: { "lia/consent.bundled_in_terms": "asserted" } })));
+  // A positive prop trigger fires only with the confirmed prop.
+  const pos: RuleTrigger = { all_of: ["prop:lia/consent.bundled_in_terms=asserted"] };
+  assert(evaluateTrigger(pos, makeStates({ props: { "lia/consent.bundled_in_terms": "asserted" } })));
+  assert(!evaluateTrigger(pos, makeStates()));
+});
+
+Deno.test("doc217 applyRules — a rule keyed on a prop: atom fires with the confirmed prop and is silent (not even recorded as matched) without it", () => {
+  const rule = makeRule({
+    rule_id: "lia/rule/consent-in-terms-necessity-not-determined",
+    bears_on_element: "necessity",
+    trigger: { all_of: ["prop:lia/consent.bundled_in_terms=asserted"] },
+    effect: { kind: "require_condition", text: "Whether valid consent is a workable alternative is not determined on the record." },
+  });
+  const fired = applyRules([rule], makeStates({ props: { "lia/consent.bundled_in_terms": "asserted" } }), makeCurrent(), CTX);
+  assertEquals(fired.applications.length, 1);
+  assertEquals(fired.applications[0].changed, true);
+  assertEquals(fired.next.conditions, ["Whether valid consent is a workable alternative is not determined on the record."]);
+  // No verdict moves: a require_condition adds, never caps (212 §8 — no cap, no override).
+  assertEquals(fired.next.verdicts, makeCurrent().verdicts);
+
+  const silent = applyRules([rule], makeStates(), makeCurrent(), CTX);
+  assertEquals(silent.applications, []);
+  assertEquals(silent.next, makeCurrent());
+});
+
+// --------------------------------------------------------------------------
 // Trigger combinators
 // --------------------------------------------------------------------------
 

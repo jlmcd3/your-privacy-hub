@@ -552,6 +552,11 @@ export interface LiaPersuasiveAuthorityResult {
    *  off, or while `ctx.states`/`ctx.verdicts` are not supplied, or while
    *  `LIA_HOOKS` ships empty — never surfaced in the rendered body itself. */
   readonly hook_flags: readonly { hook_id: string; reason: string }[];
+  /** DOC 217 §5.6 — the `hook_id`s whose join application actually
+   *  RENDERED in this body (an application the post-join filters dropped is
+   *  not listed). Always `[]` while hooks are off, unsupplied, or empty —
+   *  the record block's `hooks.applied_ids`. */
+  readonly hook_applied_ids: readonly string[];
 }
 
 export interface LiaPersuasiveContext {
@@ -642,6 +647,7 @@ export function buildLiaPersuasiveAuthority(
   // (`ctx.hooks` omitted): nothing here changes production output before
   // both a flag flip AND a ratified hook exist.
   let hookFlags: readonly { hook_id: string; reason: string }[] = [];
+  let hookAppliedIds: readonly string[] = [];
   let apEntriesForBody = ap.entries;
   if (hooksInPlay.length > 0 && ctx.states && ctx.verdicts) {
     const rankedSourceIds = ap.ranked.map((sr) => sr.row.source_row_id);
@@ -679,6 +685,12 @@ export function buildLiaPersuasiveAuthority(
       // own report/factor cap — neither produces a flag, so `dropSourceIds`
       // above cannot see it.
       .filter((e) => !ap.hookSourceIds.has(e.source_row_id) || bySource.has(e.source_row_id));
+    // DOC 217 §5.6 — the applications that survived every filter above are
+    // the ones the record block names as applied.
+    const renderedSourceIds = new Set(apEntriesForBody.map((e) => e.source_row_id));
+    hookAppliedIds = applications
+      .filter((a) => renderedSourceIds.has(a.source_row_id))
+      .map((a) => a.hook_id);
   }
 
   const seen = new Set<string>();
@@ -698,7 +710,7 @@ export function buildLiaPersuasiveAuthority(
     cross_instrument: sr.match.cross_instrument,
   }));
   if (entries.length === 0) {
-    return { body: "", ledger: [], entry_count: 0, aow_fired: false, ranked, hook_flags: hookFlags };
+    return { body: "", ledger: [], entry_count: 0, aow_fired: false, ranked, hook_flags: hookFlags, hook_applied_ids: hookAppliedIds };
   }
 
   const aow = LIA_CORPUS_MAP.rows.find((r) => r.role === "AOW" && r.render_eligible && r.warning_text);
@@ -715,5 +727,6 @@ export function buildLiaPersuasiveAuthority(
     aow_fired: aowFires,
     ranked,
     hook_flags: hookFlags,
+    hook_applied_ids: hookAppliedIds,
   };
 }

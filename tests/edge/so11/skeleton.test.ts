@@ -117,10 +117,16 @@ const PERFECT_REPORT = {
 
 // ── 1. The hash and the shape of the governing skeleton ─────────────────────
 
-Deno.test("SO-11 — the encoded skeleton is 37 paragraphs and hashes to the ratified value", async () => {
+Deno.test("SO-11 — the encoded skeleton is 38 paragraphs (37 docx + the doc 217 Schedule lead) and hashes to the ratified value", async () => {
   assertEquals(LIA_SKELETON_PARAGRAPHS.length, LIA_SKELETON_PARAGRAPH_COUNT);
-  assertEquals(LIA_SKELETON_PARAGRAPHS.length, 37);
+  assertEquals(LIA_SKELETON_PARAGRAPHS.length, 38);
   assertEquals(await sha256(LIA_SKELETON_PARAGRAPHS.join("\n")), LIA_SKELETON_CONTENT_HASH);
+  // RE-PIN DOC 217 §5.4 (2026-09-07): the 37 docx paragraphs are byte-
+  // unchanged — their own hash still reproduces the prior pin exactly.
+  assertEquals(
+    await sha256(LIA_SKELETON_PARAGRAPHS.slice(0, 37).join("\n")),
+    "808a3017211ee702fb8839ba4658c9041ec4462e69c68e90490720e09ce95aa9",
+  );
   // RE-PIN 2026-08-28 (CEO-approved, the SO-11 UK-instrument landing): the
   // subtitle and ¶6/¶19 gained {instrumentCitation}/{instrumentName} slots so
   // UK-only records name the UK GDPR in the fixed prose. Original docx pin
@@ -140,9 +146,14 @@ Deno.test("SO-11 — the encoded skeleton is 37 paragraphs and hashes to the rat
   // RE-PIN a81e0240 FOLLOW-UP (2026-09-07): ¶24's verb travels with the slot
   // value ("is: "…"" / "is not recorded"). Prior pin:
   // 34fdf99e8b62ccdf6fde9976bcfbf97a262e49c9c48ff6cc4dcaea44cef97680.
+  // RE-PIN DOC 217 §5.4 (2026-09-07, V3 LIA build 217B): the hash basis
+  // gains ¶38, the [RATIFY] Schedule of Readings lead (v2-only section after
+  // Section IV, rendered only when a reading exists); the 37 docx
+  // paragraphs are unchanged (asserted above). Prior pin:
+  // 808a3017211ee702fb8839ba4658c9041ec4462e69c68e90490720e09ce95aa9.
   assertEquals(
     LIA_SKELETON_CONTENT_HASH,
-    "808a3017211ee702fb8839ba4658c9041ec4462e69c68e90490720e09ce95aa9",
+    "7d1f44f7677137478099c4c0ab31c2cf7d6d8caed42db1f1a74b0d29379e1304",
   );
 });
 
@@ -195,7 +206,7 @@ Deno.test("SO-11 — every pinned statutory span appears in the fixed prose it i
     assert(p.verbatim.length > 40, `${p.id} has no verbatim span`);
     assert(p.corpus_key.length > 0, `${p.id} has no corpus key`);
     for (const n of p.paragraphs) {
-      assert(n >= 1 && n <= 37, `${p.id} cites paragraph ${n}, outside the skeleton`);
+      assert(n >= 1 && n <= LIA_SKELETON_PARAGRAPH_COUNT, `${p.id} cites paragraph ${n}, outside the skeleton`);
     }
   }
   // Article 6(1)(f) is named in the fixed prose of the executive summary;

@@ -556,3 +556,18 @@ Deno.test("doc213b — production call site passes states + verdicts to buildLia
   assert(!/\bhooks\s*:/.test(call), `production must never pass the hooks seam: ${call}`);
   assert(src.includes('from "./lia-deliverables/rule-states.ts"'), "the assembler must build states through rule-states.ts");
 });
+
+// DOC 217 §5.2 (2026-09-07) — the same call-site law, one level further: the
+// state bag the hook join reads must carry the SAME confirmed `props` the
+// rule pass saw, so the assembler must forward its `readings` argument into
+// its own buildLiaRuleStates call (index.ts passes the same `v3Readings` to
+// both consumers — pinned in doc217-v3-engine.test.ts).
+
+Deno.test("doc217 — the assembler forwards `readings` into its buildLiaRuleStates call (the hook join sees the props the rule pass saw)", async () => {
+  const src = await Deno.readTextFile(
+    new URL("../../../supabase/functions/run-li-assessment/_local/ltp/lia-skeleton-assemble.ts", import.meta.url),
+  );
+  const m = /buildLiaRuleStates\(report, record, \{[\s\S]{0,400}?\}, readings\)/.exec(src);
+  assert(m, "the assembler's buildLiaRuleStates call must pass `readings` as its fourth argument");
+  assert(src.includes('from "./v3/readings.ts"'), "the assembler must type readings through v3/readings.ts");
+});

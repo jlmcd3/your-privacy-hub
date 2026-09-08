@@ -34,6 +34,10 @@
 import { buildLiaRelevanceQuery } from "../lia-persuasive-authority.ts";
 import type { TypedStateBag } from "../../../../_shared/corpus/rule-types.ts";
 import type { LiaTypedStage2Result } from "./three-part-test-typed.ts";
+// DOC 217 §5.2 (2026-09-07) — V3 readings → `states.props`. Only a reading
+// the customer CONFIRMED emits a `prop:` atom (Law L3); `propsFromReadings`
+// is the one emitter and carries the §5.7 assertions.
+import { type ConfirmedReading, propsFromReadings } from "../v3/readings.ts";
 
 type Bag = Record<string, unknown>;
 
@@ -157,10 +161,16 @@ function applyMultiSelectSlugs(
 // the parameter is typed to exactly that — the skeleton assembler, which
 // holds the post-rule-pass `report.three_part_test` but not the stage-2
 // result object, can supply it without a cast (lia-skeleton-assemble.ts).
+// DOC 217 §5.2 — `readings` (optional): this assessment's `intake_readings`
+// rows, loaded by index.ts ONLY while LIA_V3_ENABLED and passed to BOTH
+// call sites (rule-pass.ts and lia-skeleton-assemble.ts — the H3 call-site
+// law). Omitted or empty → the returned bag carries NO `props` key and is
+// deep-equal to the pre-doc-217 bag.
 export function buildLiaRuleStates(
   report: Bag,
   intake: Bag,
   typed: Pick<LiaTypedStage2Result, "three_part_test">,
+  readings?: readonly ConfirmedReading[],
 ): TypedStateBag {
   const query = buildLiaRelevanceQuery(report, intake);
 
@@ -242,6 +252,18 @@ export function buildLiaRuleStates(
     }));
   }
 
+  // ── DOC 217 §5.2 — `props` from CONFIRMED readings only (Law L3). The
+  // §5.7 assertions are fail-visible, never blocking: a failing reading
+  // emits nothing and is named in telemetry. ─────────────────────────────
+  const emitted = propsFromReadings(readings ?? []);
+  if (emitted.assertion_failures.length > 0) {
+    console.error(JSON.stringify({
+      evt: "lia_v3_assertion",
+      where: "buildLiaRuleStates",
+      failures: emitted.assertion_failures,
+    }));
+  }
+
   return {
     instrument: query.instrument,
     use_case_class: query.use_case_class,
@@ -250,5 +272,6 @@ export function buildLiaRuleStates(
     flags: [...query.flags],
     verdicts,
     states,
+    ...(emitted.props ? { props: emitted.props } : {}),
   };
 }

@@ -34,6 +34,17 @@ import {
   MARKETING_CONSENT_BASES,
   ACHIEVABLE_WITHOUT_PERSONAL_DATA,
 } from "@/pages/LIAssessment.enums";
+// DOC 217 §6 (2026-09-07) — the V3 read-back (confirm / correct / stand on
+// the engine's readings of free-text answers), DARK behind
+// VITE_LIA_V3_READBACK_ENABLED. Not a question: every free-text Textarea
+// below carries a `data-v3-field` attribute the component listens on, and
+// the component mounts once, before the submit block. The engine's own
+// flag (LIA_V3_ENABLED, run-li-assessment) flips independently.
+import V3ReadBack from "@/components/lia/V3ReadBack";
+import { LIA_V3_INTAKE_FIELDS } from "@/lib/lia/v3Fields";
+import { rekeyReadings } from "@/lib/lia/v3ReadBack";
+
+const V3_READBACK_ENABLED = import.meta.env.VITE_LIA_V3_READBACK_ENABLED === "true";
 
 
 interface PreviewRow {
@@ -239,6 +250,10 @@ const LIAssessmentIntake = () => {
   const [achievableWithoutPersonalData, setAchievableWithoutPersonalData] = useState("");
   const [achievableWithoutPersonalDataRationale, setAchievableWithoutPersonalDataRationale] = useState("");
 
+  // DOC 217 §6 — the read-back's submit signal (incremented at submit so the
+  // component gates and reads every field once more before checkout).
+  const [v3SubmitSignal, setV3SubmitSignal] = useState(0);
+
   // Autosave payload — includes assessment id so a stale draft from a
   // different preview row does NOT overwrite fields on the current row.
   const draftPayload = useMemo(() => ({
@@ -383,6 +398,34 @@ const LIAssessmentIntake = () => {
   // DOC 206E — N4b shows only when N4 includes email/SMS to individuals.
   const showMarketingConsentBasis = marketingChannels.includes("Email or SMS to individuals");
 
+  // DOC 217 §6 — the free-text surface (doc 217 §1) as the read-back sees it:
+  // the fifteen answers keyed by field id, with the question as displayed.
+  // Built only while the flag is on; the answers are the same state the
+  // intake payload below sends, read once here.
+  const v3Answers: Record<string, string> = V3_READBACK_ENABLED
+    ? {
+      "processing_description": row.processing_description ?? "",
+      "purpose_details.interest_statement": interestStatement,
+      "purpose_details.stated_purpose": statedPurpose,
+      "purpose_details.specific_benefit": specificBenefit,
+      "purpose_details.statutory_restrictions": showMarketingBranch ? statutoryRestrictions : "",
+      "necessity_details.alternatives": alternatives,
+      "necessity_details.alternatives_rationale": alternativesRationale,
+      "necessity_details.achievable_without_personal_data_rationale":
+        achievableWithoutPersonalData === "No — personal data is required (explain why below)" ? achievableWithoutPersonalDataRationale : "",
+      "necessity_details.why_consent_not_used": whyConsentNotUsed,
+      "necessity_details.data_minimised": dataMinimised,
+      "balancing_details.reasonable_expectation_detail": reasonableExpectationDetail,
+      "balancing_details.collection_context": collectionContext,
+      "balancing_details.potential_harms": potentialHarmDetail,
+      "balancing_details.additional_mitigations": additionalMitigations,
+      "balancing_details.additional_context": additionalContext,
+    }
+    : {};
+  const v3Fields = V3_READBACK_ENABLED
+    ? LIA_V3_INTAKE_FIELDS.map((f) => ({ field_id: f.field_id, question_text: f.question_text, answer: v3Answers[f.field_id] ?? "" }))
+    : [];
+
   const validate = (): string | null => {
     if (!interestHolder) return "Tell us whose interest is being served.";
     if (!interestType) return "Tell us what type of interest this is.";
@@ -417,6 +460,10 @@ const LIAssessmentIntake = () => {
     }
     // Log the acknowledgment regardless of checkbox state
     logToolAcknowledgment("li_assessment", user.id, row.id);
+
+    // DOC 217 §6 — at submit the read-back gates and reads every field and
+    // records intake_hash / readings_state (dark; never blocks checkout).
+    if (V3_READBACK_ENABLED) setV3SubmitSignal((n) => n + 1);
 
     const intake_data: Record<string, unknown> = {
       // Stage A (re-sent so checkout has full picture)
@@ -590,7 +637,7 @@ const LIAssessmentIntake = () => {
           <div>
             <Label className="text-base">In your own words, what is the legitimate interest you're relying on? *</Label>
             <p className="text-xs text-muted-foreground mt-1">State the interest you are pursuing and why it matters now. Left vague, the balancing section has no specific interest to weigh and the assessment reads as inconclusive.</p>
-            <Textarea value={interestStatement} onFocusCapture={focusField("interest_statement")} onChange={(e) => setInterestStatement(e.target.value)} className="mt-2" rows={3} placeholder="One or two sentences" />
+            <Textarea value={interestStatement} data-v3-field="purpose_details.interest_statement" onFocusCapture={focusField("interest_statement")} onChange={(e) => setInterestStatement(e.target.value)} className="mt-2" rows={3} placeholder="One or two sentences" />
           </div>
 
           {/* ITEM 311 — Art. 6(1)(f) second subparagraph. Decided before the
@@ -648,14 +695,14 @@ const LIAssessmentIntake = () => {
           <div>
             <Label className="text-base">How would you state this purpose to data subjects in a privacy notice? *</Label>
             <p className="text-xs text-muted-foreground mt-1">Plain language, active voice, same scope as the interest above. This wording is quoted in the transparency analysis, so a narrower sentence here shows processing you have not disclosed.</p>
-            <Textarea value={statedPurpose} onFocusCapture={focusField("stated_purpose")} onChange={(e) => setStatedPurpose(e.target.value)} className="mt-2" rows={3} placeholder="One or two sentences" />
+            <Textarea value={statedPurpose} data-v3-field="purpose_details.stated_purpose" onFocusCapture={focusField("stated_purpose")} onChange={(e) => setStatedPurpose(e.target.value)} className="mt-2" rows={3} placeholder="One or two sentences" />
           </div>
 
           {/* UPGRADE-4 — benefit and beneficiary */}
           <div>
             <Label className="text-base">What specific benefit does this processing deliver?</Label>
             <p className="text-xs text-muted-foreground mt-1">Name the outcome, not the activity — what changes because this processing happens.</p>
-            <Textarea value={specificBenefit} onFocusCapture={focusField("specific_benefit")} onChange={(e) => setSpecificBenefit(e.target.value)} className="mt-2" rows={2}
+            <Textarea value={specificBenefit} data-v3-field="purpose_details.specific_benefit" onFocusCapture={focusField("specific_benefit")} onChange={(e) => setSpecificBenefit(e.target.value)} className="mt-2" rows={2}
               placeholder="One sentence" />
           </div>
 
@@ -677,7 +724,7 @@ const LIAssessmentIntake = () => {
               <p className="text-xs text-muted-foreground mb-2">
                 Rules that sit on top of Article 6(1)(f) for this activity — ePrivacy or PECR consent for electronic marketing, national unfair-competition rules, restrictions on marketing to children. Left blank, the report cannot confirm the sector overlay was considered.
               </p>
-              <Textarea value={statutoryRestrictions} onChange={(e) => setStatutoryRestrictions(e.target.value)} rows={2} placeholder="One line per restriction" />
+              <Textarea value={statutoryRestrictions} data-v3-field="purpose_details.statutory_restrictions" onChange={(e) => setStatutoryRestrictions(e.target.value)} rows={2} placeholder="One line per restriction" />
             </div>
           )}
 
@@ -716,7 +763,7 @@ const LIAssessmentIntake = () => {
           <div>
             <Label className="text-base">What alternatives have you considered? *</Label>
             <p className="text-xs text-muted-foreground mt-1">List every route you tested, one per line — including the ones rejected quickly. A single alternative rarely evidences that this processing is the least intrusive option available.</p>
-            <Textarea value={alternatives} onFocusCapture={focusField("alternatives")} onChange={(e) => setAlternatives(e.target.value)} className="mt-2" rows={3}
+            <Textarea value={alternatives} data-v3-field="necessity_details.alternatives" onFocusCapture={focusField("alternatives")} onChange={(e) => setAlternatives(e.target.value)} className="mt-2" rows={3}
               placeholder="One alternative per line" />
           </div>
 
@@ -724,7 +771,7 @@ const LIAssessmentIntake = () => {
           <div>
             <Label className="text-base">For each alternative, why would it not achieve the purpose?</Label>
             <p className="text-xs text-muted-foreground mt-1">Take them one at a time, on separate lines. State what outcome each alternative would fail to deliver.</p>
-            <Textarea value={alternativesRationale} onFocusCapture={focusField("alternatives_rationale")} onChange={(e) => setAlternativesRationale(e.target.value)} className="mt-2" rows={3}
+            <Textarea value={alternativesRationale} data-v3-field="necessity_details.alternatives_rationale" onFocusCapture={focusField("alternatives_rationale")} onChange={(e) => setAlternativesRationale(e.target.value)} className="mt-2" rows={3}
               placeholder={"One alternative per line, then the shortfall"} />
           </div>
 
@@ -738,6 +785,7 @@ const LIAssessmentIntake = () => {
             {achievableWithoutPersonalData === "No — personal data is required (explain why below)" && (
               <Textarea
                 value={achievableWithoutPersonalDataRationale}
+                data-v3-field="necessity_details.achievable_without_personal_data_rationale"
                 onFocusCapture={focusField("achievable_without_personal_data_rationale")}
                 onChange={(e) => setAchievableWithoutPersonalDataRationale(e.target.value)}
                 className="mt-2"
@@ -750,14 +798,14 @@ const LIAssessmentIntake = () => {
           <div>
             <Label className="text-base">Why isn't consent appropriate here?</Label>
             <p className="text-xs text-muted-foreground mt-1">Consent must be freely given, specific, informed and unambiguous — name the element that cannot be met here. Left blank, the necessity section notes that the consent route was not examined.</p>
-            <Textarea value={whyConsentNotUsed} onFocusCapture={focusField("why_consent_not_used")} onChange={(e) => setWhyConsentNotUsed(e.target.value)} className="mt-2" rows={2}
+            <Textarea value={whyConsentNotUsed} data-v3-field="necessity_details.why_consent_not_used" onFocusCapture={focusField("why_consent_not_used")} onChange={(e) => setWhyConsentNotUsed(e.target.value)} className="mt-2" rows={2}
               placeholder="Two or three sentences" />
           </div>
 
           <div>
             <Label className="text-base">How have you minimised the data used?</Label>
             <p className="text-xs text-muted-foreground mt-1">Name what you excluded as well as what you kept — fields dropped, windows shortened, enrichment declined. Without exclusions, the minimisation finding rests on an assertion the report cannot verify.</p>
-            <Textarea value={dataMinimised} onFocusCapture={focusField("data_minimised")} onChange={(e) => setDataMinimised(e.target.value)} className="mt-2" rows={2}
+            <Textarea value={dataMinimised} data-v3-field="necessity_details.data_minimised" onFocusCapture={focusField("data_minimised")} onChange={(e) => setDataMinimised(e.target.value)} className="mt-2" rows={2}
               placeholder="Two or three sentences" />
           </div>
 
@@ -822,7 +870,7 @@ const LIAssessmentIntake = () => {
               <option>No — we have no relationship with these individuals; they would not expect this</option>
             </select>
             <p className="text-xs text-muted-foreground mt-2">Give the reasoning behind that answer — the terms they accepted, the sector norm, the visibility of the control. The selection alone is a conclusion; the balancing section weighs the evidence for it.</p>
-            <Textarea value={reasonableExpectationDetail} onFocusCapture={focusField("reasonable_expectation_detail")} onChange={(e) => setReasonableExpectationDetail(e.target.value)} placeholder="Two or three sentences" className="mt-2" rows={2} />
+            <Textarea value={reasonableExpectationDetail} data-v3-field="balancing_details.reasonable_expectation_detail" onFocusCapture={focusField("reasonable_expectation_detail")} onChange={(e) => setReasonableExpectationDetail(e.target.value)} placeholder="Two or three sentences" className="mt-2" rows={2} />
           </div>
 
           {/* ITEM 311 — Recital 47 turns on the relationship and the time and
@@ -830,7 +878,7 @@ const LIAssessmentIntake = () => {
           <div>
             <Label className="text-base">When and in what setting was this data collected?</Label>
             <p className="text-xs text-muted-foreground mt-1">Recital 47 asks what the individual could expect <em>at the time and in the context of collection</em>. Describe the moment and the relationship — not what your notice says.</p>
-            <Textarea value={collectionContext} onFocusCapture={focusField("collection_context")} onChange={(e) => setCollectionContext(e.target.value)} placeholder="Describe each occasion" className="mt-2" rows={3} />
+            <Textarea value={collectionContext} data-v3-field="balancing_details.collection_context" onFocusCapture={focusField("collection_context")} onChange={(e) => setCollectionContext(e.target.value)} placeholder="Describe each occasion" className="mt-2" rows={3} />
           </div>
 
           <div>
@@ -881,7 +929,7 @@ const LIAssessmentIntake = () => {
               <option>Severe — physical safety, identity theft, loss of livelihood</option>
             </select>
             <p className="text-xs text-muted-foreground mt-2">Describe the harms you considered and who would bear them. A severity label with no pathway behind it gives the balance nothing to weigh on the individual’s side.</p>
-            <Textarea value={potentialHarmDetail} onFocusCapture={focusField("potential_harms")} onChange={(e) => setPotentialHarmDetail(e.target.value)} placeholder="Two or three sentences" className="mt-2" rows={2} />
+            <Textarea value={potentialHarmDetail} data-v3-field="balancing_details.potential_harms" onFocusCapture={focusField("potential_harms")} onChange={(e) => setPotentialHarmDetail(e.target.value)} placeholder="Two or three sentences" className="mt-2" rows={2} />
           </div>
 
           {/* UPGRADE-4 — how large, how often, how long */}
@@ -967,13 +1015,13 @@ const LIAssessmentIntake = () => {
           <div>
             <Label className="text-base">What measures have you added specifically to reduce the impact on individuals?</Label>
             <p className="text-xs text-muted-foreground mt-1">Only measures that go beyond what the GDPR already requires of you can shift the balance. Encryption, access control and retention limits are obligations, not mitigations.</p>
-            <Textarea value={additionalMitigations} onFocusCapture={focusField("additional_mitigations")} onChange={(e) => setAdditionalMitigations(e.target.value)} placeholder="One measure per line" className="mt-2" rows={3} />
+            <Textarea value={additionalMitigations} data-v3-field="balancing_details.additional_mitigations" onFocusCapture={focusField("additional_mitigations")} onChange={(e) => setAdditionalMitigations(e.target.value)} placeholder="One measure per line" className="mt-2" rows={3} />
           </div>
 
           <div>
             <Label className="text-base">Anything else about this processing we should weigh?</Label>
             <p className="text-xs text-muted-foreground mt-1">Sector rules, a pending change, a prior complaint, a dependency on a processor. Left blank, the report records that nothing further was raised for consideration.</p>
-            <Textarea value={additionalContext} onFocusCapture={focusField("additional_context")} onChange={(e) => setAdditionalContext(e.target.value)} className="mt-2" rows={3} placeholder="Optional" />
+            <Textarea value={additionalContext} data-v3-field="balancing_details.additional_context" onFocusCapture={focusField("additional_context")} onChange={(e) => setAdditionalContext(e.target.value)} className="mt-2" rows={3} placeholder="Optional" />
           </div>
 
           {/* UPGRADE-4 — availability, separate from the mechanism */}
@@ -1095,6 +1143,13 @@ const LIAssessmentIntake = () => {
           </div>
         </section>
 
+        {/* DOC 217 §6 — the V3 read-back, mounted once (dark behind
+            VITE_LIA_V3_READBACK_ENABLED). Its panels render inline under the
+            field they concern; nothing renders until a field blurs. */}
+        {V3_READBACK_ENABLED && (
+          <V3ReadBack assessmentId={row.id} fields={v3Fields} submitSignal={v3SubmitSignal} />
+        )}
+
         <section className="bg-card border rounded-lg p-6">
           <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
 
@@ -1127,6 +1182,10 @@ const LIAssessmentIntake = () => {
           onClose={() => setCheckoutOpen(false)}
           onComplete={(id) => {
             setCheckoutOpen(false);
+            // DOC 217 §6 — intake-time readings are keyed on the preview row's
+            // id; checkout inserts a NEW li_assessments row, so re-key them to
+            // the paid id the engine will load them by (dark; fail-open).
+            if (V3_READBACK_ENABLED && id && id !== row.id) void rekeyReadings({ from_assessment_id: row.id, to_assessment_id: id });
             if (id) { void clearDraft(); navigate(`/li-assessment/result/${id}?purchased=true`); }
           }}
         />

@@ -35,6 +35,9 @@ import { LIA_RULES, LIA_RULE_CONTEXT, LIA_RULES_VERSION } from "../../corpus/map
 export { LIA_RULES_VERSION };
 import type { LiaTypedStage2Result } from "./three-part-test-typed.ts";
 import type { LiaDetermination, LiaOutcome } from "./types.ts";
+// DOC 217 §5.2 — the V3 readings index.ts loads under LIA_V3_ENABLED; threaded
+// straight through to buildLiaRuleStates (the emitter), never read here.
+import type { ConfirmedReading } from "../v3/readings.ts";
 
 type Bag = Record<string, unknown>;
 
@@ -79,9 +82,12 @@ export function applyLiaRules(
   report: Bag,
   intake: Bag,
   rules: readonly AuthorityRule[] = LIA_RULES,
+  // DOC 217 §5.2 — optional; omitted (or []) leaves the state bag without a
+  // `props` key, so every rule keyed on a `prop:` atom stays silent (B2).
+  readings?: readonly ConfirmedReading[],
 ): ApplyLiaRulesResult {
   try {
-    const states = buildLiaRuleStates(report, intake, typed);
+    const states = buildLiaRuleStates(report, intake, typed, readings);
 
     const tpt = bag(typed.three_part_test);
     const verdicts: Record<string, string> = {

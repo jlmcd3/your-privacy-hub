@@ -23,9 +23,21 @@
  *   instrument:<x>       states.instrument === x
  *   verdict:<element>=<value>   states.verdicts[element] === value
  *   state:<path>=<value>        String(states.states[path]) === value
+ *   prop:<prop_id>=asserted     states.props?.[prop_id] === "asserted"
  *
  * A missing `state:` path is `undefined` and never matches — see the Law B2
  * note on `evaluateTrigger` for the `none_of` special case this implies.
+ *
+ * DOC 217 §5.1 (2026-09-07) — `prop:` is the V3 proposition atom: a
+ * lawyer-ratified proposition (`proposition_inventory.prop_id`, e.g.
+ * `lia/consent.bundled_in_terms`) that the customer CONFIRMED the engine's
+ * reading of at intake. The only legal stance value is `asserted` (doc 217
+ * D5: stances are `asserted | abstain`; a negation is a sibling proposition
+ * the lawyer writes, never an atom value) — `parseAtom` rejects any other
+ * value. `states.props` is populated ONLY from confirmed readings
+ * (rule-states.ts), so an absent prop is "no confirmed reading", and per
+ * Law B2 it never matches — the same absent-path treatment `state:` gets,
+ * including inside `none_of` (see `noneOfAtomBlocks`).
  */
 export type RuleAtom = string;
 
@@ -69,6 +81,12 @@ export interface TypedStateBag {
   flags: string[];
   verdicts: Record<string, string>; // element -> current verdict value
   states: Record<string, string | number | boolean | null>; // typed finding path -> value
+  /** DOC 217 §5.1 — confirmed proposition readings: prop_id -> "asserted".
+   *  OPTIONAL and populated only from `intake_readings` rows with
+   *  `disposition = 'confirmed'` (rule-states.ts); every other disposition,
+   *  and every record with no V3 readings at all, leaves it absent. Absence
+   *  never matches (Law B2). */
+  props?: Record<string, "asserted">;
 }
 
 export interface ElementScale {
@@ -130,7 +148,8 @@ type AtomKind =
   | "data_category"
   | "instrument"
   | "verdict"
-  | "state";
+  | "state"
+  | "prop";
 
 const ATOM_KINDS: readonly AtomKind[] = [
   "flag",
@@ -140,9 +159,13 @@ const ATOM_KINDS: readonly AtomKind[] = [
   "instrument",
   "verdict",
   "state",
+  "prop",
 ];
 
-const KEYED_KINDS: ReadonlySet<AtomKind> = new Set(["verdict", "state"]);
+const KEYED_KINDS: ReadonlySet<AtomKind> = new Set(["verdict", "state", "prop"]);
+
+/** DOC 217 D5 — the one stance a `prop:` atom may name. */
+const PROP_ASSERTED = "asserted";
 
 export interface ParsedAtom {
   kind: AtomKind;
@@ -180,6 +203,11 @@ export function parseAtom(atom: string): ParsedAtom {
     if (!key || !value) {
       throw new Error(`malformed ${kind} atom: ${JSON.stringify(atom)}`);
     }
+    if (kind === "prop" && value !== PROP_ASSERTED) {
+      // DOC 217 D5: `asserted` is the only stance an atom may test for —
+      // "abstain" is silence, and silence never fires a rule (Law B2).
+      throw new Error(`malformed prop atom (stance must be "${PROP_ASSERTED}"): ${JSON.stringify(atom)}`);
+    }
     return { kind, key, value };
   }
 
@@ -210,6 +238,10 @@ export function evaluateAtom(atom: string, states: TypedStateBag): boolean {
       if (raw === undefined) return false; // a missing path never matches
       return String(raw) === parsed.value;
     }
+    case "prop":
+      // DOC 217 §5.1 — only a CONFIRMED reading is ever present in
+      // `states.props` (rule-states.ts); an absent prop never matches (B2).
+      return states.props?.[parsed.key] === parsed.value;
   }
 }
 
@@ -229,6 +261,13 @@ export function evaluateAtom(atom: string, states: TypedStateBag): boolean {
 function noneOfAtomBlocks(atom: RuleAtom, states: TypedStateBag): boolean {
   const parsed = parseAtom(atom);
   if (parsed.kind === "state" && states.states[parsed.key] === undefined) {
+    return true;
+  }
+  // DOC 217 §5.1 — the same law for a `prop:` atom: "no confirmed reading"
+  // is not "the company stated the opposite" (a negation is a sibling
+  // proposition the lawyer writes — doc 212 §8), so an absent prop inside
+  // `none_of` BLOCKS rather than vacuously satisfying the clause.
+  if (parsed.kind === "prop" && states.props?.[parsed.key] === undefined) {
     return true;
   }
   return evaluateAtom(atom, states);
