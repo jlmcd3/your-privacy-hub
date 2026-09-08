@@ -58,7 +58,9 @@ export default function EnforcementStats({ filters }: { filters: Filters }) {
       let query = supabase
         .from("enforcement_actions")
         .select("jurisdiction,decision_date,fine_eur_equivalent,fine_eur,violation_types")
-        // SWEEP-2 T11: keep moderator-review rows out of public aggregates.
+        // Keep moderator-review rows and de-listed (non-enforcement / empty)
+        // records out of public aggregates.
+        .eq("public_listed", true)
         .not("verification_status", "eq", "requires_review");
 
       if (filters.jurisdiction !== "all") query = query.eq("jurisdiction", filters.jurisdiction);

@@ -132,6 +132,7 @@ export default function Enforcement() {
       const { data: jdata } = await supabase
         .from("enforcement_actions")
         .select("jurisdiction")
+        .eq("public_listed", true)
         .not("jurisdiction", "is", null)
         .limit(2000);
       const counts = new Map<string, number>();
@@ -144,6 +145,7 @@ export default function Enforcement() {
       const { data: sdata } = await supabase
         .from("enforcement_actions")
         .select("industry_sector")
+        .eq("public_listed", true)
         .not("industry_sector", "is", null)
         .limit(2000);
       const sc = new Map<string, number>();
@@ -242,11 +244,11 @@ export default function Enforcement() {
           "id,regulator,subject,jurisdiction,decision_date,fine_eur,fine_eur_equivalent,industry_sector,data_categories,violation_types,precedent_significance,key_compliance_failure,source_url,law,source_database,case_reference,verification_status",
           { count: "exact" },
         )
-        // SWEEP-2 T10: default hides rows without a resolved subject AND rows
-        // flagged for moderator review, EXCEPT structured OAIC Register rows
-        // (anonymised formal determinations) which are surfaced with the
-        // register citation in place of a subject.
-        .or("subject.not.is.null,source_database.eq.OAIC Register")
+        // Corpus cleanup: hide records triaged as non-enforcement or with no
+        // usable content, and rows flagged for moderator review. Anonymised
+        // rows stay visible when they carry a formal citation.
+        .eq("public_listed", true)
+        .or("subject.not.is.null,case_reference.not.is.null,source_database.eq.OAIC Register")
         .not("verification_status", "eq", "requires_review");
 
       if (jurisdiction !== "all") query = query.eq("jurisdiction", jurisdiction);
