@@ -42,6 +42,9 @@ verify_jwt = false
 [functions.enrich-enforcement]
 verify_jwt = false
 
+[functions.enforcement-cleanup]
+verify_jwt = false
+
 [functions.get-enforcement-context]
 verify_jwt = false
 

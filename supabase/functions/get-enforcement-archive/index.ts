@@ -106,9 +106,11 @@ Deno.serve(async (req) => {
         'id,regulator,subject,jurisdiction,decision_date,fine_eur,fine_eur_equivalent,industry_sector,data_categories,violation_types,precedent_significance,key_compliance_failure,source_url,law,source_database,case_reference,' + GATE_COLUMNS,
         { count: 'exact' }
       )
-      // SWEEP-2 T10: null subjects allowed only for structured OAIC
-      // Register rows.
-      .or('subject.not.is.null,source_database.eq.OAIC Register');
+      // Corpus cleanup: records triaged as non-enforcement or with no usable
+      // content are excluded from the searchable database. Anonymised rows are
+      // surfaced when they carry a formal citation (headline falls back to it).
+      .eq('public_listed', true)
+      .or('subject.not.is.null,case_reference.not.is.null,source_database.eq.OAIC Register');
     query = applyGateQuery(query, 'enforcement-archive');
 
     if (!includeRecent) {

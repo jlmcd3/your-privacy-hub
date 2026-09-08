@@ -2381,6 +2381,8 @@ export type Database = {
           breach_related: boolean | null
           case_reference: string | null
           case_reference_extraction_method: string | null
+          cleanup_last_error: string | null
+          cleanup_version: number
           company_type: string | null
           created_at: string | null
           data_categories: string[] | null
@@ -2423,6 +2425,7 @@ export type Database = {
           primary_source_url: string | null
           primary_source_url_discovered_at: string | null
           provisions_normalized: string[]
+          public_listed: boolean
           quality_flagged_at: string | null
           quality_flags: string[] | null
           raw_text: string | null
@@ -2455,6 +2458,9 @@ export type Database = {
           stratified_at: string | null
           subject: string | null
           tool_relevance: string[] | null
+          triage_at: string | null
+          triage_class: string | null
+          triage_reason: string | null
           verification_deterministic_pass: boolean | null
           verification_last_run_at: string | null
           verification_paraphrase_confidence: string | null
@@ -2471,6 +2477,8 @@ export type Database = {
           breach_related?: boolean | null
           case_reference?: string | null
           case_reference_extraction_method?: string | null
+          cleanup_last_error?: string | null
+          cleanup_version?: number
           company_type?: string | null
           created_at?: string | null
           data_categories?: string[] | null
@@ -2513,6 +2521,7 @@ export type Database = {
           primary_source_url?: string | null
           primary_source_url_discovered_at?: string | null
           provisions_normalized?: string[]
+          public_listed?: boolean
           quality_flagged_at?: string | null
           quality_flags?: string[] | null
           raw_text?: string | null
@@ -2545,6 +2554,9 @@ export type Database = {
           stratified_at?: string | null
           subject?: string | null
           tool_relevance?: string[] | null
+          triage_at?: string | null
+          triage_class?: string | null
+          triage_reason?: string | null
           verification_deterministic_pass?: boolean | null
           verification_last_run_at?: string | null
           verification_paraphrase_confidence?: string | null
@@ -2561,6 +2573,8 @@ export type Database = {
           breach_related?: boolean | null
           case_reference?: string | null
           case_reference_extraction_method?: string | null
+          cleanup_last_error?: string | null
+          cleanup_version?: number
           company_type?: string | null
           created_at?: string | null
           data_categories?: string[] | null
@@ -2603,6 +2617,7 @@ export type Database = {
           primary_source_url?: string | null
           primary_source_url_discovered_at?: string | null
           provisions_normalized?: string[]
+          public_listed?: boolean
           quality_flagged_at?: string | null
           quality_flags?: string[] | null
           raw_text?: string | null
@@ -2635,6 +2650,9 @@ export type Database = {
           stratified_at?: string | null
           subject?: string | null
           tool_relevance?: string[] | null
+          triage_at?: string | null
+          triage_class?: string | null
+          triage_reason?: string | null
           verification_deterministic_pass?: boolean | null
           verification_last_run_at?: string | null
           verification_paraphrase_confidence?: string | null
@@ -10683,6 +10701,20 @@ export type Database = {
         }[]
       }
       claim_biometric_free_run: { Args: never; Returns: boolean }
+      claim_enforcement_for_cleanup: {
+        Args: { _limit?: number }
+        Returns: {
+          case_reference: string
+          decision_date: string
+          doc_text: string
+          id: string
+          jurisdiction: string
+          law: string
+          regulator: string
+          subject: string
+          violation: string
+        }[]
+      }
       claim_enforcement_for_enrichment: {
         Args: { _limit: number; _target_version: number }
         Returns: {
@@ -10806,11 +10838,14 @@ export type Database = {
           decision_date: string
           id: string
           jurisdiction: string
+          public_listed: boolean
           quality_flagged_at: string
           quality_flags: string[]
           regulator: string
           source_url: string
           subject: string
+          triage_class: string
+          triage_reason: string
         }[]
       }
       match_cppa_fsor_commentary: {
