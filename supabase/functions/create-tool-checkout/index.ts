@@ -783,6 +783,19 @@ Deno.serve(async (req) => {
         throw new Error("Failed to create assessment record");
       }
       assessmentRecord = record;
+
+      // V3 LIA §3/§4 (amendment 2) — the anonymous preview token dies the
+      // moment the paid row exists. Readings stay reachable under both ids;
+      // only the write capability is revoked.
+      const previewId = (assessmentData as Record<string, unknown>).preview_assessment_id;
+      if (tool_type === "li_assessment" && typeof previewId === "string" && previewId) {
+        const { error: tokErr } = await supabase
+          .from("li_assessments")
+          .update({ preview_token: null })
+          .eq("id", previewId)
+          .is("user_id", null);
+        if (tokErr) console.error("preview_token clear failed:", tokErr.message);
+      }
     }
 
     const record = assessmentRecord!;
