@@ -134,6 +134,13 @@
       "when": 1788826103946,
       "tag": "0018_add_li_assessments_preview_assessment_id",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1788832593105,
+      "tag": "0019_create_v3_lia_proposition_pipeline",
+      "breakpoints": true
     }
   ]
 }

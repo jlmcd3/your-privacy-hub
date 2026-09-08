@@ -135,6 +135,13 @@ export interface GenerateRulesInput {
   readonly outputPath: string;
   /** Copied verbatim into the emitted file. */
   readonly ruleContextBlock: string;
+  /**
+   * DOC 217 — prop_ids of the RATIFIED, unretired proposition_inventory for
+   * this product. A `prop:<prop_id>=asserted` trigger atom, and any `props`
+   * fixture bag entry, must name one of these. Absent (undefined) means the
+   * caller supplied no inventory: every `prop:` atom then fails validation.
+   */
+  readonly ratifiedPropIds?: ReadonlySet<string>;
 }
 
 export interface GenerateRulesResult {
@@ -158,11 +165,36 @@ function wordCount(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
+/** The two stances a proposition reading may carry. */
+export const PROP_STANCES = ["asserted", "abstain"] as const;
+
+/**
+ * DOC 217 — `prop:<prop_id>=<stance>`. Returns a named failure, or null when
+ * the atom is well formed AND names a ratified inventory proposition.
+ */
+export function validatePropAtom(raw: string, ratifiedPropIds?: ReadonlySet<string>): string | null {
+  const rest = raw.slice("prop:".length);
+  const eq = rest.indexOf("=");
+  if (eq < 0) return `trigger atom "${raw}": malformed prop atom (no "=")`;
+  const propId = rest.slice(0, eq);
+  const stance = rest.slice(eq + 1);
+  if (!propId) return `trigger atom "${raw}": malformed prop atom (empty prop_id)`;
+  if (!(PROP_STANCES as readonly string[]).includes(stance)) {
+    return `trigger atom "${raw}": stance must be ${PROP_STANCES.join("|")}`;
+  }
+  if (!ratifiedPropIds) return `trigger atom "${raw}": no ratified proposition inventory supplied`;
+  if (!ratifiedPropIds.has(propId)) {
+    return `trigger atom "${raw}": prop_id is not in the ratified proposition inventory`;
+  }
+  return null;
+}
+
 /** All the §4.3 checks for one emitted row. Returns named failures. */
 export function validateRuleRow(
   row: AuthorityRuleRow,
   vocabulary: TypedStateVocabulary,
   instrumentScope: readonly string[],
+  ratifiedPropIds?: ReadonlySet<string>,
 ): string[] {
   const errors: string[] = [];
   const fail = (message: string) => errors.push(`${row.rule_id}: ${message}`);
@@ -214,6 +246,14 @@ export function validateRuleRow(
     fail("trigger names no atom");
   } else {
     for (const raw of atoms) {
+      // DOC 217 — the F11 family fires on proposition readings. `prop:` is
+      // validated here against the RATIFIED proposition inventory, never
+      // against the typed state vocabulary.
+      if (raw.startsWith("prop:")) {
+        const propError = validatePropAtom(raw, ratifiedPropIds);
+        if (propError) fail(propError);
+        continue;
+      }
       // The canonical `parseAtom` THROWS on a malformed atom; at build time
       // that is a named validation failure, never a crash.
       let atom;
@@ -246,6 +286,23 @@ export function validateRuleRow(
   // Fixtures.
   if (!isPlainObject(row.fixture_fires)) fail("fixture_fires is not a JSON object");
   if (!isPlainObject(row.fixture_silent)) fail("fixture_silent is not a JSON object");
+
+  // DOC 217 — a fixture bag may carry `props`: { <prop_id>: stance }.
+  for (const [bagName, bag] of [["fixture_fires", row.fixture_fires], ["fixture_silent", row.fixture_silent]] as const) {
+    if (!isPlainObject(bag) || bag.props === undefined) continue;
+    if (!isPlainObject(bag.props)) {
+      fail(`${bagName}.props is not a JSON object`);
+      continue;
+    }
+    for (const [propId, stance] of Object.entries(bag.props)) {
+      if (!(PROP_STANCES as readonly string[]).includes(String(stance))) {
+        fail(`${bagName}.props["${propId}"]: stance must be ${PROP_STANCES.join("|")}`);
+      }
+      if (!ratifiedPropIds?.has(propId)) {
+        fail(`${bagName}.props["${propId}"]: prop_id is not in the ratified proposition inventory`);
+      }
+    }
+  }
 
   // Reason sentence.
   if (row.reason_sentence.includes("[") || row.reason_sentence.includes("]")) {
@@ -340,7 +397,7 @@ export function generateRules(input: GenerateRulesInput): GenerateRulesResult {
   }
 
   for (const row of emitted) {
-    errors.push(...validateRuleRow(row, input.vocabulary, input.instrumentScope));
+    errors.push(...validateRuleRow(row, input.vocabulary, input.instrumentScope, input.ratifiedPropIds));
     const primary = input.profiles.get(row.profile_id);
     const settled = checkSettlednessAgainstSource(row, primary?.endorsement ?? null);
     if (settled.error) errors.push(`${row.rule_id}: ${settled.error}`);
