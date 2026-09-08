@@ -10701,6 +10701,20 @@ export type Database = {
         }[]
       }
       claim_biometric_free_run: { Args: never; Returns: boolean }
+      claim_enforcement_for_cleanup: {
+        Args: { _limit?: number }
+        Returns: {
+          case_reference: string
+          decision_date: string
+          doc_text: string
+          id: string
+          jurisdiction: string
+          law: string
+          regulator: string
+          subject: string
+          violation: string
+        }[]
+      }
       claim_enforcement_for_enrichment: {
         Args: { _limit: number; _target_version: number }
         Returns: {
