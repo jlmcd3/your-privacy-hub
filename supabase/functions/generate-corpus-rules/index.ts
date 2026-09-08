@@ -126,10 +126,26 @@ Deno.serve(async (req) => {
       ? body.rules_version
       : `${product}-rules-v1-${new Date().toISOString().slice(0, 10)}-0`;
 
+    // DOC 217 — the ratified proposition inventory that `prop:` trigger atoms
+    // and `props` fixture entries must name.
+    const ratifiedPropIds = new Set<string>();
+    {
+      const { data: props } = await supabase
+        .from("proposition_inventory")
+        .select("prop_id")
+        .eq("product", product)
+        .is("retired_at", null)
+        .not("ratified_by", "is", null)
+        .not("ratified_at", "is", null)
+        .not("ledger_ref", "is", null);
+      for (const p of props ?? []) ratifiedPropIds.add(p.prop_id as string);
+    }
+
     const result = generateRules({
       product,
       rows,
       profiles,
+      ratifiedPropIds,
       vocabulary: registry.typed_state_vocabulary,
       instrumentScope: registry.instrument_scope,
       rulesVersion,
