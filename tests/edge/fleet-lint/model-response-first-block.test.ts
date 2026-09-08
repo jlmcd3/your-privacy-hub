@@ -25,7 +25,6 @@ const FIRST_BLOCK_READ = /content\??\.\[0\]|content\[0\]/;
 
 /** Files known to read the first block on 2026-09-08. Shrink only. */
 const ALLOWED_FIRST_BLOCK_READERS: ReadonlySet<string> = new Set([
-  "_shared/anthropic-call.ts", // the helper's own comment names the anti-pattern
   "_shared/github-apply.ts",
   "ask-privacy/index.ts",
   "backfill-action-items/index.ts",
@@ -39,7 +38,6 @@ const ALLOWED_FIRST_BLOCK_READERS: ReadonlySet<string> = new Set([
   "enrich-with-context/index.ts",
   "fetch-newsapi/index.ts",
   "fetch-updates/index.ts",
-  "generate-corpus-relevance-profiles/index.ts",
   "generate-custom-brief/index.ts",
   "generate-dpa/index.ts",
   "generate-longitudinal-synthesis/index.ts",
