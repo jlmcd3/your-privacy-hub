@@ -509,6 +509,51 @@ const DPIAFrameworkResult = () => {
               <AuthorityExhibit exhibit={report?.authority_exhibit} />
             </div>
           )}
+
+          {/* C1-d — Engagement Map: which DPIA rules fired and why. Additive
+              metadata, not part of the primary report document. Shown in both
+              skeleton and legacy paths; collapsed by default to preserve
+              document flow. */}
+          {status === "complete" && Array.isArray((report as any)?.engagement_map?.entries) && (
+            <details className="border rounded-lg print:hidden">
+              <summary className="px-4 py-3 cursor-pointer text-sm font-medium select-none">
+                Rule Engagement Map
+                <span className="ml-2 text-xs text-muted-foreground">
+                  ({(report as any).engagement_map.entries.length} rules evaluated)
+                </span>
+              </summary>
+              <div className="px-4 pb-4 space-y-2 mt-1">
+                <p className="text-xs text-muted-foreground mb-3">
+                  Shows which DPIA rules were engaged, not engaged, or require confirmation based on your intake answers. This is diagnostic metadata — it does not alter the report.
+                </p>
+                {(report as any).engagement_map.entries.map((e: any) => {
+                  const cls =
+                    e.status === "engaged" ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                    : e.status === "conditional" ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+                    : "bg-muted text-muted-foreground";
+                  return (
+                    <div key={e.rule_id} className="border rounded p-3 text-sm space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium">{e.name}</span>
+                        <span className={`px-2 py-0.5 text-[11px] rounded uppercase tracking-wide ${cls}`}>
+                          {e.status.replace(/_/g, " ")}
+                        </span>
+                        {e.section_ref && (
+                          <span className="text-[11px] text-muted-foreground">→ {e.section_ref.replace(/_/g, " ")}</span>
+                        )}
+                      </div>
+                      <p className="text-muted-foreground">{e.rationale}</p>
+                      {Array.isArray(e.intake_signals) && e.intake_signals.length > 0 && (
+                        <p className="text-[11px] text-muted-foreground">
+                          Signals: {e.intake_signals.join(", ")}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </details>
+          )}
           </div>
         </ReportShell>
       </main>
