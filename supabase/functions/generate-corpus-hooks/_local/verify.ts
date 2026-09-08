@@ -29,7 +29,8 @@ export interface DraftPayload {
   distinguishing_pairs: HookDistinguishingPair[];
   /** Derived: the material facts' atoms (the join's `fact_atoms`). */
   fact_atoms: string[];
-  /** Derived: the pairs' record atoms (the join's `distinguishing_atoms`). */
+  /** Derived: the PRESENT-polarity pairs' record atoms (the join's
+   *  `distinguishing_atoms`, which mean "presence distinguishes" — doc 223). */
   distinguishing_atoms: string[];
   not_distinguishable: boolean;
   required_atoms: string[];
@@ -121,7 +122,13 @@ export function parseDraftPayload(raw: string, profileId: string): { ok: true; d
       material_facts,
       distinguishing_pairs,
       fact_atoms: material_facts.map((m) => m.atom),
-      distinguishing_atoms: distinguishing_pairs.map((p) => p.record_atom),
+      // DOC 223 — the plain array means "PRESENCE distinguishes" in the join
+      // and takes priority over the fact match, so only a present-polarity
+      // pair projects into it. Projecting an absent-polarity pair's atom
+      // contradicted the pair, and projecting a required atom forced every
+      // nominating record to "different" — the two-leg selection was never
+      // reached.
+      distinguishing_atoms: distinguishing_pairs.filter((p) => p.record_polarity === "present").map((p) => p.record_atom),
       not_distinguishable: parsed.not_distinguishable === true,
       required_atoms,
       finding_span: parsed.finding_span,
@@ -293,6 +300,25 @@ export function verifyDraft(
   }
   if (draft.material_facts.length > 6) errors.push("material_facts exceeds 6 entries");
   if (draft.distinguishing_pairs.length > 4) errors.push("distinguishing_pairs exceeds 4 entries");
+  // DOC 223 — a pair can only distinguish a record the hook already admits.
+  // A required atom holds on every nominated record, so a pair on it fires
+  // for every customer (present) or never (absent); a present-polarity pair
+  // on a material fact makes the analogy's own fact its distinction. Either
+  // way the `unknown` agreement the two-leg selection consults is
+  // unreachable, and nothing downstream ever rendered.
+  const materialByConcept = new Map(draft.material_facts.map((m) => [atomConcept(m.atom), m.atom] as const));
+  for (const [i, p] of draft.distinguishing_pairs.entries()) {
+    if (draft.required_atoms.includes(p.record_atom)) {
+      errors.push(`distinguishing_pairs[${i}]: record_atom "${p.record_atom}" is a required atom — it holds on every nominated record and can never distinguish (doc 223)`);
+    } else if (p.record_polarity === "present") {
+      const material = materialByConcept.get(atomConcept(p.record_atom));
+      if (material) errors.push(`distinguishing_pairs[${i}]: present-polarity record_atom "${p.record_atom}" names the material fact "${material}" — a fact cannot both establish and distinguish the analogy (doc 222 §5.2)`);
+    }
+  }
+  const projected = draft.distinguishing_pairs.filter((p) => p.record_polarity === "present").map((p) => p.record_atom);
+  if (draft.distinguishing_atoms.length !== projected.length || draft.distinguishing_atoms.some((a, i) => a !== projected[i])) {
+    errors.push("distinguishing_atoms is not the present-polarity projection of distinguishing_pairs (doc 223)");
+  }
   for (const c of draft.condition_atoms ?? []) {
     if (c.startsWith("verdict:")) errors.push(`condition_atoms: "${c}" is a verdict, not a fact (doc 222 §2.1)`);
   }
@@ -491,6 +517,10 @@ export interface SettleInput {
   readonly outcome_posture: string | null;
   readonly not_distinguishable: boolean;
   readonly distinguishing_atoms: readonly string[];
+  /** DOC 223 — absent-polarity pairs distinguish without projecting into
+   *  `distinguishing_atoms`; a hook whose only distinctions are such pairs
+   *  is still distinguishable. */
+  readonly distinguishing_pairs?: number;
   readonly round: number;
   /** DOC 222 §2.5 — a settled hook carries a verified pinpoint. */
   readonly pinpoint_present?: boolean;
@@ -512,7 +542,7 @@ export function settleDecision(input: SettleInput): SettleDecision {
   if ((input.verification_errors ?? 0) > 0) reasons.push("verification_errors_outstanding");
   if (input.objections.some((o) => o.severity === "block")) reasons.push("blocking_objection_outstanding");
   const distinguishable = input.outcome_posture === "accepted" || input.not_distinguishable ||
-    input.distinguishing_atoms.length > 0;
+    input.distinguishing_atoms.length > 0 || (input.distinguishing_pairs ?? 0) > 0;
   if (!distinguishable) reasons.push("no_distinguishing_atom_on_a_non_accepted_posture");
   if (input.pinpoint_present === false) reasons.push("pinpoint_missing");
   if (input.outcome_posture === "conditional" && input.proposition_split_present === false) reasons.push("proposition_split_missing");

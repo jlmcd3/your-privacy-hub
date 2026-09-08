@@ -245,6 +245,60 @@ Deno.test("applyLiaHooks — LinkedIn case: required_atoms gates nomination; the
   assert(s3.applications[0].sentence.includes("an unconditional opt-out is available"));
 });
 
+// ── DOC 223 — the atom-overlap defect and the absent-polarity render guard ──
+
+Deno.test("applyLiaHooks — doc 223: a required atom duplicated into distinguishing_atoms forces every nominated record to 'different'; 'same' and 'unknown' (the two-leg selection) are unreachable", () => {
+  const failing = { purpose: "passes", necessity: "passes", balancing: "fails" };
+  const overlapping = makeHook({
+    hook_id: "test/overlap",
+    posture: "rejected",
+    bears_on_element: "balancing",
+    fact_atoms: ["class:behavioral_advertising", "flag:large_scale"],
+    required_atoms: ["class:behavioral_advertising"],
+    distinguishing_atoms: ["class:behavioral_advertising"], // the defect
+  });
+  // Every fact atom held: would be "same" (S2 under a failing verdict) — the overlap wins.
+  const allFacts = baseStates({ use_case_class: "behavioral_advertising", flags: ["large_scale"], verdicts: failing });
+  const a = applyLiaHooks([overlapping], allFacts, allFacts.verdicts, ["row-test"], new Set());
+  assertEquals(a.applications, []);
+  assertEquals(a.flags, [{ hook_id: "test/overlap", reason: "s3_missing_distinguishing_atom" }]);
+  // A partial match: would be "unknown" (selection_pending, the legs' case) — never reached either.
+  const partial = baseStates({ use_case_class: "behavioral_advertising", verdicts: failing });
+  const b = applyLiaHooks([overlapping], partial, partial.verdicts, ["row-test"], new Set());
+  assertEquals(b.flags, [{ hook_id: "test/overlap", reason: "s3_missing_distinguishing_atom" }]);
+  // The same hook with the overlap removed reaches both.
+  const fixed: AuthorityHook = { ...overlapping, distinguishing_atoms: [] };
+  assertEquals(applyLiaHooks([fixed], allFacts, allFacts.verdicts, ["row-test"], new Set()).applications.map((x) => x.shape), ["S2"]);
+  assertEquals(applyLiaHooks([fixed], partial, partial.verdicts, ["row-test"], new Set()).flags, [{ hook_id: "test/overlap", reason: "selection_pending" }]);
+});
+
+Deno.test("applyLiaHooks — doc 223: an absent-polarity pair distinguishes but never renders (no ratified phrase for an absence); the default entry stands", () => {
+  const hook = makeHook({
+    hook_id: "test/absent-pair",
+    posture: "rejected",
+    bears_on_element: "balancing",
+    fact_atoms: ["class:behavioral_advertising"],
+    required_atoms: ["class:behavioral_advertising"],
+    distinguishing_atoms: [],
+    distinguishing_pairs: [{
+      source_fact_span: "processing at very large scale",
+      source_polarity: "present",
+      record_atom: "flag:large_scale",
+      record_polarity: "absent",
+      why_material: "the finding turned on scale",
+      source_expressly_excludes: false,
+    }],
+  });
+  // No large_scale flag on the record: the pair holds (absent) -> "different" -> S3 -> guard.
+  const small = baseStates({ use_case_class: "behavioral_advertising" });
+  const r = applyLiaHooks([hook], small, small.verdicts, ["row-test"], new Set());
+  assertEquals(r.applications, []);
+  assertEquals(r.flags, [{ hook_id: "test/absent-pair", reason: "absent_pair_unrenderable" }]);
+  // With the flag held the pair does not fire and the facts agree.
+  const large = baseStates({ use_case_class: "behavioral_advertising", flags: ["large_scale"], verdicts: { purpose: "passes", necessity: "passes", balancing: "fails" } });
+  assertEquals(applyLiaHooks([hook], large, large.verdicts, ["row-test"], new Set()).applications.map((x) => x.shape), ["S2"]);
+});
+
 // ── Caps: five per report, two per factor, settledness then rank order ──
 
 Deno.test("applyLiaHooks — caps: five per report, two per factor, ordered by settledness then the ranked order given", () => {

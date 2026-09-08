@@ -387,6 +387,7 @@ async function actionSettle(hookId: string) {
     outcome_posture: profile?.outcome_posture ?? null,
     not_distinguishable: hook.not_distinguishable === true,
     distinguishing_atoms: (hook.distinguishing_atoms as string[] | null) ?? [],
+    distinguishing_pairs: Array.isArray(hook.distinguishing_pairs) ? hook.distinguishing_pairs.length : 0,
     round: Number(hook.round ?? 1),
     // DOC 222 — settle gates on the v2 fields the join will need.
     pinpoint_present: !!pin && typeof pin.ref === "string" && pin.ref.length > 0 && typeof pin.anchor_span === "string",

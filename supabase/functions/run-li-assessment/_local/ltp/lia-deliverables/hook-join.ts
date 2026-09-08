@@ -438,6 +438,15 @@ export function applyLiaHooks(
       flags.push({ hook_id: hook.hook_id, reason: "s3_missing_distinguishing_atom" });
       continue;
     }
+    // DOC 223 — an absent-polarity pair distinguishes because the record
+    // LACKS the source's fact, but `{record_fact}` has only the atom's
+    // positive phrase, which would print as something the company stated.
+    // Until an absent-polarity phrase map is ratified, such a pair never
+    // renders; the default entry stands.
+    if ((shape === "S3" || shape === "S6" || shape === "S6x") && pair && pair.record_polarity === "absent") {
+      flags.push({ hook_id: hook.hook_id, reason: "absent_pair_unrenderable" });
+      continue;
+    }
     const verb = verbFor(hook);
     if (!verbConsistent(hook, verb)) {
       flags.push({ hook_id: hook.hook_id, reason: "status_verb_mismatch" });

@@ -273,6 +273,57 @@ Deno.test("draft: a payload for the wrong profile is rejected; a v2 payload roun
   }
 });
 
+// ── DOC 223 — the atom-overlap defect (seven of ten LIA hooks, 2026-09-08) ──
+
+const PAIR_BASE = {
+  source_fact_span: "processing is intrusive", source_polarity: "present" as const,
+  why_material: "w", source_expressly_excludes: false, exclusion_span: null, exclusion_paraphrase: null,
+};
+
+Deno.test("draft (doc 223): only present-polarity pairs project into distinguishing_atoms; an absent-polarity pair distinguishes through the pair alone", () => {
+  const { fact_atoms: _f, distinguishing_atoms: _d, ...wire } = draft({
+    distinguishing_pairs: [
+      { ...PAIR_BASE, record_atom: "flag:children", record_polarity: "present" },
+      { ...PAIR_BASE, record_atom: "flag:large_scale", record_polarity: "absent" },
+    ],
+  });
+  const ok = parseDraftPayload(JSON.stringify(wire), PROFILE_A);
+  assert(ok.ok);
+  if (ok.ok) {
+    assertEquals(ok.draft.distinguishing_atoms, ["flag:children"]);
+    assertEquals(verifyDraft(ok.draft, profile(), EXCERPT, REGISTRY).errors, []);
+  }
+});
+
+Deno.test("draft (doc 223): a pair on a required atom is rejected — it holds on every nominated record and can never distinguish, whatever its polarity", () => {
+  const present = verifyDraft(draft({ required_atoms: ["flag:children"] }), profile(), EXCERPT, REGISTRY);
+  assert(present.errors.some((e) => e.includes("is a required atom")), present.errors.join(" | "));
+  const absent = verifyDraft(draft({
+    required_atoms: ["flag:children"],
+    distinguishing_pairs: [{ ...PAIR_BASE, record_atom: "flag:children", record_polarity: "absent" }],
+    distinguishing_atoms: [],
+  }), profile(), EXCERPT, REGISTRY);
+  assert(absent.errors.some((e) => e.includes("is a required atom")), absent.errors.join(" | "));
+});
+
+Deno.test("draft (doc 223): a present-polarity pair on a material fact is rejected; an absent-polarity pair on one ('the record lacks the fact') passes", () => {
+  const present = verifyDraft(draft({
+    distinguishing_pairs: [{ ...PAIR_BASE, record_atom: "class:direct_marketing", record_polarity: "present" }],
+    distinguishing_atoms: ["class:direct_marketing"],
+  }), profile(), EXCERPT, REGISTRY);
+  assert(present.errors.some((e) => e.includes("names the material fact")), present.errors.join(" | "));
+  const absent = verifyDraft(draft({
+    distinguishing_pairs: [{ ...PAIR_BASE, record_atom: "class:direct_marketing", record_polarity: "absent" }],
+    distinguishing_atoms: [],
+  }), profile(), EXCERPT, REGISTRY);
+  assertEquals(absent.errors, []);
+});
+
+Deno.test("draft (doc 223): distinguishing_atoms must be exactly the present-polarity projection of the pairs", () => {
+  const stale = verifyDraft(draft({ distinguishing_atoms: ["flag:children", "class:direct_marketing"] }), profile(), EXCERPT, REGISTRY);
+  assert(stale.errors.some((e) => e.includes("not the present-polarity projection")), stale.errors.join(" | "));
+});
+
 Deno.test("schema: the v2 draft schema requires every doc 222 field", () => {
   const schema = draftSchema(PROFILE_A) as { required: string[]; properties: Record<string, unknown> };
   for (const k of ["material_facts", "distinguishing_pairs", "recognised_proposition", "recognised_span", "condition_text", "condition_span", "condition_atoms", "pinpoint"]) {
@@ -360,6 +411,11 @@ Deno.test("settle: a rejected posture with no distinguishing atom does not settl
   const decision = settleDecision({ ...SETTLE_BASE, distinguishing_atoms: [], not_distinguishable: false, round: 2 });
   assertEquals(decision.hook_status, "contested");
   assert(decision.reasons.includes("no_distinguishing_atom_on_a_non_accepted_posture"));
+});
+
+Deno.test("settle (doc 223): absent-polarity pairs distinguish without projecting into the plain array — pairs with an empty array still settle", () => {
+  assertEquals(settleDecision({ ...SETTLE_BASE, distinguishing_atoms: [], distinguishing_pairs: 2 }).hook_status, "settled");
+  assertEquals(settleDecision({ ...SETTLE_BASE, distinguishing_atoms: [], distinguishing_pairs: 0, round: 2 }).hook_status, "contested");
 });
 
 Deno.test("settle: an accepted posture needs no distinguishing atom", () => {
