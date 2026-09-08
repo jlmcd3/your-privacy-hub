@@ -8,6 +8,7 @@
 //   - weekly:  rows where law_name ILIKE '%AI Act%' or jurisdiction_code='EU-AI'
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,6 +28,8 @@ async function sha256(s: string): Promise<string> {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  const fnRun = await startFunctionRun(supabase, "monitor-jurisdictions");
 
   try {
     const { mode } = await req.json().catch(() => ({ mode: "monthly" }));
@@ -85,6 +88,10 @@ Deno.serve(async (req) => {
       }
     }
 
+    await finishFunctionRun(supabase, fnRun, {
+      metadata: { mode: isWeekly ? "weekly_ai_act" : "monthly", checked: checked.length, changes_detected: changes.length },
+    });
+
     return new Response(JSON.stringify({
       mode: isWeekly ? "weekly_ai_act" : "monthly",
       checked: checked.length,
@@ -95,6 +102,7 @@ Deno.serve(async (req) => {
     });
   } catch (e) {
     console.error("monitor-jurisdictions error", e);
+    await failFunctionRun(supabase, fnRun, e);
     return new Response(JSON.stringify({ error: (e as Error).message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
