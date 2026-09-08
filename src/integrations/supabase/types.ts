@@ -2423,6 +2423,8 @@ export type Database = {
           primary_source_url: string | null
           primary_source_url_discovered_at: string | null
           provisions_normalized: string[]
+          quality_flagged_at: string | null
+          quality_flags: string[] | null
           raw_text: string | null
           refetch_attempts: number
           refetch_last_attempt_at: string | null
@@ -2511,6 +2513,8 @@ export type Database = {
           primary_source_url?: string | null
           primary_source_url_discovered_at?: string | null
           provisions_normalized?: string[]
+          quality_flagged_at?: string | null
+          quality_flags?: string[] | null
           raw_text?: string | null
           refetch_attempts?: number
           refetch_last_attempt_at?: string | null
@@ -2599,6 +2603,8 @@ export type Database = {
           primary_source_url?: string | null
           primary_source_url_discovered_at?: string | null
           provisions_normalized?: string[]
+          quality_flagged_at?: string | null
+          quality_flags?: string[] | null
           raw_text?: string | null
           refetch_attempts?: number
           refetch_last_attempt_at?: string | null
@@ -10777,6 +10783,7 @@ export type Database = {
           violation: string
         }[]
       }
+      get_enforcement_action_public: { Args: { _id: string }; Returns: Json }
       get_portfolio_summary: { Args: { _user_id: string }; Returns: Json }
       has_role: {
         Args: {
@@ -10792,6 +10799,20 @@ export type Database = {
       increment_batch_failed: { Args: { batch_id: string }; Returns: undefined }
       is_current_user_premium: { Args: never; Returns: boolean }
       is_founding_rate_available: { Args: never; Returns: boolean }
+      list_flagged_enforcement_actions: {
+        Args: { _limit?: number; _offset?: number }
+        Returns: {
+          case_reference: string
+          decision_date: string
+          id: string
+          jurisdiction: string
+          quality_flagged_at: string
+          quality_flags: string[]
+          regulator: string
+          source_url: string
+          subject: string
+        }[]
+      }
       match_cppa_fsor_commentary: {
         Args: {
           citation_filter?: string[]
