@@ -397,7 +397,7 @@ export function generateRules(input: GenerateRulesInput): GenerateRulesResult {
   }
 
   for (const row of emitted) {
-    errors.push(...validateRuleRow(row, input.vocabulary, input.instrumentScope));
+    errors.push(...validateRuleRow(row, input.vocabulary, input.instrumentScope, input.ratifiedPropIds));
     const primary = input.profiles.get(row.profile_id);
     const settled = checkSettlednessAgainstSource(row, primary?.endorsement ?? null);
     if (settled.error) errors.push(`${row.rule_id}: ${settled.error}`);
