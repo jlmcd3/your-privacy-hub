@@ -2,6 +2,7 @@
 // Counts high-attention `updates` rows per guide since the page's lastUpdated
 // date and upserts results into research_freshness_flags.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { startFunctionRun, finishFunctionRun } from "../_shared/function-run-logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
