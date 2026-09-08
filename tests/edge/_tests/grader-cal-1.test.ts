@@ -400,10 +400,17 @@ Deno.test("GRADER-CAL-3 T2(c): closing-block ownership disclaimer is exempt", ()
 // cal_skeleton_10/11 (missing-deadline claim against a tabled clocks
 // document; HTML entity in an HTML-sourced payload) as the appended
 // skeleton-cal-5 tag, followed by the batch-e38460 prose tag.
+// RE-PIN 2026-09-08 (found stale while landing DOC 211/218's cal_skeleton_12:
+// this pin was already missing the doc189-device-access-relevance-2026-09-05
+// tag that had shipped on 2026-09-05, before today's session touched this
+// file — a pre-existing staleness, not a regression from today's edit).
+// Now carries doc189's tag and the DOC 211/218 appended tag
+// "+batch-a81e0240-cal-2026-09-07[cal_skeleton_12]" (cal_skeleton_12: LIA's
+// deterministic Section IV balancing frames are not boilerplate).
 Deno.test("instrument version pinned to the skeleton-calibration epoch", () => {
   assertEquals(
     GRADER_CONTEXT_VERSION,
-    "gc-2026-08-28-skeleton-cal-3-item204[cal_skeleton_1|cal_skeleton_2|cal_skeleton_3|cal_skeleton_4|cal_skeleton_5|cal_skeleton_6]+risk-field-semantics-2026-09-03+batch9-cal-2026-09-03+batch10-cal-2026-09-03+risk-code-review-2026-09-03+risk-law-map-2026-09-03+admt-law-map-2026-09-03+cyber-law-map-2026-09-03+dpia-law-map-2026-09-03+lia-law-map-2026-09-03+gov-law-map-2026-09-03+registration-law-map-2026-09-03+gov-dpa2018-wp243-2026-09-04+batch08f13650-cal-2026-09-04+batch13-cal-2026-09-04+skeleton-cal-4-doc169[cal_skeleton_7|cal_skeleton_8|cal_skeleton_9]+batch14-cal-2026-09-04+skeleton-cal-5-doc188[cal_skeleton_10|cal_skeleton_11]+batch-e38460-cal-2026-09-05",
+    "gc-2026-08-28-skeleton-cal-3-item204[cal_skeleton_1|cal_skeleton_2|cal_skeleton_3|cal_skeleton_4|cal_skeleton_5|cal_skeleton_6]+risk-field-semantics-2026-09-03+batch9-cal-2026-09-03+batch10-cal-2026-09-03+risk-code-review-2026-09-03+risk-law-map-2026-09-03+admt-law-map-2026-09-03+cyber-law-map-2026-09-03+dpia-law-map-2026-09-03+lia-law-map-2026-09-03+gov-law-map-2026-09-03+registration-law-map-2026-09-03+gov-dpa2018-wp243-2026-09-04+batch08f13650-cal-2026-09-04+batch13-cal-2026-09-04+skeleton-cal-4-doc169[cal_skeleton_7|cal_skeleton_8|cal_skeleton_9]+batch14-cal-2026-09-04+skeleton-cal-5-doc188[cal_skeleton_10|cal_skeleton_11]+batch-e38460-cal-2026-09-05+doc189-device-access-relevance-2026-09-05+batch-a81e0240-cal-2026-09-07[cal_skeleton_12]",
   );
 });
 

@@ -37,6 +37,14 @@ import { DPIA_ASK_LABELS } from "../../../_shared/ltp/dpia-ask-labels.ts";
 // cal_skeleton_11 (an HTML character entity in an HTML-sourced payload read as
 // customer text). Same PREFIX rule; stamped as the appended tag
 // "+skeleton-cal-5-doc188[cal_skeleton_10|cal_skeleton_11]".
+// DOC 211/218 (2026-09-07/08, CEO-ratified 2026-09-08, batch a81e0240) —
+// cal_skeleton_12: LIA's deterministic Section IV balancing composer
+// (composeBalancingNarrative, three-part-test-typed.ts) fills four fixed
+// connective frames from the record's own typed verdicts — the connective
+// words recur byte-identically across records sharing the same bucketed
+// facts BY DESIGN, exactly as cal_skeleton_7's ratified-frame family does for
+// cppa_risk. Same PREFIX rule; stamped as the appended tag
+// "+batch-a81e0240-cal-2026-09-07[cal_skeleton_12]" (GRADER_CONTEXT_VERSION).
 export const SKELETON_CAL_VERSION = "gc-2026-08-28-skeleton-cal-3-item204";
 
 export type SkeletonCalRuleId =
@@ -50,7 +58,8 @@ export type SkeletonCalRuleId =
   | "cal_skeleton_8"
   | "cal_skeleton_9"
   | "cal_skeleton_10"
-  | "cal_skeleton_11";
+  | "cal_skeleton_11"
+  | "cal_skeleton_12";
 
 export const SKELETON_CAL_RULE_IDS: readonly SkeletonCalRuleId[] = [
   "cal_skeleton_1",
@@ -64,6 +73,7 @@ export const SKELETON_CAL_RULE_IDS: readonly SkeletonCalRuleId[] = [
   "cal_skeleton_9",
   "cal_skeleton_10",
   "cal_skeleton_11",
+  "cal_skeleton_12",
 ];
 
 /**
@@ -476,6 +486,34 @@ const R9_B1_SHARING_RES: readonly RegExp[] = [
 export function matchesRule7(checkId: string, ev: string): boolean {
   return checkId === "rubric_generic_boilerplate" && R7_RATIFIED_FRAME_RES.some((r) => r.test(ev));
 }
+
+// RULE 12 — LIA DETERMINISTIC SECTION IV BALANCING FRAMES ARE NOT BOILERPLATE.
+// DOC 211 (batch a81e0240, 2026-09-07): the first live LIA_DETERMINISTIC_ENABLED
+// run drew a rubric_generic_boilerplate finding on all three fixtures against
+// Section IV's balancing paragraph. Root cause confirmed in
+// composeBalancingNarrative (three-part-test-typed.ts): the paragraph is built
+// from four fixed connective frames chosen by the record's own typed
+// verdicts — "In favour of the interest: …", "Against it: …" (or its
+// no-adverse-factor variant), "Neither for nor against it: …", and one of
+// three "Weighed together, the balance …" closings. Two records sharing the
+// same bucketed facts render the same connective words BY DESIGN — the
+// template is fixed so the same facts produce the same legal
+// characterisation (doc161's "one resolver" rule), the same doctrine DOC 165
+// (2) already states for cppa_risk's fixed methodology sections. The match is
+// on the frames' own invariant words only, never on a paraphrase — exactly
+// Rule 7's discipline for cppa_risk's ratified fixed frames.
+const R12_LIA_BALANCING_FRAME_RES: readonly RegExp[] = [
+  /In favour of the interest:/i,
+  /Against it, the typed findings above carry no factor of material weight/i,
+  /Neither for nor against it:/i,
+  /Weighed together, the balance favours the interest pursued as the record stands/i,
+  /Weighed together, the balance favours the people affected as the record stands/i,
+  /Weighed together, the balance cannot be struck on the information provided/i,
+];
+
+export function matchesRule12(checkId: string, ev: string): boolean {
+  return checkId === "rubric_generic_boilerplate" && R12_LIA_BALANCING_FRAME_RES.some((r) => r.test(ev));
+}
 export function matchesRule8(ev: string, payloadComplete: boolean | undefined): boolean {
   if (payloadComplete === false) return false;
   return R8_TRUNCATION_CLAIM_RES.some((r) => r.test(ev));
@@ -577,6 +615,7 @@ export function applySkeletonCalibration(
     cal_skeleton_9: 0,
     cal_skeleton_10: 0,
     cal_skeleton_11: 0,
+    cal_skeleton_12: 0,
   };
   const filtered: SkeletonCalFiltered[] = [];
   const kept: LlmFinding[] = [];
@@ -599,6 +638,8 @@ export function applySkeletonCalibration(
       if (t) { drop("cal_skeleton_1", t); continue; }
       // RULE 7 — DOC 169: the ratified fixed frames (DOC 165 (1)–(2), DOC 167 (6)).
       if (matchesRule7(checkId, ev)) { drop("cal_skeleton_7", null); continue; }
+      // RULE 12 — DOC 211/218: LIA's deterministic Section IV balancing frames.
+      if (matchesRule12(checkId, ev)) { drop("cal_skeleton_12", null); continue; }
     }
 
     // RULE 9 — DOC 169: § 7150(b)(1) on the categorical sell/share answer (DOC 167 (4)).
