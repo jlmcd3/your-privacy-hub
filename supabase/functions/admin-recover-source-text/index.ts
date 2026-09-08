@@ -187,6 +187,8 @@ Deno.serve(async (req) => {
       if (reason) {
         res.guard = "rejected";
         res.reason = reason;
+        res.head300 = text.slice(0, 300);
+        res.has_plural_accented = text.includes("intérêts légitimes");
         if (!body.dry_run) {
           await supabase.from("enforcement_actions")
             .update({ refetch_last_error: reason })
@@ -215,6 +217,9 @@ Deno.serve(async (req) => {
           const stored = (after?.source_document_text as string | null) ?? "";
           res.stored_len = stored.length;
           res.stored_sha256 = await sha256Text(stored);
+          res.stored_has_plural_accented = stored.includes("intérêts légitimes");
+          res.stored_has_singular = stored.includes("intérêt légitime");
+          if (!res.stored_has_plural_accented) res.head300 = stored.slice(0, 300);
         }
       }
     } catch (e) {
