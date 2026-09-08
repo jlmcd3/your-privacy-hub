@@ -77,43 +77,46 @@ export default function EnforcementActionDetail() {
       if (fullData) {
         setAction(fullData as Action);
       } else {
-        // Older actions: fall back to the public basic-columns RPC (any age, basic fields only).
-        const { data: basic } = await supabase.rpc(
-          "get_enforcement_action_basic",
+        // Older actions sit outside the 60-day public row window. The
+        // security-definer RPC below returns the same enriched fields
+        // (key compliance failure, preventive measures, significance,
+        // tags) so every record renders identically regardless of age.
+        const { data: pub } = await supabase.rpc(
+          "get_enforcement_action_public",
           { _id: id }
         );
-        const row = Array.isArray(basic) ? basic[0] : basic;
+        const row = (Array.isArray(pub) ? pub[0] : pub) as Record<string, unknown> | null;
         if (row) {
-          setAction({
-            id: row.id,
-            etid: row.etid,
-            regulator: row.regulator,
-            subject: row.subject,
-            jurisdiction: row.jurisdiction,
-            decision_date: row.decision_date,
-            fine_amount: row.fine_amount,
-            fine_eur: row.fine_eur,
-            fine_eur_equivalent: row.fine_eur_equivalent,
-            law: row.law,
-            violation: row.violation,
-            source_url: row.source_url,
-            raw_text: null,
-            industry_sector: null,
-            company_type: null,
-            data_categories: null,
-            violation_types: null,
-            tool_relevance: null,
-            key_compliance_failure: null,
-            preventive_measures: null,
-            precedent_significance: null,
-            breach_related: null,
-            biometric_related: null,
-            dpa_related: null,
-          } as Action);
+          setAction({ raw_text: null, ...(row as object) } as Action);
         } else {
-          setAction(null);
+          // Last resort: legacy basic-columns RPC.
+          const { data: basic } = await supabase.rpc(
+            "get_enforcement_action_basic",
+            { _id: id }
+          );
+          const b = Array.isArray(basic) ? basic[0] : basic;
+          setAction(
+            b
+              ? ({
+                  ...b,
+                  raw_text: null,
+                  industry_sector: null,
+                  company_type: null,
+                  data_categories: null,
+                  violation_types: null,
+                  tool_relevance: null,
+                  key_compliance_failure: null,
+                  preventive_measures: null,
+                  precedent_significance: null,
+                  breach_related: null,
+                  biometric_related: null,
+                  dpa_related: null,
+                } as Action)
+              : null
+          );
         }
       }
+
       setLoading(false);
 
       // Related cases — only from the last 60 days (public window)
