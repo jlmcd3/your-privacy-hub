@@ -36,6 +36,15 @@ type Finding = {
   created_at: string;
 };
 
+type MonitorRow = {
+  id: string;
+  jurisdiction_code: string;
+  check_type: string;
+  source_url: string | null;
+  detected_at: string;
+};
+
+
 function fmt(v: any): string {
   if (v === null || v === undefined) return "—";
   if (typeof v === "string") return v;
