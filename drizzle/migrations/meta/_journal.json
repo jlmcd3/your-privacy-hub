@@ -141,6 +141,13 @@
       "when": 1788832593105,
       "tag": "0019_create_v3_lia_proposition_pipeline",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1788839228044,
+      "tag": "0020_enforcement_quality_flags_and_public_detail",
+      "breakpoints": true
     }
   ]
 }

@@ -106,6 +106,8 @@ const AdminJurisdictionAudit = lazy(() => import("./pages/admin/AdminJurisdictio
 const AdminArticles = lazy(() => import("./pages/AdminArticles.tsx"));
 const AdminEmailSignups = lazy(() => import("./pages/AdminEmailSignups.tsx"));
 const AdminGatingLeaks = lazy(() => import("./pages/AdminGatingLeaks.tsx"));
+const AdminEnforcementQuality = lazy(() => import("./pages/admin/AdminEnforcementQuality.tsx"));
+
 const AdminBriefGenStatus = lazy(() => import("./pages/AdminBriefGenStatus.tsx"));
 const AdminPricingReconciliation = lazy(() => import("./pages/AdminPricingReconciliation.tsx"));
 const AdminLawUpdates = lazy(() => import("./pages/AdminLawUpdates.tsx"));
@@ -433,6 +435,17 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/enforcement-quality"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <AdminEnforcementQuality />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+
             <Route
               path="/admin/briefgen-status"
               element={

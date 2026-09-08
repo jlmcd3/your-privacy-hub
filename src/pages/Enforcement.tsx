@@ -16,6 +16,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import EnforcementStats from "@/components/enforcement/EnforcementStats";
 import AdBanner from "@/components/AdBanner";
 import { toast } from "sonner";
+import { displaySubject } from "@/lib/enforcementSubject";
+
 
 interface Row {
   id: string;
@@ -650,7 +652,7 @@ export default function Enforcement() {
                           )}
                         </div>
                         <h3 className="group-hover:text-primary transition line-clamp-2">
-                          {r.subject ?? (r as any).case_reference ?? "Anonymised determination"}
+                          {displaySubject(r as any)}
                         </h3>
                       </div>
                       <div className="text-right shrink-0">

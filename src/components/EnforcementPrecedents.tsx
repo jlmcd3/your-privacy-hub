@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { Star } from 'lucide-react';
+import { displaySubject } from "@/lib/enforcementSubject";
+
 
 export interface EnforcementPrecedent {
   id: string;
@@ -108,7 +110,7 @@ const EnforcementPrecedents = ({
                     to={`/enforcement/${p.id}`}
                     className="font-medium text-foreground hover:text-blue-700 no-underline"
                   >
-                    {p.subject || "Unnamed action"}
+                    {displaySubject(p as any)}
                   </Link>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {[p.regulator, p.jurisdiction, p.decision_date?.slice(0, 10)]
