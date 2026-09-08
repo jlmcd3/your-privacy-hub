@@ -28,6 +28,7 @@ import { vaRegistryAsProvisions } from "./_local/ltp/admt-v2-corpus.ts";
 import { serializeCustomerReport } from "../_shared/report-serialize.ts";
 import { ADMT_V2_REPORT_SCHEMA } from "./_local/report-schemas/admt-v2.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 
 export const BUILD_STAMP = "run-admt-checker-v2@2026-08-20T00:00:00Z-conversion-so12";
 console.log(`[run-admt-checker-v2] boot build_stamp=${BUILD_STAMP} spine=${ADMT_V2_SPINE_VERSION}`);
@@ -164,6 +165,25 @@ Deno.serve(async (req) => {
     overall_posture_label: computed.overallPostureLabel, finding_count: computed.allFindings.length,
     elapsed_ms: Date.now() - t0,
   }));
+
+  // BUGFIX (2026-09-08) — Stage 1: metering + version retention, written
+  // BEFORE status:complete (same placement/order as run-admt-checker v1 and
+  // run-cppa-risk-assessment-v2 — see _shared/run-meter.ts). This call was
+  // missing entirely, so no v2 ADMT row ever got a tool_run_meter row,
+  // which made every subsequent regen 403 (regenerate-assessment's classic
+  // path requires a meter row to exist). Only meaningful once a real row
+  // id exists: the harness/stress-test calling convention (direct
+  // intake_data, no assessment_id) creates its row via the insert below
+  // and has no per-customer meter to advance.
+  if (assessmentId) {
+    await recordRunMeterAndVersion(supabase, {
+      toolType: "cppa_admt",
+      assessmentId,
+      userId,
+      intake,
+      reportData: report,
+    });
+  }
 
   const persistPayload = {
     module: "admt_v2",
