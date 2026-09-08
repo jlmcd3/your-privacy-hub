@@ -104,6 +104,11 @@ Deno.serve(async (req) => {
     }
   }
 
+  await finishFunctionRun(supabase, fnRun, {
+    status: errors.length === 0 ? "success" : "partial",
+    metadata: { pages_checked: results.length, flagged: results.filter((r) => r.flagged).length, errors: errors.length },
+  });
+
   return new Response(
     JSON.stringify({
       ok: errors.length === 0,
