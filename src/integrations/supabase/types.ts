@@ -347,9 +347,13 @@ export type Database = {
       }
       authority_hooks: {
         Row: {
+          appeal_note: string | null
+          condition_atoms: string[] | null
+          condition_text: string | null
           created_at: string
           critic: Json | null
           distinguishing_atoms: string[]
+          distinguishing_pairs: Json | null
           drafter: Json
           fact_atoms: string[]
           fact_pattern_paraphrase: string
@@ -360,11 +364,14 @@ export type Database = {
           id: string
           lawyer_edits: Json | null
           ledger_ref: string | null
+          material_facts: Json | null
           not_distinguishable: boolean
+          pinpoint: Json | null
           product: string
           profile_id: string
           ratified_at: string | null
           ratified_by: string | null
+          recognised_proposition: string | null
           rendered_samples_reviewed: string[]
           required_atoms: string[]
           retired_at: string | null
@@ -374,12 +381,17 @@ export type Database = {
           substring_checks_passed: boolean
           trigger_terms: string[]
           updated_at: string
+          verified_as_of: string | null
           vocabulary_checks_passed: boolean
         }
         Insert: {
+          appeal_note?: string | null
+          condition_atoms?: string[] | null
+          condition_text?: string | null
           created_at?: string
           critic?: Json | null
           distinguishing_atoms?: string[]
+          distinguishing_pairs?: Json | null
           drafter: Json
           fact_atoms?: string[]
           fact_pattern_paraphrase: string
@@ -390,11 +402,14 @@ export type Database = {
           id?: string
           lawyer_edits?: Json | null
           ledger_ref?: string | null
+          material_facts?: Json | null
           not_distinguishable?: boolean
+          pinpoint?: Json | null
           product?: string
           profile_id: string
           ratified_at?: string | null
           ratified_by?: string | null
+          recognised_proposition?: string | null
           rendered_samples_reviewed?: string[]
           required_atoms?: string[]
           retired_at?: string | null
@@ -404,12 +419,17 @@ export type Database = {
           substring_checks_passed?: boolean
           trigger_terms?: string[]
           updated_at?: string
+          verified_as_of?: string | null
           vocabulary_checks_passed?: boolean
         }
         Update: {
+          appeal_note?: string | null
+          condition_atoms?: string[] | null
+          condition_text?: string | null
           created_at?: string
           critic?: Json | null
           distinguishing_atoms?: string[]
+          distinguishing_pairs?: Json | null
           drafter?: Json
           fact_atoms?: string[]
           fact_pattern_paraphrase?: string
@@ -420,11 +440,14 @@ export type Database = {
           id?: string
           lawyer_edits?: Json | null
           ledger_ref?: string | null
+          material_facts?: Json | null
           not_distinguishable?: boolean
+          pinpoint?: Json | null
           product?: string
           profile_id?: string
           ratified_at?: string | null
           ratified_by?: string | null
+          recognised_proposition?: string | null
           rendered_samples_reviewed?: string[]
           required_atoms?: string[]
           retired_at?: string | null
@@ -434,6 +457,7 @@ export type Database = {
           substring_checks_passed?: boolean
           trigger_terms?: string[]
           updated_at?: string
+          verified_as_of?: string | null
           vocabulary_checks_passed?: boolean
         }
         Relationships: [
@@ -3414,6 +3438,125 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "updates"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      hook_selection_decisions: {
+        Row: {
+          candidate_key: string
+          conformance: Json | null
+          created_at: string
+          decision_id: string
+          field_id: string
+          input_hash: string
+          primary_model: string
+          primary_raw: string
+          product: string
+          prompt_hash: string
+          readings: Json
+          schema_hash: string
+          second_model: string
+          second_raw: string
+        }
+        Insert: {
+          candidate_key: string
+          conformance?: Json | null
+          created_at?: string
+          decision_id: string
+          field_id: string
+          input_hash: string
+          primary_model: string
+          primary_raw: string
+          product: string
+          prompt_hash: string
+          readings: Json
+          schema_hash: string
+          second_model: string
+          second_raw: string
+        }
+        Update: {
+          candidate_key?: string
+          conformance?: Json | null
+          created_at?: string
+          decision_id?: string
+          field_id?: string
+          input_hash?: string
+          primary_model?: string
+          primary_raw?: string
+          product?: string
+          prompt_hash?: string
+          readings?: Json
+          schema_hash?: string
+          second_model?: string
+          second_raw?: string
+        }
+        Relationships: []
+      }
+      hook_selections: {
+        Row: {
+          agreement: string
+          answer_hash: string
+          assessment_id: string
+          created_at: string
+          decision_id: string
+          evidence_span: string | null
+          field_id: string
+          generation_no: number
+          hook_id: string
+          hook_version: number | null
+          id: string
+          legs_disagreed: boolean
+          matched_atom: string | null
+          product: string
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agreement: string
+          answer_hash: string
+          assessment_id: string
+          created_at?: string
+          decision_id: string
+          evidence_span?: string | null
+          field_id: string
+          generation_no: number
+          hook_id: string
+          hook_version?: number | null
+          id?: string
+          legs_disagreed?: boolean
+          matched_atom?: string | null
+          product: string
+          source: string
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          agreement?: string
+          answer_hash?: string
+          assessment_id?: string
+          created_at?: string
+          decision_id?: string
+          evidence_span?: string | null
+          field_id?: string
+          generation_no?: number
+          hook_id?: string
+          hook_version?: number | null
+          id?: string
+          legs_disagreed?: boolean
+          matched_atom?: string | null
+          product?: string
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hook_selections_decision_id_fkey"
+            columns: ["decision_id"]
+            isOneToOne: false
+            referencedRelation: "hook_selection_decisions"
+            referencedColumns: ["decision_id"]
           },
         ]
       }
