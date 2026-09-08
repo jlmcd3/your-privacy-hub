@@ -135,6 +135,13 @@ export interface GenerateRulesInput {
   readonly outputPath: string;
   /** Copied verbatim into the emitted file. */
   readonly ruleContextBlock: string;
+  /**
+   * DOC 217 — prop_ids of the RATIFIED, unretired proposition_inventory for
+   * this product. A `prop:<prop_id>=asserted` trigger atom, and any `props`
+   * fixture bag entry, must name one of these. Absent (undefined) means the
+   * caller supplied no inventory: every `prop:` atom then fails validation.
+   */
+  readonly ratifiedPropIds?: ReadonlySet<string>;
 }
 
 export interface GenerateRulesResult {
