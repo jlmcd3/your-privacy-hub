@@ -10,6 +10,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import EnforcementSourceBlock from "@/components/enforcement/EnforcementSourceBlock";
+import { displaySubject } from "@/lib/enforcementSubject";
+
 
 interface Action {
   id: string;
@@ -173,7 +175,7 @@ export default function EnforcementActionDetail() {
   }
 
   const fine = formatEur(action.fine_eur_equivalent ?? action.fine_eur);
-  const title = action.subject || "Privacy enforcement action";
+  const title = displaySubject(action as any);
   const desc = action.key_compliance_failure || action.violation?.slice(0, 160) || `${action.regulator} enforcement action in ${action.jurisdiction}.`;
 
   return (
