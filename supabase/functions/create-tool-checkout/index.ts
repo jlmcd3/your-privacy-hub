@@ -10,7 +10,7 @@ import {
   toolSubscriberCents,
 } from "../_shared/pricing.ts";
 import { registryCents } from "../_shared/pricing-snapshot.ts";
-import { REVISIONS_ENABLED } from "../regenerate-assessment/_local/revision-gate.ts";
+import { REVISIONS_ENABLED } from "./_local/revision-gate.ts";
 import { missingSuiteModules, readSuiteModules } from "../_shared/suite-intake.ts";
 
 const supabase = createClient(
