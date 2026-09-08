@@ -180,6 +180,48 @@ export default function AdminJurisdictionAudit() {
           </p>
         </div>
 
+        <div className="border rounded-lg p-4 mb-6 bg-card">
+          <h2 className="font-semibold mb-1">Authority page change log</h2>
+          <p className="text-xs text-muted-foreground mb-3">
+            Written by the monthly/weekly authority-page monitor. A row appears only when an
+            authority page's content changed since the previous check.
+          </p>
+          {monitorLog.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No changes recorded.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <tr>
+                  <th className="py-2">Detected</th>
+                  <th>Jurisdiction</th>
+                  <th>Check</th>
+                  <th>Source</th>
+                </tr>
+              </thead>
+              <tbody>
+                {monitorLog.map((m) => (
+                  <tr key={m.id} className="border-t border-border">
+                    <td className="py-2 whitespace-nowrap">{fmtDate(m.detected_at)}</td>
+                    <td className="font-mono text-xs">{m.jurisdiction_code}</td>
+                    <td className="text-xs">{m.check_type}</td>
+                    <td className="text-xs truncate max-w-xs">
+                      {m.source_url ? (
+                        <a href={m.source_url} target="_blank" rel="noreferrer" className="underline">
+                          {m.source_url}
+                        </a>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+
+
         <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
           <aside className="space-y-2">
             <h3 className="text-sm font-semibold uppercase text-muted-foreground">Recent runs</h3>
