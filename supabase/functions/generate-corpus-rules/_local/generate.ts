@@ -222,6 +222,14 @@ export function validateRuleRow(
     fail("trigger names no atom");
   } else {
     for (const raw of atoms) {
+      // DOC 217 — the F11 family fires on proposition readings. `prop:` is
+      // validated here against the RATIFIED proposition inventory, never
+      // against the typed state vocabulary.
+      if (raw.startsWith("prop:")) {
+        const propError = validatePropAtom(raw, ratifiedPropIds);
+        if (propError) fail(propError);
+        continue;
+      }
       // The canonical `parseAtom` THROWS on a malformed atom; at build time
       // that is a named validation failure, never a crash.
       let atom;
