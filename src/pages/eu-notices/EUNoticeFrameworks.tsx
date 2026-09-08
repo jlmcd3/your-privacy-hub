@@ -127,7 +127,7 @@ export default function EUNoticeFrameworks() {
 
   return (
     <EUNoticeShell title="Frameworks — EU / Global Privacy Notice" heading="Which frameworks apply to you?" step="frameworks" sessionId={sessionId}>
-      <p className="text-muted-foreground text-base mb-6 max-w-2xl">
+      <p className="text-muted-foreground text-base mb-6">
         Select every privacy framework you need to comply with. We'll generate a separate notice for each, plus an optional combined international notice.
       </p>
 
