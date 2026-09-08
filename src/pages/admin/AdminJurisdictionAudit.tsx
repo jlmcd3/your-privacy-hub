@@ -100,7 +100,7 @@ export default function AdminJurisdictionAudit() {
   }
 
   useEffect(() => {
-    if (isAdmin) loadRuns();
+    if (isAdmin) { loadRuns(); loadMonitorLog(); }
   }, [isAdmin]);
 
   useEffect(() => {
