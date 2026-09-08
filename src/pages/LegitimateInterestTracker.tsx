@@ -112,7 +112,7 @@ const LegitimateInterestTracker = () => {
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Intro + 3-Part Test */}
         <div className="mb-10">
-          <p className="text-[14px] text-brand-navy leading-relaxed mb-6 max-w-[70ch]">
+          <p className="text-[14px] text-brand-navy leading-relaxed mb-6">
             Under GDPR Article 6(1)(f) and the equivalent provision of the UK GDPR, organizations may rely on legitimate interest as a lawful basis for processing — but only if they can satisfy a <strong>three-part test</strong>. This tracker compiles enforcement decisions and official guidance from EU and UK data protection authorities showing which processing activities pass or fail that test.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-3">

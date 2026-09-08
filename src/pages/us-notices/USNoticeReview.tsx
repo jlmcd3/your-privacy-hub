@@ -350,7 +350,7 @@ export default function USNoticeReview() {
       step="review"
       sessionId={sessionId}
     >
-      <p className="text-muted-foreground mb-8 max-w-3xl">
+      <p className="text-muted-foreground mb-8">
         Confirm your answers and resolve any flags before generating your state-by-state
         privacy notices.
       </p>

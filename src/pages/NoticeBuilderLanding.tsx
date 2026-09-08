@@ -116,7 +116,7 @@ export default function NoticeBuilderLanding() {
         <section className="py-14">
           <div className="max-w-[1180px] mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="font-serif mb-2">Pick your flow</h2>
-            <p className="text-muted-foreground mb-8 max-w-3xl">
+            <p className="text-muted-foreground mb-8">
               Most teams need one or both. You can run them independently or chain them
               from the same workspace; answers pre-populate from your RoPA where applicable.
             </p>

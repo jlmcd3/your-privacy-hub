@@ -290,7 +290,7 @@ export default function USNoticeStates() {
       step="states"
       sessionId={sessionId}
     >
-      <p className="text-muted-foreground text-base mb-8 max-w-2xl">
+      <p className="text-muted-foreground text-base mb-8">
         Select all that apply. We'll generate a separate notice for each, optimised
         for that state's requirements.
       </p>
