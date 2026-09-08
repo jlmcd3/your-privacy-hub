@@ -21,7 +21,7 @@ export interface IcoAction {
 // recommendations, FOI decision notices) is not an enforcement action.
 const ENFORCEMENT_TYPES = [
   "reprimand",
-  "monetary penalty",
+  "monetary penalt",
   "fine",
   "enforcement notice",
   "preliminary enforcement notice",
