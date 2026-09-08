@@ -257,7 +257,7 @@ const LIAssessment = () => {
           <h2 className="font-display text-brand-navy mb-4 leading-snug">
             Legitimate interest must be documented, not assumed
           </h2>
-          <p className="text-sm text-brand-navy leading-relaxed max-w-[70ch]">
+          <p className="text-sm text-brand-navy leading-relaxed">
             Article 6(1)(f) is the most flexible — and most contested — legal basis under the GDPR: regulators do not
             accept it on assertion, and if challenged you must produce a written record showing you tested your
             processing against the three-part test (purpose, necessity, balancing) <em>before</em> you relied on it.
@@ -315,7 +315,7 @@ const LIAssessment = () => {
             })}
           </div>
 
-          <div className="mt-5 max-w-[70ch]">
+          <div className="mt-5">
             <p className="text-meta text-muted-foreground">
               Analytical aid only — final legal-basis determination should be reviewed by qualified counsel.
             </p>

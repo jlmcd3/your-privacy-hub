@@ -267,7 +267,7 @@ export default function Pricing() {
         {/* Smart Tools — per-use */}
         <section className="max-w-[1100px] mx-auto px-4 pb-8">
           <h2 className="text-brand-navy mb-2">Smart Tools — per-use</h2>
-          <p className="text-sm text-muted-foreground mb-6 max-w-3xl">
+          <p className="text-sm text-muted-foreground mb-6">
             Standalone = full price for non-subscribers or subscribers without an available annual credit. Subscriber =
             per-use price for active subscribers. Annual Credit shows the free-run allowance included with Professional
             Annual (3 credits/yr) and Intelligence Annual (1 credit/yr). +4 Top-Up adds four extra generations to an
@@ -304,7 +304,7 @@ export default function Pricing() {
         {/* Included / Layer-1 */}
         <section className="max-w-[1100px] mx-auto px-4 pb-16">
           <h2 className="text-brand-navy mb-2">Included / Layer-1 tools</h2>
-          <p className="text-sm text-muted-foreground mb-6 max-w-3xl">
+          <p className="text-sm text-muted-foreground mb-6">
             Free with any active subscription (monthly or annual). Standalone prices shown where the tool is also sold à
             la carte.
           </p>
