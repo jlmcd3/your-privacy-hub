@@ -33,9 +33,15 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
+  const fnRun = await startFunctionRun(supabase, "check-research-freshness", {
+    invokedBy: req.headers.get("x-cron") ? "cron" : "manual",
+  });
+
   const checkedAt = new Date().toISOString();
   const results: any[] = [];
   const errors: any[] = [];
+
+
 
   for (const entry of REGISTRY) {
     try {
