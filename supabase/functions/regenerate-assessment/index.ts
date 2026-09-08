@@ -7,6 +7,7 @@ import { snapshotPriorReport } from "./_local/report-versions.ts";
 import { writeActionLog } from "../_shared/write-action-log.ts";
 import { LOCKED_FIELDS_MAP } from "../_shared/locked-fields.ts";
 import { resolveEnumRef } from "../_shared/field-enums.ts";
+import { resolveAdmtRegenFn } from "./_local/admt-regen-routing.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -75,6 +76,15 @@ const FN_MAP: Record<string, string> = {
   cppa_risk_assessment: "run-cppa-risk-assessment-v2",
   cppa_cybersecurity: "run-cppa-cybersecurity",
 };
+
+// BUGFIX (2026-09-08) — module-aware engine selection. ADMT is the only
+// tool_type with a live v1/v2 split (see ./_local/admt-regen-routing.ts for
+// the full explanation); every other tool_type keeps its single FN_MAP
+// entry untouched.
+function resolveRegenFn(toolType: string, moduleValue: unknown): string {
+  if (toolType === "cppa_admt") return resolveAdmtRegenFn(moduleValue);
+  return FN_MAP[toolType];
+}
 
 const EDITABLE_COLUMNS: Record<string, string[]> = {
   li_assessment: [
@@ -371,6 +381,16 @@ Deno.serve(async (req) => {
       logExit(403, { error: "not_found_or_forbidden" });
       return json({ error: "not_found_or_forbidden" }, 403);
     }
+    // BUGFIX (2026-09-08) — separate lookup (kept out of rowSelect above to
+    // avoid a union-of-literal select<> template that the PostgREST client's
+    // type-level parser can't resolve) so resolveRegenFn below can pick the
+    // row's own engine (v1 vs v2) instead of the static FN_MAP entry. Only
+    // cppa_admt/cppa_assessments carries a `module` column.
+    let admtModuleValue: unknown;
+    if (tool_type === "cppa_admt") {
+      const { data: modRow } = await supabase.from(table).select("module").eq("id", assessment_id).maybeSingle();
+      admtModuleValue = (modRow as any)?.module;
+    }
     // RC-C2.2 IN-FLIGHT GUARD — refuse (409) if a prior revision on this row
     // is still in flight. Prevents the write-race where two near-simultaneous
     // dispatches both invoke run-* and the loser's late apply overwrites the
@@ -601,7 +621,7 @@ Deno.serve(async (req) => {
       let invokeData: any = null;
       let invokeErr: any = null;
       try {
-        const r = await fetch(`${SUPABASE_URL}/functions/v1/${FN_MAP[tool_type]}`, {
+        const r = await fetch(`${SUPABASE_URL}/functions/v1/${resolveRegenFn(tool_type, admtModuleValue)}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -638,7 +658,7 @@ Deno.serve(async (req) => {
     // Authorization) so the verifyCaller-gated run-* callee doesn't silent-401.
     // @ts-ignore EdgeRuntime
     EdgeRuntime.waitUntil((async () => {
-      const r = await invokeGated(FN_MAP[tool_type], invokeBody);
+      const r = await invokeGated(resolveRegenFn(tool_type, admtModuleValue), invokeBody);
       if (!r.ok) {
         console.error("[regen] async revision invoke failed:", r.status, r.error ?? r.body);
         await revertProcessing("async_invoke_failed");
@@ -698,6 +718,14 @@ Deno.serve(async (req) => {
 
     mergedIntake = { ...((row?.intake_data as Record<string, unknown>) ?? {}), ...edits };
   }
+  // BUGFIX (2026-09-08) — separate lookup (see the mode==="revision" branch
+  // above for why this isn't folded into the select() above) so
+  // resolveRegenFn below routes cppa_admt to the row's own engine (v1 vs v2).
+  let admtModuleValueClassic: unknown;
+  if (tool_type === "cppa_admt") {
+    const { data: modRow } = await supabase.from(table).select("module").eq("id", assessment_id).maybeSingle();
+    admtModuleValueClassic = (modRow as any)?.module;
+  }
 
   const allowedCols = EDITABLE_COLUMNS[tool_type] ?? [];
   const columnEdits: Record<string, unknown> = {};
@@ -726,7 +754,7 @@ Deno.serve(async (req) => {
   }
 
   const bodyKey = tool_type === "dpia_framework" ? "dpia_id" : "assessment_id";
-  const fn = FN_MAP[tool_type];
+  const fn = resolveRegenFn(tool_type, admtModuleValueClassic);
   const invokeBody = { [bodyKey]: assessment_id, is_regeneration: true };
   // INC-3: swap SDK invoke → invokeGated (raw fetch + explicit service-role
   // Authorization) so the verifyCaller-gated run-* callee doesn't silent-401.
