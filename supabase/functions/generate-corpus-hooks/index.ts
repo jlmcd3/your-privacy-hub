@@ -165,19 +165,25 @@ async function loadSource(profile: ProfileForHook): Promise<{ excerpt: string; e
     };
   }
   // DOC 231 §6 default #2 (proposed diff, applied) — schema verified
-  // read-only this session (doc 231A): cppa_fsor_commentary has no
-  // `title`/`decision_date`/`appeal_status` columns; `agency_position_summary`
-  // is the excerpt source. `regulation_citation`/`page_ref` are NOT threaded
-  // through `extra` here — `ProfileForHook` (prompts.ts, off-limits to this
-  // build) has no such fields and `profileBlock` never renders them for any
-  // source table, so there is nothing for them to reach; `citationFor` /
-  // `deriveSourceStatus` (generate.ts) instead read them off the SEPARATE
-  // `HookSourceRow` `actionGenerate`'s own bulk loader builds (below) — see
-  // the doc 231A log for why that loader was not itself extended this build.
+  // read-only this session (doc 231A, corrected doc 234): cppa_fsor_commentary
+  // has no `title`/`decision_date`/`appeal_status` columns. Doc 234 found
+  // `agency_position_summary` is a CURATOR PARAPHRASE (one sample literally
+  // headed "# California Privacy Law Summary…") — a pinpoint/finding_span
+  // verified against it would be checking a paraphrase, not the FSOR's own
+  // words. `agency_response` is the FSOR's actual verbatim text (PDF-
+  // extraction artifacts like "Agency ' s" confirm it, not curator prose) —
+  // independently re-confirmed against two live rows before this fix.
+  // `regulation_citation`/`page_ref` are NOT threaded through `extra` here —
+  // `ProfileForHook` (prompts.ts, off-limits to this build) has no such
+  // fields and `profileBlock` never renders them for any source table, so
+  // there is nothing for them to reach; `citationFor` / `deriveSourceStatus`
+  // (generate.ts) instead read them off the SEPARATE `HookSourceRow`
+  // `actionGenerate`'s own bulk loader builds (below) — that loader still
+  // needs the same column fix; see doc 234 [NEEDS].
   if (profile.source_table === "cppa_fsor_commentary") {
     const { data } = await db.from("cppa_fsor_commentary")
-      .select("agency_position_summary").eq("id", profile.source_row_id).maybeSingle();
-    return { excerpt: sourceExcerpt(data?.agency_position_summary ?? null, quote), endorsement: null, extra: {} };
+      .select("agency_response").eq("id", profile.source_row_id).maybeSingle();
+    return { excerpt: sourceExcerpt(data?.agency_response ?? null, quote), endorsement: null, extra: {} };
   }
   return { excerpt: "", endorsement: null, extra: {} };
 }
