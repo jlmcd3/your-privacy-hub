@@ -287,6 +287,23 @@ export function validateRuleRow(
   if (!isPlainObject(row.fixture_fires)) fail("fixture_fires is not a JSON object");
   if (!isPlainObject(row.fixture_silent)) fail("fixture_silent is not a JSON object");
 
+  // DOC 217 — a fixture bag may carry `props`: { <prop_id>: stance }.
+  for (const [bagName, bag] of [["fixture_fires", row.fixture_fires], ["fixture_silent", row.fixture_silent]] as const) {
+    if (!isPlainObject(bag) || bag.props === undefined) continue;
+    if (!isPlainObject(bag.props)) {
+      fail(`${bagName}.props is not a JSON object`);
+      continue;
+    }
+    for (const [propId, stance] of Object.entries(bag.props)) {
+      if (!(PROP_STANCES as readonly string[]).includes(String(stance))) {
+        fail(`${bagName}.props["${propId}"]: stance must be ${PROP_STANCES.join("|")}`);
+      }
+      if (!ratifiedPropIds?.has(propId)) {
+        fail(`${bagName}.props["${propId}"]: prop_id is not in the ratified proposition inventory`);
+      }
+    }
+  }
+
   // Reason sentence.
   if (row.reason_sentence.includes("[") || row.reason_sentence.includes("]")) {
     fail("reason_sentence contains a bracket");
