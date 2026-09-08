@@ -32,9 +32,25 @@ export function detectLawSlug(...fields: (string | null | undefined)[]): string 
 }
 
 // Keywords that suggest a tracked law's date may have shifted.
+// Doc 228 §2.4 — the original 15-term list matched zero of the last 30 days'
+// 72 updates. Broadened to cover the wording regulators and courts actually use
+// when a compliance date, enforcement posture, or rule text moves.
 export const DRIFT_KEYWORDS = [
-  "delayed", "postponed", "deferred", "pushed back", "extended deadline",
-  "enjoined", "injunction", "blocked by court", "struck down", "vacated",
-  "amended effective date", "compliance extension", "rulemaking delay",
-  "stay of enforcement", "enforcement pause",
+  // timing moves
+  "delayed", "delay", "postponed", "postpone", "deferred", "defer",
+  "pushed back", "extended deadline", "deadline extended", "extension of time",
+  "amended effective date", "new effective date", "effective date change",
+  "compliance extension", "compliance date", "grace period",
+  "phased in", "phase-in", "transition period", "takes effect", "comes into force",
+  "entry into application", "delayed application",
+  // court / legal challenge
+  "enjoined", "injunction", "preliminary injunction", "blocked by court",
+  "struck down", "vacated", "set aside", "annulled", "quashed", "overturned",
+  "stayed", "stay of enforcement", "remanded", "appeal upheld", "on appeal",
+  // rulemaking / enforcement posture
+  "rulemaking delay", "rulemaking paused", "withdrawn", "repealed", "rescinded",
+  "suspended", "enforcement pause", "enforcement discretion", "will not enforce",
+  "no enforcement until", "moratorium", "reopened consultation", "re-proposed",
+  "amended regulation", "signed into law", "enacted",
 ];
+

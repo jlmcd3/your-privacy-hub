@@ -4,6 +4,7 @@
 // past-due. Idempotent: safe to invoke repeatedly within a cycle.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { sendEmail } from "../_shared/resend.ts";
 
 const corsHeaders = {
@@ -82,6 +83,8 @@ function emailBody(overdue: Array<{ name: string; days: number | null }>) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  const fnRun = await startFunctionRun(supabase, "state-law-review-nudge");
+
   try {
     const states = await getEnactedStates();
 
@@ -112,6 +115,7 @@ Deno.serve(async (req) => {
     }
 
     if (overdue.length === 0) {
+      await finishFunctionRun(supabase, fnRun, { metadata: { overdue: 0, sent: 0 } });
       return new Response(JSON.stringify({ ok: true, overdue: 0 }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -136,11 +140,13 @@ Deno.serve(async (req) => {
       if (!result.error && !result.skipped) sent++;
     }
 
+    await finishFunctionRun(supabase, fnRun, { metadata: { overdue: overdue.length, sent } });
     return new Response(JSON.stringify({ ok: true, overdue: overdue.length, sent }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("[state-law-review-nudge] error", e);
+    await failFunctionRun(supabase, fnRun, e);
     return new Response(JSON.stringify({ error: (e as Error).message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

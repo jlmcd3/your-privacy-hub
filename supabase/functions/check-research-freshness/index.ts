@@ -2,6 +2,7 @@
 // Counts high-attention `updates` rows per guide since the page's lastUpdated
 // date and upserts results into research_freshness_flags.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { startFunctionRun, finishFunctionRun } from "../_shared/function-run-logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -32,9 +33,15 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
+  const fnRun = await startFunctionRun(supabase, "check-research-freshness", {
+    invokedBy: req.headers.get("x-cron") ? "cron" : "manual",
+  });
+
   const checkedAt = new Date().toISOString();
   const results: any[] = [];
   const errors: any[] = [];
+
+
 
   for (const entry of REGISTRY) {
     try {
@@ -96,6 +103,11 @@ Deno.serve(async (req) => {
       errors.push({ slug: entry.slug, error: e?.message || String(e) });
     }
   }
+
+  await finishFunctionRun(supabase, fnRun, {
+    status: errors.length === 0 ? "success" : "partial",
+    metadata: { pages_checked: results.length, flagged: results.filter((r) => r.flagged).length, errors: errors.length },
+  });
 
   return new Response(
     JSON.stringify({

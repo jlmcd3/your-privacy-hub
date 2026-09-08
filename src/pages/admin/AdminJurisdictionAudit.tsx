@@ -36,6 +36,15 @@ type Finding = {
   created_at: string;
 };
 
+type MonitorRow = {
+  id: string;
+  jurisdiction_code: string;
+  check_type: string;
+  source_url: string | null;
+  detected_at: string;
+};
+
+
 function fmt(v: any): string {
   if (v === null || v === undefined) return "—";
   if (typeof v === "string") return v;
@@ -54,10 +63,21 @@ export default function AdminJurisdictionAudit() {
 
   const [runs, setRuns] = useState<Run[]>([]);
   const [findings, setFindings] = useState<Finding[]>([]);
+  const [monitorLog, setMonitorLog] = useState<MonitorRow[]>([]);
   const [selectedRun, setSelectedRun] = useState<string | null>(null);
   const [filterCodes, setFilterCodes] = useState("");
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+
+  async function loadMonitorLog() {
+    const { data } = await supabase
+      .from("jurisdiction_monitoring_log")
+      .select("id, jurisdiction_code, check_type, source_url, detected_at")
+      .order("detected_at", { ascending: false })
+      .limit(50);
+    setMonitorLog((data as MonitorRow[]) || []);
+  }
+
 
   async function loadRuns() {
     const { data } = await supabase
@@ -80,7 +100,7 @@ export default function AdminJurisdictionAudit() {
   }
 
   useEffect(() => {
-    if (isAdmin) loadRuns();
+    if (isAdmin) { loadRuns(); loadMonitorLog(); }
   }, [isAdmin]);
 
   useEffect(() => {
@@ -179,6 +199,48 @@ export default function AdminJurisdictionAudit() {
             Full audit (~70 jurisdictions) takes ~5–10 min and costs ~$5–8 in AI calls.
           </p>
         </div>
+
+        <div className="border rounded-lg p-4 mb-6 bg-card">
+          <h2 className="font-semibold mb-1">Authority page change log</h2>
+          <p className="text-xs text-muted-foreground mb-3">
+            Written by the monthly/weekly authority-page monitor. A row appears only when an
+            authority page's content changed since the previous check.
+          </p>
+          {monitorLog.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No changes recorded.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <tr>
+                  <th className="py-2">Detected</th>
+                  <th>Jurisdiction</th>
+                  <th>Check</th>
+                  <th>Source</th>
+                </tr>
+              </thead>
+              <tbody>
+                {monitorLog.map((m) => (
+                  <tr key={m.id} className="border-t border-border">
+                    <td className="py-2 whitespace-nowrap">{fmtDate(m.detected_at)}</td>
+                    <td className="font-mono text-xs">{m.jurisdiction_code}</td>
+                    <td className="text-xs">{m.check_type}</td>
+                    <td className="text-xs truncate max-w-xs">
+                      {m.source_url ? (
+                        <a href={m.source_url} target="_blank" rel="noreferrer" className="underline">
+                          {m.source_url}
+                        </a>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+
 
         <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
           <aside className="space-y-2">
