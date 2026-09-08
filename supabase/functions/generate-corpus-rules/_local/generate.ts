@@ -170,6 +170,7 @@ export function validateRuleRow(
   row: AuthorityRuleRow,
   vocabulary: TypedStateVocabulary,
   instrumentScope: readonly string[],
+  ratifiedPropIds?: ReadonlySet<string>,
 ): string[] {
   const errors: string[] = [];
   const fail = (message: string) => errors.push(`${row.rule_id}: ${message}`);
