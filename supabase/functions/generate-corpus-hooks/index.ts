@@ -1,5 +1,5 @@
-// build-marker: generate-corpus-hooks-a10-19-2026-09-08
-console.log("[build-marker] generate-corpus-hooks a10-19-2026-09-08");
+// build-marker: generate-corpus-hooks-a10-20-2026-09-08
+console.log("[build-marker] generate-corpus-hooks a10-20-2026-09-08");
 //
 // DOC 213 — the OFFLINE ANALOGY-HOOK pipeline for the LIA corpus, as amended
 // by DOC 222 (hooks contract v2: material facts, distinguishing pairs,
