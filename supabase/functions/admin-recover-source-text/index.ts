@@ -217,6 +217,9 @@ Deno.serve(async (req) => {
           const stored = (after?.source_document_text as string | null) ?? "";
           res.stored_len = stored.length;
           res.stored_sha256 = await sha256Text(stored);
+          res.stored_has_plural_accented = stored.includes("intérêts légitimes");
+          res.stored_has_singular = stored.includes("intérêt légitime");
+          if (!res.stored_has_plural_accented) res.head300 = stored.slice(0, 300);
         }
       }
     } catch (e) {
