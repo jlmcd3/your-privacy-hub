@@ -54,9 +54,21 @@ export default function AdminJurisdictionAudit() {
 
   const [runs, setRuns] = useState<Run[]>([]);
   const [findings, setFindings] = useState<Finding[]>([]);
+  const [monitorLog, setMonitorLog] = useState<MonitorRow[]>([]);
   const [selectedRun, setSelectedRun] = useState<string | null>(null);
   const [filterCodes, setFilterCodes] = useState("");
   const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  async function loadMonitorLog() {
+    const { data } = await supabase
+      .from("jurisdiction_monitoring_log")
+      .select("id, jurisdiction_code, check_type, source_url, detected_at")
+      .order("detected_at", { ascending: false })
+      .limit(50);
+    setMonitorLog((data as MonitorRow[]) || []);
+  }
+
   const [busy, setBusy] = useState<string | null>(null);
 
   async function loadRuns() {
