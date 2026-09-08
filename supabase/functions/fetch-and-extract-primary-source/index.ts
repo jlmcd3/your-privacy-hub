@@ -32,6 +32,10 @@ import {
   extractKeyComplianceFailure,
 } from "../_shared/llm-extraction.ts";
 import { constrainedExtract } from "../_shared/constrained-extraction.ts";
+import {
+  evaluateSourceTextReplacement,
+  isBotGatedSourceHost,
+} from "./_local/text-guard.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -274,7 +278,7 @@ async function processOne(
   const { data: row, error } = await supabase
     .from("enforcement_actions")
     .select(
-      "id, regulator, regulator_canonical, law, subject, decision_date, primary_source_url, primary_source_status, statutory_provisions, statutory_provisions_extraction_method, key_compliance_failure",
+      "id, regulator, regulator_canonical, law, subject, decision_date, primary_source_url, primary_source_status, statutory_provisions, statutory_provisions_extraction_method, key_compliance_failure, source_document_text, refetch_attempts",
     )
     .eq("id", rowId)
     .maybeSingle();
@@ -282,6 +286,32 @@ async function processOne(
   if (!row) throw new Error(`row not found: ${rowId}`);
   if (!row.primary_source_url) {
     throw new Error(`row ${rowId} has no primary_source_url`);
+  }
+
+  const existingText = (row.source_document_text as string | null) ?? "";
+  const attempts = Number(row.refetch_attempts ?? 0);
+
+  // LEDGER B5-6 — record a rejected fetch WITHOUT touching stored text or
+  // source_document_fetched_at.
+  const recordRejection = async (reason: string) => {
+    if (dryRun) return;
+    const { error: wErr } = await supabase
+      .from("enforcement_actions")
+      .update({
+        refetch_last_error: reason,
+        refetch_attempts: attempts + 1,
+        refetch_last_attempt_at: new Date().toISOString(),
+      })
+      .eq("id", rowId);
+    if (wErr) throw new Error(`write refetch rejection failed: ${wErr.message}`);
+  };
+
+  // Legifrance serves a bot-check interstitial to datacenter traffic that reads
+  // as valid HTML; CNIL decisions must be sourced from www.cnil.fr instead.
+  if (isBotGatedSourceHost(row.primary_source_url as string) && existingText.length > 0) {
+    const reason = "source_host_bot_gated (legifrance.gouv.fr — use www.cnil.fr for CNIL rows)";
+    await recordRejection(reason);
+    return { row_id: rowId, primary_source_status: row.primary_source_status, rejected: reason };
   }
 
   const fetchOutcome = await fetchAndExtractText(row.primary_source_url as string);
@@ -308,7 +338,18 @@ async function processOne(
   }
 
   const sourceText = (fetchOutcome.text ?? "").trim();
-  if (sourceText.length < 200) {
+
+  // LEDGER B5-6 — OVERWRITE GUARD. Stored decision text is never replaced by a
+  // bot-check page, a stub, or anything shorter than what we already hold.
+  const verdict = evaluateSourceTextReplacement(sourceText, existingText);
+  if (!verdict.ok) {
+    if (existingText.length > 0) {
+      await recordRejection(verdict.reason);
+      console.warn(`[fetch-extract] row=${rowId} overwrite REJECTED: ${verdict.reason}`);
+      return { row_id: rowId, primary_source_status: row.primary_source_status, rejected: verdict.reason };
+    }
+    // No stored text to protect: keep the historic first-fetch behaviour but
+    // still record why the document is not usable.
     if (!dryRun) {
       const { error: wErr } = await supabase
         .from("enforcement_actions")
@@ -318,11 +359,14 @@ async function processOne(
           source_document_hash_at_ingest: fetchOutcome.hash,
           primary_source_status: "fetched_partial",
           ingestion_confidence: "medium",
+          refetch_last_error: verdict.reason,
+          refetch_attempts: attempts + 1,
+          refetch_last_attempt_at: new Date().toISOString(),
         })
         .eq("id", rowId);
       if (wErr) throw new Error(`write fetched_partial failed: ${wErr.message}`);
     }
-    return { row_id: rowId, primary_source_status: "fetched_partial", text_len: sourceText.length };
+    return { row_id: rowId, primary_source_status: "fetched_partial", text_len: sourceText.length, rejected: verdict.reason };
   }
 
   // KCF extraction (Haiku, native language, 40-char verbatim check).

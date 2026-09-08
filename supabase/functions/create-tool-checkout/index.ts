@@ -10,7 +10,7 @@ import {
   toolSubscriberCents,
 } from "../_shared/pricing.ts";
 import { registryCents } from "../_shared/pricing-snapshot.ts";
-import { REVISIONS_ENABLED } from "../regenerate-assessment/_local/revision-gate.ts";
+import { REVISIONS_ENABLED } from "./_local/revision-gate.ts";
 import { missingSuiteModules, readSuiteModules } from "../_shared/suite-intake.ts";
 
 const supabase = createClient(
@@ -723,9 +723,9 @@ Deno.serve(async (req) => {
       let assessmentData: Record<string, unknown> = {};
       if (tool_type === "li_assessment") {
         // Whitelist columns that actually exist on li_assessments. The
-        // intake form passes extra analytics fields (e.g. preview_assessment_id)
-        // that are not persisted columns — spreading them caused the insert
-        // to fail with PGRST204 "column not found".
+        // intake form passes extra fields that must each have a real column;
+        // spreading unknown keys caused inserts to fail with PGRST204
+        // "column not found".
         const LI_ALLOWED_KEYS = new Set([
           "organization_name",
           "processing_description",
@@ -743,6 +743,11 @@ Deno.serve(async (req) => {
           "attestation",
           "stage",
           "client_id",
+          // V3 LIA §3/§4 — the free-preview row this paid row was upgraded
+          // from. Persisted (migration 0018) so intake-time readings keyed on
+          // the preview row are findable by run-li-assessment without the
+          // client re-keying them.
+          "preview_assessment_id",
         ]);
         const filteredIntake: Record<string, unknown> = {};
         for (const [k, v] of Object.entries(intake_data || {})) {

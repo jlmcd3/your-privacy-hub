@@ -4150,6 +4150,7 @@ export type Database = {
           necessity_details: Json | null
           organization_name: string | null
           pdf_url: string | null
+          preview_assessment_id: string | null
           preview_signal: Json | null
           processing_description: string
           purchase_price_cents: number | null
@@ -4185,6 +4186,7 @@ export type Database = {
           necessity_details?: Json | null
           organization_name?: string | null
           pdf_url?: string | null
+          preview_assessment_id?: string | null
           preview_signal?: Json | null
           processing_description: string
           purchase_price_cents?: number | null
@@ -4220,6 +4222,7 @@ export type Database = {
           necessity_details?: Json | null
           organization_name?: string | null
           pdf_url?: string | null
+          preview_assessment_id?: string | null
           preview_signal?: Json | null
           processing_description?: string
           purchase_price_cents?: number | null

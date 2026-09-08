@@ -138,6 +138,14 @@ export const CRITIQUE_SYSTEM = [
   "       posture_mismatch, settledness_overclaim, atom_not_in_vocabulary, trigger_term_overbroad",
   "target ∈ finding_span, fact_atoms, distinguishing_atoms, required_atoms, trigger_terms, settledness, paraphrase",
   "A source_span, when given, MUST be a verbatim substring of the supplied source excerpt.",
+  "",
+  "ATOM KINDS — READ BEFORE OBJECTING.",
+  "An atom prefixed `state:` describes the CUSTOMER RECORD this hook will be matched",
+  "against (a field of the intake), NOT a fact the authority states. It is normal and",
+  "correct for a `state:` atom to restate an accepted `flag:` or `class:` atom.",
+  "NEVER raise fact_atom_not_in_source (or any other source-presence objection)",
+  "against a `state:` atom. Source-presence objections apply only to atoms that",
+  "assert something the authority itself must say.",
 ].join("\n");
 
 export function critiqueUserPrompt(

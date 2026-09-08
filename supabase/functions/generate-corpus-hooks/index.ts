@@ -85,7 +85,11 @@ async function opusCall(system: string, user: string, schema: Record<string, unk
     },
     body: JSON.stringify({
       model: DRAFTER_MODEL,
-      max_tokens: 2048,
+      // LEDGER B5-6 item 3 — adaptive thinking spends this same budget, so a
+      // 2048 ceiling let a revise finish its thinking block and emit no text
+      // (stop_reason=max_tokens, blocks=[thinking]); that exception was the
+      // reason two hooks stranded at 'critiqued'. Budget raised to 16k.
+      max_tokens: 16_000,
       // Opus 5 thinks adaptively by default; an explicit `thinking` block is
       // rejected (Anthropic 400, run r1 second attempt).
       // `output_format` is deprecated (Anthropic 400, 2026-09-07 run r1).
@@ -277,7 +281,12 @@ async function actionCritique(hookId: string) {
   const system = CRITIQUE_SYSTEM;
   const user = critiqueUserPrompt(hookForModel(hook), excerpt, registry);
   const raw = await gptCall(system, user);
-  const result = verifyCritique(raw, hookId, excerpt);
+  const result = verifyCritique(
+    raw,
+    hookId,
+    excerpt,
+    (hook.fact_atoms as string[] | null) ?? [],
+  );
 
   const priorRounds = Number((hook.critic as { rounds?: number } | null)?.rounds ?? 0);
   const { error } = await admin().from("authority_hooks").update({
@@ -505,11 +514,25 @@ async function actionDrive(runId: string) {
       if (!hookId) { outcomes.push({ profile_id: profileId, error: drafted?.error ?? "no hook" }); continue; }
       if (drafted?.hook_status === "contested") { outcomes.push({ profile_id: profileId, hook_id: hookId, hook_status: "contested" }); continue; }
       let critique = await (await actionCritique(hookId)).json();
+      let reviseError: string | null = null;
       if (critique?.objections?.some((o: Objection) => o.severity === "block")) {
-        critique = await (await actionRevise(hookId)).json();
+        // LEDGER B5-6 item 3 — a throwing revise (model call or write failure)
+        // used to escape to the outer catch, so settle never ran and the hook
+        // was left stranded at hook_status='critiqued'. Revise failure is now
+        // recorded and the hook is ALWAYS settled (contested at round >= 2).
+        try {
+          critique = await (await actionRevise(hookId)).json();
+        } catch (e) {
+          reviseError = (e as Error).message;
+        }
       }
       const settled = await (await actionSettle(hookId)).json();
-      outcomes.push({ profile_id: profileId, hook_id: hookId, hook_status: settled?.hook_status ?? null });
+      outcomes.push({
+        profile_id: profileId,
+        hook_id: hookId,
+        hook_status: settled?.hook_status ?? null,
+        ...(reviseError ? { revise_error: reviseError } : {}),
+      });
     } catch (e) {
       outcomes.push({ profile_id: profileId, error: (e as Error).message });
     }
