@@ -180,6 +180,125 @@ export const DPIA_GOLDEN: GoldenCase[] = [
       { kind: "must_include", pattern: "\"authority_exhibit\"", label: "authority exhibit emitted" },
     ],
   },
+  // DOC 230 / DOC 232 (2026-09-08) — DPIA V3 hook-trigger fixtures, mirroring
+  // doc 229A's LIA pair exactly: one clean "tuning" case whose intake cleanly
+  // nominates a first hook and is expected to AGREE once a matching ratified
+  // DPIA_HOOKS row exists; one "adversarial" case deliberately ambiguous on
+  // one distinguishing atom so the legs are expected to DISAGREE and a
+  // DPIA_ROO_UNSETTLED_TEMPLATE information_needed entry should appear. Both
+  // sets of assertions are written to pass with DPIA_HOOKS_ENABLED/
+  // DPIA_V3_ENABLED OFF today (DPIA_HOOKS ships [] — doc 213's "an unstamped
+  // hook is inert" law) and are marked below for the flag-ON run once the
+  // first DPIA hook batch (doc 230 §3.1, the six pinned SA decisions) is
+  // drafted and ratified.
+  {
+    id: "dpia-v3-ics-digital-id-hook-agreed",
+    tool: "dpia",
+    set: "tuning",
+    intake: {
+      organization_name: "Meridian Card Services B.V.",
+      processing_activity_name: "New digital identity-verification process",
+      description:
+        "Meridian Card Services is deploying a new digital identity-verification process for new credit-card applicants. The process captures a live selfie and a government-ID photo, extracts a facial biometric template, and matches it against the ID photo to confirm the applicant's identity before the account is opened. The biometric template is derived at onboarding only and is not retained after the match completes; the match result (pass/fail) and a confidence score are retained in the application file.",
+      purpose:
+        "Verify that the person applying for a credit card is the same person shown on the submitted government identification document, to prevent identity-fraud account openings before the account is issued.",
+      data_categories: ["Contact details", "Financial data", "Biometric data"],
+      data_subjects:
+        "New credit-card applicants who submit an application through the online channel. Approximately 40,000 applicants per year.",
+      volume_frequency:
+        "Continuous; every online application is screened through the process at the point of application, roughly 110 applications per day.",
+      jurisdictions: ["EU (GDPR)"],
+      legal_basis_proposed: "Legal obligation (Art. 6(1)(c))",
+      article_9_condition: "Substantial public interest — Union/Member State law (Art. 9(2)(g))",
+      necessity_proportionality:
+        "The biometric match is the least-intrusive means of confirming applicant identity to the standard required by the applicable anti-money-laundering identification duty; manual document review alone was considered and rejected because it cannot reliably detect a photo-substitution attempt at the volume of applications received. The biometric template is deleted immediately after the match; only the pass/fail result and confidence score are kept.",
+      reasons_to_conduct: [
+        "Large-scale special-category or criminal-offence data (Art. 35(3)(b))",
+        "Innovative use of new technology",
+      ],
+      alternatives_considered: [
+        {
+          alternative: "Manual review of the submitted ID photo against the selfie by a human agent",
+          rejection_reason:
+            "Manual review cannot reliably detect a photo-substitution or presentation attack at this application volume and does not achieve the anti-fraud purpose to the same standard.",
+        },
+      ],
+      dp_by_design_measures:
+        "The facial biometric template is computed in memory and discarded immediately after the match completes; it is never written to persistent storage or logs. Only the pass/fail result and confidence score are retained in the application record. Access to the confidence score is limited to the fraud-review team.",
+      retention_period: "Match result and confidence score retained for the life of the account plus 5 years (AML record-keeping duty); the biometric template itself is never retained.",
+    },
+    assertions: [
+      { kind: "must_include", pattern: "Article\\s*35", flags: "i", label: "Art. 35 obligation discussed" },
+      { kind: "must_include", pattern: "biometric", flags: "i", label: "biometric processing acknowledged" },
+      { kind: "must_include", pattern: "necessity|proportionality", flags: "i", label: "necessity/proportionality assessed" },
+      // V3 hook context (doc 230 §6.1/§6.2, applied to DPIA_VERIFIER_EXEMPLARS/
+      // DPIA_CRITIC_WATCHLIST in dpia-refinement.ts): when DPIA_HOOKS_ENABLED is
+      // true and a matching ratified hook exists (e.g. the ICS/AENA trigger
+      // profiles, doc 230 §3.1), both legs are expected to read "same" and the
+      // grader must not flag the resulting persuasive-authority sentence as an
+      // invented entity or citation defect. With hooks off (shipped default)
+      // this assertion is satisfied by the record's own necessity/
+      // proportionality prose alone.
+    ],
+  },
+  {
+    id: "dpia-v3-employee-monitoring-hook-disagreed",
+    tool: "dpia",
+    set: "adversarial",
+    intake: {
+      organization_name: "Comune Amministrazione di Valdirosa",
+      processing_activity_name: "Employee internet-usage monitoring",
+      description:
+        "The municipal IT department logs internet-usage records (URLs visited, connection duration, and data volume) for staff workstations, to be reviewed if a security incident or a complaint about excessive personal use during working hours is raised. Logs are retained centrally and are queried by name only when a specific incident is opened; there is no routine or automated review of an individual employee's browsing history absent an incident.",
+      purpose:
+        "Detect and investigate suspected misuse of municipal IT resources (excessive personal internet use during working hours, or a security incident such as a malware infection traced to browsing activity), and support the corresponding disciplinary or security process where warranted.",
+      data_categories: ["Employee records", "Communications content"],
+      // DELIBERATELY AMBIGUOUS distinguishing signal: the record neither
+      // confirms nor denies routine/systematic review (only incident-
+      // triggered review is described above), while `reasons_to_conduct`
+      // below selects the general "systematic monitoring" WP248 option
+      // regardless — the same tension a hook drafted from the Comune di
+      // Bolzano decision (routine, unlimited monitoring) would have to
+      // resolve against THIS record's incident-only framing. One leg may
+      // read the record as matching the source's "systematic, routine
+      // monitoring" fact pattern (the reasons_to_conduct selection alone);
+      // the other may read the description's "queried only when an incident
+      // is opened" language as distinguishing it — legs_disagreed.
+      reasons_to_conduct: [
+        "Systematic monitoring (of employees, a defined population, or a non-public space)",
+      ],
+      data_subjects: "Municipal staff with an assigned workstation. Approximately 340 employees.",
+      volume_frequency: "Logs are generated continuously by the network gateway for all staff workstations; queried only when a specific incident is opened, roughly 6-10 times per year.",
+      jurisdictions: ["EU (GDPR)"],
+      legal_basis_proposed: "Legitimate interest (Art. 6(1)(f))",
+      article_9_condition: "",
+      necessity_proportionality:
+        "Continuous gateway-level logging is necessary because a security incident or a misuse complaint may relate to browsing activity from weeks earlier, and the logs cannot be reconstructed retroactively if not captured continuously; the impact on staff is limited by the access rule that logs are queried by name only once an incident is formally opened, never as routine surveillance. Real-time dashboard monitoring of individual browsing was considered and rejected as disproportionate to the stated purpose.",
+      alternatives_considered: [
+        {
+          alternative: "Real-time per-employee browsing dashboard reviewed by IT weekly",
+          rejection_reason:
+            "This would constitute routine surveillance of every employee's browsing regardless of any incident or complaint, which is disproportionate to the security and misuse-investigation purpose the logging serves.",
+        },
+      ],
+      dp_by_design_measures:
+        "Logs are accessible only to two named IT security staff and only after a ticket number for the triggering incident or complaint is recorded; the access-log for the logging system itself is reviewed quarterly by the DPO.",
+      retention_period: "Raw gateway logs retained 90 days on a rolling basis; logs pulled into an opened incident file retained per the disciplinary-record retention schedule.",
+    },
+    assertions: [
+      { kind: "must_include", pattern: "legitimate interest|Article\\s*6\\(1\\)\\(f\\)", flags: "i", label: "LI basis named" },
+      { kind: "must_include", pattern: "monitor", flags: "i", label: "employee monitoring acknowledged" },
+      { kind: "must_include", pattern: "necessity|proportionality", flags: "i", label: "necessity/proportionality assessed" },
+      // V3 ROO context: when DPIA_HOOKS_ENABLED is true and a matching
+      // ratified hook's legs disagree on this record's ambiguous
+      // routine-vs-incident-triggered distinguishing fact, the engine emits
+      // a DPIA_ROO_UNSETTLED_TEMPLATE information_needed entry (byte-mirror
+      // of LIA_ROO_UNSETTLED_TEMPLATE). The grader MUST NOT deduct for that
+      // entry (doc 230 §6.1/§6.2, dpia-refinement.ts DPIA_VERIFIER_EXEMPLARS/
+      // DPIA_CRITIC_WATCHLIST W1). With hooks off (shipped default) this
+      // assertion is vacuously satisfied — no such entry is ever emitted.
+    ],
+  },
 ];
 
 

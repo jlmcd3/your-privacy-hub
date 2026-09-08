@@ -215,12 +215,20 @@ const RULE_INTERPRETER_MODULE = /(^|\/)rule-(interpreter|types)\.ts$/;
  *  — doc 213 §0 defines a hook's atoms in exactly those terms. It never
  *  imports `applyRules` either: a hook only ever reads the grammar to pick
  *  a sentence to print, never to change a verdict (hook-types.ts's own
- *  header comment). */
+ *  header comment).
+ *
+ *  DOC 232 (2026-09-08) — DPIA's own hook-join is named `dpia-hook-join.ts`
+ *  (not the bare `hook-join.ts` the generic pattern above already matches),
+ *  per the doc 230 B6 build brief; its own `rule-states.ts` companion
+ *  already matches the generic `rule-states.ts` pattern above by filename
+ *  alone and needed no new entry. Added additively — the `lia`/`hook-join.ts`
+ *  entries above are unchanged. */
 const RULE_INTERPRETER_ALLOWED_IMPORTERS: readonly RegExp[] = [
   /(^|\/)rule-pass\.ts$/,
   /(^|\/)rule-states\.ts$/,
   /(^|\/)corpus\/maps\/[a-z0-9-]+-rules\.ts$/,
   /(^|\/)hook-join\.ts$/,
+  /(^|\/)dpia-hook-join\.ts$/,
   /-gate\.ts$/,
   /-gates\.ts$/,
   /(^|\/)tests\//,

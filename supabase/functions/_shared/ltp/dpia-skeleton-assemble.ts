@@ -1962,6 +1962,47 @@ export interface DpiaSkeletonResult {
   readonly register_findings: string[];
 }
 
+// ── DOC 230 B6 / DOC 232 (2026-09-08) — THE V3 HOOK-SENTENCE APPEND ────────
+//
+// This file lives in `_shared/ltp/` and is imported by SEVERAL functions
+// (`run-dpia-framework`, `replay-dpia-harness`, the grader's skeleton-
+// calibration mirrors — verified by grep, 2026-09-08), so it may NOT import
+// anything from `run-dpia-framework/_local/` (the cross-function-import
+// rule: shared code lives in `_shared/`, product code in the product's
+// `_local/`). The two-leg hook-selection pass, `dpia-hook-join.ts`'s
+// `applyDpiaHooks`, and the DPIA_HOOKS/DPIA_HOOKS_ENABLED gates therefore
+// all run in `run-dpia-framework/index.ts` (which — unlike this shared
+// file — MAY import its own function's `_local/` tree); this file receives
+// only the ALREADY-RENDERED sentence strings to append, as plain data, via
+// the optional third parameter below. When the parameter is omitted (every
+// existing call site: `replay-dpia-harness`, the grader mirrors, and
+// `run-dpia-framework/index.ts` itself while `DPIA_V3_ENABLED` is false),
+// this function's behaviour is IDENTICAL to before this change — no new
+// import, no new branch reached, report_data byte-identical (the dark-mode
+// law doc 217 established for LIA, carried into this build for DPIA).
+//
+// Hook sentences render beside the determination they bear on (doc 232 §9-2
+// ORCHESTRATOR DEFAULT, never a new appendix): `obligation_sentences` are
+// appended to `executive_summary:0` (the composed block that already states
+// the record's Art. 35(3) trigger reasons); `adequacy_sentences` are
+// appended to `section_3_necessity_proportionality:1` (literally the
+// necessity/proportionality analysis). Both composed keys sit inside
+// `report_data.skeleton_document`, which `DPIA_PROTECTED_PATH_PREFIXES`
+// (`run-dpia-framework/_local/ltp/dpia-refinement.ts`) already lists as a
+// whole-root protected surface — a ratified hook sentence can never be
+// rewritten by the refinement splicer, with no further change needed there.
+export interface DpiaV3SkeletonAppend {
+  readonly obligation_sentences?: readonly string[];
+  readonly adequacy_sentences?: readonly string[];
+}
+
+function appendV3Sentences(composed: string | null | undefined, sentences: readonly string[] | undefined): string | null | undefined {
+  if (!sentences || sentences.length === 0) return composed;
+  const base = typeof composed === "string" ? composed : "";
+  const joined = sentences.join(" ");
+  return base.length > 0 ? `${base} ${joined}` : joined;
+}
+
 /**
  * PROPOSAL 2026-08-11 — PLACEHOLDER LEAK REPAIR.
  *
@@ -2040,7 +2081,7 @@ export function renderSectionsWithConditionalDesignIntro(
   return out as typeof DPIA_SKELETON_SECTIONS;
 }
 
-export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): DpiaSkeletonResult {
+export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag, v3Append?: DpiaV3SkeletonAppend): DpiaSkeletonResult {
   const intake = intakeInput ?? {};
   const rawValues = buildDpiaSlotValues(intake);
   const values: SlotValues = Object.fromEntries(
@@ -2127,6 +2168,24 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag): Dpi
   const composed: ComposedBlocks = Object.fromEntries(
     Object.entries(composedRaw).map(([k, v]) => [k, typeof v === "string" ? repairDpiaPlaceholders(v) : v]),
   ) as ComposedBlocks;
+
+  // DOC 230 B6 / DOC 232 — the V3 hook-sentence append, AFTER placeholder
+  // repair so a ratified hook sentence's bytes are never touched by the
+  // deterministic `[TO COMPLETE — …]` normaliser above. No-op (byte-
+  // identical `composed`) whenever `v3Append` is omitted or both arrays are
+  // empty/absent — see this function's own DpiaV3SkeletonAppend doc comment.
+  if (v3Append?.obligation_sentences?.length) {
+    (composed as Record<string, unknown>)["executive_summary:0"] = appendV3Sentences(
+      composed["executive_summary:0"] as string | null | undefined,
+      v3Append.obligation_sentences,
+    );
+  }
+  if (v3Append?.adequacy_sentences?.length) {
+    (composed as Record<string, unknown>)["section_3_necessity_proportionality:1"] = appendV3Sentences(
+      composed["section_3_necessity_proportionality:1"] as string | null | undefined,
+      v3Append.adequacy_sentences,
+    );
+  }
 
   // PROMPT 9H item 3 — the PDF header names the regime the record is under.
   // PROMPT 9H.1 item 2 — selected from two ratified spine constants; the

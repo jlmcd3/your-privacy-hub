@@ -51,6 +51,12 @@ import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, g
 import { recordApiUsage } from "../_shared/api-usage.ts"; // MODEL A/B HARNESS: per-unit spend/latency metering
 import { detectPurposeConflation, conflationRepairInstruction } from "./_local/dpia-purpose-guard.ts";
 import { DPIA_ENFORCEMENT_PRECEDENTS_PINNED, type DpiaPinnedPrecedent } from "./_local/corpus/dpia-enforcement-precedents-pinned.ts"; // WAVE C2 (doc 57 §1) determinism fix
+// DOC 230 / DOC 232 (2026-09-08) — THE TWO-LEG DPIA HOOK SELECTION, dark
+// behind DPIA_V3_ENABLED (default false; report_data byte-identical while
+// off — the same dark-mode law doc 217 established for LIA).
+import { DPIA_V3_ENABLED } from "./_local/ltp/dpia-v3-flag.ts";
+import { DPIA_HOOKS_ENABLED } from "./_local/ltp/dpia-hooks-flag.ts";
+import { DPIA_HOOKS } from "./_local/corpus/maps/dpia-hooks.ts";
 
 async function callAnthropic(model: string, system: string | SystemBlock[], user: string, maxTokens = PRODUCT_MAX_OUTPUT_TOKENS): Promise<{ text: string; stopReason: string | null }> {
   const r = await callAnthropicWithContinuation({
@@ -2640,6 +2646,239 @@ async function runStitch(dpia_id: string): Promise<void> {
       console.log(JSON.stringify({ evt: "dpia_units_minimal", fn: "run-dpia-framework", dpia_id, enabled: DPIA_UNITS_MINIMAL }));
     } catch { /* telemetry only */ }
 
+    // ── DOC 230 / DOC 232 — THE TWO-LEG DPIA HOOK SELECTION (dark behind
+    // DPIA_V3_ENABLED). Runs AFTER the engagement map and
+    // attachDpiaDeliverables (both above) so `buildDpiaRuleStates` can read
+    // `reportData.engagement_map` (doc 230 decision 5: "the engagement map
+    // is the rule pass here" — its entries become `state:engagement_map.*`
+    // atoms). Mirrors run-li-assessment/index.ts's own doc 224/224A block:
+    // prior `hook_selections` rows → lock (agreed, same canonical answer
+    // hash) / let go (disagreed, same hash → unsettled_final) / supersede
+    // (hash changed) → plan the pairs still worth a call (matrix pre-filter
+    // D1; no call on an unanswered field D4) → ONE request to
+    // classify-propositions `select_hooks` (product: "dpia" — the service is
+    // already product-keyed, verified read-only against the deployed
+    // function 2026-09-08: `select_hooks`/`classify` both read
+    // `body.product` with no LIA-specific branch) → resolve per hook →
+    // applyDpiaHooks renders the settled hooks into sentence strings the
+    // skeleton assembler appends beside the determination they bear on → the
+    // ROO ask (`information_needed`, question-only template) for each pair
+    // the legs could not settle. `classify_fields` (the LIA "readings/
+    // proposition" matter) is DELIBERATELY OMITTED — DPIA has no readings/
+    // proposition system in this build's scope; the service defaults an
+    // absent `classify_fields` to none classified. FAIL-OPEN: any error
+    // leaves every pair pending and the V2 document ships; the record block
+    // names the error. Placed BEFORE the skeleton assembly (so the rendered
+    // sentences can be passed in) and AFTER `guardInformationNeeded` already
+    // ran (line ~2493) — the ROO asks below are appended to
+    // `information_needed` WITHOUT re-running that guard (doc 232 build
+    // log: their `field` values are DPIA_V3_FIELDS ids, verified real,
+    // top-level `dpia_frameworks.intake_data` keys, so the guard's
+    // field-existence check is not needed for them specifically).
+    const dpiaV3RooAsks: Record<string, unknown>[] = [];
+    const dpiaV3Append: { obligation_sentences: string[]; adequacy_sentences: string[] } = {
+      obligation_sentences: [],
+      adequacy_sentences: [],
+    };
+    let dpiaV3Selection: Record<string, unknown> | null = null;
+    if (DPIA_V3_ENABLED) {
+      const selStarted = Date.now();
+      const acct: Record<string, unknown> = {
+        enabled: true, generation_no: null, cap: null, hooks_in_play: DPIA_HOOKS.length,
+        items_planned: 0, calls_made: 0, from_store: 0, from_model: 0, locked: 0, lapsed: 0,
+        superseded: 0, unsettled: [] as string[], conflicts: [] as string[], asks_emitted: 0,
+        hooks_applied: [] as string[], hook_flags: [] as unknown[], considered: [] as unknown[], error: null as string | null,
+      };
+      try {
+        const { buildDpiaRuleStates } = await import("./_local/ltp/dpia-deliverables/rule-states.ts");
+        const {
+          applyDpiaHooks, planDpiaHookSelection, resolveDpiaHookSelections,
+          DPIA_HOOK_COMPOSED_KEY_FOR_ELEMENT,
+        } = await import("./_local/ltp/dpia-deliverables/dpia-hook-join.ts");
+        const { canonicalAnswerHash, canonicalAnswerText } = await import("../_shared/corpus/hook-selection.ts");
+        const { dpiaV3Answer, DPIA_V3_FIELDS } = await import("./_local/ltp/v3/field-labels.ts");
+        const { DPIA_ROO_UNSETTLED_TEMPLATE } = await import("./_local/ltp/v3/roo-templates.ts");
+
+        const intakeRec = (dpiaIntake ?? {}) as Record<string, unknown>;
+        const dpiaStates = buildDpiaRuleStates(
+          reportData as Record<string, unknown>,
+          intakeRec,
+          (reportData as any)?.engagement_map,
+        );
+
+        // Generation number = the meter's runs_used + 1 (no row yet → 1);
+        // cap = 2 calls per generation × runs_allowed (doc 224 §3 pattern).
+        let generationNo = 1;
+        let runsAllowed = 4;
+        try {
+          const { data: meterRow } = await supabase
+            .from("tool_run_meter").select("runs_used,runs_allowed")
+            .eq("tool_type", "dpia_framework").eq("assessment_id", dpia_id).maybeSingle();
+          if (meterRow) {
+            generationNo = Number((meterRow as any).runs_used ?? 0) + 1;
+            runsAllowed = Number((meterRow as any).runs_allowed ?? 4);
+          }
+        } catch { /* first generation */ }
+        acct.generation_no = generationNo;
+        acct.cap = 2 * runsAllowed;
+
+        // Prior rows: lock / let go / supersede by canonical answer hash.
+        const priorRes = await supabase.from("hook_selections")
+          .select("id,field_id,hook_id,answer_hash,decision_id,agreement,matched_atom,evidence_span,legs_disagreed,status,generation_no")
+          .eq("assessment_id", dpia_id).eq("product", "dpia").in("status", ["agreed", "disagreed"]);
+        const prior = Array.isArray(priorRes.data) ? priorRes.data as any[] : [];
+        const hashByField = new Map<string, string>();
+        const hashOf = async (field_id: string): Promise<string> => {
+          let h = hashByField.get(field_id);
+          if (h === undefined) {
+            h = await canonicalAnswerHash(dpiaV3Answer(intakeRec, field_id));
+            hashByField.set(field_id, h);
+          }
+          return h;
+        };
+        const lockedRows: any[] = [];
+        const lapsed = new Set<string>();
+        const supersededIds: string[] = [];
+        const lapsedIds: string[] = [];
+        for (const r of prior) {
+          const cur = await hashOf(String(r.field_id));
+          if (cur !== String(r.answer_hash ?? "")) { supersededIds.push(String(r.id)); continue; }
+          if (r.status === "agreed") {
+            lockedRows.push({
+              field_id: String(r.field_id), hook_id: String(r.hook_id),
+              agreement: r.agreement === "same" || r.agreement === "different" ? r.agreement : "unknown",
+              matched_atom: r.matched_atom ?? null, evidence_span: r.evidence_span ?? null,
+              decision_id: String(r.decision_id ?? ""), legs_disagreed: false, source: "store",
+            });
+          } else {
+            lapsed.add(String(r.hook_id));
+            lapsedIds.push(String(r.id));
+          }
+        }
+        const nowIso = new Date().toISOString();
+        if (supersededIds.length) await supabase.from("hook_selections").update({ status: "superseded", updated_at: nowIso }).in("id", supersededIds);
+        if (lapsedIds.length) await supabase.from("hook_selections").update({ status: "unsettled_final", updated_at: nowIso }).in("id", lapsedIds);
+        const locked = resolveDpiaHookSelections(lockedRows);
+        acct.locked = locked.selections.size;
+        acct.lapsed = lapsed.size;
+        acct.superseded = supersededIds.length;
+
+        // DPIA has no CAM-based persuasive-authority ranking module yet
+        // (that machinery — apEntries/hookCandidateRows — is LIA-specific,
+        // lia-persuasive-authority.ts, off limits); every ratified DPIA hook
+        // is "ranked" simply by its own array position, ordered by
+        // settledness inside applyDpiaHooks/planDpiaHookSelection. Today
+        // DPIA_HOOKS is [], so this list is always [].
+        const rankedSourceIds = DPIA_HOOKS.map((h) => h.source_row_id);
+        // DPIA has no rules-as-data engine (no `authority_rules` product
+        // entry), so nothing is EVER determinative in the LIA sense; the doc
+        // 230 decision 5 WP248 suppression is applied INSIDE
+        // applyDpiaHooks/planDpiaHookSelection via
+        // DPIA_ENGAGEMENT_MAP_SUPPRESSED_SOURCE_IDS, not through this param.
+        const determinativeSourceIds = new Set<string>();
+
+        const hooksInPlay = DPIA_HOOKS_ENABLED && DPIA_HOOKS.length > 0 ? DPIA_HOOKS : [];
+
+        const plan = planDpiaHookSelection(
+          hooksInPlay, dpiaStates, dpiaStates.verdicts, rankedSourceIds, determinativeSourceIds, intakeRec,
+          { selections: locked.selections, lapsed },
+        );
+        acct.items_planned = plan.items.length;
+        acct.considered = plan.considered;
+
+        const rows: any[] = [...lockedRows];
+        if (hooksInPlay.length > 0 && plan.items.length > 0) {
+          const r = await invokeGated("classify-propositions", {
+            action: "select_hooks", product: "dpia", assessment_id: dpia_id, generation_no: generationNo,
+            items: plan.items,
+          }, { timeoutMs: 240_000, maxBodyChars: 0 });
+          if (!r.ok) {
+            acct.error = `select_hooks ${r.status}: ${String(r.error ?? r.body).slice(0, 300)}`;
+          } else {
+            const body = JSON.parse(r.body || "{}");
+            acct.calls_made = Number(body.calls_made ?? 0);
+            acct.from_store = Number(body.from_store ?? 0);
+            acct.from_model = Number(body.from_model ?? 0);
+            acct.cap_reached = body.cap_reached === true;
+            for (const x of Array.isArray(body.rows) ? body.rows : []) {
+              rows.push({
+                field_id: String(x.field_id), hook_id: String(x.hook_id),
+                agreement: x.agreement === "same" || x.agreement === "different" ? x.agreement : "unknown",
+                matched_atom: x.matched_atom ?? null, evidence_span: x.evidence_span ?? null,
+                decision_id: String(x.decision_id ?? ""), legs_disagreed: x.legs_disagreed === true,
+                source: x.source === "model" ? "model" : "store",
+              });
+            }
+          }
+        }
+        const resolved = resolveDpiaHookSelections(rows);
+        acct.unsettled = [...resolved.unsettled];
+        acct.conflicts = resolved.conflicts;
+
+        if (hooksInPlay.length > 0) {
+          const { applications, flags } = applyDpiaHooks(
+            hooksInPlay, dpiaStates, dpiaStates.verdicts, rankedSourceIds, determinativeSourceIds,
+            { selections: resolved.selections, unsettled: resolved.unsettled, lapsed },
+          );
+          acct.hooks_applied = applications.map((a) => a.hook_id);
+          acct.hook_flags = flags;
+          for (const app of applications) {
+            const hook = hooksInPlay.find((h) => h.hook_id === app.hook_id);
+            const element = hook?.bears_on_element;
+            const key = element ? DPIA_HOOK_COMPOSED_KEY_FOR_ELEMENT[element] : undefined;
+            if (key === "executive_summary:0") dpiaV3Append.obligation_sentences.push(app.sentence);
+            else if (key === "section_3_necessity_proportionality:1") dpiaV3Append.adequacy_sentences.push(app.sentence);
+          }
+        }
+
+        // The ROO ask — one per unsettled hook, on the first field its legs
+        // read; names the question only (DPIA_ROO_UNSETTLED_TEMPLATE, a
+        // byte-mirror of LIA's ratified text — doc 232 §9-1 ORCHESTRATOR
+        // DEFAULT).
+        const asked = new Set<string>();
+        for (const hookId of resolved.unsettled) {
+          const row = rows.find((x) => x.hook_id === hookId && x.legs_disagreed) ?? rows.find((x) => x.hook_id === hookId);
+          const field = row?.field_id;
+          if (!field || asked.has(field)) continue;
+          asked.add(field);
+          dpiaV3RooAsks.push({
+            field, dimensions: DPIA_ROO_UNSETTLED_TEMPLATE, ask: DPIA_ROO_UNSETTLED_TEMPLATE,
+            provision: "GDPR Art. 35", enables: "the persuasive-authority comparison",
+            source: "hook_selection", hook_id: hookId,
+          });
+        }
+        acct.asks_emitted = asked.size;
+      } catch (e) {
+        acct.error = String((e as Error)?.message ?? e);
+        console.warn("[run-dpia-framework] DPIA hook selection failed (non-fatal):", (e as Error)?.message);
+      }
+      acct.elapsed_ms = Date.now() - selStarted;
+      dpiaV3Selection = acct;
+      console.log(JSON.stringify({
+        evt: "dpia_v3_hook_selection", fn: "run-dpia-framework", dpia_id,
+        ...acct, considered: undefined, considered_count: (acct.considered as unknown[]).length,
+      }));
+    }
+    if (dpiaV3RooAsks.length > 0) {
+      const infoNeeded: any[] = Array.isArray((reportData as any).information_needed) ? (reportData as any).information_needed : [];
+      (reportData as any).information_needed = [...infoNeeded, ...dpiaV3RooAsks];
+    }
+    // ── DOC 217 §5.6 pattern / DOC 232 — THE DPIA V3 RECORD BLOCK. Written
+    // ONLY while DPIA_V3_ENABLED (the dark-mode law: report_data is
+    // byte-identical while the flag is off).
+    if (DPIA_V3_ENABLED) {
+      const _m = ((reportData as any)._meta ??= {});
+      (_m.internal ??= {}).dpia_v3 = {
+        enabled: true,
+        hooks_enabled: DPIA_HOOKS_ENABLED,
+        hooks_in_corpus: DPIA_HOOKS.length,
+        selection: dpiaV3Selection,
+        obligation_sentences_appended: dpiaV3Append.obligation_sentences.length,
+        adequacy_sentences_appended: dpiaV3Append.adequacy_sentences.length,
+        roo_asks: dpiaV3RooAsks.length,
+      };
+    }
+
     // ── DPIA UPGRADE ITEM 1 — THE TWO STRUCTURAL FIELDS ────────────────
     // section_0_overview.assessment_team (EDPB template v1.0 § 0.5 para 6) and
     // section_6_conclusion.validation_approval (§ 0.5 para 10). Single writer,
@@ -3141,9 +3380,16 @@ async function runStitch(dpia_id: string): Promise<void> {
     try {
       const { assembleDpiaSkeletonDocument, DPIA_SKELETON_ASSEMBLER_STAMP } =
         await import("../_shared/ltp/dpia-skeleton-assemble.ts");
+      // DOC 230 B6 / DOC 232 — the v3 hook-sentence append (§9-2
+      // ORCHESTRATOR DEFAULT). `dpiaV3Append` is `{obligation_sentences:
+      // [], adequacy_sentences: []}` whenever DPIA_V3_ENABLED is false or no
+      // hook applied — the third parameter is then a no-op and this call is
+      // BYTE-IDENTICAL to before this build (see
+      // DpiaV3SkeletonAppend's own doc comment in dpia-skeleton-assemble.ts).
       const sk = assembleDpiaSkeletonDocument(
         reportData as unknown as Record<string, unknown>,
         (dpiaIntake ?? {}) as Record<string, unknown>,
+        dpiaV3Append,
       );
       (reportData as any).skeleton_document = sk.document;
       console.log(JSON.stringify({
