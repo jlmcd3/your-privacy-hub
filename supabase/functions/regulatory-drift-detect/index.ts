@@ -9,6 +9,7 @@
 // 5. Sends an informational digest to ALERT_EMAIL — no human action required to keep
 //    the public /calendar accurate; the email is for awareness only.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { LAW_ALIASES, DRIFT_KEYWORDS, detectLawSlug } from "../_shared/lawAliases.ts";
 
@@ -94,6 +95,8 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
+
+  const fnRun = await startFunctionRun(supabase, "regulatory-drift-detect");
 
   try {
     const since = new Date(Date.now() - LOOKBACK_DAYS * 24 * 60 * 60 * 1000).toISOString();
@@ -317,6 +320,15 @@ Deno.serve(async (req) => {
       });
     }
 
+    await finishFunctionRun(supabase, fnRun, {
+      metadata: {
+        scanned: recent?.length ?? 0,
+        actions: actions.length,
+        auto_applied: autoApplied,
+        low_confidence: lowConfidence,
+      },
+    });
+
     return new Response(
       JSON.stringify({
         ok: true,
@@ -328,6 +340,7 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
+    await failFunctionRun(supabase, fnRun, e);
     return new Response(
       JSON.stringify({ ok: false, error: String((e as Error).message ?? e) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
