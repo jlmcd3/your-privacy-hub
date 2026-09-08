@@ -29,6 +29,13 @@ import { serializeCustomerReport } from "../_shared/report-serialize.ts";
 import { ADMT_V2_REPORT_SCHEMA } from "./_local/report-schemas/admt-v2.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
+// DOC 235 — V3 two-leg hook selection: both flags default false (dark).
+// `runAdmtV3Selection` itself is imported dynamically, INSIDE the
+// `ADMT_V3_ENABLED` gate below, so its own module graph (which touches the
+// DB client type, classify-propositions's invoke path, etc.) is never even
+// resolved while the flag is off — the same static-containment law the
+// zero-call regression suite checks for.
+import { ADMT_V3_ENABLED } from "./_local/ltp/admt-v3-flag.ts";
 
 export const BUILD_STAMP = "run-admt-checker-v2@2026-08-20T00:00:00Z-conversion-so12";
 console.log(`[run-admt-checker-v2] boot build_stamp=${BUILD_STAMP} spine=${ADMT_V2_SPINE_VERSION}`);
@@ -125,10 +132,33 @@ Deno.serve(async (req) => {
     const organizationName = String((intake as any)?.organization_name ?? "").trim();
     const systemName = String((intake as any)?.system_name ?? "").trim();
 
+    // ── DOC 235 — V3 TWO-LEG HOOK SELECTION (dark behind ADMT_V3_ENABLED;
+    // rendering additionally requires ADMT_HOOKS_ENABLED — the separate
+    // render gate `runAdmtV3Selection` itself checks). FAIL-OPEN: any error
+    // here (network, model, DB) is caught and logged; `admtV3Append` stays
+    // `undefined` and the V2 document ships unchanged, matching the exact
+    // fail-open law LIA/DPIA/Risk's own selection blocks carry. While the
+    // flag is off (production default) this whole block is skipped
+    // entirely — no import is even resolved, no DB read, no model call —
+    // proven by this build's own zero-call regression suite. ─────────────
+    let admtV3Append: Record<string, readonly string[]> | undefined;
+    let admtV3Record: Record<string, unknown> | undefined;
+    if (ADMT_V3_ENABLED) {
+      try {
+        const { runAdmtV3Selection } = await import("./_local/ltp/admt-v3-selection.ts");
+        const v3 = await runAdmtV3Selection({ supabase, assessmentId, intake, computed });
+        admtV3Append = v3.append as Record<string, readonly string[]>;
+        admtV3Record = v3.record;
+      } catch (e) {
+        console.warn("[run-admt-checker-v2] V3 hook selection failed (non-fatal):", (e as Error)?.message);
+        admtV3Record = { enabled: true, error: String((e as Error)?.message ?? e) };
+      }
+    }
+
     const citations = gatherCitations(computed.allFindings.map((f) => f.authority).filter(Boolean));
     const exhibit = buildAuthorityExhibit(citations, vaRegistryAsProvisions());
 
-    const skeleton = assembleAdmtV2Document({ intake, computed, exhibit, organizationName, systemName });
+    const skeleton = assembleAdmtV2Document({ intake, computed, exhibit, organizationName, systemName, admtV3Append });
 
     report = {
       _meta: {
@@ -148,6 +178,10 @@ Deno.serve(async (req) => {
           // objects the document was built from, without shipping the
           // internal machinery to the customer's browser.
           findings: computed.allFindings,
+          // DOC 235 — present ONLY while ADMT_V3_ENABLED (the dark-mode
+          // law every prior V3 build in this program ships under); absent,
+          // never `null`/`{}`, while the flag is off.
+          ...(ADMT_V3_ENABLED ? { admt_v3: admtV3Record } : {}),
         },
       },
       skeleton_document: skeleton,
