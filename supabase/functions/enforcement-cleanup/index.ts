@@ -139,12 +139,26 @@ export function remainingFlags(row: {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  const caller = await verifyCaller(req, "admin");
-  if (!caller.ok) {
-    return new Response(JSON.stringify({ error: caller.error }), {
-      status: caller.status ?? 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+  // pg_cron cannot read edge-function secrets, so the scheduled driver presents
+  // a DB-held handshake token. Auth only — it grants no extra capability.
+  const driverTok = req.headers.get("x-driver-token");
+  let authorised = false;
+  if (driverTok) {
+    const { data: tokenRow } = await supabase
+      .from("internal_driver_tokens")
+      .select("token")
+      .eq("name", "enforcement-cleanup")
+      .maybeSingle();
+    if (tokenRow?.token && tokenRow.token === driverTok) authorised = true;
+  }
+  if (!authorised) {
+    const caller = await verifyCaller(req, "admin");
+    if (!caller.ok) {
+      return new Response(JSON.stringify({ error: caller.error }), {
+        status: caller.status ?? 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
   }
 
   const url = new URL(req.url);
