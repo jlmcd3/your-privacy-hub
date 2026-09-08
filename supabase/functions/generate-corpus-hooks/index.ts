@@ -1,5 +1,5 @@
-// build-marker: generate-corpus-hooks-doc222-2026-09-08
-console.log("[build-marker] generate-corpus-hooks doc222-2026-09-08");
+// build-marker: generate-corpus-hooks-a10-19-2026-09-08
+console.log("[build-marker] generate-corpus-hooks a10-19-2026-09-08");
 //
 // DOC 213 — the OFFLINE ANALOGY-HOOK pipeline for the LIA corpus, as amended
 // by DOC 222 (hooks contract v2: material facts, distinguishing pairs,
@@ -556,7 +556,22 @@ async function actionDrive(runId: string) {
       if (drafted?.hook_status === "contested") { outcomes.push({ profile_id: profileId, hook_id: hookId, hook_status: "contested" }); continue; }
       let critique = await (await actionCritique(hookId)).json();
       let reviseError: string | null = null;
-      if (critique?.objections?.some((o: Objection) => o.severity === "block")) {
+      // LEDGER A10-19 (2026-09-08) — a draft can carry a CODE-level verification
+      // error (a dropped qualifier, a missing span, an unanchored pinpoint) that
+      // the critic never objects to, because the critic reviews legal accuracy,
+      // not the mechanical checks verify.ts already ran. The old condition here
+      // triggered a revise ONLY on a blocking critic objection, so a
+      // verification-only defect at round 1 left `settleDecision` with
+      // `reasons.length > 0` and no way to reach round 2 — the hook was
+      // stranded at hook_status='critiqued' forever, never re-drafted. Found
+      // when hook run r2b left `a22b1399` stuck this way with no critic
+      // objection above "warn" and a real error
+      // ("condition_text drops the qualifier \"might\""). Revise is now
+      // attempted whenever EITHER the critic blocks OR the draft itself has an
+      // outstanding verification error — the round-2 ceiling is unchanged.
+      const hasBlockingObjection = critique?.objections?.some((o: Objection) => o.severity === "block");
+      const hasVerificationErrors = Array.isArray(drafted?.errors) && drafted.errors.length > 0;
+      if (hasBlockingObjection || hasVerificationErrors) {
         // LEDGER B5-6 item 3 — a throwing revise (model call or write failure)
         // used to escape to the outer catch, so settle never ran and the hook
         // was left stranded at hook_status='critiqued'. Revise failure is now
