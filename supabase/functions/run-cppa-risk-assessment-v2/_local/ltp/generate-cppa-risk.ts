@@ -96,6 +96,10 @@ import {
 // ITEM 399 R11 — assembled-prose lint (detect-only telemetry).
 import { attachProseLint } from "../../../_shared/prose/assembled-prose-lint.ts";
 import { cppaRiskContract } from "../../../_shared/intake-contracts/cppa-risk-assessment.ts";
+// DOC 231 — CPPA RISK V3 (dark; RISK_V3_ENABLED default false, RISK_HOOKS
+// ships empty — see risk-v3-selection.ts's header for the zero-call
+// guarantee this wiring relies on).
+import { attachRiskHookSelection, type RiskV3DbClient, type RiskV3SelectionRecord } from "./risk-v3-selection.ts";
 
 
 export const CPPA_RISK_GENERATOR_STAMP = "generate-cppa-risk@2026-08-01-item357";
@@ -133,6 +137,24 @@ export interface GenerateCppaRiskOptions {
   readonly refinementEnabled?: boolean;
   /** RK2 — when true, csc/prose post-passes run detect-only (no document mutations). */
   readonly postPassDetectOnly?: boolean;
+  /** DOC 231 — CPPA RISK V3 hook selection (dark). Supabase client for
+   *  reading/writing `hook_selections`; omitted (tests/harnesses, and
+   *  every caller until the CEO wires it) ⇒ no prior selections are read
+   *  and no new call is ever made even if RISK_V3_ENABLED were true.
+   *  Typed `unknown` (matching this interface's own `db?: unknown` field
+   *  above) and cast to `RiskV3DbClient` only at the point of use — a
+   *  structural check of the FULL supabase-js generated client type
+   *  against a narrow interface at this call site produced `TS2589
+   *  excessively deep type instantiation` in index.ts. */
+  readonly riskV3Db?: unknown;
+  /** DOC 231 — `tool_run_meter` values the selection cap and generation
+   *  number key on. `[NEEDS]` (doc 231 build log): the shell
+   *  (index.ts `runPipeline`) does not yet read the meter BEFORE calling
+   *  this module (it reads it AFTER, via `recordRunMeterAndVersion`), so
+   *  this is omitted in production today and the conservative defaults
+   *  below (`runsAllowed: 4, generationNo: 1`) apply — inert regardless,
+   *  since RISK_V3_ENABLED defaults false and RISK_HOOKS ships empty. */
+  readonly riskV3Meter?: { readonly runsAllowed: number; readonly generationNo: number };
 }
 
 
@@ -147,6 +169,10 @@ export interface GenerateCppaRiskResult {
   readonly rawIntake: Record<string, unknown>;
   /** ITEM 378 — refinement telemetry when the pass ran at generate time. */
   readonly refinement?: RefinementTelemetry | null;
+  /** DOC 231 — the CPPA Risk V3 hook-selection record (dark; see
+   *  risk-v3-selection.ts). Computed once at the initial generation and
+   *  reused by Pass-2R's finalize calls, mirroring `refinement`. */
+  readonly riskV3?: RiskV3SelectionRecord;
 }
 
 
@@ -268,7 +294,7 @@ export function finalizeCppaRiskPayload(
   ltpMeta: Record<string, unknown>,
   rawIntake: unknown,
   riskCorpus?: RiskCorpus | null,
-  extras?: { refinement?: RefinementTelemetry | null; postPassDetectOnly?: boolean },
+  extras?: { refinement?: RefinementTelemetry | null; postPassDetectOnly?: boolean; riskV3?: RiskV3SelectionRecord | null },
 ): { report: Record<string, unknown>; emit_gate_filtered: number } {
   const postPassDetectOnly = extras?.postPassDetectOnly ?? false;
   const sealed = seal({ ...base }, rawIntake, postPassDetectOnly);
@@ -287,6 +313,21 @@ export function finalizeCppaRiskPayload(
     const internal = ((report._meta as Record<string, unknown>).internal) as Record<string, unknown>;
     internal.risk_refinement = extras?.refinement ??
       emptyTelemetryFor(RISK_REFINEMENT_CONFIG, false, "refinement_not_invoked");
+  } catch { /* non-fatal */ }
+
+  // (1a) DOC 231 — CPPA RISK V3 hook selection record (dark; see
+  // risk-v3-selection.ts). Unconditional key, mirroring risk_refinement:
+  // `enabled:false` while RISK_V3_ENABLED is off or RISK_HOOKS ships empty
+  // (both true today), so this is inert but always recorded for audit.
+  // NEVER written to any customer-facing surface — see risk-v3-selection.ts
+  // `RiskV3InformationNeededEntry`'s header for why `information_needed`
+  // itself is not yet a safe append target for this product.
+  try {
+    const internal = ((report._meta as Record<string, unknown>).internal) as Record<string, unknown>;
+    internal.risk_v3 = extras?.riskV3 ?? {
+      enabled: false, hooks_available: 0, generation_no: null, cap: null,
+      calls_this_generation: 0, considered: [], applications: [], information_needed_entries: [], error: null,
+    };
   } catch { /* non-fatal */ }
 
   // (1b) ITEM 426 — `exception_analysis` CANONICAL EMISSION. LAW 3 SINGLE
@@ -721,8 +762,25 @@ export async function generateCppaRiskReport(
   // ships a different surface, that surface is refined and finalized again.
   const refinement = await refineRiskBase(base, rawIntake, options);
 
-  const { report } = finalizeCppaRiskPayload(base, ltpMeta, rawIntake, riskCorpus, { refinement, postPassDetectOnly: options.postPassDetectOnly });
-  return { report, base, plan, ltpMeta, typeJOrigin, rawIntake, refinement };
+  // DOC 231 — CPPA RISK V3 hook selection (dark). Computed once here (not
+  // inside finalizeCppaRiskPayload, which stays synchronous) and reused by
+  // Pass-2R's own finalize calls below, mirroring `refinement`'s shape.
+  // `verdicts`/`rankedSourceIds`/`determinativeSourceIds` are `[NEEDS]`
+  // (doc 231 build log): no per-factor deterministic verdict record, CAM
+  // ranking list, or determinative-source-id set is threaded through this
+  // pipeline to this call site yet. Passed empty, which is inert — every
+  // hook evaluates `verdicts[factor] ?? null` safely — and moot today
+  // regardless, since RISK_HOOKS ships empty (attachRiskHookSelection
+  // returns before reading any of these arguments).
+  const riskV3 = await attachRiskHookSelection(rawIntake, {}, [], new Set(), {
+    db: options.riskV3Db as RiskV3DbClient | undefined,
+    assessmentId: runId,
+    runsAllowed: options.riskV3Meter?.runsAllowed ?? 4,
+    generationNo: options.riskV3Meter?.generationNo ?? 1,
+  });
+
+  const { report } = finalizeCppaRiskPayload(base, ltpMeta, rawIntake, riskCorpus, { refinement, postPassDetectOnly: options.postPassDetectOnly, riskV3 });
+  return { report, base, plan, ltpMeta, typeJOrigin, rawIntake, refinement, riskV3 };
 }
 
 
@@ -792,7 +850,7 @@ export async function runCppaRiskPass2R(
         { ...gen.ltpMeta, shipped_surface: "2R", ...meta },
         gen.rawIntake,
         riskCorpus,
-        { refinement, postPassDetectOnly: options.postPassDetectOnly },
+        { refinement, postPassDetectOnly: options.postPassDetectOnly, riskV3: gen.riskV3 },
       );
       return { report, shipped_surface: "2R", meta };
     }
@@ -802,7 +860,7 @@ export async function runCppaRiskPass2R(
       { ...gen.ltpMeta, shipped_surface: "deterministic", ...meta },
       gen.rawIntake,
       riskCorpus,
-      { refinement: refinementDet, postPassDetectOnly: options.postPassDetectOnly },
+      { refinement: refinementDet, postPassDetectOnly: options.postPassDetectOnly, riskV3: gen.riskV3 },
     );
     return { report, shipped_surface: "deterministic", meta };
 
@@ -819,7 +877,7 @@ export async function runCppaRiskPass2R(
       { ...gen.ltpMeta, shipped_surface: "deterministic", ...meta },
       gen.rawIntake,
       riskCorpus,
-      { refinement: refinementFallback, postPassDetectOnly: options.postPassDetectOnly },
+      { refinement: refinementFallback, postPassDetectOnly: options.postPassDetectOnly, riskV3: gen.riskV3 },
     );
 
     return { report, shipped_surface: "deterministic", meta };

@@ -34,8 +34,6 @@ import {
   verifyCritique, verifyDraft, type Objection, type SourceEndorsement,
 } from "./_local/verify.ts";
 import { generateHooks, type HookProfileRow, type HookRow, type HookSourceRow } from "./_local/generate.ts";
-import { liaElementOf } from "./_local/factor-element.ts";
-import { LIA_HOOK_CONTEXT_BLOCK } from "./_local/hook-context-block.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -484,16 +482,22 @@ async function actionGenerate(product: string) {
   }
 
   const day = new Date().toISOString().slice(0, 10);
+  // DOC 231 — GENERALISED: `elementOf`/`contextBlock` were hard-coded to
+  // LIA's here; both now come from the product's own registry entry
+  // (_local/product-registry.ts), so this dispatch needs no per-product
+  // branch. Behaviour for `product: "lia"` is unchanged — the registry's
+  // `lia` entry points `elementOf`/`contextBlock` at the SAME
+  // `liaElementOf` / `LIA_HOOK_CONTEXT_BLOCK` this call used before.
   const result = generateHooks({
     product, rows, profiles, sources,
-    elementOf: liaElementOf,
+    elementOf: registry.elementOf,
     hooksVersion: `${registry.export_prefix.toLowerCase()}-hooks-v2-${day}-0`,
     outputPath: registry.output_path,
     exportPrefix: registry.export_prefix,
-    // The three [RATIFY] blocks, copied VERBATIM from the canonical pinned
-    // file (_local/hook-context-block.ts; pinned by test after CRLF/LF
+    // The [RATIFY] blocks, copied VERBATIM from the product's canonical
+    // pinned file (pinned by a byte-comparison test after CRLF/LF
     // normalisation) — no longer a placeholder.
-    contextBlock: LIA_HOOK_CONTEXT_BLOCK,
+    contextBlock: registry.contextBlock,
   });
 
   return json({

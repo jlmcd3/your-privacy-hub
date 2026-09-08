@@ -1458,6 +1458,91 @@ const F_BIO_US_SUPP = withSupplemental(F_BIO_US, "invoke_body_extras", {
   scenario_summary: "Biometric checker supplemental-capture variant: confirms release re-signing.",
 });
 
+// DOC 231 (2026-09-08) — CPPA RISK V3 HOOK-TRIGGER FIXTURES (CEO
+// requirement: /admin/all-products-test dummy data for the two hook-join
+// scenarios doc 229 §8 default #4 asks for, mirroring doc 229A's LIA pair).
+// RISK_HOOKS ships empty and RISK_V3_ENABLED/RISK_HOOKS_ENABLED both
+// default false (doc 229 §5.3) — these fixtures exercise no hook today;
+// they are pre-positioned intake shapes for the Candidate 1 (ICS/AP
+// Netherlands timing-failure) and Candidate 2 (Poste Italiane fraud-
+// scoring ADMT) fact patterns described in doc 229 §6, so a flag-ON run
+// after those hooks are ratified can be pointed at these fixtures directly
+// without re-authoring the intake. Cloned from F_CPPA_RISK_US's already-
+// contract-valid intake_data (spread + targeted overrides) rather than
+// hand-authored from scratch, so every required field the intake contract
+// enforces stays populated.
+const F_CPPA_RISK_US_V3_HOOK_AGREED: SampleFixture = {
+  tool_slug: "cppa_risk",
+  variant: "us_v3_hook_agreed",
+  title: "New identity-verification flow assessed before launch (V3 hook: timing, agreed)",
+  scenario_summary:
+    "Northbridge Identity Services LLC is building a new digital identity-verification flow (government-ID + selfie match) and is completing this risk assessment BEFORE the processing begins (processing_status: Planned) — the same fact pattern as the AP (Netherlands) / ICS decision doc 229 §6 Candidate 1 cites by analogy. Both hook-selection legs are expected to read \"same\" once that hook is ratified (single clean fact, no ambiguity).",
+  source_table: "cppa_assessments",
+  result_url_pattern: "/cppa-risk-assessment/result/{id}",
+  fixture: {
+    insert: {
+      module: "risk_assessment",
+      status: "pending",
+      intake_data: {
+        ...F_CPPA_RISK_US.fixture.insert.intake_data as Record<string, unknown>,
+        entity_name: "Northbridge Identity Services LLC",
+        subject_anchor: "California consumers completing a new digital identity-verification flow",
+        primary_activity_name: "New digital identity verification for account opening",
+        primary_activity_purpose:
+          "We are building a new digital identity-verification flow using government ID images and a selfie match before this processing begins.",
+        q15_sensitive_pi: "Yes",
+        q15c_spi_volume: "50,000 or more",
+        q4_pi_categories: [
+          "Contact identifiers (name, email, phone)",
+          "Government identifiers (SSN, driver's license, state ID, passport number)",
+        ],
+        // The timing fact Candidate 1's hook keys on: § 7150(b) trigger
+        // engaged AND processing_status === "Planned" (assessment completed
+        // before the new processing begins).
+        processing_status: "Planned",
+        i1_processing_purpose:
+          "We are designing a new digital identity-verification flow that will match a government ID image against a live selfie before any account can be opened; this processing has not yet begun and this assessment is being completed before it starts.",
+        i1b_min_pi:
+          "Only the ID image, the selfie, and the match result are retained; no other document fields are captured.",
+      },
+    },
+    invoke: { fn: "run-cppa-risk-assessment-v2", id_key: "assessment_id" },
+  },
+};
+
+const F_CPPA_RISK_US_V3_HOOK_DISAGREED: SampleFixture = {
+  tool_slug: "cppa_risk",
+  variant: "us_v3_hook_disagreed",
+  title: "Blended fraud + recommendation ADMT score (V3 hook: fact ambiguity, disagreed)",
+  scenario_summary:
+    "Ferrous Point Commerce Inc. uses ONE ADMT score that blends checkout-fraud signals with product-recommendation weighting — deliberately ambiguous against doc 229 §6 Candidate 2 (Poste Italiane fraud-scoring ADMT), so once that hook is ratified one leg may read \"same\" (fraud-prevention scoring) and the other \"different\" (a mixed-purpose score is not the pure fraud-prevention fact pattern the source addressed) => legs_disagreed => an information_needed ROO entry naming q19_admt_description (RISK_ROO_UNSETTLED_TEMPLATE, byte-identical to LIA's).",
+  source_table: "cppa_assessments",
+  result_url_pattern: "/cppa-risk-assessment/result/{id}",
+  fixture: {
+    insert: {
+      module: "risk_assessment",
+      status: "pending",
+      intake_data: {
+        ...F_CPPA_RISK_US.fixture.insert.intake_data as Record<string, unknown>,
+        entity_name: "Ferrous Point Commerce Inc.",
+        q3_sector: "Retail/ecommerce",
+        q18_admt_use: "Yes",
+        q19_admt_description:
+          "A single risk score blends checkout-fraud signals (velocity, device mismatch, address inconsistency) with a product-recommendation weighting, and is used both to hold suspicious orders for manual review and to rank which products are shown at checkout.",
+        q19a_decision_categories: ["None of these categories"],
+        q20_admt_opt_out: "Yes, with documented opt-out",
+        i5_admt_logic:
+          "The model outputs one 0-100 score. Scores above 85 hold the order for manual fraud review; the same score also feeds the checkout product-ranking module, so the score is not a fraud-only signal end to end.",
+        i5_admt_human_review:
+          "A fraud analyst reviews every held order before it ships; the analyst can release or cancel the order and records the reason.",
+        i1_processing_purpose:
+          "We use a single blended score at checkout to hold likely-fraudulent orders for manual review and to rank product recommendations for the same session.",
+      },
+    },
+    invoke: { fn: "run-cppa-risk-assessment-v2", id_key: "assessment_id" },
+  },
+};
+
 const F_CPPA_RISK_US_SUPP = withSupplemental(F_CPPA_RISK_US, "insert.intake_data", {
   supplemental_responses: [
     { ref_field: "i1_processing_purpose", ask: "Clarify whether the profiling described in q5b is used for any pricing decision.", response: "No — profiling is used only for content recommendation ranking; pricing is uniform across the audience and is not personalised on any profiling signal." },
@@ -1650,6 +1735,9 @@ export const SAMPLE_FIXTURES: SampleFixture[] = [
   F_IR_US,
   F_BIO_US,
   F_CPPA_RISK_US,
+  // DOC 231 — V3 hook-trigger fixtures (dark; see the consts' own headers).
+  F_CPPA_RISK_US_V3_HOOK_AGREED,
+  F_CPPA_RISK_US_V3_HOOK_DISAGREED,
   F_CPPA_CYBER_US,
   F_CPPA_ADMT_US,
   F_ROPA_EU,

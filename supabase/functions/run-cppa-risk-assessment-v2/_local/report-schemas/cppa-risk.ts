@@ -214,6 +214,18 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
     // design: EU/EEA material is a different legal regime and must never be
     // folded into the CPPA-scoped enforcement_context / enforcement_precedents.
     "eu_persuasive_authority",
+    // DOC 231 — CPPA RISK V3 hook-rendered persuasive-authority sentences
+    // (dark; RISK_HOOKS_ENABLED). SEPARATE key from `eu_persuasive_authority`
+    // by design: hook sources include CPPA's OWN FSOR guidance (doc 229 §8
+    // default #2), not only GDPR-regime material, so folding into the
+    // EU-labelled section would misstate a CPPA-source hook's regime. Always
+    // present as an envelope (mirrors eu_persuasive_authority); `applications`
+    // is empty today because RISK_HOOKS ships empty (doc 229 §5.3) — see
+    // risk-v3-selection.ts's header for why this key is not yet actually
+    // populated from `_meta.internal.risk_v3` at finalize time (that wiring
+    // is `[NEEDS]`, doc 231 build log; the schema slot is reserved now so
+    // the eventual write site needs no further schema change).
+    "persuasive_authority_hooks",
     "risk_assessment_by_activity",
 
     "risk_register",
@@ -281,6 +293,14 @@ export const CPPA_RISK_REPORT_SCHEMA: ReportSchema = {
       "framing",
       "topics",
       "information_needed",
+    ],
+    // DOC 231 — reserved shape for the (not yet populated — see the
+    // topLevel comment above) hook-rendered persuasive-authority envelope.
+    persuasive_authority_hooks: [
+      "section_title",
+      "version",
+      "status",
+      "applications",
     ],
   },
 
