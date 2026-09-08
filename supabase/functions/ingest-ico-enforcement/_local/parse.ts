@@ -155,3 +155,14 @@ export function extractSitemapActionUrls(xml: string): string[] {
   }
   return [...out];
 }
+
+// Site-wide notice blocks that share the case-narrative wrapper on older pages.
+const BOILERPLATE_NOTICES: RegExp[] = [
+  /when searching by date, incorrect results may be produced/i,
+  /^this page (is|has been) (archived|moved)/i,
+  /take our website user survey/i,
+];
+
+export function isBoilerplateNotice(text: string): boolean {
+  return BOILERPLATE_NOTICES.some((re) => re.test(text));
+}

@@ -76,3 +76,20 @@ Deno.test("sitemap extraction keeps only case pages", () => {
   <url><loc>https://ico.org.uk/for-organisations/guide/</loc></url></urlset>`;
   assertEquals(extractSitemapActionUrls(xml), [URL_OK]);
 });
+
+Deno.test("site notice block is skipped in favour of the case narrative", () => {
+  const withNotice = PAGE.replace(
+    '<div class="rich-text">',
+    '<div class="prose prose-theme-red"><p>When searching by date, incorrect results may be produced due to errors with the dates of some documents added before 31 December 2024.</p></div><div class="rich-text">',
+  );
+  const a = parseIcoActionPage(URL_OK, withNotice)!;
+  assertEquals(a.narrative.startsWith("The Information Commissioner"), true);
+});
+
+Deno.test("page with only a site notice is rejected", () => {
+  const onlyNotice = PAGE.replace(
+    /<div class="prose[\s\S]*?<\/div>/,
+    '<div class="prose"><p>When searching by date, incorrect results may be produced due to errors with the dates of some documents added before 31 December 2024.</p></div>',
+  );
+  assertEquals(parseIcoActionPage(URL_OK, onlyNotice), null);
+});
