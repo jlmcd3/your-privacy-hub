@@ -58,7 +58,7 @@ export default function AdminEmailSignups() {
       .eq("role", "admin")
       .maybeSingle()
       .then(({ data }) => setIsAdmin(!!data));
-  }, [user]);
+  }, [user, authLoading]);
 
   useEffect(() => {
     if (!isAdmin) return;

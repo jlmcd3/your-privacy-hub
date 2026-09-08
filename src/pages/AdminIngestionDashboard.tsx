@@ -77,6 +77,7 @@ export default function AdminIngestionDashboard() {
 
   // Check admin role
   useEffect(() => {
+    if (authLoading) return;
     if (!user) { setIsAdmin(false); return; }
     supabase
       .from("user_roles")
@@ -85,7 +86,7 @@ export default function AdminIngestionDashboard() {
       .eq("role", "admin")
       .maybeSingle()
       .then(({ data }) => setIsAdmin(!!data));
-  }, [user]);
+  }, [user, authLoading]);
 
   // Load runs
   useEffect(() => {
