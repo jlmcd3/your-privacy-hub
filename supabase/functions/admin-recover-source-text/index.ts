@@ -187,6 +187,8 @@ Deno.serve(async (req) => {
       if (reason) {
         res.guard = "rejected";
         res.reason = reason;
+        res.head300 = text.slice(0, 300);
+        res.has_plural_accented = text.includes("intérêts légitimes");
         if (!body.dry_run) {
           await supabase.from("enforcement_actions")
             .update({ refetch_last_error: reason })
