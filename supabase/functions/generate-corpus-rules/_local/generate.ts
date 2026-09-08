@@ -165,6 +165,30 @@ function wordCount(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
+/** The two stances a proposition reading may carry. */
+export const PROP_STANCES = ["asserted", "abstain"] as const;
+
+/**
+ * DOC 217 — `prop:<prop_id>=<stance>`. Returns a named failure, or null when
+ * the atom is well formed AND names a ratified inventory proposition.
+ */
+export function validatePropAtom(raw: string, ratifiedPropIds?: ReadonlySet<string>): string | null {
+  const rest = raw.slice("prop:".length);
+  const eq = rest.indexOf("=");
+  if (eq < 0) return `trigger atom "${raw}": malformed prop atom (no "=")`;
+  const propId = rest.slice(0, eq);
+  const stance = rest.slice(eq + 1);
+  if (!propId) return `trigger atom "${raw}": malformed prop atom (empty prop_id)`;
+  if (!(PROP_STANCES as readonly string[]).includes(stance)) {
+    return `trigger atom "${raw}": stance must be ${PROP_STANCES.join("|")}`;
+  }
+  if (!ratifiedPropIds) return `trigger atom "${raw}": no ratified proposition inventory supplied`;
+  if (!ratifiedPropIds.has(propId)) {
+    return `trigger atom "${raw}": prop_id is not in the ratified proposition inventory`;
+  }
+  return null;
+}
+
 /** All the §4.3 checks for one emitted row. Returns named failures. */
 export function validateRuleRow(
   row: AuthorityRuleRow,
