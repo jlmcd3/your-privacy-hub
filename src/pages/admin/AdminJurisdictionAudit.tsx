@@ -69,7 +69,6 @@ export default function AdminJurisdictionAudit() {
     setMonitorLog((data as MonitorRow[]) || []);
   }
 
-  const [busy, setBusy] = useState<string | null>(null);
 
   async function loadRuns() {
     const { data } = await supabase
