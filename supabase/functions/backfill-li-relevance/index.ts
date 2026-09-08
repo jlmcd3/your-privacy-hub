@@ -1,4 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// AUDIT 2026-09-08 (ledger A8-3): read every text block, never content[0].
+import { extractTextBlocks } from "../_shared/anthropic-call.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -79,7 +81,7 @@ Deno.serve(async (req) => {
 
     if (res.ok) {
       const data = await res.json();
-      const text = data.content?.[0]?.text;
+      const text = extractTextBlocks(data?.content).text || undefined;
       try {
         const match = text?.match(/\[[\s\S]*\]|\{[\s\S]*\}/);
         if (match) {

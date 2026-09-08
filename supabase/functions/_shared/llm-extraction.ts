@@ -3,6 +3,8 @@
 // Deterministic keyword classifiers for compliance_failure and sector.
 // Currency normalisation to EUR.
 import Anthropic from "npm:@anthropic-ai/sdk@0.32.1";
+// AUDIT 2026-09-08 (ledger A8-3): read every text block, never content[0].
+import { extractTextBlocks } from "./anthropic-call.ts";
 
 const anthropic = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY") });
 
@@ -46,8 +48,11 @@ ${truncated}`;
       max_tokens: 256,
       messages: [{ role: "user", content: prompt }],
     });
-    const block = response.content[0];
-    const result = block && block.type === "text" ? block.text.trim() : null;
+    const { text: joined, blockTypes } = extractTextBlocks(response.content);
+    const result = joined ? joined.trim() : null;
+    if (!result) {
+      console.warn(JSON.stringify({ evt: "kcf_no_text_block", regulator: regulatorCanonical, block_types: blockTypes }));
+    }
     if (!result || result === "NULL" || result.length < 10) {
       return { text: null, confidence: "uncertain" };
     }

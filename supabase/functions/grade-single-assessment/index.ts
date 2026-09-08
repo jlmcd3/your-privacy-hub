@@ -26,6 +26,9 @@ import {
 // R-TURN-1 item 6 — resolve golden fixture-set label for gating header.
 // GRADER-CAL-1 A2/A3/A4 — shared post-filter (mirror of run-quality-batch).
 import { applyGraderCal1Filter } from "../_shared/grader/post-filters.ts";
+// AUDIT 2026-09-08 (ledger A8-3): read every text block, never content[0];
+// an ok-but-textless response is an error, not an empty grade.
+import { extractTextBlocks } from "../_shared/anthropic-call.ts";
 // SKELETON-MODE CALIBRATION PARITY (2026-08-31) — this grader (used by
 // /admin/all-products-test) previously applied NONE of run-quality-batch's
 // CEO-ratified skeleton-mode calibration (PROMPT 10A's 6 false-positive
@@ -245,7 +248,11 @@ async function claudeCall(system: string, user: string, maxTokens = 5000): Promi
   });
   if (!r.ok) throw new Error(`Claude ${r.status}: ${(await r.text()).slice(0, 200)}`);
   const d = await r.json();
-  return d.content?.[0]?.text ?? "";
+  const { text, blockTypes } = extractTextBlocks(d?.content);
+  if (!text) {
+    throw new Error(`Claude returned no text block (blocks: ${blockTypes.join(",") || "none"}; stop_reason: ${d?.stop_reason ?? "?"})`);
+  }
+  return text;
 }
 
 async function gptCall(system: string, user: string, maxTokens = 3000): Promise<string> {

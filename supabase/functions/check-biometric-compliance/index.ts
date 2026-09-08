@@ -1,5 +1,11 @@
 // qb8 build active
 import { attachDeterministicChecks, extractProseFromReport } from '../_shared/advisory-voice.ts';
+// AUDIT 2026-09-08 (ledger A8-3): the two retry paths read content[0].text and
+// then replaced the customer report unconditionally; on a thinking-first
+// model (claude-fable-5 is a selectable generation model) that blanks the
+// report silently. Walk every text block, and never replace the report with
+// an empty or truncated retry.
+import { extractTextBlocks } from '../_shared/anthropic-call.ts';
 import { PARALLEL_ITEM_VARIETY_RULE } from "../_shared/parallel-item-variety.ts";
 import { runFormatChecksGeneric } from '../_shared/grader/format-checks.ts';
 import { extractIntakeRoster } from '../_shared/grader/intake-roster.ts';
@@ -2311,7 +2317,7 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
           });
           if (retryRes.ok) {
             const retryData = await retryRes.json();
-            const retryFull = retryData.content?.[0]?.text ?? "";
+            const { text: retryFull, blockTypes: retryBlocks } = extractTextBlocks(retryData?.content);
             // PROPOSAL 2026-08-11 — lint-retry regeneration is a real model call; meter it.
             recordApiUsage({
               function_name: "check-biometric-compliance:lint_retry",
@@ -2328,7 +2334,17 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
             retryText = retryText
               .replace(/^#{1,6}\s+/gm, '').replace(/\*\*\*/g, '').replace(/\*\*/g, '')
               .replace(/\*([^*\n]+)\*/g, '$1').replace(/^>\s?/gm, '').replace(/^\*\s+/gm, '• ');
-            assessment_text = retryText;
+            // AUDIT 2026-09-08 (A8-3): keep the prior report when the retry
+            // came back empty or far shorter (a text-less thinking-first
+            // response, a truncation, or a refusal) — never blank a report.
+            if (retryText.trim().length < Math.max(200, Math.floor(assessment_text.length * 0.5))) {
+              console.warn(JSON.stringify({
+                evt: "biometric_retry_rejected", fn: "check-biometric-compliance", stage: "lint_retry",
+                chars: retryText.length, prior_chars: assessment_text.length, block_types: retryBlocks,
+              }));
+            } else {
+              assessment_text = retryText;
+            }
             lint = lintReportText(assessment_text, {
               checkDates: true, checkUnresolvedTokens: true, referenceDate,
             });
@@ -2448,7 +2464,7 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
           });
           if (retryRes.ok) {
             const retryData = await retryRes.json();
-            const retryFull = retryData.content?.[0]?.text ?? "";
+            const { text: retryFull, blockTypes: retryBlocks } = extractTextBlocks(retryData?.content);
             // PROPOSAL 2026-08-11 — gate-retry regeneration is a real model call; meter it.
             recordApiUsage({
               function_name: "check-biometric-compliance:gate_retry",
@@ -2465,7 +2481,15 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
             retryText = retryText
               .replace(/^#{1,6}\s+/gm, '').replace(/\*\*\*/g, '').replace(/\*\*/g, '')
               .replace(/\*([^*\n]+)\*/g, '$1').replace(/^>\s?/gm, '').replace(/^\*\s+/gm, '• ');
-            assessment_text = retryText;
+            // AUDIT 2026-09-08 (A8-3): same guard as the lint retry above.
+            if (retryText.trim().length < Math.max(200, Math.floor(assessment_text.length * 0.5))) {
+              console.warn(JSON.stringify({
+                evt: "biometric_retry_rejected", fn: "check-biometric-compliance", stage: "gate_retry",
+                chars: retryText.length, prior_chars: assessment_text.length, block_types: retryBlocks,
+              }));
+            } else {
+              assessment_text = retryText;
+            }
             const relint = lintReportText(assessment_text, {
               checkDates: true, checkUnresolvedTokens: true, referenceDate,
             });

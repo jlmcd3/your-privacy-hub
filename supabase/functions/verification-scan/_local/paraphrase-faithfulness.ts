@@ -1,6 +1,9 @@
 // Paraphrase faithfulness check via Claude Sonnet 4.6.
 // Compares corpus paraphrase (A = key_compliance_failure) against source (B).
 
+// AUDIT 2026-09-08 (ledger A8-3): read every text block, never content[0].
+import { extractTextBlocks } from "../../_shared/anthropic-call.ts";
+
 const SONNET_MODEL = "claude-sonnet-4-6";
 const ANTHROPIC_VERSION = "2023-06-01";
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
@@ -196,7 +199,7 @@ ${truncated}`;
       input_tokens: parsed?.usage?.input_tokens ?? 0,
       output_tokens: parsed?.usage?.output_tokens ?? 0,
     };
-    content = parsed?.content?.[0]?.text ?? "";
+    content = extractTextBlocks(parsed?.content).text;
   } catch (e) {
     return {
       verdict: "parse_error",

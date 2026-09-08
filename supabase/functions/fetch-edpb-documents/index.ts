@@ -1,4 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// AUDIT 2026-09-08 (ledger A8-3): read every text block, never content[0];
+// capture the response body on a failed call, not only the status.
+import { extractTextBlocks } from "../_shared/anthropic-call.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -72,12 +75,12 @@ Deno.serve(async (req) => {
       });
 
       if (!aiRes.ok) {
-        errors.push(`AI call failed for ${doc.authority}: ${aiRes.status}`);
+        errors.push(`AI call failed for ${doc.authority}: ${aiRes.status} ${(await aiRes.text().catch(() => "")).slice(0, 300)}`);
         continue;
       }
 
       const aiData = await aiRes.json();
-      const text = aiData.content?.[0]?.text;
+      const text = extractTextBlocks(aiData?.content).text || undefined;
       const match = text?.match(/\[[\s\S]*\]/);
       if (!match) {
         errors.push(`No JSON array found in ${doc.authority} response`);

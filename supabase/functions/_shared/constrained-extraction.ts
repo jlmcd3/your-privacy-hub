@@ -1,6 +1,9 @@
 // Constrained extraction via Claude Haiku 4.5. One API call per row.
 // Validates that every non-null field has a verbatim evidence_quote from the source.
 
+// AUDIT 2026-09-08 (ledger A8-3): read every text block, never content[0].
+import { extractTextBlocks } from "./anthropic-call.ts";
+
 const HAIKU_MODEL = "claude-haiku-4-5-20251001";
 const ANTHROPIC_VERSION = "2023-06-01";
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
@@ -287,7 +290,7 @@ The first character of your response must be { and the last must be }.`;
       output_tokens: usage.output_tokens + (envelope?.usage?.output_tokens ?? 0),
     };
 
-    const raw = (envelope?.content?.[0]?.text ?? "").trim();
+    const raw = extractTextBlocks(envelope?.content).text.trim();
     lastRawOutput = raw;
     // Defensive cleanup: strip code fences and isolate the {...} body.
     let cleaned = raw;
