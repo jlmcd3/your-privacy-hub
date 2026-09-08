@@ -148,6 +148,13 @@
       "when": 1788839228044,
       "tag": "0020_enforcement_quality_flags_and_public_detail",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1788841978627,
+      "tag": "0021_enforcement_triage_class_and_public_listed",
+      "breakpoints": true
     }
   ]
 }
