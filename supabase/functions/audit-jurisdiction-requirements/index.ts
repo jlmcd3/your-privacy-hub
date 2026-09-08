@@ -13,6 +13,7 @@
 //                  OR a logged-in admin JWT.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -248,6 +249,11 @@ Deno.serve(async (req) => {
       .select()
       .single();
     if (runErr) throw runErr;
+
+    const fnRun = await startFunctionRun(supabase, "audit-jurisdiction-requirements", {
+      metadata: { run_id: run.id, codes, limit },
+    });
+    await finishFunctionRun(supabase, fnRun, { metadata: { run_id: run.id, codes, limit, dispatched: true } });
 
     // Fire and forget so the HTTP call returns quickly.
     // @ts-ignore EdgeRuntime is available in Supabase functions.
