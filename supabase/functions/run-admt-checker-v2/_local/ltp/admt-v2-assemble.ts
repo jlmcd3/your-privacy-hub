@@ -508,6 +508,17 @@ export interface AssembleArgs {
   exhibit: AuthorityExhibit | null;
   organizationName: string;
   systemName: string;
+  /** DOC 235 — the two-leg hook-selection pass's rendered sentences, one
+   *  array per `admt-v2-assemble.ts` section id, appended to that section's
+   *  paragraph list AFTER the section's own content is fully assembled
+   *  (see the splice just before this function's `return`, below). Purely
+   *  additive and OPTIONAL: absent (or every value empty) leaves every
+   *  section byte-identical to what this function already produces —
+   *  proven by this build's own zero-call regression suite. Mirrors DPIA's
+   *  `DpiaV3SkeletonAppend` (doc 232 §5) parameter shape, adapted to
+   *  ADMT's own paragraph-array section model rather than DPIA's keyed
+   *  composed-block model. */
+  admtV3Append?: Readonly<Record<string, readonly string[]>>;
 }
 
 // DOC 174 (2026-09-04) — THE DETERMINATION SYLLABUS (Syllabus & Record p.1).
@@ -1080,6 +1091,32 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
     { kind: "table", text: "", table: { key: "appendix_c:0", surface: "fact_record", ...buildFactRecordTable(intake, computed, organizationName, systemName, systemType, domains) } },
   ]);
 
+  // ── DOC 235 — V3 HOOK-SENTENCE SPLICE (dark unless the caller passes a
+  // non-empty `admtV3Append`, which only happens behind ADMT_V3_ENABLED AND
+  // ADMT_HOOKS_ENABLED AND at least one settled application — see
+  // admt-v3-selection.ts). Runs AFTER every section above is fully built
+  // and AFTER the syllabus is computed from the pre-splice `sections`
+  // array (so a hook sentence never alters the Determination Syllabus,
+  // which projects only the determinations already made, not persuasive
+  // citations) — the same "append after assembly, before render" placement
+  // DPIA's own splice uses (doc 232 §4). A section id with no matching
+  // rendered section (e.g. "notice" while the pathway is fully out of
+  // scope and only prints a not-reached stub) is silently skipped — never
+  // an error, never a padded new section. ──────────────────────────────────
+  const syllabus = buildAdmtV2Syllabus(sections, computed, execLead, organizationName, systemName);
+  const admtV3Append = args.admtV3Append;
+  if (admtV3Append) {
+    for (const [sectionId, sentences] of Object.entries(admtV3Append)) {
+      if (!sentences || sentences.length === 0) continue;
+      const target = sections.find((s) => s.id === sectionId);
+      if (!target) continue; // the section did not render this generation — nothing to append to
+      for (const sentence of sentences) {
+        if (!sentence || !sentence.trim()) continue;
+        target.paragraphs.push({ kind: "generated", text: sentence });
+      }
+    }
+  }
+
   return {
     _typed: "skeleton-document@admt-v3.2",
     spine_version: ADMT_V2_SPINE_VERSION,
@@ -1088,7 +1125,7 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
     sections,
     // DOC 174 (2026-09-04) — the Determination Syllabus, attached as a
     // projection of the determinations above.
-    syllabus: buildAdmtV2Syllabus(sections, computed, execLead, organizationName, systemName),
+    syllabus,
   };
 }
 

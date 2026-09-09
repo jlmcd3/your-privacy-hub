@@ -19,12 +19,28 @@
 // `LIA_HOOK_CONTEXT_BLOCK` the old hard-coded call used) —
 // tests/edge/corpus/doc213-hooks-generator.test.ts and
 // doc213-context-block-pin.test.ts, which exercise the `lia` path, are
-// unaffected by this change (doc 231 test run confirms).
+// unaffected by this change.
+//
+// DOC 237 (2026-09-09) — RECONCILED across the three V3 product branches.
+// `v3-dpia` (doc 232) and `v3-admt` (doc 235) each added their entry against
+// the OLD, non-generalised interface (they could not see `v3-cppa-risk`'s
+// generalisation, and said so). This is the ONE merged registry: FOUR
+// entries (`lia`, `dpia`, `cppa-risk`, `admt`), every one carrying its own
+// `elementOf`/`contextBlock` in the doc 231 shape, so `actionGenerate`'s
+// single registry dispatch reaches every product's own factor→element map
+// and [RATIFY] context block. Each product's vocabulary is carried over
+// byte-for-byte from its own branch; only the two doc 231 fields were added
+// to the `dpia`/`admt` entries. Pinned by
+// tests/edge/corpus/doc237-registry-reconciliation.test.ts.
 
 import { liaElementOf } from "./factor-element.ts";
 import { LIA_HOOK_CONTEXT_BLOCK } from "./hook-context-block.ts";
+import { dpiaElementOf } from "./dpia-factor-element.ts";
+import { DPIA_HOOK_CONTEXT_BLOCK } from "./dpia-hook-context-block.ts";
 import { riskElementOf } from "./risk-factor-element.ts";
 import { RISK_HOOK_CONTEXT_BLOCK } from "./risk-hook-context-block.ts";
+import { admtElementOf } from "./admt-factor-element.ts";
+import { ADMT_HOOK_CONTEXT_BLOCK } from "./admt-hook-context-block.ts";
 
 /** Exactly the DATA_CATEGORIES strings in src/pages/LIAssessment.enums.ts. */
 export const LIA_DATA_CATEGORIES: readonly string[] = [
@@ -58,7 +74,8 @@ export interface HookProductVocabulary {
   readonly export_prefix: string;
   /** DOC 231 — factor label -> the grouping key a hook's `{section}` slot
    *  and engine-verdict lookup resolve through (LIA: three-part-test
-   *  element; CPPA Risk: the factor_id itself, doc 229 §8 default #1).
+   *  element; DPIA: obligation | adequacy; CPPA Risk and ADMT: the
+   *  factor_id itself, doc 229 §8 / doc 235 §3.3 default #1).
    *  Returns `null` for an unmapped factor so `generateHooks` excludes
    *  that hook BY NAME rather than emitting a blank. */
   readonly elementOf: (factorId: string) => string | null;
@@ -66,8 +83,8 @@ export interface HookProductVocabulary {
    *  its canonical `corpus/maps/<product>-hooks.ts` file (pinned by a
    *  byte-comparison test — see e.g.
    *  tests/edge/corpus/doc213-context-block-pin.test.ts /
-   *  doc231-risk-context-block-pin.test.ts). `generateHooks` appends this
-   *  string after the emitted hooks array. */
+   *  doc231-risk-registry-and-context-block.test.ts). `generateHooks`
+   *  appends this string after the emitted hooks array. */
   readonly contextBlock: string;
 }
 
@@ -110,6 +127,24 @@ export const DPIA_REASON_SLUG_LIST: readonly string[] = [
   "required_by_code_of_conduct",
   "risk_management_accountability",
   "existing_processing_risk_changed",
+];
+
+/** DOC 235 (2026-09-08) — ADMT's own closed-list decision-domain slugs
+ *  (`_shared/intake-contracts/cppa-admt.ts`'s `SIGNIFICANT_DECISION_DOMAINS`,
+ *  minus the explicit negative "None of these categories..."), reduced to
+ *  a `use_case_class` value per record (the FIRST regulated domain
+ *  selected — see run-admt-checker-v2/_local/ltp/v3/rule-states.ts's own
+ *  doc comment for why this is a first-pass reduction, not a real
+ *  classifier). Exported so a future ADMT use-case classifier can reuse
+ *  the exact slug vocabulary this build's hooks are drafted against. */
+export const ADMT_DECISION_DOMAIN_CLASSES: readonly string[] = [
+  "lending_financial",
+  "housing",
+  "education",
+  "hiring_admission",
+  "work_allocation",
+  "employment_action",
+  "healthcare",
 ];
 
 export const HOOK_PRODUCT_REGISTRY: Readonly<Record<string, HookProductVocabulary>> = {
@@ -158,6 +193,52 @@ export const HOOK_PRODUCT_REGISTRY: Readonly<Record<string, HookProductVocabular
     export_prefix: "LIA",
     elementOf: liaElementOf,
     contextBlock: LIA_HOOK_CONTEXT_BLOCK,
+  },
+  // DOC 232 (2026-09-08) — DPIA V3 hook corpus registry entry. The DPIA
+  // hook join / rule-states pair this vocabulary against lives at
+  // run-dpia-framework/_local/ltp/dpia-deliverables/{rule-states,
+  // dpia-hook-join}.ts; the runtime atom evaluator remains
+  // `_shared/corpus/rule-types.ts` (product-agnostic, unmodified).
+  //
+  // `state_roots` is deliberately just "intake." and "engagement_map." — DPIA
+  // has no rules-as-data engine and no second typed-determination surface
+  // this build could safely read atoms off without risking a misreading of
+  // attachDpiaDeliverables's 4,000+ line internals (doc 232's own [NEEDS]
+  // note); `engagement_map.` is `buildDpiaEngagementMap()`'s own
+  // deterministic, already-tested rule engagement (doc 230 decision 5: "the
+  // engagement map is the rule pass here").
+  //
+  // DOC 237 — `elementOf`/`contextBlock` wired to the DPIA files doc 232
+  // already built (`dpia-factor-element.ts`, `dpia-hook-context-block.ts`,
+  // both pinned against the canonical dpia-hooks.ts by their own tests).
+  dpia: {
+    typed_state_vocabulary: {
+      flags: [
+        "biometric",
+        "special_category",
+        "children",
+        "large_scale",
+        "vulnerable_subjects",
+        "automated_decision",
+        "cross_border_transfer",
+      ],
+      classes: [
+        "employee_monitoring",
+        "public_space_surveillance",
+        "algorithmic_decision",
+        "innovative_technology_use",
+        "dataset_matching",
+      ],
+      relationships: ["employee", "customer", "public"],
+      data_categories: DPIA_DATA_CATEGORIES,
+      verdict_elements: ["obligation", "adequacy"],
+      state_roots: ["intake.", "engagement_map."],
+    },
+    instrument_scope: ["EU GDPR", "UK GDPR"],
+    output_path: "supabase/functions/run-dpia-framework/_local/corpus/maps/dpia-hooks.ts",
+    export_prefix: "DPIA",
+    elementOf: dpiaElementOf,
+    contextBlock: DPIA_HOOK_CONTEXT_BLOCK,
   },
   // DOC 231 (2026-09-08) — CPPA Risk registry entry. Vocabulary drawn from
   // the Risk intake contract (_shared/intake-contracts/cppa-risk-assessment.ts)
@@ -225,46 +306,49 @@ export const HOOK_PRODUCT_REGISTRY: Readonly<Record<string, HookProductVocabular
     elementOf: riskElementOf,
     contextBlock: RISK_HOOK_CONTEXT_BLOCK,
   },
-  // DOC 232 (2026-09-08) — DPIA V3 hook corpus registry entry. Additive,
-  // self-contained: does not change the `lia` entry above. The DPIA hook
-  // join / rule-states pair this vocabulary against lives at
-  // run-dpia-framework/_local/ltp/dpia-deliverables/{rule-states,
-  // dpia-hook-join}.ts; the runtime atom evaluator remains
-  // `_shared/corpus/rule-types.ts` (product-agnostic, unmodified).
+  // DOC 235 (2026-09-08) — ADMT's own vocabulary. `relationships` and
+  // `data_categories` are EMPTY: ADMT has no closed relationship-to-
+  // affected-person field and no closed data-category field (doc 216/227,
+  // confirmed again in the doc 235 build) — empty, not invented.
   //
-  // `state_roots` is deliberately just "intake." and "engagement_map." — DPIA
-  // has no rules-as-data engine and no second typed-determination surface
-  // this build could safely read atoms off without risking a misreading of
-  // attachDpiaDeliverables's 4,000+ line internals (doc 232's own [NEEDS]
-  // note); `engagement_map.` is `buildDpiaEngagementMap()`'s own
-  // deterministic, already-tested rule engagement (doc 230 decision 5: "the
-  // engagement map is the rule pass here").
-  dpia: {
+  // DOC 237 — `elementOf`/`contextBlock` wired to the ADMT files doc 235
+  // already built (`admt-factor-element.ts`, `admt-hook-context-block.ts`,
+  // both pinned against the canonical admt-hooks.ts by
+  // tests/edge/corpus/doc235-admt-registry-and-context-block.test.ts).
+  admt: {
     typed_state_vocabulary: {
       flags: [
-        "biometric",
-        "special_category",
-        "children",
-        "large_scale",
-        "vulnerable_subjects",
-        "automated_decision",
-        "cross_border_transfer",
+        "significant_decision",
+        "no_human_review",
+        "qualifying_human_review",
+        "solely_advertising",
+        "vendor_hosted",
+        "biometric_model",
+        "full_opt_out",
+        "human_appeal_exception",
+        "hiring_admission_exception",
+        "work_allocation_exception",
       ],
-      classes: [
-        "employee_monitoring",
-        "public_space_surveillance",
-        "algorithmic_decision",
-        "innovative_technology_use",
-        "dataset_matching",
+      classes: [...ADMT_DECISION_DOMAIN_CLASSES],
+      relationships: [],
+      data_categories: [],
+      verdict_elements: [
+        "Significant decision",
+        "Human involvement",
+        "Advertising exclusion",
+        "Notice delivery",
+        "Notice content",
+        "Opt-out pathway",
+        "Access process",
+        "Vendor dependency",
       ],
-      relationships: ["employee", "customer", "public"],
-      data_categories: DPIA_DATA_CATEGORIES,
-      verdict_elements: ["obligation", "adequacy"],
-      state_roots: ["intake.", "engagement_map."],
+      state_roots: ["intake."],
     },
-    instrument_scope: ["EU GDPR", "UK GDPR"],
-    output_path: "supabase/functions/run-dpia-framework/_local/corpus/maps/dpia-hooks.ts",
-    export_prefix: "DPIA",
+    instrument_scope: ["CPPA ADMT Regulations"],
+    output_path: "supabase/functions/run-admt-checker-v2/_local/corpus/maps/admt-hooks.ts",
+    export_prefix: "ADMT",
+    elementOf: admtElementOf,
+    contextBlock: ADMT_HOOK_CONTEXT_BLOCK,
   },
 };
 
