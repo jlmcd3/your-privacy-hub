@@ -10,6 +10,7 @@ import {
   toolSubscriberCents,
 } from "../_shared/pricing.ts";
 import { registryCents } from "../_shared/pricing-snapshot.ts";
+import { isTrialing } from "../_shared/trial.ts";
 import { REVISIONS_ENABLED } from "./_local/revision-gate.ts";
 import { missingSuiteModules, readSuiteModules } from "../_shared/suite-intake.ts";
 

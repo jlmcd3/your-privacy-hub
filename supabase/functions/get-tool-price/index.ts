@@ -8,6 +8,7 @@ import {
   toolStandaloneCents,
   toolSubscriberCents,
 } from "../_shared/pricing.ts";
+import { isTrialing } from "../_shared/trial.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
