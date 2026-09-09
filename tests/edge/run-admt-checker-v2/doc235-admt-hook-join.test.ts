@@ -426,10 +426,9 @@ Deno.test("resolveHookSelections — agrees on a single settled row; unsettled o
 
 // ── A zero-hook / empty-corpus call is a true no-op ───────────────────────
 
-Deno.test("applyAdmtHooks — ADMT_HOOKS ships empty in production; a call against it is a true no-op", () => {
+Deno.test("applyAdmtHooks — a call against an empty corpus is a true no-op", () => {
   const states = baseStates();
-  assertEquals(ADMT_HOOKS, []);
-  const r = applyAdmtHooks(ADMT_HOOKS, states, states.verdicts, [], new Set());
+  const r = applyAdmtHooks([], states, states.verdicts, [], new Set());
   assertEquals(r, { applications: [], flags: [] });
 });
 

@@ -25,8 +25,19 @@ Deno.test("zero-call — ADMT_V3_ENABLED and ADMT_HOOKS_ENABLED both default fal
   assertEquals(ADMT_HOOKS_ENABLED, false);
 });
 
-Deno.test("zero-call — ADMT_HOOKS ships empty in production today (verified, not assumed)", () => {
-  assertEquals(ADMT_HOOKS, []);
+Deno.test("zero-call — ADMT_HOOKS ships exactly the nine ratified hooks — the shipped-corpus pin", () => {
+  assertEquals(ADMT_HOOKS.length, 9);
+  assertEquals(ADMT_HOOKS.map((h) => h.hook_id).sort(), [
+    "cppa_fsor_commentary:2951b3e7-c3f6-4ab8-a9fa-e8f2e207ab56:v1",
+    "cppa_fsor_commentary:4b2d39e1-4cd0-4579-9c0f-35f06e476120:v1",
+    "cppa_fsor_commentary:7f616c44-b6f9-43b0-9891-1fdbd501bffc:v1",
+    "cppa_fsor_commentary:83bcecda-c1fd-4daf-b80f-63d8218a42a1:v1",
+    "cppa_fsor_commentary:84d00bed-b711-4b62-be13-b1a739d7b97b:v1",
+    "cppa_fsor_commentary:88f44d5e-fbaa-450f-a51e-3855240579fb:v1",
+    "cppa_fsor_commentary:be2a91bc-0d33-4cd8-a008-a82306816a50:v1",
+    "cppa_fsor_commentary:c6d63d10-272e-4b33-900f-55eb90df5dd6:v1",
+    "cppa_fsor_commentary:f77eaad2-93b8-4858-90f6-e37c147cb4bb:v1",
+  ]);
 });
 
 // ── 2. Pure-module I/O scan ────────────────────────────────────────────────
