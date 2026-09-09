@@ -101,7 +101,7 @@ const JURISDICTIONS: Jurisdiction[] = [
 const SUGGESTED_BY_REGION: Record<string, string[]> = {
   EU_EEA: ["EU_GDPR", "UK_GDPR", "CH_FADP"],
   UK: ["UK_GDPR", "EU_GDPR"],
-  US: ["US_CCPA", "US_VA", "US_CO", "US_CT", "US_TX"],
+  
   BR: ["BR_LGPD"],
   APAC: ["JP_APPI", "AU_PRIVACY", "KR_PIPA", "IN_DPDPA"],
   OTHER: ["EU_GDPR"],

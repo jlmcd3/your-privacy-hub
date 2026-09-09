@@ -52,7 +52,7 @@ const STEPS = [
 const JURISDICTIONS: { region: string; items: string[] }[] = [
   { region: "EU & EEA", items: ["GDPR", "France", "Germany", "Italy", "Spain", "Netherlands", "Ireland"] },
   { region: "United Kingdom", items: ["UK GDPR", "DPA 2018"] },
-  { region: "United States", items: ["CCPA / CPRA", "VCDPA", "CPA", "CTDPA", "UCPA"] },
+  
   { region: "Brazil", items: ["LGPD"] },
   { region: "Asia-Pacific", items: ["Singapore PDPA", "Australia Privacy Act", "Japan APPI", "South Korea PIPA"] },
   { region: "Others", items: ["Switzerland nFADP", "Canada PIPEDA", "South Africa POPIA"] },
