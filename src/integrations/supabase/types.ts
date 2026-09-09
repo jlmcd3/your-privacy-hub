@@ -700,6 +700,36 @@ export type Database = {
           },
         ]
       }
+      banned_users: {
+        Row: {
+          ban_expires_at: string
+          closed_at: string
+          created_at: string
+          email: string
+          former_user_id: string | null
+          id: string
+          reason: string
+        }
+        Insert: {
+          ban_expires_at?: string
+          closed_at?: string
+          created_at?: string
+          email: string
+          former_user_id?: string | null
+          id?: string
+          reason: string
+        }
+        Update: {
+          ban_expires_at?: string
+          closed_at?: string
+          created_at?: string
+          email?: string
+          former_user_id?: string | null
+          id?: string
+          reason?: string
+        }
+        Relationships: []
+      }
       biometric_assessments: {
         Row: {
           analysis_text: string | null
@@ -5181,6 +5211,9 @@ export type Database = {
           brief_role: string | null
           cancel_at_period_end: boolean
           cancelled_at: string | null
+          closed_at: string | null
+          closed_by: string | null
+          closure_type: string | null
           company_size: string | null
           created_at: string
           digest_jurisdictions: string[] | null
@@ -5204,6 +5237,7 @@ export type Database = {
           preferred_language: string
           primary_jurisdiction: string | null
           professional_annual: boolean | null
+          purge_after: string | null
           registered_at: string | null
           reports_reset_date: string | null
           role_confirmed_at: string | null
@@ -5233,6 +5267,9 @@ export type Database = {
           brief_role?: string | null
           cancel_at_period_end?: boolean
           cancelled_at?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closure_type?: string | null
           company_size?: string | null
           created_at?: string
           digest_jurisdictions?: string[] | null
@@ -5256,6 +5293,7 @@ export type Database = {
           preferred_language?: string
           primary_jurisdiction?: string | null
           professional_annual?: boolean | null
+          purge_after?: string | null
           registered_at?: string | null
           reports_reset_date?: string | null
           role_confirmed_at?: string | null
@@ -5285,6 +5323,9 @@ export type Database = {
           brief_role?: string | null
           cancel_at_period_end?: boolean
           cancelled_at?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closure_type?: string | null
           company_size?: string | null
           created_at?: string
           digest_jurisdictions?: string[] | null
@@ -5308,6 +5349,7 @@ export type Database = {
           preferred_language?: string
           primary_jurisdiction?: string | null
           professional_annual?: boolean | null
+          purge_after?: string | null
           registered_at?: string | null
           reports_reset_date?: string | null
           role_confirmed_at?: string | null
@@ -11011,6 +11053,16 @@ export type Database = {
         Args: { p_max_rows?: number; p_regulator: string }
         Returns: number
       }
+      admin_list_banned_users: {
+        Args: never
+        Returns: {
+          ban_expires_at: string
+          closed_at: string
+          email: string
+          id: string
+          reason: string
+        }[]
+      }
       admin_list_people: {
         Args: never
         Returns: {
@@ -11080,6 +11132,10 @@ export type Database = {
           subject: string
           violation: string
         }[]
+      }
+      close_account: {
+        Args: { _closure_type: string; _reason?: string; _user_id: string }
+        Returns: Json
       }
       commit_eu_notice_generation: {
         Args: {
@@ -11181,6 +11237,7 @@ export type Database = {
       }
       increment_batch_failed: { Args: { batch_id: string }; Returns: undefined }
       is_current_user_premium: { Args: never; Returns: boolean }
+      is_email_banned: { Args: { _email: string }; Returns: boolean }
       is_founding_rate_available: { Args: never; Returns: boolean }
       list_flagged_enforcement_actions: {
         Args: { _limit?: number; _offset?: number }
@@ -11258,9 +11315,12 @@ export type Database = {
       owns_client: { Args: { _client_id: string }; Returns: boolean }
       prune_old_coach_transcripts: { Args: never; Returns: undefined }
       prune_old_user_events: { Args: never; Returns: undefined }
+      purge_closed_accounts: { Args: never; Returns: number }
+      purge_expired_bans: { Args: never; Returns: number }
       quality_runs_watchdog: { Args: never; Returns: Json }
       recompute_memo_eligible_interim: { Args: never; Returns: number }
       release_job_lease: { Args: { _key: string }; Returns: undefined }
+      reopen_account: { Args: { _user_id: string }; Returns: Json }
       replay_harness_fetch_doc: {
         Args: { p_doc_id: string }
         Returns: {
