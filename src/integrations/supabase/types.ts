@@ -2518,6 +2518,7 @@ export type Database = {
           refetch_last_error: string | null
           regulator: string
           regulator_canonical: string | null
+          regulator_canonical_in_citation: boolean | null
           regulator_profile_version: string | null
           regulatory_family: string[] | null
           resweep_pending: boolean
@@ -2614,6 +2615,7 @@ export type Database = {
           refetch_last_error?: string | null
           regulator: string
           regulator_canonical?: string | null
+          regulator_canonical_in_citation?: boolean | null
           regulator_profile_version?: string | null
           regulatory_family?: string[] | null
           resweep_pending?: boolean
@@ -2710,6 +2712,7 @@ export type Database = {
           refetch_last_error?: string | null
           regulator?: string
           regulator_canonical?: string | null
+          regulator_canonical_in_citation?: boolean | null
           regulator_profile_version?: string | null
           regulatory_family?: string[] | null
           resweep_pending?: boolean
