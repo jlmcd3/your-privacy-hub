@@ -20,18 +20,26 @@
 // log carries the full map and its provenance/caveats).
 //
 // THE DOC 223 DEFECT, DESIGNED OUT FROM THE START (doc 231 build brief):
-// `renderSentence` refuses to render S3/S6/S6x from a distinguishing pair
+// `applyRiskHooks` refuses to render S3/S6/S6x from a distinguishing pair
 // whose `record_polarity === "absent"` — flag `absent_pair_unrenderable`,
-// fall back to the default (omitted) entry — because filling `{record_fact}`
+// fall back to the default entry — because filling `{record_fact}`
 // from that atom's phrase would print a PRESENCE statement ("the company
 // has stated that X") for a fact the record does not hold (the atom is
 // absent, not present). `holdingPair` still correctly treats an
 // absent-polarity pair as HOLDING when the atom is absent on the record
 // (agreement computation is unaffected — an absent-polarity pair still
 // legitimately distinguishes); only the RENDER of that specific pair is
-// refused. See doc231-hook-join.test.ts for the reproduction the LIA
-// program's doc 223 found (`fddd8eec` printed a false S6 sentence
-// unconditionally) and the assertion that this join can never reproduce it.
+// refused, and `renderSentence` repeats the check as defence in depth.
+// DOC 237 aligned the guard's PLACEMENT to LIA's/DPIA's/ADMT's joins —
+// after `directionFor`, on the three rendering shapes — so the matrix's
+// own omit outcomes (`authority_not_dispositive` / `rule_missing`) are no
+// longer masked for a pair that would never have rendered anyway. Doc 237
+// also added a Risk-only `verdict_missing` assertion (this product's
+// `verdicts` is `{}` today — doc 231A §5). See doc231-hook-join.test.ts
+// for the reproduction the LIA program's doc 223 found (`fddd8eec` printed
+// a false S6 sentence unconditionally), the assertion that this join can
+// never reproduce it, and doc237-risk-join-review.test.ts for the two
+// review fixes.
 //
 // NEVER THROWS: same discipline as LIA's join (see that file's header for
 // the full rationale) — every atom this file evaluates comes off a
@@ -465,19 +473,12 @@ export function applyRiskHooks(
     }
 
     const pair = agreement === "different" ? holdingPair(hook, states, preferAtom) : undefined;
-
-    // ── DOC 223 GUARD (doc 231 build brief) — carried from the start: a
-    // shape that would render from a distinguishing pair whose
-    // `record_polarity === "absent"` is refused BEFORE `directionFor` is
-    // even consulted, so an absence can never be printed as a presence.
-    // This is the exact defect doc 223 found in `fddd8eec` (S6 printed
-    // unconditionally from an absent-polarity pair) — reproduced and
-    // asserted-against in doc231-hook-join.test.ts.
-    if (agreement === "different" && pair?.record_polarity === "absent") {
-      flags.push({ hook_id: hook.hook_id, reason: "absent_pair_unrenderable" });
-      continue;
-    }
-
+    // The doc 223 absent-polarity guard (`absent_pair_unrenderable`) is
+    // applied BELOW, after `directionFor`, on the three shapes that render
+    // a pair — the placement LIA's reference join, DPIA's and ADMT's all use
+    // (doc 237 review). Doc 231 originally applied it here, before the
+    // matrix, which masked the matrix's own omit outcomes for a pair that
+    // would never have rendered anyway; see the guard's own comment below.
     const facts = conditionalFacts(hook, states, pair);
     const direction = directionFor(hook.posture, agreement, engineVerdict, hook.settledness, facts);
 
@@ -499,6 +500,44 @@ export function applyRiskHooks(
     }
     if ((shape === "S3" || shape === "S6" || shape === "S6x") && !pair) {
       flags.push({ hook_id: hook.hook_id, reason: "s3_missing_distinguishing_atom" });
+      continue;
+    }
+    // ── DOC 223 GUARD (doc 231 build brief) — an absent-polarity pair
+    // distinguishes because the record LACKS the source's fact, but
+    // `{record_fact}` has only the atom's positive phrase, which would print
+    // as something the company stated. Until an absent-polarity phrase map
+    // is ratified, such a pair never renders; the default entry stands.
+    // This is the exact defect doc 223 found in `fddd8eec` — reproduced and
+    // asserted-against in doc231-hook-join.test.ts.
+    //
+    // DOC 237 — PLACEMENT aligned to LIA's reference join (lia-deliverables/
+    // hook-join.ts) and DPIA's/ADMT's: the guard sits AFTER `directionFor`,
+    // on the three shapes that would actually render the pair. Doc 231 put
+    // it BEFORE `directionFor` on `agreement === "different"` alone, which
+    // masked the matrix's own OMIT outcomes for an absent-polarity pair —
+    // conditional + passing → `authority_not_dispositive` / `rule_missing`
+    // (the lawyer's rule signal, which drops the entry) became
+    // `absent_pair_unrenderable` (which keeps the V2 default entry). Nothing
+    // is rendered on either path; only the flag semantics differed, and
+    // the rendering guard below is unchanged in strength.
+    if ((shape === "S3" || shape === "S6" || shape === "S6x") && pair && pair.record_polarity === "absent") {
+      flags.push({ hook_id: hook.hook_id, reason: "absent_pair_unrenderable" });
+      continue;
+    }
+    // ── DOC 237 — VERDICT-MISSING GUARD (CPPA Risk only). `verdicts` is `{}`
+    // in this product's pipeline today (doc 231A §5: no per-factor verdict
+    // source exists in the engine — NEED #2, still open), and the shared
+    // matrix treats a null verdict as NON-passing. S2 / S6 / S6x each assert
+    // that the section's own finding "reflects" or "rests on" something —
+    // a statement about an engine finding that does not exist when the
+    // verdict is absent. Those three shapes are refused until a verdict is
+    // actually wired; S1 / S3 / S4 / S5a make no such assertion and still
+    // render (S5b already requires a passing verdict, so it is unreachable
+    // here). The planner's pre-filter is unaffected: for every posture at
+    // least one of `same`/`different` still prints under a null verdict, so
+    // no call is planned that this guard would then waste.
+    if (engineVerdict === null && (shape === "S2" || shape === "S6" || shape === "S6x")) {
+      flags.push({ hook_id: hook.hook_id, reason: "verdict_missing" });
       continue;
     }
     const verb = verbFor(hook);

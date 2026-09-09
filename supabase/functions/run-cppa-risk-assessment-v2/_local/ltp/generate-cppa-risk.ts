@@ -100,6 +100,7 @@ import { cppaRiskContract } from "../../../_shared/intake-contracts/cppa-risk-as
 // ships empty — see risk-v3-selection.ts's header for the zero-call
 // guarantee this wiring relies on).
 import { attachRiskHookSelection, type RiskV3DbClient, type RiskV3SelectionRecord } from "./risk-v3-selection.ts";
+import { RISK_V3_ENABLED } from "./risk-v3-flag.ts";
 // DOC 231A — CPPA RISK V3 hook selection's rankedSourceIds/determinativeSourceIds
 // (doc 231 build-log NEED #3), now wired from the H3-style Persuasive
 // Authority ranking; and the finalize-time splice of riskV3.applications
@@ -336,6 +337,31 @@ export function appendRiskRooAsk(report: Record<string, unknown>, unsettledCount
 }
 
 /**
+ * DOC 237 — the `_meta.internal.risk_v3` record block, written ONLY when the
+ * selection actually ran enabled (`riskV3.enabled === true` — which is what
+ * `attachRiskHookSelection` returns iff RISK_V3_ENABLED). With the flag off
+ * (`enabled: false`, or no record at all) `report` is left BYTE-UNTOUCHED:
+ * no `_meta`, no `internal`, no `risk_v3` key is created — the dark-mode
+ * law LIA's `lia_v3`, DPIA's `dpia_v3` and ADMT's `admt_v3` blocks follow.
+ * Returns whether the block was written. Exported (not inlined in
+ * `finalizeCppaRiskPayload`) so it is directly unit-testable, mirroring
+ * `appendRiskRooAsk`'s own shape.
+ */
+export function attachRiskV3Record(report: Record<string, unknown>, riskV3: RiskV3SelectionRecord | null | undefined): boolean {
+  if (!riskV3 || riskV3.enabled !== true) return false;
+  const meta = (report._meta && typeof report._meta === "object" && !Array.isArray(report._meta))
+    ? report._meta as Record<string, unknown>
+    : {};
+  const internal = (meta.internal && typeof meta.internal === "object" && !Array.isArray(meta.internal))
+    ? meta.internal as Record<string, unknown>
+    : {};
+  internal.risk_v3 = riskV3;
+  meta.internal = internal;
+  report._meta = meta;
+  return true;
+}
+
+/**
  * Finalize an assembled body into the exact persisted payload.
  *
  * ITEM 378 (CORRECTION) — this is THE finalize point every completed
@@ -374,18 +400,16 @@ export function finalizeCppaRiskPayload(
   } catch { /* non-fatal */ }
 
   // (1a) DOC 231 — CPPA RISK V3 hook selection record (dark; see
-  // risk-v3-selection.ts). Unconditional key, mirroring risk_refinement:
-  // `enabled:false` while RISK_V3_ENABLED is off or RISK_HOOKS ships empty
-  // (both true today), so this is inert but always recorded for audit.
-  // NEVER written to any customer-facing surface — see risk-v3-selection.ts
-  // `RiskV3InformationNeededEntry`'s header for why `information_needed`
-  // itself is not yet a safe append target for this product.
+  // risk-v3-selection.ts). DOC 237: written ONLY while the selection ran
+  // enabled (`riskV3.enabled === true`, i.e. RISK_V3_ENABLED) — the same
+  // dark-mode law LIA's `_meta.internal.lia_v3`, DPIA's `dpia_v3` and
+  // ADMT's `admt_v3` blocks all follow. Doc 231 wrote an `enabled:false`
+  // record unconditionally, which made the persisted `report_data` differ
+  // from its pre-build bytes with the flag OFF (`serializeCustomerReport`
+  // keeps `_meta.internal`) — the one thing the zero-call law forbids.
+  // NEVER written to any customer-facing surface.
   try {
-    const internal = ((report._meta as Record<string, unknown>).internal) as Record<string, unknown>;
-    internal.risk_v3 = extras?.riskV3 ?? {
-      enabled: false, hooks_available: 0, generation_no: null, cap: null,
-      calls_this_generation: 0, considered: [], applications: [], information_needed_entries: [], error: null,
-    };
+    attachRiskV3Record(report, extras?.riskV3);
   } catch { /* non-fatal */ }
 
   // (1a-ii) DOC 231A — the CEO's Persuasive Authority scope ruling, wired.
@@ -887,9 +911,17 @@ export async function generateCppaRiskReport(
   // since RISK_HOOKS ships empty (attachRiskHookSelection returns before
   // reading either) and RISK_CORPUS_MAP carries no relevance_profile —
   // this call is real, wired plumbing, not yet a live ranking.
+  //
+  // DOC 237 — both computations are gated on the SAME two conditions
+  // `attachRiskHookSelection` short-circuits on (RISK_V3_ENABLED and a
+  // non-empty RISK_HOOKS): with the flag off they were pure, unused work on
+  // the production path — and, being real ranking code, a throw in them
+  // would have failed a flag-off generation. Now nothing V3-specific runs
+  // at all unless the selection would actually consume its result.
   const riskV3Verdicts: Record<string, string> = {};
-  const determinativeSourceIds = riskDeterminativeSourceIds(base, rawIntake);
-  const rankedSourceIds = riskPersuasiveRankedSourceIds(rawIntake, riskV3Verdicts, RISK_HOOKS, determinativeSourceIds);
+  const riskV3Live = RISK_V3_ENABLED && RISK_HOOKS.length > 0;
+  const determinativeSourceIds = riskV3Live ? riskDeterminativeSourceIds(base, rawIntake) : new Set<string>();
+  const rankedSourceIds = riskV3Live ? riskPersuasiveRankedSourceIds(rawIntake, riskV3Verdicts, RISK_HOOKS, determinativeSourceIds) : [];
   const riskV3 = await attachRiskHookSelection(rawIntake, riskV3Verdicts, rankedSourceIds, determinativeSourceIds, {
     db: options.riskV3Db as RiskV3DbClient | undefined,
     assessmentId: runId,
