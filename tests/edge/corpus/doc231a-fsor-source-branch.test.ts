@@ -101,15 +101,35 @@ function run(rows: HookRow[], profiles: HookProfileRow[], sources?: Map<string, 
 
 // ── Unit level: the three branches added to generate.ts ────────────────────
 
-Deno.test("citationFor: cppa_fsor_commentary composes 'CPPA Final Statement of Reasons, <regulation_citation>'", () => {
+Deno.test("citationFor: cppa_fsor_commentary composes 'CPPA Final Statement of Reasons, <regulation_citation>, <page_ref>'", () => {
+  // DOC 238 §7 — `page_ref` was already a fsorSource() default (below) but,
+  // before this session's citationFor fix, was silently dropped from the
+  // composed label; this pin now reflects the fixed composition (a real
+  // gap doc 237 §5 item 7 named).
   const cite = citationFor(fsorProfile(), fsorSource());
   assertEquals(cite?.regulator, "the CPPA");
+  assertEquals(cite?.authority_label, "CPPA Final Statement of Reasons, 11 CCR § 7152(a)(1), p. 102");
+});
+
+Deno.test("citationFor: cppa_fsor_commentary with only regulation_citation (no fsor_package, no page_ref) composes just the two parts", () => {
+  const cite = citationFor(fsorProfile(), fsorSource({ page_ref: null }));
   assertEquals(cite?.authority_label, "CPPA Final Statement of Reasons, 11 CCR § 7152(a)(1)");
 });
 
-Deno.test("citationFor: cppa_fsor_commentary with no regulation_citation still yields a bare, valid label (never null)", () => {
-  const cite = citationFor(fsorProfile(), fsorSource({ regulation_citation: null }));
+Deno.test("citationFor: cppa_fsor_commentary with none of regulation_citation/fsor_package/page_ref still yields a bare, valid label (never null)", () => {
+  const cite = citationFor(fsorProfile(), fsorSource({ regulation_citation: null, page_ref: null }));
   assertEquals(cite?.authority_label, "CPPA Final Statement of Reasons");
+});
+
+Deno.test("citationFor: cppa_fsor_commentary with fsor_package composes the package name between the label and the regulation citation (doc 238 §7)", () => {
+  const cite = citationFor(
+    fsorProfile(),
+    fsorSource({ fsor_package: "CCPA Updates, Cyber, Risk, ADMT, Insurance 2025 FSOR" }),
+  );
+  assertEquals(
+    cite?.authority_label,
+    "CPPA Final Statement of Reasons, CCPA Updates, Cyber, Risk, ADMT, Insurance 2025 FSOR, 11 CCR § 7152(a)(1), p. 102",
+  );
 });
 
 Deno.test("deriveSourceStatus: cppa_fsor_commentary always derives regulator_guidance (no exclusion path)", () => {

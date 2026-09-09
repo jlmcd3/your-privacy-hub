@@ -194,23 +194,32 @@ export const ADMT_ATOM_PHRASES: Readonly<Record<string, string>> = {
 // before this shape could serve a product whose eight factors are not one
 // named three-part test.
 
+// DOC 238 (2026-09-09) — AMENDED, still [RATIFY — DRAFT, unratified]: same
+// amendment as DPIA's/Risk's (see dpia-hooks.ts's doc comment for the full
+// rationale). ADMT's own approved prose (doc 236) confirms both pieces this
+// build adds: G1–G3 (FSOR, domestic) each open with the CPPA rule before the
+// quoted `agency_response` clause, and E1 (foreign enforcement) was the
+// specific row doc 236 §4.5's editorial pass restructured to "state the
+// California rule first, then the foreign decision" — the same fix as doc
+// 234 candidates 1–4. See doc 238 §"ADMT".
+
 export const ADMT_HOOK_SHAPES: Readonly<Record<"S1" | "S2" | "S3" | "S4" | "S5a" | "S5b" | "S6" | "S6x", string>> = {
   S1:
-    "The company has stated that {customer_fact}. In {authority}, {regulator} {verb} that where {fact_pattern}, {finding}. That finding supports the company's position on {factor}. ({citation}; {status}.)",
+    "The company has stated that {customer_fact}. {governing_provision}In {authority}, {regulator} {verb} that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding supports the company's position on {factor}. Section {section} records that determination. ({citation}; {status}.)",
   S2:
-    "The company has stated that {customer_fact}. In {authority}, {regulator} found that where {fact_pattern}, {finding}. That finding cuts against the company's position on {factor}, and the Section {section} finding reflects it. ({citation}; {status}.)",
+    "The company has stated that {customer_fact}. {governing_provision}In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding cuts against the company's position on {factor}. Whether that holds on this record is addressed in Section {section}. ({citation}; {status}.)",
   S3:
-    "In {authority}, {regulator} found that where {fact_pattern}, {finding}. That finding turned on the fact that {source_fact}; on this record the company has instead stated that {record_fact}. The decision marks a boundary rather than a finding against the company. ({citation}; {status}.)",
+    "{governing_provision}In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding turned on the fact that {source_fact}; on this record the company has instead stated that {record_fact}. The decision marks a boundary rather than a finding against the company. ({citation}; {status}.)",
   S4:
-    "In {authority}, {regulator} found that where {fact_pattern}, {finding}. The company has stated that {customer_fact}. That decision is {status}; it is noted as a boundary and is not applied. ({citation}.)",
+    "{governing_provision}In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". The company has stated that {customer_fact}. That decision is {status}; it is noted as a boundary and is not applied. ({citation}.)",
   S5a:
-    "In {authority}, {regulator} {verb} that {proposition}, subject to {condition}. That guidance is relevant to the company's position on {factor}; whether its condition is satisfied is addressed in Section {section}. ({citation}; {status}.)",
+    "In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}. That guidance is relevant to the company's position on {factor}; whether its condition is satisfied is addressed in Section {section}. ({citation}; {status}.)",
   S5b:
-    "In {authority}, {regulator} {verb} that {proposition}, subject to {condition}. That guidance is relevant to the company's position on {factor}; whether its condition is satisfied is addressed in Section {section}. The facts identified in Section {section} satisfy that stated condition. ({citation}; {status}.)",
+    "In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}. That guidance is relevant to the company's position on {factor}; whether its condition is satisfied is addressed in Section {section}. The facts identified in Section {section} satisfy that stated condition. ({citation}; {status}.)",
   S6:
-    "The company has stated that {record_fact}. In {authority}, {regulator} {verb} that {proposition}, subject to {condition}, but does not address the {factor} question where {record_fact}. The determination in Section {section} therefore rests on the separately identified rules and facts, not on that guidance. ({citation}; {status}.)",
+    "The company has stated that {record_fact}. In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}, but does not address the {factor} question where {record_fact}. The determination in Section {section} therefore rests on the separately identified rules and facts, not on that guidance. ({citation}; {status}.)",
   S6x:
-    "The company has stated that {record_fact}. In {authority}, {regulator} {verb} that {proposition}, subject to {condition}, and that {exclusion_paraphrase}; that exclusion applies to processing of the kind the company describes, and the Section {section} finding reflects it. ({citation}; {status}.)",
+    "The company has stated that {record_fact}. In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}, and that {exclusion_paraphrase}; that exclusion applies to processing of the kind the company describes. Whether it applies here is addressed in Section {section}. ({citation}; {status}.)",
 };
 
 // ── [RATIFY — DRAFT, unratified] — concept equivalence ───────────────────
@@ -286,6 +295,20 @@ export const ADMT_SOURCE_STATUS_LABELS: Readonly<Record<string, string>> = {
 // run-li-assessment/_local/corpus/maps/lia-hooks.ts) — the appeal sentence ─
 
 export const ADMT_APPEAL_SENTENCE = "This matter is subject to an appeal which could invalidate this ruling.";
+
+// ── [RATIFY — DRAFT, unratified] — DOC 238 §5 item 4, PROPOSED. TWO hedge
+// variants, same split as Risk's (see risk-hooks.ts's own doc comment):
+// `domestic_facts` for a `cppa_fsor_commentary` source (ADMT's own Article
+// 10/11 regulations); `foreign_analogy` for a GDPR `enforcement_actions`
+// source (doc 236's E1 — "decided under the GDPR, not California's ADMT
+// rules, so it is persuasive only here"). Wording is generic (hook-
+// agnostic), the same judgment call flagged for the other three products —
+// see doc 238 §"ADMT". ────────────────────────────────────────────────────
+
+export const ADMT_HEDGE_DOMESTIC_FACTS_PROPOSED =
+  "Whether this applies here is a question about this company's own facts, not a fixed rule.";
+export const ADMT_HEDGE_FOREIGN_ANALOGY_PROPOSED =
+  "This is a foreign decision, cited only by analogy; whether it applies here depends on this company's own facts, not on the decision's.";
 
 export const ADMT_SETTLEDNESS_LABELS: Readonly<Record<"R1" | "R2" | "R3" | "R4", string>> = {
   R1: "adopted guidance or settled authority",

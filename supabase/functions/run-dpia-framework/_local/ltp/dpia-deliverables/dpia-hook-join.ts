@@ -84,6 +84,7 @@ import {
   DPIA_FACTOR_PHRASES,
   DPIA_HOOK_SHAPES,
   DPIA_APPEAL_SENTENCE,
+  DPIA_HEDGE_DOMESTIC_FACTS_PROPOSED,
   DPIA_SETTLEDNESS_LABELS,
   DPIA_SOURCE_STATUS_LABELS,
   dpiaAtomConcept,
@@ -221,6 +222,13 @@ function appealSuffix(hook: AuthorityHook): string {
   return hook.source_status === "sa_decision_appeal_pending" ? ` ${DPIA_APPEAL_SENTENCE}` : "";
 }
 
+/** DOC 238 §5 item 4 — PROPOSED. Mirrors `appealSuffix` exactly. DPIA uses
+ *  only the domestic-facts hedge (doc 238 §"DPIA"); a hook marked
+ *  `foreign_analogy` is a data error for this product and renders no hedge. */
+function hedgeSuffix(hook: AuthorityHook): string {
+  return hook.hedge_variant === "domestic_facts" ? ` ${DPIA_HEDGE_DOMESTIC_FACTS_PROPOSED}` : "";
+}
+
 function verbFor(hook: AuthorityHook): "found" | "states" | "advised" {
   if (hook.verb) return hook.verb;
   const st = hook.source_status;
@@ -246,7 +254,7 @@ function verbConsistent(hook: AuthorityHook, verb: string): boolean {
  * place; it is written defensively anyway (never trusts a caller) by simply
  * never being reachable with such a pair.
  */
-function renderSentence(
+export function renderSentence(
   hook: AuthorityHook,
   shape: HookShape,
   factAtomsHolding: readonly string[],
@@ -265,8 +273,16 @@ function renderSentence(
     finding: hook.finding_paraphrase,
     factor: DPIA_FACTOR_PHRASES[hook.factor_id] ?? hook.factor_id.toLowerCase(),
     status: statusLabel(hook),
+    // DOC 238 §5 item 2 — PROPOSED; no-op unless a shape references {quote}.
+    quote: hook.finding_span,
   };
   if (section !== undefined) slots.section = section;
+  // DOC 238 §5 item 3 — PROPOSED; only set when curated (fail-closed).
+  // Always resolvable (graceful, not fail-closed) — no DPIA shape
+  // references {governing_provision} today, so this is a no-op either way;
+  // kept consistent with Risk/ADMT's own mechanism (risk hook-join.ts's
+  // comment has the full rationale).
+  slots.governing_provision = hook.governing_provision_sentence ? `${hook.governing_provision_sentence} ` : "";
 
   if (shape === "S1" || shape === "S2" || shape === "S4") {
     const phrase = phrasesFor(factAtomsHolding);
@@ -295,7 +311,7 @@ function renderSentence(
     sentence = sentence.split(`{${key}}`).join(value);
   }
   if (/\{[a-z_]+\}/.test(sentence)) return undefined;
-  return sentence + appealSuffix(hook);
+  return sentence + appealSuffix(hook) + hedgeSuffix(hook);
 }
 
 interface Candidate {

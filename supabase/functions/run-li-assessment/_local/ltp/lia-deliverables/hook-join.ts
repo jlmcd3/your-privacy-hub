@@ -73,6 +73,13 @@ import {
   LIA_SOURCE_STATUS_LABELS,
   liaAtomConcept,
 } from "../../corpus/maps/lia-hooks.ts";
+// DOC 238 — the PROPOSED hedge constant. Not yet ratified, not imported from
+// the ratified lia-hooks.ts (that file is byte-frozen — see its own header),
+// so it lives beside the join as its own clearly-labelled, non-ratified
+// export. Every hook shipped today has `hedge_variant` unset, so importing
+// this is a no-op until a curated hook sets that field.
+export const LIA_HEDGE_DOMESTIC_FACTS_PROPOSED =
+  "But the outcome here depends on this company's own facts, not on the cited authority's.";
 import { liaV3Answer, liaV3FieldLabel } from "../v3/field-labels.ts";
 
 export interface HookFlag {
@@ -207,6 +214,18 @@ function appealSuffix(hook: AuthorityHook): string {
   return hook.source_status === "sa_decision_appeal_pending" ? ` ${LIA_APPEAL_SENTENCE}` : "";
 }
 
+/** DOC 238 §5 item 4 — PROPOSED. Mirrors `appealSuffix`'s pattern exactly: a
+ *  fixed, ratified string appended by the join, never drafted. A hook whose
+ *  `hedge_variant` is unset (every hook shipped today) gets no suffix at
+ *  all — byte-identical to pre-doc-238 rendering. LIA's approved prose uses
+ *  ONLY the domestic-facts hedge (its EDPB/UK-guidance/EU-enforcement
+ *  sources ARE its own governing law's authorities — doc 238 §4); a hook
+ *  marked `foreign_analogy` is a data error for this product and renders no
+ *  hedge rather than guess at wording LIA has no ratified text for. */
+function hedgeSuffix(hook: AuthorityHook): string {
+  return hook.hedge_variant === "domestic_facts" ? ` ${LIA_HEDGE_DOMESTIC_FACTS_PROPOSED}` : "";
+}
+
 function verbFor(hook: AuthorityHook): "found" | "states" | "advised" {
   if (hook.verb) return hook.verb;
   const st = hook.source_status;
@@ -226,12 +245,20 @@ function verbConsistent(hook: AuthorityHook, verb: string): boolean {
 
 /** Render one hook's sentence for `shape`, or `undefined` if any slot the
  *  shape needs cannot be resolved. Never throws: every atom substituted here
- *  was already evaluated without throwing by the caller. */
-function renderSentence(
+ *  was already evaluated without throwing by the caller.
+ *
+ *  DOC 238 — `shapes` is a new, OPTIONAL 5th parameter defaulting to the
+ *  live ratified `LIA_HOOK_SHAPES`, so every existing call site (and every
+ *  existing pin test) is byte-identical. It exists so a test can exercise
+ *  this exact render mechanism against `LIA_HOOK_SHAPES_PROPOSED_2026_09`
+ *  (above) without a second, duplicated render function. Exported for the
+ *  same reason — doc 238's tests call it directly. */
+export function renderSentence(
   hook: AuthorityHook,
   shape: HookShape,
   factAtomsHolding: readonly string[],
   pair: HookDistinguishingPair | undefined,
+  shapes: Readonly<Record<HookShape, string>> = LIA_HOOK_SHAPES,
 ): string | undefined {
   const section = SECTION_FOR_ELEMENT[hook.bears_on_element];
   const verb = verbFor(hook);
@@ -245,8 +272,23 @@ function renderSentence(
     finding: hook.finding_paraphrase,
     factor: LIA_FACTOR_PHRASES[hook.factor_id] ?? hook.factor_id.toLowerCase(),
     status: statusLabel(hook),
+    // DOC 238 §5 item 2 — PROPOSED. The verbatim, verified span
+    // (`finding_span`, required on every hook, never subject to
+    // `clauseFormErrors` — that check applies only to a paraphrase). No
+    // shape shipped today references `{quote}`, so this is a no-op unless a
+    // PROPOSED shape (doc 238) uses it.
+    quote: hook.finding_span,
   };
   if (section !== undefined) slots.section = section;
+  // DOC 238 §5 item 3 — PROPOSED. Only set when curated; a proposed shape
+  // that references `{governing_provision}` on a hook without one fails to
+  // resolve (the existing unresolved-slot check below), the same fail-closed
+  // behaviour `{proposition}`/`{condition}` already have.
+  // Always resolvable (graceful, not fail-closed) — no LIA shape
+  // references {governing_provision} today, so this is a no-op either way;
+  // kept consistent with Risk/ADMT's own mechanism (risk hook-join.ts's
+  // comment has the full rationale).
+  slots.governing_provision = hook.governing_provision_sentence ? `${hook.governing_provision_sentence} ` : "";
 
   if (shape === "S1" || shape === "S2" || shape === "S4") {
     const phrase = phrasesFor(factAtomsHolding);
@@ -270,13 +312,42 @@ function renderSentence(
     slots.condition = hook.condition_text;
   }
 
-  let sentence: string = LIA_HOOK_SHAPES[shape];
+  let sentence: string = shapes[shape];
   for (const [key, value] of Object.entries(slots)) {
     sentence = sentence.split(`{${key}}`).join(value);
   }
   if (/\{[a-z_]+\}/.test(sentence)) return undefined; // an unresolved slot remains
-  return sentence + appealSuffix(hook);
+  return sentence + appealSuffix(hook) + hedgeSuffix(hook);
 }
+
+// ── DOC 238 (2026-09-09) — PROPOSED paragraph-form shapes, LIA. NOT
+// ratified, NOT exported from lia-hooks.ts (that file's [RATIFY] block is a
+// live-ratified byte, frozen — see its own header comment), NOT part of the
+// generate-time context-block copy. Exists only so the render mechanism
+// above (the `{quote}`/`{governing_provision}` slots, `hedgeSuffix`) can be
+// exercised by a real test against the exact grammar `renderSentence`
+// already understands, and so doc 238 quotes something that has actually
+// been run, not hand-typed prose. See doc 238 §"LIA" for the full proposal,
+// the plain-English rationale per change, and the CEO ratify/revise/hold
+// line — this export is the WORKING COPY that document quotes verbatim.
+export const LIA_HOOK_SHAPES_PROPOSED_2026_09: Readonly<Record<"S1" | "S2" | "S3" | "S4" | "S5a" | "S5b" | "S6" | "S6x", string>> = {
+  S1:
+    "The company has stated that {customer_fact}. In {authority}, {regulator} {verb} that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding supports the company's position on the {factor}. Section {section} records that determination. ({citation}; {status}.)",
+  S2:
+    "The company has stated that {customer_fact}. In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding cuts against the company's position on the {factor}. Whether that holds on this record is addressed in Section {section}. ({citation}; {status}.)",
+  S3:
+    "In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding turned on the fact that {source_fact}; on this record the company has instead stated that {record_fact}. The decision marks a boundary rather than a finding against the company. ({citation}; {status}.)",
+  S4:
+    "In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". The company has stated that {customer_fact}. That decision is {status}; it is noted as a boundary and is not applied. ({citation}.)",
+  S5a:
+    "In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}. That guidance is relevant to the company's asserted {factor}; whether its condition is satisfied is addressed in Section {section}. ({citation}; {status}.)",
+  S5b:
+    "In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}. That guidance is relevant to the company's asserted {factor}; whether its condition is satisfied is addressed in Section {section}. The facts identified in Section {section} satisfy that stated condition. ({citation}; {status}.)",
+  S6:
+    "The company has stated that {record_fact}. In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}, but does not address whether legitimate interests is available where {record_fact}. The conclusion in Section {section} therefore rests on the separately identified rules and facts, not on that guidance. ({citation}; {status}.)",
+  S6x:
+    "The company has stated that {record_fact}. In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}, and that {exclusion_paraphrase}; that exclusion applies to processing of the kind the company describes. Whether it applies here is addressed in Section {section}. ({citation}; {status}.)",
+};
 
 interface Candidate {
   readonly hook: AuthorityHook;

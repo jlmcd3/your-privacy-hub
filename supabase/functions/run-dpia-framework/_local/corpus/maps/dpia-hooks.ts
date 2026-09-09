@@ -291,23 +291,46 @@ export const DPIA_ATOM_PHRASES: Readonly<Record<string, string>> = {
 // specific (doc 232 build brief: "S5a/S5b/S6/S6x wording is LIA-specific …
 // draft DPIA-appropriate shape text"). ─────────────────────────────────────
 
+// DOC 238 (2026-09-09) — AMENDED, still [RATIFY — DRAFT, unratified]: doc 237
+// §5 found no current shape, in any product, can produce any CEO-approved
+// hook sentence (docs 223B/233/234/236). This revision (a) restructures
+// every shape from a 2–4-sentence clause template into the approved
+// 4–7-sentence paragraph form, (b) adds the `{quote}` slot (the verified
+// `finding_span`, wrapped in quotation marks by the template — quote marks
+// are ratified template text, never drafted content, so no verify.ts change
+// is needed), (c) adds the optional `{governing_provision}` slot to S1–S4
+// (S5a/S5b/S6/S6x already carry an equivalent rule statement via
+// `{proposition}`/`{condition}`), and (d) rewords S2/S6x's section pointer
+// from backward-asserting ("…and the determination in Section {section}
+// reflects it") to forward-looking ("Whether that holds… is addressed in
+// Section {section}") — matching every approved DPIA candidate this session
+// (233 §"AENA": "Section 3 addresses whether that analysis is present";
+// §"ICS": "Section 1 records whether that trigger is satisfied"). S1 is left
+// backward-asserting on purpose (doc 233's WP248 candidate: "supports the
+// assessment's position… Section 1 records that determination" — a
+// SUPPORTING finding is properly asserted, not hedged as pending). The hedge
+// itself is NOT template text — see `DPIA_HEDGE_DOMESTIC_FACTS_PROPOSED`
+// below, appended by the join exactly like `DPIA_APPEAL_SENTENCE`. See doc
+// 238 §"DPIA" for the full proposal, a rendered example, and the CEO
+// ratify/revise/hold line.
+
 export const DPIA_HOOK_SHAPES: Readonly<Record<"S1" | "S2" | "S3" | "S4" | "S5a" | "S5b" | "S6" | "S6x", string>> = {
   S1:
-    "The record identifies that {customer_fact}. In {authority}, {regulator} {verb} that where {fact_pattern}, {finding}. That finding supports the assessment's position on {factor}. ({citation}; {status}.)",
+    "The record identifies that {customer_fact}. In {authority}, {regulator} {verb} that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding supports the assessment's position on {factor}. Section {section} records that determination. ({citation}; {status}.)",
   S2:
-    "The record identifies that {customer_fact}. In {authority}, {regulator} found that where {fact_pattern}, {finding}. That finding cuts against the assessment's position on {factor}, and the determination in Section {section} reflects it. ({citation}; {status}.)",
+    "The record identifies that {customer_fact}. In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding cuts against the assessment's position on {factor}. Whether that holds on this record is addressed in Section {section}. ({citation}; {status}.)",
   S3:
-    "In {authority}, {regulator} found that where {fact_pattern}, {finding}. That finding turned on the fact that {source_fact}; on this record the assessment has instead identified {record_fact}. The decision marks a boundary rather than a finding against the record. ({citation}; {status}.)",
+    "In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding turned on the fact that {source_fact}; on this record the assessment has instead identified {record_fact}. The decision marks a boundary rather than a finding against the record. ({citation}; {status}.)",
   S4:
-    "In {authority}, {regulator} found that where {fact_pattern}, {finding}. The record identifies {customer_fact}. That decision is {status}; it is noted as a boundary and is not applied. ({citation}.)",
+    "In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". The record identifies {customer_fact}. That decision is {status}; it is noted as a boundary and is not applied. ({citation}.)",
   S5a:
-    "In {authority}, {regulator} {verb} that {proposition}, subject to {condition}. That guidance is relevant to {factor}; whether its condition is satisfied is addressed in Section {section}. ({citation}; {status}.)",
+    "In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}. That guidance is relevant to {factor}; whether its condition is satisfied is addressed in Section {section}. ({citation}; {status}.)",
   S5b:
-    "In {authority}, {regulator} {verb} that {proposition}, subject to {condition}. That guidance is relevant to {factor}; whether its condition is satisfied is addressed in Section {section}. The facts identified in Section {section} satisfy that stated condition. ({citation}; {status}.)",
+    "In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}. That guidance is relevant to {factor}; whether its condition is satisfied is addressed in Section {section}. The facts identified in Section {section} satisfy that stated condition. ({citation}; {status}.)",
   S6:
-    "The record identifies {record_fact}. In {authority}, {regulator} {verb} that {proposition}, subject to {condition}, but does not address whether the same conclusion follows where {record_fact}. The determination in Section {section} therefore rests on the separately identified rules and facts, not on that guidance. ({citation}; {status}.)",
+    "The record identifies {record_fact}. In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}, but does not address whether the same conclusion follows where {record_fact}. The determination in Section {section} therefore rests on the separately identified rules and facts, not on that guidance. ({citation}; {status}.)",
   S6x:
-    "The record identifies {record_fact}. In {authority}, {regulator} {verb} that {proposition}, subject to {condition}, and that {exclusion_paraphrase}; that exclusion applies to processing of the kind the record describes, and the determination on {factor} in Section {section} reflects it. ({citation}; {status}.)",
+    "The record identifies {record_fact}. In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}, and that {exclusion_paraphrase}; that exclusion applies to processing of the kind the record describes. Whether it applies here is addressed on {factor} in Section {section}. ({citation}; {status}.)",
 };
 
 // ── [RATIFY — DRAFT, unratified] — concept equivalence (doc 222 §2.3
@@ -395,6 +418,22 @@ export const DPIA_SOURCE_STATUS_LABELS: Readonly<Record<string, string>> = {
 // verbatim, after the hook's sentence. ─────────────────────────────────────
 
 export const DPIA_APPEAL_SENTENCE = "This matter is subject to an appeal which could invalidate this ruling.";
+
+// ── [RATIFY — DRAFT, unratified] — DOC 238 §5 item 4, PROPOSED. The hedge
+// clause, mirroring DPIA_APPEAL_SENTENCE's pattern exactly: a fixed string,
+// appended by the join, never drafted. DPIA uses ONLY the domestic-facts
+// hedge — every one of its sources (EDPB/WP29 guidance, EU/UK enforcement
+// decisions) applies the SAME governing law (EU/UK GDPR) DPIA itself
+// assesses, so there is no "foreign law" hedge variant for this product
+// (unlike Risk/ADMT, where a GDPR enforcement decision is foreign relative
+// to California law). Matches every approved candidate this session: doc
+// 233's own repeated "But the outcome depends on this company's own facts:
+// …" clause. Wording here is GENERIC (hook-agnostic) rather than the
+// hand-tailored fact list each approved candidate carries — see doc 238
+// §"DPIA" for that judgment call, flagged for the CEO. ────────────────────
+
+export const DPIA_HEDGE_DOMESTIC_FACTS_PROPOSED =
+  "But the outcome here depends on this company's own facts, not on the cited authority's.";
 
 export const DPIA_SETTLEDNESS_LABELS: Readonly<Record<"R1" | "R2" | "R3" | "R4", string>> = {
   R1: "adopted guidance or settled authority",
