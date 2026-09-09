@@ -41,7 +41,49 @@ function value(row: PersonRow, key: SortKey): string {
 }
 
 function PeopleInner() {
-  const { rows, loading, error } = useAdminPeople();
+  const { rows, loading, error, refresh } = useAdminPeople();
+  const { rows: banned, refresh: refreshBanned } = useBannedUsers();
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const onClose = async (row: PersonRow, type: "user_request" | "tos_violation") => {
+    const label =
+      type === "tos_violation"
+        ? `Close ${row.email} for a Terms of Service violation? The email will be kept on the banned list for 365 days and cannot re-register.`
+        : `Close ${row.email}? All account data is deleted 30 days from now.`;
+    if (!window.confirm(label)) return;
+    const reason =
+      window.prompt(
+        type === "tos_violation" ? "Reason for the ban (kept on record)" : "Reason (optional)",
+        type === "tos_violation" ? "Terms of Service violation" : "",
+      ) ?? "";
+    setBusy(row.user_id);
+    try {
+      await closeAccount(row.user_id, type, reason);
+      toast({ title: "Account closed", description: `${row.email} closes in 30 days.` });
+      refresh();
+      refreshBanned();
+    } catch (e) {
+      toast({ title: "Could not close account", description: String(e), variant: "destructive" });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const onReopen = async (row: PersonRow) => {
+    if (!window.confirm(`Reopen ${row.email}?`)) return;
+    setBusy(row.user_id);
+    try {
+      await reopenAccount(row.user_id);
+      toast({ title: "Account reopened" });
+      refresh();
+      refreshBanned();
+    } catch (e) {
+      toast({ title: "Could not reopen account", description: String(e), variant: "destructive" });
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const [statusFilter, setStatusFilter] = useState<"all" | PersonStatus>("all");
   const [search, setSearch] = useState("");
   const [from, setFrom] = useState("");
