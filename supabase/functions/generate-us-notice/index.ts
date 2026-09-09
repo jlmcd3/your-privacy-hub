@@ -18,6 +18,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { requireActiveSubscriber } from "../_shared/subscriber-gate.ts";
 // S-N5 — the pure render layer lives in _local/render.ts (testable without
 // this module's Deno.serve listener); re-exported below.
 import {
@@ -163,6 +164,19 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Subscription-only product. Active paid subscribers only — a running
+    // trial does not entitle a free generation (2026-09-09).
+    if (!caller.internal) {
+      const gate = await requireActiveSubscriber(admin, caller.userId);
+      if (!gate.ok) {
+        return new Response(
+          JSON.stringify({ error: "subscription_required", reason: gate.reason }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+    }
+
 
     // Load states + answers in parallel.
     const [statesRes, answersRes] = await Promise.all([
