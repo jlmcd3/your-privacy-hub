@@ -1,7 +1,6 @@
 // Source block for /enforcement/{id}. Renders only fields present on the row —
 // no placeholders, no fabricated values, and no verification date (standing
 // no-dates directive for source-confidence modules).
-import { ExternalLink } from "lucide-react";
 
 interface SourceBlockProps {
   regulator?: string | null;
@@ -38,21 +37,6 @@ export default function EnforcementSourceBlock({
           <>
             <dt className="text-muted-foreground">Publication type</dt>
             <dd className="text-brand-navy m-0">{decisionType || law}</dd>
-          </>
-        )}
-        {sourceUrl && (
-          <>
-            <dt className="text-muted-foreground">Official source</dt>
-            <dd className="m-0">
-              <a
-                href={sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-brand-teal-text hover:underline"
-              >
-                View original <ExternalLink className="w-3.5 h-3.5" aria-hidden />
-              </a>
-            </dd>
           </>
         )}
       </dl>

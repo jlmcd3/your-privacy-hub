@@ -225,6 +225,13 @@
       "when": 1788927971291,
       "tag": "0031_closure_in_people_rpc_and_signup_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1788936501675,
+      "tag": "0032_enrich_claim_uses_source_document_text",
+      "breakpoints": true
     }
   ]
 }
