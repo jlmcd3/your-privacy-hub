@@ -489,7 +489,7 @@ Deno.serve(async (req) => {
     // subscriber lookup here — Professional buyers were already bypassed
     // above, so anyone reaching this point pays the standalone rate.
     const useSubscriberPrice =
-      isPremium && !!tool.subscriber_lookup && !gatedToolRequiresAnnual &&
+      isPremium && !isTrialUser && !!tool.subscriber_lookup && !gatedToolRequiresAnnual &&
       !SUBSCRIBER_FREE_TOOLS.has(tool_type);
     // v13: a chargeable RoPA action is $49 (ropa_paid_generation) for
     // monthly subscribers and non-entitled actions, and $39
