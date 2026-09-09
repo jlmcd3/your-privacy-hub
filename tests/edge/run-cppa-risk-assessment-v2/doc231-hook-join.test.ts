@@ -367,12 +367,13 @@ Deno.test("resolveHookSelections — conflicting settled fields for the same hoo
   assertEquals(resolved.conflicts, ["h1"]);
 });
 
-// ── The zero-hooks identity (RISK_HOOKS ships []) ───────────────────────
+// ── The shipped-corpus identity (RISK_HOOKS = the one ratified AP/ICS hook) ──
 
-Deno.test("doc231 — RISK_HOOKS ships empty: applyRiskHooks returns no applications and no flags for the shipped map, regardless of record", () => {
-  assertEquals(RISK_HOOKS_VERSION, "risk-hooks-v2-draft-2026-09-08-0");
-  assertEquals(RISK_HOOKS.length, 0);
-  const states = baseStates({ flags: ["sensitive_pi", "admt_use", "biometric_data"] });
+Deno.test("doc231 — the shipped RISK_HOOKS map is exactly the ratified AP/ICS hook and is inert on a record where its required atom does not hold", () => {
+  assertEquals(RISK_HOOKS_VERSION, "risk-hooks-v2-2026-09-09-0");
+  assertEquals(RISK_HOOKS.length, 1);
+  assertEquals(RISK_HOOKS[0].hook_id, "enforcement_actions:dc095815-d03d-4bb2-b3be-2711e7f7d459:v1");
+  const states = baseStates({ flags: ["admt_use", "biometric_data"] });
   const result = applyRiskHooks(RISK_HOOKS, states, { "Safeguards": "fails" }, ["any-source"], new Set());
   assertEquals(result.applications, []);
   assertEquals(result.flags, []);
