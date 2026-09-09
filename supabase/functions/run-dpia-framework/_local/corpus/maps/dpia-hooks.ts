@@ -5,9 +5,7 @@
 // regenerate it. Run: dpia-hooks-v2-2026-09-09-0
 //
 // EXCLUDED ROWS (named, not silently dropped):
-//   db660964-3783-4e6c-a3a6-eeb476582a3c#v1 — pinpoint missing — mandatory before activation (doc 222 §2.5)
-//   eab4ce07-f025-4d9e-9054-b6d4a67ea137#v1 — pinpoint missing — mandatory before activation (doc 222 §2.5)
-//   61517f24-4bb4-4e99-b2ac-34a08a76a776#v1 — pinpoint missing — mandatory before activation (doc 222 §2.5)
+//   (none)
 
 import type { AuthorityHook } from "../../../../_shared/corpus/hook-types.ts";
 
@@ -73,6 +71,63 @@ export const DPIA_HOOKS: readonly AuthorityHook[] = [
     "status_in_citation": true
   },
   {
+    "hook_id": "enforcement_actions:68252e3a-15a6-47ad-b3a5-40a9875f842b:v1",
+    "profile_id": "61517f24-4bb4-4e99-b2ac-34a08a76a776",
+    "source_row_id": "68252e3a-15a6-47ad-b3a5-40a9875f842b",
+    "fact_atoms": [
+      "class:innovative_technology_use"
+    ],
+    "distinguishing_atoms": [],
+    "not_distinguishable": false,
+    "required_atoms": [
+      "class:innovative_technology_use"
+    ],
+    "finding_span": "Also, no data protection impact assessment pursuant to Art. 35 DSGVO had been carried out and the technical and organizational protection measures had not been outlined in the list of processing activities.",
+    "fact_pattern_paraphrase": "a camera-based driving-assistance system tested on vehicles without a DPIA and without a data-processing agreement with the third party running the tests",
+    "finding_paraphrase": "testing the camera-based system without carrying out a DPIA breaches Article 35",
+    "settledness": "R3",
+    "posture": "rejected",
+    "factor_id": "the innovative-technology trigger",
+    "bears_on_element": "obligation",
+    "authority_label": "Data Protection Authority of Niedersachsen, Volkswagen, decision of 26 July 2022",
+    "regulator": "Data Protection Authority of Niedersachsen",
+    "relevance": {
+      "instrument": "GDPR",
+      "factor_ids": [
+        "the innovative-technology trigger"
+      ],
+      "use_case_class": null,
+      "relationship": null,
+      "data_categories": [],
+      "flags": [
+        "innovative_technology"
+      ],
+      "outcome_posture": "rejected"
+    },
+    "authority_label_short": "Data Protection Authority of Niedersachsen, Volkswagen",
+    "hook_version": 1,
+    "source_status": "sa_decision",
+    "status_label": "supervisory-authority decision — persuasive, non-binding outside its jurisdiction",
+    "verb": "found",
+    "appeal_note": null,
+    "verified_as_of": "2026-09-09",
+    "pinpoint": {
+      "kind": "field",
+      "ref": "source_document_text",
+      "anchor_span": "Weiterhin war keine Datenschutz-Folgenabschätzung nach Artikel 35 DS-GVO durchgeführt worden, mit der vor Beginn einer solchen Verarbeitung mögliche Risiken und deren Eindämmung bewertet werden müssen."
+    },
+    "recognised_proposition": null,
+    "condition_text": null,
+    "condition_atoms": null,
+    "material_facts": [],
+    "distinguishing_pairs": [],
+    "governing_provision_sentence": null,
+    "hedge_variant": null,
+    "hedge_sentence": null,
+    "literal_sentence_override": "The record describes a new or experimental technology being tested or deployed — for example, cameras or sensors mounted on test vehicles to develop a new driving-assistance feature. In its 2022 decision on Volkswagen, Germany's data protection authority for Lower Saxony found that the company tested a camera-based driving-assistance system without carrying out a DPIA — a breach of Article 35 — and without a data-processing agreement with the third party running the tests. That finding cuts against the company's position here. But the outcome depends on this company's own facts: whether the technology is genuinely novel to this kind of processing, and whether an assessment was completed and documented before testing began. Section 1 records whether that trigger is satisfied. (Data Protection Authority of Lower Saxony, Volkswagen, announced 26 July 2022; supervisory-authority decision — persuasive, non-binding outside its jurisdiction.)",
+    "status_in_citation": true
+  },
+  {
     "hook_id": "edpb_guidelines:718bb432-ef28-4744-b169-bb9093fd2969:v1",
     "profile_id": "6cc71221-fc34-4cac-883c-97ca364b3bd4",
     "source_row_id": "718bb432-ef28-4744-b169-bb9093fd2969",
@@ -127,6 +182,182 @@ export const DPIA_HOOKS: readonly AuthorityHook[] = [
     "hedge_variant": null,
     "hedge_sentence": null,
     "literal_sentence_override": "The record describes ongoing, organized monitoring of a defined group of people — for example, screening customers against a fraud or watchlist database, or monitoring employees' activity over time. The Article 29 Working Party calls this \"systematic monitoring\": processing used to observe, monitor, or control people, including a financial institution's own customer-screening systems. Its guidance (WP248, endorsed by the EDPB) treats systematic monitoring as one of the criteria that triggers the Article 35 DPIA obligation, even without a public-space element. That guidance supports the assessment's position that a DPIA is required here. Section 1 records that determination. (Article 29 Working Party, Guidelines on Data Protection Impact Assessment (WP248 rev.01), Annex 1, criterion 3, adopted 4 October 2017; EDPB guidelines — interpretive guidance, not binding law, endorsed by the EDPB 25 May 2018.)",
+    "status_in_citation": true
+  },
+  {
+    "hook_id": "enforcement_actions:a3cf40b0-3625-4e78-bbe9-63624f17ceb0:v1",
+    "profile_id": "db660964-3783-4e6c-a3a6-eeb476582a3c",
+    "source_row_id": "a3cf40b0-3625-4e78-bbe9-63624f17ceb0",
+    "fact_atoms": [
+      "flag:automated_decision",
+      "relationship:customer",
+      "flag:large_scale"
+    ],
+    "distinguishing_atoms": [],
+    "not_distinguishable": false,
+    "required_atoms": [
+      "flag:automated_decision"
+    ],
+    "finding_span": "Poste Italiane processed customer data excessively through a fraud prevention tool without a sufficient legal basis, proper transparency, or adequate data protection measures.",
+    "fact_pattern_paraphrase": "a fraud-prevention tool collecting customer data at scale, deployed without an adequate legal basis, without meeting transparency obligations, and without a DPIA addressing the tool's own specific processing",
+    "finding_paraphrase": "deploying the tool without a DPIA that addressed its own specific processing breaches Article 35",
+    "settledness": "R3",
+    "posture": "rejected",
+    "factor_id": "the Article 35 obligation to conduct this assessment",
+    "bears_on_element": "obligation",
+    "authority_label": "Garante, Poste Italiane S.p.a., decision of 17 April 2026",
+    "regulator": "Garante",
+    "relevance": {
+      "instrument": "GDPR",
+      "factor_ids": [
+        "the Article 35 obligation to conduct this assessment"
+      ],
+      "use_case_class": null,
+      "relationship": null,
+      "data_categories": [],
+      "flags": [
+        "admt_use"
+      ],
+      "outcome_posture": "rejected"
+    },
+    "authority_label_short": "Garante, Poste Italiane S.p.a.",
+    "hook_version": 1,
+    "source_status": "sa_decision_appeal_pending",
+    "status_label": "under appeal",
+    "verb": "found",
+    "appeal_note": "Provision no. 237 of 17/04/2026 temporarily removed from the Garante's website under art. 5, Legislative Decree 150/2011, following a precautionary order of the Tribunale di Roma dated 17/07/2026 suspending the decision's executive effectiveness; appeal pending (confirmed live on gpdp.it, 2026-09-09).",
+    "verified_as_of": "2026-09-09",
+    "pinpoint": {
+      "kind": "field",
+      "ref": "source_document_text",
+      "anchor_span": "ai sensi degli artt. 57, par. 1, lett. f) e 83, del Regolamento, rileva l’illiceità del trattamento effettuato da Poste Italiane S.p.a., , con sede legale in Roma, Viale Europa 190, C.F. n. 01114601006 e da Postepay S.p.a., con sede legale in Roma, Viale Europa 190, C.F. n. 06874351007, in qualità di contitolari del trattamento, nei termini di cui in motivazione, per la violazione degli artt. 5, 6, 13, 25, 28, 32, 35 del Regolamento, nonché dell’art. 122 del Codice in materia di protezione dei dati personali"
+    },
+    "recognised_proposition": null,
+    "condition_text": null,
+    "condition_atoms": null,
+    "material_facts": [],
+    "distinguishing_pairs": [],
+    "governing_provision_sentence": null,
+    "hedge_variant": null,
+    "hedge_sentence": null,
+    "literal_sentence_override": "The record describes a fraud-prevention tool that collects customer data at scale. In its decision on Poste Italiane, the Italian data protection authority (Garante) found that the company deployed the tool without an adequate legal basis, without meeting its transparency obligations, and without a DPIA that addressed the tool's own specific processing — that last gap is what breaches Article 35. That finding cuts against the company's position here. But the outcome depends on this company's own facts: what the tool actually collects, whether that was assessed specifically rather than generically, and whether the assessment happened before the tool went live. Section 1 records whether that trigger is satisfied. (Garante, Poste Italiane S.p.A., decision of 17 April 2026; supervisory-authority decision — persuasive, non-binding outside its jurisdiction.)",
+    "status_in_citation": true
+  },
+  {
+    "hook_id": "enforcement_actions:dbfca969-3139-43d1-8a5b-7fff179f8db6:v1",
+    "profile_id": "eab4ce07-f025-4d9e-9054-b6d4a67ea137",
+    "source_row_id": "dbfca969-3139-43d1-8a5b-7fff179f8db6",
+    "fact_atoms": [
+      "class:employee_monitoring"
+    ],
+    "distinguishing_atoms": [],
+    "not_distinguishable": false,
+    "required_atoms": [
+      "class:employee_monitoring"
+    ],
+    "finding_span": "The municipality unlawfully monitored employee internet usage and processed sensitive health data without a valid legal basis or proper transparency",
+    "fact_pattern_paraphrase": "a municipal employer systematically monitoring its employees' internet usage",
+    "finding_paraphrase": "systematic monitoring of employee internet usage requires a DPIA under WP248's systematic-monitoring criterion even where the monitoring is not carried out on a large scale",
+    "settledness": "R3",
+    "posture": "rejected",
+    "factor_id": "the employee-monitoring trigger",
+    "bears_on_element": "obligation",
+    "authority_label": "Garante, Comune di Bolzano, decision of 13 May 2021",
+    "regulator": "Garante",
+    "relevance": {
+      "instrument": "GDPR",
+      "factor_ids": [
+        "the employee-monitoring trigger"
+      ],
+      "use_case_class": null,
+      "relationship": null,
+      "data_categories": [
+        "Health information"
+      ],
+      "flags": [
+        "employee_monitoring",
+        "profiling_or_systematic_observation"
+      ],
+      "outcome_posture": "rejected"
+    },
+    "authority_label_short": "Garante, Comune di Bolzano",
+    "hook_version": 1,
+    "source_status": "sa_decision",
+    "status_label": "supervisory-authority decision — persuasive, non-binding outside its jurisdiction",
+    "verb": "found",
+    "appeal_note": null,
+    "verified_as_of": "2026-09-09",
+    "pinpoint": {
+      "kind": "field",
+      "ref": "source_document_text",
+      "anchor_span": "rileva l’illiceità del trattamento effettuato dal Comune di Bolzano per violazione degli artt. 5, 6, 9, 88 e 35 del Regolamento, nonché 113 e 114 del Codice"
+    },
+    "recognised_proposition": null,
+    "condition_text": null,
+    "condition_atoms": null,
+    "material_facts": [],
+    "distinguishing_pairs": [],
+    "governing_provision_sentence": null,
+    "hedge_variant": null,
+    "hedge_sentence": null,
+    "literal_sentence_override": "The record describes monitoring of employees' internet usage. In its decision on Comune di Bolzano, the Italian data protection authority (Garante) found that systematic monitoring of employee internet usage requires a DPIA under WP248's \"systematic monitoring\" criterion. That finding cuts against the company's position here. But the outcome depends on this company's own facts: whether the monitoring is organized and ongoing (systematic), or occasional and incidental. Section 1 records whether that trigger is satisfied. (Garante, Comune di Bolzano, decision of 13 May 2021; supervisory-authority decision — persuasive, non-binding outside its jurisdiction.)",
+    "status_in_citation": true
+  },
+  {
+    "hook_id": "edpb_guidelines:118b22d4-775e-4472-8f33-4a8d1eb22887:v1",
+    "profile_id": "ee01587d-fbe2-42f2-b0ba-d043e1917c51",
+    "source_row_id": "118b22d4-775e-4472-8f33-4a8d1eb22887",
+    "fact_atoms": [
+      "state:intake.reasons_to_conduct.sensitive_data=true"
+    ],
+    "distinguishing_atoms": [],
+    "not_distinguishable": true,
+    "required_atoms": [
+      "instrument:EU GDPR"
+    ],
+    "finding_span": "An example would be a general hospital keeping patients’ medical records or a private investigator keeping offenders’ details.",
+    "fact_pattern_paraphrase": "processing of special categories of personal data under Article 9 or of personal data relating to criminal convictions or offences under Article 10, such as a general hospital keeping the medical records of its patients or a private investigator keeping the details of offenders",
+    "finding_paraphrase": "sensitive data or data of a highly personal nature is one of the WP248 criteria indicating processing likely to result in a high risk and supports an Article 35 DPIA obligation, extending beyond Article 9 and Article 10 to other data the GDPR treats as increasing the risk to rights and freedoms",
+    "settledness": "R1",
+    "posture": "accepted",
+    "factor_id": "the Article 35 obligation to conduct this assessment",
+    "bears_on_element": "obligation",
+    "authority_label": "Article 29 Working Party, Guidelines on Data Protection Impact Assessment (DPIA) and determining whether processing is \"likely to result in a high risk\" for the purposes of Regulation 2016/679",
+    "regulator": "the Article 29 Working Party",
+    "relevance": {
+      "instrument": "GDPR",
+      "factor_ids": [
+        "the Article 35 obligation to conduct this assessment"
+      ],
+      "use_case_class": null,
+      "relationship": null,
+      "data_categories": [],
+      "flags": [
+        "sensitive_pi"
+      ],
+      "outcome_posture": "accepted"
+    },
+    "authority_label_short": "WP29, Guidelines on Data Protection Impact Assessment (DPIA) and determining whether processing is \"likely to result in a high risk\" for the purposes of Regulation 2016/679",
+    "hook_version": 1,
+    "source_status": "wp29_opinion",
+    "status_label": "Article 29 Working Party opinion, 4 October 2017 — historical interpretive guidance, endorsed by the EDPB on 25 May 2018; current relevance verified 2026-09-09",
+    "verb": "advised",
+    "appeal_note": null,
+    "verified_as_of": "2026-09-09",
+    "pinpoint": {
+      "kind": "page",
+      "ref": "9",
+      "anchor_span": "An example would be a general hospital keeping patients’ medical records or a private investigator keeping offenders’ details."
+    },
+    "recognised_proposition": null,
+    "condition_text": null,
+    "condition_atoms": null,
+    "material_facts": [],
+    "distinguishing_pairs": [],
+    "governing_provision_sentence": null,
+    "hedge_variant": null,
+    "hedge_sentence": null,
+    "literal_sentence_override": "The record describes special-category data under Article 9 — for example, health, biometric, or genetic data, or data revealing racial or ethnic origin, political opinions, religious belief, or trade-union membership — data relating to criminal convictions or offences under Article 10, or other data whose sensitivity or personal nature creates a heightened risk to people's rights and freedoms, such as financial data revealing someone's economic situation or location data revealing their movements. The Article 29 Working Party's guidance (WP248, endorsed by the EDPB) names \"sensitive data or data of a highly personal nature\" as one of the criteria that triggers the Article 35 DPIA obligation — its own examples are a general hospital's patient records and a private investigator's file on offenders — and extends that same reasoning \"beyond these provisions of the GDPR\" to other categories the GDPR's own recitals treat as risk-increasing, including a person's financial circumstances and their location or movements. That guidance supports the assessment's position that a DPIA is required here. Section 1 records that determination. (Article 29 Working Party, Guidelines on Data Protection Impact Assessment (WP248 rev.01), Annex 1, criterion 4, adopted 4 October 2017; EDPB guidelines — interpretive guidance, not binding law, endorsed by the EDPB 25 May 2018.)",
     "status_in_citation": true
   }
 ];
