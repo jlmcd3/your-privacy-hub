@@ -6,6 +6,16 @@
 //   #7  WP248 criterion 3   (718bb432)   — S1, accepted
 //   #12 MediaLab.AI / Imgur (0675e6a0)   — S2, rejected
 //   #15 Volkswagen          (68252e3a)   — S2, rejected
+// plus, added 2026-09-09 (sixth entry):
+//   #10b WP248 criterion 4  (118b22d4)   — S1, accepted — the three-lawyer
+//                                          panel's own "DRAFTED (2026-09-09)"
+//                                          paragraph (doc 233 §10b). NOTE: that
+//                                          section's "CEO: ratify / revise /
+//                                          retire" line is BLANK in doc 233;
+//                                          the live row was ratified on the
+//                                          orchestrator's 2026-09-09 brief,
+//                                          which states the text is CEO-
+//                                          ratified (panel charter, doc 239/242).
 // Every other doc 233 candidate's ratify line is blank and is NOT touched.
 //
 // Same mechanism as LIA's doc 223B ratification (doc238-lia-shape-
@@ -36,7 +46,7 @@ import { assert, assertEquals, assertNotEquals } from "https://deno.land/std@0.2
 import type { AuthorityHook, HookSourceStatus } from "../../../supabase/functions/_shared/corpus/hook-types.ts";
 import type { TypedStateBag } from "../../../supabase/functions/_shared/corpus/rule-types.ts";
 import { tidyRenderedSentence } from "../../../supabase/functions/_shared/corpus/hook-render-tidy.ts";
-import { citationFor, shortLabelFor, type HookProfileRow, type HookSourceRow } from "../../../supabase/functions/generate-corpus-hooks/_local/generate.ts";
+import { citationFor, pinpointFor, shortLabelFor, type HookProfileRow, type HookSourceRow } from "../../../supabase/functions/generate-corpus-hooks/_local/generate.ts";
 import { clauseFormErrors } from "../../../supabase/functions/generate-corpus-hooks/_local/verify.ts";
 import { checkAtoms } from "../../../supabase/functions/generate-corpus-hooks/_local/vocabulary.ts";
 import { HOOK_PRODUCT_REGISTRY } from "../../../supabase/functions/generate-corpus-hooks/_local/product-registry.ts";
@@ -68,10 +78,19 @@ interface WiredHook {
   readonly citation_facts: Record<string, string | null>;
   readonly fixture: string;
   readonly second_approved_paragraph?: string;
+  // ── §10b (118b22d4) additions, 2026-09-09 — optional so the five earlier
+  // entries are unchanged. ─────────────────────────────────────────────────
+  /** The panel's corrected mechanism: no distinguishing atoms/pairs at all. */
+  readonly not_distinguishable?: boolean;
+  /** The live row's structured pinpoint (doc 222 §2.5), where one was authored. */
+  readonly pinpoint?: { kind: "paragraph" | "section" | "page" | "recital" | "heading" | "field"; ref: string; anchor_span: string } | null;
+  /** Byte pins of the fixture as written live (so the fixture and the DB row cannot drift silently). */
+  readonly fixture_octets?: number;
+  readonly fixture_sha256?: string;
 }
 
 const WIRING: readonly WiredHook[] = JSON.parse(await Deno.readTextFile(new URL("hooks.json", FIXTURE_DIR))).hooks;
-assertEquals(WIRING.length, 5, "doc 233 has exactly five CEO-approved candidates");
+assertEquals(WIRING.length, 6, "doc 233 wiring = the five CEO-approved candidates + §10b (WP248 criterion 4, panel-drafted, ratified 2026-09-09)");
 
 async function fixture(rel: string): Promise<string> {
   // `rel` is repo-relative in hooks.json; the fixtures sit beside it.
@@ -115,7 +134,7 @@ function hookFor(w: WiredHook, overrides: Partial<AuthorityHook> = {}): Authorit
     source_row_id: w.source_row_id,
     fact_atoms: [...w.fact_atoms],
     distinguishing_atoms: [],
-    not_distinguishable: false,
+    not_distinguishable: w.not_distinguishable ?? false,
     required_atoms: [...w.required_atoms],
     finding_span: w.finding_span,
     fact_pattern_paraphrase: w.fact_pattern_paraphrase,
@@ -130,7 +149,10 @@ function hookFor(w: WiredHook, overrides: Partial<AuthorityHook> = {}): Authorit
     hook_version: 1,
     source_status,
     status_label: DPIA_SOURCE_STATUS_LABELS[source_status],
-    pinpoint: null, // doc 233: [NEEDS: pinpoint] on every one of the five
+    // doc 233: [NEEDS: pinpoint] on the original five at ratification time
+    // (718bb432 has since gained a live `page` pin — doc 242 Q5 — not
+    // mirrored here); §10b carries its pin in the wiring itself.
+    pinpoint: w.pinpoint ?? null,
     relevance: {
       instrument: "EU GDPR",
       factor_ids: [w.profile_factor_id],
@@ -179,6 +201,7 @@ const EXPECTED_SHAPE: Record<string, "S1" | "S2"> = {
   "718bb432": "S1",
   "0675e6a0": "S2",
   "68252e3a": "S2",
+  "118b22d4": "S1",
 };
 
 // ── The wiring is mechanically valid ─────────────────────────────────────
@@ -242,6 +265,99 @@ Deno.test("doc233 DPIA — the ratified paragraphs open with the record fact eac
   assert(r("0675e6a0").endsWith("(ICO, MediaLab.AI, Inc., decision of 4 February 2026; supervisory-authority decision — persuasive, non-binding outside its jurisdiction.)"));
   assert(r("68252e3a").startsWith("The record describes a new or experimental technology being tested or deployed"));
   assert(r("68252e3a").endsWith("(Data Protection Authority of Lower Saxony, Volkswagen, decision of 26 July 2022; supervisory-authority decision — persuasive, non-binding outside its jurisdiction.)"));
+  assert(r("118b22d4").startsWith("The record describes special-category data under Article 9"));
+  assert(r("118b22d4").endsWith("(Article 29 Working Party, Guidelines on Data Protection Impact Assessment (WP248 rev.01), Annex 1, criterion 4, adopted 4 October 2017; EDPB guidelines — interpretive guidance, not binding law, endorsed by the EDPB 25 May 2018.)"));
+});
+
+// ── §10b — WP248 criterion 4 (118b22d4), the sixth entry ─────────────────
+
+Deno.test("doc233 §10b DPIA — the criterion-4 wiring is the panel's CORRECTED mechanism: accepted posture, not_distinguishable, NO distinguishing atoms/pairs, a single coarse GDPR gate, and a fact atom that is the intake's own WP248-criterion-4 reason", () => {
+  const w = WIRING.find((x) => x.short === "118b22d4")!;
+  assert(w, "118b22d4 wiring entry");
+  assertEquals(w.source_table, "edpb_guidelines");
+  assertEquals(w.source_row_id, "118b22d4-775e-4472-8f33-4a8d1eb22887");
+  assertEquals(w.profile_posture, "accepted");
+  assertEquals(w.bears_on_element, "obligation");
+  assertEquals(w.profile_factor_id, "the Article 35 obligation to conduct this assessment");
+  assertEquals(w.settledness, "R1"); // settlednessFor: edpb_guidelines + wp29_endorsed_2018
+  assertEquals(w.not_distinguishable, true);
+  assertEquals(w.required_atoms, ["instrument:EU GDPR"]);
+  // The same mapping the sibling criterion-3 hook (718bb432) uses — WP248
+  // criterion N <-> the intake's own criterion-N `reasons_to_conduct` option
+  // — now expressible directly as a `state:` atom (doc 241 added DPIA's
+  // reasons_to_conduct paths to STATE_ATOM_ENUMS).
+  assertEquals(w.fact_atoms, ["state:intake.reasons_to_conduct.sensitive_data=true"]);
+  assert(DPIA_ATOM_PHRASES[w.fact_atoms[0]]?.includes("sensitive or highly personal data"));
+  const hook = hookFor(w);
+  assertEquals(hook.distinguishing_atoms, []);
+  assertEquals(hook.distinguishing_pairs, undefined);
+  assertEquals(hook.not_distinguishable, true);
+});
+
+Deno.test("doc233 §10b DPIA — the criterion-4 fixture's bytes are pinned (octets + sha256) to what was verified live in authority_hooks.literal_sentence_override, and the paragraph names every leg the panel folded into ONE unconditional sentence (Article 9, Article 10, financial data, location data, the hospital/private-investigator examples)", async () => {
+  const w = WIRING.find((x) => x.short === "118b22d4")!;
+  const bytes = await Deno.readFile(new URL(w.fixture.replace(/^tests\/fixtures\/doc233\//, ""), FIXTURE_DIR));
+  assertEquals(bytes.length, w.fixture_octets, "fixture octet length");
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+  const hex = [...digest].map((b) => b.toString(16).padStart(2, "0")).join("");
+  assertEquals(hex, w.fixture_sha256, "fixture sha256");
+  // No trailing newline / BOM — the fixture IS the paragraph, byte for byte.
+  assertEquals(bytes[bytes.length - 1], 0x29 /* ')' */);
+  assertNotEquals(bytes[0], 0xef);
+  const text = RATIFIED.get("118b22d4")!;
+  for (const leg of [
+    "special-category data under Article 9",
+    "criminal convictions or offences under Article 10",
+    "financial data revealing someone's economic situation",
+    "location data revealing their movements",
+    "a general hospital's patient records",
+    "a private investigator's file on offenders",
+    "\"sensitive data or data of a highly personal nature\"",
+    "\"beyond these provisions of the GDPR\"",
+    "That guidance supports the assessment's position that a DPIA is required here. Section 1 records that determination.",
+  ]) assert(text.includes(leg), `paragraph lacks: ${leg}`);
+});
+
+Deno.test("doc233 §10b DPIA — the criterion-4 pinpoint is a bare `page` pin (doc 242 Q5 convention: the criteria list sits in WP248's body §III.B.a, pages 8–11) whose anchor_span IS the hook's own finding_span, and pinpointFor accepts it", () => {
+  const w = WIRING.find((x) => x.short === "118b22d4")!;
+  assert(w.pinpoint, "§10b carries a pinpoint");
+  assertEquals(w.pinpoint!.kind, "page");
+  assertEquals(w.pinpoint!.ref, "9");
+  assertEquals(w.pinpoint!.anchor_span, w.finding_span);
+  assert(w.finding_span.startsWith("An example would be a general hospital keeping patients"));
+  assert(w.finding_span.endsWith("details."));
+  const row = { pinpoint: w.pinpoint } as Parameters<typeof pinpointFor>[0];
+  const profile = { curation_note: null } as Parameters<typeof pinpointFor>[1];
+  assertEquals(pinpointFor(row, profile), { kind: "page", ref: "9", anchor_span: w.finding_span });
+});
+
+Deno.test("doc233 §10b DPIA — through applyDpiaHooks: the hook renders S1 only when the record's own 'Sensitive or highly personal data' reason is selected; a GDPR record WITHOUT that reason (even one listing health/financial/location data categories) is `unknown` → omitted for an accepted posture, never rendered wrongly", () => {
+  const w = WIRING.find((x) => x.short === "118b22d4")!;
+  const hook = hookFor(w);
+  // Reason selected → S1, verbatim paragraph, on any obligation verdict.
+  for (const verdict of ["fails", "uncertain", "passes"]) {
+    const { applications, flags } = applyDpiaHooks([hook], statesHolding(w, verdict), { obligation: verdict, adequacy: "uncertain" }, [w.source_row_id], new Set());
+    assertEquals(flags, [], verdict);
+    assertEquals(applications.length, 1, verdict);
+    assertEquals(applications[0].shape, "S1");
+    assertEquals(applications[0].fact_agreement, "same");
+    assertEquals(applications[0].sentence, RATIFIED.get("118b22d4"));
+  }
+  // Reason NOT selected — categories alone do not make the fact atom hold.
+  const noReason: TypedStateBag = {
+    instrument: "EU GDPR",
+    use_case_class: null,
+    relationship: null,
+    data_categories: ["Health or medical data", "Financial data", "Location data"],
+    flags: ["special_category"],
+    verdicts: { obligation: "fails", adequacy: "uncertain" },
+    states: { "intake.reasons_to_conduct.sensitive_data": false },
+  };
+  const { applications, flags } = applyDpiaHooks([hook], noReason, noReason.verdicts, [w.source_row_id], new Set());
+  assertEquals(applications, []);
+  assertEquals(flags.length, 1);
+  assertEquals(flags[0].hook_id, hook.hook_id);
+  assert(flags[0].reason === "selection_pending" || flags[0].reason === "omitted", flags[0].reason);
 });
 
 Deno.test("doc233 DPIA — literal_sentence_override still takes appealSuffix (a fact about the source discovered after ratification) but never a hedge/quote/shape slot on top", () => {
