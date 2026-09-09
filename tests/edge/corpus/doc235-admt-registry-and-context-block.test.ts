@@ -79,11 +79,10 @@ Deno.test("ADMT_HOOK_CONTEXT_BLOCK is byte-identical (after CRLF->LF normalisati
     import.meta.url,
   );
   const canonical = readFileSync(canonicalPath, "utf8").replace(/\r\n/g, "\n");
-  const marker = "export const ADMT_HOOKS: readonly AuthorityHook[] = [];\n";
+  const marker = "// \u2500\u2500 [RATIFY \u2014 DRAFT, unratified] \u2014 the direction matrix";
   const idx = canonical.indexOf(marker);
   assert(idx >= 0, "marker not found in canonical admt-hooks.ts");
-  const rest = canonical.slice(idx + marker.length).replace(/^\n+/, "");
-  assertEquals(ADMT_HOOK_CONTEXT_BLOCK.replace(/\r\n/g, "\n"), rest);
+  assertEquals(ADMT_HOOK_CONTEXT_BLOCK.replace(/\r\n/g, "\n"), canonical.slice(idx));
 });
 
 // ── End-to-end generateHooks() dispatch for product: "admt" ──────────────
