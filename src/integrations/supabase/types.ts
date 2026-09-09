@@ -11071,17 +11071,21 @@ export type Database = {
           accepted_terms_id: string
           cancel_at_period_end: boolean
           cancelled_at: string
+          closed_at: string
+          closure_type: string
           email: string
           first_subscribed_at: string
           last_sign_in_at: string
           marketing_opt_out: boolean
           payment_failed: boolean
+          purge_after: string
           registered_at: string
           status: string
           subscription_end_date: string
           subscription_interval: string
           subscription_type: string
           terminated_at: string
+          termination_reason: string
           trial_end: string
           user_id: string
         }[]

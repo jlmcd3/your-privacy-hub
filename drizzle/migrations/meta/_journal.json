@@ -218,6 +218,13 @@
       "when": 1788927903645,
       "tag": "0030_account_closure_ban_purge",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1788927971291,
+      "tag": "0031_closure_in_people_rpc_and_signup_guard",
+      "breakpoints": true
     }
   ]
 }
