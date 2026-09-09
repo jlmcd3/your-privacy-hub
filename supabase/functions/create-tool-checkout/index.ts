@@ -262,7 +262,7 @@ Deno.serve(async (req) => {
     // Stripe disallows $0 sessions; insert the assessment row directly
     // with is_subscriber_credit=true and return the success path so the
     // client navigates straight to the result page.
-    if (isPro && SUBSCRIBER_FREE_TOOLS.has(tool_type)) {
+    if (isPro && !isTrialUser && SUBSCRIBER_FREE_TOOLS.has(tool_type)) {
       const insertRow: Record<string, unknown> = {
         user_id,
         client_id: client_id || null,
@@ -309,6 +309,8 @@ Deno.serve(async (req) => {
     // Non-subscribers are already rejected by SUBSCRIPTION_ONLY_TOOLS above.
     const ROPA_TOOLS = new Set(["ropa_initial", "ropa_refresh"]);
     let ropaPaidCharge = false;
+    // Trial users take the paid RoPA path below (isAnnualSubscriber is
+    // forced false for them, so the charge is the $49 standalone action).
     if (isPremium && ROPA_TOOLS.has(tool_type) && user_id) {
       const ropaBypass = async (mode: "first_free" | "annual_credit", creditId?: string) => {
         const { data: row, error: insErr } = await supabase
@@ -395,6 +397,13 @@ Deno.serve(async (req) => {
       li_assessment: "lia",
       dpia_framework: "dpia",
     };
+    if (redeem_annual_credit === true && isTrialUser) {
+      // Trials carry no credit pool.
+      return new Response(
+        JSON.stringify({ error: "no_credit_available" }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
     if (redeem_annual_credit === true && user_id && ANNUAL_CREDIT_TOOL_MAP[tool_type]) {
       // Annual credits exist only in live. A sandbox/preview checkout must
       // never consume (burn) a live credit. Reject and let the client fall
