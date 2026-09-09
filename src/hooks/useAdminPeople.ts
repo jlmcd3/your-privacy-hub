@@ -8,6 +8,7 @@ export type PersonStatus =
   | "cancelling"
   | "cancelled"
   | "past_due"
+  | "closed"
   | "terminated";
 
 export interface PersonRow {
@@ -29,6 +30,10 @@ export interface PersonRow {
   accepted_privacy_notice_id: string | null;
   accepted_terms_id: string | null;
   last_sign_in_at: string | null;
+  closed_at: string | null;
+  closure_type: string | null;
+  purge_after: string | null;
+  termination_reason: string | null;
 }
 
 export const STATUS_LABEL: Record<PersonStatus, string> = {
@@ -38,8 +43,17 @@ export const STATUS_LABEL: Record<PersonStatus, string> = {
   cancelling: "Cancelling",
   cancelled: "Cancelled",
   past_due: "Past due",
+  closed: "Closed",
   terminated: "Terminated",
 };
+
+export interface BannedUserRow {
+  id: string;
+  email: string;
+  reason: string;
+  closed_at: string;
+  ban_expires_at: string;
+}
 
 /** Loads the single master people list every admin screen is built on. */
 export function useAdminPeople() {
