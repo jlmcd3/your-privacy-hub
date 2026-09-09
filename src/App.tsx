@@ -104,9 +104,13 @@ const AdminIngestionDashboard = lazy(() => import("./pages/AdminIngestionDashboa
 const AdminIngestLegislation = lazy(() => import("./pages/AdminIngestLegislation.tsx"));
 const AdminJurisdictionAudit = lazy(() => import("./pages/admin/AdminJurisdictionAudit.tsx"));
 const AdminArticles = lazy(() => import("./pages/AdminArticles.tsx"));
-const AdminEmailSignups = lazy(() => import("./pages/AdminEmailSignups.tsx"));
+
 const AdminGatingLeaks = lazy(() => import("./pages/AdminGatingLeaks.tsx"));
 const AdminEnforcementQuality = lazy(() => import("./pages/admin/AdminEnforcementQuality.tsx"));
+const AdminRegisteredUsers = lazy(() => import("./pages/admin/AdminRegisteredUsers.tsx"));
+const AdminPeople = lazy(() => import("./pages/admin/AdminPeople.tsx"));
+const AdminPolicyVersions = lazy(() => import("./pages/admin/AdminPolicyVersions.tsx"));
+const AdminSupportLog = lazy(() => import("./pages/admin/AdminSupportLog.tsx"));
 
 const AdminBriefGenStatus = lazy(() => import("./pages/AdminBriefGenStatus.tsx"));
 const AdminPricingReconciliation = lazy(() => import("./pages/AdminPricingReconciliation.tsx"));
@@ -419,9 +423,41 @@ const App = () => (
             />
             <Route
               path="/admin/email-signups"
+              element={<Navigate to="/admin/registered-users" replace />}
+            />
+            <Route
+              path="/admin/registered-users"
               element={
                 <ProtectedRoute>
-                  <AdminEmailSignups />
+                  <AdminRegisteredUsers />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/people"
+              element={
+                <ProtectedRoute>
+                  <AdminPeople />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/PP-ToS"
+              element={
+                <ProtectedRoute>
+                  <AdminPolicyVersions />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/pp-tos"
+              element={<Navigate to="/admin/PP-ToS" replace />}
+            />
+            <Route
+              path="/admin/support"
+              element={
+                <ProtectedRoute>
+                  <AdminSupportLog />
                 </ProtectedRoute>
               }
             />

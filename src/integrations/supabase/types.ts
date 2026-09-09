@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_lifecycle_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json
+          occurred_at: string
+          source: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          source?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          source?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_action_log: {
         Row: {
           action: string
@@ -4998,6 +5028,39 @@ export type Database = {
           },
         ]
       }
+      policy_documents: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          kind: string
+          published_at: string
+          published_by: string | null
+          summary: string | null
+          version: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          id?: string
+          kind: string
+          published_at?: string
+          published_by?: string | null
+          summary?: string | null
+          version: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          published_at?: string
+          published_by?: string | null
+          summary?: string | null
+          version?: string
+        }
+        Relationships: []
+      }
       primary_source_fetch_runs: {
         Row: {
           completed_at: string | null
@@ -5108,16 +5171,21 @@ export type Database = {
       }
       profiles: {
         Row: {
+          accepted_privacy_notice_id: string | null
+          accepted_privacy_policy_id: string | null
+          accepted_terms_id: string | null
           ask_privacy_count: number | null
           ask_privacy_reset_date: string | null
           biometric_free_run_claimed: boolean
           bonus_report_credits: number
           brief_role: string | null
           cancel_at_period_end: boolean
+          cancelled_at: string | null
           company_size: string | null
           created_at: string
           digest_jurisdictions: string[] | null
           digest_topics: string[] | null
+          first_subscribed_at: string | null
           founding_subscriber: boolean | null
           founding_subscriber_set_at: string | null
           free_convenience_runs_used: number
@@ -5129,12 +5197,14 @@ export type Database = {
           is_premium: boolean
           is_pro: boolean | null
           jurisdictions: string[] | null
+          marketing_opt_out: boolean
           monthly_reports_used: number
           onboarding_complete: boolean | null
           payment_failed: boolean
           preferred_language: string
           primary_jurisdiction: string | null
           professional_annual: boolean | null
+          registered_at: string | null
           reports_reset_date: string | null
           role_confirmed_at: string | null
           sector: string | null
@@ -5147,20 +5217,27 @@ export type Database = {
           subscription_plan: string | null
           subscription_tier: string | null
           subscription_type: string | null
+          terminated_at: string | null
+          termination_reason: string | null
           updated_at: string
           user_role: string | null
         }
         Insert: {
+          accepted_privacy_notice_id?: string | null
+          accepted_privacy_policy_id?: string | null
+          accepted_terms_id?: string | null
           ask_privacy_count?: number | null
           ask_privacy_reset_date?: string | null
           biometric_free_run_claimed?: boolean
           bonus_report_credits?: number
           brief_role?: string | null
           cancel_at_period_end?: boolean
+          cancelled_at?: string | null
           company_size?: string | null
           created_at?: string
           digest_jurisdictions?: string[] | null
           digest_topics?: string[] | null
+          first_subscribed_at?: string | null
           founding_subscriber?: boolean | null
           founding_subscriber_set_at?: string | null
           free_convenience_runs_used?: number
@@ -5172,12 +5249,14 @@ export type Database = {
           is_premium?: boolean
           is_pro?: boolean | null
           jurisdictions?: string[] | null
+          marketing_opt_out?: boolean
           monthly_reports_used?: number
           onboarding_complete?: boolean | null
           payment_failed?: boolean
           preferred_language?: string
           primary_jurisdiction?: string | null
           professional_annual?: boolean | null
+          registered_at?: string | null
           reports_reset_date?: string | null
           role_confirmed_at?: string | null
           sector?: string | null
@@ -5190,20 +5269,27 @@ export type Database = {
           subscription_plan?: string | null
           subscription_tier?: string | null
           subscription_type?: string | null
+          terminated_at?: string | null
+          termination_reason?: string | null
           updated_at?: string
           user_role?: string | null
         }
         Update: {
+          accepted_privacy_notice_id?: string | null
+          accepted_privacy_policy_id?: string | null
+          accepted_terms_id?: string | null
           ask_privacy_count?: number | null
           ask_privacy_reset_date?: string | null
           biometric_free_run_claimed?: boolean
           bonus_report_credits?: number
           brief_role?: string | null
           cancel_at_period_end?: boolean
+          cancelled_at?: string | null
           company_size?: string | null
           created_at?: string
           digest_jurisdictions?: string[] | null
           digest_topics?: string[] | null
+          first_subscribed_at?: string | null
           founding_subscriber?: boolean | null
           founding_subscriber_set_at?: string | null
           free_convenience_runs_used?: number
@@ -5215,12 +5301,14 @@ export type Database = {
           is_premium?: boolean
           is_pro?: boolean | null
           jurisdictions?: string[] | null
+          marketing_opt_out?: boolean
           monthly_reports_used?: number
           onboarding_complete?: boolean | null
           payment_failed?: boolean
           preferred_language?: string
           primary_jurisdiction?: string | null
           professional_annual?: boolean | null
+          registered_at?: string | null
           reports_reset_date?: string | null
           role_confirmed_at?: string | null
           sector?: string | null
@@ -5233,6 +5321,8 @@ export type Database = {
           subscription_plan?: string | null
           subscription_tier?: string | null
           subscription_type?: string | null
+          terminated_at?: string | null
+          termination_reason?: string | null
           updated_at?: string
           user_role?: string | null
         }
@@ -9436,6 +9526,45 @@ export type Database = {
           },
         ]
       }
+      support_messages: {
+        Row: {
+          body: string
+          channel: string
+          created_at: string
+          email: string
+          id: string
+          notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          subject: string | null
+          user_id: string | null
+        }
+        Insert: {
+          body?: string
+          channel?: string
+          created_at?: string
+          email: string
+          id?: string
+          notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          subject?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          body?: string
+          channel?: string
+          created_at?: string
+          email?: string
+          id?: string
+          notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          subject?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       tool_acknowledgments: {
         Row: {
           acknowledged_at: string
@@ -10881,6 +11010,29 @@ export type Database = {
       admin_fire_track3_extract: {
         Args: { p_max_rows?: number; p_regulator: string }
         Returns: number
+      }
+      admin_list_people: {
+        Args: never
+        Returns: {
+          accepted_privacy_notice_id: string
+          accepted_privacy_policy_id: string
+          accepted_terms_id: string
+          cancel_at_period_end: boolean
+          cancelled_at: string
+          email: string
+          first_subscribed_at: string
+          last_sign_in_at: string
+          marketing_opt_out: boolean
+          payment_failed: boolean
+          registered_at: string
+          status: string
+          subscription_end_date: string
+          subscription_interval: string
+          subscription_type: string
+          terminated_at: string
+          trial_end: string
+          user_id: string
+        }[]
       }
       admin_pending_fetch_counts: {
         Args: never
