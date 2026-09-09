@@ -42,9 +42,13 @@ Deno.test("doc231 — RISK_V3_ENABLED and RISK_HOOKS_ENABLED both default false 
   assertEquals(RISK_HOOKS_ENABLED, false);
 });
 
-Deno.test("doc231 — RISK_HOOKS ships exactly the one ratified hook (AP/ICS) — the shipped-corpus pin", () => {
-  assertEquals(RISK_HOOKS.length, 1);
-  assertEquals(RISK_HOOKS[0].hook_id, "enforcement_actions:dc095815-d03d-4bb2-b3be-2711e7f7d459:v1");
+Deno.test("doc231 — RISK_HOOKS ships exactly the three ratified hooks — the shipped-corpus pin", () => {
+  assertEquals(RISK_HOOKS.length, 3);
+  assertEquals(RISK_HOOKS.map((h) => h.hook_id).sort(), [
+    "enforcement_actions:a3cf40b0-3625-4e78-bbe9-63624f17ceb0:v1",
+    "enforcement_actions:dbfca969-3139-43d1-8a5b-7fff179f8db6:v1",
+    "enforcement_actions:dc095815-d03d-4bb2-b3be-2711e7f7d459:v1",
+  ]);
 });
 
 function spyingDb(reads: string[]): RiskV3DbClient {
