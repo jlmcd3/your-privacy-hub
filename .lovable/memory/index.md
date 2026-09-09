@@ -2,6 +2,8 @@
 Updated: today
 
 # Project Memory
+<!-- see also: [Account closure & bans](mem://features/account-closure-and-bans) -->
+
 
 ## Core
 Typography: DM Serif Display (Headings), DM Sans (Body), DM Mono (Citations).
