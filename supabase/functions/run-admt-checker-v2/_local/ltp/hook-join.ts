@@ -255,8 +255,8 @@ export function renderSentence(
     quote: hook.finding_span,
   };
   if (section !== undefined) slots.section = section;
-  // DOC 238 §5 item 3 — PROPOSED; only set when curated (fail-closed).
-  // Always resolvable (graceful, not fail-closed) — see risk hook-join.ts's
+  // DOC 238 §5 item 3 — PROPOSED. Always resolvable (graceful, not
+  // fail-closed) — see risk hook-join.ts's
   // own comment for the full rationale.
   slots.governing_provision = hook.governing_provision_sentence ? `${hook.governing_provision_sentence} ` : "";
 

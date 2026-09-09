@@ -280,11 +280,8 @@ export function renderSentence(
     quote: hook.finding_span,
   };
   if (section !== undefined) slots.section = section;
-  // DOC 238 §5 item 3 — PROPOSED. Only set when curated; a proposed shape
-  // that references `{governing_provision}` on a hook without one fails to
-  // resolve (the existing unresolved-slot check below), the same fail-closed
-  // behaviour `{proposition}`/`{condition}` already have.
-  // Always resolvable (graceful, not fail-closed) — no LIA shape
+  // DOC 238 §5 item 3 — PROPOSED. Always resolvable (graceful, not
+  // fail-closed) — no LIA shape
   // references {governing_provision} today, so this is a no-op either way;
   // kept consistent with Risk/ADMT's own mechanism (risk hook-join.ts's
   // comment has the full rationale).

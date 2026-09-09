@@ -327,8 +327,8 @@ export function renderSentence(
     quote: hook.finding_span,
   };
   if (section !== undefined) slots.section = section;
-  // DOC 238 §5 item 3 — PROPOSED; only set when curated (fail-closed).
-  // Always resolvable (graceful, not fail-closed): a shape that references
+  // DOC 238 §5 item 3 — PROPOSED. Always resolvable (graceful, not
+  // fail-closed): a shape that references
   // {governing_provision} simply loses that sentence, cleanly, when the
   // field is absent — every hook shipped today. The trailing space is
   // carried on the VALUE (not the template literal) so the slot works
