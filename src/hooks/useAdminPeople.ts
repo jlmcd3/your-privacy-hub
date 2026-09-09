@@ -60,6 +60,7 @@ export function useAdminPeople() {
   const [rows, setRows] = useState<PersonRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -73,9 +74,46 @@ export function useAdminPeople() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [tick]);
 
-  return { rows, loading, error };
+  return { rows, loading, error, refresh: () => setTick((t) => t + 1) };
+}
+
+/** Emails barred from re-registering after a Terms of Service closure. */
+export function useBannedUsers() {
+  const [rows, setRows] = useState<BannedUserRow[]>([]);
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await (supabase as any).rpc("admin_list_banned_users");
+      if (!cancelled) setRows((data as BannedUserRow[]) ?? []);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [tick]);
+
+  return { rows, refresh: () => setTick((t) => t + 1) };
+}
+
+export async function closeAccount(
+  userId: string,
+  closureType: "user_request" | "tos_violation",
+  reason: string,
+) {
+  const { error } = await (supabase as any).rpc("close_account", {
+    _user_id: userId,
+    _closure_type: closureType,
+    _reason: reason || null,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function reopenAccount(userId: string) {
+  const { error } = await (supabase as any).rpc("reopen_account", { _user_id: userId });
+  if (error) throw new Error(error.message);
 }
 
 export function formatDate(iso: string | null | undefined): string {
