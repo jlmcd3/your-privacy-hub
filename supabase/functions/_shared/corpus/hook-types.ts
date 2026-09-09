@@ -245,6 +245,27 @@ export interface AuthorityHook {
    * existed — every hook shipped today.
    */
   readonly status_in_citation?: boolean | null;
+  /**
+   * DOC 223B RATIFICATION FOLLOW-UP (2026-09-09) — the hook's OWN
+   * CEO-ratified sentence, VERBATIM, printed exactly as written INSTEAD OF
+   * any shape/slot substitution when present. Exists because a ratified
+   * sentence is hand-written prose, not a template fill: doc 223B's own
+   * "Implementation note" for each of its four approved hooks says outright
+   * that the approved paragraph does not fit its shape as a slot
+   * substitution (different sentence breaks, no quoted clause on some,
+   * hand-tailored asides) — forcing it through a template would produce
+   * something structurally similar, not the CEO's actual ratified words.
+   * `renderSentence` (every product's hook-join.ts) checks this FIRST and,
+   * when set, returns it plus `appealSuffix` only — shape, slots, `{quote}`,
+   * `{hedge}`, `{governing_provision}`, `{status}` are all bypassed entirely
+   * for that hook. `undefined`/`null`: renders through the shape exactly as
+   * before this field existed — every hook shipped before this ratification
+   * round. CEO's own words, this session: "the 'simplified' prose was - and
+   * is - CEO ratified" — this field is how that exact, already-ratified text
+   * reaches the live report unchanged by a template that was never built to
+   * reproduce hand-written prose.
+   */
+  readonly literal_sentence_override?: string | null;
 }
 
 /** The `CamRelevanceProfile` (cam-types.ts) fields a hook carries, in the

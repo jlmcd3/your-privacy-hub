@@ -251,7 +251,14 @@ Deno.test("doc224 join — unknown agreement + a stored `same` selection whose a
   assertEquals(r.applications.length, 1);
   assertEquals(r.applications[0].shape, "S5a");
   assertEquals(r.applications[0].selection_field_id, "processing_description");
-  assertStringIncludes(r.applications[0].sentence, "the EDPB states that processing strictly necessary for fraud prevention may rest on Article 6(1)(f), subject to");
+  // RE-PIN 2026-09-09 (doc 223B ratification follow-up): LIA_HOOK_SHAPES was
+  // promoted to the paragraph-form shapes, which add a verbatim {quote}
+  // clause before "subject to" — this hook's own finding_span now renders
+  // inline, quoted.
+  assertStringIncludes(
+    r.applications[0].sentence,
+    "the EDPB states that processing strictly necessary for fraud prevention may rest on Article 6(1)(f) — in its own words, \"fraud prevention can be a legitimate interest\" — subject to",
+  );
   assertStringIncludes(r.applications[0].sentence, "addressed in Section III");
   assertStringIncludes(r.applications[0].sentence, "(EDPB Guidelines 06/2020 on the interplay of PSD2 and the GDPR ¶20; EDPB guidelines — interpretive guidance, not binding law.)");
 });

@@ -298,33 +298,49 @@ export const LIA_ATOM_PHRASES: Readonly<Record<string, string>> = {
   "state:intake.purpose_details.marketing_channels.none=false": "it uses at least one direct-marketing channel",
 };
 
-// ── [RATIFY] — the sentence shapes (doc 213 §5 as amended by doc 222 §4), verbatim ──
+// ── [RATIFY] — the sentence shapes (doc 213 §5 as amended by doc 222 §4 and,
+// 2026-09-09, PROMOTED to doc 238's paragraph-form shapes) ──────────────────
 //
-// Every slot is a record substring, a ratified phrase (LIA_ATOM_PHRASES /
-// LIA_FACTOR_PHRASES / the derived status label), a ratified paraphrase (a
-// hook's own paraphrases and proposition split), or a pair's authored
-// facts. {verb} is derived from the source status (found / states / advised);
-// {authority} is the short label, {citation} the full label plus pinpoint.
-// "does not extend" appears only in S6x, reachable only from a pair whose
-// exclusion span verified (doc 222 §2.4).
+// PROMOTED 2026-09-09 (CEO ruling, this session): the clause-form shapes
+// below were replaced wholesale by what shipped for the rest of this session
+// as `LIA_HOOK_SHAPES_PROPOSED_2026_09` — doc 237 §5 found no shape, in any
+// product, could produce a CEO-approved hook paragraph (docs 223B/233/234/
+// 236 are all 4-7-sentence paragraphs built around a verbatim quoted clause,
+// a hedge, and a forward-looking section pointer; every shape shipped before
+// today was a 2-4-sentence clause). Every slot is still a record substring,
+// a ratified phrase, a ratified paraphrase, or a pair's authored facts, plus
+// the three new slots doc 238 added: {quote} (the verbatim, verified
+// `finding_span`, quoted by the template — quote marks are ratified template
+// text, never drafted content), {governing_provision} (unused by any LIA
+// shape — LIA's sources ARE its own governing law's authorities), and
+// {hedge} (a hook's own `hedge_sentence`, positioned where every approved
+// paragraph actually places it: before the forward-looking pointer and the
+// citation, never after — S1/S2 only, the "matching" shapes an approved
+// hedge ever sits on). NONE of this reproduces any specific ratified
+// paragraph byte-for-byte on its own — the four hooks whose EXACT ratified
+// prose doesn't fit even this generalised skeleton (0af0876d, 63bf2fe9,
+// 66742297, a22b1399; each hook's own "Implementation note" in doc 223B says
+// so) render through `AuthorityHook.literal_sentence_override` instead
+// (hook-types.ts), which bypasses this shape map entirely for that hook.
+// This promoted map is the DEFAULT path every other/future hook still uses.
 
 export const LIA_HOOK_SHAPES: Readonly<Record<"S1" | "S2" | "S3" | "S4" | "S5a" | "S5b" | "S6" | "S6x", string>> = {
   S1:
-    "The company has stated that {customer_fact}. In {authority}, {regulator} {verb} that where {fact_pattern}, {finding}. That finding supports the company's position on the {factor}. ({citation}; {status}.)",
+    "The company has stated that {customer_fact}. In {authority}, {regulator} {verb} that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding supports the company's position on the {factor}. {hedge}Section {section} records that determination. ({citation}; {status}.)",
   S2:
-    "The company has stated that {customer_fact}. In {authority}, {regulator} found that where {fact_pattern}, {finding}. That finding cuts against the company's position on the {factor}, and the {factor} finding in Section {section} reflects it. ({citation}; {status}.)",
+    "The company has stated that {customer_fact}. In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding cuts against the company's position on the {factor}. {hedge}Whether that holds on this record is addressed in Section {section}. ({citation}; {status}.)",
   S3:
-    "In {authority}, {regulator} found that where {fact_pattern}, {finding}. That finding turned on the fact that {source_fact}; on this record the company has instead stated that {record_fact}. The decision marks a boundary rather than a finding against the company. ({citation}; {status}.)",
+    "In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding turned on the fact that {source_fact}; on this record the company has instead stated that {record_fact}. The decision marks a boundary rather than a finding against the company. ({citation}; {status}.)",
   S4:
-    "In {authority}, {regulator} found that where {fact_pattern}, {finding}. The company has stated that {customer_fact}. That decision is {status}; it is noted as a boundary and is not applied. ({citation}.)",
+    "In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". The company has stated that {customer_fact}. That decision is {status}; it is noted as a boundary and is not applied. ({citation}.)",
   S5a:
-    "In {authority}, {regulator} {verb} that {proposition}, subject to {condition}. That guidance is relevant to the company's asserted {factor}; whether its condition is satisfied is addressed in Section {section}. ({citation}; {status}.)",
+    "In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}. That guidance is relevant to the company's asserted {factor}; whether its condition is satisfied is addressed in Section {section}. ({citation}; {status}.)",
   S5b:
-    "In {authority}, {regulator} {verb} that {proposition}, subject to {condition}. That guidance is relevant to the company's asserted {factor}; whether its condition is satisfied is addressed in Section {section}. The facts identified in Section {section} satisfy that stated condition. ({citation}; {status}.)",
+    "In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}. That guidance is relevant to the company's asserted {factor}; whether its condition is satisfied is addressed in Section {section}. The facts identified in Section {section} satisfy that stated condition. ({citation}; {status}.)",
   S6:
-    "The company has stated that {record_fact}. In {authority}, {regulator} {verb} that {proposition}, subject to {condition}, but does not address whether legitimate interests is available where {record_fact}. The conclusion in Section {section} therefore rests on the separately identified rules and facts, not on that guidance. ({citation}; {status}.)",
+    "The company has stated that {record_fact}. In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}, but does not address whether legitimate interests is available where {record_fact}. The conclusion in Section {section} therefore rests on the separately identified rules and facts, not on that guidance. ({citation}; {status}.)",
   S6x:
-    "The company has stated that {record_fact}. In {authority}, {regulator} {verb} that {proposition}, subject to {condition}, and that {exclusion_paraphrase}; that exclusion applies to processing of the kind the company describes, and the {factor} finding in Section {section} reflects it. ({citation}; {status}.)",
+    "The company has stated that {record_fact}. In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}, and that {exclusion_paraphrase}; that exclusion applies to processing of the kind the company describes. Whether it applies here is addressed in Section {section}. ({citation}; {status}.)",
 };
 
 // ── [RATIFY] — concept equivalence (doc 222 §2.3) ────────────────────────

@@ -400,7 +400,14 @@ const EXPECTED_MATRIX_SHA256 = "5bf3bb7ec0e179c1a6e0868e9d7451c665ece803e3caf7f6
 // sets to each other. Prior pin:
 // 4ff52b0379e2ebf81641bbcfc74dd7888b5ae0c632e9438ef6c98b0cf5a89764.
 const EXPECTED_PHRASES_SHA256 = "4d85af6444248a14c6ba9d6e0e0dcc2e4d8321e92c355eac841dd4688214cf2f";
-const EXPECTED_SHAPES_SHA256 = "e38756a7e39dfa06904f8bdbd313b0f300da9742f3472d63a5314cd67f7f43e1";
+// RE-PIN 2026-09-09 (doc 223B ratification follow-up, CEO-authorized this
+// session): LIA_HOOK_SHAPES was promoted wholesale from the old clause-form
+// text to doc 238's paragraph-form shapes ({quote}/{hedge} slots, forward-
+// looking pointers) — lia-hooks.ts's own header comment has the full
+// rationale. This IS the intended, authorized change this pin exists to
+// catch; the new hash below is the promoted content's own hash, not a
+// silent drift. Prior pin: e38756a7e39dfa06904f8bdbd313b0f300da9742f3472d63a5314cd67f7f43e1.
+const EXPECTED_SHAPES_SHA256 = "550be4ac2849fd908924c4b4dd064e3d71df66a24197cad147040cc3c36be4b4";
 
 async function sha256Hex(text: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
