@@ -16,6 +16,8 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { HOOK_PRODUCT_REGISTRY } from "../../../supabase/functions/generate-corpus-hooks/_local/product-registry.ts";
 import {
+  ADMT_ONLY_STATE_ATOM_PATHS,
+  DPIA_ONLY_STATE_ATOM_PATHS,
   OPEN_STATE_PATHS,
   RISK_ONLY_STATE_ATOM_PATHS,
   STATE_ATOM_ENUMS,
@@ -29,7 +31,17 @@ import { LIA_ATOM_PHRASES } from "../../../supabase/functions/run-li-assessment/
  * is asking); since doc 231A added CPPA Risk's own six state paths to that
  * same dict, this LIA-scoped helper excludes them by name
  * (`RISK_ONLY_STATE_ATOM_PATHS`) rather than assuming every entry is LIA's —
- * an assumption that held only while CPPA Risk carried no state atoms. */
+ * an assumption that held only while CPPA Risk carried no state atoms.
+ * DOC 241 — the same exclusion now covers ADMT's seven paths
+ * (`ADMT_ONLY_STATE_ATOM_PATHS`) and DPIA's seventeen
+ * (`DPIA_ONLY_STATE_ATOM_PATHS`); the three ownership lists must be disjoint
+ * and must cover every non-LIA entry (pinned below). */
+const OTHER_PRODUCT_STATE_PATHS = new Set([
+  ...RISK_ONLY_STATE_ATOM_PATHS,
+  ...ADMT_ONLY_STATE_ATOM_PATHS,
+  ...DPIA_ONLY_STATE_ATOM_PATHS,
+]);
+
 function draftableAtoms(): string[] {
   const registry = HOOK_PRODUCT_REGISTRY.lia;
   const v = registry.typed_state_vocabulary;
@@ -39,13 +51,25 @@ function draftableAtoms(): string[] {
   for (const x of v.relationships) atoms.push(`relationship:${x}`);
   for (const x of v.data_categories) atoms.push(`data_category:${x}`);
   for (const x of registry.instrument_scope) atoms.push(`instrument:${x}`);
-  const riskOnly = new Set(RISK_ONLY_STATE_ATOM_PATHS);
   for (const [path, options] of Object.entries(STATE_ATOM_ENUMS)) {
-    if (riskOnly.has(path)) continue;
+    if (OTHER_PRODUCT_STATE_PATHS.has(path)) continue;
     for (const option of options) atoms.push(`state:${path}=${option}`);
   }
   return atoms;
 }
+
+Deno.test("doc241 — the Risk/ADMT/DPIA state-path ownership lists are disjoint, every listed path exists in STATE_ATOM_ENUMS, and no other product's path leaks into the LIA-scoped set", () => {
+  const all = [...RISK_ONLY_STATE_ATOM_PATHS, ...ADMT_ONLY_STATE_ATOM_PATHS, ...DPIA_ONLY_STATE_ATOM_PATHS];
+  assertEquals(new Set(all).size, all.length, "ownership lists overlap");
+  for (const path of all) assert(STATE_ATOM_ENUMS[path], `${path} is owned but absent from STATE_ATOM_ENUMS`);
+  assertEquals(RISK_ONLY_STATE_ATOM_PATHS.length, 6);
+  assertEquals(ADMT_ONLY_STATE_ATOM_PATHS.length, 7);
+  assertEquals(DPIA_ONLY_STATE_ATOM_PATHS.length, 17);
+  for (const path of Object.keys(STATE_ATOM_ENUMS)) {
+    if (OTHER_PRODUCT_STATE_PATHS.has(path)) continue;
+    assert(!/^intake\.(q\d|processing_status|reasons_to_conduct\.|human_review|admt_detail\.|notice_|access_response_timeline)/.test(path), `${path}: looks like another product's path but is not in any ownership list`);
+  }
+});
 
 Deno.test("doc213 — every atom the LIA hook drafter may emit has a ratified phrase", () => {
   const missing = draftableAtoms().filter((atom) => !(atom in LIA_ATOM_PHRASES));

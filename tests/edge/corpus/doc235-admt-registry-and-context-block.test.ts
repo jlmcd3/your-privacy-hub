@@ -27,6 +27,7 @@ import {
 import { admtElementOf, ADMT_FACTOR_ELEMENT } from "../../../supabase/functions/generate-corpus-hooks/_local/admt-factor-element.ts";
 import { ADMT_HOOK_CONTEXT_BLOCK } from "../../../supabase/functions/generate-corpus-hooks/_local/admt-hook-context-block.ts";
 import { ADMT_FACTOR_PHRASES } from "../../../supabase/functions/run-admt-checker-v2/_local/corpus/maps/admt-hooks.ts";
+import { ADMT_CORPUS_MAP, ADMT_GOVERNANCE_FACTOR_ID } from "../../../supabase/functions/run-admt-checker-v2/_local/corpus/maps/admt-corpus-map.ts";
 import { readFileSync } from "node:fs";
 
 const REGISTRY = hookRegistryFor("admt");
@@ -40,14 +41,28 @@ Deno.test("HOOK_PRODUCT_REGISTRY carries an 'admt' entry with the expected vocab
   assertEquals(REGISTRY!.typed_state_vocabulary.data_categories, []);
   assert(REGISTRY!.typed_state_vocabulary.flags.includes("no_human_review"));
   assert(REGISTRY!.typed_state_vocabulary.classes.includes("hiring_admission"));
+  // DOC 241 — still eight: rule-states.ts derives no verdict for the
+  // Governance factor (the engine makes no Article 10 determination), so it
+  // is deliberately NOT a verdict element even though it IS a hook element.
   assertEquals(REGISTRY!.typed_state_vocabulary.verdict_elements.length, 8);
+  assert(!REGISTRY!.typed_state_vocabulary.verdict_elements.includes(ADMT_GOVERNANCE_FACTOR_ID));
 });
 
-Deno.test("admtElementOf — identity map over the eight known CAM factor ids; unknown factor -> null", () => {
+Deno.test("admtElementOf — identity map over the NINE known ADMT factor ids (eight CAM factors + the Section 7 Governance factor, doc 241); unknown factor -> null", () => {
   for (const f of Object.keys(ADMT_FACTOR_ELEMENT)) {
     assertEquals(admtElementOf(f), f);
   }
+  assertEquals(Object.keys(ADMT_FACTOR_ELEMENT).length, 9);
+  assertEquals(admtElementOf(ADMT_GOVERNANCE_FACTOR_ID), ADMT_GOVERNANCE_FACTOR_ID);
   assertEquals(admtElementOf("Not a real factor"), null);
+});
+
+Deno.test("doc241 — the eight CAM row factor_ids plus ADMT_GOVERNANCE_FACTOR_ID are exactly admt-factor-element.ts's key set (both directions), and the Governance label is the exact Section 7 title minus its number", () => {
+  const camFactors = new Set(ADMT_CORPUS_MAP.rows.map((r) => r.factor_id));
+  assertEquals(camFactors.size, 8);
+  assert(!camFactors.has(ADMT_GOVERNANCE_FACTOR_ID), "no CAM row is curated against the Governance factor (plumbing only)");
+  assertEquals(new Set([...camFactors, ADMT_GOVERNANCE_FACTOR_ID]), new Set(Object.keys(ADMT_FACTOR_ELEMENT)));
+  assertEquals(ADMT_GOVERNANCE_FACTOR_ID, "Governance, Record Sufficiency, and Related Risk-Assessment Obligations");
 });
 
 Deno.test("admt-factor-element.ts's factor set matches admt-hooks.ts's ADMT_FACTOR_PHRASES key set in both directions", () => {
@@ -135,7 +150,14 @@ Deno.test("generateHooks — product 'admt': an unratified hook row is excluded 
   assert(result.excluded[0].reason.includes('not "ratified"'));
 });
 
-Deno.test("generateHooks — product 'admt': a factor outside admtElementOf's eight known values is excluded, never emitted with a blank element", () => {
+Deno.test("generateHooks — product 'admt': a factor outside admtElementOf's nine known values is excluded, never emitted with a blank element", () => {
   const result = run([hookRow()], [profileRow({ factor_ids: ["Not a real factor"] })]);
   assertEquals(result.emitted, 0);
+});
+
+Deno.test("doc241 — generateHooks for product 'admt': a ratified hook on the Governance factor is now EMITTED with bears_on_element = the Governance factor (doc 236's G1–G3 exclusion reason is gone)", () => {
+  const result = run([hookRow()], [profileRow({ factor_ids: [ADMT_GOVERNANCE_FACTOR_ID] })]);
+  assert(result.ok, JSON.stringify(result.errors));
+  assertEquals(result.emitted, 1, JSON.stringify(result.excluded));
+  assert(result.contents!.includes(`"bears_on_element": ${JSON.stringify(ADMT_GOVERNANCE_FACTOR_ID)}`));
 });

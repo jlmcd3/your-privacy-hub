@@ -22,10 +22,16 @@
 // enforces it, and asserted mechanically below:
 //   - G1 / G2 / G3: the live profile's factor is "Governance, Record
 //     Sufficiency, and Related Risk-Assessment Obligations", which
-//     `admtElementOf` maps to null (ADMT's element vocabulary is exactly the
-//     eight admt-corpus-map.ts factor_ids) — generate.ts excludes such a hook
-//     BY NAME, hook-join.ts has no `{section}` for it, and admt-v2-assemble.ts
-//     Section 7 has no attachCorpusRows call (doc 236 §3 / §8.2).
+//     `admtElementOf` mapped to null (ADMT's element vocabulary was exactly
+//     the eight admt-corpus-map.ts factor_ids) — generate.ts excluded such a
+//     hook BY NAME, hook-join.ts had no `{section}` for it, and
+//     admt-v2-assemble.ts Section 7 had no attachCorpusRows call (doc 236 §3
+//     / §8.2). CLOSED by DOC 241 (2026-09-09): the Governance factor is the
+//     ninth ADMT element (ADMT_GOVERNANCE_FACTOR_ID), Section 7 carries the
+//     attachment point, and G1/G2 carry live page-kind pinpoints authored
+//     server-side from each row's own finding_span + page_ref. The rows are
+//     STILL `settled` — promotion is the orchestrator's guarded UPDATE after
+//     the three-lawyer panel rules on doc 241 §4; nothing here stamps them.
 //   - G3 / opt-out-pathway/08 / vendor-dependency/02: `conditional` posture
 //     with no `recognised_proposition` / `condition_text` — doc 236 drafts
 //     neither, and inventing them would be new structured legal content, not
@@ -92,6 +98,9 @@ interface WiredHook {
   readonly ratified_by: string | null;
   readonly ledger_ref: string | null;
   readonly ratification_blocker: string | null;
+  /** DOC 241 — mirrors the live `authority_hooks.pinpoint` column on the six
+   *  rows that carry one (page kind, ref = page_ref, anchor_span = finding_span). */
+  readonly live_pinpoint?: { readonly kind: "page"; readonly ref: string; readonly anchor_span: string };
 }
 
 const WIRING: readonly WiredHook[] = JSON.parse(await Deno.readTextFile(new URL("hooks.json", FIXTURE_DIR))).hooks;
@@ -170,11 +179,12 @@ function generateParts(w: WiredHook) {
   return { cite: cite!, short: short!, status };
 }
 
-/** A realistic runtime hook for one wiring row. For the three Governance
- *  rows `bears_on_element` is null in the wiring (admtElementOf maps the
- *  factor to nothing) — generate.ts would never emit them; the synthetic hook
- *  carries the raw factor name so the join's own `{section}` failure can be
- *  demonstrated. `literal_sentence_override` is set by default. */
+/** A realistic runtime hook for one wiring row. Since DOC 241 every row —
+ *  the three Governance rows included — carries a mapped `bears_on_element`
+ *  (the `?? profile_factor_id` fallback is kept only so a future unmapped
+ *  factor still produces a hook whose `{section}` failure can be
+ *  demonstrated). `pinpoint` is the wiring's `live_pinpoint` where the live
+ *  row carries one. `literal_sentence_override` is set by default. */
 function hookFor(w: WiredHook, overrides: Partial<AuthorityHook> = {}): AuthorityHook {
   const { cite, short, status } = generateParts(w);
   return {
@@ -200,7 +210,7 @@ function hookFor(w: WiredHook, overrides: Partial<AuthorityHook> = {}): Authorit
     status_label: status.status_label,
     verb: status.verb,
     status_in_citation: status.status_in_citation,
-    pinpoint: null, // doc 236: authorable for the FSOR rows but not authored; unlocatable for E1
+    pinpoint: w.live_pinpoint ?? null, // doc 241: six FSOR rows carry one live; still null for E1 (unlocatable) and the three conditional rows
     relevance: {
       instrument: w.profile_instrument,
       factor_ids: [...w.profile_factor_ids],
@@ -265,23 +275,46 @@ Deno.test("doc236 ADMT — exactly five hooks are ratified (ledger doc236) and f
   }
 });
 
-Deno.test("doc236 ADMT — blocker 2 (Governance): G1/G2/G3's live profile factor is the Governance string, admtElementOf maps it to null (bears_on_element null in the wiring), no section id exists for it, and on the shape path the join cannot resolve {section} — while every other hook's element is the factor itself with a section", () => {
-  assertEquals(admtElementOf(GOVERNANCE), null);
-  assertEquals(ADMT_SECTION_ID_FOR_ELEMENT[GOVERNANCE], undefined);
-  assertEquals(ADMT_FACTOR_PHRASES[GOVERNANCE], undefined);
+Deno.test("doc241 ADMT — blocker 2 (Governance) CLOSED: G1/G2/G3's factor is now the ninth element (admtElementOf identity, section id 'governance', a {factor} phrase), and on the shape path a Governance hook resolves {section} to 7 — every hook's element is its factor with a section", () => {
+  assertEquals(admtElementOf(GOVERNANCE), GOVERNANCE);
+  assertEquals(ADMT_SECTION_ID_FOR_ELEMENT[GOVERNANCE], "governance");
+  assert(ADMT_FACTOR_PHRASES[GOVERNANCE] !== undefined);
   for (const w of WIRING) {
+    assertEquals(admtElementOf(w.profile_factor_id), w.profile_factor_id, w.short);
+    assertEquals(w.bears_on_element, w.profile_factor_id, w.short);
+    assert(ADMT_SECTION_ID_FOR_ELEMENT[w.bears_on_element!] !== undefined, w.short);
     if (GOVERNANCE_SET.includes(w.short)) {
       assertEquals(w.profile_factor_id, GOVERNANCE, w.short);
-      assertEquals(w.bears_on_element, null, w.short);
-      assert(w.ratification_blocker!.includes("no bears_on_element"), w.short);
-      // Without the override, S2 (the only shape a rejected hook prints on same facts) has an unresolved {section}.
-      assertEquals(renderSentence(hookFor(w, { literal_sentence_override: null }), "S2", hookFor(w).fact_atoms, undefined), undefined, `${w.short}: {section} must be unresolvable`);
+      assert(!w.ratification_blocker!.includes("no bears_on_element"), `${w.short}: the element blocker must no longer be recorded`);
+      // Without the override, and with a phrased atom standing in for the
+      // hook's own (none proposed), S2 resolves {section} to Section 7 and
+      // {factor} to the Governance phrase — the join no longer fails here.
+      const atom = "class:hiring_admission";
+      const rendered = renderSentence(hookFor(w, { literal_sentence_override: null, fact_atoms: [atom], required_atoms: [atom] }), "S2", [atom], undefined);
+      assert(rendered, `${w.short}: S2 must render on the shape path`);
+      assert(rendered!.includes("Section 7"), rendered);
+      assert(rendered!.includes(ADMT_FACTOR_PHRASES[GOVERNANCE]), rendered);
     } else {
       assertEquals(w.profile_factor_id !== GOVERNANCE, true);
-      assertEquals(admtElementOf(w.profile_factor_id), w.profile_factor_id, w.short);
-      assertEquals(w.bears_on_element, w.profile_factor_id, w.short);
-      assert(ADMT_SECTION_ID_FOR_ELEMENT[w.bears_on_element!] !== undefined, w.short);
     }
+  }
+});
+
+Deno.test("doc241 ADMT — live pinpoints: exactly the six FSOR rows (four ratified by the orchestrator, G1/G2 by doc 241) carry a page-kind pinpoint whose ref is the row's page_ref and whose anchor_span is the row's finding_span; E1 and the three conditional rows carry none", () => {
+  const withPin = WIRING.filter((w) => w.live_pinpoint).map((w) => w.short).sort();
+  assertEquals(withPin, ["4b2d39e1", "7f616c44", "83bcecda", "84d00bed", "be2a91bc", "f77eaad2"]);
+  for (const w of WIRING) {
+    if (!w.live_pinpoint) {
+      assert(w.short === "a3463b6c" || CONDITIONAL_SET.includes(w.short), `${w.short}: an FSOR row with no pinpoint must be a conditional row`);
+      continue;
+    }
+    assertEquals(w.source_table, "cppa_fsor_commentary", w.short);
+    assertEquals(w.live_pinpoint.kind, "page", w.short);
+    assertEquals(w.live_pinpoint.ref, str(w.citation_facts.page_ref), w.short);
+    assertEquals(w.live_pinpoint.anchor_span, w.finding_span, w.short);
+    assert(w.live_pinpoint.ref.length > 0 && w.live_pinpoint.anchor_span.length > 0, w.short);
+    // generate.ts's own gate (pinpointFor) accepts exactly this shape.
+    assert(hookFor(w).pinpoint?.anchor_span === w.finding_span, w.short);
   }
 });
 
@@ -316,7 +349,7 @@ Deno.test("doc236 ADMT — each committed fixture's md5/byte length equals the h
   }
 });
 
-Deno.test("doc236 ADMT — every atom is the prep JSON's own proposal (nothing invented; five hooks carry NONE), each has an ADMT_ATOM_PHRASES entry, and checkAtoms passes for every hook EXCEPT notice-content/01, whose state: atom is not in STATE_ATOM_ENUMS — written live as vocabulary_checks_passed=false with the exact error (doc 236 [NEEDS])", () => {
+Deno.test("doc236 ADMT — every atom is the prep JSON's own proposal (nothing invented; five hooks carry NONE), each has an ADMT_ATOM_PHRASES entry, and checkAtoms passes for ALL ten — notice-content/01's state: atom included, since DOC 241 added intake.notice_has_specific_purpose to STATE_ATOM_ENUMS (the live row was flipped to vocabulary_checks_passed=true by a guarded UPDATE)", () => {
   const registry = HOOK_PRODUCT_REGISTRY.admt;
   assert(registry, "admt registry entry");
   assertEquals(WIRING.filter((w) => w.required_atoms.length === 0).map((w) => w.short).sort(), NO_ATOM_SET);
@@ -326,16 +359,14 @@ Deno.test("doc236 ADMT — every atom is the prep JSON's own proposal (nothing i
     assert(w.required_atoms.length <= 1, `${w.short}: at most a single coarse gate`);
     for (const atom of atoms) assert(ADMT_ATOM_PHRASES[atom] !== undefined, `${w.short}: no phrase for ${atom}`);
     const errors = checkAtoms(atoms, registry);
-    if (w.short === "7f616c44") {
-      assertEquals(w.vocabulary_checks_passed, false);
-      assert(errors.length > 0 && errors.every((e) => e.includes("state path is not in the hook vocabulary")), JSON.stringify(errors));
-      assertEquals(w.vocabulary_check_errors, errors);
-    } else {
-      assertEquals(errors, [], `${w.short}: atoms outside the closed vocabulary`);
-      assertEquals(w.vocabulary_checks_passed, true, w.short);
-      assertEquals(w.vocabulary_check_errors, []);
-    }
+    assertEquals(errors, [], `${w.short}: atoms outside the closed vocabulary`);
+    assertEquals(w.vocabulary_checks_passed, true, w.short);
+    assertEquals(w.vocabulary_check_errors, []);
   }
+  // The one atom doc 236 could not verify is a state: atom, and it now passes.
+  const notice = byShort("7f616c44");
+  assert(notice.required_atoms[0].startsWith("state:intake.notice_has_specific_purpose="), notice.required_atoms[0]);
+  assertEquals(checkAtoms(notice.required_atoms, registry), []);
 });
 
 Deno.test("doc236 ADMT — every paraphrase satisfies verify.ts's clause-form rules and drops no qualifier present in its finding_span (access-process/05's span carries 'necessary')", () => {

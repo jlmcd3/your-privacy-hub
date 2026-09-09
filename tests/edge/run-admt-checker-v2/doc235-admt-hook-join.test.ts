@@ -29,6 +29,7 @@ import {
   type HookSelectionRow,
 } from "../../../supabase/functions/run-admt-checker-v2/_local/ltp/hook-join.ts";
 import { ADMT_HOOKS } from "../../../supabase/functions/run-admt-checker-v2/_local/corpus/maps/admt-hooks.ts";
+import { ADMT_GOVERNANCE_FACTOR_ID } from "../../../supabase/functions/run-admt-checker-v2/_local/corpus/maps/admt-corpus-map.ts";
 import { computeAdmtV2 } from "../../../supabase/functions/run-admt-checker-v2/_local/ltp/admt-v2-deterministic.ts";
 import { assembleAdmtV2Document } from "../../../supabase/functions/run-admt-checker-v2/_local/ltp/admt-v2-assemble.ts";
 
@@ -263,15 +264,99 @@ Deno.test("applyAdmtHooks — a hook whose source is already determinative is su
 
 // ── The factor -> section-id map covers every factor ADMT_HOOKS may use ──
 
-Deno.test("ADMT_SECTION_ID_FOR_ELEMENT — covers all eight CAM factor ids with a valid admt-v2-assemble.ts section id", () => {
-  const validIds = new Set(["applicability", "notice", "optout", "access", "vendor"]);
+Deno.test("ADMT_SECTION_ID_FOR_ELEMENT — covers all eight CAM factor ids plus the Section 7 Governance factor (doc 241) with a valid admt-v2-assemble.ts section id", () => {
+  const validIds = new Set(["applicability", "notice", "optout", "access", "vendor", "governance"]);
   const factors = [
     "Significant decision", "Human involvement", "Advertising exclusion",
     "Notice delivery", "Notice content", "Opt-out pathway", "Access process", "Vendor dependency",
+    ADMT_GOVERNANCE_FACTOR_ID,
   ];
   for (const f of factors) {
     assertEquals(validIds.has(ADMT_SECTION_ID_FOR_ELEMENT[f]), true, `missing/invalid section id for factor "${f}"`);
   }
+  assertEquals(ADMT_SECTION_ID_FOR_ELEMENT[ADMT_GOVERNANCE_FACTOR_ID], "governance");
+  assertEquals(Object.keys(ADMT_SECTION_ID_FOR_ELEMENT).length, 9);
+});
+
+// ── DOC 241 (2026-09-09) — the Governance factor is a real attachment point ──
+
+Deno.test("doc241 — a Governance-factor hook renders through ADMT's own {factor}/{section} slots: 'Section 7' and the governance phrase; with no Governance verdict (null) it is S2, never rule_missing", () => {
+  const hook = makeHook({
+    hook_id: "test/governance-s2",
+    factor_id: ADMT_GOVERNANCE_FACTOR_ID,
+    bears_on_element: ADMT_GOVERNANCE_FACTOR_ID,
+    relevance: { instrument: "CPPA ADMT Regulations", factor_ids: [ADMT_GOVERNANCE_FACTOR_ID], use_case_class: null, relationship: null, data_categories: [], flags: [], outcome_posture: "rejected" },
+  });
+  const states = baseStates();
+  assertEquals(states.verdicts[ADMT_GOVERNANCE_FACTOR_ID], undefined, "rule-states derives no Governance verdict — deliberate (hook-join.ts SECTION_FOR_ELEMENT note)");
+  const r = applyAdmtHooks([hook], states, states.verdicts, ["row-test"], new Set());
+  assertEquals(r.flags, []);
+  assertEquals(r.applications.length, 1);
+  assertEquals(r.applications[0].shape, "S2");
+  assertEquals(r.applications[0].sentence.includes("Section 7"), true, r.applications[0].sentence);
+  assertEquals(r.applications[0].sentence.includes("the governance and related risk-assessment obligations"), true, r.applications[0].sentence);
+  // Every verdict value keeps the same result: a Governance hook never sees a passing verdict.
+  for (const v of ["passes", "fails", "uncertain"]) {
+    const bag = baseStates({ verdicts: { ...baseStates().verdicts, [ADMT_GOVERNANCE_FACTOR_ID]: v } });
+    const rr = applyAdmtHooks([hook], bag, bag.verdicts, ["row-test"], new Set());
+    if (v === "passes") assertEquals(rr.flags, [{ hook_id: "test/governance-s2", reason: "rule_missing" }], "an explicit passing verdict, if one ever existed, would engage the lawyer's rule exactly like any other factor");
+    else assertEquals(rr.applications.map((x) => x.shape), ["S2"], v);
+  }
+});
+
+Deno.test("doc241 integration — a Governance hook application, spliced via ADMT_SECTION_ID_FOR_ELEMENT, lands in the assembled document's '7. Governance…' section and nowhere else", () => {
+  const intake: Record<string, unknown> = {
+    organization_name: "Test Co",
+    system_name: "Test Hiring Screener",
+    system_type: "ML classifier",
+    system_description: "Scores job applicants for interview eligibility.",
+    decision_domains: ["Hiring or admission decisions"],
+    human_review: "No — fully automated, no human review",
+    training_data_use: "Yes",
+    profiling_use: "Yes",
+    notice_delivery: ["Separate standalone Pre-use Notice"],
+    notice_has_specific_purpose: "Yes",
+    notice_has_opt_out_desc: "Yes — with specific opt-out instructions",
+    notice_has_access_desc: "Yes",
+    notice_has_anti_retaliation: "Yes",
+    notice_has_how_it_works: "Yes — included inline in the notice",
+    notice_has_alternative_process: "Yes",
+    opt_out_exception: "No exception — we provide a full opt-out right",
+    access_submission_methods: "Online form",
+    access_verification_process: "Email verification",
+    access_logic_disclosure: "We describe the scoring model in general terms.",
+    access_outcome_disclosure: "We tell the applicant whether they advanced.",
+    access_response_timeline: "Within 45 calendar days (standard)",
+    admt_detail: {},
+  };
+  const computed = computeAdmtV2(intake as any);
+  const hook = makeHook({ hook_id: "test/governance-splice", factor_id: ADMT_GOVERNANCE_FACTOR_ID, bears_on_element: ADMT_GOVERNANCE_FACTOR_ID });
+  const states = baseStates();
+  const { applications } = applyAdmtHooks([hook], states, states.verdicts, ["row-test"], new Set());
+  assertEquals(applications.length, 1);
+
+  const sectionId = ADMT_SECTION_ID_FOR_ELEMENT[hook.bears_on_element];
+  assertEquals(sectionId, "governance");
+  const doc = assembleAdmtV2Document({
+    intake, computed, exhibit: null, organizationName: "Test Co", systemName: "Test Hiring Screener",
+    admtV3Append: { [sectionId]: [applications[0].sentence] },
+  });
+  const governance = doc.sections.find((s) => s.id === "governance");
+  assertEquals(governance !== undefined, true, "Section 7 must render");
+  assertEquals(governance!.title, "7. Governance, Record Sufficiency, and Related Risk-Assessment Obligations");
+  const last = governance!.paragraphs[governance!.paragraphs.length - 1];
+  assertEquals(last.kind, "generated");
+  assertEquals(last.text, applications[0].sentence);
+  for (const other of doc.sections.filter((s) => s.id !== "governance")) {
+    assertEquals(other.paragraphs.some((p) => p.text === applications[0].sentence), false, `leaked into section "${other.id}"`);
+  }
+  // The Section 7 S4 attachment point exists but attaches nothing today (no
+  // Governance CAM row, no ratified frame): the section is byte-identical to a
+  // no-append render apart from the spliced sentence.
+  const bare = assembleAdmtV2Document({ intake, computed, exhibit: null, organizationName: "Test Co", systemName: "Test Hiring Screener" });
+  const bareGov = bare.sections.find((s) => s.id === "governance")!;
+  assertEquals(JSON.stringify(governance!.paragraphs.slice(0, -1)), JSON.stringify(bareGov.paragraphs));
+  assertEquals(bareGov.paragraphs.some((p) => p.text.startsWith("Regulatory Interpretation —")), false);
 });
 
 // ── The planner ────────────────────────────────────────────────────────────

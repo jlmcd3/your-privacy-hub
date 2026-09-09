@@ -106,9 +106,24 @@ const SETTLEDNESS_RANK: Readonly<Record<HookSettledness, number>> = { R1: 0, R2:
 /** {section} — the report section number carrying the factor (doc 235's own
  *  factor→section map, an ORCHESTRATOR DEFAULT verified against the live
  *  section ids in admt-v2-assemble.ts's `push()` calls, not yet CEO-
- *  ratified). A `bears_on_element` outside these eight resolves to
+ *  ratified). A `bears_on_element` outside these nine resolves to
  *  `undefined`, which fails that hook's render as an unresolved slot rather
- *  than printing a wrong or blank section number. */
+ *  than printing a wrong or blank section number.
+ *
+ *  DOC 241 (2026-09-09, V3 gap closure) — the ninth row: the Section 7
+ *  Governance factor (admt-corpus-map.ts's ADMT_GOVERNANCE_FACTOR_ID; the
+ *  exact string the three live Governance profiles carry). Doc 236's G1–G3
+ *  had no `{section}` and no section id here, so even a ratified Governance
+ *  hook could never be spliced (doc 236 §3 / §8.2). NOTE: rule-states.ts
+ *  derives NO verdict for this factor — the ADMT engine makes no
+ *  determination on the Article 10 risk-assessment duties Section 7
+ *  describes ("This ADMT Compliance Assessment is not the Article 10 risk
+ *  assessment") — so `verdicts[bears_on_element]` is `null` for a
+ *  Governance hook: `isPassingVerdict(null)` is false, S5b and the
+ *  lawyer's-rule `rule_missing` omit are unreachable, and a rejected/
+ *  conditional Governance hook renders S2/S5a on same facts. Deliberate:
+ *  inventing a Governance "pass" proxy would be a legal judgment, not
+ *  plumbing. */
 const SECTION_FOR_ELEMENT: Readonly<Record<string, string>> = {
   "Significant decision": "2",
   "Human involvement": "2",
@@ -118,6 +133,7 @@ const SECTION_FOR_ELEMENT: Readonly<Record<string, string>> = {
   "Opt-out pathway": "4",
   "Access process": "5",
   "Vendor dependency": "6",
+  "Governance, Record Sufficiency, and Related Risk-Assessment Obligations": "7",
 };
 
 /** Exported so admt-v3-selection.ts can group a resolved application's
@@ -137,6 +153,8 @@ export const ADMT_SECTION_ID_FOR_ELEMENT: Readonly<Record<string, string>> = {
   "Opt-out pathway": "optout",
   "Access process": "access",
   "Vendor dependency": "vendor",
+  // DOC 241 — Section 7's `push()` id in admt-v2-assemble.ts (verified live).
+  "Governance, Record Sufficiency, and Related Risk-Assessment Obligations": "governance",
 };
 
 /** Evaluate every atom in `atoms` against `states`, short-circuiting to

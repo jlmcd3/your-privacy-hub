@@ -6,6 +6,65 @@
 
 import { parseAtom } from "./hooks-gate.ts";
 import type { HookProductVocabulary } from "./product-registry.ts";
+import { DPIA_REASON_SLUG_LIST } from "./product-registry.ts";
+import { cppaAdmtContract } from "../../_shared/intake-contracts/cppa-admt.ts";
+import type { IntakeContract } from "../../_shared/intake-contracts/types.ts";
+
+// ── DOC 241 (2026-09-09, V3 gap closure) — ADMT and DPIA `state:` paths ────
+//
+// Both product builds left this file untouched ("vocabulary.ts is off-limits
+// to the product builds" — doc 235 §8 / doc 232) and disclosed the gap: every
+// ADMT `state:intake.*` atom and every DPIA `state:intake.reasons_to_conduct.*`
+// atom was rejected by `checkAtom` below ("state path is not in the hook
+// vocabulary"). Doc 236 wrote notice-content/01 live with
+// `vocabulary_checks_passed = false` for exactly that reason. The entries are
+// generated, not retyped:
+//   - ADMT: the seven closed-list intake fields ADMT_ATOM_PHRASES
+//     (run-admt-checker-v2/_local/corpus/maps/admt-hooks.ts) already phrases
+//     and rule-states.ts's INTAKE_STATE_PATHS already populates; each option
+//     list is READ OFF the intake contract (`cppaAdmtContract`, the same
+//     object the form-parity tests pin), so this vocabulary cannot drift
+//     from the form.
+//   - DPIA: every `reasons_to_conduct` slug in DPIA_REASON_SLUG_LIST (the
+//     closed list doc 232 added to product-registry.ts), admitting exactly
+//     `true`/`false` — the two values DPIA_ATOM_PHRASES phrases for each.
+// `STATE_ATOM_ENUMS` stays ONE FLAT, product-unscoped dict (the pre-existing
+// design doc 237 flagged for a CEO ruling — unchanged here); the ownership
+// lists below exist so each product's phrase-coverage test can scope to its
+// own paths, exactly as RISK_ONLY_STATE_ATOM_PATHS already does.
+
+/** The ADMT intake-contract keys whose closed options become `state:intake.<key>` paths. */
+const ADMT_STATE_CONTRACT_KEYS: readonly string[] = [
+  "human_review",
+  "admt_detail.solely_advertising",
+  "notice_has_specific_purpose",
+  "notice_has_opt_out_desc",
+  "access_response_timeline",
+  "admt_detail.hi_authority_override",
+  "admt_detail.nondiscrimination_testing",
+];
+
+/** The contract's VERBATIM option list for `key`, or a loud failure — a
+ *  silent empty list would make every atom on that path unverifiable. */
+function contractOptions(contract: IntakeContract, key: string): readonly string[] {
+  const field = contract.fields.find((f) => f.key === key);
+  if (!field || !field.options || field.options.length === 0) {
+    throw new Error(`vocabulary.ts: intake contract has no closed options for "${key}"`);
+  }
+  return field.options;
+}
+
+function admtStateEnums(): Record<string, readonly string[]> {
+  const out: Record<string, readonly string[]> = {};
+  for (const key of ADMT_STATE_CONTRACT_KEYS) out[`intake.${key}`] = contractOptions(cppaAdmtContract, key);
+  return out;
+}
+
+function dpiaStateEnums(): Record<string, readonly string[]> {
+  const out: Record<string, readonly string[]> = {};
+  for (const slug of DPIA_REASON_SLUG_LIST) out[`intake.reasons_to_conduct.${slug}`] = ["true", "false"];
+  return out;
+}
 
 /** Closed option sets for the `state:intake.` paths doc 213 admits. */
 export const STATE_ATOM_ENUMS: Readonly<Record<string, readonly string[]>> = {
@@ -81,7 +140,22 @@ export const STATE_ATOM_ENUMS: Readonly<Record<string, readonly string[]>> = {
     "No — we do not knowingly process under-16 data",
     "Unsure",
   ],
+
+  // DOC 241 — ADMT (seven paths, options read off cppaAdmtContract) and DPIA
+  // (seventeen `reasons_to_conduct` slugs × true/false); see the header note.
+  ...admtStateEnums(),
+  ...dpiaStateEnums(),
 };
+
+/** DOC 241 — the ADMT-owned `STATE_ATOM_ENUMS` keys (`intake.<contract key>`),
+ *  the ADMT twin of RISK_ONLY_STATE_ATOM_PATHS. Read by
+ *  tests/edge/corpus/doc237-admt-vocabulary-phrase-coverage.test.ts and by the
+ *  LIA coverage test's exclusion list. */
+export const ADMT_ONLY_STATE_ATOM_PATHS: readonly string[] = ADMT_STATE_CONTRACT_KEYS.map((key) => `intake.${key}`);
+
+/** DOC 241 — the DPIA-owned `STATE_ATOM_ENUMS` keys
+ *  (`intake.reasons_to_conduct.<slug>`), one per DPIA_REASON_SLUG_LIST entry. */
+export const DPIA_ONLY_STATE_ATOM_PATHS: readonly string[] = DPIA_REASON_SLUG_LIST.map((slug) => `intake.reasons_to_conduct.${slug}`);
 
 /** DOC 231A — the six `STATE_ATOM_ENUMS` keys above that belong to the CPPA
  *  Risk product. `STATE_ATOM_ENUMS` stays ONE FLAT, product-unscoped dict —
