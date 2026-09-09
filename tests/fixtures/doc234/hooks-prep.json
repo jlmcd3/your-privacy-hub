@@ -1,0 +1,102 @@
+{
+  "_about": "DOC 234 RATIFICATION — PREP ONLY (2026-09-09). The four CPPA Risk candidates whose own 'CEO: ratify / revise / retire' line reads 'CEO approved the revised prose (2026-09-09)'. Their approved paragraphs are the sibling ratified-<id>.txt fixtures (script-extracted from doc 234's hard-wrapped blockquotes, joined with single spaces; Candidate 1's markdown-italic markers around the Dutch quotation stripped — 2 '*' characters, quotation marks kept). Candidates 5–18 (every FSOR candidate) have a BLANK ratify line and are NOT approved.",
+  "_blocked_on": "authority_relevance_profiles has ZERO rows for product='cppa-risk' as of 2026-09-09 (doc 239 §2.3 seeding SQL not yet run in Lovable). No authority_hooks row can be written until a profile exists to carry profile_id. Unblocking sequence: (1) run doc 239 §2.3 in Lovable; (2) SELECT id FROM authority_relevance_profiles WHERE product='cppa-risk' AND source_row_id = <each source_row_id below>; (3) generate the INSERT from these fixtures exactly as tests/fixtures/doc233/hooks.json + its generator did for DPIA (dollar-quoted override read from the fixture file, never retyped), hook_status='settled'; (4) re-query octet_length/md5 of literal_sentence_override against the fixture file; (5) ONLY THEN the guarded UPDATE to 'ratified' with ratified_by/ratified_at/ledger_ref='doc234'.",
+  "_markup_decision_for_ceo": "doc 234 renders the load-bearing quoted clauses in markdown italics/bold; a hook sentence is plain text, so the markers were stripped (words + quotation marks untouched). If the CEO wants a different treatment (e.g. keep bold as ** for a markdown-capable renderer), the fixtures must be regenerated before any Risk DB write.",
+  "_generate_time_blockers_shared_with_dpia": "every candidate here has pinpoint=null (no locatable pinpoint in the corpus for these narrative rows) — generate.ts excludes such hooks BY NAME until a pinpoint is authored; the profile must also be stamped (ratified_by/ratified_at/ledger_ref) before the generator emits it.",
+  "hooks": [
+    {
+      "short": "dc095815",
+      "candidate": "doc 234 Candidate 1 — AP (Netherlands), International Card Services B.V.",
+      "ratify_line": "CEO approved the revised prose (2026-09-09) — the sentence itself is settled; drafting into the corpus still awaits the generate.ts/loadSource() column fix (§1.3) and profile ratification.",
+      "source_table": "enforcement_actions",
+      "source_row_id": "dc095815-d03d-4bb2-b3be-2711e7f7d459",
+      "card_factors": ["Assessment timing and material changes", "Regulatory trigger and applicability"],
+      "card_posture": "rejected",
+      "card_trigger_condition": "a § 7150(b) trigger is engaged (e.g., q15_sensitive_pi === 'Yes') AND processing_status === 'Planned', or processing_start_date predates the date the risk assessment record itself was created",
+      "proposed_required_atoms": ["flag:sensitive_pi"],
+      "proposed_fact_atoms": ["flag:sensitive_pi", "state:intake.processing_status=Planned"],
+      "atoms_note": "both atoms are in RISK_ATOM_PHRASES and STATE_ATOM_ENUMS (intake.processing_status is a closed Risk path). The card's 'e.g.' means ANY § 7150(b) trigger — the AND-only grammar cannot express that OR, so sensitive_pi (the card's own example) is the coarse gate. [NEEDS: the second leg — 'processing_start_date predates the assessment record' — has no atom (no state path for start date vs created_at); it can only be reached by a two-leg selection read or a new atom.]",
+      "verified_quote": { "column": "enforcement_actions.source_document_text", "text": "ICS heeft nagelaten om een DPIA uit te voeren voordat het bedrijf in 2019 begon met het digitaal identificeren van klanten in Nederland", "position_live_2026_09_09": 1956, "doc_claimed": 1956 },
+      "settledness_note": "R3 (single SA decision). Source row appeal_status='final' — deriveSourceStatus may derive sa_decision_affirmed; the approved citation prints 'final on appeal'.",
+      "citation_facts": { "regulator": "AP", "subject": "International Card Services B.V.", "decision_date": "2024-01-15", "appeal_status": "final" },
+      "fixture": "tests/fixtures/doc234/ratified-dc095815.txt",
+      "fixture_markup_stripped": { "bold_markers": 0, "italic_markers": 2 },
+      "needs": [
+        "profile row (doc 239 §2.3 not run)",
+        "generate-corpus-hooks/index.ts loadSource() cppa_fsor_commentary branch must select agency_response (doc 234 §1.3) — not relevant to THIS enforcement row but the doc's own precondition for the Risk roster",
+        "pinpoint unlocatable in corpus (narrative row)",
+        "second trigger leg has no atom"
+      ]
+    },
+    {
+      "short": "a3cf40b0",
+      "candidate": "doc 234 Candidate 2 — Garante (Italy), Poste Italiane S.p.a.",
+      "ratify_line": "CEO approved the revised prose (2026-09-09) — the sentence itself is settled; drafting into the corpus still awaits translation verification (curation card) and the generate.ts/loadSource() column fix (§1.3).",
+      "source_table": "enforcement_actions",
+      "source_row_id": "a3cf40b0-3625-4e78-bbe9-63624f17ceb0",
+      "card_factors": ["Benefits-risks balancing", "Safeguards"],
+      "card_posture": "rejected",
+      "card_trigger_condition": "q18_admt_use === 'Yes' AND q19_admt_description reads (on a two-leg SELECTION read of the narrative) as a scoring or fraud-detection system",
+      "proposed_required_atoms": ["flag:admt_use"],
+      "proposed_fact_atoms": ["flag:admt_use"],
+      "atoms_note": "flag:admt_use is in RISK_ATOM_PHRASES. The 'reads as a scoring or fraud-detection system' leg is BY DESIGN a two-leg selection read (agreement 'unknown' -> selection_pending), not an atom.",
+      "verified_quote": { "column": "enforcement_actions.key_compliance_failure", "text": "Poste Italiane processed customer data excessively through a fraud prevention tool without a sufficient legal basis, proper transparency, or adequate data protection measures.", "position_live_2026_09_09": 1, "doc_claimed": "none — doc 234 states this English field is a curator paraphrase, not a verbatim quote" },
+      "settledness_note": "R3",
+      "citation_facts": { "regulator": "Garante", "subject": "Poste Italiane S.p.a.", "decision_date": "2026-04-17", "appeal_status": "unknown" },
+      "fixture": "tests/fixtures/doc234/ratified-a3cf40b0.txt",
+      "fixture_markup_stripped": { "bold_markers": 0, "italic_markers": 0 },
+      "needs": [
+        "profile row (doc 239 §2.3 not run)",
+        "[NEEDS: translation verification against the Italian source_document_text before this card's language is treated as anything more than a paraphrase] — carried from doc 234",
+        "pinpoint unlocatable in corpus"
+      ]
+    },
+    {
+      "short": "e58dfa97",
+      "candidate": "doc 234 Candidate 3 — AEPD (Spain), Cartonajes Bañeres, S.A.",
+      "ratify_line": "CEO approved the revised prose (2026-09-09) — the sentence itself is settled; drafting into the corpus still awaits translation verification (curation card) and the generate.ts/loadSource() column fix (§1.3).",
+      "source_table": "enforcement_actions",
+      "source_row_id": "e58dfa97-b038-4ffa-9ca4-2b9aba436bbb",
+      "card_factors": ["Regulatory trigger and applicability", "Safeguards"],
+      "card_posture": "rejected",
+      "card_trigger_condition": "q15_sensitive_pi === 'Yes' AND q4_pi_categories includes 'Biometric information' AND q5b_profiling_observation === 'Yes'",
+      "proposed_required_atoms": ["flag:biometric_data"],
+      "proposed_fact_atoms": ["flag:sensitive_pi", "data_category:Biometric information", "flag:profiling_or_systematic_observation"],
+      "atoms_note": "all four atoms are in RISK_ATOM_PHRASES; this is the one Risk candidate whose card trigger is a pure AND of closed atoms.",
+      "verified_quote": { "column": "enforcement_actions.key_compliance_failure", "text": "realiza una fotografía de la cara de los empleados desde un dispositivo situado en la entrada y no informa del uso de la imagen", "position_live_2026_09_09": 1, "doc_claimed": "verbatim Spanish on the row (doc 234/239); doc 233 claimed position()=1" },
+      "settledness_note": "R3",
+      "citation_facts": { "regulator": "AEPD", "subject": "CARTONAJES BAÑERES, S.A.", "decision_date": "2024-01-05" },
+      "fixture": "tests/fixtures/doc234/ratified-e58dfa97.txt",
+      "fixture_markup_stripped": { "bold_markers": 0, "italic_markers": 0 },
+      "needs": [
+        "profile row (doc 239 §2.3 not run)",
+        "[NEEDS: translation verification against the full AEPD PDF — carried forward from doc 231, unresolved]",
+        "pinpoint unlocatable in corpus"
+      ]
+    },
+    {
+      "short": "dbfca969",
+      "candidate": "doc 234 Candidate 4 — Garante (Italy), Comune di Bolzano",
+      "ratify_line": "CEO approved the revised prose (2026-09-09) — the sentence itself is settled; drafting into the corpus still awaits translation verification (curation card) and the generate.ts/loadSource() column fix (§1.3).",
+      "source_table": "enforcement_actions",
+      "source_row_id": "dbfca969-3139-43d1-8a5b-7fff179f8db6",
+      "card_factors": ["Material privacy risks", "Regulatory trigger and applicability"],
+      "card_posture": "rejected",
+      "card_trigger_condition": "q5b_profiling_observation === 'Yes' AND (q3_sector is a public-sector/employment-heavy sector OR an a5_harm_pathways row is a two-leg SELECTION match for a workforce-monitoring pathway)",
+      "proposed_required_atoms": ["flag:profiling_or_systematic_observation"],
+      "proposed_fact_atoms": ["flag:profiling_or_systematic_observation"],
+      "atoms_note": "flag:profiling_or_systematic_observation is in RISK_ATOM_PHRASES. [NEEDS: no sector atom exists in the Risk vocabulary; the sector/harm-pathway leg can only be reached by a two-leg selection read.]",
+      "verified_quote": { "column": "enforcement_actions.key_compliance_failure", "text": "The municipality unlawfully monitored employee internet usage and processed sensitive health data without a valid legal basis or proper transparency", "position_live_2026_09_09": 1, "doc_claimed": "none in doc 234 (English curator summary); doc 233 claimed 18 = the same field from the word 'unlawfully'" },
+      "settledness_note": "R3",
+      "citation_facts": { "regulator": "Garante", "subject": "Comune di Bolzano", "decision_date": "2021-05-13", "appeal_status": "unknown" },
+      "fixture": "tests/fixtures/doc234/ratified-dbfca969.txt",
+      "fixture_markup_stripped": { "bold_markers": 0, "italic_markers": 0 },
+      "needs": [
+        "profile row (doc 239 §2.3 not run)",
+        "[NEEDS: translation verification] — same posture as Candidate 2 (Italian source_document_text not translated)",
+        "pinpoint unlocatable in corpus",
+        "no sector atom"
+      ]
+    }
+  ]
+}
