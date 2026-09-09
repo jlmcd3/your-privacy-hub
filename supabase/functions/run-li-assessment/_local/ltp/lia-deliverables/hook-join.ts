@@ -64,6 +64,7 @@ import {
   type SelectionCandidate,
   type SelectionItem,
 } from "../../../../_shared/corpus/hook-selection.ts";
+import { tidyRenderedSentence } from "../../../../_shared/corpus/hook-render-tidy.ts";
 import {
   LIA_ATOM_PHRASES,
   LIA_FACTOR_PHRASES,
@@ -252,7 +253,15 @@ export function renderSentence(
     fact_pattern: hook.fact_pattern_paraphrase,
     finding: hook.finding_paraphrase,
     factor: LIA_FACTOR_PHRASES[hook.factor_id] ?? hook.factor_id.toLowerCase(),
-    status: statusLabel(hook),
+    // DOC 238 §5.5.2 FOLLOW-UP (2026-09-09) — kept structurally identical to
+    // the other three joins: a hook whose approved citation carries no
+    // status clause (`status_in_citation: false`) blanks the slot in the
+    // citation TRAILER and `tidyRenderedSentence` collapses the leftover
+    // "; ". No LIA hook does this (every ratified LIA citation carries the
+    // status), so this is a no-op here — the live path renders byte-
+    // identically (doc 223B's literal sentences are pinned); S4 always keeps
+    // {status}.
+    status: hook.status_in_citation === false && shape !== "S4" ? "" : statusLabel(hook),
     // DOC 238 §5 item 2 — PROPOSED. The verbatim, verified span
     // (`finding_span`, required on every hook, never subject to
     // `clauseFormErrors` — that check applies only to a paraphrase). No
@@ -311,7 +320,11 @@ export function renderSentence(
     sentence = sentence.split(`{${key}}`).join(value);
   }
   if (/\{[a-z_]+\}/.test(sentence)) return undefined; // an unresolved slot remains
-  return sentence + appealSuffix(hook);
+  // CEO 2026-09-09 ("no fail-closed designs") — the tidy pass collapses the
+  // punctuation an empty slot leaves behind ("; .)" -> ".)"); a byte-for-byte
+  // no-op on a clean sentence (pinned by doc238-status-labels-and-tidy
+  // against doc 223B's own literal rendered sentences).
+  return tidyRenderedSentence(sentence + appealSuffix(hook));
 }
 
 // ── DOC 238 (2026-09-09) — PROPOSED paragraph-form shapes, LIA. NOT

@@ -95,12 +95,13 @@ export interface HookSourceRow {
   // ships it unconditionally as `regulator_guidance` (below).
   readonly regulation_citation?: string | null; // cppa_fsor_commentary — the pinpoint, not a title
   readonly page_ref?: string | null; // cppa_fsor_commentary — pinpoint fallback
-  // DOC 238 §7 — the FSOR regulation package name, e.g. "CCPA Updates,
-  // Cyber, Risk, ADMT, Insurance 2025 FSOR" (real column, verified read-only
-  // against `cppa_fsor_commentary.fsor_package` this session — the value is
-  // NOT normalised: two conventions coexist in the data today, a slug form
-  // ("ccpa-2025-cyber-risk-admt") and a prose form; `citationFor` prints
-  // whatever the row carries, verbatim, never invents or reformats it).
+  // DOC 238 §7 — the FSOR regulation package name (real column,
+  // `cppa_fsor_commentary.fsor_package`). Two conventions coexist in the
+  // data, a slug form ("ccpa-2025-cyber-risk-admt") and a prose form ("CCPA
+  // Updates, Cyber, Risk, ADMT, Insurance 2025 FSOR"); since the doc 238
+  // §1.4 follow-up (2026-09-09) `citationFor` prints `fsorPackageName()` of
+  // the raw value (below), so a citation reads as prose whichever form the
+  // row carries.
   readonly fsor_package?: string | null; // cppa_fsor_commentary
   // DOC 238 §7 — the English name of a non-English-language regulator, for
   // the trailing parenthetical the approved Risk/ADMT prose uses (e.g.
@@ -110,8 +111,9 @@ export interface HookSourceRow {
   // NATIVE full name (e.g. "Garante per la protezione dei dati personali"),
   // not an English gloss. Still no per-row source for most regulators; where
   // one is absent, `citationFor` falls back to `KNOWN_REGULATOR_ENGLISH_GLOSS`
-  // (below) keyed off `regulator_canonical`, which today covers only the one
-  // regulator doc 236 actually needed it for.
+  // (below) keyed off `regulator_canonical`, which today covers only the two
+  // regulators an approved citation actually needed it for (doc 236 E1, doc
+  // 234 Candidate 1).
   readonly regulator_english_name?: string | null; // enforcement_actions
   // DOC 238 FOLLOW-UP (2026-09-09) — `enforcement_actions.regulator_canonical`
   // (real column, holds the regulator's own native full name). Read but
@@ -138,11 +140,149 @@ export interface HookSourceRow {
 // citation's trailing parenthetical when `regulator_canonical_in_citation`
 // is true for that row and no per-row `regulator_english_name` is set. Not a
 // general-purpose translator: each entry is added only once a specific
-// approved citation has actually needed it (doc 236 E1, this entry), never
-// invented ahead of one.
+// approved citation has actually needed it (doc 236 E1; doc 234 Candidate 1
+// — two entries today), never invented ahead of one.
 const KNOWN_REGULATOR_ENGLISH_GLOSS: Readonly<Record<string, string>> = {
   "Garante per la protezione dei dati personali": "Italian Data Protection Authority",
+  // DOC 238 §1.4 FOLLOW-UP (2026-09-09) — doc 234 Candidate 1 (ICS), CEO
+  // approved: "Autoriteit Persoonsgegevens (Dutch Data Protection Authority)".
+  // The row (`dc095815`) carried `regulator` "AP" and a NULL
+  // `regulator_canonical` (verified live); the canonical name was written to
+  // that one row, with `regulator_canonical_in_citation` opted in, the same
+  // way E1's row was — 43 other AP rows are untouched and still print "AP".
+  "Autoriteit Persoonsgegevens": "Dutch Data Protection Authority",
 };
+
+// ── DOC 238 §5 item 6 / §5.5.2 FOLLOW-UP (2026-09-09) — PER-PRODUCT CITATION
+// CONVENTIONS. `deriveSourceStatus` and `citationFor` are ONE shared code
+// path for all four products (dispatched by product-registry.ts), and the
+// CEO's approved documents print DIFFERENT status wording per product for
+// the same `sa_decision` source status:
+//
+//   LIA  (doc 223B) — the ratified LIA_SOURCE_STATUS_LABELS text stands; the
+//                     approved paragraphs vary hook-by-hook (a "lead
+//                     supervisory authority" phrase, an Icelandic-specific
+//                     phrase, an instrument-named phrase) and the CEO has
+//                     not ruled on a matrix-level replacement (doc 223B's
+//                     own implementation note) — so LIA is left EXACTLY as
+//                     ratified, never given invented wording.
+//   DPIA (doc 233)  — every approved paragraph prints the shared text
+//                     verbatim: no override.
+//   Risk (doc 234)  — all four approved enforcement candidates print
+//                     "foreign supervisory-authority decision, cited by
+//                     analogy"; Candidate 1 (the reference the doc 238
+//                     tests pin) adds " — not binding on California
+//                     regulators", Candidate 2 adds a row-specific
+//                     translation caveat, 3 and 4 add nothing. The
+//                     Candidate 1 form is used: it is CEO-approved wording,
+//                     true of every foreign decision cited into a
+//                     California product, and Candidates 3/4's shorter form
+//                     is its strict prefix. (Candidate 2's translation
+//                     caveat is curation state, not a label — not modelled.)
+//   ADMT (doc 236)  — E1, the only approved ADMT enforcement citation:
+//                     "foreign supervisory-authority decision, cited by
+//                     analogy — decided under the GDPR, not the CCPA or its
+//                     Article 10/11 regulations" — product-generic wording
+//                     (every ADMT enforcement source is a GDPR decision).
+//
+// Keyed by the registry product key (product-registry.ts); every key is
+// present so the two tables can be pinned equal. An entry with no
+// `sa_decision_label` keeps the shared text byte-for-byte. A product that
+// is not in this table at all (a direct `deriveSourceStatus` call with no
+// product, or an unregistered product string) also keeps the shared text —
+// the override is additive and can never make a label WORSE than today's.
+export interface HookCitationConventions {
+  /** CEO-approved replacement for the shared `sa_decision` label, applied
+   *  only to a FOREIGN decision under a GDPR-family instrument (the fact
+   *  the wording asserts) — see `foreignGdprDecision`. */
+  readonly sa_decision_label?: string;
+  /** Whether a `cppa_fsor_commentary` citation's trailing parenthetical
+   *  carries the "; {status}" clause. Default true (doc 234's Risk
+   *  convention); false for ADMT (doc 236, every approved FSOR citation). */
+  readonly fsor_status_in_citation?: boolean;
+}
+
+export const HOOK_PRODUCT_CITATION_CONVENTIONS: Readonly<Record<string, HookCitationConventions>> = {
+  lia: {},
+  dpia: {},
+  "cppa-risk": {
+    sa_decision_label: "foreign supervisory-authority decision, cited by analogy — not binding on California regulators",
+  },
+  admt: {
+    sa_decision_label:
+      "foreign supervisory-authority decision, cited by analogy — decided under the GDPR, not the CCPA or its Article 10/11 regulations",
+    fsor_status_in_citation: false,
+  },
+};
+
+/** The one fact the per-product `sa_decision_label` wording asserts about
+ *  its source — "foreign … cited by analogy … decided under the GDPR" — read
+ *  MECHANICALLY off the profile's own instrument, never assumed: a decision
+ *  under a California instrument, or under no GDPR-family instrument, keeps
+ *  the shared label rather than being called foreign/GDPR falsely. */
+function foreignGdprDecision(profile: HookProfileRow): boolean {
+  const instrument = (profile.instrument ?? "").trim();
+  if (!/GDPR/i.test(instrument)) return false;
+  if (/CCPA|CPPA|California/i.test(instrument)) return false;
+  return true;
+}
+
+// ── DOC 238 §1.4 FOLLOW-UP (2026-09-09) — FSOR PACKAGE-NAME NORMALISATION.
+// `cppa_fsor_commentary.fsor_package` mixes two conventions in the live data
+// (verified 2026-09-09, all five values that exist, with row counts):
+//   "ccpa-2025-cyber-risk-admt"                              916  (slug)
+//   "CCPA Updates, Cyber, Risk, ADMT, Insurance 2025 FSOR"   128  (prose)
+//   "ccpa-2023-original"                                     181  (slug)
+//   "CCPA Updates 2023 FSOR"                                  83  (prose)
+//   "dbr-2024-registration"                                   15  (slug)
+// The slug and prose forms of each rulemaking point at the SAME source PDFs
+// (`source_url`), so they are one package each. `citationFor` used to print
+// whatever the row carried, verbatim, so a citation could read "…, ccpa-2025-
+// cyber-risk-admt, 11 CCR § 7152(a)(1)". The CEO's instruction: work
+// backwards from the finished product — every citation must read as clean
+// prose whichever convention the row uses. The 2025 package prints the
+// CEO-approved name every FSOR citation in docs 234/236 uses; the 2023 and
+// DBR packages print the data's own prose form (the redundant " FSOR" suffix
+// dropped — the label already says "Final Statement of Reasons") — no legal
+// title is invented for them, and a rename is a one-line table edit. Any
+// value NOT in the table falls through to a mechanical slug→prose rule
+// (split on "-", uppercase the known acronyms, title-case the rest, drop a
+// trailing "fsor"), so a future package still reads as prose, never as a
+// slug.
+const FSOR_PACKAGE_NAMES: Readonly<Record<string, string>> = {
+  "ccpa-2025-cyber-risk-admt": "CCPA Updates, Cyber, Risk, ADMT, and Insurance Regulations",
+  "CCPA Updates, Cyber, Risk, ADMT, Insurance 2025 FSOR": "CCPA Updates, Cyber, Risk, ADMT, and Insurance Regulations",
+  "ccpa-2023-original": "CCPA Updates 2023",
+  "CCPA Updates 2023 FSOR": "CCPA Updates 2023",
+  "dbr-2024-registration": "Data Broker Registration 2024",
+};
+
+const FSOR_SLUG_ACRONYMS: ReadonlySet<string> = new Set(["ccpa", "cpra", "cppa", "admt", "dbr", "uid", "fsor", "isor"]);
+
+/** The prose name for an `fsor_package` value — the curated name where one
+ *  exists, else a mechanical slug→prose rendering; "" for a blank. */
+export function fsorPackageName(raw: string | null | undefined): string {
+  const value = String(raw ?? "").trim();
+  if (!value) return "";
+  const curated = FSOR_PACKAGE_NAMES[value];
+  if (curated) return curated;
+  // A prose value: drop only the redundant trailing " FSOR".
+  if (!/^[a-z0-9]+(-[a-z0-9]+)+$/i.test(value)) return value.replace(/\s+FSOR$/i, "").trim();
+  // A slug: mechanical rendering.
+  const words = value.split("-").filter((w) => w.length > 0);
+  if (words[words.length - 1]?.toLowerCase() === "fsor") words.pop();
+  return words
+    .map((w) => (FSOR_SLUG_ACRONYMS.has(w.toLowerCase()) ? w.toUpperCase() : /^\d/.test(w) ? w : w[0].toUpperCase() + w.slice(1)))
+    .join(" ");
+}
+
+/** The FSOR `page_ref` as the approved citations print it: doc 236's G1
+ *  prints the DB's "Appendix, p. 13" as "Appendix p. 13" — the comma inside
+ *  the page ref would otherwise read as a citation separator. */
+export function fsorPageRef(raw: string | null | undefined): string {
+  const value = String(raw ?? "").trim();
+  return value.replace(/,\s*(p\.\s*\d)/i, " $1").replace(/\s{2,}/g, " ");
+}
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -220,19 +360,32 @@ export interface DerivedStatus {
   readonly source_status: HookSourceStatus;
   readonly verb: HookVerb;
   readonly status_label: string;
+  /** DOC 238 §5.5.2 FOLLOW-UP — whether the citation trailer prints the
+   *  "; {status}" clause (hook-types.ts `AuthorityHook.status_in_citation`).
+   *  True everywhere except a product whose approved FSOR citations omit it. */
+  readonly status_in_citation: boolean;
 }
 
 /**
  * DOC 222 §2.7 — the printed status, DERIVED from source-row columns. Returns
  * `{ exclude: reason }` where no status can honestly be printed.
+ *
+ * DOC 238 §5 item 6 FOLLOW-UP (2026-09-09) — `product` (the registry key,
+ * optional) selects that product's CEO-approved `sa_decision` wording from
+ * `HOOK_PRODUCT_CITATION_CONVENTIONS`. Omitted, or a product with no
+ * override (LIA, DPIA), derives EXACTLY what it derived before this
+ * parameter existed — every existing three-argument call site is
+ * byte-identical.
  */
 export function deriveSourceStatus(
   profile: HookProfileRow,
   source: HookSourceRow | undefined,
   hook: Pick<HookRow, "appeal_note" | "verified_as_of">,
+  product?: string,
 ): DerivedStatus | { exclude: string } {
   if (!source) return { exclude: "source row missing for status derivation" };
   const note = (profile.curation_note ?? "").toLowerCase();
+  const conventions: HookCitationConventions = (product && HOOK_PRODUCT_CITATION_CONVENTIONS[product]) || {};
 
   if (profile.source_table === "enforcement_actions") {
     const appeal = String(source.appeal_status ?? "unknown").toLowerCase();
@@ -242,15 +395,26 @@ export function deriveSourceStatus(
       // FIXED sentence LIA_APPEAL_SENTENCE (lia-hooks.ts), never composed
       // from `appeal_note` — that column is record-block detail (docket,
       // date) and is emitted but not printed.
-      return { source_status: "sa_decision_appeal_pending", verb: "found", status_label: "under appeal" };
+      return { source_status: "sa_decision_appeal_pending", verb: "found", status_label: "under appeal", status_in_citation: true };
     }
     if (appeal === "affirmed") {
-      return { source_status: "sa_decision_affirmed", verb: "found", status_label: "supervisory-authority decision, affirmed on appeal" };
+      // No approved Risk/ADMT paragraph cites an affirmed decision, so no
+      // per-product wording exists to apply here — the shared label stands
+      // (and `citationFor` already prints ", affirmed on appeal" inside the
+      // label itself).
+      return { source_status: "sa_decision_affirmed", verb: "found", status_label: "supervisory-authority decision, affirmed on appeal", status_in_citation: true };
     }
+    // The per-product approved wording, ONLY where the fact it asserts (a
+    // foreign, GDPR-family decision) is read off the profile; otherwise the
+    // shared label, exactly as before.
+    const override = conventions.sa_decision_label;
     return {
       source_status: "sa_decision",
       verb: "found",
-      status_label: "supervisory-authority decision — persuasive, non-binding outside its jurisdiction",
+      status_label: override && foreignGdprDecision(profile)
+        ? override
+        : "supervisory-authority decision — persuasive, non-binding outside its jurisdiction",
+      status_in_citation: true,
     };
   }
 
@@ -269,6 +433,7 @@ export function deriveSourceStatus(
         source_status: "wp29_opinion",
         verb: "advised",
         status_label: `Article 29 Working Party opinion${date ? `, ${date}` : ""} — historical interpretive guidance${endorsed}; current relevance verified ${verified}`,
+        status_in_citation: true,
       };
     }
     const title = String(source.title ?? "");
@@ -277,19 +442,21 @@ export function deriveSourceStatus(
         source_status: "edpb_opinion",
         verb: "states",
         status_label: `EDPB Article 64 opinion${date ? `, adopted ${date}` : ""} — Board opinion, not a judicial decision`,
+        status_in_citation: true,
       };
     }
     return {
       source_status: "edpb_guidelines_final",
       verb: "states",
       status_label: `EDPB Guidelines${date ? `, adopted ${date}` : ""} — interpretive guidance, not binding law`,
+      status_in_citation: true,
     };
   }
 
   if (profile.source_table === "regulatory_guidance") {
     const regulator = (source.regulator ?? "").trim();
     if (!regulator) return { exclude: "regulatory_guidance row has no regulator" };
-    return { source_status: "regulator_guidance", verb: "states", status_label: `${regulator} regulatory guidance — non-binding` };
+    return { source_status: "regulator_guidance", verb: "states", status_label: `${regulator} regulatory guidance — non-binding`, status_in_citation: true };
   }
   // DOC 231 §6 default #2 (proposed diff, applied verbatim) — the
   // cppa_fsor_commentary branch. No exclusion condition: unlike
@@ -298,11 +465,17 @@ export function deriveSourceStatus(
   // final" state in its own schema (doc 231A verified the table's columns
   // read-only — see the follow-up log) — every profiled row is a published
   // agency position and always derives this status.
+  //
+  // DOC 238 §5.5.2 FOLLOW-UP — the label is still derived (it is true, and
+  // S4 prints it mid-sentence), but whether the citation TRAILER carries it
+  // is the product's convention: doc 236's approved ADMT FSOR citations
+  // omit it, doc 234's Risk convention keeps it.
   if (profile.source_table === "cppa_fsor_commentary") {
     return {
       source_status: "regulator_guidance",
       verb: "states",
       status_label: "CPPA Final Statement of Reasons — agency position, primary regulator commentary",
+      status_in_citation: conventions.fsor_status_in_citation !== false,
     };
   }
   return { exclude: `no status derivation for source table "${profile.source_table}"` };
@@ -381,17 +554,26 @@ export function citationFor(
   // whose citations depend entirely on per-row facts.
   if (profile.source_table === "cppa_fsor_commentary") {
     // DOC 238 §7 — the approved prose's citation also carries the FSOR
-    // package name and the page pinpoint ("…Final Statement of Reasons,
-    // CCPA Updates, Cyber, Risk, ADMT, and Insurance Regulations, 11 CCR
-    // § 7152(a)(1), p. 34"); `page_ref` was already a real `HookSourceRow`
-    // field but unused here, and `fsor_package` is threaded through fresh
-    // (both added to `HookSourceRow` above). Parts that are absent are
-    // skipped, never printed blank — the bare "CPPA Final Statement of
-    // Reasons" behaviour for a row with none of the three is unchanged.
+    // package name and the page pinpoint; `page_ref` was already a real
+    // `HookSourceRow` field but unused here, and `fsor_package` is threaded
+    // through fresh (both added to `HookSourceRow` above). Parts that are
+    // absent are skipped, never printed blank.
+    //
+    // DOC 238 §1.4 / §5.5.2 FOLLOW-UP (2026-09-09) — the label is now the
+    // CEO's own FSOR citation form, the one EVERY FSOR citation in docs 234
+    // and 236 uses (the doc 236 ones CEO-approved): "California Privacy
+    // Protection Agency, Final Statement of Reasons, CCPA Updates, Cyber,
+    // Risk, ADMT, and Insurance Regulations, 11 CCR § 7220(c)(1)[, Appendix
+    // p. 13]" — not the doc 231A orchestrator default "CPPA Final Statement
+    // of Reasons, <slug>, …". The package name is normalised from whichever
+    // convention the row carries (`fsorPackageName`) and the page ref from
+    // the DB's "Appendix, p. 13" to the approved "Appendix p. 13"
+    // (`fsorPageRef`). The inline short label (`shortLabelForFsor`) and the
+    // `{regulator}` slot are unchanged.
     const cite = (source.regulation_citation ?? "").trim();
-    const pkg = (source.fsor_package ?? "").trim();
-    const page = (source.page_ref ?? "").trim();
-    const parts = ["CPPA Final Statement of Reasons", pkg, cite, page].filter((s) => s.length > 0);
+    const pkg = fsorPackageName(source.fsor_package);
+    const page = fsorPageRef(source.page_ref);
+    const parts = ["California Privacy Protection Agency, Final Statement of Reasons", pkg, cite, page].filter((s) => s.length > 0);
     return { regulator: "the CPPA", authority_label: parts.join(", ") };
   }
   return null;
@@ -515,6 +697,9 @@ function shippedHook(
     governing_provision_sentence: row.governing_provision_sentence ?? null,
     hedge_variant: row.hedge_variant ?? null,
     hedge_sentence: row.hedge_sentence ?? null,
+    // DOC 238 §5.5.2 FOLLOW-UP — derived per product × source table
+    // (`deriveSourceStatus`); true for every hook except an ADMT FSOR one.
+    status_in_citation: status.status_in_citation,
   };
 }
 
@@ -571,7 +756,9 @@ export function generateHooks(input: GenerateHooksInput): GenerateHooksResult {
     const short = source ? shortLabelFor(profile, source) : null;
     if (!short) { excluded.push({ hook_id: label, reason: "short citation label could not be composed" }); continue; }
     // DOC 222 §2.7 — the printed status is derived or the hook is not shipped.
-    const status = deriveSourceStatus(profile, source, row);
+    // DOC 238 §5 item 6 FOLLOW-UP — derived for THIS product's approved
+    // conventions (`HOOK_PRODUCT_CITATION_CONVENTIONS`); LIA/DPIA have none.
+    const status = deriveSourceStatus(profile, source, row, input.product);
     if ("exclude" in status) { excluded.push({ hook_id: label, reason: status.exclude }); continue; }
     // DOC 222 §2.5 — a pinpoint is mandatory for EVERY source before activation.
     const pinpoint = pinpointFor(row, profile);

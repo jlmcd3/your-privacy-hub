@@ -242,7 +242,13 @@ export const RISK_ATOM_PHRASES: Readonly<Record<string, string>> = {
 
 export const RISK_HOOK_SHAPES: Readonly<Record<"S1" | "S2" | "S3" | "S4" | "S5a" | "S5b" | "S6" | "S6x", string>> = {
   S1:
-    "The company has stated that {customer_fact}. {governing_provision}In {authority}, {regulator} {verb} that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding supports the company's position on {factor}. {hedge}Section {section} records that determination. ({citation}; {status}.)",
+    // DOC 238 FOLLOW-UP (2026-09-09, found by rendering S1 and reading it):
+    // Risk's {section} is a § pinpoint ("§ 7155(a)"), so the S1 sentence
+    // doc 238 §4.2 carried over from DPIA/ADMT ("Section {section} records
+    // that determination.") printed "Section § 7155(a) records that
+    // determination." Every other Risk shape already says "at {section}";
+    // S1 now does too, in the same register — still [RATIFY — DRAFT].
+    "The company has stated that {customer_fact}. {governing_provision}In {authority}, {regulator} {verb} that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding supports the company's position on {factor}. {hedge}That determination is recorded at {section}. ({citation}; {status}.)",
   S2:
     "The company has stated that {customer_fact}. {governing_provision}In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding cuts against the company's position on {factor}. {hedge}Whether that holds on this record is addressed at {section}. ({citation}; {status}.)",
   S3:
@@ -315,13 +321,25 @@ export const RISK_FACTOR_PHRASES: Readonly<Record<string, string>> = {
 // use them; every candidate in doc 229 §6 is either an `sa_decision*`
 // (GDPR enforcement cited by analogy) or `regulator_guidance` (a CPPA FSOR
 // position). ────────────────────────────────────────────────────────────
+//
+// DOC 238 §5 item 6 FOLLOW-UP (2026-09-09) — `sa_decision` is now the
+// CEO-APPROVED doc 234 wording (Candidate 1, ICS: "foreign supervisory-
+// authority decision, cited by analogy — not binding on California
+// regulators"; Candidates 3/4 print its prefix, Candidate 2 adds a row-
+// specific translation caveat). It is byte-equal to the shared generator's
+// own per-product entry (generate-corpus-hooks/_local/generate.ts
+// `HOOK_PRODUCT_CITATION_CONVENTIONS["cppa-risk"]`, pinned equal by
+// tests/edge/corpus/doc238-status-labels-and-tidy.test.ts), so the v1
+// fallback this map provides and the label the generator bakes into every
+// emitted Risk hook can no longer disagree — before this, the generator
+// printed LIA's generic text and this entry was dead.
 
 export const RISK_SOURCE_STATUS_LABELS: Readonly<Record<string, string>> = {
   edpb_guidelines_final: "EDPB guidelines — interpretive guidance, not binding under California law [unused today]",
   edpb_opinion: "EDPB Article 64 opinion — Board opinion, not binding under California law [unused today]",
   wp29_opinion: "Article 29 Working Party opinion — historical interpretive guidance, not binding under California law [unused today]",
   regulator_guidance: "CPPA agency guidance — non-binding on this Company beyond the regulation it interprets",
-  sa_decision: "supervisory-authority decision under the GDPR — persuasive only; not binding under California law or the CPPA regulations",
+  sa_decision: "foreign supervisory-authority decision, cited by analogy — not binding on California regulators",
   sa_decision_affirmed: "supervisory-authority decision under the GDPR, affirmed on appeal — persuasive only; not binding under California law or the CPPA regulations",
   sa_decision_appeal_pending: "under appeal",
 };

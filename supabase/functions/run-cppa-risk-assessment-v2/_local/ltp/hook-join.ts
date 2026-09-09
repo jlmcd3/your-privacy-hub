@@ -76,6 +76,7 @@ import {
   type SelectionCandidate,
   type SelectionItem,
 } from "../../../_shared/corpus/hook-selection.ts";
+import { tidyRenderedSentence } from "../../../_shared/corpus/hook-render-tidy.ts";
 import {
   RISK_ATOM_PHRASES,
   RISK_FACTOR_PHRASES,
@@ -310,7 +311,13 @@ export function renderSentence(
     fact_pattern: hook.fact_pattern_paraphrase,
     finding: hook.finding_paraphrase,
     factor: RISK_FACTOR_PHRASES[hook.factor_id] ?? hook.factor_id.toLowerCase(),
-    status: statusLabel(hook),
+    // DOC 238 §5.5.2 FOLLOW-UP (2026-09-09) — a hook whose approved citation
+    // carries no status clause (`status_in_citation: false`; generate.ts
+    // derives it per product × source table — no Risk hook today) blanks the
+    // slot in the citation TRAILER, and the template's leftover "; " is
+    // collapsed by `tidyRenderedSentence` below. S4 prints {status}
+    // mid-sentence ("That decision is {status}; …") and always keeps it.
+    status: hook.status_in_citation === false && shape !== "S4" ? "" : statusLabel(hook),
     // DOC 238 §5 item 2 — PROPOSED; no-op unless a shape references {quote}.
     quote: hook.finding_span,
   };
@@ -369,7 +376,10 @@ export function renderSentence(
     sentence = sentence.split(`{${key}}`).join(value);
   }
   if (/\{[a-z_]+\}/.test(sentence)) return undefined;
-  return sentence + appealSuffix(hook);
+  // CEO 2026-09-09 ("no fail-closed designs") — the tidy pass collapses the
+  // punctuation an empty slot leaves behind ("; .)" -> ".)"); a byte-for-byte
+  // no-op on a clean sentence (pinned by doc238-status-labels-and-tidy).
+  return tidyRenderedSentence(sentence + appealSuffix(hook));
 }
 
 interface Candidate {

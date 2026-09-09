@@ -27,7 +27,8 @@
 
 import { assert, assertEquals, assertNotEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import type { AuthorityHook } from "../../../supabase/functions/_shared/corpus/hook-types.ts";
-import { citationFor, type HookProfileRow, type HookSourceRow } from "../../../supabase/functions/generate-corpus-hooks/_local/generate.ts";
+import { tidyRenderedSentence } from "../../../supabase/functions/_shared/corpus/hook-render-tidy.ts";
+import { citationFor, deriveSourceStatus, type HookProfileRow, type HookSourceRow } from "../../../supabase/functions/generate-corpus-hooks/_local/generate.ts";
 import { renderSentence } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-deliverables/dpia-hook-join.ts";
 import { DPIA_HOOK_SHAPES, DPIA_SOURCE_STATUS_LABELS } from "../../../supabase/functions/run-dpia-framework/_local/corpus/maps/dpia-hooks.ts";
 
@@ -219,6 +220,44 @@ Deno.test("doc238 DPIA — AENA (NOT approved — doc 233 #1's ratify line is bl
   assert(!rendered!.includes("determination in Section 3 reflects it"));
   assert(rendered!.includes("(AEPD, AENA, S.M.E., S.A., decision of 6 November 2025"), `citation missing: ${rendered}`);
   assert(!rendered!.includes("own facts"), `no hedge may render for an unapproved hook: ${rendered}`);
+});
+
+// ── DOC 238 §5 item 6 FOLLOW-UP (2026-09-09) — the shared `deriveSourceStatus`
+// gained a per-product `sa_decision` override for Risk/ADMT. DPIA is the
+// reference for "what correct looks like" (every approved doc 233 paragraph
+// prints the shared text), so these pin that the shared code path still
+// derives EXACTLY the same label for DPIA, and that the Bolzano paragraph
+// built from the DERIVED status is byte-identical to the pinned one. ──────
+
+const BOLZANO_PINNED_S2 =
+  "The record identifies that the processing monitors employees. In Garante, Comune di Bolzano, decision of 13 May 2021, Garante found that where an employer monitors employees' internet usage, systematic monitoring of employee internet usage requires a DPIA under WP248's \"systematic monitoring\" criterion, even where the monitoring is not carried out on a large scale — in its own words, \"The municipality unlawfully monitored employee internet usage and processed sensitive health data without a valid legal basis or proper transparency\". That finding cuts against the assessment's position on the employee-monitoring trigger. But the outcome depends on this company's own facts: whether the monitoring is organized and ongoing (systematic), or occasional and incidental. Whether that holds on this record is addressed in Section 1. (Garante, Comune di Bolzano, decision of 13 May 2021; supervisory-authority decision — persuasive, non-binding outside its jurisdiction.)";
+
+Deno.test("doc238 DPIA — deriveSourceStatus for product 'dpia' still derives the shared sa_decision label (the text every approved doc 233 paragraph prints) with the status clause in the citation: the Risk/ADMT override does not reach DPIA", () => {
+  const status = deriveSourceStatus(bolzanoProfile, bolzanoSource, { appeal_note: null, verified_as_of: null }, "dpia");
+  assert(!("exclude" in status));
+  if (!("exclude" in status)) {
+    assertEquals(status.status_label, DPIA_SOURCE_STATUS_LABELS.sa_decision);
+    assertEquals(status.status_label, "supervisory-authority decision — persuasive, non-binding outside its jurisdiction");
+    assertEquals(status.status_in_citation, true);
+    assertEquals(status.verb, "found");
+    // A Bolzano hook built from the DERIVED status (the real generate-time
+    // path) renders byte-identical to the hand-pinned paragraph.
+    const hook = bolzanoHook({ status_label: status.status_label, status_in_citation: status.status_in_citation, verb: status.verb, source_status: status.source_status });
+    assertEquals(renderSentence(hook, "S2", hook.fact_atoms, undefined), BOLZANO_PINNED_S2);
+  }
+});
+
+Deno.test("doc238 DPIA — the render-time tidy pass is a byte-for-byte no-op on the pinned Bolzano paragraph and on doc 233's approved citation parenthetical", () => {
+  assertEquals(tidyRenderedSentence(BOLZANO_PINNED_S2), BOLZANO_PINNED_S2);
+  assertEquals(tidyRenderedSentence(BOLZANO_CITATION_233), BOLZANO_CITATION_233);
+});
+
+Deno.test("doc238 DPIA — a DPIA hook whose data ever said status_in_citation=false would still render cleanly (mechanism only — no DPIA hook does): the trailer closes right after the citation, no '; .)' artifact", () => {
+  const hook = bolzanoHook({ status_in_citation: false });
+  const rendered = renderSentence(hook, "S2", hook.fact_atoms, undefined);
+  assert(rendered);
+  assert(rendered!.endsWith("(Garante, Comune di Bolzano, decision of 13 May 2021.)"), rendered);
+  assert(!rendered!.includes("; .") && !rendered!.includes("  "), rendered);
 });
 
 Deno.test("doc238 DPIA — no DPIA_HOOK_SHAPES entry references {governing_provision}: DPIA's sources ARE its own governing law's authorities (doc 237 §5 item 3's beneficiary list is Risk/ADMT/LIA's UK-guidance hooks only, not DPIA)", () => {

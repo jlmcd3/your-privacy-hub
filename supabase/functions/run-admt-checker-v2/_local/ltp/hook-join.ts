@@ -74,6 +74,7 @@ import {
   type SelectionCandidate,
   type SelectionItem,
 } from "../../../_shared/corpus/hook-selection.ts";
+import { tidyRenderedSentence } from "../../../_shared/corpus/hook-render-tidy.ts";
 import {
   ADMT_ATOM_PHRASES,
   ADMT_FACTOR_PHRASES,
@@ -239,7 +240,16 @@ export function renderSentence(
     fact_pattern: hook.fact_pattern_paraphrase,
     finding: hook.finding_paraphrase,
     factor: ADMT_FACTOR_PHRASES[hook.factor_id] ?? hook.factor_id.toLowerCase(),
-    status: statusLabel(hook),
+    // DOC 238 §5.5.2 FOLLOW-UP (2026-09-09) — doc 236's approved ADMT FSOR
+    // citations carry NO status clause ("(California Privacy Protection
+    // Agency, Final Statement of Reasons, …, 11 CCR § 7220(c)(1).)"), while
+    // every shape prints "({citation}; {status}.)". generate.ts derives
+    // `status_in_citation: false` for an ADMT FSOR hook; the slot is blanked
+    // in the citation TRAILER and the template's leftover "; " is collapsed
+    // by `tidyRenderedSentence` below. S4 prints {status} mid-sentence
+    // ("That decision is {status}; …") and always keeps it. E1 and every
+    // enforcement citation (`status_in_citation` true/absent) are unchanged.
+    status: hook.status_in_citation === false && shape !== "S4" ? "" : statusLabel(hook),
     // DOC 238 §5 item 2 — PROPOSED; no-op unless a shape references {quote}.
     quote: hook.finding_span,
   };
@@ -284,7 +294,10 @@ export function renderSentence(
     sentence = sentence.split(`{${key}}`).join(value);
   }
   if (/\{[a-z_]+\}/.test(sentence)) return undefined; // an unresolved slot remains
-  return sentence + appealSuffix(hook);
+  // CEO 2026-09-09 ("no fail-closed designs") — the tidy pass collapses the
+  // punctuation an empty slot leaves behind ("; .)" -> ".)"); a byte-for-byte
+  // no-op on a clean sentence (pinned by doc238-status-labels-and-tidy).
+  return tidyRenderedSentence(sentence + appealSuffix(hook));
 }
 
 interface Candidate {

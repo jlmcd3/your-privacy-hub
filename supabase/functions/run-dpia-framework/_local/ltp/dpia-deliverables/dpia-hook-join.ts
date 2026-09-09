@@ -79,6 +79,7 @@ import {
   type SelectionCandidate,
   type SelectionItem,
 } from "../../../../_shared/corpus/hook-selection.ts";
+import { tidyRenderedSentence } from "../../../../_shared/corpus/hook-render-tidy.ts";
 import {
   DPIA_ATOM_PHRASES,
   DPIA_FACTOR_PHRASES,
@@ -264,7 +265,13 @@ export function renderSentence(
     fact_pattern: hook.fact_pattern_paraphrase,
     finding: hook.finding_paraphrase,
     factor: DPIA_FACTOR_PHRASES[hook.factor_id] ?? hook.factor_id.toLowerCase(),
-    status: statusLabel(hook),
+    // DOC 238 §5.5.2 FOLLOW-UP (2026-09-09) — kept structurally identical to
+    // the other three joins: a hook whose approved citation carries no
+    // status clause (`status_in_citation: false`) blanks the slot in the
+    // citation TRAILER and `tidyRenderedSentence` collapses the leftover
+    // "; ". No DPIA hook does this (doc 233's approved citations all carry
+    // the status), so this is a no-op here; S4 always keeps {status}.
+    status: hook.status_in_citation === false && shape !== "S4" ? "" : statusLabel(hook),
     // DOC 238 §5 item 2 — PROPOSED; no-op unless a shape references {quote}.
     quote: hook.finding_span,
   };
@@ -312,7 +319,11 @@ export function renderSentence(
     sentence = sentence.split(`{${key}}`).join(value);
   }
   if (/\{[a-z_]+\}/.test(sentence)) return undefined;
-  return sentence + appealSuffix(hook);
+  // CEO 2026-09-09 ("no fail-closed designs") — the tidy pass collapses the
+  // punctuation an empty slot leaves behind ("; .)" -> ".)"); a byte-for-byte
+  // no-op on a clean sentence (pinned by doc238-status-labels-and-tidy
+  // against doc 233's own approved Comune di Bolzano paragraph).
+  return tidyRenderedSentence(sentence + appealSuffix(hook));
 }
 
 interface Candidate {

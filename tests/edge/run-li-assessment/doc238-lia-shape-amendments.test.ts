@@ -45,11 +45,13 @@
 
 import { assert, assertEquals, assertNotEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import type { AuthorityHook } from "../../../supabase/functions/_shared/corpus/hook-types.ts";
+import { tidyRenderedSentence } from "../../../supabase/functions/_shared/corpus/hook-render-tidy.ts";
+import { citationFor, deriveSourceStatus, shortLabelFor, type HookProfileRow, type HookSourceRow } from "../../../supabase/functions/generate-corpus-hooks/_local/generate.ts";
 import {
   renderSentence,
   LIA_HOOK_SHAPES_PROPOSED_2026_09,
 } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/hook-join.ts";
-import { LIA_HOOK_SHAPES } from "../../../supabase/functions/run-li-assessment/_local/corpus/maps/lia-hooks.ts";
+import { LIA_HOOK_SHAPES, LIA_SOURCE_STATUS_LABELS } from "../../../supabase/functions/run-li-assessment/_local/corpus/maps/lia-hooks.ts";
 
 /** Doc 223B, hook `0af0876d`, the CEO-approved simplified paragraph
  *  (2026-09-08) — its hedge sentence, copied VERBATIM. This is the only
@@ -218,6 +220,68 @@ Deno.test("doc238 LIA — the PROPOSED S2 sentence structurally matches doc 223B
   //    label ("decision of a lead supervisory authority applying the GDPR")
   //    and a fuller case name — doc 238 §2.4's open status-label ruling.
   assert(rendered!.includes("(DPC, LinkedIn, decision of 22 October 2024 § 7; supervisory-authority decision"));
+});
+
+// ── DOC 238 §5 item 6 FOLLOW-UP (2026-09-09) — the shared `deriveSourceStatus`
+// gained a per-product `sa_decision` override for Risk/ADMT. LIA's label is
+// LIVE-RATIFIED (LIA_SOURCE_STATUS_LABELS) and doc 223B's approved paragraphs
+// vary hook-by-hook with no matrix-level ruling yet, so LIA must derive
+// EXACTLY what it derived before. Pinned here through the real generate-time
+// path against the real `enforcement_actions` row for DPC/LinkedIn
+// (`69eee35f`: regulator "DPC", subject "LinkedIn", decision_date 2024-10-22,
+// appeal_status "unknown" — verified live 2026-09-09). ────────────────────
+
+const linkedinProfile: HookProfileRow = {
+  id: "0af0876d",
+  source_table: "enforcement_actions",
+  source_row_id: "69eee35f-a280-47be-8159-bf778767ff31",
+  outcome_posture: "rejected",
+  instrument: "EU GDPR",
+  factor_ids: ["Balancing of interests, rights and freedoms"],
+  ratified_by: "ceo",
+  ratified_at: "2026-09-08T00:00:00Z",
+  ledger_ref: "doc223b",
+};
+const linkedinSource: HookSourceRow = {
+  source_table: "enforcement_actions",
+  regulator: "DPC",
+  subject: "LinkedIn",
+  decision_date: "2024-10-22",
+  appeal_status: "unknown",
+};
+
+Deno.test("doc238 LIA — deriveSourceStatus for product 'lia' derives the RATIFIED LIA_SOURCE_STATUS_LABELS.sa_decision text, byte-identical to before the per-product override existed; the derived citation facts reproduce doc 223B's own label/short label", () => {
+  const status = deriveSourceStatus(linkedinProfile, linkedinSource, { appeal_note: null, verified_as_of: null }, "lia");
+  assert(!("exclude" in status));
+  if (!("exclude" in status)) {
+    assertEquals(status.status_label, LIA_SOURCE_STATUS_LABELS.sa_decision);
+    assertEquals(status.status_label, "supervisory-authority decision — persuasive, non-binding outside its jurisdiction");
+    assertEquals(status.status_in_citation, true);
+    assertEquals(status.verb, "found");
+    const noProduct = deriveSourceStatus(linkedinProfile, linkedinSource, { appeal_note: null, verified_as_of: null });
+    assertEquals(noProduct, status);
+    const cite = citationFor(linkedinProfile, linkedinSource);
+    assertEquals(cite?.authority_label, "DPC, LinkedIn, decision of 22 October 2024"); // doc 223B's own "Authority label"
+    assertEquals(shortLabelFor(linkedinProfile, linkedinSource), "DPC, LinkedIn"); // doc 223B's own "Short label"
+    // The 0af0876d fixture rebuilt from the DERIVED status renders the LIVE
+    // ratified S2 byte-identical to doc 223B's literal FULL MATCH sentence.
+    const hook = linkedinHook({
+      hedge_sentence: undefined,
+      status_label: status.status_label,
+      status_in_citation: status.status_in_citation,
+      verb: status.verb,
+      source_status: status.source_status,
+      authority_label: cite!.authority_label,
+      authority_label_short: shortLabelFor(linkedinProfile, linkedinSource)!,
+      regulator: cite!.regulator,
+    });
+    assertEquals(renderSentence(hook, "S2", hook.fact_atoms, undefined), LINKEDIN_LIVE_S2_223B);
+  }
+});
+
+Deno.test("doc238 LIA — the render-time tidy pass is a byte-for-byte no-op on doc 223B's literal live sentence and on the approved hedge", () => {
+  assertEquals(tidyRenderedSentence(LINKEDIN_LIVE_S2_223B), LINKEDIN_LIVE_S2_223B);
+  assertEquals(tidyRenderedSentence(LINKEDIN_HEDGE_223B), LINKEDIN_HEDGE_223B);
 });
 
 Deno.test("doc238 LIA — {governing_provision} is available as a slot mechanism but no LIA shape (proposed or ratified) references it — LIA's sources ARE its own governing law's authorities", () => {
