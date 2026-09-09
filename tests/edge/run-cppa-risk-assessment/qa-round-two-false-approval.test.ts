@@ -19,7 +19,7 @@
 //     report published that negative with "(Approved)" bolted onto the end and
 //     an "Approved by" table label above it.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { deriveReviewApprovalTable } from "../../../supabase/functions/_shared/ltp/risk-skeleton-assemble.ts";
+import { deriveReviewApprovalTable } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-skeleton-assemble.ts";
 
 type Bag = Record<string, unknown>;
 const roleOf = (t: { rows: readonly (readonly string[])[] }) => t.rows.map((r) => r[0]);

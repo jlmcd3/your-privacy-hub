@@ -3,7 +3,7 @@
 // External-verification gate: clone HEAD sha == BUILD_STAMP prefix.
 export const BUILD_STAMP = "generate-report-pdf-item271-replay-review@2026-07-30T06:30:00Z";
 // generate-report-pdf: DOCX/PDF export for assessment reports.
-import { readinessLineForRender } from "../_shared/ltp/governance-readiness.ts";
+import { readinessLineForRender } from "./_local/ltp/governance-readiness.ts";
 import { firstSentence as boundFirstSentence } from "../_shared/ltp/clause-bound.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { applyUniversalDisclaimerHtml } from "../_shared/report-disclaimer.ts";

@@ -18,7 +18,7 @@ import { governanceContract } from "../../_shared/intake-contracts/governance-as
 import { dpaGeneratorContract } from "../../_shared/intake-contracts/dpa-generator.ts";
 import { irPlaybookContract } from "../../_shared/intake-contracts/ir-playbook.ts";
 import { biometricContract } from "../../_shared/intake-contracts/biometric.ts";
-import { registrationContract } from "../../_shared/intake-contracts/registration-assessment.ts";
+import { registrationContract } from "./intake-contracts/registration-assessment.ts";
 import { liAssessmentStageBContract } from "../../_shared/intake-contracts/li-assessment.ts";
 import { dpiaFrameworkContract } from "../../_shared/intake-contracts/dpia-framework.ts";
 import { cppaAdmtContract } from "../../_shared/intake-contracts/cppa-admt.ts";

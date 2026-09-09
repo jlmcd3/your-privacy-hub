@@ -15,8 +15,8 @@ import {
   extractPathways,
   extractUnassessedPathways,
   runRiskFactorEngine,
-} from "../../../supabase/functions/_shared/ltp/risk-factor-engine.ts";
-import { deriveExecStatusPanel } from "../../../supabase/functions/_shared/ltp/risk-skeleton-assemble.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-factor-engine.ts";
+import { deriveExecStatusPanel } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-skeleton-assemble.ts";
 
 type Bag = Record<string, unknown>;
 

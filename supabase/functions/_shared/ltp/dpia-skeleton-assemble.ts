@@ -47,7 +47,7 @@ import { buildDpiaSkeletonTables, buildDpiaTablesBySurface } from "./dpia-skelet
 import { dispositionTone, type SyllabusProjection } from "../prose/syllabus.ts";
 // PROMPT 9H item 3 — the record's regime drives the ToA prefix and the header.
 import { DPIA_NECESSITY_TEST_SENTENCE, dpoFromPreparedBy, namesGdprJurisdiction, readDpiaRegime, readDpiaRegimeScope } from "./dpia-deliverables/build.ts";
-import { repairRegister } from "./risk-skeleton-assemble.ts";
+import { repairRegister } from "./register-repair.ts";
 // PROMPT 9J — clause bounding and abbreviation-aware sentence heads live in
 // ONE module so dpia-deliverables/build.ts can share them without a cycle.
 import { boundedClause, boundedPassage, firstSentence, noStop } from "./clause-bound.ts";

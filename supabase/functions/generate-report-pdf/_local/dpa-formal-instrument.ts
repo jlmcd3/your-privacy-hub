@@ -17,7 +17,7 @@
 // index.ts's buildDpaContractHTML is a thin wrapper that supplies the
 // clause-coverage Schedule (RULING 9.5 keeps that table in index.ts).
 
-import { completionBannerHtml, countFills, escHtml, FI_CSS, FI_FILL_CLASS } from "../../_shared/prose/formal-instrument.ts";
+import { completionBannerHtml, countFills, escHtml, FI_CSS, FI_FILL_CLASS } from "./prose/formal-instrument.ts";
 
 // Structural "Like" types: readonly so the assembler's frozen structure and
 // a JSON round-trip from report_data both satisfy them.

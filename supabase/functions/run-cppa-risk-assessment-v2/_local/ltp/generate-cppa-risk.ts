@@ -77,7 +77,7 @@ import {
   attachCoverage,
   type CoverageTelemetry,
 } from "../../../_shared/ltp/coverage-matrix.ts";
-import { attachReleaseLedger } from "../../../_shared/ltp/release-ledger.ts";
+import { attachReleaseLedger } from "./release-ledger.ts";
 // ITEM 380 — the deterministic truth gate and placeholder classification.
 import {
   affirmativeParagraph,
@@ -92,7 +92,7 @@ import { applyRiskProseGold } from "./risk-prose-gold.ts";
 import {
   assembleRiskSkeletonDocument,
   RISK_SKELETON_ASSEMBLER_STAMP,
-} from "../../../_shared/ltp/risk-skeleton-assemble.ts";
+} from "./risk-skeleton-assemble.ts";
 // ITEM 399 R11 — assembled-prose lint (detect-only telemetry).
 import { attachProseLint } from "../../../_shared/prose/assembled-prose-lint.ts";
 import { cppaRiskContract } from "../../../_shared/intake-contracts/cppa-risk-assessment.ts";

@@ -28,7 +28,7 @@
 // advisory, never blocking. `yes_no` stores "yes"/"no"; `yes_no_unsure`
 // stores "yes"/"no"/"unsure" (the form's showIf values).
 
-import type { IntakeContract } from "./types.ts";
+import type { IntakeContract } from "../../../_shared/intake-contracts/types.ts";
 
 export const EU_NOTICE_YES_NO = ["yes", "no"] as const;
 export const EU_NOTICE_YES_NO_UNSURE = ["yes", "no", "unsure"] as const;

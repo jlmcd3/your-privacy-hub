@@ -29,7 +29,7 @@ import {
   BIO_TYPES,
 } from "../../../_shared/intake-contracts/biometric.ts";
 import { BIOMETRIC_PIPELINE_STAMP } from "../prose/plans/biometric.spine.ts";
-import type { ReferencePassage } from "../../../_shared/prose/biometric-reference-passages.ts";
+import type { ReferencePassage } from "../prose/biometric-reference-passages.ts";
 
 export const BIOMETRIC_PROSE_GOLD_VERSION = "biometric-prose-gold-2026-08-08-item412b";
 

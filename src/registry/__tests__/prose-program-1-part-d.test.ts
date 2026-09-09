@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
   appendInformationNeeded,
   degradeHedgeOnlyValues,
-} from "../../../supabase/functions/_shared/prose/hedge-degrade.ts";
+} from "../../../supabase/functions/run-dpia-framework/_local/prose/hedge-degrade.ts";
 import {
   dedupeControls,
   pinpointHipaa,

@@ -11,8 +11,8 @@
 //     serving; the established w18/doc127 pattern).
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { runRiskFactorEngine } from "../../../supabase/functions/_shared/ltp/risk-factor-engine.ts";
-import { deriveAdmtTechnicalFacts } from "../../../supabase/functions/_shared/ltp/risk-skeleton-assemble.ts";
+import { runRiskFactorEngine } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-factor-engine.ts";
+import { deriveAdmtTechnicalFacts } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-skeleton-assemble.ts";
 import { GRADER_CONTEXT_VERSION, SHARED_GRADER_CONTEXT } from "../../../supabase/functions/_shared/grader/context.ts";
 
 type Bag = Record<string, unknown>;

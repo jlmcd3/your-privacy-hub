@@ -19,9 +19,9 @@ import {
 import { generateCppaRiskReport } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/generate-cppa-risk.ts";
 import { EMPTY_RISK_CORPUS } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-corpus.ts";
 import { CPPA_RISK_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk.ts";
-import { assembleRiskSkeletonDocument } from "../../../supabase/functions/_shared/ltp/risk-skeleton-assemble.ts";
+import { assembleRiskSkeletonDocument } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-skeleton-assemble.ts";
 import { skeletonDocumentToText } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
-import { RISK_V3_BANNED_REGISTER } from "../../../supabase/functions/_shared/prose/plans/cppa-risk.spine.ts";
+import { RISK_V3_BANNED_REGISTER } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/prose/plans/cppa-risk.spine.ts";
 import {
   resolveBenefitWeight,
   resolveMateriality,
@@ -32,7 +32,7 @@ import {
   RISK_FACTOR_ENGINE_STAMP,
   RISK_MATERIALITY_MATRIX,
   runRiskFactorEngine,
-} from "../../../supabase/functions/_shared/ltp/risk-factor-engine.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-factor-engine.ts";
 
 type Bag = Record<string, unknown>;
 

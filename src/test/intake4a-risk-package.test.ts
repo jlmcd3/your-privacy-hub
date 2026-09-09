@@ -4,7 +4,7 @@
 //     validates and the field is genuinely optional.
 // (c) contract-vs-form parity for the new field.
 import { describe, it, expect } from "vitest";
-import { validateIntake } from "../../supabase/functions/_shared/intake-contracts/validate";
+import { validateIntake } from "../../supabase/functions/run-quality-batch/_local/intake-contracts/validate";
 import { cppaRiskContract } from "../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment";
 import { CPPA_RISK_PERFECT, CPPA_RISK_GOLDEN } from "../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk";
 import { FIELD_LABELS } from "../../supabase/functions/_shared/customer-messages";

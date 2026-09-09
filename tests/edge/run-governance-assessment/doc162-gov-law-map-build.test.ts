@@ -26,7 +26,7 @@ import {
   composeExecutiveSummaryTyped,
 } from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-domain-tables.ts";
 import { assembleGovernanceSkeletonDocument, buildGovernanceSlotValues } from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-skeleton-assemble.ts";
-import { attachReadinessDetermination } from "../../../supabase/functions/_shared/ltp/governance-readiness.ts";
+import { attachReadinessDetermination } from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-readiness.ts";
 import { skeletonDocumentToText } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
 
 type Bag = Record<string, unknown>;

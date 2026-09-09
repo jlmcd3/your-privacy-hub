@@ -16,7 +16,7 @@ import {
   cppaCybersecurityContract,
   CYBER_CONTROL_SLUGS,
 } from "../../../supabase/functions/_shared/intake-contracts/cppa-cybersecurity.ts";
-import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";
+import { validateIntake } from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/validate.ts";
 import {
   attachRecordComplete,
   classifyPlaceholders,
@@ -41,7 +41,7 @@ import {
   renderCyberAuditSchedule,
   SCHEDULE_LITERALS,
   SCHEDULE_MARKER,
-} from "../../../supabase/functions/_shared/ltp/cyber-audit-schedule.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/cyber-audit-schedule.ts";
 
 const INTAKE = CYBER_PERFECT[0].intake as Record<string, any>;
 const CONTROLS = INTAKE.controls as Array<Record<string, any>>;

@@ -8,7 +8,7 @@ import {
   coverageAnchorTokens,
   coverageListForCritic,
 } from "../../../supabase/functions/_shared/ltp/coverage-matrix.ts";
-import { computeReleaseLedger } from "../../../supabase/functions/_shared/ltp/release-ledger.ts";
+import { computeReleaseLedger } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/release-ledger.ts";
 
 const PERFECT = CPPA_RISK_PERFECT[0].intake as Record<string, unknown>;
 

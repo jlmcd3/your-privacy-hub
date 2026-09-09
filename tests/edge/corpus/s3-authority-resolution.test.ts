@@ -64,7 +64,7 @@ interface ProductCheck {
 const CHECKS: readonly ProductCheck[] = [
   {
     product: "cppa-risk",
-    authorityFile: "supabase/functions/_shared/ltp/risk-skeleton-assemble.ts",
+    authorityFile: "supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-skeleton-assemble.ts",
     authorityRegex: /authority:\s*"([^"]+)"/g,
     registryFile: "supabase/functions/_shared/registry/risk-verified-authorities.ts",
     keyword: "§",

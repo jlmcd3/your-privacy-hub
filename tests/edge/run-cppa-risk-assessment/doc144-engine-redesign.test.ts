@@ -26,7 +26,7 @@ import {
   buildNecessityMatrixTable,
   buildRiskAndSafeguardRegisterTable,
   runRiskFactorEngine,
-} from "../../../supabase/functions/_shared/ltp/risk-factor-engine.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-factor-engine.ts";
 
 type Bag = Record<string, unknown>;
 

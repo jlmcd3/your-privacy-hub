@@ -28,7 +28,7 @@ import { GOV_SECTORS, GOV_JURISDICTIONS, GOV_TOOLS, GOV_DATA_CATS } from "../_sh
 import { DPA_DATA_CATS, DPA_JURISDICTIONS } from "../_shared/intake-contracts/dpa-generator.ts";
 import { IR_CAUSES, IR_DATA_TYPES, IR_COUNTS, IR_JURISDICTIONS, IR_ORG_TYPES } from "../_shared/intake-contracts/ir-playbook.ts";
 import { BIO_TYPES, BIO_ORG, BIO_PURPOSE, BIO_JURS } from "../_shared/intake-contracts/biometric.ts";
-import { REGISTRATION_INDUSTRIES } from "../_shared/intake-contracts/registration-assessment.ts";
+import { REGISTRATION_INDUSTRIES } from "./_local/intake-contracts/registration-assessment.ts";
 import {
   REVENUE_OPTS, CONSUMER_OPTS, Q5_SELL_SHARE_OPTS, Q5B_PROFILING_OPTS,
   Q7_OPTS, Q8_OPTS, Q9_OPTS, Q10_OPTS, Q11_OPTS, Q12_OPTS, Q13_OPTS, Q14_OPTS,

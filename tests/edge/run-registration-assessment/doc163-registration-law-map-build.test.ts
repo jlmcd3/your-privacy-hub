@@ -30,7 +30,7 @@ import { GRADER_CONTEXT_VERSION } from "../../../supabase/functions/_shared/grad
 import {
   REGISTRATION_AI_HIGH_RISK_ROLES,
   registrationContract,
-} from "../../../supabase/functions/_shared/intake-contracts/registration-assessment.ts";
+} from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/registration-assessment.ts";
 
 type Bag = Record<string, unknown>;
 

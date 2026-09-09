@@ -35,7 +35,7 @@ Deno.test("PANEL-11: the fixture generator imports real contract vocabularies, n
     '"../_shared/intake-contracts/dpa-generator.ts"',
     '"../_shared/intake-contracts/ir-playbook.ts"',
     '"../_shared/intake-contracts/biometric.ts"',
-    '"../_shared/intake-contracts/registration-assessment.ts"',
+    '"./_local/intake-contracts/registration-assessment.ts"',
     '"../_shared/intake-contracts/cppa-risk-assessment.ts"',
     '"../_shared/intake-contracts/cppa-admt.ts"',
     '"../_shared/intake-contracts/cppa-cybersecurity.ts"',

@@ -3458,7 +3458,7 @@ async function runPipeline(assessment_id: string) {
     // Item 195 cohort-append is now a permanent no-op (retained call
     // preserves telemetry key stability for controller audits).
     try {
-      const { applyCyberAuditSchedule } = await import("../_shared/ltp/cyber-audit-schedule.ts");
+      const { applyCyberAuditSchedule } = await import("./_local/ltp/cyber-audit-schedule.ts");
       const _schedRes = applyCyberAuditSchedule(report_data);
       const _rdS: any = report_data as any;
       _rdS._meta = _rdS._meta ?? {};

@@ -30,7 +30,7 @@
 //     limit notices, financial-incentive and ADMT pre-use notices follow
 //     11 CCR §§ 7011–7016, 7025, 7027, 7060–7063, 7070–7072.
 
-import { fill, runIn } from "../../_shared/prose/formal-instrument.ts";
+import { fill, runIn } from "./prose/formal-instrument.ts";
 
 export interface UsStateRow {
   state_code: string;

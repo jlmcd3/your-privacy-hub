@@ -26,8 +26,8 @@
 //      them deterministic (skeleton-cal-4 epoch).
 
 import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { runRiskFactorEngine } from "../../../supabase/functions/_shared/ltp/risk-factor-engine.ts";
-import { assembleRiskSkeletonDocument } from "../../../supabase/functions/_shared/ltp/risk-skeleton-assemble.ts";
+import { runRiskFactorEngine } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-factor-engine.ts";
+import { assembleRiskSkeletonDocument } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-skeleton-assemble.ts";
 import { skeletonDocumentToText } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
 import {
   applySkeletonCalibration,
@@ -44,7 +44,7 @@ import {
 import { buildGraderPayload, GRADER_PAYLOAD_BUDGET } from "../../../supabase/functions/_shared/grader/payload.ts";
 import { GRADER_CONTEXT_VERSION, SHARED_GRADER_CONTEXT } from "../../../supabase/functions/_shared/grader/context.ts";
 import { blockingContractViolations } from "../../../supabase/functions/run-stress-job/_local/intake-gate.ts";
-import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";
+import { validateIntake } from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/validate.ts";
 import { cppaRiskContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts";
 
 type Bag = Record<string, unknown>;

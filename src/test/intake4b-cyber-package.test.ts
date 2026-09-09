@@ -7,7 +7,7 @@
 // (d) the maturity ladder's rung definitions are untouched (stored values).
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { validateIntake } from "../../supabase/functions/_shared/intake-contracts/validate";
+import { validateIntake } from "../../supabase/functions/run-quality-batch/_local/intake-contracts/validate";
 import {
   cppaCybersecurityContract,
   CYBER_MATURITY_OPTIONS,

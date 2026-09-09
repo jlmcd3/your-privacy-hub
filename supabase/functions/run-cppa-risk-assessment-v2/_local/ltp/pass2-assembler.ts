@@ -44,7 +44,7 @@ import {
   type ShippedSurfaceEvaluation,
   type ShippedValueScreenEvaluation,
 } from "./composition-finalize.ts";
-import { renderCyberAuditSchedule, renderResolvedCohortSentence } from "../../../_shared/ltp/cyber-audit-schedule.ts";
+import { renderCyberAuditSchedule, renderResolvedCohortSentence } from "./cyber-audit-schedule.ts";
 import { classifyRevenueBand } from "../../../_shared/cppa-test-states.ts";
 import {
   CYBER_AUDIT_SEPARATE_LEAD_IN,

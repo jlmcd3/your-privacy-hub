@@ -13,7 +13,7 @@ import {
 import {
   renderCyberAuditSchedule,
   SCHEDULE_MARKER,
-} from "../../../../supabase/functions/_shared/ltp/cyber-audit-schedule.ts";
+} from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/cyber-audit-schedule.ts";
 
 // Minimal plan factory: only the fields the guard reads.
 function makePlan(over: Partial<RenderPlan> = {}): RenderPlan {

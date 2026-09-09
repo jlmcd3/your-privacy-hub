@@ -22,14 +22,14 @@ import { CPPA_RISK_PERFECT } from "../../../supabase/functions/quality-batch-orc
 import {
   RISK_PLAIN_MEANING,
   SKELETON_SECTIONS,
-} from "../../../supabase/functions/_shared/prose/plans/cppa-risk.spine.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/prose/plans/cppa-risk.spine.ts";
 import {
   assembleRiskSkeletonDocument,
   buildCustomerVoiceBlock,
   ENGINE_KEY_REMAP,
   type RiskSkeletonResult,
-} from "../../../supabase/functions/_shared/ltp/risk-skeleton-assemble.ts";
-import { DISPOSITION_LABEL } from "../../../supabase/functions/_shared/ltp/risk-factor-engine.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-skeleton-assemble.ts";
+import { DISPOSITION_LABEL } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-factor-engine.ts";
 import { skeletonDocumentToText } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
 
 type Bag = Record<string, unknown>;

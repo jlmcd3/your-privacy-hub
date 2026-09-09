@@ -16,7 +16,7 @@
 
 import { assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
-import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";
+import { validateIntake } from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/validate.ts";
 import type { IntakeContract } from "../../../supabase/functions/_shared/intake-contracts/types.ts";
 
 import { GOLDEN_BY_TOOL } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/registry.ts";

@@ -25,7 +25,7 @@ import {
   DEVICE_ACCESS_OPTS,
   liAssessmentStageBContract,
 } from "../../../supabase/functions/_shared/intake-contracts/li-assessment.ts";
-import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";
+import { validateIntake } from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/validate.ts";
 import * as LiaEnums from "../../../src/pages/LIAssessment.enums.ts";
 import { buildLiaEngagementMap } from "../../../supabase/functions/_shared/engagement-map.ts";
 import { attachLiaDeliverables } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/build.ts";

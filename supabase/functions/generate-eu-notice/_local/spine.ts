@@ -25,7 +25,7 @@
 //     period, Article 45A adequacy regulations and Article 77's "complaint
 //     with the Commissioner" — all from the gdpr_articles corpus.
 
-import { fill, runIn } from "../../_shared/prose/formal-instrument.ts";
+import { fill, runIn } from "./prose/formal-instrument.ts";
 import type { EuKeyPointsBag } from "./key-points.ts";
 
 export interface SpineFw {

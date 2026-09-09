@@ -19,7 +19,7 @@
 //                                        selected state (the is_combined row).
 
 import { REPORT_DISCLAIMER } from "../../_shared/report-disclaimer.ts";
-import { completionBannerHtml, countFills, FI_CSS } from "../../_shared/prose/formal-instrument.ts";
+import { completionBannerHtml, countFills, FI_CSS } from "./prose/formal-instrument.ts";
 import { formatUsAnswer, US_OPTION_LABELS, usAnswerCodes } from "./labels.ts";
 import { buildUsSpine, type UsLawRow, type UsSpineResult, type UsStateRow } from "./spine.ts";
 

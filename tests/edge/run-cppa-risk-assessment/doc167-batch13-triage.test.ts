@@ -42,15 +42,15 @@ import {
   paymentScopeFor,
   runRiskFactorEngine,
   safeguardReportsTesting,
-} from "../../../supabase/functions/_shared/ltp/risk-factor-engine.ts";
-import { assembleRiskSkeletonDocument } from "../../../supabase/functions/_shared/ltp/risk-skeleton-assemble.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-factor-engine.ts";
+import { assembleRiskSkeletonDocument } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-skeleton-assemble.ts";
 import { skeletonDocumentToText } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
-import { claimsSignificantDecisionUnnegated } from "../../../supabase/functions/_shared/ltp/admt-significant-decision.ts";
+import { claimsSignificantDecisionUnnegated } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/admt-significant-decision.ts";
 import {
   deriveAssessmentRetentionEnd,
   deriveInitialAssessmentDeadline,
   initialAssessmentDeadlinePending,
-} from "../../../supabase/functions/_shared/ltp/risk-timing.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-timing.ts";
 
 type Bag = Record<string, unknown>;
 

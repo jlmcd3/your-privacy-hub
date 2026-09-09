@@ -42,7 +42,7 @@ import {
   type SlotValues,
 } from "../../../_shared/prose/skeleton-render.ts";
 // A-TEAM S3 RULING III.10 (doc 115) — acronym-safe mid-sentence casing.
-import { lowerFirstWordSafe } from "../../../_shared/ltp/splice-case.ts";
+import { lowerFirstWordSafe } from "./splice-case.ts";
 // DOC 173 (2026-09-04) — Syllabus & Record (doc 151); Governance is the
 // fourth product migrated onto the fleet presentation system.
 import { dispositionTone, type SyllabusProjection } from "../../../_shared/prose/syllabus.ts";

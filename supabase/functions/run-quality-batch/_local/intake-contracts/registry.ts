@@ -21,7 +21,7 @@ import { dpiaFrameworkContract } from "../../../_shared/intake-contracts/dpia-fr
 import { liAssessmentStageBContract } from "../../../_shared/intake-contracts/li-assessment.ts";
 import { dpaGeneratorContract } from "../../../_shared/intake-contracts/dpa-generator.ts";
 import { irPlaybookContract } from "../../../_shared/intake-contracts/ir-playbook.ts";
-import { registrationContract } from "../../../_shared/intake-contracts/registration-assessment.ts";
+import { registrationContract } from "./registration-assessment.ts";
 import { biometricCheckerContract } from "./biometric-checker.ts";
 
 export const CONTRACT_BY_TOOL: Record<string, IntakeContract> = {

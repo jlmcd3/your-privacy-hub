@@ -15,7 +15,7 @@ import {
   CYBER_AUDIT_SEPARATE_LEAD_IN,
   SUBMISSION_RETENTION_MARKER,
 } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/submission-retention.ts";
-import { renderCyberAuditSchedule } from "../../../supabase/functions/_shared/ltp/cyber-audit-schedule.ts";
+import { renderCyberAuditSchedule } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/cyber-audit-schedule.ts";
 import { BALANCE_DIRECTION_CLAUSES } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/content/pass2-templates.ts";
 import { lookupMateriality, GTM_MATERIALITY_REGISTER_VERSION } from "../../../supabase/functions/replay-cppa-risk-harness/_local/ltp/replay/gtm-materiality-register.ts";
 

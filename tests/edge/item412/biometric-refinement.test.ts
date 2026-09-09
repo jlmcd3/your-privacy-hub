@@ -59,7 +59,7 @@ import {
   BIOMETRIC_SECTION_SPECS,
   BIOMETRIC_PIPELINE_STAMP,
 } from "../../../supabase/functions/check-biometric-compliance/_local/prose/plans/biometric.spine.ts";
-import type { ReferencePassage } from "../../../supabase/functions/_shared/prose/biometric-reference-passages.ts";
+import type { ReferencePassage } from "../../../supabase/functions/check-biometric-compliance/_local/prose/biometric-reference-passages.ts";
 
 const finding = (path: string, quote: string, replacement: string): CriticFinding => ({
   path,

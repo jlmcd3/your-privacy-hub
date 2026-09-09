@@ -28,7 +28,7 @@
 // method rule — no matrix or crediting principle is stated in the abstract);
 // directional T6 house forms close every application paragraph.
 
-import { HARM_PATHWAY_OPTS } from "../intake-contracts/cppa-risk-assessment.ts";
+import { HARM_PATHWAY_OPTS } from "../../../_shared/intake-contracts/cppa-risk-assessment.ts";
 import { CA_SPI_CATEGORY_KEYS } from "./ca-pi-taxonomy.ts";
 import {
   type AdmtDecisionClass,
@@ -40,8 +40,8 @@ import {
 // DOC 167 — the § 7155 timing resolver the assembler renders; read here so
 // the completing Follow-Up is drawn from the same fact (one resolver).
 import { initialAssessmentDeadlinePending } from "./risk-timing.ts";
-import type { RenderedTable } from "../prose/skeleton-render.ts";
-import { boundedPassage, firstSentence } from "./clause-bound.ts";
+import type { RenderedTable } from "../../../_shared/prose/skeleton-render.ts";
+import { boundedPassage, firstSentence } from "../../../_shared/ltp/clause-bound.ts";
 import { RISK52_FIXED } from "../prose/plans/cppa-risk.spine.ts";
 
 export const RISK_FACTOR_ENGINE_STAMP =

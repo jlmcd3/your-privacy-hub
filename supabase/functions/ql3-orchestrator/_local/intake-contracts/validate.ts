@@ -15,7 +15,7 @@
 // "Empty" mirrors the isEmpty semantics used by insufficient-info-guard
 // (""/null/undefined/[]/{}).
 
-import type { IntakeContract, IntakeField } from "./types.ts";
+import type { IntakeContract, IntakeField } from "../../../_shared/intake-contracts/types.ts";
 
 const ALLOWED_TOPLEVEL_EXTRAS = new Set<string>([
   "assertions",

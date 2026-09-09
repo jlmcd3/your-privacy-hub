@@ -37,7 +37,7 @@ import { CYBER_PIPELINE_STAMP } from "../../../supabase/functions/run-cppa-cyber
 import {
   SCHEDULE_LITERALS,
   SCHEDULE_MARKER,
-} from "../../../supabase/functions/_shared/ltp/cyber-audit-schedule.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/cyber-audit-schedule.ts";
 
 const PERFECT = CYBER_PERFECT[0].intake as Record<string, unknown>;
 const ABSENCE = "The record does not yet carry a basis for this conclusion.";

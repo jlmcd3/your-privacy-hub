@@ -21,7 +21,7 @@ import {
   RISK_SKELETON_CONTENT_HASH,
   RISK_SKELETON_VERSION,
   SKELETON_SECTIONS,
-} from "../../../supabase/functions/_shared/prose/plans/cppa-risk.spine.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/prose/plans/cppa-risk.spine.ts";
 import {
   assembleRiskSkeletonDocument,
   deriveActivityPiInventory,
@@ -34,7 +34,7 @@ import {
   deriveMaterialsConsideredIndex,
   deriveNextReviewDate,
   deriveProcessingAndDataInventory,
-} from "../../../supabase/functions/_shared/ltp/risk-skeleton-assemble.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-skeleton-assemble.ts";
 import { skeletonDocumentToText } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
 
 type Bag = Record<string, unknown>;

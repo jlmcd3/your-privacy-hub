@@ -15,7 +15,7 @@
 // renderer uses and which RoPA's existing body deliberately keeps
 // unchanged.
 
-import { toneForState, type SyllabusProjection } from "./syllabus.ts";
+import { toneForState, type SyllabusProjection } from "../../../_shared/prose/syllabus.ts";
 
 export function escHtml(s: unknown): string {
   if (s === null || s === undefined) return "";

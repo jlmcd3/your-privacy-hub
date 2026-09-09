@@ -71,7 +71,7 @@ import { CYBER_CONTRACT_FIXTURES } from "../_shared/cyber-contract-fixtures.ts";
 import { ADMT_CONTRACT_FIXTURES } from "../_shared/admt-contract-fixtures.ts";
 // RC-REM-P2 — contract-driven intake generation + validation.
 import type { IntakeContract } from "../_shared/intake-contracts/types.ts";
-import { unknownTopLevelKeys, validateIntake as validateAgainstContract } from "../_shared/intake-contracts/validate.ts";
+import { unknownTopLevelKeys, validateIntake as validateAgainstContract } from "./_local/intake-contracts/validate.ts";
 import { renderContractPrompt } from "./_local/intake-contracts/render.ts";
 import { cppaAdmtContract } from "../_shared/intake-contracts/cppa-admt.ts";
 // QB-P22 item 2 — shared IR TEST-STATES/DEADLINES enrichment (matches

@@ -14,7 +14,7 @@ type Bag = Record<string, unknown>;
 
 // ── CPPA Risk — consumer_context fallback to i3_ca_consumer_band/i4b_sources ─
 
-import { runRiskFactorEngine } from "../../../supabase/functions/_shared/ltp/risk-factor-engine.ts";
+import { runRiskFactorEngine } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-factor-engine.ts";
 import { CPPA_RISK_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk.ts";
 
 Deno.test("doc133 — CPPA Risk: consumer_context reads i3_ca_consumer_band/i4b_sources when the newer g2 fields are unanswered", () => {

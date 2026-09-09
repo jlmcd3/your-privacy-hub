@@ -23,7 +23,7 @@ import { normalizeJurisdiction } from "../../../supabase/functions/generate-dpa/
 import { hasHardViolations, lintReportText } from "../../../supabase/functions/_shared/output-lint.ts";
 import { detectBlacklistPhrases } from "../../../supabase/functions/_shared/blacklist-phrases.ts";
 import { buildDpaFormalInstrumentHTML, promptify } from "../../../supabase/functions/generate-report-pdf/_local/dpa-formal-instrument.ts";
-import { countFills } from "../../../supabase/functions/_shared/prose/formal-instrument.ts";
+import { countFills } from "../../../supabase/functions/generate-eu-notice/_local/prose/formal-instrument.ts";
 
 const BASE: DpaAssembleInput = {
   documentType: "gdpr",

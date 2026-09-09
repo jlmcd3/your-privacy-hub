@@ -15,7 +15,7 @@ import {
   type StateRow,
 } from "../../../supabase/functions/generate-us-notice/_local/render.ts";
 import { UNVERIFIED_STATE_CODES } from "../../../supabase/functions/generate-us-notice/_local/spine.ts";
-import { countFills } from "../../../supabase/functions/_shared/prose/formal-instrument.ts";
+import { countFills } from "../../../supabase/functions/generate-eu-notice/_local/prose/formal-instrument.ts";
 
 const CA: StateRow = { state_code: "CA", state_name: "California", framework_type: "ccpa" };
 const VA: StateRow = { state_code: "VA", state_name: "Virginia", framework_type: "virginia_model" };

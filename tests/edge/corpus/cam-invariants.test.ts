@@ -439,7 +439,7 @@ Deno.test("Display-consistency invariant: a decision year missing from the displ
 
 Deno.test("RISK_CORPUS_MAP: every factor_id matches a real FACTOR_MATRIX_ROWS label", async () => {
   const src = await Deno.readTextFile(
-    "supabase/functions/_shared/ltp/risk-skeleton-assemble.ts",
+    "supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-skeleton-assemble.ts",
   );
   const knownLabels = new Set<string>();
   for (const m of src.matchAll(/label:\s*"([^"]+)"/g)) knownLabels.add(m[1]);

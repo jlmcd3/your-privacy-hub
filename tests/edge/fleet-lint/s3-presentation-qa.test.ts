@@ -8,8 +8,8 @@
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { buildDpiaTablesBySurface } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-tables.ts";
-import { buildRiskLedgerTable } from "../../../supabase/functions/_shared/ltp/risk-factor-engine.ts";
-import { lowerFirstWordSafe } from "../../../supabase/functions/_shared/ltp/splice-case.ts";
+import { buildRiskLedgerTable } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-factor-engine.ts";
+import { lowerFirstWordSafe } from "../../../supabase/functions/run-governance-assessment/_local/ltp/splice-case.ts";
 import { formatReportDateLong } from "../../../supabase/functions/_shared/report-dates.ts";
 import { reportDisclaimerHtml, applyUniversalDisclaimerHtml } from "../../../supabase/functions/_shared/report-disclaimer.ts";
 
@@ -137,12 +137,12 @@ Deno.test("S3 V.13/I.14 — no template meta-commentary literals remain", async 
   const admt = await read("supabase/functions/run-admt-checker-v2/_local/ltp/admt-v2-assemble.ts");
   assert(!admt.includes("section number is retained"), "ADMT template commentary reintroduced");
   assert(!admt.includes("automated compliance assessment"), "'automated' generation-method leak reintroduced");
-  const risk = await read("supabase/functions/_shared/ltp/risk-skeleton-assemble.ts");
+  const risk = await read("supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-skeleton-assemble.ts");
   assert(!risk.includes("appendix letter is retained"), "risk appendix template commentary reintroduced");
 });
 
 Deno.test("S3 I.1/I.3 — internal engine/corpus vocabulary stays out of composer output strings", async () => {
-  const riskAsm = await read("supabase/functions/_shared/ltp/risk-skeleton-assemble.ts");
+  const riskAsm = await read("supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-skeleton-assemble.ts");
   assert(!riskAsm.includes("assessment engine ${"), "risk engine-version leak reintroduced");
   const cyberV4 = await read("supabase/functions/run-cppa-cybersecurity/_local/ltp/cyber-skeleton-assemble-v4.ts");
   assert(!cyberV4.includes('["Engine version"'), "cyber engine-version row reintroduced");

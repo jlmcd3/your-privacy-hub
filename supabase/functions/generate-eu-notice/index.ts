@@ -22,7 +22,7 @@ declare const EdgeRuntime: { waitUntil: (p: Promise<unknown>) => void };
 // presentation primitives. See _local/spine.ts and
 // _shared/prose/formal-instrument.ts for the design record.
 import { buildGdprSpine } from "./_local/spine.ts";
-import { completionBannerHtml, countFills, FI_CSS, fill } from "../_shared/prose/formal-instrument.ts";
+import { completionBannerHtml, countFills, FI_CSS, fill } from "./_local/prose/formal-instrument.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

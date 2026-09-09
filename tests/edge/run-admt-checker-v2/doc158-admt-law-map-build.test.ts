@@ -39,7 +39,7 @@ import {
   OPT_OUT_HANDLING_OPTS as C_OH,
 } from "../../../supabase/functions/_shared/intake-contracts/cppa-admt.ts";
 import * as formEnums from "../../../src/pages/admt/ADMTChecker.enums.ts";
-import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";
+import { validateIntake } from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/validate.ts";
 
 type Bag = Record<string, unknown>;
 

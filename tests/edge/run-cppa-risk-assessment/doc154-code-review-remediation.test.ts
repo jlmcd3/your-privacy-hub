@@ -20,15 +20,15 @@ import {
   resolveRecordedApprovalDate,
   admtEvaluationActiveFor,
   safeguardHarms,
-} from "../../../supabase/functions/_shared/ltp/risk-factor-engine.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-factor-engine.ts";
 import {
   assembleRiskSkeletonDocument,
   deriveAdmtTechnicalFacts,
   deriveRiskFiredStates,
   deriveReviewApprovalTable,
-} from "../../../supabase/functions/_shared/ltp/risk-skeleton-assemble.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-skeleton-assemble.ts";
 import { skeletonDocumentToText } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
-import { RISK52_FIXED, RISK_PLAIN_MEANING } from "../../../supabase/functions/_shared/prose/plans/cppa-risk.spine.ts";
+import { RISK52_FIXED, RISK_PLAIN_MEANING } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/prose/plans/cppa-risk.spine.ts";
 import { evaluateCppaRiskGates } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/gate-eval.ts";
 
 type Bag = Record<string, unknown>;

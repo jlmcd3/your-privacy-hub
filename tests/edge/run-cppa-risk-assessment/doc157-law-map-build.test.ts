@@ -21,21 +21,21 @@
 //        finalization contract; rendered-document seams and register.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { runRiskFactorEngine } from "../../../supabase/functions/_shared/ltp/risk-factor-engine.ts";
+import { runRiskFactorEngine } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-factor-engine.ts";
 import {
   assembleRiskSkeletonDocument,
   deriveAdmtTechnicalFacts,
   deriveApplicable7150Triggers,
   deriveRiskFiredStates,
-} from "../../../supabase/functions/_shared/ltp/risk-skeleton-assemble.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-skeleton-assemble.ts";
 import { skeletonDocumentToText } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
 import { evaluateCppaRiskGates } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/gate-eval.ts";
 import {
   HOUSING_DECISION_BASIS_OPTS as R_HDB,
   resolveAdmtSignificantDecision,
   SIGNIFICANT_DECISION_CATEGORY_OPTS as R_SDC,
-} from "../../../supabase/functions/_shared/ltp/admt-significant-decision.ts";
-import { CA_SPI_CATEGORY_KEYS } from "../../../supabase/functions/_shared/ltp/ca-pi-taxonomy.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/admt-significant-decision.ts";
+import { CA_SPI_CATEGORY_KEYS } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/ca-pi-taxonomy.ts";
 import {
   ADMT_ROLE_TYPE_OPTS as C_ROLE,
   CONSUMER_RELATIONSHIP_CONTEXT_OPTS as C_CTX,
