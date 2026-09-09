@@ -8,12 +8,16 @@ import AdminOnly from "@/components/AdminOnly";
 import NotFound from "@/pages/NotFound";
 import {
   useAdminPeople,
+  useBannedUsers,
+  closeAccount,
+  reopenAccount,
   formatDate,
   downloadCsv,
   STATUS_LABEL,
   type PersonRow,
   type PersonStatus,
 } from "@/hooks/useAdminPeople";
+import { toast } from "@/hooks/use-toast";
 
 type SortKey =
   | "email"
@@ -37,7 +41,49 @@ function value(row: PersonRow, key: SortKey): string {
 }
 
 function PeopleInner() {
-  const { rows, loading, error } = useAdminPeople();
+  const { rows, loading, error, refresh } = useAdminPeople();
+  const { rows: banned, refresh: refreshBanned } = useBannedUsers();
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const onClose = async (row: PersonRow, type: "user_request" | "tos_violation") => {
+    const label =
+      type === "tos_violation"
+        ? `Close ${row.email} for a Terms of Service violation? The email will be kept on the banned list for 365 days and cannot re-register.`
+        : `Close ${row.email}? All account data is deleted 30 days from now.`;
+    if (!window.confirm(label)) return;
+    const reason =
+      window.prompt(
+        type === "tos_violation" ? "Reason for the ban (kept on record)" : "Reason (optional)",
+        type === "tos_violation" ? "Terms of Service violation" : "",
+      ) ?? "";
+    setBusy(row.user_id);
+    try {
+      await closeAccount(row.user_id, type, reason);
+      toast({ title: "Account closed", description: `${row.email} closes in 30 days.` });
+      refresh();
+      refreshBanned();
+    } catch (e) {
+      toast({ title: "Could not close account", description: String(e), variant: "destructive" });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const onReopen = async (row: PersonRow) => {
+    if (!window.confirm(`Reopen ${row.email}?`)) return;
+    setBusy(row.user_id);
+    try {
+      await reopenAccount(row.user_id);
+      toast({ title: "Account reopened" });
+      refresh();
+      refreshBanned();
+    } catch (e) {
+      toast({ title: "Could not reopen account", description: String(e), variant: "destructive" });
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const [statusFilter, setStatusFilter] = useState<"all" | PersonStatus>("all");
   const [search, setSearch] = useState("");
   const [from, setFrom] = useState("");
@@ -227,6 +273,8 @@ function PeopleInner() {
                       </th>
                     ))}
                     <th className="px-3 py-2 text-left font-medium">Plan</th>
+                    <th className="px-3 py-2 text-left font-medium">Closure</th>
+                    <th className="px-3 py-2 text-left font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -239,6 +287,41 @@ function PeopleInner() {
                       <td className="px-3 py-2 text-muted-foreground">{formatDate(r.cancelled_at)}</td>
                       <td className="px-3 py-2 text-muted-foreground">{formatDate(r.terminated_at)}</td>
                       <td className="px-3 py-2 text-muted-foreground">{r.subscription_type ?? "—"}</td>
+                      <td className="px-3 py-2 text-muted-foreground text-[12px]">
+                        {r.closed_at
+                          ? `${r.closure_type === "tos_violation" ? "Terms violation" : "Closed"} ${formatDate(r.closed_at)} · deleted ${formatDate(r.purge_after)}`
+                          : "—"}
+                      </td>
+                      <td className="px-3 py-2">
+                        {r.terminated_at ? (
+                          <span className="text-muted-foreground text-[12px]">—</span>
+                        ) : r.closed_at ? (
+                          <button
+                            onClick={() => onReopen(r)}
+                            disabled={busy === r.user_id}
+                            className="text-[12px] px-2 py-1 rounded border disabled:opacity-50"
+                          >
+                            Reopen
+                          </button>
+                        ) : (
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => onClose(r, "user_request")}
+                              disabled={busy === r.user_id}
+                              className="text-[12px] px-2 py-1 rounded border disabled:opacity-50"
+                            >
+                              Close
+                            </button>
+                            <button
+                              onClick={() => onClose(r, "tos_violation")}
+                              disabled={busy === r.user_id}
+                              className="text-[12px] px-2 py-1 rounded border border-destructive text-destructive disabled:opacity-50"
+                            >
+                              Close &amp; ban
+                            </button>
+                          </div>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -246,6 +329,40 @@ function PeopleInner() {
             </div>
           )}
         </div>
+
+        <section className="mt-8">
+          <h2 className="font-serif text-2xl mb-1">Banned users</h2>
+          <p className="text-sm text-muted-foreground mb-3">
+            Accounts closed for a Terms of Service violation. The email and reason are kept for 365
+            days from closure and cannot be used to register again; the record is then deleted.
+          </p>
+          <div className="rounded-lg border bg-card overflow-hidden">
+            {banned.length === 0 ? (
+              <p className="p-6 text-center text-sm text-muted-foreground">No banned users.</p>
+            ) : (
+              <table className="w-full text-sm">
+                <thead className="bg-muted text-muted-foreground">
+                  <tr>
+                    <th className="px-3 py-2 text-left font-medium">Email</th>
+                    <th className="px-3 py-2 text-left font-medium">Reason</th>
+                    <th className="px-3 py-2 text-left font-medium">Closed</th>
+                    <th className="px-3 py-2 text-left font-medium">Record deleted</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {banned.map((b) => (
+                    <tr key={b.id} className="border-t">
+                      <td className="px-3 py-2 font-mono text-[12px]">{b.email}</td>
+                      <td className="px-3 py-2">{b.reason}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{formatDate(b.closed_at)}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{formatDate(b.ban_expires_at)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </section>
       </main>
       <Footer />
     </div>

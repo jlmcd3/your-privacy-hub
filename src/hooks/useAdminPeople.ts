@@ -8,6 +8,7 @@ export type PersonStatus =
   | "cancelling"
   | "cancelled"
   | "past_due"
+  | "closed"
   | "terminated";
 
 export interface PersonRow {
@@ -29,6 +30,10 @@ export interface PersonRow {
   accepted_privacy_notice_id: string | null;
   accepted_terms_id: string | null;
   last_sign_in_at: string | null;
+  closed_at: string | null;
+  closure_type: string | null;
+  purge_after: string | null;
+  termination_reason: string | null;
 }
 
 export const STATUS_LABEL: Record<PersonStatus, string> = {
@@ -38,14 +43,24 @@ export const STATUS_LABEL: Record<PersonStatus, string> = {
   cancelling: "Cancelling",
   cancelled: "Cancelled",
   past_due: "Past due",
+  closed: "Closed",
   terminated: "Terminated",
 };
+
+export interface BannedUserRow {
+  id: string;
+  email: string;
+  reason: string;
+  closed_at: string;
+  ban_expires_at: string;
+}
 
 /** Loads the single master people list every admin screen is built on. */
 export function useAdminPeople() {
   const [rows, setRows] = useState<PersonRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,9 +74,46 @@ export function useAdminPeople() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [tick]);
 
-  return { rows, loading, error };
+  return { rows, loading, error, refresh: () => setTick((t) => t + 1) };
+}
+
+/** Emails barred from re-registering after a Terms of Service closure. */
+export function useBannedUsers() {
+  const [rows, setRows] = useState<BannedUserRow[]>([]);
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await (supabase as any).rpc("admin_list_banned_users");
+      if (!cancelled) setRows((data as BannedUserRow[]) ?? []);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [tick]);
+
+  return { rows, refresh: () => setTick((t) => t + 1) };
+}
+
+export async function closeAccount(
+  userId: string,
+  closureType: "user_request" | "tos_violation",
+  reason: string,
+) {
+  const { error } = await (supabase as any).rpc("close_account", {
+    _user_id: userId,
+    _closure_type: closureType,
+    _reason: reason || null,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function reopenAccount(userId: string) {
+  const { error } = await (supabase as any).rpc("reopen_account", { _user_id: userId });
+  if (error) throw new Error(error.message);
 }
 
 export function formatDate(iso: string | null | undefined): string {
