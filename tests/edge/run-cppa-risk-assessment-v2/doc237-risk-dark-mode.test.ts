@@ -47,7 +47,7 @@ Deno.test("doc237 — attachRiskV3Record: an existing _meta.internal is left byt
   const before = JSON.stringify(report);
   attachRiskV3Record(report, DISABLED);
   assertEquals(JSON.stringify(report), before);
-  assertEquals("risk_v3" in (report._meta as Record<string, unknown>).internal as Record<string, unknown>, false);
+  assertEquals("risk_v3" in ((report._meta as Record<string, unknown>).internal as Record<string, unknown>), false);
 });
 
 // ── 2. …and DOES write when the selection ran enabled (the no-op is real) ─
