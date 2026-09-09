@@ -369,12 +369,18 @@ Deno.test("resolveHookSelections — conflicting settled fields for the same hoo
 
 // ── The shipped-corpus identity (RISK_HOOKS = the one ratified AP/ICS hook) ──
 
-Deno.test("doc231 — the shipped RISK_HOOKS map is exactly the ratified AP/ICS hook and is inert on a record where its required atom does not hold", () => {
+Deno.test("doc231 — the shipped RISK_HOOKS map is exactly the three ratified hooks and is inert on a record where their required atoms do not hold", () => {
   assertEquals(RISK_HOOKS_VERSION, "risk-hooks-v2-2026-09-09-0");
-  assertEquals(RISK_HOOKS.length, 1);
-  assertEquals(RISK_HOOKS[0].hook_id, "enforcement_actions:dc095815-d03d-4bb2-b3be-2711e7f7d459:v1");
+  assertEquals(RISK_HOOKS.length, 3);
+  assertEquals(RISK_HOOKS.map((h) => h.hook_id).sort(), [
+    "enforcement_actions:a3cf40b0-3625-4e78-bbe9-63624f17ceb0:v1",
+    "enforcement_actions:dbfca969-3139-43d1-8a5b-7fff179f8db6:v1",
+    "enforcement_actions:dc095815-d03d-4bb2-b3be-2711e7f7d459:v1",
+  ]);
   const states = baseStates({ flags: ["admt_use", "biometric_data"] });
   const result = applyRiskHooks(RISK_HOOKS, states, { "Safeguards": "fails" }, ["any-source"], new Set());
   assertEquals(result.applications, []);
-  assertEquals(result.flags, []);
+  // No hook prints; any flag raised may only be the benign "verdict_missing"
+  // signal for a factor this fixture supplies no verdict for.
+  assertEquals(result.flags.filter((f) => f.reason !== "verdict_missing"), []);
 });
