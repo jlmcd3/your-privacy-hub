@@ -28,7 +28,7 @@ import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 const TITLE =
   "Record of Processing Activities (RoPA) · Records of Processing | End User Privacy";
 const META_DESCRIPTION =
-  "Build a GDPR-compliant Records of Processing Activities in under an hour. Covers 25+ jurisdictions including EU GDPR, UK GDPR, LGPD, and CCPA.";
+  "Build a GDPR-compliant Records of Processing Activities in under an hour. Covers EU GDPR, UK GDPR, LGPD, and other laws with recordkeeping duties.";
 
 const STEPS = [
   {
@@ -61,7 +61,7 @@ const JURISDICTIONS: { region: string; items: string[] }[] = [
 const PRICING_ROWS: { feature: string; free: string; intel: string }[] = [
   { feature: "Complete Q&A tool", free: "Subscribers only", intel: "Included" },
   { feature: "Save & resume", free: "Subscribers only", intel: "Included" },
-  { feature: "25+ jurisdictions", free: "Subscribers only", intel: "Included" },
+  { feature: "All covered jurisdictions", free: "Subscribers only", intel: "Included" },
   { feature: "Generate PDF / Word / Excel", free: "Subscribers only", intel: "Included" },
   { feature: "Annual refresh", free: "Subscribers only", intel: "Included" },
   { feature: "Multi-client management", free: "Subscribers only", intel: "Included" },
@@ -78,7 +78,7 @@ const FAQ = [
   },
   {
     q: "What jurisdictions are covered?",
-    a: "25+ frameworks including EU GDPR, UK GDPR, CCPA/CPRA, LGPD, Swiss nFADP, Singapore PDPA, and more.",
+    a: "EU GDPR, UK GDPR, Swiss nFADP, Brazil LGPD, Canada PIPEDA, Singapore PDPA, Australia Privacy Act, Japan APPI, South Korea PIPA, India DPDPA, South Africa POPIA, and more. US federal and state privacy laws do not require a Record of Processing Activities, so US jurisdictions are not offered.",
   },
   {
     q: "Is my data secure?",
