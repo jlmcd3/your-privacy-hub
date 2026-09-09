@@ -242,9 +242,9 @@ export const RISK_ATOM_PHRASES: Readonly<Record<string, string>> = {
 
 export const RISK_HOOK_SHAPES: Readonly<Record<"S1" | "S2" | "S3" | "S4" | "S5a" | "S5b" | "S6" | "S6x", string>> = {
   S1:
-    "The company has stated that {customer_fact}. {governing_provision}In {authority}, {regulator} {verb} that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding supports the company's position on {factor}. Section {section} records that determination. ({citation}; {status}.)",
+    "The company has stated that {customer_fact}. {governing_provision}In {authority}, {regulator} {verb} that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding supports the company's position on {factor}. {hedge}Section {section} records that determination. ({citation}; {status}.)",
   S2:
-    "The company has stated that {customer_fact}. {governing_provision}In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding cuts against the company's position on {factor}. Whether that holds on this record is addressed at {section}. ({citation}; {status}.)",
+    "The company has stated that {customer_fact}. {governing_provision}In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding cuts against the company's position on {factor}. {hedge}Whether that holds on this record is addressed at {section}. ({citation}; {status}.)",
   S3:
     "{governing_provision}In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding turned on the fact that {source_fact}; on this record the company has instead stated that {record_fact}. The decision marks a boundary rather than a finding against the company. ({citation}; {status}.)",
   S4:

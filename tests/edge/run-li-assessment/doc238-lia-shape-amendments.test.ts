@@ -14,13 +14,27 @@
 // facts, not on the cited authority's.") whenever `hedge_variant` was set.
 // That sentence appears in no CEO-approved document. Doc 223B's approved
 // hedge for `0af0876d` is hand-tailored to that hook, so the hedge is now
-// per-hook DATA (`AuthorityHook.hedge_sentence`, rendered verbatim by
-// `hedgeSuffix`), the generic constant is gone, and `hedge_variant` is
-// classification only. Of doc 223B's five settled hooks only `0af0876d`
-// carries an approved hedge in this form: `63bf2fe9`, `66742297` and
-// `a22b1399`'s approved paragraphs have no "the outcome depends on this
-// company's own facts" clause, and `cbd38bc6` has no CEO draft at all — so
-// none of those four may carry a `hedge_sentence` until the CEO writes one.
+// per-hook DATA (`AuthorityHook.hedge_sentence`), the generic constant is
+// gone, and `hedge_variant` is classification only. Of doc 223B's five
+// settled hooks only `0af0876d` carries an approved hedge in this form:
+// `63bf2fe9`, `66742297` and `a22b1399`'s approved paragraphs have no "the
+// outcome depends on this company's own facts" clause, and `cbd38bc6` has no
+// CEO draft at all — so none of those four may carry a `hedge_sentence`
+// until the CEO writes one.
+//
+// DOC 238 FOLLOW-UP (2026-09-09, POSITION FIX): this pass also found the
+// hedge was appended AFTER the citation parenthetical (`hedgeSuffix`, a pure
+// trailing suffix), while every approved paragraph in docs 223B/233/234/236
+// places the hedge BEFORE the citation (and, for LIA/DPIA specifically,
+// before the forward-looking section pointer too) — e.g. doc 223B's own
+// `0af0876d` paragraph: "...That decision weighs against the company's
+// position here. But the outcome depends on this company's own facts:
+// [...]. Section IV weighs those facts. (DPC, ...)". Fixed: `{hedge}` is now
+// an inline slot inside the S1/S2 shape text itself (the "matching" shapes
+// every approved hedge actually sits on), positioned right where doc 223B
+// places it — right after the comparison sentence, before the section
+// pointer and the citation. `hedgeSuffix` is gone; a hook without
+// `hedge_sentence` still renders `{hedge}` as "", byte-identical to before.
 //
 // The `0af0876d` fixture below (DPC, LinkedIn) copies every citation/status/
 // posture/settledness/pinpoint/atom field directly from doc 223B's own
@@ -130,14 +144,16 @@ Deno.test("doc238 LIA — hedge_variant alone (either value, hedge_sentence null
   }
 });
 
-Deno.test("doc238 LIA — renderSentence still defaults to the ratified shapes: a hook WITH hedge_sentence renders the live S2 + exactly that approved sentence, nothing else", () => {
+Deno.test("doc238 LIA — renderSentence still defaults to the ratified shapes: a hook WITH hedge_sentence renders the live S2 UNCHANGED, since {hedge} is not a slot the live (frozen) shape text references", () => {
   const hook = linkedinHook();
   const rendered = renderSentence(hook, "S2", hook.fact_atoms, undefined); // no 5th arg -> LIA_HOOK_SHAPES
-  // hedgeSuffix reads hook.hedge_sentence regardless of which shape map was
-  // used, which is why this fixture is safe for the LIVE map: none of the
-  // hooks LIA_HOOKS ships today (the empty array) sets hedge_sentence, so
-  // production is unaffected.
-  assertEquals(rendered, `${LINKEDIN_LIVE_S2_223B} ${LINKEDIN_HEDGE_223B}`);
+  // `hedge` is populated in the slots map unconditionally, but `{hedge}`
+  // only appears in the PROPOSED S1/S2 shapes, never in the live, frozen
+  // LIA_HOOK_SHAPES — so a `split("{hedge}").join(...)` against the live
+  // text has nothing to replace and is a true no-op, not a suffix append.
+  // Production is unaffected either way: none of the hooks LIA_HOOKS ships
+  // today (the empty array) sets hedge_sentence.
+  assertEquals(rendered, LINKEDIN_LIVE_S2_223B);
 });
 
 Deno.test("doc238 LIA — {quote} renders the verbatim finding_span, quoted, through the PROPOSED shape", () => {
@@ -157,26 +173,23 @@ Deno.test("doc238 LIA — the PROPOSED S2 rendering for 0af0876d is pinned byte-
 
   // The hedge is the literal doc 223B sentence — the one thing in this
   // paragraph (beyond the ratified atoms/citation/status) that IS
-  // CEO-approved wording — and the old generic constant is gone.
-  assert(rendered!.endsWith(` ${LINKEDIN_HEDGE_223B}`), `approved hedge missing/wrong: ${rendered}`);
+  // CEO-approved wording — and the old generic constant is gone. It sits
+  // BEFORE the section pointer and citation, matching doc 223B's own order
+  // ("...position here. But the outcome depends... Section IV weighs those
+  // facts. (DPC, ...)"), not trailing after the citation at the very end.
+  assert(rendered!.includes(`the balance. ${LINKEDIN_HEDGE_223B} Whether`), `approved hedge missing/wrong position: ${rendered}`);
+  assert(rendered!.endsWith(")"), `sentence must end at the citation, not the hedge: ${rendered}`);
   assert(!rendered!.includes("But the outcome here depends"), `generic constant leaked: ${rendered}`);
 
-  // POSITION — an OPEN item, deliberately pinned as-is so any fix is a
-  // visible diff: doc 223B's approved paragraph places this hedge BEFORE
-  // the section pointer ("…That decision weighs against the company's
-  // position here. But the outcome depends on this company's own facts:
-  // […]. Section IV weighs those facts. (DPC, …)"), i.e. inside the
-  // paragraph, ahead of the citation. `hedgeSuffix` (mirroring
-  // `appealSuffix`) appends it AFTER the citation parenthetical instead.
-  // Every approved paragraph in docs 223B/233/234/236 puts the hedge
-  // before the citation; doc 238 §1.3's "the hedge always comes last,
-  // after the citation trailer, matching every approved example" is not
-  // borne out by any of them. Moving it means a `{hedge}` slot in the
-  // proposed shape text — a shape-wording change for the CEO's ratify
-  // line, not a mechanism fix made here.
+  // POSITION — FIXED (2026-09-09 follow-up): doc 223B's approved paragraph
+  // places this hedge BEFORE the section pointer ("…That decision weighs
+  // against the company's position here. But the outcome depends on this
+  // company's own facts: […]. Section IV weighs those facts. (DPC, …)"),
+  // i.e. inside the paragraph, ahead of the citation — `{hedge}` now sits
+  // in exactly that position in the shape text.
   assertEquals(
     rendered,
-    "The company has stated that its processing is for behavioural advertising; the processing is large-scale; it processes browsing or behavioural data; the people affected are its customers; its interest is commercial or revenue-related; it markets by online advertising. In DPC, LinkedIn, DPC found that where large-scale cross-border processing of members' first party and third party behavioural data for behavioural and targeted advertising, relying on consent and on a commercial legitimate interest, processing personal data without an appropriate legal basis is a clear and serious violation of the data subject's fundamental right to data protection — in its own words, \"processing personal data without an appropriate legal basis is a clear and serious violation of the data subject's fundamental right to data protection\". That finding cuts against the company's position on the balance. Whether that holds on this record is addressed in Section IV. (DPC, LinkedIn, decision of 22 October 2024 § 7; supervisory-authority decision — persuasive, non-binding outside its jurisdiction.) But the outcome depends on this company's own facts: its purposes, the data involved, its safeguards, the effects on people, and what those people could reasonably expect.",
+    "The company has stated that its processing is for behavioural advertising; the processing is large-scale; it processes browsing or behavioural data; the people affected are its customers; its interest is commercial or revenue-related; it markets by online advertising. In DPC, LinkedIn, DPC found that where large-scale cross-border processing of members' first party and third party behavioural data for behavioural and targeted advertising, relying on consent and on a commercial legitimate interest, processing personal data without an appropriate legal basis is a clear and serious violation of the data subject's fundamental right to data protection — in its own words, \"processing personal data without an appropriate legal basis is a clear and serious violation of the data subject's fundamental right to data protection\". That finding cuts against the company's position on the balance. But the outcome depends on this company's own facts: its purposes, the data involved, its safeguards, the effects on people, and what those people could reasonably expect. Whether that holds on this record is addressed in Section IV. (DPC, LinkedIn, decision of 22 October 2024 § 7; supervisory-authority decision — persuasive, non-binding outside its jurisdiction.)",
   );
 });
 

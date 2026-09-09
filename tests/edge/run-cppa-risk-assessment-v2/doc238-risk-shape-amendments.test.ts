@@ -251,11 +251,11 @@ Deno.test("doc238 Risk — Candidate 5 (FSOR, NOT approved): MECHANISM check onl
   assert(!rendered!.includes("not a fixed rule"), `generic constant leaked: ${rendered}`);
 });
 
-Deno.test("doc238 Risk — Candidate 1 (APPROVED, enforcement): S2 ends with the approved citation parenthetical + doc 234's own two-sentence hedge for this hook, verbatim; the governing-provision sentence is the approved one", () => {
+Deno.test("doc238 Risk — Candidate 1 (APPROVED, enforcement): S2 carries doc 234's own two-sentence hedge for this hook, verbatim, positioned before the section pointer and citation; the governing-provision sentence is the approved one", () => {
   const hook = candidate1();
   const rendered = renderSentence(hook, "S2", hook.fact_atoms, undefined);
   assert(rendered, "expected S2 to render");
-  assert(rendered!.endsWith(`${ICS_CITATION_234} ${ICS_HEDGE_234}`), `approved citation + hedge missing: ${rendered}`);
+  assert(rendered!.endsWith(ICS_CITATION_234), `sentence must end at the approved citation, not the hedge: ${rendered}`);
   assert(!rendered!.includes("cited only by analogy; whether it applies here depends on this company's own facts, not on the decision's"), `generic constant leaked: ${rendered}`);
   assert(rendered!.includes(`"${hook.finding_span}"`));
   assert(rendered!.includes(" California's rule requires a risk assessment to be completed before any § 7150(b)-triggering processing begins, and § 7155 sets the timing for that assessment. In Autoriteit Persoonsgegevens"));
@@ -265,8 +265,11 @@ Deno.test("doc238 Risk — Candidate 1 (APPROVED, enforcement): S2 ends with the
   // extra sentence the approved paragraph does not carry. Recorded, not
   // asserted away.
   assert(rendered!.includes("Whether that holds on this record is addressed at § 7155(a)."));
-  // POSITION: doc 234 places the hedge BEFORE the citation; hedgeSuffix
-  // appends it after — open item (see LIA's test for the full note).
+  // POSITION — FIXED (2026-09-09 follow-up): doc 234 places the hedge
+  // BEFORE the citation; `{hedge}` now sits directly before the (amended
+  // shape's own) section-pointer sentence, which itself precedes the
+  // citation — the hedge no longer trails after it.
+  assert(rendered!.includes(`${ICS_HEDGE_234} Whether that holds`), `hedge must precede the section pointer, not follow the citation: ${rendered}`);
 });
 
 Deno.test("doc238 Risk — {quote} is the one MANDATORY new slot: finding_span is required on every AuthorityHook already, so {quote} can never be the reason a shape fails to resolve", () => {

@@ -108,10 +108,41 @@ export interface HookSourceRow {
   // DB column carries this today — confirmed read-only this session:
   // `enforcement_actions.regulator_canonical` holds the regulator's own
   // NATIVE full name (e.g. "Garante per la protezione dei dati personali"),
-  // not an English gloss. This field is a proposed addition, exercised only
-  // with placeholder test data (doc 238) until a curated source exists.
+  // not an English gloss. Still no per-row source for most regulators; where
+  // one is absent, `citationFor` falls back to `KNOWN_REGULATOR_ENGLISH_GLOSS`
+  // (below) keyed off `regulator_canonical`, which today covers only the one
+  // regulator doc 236 actually needed it for.
   readonly regulator_english_name?: string | null; // enforcement_actions
+  // DOC 238 FOLLOW-UP (2026-09-09) — `enforcement_actions.regulator_canonical`
+  // (real column, holds the regulator's own native full name). Read but
+  // never used in a citation unless `regulator_canonical_in_citation` (next
+  // field) is explicitly true for that row: the SAME regulator appears in
+  // two already-CEO-approved citations with two different forms — doc 233's
+  // Comune di Bolzano prints the short "Garante", while doc 236's E1 prints
+  // the full "Garante per la protezione dei dati personali (Italian Data
+  // Protection Authority)". Which form a citation uses is the curator's
+  // documented choice for that specific hook, not a fact `citationFor` can
+  // derive from `regulator_canonical` alone — hence the opt-in flag, set
+  // per row, rather than "use canonical whenever present."
+  readonly regulator_canonical?: string | null; // enforcement_actions
+  // DOC 238 FOLLOW-UP — per-row opt-in: true only for a row whose approved
+  // citation has been confirmed (against its curation document) to use the
+  // full native name. Backed by a real, additive `enforcement_actions`
+  // column, default null/false everywhere — every row's citation is
+  // byte-identical to before this field existed unless a curator flips it.
+  readonly regulator_canonical_in_citation?: boolean | null; // enforcement_actions
 }
+
+// DOC 238 FOLLOW-UP — a small, curated translation table for a
+// `regulator_canonical` name into its English gloss, used ONLY in the
+// citation's trailing parenthetical when `regulator_canonical_in_citation`
+// is true for that row and no per-row `regulator_english_name` is set. Not a
+// general-purpose translator: each entry is added only once a specific
+// approved citation has actually needed it (doc 236 E1, this entry), never
+// invented ahead of one.
+const KNOWN_REGULATOR_ENGLISH_GLOSS: Readonly<Record<string, string>> = {
+  "Garante per la protezione dei dati personali": "Italian Data Protection Authority",
+};
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -295,17 +326,31 @@ export function citationFor(
     if (!regulator || !subject || !date) return null;
     // DOC 238 §7 — two ADDITIVE facts the approved Risk/ADMT prose carries
     // that the label omitted before: the regulator's English name as a
-    // trailing parenthetical (`regulator_english_name` — proposed field, no
-    // DB source yet, see `HookSourceRow`'s own doc comment), and the appeal
-    // outcome for a FINAL/AFFIRMED decision (real `appeal_status` column;
-    // `appeal_pending`/`vacated`/`remanded` are handled elsewhere —
-    // `deriveSourceStatus` excludes vacated/remanded outright and prints
-    // `sa_decision_appeal_pending`'s own status label + LIA_APPEAL_SENTENCE
-    // for a pending one, so this trailing note is only for an appeal that
-    // has already resolved). Both are no-ops (identical output to before)
-    // when the new fields are absent, which is every hook shipped today.
-    const english = (source.regulator_english_name ?? "").trim();
-    const regulatorPart = english ? `${regulator} (${english})` : regulator;
+    // trailing parenthetical, and the appeal outcome for a FINAL/AFFIRMED
+    // decision (real `appeal_status` column; `appeal_pending`/`vacated`/
+    // `remanded` are handled elsewhere — `deriveSourceStatus` excludes
+    // vacated/remanded outright and prints `sa_decision_appeal_pending`'s
+    // own status label + LIA_APPEAL_SENTENCE for a pending one, so this
+    // trailing note is only for an appeal that has already resolved). Both
+    // are no-ops (identical output to before) when their inputs are absent,
+    // which is every hook shipped today.
+    //
+    // DOC 238 FOLLOW-UP — the PRIMARY regulator name for the citation is the
+    // native full name (`regulator_canonical`) only when that row's curator
+    // has explicitly opted in (`regulator_canonical_in_citation`); the short
+    // `regulator` otherwise. This is a per-row editorial choice, not a rule
+    // derivable from the data alone: the SAME `regulator_canonical` value
+    // ("Garante per la protezione dei dati personali") sits under two
+    // already-CEO-approved citations that made opposite choices — doc 233's
+    // Comune di Bolzano prints the short "Garante" and does NOT opt in; doc
+    // 236's E1 prints the full name and does. `regulator` (the short form)
+    // is untouched either way — it is what the mid-sentence `{regulator}`
+    // shape slot uses, never the citation label built here.
+    const canonical = (source.regulator_canonical ?? "").trim();
+    const regulatorLabel = source.regulator_canonical_in_citation === true && canonical ? canonical : regulator;
+    const english = (source.regulator_english_name ?? "").trim() ||
+      (regulatorLabel === canonical ? KNOWN_REGULATOR_ENGLISH_GLOSS[canonical] ?? "" : "");
+    const regulatorPart = english ? `${regulatorLabel} (${english})` : regulatorLabel;
     const appealNote = source.appeal_status === "final"
       ? ", final on appeal"
       : source.appeal_status === "affirmed"

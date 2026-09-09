@@ -469,13 +469,19 @@ async function actionGenerate(product: string) {
     const enfIds = profileRows.filter((p) => p.source_table === "enforcement_actions").map((p) => p.source_row_id);
     const enf = new Map<string, HookSourceRow>();
     if (enfIds.length > 0) {
+      // DOC 238 FOLLOW-UP — `regulator_canonical`/`regulator_canonical_in_citation`
+      // added to the select so `citationFor`'s native-full-name path
+      // (generate.ts) is actually reachable in production, not just in a
+      // test fixture; both are no-ops for a row that doesn't opt in.
       const { data: actions, error } = await db.from("enforcement_actions")
-        .select("id,regulator,subject,decision_date,appeal_status").in("id", enfIds);
+        .select("id,regulator,subject,decision_date,appeal_status,regulator_canonical,regulator_canonical_in_citation").in("id", enfIds);
       if (error) return json({ error: `enforcement_actions read failed: ${error.message}` }, 500);
       for (const a of actions ?? []) {
         enf.set(String(a.id), {
           source_table: "enforcement_actions", regulator: a.regulator ?? null, subject: a.subject ?? null,
           decision_date: a.decision_date ?? null, appeal_status: a.appeal_status ?? null,
+          regulator_canonical: a.regulator_canonical ?? null,
+          regulator_canonical_in_citation: a.regulator_canonical_in_citation ?? null,
         });
       }
     }

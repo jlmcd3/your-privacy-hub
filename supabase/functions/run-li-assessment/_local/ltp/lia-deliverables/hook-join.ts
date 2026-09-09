@@ -207,23 +207,6 @@ function appealSuffix(hook: AuthorityHook): string {
   return hook.source_status === "sa_decision_appeal_pending" ? ` ${LIA_APPEAL_SENTENCE}` : "";
 }
 
-/** DOC 238 §5 item 4, revised 2026-09-09 — appends the hook's OWN
- *  CEO-approved hedge passage (`hedge_sentence`, hook-types.ts) VERBATIM,
- *  after the appeal suffix. Mirrors `appealSuffix`'s pattern (a suffix the
- *  join appends, never drafted at render time), but the TEXT is per-hook
- *  data, not a constant: doc 223B's approved hedge for `0af0876d` names that
- *  hook's own facts ("…its purposes, the data involved, its safeguards, the
- *  effects on people, and what those people could reasonably expect"), and
- *  no approved LIA paragraph carries a generic hedge. Doc 238's first cut
- *  mapped `hedge_variant` to one generic constant that appeared in no
- *  approved document; that constant is gone and `hedge_variant` is now
- *  classification only. A hook without `hedge_sentence` (every hook shipped
- *  today) gets no suffix at all — byte-identical to pre-doc-238 rendering. */
-function hedgeSuffix(hook: AuthorityHook): string {
-  const hedge = (hook.hedge_sentence ?? "").trim();
-  return hedge ? ` ${hedge}` : "";
-}
-
 function verbFor(hook: AuthorityHook): "found" | "states" | "advised" {
   if (hook.verb) return hook.verb;
   const st = hook.source_status;
@@ -284,6 +267,22 @@ export function renderSentence(
   // kept consistent with Risk/ADMT's own mechanism (risk hook-join.ts's
   // comment has the full rationale).
   slots.governing_provision = hook.governing_provision_sentence ? `${hook.governing_provision_sentence} ` : "";
+  // DOC 238 §5 item 4, revised 2026-09-09 (position fix) — the hook's OWN
+  // CEO-approved hedge passage (`hedge_sentence`, hook-types.ts), VERBATIM,
+  // as an inline slot rather than a trailing suffix. Every approved LIA
+  // paragraph (doc 223B) places its hedge BEFORE the forward-looking
+  // section pointer and BEFORE the citation, e.g. "...That decision weighs
+  // against the company's position here. But the outcome depends on this
+  // company's own facts: ... . Section IV weighs those facts. (citation.)"
+  // — an earlier cut of this mechanism appended the hedge as a pure suffix
+  // AFTER the citation, which no approved paragraph does. `{hedge}` is only
+  // wired into the S1/S2 "matching" shapes below (the shapes every approved
+  // hedge actually sits on) — never into S3/S4/S5x/S6x's "distinguishing"
+  // shapes, whose approved paragraphs (e.g. doc 233's Bolzano-distinguished
+  // scenario) carry no hedge at all. Graceful, not fail-closed: a hook
+  // without `hedge_sentence` (every hook shipped today) resolves `{hedge}`
+  // to "" and the sentence is byte-identical to pre-doc-238 rendering.
+  slots.hedge = hook.hedge_sentence ? `${hook.hedge_sentence.trim()} ` : "";
 
   if (shape === "S1" || shape === "S2" || shape === "S4") {
     const phrase = phrasesFor(factAtomsHolding);
@@ -312,7 +311,7 @@ export function renderSentence(
     sentence = sentence.split(`{${key}}`).join(value);
   }
   if (/\{[a-z_]+\}/.test(sentence)) return undefined; // an unresolved slot remains
-  return sentence + appealSuffix(hook) + hedgeSuffix(hook);
+  return sentence + appealSuffix(hook);
 }
 
 // ── DOC 238 (2026-09-09) — PROPOSED paragraph-form shapes, LIA. NOT
@@ -327,9 +326,9 @@ export function renderSentence(
 // line — this export is the WORKING COPY that document quotes verbatim.
 export const LIA_HOOK_SHAPES_PROPOSED_2026_09: Readonly<Record<"S1" | "S2" | "S3" | "S4" | "S5a" | "S5b" | "S6" | "S6x", string>> = {
   S1:
-    "The company has stated that {customer_fact}. In {authority}, {regulator} {verb} that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding supports the company's position on the {factor}. Section {section} records that determination. ({citation}; {status}.)",
+    "The company has stated that {customer_fact}. In {authority}, {regulator} {verb} that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding supports the company's position on the {factor}. {hedge}Section {section} records that determination. ({citation}; {status}.)",
   S2:
-    "The company has stated that {customer_fact}. In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding cuts against the company's position on the {factor}. Whether that holds on this record is addressed in Section {section}. ({citation}; {status}.)",
+    "The company has stated that {customer_fact}. In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding cuts against the company's position on the {factor}. {hedge}Whether that holds on this record is addressed in Section {section}. ({citation}; {status}.)",
   S3:
     "In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding turned on the fact that {source_fact}; on this record the company has instead stated that {record_fact}. The decision marks a boundary rather than a finding against the company. ({citation}; {status}.)",
   S4:

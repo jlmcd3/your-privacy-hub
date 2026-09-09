@@ -203,25 +203,6 @@ function appealSuffix(hook: AuthorityHook): string {
   return hook.source_status === "sa_decision_appeal_pending" ? ` ${ADMT_APPEAL_SENTENCE}` : "";
 }
 
-/** DOC 238 §5 item 4, revised 2026-09-09 — appends the hook's OWN
- *  CEO-approved hedge passage (`hedge_sentence`, hook-types.ts) VERBATIM,
- *  after the appeal suffix. Same mechanism as LIA's `hedgeSuffix` (see that
- *  file's doc comment): the text is per-hook data, never a constant — doc
- *  236's approved hedges each name that hook's own facts (E1: "…whether it
- *  applies to this company depends on what this company's own system
- *  actually decides, what legal basis supports the profiling, and whether
- *  the required assessments were completed first."; notice-content/01:
- *  "…a judgment about this company's own words, not a fixed word count or
- *  template."). Doc 238's first cut mapped `hedge_variant` to two generic
- *  constants that appeared in no approved document; both are gone and
- *  `hedge_variant` is classification only. A hook without `hedge_sentence`
- *  (every hook shipped today) gets no suffix — byte-identical to
- *  pre-doc-238 rendering. */
-function hedgeSuffix(hook: AuthorityHook): string {
-  const hedge = (hook.hedge_sentence ?? "").trim();
-  return hedge ? ` ${hedge}` : "";
-}
-
 function verbFor(hook: AuthorityHook): "found" | "states" | "advised" {
   if (hook.verb) return hook.verb;
   const st = hook.source_status;
@@ -267,6 +248,14 @@ export function renderSentence(
   // fail-closed) — see risk hook-join.ts's
   // own comment for the full rationale.
   slots.governing_provision = hook.governing_provision_sentence ? `${hook.governing_provision_sentence} ` : "";
+  // DOC 238 §5 item 4, revised 2026-09-09 (position fix) — the hook's OWN
+  // CEO-approved hedge passage (`hedge_sentence`, hook-types.ts), VERBATIM,
+  // as an inline slot. See LIA hook-join.ts's own comment for the full
+  // rationale: doc 236's approved E1/notice-content hedges each sit directly
+  // before the citation, never after; `{hedge}` is wired only into S1/S2,
+  // never the distinguishing shapes. Graceful — resolves to "" for every
+  // hook shipped today.
+  slots.hedge = hook.hedge_sentence ? `${hook.hedge_sentence.trim()} ` : "";
 
   if (shape === "S1" || shape === "S2" || shape === "S4") {
     const phrase = phrasesFor(factAtomsHolding);
@@ -295,7 +284,7 @@ export function renderSentence(
     sentence = sentence.split(`{${key}}`).join(value);
   }
   if (/\{[a-z_]+\}/.test(sentence)) return undefined; // an unresolved slot remains
-  return sentence + appealSuffix(hook) + hedgeSuffix(hook);
+  return sentence + appealSuffix(hook);
 }
 
 interface Candidate {
