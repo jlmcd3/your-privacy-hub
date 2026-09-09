@@ -5,9 +5,7 @@
 // regenerate it. Run: risk-hooks-v2-2026-09-09-0
 //
 // EXCLUDED ROWS (named, not silently dropped):
-//   1e32b616-5a11-401d-afc5-1c418c86bf4b#v1 — pinpoint missing — mandatory before activation (doc 222 §2.5)
 //   1841cfad-990c-41ba-84ed-c239ac1e7925#v1 — pinpoint missing — mandatory before activation (doc 222 §2.5)
-//   df6b980e-65ac-4f74-b142-289e0594c366#v1 — pinpoint missing — mandatory before activation (doc 222 §2.5)
 
 import type { AuthorityHook } from "../../../../_shared/corpus/hook-types.ts";
 
@@ -15,6 +13,64 @@ import type { AuthorityHook } from "../../../../_shared/corpus/hook-types.ts";
 export const RISK_HOOKS_VERSION = "risk-hooks-v2-2026-09-09-0";
 
 export const RISK_HOOKS: readonly AuthorityHook[] = [
+  {
+    "hook_id": "enforcement_actions:a3cf40b0-3625-4e78-bbe9-63624f17ceb0:v1",
+    "profile_id": "1e32b616-5a11-401d-afc5-1c418c86bf4b",
+    "source_row_id": "a3cf40b0-3625-4e78-bbe9-63624f17ceb0",
+    "fact_atoms": [
+      "flag:admt_use"
+    ],
+    "distinguishing_atoms": [],
+    "not_distinguishable": false,
+    "required_atoms": [
+      "flag:admt_use"
+    ],
+    "finding_span": "Poste Italiane processed customer data excessively through a fraud prevention tool without a sufficient legal basis, proper transparency, or adequate data protection measures.",
+    "fact_pattern_paraphrase": "a fraud-prevention tool that processed customer data more broadly than its stated purpose required, without an adequate legal basis, clear notice to customers, or safeguards matched to the risk",
+    "finding_paraphrase": "processing customer data excessively through a fraud-prevention tool without a sufficient legal basis, proper transparency, or adequate data protection measures is unlawful",
+    "settledness": "R3",
+    "posture": "rejected",
+    "factor_id": "Benefits-risks balancing",
+    "bears_on_element": "Benefits-risks balancing",
+    "authority_label": "Garante, Poste Italiane S.p.a., decision of 17 April 2026",
+    "regulator": "Garante",
+    "relevance": {
+      "instrument": "GDPR",
+      "factor_ids": [
+        "Benefits-risks balancing",
+        "Safeguards"
+      ],
+      "use_case_class": null,
+      "relationship": null,
+      "data_categories": [],
+      "flags": [
+        "admt_use"
+      ],
+      "outcome_posture": "rejected"
+    },
+    "authority_label_short": "Garante, Poste Italiane S.p.a.",
+    "hook_version": 1,
+    "source_status": "sa_decision_appeal_pending",
+    "status_label": "under appeal",
+    "verb": "found",
+    "appeal_note": "Provision no. 237 of 17/04/2026 temporarily removed from the Garante's website under art. 5, Legislative Decree 150/2011, following a precautionary order of the Tribunale di Roma dated 17/07/2026 suspending the decision's executive effectiveness; appeal pending (confirmed live on gpdp.it, 2026-09-09).",
+    "verified_as_of": "2026-09-09",
+    "pinpoint": {
+      "kind": "field",
+      "ref": "source_document_text",
+      "anchor_span": "ai sensi degli artt. 57, par. 1, lett. f) e 83, del Regolamento, rileva l’illiceità del trattamento effettuato da Poste Italiane S.p.a., , con sede legale in Roma, Viale Europa 190, C.F. n. 01114601006 e da Postepay S.p.a., con sede legale in Roma, Viale Europa 190, C.F. n. 06874351007, in qualità di contitolari del trattamento, nei termini di cui in motivazione, per la violazione degli artt. 5, 6, 13, 25, 28, 32, 35 del Regolamento, nonché dell’art. 122 del Codice in materia di protezione dei dati personali"
+    },
+    "recognised_proposition": null,
+    "condition_text": null,
+    "condition_atoms": null,
+    "material_facts": [],
+    "distinguishing_pairs": [],
+    "governing_provision_sentence": null,
+    "hedge_variant": null,
+    "hedge_sentence": null,
+    "literal_sentence_override": "The company has said it uses an automated tool to screen for fraud. California's rule requires the assessment to weigh that processing's benefits against its risks (§ 7154) and to identify the safeguards that address those risks (§ 7152(a)(6)) — a generic description of the tool's purpose satisfies neither requirement. In Italy, the data protection authority (Garante) fined Poste Italiane €6,624,000 over a fraud-prevention tool that processed customer data more broadly than its stated purpose required, without an adequate legal basis, clear notice to customers, or safeguards matched to the risk. The assessment has to say what the tool actually does, what data it uses, and what limits and safeguards apply — not just that it exists for fraud prevention. This is a foreign decision under a different law, cited only by analogy; whether it says anything about this company turns on this company's own description of its tool, its data, and its safeguards. (Garante per la protezione dei dati personali (Italian Data Protection Authority), Poste Italiane S.p.a., decision of 17 April 2026; foreign supervisory-authority decision, cited by analogy.)",
+    "status_in_citation": true
+  },
   {
     "hook_id": "enforcement_actions:dc095815-d03d-4bb2-b3be-2711e7f7d459:v1",
     "profile_id": "ba6c1a25-bd79-49b4-b4e4-1217a08e5ed4",
@@ -72,6 +128,64 @@ export const RISK_HOOKS: readonly AuthorityHook[] = [
     "hedge_variant": null,
     "hedge_sentence": null,
     "literal_sentence_override": "The company has said this processing is planned but has not started, or that it started before a risk assessment was finished. California's rule requires a risk assessment to be completed before any § 7150(b)-triggering processing begins, and § 7155 sets the timing for that assessment. The Dutch data protection authority applied that same basic principle when it fined International Card Services B.V. for exactly this sequence. In its own words: \"ICS heeft nagelaten om een DPIA uit te voeren voordat het bedrijf in 2019 begon met het digitaal identificeren van klanten in Nederland\" — \"ICS failed to carry out a DPIA before the company began digitally identifying customers in the Netherlands in 2019.\" The company had rolled out a new identity-verification process — collecting a photo from about 1.5 million customers and comparing it against their ID documents — without assessing the risk first, and was fined €150,000. This decision is only persuasive here: the Dutch authority applied Dutch and EU law, not California's. Whether it says anything about this company depends on this company's own facts — whether its processing has actually started, and whether an assessment was completed first. (Autoriteit Persoonsgegevens (Dutch Data Protection Authority), International Card Services B.V., decision of 15 January 2024, final on appeal; foreign supervisory-authority decision, cited by analogy — not binding on California regulators.)",
+    "status_in_citation": true
+  },
+  {
+    "hook_id": "enforcement_actions:dbfca969-3139-43d1-8a5b-7fff179f8db6:v1",
+    "profile_id": "df6b980e-65ac-4f74-b142-289e0594c366",
+    "source_row_id": "dbfca969-3139-43d1-8a5b-7fff179f8db6",
+    "fact_atoms": [
+      "flag:profiling_or_systematic_observation"
+    ],
+    "distinguishing_atoms": [],
+    "not_distinguishable": false,
+    "required_atoms": [
+      "flag:profiling_or_systematic_observation"
+    ],
+    "finding_span": "The municipality unlawfully monitored employee internet usage and processed sensitive health data without a valid legal basis or proper transparency",
+    "fact_pattern_paraphrase": "a municipal employer monitoring employees' internet usage and processing sensitive health data without a valid legal basis or adequate notice, where the stated purpose was ordinary operational efficiency",
+    "finding_paraphrase": "monitoring employee internet usage and processing sensitive health data without a valid legal basis or proper transparency is unlawful even where the stated purpose is operational efficiency rather than surveillance",
+    "settledness": "R3",
+    "posture": "rejected",
+    "factor_id": "Material privacy risks",
+    "bears_on_element": "Material privacy risks",
+    "authority_label": "Garante, Comune di Bolzano, decision of 13 May 2021",
+    "regulator": "Garante",
+    "relevance": {
+      "instrument": "GDPR",
+      "factor_ids": [
+        "Material privacy risks",
+        "Regulatory trigger and applicability"
+      ],
+      "use_case_class": null,
+      "relationship": null,
+      "data_categories": [],
+      "flags": [
+        "profiling_or_systematic_observation"
+      ],
+      "outcome_posture": "rejected"
+    },
+    "authority_label_short": "Garante, Comune di Bolzano",
+    "hook_version": 1,
+    "source_status": "sa_decision",
+    "status_label": "foreign supervisory-authority decision, cited by analogy — not binding on California regulators",
+    "verb": "found",
+    "appeal_note": null,
+    "verified_as_of": "2026-09-09",
+    "pinpoint": {
+      "kind": "field",
+      "ref": "source_document_text",
+      "anchor_span": "rileva l’illiceità del trattamento effettuato dal Comune di Bolzano per violazione degli artt. 5, 6, 9, 88 e 35 del Regolamento, nonché 113 e 114 del Codice"
+    },
+    "recognised_proposition": null,
+    "condition_text": null,
+    "condition_atoms": null,
+    "material_facts": [],
+    "distinguishing_pairs": [],
+    "governing_provision_sentence": null,
+    "hedge_variant": null,
+    "hedge_sentence": null,
+    "literal_sentence_override": "The company has said it monitors employees' internet or device usage, or that it processes health information about its own staff. Under California's rule, that kind of processing triggers the risk-assessment requirement in § 7150, and § 7152(a)(5) requires the assessment to identify the material privacy risks the processing creates — a stated business-efficiency purpose satisfies neither requirement on its own. In Italy, the data protection authority fined the Comune di Bolzano (a municipal employer) €84,000 for monitoring employees' internet usage and processing sensitive health data without a valid legal basis or adequate notice — even though the municipality said the monitoring served network security. The assessment has to address the monitoring purpose directly and account for any sensitive data involved, not rest on the stated purpose alone. This is a foreign decision under different law, cited only by analogy; whether it applies here depends on what this company's own record says about its monitoring and the data involved. (Garante per la protezione dei dati personali, Comune di Bolzano, decision of 13 May 2021; foreign supervisory-authority decision, cited by analogy.)",
     "status_in_citation": true
   }
 ];
