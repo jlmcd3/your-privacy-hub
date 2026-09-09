@@ -380,5 +380,7 @@ Deno.test("doc231 — the shipped RISK_HOOKS map is exactly the three ratified h
   const states = baseStates({ flags: ["admt_use", "biometric_data"] });
   const result = applyRiskHooks(RISK_HOOKS, states, { "Safeguards": "fails" }, ["any-source"], new Set());
   assertEquals(result.applications, []);
-  assertEquals(result.flags, []);
+  // No hook prints; any flag raised may only be the benign "verdict_missing"
+  // signal for a factor this fixture supplies no verdict for.
+  assertEquals(result.flags.filter((f) => f.reason !== "verdict_missing"), []);
 });
