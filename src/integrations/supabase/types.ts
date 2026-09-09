@@ -394,6 +394,7 @@ export type Database = {
           id: string
           lawyer_edits: Json | null
           ledger_ref: string | null
+          literal_sentence_override: string | null
           material_facts: Json | null
           not_distinguishable: boolean
           pinpoint: Json | null
@@ -432,6 +433,7 @@ export type Database = {
           id?: string
           lawyer_edits?: Json | null
           ledger_ref?: string | null
+          literal_sentence_override?: string | null
           material_facts?: Json | null
           not_distinguishable?: boolean
           pinpoint?: Json | null
@@ -470,6 +472,7 @@ export type Database = {
           id?: string
           lawyer_edits?: Json | null
           ledger_ref?: string | null
+          literal_sentence_override?: string | null
           material_facts?: Json | null
           not_distinguishable?: boolean
           pinpoint?: Json | null
