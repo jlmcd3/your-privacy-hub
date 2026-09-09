@@ -69,7 +69,6 @@ const ENTITY_TYPES = [
 const PRIMARY_REGIONS = [
   { code: "EU_EEA", label: "EU / EEA" },
   { code: "UK", label: "United Kingdom" },
-  { code: "US", label: "United States" },
   { code: "BR", label: "Brazil" },
   { code: "APAC", label: "Asia-Pacific" },
   { code: "OTHER", label: "Other" },
@@ -86,13 +85,6 @@ const JURISDICTIONS: Jurisdiction[] = [
   { code: "EU_GDPR", name: "EU GDPR", region: "EU & UK" },
   { code: "UK_GDPR", name: "UK GDPR / Data Protection Act 2018", region: "EU & UK" },
   { code: "CH_FADP", name: "Switzerland (revFADP)", region: "EU & UK" },
-  // US
-  { code: "US_CCPA", name: "California (CCPA/CPRA)", region: "United States" },
-  { code: "US_VA", name: "Virginia (VCDPA)", region: "United States" },
-  { code: "US_CO", name: "Colorado (CPA)", region: "United States" },
-  { code: "US_CT", name: "Connecticut (CTDPA)", region: "United States" },
-  { code: "US_TX", name: "Texas (TDPSA)", region: "United States" },
-  { code: "US_FL", name: "Florida (FDBR)", region: "United States" },
   // Americas
   { code: "BR_LGPD", name: "Brazil (LGPD)", region: "Americas" },
   { code: "CA_PIPEDA", name: "Canada (PIPEDA)", region: "Americas" },
@@ -109,7 +101,7 @@ const JURISDICTIONS: Jurisdiction[] = [
 const SUGGESTED_BY_REGION: Record<string, string[]> = {
   EU_EEA: ["EU_GDPR", "UK_GDPR", "CH_FADP"],
   UK: ["UK_GDPR", "EU_GDPR"],
-  US: ["US_CCPA", "US_VA", "US_CO", "US_CT", "US_TX"],
+  
   BR: ["BR_LGPD"],
   APAC: ["JP_APPI", "AU_PRIVACY", "KR_PIPA", "IN_DPDPA"],
   OTHER: ["EU_GDPR"],

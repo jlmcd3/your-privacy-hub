@@ -28,7 +28,7 @@ import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 const TITLE =
   "Record of Processing Activities (RoPA) · Records of Processing | End User Privacy";
 const META_DESCRIPTION =
-  "Build a GDPR-compliant Records of Processing Activities in under an hour. Covers 25+ jurisdictions including EU GDPR, UK GDPR, LGPD, and CCPA.";
+  "Build a GDPR-compliant Records of Processing Activities in under an hour. Covers EU GDPR, UK GDPR, LGPD, and other laws with recordkeeping duties.";
 
 const STEPS = [
   {
@@ -52,7 +52,7 @@ const STEPS = [
 const JURISDICTIONS: { region: string; items: string[] }[] = [
   { region: "EU & EEA", items: ["GDPR", "France", "Germany", "Italy", "Spain", "Netherlands", "Ireland"] },
   { region: "United Kingdom", items: ["UK GDPR", "DPA 2018"] },
-  { region: "United States", items: ["CCPA / CPRA", "VCDPA", "CPA", "CTDPA", "UCPA"] },
+  
   { region: "Brazil", items: ["LGPD"] },
   { region: "Asia-Pacific", items: ["Singapore PDPA", "Australia Privacy Act", "Japan APPI", "South Korea PIPA"] },
   { region: "Others", items: ["Switzerland nFADP", "Canada PIPEDA", "South Africa POPIA"] },
@@ -61,7 +61,7 @@ const JURISDICTIONS: { region: string; items: string[] }[] = [
 const PRICING_ROWS: { feature: string; free: string; intel: string }[] = [
   { feature: "Complete Q&A tool", free: "Subscribers only", intel: "Included" },
   { feature: "Save & resume", free: "Subscribers only", intel: "Included" },
-  { feature: "25+ jurisdictions", free: "Subscribers only", intel: "Included" },
+  { feature: "All covered jurisdictions", free: "Subscribers only", intel: "Included" },
   { feature: "Generate PDF / Word / Excel", free: "Subscribers only", intel: "Included" },
   { feature: "Annual refresh", free: "Subscribers only", intel: "Included" },
   { feature: "Multi-client management", free: "Subscribers only", intel: "Included" },
@@ -78,7 +78,7 @@ const FAQ = [
   },
   {
     q: "What jurisdictions are covered?",
-    a: "25+ frameworks including EU GDPR, UK GDPR, CCPA/CPRA, LGPD, Swiss nFADP, Singapore PDPA, and more.",
+    a: "EU GDPR, UK GDPR, Swiss nFADP, Brazil LGPD, Canada PIPEDA, Singapore PDPA, Australia Privacy Act, Japan APPI, South Korea PIPA, India DPDPA, South Africa POPIA, and more. US federal and state privacy laws do not require a Record of Processing Activities, so US jurisdictions are not offered.",
   },
   {
     q: "Is my data secure?",
@@ -133,7 +133,7 @@ export default function RopaLanding() {
         geography="gdpr"
         eyebrowLabel={<><BookOpen aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("ropa")}</>}
         title="Record of Processing Activities (RoPA)"
-        valueProposition="Build and maintain an Article 30 RoPA across 25+ privacy frameworks with guided questions, reusable records, and an annual refresh."
+        valueProposition="Build and maintain an Article 30 RoPA across the laws that require one, with guided questions, reusable records, and an annual refresh."
         showIntakeCta={false}
       >
         <Button asChild size="lg" className="bg-white text-slate-900 hover:bg-slate-100">
@@ -164,7 +164,7 @@ export default function RopaLanding() {
           },
           {
             title: "What you receive",
-            body: "A regulator-ready processing record covering the required Article 30 fields across 25+ frameworks, with reusable activities and an annual refresh.",
+            body: "A regulator-ready processing record covering the required Article 30 fields across every covered framework, with reusable activities and an annual refresh.",
           },
           {
             title: "Why trust it",
@@ -178,7 +178,7 @@ export default function RopaLanding() {
         {/* TRUST BAR */}
         <section className="border-y border-border bg-muted/30 py-6 px-4">
           <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm text-muted-foreground">
-            <span>25+ frameworks</span>
+            <span>11 jurisdictions</span>
             <span aria-hidden>·</span>
             <span>PDF / Word / Excel</span>
             <span aria-hidden>·</span>
@@ -222,7 +222,7 @@ export default function RopaLanding() {
         <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20 bg-muted/20 border-y border-border">
           <div className="max-w-5xl mx-auto">
             <h2 className="font-serif text-center mb-3">
-              25+ frameworks across six regions
+              11 jurisdictions across five regions
             </h2>
             <p className="text-center text-muted-foreground mb-10 text-sm">
               Coverage by region.

@@ -1624,7 +1624,7 @@ const F_CPPA_RISK_US_V3_HOOK_AGREED: SampleFixture = {
       module: "risk_assessment",
       status: "pending",
       intake_data: {
-        ...F_CPPA_RISK_US.fixture.insert.intake_data as Record<string, unknown>,
+        ...((F_CPPA_RISK_US.fixture.insert as { intake_data: Record<string, unknown> }).intake_data),
         entity_name: "Northbridge Identity Services LLC",
         subject_anchor: "California consumers completing a new digital identity-verification flow",
         primary_activity_name: "New digital identity verification for account opening",
@@ -1663,7 +1663,7 @@ const F_CPPA_RISK_US_V3_HOOK_DISAGREED: SampleFixture = {
       module: "risk_assessment",
       status: "pending",
       intake_data: {
-        ...F_CPPA_RISK_US.fixture.insert.intake_data as Record<string, unknown>,
+        ...((F_CPPA_RISK_US.fixture.insert as { intake_data: Record<string, unknown> }).intake_data),
         entity_name: "Ferrous Point Commerce Inc.",
         q3_sector: "Retail/ecommerce",
         q18_admt_use: "Yes",
