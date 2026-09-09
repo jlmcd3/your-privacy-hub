@@ -9,11 +9,12 @@
 //
 //  1. FLAG DEFAULTS — DPIA_V3_ENABLED / DPIA_HOOKS_ENABLED are false with no
 //     env var set (the shipped state).
-//  2. PURITY + EMPTY CORPUS — `applyDpiaHooks`/`planDpiaHookSelection`/
-//     `buildDpiaRuleStates` are pure (no fetch/invokeGated import anywhere
-//     in their module graph — asserted by source scan) AND `DPIA_HOOKS`
-//     (the corpus map) is `[]` today, so even a caller who ignored the flag
-//     would plan zero items.
+//  2. PURITY — `applyDpiaHooks`/`planDpiaHookSelection`/`buildDpiaRuleStates`
+//     are pure (no fetch/invokeGated import anywhere in their module graph
+//     — asserted by source scan). `DPIA_HOOKS` (the corpus map) shipped
+//     `[]` until 2026-09-09; it now carries real ratified hooks, so the
+//     zero-SELECTED-items guarantee below is proven against a record that
+//     legitimately matches none of them, not against an empty corpus.
 //  3. STATIC CALL-SITE CONTAINMENT — the one `invokeGated("classify-
 //     propositions", …)` call this build added to
 //     run-dpia-framework/index.ts is texually NESTED inside the
@@ -44,15 +45,21 @@ Deno.test("doc232 — DPIA_V3_ENABLED and DPIA_HOOKS_ENABLED default to false (n
 
 // ── 2. Purity + empty corpus ─────────────────────────────────────────────
 
-Deno.test("doc232 — DPIA_HOOKS ships empty (an unstamped/undrafted hook corpus is inert, doc 213's own law)", () => {
-  assertEquals(DPIA_HOOKS.length, 0);
+Deno.test("doc232 — DPIA_HOOKS now carries its live ratified count (was [] pre-launch; update this pin deliberately whenever a hook is ratified/regenerated)", () => {
+  // 2026-09-09: doc 233's sixth candidate (118b22d4, WP248 criterion 4)
+  // landed via `generate`, joining b69541a3 (MediaLab/ICO) — DPIA's first
+  // two real hooks. Pin the count, not the exact array: `considered`
+  // below already changes shape on every regeneration, and a literal
+  // array-of-objects pin here would just be duplicate, higher-maintenance
+  // coverage of the same fact.
+  assertEquals(DPIA_HOOKS.length, 2);
 });
 
-Deno.test("doc232 — planDpiaHookSelection plans zero items over the shipped (empty) DPIA_HOOKS", () => {
+Deno.test("doc232 — planDpiaHookSelection still plans zero SELECTED items on an intake that matches no live hook's gate (the corpus is no longer empty, but this record legitimately nominates nothing)", () => {
   const states = buildDpiaRuleStates({}, { description: "x".repeat(50), reasons_to_conduct: ["Data processed on a large scale"] }, undefined);
   const plan = planDpiaHookSelection(DPIA_HOOKS, states, states.verdicts, [], new Set(), { description: "x".repeat(50) });
-  assertEquals(plan.items, []);
-  assertEquals(plan.considered, []);
+  assertEquals(plan.items, [], "no hook should ever be SELECTED for a record that satisfies none of the live hooks' required_atoms");
+  assertEquals(plan.considered.length, DPIA_HOOKS.length, "every live hook should be considered (and correctly skipped), none silently dropped");
 });
 
 async function collectModuleGraph(entry: URL, seen = new Map<string, URL>()): Promise<Map<string, URL>> {
