@@ -203,7 +203,9 @@ export async function requireEntitlement(
       ok: false,
       status: 403,
       error: "forbidden",
-      reason: (profile as any)?.is_premium ? "professional_required" : "subscriber_required",
+      reason: trialing
+        ? "trial_not_entitled"
+        : ((profile as any)?.is_premium ? "professional_required" : "subscriber_required"),
     };
   }
 

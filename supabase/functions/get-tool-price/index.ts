@@ -66,13 +66,17 @@ serve(async (req) => {
           );
           const { data: profile } = await admin
             .from("profiles")
-            .select("subscription_type, is_pro, is_premium, professional_annual")
+            .select("subscription_type, is_pro, is_premium, professional_annual, stripe_trial_end")
             .eq("id", user.id)
             .single();
+          // 2026-09-09: trial users quote at the STANDALONE price — a trial
+          // carries no subscriber discount and no included product.
+          const trialing = isTrialing(profile as any);
           subscriptionType = (profile as any)?.subscription_type ?? null;
-          isPro = (profile as any)?.is_pro === true;
-          isPremium = (profile as any)?.is_premium === true || isPro;
-          professionalAnnual = (profile as any)?.professional_annual === true;
+          isPro = !trialing && (profile as any)?.is_pro === true;
+          isPremium = !trialing && ((profile as any)?.is_premium === true || isPro);
+          professionalAnnual = !trialing && (profile as any)?.professional_annual === true;
+          if (trialing) subscriptionType = null;
         }
       } catch (_) {
         // ignore
