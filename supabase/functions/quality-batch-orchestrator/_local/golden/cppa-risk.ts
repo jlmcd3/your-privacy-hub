@@ -232,6 +232,102 @@ export const CPPA_RISK_GOLDEN: GoldenCase[] = [
       { kind: "must_include", pattern: "\\u00A7 7152", flags: "", label: "S5 § 7152 content frame present" },
     ],
   },
+  // DOC 229 §8 default #4 / DOC 231 — two V3 hook-trigger fixtures, mirroring
+  // doc 229A's LIA pair (lia-v3-direct-marketing-hook-agreed /
+  // lia-v3-fraud-detection-hook-disagreed in
+  // quality-batch-orchestrator/_local/golden/lia.ts). RISK_HOOKS ships empty
+  // and RISK_V3_ENABLED/RISK_HOOKS_ENABLED both default false (doc 229 §5.3),
+  // so no hook can render or be selected against TODAY — the assertions
+  // below check only deterministic V2 content that is already true on this
+  // intake, and pass with both flags off. The comments record what a FUTURE
+  // flag-ON run is expected to additionally assert once Candidate 1 (doc
+  // 229 §6, ICS/AP Netherlands timing-failure pattern) is drafted, critiqued,
+  // settled and ratified — those assertions are NOT added here because they
+  // would fail today (the hook does not exist), which is exactly the doc
+  // 231 build-brief instruction ("expected to pass with the flag OFF today
+  // and are marked for the flag-ON run").
+  {
+    id: "risk-v3-ics-timing-hook-agreed",
+    tool: "cppa-risk",
+    set: "tuning",
+    // Candidate 1's fact pattern (doc 229 §6): a § 7150(b) trigger engaged
+    // AND processing_status === "Planned" (the assessment happens BEFORE
+    // the processing begins) — the ICS/AP-Netherlands timing-failure
+    // analogy's "same facts" case. Both legs are expected to read "same"
+    // once the hook exists (clean single-fact match, no ambiguity in the
+    // processing_status enum answer).
+    intake: {
+      ...base,
+      entity_name: "Northbridge Identity Services LLC",
+      subject_anchor: "California consumers completing a new digital identity-verification flow",
+      primary_activity_name: "New digital identity verification for account opening",
+      primary_activity_purpose:
+        "We are building a new digital identity-verification flow using government ID images and a selfie match before this processing begins.",
+      q15_sensitive_pi: "Yes",
+      q15c_spi_volume: "50,000 or more",
+      q16_sensitive_limit: "Yes, with a separate \"Limit the Use of My Sensitive PI\" link",
+      q17_sensitive_basis: "Necessary for the service",
+      q4_pi_categories: [
+        "Contact identifiers (name, email, phone)",
+        "Government identifiers (SSN, driver's license, state ID, passport number)",
+      ],
+      // The timing fact the candidate hook keys on: the assessment is
+      // being completed BEFORE the new processing begins.
+      processing_status: "Planned",
+      i1_processing_purpose:
+        "We are designing a new digital identity-verification flow that will match a government ID image against a live selfie before any account can be opened; this processing has not yet begun and this assessment is being completed before it starts.",
+      i1b_min_pi:
+        "Only the ID image, the selfie, and the match result are retained; no other document fields are captured.",
+    },
+    assertions: [
+      { kind: "must_include", pattern: "\\u00A7 7152", flags: "i", label: "S5 § 7152 content frame present" },
+      { kind: "must_include", pattern: "identity", flags: "i", label: "identity-verification activity addressed" },
+    ],
+    // [FLAG-ON, NOT YET ASSERTED] once Candidate 1 is ratified and
+    // RISK_HOOKS_ENABLED=1: must_include an S1/S2 sentence citing the AP
+    // (Netherlands) ICS decision, and information_needed must NOT carry a
+    // hook_selection entry for this fixture (both legs agree "same").
+  },
+  {
+    id: "risk-v3-admt-fraud-scoring-hook-disagreed",
+    tool: "cppa-risk",
+    set: "adversarial",
+    // Candidate 2's fact pattern (doc 229 §6): ADMT trigger engaged
+    // (q18_admt_use === "Yes") AND the ADMT is described as a scoring or
+    // fraud-detection system — but this fixture DELIBERATELY leaves the
+    // fraud-vs-general-risk-scoring distinction ambiguous in the free-text
+    // description (a "risk score" that blends fraud signals with product
+    // recommendations), so once a candidate-2 hook exists, one leg may read
+    // "same" (fraud-prevention scoring) and the other "different" (a mixed-
+    // purpose score is not the pure fraud-prevention fact pattern the
+    // source addressed) → legs_disagreed.
+    intake: {
+      ...base,
+      entity_name: "Ferrous Point Commerce Inc.",
+      q3_sector: "Retail/ecommerce",
+      q18_admt_use: "Yes",
+      q19_admt_description:
+        "A single risk score blends checkout-fraud signals (velocity, device mismatch, address inconsistency) with a product-recommendation weighting, and is used both to hold suspicious orders for manual review and to rank which products are shown at checkout.",
+      q19a_decision_categories: ["None of these categories"],
+      q20_admt_opt_out: "Yes, with documented opt-out",
+      i5_admt_logic:
+        "The model outputs one 0–100 score. Scores above 85 hold the order for manual fraud review; the same score also feeds the checkout product-ranking module, so the score is not a fraud-only signal end to end.",
+      i5_admt_human_review:
+        "A fraud analyst reviews every held order before it ships; the analyst can release or cancel the order and records the reason.",
+      i1_processing_purpose:
+        "We use a single blended score at checkout to hold likely-fraudulent orders for manual review and to rank product recommendations for the same session.",
+    },
+    assertions: [
+      { kind: "must_include", pattern: "\\u00A7 7152", flags: "i", label: "S5 § 7152 content frame present" },
+      { kind: "must_include", pattern: "ADMT|automated", flags: "i", label: "ADMT addressed" },
+    ],
+    // [FLAG-ON, NOT YET ASSERTED] once Candidate 2 is ratified and
+    // RISK_HOOKS_ENABLED=1 / RISK_V3_ENABLED=1: information_needed SHOULD
+    // carry a hook_selection entry naming q19_admt_description's field
+    // (RISK_ROO_UNSETTLED_TEMPLATE, byte-identical to LIA's), and the
+    // grader must NOT deduct for it (covered by the DOC 231 grader-context
+    // block, doc 231 build log §"grader-context paragraph verbatim").
+  },
 ];
 
 // QB-P25 B3 — structural guards for the risk v2 pointer/enum/rank contract.

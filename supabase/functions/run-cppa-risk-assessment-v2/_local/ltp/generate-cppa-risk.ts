@@ -96,6 +96,29 @@ import {
 // ITEM 399 R11 — assembled-prose lint (detect-only telemetry).
 import { attachProseLint } from "../../../_shared/prose/assembled-prose-lint.ts";
 import { cppaRiskContract } from "../../../_shared/intake-contracts/cppa-risk-assessment.ts";
+// DOC 231 — CPPA RISK V3 (dark; RISK_V3_ENABLED default false, RISK_HOOKS
+// ships empty — see risk-v3-selection.ts's header for the zero-call
+// guarantee this wiring relies on).
+import { attachRiskHookSelection, type RiskV3DbClient, type RiskV3SelectionRecord } from "./risk-v3-selection.ts";
+// DOC 231A — CPPA RISK V3 hook selection's rankedSourceIds/determinativeSourceIds
+// (doc 231 build-log NEED #3), now wired from the H3-style Persuasive
+// Authority ranking; and the finalize-time splice of riskV3.applications
+// onto eu_persuasive_authority.hook_authorities / persuasive_authority_hooks
+// (the CEO's scope ruling — see hook-persuasive.ts's header for the design).
+import { RISK_HOOKS } from "../corpus/maps/risk-hooks.ts";
+import {
+  applyRiskPersuasiveHookSplice,
+  riskDeterminativeSourceIds,
+  riskPersuasiveRankedSourceIds,
+} from "./eu-authority/hook-persuasive.ts";
+// DOC 231A — the ROO surface (doc 231 build-log NEED #5). See
+// risk-v3-selection.ts's `RiskV3InformationNeededEntry` header for the
+// investigated finding this append relies on: report.information_needed's
+// PRODUCTION shape is `string[]` (pass2-assembler.ts's renderTemplateSection
+// never sets `structured`/`typedSufficiency` for this key), so a plain
+// string survives `serializeCustomerReport` untouched (report-serialize.ts's
+// `pruneEntry` returns a non-object entry as-is) — no allow-list edit needed.
+import { RISK_ROO_UNSETTLED_TEMPLATE } from "./v3/readback-templates.ts";
 
 
 export const CPPA_RISK_GENERATOR_STAMP = "generate-cppa-risk@2026-08-01-item357";
@@ -133,6 +156,24 @@ export interface GenerateCppaRiskOptions {
   readonly refinementEnabled?: boolean;
   /** RK2 — when true, csc/prose post-passes run detect-only (no document mutations). */
   readonly postPassDetectOnly?: boolean;
+  /** DOC 231 — CPPA RISK V3 hook selection (dark). Supabase client for
+   *  reading/writing `hook_selections`; omitted (tests/harnesses, and
+   *  every caller until the CEO wires it) ⇒ no prior selections are read
+   *  and no new call is ever made even if RISK_V3_ENABLED were true.
+   *  Typed `unknown` (matching this interface's own `db?: unknown` field
+   *  above) and cast to `RiskV3DbClient` only at the point of use — a
+   *  structural check of the FULL supabase-js generated client type
+   *  against a narrow interface at this call site produced `TS2589
+   *  excessively deep type instantiation` in index.ts. */
+  readonly riskV3Db?: unknown;
+  /** DOC 231 — `tool_run_meter` values the selection cap and generation
+   *  number key on. `[NEEDS]` (doc 231 build log): the shell
+   *  (index.ts `runPipeline`) does not yet read the meter BEFORE calling
+   *  this module (it reads it AFTER, via `recordRunMeterAndVersion`), so
+   *  this is omitted in production today and the conservative defaults
+   *  below (`runsAllowed: 4, generationNo: 1`) apply — inert regardless,
+   *  since RISK_V3_ENABLED defaults false and RISK_HOOKS ships empty. */
+  readonly riskV3Meter?: { readonly runsAllowed: number; readonly generationNo: number };
 }
 
 
@@ -147,6 +188,10 @@ export interface GenerateCppaRiskResult {
   readonly rawIntake: Record<string, unknown>;
   /** ITEM 378 — refinement telemetry when the pass ran at generate time. */
   readonly refinement?: RefinementTelemetry | null;
+  /** DOC 231 — the CPPA Risk V3 hook-selection record (dark; see
+   *  risk-v3-selection.ts). Computed once at the initial generation and
+   *  reused by Pass-2R's finalize calls, mirroring `refinement`. */
+  readonly riskV3?: RiskV3SelectionRecord;
 }
 
 
@@ -252,6 +297,45 @@ function attachAuthorityExhibit(
 }
 
 /**
+ * DOC 231A — the ROO surface (doc 231 build-log NEED #5, closed).
+ *
+ * CONCLUSION (investigated, not guessed — see the doc 231A follow-up log
+ * for the full finding): `report.information_needed`'s PRODUCTION shape is
+ * a plain `string[]` — pass2-assembler.ts's `renderTemplateSection` only
+ * ever sets `structured`/`typedSufficiency` for OTHER keys
+ * (priority_actions / record_sufficiency); for `information_needed`,
+ * `value` is always `rendered` (the plain string array) or `undefined`. A
+ * plain string entry therefore survives `serializeCustomerReport`
+ * COMPLETELY UNTOUCHED (_shared/report-serialize.ts's `pruneEntry` returns
+ * any non-object array entry as-is) — no allow-list edit, no invented
+ * object keys (`field`/`ask`/`hook_id`/`source`, which `RISK_ENTRY_KEYS`
+ * does not admit, are never put on this entry at all).
+ *
+ * Each unsettled hook's ask is the ratified `RISK_ROO_UNSETTLED_TEMPLATE`
+ * BYTES VERBATIM — never re-worded, never concatenated with the field name
+ * (the CEO's ratified text stands alone, exactly as LIA's own template
+ * does). The field/hook_id pairing survives instead in
+ * `_meta.internal.risk_v3.information_needed_entries` (written by the
+ * caller just before this runs), which is where a future revise-path
+ * integration would read it from (doc 231A follow-up log's revise-path
+ * finding). Deduplicated: the same ratified sentence is never pushed twice
+ * even if several hooks are unsettled in one generation, and never pushed
+ * at all when `unsettledCount` is 0 — the exact byte-identity the doc 231
+ * dark-mode law requires (RISK_HOOKS ships empty today, so `unsettledCount`
+ * is always 0 in production, and `report.information_needed` is therefore
+ * always left exactly as `composeInformationNeeded` rendered it).
+ *
+ * Exported (not inlined in `finalizeCppaRiskPayload`) so it is directly
+ * unit-testable, mirroring `applyRiskPersuasiveHookSplice`'s own shape.
+ */
+export function appendRiskRooAsk(report: Record<string, unknown>, unsettledCount: number): void {
+  if (unsettledCount <= 0) return;
+  const existing = Array.isArray(report.information_needed) ? report.information_needed as unknown[] : [];
+  if (existing.includes(RISK_ROO_UNSETTLED_TEMPLATE)) return;
+  report.information_needed = [...existing, RISK_ROO_UNSETTLED_TEMPLATE];
+}
+
+/**
  * Finalize an assembled body into the exact persisted payload.
  *
  * ITEM 378 (CORRECTION) — this is THE finalize point every completed
@@ -268,7 +352,7 @@ export function finalizeCppaRiskPayload(
   ltpMeta: Record<string, unknown>,
   rawIntake: unknown,
   riskCorpus?: RiskCorpus | null,
-  extras?: { refinement?: RefinementTelemetry | null; postPassDetectOnly?: boolean },
+  extras?: { refinement?: RefinementTelemetry | null; postPassDetectOnly?: boolean; riskV3?: RiskV3SelectionRecord | null },
 ): { report: Record<string, unknown>; emit_gate_filtered: number } {
   const postPassDetectOnly = extras?.postPassDetectOnly ?? false;
   const sealed = seal({ ...base }, rawIntake, postPassDetectOnly);
@@ -288,6 +372,61 @@ export function finalizeCppaRiskPayload(
     internal.risk_refinement = extras?.refinement ??
       emptyTelemetryFor(RISK_REFINEMENT_CONFIG, false, "refinement_not_invoked");
   } catch { /* non-fatal */ }
+
+  // (1a) DOC 231 — CPPA RISK V3 hook selection record (dark; see
+  // risk-v3-selection.ts). Unconditional key, mirroring risk_refinement:
+  // `enabled:false` while RISK_V3_ENABLED is off or RISK_HOOKS ships empty
+  // (both true today), so this is inert but always recorded for audit.
+  // NEVER written to any customer-facing surface — see risk-v3-selection.ts
+  // `RiskV3InformationNeededEntry`'s header for why `information_needed`
+  // itself is not yet a safe append target for this product.
+  try {
+    const internal = ((report._meta as Record<string, unknown>).internal) as Record<string, unknown>;
+    internal.risk_v3 = extras?.riskV3 ?? {
+      enabled: false, hooks_available: 0, generation_no: null, cap: null,
+      calls_this_generation: 0, considered: [], applications: [], information_needed_entries: [], error: null,
+    };
+  } catch { /* non-fatal */ }
+
+  // (1a-ii) DOC 231A — the CEO's Persuasive Authority scope ruling, wired.
+  // Splices riskV3.applications onto the two customer-facing render
+  // surfaces (eu_persuasive_authority.hook_authorities for GDPR-enforcement
+  // / EDPB-guidance hooks; persuasive_authority_hooks for FSOR hooks) — see
+  // eu-authority/hook-persuasive.ts's header for the full design and why
+  // this is additive to, not a rewrite of, build.ts's topic-triggered
+  // eu_persuasive_authority logic. Inert today: RISK_HOOKS_ENABLED defaults
+  // false AND riskV3.applications is always [] while RISK_HOOKS ships empty
+  // — either alone already guarantees report_data stays byte-identical.
+  try {
+    applyRiskPersuasiveHookSplice(report, extras?.riskV3?.applications ?? []);
+  } catch (e) {
+    console.warn("[generate-cppa-risk] persuasive hook splice failed (non-fatal):", (e as Error)?.message);
+  }
+
+  // (1a-iii) DOC 231A — the ROO surface (doc 231 build-log NEED #5, closed).
+  // CONCLUSION (investigated, not guessed): `report.information_needed`'s
+  // production shape is a plain `string[]` — pass2-assembler.ts's
+  // `renderTemplateSection` only ever sets `structured`/`typedSufficiency`
+  // for OTHER keys (priority_actions / record_sufficiency), so for
+  // `information_needed` `value` is always `rendered` (the plain string
+  // array) or `undefined`. A plain string entry therefore survives
+  // `serializeCustomerReport` completely untouched
+  // (_shared/report-serialize.ts `pruneEntry` returns any non-object entry
+  // as-is, line ~99) — no allow-list edit, no invented object keys. Each
+  // unsettled hook's ask is the ratified `RISK_ROO_UNSETTLED_TEMPLATE`
+  // BYTES VERBATIM (never re-worded, never concatenated with the field
+  // name — the CEO's ratified text stands alone, exactly as LIA's own
+  // template does); the field/hook_id pairing survives instead in
+  // `_meta.internal.risk_v3.information_needed_entries` (step 1a above),
+  // which is where a future revise-path integration would read it from
+  // (see the doc 231A follow-up log's revise-path finding). Deduplicated:
+  // the same ratified sentence is never pushed twice even if multiple
+  // hooks are unsettled in one generation.
+  try {
+    appendRiskRooAsk(report, extras?.riskV3?.information_needed_entries?.length ?? 0);
+  } catch (e) {
+    console.warn("[generate-cppa-risk] ROO append failed (non-fatal):", (e as Error)?.message);
+  }
 
   // (1b) ITEM 426 — `exception_analysis` CANONICAL EMISSION. LAW 3 SINGLE
   // WRITE SITE for the SHAPE of that surface: claimed exceptions become
@@ -721,8 +860,45 @@ export async function generateCppaRiskReport(
   // ships a different surface, that surface is refined and finalized again.
   const refinement = await refineRiskBase(base, rawIntake, options);
 
-  const { report } = finalizeCppaRiskPayload(base, ltpMeta, rawIntake, riskCorpus, { refinement, postPassDetectOnly: options.postPassDetectOnly });
-  return { report, base, plan, ltpMeta, typeJOrigin, rawIntake, refinement };
+  // DOC 231 / DOC 231A — CPPA RISK V3 hook selection (dark). Computed once
+  // here (not inside finalizeCppaRiskPayload, which stays synchronous) and
+  // reused by Pass-2R's own finalize calls below, mirroring `refinement`'s
+  // shape.
+  //
+  // `verdicts` — `[NEEDS]` still (doc 231 build-log NEED #2, INVESTIGATED
+  // this build and left empty, not guessed at: no clean, already-computed
+  // `Record<CAM_factor_id, "passes"|"likely_passes"|"fails"|"uncertain">`
+  // exists anywhere in this pipeline — see the doc 231A follow-up log for
+  // the file/line evidence across risk-factor-engine.ts's `factors` (a
+  // DIFFERENT, prose-valued, internal-key-space record, not this
+  // vocabulary), analytic-deliverables/types.ts's `NecessityAnalysisEntry.verdict`
+  // (a different closed vocabulary, per-activity not per-factor, and only
+  // for necessity), and `_local/factors/cppa-risk-factors.ts`'s factor_table
+  // (a presence boolean for 4 of the 17 factors, not a verdict). Passed
+  // empty, which is inert — every hook evaluates `verdicts[factor] ?? null`
+  // safely.
+  //
+  // `rankedSourceIds` / `determinativeSourceIds` — NOW WIRED (closes NEED
+  // #3): the H3-style Persuasive Authority ranking
+  // (eu-authority/hook-persuasive.ts), run against `base` (already carries
+  // `eu_persuasive_authority` — a deterministic passthrough shard, doc 231A
+  // verified — and every other typed surface `deriveRiskFiredStates` reads)
+  // and `rawIntake`. Both degrade to `[]`/`new Set()` today regardless,
+  // since RISK_HOOKS ships empty (attachRiskHookSelection returns before
+  // reading either) and RISK_CORPUS_MAP carries no relevance_profile —
+  // this call is real, wired plumbing, not yet a live ranking.
+  const riskV3Verdicts: Record<string, string> = {};
+  const determinativeSourceIds = riskDeterminativeSourceIds(base, rawIntake);
+  const rankedSourceIds = riskPersuasiveRankedSourceIds(rawIntake, riskV3Verdicts, RISK_HOOKS, determinativeSourceIds);
+  const riskV3 = await attachRiskHookSelection(rawIntake, riskV3Verdicts, rankedSourceIds, determinativeSourceIds, {
+    db: options.riskV3Db as RiskV3DbClient | undefined,
+    assessmentId: runId,
+    runsAllowed: options.riskV3Meter?.runsAllowed ?? 4,
+    generationNo: options.riskV3Meter?.generationNo ?? 1,
+  });
+
+  const { report } = finalizeCppaRiskPayload(base, ltpMeta, rawIntake, riskCorpus, { refinement, postPassDetectOnly: options.postPassDetectOnly, riskV3 });
+  return { report, base, plan, ltpMeta, typeJOrigin, rawIntake, refinement, riskV3 };
 }
 
 
@@ -792,7 +968,7 @@ export async function runCppaRiskPass2R(
         { ...gen.ltpMeta, shipped_surface: "2R", ...meta },
         gen.rawIntake,
         riskCorpus,
-        { refinement, postPassDetectOnly: options.postPassDetectOnly },
+        { refinement, postPassDetectOnly: options.postPassDetectOnly, riskV3: gen.riskV3 },
       );
       return { report, shipped_surface: "2R", meta };
     }
@@ -802,7 +978,7 @@ export async function runCppaRiskPass2R(
       { ...gen.ltpMeta, shipped_surface: "deterministic", ...meta },
       gen.rawIntake,
       riskCorpus,
-      { refinement: refinementDet, postPassDetectOnly: options.postPassDetectOnly },
+      { refinement: refinementDet, postPassDetectOnly: options.postPassDetectOnly, riskV3: gen.riskV3 },
     );
     return { report, shipped_surface: "deterministic", meta };
 
@@ -819,7 +995,7 @@ export async function runCppaRiskPass2R(
       { ...gen.ltpMeta, shipped_surface: "deterministic", ...meta },
       gen.rawIntake,
       riskCorpus,
-      { refinement: refinementFallback, postPassDetectOnly: options.postPassDetectOnly },
+      { refinement: refinementFallback, postPassDetectOnly: options.postPassDetectOnly, riskV3: gen.riskV3 },
     );
 
     return { report, shipped_surface: "deterministic", meta };

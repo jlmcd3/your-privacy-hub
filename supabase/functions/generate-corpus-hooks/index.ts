@@ -34,8 +34,6 @@ import {
   verifyCritique, verifyDraft, type Objection, type SourceEndorsement,
 } from "./_local/verify.ts";
 import { generateHooks, type HookProfileRow, type HookRow, type HookSourceRow } from "./_local/generate.ts";
-import { liaElementOf } from "./_local/factor-element.ts";
-import { LIA_HOOK_CONTEXT_BLOCK } from "./_local/hook-context-block.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -165,6 +163,27 @@ async function loadSource(profile: ProfileForHook): Promise<{ excerpt: string; e
         decision_date: data?.decision_date ?? null, case_reference: data?.case_reference ?? null,
       },
     };
+  }
+  // DOC 231 §6 default #2 (proposed diff, applied) — schema verified
+  // read-only this session (doc 231A, corrected doc 234): cppa_fsor_commentary
+  // has no `title`/`decision_date`/`appeal_status` columns. Doc 234 found
+  // `agency_position_summary` is a CURATOR PARAPHRASE (one sample literally
+  // headed "# California Privacy Law Summary…") — a pinpoint/finding_span
+  // verified against it would be checking a paraphrase, not the FSOR's own
+  // words. `agency_response` is the FSOR's actual verbatim text (PDF-
+  // extraction artifacts like "Agency ' s" confirm it, not curator prose) —
+  // independently re-confirmed against two live rows before this fix.
+  // `regulation_citation`/`page_ref` are NOT threaded through `extra` here —
+  // `ProfileForHook` (prompts.ts, off-limits to this build) has no such
+  // fields and `profileBlock` never renders them for any source table, so
+  // there is nothing for them to reach; `citationFor` / `deriveSourceStatus`
+  // (generate.ts) instead read them off the SEPARATE `HookSourceRow`
+  // `actionGenerate`'s own bulk loader builds (below) — that loader still
+  // needs the same column fix; see doc 234 [NEEDS].
+  if (profile.source_table === "cppa_fsor_commentary") {
+    const { data } = await db.from("cppa_fsor_commentary")
+      .select("agency_response").eq("id", profile.source_row_id).maybeSingle();
+    return { excerpt: sourceExcerpt(data?.agency_response ?? null, quote), endorsement: null, extra: {} };
   }
   return { excerpt: "", endorsement: null, extra: {} };
 }
@@ -485,16 +504,22 @@ async function actionGenerate(product: string) {
   }
 
   const day = new Date().toISOString().slice(0, 10);
+  // DOC 231 — GENERALISED: `elementOf`/`contextBlock` were hard-coded to
+  // LIA's here; both now come from the product's own registry entry
+  // (_local/product-registry.ts), so this dispatch needs no per-product
+  // branch. Behaviour for `product: "lia"` is unchanged — the registry's
+  // `lia` entry points `elementOf`/`contextBlock` at the SAME
+  // `liaElementOf` / `LIA_HOOK_CONTEXT_BLOCK` this call used before.
   const result = generateHooks({
     product, rows, profiles, sources,
-    elementOf: liaElementOf,
+    elementOf: registry.elementOf,
     hooksVersion: `${registry.export_prefix.toLowerCase()}-hooks-v2-${day}-0`,
     outputPath: registry.output_path,
     exportPrefix: registry.export_prefix,
-    // The three [RATIFY] blocks, copied VERBATIM from the canonical pinned
-    // file (_local/hook-context-block.ts; pinned by test after CRLF/LF
+    // The [RATIFY] blocks, copied VERBATIM from the product's canonical
+    // pinned file (pinned by a byte-comparison test after CRLF/LF
     // normalisation) — no longer a placeholder.
-    contextBlock: LIA_HOOK_CONTEXT_BLOCK,
+    contextBlock: registry.contextBlock,
   });
 
   return json({

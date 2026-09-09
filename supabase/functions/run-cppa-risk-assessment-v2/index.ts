@@ -39,6 +39,15 @@ import {
 // ITEM 378 (CORRECTION) — refinement deps for the ROUTED LTP finalize point.
 import { makeRiskRefinementDeps, RISK_REFINEMENT_ENABLED } from "./_local/ltp/risk-refinement-deps.ts";
 import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, generationTimeoutMs, stampGenerationModel } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
+// DOC 231 — CPPA RISK V3 (dark). RISK_HOOKS_ENABLED governs whether an
+// already-settled hook may RENDER (risk-hooks-flag.ts, hook-join.ts
+// consumers); RISK_V3_ENABLED governs whether an unsettled hook's fact
+// agreement may be SETTLED by a two-leg model call at all
+// (risk-v3-flag.ts, risk-v3-selection.ts). Both default false; both are
+// inert today regardless of value because RISK_HOOKS
+// (_local/corpus/maps/risk-hooks.ts) ships an empty array (doc 229 §5.3).
+import { RISK_HOOKS_ENABLED } from "./_local/ltp/risk-hooks-flag.ts";
+import { RISK_V3_ENABLED } from "./_local/ltp/risk-v3-flag.ts";
 
 const FN = "run-cppa-risk-assessment-v2";
 const BUILD_STAMP = "ltp-risk-v2-item359-routed@2026-08-02";
@@ -60,7 +69,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-console.log(`[${FN}] boot build_stamp=${BUILD_STAMP} generator=${CPPA_RISK_GENERATOR_STAMP} risk_pipeline_stamp=${RISK_PIPELINE_STAMP} ltp_mode=${LTP_MODE} pass1_mode=${PASS1_MODE} pass2r_enabled=${PASS2R_ENABLED} post_pass_detect_only=${POST_PASS_DETECT_ONLY} engine_path=ltp routed=true`);
+console.log(`[${FN}] boot build_stamp=${BUILD_STAMP} generator=${CPPA_RISK_GENERATOR_STAMP} risk_pipeline_stamp=${RISK_PIPELINE_STAMP} ltp_mode=${LTP_MODE} pass1_mode=${PASS1_MODE} pass2r_enabled=${PASS2R_ENABLED} post_pass_detect_only=${POST_PASS_DETECT_ONLY} risk_hooks_enabled=${RISK_HOOKS_ENABLED} risk_v3_enabled=${RISK_V3_ENABLED} engine_path=ltp routed=true`);
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -78,6 +87,30 @@ async function runPipeline(assessmentId: string): Promise<void> {
     .single();
   if (error || !row) throw new Error(`load assessment: ${error?.message ?? "not found"}`);
 
+  // DOC 231A — CPPA RISK V3 meter pre-read (closes doc 231 build-log NEED
+  // #4). Mirrors run-li-assessment/index.ts's own pre-read (~line 1985-1999):
+  // generation number = the meter's runs_used + 1 (no row yet, i.e. the
+  // first generation for this assessment, -> 1); the cap `attachRiskHookSelection`
+  // applies is 2 calls per generation x runs_allowed (doc 224 §3). Read
+  // BEFORE `generateCppaRiskReport` so `riskV3Meter` carries the REAL
+  // values into that call, rather than the conservative defaults
+  // (runsAllowed:4, generationNo:1) `generate-cppa-risk.ts` falls back to
+  // when this option is omitted. Fail-open: any read error leaves the same
+  // conservative defaults in place (first-generation-shaped), never throws
+  // and never blocks the pipeline — matches every other finalize step's
+  // discipline in this pipeline.
+  let riskV3GenerationNo = 1;
+  let riskV3RunsAllowed = 4;
+  try {
+    const { data: meterRow } = await supabase
+      .from("tool_run_meter").select("runs_used,runs_allowed")
+      .eq("tool_type", "cppa_risk_assessment").eq("assessment_id", assessmentId).maybeSingle();
+    if (meterRow) {
+      riskV3GenerationNo = Number((meterRow as { runs_used?: number }).runs_used ?? 0) + 1;
+      riskV3RunsAllowed = Number((meterRow as { runs_allowed?: number }).runs_allowed ?? 4);
+    }
+  } catch { /* first generation — the conservative defaults above stand */ }
+
   const options = {
     db: supabase,
     buildStamp: BUILD_STAMP,
@@ -91,6 +124,15 @@ async function runPipeline(assessmentId: string): Promise<void> {
     // runs on this (routed) path; CSC + stamp land in finalizeCppaRiskPayload.
     refinementDeps: makeRiskRefinementDeps(assessmentId, FN),
     refinementEnabled: RISK_REFINEMENT_ENABLED,
+    // DOC 231 — CPPA RISK V3 hook selection (dark). Wiring the DB client
+    // now (inert while RISK_V3_ENABLED is false) so the CEO's flag flip
+    // does not also require a code change here.
+    riskV3Db: supabase,
+    // DOC 231A — the real cap/generation number, pre-read above. Inert
+    // today regardless (RISK_V3_ENABLED defaults false and RISK_HOOKS
+    // ships empty), but required before RISK_V3_ENABLED is ever set true
+    // in a live environment (doc 231 build-log NEED #4, now closed).
+    riskV3Meter: { runsAllowed: riskV3RunsAllowed, generationNo: riskV3GenerationNo },
   };
 
   // ── ONE CALL. The module returns the exact payload to persist. ──────
