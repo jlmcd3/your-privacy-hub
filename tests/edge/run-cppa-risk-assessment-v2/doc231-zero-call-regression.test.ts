@@ -20,10 +20,9 @@
 //      the flag-off short-circuit still fires before either is touched —
 //      proving the guarantee does not depend on the caller forgetting to
 //      wire something.
-//   4. RISK_HOOKS ships empty (doc 229 §5.3) — a SECOND, independent
-//      reason no call can ever fire today, asserted separately so a
-//      future change to either guard alone cannot silently make a live
-//      call: this file's tests trip if EITHER guard is removed.
+//   4. RISK_HOOKS ships exactly the one ratified hook (AP/ICS), pinned
+//      below — any future hook addition must update the pin, so the
+//      shipped corpus can never silently grow.
 //   5. Calling the function twice with identical inputs is idempotent and
 //      produces byte-identical (`assertEquals`) records — the "report_data
 //      byte-identical" half of the requirement, applied to the ONE thing
@@ -43,8 +42,9 @@ Deno.test("doc231 — RISK_V3_ENABLED and RISK_HOOKS_ENABLED both default false 
   assertEquals(RISK_HOOKS_ENABLED, false);
 });
 
-Deno.test("doc231 — RISK_HOOKS ships empty — the second, independent zero-call guard", () => {
-  assertEquals(RISK_HOOKS.length, 0);
+Deno.test("doc231 — RISK_HOOKS ships exactly the one ratified hook (AP/ICS) — the shipped-corpus pin", () => {
+  assertEquals(RISK_HOOKS.length, 1);
+  assertEquals(RISK_HOOKS[0].hook_id, "enforcement_actions:dc095815-d03d-4bb2-b3be-2711e7f7d459:v1");
 });
 
 function spyingDb(reads: string[]): RiskV3DbClient {

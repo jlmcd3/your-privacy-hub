@@ -9,11 +9,11 @@
 //
 //  1. FLAG DEFAULTS — DPIA_V3_ENABLED / DPIA_HOOKS_ENABLED are false with no
 //     env var set (the shipped state).
-//  2. PURITY + EMPTY CORPUS — `applyDpiaHooks`/`planDpiaHookSelection`/
+//  2. PURITY + SHIPPED CORPUS — `applyDpiaHooks`/`planDpiaHookSelection`/
 //     `buildDpiaRuleStates` are pure (no fetch/invokeGated import anywhere
 //     in their module graph — asserted by source scan) AND `DPIA_HOOKS`
-//     (the corpus map) is `[]` today, so even a caller who ignored the flag
-//     would plan zero items.
+//     (the corpus map) ships exactly the two ratified hooks pinned below,
+//     which plan zero items on any record whose atoms they don't require.
 //  3. STATIC CALL-SITE CONTAINMENT — the one `invokeGated("classify-
 //     propositions", …)` call this build added to
 //     run-dpia-framework/index.ts is texually NESTED inside the
@@ -44,15 +44,18 @@ Deno.test("doc232 — DPIA_V3_ENABLED and DPIA_HOOKS_ENABLED default to false (n
 
 // ── 2. Purity + empty corpus ─────────────────────────────────────────────
 
-Deno.test("doc232 — DPIA_HOOKS ships empty (an unstamped/undrafted hook corpus is inert, doc 213's own law)", () => {
-  assertEquals(DPIA_HOOKS.length, 0);
+Deno.test("doc232 — DPIA_HOOKS ships exactly the two ratified hooks (WP248, MediaLab-ICO); any further hook must be ratified and pinned here (doc 213's law)", () => {
+  assertEquals(DPIA_HOOKS.map((h) => h.hook_id), [
+    "enforcement_actions:0675e6a0-66ba-4173-8bce-be113e70604e:v1",
+    "edpb_guidelines:718bb432-ef28-4744-b169-bb9093fd2969:v1",
+  ]);
 });
 
-Deno.test("doc232 — planDpiaHookSelection plans zero items over the shipped (empty) DPIA_HOOKS", () => {
+Deno.test("doc232 — planDpiaHookSelection plans zero items over the shipped DPIA_HOOKS on a record where neither hook's required atoms hold", () => {
   const states = buildDpiaRuleStates({}, { description: "x".repeat(50), reasons_to_conduct: ["Data processed on a large scale"] }, undefined);
   const plan = planDpiaHookSelection(DPIA_HOOKS, states, states.verdicts, [], new Set(), { description: "x".repeat(50) });
   assertEquals(plan.items, []);
-  assertEquals(plan.considered, []);
+  assert(plan.considered.every((c) => c.status === "skipped"), "every shipped hook is skipped, none planned");
 });
 
 async function collectModuleGraph(entry: URL, seen = new Map<string, URL>()): Promise<Map<string, URL>> {
