@@ -11,7 +11,14 @@
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { HOOK_PRODUCT_REGISTRY } from "../../../supabase/functions/generate-corpus-hooks/_local/product-registry.ts";
-import { RISK_ONLY_STATE_ATOM_PATHS, STATE_ATOM_ENUMS } from "../../../supabase/functions/generate-corpus-hooks/_local/vocabulary.ts";
+import {
+  ADMT_ONLY_STATE_ATOM_PATHS,
+  DPIA_ONLY_STATE_ATOM_PATHS,
+  LIA_ONLY_STATE_ATOM_PATHS,
+  RISK_ONLY_STATE_ATOM_PATHS,
+  STATE_ATOM_ENUMS,
+  vocabularyBlock,
+} from "../../../supabase/functions/generate-corpus-hooks/_local/vocabulary.ts";
 import { RISK_ATOM_PHRASES } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/corpus/maps/risk-hooks.ts";
 
 /** Every atom `checkAtom` (vocabulary.ts) would admit for the cppa-risk
@@ -43,6 +50,16 @@ Deno.test("doc237 — every CPPA Risk phrase key is an atom the drafter may emit
   const draftable = new Set(draftableAtoms());
   const orphans = Object.keys(RISK_ATOM_PHRASES).filter((key) => !draftable.has(key));
   assertEquals(orphans, [], `phrase keys no drafted hook can ever carry (typo, or vocabulary drift):\n${orphans.join("\n")}`);
+});
+
+Deno.test("v3-tidying — the CPPA Risk drafting-prompt vocabulary shows every Risk state path with its options and no LIA/ADMT/DPIA path (doc 237's flat-dict prompt leak, closed; checkAtom unchanged)", () => {
+  const block = vocabularyBlock(HOOK_PRODUCT_REGISTRY["cppa-risk"], "cppa-risk");
+  for (const path of RISK_ONLY_STATE_ATOM_PATHS) {
+    assert(block.includes(`  state:${path}= one of ${JSON.stringify(STATE_ATOM_ENUMS[path])}`), `Risk block is missing ${path}`);
+  }
+  for (const path of [...LIA_ONLY_STATE_ATOM_PATHS, ...ADMT_ONLY_STATE_ATOM_PATHS, ...DPIA_ONLY_STATE_ATOM_PATHS]) {
+    assert(!block.includes(`state:${path}=`), `Risk block leaks ${path}`);
+  }
 });
 
 Deno.test("doc237 — every CPPA Risk phrase is a lower-case clause with no terminal punctuation or slot", () => {
