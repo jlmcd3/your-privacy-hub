@@ -133,7 +133,7 @@ export default function RopaLanding() {
         geography="gdpr"
         eyebrowLabel={<><BookOpen aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> {productEyebrow("ropa")}</>}
         title="Record of Processing Activities (RoPA)"
-        valueProposition="Build and maintain an Article 30 RoPA across 25+ privacy frameworks with guided questions, reusable records, and an annual refresh."
+        valueProposition="Build and maintain an Article 30 RoPA across the laws that require one, with guided questions, reusable records, and an annual refresh."
         showIntakeCta={false}
       >
         <Button asChild size="lg" className="bg-white text-slate-900 hover:bg-slate-100">
@@ -164,7 +164,7 @@ export default function RopaLanding() {
           },
           {
             title: "What you receive",
-            body: "A regulator-ready processing record covering the required Article 30 fields across 25+ frameworks, with reusable activities and an annual refresh.",
+            body: "A regulator-ready processing record covering the required Article 30 fields across every covered framework, with reusable activities and an annual refresh.",
           },
           {
             title: "Why trust it",
@@ -178,7 +178,7 @@ export default function RopaLanding() {
         {/* TRUST BAR */}
         <section className="border-y border-border bg-muted/30 py-6 px-4">
           <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm text-muted-foreground">
-            <span>25+ frameworks</span>
+            <span>11 jurisdictions</span>
             <span aria-hidden>·</span>
             <span>PDF / Word / Excel</span>
             <span aria-hidden>·</span>
@@ -222,7 +222,7 @@ export default function RopaLanding() {
         <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20 bg-muted/20 border-y border-border">
           <div className="max-w-5xl mx-auto">
             <h2 className="font-serif text-center mb-3">
-              25+ frameworks across six regions
+              11 jurisdictions across five regions
             </h2>
             <p className="text-center text-muted-foreground mb-10 text-sm">
               Coverage by region.
