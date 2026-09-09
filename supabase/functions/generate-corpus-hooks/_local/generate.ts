@@ -51,6 +51,10 @@ export interface HookRow {
   readonly hedge_variant?: "domestic_facts" | "foreign_analogy" | null;
   /** The hook's own CEO-approved hedge passage, verbatim (hook-types.ts). */
   readonly hedge_sentence?: string | null;
+  /** DOC 223B RATIFICATION FOLLOW-UP (2026-09-09) — the hook's own ratified
+   *  sentence, verbatim, printed instead of any shape/slot substitution when
+   *  present (hook-types.ts's own doc comment has the full rationale). */
+  readonly literal_sentence_override?: string | null;
 }
 
 export interface HookProfileRow {
@@ -692,11 +696,13 @@ function shippedHook(
     condition_atoms: row.condition_atoms ? [...row.condition_atoms] : null,
     material_facts: [...(row.material_facts ?? [])],
     distinguishing_pairs: [...(row.distinguishing_pairs ?? [])],
-    // DOC 238 — PROPOSED plumbing, additive; null on every hook today (no
-    // row sets any of these columns yet).
+    // DOC 238 — additive plumbing; null except for the specific hooks a
+    // curator has populated.
     governing_provision_sentence: row.governing_provision_sentence ?? null,
     hedge_variant: row.hedge_variant ?? null,
     hedge_sentence: row.hedge_sentence ?? null,
+    // DOC 223B RATIFICATION FOLLOW-UP (2026-09-09) — see hook-types.ts.
+    literal_sentence_override: row.literal_sentence_override ?? null,
     // DOC 238 §5.5.2 FOLLOW-UP — derived per product × source table
     // (`deriveSourceStatus`); true for every hook except an ADMT FSOR one.
     status_in_citation: status.status_in_citation,

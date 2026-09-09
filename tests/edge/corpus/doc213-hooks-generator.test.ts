@@ -557,6 +557,9 @@ Deno.test("generate: an emitted hook carries exactly AuthorityHook's fields (v1 
     // doc 238 §5.5.2 follow-up (2026-09-09) — derived per product × source
     // table by deriveSourceStatus; true for every hook except an ADMT FSOR one.
     "status_in_citation",
+    // doc 223B ratification follow-up (2026-09-09) — a hook's own ratified
+    // sentence, verbatim; null unless a curated row sets it.
+    "literal_sentence_override",
   ].sort());
   assertEquals(emitted.posture, "rejected");
   assertEquals(emitted.source_row_id, "row-1");

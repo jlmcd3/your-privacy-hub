@@ -226,15 +226,16 @@ function verbConsistent(hook: AuthorityHook, verb: string): boolean {
 }
 
 /** Render one hook's sentence for `shape`, or `undefined` if any slot the
- *  shape needs cannot be resolved. Never throws: every atom substituted here
- *  was already evaluated without throwing by the caller.
+ *  shape needs cannot be resolved (or, since 2026-09-09, the hook's own
+ *  `literal_sentence_override` verbatim — see the check at the top of this
+ *  function). Never throws: every atom substituted here was already
+ *  evaluated without throwing by the caller.
  *
- *  DOC 238 — `shapes` is a new, OPTIONAL 5th parameter defaulting to the
- *  live ratified `LIA_HOOK_SHAPES`, so every existing call site (and every
- *  existing pin test) is byte-identical. It exists so a test can exercise
- *  this exact render mechanism against `LIA_HOOK_SHAPES_PROPOSED_2026_09`
- *  (above) without a second, duplicated render function. Exported for the
- *  same reason — doc 238's tests call it directly. */
+ *  DOC 238 — `shapes` is an OPTIONAL 5th parameter defaulting to
+ *  `LIA_HOOK_SHAPES` (now the promoted paragraph-form shapes, 2026-09-09),
+ *  kept so a test can exercise this render mechanism against an alternate
+ *  shape map without a second, duplicated render function. Exported for the
+ *  same reason. */
 export function renderSentence(
   hook: AuthorityHook,
   shape: HookShape,
@@ -242,6 +243,17 @@ export function renderSentence(
   pair: HookDistinguishingPair | undefined,
   shapes: Readonly<Record<HookShape, string>> = LIA_HOOK_SHAPES,
 ): string | undefined {
+  // DOC 223B RATIFICATION FOLLOW-UP (2026-09-09) — a hook's own ratified
+  // sentence (hook-types.ts's own doc comment has the full rationale) wins
+  // over every shape/slot mechanism below, unconditionally. `shape`/`pair`/
+  // `factAtomsHolding` are not consulted at all when this is set: the
+  // ratified text is not a rendering of them, it IS the sentence. Still
+  // takes `appealSuffix` — an appeal is a fact about the SOURCE discovered
+  // after ratification, not part of what was ratified, and doc 223B's own
+  // hedge is already baked into the literal text (never appended twice).
+  if (hook.literal_sentence_override) {
+    return hook.literal_sentence_override.trim() + appealSuffix(hook);
+  }
   const section = SECTION_FOR_ELEMENT[hook.bears_on_element];
   const verb = verbFor(hook);
   const pin = pinpointText(hook);
@@ -327,34 +339,13 @@ export function renderSentence(
   return tidyRenderedSentence(sentence + appealSuffix(hook));
 }
 
-// ── DOC 238 (2026-09-09) — PROPOSED paragraph-form shapes, LIA. NOT
-// ratified, NOT exported from lia-hooks.ts (that file's [RATIFY] block is a
-// live-ratified byte, frozen — see its own header comment), NOT part of the
-// generate-time context-block copy. Exists only so the render mechanism
-// above (the `{quote}`/`{governing_provision}` slots, `hedgeSuffix`) can be
-// exercised by a real test against the exact grammar `renderSentence`
-// already understands, and so doc 238 quotes something that has actually
-// been run, not hand-typed prose. See doc 238 §"LIA" for the full proposal,
-// the plain-English rationale per change, and the CEO ratify/revise/hold
-// line — this export is the WORKING COPY that document quotes verbatim.
-export const LIA_HOOK_SHAPES_PROPOSED_2026_09: Readonly<Record<"S1" | "S2" | "S3" | "S4" | "S5a" | "S5b" | "S6" | "S6x", string>> = {
-  S1:
-    "The company has stated that {customer_fact}. In {authority}, {regulator} {verb} that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding supports the company's position on the {factor}. {hedge}Section {section} records that determination. ({citation}; {status}.)",
-  S2:
-    "The company has stated that {customer_fact}. In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding cuts against the company's position on the {factor}. {hedge}Whether that holds on this record is addressed in Section {section}. ({citation}; {status}.)",
-  S3:
-    "In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding turned on the fact that {source_fact}; on this record the company has instead stated that {record_fact}. The decision marks a boundary rather than a finding against the company. ({citation}; {status}.)",
-  S4:
-    "In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". The company has stated that {customer_fact}. That decision is {status}; it is noted as a boundary and is not applied. ({citation}.)",
-  S5a:
-    "In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}. That guidance is relevant to the company's asserted {factor}; whether its condition is satisfied is addressed in Section {section}. ({citation}; {status}.)",
-  S5b:
-    "In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}. That guidance is relevant to the company's asserted {factor}; whether its condition is satisfied is addressed in Section {section}. The facts identified in Section {section} satisfy that stated condition. ({citation}; {status}.)",
-  S6:
-    "The company has stated that {record_fact}. In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}, but does not address whether legitimate interests is available where {record_fact}. The conclusion in Section {section} therefore rests on the separately identified rules and facts, not on that guidance. ({citation}; {status}.)",
-  S6x:
-    "The company has stated that {record_fact}. In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}, and that {exclusion_paraphrase}; that exclusion applies to processing of the kind the company describes. Whether it applies here is addressed in Section {section}. ({citation}; {status}.)",
-};
+// DOC 238's separate `LIA_HOOK_SHAPES_PROPOSED_2026_09` export (the paragraph
+// -form shapes exercised only in tests, never wired into production) is gone
+// as of 2026-09-09: `LIA_HOOK_SHAPES` (lia-hooks.ts) now IS that content,
+// promoted to live/ratified — see that file's own header comment for the
+// full rationale. Nothing else in this file changes: `renderSentence`'s 5th
+// parameter still defaults to `LIA_HOOK_SHAPES`, so it now defaults to the
+// promoted paragraph-form shapes automatically, with no signature change.
 
 interface Candidate {
   readonly hook: AuthorityHook;
