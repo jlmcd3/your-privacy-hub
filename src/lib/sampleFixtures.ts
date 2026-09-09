@@ -355,6 +355,146 @@ const F_DPIA_EU: SampleFixture = {
   },
 };
 
+// --- 2a/2b. DPIA V3 hook-trigger fixtures (doc 230 / doc 232, 2026-09-08) --
+// Mirror the two new golden fixtures in
+// supabase/functions/quality-batch-orchestrator/_local/golden/dpia.ts
+// exactly (same organisations, same facts) so the same scenario is
+// selectable both from the LLM-graded quality-batch harness and from
+// /admin/all-products-test's live-generation picker. DPIA_HOOKS ships []
+// today (doc 213's "an unstamped hook is inert" law), so running these two
+// fixtures now exercises the record's own necessity/proportionality and
+// trigger-reasons prose only; they are named "hook-agreed"/"hook-disagreed"
+// for the FLAG-ON run once the first DPIA hook batch (doc 230 §3.1) is
+// ratified.
+const F_DPIA_V3_TUNING: SampleFixture = {
+  tool_slug: "dpia",
+  variant: "v3-ics-digital-id-hook-agreed",
+  title: "New digital identity-verification process (biometric)",
+  scenario_summary:
+    "Meridian Card Services B.V. deploys a new digital identity-verification process for credit-card applicants: a live selfie is matched against a government-ID photo via a facial biometric template, discarded immediately after the match. DOC 230/232 DPIA V3 tuning fixture — clean Art. 35(3)(b)/innovative-technology trigger signal, expected to AGREE once a matching ratified hook exists (ICS/AENA profiles).",
+  source_table: "dpia_frameworks",
+  result_url_pattern: "/dpia-framework/result/{id}",
+  fixture: {
+    insert: {
+      status: "pending",
+      is_subscriber_credit: true,
+      intake_data: {
+        organization_name: "Meridian Card Services B.V.",
+        processing_activity_name: "New digital identity-verification process",
+        description:
+          "Meridian Card Services is deploying a new digital identity-verification process for new credit-card applicants. The process captures a live selfie and a government-ID photo, extracts a facial biometric template, and matches it against the ID photo to confirm the applicant's identity before the account is opened. The biometric template is derived at onboarding only and is not retained after the match completes; the match result (pass/fail) and a confidence score are retained in the application file.",
+        purpose:
+          "Verify that the person applying for a credit card is the same person shown on the submitted government identification document, to prevent identity-fraud account openings before the account is issued.",
+        data_categories: ["Contact details", "Financial data", "Biometric data"],
+        data_subjects:
+          "New credit-card applicants who submit an application through the online channel. Approximately 40,000 applicants per year.",
+        volume_frequency:
+          "Continuous; every online application is screened through the process at the point of application, roughly 110 applications per day.",
+        retention_period: "Match result and confidence score retained for the life of the account plus 5 years (AML record-keeping duty); the biometric template itself is never retained.",
+        third_party_processors: [],
+        existing_safeguards: ["Encryption at rest", "Encryption in transit", "Access controls", "Data minimisation"],
+        jurisdictions: ["EU (GDPR)"],
+        legal_basis_proposed: "Legal obligation (Art. 6(1)(c))",
+        article_9_condition: "Substantial public interest — Union/Member State law (Art. 9(2)(g))",
+        reasons_to_conduct: [
+          "Large-scale special-category or criminal-offence data (Art. 35(3)(b))",
+          "Innovative use of new technology",
+        ],
+        dpo_advice:
+          "The DPO reviewed the biometric-matching design on 3 March 2026 and confirmed the template-discard control before the process went live; no prior consultation with the supervisory authority was recommended given the discard control.",
+        transfer_flows: [],
+        necessity_proportionality:
+          "The biometric match is the least-intrusive means of confirming applicant identity to the standard required by the applicable anti-money-laundering identification duty; manual document review alone was considered and rejected because it cannot reliably detect a photo-substitution attempt at the volume of applications received. The biometric template is deleted immediately after the match; only the pass/fail result and confidence score are kept.",
+        controller_sector: "private",
+        controller_country: "NL",
+        nature_scope_context:
+          "The process runs at the point of online application only, for every applicant, with no exceptions; it is a new capability replacing manual document review for this application channel.",
+        dp_by_design_measures:
+          "The facial biometric template is computed in memory and discarded immediately after the match completes; it is never written to persistent storage or logs. Only the pass/fail result and confidence score are retained in the application record. Access to the confidence score is limited to the fraud-review team.",
+        alternatives_considered: [
+          {
+            alternative: "Manual review of the submitted ID photo against the selfie by a human agent",
+            rejection_reason:
+              "Manual review cannot reliably detect a photo-substitution or presentation attack at this application volume and does not achieve the anti-fraud purpose to the same standard.",
+          },
+        ],
+        dpia_prepared_by: "R. Voss — Data Protection Officer (Accountable); T. Adeyemi — Head of Fraud Risk (Responsible)",
+        dpia_approved_by_name: "L. Bakker",
+        dpia_approved_by_title: "Chief Risk Officer",
+        dpia_approval_date: "2026-03-10",
+        dpia_signoff_basis:
+          "Sections 2 and 3 as reviewed on 3 March 2026, and the condition that the biometric-template discard control is verified in production before go-live.",
+        source_assessment_id: null,
+      },
+    },
+    invoke: { fn: "run-dpia-framework", id_key: "dpia_id" },
+    poll: { table: "dpia_frameworks", terminal: ["complete", "failed", "error"], max: 90, interval_ms: 4000 },
+  },
+};
+
+const F_DPIA_V3_ADVERSARIAL: SampleFixture = {
+  tool_slug: "dpia",
+  variant: "v3-employee-monitoring-hook-disagreed",
+  title: "Employee internet-usage monitoring (incident-triggered)",
+  scenario_summary:
+    "Comune Amministrazione di Valdirosa logs staff internet usage continuously at the network gateway but queries it by name only when a specific security incident or misuse complaint is opened. DOC 230/232 DPIA V3 adversarial fixture — the record is deliberately ambiguous between 'routine systematic monitoring' (WP248, Comune di Bolzano) and 'incident-triggered only', expected to DISAGREE once a matching ratified hook exists.",
+  source_table: "dpia_frameworks",
+  result_url_pattern: "/dpia-framework/result/{id}",
+  fixture: {
+    insert: {
+      status: "pending",
+      is_subscriber_credit: true,
+      intake_data: {
+        organization_name: "Comune Amministrazione di Valdirosa",
+        processing_activity_name: "Employee internet-usage monitoring",
+        description:
+          "The municipal IT department logs internet-usage records (URLs visited, connection duration, and data volume) for staff workstations, to be reviewed if a security incident or a complaint about excessive personal use during working hours is raised. Logs are retained centrally and are queried by name only when a specific incident is opened; there is no routine or automated review of an individual employee's browsing history absent an incident.",
+        purpose:
+          "Detect and investigate suspected misuse of municipal IT resources (excessive personal internet use during working hours, or a security incident such as a malware infection traced to browsing activity), and support the corresponding disciplinary or security process where warranted.",
+        data_categories: ["Employee records", "Communications content"],
+        data_subjects: "Municipal staff with an assigned workstation. Approximately 340 employees.",
+        volume_frequency: "Logs are generated continuously by the network gateway for all staff workstations; queried only when a specific incident is opened, roughly 6-10 times per year.",
+        retention_period: "Raw gateway logs retained 90 days on a rolling basis; logs pulled into an opened incident file retained per the disciplinary-record retention schedule.",
+        third_party_processors: [],
+        existing_safeguards: ["Access controls", "Staff training"],
+        jurisdictions: ["EU (GDPR)"],
+        legal_basis_proposed: "Legitimate interest (Art. 6(1)(f))",
+        article_9_condition: "",
+        reasons_to_conduct: [
+          "Systematic monitoring (of employees, a defined population, or a non-public space)",
+        ],
+        dpo_advice:
+          "The DPO advised that access to the logging system be limited to two named IT security staff and reviewed the incident-ticket access rule on 14 January 2026; both were confirmed implemented before this assessment was finalised.",
+        transfer_flows: [],
+        necessity_proportionality:
+          "Continuous gateway-level logging is necessary because a security incident or a misuse complaint may relate to browsing activity from weeks earlier, and the logs cannot be reconstructed retroactively if not captured continuously; the impact on staff is limited by the access rule that logs are queried by name only once an incident is formally opened, never as routine surveillance. Real-time dashboard monitoring of individual browsing was considered and rejected as disproportionate to the stated purpose.",
+        controller_sector: "public",
+        controller_country: "IT",
+        nature_scope_context:
+          "Logging runs continuously at the network gateway for every staff workstation; the access restriction (query only once an incident is opened) is the operative limit on how the logs are actually used, not on what is captured.",
+        dp_by_design_measures:
+          "Logs are accessible only to two named IT security staff and only after a ticket number for the triggering incident or complaint is recorded; the access-log for the logging system itself is reviewed quarterly by the DPO.",
+        alternatives_considered: [
+          {
+            alternative: "Real-time per-employee browsing dashboard reviewed by IT weekly",
+            rejection_reason:
+              "This would constitute routine surveillance of every employee's browsing regardless of any incident or complaint, which is disproportionate to the security and misuse-investigation purpose the logging serves.",
+          },
+        ],
+        dpia_prepared_by: "G. Colombo — Data Protection Officer (Accountable); F. Marino — IT Security Lead (Responsible)",
+        dpia_approved_by_name: "S. Rinaldi",
+        dpia_approved_by_title: "Segretario Comunale",
+        dpia_approval_date: "2026-01-20",
+        dpia_signoff_basis:
+          "Sections 2 and 3 as reviewed on 14 January 2026, and the condition that log access remains limited to the two named IT security staff.",
+        source_assessment_id: null,
+      },
+    },
+    invoke: { fn: "run-dpia-framework", id_key: "dpia_id" },
+    poll: { table: "dpia_frameworks", terminal: ["complete", "failed", "error"], max: 90, interval_ms: 4000 },
+  },
+};
+
 // --- 3. DPA / EU ---------------------------------------------------------
 // SAMPLES-CONTRACT-dpa (9/9 — closes series) reconciliation notes:
 //   - Audited surface: `invoke_body_extras` per SAMPLE_MAP.
@@ -1643,6 +1783,9 @@ export const SAMPLE_FIXTURES: SampleFixture[] = [
   F_LIA_UK,
   F_LIA_206E,
   F_DPIA_EU,
+  // DOC 230 / DOC 232 (2026-09-08) — DPIA V3 hook-trigger fixtures.
+  F_DPIA_V3_TUNING,
+  F_DPIA_V3_ADVERSARIAL,
   F_DPA_EU,
   F_GOV_EU,
   F_GOV_US,
