@@ -1,20 +1,37 @@
 // DOC 238 (2026-09-09) — PROPOSED shape-amendment plumbing, DPIA. DPIA's
 // DPIA_HOOK_SHAPES/etc. are `[RATIFY — DRAFT, unratified]` (DPIA_HOOKS ships
-// `[]`), so this build edits them in place. Fixture below (`AENA`, doc 233
-// candidate #1) copies its citation/status/posture/settledness/atom fields
-// directly from doc 233's own curation card and prose. Doc 233 itself flags
-// this hook's pinpoint as `[NEEDS: pinpoint unlocatable]` and does not print
-// an English verbatim finding_span (only a paraphrase) — this fixture uses
-// the curation card's own SPANISH verbatim quote (position-verified in that
-// document) as `finding_span`, and a placeholder pinpoint, both noted inline.
+// `[]`), so this build edits them in place.
+//
+// DOC 238 FOLLOW-UP (2026-09-09, the hedge): the generic
+// `DPIA_HEDGE_DOMESTIC_FACTS_PROPOSED` constant ("But the outcome here
+// depends on this company's own facts, not on the cited authority's.") is
+// gone — that sentence appears in no approved document. Every approved DPIA
+// hedge in doc 233 is "But the outcome depends on this company's own facts:
+// <that hook's own fact list>", so the hedge is per-hook DATA
+// (`AuthorityHook.hedge_sentence`, rendered verbatim by `hedgeSuffix`) and
+// `hedge_variant` is classification only.
+//
+// Two fixtures:
+//   - AENA (doc 233 #1). Its "CEO: ratify / revise / retire" line in doc 233
+//     is BLANK — this prose is NOT approved. Kept as a MECHANISM fixture only
+//     (quote slot, forward pointer, backward compatibility); nothing it
+//     renders is asserted as ratified wording, and it carries NO hedge.
+//   - Comune di Bolzano (doc 233 #6) — "CEO approved the revised prose, both
+//     the obligation-fires and distinguished versions (2026-09-08)". Its
+//     approved S2-style paragraph carries a hedge, copied verbatim below.
+//     Its citation is composed by the REAL `citationFor` from the row facts
+//     doc 233 prints, and the rendered citation parenthetical reproduces the
+//     approved one byte-for-byte. Its paraphrase fields are fixture
+//     placeholders derived from the approved prose (doc 233 prints the
+//     approved paragraph, not the DB's paraphrase columns), labelled inline.
 
 import { assert, assertEquals, assertNotEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import type { AuthorityHook } from "../../../supabase/functions/_shared/corpus/hook-types.ts";
+import { citationFor, type HookProfileRow, type HookSourceRow } from "../../../supabase/functions/generate-corpus-hooks/_local/generate.ts";
 import { renderSentence } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-deliverables/dpia-hook-join.ts";
-import {
-  DPIA_HOOK_SHAPES,
-  DPIA_HEDGE_DOMESTIC_FACTS_PROPOSED,
-} from "../../../supabase/functions/run-dpia-framework/_local/corpus/maps/dpia-hooks.ts";
+import { DPIA_HOOK_SHAPES, DPIA_SOURCE_STATUS_LABELS } from "../../../supabase/functions/run-dpia-framework/_local/corpus/maps/dpia-hooks.ts";
+
+// ── AENA — doc 233 #1, NOT approved (ratify line blank) — mechanism only ──
 
 function aenaHook(overrides: Partial<AuthorityHook> = {}): AuthorityHook {
   return {
@@ -55,40 +72,152 @@ function aenaHook(overrides: Partial<AuthorityHook> = {}): AuthorityHook {
       flags: ["biometric", "large_scale"],
       outcome_posture: "rejected",
     },
-    hedge_variant: "domestic_facts",
+    // No hedge: AENA's prose is unapproved, so no hedge_sentence may exist.
     ...overrides,
   };
 }
 
-Deno.test("doc238 DPIA — status label for sa_decision is ALREADY the approved text: no gap, unlike LIA/Risk/ADMT (doc 237 §5 item 6)", () => {
-  const hook = aenaHook();
-  assertEquals(hook.status_label, "supervisory-authority decision — persuasive, non-binding outside its jurisdiction");
-  // Copied verbatim from doc 233's own AENA prose's trailing citation.
+// ── Comune di Bolzano — doc 233 #6, CEO APPROVED (2026-09-08) ─────────────
+
+/** Doc 233 #6, obligation-fires (S2-style) paragraph, the hedge sentence
+ *  copied VERBATIM. */
+const BOLZANO_HEDGE_233 =
+  "But the outcome depends on this company's own facts: whether the monitoring is organized and ongoing (systematic), or occasional and incidental.";
+
+/** The approved paragraph's trailing citation, verbatim. */
+const BOLZANO_CITATION_233 =
+  "(Garante, Comune di Bolzano, decision of 13 May 2021; supervisory-authority decision — persuasive, non-binding outside its jurisdiction.)";
+
+const bolzanoProfile: HookProfileRow = {
+  id: "profile-bolzano",
+  source_table: "enforcement_actions",
+  source_row_id: "dbfca969-3139-43d1-8a5b-7fff179f8db6",
+  outcome_posture: "rejected",
+  instrument: "EU GDPR",
+  factor_ids: ["the employee-monitoring trigger"],
+  ratified_by: "ceo",
+  ratified_at: "2026-09-08T00:00:00Z",
+  ledger_ref: "doc233-6",
+};
+// Row facts exactly as doc 233's curation card prints them (Garante, 13 May
+// 2021). No `regulator_english_name` (no DB column exists — doc 238 §1.4)
+// and no resolved appeal status, so `citationFor`'s doc-238 additions are
+// both no-ops here — the label is the pre-doc-238 composition.
+const bolzanoSource: HookSourceRow = {
+  source_table: "enforcement_actions",
+  regulator: "Garante",
+  subject: "Comune di Bolzano",
+  decision_date: "2021-05-13",
+};
+
+function bolzanoHook(overrides: Partial<AuthorityHook> = {}): AuthorityHook {
+  const cite = citationFor(bolzanoProfile, bolzanoSource);
+  assert(cite);
+  return {
+    hook_id: "enforcement_actions:dbfca969:v1",
+    profile_id: bolzanoProfile.id,
+    source_row_id: bolzanoProfile.source_row_id,
+    fact_atoms: ["class:employee_monitoring"],
+    distinguishing_atoms: [],
+    not_distinguishable: false,
+    required_atoms: ["class:employee_monitoring"],
+    // Doc 233's curation card quote (key_compliance_failure, position()=18).
+    finding_span:
+      "The municipality unlawfully monitored employee internet usage and processed sensitive health data without a valid legal basis or proper transparency",
+    // Fixture placeholders derived from doc 233 #6's approved paragraph
+    // ("…found that systematic monitoring of employee internet usage
+    // requires a DPIA under WP248's 'systematic monitoring' criterion —
+    // even where the monitoring is not carried out on a large scale") — NOT
+    // the DB's paraphrase columns (doc 233 does not print them) and NOT
+    // asserted below as ratified wording.
+    fact_pattern_paraphrase: "an employer monitors employees' internet usage",
+    finding_paraphrase:
+      "systematic monitoring of employee internet usage requires a DPIA under WP248's \"systematic monitoring\" criterion, even where the monitoring is not carried out on a large scale",
+    settledness: "R3",
+    posture: "rejected",
+    factor_id: "the employee-monitoring trigger",
+    bears_on_element: "obligation",
+    authority_label: cite!.authority_label,
+    regulator: cite!.regulator,
+    verb: "found",
+    source_status: "sa_decision",
+    status_label: "supervisory-authority decision — persuasive, non-binding outside its jurisdiction",
+    pinpoint: null, // doc 233: `[NEEDS: pinpoint unlocatable]` — the approved citation carries none
+    relevance: {
+      instrument: "EU GDPR",
+      factor_ids: ["the employee-monitoring trigger"],
+      use_case_class: "employee_monitoring",
+      relationship: "employee",
+      data_categories: [],
+      flags: [],
+      outcome_posture: "rejected",
+    },
+    hedge_variant: "domestic_facts",
+    hedge_sentence: BOLZANO_HEDGE_233,
+    ...overrides,
+  };
+}
+
+// ── Tests ────────────────────────────────────────────────────────────────
+
+Deno.test("doc238 DPIA — DPIA_SOURCE_STATUS_LABELS.sa_decision is ALREADY the text every approved doc 233 SA-decision paragraph prints: no status-label gap for DPIA (doc 237 §5 item 6)", () => {
+  assertEquals(DPIA_SOURCE_STATUS_LABELS.sa_decision, "supervisory-authority decision — persuasive, non-binding outside its jurisdiction");
 });
 
-Deno.test("doc238 DPIA — a hook with hedge_variant unset renders through the amended DPIA_HOOK_SHAPES exactly as before (no hedge, no {quote} usage change)", () => {
-  const hook = aenaHook({ hedge_variant: undefined });
+Deno.test("doc238 DPIA — a hook with hedge_sentence unset renders through the amended DPIA_HOOK_SHAPES with no hedge and no unresolved slot (every hook DPIA_HOOKS ships today)", () => {
+  const hook = aenaHook();
   const rendered = renderSentence(hook, "S2", hook.fact_atoms, undefined);
   assert(rendered);
-  assert(!rendered.includes("But the outcome"));
+  assert(!rendered.includes("own facts"));
   assert(!/\{[a-z_]+\}/.test(rendered!), `unresolved slot: ${rendered}`);
 });
 
-Deno.test("doc238 DPIA — AENA S2: quote + domestic hedge + forward-looking section pointer, structurally matching doc 233's approved register", () => {
+Deno.test("doc238 DPIA — hedge_variant alone (either value, hedge_sentence unset) renders NO hedge: there is no generic DPIA hedge constant left", () => {
+  for (const hedge_variant of ["domestic_facts", "foreign_analogy"] as const) {
+    const hook = bolzanoHook({ hedge_variant, hedge_sentence: undefined });
+    const rendered = renderSentence(hook, "S2", hook.fact_atoms, undefined);
+    assert(rendered);
+    assert(rendered!.endsWith(BOLZANO_CITATION_233), `expected to end at the citation: ${rendered}`);
+    assert(!rendered!.includes("own facts"));
+  }
+});
+
+Deno.test("doc238 DPIA — Comune di Bolzano (APPROVED, doc 233 #6): S2 ends with doc 233's own hedge sentence for this hook, verbatim, and the citation parenthetical reproduces the approved one byte-for-byte", () => {
+  const hook = bolzanoHook();
+  const rendered = renderSentence(hook, "S2", hook.fact_atoms, undefined);
+  assert(rendered, "expected S2 to render");
+  assert(rendered!.endsWith(`${BOLZANO_CITATION_233} ${BOLZANO_HEDGE_233}`), `approved citation + hedge missing: ${rendered}`);
+  assert(!rendered!.includes("But the outcome here depends"), `generic constant leaked: ${rendered}`);
+  assert(rendered!.includes(`"${hook.finding_span}"`), `verbatim quote missing: ${rendered}`);
+  // Doc 233's approved pointer is "Section 1 records whether that trigger is
+  // satisfied." — the amended S2's "Whether that holds on this record is
+  // addressed in Section 1." matches in register (forward-looking), NOT in
+  // wording. Doc 238 §3.2 calls the approved sentence "the literal target
+  // text this change matches"; it is the register, not the letter.
+  assert(rendered!.includes("Whether that holds on this record is addressed in Section 1"), `forward pointer missing: ${rendered}`);
+  // Pinned byte-for-byte so the mechanism's output is deterministic. Only
+  // the citation parenthetical and the hedge are CEO-approved wording; the
+  // customer-fact atom phrase and the paraphrases are fixture placeholders.
+  // POSITION: as in LIA, doc 233 places the hedge BEFORE "Section 1 records
+  // …" and before the citation; hedgeSuffix appends it after — open item.
+  assertEquals(
+    rendered,
+    "The record identifies that the processing monitors employees. In Garante, Comune di Bolzano, decision of 13 May 2021, Garante found that where an employer monitors employees' internet usage, systematic monitoring of employee internet usage requires a DPIA under WP248's \"systematic monitoring\" criterion, even where the monitoring is not carried out on a large scale — in its own words, \"The municipality unlawfully monitored employee internet usage and processed sensitive health data without a valid legal basis or proper transparency\". That finding cuts against the assessment's position on the employee-monitoring trigger. Whether that holds on this record is addressed in Section 1. (Garante, Comune di Bolzano, decision of 13 May 2021; supervisory-authority decision — persuasive, non-binding outside its jurisdiction.) But the outcome depends on this company's own facts: whether the monitoring is organized and ongoing (systematic), or occasional and incidental.",
+  );
+});
+
+Deno.test("doc238 DPIA — AENA (NOT approved — doc 233 #1's ratify line is blank): MECHANISM check only — quote slot + forward-looking pointer resolve through the amended S2", () => {
   const hook = aenaHook();
   const rendered = renderSentence(hook, "S2", hook.fact_atoms, undefined);
   assert(rendered, "expected S2 to render");
 
   const sentenceCount = (rendered!.match(/[.!?](?:\s|$)/g) ?? []).length;
   assert(sentenceCount >= 4, `expected >= 4 sentences: ${rendered}`);
-
   assert(rendered!.includes(`"${hook.finding_span}"`), `expected the verbatim quote: ${rendered}`);
-  // Doc 233's own approved wording for this exact row: "Section 3 addresses
-  // whether that analysis is present." — forward-looking, not asserted.
   assert(rendered!.includes("Whether that holds on this record is addressed in Section 3"), `forward pointer missing: ${rendered}`);
   assert(!rendered!.includes("determination in Section 3 reflects it"));
-  assert(rendered!.trim().endsWith(DPIA_HEDGE_DOMESTIC_FACTS_PROPOSED), `hedge missing: ${rendered}`);
   assert(rendered!.includes("(AEPD, AENA, S.M.E., S.A., decision of 6 November 2025"), `citation missing: ${rendered}`);
+  assert(!rendered!.includes("own facts"), `no hedge may render for an unapproved hook: ${rendered}`);
 });
 
 Deno.test("doc238 DPIA — no DPIA_HOOK_SHAPES entry references {governing_provision}: DPIA's sources ARE its own governing law's authorities (doc 237 §5 item 3's beneficiary list is Risk/ADMT/LIA's UK-guidance hooks only, not DPIA)", () => {

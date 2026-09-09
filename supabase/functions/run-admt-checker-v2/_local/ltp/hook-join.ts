@@ -79,8 +79,6 @@ import {
   ADMT_FACTOR_PHRASES,
   ADMT_HOOK_SHAPES,
   ADMT_APPEAL_SENTENCE,
-  ADMT_HEDGE_DOMESTIC_FACTS_PROPOSED,
-  ADMT_HEDGE_FOREIGN_ANALOGY_PROPOSED,
   ADMT_SETTLEDNESS_LABELS,
   ADMT_SOURCE_STATUS_LABELS,
   admtAtomConcept,
@@ -205,13 +203,23 @@ function appealSuffix(hook: AuthorityHook): string {
   return hook.source_status === "sa_decision_appeal_pending" ? ` ${ADMT_APPEAL_SENTENCE}` : "";
 }
 
-/** DOC 238 §5 item 4 — PROPOSED. Mirrors `appealSuffix` exactly; two
- *  variants (doc 238 §"ADMT"): `domestic_facts` for a CPPA FSOR source,
- *  `foreign_analogy` for a GDPR enforcement source (e.g. E1, doc 236). */
+/** DOC 238 §5 item 4, revised 2026-09-09 — appends the hook's OWN
+ *  CEO-approved hedge passage (`hedge_sentence`, hook-types.ts) VERBATIM,
+ *  after the appeal suffix. Same mechanism as LIA's `hedgeSuffix` (see that
+ *  file's doc comment): the text is per-hook data, never a constant — doc
+ *  236's approved hedges each name that hook's own facts (E1: "…whether it
+ *  applies to this company depends on what this company's own system
+ *  actually decides, what legal basis supports the profiling, and whether
+ *  the required assessments were completed first."; notice-content/01:
+ *  "…a judgment about this company's own words, not a fixed word count or
+ *  template."). Doc 238's first cut mapped `hedge_variant` to two generic
+ *  constants that appeared in no approved document; both are gone and
+ *  `hedge_variant` is classification only. A hook without `hedge_sentence`
+ *  (every hook shipped today) gets no suffix — byte-identical to
+ *  pre-doc-238 rendering. */
 function hedgeSuffix(hook: AuthorityHook): string {
-  if (hook.hedge_variant === "domestic_facts") return ` ${ADMT_HEDGE_DOMESTIC_FACTS_PROPOSED}`;
-  if (hook.hedge_variant === "foreign_analogy") return ` ${ADMT_HEDGE_FOREIGN_ANALOGY_PROPOSED}`;
-  return "";
+  const hedge = (hook.hedge_sentence ?? "").trim();
+  return hedge ? ` ${hedge}` : "";
 }
 
 function verbFor(hook: AuthorityHook): "found" | "states" | "advised" {

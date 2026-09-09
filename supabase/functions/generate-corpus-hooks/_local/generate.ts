@@ -49,6 +49,8 @@ export interface HookRow {
   // has somewhere to land; no such column exists yet (a `[NEEDS]`, doc 238).
   readonly governing_provision_sentence?: string | null;
   readonly hedge_variant?: "domestic_facts" | "foreign_analogy" | null;
+  /** The hook's own CEO-approved hedge passage, verbatim (hook-types.ts). */
+  readonly hedge_sentence?: string | null;
 }
 
 export interface HookProfileRow {
@@ -464,9 +466,10 @@ function shippedHook(
     material_facts: [...(row.material_facts ?? [])],
     distinguishing_pairs: [...(row.distinguishing_pairs ?? [])],
     // DOC 238 — PROPOSED plumbing, additive; null on every hook today (no
-    // row sets either column yet).
+    // row sets any of these columns yet).
     governing_provision_sentence: row.governing_provision_sentence ?? null,
     hedge_variant: row.hedge_variant ?? null,
+    hedge_sentence: row.hedge_sentence ?? null,
   };
 }
 

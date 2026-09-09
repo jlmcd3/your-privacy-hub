@@ -309,10 +309,11 @@ export const DPIA_ATOM_PHRASES: Readonly<Record<string, string>> = {
 // backward-asserting on purpose (doc 233's WP248 candidate: "supports the
 // assessment's position… Section 1 records that determination" — a
 // SUPPORTING finding is properly asserted, not hedged as pending). The hedge
-// itself is NOT template text — see `DPIA_HEDGE_DOMESTIC_FACTS_PROPOSED`
-// below, appended by the join exactly like `DPIA_APPEAL_SENTENCE`. See doc
-// 238 §"DPIA" for the full proposal, a rendered example, and the CEO
-// ratify/revise/hold line.
+// itself is NOT template text — it is the hook's own CEO-approved
+// `hedge_sentence` (hook-types.ts), appended verbatim by the join's
+// `hedgeSuffix` after the citation; no generic hedge constant exists (doc
+// 238 follow-up, 2026-09-09). See doc 238 §"DPIA" for the full proposal, a
+// rendered example, and the CEO ratify/revise/hold line.
 
 export const DPIA_HOOK_SHAPES: Readonly<Record<"S1" | "S2" | "S3" | "S4" | "S5a" | "S5b" | "S6" | "S6x", string>> = {
   S1:
@@ -418,22 +419,6 @@ export const DPIA_SOURCE_STATUS_LABELS: Readonly<Record<string, string>> = {
 // verbatim, after the hook's sentence. ─────────────────────────────────────
 
 export const DPIA_APPEAL_SENTENCE = "This matter is subject to an appeal which could invalidate this ruling.";
-
-// ── [RATIFY — DRAFT, unratified] — DOC 238 §5 item 4, PROPOSED. The hedge
-// clause, mirroring DPIA_APPEAL_SENTENCE's pattern exactly: a fixed string,
-// appended by the join, never drafted. DPIA uses ONLY the domestic-facts
-// hedge — every one of its sources (EDPB/WP29 guidance, EU/UK enforcement
-// decisions) applies the SAME governing law (EU/UK GDPR) DPIA itself
-// assesses, so there is no "foreign law" hedge variant for this product
-// (unlike Risk/ADMT, where a GDPR enforcement decision is foreign relative
-// to California law). Matches every approved candidate this session: doc
-// 233's own repeated "But the outcome depends on this company's own facts:
-// …" clause. Wording here is GENERIC (hook-agnostic) rather than the
-// hand-tailored fact list each approved candidate carries — see doc 238
-// §"DPIA" for that judgment call, flagged for the CEO. ────────────────────
-
-export const DPIA_HEDGE_DOMESTIC_FACTS_PROPOSED =
-  "But the outcome here depends on this company's own facts, not on the cited authority's.";
 
 export const DPIA_SETTLEDNESS_LABELS: Readonly<Record<"R1" | "R2" | "R3" | "R4", string>> = {
   R1: "adopted guidance or settled authority",
