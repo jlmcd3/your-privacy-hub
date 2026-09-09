@@ -423,9 +423,41 @@ const App = () => (
             />
             <Route
               path="/admin/email-signups"
+              element={<Navigate to="/admin/registered-users" replace />}
+            />
+            <Route
+              path="/admin/registered-users"
               element={
                 <ProtectedRoute>
-                  <AdminEmailSignups />
+                  <AdminRegisteredUsers />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/people"
+              element={
+                <ProtectedRoute>
+                  <AdminPeople />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/PP-ToS"
+              element={
+                <ProtectedRoute>
+                  <AdminPolicyVersions />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/pp-tos"
+              element={<Navigate to="/admin/PP-ToS" replace />}
+            />
+            <Route
+              path="/admin/support"
+              element={
+                <ProtectedRoute>
+                  <AdminSupportLog />
                 </ProtectedRoute>
               }
             />
