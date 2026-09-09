@@ -88,7 +88,7 @@ export default function RopaDocuments() {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [hasUsNotices, setHasUsNotices] = useState<boolean>(true);
   const [hasEuNotices, setHasEuNotices] = useState<boolean>(true);
-  const [needsUs, setNeedsUs] = useState<boolean>(false);
+  
   const [needsEu, setNeedsEu] = useState<boolean>(false);
   const [pendingDeleteSession, setPendingDeleteSession] = useState<SessionRow | null>(null);
   const [pendingDeleteDoc, setPendingDeleteDoc] = useState<DocVersion | null>(null);
@@ -122,10 +122,8 @@ export default function RopaDocuments() {
           .from('ropa_jurisdiction_selections')
           .select('jurisdiction_region');
         const set = new Set((regions ?? []).map((r: { jurisdiction_region: string }) => r.jurisdiction_region));
-        setNeedsUs(set.has('United States'));
         setNeedsEu(set.has('EU & UK'));
       } catch {
-        setNeedsUs(false);
         setNeedsEu(false);
       }
     })();
@@ -357,18 +355,7 @@ export default function RopaDocuments() {
       </div>
 
       {/* Notice CTA is jurisdiction-aware: only promote products that match the company's selected regions. */}
-      {needsUs && !hasUsNotices ? (
-        <CrossToolPrompt
-          visitKey="/ropa/documents"
-          dismissKey="us_notice_prompt_dismissed"
-          icon={<FileText className="w-5 h-5" />}
-          title=" Add US state privacy notices?"
-          body="Your RoPA data pre-populates most answers. Takes 5–12 minutes."
-          ctaLabel="Generate US notices →"
-          ctaTo="/us-notices/mode?mode=ropa_powered"
-          enabled={sessions.length > 0}
-        />
-      ) : needsEu && !hasEuNotices ? (
+      {needsEu && !hasEuNotices ? (
         <CrossToolPrompt
           visitKey="/ropa/documents"
           dismissKey="eu_notice_prompt_dismissed"
