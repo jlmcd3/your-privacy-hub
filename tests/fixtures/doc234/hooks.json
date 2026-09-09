@@ -1,0 +1,297 @@
+{
+  "_about": "DOC 234 RATIFICATION — WRITTEN (2026-09-09). The four CPPA Risk candidates whose own 'CEO: ratify / revise / retire' line reads 'CEO approved the revised prose (2026-09-09)'. Their approved paragraphs are the sibling ratified-<id>.txt fixtures (script-extracted from doc 234's hard-wrapped blockquotes, joined with single spaces; Candidate 1's markdown-italic markers around the Dutch quotation stripped — 2 '*' characters, quotation marks kept). Candidates 5–18 (every FSOR candidate) have a BLANK ratify line and are NOT approved. WRITTEN 2026-09-09 once authority_relevance_profiles carried product='cppa-risk' rows (18 live): this file is the single wiring spec the SQL generator read to INSERT the live authority_hooks rows AND the Deno test (tests/edge/run-cppa-risk-assessment-v2/doc234-risk-ratified-prose.test.ts) reads, so the two can never drift. Every prep field is carried verbatim; the added fields are the live profile wiring, the NOT NULL paraphrases (authored from each candidate's own card/trigger text — never printed, literal_sentence_override bypasses every slot), the mechanically derived settledness, the live citation facts, the fixture md5, and the per-hook ratification decision.",
+  "_blocked_on_was": "authority_relevance_profiles has ZERO rows for product='cppa-risk' as of 2026-09-09 (doc 239 §2.3 seeding SQL not yet run in Lovable). No authority_hooks row can be written until a profile exists to carry profile_id. Unblocking sequence: (1) run doc 239 §2.3 in Lovable; (2) SELECT id FROM authority_relevance_profiles WHERE product='cppa-risk' AND source_row_id = <each source_row_id below>; (3) generate the INSERT from these fixtures exactly as tests/fixtures/doc233/hooks.json + its generator did for DPIA (dollar-quoted override read from the fixture file, never retyped), hook_status='settled'; (4) re-query octet_length/md5 of literal_sentence_override against the fixture file; (5) ONLY THEN the guarded UPDATE to 'ratified' with ratified_by/ratified_at/ledger_ref='doc234'.",
+  "_unblocked": "authority_relevance_profiles now carries the product='cppa-risk' rows (read live 2026-09-09); every hook below links to its profile by (product, source_row_id) — the INSERT resolves profile_id by subselect AND asserts it equals the id recorded here.",
+  "_markup_decision_for_ceo": "doc 234 renders the load-bearing quoted clauses in markdown italics/bold; a hook sentence is plain text, so the markers were stripped (words + quotation marks untouched). If the CEO wants a different treatment (e.g. keep bold as ** for a markdown-capable renderer), the fixtures must be regenerated before any Risk DB write.",
+  "_generate_time_blockers_shared_with_dpia": "every candidate here has pinpoint=null (no locatable pinpoint in the corpus for these narrative rows) — generate.ts excludes such hooks BY NAME until a pinpoint is authored; the profile must also be stamped (ratified_by/ratified_at/ledger_ref) before the generator emits it.",
+  "_ratification_split": "all 4 ratified — every candidate is rejected-posture on a mapped factor; no structural blocker.",
+  "hooks": [
+    {
+      "short": "dc095815",
+      "candidate": "doc 234 Candidate 1 — AP (Netherlands), International Card Services B.V.",
+      "ratify_line": "CEO approved the revised prose (2026-09-09) — the sentence itself is settled; drafting into the corpus still awaits the generate.ts/loadSource() column fix (§1.3) and profile ratification.",
+      "product": "cppa-risk",
+      "profile_id": "ba6c1a25-bd79-49b4-b4e4-1217a08e5ed4",
+      "source_table": "enforcement_actions",
+      "source_row_id": "dc095815-d03d-4bb2-b3be-2711e7f7d459",
+      "profile_factor_id": "Assessment timing and material changes",
+      "profile_factor_ids": [
+        "Assessment timing and material changes",
+        "Regulatory trigger and applicability"
+      ],
+      "profile_posture": "rejected",
+      "profile_instrument": "GDPR",
+      "card_posture_in_doc": "rejected",
+      "bears_on_element": "Assessment timing and material changes",
+      "card_factors": [
+        "Assessment timing and material changes",
+        "Regulatory trigger and applicability"
+      ],
+      "card_trigger_condition": "a § 7150(b) trigger is engaged (e.g., q15_sensitive_pi === 'Yes') AND processing_status === 'Planned', or processing_start_date predates the date the risk assessment record itself was created",
+      "fact_atoms": [
+        "flag:sensitive_pi",
+        "state:intake.processing_status=Planned"
+      ],
+      "required_atoms": [
+        "flag:sensitive_pi"
+      ],
+      "vocabulary_checks_passed": true,
+      "vocabulary_check_errors": [],
+      "atoms_note": "both atoms are in RISK_ATOM_PHRASES and STATE_ATOM_ENUMS (intake.processing_status is a closed Risk path). The card's 'e.g.' means ANY § 7150(b) trigger — the AND-only grammar cannot express that OR, so sensitive_pi (the card's own example) is the coarse gate. [NEEDS: the second leg — 'processing_start_date predates the assessment record' — has no atom (no state path for start date vs created_at); it can only be reached by a two-leg selection read or a new atom.]",
+      "atoms_rationale": "prep JSON's own proposal: required = flag:sensitive_pi (the card's own § 7150(b) example trigger, a coarse gate — the AND-only grammar cannot express the card's 'any § 7150(b) trigger' OR); fact = flag:sensitive_pi + state:intake.processing_status=Planned (both in RISK_ATOM_PHRASES and STATE_ATOM_ENUMS). The card's second leg ('processing_start_date predates the assessment record') has NO atom — carried as a [NEEDS]",
+      "finding_span": "ICS heeft nagelaten om een DPIA uit te voeren voordat het bedrijf in 2019 begon met het digitaal identificeren van klanten in Nederland",
+      "finding_span_column": "enforcement_actions.source_document_text",
+      "position_check": "enforcement_actions.source_document_text position()=1956, re-verified live 2026-09-09 (matches doc 234 and the prep JSON); DB-side md5 of the quote text equalled the local md5 of the prep JSON text",
+      "fact_pattern_paraphrase": "a business rolling out a new identity-verification process, collecting a photo from about 1.5 million customers and comparing it against their ID documents, without assessing the risk first",
+      "finding_paraphrase": "failing to carry out a DPIA before the company began digitally identifying customers breached the obligation to assess the risk before that processing started",
+      "settledness": "R3",
+      "settledness_note": "R3 (settlednessFor: enforcement_actions). Source row appeal_status='final': deriveSourceStatus derives sa_decision (only 'affirmed' derives sa_decision_affirmed) and citationFor appends ', final on appeal' — exactly the approved parenthetical",
+      "citation_facts": {
+        "regulator": "AP",
+        "subject": "International Card Services B.V.",
+        "decision_date": "2024-01-15",
+        "appeal_status": "final",
+        "verification_status": "verified",
+        "regulator_canonical": "Autoriteit Persoonsgegevens",
+        "regulator_canonical_in_citation": true,
+        "fine_amount": "150,000"
+      },
+      "citation_composed_by_generate_ts": "Autoriteit Persoonsgegevens (Dutch Data Protection Authority), International Card Services B.V., decision of 15 January 2024, final on appeal",
+      "citation_short_label": "AP, International Card Services B.V.",
+      "approved_parenthetical_reproducible_by_citationFor": true,
+      "pinpoint_note": "null — narrative enforcement row, no locatable pinpoint (doc 234); generate.ts excludes this hook BY NAME until one is authored",
+      "fixture": "tests/fixtures/doc234/ratified-dc095815.txt",
+      "fixture_md5": "7a588c180f268f10f6451bf6048a6f29",
+      "fixture_bytes": 1460,
+      "fixture_markup_stripped": {
+        "bold_markers": 0,
+        "italic_markers": 2
+      },
+      "hook_status_written": "ratified",
+      "ratified_by": "John McDonnell (CEO)",
+      "ledger_ref": "doc234",
+      "ratification_blocker": null,
+      "needs": [
+        "generate-corpus-hooks/index.ts loadSource() cppa_fsor_commentary branch must select agency_response (doc 234 §1.3) — not relevant to THIS enforcement row but the doc's own precondition for the Risk roster",
+        "pinpoint unlocatable in corpus (narrative row)",
+        "second trigger leg has no atom"
+      ],
+      "live_hook_id": "3e5b2a58-b905-42fd-be9e-b387b35dda31"
+    },
+    {
+      "short": "a3cf40b0",
+      "candidate": "doc 234 Candidate 2 — Garante (Italy), Poste Italiane S.p.a.",
+      "ratify_line": "CEO approved the revised prose (2026-09-09) — the sentence itself is settled; drafting into the corpus still awaits translation verification (curation card) and the generate.ts/loadSource() column fix (§1.3).",
+      "product": "cppa-risk",
+      "profile_id": "1e32b616-5a11-401d-afc5-1c418c86bf4b",
+      "source_table": "enforcement_actions",
+      "source_row_id": "a3cf40b0-3625-4e78-bbe9-63624f17ceb0",
+      "profile_factor_id": "Benefits-risks balancing",
+      "profile_factor_ids": [
+        "Benefits-risks balancing",
+        "Safeguards"
+      ],
+      "profile_posture": "rejected",
+      "profile_instrument": "GDPR",
+      "card_posture_in_doc": "rejected",
+      "bears_on_element": "Benefits-risks balancing",
+      "card_factors": [
+        "Benefits-risks balancing",
+        "Safeguards"
+      ],
+      "card_trigger_condition": "q18_admt_use === 'Yes' AND q19_admt_description reads (on a two-leg SELECTION read of the narrative) as a scoring or fraud-detection system",
+      "fact_atoms": [
+        "flag:admt_use"
+      ],
+      "required_atoms": [
+        "flag:admt_use"
+      ],
+      "vocabulary_checks_passed": true,
+      "vocabulary_check_errors": [],
+      "atoms_note": "flag:admt_use is in RISK_ATOM_PHRASES. The 'reads as a scoring or fraud-detection system' leg is BY DESIGN a two-leg selection read (agreement 'unknown' -> selection_pending), not an atom.",
+      "atoms_rationale": "prep JSON's own proposal: flag:admt_use as gate and fact (RISK_ATOM_PHRASES). The 'reads as a scoring or fraud-detection system' leg is BY DESIGN a two-leg selection read, not an atom",
+      "finding_span": "Poste Italiane processed customer data excessively through a fraud prevention tool without a sufficient legal basis, proper transparency, or adequate data protection measures.",
+      "finding_span_column": "enforcement_actions.key_compliance_failure",
+      "position_check": "enforcement_actions.key_compliance_failure position()=1 (whole field), re-verified live 2026-09-09; the profile was seeded quote_verified=false because this English field is a curator paraphrase — [NEEDS: translation verification] carried forward from doc 234",
+      "fact_pattern_paraphrase": "a fraud-prevention tool that processed customer data more broadly than its stated purpose required, without an adequate legal basis, clear notice to customers, or safeguards matched to the risk",
+      "finding_paraphrase": "processing customer data excessively through a fraud-prevention tool without a sufficient legal basis, proper transparency, or adequate data protection measures is unlawful",
+      "settledness": "R3",
+      "settledness_note": "R3 (settlednessFor: enforcement_actions); prep: R3",
+      "citation_facts": {
+        "regulator": "Garante",
+        "subject": "Poste Italiane S.p.a.",
+        "decision_date": "2026-04-17",
+        "appeal_status": "unknown",
+        "verification_status": "verified",
+        "regulator_canonical": "Garante per la protezione dei dati personali",
+        "regulator_canonical_in_citation": null,
+        "fine_amount": "6,624,000"
+      },
+      "citation_composed_by_generate_ts": "Garante, Poste Italiane S.p.a., decision of 17 April 2026",
+      "citation_short_label": "Garante, Poste Italiane S.p.a.",
+      "approved_parenthetical_reproducible_by_citationFor": false,
+      "pinpoint_note": "null — [NEEDS: pinpoint unlocatable] (doc 234)",
+      "fixture": "tests/fixtures/doc234/ratified-a3cf40b0.txt",
+      "fixture_md5": "1d047a9da2ca402c9ab74db0a67e5744",
+      "fixture_bytes": 1300,
+      "fixture_markup_stripped": {
+        "bold_markers": 0,
+        "italic_markers": 0
+      },
+      "hook_status_written": "ratified",
+      "ratified_by": "John McDonnell (CEO)",
+      "ledger_ref": "doc234",
+      "ratification_blocker": null,
+      "needs": [
+        "[NEEDS: translation verification against the Italian source_document_text before this card's language is treated as anything more than a paraphrase] — carried from doc 234",
+        "pinpoint unlocatable in corpus"
+      ],
+      "live_hook_id": "8e6d5adc-4905-47d9-8a84-c98c11bcfc00"
+    },
+    {
+      "short": "e58dfa97",
+      "candidate": "doc 234 Candidate 3 — AEPD (Spain), Cartonajes Bañeres, S.A.",
+      "ratify_line": "CEO approved the revised prose (2026-09-09) — the sentence itself is settled; drafting into the corpus still awaits translation verification (curation card) and the generate.ts/loadSource() column fix (§1.3).",
+      "product": "cppa-risk",
+      "profile_id": "1841cfad-990c-41ba-84ed-c239ac1e7925",
+      "source_table": "enforcement_actions",
+      "source_row_id": "e58dfa97-b038-4ffa-9ca4-2b9aba436bbb",
+      "profile_factor_id": "Regulatory trigger and applicability",
+      "profile_factor_ids": [
+        "Regulatory trigger and applicability",
+        "Safeguards"
+      ],
+      "profile_posture": "rejected",
+      "profile_instrument": "GDPR",
+      "card_posture_in_doc": "rejected",
+      "bears_on_element": "Regulatory trigger and applicability",
+      "card_factors": [
+        "Regulatory trigger and applicability",
+        "Safeguards"
+      ],
+      "card_trigger_condition": "q15_sensitive_pi === 'Yes' AND q4_pi_categories includes 'Biometric information' AND q5b_profiling_observation === 'Yes'",
+      "fact_atoms": [
+        "flag:sensitive_pi",
+        "data_category:Biometric information",
+        "flag:profiling_or_systematic_observation"
+      ],
+      "required_atoms": [
+        "flag:biometric_data"
+      ],
+      "vocabulary_checks_passed": true,
+      "vocabulary_check_errors": [],
+      "atoms_note": "all four atoms are in RISK_ATOM_PHRASES; this is the one Risk candidate whose card trigger is a pure AND of closed atoms.",
+      "atoms_rationale": "prep JSON's own proposal: required = flag:biometric_data; fact = flag:sensitive_pi + data_category:Biometric information + flag:profiling_or_systematic_observation — the one Risk candidate whose card trigger is a pure AND of closed atoms; all four in RISK_ATOM_PHRASES",
+      "finding_span": "realiza una fotografía de la cara de los empleados desde un dispositivo situado en la entrada y no informa del uso de la imagen",
+      "finding_span_column": "enforcement_actions.key_compliance_failure",
+      "position_check": "enforcement_actions.key_compliance_failure position()=1 (Spanish, verbatim on the row), re-verified live 2026-09-09; [NEEDS: translation verification against the full AEPD PDF] carried forward from doc 231/234",
+      "fact_pattern_paraphrase": "an employer photographing employees' faces at an entry-point device to track attendance without telling them how the images are used",
+      "finding_paraphrase": "biometric attendance tracking deployed without disclosure or a completed risk assessment is unlawful",
+      "settledness": "R3",
+      "settledness_note": "R3 (settlednessFor: enforcement_actions); prep: R3",
+      "citation_facts": {
+        "regulator": "AEPD",
+        "subject": "CARTONAJES BAÑERES, S.A.",
+        "decision_date": "2024-01-05",
+        "appeal_status": "unknown",
+        "verification_status": "verified",
+        "regulator_canonical": "Agencia Española de Protección de Datos (AEPD)",
+        "regulator_canonical_in_citation": null,
+        "case_reference": "EXP202212247",
+        "fine_amount": "220,000"
+      },
+      "citation_composed_by_generate_ts": "AEPD, CARTONAJES BAÑERES, S.A., decision of 5 January 2024",
+      "citation_short_label": "AEPD, CARTONAJES BAÑERES, S.A.",
+      "approved_parenthetical_reproducible_by_citationFor": false,
+      "pinpoint_note": "null — [NEEDS: pinpoint unlocatable] (doc 234)",
+      "fixture": "tests/fixtures/doc234/ratified-e58dfa97.txt",
+      "fixture_md5": "6227f111cbf4093082b4e1ce067eac93",
+      "fixture_bytes": 1341,
+      "fixture_markup_stripped": {
+        "bold_markers": 0,
+        "italic_markers": 0
+      },
+      "hook_status_written": "ratified",
+      "ratified_by": "John McDonnell (CEO)",
+      "ledger_ref": "doc234",
+      "ratification_blocker": null,
+      "needs": [
+        "[NEEDS: translation verification against the full AEPD PDF — carried forward from doc 231, unresolved]",
+        "pinpoint unlocatable in corpus"
+      ],
+      "live_hook_id": "a4d8e0a4-ae42-4824-a937-8b69829bd843"
+    },
+    {
+      "short": "dbfca969",
+      "candidate": "doc 234 Candidate 4 — Garante (Italy), Comune di Bolzano",
+      "ratify_line": "CEO approved the revised prose (2026-09-09) — the sentence itself is settled; drafting into the corpus still awaits translation verification (curation card) and the generate.ts/loadSource() column fix (§1.3).",
+      "product": "cppa-risk",
+      "profile_id": "df6b980e-65ac-4f74-b142-289e0594c366",
+      "source_table": "enforcement_actions",
+      "source_row_id": "dbfca969-3139-43d1-8a5b-7fff179f8db6",
+      "profile_factor_id": "Material privacy risks",
+      "profile_factor_ids": [
+        "Material privacy risks",
+        "Regulatory trigger and applicability"
+      ],
+      "profile_posture": "rejected",
+      "profile_instrument": "GDPR",
+      "card_posture_in_doc": "rejected",
+      "bears_on_element": "Material privacy risks",
+      "card_factors": [
+        "Material privacy risks",
+        "Regulatory trigger and applicability"
+      ],
+      "card_trigger_condition": "q5b_profiling_observation === 'Yes' AND (q3_sector is a public-sector/employment-heavy sector OR an a5_harm_pathways row is a two-leg SELECTION match for a workforce-monitoring pathway)",
+      "fact_atoms": [
+        "flag:profiling_or_systematic_observation"
+      ],
+      "required_atoms": [
+        "flag:profiling_or_systematic_observation"
+      ],
+      "vocabulary_checks_passed": true,
+      "vocabulary_check_errors": [],
+      "atoms_note": "flag:profiling_or_systematic_observation is in RISK_ATOM_PHRASES. [NEEDS: no sector atom exists in the Risk vocabulary; the sector/harm-pathway leg can only be reached by a two-leg selection read.]",
+      "atoms_rationale": "prep JSON's own proposal: flag:profiling_or_systematic_observation as gate and fact (RISK_ATOM_PHRASES). [NEEDS: no sector atom exists in the Risk vocabulary — the sector/harm-pathway leg can only be reached by a two-leg selection read]",
+      "finding_span": "The municipality unlawfully monitored employee internet usage and processed sensitive health data without a valid legal basis or proper transparency",
+      "finding_span_column": "enforcement_actions.key_compliance_failure",
+      "position_check": "enforcement_actions.key_compliance_failure position()=1 (English curator summary), re-verified live 2026-09-09; profile seeded quote_verified=false — [NEEDS: translation verification] carried forward",
+      "fact_pattern_paraphrase": "a municipal employer monitoring employees' internet usage and processing sensitive health data without a valid legal basis or adequate notice, where the stated purpose was ordinary operational efficiency",
+      "finding_paraphrase": "monitoring employee internet usage and processing sensitive health data without a valid legal basis or proper transparency is unlawful even where the stated purpose is operational efficiency rather than surveillance",
+      "settledness": "R3",
+      "settledness_note": "R3 (settlednessFor: enforcement_actions); prep: R3",
+      "citation_facts": {
+        "regulator": "Garante",
+        "subject": "Comune di Bolzano",
+        "decision_date": "2021-05-13",
+        "appeal_status": "unknown",
+        "verification_status": "verified",
+        "regulator_canonical": "Garante per la protezione dei dati personali",
+        "regulator_canonical_in_citation": null,
+        "fine_amount": "84,000"
+      },
+      "citation_composed_by_generate_ts": "Garante, Comune di Bolzano, decision of 13 May 2021",
+      "citation_short_label": "Garante, Comune di Bolzano",
+      "approved_parenthetical_reproducible_by_citationFor": false,
+      "pinpoint_note": "null — [NEEDS: pinpoint unlocatable] (doc 234)",
+      "fixture": "tests/fixtures/doc234/ratified-dbfca969.txt",
+      "fixture_md5": "9b451b1564b23000b5adac3f5a8e6626",
+      "fixture_bytes": 1231,
+      "fixture_markup_stripped": {
+        "bold_markers": 0,
+        "italic_markers": 0
+      },
+      "hook_status_written": "ratified",
+      "ratified_by": "John McDonnell (CEO)",
+      "ledger_ref": "doc234",
+      "ratification_blocker": null,
+      "needs": [
+        "[NEEDS: translation verification] — same posture as Candidate 2 (Italian source_document_text not translated)",
+        "pinpoint unlocatable in corpus",
+        "no sector atom"
+      ],
+      "live_hook_id": "90b0e49c-f40a-42e1-8026-f9fc42dc934b"
+    }
+  ],
+  "_live_rows_written": "2026-09-09 — 4 authority_hooks rows INSERTed as settled via a self-verifying statement (server-side md5 + octet_length of literal_sentence_override vs the fixture, profile resolved by (product, source_row_id) and asserted equal to profile_id, never-overwrite); each row id is recorded as live_hook_id. The rows whose hook_status_written is ratified were then promoted by ONE guarded UPDATE per product (WHERE settled AND override NOT NULL AND id IN the named set AND md5 IN the verified set)."
+}

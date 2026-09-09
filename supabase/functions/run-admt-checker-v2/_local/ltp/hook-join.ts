@@ -229,6 +229,18 @@ export function renderSentence(
   factAtomsHolding: readonly string[],
   pair: HookDistinguishingPair | undefined,
 ): string | undefined {
+  // DOC 236 RATIFICATION (2026-09-09) — mirrors LIA's hook-join.ts exactly:
+  // a hook's own CEO-ratified paragraph (`literal_sentence_override`,
+  // hook-types.ts's own doc comment has the full rationale) wins over every
+  // shape/slot mechanism below, unconditionally. `shape`/`pair`/
+  // `factAtomsHolding` are not consulted at all when this is set: the
+  // ratified text is not a rendering of them, it IS the sentence. Still
+  // takes `appealSuffix` — an appeal is a fact about the SOURCE discovered
+  // after ratification, not part of what was ratified; doc 236's own hedge
+  // is already baked into the literal text (never appended twice).
+  if (hook.literal_sentence_override) {
+    return hook.literal_sentence_override.trim() + appealSuffix(hook);
+  }
   const section = SECTION_FOR_ELEMENT[hook.bears_on_element];
   const verb = verbFor(hook);
   const pin = pinpointText(hook);
