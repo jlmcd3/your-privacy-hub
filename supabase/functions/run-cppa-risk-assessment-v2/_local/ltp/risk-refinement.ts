@@ -81,6 +81,15 @@ export const RISK_PROTECTED_PATH_PREFIXES = [
   "authority_exhibit",            // registry-sourced authority exhibit (buildAuthorityExhibit)
   "risk_assessment_by_activity",  // ITEM 427 LAW 3 single write site (normalizeRiskActivities)
   "exception_analysis",           // ITEM 426 LAW 3 single write site (normalizeRiskExceptions)
+  // DOC 231 (doc 229 §5.6 / §8 default #3) — CPPA RISK V3 hook-rendered
+  // persuasive-authority sentences are RATIFIED rendering (never an LLM's
+  // words), exactly like `authority_exhibit` above; the refinement
+  // critic/splicer must never rewrite or delete one. Added now, ahead of
+  // any hook actually rendering (RISK_HOOKS ships empty — doc 229 §5.3),
+  // so RISK_REFINEMENT_ENABLED and RISK_HOOKS_ENABLED are both safe to
+  // enable simultaneously once the first hook is ratified — the doc 229
+  // §5.6 blocker this build was asked to close.
+  "persuasive_authority_hooks",
 ] as const;
 
 export const RISK_REFINEMENT_CONFIG: RefinementConfig = {

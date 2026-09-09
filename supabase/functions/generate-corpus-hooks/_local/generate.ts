@@ -81,6 +81,12 @@ export interface HookSourceRow {
   readonly status?: string | null; // edpb_guidelines: final | front_matter
   readonly appeal_status?: string | null; // enforcement_actions
   readonly document_type?: string | null; // regulatory_guidance
+  // DOC 231A — cppa_fsor_commentary (doc 231 §6 default #2's proposed diff,
+  // applied). No status-derivation input is needed for this table: an FSOR
+  // row carries no adopted/appeal/consultation state — `deriveSourceStatus`
+  // ships it unconditionally as `regulator_guidance` (below).
+  readonly regulation_citation?: string | null; // cppa_fsor_commentary — the pinpoint, not a title
+  readonly page_ref?: string | null; // cppa_fsor_commentary — pinpoint fallback
 }
 
 const MONTHS = [
@@ -113,6 +119,10 @@ export function shortLabelFor(profile: HookProfileRow, source: HookSourceRow): s
     const subject = (source.subject ?? "").trim();
     return regulator && subject ? `${regulator}, ${subject}` : null;
   }
+  // DOC 231A — checked before the `title` early-return below: this table
+  // has no `title` field (shortLabelForFsor's own doc comment explains why
+  // this branch is additive, beyond doc 231 §6 default #2's literal diff).
+  if (profile.source_table === "cppa_fsor_commentary") return shortLabelForFsor();
   const title = (source.title ?? "").trim();
   if (!title) return null;
   if (profile.source_table === "edpb_guidelines") {
@@ -126,6 +136,22 @@ export function shortLabelFor(profile: HookProfileRow, source: HookSourceRow): s
     return regulator ? `${regulator}, ${title}` : title;
   }
   return null;
+}
+
+/** DOC 231A — the `cppa_fsor_commentary` short label. This table has no
+ *  `title` field (see `HookSourceRow`'s new fields), so the branch above
+ *  (which reads `source.title` first) never reaches it — this is its own
+ *  early return, ADDITIVE (a fourth branch; the three existing branches
+ *  above are unchanged). A fixed short form: every row from this table is
+ *  the same regulator's FSOR, so "CPPA Final Statement of Reasons" is
+ *  always accurate and never varies row to row (doc 231 §6 default #2's
+ *  proposed diff named `citationFor`/`deriveSourceStatus` only; this
+ *  addition closes the gap those two alone would leave — without it, every
+ *  FSOR hook is excluded at generate time with "short citation label could
+ *  not be composed", which would defeat the point of unblocking Candidate 5
+ *  — see the doc 231A follow-up log for the reasoning). */
+function shortLabelForFsor(): string {
+  return "CPPA Final Statement of Reasons";
 }
 
 function isWp29(source: HookSourceRow): boolean {
@@ -210,6 +236,20 @@ export function deriveSourceStatus(
     if (!regulator) return { exclude: "regulatory_guidance row has no regulator" };
     return { source_status: "regulator_guidance", verb: "states", status_label: `${regulator} regulatory guidance — non-binding` };
   }
+  // DOC 231 §6 default #2 (proposed diff, applied verbatim) — the
+  // cppa_fsor_commentary branch. No exclusion condition: unlike
+  // edpb_guidelines (front-matter/draft status) or enforcement_actions
+  // (vacated/remanded appeals), an FSOR row carries no analogous "not yet
+  // final" state in its own schema (doc 231A verified the table's columns
+  // read-only — see the follow-up log) — every profiled row is a published
+  // agency position and always derives this status.
+  if (profile.source_table === "cppa_fsor_commentary") {
+    return {
+      source_status: "regulator_guidance",
+      verb: "states",
+      status_label: "CPPA Final Statement of Reasons — agency position, primary regulator commentary",
+    };
+  }
   return { exclude: `no status derivation for source table "${profile.source_table}"` };
 }
 
@@ -243,6 +283,21 @@ export function citationFor(
     const regulator = (source.regulator ?? "").trim();
     if (!regulator) return null;
     return { regulator: `the ${regulator}`, authority_label: `${regulator}, ${title}` };
+  }
+  // DOC 231 §6 default #2 (proposed diff, applied verbatim): `regulation_citation`
+  // is the pinpoint, not a title — the authority_label names the document,
+  // the pinpoint (composed by hook-join.ts's `pinpointText`/`{citation}`
+  // slot from the hook's own `pinpoint` field, not from this string) adds
+  // the specific location. A row with no `regulation_citation` still yields
+  // a valid (if bare) authority_label — the FSOR document itself is a
+  // constant, unlike enforcement_actions/edpb_guidelines/regulatory_guidance
+  // whose citations depend entirely on per-row facts.
+  if (profile.source_table === "cppa_fsor_commentary") {
+    const cite = (source.regulation_citation ?? "").trim();
+    return {
+      regulator: "the CPPA",
+      authority_label: cite ? `CPPA Final Statement of Reasons, ${cite}` : "CPPA Final Statement of Reasons",
+    };
   }
   return null;
 }

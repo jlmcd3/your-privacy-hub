@@ -56,7 +56,52 @@ export const STATE_ATOM_ENUMS: Readonly<Record<string, readonly string[]>> = {
     "Political / electoral campaigning",
     "Other (describe below)",
   ],
+
+  // DOC 231A (2026-09-08) — CPPA Risk `state:intake.*` entries. Every value
+  // below is a closed-list option on the CPPA Risk intake contract
+  // (_shared/intake-contracts/cppa-risk-assessment.ts); the entries
+  // themselves were drafted by the prior doc231 build session and left
+  // ready-to-copy in run-cppa-risk-assessment-v2/_local/corpus/maps/
+  // risk-hooks.ts's atom-phrase comment block (RISK_ATOM_PHRASES already
+  // carries a ratified-DRAFT phrase for every option here — see that file).
+  // Closing NEED #7 (doc 231 build log §13 item 7): a `state:` atom a CPPA
+  // Risk hook draft uses was rejected by `checkAtom` until these landed.
+  "intake.processing_status": ["Planned", "Ongoing", "Discontinued"],
+  "intake.q15_sensitive_pi": ["Yes", "No", "Unsure"],
+  "intake.q5b_profiling_observation": ["Yes", "No"],
+  "intake.q18_admt_use": ["Yes", "No", "In evaluation"],
+  "intake.q5_sell_share": [
+    "Yes — sell only",
+    "Yes — share for advertising only",
+    "Both",
+    "No",
+  ],
+  "intake.q15b_under16_knowledge": [
+    "Yes — we knowingly process under-16 data",
+    "No — we do not knowingly process under-16 data",
+    "Unsure",
+  ],
 };
+
+/** DOC 231A — the six `STATE_ATOM_ENUMS` keys above that belong to the CPPA
+ *  Risk product. `STATE_ATOM_ENUMS` stays ONE FLAT, product-unscoped dict —
+ *  `checkAtom`'s `"state"` case (below) does not consult the registry for
+ *  this atom kind, a pre-existing design this build does not change — so a
+ *  test asserting "every atom the LIA drafter may emit has a ratified
+ *  phrase" (tests/edge/corpus/doc213-vocabulary-phrase-coverage.test.ts)
+ *  needs an explicit ownership list to exclude the other product's paths,
+ *  rather than inferring it from `HookProductVocabulary.state_roots` (both
+ *  products' roots include the bare `"intake."` prefix, so a prefix filter
+ *  cannot disambiguate). Named and exported so that test reads it instead of
+ *  hand-duplicating this list. */
+export const RISK_ONLY_STATE_ATOM_PATHS: readonly string[] = [
+  "intake.processing_status",
+  "intake.q15_sensitive_pi",
+  "intake.q5b_profiling_observation",
+  "intake.q18_admt_use",
+  "intake.q5_sell_share",
+  "intake.q15b_under16_knowledge",
+];
 
 /** `state:` paths admitted with an open value (no closed option set).
  *  EMPTY by design: a hook atom must have a ratified phrase to render, and a
