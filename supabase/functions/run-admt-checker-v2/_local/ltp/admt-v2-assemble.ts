@@ -67,7 +67,7 @@ import {
 } from "./admt-v2-generated.ts";
 import type { AuthorityExhibit } from "../../../_shared/report-exhibits/authority-exhibit.ts";
 import { attachCorpusRows } from "../../../_shared/corpus/cam-attach.ts";
-import { ADMT_CORPUS_MAP } from "../corpus/maps/admt-corpus-map.ts";
+import { ADMT_CORPUS_MAP, ADMT_GOVERNANCE_FACTOR_ID } from "../corpus/maps/admt-corpus-map.ts";
 import { ADVISORY_APPENDIX_PREAMBLE, ADVISORY_APPENDIX_TITLE, advisoryMatchesTable, matchAdvisoryRows } from "../../../_shared/corpus/advisory-surfacing.ts";
 // A-TEAM S3 RULING V.7 (doc 115) — acronym-safe mid-sentence casing.
 import { lowerFirstWordSafe } from "../../../_shared/ltp/splice-case.ts";
@@ -400,7 +400,13 @@ export interface AdmtS4Attachment {
 /** S4 attachment — pure function over the CAM + fired states. Returns one
  * entry per factor that has both a ratified frame AND at least one
  * attached row; NO-PADDING LAW: a factor with no attached row emits
- * nothing, never an empty frame. */
+ * nothing, never an empty frame.
+ *
+ * DOC 241 (2026-09-09) — the caller partitions the result by section: the
+ * Section 7 Governance factor (ADMT_GOVERNANCE_FACTOR_ID) renders in
+ * Section 7, every other factor in Section 2. ADMT_S4_FRAMES carries NO
+ * Governance frame yet (a frame is CEO-ratified prose, not plumbing), so a
+ * Governance row attaches nothing until one is ratified. */
 export function buildAdmtS4Attachments(computed: AdmtV2Computed): readonly AdmtS4Attachment[] {
   const fired = deriveAdmtFiredStates(computed);
   const byFactor = new Map<string, string[]>();
@@ -730,6 +736,18 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   // the CAM's s4_ratification stamp + the factor's own fired state
   // (NO-PADDING LAW: no attachment, no subsection — never an empty frame).
   const admtS4 = buildAdmtS4Attachments(computed);
+  // DOC 241 (2026-09-09, V3 gap closure) — S4 attachments are partitioned by
+  // the section that carries their factor: the eight Appendix A factors
+  // render in Section 2 (as before); the Section 7 Governance factor
+  // (ADMT_GOVERNANCE_FACTOR_ID — doc 236's G1–G3 had no attachment point at
+  // all, doc 236 §3 / §8.2) renders in Section 7, below. Same attachment
+  // (`attachCorpusRows` over the CAM's S4 rows + fired states, a ratified
+  // frame required per factor, NO-PADDING LAW) — only the destination
+  // differs, so a Governance row can never land in the applicability
+  // section. Both lists are empty today for Governance (no CAM row, no
+  // frame), leaving every current report byte-identical.
+  const applicabilityS4 = admtS4.filter((att) => att.factor_id !== ADMT_GOVERNANCE_FACTOR_ID);
+  const governanceS4 = admtS4.filter((att) => att.factor_id === ADMT_GOVERNANCE_FACTOR_ID);
   push("applicability", "2. Applicability of the ADMT Requirements", [
     legal(ADMT_V3_FIXED.applicability_requirement),
     { kind: "lead", text: applicabilityDeterminationSentence(scope) },
@@ -751,7 +769,7 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
     ...(scope.scopeState === "OUT_OF_SCOPE"
       ? buildOutOfScopeConditions(scope, systemName || "the System")
       : []),
-    ...admtS4.flatMap((att): RenderedParagraph[] => [
+    ...applicabilityS4.flatMap((att): RenderedParagraph[] => [
       // A-TEAM S3 RULING V.10 (doc 115) — professional register heading.
       { kind: "skeleton", text: `Regulatory Interpretation — ${att.factor_id}` },
       { kind: "skeleton", text: att.frame },
@@ -983,6 +1001,22 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
           ]),
       ],
     }},
+    // DOC 241 (2026-09-09, V3 gap closure) — the Governance S4 attachment
+    // point (doc 236 §3 / §8.2 closed): the same "Regulatory Interpretation"
+    // shape Section 2 renders, fed by the same `buildAdmtS4Attachments` call
+    // (attachCorpusRows over the CAM's S4 rows + the fired states, a ratified
+    // frame required per factor, NO-PADDING LAW), filtered to the Governance
+    // factor so a row bearing on the Article 10 risk-assessment duties this
+    // section describes lands HERE, never in Section 2. Empty today — the CAM
+    // carries no Governance S4 row and ADMT_S4_FRAMES no Governance frame —
+    // so this section is byte-identical to before; a future Governance row
+    // needs a CEO-ratified frame before anything can print (the existing
+    // gate in buildAdmtS4Attachments, unchanged).
+    ...governanceS4.flatMap((att): RenderedParagraph[] => [
+      { kind: "skeleton", text: `Regulatory Interpretation — ${att.factor_id}` },
+      { kind: "skeleton", text: att.frame },
+      ...att.excerpts.map((text): RenderedParagraph => ({ kind: "quoted_authority", text })),
+    ]),
   ]);
 
   // ── 8. Conditions, Required Follow-Up, and Recommendations ──────────────
@@ -1050,7 +1084,10 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
     // v3.2.2 — "It exists so the assessment can be reviewed and updated"
     // framed the deliverable as a working draft; state what the matrix IS.
     { kind: "skeleton", text: "This matrix restates each material factor behind the assessment in one place: the report's determination on that factor, in the report's own words, and the specific regulatory provision that governs it. It provides a consolidated record of the material determinations and authorities supporting this assessment." },
-    { kind: "table", text: "", table: { key: "appendix_a:0", surface: "factor_matrix", ...buildFactorMatrixTable(intake, computed, optOut.path, admtS4, persuasive.trail) } },
+    // DOC 241 — Appendix A's "see Section 2" pointer is keyed off the
+    // applicability-section attachments only; a Governance attachment
+    // renders in Section 7 and has no Appendix A factor row to point from.
+    { kind: "table", text: "", table: { key: "appendix_a:0", surface: "factor_matrix", ...buildFactorMatrixTable(intake, computed, optOut.path, applicabilityS4, persuasive.trail) } },
   ]);
 
   // ── Appendix B — Persuasive Authority (Analogous Enforcement) ──────────

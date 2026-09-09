@@ -22,6 +22,24 @@
 
 import type { CorpusMap } from "../../../../_shared/corpus/cam-types.ts";
 
+// DOC 241 (2026-09-09, V3 gap closure) — the NINTH ADMT factor id. Section 7
+// of the ADMT report ("7. Governance, Record Sufficiency, and Related
+// Risk-Assessment Obligations", admt-v2-assemble.ts) had no factor id in
+// ADMT's vocabulary: the eight `factor_id` values in the rows below are the
+// Appendix A determination factors, and Section 7 carries none of them. A
+// corpus row or authority hook bearing on the Article 10 risk-assessment
+// duties that section describes (doc 236's G1–G3 — FSOR §§ 7150(b)(6),
+// 7155(a)(3), 7155(c)) therefore mapped to no element and was excluded BY
+// NAME at generation, with no attachment point in the assembler and no
+// `{section}` in the hook join (doc 236 §3 / §8.2). This constant is the
+// vocabulary anchor every consumer keys on: it is byte-equal to the live
+// `authority_relevance_profiles.factor_ids` value the three Governance
+// profiles carry (product 'admt', read live 2026-09-09) and to the section
+// title the assembler pushes. Plumbing only — no CAM row is curated against
+// it here, and a Governance S4 row would still need a CEO-ratified frame in
+// `ADMT_S4_FRAMES` before it could render (that gate is unchanged).
+export const ADMT_GOVERNANCE_FACTOR_ID = "Governance, Record Sufficiency, and Related Risk-Assessment Obligations";
+
 // WAVE C1 (2026-08-23, doc 56 / doc 62 §9's amendment / doc 63 §3 — CEO-
 // ratified via the Fable block's advance acceptance): the map's second
 // s4_ratification stamp (Cyber's is the first, wave C3). Two factors open

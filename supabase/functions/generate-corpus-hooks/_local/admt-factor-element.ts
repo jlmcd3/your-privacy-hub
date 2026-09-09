@@ -5,10 +5,15 @@
 // ADMT's `bears_on_element` is FACTOR-LEVEL, not a grouped three-part test
 // — the same doc 229/231 §8 "default #1" choice CPPA Risk's build made for
 // its own CAM-derived factors. `admtElementOf` is therefore an identity map
-// over the eight known `admt-corpus-map.ts` `factor_id` values (the same
-// eight strings `buildFactorMatrixTable()`/`deriveAdmtFiredStates()`
-// already key on) — a hook whose factor is outside these eight is EXCLUDED
-// by name at generation, never emitted with a blank.
+// over the NINE known ADMT factor ids: the eight `admt-corpus-map.ts`
+// `factor_id` values (the same eight strings `buildFactorMatrixTable()`/
+// `deriveAdmtFiredStates()` already key on) plus — DOC 241 (2026-09-09) —
+// the Section 7 Governance factor (`ADMT_GOVERNANCE_FACTOR_ID`, exported
+// from admt-corpus-map.ts; the exact string the three live Governance
+// profiles carry in `factor_ids`), which had no element and left doc 236's
+// G1–G3 excluded BY NAME (doc 236 §3 / §8.2). A hook whose factor is
+// outside these nine is EXCLUDED by name at generation, never emitted with
+// a blank.
 //
 // A verbatim copy of `ADMT_FACTOR_PHRASES`' key set (the canonical source:
 // `run-admt-checker-v2/_local/corpus/maps/admt-hooks.ts`). Copied, not
@@ -25,6 +30,11 @@ const ADMT_FACTORS = [
   "Opt-out pathway",
   "Access process",
   "Vendor dependency",
+  // DOC 241 — Section 7's factor (see the header). Copied, not imported,
+  // from admt-corpus-map.ts's ADMT_GOVERNANCE_FACTOR_ID (doc 213 §2 forbids
+  // cross-function imports); the doc235 registry pin test holds the two
+  // equal.
+  "Governance, Record Sufficiency, and Related Risk-Assessment Obligations",
 ] as const;
 
 export type AdmtFactorId = (typeof ADMT_FACTORS)[number];

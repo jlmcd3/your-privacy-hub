@@ -252,6 +252,15 @@ export function admtAtomConcept(atom: string): string {
 // used directly as `bears_on_element` (an identity map — ADMT's factors are
 // already flat, not grouped into a three-part test the way LIA's are; see
 // generate-corpus-hooks/_local/admt-factor-element.ts).
+//
+// DOC 241 (2026-09-09, V3 gap closure) — a NINTH entry: the Section 7
+// Governance factor (admt-corpus-map.ts's ADMT_GOVERNANCE_FACTOR_ID, the
+// exact string the three live Governance profiles carry). Doc 236's G1–G3
+// (FSOR §§ 7150(b)(6) / 7155(a)(3) / 7155(c)) bear on the Article 10
+// risk-assessment duties Section 7 describes, and until this entry existed
+// they mapped to no element (doc 236 §3 / §8.2). The phrase is this
+// build's own first-pass draft in the same register as the eight above —
+// [RATIFY — DRAFT, unratified] like every other entry in this map.
 
 export const ADMT_FACTOR_PHRASES: Readonly<Record<string, string>> = {
   "Significant decision": "the significant-decision determination",
@@ -262,6 +271,7 @@ export const ADMT_FACTOR_PHRASES: Readonly<Record<string, string>> = {
   "Opt-out pathway": "the opt-out or exception pathway",
   "Access process": "the access and explanation process",
   "Vendor dependency": "the vendor-dependency determination",
+  "Governance, Record Sufficiency, and Related Risk-Assessment Obligations": "the governance and related risk-assessment obligations",
 };
 
 // ── [RATIFY — DRAFT, unratified] — source status labels ──────────────────

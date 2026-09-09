@@ -4,10 +4,10 @@
   "_unblocked": "authority_relevance_profiles now carries the product='admt' rows (read live 2026-09-09); every hook below links to its profile by (product, source_row_id) — the INSERT resolves profile_id by subselect AND asserts it equals the id recorded here.",
   "_markup_decision_for_ceo": "nine of the ten paragraphs bold the load-bearing quoted FSOR clause in the source markdown (`**\"…\"**`); a hook sentence is plain text, so the `**` markers were stripped (2 per paragraph; 6 for G2's three clauses; the vendor row's bold spans an unquoted phrase). If the CEO wants bold preserved for a markdown-capable renderer, regenerate the fixtures before any ADMT DB write.",
   "_generate_time_blockers": [
-    "every FSOR candidate's pinpoint is authorable from the row's own regulation_citation/page_ref (unlike the narrative enforcement rows) but none is authored here — generate.ts excludes a hook with no pinpoint BY NAME",
-    "doc 234 §1.3 / doc 236 §8.3: generate-corpus-hooks/index.ts loadSource() selects agency_position_summary for cppa_fsor_commentary; it must select agency_response before any FSOR pinpoint can verify against the FSOR's own text",
-    "G1–G3 (Governance): admt-corpus-map.ts has no Governance factor_id and admt-v2-assemble.ts Section 7 has no attachCorpusRows call (doc 236 §3/§8.2) — a code change is required before these three can reach a customer even once ratified; they also map to no bears_on_element today, so generate.ts would exclude them BY NAME",
-    "ADMT state: atoms are NOT in generate-corpus-hooks/_local/vocabulary.ts STATE_ATOM_ENUMS (admt-hooks.ts's own comment says so) — checkAtoms rejects them, so vocabulary_checks_passed cannot honestly be true for a hook carrying one until those paths are added (same gap found for DPIA this session)"
+    "CLOSED for six of the nine FSOR rows (2026-09-09): notice-content/01, opt-out-pathway/06, access-process/05, significant-decision/02 (orchestrator) and G1, G2 (doc 241) carry live page-kind pinpoints (ref = page_ref, anchor_span = finding_span); STILL OPEN for G3, opt-out-pathway/08, vendor-dependency/02 (conditional — the proposition split comes first) and E1 (narrative enforcement row, unlocatable — doc 241 §4.2 panel question). Original: every FSOR candidate's pinpoint is authorable from the row's own regulation_citation/page_ref (unlike the narrative enforcement rows) but none is authored here — generate.ts excludes a hook with no pinpoint BY NAME",
+    "CLOSED on main (verified 2026-09-09): generate-corpus-hooks/index.ts loadSource() selects agency_response for cppa_fsor_commentary. Original: doc 234 §1.3 / doc 236 §8.3: loadSource() selects agency_position_summary for cppa_fsor_commentary; it must select agency_response before any FSOR pinpoint can verify against the FSOR's own text",
+    "CLOSED by doc 241 (2026-09-09, code): ADMT_GOVERNANCE_FACTOR_ID (admt-corpus-map.ts) is the ninth ADMT factor; admtElementOf maps it to itself; hook-join.ts SECTION_FOR_ELEMENT/ADMT_SECTION_ID_FOR_ELEMENT carry it (Section 7 / 'governance'); ADMT_FACTOR_PHRASES carries a draft phrase; admt-v2-assemble.ts Section 7 carries the S4 attachment point. Original: G1–G3 (Governance): admt-corpus-map.ts has no Governance factor_id and admt-v2-assemble.ts Section 7 has no attachCorpusRows call (doc 236 §3/§8.2) — a code change is required before these three can reach a customer even once ratified; they also map to no bears_on_element today, so generate.ts would exclude them BY NAME",
+    "CLOSED by doc 241 (2026-09-09, code): STATE_ATOM_ENUMS carries the seven ADMT state paths (options read off cppaAdmtContract) and the seventeen DPIA reasons_to_conduct paths. Original: ADMT state: atoms are NOT in generate-corpus-hooks/_local/vocabulary.ts STATE_ATOM_ENUMS (admt-hooks.ts's own comment says so) — checkAtoms rejects them, so vocabulary_checks_passed cannot honestly be true for a hook carrying one until those paths are added (same gap found for DPIA this session)"
   ],
   "_ratification_split": "5 ratified (E1 a3463b6c, notice-content/01 7f616c44, opt-out-pathway/06 4b2d39e1, access-process/05 84d00bed, significant-decision/02 83bcecda) + 5 inserted as 'settled' ONLY (G1 f77eaad2, G2 be2a91bc: no bears_on_element; G3 c6d63d10: conditional without proposition split AND no element; opt-out-pathway/08 2951b3e7 and vendor-dependency/02 88f44d5e: conditional without proposition split). Each blocker is restated per hook in `ratification_blocker` from the code that enforces it.",
   "hooks": [
@@ -26,9 +26,9 @@
       "profile_posture": "rejected",
       "profile_instrument": "CPPA Regulations",
       "card_posture_in_doc": "rejected",
-      "bears_on_element": null,
+      "bears_on_element": "Governance, Record Sufficiency, and Related Risk-Assessment Obligations",
       "card_factors": [],
-      "card_report_section": "7 (Governance) — no attachment point exists",
+      "card_report_section": "7 (Governance) — attachment point wired by doc 241 (2026-09-09): admtElementOf/SECTION_FOR_ELEMENT/ADMT_SECTION_ID_FOR_ELEMENT/ADMT_FACTOR_PHRASES carry the Governance factor and admt-v2-assemble.ts Section 7 carries the S4 attachment point",
       "card_trigger_condition": "training_data_use === 'Yes' (top-level intake field, already wired)",
       "fact_atoms": [],
       "required_atoms": [],
@@ -51,7 +51,7 @@
       "citation_composed_by_generate_ts": "California Privacy Protection Agency, Final Statement of Reasons, CCPA Updates, Cyber, Risk, ADMT, and Insurance Regulations, 11 CCR § 7150(b)(6), Appendix p. 13",
       "citation_short_label": "CPPA Final Statement of Reasons",
       "approved_parenthetical_reproducible_by_citationFor": true,
-      "pinpoint_note": "null — authorable from the row's own regulation_citation/page_ref but NOT authored here (doc 236 §8); generate.ts excludes BY NAME until it is",
+      "pinpoint_note": "AUTHORED live 2026-09-09 (doc 241 §2, this build): ONE guarded UPDATE per row (WHERE settled AND pinpoint IS NULL AND position(finding_span in agency_response) > 0) composed the pinpoint SERVER-SIDE as jsonb_build_object('page', cppa_fsor_commentary.page_ref, authority_hooks.finding_span) — nothing retyped; RETURNING + an independent re-SELECT confirmed it — see live_pinpoint",
       "fixture": "tests/fixtures/doc236/ratified-f77eaad2.txt",
       "fixture_md5": "824da82547870f561ae42b106213fd69",
       "fixture_bytes": 1344,
@@ -62,14 +62,16 @@
       "hook_status_written": "settled",
       "ratified_by": null,
       "ledger_ref": null,
-      "ratification_blocker": "no bears_on_element: the live profile's factor is \"Governance, Record Sufficiency, and Related Risk-Assessment Obligations\", which admtElementOf (generate-corpus-hooks/_local/admt-factor-element.ts) maps to null — ADMT's element vocabulary is exactly the eight admt-corpus-map.ts factor_ids; admt-v2-assemble.ts Section 7 has no attachCorpusRows call and hook-join.ts's SECTION_FOR_ELEMENT has no Governance row (doc 236 §3 / §8.2 — a code change, not a curation call)",
+      "ratification_blocker": "no structural blocker remains after doc 241 (2026-09-09): the Governance element is wired in code and the pinpoint is authored live; the row is deliberately LEFT 'settled' — promotion to 'ratified' is the orchestrator's guarded UPDATE once the three-lawyer panel has ruled on doc 241 §4 (this build never touches hook_status or the stamps). Residual, non-structural: no atom exists for this hook's trigger, so it prints only through a stored two-leg selection",
       "needs": [
-        "Governance factor_id + attachment point (code)",
-        "training_data_use atom",
-        "finding_span choice + pinpoint",
-        "loadSource() agency_response fix"
+        "training_data_use atom"
       ],
-      "live_hook_id": "6553449f-a5f5-4914-bbd8-35529d37aa69"
+      "live_hook_id": "6553449f-a5f5-4914-bbd8-35529d37aa69",
+      "live_pinpoint": {
+        "kind": "page",
+        "ref": "Appendix, p. 13",
+        "anchor_span": "These risks include data leakage that can reidentify"
+      }
     },
     {
       "short": "be2a91bc",
@@ -86,9 +88,9 @@
       "profile_posture": "rejected",
       "profile_instrument": "CPPA Regulations",
       "card_posture_in_doc": "rejected",
-      "bears_on_element": null,
+      "bears_on_element": "Governance, Record Sufficiency, and Related Risk-Assessment Obligations",
       "card_factors": [],
-      "card_report_section": "7 (Governance) — no attachment point exists",
+      "card_report_section": "7 (Governance) — attachment point wired by doc 241 (2026-09-09): admtElementOf/SECTION_FOR_ELEMENT/ADMT_SECTION_ID_FOR_ELEMENT/ADMT_FACTOR_PHRASES carry the Governance factor and admt-v2-assemble.ts Section 7 carries the S4 attachment point",
       "card_trigger_condition": "any record where the system, its decision use, its safeguards, or its notice has changed since a prior risk assessment was completed — [NEEDS: no such field exists in the ADMT intake contract today]",
       "fact_atoms": [],
       "required_atoms": [],
@@ -111,7 +113,7 @@
       "citation_composed_by_generate_ts": "California Privacy Protection Agency, Final Statement of Reasons, CCPA Updates, Cyber, Risk, ADMT, and Insurance Regulations, 11 CCR § 7155(a)(3), Appendix p. 148",
       "citation_short_label": "CPPA Final Statement of Reasons",
       "approved_parenthetical_reproducible_by_citationFor": true,
-      "pinpoint_note": "null — authorable from regulation_citation/page_ref, not authored here",
+      "pinpoint_note": "AUTHORED live 2026-09-09 (doc 241 §2, this build): ONE guarded UPDATE per row (WHERE settled AND pinpoint IS NULL AND position(finding_span in agency_response) > 0) composed the pinpoint SERVER-SIDE as jsonb_build_object('page', cppa_fsor_commentary.page_ref, authority_hooks.finding_span) — nothing retyped; RETURNING + an independent re-SELECT confirmed it — see live_pinpoint",
       "fixture": "tests/fixtures/doc236/ratified-be2a91bc.txt",
       "fixture_md5": "4f1d59d3350d9ea5ea69fd57f5d9b9c8",
       "fixture_bytes": 1037,
@@ -122,14 +124,16 @@
       "hook_status_written": "settled",
       "ratified_by": null,
       "ledger_ref": null,
-      "ratification_blocker": "no bears_on_element: the live profile's factor is \"Governance, Record Sufficiency, and Related Risk-Assessment Obligations\", which admtElementOf (generate-corpus-hooks/_local/admt-factor-element.ts) maps to null — ADMT's element vocabulary is exactly the eight admt-corpus-map.ts factor_ids; admt-v2-assemble.ts Section 7 has no attachCorpusRows call and hook-join.ts's SECTION_FOR_ELEMENT has no Governance row (doc 236 §3 / §8.2 — a code change, not a curation call)",
+      "ratification_blocker": "no structural blocker remains after doc 241 (2026-09-09): the Governance element is wired in code and the pinpoint is authored live; the row is deliberately LEFT 'settled' — promotion to 'ratified' is the orchestrator's guarded UPDATE once the three-lawyer panel has ruled on doc 241 §4 (this build never touches hook_status or the stamps). Residual, non-structural: no atom exists for this hook's trigger, so it prints only through a stored two-leg selection",
       "needs": [
-        "Governance factor_id + attachment point (code)",
-        "an intake field for 'changed since last assessment'",
-        "pinpoint",
-        "loadSource() agency_response fix"
+        "an intake field for 'changed since last assessment'"
       ],
-      "live_hook_id": "e9f98c0b-510c-46f6-afa0-f4da13cca07e"
+      "live_hook_id": "e9f98c0b-510c-46f6-afa0-f4da13cca07e",
+      "live_pinpoint": {
+        "kind": "page",
+        "ref": "Appendix, p. 148",
+        "anchor_span": "whether it creates new negative impacts or increases the magnitude or likelihood of previously identified negative impacts or diminishes"
+      }
     },
     {
       "short": "c6d63d10",
@@ -146,9 +150,9 @@
       "profile_posture": "conditional",
       "profile_instrument": "CPPA Regulations",
       "card_posture_in_doc": "conditional",
-      "bears_on_element": null,
+      "bears_on_element": "Governance, Record Sufficiency, and Related Risk-Assessment Obligations",
       "card_factors": [],
-      "card_report_section": "7 (Governance) — no attachment point exists",
+      "card_report_section": "7 (Governance) — attachment point wired by doc 241 (2026-09-09): admtElementOf/SECTION_FOR_ELEMENT/ADMT_SECTION_ID_FOR_ELEMENT/ADMT_FACTOR_PHRASES carry the Governance factor and admt-v2-assemble.ts Section 7 carries the S4 attachment point",
       "card_trigger_condition": "the ADMT's significant-decision or training use began before the regulations took effect and is still ongoing — scope.scopeState === 'IN_SCOPE' plus a pre-existing-processing fact not currently asked — [NEEDS: no 'processing already under way before X date' field exists]",
       "fact_atoms": [],
       "required_atoms": [],
@@ -182,13 +186,11 @@
       "hook_status_written": "settled",
       "ratified_by": null,
       "ledger_ref": null,
-      "ratification_blocker": "conditional posture with no recognised_proposition / condition_text: doc 236 drafts neither, and inventing them would be new structured legal content, not extraction (doc 222 §2.1; generate.ts excludes such a hook BY NAME; verify.ts settleDecision would return proposition_split_missing); ALSO no bears_on_element: the live profile's factor is \"Governance, Record Sufficiency, and Related Risk-Assessment Obligations\", which admtElementOf (generate-corpus-hooks/_local/admt-factor-element.ts) maps to null — ADMT's element vocabulary is exactly the eight admt-corpus-map.ts factor_ids; admt-v2-assemble.ts Section 7 has no attachCorpusRows call and hook-join.ts's SECTION_FOR_ELEMENT has no Governance row (doc 236 §3 / §8.2 — a code change, not a curation call)",
+      "ratification_blocker": "conditional posture with no recognised_proposition / condition_text: doc 236 drafts neither, and inventing them would be new structured legal content, not extraction (doc 222 §2.1; generate.ts excludes such a hook BY NAME; verify.ts settleDecision would return proposition_split_missing) — candidate wording is DRAFTED (not decided) for the three-lawyer panel in doc 241 §4.1. The former second blocker (the Governance factor mapped to no element) is CLOSED by doc 241 (2026-09-09). Pinpoint: authorable by the identical server-side statement doc 241 used for G1/G2 (finding_span position()=615 re-verified live 2026-09-09) once the split is ruled",
       "needs": [
-        "Governance factor_id + attachment point (code)",
         "pre-existing-processing intake field",
         "recognised_proposition + condition_text (conditional posture)",
-        "pinpoint",
-        "loadSource() agency_response fix"
+        "pinpoint"
       ],
       "live_hook_id": "fbb43e92-0530-4fbe-be52-e1e208a8bc3f"
     },
@@ -287,13 +289,10 @@
       "required_atoms": [
         "state:intake.notice_has_specific_purpose=No — uses generic language"
       ],
-      "vocabulary_checks_passed": false,
-      "vocabulary_check_errors": [
-        "atom \"state:intake.notice_has_specific_purpose=No — uses generic language\": state path is not in the hook vocabulary",
-        "atom \"state:intake.notice_has_specific_purpose=No — uses generic language\": state path is not in the hook vocabulary"
-      ],
-      "atoms_note": "the atom is in ADMT_ATOM_PHRASES but NOT in STATE_ATOM_ENUMS (checkAtoms rejects it today) — [NEEDS: STATE_ATOM_ENUMS entry for intake.notice_has_specific_purpose before vocabulary_checks_passed can be true]",
-      "atoms_rationale": "prep JSON's own proposal: state:intake.notice_has_specific_purpose=No — uses generic language as gate and fact. The atom is in ADMT_ATOM_PHRASES (the runtime join evaluates it) but NOT in generate-corpus-hooks/_local/vocabulary.ts STATE_ATOM_ENUMS, so checkAtoms rejects it today — vocabulary_checks_passed is therefore written FALSE, honestly, with the exact checkAtoms error in drafter.verification_errors. [NEEDS: STATE_ATOM_ENUMS entry for intake.notice_has_specific_purpose]. The prose ratification is unaffected: the paragraph prints through literal_sentence_override, never through the atom",
+      "vocabulary_checks_passed": true,
+      "vocabulary_check_errors": [],
+      "atoms_note": "the atom is in ADMT_ATOM_PHRASES but NOT in STATE_ATOM_ENUMS (checkAtoms rejects it today) — [NEEDS: STATE_ATOM_ENUMS entry for intake.notice_has_specific_purpose before vocabulary_checks_passed can be true] — CLOSED by doc 241 (2026-09-09): vocabulary.ts STATE_ATOM_ENUMS now carries intake.notice_has_specific_purpose (options read off cppaAdmtContract, never retyped); checkAtoms passes; the live row was flipped to vocabulary_checks_passed=true by a guarded UPDATE with the recheck recorded in lawyer_edits",
+      "atoms_rationale": "prep JSON's own proposal: state:intake.notice_has_specific_purpose=No — uses generic language as gate and fact. The atom is in ADMT_ATOM_PHRASES (the runtime join evaluates it) but NOT in generate-corpus-hooks/_local/vocabulary.ts STATE_ATOM_ENUMS, so checkAtoms rejects it today — vocabulary_checks_passed is therefore written FALSE, honestly, with the exact checkAtoms error in drafter.verification_errors. [NEEDS: STATE_ATOM_ENUMS entry for intake.notice_has_specific_purpose]. The prose ratification is unaffected: the paragraph prints through literal_sentence_override, never through the atom — CLOSED by doc 241 (2026-09-09), see atoms_note",
       "finding_span": "to prevent businesses from using vague language about their planned use of ADMT",
       "finding_span_column": "cppa_fsor_commentary.agency_response",
       "position_check": "cppa_fsor_commentary.agency_response position()=480, re-verified live 2026-09-09",
@@ -309,7 +308,7 @@
       "citation_composed_by_generate_ts": "California Privacy Protection Agency, Final Statement of Reasons, CCPA Updates, Cyber, Risk, ADMT, and Insurance Regulations, 11 CCR § 7220(c)(1), p. 45",
       "citation_short_label": "CPPA Final Statement of Reasons",
       "approved_parenthetical_reproducible_by_citationFor": false,
-      "pinpoint_note": "null — authorable from regulation_citation/page_ref, not authored here. NOTE: the DB row's page_ref is 'p. 45' but the approved citation prints no page — citationFor would append ', p. 45'; the override bypasses citationFor",
+      "pinpoint_note": "AUTHORED live 2026-09-09 by the orchestrator (doc 241 §2): page-kind pinpoint, ref = the row's own page_ref, anchor_span = the row's own finding_span (position() re-verified before the write) — see live_pinpoint; generate.ts's doc 222 §2.5 exclusion no longer applies to this hook. NOTE (unchanged): the DB row's page_ref is 'p. 45' but the approved citation prints no page — the override bypasses citationFor",
       "fixture": "tests/fixtures/doc236/ratified-7f616c44.txt",
       "fixture_md5": "5b57cefd80645b0fed1253653d47e02b",
       "fixture_bytes": 917,
@@ -321,12 +320,13 @@
       "ratified_by": "John McDonnell (CEO)",
       "ledger_ref": "doc236",
       "ratification_blocker": null,
-      "needs": [
-        "STATE_ATOM_ENUMS entry",
-        "pinpoint",
-        "loadSource() agency_response fix"
-      ],
-      "live_hook_id": "33bf340c-80c1-414e-9bf1-67198a9a0c1d"
+      "needs": [],
+      "live_hook_id": "33bf340c-80c1-414e-9bf1-67198a9a0c1d",
+      "live_pinpoint": {
+        "kind": "page",
+        "ref": "p. 45",
+        "anchor_span": "to prevent businesses from using vague language about their planned use of ADMT"
+      }
     },
     {
       "short": "4b2d39e1",
@@ -370,7 +370,7 @@
       "citation_composed_by_generate_ts": "California Privacy Protection Agency, Final Statement of Reasons, CCPA Updates, Cyber, Risk, ADMT, and Insurance Regulations, 11 CCR § 7221(c)(4), Appendix p. 212",
       "citation_short_label": "CPPA Final Statement of Reasons",
       "approved_parenthetical_reproducible_by_citationFor": true,
-      "pinpoint_note": "null — authorable from regulation_citation/page_ref, not authored here",
+      "pinpoint_note": "AUTHORED live 2026-09-09 by the orchestrator (doc 241 §2): page-kind pinpoint, ref = the row's own page_ref, anchor_span = the row's own finding_span (position() re-verified before the write) — see live_pinpoint; generate.ts's doc 222 §2.5 exclusion no longer applies to this hook",
       "fixture": "tests/fixtures/doc236/ratified-4b2d39e1.txt",
       "fixture_md5": "7662f10af3ec4dedb93c6a6abd426e52",
       "fixture_bytes": 934,
@@ -383,11 +383,14 @@
       "ledger_ref": "doc236",
       "ratification_blocker": null,
       "needs": [
-        "an atom for opt_out_no_cookie_banner",
-        "pinpoint",
-        "loadSource() agency_response fix"
+        "an atom for opt_out_no_cookie_banner"
       ],
-      "live_hook_id": "653a134a-bf72-49b2-bc8d-d9576cd03179"
+      "live_hook_id": "653a134a-bf72-49b2-bc8d-d9576cd03179",
+      "live_pinpoint": {
+        "kind": "page",
+        "ref": "Appendix, p. 212",
+        "anchor_span": "based on its observations in the marketplace of businesses inappropriately using cookie banners or controls"
+      }
     },
     {
       "short": "2951b3e7",
@@ -449,8 +452,7 @@
       "ratification_blocker": "conditional posture with no recognised_proposition / condition_text: doc 236 drafts neither, and inventing them would be new structured legal content, not extraction (doc 222 §2.1; generate.ts excludes such a hook BY NAME; verify.ts settleDecision would return proposition_split_missing)",
       "needs": [
         "recognised_proposition + condition_text (conditional posture)",
-        "pinpoint",
-        "loadSource() agency_response fix"
+        "pinpoint"
       ],
       "live_hook_id": "1cd39365-382c-4dff-9e95-33d8d47c943c"
     },
@@ -497,7 +499,7 @@
       "citation_composed_by_generate_ts": "California Privacy Protection Agency, Final Statement of Reasons, CCPA Updates, Cyber, Risk, ADMT, and Insurance Regulations, 11 CCR § 7222(b)(1), Appendix p. 67",
       "citation_short_label": "CPPA Final Statement of Reasons",
       "approved_parenthetical_reproducible_by_citationFor": true,
-      "pinpoint_note": "null — authorable from regulation_citation/page_ref, not authored here",
+      "pinpoint_note": "AUTHORED live 2026-09-09 by the orchestrator (doc 241 §2): page-kind pinpoint, ref = the row's own page_ref, anchor_span = the row's own finding_span (position() re-verified before the write) — see live_pinpoint; generate.ts's doc 222 §2.5 exclusion no longer applies to this hook",
       "fixture": "tests/fixtures/doc236/ratified-84d00bed.txt",
       "fixture_md5": "58222cbfc130fa40ef07c57cf89731e3",
       "fixture_bytes": 1052,
@@ -511,11 +513,14 @@
       "ratification_blocker": null,
       "needs": [
         "posture mapping ('supports')",
-        "no atom — selection-only",
-        "pinpoint",
-        "loadSource() agency_response fix"
+        "no atom — selection-only"
       ],
-      "live_hook_id": "cc5643c9-d5af-48a6-a6a3-b9e3508cd7c0"
+      "live_hook_id": "cc5643c9-d5af-48a6-a6a3-b9e3508cd7c0",
+      "live_pinpoint": {
+        "kind": "page",
+        "ref": "Appendix, p. 67",
+        "anchor_span": "identifying a purpose in non - generic terms is necessary to identify relevant risks and benefits in a risk assessment"
+      }
     },
     {
       "short": "88f44d5e",
@@ -578,8 +583,7 @@
       "ratification_blocker": "conditional posture with no recognised_proposition / condition_text: doc 236 drafts neither, and inventing them would be new structured legal content, not extraction (doc 222 §2.1; generate.ts excludes such a hook BY NAME; verify.ts settleDecision would return proposition_split_missing)",
       "needs": [
         "posture ('neutral' has no matrix row)",
-        "pinpoint",
-        "loadSource() agency_response fix"
+        "pinpoint"
       ],
       "live_hook_id": "95c5379f-8f6b-425d-bfb6-1ec511eb8b39"
     },
@@ -629,7 +633,7 @@
       "citation_composed_by_generate_ts": "California Privacy Protection Agency, Final Statement of Reasons, CCPA Updates, Cyber, Risk, ADMT, and Insurance Regulations, 11 CCR § 7001(ddd)(6), Appendix p. 24",
       "citation_short_label": "CPPA Final Statement of Reasons",
       "approved_parenthetical_reproducible_by_citationFor": false,
-      "pinpoint_note": "null — authorable from regulation_citation/page_ref, not authored here",
+      "pinpoint_note": "AUTHORED live 2026-09-09 by the orchestrator (doc 241 §2): page-kind pinpoint, ref = the row's own page_ref, anchor_span = the row's own finding_span (position() re-verified before the write) — see live_pinpoint; generate.ts's doc 222 §2.5 exclusion no longer applies to this hook",
       "fixture": "tests/fixtures/doc236/ratified-83bcecda.txt",
       "fixture_md5": "2cdddf5f083b2ba84c8b61d13e592ac1",
       "fixture_bytes": 1189,
@@ -641,12 +645,15 @@
       "ratified_by": "John McDonnell (CEO)",
       "ledger_ref": "doc236",
       "ratification_blocker": null,
-      "needs": [
-        "pinpoint",
-        "loadSource() agency_response fix"
-      ],
-      "live_hook_id": "4b4802af-b387-4078-a395-e690c6b60659"
+      "needs": [],
+      "live_hook_id": "4b4802af-b387-4078-a395-e690c6b60659",
+      "live_pinpoint": {
+        "kind": "page",
+        "ref": "Appendix, p. 24",
+        "anchor_span": "The regulations already include appropriate exceptions for security, fraud prevention, and safety"
+      }
     }
   ],
-  "_live_rows_written": "2026-09-09 — 10 authority_hooks rows INSERTed as settled via a self-verifying statement (server-side md5 + octet_length of literal_sentence_override vs the fixture, profile resolved by (product, source_row_id) and asserted equal to profile_id, never-overwrite); each row id is recorded as live_hook_id. The rows whose hook_status_written is ratified were then promoted by ONE guarded UPDATE per product (WHERE settled AND override NOT NULL AND id IN the named set AND md5 IN the verified set)."
+  "_live_rows_written": "2026-09-09 — 10 authority_hooks rows INSERTed as settled via a self-verifying statement (server-side md5 + octet_length of literal_sentence_override vs the fixture, profile resolved by (product, source_row_id) and asserted equal to profile_id, never-overwrite); each row id is recorded as live_hook_id. The rows whose hook_status_written is ratified were then promoted by ONE guarded UPDATE per product (WHERE settled AND override NOT NULL AND id IN the named set AND md5 IN the verified set).",
+  "_gap_closure_doc241_2026_09_09": "Fable, branch v3-hooks-gap-closure (doc 241): (1) Governance is ADMT's ninth factor in code (see _generate_time_blockers[2]); (2) G1/G2 pinpoints authored live, server-side, from each row's own finding_span + page_ref; (3) STATE_ATOM_ENUMS gained the ADMT + DPIA state paths, so notice-content/01's atom now passes checkAtoms and its live row/fixture read vocabulary_checks_passed=true; (4) NOTHING was promoted: hook_status_written / ratified_by / ledger_ref are exactly as doc 236 wrote them — the five settled-only rows stay settled until the panel rules on doc 241 §4 and the orchestrator runs the guarded promotion. live_pinpoint on six rows mirrors the live authority_hooks.pinpoint column (kind page, ref = citation_facts.page_ref, anchor_span = finding_span)."
 }
