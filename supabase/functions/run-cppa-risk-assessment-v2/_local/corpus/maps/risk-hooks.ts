@@ -334,24 +334,6 @@ export const RISK_SOURCE_STATUS_LABELS: Readonly<Record<string, string>> = {
 
 export const RISK_APPEAL_SENTENCE = "This matter is subject to an appeal which could invalidate this ruling.";
 
-// ── [RATIFY — DRAFT, unratified] — DOC 238 §5 item 4, PROPOSED. TWO hedge
-// variants for Risk, mirroring RISK_APPEAL_SENTENCE's pattern (fixed
-// strings, appended by the join, never drafted) — Risk's own sources split
-// genuinely: a `cppa_fsor_commentary` row is the CPPA's OWN commentary on
-// the CALIFORNIA regulation Risk itself assesses (domestic — doc 234
-// candidates 5–18's "Whether this company's stated purpose clears that bar
-// is a judgment about this company's own words" pattern), while an
-// `enforcement_actions` row is a GDPR decision, a DIFFERENT law than
-// CCPA/the CPPA regulations (foreign — doc 234 candidates 1–4's "This is a
-// foreign decision under a different law, cited only by analogy" pattern).
-// Wording here is GENERIC (hook-agnostic), the same judgment call flagged
-// for DPIA/LIA/ADMT — see doc 238 §"CPPA Risk". ──────────────────────────
-
-export const RISK_HEDGE_DOMESTIC_FACTS_PROPOSED =
-  "Whether this applies here is a question about this company's own facts, not a fixed rule.";
-export const RISK_HEDGE_FOREIGN_ANALOGY_PROPOSED =
-  "This is a foreign decision, cited only by analogy; whether it applies here depends on this company's own facts, not on the decision's.";
-
 export const RISK_SETTLEDNESS_LABELS: Readonly<Record<"R1" | "R2" | "R3" | "R4", string>> = {
   R1: "adopted guidance or settled authority",
   R2: "a settled line of decisions",

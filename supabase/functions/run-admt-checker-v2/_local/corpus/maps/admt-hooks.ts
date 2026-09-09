@@ -296,20 +296,6 @@ export const ADMT_SOURCE_STATUS_LABELS: Readonly<Record<string, string>> = {
 
 export const ADMT_APPEAL_SENTENCE = "This matter is subject to an appeal which could invalidate this ruling.";
 
-// ── [RATIFY — DRAFT, unratified] — DOC 238 §5 item 4, PROPOSED. TWO hedge
-// variants, same split as Risk's (see risk-hooks.ts's own doc comment):
-// `domestic_facts` for a `cppa_fsor_commentary` source (ADMT's own Article
-// 10/11 regulations); `foreign_analogy` for a GDPR `enforcement_actions`
-// source (doc 236's E1 — "decided under the GDPR, not California's ADMT
-// rules, so it is persuasive only here"). Wording is generic (hook-
-// agnostic), the same judgment call flagged for the other three products —
-// see doc 238 §"ADMT". ────────────────────────────────────────────────────
-
-export const ADMT_HEDGE_DOMESTIC_FACTS_PROPOSED =
-  "Whether this applies here is a question about this company's own facts, not a fixed rule.";
-export const ADMT_HEDGE_FOREIGN_ANALOGY_PROPOSED =
-  "This is a foreign decision, cited only by analogy; whether it applies here depends on this company's own facts, not on the decision's.";
-
 export const ADMT_SETTLEDNESS_LABELS: Readonly<Record<"R1" | "R2" | "R3" | "R4", string>> = {
   R1: "adopted guidance or settled authority",
   R2: "a settled line of decisions",

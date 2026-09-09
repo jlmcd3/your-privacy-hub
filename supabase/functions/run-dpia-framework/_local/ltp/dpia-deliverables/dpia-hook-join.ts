@@ -84,7 +84,6 @@ import {
   DPIA_FACTOR_PHRASES,
   DPIA_HOOK_SHAPES,
   DPIA_APPEAL_SENTENCE,
-  DPIA_HEDGE_DOMESTIC_FACTS_PROPOSED,
   DPIA_SETTLEDNESS_LABELS,
   DPIA_SOURCE_STATUS_LABELS,
   dpiaAtomConcept,
@@ -222,11 +221,21 @@ function appealSuffix(hook: AuthorityHook): string {
   return hook.source_status === "sa_decision_appeal_pending" ? ` ${DPIA_APPEAL_SENTENCE}` : "";
 }
 
-/** DOC 238 §5 item 4 — PROPOSED. Mirrors `appealSuffix` exactly. DPIA uses
- *  only the domestic-facts hedge (doc 238 §"DPIA"); a hook marked
- *  `foreign_analogy` is a data error for this product and renders no hedge. */
+/** DOC 238 §5 item 4, revised 2026-09-09 — appends the hook's OWN
+ *  CEO-approved hedge passage (`hedge_sentence`, hook-types.ts) VERBATIM,
+ *  after the appeal suffix. Same mechanism as LIA's `hedgeSuffix` (see that
+ *  file's doc comment): the text is per-hook data, never a constant — every
+ *  approved DPIA hedge in doc 233 is "But the outcome depends on this
+ *  company's own facts: <that hook's own fact list>" (e.g. Comune di
+ *  Bolzano: "…whether the monitoring is organized and ongoing (systematic),
+ *  or occasional and incidental."). Doc 238's first cut mapped
+ *  `hedge_variant` to one generic constant that appeared in no approved
+ *  document; that constant is gone and `hedge_variant` is classification
+ *  only. A hook without `hedge_sentence` (every hook shipped today) gets no
+ *  suffix — byte-identical to pre-doc-238 rendering. */
 function hedgeSuffix(hook: AuthorityHook): string {
-  return hook.hedge_variant === "domestic_facts" ? ` ${DPIA_HEDGE_DOMESTIC_FACTS_PROPOSED}` : "";
+  const hedge = (hook.hedge_sentence ?? "").trim();
+  return hedge ? ` ${hedge}` : "";
 }
 
 function verbFor(hook: AuthorityHook): "found" | "states" | "advised" {

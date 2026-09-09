@@ -9,6 +9,19 @@
 // new 5th parameter to the live `LIA_HOOK_SHAPES`) — so this file is the
 // ONLY place the proposed shape is exercised at all.
 //
+// DOC 238 FOLLOW-UP (2026-09-09, the hedge): doc 238's first cut appended
+// ONE generic constant ("But the outcome here depends on this company's own
+// facts, not on the cited authority's.") whenever `hedge_variant` was set.
+// That sentence appears in no CEO-approved document. Doc 223B's approved
+// hedge for `0af0876d` is hand-tailored to that hook, so the hedge is now
+// per-hook DATA (`AuthorityHook.hedge_sentence`, rendered verbatim by
+// `hedgeSuffix`), the generic constant is gone, and `hedge_variant` is
+// classification only. Of doc 223B's five settled hooks only `0af0876d`
+// carries an approved hedge in this form: `63bf2fe9`, `66742297` and
+// `a22b1399`'s approved paragraphs have no "the outcome depends on this
+// company's own facts" clause, and `cbd38bc6` has no CEO draft at all — so
+// none of those four may carry a `hedge_sentence` until the CEO writes one.
+//
 // The `0af0876d` fixture below (DPC, LinkedIn) copies every citation/status/
 // posture/settledness/pinpoint/atom field directly from doc 223B's own
 // table for that hook. `finding_span` is not printed verbatim anywhere in
@@ -21,9 +34,19 @@ import type { AuthorityHook } from "../../../supabase/functions/_shared/corpus/h
 import {
   renderSentence,
   LIA_HOOK_SHAPES_PROPOSED_2026_09,
-  LIA_HEDGE_DOMESTIC_FACTS_PROPOSED,
 } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/hook-join.ts";
 import { LIA_HOOK_SHAPES } from "../../../supabase/functions/run-li-assessment/_local/corpus/maps/lia-hooks.ts";
+
+/** Doc 223B, hook `0af0876d`, the CEO-approved simplified paragraph
+ *  (2026-09-08) — its hedge sentence, copied VERBATIM. This is the only
+ *  approved LIA hedge in existence. */
+const LINKEDIN_HEDGE_223B =
+  "But the outcome depends on this company's own facts: its purposes, the data involved, its safeguards, the effects on people, and what those people could reasonably expect.";
+
+/** Doc 223B's own literal FULL MATCH / fails / same / S2 row for `0af0876d`
+ *  — the sentence the LIVE, ratified path renders today. */
+const LINKEDIN_LIVE_S2_223B =
+  "The company has stated that its processing is for behavioural advertising; the processing is large-scale; it processes browsing or behavioural data; the people affected are its customers; its interest is commercial or revenue-related; it markets by online advertising. In DPC, LinkedIn, DPC found that where large-scale cross-border processing of members' first party and third party behavioural data for behavioural and targeted advertising, relying on consent and on a commercial legitimate interest, processing personal data without an appropriate legal basis is a clear and serious violation of the data subject's fundamental right to data protection. That finding cuts against the company's position on the balance, and the balance finding in Section IV reflects it. (DPC, LinkedIn, decision of 22 October 2024 § 7; supervisory-authority decision — persuasive, non-binding outside its jurisdiction.)";
 
 function linkedinHook(overrides: Partial<AuthorityHook> = {}): AuthorityHook {
   return {
@@ -72,8 +95,10 @@ function linkedinHook(overrides: Partial<AuthorityHook> = {}): AuthorityHook {
     },
     // DOC 238 proposed fields — LIA needs only the hedge; its sources ARE
     // its own governing law's authorities, so no `{governing_provision}`
-    // slot appears in any LIA shape (proposed or ratified).
+    // slot appears in any LIA shape (proposed or ratified). The hedge is
+    // this hook's OWN approved sentence (doc 223B), not a constant.
     hedge_variant: "domestic_facts",
+    hedge_sentence: LINKEDIN_HEDGE_223B,
     ...overrides,
   };
 }
@@ -85,34 +110,38 @@ Deno.test("doc238 LIA — the live ratified LIA_HOOK_SHAPES is untouched: S2's t
   );
 });
 
-Deno.test("doc238 LIA — renderSentence still defaults to the ratified shapes: a hook with hedge_variant set renders NOTHING extra through the live path", () => {
-  const hook = linkedinHook();
+Deno.test("doc238 LIA — a hook with hedge_sentence unset renders BYTE-IDENTICAL to doc 223B's own literal 0af0876d FULL MATCH sentence, even with hedge_variant still set (the variant never selects text)", () => {
+  const hook = linkedinHook({ hedge_sentence: undefined });
+  assertEquals(hook.hedge_variant, "domestic_facts"); // still set — must be inert
   const rendered = renderSentence(hook, "S2", hook.fact_atoms, undefined); // no 5th arg -> LIA_HOOK_SHAPES
-  assert(rendered);
-  // The ratified S2 has no {quote}/{governing_provision} placeholder, so the
-  // new slots are no-ops — but hedgeSuffix DOES fire (it reads hook.hedge_
-  // variant regardless of which shape map was used), which is why this
-  // fixture is safe for the LIVE map: none of the five hooks LIA_HOOKS ships
-  // today (the empty array) sets hedge_variant, so production is unaffected.
-  assert(rendered.includes("cuts against the company's position on the balance"));
-  assert(rendered.endsWith(LIA_HEDGE_DOMESTIC_FACTS_PROPOSED));
+  assertEquals(rendered, LINKEDIN_LIVE_S2_223B);
 });
 
-Deno.test("doc238 LIA — a hook with hedge_variant unset renders BYTE-IDENTICAL to doc 223B's own literal 0af0876d FULL MATCH sentence (proves the fixture and the pre-doc-238 render path both)", () => {
-  const hook = linkedinHook({ hedge_variant: undefined });
-  const rendered = renderSentence(hook, "S2", hook.fact_atoms, undefined);
-  assert(rendered);
-  assert(!rendered.includes("But the outcome"));
-  // Copied verbatim from doc 223B's own table, hook `0af0876d`, FULL
-  // MATCH / fails / same / S2 row.
-  assertEquals(
-    rendered,
-    "The company has stated that its processing is for behavioural advertising; the processing is large-scale; it processes browsing or behavioural data; the people affected are its customers; its interest is commercial or revenue-related; it markets by online advertising. In DPC, LinkedIn, DPC found that where large-scale cross-border processing of members' first party and third party behavioural data for behavioural and targeted advertising, relying on consent and on a commercial legitimate interest, processing personal data without an appropriate legal basis is a clear and serious violation of the data subject's fundamental right to data protection. That finding cuts against the company's position on the balance, and the balance finding in Section IV reflects it. (DPC, LinkedIn, decision of 22 October 2024 § 7; supervisory-authority decision — persuasive, non-binding outside its jurisdiction.)",
-  );
+Deno.test("doc238 LIA — hedge_variant alone (either value, hedge_sentence null/empty/blank) renders NO hedge: there is no generic hedge constant left to fall back on", () => {
+  for (const hedge_variant of ["domestic_facts", "foreign_analogy"] as const) {
+    for (const hedge_sentence of [undefined, null, "", "   "]) {
+      const hook = linkedinHook({ hedge_variant, hedge_sentence });
+      assertEquals(renderSentence(hook, "S2", hook.fact_atoms, undefined), LINKEDIN_LIVE_S2_223B);
+      const proposed = renderSentence(hook, "S2", hook.fact_atoms, undefined, LIA_HOOK_SHAPES_PROPOSED_2026_09);
+      assert(proposed);
+      assert(proposed!.endsWith("non-binding outside its jurisdiction.)"), `unexpected suffix: ${proposed}`);
+      assert(!proposed!.includes("own facts"));
+    }
+  }
+});
+
+Deno.test("doc238 LIA — renderSentence still defaults to the ratified shapes: a hook WITH hedge_sentence renders the live S2 + exactly that approved sentence, nothing else", () => {
+  const hook = linkedinHook();
+  const rendered = renderSentence(hook, "S2", hook.fact_atoms, undefined); // no 5th arg -> LIA_HOOK_SHAPES
+  // hedgeSuffix reads hook.hedge_sentence regardless of which shape map was
+  // used, which is why this fixture is safe for the LIVE map: none of the
+  // hooks LIA_HOOKS ships today (the empty array) sets hedge_sentence, so
+  // production is unaffected.
+  assertEquals(rendered, `${LINKEDIN_LIVE_S2_223B} ${LINKEDIN_HEDGE_223B}`);
 });
 
 Deno.test("doc238 LIA — {quote} renders the verbatim finding_span, quoted, through the PROPOSED shape", () => {
-  const hook = linkedinHook({ hedge_variant: undefined });
+  const hook = linkedinHook({ hedge_sentence: undefined });
   const rendered = renderSentence(hook, "S2", hook.fact_atoms, undefined, LIA_HOOK_SHAPES_PROPOSED_2026_09);
   assert(rendered);
   assert(
@@ -121,7 +150,37 @@ Deno.test("doc238 LIA — {quote} renders the verbatim finding_span, quoted, thr
   );
 });
 
-Deno.test("doc238 LIA — the PROPOSED S2 sentence structurally matches doc 223B's approved 0af0876d sentence: quoted clause, hedge, forward-looking section pointer", () => {
+Deno.test("doc238 LIA — the PROPOSED S2 rendering for 0af0876d is pinned byte-for-byte, and its hedge is doc 223B's own approved sentence for this hook, not a generic constant", () => {
+  const hook = linkedinHook();
+  const rendered = renderSentence(hook, "S2", hook.fact_atoms, undefined, LIA_HOOK_SHAPES_PROPOSED_2026_09);
+  assert(rendered, "expected the proposed shape to render");
+
+  // The hedge is the literal doc 223B sentence — the one thing in this
+  // paragraph (beyond the ratified atoms/citation/status) that IS
+  // CEO-approved wording — and the old generic constant is gone.
+  assert(rendered!.endsWith(` ${LINKEDIN_HEDGE_223B}`), `approved hedge missing/wrong: ${rendered}`);
+  assert(!rendered!.includes("But the outcome here depends"), `generic constant leaked: ${rendered}`);
+
+  // POSITION — an OPEN item, deliberately pinned as-is so any fix is a
+  // visible diff: doc 223B's approved paragraph places this hedge BEFORE
+  // the section pointer ("…That decision weighs against the company's
+  // position here. But the outcome depends on this company's own facts:
+  // […]. Section IV weighs those facts. (DPC, …)"), i.e. inside the
+  // paragraph, ahead of the citation. `hedgeSuffix` (mirroring
+  // `appealSuffix`) appends it AFTER the citation parenthetical instead.
+  // Every approved paragraph in docs 223B/233/234/236 puts the hedge
+  // before the citation; doc 238 §1.3's "the hedge always comes last,
+  // after the citation trailer, matching every approved example" is not
+  // borne out by any of them. Moving it means a `{hedge}` slot in the
+  // proposed shape text — a shape-wording change for the CEO's ratify
+  // line, not a mechanism fix made here.
+  assertEquals(
+    rendered,
+    "The company has stated that its processing is for behavioural advertising; the processing is large-scale; it processes browsing or behavioural data; the people affected are its customers; its interest is commercial or revenue-related; it markets by online advertising. In DPC, LinkedIn, DPC found that where large-scale cross-border processing of members' first party and third party behavioural data for behavioural and targeted advertising, relying on consent and on a commercial legitimate interest, processing personal data without an appropriate legal basis is a clear and serious violation of the data subject's fundamental right to data protection — in its own words, \"processing personal data without an appropriate legal basis is a clear and serious violation of the data subject's fundamental right to data protection\". That finding cuts against the company's position on the balance. Whether that holds on this record is addressed in Section IV. (DPC, LinkedIn, decision of 22 October 2024 § 7; supervisory-authority decision — persuasive, non-binding outside its jurisdiction.) But the outcome depends on this company's own facts: its purposes, the data involved, its safeguards, the effects on people, and what those people could reasonably expect.",
+  );
+});
+
+Deno.test("doc238 LIA — the PROPOSED S2 sentence structurally matches doc 223B's approved 0af0876d paragraph: quoted clause, forward-looking section pointer, citation trailer unchanged in form (structure only — the paragraph is NOT the approved prose byte-for-byte)", () => {
   const hook = linkedinHook();
   const rendered = renderSentence(hook, "S2", hook.fact_atoms, undefined, LIA_HOOK_SHAPES_PROPOSED_2026_09);
   assert(rendered, "expected the proposed shape to render");
@@ -134,20 +193,17 @@ Deno.test("doc238 LIA — the PROPOSED S2 sentence structurally matches doc 223B
   assert(rendered!.includes(`"${hook.finding_span}"`));
 
   // 3. Forward-looking section pointer, not the old backward assertion
-  //    (doc 237 §5 item 5 — matches doc 223B's own "Section IV weighs those
-  //    facts" / doc 233's "Section 3 addresses whether..." register).
+  //    (doc 237 §5 item 5). Doc 223B's own approved text is "Section IV
+  //    weighs those facts." — the proposed shape's "Whether that holds on
+  //    this record is addressed in Section IV." matches it in register,
+  //    not in wording.
   assert(rendered!.includes("Whether that holds on this record is addressed in Section IV"));
   assert(!rendered!.includes("the balance finding in Section IV reflects it"));
 
-  // 4. Hedge present, appended after the citation trailer (doc 237 §5 item
-  //    4) — matches doc 223B's own "But the outcome depends on this
-  //    company's own facts" clause structurally (a trailing hedge sentence),
-  //    though the exact wording is a proposed generic constant, not this
-  //    hook's hand-tailored fact list — see doc 238's own flag on this.
-  assert(rendered!.trim().endsWith(LIA_HEDGE_DOMESTIC_FACTS_PROPOSED));
-
-  // 5. The citation trailer itself is unchanged in form: "(label § pin;
-  //    status.)".
+  // 4. The citation trailer itself is unchanged in form: "(label § pin;
+  //    status.)". Doc 223B's approved paragraph prints a DIFFERENT status
+  //    label ("decision of a lead supervisory authority applying the GDPR")
+  //    and a fuller case name — doc 238 §2.4's open status-label ruling.
   assert(rendered!.includes("(DPC, LinkedIn, decision of 22 October 2024 § 7; supervisory-authority decision"));
 });
 

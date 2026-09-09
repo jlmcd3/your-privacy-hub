@@ -73,13 +73,6 @@ import {
   LIA_SOURCE_STATUS_LABELS,
   liaAtomConcept,
 } from "../../corpus/maps/lia-hooks.ts";
-// DOC 238 — the PROPOSED hedge constant. Not yet ratified, not imported from
-// the ratified lia-hooks.ts (that file is byte-frozen — see its own header),
-// so it lives beside the join as its own clearly-labelled, non-ratified
-// export. Every hook shipped today has `hedge_variant` unset, so importing
-// this is a no-op until a curated hook sets that field.
-export const LIA_HEDGE_DOMESTIC_FACTS_PROPOSED =
-  "But the outcome here depends on this company's own facts, not on the cited authority's.";
 import { liaV3Answer, liaV3FieldLabel } from "../v3/field-labels.ts";
 
 export interface HookFlag {
@@ -214,16 +207,21 @@ function appealSuffix(hook: AuthorityHook): string {
   return hook.source_status === "sa_decision_appeal_pending" ? ` ${LIA_APPEAL_SENTENCE}` : "";
 }
 
-/** DOC 238 §5 item 4 — PROPOSED. Mirrors `appealSuffix`'s pattern exactly: a
- *  fixed, ratified string appended by the join, never drafted. A hook whose
- *  `hedge_variant` is unset (every hook shipped today) gets no suffix at
- *  all — byte-identical to pre-doc-238 rendering. LIA's approved prose uses
- *  ONLY the domestic-facts hedge (its EDPB/UK-guidance/EU-enforcement
- *  sources ARE its own governing law's authorities — doc 238 §4); a hook
- *  marked `foreign_analogy` is a data error for this product and renders no
- *  hedge rather than guess at wording LIA has no ratified text for. */
+/** DOC 238 §5 item 4, revised 2026-09-09 — appends the hook's OWN
+ *  CEO-approved hedge passage (`hedge_sentence`, hook-types.ts) VERBATIM,
+ *  after the appeal suffix. Mirrors `appealSuffix`'s pattern (a suffix the
+ *  join appends, never drafted at render time), but the TEXT is per-hook
+ *  data, not a constant: doc 223B's approved hedge for `0af0876d` names that
+ *  hook's own facts ("…its purposes, the data involved, its safeguards, the
+ *  effects on people, and what those people could reasonably expect"), and
+ *  no approved LIA paragraph carries a generic hedge. Doc 238's first cut
+ *  mapped `hedge_variant` to one generic constant that appeared in no
+ *  approved document; that constant is gone and `hedge_variant` is now
+ *  classification only. A hook without `hedge_sentence` (every hook shipped
+ *  today) gets no suffix at all — byte-identical to pre-doc-238 rendering. */
 function hedgeSuffix(hook: AuthorityHook): string {
-  return hook.hedge_variant === "domestic_facts" ? ` ${LIA_HEDGE_DOMESTIC_FACTS_PROPOSED}` : "";
+  const hedge = (hook.hedge_sentence ?? "").trim();
+  return hedge ? ` ${hedge}` : "";
 }
 
 function verbFor(hook: AuthorityHook): "found" | "states" | "advised" {

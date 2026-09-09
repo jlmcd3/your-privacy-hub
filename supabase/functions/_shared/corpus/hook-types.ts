@@ -194,18 +194,41 @@ export interface AuthorityHook {
    */
   readonly governing_provision_sentence?: string | null;
   /**
-   * Which fixed, ratified hedge sentence (if any) the join should append
-   * after the appeal suffix (doc 237 §5 item 4). `domestic_facts`: the cited
-   * authority applies the SAME governing law as this product's own report
-   * (an EU/UK guidance or decision cited in LIA/DPIA, or a CPPA FSOR passage
-   * cited in Risk/ADMT) — the hedge says the outcome turns on this company's
-   * own facts. `foreign_analogy`: the cited authority applies a DIFFERENT
+   * CLASSIFICATION ONLY — never selects rendered text (revised 2026-09-09,
+   * the doc 238 follow-up). `domestic_facts`: the cited authority applies
+   * the SAME governing law as this product's own report (an EU/UK guidance
+   * or decision cited in LIA/DPIA, or a CPPA FSOR passage cited in
+   * Risk/ADMT). `foreign_analogy`: the cited authority applies a DIFFERENT
    * law than this product's governing law (a GDPR enforcement decision cited
-   * in Risk/ADMT, which is CCPA/CPPA-regulation law) — the hedge adds that
-   * the decision is persuasive only, by analogy. `null`/absent: no hedge
-   * appended (matches every hook shipped today, since none sets this field).
+   * in Risk/ADMT, which is CCPA/CPPA-regulation law). Doc 238's first cut
+   * had each product's `hedgeSuffix()` map this field to one generic
+   * per-product constant; no CEO-approved paragraph in docs 223B/233/234/236
+   * uses a generic hedge (every approved hedge is hand-tailored to its
+   * hook), so that mapping was removed and the join now reads
+   * `hedge_sentence` below instead. Kept as an inert annotation a future
+   * `verify.ts` check may read (e.g. "a foreign_analogy hook's hedge must
+   * say the decision is cited by analogy"). `null`/absent on every hook
+   * shipped today.
    */
   readonly hedge_variant?: "domestic_facts" | "foreign_analogy" | null;
+  /**
+   * The hook's OWN CEO-approved hedge passage, VERBATIM, which each
+   * product's `hedgeSuffix()` (hook-join.ts) appends after the appeal
+   * suffix when present (doc 237 §5 item 4). Every approved hedge in docs
+   * 223B/233/234/236 names that specific hook's own facts — e.g. `0af0876d`
+   * (doc 223B): "But the outcome depends on this company's own facts: its
+   * purposes, the data involved, its safeguards, the effects on people, and
+   * what those people could reasonably expect." — so the hedge is DATA on
+   * the hook, never a shared constant. May carry more than one sentence
+   * where the approved passage does (doc 234 Candidate 1's two-sentence
+   * "only persuasive here … depends on this company's own facts" hedge).
+   * `null`/absent: no hedge appended — every hook shipped today. NO
+   * drafting or verification pipeline writes this field (no DB column, no
+   * drafter prompt, no `verify.ts` check); it is curated, CEO-approved
+   * content exactly like `governing_provision_sentence`, and must only ever
+   * be populated from a sentence the CEO has already ratified by hand.
+   */
+  readonly hedge_sentence?: string | null;
 }
 
 /** The `CamRelevanceProfile` (cam-types.ts) fields a hook carries, in the
