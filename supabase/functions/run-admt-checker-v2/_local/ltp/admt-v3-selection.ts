@@ -42,7 +42,7 @@
 //     one.
 
 import type { AuthorityHook, HookApplication } from "../../../_shared/corpus/hook-types.ts";
-import { canonicalAnswerHash, canonicalAnswerText } from "../../../_shared/corpus/hook-selection.ts";
+import { canonicalAnswerHash } from "../../../_shared/corpus/hook-selection.ts";
 import type { AdmtV2Computed } from "./admt-v2-deterministic.ts";
 import { deriveAdmtFiredStates } from "./admt-v2-assemble.ts";
 import { attachCorpusRows } from "../../../_shared/corpus/cam-attach.ts";
@@ -56,7 +56,7 @@ import {
   type HookSelectionRow,
 } from "./hook-join.ts";
 import { buildAdmtRuleStates } from "./v3/rule-states.ts";
-import { admtV3Answer, admtV3FieldLabel, ADMT_V3_FIELDS } from "./v3/field-labels.ts";
+import { admtV3Answer, admtV3FieldLabel } from "./v3/field-labels.ts";
 import { ADMT_ROO_UNSETTLED_TEMPLATE } from "./v3/readback-templates.ts";
 import { ADMT_V3_ENABLED } from "./admt-v3-flag.ts";
 import { ADMT_HOOKS_ENABLED } from "./admt-hooks-flag.ts";
@@ -238,16 +238,20 @@ export async function runAdmtV3Selection(args: RunAdmtV3SelectionArgs): Promise<
     acct.items_planned = plan.items.length;
     acct.considered = plan.considered;
 
-    const classifyFields = ADMT_V3_FIELDS
-      .map((f) => ({ field_id: f.field_id, question_text: f.label, answer: canonicalAnswerText(admtV3Answer(intake, f.field_id)) }))
-      .filter((f) => f.answer.length >= 12);
-
+    // DOC 237 — `classify_fields` (LIA's "matter 2" proposition readings)
+    // is DELIBERATELY NOT sent, matching DPIA's own choice (doc 232): ADMT
+    // has no ratified proposition inventory (doc 227 §1; `runClassify`
+    // returns `empty_inventory` for it), so the field could never produce a
+    // reading — it could only cause a service round-trip on a generation
+    // with ZERO planned hook items, which the call-discipline principle
+    // (doc 224A §8: no call the customer's actions don't call for) rules
+    // out. The service is invoked iff the planner named at least one pair.
     const rows: HookSelectionRow[] = [...lockedRows];
-    if (plan.items.length > 0 || classifyFields.length > 0) {
+    if (plan.items.length > 0) {
       const { invokeGated } = await import("../../../_shared/invoke-gated.ts");
       const r = await invokeGated("classify-propositions", {
         action: "select_hooks", product: "admt", assessment_id: assessmentId, generation_no: generationNo,
-        items: plan.items, classify_fields: classifyFields,
+        items: plan.items,
       }, { timeoutMs: 240_000, maxBodyChars: 0 });
       if (!r.ok) {
         acct.error = `select_hooks ${r.status}: ${String(r.error ?? r.body).slice(0, 300)}`;

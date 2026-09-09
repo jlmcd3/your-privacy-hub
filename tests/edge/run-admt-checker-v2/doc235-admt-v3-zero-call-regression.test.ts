@@ -117,8 +117,47 @@ Deno.test("zero-call — assembleAdmtV2Document produces a byte-identical docume
   const withoutField = assembleAdmtV2Document(args);
   const withUndefined = assembleAdmtV2Document({ ...args, admtV3Append: undefined });
   const withEmpty = assembleAdmtV2Document({ ...args, admtV3Append: {} });
+  const withEmptyArrays = assembleAdmtV2Document({ ...args, admtV3Append: { access: [], notice: [] } });
   assertEquals(JSON.stringify(withUndefined), JSON.stringify(withoutField));
   assertEquals(JSON.stringify(withEmpty), JSON.stringify(withoutField));
+  assertEquals(JSON.stringify(withEmptyArrays), JSON.stringify(withoutField));
+});
+
+// DOC 237 — the "opposite" proof DPIA's own suite carries ("DOES append when
+// sentences ARE supplied"): without it the three byte-identity assertions
+// above would also pass against a splice that silently did nothing.
+Deno.test("zero-call — assembleAdmtV2Document DOES append when a sentence is supplied (proves the no-op above is real, not a broken feature)", () => {
+  const intake = fixtureIntake();
+  const computed = computeAdmtV2(intake as any);
+  const args = { intake, computed, exhibit: null, organizationName: "Test Co", systemName: "Test Hiring Screener" };
+  const sentence = "In Test Regulator, Test Matter, the regulator found that where a hiring screener ran without review, the access response had to disclose the outcome. (Test citation; test status.)";
+  const withoutHooks = assembleAdmtV2Document(args);
+  const withHooks = assembleAdmtV2Document({ ...args, admtV3Append: { access: [sentence] } });
+  assert(JSON.stringify(withHooks) !== JSON.stringify(withoutHooks), "supplying a sentence should change the assembled document");
+  const access = withHooks.sections.find((s) => s.id === "access");
+  assert(access, "the access section must render for this fixture");
+  const last = access!.paragraphs[access!.paragraphs.length - 1];
+  assertEquals(last.kind, "generated");
+  assertEquals(last.text, sentence);
+  // The Determination Syllabus is computed BEFORE the splice and never sees
+  // a hook sentence (a persuasive citation is not a determination).
+  assertEquals(JSON.stringify(withHooks.syllabus), JSON.stringify(withoutHooks.syllabus));
+});
+
+// DOC 237 — call discipline: the select_hooks request carries planned items
+// ONLY. ADMT has no ratified proposition inventory (doc 227 §1), so LIA's
+// `classify_fields` (matter-2 readings) could never yield a reading here —
+// it could only cause a service round-trip on a generation with zero
+// planned pairs. DPIA omits it for the same reason (doc 232).
+Deno.test("zero-call — admt-v3-selection.ts sends no classify_fields and invokes classify-propositions only when the planner named at least one item", () => {
+  const src = Deno.readTextFileSync(new URL("supabase/functions/run-admt-checker-v2/_local/ltp/admt-v3-selection.ts", REPO_ROOT));
+  const code = stripComments(src);
+  assert(!code.includes("classify_fields"), "classify_fields must not be sent for ADMT");
+  assert(!code.includes("ADMT_V3_FIELDS"), "ADMT_V3_FIELDS is only needed to build classify_fields");
+  assert(code.includes("if (plan.items.length > 0) {"), "the service call must be gated on planned items alone");
+  const calls = [...code.matchAll(/invokeGated\(\s*["']classify-propositions["']/g)];
+  assertEquals(calls.length, 1);
+  assert(calls[0].index! > code.indexOf("if (plan.items.length > 0) {"), "the call must sit inside the planned-items gate");
 });
 
 Deno.test("zero-call — runAdmtV3Selection returns the empty result and NEVER calls the supplied db client or fetch when ADMT_V3_ENABLED is false", async () => {
