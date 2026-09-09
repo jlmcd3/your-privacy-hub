@@ -174,6 +174,38 @@ export interface AuthorityHook {
   readonly condition_atoms?: readonly string[] | null;
   readonly material_facts?: readonly HookMaterialFact[];
   readonly distinguishing_pairs?: readonly HookDistinguishingPair[];
+
+  // ── DOC 238 — PROPOSED shape-amendment plumbing (2026-09-09). Both fields
+  // are OPTIONAL and additive: a hook that omits them renders exactly as it
+  // does today, through the existing ratified/draft shapes. They exist so a
+  // PROPOSED paragraph-form shape (doc 238) has somewhere to read from; no
+  // shape shipped today references either slot name.
+  /**
+   * A ratified, curated sentence stating what the governing law/regulation
+   * itself requires, BEFORE the cited authority is introduced (doc 237 §5
+   * item 3 — "California's rule requires X (§ Y)…" / the CA-first
+   * restructuring doc 234's editorial pass did by hand for candidates 1–4).
+   * Used only by S1–S4 in the doc 238 proposal: S5a/S5b/S6/S6x already carry
+   * an equivalent rule statement in `recognised_proposition`/`condition_text`.
+   * NO drafting or verification pipeline writes this field yet (no DB
+   * column, no drafter prompt, no `verify.ts` check) — it is curated content
+   * exactly like `recognised_proposition`, and doc 238 flags it as a
+   * `[NEEDS]` before any real hook can carry it.
+   */
+  readonly governing_provision_sentence?: string | null;
+  /**
+   * Which fixed, ratified hedge sentence (if any) the join should append
+   * after the appeal suffix (doc 237 §5 item 4). `domestic_facts`: the cited
+   * authority applies the SAME governing law as this product's own report
+   * (an EU/UK guidance or decision cited in LIA/DPIA, or a CPPA FSOR passage
+   * cited in Risk/ADMT) — the hedge says the outcome turns on this company's
+   * own facts. `foreign_analogy`: the cited authority applies a DIFFERENT
+   * law than this product's governing law (a GDPR enforcement decision cited
+   * in Risk/ADMT, which is CCPA/CPPA-regulation law) — the hedge adds that
+   * the decision is persuasive only, by analogy. `null`/absent: no hedge
+   * appended (matches every hook shipped today, since none sets this field).
+   */
+  readonly hedge_variant?: "domestic_facts" | "foreign_analogy" | null;
 }
 
 /** The `CamRelevanceProfile` (cam-types.ts) fields a hook carries, in the

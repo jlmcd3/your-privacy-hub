@@ -538,7 +538,7 @@ function emittedHooks(contents: string): Record<string, unknown>[] {
   return JSON.parse(m[1]);
 }
 
-Deno.test("generate: an emitted hook carries exactly AuthorityHook's fields (v1 + doc 222 v2) plus relevance", () => {
+Deno.test("generate: an emitted hook carries exactly AuthorityHook's fields (v1 + doc 222 v2 + doc 238 proposed plumbing) plus relevance", () => {
   const result = run([hookRow()], [profileRow()]);
   assertEquals(result.emitted, 1, JSON.stringify(result.excluded));
   const emitted = emittedHooks(result.contents!)[0] as Record<string, any>;
@@ -551,6 +551,9 @@ Deno.test("generate: an emitted hook carries exactly AuthorityHook's fields (v1 
     "authority_label_short", "hook_version", "source_status", "status_label", "verb",
     "appeal_note", "verified_as_of", "pinpoint", "recognised_proposition", "condition_text",
     "condition_atoms", "material_facts", "distinguishing_pairs",
+    // doc 238 — PROPOSED shape-amendment plumbing, additive, null unless a
+    // curated row sets them (none does yet).
+    "governing_provision_sentence", "hedge_variant",
   ].sort());
   assertEquals(emitted.posture, "rejected");
   assertEquals(emitted.source_row_id, "row-1");
@@ -570,6 +573,9 @@ Deno.test("generate: an emitted hook carries exactly AuthorityHook's fields (v1 
   assertEquals(emitted.hook_version, 1);
   assertEquals(emitted.material_facts, []);
   assertEquals(emitted.distinguishing_pairs, []);
+  // doc 238 — no row sets either field yet, so both ship null.
+  assertEquals(emitted.governing_provision_sentence, null);
+  assertEquals(emitted.hedge_variant, null);
 });
 
 Deno.test("generate: a v2 row's own structured pinpoint wins over the curation-note ¶", () => {
@@ -664,4 +670,59 @@ Deno.test("citationFor: enforcement label is the persuasive section's citation f
   );
   assertEquals(cite?.authority_label, "DPC (Ireland), LinkedIn, decision of 22 October 2024");
   assertEquals(cite?.regulator, "DPC (Ireland)");
+});
+
+// DOC 238 §7 — the two additive enforcement facts (proposed
+// `regulator_english_name`, real `appeal_status`) doc 234's approved Risk
+// prose carries in the trailing citation, e.g. "Autoriteit Persoonsgegevens
+// (Dutch Data Protection Authority), International Card Services B.V.,
+// decision of 15 January 2024, final on appeal". Both are no-ops when
+// absent (proven by the unchanged test directly above).
+
+Deno.test("citationFor: enforcement label appends ', final on appeal' when appeal_status is final", () => {
+  const cite = citationFor(
+    profileRow({ source_table: "enforcement_actions" }),
+    { source_table: "enforcement_actions", regulator: "AP", subject: "International Card Services B.V.", decision_date: "2024-01-15", appeal_status: "final" },
+  );
+  assertEquals(cite?.authority_label, "AP, International Card Services B.V., decision of 15 January 2024, final on appeal");
+});
+
+Deno.test("citationFor: enforcement label appends ', affirmed on appeal' when appeal_status is affirmed", () => {
+  const cite = citationFor(
+    profileRow({ source_table: "enforcement_actions" }),
+    { source_table: "enforcement_actions", regulator: "DPC (Ireland)", subject: "LinkedIn", decision_date: "2024-10-22", appeal_status: "affirmed" },
+  );
+  assertEquals(cite?.authority_label, "DPC (Ireland), LinkedIn, decision of 22 October 2024, affirmed on appeal");
+});
+
+Deno.test("citationFor: enforcement label appends no note for appeal_status 'unknown'/'appeal_pending' — those are handled elsewhere (deriveSourceStatus + LIA_APPEAL_SENTENCE)", () => {
+  for (const appeal of ["unknown", "appeal_pending", undefined]) {
+    const cite = citationFor(
+      profileRow({ source_table: "enforcement_actions" }),
+      { source_table: "enforcement_actions", regulator: "AP", subject: "ICS", decision_date: "2024-01-15", appeal_status: appeal },
+    );
+    assertEquals(cite?.authority_label, "AP, ICS, decision of 15 January 2024");
+  }
+});
+
+Deno.test("citationFor: enforcement label composes the proposed regulator_english_name as a trailing parenthetical (placeholder data — no DB column carries this yet, doc 238 §7)", () => {
+  const cite = citationFor(
+    profileRow({ source_table: "enforcement_actions" }),
+    {
+      source_table: "enforcement_actions",
+      regulator: "Autoriteit Persoonsgegevens",
+      subject: "International Card Services B.V.",
+      decision_date: "2024-01-15",
+      appeal_status: "final",
+      regulator_english_name: "Dutch Data Protection Authority",
+    },
+  );
+  assertEquals(
+    cite?.authority_label,
+    "Autoriteit Persoonsgegevens (Dutch Data Protection Authority), International Card Services B.V., decision of 15 January 2024, final on appeal",
+  );
+  // `regulator` itself (the {regulator} slot LIA/DPIA/Risk/ADMT's shapes
+  // print inline, e.g. "In {authority}, {regulator} found that…") stays the
+  // short form — only authority_label's trailing citation gets the gloss.
+  assertEquals(cite?.regulator, "Autoriteit Persoonsgegevens");
 });

@@ -79,6 +79,8 @@ import {
   ADMT_FACTOR_PHRASES,
   ADMT_HOOK_SHAPES,
   ADMT_APPEAL_SENTENCE,
+  ADMT_HEDGE_DOMESTIC_FACTS_PROPOSED,
+  ADMT_HEDGE_FOREIGN_ANALOGY_PROPOSED,
   ADMT_SETTLEDNESS_LABELS,
   ADMT_SOURCE_STATUS_LABELS,
   admtAtomConcept,
@@ -203,6 +205,15 @@ function appealSuffix(hook: AuthorityHook): string {
   return hook.source_status === "sa_decision_appeal_pending" ? ` ${ADMT_APPEAL_SENTENCE}` : "";
 }
 
+/** DOC 238 §5 item 4 — PROPOSED. Mirrors `appealSuffix` exactly; two
+ *  variants (doc 238 §"ADMT"): `domestic_facts` for a CPPA FSOR source,
+ *  `foreign_analogy` for a GDPR enforcement source (e.g. E1, doc 236). */
+function hedgeSuffix(hook: AuthorityHook): string {
+  if (hook.hedge_variant === "domestic_facts") return ` ${ADMT_HEDGE_DOMESTIC_FACTS_PROPOSED}`;
+  if (hook.hedge_variant === "foreign_analogy") return ` ${ADMT_HEDGE_FOREIGN_ANALOGY_PROPOSED}`;
+  return "";
+}
+
 function verbFor(hook: AuthorityHook): "found" | "states" | "advised" {
   if (hook.verb) return hook.verb;
   const st = hook.source_status;
@@ -222,7 +233,7 @@ function verbConsistent(hook: AuthorityHook, verb: string): boolean {
 
 /** Render one hook's sentence for `shape`, or `undefined` if any slot the
  *  shape needs cannot be resolved. Never throws. */
-function renderSentence(
+export function renderSentence(
   hook: AuthorityHook,
   shape: HookShape,
   factAtomsHolding: readonly string[],
@@ -240,8 +251,14 @@ function renderSentence(
     finding: hook.finding_paraphrase,
     factor: ADMT_FACTOR_PHRASES[hook.factor_id] ?? hook.factor_id.toLowerCase(),
     status: statusLabel(hook),
+    // DOC 238 §5 item 2 — PROPOSED; no-op unless a shape references {quote}.
+    quote: hook.finding_span,
   };
   if (section !== undefined) slots.section = section;
+  // DOC 238 §5 item 3 — PROPOSED. Always resolvable (graceful, not
+  // fail-closed) — see risk hook-join.ts's
+  // own comment for the full rationale.
+  slots.governing_provision = hook.governing_provision_sentence ? `${hook.governing_provision_sentence} ` : "";
 
   if (shape === "S1" || shape === "S2" || shape === "S4") {
     const phrase = phrasesFor(factAtomsHolding);
@@ -270,7 +287,7 @@ function renderSentence(
     sentence = sentence.split(`{${key}}`).join(value);
   }
   if (/\{[a-z_]+\}/.test(sentence)) return undefined; // an unresolved slot remains
-  return sentence + appealSuffix(hook);
+  return sentence + appealSuffix(hook) + hedgeSuffix(hook);
 }
 
 interface Candidate {

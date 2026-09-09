@@ -43,6 +43,12 @@ export interface HookRow {
   readonly pinpoint?: HookPinpoint | null;
   readonly appeal_note?: string | null;
   readonly verified_as_of?: string | null;
+  // ── DOC 238 — PROPOSED shape-amendment plumbing (2026-09-09); see
+  // hook-types.ts's `AuthorityHook` for the full doc comment. Threaded
+  // through here, optionally, so a future ratified `authority_hooks` column
+  // has somewhere to land; no such column exists yet (a `[NEEDS]`, doc 238).
+  readonly governing_provision_sentence?: string | null;
+  readonly hedge_variant?: "domestic_facts" | "foreign_analogy" | null;
 }
 
 export interface HookProfileRow {
@@ -87,6 +93,22 @@ export interface HookSourceRow {
   // ships it unconditionally as `regulator_guidance` (below).
   readonly regulation_citation?: string | null; // cppa_fsor_commentary — the pinpoint, not a title
   readonly page_ref?: string | null; // cppa_fsor_commentary — pinpoint fallback
+  // DOC 238 §7 — the FSOR regulation package name, e.g. "CCPA Updates,
+  // Cyber, Risk, ADMT, Insurance 2025 FSOR" (real column, verified read-only
+  // against `cppa_fsor_commentary.fsor_package` this session — the value is
+  // NOT normalised: two conventions coexist in the data today, a slug form
+  // ("ccpa-2025-cyber-risk-admt") and a prose form; `citationFor` prints
+  // whatever the row carries, verbatim, never invents or reformats it).
+  readonly fsor_package?: string | null; // cppa_fsor_commentary
+  // DOC 238 §7 — the English name of a non-English-language regulator, for
+  // the trailing parenthetical the approved Risk/ADMT prose uses (e.g.
+  // "Autoriteit Persoonsgegevens (Dutch Data Protection Authority)"). NO
+  // DB column carries this today — confirmed read-only this session:
+  // `enforcement_actions.regulator_canonical` holds the regulator's own
+  // NATIVE full name (e.g. "Garante per la protezione dei dati personali"),
+  // not an English gloss. This field is a proposed addition, exercised only
+  // with placeholder test data (doc 238) until a curated source exists.
+  readonly regulator_english_name?: string | null; // enforcement_actions
 }
 
 const MONTHS = [
@@ -269,7 +291,25 @@ export function citationFor(
     const subject = (source.subject ?? "").trim();
     const date = citationDate(source.decision_date);
     if (!regulator || !subject || !date) return null;
-    return { regulator, authority_label: `${regulator}, ${subject}, decision of ${date}` };
+    // DOC 238 §7 — two ADDITIVE facts the approved Risk/ADMT prose carries
+    // that the label omitted before: the regulator's English name as a
+    // trailing parenthetical (`regulator_english_name` — proposed field, no
+    // DB source yet, see `HookSourceRow`'s own doc comment), and the appeal
+    // outcome for a FINAL/AFFIRMED decision (real `appeal_status` column;
+    // `appeal_pending`/`vacated`/`remanded` are handled elsewhere —
+    // `deriveSourceStatus` excludes vacated/remanded outright and prints
+    // `sa_decision_appeal_pending`'s own status label + LIA_APPEAL_SENTENCE
+    // for a pending one, so this trailing note is only for an appeal that
+    // has already resolved). Both are no-ops (identical output to before)
+    // when the new fields are absent, which is every hook shipped today.
+    const english = (source.regulator_english_name ?? "").trim();
+    const regulatorPart = english ? `${regulator} (${english})` : regulator;
+    const appealNote = source.appeal_status === "final"
+      ? ", final on appeal"
+      : source.appeal_status === "affirmed"
+      ? ", affirmed on appeal"
+      : "";
+    return { regulator, authority_label: `${regulatorPart}, ${subject}, decision of ${date}${appealNote}` };
   }
   if (profile.source_table === "edpb_guidelines") {
     const title = (source.title ?? "").trim();
@@ -293,11 +333,19 @@ export function citationFor(
   // constant, unlike enforcement_actions/edpb_guidelines/regulatory_guidance
   // whose citations depend entirely on per-row facts.
   if (profile.source_table === "cppa_fsor_commentary") {
+    // DOC 238 §7 — the approved prose's citation also carries the FSOR
+    // package name and the page pinpoint ("…Final Statement of Reasons,
+    // CCPA Updates, Cyber, Risk, ADMT, and Insurance Regulations, 11 CCR
+    // § 7152(a)(1), p. 34"); `page_ref` was already a real `HookSourceRow`
+    // field but unused here, and `fsor_package` is threaded through fresh
+    // (both added to `HookSourceRow` above). Parts that are absent are
+    // skipped, never printed blank — the bare "CPPA Final Statement of
+    // Reasons" behaviour for a row with none of the three is unchanged.
     const cite = (source.regulation_citation ?? "").trim();
-    return {
-      regulator: "the CPPA",
-      authority_label: cite ? `CPPA Final Statement of Reasons, ${cite}` : "CPPA Final Statement of Reasons",
-    };
+    const pkg = (source.fsor_package ?? "").trim();
+    const page = (source.page_ref ?? "").trim();
+    const parts = ["CPPA Final Statement of Reasons", pkg, cite, page].filter((s) => s.length > 0);
+    return { regulator: "the CPPA", authority_label: parts.join(", ") };
   }
   return null;
 }
@@ -415,6 +463,10 @@ function shippedHook(
     condition_atoms: row.condition_atoms ? [...row.condition_atoms] : null,
     material_facts: [...(row.material_facts ?? [])],
     distinguishing_pairs: [...(row.distinguishing_pairs ?? [])],
+    // DOC 238 — PROPOSED plumbing, additive; null on every hook today (no
+    // row sets either column yet).
+    governing_provision_sentence: row.governing_provision_sentence ?? null,
+    hedge_variant: row.hedge_variant ?? null,
   };
 }
 

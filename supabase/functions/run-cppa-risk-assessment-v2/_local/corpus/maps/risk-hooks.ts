@@ -230,23 +230,33 @@ export const RISK_ATOM_PHRASES: Readonly<Record<string, string>> = {
 // factor→provision map lives in doc 231's build log and in
 // generate-corpus-hooks/_local/risk-factor-element.ts. ────────────────────
 
+// DOC 238 (2026-09-09) — AMENDED, still [RATIFY — DRAFT, unratified]: same
+// amendment as DPIA's own (see dpia-hooks.ts's doc comment above this same
+// block for the full rationale — paragraph form, `{quote}`, optional
+// `{governing_provision}` on S1–S4, forward-looking S2/S6x section pointer).
+// Risk's own approved prose (doc 234) is the clearest evidence for the
+// governing-provision sentence specifically: doc 234 §2.5's editorial pass
+// added exactly this — "California's rule requires X (§ Y)" — BEFORE the
+// cited authority, for candidates 1–4 (foreign enforcement) AND every FSOR
+// candidate names its § in-sentence the same way. See doc 238 §"CPPA Risk".
+
 export const RISK_HOOK_SHAPES: Readonly<Record<"S1" | "S2" | "S3" | "S4" | "S5a" | "S5b" | "S6" | "S6x", string>> = {
   S1:
-    "The company has stated that {customer_fact}. In {authority}, {regulator} {verb} that where {fact_pattern}, {finding}. That finding supports the company's position on {factor}. ({citation}; {status}.)",
+    "The company has stated that {customer_fact}. {governing_provision}In {authority}, {regulator} {verb} that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding supports the company's position on {factor}. Section {section} records that determination. ({citation}; {status}.)",
   S2:
-    "The company has stated that {customer_fact}. In {authority}, {regulator} found that where {fact_pattern}, {finding}. That finding cuts against the company's position on {factor}, and the finding at {section} reflects it. ({citation}; {status}.)",
+    "The company has stated that {customer_fact}. {governing_provision}In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding cuts against the company's position on {factor}. Whether that holds on this record is addressed at {section}. ({citation}; {status}.)",
   S3:
-    "In {authority}, {regulator} found that where {fact_pattern}, {finding}. That finding turned on the fact that {source_fact}; on this record the company has instead stated that {record_fact}. The decision marks a boundary rather than a finding against the company. ({citation}; {status}.)",
+    "{governing_provision}In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding turned on the fact that {source_fact}; on this record the company has instead stated that {record_fact}. The decision marks a boundary rather than a finding against the company. ({citation}; {status}.)",
   S4:
-    "In {authority}, {regulator} found that where {fact_pattern}, {finding}. The company has stated that {customer_fact}. That decision is {status}; it is noted as a boundary and is not applied. ({citation}.)",
+    "{governing_provision}In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". The company has stated that {customer_fact}. That decision is {status}; it is noted as a boundary and is not applied. ({citation}.)",
   S5a:
-    "In {authority}, {regulator} {verb} that {proposition}, subject to {condition}. That guidance is relevant to the company's asserted {factor}; whether its condition is satisfied is addressed at {section}. ({citation}; {status}.)",
+    "In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}. That guidance is relevant to the company's asserted {factor}; whether its condition is satisfied is addressed at {section}. ({citation}; {status}.)",
   S5b:
-    "In {authority}, {regulator} {verb} that {proposition}, subject to {condition}. That guidance is relevant to the company's asserted {factor}; whether its condition is satisfied is addressed at {section}. The facts identified at {section} satisfy that stated condition. ({citation}; {status}.)",
+    "In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}. That guidance is relevant to the company's asserted {factor}; whether its condition is satisfied is addressed at {section}. The facts identified at {section} satisfy that stated condition. ({citation}; {status}.)",
   S6:
-    "The company has stated that {record_fact}. In {authority}, {regulator} {verb} that {proposition}, subject to {condition}, but does not address whether a compliant risk assessment is available where {record_fact}. The conclusion at {section} therefore rests on the separately identified rules and facts, not on that guidance. ({citation}; {status}.)",
+    "The company has stated that {record_fact}. In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}, but does not address whether a compliant risk assessment is available where {record_fact}. The conclusion at {section} therefore rests on the separately identified rules and facts, not on that guidance. ({citation}; {status}.)",
   S6x:
-    "The company has stated that {record_fact}. In {authority}, {regulator} {verb} that {proposition}, subject to {condition}, and that {exclusion_paraphrase}; that exclusion applies to processing of the kind the company describes, and the finding at {section} reflects it. ({citation}; {status}.)",
+    "The company has stated that {record_fact}. In {authority}, {regulator} {verb} that {proposition} — in its own words, \"{quote}\" — subject to {condition}, and that {exclusion_paraphrase}; that exclusion applies to processing of the kind the company describes. Whether it applies here is addressed at {section}. ({citation}; {status}.)",
 };
 
 // ── [RATIFY — DRAFT] — concept equivalence (doc 222 §2.3): two atoms naming
@@ -323,6 +333,24 @@ export const RISK_SOURCE_STATUS_LABELS: Readonly<Record<string, string>> = {
 // run-li-assessment/ is off-limits). ──────────────────────────────────────
 
 export const RISK_APPEAL_SENTENCE = "This matter is subject to an appeal which could invalidate this ruling.";
+
+// ── [RATIFY — DRAFT, unratified] — DOC 238 §5 item 4, PROPOSED. TWO hedge
+// variants for Risk, mirroring RISK_APPEAL_SENTENCE's pattern (fixed
+// strings, appended by the join, never drafted) — Risk's own sources split
+// genuinely: a `cppa_fsor_commentary` row is the CPPA's OWN commentary on
+// the CALIFORNIA regulation Risk itself assesses (domestic — doc 234
+// candidates 5–18's "Whether this company's stated purpose clears that bar
+// is a judgment about this company's own words" pattern), while an
+// `enforcement_actions` row is a GDPR decision, a DIFFERENT law than
+// CCPA/the CPPA regulations (foreign — doc 234 candidates 1–4's "This is a
+// foreign decision under a different law, cited only by analogy" pattern).
+// Wording here is GENERIC (hook-agnostic), the same judgment call flagged
+// for DPIA/LIA/ADMT — see doc 238 §"CPPA Risk". ──────────────────────────
+
+export const RISK_HEDGE_DOMESTIC_FACTS_PROPOSED =
+  "Whether this applies here is a question about this company's own facts, not a fixed rule.";
+export const RISK_HEDGE_FOREIGN_ANALOGY_PROPOSED =
+  "This is a foreign decision, cited only by analogy; whether it applies here depends on this company's own facts, not on the decision's.";
 
 export const RISK_SETTLEDNESS_LABELS: Readonly<Record<"R1" | "R2" | "R3" | "R4", string>> = {
   R1: "adopted guidance or settled authority",

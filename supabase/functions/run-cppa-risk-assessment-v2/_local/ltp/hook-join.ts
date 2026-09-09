@@ -81,6 +81,8 @@ import {
   RISK_FACTOR_PHRASES,
   RISK_HOOK_SHAPES,
   RISK_APPEAL_SENTENCE,
+  RISK_HEDGE_DOMESTIC_FACTS_PROPOSED,
+  RISK_HEDGE_FOREIGN_ANALOGY_PROPOSED,
   RISK_SETTLEDNESS_LABELS,
   RISK_SOURCE_STATUS_LABELS,
   riskAtomConcept,
@@ -269,6 +271,16 @@ function appealSuffix(hook: AuthorityHook): string {
   return hook.source_status === "sa_decision_appeal_pending" ? ` ${RISK_APPEAL_SENTENCE}` : "";
 }
 
+/** DOC 238 §5 item 4 — PROPOSED. Mirrors `appealSuffix` exactly; two
+ *  variants (doc 238 §"CPPA Risk"): `domestic_facts` for a CPPA FSOR source
+ *  (Risk's own governing regulation), `foreign_analogy` for a GDPR
+ *  enforcement source (a different law, cited by analogy only). */
+function hedgeSuffix(hook: AuthorityHook): string {
+  if (hook.hedge_variant === "domestic_facts") return ` ${RISK_HEDGE_DOMESTIC_FACTS_PROPOSED}`;
+  if (hook.hedge_variant === "foreign_analogy") return ` ${RISK_HEDGE_FOREIGN_ANALOGY_PROPOSED}`;
+  return "";
+}
+
 function verbFor(hook: AuthorityHook): "found" | "states" | "advised" {
   if (hook.verb) return hook.verb;
   const st = hook.source_status;
@@ -293,7 +305,7 @@ function verbConsistent(hook: AuthorityHook, verb: string): boolean {
  *  here is a caller bug (defence in depth only; the caller never passes a
  *  non-renderable pair down this path — see the `absent_pair_unrenderable`
  *  check in `applyRiskHooks`). */
-function renderSentence(
+export function renderSentence(
   hook: AuthorityHook,
   shape: HookShape,
   factAtomsHolding: readonly string[],
@@ -311,8 +323,18 @@ function renderSentence(
     finding: hook.finding_paraphrase,
     factor: RISK_FACTOR_PHRASES[hook.factor_id] ?? hook.factor_id.toLowerCase(),
     status: statusLabel(hook),
+    // DOC 238 §5 item 2 — PROPOSED; no-op unless a shape references {quote}.
+    quote: hook.finding_span,
   };
   if (section !== undefined) slots.section = section;
+  // DOC 238 §5 item 3 — PROPOSED. Always resolvable (graceful, not
+  // fail-closed): a shape that references
+  // {governing_provision} simply loses that sentence, cleanly, when the
+  // field is absent — every hook shipped today. The trailing space is
+  // carried on the VALUE (not the template literal) so the slot works
+  // whether it opens the paragraph (S3/S4) or follows a leading sentence
+  // (S1/S2).
+  slots.governing_provision = hook.governing_provision_sentence ? `${hook.governing_provision_sentence} ` : "";
 
   if (shape === "S1" || shape === "S2" || shape === "S4") {
     const phrase = phrasesFor(factAtomsHolding);
@@ -351,7 +373,7 @@ function renderSentence(
     sentence = sentence.split(`{${key}}`).join(value);
   }
   if (/\{[a-z_]+\}/.test(sentence)) return undefined;
-  return sentence + appealSuffix(hook);
+  return sentence + appealSuffix(hook) + hedgeSuffix(hook);
 }
 
 interface Candidate {
