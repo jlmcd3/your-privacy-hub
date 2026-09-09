@@ -23,7 +23,7 @@
 // their intake is spread across session + child tables — so they keep the
 // shape-level preflight only and report ok here with a note.
 
-import { validateIntake } from "../../supabase/functions/_shared/intake-contracts/validate.ts";
+import { validateIntake } from "../../supabase/functions/run-quality-batch/_local/intake-contracts/validate.ts";
 import type { IntakeContract } from "../../supabase/functions/_shared/intake-contracts/types.ts";
 import { liAssessmentStageBContract } from "../../supabase/functions/_shared/intake-contracts/li-assessment.ts";
 import { dpiaFrameworkContract } from "../../supabase/functions/_shared/intake-contracts/dpia-framework.ts";
@@ -34,7 +34,7 @@ import { cppaAdmtContract } from "../../supabase/functions/_shared/intake-contra
 import { biometricContract } from "../../supabase/functions/_shared/intake-contracts/biometric.ts";
 import { irPlaybookContract } from "../../supabase/functions/_shared/intake-contracts/ir-playbook.ts";
 import { dpaGeneratorContract } from "../../supabase/functions/_shared/intake-contracts/dpa-generator.ts";
-import { registrationContract } from "../../supabase/functions/_shared/intake-contracts/registration-assessment.ts";
+import { registrationContract } from "../../supabase/functions/run-quality-batch/_local/intake-contracts/registration-assessment.ts";
 import { SAMPLE_FIXTURES, type SampleFixture, type ToolSlug } from "@/lib/sampleFixtures";
 
 export interface ContractViolation {

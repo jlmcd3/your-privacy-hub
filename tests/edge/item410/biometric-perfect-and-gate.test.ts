@@ -13,7 +13,7 @@ import {
 } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/registry.ts";
 import { MESSY_BY_TOOL } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/messy-registry.ts";
 import { biometricContract } from "../../../supabase/functions/_shared/intake-contracts/biometric.ts";
-import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";
+import { validateIntake } from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/validate.ts";
 import {
   attachRecordComplete,
   classifyPlaceholders,
@@ -35,7 +35,7 @@ import { BIOMETRIC_REPORT_SCHEMA } from "../../../supabase/functions/check-biome
 import {
   checkPassagesSurviveAssembly,
   toReferencePassages,
-} from "../../../supabase/functions/_shared/prose/biometric-reference-passages.ts";
+} from "../../../supabase/functions/check-biometric-compliance/_local/prose/biometric-reference-passages.ts";
 import { BIOMETRIC_DUTY_ROWS } from "../../../supabase/functions/check-biometric-compliance/_local/registry/biometric-verified-authorities.ts";
 
 const INTAKE = BIOMETRIC_PERFECT[0].intake as Record<string, any>;

@@ -3169,7 +3169,7 @@ async function runStitch(dpia_id: string): Promise<void> {
     // ledger rides `_meta.internal.release_ledger` and never blocks.
     try {
       const { runCoverageMatrix, attachCoverage } = await import("../_shared/ltp/coverage-matrix.ts");
-      const { attachReleaseLedger } = await import("../_shared/ltp/release-ledger.ts");
+      const { attachReleaseLedger } = await import("./_local/ltp/release-ledger.ts");
       const coverage = attachCoverage(
         reportData as Record<string, unknown>,
         "dpia_coverage",

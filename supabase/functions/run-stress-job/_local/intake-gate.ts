@@ -4,7 +4,7 @@
 // record_insufficient/generic paths, and the resulting low grades read as
 // product defects when they are fixture defects. run-stress-job validates
 // every fixture here BEFORE the product runs.
-import { validateIntake } from "../../_shared/intake-contracts/validate.ts";
+import { validateIntake } from "./intake-contracts/validate.ts";
 import type { IntakeContract } from "../../_shared/intake-contracts/types.ts";
 import { liAssessmentStageBContract } from "../../_shared/intake-contracts/li-assessment.ts";
 import { dpiaFrameworkContract } from "../../_shared/intake-contracts/dpia-framework.ts";
@@ -15,9 +15,9 @@ import { cppaAdmtContract } from "../../_shared/intake-contracts/cppa-admt.ts";
 import { biometricContract } from "../../_shared/intake-contracts/biometric.ts";
 import { irPlaybookContract } from "../../_shared/intake-contracts/ir-playbook.ts";
 import { dpaGeneratorContract } from "../../_shared/intake-contracts/dpa-generator.ts";
-import { registrationContract } from "../../_shared/intake-contracts/registration-assessment.ts";
-import { usNoticeContract } from "../../_shared/intake-contracts/us-notice.ts";
-import { euNoticeContract } from "../../_shared/intake-contracts/eu-notice.ts";
+import { registrationContract } from "./intake-contracts/registration-assessment.ts";
+import { usNoticeContract } from "./intake-contracts/us-notice.ts";
+import { euNoticeContract } from "./intake-contracts/eu-notice.ts";
 
 // Session-shaped products: ropa still has no single intake contract. Batch
 // 4ed05f22 (2026-09-05) — the US notice has one for its token-read questions

@@ -39,7 +39,7 @@ import {
   CYBER_SECTION_SPECS,
   CYBER_PIPELINE_STAMP,
 } from "../../../supabase/functions/run-cppa-cybersecurity/_local/prose/plans/cyber.spine.ts";
-import { SCHEDULE_LITERALS } from "../../../supabase/functions/_shared/ltp/cyber-audit-schedule.ts";
+import { SCHEDULE_LITERALS } from "../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/cyber-audit-schedule.ts";
 
 const finding = (path: string, quote: string, replacement: string): CriticFinding => ({
   path,

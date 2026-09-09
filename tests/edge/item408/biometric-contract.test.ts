@@ -26,7 +26,7 @@ import {
   FIELD_LABELS,
   KNOWN_INTAKE_KEYS,
 } from "../../../supabase/functions/_shared/customer-messages.ts";
-import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";
+import { validateIntake } from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/validate.ts";
 
 const FORM_URL = new URL("../../../src/pages/BiometricChecker.tsx", import.meta.url);
 const OPTIONS_URL = new URL(

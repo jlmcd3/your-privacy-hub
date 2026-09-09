@@ -14,7 +14,7 @@
 // renderers and the two SR_PRODUCTS gates from drifting.
 
 import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { assembleRiskSkeletonDocument, riskConditionName } from "../../../supabase/functions/_shared/ltp/risk-skeleton-assemble.ts";
+import { assembleRiskSkeletonDocument, riskConditionName } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-skeleton-assemble.ts";
 import { readSyllabus, SR_PRODUCTS, syllabusToText, toneForState } from "../../../supabase/functions/_shared/prose/syllabus.ts";
 import { buildSkeletonGraderPayload } from "../../../supabase/functions/run-quality-batch/_local/grader/skeleton-payload.ts";
 

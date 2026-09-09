@@ -40,7 +40,7 @@ import {
   BIO_CONSENT_ARTIFACT,
   BIO_DISCLOSURE_BASES,
 } from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/biometric-checker";
-import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate";
+import { validateIntake } from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/validate";
 import { BIOMETRIC_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/biometric";
 import {
   BIO_TRI as CLIENT_TRI,

@@ -10,7 +10,7 @@ import { GOVERNANCE_PERFECT } from "../../../supabase/functions/quality-batch-or
 import { attachGovernanceDeliverables } from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-deliverables/build.ts";
 import { buildDomainFindingsTyped, composeExecutiveSummaryTyped } from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-domain-tables.ts";
 import { assembleGovernanceSkeletonDocument, deriveGovernanceScoreboard } from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-skeleton-assemble.ts";
-import { attachReadinessDetermination } from "../../../supabase/functions/_shared/ltp/governance-readiness.ts";
+import { attachReadinessDetermination } from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-readiness.ts";
 import { readSyllabus, SR_PRODUCTS, syllabusToText, toneForState } from "../../../supabase/functions/_shared/prose/syllabus.ts";
 import { buildSkeletonGraderPayload } from "../../../supabase/functions/run-quality-batch/_local/grader/skeleton-payload.ts";
 

@@ -14,14 +14,14 @@ import {
 import { generateCppaRiskReport } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/generate-cppa-risk.ts";
 import { EMPTY_RISK_CORPUS } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-corpus.ts";
 import { CPPA_RISK_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk.ts";
-import { assembleRiskSkeletonDocument } from "../../../supabase/functions/_shared/ltp/risk-skeleton-assemble.ts";
+import { assembleRiskSkeletonDocument } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-skeleton-assemble.ts";
 import { skeletonDocumentToText } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
-import { RISK_V3_BANNED_REGISTER } from "../../../supabase/functions/_shared/prose/plans/cppa-risk.spine.ts";
+import { RISK_V3_BANNED_REGISTER } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/prose/plans/cppa-risk.spine.ts";
 import {
   RISK_FACTOR_CLASS_C_IDS,
   runRiskFactorEngine,
-} from "../../../supabase/functions/_shared/ltp/risk-factor-engine.ts";
-import { CA_PI_TAXONOMY, CA_SPI_CATEGORY_KEYS } from "../../../supabase/functions/_shared/ltp/ca-pi-taxonomy.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-factor-engine.ts";
+import { CA_PI_TAXONOMY, CA_SPI_CATEGORY_KEYS } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/ca-pi-taxonomy.ts";
 import * as contract from "../../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts";
 import * as formEnums from "../../../src/pages/CPPARiskAssessment.enums.ts";
 

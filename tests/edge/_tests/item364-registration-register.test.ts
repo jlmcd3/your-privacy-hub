@@ -12,7 +12,7 @@ import { lintPlan, planRenderable } from "../../../archive/unwired/_shared/prose
 import { lintFrameSet, frameSetRenderable } from "../../../supabase/functions/_shared/prose/frames.ts";
 import { REGISTRATION_PLAN, REGISTRATION_FRAMES } from "../../../library/prose/load.ts";
 import { FIELD_LABELS } from "../../../supabase/functions/_shared/customer-messages.ts";
-import { registrationContract } from "../../../supabase/functions/_shared/intake-contracts/registration-assessment.ts";
+import { registrationContract } from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/registration-assessment.ts";
 import { buildRegistrationDeliverables } from "../../../supabase/functions/run-registration-assessment/_local/ltp/registration-deliverables/build.ts";
 import { REGISTRATION_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/registration.ts";
 import { MESSY_BY_TOOL } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/messy-registry.ts";

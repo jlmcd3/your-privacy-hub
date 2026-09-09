@@ -192,7 +192,7 @@ export const RISK_CORPUS_MAP: CorpusMap = {
       logic_bearing: true,
       logic_disposition: {
         kind: "implemented",
-        branch_ref: "supabase/functions/_shared/ltp/risk-factor-engine.ts:could compound each other",
+        branch_ref: "supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-factor-engine.ts:could compound each other",
       },
       provenance: { page_ref: "p. 36", verified_on: "2026-08-22" },
       curation_note:
@@ -214,7 +214,7 @@ export const RISK_CORPUS_MAP: CorpusMap = {
       logic_bearing: true,
       logic_disposition: {
         kind: "implemented",
-        branch_ref: "supabase/functions/_shared/ltp/risk-factor-engine.ts:extractPathways",
+        branch_ref: "supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-factor-engine.ts:extractPathways",
       },
       provenance: { page_ref: "p. 35", verified_on: "2026-08-22" },
       curation_note:
@@ -234,7 +234,7 @@ export const RISK_CORPUS_MAP: CorpusMap = {
       logic_bearing: true,
       logic_disposition: {
         kind: "implemented",
-        branch_ref: "supabase/functions/_shared/ltp/risk-factor-engine.ts:purpose_specificity_analysis",
+        branch_ref: "supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-factor-engine.ts:purpose_specificity_analysis",
       },
       provenance: { page_ref: "p. 34", verified_on: "2026-08-22" },
       curation_note:
@@ -256,7 +256,7 @@ export const RISK_CORPUS_MAP: CorpusMap = {
       logic_bearing: true,
       logic_disposition: {
         kind: "implemented",
-        branch_ref: "supabase/functions/_shared/ltp/risk-factor-engine.ts:materialSafeguards",
+        branch_ref: "supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-factor-engine.ts:materialSafeguards",
       },
       provenance: { page_ref: "p. 37", verified_on: "2026-08-22" },
       curation_note:
@@ -278,7 +278,7 @@ export const RISK_CORPUS_MAP: CorpusMap = {
       logic_bearing: true,
       logic_disposition: {
         kind: "implemented",
-        branch_ref: "supabase/functions/_shared/ltp/risk-factor-engine.ts:approval_sufficiency_conclusion",
+        branch_ref: "supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-factor-engine.ts:approval_sufficiency_conclusion",
       },
       provenance: { page_ref: "Appendix, p. 144", verified_on: "2026-08-22" },
       curation_note:

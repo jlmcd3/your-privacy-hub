@@ -9,7 +9,7 @@ import { CPPA_RISK_SECTION_SHARDS } from "../../../../supabase/functions/run-cpp
 import { CPPA_RISK_REPORT_SCHEMA } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/report-schemas/cppa-risk.ts";
 // PASS2_FORBIDDEN_TOKENS is a slot-injection guard applied inside
 // renderTemplate; the output assertion here is `render_errors === []`.
-import { renderCyberAuditSchedule, SCHEDULE_MARKER } from "../../../../supabase/functions/_shared/ltp/cyber-audit-schedule.ts";
+import { renderCyberAuditSchedule, SCHEDULE_MARKER } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/cyber-audit-schedule.ts";
 import type { OpeningHarvestArtifact } from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/harvest-guard.ts";
 
 const buildStamp = "tm5-assembler@test";

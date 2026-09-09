@@ -128,7 +128,7 @@ Deno.test("doc137 — RoPA: the wide Art. 30(1)(a)-(g) matrix is no longer rende
 
 // ── CPPA Risk — TOC extension + conditions-count cover row ──────────────────
 
-import { deriveExecStatusPanel } from "../../../supabase/functions/_shared/ltp/risk-skeleton-assemble.ts";
+import { deriveExecStatusPanel } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-skeleton-assemble.ts";
 
 function panel(over: Partial<Bag> = {}): Parameters<typeof deriveExecStatusPanel>[0] {
   return {

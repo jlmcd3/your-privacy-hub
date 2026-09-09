@@ -4,8 +4,8 @@
 // Schedule retitle + word-boundary truncation; DPIA column conventions.
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { runRiskFactorEngine } from "../../../supabase/functions/_shared/ltp/risk-factor-engine.ts";
-import { deriveKeyDatesTable } from "../../../supabase/functions/_shared/ltp/risk-skeleton-assemble.ts";
+import { runRiskFactorEngine } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-factor-engine.ts";
+import { deriveKeyDatesTable } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-skeleton-assemble.ts";
 import { assembleDpaDocument } from "../../../supabase/functions/generate-dpa/_local/clause-library/dpa-assemble.ts";
 import { ANNEX_HEADING, summarise } from "../../../supabase/functions/generate-dpa/_local/dpa-clause-coverage.ts";
 import { buildDpiaSkeletonTables } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-tables.ts";

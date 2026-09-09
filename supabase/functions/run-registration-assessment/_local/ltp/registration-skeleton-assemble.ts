@@ -51,7 +51,7 @@ import {
   type SkeletonTables,
   type SlotValues,
 } from "../../../_shared/prose/skeleton-render.ts";
-import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
+import { repairRegister } from "../../../_shared/ltp/register-repair.ts";
 // A-TEAM S3 RULING I.23 (doc 115) — customer-facing dates in long form.
 import { formatReportDateLong } from "../../../_shared/report-dates.ts";
 // DOC 176 (2026-09-04) — Syllabus & Record (doc 151); Registration is the

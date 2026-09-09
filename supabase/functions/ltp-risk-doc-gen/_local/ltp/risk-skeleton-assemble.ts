@@ -37,9 +37,9 @@ import {
   type RenderedTable,
   type SkeletonTables,
   type SlotValues,
-} from "../prose/skeleton-render.ts";
+} from "../../../_shared/prose/skeleton-render.ts";
 // DOC 170 (2026-09-04) — the Syllabus & Record page-1 projection type.
-import { dispositionTone, type SyllabusProjection } from "../prose/syllabus.ts";
+import { dispositionTone, type SyllabusProjection } from "../../../_shared/prose/syllabus.ts";
 import {
   runRiskFactorEngine,
   buildRiskAndSafeguardRegisterTable,
@@ -52,14 +52,14 @@ import {
   admtTrainingPiReconcileNeeded,
   type RiskFactorEngineResult,
 } from "./risk-factor-engine.ts";
-import { firstSubstantiveSentence } from "./clause-bound.ts";
+import { firstSubstantiveSentence } from "../../../_shared/ltp/clause-bound.ts";
 // A-TEAM S3 RULING I.23 (doc 115) — customer-facing date rows in long form.
-import { formatReportDateLong } from "../report-dates.ts";
+import { formatReportDateLong } from "../../../_shared/report-dates.ts";
 // Corpus program phase 2 (carried): Appendix B renders by pure attachment
 // over the Risk CAM (the determinism law's generation-plane mechanism).
-import { attachCorpusRows } from "../corpus/cam-attach.ts";
-import { RISK_CORPUS_MAP } from "../corpus/maps/risk-corpus-map.ts";
-import { ADVISORY_APPENDIX_PREAMBLE, advisoryMatchesTable, matchAdvisoryRows } from "../corpus/advisory-surfacing.ts";
+import { attachCorpusRows } from "../../../_shared/corpus/cam-attach.ts";
+import { RISK_CORPUS_MAP } from "../../../_shared/corpus/maps/risk-corpus-map.ts";
+import { ADVISORY_APPENDIX_PREAMBLE, advisoryMatchesTable, matchAdvisoryRows } from "../../../_shared/corpus/advisory-surfacing.ts";
 
 export const RISK_SKELETON_ASSEMBLER_STAMP =
   "risk-skeleton-assembler@spine-v5.3-2026-09-02";
@@ -173,7 +173,7 @@ function isYes(v: unknown): boolean {
  * Canonical implementation lives in `./register-repair.ts`; re-exported here
  * so every existing import (the other product assemblers) is stable.
  */
-export { repairRegister } from "./register-repair.ts";
+export { repairRegister } from "../../../_shared/ltp/register-repair.ts";
 
 // ── Canonical California PI / SPI taxonomy (single custody) ──────────────────
 

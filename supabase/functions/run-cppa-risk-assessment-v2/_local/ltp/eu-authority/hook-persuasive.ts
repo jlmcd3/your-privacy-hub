@@ -54,7 +54,7 @@
 import type { CamRelevanceProfile, CamRow, CamSurface } from "../../../../_shared/corpus/cam-types.ts";
 import { RISK_CORPUS_MAP } from "../../../../_shared/corpus/maps/risk-corpus-map.ts";
 import { attachCorpusRows } from "../../../../_shared/corpus/cam-attach.ts";
-import { deriveRiskFiredStates } from "../../../../_shared/ltp/risk-skeleton-assemble.ts";
+import { deriveRiskFiredStates } from "../risk-skeleton-assemble.ts";
 import {
   rankByRelevance,
   type RelevanceQuery,

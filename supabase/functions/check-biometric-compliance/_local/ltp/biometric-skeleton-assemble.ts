@@ -41,7 +41,7 @@ import {
   type SkeletonTables,
   type SlotValues,
 } from "../../../_shared/prose/skeleton-render.ts";
-import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
+import { repairRegister } from "../../../_shared/ltp/register-repair.ts";
 import { firstSentence, firstSentences } from "../../../_shared/ltp/dpia-skeleton-assemble.ts";
 
 export const BIOMETRIC_SKELETON_ASSEMBLER_STAMP = "biometric-skeleton-assembler@so6-wire-in-2026-08-10";

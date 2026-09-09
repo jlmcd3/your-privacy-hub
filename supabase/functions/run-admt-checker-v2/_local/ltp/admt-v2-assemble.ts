@@ -70,7 +70,7 @@ import { attachCorpusRows } from "../../../_shared/corpus/cam-attach.ts";
 import { ADMT_CORPUS_MAP, ADMT_GOVERNANCE_FACTOR_ID } from "../corpus/maps/admt-corpus-map.ts";
 import { ADVISORY_APPENDIX_PREAMBLE, ADVISORY_APPENDIX_TITLE, advisoryMatchesTable, matchAdvisoryRows } from "../../../_shared/corpus/advisory-surfacing.ts";
 // A-TEAM S3 RULING V.7 (doc 115) — acronym-safe mid-sentence casing.
-import { lowerFirstWordSafe } from "../../../_shared/ltp/splice-case.ts";
+import { lowerFirstWordSafe } from "./splice-case.ts";
 // DOC 174 (2026-09-04) — Syllabus & Record (doc 151); ADMT v2 is the fifth
 // product migrated onto the fleet presentation system, closing Tier 1.
 import { dispositionTone, type SyllabusProjection } from "../../../_shared/prose/syllabus.ts";

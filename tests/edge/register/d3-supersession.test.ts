@@ -9,7 +9,7 @@
 // Run: deno test -A tests/edge/register/d3-supersession.test.ts
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { repairRegister } from "../../../supabase/functions/_shared/ltp/risk-skeleton-assemble.ts";
+import { repairRegister } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-skeleton-assemble.ts";
 
 const ROOT = new URL("../../../", import.meta.url);
 

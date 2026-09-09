@@ -24,7 +24,7 @@
 import type { RenderPlan } from "../render-plan/schema.ts";
 import type { RiskOpeningOutput } from "../openings/risk-opening.ts";
 import { LEAK_LEXICON, TRUNCATED_SLOT_VALUE_SET } from "./value-screen.ts";
-import { SCHEDULE_MARKER, SCHEDULE_LITERALS } from "../../../_shared/ltp/cyber-audit-schedule.ts";
+import { SCHEDULE_MARKER, SCHEDULE_LITERALS } from "./cyber-audit-schedule.ts";
 
 export const HARVEST_GUARD_VERSION = "harvest-guard@2026-07-28-tm3";
 

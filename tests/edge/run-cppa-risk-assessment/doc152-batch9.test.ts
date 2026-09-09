@@ -19,11 +19,11 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import {
   riskApprovalCurrencyFloor,
   runRiskFactorEngine,
-} from "../../../supabase/functions/_shared/ltp/risk-factor-engine.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-factor-engine.ts";
 import {
   assembleRiskSkeletonDocument,
   deriveReviewApprovalTable,
-} from "../../../supabase/functions/_shared/ltp/risk-skeleton-assemble.ts";
+} from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-skeleton-assemble.ts";
 import { GRADER_CONTEXT_VERSION, SHARED_GRADER_CONTEXT } from "../../../supabase/functions/_shared/grader/context.ts";
 
 type Bag = Record<string, unknown>;

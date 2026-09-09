@@ -45,7 +45,7 @@ import { assembleReport } from "../../../../supabase/functions/run-cppa-risk-ass
 import { derivePlan } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/derive.ts";
 import { CPPA_RISK_CONCLUSIONS, CPPA_RISK_CONCLUSION_INDEX } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/legal-test/cppa-risk-conclusions.ts";
 import { composeSection } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/section-composers/cppa-risk.ts";
-import { SCHEDULE_MARKER, SCHEDULE_LITERALS } from "../../../../supabase/functions/_shared/ltp/cyber-audit-schedule.ts";
+import { SCHEDULE_MARKER, SCHEDULE_LITERALS } from "../../../../supabase/functions/run-cppa-risk-assessment/_local/ltp/cyber-audit-schedule.ts";
 import { CUSTOMER_COHORT_PATTERNS } from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/harvest-guard.ts";
 
 export const GRADER_CHECK_MIRROR_VERSION = "grader-check-mirror-2026-07-29-item252";

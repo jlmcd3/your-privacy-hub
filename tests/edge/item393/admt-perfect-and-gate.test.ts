@@ -10,7 +10,7 @@ import {
 } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/registry.ts";
 import { MESSY_BY_TOOL } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/messy-registry.ts";
 import { cppaAdmtContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-admt.ts";
-import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";
+import { validateIntake } from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/validate.ts";
 import {
   emptyAskedKeys,
   computeRecordComplete,

@@ -15,7 +15,7 @@ import {
 } from "../../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/build.ts";
 import { buildDataSubjectCommunicationDetermination } from "../../../../supabase/functions/generate-ir-playbook/_local/ltp/ir-playbook-deliverables/build.ts";
 import { fillSlots } from "../../../../supabase/functions/generate-dpa/_local/clause-library/dpa-assemble.ts";
-import { runRiskFactorEngine } from "../../../../supabase/functions/_shared/ltp/risk-factor-engine.ts";
+import { runRiskFactorEngine } from "../../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-factor-engine.ts";
 
 // ── §1 — grader payload: customer document first ─────────────────────────
 

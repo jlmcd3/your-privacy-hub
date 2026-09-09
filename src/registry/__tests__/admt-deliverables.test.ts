@@ -233,7 +233,7 @@ describe("cppa-admt deliverables — determination separation", () => {
 // field Item 308 added, and that its notice text clears the § 7220(c)(1)
 // generic-language screen (otherwise the fixture would measure the degraded
 // path it exists to avoid).
-import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";
+import { validateIntake } from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/validate.ts";
 import { cppaAdmtContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-admt.ts";
 import { CPPA_ADMT_GOLDEN } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-admt.ts";
 

@@ -24,7 +24,7 @@
 // questions the spine reads as TOKENS are closed lists in this contract, so a
 // prose answer to those is refused and a prose answer elsewhere is not.
 
-import type { IntakeContract } from "./types.ts";
+import type { IntakeContract } from "../../../_shared/intake-contracts/types.ts";
 
 /** universal-questions.ts — `sale_or_sharing` (single_choice). */
 export const US_NOTICE_SALE_OR_SHARING = ["sell_and_share", "sell_only", "share_only", "no", "not_sure"] as const;

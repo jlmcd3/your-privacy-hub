@@ -7,7 +7,7 @@
 // eu-notice.ts).
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { blockingContractViolations } from "../../../supabase/functions/run-stress-job/_local/intake-gate.ts";
-import { euNoticeContract } from "../../../supabase/functions/_shared/intake-contracts/eu-notice.ts";
+import { euNoticeContract } from "../../../supabase/functions/run-stress-job/_local/intake-contracts/eu-notice.ts";
 import { UNIVERSAL_EU_NOTICE_QUESTIONS } from "../../../src/data/eu-notice-questions/universal-questions.ts";
 
 Deno.test("batch b83ea3c4 — gate: prose in the EU notice's yes/no and code questions blocks; free text still passes", () => {

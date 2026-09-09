@@ -61,7 +61,7 @@ import {
   dcCreateBatchContract, dcHeartbeatBatchContract, dcTerminateBatchContract,
   type ContractDeps,
 } from "./_contract_hooks.ts";
-import { assertLtpModeForTools } from "../_shared/ltp/mode-assert.ts";
+import { assertLtpModeForTools } from "./_local/ltp/mode-assert.ts";
 import { assertCreatedByIsRealUser, CreatedByGuardError } from "./_local/harness/created-by-guard.ts";
 import { DEFAULT_GENERATION_MODEL, AB_ALT_GENERATION_MODEL } from "../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
 

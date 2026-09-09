@@ -83,6 +83,15 @@ Deno.test("risk _local mirror — relocation sentinels present", () => {
     // group {doc-gen, primary, v2}: 2 files
     ["run-cppa-risk-assessment", "ltp/risk-refinement.ts"],
     ["run-cppa-risk-assessment", "ltp/risk-stamp.ts"],
+    // deploy-cap pass 2 (run-li-assessment) — group {doc-gen, v2}: the risk
+    // assembler + factor engine + spine (canonical copy: v2)
+    ["run-cppa-risk-assessment-v2", "ltp/risk-skeleton-assemble.ts"],
+    ["run-cppa-risk-assessment-v2", "ltp/risk-factor-engine.ts"],
+    ["run-cppa-risk-assessment-v2", "prose/plans/cppa-risk.spine.ts"],
+    ["ltp-risk-doc-gen", "ltp/risk-factor-engine.ts"],
+    // deploy-cap pass 2 — group {all four}: the significant-decision classifier
+    ["run-cppa-risk-assessment", "ltp/admt-significant-decision.ts"],
+    ["replay-cppa-risk-harness", "ltp/admt-significant-decision.ts"],
   ];
   for (const [fn, sub] of mustExist) {
     let ok = true;
@@ -106,6 +115,12 @@ Deno.test("risk _local mirror — the relocated modules never return to _shared"
     "render-plan/schema.ts",
     "report-schemas/cppa-risk.ts",
     "factors/cppa-risk-factors.ts",
+    // deploy-cap pass 2 (run-li-assessment)
+    "ltp/risk-skeleton-assemble.ts",
+    "ltp/risk-factor-engine.ts",
+    "prose/plans/cppa-risk.spine.ts",
+    "ltp/admt-significant-decision.ts",
+    "ltp/cyber-audit-schedule.ts",
   ];
   for (const sub of banned) {
     let exists = true;

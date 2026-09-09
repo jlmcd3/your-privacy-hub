@@ -10,7 +10,7 @@ type Bag = Record<string, unknown>;
 
 // ── Governance — "record insufficient" raw-token leak ───────────────────────
 
-import { deriveReadinessDetermination } from "../../../supabase/functions/_shared/ltp/governance-readiness.ts";
+import { deriveReadinessDetermination } from "../../../supabase/functions/run-governance-assessment/_local/ltp/governance-readiness.ts";
 
 Deno.test("doc135 — Governance: rationale never prints the raw 'record insufficient' token", () => {
   const report = {

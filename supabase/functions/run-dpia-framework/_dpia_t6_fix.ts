@@ -31,7 +31,7 @@
 //
 // Fail-open: every helper wrapped in try/catch; availability never blocked.
 
-import { degradeHedgeOnlyValues, appendInformationNeeded } from "../_shared/prose/hedge-degrade.ts";
+import { degradeHedgeOnlyValues, appendInformationNeeded } from "./_local/prose/hedge-degrade.ts";
 
 import { splitSentencesSafe } from "../_shared/prose/segment.ts";
 import { detectOnlyRun } from "../_shared/prose/detect-mode.ts";

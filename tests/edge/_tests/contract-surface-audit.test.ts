@@ -14,7 +14,7 @@
 
 import { assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
-import { validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";
+import { validateIntake } from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/validate.ts";
 import type { IntakeContract } from "../../../supabase/functions/_shared/intake-contracts/types.ts";
 
 import { GOLDEN_BY_TOOL } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/registry.ts";
@@ -28,7 +28,7 @@ import { liAssessmentStageBContract } from "../../../supabase/functions/_shared/
 import { dpaGeneratorContract }     from "../../../supabase/functions/_shared/intake-contracts/dpa-generator.ts";
 import { irPlaybookContract }       from "../../../supabase/functions/_shared/intake-contracts/ir-playbook.ts";
 import { biometricCheckerContract } from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/biometric-checker.ts";
-import { registrationContract }     from "../../../supabase/functions/_shared/intake-contracts/registration-assessment.ts";
+import { registrationContract }     from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/registration-assessment.ts";
 
 import { CPPA_RISK_CONTRACT_FIXTURES } from "../../../supabase/functions/_shared/cppa-risk-contract-fixtures.ts";
 import { ADMT_CONTRACT_FIXTURES }      from "../../../supabase/functions/_shared/admt-contract-fixtures.ts";

@@ -47,7 +47,7 @@ import {
   type SkeletonTables,
   type SlotValues,
 } from "../../../_shared/prose/skeleton-render.ts";
-import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
+import { repairRegister } from "../../../_shared/ltp/register-repair.ts";
 import { firstSentence, firstSentences } from "../../../_shared/ltp/dpia-skeleton-assemble.ts";
 import { buildIrPlaybookDeliverables, normalizeBreachNoticeContracts, normalizeResponseTeamRoster, processorNameFromContracts, resolveProcessorName } from "./ir-playbook-deliverables/build.ts";
 // IR-F tranche 2 — the verified per-state walk gates (CA/TX/NY this tranche).

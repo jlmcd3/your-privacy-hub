@@ -24,7 +24,7 @@ import {
   type RenderedSkeletonDocument,
   type SlotValues,
 } from "../../../_shared/prose/skeleton-render.ts";
-import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
+import { repairRegister } from "../../../_shared/ltp/register-repair.ts";
 
 export const ADMT_SKELETON_ASSEMBLER_STAMP = "admt-skeleton-assembler@so2-wire-in-2026-08-10";
 

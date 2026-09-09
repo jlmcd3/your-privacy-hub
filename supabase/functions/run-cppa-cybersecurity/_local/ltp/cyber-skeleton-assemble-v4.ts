@@ -29,7 +29,7 @@ import {
   type RenderedTable,
   type SkeletonTables,
 } from "../../../_shared/prose/skeleton-render.ts";
-import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
+import { repairRegister } from "../../../_shared/ltp/register-repair.ts";
 import { buildCyberApplicabilityTable } from "./cyber-applicability.ts";
 import { buildCyberSubmissionAttestationBlock } from "./cyber-submission-attestation.ts";
 import { buildPhaseInBlock } from "./cyber-skeleton-assemble.ts";

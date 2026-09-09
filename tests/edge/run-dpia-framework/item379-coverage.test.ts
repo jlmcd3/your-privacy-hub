@@ -4,7 +4,7 @@
 import { assert, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { DPIA_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia.ts";
 import { runCoverageMatrix } from "../../../supabase/functions/_shared/ltp/coverage-matrix.ts";
-import { computeReleaseLedger } from "../../../supabase/functions/_shared/ltp/release-ledger.ts";
+import { computeReleaseLedger } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/release-ledger.ts";
 
 const INTAKE = DPIA_PERFECT[0].intake as Record<string, unknown>;
 

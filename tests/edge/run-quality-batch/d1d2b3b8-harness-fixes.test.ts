@@ -12,7 +12,7 @@
 //      fails.
 import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { deterministicContractRepair } from "../../../supabase/functions/run-quality-batch/index.ts";
-import { unknownTopLevelKeys, validateIntake } from "../../../supabase/functions/_shared/intake-contracts/validate.ts";
+import { unknownTopLevelKeys, validateIntake } from "../../../supabase/functions/run-quality-batch/_local/intake-contracts/validate.ts";
 import { cppaRiskContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-risk-assessment.ts";
 import { runFormatChecksIR } from "../../../supabase/functions/_shared/grader/format-checks.ts";
 

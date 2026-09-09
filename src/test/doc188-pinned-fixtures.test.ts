@@ -28,8 +28,8 @@ import { STATE_SPECIFIC_QUESTIONS } from "@/data/us-notice-questions/state-speci
 import { UNIVERSAL_EU_NOTICE_QUESTIONS } from "@/data/eu-notice-questions/universal-questions";
 import { CHADP_ADDITIONS, GDPR_ART13_QUESTIONS, UKGDPR_ADDITIONS } from "@/data/eu-notice-questions/gdpr-questions";
 import { US_NOTICE_VARIANTS, EU_NOTICE_VARIANTS, CPPA_RISK_VARIANTS } from "@/lib/stress/fixtures";
-import { usNoticeContract } from "../../supabase/functions/_shared/intake-contracts/us-notice.ts";
-import { euNoticeContract } from "../../supabase/functions/_shared/intake-contracts/eu-notice.ts";
+import { usNoticeContract } from "../../supabase/functions/run-stress-job/_local/intake-contracts/us-notice.ts";
+import { euNoticeContract } from "../../supabase/functions/run-stress-job/_local/intake-contracts/eu-notice.ts";
 
 type Bag = Record<string, unknown>;
 

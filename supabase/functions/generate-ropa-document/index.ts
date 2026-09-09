@@ -73,7 +73,7 @@ import { ROPA_LEGAL_TEXT_ASSERTIONS } from "../_shared/legal-text-assertions.ts"
 // gate — every RoPA document carries a syllabus (assembleRopaRegister
 // always attaches one), so no legacy/no-syllabus fallback is needed here.
 import { readSyllabus } from "../_shared/prose/syllabus.ts";
-import { SR_SYLLABUS_CSS, srSyllabusPageHtml } from "../_shared/prose/syllabus-page-html.ts";
+import { SR_SYLLABUS_CSS, srSyllabusPageHtml } from "./_local/prose/syllabus-page-html.ts";
 // S-P2 (doc 80, 2026-08-27) — the Article 30(5) informational note.
 import { art305NoteHtml } from "./register/art305-note.ts";
 // DOC 166 (2026-09-04) — one resolver for the per-activity transfer cell,

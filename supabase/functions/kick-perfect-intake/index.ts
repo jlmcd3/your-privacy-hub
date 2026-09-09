@@ -4,7 +4,7 @@
 // with 409 if the LTP-managed generator does not report the fleet-expected
 // mode. Fail-loud; NEVER kicks a mismatched generator.
 import { corsHeaders as cors } from "npm:@supabase/supabase-js@2/cors";
-import { assertLtpModeForTools } from "../_shared/ltp/mode-assert.ts";
+import { assertLtpModeForTools } from "./_local/ltp/mode-assert.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;

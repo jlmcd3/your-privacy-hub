@@ -67,7 +67,7 @@ import {
   type SkeletonTables,
   type SlotValues,
 } from "../../../_shared/prose/skeleton-render.ts";
-import { repairRegister } from "../../../_shared/ltp/risk-skeleton-assemble.ts";
+import { repairRegister } from "../../../_shared/ltp/register-repair.ts";
 // DOC 172 (2026-09-04) — Syllabus & Record (doc 151); LIA is the third
 // product migrated onto the fleet presentation system.
 import { dispositionTone, type SyllabusProjection } from "../../../_shared/prose/syllabus.ts";

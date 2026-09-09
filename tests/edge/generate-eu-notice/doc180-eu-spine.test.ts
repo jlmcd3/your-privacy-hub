@@ -18,7 +18,7 @@ import {
   completionBannerHtml,
   countFills,
   fill,
-} from "../../../supabase/functions/_shared/prose/formal-instrument.ts";
+} from "../../../supabase/functions/generate-eu-notice/_local/prose/formal-instrument.ts";
 
 const EU: FwSel = { framework_code: "EU_GDPR", framework_name: "EU GDPR", region: "EU" };
 const UK: FwSel = { framework_code: "UK_GDPR", framework_name: "UK GDPR", region: "UK" };
