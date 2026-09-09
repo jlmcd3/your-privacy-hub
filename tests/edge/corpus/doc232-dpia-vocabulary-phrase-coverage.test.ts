@@ -27,7 +27,15 @@
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { DPIA_REASON_SLUG_LIST, HOOK_PRODUCT_REGISTRY } from "../../../supabase/functions/generate-corpus-hooks/_local/product-registry.ts";
-import { checkAtom, DPIA_ONLY_STATE_ATOM_PATHS, STATE_ATOM_ENUMS } from "../../../supabase/functions/generate-corpus-hooks/_local/vocabulary.ts";
+import {
+  ADMT_ONLY_STATE_ATOM_PATHS,
+  checkAtom,
+  DPIA_ONLY_STATE_ATOM_PATHS,
+  LIA_ONLY_STATE_ATOM_PATHS,
+  RISK_ONLY_STATE_ATOM_PATHS,
+  STATE_ATOM_ENUMS,
+  vocabularyBlock,
+} from "../../../supabase/functions/generate-corpus-hooks/_local/vocabulary.ts";
 import { DPIA_ATOM_PHRASES } from "../../../supabase/functions/run-dpia-framework/_local/corpus/maps/dpia-hooks.ts";
 
 /** Every atom a DPIA hook drafter may emit under this build's closed
@@ -68,6 +76,14 @@ Deno.test("doc241 — STATE_ATOM_ENUMS carries exactly one `intake.reasons_to_co
     .filter((atom) => !checkAtom(atom, registry).ok)
     .map((atom) => `${atom}: ${checkAtom(atom, registry).error}`);
   assertEquals(rejected, [], `DPIA state: atoms still rejected by checkAtom:\n${rejected.join("\n")}`);
+});
+
+Deno.test("v3-tidying — the DPIA drafting-prompt vocabulary shows every DPIA reasons_to_conduct path and no LIA/Risk/ADMT path (doc 237's flat-dict prompt leak, closed; checkAtom unchanged)", () => {
+  const block = vocabularyBlock(HOOK_PRODUCT_REGISTRY.dpia, "dpia");
+  for (const path of DPIA_ONLY_STATE_ATOM_PATHS) assert(block.includes(`  state:${path}= one of ["true","false"]`), `DPIA block is missing ${path}`);
+  for (const path of [...LIA_ONLY_STATE_ATOM_PATHS, ...RISK_ONLY_STATE_ATOM_PATHS, ...ADMT_ONLY_STATE_ATOM_PATHS]) {
+    assert(!block.includes(`state:${path}=`), `DPIA block leaks ${path}`);
+  }
 });
 
 Deno.test("doc232 — every DPIA phrase is a lower-case clause with no terminal punctuation or slot", () => {

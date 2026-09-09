@@ -28,10 +28,22 @@ import type { IntakeContract } from "../../_shared/intake-contracts/types.ts";
 //   - DPIA: every `reasons_to_conduct` slug in DPIA_REASON_SLUG_LIST (the
 //     closed list doc 232 added to product-registry.ts), admitting exactly
 //     `true`/`false` — the two values DPIA_ATOM_PHRASES phrases for each.
-// `STATE_ATOM_ENUMS` stays ONE FLAT, product-unscoped dict (the pre-existing
-// design doc 237 flagged for a CEO ruling — unchanged here); the ownership
-// lists below exist so each product's phrase-coverage test can scope to its
-// own paths, exactly as RISK_ONLY_STATE_ATOM_PATHS already does.
+// `STATE_ATOM_ENUMS` stays ONE FLAT, product-unscoped dict for `checkAtom`
+// (which atoms are ACCEPTED — unchanged); the ownership lists below exist so
+// each product's phrase-coverage test can scope to its own paths, exactly as
+// RISK_ONLY_STATE_ATOM_PATHS already does.
+//
+// ── DOC 237 follow-up (2026-09-09, v3-tidying) — the prompt leak ──────────
+//
+// Doc 237 flagged that `vocabularyBlock()` printed EVERY entry of the flat
+// dict into EVERY product's drafting prompt (DPIA's drafter saw ADMT's and
+// Risk's state paths, and vice versa). What is SHOWN is now scoped: each
+// product's entries live in a named per-product dict below, the dict is the
+// spread of all four (same order as before), each ownership list is derived
+// from its dict's keys (never retyped), and `stateAtomPathsFor(product)`
+// returns the product's own paths plus any path no product owns (shared —
+// none exist today). `checkAtom` still consults the flat dict alone, so a
+// hook that verified before verifies identically now.
 
 /** The ADMT intake-contract keys whose closed options become `state:intake.<key>` paths. */
 const ADMT_STATE_CONTRACT_KEYS: readonly string[] = [
@@ -66,8 +78,8 @@ function dpiaStateEnums(): Record<string, readonly string[]> {
   return out;
 }
 
-/** Closed option sets for the `state:intake.` paths doc 213 admits. */
-export const STATE_ATOM_ENUMS: Readonly<Record<string, readonly string[]>> = {
+/** The LIA-owned `state:intake.` paths doc 213 admits (the original dict). */
+const LIA_STATE_ENUMS: Readonly<Record<string, readonly string[]>> = {
   "intake.balancing_details.opt_out_available": [
     "Yes — unconditional, on request, with no consequence",
     "Yes — but conditional or subject to review",
@@ -115,16 +127,18 @@ export const STATE_ATOM_ENUMS: Readonly<Record<string, readonly string[]>> = {
     "Political / electoral campaigning",
     "Other (describe below)",
   ],
+};
 
-  // DOC 231A (2026-09-08) — CPPA Risk `state:intake.*` entries. Every value
-  // below is a closed-list option on the CPPA Risk intake contract
-  // (_shared/intake-contracts/cppa-risk-assessment.ts); the entries
-  // themselves were drafted by the prior doc231 build session and left
-  // ready-to-copy in run-cppa-risk-assessment-v2/_local/corpus/maps/
-  // risk-hooks.ts's atom-phrase comment block (RISK_ATOM_PHRASES already
-  // carries a ratified-DRAFT phrase for every option here — see that file).
-  // Closing NEED #7 (doc 231 build log §13 item 7): a `state:` atom a CPPA
-  // Risk hook draft uses was rejected by `checkAtom` until these landed.
+// DOC 231A (2026-09-08) — CPPA Risk `state:intake.*` entries. Every value
+// below is a closed-list option on the CPPA Risk intake contract
+// (_shared/intake-contracts/cppa-risk-assessment.ts); the entries
+// themselves were drafted by the prior doc231 build session and left
+// ready-to-copy in run-cppa-risk-assessment-v2/_local/corpus/maps/
+// risk-hooks.ts's atom-phrase comment block (RISK_ATOM_PHRASES already
+// carries a ratified-DRAFT phrase for every option here — see that file).
+// Closing NEED #7 (doc 231 build log §13 item 7): a `state:` atom a CPPA
+// Risk hook draft uses was rejected by `checkAtom` until these landed.
+const RISK_STATE_ENUMS: Readonly<Record<string, readonly string[]>> = {
   "intake.processing_status": ["Planned", "Ongoing", "Discontinued"],
   "intake.q15_sensitive_pi": ["Yes", "No", "Unsure"],
   "intake.q5b_profiling_observation": ["Yes", "No"],
@@ -140,12 +154,25 @@ export const STATE_ATOM_ENUMS: Readonly<Record<string, readonly string[]>> = {
     "No — we do not knowingly process under-16 data",
     "Unsure",
   ],
+};
 
-  // DOC 241 — ADMT (seven paths, options read off cppaAdmtContract) and DPIA
-  // (seventeen `reasons_to_conduct` slugs × true/false); see the header note.
+/** Closed option sets for every `state:intake.` path any product admits —
+ *  the flat dict `checkAtom` consults. Spread order (LIA, Risk, ADMT, DPIA)
+ *  is the order the entries have always been declared in.
+ *  DOC 241 — ADMT (seven paths, options read off cppaAdmtContract) and DPIA
+ *  (seventeen `reasons_to_conduct` slugs × true/false); see the header note. */
+export const STATE_ATOM_ENUMS: Readonly<Record<string, readonly string[]>> = {
+  ...LIA_STATE_ENUMS,
+  ...RISK_STATE_ENUMS,
   ...admtStateEnums(),
   ...dpiaStateEnums(),
 };
+
+/** The LIA-owned `STATE_ATOM_ENUMS` keys — derived from LIA_STATE_ENUMS, never
+ *  retyped. Before the doc 237 follow-up the LIA set existed only by
+ *  exclusion (every path no other product claimed); the LIA coverage test
+ *  pins that the two definitions still agree. */
+export const LIA_ONLY_STATE_ATOM_PATHS: readonly string[] = Object.keys(LIA_STATE_ENUMS);
 
 /** DOC 241 — the ADMT-owned `STATE_ATOM_ENUMS` keys (`intake.<contract key>`),
  *  the ADMT twin of RISK_ONLY_STATE_ATOM_PATHS. Read by
@@ -157,25 +184,51 @@ export const ADMT_ONLY_STATE_ATOM_PATHS: readonly string[] = ADMT_STATE_CONTRACT
  *  (`intake.reasons_to_conduct.<slug>`), one per DPIA_REASON_SLUG_LIST entry. */
 export const DPIA_ONLY_STATE_ATOM_PATHS: readonly string[] = DPIA_REASON_SLUG_LIST.map((slug) => `intake.reasons_to_conduct.${slug}`);
 
-/** DOC 231A — the six `STATE_ATOM_ENUMS` keys above that belong to the CPPA
- *  Risk product. `STATE_ATOM_ENUMS` stays ONE FLAT, product-unscoped dict —
- *  `checkAtom`'s `"state"` case (below) does not consult the registry for
- *  this atom kind, a pre-existing design this build does not change — so a
- *  test asserting "every atom the LIA drafter may emit has a ratified
- *  phrase" (tests/edge/corpus/doc213-vocabulary-phrase-coverage.test.ts)
+/** DOC 231A — the six `STATE_ATOM_ENUMS` keys that belong to the CPPA Risk
+ *  product (derived from RISK_STATE_ENUMS since the doc 237 follow-up; the
+ *  list was hand-typed before). `checkAtom`'s `"state"` case (below) does not
+ *  consult the registry for this atom kind — a pre-existing design left
+ *  unchanged — so a test asserting "every atom the LIA drafter may emit has
+ *  a ratified phrase" (tests/edge/corpus/doc213-vocabulary-phrase-coverage.test.ts)
  *  needs an explicit ownership list to exclude the other product's paths,
  *  rather than inferring it from `HookProductVocabulary.state_roots` (both
  *  products' roots include the bare `"intake."` prefix, so a prefix filter
  *  cannot disambiguate). Named and exported so that test reads it instead of
  *  hand-duplicating this list. */
-export const RISK_ONLY_STATE_ATOM_PATHS: readonly string[] = [
-  "intake.processing_status",
-  "intake.q15_sensitive_pi",
-  "intake.q5b_profiling_observation",
-  "intake.q18_admt_use",
-  "intake.q5_sell_share",
-  "intake.q15b_under16_knowledge",
-];
+export const RISK_ONLY_STATE_ATOM_PATHS: readonly string[] = Object.keys(RISK_STATE_ENUMS);
+
+/** DOC 237 follow-up — which HOOK_PRODUCT_REGISTRY product owns each
+ *  `STATE_ATOM_ENUMS` path. Keys are the registry's product keys (pinned to
+ *  them by the LIA coverage test). A path in none of these lists is SHARED —
+ *  shown to every product's drafter; none exists today. */
+export const STATE_ATOM_PATH_OWNERS: Readonly<Record<string, readonly string[]>> = {
+  lia: LIA_ONLY_STATE_ATOM_PATHS,
+  "cppa-risk": RISK_ONLY_STATE_ATOM_PATHS,
+  admt: ADMT_ONLY_STATE_ATOM_PATHS,
+  dpia: DPIA_ONLY_STATE_ATOM_PATHS,
+};
+
+function stateAtomOwner(path: string): string | undefined {
+  for (const [product, paths] of Object.entries(STATE_ATOM_PATH_OWNERS)) {
+    if (paths.includes(path)) return product;
+  }
+  return undefined;
+}
+
+/** The `STATE_ATOM_ENUMS` paths a drafting prompt for `product` may SHOW: the
+ *  product's own paths plus any shared (unowned) path, in dictionary order.
+ *  Throws on a product with no ownership list — a silent empty vocabulary
+ *  would let a drafter emit nothing verifiable. This scopes what is shown
+ *  only; `checkAtom` (what is accepted) is unchanged. */
+export function stateAtomPathsFor(product: string): string[] {
+  if (!(product in STATE_ATOM_PATH_OWNERS)) {
+    throw new Error(`vocabulary.ts: no state-atom ownership list for product "${product}"`);
+  }
+  return Object.keys(STATE_ATOM_ENUMS).filter((path) => {
+    const owner = stateAtomOwner(path);
+    return owner === undefined || owner === product;
+  });
+}
 
 /** `state:` paths admitted with an open value (no closed option set).
  *  EMPTY by design: a hook atom must have a ratified phrase to render, and a
@@ -245,8 +298,10 @@ export function checkAtoms(atoms: readonly string[], registry: HookProductVocabu
   return errors;
 }
 
-/** The vocabulary, rendered for a prompt. Closed lists, verbatim. */
-export function vocabularyBlock(registry: HookProductVocabulary): string {
+/** The vocabulary, rendered for a prompt. Closed lists, verbatim. `product`
+ *  is the HOOK_PRODUCT_REGISTRY key the registry was resolved from — the
+ *  `state:` section shows only that product's paths (doc 237 follow-up). */
+export function vocabularyBlock(registry: HookProductVocabulary, product: string): string {
   const v = registry.typed_state_vocabulary;
   const lines: string[] = [];
   lines.push("CLOSED ATOM VOCABULARY — an atom outside this list is rejected by code.");
@@ -256,8 +311,8 @@ export function vocabularyBlock(registry: HookProductVocabulary): string {
   lines.push(`data_category:<x> where x ∈ ${JSON.stringify(v.data_categories)}`);
   lines.push(`instrument:<x> where x ∈ ${JSON.stringify(registry.instrument_scope)}`);
   lines.push("state:<path>=<value> where path and value are exactly one of:");
-  for (const [path, options] of Object.entries(STATE_ATOM_ENUMS)) {
-    lines.push(`  state:${path}= one of ${JSON.stringify(options)}`);
+  for (const path of stateAtomPathsFor(product)) {
+    lines.push(`  state:${path}= one of ${JSON.stringify(STATE_ATOM_ENUMS[path])}`);
   }
   for (const path of OPEN_STATE_PATHS) {
     lines.push(`  state:${path}=<free value taken from the source>`);

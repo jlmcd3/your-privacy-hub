@@ -18,9 +18,13 @@ import { HOOK_PRODUCT_REGISTRY } from "../../../supabase/functions/generate-corp
 import {
   ADMT_ONLY_STATE_ATOM_PATHS,
   DPIA_ONLY_STATE_ATOM_PATHS,
+  LIA_ONLY_STATE_ATOM_PATHS,
   OPEN_STATE_PATHS,
   RISK_ONLY_STATE_ATOM_PATHS,
   STATE_ATOM_ENUMS,
+  STATE_ATOM_PATH_OWNERS,
+  stateAtomPathsFor,
+  vocabularyBlock,
 } from "../../../supabase/functions/generate-corpus-hooks/_local/vocabulary.ts";
 import { LIA_ATOM_PHRASES } from "../../../supabase/functions/run-li-assessment/_local/corpus/maps/lia-hooks.ts";
 
@@ -69,6 +73,34 @@ Deno.test("doc241 — the Risk/ADMT/DPIA state-path ownership lists are disjoint
     if (OTHER_PRODUCT_STATE_PATHS.has(path)) continue;
     assert(!/^intake\.(q\d|processing_status|reasons_to_conduct\.|human_review|admt_detail\.|notice_|access_response_timeline)/.test(path), `${path}: looks like another product's path but is not in any ownership list`);
   }
+});
+
+// ── DOC 237 follow-up (2026-09-09, v3-tidying) — the flat-dict PROMPT leak ──
+//
+// `vocabularyBlock()` used to print EVERY `STATE_ATOM_ENUMS` entry into EVERY
+// product's drafting prompt (DPIA's drafter saw ADMT's and Risk's paths).
+// It now prints only the product's own paths, plus any path no product owns
+// (shared — none exist today). The dict and `checkAtom` are unchanged: these
+// two tests pin what is SHOWN, not what is ACCEPTED.
+
+Deno.test("v3-tidying — LIA_ONLY_STATE_ATOM_PATHS is exactly the by-exclusion LIA set; the four ownership lists partition STATE_ATOM_ENUMS; the owners map is keyed by the registry's products; each product is shown exactly its own paths", () => {
+  const byExclusion = Object.keys(STATE_ATOM_ENUMS).filter((path) => !OTHER_PRODUCT_STATE_PATHS.has(path));
+  assertEquals([...LIA_ONLY_STATE_ATOM_PATHS], byExclusion);
+  assertEquals(LIA_ONLY_STATE_ATOM_PATHS.length, 12);
+  const owned = Object.values(STATE_ATOM_PATH_OWNERS).flat();
+  assertEquals(new Set(owned).size, owned.length, "a path is owned by two products");
+  assertEquals([...owned].sort(), Object.keys(STATE_ATOM_ENUMS).sort(), "every path is owned by exactly one product (no shared path exists today)");
+  assertEquals(Object.keys(STATE_ATOM_PATH_OWNERS).sort(), Object.keys(HOOK_PRODUCT_REGISTRY).sort());
+  for (const product of Object.keys(HOOK_PRODUCT_REGISTRY)) {
+    assertEquals([...stateAtomPathsFor(product)].sort(), [...STATE_ATOM_PATH_OWNERS[product]].sort(), `${product}: shown paths ≠ owned paths`);
+  }
+});
+
+Deno.test("v3-tidying — the LIA drafting-prompt vocabulary shows every LIA state path and no Risk/ADMT/DPIA path", () => {
+  const block = vocabularyBlock(HOOK_PRODUCT_REGISTRY.lia, "lia");
+  for (const path of LIA_ONLY_STATE_ATOM_PATHS) assert(block.includes(`  state:${path}= one of `), `LIA block is missing ${path}`);
+  for (const path of OTHER_PRODUCT_STATE_PATHS) assert(!block.includes(`state:${path}=`), `LIA block leaks ${path}`);
+  assert(block.includes("flag:<x> where x ∈"), "the non-state lines still render");
 });
 
 Deno.test("doc213 — every atom the LIA hook drafter may emit has a ratified phrase", () => {

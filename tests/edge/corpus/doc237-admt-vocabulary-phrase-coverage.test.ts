@@ -18,7 +18,15 @@
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { HOOK_PRODUCT_REGISTRY } from "../../../supabase/functions/generate-corpus-hooks/_local/product-registry.ts";
-import { ADMT_ONLY_STATE_ATOM_PATHS, checkAtom, STATE_ATOM_ENUMS } from "../../../supabase/functions/generate-corpus-hooks/_local/vocabulary.ts";
+import {
+  ADMT_ONLY_STATE_ATOM_PATHS,
+  checkAtom,
+  DPIA_ONLY_STATE_ATOM_PATHS,
+  LIA_ONLY_STATE_ATOM_PATHS,
+  RISK_ONLY_STATE_ATOM_PATHS,
+  STATE_ATOM_ENUMS,
+  vocabularyBlock,
+} from "../../../supabase/functions/generate-corpus-hooks/_local/vocabulary.ts";
 import { ADMT_ATOM_PHRASES } from "../../../supabase/functions/run-admt-checker-v2/_local/corpus/maps/admt-hooks.ts";
 import { cppaAdmtContract } from "../../../supabase/functions/_shared/intake-contracts/cppa-admt.ts";
 
@@ -75,6 +83,16 @@ Deno.test("doc241 — each ADMT-owned STATE_ATOM_ENUMS entry is `intake.<contrac
     Object.keys(ADMT_ATOM_PHRASES).filter((k) => k.startsWith("state:")).map((k) => k.slice("state:".length, k.indexOf("="))),
   );
   assertEquals([...phrasedPaths].sort(), [...ADMT_ONLY_STATE_ATOM_PATHS].sort());
+});
+
+Deno.test("v3-tidying — the ADMT drafting-prompt vocabulary shows every ADMT state path with its contract options and no LIA/Risk/DPIA path (doc 237's flat-dict prompt leak, closed; checkAtom unchanged)", () => {
+  const block = vocabularyBlock(REGISTRY, "admt");
+  for (const path of ADMT_ONLY_STATE_ATOM_PATHS) {
+    assert(block.includes(`  state:${path}= one of ${JSON.stringify(STATE_ATOM_ENUMS[path])}`), `ADMT block is missing ${path}`);
+  }
+  for (const path of [...LIA_ONLY_STATE_ATOM_PATHS, ...RISK_ONLY_STATE_ATOM_PATHS, ...DPIA_ONLY_STATE_ATOM_PATHS]) {
+    assert(!block.includes(`state:${path}=`), `ADMT block leaks ${path}`);
+  }
 });
 
 Deno.test("doc237 — every ADMT phrase is a lower-case clause with no terminal punctuation or slot", () => {

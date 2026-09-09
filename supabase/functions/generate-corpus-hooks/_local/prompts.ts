@@ -202,10 +202,14 @@ export const DRAFT_SYSTEM = [
   "                          Abstaining is correct behaviour.",
 ].join("\n");
 
+/** `product` is the registry key the caller resolved `registry` from
+ *  (`hookRegistryFor(profile.product)`); it scopes the `state:` paths the
+ *  vocabulary block shows to that product's own (doc 237 follow-up). */
 export function draftUserPrompt(
   profile: ProfileForHook,
   excerpt: string,
   registry: HookProductVocabulary,
+  product: string,
 ): string {
   return [
     "PROFILE",
@@ -214,7 +218,7 @@ export function draftUserPrompt(
     "SOURCE EXCERPT (verbatim, truncated)",
     excerpt,
     "",
-    vocabularyBlock(registry),
+    vocabularyBlock(registry, product),
     "",
     DIRECTION_MATRIX_BLOCK,
     "",
@@ -257,10 +261,13 @@ export const CRITIQUE_SYSTEM = [
   "and that 'expressly excludes' is only claimed where the source says so.",
 ].join("\n");
 
+/** `product` as for `draftUserPrompt` — the hook passed here is the
+ *  `hookForModel` projection, which carries no product field. */
 export function critiqueUserPrompt(
   hook: Record<string, unknown>,
   excerpt: string,
   registry: HookProductVocabulary,
+  product: string,
 ): string {
   return [
     "DRAFT HOOK",
@@ -269,7 +276,7 @@ export function critiqueUserPrompt(
     "SOURCE EXCERPT (verbatim, truncated)",
     excerpt,
     "",
-    vocabularyBlock(registry),
+    vocabularyBlock(registry, product),
     "",
     DIRECTION_MATRIX_BLOCK,
     "",

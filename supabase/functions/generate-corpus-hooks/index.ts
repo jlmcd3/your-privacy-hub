@@ -251,7 +251,7 @@ async function actionDraft(profileId: string) {
   }
 
   const system = DRAFT_SYSTEM;
-  const user = draftUserPrompt(full, excerpt, registry);
+  const user = draftUserPrompt(full, excerpt, registry, profile.product);
   const schema = draftSchema(profileId);
   const { text, responseId } = await opusCall(system, user, schema);
 
@@ -321,7 +321,7 @@ async function actionCritique(hookId: string) {
   void extra;
 
   const system = CRITIQUE_SYSTEM;
-  const user = critiqueUserPrompt(hookForModel(hook), excerpt, registry);
+  const user = critiqueUserPrompt(hookForModel(hook), excerpt, registry, profile.product);
   const raw = await gptCall(system, user);
   const result = verifyCritique(
     raw,
