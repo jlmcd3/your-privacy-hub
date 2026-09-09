@@ -490,6 +490,29 @@ async function actionGenerate(product: string) {
       }
     }
 
+    // DOC 237 — cppa_fsor_commentary, the fourth source table (doc 231A §6
+    // [NEEDS], closed): `loadSource()` above already reads this table for
+    // draft/critique/revise, and generate.ts's `citationFor` /
+    // `shortLabelFor` / `deriveSourceStatus` already handle it — but this
+    // bulk loader never fetched its rows, so a live "generate" for
+    // cppa-risk (or admt) would have excluded every FSOR hook with
+    // "citation facts incomplete". The table has no title / decision_date /
+    // appeal_status columns (doc 231A verified read-only); only the two
+    // pinpoint fields `citationFor` reads are needed here.
+    const fsorIds = profileRows.filter((p) => p.source_table === "cppa_fsor_commentary").map((p) => p.source_row_id);
+    const fsor = new Map<string, HookSourceRow>();
+    if (fsorIds.length > 0) {
+      const { data: commentary, error } = await db.from("cppa_fsor_commentary")
+        .select("id,regulation_citation,page_ref").in("id", fsorIds);
+      if (error) return json({ error: `cppa_fsor_commentary read failed: ${error.message}` }, 500);
+      for (const c of commentary ?? []) {
+        fsor.set(String(c.id), {
+          source_table: "cppa_fsor_commentary",
+          regulation_citation: c.regulation_citation ?? null, page_ref: c.page_ref ?? null,
+        });
+      }
+    }
+
     for (const p of profileRows) {
       profiles.set(p.id, { ...p, endorsement: endorsements.get(p.source_row_id) ?? null } as unknown as HookProfileRow);
       const src = p.source_table === "enforcement_actions"
@@ -498,6 +521,8 @@ async function actionGenerate(product: string) {
         ? edpb.get(p.source_row_id)
         : p.source_table === "regulatory_guidance"
         ? guid.get(p.source_row_id)
+        : p.source_table === "cppa_fsor_commentary"
+        ? fsor.get(p.source_row_id)
         : undefined;
       if (src) sources.set(p.id, src);
     }
