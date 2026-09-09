@@ -1356,16 +1356,21 @@ Deno.serve(async (req: Request) => {
   if (!isInternal && !session.payment_confirmed) {
     const { data: profile } = await admin
       .from("profiles")
-      .select("is_premium, is_pro, subscription_type")
+      .select("is_premium, is_pro, subscription_type, stripe_trial_end")
       .eq("id", callerUserId)
       .maybeSingle();
     const subType = (profile as any)?.subscription_type as string | null;
+    // 2026-09-09: a running trial is not a paid subscription — a trial user
+    // must have a confirmed RoPA payment like any non-subscriber.
+    const trialEnd = (profile as any)?.stripe_trial_end as string | null;
+    const trialing = !!trialEnd && Date.parse(trialEnd) > Date.now();
     const isSubscriber =
-      profile?.is_premium === true ||
-      profile?.is_pro === true ||
-      subType === "monthly" ||
-      subType === "annual" ||
-      subType === "annual_founding";
+      !trialing && (
+        profile?.is_premium === true ||
+        profile?.is_pro === true ||
+        subType === "monthly" ||
+        subType === "annual" ||
+        subType === "annual_founding");
     if (!isSubscriber) {
       return jsonResponse({ error: "Session is not paid" }, 402);
     }

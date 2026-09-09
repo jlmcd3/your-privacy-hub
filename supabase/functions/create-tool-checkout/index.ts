@@ -10,6 +10,7 @@ import {
   toolSubscriberCents,
 } from "../_shared/pricing.ts";
 import { registryCents } from "../_shared/pricing-snapshot.ts";
+import { isTrialing } from "../_shared/trial.ts";
 import { REVISIONS_ENABLED } from "./_local/revision-gate.ts";
 import { missingSuiteModules, readSuiteModules } from "../_shared/suite-intake.ts";
 
@@ -195,10 +196,11 @@ Deno.serve(async (req) => {
     let isPro = false;
     let isPremium = false;
     let subscriptionType: string | null = null;
+    let isTrialUser = false;
     if (user_id) {
       const { data: entRow } = await supabase
         .from("user_entitlements")
-        .select("is_premium, is_pro, subscription_type")
+        .select("is_premium, is_pro, subscription_type, stripe_trial_end")
         .eq("user_id", user_id)
         .eq("environment", checkoutEnv)
         .maybeSingle();
@@ -206,6 +208,7 @@ Deno.serve(async (req) => {
         subscriptionType = (entRow as any)?.subscription_type ?? null;
         isPro = (entRow as any)?.is_pro === true;
         isPremium = (entRow as any)?.is_premium === true || isPro;
+        isTrialUser = isTrialing(entRow as any);
         isProfessionalAnnual =
           subscriptionType === "annual" ||
           subscriptionType === "annual_founding" ||
@@ -214,21 +217,29 @@ Deno.serve(async (req) => {
         // Fallback: rollout safety only. profiles is legacy live state.
         const { data: profile } = await supabase
           .from("profiles")
-          .select("is_premium, is_pro, subscription_type, professional_annual")
+          .select("is_premium, is_pro, subscription_type, professional_annual, stripe_trial_end")
           .eq("id", user_id)
           .single();
         subscriptionType = (profile as any)?.subscription_type ?? null;
         isPro = (profile as any)?.is_pro === true;
         isPremium = (profile as any)?.is_premium === true || isPro;
+        isTrialUser = isTrialing(profile as any);
         isProfessionalAnnual = (profile as any)?.professional_annual === true
           || subscriptionType === "annual" || subscriptionType === "annual_founding";
       }
       // checkoutEnv === "sandbox" with no entitlement row → FREE. Do NOT
       // read profiles here.
     }
+    // 2026-09-09 (CEO): a TRIAL grants access, not money benefits. While the
+    // trial is running the user gets NO free generation, NO annual credit and
+    // NO subscriber rate — every paid product is charged at the standalone
+    // price. `isPremium` stays true so trial users can still reach checkout
+    // for subscription-only tools; every benefit below is gated on
+    // `!isTrialUser`.
     const isAnnualSubscriber =
-      isProfessionalAnnual ||
-      String(subscriptionType ?? "").toLowerCase().includes("annual");
+      !isTrialUser &&
+      (isProfessionalAnnual ||
+        String(subscriptionType ?? "").toLowerCase().includes("annual"));
 
     // ── Subscription-only tools (RoPA, US/EU / Global Privacy Notices) ──
     // These are included with any active subscription (monthly or annual)
@@ -251,7 +262,7 @@ Deno.serve(async (req) => {
     // Stripe disallows $0 sessions; insert the assessment row directly
     // with is_subscriber_credit=true and return the success path so the
     // client navigates straight to the result page.
-    if (isPro && SUBSCRIBER_FREE_TOOLS.has(tool_type)) {
+    if (isPro && !isTrialUser && SUBSCRIBER_FREE_TOOLS.has(tool_type)) {
       const insertRow: Record<string, unknown> = {
         user_id,
         client_id: client_id || null,
@@ -298,6 +309,8 @@ Deno.serve(async (req) => {
     // Non-subscribers are already rejected by SUBSCRIPTION_ONLY_TOOLS above.
     const ROPA_TOOLS = new Set(["ropa_initial", "ropa_refresh"]);
     let ropaPaidCharge = false;
+    // Trial users take the paid RoPA path below (isAnnualSubscriber is
+    // forced false for them, so the charge is the $49 standalone action).
     if (isPremium && ROPA_TOOLS.has(tool_type) && user_id) {
       const ropaBypass = async (mode: "first_free" | "annual_credit", creditId?: string) => {
         const { data: row, error: insErr } = await supabase
@@ -384,6 +397,13 @@ Deno.serve(async (req) => {
       li_assessment: "lia",
       dpia_framework: "dpia",
     };
+    if (redeem_annual_credit === true && isTrialUser) {
+      // Trials carry no credit pool.
+      return new Response(
+        JSON.stringify({ error: "no_credit_available" }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
     if (redeem_annual_credit === true && user_id && ANNUAL_CREDIT_TOOL_MAP[tool_type]) {
       // Annual credits exist only in live. A sandbox/preview checkout must
       // never consume (burn) a live credit. Reject and let the client fall
@@ -469,7 +489,7 @@ Deno.serve(async (req) => {
     // subscriber lookup here — Professional buyers were already bypassed
     // above, so anyone reaching this point pays the standalone rate.
     const useSubscriberPrice =
-      isPremium && !!tool.subscriber_lookup && !gatedToolRequiresAnnual &&
+      isPremium && !isTrialUser && !!tool.subscriber_lookup && !gatedToolRequiresAnnual &&
       !SUBSCRIBER_FREE_TOOLS.has(tool_type);
     // v13: a chargeable RoPA action is $49 (ropa_paid_generation) for
     // monthly subscribers and non-entitled actions, and $39

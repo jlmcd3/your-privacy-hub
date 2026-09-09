@@ -30,6 +30,7 @@
 
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import type { CallerResult } from "./verify-caller.ts";
+import { isTrialing } from "./trial.ts";
 
 export type EntitlementProduct =
   | "governance_assessment"
@@ -162,10 +163,16 @@ export async function requireEntitlement(
   if (SUBSCRIBER_FREE.has(product)) {
     const { data: profile } = await admin
       .from("profiles")
-      .select("is_premium, is_pro, biometric_free_run_claimed")
+      .select("is_premium, is_pro, biometric_free_run_claimed, stripe_trial_end")
       .eq("id", caller.userId)
       .maybeSingle();
-    if ((profile as any)?.is_pro === true) return { ok: true, reason: "subscriber_included" };
+    // 2026-09-09: a trial is NOT a paid subscription. Trial users get no
+    // free generation of a Professional-included product — they pay the
+    // standalone price like any other non-subscriber.
+    const trialing = isTrialing(profile as any);
+    if ((profile as any)?.is_pro === true && !trialing) {
+      return { ok: true, reason: "subscriber_included" };
+    }
 
     // (e) Biometric first-run-free (ITEM 360): the client claims the quota
     // atomically through claim_biometric_free_run(), then inserts a row with
@@ -196,7 +203,9 @@ export async function requireEntitlement(
       ok: false,
       status: 403,
       error: "forbidden",
-      reason: (profile as any)?.is_premium ? "professional_required" : "subscriber_required",
+      reason: trialing
+        ? "trial_not_entitled"
+        : ((profile as any)?.is_premium ? "professional_required" : "subscriber_required"),
     };
   }
 

@@ -11,6 +11,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import { REPORT_DISCLAIMER } from "../_shared/report-disclaimer.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { requireActiveSubscriber } from "../_shared/subscriber-gate.ts";
 
 // Supabase Edge Runtime host-provided global (waitUntil for background work).
 declare const EdgeRuntime: { waitUntil: (p: Promise<unknown>) => void };
@@ -858,6 +859,19 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Subscription-only product. Active paid subscribers only — a running
+    // trial does not entitle a free generation (2026-09-09).
+    if (!caller.internal) {
+      const gate = await requireActiveSubscriber(admin, caller.userId);
+      if (!gate.ok) {
+        return new Response(
+          JSON.stringify({ error: "subscription_required", reason: gate.reason }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+    }
+
 
 
 
