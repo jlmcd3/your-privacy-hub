@@ -104,7 +104,7 @@ const AdminIngestionDashboard = lazy(() => import("./pages/AdminIngestionDashboa
 const AdminIngestLegislation = lazy(() => import("./pages/AdminIngestLegislation.tsx"));
 const AdminJurisdictionAudit = lazy(() => import("./pages/admin/AdminJurisdictionAudit.tsx"));
 const AdminArticles = lazy(() => import("./pages/AdminArticles.tsx"));
-const AdminEmailSignups = lazy(() => import("./pages/AdminEmailSignups.tsx"));
+
 const AdminGatingLeaks = lazy(() => import("./pages/AdminGatingLeaks.tsx"));
 const AdminEnforcementQuality = lazy(() => import("./pages/admin/AdminEnforcementQuality.tsx"));
 const AdminRegisteredUsers = lazy(() => import("./pages/admin/AdminRegisteredUsers.tsx"));
