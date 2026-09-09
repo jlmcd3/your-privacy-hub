@@ -196,10 +196,11 @@ Deno.serve(async (req) => {
     let isPro = false;
     let isPremium = false;
     let subscriptionType: string | null = null;
+    let isTrialUser = false;
     if (user_id) {
       const { data: entRow } = await supabase
         .from("user_entitlements")
-        .select("is_premium, is_pro, subscription_type")
+        .select("is_premium, is_pro, subscription_type, stripe_trial_end")
         .eq("user_id", user_id)
         .eq("environment", checkoutEnv)
         .maybeSingle();
@@ -207,6 +208,7 @@ Deno.serve(async (req) => {
         subscriptionType = (entRow as any)?.subscription_type ?? null;
         isPro = (entRow as any)?.is_pro === true;
         isPremium = (entRow as any)?.is_premium === true || isPro;
+        isTrialUser = isTrialing(entRow as any);
         isProfessionalAnnual =
           subscriptionType === "annual" ||
           subscriptionType === "annual_founding" ||
@@ -215,21 +217,29 @@ Deno.serve(async (req) => {
         // Fallback: rollout safety only. profiles is legacy live state.
         const { data: profile } = await supabase
           .from("profiles")
-          .select("is_premium, is_pro, subscription_type, professional_annual")
+          .select("is_premium, is_pro, subscription_type, professional_annual, stripe_trial_end")
           .eq("id", user_id)
           .single();
         subscriptionType = (profile as any)?.subscription_type ?? null;
         isPro = (profile as any)?.is_pro === true;
         isPremium = (profile as any)?.is_premium === true || isPro;
+        isTrialUser = isTrialing(profile as any);
         isProfessionalAnnual = (profile as any)?.professional_annual === true
           || subscriptionType === "annual" || subscriptionType === "annual_founding";
       }
       // checkoutEnv === "sandbox" with no entitlement row → FREE. Do NOT
       // read profiles here.
     }
+    // 2026-09-09 (CEO): a TRIAL grants access, not money benefits. While the
+    // trial is running the user gets NO free generation, NO annual credit and
+    // NO subscriber rate — every paid product is charged at the standalone
+    // price. `isPremium` stays true so trial users can still reach checkout
+    // for subscription-only tools; every benefit below is gated on
+    // `!isTrialUser`.
     const isAnnualSubscriber =
-      isProfessionalAnnual ||
-      String(subscriptionType ?? "").toLowerCase().includes("annual");
+      !isTrialUser &&
+      (isProfessionalAnnual ||
+        String(subscriptionType ?? "").toLowerCase().includes("annual"));
 
     // ── Subscription-only tools (RoPA, US/EU / Global Privacy Notices) ──
     // These are included with any active subscription (monthly or annual)
