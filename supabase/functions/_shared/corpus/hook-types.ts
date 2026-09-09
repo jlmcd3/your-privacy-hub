@@ -229,6 +229,22 @@ export interface AuthorityHook {
    * be populated from a sentence the CEO has already ratified by hand.
    */
   readonly hedge_sentence?: string | null;
+  /**
+   * DOC 238 §5.5.2 FOLLOW-UP (2026-09-09) — whether the trailing citation
+   * parenthetical carries the "; {status}" clause. Every shape prints
+   * "({citation}; {status}.)" unconditionally, but doc 236's CEO-approved
+   * ADMT FSOR citations print NO status clause at all ("(California Privacy
+   * Protection Agency, Final Statement of Reasons, …, 11 CCR § 7220(c)(1).)")
+   * while doc 234's Risk FSOR convention keeps it. The generator derives this
+   * per product × source table (generate.ts `HOOK_PRODUCT_CITATION_CONVENTIONS`)
+   * and each product's join reads it: `false` blanks the `{status}` slot in
+   * the citation trailer and `tidyRenderedSentence` (hook-render-tidy.ts)
+   * collapses the "; " the template left behind. S4 places `{status}`
+   * mid-sentence ("That decision is {status}; …") and always keeps it.
+   * `undefined`/`null`/`true`: the clause prints, exactly as before this field
+   * existed — every hook shipped today.
+   */
+  readonly status_in_citation?: boolean | null;
 }
 
 /** The `CamRelevanceProfile` (cam-types.ts) fields a hook carries, in the

@@ -275,13 +275,25 @@ export const ADMT_FACTOR_PHRASES: Readonly<Record<string, string>> = {
 // product-agnostic, not copied blind. A CPPA Final Statement of Reasons
 // label (the FSOR source ADMT's own 38 dark FC rows already draw on) is
 // added here as a new entry — the ADMT-specific addition beyond LIA's set.
+//
+// DOC 238 §5 item 6 FOLLOW-UP (2026-09-09) — `sa_decision` is now the
+// CEO-APPROVED doc 236 wording (E1, the only approved ADMT enforcement
+// citation: "foreign supervisory-authority decision, cited by analogy —
+// decided under the GDPR, not the CCPA or its Article 10/11 regulations"),
+// NOT LIA's byte-copy the paragraph above describes — a GDPR decision cited
+// into an ADMT report is a foreign authority applied by analogy, and the
+// CEO's own approved text says so. Byte-equal to the shared generator's
+// per-product entry (generate-corpus-hooks/_local/generate.ts
+// `HOOK_PRODUCT_CITATION_CONVENTIONS.admt`, pinned equal by
+// tests/edge/corpus/doc238-status-labels-and-tidy.test.ts). The other
+// entries remain LIA's bytes.
 
 export const ADMT_SOURCE_STATUS_LABELS: Readonly<Record<string, string>> = {
   edpb_guidelines_final: "EDPB guidelines — interpretive guidance, not binding law",
   edpb_opinion: "EDPB Article 64 opinion — Board opinion, not a judicial decision",
   wp29_opinion: "Article 29 Working Party opinion — historical interpretive guidance",
   regulator_guidance: "regulatory guidance — non-binding",
-  sa_decision: "supervisory-authority decision — persuasive, non-binding outside its jurisdiction",
+  sa_decision: "foreign supervisory-authority decision, cited by analogy — decided under the GDPR, not the CCPA or its Article 10/11 regulations",
   sa_decision_affirmed: "supervisory-authority decision, affirmed on appeal",
   sa_decision_appeal_pending: "under appeal",
   // ADMT-specific addition, mirroring doc 231's own CPPA FSOR label

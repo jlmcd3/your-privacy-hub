@@ -505,16 +505,24 @@ async function actionGenerate(product: string) {
     // "citation facts incomplete". The table has no title / decision_date /
     // appeal_status columns (doc 231A verified read-only); only the two
     // pinpoint fields `citationFor` reads are needed here.
+    //
+    // DOC 238 §1.4 FOLLOW-UP (2026-09-09) — `fsor_package` added to the
+    // select: `citationFor` has printed the package name since doc 238 (now
+    // normalised by `fsorPackageName`), but this loader never fetched the
+    // column, so a live "generate" could never have printed it — the field
+    // reached `HookSourceRow` and the tests, not production. Additive; a row
+    // without it still renders the label without a package part.
     const fsorIds = profileRows.filter((p) => p.source_table === "cppa_fsor_commentary").map((p) => p.source_row_id);
     const fsor = new Map<string, HookSourceRow>();
     if (fsorIds.length > 0) {
       const { data: commentary, error } = await db.from("cppa_fsor_commentary")
-        .select("id,regulation_citation,page_ref").in("id", fsorIds);
+        .select("id,regulation_citation,page_ref,fsor_package").in("id", fsorIds);
       if (error) return json({ error: `cppa_fsor_commentary read failed: ${error.message}` }, 500);
       for (const c of commentary ?? []) {
         fsor.set(String(c.id), {
           source_table: "cppa_fsor_commentary",
           regulation_citation: c.regulation_citation ?? null, page_ref: c.page_ref ?? null,
+          fsor_package: c.fsor_package ?? null,
         });
       }
     }

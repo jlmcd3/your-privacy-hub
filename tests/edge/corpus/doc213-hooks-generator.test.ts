@@ -554,6 +554,9 @@ Deno.test("generate: an emitted hook carries exactly AuthorityHook's fields (v1 
     // doc 238 — PROPOSED shape-amendment plumbing, additive, null unless a
     // curated row sets them (none does yet).
     "governing_provision_sentence", "hedge_variant", "hedge_sentence",
+    // doc 238 §5.5.2 follow-up (2026-09-09) — derived per product × source
+    // table by deriveSourceStatus; true for every hook except an ADMT FSOR one.
+    "status_in_citation",
   ].sort());
   assertEquals(emitted.posture, "rejected");
   assertEquals(emitted.source_row_id, "row-1");
@@ -577,6 +580,8 @@ Deno.test("generate: an emitted hook carries exactly AuthorityHook's fields (v1 
   assertEquals(emitted.governing_provision_sentence, null);
   assertEquals(emitted.hedge_variant, null);
   assertEquals(emitted.hedge_sentence, null);
+  // doc 238 §5.5.2 follow-up — an LIA EDPB hook's citation carries its status.
+  assertEquals(emitted.status_in_citation, true);
 });
 
 Deno.test("generate: a v2 row's own structured pinpoint wins over the curation-note ¶", () => {
