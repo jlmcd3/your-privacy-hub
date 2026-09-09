@@ -41,7 +41,7 @@
       "position_check": "cppa_fsor_commentary.agency_response position()=343, re-verified live 2026-09-09; only this fragment was verified — the card's fuller sentence carries PDF-extraction artifacts ('consumer s') that must be quoted as stored ([NEEDS: finding_span choice at pinpoint time])",
       "fact_pattern_paraphrase": "a business using consumers' personal information to train an ADMT, including an emotion-recognition, facial-recognition, or identity-verification system",
       "finding_paraphrase": "training uses of consumers' personal information pose significant risk to consumers' privacy, including data leakage that can re-identify the people whose information trained the model and a lack of transparency and control, so training is its own risk-assessment trigger",
-      "settledness": "R3",
+      "settledness": "R1",
       "settledness_note": "R3 by fall-through: verify.ts settlednessFor has no cppa_fsor_commentary branch (regulatory_guidance -> R1, edpb_guidelines -> R1/R3, everything else -> R3). Recorded as the code derives it today, not asserted. [NEEDS: CEO/code ruling — an FSOR is adopted rulemaking commentary, closer to R1 'adopted guidance or settled authority' than R3 'a single supervisory authority's decision'; the R3 label never prints for an FSOR hook (deriveSourceStatus supplies status_label) but settledness sets the join's ranking order]",
       "citation_facts": {
         "regulation_citation": "11 CCR § 7150(b)(6)",
@@ -103,7 +103,7 @@
       "position_check": "cppa_fsor_commentary.agency_response position()=120, re-verified live 2026-09-09",
       "fact_pattern_paraphrase": "an ADMT, its training data, its safeguards, or its decision use having changed since the business's last risk assessment was completed",
       "finding_paraphrase": "a change is material, and requires an updated risk assessment, where it creates new negative impacts, increases the magnitude or likelihood of previously identified negative impacts, or diminishes the effectiveness of safeguards",
-      "settledness": "R3",
+      "settledness": "R1",
       "settledness_note": "R3 by fall-through: verify.ts settlednessFor has no cppa_fsor_commentary branch (regulatory_guidance -> R1, edpb_guidelines -> R1/R3, everything else -> R3). Recorded as the code derives it today, not asserted. [NEEDS: CEO/code ruling — an FSOR is adopted rulemaking commentary, closer to R1 'adopted guidance or settled authority' than R3 'a single supervisory authority's decision'; the R3 label never prints for an FSOR hook (deriveSourceStatus supplies status_label) but settledness sets the join's ranking order]",
       "citation_facts": {
         "regulation_citation": "11 CCR § 7155(a)(3)",
@@ -165,7 +165,7 @@
       "position_check": "cppa_fsor_commentary.agency_response position()=615, re-verified live 2026-09-09",
       "fact_pattern_paraphrase": "ADMT use, or use of personal information to train an ADMT, that began before the regulations took effect and is still ongoing",
       "finding_paraphrase": "the Agency chose December 31, 2027 as the calendar deadline for coming into compliance with the risk-assessment duty for pre-existing processing, roughly 24 months after the regulations were approved, so businesses know precisely when they must comply",
-      "settledness": "R3",
+      "settledness": "R1",
       "settledness_note": "R3 by fall-through: verify.ts settlednessFor has no cppa_fsor_commentary branch (regulatory_guidance -> R1, edpb_guidelines -> R1/R3, everything else -> R3). Recorded as the code derives it today, not asserted. [NEEDS: CEO/code ruling — an FSOR is adopted rulemaking commentary, closer to R1 'adopted guidance or settled authority' than R3 'a single supervisory authority's decision'; the R3 label never prints for an FSOR hook (deriveSourceStatus supplies status_label) but settledness sets the join's ranking order]",
       "citation_facts": {
         "regulation_citation": "11 CCR § 7155(c)",
@@ -298,7 +298,7 @@
       "position_check": "cppa_fsor_commentary.agency_response position()=480, re-verified live 2026-09-09",
       "fact_pattern_paraphrase": "a Pre-use Notice describing the ADMT's purpose in general terms, such as to improve our services, without saying what the ADMT actually decides",
       "finding_paraphrase": "vague language about a planned use of ADMT undermines consumers' exercise of their rights to opt out of and access ADMT, so a Pre-use Notice must describe the purpose in more specific terms",
-      "settledness": "R3",
+      "settledness": "R1",
       "settledness_note": "R3 by fall-through: verify.ts settlednessFor has no cppa_fsor_commentary branch (regulatory_guidance -> R1, edpb_guidelines -> R1/R3, everything else -> R3). Recorded as the code derives it today, not asserted. [NEEDS: CEO/code ruling — an FSOR is adopted rulemaking commentary, closer to R1 'adopted guidance or settled authority' than R3 'a single supervisory authority's decision'; the R3 label never prints for an FSOR hook (deriveSourceStatus supplies status_label) but settledness sets the join's ranking order]",
       "citation_facts": {
         "regulation_citation": "11 CCR § 7220(c)(1)",
@@ -360,7 +360,7 @@
       "position_check": "cppa_fsor_commentary.agency_response position()=240, re-verified live 2026-09-09",
       "fact_pattern_paraphrase": "a business whose only method for a consumer to opt out of ADMT is a cookie banner or cookie-consent tool",
       "finding_paraphrase": "a cookie banner or cookie control is not a valid method for submitting an ADMT opt-out request, a prohibition the Agency kept based on its observations of businesses inappropriately using cookie banners or controls",
-      "settledness": "R3",
+      "settledness": "R1",
       "settledness_note": "R3 by fall-through: verify.ts settlednessFor has no cppa_fsor_commentary branch (regulatory_guidance -> R1, edpb_guidelines -> R1/R3, everything else -> R3). Recorded as the code derives it today, not asserted. [NEEDS: CEO/code ruling — an FSOR is adopted rulemaking commentary, closer to R1 'adopted guidance or settled authority' than R3 'a single supervisory authority's decision'; the R3 label never prints for an FSOR hook (deriveSourceStatus supplies status_label) but settledness sets the join's ranking order]",
       "citation_facts": {
         "regulation_citation": "11 CCR § 7221(c)(4)",
@@ -428,7 +428,7 @@
       "position_check": "cppa_fsor_commentary.agency_response position()=437, re-verified live 2026-09-09",
       "fact_pattern_paraphrase": "a business relying on the human-appeal exception instead of offering a full ADMT opt-out",
       "finding_paraphrase": "the designated human reviewer must know how to interpret and use the ADMT's output, must review it together with any other relevant information, and must have the authority to change the decision",
-      "settledness": "R3",
+      "settledness": "R1",
       "settledness_note": "R3 by fall-through: verify.ts settlednessFor has no cppa_fsor_commentary branch (regulatory_guidance -> R1, edpb_guidelines -> R1/R3, everything else -> R3). Recorded as the code derives it today, not asserted. [NEEDS: CEO/code ruling — an FSOR is adopted rulemaking commentary, closer to R1 'adopted guidance or settled authority' than R3 'a single supervisory authority's decision'; the R3 label never prints for an FSOR hook (deriveSourceStatus supplies status_label) but settledness sets the join's ranking order]",
       "citation_facts": {
         "regulation_citation": "11 CCR § 7221(b)(2)(A)",
@@ -489,7 +489,7 @@
       "position_check": "cppa_fsor_commentary.agency_response position()=233, re-verified live 2026-09-09 — the FSOR's own PDF-extraction artifact 'non - generic' is quoted as stored; the approved prose prints 'non-generic'",
       "fact_pattern_paraphrase": "an access response describing the purpose the ADMT served for the consumer as a generic recital rather than a decision-specific explanation",
       "finding_paraphrase": "identifying a purpose in non-generic terms is necessary both to identify relevant risks and benefits in a risk assessment and to ensure consumers understand how an ADMT was used with respect to them",
-      "settledness": "R3",
+      "settledness": "R1",
       "settledness_note": "R3 by fall-through: verify.ts settlednessFor has no cppa_fsor_commentary branch (regulatory_guidance -> R1, edpb_guidelines -> R1/R3, everything else -> R3). Recorded as the code derives it today, not asserted. [NEEDS: CEO/code ruling — an FSOR is adopted rulemaking commentary, closer to R1 'adopted guidance or settled authority' than R3 'a single supervisory authority's decision'; the R3 label never prints for an FSOR hook (deriveSourceStatus supplies status_label) but settledness sets the join's ranking order]",
       "citation_facts": {
         "regulation_citation": "11 CCR § 7222(b)(1)",
@@ -559,7 +559,7 @@
       "position_check": "cppa_fsor_commentary.agency_response position()=150, re-verified live 2026-09-09",
       "fact_pattern_paraphrase": "a business depending on a third-party vendor for the ADMT it uses, where the vendor's assistance with consumer ADMT access requests is at issue",
       "finding_paraphrase": "the Agency removed surplus wording and an internal cross-reference from the service-provider assistance rule as necessary for the regulations' internal consistency, leaving the duty to assist with ADMT access requests current and unqualified",
-      "settledness": "R3",
+      "settledness": "R1",
       "settledness_note": "R3 by fall-through: verify.ts settlednessFor has no cppa_fsor_commentary branch (regulatory_guidance -> R1, edpb_guidelines -> R1/R3, everything else -> R3). Recorded as the code derives it today, not asserted. [NEEDS: CEO/code ruling — an FSOR is adopted rulemaking commentary, closer to R1 'adopted guidance or settled authority' than R3 'a single supervisory authority's decision'; the R3 label never prints for an FSOR hook (deriveSourceStatus supplies status_label) but settledness sets the join's ranking order]",
       "citation_facts": {
         "regulation_citation": "11 CCR § 7222(i)",
@@ -623,7 +623,7 @@
       "position_check": "cppa_fsor_commentary.agency_response position()=190, re-verified live 2026-09-09",
       "fact_pattern_paraphrase": "an ADMT described as a security, fraud-prevention, or safety tool whose output also makes or feeds a significant decision, such as denying a transaction as fraudulent",
       "finding_paraphrase": "the regulations already include narrow, specific exceptions for security, fraud prevention, and safety, and a broader carve-out would be less effective at protecting consumer privacy, so the security-tool label does not by itself exempt a significant decision",
-      "settledness": "R3",
+      "settledness": "R1",
       "settledness_note": "R3 by fall-through: verify.ts settlednessFor has no cppa_fsor_commentary branch (regulatory_guidance -> R1, edpb_guidelines -> R1/R3, everything else -> R3). Recorded as the code derives it today, not asserted. [NEEDS: CEO/code ruling — an FSOR is adopted rulemaking commentary, closer to R1 'adopted guidance or settled authority' than R3 'a single supervisory authority's decision'; the R3 label never prints for an FSOR hook (deriveSourceStatus supplies status_label) but settledness sets the join's ranking order]",
       "citation_facts": {
         "regulation_citation": "11 CCR § 7001(ddd)(6)",

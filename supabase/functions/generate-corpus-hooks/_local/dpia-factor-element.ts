@@ -14,6 +14,10 @@ const F_EMPLOYEE_MONITORING = "the employee-monitoring trigger";
 const F_ALGORITHMIC = "the automated-decision trigger";
 const F_ADEQUACY = "the necessity and proportionality analysis";
 const F_BIOMETRIC_ADEQUACY = "the adequacy of the biometric-processing analysis";
+// doc 242, three-lawyer panel (2026-09-09): both live profile factor_ids
+// verbatim, already following the "the [X] trigger" naming convention.
+const F_CHILDRENS_DATA = "the children's-data trigger";
+const F_INNOVATIVE_TECH = "the innovative-technology trigger";
 
 export const DPIA_FACTOR_ELEMENT: Readonly<Record<string, "obligation" | "adequacy">> = {
   [F_OBLIGATION]: "obligation",
@@ -21,6 +25,8 @@ export const DPIA_FACTOR_ELEMENT: Readonly<Record<string, "obligation" | "adequa
   [F_ALGORITHMIC]: "obligation",
   [F_ADEQUACY]: "adequacy",
   [F_BIOMETRIC_ADEQUACY]: "adequacy",
+  [F_CHILDRENS_DATA]: "obligation",
+  [F_INNOVATIVE_TECH]: "obligation",
 };
 
 export function dpiaElementOf(factorId: string): "obligation" | "adequacy" | null {

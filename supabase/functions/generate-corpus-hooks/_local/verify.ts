@@ -48,7 +48,7 @@ export interface DraftPayload {
 }
 
 const ABSTAIN_REASONS = new Set<string>(ABSTAIN_REASONS_V2);
-const PINPOINT_KINDS = new Set(["paragraph", "section", "page", "recital", "heading"]);
+const PINPOINT_KINDS = new Set(["paragraph", "section", "page", "recital", "heading", "field"]);
 
 const str = (v: unknown): string | null => (typeof v === "string" ? v : null);
 const strOrEmpty = (v: unknown): string => (typeof v === "string" ? v : "");
@@ -262,6 +262,10 @@ export function settlednessFor(profile: ProfileForHook, endorsement: SourceEndor
     if (endorsement === "edpb_adopted" || endorsement === "wp29_endorsed_2018") return "R1";
     return "R3";
   }
+  // doc 242, three-lawyer panel (2026-09-09): an FSOR is the Agency's own
+  // adopted, OAL-approved rulemaking record, not a single-decision
+  // adjudication — R1, alongside regulatory_guidance, not R3.
+  if (profile.source_table === "cppa_fsor_commentary") return "R1";
   return "R3";
 }
 

@@ -78,7 +78,13 @@ export type HookSourceStatus =
 export type HookVerb = "found" | "states" | "advised";
 
 export interface HookPinpoint {
-  readonly kind: "paragraph" | "section" | "page" | "recital" | "heading";
+  // "field" (doc 242, three-lawyer panel, 2026-09-09): a whole-DB-field
+  // citation for a narrative row with no internal numbering to point to —
+  // `ref` names the source column (e.g. "source_document_text"), never a
+  // curator-paraphrase column. No marker/proximity check applies (like
+  // "page"); the universal verbatim-substring check on `anchor_span` is
+  // the whole safeguard.
+  readonly kind: "paragraph" | "section" | "page" | "recital" | "heading" | "field";
   readonly ref: string;
   /** Verbatim anchor in the source text (checked at settle, doc 222 §2.5). */
   readonly anchor_span: string;
