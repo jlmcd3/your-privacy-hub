@@ -107,6 +107,10 @@ const AdminArticles = lazy(() => import("./pages/AdminArticles.tsx"));
 const AdminEmailSignups = lazy(() => import("./pages/AdminEmailSignups.tsx"));
 const AdminGatingLeaks = lazy(() => import("./pages/AdminGatingLeaks.tsx"));
 const AdminEnforcementQuality = lazy(() => import("./pages/admin/AdminEnforcementQuality.tsx"));
+const AdminRegisteredUsers = lazy(() => import("./pages/admin/AdminRegisteredUsers.tsx"));
+const AdminPeople = lazy(() => import("./pages/admin/AdminPeople.tsx"));
+const AdminPolicyVersions = lazy(() => import("./pages/admin/AdminPolicyVersions.tsx"));
+const AdminSupportLog = lazy(() => import("./pages/admin/AdminSupportLog.tsx"));
 
 const AdminBriefGenStatus = lazy(() => import("./pages/AdminBriefGenStatus.tsx"));
 const AdminPricingReconciliation = lazy(() => import("./pages/AdminPricingReconciliation.tsx"));
