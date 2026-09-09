@@ -25,7 +25,7 @@ const GetIntelligence = () => (
         </h1>
         <p className="text-slate-300 text-lg max-w-3xl">
           Select your jurisdiction, role, and topic tracks. We'll assemble a
-          representative Weekly Brief showing exactly the depth and format
+          representative Weekly Brief showing the depth and format
           subscribers receive every Monday — written for your practice.
         </p>
         <p className="text-amber-200/90 text-sm mt-3">
