@@ -7,7 +7,6 @@
 // src/hooks/useSubscriptionTier.ts (isPremium && !isInTrial), which the UI
 // already enforces; this closes the same rule on the server.
 
-import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { isTrialing } from "./trial.ts";
 
 export interface SubscriberGateResult {
@@ -15,8 +14,13 @@ export interface SubscriberGateResult {
   reason?: "no_user" | "not_subscribed" | "trial_not_entitled";
 }
 
+// Structural minimum so this helper works with any supabase-js version a
+// calling function happens to pin.
+// deno-lint-ignore no-explicit-any
+type AdminLike = { from: (table: string) => any };
+
 export async function requireActiveSubscriber(
-  admin: SupabaseClient,
+  admin: AdminLike,
   userId: string | null | undefined,
 ): Promise<SubscriberGateResult> {
   if (!userId) return { ok: false, reason: "no_user" };
