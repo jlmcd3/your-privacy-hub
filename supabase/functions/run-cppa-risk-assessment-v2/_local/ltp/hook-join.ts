@@ -256,6 +256,9 @@ function pinpointText(hook: AuthorityHook): string {
       return `p. ${p.ref}`;
     case "recital":
       return `Recital ${p.ref}`;
+    case "field":
+      // doc 242: a backing/verification artifact, never print text.
+      return "";
     default:
       return `"${p.ref}"`;
   }

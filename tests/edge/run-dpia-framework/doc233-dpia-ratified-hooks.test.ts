@@ -205,11 +205,12 @@ Deno.test("doc233 DPIA — every paraphrase on the five ratified hooks satisfies
   }
 });
 
-Deno.test("doc233 DPIA — the two ratified hooks whose PROFILE factor is a doc 233 PROPOSED factor (children's-data trigger, innovative-technology trigger) map to NO element yet: generate.ts will exclude them BY NAME until the CEO rules (doc 233 [NEEDS])", () => {
+Deno.test("doc242 DPIA — the two previously-PROPOSED factors (children's-data trigger, innovative-technology trigger) are now mapped to obligation (three-lawyer panel ruling, 2026-09-09: both are Article 35(1) trigger questions — was a DPIA owed — not assessment-adequacy questions)", () => {
   const unmapped = WIRING.filter((w) => DPIA_FACTOR_ELEMENT[w.profile_factor_id] === undefined).map((w) => w.short).sort();
-  assertEquals(unmapped, ["0675e6a0", "68252e3a"]);
+  assertEquals(unmapped, []);
+  assertEquals(DPIA_FACTOR_ELEMENT["the children's-data trigger"], "obligation");
+  assertEquals(DPIA_FACTOR_ELEMENT["the innovative-technology trigger"], "obligation");
   for (const w of WIRING) {
-    if (unmapped.includes(w.short)) continue;
     assertEquals(DPIA_FACTOR_ELEMENT[w.profile_factor_id], w.bears_on_element, `${w.short}: element`);
   }
 });

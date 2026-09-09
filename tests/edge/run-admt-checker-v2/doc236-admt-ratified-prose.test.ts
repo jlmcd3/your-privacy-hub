@@ -379,23 +379,17 @@ Deno.test("doc236 ADMT — every paraphrase satisfies verify.ts's clause-form ru
   assert(droppedQualifiers(byShort("84d00bed").finding_span, "a paraphrase that forgets the qualifier").includes("necessary"));
 });
 
-Deno.test("doc236 ADMT — settledness is what verify.ts settlednessFor derives today: R3 for the enforcement row, and R3 BY FALL-THROUGH for every cppa_fsor_commentary row (no FSOR branch exists — regulatory_guidance -> R1, edpb -> R1/R3, else R3): recorded as derived, flagged as a [NEEDS], not asserted", () => {
+Deno.test("doc242 ADMT — settledness: R3 for the narrative enforcement row (E1), R1 for every cppa_fsor_commentary row (three-lawyer panel ruling, 2026-09-09: an FSOR is adopted rulemaking commentary, not a single supervisory-authority decision — ranking-only, never customer-facing)", () => {
   for (const w of WIRING) {
     const profile: ProfileForHook = {
       id: w.profile_id, product: w.product, source_table: w.source_table, source_row_id: w.source_row_id,
       extracted_quote: w.finding_span, outcome_posture: w.profile_posture, factor_ids: [...w.profile_factor_ids],
       use_case_class: null, flags: null, instrument: w.profile_instrument, curation_note: null, pipeline_stage: "human",
     };
-    assertEquals(settlednessFor(profile, null), w.settledness, w.short);
-    assertEquals(w.settledness, "R3", w.short);
+    const expected = w.source_table === "cppa_fsor_commentary" ? "R1" : "R3";
+    assertEquals(settlednessFor(profile, null), expected, w.short);
+    assertEquals(w.settledness, expected, w.short);
   }
-  // The gap itself, pinned: the same profile with the one source table settlednessFor DOES name as adopted guidance derives R1.
-  const fsor = byShort("f77eaad2");
-  const asGuidance: ProfileForHook = {
-    id: fsor.profile_id, product: "admt", source_table: "regulatory_guidance", source_row_id: fsor.source_row_id, extracted_quote: null,
-    outcome_posture: fsor.profile_posture, factor_ids: [...fsor.profile_factor_ids], use_case_class: null, flags: null, instrument: fsor.profile_instrument, curation_note: null, pipeline_stage: "human",
-  };
-  assertEquals(settlednessFor(asGuidance, null), "R1");
 });
 
 Deno.test("doc236 ADMT — deriveSourceStatus for the admt product: every FSOR row is regulator_guidance / 'states' with status_in_citation FALSE (doc 236's approved FSOR citations carry no status clause); E1 is sa_decision with the CEO-approved ADMT foreign-analogy label; and citationFor composes exactly the label hooks.json recorded", () => {

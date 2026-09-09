@@ -372,6 +372,10 @@ const F_EMPLOYEE_MONITORING = "the employee-monitoring trigger";
 const F_ALGORITHMIC = "the automated-decision trigger";
 const F_ADEQUACY = "the necessity and proportionality analysis";
 const F_BIOMETRIC_ADEQUACY = "the adequacy of the biometric-processing analysis";
+// doc 242, three-lawyer panel (2026-09-09): both live profile factor_ids
+// verbatim, already following the "the [X] trigger" naming convention.
+const F_CHILDRENS_DATA = "the children's-data trigger";
+const F_INNOVATIVE_TECH = "the innovative-technology trigger";
 
 export const DPIA_FACTOR_PHRASES: Readonly<Record<string, string>> = {
   [F_OBLIGATION]: "the obligation to conduct this assessment",
@@ -379,6 +383,12 @@ export const DPIA_FACTOR_PHRASES: Readonly<Record<string, string>> = {
   [F_ALGORITHMIC]: "the automated-decision trigger",
   [F_ADEQUACY]: "necessity and proportionality",
   [F_BIOMETRIC_ADEQUACY]: "the adequacy of the biometric-processing analysis",
+  // doc 242, three-lawyer panel (2026-09-09): both are Article 35(1)
+  // trigger factors (WP248 criteria 7/8), the same kind of question as
+  // employee-monitoring/automated-decision above — obligation, not
+  // adequacy.
+  [F_CHILDRENS_DATA]: "the children's-data trigger",
+  [F_INNOVATIVE_TECH]: "the innovative-technology trigger",
 };
 
 // ── [RATIFY — DRAFT, unratified] — DOC 213 §2 pattern: factor → DPIA hook
@@ -394,6 +404,8 @@ export const DPIA_FACTOR_ELEMENT: Readonly<Record<string, "obligation" | "adequa
   [F_ALGORITHMIC]: "obligation",
   [F_ADEQUACY]: "adequacy",
   [F_BIOMETRIC_ADEQUACY]: "adequacy",
+  [F_CHILDRENS_DATA]: "obligation",
+  [F_INNOVATIVE_TECH]: "obligation",
 };
 
 export function dpiaElementOf(factorId: string): "obligation" | "adequacy" | null {
