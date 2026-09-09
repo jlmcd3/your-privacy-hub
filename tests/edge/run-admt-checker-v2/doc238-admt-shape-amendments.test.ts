@@ -119,20 +119,27 @@ const e1Profile: HookProfileRow = {
 };
 const e1Source: HookSourceRow = {
   source_table: "enforcement_actions",
-  // The DB row's `regulator` column value per doc 236's card. NOTE: the
-  // approved citation prints the regulator's full native name, "Garante per
-  // la protezione dei dati personali (Italian Data Protection Authority)"
-  // — which is what `enforcement_actions.regulator_canonical` holds (doc
-  // 238 §1.4), a column `citationFor` does not read. So E1's rendered
-  // citation is NOT byte-identical to the approved one; the delta is
-  // exactly that name. Recorded below, not papered over.
+  // The DB row's `regulator` column value per doc 236's card — the SHORT
+  // form, used only for the mid-sentence {regulator} slot, never the
+  // citation label (see below).
   regulator: "Garante",
   subject: "Azienda Universitaria Friuli Occidentale",
   decision_date: "2022-12-15",
   appeal_status: "unknown", // real DB value (verified read-only in the doc 238 session)
-  // Placeholder — no DB column carries this (doc 238 §1.4); approved prose's
-  // own parenthetical is "(Italian Data Protection Authority)".
-  regulator_english_name: "Italian Data Protection Authority",
+  // DOC 238 FOLLOW-UP (2026-09-09) — `regulator_canonical` is a real,
+  // already-populated DB column ("Garante per la protezione dei dati
+  // personali", verified live for this exact row), and
+  // `regulator_canonical_in_citation` is a real, additive opt-in column,
+  // set true for this one row (verified live) because doc 236's approved
+  // citation confirms the full native name is the curator's actual choice
+  // for E1. Neither field is hand-set here as a placeholder — this proves
+  // the real production read path, not just the mechanism. No
+  // `regulator_english_name` is set: the English gloss now comes from
+  // `citationFor`'s own curated `KNOWN_REGULATOR_ENGLISH_GLOSS` table
+  // (generate.ts), which the approved parenthetical "(Italian Data
+  // Protection Authority)" confirmed correct for this regulator.
+  regulator_canonical: "Garante per la protezione dei dati personali",
+  regulator_canonical_in_citation: true,
 };
 
 function e1Hook(overrides: Partial<AuthorityHook> = {}): AuthorityHook {
@@ -183,9 +190,9 @@ function e1Hook(overrides: Partial<AuthorityHook> = {}): AuthorityHook {
 
 // ── Tests ────────────────────────────────────────────────────────────────
 
-Deno.test("doc238 ADMT — citationFor composes the English-regulator parenthetical for E1 (placeholder data); the SHORT `regulator` column yields 'Garante (…)', not the approved citation's full native name", () => {
+Deno.test("doc238 ADMT — citationFor composes the FULL native regulator name + English gloss for E1, byte-identical to doc 236's approved citation label (FIXED, 2026-09-09 follow-up: regulator_canonical_in_citation opts this row in; the gloss comes from citationFor's own curated table, not hand-set fixture data)", () => {
   const cite = citationFor(e1Profile, e1Source);
-  assertEquals(cite?.authority_label, "Garante (Italian Data Protection Authority), Azienda Universitaria Friuli Occidentale, decision of 15 December 2022");
+  assertEquals(cite?.authority_label, "Garante per la protezione dei dati personali (Italian Data Protection Authority), Azienda Universitaria Friuli Occidentale, decision of 15 December 2022");
 });
 
 Deno.test("doc238 ADMT — a hook with hedge_sentence/hedge_variant/governing_provision_sentence unset renders through the amended ADMT_HOOK_SHAPES with no hedge, no unresolved slot, no stray spacing", () => {
@@ -210,7 +217,7 @@ Deno.test("doc238 ADMT — hedge_variant alone (either value, hedge_sentence uns
   }
 });
 
-Deno.test("doc238 ADMT — 'Notice content' (APPROVED, FSOR): the approved governing-provision sentence, the verbatim quote, and doc 236's own hedge sentence for this row, verbatim, trailing", () => {
+Deno.test("doc238 ADMT — 'Notice content' (APPROVED, FSOR): the approved governing-provision sentence, the verbatim quote, and doc 236's own hedge sentence for this row, verbatim, positioned before the section pointer and citation", () => {
   const hook = noticeContentHook();
   const rendered = renderSentence(hook, "S2", hook.fact_atoms, undefined);
   assert(rendered, "expected S2 to render");
@@ -222,7 +229,9 @@ Deno.test("doc238 ADMT — 'Notice content' (APPROVED, FSOR): the approved gover
   // Doc 236's approved pointer: "Section 3 addresses whether the notice's
   // purpose statement meets this standard." — register match, not wording.
   assert(rendered!.includes("Whether that holds on this record is addressed in Section 3"));
-  assert(rendered!.endsWith(` ${NOTICE_HEDGE_236}`), `approved hedge missing: ${rendered}`);
+  // POSITION — FIXED (2026-09-09 follow-up): the hedge now precedes the
+  // section pointer, not the citation trailer.
+  assert(rendered!.includes(`${NOTICE_HEDGE_236} Whether that holds`), `hedge must precede the section pointer, not follow the citation: ${rendered}`);
   assert(!rendered!.includes("not a fixed rule"), `generic constant leaked: ${rendered}`);
   // Doc 238 §5.5.2's own flag, confirmed: doc 236's approved FSOR citation
   // is "(California Privacy Protection Agency, Final Statement of Reasons,
@@ -232,23 +241,30 @@ Deno.test("doc238 ADMT — 'Notice content' (APPROVED, FSOR): the approved gover
   assert(rendered!.includes("(CPPA Final Statement of Reasons, 11 CCR § 7220(c)(1); CPPA Final Statement of Reasons — agency position, primary regulator commentary.)"));
 });
 
-Deno.test("doc238 ADMT — E1 (APPROVED, enforcement): the approved governing-provision sentence, the verbatim quote, and doc 236's own hedge sentence for this row, verbatim, trailing; the citation differs from the approved one ONLY by the regulator name", () => {
+Deno.test("doc238 ADMT — E1 (APPROVED, enforcement): the approved governing-provision sentence, the verbatim quote, and doc 236's own hedge sentence for this row, verbatim, positioned before the section pointer and citation; the citation is now BYTE-IDENTICAL to doc 236's approved one (FIXED, 2026-09-09 follow-up)", () => {
   const hook = e1Hook();
   const rendered = renderSentence(hook, "S2", hook.fact_atoms, undefined);
   assert(rendered, "expected S2 to render");
   assert(rendered!.includes(" Algorithmic health-risk profiling of this kind is the class of processing California's significant-decision rules address (11 CCR §§ 7001(ddd)(5), 7200(a)). In Garante"));
   assert(rendered!.includes(`"${hook.finding_span}"`));
   assert(rendered!.includes("Whether that holds on this record is addressed in Section 2"));
-  assert(rendered!.endsWith(` ${E1_HEDGE_236}`), `approved hedge missing: ${rendered}`);
   assert(!rendered!.includes("cited only by analogy; whether it applies here depends on this company's own facts, not on the decision's"), `generic constant leaked: ${rendered}`);
-  // Approved (doc 236 E1): "(Garante per la protezione dei dati personali
+  // POSITION — FIXED (2026-09-09 follow-up): doc 236 places E1's hedge
+  // directly before the citation; `{hedge}` now sits before the (amended
+  // shape's own) section-pointer sentence, which itself precedes the
+  // citation.
+  assert(rendered!.includes(`${E1_HEDGE_236} Whether that holds`), `hedge must precede the section pointer, not follow the citation: ${rendered}`);
+  // CITATION — FIXED (2026-09-09 follow-up): `regulator_canonical` +
+  // `regulator_canonical_in_citation` (real DB columns, both populated for
+  // this row) now compose the full native name; the English gloss comes
+  // from citationFor's own curated table. Byte-identical to doc 236's
+  // approved citation: "(Garante per la protezione dei dati personali
   // (Italian Data Protection Authority), Azienda Universitaria Friuli
   // Occidentale, decision of 15 December 2022; foreign supervisory-authority
   // decision, cited by analogy — decided under the GDPR, not the CCPA or its
-  // Article 10/11 regulations.)" — identical to what renders here except
-  // "Garante" for "Garante per la protezione dei dati personali".
-  assert(rendered!.includes(
-    "(Garante (Italian Data Protection Authority), Azienda Universitaria Friuli Occidentale, decision of 15 December 2022; foreign supervisory-authority decision, cited by analogy — decided under the GDPR, not the CCPA or its Article 10/11 regulations.)",
+  // Article 10/11 regulations.)"
+  assert(rendered!.endsWith(
+    "(Garante per la protezione dei dati personali (Italian Data Protection Authority), Azienda Universitaria Friuli Occidentale, decision of 15 December 2022; foreign supervisory-authority decision, cited by analogy — decided under the GDPR, not the CCPA or its Article 10/11 regulations.)",
   ));
 });
 

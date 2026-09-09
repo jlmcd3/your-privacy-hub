@@ -182,11 +182,11 @@ Deno.test("doc238 DPIA — hedge_variant alone (either value, hedge_sentence uns
   }
 });
 
-Deno.test("doc238 DPIA — Comune di Bolzano (APPROVED, doc 233 #6): S2 ends with doc 233's own hedge sentence for this hook, verbatim, and the citation parenthetical reproduces the approved one byte-for-byte", () => {
+Deno.test("doc238 DPIA — Comune di Bolzano (APPROVED, doc 233 #6): S2 carries doc 233's own hedge sentence for this hook, verbatim, positioned before the section pointer and citation, and the citation parenthetical reproduces the approved one byte-for-byte", () => {
   const hook = bolzanoHook();
   const rendered = renderSentence(hook, "S2", hook.fact_atoms, undefined);
   assert(rendered, "expected S2 to render");
-  assert(rendered!.endsWith(`${BOLZANO_CITATION_233} ${BOLZANO_HEDGE_233}`), `approved citation + hedge missing: ${rendered}`);
+  assert(rendered!.endsWith(BOLZANO_CITATION_233), `sentence must end at the approved citation, not the hedge: ${rendered}`);
   assert(!rendered!.includes("But the outcome here depends"), `generic constant leaked: ${rendered}`);
   assert(rendered!.includes(`"${hook.finding_span}"`), `verbatim quote missing: ${rendered}`);
   // Doc 233's approved pointer is "Section 1 records whether that trigger is
@@ -198,11 +198,12 @@ Deno.test("doc238 DPIA — Comune di Bolzano (APPROVED, doc 233 #6): S2 ends wit
   // Pinned byte-for-byte so the mechanism's output is deterministic. Only
   // the citation parenthetical and the hedge are CEO-approved wording; the
   // customer-fact atom phrase and the paraphrases are fixture placeholders.
-  // POSITION: as in LIA, doc 233 places the hedge BEFORE "Section 1 records
-  // …" and before the citation; hedgeSuffix appends it after — open item.
+  // POSITION — FIXED (2026-09-09 follow-up): as in LIA, doc 233 places the
+  // hedge BEFORE "Section 1 records …" and before the citation; `{hedge}`
+  // now sits in exactly that position.
   assertEquals(
     rendered,
-    "The record identifies that the processing monitors employees. In Garante, Comune di Bolzano, decision of 13 May 2021, Garante found that where an employer monitors employees' internet usage, systematic monitoring of employee internet usage requires a DPIA under WP248's \"systematic monitoring\" criterion, even where the monitoring is not carried out on a large scale — in its own words, \"The municipality unlawfully monitored employee internet usage and processed sensitive health data without a valid legal basis or proper transparency\". That finding cuts against the assessment's position on the employee-monitoring trigger. Whether that holds on this record is addressed in Section 1. (Garante, Comune di Bolzano, decision of 13 May 2021; supervisory-authority decision — persuasive, non-binding outside its jurisdiction.) But the outcome depends on this company's own facts: whether the monitoring is organized and ongoing (systematic), or occasional and incidental.",
+    "The record identifies that the processing monitors employees. In Garante, Comune di Bolzano, decision of 13 May 2021, Garante found that where an employer monitors employees' internet usage, systematic monitoring of employee internet usage requires a DPIA under WP248's \"systematic monitoring\" criterion, even where the monitoring is not carried out on a large scale — in its own words, \"The municipality unlawfully monitored employee internet usage and processed sensitive health data without a valid legal basis or proper transparency\". That finding cuts against the assessment's position on the employee-monitoring trigger. But the outcome depends on this company's own facts: whether the monitoring is organized and ongoing (systematic), or occasional and incidental. Whether that holds on this record is addressed in Section 1. (Garante, Comune di Bolzano, decision of 13 May 2021; supervisory-authority decision — persuasive, non-binding outside its jurisdiction.)",
   );
 });
 

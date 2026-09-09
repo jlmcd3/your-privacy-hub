@@ -317,9 +317,9 @@ export const DPIA_ATOM_PHRASES: Readonly<Record<string, string>> = {
 
 export const DPIA_HOOK_SHAPES: Readonly<Record<"S1" | "S2" | "S3" | "S4" | "S5a" | "S5b" | "S6" | "S6x", string>> = {
   S1:
-    "The record identifies that {customer_fact}. In {authority}, {regulator} {verb} that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding supports the assessment's position on {factor}. Section {section} records that determination. ({citation}; {status}.)",
+    "The record identifies that {customer_fact}. In {authority}, {regulator} {verb} that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding supports the assessment's position on {factor}. {hedge}Section {section} records that determination. ({citation}; {status}.)",
   S2:
-    "The record identifies that {customer_fact}. In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding cuts against the assessment's position on {factor}. Whether that holds on this record is addressed in Section {section}. ({citation}; {status}.)",
+    "The record identifies that {customer_fact}. In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding cuts against the assessment's position on {factor}. {hedge}Whether that holds on this record is addressed in Section {section}. ({citation}; {status}.)",
   S3:
     "In {authority}, {regulator} found that where {fact_pattern}, {finding} — in its own words, \"{quote}\". That finding turned on the fact that {source_fact}; on this record the assessment has instead identified {record_fact}. The decision marks a boundary rather than a finding against the record. ({citation}; {status}.)",
   S4:
