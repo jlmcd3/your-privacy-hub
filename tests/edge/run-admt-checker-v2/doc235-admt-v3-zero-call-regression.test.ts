@@ -204,3 +204,15 @@ Deno.test("zero-call — runAdmtV3Selection also short-circuits with no assessme
   const result = await runAdmtV3Selection({ supabase: poisonedDb, assessmentId: null, intake, computed });
   assertEquals(result.append, {});
 });
+
+// ── 5. DOC 237 — the record block is flag-gated too ──────────────────────
+// `_meta.internal.admt_v3` is written through a conditional spread; this
+// pins that the ONLY `admt_v3` write in index.ts is that spread, guarded
+// by ADMT_V3_ENABLED, so a flag-off report_data never gains the key.
+
+Deno.test("zero-call — the only `admt_v3` write in index.ts is the ADMT_V3_ENABLED-guarded conditional spread", () => {
+  const src = stripComments(Deno.readTextFileSync(new URL("supabase/functions/run-admt-checker-v2/index.ts", REPO_ROOT)));
+  const writes = [...src.matchAll(/admt_v3\s*:/g)];
+  assertEquals(writes.length, 1, `expected exactly one admt_v3 write, found ${writes.length}`);
+  assert(src.includes("...(ADMT_V3_ENABLED ? { admt_v3: admtV3Record } : {})"), "the admt_v3 write must be the ADMT_V3_ENABLED-guarded spread");
+});

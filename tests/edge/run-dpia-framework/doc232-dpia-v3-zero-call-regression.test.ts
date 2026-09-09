@@ -156,3 +156,37 @@ Deno.test("doc232 — assembleDpiaSkeletonDocument DOES append when sentences ar
   });
   assert(JSON.stringify(withHooks.document) !== JSON.stringify(withoutHooks.document), "supplying a sentence should change the assembled document");
 });
+
+// ── 5. DOC 237 — the record block is flag-gated too ──────────────────────
+// The containment test above walks the FIRST `if (DPIA_V3_ENABLED) {`
+// block (the selection). `_meta.internal.dpia_v3` is written in a SECOND
+// one; this pins that every `.dpia_v3 =` write sits inside some
+// `if (DPIA_V3_ENABLED) {` block, so a flag-off report_data never gains
+// the key (the same law LIA's lia_v3 / ADMT's admt_v3 blocks follow).
+
+function blocksOf(lines: string[], opener: string): Array<[number, number]> {
+  const out: Array<[number, number]> = [];
+  lines.forEach((line, i) => {
+    if (!line.includes(opener)) return;
+    let depth = 0;
+    for (let j = i; j < lines.length; j++) {
+      for (const ch of lines[j]) {
+        if (ch === "{") depth++;
+        else if (ch === "}") { depth--; if (depth === 0) { out.push([i, j]); return; } }
+      }
+    }
+  });
+  return out;
+}
+
+Deno.test("doc237 — every `_meta.internal.dpia_v3` write in index.ts sits inside an `if (DPIA_V3_ENABLED) {` block", async () => {
+  const path = new URL("../../../supabase/functions/run-dpia-framework/index.ts", import.meta.url);
+  const lines = (await Deno.readTextFile(path)).split("\n");
+  const gated = blocksOf(lines, "if (DPIA_V3_ENABLED) {");
+  assert(gated.length >= 2, `expected the selection block AND the record block, found ${gated.length} gated block(s)`);
+  const writes = lines.map((l, i) => (/\.dpia_v3\s*=/.test(l) ? i : -1)).filter((i) => i >= 0);
+  assert(writes.length >= 1, "no dpia_v3 write found");
+  for (const w of writes) {
+    assert(gated.some(([a, b]) => w > a && w < b), `dpia_v3 write at line ${w + 1} is outside every DPIA_V3_ENABLED block`);
+  }
+});

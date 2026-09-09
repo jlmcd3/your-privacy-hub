@@ -99,6 +99,16 @@ Deno.test("doc237 — the ONE classify-propositions call in run-cppa-risk-assess
   assert(guard < call && emptyGuard < call, "both short-circuits must precede the classify-propositions call");
 });
 
+Deno.test("doc237 — risk-v3-selection.ts's prior-row loader keeps only live rows (agreed / disagreed), never a superseded or unsettled_final one (LIA/DPIA/ADMT parity)", async () => {
+  const src = await Deno.readTextFile(new URL("_local/ltp/risk-v3-selection.ts", ROOT));
+  const fn = src.indexOf("async function loadPriorSelections(");
+  const next = src.indexOf("function parseHookSelectionRow(");
+  assert(fn >= 0 && next > fn, "loadPriorSelections / parseHookSelectionRow not found");
+  const body = src.slice(fn, next);
+  assert(body.includes('status === "agreed" || status === "disagreed"'), "the loader must filter prior rows to the two live statuses");
+  assert(body.includes("live.map((r) => parseHookSelectionRow(r))"), "only the filtered rows may be parsed into prior selections");
+});
+
 Deno.test("doc237 — generate-cppa-risk.ts gates its V3 pre-computations on RISK_V3_ENABLED && RISK_HOOKS.length > 0 and writes the record block only through attachRiskV3Record", async () => {
   const src = await Deno.readTextFile(new URL("_local/ltp/generate-cppa-risk.ts", ROOT));
   assert(src.includes("const riskV3Live = RISK_V3_ENABLED && RISK_HOOKS.length > 0;"), "the live gate must exist");

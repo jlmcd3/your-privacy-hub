@@ -236,7 +236,19 @@ async function loadPriorSelections(db: RiskV3DbClient | undefined, assessmentId:
     const res = await db.from("hook_selections").select("*").eq("assessment_id", assessmentId).eq("product", "cppa-risk");
     if (res.error) return [];
     const rows = Array.isArray(res.data) ? res.data : [];
-    return rows.map((r) => parseHookSelectionRow(r)).filter((r): r is HookSelectionRow => r !== null);
+    // DOC 237 — only LIVE rows are prior selections. LIA's, DPIA's and
+    // ADMT's loaders all filter `status in ("agreed", "disagreed")`; this
+    // one read every row, so a `superseded` (answer since revised) or
+    // `unsettled_final` (let go) row still carrying an `agreement` would
+    // have resolved as a locked selection on the next generation. Filtered
+    // client-side (the minimal `RiskV3DbClient` shape has no `.in()`); the
+    // hash comparison that PRODUCES those statuses is still the open
+    // `computeLapsed` [NEEDS] (doc 231A §7.3).
+    const live = rows.filter((r) => {
+      const status = (r as Record<string, unknown> | null)?.status;
+      return status === undefined || status === null || status === "agreed" || status === "disagreed";
+    });
+    return live.map((r) => parseHookSelectionRow(r)).filter((r): r is HookSelectionRow => r !== null);
   } catch {
     return [];
   }
