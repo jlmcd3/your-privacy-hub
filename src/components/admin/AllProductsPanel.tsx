@@ -257,7 +257,7 @@ export function AllProductsPanel() {
                 const lb = ensureLocalBatchFor(claudeBatchId);
                 let outcomeId: string | undefined;
                 if (claimOnce(lb, j.id, "run")) {
-                  recordLocalRun(lb, SLUG_TO_STRESS_TOOL[row.tool_slug], j.status === "complete");
+                  recordLocalRun(lb, SLUG_TO_STRESS_TOOL[row.tool_slug], j.status === "complete", j.id);
                   outcomeId = newOutcomeId();
                   recordOutcome({
                     id: outcomeId,
@@ -489,6 +489,7 @@ export function AllProductsPanel() {
                   localBatchId,
                   SLUG_TO_STRESS_TOOL[row.tool_slug],
                   j.status === "complete",
+                  j.id,
                 );
               }
               if (
@@ -599,7 +600,7 @@ export function AllProductsPanel() {
       if (outcomeId) updateOutcome(outcomeId, { gradeError: res.error ?? "no score" });
       return;
     }
-    recordLocalScore(batchId, SLUG_TO_STRESS_TOOL[slug], res.claude, res.gpt);
+    recordLocalScore(batchId, SLUG_TO_STRESS_TOOL[slug], res.claude, res.gpt, sourceRowId);
     if (outcomeId) {
       updateOutcome(outcomeId, {
         claudeScore: res.claude,
@@ -733,7 +734,7 @@ export function AllProductsPanel() {
           ok += 1;
           appendLog(k, `✅ complete${runLabel} — ${out.resultUrl}`);
           setRow(k, { status: "complete", resultUrl: out.resultUrl, sourceRowId: out.sourceRowId });
-          recordLocalRun(localBatchId, SLUG_TO_STRESS_TOOL[f.tool_slug], true);
+          recordLocalRun(localBatchId, SLUG_TO_STRESS_TOOL[f.tool_slug], true, outcomeId);
           recordOutcome({
             id: outcomeId,
             batchId: localBatchId,
@@ -753,7 +754,7 @@ export function AllProductsPanel() {
         } catch (e) {
           appendLog(k, `❌${runLabel} ${(e as Error).message}`);
           setRow(k, { status: "failed" });
-          recordLocalRun(localBatchId, SLUG_TO_STRESS_TOOL[f.tool_slug], false);
+          recordLocalRun(localBatchId, SLUG_TO_STRESS_TOOL[f.tool_slug], false, outcomeId);
           recordOutcome({
             id: outcomeId,
             batchId: localBatchId,

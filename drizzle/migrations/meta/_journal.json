@@ -232,6 +232,13 @@
       "when": 1788936501675,
       "tag": "0032_enrich_claim_uses_source_document_text",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1789009039136,
+      "tag": "0033_create_harness_grade_events",
+      "breakpoints": true
     }
   ]
 }
