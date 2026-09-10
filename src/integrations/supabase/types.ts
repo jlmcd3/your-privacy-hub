@@ -3475,6 +3475,48 @@ export type Database = {
         }
         Relationships: []
       }
+      harness_grade_events: {
+        Row: {
+          batch_id: string
+          batch_started_at: string
+          claude_score: number | null
+          created_at: string
+          created_by: string | null
+          gpt_score: number | null
+          id: string
+          job_key: string
+          kind: string
+          ok: boolean | null
+          tool_slug: string | null
+        }
+        Insert: {
+          batch_id: string
+          batch_started_at?: string
+          claude_score?: number | null
+          created_at?: string
+          created_by?: string | null
+          gpt_score?: number | null
+          id?: string
+          job_key: string
+          kind: string
+          ok?: boolean | null
+          tool_slug?: string | null
+        }
+        Update: {
+          batch_id?: string
+          batch_started_at?: string
+          claude_score?: number | null
+          created_at?: string
+          created_by?: string | null
+          gpt_score?: number | null
+          id?: string
+          job_key?: string
+          kind?: string
+          ok?: boolean | null
+          tool_slug?: string | null
+        }
+        Relationships: []
+      }
       homepage_spotlight: {
         Row: {
           created_at: string
