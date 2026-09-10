@@ -231,6 +231,11 @@ export interface LegalBasisFinding {
   readonly art9_special?: boolean;
   /** PROMPT 9M item 4 — gap-ledger field override for the children's-LIA ask. */
   readonly gap_field?: string;
+  /** DOC 252 (batch 916c33a8) — typed internal marker, NOT customer text: the
+   *  balancing prong is open ONLY because the impact side is unstated, which
+   *  the Art. 35(7)(b) proportionality finding for the same operation already
+   *  asks for; the decision builder lists that fact once. */
+  readonly balancing_open_on_impact_only?: boolean;
   readonly status: DeliverableStatus;
   readonly information_needed?: string;
   /// PROMPT 9A — ask-class id from _shared/ltp/dpia-ask-labels.ts.

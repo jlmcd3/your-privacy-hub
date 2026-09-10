@@ -273,6 +273,20 @@ export const IMPACT_LEXICON: readonly RegExp[] = [
   /\b(would not|do(es)? not|did not)\s+expect\b/i,
   /\bat stake\b/i,
 
+  // BATCH 916c33a8 (2026-09-10, Velantrix 28506091, residual_risks): "Users
+  // may not fully anticipate the extent to which their in-session behaviour
+  // is aggregated into persistent preference profiles; they cannot easily
+  // inspect or correct inferred interests. … Despite pseudonymisation,
+  // re-identification risk persists …" — a stated impact the lexicon did not
+  // read, so § 4 said the impact was "not stated" and Section 7 held sign-off
+  // open on it twice. Three impact forms, absence/inability/risk only (PROMPT
+  // 9E discipline): an expectation the subjects may not hold; an inability
+  // aimed at the profile or inference held about them (never "staff cannot
+  // access" — that is a safeguard); and a named re-identification risk.
+  /\b(may|might|would|do(es)?|did)\s+not\s+(fully |reasonably |readily )?(anticipate|foresee|realise|realize|be aware|expect)\b/i,
+  /\b(cannot|can(no|')t|unable to)\s+(easily |readily |meaningfully )?(inspect|correct|rectify|contest|review|see)\b[^.]{0,40}\b(inferred|inferences?|profiles?|interests?|scores?|decisions?|their (own )?data)\b/i,
+  /\bre-?identif(ication|ied|y|ying)\b[^.]{0,40}\b(risks?|persists?|possible|likely|remains?)\b|\brisk of re-?identification\b/i,
+
   // "automated scores influence care-coordinator outreach prioritisation …
   // without any human review" (doc b929760c, residual_risks) — Art. 22-class
   // consequence language.
@@ -2007,6 +2021,18 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
     if (!purpose_test_met) addPart("ask_lia_purpose");
     if (!necessity_test_met) addPart("ask_lia_necessity");
     if (!balancing_test_met && !childGateBlocks) addPart("ask_lia_balancing");
+    // DOC 252 (batch 916c33a8, 2026-09-10, Velantrix 28506091) — Section 7
+    // listed "the impact of the processing on the data subjects, stated
+    // separately from the benefit; the effect of the processing on the data
+    // subjects, and the measures that reduce it" as two open items for ONE
+    // missing fact. The balancing prong and the Art. 35(7)(b) proportionality
+    // test read the impact side from the same fields with the same lexicon
+    // (`impactStated` here, `impactSide` there), so where the balance is open
+    // ONLY on the unstated impact — measures present, or no vulnerable
+    // subjects to need them — the proportionality ask already names it. Typed
+    // marker; the ask part, the full ask and the gap-table row are unchanged.
+    const balancingOpenOnImpactOnly =
+      !balancing_test_met && !childGateBlocks && !impactStated && (!vulnerable || safeguards.length > 0);
     // PROMPT 9M item 4(d) / 3(d) — the two new ask classes.
     if (childGateBlocks) addPart("ask_lia_children");
     if (art9Special) addPart("ask_lia_special_category");
@@ -2019,6 +2045,8 @@ export function buildLegalBasis(intake: unknown): LegalBasisFinding[] {
       ...(art9Special ? { art9_special: true as const } : {}),
       // PROMPT 9M item 4 — the children's ask is ledgered against the basis field.
       ...(childGateBlocks ? { gap_field: GAP_FIELD_BASIS } : {}),
+      // DOC 252 — typed marker (see above); never customer text.
+      ...(balancingOpenOnImpactOnly ? { balancing_open_on_impact_only: true as const } : {}),
 
       ...(ask_parts.length
         ? {
@@ -2145,6 +2173,7 @@ export function buildDecision(
     readonly display_label?: string;
     readonly scope_op?: string;
     readonly ask_parts?: readonly { readonly ask_class: string; readonly display_label: string }[];
+    readonly balancing_open_on_impact_only?: boolean;
   }[] = [
     ...openBands,
     ...deliverables.necessity_findings.filter((f) => f.status === "record_insufficient"),
@@ -2159,10 +2188,24 @@ export function buildDecision(
     // across operations by ask-class. The full ask is unchanged and keeps its
     // gap-table row; the template around the slot is untouched.
     const blockerItems: { ask_class?: string; label: string; scope_op?: string }[] = [];
+    // DOC 252 (batch 916c33a8, 2026-09-10) — ONE MISSING FACT, ONE BLOCKER.
+    // The Art. 6(1)(f) balancing part is dropped from the blocker list only
+    // where the legal-basis finding is marked as open on the unstated impact
+    // alone AND the proportionality finding for the same operation asks for
+    // that impact; the gap table still carries both rows in full.
+    const impactAskedFor = new Set(
+      deliverables.proportionality
+        .filter((f) => f.status === "record_insufficient" && f.ask_class === "ask_proportionality_impact")
+        .map((f) => str(f.scope_op)),
+    );
     for (const f of insufficient) {
       const parts = f.ask_parts ?? [];
       if (parts.length > 0) {
         for (const part of parts) {
+          if (
+            part.ask_class === "ask_lia_balancing" && f.balancing_open_on_impact_only &&
+            impactAskedFor.has(str(f.scope_op))
+          ) continue;
           blockerItems.push({ ask_class: part.ask_class, label: part.display_label, scope_op: f.scope_op });
         }
         continue;
@@ -2404,6 +2447,33 @@ const ASK_PROCESSOR_OBLIGATIONS =
 // ledger still merges them into a single completion item. The intake holds
 // ONE processor_obligations answer, so this is the whole of what the record
 // can be asked; nothing per-processor is invented.
+/**
+ * DOC 252 (batch 916c33a8, 2026-09-10, Velantrix 28506091) — the ONE
+ * processor_obligations answer can be written per processor ("Nexaflow
+ * Analytics GmbH: …. Prismcloud Ltd: …"). Where the answer carries every
+ * recorded processor's name (the name before any parenthetical) as a
+ * "<name>:" lead, each processor's row takes its own segment, in the
+ * company's own words; anything else — one processor, a name missing, a lead
+ * repeated, an empty segment — keeps the whole answer on every row. Nothing
+ * per-processor is invented.
+ */
+export function obligationsByProcessor(names: readonly string[], text: string): Map<string, string> | null {
+  const body = String(text ?? "");
+  if (!body || names.length < 2) return null;
+  const leads = names.map((n) => String(n ?? "").replace(/\s*\(.*$/u, "").trim());
+  if (leads.some((l) => !l) || new Set(leads).size !== leads.length) return null;
+  const at = leads.map((l) => body.indexOf(`${l}:`));
+  if (at.some((p) => p < 0) || new Set(at).size !== at.length) return null;
+  const order = at.map((p, i) => ({ p, i })).sort((a, b) => a.p - b.p);
+  const out = new Map<string, string>();
+  order.forEach(({ p, i }, k) => {
+    const end = k + 1 < order.length ? order[k + 1].p : body.length;
+    const seg = body.slice(p + leads[i].length + 1, end).trim();
+    if (seg) out.set(names[i], seg);
+  });
+  return out.size === names.length ? out : null;
+}
+
 function askProcessorObligations(names: readonly string[]): string {
   const clean = names.map((n) => String(n ?? "").trim()).filter(Boolean);
   if (clean.length === 0) return ASK_PROCESSOR_OBLIGATIONS;
@@ -2497,10 +2567,14 @@ export function buildProcessingInventory(intake: unknown): DpiaProcessingInvento
       source_field: "third_party_processors",
     });
   } else {
+    // DOC 252 (batch 916c33a8) — every row printed the whole answer, so each
+    // processor's row carried the other's obligations; per-processor segments
+    // where the answer is written that way (obligationsByProcessor above).
+    const perProcessor = obligationsByProcessor(processorNames, obligations);
     for (const name of processorNames) {
       processors.push({
         name,
-        obligations_and_tasks: obligations,
+        obligations_and_tasks: perProcessor?.get(name) ?? obligations,
         status: obligations ? "analysed" : "record_insufficient",
         ...(obligations
           ? {}

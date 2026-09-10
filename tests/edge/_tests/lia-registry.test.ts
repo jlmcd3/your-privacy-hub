@@ -195,8 +195,10 @@ Deno.test("lia-registry: registry keys match proposition_key on each row and req
     assert(row.governing_anchor.length > 0, `governing_anchor empty on ${k}`);
     // ITEM 387: three authored waves — w1 (2026-07-25), item 311 (2026-07-31,
     // EDPB 1/2024 + Recital 47), item 326 (2026-08-01, UK GDPR).
+    // DOC 252 (2026-09-10, batch 916c33a8): the EDPB 1/2024 para. 68 pinpoint
+    // re-verified against the published PDF (Version 1.0, 8 October 2024).
     assert(
-      ["2026-07-25", "2026-07-31", "2026-08-01"].includes(row.verified_on),
+      ["2026-07-25", "2026-07-31", "2026-08-01", "2026-09-10"].includes(row.verified_on),
       `verified_on wrong on ${k}: ${row.verified_on}`,
     );
   }

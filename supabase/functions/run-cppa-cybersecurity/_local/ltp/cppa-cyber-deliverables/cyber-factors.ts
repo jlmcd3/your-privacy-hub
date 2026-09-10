@@ -640,18 +640,31 @@ export function buildCrossCutting(intake: Bag, d: CyberDeliverables, recs: reado
     for (const terms of perComponentTerms) {
       for (const t of terms) counts.set(t, (counts.get(t) ?? 0) + 1);
     }
+    // BATCH 916c33a8 (2026-09-10, Velostream 316ec4bd): four partially
+    // implemented components, "DSP" named in two of them (c4 inventory, c11
+    // ports) — the n ≥ 3 floor left it unnamed and the sentence said "no
+    // single system or facility recurs", which the Company's own descriptions
+    // contradict. A term recurring in TWO descriptions now counts where two is
+    // at least half of the gapped set (four or fewer gapped components); the
+    // n ≥ 3 floor is unchanged for larger sets, and the concentration
+    // sentence below still needs n ≥ 3 — a two-of-N recurrence takes the
+    // paired sentence (doc 252 ledger B1), never the "concentrate" claim.
+    const floor = implGaps.length <= 4 ? 2 : 3;
     return [...counts.entries()]
-      .filter(([, n]) => n >= 3)
+      .filter(([, n]) => n >= floor)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3);
   })();
   const notImplCount = implGaps.filter((r) => r.key.gapClass === "not_implemented").length;
   const partialCount = implGaps.length - notImplCount;
+  const strongestRecurrence = recurringTerms[0]?.[1] ?? 0;
   const cross_component_findings = evGaps.length >= 3
     ? "The recurring pattern across the gapped components is evidentiary rather than operational: controls are described, and the artifacts that would let an auditor test the descriptions are not yet identified."
     : implGaps.length >= 3
-    ? (recurringTerms.length
+    ? (strongestRecurrence >= 3
       ? `Across the ${implGaps.length} components with implementation gaps (${notImplCount} not implemented, ${partialCount} partially implemented), the Company's own descriptions recur on ${asProse(recurringTerms.map(([t, n]) => `${t} (named in ${n} of the gapped descriptions)`))}. The gaps concentrate on shared systems and facilities rather than isolated misses, and closing the shared surface closes several components at once.`
+      : strongestRecurrence === 2
+      ? `Across the ${implGaps.length} components with implementation gaps (${notImplCount} not implemented, ${partialCount} partially implemented), the Company's own descriptions recur on ${asProse(recurringTerms.map(([t, n]) => `${t} (named in ${n} of the gapped descriptions)`))}, so those gaps share an origin and close together; the remaining gaps are component-specific in origin and close independently.`
       : `Across the ${implGaps.length} components with implementation gaps (${notImplCount} not implemented, ${partialCount} partially implemented), no single system or facility recurs across the Company's descriptions; the gaps are component-specific in origin and close independently.`)
     : "No systemic pattern emerges across components; the open items are component-specific.";
   // PANEL CYB-3 (2026-08-30): "No prior audit coverage is recorded" collided

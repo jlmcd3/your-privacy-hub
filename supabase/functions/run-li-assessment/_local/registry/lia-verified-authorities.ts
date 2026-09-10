@@ -57,6 +57,9 @@ const VOD_311 = "2026-07-31";
 /** ITEM 326 verification date — UK GDPR Arts. 22A–22D / Art. 6(1)(ea) anchors. */
 const VOD_326 = "2026-08-01";
 
+/** DOC 252 verification date — EDPB 1/2024 para. 68 pinpoint (Version 1.0, adopted 8 October 2024). */
+const VOD_252 = "2026-09-10";
+
 /** Governing anchor labels. */
 const GDPR = "Regulation (EU) 2016/679 (GDPR)";
 const UK_GDPR =
@@ -341,15 +344,22 @@ export const LIA_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     verified_on: VOD_311,
     primary_source_url: EDPB_1_2024_URL,
   }),
+  // BATCH 916c33a8 (2026-09-10, Velantrix a2adac32): this was the only
+  // EDPB 1/2024 row without a pinpoint, so Section IV and the Table of
+  // Authorities cited the guideline bare. Verified against the published
+  // PDF (Version 1.0, adopted 8 October 2024): the quoted sentence is
+  // para. 68, Section III.2 "Transparency and information to be provided to
+  // data subjects" (para. 53, Section II.C.3, states the same rule in
+  // slightly different words — "information obligations set out in").
   edpb_1_2024_notice_alone_not_sufficient: R({
     proposition_key: "edpb_1_2024_notice_alone_not_sufficient",
-    citation: "EDPB Guidelines 1/2024 (information duties and reasonable expectations)",
-    subsection: "EDPB Guidelines 1/2024",
+    citation: "EDPB Guidelines 1/2024, para. 68 (information duties and reasonable expectations)",
+    subsection: "EDPB Guidelines 1/2024, para. 68",
     verbatim_quote:
       "the mere fulfilment of information duties according to Articles 12, 13 and 14 GDPR is not sufficient in itself to consider that the data subjects can reasonably expect a given processing.",
     depth_class: "subsection",
     governing_anchor: EDPB_1_2024,
-    verified_on: VOD_311,
+    verified_on: VOD_252,
     primary_source_url: EDPB_1_2024_URL,
   }),
   edpb_1_2024_child_interests_prevail: R({
