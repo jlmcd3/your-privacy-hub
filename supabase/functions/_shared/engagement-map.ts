@@ -259,7 +259,9 @@ export function buildLiaEngagementMap(
     rationale: eprivacyGateDetermination === "consent_requirement_engaged"
       ? "Any storage of or access to information on a user's device requires a separate consent or exemption under the ePrivacy Directive / PECR 2003 in addition to the LI basis."
       : eprivacyExemptionClaimed
-        ? "The company states that the processing stores information on, or reads information from, individuals' devices only to the extent strictly necessary to provide a service the individual has requested. On that statement the ePrivacy Directive / PECR 2003 consent requirement is not engaged; this assessment records the statement and does not verify it, and the Article 6(1)(f) determination above is stated subject to it."
+        // DOC 250 B1 (CEO-ratified bytes, 2026-09-10): pinpointed to Art. 5(3)
+        // / PECR reg 6; the subject-to clause retired with the ratification.
+        ? "The company states that the processing stores information on, or reads information from, individuals' devices only to the extent strictly necessary to provide a service the individual has requested. Under Article 5(3) of the ePrivacy Directive (Directive 2002/58/EC) (regulation 6 of the Privacy and Electronic Communications (EC Directive) Regulations 2003 in the United Kingdom), consent is not required in that context. This assessment records the statement but does not verify it."
         : eprivacyGateDetermination === "not_engaged_on_the_record"
           ? "The record's description of the processing does not indicate storage of or access to information on a user's device; the ePrivacy Directive / PECR 2003 overlay is not engaged by the processing as described."
           : "The record does not establish whether the processing involves storage of or access to information on a user's device in a manner that engages the ePrivacy Directive / PECR 2003; this is an open determination, not a finding either way.",
