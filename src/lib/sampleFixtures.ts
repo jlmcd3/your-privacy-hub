@@ -29,6 +29,12 @@ export interface SampleFixture {
   fixture: Record<string, unknown>;
   source_table: string;
   result_url_pattern: string;
+  /** CEO 2026-09-10: a canned V3 hook-test fixture is PAUSED on
+   *  /admin/all-products-test — V3 products are tested against Claude-
+   *  generated intake, not pre-programmed data. The fixture stays in the
+   *  file (and in the golden data set) so it can be un-paused by flipping
+   *  this flag; the panel simply does not list it. */
+  paused?: boolean;
 }
 
 // --- 1. LIA / UK ---------------------------------------------------------
@@ -369,6 +375,7 @@ const F_DPIA_EU: SampleFixture = {
 const F_DPIA_V3_TUNING: SampleFixture = {
   tool_slug: "dpia",
   variant: "v3-ics-digital-id-hook-agreed",
+  paused: true,
   title: "New digital identity-verification process (biometric)",
   scenario_summary:
     "Meridian Card Services B.V. deploys a new digital identity-verification process for credit-card applicants: a live selfie is matched against a government-ID photo via a facial biometric template, discarded immediately after the match. DOC 230/232 DPIA V3 tuning fixture — clean Art. 35(3)(b)/innovative-technology trigger signal, expected to AGREE once a matching ratified hook exists (ICS/AENA profiles).",
@@ -435,6 +442,7 @@ const F_DPIA_V3_TUNING: SampleFixture = {
 const F_DPIA_V3_ADVERSARIAL: SampleFixture = {
   tool_slug: "dpia",
   variant: "v3-employee-monitoring-hook-disagreed",
+  paused: true,
   title: "Employee internet-usage monitoring (incident-triggered)",
   scenario_summary:
     "Comune Amministrazione di Valdirosa logs staff internet usage continuously at the network gateway but queries it by name only when a specific security incident or misuse complaint is opened. DOC 230/232 DPIA V3 adversarial fixture — the record is deliberately ambiguous between 'routine systematic monitoring' (WP248, Comune di Bolzano) and 'incident-triggered only', expected to DISAGREE once a matching ratified hook exists.",
@@ -1614,6 +1622,7 @@ const F_BIO_US_SUPP = withSupplemental(F_BIO_US, "invoke_body_extras", {
 const F_CPPA_RISK_US_V3_HOOK_AGREED: SampleFixture = {
   tool_slug: "cppa_risk",
   variant: "us_v3_hook_agreed",
+  paused: true,
   title: "New identity-verification flow assessed before launch (V3 hook: timing, agreed)",
   scenario_summary:
     "Northbridge Identity Services LLC is building a new digital identity-verification flow (government-ID + selfie match) and is completing this risk assessment BEFORE the processing begins (processing_status: Planned) — the same fact pattern as the AP (Netherlands) / ICS decision doc 229 §6 Candidate 1 cites by analogy. Both hook-selection legs are expected to read \"same\" once that hook is ratified (single clean fact, no ambiguity).",
@@ -1653,6 +1662,7 @@ const F_CPPA_RISK_US_V3_HOOK_AGREED: SampleFixture = {
 const F_CPPA_RISK_US_V3_HOOK_DISAGREED: SampleFixture = {
   tool_slug: "cppa_risk",
   variant: "us_v3_hook_disagreed",
+  paused: true,
   title: "Blended fraud + recommendation ADMT score (V3 hook: fact ambiguity, disagreed)",
   scenario_summary:
     "Ferrous Point Commerce Inc. uses ONE ADMT score that blends checkout-fraud signals with product-recommendation weighting — deliberately ambiguous against doc 229 §6 Candidate 2 (Poste Italiane fraud-scoring ADMT), so once that hook is ratified one leg may read \"same\" (fraud-prevention scoring) and the other \"different\" (a mixed-purpose score is not the pure fraud-prevention fact pattern the source addressed) => legs_disagreed => an information_needed ROO entry naming q19_admt_description (RISK_ROO_UNSETTLED_TEMPLATE, byte-identical to LIA's).",

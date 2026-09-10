@@ -1347,7 +1347,7 @@ export function buildRiskSyllabus(
     prepared_for: entity,
     activity: activity || "Processing activity not named on the record",
     subtitle: activity
-      ? "Risk assessment under 11 CCR §§ 7150–7157 · the “Activity”"
+      ? "The “Activity,” assessed under 11 CCR §§ 7150–7157"
       : "Risk assessment under 11 CCR §§ 7150–7157",
     disposition_label: "ASSESSMENT DISPOSITION",
     disposition,

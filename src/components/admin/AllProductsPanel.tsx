@@ -161,6 +161,9 @@ export function AllProductsPanel() {
     const order = [...EXTENDED_SLUGS, ...SO_COVERED_SLUGS];
     return [...SAMPLE_FIXTURES]
       .filter((f) => showSupplemental || !f.variant.endsWith("-supplemental"))
+      // CEO 2026-09-10: canned V3 hook-test fixtures are paused here — V3
+      // products are exercised through the Claude-generated intake path.
+      .filter((f) => !f.paused)
       // GDPR-ONLY PRODUCTS: Governance, DPIA and Registration are run by
       // GDPR-subject clients, so their US-jurisdiction fixtures are not
       // offered as pre-set data here.

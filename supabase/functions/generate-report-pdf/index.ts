@@ -1324,8 +1324,11 @@ function skeletonTableHtml(t: SkeletonTableLike): string {
   const cols = Array.isArray(t.columns) ? t.columns : [];
   const rows = Array.isArray(t.rows) ? t.rows.filter((r) => Array.isArray(r)) : [];
   if (rows.length === 0 || cols.length === 0) return "";
+  // WRAP-SAFETY (2026-09-10): same rule as riskTableHtml — a cell's text
+  // must wrap inside its own column rather than bleed into the next one.
+  const cellWrap = "overflow-wrap:break-word;word-break:break-word;white-space:normal;";
   const head = cols
-    .map((c) => `<th style="border:none;border-bottom:0.75pt solid #000;background:#f3f6f8;padding:5pt 8pt 4pt 6pt;text-align:left;font-weight:bold;font-family:Arial,Helvetica,sans-serif;font-size:8pt;text-transform:uppercase;letter-spacing:0.06em;color:#1a1a1a;">${escHtml(c)}</th>`)
+    .map((c) => `<th style="border:none;border-bottom:0.75pt solid #000;background:#f3f6f8;padding:5pt 8pt 4pt 6pt;text-align:left;font-weight:bold;font-family:Arial,Helvetica,sans-serif;font-size:8pt;text-transform:uppercase;letter-spacing:0.06em;color:#1a1a1a;${cellWrap}">${escHtml(c)}</th>`)
     .join("");
   const body = rows
     .map((r) =>
@@ -1337,7 +1340,7 @@ function skeletonTableHtml(t: SkeletonTableLike): string {
           const cell = /^_{6,}$/.test(v.trim())
             ? `<span style="display:inline-block;min-width:220px;border-bottom:0.75pt solid #0c2a44;">&nbsp;</span>`
             : escHtml(v);
-          return `<td style="border:none;border-bottom:0.5pt solid #666;padding:6pt 8pt 6pt 0;vertical-align:top;font-size:9.5pt;">${cell}</td>`;
+          return `<td style="border:none;border-bottom:0.5pt solid #666;padding:6pt 8pt 6pt 0;vertical-align:top;font-size:9.5pt;${cellWrap}">${cell}</td>`;
         })
         .join("")}</tr>`
     )
@@ -1734,7 +1737,13 @@ function riskBadgeHtml(value: string, opts?: { large?: boolean; tone?: RiskBadge
   const size = opts?.large
     ? "font-size:10pt;padding:2pt 9pt;"
     : "font-size:8pt;padding:0.5pt 5pt;";
-  return `<span style="display:inline-block;border:1px solid;border-radius:3px;font-family:Arial,Helvetica,sans-serif;font-weight:700;letter-spacing:0.04em;${size}${RISK_BADGE_PALETTE[tone]}">${escHtml(v)}</span>`;
+  // WRAP-SAFETY (2026-09-10): a long determination/status value ("Collected
+  // but not necessary to the stated purpose") sized this span to its content
+  // and let it overflow past the table cell — into the next column, or past
+  // the page edge into the following page's header. inline-block's
+  // shrink-to-fit box is capped at the containing cell width here, and the
+  // text is forced to wrap inside it rather than escape the cell.
+  return `<span style="display:inline-block;max-width:100%;white-space:normal;overflow-wrap:break-word;word-break:break-word;border:1px solid;border-radius:3px;font-family:Arial,Helvetica,sans-serif;font-weight:700;letter-spacing:0.04em;${size}${RISK_BADGE_PALETTE[tone]}">${escHtml(v)}</span>`;
 }
 
 /** A ledger level cell ("High (unchanged)") → level badge + muted movement
@@ -2047,8 +2056,13 @@ function riskTableHtml(t: SkeletonTableLike): string {
   const colgroup = spec.widths
     ? `<colgroup>${spec.widths.map((w) => `<col style="width:${w};">`).join("")}</colgroup>`
     : "";
+  // WRAP-SAFETY (2026-09-10): every Risk table cell — header and body —
+  // must wrap inside its own column (the Excel-style rule: text never
+  // crosses into the next cell) rather than rely on each cell renderer to
+  // opt in individually.
+  const cellWrap = "overflow-wrap:break-word;word-break:break-word;white-space:normal;";
   const head = cols
-    .map((c) => `<th style="border:none;border-bottom:0.75pt solid #000;background:#f3f6f8;padding:5pt 8pt 4pt 6pt;text-align:left;font-weight:bold;font-family:Arial,Helvetica,sans-serif;font-size:8pt;text-transform:uppercase;letter-spacing:0.06em;color:#17324d;">${escHtml(c)}</th>`)
+    .map((c) => `<th style="border:none;border-bottom:0.75pt solid #000;background:#f3f6f8;padding:5pt 8pt 4pt 6pt;text-align:left;font-weight:bold;font-family:Arial,Helvetica,sans-serif;font-size:8pt;text-transform:uppercase;letter-spacing:0.06em;color:#17324d;${cellWrap}">${escHtml(c)}</th>`)
     .join("");
   const body = rows
     .map((r) =>
@@ -2060,7 +2074,7 @@ function riskTableHtml(t: SkeletonTableLike): string {
             : spec.cell
             ? spec.cell(v, i)
             : escHtml(v);
-          return `<td style="border:none;border-bottom:0.5pt solid #666;padding:6pt 8pt 6pt 0;vertical-align:top;font-size:${fontPt}pt;">${cell}</td>`;
+          return `<td style="border:none;border-bottom:0.5pt solid #666;padding:6pt 8pt 6pt 0;vertical-align:top;font-size:${fontPt}pt;${cellWrap}">${cell}</td>`;
         })
         .join("")}</tr>`
     )
@@ -2433,7 +2447,11 @@ const SR_CSS = `
   .sr table.sechead .loc { display:block; font-family:Arial,Helvetica,sans-serif; font-size:7pt; letter-spacing:0.08em; color:#8a9eb1; text-transform:uppercase; margin-top:3pt; }
   .sr h2.plain { font-size:15.5pt; font-weight:normal; color:#0c2a44; margin:0 0 10pt; padding-bottom:6pt; border-bottom:1.5pt solid #0c2a44; break-after:avoid; page-break-after:avoid; }
   .sr h3 { font-size:10.5pt; margin:10pt 0 4pt; color:#12212f; font-weight:bold; break-after:avoid; page-break-after:avoid; }
-  .sr h3 .mk { color:#5c6d7a; font-weight:normal; }
+  /* CEO 2026-09-10 (fleet-wide): a standalone sub-head's marker ("B.") was
+     gray/regular here while the run-in path (riskSplitLeadHtml) renders the
+     same marker bold — doc 127 §5/§6/§8's split is a BOLD marker, never
+     underlined. Match the run-in marker exactly; underline stays off. */
+  .sr h3 .mk { font-weight:bold; display:inline-block; min-width:1.65em; }
   .sr h3 u, .sr .cond .cn u, .sr .runin { text-decoration:underline; text-underline-offset:2.5px; text-decoration-thickness:0.5pt; }
   .sr .rail { border-left:2pt solid #0c2a44; padding:3pt 0 3pt 10pt; margin:8pt 0 9pt; break-inside:avoid; page-break-inside:avoid; }
   .sr .rail .rl { display:block; font-family:Arial,Helvetica,sans-serif; font-size:7.5pt; font-weight:bold; letter-spacing:0.1em; color:#0c2a44; text-transform:uppercase; }
@@ -2773,7 +2791,15 @@ function srSectionsHtml(doc: SkeletonDocLike, product?: string): string {
       : appendixM
       ? `<table class="sechead"><tr><td class="secnum letter">${escHtml(appendixM[1])}</td><td><h2>${escHtml(appendixM[2])}</h2>${qHtml}<span class="loc">Supporting Assessment Record · Appendix ${escHtml(appendixM[1])}</span></td></tr></table>`
       : `<h2 class="plain">${escHtml(title)}</h2>${qHtml ? `<p class="q" style="margin-top:-6pt;">${mark(escHtml(headQ))}</p>` : ""}`;
-    return `${pre}<section class="section${forceBreak && !(appendixM && pre) ? " page-break" : ""}" data-section="${escHtml(sec.id ?? "")}">
+    // CEO request (2026-09-10): Appendix A was sharing its page with the
+    // "END OF THE DECISION REPORT / Supporting Assessment Record" divider
+    // that precedes it — the page-break was suppressed here (only for A,
+    // via `pre`) to avoid stacking two forced breaks back to back. That
+    // stacking does not produce a blank page in CSS paged media: the
+    // divider's own `page-break` still lands it on a fresh page, and this
+    // one then pushes Appendix A to the page after — exactly like every
+    // other lettered appendix already gets.
+    return `${pre}<section class="section${forceBreak ? " page-break" : ""}" data-section="${escHtml(sec.id ?? "")}">
       ${headingHtml}
       ${body}
     </section>`;
