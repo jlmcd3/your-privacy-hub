@@ -44,10 +44,18 @@ Deno.test("doc232 — DPIA_V3_ENABLED and DPIA_HOOKS_ENABLED default to false (n
 
 // ── 2. Purity + empty corpus ─────────────────────────────────────────────
 
-Deno.test("doc232 — DPIA_HOOKS ships exactly the two ratified hooks (WP248, MediaLab-ICO); any further hook must be ratified and pinned here (doc 213's law)", () => {
+// 2026-09-10: re-pinned to the six hooks dpia-hooks.ts v2-2026-09-09-0
+// carries (docs 233/241/244 ratifications + the WP248 criterion-4 sixth
+// hook). The pin had been left at two by a Lovable merge that overwrote
+// f23a627d8's count fix.
+Deno.test("doc232 — DPIA_HOOKS ships exactly the six ratified hooks; any further hook must be ratified and pinned here (doc 213's law)", () => {
   assertEquals(DPIA_HOOKS.map((h) => h.hook_id), [
     "enforcement_actions:0675e6a0-66ba-4173-8bce-be113e70604e:v1",
+    "enforcement_actions:68252e3a-15a6-47ad-b3a5-40a9875f842b:v1",
     "edpb_guidelines:718bb432-ef28-4744-b169-bb9093fd2969:v1",
+    "enforcement_actions:a3cf40b0-3625-4e78-bbe9-63624f17ceb0:v1",
+    "enforcement_actions:dbfca969-3139-43d1-8a5b-7fff179f8db6:v1",
+    "edpb_guidelines:118b22d4-775e-4472-8f33-4a8d1eb22887:v1",
   ]);
 });
 

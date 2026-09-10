@@ -103,7 +103,7 @@ Deno.test("v5.2 — purpose-specificity branches follow the facet count", () => 
     "1 facet lands the qualified branch",
   );
   assert(
-    partial.factors.purpose_specificity_analysis.includes("sharpening the Purpose appears among the Follow-ups"),
+    partial.factors.purpose_specificity_analysis.includes("sharpening the Purpose appears among the Follow-Ups"),
     "1 facet routes a follow-up",
   );
 

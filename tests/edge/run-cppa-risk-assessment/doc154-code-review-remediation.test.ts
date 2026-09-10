@@ -147,7 +147,7 @@ Deno.test("doc154 §5 — a benefit plus only unassessable risks never renders a
 
 Deno.test("doc154 §7 — the none-confirmed choice-architecture sentence has its Follow-Up", () => {
   const r = engineOn({ choice_architecture_check: ["None of the above can be confirmed"] });
-  assert((r.factors["choice_architecture"] ?? "").includes("confirming them appears among the Follow-ups"), "promise sentence changed");
+  assert((r.factors["choice_architecture"] ?? "").includes("confirming them appears among the Follow-Ups"), "promise sentence changed");
   assert((r.blocks["iv_determination:12"] ?? "").includes("Confirm the choice-architecture facts the assessment checks"), "follow-up missing");
 });
 
@@ -162,7 +162,7 @@ Deno.test("doc154 §8 — a planned disclosure draws the Recommendation the § 3
 
 Deno.test("doc154 §9 — an incompletely described ADMT draws the Follow-Up the § 3.E lead promises", () => {
   const r = engineOn({ q18_admt_use: "Yes", q19_admt_description: "A churn model that flags accounts.", admt_role_type: "The ADMT is a substantial factor in a human decision" });
-  assert((r.factors["admt_conclusion"] ?? "").includes("completing the description appears among the Follow-ups"), "promise sentence changed");
+  assert((r.factors["admt_conclusion"] ?? "").includes("completing the description appears among the Follow-Ups"), "promise sentence changed");
   assert((r.blocks["iv_determination:12"] ?? "").includes("Complete the description of the automated decisionmaking technology — its logic and its output and how the output is used"), r.blocks["iv_determination:12"]);
 });
 

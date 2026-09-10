@@ -849,7 +849,7 @@ function SrDivider({ s, appendices }: { s: SyllabusProjection | null; appendices
 const SR_ACTION_LEADS: ReadonlyArray<[RegExp, string, "hair" | "hold"]> = [
   [/^(?:Conditions? to Proceed\.)/, "Conditions to proceed — these condition the determination", "hold"],
   [/^(?:Conditions for Reassessment\.)/, "Conditions for reassessment — a different disposition depends on these", "hold"],
-  [/^(?:Follow-Ups?\.|Required Follow-Up\.|Assessment Follow-Up Required\.)/, "Follow-ups — these complete the record", "hair"],
+  [/^(?:Follow-Ups?\.|Required Follow-Up\.|Assessment Follow-Up Required\.)/, "Follow-Ups — these complete the record", "hair"],
   [/^(?:Recommendations?\.)/, "Recommendations — non-blocking", "hair"],
 ];
 

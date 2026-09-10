@@ -1342,7 +1342,7 @@ export function runRiskFactorEngine(
   // with the assembler's Appendix E gate.
   const admtEvaluationActive = admtEvaluationActiveFor(intake);
   // DOC 154 (item 9) — "adequately described" is hoisted so the § 3.E lead's
-  // "completing the description appears among the Follow-ups" promise and
+  // "completing the description appears among the Follow-Ups" promise and
   // the Follow-Up itself share one predicate.
   const admtDescribed = clause(intake.q19_admt_description) !== "" &&
     (clause(intake.admt_output) !== "" || clause(intake.admt_output_use) !== "" || clause(intake.i5_admt_logic) !== "");
@@ -2228,7 +2228,7 @@ export function runRiskFactorEngine(
   if (b2Unresolved) {
     reconciledRows.push([
       "11 CCR § 7150(b)(2) — processing sensitive personal information",
-      "Additional Information Required — the Company answers “Unsure” to processing sensitive personal information; whether the Activity processes sensitive personal information remains to be determined, and resolving it appears among the Follow-ups in § 4.D.",
+      "Additional Information Required — the Company answers “Unsure” to processing sensitive personal information; whether the Activity processes sensitive personal information remains to be determined, and resolving it appears among the Follow-Ups in § 4.D.",
     ]);
   }
   // DOC 157 — the two categorical § 7150(b)(3) non-engagements.
@@ -2262,7 +2262,7 @@ export function runRiskFactorEngine(
     for (const u of uncertainSwept) {
       triggerRows.push([
         u.replace(/[.!?]\s*$/, ""),
-        "Unresolved — the information provided leaves this trigger unresolved; resolving it appears among the Follow-ups in § 4.D.",
+        "Unresolved — the information provided leaves this trigger unresolved; resolving it appears among the Follow-Ups in § 4.D.",
       ]);
     }
     // DOC 148 (A-Team Batch-8 P0) — the reconciled § 7150(b)(3) state renders
@@ -2273,7 +2273,7 @@ export function runRiskFactorEngine(
         "11 CCR § 7150(b)(3) — using ADMT for a significant decision concerning a consumer",
         b3Reconciled === "advertising_only"
           ? "Not engaged — the Company answers “Yes” to using automated decisionmaking technology for a significant decision, but the decision use identified in the information provided is advertising to consumers, which § 7001(ddd)(6) excludes from the significant-decision categories; any separate covered significant decision made with this technology should be identified and the assessment updated."
-          : "Additional Information Required — the Company answers “Yes” to using automated decisionmaking technology for a significant decision, but the information provided does not identify a decision within the categories enumerated in § 7001(ddd); identifying that decision appears among the Follow-ups in § 4.D.",
+          : "Additional Information Required — the Company answers “Yes” to using automated decisionmaking technology for a significant decision, but the information provided does not identify a decision within the categories enumerated in § 7001(ddd); identifying that decision appears among the Follow-Ups in § 4.D.",
       ]);
     }
     triggerRows.push(...reconciledRows);
@@ -2489,7 +2489,7 @@ export function runRiskFactorEngine(
       : specificityFacets.length >= 1
       ? `The Company confirms the stated Purpose identifies ${
         asProse(specificityFacets.map((x) => x.toLowerCase()))
-      }; it does not confirm the remaining facets the assessment checks. The assessment proceeds on the Company’s formulation, and sharpening the Purpose appears among the Follow-ups in § 4.D.`
+      }; it does not confirm the remaining facets the assessment checks. The assessment proceeds on the Company’s formulation, and sharpening the Purpose appears among the Follow-Ups in § 4.D.`
       : `The information provided does not confirm that the stated Purpose identifies the operation supported, the information involved, the consumers affected, or the intended outcome; restating the Purpose appears among the ${conditionsHeadName} in § 4.D.`;
     put(
       "ii_information:1",
@@ -3202,7 +3202,7 @@ export function runRiskFactorEngine(
     });
     for (const u of uncertainSwept) {
       paras.push(
-        `${u.replace(/[.!?]\s*$/, "")}: the information provided leaves this trigger unresolved; resolving it appears among the Follow-ups in § 4.D.`,
+        `${u.replace(/[.!?]\s*$/, "")}: the information provided leaves this trigger unresolved; resolving it appears among the Follow-Ups in § 4.D.`,
       );
     }
     // DOC 148 (A-Team Batch-8 P0) — the reconciled § 7150(b)(3) state is
@@ -3212,14 +3212,14 @@ export function runRiskFactorEngine(
       paras.push(
         b3Reconciled === "advertising_only"
           ? "§ 7150(b)(3) — using ADMT for a significant decision concerning a consumer — is not engaged on the information provided: the Company answers “Yes” to using automated decisionmaking technology for a significant decision, but the decision use the activity record identifies is advertising to consumers, and § 7001(ddd)(6) excludes advertising to a consumer from the significant-decision categories. Any separate covered significant decision made with this technology should be identified and the assessment updated."
-          : "§ 7150(b)(3) — using ADMT for a significant decision concerning a consumer — requires additional information: the Company answers “Yes” to using automated decisionmaking technology for a significant decision, but the information provided does not identify a decision within the categories enumerated in § 7001(ddd). Identifying that decision appears among the Follow-ups in § 4.D.",
+          : "§ 7150(b)(3) — using ADMT for a significant decision concerning a consumer — requires additional information: the Company answers “Yes” to using automated decisionmaking technology for a significant decision, but the information provided does not identify a decision within the categories enumerated in § 7001(ddd). Identifying that decision appears among the Follow-Ups in § 4.D.",
       );
     }
     // DOC 154 (items 1–2) — the two further reconciled states, analyzed in
     // place with the same fact / law / determination construction.
     if (b2Unresolved) {
       paras.push(
-        "§ 7150(b)(2) — processing sensitive personal information — requires additional information: the Company answers “Unsure” to processing sensitive personal information, so whether the Activity falls within this category is not determined on the information provided. Resolving that question appears among the Follow-ups in § 4.D.",
+        "§ 7150(b)(2) — processing sensitive personal information — requires additional information: the Company answers “Unsure” to processing sensitive personal information, so whether the Activity falls within this category is not determined on the information provided. Resolving that question appears among the Follow-Ups in § 4.D.",
       );
     }
     // DOC 157 — the categorical non-engagements, analyzed in place, and the
@@ -3258,7 +3258,7 @@ export function runRiskFactorEngine(
       "trigger_application",
       "B",
       uncertainSwept.map((u) =>
-        `${u.replace(/[.!?]\s*$/, "")}: the information provided leaves this trigger unresolved; resolving it appears among the Follow-ups in § 4.D.`
+        `${u.replace(/[.!?]\s*$/, "")}: the information provided leaves this trigger unresolved; resolving it appears among the Follow-Ups in § 4.D.`
       ).join("\n\n"),
       ["DERIVED:applicable_7150_triggers"],
       ["11 CCR § 7150(b)"],
@@ -3353,7 +3353,7 @@ export function runRiskFactorEngine(
     if (necessity.unsure.length) {
       paras.push(
         necessity.unsure.map((r) =>
-          `The necessity of “${s(r.element)}” is unresolved on the information provided; resolving it appears among the Follow-ups.`
+          `The necessity of “${s(r.element)}” is unresolved on the information provided; resolving it appears among the Follow-Ups.`
         ).join(" "),
       );
     }
@@ -3377,7 +3377,7 @@ export function runRiskFactorEngine(
       } not shown to be necessary, and that conclusion weighs against the processing in Section 4.`
       : `The necessity analysis is qualified: necessity is not yet established for ${countWord(necessity.unsure.length)} ${
         plural(necessity.unsure.length, "element", "elements")
-      }, and that conclusion weighs against the processing in Section 4 until the Follow-ups in § 4.D are resolved.`;
+      }, and that conclusion weighs against the processing in Section 4 until the Follow-Ups in § 4.D are resolved.`;
     put(
       "iii_analysis:6",
       "necessity_conclusion",
@@ -3502,7 +3502,7 @@ export function runRiskFactorEngine(
       );
     }
     const text = choiceNoneConfirmed
-      ? "None of the choice-architecture facts the assessment checks — symmetric presentation of the permission choice, that declining does not degrade the core service, or the absence of steering design elements — can be confirmed on the information provided. Each is treated as a live interference risk and weighs against the processing, and confirming them appears among the Follow-ups in § 4.D."
+      ? "None of the choice-architecture facts the assessment checks — symmetric presentation of the permission choice, that declining does not degrade the core service, or the absence of steering design elements — can be confirmed on the information provided. Each is treated as a live interference risk and weighs against the processing, and confirming them appears among the Follow-Ups in § 4.D."
       : choiceMissing.length === 0
       ? `The Company confirms ${asProse(confirmedPhrases)} — which weighs in the Company’s favor.`
       : `The Company confirms ${asProse(confirmedPhrases)}; it does not confirm ${
@@ -3910,7 +3910,7 @@ export function runRiskFactorEngine(
           ? `The automated component is adequately described for assessment purposes; its risks are carried into Section 4 rather than resolved here${
             limits ? ", with the human-review and testing limits noted weighing on the credit its safeguards receive" : ""
           }.`
-          : "The automated component is not yet fully described on the information provided; completing the description appears among the Follow-ups in § 4.D, and the risks it presents are carried into Section 4 on the description to date.",
+          : "The automated component is not yet fully described on the information provided; completing the description appears among the Follow-Ups in § 4.D, and the risks it presents are carried into Section 4 on the description to date.",
         ["INTAKE:q19_admt_description", "FACTOR:admt_human_review", "FACTOR:admt_testing_analysis"],
         ["11 CCR § 7152(a)(3)(G)"],
       );

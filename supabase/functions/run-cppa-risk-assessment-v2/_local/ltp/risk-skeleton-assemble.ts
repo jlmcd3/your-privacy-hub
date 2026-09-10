@@ -867,7 +867,7 @@ export function buildRiskSlotValues(intake: Bag, report: Bag = {}): SlotValues {
 
   return {
     // SYSTEM
-    entityName: s(intake.entity_name) || "the company",
+    entityName: s(intake.entity_name) || "the Company",
     assessmentDate,
     versionNumber: RISK_SKELETON_VERSION,
 
