@@ -12,6 +12,7 @@
  * run must never be folded into a pre-existing batch column.
  */
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface LocalToolResult {
   total: number;
@@ -32,7 +33,7 @@ export interface LocalBatch {
 }
 
 const KEY = "eup.allProductsTest.localBatches.v1";
-const MAX_BATCHES = 10;
+const MAX_BATCHES = 40;
 
 let cache: LocalBatch[] = load();
 const listeners = new Set<(b: LocalBatch[]) => void>();
@@ -59,6 +60,100 @@ function emit() {
   persist();
   for (const fn of listeners) fn(cache);
 }
+
+/* ───────── SERVER PERSISTENCE (2026-09-10) ─────────
+ * Every run and every grade is also written to public.harness_grade_events,
+ * one row per (batch, job, kind), deduped by a unique index. The matrix
+ * hydrates from those rows on load, so scores survive a cleared browser,
+ * another machine, and any number of batches.
+ */
+type EventRow = {
+  batch_id: string;
+  tool_slug: string | null;
+  kind: string;
+  ok: boolean | null;
+  claude_score: number | null;
+  gpt_score: number | null;
+  batch_started_at: string;
+  created_at: string;
+};
+
+async function pushEvent(row: {
+  batch_id: string;
+  tool_slug?: string | null;
+  kind: "run" | "score" | "open";
+  job_key: string;
+  ok?: boolean | null;
+  claude_score?: number | null;
+  gpt_score?: number | null;
+  batch_started_at?: string;
+}) {
+  try {
+    const { data: auth } = await supabase.auth.getUser();
+    const uid = auth.user?.id;
+    if (!uid) return;
+    await supabase.from("harness_grade_events").insert({
+      ...row,
+      tool_slug: row.tool_slug ?? null,
+      created_by: uid,
+    });
+  } catch {
+    /* offline / not admin — the local cache still drives the UI */
+  }
+}
+
+function mergeServer(rows: EventRow[]) {
+  const byBatch = new Map<string, LocalBatch>();
+  for (const b of cache) byBatch.set(b.id, { ...b, tools: { ...b.tools } });
+
+  for (const r of rows) {
+    let batch = byBatch.get(r.batch_id);
+    if (!batch) {
+      batch = { id: r.batch_id, started_at: r.batch_started_at, last_at: r.created_at, tools: {} };
+      byBatch.set(r.batch_id, batch);
+    }
+    if (r.created_at > batch.last_at) batch.last_at = r.created_at;
+    if (!r.tool_slug || r.kind === "open") continue;
+    const cur = batch.tools[r.tool_slug] ?? emptyResult();
+    batch.tools[r.tool_slug] =
+      r.kind === "run"
+        ? {
+            ...cur,
+            total: cur.total + 1,
+            complete: cur.complete + (r.ok ? 1 : 0),
+            failed: cur.failed + (r.ok ? 0 : 1),
+          }
+        : {
+            ...cur,
+            scored: cur.scored + 1,
+            claudeSum: cur.claudeSum + (Number(r.claude_score) || 0),
+            gptSum: cur.gptSum + (Number(r.gpt_score) || 0),
+          };
+  }
+
+  cache = Array.from(byBatch.values())
+    .sort((a, b) => a.started_at.localeCompare(b.started_at))
+    .slice(-MAX_BATCHES);
+  emit();
+}
+
+let hydrated = false;
+
+/** Rebuild the batch columns from the server. Safe to call repeatedly. */
+export async function hydrateFromServer(): Promise<void> {
+  const { data, error } = await supabase
+    .from("harness_grade_events")
+    .select("batch_id,tool_slug,kind,ok,claude_score,gpt_score,batch_started_at,created_at")
+    .order("created_at", { ascending: true })
+    .limit(20000);
+  if (error || !data) return;
+  // Server rows are authoritative: drop local aggregates for batches the
+  // server already knows about, so nothing is double-counted.
+  const serverBatchIds = new Set((data as EventRow[]).map((r) => r.batch_id));
+  cache = cache.filter((b) => !serverBatchIds.has(b.id));
+  mergeServer(data as EventRow[]);
+}
+
 
 function emptyResult(): LocalToolResult {
   return { total: 0, complete: 0, failed: 0, scored: 0, claudeSum: 0, gptSum: 0 };
