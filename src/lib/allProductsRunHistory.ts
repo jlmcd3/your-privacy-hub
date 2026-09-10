@@ -289,12 +289,17 @@ export function useLocalBatches(): LocalBatch[] {
     const fn = (b: LocalBatch[]) => setSnapshot(b);
     listeners.add(fn);
     setSnapshot(cache);
+    if (!hydrated) {
+      hydrated = true;
+      void hydrateFromServer();
+    }
     return () => {
       listeners.delete(fn);
     };
   }, []);
   return snapshot;
 }
+
 
 /**
  * COLUMN-ALIAS LAW (2026-08-31): the scores matrix names two products with the
