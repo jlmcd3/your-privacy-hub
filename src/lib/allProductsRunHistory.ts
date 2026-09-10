@@ -232,13 +232,20 @@ export function claimOnce(batchId: string, jobId: string, kind: "run" | "score")
 
 
 /** Record one finished in-page run inside the given local batch. */
-export function recordLocalRun(batchId: string, toolSlug: string, ok: boolean) {
+export function recordLocalRun(batchId: string, toolSlug: string, ok: boolean, jobKey?: string) {
   mutate(batchId, toolSlug, (r) => ({
     ...r,
     total: r.total + 1,
     complete: r.complete + (ok ? 1 : 0),
     failed: r.failed + (ok ? 0 : 1),
   }));
+  void pushEvent({
+    batch_id: batchId,
+    tool_slug: toolSlug,
+    kind: "run",
+    job_key: jobKey ?? `${toolSlug}|${Date.now()}|${Math.random().toString(36).slice(2, 8)}`,
+    ok,
+  });
 }
 
 /** Record a Claude + GPT grading result inside the given local batch. */
@@ -247,6 +254,7 @@ export function recordLocalScore(
   toolSlug: string,
   claude: number | null,
   gpt: number | null,
+  jobKey?: string,
 ) {
   if (claude == null && gpt == null) return;
   mutate(batchId, toolSlug, (r) => ({
@@ -255,6 +263,14 @@ export function recordLocalScore(
     claudeSum: r.claudeSum + (claude ?? 0),
     gptSum: r.gptSum + (gpt ?? 0),
   }));
+  void pushEvent({
+    batch_id: batchId,
+    tool_slug: toolSlug,
+    kind: "score",
+    job_key: jobKey ?? `${toolSlug}|${Date.now()}|${Math.random().toString(36).slice(2, 8)}`,
+    claude_score: claude,
+    gpt_score: gpt,
+  });
 }
 
 export function clearLocalRunHistory() {
@@ -265,6 +281,7 @@ export function clearLocalRunHistory() {
 export function getLocalBatches(): LocalBatch[] {
   return cache;
 }
+
 
 export function useLocalBatches(): LocalBatch[] {
   const [snapshot, setSnapshot] = useState<LocalBatch[]>(cache);
