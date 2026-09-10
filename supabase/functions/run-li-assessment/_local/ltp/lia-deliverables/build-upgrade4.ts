@@ -664,12 +664,23 @@ export function buildAlternativesConsidered(intake: unknown): AlternativesConsid
   const consent_addressed = !!whyConsent ||
     alternatives.some((a) => /\bconsent\b/i.test(`${a.alternative} ${a.why_inadequate}`));
 
-  if (whyConsent && !alternatives.some((a) => /\bconsent\b/i.test(a.alternative))) {
+  // BATCH 09394859 (2026-09-10, Velorix 44eb2161): the record listed
+  // "Consent-based verification only" as a bare alternative AND answered
+  // why_consent_not_used. The listed label suppressed the synthetic entry
+  // below, the answer never reached the listed entry, and necessity was
+  // reported open on a reason the record supplies. why_consent_not_used IS
+  // the rejection reason for a consent alternative: it attaches to a listed
+  // consent alternative that carries no reason of its own, and only
+  // synthesises one when none is listed.
+  const consentIdx = alternatives.findIndex((a) => /\bconsent\b/i.test(a.alternative));
+  if (whyConsent && consentIdx < 0) {
     alternatives.push({
       alternative: "Obtaining consent under Article 6(1)(a)",
       why_inadequate: whyConsent,
       rationale_recorded: true,
     });
+  } else if (whyConsent && !alternatives[consentIdx].rationale_recorded) {
+    alternatives[consentIdx] = { ...alternatives[consentIdx], why_inadequate: whyConsent, rationale_recorded: true };
   }
 
   // PANEL LIA-P3 (2026-08-30) — CROSS-FIELD PARAPHRASE DEDUP. D1D2B3B8-L5

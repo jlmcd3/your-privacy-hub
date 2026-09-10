@@ -8,12 +8,19 @@
 // (doc 231 build log names the exact call site).
 //
 // THE INVARIANT THIS FILE EXISTS TO PROVE (doc 231 zero-call regression
-// test): while `RISK_V3_ENABLED` is false (default) OR `RISK_HOOKS` is
-// empty (true today — doc 229 §5.3, zero ratified rows for
-// product='cppa-risk'), `attachRiskHookSelection` performs ZERO database
-// reads and ZERO network calls — it returns before touching `opts.db` or
-// `invokeGated` at all. Both conditions hold today, so this function is a
-// documented no-op in production regardless of the env var.
+// test): while `RISK_V3_ENABLED` is false OR `RISK_HOOKS` is empty,
+// `attachRiskHookSelection` performs ZERO database reads and ZERO network
+// calls — it returns before touching `opts.db` or `invokeGated` at all.
+//
+// LIVE SINCE 2026-09-10: neither condition holds any more. RISK_V3_ENABLED is
+// on and RISK_HOOKS carries ratified rows (three as of doc 249), so this
+// function DOES make the two-leg selection call — classify-propositions
+// `select_hooks`, one request per leg (claude-sonnet-5 + gpt-4o), metered to
+// api_usage under the customer's assessment id — whenever the planner names
+// at least one pair whose agreement the record does not settle. Batch
+// 66b383d8's Risk row recorded calls_this_generation=1. This is the ONLY
+// model call on the Risk customer path; pass 1 and refinement are gated off
+// separately in index.ts. Do not read this file as "pure code".
 //
 // FAIL-OPEN (matches every other finalize step in generate-cppa-risk.ts):
 // any error — a DB read failure, a malformed response, a thrown client —

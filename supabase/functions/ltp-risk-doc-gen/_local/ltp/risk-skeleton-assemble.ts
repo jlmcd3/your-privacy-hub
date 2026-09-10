@@ -911,8 +911,14 @@ export function buildRiskSlotValues(intake: Bag, report: Bag = {}): SlotValues {
 // ── Conditional composers (carried Section 5 compositions) ──────────────────
 
 function composeVApproval(intake: Bag, assessmentDateIso?: string): string {
+  // BATCH 09394859 (2026-09-10, Velostream b696a661): the role select's third
+  // option is the raw token "Both", which printed verbatim ("Morgan
+  // Ellsworth, Chief Privacy Officer, Both") while the signature table
+  // already read it as "Reviewed and approved by". Same reading here.
+  const reviewerRole = (role: string): string =>
+    role === "Both" ? "Reviewed and approved" : role;
   const reviewerRows = rows(intake.assessment_reviewers_approvers)
-    .map((r) => [s(r.name), s(r.position), s(r.role)].filter(Boolean).join(", "))
+    .map((r) => [s(r.name), s(r.position), reviewerRole(s(r.role))].filter(Boolean).join(", "))
     .filter(Boolean)
     .join("; ");
   // DOC 154 (item 21) — one approval-date resolver across every surface.

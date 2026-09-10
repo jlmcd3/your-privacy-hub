@@ -932,7 +932,8 @@ export function buildReadinessDetermination(
       `least one testable artifact, so no finding would rest primarily on management assertion under § 7122(d). ` +
       `${independence.summary} Nothing on the information provided prevents an auditor from completing and certifying the audit.${naNote}`
     : conclusion === "ready_subject_to_named_remediation"
-    ? `No component is recorded as unimplemented. ${countWord(partial)} component${partial === 1 ? " is" : "s are"} either ` +
+    // BATCH 09394859 (2026-09-10): the count word opens a sentence.
+    ? `No component is recorded as unimplemented. ${countWord(partial).replace(/^[a-z]/, (c) => c.toUpperCase())} component${partial === 1 ? " is" : "s are"} either ` +
       `partially implemented or evidenced only by policy documentation; each carries a named remediation step in its ` +
       `component module (Section 3) and in Appendix B. The named items are: ${remediationItems.join("; ")}. ${independence.summary}${naNote}`
     : conclusion === "not_ready"

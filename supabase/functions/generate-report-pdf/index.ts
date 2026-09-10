@@ -2435,6 +2435,13 @@ const SR_CSS = `
   .sr .lbl, .sr .eyebrow { font-family:Arial,Helvetica,sans-serif; font-size:7.5pt; font-weight:bold; letter-spacing:0.1em; text-transform:uppercase; }
   .sr .eyebrow { color:#5c6d7a; }
   .sr .st { font-family:Arial,Helvetica,sans-serif; font-size:7.5pt; font-weight:bold; letter-spacing:0.08em; text-transform:uppercase; white-space:nowrap; }
+  /* BATCH 09394859 (2026-09-10): a recognised status inside a table cell
+     ("COLLECTED BUT NOT NECESSARY TO THE STATED PURPOSE", "PLANNED, NOT YET
+     IMPLEMENTED") kept nowrap and ran into the next column in the § 3.B
+     necessity table and the summary risk table — f8a8036a9's cell wrap could
+     not reach a nowrap span. Inside a cell the status wraps; the page-one
+     KEY tokens and inline uses keep nowrap. */
+  .sr td .st { white-space:normal; overflow-wrap:break-word; }
   .sr .st-ok { color:#28503a; } .sr .st-hold { color:#6e5518; } .sr .st-hi { color:#6e2323; } .sr .st-neutral { color:#41505c; }
   .sr .st-rest { font-size:8.4pt; color:#5c6d7a; white-space:normal; }
   .sr h1 { font-size:21pt; font-weight:normal; line-height:1.15; color:#0c2a44; margin:0; }

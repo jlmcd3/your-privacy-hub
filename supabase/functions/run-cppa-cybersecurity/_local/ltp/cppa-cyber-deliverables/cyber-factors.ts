@@ -411,7 +411,7 @@ export function buildProgramReadiness(intake: Bag, d: CyberDeliverables): { anal
     : gaps === 0 && rs.unassessed_count === 0 && untestable === 0
     ? "At the program level, no material implementation weakness is identified on the information supplied, but the readiness conclusion in Section 2 remains open — the § 7122 auditor-engagement record above all — so the program cannot yet be described as prepared for the independent audit."
     : gaps === 0 && untestable > 0
-    ? "At the program level, no material implementation weakness is identified. Evidence readiness is incomplete: not every component currently has a testable operating artifact identified. The programme therefore cannot yet be described as prepared for the independent audit."
+    ? "At the program level, no material implementation weakness is identified. Evidence readiness is incomplete: not every component currently has a testable operating artifact identified. The program therefore cannot yet be described as prepared for the independent audit."
     : gaps === 0
     ? "At the program level, no material implementation weakness is described; the open items are record-completion matters rather than identified deficiencies."
     : "At the program level, the described program is not yet prepared for the independent audit; the blocking items are named in the readiness conclusion.";
@@ -614,7 +614,11 @@ export function buildCrossCutting(intake: Bag, d: CyberDeliverables, recs: reado
   const material_evidence_gaps = evGaps.length
     ? `Evidence is the open matter for ${asProse(evGaps.map((r) => r.label))}: each is described as implemented, and the record identifies no testable artifact behind the description.`
     : policyOnly.length
-    ? `${policyOnly.length === 1 ? "One component rests" : `${policyOnly.length} components rest`} on policy-only evidence - ${asProse(policyOnly.map((r) => r.label.replace(/^Evidence sufficiency — /, "")))} - each described as implemented with no testable artifact yet identified; Section 3 carries the follow-up for each.`
+    // BATCH 09394859 (2026-09-10, Velostream 3dab9084): a policy-only
+    // component can be "documented, partially implemented" (Oversight of
+    // service providers was), so this sentence must not assert "described
+    // as implemented" — that is the evidence_insufficient class above.
+    ? `${policyOnly.length === 1 ? "One component rests" : `${policyOnly.length} components rest`} on policy-only evidence - ${asProse(policyOnly.map((r) => r.label.replace(/^Evidence sufficiency — /, "")))} - each with no testable artifact yet identified behind the described control; Section 3 carries the follow-up for each.`
     : "No material evidence gap is identified: where implementation is stated, testable evidence is identified with it.";
   // 3E9AD759-CY2 (2026-08-27, live batch 3e9ad759) — the implementational
   // branch was tautological ("the implementation gaps are implementational").
@@ -991,12 +995,16 @@ export function buildOverallReadinessNarrative(intake: Bag, d: CyberDeliverables
   const applicabilityUnresolved = resolveCyberApplicability((intake.profile ?? {}) as Bag).auditRequired.value === null;
   const auditorEngagementGating = d.independence_determination?.status === "record_insufficient";
   const top = recs[0];
+  // BATCH 09394859 (2026-09-10, Velostream 3dab9084): this sentence filled
+  // {fact} with the literal "the recorded entry" while Section 6 printed the
+  // component's real recorded position for the same action. Same fact here.
+  const topRec = top ? controlRec(intake, top.slug) : null;
   const single_next_act = applicabilityUnresolved
     ? "The most important next act is to resolve whether an independent cybersecurity audit is required (§ 7120) — the record does not yet state the revenue and sale/share facts that trigger table depends on. The Company may continue preparing voluntarily while that is open; auditor engagement becomes the next gating item once applicability is resolved or the Company elects to proceed voluntarily."
     : auditorEngagementGating
     ? "The most important next act is to record the auditor engagement and its independence status; the readiness conclusion waits on completing this item before any other action below is sequenced."
-    : top
-    ? `The most important next act is on ${top.label}: ${top.slot.template.replace("{fact}", "the recorded entry")}`
+    : top && topRec
+    ? `The most important next act is on ${top.label}: ${top.slot.template.replace("{fact}", noStop(recommendationFact(topRec.notes, topRec.maturity)))}`
     : "The most important next act is to keep the identified evidence packages organized for auditor access.";
   return { narrative, single_next_act };
 }
