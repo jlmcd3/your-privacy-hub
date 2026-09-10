@@ -483,7 +483,20 @@ Return a JSON object with EXACTLY these fields:
     "reasons_to_conduct": ["array"],
     "imagery_capture": "one of EXACTLY: 'No imagery or video of identifiable individuals' | 'Imagery or video in which identifiable individuals are the subjects' | 'Imagery or video in which identifiable individuals appear incidentally' — DOC 131 typed fact, always answer it with the value the scenario supports",
     "imagery_capture_spaces": "when imagery_capture is not the No value, one of EXACTLY: 'Publicly accessible spaces' | 'Private or controlled premises' | 'Both'; otherwise the empty string",
-    "imagery_capture_detail": "one or two scenario-specific sentences about the imagery, or why none exists"
+    "imagery_capture_detail": "one or two scenario-specific sentences about the imagery, or why none exists",
+    "necessity_proportionality": "string — how the processing achieves the stated purpose and why it is necessary to it",
+    "alternatives_considered": [{ "processing_operation": "string — the processing_activity_name", "alternative": "string — a realistic, less intrusive means the controller actually considered", "rejection_reason": "string — the specific reason it would not achieve the purpose" }],
+    "residual_risks": "string — the impact of the processing on the data subjects, stated SEPARATELY from the benefit (what they lose, what they would not expect, what they cannot avoid) and the risk that remains after the recorded measures",
+    "data_minimisation_justification": "string — why each data category is needed and what was excluded",
+    "data_quality_measures": "string — how the data is kept accurate and up to date, and how quality is checked",
+    "data_subject_rights_mechanisms": "string — for each right (information, access, rectification, erasure, restriction, portability, objection): the route, the responding role and the response time",
+    "dp_by_design_measures": "string — the technical and organisational measures built into the design, and when each was implemented",
+    "dpo_info": "string — the DPO's name and contact details, or the statement that no DPO is designated and why",
+    "processor_obligations": "string — the obligations and tasks EACH named processor is bound to under its Art. 28 contract, processor by processor",
+    "dpia_prepared_by": "string — the people who prepared this assessment and the role each held",
+    "dpia_approved_by_name": "string", "dpia_approved_by_title": "string", "dpia_approval_date": "YYYY-MM-DD", "dpia_signoff_basis": "string — the sections reviewed, the residual-risk position accepted and any condition attached",
+    "dpo_advice": "string — the DPO's advice on this assessment, or empty string when no DPO is designated",
+    "data_subjects_views_sought": "Yes or No", "data_subjects_views": "string — the views obtained verbatim, or empty string"
   },
   "ropa": {
     "org_name": "string", "legal_entity_type": "string", "employee_band": "string",
@@ -627,6 +640,9 @@ Return a JSON object with EXACTLY these fields:
     "i2_retention_criteria": "string", "i2_retention_detail": "string",
     "i3_ca_consumer_band": "string", "i4_disclosure_mechanisms": ["array"],
     "i4b_sources": "string",
+    "processing_entry_point": "string — how information enters the process: the collection point and what triggers it (§ 7152(a)(3)(A))",
+    "processing_methods": { "collection_method": "string", "use_method": "string", "disclosure_method": "string, or 'N/A' when nothing is disclosed", "retention_method": "string", "other_processing_method": "string, or 'N/A'" },
+    "processing_result": "string — what the processing produces and how that output is used",
     "i5_admt_logic": "string", "i5_admt_training_source": "string",
     "i5_admt_fairness_testing": "string", "i5_admt_human_review": "string",
     "recipients": [
@@ -1716,6 +1732,18 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
       i3_ca_consumer_band: (slot === 1 ? "100,000–1,000,000" : "10,000–100,000") as typeof CA_CONSUMER_BAND[number],
       i4_disclosure_mechanisms: ["Privacy policy", "Notice at Collection"] as (typeof DISCLOSURE_MECHANISMS[number])[],
       i4b_sources: "Directly from the consumer at signup; generated during service use; supplemented by service providers and public records.",
+      // BATCH 7bd29982 (2026-09-10): the § 7152(a)(3)(A) processing record
+      // the engine's § 2.B reads (contract keys, RK3-A1); absent, the part
+      // rendered its heading with no body on every fixture.
+      processing_entry_point: "Information enters the process when a consumer creates an account or uses the service; each session event is written to the event pipeline.",
+      processing_methods: {
+        collection_method: "Collected from the consumer at signup and generated automatically during service use.",
+        use_method: "Used to score account risk and to deliver and support the service.",
+        disclosure_method: "Disclosed to the service providers named in the recipient record for hosting and support.",
+        retention_method: "Retained for the retention period stated above, then deleted or de-identified.",
+        other_processing_method: "N/A",
+      },
+      processing_result: "A per-account risk score and service-delivery records that determine the level of verification applied to the account.",
       i5_admt_logic: "Rules-based scoring with human review",
       i5_admt_training_source: "Internal operational data",
       i5_admt_fairness_testing: "Quarterly bias review",

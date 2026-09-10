@@ -110,7 +110,8 @@ Deno.test("data_subject_views builder output is unchanged", () => {
     out,
     "The record states, on whether the views of data subjects were sought: Yes, through the works council. " +
       "The views recorded are: The council asked for line-management visibility to be limited. " +
-      "The controller records these views under GDPR Art. 35(9); where they were not followed, the reasons are recorded with the decision in Section 6.",
+      // RE-PIN 2026-09-10 (CEO: DPIA sections numbered 1–7): the decision is Section 7.
+      "The controller records these views under GDPR Art. 35(9); where they were not followed, the reasons are recorded with the decision in Section 7.",
   );
 });
 

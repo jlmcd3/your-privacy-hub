@@ -36,12 +36,15 @@ Deno.test("doc245 — the prose calibration carries the six batch-e74fdbfd class
 
 // RE-PIN 2026-09-10 (DOC 250 B1): the CEO-ratified ePrivacy overlay sentence
 // appended "+doc250-eprivacy-overlay-2026-09-10" after doc 245's tag.
+// RE-PIN 2026-09-10 (DOC 251, batch 7bd29982): the four-class prose
+// amendment appended "+batch-7bd29982-cal-2026-09-10" after doc 250's tag.
 Deno.test("doc245 — GRADER_CONTEXT_VERSION keeps its prefix and appends the batch tag last", () => {
   assert(GRADER_CONTEXT_VERSION.startsWith(SKELETON_CAL_VERSION), "the epoch prefix is kept");
-  assert(GRADER_CONTEXT_VERSION.endsWith("+doc250-eprivacy-overlay-2026-09-10"), GRADER_CONTEXT_VERSION);
+  assert(GRADER_CONTEXT_VERSION.endsWith("+batch-7bd29982-cal-2026-09-10"), GRADER_CONTEXT_VERSION);
   assert(
     GRADER_CONTEXT_VERSION.indexOf("+lia-v3-hooks-grader-2026-09-08") < GRADER_CONTEXT_VERSION.indexOf("+batch-e74fdbfd-cal-2026-09-09") &&
-      GRADER_CONTEXT_VERSION.indexOf("+batch-e74fdbfd-cal-2026-09-09") < GRADER_CONTEXT_VERSION.indexOf("+doc250-eprivacy-overlay-2026-09-10"),
+      GRADER_CONTEXT_VERSION.indexOf("+batch-e74fdbfd-cal-2026-09-09") < GRADER_CONTEXT_VERSION.indexOf("+doc250-eprivacy-overlay-2026-09-10") &&
+      GRADER_CONTEXT_VERSION.indexOf("+doc250-eprivacy-overlay-2026-09-10") < GRADER_CONTEXT_VERSION.indexOf("+batch-7bd29982-cal-2026-09-10"),
     "tags append in order",
   );
 });

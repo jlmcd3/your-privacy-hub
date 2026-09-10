@@ -176,7 +176,8 @@ Deno.test("9A — the Britannia executive paragraph renders the ratified labels"
 Deno.test("9A — the built Britannia report renders labels, never full asks, in the executive list", () => {
   const report = buildDpiaDeliverables(BRITANNIA) as unknown as Record<string, unknown>;
   const text = skeletonDocumentToText(assembleDpiaSkeletonDocument(report, BRITANNIA).document);
-  const exec = text.slice(0, text.indexOf("Section 0"));
+  // RE-PIN 2026-09-10 (CEO: DPIA sections numbered 1–7): the overview is "Section 1 —".
+  const exec = text.slice(0, text.indexOf("Section 1 —"));
   assert(
     exec.includes(
       'the effect of the processing on the data subjects, and the measures that reduce it — which completes the lawful-basis finding for "Workforce sentiment analytics"',
@@ -193,7 +194,8 @@ Deno.test("9A — no full-ask text renders in composed prose; the gap table keep
   assert(at > 0, "the gap table must render");
   const gapTable = text.slice(at);
   // The composed prose surfaces: the executive body and the Section 6 cells.
-  const exec = text.slice(0, text.indexOf("Section 0"));
+  // RE-PIN 2026-09-10 (CEO: DPIA sections numbered 1–7): the overview is "Section 1 —".
+  const exec = text.slice(0, text.indexOf("Section 1 —"));
   const decision = report.decision as { why: string; blockers: string[] };
   const composed = [exec, decision.why, ...decision.blockers].join("\n");
   for (const e of ledger) {

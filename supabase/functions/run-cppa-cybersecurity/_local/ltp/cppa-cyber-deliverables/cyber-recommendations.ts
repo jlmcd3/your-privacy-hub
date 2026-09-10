@@ -161,6 +161,35 @@ const s = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
  * concrete and short — with the maturity label and a neutral fallback
  * unchanged from the old precedence.
  */
+// BATCH 7bd29982 (2026-09-10, Velostream cyber 2b834609) — a legal
+// abbreviation's stop is not a sentence stop. The first-sentence scan ended
+// at "Civ." in "the plan includes CPPA and Civ. Code § 1798.82 notification
+// workflows", so the recorded position printed as "…includes CPPA and Civ)"
+// in the component module, Section 6, Section 7 and Appendices A/C. The
+// scan now skips a stop that closes one of these abbreviations (statutory
+// citation forms and the common Latin/title forms); everything else about
+// the 3E9AD759-CY1 rule is unchanged.
+const ABBREVIATION_STOP_RE =
+  /\b(?:Civ|Cal|Regs?|Sec|Secs|No|Nos|Inc|Ltd|LLC|Corp|Co|v|vs|e\.g|i\.e|U\.S|Gov|Bus|Prof|Pub|Stat|Ch|Art|Arts|Para|Fig|Dept|Mr|Mrs|Ms|Dr|Jr|Sr|St|approx|al|cf|etc)\.$/i;
+
+/** Index just past the first sentence stop that is not an abbreviation's; -1 when none. */
+function firstSentenceStop(text: string, cap = 300): number {
+  const re = /[.!?](?=\s|$)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index >= cap) return -1;
+    const head = text.slice(0, m.index + 1);
+    if (m[0] === "." && ABBREVIATION_STOP_RE.test(head)) continue;
+    return m.index + 1;
+  }
+  return -1;
+}
+
+export function firstSentenceOf(text: string, cap = 300): string {
+  const end = firstSentenceStop(text, cap);
+  return (end > 0 ? text.slice(0, end) : text.slice(0, cap)).trim();
+}
+
 export function recommendationFact(notes: string, maturity: string): string {
   const text = s(notes);
   if (text) {
@@ -169,8 +198,7 @@ export function recommendationFact(notes: string, maturity: string): string {
     // character-class scan stopped at ANY dot, so "Tenable.io is used…"
     // interpolated as "extending Tenable, and record the completion date"
     // and "(IRP v2.1) is…" truncated mid-token.
-    const m = text.match(/^[\s\S]{1,300}?[.!?](?=\s|$)/);
-    const first = (m ? m[0] : text.slice(0, 300)).trim();
+    const first = firstSentenceOf(text);
     return first.replace(/[.!?]$/, "");
   }
   return s(maturity) || "the recorded entry";
@@ -208,11 +236,22 @@ const RESTRICTIVE_ONLY_RE =
 export function recommendationGap(notes: string): string {
   const text = s(notes);
   if (!text) return "";
-  const sentences = text.match(/[^.!?]*(?:[.!?](?!\s|$)[^.!?]*)*[.!?](?=\s|$)/g) ?? [];
+  // BATCH 7bd29982 — the same abbreviation-aware split as recommendationFact,
+  // so "Civ. Code" never opens a phantom sentence in the gap scan either.
+  const sentences: string[] = [];
+  {
+    let rest = text;
+    while (rest.trim()) {
+      const end = firstSentenceStop(rest, Number.MAX_SAFE_INTEGER);
+      if (end <= 0) break;
+      sentences.push(rest.slice(0, end));
+      rest = rest.slice(end);
+    }
+  }
   const GAP = /\b(however|but|not|no\b|lacks?|remains?|pending|gap|missing|except|only|without|behind|breach(?:ed)?|unfunded|partial)\b/i;
   const isGap = (sent: string): boolean =>
     !INCIDENT_HISTORY_RE.test(sent) && GAP.test(sent.replace(RESTRICTIVE_ONLY_RE, "restricted to"));
-  const first = (text.match(/^[\s\S]{1,300}?[.!?](?=\s|$)/)?.[0] ?? "").trim();
+  const first = firstSentenceStop(text) > 0 ? firstSentenceOf(text) : "";
   for (const raw of sentences) {
     const sent = raw.trim();
     if (!sent || sent === first) continue;

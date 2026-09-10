@@ -414,10 +414,13 @@ Deno.test("GRADER-CAL-3 T2(c): closing-block ownership disclaimer is exempt", ()
 // and DOC 245's own appended prose tag "+batch-e74fdbfd-cal-2026-09-09".
 // RE-PIN 2026-09-10 (DOC 250 B1): "+doc250-eprivacy-overlay-2026-09-10" —
 // the CEO-ratified Art. 5(3) / PECR reg 6 overlay sentence (prose only).
+// RE-PIN 2026-09-10 (DOC 251, batch 7bd29982): "+batch-7bd29982-cal-2026-09-10"
+// — four prose false-positive classes + the § 7053 third-party contract
+// anchor in the CONTRACT-PROVISION MAP (prose only).
 Deno.test("instrument version pinned to the skeleton-calibration epoch", () => {
   assertEquals(
     GRADER_CONTEXT_VERSION,
-    "gc-2026-08-28-skeleton-cal-3-item204[cal_skeleton_1|cal_skeleton_2|cal_skeleton_3|cal_skeleton_4|cal_skeleton_5|cal_skeleton_6]+risk-field-semantics-2026-09-03+batch9-cal-2026-09-03+batch10-cal-2026-09-03+risk-code-review-2026-09-03+risk-law-map-2026-09-03+admt-law-map-2026-09-03+cyber-law-map-2026-09-03+dpia-law-map-2026-09-03+lia-law-map-2026-09-03+gov-law-map-2026-09-03+registration-law-map-2026-09-03+gov-dpa2018-wp243-2026-09-04+batch08f13650-cal-2026-09-04+batch13-cal-2026-09-04+skeleton-cal-4-doc169[cal_skeleton_7|cal_skeleton_8|cal_skeleton_9]+batch14-cal-2026-09-04+skeleton-cal-5-doc188[cal_skeleton_10|cal_skeleton_11]+batch-e38460-cal-2026-09-05+doc189-device-access-relevance-2026-09-05+batch-a81e0240-cal-2026-09-07[cal_skeleton_12]+lia-v3-hooks-grader-2026-09-08+batch-e74fdbfd-cal-2026-09-09+doc250-eprivacy-overlay-2026-09-10",
+    "gc-2026-08-28-skeleton-cal-3-item204[cal_skeleton_1|cal_skeleton_2|cal_skeleton_3|cal_skeleton_4|cal_skeleton_5|cal_skeleton_6]+risk-field-semantics-2026-09-03+batch9-cal-2026-09-03+batch10-cal-2026-09-03+risk-code-review-2026-09-03+risk-law-map-2026-09-03+admt-law-map-2026-09-03+cyber-law-map-2026-09-03+dpia-law-map-2026-09-03+lia-law-map-2026-09-03+gov-law-map-2026-09-03+registration-law-map-2026-09-03+gov-dpa2018-wp243-2026-09-04+batch08f13650-cal-2026-09-04+batch13-cal-2026-09-04+skeleton-cal-4-doc169[cal_skeleton_7|cal_skeleton_8|cal_skeleton_9]+batch14-cal-2026-09-04+skeleton-cal-5-doc188[cal_skeleton_10|cal_skeleton_11]+batch-e38460-cal-2026-09-05+doc189-device-access-relevance-2026-09-05+batch-a81e0240-cal-2026-09-07[cal_skeleton_12]+lia-v3-hooks-grader-2026-09-08+batch-e74fdbfd-cal-2026-09-09+doc250-eprivacy-overlay-2026-09-10+batch-7bd29982-cal-2026-09-10",
   );
 });
 

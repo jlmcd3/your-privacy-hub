@@ -2564,6 +2564,23 @@ export function runRiskFactorEngine(
         ["INTAKE:processing_entry_point", "INTAKE:processing_methods", "INTAKE:processing_result"],
         ["11 CCR § 7152(a)(3)(A)"],
       );
+    } else {
+      // BATCH 7bd29982 (2026-09-10, Velostream Risk 1b431d09) — with none
+      // of the three § 7152(a)(3)(A) facts recorded, § 2.B printed its
+      // heading and the governing requirement and then NOTHING: the reader
+      // met a part promising the processing "end to end" with no body and
+      // no statement of the limitation. Section 1 promises the opposite
+      // ("Where information needed for a material conclusion is missing …
+      // the report states the limitation"), so the absent branch now says
+      // so, in the same shape as the partial branch's sentence above.
+      put(
+        "ii_information:5",
+        "operational_sequence",
+        "B",
+        "The information provided does not describe how the processing operates: it does not identify how information enters the process, the processing stages, or what the processing produces; the limitation is carried into § 2.H.",
+        ["INTAKE:processing_entry_point", "INTAKE:processing_methods", "INTAKE:processing_result"],
+        ["11 CCR § 7152(a)(3)(A)"],
+      );
     }
   }
 

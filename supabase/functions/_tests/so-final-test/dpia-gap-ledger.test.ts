@@ -204,7 +204,8 @@ Deno.test("reconciliation: note appears when the stated count differs from the r
   // bytes were superseded there.
   assertEquals(
     note!.note,
-    "The risk register contains three identified risks: two identified by the company and one identified through this assessment. The identified risks and the supporting factual record are set out in Section 4.",
+    // RE-PIN 2026-09-10 (CEO: DPIA sections numbered 1–7): the risk register is Section 5.
+    "The risk register contains three identified risks: two identified by the company and one identified through this assessment. The identified risks and the supporting factual record are set out in Section 5.",
   );
 });
 

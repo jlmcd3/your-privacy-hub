@@ -333,10 +333,19 @@ export function buildLiaSlotValues(record: Bag): SlotValues {
     beneficiary: orNull(LIA_BENEFICIARY_LABELS[noStop(s(purpose.beneficiary))] ?? lowerEnumLabel(noStop(s(purpose.beneficiary)))),
     statedPurpose: orNull(s(record.stated_purpose) ? `"${noStop(s(record.stated_purpose))}"` : ""),
 
+    // BATCH 7bd29982 (2026-09-10, Velorix LIA 34bd50c2) — the form's
+    // alternatives_considered is ONE string, one alternative per line; the
+    // whole string was one list item, so the raw line break rode into the
+    // ¶19 sentence ("…it considered Consent-based opt-in to security
+    // monitoring\nStatic rule-only fraud filters…"). Lines are the items,
+    // as the DOC 161 rationale split beside it already does.
     alternatives: orNull(
       asProse((strList(record.alternatives_considered).length
         ? strList(record.alternatives_considered)
-        : strList(necessity.alternatives)).map((a) => noStop(a))),
+        : strList(necessity.alternatives))
+        .flatMap((a) => a.split(/\r?\n+/))
+        .map((a) => noStop(a.trim()))
+        .filter(Boolean)),
     ),
     // DOC 161 — a multi-line rationale carried its line breaks into the ¶19
     // sentence; the lines now join as clauses. RE-PIN 2026-09-07: the joined

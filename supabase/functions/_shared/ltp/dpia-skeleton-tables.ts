@@ -339,8 +339,8 @@ function validationApprovalTable(report: Bag): RenderedTable | null {
       !s(v.approved_by_name)
         ? ""
         : approvalRecorded
-        ? "Approval of the factual assessment record only; the decision on the processing itself is stated in Section 6."
-        : "The record names this person but carries no approval date, so no approval of the assessment record is recorded. The decision on the processing itself is stated in Section 6.",
+        ? "Approval of the factual assessment record only; the decision on the processing itself is stated in Section 7."
+        : "The record names this person but carries no approval date, so no approval of the assessment record is recorded. The decision on the processing itself is stated in Section 7.",
     ],
     ["Note", dateNote],
     ["Basis for sign-off", s(v.basis_for_sign_off)],
@@ -637,7 +637,11 @@ function decisionTable(report: Bag, intake: Bag = {}): RenderedTable | null {
     // PROMPT 9A (R1/R3) — the blockers are already ratified compact labels,
     // merged per R4. One short line each; no terminal stop is added, so no
     // doubled-stop or ". —" sequence can be produced at the seam.
-    ["Matters holding sign-off open", strList(d.blockers).join("\n")],
+    // BATCH 7bd29982 (2026-09-10, Velorix DPIA 1294595f) — a "\n" seam
+    // collapses to a space inside a rendered table cell, so four blockers
+    // read as one run-on line ("…each with its rejection reason the impact
+    // of the processing…"). Semicolon seams, as the Conditions cell above.
+    ["Matters holding sign-off open", strList(d.blockers).join("; ")],
     ["Why", s(d.why)],
     ["Authority", s(d.citation)],
   ]);
@@ -657,6 +661,9 @@ const GAP_FIELD_LABELS: Record<string, string> = {
   data_quality_measures: "Data-accuracy measures record",
   data_minimisation_justification: "Data-minimisation record",
   data_subject_rights_mechanisms: "Data-subject rights record (Arts. 12–22)",
+  // BATCH 7bd29982 (2026-09-10) — was unmapped, so the humanizer printed
+  // "Dp by design measures" in the gap table's second column.
+  dp_by_design_measures: "Data-protection-by-design measures record (Art. 25)",
   processing_description: "Processing description",
   data_categories: "Categories of personal data",
   retention_schedule: "Retention schedule",
@@ -676,8 +683,21 @@ function gapFieldLabel(id: string): string {
 }
 
 function gapLedgerTable(report: Bag): RenderedTable | null {
+  // BATCH 7bd29982 (2026-09-10, Velorix DPIA 1294595f) — a compound ask
+  // (the Art. 6(1)(f) necessity + balancing ask) is decomposed into one
+  // labeled ledger entry per unmet part for the composed surfaces, each
+  // carrying the SAME `dimensions` bytes (build.ts: "the compound ask keeps
+  // ONE gap-table row"). The table rendered every entry, so the lawful-basis
+  // ask printed twice, word for word. One row per distinct ask text.
+  const seen = new Set<string>();
   const rows = asArray(report.gap_ledger)
     .filter((g) => s(g.dimensions) && s(g.field))
+    .filter((g) => {
+      const key = s(g.dimensions);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
     .map((g) => [cell(g.dimensions), gapFieldLabel(cell(g.field)), cell(g.provision), cell(g.enables)]);
   return table("gap_ledger", "Matters outstanding on the record", [
     "What is still needed",

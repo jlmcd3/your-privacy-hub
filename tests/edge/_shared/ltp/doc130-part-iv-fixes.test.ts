@@ -39,7 +39,8 @@ Deno.test("doc130 A28 — a recorded DPA WITH recorded processor tasks closes bo
   });
   const row = ((d as unknown as Record<string, Record<string, unknown>>).section2_coverage).processor_contract as unknown as Record<string, unknown>;
   assertEquals(row.status, "analysed");
-  assert(String(row.finding).includes("recorded in the Section 1 inventory"), "coverage acknowledgment missing");
+  // RE-PIN 2026-09-10 (CEO: DPIA sections numbered 1–7): the inventory is Section 2.
+  assert(String(row.finding).includes("recorded in the Section 2 inventory"), "coverage acknowledgment missing");
 });
 
 Deno.test("doc130 A28 — no recorded DPA keeps the pre-existing missing-instrument branch", () => {
@@ -69,7 +70,8 @@ Deno.test("doc130 SIGNOFF — a risk-acceptance basis carries the traceability g
     "traceability guard sentence missing",
   );
   assert(
-    text.includes("are those set out in Section 4"),
+    // RE-PIN 2026-09-10 (CEO: DPIA sections numbered 1–7): the risk register is Section 5.
+    text.includes("are those set out in Section 5"),
     "register pointer missing",
   );
 });

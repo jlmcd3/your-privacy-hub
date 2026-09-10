@@ -66,7 +66,16 @@
 // bases move. (The v4.9 label was used by the DOC 132 spine-hash entry
 // below, which added the advisory-corpus table block without a version
 // bump; this bump takes the next number to keep the audit trail monotonic.)
-export const DPIA_SKELETON_VERSION = "dpia-v4.10-2026-09-05";
+// v4.11 (CEO edit, 2026-09-10): the seven Section titles renumber 1–7 (the
+// EDPB "Section 0" overview becomes Section 1, as every other document in
+// the fleet); section ids are unchanged. Title-only, so basis-v1 (skeleton
+// prose) is unchanged and only the basis-v2 serialization moves — the v4.8
+// precedent. The cover subtitle (assembler-side, not a spine constant) took
+// the Risk cover's form the same day.
+export const DPIA_SKELETON_VERSION = "dpia-v4.11-2026-09-10";
+
+/** The v4.10 spine version — retained for the audit trail. */
+export const DPIA_SKELETON_VERSION_V410 = "dpia-v4.10-2026-09-05";
 
 /** The v4.8 spine version — retained for the audit trail. */
 export const DPIA_SKELETON_VERSION_V48 = "dpia-v4.8-2026-08-30";
@@ -293,8 +302,12 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     ],
   },
   {
+    // CEO edit 2026-09-10: section numbering starts at 1, as every other
+    // document in the fleet. Section ids are data keys (report.section_0_overview
+    // etc.) and are unchanged; only the rendered titles — and every
+    // cross-reference in the prose that names a section number — moved by one.
     id: "section_0_overview",
-    title: "Section 0 — Overview of the Processing",
+    title: "Section 1 — Overview of the Processing",
     blocks: [
       { kind: "skeleton", text: "This section identifies the controller, processors, planning information, assessment scope, materials, assessment team, and approval record. Article 35 places responsibility for the DPIA on the controller, while Articles 24 and 28 require the controller to remain accountable for the processing and to use processors that provide sufficient guarantees. {organizationName} is the controller of the processing being assessed, and the tables below identify the processors it has engaged and the particulars of the engagements. Where the company has not provided information, the absence of that information is noted rather than assumed." },
       { kind: "table", text: "processing_inventory.controllers" },
@@ -309,7 +322,7 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
   },
   {
     id: "section_1_description",
-    title: "Section 1 — Systematic Description of the Processing",
+    title: "Section 2 — Systematic Description of the Processing",
     blocks: [
       { kind: "skeleton", text: "Article 35(7)(a) requires a systematic description of the envisaged processing operations and their purposes, including the legitimate interest pursued by the controller where applicable. Pursuant to that requirement, the tables below identify the categories of data, purposes of the processing, and any further uses of the data. The additional narrative describes the nature, scope, context, functional operation, and supporting assets so that the later necessity and risk analysis is tied to the processing actually proposed." },
       { kind: "table", text: "processing_inventory.data_items" },
@@ -320,7 +333,7 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
   },
   {
     id: "section_2_analysis",
-    title: "Section 2 — Analysis of the Processing",
+    title: "Section 3 — Analysis of the Processing",
     blocks: [
       { kind: "skeleton", text: "A DPIA is not limited to identifying risks; it must also assess necessity and proportionality and identify measures that demonstrate compliance and protect data subjects. This section therefore reviews the legal bases under Article 6(1): consent, contract necessity, legal obligation, vital interests, public task, or legitimate interests, and any applicable Article 9 conditions for special-category data as described below, the Article 5 principles also as described below, data-subject rights, international transfers, processor governance, data protection by design and by default, and security. In the first table below, the company asserts the lawful basis of the processing under Article 6(1). Each subsequent table states what {organizationName} has recorded, what that supports, and, where information is lacking, what remains to be established. An entry marked as insufficient describes the sufficiency of the assessment record and is not, by itself, a finding of GDPR non-compliance." },
       { kind: "table", text: "legal_basis" },
@@ -346,7 +359,7 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
   },
   {
     id: "section_3_necessity_proportionality",
-    title: "Section 3 — Considerations on Necessity and Proportionality",
+    title: "Section 4 — Considerations on Necessity and Proportionality",
     blocks: [
       // PROMPT 9I item 4 (CEO-ratified 2026-08-15) — SECTION 3 COMPOSITION
       // ORDER (S3-R1): statutory frame → necessity per operation →
@@ -363,7 +376,7 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
   },
   {
     id: "section_4_risk_management",
-    title: "Section 4 — Risk Assessment and Management",
+    title: "Section 5 — Risk Assessment and Management",
     blocks: [
       // PROMPT 9L.2 item 1 (CEO-ratified 2026-08-16) — pure block reorder: the
       // statutory-frame block opens Section 4, and the relocated design-risk
@@ -385,14 +398,14 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
 
   {
     id: "section_5_interested_parties",
-    title: "Section 5 — Involvement of Interested Parties",
+    title: "Section 6 — Involvement of Interested Parties",
     blocks: [
       { kind: "skeleton", text: "Article 35(2) requires the controller to seek the advice of its data protection officer, where one is designated, when carrying out the DPIA. Article 35(9) requires the controller, where appropriate, to seek the views of data subjects or their representatives on the intended processing, subject to protection of commercial or public interests and the security of processing operations. {DPO_ADVICE_SENTENCE - conditional: the DPO's advice as recorded, attributed; the negative branch states honestly that DPO advice has not been obtained}. With respect to the views of the people affected, the company states: {dataSubjectsViews - attributed verbatim; absent => the honest negative that no such views were sought}." },
     ],
   },
   {
     id: "section_6_conclusion",
-    title: "Section 6 — Conclusion and Decision",
+    title: "Section 7 — Conclusion and Decision",
     blocks: [
       { kind: "skeleton", text: "This section states the DPIA determination, any conditions or unresolved points, the approval basis, and whether prior consultation is required. Article 35(11) also requires the controller to review the DPIA where necessary, at least when a change in the risk represented by the processing occurs." },
       { kind: "table", text: "decision" },
@@ -535,9 +548,16 @@ export const DPIA_SPINE_HASH_V49 =
 /** v4.10 spine hash — DOC 188 P6 (2026-09-05, batch e38460): the executive
  * opener's instrument became the {gdprInstrument} slot (one skeleton block
  * changed; nothing moved). Both bases move. Method verified by reproducing
- * the v4.9 value first. */
-export const DPIA_SPINE_HASH =
+ * the v4.9 value first. Retained for the audit trail. */
+export const DPIA_SPINE_HASH_V410 =
   "c8f4b0b90966b1f94c9bc9be5416ce7c1919e55a6bb42bca7e28fc220458517f";
+
+/** v4.11 spine hash — CEO edit (2026-09-10): Section titles renumbered 1–7.
+ * Basis-v1 (skeleton-block text only) is UNCHANGED (titles carry no fixed
+ * prose — the v4.8 finding); only basis-v2 moves. Method verified by
+ * reproducing the v4.10 value first (the battery's own recompute). */
+export const DPIA_SPINE_HASH =
+  "311ae6ccc157e346c634cd7bf506ee4a6b4b3daf0611f533438a3661c8ab196e";
 
 /** The v4.5.1 spine under basis v2 — retained for the audit trail. */
 export const DPIA_SPINE_HASH_V451 =

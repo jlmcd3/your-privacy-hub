@@ -105,7 +105,8 @@ Deno.test("doc188 P6 — the executive opener names the record's own instrument"
 });
 
 Deno.test("doc188 P6 — v4.10: the slot is declared, mapped and versioned", () => {
-  assertEquals(DPIA_SKELETON_VERSION, "dpia-v4.10-2026-09-05");
+  // RE-PIN 2026-09-10 (CEO edit): v4.11 — Section titles renumbered 1–7.
+  assertEquals(DPIA_SKELETON_VERSION, "dpia-v4.11-2026-09-10");
   const exec = DPIA_SKELETON_SECTIONS.find((s) => s.id === "executive_summary")!;
   assert(exec.blocks.some((b) => b.kind === "skeleton" && b.text.includes("{gdprInstrument")));
   assert(!exec.blocks.some((b) => b.text.includes("for the EU and UK")), "the literal left the spine");

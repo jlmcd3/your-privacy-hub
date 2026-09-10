@@ -3131,7 +3131,7 @@ export function buildSection2Coverage(
     ? {
       processors: processorNames,
       dpa_recorded: true,
-      finding: `The record selects a signed processing contract as a safeguard and names ${processorNames.join(", ")}, so the Art. 28 instrument is recorded for the processor chain described; the processors' obligations and tasks — the coverage the Art. 28(3) terms must reach — are recorded in the Section 1 inventory.`,
+      finding: `The record selects a signed processing contract as a safeguard and names ${processorNames.join(", ")}, so the Art. 28 instrument is recorded for the processor chain described; the processors' obligations and tasks — the coverage the Art. 28(3) terms must reach — are recorded in the Section 2 inventory.`,
       citation: a28.citation,
       authority_verbatim: a28.verbatim,
       status: "analysed",
@@ -3728,10 +3728,10 @@ export function buildRiskCountNote(
       nWord(stated_count)
     } identified by the company and ${
       nWord(register_count - stated_count)
-    } identified through this assessment. The identified risks and the supporting factual record are set out in Section 4.`
+    } identified through this assessment. The identified risks and the supporting factual record are set out in Section 5.`
     : `The company identified ${nWord(stated_count)} risks in its own account; this assessment carries ${
       nWord(register_count)
-    } after consolidation. The identified risks and the supporting factual record are set out in Section 4.`;
+    } after consolidation. The identified risks and the supporting factual record are set out in Section 5.`;
   return {
     register_count,
     stated_count,

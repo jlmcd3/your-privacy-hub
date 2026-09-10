@@ -54,7 +54,7 @@
 
 import type { AdmtV2Computed } from "./admt-v2-deterministic.ts";
 import type { NoticeFactor, VendorControl, VendorResult, ScopeResult, OptOutResult } from "./admt-v2-deterministic.ts";
-import { VENDOR_MATERIALITY_MATRIX } from "./admt-v2-deterministic.ts";
+import { VENDOR_MATERIALITY_MATRIX, ADMT_NONE_DOMAIN } from "./admt-v2-deterministic.ts";
 import type { PathState, DecisionEffect, SubstantiveState, RecordGrade } from "./admt-v2-vocab.ts";
 import {
   composeAccessWithholdingAnalysis,
@@ -658,6 +658,14 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
 
   // ── Executive Summary ───────────────────────────────────────────────────
   const domains = Array.isArray((intake as any)?.decision_domains) ? (intake as any).decision_domains as string[] : [];
+  // BATCH 7bd29982 (2026-09-10, Velostream ADMT 17e67bf5) — the categorical
+  // "None of these categories — …" answer is a form option, not a domain;
+  // spliced into "uses the System in <domain>" it read "The Company uses
+  // VeloTarget … in None of these categories — the decision is outside every
+  // § 7001(ddd) category." The option alone now renders as the record it
+  // is; beside a regulated domain it still lists (the DOC 158 conflict
+  // finding carries that case).
+  const noneOnly = domains.length === 1 && domains[0] === ADMT_NONE_DOMAIN;
   const execLead = overallDeterminationSentence(computed);
   push("executive_summary", "Executive Summary", [
     { kind: "lead", text: execLead },
@@ -667,7 +675,9 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
     // not reported." on a blank-domains record; the blank branch now
     // degrades as its own honest sentence.
     { kind: "skeleton", text: `${
-      domains.length
+      noneOnly
+        ? `The Company records the decision ${systemName || "the System"} makes as outside every § 7001(ddd) significant-decision category.`
+        : domains.length
         ? `The Company uses ${systemName || "the System"} in ${reader(domains)}.`
         : `The Company has not identified the decision domain in which it uses ${systemName || "the System"}.`
     } This assessment addresses four questions: whether Article 11 applies to that use; whether the required Pre-use Notice is in place; whether the Company provides the required opt-out or can support the exception it selected; and whether it can provide the consumer-specific access and explanation required by the regulations.` },
@@ -730,7 +740,9 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   push("system_profile", "1. System and Decision Profile", [
     // NR-75 fix (doc 75): same blank-domains degradation as the exec summary.
     { kind: "skeleton", text: `The Company identifies the System as ${systemName || "(not provided)"}${sysTypePhrase}. The Company describes the System as follows: ${sysDescSentence} ${
-      domains.length
+      noneOnly
+        ? "The Company records the decision the System makes as outside every § 7001(ddd) significant-decision category."
+        : domains.length
         ? `The System is used in ${reader(domains)}.`
         : "The Company has not identified the decision domain in which the System is used."
     }` },
@@ -1517,7 +1529,10 @@ function buildFactRecordTable(
     ["Training / profiling",
       factOr([training && `Training data use: ${training}.`, profiling && `Profiling use: ${profiling}.`].filter(Boolean).join(" "))],
     ["Scale",
-      factOr([consumerCount && `CA consumers: ${consumerCount}.`, popBand && `Population band: ${popBand}.`, systemCount && `ADMT system count: ${systemCount}.`].filter(Boolean).join(" "))],
+      // BATCH 7bd29982 (2026-09-10) — a free-text count ending in its own
+      // stop printed a doubled stop ("…quarterly count.."); the value's
+      // terminal stop is dropped before the row's own is appended.
+      factOr([consumerCount && `CA consumers: ${consumerCount.replace(/\.+$/, "")}.`, popBand && `Population band: ${popBand}.`, systemCount && `ADMT system count: ${systemCount.replace(/\.+$/, "")}.`].filter(Boolean).join(" "))],
     ["Internal roles", factOr(roleRoster)],
     ["Notice",
       factOr([noticeDelivery && `Delivery: ${noticeDelivery}.`, `Record quality: ${gradeLabel(computed.notice.recordGrade)}`].filter(Boolean).join(" "))],

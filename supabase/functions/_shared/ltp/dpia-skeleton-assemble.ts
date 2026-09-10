@@ -558,7 +558,7 @@ function composeExecutiveBody(report: Bag, intake: Bag): string {
         : "Following application of the recorded mitigating measures, no residual risk is rated High based on the information the company provided.",
     );
     sentences.push(
-      "The residual-risk ratings stated in this assessment reflect the mitigating measures recorded in the assessment record; the review obligations that apply if the processing or the measures change are stated in Section 6.",
+      "The residual-risk ratings stated in this assessment reflect the mitigating measures recorded in the assessment record; the review obligations that apply if the processing or the measures change are stated in Section 7.",
     );
     if (openBand > 0) {
       sentences.push(
@@ -673,8 +673,15 @@ export const DPIA_S3_DETERMINATION_ESTABLISHED =
   "On this analysis, necessity and proportionality are established for the processing as described.";
 
 export function composeNecessityDetermination(report: Bag): string {
-  const findings = [...asArray(report.necessity_findings), ...asArray(report.proportionality)];
-  const unmet = findings.filter((f) => NECESSITY_UNMET.test(s(f.verdict)));
+  // BATCH 7bd29982 (2026-09-10, Velorix DPIA 1294595f) — the two surfaces
+  // are tagged with the TEST each finding runs, so an unmet necessity finding
+  // and an unmet proportionality finding on the same operation no longer
+  // name the same element twice ("— AI-Driven …; AI-Driven … —").
+  const findings = [
+    ...asArray(report.necessity_findings).map((f) => ({ f, test: "necessity" })),
+    ...asArray(report.proportionality).map((f) => ({ f, test: "proportionality" })),
+  ];
+  const unmet = findings.filter(({ f }) => NECESSITY_UNMET.test(s(f.verdict)));
   if (findings.length === 0) {
     // The existing branch sentence, relocated here and prefixed.
     return "On this analysis, whether necessity and proportionality are established cannot be determined based on the information the company provided alone; the analysis below sets out what that information does and does not support.";
@@ -688,7 +695,7 @@ export function composeNecessityDetermination(report: Bag): string {
   // nothing to act on without independently re-deriving it from the gap
   // table. Both fixed: the element(s) are named by their own operation
   // label, and the noun/verb agree with the actual count.
-  const names = unmet.map((f) => s(f.operation_label) || "an unnamed operation").join("; ");
+  const names = unmet.map(({ f, test }) => `${test} for "${s(f.operation_label) || "an unnamed operation"}"`).join("; ");
   return `On this analysis, necessity and proportionality are established in part: ${
     numberWord(unmet.length)
   } element${unmet.length === 1 ? " is" : "s are"} not yet supported — ${names} — each identified above and listed in the gap table.`;
@@ -754,6 +761,16 @@ export const DPIA_S3_RETIRED_IMPACT_LEAD =
 
 const NOT_STATED_LABEL = "Not stated";
 
+// BATCH 7bd29982 (2026-09-10, Velorix DPIA 1294595f) — the builder's absence
+// value is "not stated on the record" (dpia-deliverables/build.ts NOT_STATED),
+// not this file's "Not stated"; the Step-4 guard compared against the wrong
+// literal and the document quoted the engine's own placeholder as the
+// company's words: The impact … is stated by the company separately from the
+// benefit: "not stated on the record". Both spellings are absence.
+function isAbsentValue(v: string): boolean {
+  return !v || v === NOT_STATED_LABEL || /^not stated( on the record)?\.?$/i.test(v.trim());
+}
+
 /** The measures list the proportionality `why` reads — same reader, same order. */
 function recordedSafeguards(intake: Bag): string[] {
   return arr(intake.existing_safeguards).filter((x) => x !== "None");
@@ -789,7 +806,7 @@ function composeOperationElement(f: Bag, p: Bag | null, intake: Bag, index: numb
 
   // STEP 1 — GOALS.
   const purposeRaw = s(f.purpose_text);
-  const purpose = purposeRaw && purposeRaw !== NOT_STATED_LABEL ? boundedClause(purposeRaw) : "";
+  const purpose = !isAbsentValue(purposeRaw) ? boundedClause(purposeRaw) : "";
   let necessityWhyRendered = false;
   if (purpose) {
     paras.push(
@@ -857,7 +874,7 @@ function composeOperationElement(f: Bag, p: Bag | null, intake: Bag, index: numb
     const impactRaw = s(p.impact_argument);
     // 2026-08-25 (batch be0f9e02) — whole-sentence passage; the clause
     // bound rendered mid-parenthetical fragments on rich impact fields.
-    const impact = impactRaw && impactRaw !== NOT_STATED_LABEL ? boundedPassage(impactRaw) : "";
+    const impact = !isAbsentValue(impactRaw) ? boundedPassage(impactRaw) : "";
     if (impact) paras.push(`${DPIA_S3_STEP4_IMPACT_LEAD} ${quoted(impact)}.`);
     if (s(p.verdict) === "proportionate_on_the_record") {
       paras.push(dpiaS3BalanceSentence(recordedSafeguards(intake).join("; ")));
@@ -894,7 +911,7 @@ export function composeNecessityBody(report: Bag, intakeInput?: Bag): string {
     const impactRaw = s(p.impact_argument);
     // 2026-08-25 (batch be0f9e02) — whole-sentence passage; the clause
     // bound rendered mid-parenthetical fragments on rich impact fields.
-    const impact = impactRaw && impactRaw !== NOT_STATED_LABEL ? boundedPassage(impactRaw) : "";
+    const impact = !isAbsentValue(impactRaw) ? boundedPassage(impactRaw) : "";
     if (impact) paras.push(`${DPIA_S3_STEP4_IMPACT_LEAD} ${quoted(impact)}.`);
     if (s(p.verdict) === "proportionate_on_the_record") {
       paras.push(dpiaS3BalanceSentence(recordedSafeguards(intake).join("; ")));
@@ -1004,7 +1021,7 @@ export function composeRiskBody(report: Bag, values: SlotValues, _intake: Bag = 
     // v4.6.2 (CEO-ordered polish round, 2026-08-25) — the per-row
     // "preliminary until {name} re-scores it … once they have been
     // deployed" tail is retired: residual ratings are final as of the
-    // assessment date, and later change is Art. 35(11) review (Section 6),
+    // assessment date, and later change is Art. 35(11) review (Section 7),
     // not completion of an unfinished DPIA. Supersedes the 2026-08-22
     // keep-the-sentence ruling per tonight's CEO-ordered implementation.
     blocks.push(`${head} ${protections}, and the remaining risk level is ${residual} after those measures are taken into account.`);
@@ -1110,7 +1127,7 @@ function composeSignoffBody(report: Bag, intake: Bag, values: SlotValues): strin
         .map(([band, labels]) => `${labels.length} at ${band} (${asProse(labels)})`)
         .join("; ");
       parts.push(
-        `Where that basis refers to accepted residual risks, the risks this assessment itself identifies, and their remaining levels, are those set out in Section 4${
+        `Where that basis refers to accepted residual risks, the risks this assessment itself identifies, and their remaining levels, are those set out in Section 5${
           bandSummary ? ` — currently ${bandSummary}` : ""
         }; the acceptance basis above is the Company's own record, quoted verbatim, and is not re-derived by this assessment.`,
       );
@@ -1715,9 +1732,18 @@ const DPIA_MATRIX_ROWS: readonly DpiaMatrixRowSpec[] = [
     // DESCRIPTIVE — one row per measure; count is genuine.
     label: "Data protection by design and by default",
     authority: "GDPR Art. 25; Art. 35(7)(d)",
-    reportDetermination: ({ tables }) => {
+    // BATCH 7bd29982 (2026-09-10, Velorix DPIA 1294595f) — the row counted
+    // the coverage table's rows alone; the table always carries ONE row,
+    // which on an empty dp_by_design_measures answer is the open Art. 25(1)
+    // ask, so Appendix A said "provided the necessary information …
+    // covering the 1 measure recorded" beside a body row reading ADDITIONAL
+    // INFORMATION REQUIRED. Status-aware now (the PANEL DPIA-P2 rule).
+    reportDetermination: ({ report, tables }) => {
       const n = tableRowCount(tables, ["section2_coverage.measures_dpbd"]);
-      return n > 0 ? providedFor("its data-protection-by-design measures", n, "measure") : null;
+      if (n === 0) return null;
+      const cov = (report as Bag).section2_coverage as Bag | undefined;
+      const rows = asArray(cov?.measures_dpbd);
+      return providedOrPartial("its data-protection-by-design measures", rows.length ? rows : new Array(n).fill({}), { count: n, noun: "measure" });
     },
   },
   {
@@ -1900,7 +1926,7 @@ export function buildDpiaSyllabus(
     [
       "Risks reviewed",
       total > 0
-        ? `${numberWord(total)} risk${total === 1 ? "" : "s"} on the record, with the measures the company records against each (Section 4)`
+        ? `${numberWord(total)} risk${total === 1 ? "" : "s"} on the record, with the measures the company records against each (Section 5)`
         : "None — the risk register is empty on the information provided",
     ],
   ];
@@ -1908,13 +1934,13 @@ export function buildDpiaSyllabus(
     rows.push(["Highest residual risk", `${highestBand} — after the recorded mitigating measures are taken into account`]);
   }
   const approver = str("dpiaApprovedByName");
-  rows.push(["Sign-off", approver ? `Recorded — ${approver} (Section 6)` : "Not recorded"]);
+  rows.push(["Sign-off", approver ? `Recorded — ${approver} (Section 7)` : "Not recorded"]);
   const outstandingRows = asArray(report.gap_ledger).filter((g) => s(g.dimensions) && s(g.field)).length;
   rows.push([
     "Open record items",
     outstandingRows > 0
-      ? `${numberWord(outstandingRows)} matter${outstandingRows === 1 ? "" : "s"} outstanding on the record (Section 6)`
-      : "None — the record is complete on the information provided (Section 6)",
+      ? `${numberWord(outstandingRows)} matter${outstandingRows === 1 ? "" : "s"} outstanding on the record (Section 7)`
+      : "None — the record is complete on the information provided (Section 7)",
   ]);
 
   const decisionObj = decisionSurface(report);
@@ -1938,8 +1964,13 @@ export function buildDpiaSyllabus(
     instrument_line: `DATA PROTECTION IMPACT ASSESSMENT · ${regime === "UK" ? "UK GDPR Art. 35" : "GDPR Art. 35"}`,
     prepared_for: entity,
     activity: activity || "Processing activity not named on the record",
+    // CEO edit 2026-09-10 (batch 7bd29982 session): the cover line under the
+    // activity now takes the CPPA Risk cover's form ("The “Activity,” assessed
+    // under 11 CCR §§ 7150–7157") — the defined term first, then the
+    // instrument. Typography follows that sibling (curly quotes, no terminal
+    // stop); the no-activity branch is unchanged.
     subtitle: activity
-      ? `Data protection impact assessment under ${regime === "UK" ? "UK GDPR" : "GDPR"} Art. 35 · the “Processing”`
+      ? `The “Processing,” assessed under ${regime === "UK" ? "UK GDPR" : "GDPR"} Art. 35`
       : `Data protection impact assessment under ${regime === "UK" ? "UK GDPR" : "GDPR"} Art. 35`,
     disposition_label: "DETERMINATION",
     disposition,

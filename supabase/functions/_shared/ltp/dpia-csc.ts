@@ -230,7 +230,7 @@ export function buildDpiaDataSubjectViews(intake: unknown): string {
   if (sought) parts.push(`The record states, on whether the views of data subjects were sought: ${sought.replace(/\.$/, "")}.`);
   if (views) parts.push(`The views recorded are: ${views.replace(/\.$/, "")}.`);
   parts.push(
-    "The controller records these views under GDPR Art. 35(9); where they were not followed, the reasons are recorded with the decision in Section 6.",
+    "The controller records these views under GDPR Art. 35(9); where they were not followed, the reasons are recorded with the decision in Section 7.",
   );
   return parts.join(" ");
 }

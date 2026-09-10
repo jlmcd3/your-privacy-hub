@@ -174,3 +174,45 @@ Deno.test("BATCH-66b383d8: every fallback DPIA sector block carries typed reason
   assertStringIncludes(body, '"Evaluation or scoring (incl. profiling / prediction)"');
   assertStringIncludes(body, '"Automated decision-making with legal or significant effect"');
 });
+
+// ── BATCH 7bd29982 (2026-09-10) — the Velorix DPIA (1294595f) scored 82/87
+// with TEN open record items, every one a field the DPIA engine tests and the
+// fixture prompt's DPIA skeleton never named (alternatives_considered, the
+// impact side, dp_by_design_measures, data_quality_measures,
+// data_subject_rights_mechanisms, dpo_info, processor_obligations, the
+// approval block). The Velostream Risk (1b431d09) rendered § 2.B with no
+// body: the § 7152(a)(3)(A) processing record was never in the skeleton. ──
+
+Deno.test("BATCH-7bd29982: the DPIA prompt skeleton names every optional narrative the engine tests, in the contract's own shapes", async () => {
+  const src = await Deno.readTextFile(SRC_PATH);
+  for (const key of [
+    '"necessity_proportionality": "string',
+    '"alternatives_considered": [{ "processing_operation": "string',
+    '"rejection_reason": "string',
+    '"residual_risks": "string',
+    '"data_minimisation_justification": "string',
+    '"data_quality_measures": "string',
+    '"data_subject_rights_mechanisms": "string',
+    '"dp_by_design_measures": "string',
+    '"dpo_info": "string',
+    '"processor_obligations": "string',
+    '"dpia_prepared_by": "string',
+    '"dpia_approved_by_name": "string", "dpia_approved_by_title": "string", "dpia_approval_date": "YYYY-MM-DD", "dpia_signoff_basis": "string',
+    '"dpo_advice": "string',
+    '"data_subjects_views_sought": "Yes or No", "data_subjects_views": "string',
+  ]) {
+    assertStringIncludes(src, key, `DPIA skeleton missing ${key}`);
+  }
+  // The contract's shapeNote: the inner key is rejection_reason, never reason_rejected.
+  assert(!src.includes('"reason_rejected"'), "the DPIA skeleton must never emit reason_rejected");
+});
+
+Deno.test("BATCH-7bd29982: the Risk prompt skeleton and the fallback both carry the § 7152(a)(3)(A) processing record", async () => {
+  const src = await Deno.readTextFile(SRC_PATH);
+  assertStringIncludes(src, '"processing_entry_point": "string');
+  assertStringIncludes(src, '"processing_methods": { "collection_method": "string", "use_method": "string", "disclosure_method": "string');
+  assertStringIncludes(src, '"processing_result": "string');
+  assertStringIncludes(src, "processing_entry_point: \"Information enters the process when a consumer creates an account");
+  assertStringIncludes(src, "other_processing_method: \"N/A\",");
+  assertStringIncludes(src, "processing_result: \"A per-account risk score");
+});

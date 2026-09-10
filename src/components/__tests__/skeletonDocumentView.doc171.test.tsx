@@ -15,7 +15,7 @@ const DOC: SkeletonDocument = {
     instrument_line: "DATA PROTECTION IMPACT ASSESSMENT · GDPR Art. 35",
     prepared_for: "Acme, Inc.",
     activity: "Shipment-tracking advertising profiles",
-    subtitle: "Data protection impact assessment under GDPR Art. 35 · the “Processing”",
+    subtitle: "The “Processing,” assessed under GDPR Art. 35",
     disposition_label: "DETERMINATION",
     disposition: "Approved",
     disposition_tone: "ok",
