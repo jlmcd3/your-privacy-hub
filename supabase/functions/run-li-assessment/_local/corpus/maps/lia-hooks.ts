@@ -6,7 +6,6 @@
 //
 // EXCLUDED ROWS (named, not silently dropped):
 //   4ef4d633-ba56-4d2c-bf33-c75b503f3e62#v1 — hook_status is "contested", not "ratified"
-//   cbd38bc6-53b1-444e-b242-d0858c372a43#v1 — hook_status is "settled", not "ratified"
 //   164d80ea-f506-4a91-8a8f-0a337c490333#v1 — hook row is retired
 //   095239df-0839-4480-996c-138ecc48a7e2#v1 — hook_status is "contested", not "ratified"
 //   fddd8eec-7ba0-481a-b770-c0f653a8ab8f#v1 — hook_status is "contested", not "ratified"
@@ -518,6 +517,125 @@ export const LIA_HOOKS: readonly AuthorityHook[] = [
     "hedge_variant": null,
     "hedge_sentence": null,
     "literal_sentence_override": "The company has identified direct marketing as the interest it is pursuing. The ICO says direct marketing can be a legitimate interest, and that legitimate interests can be an appropriate lawful basis where the activity does not need consent under PECR. To rely on legitimate interests, though, the company must complete the three-part test: identify a legitimate purpose, show the proposed use of personal information is necessary and proportionate to that purpose, and show its interests are not overridden by the rights and interests of the people affected. Relevant factors include the privacy impact of the activity, whether people would reasonably expect their information to be used this way, and whether they are likely to object. Section II addresses whether the company's stated interest is legitimate; Sections III and IV address necessity and balancing separately. (ICO guidance (\"Plan direct marketing,\" section \"How does legitimate interests apply to direct marketing?\"); regulatory guidance interpreting the UK GDPR and PECR.)",
+    "status_in_citation": true
+  },
+  {
+    "hook_id": "edpb_guidelines:697ad8e1-6700-4a63-8888-12214dcc6c8b:v1",
+    "profile_id": "cbd38bc6-53b1-444e-b242-d0858c372a43",
+    "source_row_id": "697ad8e1-6700-4a63-8888-12214dcc6c8b",
+    "fact_atoms": [
+      "class:employee_monitoring",
+      "relationship:employee",
+      "data_category:Browsing/behavioural data",
+      "data_category:Communications data",
+      "state:intake.necessity_details.achievable_without_personal_data=Yes — the purpose could be achieved without personal data, or with anonymised or synthetic data"
+    ],
+    "distinguishing_atoms": [],
+    "not_distinguishable": false,
+    "required_atoms": [
+      "class:employee_monitoring",
+      "relationship:employee"
+    ],
+    "finding_span": "If misuse can be prevented (e.g., by using web filters) the employer has no general\nright to monitor.",
+    "fact_pattern_paraphrase": "an employer monitoring employees' internet use where misuse could instead be prevented by technical means such as web filters",
+    "finding_paraphrase": "where misuse can be prevented by technical means such as web filters the employer has no general right to monitor",
+    "settledness": "R3",
+    "posture": "conditional",
+    "factor_id": "Necessity and less-intrusive means",
+    "bears_on_element": "necessity",
+    "authority_label": "Article 29 Working Party, Opinion 2/2017 on data processing at work",
+    "regulator": "the Article 29 Working Party",
+    "relevance": {
+      "instrument": "EU GDPR",
+      "factor_ids": [
+        "Necessity and less-intrusive means"
+      ],
+      "use_case_class": "employee_monitoring",
+      "relationship": "employee",
+      "data_categories": [
+        "Browsing/behavioural data"
+      ],
+      "flags": [],
+      "outcome_posture": "conditional"
+    },
+    "authority_label_short": "WP29 Opinion 2/2017",
+    "hook_version": 1,
+    "source_status": "wp29_opinion",
+    "status_label": "Article 29 Working Party opinion, 8 June 2017 — historical interpretive guidance, not endorsed by the EDPB; current relevance verified 2026-09-08",
+    "verb": "advised",
+    "appeal_note": null,
+    "verified_as_of": "2026-09-08",
+    "pinpoint": {
+      "kind": "section",
+      "ref": "6.4",
+      "anchor_span": "6.4 Proportionality and data minimisation"
+    },
+    "recognised_proposition": "monitoring of employees at work may be justified only as a proportionate response to the risks faced by the employer",
+    "condition_text": "only where misuse cannot be prevented by less intrusive technical means such as web filters, prevention being given much more weight than detection",
+    "condition_atoms": null,
+    "material_facts": [
+      {
+        "atom": "class:employee_monitoring",
+        "source_span": "Data processing at work must be a proportionate response to the risks faced by an employer.",
+        "materiality_reason": "the guidance addresses monitoring of workers by an employer at work"
+      },
+      {
+        "atom": "relationship:employee",
+        "source_span": "most monitoring has the potential to infringe on the\nprivate lives of employees",
+        "materiality_reason": "the data subjects are employees whose private lives may be infringed by monitoring"
+      },
+      {
+        "atom": "data_category:Browsing/behavioural data",
+        "source_span": "internet misuse can be detected without the necessity of analysing website\ncontent",
+        "materiality_reason": "the monitoring at issue concerns internet use and website content"
+      },
+      {
+        "atom": "data_category:Communications data",
+        "source_span": "a blanket ban on communication for personal reasons is impractical",
+        "materiality_reason": "the same passage treats monitoring of personal communications at work"
+      },
+      {
+        "atom": "state:intake.necessity_details.achievable_without_personal_data=Yes — the purpose could be achieved without personal data, or with anonymised or synthetic data",
+        "source_span": null,
+        "materiality_reason": "the finding turns on a less intrusive preventive alternative being available instead of monitoring"
+      }
+    ],
+    "distinguishing_pairs": [
+      {
+        "record_atom": "state:intake.necessity_details.achievable_without_personal_data=Yes — the purpose could be achieved without personal data, or with anonymised or synthetic data",
+        "why_material": "the guidance's premise is that a preventive, less intrusive technical measure exists; where none does, the passage says nothing about the employer's position",
+        "exclusion_span": null,
+        "record_polarity": "absent",
+        "source_polarity": "present",
+        "source_fact_span": "If misuse can be prevented (e.g., by using web filters) the employer has no general",
+        "exclusion_paraphrase": null,
+        "source_expressly_excludes": false
+      },
+      {
+        "record_atom": "relationship:employee",
+        "why_material": "the proportionality reasoning rests on the employment relationship and its imbalance of power; monitoring of customers or the public is not addressed",
+        "exclusion_span": null,
+        "record_polarity": "absent",
+        "source_polarity": "present",
+        "source_fact_span": "most monitoring has the potential to infringe on the\nprivate lives of employees",
+        "exclusion_paraphrase": null,
+        "source_expressly_excludes": false
+      },
+      {
+        "record_atom": "data_category:Browsing/behavioural data",
+        "why_material": "the example concerns internet use and website content; other categories of workplace data are not the subject of this finding",
+        "exclusion_span": null,
+        "record_polarity": "absent",
+        "source_polarity": "present",
+        "source_fact_span": "internet misuse can be detected without the necessity of analysing website\ncontent",
+        "exclusion_paraphrase": null,
+        "source_expressly_excludes": false
+      }
+    ],
+    "governing_provision_sentence": null,
+    "hedge_variant": null,
+    "hedge_sentence": null,
+    "literal_sentence_override": "In WP29 Opinion 2/2017, the Article 29 Working Party advised that monitoring of employees at work must be a proportionate response to the risks faced by the employer, and that where misuse can instead be prevented by technical means, the employer has no general right to monitor. The information provided by the company describes employee monitoring; whether it meets that standard is addressed in Section III. (Article 29 Working Party, Opinion 2/2017 on data processing at work § 6.4; Article 29 Working Party opinion, 8 June 2017 — historical interpretive guidance, not endorsed by the EDPB.)",
     "status_in_citation": true
   }
 ];
