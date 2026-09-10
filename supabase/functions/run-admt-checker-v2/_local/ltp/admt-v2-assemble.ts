@@ -1145,14 +1145,21 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   // which projects only the determinations already made, not persuasive
   // citations) — the same "append after assembly, before render" placement
   // DPIA's own splice uses (doc 232 §4). A section id with no matching
-  // rendered section (e.g. "notice" while the pathway is fully out of
-  // scope and only prints a not-reached stub) is silently skipped — never
-  // an error, never a padded new section. ──────────────────────────────────
+  // rendered section is silently skipped — never an error, never a padded
+  // new section.
+  //
+  // BATCH 66b383d8 (2026-09-10): the duty audits (§§3-6) still render as
+  // not-reached stubs under their own ids when the pathway is out of scope
+  // (push("optout", …) above), so the id lookup alone found the stub and a
+  // ratified opt-out hook printed a full exception analysis directly under
+  // "Not reached." Out of scope, a duty-section append is dropped; the
+  // applicability and governance sections still take theirs. ──────────────
   const syllabus = buildAdmtV2Syllabus(sections, computed, execLead, organizationName, systemName);
   const admtV3Append = args.admtV3Append;
   if (admtV3Append) {
     for (const [sectionId, sentences] of Object.entries(admtV3Append)) {
       if (!sentences || sentences.length === 0) continue;
+      if (outOfScope && ADMT_DUTY_SECTION_IDS.has(sectionId)) continue;
       const target = sections.find((s) => s.id === sectionId);
       if (!target) continue; // the section did not render this generation — nothing to append to
       for (const sentence of sentences) {
@@ -1239,6 +1246,9 @@ function vendorLead(intake: Record<string, unknown>, vendor: { identified: boole
 // states only the reason.
 const NOT_REACHED_PHRASE =
   "This requirement is not assessed because the decision pathway is outside Article 11 on the reported facts (see Section 2).";
+// The §§3-6 duty audits — the sections that render only a not-reached stub
+// when the pathway is out of scope, and so take no hook sentence then.
+const ADMT_DUTY_SECTION_IDS: ReadonlySet<string> = new Set(["notice", "optout", "access", "vendor"]);
 // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31, ADMT
 // P1-4) — the pathway-aware variant, used where scope.pathwayDependent is
 // true: names which pathway is not reached and points at the Condition to

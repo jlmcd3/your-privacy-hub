@@ -137,9 +137,15 @@ Deno.test("zero-call — assembleAdmtV2Document produces a byte-identical docume
 // DOC 237 — the "opposite" proof DPIA's own suite carries ("DOES append when
 // sentences ARE supplied"): without it the three byte-identity assertions
 // above would also pass against a splice that silently did nothing.
+// BATCH 66b383d8 (2026-09-10): fixtureIntake() records QUALIFYING human
+// review, so it resolves OUT_OF_SCOPE and §5 renders only a not-reached stub —
+// this proof used to land its sentence in that stub, which is the defect the
+// assembler now guards against. The append proof runs on the in-scope twin;
+// the byte-identity proofs above keep the out-of-scope fixture.
 Deno.test("zero-call — assembleAdmtV2Document DOES append when a sentence is supplied (proves the no-op above is real, not a broken feature)", () => {
-  const intake = fixtureIntake();
+  const intake = { ...fixtureIntake(), human_review: "No — fully automated, no human review" };
   const computed = computeAdmtV2(intake as any);
+  assertEquals(computed.scope.scopeState, "IN_SCOPE", "the append proof must run on an in-scope document — out of scope, a duty-section append is dropped by design");
   const args = { intake, computed, exhibit: null, organizationName: "Test Co", systemName: "Test Hiring Screener" };
   const sentence = "In Test Regulator, Test Matter, the regulator found that where a hiring screener ran without review, the access response had to disclose the outcome. (Test citation; test status.)";
   const withoutHooks = assembleAdmtV2Document(args);

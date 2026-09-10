@@ -24,7 +24,7 @@
 // zero blocking violations. This test is a narrower, permanent guard against
 // the specific literals regressing.
 
-import { assert, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
 const SRC_PATH = new URL("../../../supabase/functions/generate-stress-fixtures/index.ts", import.meta.url);
 
@@ -142,4 +142,35 @@ Deno.test("PANEL-11b: dpia's legal_basis_proposed is a closed radio option in ev
   assertStringIncludes(src, 'retention_period: "Customer and account records: 6 years after the end of the relationship');
   assert(!src.includes('retention_period: "To be confirmed'), "dpia retention TBD placeholder resurfaced");
   assertStringIncludes(src, "controller_sector: industry,");
+});
+
+// ── BATCH 66b383d8 (2026-09-10) — the Vaultara DPIA (f4f60989) rendered a
+// two-row risk register (r1, r6) for a 1.2M-entity ML behavioural-scoring
+// platform. The register is deterministic (_shared/ltp/dpia-deliverables/
+// elements.ts): r8 (evaluation / scoring / automated decision) keys off the
+// closed `reasons_to_conduct` list, and the fixture prompt's DPIA skeleton
+// never named that key, so the model could not emit it and the fallback
+// omitted it too — `record_complete.empty_required_keys` listed it. ──
+
+Deno.test("BATCH-66b383d8: the DPIA prompt skeleton names reasons_to_conduct so withInlineOptions can inline DPIA_REASONS", async () => {
+  const src = await Deno.readTextFile(SRC_PATH);
+  assertStringIncludes(src, '"reasons_to_conduct": ["array"],');
+});
+
+Deno.test("BATCH-66b383d8: every fallback DPIA sector block carries typed reasons_to_conduct from the contract's own DPIA_REASONS", async () => {
+  const src = await Deno.readTextFile(SRC_PATH);
+  assertStringIncludes(src, "DPIA_LEGAL_BASES, DPIA_ART9, DPIA_REASONS,");
+  assertStringIncludes(src, "reasons_to_conduct: (typeof DPIA_REASONS[number])[];");
+  // One `reasons_to_conduct:` literal per sector block (eight sector matches
+  // plus the default) inside getDpiaIntakeForSector.
+  const start = src.indexOf("function getDpiaIntakeForSector(");
+  const end = src.indexOf("function buildCallBEUPrompt(");
+  assert(start > 0 && end > start, "getDpiaIntakeForSector / buildCallBEUPrompt anchors moved");
+  const body = src.slice(start, end);
+  const blocks = (body.match(/legal_basis_proposed: "/g) ?? []).length;
+  const reasons = (body.match(/reasons_to_conduct: \[/g) ?? []).length;
+  assertEquals(reasons, blocks, `every sector block that sets legal_basis_proposed must also set reasons_to_conduct (${reasons}/${blocks})`);
+  // The profiling sectors must reach r8's trigger vocabulary verbatim.
+  assertStringIncludes(body, '"Evaluation or scoring (incl. profiling / prediction)"');
+  assertStringIncludes(body, '"Automated decision-making with legal or significant effect"');
 });

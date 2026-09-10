@@ -66,7 +66,7 @@ import {
   POTENTIAL_HARM_OPTS as LIA_POTENTIAL_HARM_OPTS,
 } from "../_shared/intake-contracts/li-assessment.ts";
 import {
-  DPIA_DATA_CATS, DPIA_SAFEGUARDS, DPIA_JURISDICTIONS, DPIA_LEGAL_BASES, DPIA_ART9,
+  DPIA_DATA_CATS, DPIA_SAFEGUARDS, DPIA_JURISDICTIONS, DPIA_LEGAL_BASES, DPIA_ART9, DPIA_REASONS,
 } from "../_shared/intake-contracts/dpia-framework.ts";
 
 // Broad industry classification used to pick each product's OWN real enum
@@ -353,6 +353,11 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
   data_subjects: string;
   legal_basis_proposed: typeof DPIA_LEGAL_BASES[number];
   article_9_condition?: typeof DPIA_ART9[number];
+  // BATCH 66b383d8 (2026-09-10): the WP248 reasons the controller selects.
+  // Left empty, the DPIA risk register can never reach r8 (evaluation /
+  // scoring / automated decision) however profiling-heavy the description
+  // is — the register keys off this closed list, not the prose.
+  reasons_to_conduct: (typeof DPIA_REASONS[number])[];
   automated_decisions: string;
 } {
   const s = industry.toLowerCase();
@@ -363,6 +368,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     data_categories: ["Contact details", "Location data", "Customer records", "Other"],
     data_subjects: "Platform users and third-party website visitors whose identifiers are collected via pixels and SDKs",
     legal_basis_proposed: "Consent (Art. 6(1)(a))",
+    reasons_to_conduct: ["Evaluation or scoring (incl. profiling / prediction)", "Matching or combining datasets", "Data processed on a large scale"],
     automated_decisions: "Automated audience scoring affects ad delivery; not Article 22 in scope absent significant effect on individuals.",
   };
   if (/healthcare|life science|clinical|medical|pharma/i.test(s)) return {
@@ -373,6 +379,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     data_subjects: "Patients and clinical trial participants, including potentially vulnerable individuals",
     legal_basis_proposed: "Contract (Art. 6(1)(b))",
     article_9_condition: "Preventive/occupational medicine, health or social care (Art. 9(2)(h))",
+    reasons_to_conduct: ["Large-scale special-category or criminal-offence data (Art. 35(3)(b))", "Sensitive or highly personal data", "Data concerning vulnerable subjects"],
     automated_decisions: "Clinical decision-support tools may generate automated recommendations; final decisions made by clinicians.",
   };
   if (/data broker|data intel|enrichment|audience data/i.test(s)) return {
@@ -382,6 +389,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     data_categories: ["Contact details", "Customer records", "Financial data", "Other"],
     data_subjects: "Individuals whose data is collected indirectly via third-party sources, public records, or data partnerships — not from direct collection",
     legal_basis_proposed: "Legitimate interest (Art. 6(1)(f))",
+    reasons_to_conduct: ["Systematic, extensive evaluation / profiling with significant effects (Art. 35(3)(a))", "Matching or combining datasets", "Data processed on a large scale"],
     automated_decisions: "Automated profile scoring used to assign segments; no solely automated Article 22 decisions without human review.",
   };
   if (/edtech|children|child|schools|students|learning/i.test(s)) return {
@@ -391,6 +399,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     data_categories: ["Children's data", "Contact details", "Customer records", "Other"],
     data_subjects: "Children and young people aged under 18 (students/learners), parents or guardians, and teachers — a vulnerable population",
     legal_basis_proposed: "Contract (Art. 6(1)(b))",
+    reasons_to_conduct: ["Data concerning vulnerable subjects", "Evaluation or scoring (incl. profiling / prediction)"],
     automated_decisions: "Automated learning progress scoring; no solely automated decisions with significant legal or educational effects.",
   };
   if (/biotech|genomic|genetic|genome/i.test(s)) return {
@@ -401,6 +410,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     data_subjects: "Research participants and patients who have provided samples, including family members whose genetic data may be incidentally revealed",
     legal_basis_proposed: "Consent (Art. 6(1)(a))",
     article_9_condition: "Archiving, research or statistics — Art. 89(1) (Art. 9(2)(j))",
+    reasons_to_conduct: ["Large-scale special-category or criminal-offence data (Art. 35(3)(b))", "Sensitive or highly personal data", "Innovative use of new technology"],
     automated_decisions: "Automated genomic analysis tools used; outputs reviewed by qualified scientists before any clinical application.",
   };
   if (/hr|employment|workforce|recruitment|payroll/i.test(s)) return {
@@ -411,6 +421,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     data_subjects: "Employees, contractors, and job applicants in a power-imbalanced relationship with the controller",
     legal_basis_proposed: "Contract (Art. 6(1)(b))",
     article_9_condition: "Employment, social security & social protection law (Art. 9(2)(b))",
+    reasons_to_conduct: ["Systematic monitoring (of employees, a defined population, or a non-public space)", "Evaluation or scoring (incl. profiling / prediction)", "Data concerning vulnerable subjects"],
     automated_decisions: "Performance scoring may inform promotion or disciplinary decisions; human review mandatory for all significant employment decisions.",
   };
   if (/gov|public sector|public authority|government/i.test(s)) return {
@@ -421,6 +432,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     data_subjects: "Members of the public interacting with public services; potentially including vulnerable individuals",
     legal_basis_proposed: "Public task (Art. 6(1)(e))",
     article_9_condition: "Substantial public interest — Union/Member State law (Art. 9(2)(g))",
+    reasons_to_conduct: ["Sensitive or highly personal data", "Processing prevents exercising a right / using a service", "Data concerning vulnerable subjects"],
     automated_decisions: "Administrative decisions may be partially automated; Article 22 applies to solely automated decisions with significant individual effects.",
   };
   if (/ai|machine learning|artificial intelligence|ml model/i.test(s)) return {
@@ -430,6 +442,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     data_categories: ["Customer records", "Contact details", "Communications content", "Other"],
     data_subjects: "Individuals whose data is used to train or evaluate models, and individuals subject to model outputs",
     legal_basis_proposed: "Legitimate interest (Art. 6(1)(f))",
+    reasons_to_conduct: ["Evaluation or scoring (incl. profiling / prediction)", "Automated decision-making with legal or significant effect", "Innovative use of new technology", "Data processed on a large scale"],
     automated_decisions: "Model outputs may constitute Article 22 automated decisions if they produce significant individual effects; human review obligations must be assessed.",
   };
   // Default: generic security monitoring (unchanged for sectors not requiring specific treatment)
@@ -440,6 +453,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     data_categories: ["Contact details", "Customer records", "Other"],
     data_subjects: "Customers and end users",
     legal_basis_proposed: "Legitimate interest (Art. 6(1)(f))",
+    reasons_to_conduct: ["Systematic monitoring (of employees, a defined population, or a non-public space)"],
     automated_decisions: "No solely automated legal or similarly significant decisions",
   };
 }
@@ -466,6 +480,7 @@ Return a JSON object with EXACTLY these fields:
     "retention_period": "string", "third_party_processors": ["array"], "nature_scope_context": "string — DOC 160: the nature, scope and context of the processing, including any automated decision-making and the human review applied to it (the contract has no automated_decisions key)",
     "existing_safeguards": ["array"], "jurisdictions": ["array"],
     "legal_basis_proposed": "string", "controller_sector": "string",
+    "reasons_to_conduct": ["array"],
     "imagery_capture": "one of EXACTLY: 'No imagery or video of identifiable individuals' | 'Imagery or video in which identifiable individuals are the subjects' | 'Imagery or video in which identifiable individuals appear incidentally' — DOC 131 typed fact, always answer it with the value the scenario supports",
     "imagery_capture_spaces": "when imagery_capture is not the No value, one of EXACTLY: 'Publicly accessible spaces' | 'Private or controlled premises' | 'Both'; otherwise the empty string",
     "imagery_capture_detail": "one or two scenario-specific sentences about the imagery, or why none exists"

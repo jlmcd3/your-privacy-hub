@@ -25,3 +25,16 @@ Deno.test("closed-list placeholders are replaced by verbatim options", () => {
   assertStringIncludes(out, "'Ransomware or malware'");
   assertStringIncludes(out, "'Facial geometry / facial recognition'");
 });
+
+// BATCH 66b383d8 (2026-09-10) — reasons_to_conduct must resolve for the exact
+// CALL B (EU) tool list, not just for ["dpia"] alone: leafOptionMap drops a
+// leaf that two listed contracts define differently, and a silent drop here
+// is exactly how the DPIA fixture lost the key.
+Deno.test("reasons_to_conduct inlines the verbatim DPIA_REASONS list under the CALL B (EU) tool set", () => {
+  const out = withInlineOptions(`{\n  "reasons_to_conduct": ["array"]\n}`, ["lia", "dpia", "cppaAdmt"]);
+  assert(!out.includes('["array"]'), `placeholder survived: ${out}`);
+  assertStringIncludes(out, "choose 1+ VERBATIM from:");
+  assertStringIncludes(out, "'Evaluation or scoring (incl. profiling / prediction)'");
+  assertStringIncludes(out, "'Automated decision-making with legal or significant effect'");
+  assertStringIncludes(out, "'Systematic, extensive evaluation / profiling with significant effects (Art. 35(3)(a))'");
+});

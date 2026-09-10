@@ -483,6 +483,45 @@ Deno.test("integration — a hook application's sentence, spliced via admtV3Appe
   }
 });
 
+// ── BATCH 66b383d8 (2026-09-10) — an out-of-scope document renders §§3-6 as
+// not-reached stubs under their real ids, so an id lookup alone would splice a
+// hook sentence directly beneath "Not reached." (the Fortivex ADMT report
+// printed a full human-appeal-exception analysis in a Section 4 it had just
+// declared not assessed). Duty-section appends are dropped out of scope;
+// applicability/governance appends still land. ────────────────────────────
+
+Deno.test("batch 66b383d8 — out of scope, a hook sentence aimed at a duty section (optout) is dropped even though the not-reached stub carries that id; a governance append still lands", () => {
+  const intake: Record<string, unknown> = {
+    organization_name: "Test Co", system_name: "Test System", system_type: "ML classifier",
+    system_description: "An advertising-only system.",
+    decision_domains: [],
+    admt_detail: { solely_advertising: "Yes — solely advertising" },
+  };
+  const computed = computeAdmtV2(intake as any);
+  assertEquals(computed.scope.scopeState, "OUT_OF_SCOPE", "fixture must be out of scope for this pin to mean anything");
+
+  const bare = assembleAdmtV2Document({ intake, computed, exhibit: null, organizationName: "Test Co", systemName: "Test System" });
+  const stub = bare.sections.find((s) => s.id === "optout");
+  assertEquals(stub !== undefined, true, "the not-reached stub renders under the real 'optout' id — that is the hazard");
+  assertEquals(stub!.paragraphs.length, 1);
+  assertEquals(stub!.paragraphs[0].text.startsWith("Not reached."), true);
+
+  const dutySentence = "The company relies on the human-appeal exception — this must not print under Not reached.";
+  const govSentence = "A governance sentence that is still welcome out of scope.";
+  const doc = assembleAdmtV2Document({
+    intake, computed, exhibit: null, organizationName: "Test Co", systemName: "Test System",
+    admtV3Append: { optout: [dutySentence], notice: [dutySentence], access: [dutySentence], vendor: [dutySentence], governance: [govSentence] },
+  });
+  assertEquals(doc.sections.length, bare.sections.length);
+  for (const section of doc.sections) {
+    assertEquals(section.paragraphs.some((p) => p.text === dutySentence), false, `duty sentence leaked into section "${section.id}"`);
+  }
+  const optout = doc.sections.find((s) => s.id === "optout")!;
+  assertEquals(JSON.stringify(optout.paragraphs), JSON.stringify(stub!.paragraphs), "the stub is byte-identical to the no-append render");
+  const governance = doc.sections.find((s) => s.id === "governance")!;
+  assertEquals(governance.paragraphs.some((p) => p.kind === "generated" && p.text === govSentence), true, "governance still takes its sentence out of scope");
+});
+
 Deno.test("integration — appending to a section id that does not exist on this generation's document is skipped silently (never an error, never a fabricated section)", () => {
   const intake: Record<string, unknown> = {
     organization_name: "Test Co", system_name: "Test System", system_type: "ML classifier",
