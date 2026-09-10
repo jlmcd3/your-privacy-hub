@@ -55,10 +55,11 @@ Deno.test("7bd29982 ADMT-1 — the 'None of these categories' option renders as 
   const computed = computeAdmtV2(intake as any);
   const doc = assembleAdmtV2Document({ intake, computed, exhibit: null, organizationName: intake.organization_name, systemName: intake.system_name });
   const exec = sectionText(doc, "executive_summary");
-  assertStringIncludes(exec, "The Company records the decision VeloTarget Behavioral Scoring Engine makes as outside every § 7001(ddd) significant-decision category.");
+  // DOC 251 ledger A2/A3 — CEO-revised bytes (2026-09-10), pinned byte-exact.
+  assertStringIncludes(exec, "The Company’s position is that the decision VeloTarget Behavioral Scoring Engine makes is not a “significant decision” under § 7001(ddd).");
   assert(!exec.includes("in None of these categories"), exec);
   const profile = sectionText(doc, "system_profile");
-  assertStringIncludes(profile, "The Company records the decision the System makes as outside every § 7001(ddd) significant-decision category.");
+  assertStringIncludes(profile, "The Company’s position is that the decision the System makes is not a “significant decision” under § 7001(ddd).");
   assert(!profile.includes("The System is used in None"), profile);
 });
 

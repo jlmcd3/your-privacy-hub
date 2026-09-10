@@ -675,8 +675,9 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
     // not reported." on a blank-domains record; the blank branch now
     // degrades as its own honest sentence.
     { kind: "skeleton", text: `${
+      // DOC 251 ledger A2 — CEO-revised bytes (2026-09-10).
       noneOnly
-        ? `The Company records the decision ${systemName || "the System"} makes as outside every § 7001(ddd) significant-decision category.`
+        ? `The Company’s position is that the decision ${systemName || "the System"} makes is not a “significant decision” under § 7001(ddd).`
         : domains.length
         ? `The Company uses ${systemName || "the System"} in ${reader(domains)}.`
         : `The Company has not identified the decision domain in which it uses ${systemName || "the System"}.`
@@ -740,8 +741,9 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   push("system_profile", "1. System and Decision Profile", [
     // NR-75 fix (doc 75): same blank-domains degradation as the exec summary.
     { kind: "skeleton", text: `The Company identifies the System as ${systemName || "(not provided)"}${sysTypePhrase}. The Company describes the System as follows: ${sysDescSentence} ${
+      // DOC 251 ledger A3 — CEO-revised bytes (2026-09-10).
       noneOnly
-        ? "The Company records the decision the System makes as outside every § 7001(ddd) significant-decision category."
+        ? "The Company’s position is that the decision the System makes is not a “significant decision” under § 7001(ddd)."
         : domains.length
         ? `The System is used in ${reader(domains)}.`
         : "The Company has not identified the decision domain in which the System is used."
