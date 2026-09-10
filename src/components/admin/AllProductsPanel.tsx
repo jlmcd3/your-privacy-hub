@@ -257,7 +257,7 @@ export function AllProductsPanel() {
                 const lb = ensureLocalBatchFor(claudeBatchId);
                 let outcomeId: string | undefined;
                 if (claimOnce(lb, j.id, "run")) {
-                  recordLocalRun(lb, SLUG_TO_STRESS_TOOL[row.tool_slug], j.status === "complete");
+                  recordLocalRun(lb, SLUG_TO_STRESS_TOOL[row.tool_slug], j.status === "complete", j.id);
                   outcomeId = newOutcomeId();
                   recordOutcome({
                     id: outcomeId,
@@ -489,6 +489,7 @@ export function AllProductsPanel() {
                   localBatchId,
                   SLUG_TO_STRESS_TOOL[row.tool_slug],
                   j.status === "complete",
+                  j.id,
                 );
               }
               if (
@@ -599,7 +600,7 @@ export function AllProductsPanel() {
       if (outcomeId) updateOutcome(outcomeId, { gradeError: res.error ?? "no score" });
       return;
     }
-    recordLocalScore(batchId, SLUG_TO_STRESS_TOOL[slug], res.claude, res.gpt);
+    recordLocalScore(batchId, SLUG_TO_STRESS_TOOL[slug], res.claude, res.gpt, sourceRowId);
     if (outcomeId) {
       updateOutcome(outcomeId, {
         claudeScore: res.claude,
