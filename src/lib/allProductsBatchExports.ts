@@ -426,7 +426,8 @@ export async function downloadBatchErrorsMarkdown(batchId: string, outcomes: Run
       findingRows += det.length;
       blocks.push(`- **deterministic** — ${det.length} proved defect(s):`);
       for (const f of det as Array<Record<string, unknown>>) {
-        const ev = String(f.evidence ?? "").replace(/\n/g, " ").slice(0, 400);
+        // 2026-09-10 — grader comments are never truncated in the .md export.
+        const ev = String(f.evidence ?? "").replace(/\n/g, " ");
         blocks.push(`  - \`${f.check_id ?? "?"}\` · ${f.severity ?? "—"} · ${f.classification ?? "—"}${ev ? ` — ${ev}` : ""}`);
       }
     }
@@ -442,7 +443,7 @@ export async function downloadBatchErrorsMarkdown(batchId: string, outcomes: Run
       if (failed.length) {
         blocks.push(`- **${model}** — ${failed.length} failed check(s):`);
         for (const f of failed) {
-          const ev = String(f.evidence ?? "").replace(/\n/g, " ").slice(0, 400);
+          const ev = String(f.evidence ?? "").replace(/\n/g, " ");
           // DOC 129 §1.3 — the finding classification renders beside the
           // dimension/severity so engineering can triage without re-tracing.
           const cls = f.classification ? ` · ${String(f.classification)}` : "";
