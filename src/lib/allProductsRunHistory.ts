@@ -183,6 +183,7 @@ export function startLocalBatch(): string {
   };
   cache = [...cache, batch].slice(-MAX_BATCHES);
   emit();
+  void pushEvent({ batch_id: batch.id, kind: "open", job_key: "open", batch_started_at: now });
   return batch.id;
 }
 
@@ -198,9 +199,11 @@ export function ensureLocalBatchFor(serverBatchId: string): string {
     const now = new Date().toISOString();
     cache = [...cache, { id, started_at: now, last_at: now, tools: {} }].slice(-MAX_BATCHES);
     emit();
+    void pushEvent({ batch_id: id, kind: "open", job_key: "open", batch_started_at: now });
   }
   return id;
 }
+
 
 const SEEN_KEY = "eup.allProductsTest.localBatches.seen.v1";
 
