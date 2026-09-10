@@ -734,7 +734,7 @@ export function AllProductsPanel() {
           ok += 1;
           appendLog(k, `✅ complete${runLabel} — ${out.resultUrl}`);
           setRow(k, { status: "complete", resultUrl: out.resultUrl, sourceRowId: out.sourceRowId });
-          recordLocalRun(localBatchId, SLUG_TO_STRESS_TOOL[f.tool_slug], true);
+          recordLocalRun(localBatchId, SLUG_TO_STRESS_TOOL[f.tool_slug], true, outcomeId);
           recordOutcome({
             id: outcomeId,
             batchId: localBatchId,
@@ -754,7 +754,7 @@ export function AllProductsPanel() {
         } catch (e) {
           appendLog(k, `❌${runLabel} ${(e as Error).message}`);
           setRow(k, { status: "failed" });
-          recordLocalRun(localBatchId, SLUG_TO_STRESS_TOOL[f.tool_slug], false);
+          recordLocalRun(localBatchId, SLUG_TO_STRESS_TOOL[f.tool_slug], false, outcomeId);
           recordOutcome({
             id: outcomeId,
             batchId: localBatchId,
