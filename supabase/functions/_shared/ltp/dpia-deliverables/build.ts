@@ -2395,6 +2395,24 @@ const ASK_DPO =
   "whether a data protection officer is designated for this processing, and if so their name and contact details";
 const ASK_PROCESSOR_OBLIGATIONS =
   "the obligations and tasks each processor is bound to under the Art. 28 processing contract";
+// BATCH e74fdbfd (2026-09-09, live DPIA run b17a7266 / Veltrix) — the ask
+// names the processors the record itself names, in the company's own words
+// (the name string carries the recorded role: "Mixpanel (analytics
+// sub-processor)"), so the Section 1 rows, the Art. 28(3) row and the gap
+// table ask for each processor's obligations by name rather than for "each
+// processor" in the abstract. One ask text on every surface, so the gap
+// ledger still merges them into a single completion item. The intake holds
+// ONE processor_obligations answer, so this is the whole of what the record
+// can be asked; nothing per-processor is invented.
+function askProcessorObligations(names: readonly string[]): string {
+  const clean = names.map((n) => String(n ?? "").trim()).filter(Boolean);
+  if (clean.length === 0) return ASK_PROCESSOR_OBLIGATIONS;
+  if (clean.length === 1) {
+    return `the obligations and tasks ${clean[0]} is bound to under the Art. 28 processing contract`;
+  }
+  const list = `${clean.slice(0, -1).join(", ")} and ${clean[clean.length - 1]}`;
+  return `the obligations and tasks each processor — ${list} — is bound to under the Art. 28 processing contract`;
+}
 const ASK_ART9_CONDITION =
   "which Art. 9(2) condition is relied on for the special-category data recorded here";
 
@@ -2487,7 +2505,7 @@ export function buildProcessingInventory(intake: unknown): DpiaProcessingInvento
         ...(obligations
           ? {}
           : {
-            information_needed: ASK_PROCESSOR_OBLIGATIONS,
+            information_needed: askProcessorObligations(processorNames),
             // DOC 135 (Batch 4 A-Team review, 2026-09-01) — this producer was
             // never updated to the DOC-130 DPIA-A28 existence/terms split
             // (see the Tier-1c "Transfers and processor arrangements" block
@@ -3127,7 +3145,7 @@ export function buildSection2Coverage(
       citation: a28.citation,
       authority_verbatim: a28.verbatim,
       status: "record_insufficient",
-      information_needed: ASK_PROCESSOR_OBLIGATIONS,
+      information_needed: askProcessorObligations(processorNames),
       ask_class: "ask_processor_terms_coverage",
       display_label: resolveAskLabel("ask_processor_terms_coverage"),
       source_field: "existing_safeguards",

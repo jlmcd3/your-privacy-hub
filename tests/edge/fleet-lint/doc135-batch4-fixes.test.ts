@@ -150,9 +150,16 @@ Deno.test("doc135 — DPIA: processor-inventory gap now uses the terms-coverage 
   );
   // The Section-1 processors-inventory producer (previously stale) must now
   // read ask_processor_terms_coverage, matching the Tier-1c block.
-  const idx = src.indexOf('information_needed: ASK_PROCESSOR_OBLIGATIONS');
+  // BATCH e74fdbfd (2026-09-09) — the producer now composes the ask by
+  // processor name (askProcessorObligations); the anchor follows it. The
+  // first occurrence is the Section-1 inventory, the second the Tier-1c
+  // block — both carry the same class.
+  const idx = src.indexOf('information_needed: askProcessorObligations(processorNames)');
   assert(idx > -1, "processor-obligations gap block not found");
-  const nearby = src.slice(idx, idx + 900);
+  // The DOC 135 explanatory comment sits between the ask and the class; the
+  // window covers it with margin (the longer ask expression pushed the class
+  // just past the old 900-character window).
+  const nearby = src.slice(idx, idx + 1400);
   assert(nearby.includes('"ask_processor_terms_coverage"'), "still wired to the stale ask_processor_contract class");
 });
 

@@ -722,12 +722,22 @@ export function buildAlternativesConsidered(intake: unknown): AlternativesConsid
       merged: !!a.merged,
     }));
     const summaryIdx = new Set<number>();
+    // BATCH e74fdbfd (2026-09-09, live LIA run b66bf9a7 / Veltrix) — an
+    // IDENTICAL label is a duplicate rendition of the same alternative, not
+    // a sub-label a summary line contains. The Veltrix record named
+    // "Anonymised aggregate reporting only" in all three sources (the two
+    // list fields and the rationale), so each of the three copies "contained"
+    // the other two, all three were dropped as summary lines, and the table
+    // rendered one row where the prose named two alternatives. Rule (2)
+    // below is the mechanism that folds identical renditions; rule (1) now
+    // counts only a label that is genuinely different from the container.
     for (let i = 0; i < trimmed.length; i++) {
+      const ni = norm(trimmed[i].alternative);
       let contained = 0;
       for (let j = 0; j < trimmed.length; j++) {
         if (i === j) continue;
         const nj = norm(trimmed[j].alternative);
-        if (nj && norm(trimmed[i].alternative).includes(nj)) contained++;
+        if (nj && nj !== ni && ni.includes(nj)) contained++;
       }
       if (contained >= 2) summaryIdx.add(i);
     }

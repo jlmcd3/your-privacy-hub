@@ -191,7 +191,15 @@ function statusReaderLabel(s: SubstantiveState): string {
 // ---------------------------------------------------------------------------
 
 function significantDecisionPhrase(effect: DecisionEffect): string {
-  return effect === "SUPPORTS" ? "Supports Article 11 applicability." : "Not enough information to determine whether a covered decision is at issue.";
+  if (effect === "SUPPORTS") return "Supports Article 11 applicability.";
+  // BATCH e74fdbfd (2026-09-09, live ADMT run 9373f1fe / Velostream) — the
+  // deterministic engine sets WEIGHS_AGAINST for the Company's categorical
+  // "None of these categories" answer (admt-v2-deterministic.ts,
+  // categoricalNone), and the scope qualification says the determination
+  // RESTS on that answer; this cell read "Not enough information" beside it.
+  // A categorical negative is a determined fact, not a gap.
+  if (effect === "WEIGHS_AGAINST") return "Cuts against Article 11 applicability.";
+  return "Not enough information to determine whether a covered decision is at issue.";
 }
 function humanInvolvementPhrase(effect: DecisionEffect): string {
   if (effect === "WEIGHS_AGAINST") return "Cuts against ADMT status.";

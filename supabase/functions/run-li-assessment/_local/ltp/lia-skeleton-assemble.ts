@@ -542,13 +542,17 @@ function ruleOverrideCitation(applications: readonly Bag[]): string {
  *  determinative entry there, whose label already carries the citation —
  *  adding the bare citation again here would double-list it in the ToA).
  *  Fed into the Table of Authorities ledger so a flag_risk citation is
- *  still iff-cited, the same pin law every other authority answers to. */
+ *  still iff-cited, the same pin law every other authority answers to.
+ *  BATCH e74fdbfd (2026-09-09) — `require_condition` joins it for the same
+ *  reason: its citation now renders in the Section V conditions block
+ *  (composeLiaConditionsBlock) and has no determinative entry of its own. */
 function allRuleCitations(applications: readonly Bag[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
   for (const raw of applications) {
     const app = bag(raw);
-    if (s(bag(app.effect).kind) !== "flag_risk") continue;
+    const kind = s(bag(app.effect).kind);
+    if (kind !== "flag_risk" && kind !== "require_condition") continue;
     if (app.suppressed_by) continue;
     if (!(app.changed === true || app.concurred === true)) continue;
     const citation = s(app.authority_citation);
@@ -557,6 +561,81 @@ function allRuleCitations(applications: readonly Bag[]): string[] {
     out.push(citation);
   }
   return out;
+}
+
+// BATCH e74fdbfd (2026-09-09, live LIA run b66bf9a7 / Veltrix) — THE
+// CONDITIONS THE LEAD PROMISES. BATCH a81e0240 made the exec/findings lead
+// say "subject to the conditions recorded below" only when a condition
+// exists (a require_condition rule fired, or an information_needed item).
+// Veltrix had both — `lia/rule/necessity-anonymised-alternative` fired and
+// wrote its information_needed entry — and the document still recorded
+// nothing below: renderRuleClause places a clause only by `effect.element`,
+// which require_condition never carries (rule-pass.ts), and the
+// `information_needed` spine section has had no composer since DOC 138
+// confirmed it dead. So the lead promised a list the customer never got.
+//
+// The conditions are collected here from BOTH sources (the rule trail and
+// the top-level information_needed array; deduped on the text, which
+// rule-pass.ts already keeps identical between them) and rendered as a
+// numbered block inside "findings:1", directly after the determination
+// they qualify. The V3 ROO asks (`source: "hook_selection"`, index.ts) are
+// NOT conditions on the determination — they are the read-back asks doc
+// 224 keeps off the customer document — so they are excluded here and, by
+// the same token, no longer count toward `hasConditions`.
+interface LiaCondition {
+  readonly text: string;
+  readonly enables: string;
+  readonly provision: string;
+}
+
+/** DOC 138's own rule for a typed ask: an internal field-path prefix
+ *  ("purpose_details.controller_is_public_authority — …") never reaches
+ *  the customer. */
+function stripFieldPathPrefix(text: string): string {
+  return text.replace(/^[a-z_]+(?:\.[a-z_]+)+\s+—\s+/u, "").trim();
+}
+
+export function collectLiaConditions(report: Bag, applications: readonly Bag[]): LiaCondition[] {
+  const out: LiaCondition[] = [];
+  const seen = new Set<string>();
+  const add = (text: string, enables: string, provision: string) => {
+    const key = text.toLowerCase();
+    if (!text || seen.has(key)) return;
+    seen.add(key);
+    out.push({ text, enables, provision });
+  };
+  const needed = Array.isArray(report.information_needed) ? report.information_needed as Bag[] : [];
+  for (const raw of needed) {
+    const item = bag(raw);
+    if (s(item.source) === "hook_selection") continue;
+    add(stop(stripFieldPathPrefix(s(item.dimensions))), s(item.enables), s(item.provision));
+  }
+  for (const raw of applications) {
+    const app = bag(raw);
+    const eff = bag(app.effect);
+    if (s(eff.kind) !== "require_condition") continue;
+    if (app.suppressed_by) continue;
+    if (!(app.changed === true || app.concurred === true)) continue;
+    add(stop(s(eff.text) || s(app.reason_sentence)), "", s(app.authority_citation));
+  }
+  return out;
+}
+
+/** The numbered conditions block: a one-sentence lead, then one paragraph
+ *  per condition ("1. …"), each closing with the test it completes and its
+ *  authority in the same inline form renderRuleClause uses. Empty when
+ *  there is no condition — the block is honestly absent (NO-PADDING). */
+export function composeLiaConditionsBlock(conditions: readonly LiaCondition[]): string {
+  if (!conditions.length) return "";
+  const lead = conditions.length === 1
+    ? "That determination is subject to the following condition, which names what the record does not yet state:"
+    : "That determination is subject to the following conditions, each of which names what the record does not yet state:";
+  const items = conditions.map((c, i) => {
+    const completes = c.enables ? ` This completes ${noStop(c.enables)}.` : "";
+    const cite = c.provision ? ` (${noStop(c.provision)}.)` : "";
+    return `${i + 1}. ${stop(c.text)}${completes}${cite}`;
+  });
+  return [lead, ...items].join("\n\n");
 }
 
 // ── Generated blocks, composed from the typed surfaces ──────────────────────
@@ -1300,9 +1379,11 @@ export function assembleLiaSkeletonDocument(
   // the mitigations), and is also earned by a require_condition rule or an
   // information_needed item. A plain "available" record with none of those
   // — every fixture in the batch — has nothing below to point at.
-  const hasConditions = v.outcome === "available_only_with_mitigations" ||
-    ruleApplications.some((a) => s(bag(a.effect).kind) === "require_condition") ||
-    (Array.isArray(report.information_needed) && report.information_needed.length > 0);
+  // BATCH e74fdbfd — the lead now promises exactly what "findings:1"
+  // renders: the collected conditions (collectLiaConditions), never a bare
+  // count of information_needed entries.
+  const conditions = collectLiaConditions(report, ruleApplications);
+  const hasConditions = v.outcome === "available_only_with_mitigations" || conditions.length > 0;
 
   const execLead = composeExecLead(v, org, hasConditions);
   const purposeLead = composeTestLead(
@@ -1477,15 +1558,24 @@ export function assembleLiaSkeletonDocument(
     // already happened in rule-pass.ts (the reason sentence is prepended);
     // the citation is appended here at render time, the same inline form
     // every other rule clause uses.
-    "findings:1": fromTyped(
-      (() => {
-        const why = s(bag(report.lia_determination).why);
-        const citation = ruleOverrideCitation(ruleApplications);
-        return citation ? `${stop(why)} (${citation}.)` : why;
-      })(),
-      publicAuthorityInformationNeededSentence(report),
-      ...strList(report.documentation_recommendations).slice(0, 4),
-    ),
+    // BATCH e74fdbfd — with conditions on the record the block paragraphs
+    // itself: the determination, the numbered conditions it is subject to,
+    // then the documentation recommendations. Without one, the bytes are
+    // exactly what they were.
+    "findings:1": (() => {
+      const why = s(bag(report.lia_determination).why);
+      const citation = ruleOverrideCitation(ruleApplications);
+      const whyText = citation ? `${stop(why)} (${citation}.)` : why;
+      const docRecs = strList(report.documentation_recommendations).slice(0, 4);
+      if (!conditions.length) {
+        return fromTyped(whyText, publicAuthorityInformationNeededSentence(report), ...docRecs);
+      }
+      return [
+        fromTyped(whyText, publicAuthorityInformationNeededSentence(report)),
+        composeLiaConditionsBlock(conditions),
+        fromTyped(...docRecs),
+      ].filter(Boolean).join("\n\n");
+    })(),
     "findings:2": isYes(attestation.dpo_reviewed) || s(attestation.dpo_reviewer)
       ? (s(attestation.dpo_reviewer)
         ? `The assessment was reviewed by ${s(attestation.dpo_reviewer)}${

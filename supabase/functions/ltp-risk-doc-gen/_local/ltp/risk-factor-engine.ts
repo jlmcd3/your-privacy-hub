@@ -2888,9 +2888,27 @@ export function runRiskFactorEngine(
       for (const r of recipientRows) {
         const c = s(r.contractual_protections);
         const name = s(r.recipient_name_or_category);
-        if (c === "Written contract without confirmed CCPA restriction terms" || c === "Unsure") {
+        if (c === "Written contract without confirmed CCPA restriction terms") {
+          // BATCH e74fdbfd (2026-09-09, live Risk run d6159d51 / Velostream) —
+          // this state reduced the credit in § 4.A and then vanished: no
+          // Condition, Follow-Up or Recommendation ever asked the Company to
+          // confirm the terms (DoubleVerify). PROMISE PARITY (DOC 152): the
+          // § 2.F sentence points at the Follow-Up, and the Follow-Up exists.
+          // The regulation named is the one for the recipient's recorded
+          // role — § 7053 for a third party, § 7051 for a service provider
+          // or contractor.
+          const contractSection = /third/i.test(s(r.recipient_type)) ? "11 CCR § 7053" : "11 CCR § 7051";
           consequences.push(
-            `For ${name}, the required restriction terms are not confirmed, and the reliance the assessment can place on the contractual control is reduced accordingly in § 4.A.`,
+            `For ${name}, the required restriction terms are not confirmed, and the reliance the assessment can place on the contractual control is reduced accordingly in § 4.A; confirming those terms appears among the Follow-Ups in § 4.D.`,
+          );
+          followUps.push(
+            `Confirm that the written contract with “${name}” carries the CCPA-required restriction terms, and record them in the assessment record, so the contractual control can be credited in § 4.A (Cal. Civ. Code § 1798.100(d); ${contractSection})`,
+          );
+        } else if (c === "Unsure") {
+          // "Unsure" already draws the written-contract Recommendation
+          // (weakRecipients, § 4.D); the sentence now says so.
+          consequences.push(
+            `For ${name}, the required restriction terms are not confirmed, and the reliance the assessment can place on the contractual control is reduced accordingly in § 4.A; remediation appears among the Recommendations in § 4.D.`,
           );
         } else if (c && !CONTRACT_ENUM.has(c)) {
           consequences.push(
