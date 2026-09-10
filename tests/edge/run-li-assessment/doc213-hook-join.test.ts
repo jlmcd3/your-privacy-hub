@@ -434,17 +434,23 @@ function buildFixture(intake: Bag): { report: Bag; typed: ReturnType<typeof buil
   return { report, typed };
 }
 
-// 2026-09-10: re-pinned from the v0-empty projection to the four hooks the
-// LIA `generate` action emitted (doc 223B ratifications; origin b7b3d3326).
-// The byte-identity claim below still holds because LIA_HOOKS_ENABLED is
-// false in this test process (no env), so applyLiaHooks is gated off.
-Deno.test("doc213 — LIA_HOOKS ships exactly the four ratified hooks; with LIA_HOOKS_ENABLED off, buildLiaPersuasiveAuthority is byte-identical whether or not the caller supplies ctx.states/ctx.verdicts", () => {
+// 2026-09-10: re-pinned from four to five hooks — doc 223C ratified
+// `edpb_guidelines:697ad8e1…` (hook b85a5474 / profile cbd38bc6, WP29
+// Opinion 2/2017 § 6.4) with a CEO-revised literal_sentence_override;
+// Lovable's `generate` re-run emitted it alongside the original four (doc
+// 223B ratifications; origin a7e516574). NOTE: LIA_HOOKS_VERSION did not
+// change from the four-hook run — the generator does not bump this string
+// per generate call, only the array contents changed. The byte-identity
+// claim below still holds because LIA_HOOKS_ENABLED is false in this test
+// process (no env), so applyLiaHooks is gated off.
+Deno.test("doc213 — LIA_HOOKS ships exactly the five ratified hooks; with LIA_HOOKS_ENABLED off, buildLiaPersuasiveAuthority is byte-identical whether or not the caller supplies ctx.states/ctx.verdicts", () => {
   assertEquals(LIA_HOOKS_VERSION, "lia-hooks-v2-2026-09-10-0");
   assertEquals(LIA_HOOKS.map((h) => h.hook_id), [
     "enforcement_actions:69eee35f-a280-47be-8159-bf778767ff31:v1",
     "edpb_guidelines:545af69d-ed08-47e8-b631-16b92cca1204:v1",
     "enforcement_actions:72fb23c2-beba-4eee-9cfc-d850d1a55553:v1",
     "regulatory_guidance:7fbe6585-e52c-4ec8-a0cd-e9b309571a21:v1",
+    "edpb_guidelines:697ad8e1-6700-4a63-8888-12214dcc6c8b:v1",
   ]);
 
   const intake = LIA_PERFECT_PINNED[0].intake as Bag;
