@@ -61,16 +61,30 @@ export async function gradeRun(
     // grading connection froze the entire remaining batch. Dual-model
     // grading legitimately takes 1–3 minutes; 5 minutes of silence is a
     // failure of THIS grade, never of the batch.
-    const { data, error } = await invokeWithTimeout(
-      "grade-single-assessment",
-      {
-        tool,
-        assessment_id: sourceRowId,
-        fixture_label: fixtureLabel,
-        dry_run: true,
-      },
-      300_000,
-    );
+    // BOOT_ERROR RETRY (2026-09-11): a redeploy landing mid-batch can make one
+    // cold start fail with 503 BOOT_ERROR even though the function is healthy.
+    // That transient blip used to lose the grade for that product. Retry the
+    // invocation twice, with a short backoff, ONLY for boot/503 failures.
+    const callGrader = () =>
+      invokeWithTimeout(
+        "grade-single-assessment",
+        {
+          tool,
+          assessment_id: sourceRowId,
+          fixture_label: fixtureLabel,
+          dry_run: true,
+        },
+        300_000,
+      );
+
+    const isBootError = (msg: string) =>
+      /BOOT_ERROR/i.test(msg) || /\b503\b/.test(msg) || /failed to start/i.test(msg);
+
+    let { data, error } = await callGrader();
+    for (let attempt = 0; attempt < 2 && error && isBootError(error.message ?? ""); attempt++) {
+      await new Promise((r) => setTimeout(r, 3_000 * (attempt + 1)));
+      ({ data, error } = await callGrader());
+    }
     if (error) return { tool, claude: null, gpt: null, mean: null, error: error.message };
     const p = (data as any)?.payload ?? {};
     const claude = typeof p.claude?.overall_score === "number" ? p.claude.overall_score : null;
