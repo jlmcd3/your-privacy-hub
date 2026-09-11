@@ -183,6 +183,15 @@ Deno.test("doc258 — DPA 7.2 carries the Art. 33(4) phasing clause and 2.3 is t
   }
 });
 
+// DOC 258 follow-up (batch 7134671b): the us-state skeleton takes 2.6 and 7.2 from
+// the v2.0 supplement, which the first build left untouched.
+Deno.test("doc258 — the us-state skeleton carries the phased-notification clause and the plain DPA definition", () => {
+  const t = assembleDpaDocument({ ...DPA_BASE, documentType: "us-state", controllerJurisdiction: "United States", processorJurisdiction: "United States", californiaEngaged: true }).document_text;
+  assertStringIncludes(t, "and in any event within [48] hours, providing the information then reasonably available to the Processor that the Controller needs to satisfy its notification obligations and supplementing it in phases without undue further delay as further information becomes available.");
+  assertStringIncludes(t, '2.6 "DPA" means this Data Processing Agreement.');
+  assert(!t.includes("not used to refer to any data protection authority"));
+});
+
 // ── Item 6 — the record divider, fleet-wide ────────────────────────────────
 
 Deno.test("doc258 — every copy of the record-divider paragraph carries ChatGPT's text and none the old one", async () => {
