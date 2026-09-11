@@ -842,7 +842,9 @@ export function buildAlternativesConsidered(intake: unknown): AlternativesConsid
     // table ADJACENT in the same section, and the dormant legacy path has
     // no table to point to (a pointer there would be a broken reference).
     application =
-      `Every alternative the record names, consent included, carries a recorded reason for being inadequate. The necessity limb is therefore supported by a comparison rather than an assertion: the comparison identifies what else was available and what each option would have failed to achieve.`;
+      // DOC 257 (2026-09-11, ChatGPT v2 LIA-R2-03): consent is a different
+      // lawful basis, not a less intrusive means; the sentence names it as such.
+      `Every alternative the record names, consent included, carries a recorded reason for being inadequate. The necessity limb is therefore supported by a comparison rather than an assertion: the comparison identifies what else was available and what each option would have failed to achieve. Consent is an alternative lawful basis under Article 6(1)(a) rather than a less intrusive means of achieving the purpose; it is compared here because the record addresses why it was not relied on.`;
   }
 
   return {

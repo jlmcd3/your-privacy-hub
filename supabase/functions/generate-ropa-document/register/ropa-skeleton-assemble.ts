@@ -228,6 +228,8 @@ export interface RopaCompleteness {
   readonly activities_total: number;
   readonly activities_incomplete: number;
   readonly missing_by_activity: ReadonlyArray<{ activity: string; missing: readonly string[] }>;
+  /** DOC 257 — controller-level Article 30(1)(a) entries still to be recorded. */
+  readonly controller_missing?: readonly string[];
 }
 
 export interface RopaRegisterDocument {
@@ -601,13 +603,23 @@ export function buildActivityRecord(
 
 // ── Completeness (the [DETERMINATION LEAD] is computed FROM this) ───────────
 
-export function computeCompleteness(records: readonly RopaActivityRecord[]): RopaCompleteness {
+export function computeCompleteness(records: readonly RopaActivityRecord[], input?: RopaAssembleInput): RopaCompleteness {
   const incomplete = records.filter((r) => r.missing.length > 0);
+  // DOC 257 (2026-09-11, ChatGPT v2 ROPA-R2-01): Article 30(1)(a) is a
+  // controller-level element — the controller's name and contact details
+  // and, where designated, the officer's — so the register is not complete
+  // while they are absent, whatever the activity rows carry.
+  const controller_missing: string[] = [];
+  if (input) {
+    if (!recorded(input.registeredAddress)) controller_missing.push("the controller's contact details (registered address) — Article 30(1)(a)");
+    if (recorded(input.dpoName) && !recorded(input.dpoEmail) && !recorded(input.dpoPhone)) controller_missing.push("the data protection officer's contact details — Article 30(1)(a)");
+  }
   return {
-    complete: records.length > 0 && incomplete.length === 0,
+    complete: records.length > 0 && incomplete.length === 0 && controller_missing.length === 0,
     activities_total: records.length,
     activities_incomplete: incomplete.length,
     missing_by_activity: incomplete.map((r) => ({ activity: r.activity_name, missing: r.missing })),
+    controller_missing,
   };
 }
 
@@ -618,13 +630,20 @@ function composeCompletenessLead(c: RopaCompleteness): string {
   if (c.complete) {
     return `The register is complete on its face against Article 30 for all ${c.activities_total} recorded processing ${c.activities_total === 1 ? "activity" : "activities"}: each carries a purpose and lawful basis, the categories of data subjects and personal data, its recipients, a retention period and its security measures.`;
   }
+  const controllerMissing = c.controller_missing ?? [];
+  if (c.activities_incomplete === 0 && controllerMissing.length) {
+    return `The register is not complete on its face against Article 30: every recorded activity carries its entries, but ${asProse(controllerMissing)} ${controllerMissing.length === 1 ? "is" : "are"} not recorded at the controller level.`;
+  }
+  const controllerTail = controllerMissing.length
+    ? `; at the controller level, ${asProse(controllerMissing)} ${controllerMissing.length === 1 ? "is" : "are"} also not recorded`
+    : "";
   const named = c.missing_by_activity
     .slice(0, 3)
     .map((m) => `${m.activity} (${asProse(m.missing)})`);
   const tail = c.missing_by_activity.length > 3
     ? `, and ${c.missing_by_activity.length - 3} further ${c.missing_by_activity.length - 3 === 1 ? "activity" : "activities"} with entries outstanding`
     : "";
-  return `The register is not complete on its face against Article 30: ${c.activities_incomplete} of ${c.activities_total} recorded ${c.activities_total === 1 ? "activity is" : "activities are"} missing required entries \u2014 ${named.join("; ")}${tail}.`;
+  return `The register is not complete on its face against Article 30: ${c.activities_incomplete} of ${c.activities_total} recorded ${c.activities_total === 1 ? "activity is" : "activities are"} missing required entries \u2014 ${named.join("; ")}${tail}.${controllerTail}`;
 }
 
 // DOC 166 (2026-09-04) — the ONLY activity templates whose intake surfaces
@@ -748,6 +767,22 @@ export function completenessRecommendations(input: RopaAssembleInput): string {
       `${asProse(health.map((a) => s(a.name)))} ${health.length === 1 ? "involves" : "involve"} health data or health-related recipients. Record the Article 9(2) condition relied on — for occupational medicine, Article 9(2)(h), which applies only where the data is processed by or under the responsibility of a professional bound by an obligation of secrecy (Article 9(3)) — and the processor contract with each health recipient.`,
     );
   }
+  // DOC 257 (2026-09-11, ChatGPT v2 ROPA-R2-03): EU SCCs alone do not
+  // document a UK-origin transfer — the UK mechanism is the IDTA or the UK
+  // Addendum to the EU SCCs (UK GDPR Art. 46(2)(d); DPA 2018 s. 119A; in
+  // force 21 March 2022).
+  const ukInScope = input.homeBase === "UK" ||
+    (input.jurisdictionCodes ?? []).some((c) => /^(UK|GB)$/i.test(s(c))) ||
+    (input.jurisdictionLabels ?? []).some((l) => /\bUK\b|United Kingdom/i.test(s(l)));
+  const euSccOnly = (input.activities ?? []).filter((a) =>
+    recorded(a.transferMechanism) && /standard contractual clauses|\bSCCs?\b/i.test(s(a.transferMechanism)) &&
+    !/\bIDTA\b|Addendum|\bUK\b/i.test(s(a.transferMechanism))
+  );
+  if (ukInScope && euSccOnly.length) {
+    recs.push(
+      `${asProse(euSccOnly.map((a) => s(a.name)))} ${euSccOnly.length === 1 ? "records" : "record"} EU Standard Contractual Clauses as the transfer mechanism, and the register covers the United Kingdom. EU SCCs alone do not document a UK-origin transfer: record the ICO International Data Transfer Agreement or the UK Addendum to the EU SCCs for each activity that transfers UK personal data (UK GDPR Article 46(2)(d); Data Protection Act 2018 section 119A; in force 21 March 2022), or scope the EU SCCs entry to EU-origin data.`,
+    );
+  }
   if (!recorded(input.homeBase)) {
     recs.push("Record the company's home base in the register set-up, so the register states where the controller is established.");
   }
@@ -838,10 +873,15 @@ function buildRopaSyllabus(
     ]);
   }
 
-  const conditions = completeness.missing_by_activity.map((m) => ({
-    name: m.activity,
-    text: `Missing: ${m.missing.join(", ")}`,
-  }));
+  const conditions = [
+    ...completeness.missing_by_activity.map((m) => ({
+      name: m.activity,
+      text: `Missing: ${m.missing.join(", ")}`,
+    })),
+    ...((completeness.controller_missing ?? []).length
+      ? [{ name: "Controller", text: `Missing: ${(completeness.controller_missing ?? []).join(", ")}` }]
+      : []),
+  ];
 
   return {
     _typed: "syllabus@sr-2026-09-04",
@@ -865,7 +905,7 @@ function buildRopaSyllabus(
 export function assembleRopaRegister(input: RopaAssembleInput): RopaRegisterDocument {
   const values = buildSlotValues(input);
   const records = input.activities.map((a) => buildActivityRecord(input, a));
-  const completeness = computeCompleteness(records);
+  const completeness = computeCompleteness(records, input);
 
   const composed: ComposedBlocks = {};
 

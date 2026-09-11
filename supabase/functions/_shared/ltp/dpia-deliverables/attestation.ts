@@ -105,6 +105,14 @@ export function parseTeamRoster(text: string): DpiaTeamMember[] {
     .split(/\r?\n|;|(?<!\w)\u2022/g)
     .map((s) => s.replace(/^[\s\-*\u2022]+/, "").trim())
     .filter((s) => s.length > 0)
+    // DOC 257 (2026-09-11, ChatGPT v2 DPIA-R2-04): "A (Role) and B (Role)"
+    // on one line is two members, not one member with a broken role.
+    .flatMap((line) => {
+      const pairs = [...line.matchAll(/([^(),]+?)\s*\(([^()]+)\)/g)];
+      const rest = line.replace(/([^(),]+?)\s*\(([^()]+)\)/g, "").replace(/\s*(?:,|\band\b|&)\s*/g, "").trim();
+      if (pairs.length >= 2 && rest === "") return pairs.map((p) => `${p[1].trim().replace(/^(?:and|&)\s+/i, "")} (${p[2].trim()})`);
+      return [line];
+    })
     .map((line) => {
       // ITEM 374 DEFECT 3 — the old pattern ended `(.+?)\)?$`, so a role that
       // legitimately ENDS in a parenthetical ("Privacy Counsel (Responsible)")

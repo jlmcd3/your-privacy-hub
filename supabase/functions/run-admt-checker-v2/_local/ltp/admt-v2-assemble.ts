@@ -840,12 +840,21 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   // which pathway is not reached and points at Section 8 rather than
   // stating a blanket "outside Article 11" that the Condition to Proceed
   // two sections earlier already qualifies.
-  const NOT_REACHED_STUB = (dutyPhrase: string): RenderedParagraph => ({
-    kind: "skeleton",
-    text: scope.pathwayDependent
-      ? `Not reached for the human-reviewed pathway assessed as out of scope (Section 2), so ${dutyPhrase} in this report for that pathway. For the automatically-decided pathways, see the Condition to Proceed in Section 8.`
-      : `Not reached. On the Company's reported facts the System is outside Article 11 for this decision (Section 2), so ${dutyPhrase} in this report.`,
-  });
+  // DOC 257 (2026-09-11, ChatGPT v2 ADMT-R2-02): the first not-reached stub
+  // states the scope reason in full; each later stub refers back to it.
+  let notReachedStubs = 0;
+  const NOT_REACHED_STUB = (dutyPhrase: string): RenderedParagraph => {
+    notReachedStubs += 1;
+    const later = notReachedStubs > 1;
+    return {
+      kind: "skeleton",
+      text: scope.pathwayDependent
+        ? `Not reached for the human-reviewed pathway assessed as out of scope (Section 2), so ${dutyPhrase} in this report for that pathway. For the automatically-decided pathways, see the Condition to Proceed in Section 8.`
+        : later
+        ? `Not reached, for the reason stated in Section 3: ${dutyPhrase} in this report.`
+        : `Not reached. On the Company's reported facts the System is outside Article 11 for this decision (Section 2), so ${dutyPhrase} in this report.`,
+    };
+  };
 
   // ── 3. Pre-use Notice Audit ──────────────────────────────────────────────
   const deliveryPhrase = str((intake as any)?.notice_delivery) || reader(Array.isArray((intake as any)?.notice_delivery) ? (intake as any).notice_delivery : []);

@@ -205,7 +205,12 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
     const joinsAsPredicate = /^(is|are|was|were|has|have|provides?|operates?|offers?|runs?|develops?|serves?|sells?|delivers?|builds?|owns?|specialises?|specializes?)\b/i.test(descAfterName);
     parts.push(p(joinsAsPredicate
       ? `<strong>${business}</strong> is responsible for this Notice and ${esc(descAfterName)}. Privacy contact: ${email}.`
-      : `<strong>${business}</strong> is responsible for this Notice.${descTrim ? ` ${esc(descTrim)}.` : ""} Privacy contact: ${email}.`));
+      // DOC 257 (2026-09-11, ChatGPT v2 USN-R2-03): a description that is a
+      // noun phrase ("A large-scale online platform …") is not left as a
+      // fragment; it is attributed.
+      : descTrim && isSentenceValued(descTrim)
+      ? `<strong>${business}</strong> is responsible for this Notice. ${esc(descTrim)}. Privacy contact: ${email}.`
+      : `<strong>${business}</strong> is responsible for this Notice.${descTrim ? ` It describes itself as ${esc(descTrim.charAt(0).toLowerCase() + descTrim.slice(1))}.` : ""} Privacy contact: ${email}.`));
     // The role answer renders as reader prose, never as its intake option label.
     if (roleTok === "controller") {
       parts.push(p(`For the processing described in this Notice we act as the controller${hasCA ? " — or, under the CCPA, the business —" : ""} that determines the purposes and means of the processing.`));
@@ -252,7 +257,11 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
   // 4 ──────────────────────────────────────────────────────────────────────
   {
     const parts: string[] = [];
-    parts.push(p(`We collect and use personal information for the following purposes: ${purposes ? `<strong>${esc(purposes.replace(/[.\s]+$/, ""))}</strong>` : fill("insert the purposes for which personal information is collected and used")}. We use personal information only for purposes reasonably related to our products, services, operations, legal obligations and other disclosed activities.`));
+    // DOC 257 (2026-09-11, ChatGPT v2 USN-R2-03): a purposes answer written
+    // as a sentence stands as the sentence, never after a colon.
+    parts.push(p(purposes && isSentenceValued(purposes)
+      ? `${esc(purposes.replace(/[.\s]+$/, ""))}. We use personal information only for purposes reasonably related to our products, services, operations, legal obligations and other disclosed activities.`
+      : `We collect and use personal information for the following purposes: ${purposes ? `<strong>${esc(purposes.replace(/[.\s]+$/, ""))}</strong>` : fill("insert the purposes for which personal information is collected and used")}. We use personal information only for purposes reasonably related to our products, services, operations, legal obligations and other disclosed activities.`));
     if (purposeCodes.length > 0) {
       parts.push(p(`Each purpose is described separately below; a category is not used for every purpose merely because both appear in this Notice.`));
       for (const code of purposeCodes) {
@@ -289,12 +298,17 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
       : sells
       ? `We sell certain personal information as that term is defined under one or more applicable state privacy laws. Specifically, we sell ${fill("insert the categories of personal information sold")} to ${fill("insert the categories of recipients")} for ${fill("insert the purposes of the sale")}. You may opt out as described under Your Privacy Choices.`
       : `We do not sell personal information as the term is defined under the state privacy laws applicable to the processing described in this Notice.`));
+    // DOC 257 (2026-09-11, ChatGPT v2 USN-R2-01): the CCPA "sharing"
+    // subsection addresses California residents and renders only where the
+    // notice covers California; a state-only edition never carries it.
+    if (hasCA) {
     parts.push(`<h3>California sharing</h3>`);
     parts.push(p(optOutUnknown
       ? `${fill("state whether personal information is shared for cross-context behavioral advertising as “sharing” is defined under the CCPA")}.`
       : shares
       ? `We share certain personal information for cross-context behavioral advertising as “sharing” is defined under the CCPA. Specifically, we share ${fill("insert the categories of personal information shared")} with ${fill("insert the categories of third parties")} for ${fill("insert the purposes of the sharing")}. California residents may opt out as described under Your Privacy Choices.`
       : `We do not share personal information for cross-context behavioral advertising as “sharing” is defined under the CCPA.`));
+    }
     parts.push(`<h3>Targeted advertising</h3>`);
     parts.push(p(!targetedKnown
       ? `${fill("state whether personal data is processed for targeted advertising as that term is defined under the applicable state privacy laws")}.`
@@ -326,9 +340,10 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
   if (optOutApplies || optOutUnknown) {
     const parts: string[] = [];
     parts.push(p(`Where required by applicable law, we process recognised browser- or device-based universal opt-out preference signals, such as Global Privacy Control, as valid requests to opt out of covered sale, sharing or targeted advertising.`));
-    parts.push(runIn("Signals recognised", fill("insert the opt-out preference signals recognised, for example Global Privacy Control")));
-    parts.push(runIn("How the signal applies", fill("state whether the signal applies to the browser, the device, a known account, and offline sales")));
-    parts.push(runIn("Frictionless processing", fill("state whether the signal is processed without any additional step by the consumer")));
+    // DOC 257 (ChatGPT v2 USN-R2-03): reader-facing run-in labels.
+    parts.push(runIn("Opt-out preference signals we recognise", fill("insert the opt-out preference signals recognised, for example Global Privacy Control")));
+    parts.push(runIn("How we apply the signal", fill("state whether the signal applies to the browser, the device, a known account, and offline sales")));
+    parts.push(runIn("Whether the signal is processed without any additional step", fill("state whether the signal is processed without any additional step by the consumer")));
     sections.push({ title: "Universal Opt-Out Preference Signals", html: parts.join("\n") });
   }
 
@@ -571,6 +586,11 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
     }
     if (!rowsHtml.length) rowsHtml.push(`<tr><td colspan="6">${fill("insert one row per California statutory category of personal information collected in the preceding 12 months: examples, sources, purposes, whether sold or shared and to whom, whether disclosed to service providers or contractors and for what purposes, and the retention period or criteria")}</td></tr>`);
     parts.push(`<table class="fi-table"><thead><tr><th>Category</th><th>Sources</th><th>Purposes</th><th>Sold or shared in the preceding 12 months</th><th>Disclosed for a business purpose</th><th>Retention</th></tr></thead><tbody>${rowsHtml.join("")}</tbody></table>`);
+    // DOC 257 (2026-09-11, ChatGPT v2 USN-R2-02): the form records sources,
+    // purposes and retention once, not per category; where the table carries
+    // more than one category row the entries are restated and the per-category
+    // mapping 11 CCR § 7011(e)(1) asks for is a completion item.
+    if (catRows.length > 1) parts.push(p(`${fill("confirm, for each category, the sources, purposes and retention that apply to it; the entries above restate the general answers recorded")}.`));
     // doc129 pin: the business-purpose disclosure grounds its purposes in the
     // intake (`escapeHtml(purposes…)`), never in an invented list.
     const escapeHtml = esc;

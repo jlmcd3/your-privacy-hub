@@ -119,17 +119,28 @@ function sectorPhrase(v: unknown): string | null {
 // DOC 254 (BIOMETRI-01) — a capture answer written as a sentence ("Facial
 // geometry and voiceprint templates are captured during …") sat after the
 // fixed "by means of"; it is now attributed and quoted in that seam.
-function collectionMethodPhrase(v: unknown): string | null {
+function collectionMethodPhrase(v: unknown, org?: string): string | null {
   const m = noStop(s(v));
   if (!m) return null;
-  return isSentenceValued(m) ? `the following process: “${m}”` : m;
+  if (isSentenceValued(m)) return `the following process: “${m}”`;
+  // DOC 257 (2026-09-11, ChatGPT v2 BIO-R2-02): a noun phrase after "by
+  // means of" reads in running text, so its initial capital is lowered
+  // unless the phrase opens with the company's own name or an acronym.
+  const firstWord = m.split(/\s+/)[0] ?? "";
+  const orgFirst = (org ?? "").split(/\s+/)[0] ?? "";
+  const keepCase = !/^[A-Z][a-z]/.test(firstWord) ||
+    (orgFirst !== "" && firstWord.toLowerCase() === orgFirst.toLowerCase()) ||
+    /^[A-Z][a-z]*[A-Z]/.test(firstWord);
+  return keepCase ? m : m.charAt(0).toLowerCase() + m.slice(1);
 }
 
 const REGISTERED_STATUTE_RE = /illinois|texas|washington/i;
 const STATUTE_METHOD_SENTENCE =
   "Each statute below is applied in its own words: the duty appears as the verified statutory passage states it, the company's answers are set beside it, and the conclusion follows from the two.";
 const NO_REGISTERED_STATUTE_SENTENCE =
-  "No registered statute is in scope for the jurisdictions named, so this assessment applies no statutory duty and reaches no compliance conclusion; Section 2 states what analysis applies instead.";
+  // DOC 257 (2026-09-11, ChatGPT v2 BIO-R2-01): the limit is this
+  // assessment's scope, never a finding that no duty exists.
+  "The jurisdictions named fall outside the statutes this assessment applies (Illinois BIPA, Texas CUBI and Washington RCW 19.375), so no statutory duty is applied here and no compliance conclusion is reached; that is a limit of this assessment's scope, not a finding that no duty exists. Section 2 states what analysis applies instead.";
 
 export function buildBiometricSlotValues(intake: Bag): SlotValues {
   const types = arr(intake.biometricTypes).map(lowerEnumLabel);
@@ -146,7 +157,7 @@ export function buildBiometricSlotValues(intake: Bag): SlotValues {
 
     biometricTypes: types.length ? asProse(types) : null,
     collectionPurpose: purpose ? (BIOMETRIC_PURPOSE_PHRASE_MAP[purpose] ?? lowerEnumLabel(purpose)) : null,
-    collectionMethod: collectionMethodPhrase(intake.data_source_description),
+    collectionMethod: collectionMethodPhrase(intake.data_source_description, s(intake.orgName)),
     states: states || null,
     // DOC 254 (BIOMETRI-05) — an EU/UK-only record promised "Each statute
     // below" and then analysed none; the method sentence composes by whether
@@ -329,7 +340,8 @@ function composeExecutiveLead(report: Bag, org: string): string {
   const unlawful = asArray(c.unlawful_now);
   const unresolved = asArray(c.unresolved_on_record);
   if (rows.length === 0) {
-    return `No statutory duty has been analysed for ${org} on the answers given, so this assessment states no compliance conclusion.`;
+    // DOC 257 (ChatGPT v2 BIO-R2-01): scope limit, stated as such.
+    return `No statutory duty has been analysed for ${org} on the answers given: the statutes this assessment applies are Illinois BIPA, Texas CUBI and Washington RCW 19.375, and the jurisdictions named fall outside them, so no compliance conclusion is stated. That is a limit of this assessment's scope, not a finding that no duty applies.`;
   }
   if (unlawful.length > 0) {
     const statutes = asProse([...new Set(unlawful.map((u) => s(u.statute_short)).filter(Boolean))]);
@@ -636,7 +648,8 @@ function composeUnregisteredJurisdictions(intake: Bag): string {
   const list = asProse(labels);
   const euUk = selected.some((j) => /GDPR/.test(j));
   const parts: string[] = [
-    `Beyond the registered statutes. The company has also named ${list}. The duty tables of this assessment apply its registered jurisdictions only, so no statutory duty is stated here for ${list}.`,
+    // DOC 257 (ChatGPT v2 BIO-R2-01): the limit is the assessment's scope.
+    `Beyond the statutes this assessment applies. The company has also named ${list}. This assessment's duty tables cover Illinois, Texas and Washington only, so no statutory duty is stated here for ${list}; that is a limit of scope, not a finding that no duty applies.`,
   ];
   if (euUk) {
     parts.push(
@@ -712,7 +725,8 @@ function composeOperativeLead(report: Bag, intake: Bag): string {
   // DUTIES SATISFIED.
   if (dutyRows(report).length === 0) {
     return "No statutory duty was analyzed for the jurisdictions selected in this assessment, " +
-      "so the programme is neither cleared nor found deficient by this report. The next step is " +
+      "so the programme is neither cleared nor found deficient by this report; that is a limit of the " +
+      "assessment's scope, not a finding that no duty applies. The next step is " +
       "to complete the applicable jurisdiction-specific assessment before recording an approval decision.";
   }
   if (unlawful.length > 0) {

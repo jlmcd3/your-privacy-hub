@@ -1082,7 +1082,13 @@ function buildDpo(intake: I): DpoDetermination {
   // a conservative basis" verdict, which printed "Required on reported facts".
   const special = tri(intake.processes_special_categories);
   const scale = recordedLargeScale(intake);
-  const specialMet: boolean | null = special === false ? false : special === null ? null : scale === true ? true : null;
+  // DOC 257 (2026-09-11, ChatGPT v2 REG-R2-01): Article 37(1)(c) is
+  // conjunctive — core activities AND large scale. The form asks the scale
+  // fact and not the core-activity fact, so a recorded scale above the
+  // threshold leaves the branch OPEN on the one element the record cannot
+  // supply; it is never engaged from scale alone (WP243 rev.01 § 2.1.2 treats
+  // ancillary processing, such as staff data, as outside "core activities").
+  const specialMet: boolean | null = special === false ? false : null;
   const subjects = subjectsProse(intake);
   const branches: Array<{
     key: string;
@@ -1138,6 +1144,8 @@ function buildDpo(intake: I): DpoDetermination {
       why: (m) => m === null
         ? (special === null
           ? "Cannot be evaluated: the record does not state whether special categories of data are processed."
+          : scale === true
+          ? `The record evidences special-category processing at ${subjects}, which this assessment treats as large scale; whether that processing is a core activity of the organisation is not recorded, so branch (c) is open on that one element.`
           : `The record evidences special-category processing but does not establish that it is a core activity carried out on a large scale, the two qualifiers branch (c) requires${subjects ? ` (the recorded ${subjects} do not by themselves establish large scale)` : " (no data-subject count is recorded)"}; the branch is open, not engaged.`)
         : m
         ? `Branch (c) is engaged: the record evidences special-category processing at ${subjects}, which this assessment treats as large scale; the record does not separately state that the processing is a core activity, and the company's answer is read as a statement about its own activities.`
@@ -1190,7 +1198,7 @@ function buildDpo(intake: I): DpoDetermination {
     ...(engaged.length
       ? {
         closing_act:
-          `What closes the duty is a written designation the company records so it can be evidenced, followed by the ${pubRow.citation} step: "${pubRow.verbatim_quote}".`,
+          `The duty is discharged by a written designation the company records so it can be evidenced, followed by the ${pubRow.citation} step: "${pubRow.verbatim_quote}".`,
       }
       : {}),
     findings,
@@ -1204,6 +1212,8 @@ function buildDpo(intake: I): DpoDetermination {
         information_needed: unknown
           .map((f) => `${f.key === "dpo_trigger_special_categories" && special === null
             ? "whether the organisation processes special categories of personal data or criminal-offence data"
+            : f.key === "dpo_trigger_special_categories" && scale === true
+            ? `whether the special-category processing is a core activity of the organisation (the recorded ${subjects} are treated as large scale)`
             : DPO_BRANCH_MISSING_FACT[f.key] ?? f.label} — the fact ${f.citation} turns on`)
           .join("; "),
       }
@@ -1293,7 +1303,7 @@ export function buildBdsg(intake: I): BdsgDetermination | null {
     reasoning:
       "The provision adds two German triggers to Article 37(1)(b) and (c) of the GDPR: the first sentence at 20 persons constantly engaged in the automated processing of personal data, and the second sentence, regardless of headcount, for processing subject to a data protection impact assessment or for commercial processing for the purpose of transfer, anonymised transfer, or market or opinion research. The Article 35 limb of the second sentence is not assessed here: the record does not state whether the processing is subject to a data protection impact assessment.",
     ...(transfer
-      ? { closing_act: "What closes the duty is a written designation the company records so it can be evidenced." }
+      ? { closing_act: "The duty is discharged by a written designation the company records so it can be evidenced." }
       : {}),
     findings: [headcountFinding, transferFinding],
     citations: [s1.citation, s2.citation],
@@ -1412,7 +1422,7 @@ function buildAiActRegistration(intake: I): AiActRegistrationDetermination | nul
       reasoning:
         `Article 49(1) of Regulation (EU) 2024/1689 requires the provider of an Annex III high-risk system, or its authorised representative, to register itself and the system in the EU database established under Article 71 before placing the system on the market or putting it into service, with the information listed in Annex VIII, Section A. The company has indicated that it holds the provider role, so the duty is the company's.${role === "both" ? " As deployer it registers only if it is a public authority (Article 49(3)), which the record does not state." : ""}${scope}`,
       closing_act:
-        "What closes the duty is the registration itself in the EU database referred to in Article 71, with the Annex VIII, Section A information, before the system is placed on the market or put into service; whether the system falls within point 2 of Annex III, which Article 49(5) sends to national registration instead, is not asked by this assessment.",
+        "The duty is discharged by the registration itself in the EU database referred to in Article 71, with the Annex VIII, Section A information, before the system is placed on the market or put into service; whether the system falls within point 2 of Annex III, which Article 49(5) sends to national registration instead, is not asked by this assessment.",
       findings: [provider, deployer],
       citations: [provider.citation, deployer.citation],
       status: "analysed",

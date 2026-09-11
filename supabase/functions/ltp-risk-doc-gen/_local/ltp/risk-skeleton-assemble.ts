@@ -522,9 +522,15 @@ export function deriveReviewApprovalTable(intake: Bag, assessmentDateIso?: strin
     // B recorded "Priya Shah — Reviewed only, no approval authority" and the
     // PDF still carried an "Approved by" row. An unrecorded role is now
     // reported as unrecorded; approval is never the fallback.
-    const label = role === "Reviewed" ? "Reviewed by"
-      : role === "Approved" ? "Approved by"
-      : role === "Both" ? "Reviewed and approved by"
+    // DOC 257 (2026-09-11, ChatGPT v2 CPPA-R2-03): with no current review
+    // date on the record, a name beside "Reviewed by" and a blank Date cell
+    // read as a review already given. When the assessment date is known and
+    // the recorded date is stale or absent, the role names the person's
+    // capacity and says the act is not yet recorded.
+    const pending = assessmentDateIso !== undefined && !dateCurrent;
+    const label = role === "Reviewed" ? (pending ? "Reviewer — review of this assessment not yet recorded" : "Reviewed by")
+      : role === "Approved" ? (pending ? "Approver — approval not yet recorded" : "Approved by")
+      : role === "Both" ? (pending ? "Reviewer and approver — not yet recorded" : "Reviewed and approved by")
       : "Role not recorded";
     named.push({ role: label, name, title });
   }
@@ -552,6 +558,9 @@ export function deriveReviewApprovalTable(intake: Bag, assessmentDateIso?: strin
     title: "",
     columns: ["Role", "Name", "Title", "Signature", "Date"],
     rows: named.map((r) => [r.role, r.name || BLANK, r.title || BLANK, BLANK, dateCell]),
+    ...(assessmentDateIso !== undefined && !dateCurrent && named.some((r) => r.name)
+      ? { note: "The review and approval of this assessment are recorded when the signature and date fields are completed; any earlier review date is stated in § 5.A." }
+      : {}),
   };
 }
 
@@ -1096,6 +1105,32 @@ export function clipQuotedPassages(text: string, maxWords = 12): string {
   });
 }
 
+// DOC 257 (2026-09-11, ChatGPT v2 CPPA-R2-04): two factor texts open with a
+// fixed heading or a roster lead rather than a determination, so the matrix
+// cell printed the heading ("H. Prior Assessments and Who Provided the
+// Information.") or a truncated roster item. The cell now carries the
+// determination sentence for each.
+export function matrixDeterminationSentence(factorId: string | undefined, text: string): string {
+  let t = String(text ?? "").trim();
+  if (factorId === "prior_assessments" && t.startsWith(RISK52_FIXED.prior_head)) {
+    t = t.slice(RISK52_FIXED.prior_head.length).trim();
+  }
+  if (factorId === "record_providers") {
+    const items = t.split("\n")
+      .map((l) => l.trim())
+      .filter((l) => l.startsWith("— "))
+      .map((l) => {
+        const body = l.replace(/^—\s*/, "").replace(/\.$/, "");
+        const name = body.split(/,\s*“|\s*—\s*“/)[0].trim();
+        const role = /“([^”]+)”/.exec(body)?.[1] ?? "";
+        return role ? `${name} (${role})` : name;
+      })
+      .filter(Boolean);
+    if (items.length) return `The information was provided by ${asProse(items)}.`;
+  }
+  return firstSubstantiveSentence(t);
+}
+
 export function buildFactorAuthorityMatrixTable(
   report: Bag,
   intake: Bag,
@@ -1116,7 +1151,7 @@ export function buildFactorAuthorityMatrixTable(
     }
     // DOC 148 — determination cells clip long embedded quotes (see
     // clipQuotedPassages); the body keeps every quote in full.
-    rowsOut.push([spec.label, clipQuotedPassages(firstSubstantiveSentence(determination)), authority]);
+    rowsOut.push([spec.label, clipQuotedPassages(matrixDeterminationSentence(spec.factorId, determination)), authority]);
   }
   if (rowsOut.length === 0) return null;
   return {

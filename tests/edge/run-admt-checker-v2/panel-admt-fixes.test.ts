@@ -73,7 +73,10 @@ Deno.test("ADMT-1: §§3-6 render as not-reached stubs, and duty content stays o
   for (const id of ["notice", "optout", "access", "vendor"]) {
     const sec = doc.sections.find((s) => s.id === id)!;
     assertEquals(sec.paragraphs.length, 1, `${id} must be a one-paragraph stub`);
-    assert(sec.paragraphs[0].text.startsWith("Not reached."), `${id} stub must open 'Not reached.'`);
+    // DOC 257 (2026-09-11, ChatGPT v2 ADMT-R2-02): the first stub states the
+    // reason; the later three refer back to it.
+    assert(/^Not reached[.,]/.test(sec.paragraphs[0].text), `${id} stub must open 'Not reached'`);
+    if (id !== "notice") assert(sec.paragraphs[0].text.includes("for the reason stated in Section 3"), `${id} stub must refer back to Section 3`);
   }
 });
 

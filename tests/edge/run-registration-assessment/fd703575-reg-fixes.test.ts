@@ -49,7 +49,7 @@ function skeletonText(): string {
 
 Deno.test("R1 — the executive lead names every counted duty", () => {
   const text = skeletonText();
-  const lead = text.match(/Based on the information supplied, [^"]*registration dut[^"]*/)?.[0] ?? "";
+  const lead = text.match(/Based on the information supplied, [^"]*registration, designation or fee dut[^"]*/)?.[0] ?? "";
   assert(lead.length > 0, "the duties-attach lead must render");
   assertStringIncludes(lead, "data-broker registration in California");
   assertStringIncludes(lead, "the designation of a data protection officer");
@@ -63,7 +63,7 @@ Deno.test("R1 — an engaged DPO determination states its closing act without qu
   // 3-sentence reasoning budget can never truncate it (which is exactly
   // what happened to the reasoning-appended version in batch 3e9ad759).
   const act = String(dpo.closing_act ?? "");
-  assertStringIncludes(act, "What closes the duty is a written designation");
+  assertStringIncludes(act, "The duty is discharged by a written designation");
   // DOC 163 R9 (2026-09-03) — Art. 37(7) is in gdpr_articles (both regimes)
   // and is now a registry row, so the step is quoted, not named as un-ingested.
   assertStringIncludes(act, "GDPR Art. 37(7) step");

@@ -863,9 +863,14 @@ export interface GovernanceSkeletonResult {
 // §1.4 constant-column rule applies to the four meta columns: a column
 // whose every cell is identical is dropped and its constant stated once in
 // the table note.
-export function deriveRemediationRegisterTable(report: Bag): RenderedTable | null {
+export function deriveRemediationRegisterTable(report: Bag, asOfIso?: string): RenderedTable | null {
   const plan = Array.isArray(report.remediation_plan) ? (report.remediation_plan as Bag[]) : [];
   if (!plan.length) return null;
+  // DOC 257 (2026-09-11, ChatGPT v2 GOV-R2-02): a recorded target date that
+  // has already passed at the date of the assessment is stated as passed,
+  // never presented as a forward plan.
+  const asOf = asOfIso ?? (/^\d{4}-\d{2}-\d{2}/.test(s(report.generated_at)) ? s(report.generated_at).slice(0, 10) : new Date().toISOString().slice(0, 10));
+  const datePassed = (d: string): boolean => /^\d{4}-\d{2}-\d{2}/.test(d) && d.slice(0, 10) < asOf;
   // DOC 141 (2026-09-02) — BUG 2(i): the former `actionFor` lookup here was
   // dead code. It matched a remediation record's `p.domain` — the
   // GovernanceDomain vocabulary (accountability, demonstrability,
@@ -896,7 +901,7 @@ export function deriveRemediationRegisterTable(report: Bag): RenderedTable | nul
     // Company's own open act.
     { label: "Priority", value: (p) => s(p.priority) === "unspecified" ? "Priority to be assigned" : s(p.priority) },
     { label: "Accountable owner", value: (p) => s(p.accountable_owner) },
-    { label: "Target date", value: (p) => s(p.target_date) },
+    { label: "Target date", value: (p) => datePassed(s(p.target_date)) ? `${s(p.target_date)} (passed)` : s(p.target_date) },
     { label: "Validation", value: (p) => s(p.validation_method) },
   ];
   const kept = metaColumns.filter((c) => {
@@ -953,6 +958,10 @@ export function deriveRemediationRegisterTable(report: Bag): RenderedTable | nul
             recorded.some((c) => c.label === "Target date") &&
               plan.some((p) => /this quarter/i.test(s(p.priority)))
               ? " Priority states the recommended urgency; the target date is the recorded outer deadline for the portfolio, and higher-priority items should complete ahead of it."
+              : ""
+          }${
+            recorded.some((c) => c.label === "Target date") && datePassed(s(plan[0].target_date))
+              ? ` The recorded target date has passed as at ${asOf}; a revised, owner-approved date is required before this register can be relied on as a plan.`
               : ""
           }`,
         };

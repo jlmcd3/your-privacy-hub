@@ -1302,6 +1302,8 @@ interface SkeletonTableLike {
    * persisted in skeleton_document; keys the Risk-scoped table styling
    * (never string-matched on visible cell text). */
   surface?: string;
+  /** DOC 257 (2026-09-11, ChatGPT v2 DPA-R2-01) — optional column widths (CSS lengths); with them the table is fixed-layout and headers do not wrap. */
+  widths?: string[];
 }
 
 /**
@@ -1328,7 +1330,7 @@ function skeletonTableHtml(t: SkeletonTableLike): string {
   // must wrap inside its own column rather than bleed into the next one.
   const cellWrap = "overflow-wrap:break-word;word-break:break-word;white-space:normal;";
   const head = cols
-    .map((c) => `<th style="border:none;border-bottom:0.75pt solid #000;background:#f3f6f8;padding:5pt 8pt 4pt 6pt;text-align:left;font-weight:bold;font-family:Arial,Helvetica,sans-serif;font-size:8pt;text-transform:uppercase;letter-spacing:0.06em;color:#1a1a1a;${cellWrap}">${escHtml(c)}</th>`)
+    .map((c) => `<th style="border:none;border-bottom:0.75pt solid #000;background:#f3f6f8;padding:5pt 8pt 4pt 6pt;text-align:left;font-weight:bold;font-family:Arial,Helvetica,sans-serif;${t.widths ? "white-space:nowrap;" : ""}font-size:8pt;text-transform:uppercase;letter-spacing:0.06em;color:#1a1a1a;${cellWrap}">${escHtml(c)}</th>`)
     .join("");
   const body = rows
     .map((r) =>
@@ -1350,7 +1352,8 @@ function skeletonTableHtml(t: SkeletonTableLike): string {
   const headHtml = t.hideHeader ? "" : `<thead><tr>${head}</tr></thead>`;
   return `<div style="margin:0 0 10px;">
     ${t.title ? `<div style="font-weight:bold;font-size:10pt;margin:0 0 4px;break-after:avoid;page-break-after:avoid;">${escHtml(t.title)}</div>` : ""}
-    <table style="width:100%;border-collapse:collapse;border-top:1.25pt solid #000;border-bottom:1.25pt solid #000;font-size:9.5pt;line-height:1.35;">
+    <table style="width:100%;border-collapse:collapse;border-top:1.25pt solid #000;border-bottom:1.25pt solid #000;font-size:9.5pt;line-height:1.35;${t.widths ? "table-layout:fixed;" : ""}">
+      ${t.widths ? `<colgroup>${t.widths.map((w) => `<col style="width:${escHtml(w)}">`).join("")}</colgroup>` : ""}
       ${headHtml}
       <tbody>${body}</tbody>
     </table>
@@ -2954,6 +2957,29 @@ interface DpaCoverageLike {
 // `clause_coverage` the deterministic path persists (the flat-text annex
 // stays, unchanged, in `document_text` for the coverage checker and the
 // legacy grader). No report-prose heuristic touches contract mode.
+/** DOC 257 (2026-09-11, ChatGPT v2 DPA-R2-03) — the cover's regime label is
+ * derived from the assembled instrument's engagement flags, not from the
+ * intake's framework label, which can differ when the handler derives the
+ * mode from the parties' jurisdictions. */
+function dpaRegimeLabel(record: unknown): string {
+  const engagement = (record as any)?.report_data?.dpa_contract?.engagement;
+  const e = engagement && typeof engagement === "object" ? engagement as Record<string, unknown> : null;
+  if (!e) return "";
+  const us = e.californiaEngaged === true || (Array.isArray(e.usStatesEngaged) && e.usStatesEngaged.length > 0);
+  return [
+    e.gdprEngaged === true ? "GDPR" : "",
+    e.ukEngaged === true ? "UK GDPR" : "",
+    us ? "US state privacy law" : "",
+    e.canadaEngaged === true ? "PIPEDA" : "",
+  ].filter(Boolean).join(" and ");
+}
+
+/** The DPA cover meta line: the engaged regimes (DOC 257) or, failing those, the intake's own framework label. */
+function dpaMetaLineFor(record: unknown, generatedLine: string, frameworkLabel: string): string {
+  const l = dpaRegimeLabel(record) || frameworkLabel;
+  return l ? `${generatedLine} · ${l}` : generatedLine;
+}
+
 function buildDpaContractHTML(
   contract: DpaContractLike,
   coverage: DpaCoverageLike | null | undefined,
@@ -2966,6 +2992,9 @@ function buildDpaContractHTML(
         // DOC 255 (2026-09-11, DATAPROC-07): the requirement cell is the
         // provision's first sentence, clipped — the header says so.
         columns: ["Clause", "Requirement (excerpt)", "Status", "Location"],
+        // DOC 257 (ChatGPT v2 DPA-R2-01): fixed widths so "Clause"/"Status" never
+        // wrap character by character.
+        widths: ["11%", "47%", "11%", "31%"],
         rows: coverageClauses.map((c) => [
           c.clause === "chapeau" ? "Chapeau" : c.clause === "second_subparagraph" ? "Second subparagraph" : `(${c.clause ?? ""})`,
           c.requirement ?? "",
@@ -5063,7 +5092,7 @@ Deno.serve(async (req) => {
       const procName = typeof (intake as any).processorName === "string" ? (intake as any).processorName : "Processor";
       const generatedLine = `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}`;
       const dpaTitle = `Your Custom DPA — ${ctrlName} / ${procName}`;
-      const dpaMetaLine = frameworkLabel ? `${generatedLine} · ${frameworkLabel}` : generatedLine;
+      const dpaMetaLine = dpaMetaLineFor(record, generatedLine, frameworkLabel);
       // doc 113 Part I (RULING 9.4) — contract mode renders only when the
       // deterministic path populated `report_data.dpa_contract`; every other
       // record (us-state/canada model path, pre-existing rows) keeps today's

@@ -1119,7 +1119,27 @@ export function disclosureCarriedBySafeguard(disclosure: string, safeguard: stri
   const g = contentStems(safeguard);
   let shared = 0;
   for (const stem of d) if (g.has(stem)) shared += 1;
-  return shared >= 5 && shared / d.size >= 0.5;
+  // DOC 257 (2026-09-11, ChatGPT v2 CPPA-R2-01): a planned disclosure and a
+  // planned safeguard that name the same control in quotation marks (the
+  // "Do Not Sell or Share" link) describe one act even where the stem ratio
+  // falls short of a half; one act, one class (doc 167). An unquoted overlap
+  // ("the consumer's opt-out right") is not read as the same act.
+  return shared >= 5 && (shared / d.size >= 0.5 || sharesQuotedName(disclosure, safeguard));
+}
+/** True when a quoted span of three or more words in either text appears verbatim in the other. */
+function sharesQuotedName(a: string, b: string): boolean {
+  const norm = (t: string) => ` ${s(t).toLowerCase().replace(/[^a-z0-9\s]+/g, " ").split(/\s+/).filter(Boolean).join(" ")} `;
+  const quoted = (t: string): string[] => {
+    const out: string[] = [];
+    for (const m of s(t).matchAll(/["“‘']([^"”’']{6,80})["”’']/g)) {
+      const q = norm(m[1]).trim();
+      if (q.split(" ").length >= 3) out.push(q);
+    }
+    return out;
+  };
+  const na = norm(a);
+  const nb = norm(b);
+  return quoted(a).some((q) => nb.includes(` ${q} `)) || quoted(b).some((q) => na.includes(` ${q} `));
 }
 
 // Batch 13 A-Team §7 (NestGrid; Batch 12 §11, 88B4FA24) — payment/billing
@@ -2006,10 +2026,15 @@ export function runRiskFactorEngine(
   // Balancing operands (the ratified logic, unchanged).
   const cell = RISK_BALANCING_TABLE[benefitTier][maxResidual];
   const necessityQualified = necessity.unnecessary.length > 0 || necessity.unsure.length > 0;
-  const cellExplanation =
+  // DOC 257 (2026-09-11, ChatGPT v2 CPPA-R2-04): the ratified cell text
+  // carries the either-count token "risk or risks"; the number of pathways
+  // at the governing remaining level decides the form.
+  const atMaxResidual = pathways.filter((p) => p.residual === maxResidual).length;
+  const cellExplanation = (
     necessityQualified && cell.explanation.includes("a necessity analysis that supports the information processed")
       ? "Material benefits and a low remaining-risk profile support the favorable disposition; the necessity issue identified in § 3.B remains a condition to proceeding."
-      : cell.explanation;
+      : cell.explanation
+  ).replace(/remaining risk or risks/g, atMaxResidual === 1 ? "remaining risk" : "remaining risks");
   const hasConditions = conditions.length > 0;
   const { outcome, consequence } = resolveRecommendedOutcome(
     cell.kind,
@@ -3670,7 +3695,7 @@ export function runRiskFactorEngine(
       "iii_analysis:14",
       "admt_intro",
       "A",
-      "E. Automated Decisionmaking Technology.\n\nAn automated system that decides, or helps decide, something significant for a consumer stands or falls on what it actually does — not the label applied to it — so this sub-part evaluates the system's role, the human review around it, and the testing behind it; the full technical record appears in Appendix E.\n\n" +
+      "E. Automated Decisionmaking Technology.\n\nAn automated system that decides, or helps decide, something significant for a consumer is assessed on what it actually does, not on the label applied to it, so this sub-part evaluates the system's role, the human review around it, and the testing behind it; the full technical record appears in Appendix E.\n\n" +
         (b3Class === "significant"
           ? "Governing requirement. Section 7152(a)(3)(G) requires the report to describe the technology’s role, logic, and output, and §§ 7001(e), 7150(b)(3), 7152(a)(5)(B) and 7152(a)(6)(A)(iv) make human review and accuracy-fairness-bias testing relevant to both the risk analysis and the safeguards."
           : "Governing requirement. Section 7152(a)(3)(G) requires that description where automated decisionmaking technology is used to make a significant decision concerning a consumer (§ 7150(b)(3)); that use is not established on the information provided, and this sub-part is carried as a supplemental record — §§ 7001(e), 7152(a)(5)(B) and 7152(a)(6)(A)(iv) still make human review and accuracy-fairness-bias testing relevant to the risk analysis and the safeguards it weighs.") +

@@ -355,6 +355,17 @@ function deadlineCellText(t: string): string {
  * gate registry entry stays conditional — never presumed triggered.
  */
 type StateDutyPosture = "not_established" | "determination_pending" | "triggered";
+// DOC 257 (2026-09-11, ChatGPT v2 IR-R2-01): the facts a state's own trigger
+// leaves outstanding — every walked statute turns on acquisition and on its
+// encryption formulation; only a statute with a harm-threshold carve-out
+// adds the harm assessment.
+export function outstandingStateFacts(d: Bag): string {
+  const gates = STATE_WALK_GATES[s(d.jurisdiction)];
+  return gates?.harm_carveout
+    ? "encryption and acquisition facts and the harm-threshold assessment"
+    : "encryption and acquisition facts";
+}
+
 function stateDutyPosture(d: Bag, intake: Bag): StateDutyPosture {
   const gates = STATE_WALK_GATES[s(d.jurisdiction)];
   if (!gates) return "determination_pending";
@@ -571,7 +582,7 @@ function deriveActionPlanTable(report: Bag, intake: Bag): RenderedTable | null {
     const dutyText = posture === "triggered"
       ? `Notify under the law of ${state}`
       : posture === "determination_pending"
-      ? `Determine whether notification is required under the law of ${state} (resolve the outstanding encryption, acquisition, and harm facts), and notify if the duty is established`
+      ? `Determine whether notification is required under the law of ${state} (resolve the outstanding ${outstandingStateFacts(d)}), and notify if the duty is established`
       : `No notice action currently identified under the law of ${state} — reassess if additional data types or facts emerge`;
     // ChatGPT P1-1 — Owner column: the fact-resolution work a
     // determination-pending row names is forensic/security work; a

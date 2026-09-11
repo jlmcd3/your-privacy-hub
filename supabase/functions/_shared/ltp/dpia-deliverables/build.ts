@@ -1346,7 +1346,13 @@ export function buildRiskRegister(intake: unknown): RiskRegisterEntry[] {
       risk_label: spec.risk_label,
       // PROMPT 8 — EDPB § 3.1 design-risk vs § 4.1.1 incident-risk.
       risk_class: spec.risk_class,
-      source: spec.source_template,
+      // DOC 257 (2026-09-11, ChatGPT v2 DPIA-R2-01): where the record's own
+      // human-review sentence answers the Art. 22 row, the source says so —
+      // the risk is carried because the processing scores individuals, and
+      // the likelihood reads off that review.
+      source: spec.human_intervention_measure && humanIntervention
+        ? `${spec.source_template} The record describes human review of each decision, so the likelihood is assessed as unlikely; the risk is carried because the processing scores individuals and the design must keep that review in place.`
+        : spec.source_template,
       affected_rights: spec.affected_rights,
       likelihood,
       severity: spec.severity,
@@ -3744,6 +3750,45 @@ export function buildGapLedgerDetailed(
         cit(ledgerRegime, "Art. 35(3)(c)"),
         "the Article 35(3)(c) trigger determination",
         { ask_class: "ask_imagery_spaces", display_label: resolveAskLabel("ask_imagery_spaces") },
+      );
+    }
+  }
+
+  // DOC 257 (2026-09-11, ChatGPT v2 DPIA-R2-02) — two record-completion
+  // items the decision surfaces could not see: an approval more than twelve
+  // months old at the report date, and a DPO recommendation with no recorded
+  // decision on it. Neither re-decides the determination; each is an open
+  // item the register states.
+  {
+    const approvalDate = str(get(_intake, "dpia_approval_date"));
+    const m = /(\d{4})-(\d{2})-(\d{2})/.exec(approvalDate);
+    if (m) {
+      const d = new Date(`${m[1]}-${m[2]}-${m[3]}T00:00:00Z`);
+      const now = new Date();
+      const months = (now.getUTCFullYear() - d.getUTCFullYear()) * 12 + (now.getUTCMonth() - d.getUTCMonth()) - (now.getUTCDate() < d.getUTCDate() ? 1 : 0);
+      if (!Number.isNaN(d.getTime()) && months >= 12) {
+        const basis = str(get(_intake, "dpia_signoff_basis"));
+        const annual = /\bannual(?:ly)?\b|every (?:12|twelve) months|\byearly\b/i.test(basis);
+        push(
+          "dpia_approval_date",
+          `The approval recorded on ${approvalDate} is more than twelve months old at the date of this report${annual ? ", and the sign-off basis itself calls for an annual re-review" : ""}. Record the outcome of the current review, or a new approval, so the decision in Section 7 rests on a current one.`,
+          cit(ledgerRegime, "Art. 35(11)"),
+          "the currency of the approval on which the decision rests",
+        );
+      }
+    }
+    const advice = str(get(_intake, "dpo_advice"));
+    // Only an express recommendation is raised, and not where the same
+    // sentence records that it was implemented or adopted.
+    const recs = advice.split(/(?<=[.!?])\s+/).filter((t) =>
+      /\b(recommend\w*|suggest\w*)\b/i.test(t) && !/\b(implemented|adopted|actioned|in place|completed|carried out)\b/i.test(t)
+    );
+    if (recs.length) {
+      push(
+        "dpo_advice",
+        `The data protection officer's advice includes ${recs.length === 1 ? "a recommendation" : "recommendations"} — ${recs.map((t) => `“${t.replace(/[.\s]+$/, "")}”`).join("; ")} — and the record does not state whether ${recs.length === 1 ? "it was" : "they were"} adopted or, if not, why. Record the decision taken on ${recs.length === 1 ? "it" : "each"}.`,
+        cit(ledgerRegime, "Art. 35(2)"),
+        "the record of the decision on the data protection officer's advice",
       );
     }
   }

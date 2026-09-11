@@ -72,8 +72,10 @@ Deno.test("R1 — no headcount keeps the band label unchanged", () => {
 });
 
 // DOC 163 R3 (2026-09-03) — branch (c) reads the one scale fact the form
-// collects: it is engaged outright at more than 100,000 data subjects a year;
-// otherwise it is OPEN, naming the two facts it turns on. The former
+// collects. DOC 257 (2026-09-11, ChatGPT v2 REG-R2-01): the branch is
+// conjunctive, so a recorded scale above 100,000 data subjects a year leaves
+// it OPEN on the core-activity element the form does not ask; below that it
+// is OPEN naming the two facts it turns on. The former
 // "treated as engaged on a conservative basis" verdict printed "Required on
 // reported facts" for a bare special-categories checkbox.
 Deno.test("R2 — branch (c) states its open basis in one sentence, never the bare test recital", () => {
@@ -101,13 +103,15 @@ Deno.test("R2 — special categories without a recorded scale leave the determin
   assert(!JSON.stringify(dpo).includes("conservative"), "the conservative-basis verdict is retired");
 });
 
-Deno.test("R2 — special categories at more than 100,000 data subjects engage branch (c) outright", () => {
+Deno.test("R2 / DOC 257 — special categories at more than 100,000 data subjects leave branch (c) open on the core-activity element alone", () => {
   const d = buildRegistrationDeliverables(aurabloomIntake({ data_subjects_count: 250_000 }) as never) as unknown as Bag;
   const dpo = d.dpo_determination as Bag;
-  assertEquals(String(dpo.verdict), "engaged");
-  assertStringIncludes(String(dpo.headline), "A data protection officer must be designated");
+  assertEquals(String(dpo.verdict), "record_insufficient");
+  assertStringIncludes(String(dpo.headline), "cannot be determined from the facts recorded");
   const c = (dpo.findings as Bag[]).find((f) => String(f.key) === "dpo_trigger_special_categories")!;
-  assertStringIncludes(String(c.application), "250,000 data subjects a year, which this assessment treats as large scale");
+  assertEquals(String(c.verdict), "record_insufficient");
+  assertStringIncludes(String(c.application), "250,000 data subjects a year, which this assessment treats as large scale; whether that processing is a core activity of the organisation is not recorded, so branch (c) is open on that one element");
+  assertStringIncludes(String(dpo.information_needed), "whether the special-category processing is a core activity of the organisation (the recorded 250,000 data subjects a year are treated as large scale)");
 });
 
 Deno.test("R2 — a firm branch keeps the mandatory headline; the open branch is noted, not counted", () => {

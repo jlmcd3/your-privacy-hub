@@ -69,7 +69,7 @@ Deno.test("DOC 137 — the assembled skeleton document does not claim no filing 
     false,
     "a resolved, mandatory ICO fee must not render as \"No filing is required\"",
   );
-  assertStringIncludes(text, "registration duty attaches");
+  assertStringIncludes(text, "registration, designation or fee duty attaches");
 });
 
 Deno.test("DOC 137 — the Duty-status table gets an ICO fee row with tier amount", () => {

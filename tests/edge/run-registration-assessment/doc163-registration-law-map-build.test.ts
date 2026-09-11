@@ -138,10 +138,16 @@ Deno.test("DOC 163 R3 — special categories without a recorded scale leave bran
   assertEquals(recordedLargeScale(ukSmall() as never), null);
 });
 
-Deno.test("DOC 163 R3 — special categories at more than 100,000 data subjects engage branch (c); the closing act quotes Art. 37(7)", () => {
-  const built = buildRegistrationDeliverables(ukSmall({ processes_special_categories: true, data_subjects_count: 250_000 }) as never) as unknown as Bag;
+// DOC 257 (2026-09-11, ChatGPT v2 REG-R2-01): scale alone never engages the
+// conjunctive branch (c); limb (b) carries the engaged determination here so
+// the closing act is still exercised.
+Deno.test("DOC 163 R3 / DOC 257 — special categories at more than 100,000 data subjects leave branch (c) open; an engaged determination's closing act quotes Art. 37(7)", () => {
+  const built = buildRegistrationDeliverables(ukSmall({ processes_special_categories: true, data_subjects_count: 250_000, large_scale_monitoring: true }) as never) as unknown as Bag;
   const dpo = built.dpo_determination as Bag;
   assertEquals(dpo.verdict, "engaged");
+  const cOpen = (dpo.findings as Bag[]).find((f) => f.key === "dpo_trigger_special_categories")!;
+  assertEquals(cOpen.verdict, "record_insufficient");
+  assertStringIncludes(String(cOpen.application), "branch (c) is open on that one element");
   assertStringIncludes(String(dpo.closing_act), "UK GDPR Art. 37(7) step");
   assertStringIncludes(String(dpo.closing_act), "communicate them to the Commissioner");
   assert((dpo.citations as string[]).includes("UK GDPR Art. 37(7)"));
@@ -341,7 +347,7 @@ Deno.test("DOC 163 R10 — the Art. 49 determination is counted; counts under te
   assertEquals(reserved.ai_act_attached, 0);
   assert(reserved.reserved >= 1, "a conditional Art. 49 determination is reserved");
   const { text } = assemble(usBroker({ markets_served: ["US-CA", "US-VT"] }));
-  assertStringIncludes(text, "two registration duties attach");
+  assertStringIncludes(text, "two registration, designation or fee duties attach");
   const report: Bag = {
     registration_deliverables: buildRegistrationDeliverables(ukSmall() as never),
     jurisdictions: [{ code: "UK", name: "United Kingdom", obligations: ["ico_fee"], filing_fee_cents: 7800 }],

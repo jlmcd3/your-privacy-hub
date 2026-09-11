@@ -504,7 +504,9 @@ Deno.test("batch 66b383d8 — out of scope, a hook sentence aimed at a duty sect
   const stub = bare.sections.find((s) => s.id === "optout");
   assertEquals(stub !== undefined, true, "the not-reached stub renders under the real 'optout' id — that is the hazard");
   assertEquals(stub!.paragraphs.length, 1);
-  assertEquals(stub!.paragraphs[0].text.startsWith("Not reached."), true);
+  // DOC 257 (2026-09-11): the optout stub is the second not-reached stub and
+  // refers back to Section 3 ("Not reached, for the reason stated …").
+  assertEquals(/^Not reached[.,]/.test(stub!.paragraphs[0].text), true);
 
   const dutySentence = "The company relies on the human-appeal exception — this must not print under Not reached.";
   const govSentence = "A governance sentence that is still welcome out of scope.";

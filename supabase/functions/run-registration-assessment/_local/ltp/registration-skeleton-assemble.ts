@@ -497,7 +497,7 @@ function deriveFilingCalendarTable(report: Bag): RenderedTable | null {
     title: "Filing calendar",
     columns: ["State", "File with", "Deadline / cycle", "Fee", "Authority", "Status"],
     rows,
-    note: "Deadlines and fees are stated from the registry rows; the operative filing date for this organisation is fixed by counsel.",
+    note: "Deadlines and fees are stated from the statutory provisions reproduced in this assessment; the operative filing date for this organisation is fixed by counsel.",
   };
 }
 
@@ -809,7 +809,9 @@ function composeExecLead(counts: RegistrationDutyCounts, org: string): string {
     ? `of which ${satisfaction}`
     : `and ${satisfaction}`;
   return stop(
-    `Based on the information supplied, ${count(counts.attached, "registration duty attaches", "registration duties attach")} to ${orgAndNames} ${satisfactionClause}${counts.reserved > 0 ? `, with ${count(counts.reserved, "further determination", "further determinations")} remaining open because required information was not provided` : ""}${pendingClause}`,
+    // DOC 257 (2026-09-11, ChatGPT v2 REG-R2-02): the umbrella names the
+    // three kinds of duty it counts (registration, designation, fee).
+    `Based on the information supplied, ${count(counts.attached, "registration, designation or fee duty attaches", "registration, designation or fee duties attach")} to ${orgAndNames} ${satisfactionClause}${counts.reserved > 0 ? `, with ${count(counts.reserved, "further determination", "further determinations")} remaining open because required information was not provided` : ""}${pendingClause}`,
   );
 }
 
@@ -1595,7 +1597,7 @@ function buildRegistrationSyllabus(
   const rows: Array<readonly [string, string]> = [];
   if (juris) rows.push(["Jurisdictions assessed", juris]);
   rows.push([
-    "Registration duties",
+    "Registration, designation and fee duties",
     counts.attached > 0
       ? `${count(counts.attached, "duty attaches", "duties attach")}${counts.attached_names.length ? ` — ${counts.attached_names.join("; ")}` : ""}`
       : "None attach on the information provided",
@@ -1705,9 +1707,9 @@ function deriveRegistrationProfileTable(
   const juris = buildJurisdictionProse(intake);
   const status = counts.attached === 0
     ? (counts.reserved > 0
-      ? `No registration duty established; ${count(counts.reserved, "determination remains", "determinations remain")} open`
-      : "No registration duty attaches")
-    : `${count(counts.attached, "registration duty attaches", "registration duties attach")}${counts.reserved > 0 ? `; ${count(counts.reserved, "determination remains", "determinations remain")} open` : ""}`;
+      ? `No registration, designation or fee duty established; ${count(counts.reserved, "determination remains", "determinations remain")} open`
+      : "No registration, designation or fee duty attaches")
+    : `${count(counts.attached, "registration, designation or fee duty attaches", "registration, designation or fee duties attach")}${counts.reserved > 0 ? `; ${count(counts.reserved, "determination remains", "determinations remain")} open` : ""}`;
   const rows: string[][] = [
     ["Organization", org],
     ...(juris ? [["Jurisdictions assessed", juris]] : []),

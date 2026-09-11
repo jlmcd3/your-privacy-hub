@@ -269,7 +269,7 @@ Deno.test("SO-8: leads agree with the typed determinations", () => {
   assertEquals(out.duty_counts.reserved, 1); // Texas conditional
   const text = skeletonDocumentToText(out.document);
   // DOC 163 R10 (2026-09-03) — counts under ten read as words in prose.
-  assert(text.includes("two registration duties attach"));
+  assert(text.includes("two registration, designation or fee duties attach"));
   // 3E9AD759-R1 — satisfaction is claimed only for filing duties (the typed
   // filing-readiness surface); the designation duty's status is honestly
   // unrecorded, never asserted unsatisfied. The old pin ("none is presently

@@ -508,7 +508,17 @@ export function buildGdprSpine(ctx: SpineCtx): SpineResult {
   // 12 (conditional) ───────────────────────────────────────────────────────
   if (marketingSelected) {
     const parts: string[] = [];
-    parts.push(`<div class="fi-callout">${p(`<strong>You have the right to object at any time to the processing of your personal data for direct marketing purposes, including profiling to the extent that it is related to such direct marketing.</strong> If you object, we will no longer process your personal data for those purposes (Article 21(2) and (3) of ${esc(LAW)}).`)}${runIn("How to object", objectMethod ? esc(objectMethod) : fill("insert how individuals can object to direct marketing, for example an unsubscribe link or a preference centre"))}${p(`Where a marketing communication includes an unsubscribe link or preference control, you may also use that mechanism.`)}</div>`);
+    // DOC 257 (2026-09-11, ChatGPT v2 EUN-R2-01): the Article 21(1) method
+    // the company recorded may promise an assessment against compelling
+    // grounds; the direct-marketing objection is absolute (Art. 21(2)–(3)),
+    // so only the channel is reused and the callout states the effect.
+    const marketingObjectMethod = (() => {
+      if (!objectMethod) return "";
+      if (!/\b(compelling|legitimate grounds|assess\w*|balanc\w*|overrid\w*|unless)\b/i.test(objectMethod)) return objectMethod;
+      const channel = objectMethod.split(/;|\.\s|\bwe will\b|\band we\b/i)[0].trim();
+      return /\b(via|by|at|through|email\w*|contact\w*|link|settings|centre|center|page|form|portal)\b/i.test(channel) ? channel : "";
+    })();
+    parts.push(`<div class="fi-callout">${p(`<strong>You have the right to object at any time to the processing of your personal data for direct marketing purposes, including profiling to the extent that it is related to such direct marketing.</strong> If you object, we will no longer process your personal data for those purposes (Article 21(2) and (3) of ${esc(LAW)}).`)}${runIn("How to object", marketingObjectMethod ? `${esc(trimStop(marketingObjectMethod))}. The objection is honoured without any assessment of competing grounds` : fill("insert how individuals can object to direct marketing, for example an unsubscribe link or a preference centre"))}${p(`Where a marketing communication includes an unsubscribe link or preference control, you may also use that mechanism.`)}</div>`);
     sections.push({ title: "Your Right to Object to Direct Marketing", html: parts.join("\n") });
   }
 

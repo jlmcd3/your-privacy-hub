@@ -1368,6 +1368,25 @@ function checkLeadCoherence(
   return findings;
 }
 
+// DOC 257 (2026-09-11, ChatGPT v2 LIA-R2-01): a review or approval date more
+// than twelve months before the report date is stated as such, and where the
+// record itself commits to an annual review the re-review is stated as due.
+// The outcome of the three-part test is unchanged: currency of review is an
+// accountability fact (Art. 5(2)), not an element of Art. 6(1)(f).
+export function staleReviewClause(dateText: string, recordInput: Bag, asOf: Date = new Date()): string {
+  const m = /(\d{4})-(\d{2})-(\d{2})/.exec(String(dateText ?? ""));
+  if (!m) return "";
+  const d = new Date(`${m[1]}-${m[2]}-${m[3]}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return "";
+  const months = (asOf.getUTCFullYear() - d.getUTCFullYear()) * 12 + (asOf.getUTCMonth() - d.getUTCMonth()) - (asOf.getUTCDate() < d.getUTCDate() ? 1 : 0);
+  if (months < 12) return "";
+  const annual = /\bannual(?:ly)?\b|every (?:12|twelve) months|\byearly\b/i.test(JSON.stringify(recordInput ?? {}));
+  const asOfText = asOf.toISOString().slice(0, 10);
+  return annual
+    ? ` As at ${asOfText}, more than twelve months have passed since that date; on the annual review the company's own record commits to, the re-review is due.`
+    : ` As at ${asOfText}, more than twelve months have passed since that date; the company should confirm that the assessment remains current.`;
+}
+
 export function assembleLiaSkeletonDocument(
   report: Bag,
   recordInput: Bag,
@@ -1624,7 +1643,7 @@ export function assembleLiaSkeletonDocument(
       ? (s(attestation.dpo_reviewer)
         ? `The assessment was reviewed by ${s(attestation.dpo_reviewer)}${
           s(attestation.dpo_review_date) ? ` on ${s(attestation.dpo_review_date)}` : ""
-        }.`
+        }.${staleReviewClause(s(attestation.dpo_review_date), recordInput)}`
         : "The assessment was reviewed by the data protection officer.")
       // HONEST NEGATIVE — weight attaches either way, so the absence is stated.
       : "Review by the data protection officer has not yet occurred.",
@@ -1648,7 +1667,7 @@ export function assembleLiaSkeletonDocument(
       : s(attestation.approval_date)
       ? `The assessment record was approved by ${s(attestation.approver_name)}${
         s(attestation.approver_position) ? `, ${s(attestation.approver_position)}` : ""
-      }, on ${s(attestation.approval_date)}.${
+      }, on ${s(attestation.approval_date)}.${staleReviewClause(s(attestation.approval_date), recordInput)}${
         verdictIsPositive(v.outcome) === null && !v.public_authority_bar
           ? " That approval covers the assessment record itself; the lawful-basis and processing decision remain pending until the outcome above is resolved."
           : ""

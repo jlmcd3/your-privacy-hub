@@ -353,7 +353,8 @@ function validationApprovalTable(report: Bag): RenderedTable | null {
 function dataItemsTable(inv: Bag): RenderedTable | null {
   const rows = asArray(inv.data_items).map((d) => [
     cell(d.item),
-    d.special_category === true ? "Special category" : "Not a special category",
+    // DOC 257 (2026-09-11, ChatGPT v2 DPIA-R2-04): "Other" names no data item.
+    /^other$/i.test(cell(d.item)) ? "Not classified — “Other” names no data item; state the item" : d.special_category === true ? "Special category" : "Not a special category",
     cell(d.art9_condition_label),
     label(d.status),
     needed(d.information_needed, d.status),

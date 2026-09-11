@@ -832,7 +832,7 @@ function buildIlDuties(
       : triggerDenied
       ? "The trigger text the record supplies states no destruction trigger is configured; a discretionary manual practice is described instead. Whether destruction actually occurs on the established schedule cannot be shown on that description."
       : trigger
-      ? `The record describes an operative destruction trigger, which is what compliance with the established schedule consists of on these facts. § 15(a) qualifies the duty only by a valid warrant or subpoena.${triggerScopedGapSentence ? ` The record also names a narrower gap not covered by that trigger: "${noStop(triggerScopedGapSentence)}"; that gap is a distinct exposure and does not itself defeat compliance with the general trigger.` : ""}`
+      ? `The record describes an operative destruction trigger, which is what compliance with the established schedule consists of on these facts. § 15(a) qualifies the duty only by a valid warrant or subpoena. The record describes the trigger; whether deletion has in fact occurred on that schedule is not evidenced here, and deletion logs or an equivalent record would show it.${triggerScopedGapSentence ? ` The record also names a narrower gap not covered by that trigger: "${noStop(triggerScopedGapSentence)}"; that gap is a distinct exposure and does not itself defeat compliance with the general trigger.` : ""}`
       : "A schedule is documented, but no trigger on which destruction actually occurs is described, so compliance cannot be assessed.",
     !scheduleEstablished
       ? "not_satisfied"
@@ -962,7 +962,7 @@ function buildIlDuties(
     s,
     "il_bipa.15e_reasonable_care",
     "Reasonable standard of care in storage and transmission",
-    `Security measures: ${security ?? "not supplied"}. Parity with other confidential and sensitive information: ${parity}.`,
+    `Security measures: ${security ? noStop(security) : "not supplied"}. Parity with other confidential and sensitive information: ${parity}.`,
     parity === "no"
       ? "§ 15(e)(2) requires protection at least as protective as the manner in which the entity protects other confidential and sensitive information. The record states it is not."
       : security && parity === "yes"
@@ -1042,7 +1042,7 @@ function buildTxDuties(intake: BiometricIntakeForDeliverables): DutyFinding[] {
     s,
     "tx_cubi.c2_reasonable_care",
     "Reasonable care in storage and transmission",
-    `Security measures: ${security ?? "not supplied"}. Parity with other confidential information: ${parity}.`,
+    `Security measures: ${security ? noStop(security) : "not supplied"}. Parity with other confidential information: ${parity}.`,
     parity === "no"
       ? "§ 503.001(c)(2) requires protection at least as protective as the manner in which the person protects any other confidential information it possesses. The record states it is not."
       : security && parity === "yes"
@@ -1243,7 +1243,7 @@ function buildWaDuties(intake: BiometricIntakeForDeliverables): DutyFinding[] {
     s,
     "wa_19375.020_4_care_and_retention",
     "Reasonable care and retention limit",
-    `Security measures: ${security ?? "not supplied"}. Destruction trigger: ${trigger ?? "not supplied"}.`,
+    `Security measures: ${security ? noStop(security) : "not supplied"}. Destruction trigger: ${trigger ?? "not supplied"}.`,
     security && trigger
       ? "The record describes measures guarding against unauthorised access and a retention practice tied to the services for which the identifier was enrolled. Subsection (4)(b) measures retention by reasonable necessity, not by a fixed period, so no anniversary applies here."
       : "Subsection (4) has two limbs — reasonable care, and retention no longer than reasonably necessary for the three listed ends. The record does not establish both.",
