@@ -69,8 +69,18 @@ export const BIOMETRIC_SKELETON_PROVENANCE =
 // slots, ids and assembly rules unchanged. Old-hash reproduction verified
 // before re-pin. Prior pin:
 // 4ad3d8c5bf26ddfe84dc636d32114f065599d921b6b8a60a87982f81b5807d23.
+// RE-PIN DOC 254 (2026-09-11, ChatGPT prose review BIOMETRI-05; ratification
+// ledger doc 254 §6): the Executive Summary method sentence ("Each statute
+// below is applied in its own words …") became the composed
+// {STATUTE_METHOD_SENTENCE} — an EU/UK-only record promised statutes below
+// and analysed none — and "2. State-Specific Requirements" became
+// "2. Jurisdiction-Specific Requirements" (the section already addresses
+// EU/EEA and UK entries). Recorded-path bytes unchanged: the method sentence
+// composes verbatim when a registered statute is in scope. Old-hash
+// reproduction verified before re-pin. Prior pin:
+// 0dc2383f95f1d45fb96be2f7dd7af1e6dc94fbf4dc61e7d03233a0944462a67b.
 export const BIOMETRIC_SKELETON_CONTENT_HASH =
-  "0dc2383f95f1d45fb96be2f7dd7af1e6dc94fbf4dc61e7d03233a0944462a67b";
+  "1efddd9e1c84ff77c89e304ce3e8db4a4d009a4d81cda3bf9b2f60664931e1ff";
 
 /**
  * RESTORED 2026-08-26 (Biometric Conversion groundwork audit). The 2026-08-19
@@ -122,7 +132,7 @@ export const BIOMETRIC_SKELETON_SECTIONS: readonly BiometricSkeletonSection[] = 
     title: "Executive Summary",
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating whether the programme as the company describes it meets each statute in scope, or naming plainly where it falls short." },
-      { kind: "skeleton", text: "{organizationName}, operating in {sector - reader label}, has indicated that it collects {biometricTypes - reader labels} for {collectionPurpose}, by means of {collectionMethod - own clause}. The jurisdictions whose laws the company has placed in scope are {states - as prose}. Each statute below is applied in its own words: the duty appears as the verified statutory passage states it, the company's answers are set beside it, and the conclusion follows from the two." },
+      { kind: "skeleton", text: "{organizationName}, operating in {sector - reader label}, has indicated that it collects {biometricTypes - reader labels} for {collectionPurpose}, by means of {collectionMethod - own clause}. The jurisdictions whose laws the company has placed in scope are {states - as prose}. {STATUTE_METHOD_SENTENCE - conditional: a registered statute in scope => the fixed method sentence (each statute below applied in its own words, the company's answers set beside it, the conclusion following from the two); none => the honest sentence that no registered statute is in scope}" },
       { kind: "generated", text: "[GENERATED] The outcome per statute in scope, one measured clause each; where the company's answers leave a duty unresolved, the assessment says so and names what would settle it." },
       // BATCH 18 (Wave C1, doc 109 §2.9 item 3): the duty scorecard —
       // Duty | Pinpoint | Status | Where addressed — built from the typed
@@ -143,7 +153,7 @@ export const BIOMETRIC_SKELETON_SECTIONS: readonly BiometricSkeletonSection[] = 
   },
   {
     id: "state_specific",
-    title: "2. State-Specific Requirements",
+    title: "2. Jurisdiction-Specific Requirements",
     blocks: [
       { kind: "conditional", text: "[CONDITIONAL] ILLINOIS - trigger IL in {states}: the BIPA Section 15(a)-(e) duties, each from its verified passage, with the 2024 amendment's damages rule per the pinned rulebook." },
       { kind: "conditional", text: "[CONDITIONAL] TEXAS - trigger TX: the CUBI duties; the company's destruction answer {txDestruction}, attributed." },
@@ -199,13 +209,13 @@ export const BIOMETRIC_SKELETON_PARAGRAPHS: readonly string[] = [
   BIOMETRIC_REGISTER_GUIDE,
   "Executive Summary",
   "[DETERMINATION LEAD] One sentence stating whether the programme as the company describes it meets each statute in scope, or naming plainly where it falls short.",
-  "{organizationName}, operating in {sector - reader label}, has indicated that it collects {biometricTypes - reader labels} for {collectionPurpose}, by means of {collectionMethod - own clause}. The jurisdictions whose laws the company has placed in scope are {states - as prose}. Each statute below is applied in its own words: the duty appears as the verified statutory passage states it, the company's answers are set beside it, and the conclusion follows from the two.",
+  "{organizationName}, operating in {sector - reader label}, has indicated that it collects {biometricTypes - reader labels} for {collectionPurpose}, by means of {collectionMethod - own clause}. The jurisdictions whose laws the company has placed in scope are {states - as prose}. {STATUTE_METHOD_SENTENCE - conditional: a registered statute in scope => the fixed method sentence (each statute below applied in its own words, the company's answers set beside it, the conclusion following from the two); none => the honest sentence that no registered statute is in scope}",
   "[GENERATED] The outcome per statute in scope, one measured clause each; where the company's answers leave a duty unresolved, the assessment says so and names what would settle it.",
   "1. Notice, Consent and the Written Policy",
   "[DETERMINATION LEAD] One sentence stating the notice-and-consent posture across the statutes in scope.",
   "The company has answered the written-notice question {HAS_NOTICE_PHRASE - reader phrase}; and the written-release question {HAS_RELEASE_PHRASE - reader phrase}. [BYTE-PINNED] Each statutory duty in this section is the verified corpus passage, cited to its source row; the company's facts are set beside the passage, never written into it.",
   "[GENERATED] Per-duty findings from the typed duty rows, each attributed; destruction obligations are stated on the statutory clock - the period runs from the individual's last interaction, not from collection - and the deterministic trigger repair guards that phrasing.",
-  "2. State-Specific Requirements",
+  "2. Jurisdiction-Specific Requirements",
   "[CONDITIONAL] ILLINOIS - trigger IL in {states}: the BIPA Section 15(a)-(e) duties, each from its verified passage, with the 2024 amendment's damages rule per the pinned rulebook.",
   "[CONDITIONAL] TEXAS - trigger TX: the CUBI duties; the company's destruction answer {txDestruction}, attributed.",
   "[CONDITIONAL] WASHINGTON - trigger WA: the RCW 19.375 enrolment duties; the My Health My Data Act addressed where the answers indicate health inference.",

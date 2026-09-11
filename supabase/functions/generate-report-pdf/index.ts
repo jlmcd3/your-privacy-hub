@@ -1676,8 +1676,10 @@ const H3_CHUNK_RE = new RegExp(
   `)$`,
 );
 // R4: a statutory/verbatim quote chunk — either the composer emitted a
-// quoted_authority paragraph kind (ADMT S4 excerpts), or the chunk is one
-// enquoted span of ≥ 25 words.
+// quoted_authority paragraph kind, or the chunk is one enquoted span of
+// ≥ 25 words. DOC 254 (2026-09-11): the ADMT S4 excerpts (the Agency's
+// Final Statement of Reasons) are `quoted_rulemaking` — same block style,
+// railed as rulemaking context rather than statutory text.
 const QUOTE_CHUNK_RE = /^[“"][\s\S]{40,}[”"]\.?$/;
 const STATUTE_QUOTE_STYLE =
   "font-size:10.5px;border-left:3px solid #8a9eb1;padding:6px 12px;margin:6px 0 10px;white-space:pre-line;color:#1a1a1a;";
@@ -2175,7 +2177,7 @@ function skeletonSectionsHtml(doc: SkeletonDocLike, opts?: { product?: string })
       }
       // R4 (kind-driven): composer-typed quoted authority renders as the
       // statute-quote block, verbatim, no lead styling.
-      if (p?.kind === "quoted_authority") {
+      if (p?.kind === "quoted_authority" || p?.kind === "quoted_rulemaking") {
         return `<div class="statute-quote" style="${STATUTE_QUOTE_STYLE}">${escHtml(t.trim())}</div>`;
       }
       if (sec.id === "table_of_authorities" && p?.kind !== "skeleton") {
@@ -2762,6 +2764,12 @@ function srSectionsHtml(doc: SkeletonDocLike, product?: string): string {
       }
       if (p?.kind === "legal_requirement") {
         return srRailHtml(srGoverningLabel(t.trim()), `<p style="white-space:pre-line;">${mark(styleLeadPhrases(escHtml(t.trim()), true))}</p>`);
+      }
+      // DOC 254 (2026-09-11, ChatGPT review CR-4 / CPPAADMT-04) — the ADMT S4
+      // excerpts are the Agency's Final Statement of Reasons, not statute; the
+      // rail names the authority class the composer typed.
+      if (p?.kind === "quoted_rulemaking") {
+        return srRailHtml("FINAL STATEMENT OF REASONS · PERSUASIVE ONLY", `<p style="white-space:pre-line;">${escHtml(t.trim())}</p>`);
       }
       if (p?.kind === "quoted_authority") {
         return srRailHtml("STATUTORY TEXT", `<p style="white-space:pre-line;">${escHtml(t.trim())}</p>`);

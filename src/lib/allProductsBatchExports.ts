@@ -94,7 +94,13 @@ async function renderNoticePdfs(o: RunOutcome): Promise<Array<{ name: string; ur
           .replace(/&/g, "&amp;")
           .replace(/</g, "&lt;")
           .replace(/>/g, "&gt;")}</body></html>`;
-    const title = `${cfg.prefix}${d.is_combined ? "-combined" : ""}-v${d.version_number ?? 1}`;
+    const slug = `${cfg.prefix}${d.is_combined ? "-combined" : ""}-v${d.version_number ?? 1}`;
+    // DOC 254 (2026-09-11, ChatGPT review EUANDUKP-06) — the converter prints
+    // `title` in every page footer; the internal slug ("eu-notice-v2") is
+    // kept for the file name only.
+    const title = cfg.prefix === "eu-notice"
+      ? (d.is_combined ? "International Privacy Notice" : "Privacy Notice")
+      : (d.is_combined ? "U.S. Privacy Notice" : "U.S. Privacy Notice — state edition");
     const { data: pdf, error: pdfErr } = await invokeWithTimeout<{ pdf_url?: string; error?: string }>(
       "render-html-to-pdf",
       { html, title, cache_key: `${cfg.prefix}-${d.id}` },
@@ -103,7 +109,7 @@ async function renderNoticePdfs(o: RunOutcome): Promise<Array<{ name: string; ur
     if (pdfErr || !pdf?.pdf_url) {
       throw new Error(pdfErr?.message || pdf?.error || "notice PDF render failed");
     }
-    out.push({ name: `${title}-${d.id.slice(0, 8)}`, url: pdf.pdf_url });
+    out.push({ name: `${slug}-${d.id.slice(0, 8)}`, url: pdf.pdf_url });
   }
   return out;
 }

@@ -42,6 +42,7 @@ import {
   type SlotValues,
 } from "../../../_shared/prose/skeleton-render.ts";
 import { repairRegister } from "../../../_shared/ltp/register-repair.ts";
+import { isSentenceValued } from "../../../_shared/prose/slots.ts";
 import { firstSentence, firstSentences } from "../../../_shared/ltp/dpia-skeleton-assemble.ts";
 
 export const BIOMETRIC_SKELETON_ASSEMBLER_STAMP = "biometric-skeleton-assembler@so6-wire-in-2026-08-10";
@@ -103,6 +104,33 @@ export function buildStatesProse(intake: Bag): string {
   return asProse(labels);
 }
 
+// DOC 254 (2026-09-11, ChatGPT review BIOMETRI-01) — the form's sector option
+// label rendered raw ("operating in Consumer app or platform"). A label that
+// carries its own parenthetical ("Employer (employee biometrics)") already
+// reads as a sector designation and is kept verbatim; a bare label takes the
+// reader phrase "the … sector".
+function sectorPhrase(v: unknown): string | null {
+  const t = s(v);
+  if (!t) return null;
+  if (/\(/.test(t) || /\bsector\b/i.test(t)) return t;
+  return `the ${t.charAt(0).toLowerCase()}${t.slice(1)} sector`;
+}
+
+// DOC 254 (BIOMETRI-01) — a capture answer written as a sentence ("Facial
+// geometry and voiceprint templates are captured during …") sat after the
+// fixed "by means of"; it is now attributed and quoted in that seam.
+function collectionMethodPhrase(v: unknown): string | null {
+  const m = noStop(s(v));
+  if (!m) return null;
+  return isSentenceValued(m) ? `the process the company describes as follows: “${m}”` : m;
+}
+
+const REGISTERED_STATUTE_RE = /illinois|texas|washington/i;
+const STATUTE_METHOD_SENTENCE =
+  "Each statute below is applied in its own words: the duty appears as the verified statutory passage states it, the company's answers are set beside it, and the conclusion follows from the two.";
+const NO_REGISTERED_STATUTE_SENTENCE =
+  "No registered statute is in scope for the jurisdictions named, so this assessment applies no statutory duty and reaches no compliance conclusion; Section 2 states what analysis applies instead.";
+
 export function buildBiometricSlotValues(intake: Bag): SlotValues {
   const types = arr(intake.biometricTypes).map(lowerEnumLabel);
   const purpose = s(intake.purpose);
@@ -114,12 +142,18 @@ export function buildBiometricSlotValues(intake: Bag): SlotValues {
   return {
     // Proper nouns and reader labels — verbatim, never case-folded.
     organizationName: s(intake.orgName) || "The company",
-    sector: s(intake.orgType) || null,
+    sector: sectorPhrase(intake.orgType),
 
     biometricTypes: types.length ? asProse(types) : null,
     collectionPurpose: purpose ? (BIOMETRIC_PURPOSE_PHRASE_MAP[purpose] ?? lowerEnumLabel(purpose)) : null,
-    collectionMethod: noStop(s(intake.data_source_description)) || null,
+    collectionMethod: collectionMethodPhrase(intake.data_source_description),
     states: states || null,
+    // DOC 254 (BIOMETRI-05) — an EU/UK-only record promised "Each statute
+    // below" and then analysed none; the method sentence composes by whether
+    // a registered statute (IL/TX/WA) is in scope.
+    STATUTE_METHOD_SENTENCE: arr(intake.jurisdictions).some((j) => REGISTERED_STATUTE_RE.test(j))
+      ? STATUTE_METHOD_SENTENCE
+      : NO_REGISTERED_STATUTE_SENTENCE,
 
     HAS_NOTICE_PHRASE: notice ? (BIOMETRIC_NOTICE_PHRASE_MAP[notice] ?? `as ${lowerEnumLabel(notice)}`) : null,
     HAS_RELEASE_PHRASE: release ? (BIOMETRIC_RELEASE_PHRASE_MAP[release] ?? `as ${lowerEnumLabel(release)}`) : null,
@@ -703,13 +737,15 @@ function composeOperativeLead(report: Bag, intake: Bag): string {
         if (!duty && !cite) return "";
         const whyText = s(u.why);
         const whyFirst = whyText ? (whyText.match(/^[\s\S]{1,240}?[.!?](?=\s|$)/)?.[0] ?? "").trim().replace(/[.!?]$/, "") : "";
-        return `${duty || "the duty named above"}${cite ? ` at ${cite}` : ""}${whyFirst ? ` (${whyFirst})` : ""}`;
+        // DOC 254 (2026-09-11, ChatGPT review BIOMETRI-04) — the duty title
+        // is quoted as a title, never spliced after "remedy" as narrative.
+        return `${duty ? `the duty “${duty}”` : "the duty named above"}${cite ? ` at ${cite}` : ""}${whyFirst ? ` (${whyFirst})` : ""}`;
       })
       .filter(Boolean);
     if (acts.length === 0) acts.push("the duties named above");
     const clause = acts.length === 1
-      ? `the single next act is to remedy ${acts[0]}`
-      : `the next acts are to remedy ${asProse(acts)}`;
+      ? `the single next act is to remedy the shortfall against ${acts[0]}`
+      : `the next acts are to remedy the shortfalls against ${asProse(acts)}`;
     const orderingRule = praFirst
       ? " The acts are ordered by exposure: duties under the statute whose enforcement surface records a private action come first."
       : "";
@@ -729,7 +765,7 @@ function composeOperativeLead(report: Bag, intake: Bag): string {
         })
         .filter(Boolean);
       if (items.length === 0) return "";
-      return `. Separately, ${items.length === 1 ? "one duty remains" : `${items.length} duties remain`} unresolved by the company's answers and require record completion, not remediation: ${asProse(items)}`;
+      return `. Separately, ${items.length === 1 ? "one duty remains unresolved by the company's answers and requires" : `${items.length} duties remain unresolved by the company's answers and require`} record completion, not remediation: ${asProse(items)}`;
     })();
     return repairRegister(stop(
       `The operative conclusion is that the programme is out of compliance on the duties named above, and ${clause}${orderingRule ? `.${orderingRule.replace(/\.$/, "")}` : ""}${recordCompletionClause}`,

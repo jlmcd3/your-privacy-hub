@@ -136,6 +136,36 @@ function isSentenceValue(s: string): boolean {
   return /[.!?]["')\]]?$/.test(t);
 }
 
+/**
+ * DOC 254 (2026-09-11, ChatGPT prose review) — SENTENCE-VALUED INTAKE ANSWER.
+ *
+ * The review's most systemic defect class: a customer answer written as a
+ * whole sentence ("You may object to processing … by emailing …", "Personal
+ * information is collected directly from you …", "Facial geometry and
+ * voiceprint templates are captured during account sign-up …") placed after
+ * a fixed preposition or colon ("object to processing by You may object …",
+ * "by means of Facial geometry … are captured"). Composers use this to route
+ * such an answer to a sentence-shaped seam instead of a phrase-shaped one.
+ *
+ * Distinct from `isSentenceValue` above (which guards byte-pinned locked
+ * sentences by their terminal mark): an answer is sentence-valued when it
+ * opens with a capital, runs to five words or more, and carries a finite
+ * verb within its first eight words. A terminal full stop alone is not
+ * enough — a phrase list ("Directly from individuals (…); from carriers
+ * (…).") ends in one too. A short capitalised label ("Standard Contractual
+ * Clauses", "Consent") is never sentence-valued. Pure.
+ */
+export function isSentenceValued(value: unknown): boolean {
+  if (typeof value !== "string") return false;
+  const t = value.trim();
+  if (!/^["'“(\[]?[A-Z]/.test(t)) return false;
+  const words = t.split(/\s+/).filter(Boolean);
+  if (words.length < 5) return false;
+  const head = words.slice(0, 8).join(" ");
+  return /\b(is|are|was|were|will|may|can|must|shall|should|has|have|does|did|do|collects?|captures?|uses?|obtains?|retains?|processes?|receives?|stores?|shares?|provides?|includes?|operates?|maintains?|reviews?|evaluates?|logs?|monitors?|handles?|treats?)\b/i
+    .test(head);
+}
+
 function stemTail(stem: string): { lastWord: string; endsSentence: boolean; endsPunct: string } {
   const t = stem.replace(/\s+$/, "");
   const lastWord = (/([A-Za-z']+)$/.exec(t)?.[1] ?? "").toLowerCase();

@@ -993,7 +993,7 @@ export const RISK_CORPUS_MAP: CorpusMap = {
       // record items without being unfinished; the reframe says exactly
       // that. Trigger state (trigger_engaged + record_incomplete) unchanged.
       warning_text:
-        "Caution. Regulators applying analogous data-protection law have penalized businesses that carried out processing requiring an assessment without a complete assessment record: in AENA (AEPD, Spain, 2025) a EUR 10,043,002 fine issued where the impact assessment omitted the required necessity and proportionality analysis. This assessment identifies Conditions to Proceed or open record items; satisfying them before initiating or continuing the processing reduces the exposure this class of decisions illustrates. The decision was issued under the GDPR, not the CCPA, and is persuasive context only.",
+        "Caution. Regulators applying analogous data-protection law have penalized businesses that carried out processing requiring an assessment without a complete assessment record: in AENA (AEPD, Spain, 2025) the authority imposed a EUR 10,043,002 fine after finding that the impact assessment omitted the required necessity and proportionality analysis. This assessment identifies Conditions to Proceed or open record items; satisfying them before initiating or continuing the processing reduces the exposure this class of decisions illustrates. The decision was issued under the GDPR, not the CCPA, and is persuasive context only.",
       direction: "limits",
       logic_bearing: false,
       provenance: {

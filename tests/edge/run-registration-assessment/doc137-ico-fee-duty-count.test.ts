@@ -100,7 +100,8 @@ Deno.test("DOC 138 — ICO fee as the SOLE attached duty does not double the art
   assertEquals(/the the/i.test(text), false, "must never render a doubled article");
   assertStringIncludes(
     text,
-    "The United Kingdom ICO annual data-protection fee (£3,763.00) duty is not yet satisfied",
+    // DOC 254 (2026-09-11, REGISTRA-04): the record's silence is stated as the record's.
+    "The record does not establish that the United Kingdom ICO annual data-protection fee (£3,763.00) has been satisfied",
   );
 });
 
@@ -131,7 +132,7 @@ Deno.test("DOC 138 — ICO fee combined with another attached duty joins correct
   assertEquals(/the the/i.test(text), false, "must never render a doubled article across a joined list either");
   assertStringIncludes(
     text,
-    "None of the designation of a data protection officer and the United Kingdom ICO annual data-protection fee (£3,763.00) duties is yet satisfied",
+    "The record does not establish that any of the following duties has been satisfied: the designation of a data protection officer; the United Kingdom ICO annual data-protection fee (£3,763.00). Each is set out below with the action required to satisfy it",
   );
 });
 
@@ -154,7 +155,7 @@ Deno.test("DOC 138 — a non-ICO self-prefixed duty (DPO designation) as the sol
   assertEquals(/the the/i.test(text), false, "must never render a doubled article for the DPO-only case either");
   assertStringIncludes(
     text,
-    "The designation of a data protection officer duty is not yet satisfied",
+    "The record does not establish that the designation of a data protection officer has been satisfied",
   );
 });
 
@@ -177,7 +178,7 @@ Deno.test("DOC 138 — a normal (non-\"the\"-prefixed) duty name is unaffected a
   assertEquals(/the the/i.test(text), false);
   assertStringIncludes(
     text,
-    "The data-broker registration in California duty is not yet satisfied",
+    "The record does not establish that the data-broker registration in California has been satisfied",
   );
 });
 

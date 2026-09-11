@@ -237,7 +237,8 @@ Deno.test("SO-8: fixed prose renders the reader's own labels, never case-folded"
   const text = skeletonDocumentToText(assembleRegistrationSkeletonDocument(REPORT, INTAKE).document);
   assert(text.includes("Halden Data Services, Inc."));
   assert(text.includes("AdTech / MarTech"), "sector label was case-folded or dropped");
-  assert(text.includes("medium (50\u2013249 employees)"));
+  // DOC 254 (2026-09-11, REGISTRA-02): the band renders as the headcount phrase.
+  assert(text.includes("50 to 249 employees"));
   assert(text.includes("California (US)") && text.includes("Germany"));
   assert(text.includes("Ingrid Halden"));
   assert(!text.includes("halden data"), "organisation name was case-folded");

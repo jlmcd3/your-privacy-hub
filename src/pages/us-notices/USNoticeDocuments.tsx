@@ -230,12 +230,15 @@ export default function USNoticeDocuments() {
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")}</body></html>`;
-      const titleParts = [
-        doc.is_combined ? "us-notice-combined" : (doc.state_code || "us-notice"),
-        `v${doc.version_number}`,
-      ];
+      // DOC 254 (2026-09-11, EUANDUKP-06) — the converter prints `title` in
+      // every page footer, so it carries the notice's reader-facing name.
+      const title = doc.is_combined
+        ? "U.S. Privacy Notice"
+        : doc.state_code
+        ? `U.S. Privacy Notice — ${doc.state_code} edition`
+        : "U.S. Privacy Notice";
       const { data, error } = await supabase.functions.invoke("render-html-to-pdf", {
-        body: { html, title: titleParts.join("-"), cache_key: `us-notice-${doc.id}` },
+        body: { html, title, cache_key: `us-notice-${doc.id}` },
       });
       if (error) throw error;
       if (!data?.pdf_url) throw new Error(data?.error || "PDF generation failed");

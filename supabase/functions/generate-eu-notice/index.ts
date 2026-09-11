@@ -677,12 +677,17 @@ export function buildCombinedHtml(
   // framework heading; the GDPR-family sections carry their own Privacy at a
   // Glance, the legacy frameworks their S-N4 Key points block.
   const sectionsHtml = fws
-    .map((f) => {
+    .map((f, idx) => {
       const built = buildNoticeSections({ fw: f, answers, generatedAtHuman });
       const body = isGdprSpineFramework(f.framework_code)
         ? [built.intro, built.glance ?? "", renderSections(built.sections, 1)]
         : [buildEuKeyPointsHtml(built.keyPoints), built.intro, renderSections(built.sections, 1)];
-      return `<a id="${escapeHtml(f.framework_code)}"></a>
+      // DOC 254 (2026-09-11, ChatGPT review EUANDUKP-05) — each framework
+      // after the first starts on a new page: the combined document is two
+      // distinct notices, and the UK notice used to begin mid-page under the
+      // EU contact block.
+      const pageBreak = idx > 0 ? `<div style="page-break-before:always;break-before:page"></div>\n` : "";
+      return `${pageBreak}<a id="${escapeHtml(f.framework_code)}"></a>
 <h2>${escapeHtml(f.framework_name)}</h2>
 ${body.join("\n")}`;
     })

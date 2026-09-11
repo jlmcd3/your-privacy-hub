@@ -59,7 +59,9 @@ const ADVERSE = new Set(["not_satisfied", "record_insufficient"]);
 // customer-facing vocabulary for the headline word).
 const PRIMARY_LABEL: Record<string, string> = {
   satisfied: "satisfied",
-  partially_satisfied: "partially satisfied",
+  // DOC 254 (2026-09-11, ChatGPT review GOVERNAN-04) — one canonical label:
+  // the rationale sentence uses the headline vocabulary.
+  partially_satisfied: "partly evidenced",
   not_satisfied: "not satisfied",
   record_insufficient: "additional information required",
   not_applicable: "not applicable",

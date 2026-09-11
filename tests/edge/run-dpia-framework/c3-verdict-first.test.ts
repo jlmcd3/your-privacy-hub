@@ -106,5 +106,6 @@ Deno.test("C3/S4.4: multiple open points render as the dash list under the byte-
   const text = skeletonDocumentToText(assembleDpiaSkeletonDocument(report, INTAKE).document);
   assertStringIncludes(text, "four points are still open; each is listed in the gap table and raised again where it bears on a determination. The first three are:");
   assertEquals(text.split("\n— ").length - 1, 3, "the preview cap stays at three bullets");
-  assertStringIncludes(text, "\n— the retention period applied to triage scores — which completes the retention analysis");
+  // DOC 254 (2026-09-11, DPIA-02): the point and what it completes read as one clause pair.
+  assertStringIncludes(text, "\n— the retention period applied to triage scores; resolving it completes the retention analysis");
 });

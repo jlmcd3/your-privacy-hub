@@ -79,9 +79,9 @@ Deno.test("doc180 — fill() is an italic bracketed prompt, escaped; countFills 
   assertEquals(completionBannerHtml(0), "");
   const banner = completionBannerHtml(3);
   assertStringIncludes(banner, "CUSTOMER COMPLETION REQUIRED");
-  assertStringIncludes(banner, "3 bracketed items");
+  assertStringIncludes(banner, "3 bracketed completion fields");
   assert(!/draft|preliminary/i.test(banner), "de-draft directive: the banner never calls the document a draft");
-  assertStringIncludes(completionBannerHtml(1), "one bracketed item");
+  assertStringIncludes(completionBannerHtml(1), "one bracketed completion field");
 });
 
 // ── presentation ────────────────────────────────────────────────────────────

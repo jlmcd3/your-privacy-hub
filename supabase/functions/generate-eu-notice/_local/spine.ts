@@ -26,6 +26,7 @@
 //     with the Commissioner" — all from the gdpr_articles corpus.
 
 import { fill, runIn } from "./prose/formal-instrument.ts";
+import { isSentenceValued } from "../../_shared/prose/slots.ts";
 import type { EuKeyPointsBag } from "./key-points.ts";
 
 export interface SpineFw {
@@ -105,6 +106,14 @@ const UK_RE = /\b(uk|united kingdom|england|scotland|wales|northern ireland)\b/;
 
 const p = (html: string) => `<p>${html}</p>`;
 const ul = (items: string[]) => `<ul>${items.map((i) => `<li>${i}</li>`).join("")}</ul>`;
+// DOC 254 (2026-09-11, ChatGPT review EUANDUKP-01/02) — a customer answer
+// written as a whole sentence ("You may object to processing … by emailing
+// …") used to be placed after the preposition "by" ("object to processing by
+// You may object …") and kept its own full stop beside the sentence's own
+// ("… interests.."). A sentence-valued answer now renders as its own sentence
+// after the lead; a phrase-valued one keeps "by"; every answer loses one
+// trailing stop before the template supplies its own.
+const trimStop = (t: string): string => t.replace(/[.;:,\s]+$/u, "");
 const mailto = (esc: SpineCtx["esc"], email: string) =>
   `<a href="mailto:${esc(email)}">${esc(email)}</a>`;
 
@@ -179,6 +188,12 @@ export function buildGdprSpine(ctx: SpineCtx): SpineResult {
   const publicTaskSelected = basisCodes.includes("public_task");
   const withdrawMethod = fmt("gdpr_right_to_withdraw");
   const objectMethod = fmt("gdpr_right_to_object");
+  const byMethod = (lead: string, method: string, prompt: string): string =>
+    !method
+      ? `${lead} by ${fill(prompt)}`
+      : isSentenceValued(method)
+      ? `${lead}. ${esc(trimStop(method))}`
+      : `${lead} by ${esc(trimStop(method))}`;
   const marketingSelected = purposeCodes.includes("marketing") || purposeCodes.includes("advertising");
   const cookiesLikely = categoryCodes.includes("internet_activity") || purposeCodes.includes("analytics") || purposeCodes.includes("advertising");
 
@@ -227,8 +242,16 @@ export function buildGdprSpine(ctx: SpineCtx): SpineResult {
     : `None outside ${esc(regionShort)} that require a transfer mechanism are reported.`));
   glanceRows.push(runIn("How long we keep it", retention ? esc(retention) : fill("insert the retention period or the criteria used to determine it")));
   const choices: string[] = [`rights requests to ${contactEmail}`];
-  if (consentSelected) choices.push(`withdraw consent by ${withdrawMethod ? esc(withdrawMethod) : fill("insert how individuals can withdraw consent")}`);
-  if (liSelected || publicTaskSelected) choices.push(`object to processing by ${objectMethod ? esc(objectMethod) : fill("insert how individuals can object to processing")}`);
+  if (consentSelected) {
+    choices.push(withdrawMethod && isSentenceValued(withdrawMethod)
+      ? "withdraw consent as described under Your Data Protection Rights below"
+      : `withdraw consent by ${withdrawMethod ? esc(trimStop(withdrawMethod)) : fill("insert how individuals can withdraw consent")}`);
+  }
+  if (liSelected || publicTaskSelected) {
+    choices.push(objectMethod && isSentenceValued(objectMethod)
+      ? "object to processing as described under Your Data Protection Rights below"
+      : `object to processing by ${objectMethod ? esc(trimStop(objectMethod)) : fill("insert how individuals can object to processing")}`);
+  }
   if (marketingSelected) choices.push(`<strong>object to direct marketing at any time</strong> (see the separate section below)`);
   glanceRows.push(runIn("Your rights and choices", choices.join("; ") + "."));
   const highImpact: string[] = [];
@@ -393,8 +416,8 @@ export function buildGdprSpine(ctx: SpineCtx): SpineResult {
     const parts: string[] = [];
     if (profilingYes) {
       parts.push(`<h3>Profiling</h3>`);
-      parts.push(p(`We use profiling in connection with our processing of personal data. The purpose and consequences of that profiling are: ${profilingInfo ? `<strong>${esc(profilingInfo)}</strong>` : fill("describe what the profiling is used for and its consequences for the individual")}.`));
-      if (liSelected || publicTaskSelected) parts.push(p(`Where the profiling is based on legitimate interests or a public task, you may object by ${objectMethod ? esc(objectMethod) : fill("insert how individuals can object to the profiling")}.`));
+      parts.push(p(`We use profiling in connection with our processing of personal data. The purpose and consequences of that profiling are: ${profilingInfo ? `<strong>${esc(trimStop(profilingInfo))}</strong>` : fill("describe what the profiling is used for and its consequences for the individual")}.`));
+      if (liSelected || publicTaskSelected) parts.push(p(`${byMethod("Where the profiling is based on legitimate interests or a public task, you may object", objectMethod, "insert how individuals can object to the profiling")}.`));
       if (marketingSelected) parts.push(p(`You have the right to object at any time to profiling to the extent it is related to direct marketing.`));
     }
     if (automatedYes || automatedUnsure) {
@@ -406,7 +429,7 @@ export function buildGdprSpine(ctx: SpineCtx): SpineResult {
         // The "Meaningful information …" lead renders only over supplied
         // detail; a blank answer renders the prompt alone (never a claim).
         parts.push(p(automatedDetail
-          ? `Meaningful information about the logic involved, the significance and the envisaged consequences of this processing for you: <strong>${esc(automatedDetail)}</strong>.`
+          ? `Meaningful information about the logic involved, the significance and the envisaged consequences of this processing for you: <strong>${esc(trimStop(automatedDetail))}</strong>.`
           : `${fill("describe the logic involved, the significance and the envisaged consequences of the automated decision-making for the individual")}.`));
         parts.push(p(isUK
           ? `Where such a decision is taken, we ensure that the safeguards required by Article 22C of the UK GDPR are in place, including measures that provide you with information about the decision, enable you to make representations about it, enable you to obtain human intervention on our part, and enable you to contest the decision.`
@@ -450,9 +473,9 @@ export function buildGdprSpine(ctx: SpineCtx): SpineResult {
       `<strong>Erasure</strong> (Article 17) — to have personal data erased where one of the grounds in Article 17 applies and no exception permits or requires continued processing.`,
       `<strong>Restriction</strong> (Article 18) — to restrict processing in the circumstances set out in Article 18.`,
       `<strong>Data portability</strong> (Article 20) — where Article 20 applies, to receive personal data you provided to us in a structured, commonly used and machine-readable format and to transmit it to another controller.`,
-      `<strong>Objection</strong> (Article 21) — where processing is based on Article 6(1)(e) or 6(1)(f), to object on grounds relating to your particular situation${(liSelected || publicTaskSelected) ? `, by ${objectMethod ? esc(objectMethod) : fill("insert how individuals can object to processing based on legitimate interests or a public task")}` : ""}.`,
+      `<strong>Objection</strong> (Article 21) — where processing is based on Article 6(1)(e) or 6(1)(f), to object on grounds relating to your particular situation${(liSelected || publicTaskSelected) ? (objectMethod && isSentenceValued(objectMethod) ? `. ${esc(trimStop(objectMethod))}` : `, by ${objectMethod ? esc(trimStop(objectMethod)) : fill("insert how individuals can object to processing based on legitimate interests or a public task")}`) : ""}.`,
     ];
-    if (consentSelected) rights.push(`<strong>Withdraw consent</strong> — where processing is based on consent, to withdraw your consent at any time, without affecting the lawfulness of processing based on consent before its withdrawal (Article 7(3)), by ${withdrawMethod ? esc(withdrawMethod) : fill("insert how individuals can withdraw consent")}.`);
+    if (consentSelected) rights.push(`<strong>Withdraw consent</strong> — where processing is based on consent, to withdraw your consent at any time, without affecting the lawfulness of processing based on consent before its withdrawal (Article 7(3))${withdrawMethod && isSentenceValued(withdrawMethod) ? `. ${esc(trimStop(withdrawMethod))}` : `, by ${withdrawMethod ? esc(trimStop(withdrawMethod)) : fill("insert how individuals can withdraw consent")}`}.`);
     if (automatedYes) rights.push(`<strong>Automated-decision safeguards</strong> — to obtain human intervention, express your point of view and contest a decision based solely on automated processing, as described in the section on profiling and automated decision-making.`);
     parts.push(ul(rights));
     parts.push(`<h3>How to exercise your rights</h3>`);
@@ -495,13 +518,34 @@ export function buildGdprSpine(ctx: SpineCtx): SpineResult {
       parts.push(p(`You have the right to lodge a complaint with the Information Commissioner (Article 77 of the UK GDPR): <strong>Information Commissioner's Office (ICO)</strong>, <a href="${esc(icoUrl)}">${esc(icoUrl)}</a>. You may contact the Commissioner directly; we would also welcome the opportunity to address your concerns first.`));
     } else {
       const dpaContact = fmt("gdpr_dpa_contact");
-      const matched = EU_SUPERVISORY_AUTHORITIES.find(([country]) => estLower.includes(country));
-      const authority = dpaContact
-        ? `<strong>${esc(dpaContact)}</strong>`
-        : matched
-        ? `<strong>${esc(matched[1])}</strong>, <a href="${esc(matched[2])}">${esc(matched[2])}</a>`
-        : fill("insert the name and contact details of the supervisory authority with jurisdiction over the controller");
-      parts.push(p(`You have the right to lodge a complaint with a supervisory authority, in particular in the Member State of your habitual residence, place of work or place of the alleged infringement (Article 77 of the GDPR). The supervisory authority with jurisdiction over us is: ${authority}. You may contact that authority directly; depending on the circumstances, another supervisory authority may also be competent to receive your complaint.`));
+      // DOC 254 (2026-09-11, ChatGPT review CR-7 / EUANDUKP-03) — batch
+      // bcf0a706's EU notice named the ICO as "the supervisory authority with
+      // jurisdiction over us" for a UK-established controller. The ICO is the
+      // UK GDPR authority and is not a GDPR supervisory authority (GDPR
+      // Art. 4(21), Art. 51(1)); a controller with no EEA establishment has no
+      // lead authority under Art. 56(1), and the Art. 77 complaint route is
+      // the authority of the Member State where the data subject lives, works
+      // or where the infringement occurred. A UK-authority answer is therefore
+      // never printed in the EU notice, and a controller whose recorded
+      // establishment is outside the EEA gets the Art. 77 routing sentence
+      // with the EDPB members list. A blank establishment answer keeps the
+      // named-authority sentence (nothing on the record says where the
+      // controller is established).
+      const UK_AUTHORITY_RE = /information commissioner|\bico\b/i;
+      const contactIsUk = UK_AUTHORITY_RE.test(dpaContact);
+      const establishedOutsideEea = Boolean(establishment) && !isEstEEA;
+      if (establishedOutsideEea) {
+        const principal = dpaContact && !contactIsUk ? ` The supervisory authority we deal with principally is <strong>${esc(dpaContact)}</strong>.` : "";
+        parts.push(p(`You have the right to lodge a complaint with a supervisory authority, in particular in the Member State of your habitual residence, place of work or place of the alleged infringement (Article 77 of the GDPR). Because we are not established in the EEA, no single supervisory authority acts as our lead authority; the supervisory authority of the Member State in which you live or work is competent to receive your complaint, and the European Data Protection Board publishes the list of supervisory authorities at <a href="https://www.edpb.europa.eu/about-edpb/about-edpb/members_en">https://www.edpb.europa.eu/about-edpb/about-edpb/members_en</a>.${principal} You may also raise your concern with our representative in the EEA named above, and we would welcome the opportunity to address it first.`));
+      } else {
+        const matched = EU_SUPERVISORY_AUTHORITIES.find(([country]) => estLower.includes(country));
+        const authority = dpaContact && !contactIsUk
+          ? `<strong>${esc(dpaContact)}</strong>`
+          : matched
+          ? `<strong>${esc(matched[1])}</strong>, <a href="${esc(matched[2])}">${esc(matched[2])}</a>`
+          : fill("insert the name and contact details of the supervisory authority with jurisdiction over the controller");
+        parts.push(p(`You have the right to lodge a complaint with a supervisory authority, in particular in the Member State of your habitual residence, place of work or place of the alleged infringement (Article 77 of the GDPR). The supervisory authority with jurisdiction over us is: ${authority}. You may contact that authority directly; depending on the circumstances, another supervisory authority may also be competent to receive your complaint.`));
+      }
     }
     sections.push({ title: isUK ? "Complaints to the Information Commissioner" : "Complaints to a Supervisory Authority", html: parts.join("\n") });
   }

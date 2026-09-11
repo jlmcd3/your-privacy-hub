@@ -283,7 +283,9 @@ export function composeBalancingAnalysis(
         : `the worst-case severity recorded (${h.worst_case_severity}) does not of itself override the interest`,
     );
     if (u4.opt_out_feasibility.feasibility === "no_opt_out_available") {
-      bits.push("the absence of an opt-out raises the weight the safeguards must carry, and on the typed findings above they carry it");
+      // DOC 254 (2026-09-11, ChatGPT review LEGITIMA-04) — "typed findings"
+      // is build vocabulary; the proposition is stated as the analysis.
+      bits.push("the absence of an opt-out increases the weight the safeguards must bear, and on the findings above the recorded safeguards are sufficient to support the balance");
     }
     return `: ${bits.join("; ")}`;
   })();

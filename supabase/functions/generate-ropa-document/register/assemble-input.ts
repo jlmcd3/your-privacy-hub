@@ -346,7 +346,10 @@ export function buildRopaAssembleInput(d: RopaAnswerData): RopaAssembleInput {
     homeBase: String(p?.home_base ?? ""),
     employeeBand: String(p?.employee_band ?? ""),
     jurisdictionCodes: d.jurisdictions,
-    jurisdictionLabels: d.jurisdictions.map((j) => lawLabelShort(j)),
+    // DOC 254 (2026-09-11, ChatGPT review ROPA-05) — the register's
+    // jurisdictions are regimes; a law label takes its article ("the EU
+    // GDPR"), an unmapped token renders as it came.
+    jurisdictionLabels: d.jurisdictions.map((j) => (LAW_NAMES_SHORT[j] ? `the ${LAW_NAMES_SHORT[j]}` : lawLabelShort(j))),
     activities,
   };
 }

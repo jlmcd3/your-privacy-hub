@@ -156,7 +156,9 @@ Deno.test("item414: IR-1 — a thin record gets ONE ledger, honest and readable"
   assert(asks.length > 0);
   for (const a of asks) {
     assert(a.length > 40, `ask is a bare fragment: ${a}`);
-    assert(/that completes this section\.$/.test(a), `ask does not say what would fill it: ${a}`);
+    // DOC 254 (2026-09-11): the "; that completes this section" formula was
+    // retired (INCIDENT-02); the ask is still an imperative record sentence.
+    assert(/^Record\b[\s\S]*\.$/.test(a), `ask does not say what would fill it: ${a}`);
   }
   // R8 — deduplicated: the shipped defect emitted the same ask twice.
   assertEquals(new Set(asks).size, asks.length, "asks must be deduplicated");

@@ -298,7 +298,7 @@ Return a JSON object with EXACTLY these top-level fields:
   "irPlaybook": {
     "cause": "string", "dataTypes": ["array"], "affectedCount": "string",
     "jurisdictions": ["array"], "processorInvolved": boolean,
-    "contained": "string", "organisationType": "string"
+    "contained": "string", "organisationType": "string — the organisation's sector or industry as a reader label (e.g. 'Consumer fintech platform', 'Regional hospital group'); never a placeholder such as 'Company'"
   },
   "biometric": {
     "orgName": "string — the company name",
@@ -499,10 +499,10 @@ Return a JSON object with EXACTLY these fields:
     "data_subjects_views_sought": "Yes or No", "data_subjects_views": "string — the views obtained verbatim, or empty string"
   },
   "ropa": {
-    "org_name": "string", "legal_entity_type": "string", "employee_band": "string",
+    "org_name": "string", "legal_entity_type": "string", "employee_band": "EXACTLY one of: <50 | 50-249 | 250-999 | 1000+ (the register's own bands; never another range)",
     "dpo_name": "string", "dpo_email": "string",
     "rights_handling_process": "string — one or two sentences in the company's own words: how data-subject rights requests are received, logged, verified and fulfilled (this company's own channel and timings; never another company's)",
-    "jurisdictions": [{ "code": "string", "name": "string", "region": "string" }],
+    "jurisdictions": [{ "code": "EXACTLY one of: EU_GDPR | UK_GDPR | CH_FADP | US_CCPA | US_VA | US_CO | US_CT | US_TX | US_FL | BR_LGPD | CA_PIPEDA | CN_PIPL | JP_APPI | KR_PIPA | AU_PRIVACY | IN_DPDPA | ZA_POPIA (law codes only — never a country code such as IE or DE)", "name": "string", "region": "string" }],
     "activities": [
       {
         "activity_name": "string", "category": "string", "purpose": "string",

@@ -408,6 +408,16 @@ export function buildProgramReadiness(intake: Bag, d: CyberDeliverables): { anal
   const overallReadiness = d.readiness_determination.conclusion;
   const conclusion = gaps === 0 && rs.unassessed_count === 0 && untestable === 0 && overallReadiness === "ready"
     ? "At the program level, the described program and its identified evidence appear prepared for the independent audit, subject to auditor verification."
+    // DOC 254 (2026-09-11, ChatGPT review CR-1 / CPPACYBE-03) — this branch
+    // also fired on "ready subject to the named remediation", so page one
+    // said ready and § 3 said "cannot yet be described as prepared … the
+    // § 7122 auditor-engagement record above all" on a record whose § 7122
+    // gate was met. The program-level sentence now follows the Section 7
+    // conclusion it summarises.
+    : gaps === 0 && rs.unassessed_count === 0 && untestable === 0 && overallReadiness === "ready_subject_to_named_remediation"
+    ? "At the program level, no material implementation weakness is identified on the information supplied. The readiness conclusion in Section 7 is subject to the named remediation items, which are component-level implementation matters rather than program-level weaknesses; once they are closed the program can be described as prepared for the independent audit."
+    : gaps === 0 && rs.unassessed_count === 0 && untestable === 0 && overallReadiness === "not_ready"
+    ? "At the program level, no material implementation weakness is identified on the information supplied, but the readiness conclusion in Section 7 is not ready on the blocking items it names, so the program cannot yet be described as prepared for the independent audit."
     : gaps === 0 && rs.unassessed_count === 0 && untestable === 0
     ? "At the program level, no material implementation weakness is identified on the information supplied, but the readiness conclusion in Section 2 remains open — the § 7122 auditor-engagement record above all — so the program cannot yet be described as prepared for the independent audit."
     : gaps === 0 && untestable > 0
@@ -952,7 +962,9 @@ export function buildReadinessActions(intake: Bag, recs: readonly ComponentRecom
   const sequencing = recs.length === 0 && extras.length === 0
     ? "No readiness actions are identified; the preparation focus is organizing the identified evidence for auditor access."
     : recs.length === 0
-    ? "Program remediation: none identified on the information provided. The record-completion items above are what audit readiness waits on."
+    // DOC 254 (2026-09-11, ChatGPT review CPPACYBE-06) — "program" is the
+    // cross-cutting class; the component-level actions sit beside it.
+    ? "Cross-cutting program remediation: none identified on the information provided. The record-completion items above are what audit readiness waits on."
     : "Suggested sequencing: complete the record first, then close implementation gaps, then assemble the evidence packages - each earlier group unblocks the assessment of the later ones.";
   return { priority_actions, evidence_package_actions, implementation_actions, record_completion_actions, sequencing };
 }

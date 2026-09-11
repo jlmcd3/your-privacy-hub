@@ -1685,7 +1685,7 @@ export function registrationReviewTriggers(intake: I): string[] {
 }
 
 
-export function buildRegistrationAttestation(intake: I): Attestation {
+export function buildRegistrationAttestation(intake: I, assessmentDate?: string | null): Attestation {
   const name = str(intake.approved_by_name);
   const title = str(intake.approved_by_title);
   const date = str(intake.approval_date);
@@ -1702,7 +1702,20 @@ export function buildRegistrationAttestation(intake: I): Attestation {
   // listed the same facts again one line below. The statement now states the
   // status and the completion condition; the list lives in information_needed
   // alone.
-  const statement = missing.length === 0
+  // DOC 254 (2026-09-11, ChatGPT review CR-3 / REGISTRA-06) — batch bcf0a706
+  // printed "approved this registration assessment on 2025-01-10" on an
+  // assessment generated 2026-09-11, with a next review already past. An
+  // approval dated before the assessment cannot be an approval of it: the
+  // record is stated as a prior approval, a lapsed review is flagged, and this
+  // assessment stands unapproved. ISO dates compare as strings; no calendar
+  // arithmetic (schedule-surface law above).
+  const iso = (v: string) => /^\d{4}-\d{2}-\d{2}$/.test(v);
+  const assessed = assessmentDate && iso(assessmentDate) ? assessmentDate : "";
+  const priorApproval = missing.length === 0 && Boolean(assessed) && iso(date ?? "") && (date ?? "") < assessed;
+  const reviewLapsed = priorApproval && iso(review ?? "") && (review ?? "") < assessed;
+  const statement = priorApproval
+    ? `The record carries a prior approval: ${name}, ${title}, approved the company's registration position on ${date}, with the next review recorded as due on ${review}${reviewLapsed ? ", a date that has passed" : ""}. That approval predates this assessment, so this assessment is not yet approved; approval is complete when an accountable person records approval of this assessment and its next review date.`
+    : missing.length === 0
     ? `${name}, ${title}, approved this registration assessment on ${date}. It is next due for review on ${review}, or earlier on any of the triggers below.`
     : "Approval status: pending. Approval is complete when an accountable person is named and the approval and next review dates are recorded.";
 
@@ -1714,7 +1727,7 @@ export function buildRegistrationAttestation(intake: I): Attestation {
     next_review_due: review,
     review_triggers: registrationReviewTriggers(intake),
     statement,
-    status: missing.length === 0 ? "analysed" : "record_insufficient",
+    status: missing.length === 0 && !priorApproval ? "analysed" : "record_insufficient",
     // ITEM 413 (G-4 class) — ATTESTATION REGISTER-CLEAN. The ask was a
     // semicolon litany that restated the statement's own words. It is now a
     // sentence naming what must be recorded, in the register of the surface it
@@ -1727,6 +1740,8 @@ export function buildRegistrationAttestation(intake: I): Attestation {
             : `${missing.slice(0, -1).join(", ")} and ${missing[missing.length - 1]}`
         }.`,
       }
+      : priorApproval
+      ? { information_needed: "To complete this block the record must state the approval of this assessment by an accountable person, with the approval date and the next review date." }
       : {}),
   };
 }
@@ -1735,6 +1750,7 @@ export function buildRegistrationAttestation(intake: I): Attestation {
 
 export function buildRegistrationDeliverables(
   intake: RegistrationIntakeForDeliverables,
+  assessmentDate?: string | null,
 ): RegistrationDeliverables {
   const specs = STATE_SPECS.filter((s) => stateInScope(intake, s.code));
 
@@ -1786,6 +1802,6 @@ export function buildRegistrationDeliverables(
       combined_representative_callout,
       bdsg_determination,
     ),
-    attestation: buildRegistrationAttestation(intake),
+    attestation: buildRegistrationAttestation(intake, assessmentDate),
   };
 }

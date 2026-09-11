@@ -191,7 +191,7 @@ function buildActivationCriteria(intake: unknown): PlaybookTableSection {
     "Activation criteria",
     ["Trigger", "Source of the trigger", "Activates"],
     rows,
-    "Record the standing triggers that put this playbook into force, the source of each trigger and what it activates; that completes this section.",
+    "Record the standing triggers that put this playbook into force, the source of each trigger and what it activates.",
   );
 }
 
@@ -207,7 +207,7 @@ function buildSeverityMatrix(intake: unknown): PlaybookTableSection {
     "Severity matrix",
     ["Severity level", "Definition / threshold", "Escalation on reaching this level"],
     structured.length ? structured : flat,
-    "Record the severity levels an incident is graded against, the threshold for each level and what reaching it escalates to; that completes this section.",
+    "Record the severity levels an incident is graded against, the threshold for each level and what reaching it escalates to.",
   );
 }
 
@@ -246,7 +246,7 @@ function buildDataSensitivityTiers(intake: unknown): PlaybookTableSection {
       "Data-sensitivity tiers",
       ["Tier", "Data category", "Regulatory consequence"],
       [],
-      "Record the categories of personal data this incident involved; that completes this section.",
+      "Record the categories of personal data this incident involved.",
     );
   }
   const rows: string[][] = [];
@@ -280,7 +280,7 @@ function buildResponseTeam(intake: unknown): PlaybookTableSection {
     "Response team and alternates",
     ["Role", "Primary", "Alternate"],
     rows,
-    "Record each response role with a named primary and a named alternate; that completes this section.",
+    "Record each response role with a named primary and a named alternate.",
     "A role with no named alternate is a single point of failure in an out-of-hours incident.",
   );
 }
@@ -350,7 +350,7 @@ function buildKeyContacts(intake: unknown): PlaybookTableSection {
     "Key contacts",
     ["Contact type", "Name / firm", "Contact detail", "Note"],
     rows,
-    "Record outside counsel and whether a privilege protocol is in force, the cyber insurer, the retained forensic vendor and the law-enforcement point of contact; that completes this section.",
+    "Record outside counsel and whether a privilege protocol is in force, the cyber insurer, the retained forensic vendor and the law-enforcement point of contact.",
   );
 }
 
@@ -436,7 +436,7 @@ function buildFirst24Hours(intake: unknown, mapping?: ContentOwnerMapping): Play
     status: isolation ? "analysed" : "record_insufficient",
     ...(isolation
       ? {}
-      : { information_needed: "Record which role may isolate a production system without further approval; that completes this section." }),
+      : { information_needed: "Record which role may isolate a production system without further approval." }),
     // DOC 141 (2026-09-02) — where no GDPR-family regime is engaged the
     // Article 33(4) reference goes with the element rows it explains; the
     // phasing discipline itself is stated without a statutory citation.
@@ -457,7 +457,7 @@ function buildEvidencePreservation(intake: unknown): PlaybookTableSection {
     "Evidence preservation",
     ["System or log source", "Type", "Preservation action", "Owner"],
     rows,
-    "Record the key systems and log sources whose evidence must be preserved before it rotates; that completes this section.",
+    "Record the key systems and log sources whose evidence must be preserved before it rotates.",
     // IR-H 4b (2026-08-29, doc 101 §4) — chain-of-custody addendum.
     "Preservation is instructed in the first hour because most log sources rotate faster than an investigation concludes. Each preserved item's chain of custody is recorded separately: who collected it, when, its cryptographic hash at collection, and every subsequent transfer — a preservation action with no recorded custodian is not defensible evidence.",
   );
@@ -503,7 +503,7 @@ function buildClassification(intake: unknown): PlaybookTableSection {
     status: categories.length ? "analysed" : "record_insufficient",
     ...(categories.length
       ? {}
-      : { information_needed: "Record the categories of personal data the organisation holds, which this classification framework is mapped onto; that completes this section." }),
+      : { information_needed: "Record the categories of personal data the organisation holds, which this classification framework is mapped onto." }),
   };
 }
 
@@ -708,14 +708,14 @@ function buildContractualNotifications(intake: unknown): PlaybookSection[] {
     status: contracts.length ? "analysed" : "record_insufficient",
     ...(contracts.length
       ? {}
-      : { information_needed: "Record each agreement carrying a breach-notice clause, with its counterparty, notice deadline and clause reference; that completes this section." }),
+      : { information_needed: "Record each agreement carrying a breach-notice clause, with its counterparty, notice deadline and clause reference." }),
   };
   const table = tableOrGap(
     "contractual_notifications",
     "Contractual notification obligations",
     ["Contract / counterparty", "Notice deadline", "Clause reference"],
     rows,
-    "Record each agreement carrying a breach-notice clause, with its counterparty, notice deadline and clause reference; that completes this section.",
+    "Record each agreement carrying a breach-notice clause, with its counterparty, notice deadline and clause reference.",
   );
   return [finding, table];
 }
@@ -750,7 +750,7 @@ function buildTestingTraining(intake: unknown): PlaybookNoteSection {
     status: next ? "analysed" : "record_insufficient",
     ...(next
       ? {}
-      : { information_needed: "Record the date of the next planned tabletop exercise; that completes this section." }),
+      : { information_needed: "Record the date of the next planned tabletop exercise." }),
   };
 }
 

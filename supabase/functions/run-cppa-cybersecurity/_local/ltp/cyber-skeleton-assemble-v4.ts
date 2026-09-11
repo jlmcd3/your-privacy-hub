@@ -621,8 +621,18 @@ export function assembleCyberSkeletonDocumentV4(
         ? `Priority readiness actions:\n${bullets(factors.readiness_actions.priority_actions)}`
         // A-TEAM S4 RULING S2.6 (doc 119) — split classes: no program
         // remediation is not the same as nothing to do.
-        : factors.readiness_actions.record_completion_actions.length
-        ? "Program remediation: none identified on the information provided. Audit readiness waits on the record-completion actions below."
+        // DOC 254 (2026-09-11, ChatGPT review CPPACYBE-06) — "Program
+        // remediation: none identified" sat directly above five component
+        // implementation actions and read as a contradiction; the class is
+        // named as cross-cutting and the sentence names the action classes
+        // that follow.
+        : factors.readiness_actions.record_completion_actions.length || factors.readiness_actions.implementation_actions.length
+        ? `Cross-cutting program remediation: none identified on the information provided. Audit readiness waits on the ${
+          [
+            factors.readiness_actions.implementation_actions.length ? "implementation" : "",
+            factors.readiness_actions.record_completion_actions.length ? "record-completion" : "",
+          ].filter(Boolean).join(" and ")
+        } actions below.`
         : "Priority readiness actions: none identified on the information provided.",
       factors.readiness_actions.evidence_package_actions.length
         ? `Evidence-package actions:\n${bullets(factors.readiness_actions.evidence_package_actions)}`

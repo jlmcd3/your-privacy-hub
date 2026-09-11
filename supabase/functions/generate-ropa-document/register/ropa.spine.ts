@@ -73,8 +73,23 @@ export const ROPA_SKELETON_CONTENT_HASH_V3 =
 // an unrecorded fallback grammatically; the activity-specific override folds
 // into the same sentence. Old-hash reproduction verified before re-pin (V3
 // above).
-export const ROPA_SKELETON_CONTENT_HASH =
+// RETAINED FOR THE AUDIT TRAIL — the pin at the doc-168 re-pin, superseded by
+// the DOC 254 re-pin below.
+export const ROPA_SKELETON_CONTENT_HASH_V4 =
   "6aea5c1f8f9b44c92a7dadb6ef2083d393f59a07d5103aa99bea36a564f044a0";
+// RE-PIN DOC 254 (2026-09-11, ChatGPT prose review ROPA-01/02/05; ratification
+// ledger doc 254 §6): (a) "is conducted for {purpose}" became the composed
+// {PURPOSE_PHRASE} — an answer written as an infinitive ("To create and
+// maintain user accounts") rendered "conducted for To create …" and a
+// whole-sentence answer had no grammatical seat after "for"; (b) the
+// operations clause reads "The processing operations are …" (a sentence, not
+// a labelled fragment); (c) a whole-sentence retention answer is quoted as
+// recorded; (d) "It operates from {home_base}, across {jurisdictions}" named
+// regimes ("EU GDPR, UK GDPR") as places — the sentence now reads "keeping
+// this register under {jurisdictions}". Old-hash reproduction verified before
+// re-pin (V4 above).
+export const ROPA_SKELETON_CONTENT_HASH =
+  "2b029349c2fc4166449d80168298c99b7285575907345d95cb1bf8dec6e1db46";
 
 export const ROPA_SKELETON_TITLE = "RECORD OF PROCESSING ACTIVITIES";
 export const ROPA_SKELETON_SUBTITLE =
@@ -138,7 +153,7 @@ export interface RopaSkeletonSection {
  * supplies the honest alternate through the `conditional` block that follows.
  */
 export const ROPA_CONTROLLER_PARAGRAPH =
-  "{organisation_name} is a {legal_entity_type - reader label} incorporated in {incorporation_jurisdiction}{REG_CLAUSE - \", registration \" + registration_number; absent => omitted}, with its registered address at {registered_address}. The company has indicated that it acts as {roles - reader labels as prose}. {DPO_BLOCK - conditional on has_dpo: \"Its data protection officer is \" + dpo_name + \", reachable at \" + dpo_email + / + dpo_phone; negative => the honest sentence that no officer has been designated}. {EU_REP_SENTENCE - conditional on eu_rep_name: the Article 27 representative, named}. It operates from {home_base}, across {jurisdictions - as prose}, with a workforce of {employee_band - band as prose}.";
+  "{organisation_name} is a {legal_entity_type - reader label} incorporated in {incorporation_jurisdiction}{REG_CLAUSE - \", registration \" + registration_number; absent => omitted}, with its registered address at {registered_address}. The company has indicated that it acts as {roles - reader labels as prose}. {DPO_BLOCK - conditional on has_dpo: \"Its data protection officer is \" + dpo_name + \", reachable at \" + dpo_email + / + dpo_phone; negative => the honest sentence that no officer has been designated}. {EU_REP_SENTENCE - conditional on eu_rep_name: the Article 27 representative, named}. It operates from {home_base}, keeping this register under {jurisdictions - the regimes selected, as prose}, with a workforce of {employee_band - band as prose}.";
 
 // DOC 141 (2026-09-02) — {OPERATIONS_SENTENCE} and {ACCESS_CLAUSE} are
 // composed conditional clauses (the {TRANSFER_CLAUSE} pattern): each composes
@@ -147,7 +162,7 @@ export const ROPA_CONTROLLER_PARAGRAPH =
 // DOC 168 (2026-09-04) — {RIGHTS_SENTENCE} joins that pattern (CEO wording);
 // hash re-pinned above (V3 retained).
 export const ROPA_REPEATING_RECORD =
-  "[REPEATING RECORD - one per activity; the renderer draws the register as a table mapped to Article 30(1)(a)-(g).] The activity {activity_name}, owned by {activity_owner}, is conducted for {purpose}, on the lawful basis of {lawful_basis - reader label}. It concerns {data_subjects - reader labels} and the categories {data_categories - reader labels}, collected from {collection_sources - as prose}. {OPERATIONS_SENTENCE - conditional: recorded => \"The operations performed: \" + processing_operations; unrecorded => the honest sentence that the operations are not recorded}. Recipients and platforms: {processor_platform - as prose}. The company retains the data {RETENTION_PHRASE - from retention_period, or per category where retention_varies_by_category}. Security measures: {security_measures - reader labels}{ACCESS_CLAUSE - conditional: recorded => \"; access is controlled as the company describes: \" + access_controls; unrecorded => \"; how access is controlled is not recorded\"}. {TRANSFER_CLAUSE - conditional: the transfer mechanism named}. {RIGHTS_SENTENCE - conditional: recorded => \"The company has indicated that rights requests are handled as follows: \" + rights_handling_process, with any activity-specific override appended; unrecorded => the honest sentence that how rights requests are handled is not recorded}.";
+  "[REPEATING RECORD - one per activity; the renderer draws the register as a table mapped to Article 30(1)(a)-(g).] The activity {activity_name}, owned by {activity_owner}, is conducted {PURPOSE_PHRASE - composed: a noun phrase => for + purpose; an infinitive => to + purpose; a whole sentence => the purpose quoted as recorded; unrecorded => for a purpose it has not recorded}, on the lawful basis of {lawful_basis - reader label}. It concerns {data_subjects - reader labels} and the categories {data_categories - reader labels}, collected from {collection_sources - as prose}. {OPERATIONS_SENTENCE - conditional: recorded => \"The processing operations are \" + processing_operations as prose; unrecorded => the honest sentence that the operations are not recorded}. Recipients and platforms: {processor_platform - as prose}. The company retains the data {RETENTION_PHRASE - from retention_period (a whole-sentence answer quoted as recorded), or per category where retention_varies_by_category}. Security measures: {security_measures - reader labels}{ACCESS_CLAUSE - conditional: recorded => \"; access is controlled as the company describes: \" + access_controls; unrecorded => \"; how access is controlled is not recorded\"}. {TRANSFER_CLAUSE - conditional: the transfer mechanism named}. {RIGHTS_SENTENCE - conditional: recorded => \"The company has indicated that rights requests are handled as follows: \" + rights_handling_process, with any activity-specific override appended; unrecorded => the honest sentence that how rights requests are handled is not recorded}.";
 
 /**
  * The per-activity sentence template, i.e. the repeating record with its

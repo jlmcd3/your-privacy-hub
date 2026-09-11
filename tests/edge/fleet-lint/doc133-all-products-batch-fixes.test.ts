@@ -138,12 +138,12 @@ function minimalRopaInput(jurisdictionLabels: readonly string[]): Bag {
 Deno.test("doc133 — RoPA: no home base and no jurisdictions renders an honest degraded sentence, never a fabricated list", () => {
   // deno-lint-ignore no-explicit-any
   const doc = assembleRopaRegister(minimalRopaInput([]) as any);
-  assert(!doc.text.includes("It operates across"), "fabricated an 'operates across' clause with no jurisdictions");
+  assert(!doc.text.includes("It keeps this register under"), "fabricated a jurisdictions clause with no jurisdictions");
   assert(doc.text.includes("does not identify a home base or jurisdictions for the company"));
 });
 
 Deno.test("doc133 — RoPA: no home base but jurisdictions recorded still renders the jurisdictions sentence (unchanged)", () => {
   // deno-lint-ignore no-explicit-any
   const doc = assembleRopaRegister(minimalRopaInput(["Ireland", "France"]) as any);
-  assert(doc.text.includes("It operates across Ireland and France"));
+  assert(doc.text.includes("It keeps this register under Ireland and France"));
 });

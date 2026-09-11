@@ -155,12 +155,12 @@ Deno.test("C1/S2.5: the Part One lead is the readiness banner in both states", (
     status: "record_insufficient",
     sections: [{ heading: "Activation criteria", status: "record_insufficient", information_needed: "Record it." }],
   });
-  assertStringIncludes(skeletonDocumentToText(negative.document), "Readiness. On the company's answers, Busted Sled Solutions, Inc.'s standing preparedness would not carry it through a notifiable incident unaided");
+  assertStringIncludes(skeletonDocumentToText(negative.document), "Readiness. On the company's answers, Busted Sled Solutions, Inc.'s standing arrangements are not yet sufficient to manage a notifiable incident unaided");
   const positive = assemble(usIntake(), {
     status: "complete",
     sections: [{ heading: "Activation criteria", status: "recorded" }],
   });
-  assertStringIncludes(skeletonDocumentToText(positive.document), "Readiness. On the company's answers, Busted Sled Solutions, Inc.'s standing preparedness would carry it through a notifiable incident");
+  assertStringIncludes(skeletonDocumentToText(positive.document), "Readiness. On the company's answers, Busted Sled Solutions, Inc.'s standing arrangements are sufficient to manage a notifiable incident");
 });
 
 Deno.test("C1/S2.6: exactly one Deadline. callout on a GDPR record; none on a no-GDPR record", () => {

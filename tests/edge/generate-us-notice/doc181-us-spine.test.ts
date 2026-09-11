@@ -222,7 +222,7 @@ Deno.test("doc181 — the law registry supplies the enforcement contact; the sta
   assertStringIncludes(withLaws, "you may contact the Virginia Attorney General to submit a complaint.");
 
   const without = buildNoticeHtml(VA, FULL, AT);
-  assertStringIncludes(without, "Enforcement: the Virginia Attorney General");
+  assertStringIncludes(without, "Complaints may be directed to the Virginia Attorney General");
   assertStringIncludes(without, "Virginia Consumer Data Protection Act (VCDPA) (Va. Code Ann. §§59.1-575 to 59.1-585)");
   assert(!without.includes(", effective "), "no effective date without a registry row");
 });

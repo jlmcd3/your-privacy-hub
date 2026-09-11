@@ -482,7 +482,7 @@ export function SkeletonDocumentView({ doc, product }: { doc: SkeletonDocument; 
                   </div>
                   <p className="text-[13.5px] leading-relaxed text-foreground whitespace-pre-line">{p.text}</p>
                 </div>
-              ) : p.kind === "quoted_authority" ? (
+              ) : p.kind === "quoted_authority" || p.kind === "quoted_rulemaking" ? (
                 // BATCH 16 (R4, kind-driven): composer-typed quoted
                 // authority renders as the statute-quote block, verbatim.
                 <div key={i} className="my-2 border-l-[3px] border-slate-400 pl-3 pr-2 py-1 text-[13px] leading-relaxed text-foreground whitespace-pre-line">
@@ -998,6 +998,10 @@ export function SyllabusRecordView({ doc, product }: { doc: SkeletonDocument; pr
                 }
                 if (p.kind === "legal_requirement") {
                   return <SrRail key={i} label={srGoverningLabel(p.text.trim())}><p className="whitespace-pre-line">{renderLeadStyledText(p.text.trim(), true)}</p></SrRail>;
+                }
+                if (p.kind === "quoted_rulemaking") {
+                  // DOC 254 (2026-09-11, CR-4): the ADMT FSOR excerpts are rulemaking context, not statute.
+                  return <SrRail key={i} label="Final Statement of Reasons · persuasive only"><p className="whitespace-pre-line">{p.text.trim()}</p></SrRail>;
                 }
                 if (p.kind === "quoted_authority") {
                   return <SrRail key={i} label="Statutory text"><p className="whitespace-pre-line">{p.text.trim()}</p></SrRail>;

@@ -156,7 +156,15 @@ export default function EUNoticeDocuments() {
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")}</body></html>`;
-      const title = labelForDoc(d);
+      // DOC 254 (2026-09-11, EUANDUKP-06) — the converter prints `title` in
+      // every page footer, so it carries the notice's reader-facing name.
+      const title = d.is_combined
+        ? "International Privacy Notice"
+        : d.framework_code === "UK_GDPR"
+        ? "UK Privacy Notice"
+        : d.framework_code === "EU_GDPR"
+        ? "EU Privacy Notice"
+        : "Privacy Notice";
       const { data, error } = await supabase.functions.invoke("render-html-to-pdf", {
         body: { html, title, cache_key: `eu-notice-${d.id}` },
       });

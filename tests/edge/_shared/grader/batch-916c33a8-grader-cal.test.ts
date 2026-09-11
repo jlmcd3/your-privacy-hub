@@ -26,7 +26,7 @@ Deno.test("916c33a8 GR-2 — the DOC 252 block carries its three classes and the
   assertStringIncludes(block, "(1) A LEAD-IN FRAME THAT INTRODUCES A TAILORED ANALYSIS IS JUDGED ON THE ANALYSIS");
   assertStringIncludes(block, "A processing activity is only as defensible as its least necessary data element");
   assertStringIncludes(block, "On the information provided, the Activity engages the following trigger or triggers:");
-  assertStringIncludes(block, "Program remediation: none identified on the information provided.");
+  assertStringIncludes(block, "Cross-cutting program remediation: none identified on the information provided.");
   assertStringIncludes(block, "(2) DEFINITION LETTERING IN Cal. Civ. Code § 1798.140 IS VERIFIED IN THE ANCHOR MAP ABOVE");
   assertStringIncludes(block, "(3) A DEADLINE FOLLOW-UP THAT ASKS FOR THE START DATE IS COMPLETE");
   // True positives keep their shape.
@@ -38,5 +38,6 @@ Deno.test("916c33a8 GR-2 — the DOC 252 block carries its three classes and the
 Deno.test("916c33a8 GR-3 — the instrument version appends the batch tag last", () => {
   // RE-PIN 2026-09-11 (DOC 252 §10 rulings): the rulings tag follows the batch tag.
   // RE-PIN 2026-09-11 (DOC 253, batch bcf0a706): the batch tag follows the rulings tag.
-  assert(GRADER_CONTEXT_VERSION.endsWith("+batch-916c33a8-cal-2026-09-10+doc252-rulings-2026-09-11+batch-bcf0a706-cal-2026-09-11"), GRADER_CONTEXT_VERSION);
+  // RE-PIN 2026-09-11 (DOC 254, ChatGPT prose review): the review tag follows the batch tag.
+  assert(GRADER_CONTEXT_VERSION.endsWith("+batch-916c33a8-cal-2026-09-10+doc252-rulings-2026-09-11+batch-bcf0a706-cal-2026-09-11+doc254-chatgpt-review-2026-09-11"), GRADER_CONTEXT_VERSION);
 });

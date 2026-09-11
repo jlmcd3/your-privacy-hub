@@ -133,6 +133,9 @@ Deno.test("9A — the Britannia executive paragraph renders the ratified labels"
   // The Britannia shape: exactly two open points — the 6(1)(f) balancing part
   // and the Art. 28 contract ask — each rendered as its ratified compact label
   // with the existing "— which completes" suffix, bytes unchanged.
+  // RE-PIN DOC 254 (2026-09-11, ChatGPT review DPIA-02): the suffix reads
+  // "; resolving it completes …" — the "It is: … — which completes …"
+  // sentence was syntactically broken (ratification ledger doc 254 §6).
   const report = {
     risk_register: [
       { risk_label: "Loss of confidentiality", residual_band: "medium" },
@@ -167,7 +170,7 @@ Deno.test("9A — the Britannia executive paragraph renders the ratified labels"
   // the inline "They are: …; …" chain became the Rule-4 dash list.
   assert(
     text.includes(
-      'They are:\n— the effect of the processing on the data subjects, and the measures that reduce it — which completes the lawful-basis finding for "Workforce sentiment analytics"\n— whether a written processing contract is in place with each named processor, and the date it was signed — which completes the Art. 28 processing-contract determination',
+      'They are:\n— the effect of the processing on the data subjects, and the measures that reduce it; resolving it completes the lawful-basis finding for "Workforce sentiment analytics"\n— whether a written processing contract is in place with each named processor, and the date it was signed; resolving it completes the Art. 28 processing-contract determination',
     ),
     text.slice(0, 2000),
   );
@@ -180,7 +183,7 @@ Deno.test("9A — the built Britannia report renders labels, never full asks, in
   const exec = text.slice(0, text.indexOf("Section 1 —"));
   assert(
     exec.includes(
-      'the effect of the processing on the data subjects, and the measures that reduce it — which completes the lawful-basis finding for "Workforce sentiment analytics"',
+      'the effect of the processing on the data subjects, and the measures that reduce it; resolving it completes the lawful-basis finding for "Workforce sentiment analytics"',
     ),
     exec,
   );

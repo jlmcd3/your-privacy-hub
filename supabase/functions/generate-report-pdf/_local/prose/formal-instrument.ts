@@ -52,8 +52,11 @@ export function countFills(html: string): number {
  */
 export function completionBannerHtml(count: number): string {
   if (!Number.isFinite(count) || count <= 0) return "";
-  const items = count === 1 ? "one bracketed item" : `${count} bracketed items`;
-  return `<div class="fi-banner" role="note"><strong>CUSTOMER COMPLETION REQUIRED.</strong> This document contains ${items} shown in italics inside square brackets. Each names information that must be supplied before the document is published or relied on.</div>`;
+  // DOC 254 (2026-09-11, ChatGPT review DATAPROC-01) — direct instrument
+  // register: the fields are named as completion fields and the reader is
+  // told what to do with them.
+  const items = count === 1 ? "one bracketed completion field" : `${count} bracketed completion fields`;
+  return `<div class="fi-banner" role="note"><strong>CUSTOMER COMPLETION REQUIRED.</strong> This document contains ${items}, shown in italics inside square brackets. Complete each field before the document is published or relied on.</div>`;
 }
 
 /** A run-in labelled line: "Label: value" inside one paragraph. */

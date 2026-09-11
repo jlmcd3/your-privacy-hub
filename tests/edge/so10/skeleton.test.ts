@@ -136,7 +136,7 @@ Deno.test("absent home base drops the sentence honestly", () => {
   const out = assembleRopaRegister({ ...INPUT, homeBase: "" });
   assertEquals(out.conformance.ok, true, JSON.stringify(out.conformance.findings));
   assert(!out.text.includes("It operates from "));
-  assert(out.text.includes("It operates across"));
+  assert(out.text.includes("It keeps this register under"));
 });
 
 Deno.test("the two-part access-controls answer renders as ONE fact", () => {
@@ -157,7 +157,7 @@ Deno.test("unrecorded access controls and operations compose honest clauses, nev
   });
   const body = out.activity_records[0].sentence;
   assert(body.includes("how access is controlled is not recorded"), body);
-  assert(body.includes("The operations performed are not recorded."), body);
+  assert(body.includes("The processing operations are not recorded."), body);
   assert(!body.includes("as the company describes: a matter it has not recorded"), body);
   assert(!body.includes("The operations performed: operations it has not recorded"), body);
   assertEquals(out.conformance.ok, true, JSON.stringify(out.conformance.findings));
@@ -166,9 +166,10 @@ Deno.test("unrecorded access controls and operations compose honest clauses, nev
 Deno.test("recorded access controls and operations render exactly as before DOC 141", () => {
   const body = assembleRopaRegister(INPUT).activity_records[0].sentence;
   assert(body.includes(`access is controlled as the company describes: ${ACTIVITY.accessControls}.`), body);
-  assert(body.includes(`The operations performed: ${ACTIVITY.processingOperations}.`), body);
+  // DOC 254 (2026-09-11, ROPA-02): the operations clause reads as a sentence.
+  assert(body.includes("The processing operations are collection, storage, consultation"), body);
   assert(!body.includes("how access is controlled is not recorded"), body);
-  assert(!body.includes("The operations performed are not recorded"), body);
+  assert(!body.includes("The processing operations are not recorded"), body);
 });
 
 Deno.test("related assessments cite only the company's own documents", () => {

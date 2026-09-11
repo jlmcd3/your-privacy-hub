@@ -239,14 +239,14 @@ export function buildReasonableExpectations(
     verdict = "undetermined_on_the_record";
     status = "record_insufficient";
     application = expectation
-      ? `Recital 47 asks whether the data subject could reasonably expect, at the time and in the context of the collection, that processing for this purpose would take place. The record answers the conclusion ("${expectation}") without supplying the fact the test runs on — what was collected when, in what setting, and what the data subjects were told at that moment. The conclusion is therefore recorded but not assessed here.`
+      ? `Recital 47 asks whether the data subject could reasonably expect, at the time and in the context of the collection, that processing for this purpose would take place. The record answers the conclusion ("${expectation.replace(/[.\s]+$/, "")}") without supplying the fact the test runs on — what was collected when, in what setting, and what the data subjects were told at that moment. The conclusion is therefore recorded but not assessed here.`
       : "Recital 47 asks whether the data subject could reasonably expect, at the time and in the context of the collection, that processing for this purpose would take place. The record supplies neither the collection circumstances nor an answer on expectation, so the factor cannot be run.";
     information_needed =
       "balancing_details.collection_context — when and in what setting the personal data were collected, what the data subjects were told about the use at that moment, and whether this use was contemplated by the relationship as it then stood.";
   } else if (noticeOnly && !matches(supportingText, [/beyond the notice/i, /told at the point/i])) {
     verdict = "partly_expected";
     application =
-      `The record's support for expectation rests on the information supplied to the data subjects: "${supportingText}". ${notice.citation || "EDPB Guidelines 1/2024"} addresses that directly — ${notice.verbatim} Because the record's contextual support runs to notice rather than to the relationship and setting in which the data were collected, the factor is partly satisfied and does not carry the balance on its own.`;
+      `The record's support for expectation rests on the information supplied to the data subjects: "${supportingText.replace(/[.\s]+$/, "")}". ${notice.citation || "EDPB Guidelines 1/2024"} addresses that directly — ${notice.verbatim} Because the record's contextual support runs to notice rather than to the relationship and setting in which the data were collected, the factor is partly satisfied and does not carry the balance on its own.`;
   } else if (matches(expectation, EXPECTATION_POSITIVE)) {
     verdict = "reasonably_expected";
     application =

@@ -453,7 +453,7 @@ export function neutralBaseSections(): readonly DpaClauseSection[] {
       heading: "11. TERM AND TERMINATION",
       clauses: [
         `11.1 This DPA takes effect on the date of its execution and continues for as long as the Processor processes Personal Data for the Controller in connection with the Services.`,
-        `11.2 A material breach of this DPA is a material breach of the Principal Agreement to the extent the Principal Agreement permits that treatment. On termination or expiry, the Processor shall cease processing except as necessary to return or delete Personal Data or to comply with law, and Section 9 applies. Confidentiality, security, return or deletion, audit rights relating to the period before termination, liability, and any provision that by its nature must continue survive for as long as necessary to give them effect.`,
+        `11.2 A material breach of this DPA is a material breach of the Principal Agreement to the extent the Principal Agreement permits that treatment. On termination or expiry, the Processor shall cease processing except as necessary to return or delete Personal Data or to comply with law, and Section 9 applies. Confidentiality, security, return or deletion, audit rights relating to the period before termination, liability, and any other provision that by its nature is intended to survive, survive termination or expiry for as long as necessary to give them effect.`,
         `11.3 Governing law and forum: {governingLawClause}`,
       ],
     },

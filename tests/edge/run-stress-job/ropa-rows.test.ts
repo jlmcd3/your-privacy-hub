@@ -60,6 +60,8 @@ Deno.test("batch b83ea3c4 — the profile row writes every owned column; a silen
     dpo_email: "dpo@velorixdigital.com",
   }, "client-1");
   assertEquals(row.client_id, "client-1");
+  // DOC 254 (CR-6): the band is written in the CHECK constraint's vocabulary.
+  assertEquals(row.employee_band, "250-999");
   assertEquals(row.dpo_name, "Clara Voss");
   assertEquals(row.rights_handling_process, null);
   assertEquals(row.registered_address, null);

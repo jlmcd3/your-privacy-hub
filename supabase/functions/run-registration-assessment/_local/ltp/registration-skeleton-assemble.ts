@@ -839,7 +839,12 @@ function composeExecPosture(report: Bag, counts: RegistrationDutyCounts, org: st
   } else {
     parts.push(
       stop(
-        `${org} has not indicated facts that engage a filing duty in any of the jurisdictions assessed${insufficient.length || conditional.length ? "" : ""}`,
+        // DOC 254 (2026-09-11, ChatGPT review CR-2 / REGISTRA-03) — this
+        // branch speaks only to the US state data-broker surface (`dets`),
+        // yet said "a filing duty in any of the jurisdictions assessed" one
+        // sentence before naming the DPO and ICO-fee duties that do attach.
+        // The duty class is now named.
+        `${org} has not indicated facts that engage a US state data-broker registration duty in any of the states assessed`,
       ),
     );
   }
@@ -869,13 +874,18 @@ function composeExecPosture(report: Bag, counts: RegistrationDutyCounts, org: st
           // representative designation, the DPO designation). leadNames
           // inspects the joined string once and reuses its own "the" instead
           // of stacking a second one.
-          ? `${leadNames(counts.attached_names, true)} duty is not yet satisfied on the content the company has recorded, and it is set out below with what closes it`
+          // DOC 254 (2026-09-11, ChatGPT review REGISTRA-04/05) — "None of
+          // the A and the B duties is yet satisfied … with what closes it"
+          // was malformed list grammar; the record's silence is stated as
+          // the record's, and the action required to satisfy each duty is
+          // named as such.
+          ? `The record does not establish that ${leadNames(counts.attached_names, false)} has been satisfied; it is set out below with the action required to satisfy it`
           // Same doubling risk applies positionally here: asProse can put a
           // self-prefixed name FIRST in a multi-item list ("the Germany
           // representative designation and the designation of a data
           // protection officer"), and the old "None of the ${asProse(...)}"
           // template would have stacked a second "the" in front of it.
-          : `None of ${leadNames(counts.attached_names, false)} duties is yet satisfied on the content the company has recorded, and each is set out below with what closes it`,
+          : `The record does not establish that any of the following duties has been satisfied: ${counts.attached_names.join("; ")}. Each is set out below with the action required to satisfy it`,
       ),
     );
   }
@@ -1445,8 +1455,8 @@ function composeReadinessBody(report: Bag, intake: Bag): string {
       bits.push(
         stop(
           actor
-            ? `What closes ${open.length === 1 ? "it" : "these"} is the outstanding content in the checklist below, which ${actor} is the party the company has named to supply`
-            : `What closes ${open.length === 1 ? "it" : "these"} is the outstanding content in the checklist below; the company has not named the party responsible for supplying it`,
+            ? `The action required to satisfy ${open.length === 1 ? "it" : "these"} is to supply the outstanding content in the checklist below; ${actor} is the party the company has named to supply it`
+            : `The action required to satisfy ${open.length === 1 ? "it" : "these"} is to supply the outstanding content in the checklist below; the company has not named the party responsible for supplying it`,
         ),
       );
     } else {
@@ -1461,14 +1471,18 @@ function composeReadinessBody(report: Bag, intake: Bag): string {
     const bits: string[] = [`${s(att.heading) || "Attestation"}.`];
     if (s(att.statement)) bits.push(stop(noStop(s(att.statement))));
     const who = s(att.approved_by_name);
-    if (who) {
+    // DOC 254 (2026-09-11, ChatGPT review REGISTRA-06) — the statement
+    // already names the approver, the approval date and the review date when
+    // all three are recorded; the two record lines repeated it verbatim.
+    const statementCarriesRecord = Boolean(s(att.statement)) && Boolean(who) && Boolean(s(att.approval_date)) && Boolean(s(att.next_review_due));
+    if (who && !statementCarriesRecord) {
       bits.push(
         stop(
           `Approved by ${who}${s(att.approved_by_title) ? `, ${s(att.approved_by_title)}` : ""}${s(att.approval_date) ? `, on ${s(att.approval_date)}` : ""}`,
         ),
       );
     }
-    if (s(att.next_review_due)) bits.push(stop(`The next review is recorded as due on ${s(att.next_review_due)}`));
+    if (s(att.next_review_due) && !statementCarriesRecord) bits.push(stop(`The next review is recorded as due on ${s(att.next_review_due)}`));
     const triggers = strList(att.review_triggers);
     if (triggers.length) {
       // A-TEAM S3 RULING II.15 (doc 115, 2026-08-31) — the triggers used to

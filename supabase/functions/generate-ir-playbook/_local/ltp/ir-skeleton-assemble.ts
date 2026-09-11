@@ -433,8 +433,24 @@ function deriveIncidentFactsTable(values: SlotValues, intake: Bag): RenderedTabl
 // exist; the typed state rows carry no per-incident verdict and none is
 // invented. The computed 72-hour run-to prints only where the duty is
 // engaged or reserved (honest basis).
+/** An incident is on the record when the company has given a cause or a discovery time. */
+function incidentRecordedIn(intake: Bag): boolean {
+  return Boolean(s(intake.cause) || s(intake.discoveryDateTime));
+}
+
+// DOC 254 (2026-09-11, ChatGPT review INCIDENT-03) — a placeholder answer
+// ("Company") rendered "for an organisation in its sector (Company)". A
+// generic token is no sector; the slot states that the sector is not
+// recorded (the fixed sentence around it survives; "" would leave "()").
+const GENERIC_SECTOR_RE = /^(company|organisation|organization|business|other|n\/?a|none|not applicable|unknown)$/i;
+function sectorLabel(v: unknown): string | null {
+  const t = s(v);
+  if (!t) return null;
+  return GENERIC_SECTOR_RE.test(t) ? "sector not recorded" : t;
+}
+
 function deriveDeadlineBoardTable(report: Bag, intake: Bag): RenderedTable | null {
-  const incidentRecorded = Boolean(s(intake.cause) || s(intake.discoveryDateTime));
+  const incidentRecorded = incidentRecordedIn(intake);
   if (!incidentRecorded) return null;
   type BoardRow = { cells: string[]; hours: number; ord: number };
   const rows: BoardRow[] = [];
@@ -677,7 +693,7 @@ export function buildIrSlotValues(report: Bag, intake: Bag): SlotValues {
   return {
     // Part One — durable register.
     organizationName: s(intake.organizationName) || null,
-    sector: s(intake.organisationType) || null, // reader label, never case-folded
+    sector: sectorLabel(intake.organisationType), // reader label, never case-folded
     // BATCH 18b (doc 113 S2.2) — the data now lives in the Standing Sections
     // tables (the pinned descriptor's own "rendered as a table" intent); the
     // slot VALUES become pointer prose. Absent data keeps a null slot so the
@@ -758,9 +774,13 @@ function composeStandingLead(report: Bag, org: string): string {
   }
   const open = standingGapLedger(report);
   if (s(sp.status) === "record_insufficient" || open.length > 0) {
-    return `Readiness. On the company's answers, ${org}'s standing preparedness would not carry it through a notifiable incident unaided: ${open.length === 1 ? "one standing section is" : `${open.length} standing sections are`} not settled by what the company has recorded, and each is named below with what would complete it.`;
+    // DOC 254 (2026-09-11, ChatGPT review INCIDENT-02) — "carry it through"
+    // was conversational; the determination now states sufficiency.
+    // Ratification ledger: doc 254 §6 (the lead's bytes were held under
+    // RULING 3.2 "styled and moved, never reworded").
+    return `Readiness. On the company's answers, ${org}'s standing arrangements are not yet sufficient to manage a notifiable incident unaided: ${open.length === 1 ? "one standing section is" : `${open.length} standing sections are`} not settled by what the company has recorded, and each is named below with what would complete it.`;
   }
-  return `Readiness. On the company's answers, ${org}'s standing preparedness would carry it through a notifiable incident, subject to the arrangements being operated as recorded.`;
+  return `Readiness. On the company's answers, ${org}'s standing arrangements are sufficient to manage a notifiable incident, subject to their being operated as recorded.`;
 }
 
 /** The BYTE-PINNED authority-framing note, printed verbatim, marker removed. */
@@ -969,7 +989,7 @@ function contractRows(intake: Bag): { party: string; deadline: string; clause: s
 }
 
 export function composeContractualTriggers(intake: Bag): string {
-  const incidentRecorded = Boolean(s(intake.cause) || s(intake.discoveryDateTime));
+  const incidentRecorded = incidentRecordedIn(intake);
   if (!incidentRecorded) return "";
   const lines: string[] = [];
   for (const c of contractRows(intake)) {
@@ -1575,6 +1595,7 @@ function buildIrSyllabus(
   report: Bag,
   leadText: string,
   entity: string,
+  incidentRecorded: boolean,
 ): SyllabusProjection {
   const disposition = irDispositionLabel(report);
   const gaps = standingGapLedger(report);
@@ -1606,7 +1627,12 @@ function buildIrSyllabus(
     instrument_line: "INCIDENT RESPONSE PLAYBOOK",
     prepared_for: entity,
     activity: "Standing Incident-Response Preparedness",
-    subtitle: "Part One — the standing playbook; Part Two — the incident worksheet, blank by design absent a recorded incident",
+    // DOC 254 (2026-09-11, ChatGPT review INCIDENT-01) — the blank-by-design
+    // wording belongs to the no-incident branch only; a recorded incident
+    // populates Part Two and the cover says so.
+    subtitle: incidentRecorded
+      ? "Part One — the standing playbook; Part Two — the worksheet for the incident the company has recorded"
+      : "Part One — the standing playbook; Part Two — the incident worksheet, blank by design absent a recorded incident",
     disposition_label: "READINESS",
     disposition,
     disposition_tone: dispositionTone(disposition),
@@ -1711,7 +1737,7 @@ export function assembleIRSkeletonDocument(report: Bag, intakeInput: Bag): IrSke
   // untouched; a renderer that does not know the field ignores it.
   const document: RenderedSkeletonDocument = {
     ...renderedDoc,
-    syllabus: buildIrSyllabus(renderedDoc, report, String(composed["standing_playbook:0"] ?? ""), org),
+    syllabus: buildIrSyllabus(renderedDoc, report, String(composed["standing_playbook:0"] ?? ""), org, incidentRecordedIn(intake)),
   };
 
   const body = skeletonDocumentToText(document).toLowerCase();

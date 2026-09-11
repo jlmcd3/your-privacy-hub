@@ -16,7 +16,7 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 // canonical contract the product form emits, BEFORE the product runs.
 import { blockingContractViolations, contractForStressTool, INTAKE_CONTRACT_GATE_PREFIX } from "./_local/intake-gate.ts";
 import { coerceIntakeToContract } from "./_local/intake-coerce.ts";
-import { ropaAnswerRows, ropaProfileRow } from "./_local/ropa-rows.ts";
+import { normalizeJurisdictions, ropaAnswerRows, ropaProfileRow } from "./_local/ropa-rows.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -326,20 +326,35 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
       // (null when the persona is silent) so nothing from an earlier fixture
       // on the shared stress client leaks into this company's register — the
       // graded RoPAs all carried another company's rights-handling sentence.
-      await admin.from("ropa_client_profiles").upsert(ropaProfileRow(persona, clientId), { onConflict: "client_id" });
+      // DOC 254 (2026-09-11, ChatGPT review CR-6): batch bcf0a706 rendered
+      // another fixture's profile because this upsert failed on the band
+      // CHECK constraint and nothing read the error. Every write on the
+      // shared client now fails the job rather than rendering stale facts.
+      const { error: profileErr } = await admin
+        .from("ropa_client_profiles")
+        .upsert(ropaProfileRow(persona, clientId), { onConflict: "client_id" });
+      if (profileErr) throw new Error(`ropa profile upsert: ${profileErr.message}`);
 
       // Write sector to clients table — generate-ropa-document reads sector from clients.sector
       if (persona.sector) {
         await admin.from("clients").update({ sector: persona.sector }).eq("id", clientId);
       }
-      if (Array.isArray(persona.jurisdictions) && persona.jurisdictions.length) {
-        await admin.from("ropa_jurisdiction_selections").upsert(
-          persona.jurisdictions.map((j: any) => ({
+      // DOC 254 — the selections table is keyed by client (not session), so a
+      // prior fixture's rows ("IE, DE, FR" from 2026-09-05) rendered in this
+      // company's register (ROPA-05). The client's rows are replaced whole,
+      // in the register's own law-code vocabulary.
+      const jurisdictionRows = normalizeJurisdictions(persona.jurisdictions);
+      const { error: jurClearErr } = await admin.from("ropa_jurisdiction_selections").delete().eq("client_id", clientId);
+      if (jurClearErr) throw new Error(`ropa jurisdictions clear: ${jurClearErr.message}`);
+      if (jurisdictionRows.length) {
+        const { error: jurErr } = await admin.from("ropa_jurisdiction_selections").upsert(
+          jurisdictionRows.map((j) => ({
             client_id: clientId,
             jurisdiction_code: j.code, jurisdiction_name: j.name, jurisdiction_region: j.region,
           })),
           { onConflict: "client_id,jurisdiction_code" },
         );
+        if (jurErr) throw new Error(`ropa jurisdictions upsert: ${jurErr.message}`);
       }
       const acts = Array.isArray(persona.activities) ? persona.activities : [];
       const { data: session, error: sErr } = await admin.from("ropa_sessions").insert({

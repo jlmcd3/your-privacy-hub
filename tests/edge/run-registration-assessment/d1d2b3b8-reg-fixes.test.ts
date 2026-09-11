@@ -62,12 +62,13 @@ Deno.test("R1 — a headcount outside the recorded band wins over the band label
 
 Deno.test("R1 — an in-band headcount keeps the band label", () => {
   const v = buildRegistrationSlotValues(aurabloomIntake({ employee_count: 120 }));
-  assertEquals(v.orgSize, "medium (50–249 employees)");
+  // DOC 254 (2026-09-11, REGISTRA-02): the band renders as the headcount phrase.
+  assertEquals(v.orgSize, "50 to 249 employees");
 });
 
 Deno.test("R1 — no headcount keeps the band label unchanged", () => {
   const v = buildRegistrationSlotValues(aurabloomIntake({ employee_count: undefined }));
-  assertEquals(v.orgSize, "medium (50–249 employees)");
+  assertEquals(v.orgSize, "50 to 249 employees");
 });
 
 // DOC 163 R3 (2026-09-03) — branch (c) reads the one scale fact the form

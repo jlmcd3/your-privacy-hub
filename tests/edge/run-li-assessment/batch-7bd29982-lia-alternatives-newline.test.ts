@@ -23,12 +23,13 @@ const VELORIX = {
 
 Deno.test("7bd29982 — a multi-line alternatives_considered string lists as prose, one item per line, no raw line break", () => {
   const values = buildLiaSlotValues(VELORIX as never) as unknown as Record<string, unknown>;
-  assertEquals(values.alternatives, "Consent-based opt-in to security monitoring and Static rule-only fraud filters without behavioural profiling");
+  // DOC 254 (2026-09-11, LEGITIMA-03): each alternative is quoted so its own reason cannot run into the next item.
+  assertEquals(values.alternatives, "“Consent-based opt-in to security monitoring” and “Static rule-only fraud filters without behavioural profiling”");
 });
 
 Deno.test("7bd29982 — with no top-level list, necessity_details.alternatives splits the same way", () => {
   const values = buildLiaSlotValues({ ...VELORIX, alternatives_considered: "" } as never) as unknown as Record<string, unknown>;
   const text = String(values.alternatives);
   assertEquals(text.includes("\n"), false);
-  assertEquals(text.startsWith("Consent-based monitoring — users would opt out, leaving the platform unprotected and Static IP blocklists"), true, text);
+  assertEquals(text.startsWith("“Consent-based monitoring — users would opt out, leaving the platform unprotected” and “Static IP blocklists"), true, text);
 });

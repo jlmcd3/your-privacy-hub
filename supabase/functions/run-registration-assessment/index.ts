@@ -590,7 +590,9 @@ Deno.serve(async (req) => {
     // application and verdict. Pure and deterministic: a failure here is a
     // build defect, so it is recorded rather than swallowed into silence.
     try {
-      const deliverables = buildRegistrationDeliverables(intake as any);
+      // DOC 254 — the assessment date lets the attestation tell a prior
+      // approval from an approval of this assessment (CR-3).
+      const deliverables = buildRegistrationDeliverables(intake as any, new Date().toISOString().slice(0, 10));
       (result_summary as any).registration_deliverables = deliverables;
       (result_summary as any).narrative = deliverables.narrative;
       (result_summary as any).deliverables_version = REGISTRATION_DELIVERABLES_VERSION;

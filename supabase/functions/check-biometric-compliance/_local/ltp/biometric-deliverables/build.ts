@@ -645,6 +645,22 @@ const BASIS_LIMBS: Record<string, { il: boolean; tx: boolean; wa: boolean }> = {
   "To prepare for or respond to litigation": { il: false, tx: false, wa: true },
 };
 
+// DOC 254 (2026-09-11, ChatGPT review BIOMETRI-03) — the record line kept the
+// answer's own full stop ("environment.. Bases asserted"), and a "No
+// disclosures are made" answer was analysed as if a disclosure basis had been
+// invoked. The record states the no-disclosure position as the company's own
+// fact; the application says why no basis needs to be invoked.
+function noDisclosureRecorded(bases: string[]): boolean {
+  return bases.length === 1 && bases[0] === "No disclosures are made";
+}
+function disclosureRecordFact(recipients: string | null, bases: string[]): string {
+  const r = recipients ? recipients.replace(/[.\s]+$/, "") : "";
+  if (noDisclosureRecorded(bases)) {
+    return `The company reports that no disclosures of biometric data are made${r ? `: ${r}` : ""}.`;
+  }
+  return `Recipients: ${r || "not supplied"}. Bases asserted: ${bases.join("; ") || "none supplied"}.`;
+}
+
 function disclosureVerdict(
   bases: string[],
   limb: "il" | "tx" | "wa",
@@ -928,11 +944,13 @@ function buildIlDuties(
     s,
     "il_bipa.15d_disclosure_limits",
     "Disclosure and redisclosure limits",
-    `Recipients: ${recipients ?? "not supplied"}. Bases asserted: ${bases.join("; ") || "none supplied"}.`,
+    disclosureRecordFact(recipients, bases),
     il.verdict === "not_satisfied"
       ? `§ 15(d) admits four bases only: subject consent, completion of a financial transaction the subject requested or authorised, a State, federal, or municipal law requirement, and a valid warrant or subpoena. The record asserts ${il.offending.map((o) => `"${o}"`).join(", ")}, which ${il.offending.length === 1 ? "is not one of them" : "are not among them"}.`
       : il.verdict === "satisfied"
-      ? "Each basis the record asserts falls within one of the four limbs § 15(d) allows."
+      ? (noDisclosureRecorded(bases)
+        ? "Because the record states that no disclosure is made, the § 15(d) limits are not engaged and no disclosure basis needs to be invoked."
+        : "Each basis the record asserts falls within one of the four limbs § 15(d) allows.")
       : "The record does not state on what basis biometric data is disclosed.",
     il.verdict,
     il.verdict === "record_insufficient"
@@ -1006,11 +1024,13 @@ function buildTxDuties(intake: BiometricIntakeForDeliverables): DutyFinding[] {
     s,
     "tx_cubi.c1_disclosure_limits",
     "No sale, lease, or other disclosure except as listed",
-    `Recipients: ${recipients ?? "not supplied"}. Bases asserted: ${bases.join("; ") || "none supplied"}.`,
+    disclosureRecordFact(recipients, bases),
     tx.verdict === "not_satisfied"
       ? `§ 503.001(c)(1) allows disclosure on four bases only, and its consent limb is narrow: consent "to the disclosure for identification purposes in the event of the individual's disappearance or death". The record asserts ${tx.offending.map((o) => `"${o}"`).join(", ")}, which ${tx.offending.length === 1 ? "does not fall" : "do not fall"} within any of them.`
       : tx.verdict === "satisfied"
-      ? "Each basis the record asserts falls within one of the four limbs § 503.001(c)(1) allows."
+      ? (noDisclosureRecorded(bases)
+        ? "Because the record states that no disclosure is made, the § 503.001(c)(1) limits are not engaged and no disclosure basis needs to be invoked."
+        : "Each basis the record asserts falls within one of the four limbs § 503.001(c)(1) allows.")
       : "The record does not state on what basis biometric identifiers are disclosed.",
     tx.verdict,
     tx.verdict === "record_insufficient"
@@ -1201,11 +1221,13 @@ function buildWaDuties(intake: BiometricIntakeForDeliverables): DutyFinding[] {
     s,
     "wa_19375.020_3_disclosure_limits",
     "Disclosure limits absent consent",
-    `Bases asserted: ${bases.join("; ") || "none supplied"}.`,
+    disclosureRecordFact(null, bases),
     wa.verdict === "not_satisfied"
       ? `RCW 19.375.020(3) permits disclosure without consent on six listed bases. The record asserts ${wa.offending.map((o) => `"${o}"`).join(", ")}, which ${wa.offending.length === 1 ? "is not among them" : "are not among them"}.`
       : wa.verdict === "satisfied"
-      ? "Each basis the record asserts is either consent or one of the six bases subsection (3) lists."
+      ? (noDisclosureRecorded(bases)
+        ? "Because the record states that no disclosure is made, the subsection (3) limits are not engaged and no disclosure basis needs to be invoked."
+        : "Each basis the record asserts is either consent or one of the six bases subsection (3) lists.")
       : "The record does not state on what basis enrolled identifiers are disclosed.",
     wa.verdict,
     wa.verdict === "record_insufficient"

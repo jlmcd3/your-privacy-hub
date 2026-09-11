@@ -47,6 +47,7 @@ import {
 // DOC 178 (2026-09-04) — Syllabus & Record (doc 151); RoPA is the ninth and
 // final product migrated onto the fleet presentation system.
 import { dispositionTone, type SyllabusProjection } from "../../_shared/prose/syllabus.ts";
+import { isSentenceValued } from "../../_shared/prose/slots.ts";
 
 /** SO-10 pipeline stamp. Survives serialization on the persisted document. */
 export const ROPA_PIPELINE_STAMP = "ropa-pipeline@item-so10-2026-08-10";
@@ -350,11 +351,38 @@ export function buildSlotValues(input: RopaAssembleInput): SlotValues {
 
 // ── The repeating record (Article 30(1)(a)-(g)) ─────────────────────────────
 
+// DOC 254 (2026-09-11, ChatGPT review ROPA-01/02) — the purpose slot sat
+// after the fixed "is conducted for", so an answer written as an infinitive
+// ("To create and maintain user accounts …") or as a sentence rendered "is
+// conducted for To create …". The phrase now composes whole by the shape of
+// the answer; a retention answer written as a sentence is quoted the same
+// way; the operations list reads as a sentence, not a labelled fragment.
+function purposePhrase(a: RopaActivityInput): string {
+  const purpose = noStop(s(a.purpose));
+  if (!recorded(purpose)) return "for a purpose it has not recorded";
+  if (/^to\s+[a-z]/i.test(purpose)) return `to ${purpose.slice(3).trim()}`;
+  if (isSentenceValued(purpose)) return `for the purpose it has recorded as follows: “${purpose}”`;
+  return `for ${purpose}`;
+}
+
+function operationsProse(v: string): string {
+  const items = v.split(/\s*[,;]\s*/).map((x) => x.trim()).filter(Boolean)
+    .map((x) => (/^[A-Z][a-z]/.test(x) ? x.charAt(0).toLowerCase() + x.slice(1) : x));
+  return items.length ? asProse(items) : v;
+}
+
 function retentionPhrase(a: RopaActivityInput): string {
   if (recorded(a.retentionByCategory)) {
     return `for the periods it has recorded by data category: ${noStop(s(a.retentionByCategory))}`;
   }
-  if (recorded(a.retention)) return `for ${noStop(s(a.retention))}`;
+  if (recorded(a.retention)) {
+    const r = noStop(s(a.retention));
+    // An answer written as a sentence, as a category list ("Account data:
+    // …; logs: …") or around a participle ("Account data retained for …")
+    // has no grammatical seat after "for" and is quoted as recorded.
+    const quoted = isSentenceValued(r) || /[;:]/.test(r) || /^[A-Z][^,]*\b(retained|kept|held|deleted|erased|stored)\b/.test(r);
+    return quoted ? `as it has recorded: “${r}”` : `for ${r}`;
+  }
   return "for a period it has not recorded";
 }
 
@@ -413,7 +441,7 @@ export function buildActivitySlots(a: RopaActivityInput): SlotValues {
     // composes: "The activity it has not named, owned by ...".
     activity_name: s(a.name) || "it has not named",
     activity_owner: orUnrecorded(a.owner, "an owner it has not named"),
-    purpose: orUnrecorded(a.purpose, "a purpose it has not recorded"),
+    PURPOSE_PHRASE: purposePhrase(a),
     // S-P1 — a processor states no basis of its own (Art. 30(2)); the
     // ratified template's basis slot carries the documented-instructions
     // footing, naming the controller where recorded. Value-plane only.
@@ -434,8 +462,8 @@ export function buildActivitySlots(a: RopaActivityInput): SlotValues {
     // a recorded answer, rendering "The operations performed: operations it
     // has not recorded". The clause now composes whole in each branch.
     OPERATIONS_SENTENCE: recorded(a.processingOperations)
-      ? `The operations performed: ${noStop(s(a.processingOperations))}`
-      : "The operations performed are not recorded",
+      ? `The processing operations are ${operationsProse(noStop(s(a.processingOperations)))}`
+      : "The processing operations are not recorded",
     processor_platform: orUnrecorded(a.recipients, "recipients it has not recorded"),
     RETENTION_PHRASE: retentionPhrase(a),
     security_measures: orUnrecorded(a.security, "measures it has not recorded"),
@@ -768,7 +796,7 @@ export function assembleRopaRegister(input: RopaAssembleInput): RopaRegisterDocu
   if (values.home_base === null) {
     // DOC 135 — "intake" replaced with customer-facing phrasing.
     composed["controller_and_accountability:1"] = values.jurisdictions
-      ? `It operates across ${values.jurisdictions}, with a workforce of ${values.employee_band}. The information supplied by the Company does not identify a home base for the company, so this register does not state one.`
+      ? `It keeps this register under ${values.jurisdictions}, with a workforce of ${values.employee_band}. The information supplied by the Company does not identify a home base for the company, so this register does not state one.`
       : `The information supplied by the Company does not identify a home base or jurisdictions for the company, so this register does not state either. Workforce: ${values.employee_band}.`;
   }
 

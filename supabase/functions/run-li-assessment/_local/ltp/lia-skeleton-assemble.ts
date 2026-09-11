@@ -345,7 +345,12 @@ export function buildLiaSlotValues(record: Bag): SlotValues {
         : strList(necessity.alternatives))
         .flatMap((a) => a.split(/\r?\n+/))
         .map((a) => noStop(a.trim()))
-        .filter(Boolean)),
+        .filter(Boolean)
+        // DOC 254 (2026-09-11, ChatGPT review LEGITIMA-03) — each alternative
+        // is quoted, so an item that carries its own reason ("Blanket CAPTCHA
+        // on every login — degrades user experience …") does not run into
+        // the next one as narrative.
+        .map((a) => `“${a}”`)),
     ),
     // DOC 161 — a multi-line rationale carried its line breaks into the ¶19
     // sentence; the lines now join as clauses. RE-PIN 2026-09-07: the joined
@@ -398,7 +403,7 @@ export function buildLiaSlotValues(record: Bag): SlotValues {
     // whether the favourable balance is conditional on them).
     // RE-PIN 2026-09-07 (CEO-directed): the recorded measure is quoted.
     ADDITIONAL_MITIGATIONS_CLAUSE: mitigations
-      ? `; it has additionally recorded: "${noStop(mitigations)}". Where a measure recorded there is planned rather than in place, it strengthens the balance only once implemented; the determination in this assessment rests on the measures in force as described, and the balance must be re-run if a planned measure does not land as recorded`
+      ? `; it has additionally recorded: "${noStop(mitigations)}". Where a measure recorded there is planned rather than in place, it strengthens the balance only once implemented; the determination in this assessment rests on the measures in force as described, and the balance must be re-run if a planned measure is not implemented as recorded`
       : "",
 
     reviewTriggers: orNull(asProse(strList(attestation.review_triggers))),

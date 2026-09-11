@@ -601,7 +601,9 @@ function composeDeterminationBody(report: Bag, intake: Bag): string {
     );
     if (plan.length > 1) {
       parts.push(
-        "The items are ordered by the adversity of the finding each closes — duties recorded as not satisfied first, then partially satisfied, then record-completion items — and within a class by the order of the duty walk above.",
+        // DOC 254 (2026-09-11, ChatGPT review GOVERNAN-04/05) — the sorting
+        // rule stated plainly, in the product's canonical rating vocabulary.
+        "The items are ordered by the severity of the finding each addresses — duties recorded as not satisfied first, then partly evidenced, then record-completion items — and, within each group, in the order the duties are assessed above.",
       );
     }
   }

@@ -80,11 +80,14 @@ export const REGISTRATION_CONDITIONAL_TRIGGERS: readonly {
 
 /** Reader phrasing for the recorded size band (ORG_SIZES labels, lower-cased). */
 export const REGISTRATION_ORG_SIZE_MAP: Record<string, string> = {
-  micro: "micro (1\u20139 employees)",
-  small: "small (10\u201349 employees)",
-  medium: "medium (50\u2013249 employees)",
-  large: "large (250\u2013999 employees)",
-  enterprise: "enterprise (1,000+ employees)",
+  // DOC 254 (2026-09-11, ChatGPT review REGISTRA-02) — the band renders as
+  // the headcount phrase the fixed sentence "at a size of {orgSize}" takes,
+  // never as the form's bracketed option label.
+  micro: "1 to 9 employees",
+  small: "10 to 49 employees",
+  medium: "50 to 249 employees",
+  large: "250 to 999 employees",
+  enterprise: "1,000 or more employees",
 };
 
 /** The derived data-category labels, in the CEO's ruled order. */

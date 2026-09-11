@@ -38,7 +38,10 @@ Deno.test("doc188 P8 — no seam renders a double full stop after a period-termi
   assert(!/\.\./.test(html.replace(/https?:\/\/\S+/g, "")), "double full stop in the rendered notice");
   assertStringIncludes(html, "Inferences (delivery-window preferences)</strong>.");
   assertStringIncludes(html, "transactional communications</strong>.");
-  assertStringIncludes(html, "retained until opt-out</strong>.");
+  // DOC 254 (2026-09-11, USPRIVAC-01/03): a retention answer written as
+  // sentences stands as those sentences, without the intake lead-in.
+  assertStringIncludes(html, "retained until opt-out.");
+  assert(!html.includes("Our general retention description"), "the intake label must not reach the notice");
 });
 
 Deno.test("doc188 P8 — a value without a trailing stop is rendered verbatim", () => {

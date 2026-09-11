@@ -399,6 +399,20 @@ const ADMT_S4_FRAMES: Record<string, string> = {
     "Regulatory interpretation of the advertising exclusion — nonbinding interpretive context from the Agency's Final Statement of Reasons; the exclusion's scope is set by the operative definition cited above.",
 };
 
+/** DOC 254 (2026-09-11, ChatGPT review CPPAADMT-02) — "a ML-based …": the
+ * article follows the sound of the first token; an initialism whose first
+ * letter is pronounced with a vowel (A, E, F, H, I, L, M, N, O, R, S, X)
+ * takes "an". Pure. */
+export function indefiniteArticle(phrase: string): "a" | "an" {
+  const first = (phrase.trim().split(/\s+/)[0] ?? "").replace(/[^A-Za-z0-9-]/g, "");
+  if (!first) return "a";
+  const head = first.split("-")[0];
+  const initialism = /^[A-Z0-9]{2,}$/.test(head) && /[A-Z]/.test(head);
+  if (initialism) return /^[AEFHILMNORSX]/.test(head) ? "an" : "a";
+  if (/^(uni|use|user|usu|eu|one|once|ubi)/i.test(first)) return "a";
+  return /^[aeiou]/i.test(first) ? "an" : "a";
+}
+
 export interface AdmtS4Attachment {
   readonly factor_id: string;
   readonly frame: string;
@@ -732,7 +746,7 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   // A-TEAM S3 RULING V.7 (doc 115) — a full toLowerCase() mangled acronyms in
   // the Company's own system description ("ML" → "ml"); only the first
   // character may be case-adjusted, acronym-guarded.
-  const sysTypePhrase = systemType ? `, described by the Company as a ${lowerFirstWordSafe(systemType)}` : "";
+  const sysTypePhrase = systemType ? `, described by the Company as ${indefiniteArticle(systemType)} ${lowerFirstWordSafe(systemType)}` : "";
   // v3.2.2 — the old single spliced sentence garbled when the description
   // value was itself multi-sentence prose; split into attributed sentences
   // and normalize the description's terminal period. Attribution retained.
@@ -748,7 +762,10 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
         ? `The System is used in ${reader(domains)}.`
         : "The Company has not identified the decision domain in which the System is used."
     }` },
-    { kind: "skeleton", text: `The Company describes human review as: ${str((intake as any)?.human_review) || "(not answered)"}. ADMT status turns on whether the System replaces or substantially replaces human judgment.` },
+    // DOC 254 (2026-09-11, ChatGPT review CPPAADMT-02) — the intake's option
+    // label ("Partial — reviewer sees …") rendered as narrative after a colon.
+    // The Company's answer is quoted as its own words.
+    { kind: "skeleton", text: `${str((intake as any)?.human_review) ? `The Company describes human review as follows: “${String(str((intake as any)?.human_review)).replace(/[.\s]+$/, "")}”.` : "The Company has not described human review."} ADMT status turns on whether the System replaces or substantially replaces human judgment.` },
     { kind: "skeleton", text: vendorLead(intake, vendor) },
   ]);
 
@@ -795,7 +812,11 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
       // A-TEAM S3 RULING V.10 (doc 115) — professional register heading.
       { kind: "skeleton", text: `Regulatory Interpretation — ${att.factor_id}` },
       { kind: "skeleton", text: att.frame },
-      ...att.excerpts.map((text): RenderedParagraph => ({ kind: "quoted_authority", text })),
+      // DOC 254 (2026-09-11, ChatGPT review CR-4 / CPPAADMT-04) — the S4
+      // excerpts are the Agency's Final Statement of Reasons, not statute;
+      // the renderers rail this kind as rulemaking context, never as
+      // "STATUTORY TEXT".
+      ...att.excerpts.map((text): RenderedParagraph => ({ kind: "quoted_rulemaking", text })),
     ]),
   ]);
 
@@ -1037,7 +1058,11 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
     ...governanceS4.flatMap((att): RenderedParagraph[] => [
       { kind: "skeleton", text: `Regulatory Interpretation — ${att.factor_id}` },
       { kind: "skeleton", text: att.frame },
-      ...att.excerpts.map((text): RenderedParagraph => ({ kind: "quoted_authority", text })),
+      // DOC 254 (2026-09-11, ChatGPT review CR-4 / CPPAADMT-04) — the S4
+      // excerpts are the Agency's Final Statement of Reasons, not statute;
+      // the renderers rail this kind as rulemaking context, never as
+      // "STATUTORY TEXT".
+      ...att.excerpts.map((text): RenderedParagraph => ({ kind: "quoted_rulemaking", text })),
     ]),
   ]);
 

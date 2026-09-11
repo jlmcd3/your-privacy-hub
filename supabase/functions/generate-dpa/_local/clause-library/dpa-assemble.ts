@@ -196,6 +196,69 @@ function annexC(input: DpaAssembleInput): string {
   return ["ANNEX C — TECHNICAL AND ORGANISATIONAL MEASURES", "The measures the Processor applies, in the Controller's own recorded terms:", ...lines].join("\n");
 }
 
+// DOC 254 (2026-09-11, ChatGPT review CR-8 / DATAPROC-06) — "AWS (Ireland),
+// Snowflake (US), Twilio (US)" split on newlines and semicolons only, so the
+// whole answer was one item; the parenthetical regex then matched the LAST
+// bracket and rendered "AWS (Ireland), Snowflake (US), Twilio" as the Name
+// with "US" as the Service. Items are now also split on commas that sit
+// outside brackets (a corporate suffix after a comma is kept with its name),
+// and a lone bracketed token that reads as a place goes to Location, not
+// Service.
+const LOCATION_TOKEN_RE =
+  /^(us|usa|u\.s\.a?\.?|united states|eu|eea|uk|united kingdom|europe|ireland|germany|france|netherlands|spain|italy|belgium|sweden|denmark|finland|austria|poland|portugal|switzerland|india|singapore|japan|australia|canada|brazil|global|worldwide|[a-z .'-]+,\s*(us|usa|eu|uk|united states|united kingdom|ireland|germany|france|netherlands|canada|australia))$/i;
+const SERVICE_TOKEN_RE =
+  /\b(host|hosting|cloud|infrastructure|storage|warehouse|database|email|e-mail|sms|messaging|payment|payments|billing|analytics|support|helpdesk|crm|ticketing|monitoring|logging|security|backup|platform|software|saas|service|services|processing|api|delivery|marketing|advertising|identity|authentication)\b/i;
+const CORPORATE_SUFFIX_RE = /^(inc\.?|ltd\.?|llc|l\.l\.c\.|gmbh|s\.?a\.?s?\.?|b\.?v\.?|corp\.?|plc|limited|co\.?|ag|pty\.? ltd\.?)$/i;
+
+export function splitSubprocessorItems(list: string): string[] {
+  const byLine = list.split(/[\n;]+/).map((x) => x.trim()).filter(Boolean);
+  if (byLine.length !== 1) return byLine;
+  const only = byLine[0];
+  const parts: string[] = [];
+  let depth = 0;
+  let cur = "";
+  for (const ch of only) {
+    if (ch === "(") depth++;
+    if (ch === ")") depth = Math.max(0, depth - 1);
+    if (ch === "," && depth === 0) {
+      parts.push(cur);
+      cur = "";
+      continue;
+    }
+    cur += ch;
+  }
+  parts.push(cur);
+  const items = parts.map((x) => x.trim()).filter(Boolean);
+  if (items.length < 2) return [only];
+  if (items.some((x) => CORPORATE_SUFFIX_RE.test(x))) return [only];
+  return items;
+}
+
+export function parseSubprocessorItem(item: string): { name: string; service: string; location: string } {
+  let name = item;
+  let service = "";
+  let location = "";
+  const paren = /^(.+?)\s*\(([^)]+)\)\s*$/.exec(item);
+  if (paren) {
+    name = paren[1].trim();
+    const inner = paren[2].split(/\s*[,;]\s*/).map((t) => t.trim()).filter(Boolean);
+    if (inner.length === 1 && LOCATION_TOKEN_RE.test(inner[0]) && !SERVICE_TOKEN_RE.test(inner[0])) {
+      location = inner[0];
+    } else {
+      service = inner[0] ?? "";
+      location = inner[1] ?? "";
+    }
+  } else {
+    const parts = item.split(/\s+—\s+|\s+\/\s+/).map((t) => t.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      name = parts[0];
+      service = parts[1] ?? "";
+      location = parts[2] ?? "";
+    }
+  }
+  return { name, service, location };
+}
+
 function annexD(input: DpaAssembleInput): string {
   const head = "ANNEX D — SUB-PROCESSORS (Name / Service / Location / Date Authorised)";
   if (!input.hasSubProcessors) {
@@ -221,28 +284,12 @@ function annexD(input: DpaAssembleInput): string {
   const TBC_LOCATION = "[TO BE COMPLETED: country/region where processing occurs]";
   const TBC_DATE = "[TO BE COMPLETED: date authorised]";
   const row = (item: string): string => {
-    let name = item;
-    let service = "";
-    let location = "";
-    const paren = /^(.+?)\s*\(([^)]+)\)\s*$/.exec(item);
-    if (paren) {
-      name = paren[1].trim();
-      const inner = paren[2].split(/\s*[,;]\s*/).map((t) => t.trim()).filter(Boolean);
-      service = inner[0] ?? "";
-      location = inner[1] ?? "";
-    } else {
-      const parts = item.split(/\s+—\s+|\s+\/\s+/).map((t) => t.trim()).filter(Boolean);
-      if (parts.length >= 2) {
-        name = parts[0];
-        service = parts[1] ?? "";
-        location = parts[2] ?? "";
-      }
-    }
+    const { name, service, location } = parseSubprocessorItem(item);
     return `- ${name} / ${service || TBC_SERVICE} / ${location || TBC_LOCATION} / ${TBC_DATE}`;
   };
   return [
     head,
-    ...list.split(/[\n;]+/).map((x) => x.trim()).filter(Boolean).map(row),
+    ...splitSubprocessorItems(list).map(row),
   ].join("\n");
 }
 
@@ -320,28 +367,12 @@ function annexDStructured(input: DpaAssembleInput): DpaContractAnnex {
   const TBC_LOCATION = "[TO BE COMPLETED: country/region where processing occurs]";
   const TBC_DATE = "[TO BE COMPLETED: date authorised]";
   const row = (item: string): string[] => {
-    let name = item;
-    let service = "";
-    let location = "";
-    const paren = /^(.+?)\s*\(([^)]+)\)\s*$/.exec(item);
-    if (paren) {
-      name = paren[1].trim();
-      const inner = paren[2].split(/\s*[,;]\s*/).map((t) => t.trim()).filter(Boolean);
-      service = inner[0] ?? "";
-      location = inner[1] ?? "";
-    } else {
-      const parts = item.split(/\s+—\s+|\s+\/\s+/).map((t) => t.trim()).filter(Boolean);
-      if (parts.length >= 2) {
-        name = parts[0];
-        service = parts[1] ?? "";
-        location = parts[2] ?? "";
-      }
-    }
+    const { name, service, location } = parseSubprocessorItem(item);
     return [name, service || TBC_SERVICE, location || TBC_LOCATION, TBC_DATE];
   };
   return {
     title,
-    rows: list.split(/[\n;]+/).map((x) => x.trim()).filter(Boolean).map(row),
+    rows: splitSubprocessorItems(list).map(row),
   };
 }
 

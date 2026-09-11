@@ -31,6 +31,7 @@
 //     11 CCR §§ 7011–7016, 7025, 7027, 7060–7063, 7070–7072.
 
 import { fill, runIn } from "./prose/formal-instrument.ts";
+import { isSentenceValued } from "../../_shared/prose/slots.ts";
 
 export interface UsStateRow {
   state_code: string;
@@ -193,7 +194,18 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
   // 1 ──────────────────────────────────────────────────────────────────────
   {
     const parts: string[] = [];
-    parts.push(p(`The business responsible for this Notice is <strong>${business}</strong>${bizDot}${businessDesc ? ` ${esc(businessDesc.replace(/[.\s]+$/, ""))}.` : ""} Privacy contact: ${email}.`));
+    // DOC 254 (2026-09-11, ChatGPT review USPRIVAC-02) — "The business
+    // responsible for this Notice is Velorix. Velorix is a …" repeated the
+    // name and broke the notice's first-person voice. The name leads; a
+    // description that opens with the name continues the same sentence.
+    const descTrim = businessDesc ? businessDesc.replace(/[.\s]+$/, "") : "";
+    const descAfterName = businessText && descTrim.toLowerCase().startsWith(businessText.trim().toLowerCase())
+      ? descTrim.slice(businessText.trim().length).replace(/^[\s,]+/, "")
+      : "";
+    const joinsAsPredicate = /^(is|are|was|were|has|have|provides?|operates?|offers?|runs?|develops?|serves?|sells?|delivers?|builds?|owns?|specialises?|specializes?)\b/i.test(descAfterName);
+    parts.push(p(joinsAsPredicate
+      ? `<strong>${business}</strong> is responsible for this Notice and ${esc(descAfterName)}. Privacy contact: ${email}.`
+      : `<strong>${business}</strong> is responsible for this Notice.${descTrim ? ` ${esc(descTrim)}.` : ""} Privacy contact: ${email}.`));
     // The role answer renders as reader prose, never as its intake option label.
     if (roleTok === "controller") {
       parts.push(p(`For the processing described in this Notice we act as the controller${hasCA ? " — or, under the CCPA, the business —" : ""} that determines the purposes and means of the processing.`));
@@ -214,7 +226,12 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
     // its own full stop met the sentence's stop ("preferences)..", three per
     // document). The seam strips trailing stops/space the way the sources
     // sentence (§ 3) already does; the value is otherwise verbatim.
-    parts.push(p(`We collect the following categories of personal information: ${categories ? `<strong>${esc(categories.replace(/[.\s]+$/, ""))}</strong>` : fill("insert the categories of personal information collected")}.`));
+    // DOC 254 (2026-09-11, ChatGPT review USPRIVAC-01) — an answer written as
+    // a sentence ("We collect identifiers such as …") stands as the sentence;
+    // a phrase-valued answer keeps the lead-in.
+    parts.push(p(categories && isSentenceValued(categories)
+      ? `${esc(categories.replace(/[.\s]+$/, ""))}.`
+      : `We collect the following categories of personal information: ${categories ? `<strong>${esc(categories.replace(/[.\s]+$/, ""))}</strong>` : fill("insert the categories of personal information collected")}.`));
     if (categoryCodes.includes("other")) parts.push(p(`${fill("describe the other categories of personal information collected")}.`));
     // Batch b83ea3c4 (2026-09-05, all four US companies): the mapping promise
     // is only kept when the categories arrived as the form's tokens (CA-1
@@ -227,7 +244,7 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
   // 3 ──────────────────────────────────────────────────────────────────────
   {
     const parts: string[] = [];
-    parts.push(p(`We obtain personal information from the following categories of sources: ${sources ? `<strong>${esc(sources.replace(/[.\s]+$/, ""))}</strong>` : fill("insert the categories of sources, for example directly from you, automatically from your use of our website or app, service providers, business partners, advertising or analytics partners, or publicly available sources")}.`));
+    parts.push(p(sources && isSentenceValued(sources) ? `${esc(sources.replace(/[.\s]+$/, ""))}.` : `We obtain personal information from the following categories of sources: ${sources ? `<strong>${esc(sources.replace(/[.\s]+$/, ""))}</strong>` : fill("insert the categories of sources, for example directly from you, automatically from your use of our website or app, service providers, business partners, advertising or analytics partners, or publicly available sources")}.`));
     if (hasCA) parts.push(p(`The California disclosures below use source categories with enough specificity to provide a meaningful understanding of where personal information is collected.`));
     sections.push({ title: "Sources of Personal Information", html: parts.join("\n") });
   }
@@ -270,13 +287,13 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
     parts.push(p(optOutUnknown
       ? `${fill("state whether personal information is sold as that term is defined under the applicable state privacy laws and, if so, the categories sold, the categories of recipients and the purposes")}.`
       : sells
-      ? `We sell certain personal information as that term is defined under one or more applicable state privacy laws. The categories involved: ${fill("insert the categories of personal information sold")}; the categories of recipients: ${fill("insert the categories of recipients")}; the purposes: ${fill("insert the purposes of the sale")}. You may opt out as described under Your Privacy Choices.`
+      ? `We sell certain personal information as that term is defined under one or more applicable state privacy laws. Specifically, we sell ${fill("insert the categories of personal information sold")} to ${fill("insert the categories of recipients")} for ${fill("insert the purposes of the sale")}. You may opt out as described under Your Privacy Choices.`
       : `We do not sell personal information as the term is defined under the state privacy laws applicable to the processing described in this Notice.`));
     parts.push(`<h3>California sharing</h3>`);
     parts.push(p(optOutUnknown
       ? `${fill("state whether personal information is shared for cross-context behavioral advertising as “sharing” is defined under the CCPA")}.`
       : shares
-      ? `We share certain personal information for cross-context behavioral advertising as “sharing” is defined under the CCPA. The categories shared: ${fill("insert the categories of personal information shared")}; the categories of third parties: ${fill("insert the categories of third parties")}; the purposes: ${fill("insert the purposes of the sharing")}. California residents may opt out as described under Your Privacy Choices.`
+      ? `We share certain personal information for cross-context behavioral advertising as “sharing” is defined under the CCPA. Specifically, we share ${fill("insert the categories of personal information shared")} with ${fill("insert the categories of third parties")} for ${fill("insert the purposes of the sharing")}. California residents may opt out as described under Your Privacy Choices.`
       : `We do not share personal information for cross-context behavioral advertising as “sharing” is defined under the CCPA.`));
     parts.push(`<h3>Targeted advertising</h3>`);
     parts.push(p(!targetedKnown
@@ -298,7 +315,7 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
   // 7 (conditional) ────────────────────────────────────────────────────────
   if (optOutApplies || optOutUnknown) {
     const parts: string[] = [];
-    parts.push(p(`You may submit an applicable sale, sharing or targeted-advertising opt-out request through: ${runInline("Privacy Choices", fill("insert the “Do Not Sell or Share My Personal Information” / “Your Privacy Choices” link or page"))}; or by contacting us at ${email}. ${fill("insert any other opt-out method offered")}.`));
+    parts.push(p(`You may submit an applicable sale, sharing or targeted-advertising opt-out request through the “Do Not Sell or Share My Personal Information” / “Your Privacy Choices” link at ${fill("insert the link or page")}, or by contacting us at ${email}. ${fill("insert any other opt-out method offered")}.`));
     parts.push(p(`We do not require you to create an account solely to submit an opt-out request where applicable law prohibits that requirement. The precise effect of your choice depends on the state law that applies and on the processing involved.`));
     sections.push({ title: "Your Privacy Choices", html: parts.join("\n") });
   }
@@ -358,7 +375,11 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
   {
     const parts: string[] = [];
     if (retentionPeriod) {
-      parts.push(p(`Our general retention description: <strong>${esc(retentionPeriod.replace(/[.\s]+$/, ""))}</strong>.`));
+      // DOC 254 (2026-09-11, ChatGPT review USPRIVAC-03) — the intake label
+      // "Our general retention description:" is not public-notice prose.
+      parts.push(p(isSentenceValued(retentionPeriod)
+        ? `${esc(retentionPeriod.replace(/[.\s]+$/, ""))}.`
+        : `We generally retain personal information for <strong>${esc(retentionPeriod.replace(/[.\s]+$/, ""))}</strong>.`));
     } else if (retentionCriteria) {
       parts.push(p(`We are not able to state a single fixed retention period for every category of personal information. The criteria we use to determine how long each category is retained: <strong>${esc(retentionCriteria)}</strong>.`));
     } else if (hasCA) {
@@ -490,7 +511,7 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
       if (s.state_code === "CA") {
         parts.push(p(`California residents: see the California Privacy Disclosures below for the disclosures required by the CCPA and its regulations.`));
       } else {
-        parts.push(p(`${esc(s.state_name)} residents may exercise the rights provided by the ${esc(ctx.lawName(s))} — including, where the law provides them, rights to access, correct, delete and obtain a portable copy of personal data, to opt out of sale, targeted advertising and certain profiling, and to appeal a denied request — using the request methods described above. Enforcement: ${agContact(s) || `the ${esc(s.state_name)} Attorney General`}.`));
+        parts.push(p(`${esc(s.state_name)} residents may exercise the rights provided by the ${esc(ctx.lawName(s))} — including, where the law provides them, rights to access, correct, delete and obtain a portable copy of personal data, to opt out of sale, targeted advertising and certain profiling, and to appeal a denied request — using the request methods described above. Complaints may be directed to ${agContact(s) || `the ${esc(s.state_name)} Attorney General`}.`));
       }
       const bits = stateSpecificBits(s.state_code);
       if (bits.length) parts.push(ul(bits));
@@ -537,7 +558,14 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
     parts.push(p(`This section supplements the U.S. Privacy Notice for California residents and provides the information required by the California Consumer Privacy Act (“CCPA”) and its implementing regulations. It describes our practices both currently and, where specified, during the 12 months preceding the Last Updated date.`));
     parts.push(`<h3>CA-1. Personal information practices during the preceding 12 months</h3>`);
     const rowsHtml: string[] = [];
-    const catRows = categoryCodes.length ? categoryCodes.map((c) => label("data_categories", c)) : (categories ? [categories] : []);
+    // DOC 254 (2026-09-11, ChatGPT review CR-8 / USPRIVAC-05) — a free-text
+    // categories answer rendered as ONE row whose every cell carried the same
+    // omnibus paragraph. A row is drawn only from the form's category tokens;
+    // a free-text answer leaves the completion row and says so.
+    const catRows = categoryCodes.length ? categoryCodes.map((c) => label("data_categories", c)) : [];
+    if (!categoryCodes.length && categories) {
+      parts.push(p(`The categories of personal information described in this Notice are stated in general terms. ${fill("complete the table below with one row per California statutory category of personal information collected in the preceding 12 months")}.`));
+    }
     for (const cat of catRows) {
       rowsHtml.push(`<tr><td>${esc(cat)}</td><td>${sources ? esc(sources.replace(/[.\s]+$/, "")) : fill("insert the categories of sources")}</td><td>${purposes ? esc(purposes.replace(/[.\s]+$/, "")) : fill("insert the business or commercial purposes")}</td><td>${optOutUnknown ? fill("state whether sold or shared") : (sells || shares) ? `Yes — ${[sells ? "sold" : "", shares ? "shared" : ""].filter(Boolean).join(" and ")}; ${fill("insert the categories of third parties and the purposes for this category, where they differ")}` : "No"}</td><td>${sharingYes && thirdPartyCodes.includes("service_providers") || !sharingYes ? "Yes — service providers and contractors" : fill("state whether disclosed to service providers or contractors for a business purpose")}</td><td>${retentionPeriod ? esc(retentionPeriod) : retentionCriteria ? esc(retentionCriteria) : fill("insert the retention period or criteria")}</td></tr>`);
     }
@@ -668,7 +696,9 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
     const law = ctx.laws?.[s.state_code];
     if (!law?.enforcement_body) return "";
     const url = law.enforcement_url ? (law.enforcement_url.startsWith("http") ? law.enforcement_url : `https://${law.enforcement_url}`) : "";
-    return `${esc(law.enforcement_body)}${url ? `, <a href="${esc(url)}">${esc(law.enforcement_url ?? url)}</a>` : ""}`;
+    // DOC 254 (2026-09-11, ChatGPT review USPRIVAC-04) — the registry's
+    // short form ("Montana AG") is expanded for the reader.
+    return `${esc(law.enforcement_body.replace(/\bAG\b/, "Attorney General"))}${url ? `, <a href="${esc(url)}">${esc(law.enforcement_url ?? url)}</a>` : ""}`;
   }
   function runInline(labelText: string, valueHtml: string): string {
     return `<span class="fi-run">${esc(labelText)}:</span> ${valueHtml}`;

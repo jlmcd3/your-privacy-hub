@@ -70,6 +70,10 @@ export const BIOMETRIC_SLOT_MAP: readonly BiometricSlotBinding[] = [
   { slot: "destructionTrigger", kind: "intake", source: "destruction_trigger", render: "quoted-attributed",
     absent: "the clause is dropped; the statutory clock is stated in the composed block instead" },
 
+  // DOC 254 (2026-09-11, BIOMETRI-05) — Executive Summary method sentence.
+  { slot: "STATUTE_METHOD_SENTENCE", kind: "composed", source: "jurisdictions",
+    render: "conditional-sentence",
+    absent: "the honest sentence that no registered statute is in scope for the jurisdictions named" },
   // IV. Review and Approval
   { slot: "APPROVAL_SENTENCE", kind: "composed", source: "approved_by_name / approved_by_title / approval_date",
     render: "conditional-sentence",

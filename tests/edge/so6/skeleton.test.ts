@@ -133,9 +133,14 @@ Deno.test("SO-6: the spine is byte-pinned to the CEO-corrected v3 docx", async (
   // jurisdictions whose laws" — the scope list carries EU/EEA, UK and
   // US-federal entries, none of which is a state. Prior pin:
   // 4ad3d8c5bf26ddfe84dc636d32114f065599d921b6b8a60a87982f81b5807d23.
+  // RE-PIN DOC 254 (2026-09-11, ChatGPT prose review BIOMETRI-05): the
+  // Executive Summary method sentence became the composed
+  // {STATUTE_METHOD_SENTENCE} and "2. State-Specific Requirements" became
+  // "2. Jurisdiction-Specific Requirements". Prior pin:
+  // 0dc2383f95f1d45fb96be2f7dd7af1e6dc94fbf4dc61e7d03233a0944462a67b.
   assertEquals(
     BIOMETRIC_SKELETON_CONTENT_HASH,
-    "0dc2383f95f1d45fb96be2f7dd7af1e6dc94fbf4dc61e7d03233a0944462a67b",
+    "1efddd9e1c84ff77c89e304ce3e8db4a4d009a4d81cda3bf9b2f60664931e1ff",
   );
   // Every encoded block is a verbatim span of one of the paragraphs.
   for (const section of BIOMETRIC_SKELETON_SECTIONS) {
@@ -230,7 +235,7 @@ Deno.test("SO-6 step 5: a complete record assembles conformantly and register-cl
 Deno.test("SO-6: leads read the typed determinations and never disagree with them", () => {
   const unlawful = skeletonDocumentToText(assembleBiometricSkeletonDocument(REPORT, INTAKE).document);
   assert(unlawful.includes("does not meet one duty under BIPA"));
-  assert(unlawful.includes("the single next act is to remedy publication of the written retention schedule at 740 ILCS 14/15(a)"));
+  assert(unlawful.includes("the single next act is to remedy the shortfall against the duty “publication of the written retention schedule” at 740 ILCS 14/15(a)"), unlawful);
 
   const openOnly = assembleBiometricSkeletonDocument(
     {

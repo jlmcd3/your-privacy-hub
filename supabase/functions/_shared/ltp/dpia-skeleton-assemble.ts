@@ -616,7 +616,10 @@ function composeExecutiveBody(report: Bag, intake: Bag): string {
     .sort((a, b) => (a.enables.length > 0 ? 0 : 1) - (b.enables.length > 0 ? 0 : 1) || a.i - b.i);
   const openItems = ordered.map(({ what, enables }) =>
     enables.length > 0
-      ? `${what} — which completes ${enables.map((x) => lowerEnumLabel(x)).join(" and ")}`
+      // DOC 254 (2026-09-11, ChatGPT review DPIA-02) — "It is: whether … —
+      // which completes …" was syntactically broken; the point and what it
+      // completes now read as one clause pair.
+      ? `${what}; resolving it completes ${enables.map((x) => lowerEnumLabel(x)).join(" and ")}`
       : what
   );
   const open = openItems.length;
@@ -627,7 +630,7 @@ function composeExecutiveBody(report: Bag, intake: Bag): string {
   let openBlock = "";
   if (open === 1) {
     sentences.push(
-      `Based on the information the company provided, one point is still open; it is listed in the gap table and raised again where it bears on a determination. It is: ${openItems[0]}.`,
+      `Based on the information the company provided, one point is still open; it is listed in the gap table and raised again where it bears on a determination. The open point is ${openItems[0]}.`,
     );
   } else if (open > 1) {
     // A-TEAM S4 RULING S2.11 (doc 119) — the count separates the items that
@@ -1642,10 +1645,15 @@ const DPIA_MATRIX_ROWS: readonly DpiaMatrixRowSpec[] = [
       if (!rows.length) return null;
       const conditions = Array.from(new Set(rows.map((r) => s(r.condition_label)).filter(Boolean)));
       const conditionLabel = conditions.length ? asProse(conditions) : "a special-category condition";
+      const items = Array.from(new Set(rows.map((r) => s(r.item)).filter(Boolean)));
       const supported = rows.every((r) => s(r.status) === "analysed");
+      // DOC 254 (2026-09-11, ChatGPT review DPIA-06) — the unsupported branch
+      // said the Company "has identified a special-category condition" and
+      // then that the condition is not established; what the record
+      // establishes is the special-category data, not the condition.
       return supported
         ? `The Company has identified ${conditionLabel} for the special-category data involved, and the information provided supports that condition.`
-        : `The Company has identified ${conditionLabel} for the special-category data involved; the information provided does not yet establish that condition.`;
+        : `The record identifies special-category data${items.length ? ` (${asProse(items)})` : ""} but does not yet establish the Article 9(2) condition relied on.`;
     },
   },
   {
