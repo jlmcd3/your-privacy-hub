@@ -66,6 +66,14 @@ export async function gradeRun(
     // Edge Function" — a transport failure before the function ran, not a
     // grading result. A send failure is retried twice with a short backoff;
     // a timeout or a function error is not.
+    // BOOT_ERROR RETRY (2026-09-11, Lovable): a redeploy landing mid-batch
+    // can make one cold start fail with 503 BOOT_ERROR even though the
+    // function is healthy. That transient blip used to lose the grade for
+    // that product. Merged 2026-09-11: both transient classes share the one
+    // retry loop (two retries, backoff); a timeout or a real function error
+    // is still never retried.
+    const isBootError = (msg: string) =>
+      /BOOT_ERROR/i.test(msg) || /\b503\b/.test(msg) || /failed to start/i.test(msg);
     let data: unknown = null;
     let error: { message: string } | null = null;
     for (let attempt = 1; attempt <= 3; attempt++) {
@@ -81,8 +89,9 @@ export async function gradeRun(
       );
       data = r.data;
       error = r.error;
-      const sendFailure = !!error && !r.timedOut && /failed to send a request/i.test(error.message);
-      if (!sendFailure || attempt === 3) break;
+      const msg = error?.message ?? "";
+      const transient = !!error && !r.timedOut && (/failed to send a request/i.test(msg) || isBootError(msg));
+      if (!transient || attempt === 3) break;
       await new Promise((resolve) => setTimeout(resolve, 4_000 * attempt));
     }
     if (error) return { tool, claude: null, gpt: null, mean: null, error: error.message };
