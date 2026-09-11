@@ -140,7 +140,8 @@ function dataSubmission(intake: Bag): TypedDomainFinding {
     // (DLP, content filtering, upload restrictions) are integrity-and-
     // confidentiality and security-of-processing measures — Art. 5(1)(f)
     // and Art. 32(1) — not the design-and-default duty of Art. 25(1).
-    special ? "GDPR Arts. 9, 5(1)(f), 32(1)" : "GDPR Arts. 5(1)(f), 32(1)", "IT owner",
+    // DOC 259A §3.5 — Art. 9 governs the processing, not the submission control.
+    "GDPR Arts. 5(1)(f), 32(1)", "IT owner",
     table[v] ?? UNRESOLVED("whether technical controls enforce the submission rules", "Answer the technical-controls question: enforced, partial, or policy-and-training only."));
 }
 
@@ -522,15 +523,21 @@ export function composeExecutiveSummaryTyped(findings: Record<string, TypedDomai
   // in Section 5 "The Determination", AFTER the domain walk of Sections 2–4,
   // so "the sections below" pointed the wrong way. Scope wording unchanged
   // (PANEL GOV-5); only the direction is corrected.
-  parts.push(`Across the ten operational domains assessed in the sections above, the information provided leaves ${clean.length === 0 ? "none" : clean.length} of the ten fully evidenced.`);
+  // DOC 259A §3.5 (ChatGPT v3 GOV3-03) — counts in this paragraph are words
+  // ("seven of the ten"), never a digit beside a word.
+  const countWord = (n: number, cap = false): string => {
+    const w = ["none", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"][n] ?? String(n);
+    return cap ? w.charAt(0).toUpperCase() + w.slice(1) : w;
+  };
+  parts.push(`Across the ten operational domains assessed in the sections above, the information provided leaves ${countWord(clean.length)} of the ten fully evidenced.`);
   if (adverse.length > 0) {
     parts.push(`The domains requiring action first are: ${adverse.map((f) => f.domain_name).join("; ")}.`);
   }
   if (flagged.length > 0) {
-    parts.push(`${flagged.length === 1 ? "One domain carries a recorded gap" : `${flagged.length} domains carry recorded gaps`} below the immediate-priority threshold; the actions are set out in the remediation register below.`);
+    parts.push(`${flagged.length === 1 ? "One domain carries a recorded gap" : `${countWord(flagged.length, true)} domains carry recorded gaps`} below the immediate-priority threshold; the actions are set out in the remediation register below.`);
   }
   if (unresolved.length > 0) {
-    parts.push(`${unresolved.length === 1 ? "One domain remains" : `${unresolved.length} domains remain`} unresolved on the information provided.`);
+    parts.push(`${unresolved.length === 1 ? "One domain remains" : `${countWord(unresolved.length, true)} domains remain`} unresolved on the information provided.`);
   }
   // BATCH bcf0a706 (2026-09-11, Velorix fc9153eb) — a Medium/Low domain with
   // NO recorded gap (Regulatory Exposure: special categories noted) fell in no

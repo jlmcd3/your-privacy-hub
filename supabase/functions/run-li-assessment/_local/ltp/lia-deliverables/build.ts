@@ -454,6 +454,9 @@ export function splitExposure(text: string): { kept: string; moved: string; repa
 }
 
 /** Recorded measures, read against the EDPB "already required" exclusion. */
+// DOC 259A §5.5 — checklist entries that record oversight, not a control on the harm.
+const ACCOUNTABILITY_ENTRY_RE = /\b(DPIA|impact assessment|independent oversight|privacy committee|DPO)\b/i;
+
 export function classifyRecordedMitigations(intake: unknown): Mitigation[] {
   const beyond = anchor("edpb_mitigation_beyond");
   const excluded = anchor("edpb_mitigation_excluded");
@@ -513,6 +516,10 @@ export function buildDetermination(
   const legitimacy = buildInterestLegitimacy(intake);
   const harm = str(get(intake, "balancing_details.potential_harm"));
   const safeguards = arr(get(intake, "balancing_details.safeguards"));
+  // DOC 259A §5.5 (CEO 2026-09-11, ChatGPT v3 LIA3-03) — a completed DPIA or
+  // an oversight body evidences accountability; neither reduces the harm the
+  // record names, so neither counts as a safeguard against a material harm.
+  const riskReducingSafeguards = safeguards.filter((x) => !ACCOUNTABILITY_ENTRY_RE.test(x));
   const optOut = str(get(intake, "balancing_details.opt_out_mechanism"));
   const optOutAvailable = str(get(intake, "balancing_details.opt_out_available"));
   const collectionContext = str(get(intake, "balancing_details.collection_context"));
@@ -642,11 +649,11 @@ export function buildDetermination(
       measure: recordedStop
         ? `The record already states the route by which an individual stops this use — ${
           lowerFirst(firstSentence(optOut))
-        }${optOutAvailable ? ` The record records its availability as "${optOutAvailable}".` : ""} What is left is to carry that same route to the point where the data subjects first encounter the use${
+        }${optOutAvailable ? ` The record records its availability as "${optOutAvailable}".` : ""} What is left is to bring that route to the data subjects' attention at the point where they first encounter the use${
           // DOC 256 (2026-09-11, batch e2e1185b): the context answer is a
           // sentence; spliced after "at" it broke the sentence around it.
           collectionContext ? `, which the record places as follows: “${firstSentence(collectionContext).replace(/[.\s]+$/, "")}”` : ""
-        } so the choice is available before the processing runs and not only after it, and to name the role that operates it.`
+        }, so that the right to object is brought to their attention there, as Article 21(4) requires, and to name the role that operates it.`
         : "Give the data subjects an unconditional, standing means of stopping this specific use at the point where they would first encounter it, going beyond the Article 21 objection right the GDPR already requires.",
       why_it_moves_the_balance:
         `Expectation is only partly satisfied on the information provided, so the factor sits on the data-subject side of the balance until the individual can decline the specific use${
@@ -664,7 +671,7 @@ export function buildDetermination(
   const materialHarm = harmIsMaterial(harm);
   if (!harm) {
     open.push("balancing");
-  } else if (materialHarm && safeguards.length === 0) {
+  } else if (materialHarm && riskReducingSafeguards.length === 0) {
     failing.push("balancing");
     mitigations.push({
       factor: "balancing",
@@ -672,7 +679,7 @@ export function buildDetermination(
       measure:
         "Put named safeguards against the specific harm the record identifies, state who operates each one, and record how its effect is evidenced.",
       why_it_moves_the_balance:
-        `The record puts the worst-case impact at "${harm}" and names no safeguard against it, so nothing recorded reduces the weight on the data-subject side. Safeguards that go beyond the controller's existing obligations reduce that weight; ones that do not, do not.`,
+        `The record puts the worst-case impact at "${harm}" and names no safeguard against it${safeguards.length ? ` beyond accountability measures (${safeguards.join(", ")}), which evidence oversight rather than reduce the harm` : ""}, so nothing recorded reduces the weight on the data-subject side. Safeguards that go beyond the controller's existing obligations reduce that weight; ones that do not, do not.`,
       goes_beyond_gdpr_obligation: true,
       citation: beyond.citation || "EDPB Guidelines 1/2024, Section II.C.4",
       ...authorityVerbatim(beyond.verbatim),

@@ -342,7 +342,7 @@ const ADMT_V3_FIXED = {
   full_optout_requirement:
     "A business relying on the ordinary opt-out pathway must provide at least two designated opt-out methods, including a method that reflects how it primarily interacts with consumers (11 CCR § 7221(c)). An online business must provide an interactive form through an ADMT-specific opt-out link in the Pre-use Notice; a cookie banner alone is not enough (11 CCR § 7221(c)(1), (c)(4)). The process must be easy to use and require minimal steps, may not force account creation or a verifiable consumer request, and must allow the consumer to confirm that the request was processed (11 CCR § 7221(d)–(f), (h)). If processing has already begun, the business must stop the ADMT processing as soon as feasible and no later than 15 business days, and must notify downstream persons processing the consumer's information with that ADMT so they can comply within the same period (11 CCR § 7221(n)(1)–(2)).",
   full_optout_note:
-    "Section 7221 also contains additional handling rules concerning fraudulent requests, authorized agents, later requests for renewed consent, and non-retaliation (11 CCR § 7221(g), (j)–(l)). Those rules remain applicable even when they are not separately scored by the current intake.",
+    "Section 7221 also contains additional handling rules concerning fraudulent requests, authorized agents, later requests for renewed consent, and non-retaliation (11 CCR § 7221(g), (j)–(l)). Those rules remain applicable even where this assessment does not separately score them.",
   human_appeal_requirement:
     "A business may rely on the human-appeal exception instead of offering an ADMT opt-out if consumers can appeal the significant decision to a human reviewer who can overturn it (11 CCR § 7221(b)(1)). The reviewer must understand and analyze the ADMT output, consider other relevant information and information supplied by the consumer, and have authority to change the decision (11 CCR § 7221(b)(1)(A)). The appeal route must be clearly described, easy to execute, and require minimal steps; the consumer must be able to submit information in support of the appeal, and the process remains subject to applicable timing and verification rules (11 CCR § 7221(b)(1)(B)).",
   hiring_admission_requirement:
@@ -858,6 +858,8 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
 
   // ── 3. Pre-use Notice Audit ──────────────────────────────────────────────
   const deliveryPhrase = str((intake as any)?.notice_delivery) || reader(Array.isArray((intake as any)?.notice_delivery) ? (intake as any).notice_delivery : []);
+  const noticeNotYetProvided = (Array.isArray((intake as any)?.notice_delivery) ? (intake as any).notice_delivery as unknown[] : [(intake as any)?.notice_delivery])
+    .some((v) => String(v ?? "") === "We have not yet provided a Pre-use Notice");
   if (outOfScope) {
     push("notice", "3. Pre-use Notice Audit", [NOT_REACHED_STUB("the Pre-use Notice requirements are not assessed")]);
     push("optout", "4. Opt-Out and Exception Audit", [NOT_REACHED_STUB("the opt-out and exception requirements are not assessed")]);
@@ -869,7 +871,9 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
     legal(ADMT_V3_FIXED.preuse_notice_requirement),
     legal(ADMT_V3_FIXED.preuse_notice_layering),
     { kind: "lead", text: noticeDeterminationSentence(notice) },
-    { kind: "skeleton", text: `The Company states that it provides the Pre-use Notice ${deliveryPhrase || "(not reported)"}. The following table shows whether the Company's notice covers each element the regulations require:` },
+    // DOC 259A §3.2 (ChatGPT v3 ADMT3-01) — a "not yet provided" answer controls
+    // the sentence; it is never concatenated with a delivery method.
+    { kind: "skeleton", text: `${noticeNotYetProvided ? "The Company states that it has not yet provided a Pre-use Notice." : `The Company states that it provides the Pre-use Notice ${deliveryPhrase || "(not reported)"}.`} The following table shows whether the Company's notice covers each element the regulations require:` },
     { kind: "table", text: "", table: {
       key: "notice:2", surface: "notice_elements", title: "",
       columns: ["Required notice element", "Company response", "Evidence"],
@@ -1540,7 +1544,12 @@ function buildFactRecordTable(
   const popBand = str((intake as any)?.affected_population_band);
   const systemCount = str((intake as any)?.admt_system_count);
   const roleRoster = arrJoin((intake as any)?.role_roster);
-  const noticeDelivery = arrJoin((intake as any)?.notice_delivery);
+  // DOC 259A §3.2 — a "not yet provided" answer controls the recorded delivery
+  // fact; a legacy record that also ticked a method is not restated as both.
+  const noticeDeliveryRaw = Array.isArray((intake as any)?.notice_delivery) ? ((intake as any).notice_delivery as unknown[]).map((v) => String(v ?? "")) : [];
+  const noticeDelivery = noticeDeliveryRaw.includes("We have not yet provided a Pre-use Notice")
+    ? "We have not yet provided a Pre-use Notice"
+    : arrJoin((intake as any)?.notice_delivery);
   const thirdParty = str((intake as any)?.third_party_admt);
 
   // CEO review 2026-08-23/24: "Source field(s)" printed the raw intake

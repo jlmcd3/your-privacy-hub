@@ -453,11 +453,14 @@ function incidentRecordedIn(intake: Bag): boolean {
 // ("Company") rendered "for an organisation in its sector (Company)". A
 // generic token is no sector; the slot states that the sector is not
 // recorded (the fixed sentence around it survives; "" would leave "()").
+// DOC 259A §3.10 (ChatGPT v3 IR3-02) — a generic token now drops the whole
+// sector clause ("for an organisation in its sector (sector not recorded)"
+// told the reader nothing); the clause is an inline slot on the spine.
 const GENERIC_SECTOR_RE = /^(company|organisation|organization|business|other|n\/?a|none|not applicable|unknown)$/i;
 function sectorLabel(v: unknown): string | null {
   const t = s(v);
   if (!t) return null;
-  return GENERIC_SECTOR_RE.test(t) ? "sector not recorded" : t;
+  return GENERIC_SECTOR_RE.test(t) ? null : t;
 }
 
 function deriveDeadlineBoardTable(report: Bag, intake: Bag): RenderedTable | null {
@@ -582,7 +585,10 @@ function deriveActionPlanTable(report: Bag, intake: Bag): RenderedTable | null {
     const dutyText = posture === "triggered"
       ? `Notify under the law of ${state}`
       : posture === "determination_pending"
-      ? `Determine whether notification is required under the law of ${state} (resolve the outstanding ${outstandingStateFacts(d)}), and notify if the duty is established`
+      // DOC 259A §3.10 (ChatGPT v3 IR3-01) — a sectoral overlay row carries
+      // its own predicate (SEC materiality, NYDFS incident determination,
+      // DORA classification); the state predicate is for state rows.
+      ? `Determine whether notification is required under the law of ${state} (resolve the outstanding ${s(d.determination_predicate) || outstandingStateFacts(d)}), and notify if the duty is established`
       : `No notice action currently identified under the law of ${state} — reassess if additional data types or facts emerge`;
     // ChatGPT P1-1 — Owner column: the fact-resolution work a
     // determination-pending row names is forensic/security work; a
@@ -705,6 +711,9 @@ export function buildIrSlotValues(report: Bag, intake: Bag): SlotValues {
     // Part One — durable register.
     organizationName: s(intake.organizationName) || null,
     sector: sectorLabel(intake.organisationType), // reader label, never case-folded
+    SECTOR_CLAUSE: sectorLabel(intake.organisationType)
+      ? `, for an organisation in its sector (${sectorLabel(intake.organisationType)})`
+      : "",
     // BATCH 18b (doc 113 S2.2) — the data now lives in the Standing Sections
     // tables (the pinned descriptor's own "rendered as a table" intent); the
     // slot VALUES become pointer prose. Absent data keeps a null slot so the

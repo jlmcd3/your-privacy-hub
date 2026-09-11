@@ -32,6 +32,12 @@ import type { IntakeContract } from "../../../_shared/intake-contracts/types.ts"
 
 export const EU_NOTICE_YES_NO = ["yes", "no"] as const;
 export const EU_NOTICE_YES_NO_UNSURE = ["yes", "no", "unsure"] as const;
+// DOC 259A §5.1 (CEO 2026-09-11) — the Art. 22 question is three-way: "yes"
+// = decisions taken solely by automated means with legal or similarly
+// significant effects; "human_review" = automated processing informs the
+// decision but a person with authority to change the outcome reviews it
+// before it takes effect (no Art. 22 decision); "no"; "unsure".
+export const EU_NOTICE_AUTOMATED_DECISIONS = ["yes", "human_review", "no", "unsure"] as const;
 
 /** universal-questions.ts — `processing_purposes` (multi_choice). */
 export const EU_NOTICE_PURPOSES = [
@@ -110,9 +116,9 @@ export const euNoticeContract: IntakeContract = {
       requiredWhen: 'transfer_outside_eea === "yes"', trigger: { key: "transfer_outside_eea", equals: ["yes"] } },
     { key: "adequacy_status", kind: "text", required: "optional" },
     { key: "retention_period", kind: "text", required: "always" },
-    { key: "automated_decisions", kind: "enum", options: EU_NOTICE_YES_NO_UNSURE, required: "always" },
+    { key: "automated_decisions", kind: "enum", options: EU_NOTICE_AUTOMATED_DECISIONS, required: "always" },
     { key: "automated_decisions_detail", kind: "text", required: "conditional",
-      requiredWhen: 'automated_decisions === "yes"', trigger: { key: "automated_decisions", equals: ["yes"] } },
+      requiredWhen: 'automated_decisions in ("yes", "human_review")', trigger: { key: "automated_decisions", equals: ["yes", "human_review"] } },
     { key: "collection_source", kind: "enum", options: EU_NOTICE_COLLECTION_SOURCE, required: "always" },
     { key: "data_source_categories", kind: "multi-enum", options: EU_NOTICE_SOURCE_CATEGORIES, required: "conditional",
       requiredWhen: 'collection_source in ("indirect", "mixed")', trigger: { key: "collection_source", equals: ["indirect", "mixed"] } },

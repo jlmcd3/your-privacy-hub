@@ -657,6 +657,31 @@ export function computeNotice(intake: Intake, optOutPath: PathState): NoticeResu
   else if (hasElementText || hasPurposeText) recordGrade = "QUALIFIED";
   else recordGrade = "MATERIALLY_INCOMPLETE";
 
+  // DOC 259A §3.2 (ChatGPT v3 ADMT3-02) — where no Pre-use Notice exists yet,
+  // the missing § 7220(c) elements are what Condition 1 must deliver; they
+  // are folded into its action and closure rather than listed again as
+  // non-blocking Recommendations. The element rows still render in the
+  // notice table; only the duplicate findings are folded.
+  if (deliveryGap) {
+    const elementLabels: Record<string, string> = {
+      "Specific purpose": "the specific decision the ADMT informs",
+      "Opt-out / exception description": "the opt-out right (or the exception relied on) with instructions",
+      "Access right description": "the access right and how to submit a request",
+      "Anti-retaliation": "the § 7220(c)(4) anti-retaliation statement",
+      "How the ADMT works": "how the ADMT works — its inputs and output",
+      "Alternative process": "the alternative process available after an opt-out",
+    };
+    const folded = findings.filter((f) => f.area === "Pre-use Notice" && f.criterion in elementLabels);
+    const missing = folded.map((f) => elementLabels[f.criterion]);
+    for (let i = findings.length - 1; i >= 0; i--) if (folded.includes(findings[i])) findings.splice(i, 1);
+    const deliveryFinding = findings.find((f) => f.area === "Pre-use Notice" && f.criterion === "Notice delivery");
+    if (deliveryFinding && missing.length) {
+      const list = missing.length === 1 ? missing[0] : `${missing.slice(0, -1).join(", ")} and ${missing[missing.length - 1]}`;
+      deliveryFinding.action_text = `Publish a Pre-use Notice covering the required § 7220(c) elements before ADMT is used for the significant decision; on the Company's answers the notice must supply ${list}.`;
+      deliveryFinding.closure_condition = `The Company confirms a Pre-use Notice has been provided containing ${list}`;
+    }
+  }
+
   // Composite posture.
   const applicable = [deliveryFactor, timingFactor, purposeFactor, optoutDescFactor, accessDescFactor, antiRetFactor, howWorksFactor, altProcessFactor]
     .filter((f) => f.status !== "NOT_APPLICABLE");

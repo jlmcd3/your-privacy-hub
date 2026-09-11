@@ -48,10 +48,12 @@ Deno.test("INTAKE-1: EU follow-up question shape is valid and additive", () => {
   assert(q, "automated_decisions_detail must exist");
   assertEquals(q!.type, "text_long");
   assertEquals(q!.isRequired, false);
+  // DOC 259A §5.1 (2026-09-11) — the detail shows for "yes" and for the new
+  // "human_review" answer.
   assertEquals(q!.showIf, {
     questionKey: "automated_decisions",
-    operator: "equals",
-    value: "yes",
+    operator: "in",
+    value: ["yes", "human_review"],
   });
   assertStringIncludes(q!.whyWeAsk, "Art.13(2)(f)");
 
@@ -63,16 +65,20 @@ Deno.test("INTAKE-1: EU follow-up question shape is valid and additive", () => {
     parent.text,
     "Do you make automated decisions with legal or significant effects on individuals?",
   );
-  assertEquals(parent.type, "yes_no_unsure");
+  // DOC 259A §5.1 — yes / human_review / no / unsure.
+  assertEquals(parent.type, "single_choice");
+  assertEquals(parent.options?.map((o) => o.value), ["yes", "human_review", "no", "unsure"]);
   assertEquals(parent.isRequired, true);
   assertEquals(parent.flagIf?.length, 1);
 });
 
 // ---------------------------------------------- conditional both ways -----
 
-function shown(q: { showIf?: { questionKey: string; value: unknown } }, answers: Record<string, unknown>) {
+function shown(q: { showIf?: { questionKey: string; operator?: string; value: unknown } }, answers: Record<string, unknown>) {
   if (!q.showIf) return true;
-  return answers[q.showIf.questionKey] === q.showIf.value;
+  const v = answers[q.showIf.questionKey];
+  if (q.showIf.operator === "in") return Array.isArray(q.showIf.value) && (q.showIf.value as unknown[]).includes(v);
+  return v === q.showIf.value;
 }
 
 Deno.test("INTAKE-1: conditional display, both directions", () => {
@@ -80,6 +86,7 @@ Deno.test("INTAKE-1: conditional display, both directions", () => {
     (x) => x.key === "automated_decisions_detail",
   )!;
   assertEquals(shown(eu, { automated_decisions: "yes" }), true);
+  assertEquals(shown(eu, { automated_decisions: "human_review" }), true);
   assertEquals(shown(eu, { automated_decisions: "no" }), false);
   assertEquals(shown(eu, {}), false);
 

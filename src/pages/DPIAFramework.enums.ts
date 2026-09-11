@@ -22,6 +22,16 @@ export const IMAGERY_CAPTURE = [
 ];
 export const IMAGERY_SPACES = ["Publicly accessible spaces", "Private or controlled premises", "Both"];
 
+// DOC 259A §5.1 (2026-09-11) — shown when a selected reason to conduct is an
+// evaluation/scoring, automated-decision-making, or systematic-extensive-
+// evaluation reason. Mirrored byte-for-byte from the contract
+// (DPIA_AUTOMATED_DECISION_NATURE).
+export const AUTOMATED_DECISION_NATURE = [
+  "Solely automated — no person with authority to change the outcome reviews the decision before it takes effect",
+  "Automated processing with meaningful human review — a person with authority to change the outcome reviews each decision before it takes effect",
+  "No decisions with legal or similarly significant effects are taken on the basis of this processing",
+];
+
 // EDPB template §0.5 — reasons to conduct (condensed: Art. 35(3) + WP248 criteria + beneficial).
 export const REASONS_TO_CONDUCT = [
   "Systematic, extensive evaluation / profiling with significant effects (Art. 35(3)(a))",

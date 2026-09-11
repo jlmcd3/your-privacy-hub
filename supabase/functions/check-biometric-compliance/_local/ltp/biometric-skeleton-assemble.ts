@@ -91,6 +91,18 @@ function lowerEnumLabel(v: string): string {
   return v.charAt(0).toLowerCase() + v.slice(1);
 }
 
+// DOC 259A §3.9 (ChatGPT v3 BIO3-02) — a record fact already in provenance
+// voice ("The company reports that …") or in label:value form ("Security
+// measures: …") is the record line itself; only a bare clause takes the
+// "has answered that" lead. The old lead doubled the provenance ("has
+// answered that the company reports that") and leaked the label.
+function recordLine(fact: string): string {
+  const f = noStop(fact);
+  if (/^The company\b/.test(f)) return `Record. ${f}`;
+  if (/^[A-Z][A-Za-z()\/ -]{1,60}:\s/.test(f)) return `Record. ${f}`;
+  return `Record. The company has answered that ${lowerEnumLabel(f)}`;
+}
+
 // ── Slot values ─────────────────────────────────────────────────────────────
 
 /** The state labels the reader chose, as prose, with any named other states. */
@@ -275,7 +287,9 @@ function deriveActionPanelTable(report: Bag, orgType: string): RenderedTable | n
     const duty = noStop(s(u.duty));
     const cite = s(u.citation);
     if (!duty && !cite) continue;
-    rows.push([String(n++), "Immediate remediation", `Remedy ${duty || "the duty named above"}${cite ? ` at ${cite}` : ""}`, owner]);
+    // DOC 259A §3.9 — the narrow Type column wrapped "Immediate remediation"
+    // one character per line; the type now leads the action cell.
+    rows.push([String(n++), `Immediate remediation — remedy ${duty || "the duty named above"}${cite ? ` at ${cite}` : ""}`, owner]);
   }
   for (const u of unresolved) {
     const duty = noStop(s(u.duty));
@@ -284,8 +298,7 @@ function deriveActionPanelTable(report: Bag, orgType: string): RenderedTable | n
     if (!duty && !cite) continue;
     rows.push([
       String(n++),
-      "Record completion",
-      `Confirm ${duty || "the duty named above"}${cite ? ` at ${cite}` : ""}${needed ? ` — ${lowerEnumLabel(noStop(needed))}` : ""}`,
+      `Record completion — confirm ${duty || "the duty named above"}${cite ? ` at ${cite}` : ""}${needed ? ` — ${lowerEnumLabel(noStop(needed))}` : ""}`,
       owner,
     ]);
   }
@@ -294,7 +307,7 @@ function deriveActionPanelTable(report: Bag, orgType: string): RenderedTable | n
     key: "",
     surface: "consequence_determination.action_panel",
     title: "Action panel",
-    columns: ["#", "Type", "Action", "Owner"],
+    columns: ["#", "Action", "Owner"],
     rows,
   };
 }
@@ -315,6 +328,10 @@ function statuteGroups(rows: readonly Bag[]): Map<string, Bag[]> {
  * from collection. This states the clock; it never rewrites the company's own
  * recorded answer, which is quoted as given.
  */
+/** DOC 259A §3.9 — Tex. Bus. & Com. Code § 503.001(c)(3): destroy within a reasonable time, and not later than the first anniversary of the date the purpose for collecting the identifier expires. */
+export const TEXAS_DESTRUCTION_CLOCK_SENTENCE =
+  "Under the Texas duty in scope, the identifier is destroyed within a reasonable time, and not later than the first anniversary of the date the purpose for collecting it expires (Tex. Bus. & Com. Code § 503.001(c)(3)).";
+
 export function destructionClockSentence(): string {
   return "Under the destruction duties in scope, the retention period runs from the date the initial purpose for collection has been satisfied or from the individual's last interaction with the company, whichever occurs first, and not from the date of collection.";
 }
@@ -465,7 +482,7 @@ function composeDutyBlock(rows: readonly Bag[]): string {
     }
     const bits: string[] = [];
     const fact = s(r.record_fact);
-    if (fact) bits.push(stop(`Record. The company has answered that ${noStop(lowerEnumLabel(fact))}`));
+    if (fact) bits.push(stop(recordLine(fact)));
     const application = s(r.application);
     if (application && application === prevApplication) {
       bits.push("The same predicate governs this duty, for the reason stated above.");
@@ -693,7 +710,12 @@ function composeSecurityBody(report: Bag, values: SlotValues): string {
   // The destruction-clock directive moved here from Section I (panel-C D7:
   // it sat "apropos of nothing in the notice discussion"); the retention
   // clock is this section's subject.
-  if (rows.length > 0) parts.push(destructionClockSentence());
+  // DOC 259A §3.9 (my 6a) — the "whichever occurs first" clock is BIPA
+  // § 15(a)'s; it renders only where an Illinois duty row is in scope. Texas
+  // CUBI's clock runs from the expiry of the collection purpose.
+  const statuteKeys = rows.map((r) => s(r.statute_key));
+  if (statuteKeys.includes("us_il_bipa")) parts.push(destructionClockSentence());
+  if (statuteKeys.includes("us_tx_cubi")) parts.push(TEXAS_DESTRUCTION_CLOCK_SENTENCE);
   if (!values.securityMeasures) parts.push("The company has not recorded the controls applied to storage and transmission (the security-measures question in the intake), so no protection-parity conclusion is drawn; recording them is what closes the point.");
   // DOC 142 (2026-09-02) — the "duties in scope require one" clause asserted
   // live destruction duties in the EMPTY-scope state, directly contradicting

@@ -791,7 +791,12 @@ export const EU_NOTICE_VARIANTS = [
     transfer_outside_eea: "yes",
     transfer_safeguards: ["sccs", "uk_addendum"],
     retention_period: "Risk scores 24 months; HR records active+6yr; marketing 2yr.",
-    automated_decisions: "yes",
+    // DOC 259A §5.1: the companion DPIA_VARIANTS[0] entry for this same
+    // controller states the risk score is "generated without human review;
+    // clinician makes final decision (not Article 22 scope)" — a person
+    // with authority reviews the decision before it takes effect, so this
+    // is "human_review", not solely-automated "yes".
+    automated_decisions: "human_review",
     // DOC 188 F1 (2026-09-05): the form's Art. 9(2) codes, not prose; the
     // supervisory authority under its real key `gdpr_dpa_contact` (the
     // phantom `supervisory_authority_eu/_uk` keys left Section 12 blank).
@@ -812,6 +817,11 @@ export const EU_NOTICE_VARIANTS = [
     transfer_outside_eea: "no",
     transfer_safeguards: [],
     retention_period: "Transaction records 6 years (regulatory); marketing 2 years.",
+    // DOC 259A §5.1: the companion DPIA_VARIANTS[1] entry for this same
+    // controller states "Article 22 in scope — automated declines
+    // reviewable on request" — the decline takes effect automatically and
+    // is only reviewable AFTER the fact, so this stays solely-automated
+    // "yes" (not "human_review", which requires review before it takes effect).
     automated_decisions: "yes",
     gdpr_dpa_contact: "Data Protection Commission (Ireland)",
   },
@@ -870,6 +880,9 @@ export const REG_VARIANTS = [
     large_scale_monitoring: true,
     uses_ai_systems: true,
     ai_high_risk: true,
+    // DOC 259A §5.3 — a healthcare risk-scoring system, not a
+    // critical-infrastructure safety component.
+    ai_annex_iii_point_2: "no",
     ai_general_purpose_provider: false,
     cross_border_transfers: true,
     markets_served: ["GB", "DE", "FR", "IE", "NL"],

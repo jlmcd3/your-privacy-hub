@@ -218,7 +218,11 @@ export const cppaAdmtContract: IntakeContract = {
     { key: "training_data_use",   kind: "enum", required: "always", options: ADMT_YES_NO_OPTS },
     { key: "profiling_use",       kind: "enum", required: "always", options: ADMT_YES_NO_OPTS },
 
-    { key: "notice_delivery",             kind: "multi-enum", required: "always", options: NOTICE_DELIVERY_OPTIONS },
+    // DOC 259A §3.2 (2026-09-11, ChatGPT v3 ADMT3-01) — "not yet provided" is
+    // exclusive of every delivery method (form clears the others; the harness
+    // validator rejects the pair; the engine treats it as controlling).
+    { key: "notice_delivery",             kind: "multi-enum", required: "always", options: NOTICE_DELIVERY_OPTIONS,
+      exclusive: ["We have not yet provided a Pre-use Notice"] },
     { key: "notice_has_specific_purpose", kind: "enum", required: "always", options: NOTICE_SPECIFIC_PURPOSE_OPTS },
     { key: "notice_purpose_text",         kind: "narrative", required: "optional" },
     { key: "notice_has_opt_out_desc",     kind: "enum", required: "always", options: NOTICE_OPT_OUT_DESC_OPTS },

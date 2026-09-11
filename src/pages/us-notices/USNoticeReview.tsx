@@ -65,6 +65,10 @@ function evaluateShowIf(q: Question, answers: Record<string, AnswerValue>): bool
       if (Array.isArray(v)) return targets.some((t) => v.includes(t));
       return false;
     }
+    // DOC 259A §5.1 — "in" is an EU-notice pattern not yet used by any US
+    // notice question; default to visible, matching eu-notice-questions/showIf.ts.
+    default:
+      return true;
   }
 }
 

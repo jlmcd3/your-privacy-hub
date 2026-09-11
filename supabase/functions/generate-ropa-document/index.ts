@@ -284,7 +284,8 @@ const QUESTION_LABELS: Record<string, string> = {
   processing_regularity: "Processing regularity",
   unsubscribe_mechanism: "Unsubscribe mechanism",
   incident_log: "Breach / incident register",
-  notices_displayed: "Surveillance notices displayed",
+  // DOC 259A §3.8 (ChatGPT v3 ROPA3-04) — the field carries ordinary notices too.
+  notices_displayed: "Notices displayed",
   activity_owner: "Activity owner",
   collection_sources: "Collection sources",
   processing_operations: "Processing operations performed",
@@ -870,7 +871,7 @@ export function buildHtml(d: AssembledData): string {
   </div>
 
 
-  <p class="footer-note" style="margin-top: 32px;">This record was last reviewed on ${escapeHtml(d.settings.documentDate)}. Maintained in compliance with Article 30 GDPR obligations. Review recommended at least annually or upon any material change to processing activities.</p>
+  <p class="footer-note" style="margin-top: 32px;">This record was last reviewed on ${escapeHtml(d.settings.documentDate)}. ${d.register.completeness.complete ? "Maintained in compliance with Article 30 GDPR obligations." : "This record is incomplete: the fields identified in the Completeness Review must be supplied before it is relied on as the Article 30 record."} Review recommended at least annually or upon any material change to processing activities.</p>
 
   ${reportDisclaimerHtml()}
   </div></div>

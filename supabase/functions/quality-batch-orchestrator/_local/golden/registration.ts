@@ -79,6 +79,8 @@ export const REGISTRATION_GOLDEN: GoldenCase[] = [
       has_uk_establishment: true,
       has_eu_establishment: false,
       ai_high_risk: true,
+      // DOC 259A §5.3 — not a critical-infrastructure safety component.
+      ai_annex_iii_point_2: "no",
       ai_general_purpose_provider: false,
       uses_ai_systems: true,
       markets_served: ["DE", "FR", "UK", "IE", "NL"],
@@ -103,6 +105,8 @@ export const REGISTRATION_GOLDEN: GoldenCase[] = [
       has_eu_establishment: true,
       eu_lead_member_state: "NL",
       ai_high_risk: true,
+      // DOC 259A §5.3 — not a critical-infrastructure safety component.
+      ai_annex_iii_point_2: "no",
       ai_general_purpose_provider: false,
       uses_ai_systems: true,
       markets_served: ["NL"],

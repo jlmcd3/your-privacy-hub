@@ -25,6 +25,10 @@ export interface StateDutySet {
   readonly regulator_deadline?: string;
   /** Whether a verified clock backs this entry. */
   readonly verified: boolean;
+  /** DOC 259A §3.10 — the fact a determination-pending row resolves, in the
+   *  duty's own terms; absent, the action plan uses the state predicate
+   *  (encryption and acquisition facts). Sectoral overlays set it. */
+  readonly determination_predicate?: string;
 }
 
 interface StateRule {

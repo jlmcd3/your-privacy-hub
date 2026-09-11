@@ -323,7 +323,9 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
           : ""
       }`
       : `We do not process personal data for targeted advertising as that term is defined under the applicable state privacy laws.`));
-    sections.push({ title: "Sale, California Sharing and Targeted Advertising", html: parts.join("\n") });
+    // DOC 259A §3.12 (ChatGPT v3 USN3-03) — "California Sharing" names a
+    // California-only concept; an edition without California drops it.
+    sections.push({ title: hasCA ? "Sale, California Sharing and Targeted Advertising" : "Sale and Targeted Advertising", html: parts.join("\n") });
   }
 
   // 7 (conditional) ────────────────────────────────────────────────────────

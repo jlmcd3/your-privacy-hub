@@ -198,6 +198,12 @@ const NO_TRANSFER_MECHANISM_RE = /^\s*no\s+transfer(?:s)?\s+(?:outside|beyond|ou
 
 const LEGACY_NO_TRANSFER_RE = /no\s+third[- ]country\s+transfer/i;
 
+// DOC 259A §3.8 (ChatGPT v3 ROPA3-01) — a destination recorded as the EEA or
+// EU region itself, with no Chapter V instrument named for it, is where the
+// data stay, not a third-country transfer.
+const IN_REGION_DESTINATION_RE = /^(?:the\s+)?(?:european economic area|eea|european union|eu)\b/i;
+const CHAPTER_V_INSTRUMENT_RE = /\b(SCCs?|standard contractual|IDTA|addendum|adequacy|binding corporate|BCRs?|derogation|Art(?:icle|\.)\s*4[69])\b/i;
+
 /**
  * DOC 168 — THE transfer resolver. Every surface that renders the transfer
  * facts (register cell (e), the per-activity table row, the cross-border
@@ -227,6 +233,10 @@ export function resolveTransfer(ans: AnswerBag): ResolvedTransfer {
   // Company's recorded no-transfer; the destination is where the data stay.
   let withinRegion = "";
   if (!declaredNone && NO_TRANSFER_MECHANISM_RE.test(answerText(mechRaw))) {
+    declaredNone = true;
+    withinRegion = destination;
+  }
+  if (!declaredNone && destination && IN_REGION_DESTINATION_RE.test(destination) && !CHAPTER_V_INSTRUMENT_RE.test(answerText(mechRaw))) {
     declaredNone = true;
     withinRegion = destination;
   }
@@ -327,8 +337,11 @@ export function buildRopaAssembleInput(d: RopaAnswerData): RopaAssembleInput {
       incidentLog: str(ans.incident_log),
     };
   });
+  // DOC 259A §3.11 — the record's own date, for past-dated commitments.
+  const documentDate = String((d as { settings?: { documentDate?: unknown } }).settings?.documentDate ?? "");
 
   return {
+    documentDate,
     organisationName: String(d.client?.name ?? ""),
     legalEntityType: String(p?.legal_entity_type ?? ""),
     incorporationJurisdiction: String(p?.incorporation_jurisdiction ?? ""),

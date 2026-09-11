@@ -698,6 +698,29 @@ export default function ADMTChecker() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldAutoResume, draftFound, restoreData, touched]);
 
+  // DOC 259A §5 — "We have not yet provided a Pre-use Notice" is a
+  // categorical negative: it can never be true alongside an actual delivery
+  // channel. Pills passes the full next-selection array with the click
+  // already applied, so compare against the prior value to tell which
+  // direction changed and enforce the exclusivity both ways.
+  const handleNoticeDeliveryChange = (next: string[]) => {
+    const NOT_YET = "We have not yet provided a Pre-use Notice";
+    const hadNotYet = noticeDelivery.includes(NOT_YET);
+    const hasNotYet = next.includes(NOT_YET);
+    if (hasNotYet && !hadNotYet) {
+      // Just selected the negative — it replaces every other selection.
+      setNoticeDelivery([NOT_YET]);
+      return;
+    }
+    if (hasNotYet && hadNotYet && next.length > 1) {
+      // Selected a real delivery channel while the negative was active —
+      // the real channel wins; drop the negative.
+      setNoticeDelivery(next.filter((v) => v !== NOT_YET));
+      return;
+    }
+    setNoticeDelivery(next);
+  };
+
   const handlePurchase = () => {
     if (!user) { setAuthGateOpen(true); return; }
     if (!pricing.stripeConfigured) {
@@ -1297,7 +1320,7 @@ export default function ADMTChecker() {
                       <Pills
                         options={NOTICE_DELIVERY_OPTIONS}
                         value={noticeDelivery}
-                        onChange={setNoticeDelivery}
+                        onChange={handleNoticeDeliveryChange}
                         data-rail-key="notice_timing" onFocus={() => focus("notice_timing")}
                       />
                     </div>

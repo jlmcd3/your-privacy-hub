@@ -23,6 +23,7 @@
 // literal span, and `verifySkeletonConformance` re-checks every literal
 // against the assembled document before it is persisted.
 
+import { pastDatedCommitments, pastDatesProse } from "../../_shared/prose/temporal.ts";
 import {
   ART30_SUBITEMS,
   ROPA_ACTIVITY_SENTENCE_TEMPLATE,
@@ -114,8 +115,6 @@ const EMPLOYEE_BAND_LABELS: Record<string, string> = {
 };
 
 const UNRECORDED_ENTITY_TYPE = "legal entity whose form it has not recorded";
-const UNRECORDED_JURISDICTION = "a jurisdiction it has not recorded";
-const UNRECORDED_ADDRESS = "an address it has not recorded";
 const UNRECORDED_BAND = "a size it has not recorded";
 // DOC 141 (2026-09-02) — UNRECORDED_ANSWER ("a matter it has not recorded")
 // retired: its only consumer was the access-controls slot, whose fixed
@@ -181,6 +180,8 @@ export interface RopaActivityInput {
 }
 
 export interface RopaAssembleInput {
+  /** DOC 259A §3.11 — the record's own date (ISO), for past-dated commitments; "" when unknown. */
+  readonly documentDate?: string;
   readonly organisationName: string;
   readonly legalEntityType: string;
   readonly incorporationJurisdiction: string;
@@ -274,6 +275,15 @@ function orUnrecorded(v: unknown, fallback: string): string {
   return recorded(v) ? s(v) : fallback;
 }
 
+// DOC 259A §3.11 (doc 259 item 9a; ChatGPT v3 ROPA3-03) — a notice answer
+// that schedules an update for a date already past on the record's date is
+// stated as past, never carried forward as a plan.
+function pastNoticeClause(text: string, documentDate: string | undefined): string {
+  const past = pastDatedCommitments(text, documentDate || undefined);
+  if (!past.length) return "";
+  return ` (the update recorded as scheduled for ${pastDatesProse(past)} is past at the date of this register; confirm whether it was made)`;
+}
+
 // ── Slot values (SO-10 slot map) ────────────────────────────────────────────
 
 export function buildSlotValues(input: RopaAssembleInput): SlotValues {
@@ -325,9 +335,21 @@ export function buildSlotValues(input: RopaAssembleInput): SlotValues {
     legal_entity_type: recorded(input.legalEntityType)
       ? (LEGAL_ENTITY_LABELS[s(input.legalEntityType)] ?? s(input.legalEntityType).replace(/_/g, " "))
       : UNRECORDED_ENTITY_TYPE,
-    incorporation_jurisdiction: orUnrecorded(input.incorporationJurisdiction, UNRECORDED_JURISDICTION),
+    // DOC 259A §3.8 (doc 259 item 9b; ChatGPT v3 ROPA3-04) — an unrecorded
+    // jurisdiction or address drops its clause; one plain sentence names what
+    // is not recorded (the old fallback read "incorporated in a jurisdiction it
+    // has not recorded, with its registered address at an address it has not
+    // recorded").
+    INCORPORATION_CLAUSE: recorded(input.incorporationJurisdiction) ? ` incorporated in ${s(input.incorporationJurisdiction)}` : "",
     REG_CLAUSE: regClause,
-    registered_address: orUnrecorded(input.registeredAddress, UNRECORDED_ADDRESS),
+    ADDRESS_CLAUSE: recorded(input.registeredAddress) ? `, with its registered address at ${noStop(s(input.registeredAddress))}` : "",
+    UNRECORDED_IDENTITY: (() => {
+      const missing = [
+        ...(recorded(input.incorporationJurisdiction) ? [] : ["jurisdiction of incorporation"]),
+        ...(recorded(input.registeredAddress) ? [] : ["registered address"]),
+      ];
+      return missing.length ? `The ${missing.join(" and ")} ${missing.length === 1 ? "is" : "are"} not recorded` : null;
+    })(),
     // No role recorded at all: the sentence drops rather than asserting one.
     roles: roles.length ? asProse(roles) : null,
     DPO_BLOCK: dpoBlock,
@@ -681,7 +703,7 @@ function composeCompletenessFindings(
     sentences.push("On notices, the incident log and the company's own assessments, the record reads activity by activity");
     for (const a of perActivity) {
       const bits: string[] = [];
-      if (recorded(a.noticesDisplayed)) bits.push(`notices displayed — ${noStop(s(a.noticesDisplayed))}`);
+      if (recorded(a.noticesDisplayed)) bits.push(`notices displayed — ${noStop(s(a.noticesDisplayed))}${pastNoticeClause(s(a.noticesDisplayed), input.documentDate)}`);
       if (recorded(a.incidentLog)) bits.push(`incident log — ${noStop(s(a.incidentLog))}`);
       const cited = a.relatedAssessments.filter(recorded).map((r) => noStop(s(r)));
       if (cited.length) bits.push(`related assessments — ${asProse(cited)}`);
@@ -693,7 +715,7 @@ function composeCompletenessFindings(
   const notices = input.activities.filter((a) => recorded(a.noticesDisplayed));
   if (notices.length && !activityByActivity) {
     sentences.push(
-      `On notices, the company has indicated ${asProse(notices.map((a) => `${s(a.name)}: ${noStop(s(a.noticesDisplayed))}`))}`,
+      `On notices, the company has indicated ${asProse(notices.map((a) => `${s(a.name)}: ${noStop(s(a.noticesDisplayed))}${pastNoticeClause(s(a.noticesDisplayed), input.documentDate)}`))}`,
     );
   } else if (noticesAskable.length && !notices.length) {
     // DOC 135 (Batch 4 A-Team review, 2026-09-01) — customer-facing

@@ -20,6 +20,14 @@ const EXEMPT = new Set([
   // imagery_capture is not the "No imagery" value; both perfect fixtures
   // truthfully answer No, so the spaces question is legitimately hidden.
   "imagery_capture_spaces",
+  // DOC 259A §5.1 (2026-09-11) — asked only when reasons_to_conduct contains
+  // an evaluation/scoring, automated-decision-making, or systematic-
+  // extensive-evaluation reason. dpia-perfect-eu-complete's reasons_to_conduct
+  // ("Large-scale special-category or criminal-offence data (Art. 35(3)(b))",
+  // "Sensitive or highly personal data") legitimately does not qualify, so
+  // the field is correctly absent there; dpia-perfect-uk-complete's reasons
+  // DO qualify and it answers the field (see dpia.ts), so it needs no exemption.
+  "automated_decision_nature",
 ]);
 
 function filled(v: unknown): boolean {

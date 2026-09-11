@@ -117,6 +117,10 @@ export const REGISTRATION_BROKER_EXEMPTIONS = [
 // DOC 163 R1 (2026-09-03) — the company's role for its high-risk AI system
 // (AI Act Art. 49(1) provider registration vs Art. 49(3) public deployers).
 export const REGISTRATION_AI_HIGH_RISK_ROLES = ["provider", "deployer", "both", "unsure"] as const;
+// DOC 259A §5.3 (CEO 2026-09-11) — whether the high-risk system is a
+// critical-infrastructure safety component (Annex III, point 2): those
+// systems register at national level (Art. 49(5)), not in the EU database.
+export const REGISTRATION_AI_ANNEX_III_POINT_2 = ["yes", "no", "unsure"] as const;
 
 export const registrationContract: IntakeContract = {
   tool_type: "registration_assessment",
@@ -154,6 +158,9 @@ export const registrationContract: IntakeContract = {
     // DOC 163 R1 — shown when ai_high_risk is ticked.
     { key: "ai_high_risk_role",             kind: "enum",    required: "optional",
       options: REGISTRATION_AI_HIGH_RISK_ROLES },
+    // DOC 259A §5.3 — shown when ai_high_risk is ticked.
+    { key: "ai_annex_iii_point_2",          kind: "enum",    required: "optional",
+      options: REGISTRATION_AI_ANNEX_III_POINT_2 },
     { key: "cross_border_transfers",        kind: "boolean", required: "optional" },
     { key: "acts_as_data_broker",           kind: "boolean", required: "optional" },
     { key: "sells_or_shares_personal_info", kind: "boolean", required: "optional" },

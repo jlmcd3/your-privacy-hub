@@ -56,8 +56,12 @@ export const IR_SKELETON_PROVENANCE =
  */
 // RE-PIN A-TEAM S4 (doc 119 S3.1, 2026-08-31): fleet ToA rename — the "Table of Authorities" section title became "Authorities Cited" (CEO-ratified, panel A1); ids and assembly rules unchanged. Old-hash reproduction verified before re-pin. Prior pin:
 // 0f32a3eb39e815f9b242b86e833e5820356ddab0d434e8b0f90a935ec1e7e347.
+// RE-PIN DOC 259A §3.10 (2026-09-11, ChatGPT v3 IR3-02): the sector clause of the
+// playbook-lead sentence became an inline slot so a generic sector answer drops
+// the clause instead of printing "(sector not recorded)". Old
+// 1996129c4d0b7d018f24233128296e0c7dbd6aa421da462953214a3e0e924960.
 export const IR_SKELETON_CONTENT_HASH =
-  "1996129c4d0b7d018f24233128296e0c7dbd6aa421da462953214a3e0e924960";
+  "a28e2e23c06f7c297970ffaa5a1896a73080f2a2814be06a717565844eee2eb1";
 
 export const IR_SKELETON_TITLE = "INCIDENT RESPONSE PLAYBOOK AND WORKSHEET";
 export const IR_SKELETON_SUBTITLE =
@@ -144,7 +148,7 @@ export const IR_SKELETON_SECTIONS: readonly IrSkeletonSection[] = [
     title: "Part One — The Standing Playbook",
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating whether the company's standing preparedness, on its answers, would carry it through a notifiable incident." },
-      { kind: "skeleton", text: "This playbook is {organizationName}'s own: it is assembled from the team, contacts, deadlines and processor relationships the company has recorded, for an organisation in its sector ({sector - reader label})." },
+      { kind: "skeleton", text: "This playbook is {organizationName}'s own: it is assembled from the team, contacts, deadlines and processor relationships the company has recorded{SECTOR_CLAUSE - \", for an organisation in its sector (\" + sector reader label + \")\"; generic or absent => omitted}." },
       { kind: "rule", text: "[BYTE-PINNED] Template material drawn from NIST SP 800-61r3, the CISA playbooks and the ICO toolkit is drafting scaffolding and not legal authority." },
       { kind: "generated", text: "[GENERATED] The programme posture in counsel's voice from the company's answers - plan, team, testing, register, insurance - determination-led; sections the company has not recorded take the single ledger sentence with each section stating what would fill it." },
       // BATCH 18b (doc 113 S2.4) — the preparedness-gaps register, built from

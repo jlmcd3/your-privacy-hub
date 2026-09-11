@@ -2092,9 +2092,13 @@ export interface DpiaV3SkeletonAppend {
 
 function appendV3Sentences(composed: string | null | undefined, sentences: readonly string[] | undefined): string | null | undefined {
   if (!sentences || sentences.length === 0) return composed;
-  const base = typeof composed === "string" ? composed : "";
+  const base = typeof composed === "string" ? composed.trimEnd() : "";
   const joined = sentences.join(" ");
-  return base.length > 0 ? `${base} ${joined}` : joined;
+  if (base.length === 0) return joined;
+  // DOC 259A §3.7 (ChatGPT v3 DPIA3-04) — the block often ends in a bullet
+  // line without a stop; the hook sentence opens its own paragraph.
+  const closed = /[.!?"”)]$/.test(base) ? base : `${base}.`;
+  return `${closed}\n\n${joined}`;
 }
 
 /**

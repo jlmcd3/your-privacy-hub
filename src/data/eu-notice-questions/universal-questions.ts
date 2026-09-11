@@ -221,8 +221,22 @@ export const UNIVERSAL_EU_NOTICE_QUESTIONS: Question[] = [
     key: "automated_decisions",
     text: "Do you make automated decisions with legal or significant effects on individuals?",
     whyWeAsk: "Art.22 requires disclosure of automated decision-making with legal/similar effects.",
-    type: "yes_no_unsure",
+    type: "single_choice",
     isRequired: true,
+    options: [
+      {
+        value: "yes",
+        label:
+          "Yes — we make decisions solely by automated means that produce legal or similarly significant effects for individuals",
+      },
+      {
+        value: "human_review",
+        label:
+          "Automated processing informs certain decisions, but a person with authority to change the outcome reviews each decision before it takes effect",
+      },
+      { value: "no", label: "No" },
+      { value: "unsure", label: "Not sure" },
+    ],
     flagIf: [
       {
         operator: "equals",
@@ -242,7 +256,11 @@ export const UNIVERSAL_EU_NOTICE_QUESTIONS: Question[] = [
       "Art.13(2)(f) requires meaningful information about the logic involved and the significance and envisaged consequences of automated decision-making; Art.22(3) requires the right to human intervention. [GDPR Art.13(2)(f), Art.22]",
     type: "text_long",
     isRequired: false,
-    showIf: { questionKey: "automated_decisions", operator: "equals", value: "yes" },
+    // DOC 259A §5.1 — shown for BOTH "yes" (solely automated, Art.22 scope)
+    // and "human_review" (automated processing informs a human-reviewed
+    // decision) since Art.13(2)(f) meaningful-information disclosure is
+    // useful context in either case.
+    showIf: { questionKey: "automated_decisions", operator: "in", value: ["yes", "human_review"] },
   },
   {
     key: "collection_source",

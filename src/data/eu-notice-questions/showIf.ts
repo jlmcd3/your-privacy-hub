@@ -20,6 +20,12 @@ export function evaluateShowIf(q: Question, answers: Record<string, EuAnswerValu
       if (Array.isArray(v)) return targets.some((t) => v.includes(t));
       return false;
     }
+    // DOC 259A §5.1 — scalar answer is one of the acceptable values.
+    case "in": {
+      const targets = Array.isArray(q.showIf.value) ? q.showIf.value : [q.showIf.value];
+      if (typeof v !== "string") return false;
+      return targets.includes(v);
+    }
     default:
       return true;
   }

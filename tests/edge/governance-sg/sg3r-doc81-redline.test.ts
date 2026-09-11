@@ -71,7 +71,7 @@ Deno.test("G-2 — a genuinely clean record still gets the all-clear sentence an
   // Section 5, after the Sections 2–4 domain walk — "above", not "below".
   assertStringIncludes(exec, "Across the ten operational domains assessed in the sections above");
   assert(!exec.includes("in the sections below"), "positional wording must point back at Sections 2–4");
-  assertStringIncludes(exec, "leaves 9 of the ten fully evidenced");
+  assertStringIncludes(exec, "leaves nine of the ten fully evidenced");
   // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31,
   // Governance P0-1) — scoped to what the composer actually knows.
   assertStringIncludes(exec, "No operational domain in this walk is itself rated as requiring immediate remediation on the information provided");
@@ -102,7 +102,8 @@ Deno.test("G-5 — a Low-severity general-coverage training finding names its ow
 Deno.test("G-6 — citation ordering and lowercase continuation nits", () => {
   const withSpecial = buildDomainFindingsTyped({ ...STRONG, special_category: "Yes", technical_controls: "Partial — some tools or categories" });
   // DOC 256 (2026-09-11): Art. 5(1)(f) replaces Art. 25(1) for enforced submission controls.
-  assertEquals(withSpecial["data_submission"].regulatory_basis, "GDPR Arts. 9, 5(1)(f), 32(1)");
+  // DOC 259A §3.5: Art. 9 governs the processing, not the submission control — dropped from the basis.
+  assertEquals(withSpecial["data_submission"].regulatory_basis, "GDPR Arts. 5(1)(f), 32(1)");
   const noJuris = buildDomainFindingsTyped({ ...STRONG, jurisdictions: [] });
   assertEquals(noJuris["regulatory_exposure"].regulatory_basis, "the recorded jurisdictions' own frameworks");
 });

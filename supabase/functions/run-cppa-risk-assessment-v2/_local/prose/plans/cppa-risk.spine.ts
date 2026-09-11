@@ -115,8 +115,16 @@ export const RISK_SKELETON_CONTENT_HASH_V54 =
 // information supplied by the Company to refine the conclusions reached
 // through the steps above."). Computed by running the digest, never
 // hand-derived; old-hash reproduction verified before re-pin (V54 above).
-export const RISK_SKELETON_CONTENT_HASH =
+export const RISK_SKELETON_CONTENT_HASH_V55 =
   "0d27c1ed6be35376fd450bd1f3db52707b4fdc92cf6fa0fd193896fd426daab3";
+// DOC 259A §3.3 (2026-09-11, ChatGPT v3 RISK3-03; ratification ledger doc
+// 259B): the Review and Approval lead no longer asserts that the individuals
+// below "reviewed this assessment as of the date indicated" above a blank
+// signature table — it reads "record their review of this assessment by
+// signature and date". Computed by running the digest, never hand-derived;
+// old-hash reproduction verified before re-pin (V55 above).
+export const RISK_SKELETON_CONTENT_HASH =
+  "e58e86297b8f2d2342bdfdcbb52e3e7b9b3b6de5ea62f829bb672125084abe09";
 
 // A-TEAM S3 RULING I.24 (doc 115, 2026-08-31) — cover titles follow the fleet
 // Title Case convention (Batch 21a); ADMT's cover set the precedent. Cover
@@ -697,7 +705,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     title: "Review and Approval",
     blocks: [
       // 0
-      { kind: "skeleton", text: "This risk assessment was prepared from the information the Company supplied and is retained in accordance with 11 CCR § 7155(c). The individuals below reviewed this assessment as of the date indicated." },
+      { kind: "skeleton", text: "This risk assessment was prepared from the information the Company supplied and is retained in accordance with 11 CCR § 7155(c). The individuals below record their review of this assessment by signature and date." },
       // 1
       { kind: "table", text: "review_approval_signatures" },
     ],

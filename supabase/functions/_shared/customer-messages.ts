@@ -525,6 +525,8 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   filing_rights_instructions_documented: "whether the rights instructions are written down",
   // DOC 163 (2026-09-03) — the AI role and the three Texas readiness elements.
   ai_high_risk_role: "the role the company holds for its high-risk AI system",
+  // DOC 259A §5.3 (2026-09-11) — the Annex III, point 2 critical-infrastructure question.
+  ai_annex_iii_point_2: "whether the high-risk AI system is a critical-infrastructure safety component",
   filing_tx_categories_documented: "whether the description of the data categories processed and transferred is written down",
   filing_tx_credentialing_statement_documented: "whether the purchaser-credentialing statement is written down",
   filing_tx_breach_count_documented: "whether the count of security breaches in the preceding year is compiled",

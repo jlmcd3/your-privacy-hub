@@ -16,7 +16,7 @@ exports[`INTAKE-2 — persisted contract identity > EU/Global builder keys, type
   "transfer_outside_eea|yes_no|",
   "transfer_safeguards|multi_choice|adequacy,sccs,bcrs,uk_addendum,derogations,other",
   "retention_period|text_short|",
-  "automated_decisions|yes_no_unsure|",
+  "automated_decisions|single_choice|yes,human_review,no,unsure",
   "automated_decisions_detail|text_long|",
   "collection_source|single_choice|direct,indirect,mixed",
   "data_source_categories|multi_choice|data_brokers,public_sources,partners,public_authorities,social_web,other",

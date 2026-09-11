@@ -141,7 +141,7 @@ function detectDataSectorFlags(dataCategories: string[], services = ""): {
 // so the caller does not need bespoke retry plumbing. Every hit is also
 // echoed to logPostGenLint so the retry / fall-back is discoverable in
 // function_runs (parity with the risk/dpia MC-G1 pattern).
-type SpecViolation = { code: string; severity: "hard"; detail: string };
+type SpecViolation = { code: string; severity: "hard"; detail: string; match?: string };
 
 // Word-boundary regex helpers — narrow scope to prose. `\b` around the
 // phrases keeps enum literals and machine tokens out of scope; casing is
@@ -158,19 +158,19 @@ function detectSpeculativeClauseViolations(
   const out: SpecViolation[] = [];
   if (!flags.hasChildrensData) {
     const m = text.match(RE_CHILDRENS_SIGNAL);
-    if (m) out.push({ code: "speculative_childrens_module", severity: "hard", detail: `children/COPPA/FERPA content without hasChildrensData flag (match: "${m[0]}")` });
+    if (m) out.push({ code: "speculative_childrens_module", severity: "hard", detail: `children/COPPA/FERPA content without hasChildrensData flag (match: "${m[0]}")`, match: m[0] });
   }
   if (!flags.isAI) {
     const m = text.match(RE_AI_TRAINING_SIGNAL);
-    if (m) out.push({ code: "speculative_ai_training_scenario", severity: "hard", detail: `ML-training scenario without AI sector flag (match: "${m[0]}")` });
+    if (m) out.push({ code: "speculative_ai_training_scenario", severity: "hard", detail: `ML-training scenario without AI sector flag (match: "${m[0]}")`, match: m[0] });
   }
   if (!flags.hasHealthData) {
     const m = text.match(RE_HIPAA_SIGNAL);
-    if (m) out.push({ code: "speculative_health_module", severity: "hard", detail: `HIPAA/BAA/PHI content without hasHealthData flag (match: "${m[0]}")` });
+    if (m) out.push({ code: "speculative_health_module", severity: "hard", detail: `HIPAA/BAA/PHI content without hasHealthData flag (match: "${m[0]}")`, match: m[0] });
   }
   if (!flags.hasFinancialData) {
     const m = text.match(RE_GLBA_FCRA_SIGNAL);
-    if (m) out.push({ code: "speculative_financial_module", severity: "hard", detail: `GLBA/FCRA content without hasFinancialData flag (match: "${m[0]}")` });
+    if (m) out.push({ code: "speculative_financial_module", severity: "hard", detail: `GLBA/FCRA content without hasFinancialData flag (match: "${m[0]}")`, match: m[0] });
   }
   return out;
 }
@@ -524,7 +524,15 @@ Deno.serve(async (req) => {
 
     // Sector-specific data category flags (used for US-mode module injection)
     const sectorFlags = detectDataSectorFlags(body.dataCategories || [], body.services || "");
-    const isAISector = /model training|machine learning|ai training|inference platform|llm/i.test(body.services || "");
+    // DOC 259A §3.13 (batch 7134671b, Synthara): the flag read `services` alone,
+    // so a retention answer naming "Model training datasets" tripped the
+    // speculative-AI lint on the deterministic path. The flag now reads every
+    // free-text intake field, and an intake-origin match is never speculative.
+    const dpaIntakeText = [
+      body.services, body.retention, body.subProcessorList, body.securityMeasuresDetails, body.transferMechanism, body.auditRights,
+      ...(Array.isArray(body.dataCategories) ? body.dataCategories : []),
+    ].map((v) => (typeof v === "string" ? v : "")).join("\n");
+    const isAISector = /model training|machine learning|ai training|inference platform|llm/i.test(dpaIntakeText);
 
 
     // Step 1 — fetch enforcement context
@@ -1625,7 +1633,10 @@ ${ADVISORY_VOICE_RULES}`;
       // framework where hasSubProcessors===false).
       const subprocContradictions = detectSubProcessorContradiction(parsed.dpa_text, !!body.hasSubProcessors || body.subProcessorInventoryCollected === false);
       const s150 = detectSection150BreachMisapplication(parsed.dpa_text);
-      const extras = [...spec, ...baseline, ...blacklist, ...engagedStateViolations, ...subprocContradictions, ...s150];
+      const specKept = dpaDeterministicPath
+        ? spec.filter((v) => !(v.match && dpaIntakeText.toLowerCase().includes(v.match.toLowerCase())))
+        : spec;
+      const extras = [...specKept, ...baseline, ...blacklist, ...engagedStateViolations, ...subprocContradictions, ...s150];
       if (extras.length) {
         lint.violations.push(...extras);
         try {

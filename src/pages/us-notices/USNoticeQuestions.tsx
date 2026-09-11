@@ -53,6 +53,11 @@ function evaluateShowIf(
         return v.includes(target as string);
       }
       return false;
+    // DOC 259A §5.1 — "in" (scalar answer is one of value[]) is an EU-notice
+    // pattern not yet used by any US notice question; default to visible so
+    // an unrecognised operator degrades open, matching eu-notice-questions/showIf.ts.
+    default:
+      return true;
   }
 }
 

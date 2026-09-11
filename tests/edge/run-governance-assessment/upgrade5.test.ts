@@ -102,10 +102,12 @@ Deno.test("remediation attaches to every adverse finding and to no satisfied fin
       assertEquals(f.remediation, undefined, `${f.key}: non-adverse finding must not carry remediation`);
     }
   }
-  assertEquals(
-    built.remediation_plan.length,
-    built.domain_element_findings.filter((f) => isAdverse(f.verdict)).length,
-  );
+  // DOC 259A §3.5 — the accountability determination's roll-up row is dropped
+  // from the register whenever the duty rows it points at are present.
+  const adverse = built.domain_element_findings.filter((f) => isAdverse(f.verdict));
+  const rollup = adverse.some((f) => f.key === "accountability_determination") && adverse.length > 1 ? 1 : 0;
+  assertEquals(built.remediation_plan.length, adverse.length - rollup);
+  assert(!built.remediation_plan.some((r) => r.finding_key === "accountability_determination") || adverse.length === 1);
 });
 
 Deno.test("remediation never invents an owner, date or priority", () => {

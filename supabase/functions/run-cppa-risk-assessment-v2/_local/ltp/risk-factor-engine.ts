@@ -1857,13 +1857,18 @@ export function runRiskFactorEngine(
   if (knowNoFormal) weakControls.push("the right-to-know process");
   if (s(intake.q7_right_delete) === "No formal process") weakControls.push("the deletion process");
   if (s(intake.q8_right_correct) === "No formal process") weakControls.push("the correction process");
-  if (isNo(intake.q9_opt_out) || optOutPending) weakControls.push("the opt-out mechanism");
+  // DOC 259A §3.3 (ChatGPT v3 RISK3-02) — a control whose completion is already
+  // a Condition to Proceed (a planned safeguard row naming it) is not repeated
+  // as a "strengthen" Recommendation.
+  const plannedNames = planned.map((g) => s(g.safeguard));
+  const plannedCovers = (re: RegExp): boolean => plannedNames.some((n) => re.test(n));
+  if ((isNo(intake.q9_opt_out) || optOutPending) && !plannedCovers(/\b(do not sell|sell|share|sale)\b[^.]*\bopt[- ]?out|opt[- ]?out[^.]*\b(sell|share|sale)\b/i)) weakControls.push("the opt-out mechanism");
   if (s(intake.q10_id_verification) === "No verification process") weakControls.push("identity verification");
   if (
     isYes(intake.q15_sensitive_pi) &&
     (s(intake.q16_sensitive_limit) === "No" || s(intake.q16_sensitive_limit) === "Not yet implemented")
   ) weakControls.push("the sensitive-information limit");
-  if (isAdmt && (isNo(intake.q20_admt_opt_out) || admtOptOutPending)) weakControls.push("the ADMT opt-out");
+  if (isAdmt && (isNo(intake.q20_admt_opt_out) || admtOptOutPending) && !plannedCovers(/\b(ADMT|automated)\b[^.]*\bopt[- ]?out|opt[- ]?out[^.]*\b(ADMT|automated)\b/i)) weakControls.push("the ADMT opt-out");
 
   const recommendations: string[] = [];
   // DOC 127 PART I — untested safeguards already escalated to a Condition
@@ -1943,6 +1948,23 @@ export function runRiskFactorEngine(
   // DOC 152 promise-parity hoist; see the b6TrainedDecisionUnidentified
   // block.)
 
+  // DOC 259A §3.3 (doc 259 item 10a) — a recipient row that names a category
+  // absent from the collected inventory is a record inconsistency the Company
+  // resolves; the count in § 2.D stays on the collected categories (q5 governs
+  // sharing scope, not the inventory).
+  {
+    const collected = new Set(arr(intake.q4_pi_categories));
+    if (collected.size > 0) {
+      for (const r of rows(intake.recipients)) {
+        const name = s(r.recipient_name_or_category);
+        const outside = arr(r.pi_categories_made_available).filter((c) => !collected.has(c));
+        if (!name || !outside.length) continue;
+        followUps.push(
+          `Reconcile the recipients table with the categories recorded as collected: ${asProse(outside.map((c) => `“${c}”`))} ${outside.length === 1 ? "is" : "are"} recorded as made available to “${name}” but ${outside.length === 1 ? "is" : "are"} not among the categories the Company records collecting`,
+        );
+      }
+    }
+  }
   const weakRecipients = rows(intake.recipients).filter((r) =>
     s(r.recipient_name_or_category) &&
     (s(r.contractual_protections) === "No written contract" || s(r.contractual_protections) === "Unsure")
@@ -2034,6 +2056,9 @@ export function runRiskFactorEngine(
       ? "Material benefits and a low remaining-risk profile support the favorable disposition; the necessity issue identified in § 3.B remains a condition to proceeding."
       : cell.explanation
   ).replace(/remaining risk or risks/g, atMaxResidual === 1 ? "remaining risk" : "remaining risks");
+  // DOC 259A §3.3 (ChatGPT v3 RISK3-03) — the same token sits in the cell's
+  // materiality sentence; the DOC 257 replace reached the explanation only.
+  const cellMateriality = cell.materiality.replace(/remaining risk or risks/g, atMaxResidual === 1 ? "remaining risk" : "remaining risks");
   const hasConditions = conditions.length > 0;
   const { outcome, consequence } = resolveRecommendedOutcome(
     cell.kind,
@@ -4416,7 +4441,7 @@ export function runRiskFactorEngine(
       : unassessedOnly && hasBalanceRecord
       ? `The information provided establishes a benefit under § 3.F and identifies one or more risks under § 4.A without the recorded likelihood or severity the balance requires, so the balance this report performs cannot yet be determined. ${outcome} In this report's executive result, that determination is stated as "${DISPOSITION_LABEL[consequence]}."`
       : hasBalanceRecord
-      ? `${cell.conclusion} ${cell.materiality} ${cellEffect} ${cellExplanation}${band4 ? ` ${RISK52_FIXED.band4_provisional}` : ""} ${outcome} In this report's executive result, that determination is stated as "${DISPOSITION_LABEL[consequence]}."`
+      ? `${cell.conclusion} ${cellMateriality} ${cellEffect} ${cellExplanation}${band4 ? ` ${RISK52_FIXED.band4_provisional}` : ""} ${outcome} In this report's executive result, that determination is stated as "${DISPOSITION_LABEL[consequence]}."`
       : `The information provided establishes no benefit under § 3.F and ${
         unassessed.length
           ? "identifies no risk under § 4.A with a recorded likelihood and severity"

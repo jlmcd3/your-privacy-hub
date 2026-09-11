@@ -142,8 +142,9 @@ const VELORIX_GOV: Bag = {
 
 Deno.test("bcf0a706 governance — the executive tally accounts for all ten domains (ledger F7)", () => {
   const exec = composeExecutiveSummaryTyped(buildDomainFindingsTyped(VELORIX_GOV as never));
-  assertStringIncludes(exec, "leaves 7 of the ten fully evidenced.");
-  assertStringIncludes(exec, "2 domains carry recorded gaps below the immediate-priority threshold");
+  // DOC 259A §3.5 — counts in this paragraph are words.
+  assertStringIncludes(exec, "leaves seven of the ten fully evidenced.");
+  assertStringIncludes(exec, "Two domains carry recorded gaps below the immediate-priority threshold");
   assertStringIncludes(exec, "One domain — Regulatory Exposure Summary — is evidenced; it carries a point to watch but no recorded gap.");
 });
 

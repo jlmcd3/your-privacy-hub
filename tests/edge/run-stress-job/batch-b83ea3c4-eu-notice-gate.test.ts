@@ -66,5 +66,6 @@ Deno.test("batch b83ea3c4 — the contract's closed lists are the form's own opt
     assertEquals(byKey.get(key)?.type, "yes_no");
     assertEquals([...(euNoticeContract.fields.find((f) => f.key === key)!.options ?? [])], ["yes", "no"]);
   }
-  assertEquals(byKey.get("automated_decisions")?.type, "yes_no_unsure");
+  // DOC 259A §5.1 — the Art. 22 question is a four-value single choice.
+  assertEquals(byKey.get("automated_decisions")?.type, "single_choice");
 });

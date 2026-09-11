@@ -41,6 +41,7 @@ import type {
 } from "./types.ts";
 import type { ComponentRecommendation, CyberNextStep } from "./cyber-recommendations.ts";
 import { recommendationFact, recommendationGap } from "./cyber-recommendations.ts";
+import { pastDatedCommitments, pastDatesProse } from "../../../../_shared/prose/temporal.ts";
 import { CYBER_7123_COMPONENTS } from "./components.ts";
 import { resolveCyberApplicability } from "../cyber-applicability.ts";
 // DOC 159 (2026-09-03) — the one resolver for the framework and prior-audit
@@ -420,6 +421,13 @@ export function buildProgramReadiness(intake: Bag, d: CyberDeliverables): { anal
     ? "At the program level, no material implementation weakness is identified on the information supplied, but the readiness conclusion in Section 7 is not ready on the blocking items it names, so the program cannot yet be described as prepared for the independent audit."
     : gaps === 0 && rs.unassessed_count === 0 && untestable === 0
     ? "At the program level, no material implementation weakness is identified on the information supplied, but the readiness conclusion in Section 2 remains open — the § 7122 auditor-engagement record above all — so the program cannot yet be described as prepared for the independent audit."
+    // DOC 259A §3.1 (batch 7134671b, ChatGPT v3 CYB3-01) — the DOC 254 fix
+    // reached only the untestable === 0 branches: with a component still
+    // lacking a testable artifact this sentence said "cannot yet be described
+    // as prepared" under a "Ready subject to the named remediation" cover.
+    // The program-level sentence follows the Section 7 conclusion here too.
+    : gaps === 0 && untestable > 0 && (overallReadiness === "ready_subject_to_named_remediation" || overallReadiness === "ready")
+    ? "At the program level, no material implementation weakness is identified. Evidence readiness is incomplete: not every component currently has a testable operating artifact identified. The readiness conclusion in Section 7 stands subject to the named remediation items, which include retaining those artifacts; once they are closed the program can be described as prepared for the independent audit."
     : gaps === 0 && untestable > 0
     ? "At the program level, no material implementation weakness is identified. Evidence readiness is incomplete: not every component currently has a testable operating artifact identified. The program therefore cannot yet be described as prepared for the independent audit."
     : gaps === 0
@@ -791,12 +799,18 @@ function actionSentence(r: ComponentRecommendation, intake: Bag): string {
   // inferred assignment.
   const factText = noStop(recommendationFact(rec.notes, rec.maturity));
   const text = r.slot.template.replace("{fact}", factText);
+  // DOC 259A §3.11 (ChatGPT v3 CYB3-03) — a recorded position that names a
+  // date already past on the report date is overdue work, not a plan.
+  const overdue = pastDatedCommitments(factText, new Date());
+  const overdueSentence = overdue.length
+    ? ` The recorded position names ${pastDatesProse(overdue)}, which is past on this report's date; record the outcome of that work and, where it did not complete, a current approved date.`
+    : "";
   // Batch 4ed05f22 — see the per-component action above: never the same
   // sentence twice.
   const gapRaw = recommendationGap(rec.notes);
   const gapSentence = gapRaw && !sameSentence(gapRaw, factText) ? gapRaw : "";
   const owner = profileStr(intake, "remediation_owner");
-  return `Rank ${r.rank} — ${r.label} - ${text}${gapSentence ? ` Remaining work, as recorded: ${gapSentence}.` : ""}${owner ? ` Recorded remediation owner: ${noStop(owner)}.` : ""} (EUP readiness recommendation; priority: ${r.priority}.)`;
+  return `Rank ${r.rank} — ${r.label} - ${text}${overdueSentence}${gapSentence ? ` Remaining work, as recorded: ${gapSentence}.` : ""}${owner ? ` Recorded remediation owner: ${noStop(owner)}.` : ""} (EUP readiness recommendation; priority: ${r.priority}.)`;
 }
 
 /** Two note fragments are the same sentence when they match after trimming

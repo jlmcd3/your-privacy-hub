@@ -27,6 +27,8 @@ type Bag = Record<string, unknown>;
  */
 export function transferDisplayForActivity(ans: Bag): string {
   const t = resolveTransfer(ans);
+  // DOC 259A §3.8 — an in-region place of processing is stated with the no-transfer.
+  if (t.declaredNone && t.withinRegion) return `None — the data are held at ${t.withinRegion}; the Company records no transfer to a third country or international organisation`;
   if (t.declaredNone) return "None — the Company records no transfer to a third country or international organisation";
   if (!t.destination && !t.mechanism) return "None recorded";
   if (!t.destination) return `Destination not recorded (mechanism stated: ${t.mechanism})`;

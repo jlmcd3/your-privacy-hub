@@ -1865,11 +1865,18 @@ export function buildRemediationPlan(findings: DomainElementFinding[]): Remediat
   // the verdict class is a mechanical ordering the findings already carry.
   const rank = (v: string): number =>
     v === "not_satisfied" ? 0 : v === "partially_satisfied" ? 1 : 2;
-  return findings
+  const records = findings
     .filter((f): f is DomainElementFinding & { remediation: RemediationRecord } => Boolean(f.remediation))
     .map((f, i) => ({ f, i }))
     .sort((a, b) => rank(String(a.f.verdict)) - rank(String(b.f.verdict)) || a.i - b.i)
     .map(({ f }) => f.remediation);
+  // DOC 259A §3.5 (ChatGPT v3 GOV3-03) — the accountability determination's
+  // own register row only pointed at the duty rows it rolls up ("each of
+  // which carries its own item in this register"), so the register listed
+  // the same gap twice. The roll-up row is dropped whenever the rows it
+  // points at are present; it stays only when it would be the sole item.
+  const others = records.filter((r) => r.finding_key !== "accountability_determination");
+  return others.length ? others : records;
 }
 
 

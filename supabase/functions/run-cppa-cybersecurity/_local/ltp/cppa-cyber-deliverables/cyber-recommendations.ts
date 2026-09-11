@@ -33,6 +33,7 @@
  */
 
 import type { CyberComponentCoverage, EvidenceSufficiency } from "./types.ts";
+import { pastDatedCommitments } from "../../../../_shared/prose/temporal.ts";
 import type { CyberS4CommentaryEntry } from "../cyber-corpus-attach.ts";
 
 // ── The gap-class taxonomy ──────────────────────────────────────────────
@@ -373,7 +374,10 @@ export function buildCyberComponentRecommendations(
         label: c.label,
         component_number: c.component_number,
         key,
-        priority: priorityForGapClass(gapClass),
+        // DOC 259A §3.11 (ChatGPT v3 CYB3-03) — a recorded position naming a
+        // date already past on the report date is overdue work; it takes the
+        // Immediate tier, never a relative deadline measured from today.
+        priority: pastDatedCommitments(s(c.record_fact), new Date()).length > 0 ? "Immediate" : priorityForGapClass(gapClass),
         slot: lookupRecommendation(key),
         corpus_commentary: corpusBySlug.get(c.slug)?.commentary ?? [],
       };

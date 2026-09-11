@@ -72,6 +72,15 @@ export const DPIA_REASONS = [
   "Existing processing — the risk has changed",
 ] as const;
 
+// DOC 259A §5.1 (CEO 2026-09-11) — shown when an evaluation, scoring or
+// automated-decision reason is selected. Decides whether the Art. 22 risk
+// (r8) or the scoring-informs-human-decisions risk (r8b) is carried.
+export const DPIA_AUTOMATED_DECISION_NATURE = [
+  "Solely automated — no person with authority to change the outcome reviews the decision before it takes effect",
+  "Automated processing with meaningful human review — a person with authority to change the outcome reviews each decision before it takes effect",
+  "No decisions with legal or similarly significant effects are taken on the basis of this processing",
+] as const;
+
 // DOC 131 (DPIA batch, CEO-ratified 2026-09-01 per doc 130 B1 option (a)) —
 // the imagery-capture typed facts. Fixed-choice enums (radio buttons in the
 // UI, never free text) so the r10 risk-spec trigger and the Art. 35(3)(c)
@@ -152,6 +161,12 @@ export const dpiaFrameworkContract: IntakeContract = {
     { key: "dpia_signoff_basis", kind: "narrative", required: "optional" },
     { key: "reference_materials", kind: "narrative", required: "optional" },
     { key: "reasons_to_conduct", kind: "multi-enum", required: "optional", options: DPIA_REASONS },
+    // DOC 259A §5.1 — asked only where an evaluation / scoring / automated-decision
+    // reason is selected (skip-logic; an untriggered field is never an "asked" key
+    // for the record-complete gate).
+    { key: "automated_decision_nature", kind: "enum", required: "conditional", options: DPIA_AUTOMATED_DECISION_NATURE,
+      requiredWhen: "reasons_to_conduct includes an evaluation, scoring or automated-decision reason",
+      trigger: { key: "reasons_to_conduct[]", equals: [DPIA_REASONS[0], DPIA_REASONS[3], DPIA_REASONS[4]] } },
     { key: "dpia_scope_note", kind: "narrative", required: "optional" },
     { key: "publication_intent", kind: "text", required: "optional" },
 

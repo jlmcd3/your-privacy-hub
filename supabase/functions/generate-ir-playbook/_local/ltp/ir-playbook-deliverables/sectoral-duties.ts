@@ -84,6 +84,9 @@ export function buildSectoralDuties(
       state_label: "SEC Form 8-K (Item 1.05)",
       citation: "17 C.F.R. § 229.106; Form 8-K Item 1.05",
       individual_deadline: SEC_8K_TEXT,
+      // DOC 259A §3.10 (ChatGPT v3 IR3-01) — Item 1.05 turns on materiality,
+      // not on the state-law encryption and acquisition facts.
+      determination_predicate: "materiality determination under Item 1.05 — whether the incident is material to investors, addressing its nature, scope and timing and its material or reasonably likely material impact",
       verified: true,
     });
   }
@@ -94,6 +97,7 @@ export function buildSectoralDuties(
       state_label: "NYDFS (23 NYCRR Part 500)",
       citation: "23 NYCRR § 500.17(a), (c)",
       individual_deadline: NYDFS_TEXT,
+      determination_predicate: "determination whether the event is a cybersecurity incident at the covered entity, its affiliates or a third-party service provider within 23 NYCRR § 500.1",
       verified: true,
     });
     proxyFired = true;
@@ -105,6 +109,7 @@ export function buildSectoralDuties(
       state_label: "DORA (Regulation (EU) 2022/2554)",
       citation: "DORA Art. 19; RTS (EU) 2025/301, Art. 5",
       individual_deadline: DORA_TEXT,
+      determination_predicate: "classification of the incident as a major ICT-related incident under Article 18 of Regulation (EU) 2022/2554",
       verified: true,
     });
     proxyFired = true;

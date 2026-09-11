@@ -16,6 +16,7 @@ import { specialCategoryHook, transferMechanism, type TransferFlow } from "../..
 import { spliceVerbatim } from "../verbatim-splice.ts";
 // PROMPT 9J — shared segmenter + shared clause bound (single writer for both).
 import { splitSentencesSafe } from "../../prose/segment.ts";
+import { pastDatedCommitments, pastDatesProse } from "../../prose/temporal.ts";
 import { boundedClause, noStop, splitClauses } from "../clause-bound.ts";
 import { attachMinimalUnitSurfaces } from "./minimal-units.ts";
 // PROMPT 9A — the ratified compact-label registry. Presentation only: the full
@@ -1261,6 +1262,7 @@ function facts(intake: unknown): RiskFacts {
     transferLeavesRegime: flows.some((f) => flowLeavesOriginRegime(f, readDpiaRegime(intake))),
     retentionStated: str(get(intake, "retention_period")).length > 0,
     reasons: arr(get(intake, "reasons_to_conduct")),
+    automatedDecisionNature: str(get(intake, "automated_decision_nature")),
     // PROMPT 11.1 item 1 — R9 TRIGGER NEGATION DISCIPLINE. The r9 trigger and
     // the operations builder share ONE reader: r9 is eligible if and only if
     // `op_secondary` exists. A negation-led `secondary_uses` ("None.", "No
@@ -2194,20 +2196,32 @@ function labels(rows: readonly { readonly risk_label: string }[]): string {
 // review the company's own record commits to is the condition.
 export function applyApprovalCurrency(intake: unknown, decision: DpiaDecision, asOf: Date = new Date()): DpiaDecision {
   if (decision.determination !== "approved") return decision;
+  const conditions: string[] = [];
   const approvalDate = str(get(intake, "dpia_approval_date"));
+  const basisText = str(get(intake, "dpia_signoff_basis"));
   const m = /(\d{4})-(\d{2})-(\d{2})/.exec(approvalDate);
-  if (!m) return decision;
-  const d = new Date(`${m[1]}-${m[2]}-${m[3]}T00:00:00Z`);
-  if (Number.isNaN(d.getTime())) return decision;
-  const months = (asOf.getUTCFullYear() - d.getUTCFullYear()) * 12 + (asOf.getUTCMonth() - d.getUTCMonth()) - (asOf.getUTCDate() < d.getUTCDate() ? 1 : 0);
-  if (months < 12) return decision;
-  const annual = /\bannual(?:ly)?\b|every (?:12|twelve) months|\byearly\b/i.test(str(get(intake, "dpia_signoff_basis")));
-  const condition = `completing and recording the current review of this assessment — the approval recorded on ${approvalDate.slice(0, 10)} is more than twelve months old at the date of this report${annual ? ", and the sign-off basis itself calls for an annual re-review" : ""}`;
+  if (m) {
+    const d = new Date(`${m[1]}-${m[2]}-${m[3]}T00:00:00Z`);
+    if (!Number.isNaN(d.getTime())) {
+      const months = (asOf.getUTCFullYear() - d.getUTCFullYear()) * 12 + (asOf.getUTCMonth() - d.getUTCMonth()) - (asOf.getUTCDate() < d.getUTCDate() ? 1 : 0);
+      if (months >= 12) {
+        const annual = /\bannual(?:ly)?\b|every (?:12|twelve) months|\byearly\b/i.test(basisText);
+        conditions.push(`completing and recording the current review of this assessment — the approval recorded on ${approvalDate.slice(0, 10)} is more than twelve months old at the date of this report${annual ? ", and the sign-off basis itself calls for an annual re-review" : ""}`);
+      }
+    }
+  }
+  // DOC 259A §3.11 (ChatGPT v3 DPIA3-01) — dated commitments in the sign-off
+  // basis that are past on the report date are conditions until recorded as met.
+  const past = pastDatedCommitments(basisText, asOf);
+  if (past.length) {
+    conditions.push(`recording whether the dated commitments in the sign-off basis — ${pastDatesProse(past)} — were met, each being past at the date of this report`);
+  }
+  if (!conditions.length) return decision;
   return {
     ...decision,
     determination: "conditionally_approved",
-    conditions: [condition],
-    why: `${decision.why} The processing may proceed as described on one condition: ${condition} (Art. 35(11)).`,
+    conditions,
+    why: `${decision.why} The processing may proceed as described on ${conditions.length === 1 ? "one condition" : `${conditions.length} conditions`}: ${conditions.join("; and ")} (Art. 35(11)).`,
   };
 }
 

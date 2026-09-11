@@ -70,6 +70,7 @@ export const DPIA_PERFECT_PINNED: GoldenCase[] = [
                 "Automated decision-making with legal or significant effect",
                 "Data processed on a large scale"
           ],
+          "automated_decision_nature": "Solely automated — no person with authority to change the outcome reviews the decision before it takes effect",
           "dpia_scope_note": "This assessment covers the underwriting decisioning system for new motor policies and mid-term amendments. Renewals pricing is assessed separately.",
           "publication_intent": "A summary of this assessment will be published on the company's website; the full assessment is available to the supervisory authority on request.",
           "secondary_uses": "Quarterly portfolio pricing calibration: underwriting decisions and their outcomes are analysed each quarter to recalibrate the pricing model. The legal basis for this secondary operation is Article 6(1)(f): the company's legitimate interest in pricing accuracy, a basis stated separately from the contractual basis of the primary operation. The impact of this secondary use on the data subjects, stated separately from its benefit to the company: policyholders would not expect their individual claims records to shape future pricing models after their own policy has ended, and they cannot avoid their records' inclusion in the calibration set while data is retained; the effect on any individual is limited because calibration operates on pseudonymised records and produces no decision about any individual policyholder.",

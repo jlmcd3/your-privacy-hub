@@ -478,6 +478,12 @@ export const DPIA_PERFECT: GoldenCase[] = [
         "Evaluation or scoring (incl. profiling / prediction)",
         "Data processed on a large scale",
       ],
+      // DOC 259A §5.1 — every individual flag is reviewed by a named
+      // occupational-health adviser before any outreach (see dpo_advice /
+      // data_quality_measures below), so a person with authority reviews
+      // the decision before it takes effect: meaningful human review.
+      automated_decision_nature:
+        "Automated processing with meaningful human review — a person with authority to change the outcome reviews each decision before it takes effect",
       alternatives_considered: [
         {
           processing_operation: "",

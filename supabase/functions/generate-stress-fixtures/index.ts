@@ -67,6 +67,8 @@ import {
 } from "../_shared/intake-contracts/li-assessment.ts";
 import {
   DPIA_DATA_CATS, DPIA_SAFEGUARDS, DPIA_JURISDICTIONS, DPIA_LEGAL_BASES, DPIA_ART9, DPIA_REASONS,
+  // DOC 259A §5.1 — conditional on an evaluation/scoring/automated-decision reason.
+  DPIA_AUTOMATED_DECISION_NATURE,
 } from "../_shared/intake-contracts/dpia-framework.ts";
 
 // Broad industry classification used to pick each product's OWN real enum
@@ -322,6 +324,7 @@ Return a JSON object with EXACTLY these top-level fields:
     "processes_special_categories": boolean, "processes_children_data": boolean,
     "large_scale_monitoring": boolean, "uses_ai_systems": boolean, "ai_high_risk": boolean,
     "ai_high_risk_role": "when ai_high_risk: one of EXACTLY: provider | deployer | both | unsure",
+    "ai_annex_iii_point_2": "DOC 259A §5.3 — when ai_high_risk: one of EXACTLY: yes | no | unsure — whether the high-risk system is a safety component of critical infrastructure (Annex III, point 2 of the EU AI Act: digital infrastructure, road traffic, or the supply of water, gas, heating or electricity); 'no' unless the scenario specifically describes that kind of system",
     "ai_general_purpose_provider": boolean, "cross_border_transfers": boolean,
     "markets_served": ["array of ISO-2 / US-state codes, the UK spelled UK"], "has_eu_establishment": boolean, "has_uk_establishment": boolean,
     "eu_lead_member_state": "ISO-2 of the EU member state when has_eu_establishment, else omit",
@@ -366,6 +369,10 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
   // is — the register keys off this closed list, not the prose.
   reasons_to_conduct: (typeof DPIA_REASONS[number])[];
   automated_decisions: string;
+  // DOC 259A §5.1 — asked only when reasons_to_conduct contains an
+  // evaluation/scoring, automated-decision-making, or systematic-extensive-
+  // evaluation reason (see the regex on the DPIA form); omitted otherwise.
+  automated_decision_nature?: typeof DPIA_AUTOMATED_DECISION_NATURE[number];
 } {
   const s = industry.toLowerCase();
   if (/adtech|digital media|advertising|programmatic/i.test(s)) return {
@@ -377,6 +384,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     legal_basis_proposed: "Consent (Art. 6(1)(a))",
     reasons_to_conduct: ["Evaluation or scoring (incl. profiling / prediction)", "Matching or combining datasets", "Data processed on a large scale"],
     automated_decisions: "Automated audience scoring affects ad delivery; not Article 22 in scope absent significant effect on individuals.",
+    automated_decision_nature: "No decisions with legal or similarly significant effects are taken on the basis of this processing",
   };
   if (/healthcare|life science|clinical|medical|pharma/i.test(s)) return {
     processing_activity_name: `Health data processing for clinical services`,
@@ -398,6 +406,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     legal_basis_proposed: "Legitimate interest (Art. 6(1)(f))",
     reasons_to_conduct: ["Systematic, extensive evaluation / profiling with significant effects (Art. 35(3)(a))", "Matching or combining datasets", "Data processed on a large scale"],
     automated_decisions: "Automated profile scoring used to assign segments; no solely automated Article 22 decisions without human review.",
+    automated_decision_nature: "Automated processing with meaningful human review — a person with authority to change the outcome reviews each decision before it takes effect",
   };
   if (/edtech|children|child|schools|students|learning/i.test(s)) return {
     processing_activity_name: `Processing of children's personal data for educational services`,
@@ -408,6 +417,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     legal_basis_proposed: "Contract (Art. 6(1)(b))",
     reasons_to_conduct: ["Data concerning vulnerable subjects", "Evaluation or scoring (incl. profiling / prediction)"],
     automated_decisions: "Automated learning progress scoring; no solely automated decisions with significant legal or educational effects.",
+    automated_decision_nature: "No decisions with legal or similarly significant effects are taken on the basis of this processing",
   };
   if (/biotech|genomic|genetic|genome/i.test(s)) return {
     processing_activity_name: `Genomic and genetic data processing for biotech research`,
@@ -430,6 +440,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     article_9_condition: "Employment, social security & social protection law (Art. 9(2)(b))",
     reasons_to_conduct: ["Systematic monitoring (of employees, a defined population, or a non-public space)", "Evaluation or scoring (incl. profiling / prediction)", "Data concerning vulnerable subjects"],
     automated_decisions: "Performance scoring may inform promotion or disciplinary decisions; human review mandatory for all significant employment decisions.",
+    automated_decision_nature: "Automated processing with meaningful human review — a person with authority to change the outcome reviews each decision before it takes effect",
   };
   if (/gov|public sector|public authority|government/i.test(s)) return {
     processing_activity_name: `Public authority data processing for statutory functions`,
@@ -451,6 +462,7 @@ function getDpiaIntakeForSector(industry: string, slot: number): {
     legal_basis_proposed: "Legitimate interest (Art. 6(1)(f))",
     reasons_to_conduct: ["Evaluation or scoring (incl. profiling / prediction)", "Automated decision-making with legal or significant effect", "Innovative use of new technology", "Data processed on a large scale"],
     automated_decisions: "Model outputs may constitute Article 22 automated decisions if they produce significant individual effects; human review obligations must be assessed.",
+    automated_decision_nature: "Solely automated — no person with authority to change the outcome reviews the decision before it takes effect",
   };
   // Default: generic security monitoring (unchanged for sectors not requiring specific treatment)
   return {
@@ -488,6 +500,7 @@ Return a JSON object with EXACTLY these fields:
     "existing_safeguards": ["array"], "jurisdictions": ["array"],
     "legal_basis_proposed": "string", "controller_sector": "string",
     "reasons_to_conduct": ["array"],
+    "automated_decision_nature": "DOC 259A §5.1 — REQUIRED one of EXACTLY: 'Solely automated — no person with authority to change the outcome reviews the decision before it takes effect' | 'Automated processing with meaningful human review — a person with authority to change the outcome reviews each decision before it takes effect' | 'No decisions with legal or similarly significant effects are taken on the basis of this processing' WHEN reasons_to_conduct contains an 'Evaluation or scoring', 'Automated decision-making', or 'Systematic, extensive evaluation' reason — must be consistent with nature_scope_context's human-intervention sentence above; omit the key entirely (do not emit an empty string) when no such reason is selected",
     "imagery_capture": "one of EXACTLY: 'No imagery or video of identifiable individuals' | 'Imagery or video in which identifiable individuals are the subjects' | 'Imagery or video in which identifiable individuals appear incidentally' — DOC 131 typed fact, always answer it with the value the scenario supports",
     "imagery_capture_spaces": "when imagery_capture is not the No value, one of EXACTLY: 'Publicly accessible spaces' | 'Private or controlled premises' | 'Both'; otherwise the empty string",
     "imagery_capture_detail": "one or two scenario-specific sentences about the imagery, or why none exists",
@@ -540,8 +553,8 @@ Return a JSON object with EXACTLY these fields:
     "transfer_safeguards": ["array of tokens from EXACTLY: adequacy | sccs | bcrs | uk_addendum | derogations | other — empty array when transfer_outside_eea is 'no'"],
     "transfer_destinations": "string — countries or regions, e.g. 'United States' (empty string when transfer_outside_eea is 'no')",
     "retention_period": "string — the period or the criteria, in prose",
-    "automated_decisions": "EXACTLY 'yes', 'no' or 'unsure' — solely automated decisions with legal or similarly significant effects; never prose",
-    "automated_decisions_detail": "string — the logic, significance and consequences when automated_decisions is 'yes'; empty string otherwise",
+    "automated_decisions": "DOC 259A §5.1 — EXACTLY 'yes', 'human_review', 'no' or 'unsure': 'yes' = decisions taken solely by automated means with legal or similarly significant effects (Art. 22 in scope); 'human_review' = automated processing informs the decision but a person with authority to change the outcome reviews it before it takes effect (no Art. 22 decision); never prose",
+    "automated_decisions_detail": "string — the logic, significance and consequences when automated_decisions is 'yes' or 'human_review'; empty string otherwise",
     "collection_source": "EXACTLY 'direct', 'indirect' or 'mixed'",
     "data_source_categories": ["array of tokens from EXACTLY: data_brokers | public_sources | partners | public_authorities | social_web | other — empty array when collection_source is 'direct'"],
     "establishment_jurisdiction": "EXACTLY 'eea', 'uk' or 'outside' — where the controller is established",
@@ -558,7 +571,7 @@ Return a JSON object with EXACTLY these fields:
     "organization_name": "string", "system_name": "string", "system_type": "string",
     "system_description": "string", "decision_domains": ["array — verbatim options; select the § 7001(ddd) categories the decision PROVIDES OR DENIES; a system whose decision is outside every category selects ONLY 'None of these categories — the decision is outside every § 7001(ddd) category'; never combine that option with a category"], "human_review": "string — verbatim option; MUST be consistent with admt_detail.hi_* (a 'Yes — reviewer knows how…' answer requires hi_trained, hi_reviews_other_info, and hi_authority_override all 'Yes' and hi_stage 'Before the decision is issued')",
     "training_data_use": "Yes or No", "profiling_use": "Yes or No",
-    "notice_delivery": ["array"], "notice_has_specific_purpose": "Yes or No",
+    "notice_delivery": ["array — verbatim options; 'We have not yet provided a Pre-use Notice' is EXCLUSIVE of every other option — never combine it with any delivery channel"], "notice_has_specific_purpose": "Yes or No",
     "notice_purpose_text": "string",
     "notice_has_opt_out_desc": "verbatim option — on a full opt-out use a 'Yes …' / 'Mentions …' / 'No' answer; on the human-appeal exception 'We rely on an exception and describe appeal rights instead'; on the hiring or work-allocation exception 'We rely on an exception and the notice identifies the specific exception'", "notice_has_access_desc": "Yes or No",
     "notice_has_anti_retaliation": "Yes or No", "notice_has_how_it_works": "Yes or No",
@@ -727,7 +740,7 @@ Return a JSON object with EXACTLY these fields:
     "system_name": "string", "system_type": "string", "system_description": "string",
     "decision_domains": ["array — verbatim options; select the § 7001(ddd) categories the decision PROVIDES OR DENIES; a system whose decision is outside every category selects ONLY 'None of these categories — the decision is outside every § 7001(ddd) category'; never combine that option with a category"], "human_review": "string — verbatim option; MUST be consistent with admt_detail.hi_* (a 'Yes — reviewer knows how…' answer requires hi_trained, hi_reviews_other_info, and hi_authority_override all 'Yes' and hi_stage 'Before the decision is issued')",
     "training_data_use": "Yes or No", "profiling_use": "Yes or No",
-    "notice_delivery": ["array"], "notice_has_specific_purpose": "Yes or No",
+    "notice_delivery": ["array — verbatim options; 'We have not yet provided a Pre-use Notice' is EXCLUSIVE of every other option — never combine it with any delivery channel"], "notice_has_specific_purpose": "Yes or No",
     "notice_purpose_text": "string",
     "notice_has_opt_out_desc": "verbatim option — on a full opt-out use a 'Yes …' / 'Mentions …' / 'No' answer; on the human-appeal exception 'We rely on an exception and describe appeal rights instead'; on the hiring or work-allocation exception 'We rely on an exception and the notice identifies the specific exception'", "notice_has_access_desc": "Yes or No",
     "notice_has_anti_retaliation": "Yes or No", "notice_has_how_it_works": "Yes or No",
@@ -898,7 +911,16 @@ function getEuNoticeBasisForSector(industry: string): string[] {
 
 function getEuNoticeAutomatedDecisions(industry: string): string {
   const s = industry.toLowerCase();
-  if (/ai|machine learning|fintech|financial|hr|employment|insurance|kyc|identity|adtech|data broker/i.test(s))
+  // DOC 259A §5.1 — sectors whose matching DPIA sector narrative
+  // (getDpiaIntakeForSector's automated_decisions sentence) states a person
+  // with authority reviews the decision before it takes effect get
+  // "human_review" rather than solely-automated "yes": hr/employment
+  // ("human review mandatory for all significant employment decisions") and
+  // data broker ("no solely automated Article 22 decisions without human
+  // review").
+  if (/hr|employment/i.test(s)) return "human_review";
+  if (/data broker/i.test(s)) return "human_review";
+  if (/ai|machine learning|fintech|financial|insurance|kyc|identity|adtech/i.test(s))
     return "yes";
   return "no";
 }
@@ -1090,7 +1112,11 @@ function buildDeterministicProfile(industry: string, geo: string, slot: number, 
         large_scale_monitoring: slot === 1,
         uses_ai_systems: highRisk || bucket === "tech" || bucket === "media_adtech",
         ai_high_risk: highRisk,
-        ...(highRisk ? { ai_high_risk_role: bucket === "financial" ? "provider" : "deployer" } : {}),
+        // DOC 259A §5.3 — none of hr/healthcare/financial's high-risk systems
+        // here are a critical-infrastructure safety component (Annex III
+        // point 2: digital infrastructure, road traffic, water, gas, heating
+        // or electricity), so they answer "no".
+        ...(highRisk ? { ai_high_risk_role: bucket === "financial" ? "provider" : "deployer", ai_annex_iii_point_2: "no" as const } : {}),
         ai_general_purpose_provider: bucket === "tech",
         cross_border_transfers: true,
         markets_served: jurisdictionsIso,

@@ -21,7 +21,11 @@ export interface QuestionOption {
 
 export interface ShowIfCondition {
   questionKey: string;
-  operator: "equals" | "contains" | "not_equals";
+  // DOC 259A §5.1 — "in" tests a scalar (single_choice / yes_no_unsure)
+  // answer against a set of acceptable values: v === one of value[].
+  // Distinct from "contains", which tests whether an ARRAY-valued answer
+  // includes any of value[] — a scalar answer never satisfies "contains".
+  operator: "equals" | "contains" | "not_equals" | "in";
   value: string | string[];
 }
 

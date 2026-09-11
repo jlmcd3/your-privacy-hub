@@ -58,9 +58,11 @@ export const IR_SLOT_MAP: readonly IrSlotBinding[] = [
   { slot: "organizationName", kind: "intake", source: "organizationName", render: "verbatim",
     register: "playbook", blank_by_design: false,
     absent: "required — the form gates submit on it" },
-  { slot: "sector", kind: "intake", source: "organisationType", render: "verbatim",
+  // DOC 259A §3.10 (2026-09-11) — the sector parenthetical became an inline
+  // clause slot so a generic answer drops the whole clause.
+  { slot: "SECTOR_CLAUSE", kind: "intake", source: "organisationType", render: "verbatim",
     register: "playbook", blank_by_design: false,
-    absent: "the parenthetical is dropped; CEO ruling 2026-08-10 — rendered as the reader gave it, never case-folded" },
+    absent: "the clause is dropped (generic tokens such as \"Company\" count as absent); CEO ruling 2026-08-10 — rendered as the reader gave it, never case-folded" },
 
   // Standing Sections
   { slot: "escalationContacts", kind: "intake", source: "responseTeamRoster", render: "table-as-prose",

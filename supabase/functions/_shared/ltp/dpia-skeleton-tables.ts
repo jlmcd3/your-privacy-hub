@@ -442,9 +442,15 @@ function specialCategoryTable(cov: Bag): RenderedTable | null {
 }
 
 function minimisationRetentionTable(cov: Bag): RenderedTable | null {
-  const rows = asArray(cov.data_minimisation_retention).map((r) => [
+  const raw = asArray(cov.data_minimisation_retention);
+  // DOC 259A §3.7 (ChatGPT v3 DPIA3-04) — the justification is one intake
+  // narrative copied onto every data-item row; stated once under the table
+  // when every row carries the same text.
+  const justifications = new Set(raw.map((r) => cell(r.need_justification)));
+  const uniform = raw.length > 1 && justifications.size === 1;
+  const rows = raw.map((r) => [
     cell(r.item),
-    cell(r.need_justification),
+    ...(uniform ? [] : [cell(r.need_justification)]),
     cell(r.retention_period),
     cell(r.citation),
     label(r.status),
@@ -452,12 +458,12 @@ function minimisationRetentionTable(cov: Bag): RenderedTable | null {
   ]);
   return table("section2_coverage.data_minimisation_retention", "Data minimisation and retention", [
     "Data item",
-    "Why the company says it is needed",
+    ...(uniform ? [] : ["Why the company says it is needed"]),
     "Retention period",
     "Authority",
     "Status",
     "What is still needed",
-  ], rows);
+  ], rows, uniform ? `Why the company says these data are needed (stated once for every item above): ${[...justifications][0]}` : undefined);
 }
 
 function coverageTable(surface: string, title: string, rowsIn: Bag[]): RenderedTable | null {

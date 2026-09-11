@@ -51,6 +51,8 @@ interface IntakeState {
   ai_high_risk: boolean;
   ai_general_purpose_provider: boolean;
   ai_high_risk_role: string;
+  // DOC 259A §5.3 — shown when ai_high_risk is ticked.
+  ai_annex_iii_point_2: string;
   cross_border_transfers: boolean;
   acts_as_data_broker: boolean;
   sells_or_shares_personal_info: boolean;
@@ -106,6 +108,13 @@ const AI_ROLE_OPTIONS = [
   { value: "unsure", label: "Not sure" },
 ] as const;
 
+// DOC 259A §5.3 — mirrors REGISTRATION_AI_ANNEX_III_POINT_2 in the intake contract.
+const AI_ANNEX_III_POINT_2_OPTIONS = [
+  { value: "yes", label: "Yes — a safety component of critical infrastructure (Annex III, point 2)" },
+  { value: "no", label: "No — the system falls under another Annex III area" },
+  { value: "unsure", label: "Unsure" },
+] as const;
+
 // DOC 163 R2 — the states with a data-broker registry (and the nationwide
 // code): selecting one puts the data-broker detail on the form.
 const REGISTRY_STATE_CODES = ["US", "US-CA", "US-OR", "US-TX", "US-VT"];
@@ -129,6 +138,7 @@ const EMPTY: IntakeState = {
   ai_high_risk: false,
   ai_general_purpose_provider: false,
   ai_high_risk_role: "",
+  ai_annex_iii_point_2: "",
   cross_border_transfers: false,
   acts_as_data_broker: false,
   sells_or_shares_personal_info: false,
@@ -269,6 +279,7 @@ export default function RegistrationAssessment() {
         data_broker_exemption_claimed: intake.data_broker_exemption_claimed || undefined,
         role: intake.role || undefined,
         ai_high_risk_role: intake.ai_high_risk_role || undefined,
+        ai_annex_iii_point_2: intake.ai_annex_iii_point_2 || undefined,
         eu_lead_member_state: intake.eu_lead_member_state || undefined,
       };
       const { data, error } = await supabase.functions.invoke(
@@ -575,6 +586,20 @@ export default function RegistrationAssessment() {
                               <SelectTrigger className="max-w-md"><SelectValue placeholder="Select our role" /></SelectTrigger>
                               <SelectContent>
                                 {AI_ROLE_OPTIONS.map((o) => (
+                                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+                        {intake.ai_high_risk && (
+                          <div className="ml-6 space-y-1">
+                            <Label className="text-sm">Is the system a safety component of critical infrastructure (Annex III, point 2 of the EU AI Act — digital infrastructure, road traffic, water, gas, heating or electricity)?</Label>
+                            <Select value={intake.ai_annex_iii_point_2}
+                              onValueChange={(v) => setIntake({ ...intake, ai_annex_iii_point_2: v })}>
+                              <SelectTrigger className="max-w-md"><SelectValue placeholder="Select an answer" /></SelectTrigger>
+                              <SelectContent>
+                                {AI_ANNEX_III_POINT_2_OPTIONS.map((o) => (
                                   <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
                                 ))}
                               </SelectContent>

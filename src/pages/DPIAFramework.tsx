@@ -65,11 +65,12 @@ import { COACH_CONTRACTS } from "@/lib/intakeCoach/contracts";
 export {
   DATA_CATS, TOOLS, SAFEGUARDS, JURISDICTIONS,
   LEGAL_BASES, ARTICLE_9_CONDITIONS, REASONS_TO_CONDUCT,
+  AUTOMATED_DECISION_NATURE,
 } from "@/pages/DPIAFramework.enums";
 import {
   DATA_CATS, TOOLS, SAFEGUARDS, JURISDICTIONS,
   LEGAL_BASES, ARTICLE_9_CONDITIONS, REASONS_TO_CONDUCT,
-  IMAGERY_CAPTURE, IMAGERY_SPACES,
+  IMAGERY_CAPTURE, IMAGERY_SPACES, AUTOMATED_DECISION_NATURE,
 } from "@/pages/DPIAFramework.enums";
 import { ClipboardList, Zap } from 'lucide-react';
 // DATA_CATS labels that are Article 9 special categories — drives the conditional Art 9(2) field.
@@ -149,6 +150,11 @@ const DPIAFramework = () => {
   const [dpiaSignoffBasis, setDpiaSignoffBasis] = useState("");          // 0.5 ¶10 basis
   const [referenceMaterials, setReferenceMaterials] = useState("");      // 0.5 guidelines / standards
   const [reasonsToConduct, setReasonsToConduct] = useState<string[]>([]);// 0.5 reasons (multi-select)
+  // DOC 259A §5.1 — shown only when a selected reason is an evaluation/
+  // scoring, automated-decision-making, or systematic-extensive-evaluation
+  // reason; decides whether the Art. 22 risk (r8) or the scoring-informs-
+  // human-decisions risk (r8b) is carried.
+  const [automatedDecisionNature, setAutomatedDecisionNature] = useState("");
   const [dpiaScopeNote, setDpiaScopeNote] = useState("");                // 0.5 scope in/out
   const [publicationIntent, setPublicationIntent] = useState("");        // 0.5 publish / share externally
 
@@ -186,6 +192,11 @@ const DPIAFramework = () => {
   const guidanceTier = useGuidanceTier();
   const [activeRailField, setActiveRailField] = useState<"trigger" | "legal_basis" | "transfers" | null>(null);
   const hasSpecialCategory = dataCategories.some((c) => SPECIAL_CATEGORY_CATS.includes(c));
+  // DOC 259A §5.1 — same regex the contract triggers on: reasons_to_conduct
+  // contains an evaluation/scoring, automated-decision-making, or
+  // systematic-extensive-evaluation reason.
+  const hasAutomatedDecisionReason = reasonsToConduct.some((r) =>
+    /Evaluation or scoring|Automated decision-making|Systematic, extensive evaluation/.test(r));
   
 
   const dpiaRailConfigs = {
@@ -395,6 +406,9 @@ const DPIAFramework = () => {
     dpia_signoff_basis: dpiaSignoffBasis,
     reference_materials: referenceMaterials,
     reasons_to_conduct: reasonsToConduct,
+    // DOC 259A §5.1 — omitted (undefined) rather than an empty string when no
+    // qualifying reason is selected, matching the contract's optional key.
+    ...(hasAutomatedDecisionReason ? { automated_decision_nature: automatedDecisionNature } : {}),
     dpia_scope_note: dpiaScopeNote,
     publication_intent: publicationIntent,
     // EDPB template — Sections 1, 2 & 5
@@ -432,6 +446,7 @@ const DPIAFramework = () => {
     necessityProportionality, retentionPeriod, controllerContact, dpoInfo, processorObligations,
     processingVersion, launchDate, endDate, dpiaTeam, dpiaPreparedBy, dpiaApprovedByName,
     dpiaApprovedByTitle, dpiaApprovalDate, dpiaSignoffBasis, referenceMaterials, reasonsToConduct,
+    automatedDecisionNature,
     dpiaScopeNote, publicationIntent, secondaryUses, natureScopeContext, functionalDescription,
     supportingAssets, codesOfConduct, dataMinimisationJustification, dataQualityMeasures,
     dataSubjectRightsMechanisms, dpByDesignMeasures, dpoAdvice, dataSubjectsViewsSought,
@@ -486,6 +501,7 @@ const DPIAFramework = () => {
     S(d.dpia_signoff_basis, setDpiaSignoffBasis);
     S(d.reference_materials, setReferenceMaterials);
     A(d.reasons_to_conduct, setReasonsToConduct);
+    S(d.automated_decision_nature, setAutomatedDecisionNature);
     S(d.dpia_scope_note, setDpiaScopeNote);
     S(d.publication_intent, setPublicationIntent);
     S(d.secondary_uses, setSecondaryUses);
@@ -757,8 +773,31 @@ const DPIAFramework = () => {
               <div data-rail-key='0.5.reasons' onFocus={() => handleTemplateRailFocus('0.5.reasons')}>
                 <Label>Why are you carrying out this assessment?</Label>
                 <p className="text-meta text-muted-foreground mt-1 mb-2">Every reason that applies. Some make an assessment a legal requirement, others make it advisable — recording which applies to you shows the reader why the document exists. Skipped, your assessment records the reason as open.</p>
-                <Pills options={REASONS_TO_CONDUCT} value={reasonsToConduct} onChange={setReasonsToConduct} />
+                <Pills
+                  options={REASONS_TO_CONDUCT}
+                  value={reasonsToConduct}
+                  onChange={(next) => {
+                    setReasonsToConduct(next);
+                    const stillQualifies = next.some((r) =>
+                      /Evaluation or scoring|Automated decision-making|Systematic, extensive evaluation/.test(r));
+                    if (!stillQualifies) setAutomatedDecisionNature("");
+                  }}
+                />
               </div>
+              {/* DOC 259A §5.1 — asked only when a selected reason is an
+                  evaluation/scoring, automated-decision-making, or
+                  systematic-extensive-evaluation reason. Decides whether the
+                  Art. 22 risk (r8) or the scoring-informs-human-decisions
+                  risk (r8b) is carried. */}
+              {hasAutomatedDecisionReason && (
+                <div data-rail-key="automated_decision_nature" onFocus={() => handleLocalRailFocus("automated_decision_nature")}>
+                  <Label>Are decisions with legal or similarly significant effects taken solely by automated means, or does a person with authority review each decision before it takes effect?<Req /></Label>
+                  <select value={automatedDecisionNature} onChange={(e) => setAutomatedDecisionNature(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+                    <option value="">Not answered</option>{AUTOMATED_DECISION_NATURE.map((o) => <option key={o}>{o}</option>)}
+                  </select>
+                  <p className="text-meta text-muted-foreground mt-1">This answer decides which automated-decision risk your assessment carries: a solely automated decision engages Article 22, while a person who can change the outcome before it takes effect keeps the decision outside Article 22's scope.</p>
+                </div>
+              )}
               <div data-rail-key="dpia_scope_note" onFocus={() => handleLocalRailFocus("dpia_scope_note")}>
                 <Label>What does this assessment cover, and what does it leave out?</Label>
                 <Textarea value={dpiaScopeNote} onChange={(e) => setDpiaScopeNote(e.target.value)} className="mt-2 min-h-16" />

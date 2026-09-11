@@ -214,7 +214,10 @@ export function buildRegistrationSlotValues(intake: Bag): SlotValues {
     (headcount < bounds[0] || headcount > bounds[1]);
   return {
     organizationName: s(intake.organization_name) || "the organisation",
-    sector: s(intake.industry) || null, // reader label, never case-folded
+    // DOC 259A §3.4 (ChatGPT v3 REG3-03) — "operating in the SaaS / Software
+    // sector", never "operating in SaaS / Software"; the answer label itself
+    // is never case-folded.
+    sector: s(intake.industry) ? (/\bsector\b/i.test(s(intake.industry)) ? s(intake.industry) : `the ${s(intake.industry)} sector`) : null,
     orgSize: countOutOfBand
       ? `${headcount} employees`
       : size
@@ -381,7 +384,12 @@ export function computeDutyCounts(report: Bag): RegistrationDutyCounts {
   if (aiForCounts && s(aiForCounts.verdict) === "engaged") {
     attached += 1;
     aiActAttached += 1;
-    attachedNames.push("the EU AI Act Article 49(1) registration of the high-risk system");
+    // DOC 259A §5.3 — the venue names the duty: national level for an Annex III point 2 system.
+    attachedNames.push(
+      (aiForCounts.findings as Bag[] | undefined)?.some((f) => s(f.key) === "aiact_registration_national_level" && s(f.verdict) === "engaged")
+        ? "the EU AI Act Article 49(5) national registration of the high-risk system"
+        : "the EU AI Act Article 49(1) registration of the high-risk system",
+    );
   } else if (aiForCounts && s(aiForCounts.verdict) === "conditional") reserved += 1;
 
   // DOC 137 (2026-09-02) — fourth branch: the ICO fee obligation (see
@@ -1181,7 +1189,12 @@ function composeSupervisoryLead(report: Bag, org: string): string {
   if (bdsgLead && s(bdsgLead.verdict)) push("a data protection officer under BDSG § 38(1) (Germany)", s(bdsgLead.verdict));
   else if (/Conditional on BDSG §38/.test(s(ai.dpo_condition))) reserved.push("the German BDSG § 38 DPO threshold");
   const aiLead = (deliverables(report).ai_act_registration ?? {}) as Bag;
-  push("the EU AI Act Article 49(1) registration", s(aiLead.verdict));
+  push(
+    (aiLead.findings as Bag[] | undefined)?.some((f) => s(f.key) === "aiact_registration_national_level" && s(f.verdict) === "engaged")
+      ? "the EU AI Act Article 49(5) national registration"
+      : "the EU AI Act Article 49(1) registration",
+    s(aiLead.verdict),
+  );
 
   // QA batch 2026-09-05 (REG 02) — "no EU, UK or AI Act filing duty of this
   // kind" sat beside a Section III that attached the ICO data-protection fee,

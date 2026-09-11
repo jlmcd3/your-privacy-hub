@@ -141,14 +141,19 @@ export function composeApplicabilityAnalysis(scope: ScopeResult, systemName: str
 
 export function composeNoticeAnalysis(notice: NoticeResult): string {
   const parts: string[] = [];
-  if (notice.purpose.evidence === "DOCUMENTED") {
+  // DOC 259A §3.2 (ChatGPT v3 ADMT3-01) — the satisfied sentence keys on the
+  // element's own status, never on the presence of text: supplied text with
+  // a "No — uses generic language" answer is a gap, not a satisfied element.
+  if (notice.purpose.status === "MEETS_REPORTED" && notice.purpose.evidence === "DOCUMENTED") {
     // v3.2.2 (CEO-ordered polish, 2026-08-25): the old "should confirm
     // whether the text supports the requirement" register told the reader
     // the report was unfinished — inconsistent with the element's own
     // "Meets" result. Same scope limitation, stated as a scope statement.
     parts.push(`The Company supplied notice text addressing the specific-purpose element, and the assessment records that element as satisfied on the Company's supplied response. Legal sufficiency of the precise notice wording is outside the scope of this assessment.`);
   } else if (notice.purpose.status === "GAP") {
-    parts.push(`The Company has not supplied notice text stating the specific decision the System informs, so the lack of this element is factored into the audit as a non-response.`);
+    parts.push(notice.purpose.evidence === "DOCUMENTED"
+      ? `The Company supplied notice text but reports that it uses generic language for the decision the System informs, so the specific-purpose element is recorded as not met on the Company's own answer.`
+      : `The Company has not supplied notice text stating the specific decision the System informs, so the lack of this element is factored into the audit as a non-response.`);
   }
   if (notice.optoutDesc.status === "PARTIAL") {
     parts.push(`The Company's own answer shows the notice mentions opt-out without describing specific instructions.`);

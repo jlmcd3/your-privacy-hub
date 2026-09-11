@@ -88,8 +88,17 @@ export const ROPA_SKELETON_CONTENT_HASH_V4 =
 // regimes ("EU GDPR, UK GDPR") as places — the sentence now reads "keeping
 // this register under {jurisdictions}". Old-hash reproduction verified before
 // re-pin (V4 above).
-export const ROPA_SKELETON_CONTENT_HASH =
+export const ROPA_SKELETON_CONTENT_HASH_V5 =
   "2b029349c2fc4166449d80168298c99b7285575907345d95cb1bf8dec6e1db46";
+// RE-PIN DOC 259A §3.8 (2026-09-11, doc 259 item 9b / ChatGPT v3 ROPA3-04;
+// ratification ledger doc 259B): the controller-identity sentence carries
+// the incorporation and registered-address clauses as inline slots that
+// drop when unrecorded, followed by one plain sentence naming what is not
+// recorded — the old fallback read "incorporated in a jurisdiction it has
+// not recorded, with its registered address at an address it has not
+// recorded". Old-hash reproduction verified before re-pin (V5 above).
+export const ROPA_SKELETON_CONTENT_HASH =
+  "61c3f604d0f0eaf308ab9aab658e9bce352a7babcc317ca3a49bd01689b18033";
 
 export const ROPA_SKELETON_TITLE = "RECORD OF PROCESSING ACTIVITIES";
 export const ROPA_SKELETON_SUBTITLE =
@@ -153,7 +162,7 @@ export interface RopaSkeletonSection {
  * supplies the honest alternate through the `conditional` block that follows.
  */
 export const ROPA_CONTROLLER_PARAGRAPH =
-  "{organisation_name} is a {legal_entity_type - reader label} incorporated in {incorporation_jurisdiction}{REG_CLAUSE - \", registration \" + registration_number; absent => omitted}, with its registered address at {registered_address}. The company has indicated that it acts as {roles - reader labels as prose}. {DPO_BLOCK - conditional on has_dpo: \"Its data protection officer is \" + dpo_name + \", reachable at \" + dpo_email + / + dpo_phone; negative => the honest sentence that no officer has been designated}. {EU_REP_SENTENCE - conditional on eu_rep_name: the Article 27 representative, named}. It operates from {home_base}, keeping this register under {jurisdictions - the regimes selected, as prose}, with a workforce of {employee_band - band as prose}.";
+  "{organisation_name} is a {legal_entity_type - reader label}{INCORPORATION_CLAUSE - \" incorporated in \" + incorporation_jurisdiction; absent => omitted}{REG_CLAUSE - \", registration \" + registration_number; absent => omitted}{ADDRESS_CLAUSE - \", with its registered address at \" + registered_address; absent => omitted}. {UNRECORDED_IDENTITY - the jurisdiction of incorporation and/or registered address not recorded, named plainly; both recorded => the sentence is omitted}. The company has indicated that it acts as {roles - reader labels as prose}. {DPO_BLOCK - conditional on has_dpo: \"Its data protection officer is \" + dpo_name + \", reachable at \" + dpo_email + / + dpo_phone; negative => the honest sentence that no officer has been designated}. {EU_REP_SENTENCE - conditional on eu_rep_name: the Article 27 representative, named}. It operates from {home_base}, keeping this register under {jurisdictions - the regimes selected, as prose}, with a workforce of {employee_band - band as prose}.";
 
 // DOC 141 (2026-09-02) — {OPERATIONS_SENTENCE} and {ACCESS_CLAUSE} are
 // composed conditional clauses (the {TRANSFER_CLAUSE} pattern): each composes

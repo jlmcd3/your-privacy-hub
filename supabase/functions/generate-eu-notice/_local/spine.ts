@@ -203,6 +203,10 @@ export function buildGdprSpine(ctx: SpineCtx): SpineResult {
   const automatedToken = token("automated_decisions");
   const automatedYes = automatedToken === "yes";
   const automatedUnsure = automatedToken === "unsure";
+  // DOC 259A §5.1 (CEO 2026-09-11) — automated processing informs decisions a
+  // person with authority reviews before they take effect: no Art. 22
+  // decision, so no Art. 22 sentence, no high-impact row, no Art. 22 right.
+  const automatedHumanReview = automatedToken === "human_review";
   const automatedDetail = fmt("automated_decisions_detail").trim();
 
   const establishment = fmt("establishment_jurisdiction");
@@ -421,13 +425,18 @@ export function buildGdprSpine(ctx: SpineCtx): SpineResult {
   }
 
   // 9 (conditional) ────────────────────────────────────────────────────────
-  if (profilingYes || automatedYes || automatedUnsure) {
+  if (profilingYes || automatedYes || automatedUnsure || automatedHumanReview) {
     const parts: string[] = [];
     if (profilingYes) {
       parts.push(`<h3>Profiling</h3>`);
       parts.push(p(`We use profiling in connection with our processing of personal data. The purpose and consequences of that profiling are: ${profilingInfo ? `<strong>${esc(trimStop(profilingInfo))}</strong>` : fill("describe what the profiling is used for and its consequences for the individual")}.`));
       if (liSelected || publicTaskSelected) parts.push(p(`${byMethod("Where the profiling is based on legitimate interests or a public task, you may object", objectMethod, "insert how individuals can object to the profiling")}.`));
       if (marketingSelected) parts.push(p(`You have the right to object at any time to profiling to the extent it is related to direct marketing.`));
+    }
+    if (automatedHumanReview) {
+      parts.push(`<h3>Automated processing and human review</h3>`);
+      parts.push(p(`Automated processing, including profiling, informs certain decisions about you, but no decision producing legal effects concerning you or similarly significantly affecting you is based solely on automated processing: a member of our staff with authority to change the outcome reviews each such decision before it takes effect.`));
+      if (automatedDetail) parts.push(p(`How this processing works and what it means for you: <strong>${esc(trimStop(automatedDetail))}</strong>.`));
     }
     if (automatedYes || automatedUnsure) {
       parts.push(`<h3>Automated decision-making with legal or similarly significant effects</h3>`);

@@ -322,10 +322,19 @@ Deno.test("DOC 163 R8 — the document carries the typed BDSG determination in t
 
 Deno.test("DOC 163 R1 — the Art. 49(1) duty is engaged for a provider, not engaged for a private deployer, conditional when unstated", () => {
   const eu = (over: Bag) => ukSmall({ organization_country: "IE", has_uk_establishment: false, has_eu_establishment: true, eu_lead_member_state: "IE", markets_served: ["IE"], uses_ai_systems: true, ai_high_risk: true, ...over });
-  const provider = buildRegistrationDeliverables(eu({ ai_high_risk_role: "provider" }) as never).ai_act_registration!;
+  // DOC 259A §5.3 — the venue turns on Annex III point 2: "no" → EU database
+  // (Art. 49(1)); "yes" → national level (Art. 49(5)); unstated → open.
+  const provider = buildRegistrationDeliverables(eu({ ai_high_risk_role: "provider", ai_annex_iii_point_2: "no" }) as never).ai_act_registration!;
   assertEquals(provider.verdict, "engaged");
   assertStringIncludes(String(provider.closing_act), "registration itself in the EU database");
   assertEquals(provider.findings[0].verdict, "engaged");
+  const providerOpen = buildRegistrationDeliverables(eu({ ai_high_risk_role: "provider" }) as never).ai_act_registration!;
+  assertEquals(providerOpen.verdict, "conditional");
+  assertStringIncludes(String(providerOpen.closing_act), "point 2 of Annex III");
+  const providerNational = buildRegistrationDeliverables(eu({ ai_high_risk_role: "provider", ai_annex_iii_point_2: "yes" }) as never).ai_act_registration!;
+  assertEquals(providerNational.verdict, "engaged");
+  assertStringIncludes(providerNational.headline, "Article 49(5)");
+  assertEquals(providerNational.findings[0].key, "aiact_registration_national_level");
   const deployer = buildRegistrationDeliverables(eu({ ai_high_risk_role: "deployer" }) as never).ai_act_registration!;
   assertEquals(deployer.verdict, "not_engaged");
   assertStringIncludes(deployer.headline, "as its deployer");
@@ -340,7 +349,7 @@ Deno.test("DOC 163 R1 — the Art. 49(1) duty is engaged for a provider, not eng
 
 Deno.test("DOC 163 R10 — the Art. 49 determination is counted; counts under ten read as words; the fee carries its own clause", () => {
   const eu = (over: Bag) => ukSmall({ organization_country: "IE", has_uk_establishment: false, has_eu_establishment: true, eu_lead_member_state: "IE", markets_served: ["IE"], uses_ai_systems: true, ai_high_risk: true, ...over });
-  const engaged = computeDutyCounts({ registration_deliverables: buildRegistrationDeliverables(eu({ ai_high_risk_role: "provider" }) as never) });
+  const engaged = computeDutyCounts({ registration_deliverables: buildRegistrationDeliverables(eu({ ai_high_risk_role: "provider", ai_annex_iii_point_2: "no" }) as never) });
   assertEquals(engaged.ai_act_attached, 1);
   assert(engaged.attached_names.includes("the EU AI Act Article 49(1) registration of the high-risk system"));
   const reserved = computeDutyCounts({ registration_deliverables: buildRegistrationDeliverables(eu({}) as never) });
@@ -427,11 +436,13 @@ Deno.test("DOC 163 R14 — the engine's conditional DPO citation names the UK in
 
 Deno.test("DOC 163 — the contract carries the new keys and the grader instrument carries the tag", () => {
   const keys = registrationContract.fields.map((f) => f.key);
-  for (const k of ["ai_high_risk_role", "filing_tx_categories_documented", "filing_tx_credentialing_statement_documented", "filing_tx_breach_count_documented"]) {
+  for (const k of ["ai_high_risk_role", "ai_annex_iii_point_2", "filing_tx_categories_documented", "filing_tx_credentialing_statement_documented", "filing_tx_breach_count_documented"]) {
     assert(keys.includes(k), k);
   }
   const role = registrationContract.fields.find((f) => f.key === "ai_high_risk_role")!;
   assertEquals([...(role.options ?? [])], ["provider", "deployer", "both", "unsure"]);
+  const annex = registrationContract.fields.find((f) => f.key === "ai_annex_iii_point_2")!;
+  assertEquals([...(annex.options ?? [])], ["yes", "no", "unsure"]);
   assert(GRADER_CONTEXT_VERSION.endsWith("+registration-law-map-2026-09-03"));
 });
 

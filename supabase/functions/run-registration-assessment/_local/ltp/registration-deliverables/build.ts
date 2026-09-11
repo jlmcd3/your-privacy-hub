@@ -79,6 +79,8 @@ export interface RegistrationIntakeForDeliverables {
   filing_tx_breach_count_documented?: boolean | null;
   // DOC 163 R1/R3/R8 — facts the document now reads.
   ai_high_risk_role?: string | null;
+  /** DOC 259A §5.3 — "yes" | "no" | "unsure": Annex III point 2 (critical infrastructure). */
+  ai_annex_iii_point_2?: string | null;
   data_subjects_count?: number | null;
   employee_count?: number | null;
   eu_lead_member_state?: string | null;
@@ -1400,29 +1402,95 @@ function buildAiActRegistration(intake: I): AiActRegistrationDetermination | nul
 
   // DOC 163 R1 — the company's role for the high-risk system, where answered.
   const role = (str(intake.ai_high_risk_role) ?? "").toLowerCase();
+  // DOC 259A §5.3 (CEO 2026-09-11, ChatGPT v3 REG3-01) — the venue turns on
+  // Annex III point 2: a critical-infrastructure safety component registers
+  // at national level (Art. 49(5)), every other Annex III system in the EU
+  // database (Art. 49(1)); until the point-2 fact is recorded the route is open.
+  const annexPoint2 = (str(intake.ai_annex_iii_point_2) ?? "").toLowerCase();
+  const providesPhrase = role === "both" ? "provides and uses" : "provides";
+  const publicAuthorityFact = intake.is_public_authority === false
+    ? "The record states the organisation is not a public authority."
+    : "The record does not state that the organisation is a public authority.";
   if (highRisk && (role === "provider" || role === "both")) {
+    if (annexPoint2 === "yes") {
+      const national = aiActFinding(
+        "aiact_registration_national_level",
+        "AI Act Art. 49(5) — national registration of an Annex III point 2 system",
+        `The record states the company ${providesPhrase} a high-risk AI system that is a safety component of critical infrastructure (Annex III, point 2).`,
+        "A high-risk AI system referred to in point 2 of Annex III is registered at national level, not in the EU database; the provider's registration duty is discharged with the national arrangements of each Member State concerned before the system is placed on the market or put into service.",
+        "engaged",
+      );
+      const deployer = aiActFinding(
+        "aiact_registration_public_deployer",
+        "AI Act Art. 49(3) — deployer registration reaches public authorities only",
+        publicAuthorityFact,
+        "A deployer registers only where it is a public authority, a Union institution, body, office or agency, or a person acting on behalf of one; no deployer-side registration duty arises for the company from this record.",
+        "not_engaged",
+      );
+      return {
+        verdict: "engaged",
+        headline:
+          `The company has indicated that it ${providesPhrase} a high-risk AI system that falls within point 2 of Annex III, so its registration duty is at national level under Article 49(5) rather than in the EU database.`,
+        reasoning:
+          `Under Regulation (EU) 2024/1689, the provider of an Annex III high-risk system registers it before placing it on the market or putting it into service (Article 49(1)); for the systems listed in point 2 of Annex III — safety components of critical digital infrastructure, road traffic, or the supply of water, gas, heating or electricity — Article 49(5) provides that registration is at national level instead of in the EU database. The company has indicated the provider role and that the system is such a component, so the national registration duty is the company's own. ${scope}`,
+        closing_act:
+          "The duty is discharged by registration at national level in each Member State concerned, before the system is placed on the market or put into service.",
+        findings: [national, deployer],
+        citations: [national.citation, deployer.citation],
+        status: "analysed",
+      };
+    }
+    if (annexPoint2 !== "no") {
+      const provider = aiActFinding(
+        "aiact_registration_provider",
+        "AI Act Art. 49(1) — provider registration",
+        `The record states the company ${providesPhrase} a high-risk AI system, and does not state whether that system falls within point 2 of Annex III.`,
+        "The provider registers the system before placing it on the market or putting it into service: in the EU database for an Annex III system (Article 49(1)), or at national level where the system falls within point 2 of Annex III (Article 49(5)).",
+        "conditional",
+        "whether the system falls within point 2 of Annex III (a safety component of critical infrastructure), which decides whether registration is in the EU database or at national level",
+      );
+      const deployer = aiActFinding(
+        "aiact_registration_public_deployer",
+        "AI Act Art. 49(3) — deployer registration reaches public authorities only",
+        publicAuthorityFact,
+        "A deployer registers only where it is a public authority, a Union institution, body, office or agency, or a person acting on behalf of one; no deployer-side registration duty arises for the company from this record.",
+        "not_engaged",
+      );
+      return {
+        verdict: "conditional",
+        headline:
+          `The company has indicated that it ${providesPhrase} a high-risk AI system; whether its registration is made in the EU database (Article 49(1)) or at national level (Article 49(5)) turns on whether the system falls within point 2 of Annex III, which the record does not state.`,
+        reasoning:
+          `Under Regulation (EU) 2024/1689, the provider of an Annex III high-risk system, or its authorised representative, registers itself and the system before placing it on the market or putting it into service (Article 49(1)); the systems listed in point 2 of Annex III are registered at national level instead (Article 49(5)). The company has indicated the provider role, so a registration duty is the company's own, and its venue is the open fact. ${scope}`,
+        closing_act:
+          "What would complete the determination is whether the system falls within point 2 of Annex III (a safety component of critical infrastructure).",
+        findings: [provider, deployer],
+        citations: [provider.citation, deployer.citation],
+        status: "analysed",
+      };
+    }
     const provider = aiActFinding(
       "aiact_registration_provider",
       "AI Act Art. 49(1) — provider registration",
-      `The record states the company ${role === "both" ? "provides and uses" : "provides"} a high-risk AI system: it developed the system or places it on the market under its own name or trademark.`,
+      `The record states the company ${providesPhrase} a high-risk AI system: it developed the system or places it on the market under its own name or trademark.`,
       "The provider, or its authorised representative, registers itself and the system in the EU database before placing it on the market or putting it into service, with the information listed in Annex VIII, Section A.",
       "engaged",
     );
     const deployer = aiActFinding(
       "aiact_registration_public_deployer",
       "AI Act Art. 49(3) — deployer registration reaches public authorities only",
-      "The record states the organisation is not a public authority, or does not state that it is one.",
+      publicAuthorityFact,
       "A deployer registers only where it is a public authority, a Union institution, body, office or agency, or a person acting on behalf of one; no deployer-side registration duty arises for the company from this record.",
       "not_engaged",
     );
     return {
       verdict: "engaged",
       headline:
-        `The company has indicated that it ${role === "both" ? "provides and uses" : "provides"} a high-risk AI system, so the EU-database registration duty of Article 49(1) is the company's own.`,
+        `The company has indicated that it ${providesPhrase} a high-risk AI system, so the EU-database registration duty of Article 49(1) is the company's own.`,
       reasoning:
         `Article 49(1) of Regulation (EU) 2024/1689 requires the provider of an Annex III high-risk system, or its authorised representative, to register itself and the system in the EU database established under Article 71 before placing the system on the market or putting it into service, with the information listed in Annex VIII, Section A. The company has indicated that it holds the provider role, so the duty is the company's.${role === "both" ? " As deployer it registers only if it is a public authority (Article 49(3)), which the record does not state." : ""}${scope}`,
       closing_act:
-        "The duty is discharged by the registration itself in the EU database referred to in Article 71, with the Annex VIII, Section A information, before the system is placed on the market or put into service; whether the system falls within point 2 of Annex III, which Article 49(5) sends to national registration instead, is not asked by this assessment.",
+        "The duty is discharged by the registration itself in the EU database referred to in Article 71, with the Annex VIII, Section A information, before the system is placed on the market or put into service; the company has indicated that the system does not fall within point 2 of Annex III, so the EU database, not national registration, is the venue.",
       findings: [provider, deployer],
       citations: [provider.citation, deployer.citation],
       status: "analysed",
@@ -1432,7 +1500,7 @@ function buildAiActRegistration(intake: I): AiActRegistrationDetermination | nul
     const deployer = aiActFinding(
       "aiact_registration_public_deployer",
       "AI Act Art. 49(3) — deployer registration reaches public authorities only",
-      "The record states the company uses a third party's high-risk AI system as its deployer, and does not state that it is a public authority.",
+      `The record states the company uses a third party's high-risk AI system as its deployer${intake.is_public_authority === false ? ", and that it is not a public authority" : ", and does not state that it is a public authority"}.`,
       "A deployer registers only where it is a public authority, a Union institution, body, office or agency, or a person acting on behalf of one; no deployer-side registration duty arises for the company from this record.",
       "not_engaged",
     );
@@ -1446,7 +1514,8 @@ function buildAiActRegistration(intake: I): AiActRegistrationDetermination | nul
     return {
       verdict: "not_engaged",
       headline:
-        "The company has indicated that it uses a third party's high-risk AI system as its deployer; the EU-database registration duty for that system rests on its provider under Article 49(1), and a deployer registers only where it is a public authority, which the record does not state.",
+        // DOC 259A §3.4 (doc 259 item 5a) — the recorded public-authority answer is read.
+        `The company has indicated that it uses a third party's high-risk AI system as its deployer; the EU-database registration duty for that system rests on its provider under Article 49(1), and a deployer registers only where it is a public authority, ${intake.is_public_authority === false ? "which the company has indicated it is not" : "which the record does not state"}.`,
       reasoning:
         `Under Regulation (EU) 2024/1689, registration of an Annex III high-risk system in the EU database is the provider's duty (Article 49(1)); a deployer registers only where it is a public authority or acts on behalf of one (Article 49(3)). The company has indicated the deployer role and has not indicated public-authority status, so no EU-database registration duty arises for it on its answers. Its Chapter III deployer duties are outside this registration determination.${scope}`,
       findings: [deployer, provider],

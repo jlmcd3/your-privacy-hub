@@ -65,10 +65,13 @@ Deno.test("DOC 137 FIX 1: Action panel table carries an Owner column", () => {
   const intake: Bag = { orgName: "Busted Sled Solutions, Inc.", orgType: "Employer (employee biometrics)" };
   const table = actionPanelTable(intake);
   assertExists(table, "Action panel table missing");
-  assertEquals(table!.columns, ["#", "Type", "Action", "Owner"]);
+  // DOC 259A §3.9 — the Type column wrapped one character per line; the type
+  // now leads the action cell ("Immediate remediation — remedy …").
+  assertEquals(table!.columns, ["#", "Action", "Owner"]);
   assert(table!.rows.length >= 2, "expected one unlawful-now row and one unresolved-on-record row");
   for (const row of table!.rows) {
-    assertEquals(row.length, 4, "every row must carry an Owner cell");
+    assertEquals(row.length, 3, "every row must carry an Owner cell");
+    assert(/^(Immediate remediation|Record completion) — /.test(row[1]), "the type leads the action cell");
   }
 });
 
@@ -78,7 +81,7 @@ Deno.test("DOC 137 FIX 1: the Owner cell matches deriveBiometricOwnerRole for th
   const expectedOwner = deriveBiometricOwnerRole("Employer (employee biometrics)");
   assertEquals(expectedOwner, "the HR lead, in coordination with the DPO or Head of Privacy");
   for (const row of table!.rows) {
-    assertEquals(row[3], expectedOwner);
+    assertEquals(row[2], expectedOwner);
   }
 });
 
@@ -92,6 +95,6 @@ Deno.test("DOC 137 FIX 1: owner role tracks orgType across the other branches", 
 
   const table = actionPanelTable({ orgName: "Acme Health", orgType: "Healthcare provider" });
   for (const row of table!.rows) {
-    assertEquals(row[3], "the Privacy Officer and CISO");
+    assertEquals(row[2], "the Privacy Officer and CISO");
   }
 });

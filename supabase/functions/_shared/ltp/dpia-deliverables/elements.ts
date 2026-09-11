@@ -79,6 +79,8 @@ export interface RiskFacts {
   readonly transferLeavesRegime: boolean;
   readonly retentionStated: boolean;
   readonly reasons: readonly string[];
+  /** DOC 259A §5.1 — the `automated_decision_nature` enum answer, verbatim; "" when unanswered (legacy). */
+  readonly automatedDecisionNature: string;
   readonly secondaryUses: string;
   readonly volume: string;
   /** DOC 131 (CEO-ratified 2026-09-01, doc 130 B1 option (a)) — the
@@ -91,6 +93,12 @@ export interface RiskFacts {
 export const IMAGERY_CAPTURE_NONE = "No imagery or video of identifiable individuals";
 
 const SPECIAL_CATS = ["Health or medical data", "Biometric data"];
+
+// DOC 259A §5.1 — the two `automated_decision_nature` answers under which no
+// decision is "based solely on automated processing" (Art. 22(1)). Matched on
+// the option's opening words; the full strings live in the intake contract.
+export const AUTOMATED_DECISION_HUMAN_REVIEW_RE = /^Automated processing with meaningful human review\b/;
+export const AUTOMATED_DECISION_NOT_SOLELY_RE = /^(Automated processing with meaningful human review|No decisions with legal or similarly significant effects)\b/;
 
 export const DPIA_RISK_SPECS: readonly RiskSpec[] = [
   {
@@ -194,10 +202,33 @@ export const DPIA_RISK_SPECS: readonly RiskSpec[] = [
     // it. No ticked option does; the measure is read from the narrative.
     mitigating_safeguards: [],
     human_intervention_measure: true,
+    // DOC 259A §5.1 (CEO 2026-09-11) — the record's own answer on the nature
+    // of the decision gates the Art. 22 row: meaningful human review before
+    // the decision takes effect, or no significant decision at all, means no
+    // decision "based solely on automated processing" (Art. 22(1)).
     trigger: (f) =>
       f.reasons.some((r) =>
         /Evaluation or scoring|Automated decision-making|Systematic, extensive evaluation/i.test(r)
-      ),
+      ) && !AUTOMATED_DECISION_NOT_SOLELY_RE.test(f.automatedDecisionNature),
+  },
+  {
+    // DOC 259A §5.1 — the record states that a person with authority reviews
+    // each decision before it takes effect: the Art. 22 row does not fire, but
+    // the scoring still carries a risk to fairness, accuracy and
+    // contestability, answered by the review the record describes.
+    risk_id: "r8b_scoring_informs_human_decisions",
+    risk_class: "design",
+    risk_label: "Automated scoring or evaluation informing decisions a person takes",
+    affected_rights: "Fairness under Art. 5(1)(a); accuracy under Art. 5(1)(d); the right to object under Art. 21",
+    severity: "Significant",
+    source_template:
+      "The record states that automated scoring or evaluation informs decisions about individuals which a person with authority reviews before they take effect, so the risk lies in the accuracy, fairness and contestability of the scores rather than in a decision based solely on automated processing.",
+    mitigating_safeguards: [],
+    human_intervention_measure: true,
+    trigger: (f) =>
+      f.reasons.some((r) =>
+        /Evaluation or scoring|Automated decision-making|Systematic, extensive evaluation/i.test(r)
+      ) && AUTOMATED_DECISION_HUMAN_REVIEW_RE.test(f.automatedDecisionNature),
   },
   {
     risk_id: "r9_secondary_use",
