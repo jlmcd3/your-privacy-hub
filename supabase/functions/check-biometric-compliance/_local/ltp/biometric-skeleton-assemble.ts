@@ -606,7 +606,9 @@ function composeUnregisteredJurisdictions(intake: Bag): string {
   ];
   if (euUk) {
     parts.push(
-      "For the EU/EEA and the United Kingdom, biometric data processed to uniquely identify a person is a special category under Article 9 GDPR and UK GDPR; that analysis belongs to a data protection impact assessment and, where legitimate interests is relied on, a legitimate interests assessment, each of which is its own assessment on this platform.",
+      // BATCH bcf0a706 (2026-09-11) — ledger F8: the definitional and the
+      // special-category pinpoints.
+      "For the EU/EEA and the United Kingdom, biometric data — personal data within the Article 4(14) definition, processed to uniquely identify a person — is a special category under Article 9(1) GDPR and Article 9(1) UK GDPR; that analysis belongs to a data protection impact assessment and, where legitimate interests is relied on, a legitimate interests assessment, each of which is its own assessment on this platform.",
     );
   }
   parts.push(

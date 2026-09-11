@@ -76,6 +76,22 @@ const ALIASES: Record<string, string[]> = {
   "not sure": ["unsure", "not known"],
   "true": ["yes"],
   "false": ["no"],
+  // BATCH bcf0a706 (2026-09-11, EU notice 7746db73): the generator answered
+  // the notice's data_categories in the DPIA/LIA vocabulary ("Contact
+  // details", "Customer records", "Location data", "Other"); only "Financial
+  // data" resolved and the rest were dropped, so Section 2 listed one
+  // category of five. The cross-product labels resolve to the notice's own
+  // tokens (universal-questions.ts). An exact option match always wins, so
+  // tools whose options ARE these labels are untouched.
+  "contact details": ["identifiers"],
+  "customer records": ["commercial"],
+  "location data": ["geolocation"],
+  "financial data": ["financial"],
+  "employee records": ["professional"],
+  "health or medical data": ["health medical"],
+  "biometric data": ["biometric"],
+  "children s data": ["children"],
+  "communications content": ["internet activity"],
 };
 
 function scoreTokens(a: string[], b: string[]): number {

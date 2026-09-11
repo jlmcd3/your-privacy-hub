@@ -37,5 +37,6 @@ Deno.test("916c33a8 GR-2 — the DOC 252 block carries its three classes and the
 
 Deno.test("916c33a8 GR-3 — the instrument version appends the batch tag last", () => {
   // RE-PIN 2026-09-11 (DOC 252 §10 rulings): the rulings tag follows the batch tag.
-  assert(GRADER_CONTEXT_VERSION.endsWith("+batch-7bd29982-cal-2026-09-10+batch-916c33a8-cal-2026-09-10+doc252-rulings-2026-09-11"), GRADER_CONTEXT_VERSION);
+  // RE-PIN 2026-09-11 (DOC 253, batch bcf0a706): the batch tag follows the rulings tag.
+  assert(GRADER_CONTEXT_VERSION.endsWith("+batch-916c33a8-cal-2026-09-10+doc252-rulings-2026-09-11+batch-bcf0a706-cal-2026-09-11"), GRADER_CONTEXT_VERSION);
 });

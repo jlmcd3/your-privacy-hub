@@ -1187,13 +1187,17 @@ function chapterVCreditFinding(who: string, instrumentLabel: string, verbatim: s
  * level on a monthly basis") does not. The first qualifying sentence is
  * returned in the company's words; "" where none.
  */
+// BATCH bcf0a706 (2026-09-11, Velorix 943d955e): `residual_risks` is a
+// statement of what remains AFTER the measures ("Although the … analyst
+// review limits exposure, a user may experience service denial …") — it
+// named the measure in passing and the register printed the risk clause as
+// the protection. Risk narratives are not measure sources.
 const HUMAN_INTERVENTION_FIELDS: readonly string[] = [
   "nature_scope_context",
   "functional_description",
   "dp_by_design_measures",
   "data_subject_rights_mechanisms",
   "data_quality_measures",
-  "residual_risks",
   "mitigating_measures",
   "description",
 ];
@@ -1204,7 +1208,9 @@ const HUMAN_INTERVENTION_ACTOR =
   "human|person|people|manual|analyst|reviewer|advis[eo]r|agent|officer|caseworker|clinician|physician|nurse|specialist|staff|team member|employee|manager|underwriter|assessor|moderator|adjudicator|panel";
 const HUMAN_INTERVENTION_RE = new RegExp(
   String.raw`\b(?:${HUMAN_INTERVENTION_ACTOR})\w*\s+(?:review|intervention|oversight|decision|check|sign-?off|approv)\w*\b` +
-    String.raw`|\b(?:review(?:ed|s)?|checked|assessed|decided|approved|confirmed|examined|verified)\s+by\s+(?:a |an |the )?(?:named )?(?:${HUMAN_INTERVENTION_ACTOR})\b` +
+    // "reviewed by a Trust & Safety analyst": up to three words may sit
+    // between the article and the actor noun (batch bcf0a706).
+    String.raw`|\b(?:review(?:ed|s)?|checked|assessed|decided|approved|confirmed|examined|verified)\s+by\s+(?:a |an |the )?(?:named )?(?:[\w&'-]+\s){0,3}(?:${HUMAN_INTERVENTION_ACTOR})\b` +
     String.raw`|\b(?:contest|challenge|appeal|object to|dispute)\w*\s+(?:the |a |any |an )?(?:automated |such |that |this )?(?:decision|outcome|score|result|determination|flag)s?\b` +
     String.raw`|\bhuman[- ]in[- ]the[- ]loop\b|\bright to (?:obtain )?human intervention\b|\bhuman decision\b`,
   "i",
@@ -1213,6 +1219,11 @@ const HUMAN_INTERVENTION_AGGREGATE_RE =
   /\b(aggregate|aggregated|metrics|performance|model weights|monthly|quarterly|cohort|sample|dashboard|statistic\w*)\b/i;
 // A negated mention ("without human review of individual outputs", "no
 // manual review", "not reviewed by a person") describes the risk, not a measure.
+// A hedged or conditional clause ("a user may experience service denial …
+// before human review is completed", "could be reviewed") states exposure,
+// not a measure in operation.
+const HUMAN_INTERVENTION_HEDGED_RE =
+  /\b(?:may|might|could)\s+(?:still\s+)?(?:experience|face|suffer|be|remain|receive|occur)\b|\bexposure\b|\brisk(?:s)? of\b|\bworst[- ]case\b/i;
 const HUMAN_INTERVENTION_NEGATED_RE =
   /\b(?:without|no|not|absence of|lack(?:s|ing)? of|never|nor)\s+(?:any\s+|a\s+|an\s+)?(?:meaningful\s+|individual(?:-level)?\s+|prior\s+)?(?:human|manual|person|individual)\b|\bnot\s+(?:reviewed|checked|assessed|decided|approved|confirmed|examined|verified)\s+by\b|\bcannot\s+(?:contest|challenge|appeal|obtain human intervention)\b/i;
 
@@ -1225,9 +1236,12 @@ export function readHumanInterventionSpan(intake: unknown): string {
       // Clause-level: a record often lists its measures semicolon-separated
       // in one sentence, and the aggregate exclusion must not veto a
       // neighbouring individual-level clause.
-      for (const clause of sentence.split(/;\s*|,\s+(?:and|but|while)\s+/)) {
+      // Clause seams: ";", ", and/but/while", and a bare " but " (a contrast
+      // that separates an aggregate-level clause from the individual-level
+      // one); a bare " and " is not a seam — it joins one measure's parts.
+      for (const clause of sentence.split(/;\s*|,\s+(?:and|but|while)\s+|\s+but\s+(?=[a-z])/)) {
         const s = clause.trim();
-        if (!s || !HUMAN_INTERVENTION_RE.test(s) || HUMAN_INTERVENTION_AGGREGATE_RE.test(s) || HUMAN_INTERVENTION_NEGATED_RE.test(s)) continue;
+        if (!s || !HUMAN_INTERVENTION_RE.test(s) || HUMAN_INTERVENTION_AGGREGATE_RE.test(s) || HUMAN_INTERVENTION_NEGATED_RE.test(s) || HUMAN_INTERVENTION_HEDGED_RE.test(s)) continue;
         return noStop(s);
       }
     }

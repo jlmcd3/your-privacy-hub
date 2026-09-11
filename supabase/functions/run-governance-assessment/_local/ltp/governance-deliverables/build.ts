@@ -1208,7 +1208,12 @@ export function buildTransferAnalysis(intake: unknown): TransferAnalysis {
     cite(ukPrinciple.citation);
     cite(ukOmitted.citation);
     parts.push(
-      `The UK chapter is a different body of law, not the EU chapter under another name. ${ukOmitted.verbatim} The operative UK general principle is Article 44A(1): "${ukPrinciple.verbatim}", and the condition is met only where the transfer is approved by adequacy regulations, is made subject to appropriate safeguards, or relies on a derogation — Article 44A(2)(a): "${ukAdequacyRoute.verbatim}"; Article 44A(2)(b): "${ukSafeguardsRoute.verbatim}"`,
+      // BATCH bcf0a706 (2026-09-11, Velorix fc9153eb): the omission row's
+      // registry note ("… must not be cited to Art. 44") is drafting
+      // instruction and rendered as customer prose. Reader sentence here
+      // (ledger F9); the row is still cited above so the ToA carries it,
+      // and the "There is no" lead keeps the harvester's negation guard.
+      `The UK chapter is a different body of law, not the EU chapter under another name. There is no Article 44 in the UK GDPR. The operative UK general principle is Article 44A(1): "${ukPrinciple.verbatim}", and the condition is met only where the transfer is approved by adequacy regulations, is made subject to appropriate safeguards, or relies on a derogation — Article 44A(2)(a): "${ukAdequacyRoute.verbatim}"; Article 44A(2)(b): "${ukSafeguardsRoute.verbatim}"`,
     );
     if (f.mechanism && ADEQUACY_MECHANISMS.includes(f.mechanism)) {
       cite(ukAdequacyPower.citation);
@@ -1229,6 +1234,13 @@ export function buildTransferAnalysis(intake: unknown): TransferAnalysis {
       parts.push(
         `The recorded mechanism is a safeguards route. Under Article 46(1A) a UK transfer "${ukSafeguards.verbatim}" where the listed safeguards are provided and the exporter itself judges the data protection test met. The UK clause sets are not Commission standard contractual clauses: they are those specified by the Secretary of State under Article 47A(1) — Article 46(2)(c): "${ukSosClauses.verbatim}" — and those issued by the Commissioner under section 119A of the Data Protection Act 2018 — Article 46(2)(d): "${ukIcoClauses.verbatim}" The Secretary of State's power reads: "${ukSosPower.verbatim}" Section 119A itself fixes what the Commissioner may issue — "${ukCommissionerPower.verbatim}" — and the process for issuing it: "${ukCommissionerConsultation.verbatim}", after which any document issued must be laid before Parliament and is treated as never issued if either House resolves against it within 40 days.`,
       );
+      // BATCH bcf0a706 (2026-09-11) — ledger F6: the recorded mechanism is
+      // named against the clause set it is, so the passage is not generic.
+      if (/addendum/i.test(f.mechanism)) {
+        parts.push("The recorded mechanism — the UK Addendum to the EU standard contractual clauses — is a clause set issued by the Commissioner under section 119A of the 2018 Act, within Article 46(2)(d).");
+      } else if (/\bIDTA\b|international data transfer agreement/i.test(f.mechanism)) {
+        parts.push("The recorded mechanism — the International Data Transfer Agreement — is a clause set issued by the Commissioner under section 119A of the 2018 Act, within Article 46(2)(d).");
+      }
       if (/Binding Corporate Rules/i.test(f.mechanism)) {
         cite(ukBcrs.citation);
         parts.push(`Binding corporate rules take effect in UK law through Article 46(2)(b) — "${ukBcrs.verbatim}" — and are approved by the Commissioner, not by an EU supervisory authority.`);

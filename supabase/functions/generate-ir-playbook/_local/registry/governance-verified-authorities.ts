@@ -461,6 +461,11 @@ export const GOVERNANCE_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     proposition_key: "uk_art_44_not_in_force",
     citation: "UK GDPR Art. 44",
     subsection: "UK GDPR Art. 44 (omitted)",
+    // BATCH bcf0a706 (2026-09-11): this note is the corpus-pinned omission
+    // record (the IR corpus snapshot and three vitest pins carry these bytes);
+    // it is drafting instruction, so the GOVERNANCE composer no longer
+    // splices it into customer prose (governance-deliverables/build.ts ukRail
+    // renders its own reader sentence and still cites this row).
     verbatim_quote:
       "There is no UK GDPR Article 44 in force; the UK Chapter V general principle must not be cited to Art. 44.",
     depth_class: "section",

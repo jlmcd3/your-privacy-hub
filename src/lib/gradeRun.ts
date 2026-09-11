@@ -61,16 +61,30 @@ export async function gradeRun(
     // grading connection froze the entire remaining batch. Dual-model
     // grading legitimately takes 1–3 minutes; 5 minutes of silence is a
     // failure of THIS grade, never of the batch.
-    const { data, error } = await invokeWithTimeout(
-      "grade-single-assessment",
-      {
-        tool,
-        assessment_id: sourceRowId,
-        fixture_label: fixtureLabel,
-        dry_run: true,
-      },
-      300_000,
-    );
+    // BATCH bcf0a706 (2026-09-11): seven grades of one company fired in the
+    // same second and every one came back "Failed to send a request to the
+    // Edge Function" — a transport failure before the function ran, not a
+    // grading result. A send failure is retried twice with a short backoff;
+    // a timeout or a function error is not.
+    let data: unknown = null;
+    let error: { message: string } | null = null;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const r = await invokeWithTimeout(
+        "grade-single-assessment",
+        {
+          tool,
+          assessment_id: sourceRowId,
+          fixture_label: fixtureLabel,
+          dry_run: true,
+        },
+        300_000,
+      );
+      data = r.data;
+      error = r.error;
+      const sendFailure = !!error && !r.timedOut && /failed to send a request/i.test(error.message);
+      if (!sendFailure || attempt === 3) break;
+      await new Promise((resolve) => setTimeout(resolve, 4_000 * attempt));
+    }
     if (error) return { tool, claude: null, gpt: null, mean: null, error: error.message };
     const p = (data as any)?.payload ?? {};
     const claude = typeof p.claude?.overall_score === "number" ? p.claude.overall_score : null;

@@ -185,7 +185,16 @@ export interface ResolvedTransfer {
   mechanismUndocumented: boolean;
   /** Explicit transfer basis text, if the record carries one. */
   basis: string;
+  /** BATCH bcf0a706 (2026-09-11) — the recorded location where the data stay
+   *  when the Company answers the mechanism as "No transfer outside the
+   *  EEA/UK" against an in-region destination ("European Union (Brevo — EU
+   *  data centres)"); "" otherwise. A recorded no-transfer, in the Company's
+   *  own words for the place. */
+  withinRegion: string;
 }
+
+/** The mechanism answers that are themselves a recorded "no transfer". */
+const NO_TRANSFER_MECHANISM_RE = /^\s*no\s+transfer(?:s)?\s+(?:outside|beyond|out of)\b/i;
 
 const LEGACY_NO_TRANSFER_RE = /no\s+third[- ]country\s+transfer/i;
 
@@ -210,12 +219,22 @@ export function resolveTransfer(ans: AnswerBag): ResolvedTransfer {
   if (!declaredNone && destination && (LEGACY_NO_TRANSFER_RE.test(destination) || /^none$/i.test(destination.trim()))) {
     declaredNone = true;
   }
-  if (declaredNone) destination = "";
   const mechRaw = ans.transfer_mechanism ?? ans.transfer_safeguard;
+  // BATCH bcf0a706 (Velorix c00e11e1, "Direct Marketing by Email"): the
+  // mechanism answer "No transfer outside EEA" beside the destination
+  // "European Union (Brevo — EU data centres)" rendered "transferred to
+  // European Union … under No transfer outside EEA". The answer IS the
+  // Company's recorded no-transfer; the destination is where the data stay.
+  let withinRegion = "";
+  if (!declaredNone && NO_TRANSFER_MECHANISM_RE.test(answerText(mechRaw))) {
+    declaredNone = true;
+    withinRegion = destination;
+  }
+  if (declaredNone) destination = "";
   const mechanismUndocumented = answerText(mechRaw).trim().toLowerCase() === "none";
   const mechanism = declaredNone ? "" : displayAnswer("transfer_mechanism", mechRaw);
   const basis = declaredNone ? "" : answerText(ans.transfer_basis ?? ans.transfer_lawful_basis);
-  return { declaredNone, destination, mechanism, mechanismUndocumented, basis };
+  return { declaredNone, destination, mechanism, mechanismUndocumented, basis, withinRegion };
 }
 
 export interface CrossBorderTransfer {
@@ -300,6 +319,7 @@ export function buildRopaAssembleInput(d: RopaAnswerData): RopaAssembleInput {
       transferBasis: transfer.basis,
       transfersDeclaredNone: transfer.declaredNone,
       transferMechanismUndocumented: transfer.mechanismUndocumented,
+      transferWithinRegion: transfer.withinRegion,
       rightsHandling: str(p?.rights_handling_process),
       rightsOverride: str(ans.rights_handling_override),
       relatedAssessments: related,

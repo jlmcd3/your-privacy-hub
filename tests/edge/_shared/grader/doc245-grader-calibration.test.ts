@@ -43,7 +43,8 @@ Deno.test("doc245 — the prose calibration carries the six batch-e74fdbfd class
 Deno.test("doc245 — GRADER_CONTEXT_VERSION keeps its prefix and appends the batch tag last", () => {
   assert(GRADER_CONTEXT_VERSION.startsWith(SKELETON_CAL_VERSION), "the epoch prefix is kept");
   // RE-PIN 2026-09-11 (DOC 252 §10 rulings): "+doc252-rulings-2026-09-11".
-  assert(GRADER_CONTEXT_VERSION.endsWith("+batch-916c33a8-cal-2026-09-10+doc252-rulings-2026-09-11"), GRADER_CONTEXT_VERSION);
+  // RE-PIN 2026-09-11 (DOC 253, batch bcf0a706): "+batch-bcf0a706-cal-2026-09-11".
+  assert(GRADER_CONTEXT_VERSION.endsWith("+doc252-rulings-2026-09-11+batch-bcf0a706-cal-2026-09-11"), GRADER_CONTEXT_VERSION);
   assert(
     GRADER_CONTEXT_VERSION.indexOf("+lia-v3-hooks-grader-2026-09-08") < GRADER_CONTEXT_VERSION.indexOf("+batch-e74fdbfd-cal-2026-09-09") &&
       GRADER_CONTEXT_VERSION.indexOf("+batch-e74fdbfd-cal-2026-09-09") < GRADER_CONTEXT_VERSION.indexOf("+doc250-eprivacy-overlay-2026-09-10") &&

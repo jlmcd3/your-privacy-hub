@@ -168,6 +168,9 @@ export interface RopaActivityInput {
   /** DOC 168 — the Company chose the "none" mechanism option: a transfer it
    *  records with no documented mechanism (its own fact, not a gap). */
   readonly transferMechanismUndocumented?: boolean;
+  /** BATCH bcf0a706 — where the data stay when the Company records "no
+   *  transfer outside the EEA/UK" against an in-region destination. */
+  readonly transferWithinRegion?: string;
   readonly rightsHandling: string;
   readonly rightsOverride: string;
   /** References to the company's OWN completed assessments (LIA / DPIA). */
@@ -358,6 +361,12 @@ function retentionPhrase(a: RopaActivityInput): string {
 function transferClause(a: RopaActivityInput): string {
   // DOC 168 — a recorded "no transfer" is stated as the Company's own fact.
   if (a.transfersDeclaredNone === true) {
+    // BATCH bcf0a706 (2026-09-11) — ledger F5: the recorded in-region place
+    // is stated with the recorded no-transfer, in the Company's own words.
+    const within = s(a.transferWithinRegion);
+    if (recorded(within)) {
+      return `The company has indicated that personal data are held at ${noStop(within)} and that no personal data are transferred to a third country or an international organisation`;
+    }
     return "The company has indicated that no personal data are transferred to a third country or an international organisation";
   }
   const dest = s(a.transferDestination);

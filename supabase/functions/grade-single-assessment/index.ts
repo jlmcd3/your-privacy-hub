@@ -244,7 +244,10 @@ async function claudeCall(system: string, user: string, maxTokens = 5000): Promi
     method: "POST",
     headers: { "x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({ model: "claude-opus-4-6", max_tokens: maxTokens, system, messages: [{ role: "user", content: user }] }),
-    signal: AbortSignal.timeout(120_000),
+    // BATCH bcf0a706 (2026-09-11): the IR Playbook grade hit "Signal timed
+    // out" at 120s while GPT completed. The two model calls run in sequence
+    // and the client allows 300s, so 180s + 90s stays inside it.
+    signal: AbortSignal.timeout(180_000),
   });
   if (!r.ok) throw new Error(`Claude ${r.status}: ${(await r.text()).slice(0, 200)}`);
   const d = await r.json();

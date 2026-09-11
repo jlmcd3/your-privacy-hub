@@ -528,6 +528,15 @@ export function composeExecutiveSummaryTyped(findings: Record<string, TypedDomai
   if (unresolved.length > 0) {
     parts.push(`${unresolved.length === 1 ? "One domain remains" : `${unresolved.length} domains remain`} unresolved on the information provided.`);
   }
+  // BATCH bcf0a706 (2026-09-11, Velorix fc9153eb) — a Medium/Low domain with
+  // NO recorded gap (Regulatory Exposure: special categories noted) fell in no
+  // bucket, so "7 of the ten fully evidenced … 2 domains carry recorded gaps"
+  // left a domain unaccounted for. Ledger F7.
+  const noted = all.filter((f) =>
+    (f.severity === "Medium" || f.severity === "Low") && !f.gap_description);
+  if (noted.length > 0) {
+    parts.push(`${noted.length === 1 ? "One domain" : `${noted.length} domains`} — ${noted.map((f) => f.domain_name).join("; ")} — ${noted.length === 1 ? "is" : "are"} evidenced with a point noted for attention and no recorded gap.`);
+  }
   if (adverse.length === 0 && unresolved.length === 0 && flagged.length === 0) {
     // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31,
     // Governance P0-1) — this composer sees only the ten domain-level
