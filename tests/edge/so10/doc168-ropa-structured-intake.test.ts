@@ -267,7 +267,7 @@ Deno.test("doc168 — register cell (e) and the activity sentence carry a record
   const e = reg.activity_records[0].art30.find((c) => c.pinpoint.includes("(e)"));
   assert(e, "cell (e) must exist");
   assertStringIncludes(e!.value, "No transfer to a third country or international organisation (recorded by the Company)");
-  assertStringIncludes(reg.text, "The company has indicated that no personal data are transferred to a third country or an international organisation");
+  assertStringIncludes(reg.text, "The company has indicated that no personal data is transferred to a third country or an international organisation");
 });
 
 Deno.test("doc168 — register cell (e) renders a structured destination and a labelled mechanism, never a code", () => {

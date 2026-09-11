@@ -25,11 +25,12 @@ const VELOSTREAM_TIMING: Bag = {
   i9_existing_dpia_summary: SUMMARY,
 };
 const PENDING =
-  "Initial-assessment deadline: determination pending — record when the covered processing began (before initiation applies to processing initiated on or after January 1, 2026; the December 31, 2027 transition deadline applies to covered processing already underway before that date and continuing afterward).";
+  "Risk assessment deadline: determination pending — record when the covered processing began (under 11 CCR § 7155(a)(1) the assessment is required before initiating processing on or after January 1, 2026; under § 7155(b) covered processing already underway before that date and continuing afterward must be assessed by December 31, 2027).";
 // DOC 252 ledger C1/C2 — the CEO's sentence (2026-09-11), pinned byte-exact
 // ("the company" set in the Risk house form "the Company").
 const INDICATION_5B =
-  "Based on the information provided by the Company, processing began before January 1, 2026 and is ongoing, but a subsequent risk assessment is required before December 31, 2027.";
+  // DOC 255 (2026-09-11): restated in § 7155's own terms (doc 254A item 1, CEO-accepted).
+  "Based on the information provided by the Company, processing began before January 1, 2026 and is ongoing. Under 11 CCR § 7155(b) the risk assessment for that processing must be conducted and documented by December 31, 2027; it must then be reviewed and updated at least once every three years (§ 7155(a)(2)) and within 45 calendar days of any material change (§ 7155(a)(3)).";
 const FOLLOW_UP_BASE =
   "Record when the covered processing began, or will begin; § 7155(a)(1) requires the assessment before the Company initiates processing within § 7150(b), and the December 31, 2027 transition deadline in § 7155(b) applies only to covered processing already underway before January 1, 2026 — the applicable deadline turns on that date";
 
@@ -59,7 +60,7 @@ Deno.test("916c33a8 D1 — the indication is read only from an ongoing record wi
 Deno.test("916c33a8 D1 — § 5.B is the CEO sentence alone where the indication is on the record (the pending lead is dropped); every other branch is byte-unchanged", () => {
   // CEO 2026-09-11: "drop the preceding phrases" — the deadline line is the
   // sentence itself, and the pending state (and its Follow-Up ask) no longer applies.
-  assertEquals(deriveInitialAssessmentDeadline(VELOSTREAM_TIMING), `Initial-assessment deadline: ${INDICATION_5B}`);
+  assertEquals(deriveInitialAssessmentDeadline(VELOSTREAM_TIMING), `Risk assessment deadline: ${INDICATION_5B}`);
   assertEquals(initialAssessmentDeadlinePending(VELOSTREAM_TIMING), false);
   // doc 148 / doc 167 bytes where no indication is on the record.
   assertEquals(deriveInitialAssessmentDeadline({ processing_status: "Ongoing" }), PENDING);
@@ -68,7 +69,7 @@ Deno.test("916c33a8 D1 — § 5.B is the CEO sentence alone where the indication
   // A recorded start date still settles the deadline outright.
   assertEquals(
     deriveInitialAssessmentDeadline({ ...VELOSTREAM_TIMING, processing_start_date: "2025-06-01" }),
-    "Initial-assessment deadline: December 31, 2027 (transition deadline for covered processing initiated before January 1, 2026 and continuing afterward).",
+    "Risk assessment deadline: December 31, 2027, under 11 CCR § 7155(b), for covered processing initiated before January 1, 2026 and continuing afterward; the assessment must then be reviewed and updated at least once every three years (§ 7155(a)(2)) and within 45 calendar days of any material change (§ 7155(a)(3)).",
   );
 });
 
@@ -76,12 +77,12 @@ Deno.test("916c33a8 D1 — the rendered document carries the CEO sentence in § 
   const intake = { ...fixture("nestwave"), ...VELOSTREAM_TIMING, processing_start_date: "" };
   const text = docText(intake);
   // § 5.B: the pre-2026 rule sentence precedes the deadline line, as it does for a recorded pre-2026 start.
-  assertStringIncludes(text, `For covered processing initiated before January 1, 2026 and continuing afterward, the applicable transition deadline should be identified and tracked in the assessment record. Initial-assessment deadline: ${INDICATION_5B}`);
+  assertStringIncludes(text, `For covered processing initiated before January 1, 2026 and continuing afterward, the applicable transition deadline should be identified and tracked in the assessment record. Risk assessment deadline: ${INDICATION_5B}`);
   // Key Dates row value.
-  assertStringIncludes(text, "Based on the information provided by the Company, processing began before January 1, 2026 and is ongoing, but a subsequent risk assessment is required before December 31, 2027");
+  assertStringIncludes(text, "Based on the information provided by the Company, processing began before January 1, 2026 and is ongoing. Under 11 CCR § 7155(b) the risk assessment for that processing must be conducted and documented by December 31, 2027");
   // Follow-Up: the sentence alone, numbered, single stop.
-  assert(/\d+\. Based on the information provided by the Company, processing began before January 1, 2026 and is ongoing, but a subsequent risk assessment is required before December 31, 2027\.\n/.test(`${text}\n`), text.slice(text.indexOf("Based on the information provided by the Company") - 5, text.indexOf("Based on the information provided by the Company") + 220));
-  assert(!text.includes("2027.."), "the Follow-Up seam must not double the stop");
+  assert(/\d+\. Based on the information provided by the Company, processing began before January 1, 2026 and is ongoing\. Under 11 CCR § 7155\(b\) the risk assessment for that processing must be conducted and documented by December 31, 2027; it must then be reviewed and updated at least once every three years \(§ 7155\(a\)\(2\)\) and within 45 calendar days of any material change \(§ 7155\(a\)\(3\)\)\.\n/.test(`${text}\n`), text.slice(text.indexOf("Based on the information provided by the Company") - 5, text.indexOf("Based on the information provided by the Company") + 400));
+  assert(!text.includes("))..") && !text.includes("2027.."), "the Follow-Up seam must not double the stop");
   assert(!text.includes("determination pending — record when the covered processing began"), "the pending lead is dropped");
   assert(!text.includes(FOLLOW_UP_BASE), "the 'Record when…' ask is dropped");
 });

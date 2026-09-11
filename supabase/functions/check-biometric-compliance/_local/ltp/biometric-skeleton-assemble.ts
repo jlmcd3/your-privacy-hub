@@ -122,7 +122,7 @@ function sectorPhrase(v: unknown): string | null {
 function collectionMethodPhrase(v: unknown): string | null {
   const m = noStop(s(v));
   if (!m) return null;
-  return isSentenceValued(m) ? `the process the company describes as follows: “${m}”` : m;
+  return isSentenceValued(m) ? `the following process: “${m}”` : m;
 }
 
 const REGISTERED_STATUTE_RE = /illinois|texas|washington/i;
@@ -642,7 +642,7 @@ function composeUnregisteredJurisdictions(intake: Bag): string {
     parts.push(
       // BATCH bcf0a706 (2026-09-11) — ledger F8: the definitional and the
       // special-category pinpoints.
-      "For the EU/EEA and the United Kingdom, biometric data — personal data within the Article 4(14) definition, processed to uniquely identify a person — is a special category under Article 9(1) GDPR and Article 9(1) UK GDPR; that analysis belongs to a data protection impact assessment and, where legitimate interests is relied on, a legitimate interests assessment, each of which is its own assessment on this platform.",
+      "For the EU/EEA and the United Kingdom, biometric data (personal data within the Article 4(14) definition, processed to uniquely identify a person) is a special category under Article 9(1) GDPR and Article 9(1) UK GDPR; that analysis belongs to a data protection impact assessment and, where legitimate interests is relied on, a legitimate interests assessment, each of which is its own assessment on this platform.",
     );
   }
   parts.push(
@@ -743,11 +743,12 @@ function composeOperativeLead(report: Bag, intake: Bag): string {
       })
       .filter(Boolean);
     if (acts.length === 0) acts.push("the duties named above");
+    // L19 (CEO 2026-09-11): plain English.
     const clause = acts.length === 1
-      ? `the single next act is to remedy the shortfall against ${acts[0]}`
-      : `the next acts are to remedy the shortfalls against ${asProse(acts)}`;
+      ? `the single next step is to meet ${acts[0]}`
+      : `the next steps are to meet ${asProse(acts)}`;
     const orderingRule = praFirst
-      ? " The acts are ordered by exposure: duties under the statute whose enforcement surface records a private action come first."
+      ? " The steps are ordered by exposure: duties under a statute that allows private lawsuits come first."
       : "";
     // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31,
     // Biometric P0/P1-3) — this branch used to name ONLY the unmet duties'
@@ -765,7 +766,7 @@ function composeOperativeLead(report: Bag, intake: Bag): string {
         })
         .filter(Boolean);
       if (items.length === 0) return "";
-      return `. Separately, ${items.length === 1 ? "one duty remains unresolved by the company's answers and requires" : `${items.length} duties remain unresolved by the company's answers and require`} record completion, not remediation: ${asProse(items)}`;
+      return `. Separately, ${items.length === 1 ? "one duty is left unresolved by the company's answers and needs" : `${items.length} duties are left unresolved by the company's answers and need`} the record completed rather than a fix: ${asProse(items)}`;
     })();
     return repairRegister(stop(
       `The operative conclusion is that the programme is out of compliance on the duties named above, and ${clause}${orderingRule ? `.${orderingRule.replace(/\.$/, "")}` : ""}${recordCompletionClause}`,

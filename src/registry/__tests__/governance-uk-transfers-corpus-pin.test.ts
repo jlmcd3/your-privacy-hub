@@ -132,7 +132,8 @@ describe("ITEM 327 — transfer analysis branches to the correct chapter", () =>
     expect(out.citations_used.some((c) => c.includes("44A"))).toBe(true);
     // The only permitted Art. 44 reference is the omission row.
     // BATCH bcf0a706 (2026-09-11): the composer renders its own reader sentence; the omission row is cited, not spliced.
-    expect(out.application).toContain("There is no Article 44 in the UK GDPR");
+    // DOC 255 (2026-09-11, ledger F9): the omission is stated on the corpus record.
+    expect(out.application).toContain("Article 44 was omitted from the UK GDPR on 5 February 2026");
     expect(out.application).not.toContain("must not be cited");
     expect(out.application).not.toMatch(
       /standard data protection clauses adopted by the Commission/,

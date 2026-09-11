@@ -75,7 +75,8 @@ function text(intake: Bag): string {
 }
 
 const NOT_ENOUGH = "Not enough information to determine whether a covered decision is at issue.";
-const CUTS_AGAINST = "Cuts against Article 11 applicability.";
+// DOC 255 (2026-09-11, ledger L4): "Weighs against".
+const CUTS_AGAINST = "Weighs against Article 11 applicability.";
 
 Deno.test("batch e74fdbfd — 'None of these categories' renders as a determined negative, never as 'Not enough information'", () => {
   const intake = base({ decision_domains: [ADMT_NONE_DOMAIN] });

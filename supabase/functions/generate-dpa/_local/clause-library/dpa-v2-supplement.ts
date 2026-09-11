@@ -389,7 +389,7 @@ export function neutralBaseSections(): readonly DpaClauseSection[] {
       heading: "3. SUBJECT MATTER, NATURE, DURATION AND PURPOSE",
       clauses: [
         `3.1 The subject matter of the processing is the Personal Data the Processor processes in providing the Services, being the categories set out in Annex B (Description of the Processing).`,
-        `3.2 The Processor shall process Personal Data solely for the specific business purposes of providing the Services described in Annex B, and for no other purpose. A generic reference to the Principal Agreement does not substitute for the specific description in Annex B.`,
+        `3.2 The Processor shall process Personal Data solely for the specific business purposes of providing the Services described in Annex B, and for no other purpose. The Services shall be described specifically in Annex B; a reference to the Principal Agreement alone shall not constitute that description.`,
         `3.3 The processing shall continue for the duration of this DPA, and the retention position is: {retention}. Where a retention period runs from an event, the event is [TO BE COMPLETED: the event marking the start of the retention period — to be defined by the Parties by reference to the Principal Agreement].`,
       ],
     },

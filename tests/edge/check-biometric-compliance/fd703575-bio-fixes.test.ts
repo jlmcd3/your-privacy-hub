@@ -169,6 +169,7 @@ Deno.test("DELTA: the operative conclusion names unresolved duties separately fr
   assert(lead.length > 0, "the out-of-compliance lead must render on this fixture");
   // This fixture leaves security-measures/retention-timing unanswered, so two
   // duties (§15(d), §15(e)) are unresolved alongside the unmet ones.
-  assertStringIncludes(lead, "). Separately, 2 duties remain unresolved");
-  assertStringIncludes(lead, "record completion, not remediation");
+  // DOC 255 (2026-09-11, L19 plain English).
+  assertStringIncludes(lead, "). Separately, 2 duties are left unresolved");
+  assertStringIncludes(lead, "the record completed rather than a fix");
 });

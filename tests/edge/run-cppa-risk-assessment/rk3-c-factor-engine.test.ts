@@ -337,7 +337,8 @@ for (const c of CPPA_RISK_PERFECT) {
       const occurrences = body.split("Based on the information provided by the Company").length - 1;
       assert(occurrences <= 3, `the determination conclusion renders ${occurrences} times`);
       assert(
-        body.includes("The reasoning behind each row, and the determination it produces, appear in Section 4."),
+        // DOC 255 (2026-09-11, ledger L1): the pointer sentence restated.
+        body.includes("Section 4 explains the reasoning supporting each factor and the resulting determination."),
         "exec determination pointer absent",
       );
       assert(body.includes("D. Outcome and Conditions."), "exec outcome head absent");

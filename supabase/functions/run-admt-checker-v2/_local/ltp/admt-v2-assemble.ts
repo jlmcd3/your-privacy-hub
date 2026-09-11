@@ -198,16 +198,17 @@ function significantDecisionPhrase(effect: DecisionEffect): string {
   // categoricalNone), and the scope qualification says the determination
   // RESTS on that answer; this cell read "Not enough information" beside it.
   // A categorical negative is a determined fact, not a gap.
-  if (effect === "WEIGHS_AGAINST") return "Cuts against Article 11 applicability.";
+  // DOC 255 (2026-09-11, ledger L4 accepted by the CEO): "Weighs against".
+  if (effect === "WEIGHS_AGAINST") return "Weighs against Article 11 applicability.";
   return "Not enough information to determine whether a covered decision is at issue.";
 }
 function humanInvolvementPhrase(effect: DecisionEffect): string {
-  if (effect === "WEIGHS_AGAINST") return "Cuts against ADMT status.";
+  if (effect === "WEIGHS_AGAINST") return "Weighs against ADMT status.";
   if (effect === "SUPPORTS") return "Supports ADMT status.";
   return "Not enough information about the human role.";
 }
 function advertisingPhrase(effect: DecisionEffect): string {
-  return effect === "WEIGHS_AGAINST" ? "Cuts against significant-decision scope." : "No effect on scope.";
+  return effect === "WEIGHS_AGAINST" ? "Weighs against significant-decision scope." : "No effect on scope.";
 }
 function outputRolePhrase(): string {
   return "No independent effect on applicability; establishes the factual record for the Notice and Access sections.";
@@ -755,9 +756,10 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   push("system_profile", "1. System and Decision Profile", [
     // NR-75 fix (doc 75): same blank-domains degradation as the exec summary.
     { kind: "skeleton", text: `The Company identifies the System as ${systemName || "(not provided)"}${sysTypePhrase}. The Company describes the System as follows: ${sysDescSentence} ${
-      // DOC 251 ledger A3 — CEO-revised bytes (2026-09-10).
+      // DOC 251 ledger A3 — CEO-revised bytes (2026-09-10); DOC 255 ledger L3
+      // (2026-09-11, CEO-accepted): the reported use precedes the position.
       noneOnly
-        ? "The Company’s position is that the decision the System makes is not a “significant decision” under § 7001(ddd)."
+        ? "The Company reports that the System is not used to make a decision in any of the § 7001(ddd) categories, and its position is therefore that the decision the System makes is not a “significant decision” under § 7001(ddd)."
         : domains.length
         ? `The System is used in ${reader(domains)}.`
         : "The Company has not identified the decision domain in which the System is used."

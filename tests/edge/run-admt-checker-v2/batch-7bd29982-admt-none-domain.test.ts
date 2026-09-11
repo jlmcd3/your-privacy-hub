@@ -59,7 +59,8 @@ Deno.test("7bd29982 ADMT-1 — the 'None of these categories' option renders as 
   assertStringIncludes(exec, "The Company’s position is that the decision VeloTarget Behavioral Scoring Engine makes is not a “significant decision” under § 7001(ddd).");
   assert(!exec.includes("in None of these categories"), exec);
   const profile = sectionText(doc, "system_profile");
-  assertStringIncludes(profile, "The Company’s position is that the decision the System makes is not a “significant decision” under § 7001(ddd).");
+  // DOC 255 (2026-09-11, ledger L3): the reported use precedes the position.
+  assertStringIncludes(profile, "The Company reports that the System is not used to make a decision in any of the § 7001(ddd) categories, and its position is therefore that the decision the System makes is not a “significant decision” under § 7001(ddd).");
   assert(!profile.includes("The System is used in None"), profile);
 });
 

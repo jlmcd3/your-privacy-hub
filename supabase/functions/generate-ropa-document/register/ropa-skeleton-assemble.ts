@@ -393,9 +393,10 @@ function transferClause(a: RopaActivityInput): string {
     // is stated with the recorded no-transfer, in the Company's own words.
     const within = s(a.transferWithinRegion);
     if (recorded(within)) {
-      return `The company has indicated that personal data are held at ${noStop(within)} and that no personal data are transferred to a third country or an international organisation`;
+      return `The company has indicated that personal data are held at ${noStop(within)} and that no personal data is transferred to a third country or an international organisation`;
     }
-    return "The company has indicated that no personal data are transferred to a third country or an international organisation";
+    // Ledger F5 (CEO 2026-09-11): "no personal data is".
+    return "The company has indicated that no personal data is transferred to a third country or an international organisation";
   }
   const dest = s(a.transferDestination);
   if (!recorded(dest) || /^no\b|^none\b|no third[- ]country/i.test(dest)) return "";
@@ -420,17 +421,40 @@ const s2 = (v: unknown): string => (typeof v === "string" ? v : String(v ?? ""))
 // a verb, so an answer written as a sentence rendered "handled Requests
 // handled by ...". Four honest branches; the activity-specific override
 // folds into the same sentence.
+// DOC 255 (2026-09-11, doc 253 CEO item P1) — the rights that attach turn
+// on the lawful basis recorded for the activity: withdrawal on consent
+// (Art. 7(3)), objection on legitimate interests or public task (Art. 21),
+// portability on consent or contract (Art. 20); access, rectification,
+// erasure and restriction (Arts. 15–18) apply on every basis. A processor
+// activity carries no basis of its own, so the sentence is omitted.
+export function rightsByBasisSentence(a: RopaActivityInput): string {
+  if (a.activityRole === "processor") return "";
+  const basis = s(a.lawfulBasis);
+  if (!recorded(basis)) return "";
+  const consent = /6\(1\)\(a\)|\bconsent\b/i.test(basis);
+  const contract = /6\(1\)\(b\)|\bcontract\b/i.test(basis);
+  const liOrTask = /6\(1\)\(e\)|6\(1\)\(f\)|legitimate interest|public task|public interest|official authority/i.test(basis);
+  const extra: string[] = [];
+  if (consent) extra.push("withdraw consent at any time (Article 7(3))");
+  if (liOrTask) extra.push("object to the processing (Article 21)");
+  if (consent || contract) extra.push("receive the data in a portable form (Article 20)");
+  const head = "On the lawful basis recorded for this activity, the rights of access, rectification, erasure and restriction (Articles 15 to 18) apply";
+  return extra.length ? `${head}, and the individual may also ${asProse(extra)}` : head;
+}
+
 function rightsSentence(a: RopaActivityInput): string {
   const base = recorded(a.rightsHandling) ? noStop(s(a.rightsHandling)) : "";
   const over = recorded(a.rightsOverride) ? noStop(s(a.rightsOverride)) : "";
+  const byBasis = rightsByBasisSentence(a);
+  const withBasis = (lead: string): string => (byBasis ? `${lead}. ${byBasis}` : lead);
   if (base && over) {
-    return `The company has indicated that rights requests are handled as follows: ${base}, subject to the activity-specific process the company has described: ${over}`;
+    return withBasis(`The company has indicated that rights requests are handled as follows: ${base}, subject to the activity-specific process the company has described: ${over}`);
   }
-  if (base) return `The company has indicated that rights requests are handled as follows: ${base}`;
+  if (base) return withBasis(`The company has indicated that rights requests are handled as follows: ${base}`);
   if (over) {
-    return `The company has not recorded a general process for handling rights requests; for this activity it has indicated that they are handled as follows: ${over}`;
+    return withBasis(`The company has not recorded a general process for handling rights requests; for this activity it has indicated that they are handled as follows: ${over}`);
   }
-  return "How rights requests are handled is not recorded";
+  return withBasis("How rights requests are handled is not recorded");
 }
 
 export function buildActivitySlots(a: RopaActivityInput): SlotValues {
@@ -625,13 +649,34 @@ function composeCompletenessFindings(
   // may carry an answer its activity was later re-templated away from). The
   // template allow-list gates ONLY whether the negative "not stated" gap
   // sentence is fair to compose.
+  // DOC 255 (2026-09-11, ChatGPT review ROPA-04 as accepted by the CEO) —
+  // with two or more activities carrying notice, incident-log or assessment
+  // facts, the review reads activity by activity (one line each) instead of
+  // three sentences that each list every activity.
+  const lines: string[] = [];
+  const perActivity = input.activities.filter((a) =>
+    recorded(a.noticesDisplayed) || recorded(a.incidentLog) || a.relatedAssessments.some(recorded)
+  );
+  const activityByActivity = perActivity.length >= 2;
+  if (activityByActivity) {
+    sentences.push("On notices, the incident log and the company's own assessments, the record reads activity by activity");
+    for (const a of perActivity) {
+      const bits: string[] = [];
+      if (recorded(a.noticesDisplayed)) bits.push(`notices displayed — ${noStop(s(a.noticesDisplayed))}`);
+      if (recorded(a.incidentLog)) bits.push(`incident log — ${noStop(s(a.incidentLog))}`);
+      const cited = a.relatedAssessments.filter(recorded).map((r) => noStop(s(r)));
+      if (cited.length) bits.push(`related assessments — ${asProse(cited)}`);
+      lines.push(`\u2014 ${s(a.name)}: ${bits.join("; ")}.`);
+    }
+  }
+
   const noticesAskable = input.activities.filter((a) => NOTICES_DISPLAYED_TEMPLATES.has(s(a.templateKey)));
   const notices = input.activities.filter((a) => recorded(a.noticesDisplayed));
-  if (notices.length) {
+  if (notices.length && !activityByActivity) {
     sentences.push(
       `On notices, the company has indicated ${asProse(notices.map((a) => `${s(a.name)}: ${noStop(s(a.noticesDisplayed))}`))}`,
     );
-  } else if (noticesAskable.length) {
+  } else if (noticesAskable.length && !notices.length) {
     // DOC 135 (Batch 4 A-Team review, 2026-09-01) — customer-facing
     // vocabulary filter: "intake" is an internal term.
     // DOC 166 — only composed when a recorded activity's own template can
@@ -645,11 +690,11 @@ function composeCompletenessFindings(
 
   const logsAskable = input.activities.filter((a) => INCIDENT_LOG_TEMPLATES.has(s(a.templateKey)));
   const logs = input.activities.filter((a) => recorded(a.incidentLog));
-  if (logs.length) {
+  if (logs.length && !activityByActivity) {
     sentences.push(
       `On the incident log, the company has described ${asProse(logs.map((a) => noStop(s(a.incidentLog))))}`,
     );
-  } else if (logsAskable.length) {
+  } else if (logsAskable.length && !logs.length) {
     sentences.push(
       "No breach or incident register has been described; naming the register and the person who maintains it would close the point",
     );
@@ -658,11 +703,11 @@ function composeCompletenessFindings(
   const cited = input.activities.flatMap((a) =>
     a.relatedAssessments.filter(recorded).map((r) => `${s(a.name)}: ${noStop(s(r))}`),
   );
-  if (cited.length) {
+  if (cited.length && !activityByActivity) {
     sentences.push(
       `The company's own assessments are cited alongside the activities they support \u2014 ${asProse(cited)}`,
     );
-  } else {
+  } else if (!cited.length) {
     sentences.push(
       "No legitimate interests assessment or data protection impact assessment of the company's own is cited against any activity; completing and citing those assessments where the processing calls for them would close the point",
     );
@@ -674,7 +719,40 @@ function composeCompletenessFindings(
     );
   }
 
-  return sentences.map(stop).join(" ");
+  // DOC 255 (2026-09-11, doc 253 CEO item P2) — recommendations the record
+  // itself raises: precise location data (a DPIA screening point), health
+  // data or occupational-health recipients (an Article 9 condition to
+  // record), and an unrecorded home base.
+  const recommendations = completenessRecommendations(input);
+
+  const lead = sentences.map(stop).join(" ");
+  return [lead, ...lines, recommendations].filter(Boolean).join("\n\n");
+}
+
+const PRECISE_LOCATION_RE = /precise (?:geo)?location|\bgps\b|geolocation|location (?:data|history|tracking)/i;
+const HEALTH_DATA_RE = /\b(?:occupational[- ]health|health|medical|clinical|sickness|fitness[- ]to[- ]work)\b/i;
+
+export function completenessRecommendations(input: RopaAssembleInput): string {
+  const recs: string[] = [];
+  const location = input.activities.filter((a) => PRECISE_LOCATION_RE.test(s(a.dataCategories)));
+  if (location.length) {
+    recs.push(
+      `${asProse(location.map((a) => s(a.name)))} ${location.length === 1 ? "records" : "record"} precise location data. Check whether a data protection impact assessment is required for that processing: location data is data of a highly personal nature under the EDPB's screening criteria (Article 35(1) GDPR; WP248 rev.01), and none of the company's own assessments is cited against it unless named above.`,
+    );
+  }
+  const health = input.activities.filter((a) =>
+    HEALTH_DATA_RE.test(s(a.recipients)) || HEALTH_DATA_RE.test(s(a.dataCategories))
+  );
+  if (health.length) {
+    recs.push(
+      `${asProse(health.map((a) => s(a.name)))} ${health.length === 1 ? "involves" : "involve"} health data or health-related recipients. Record the Article 9(2) condition relied on — for occupational medicine, Article 9(2)(h), which applies only where the data is processed by or under the responsibility of a professional bound by an obligation of secrecy (Article 9(3)) — and the processor contract with each health recipient.`,
+    );
+  }
+  if (!recorded(input.homeBase)) {
+    recs.push("Record the company's home base in the register set-up, so the register states where the controller is established.");
+  }
+  if (!recs.length) return "";
+  return `${recs.length === 1 ? "Recommendation" : "Recommendations"}. ${recs.map(stop).join(" ")}`;
 }
 
 // ── Table of Authorities (deterministic, iff-cited) ─────────────────────────

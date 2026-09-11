@@ -432,15 +432,16 @@ Deno.test("doc148 — no question numbers in any composed factor; counsel except
 Deno.test("doc148 — initial-assessment deadline is fact-gated on the start date", () => {
   assertEquals(
     deriveInitialAssessmentDeadline({ processing_status: "Ongoing" }),
-    "Initial-assessment deadline: determination pending — record when the covered processing began (before initiation applies to processing initiated on or after January 1, 2026; the December 31, 2027 transition deadline applies to covered processing already underway before that date and continuing afterward).",
+    // DOC 255 (2026-09-11): § 7155's own terms (doc 254A item 1).
+    "Risk assessment deadline: determination pending — record when the covered processing began (under 11 CCR § 7155(a)(1) the assessment is required before initiating processing on or after January 1, 2026; under § 7155(b) covered processing already underway before that date and continuing afterward must be assessed by December 31, 2027).",
   );
   assertEquals(
     deriveInitialAssessmentDeadline({ processing_status: "Ongoing", processing_start_date: "2025-06-01" }),
-    "Initial-assessment deadline: December 31, 2027 (transition deadline for covered processing initiated before January 1, 2026 and continuing afterward).",
+    "Risk assessment deadline: December 31, 2027, under 11 CCR § 7155(b), for covered processing initiated before January 1, 2026 and continuing afterward; the assessment must then be reviewed and updated at least once every three years (§ 7155(a)(2)) and within 45 calendar days of any material change (§ 7155(a)(3)).",
   );
   assertEquals(
     deriveInitialAssessmentDeadline({ processing_status: "Ongoing", processing_start_date: "2026-03-01" }),
-    "Initial-assessment deadline: before initiation of the processing (processing initiated 2026-03-01).",
+    "Risk assessment deadline: before initiation of the processing, under 11 CCR § 7155(a)(1) (processing initiated 2026-03-01).",
   );
   const planned = deriveInitialAssessmentDeadline({ processing_status: "Planned", planned_start_date: "2026-11-01" });
   assert(planned !== null && planned.includes("before the processing is initiated"), "planned branch disturbed");

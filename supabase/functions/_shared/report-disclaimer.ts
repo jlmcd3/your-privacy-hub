@@ -5,9 +5,15 @@
 // (PDF, DOCX, XLSX, HTML, markup document_text).
 //
 // Do not edit, reflow, or "improve" this string.
+//
+// DOC 255 (2026-09-11): reworded on the CEO's acceptance of doc 254A item 2
+// (plain statement of the provider processing, the DPA obligation and the
+// no-retention position; educational/strategic character; no attorney-client
+// relationship). Counsel is to confirm the operational accuracy of the
+// provider-retention sentence against the providers' terms.
 
 export const REPORT_DISCLAIMER =
-  "EndUserPrivacy.com, owned and operated by EUP, LLC (\u201CEUP\u201D), utilizes your information in a secure manner with third party providers to generate your documents. EUP requires those third party providers to execute appropriate data processing agreements. Accordingly, your information remains confidential and is never retained by EUP providers for any purpose. Documents from EUP are intended for educational and strategic planning purposes only, so they do not establish an attorney-client relationship. Instead, they constitute general analysis of complex regulatory matters and are not a substitute for legal counsel.";
+  "EndUserPrivacy.com, owned and operated by EUP, LLC (\u201CEUP\u201D), processes the information you supply with third-party service providers in order to generate your documents. Those providers are bound by written data processing agreements and do not retain your information for their own purposes. Documents produced by EUP are educational and strategic planning materials; they do not create an attorney-client relationship, are general analysis of complex regulatory matters, and are not a substitute for advice from legal counsel.";
 
 /** HTML fragment for PDF/HTML builders — unobtrusive, hairline separator.
  *

@@ -630,7 +630,7 @@ function isNonApplicableAuthority(citation: string): boolean {
 // so the Table of Authorities contradicted the body. Skip a match whose
 // immediate context carries negation phrasing.
 const CITATION_NEGATION =
-  /\b(there is no|there are no|is not in force|are not in force|must not be cited|may not be cited|does not apply|do not apply|is omitted|are omitted|no longer|not applicable|inapplicable)\b/i;
+  /\b(there is no|there are no|is not in force|are not in force|must not be cited|may not be cited|does not apply|do not apply|is omitted|are omitted|was omitted|were omitted|no longer|not applicable|inapplicable)\b/i;
 const CITATION_NEG_WINDOW = 140;
 
 // DOC 141 (2026-09-02) — BUG 1(a): the number token carries an optional

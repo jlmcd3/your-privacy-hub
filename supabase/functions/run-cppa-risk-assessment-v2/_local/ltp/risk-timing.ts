@@ -29,16 +29,21 @@ export function deriveInitialAssessmentDeadline(intake: Bag): string | null {
   const start = s(intake.processing_start_date);
   const planned = s(intake.planned_start_date);
   if (/^planned/i.test(status)) {
-    return `Initial-assessment deadline: before the processing is initiated${planned ? ` (planned start: ${planned})` : ""}.`;
+    // DOC 255 (2026-09-11, CEO on doc 254A item 1): the labels use the
+    // regulation's own term — "risk assessment" — and cite the rule that
+    // sets each deadline, so the order (assessment, then three-year review
+    // and 45-day material-change updates) is clear; "initial" and
+    // "subsequent" are not the regulation's words.
+    return `Risk assessment deadline: before the processing is initiated, under 11 CCR § 7155(a)(1)${planned ? ` (planned start: ${planned})` : ""}.`;
   }
   if (start && start < "2026-01-01") {
-    return "Initial-assessment deadline: December 31, 2027 (transition deadline for covered processing initiated before January 1, 2026 and continuing afterward).";
+    return "Risk assessment deadline: December 31, 2027, under 11 CCR § 7155(b), for covered processing initiated before January 1, 2026 and continuing afterward; the assessment must then be reviewed and updated at least once every three years (§ 7155(a)(2)) and within 45 calendar days of any material change (§ 7155(a)(3)).";
   }
   if (start) {
-    return `Initial-assessment deadline: before initiation of the processing (processing initiated ${start}).`;
+    return `Risk assessment deadline: before initiation of the processing, under 11 CCR § 7155(a)(1) (processing initiated ${start}).`;
   }
   const pending =
-    "Initial-assessment deadline: determination pending — record when the covered processing began (before initiation applies to processing initiated on or after January 1, 2026; the December 31, 2027 transition deadline applies to covered processing already underway before that date and continuing afterward).";
+    "Risk assessment deadline: determination pending — record when the covered processing began (under 11 CCR § 7155(a)(1) the assessment is required before initiating processing on or after January 1, 2026; under § 7155(b) covered processing already underway before that date and continuing afterward must be assessed by December 31, 2027).";
   // DOC 252 D1 (CEO-ruled 2026-09-10, revised 2026-09-11, batch 916c33a8
   // Velostream): where the record itself indicates the processing predates
   // 2026 — recorded as ongoing, with a prior assessment the Company dates
@@ -48,14 +53,17 @@ export function deriveInitialAssessmentDeadline(intake: Bag): string | null {
   // 2026-09-11), so `initialAssessmentDeadlinePending` is false here and the
   // engine draws the C2 Follow-Up from `priorAssessmentDateBefore2026`.
   return priorAssessmentDateBefore2026(intake)
-    ? `Initial-assessment deadline: ${DOC252_C1_C2_SENTENCE}`
+    ? `Risk assessment deadline: ${DOC252_C1_C2_SENTENCE}`
     : pending;
 }
 
 /** DOC 252 ledger C1/C2 — the CEO's sentence (2026-09-11), one home for both
  *  the § 5.B / Key Dates surface and the § 4.D Follow-Up. */
+// DOC 255 (2026-09-11, CEO on doc 254A item 1): restated in § 7155's own
+// terms with the order of obligations explicit (assessment by the § 7155(b)
+// date, then § 7155(a)(2) review and § 7155(a)(3) updates).
 export const DOC252_C1_C2_SENTENCE =
-  "Based on the information provided by the Company, processing began before January 1, 2026 and is ongoing, but a subsequent risk assessment is required before December 31, 2027.";
+  "Based on the information provided by the Company, processing began before January 1, 2026 and is ongoing. Under 11 CCR § 7155(b) the risk assessment for that processing must be conducted and documented by December 31, 2027; it must then be reviewed and updated at least once every three years (§ 7155(a)(2)) and within 45 calendar days of any material change (§ 7155(a)(3)).";
 
 /**
  * DOC 252 D1 — the record's own indication that the processing predates

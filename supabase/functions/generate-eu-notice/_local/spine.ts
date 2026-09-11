@@ -210,6 +210,9 @@ export function buildGdprSpine(ctx: SpineCtx): SpineResult {
   const isEstEEA = EEA_RE.test(estLower);
   const isEstUK = UK_RE.test(estLower);
   const repNeeded = isUK ? !isEstUK : !isEstEEA;
+  // A recorded establishment outside the region (blank = unknown, never
+  // asserted). Used by the complaints section (CR-7) and the Art. 27 note (N2).
+  const establishedOutsideEea = Boolean(establishment) && !isEstEEA;
 
   // ── Intro ───────────────────────────────────────────────────────────────
   const scopeFill = fill("insert the services, websites, applications, products or other activities this Notice covers");
@@ -281,6 +284,12 @@ export function buildGdprSpine(ctx: SpineCtx): SpineResult {
       parts.push(p(isUK
         ? `Where we are not established in the United Kingdom and Article 27 of the UK GDPR applies to the processing described in this Notice, our representative in the United Kingdom is: ${repLine}.`
         : `Where we are not established in the EEA and Article 27 of the GDPR applies to the processing described in this Notice, our representative in the Union is: ${repLine}.`));
+      // DOC 255 (2026-09-11, doc 253 CEO item N2) — a controller whose
+      // recorded establishment is outside the EEA and who has not named a
+      // representative is told why Article 27 is engaged, and the exemption.
+      if (!isUK && establishedOutsideEea && !repName) {
+        parts.push(p(`Because we are established outside the EEA and this Notice covers individuals in the EEA, Article 27(1) of the GDPR requires us to designate a representative in the Union unless the exemption in Article 27(2) applies (occasional processing that does not include large-scale processing of special categories of data or of data relating to criminal convictions and offences, and that is unlikely to result in a risk to the rights and freedoms of individuals).`));
+      }
       parts.push(p(`You may contact our representative, in addition to contacting us directly, about matters relating to the processing of your personal data under ${esc(LAW)}.`));
     }
     sections.push({ title: "Who Is Responsible for Your Personal Data?", html: parts.join("\n") });
@@ -434,7 +443,19 @@ export function buildGdprSpine(ctx: SpineCtx): SpineResult {
         parts.push(p(isUK
           ? `Where such a decision is taken, we ensure that the safeguards required by Article 22C of the UK GDPR are in place, including measures that provide you with information about the decision, enable you to make representations about it, enable you to obtain human intervention on our part, and enable you to contest the decision.`
           : `Where such a decision is permitted under Article 22(2) of the GDPR, you have the right to obtain human intervention on our part, to express your point of view and to contest the decision (Article 22(3) of the GDPR).`));
-        parts.push(runIn("How to request human intervention or contest a decision", fill("insert how an individual can obtain human intervention, express their point of view and contest a decision")));
+        // DOC 255 (2026-09-11, doc 253 CEO item N1) — where the recorded
+        // detail already states the route (appeal, contest, human review),
+        // that sentence pre-fills the line; the customer still confirms it.
+        const routeSentence = automatedDetail
+          .split(/(?<=[.!?])\s+/)
+          .map((x) => x.trim())
+          .find((x) => /\b(appeal|contest|challenge|human review|request (?:a )?review|dispute|escalat)/i.test(x)) ?? "";
+        parts.push(runIn(
+          "How to request human intervention or contest a decision",
+          routeSentence
+            ? `${esc(trimStop(routeSentence))}. ${fill("confirm this route and add any further step for obtaining human intervention and expressing your point of view")}`
+            : fill("insert how an individual can obtain human intervention, express their point of view and contest a decision"),
+        ));
       }
     }
     sections.push({ title: "Profiling and Automated Decision-Making", html: parts.join("\n") });
@@ -533,7 +554,6 @@ export function buildGdprSpine(ctx: SpineCtx): SpineResult {
       // controller is established).
       const UK_AUTHORITY_RE = /information commissioner|\bico\b/i;
       const contactIsUk = UK_AUTHORITY_RE.test(dpaContact);
-      const establishedOutsideEea = Boolean(establishment) && !isEstEEA;
       if (establishedOutsideEea) {
         const principal = dpaContact && !contactIsUk ? ` The supervisory authority we deal with principally is <strong>${esc(dpaContact)}</strong>.` : "";
         parts.push(p(`You have the right to lodge a complaint with a supervisory authority, in particular in the Member State of your habitual residence, place of work or place of the alleged infringement (Article 77 of the GDPR). Because we are not established in the EEA, no single supervisory authority acts as our lead authority; the supervisory authority of the Member State in which you live or work is competent to receive your complaint, and the European Data Protection Board publishes the list of supervisory authorities at <a href="https://www.edpb.europa.eu/about-edpb/about-edpb/members_en">https://www.edpb.europa.eu/about-edpb/about-edpb/members_en</a>.${principal} You may also raise your concern with our representative in the EEA named above, and we would welcome the opportunity to address it first.`));

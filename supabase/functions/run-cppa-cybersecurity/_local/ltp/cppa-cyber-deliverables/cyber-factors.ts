@@ -674,8 +674,9 @@ export function buildCrossCutting(intake: Bag, d: CyberDeliverables, recs: reado
     ? (strongestRecurrence >= 3
       ? `Across the ${implGaps.length} components with implementation gaps (${notImplCount} not implemented, ${partialCount} partially implemented), the Company's own descriptions recur on ${asProse(recurringTerms.map(([t, n]) => `${t} (named in ${n} of the gapped descriptions)`))}. The gaps concentrate on shared systems and facilities rather than isolated misses, and closing the shared surface closes several components at once.`
       : strongestRecurrence === 2
-      ? `Across the ${implGaps.length} components with implementation gaps (${notImplCount} not implemented, ${partialCount} partially implemented), the Company's own descriptions recur on ${asProse(recurringTerms.map(([t, n]) => `${t} (named in ${n} of the gapped descriptions)`))}, so those gaps share an origin and close together; the remaining gaps are component-specific in origin and close independently.`
-      : `Across the ${implGaps.length} components with implementation gaps (${notImplCount} not implemented, ${partialCount} partially implemented), no single system or facility recurs across the Company's descriptions; the gaps are component-specific in origin and close independently.`)
+      // Ledger B1 (CEO 2026-09-11): plain English, the CEO's construction.
+      ? `Across the ${implGaps.length} components with implementation gaps (${notImplCount} not implemented, ${partialCount} partially implemented), the Company's own descriptions name ${asProse(recurringTerms.map(([t, n]) => `${t} (in ${n} of them)`))}, so those gaps share one cause and one fix. The remaining gaps are component-specific and need individual fixes.`
+      : `Across the ${implGaps.length} components with implementation gaps (${notImplCount} not implemented, ${partialCount} partially implemented), no single system or facility is named in more than one description, so each gap is component-specific and needs its own fix.`)
     : "No systemic pattern emerges across components; the open items are component-specific.";
   // PANEL CYB-3 (2026-08-30): "No prior audit coverage is recorded" collided
   // with "Most recent audit: Within 12 months" two sections earlier. Where

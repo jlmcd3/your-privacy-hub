@@ -79,7 +79,8 @@ Deno.test("916c33a8 CYB-1 — a system named in two of four gapped descriptions 
   const text = section4(velostream());
   assertStringIncludes(
     text,
-    "Across the 4 components with implementation gaps (0 not implemented, 4 partially implemented), the Company's own descriptions recur on DSP (named in 2 of the gapped descriptions), so those gaps share an origin and close together; the remaining gaps are component-specific in origin and close independently.",
+    // Ledger B1 as re-ratified 2026-09-11 (CEO: plain English).
+    "Across the 4 components with implementation gaps (0 not implemented, 4 partially implemented), the Company's own descriptions name DSP (in 2 of them), so those gaps share one cause and one fix. The remaining gaps are component-specific and need individual fixes.",
   );
   assert(!text.includes("no single system or facility recurs"), "the contradicted sentence must not render");
   assert(!text.includes("closing the shared surface closes several components at once"), "a two-of-four recurrence never takes the concentration claim");
@@ -90,7 +91,7 @@ Deno.test("916c33a8 CYB-1 — with no term in two descriptions the component-spe
   const text = section4(velostream(notes));
   assertStringIncludes(
     text,
-    "Across the 4 components with implementation gaps (0 not implemented, 4 partially implemented), no single system or facility recurs across the Company's descriptions; the gaps are component-specific in origin and close independently.",
+    "Across the 4 components with implementation gaps (0 not implemented, 4 partially implemented), no single system or facility is named in more than one description, so each gap is component-specific and needs its own fix.",
   );
 });
 
@@ -107,5 +108,5 @@ Deno.test("916c33a8 CYB-1 — with more than four gapped components a two-count 
     c9_anti_malware: "EDR is deployed on corporate endpoints; cloud VMs are not yet covered.",
   };
   const text = section4(velostream(notes));
-  assertStringIncludes(text, "Across the 6 components with implementation gaps (0 not implemented, 6 partially implemented), no single system or facility recurs across the Company's descriptions");
+  assertStringIncludes(text, "Across the 6 components with implementation gaps (0 not implemented, 6 partially implemented), no single system or facility is named in more than one description");
 });

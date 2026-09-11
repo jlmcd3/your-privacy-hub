@@ -146,7 +146,7 @@ Deno.test("doc167 — the timing Follow-Up completes the pending state on the re
     // longer renders the pending state — the deadline line and the Follow-Up
     // are the CEO's sentence instead. NestWave (no prior assessment) is unchanged.
     if (priorAssessmentDateBefore2026(intake)) {
-      assertStringIncludes(text, "Based on the information provided by the Company, processing began before January 1, 2026 and is ongoing, but a subsequent risk assessment is required before December 31, 2027");
+      assertStringIncludes(text, "Based on the information provided by the Company, processing began before January 1, 2026 and is ongoing. Under 11 CCR § 7155(b) the risk assessment for that processing must be conducted and documented by December 31, 2027");
       assert(!text.includes("determination pending — record when the covered processing began"), "pending lead must not render beside the CEO sentence");
       continue;
     }

@@ -345,19 +345,23 @@ export function buildInterestLegitimacy(intake: unknown): InterestLegitimacyFind
   // that reads identically on any record). Every clause is the sub-test's
   // OWN reasoning verbatim-trimmed — nothing is re-judged here.
   const ordinal = ["first", "second", "third"] as const;
+  // DOC 255 (2026-09-11, ledger L8 accepted by the CEO): one sentence per
+  // condition instead of one 150-word sentence; each clause is still the
+  // sub-test's own reasoning, verbatim-trimmed.
   const conditionWalk = sub_tests
     .map((t, i) => {
       const why = firstSentenceSafe(t.reasoning);
-      return `the ${ordinal[i]} — ${t.label.charAt(0).toLowerCase()}${t.label.slice(1)} — is ${liaVerdictLabel(t.verdict)}${why ? ` (${why})` : ""}`;
+      const label = `${t.label.charAt(0).toLowerCase()}${t.label.slice(1)}`;
+      return `${i === 0 ? "the" : "The"} ${ordinal[i]} condition — ${label} — is ${liaVerdictLabel(t.verdict)}${why ? ` (${why})` : ""}.`;
     })
-    .join("; ");
+    .join(" ");
   // 2026-08-29 — the actual multi-purpose fix lives in sub-test 2 above
   // (detectPurposeBundling), not here: a bundled statement now surfaces
   // through clearVerdict/clearNeeded and the existing information_needed
   // path, per the Target/Old/New comparison in doc 105. This walk stays a
   // verbatim-trim of each sub-test's own reasoning; nothing re-judged here.
   const application =
-    `${lc(std.verbatim) ? `The Guidelines put the test cumulatively: ${std.verbatim} ` : ""}Taken condition by condition on what this record states, ${conditionWalk}. ${cumulative_note} On that basis the first limb of Article 6(1)(f) is recorded as: ${liaVerdictLabel(verdict)}.`;
+    `${lc(std.verbatim) ? `The Guidelines put the test cumulatively: ${std.verbatim} ` : ""}Taken condition by condition on what this record states, ${conditionWalk} ${cumulative_note} On that basis the first limb of Article 6(1)(f) is recorded as: ${liaVerdictLabel(verdict)}.`;
 
   return {
     standard: std.verbatim || basis.verbatim,

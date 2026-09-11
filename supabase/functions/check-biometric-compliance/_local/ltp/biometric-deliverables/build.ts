@@ -656,7 +656,7 @@ function noDisclosureRecorded(bases: string[]): boolean {
 function disclosureRecordFact(recipients: string | null, bases: string[]): string {
   const r = recipients ? recipients.replace(/[.\s]+$/, "") : "";
   if (noDisclosureRecorded(bases)) {
-    return `The company reports that no disclosures of biometric data are made${r ? `: ${r}` : ""}.`;
+    return `The company reports that it does not disclose biometric data to third parties${r ? `: ${r}` : ""}.`;
   }
   return `Recipients: ${r || "not supplied"}. Bases asserted: ${bases.join("; ") || "none supplied"}.`;
 }
@@ -949,7 +949,7 @@ function buildIlDuties(
       ? `§ 15(d) admits four bases only: subject consent, completion of a financial transaction the subject requested or authorised, a State, federal, or municipal law requirement, and a valid warrant or subpoena. The record asserts ${il.offending.map((o) => `"${o}"`).join(", ")}, which ${il.offending.length === 1 ? "is not one of them" : "are not among them"}.`
       : il.verdict === "satisfied"
       ? (noDisclosureRecorded(bases)
-        ? "Because the record states that no disclosure is made, the § 15(d) limits are not engaged and no disclosure basis needs to be invoked."
+        ? "Because the company makes no disclosures, the § 15(d) limits do not come into play and no disclosure basis is needed."
         : "Each basis the record asserts falls within one of the four limbs § 15(d) allows.")
       : "The record does not state on what basis biometric data is disclosed.",
     il.verdict,
@@ -1029,7 +1029,7 @@ function buildTxDuties(intake: BiometricIntakeForDeliverables): DutyFinding[] {
       ? `§ 503.001(c)(1) allows disclosure on four bases only, and its consent limb is narrow: consent "to the disclosure for identification purposes in the event of the individual's disappearance or death". The record asserts ${tx.offending.map((o) => `"${o}"`).join(", ")}, which ${tx.offending.length === 1 ? "does not fall" : "do not fall"} within any of them.`
       : tx.verdict === "satisfied"
       ? (noDisclosureRecorded(bases)
-        ? "Because the record states that no disclosure is made, the § 503.001(c)(1) limits are not engaged and no disclosure basis needs to be invoked."
+        ? "Because the company makes no disclosures, the § 503.001(c)(1) limits do not come into play and no disclosure basis is needed."
         : "Each basis the record asserts falls within one of the four limbs § 503.001(c)(1) allows.")
       : "The record does not state on what basis biometric identifiers are disclosed.",
     tx.verdict,
@@ -1226,7 +1226,7 @@ function buildWaDuties(intake: BiometricIntakeForDeliverables): DutyFinding[] {
       ? `RCW 19.375.020(3) permits disclosure without consent on six listed bases. The record asserts ${wa.offending.map((o) => `"${o}"`).join(", ")}, which ${wa.offending.length === 1 ? "is not among them" : "are not among them"}.`
       : wa.verdict === "satisfied"
       ? (noDisclosureRecorded(bases)
-        ? "Because the record states that no disclosure is made, the subsection (3) limits are not engaged and no disclosure basis needs to be invoked."
+        ? "Because the company makes no disclosures, the subsection (3) limits do not come into play and no disclosure basis is needed."
         : "Each basis the record asserts is either consent or one of the six bases subsection (3) lists.")
       : "The record does not state on what basis enrolled identifiers are disclosed.",
     wa.verdict,

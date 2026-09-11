@@ -107,9 +107,16 @@ export const RISK_SKELETON_PROVENANCE =
 export const RISK_SKELETON_CONTENT_HASH_V53 =
   "9d6b18fe7a1067da1ba468802797f0d6a74bd7f828aca836936932f40209fc5e";
 // DOC 148 (2026-09-02) — computed by running the digest (deno eval), never
-// hand-derived.
-export const RISK_SKELETON_CONTENT_HASH =
+// hand-derived. Retained per the re-pin convention; superseded by DOC 255.
+export const RISK_SKELETON_CONTENT_HASH_V54 =
   "a328a2bc72ebdc6cca06be321e4a6f5307d448e1262da8e920323d16805c2ea8";
+// DOC 255 (2026-09-11, ledger L2 accepted by the CEO): § 1.C "Qualitative
+// Refinement" restated ("The assessment also considers any additional
+// information supplied by the Company to refine the conclusions reached
+// through the steps above."). Computed by running the digest, never
+// hand-derived; old-hash reproduction verified before re-pin (V54 above).
+export const RISK_SKELETON_CONTENT_HASH =
+  "0d27c1ed6be35376fd450bd1f3db52707b4fdc92cf6fa0fd193896fd426daab3";
 
 // A-TEAM S3 RULING I.24 (doc 115, 2026-08-31) — cover titles follow the fleet
 // Title Case convention (Batch 21a); ADMT's cover set the precedent. Cover
@@ -171,7 +178,8 @@ export const RISK52_FIXED = {
   exec_ledger_intro:
     "Section 1 describes how this assessment reaches its conclusions; the table below summarises the result of applying it to the information provided by the Company — each identified risk and the risk that remains after the credited safeguards. The full ledger, including each risk’s level before safeguards and the safeguard credited against it, appears in § 4.A:",
   exec_determination_pointer:
-    "The reasoning behind each row, and the determination it produces, appear in Section 4.",
+    // DOC 255 (2026-09-11, ledger L1 accepted by the CEO).
+    "Section 4 explains the reasoning supporting each factor and the resulting determination.",
   exec_outcome_head: "D. Outcome and Conditions.",
   conditions_compact_none: "No conditions attach to the determination.",
 
@@ -415,7 +423,8 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       // 6
       { kind: "skeleton", text: "Step 5 — The balance. Each claimed benefit is weighed against the risks, as mitigated by safeguards, and the assessment is rendered." },
       // 7
-      { kind: "skeleton", text: "C. Qualitative Refinement. Any additional information provided by the Company is qualitatively applied to the measurements and assessments described above, so that a more refined assessment is rendered." },
+      // DOC 255 (2026-09-11, ledger L2 accepted by the CEO).
+      { kind: "skeleton", text: "C. Qualitative Refinement. The assessment also considers any additional information supplied by the Company to refine the conclusions reached through the steps above." },
     ],
   },
   {

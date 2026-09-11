@@ -635,6 +635,23 @@ export function collectLiaConditions(report: Bag, applications: readonly Bag[]):
   return out;
 }
 
+/** DOC 255 (2026-09-11, doc 253 CEO item L1) — on an Available outcome the
+ *  typed test still records a mitigation for a partly-expected use (the
+ *  data subjects' expectation is only partly met), but nothing rendered it:
+ *  the conditions block carries rule conditions and asks only. The measure
+ *  now renders as a Recommendation — a step the determination does not
+ *  depend on, stated so the reader sees what would strengthen the balance. */
+export function composeLiaRecommendation(report: Bag): string {
+  const det = bag(report.lia_determination);
+  if (s(det.outcome) !== "legitimate_interests_available") return "";
+  const mitigations = Array.isArray(det.mitigations) ? det.mitigations as Bag[] : [];
+  const m = mitigations.find((x) => s(bag(x).factor) === "reasonable_expectations");
+  if (!m) return "";
+  const measure = noStop(s(bag(m).measure));
+  if (!measure) return "";
+  return `Recommendation. The balance holds on the record without this step, but the data subjects' expectation of this use is only partly met. ${stop(measure)}`;
+}
+
 /** The numbered conditions block: a one-sentence lead, then one paragraph
  *  per condition ("1. …"), each closing with the test it completes and its
  *  authority in the same inline form renderRuleClause uses. Empty when
@@ -1586,12 +1603,17 @@ export function assembleLiaSkeletonDocument(
       const citation = ruleOverrideCitation(ruleApplications);
       const whyText = citation ? `${stop(why)} (${citation}.)` : why;
       const docRecs = strList(report.documentation_recommendations).slice(0, 4);
+      // DOC 255 (L1) — the recommendation paragraph follows the determination
+      // (and its conditions, where any) as its own paragraph.
+      const recommendation = composeLiaRecommendation(report);
       if (!conditions.length) {
-        return fromTyped(whyText, publicAuthorityInformationNeededSentence(report), ...docRecs);
+        return [fromTyped(whyText, publicAuthorityInformationNeededSentence(report), ...docRecs), recommendation]
+          .filter(Boolean).join("\n\n");
       }
       return [
         fromTyped(whyText, publicAuthorityInformationNeededSentence(report)),
         composeLiaConditionsBlock(conditions),
+        recommendation,
         fromTyped(...docRecs),
       ].filter(Boolean).join("\n\n");
     })(),

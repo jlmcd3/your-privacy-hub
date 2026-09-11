@@ -284,9 +284,10 @@ export function deriveKeyDatesTable(intake: Bag, assessmentDateIso: string): Ren
   const rows: string[][] = [];
   const initial = deriveInitialAssessmentDeadline(intake);
   if (initial) {
-    const value = initial.replace(/^Initial-assessment deadline:\s*/i, "").replace(/\.\s*$/, "");
+    const value = initial.replace(/^Risk assessment deadline:\s*/i, "").replace(/\.\s*$/, "");
     rows.push([
-      "Initial risk assessment",
+      // DOC 255 — the regulation's own term (doc 254A item 1).
+      "Risk assessment",
       "11 CCR § 7155(a)(1)–(b)",
       value.charAt(0).toUpperCase() + value.slice(1),
     ]);
@@ -1318,7 +1319,8 @@ export function buildRiskSyllabus(
         : "No",
     ],
     ["Inherent privacy risk", `${tier(panel.inherent)} — before safeguards`],
-    ["Residual privacy risk", `${tier(panel.residual)} — after credited safeguards; the movement each safeguard buys appears in § 4.A`],
+    // DOC 255 (2026-09-11, ledger L1 accepted by the CEO).
+    ["Residual privacy risk", `${tier(panel.residual)} — after credited safeguards; the reduction attributable to each safeguard appears in § 4.A`],
   ];
   if (typeof panel.benefits_credited_count === "number") {
     rows.push(["Benefits credited", `${countWordSr(panel.benefits_credited_count)} of four categories (§ 3.F)`]);
@@ -1340,8 +1342,8 @@ export function buildRiskSyllabus(
     return row ? String(row[2] ?? "") : "";
   };
   const key_dates: Array<readonly [string, string]> = [];
-  const init = keyDateOf("Initial risk assessment");
-  if (init) key_dates.push(["Initial assessment", init]);
+  const init = keyDateOf("Risk assessment");
+  if (init) key_dates.push(["Risk assessment deadline", init]);
   const review = keyDateOf("Three-year review");
   if (review) key_dates.push(["Three-year review", review]);
   const first = keyDateOf("First § 7157 submission (2026–2027 assessments)");

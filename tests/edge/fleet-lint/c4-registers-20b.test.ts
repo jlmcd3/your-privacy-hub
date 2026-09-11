@@ -19,7 +19,8 @@ Deno.test("C4/S6.3: the Risk Key Dates table digests the derived and pinned wind
   );
   assertExists(t);
   assertEquals(t.columns, ["Obligation", "Authority", "Date / deadline"]);
-  assert(t.rows.some((r) => r[0] === "Initial risk assessment" && r[1] === "11 CCR § 7155(a)(1)–(b)" && r[2].startsWith("Before the processing is initiated")));
+  // DOC 255 (2026-09-11): the row carries the regulation's own term.
+  assert(t.rows.some((r) => r[0] === "Risk assessment" && r[1] === "11 CCR § 7155(a)(1)–(b)" && r[2].startsWith("Before the processing is initiated")));
   assert(t.rows.some((r) => r[0] === "Three-year review" && r[2] === "2029-08-30"));
   assert(t.rows.some((r) => r[2] === "April 1, 2028"));
   assert(t.rows.some((r) => r[2] === "Within 30 calendar days of the request"));

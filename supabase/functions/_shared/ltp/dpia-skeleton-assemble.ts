@@ -977,9 +977,34 @@ function composeRiskLead(report: Bag): string {
 // level; every later risk closes "on the same preliminary basis". The
 // initial/remaining distinction is vocabulary law: a row carrying both renders
 // both, and neither is ever collapsed to a bare "risk level".
+/** DOC 255 (2026-09-11, ChatGPT review DPIA-04 as accepted by the CEO) — a
+ *  synthesis sentence over the risk table, composed only when two or more
+ *  risks carry a remaining risk level: how many fall to the lowest level
+ *  after the recorded measures, and which remain higher. The per-risk
+ *  paragraphs (PROMPT 9L.1 item 4) and the closing sentence (PROMPT 9I 3(b))
+ *  are unchanged. */
+export function composeRiskSynthesis(report: Bag): string {
+  const rows = asArray(report.risk_register)
+    .map((r) => ({ label: noStop(s(r.risk_label)), residual: (s(r.residual_band) || "").toLowerCase() }))
+    .filter((r) => r.label && r.residual && r.residual !== "undetermined");
+  if (rows.length < 2) return "";
+  const low = rows.filter((r) => r.residual === "low");
+  const higher = rows.filter((r) => r.residual !== "low");
+  const count = (n: number) => numberWord(n);
+  if (low.length === rows.length) {
+    return `Taken together, all ${count(rows.length)} risks fall to a low remaining risk level after the recorded measures are taken into account.`;
+  }
+  if (!low.length) {
+    return `Taken together, none of the ${count(rows.length)} risks falls to a low remaining risk level after the recorded measures: ${asProse(higher.map((r) => `${r.label} remains ${r.residual}`))}.`;
+  }
+  return `Taken together, ${count(low.length)} of the ${count(rows.length)} risks ${low.length === 1 ? "falls" : "fall"} to a low remaining risk level after the recorded measures (${asProse(low.map((r) => r.label))}); ${asProse(higher.map((r) => `${r.label} remains ${r.residual}`))}.`;
+}
+
 export function composeRiskBody(report: Bag, values: SlotValues, _intake: Bag = {}): string {
   const rows = asArray(report.risk_register);
   const blocks: string[] = [];
+  const synthesis = composeRiskSynthesis(report);
+  if (synthesis) blocks.push(synthesis);
   for (const r of rows) {
     const label = noStop(s(r.risk_label));
     if (!label) continue;
@@ -1129,11 +1154,14 @@ function composeSignoffBody(report: Bag, intake: Bag, values: SlotValues): strin
       const bandSummary = Object.entries(bandLabels)
         .map(([band, labels]) => `${labels.length} at ${band} (${asProse(labels)})`)
         .join("; ");
+      // DOC 255 (2026-09-11, ledger L7 accepted by the CEO): the pointer to
+      // the register and the reliance limit are two sentences.
       parts.push(
         `Where that basis refers to accepted residual risks, the risks this assessment itself identifies, and their remaining levels, are those set out in Section 5${
-          bandSummary ? ` — currently ${bandSummary}` : ""
-        }; the acceptance basis above is the Company's own record, quoted verbatim, and is not re-derived by this assessment.`,
+          bandSummary ? `: currently ${bandSummary}` : ""
+        }.`,
       );
+      parts.push("The acceptance basis above is the Company's own record, quoted verbatim, and is not re-derived by this assessment.");
     }
   }
   if (values.dpiaScopeNote) parts.push(stop(`The company has recorded the scope of this assessment as ${values.dpiaScopeNote}`));

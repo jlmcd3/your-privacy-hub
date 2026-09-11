@@ -878,7 +878,9 @@ export function buildReadinessDetermination(
   const headline = conclusion === "ready"
     ? `On the information provided the business is ready for a § 7124 certified cybersecurity audit: all ${countWord(total)} ${applicableWord}§ 7123(c) components are implemented and each is supported by testable evidence.${naNote}`
     : conclusion === "ready_subject_to_named_remediation"
-    ? `On the information provided the business is ready for a § 7124 certified cybersecurity audit subject to ${countWord(remediationItems.length)} named remediation item${remediationItems.length === 1 ? "" : "s"}: ${remediationItems.join("; ")}. No component is unimplemented and no § 7122 condition is unmet.${naNote}`
+    // DOC 255 (2026-09-11, ledger L5 accepted by the CEO): the lead names at
+    // most three items inline; the rest are counted and live in Section 6.
+    ? `On the information provided the business is ready for a § 7124 certified cybersecurity audit subject to ${countWord(remediationItems.length)} named remediation item${remediationItems.length === 1 ? "" : "s"}: ${remediationItems.slice(0, 3).join("; ")}${remediationItems.length > 3 ? `; and ${countWord(remediationItems.length - 3)} further item${remediationItems.length - 3 === 1 ? "" : "s"} named in Section 6` : ""}. No component is unimplemented and no § 7122 condition is unmet.${naNote}`
     : conclusion === "not_ready"
     ? (() => {
         // QA round two (CY-A-01 / CY-B-02, 2026-09-06) — same root cause the

@@ -109,10 +109,12 @@ Deno.test("bcf0a706 governance — the UK transfer passage renders reader prose 
     transfer_status: "Yes, US-based tools",
     transfer_mechanism: "UK Addendum to EU SCCs",
   } as never) as unknown as { application: string; citations_used: string[] };
-  assertStringIncludes(out.application, "The UK chapter is a different body of law, not the EU chapter under another name. There is no Article 44 in the UK GDPR. The operative UK general principle is Article 44A(1):");
+  // Ledger F9 (CEO 2026-09-11): the omission is stated as the corpus row records it.
+  assertStringIncludes(out.application, "The UK chapter is a different body of law, not the EU chapter under another name. Article 44 was omitted from the UK GDPR on 5 February 2026 by the Data (Use and Access) Act 2025, so the general principle for transfers is now Article 44A(1):");
+  assertStringIncludes(out.application, "Under Article 44A(2) that condition is met only where the transfer is approved by adequacy regulations under Article 45A, is made subject to appropriate safeguards under Article 46, or relies on a derogation for specific situations under Article 49 — Article 44A(2)(a):");
   assert(!out.application.includes("must not be cited"), "drafting instruction must not render");
   // Ledger F6 — the recorded mechanism is named.
-  assertStringIncludes(out.application, "The recorded mechanism — the UK Addendum to the EU standard contractual clauses — is a clause set issued by the Commissioner under section 119A of the 2018 Act, within Article 46(2)(d).");
+  assertStringIncludes(out.application, "The recorded mechanism — the UK Addendum to the EU standard contractual clauses — is a set of standard data protection clauses issued by the Information Commissioner under section 119A of the Data Protection Act 2018 (in force 21 March 2022) and falls within Article 46(2)(d) of the UK GDPR.");
   // The omission row is still cited (ToA), and the harvester never lifts "Article 44" from the reader sentence.
   // The composer cites the row by its subsection form.
   assert(out.citations_used.includes("UK GDPR Art. 44 (omitted)"), JSON.stringify(out.citations_used));
@@ -142,7 +144,7 @@ Deno.test("bcf0a706 governance — the executive tally accounts for all ten doma
   const exec = composeExecutiveSummaryTyped(buildDomainFindingsTyped(VELORIX_GOV as never));
   assertStringIncludes(exec, "leaves 7 of the ten fully evidenced.");
   assertStringIncludes(exec, "2 domains carry recorded gaps below the immediate-priority threshold");
-  assertStringIncludes(exec, "One domain — Regulatory Exposure Summary — is evidenced with a point noted for attention and no recorded gap.");
+  assertStringIncludes(exec, "One domain — Regulatory Exposure Summary — is evidenced; it carries a point to watch but no recorded gap.");
 });
 
 // ── Grader ─────────────────────────────────────────────────────────────────

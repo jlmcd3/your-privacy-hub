@@ -63,9 +63,34 @@ function strings(value: unknown, out: string[] = []): string[] {
   return out;
 }
 
+// DOC 255 (2026-09-11, ChatGPT review acceptance tests, as accepted by the
+// CEO) — the seam defects the review found are asserted here as output
+// invariants on every builder the sweep already runs: doubled terminal
+// stops, JavaScript artefacts, and build vocabulary that is not prose.
+const PROSE_SEAM_PATTERNS: ReadonlyArray<[RegExp, string]> = [
+  [/(?<!\.)\.\.(?!\.)/, "doubled full stop"],
+  [/\bundefined\b/, "'undefined' in prose"],
+  [/\[object Object\]/, "[object Object] in prose"],
+  [/\bNaN\b/, "NaN in prose"],
+  [/\brisk or risks\b/i, "'risk or risks' pluralisation token"],
+  [/\blimb\(s\)/i, "'limb(s)' pluralisation token"],
+  [/\btyped findings\b/i, "build vocabulary ('typed findings') in prose"],
+];
+function proseSeams(value: unknown): string[] {
+  const out: string[] = [];
+  for (const text of strings(value)) {
+    for (const [re, why] of PROSE_SEAM_PATTERNS) {
+      if (re.test(text)) out.push(`${why}: ${text.slice(0, 160)}`);
+    }
+  }
+  return out;
+}
+
 function assertClean(label: string, value: unknown) {
   const bad = strings(value).filter(hasBannedRegister);
   assertEquals(bad, [], `${label}: banned v3 register reached the output\n${bad.join("\n")}`);
+  const seams = proseSeams(value);
+  assertEquals(seams, [], `${label}: prose seam reached the output\n${seams.join("\n")}`);
 }
 
 Deno.test("D3 output sweep — no deliverable/composer source carries the banned family", async () => {

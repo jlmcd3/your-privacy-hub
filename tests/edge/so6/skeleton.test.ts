@@ -235,7 +235,7 @@ Deno.test("SO-6 step 5: a complete record assembles conformantly and register-cl
 Deno.test("SO-6: leads read the typed determinations and never disagree with them", () => {
   const unlawful = skeletonDocumentToText(assembleBiometricSkeletonDocument(REPORT, INTAKE).document);
   assert(unlawful.includes("does not meet one duty under BIPA"));
-  assert(unlawful.includes("the single next act is to remedy the shortfall against the duty “publication of the written retention schedule” at 740 ILCS 14/15(a)"), unlawful);
+  assert(unlawful.includes("the single next step is to meet the duty “publication of the written retention schedule” at 740 ILCS 14/15(a)"), unlawful);
 
   const openOnly = assembleBiometricSkeletonDocument(
     {

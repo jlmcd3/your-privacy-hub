@@ -77,8 +77,15 @@ export const GOVERNANCE_SKELETON_CONTENT_HASH_V1 =
  * confirming — as with DPIA's v4.8 basis-v1 finding — that they carry no
  * fixed prose under this basis.
  */
-export const GOVERNANCE_SKELETON_CONTENT_HASH =
+export const GOVERNANCE_SKELETON_CONTENT_HASH_V2 =
   "93e1de929142d807b9efaf5b413185dd359fa3ad082d481597c740d77af10c22";
+// DOC 255 (2026-09-11, ledger L10 accepted by the CEO): § 1 "supply the
+// machinery of that demonstration" became "set out the governance,
+// contracting, record-keeping and data protection officer duties through
+// which that compliance is demonstrated". Same BASIS v1; computed by running
+// the digest; old-hash reproduction verified before re-pin (V2 above).
+export const GOVERNANCE_SKELETON_CONTENT_HASH =
+  "0a4fd121c79534ab477aeacbbde338080c2c1924f80704e583b7f93796b3a894";
 
 // A-TEAM S3 RULING I.24 (doc 115, 2026-08-31) — fleet Title Case cover.
 export const GOVERNANCE_SKELETON_TITLE = "Privacy Governance Assessment";
@@ -143,7 +150,7 @@ export const GOVERNANCE_SKELETON_SECTIONS: readonly GovernanceSkeletonSection[] 
     title: "Executive Summary",
     blocks: [
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence: the typed readiness determination - accountability evidenced, partly evidenced, or not yet determinable on the company's answers - the single verdict every other surface derives from." },
-      { kind: "skeleton", text: "Article 5(2) of the GDPR makes a controller responsible not only for complying with the data protection principles but for being able to demonstrate that compliance. The provisions examined below - Articles 24, 28, 30 and 37 through 39 - supply the machinery of that demonstration. {organizationName} has provided the account of its programme on which this review rests, and each duty is considered against that account in turn." },
+      { kind: "skeleton", text: "Article 5(2) of the GDPR makes a controller responsible not only for complying with the data protection principles but for being able to demonstrate that compliance. The provisions examined below - Articles 24, 28, 30 and 37 through 39 - set out the governance, contracting, record-keeping and data protection officer duties through which that compliance is demonstrated. {organizationName} has provided the account of its programme on which this review rests, and each duty is considered against that account in turn." },
       { kind: "generated", text: "[GENERATED] The posture summary, bound to the typed rating: the rating-derived phrasing rules apply, and no affirmative characterisation may stand beside a non-affirmative rating." },
       // BATCH 19a (Wave C3, doc 113 S3.2) — the programme scoreboard, each
       // row read from a typed surface's own counts. No fixed text.

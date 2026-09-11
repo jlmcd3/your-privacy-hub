@@ -335,10 +335,15 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
         .upsert(ropaProfileRow(persona, clientId), { onConflict: "client_id" });
       if (profileErr) throw new Error(`ropa profile upsert: ${profileErr.message}`);
 
-      // Write sector to clients table — generate-ropa-document reads sector from clients.sector
-      if (persona.sector) {
-        await admin.from("clients").update({ sector: persona.sector }).eq("id", clientId);
-      }
+      // Write sector to clients table — generate-ropa-document reads sector
+      // from clients.sector. DOC 255 (2026-09-11): always written (null when
+      // the persona is silent) so a prior fixture's sector never renders as
+      // this company's, and the write is checked like the profile's.
+      const { error: sectorErr } = await admin
+        .from("clients")
+        .update({ sector: typeof persona.sector === "string" && persona.sector.trim() ? persona.sector.trim() : null })
+        .eq("id", clientId);
+      if (sectorErr) throw new Error(`ropa client sector: ${sectorErr.message}`);
       // DOC 254 — the selections table is keyed by client (not session), so a
       // prior fixture's rows ("IE, DE, FR" from 2026-09-05) rendered in this
       // company's register (ROPA-05). The client's rows are replaced whole,

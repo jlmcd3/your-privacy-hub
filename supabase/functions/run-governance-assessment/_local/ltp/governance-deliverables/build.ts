@@ -1213,7 +1213,11 @@ export function buildTransferAnalysis(intake: unknown): TransferAnalysis {
       // instruction and rendered as customer prose. Reader sentence here
       // (ledger F9); the row is still cited above so the ToA carries it,
       // and the "There is no" lead keeps the harvester's negation guard.
-      `The UK chapter is a different body of law, not the EU chapter under another name. There is no Article 44 in the UK GDPR. The operative UK general principle is Article 44A(1): "${ukPrinciple.verbatim}", and the condition is met only where the transfer is approved by adequacy regulations, is made subject to appropriate safeguards, or relies on a derogation — Article 44A(2)(a): "${ukAdequacyRoute.verbatim}"; Article 44A(2)(b): "${ukSafeguardsRoute.verbatim}"`,
+      // Ledger F9 (CEO 2026-09-11): the second sentence states the fact the
+      // corpus row records (Art. 44 omitted 5 February 2026 by the Data (Use
+      // and Access) Act 2025, Sch. 7 para. 2(1); S.I. 2026/82) and the third
+      // reads Article 44A(2) in order. The quoted rows are unchanged.
+      `The UK chapter is a different body of law, not the EU chapter under another name. Article 44 was omitted from the UK GDPR on 5 February 2026 by the Data (Use and Access) Act 2025, so the general principle for transfers is now Article 44A(1): "${ukPrinciple.verbatim}" Under Article 44A(2) that condition is met only where the transfer is approved by adequacy regulations under Article 45A, is made subject to appropriate safeguards under Article 46, or relies on a derogation for specific situations under Article 49 — Article 44A(2)(a): "${ukAdequacyRoute.verbatim}"; Article 44A(2)(b): "${ukSafeguardsRoute.verbatim}"`,
     );
     if (f.mechanism && ADEQUACY_MECHANISMS.includes(f.mechanism)) {
       cite(ukAdequacyPower.citation);
@@ -1237,9 +1241,15 @@ export function buildTransferAnalysis(intake: unknown): TransferAnalysis {
       // BATCH bcf0a706 (2026-09-11) — ledger F6: the recorded mechanism is
       // named against the clause set it is, so the passage is not generic.
       if (/addendum/i.test(f.mechanism)) {
-        parts.push("The recorded mechanism — the UK Addendum to the EU standard contractual clauses — is a clause set issued by the Commissioner under section 119A of the 2018 Act, within Article 46(2)(d).");
+        // Ledger F6 (CEO 2026-09-11): citation verified against the corpus
+        // row ukgdpr-art-46 (revision 2026-06-19): Art. 46(2)(d) lists
+        // "standard data protection clauses specified in a document issued
+        // (and not withdrawn) by the Commissioner … under section 119A of
+        // the 2018 Act"; the IDTA and the Addendum are those documents (laid
+        // before Parliament under s. 119A, in force 21 March 2022).
+        parts.push("The recorded mechanism — the UK Addendum to the EU standard contractual clauses — is a set of standard data protection clauses issued by the Information Commissioner under section 119A of the Data Protection Act 2018 (in force 21 March 2022) and falls within Article 46(2)(d) of the UK GDPR.");
       } else if (/\bIDTA\b|international data transfer agreement/i.test(f.mechanism)) {
-        parts.push("The recorded mechanism — the International Data Transfer Agreement — is a clause set issued by the Commissioner under section 119A of the 2018 Act, within Article 46(2)(d).");
+        parts.push("The recorded mechanism — the International Data Transfer Agreement — is a set of standard data protection clauses issued by the Information Commissioner under section 119A of the Data Protection Act 2018 (in force 21 March 2022) and falls within Article 46(2)(d) of the UK GDPR.");
       }
       if (/Binding Corporate Rules/i.test(f.mechanism)) {
         cite(ukBcrs.citation);

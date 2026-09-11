@@ -78,8 +78,9 @@ Deno.test("L2 — the purpose-test walk names each condition with its own reason
       benefit_description: "Fewer at-fault incidents and lower fuel costs.",
     },
   }));
-  assertStringIncludes(f.application, "the first — ");
-  assertStringIncludes(f.application, "the second — ");
-  assertStringIncludes(f.application, "the third — ");
+  // DOC 255 (2026-09-11, ledger L8): one sentence per condition.
+  assertStringIncludes(f.application, "the first condition — ");
+  assertStringIncludes(f.application, "The second condition — ");
+  assertStringIncludes(f.application, "The third condition — ");
   assert(!/the first condition is [a-z]+, the second is/.test(f.application), "the bare met/met/met walk must be gone");
 });

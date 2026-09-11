@@ -535,7 +535,8 @@ export function composeExecutiveSummaryTyped(findings: Record<string, TypedDomai
   const noted = all.filter((f) =>
     (f.severity === "Medium" || f.severity === "Low") && !f.gap_description);
   if (noted.length > 0) {
-    parts.push(`${noted.length === 1 ? "One domain" : `${noted.length} domains`} — ${noted.map((f) => f.domain_name).join("; ")} — ${noted.length === 1 ? "is" : "are"} evidenced with a point noted for attention and no recorded gap.`);
+    // Ledger F7 (CEO 2026-09-11): plain wording.
+    parts.push(`${noted.length === 1 ? "One domain" : `${noted.length} domains`} — ${noted.map((f) => f.domain_name).join("; ")} — ${noted.length === 1 ? "is evidenced; it carries" : "are evidenced; each carries"} a point to watch but no recorded gap.`);
   }
   if (adverse.length === 0 && unresolved.length === 0 && flagged.length === 0) {
     // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31,

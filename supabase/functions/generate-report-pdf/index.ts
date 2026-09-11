@@ -2963,7 +2963,9 @@ function buildDpaContractHTML(
   const scheduleHtml = coverageClauses.length
     ? skeletonTableHtml({
         title: "Schedule — Article 28(3) Clause-Coverage (Informational)",
-        columns: ["Clause", "Requirement", "Status", "Location"],
+        // DOC 255 (2026-09-11, DATAPROC-07): the requirement cell is the
+        // provision's first sentence, clipped — the header says so.
+        columns: ["Clause", "Requirement (excerpt)", "Status", "Location"],
         rows: coverageClauses.map((c) => [
           c.clause === "chapeau" ? "Chapeau" : c.clause === "second_subparagraph" ? "Second subparagraph" : `(${c.clause ?? ""})`,
           c.requirement ?? "",
