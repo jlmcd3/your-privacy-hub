@@ -152,6 +152,12 @@ export function rankByRelevance(
     readonly profileOf: (row: CamRow) => CamRelevanceProfile | undefined;
     readonly elementOf: (factorId: string) => string | null;
     readonly limit?: number;
+    /** DOC 252 §10 item 1 (CEO-ruled 2026-09-11): "highly relevant" means the
+     *  same use case — a row with no use-case-class match caps at "relevant"
+     *  however many elements, categories and flags it shares. Opt-in per
+     *  product (LIA Section VI passes true); callers that omit it keep the
+     *  doc 189 score-only tiers. */
+    readonly topTierRequiresClassMatch?: boolean;
   },
 ): ScoredRow[] {
   const candidates = rows
@@ -174,8 +180,11 @@ export function rankByRelevance(
   const scored: ScoredRow[] = [];
   for (const { row, profile } of pool) {
     const { score, match } = scoreRelevance(profile, query, opts.elementOf, crossInstrument);
-    const tier = relevanceTier(score);
-    if (!tier) continue;
+    const scoredTier = relevanceTier(score);
+    if (!scoredTier) continue;
+    const tier: RelevanceTier = opts.topTierRequiresClassMatch && scoredTier === "highly relevant" && !match.class_matched
+      ? "relevant"
+      : scoredTier;
     scored.push({ row, profile, score, tier, match });
   }
 

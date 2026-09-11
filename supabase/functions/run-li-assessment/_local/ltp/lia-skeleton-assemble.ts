@@ -1158,7 +1158,12 @@ export function renderLiaToa(ledger: readonly string[], assembledBody: string): 
     const bare = bareLiaPinpoint(c);
     return bare !== c && assembledBody.includes(bare);
   };
-  const cited = [...new Set(ledger.filter((c) => c && bodyCites(c)))];
+  const citedAll = [...new Set(ledger.filter((c) => c && bodyCites(c)))];
+  // DOC 252 B4 (CEO-ruled 2026-09-11) — guidance is listed at PINPOINT
+  // level. A bare instrument entry ("EDPB Guidelines 1/2024") is a substring
+  // of every pinpointed sibling, so the iff-cited test keeps it whenever a
+  // pinpoint is cited; it is listed only when NO pinpointed sibling survives.
+  const cited = citedAll.filter((c) => !citedAll.some((o) => o !== c && o.startsWith(`${c},`)));
   if (cited.length === 0) return "";
   const groups: ["Regulations" | "Statutes" | "Guidance and Persuasive Authority", string][] = [];
   for (const g of ["Regulations", "Statutes", "Guidance and Persuasive Authority"] as const) {

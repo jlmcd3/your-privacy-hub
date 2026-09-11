@@ -246,7 +246,7 @@ export function buildReasonableExpectations(
   } else if (noticeOnly && !matches(supportingText, [/beyond the notice/i, /told at the point/i])) {
     verdict = "partly_expected";
     application =
-      `The record's support for expectation rests on the information supplied to the data subjects: "${supportingText}". EDPB Guidelines 1/2024 address that directly — ${notice.verbatim} Because the record's contextual support runs to notice rather than to the relationship and setting in which the data were collected, the factor is partly satisfied and does not carry the balance on its own.`;
+      `The record's support for expectation rests on the information supplied to the data subjects: "${supportingText}". ${notice.citation || "EDPB Guidelines 1/2024"} addresses that directly — ${notice.verbatim} Because the record's contextual support runs to notice rather than to the relationship and setting in which the data were collected, the factor is partly satisfied and does not carry the balance on its own.`;
   } else if (matches(expectation, EXPECTATION_POSITIVE)) {
     verdict = "reasonably_expected";
     application =

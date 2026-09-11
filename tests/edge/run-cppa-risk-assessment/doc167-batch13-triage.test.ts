@@ -50,6 +50,7 @@ import {
   deriveAssessmentRetentionEnd,
   deriveInitialAssessmentDeadline,
   initialAssessmentDeadlinePending,
+  priorAssessmentDateBefore2026,
 } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-timing.ts";
 
 type Bag = Record<string, unknown>;
@@ -140,6 +141,15 @@ Deno.test("doc167 — NestGrid now renders § 5.B pending state, the § 5.D rete
 Deno.test("doc167 — the timing Follow-Up completes the pending state on the records that already rendered it (NestWave, Luminary)", () => {
   for (const [intake, scope] of [[NESTWAVE, [B2]], [LUMINARY, [B1, B2]]] as const) {
     const text = docText(intake, [...scope]);
+    // DOC 252 D1 (CEO-ruled 2026-09-11): a record that is ongoing with a prior
+    // assessment dated before 2026 (Luminary: "completed in March 2023") no
+    // longer renders the pending state — the deadline line and the Follow-Up
+    // are the CEO's sentence instead. NestWave (no prior assessment) is unchanged.
+    if (priorAssessmentDateBefore2026(intake)) {
+      assertStringIncludes(text, "Based on the information provided by the Company, processing began before January 1, 2026 and is ongoing, but a subsequent risk assessment is required before December 31, 2027");
+      assert(!text.includes("determination pending — record when the covered processing began"), "pending lead must not render beside the CEO sentence");
+      continue;
+    }
     assertStringIncludes(text, "determination pending — record when the covered processing began");
     assertStringIncludes(text, "Record when the covered processing began, or will begin; § 7155(a)(1)");
   }

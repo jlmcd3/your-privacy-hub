@@ -3483,6 +3483,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           gpt_score: number | null
+          grader_context_version: string | null
           id: string
           job_key: string
           kind: string
@@ -3496,6 +3497,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           gpt_score?: number | null
+          grader_context_version?: string | null
           id?: string
           job_key: string
           kind: string
@@ -3509,6 +3511,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           gpt_score?: number | null
+          grader_context_version?: string | null
           id?: string
           job_key?: string
           kind?: string

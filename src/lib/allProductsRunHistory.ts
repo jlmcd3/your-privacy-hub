@@ -74,6 +74,8 @@ type EventRow = {
   ok: boolean | null;
   claude_score: number | null;
   gpt_score: number | null;
+  /** DOC 252 H1 — the grader instrument that produced a "score" event. */
+  grader_context_version: string | null;
   batch_started_at: string;
   created_at: string;
 };
@@ -86,6 +88,7 @@ async function pushEvent(row: {
   ok?: boolean | null;
   claude_score?: number | null;
   gpt_score?: number | null;
+  grader_context_version?: string | null;
   batch_started_at?: string;
 }) {
   try {
@@ -143,7 +146,7 @@ let hydrated = false;
 export async function hydrateFromServer(): Promise<void> {
   const { data, error } = await supabase
     .from("harness_grade_events")
-    .select("batch_id,tool_slug,kind,ok,claude_score,gpt_score,batch_started_at,created_at")
+    .select("batch_id,tool_slug,kind,ok,claude_score,gpt_score,grader_context_version,batch_started_at,created_at")
     .order("created_at", { ascending: true })
     .limit(20000);
   if (error || !data) return;
@@ -255,6 +258,10 @@ export function recordLocalScore(
   claude: number | null,
   gpt: number | null,
   jobKey?: string,
+  // DOC 252 H1 (2026-09-10) — the grader instrument, written with the score
+  // so an all-products batch can be attributed to a GRADER_CONTEXT_VERSION
+  // after the fact (batch 916c33a8 could not be).
+  graderContextVersion?: string | null,
 ) {
   if (claude == null && gpt == null) return;
   mutate(batchId, toolSlug, (r) => ({
@@ -270,6 +277,7 @@ export function recordLocalScore(
     job_key: jobKey ?? `${toolSlug}|${Date.now()}|${Math.random().toString(36).slice(2, 8)}`,
     claude_score: claude,
     gpt_score: gpt,
+    grader_context_version: graderContextVersion ?? null,
   });
 }
 

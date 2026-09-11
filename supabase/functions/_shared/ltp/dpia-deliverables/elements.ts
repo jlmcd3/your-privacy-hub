@@ -49,6 +49,15 @@ export interface RiskSpec {
    * risk. Coverage over this list drives likelihood and the residual band.
    */
   readonly mitigating_safeguards: readonly string[];
+  /**
+   * DOC 252 §10 item 2 (CEO-ruled 2026-09-11): the risk is answered only by
+   * a measure giving the individual human intervention in, a view on, or a
+   * route to contest the automated decision (Art. 22(3)); no ticked
+   * safeguard option addresses it, so `mitigating_safeguards` is empty and
+   * coverage is read from the record's own narrative (RiskFacts
+   * .humanInterventionSpan), in the company's words.
+   */
+  readonly human_intervention_measure?: boolean;
   /** Predicate over a normalised view of the intake. */
   readonly trigger: (f: RiskFacts) => boolean;
 }
@@ -57,6 +66,8 @@ export interface RiskSpec {
 export interface RiskFacts {
   readonly dataCategories: readonly string[];
   readonly safeguards: readonly string[];
+  /** DOC 252 §10 item 2 — the record's own human-intervention sentence, or "". */
+  readonly humanInterventionSpan?: string;
   readonly processors: readonly string[];
   readonly transferCount: number;
   /**
@@ -177,7 +188,12 @@ export const DPIA_RISK_SPECS: readonly RiskSpec[] = [
     severity: "Severe",
     source_template:
       "The record selects an evaluation, scoring or automated-decision reason for conducting this DPIA, so decisions taken about individuals may carry legal or similarly significant effects.",
-    mitigating_safeguards: ["Staff training", "Access controls"],
+    // DOC 252 §10 item 2 (CEO-ruled 2026-09-11, batch 7bd29982 grader
+    // finding): "Staff training" + "Access controls" reduced this Art. 22 risk
+    // High → Moderate on any record that ticked both, though neither answers
+    // it. No ticked option does; the measure is read from the narrative.
+    mitigating_safeguards: [],
+    human_intervention_measure: true,
     trigger: (f) =>
       f.reasons.some((r) =>
         /Evaluation or scoring|Automated decision-making|Systematic, extensive evaluation/i.test(r)

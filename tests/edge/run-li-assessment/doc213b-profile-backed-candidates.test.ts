@@ -37,8 +37,9 @@ type Bag = Record<string, unknown>;
 const LINKEDIN_LABEL = "DPC (Ireland), LinkedIn, decision of 22 October 2024 — persuasive authority";
 const CEGEDIM_LABEL = "CNIL (France), Cegedim, decision of 5 September 2024, ref. SAN-2024-013 — persuasive authority";
 const GSMA_LABEL = "AEPD (Spain), GSMA Limited, decision of 31 May 2024, ref. EXP202201608 — persuasive authority";
+// RE-PIN 2026-09-11 (DOC 252 §10 item 4): the 2022 date was the complaint date.
 const CAMARA_LABEL =
-  "AEPD (Spain), Cámara Oficial de Comercio, Industria, Servicios y Navegación de España, decision of 27 December 2022, ref. EXP202301678 — persuasive authority";
+  "AEPD (Spain), Cámara Oficial de Comercio, Industria, Servicios y Navegación de España, resolution PS/00145/2024 (file EXP202301678), 2025 — persuasive authority";
 const LINKEDIN_SOURCE_ID = "69eee35f-a280-47be-8159-bf778767ff31";
 
 function makeStates(overrides: Partial<TypedStateBag> = {}): TypedStateBag {

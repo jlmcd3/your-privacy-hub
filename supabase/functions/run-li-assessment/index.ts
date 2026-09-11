@@ -2395,7 +2395,10 @@ Return JSON:
           for (const m of v.matchAll(/(?:UK\s+)?GDPR\s+(?:Art(?:icle|\.)|Recital)[^,;.)\]]*?[\d.]+(?:\([a-z0-9]+\))*/gi)) {
             cited.add(m[0].replace(/\s+/g, " ").trim());
           }
-          for (const m of v.matchAll(/EDPB\s+Guidelines\s+1\/2024[^,;.)\]]*/gi)) {
+          // DOC 252 B4 (2026-09-11): the pinpoint suffix (", para. 68",
+          // ", Section II.C.3") is part of the citation, so the exhibit and
+          // the Table of Authorities list the guidance at pinpoint level.
+          for (const m of v.matchAll(/EDPB\s+Guidelines\s+1\/2024(?:,\s*(?:para\.\s*\d+|Section\s+[A-Z0-9.]+(?<!\.)))?/gi)) {
             cited.add(m[0].replace(/\s+/g, " ").trim());
           }
           return;

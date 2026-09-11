@@ -180,7 +180,8 @@ Deno.test("L2 — the Persuasive Authority section renders the four ratified dec
   assertStringIncludes(text, "DPC (Ireland), LinkedIn, decision of 22 October 2024 — persuasive authority");
   assertStringIncludes(text, "CNIL (France), Cegedim, decision of 5 September 2024, ref. SAN-2024-013 — persuasive authority");
   assertStringIncludes(text, "AEPD (Spain), GSMA Limited, decision of 31 May 2024, ref. EXP202201608 — persuasive authority");
-  assertStringIncludes(text, "decision of 27 December 2022, ref. EXP202301678 — persuasive authority");
+  // RE-PIN 2026-09-11 (DOC 252 §10 item 4): the 2022 date was the complaint date.
+  assertStringIncludes(text, "resolution PS/00145/2024 (file EXP202301678), 2025 — persuasive authority");
   // The ToA lists them under the persuasive group (iff-cited by the body).
   const toaStart = text.lastIndexOf("Authorities Cited");
   const toa = text.slice(toaStart);

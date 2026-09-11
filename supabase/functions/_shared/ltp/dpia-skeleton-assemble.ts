@@ -1240,6 +1240,33 @@ function dpiaAlreadyCitedIds(): ReadonlySet<string> {
   );
 }
 
+/**
+ * DOC 252 §10 item 5 (CEO-ruled 2026-09-11) — Appendix B, the six release-1
+ * enforcement precedents, read off the DPIA corpus map's AP rows marked
+ * `dpia_ap_record` (the same six ids `dpia-enforcement-precedents-pinned.ts`
+ * attaches to the report; dpia-c2-determinism.test.ts keeps the two lists
+ * equal). Fixed at curation time, so the table is the same on every record;
+ * prose is the CEO-ratified matter / what_happened / bearing bytes.
+ */
+export function buildDpiaEnforcementPrecedentsTable(): RenderedTable | null {
+  const rows = DPIA_CORPUS_MAP.rows
+    .filter((r) => r.role === "AP" && r.render_when?.includes("dpia_ap_record") && r.display)
+    .map((r) => [
+      s(r.display!.matter),
+      s(r.display!.what_happened),
+      s(r.display!.bearing),
+      s(r.display!.authority_label),
+    ]);
+  if (rows.length === 0) return null;
+  return {
+    key: "",
+    surface: "enforcement_precedents",
+    title: "",
+    columns: ["Matter", "What happened", "Bearing on this assessment", "Authority"],
+    rows,
+  };
+}
+
 export function buildDpiaAdvisoryCorpusMatches(intake: Bag): RenderedTable | null {
   const matches = matchAdvisoryRows(DPIA_CORPUS_MAP, dpiaFreeText(intake), dpiaAlreadyCitedIds());
   const t = advisoryMatchesTable(matches);
@@ -2242,6 +2269,8 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag, v3Ap
     ...tables,
     "table_of_authorities:1": matrixTable,
     "table_of_authorities:3": advisoryMatches,
+    // DOC 252 §10 item 5 — Appendix B.
+    "enforcement_precedents:1": buildDpiaEnforcementPrecedentsTable(),
   };
 
   const renderedDoc = renderSkeletonDocument({

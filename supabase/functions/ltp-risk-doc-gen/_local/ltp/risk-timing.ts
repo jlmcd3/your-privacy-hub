@@ -37,7 +37,49 @@ export function deriveInitialAssessmentDeadline(intake: Bag): string | null {
   if (start) {
     return `Initial-assessment deadline: before initiation of the processing (processing initiated ${start}).`;
   }
-  return "Initial-assessment deadline: determination pending — record when the covered processing began (before initiation applies to processing initiated on or after January 1, 2026; the December 31, 2027 transition deadline applies to covered processing already underway before that date and continuing afterward).";
+  const pending =
+    "Initial-assessment deadline: determination pending — record when the covered processing began (before initiation applies to processing initiated on or after January 1, 2026; the December 31, 2027 transition deadline applies to covered processing already underway before that date and continuing afterward).";
+  // DOC 252 D1 (CEO-ruled 2026-09-10, revised 2026-09-11, batch 916c33a8
+  // Velostream): where the record itself indicates the processing predates
+  // 2026 — recorded as ongoing, with a prior assessment the Company dates
+  // before January 1, 2026 — the deadline line IS the CEO's sentence (ledger
+  // C1, CEO bytes; "the company" set in the Risk house form "the Company").
+  // The "determination pending — record when…" lead is dropped (CEO
+  // 2026-09-11), so `initialAssessmentDeadlinePending` is false here and the
+  // engine draws the C2 Follow-Up from `priorAssessmentDateBefore2026`.
+  return priorAssessmentDateBefore2026(intake)
+    ? `Initial-assessment deadline: ${DOC252_C1_C2_SENTENCE}`
+    : pending;
+}
+
+/** DOC 252 ledger C1/C2 — the CEO's sentence (2026-09-11), one home for both
+ *  the § 5.B / Key Dates surface and the § 4.D Follow-Up. */
+export const DOC252_C1_C2_SENTENCE =
+  "Based on the information provided by the Company, processing began before January 1, 2026 and is ongoing, but a subsequent risk assessment is required before December 31, 2027.";
+
+/**
+ * DOC 252 D1 — the record's own indication that the processing predates
+ * 2026: processing_status is "Ongoing" and the prior-assessment summary
+ * (i9_existing_dpia_summary, with i9_has_existing_dpia = Yes) carries a date
+ * before January 1, 2026. Returns that date in the Company's own words
+ * ("March 2023", "Q1 2024", "2023-03-15"), or "" where the indication is not
+ * on the record. A dated prior assessment is an INDICATION of the start, never
+ * the start date itself, so every consumer keeps the pending determination
+ * and asks for the start date.
+ */
+const PRIOR_DATE_RE =
+  /\b(?:(?:January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept?|Oct|Nov|Dec)\.?\s+(?:\d{1,2},?\s+)?(20\d{2})|Q[1-4]\s+(20\d{2})|(20\d{2})-\d{2}(?:-\d{2})?)\b/g;
+
+export function priorAssessmentDateBefore2026(intake: Bag): string {
+  if (!/^ongoing/i.test(s(intake.processing_status))) return "";
+  if (!/^yes/i.test(s(intake.i9_has_existing_dpia))) return "";
+  const summary = s(intake.i9_existing_dpia_summary);
+  if (!summary) return "";
+  for (const m of summary.matchAll(PRIOR_DATE_RE)) {
+    const year = Number(m[1] ?? m[2] ?? m[3]);
+    if (year && year < 2026) return m[0];
+  }
+  return "";
 }
 
 /** True when the § 5.B / Key Dates deadline is in its pending state — the

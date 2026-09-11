@@ -431,6 +431,9 @@ function apEntries(
     profileOf: profileOfRow,
     elementOf: liaElementOf,
     limit: LIA_PERSUASIVE_AUTHORITY_LIMIT,
+    // DOC 252 §10 item 1 (CEO-ruled 2026-09-11) — the top tier needs the
+    // same use case (batch 916c33a8: Cámara reached it on a fraud record).
+    topTierRequiresClassMatch: true,
   });
   const entries = ranked.map((sr) => {
     const r = sr.row;

@@ -265,20 +265,36 @@ export function liaCorpusProvisionsForExhibit(
       verbatim_excerpt: p.verbatim_excerpt,
       status: "approved",
     }));
-  // Pin-verified guidance excerpts are exhibit-eligible on the same footing:
-  // the exhibit lists each authority once, keyed on its base citation.
+  // Pin-verified guidance excerpts are exhibit-eligible on the same footing.
+  // DOC 252 B4 (CEO-ruled 2026-09-11): the Table of Authorities carries
+  // guidance PINPOINTS, so each pin-verified row is a provision under its own
+  // pinpoint citation ("EDPB Guidelines 1/2024, para. 68"); the base
+  // instrument citation is kept once so a bare "EDPB Guidelines 1/2024" cite
+  // still pin-verifies. Which of them the ToA lists is decided iff-cited
+  // against the body (renderLiaToa).
   const seen = new Set<string>();
   for (const g of corpus?.guidance ?? []) {
     if (!g.pin_verified) continue;
+    const pinpoint = g.citation.trim();
+    if (pinpoint && !seen.has(pinpoint)) {
+      seen.add(pinpoint);
+      out.push({
+        key: `edpb-1-2024:${g.proposition_key}`,
+        citation: pinpoint,
+        verbatim_excerpt: g.verbatim,
+        status: "approved",
+      });
+    }
     const base = g.citation.split(",")[0].trim();
-    if (seen.has(base)) continue;
-    seen.add(base);
-    out.push({
-      key: `edpb-1-2024:${g.proposition_key}`,
-      citation: base,
-      verbatim_excerpt: g.verbatim,
-      status: "approved",
-    });
+    if (base && base !== pinpoint && !seen.has(base)) {
+      seen.add(base);
+      out.push({
+        key: `edpb-1-2024:${g.proposition_key}`,
+        citation: base,
+        verbatim_excerpt: g.verbatim,
+        status: "approved",
+      });
+    }
   }
   return out;
 }

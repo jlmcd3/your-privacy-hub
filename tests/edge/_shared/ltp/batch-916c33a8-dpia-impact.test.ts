@@ -88,6 +88,15 @@ function velantrix(): Bag {
       "Data processed on a large scale",
       "Matching or combining datasets",
     ],
+    // DOC 252 §10 item 2 (CEO-ruled 2026-09-11): the Art. 22 register row
+    // (r8) is now answered only by an individual-level human-intervention
+    // measure in the narrative. The batch record described aggregate-level
+    // review only, so r8 stays High and the decision goes to Art. 36 prior
+    // consultation — which is the intended reading of that record, but not
+    // what these tests exercise (the Section 7 blocker dedupe). One
+    // individual-review sentence keeps r8 Moderate here.
+    nature_scope_context:
+      "A recommendation engine applies these vectors to surface content; accounts flagged for restriction receive a human decision by a trust-and-safety analyst before any restriction is applied.",
   };
 }
 

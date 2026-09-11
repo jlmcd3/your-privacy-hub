@@ -43,6 +43,9 @@ export interface GradeResult {
    *  failures per model) — stored by the outcome table for the
    *  downloadable analysis. */
   payload?: unknown;
+  /** DOC 252 H1 — the grader instrument (GRADER_CONTEXT_VERSION) that
+   *  produced these scores, as reported by grade-single-assessment. */
+  graderContextVersion?: string | null;
 }
 
 export async function gradeRun(
@@ -74,7 +77,16 @@ export async function gradeRun(
     const gpt = typeof p.gpt?.overall_score === "number" ? p.gpt.overall_score : null;
     const mean = typeof (data as any)?.mean_score === "number" ? (data as any).mean_score : null;
     const err = p.claude?.error ?? p.gpt?.error ?? (data as any)?.error;
-    return { tool, claude, gpt, mean, payload: p, error: claude == null && gpt == null ? String(err ?? "no score") : undefined };
+    const version = (data as any)?.grader_context_version ?? p.grader_context_version;
+    return {
+      tool,
+      claude,
+      gpt,
+      mean,
+      payload: p,
+      graderContextVersion: typeof version === "string" && version ? version : null,
+      error: claude == null && gpt == null ? String(err ?? "no score") : undefined,
+    };
   } catch (e) {
     return { tool, claude: null, gpt: null, mean: null, error: (e as Error).message };
   }

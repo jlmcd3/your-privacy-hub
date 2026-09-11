@@ -264,6 +264,7 @@ export function deriveActivitySpiInventory(intake: Bag): string | null {
 import {
   deriveAssessmentRetentionEnd,
   deriveInitialAssessmentDeadline,
+  priorAssessmentDateBefore2026,
 } from "./risk-timing.ts";
 export { deriveAssessmentRetentionEnd, deriveInitialAssessmentDeadline };
 
@@ -983,7 +984,10 @@ function composeVTiming(intake: Bag): string {
   const deadline = deriveInitialAssessmentDeadline(intake);
   if (!deadline) return "";
   const start = s(intake.processing_start_date);
-  const rule = start && start < "2026-01-01"
+  // DOC 252 D1 (CEO-ruled 2026-09-11) — the record's own pre-2026
+  // indication (ongoing; prior assessment dated before 2026) selects the
+  // pre-2026 rule sentence, the same way a recorded pre-2026 start does.
+  const rule = (start && start < "2026-01-01") || priorAssessmentDateBefore2026(intake)
     ? RISK52_FIXED.x_timing_pre2026
     : RISK52_FIXED.x_timing_post2026;
   return `${rule} ${deadline}`;

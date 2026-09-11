@@ -1175,12 +1175,73 @@ function chapterVCreditFinding(who: string, instrumentLabel: string, verbatim: s
 
 
 
+/**
+ * DOC 252 §10 item 2 (CEO-ruled 2026-09-11) — HUMAN-INTERVENTION MEASURE.
+ * The Art. 22 register row (r8) is answered only by a measure that gives the
+ * individual human intervention in, a view on, or a route to contest the
+ * automated decision (Art. 22(3)). None of the ticked safeguard options is
+ * such a measure, so the record's own narrative is read sentence by
+ * sentence: a sentence describing individual-level human review, decision
+ * or contest counts; a sentence about aggregate or model-level review
+ * (batch 916c33a8: "humans review model performance metrics at an aggregate
+ * level on a monthly basis") does not. The first qualifying sentence is
+ * returned in the company's words; "" where none.
+ */
+const HUMAN_INTERVENTION_FIELDS: readonly string[] = [
+  "nature_scope_context",
+  "functional_description",
+  "dp_by_design_measures",
+  "data_subject_rights_mechanisms",
+  "data_quality_measures",
+  "residual_risks",
+  "mitigating_measures",
+  "description",
+];
+// The actor must be a person or a role a person holds: "a named underwriter
+// reviews every declined application" counts; "the model is benchmarked
+// quarterly" does not (the aggregate exclusion below).
+const HUMAN_INTERVENTION_ACTOR =
+  "human|person|people|manual|analyst|reviewer|advis[eo]r|agent|officer|caseworker|clinician|physician|nurse|specialist|staff|team member|employee|manager|underwriter|assessor|moderator|adjudicator|panel";
+const HUMAN_INTERVENTION_RE = new RegExp(
+  String.raw`\b(?:${HUMAN_INTERVENTION_ACTOR})\w*\s+(?:review|intervention|oversight|decision|check|sign-?off|approv)\w*\b` +
+    String.raw`|\b(?:review(?:ed|s)?|checked|assessed|decided|approved|confirmed|examined|verified)\s+by\s+(?:a |an |the )?(?:named )?(?:${HUMAN_INTERVENTION_ACTOR})\b` +
+    String.raw`|\b(?:contest|challenge|appeal|object to|dispute)\w*\s+(?:the |a |any |an )?(?:automated |such |that |this )?(?:decision|outcome|score|result|determination|flag)s?\b` +
+    String.raw`|\bhuman[- ]in[- ]the[- ]loop\b|\bright to (?:obtain )?human intervention\b|\bhuman decision\b`,
+  "i",
+);
+const HUMAN_INTERVENTION_AGGREGATE_RE =
+  /\b(aggregate|aggregated|metrics|performance|model weights|monthly|quarterly|cohort|sample|dashboard|statistic\w*)\b/i;
+// A negated mention ("without human review of individual outputs", "no
+// manual review", "not reviewed by a person") describes the risk, not a measure.
+const HUMAN_INTERVENTION_NEGATED_RE =
+  /\b(?:without|no|not|absence of|lack(?:s|ing)? of|never|nor)\s+(?:any\s+|a\s+|an\s+)?(?:meaningful\s+|individual(?:-level)?\s+|prior\s+)?(?:human|manual|person|individual)\b|\bnot\s+(?:reviewed|checked|assessed|decided|approved|confirmed|examined|verified)\s+by\b|\bcannot\s+(?:contest|challenge|appeal|obtain human intervention)\b/i;
+
+export function readHumanInterventionSpan(intake: unknown): string {
+  for (const field of HUMAN_INTERVENTION_FIELDS) {
+    const v = get(intake, field);
+    const text = Array.isArray(v) ? v.map((x) => str(x)).filter(Boolean).join(" ") : str(v);
+    if (!text) continue;
+    for (const sentence of splitSentencesSafe(text)) {
+      // Clause-level: a record often lists its measures semicolon-separated
+      // in one sentence, and the aggregate exclusion must not veto a
+      // neighbouring individual-level clause.
+      for (const clause of sentence.split(/;\s*|,\s+(?:and|but|while)\s+/)) {
+        const s = clause.trim();
+        if (!s || !HUMAN_INTERVENTION_RE.test(s) || HUMAN_INTERVENTION_AGGREGATE_RE.test(s) || HUMAN_INTERVENTION_NEGATED_RE.test(s)) continue;
+        return noStop(s);
+      }
+    }
+  }
+  return "";
+}
+
 function facts(intake: unknown): RiskFacts {
   const transfers = get(intake, "transfer_flows");
   const flows = Array.isArray(transfers) ? (transfers as Record<string, unknown>[]) : [];
   return {
     dataCategories: arr(get(intake, "data_categories")),
     safeguards: arr(get(intake, "existing_safeguards")).filter((s) => s !== "None"),
+    humanInterventionSpan: readHumanInterventionSpan(intake),
     processors: arr(get(intake, "third_party_processors")),
     transferCount: flows.length,
     transferLeavesRegime: flows.some((f) => flowLeavesOriginRegime(f, readDpiaRegime(intake))),
@@ -1227,8 +1288,15 @@ export function buildRiskRegister(intake: unknown): RiskRegisterEntry[] {
   for (const spec of DPIA_RISK_SPECS) {
     if (!spec.trigger(f)) continue;
 
-    const measures = spec.mitigating_safeguards.filter((s) => f.safeguards.includes(s));
-    const coverage = spec.mitigating_safeguards.length === 0
+    // DOC 252 §10 item 2 — an Art. 22 row is answered by the record's own
+    // human-intervention sentence, never by a ticked option.
+    const humanIntervention = spec.human_intervention_measure ? (f.humanInterventionSpan ?? "") : "";
+    const measures = spec.human_intervention_measure
+      ? (humanIntervention ? [humanIntervention] : [])
+      : spec.mitigating_safeguards.filter((s) => f.safeguards.includes(s));
+    const coverage = spec.human_intervention_measure
+      ? (humanIntervention ? 1 : 0)
+      : spec.mitigating_safeguards.length === 0
       ? 0
       : measures.length / spec.mitigating_safeguards.length;
 
@@ -1236,7 +1304,9 @@ export function buildRiskRegister(intake: unknown): RiskRegisterEntry[] {
     // it is never invented and never asserted where the record is silent
     // about safeguards altogether.
     let likelihood: Likelihood;
-    if (f.safeguards.length === 0) {
+    if (spec.human_intervention_measure) {
+      likelihood = humanIntervention ? "Unlikely" : "Likely";
+    } else if (f.safeguards.length === 0) {
       likelihood = "Likely";
     } else if (coverage >= 0.75) {
       likelihood = "Unlikely";
@@ -1288,7 +1358,11 @@ export function buildRiskRegister(intake: unknown): RiskRegisterEntry[] {
           information_needed:
             // PROMPT 12B item 2 — the risk label is the assessment's OWN term,
             // not a record quote: it renders unquoted. Record spans stay quoted.
-            `The measures actually applied against ${spec.risk_label} — the record names none of: ${spec.mitigating_safeguards.join("; ")}. Record the measure, who operates it, and how its effect is evidenced.`,
+            // DOC 252 §10 item 2 — the Art. 22 row asks for the one measure
+            // that answers it (ledger F2).
+            spec.human_intervention_measure
+              ? `The measure by which an individual can obtain human intervention in, express a view on, or contest a decision the automated evaluation produces (Art. 22(3)) — none of the recorded safeguards is such a measure and the record describes none. Record the measure, who operates it, and how its effect is evidenced.`
+              : `The measures actually applied against ${spec.risk_label} — the record names none of: ${spec.mitigating_safeguards.join("; ")}. Record the measure, who operates it, and how its effect is evidenced.`,
           ask_class: "ask_risk_measures",
           display_label: resolveAskLabel("ask_risk_measures", { risk: spec.risk_label }),
         }

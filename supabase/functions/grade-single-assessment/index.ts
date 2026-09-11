@@ -67,7 +67,7 @@ function sliceIntakeForGrader(intake: unknown): string {
 }
 // GRADER-1 Tasks 2/3 — shared authoritative context block (identical to
 // run-quality-batch's grader system prompt).
-import { SHARED_GRADER_CONTEXT } from "../_shared/grader/context.ts";
+import { SHARED_GRADER_CONTEXT, GRADER_CONTEXT_VERSION } from "../_shared/grader/context.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -644,6 +644,11 @@ const handler = async (req: Request): Promise<Response> => {
     // failed findings verbatim alongside the counts.
     // DOC 129 §2 — deterministic findings ride alongside the model results.
     deterministic: deterministicFindings,
+    // DOC 252 H1 (2026-09-10): the instrument that graded this document.
+    // The all-products harness had no record of it (quality_runs carries
+    // grader_context_version; this one-off path did not), so no batch could
+    // be attributed to a grader version after the fact.
+    grader_context_version: GRADER_CONTEXT_VERSION,
     claude: claudeRes ? { overall_score: claudeRes.overall_score, dimension_scores: claudeRes.dimension_scores, findings_count: claudeRes.findings.length, findings: claudeRes.findings, strengths: claudeRes.strengths, critical_failures: claudeRes.critical_failures } : { error: claudeErr },
     gpt: gptRes ? { overall_score: gptRes.overall_score, dimension_scores: gptRes.dimension_scores, findings_count: gptRes.findings.length, findings: gptRes.findings, strengths: gptRes.strengths, critical_failures: gptRes.critical_failures } : { error: gptErr },
     note: "One-off grader (grade-single-assessment). NOT a product baseline. Never used by ql2-orchestrator or run-stress-job.",
@@ -672,7 +677,7 @@ const handler = async (req: Request): Promise<Response> => {
     stored_note_id = noteRow?.id ?? null;
   }
 
-  return json({ ok: true, mean_score, stored_note_id, payload });
+  return json({ ok: true, mean_score, stored_note_id, grader_context_version: GRADER_CONTEXT_VERSION, payload });
 };
 
 // QL3-P1.2: expose handler for tests; only bind Deno.serve when run as

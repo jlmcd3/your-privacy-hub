@@ -376,6 +376,17 @@ export async function downloadBatchErrorsMarkdown(batchId: string, outcomes: Run
   lines.push(`- Grading failures: ${gradeFailures.length}`);
   lines.push(`- Completed but unscored: ${noScore.length}`);
   lines.push(`- Runs with a grade payload: ${rows.filter((o) => o.gradePayload != null).length}`);
+  // DOC 252 H1 (2026-09-10) — the grader instrument(s) behind this batch's
+  // scores, read from the grade payloads; "not recorded" on batches graded
+  // before the instrument was reported.
+  const instruments = [
+    ...new Set(
+      rows
+        .map((o) => (o.gradePayload as { grader_context_version?: unknown } | null)?.grader_context_version)
+        .filter((v): v is string => typeof v === "string" && v.length > 0),
+    ),
+  ];
+  lines.push(`- Grader instrument: ${instruments.length ? instruments.map((v) => `\`${v}\``).join(", ") : "not recorded"}`);
   if (serverOnly) {
     lines.push(
       "- Source: rebuilt from server job rows (`static_stress_jobs`) — this browser holds no local run records for this batch, so grader findings/scores are not available here.",

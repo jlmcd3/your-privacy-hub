@@ -477,7 +477,7 @@ Return a JSON object with EXACTLY these fields:
   "dpia": {
     "processing_activity_name": "string", "description": "string", "purpose": "string",
     "data_categories": ["array"], "data_subjects": "string", "volume_frequency": "string",
-    "retention_period": "string", "third_party_processors": ["array"], "nature_scope_context": "string — DOC 160: the nature, scope and context of the processing, including any automated decision-making and the human review applied to it (the contract has no automated_decisions key)",
+    "retention_period": "string", "third_party_processors": ["array"], "nature_scope_context": "string — DOC 160: the nature, scope and context of the processing, including any automated decision-making and the human review applied to it (the contract has no automated_decisions key). DOC 252: where a reason to conduct is evaluation/scoring, automated decision-making or systematic evaluation, state in one sentence the INDIVIDUAL-level human intervention available (who reviews, decides or hears a contest before an individual is affected) — or that there is none; aggregate or model-level review does not count",
     "existing_safeguards": ["array"], "jurisdictions": ["array"],
     "legal_basis_proposed": "string", "controller_sector": "string",
     "reasons_to_conduct": ["array"],

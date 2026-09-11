@@ -44,6 +44,8 @@ const EDPB_ORDER = [
   "section_5_interested_parties",
   "section_6_conclusion",
   "table_of_authorities",
+  // DOC 252 §10 item 5 (CEO-ruled 2026-09-11) — v4.12 Appendix B.
+  "enforcement_precedents",
 ];
 
 Deno.test("spine v4.6 — fixed prose is byte-pinned to the ratified hash", async () => {
@@ -108,7 +110,8 @@ Deno.test("spine v4.6 — the ratified wording edits are the shipped bytes", () 
   // v4.6 adds one new skeleton block in Section 2 and one new skeleton block
   // as the Appendix A intro (replacing what was a "rule"-kind ToA block, which
   // never counted toward this "skeleton" filter) -- 16 -> 18.
-  assertEquals(fixed.length, 18);
+  // DOC 252 §10 item 5 (2026-09-11) — v4.12 adds the Appendix B intro: 18 -> 19.
+  assertEquals(fixed.length, 19);
   // RE-PIN BATCH 19b (doc 113 Part D S4.2, caught late by Batch 21a's
   // double-check — this file lives outside tests/edge/ and was missed by
   // every battery run since): the Art. 35(3) three-case enumeration
@@ -190,7 +193,9 @@ Deno.test("spine v4.1 — every table surface has a builder", () => {
   // composer (buildDpiaAdvisoryCorpusMatches), positionally keyed as
   // "table_of_authorities:3".
   for (const surface of DPIA_SKELETON_TABLE_SURFACES) {
-    if (surface === "factor_authority_matrix" || surface === "advisory_corpus_matches") continue;
+    // DOC 252 §10 item 5 — "enforcement_precedents" is the same pattern
+    // (buildDpiaEnforcementPrecedentsTable, keyed "enforcement_precedents:1").
+    if (surface === "factor_authority_matrix" || surface === "advisory_corpus_matches" || surface === "enforcement_precedents") continue;
     assert(surface in built, `no builder for table surface ${surface}`);
   }
 });

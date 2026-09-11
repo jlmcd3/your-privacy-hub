@@ -39,7 +39,7 @@ import {
 } from "./admt-significant-decision.ts";
 // DOC 167 — the § 7155 timing resolver the assembler renders; read here so
 // the completing Follow-Up is drawn from the same fact (one resolver).
-import { initialAssessmentDeadlinePending } from "./risk-timing.ts";
+import { DOC252_C1_C2_SENTENCE, initialAssessmentDeadlinePending, priorAssessmentDateBefore2026 } from "./risk-timing.ts";
 import type { RenderedTable } from "../../../_shared/prose/skeleton-render.ts";
 import { boundedPassage, firstSentence } from "../../../_shared/ltp/clause-bound.ts";
 import { RISK52_FIXED } from "../prose/plans/cppa-risk.spine.ts";
@@ -1633,6 +1633,13 @@ export function runRiskFactorEngine(
     followUps.push(
       "Record when the covered processing began, or will begin; § 7155(a)(1) requires the assessment before the Company initiates processing within § 7150(b), and the December 31, 2027 transition deadline in § 7155(b) applies only to covered processing already underway before January 1, 2026 — the applicable deadline turns on that date",
     );
+  } else if (priorAssessmentDateBefore2026(intake)) {
+    // DOC 252 D1 (CEO-ruled 2026-09-10, revised 2026-09-11) — where the
+    // record itself indicates a pre-2026 start (ongoing; prior assessment
+    // dated before 2026), the Follow-Up IS the CEO's sentence (ledger C2),
+    // drawn from the same resolver § 5.B renders; the "Record when…" ask is
+    // dropped. The list join supplies the terminal stop.
+    followUps.push(DOC252_C1_C2_SENTENCE.replace(/\.$/, ""));
   }
   // DOC 167 (Batch 13 A-Team §10) — the training-data classification
   // tension; the Company's "No" is preserved, never overridden.
@@ -1816,6 +1823,11 @@ export function runRiskFactorEngine(
   const knowNoFormal = knowMulti.includes("No formal process in place") &&
     knowMulti.every((x) => x === "No formal process in place");
   const optOutPending = s(intake.q9_opt_out) === "In progress";
+  // DOC 252 §10 item 3 (CEO-ruled 2026-09-11): "Yes, but in footer only" is
+  // credited AT ITS PLACEMENT (ledger F3) and draws a Recommendation to
+  // confirm the § 1798.135(a)(1) clear-and-conspicuous standard on the
+  // homepage; it is not a weak control and the disposition input is unchanged.
+  const optOutFooterOnly = s(intake.q9_opt_out) === "Yes, but in footer only";
   const admtOptOutPending = s(intake.q20_admt_opt_out) === "Planned for implementation";
   const weakControls: string[] = [];
   if (knowNoFormal) weakControls.push("the right-to-know process");
@@ -1830,6 +1842,11 @@ export function runRiskFactorEngine(
   if (isAdmt && (isNo(intake.q20_admt_opt_out) || admtOptOutPending)) weakControls.push("the ADMT opt-out");
 
   const recommendations: string[] = [];
+  if (optOutFooterOnly) {
+    recommendations.push(
+      "Confirm that the “Do Not Sell or Share My Personal Information” link is clear and conspicuous on the homepage (Cal. Civ. Code § 1798.135(a)(1)); the record places it in the footer only, which is credited on the information provided",
+    );
+  }
   // DOC 127 PART I — untested safeguards already escalated to a Condition
   // (stop-driving rows) are not repeated as a recommendation.
   const untestedForRec = untested.filter((g) => !untestedEscalatedHarms.has(s(g.harm)));
@@ -3558,7 +3575,13 @@ export function runRiskFactorEngine(
       controlRows.push([
         "Opt-out of sale or sharing",
         s(intake.q9_opt_out),
-        isNo(intake.q9_opt_out) ? "Not credited — absent" : optOutPending ? "Not credited — in progress" : "Credited",
+        isNo(intake.q9_opt_out)
+          ? "Not credited — absent"
+          : optOutPending
+          ? "Not credited — in progress"
+          : optOutFooterOnly
+          ? "Credited — footer placement"
+          : "Credited",
       ]);
     }
     if (s(intake.q10_id_verification)) {
@@ -3591,7 +3614,11 @@ export function runRiskFactorEngine(
         columns: ["Control", "Reported status", "Weight credited"],
         rows: controlRows,
       };
-      const application = weakControls.length
+      // DOC 252 §10 item 3 — ledger F3: the footer-placement note.
+      const footerNote = optOutFooterOnly
+        ? " The opt-out link is credited at its recorded footer placement; confirming that it is clear and conspicuous on the homepage appears among the Recommendations in § 4.D."
+        : "";
+      const application = (weakControls.length
         ? `Of the ${countWord(controlRows.length)} controls reported, ${asProse(weakControls)} ${
           plural(weakControls.length, "operates", "operate")
         } without a formal or completed process. A right that cannot be exercised carries no weight: the reduction is carried into Section 4, and strengthening ${
@@ -3599,7 +3626,7 @@ export function runRiskFactorEngine(
         } appears among the Recommendations in § 4.D.`
         : `The ${countWord(controlRows.length)} ${
           plural(controlRows.length, "control", "controls")
-        } reported ${plural(controlRows.length, "is", "are")} formal and exercisable on the information provided, and each is credited — which weighs in the Company’s favor.`;
+        } reported ${plural(controlRows.length, "is", "are")} formal and exercisable on the information provided, and each is credited — which weighs in the Company’s favor.`) + footerNote;
       put(
         "iii_analysis:13",
         "controls_application",

@@ -603,7 +603,7 @@ export function AllProductsPanel() {
       if (outcomeId) updateOutcome(outcomeId, { gradeError: res.error ?? "no score" });
       return;
     }
-    recordLocalScore(batchId, SLUG_TO_STRESS_TOOL[slug], res.claude, res.gpt, sourceRowId);
+    recordLocalScore(batchId, SLUG_TO_STRESS_TOOL[slug], res.claude, res.gpt, sourceRowId, res.graderContextVersion ?? null);
     if (outcomeId) {
       updateOutcome(outcomeId, {
         claudeScore: res.claude,

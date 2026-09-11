@@ -72,7 +72,9 @@
 // prose) is unchanged and only the basis-v2 serialization moves — the v4.8
 // precedent. The cover subtitle (assembler-side, not a spine constant) took
 // the Risk cover's form the same day.
-export const DPIA_SKELETON_VERSION = "dpia-v4.11-2026-09-10";
+export const DPIA_SKELETON_VERSION = "dpia-v4.12-2026-09-11";
+/** v4.11 (CEO edit 2026-09-10: Section titles renumbered 1–7) — retained for the audit trail. */
+export const DPIA_SKELETON_VERSION_V411 = "dpia-v4.11-2026-09-10";
 
 /** The v4.10 spine version — retained for the audit trail. */
 export const DPIA_SKELETON_VERSION_V410 = "dpia-v4.10-2026-09-05";
@@ -219,8 +221,12 @@ export const DPIA_SKELETON_CONTENT_HASH_V47 =
  * every prior encode (skeleton-block text, newline-joined, in document
  * order; verified by reproducing the v4.7 value first).
  */
-export const DPIA_SKELETON_CONTENT_HASH =
+/** v4.11 fixed prose under basis v1 — retained for the audit trail. */
+export const DPIA_SKELETON_CONTENT_HASH_V411 =
   "4e401fe574a8c4043974b8b61d87604dc1b5605051a7ffcee9eb49861103bc9a";
+/** v4.12 — DOC 252 §10 item 5: Appendix B adds one skeleton block. */
+export const DPIA_SKELETON_CONTENT_HASH =
+  "4f8bbcfca5ab87e52c56d78de04049e05aff1aa348513aaebc81bfc9866f0552";
 
 
 
@@ -452,6 +458,25 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
       { kind: "table", text: "advisory_corpus_matches" },
     ],
   },
+  {
+    // DOC 252 §10 item 5 (CEO-ruled 2026-09-11) — v4.12. The DPIA's six
+    // release-1 enforcement precedents (dpia-corpus-map.ts AP rows marked
+    // `dpia_ap_record`; the same six `dpia-enforcement-precedents-pinned.ts`
+    // attaches to the report) rendered only on the legacy V1 surface; the
+    // skeleton document carried Appendix A's "(precedent appendix)" pointer
+    // to nothing. They render here, in their CEO-ratified matter /
+    // what-happened / bearing prose, so the pointer resolves.
+    id: "enforcement_precedents",
+    title: "Appendix B — Enforcement Precedents",
+    blocks: [
+      { kind: "skeleton", text: "This appendix records the supervisory-authority decisions this DPIA cites as persuasive authority. Each entry states the matter, what happened, and the bearing it has on the determinations in this report. None is binding on the Company, and none changes a determination made above." },
+      // {{DERIVED.enforcement_precedents}} — assembled in
+      // dpia-skeleton-assemble.ts from the DPIA corpus map's AP rows; the
+      // rows are fixed at curation time, so the table is identical on every
+      // record (doc 48 §II.2a determinism law).
+      { kind: "table", text: "enforcement_precedents" },
+    ],
+  },
 ];
 
 /**
@@ -556,8 +581,15 @@ export const DPIA_SPINE_HASH_V410 =
  * Basis-v1 (skeleton-block text only) is UNCHANGED (titles carry no fixed
  * prose — the v4.8 finding); only basis-v2 moves. Method verified by
  * reproducing the v4.10 value first (the battery's own recompute). */
-export const DPIA_SPINE_HASH =
+/** v4.11 spine hash (basis v2) — retained for the audit trail. */
+export const DPIA_SPINE_HASH_V411 =
   "311ae6ccc157e346c634cd7bf506ee4a6b4b3daf0611f533438a3661c8ab196e";
+
+/** v4.12 spine hash — DOC 252 §10 item 5 (CEO-ruled 2026-09-11): Appendix B
+ * (Enforcement Precedents) added; one new skeleton block, so BOTH bases move.
+ * Method verified by reproducing the v4.11 value first. */
+export const DPIA_SPINE_HASH =
+  "7ed4efc0ca10eddbeb32e4c29c70e6d240a9074a21e4b2133823dbbaae09a3f6";
 
 /** The v4.5.1 spine under basis v2 — retained for the audit trail. */
 export const DPIA_SPINE_HASH_V451 =

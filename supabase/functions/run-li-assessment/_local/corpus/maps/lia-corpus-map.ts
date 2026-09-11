@@ -339,7 +339,16 @@ export const LIA_CORPUS_MAP: CorpusMap = {
         "Doc 63 §6.1 item 3's second tag (same source and ratified bytes as lia/f01-interest-legitimacy/ap-02). AEPD (Spain), GSMA Limited, 31 May 2024, €600,000: demanding third parties' health data as an entry condition, with no entitlement to require it, is the third-party-interests failure mode this factor tests — the third party's own interest in the data cannot be assumed away. Same data-quality note as the sibling row. Banked per doc 48 §II.6.",
     },
 
-    // 4. Cámara de Comercio de España (AEPD, Spain, 2022) — Factors: Reasonable expectations · Potential harms.
+    // 4. Cámara de Comercio de España (AEPD, Spain, 2025) — Factors: Reasonable expectations · Potential harms.
+    // DOC 252 §10 item 4 (CEO-ratified 2026-09-11; doc 186 §6 (1)): the row
+    // cited "decision of 27 December 2022" — that is the date the AEPD
+    // RECEIVED the complaint (resolution PS/00145/2024, p. 1). The sanction
+    // resolution is a 2025 act: proposal of resolution 05/03/2025, the
+    // Company's allegations 21/03/2025, the AEPD's public statement of the
+    // fine 20/05/2025, the resolution PDF published 28/08/2025. The
+    // resolution text carries no signature date, so the label cites the year
+    // and `decision_date` (ordering only) carries the AEPD statement date.
+    // The €500,000 figure is unchanged.
     {
       id: "lia/f05-reasonable-expectations/ap-01",
       factor_id: "Reasonable expectations of the data subject",
@@ -353,21 +362,23 @@ export const LIA_CORPUS_MAP: CorpusMap = {
       purpose_class: "authority",
       render_when: ["assessment_rendered"],
       display: {
-        matter: "AEPD (Spain) — Cámara de Comercio de España (2022)",
+        matter: "AEPD (Spain) — Cámara de Comercio de España (2025)",
         what_happened:
           "Spain's AEPD fined the Chamber of Commerce €500,000 after sole traders' personal data was left exposed and offered for sale online.",
         bearing:
           "Reasonable expectations are the balancing test's fulcrum: data subjects who provide data for one purpose do not expect exposure or resale — the expectation factor this assessment documents.",
         authority_label:
-          "AEPD (Spain), Cámara Oficial de Comercio, Industria, Servicios y Navegación de España, decision of 27 December 2022, ref. EXP202301678 — persuasive authority",
-        trail_cite: "AEPD, Cámara de Comercio (2022)",
+          "AEPD (Spain), Cámara Oficial de Comercio, Industria, Servicios y Navegación de España, resolution PS/00145/2024 (file EXP202301678), 2025 — persuasive authority",
+        trail_cite: "AEPD, Cámara de Comercio (2025)",
       },
       citation_source: {
         regulator: "AEPD (Spain)",
         subject: "Cámara de Comercio de España",
         jurisdiction: "Spain",
-        decision_date: "2022-12-27",
-        case_reference: "EXP202301678",
+        // DOC 252 §10 item 4 — the AEPD's public statement date (ordering
+        // only; the resolution carries no signature date).
+        decision_date: "2025-05-20",
+        case_reference: "PS/00145/2024 (EXP202301678)",
       },
       // DOC 132 (Track A advisory surfacing, CEO-ratified 2026-09-01).
       advisory_terms: ["data exposure", "data leak", "resale of personal data"],
@@ -393,17 +404,18 @@ export const LIA_CORPUS_MAP: CorpusMap = {
         regulator: "AEPD (Spain)",
         subject: "Cámara de Comercio de España",
         jurisdiction: "Spain",
-        decision_date: "2022-12-27",
-        case_reference: "EXP202301678",
+        // DOC 252 §10 item 4 — see the sibling row's note.
+        decision_date: "2025-05-20",
+        case_reference: "PS/00145/2024 (EXP202301678)",
       },
       direction: "supports",
       logic_bearing: false,
       provenance: {
         source_url: "https://www.aepd.es/documento/ps-00145-2024.pdf",
-        verified_on: "2026-08-25",
+        verified_on: "2026-09-11",
       },
       curation_note:
-        "Doc 63 §6.1 item 4's second tag (same source and ratified bytes as lia/f05-reasonable-expectations/ap-01). AEPD (Spain), Cámara de Comercio, 27 December 2022, €500,000 (re-confirmed live 2026-08-25 — see the sibling row's full data-quality note): sole traders' data left exposed and offered for sale is the realized-harm end state this factor asks the assessment to weigh in advance. Banked per doc 48 §II.6.",
+        "DOC 252 §10 item 4 (CEO-ratified 2026-09-11): AEPD (Spain), Cámara de Comercio, resolution PS/00145/2024 (file EXP202301678), 2025 — the 27 December 2022 date carried below is the complaint-receipt date (see the sibling row's note). Original note — Doc 63 §6.1 item 4's second tag (same source and ratified bytes as lia/f05-reasonable-expectations/ap-01). AEPD (Spain), Cámara de Comercio, 27 December 2022, €500,000 (re-confirmed live 2026-08-25 — see the sibling row's full data-quality note): sole traders' data left exposed and offered for sale is the realized-harm end state this factor asks the assessment to weigh in advance. Banked per doc 48 §II.6.",
     },
 
     // ── AP — doc 73 §2.1/§4 R3 (2026-08-26): four new sources curated from

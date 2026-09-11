@@ -91,5 +91,5 @@ Deno.test("9L.1 item 5 — design risks follow the §4 statutory frame, not the 
   // RE-PIN DOC 188 P6 (2026-09-05, batch e38460): v4.10 — the exec opener's
   // instrument became the {gdprInstrument} slot.
   // RE-PIN 2026-09-10 (CEO edit): v4.11 — Section titles renumbered 1–7.
-  assertEquals(DPIA_SKELETON_VERSION, "dpia-v4.11-2026-09-10");
+  assertEquals(DPIA_SKELETON_VERSION, "dpia-v4.12-2026-09-11");
 });
