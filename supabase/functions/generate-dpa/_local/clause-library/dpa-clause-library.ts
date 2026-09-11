@@ -65,7 +65,7 @@ const GDPR_SECTIONS: readonly DpaClauseSection[] = [
     clauses: [
       `2.1 "Personal Data", "processing", "controller", "processor", "data subject", "personal data breach" and "supervisory authority" have the meanings given to them in {frameworkCitation}.`,
       `2.2 "Sub-processor" means any processor engaged by the Processor to process Personal Data on behalf of the Controller in connection with the Services.`,
-      `2.3 "DPA" means this Data Processing Agreement and is not used to refer to any data protection authority; supervisory bodies are referred to in full as "supervisory authority".`,
+      `2.3 "DPA" means this Data Processing Agreement.`,
     ],
   },
   {
@@ -106,7 +106,7 @@ const GDPR_SECTIONS: readonly DpaClauseSection[] = [
     heading: "7. SECURITY",
     clauses: [
       `7.1 (Assistance with Articles 32 to 36 — Art. 28(3)(f).) Taking into account the nature of the processing and the information available to the Processor, the Processor shall assist the Controller in ensuring compliance with the obligations pursuant to Articles 32 to 36 of {frameworkCitation}.`,
-      `7.2 (Breach notification.) The Processor shall notify the Controller of a personal data breach without undue delay after becoming aware of it, and in any event within [48] hours, or within such shorter period as is necessary to enable the Controller to notify the supervisory authority within 72 hours under Article 33(1) of {frameworkCitation} if that period would be insufficient. The notification shall describe the nature of the breach, the categories and approximate number of data subjects and records concerned, the likely consequences, and the measures taken or proposed to be taken by the Processor to address the breach and mitigate its possible adverse effects.`,
+      `7.2 (Breach notification.) The Processor shall notify the Controller of a personal data breach without undue delay after becoming aware of it, and in any event within [48] hours, or within such shorter period as is necessary to enable the Controller to notify the supervisory authority within 72 hours under Article 33(1) of {frameworkCitation} if that period would be insufficient, providing the information then reasonably available to the Processor and supplementing it in phases without undue further delay as further information becomes available (Article 33(4) of {frameworkCitation}). The notification shall describe the nature of the breach, the categories and approximate number of data subjects and records concerned, the likely consequences, and the measures taken or proposed to be taken by the Processor to address the breach and mitigate its possible adverse effects.`,
       `7.3 The operative security baseline is Annex C. {tomsSourceSentence}`,
     ],
   },

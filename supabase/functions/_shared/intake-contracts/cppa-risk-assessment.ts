@@ -289,7 +289,11 @@ export const Q5B_PROFILING_OPTS = [
 ] as const;
 export const Q7_OPTS = ["Automated deletion with confirmation", "Manual process, documented", "Case-by-case handling", "No formal process"] as const;
 export const Q8_OPTS = ["Online self-service", "Handled via support", "No formal process"] as const;
-export const Q9_OPTS = ["Yes, prominently on homepage", "Yes, but in footer only", "In progress", "No"] as const;
+// DOC 258 (2026-09-11, CEO on doc 257A item 7): § 1798.135(a)(1) asks for a
+// clear and conspicuous link on the homepage and prescribes no position on
+// it; an app, smart TV or similar device without a homepage carries it where
+// a consumer reasonably expects administrative tools, such as settings.
+export const Q9_OPTS = ["Yes, prominently on homepage", "Yes, but in footer only", "Yes — in the settings area of our app, smart TV or other device without a homepage", "In progress", "No"] as const;
 export const Q10_OPTS = ["Documented verification process matching CPPA guidance", "Informal verification", "No verification process"] as const;
 export const Q11_OPTS = ["Within 12 months", "12–24 months ago", "Over 24 months ago", "No privacy policy"] as const;
 export const Q12_OPTS = ["Yes, covers all collection points", "Yes, partial coverage", "No"] as const;

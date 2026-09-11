@@ -43,7 +43,15 @@ Deno.test("batch b83ea3c4 — Art. 37(1)(c) is not engaged on a 'No' with a left
 
   const yes = buildDpoDetermination({ ...VELANTRIX, special_category: "Yes" }) as unknown as Bag;
   const yesApp = String((yes.designation_trigger as Bag).application ?? "");
-  assert(yesApp.includes("(c) applies") && yesApp.includes("Health data"), "a categorical Yes with the list still engages (c)");
+  // DOC 258 (2026-09-11): a categorical Yes makes limb (c) LIVE; it is
+  // established only by the core-activity and scale answers.
+  assert(yesApp.includes("Whether limb (c) is engaged is not answered") && yesApp.includes("Health data"), "a categorical Yes with the list makes (c) live");
+  const established = buildDpoDetermination({
+    ...VELANTRIX, special_category: "Yes",
+    sc_core_activity: "Yes — a primary activity, or inextricably part of delivering our principal products or services",
+    sc_data_subjects_count: "1.2 million", sc_population_proportion: "No", sc_duration: "Continuous or ongoing", sc_geographic_scope: "National",
+  }) as unknown as Bag;
+  assert(String((established.designation_trigger as Bag).application ?? "").includes("(c) applies"), "core activity + large scale engages (c)");
 });
 
 Deno.test("batch b83ea3c4 — the Art. 30(5) derogation does not fail on special-category processing the company denied", () => {

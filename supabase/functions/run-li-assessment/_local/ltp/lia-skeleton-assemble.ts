@@ -1373,13 +1373,43 @@ function checkLeadCoherence(
 // record itself commits to an annual review the re-review is stated as due.
 // The outcome of the three-part test is unchanged: currency of review is an
 // accountability fact (Art. 5(2)), not an element of Art. 6(1)(f).
-export function staleReviewClause(dateText: string, recordInput: Bag, asOf: Date = new Date()): string {
+/** Whole months from an ISO date to `asOf`; null when the text carries no date. */
+export function monthsSince(dateText: string, asOf: Date = new Date()): number | null {
   const m = /(\d{4})-(\d{2})-(\d{2})/.exec(String(dateText ?? ""));
-  if (!m) return "";
+  if (!m) return null;
   const d = new Date(`${m[1]}-${m[2]}-${m[3]}T00:00:00Z`);
-  if (Number.isNaN(d.getTime())) return "";
-  const months = (asOf.getUTCFullYear() - d.getUTCFullYear()) * 12 + (asOf.getUTCMonth() - d.getUTCMonth()) - (asOf.getUTCDate() < d.getUTCDate() ? 1 : 0);
-  if (months < 12) return "";
+  if (Number.isNaN(d.getTime())) return null;
+  return (asOf.getUTCFullYear() - d.getUTCFullYear()) * 12 + (asOf.getUTCMonth() - d.getUTCMonth()) - (asOf.getUTCDate() < d.getUTCDate() ? 1 : 0);
+}
+// DOC 258 (2026-09-11, CEO on doc 257A item 2): a review or approval older
+// than twelve months is a Condition on the determination — the three-part
+// test is unchanged; the accountability record (Art. 5(2)) is not current.
+export function staleAttestationConditions(attestation: Bag, recordInput: Bag, asOf: Date = new Date()): LiaCondition[] {
+  const annual = /\bannual(?:ly)?\b|every (?:12|twelve) months|\byearly\b/i.test(JSON.stringify(recordInput ?? {}));
+  const out: LiaCondition[] = [];
+  const review = s(attestation.dpo_review_date);
+  const approval = s(attestation.approval_date);
+  const rm = monthsSince(review, asOf);
+  if (rm !== null && rm >= 12) {
+    out.push({
+      text: `Complete the review of this assessment by the data protection function: the last recorded review was on ${review.slice(0, 10)}, more than twelve months before this assessment${annual ? ", and the record commits to an annual review" : ""}`,
+      enables: "the currency of the assessment record",
+      provision: "GDPR Art. 5(2)",
+    });
+  }
+  const am = monthsSince(approval, asOf);
+  if (am !== null && am >= 12) {
+    out.push({
+      text: `Record a current approval of this assessment: the last recorded approval was on ${approval.slice(0, 10)}, more than twelve months before this assessment`,
+      enables: "the currency of the assessment record",
+      provision: "GDPR Art. 5(2)",
+    });
+  }
+  return out;
+}
+export function staleReviewClause(dateText: string, recordInput: Bag, asOf: Date = new Date()): string {
+  const months = monthsSince(dateText, asOf);
+  if (months === null || months < 12) return "";
   const annual = /\bannual(?:ly)?\b|every (?:12|twelve) months|\byearly\b/i.test(JSON.stringify(recordInput ?? {}));
   const asOfText = asOf.toISOString().slice(0, 10);
   return annual
@@ -1441,6 +1471,10 @@ export function assembleLiaSkeletonDocument(
   // renders: the collected conditions (collectLiaConditions), never a bare
   // count of information_needed entries.
   const conditions = collectLiaConditions(report, ruleApplications);
+  // DOC 258 — stale review/approval dates condition the determination. The
+  // report's own generation date is the reference where it carries one.
+  const asOf = /^\d{4}-\d{2}-\d{2}/.test(s(report.generated_at)) ? new Date(s(report.generated_at)) : new Date();
+  for (const c of staleAttestationConditions(attestation, recordInput, asOf)) conditions.push(c);
   const hasConditions = v.outcome === "available_only_with_mitigations" || conditions.length > 0;
 
   const execLead = composeExecLead(v, org, hasConditions);
@@ -1643,7 +1677,7 @@ export function assembleLiaSkeletonDocument(
       ? (s(attestation.dpo_reviewer)
         ? `The assessment was reviewed by ${s(attestation.dpo_reviewer)}${
           s(attestation.dpo_review_date) ? ` on ${s(attestation.dpo_review_date)}` : ""
-        }.${staleReviewClause(s(attestation.dpo_review_date), recordInput)}`
+        }.${staleReviewClause(s(attestation.dpo_review_date), recordInput, asOf)}`
         : "The assessment was reviewed by the data protection officer.")
       // HONEST NEGATIVE — weight attaches either way, so the absence is stated.
       : "Review by the data protection officer has not yet occurred.",
@@ -1667,7 +1701,7 @@ export function assembleLiaSkeletonDocument(
       : s(attestation.approval_date)
       ? `The assessment record was approved by ${s(attestation.approver_name)}${
         s(attestation.approver_position) ? `, ${s(attestation.approver_position)}` : ""
-      }, on ${s(attestation.approval_date)}.${staleReviewClause(s(attestation.approval_date), recordInput)}${
+      }, on ${s(attestation.approval_date)}.${staleReviewClause(s(attestation.approval_date), recordInput, asOf)}${
         verdictIsPositive(v.outcome) === null && !v.public_authority_bar
           ? " That approval covers the assessment record itself; the lawful-basis and processing decision remain pending until the outcome above is resolved."
           : ""

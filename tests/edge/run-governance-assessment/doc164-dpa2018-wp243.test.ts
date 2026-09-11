@@ -97,7 +97,10 @@ Deno.test("DOC 164 — the DPO limb (c) reasoning quotes WP243's 'core activitie
   const app = String((dpo.designation_trigger as Bag).application);
   assertStringIncludes(app, "core activities of the controller or processor");
   assertStringIncludes(app, "the number of data subjects concerned");
-  assertStringIncludes(app, "The record's own large-scale signal here is the organisation's size band (251-1000)");
+  // DOC 258 (2026-09-11): without the Art. 37(1)(c) element answers the limb is
+  // live, not established, and the report says why headcount cannot settle it.
+  assertStringIncludes(app, "organisational headcount does not by itself establish that the relevant processing is large scale or forms part of the company's core activities");
+  assertStringIncludes(app, "Whether limb (c) is engaged is not answered on the information provided");
   assertStringIncludes((dpo.designation_trigger as Bag).standard as string, "public authority");
 });
 

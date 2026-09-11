@@ -115,6 +115,14 @@ export const GOVERNANCE_GOLDEN: GoldenCase[] = [
       data_categories: ["Employee records", "Customer records", "Health or medical data"],
       special_category: "Yes",
       special_categories_list: ["Health data"],
+      // DOC 258 — Art. 37(1)(c) elements: the health data IS the product.
+      sc_core_activity: "Yes — a primary activity, or inextricably part of delivering our principal products or services",
+      sc_core_activity_explanation: "Clinical-outcome analytics on patient records is the service Calder sells to NHS trusts and EU hospital groups; there is no Calder product without the health data.",
+      sc_data_subjects_count: "2,400,000",
+      sc_population_proportion: "Yes — a significant proportion of the relevant population",
+      sc_data_volume: "Full patient episode records — diagnoses, procedures, prescriptions and device readings — for every patient of the 35 customer organisations.",
+      sc_duration: "Continuous or ongoing",
+      sc_geographic_scope: "Several Member States or countries",
       measures_review_cadence: "Annually or more often",
       measures_last_review_date: "2026-03-17",
       processing_nature:

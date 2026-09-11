@@ -118,6 +118,12 @@ Deno.test("D1D2B3B8-G1 — an established limb still carries the mandatory concl
     data_categories: ["Health data", "Communications content"],
     special_category: "Yes",
     data_subject_scale: "251-1000",
+    // DOC 258 — limb (c) is established by its elements, never by headcount.
+    sc_core_activity: "Yes — a primary activity, or inextricably part of delivering our principal products or services",
+    sc_data_subjects_count: "250,000",
+    sc_population_proportion: "Yes — a significant proportion of the relevant population",
+    sc_duration: "Continuous or ongoing",
+    sc_geographic_scope: "National",
   });
   const trigger = dpo.designation_trigger as unknown as Bag;
   const app = String(trigger.application);

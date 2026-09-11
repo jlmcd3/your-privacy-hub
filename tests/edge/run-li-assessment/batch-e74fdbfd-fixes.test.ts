@@ -109,10 +109,10 @@ const VELTRIX: Bag = {
     vulnerable_subjects: ["None"],
   },
   attestation: {
-    approval_date: "2024-09-18",
+    approval_date: "2026-08-18", // DOC 258: current, so no stale-review Condition
     approver_name: "James Whitford",
     approver_position: "Chief Privacy Officer",
-    dpo_review_date: "2024-09-12",
+    dpo_review_date: "2026-08-12",
     dpo_reviewed: "Yes",
     dpo_reviewer: "Marta Leclercq",
     review_triggers: ["A change in the purpose of the processing", "An objection or complaint from a data subject"],

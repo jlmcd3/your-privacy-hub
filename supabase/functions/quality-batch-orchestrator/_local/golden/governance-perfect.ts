@@ -58,6 +58,19 @@ export const GOVERNANCE_PERFECT: GoldenCase[] = [
       special_category: "Yes",
       // Verbatim GOV_SPECIAL_CATS option; only health data is held.
       special_categories_list: ["Health data"],
+      // DOC 258 — Art. 37(1)(c) elements (WP243 rev.01 §§ 2.1.2–2.1.3).
+      // Fitness-for-work assessment IS the service: a primary activity.
+      sc_core_activity: "Yes — a primary activity, or inextricably part of delivering our principal products or services",
+      sc_core_activity_explanation: "Occupational-health assessment is the only service Aldergate provides; every engagement produces and relies on clinical findings about the employee assessed.",
+      // Approximately 74,000 assessment records (see processing_scope).
+      sc_data_subjects_count: "74,000",
+      // The employees of 310 client employers are not a significant share of any population.
+      sc_population_proportion: "No",
+      sc_data_volume: "Full occupational-health clinical records — history, examination findings, fitness determinations and adjustment recommendations — for every employee assessed.",
+      // Verbatim SC_DURATION option; periodic assessments run for the life of each client contract.
+      sc_duration: "Continuous or ongoing",
+      // Verbatim SC_GEOGRAPHIC_SCOPE option; Ireland, the Netherlands and the United Kingdom.
+      sc_geographic_scope: "Several Member States or countries",
 
       // ── Notice and accountability ──────────────────────────────────────
       // Verbatim PRIVACY_POLICY option; the notice was reviewed 2026-02-09.

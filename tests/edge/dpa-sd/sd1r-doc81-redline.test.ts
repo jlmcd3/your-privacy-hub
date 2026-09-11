@@ -75,9 +75,12 @@ Deno.test("D-5 — clause 10.2 scopes to the audit-and-information rights, not a
   assert(!t.includes("an instruction given under clause 10.1"));
 });
 
-Deno.test("D-6 — the DPA definition disambiguates against a data protection authority", () => {
+// DOC 258 (2026-09-11, CEO on doc 257A item 5): the definition is the
+// definition; the drafting note about regulators is gone.
+Deno.test("D-6 — the DPA definition is the plain definition", () => {
   const t = assembleDpaDocument(BASE).document_text;
-  assertStringIncludes(t, "not used to refer to any data protection authority");
+  assertStringIncludes(t, '2.3 "DPA" means this Data Processing Agreement.');
+  assert(!t.includes("not used to refer to any data protection authority"));
 });
 
 Deno.test("D-7 — Section 12 defines the CCPA role mapping and citations before using them", () => {

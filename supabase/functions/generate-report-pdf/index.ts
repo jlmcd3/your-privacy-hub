@@ -2624,7 +2624,7 @@ function srRecordDividerHtml(s: SyllabusProjection | null, appendices: Array<{ l
     <div class="divider">
       <div class="eyebrow">END OF THE DECISION REPORT</div>
       <h2>Supporting Assessment Record</h2>
-      <p style="margin-top:6pt;">The record that stands behind every conclusion above: authority traceability, the complete factual inventories, the full risk and safeguard register, the technical record, and the materials considered. A decision-maker may stop at the last numbered section. Counsel, auditors, and regulators continue here — and every entry cites the body section it supports.</p>
+      <p style="margin-top:6pt;">The appendices provide the factual and legal support for the conclusions above. They are intended for counsel, auditors, and regulators.</p>
     </div>
     ${rows ? `<table class="maprow">${rows}</table>` : ""}
   </section>`;

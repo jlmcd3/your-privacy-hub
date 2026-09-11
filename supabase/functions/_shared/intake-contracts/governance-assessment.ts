@@ -33,6 +33,32 @@ export const GOV_DATA_CATS = [
   "Health or medical data", "Financial data", "Biometric data",
   "Children's data", "Location data", "Communications content", "Other",
 ] as const;
+// DOC 258 (2026-09-11) — Art. 37(1)(c) is conjunctive (core activities AND
+// large scale; WP243 rev.01 §§ 2.1.2–2.1.3). These answer the two elements
+// the organisation's size band never could. Asked only under
+// special_category === "Yes".
+export const SC_CORE_ACTIVITY = [
+  "Yes — a primary activity, or inextricably part of delivering our principal products or services",
+  "No — an ancillary or supporting activity",
+  "Uncertain",
+] as const;
+export const SC_POPULATION_PROPORTION = [
+  "Yes — a significant proportion of the relevant population",
+  "No",
+  "Unsure",
+] as const;
+export const SC_DURATION = [
+  "Continuous or ongoing",
+  "Recurring",
+  "Long-term but for a fixed period",
+  "Temporary or one-off",
+] as const;
+export const SC_GEOGRAPHIC_SCOPE = [
+  "Local",
+  "National",
+  "Several Member States or countries",
+  "Broader than the EU/EEA and the UK",
+] as const;
 export const GOV_SPECIAL_CATS = [
   "Health data", "Biometric data", "Genetic data", "Racial/ethnic origin",
   "Political opinions", "Religious beliefs", "Trade union membership",
@@ -183,6 +209,26 @@ export const governanceContract: IntakeContract = {
     // the list only under that answer.
     { key: "special_categories_list", kind: "multi-enum", required: "conditional", options: GOV_SPECIAL_CATS,
       requiredWhen: 'special_category === "Yes"', trigger: { key: "special_category", equals: ["Yes"] }, hiddenValue: "[]" },
+    // DOC 258 (2026-09-11) — the Art. 37(1)(c) elements (WP243 rev.01
+    // §§ 2.1.2–2.1.3): whether the special-category processing is a core
+    // activity, and the large-scale factors (number of data subjects,
+    // proportion of the population, volume and range, duration, geography).
+    // Conditional on the categorical "Yes"; the narratives are optional.
+    { key: "sc_core_activity", kind: "enum", required: "conditional",
+      requiredWhen: 'special_category === "Yes"', trigger: { key: "special_category", equals: ["Yes"] },
+      hiddenValue: "n/a", options: [...SC_CORE_ACTIVITY, "n/a"] as unknown as readonly string[] },
+    { key: "sc_core_activity_explanation", kind: "narrative", required: "optional" },
+    { key: "sc_data_subjects_count", kind: "text", required: "optional" },
+    { key: "sc_population_proportion", kind: "enum", required: "conditional",
+      requiredWhen: 'special_category === "Yes"', trigger: { key: "special_category", equals: ["Yes"] },
+      hiddenValue: "n/a", options: [...SC_POPULATION_PROPORTION, "n/a"] as unknown as readonly string[] },
+    { key: "sc_data_volume", kind: "narrative", required: "optional" },
+    { key: "sc_duration", kind: "enum", required: "conditional",
+      requiredWhen: 'special_category === "Yes"', trigger: { key: "special_category", equals: ["Yes"] },
+      hiddenValue: "n/a", options: [...SC_DURATION, "n/a"] as unknown as readonly string[] },
+    { key: "sc_geographic_scope", kind: "enum", required: "conditional",
+      requiredWhen: 'special_category === "Yes"', trigger: { key: "special_category", equals: ["Yes"] },
+      hiddenValue: "n/a", options: [...SC_GEOGRAPHIC_SCOPE, "n/a"] as unknown as readonly string[] },
     { key: "privacy_policy", kind: "enum", required: "always", options: PRIVACY_POLICY },
     { key: "privacy_notice_coverage", kind: "enum", required: "conditional",
       requiredWhen: 'privacy_policy starts with "Yes"',
@@ -249,7 +295,8 @@ export const governanceContract: IntakeContract = {
 
 export const GOVERNANCE_INLINE_LISTS = {
   GOV_SECTORS, GOV_SIZES, GOV_JURISDICTIONS, GOV_TOOLS, GOV_DATA_CATS,
-  GOV_SPECIAL_CATS, PRIVACY_POLICY, PRIVACY_NOTICE_COVERAGE, DPO_STATUS,
+  GOV_SPECIAL_CATS, SC_CORE_ACTIVITY, SC_POPULATION_PROPORTION, SC_DURATION, SC_GEOGRAPHIC_SCOPE,
+  PRIVACY_POLICY, PRIVACY_NOTICE_COVERAGE, DPO_STATUS,
   DPIA_STATUS, DPIA_AI_COVERAGE, INCIDENT_RESPONSE, TRAINING_STATUS,
   TRAINING_AI_COVERAGE, TOOL_INSTRUCTION, DPA_STATUS, DPA_ART28,
   TRANSFER_STATUS, TRANSFER_MECHANISM, TECHNICAL_CONTROLS,

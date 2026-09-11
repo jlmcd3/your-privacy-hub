@@ -827,7 +827,7 @@ function SrDivider({ s, appendices }: { s: SyllabusProjection | null; appendices
       <div className={`${SR_LABEL} text-slate-500`}>End of the decision report</div>
       <h3 className="font-serif text-[22px] font-normal text-[#0c2a44] dark:text-slate-100">Supporting Assessment Record</h3>
       <p className="mt-1 max-w-prose text-[13px] leading-relaxed text-foreground">
-        The record that stands behind every conclusion above: authority traceability, the complete factual inventories, the full risk and safeguard register, the technical record, and the materials considered. A decision-maker may stop at the last numbered section. Counsel, auditors, and regulators continue here — and every entry cites the body section it supports.
+        The appendices provide the factual and legal support for the conclusions above. They are intended for counsel, auditors, and regulators.
       </p>
       {appendices.length > 0 && (
         <table className="mt-3 w-full border-collapse text-[12.5px]">

@@ -57,6 +57,12 @@ const JURISDICTIONS = ["EU (GDPR)", "United Kingdom (UK GDPR)", "United States �
 const TOOLS = ["Microsoft 365 / Copilot", "Google Workspace / Gemini", "Salesforce + Einstein", "ChatGPT / OpenAI", "Claude / Anthropic", "GitHub Copilot", "Zoom + AI features", "Slack + AI features", "Notion + AI", "Grammarly", "Otter.ai / Fireflies", "HubSpot", "Adobe Creative Cloud"];
 const DATA_CATS = ["Contact details", "Employee records", "Customer records", "Health or medical data", "Financial data", "Biometric data", "Children's data", "Location data", "Communications content", "Other"];
 const SPECIAL_CATS = ["Health data", "Biometric data", "Genetic data", "Racial/ethnic origin", "Political opinions", "Religious beliefs", "Trade union membership", "Sexual orientation"];
+// DOC 258 (2026-09-11) — Art. 37(1)(c) elements; verbatim mirrors of the
+// contract's SC_* lists (governance-assessment.ts). Keep in sync.
+const SC_CORE_ACTIVITY = ["Yes — a primary activity, or inextricably part of delivering our principal products or services", "No — an ancillary or supporting activity", "Uncertain"];
+const SC_POPULATION_PROPORTION = ["Yes — a significant proportion of the relevant population", "No", "Unsure"];
+const SC_DURATION = ["Continuous or ongoing", "Recurring", "Long-term but for a fixed period", "Temporary or one-off"];
+const SC_GEOGRAPHIC_SCOPE = ["Local", "National", "Several Member States or countries", "Broader than the EU/EEA and the UK"];
 
 const Pills = ({ options, value, onChange }: { options: string[]; value: string[]; onChange: (v: string[]) => void }) => (
   <div className="flex flex-wrap gap-2">
@@ -116,6 +122,14 @@ const GovernanceAssessment = () => {
   const [dataCategories, setDataCategories] = useState<string[]>([]);
   const [specialCategory, setSpecialCategory] = useState<"" | "Yes" | "No">("");
   const [specialCategoriesList, setSpecialCategoriesList] = useState<string[]>([]);
+  // DOC 258 — Art. 37(1)(c) elements, asked under special category "Yes".
+  const [scCoreActivity, setScCoreActivity] = useState("");
+  const [scCoreActivityExplanation, setScCoreActivityExplanation] = useState("");
+  const [scDataSubjectsCount, setScDataSubjectsCount] = useState("");
+  const [scPopulationProportion, setScPopulationProportion] = useState("");
+  const [scDataVolume, setScDataVolume] = useState("");
+  const [scDuration, setScDuration] = useState("");
+  const [scGeographicScope, setScGeographicScope] = useState("");
 
   // Step 3
   const [privacyPolicy, setPrivacyPolicy] = useState("");
@@ -190,6 +204,7 @@ const GovernanceAssessment = () => {
     if (step === 2) {
       if (!dataCategories.length || !specialCategory) return "Select the categories of personal data you process and answer the special-category question.";
       if (specialCategory === "Yes" && !specialCategoriesList.length) return "Select which special categories apply.";
+      if (specialCategory === "Yes" && (!scCoreActivity || !scPopulationProportion || !scDuration || !scGeographicScope)) return "Answer the core-activity and scale questions about the special-category processing.";
     }
     if (step === 3) {
       if (!privacyPolicy || !dpiaStatus || !incidentResponse) return "Answer the privacy notice, DPIA, and incident-response questions.";
@@ -237,6 +252,14 @@ const GovernanceAssessment = () => {
     // left over from an earlier "Yes" must not travel with a "No" (same rule
     // as privacy_notice_coverage below).
     special_category: specialCategory, special_categories_list: specialCategory === "Yes" ? specialCategoriesList : [],
+    // DOC 258 — Art. 37(1)(c) elements travel only with a "Yes".
+    sc_core_activity: specialCategory === "Yes" ? scCoreActivity : "n/a",
+    sc_core_activity_explanation: specialCategory === "Yes" ? scCoreActivityExplanation : "",
+    sc_data_subjects_count: specialCategory === "Yes" ? scDataSubjectsCount : "",
+    sc_population_proportion: specialCategory === "Yes" ? scPopulationProportion : "n/a",
+    sc_data_volume: specialCategory === "Yes" ? scDataVolume : "",
+    sc_duration: specialCategory === "Yes" ? scDuration : "n/a",
+    sc_geographic_scope: specialCategory === "Yes" ? scGeographicScope : "n/a",
     privacy_policy: privacyPolicy,
     privacy_notice_coverage: privacyPolicy.startsWith("Yes") ? privacyNoticeCoverage : "n/a",
     
@@ -328,7 +351,7 @@ const GovernanceAssessment = () => {
 
   const intakeForCheckout = useMemo(() => buildIntake(), [
     organizationName, sector, orgSize, jurisdictions, euUkData, tools, otherTool, dataCategories,
-    specialCategory, specialCategoriesList, privacyPolicy,
+    specialCategory, specialCategoriesList, scCoreActivity, scCoreActivityExplanation, scDataSubjectsCount, scPopulationProportion, scDataVolume, scDuration, scGeographicScope, privacyPolicy,
     dpoStatus, dpiaStatus, incidentResponse, trainingStatus, toolInstruction,
     dpaStatus, transferStatus, showDpoQ, showStep5,
     technicalControls, technicalControlsList, dsrCapability, dsrRightsTested,
@@ -365,6 +388,14 @@ const GovernanceAssessment = () => {
     A(d.data_categories, setDataCategories);
     if (d.special_category === "" || d.special_category === "Yes" || d.special_category === "No") setSpecialCategory(d.special_category);
     A(d.special_categories_list, setSpecialCategoriesList);
+    const N = (v: any) => (typeof v === "string" && v !== "n/a" ? v : "");
+    S(N(d.sc_core_activity), setScCoreActivity);
+    S(N(d.sc_core_activity_explanation), setScCoreActivityExplanation);
+    S(N(d.sc_data_subjects_count), setScDataSubjectsCount);
+    S(N(d.sc_population_proportion), setScPopulationProportion);
+    S(N(d.sc_data_volume), setScDataVolume);
+    S(N(d.sc_duration), setScDuration);
+    S(N(d.sc_geographic_scope), setScGeographicScope);
     S(d.privacy_policy, setPrivacyPolicy);
     S(d.privacy_notice_coverage, setPrivacyNoticeCoverage);
     
@@ -724,7 +755,31 @@ const GovernanceAssessment = () => {
                 <div className="mt-2"><Radio name="spec" options={["Yes", "No"]} value={specialCategory} onChange={(v) => setSpecialCategory(v as any)} /></div>
 
                 {specialCategory === "Yes" && (
+                  <>
                   <div className="mt-3"><Label>Which categories?</Label><div className="mt-2"><Pills options={SPECIAL_CATS} value={specialCategoriesList} onChange={setSpecialCategoriesList} /></div></div>
+                  {/* DOC 258 — Art. 37(1)(c) is conjunctive: core activity AND large scale (WP243 rev.01 §§ 2.1.2–2.1.3). */}
+                  <div className="mt-4"><Label>Is processing this special-category data a primary activity of the organisation, or inextricably connected with delivering your principal products or services?<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 37(1)(c))</span></Label>
+                    <p className="text-meta text-muted-foreground mt-1">Ancillary functions — staff health records, payroll, IT support — are not core activities even in a large organisation; a health-technology service whose product is the health data is.</p>
+                    <div className="mt-2"><Radio name="sc_core" options={SC_CORE_ACTIVITY} value={scCoreActivity} onChange={setScCoreActivity} /></div>
+                    <Label htmlFor="sc_core_expl" className="mt-3 block">Briefly, what is the activity and why is it primary or ancillary?</Label>
+                    <textarea id="sc_core_expl" className="mt-2 w-full min-h-16 px-3 py-2 rounded-md border border-input bg-background text-sm" value={scCoreActivityExplanation} onChange={(e) => setScCoreActivityExplanation(e.target.value)} />
+                  </div>
+                  <div className="mt-4"><Label>Approximately how many individuals' special-category data do you process in a year?</Label>
+                    <Input placeholder="e.g. 74,000" value={scDataSubjectsCount} onChange={(e) => setScDataSubjectsCount(e.target.value)} className="mt-2" />
+                  </div>
+                  <div className="mt-4"><Label>Is that a significant proportion of the relevant population (for example, your customers, patients or the public in a region)?<Req /></Label>
+                    <div className="mt-2"><Radio name="sc_prop" options={SC_POPULATION_PROPORTION} value={scPopulationProportion} onChange={setScPopulationProportion} /></div>
+                  </div>
+                  <div className="mt-4"><Label htmlFor="sc_volume">What volume and range of special-category data is involved?</Label>
+                    <textarea id="sc_volume" className="mt-2 w-full min-h-16 px-3 py-2 rounded-md border border-input bg-background text-sm" value={scDataVolume} onChange={(e) => setScDataVolume(e.target.value)} placeholder="e.g. full clinical records with diagnoses and prescriptions; or a single vaccination status flag" />
+                  </div>
+                  <div className="mt-4"><Label>How long does the processing run?<Req /></Label>
+                    <div className="mt-2"><Radio name="sc_dur" options={SC_DURATION} value={scDuration} onChange={setScDuration} /></div>
+                  </div>
+                  <div className="mt-4"><Label>What is the geographical scope of the processing?<Req /></Label>
+                    <div className="mt-2"><Radio name="sc_geo" options={SC_GEOGRAPHIC_SCOPE} value={scGeographicScope} onChange={setScGeographicScope} /></div>
+                  </div>
+                  </>
                 )}
               </div>
             </>
@@ -930,6 +985,15 @@ const GovernanceAssessment = () => {
             push("Data categories", dataCategories);
             push("Special category data", specialCategory);
             if (specialCategory === "Yes") push("Special categories", specialCategoriesList);
+            if (specialCategory === "Yes") {
+              push("Core activity (Art. 37(1)(c))", scCoreActivity);
+              if (scCoreActivityExplanation.trim()) push("Core activity — why", scCoreActivityExplanation);
+              if (scDataSubjectsCount.trim()) push("Data subjects a year", scDataSubjectsCount);
+              push("Significant proportion of the population", scPopulationProportion);
+              if (scDataVolume.trim()) push("Volume and range", scDataVolume);
+              push("Duration", scDuration);
+              push("Geographical scope", scGeographicScope);
+            }
             push("Privacy policy", privacyPolicy);
             if (privacyPolicy.startsWith("Yes")) push("Privacy notice coverage", privacyNoticeCoverage);
             

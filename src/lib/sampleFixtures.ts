@@ -688,6 +688,14 @@ const F_GOV_US: SampleFixture = {
         ],
         special_category: "Yes",
         special_categories_list: ["Biometric data"],
+        // DOC 258 — Art. 37(1)(c) elements: workforce timekeeping is ancillary.
+        sc_core_activity: "No — an ancillary or supporting activity",
+        sc_core_activity_explanation: "Fingerprint templates are used only for staff clock-in at the workshop; the business sells sled repair services.",
+        sc_data_subjects_count: "310",
+        sc_population_proportion: "No",
+        sc_data_volume: "A fingerprint template and clock-in timestamps for each employee.",
+        sc_duration: "Continuous or ongoing",
+        sc_geographic_scope: "Local",
         privacy_policy: "Yes, current (reviewed in last 12 months)",
         privacy_notice_coverage:
           "Yes — notice covers all current activities, transfers, retention, and rights",

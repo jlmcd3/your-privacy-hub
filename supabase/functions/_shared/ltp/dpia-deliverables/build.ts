@@ -2188,6 +2188,29 @@ function labels(rows: readonly { readonly risk_label: string }[]): string {
   return [...new Set(rows.map((r) => r.risk_label))].join("; ");
 }
 
+// DOC 258 (2026-09-11, CEO on doc 257A item 2) — an approval more than twelve
+// months old at the report date turns an unconditional approval into a
+// conditional one: the substantive assessment stands; the Art. 35(11)
+// review the company's own record commits to is the condition.
+export function applyApprovalCurrency(intake: unknown, decision: DpiaDecision, asOf: Date = new Date()): DpiaDecision {
+  if (decision.determination !== "approved") return decision;
+  const approvalDate = str(get(intake, "dpia_approval_date"));
+  const m = /(\d{4})-(\d{2})-(\d{2})/.exec(approvalDate);
+  if (!m) return decision;
+  const d = new Date(`${m[1]}-${m[2]}-${m[3]}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return decision;
+  const months = (asOf.getUTCFullYear() - d.getUTCFullYear()) * 12 + (asOf.getUTCMonth() - d.getUTCMonth()) - (asOf.getUTCDate() < d.getUTCDate() ? 1 : 0);
+  if (months < 12) return decision;
+  const annual = /\bannual(?:ly)?\b|every (?:12|twelve) months|\byearly\b/i.test(str(get(intake, "dpia_signoff_basis")));
+  const condition = `completing and recording the current review of this assessment — the approval recorded on ${approvalDate.slice(0, 10)} is more than twelve months old at the date of this report${annual ? ", and the sign-off basis itself calls for an annual re-review" : ""}`;
+  return {
+    ...decision,
+    determination: "conditionally_approved",
+    conditions: [condition],
+    why: `${decision.why} The processing may proceed as described on one condition: ${condition} (Art. 35(11)).`,
+  };
+}
+
 export function buildDecision(
   intake: unknown,
   deliverables: {
@@ -3958,7 +3981,7 @@ export function buildDpiaDeliverables(intake: unknown): DpiaDeliverables {
     art36_consultation: buildArt36Consultation(intake, risk_register),
     legal_basis: buildLegalBasis(intake),
   };
-  const decision = buildDecision(intake, core);
+  const decision = applyApprovalCurrency(intake, buildDecision(intake, core));
   const processing_inventory = buildProcessingInventory(intake);
   const section2_coverage = buildSection2Coverage(intake, { processing_inventory });
   const withDecision = { ...core, decision, processing_inventory, section2_coverage };

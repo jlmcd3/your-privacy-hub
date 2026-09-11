@@ -136,6 +136,44 @@ export interface GovernanceFacts {
   under250: boolean;
   largeScale: boolean;
   publicAuthority: boolean;
+  /** DOC 258 — Art. 37(1)(c) elements, read only under special_category "Yes". */
+  scCoreActivity: string;
+  scCoreExplanation: string;
+  scSubjectsRaw: string;
+  scSubjectsCount: number | null;
+  scProportion: string;
+  scVolume: string;
+  scDuration: string;
+  scGeo: string;
+}
+
+/** DOC 258 — "2.4 million", "74,000", "about 18k" → a number; anything else → null. */
+export function parseApproximateCount(raw: string): number | null {
+  const t = str(raw).toLowerCase().replace(/,/g, "");
+  const m = /(\d+(?:\.\d+)?)\s*(million|m\b|thousand|k\b)?/.exec(t);
+  if (!m) return null;
+  let n = Number(m[1]);
+  if (m[2] === "million" || m[2] === "m") n *= 1_000_000;
+  else if (m[2] === "thousand" || m[2] === "k") n *= 1_000;
+  return Number.isFinite(n) ? Math.round(n) : null;
+}
+
+function readSpecialCategoryScaleFacts(intake: unknown, special: boolean) {
+  const clean = (k: string): string => {
+    const v = str(get(intake, k));
+    return special && v.toLowerCase() !== "n/a" ? v : "";
+  };
+  const raw = clean("sc_data_subjects_count");
+  return {
+    scCoreActivity: clean("sc_core_activity"),
+    scCoreExplanation: clean("sc_core_activity_explanation"),
+    scSubjectsRaw: raw,
+    scSubjectsCount: parseApproximateCount(raw),
+    scProportion: clean("sc_population_proportion"),
+    scVolume: clean("sc_data_volume"),
+    scDuration: clean("sc_duration"),
+    scGeo: clean("sc_geographic_scope"),
+  };
 }
 
 export function readGovernanceFacts(intake: unknown): GovernanceFacts {
@@ -178,7 +216,61 @@ export function readGovernanceFacts(intake: unknown): GovernanceFacts {
     under250: UNDER_250_SIZES.includes(size),
     largeScale: LARGE_SCALE_SIZES.includes(size),
     publicAuthority: PUBLIC_AUTHORITY_SECTORS.includes(sector),
+    ...readSpecialCategoryScaleFacts(intake, str(get(intake, "special_category")).toLowerCase() === "yes"),
   };
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// DOC 258 (2026-09-11) — Article 37(1)(c), the conjunctive read.
+// Three propositions: Art. 9/10 data; on a large scale; as a core activity
+// (WP243 rev.01 §§ 2.1.2–2.1.3). The size band is not one of them. The
+// scale rule below is the engine's reasoned reading of the four WP243
+// factors; the numeric floors are stated for ratification in doc 258.
+// ─────────────────────────────────────────────────────────────────────
+export type LimbCState = "not_relevant" | "not_engaged" | "undetermined" | "engaged";
+export interface LimbCAssessment {
+  state: LimbCState;
+  core: "yes" | "no" | "unknown";
+  scale: "established" | "not_large" | "undetermined";
+  /** Any of the DOC 258 questions is answered. */
+  answered: boolean;
+}
+/** Data subjects at or above which, absent a contrary factor, the processing is read as large scale. */
+export const LARGE_SCALE_SUBJECTS_FLOOR = 10_000;
+/** Data subjects below which, with a local footprint and no significant-proportion answer, it is not. */
+export const SMALL_SCALE_SUBJECTS_CEILING = 1_000;
+export function assessLimbC(f: GovernanceFacts): LimbCAssessment {
+  const relevant = f.specialCategory || f.specialList.length > 0;
+  if (!relevant) return { state: "not_relevant", core: "unknown", scale: "undetermined", answered: false };
+  const core: LimbCAssessment["core"] = /^yes/i.test(f.scCoreActivity) ? "yes" : /^no/i.test(f.scCoreActivity) ? "no" : "unknown";
+  const proportionYes = /^yes/i.test(f.scProportion);
+  const temporary = /^temporary/i.test(f.scDuration);
+  const local = /^local/i.test(f.scGeo);
+  const n = f.scSubjectsCount;
+  const scale: LimbCAssessment["scale"] = ((n !== null && n >= LARGE_SCALE_SUBJECTS_FLOOR) || proportionYes) && !temporary
+    ? "established"
+    : (n !== null && n < SMALL_SCALE_SUBJECTS_CEILING && !proportionYes && (local || !f.scGeo))
+    ? "not_large"
+    : "undetermined";
+  const answered = !!(f.scCoreActivity || f.scSubjectsRaw || f.scProportion || f.scDuration || f.scGeo);
+  const state: LimbCState = core === "no"
+    ? "not_engaged"
+    : scale === "not_large"
+    ? "not_engaged"
+    : core === "yes" && scale === "established"
+    ? "engaged"
+    : "undetermined";
+  return { state, core, scale, answered };
+}
+function scaleFactsProse(f: GovernanceFacts): string {
+  const bits: string[] = [];
+  if (f.scSubjectsRaw) bits.push(`approximately ${f.scSubjectsRaw.replace(/^(?:approximately|approx\.?|about|around|c\.)\s+/i, "")} data subjects`);
+  if (/^yes/i.test(f.scProportion)) bits.push("a significant proportion of the relevant population");
+  else if (/^no/i.test(f.scProportion)) bits.push("not a significant proportion of the relevant population");
+  if (f.scVolume) bits.push(`data volume and range recorded as "${f.scVolume.replace(/[.\s]+$/, "")}"`);
+  if (f.scDuration) bits.push(`${f.scDuration.charAt(0).toLowerCase()}${f.scDuration.slice(1)} processing`);
+  if (f.scGeo) bits.push(`${f.scGeo.charAt(0).toLowerCase()}${f.scGeo.slice(1)} in geographical scope`);
+  return bits.join("; ");
 }
 
 // ─────────────────────────────────────────────────────────────────────
@@ -615,7 +707,17 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
   // recommendation is stated as the prudent course pending that answer.
   const monitoringCategories = f.dataCategories.filter((c) => ["Location data", "Communications content"].includes(c));
   const limbBIndicated = f.largeScale && monitoringCategories.length > 0;
-  const limbC = f.largeScale && (f.specialCategory || f.specialList.length > 0);
+  // DOC 258 (2026-09-11, CEO on doc 257A item 4; ChatGPT v2 GOV-R2-01):
+  // Article 37(1)(c) is conjunctive — core activities AND large scale — and
+  // the form now asks the WP243 elements (sc_core_activity and the scale
+  // factors). The organisation's size band is no longer a fact for this
+  // limb: it makes the limb LIVE at most, never established.
+  const limbCA = assessLimbC(f);
+  const limbC = limbCA.state === "engaged";
+  const limbCOpen = limbCA.state === "undetermined";
+  const specialProse = (f.specialList.length ? f.specialList : ["special-category data"]).join(", ");
+  const scaleProse = scaleFactsProse(f);
+  const coreExplanation = f.scCoreExplanation ? ` ("${f.scCoreExplanation.replace(/[.\s]+$/, "")}")` : "";
   const required = limbA || limbC;
 
   // DOC 164 (2026-09-04) — WP243 rev.01 names the factors "large scale" and
@@ -625,14 +727,38 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
   // map (doc 162) already flagged as a proxy pending a CEO ruling on whether
   // headcount may stand in for WP243's own factors — that question stays
   // open here; this only names what the authoritative factors are.
-  const wp243Scale = limbC ? anchor("dpo_wp243_large_scale", "WP243 rev.01 §2.1.3") : null;
-  const wp243Core = limbC ? anchor("dpo_wp243_core_activities", "WP243 rev.01 §2.1.2") : null;
+  const wp243Scale = (limbC || limbCOpen) ? anchor("dpo_wp243_large_scale", "WP243 rev.01 §2.1.3") : null;
+  const wp243Core = (limbC || limbCOpen) ? anchor("dpo_wp243_core_activities", "WP243 rev.01 §2.1.2") : null;
+  const wp243Quotes = (wp243Core && wp243Scale)
+    ? `${wp243Core.citation} describes core activities as "${wp243Core.verbatim}" ${wp243Scale.citation} names the factors for "large scale": "${wp243Scale.verbatim}"`
+    : "";
   const triggerReasons = [
     limbA ? `(a) applies: the record puts the controller in the ${f.sector} sector, processing carried out by a public authority or body.` : "",
     limbC
-      ? `(c) applies: the company has indicated large-scale processing of special categories (${(f.specialList.length ? f.specialList : ["special-category data"]).join(", ")}). ${wp243Core!.citation} describes core activities as "${wp243Core!.verbatim}" ${wp243Scale!.citation} names the factors for "large scale": "${wp243Scale!.verbatim}" The record's own large-scale signal here is the organisation's size band (${f.size}), not an answer to those four factors directly — the record does not separately state the number of data subjects, the volume of data, the duration of the processing, or its geographical extent.`
+      ? `(c) applies: the company states that its processing of special categories (${specialProse}) is a primary activity, or inextricably part of delivering its principal products or services${coreExplanation}, and the recorded scale factors — ${scaleProse} — place that processing at large scale. ${wp243Quotes}`
       : "",
   ].filter(Boolean);
+  // DOC 258 — the (c) clauses for the open and the not-engaged states.
+  const limbCOpenClause = limbCOpen
+    ? (!limbCA.answered
+      ? `Whether limb (c) is engaged is not answered on the information provided: the company reports processing special categories (${specialProse}) and falls within the ${sizeProse(f.size)} size band, but organisational headcount does not by itself establish that the relevant processing is large scale or forms part of the company's core activities, and the core-activity and scale questions were not answered in this assessment. ${wp243Quotes}`
+      : limbCA.core === "yes"
+      ? `Whether limb (c) is engaged is not answered on the information provided: the company states that its processing of special categories (${specialProse}) is a primary activity${coreExplanation}, but the recorded scale factors${scaleProse ? ` — ${scaleProse} —` : ""} do not settle whether that processing is large scale. ${wp243Quotes}`
+      : limbCA.scale === "established"
+      ? `Whether limb (c) is engaged is not answered on the information provided: the recorded scale factors — ${scaleProse} — place the special-category processing (${specialProse}) at large scale, but whether that processing is a core activity of the company is ${f.scCoreActivity ? "recorded as uncertain" : "not recorded"}${coreExplanation}. ${wp243Quotes}`
+      : `Whether limb (c) is engaged is not answered on the information provided: for the special-category processing (${specialProse}), ${f.scCoreActivity ? "the core-activity answer is recorded as uncertain" : "whether the processing is a core activity is not recorded"}${coreExplanation}, and the recorded scale factors${scaleProse ? ` — ${scaleProse} —` : ""} do not settle whether it is large scale. ${wp243Quotes}`)
+    : "";
+  const limbCNotEngagedClause = limbCA.state !== "not_engaged"
+    ? ""
+    : limbCA.core === "no"
+    ? `Limb (c) is not engaged: on the company's own answer its processing of special categories (${specialProse}) is an ancillary or supporting activity${coreExplanation}, and WP243 rev.01 § 2.1.2 places such processing outside the core activities the limb requires.`
+    : `Limb (c) is not engaged: on the recorded scale factors — ${scaleProse} — the special-category processing (${specialProse}) is not carried out on a large scale.`;
+  const limbCInfoNeeded = limbCOpen
+    ? [
+      limbCA.core !== "yes" ? "whether the special-category processing is a primary activity of the company (or inextricably part of delivering its principal products or services) or an ancillary one, and why" : "",
+      limbCA.scale !== "established" ? "the scale of that processing — the number of data subjects, whether they are a significant proportion of the relevant population, the volume and range of data, its duration and its geographical extent (WP243 rev.01 § 2.1.3)" : "",
+    ].filter(Boolean).map((t, i, all) => `${i === 0 ? t.charAt(0).toUpperCase() + t.slice(1) : t}${i === all.length - 1 ? " — the Article 37(1)(c) limb turns on those, not on headcount." : "; "}`).join("")
+    : "";
 
   const limbBOpenClause = limbBIndicated
     ? `Whether limb (b) is engaged is not answered on the information provided: the limb asks whether the company's core activities consist of processing operations which, by their nature, scope or purposes, require regular and systematic monitoring of data subjects on a large scale, and the data categories the company reports include ${monitoringCategories.join(" and ")} at the ${f.size} scale — enough to make that question live, but holding ${monitoringCategories.length === 1 ? "that category" : "those categories"} is not itself the monitoring the limb describes, and the information provided does not state whether any core activity operates as such monitoring.`
@@ -653,16 +779,13 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
       standard: [trig.verbatim, trigA.verbatim, trigB.verbatim, trigC.verbatim].filter(Boolean).join(" "),
       record_fact: notAskedSentence(intake, "dpo_status"),
       application: required
-        ? `Designation would be mandatory on the trigger limbs the record does establish. ${triggerReasons.join(" ")} Whether an officer is designated is not recorded, because the question was not put to the company; that is recorded here as the fact to confirm, not as a failure.`
+        ? `On the trigger limbs established on the information provided, designation would be mandatory were the GDPR or UK GDPR to apply. ${triggerReasons.join(" ")} The designation question was not put to the company because it has indicated that it does not process the personal data of individuals in the EU or the UK, so no designation duty is recorded here.`
         : `None of the three limbs of Article 37(1) is established on the information provided: the controller is not recorded as a public authority or body, and core activities are not shown to consist of large-scale regular and systematic monitoring or of large-scale Article 9 processing. Designation would be voluntary, and whether one has been made is not recorded because the question was not put to the company.`,
-      verdict: required ? "record_insufficient" : "not_applicable",
-      status: required ? "record_insufficient" : "analysed",
-      ...(required
-        ? {
-          information_needed:
-            "Whether a data protection officer has been designated. The trigger limbs established above make designation mandatory, so the designation itself is the fact to confirm.",
-        }
-        : {}),
+      // DOC 258 — the question is gated off only where the company has
+      // indicated no EU or UK personal data, so Article 37 is not in play;
+      // the limbs are reported, never raised as a gap.
+      verdict: "not_applicable",
+      status: "analysed",
     }
     : !f.dpoStatus || f.dpoStatus === "n/a"
     ? {
@@ -682,15 +805,15 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
       label: "Article 37 designation trigger",
       citation: trig.citation,
       standard: [trig.verbatim, trigA.verbatim, trigB.verbatim, trigC.verbatim].filter(Boolean).join(" "),
-      record_fact: `The record answers the DPO question "${f.dpoStatus}" for an organisation of ${sizeProse(f.size)} in the ${f.sector === "Other" ? "Other (as reported)" : (f.sector || "unstated")} sector.`,
+      record_fact: `The record answers the DPO question "${f.dpoStatus}" for an organisation of ${sizeProse(f.size)} in the ${f.sector === "Other" ? "Other (as reported)" : (f.sector || "unstated")} sector.${limbCA.state !== "not_relevant" && limbCA.answered ? ` Special-category processing (${specialProse}): core activity — ${f.scCoreActivity || "not recorded"}; scale factors — ${scaleProse || "not recorded"}.` : ""}`,
       application: required
-        ? `Designation is mandatory here, not discretionary. ${triggerReasons.join(" ")} ${limbBOpenClause ? `${limbBOpenClause} Nothing turns on the open limb: designation is already required on the ${limbA ? "(a)" : "(c)"} limb established above. ` : ""}${hasFormal ? "A formal DPO is designated, which meets the trigger; what remains to be tested is position and task coverage, not existence." : hasInformal ? "An informal privacy lead is not a designated data protection officer for Article 37 purposes unless the designation is formal and the contact details have been published and communicated to the supervisory authority." : "No designation is recorded, so the Article 37(1) duty is unmet on the face of the record."}`
-        : limbBIndicated
-        ? `Neither limb (a) nor limb (c) of Article 37(1) is established on the record as documented: the controller is not recorded as a public authority or body, and no large-scale Article 9 processing is recorded. ${limbBOpenClause} Pending that answer, the prudent course is to treat designation as warranted rather than to rest on the limb remaining open${hasFormal ? " — and a formal DPO is in fact designated; once designated, Articles 38 and 39 apply in full" : hasInformal ? "; an informal privacy lead is not a designated data protection officer for Article 37 purposes unless the designation is formal" : ""}. Whether designation is mandatory is not determined by this assessment.`
-        : `None of the three limbs of Article 37(1) is established on the record as documented: the controller is not recorded as a public authority or body, and core activities are not shown to consist of large-scale regular and systematic monitoring or of large-scale Article 9 processing. Designation is therefore voluntary. ${hasFormal ? "A DPO has nonetheless been designated; once designated, Articles 38 and 39 apply in full — the voluntary character of the appointment does not soften them." : "Nothing in the record requires one."}`,
-      verdict: required ? (hasFormal ? "satisfied" : "not_satisfied") : limbBIndicated ? "record_insufficient" : "not_applicable",
-      status: limbBIndicated && !required ? "record_insufficient" : "analysed",
-      information_needed: limbBIndicated ? LIMB_B_INFO_NEEDED : undefined,
+        ? `Designation is mandatory here, not discretionary. ${triggerReasons.join(" ")} ${[limbBOpenClause, limbCOpenClause].filter(Boolean).length ? `${[limbBOpenClause, limbCOpenClause].filter(Boolean).join(" ")} Nothing turns on the open ${limbBOpenClause && limbCOpenClause ? "limbs" : "limb"}: designation is already required on the ${limbA ? "(a)" : "(c)"} limb established above. ` : ""}${hasFormal ? "A formal DPO is designated, which meets the trigger; what remains to be tested is position and task coverage, not existence." : hasInformal ? "An informal privacy lead is not a designated data protection officer for Article 37 purposes unless the designation is formal and the contact details have been published and communicated to the supervisory authority." : "No designation is recorded, so the Article 37(1) duty is unmet on the face of the record."}`
+        : (limbBIndicated || limbCOpen)
+        ? `${limbCOpen ? "Limb (a) of Article 37(1) is not established on the record as documented: the controller is not recorded as a public authority or body." : `Neither limb (a) nor limb (c) of Article 37(1) is established on the record as documented: the controller is not recorded as a public authority or body, and ${limbCNotEngagedClause ? limbCNotEngagedClause.charAt(0).toLowerCase() + limbCNotEngagedClause.slice(1) : "no large-scale Article 9 processing is recorded."}`} ${[limbBOpenClause, limbCOpenClause].filter(Boolean).join(" ")} Pending ${limbBOpenClause && limbCOpenClause ? "those answers" : "that answer"}, the prudent course is to treat designation as warranted rather than to rest on the ${limbBOpenClause && limbCOpenClause ? "limbs" : "limb"} remaining open${hasFormal ? " — and a formal DPO is in fact designated; once designated, Articles 38 and 39 apply in full" : hasInformal ? "; an informal privacy lead is not a designated data protection officer for Article 37 purposes unless the designation is formal" : ""}. Whether designation is mandatory is not determined by this assessment.`
+        : `None of the three limbs of Article 37(1) is established on the record as documented: the controller is not recorded as a public authority or body, and core activities are not shown to consist of large-scale regular and systematic monitoring or of large-scale Article 9 processing.${limbCNotEngagedClause ? ` ${limbCNotEngagedClause}` : ""} Designation is therefore voluntary. ${hasFormal ? "A DPO has nonetheless been designated; once designated, Articles 38 and 39 apply in full — the voluntary character of the appointment does not soften them." : "Nothing in the record requires one."}`,
+      verdict: required ? (hasFormal ? "satisfied" : "not_satisfied") : (limbBIndicated || limbCOpen) ? "record_insufficient" : "not_applicable",
+      status: (limbBIndicated || limbCOpen) && !required ? "record_insufficient" : "analysed",
+      information_needed: (limbBIndicated || limbCOpen) ? [limbBIndicated ? LIMB_B_INFO_NEEDED : "", limbCInfoNeeded].filter(Boolean).join(" ") : undefined,
     };
 
   // ── ITEM 403-A DEFECT 2 — THE UNREQUESTED-FACT RULE ────────────────────

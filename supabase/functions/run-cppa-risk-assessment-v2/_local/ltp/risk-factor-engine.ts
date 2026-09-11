@@ -1843,11 +1843,15 @@ export function runRiskFactorEngine(
   const knowNoFormal = knowMulti.includes("No formal process in place") &&
     knowMulti.every((x) => x === "No formal process in place");
   const optOutPending = s(intake.q9_opt_out) === "In progress";
-  // DOC 252 §10 item 3 (CEO-ruled 2026-09-11): "Yes, but in footer only" is
-  // credited AT ITS PLACEMENT (ledger F3) and draws a Recommendation to
-  // confirm the § 1798.135(a)(1) clear-and-conspicuous standard on the
-  // homepage; it is not a weak control and the disposition input is unchanged.
+  // DOC 258 (2026-09-11, CEO on doc 257A item 7; supersedes DOC 252 §10
+  // item 3): Cal. Civ. Code § 1798.135(a)(1) requires a clear and
+  // conspicuous link on the homepage and prescribes no position on it — a
+  // footer link on the homepage IS a homepage placement, credited in full
+  // with no confirmation asked of the Company. An app, smart TV or similar
+  // device without a homepage carries the link where a consumer reasonably
+  // expects administrative tools (settings); that placement is credited too.
   const optOutFooterOnly = s(intake.q9_opt_out) === "Yes, but in footer only";
+  const optOutAppSettings = /^Yes — in the settings area/i.test(s(intake.q9_opt_out));
   const admtOptOutPending = s(intake.q20_admt_opt_out) === "Planned for implementation";
   const weakControls: string[] = [];
   if (knowNoFormal) weakControls.push("the right-to-know process");
@@ -1862,11 +1866,6 @@ export function runRiskFactorEngine(
   if (isAdmt && (isNo(intake.q20_admt_opt_out) || admtOptOutPending)) weakControls.push("the ADMT opt-out");
 
   const recommendations: string[] = [];
-  if (optOutFooterOnly) {
-    recommendations.push(
-      "Confirm that the “Do Not Sell or Share My Personal Information” link is clear and conspicuous on the homepage (Cal. Civ. Code § 1798.135(a)(1)); the record places it in the footer only, which is credited on the information provided",
-    );
-  }
   // DOC 127 PART I — untested safeguards already escalated to a Condition
   // (stop-driving rows) are not repeated as a recommendation.
   const untestedForRec = untested.filter((g) => !untestedEscalatedHarms.has(s(g.harm)));
@@ -3604,8 +3603,6 @@ export function runRiskFactorEngine(
           ? "Not credited — absent"
           : optOutPending
           ? "Not credited — in progress"
-          : optOutFooterOnly
-          ? "Credited — footer placement"
           : "Credited",
       ]);
     }
@@ -3640,8 +3637,12 @@ export function runRiskFactorEngine(
         rows: controlRows,
       };
       // DOC 252 §10 item 3 — ledger F3: the footer-placement note.
+      // DOC 258 — the placement sentence states the statute's test, not a
+      // confirmation the Company must give.
       const footerNote = optOutFooterOnly
-        ? " The opt-out link is credited at its recorded footer placement; confirming that it is clear and conspicuous on the homepage appears among the Recommendations in § 4.D."
+        ? " The record places the “Do Not Sell or Share My Personal Information” link in the site footer, which is a placement on the homepage; Cal. Civ. Code § 1798.135(a)(1) requires a clear and conspicuous link on the homepage and prescribes no position on it."
+        : optOutAppSettings
+        ? " The record places the “Do Not Sell or Share My Personal Information” link in the settings area of an app or device without a homepage, where a consumer reasonably expects to find administrative tools; Cal. Civ. Code § 1798.135(a)(1) is applied to that placement."
         : "";
       const application = (weakControls.length
         ? `Of the ${countWord(controlRows.length)} controls reported, ${asProse(weakControls)} ${
