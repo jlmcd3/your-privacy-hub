@@ -317,6 +317,19 @@ function unintelligible(f: IncidentFacts): "yes" | "no" | "partial" | "unknown" 
 // ---------------------------------------------------------------------
 // 1. Art. 33(1) — supervisory-authority notification determination
 // ---------------------------------------------------------------------
+/** DOC 256 (2026-09-11, batch e2e1185b): a record naming several EU Member
+ *  States rendered the GDPR duty without saying which authority receives the
+ *  notification. Article 55/56 GDPR: the lead supervisory authority for the
+ *  main establishment where the company is established in the Union;
+ *  otherwise each Member State's authority (WP29 Guidelines WP250 rev.01). */
+function leadAuthorityNote(regime: NotificationRegime, jurisdictions: readonly string[]): string {
+  if (regime !== "eu") return "";
+  const states = jurisdictions.filter((j) => EEA_JURISDICTIONS.includes(j) && j !== "EU/EEA");
+  if (states.length === 0) return "";
+  const list = states.length === 1 ? states[0] : `${states.slice(0, -1).join(", ")} and ${states[states.length - 1]}`;
+  return ` The recorded EU jurisdictions are ${list}. Where the company is established in the Union, notification is made to the supervisory authority of its main establishment, which acts as lead supervisory authority for cross-border processing (Article 56(1) GDPR; WP29 Guidelines WP250 rev.01); where it has no establishment in the Union, to the supervisory authority of each Member State concerned. Record the company's main establishment so that authority can be named.`;
+}
+
 export function buildSaNotificationDetermination(
   intake: unknown,
   regimeArg?: NotificationRegime,
@@ -432,7 +445,7 @@ export function buildSaNotificationDetermination(
     standard: std.verbatim,
     standard_citation: std.citation,
     record_fact,
-    application,
+    application: `${application}${leadAuthorityNote(regime, f.jurisdictions)}`,
     verdict,
     risk_factors: factors,
     unlikely_risk_established: unlikely,

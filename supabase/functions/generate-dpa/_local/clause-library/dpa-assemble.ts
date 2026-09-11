@@ -484,7 +484,15 @@ export function assembleDpaDocument(input: DpaAssembleInput): DpaAssembledDocume
     contractSections.push({ heading: sec.heading, clauses: contractClauses });
   }
 
-  if ((mode === "us-state" || mode === "dual-eu-us") && input.californiaEngaged) {
+  // DOC 256 (2026-09-11, batch e2e1185b): the CCPA Service Provider Addendum
+  // attaches whenever California is engaged (dpa-addenda.ts) and cites
+  // "Section 12 of the DPA (Prohibited Processing and CCPA Required Terms)";
+  // in the GDPR and UK modes that section was never assembled, so the
+  // cross-reference pointed at the supplement's "12. Data Protection
+  // Assessments" and the required terms were referenced but not drafted.
+  // The section now follows the core in every mode that attaches the
+  // addendum; the supplement renumbers after it.
+  if (mode !== "canada" && input.californiaEngaged) {
     sections.push({
       heading: US_REQUIRED_TERMS_SECTION.heading,
       body: US_REQUIRED_TERMS_SECTION.clauses.join("\n"),

@@ -42,6 +42,7 @@ export const SKELETON_GRADER_BUDGET = 240_000;
 // a RENDER directive (both renderers strip it), so the graders see the
 // customer-visible question line, never the raw token (doc 145 §4.1).
 import { readSyllabus, syllabusToText } from "../../../_shared/prose/syllabus.ts";
+import { skeletonTableToText, type RenderedTable } from "../../../_shared/prose/skeleton-render.ts";
 const Q_TOKEN_RE = /^\[Q\] /;
 
 export interface SkeletonParagraphLike {
@@ -176,7 +177,13 @@ export function buildSkeletonGraderPayload(
       const raw = typeof p?.text === "string" ? p.text : String(p?.text ?? "");
       // DOC 170 — the "[Q] " render token never reaches a grader.
       const text = raw.split(/\n{2,}/).map((c) => c.replace(Q_TOKEN_RE, "")).join("\n\n");
-      lines.push(`[kind=${p?.kind ?? "unknown"}] ${text}`);
+      // DOC 256 (2026-09-11, batch e2e1185b): a table paragraph carries its
+      // rows in `p.table`, not `p.text`, so every table reached the grader as
+      // an empty "[kind=table]" line and its contents (notification clocks,
+      // remediation registers, duty scorecards) were graded as absent. The
+      // rows are flattened here with the same renderer the document uses.
+      const tableText = p?.table ? skeletonTableToText(p.table as RenderedTable) : "";
+      lines.push(`[kind=${p?.kind ?? "unknown"}] ${tableText || text}`);
     }
     body.push(lines.join("\n"));
   }

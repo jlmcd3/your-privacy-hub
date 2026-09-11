@@ -619,7 +619,12 @@ export function buildUsSpine(ctx: UsSpineCtx): UsSpineResult {
       title: "Appendix A — California Notice at Collection",
       html: [
         p(`Provided at or before the point where we collect personal information. We collect the categories identified below for the purposes stated.`),
-        `<table class="fi-table"><thead><tr><th>Category to be collected</th><th>Purpose(s) for collection and use</th><th>Sold or shared?</th><th>Retention period or criteria</th></tr></thead><tbody>${(catRows.length ? catRows : [""]).map((cat) => `<tr><td>${cat ? esc(cat) : fill("insert the category")}</td><td>${purposes ? esc(purposes.replace(/[.\s]+$/, "")) : fill("insert the purposes")}</td><td>${optOutUnknown ? fill("state") : (sells || shares) ? "Yes" : "No"}</td><td>${retentionPeriod ? esc(retentionPeriod) : retentionCriteria ? esc(retentionCriteria) : fill("insert the retention period or criteria")}</td></tr>`).join("")}</tbody></table>`,
+        `<table class="fi-table"><thead><tr><th>Category to be collected</th><th>Purpose(s) for collection and use</th><th>Sold or shared?</th><th>Retention period or criteria</th></tr></thead><tbody>${(catRows.length ? catRows : [""]).map((cat) => cat
+          ? `<tr><td>${esc(cat)}</td><td>${purposes ? esc(purposes.replace(/[.\s]+$/, "")) : fill("insert the purposes")}</td><td>${optOutUnknown ? fill("state") : (sells || shares) ? "Yes" : "No"}</td><td>${retentionPeriod ? esc(retentionPeriod) : retentionCriteria ? esc(retentionCriteria) : fill("insert the retention period or criteria")}</td></tr>`
+          // DOC 256 (2026-09-11, batch e2e1185b): with no category tokens the
+          // row is a completion row in every cell — the general purpose and
+          // retention statements are not copied against an unnamed category.
+          : `<tr><td>${fill("insert the category")}</td><td>${fill("insert the purposes for this category")}</td><td>${optOutUnknown ? fill("state") : (sells || shares) ? "Yes" : "No"}</td><td>${fill("insert the retention period or criteria for this category")}</td></tr>`).join("")}</tbody></table>`,
         p(`${fill("confirm the current collection state row by row — the Notice at Collection must consume CURRENT collection, not the preceding-12-month record")}.`),
         (sells || shares || optOutUnknown) ? p(`You may opt out at: ${fill("insert the “Do Not Sell or Share My Personal Information” / “Your Privacy Choices” link")}.`) : "",
         (spiTok !== "no") ? p(`Where the Right to Limit applies, you may limit certain use and disclosure of sensitive personal information at: ${fill("insert the “Limit the Use of My Sensitive Personal Information” link")}.`) : "",

@@ -589,8 +589,10 @@ function buildThreshold(intake: I, spec: StateSpec): ThresholdAnalysis {
       met === true
         ? `Every limb of the ${spec.state_name} definition is satisfied by the facts recorded.`
         : met === false
-        ? `The ${spec.state_name} definition is not satisfied because the following limb(s) fail against the facts recorded: ${failed.join("; ")}.`
-        : `The ${spec.state_name} definition cannot be resolved because the following limb(s) are unevidenced by the facts recorded: ${open.join("; ")}.`,
+        // DOC 256 (2026-09-11, batch e2e1185b): "limb(s)" is a pluralisation
+        // token, not prose; the count decides the form.
+        ? `The ${spec.state_name} definition is not satisfied because the following ${failed.length === 1 ? "limb fails" : "limbs fail"} against the facts recorded: ${failed.join("; ")}.`
+        : `The ${spec.state_name} definition cannot be resolved because the following ${open.length === 1 ? "limb is" : "limbs are"} unevidenced by the facts recorded: ${open.join("; ")}.`,
     verdict: met === true ? "satisfied" : met === false ? "not_satisfied" : "record_insufficient",
     status: met === null ? "record_insufficient" : "analysed",
     limbs,

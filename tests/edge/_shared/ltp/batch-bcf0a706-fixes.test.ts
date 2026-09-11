@@ -166,5 +166,5 @@ Deno.test("bcf0a706 grader — DOC 253 carries its eight classes, the true-posit
   assertStringIncludes(block, "under No transfer outside EEA");
   assertStringIncludes(block, "must not be cited");
   // RE-PIN 2026-09-11 (DOC 254, ChatGPT prose review): the review tag follows the batch tag.
-  assert(GRADER_CONTEXT_VERSION.endsWith("+doc252-rulings-2026-09-11+batch-bcf0a706-cal-2026-09-11+doc254-chatgpt-review-2026-09-11"), GRADER_CONTEXT_VERSION);
+  assert(GRADER_CONTEXT_VERSION.endsWith("+doc252-rulings-2026-09-11+batch-bcf0a706-cal-2026-09-11+doc254-chatgpt-review-2026-09-11+batch-e2e1185b-cal-2026-09-11"), GRADER_CONTEXT_VERSION);
 });

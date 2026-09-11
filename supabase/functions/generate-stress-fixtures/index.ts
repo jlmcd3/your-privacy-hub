@@ -708,7 +708,7 @@ Return a JSON object with EXACTLY these fields:
       {
         "key": "c1_auth",
         "label": "string — the control's short name",
-        "maturity": "verbatim option; use 'Not applicable to our information system' ONLY for a component that cannot apply to the information system (e.g. secure development for a company that writes no software) and then supply na_reason",
+        "maturity": "EXACTLY one of: Not implemented | Ad hoc / informal | Documented, partially implemented | Implemented across organization | Implemented with continuous monitoring | Not applicable to our information system — verbatim, never a variant such as 'Implemented and tested'; use 'Not applicable to our information system' ONLY for a component that cannot apply to the information system (e.g. secure development for a company that writes no software) and then supply na_reason",
         "notes": "string — one specific sentence",
         "evidence": ["array — a realistic mix: policy-only for some components, testable artifacts (config export, sample log, auditor letter, pen-test report, training record) for others"],
         "na_reason": "string — ONLY when maturity is 'Not applicable to our information system': why the component cannot apply"

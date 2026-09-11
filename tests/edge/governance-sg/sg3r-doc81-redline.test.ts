@@ -101,7 +101,8 @@ Deno.test("G-5 — a Low-severity general-coverage training finding names its ow
 
 Deno.test("G-6 — citation ordering and lowercase continuation nits", () => {
   const withSpecial = buildDomainFindingsTyped({ ...STRONG, special_category: "Yes", technical_controls: "Partial — some tools or categories" });
-  assertEquals(withSpecial["data_submission"].regulatory_basis, "GDPR Arts. 9, 25(1), 32(1)");
+  // DOC 256 (2026-09-11): Art. 5(1)(f) replaces Art. 25(1) for enforced submission controls.
+  assertEquals(withSpecial["data_submission"].regulatory_basis, "GDPR Arts. 9, 5(1)(f), 32(1)");
   const noJuris = buildDomainFindingsTyped({ ...STRONG, jurisdictions: [] });
   assertEquals(noJuris["regulatory_exposure"].regulatory_basis, "the recorded jurisdictions' own frameworks");
 });

@@ -2137,7 +2137,7 @@ export function runRiskFactorEngine(
           // DOC 157 — the categorical answer names the decision category.
           ? (b3Categorical && admtDecision.categories.length
             ? `the Company answers “Yes” to using automated decisionmaking technology and records the decision it makes as ${asProse([...admtDecision.categories])}`
-            : "the Company answers “Yes” to using automated decisionmaking technology for a significant decision")
+            : "the Company answers “Yes” to using automated decisionmaking technology")
           : null;
       case 4: {
         const v = s(intake.q5b_profiling_observation);
@@ -2289,8 +2289,8 @@ export function runRiskFactorEngine(
       triggerRows.push([
         "11 CCR § 7150(b)(3) — using ADMT for a significant decision concerning a consumer",
         b3Reconciled === "advertising_only"
-          ? "Not engaged — the Company answers “Yes” to using automated decisionmaking technology for a significant decision, but the decision use identified in the information provided is advertising to consumers, which § 7001(ddd)(6) excludes from the significant-decision categories; any separate covered significant decision made with this technology should be identified and the assessment updated."
-          : "Additional Information Required — the Company answers “Yes” to using automated decisionmaking technology for a significant decision, but the information provided does not identify a decision within the categories enumerated in § 7001(ddd); identifying that decision appears among the Follow-Ups in § 4.D.",
+          ? "Not engaged — the Company answers “Yes” to using automated decisionmaking technology, but the decision use identified in the information provided is advertising to consumers, which § 7001(ddd)(6) excludes from the significant-decision categories; any separate covered significant decision made with this technology should be identified and the assessment updated."
+          : "Additional Information Required — the Company answers “Yes” to using automated decisionmaking technology, but the information provided does not identify a decision within the categories enumerated in § 7001(ddd); identifying that decision appears among the Follow-Ups in § 4.D.",
       ]);
     }
     triggerRows.push(...reconciledRows);
@@ -3245,8 +3245,8 @@ export function runRiskFactorEngine(
     if (b3Reconciled === "advertising_only" || b3Reconciled === "unresolved") {
       paras.push(
         b3Reconciled === "advertising_only"
-          ? "§ 7150(b)(3) — using ADMT for a significant decision concerning a consumer — is not engaged on the information provided: the Company answers “Yes” to using automated decisionmaking technology for a significant decision, but the decision use the activity record identifies is advertising to consumers, and § 7001(ddd)(6) excludes advertising to a consumer from the significant-decision categories. Any separate covered significant decision made with this technology should be identified and the assessment updated."
-          : "§ 7150(b)(3) — using ADMT for a significant decision concerning a consumer — requires additional information: the Company answers “Yes” to using automated decisionmaking technology for a significant decision, but the information provided does not identify a decision within the categories enumerated in § 7001(ddd). Identifying that decision appears among the Follow-Ups in § 4.D.",
+          ? "§ 7150(b)(3) — using ADMT for a significant decision concerning a consumer — is not engaged on the information provided: the Company answers “Yes” to using automated decisionmaking technology, but the decision use the activity record identifies is advertising to consumers, and § 7001(ddd)(6) excludes advertising to a consumer from the significant-decision categories. Any separate covered significant decision made with this technology should be identified and the assessment updated."
+          : "§ 7150(b)(3) — using ADMT for a significant decision concerning a consumer — requires additional information: the Company answers “Yes” to using automated decisionmaking technology, but the information provided does not identify a decision within the categories enumerated in § 7001(ddd). Identifying that decision appears among the Follow-Ups in § 4.D.",
       );
     }
     // DOC 154 (items 1–2) — the two further reconciled states, analyzed in

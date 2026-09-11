@@ -248,6 +248,17 @@ export function buildLiaEngagementMap(
   // basis "exemption_claimed" so eprivacyOverlayNote can render the claim
   // sentence while the silent not_engaged case stays silent.
   const eprivacyExemptionClaimed = eprivacyGateDetermination === "exemption_claimed_on_the_record";
+  // DOC 256 (2026-09-11, batch e2e1185b): the gate stays "undetermined" when
+  // the device limb is answered (Yes, all strictly necessary) but the
+  // description names messaging the consent rules can cover; the generic
+  // conditional rationale then said the record "does not establish" the
+  // device limb the company had answered. The open limb is named instead.
+  const pd = (intake?.purpose_details ?? {}) as Record<string, unknown>;
+  const deviceStrictlyNecessaryAnswered = String(pd.device_access ?? "") === "Yes" &&
+    String(pd.device_access_strictly_necessary ?? "") === "Yes — all of it is strictly necessary";
+  const eprivacyConditional = !(eprivacyGateDetermination === "consent_requirement_engaged" ||
+    eprivacyGateDetermination === "not_engaged_on_the_record" || eprivacyExemptionClaimed);
+  const messagesLimbOpen = eprivacyConditional && deviceStrictlyNecessaryAnswered;
   entries.push({
     rule_id: "R_EPRIVACY_PECR",
     name: "ePrivacy / PECR device-storage overlay",
@@ -264,6 +275,8 @@ export function buildLiaEngagementMap(
         ? "The company states that the processing stores information on, or reads information from, individuals' devices only to the extent strictly necessary to provide a service the individual has requested. Under Article 5(3) of the ePrivacy Directive (Directive 2002/58/EC) (regulation 6 of the Privacy and Electronic Communications (EC Directive) Regulations 2003 in the United Kingdom), consent is not required in that context. This assessment records the statement but does not verify it."
         : eprivacyGateDetermination === "not_engaged_on_the_record"
           ? "The record's description of the processing does not indicate storage of or access to information on a user's device; the ePrivacy Directive / PECR 2003 overlay is not engaged by the processing as described."
+          : messagesLimbOpen
+            ? "PECR/ePrivacy applicability — Additional Information Required. The company states that the processing stores information on, or reads information from, individuals' devices only to the extent strictly necessary to provide a service the individual has requested (Article 5(3) of the ePrivacy Directive; PECR regulation 6), recorded as the company's statement and not verified here. Whether the processing also involves sending electronic marketing messages to individuals (PECR regulation 22) is not established by the record; confirm the channels and recipients of any such messages before drawing that conclusion."
           : "The record does not establish whether the processing involves storage of or access to information on a user's device in a manner that engages the ePrivacy Directive / PECR 2003; this is an open determination, not a finding either way.",
     intake_signals: [
       "processing_description",
@@ -273,7 +286,7 @@ export function buildLiaEngagementMap(
       "purpose_details.device_access_strictly_necessary",
     ],
     section_ref: "section_5_recommendations",
-    ...(eprivacyExemptionClaimed ? { basis: "exemption_claimed" } : {}),
+    ...(eprivacyExemptionClaimed ? { basis: "exemption_claimed" } : messagesLimbOpen ? { basis: "messages_limb_open" } : {}),
   });
 
   entries.push({

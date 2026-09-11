@@ -643,7 +643,9 @@ export function buildDetermination(
         ? `The record already states the route by which an individual stops this use — ${
           lowerFirst(firstSentence(optOut))
         }${optOutAvailable ? ` The record records its availability as "${optOutAvailable}".` : ""} What is left is to carry that same route to the point where the data subjects first encounter the use${
-          collectionContext ? `, which the record places at ${lowerFirst(firstSentence(collectionContext))}` : ""
+          // DOC 256 (2026-09-11, batch e2e1185b): the context answer is a
+          // sentence; spliced after "at" it broke the sentence around it.
+          collectionContext ? `, which the record places as follows: “${firstSentence(collectionContext).replace(/[.\s]+$/, "")}”` : ""
         } so the choice is available before the processing runs and not only after it, and to name the role that operates it.`
         : "Give the data subjects an unconditional, standing means of stopping this specific use at the point where they would first encounter it, going beyond the Article 21 objection right the GDPR already requires.",
       why_it_moves_the_balance:

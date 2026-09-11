@@ -1216,12 +1216,16 @@ function buildWaDuties(intake: BiometricIntakeForDeliverables): DutyFinding[] {
       }],
   ));
 
+  // DOC 256 (2026-09-11, batch e2e1185b): the doc 254 record sentence took
+  // no recipients on the Washington row and printed "recipients: not
+  // supplied" beside a recorded answer.
+  const recipients = txt(intake.disclosure_recipients);
   const wa = disclosureVerdict(bases, "wa");
   out.push(mk(
     s,
     "wa_19375.020_3_disclosure_limits",
     "Disclosure limits absent consent",
-    disclosureRecordFact(null, bases),
+    disclosureRecordFact(recipients, bases),
     wa.verdict === "not_satisfied"
       ? `RCW 19.375.020(3) permits disclosure without consent on six listed bases. The record asserts ${wa.offending.map((o) => `"${o}"`).join(", ")}, which ${wa.offending.length === 1 ? "is not among them" : "are not among them"}.`
       : wa.verdict === "satisfied"
@@ -1267,7 +1271,7 @@ function buildWaDuties(intake: BiometricIntakeForDeliverables): DutyFinding[] {
       s,
       "wa_19375.020_5_material_inconsistency",
       "No materially inconsistent use or disclosure without new consent",
-      `Original terms of provision: ${originalTerms ?? "not supplied"}. Current stated purpose: ${currentPurpose ?? "not supplied"}.`,
+      `Original terms of provision: ${originalTerms ? noStop(originalTerms) : "not supplied"}. Current stated purpose: ${currentPurpose ? noStop(currentPurpose) : "not supplied"}.`,
       !originalTerms || !currentPurpose
         ? "Subsection (5) is measured against the terms under which the identifier was originally provided. The record does not set out both the original terms and the current use, so material inconsistency cannot be assessed either way."
         : consistent

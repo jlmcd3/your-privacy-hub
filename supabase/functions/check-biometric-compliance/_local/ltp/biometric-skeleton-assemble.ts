@@ -645,8 +645,13 @@ function composeUnregisteredJurisdictions(intake: Bag): string {
       "For the EU/EEA and the United Kingdom, biometric data (personal data within the Article 4(14) definition, processed to uniquely identify a person) is a special category under Article 9(1) GDPR and Article 9(1) UK GDPR; that analysis belongs to a data protection impact assessment and, where legitimate interests is relied on, a legitimate interests assessment, each of which is its own assessment on this platform.",
     );
   }
+  // DOC 256 (2026-09-11, batch e2e1185b): the closing step names the
+  // assessments this platform offers and the trigger for each, instead of a
+  // generic "evaluate the rules" instruction.
   parts.push(
-    "The company should evaluate the biometric and data-protection rules of each named jurisdiction before extending the programme there.",
+    euUk
+      ? "Before extending the programme to the EU/EEA or the United Kingdom, complete a data protection impact assessment for the biometric processing described in this assessment (Article 35(3)(b) GDPR and UK GDPR, large-scale processing of special categories) and, where legitimate interests is relied on, a legitimate interests assessment; both are available on this platform. For any other named jurisdiction, evaluate its biometric and data-protection rules before extending the programme there."
+      : "The company should evaluate the biometric and data-protection rules of each named jurisdiction before extending the programme there.",
   );
   return repairRegister(parts.join(" "));
 }
@@ -676,7 +681,7 @@ function composeSecurityBody(report: Bag, values: SlotValues): string {
   // it sat "apropos of nothing in the notice discussion"); the retention
   // clock is this section's subject.
   if (rows.length > 0) parts.push(destructionClockSentence());
-  if (!values.securityMeasures) parts.push("The company has not recorded the controls applied to storage and transmission, so no protection-parity conclusion is drawn.");
+  if (!values.securityMeasures) parts.push("The company has not recorded the controls applied to storage and transmission (the security-measures question in the intake), so no protection-parity conclusion is drawn; recording them is what closes the point.");
   // DOC 142 (2026-09-02) — the "duties in scope require one" clause asserted
   // live destruction duties in the EMPTY-scope state, directly contradicting
   // this section's own lead ("No storage, retention or destruction duty has
@@ -685,7 +690,7 @@ function composeSecurityBody(report: Bag, values: SlotValues): string {
   if (!values.retentionSchedule) {
     parts.push(rows.length > 0
       ? "The company has not recorded a written retention schedule, and the destruction duties in scope require one."
-      : "The company has not recorded a written retention schedule; a written schedule would be required by any destruction duty brought into scope.");
+      : "The company has not recorded a written retention schedule (the retention-schedule question in the intake); a written schedule would be required by any destruction duty brought into scope, and recording it is what closes the point.");
   }
   if (parts.length === 0) return "";
   // repairRegister collapses \s{2,}, which would weld the parts into one

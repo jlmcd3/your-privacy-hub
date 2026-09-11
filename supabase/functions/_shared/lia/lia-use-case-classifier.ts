@@ -28,7 +28,11 @@
 // contractual words ("account", "customer") are excluded when they appear
 // inside a security phrase (see SECURITY_PHRASES) so they cannot outvote it.
 export const USE_CASE_KEYWORDS: Record<string, string[]> = {
-  direct_marketing: ["marketing", "promotional", "newsletter", "campaign", "outreach", "email"],
+  // DOC 256 (2026-09-11, batch e2e1185b): "outreach" and "email" classed
+  // churn-prediction and customer-success work as direct marketing, and the
+  // Recital 47 direct-marketing recognition then led the purpose test. The
+  // class now needs a marketing word the record itself uses.
+  direct_marketing: ["marketing", "promotional", "newsletter", "campaign", "advertising", "upsell", "cross-sell"],
   fraud_prevention: ["fraud", "abuse", "risk scor", "anti-money", "aml", "kyc", "scam", "chargeback"],
   employee_monitoring: ["employee", "worker", "workplace", "staff", "monitor"],
   behavioral_advertising: ["behavioural", "behavioral", "advertis", "targeting", "tracking", "profiling for ads"],

@@ -313,7 +313,9 @@ Deno.test("SO-6: a degraded record degrades honestly — no padding, no inventio
   // rows analysed, the retention-schedule sentence must not assert live
   // "destruction duties in scope" (it contradicted this section's own
   // "No storage, retention or destruction duty has been analysed" lead).
-  assert(t.includes("The company has not recorded a written retention schedule; a written schedule would be required by any destruction duty brought into scope."));
+  // DOC 256 (2026-09-11, batch e2e1185b): the sentence names the intake
+  // question and what closes the point.
+  assert(t.includes("The company has not recorded a written retention schedule (the retention-schedule question in the intake); a written schedule would be required by any destruction duty brought into scope, and recording it is what closes the point."));
   assert(!t.includes("and the destruction duties in scope require one"), t);
   // The jurisdictions sentence survives on its own. (DOC 142: "The states
   // whose laws" -> "The jurisdictions whose laws" — the list carries

@@ -126,17 +126,21 @@ function dataSubmission(intake: Bag): TypedDomainFinding {
       severity: "Medium",
       current_state: "Technical controls are enforced for some tools or data categories only." + specialTail,
       gap_description: "Submissions through the uncovered tools or categories rest on policy and training alone." + toolsTail,
-      recommended_action: "Extend the enforced controls to the uncovered tools and categories, prioritising any that touch special categories (GDPR Arts. 25(1), 32(1)).",
+      recommended_action: "Extend the enforced controls to the uncovered tools and categories, prioritising any that touch special categories (GDPR Arts. 5(1)(f), 32(1)).",
     },
     "No — policy and training only": {
       severity: special ? "High" : "Medium",
       current_state: "No technical controls enforce the submission rules; the company relies on policy and training alone." + specialTail,
       gap_description: "A policy without enforcement leaves uncontrolled submission a single mistake away.",
-      recommended_action: "Introduce enforced technical controls (DLP rules, content filtering, or endpoint upload restrictions) for the tools that process personal data (GDPR Arts. 25(1), 32(1)).",
+      recommended_action: "Introduce enforced technical controls (DLP rules, content filtering, or endpoint upload restrictions) for the tools that process personal data (GDPR Arts. 5(1)(f), 32(1)).",
     },
   };
   return finding(2, "Data Submission Risk", "data_submission",
-    special ? "GDPR Arts. 9, 25(1), 32(1)" : "GDPR Arts. 25(1), 32(1)", "IT owner",
+    // DOC 256 (2026-09-11, batch e2e1185b): enforced submission controls
+    // (DLP, content filtering, upload restrictions) are integrity-and-
+    // confidentiality and security-of-processing measures — Art. 5(1)(f)
+    // and Art. 32(1) — not the design-and-default duty of Art. 25(1).
+    special ? "GDPR Arts. 9, 5(1)(f), 32(1)" : "GDPR Arts. 5(1)(f), 32(1)", "IT owner",
     table[v] ?? UNRESOLVED("whether technical controls enforce the submission rules", "Answer the technical-controls question: enforced, partial, or policy-and-training only."));
 }
 

@@ -779,6 +779,9 @@ export function eprivacyOverlayNote(report: Bag, foreclosed = false): string {
     .find((e) => s(e.rule_id) === "R_EPRIVACY_PECR");
   if (!entry) return "";
   const status = s(entry.status);
+  // DOC 256 (2026-09-11): the device limb is answered and only the
+  // messaging limb is open — the map's own limb-specific note renders.
+  if (status === "conditional" && s(entry.basis) === "messages_limb_open" && s(entry.rationale)) return s(entry.rationale);
   if (status === "conditional") return EPRIVACY_ADDITIONAL_INFO_REQUIRED;
   // DOC 189 (2026-09-05): the company's strict-necessity CLAIM (device-access
   // question "Yes", strict-necessity question "Yes") arrives as not_engaged
