@@ -2550,7 +2550,54 @@ function srRailHtml(label: string, innerHtml: string, tone: "" | "teal" | "hair"
 
 /** The R3/R4 table: Arial caps header, hairline rows, state words tinted as
  * text; a hidden-header key/value surface renders its keys as R4 labels. */
+// POST-259 CEO ROUND (2026-09-11, ChatGPT v3 CYB3-04) — the Cyber §
+// 7123(c) Component Readiness Matrix (9 columns) and Readiness Action
+// Register (7 columns) produced narrow, stacked words in portrait. The
+// wide-landscape named-page treatment tried for exactly this class of
+// table was REMOVED (batch be0f9e02, 2026-08-25 — see this file's own
+// note at the removed treatment): PDFShift/Chromium clipped rotated
+// pages and the column-count heuristic over-fired on unrelated tables.
+// Cards avoid orientation and column-width entirely — no reintroduction
+// of the removed treatment.
+const WIDE_TABLE_CARD_SURFACES = new Set(["cyber_v4_component_matrix", "cyber_v4_action_register"]);
+
+/** One card per row: the identifying column(s) as a heading, the rest as
+ *  labeled fields. Empty/dash fields are omitted rather than shown blank. */
+function srCardsHtml(t: SkeletonTableLike): string {
+  const cols = Array.isArray(t.columns) ? t.columns : [];
+  const rows = Array.isArray(t.rows) ? t.rows.filter((r) => Array.isArray(r)) : [];
+  if (rows.length === 0 || cols.length === 0) return "";
+  const surface = t.surface ?? "";
+  const cell = (r: readonly unknown[], i: number): string => String(r[i] ?? "").trim();
+  const cards = rows.map((r) => {
+    let header: string;
+    let fieldStart: number;
+    if (surface === "cyber_v4_action_register") {
+      header = `Rank ${escHtml(cell(r, 0))} — ${escHtml(cell(r, 1))}`;
+      fieldStart = 2;
+    } else {
+      header = escHtml(cell(r, 0));
+      fieldStart = 1;
+    }
+    const fields = cols.slice(fieldStart).map((c, k) => {
+      const v = cell(r, fieldStart + k);
+      if (!v || v === "—" || v === "-") return "";
+      return `<div style="margin:0 0 4pt;"><span style="font-family:Arial,Helvetica,sans-serif;font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#5c6d7a;">${escHtml(c)}:</span> <span style="font-size:9pt;color:#1a1916;">${srTintHtml(v)}</span></div>`;
+    }).filter(Boolean).join("");
+    return `<div style="border:1px solid #c6d0d9;border-radius:5px;padding:8pt 11pt 7pt;margin:0 0 8pt;break-inside:avoid;page-break-inside:avoid;">
+      <div style="font-family:'Georgia','Times New Roman',serif;font-weight:700;font-size:10.5pt;color:#0c2a44;margin:0 0 4pt;">${header}</div>
+      ${fields}
+    </div>`;
+  }).join("");
+  return `<div class="sr-table sr-${escHtml(surface || "table")}">
+    ${t.title ? `<div class="tbl-title">${escHtml(t.title)}</div>` : ""}
+    ${cards}
+    ${t.note ? `<div class="tbl-note">${escHtml(t.note)}</div>` : ""}
+  </div>`;
+}
+
 function srTableHtml(t: SkeletonTableLike, product?: string): string {
+  if (WIDE_TABLE_CARD_SURFACES.has(t.surface ?? "")) return srCardsHtml(t);
   const cols = Array.isArray(t.columns) ? t.columns : [];
   const rows = Array.isArray(t.rows) ? t.rows.filter((r) => Array.isArray(r)) : [];
   if (rows.length === 0 || cols.length === 0) return "";

@@ -164,7 +164,16 @@ const DPA_CSS = `
   table.fi-table td, table.fi-table th { overflow-wrap: anywhere; }
   .fi-clause, .fi-preamble, .fi-meta { overflow-wrap: anywhere; }
   .fi-sigblock { margin: 0 0 14pt; }
-  .fi-execution, .fi-annexes, .fi-addendum, .fi-schedule { page-break-before: always; break-before: page; }
+  // POST-259 CEO ROUND (2026-09-11, ChatGPT v3 DPA3-04) — .fi-execution
+  // used to force a fresh page after every addendum's schedules, however
+  // short (Schedule C is a single certification sentence), stranding it
+  // alone before a further forced jump to Execution. Execution now flows
+  // immediately after the schedules when there is room, kept intact
+  // (never split) rather than always starting fresh. .fi-annexes and
+  // .fi-addendum still start fresh pages — those are genuinely distinct
+  // instruments, not the named complaint.
+  .fi-annexes, .fi-addendum, .fi-schedule { page-break-before: always; break-before: page; }
+  .fi-execution { page-break-inside: avoid; break-inside: avoid; }
   .fi-addendum h1 { margin-top: 0; }
   .fi-preamble { font-size: 10pt; text-align: left; }
   .fi-cover { text-align: center; padding: 36pt 0 48pt; page-break-after: always; break-after: page; }
