@@ -489,11 +489,23 @@ export function buildThreePartTestTyped(report: Bag, intake: Bag): LiaTypedStage
   // sentence verbatim (eprivacy-gate.ts RULE_SENTENCE — byte-identical to
   // LIA_EPRIVACY_RULE_SENTENCE above, pinned by the battery), so the
   // override quotes the application once and appends the original why.
+  //
+  // BATCH a77240e3 (2026-09-12, LIA5-01, ChatGPT + Claude joint review) —
+  // `determination.why` is the PRE-GATE three-part-test verdict text. When
+  // that verdict was "available", its why sentence reads "Legitimate
+  // interests carries this processing…" — an affirmative statement that,
+  // appended raw right after "…is not available", produced a document that
+  // stated both outcomes in the same paragraph (a grader-confirmed defect).
+  // The bridging clause below makes explicit that the appended sentence
+  // describes what the three-part test alone would have concluded, not the
+  // overall (gated) result — accurate for every branch (available, mitigated,
+  // undetermined, or not-available-on-other-grounds), never just the
+  // available one.
   const determination_override: LiaDetermination | null = foreclosed
     ? {
       ...determination,
       outcome: "legitimate_interests_not_available",
-      why: `${stop(s(gate.application))} ${stop(s(determination.why))}`.trim(),
+      why: `${stop(s(gate.application))} Independently of that gate, the three-part test on its own would resolve as follows: ${stop(s(determination.why))}`.trim(),
       rebalance_required: false,
       status: "analysed",
     }

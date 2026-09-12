@@ -960,8 +960,15 @@ export function deriveRemediationRegisterTable(report: Bag, asOfIso?: string): R
               ? " Priority states the recommended urgency; the target date is the recorded outer deadline for the portfolio, and higher-priority items should complete ahead of it."
               : ""
           }${
+            // BATCH a77240e3 (2026-09-12, GOV5-03, ChatGPT + Claude joint
+            // review) — the sentence flagged the passed date but gave no
+            // process for replacing it; a single shared deadline across
+            // every item in the register also means no item has a live
+            // date until this is done. Appending the process (convene,
+            // reassign per item by risk, re-approve) rather than inventing
+            // any date.
             recorded.some((c) => c.label === "Target date") && datePassed(s(plan[0].target_date))
-              ? ` The recorded target date has passed as at ${asOf}; a revised, owner-approved date is required before this register can be relied on as a plan.`
+              ? ` The recorded target date has passed as at ${asOf}; a revised, owner-approved date is required before this register can be relied on as a plan. The accountable owner should convene promptly, assign a revised date to each item in this register ranked by the risk it addresses, and re-approve the updated register — not adopt a single new blanket date in place of the one that has passed.`
               : ""
           }`,
         };

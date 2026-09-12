@@ -209,7 +209,15 @@ export const US_REQUIRED_TERMS_SECTION: DpaClauseSection = {
   heading: "12. PROHIBITED PROCESSING AND CCPA REQUIRED TERMS",
   clauses: [
     // DOC-81 D-7 — role mapping and defined citations for the CCPA terms.
-    `12.0 For the purposes of this Section 12, the Controller is a "Business" and the Processor is a "Service Provider" as those terms are defined in Cal. Civ. Code § 1798.140; "the CCPA" means Cal. Civ. Code §§ 1798.100 et seq. (Title 1.81.5, as amended by the CPRA) and "the CCPA regulations" means the regulations at Cal. Code Regs. tit. 11, § 7000 et seq.`,
+    // Ratified verbatim (doc 81 D-7, pinned by sd1r-doc81-redline.test.ts);
+    // left untouched. BATCH a77240e3 (2026-09-12, DPA5-02, ChatGPT + Claude
+    // joint review) adds the second sentence only, additive: the Controller
+    // qualifying as a CCPA "Business" is a threshold fact this Section does
+    // not itself establish — the CCPA Addendum's own clause 1.2 already
+    // conditions the same defined terms ("to the extent it qualifies"); this
+    // sentence brings the main body in line with that conditional scope
+    // instead of stating the roles as settled facts.
+    `12.0 For the purposes of this Section 12, the Controller is a "Business" and the Processor is a "Service Provider" as those terms are defined in Cal. Civ. Code § 1798.140; "the CCPA" means Cal. Civ. Code §§ 1798.100 et seq. (Title 1.81.5, as amended by the CPRA) and "the CCPA regulations" means the regulations at Cal. Code Regs. tit. 11, § 7000 et seq. This characterization applies to the extent the Controller in fact meets the CCPA's threshold definition of "business" for the processing described in this Section; nothing in this Section itself establishes that the threshold is met.`,
     // 7051(a)(1) + 100(d)(1)
     `12.1 The Processor is prohibited from selling or sharing Personal Data. The Personal Data is disclosed by the Controller only for the limited and specified purposes set out in Annex B, and the Processor shall not sell and shall not share Personal Data for any purpose.`,
     // 7051(a)(2)-(5)

@@ -558,7 +558,17 @@ function deriveReadinessChecklistTable(report: Bag): RenderedTable | null {
     for (const i of asArray(r.items)) {
       const item = noStop(s(i.item));
       if (!item) continue;
-      rows.push([label, item, i.ready === true ? "Yes" : "No — outstanding"]);
+      // BATCH a77240e3 (2026-09-12, REG5-02, ChatGPT + Claude joint review) —
+      // a not-required item (e.g. Texas's known-child element when
+      // processes_children_data is false) carries `ready: true` in the data
+      // model so it never blocks ready_to_file (buildFilingReadiness filters
+      // it out of `live` entirely) — but that same `true` rendered here as
+      // "Yes", i.e. "documented", for an item the company's own record
+      // states is not even required, let alone recorded. Confirmed against
+      // the rendered PDF: California's identical item (no required_when)
+      // correctly showed "No — outstanding" for the same false-valued
+      // field; only the conditionally-not-required row was wrong.
+      rows.push([label, item, i.required === false ? "N/A — not required" : i.ready === true ? "Yes" : "No — outstanding"]);
     }
   }
   if (!rows.length) return null;
@@ -1391,6 +1401,22 @@ function composeSupervisoryAnalysis(report: Bag, intake: Bag): string {
 
 /** Section 3 lead — what stands between the answers and complete filings. */
 export function composeReadinessLead(report: Bag, counts: RegistrationDutyCounts, org: string): string {
+  // QA batch 2026-09-05 — the ICO fee tier's resolution basis (which intake
+  // fields decided it, whether a USD→GBP conversion was involved, and the
+  // boundary confirm-note where the record sits near a threshold) was
+  // computed by resolveIcoFeeTier and stored on the jurisdiction's `notes`,
+  // but nothing in this document ever read that field — the Duty-status
+  // table cell is deliberately terse and never carried it either.
+  //
+  // BATCH a77240e3 (2026-09-12, REG5-04, ChatGPT + Claude joint review) —
+  // this was originally surfaced ONLY in the `rows.length === 0` branch
+  // below, i.e. only when NO OTHER jurisdiction has a filing-content list at
+  // all — which drops silently for the common case of a company that ALSO
+  // has state filing duties (Luminet: CA/TX/OR/VT alongside the UK ICO fee).
+  // Computed once here and appended to every return path instead.
+  const icoNotes = icoFeeJurisdictions(report).map((j) => s(j.notes)).filter(Boolean);
+  const withIco = (lead: string): string => icoNotes.length ? `${lead} ${icoNotes.join(" ")}` : lead;
+
   const rows = readiness(report);
   if (rows.length === 0) {
     // 3E9AD759-R2 — when no filing-content list applies but a designation
@@ -1398,35 +1424,25 @@ export function composeReadinessLead(report: Bag, counts: RegistrationDutyCounts
     // reading as an all-clear beside an engaged duty.
     const nonFiling = counts.attached - counts.filing_attached;
     if (nonFiling > 0) {
-      const lead = stop(
+      return withIco(stop(
         `No filing-content list applies to ${org} on the current assessment record; the outstanding ${nonFiling === 1 ? "act recorded above is" : "acts recorded above are"} ${asProse(counts.attached_names.slice(counts.filing_attached))}`,
-      );
-      // QA batch 2026-09-05 — the ICO fee tier's resolution basis (which
-      // intake fields decided it, whether a USD→GBP conversion was involved,
-      // and the boundary confirm-note where the record sits near a
-      // threshold) was computed by resolveIcoFeeTier and stored on the
-      // jurisdiction's `notes`, but nothing in this document ever read that
-      // field — the Duty-status table cell is deliberately terse and never
-      // carried it either. Surfaced here, where the ICO fee's outstanding
-      // act is already named.
-      const icoNotes = icoFeeJurisdictions(report).map((j) => s(j.notes)).filter(Boolean);
-      return icoNotes.length ? `${lead} ${icoNotes.join(" ")}` : lead;
+      ));
     }
     // A-TEAM S4 RULING S2.17e (doc 119) — the all-clear names any duty
     // determination that remains open above, so it cannot read as settled.
-    return stop(
+    return withIco(stop(
       // A-TEAM DELTA (ChatGPT multi-instance review, 2026-08-31, P2-4) —
       // "N duty determinations remain open above and are not a filing
       // item" reads as an awkward compound predicate; two clauses instead,
       // with "neither"/"none" chosen by count rather than fixed at two.
       `No filing is required of ${org} on the current assessment record; accordingly, no filing-readiness items apply${counts.reserved > 0 ? `. ${counts.reserved === 1 ? "One duty determination remains" : `${numWord(counts.reserved).charAt(0).toUpperCase() + numWord(counts.reserved).slice(1)} duty determinations remain`} open above; ${counts.reserved === 1 ? "it is not" : counts.reserved === 2 ? "neither is" : "none is"} a filing item` : ""}`,
-    );
+    ));
   }
   const open = rows.filter((r) => r.ready_to_file !== true);
   if (open.length === 0) {
-    return stop(
+    return withIco(stop(
       `The information supplied supports complete filings for ${org}: every content item each jurisdiction requires is recorded`,
-    );
+    ));
   }
   const missing = new Set<string>();
   for (const r of open) {
@@ -1435,9 +1451,9 @@ export function composeReadinessLead(report: Bag, counts: RegistrationDutyCounts
     }
   }
   const list = [...missing].filter(Boolean).slice(0, 4);
-  return stop(
+  return withIco(stop(
     `What stands between ${org} and complete filings is ${count(open.length, "jurisdiction whose", "jurisdictions whose")} content list is not yet fully recorded${list.length ? `, principally ${asProse(list)}` : ""}`,
-  );
+  ));
 }
 
 /**

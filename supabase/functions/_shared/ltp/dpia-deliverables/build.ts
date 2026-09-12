@@ -3197,8 +3197,28 @@ export function buildSection2Coverage(
         }
       }
     }
-    if (markerHits.length > 0) {
-      const partyText = markerHits.join("; ");
+    // BATCH a77240e3 (2026-09-12, DPIA5-02, ChatGPT + Claude joint review) —
+    // the marker scan above only catches a country code in the processor's
+    // OWN name; it never looked at processor_obligations, so a processor
+    // whose obligations text names a live transfer mechanism (e.g. "Standard
+    // Contractual Clauses in place for any UK transfers") produced no hit and
+    // the sentinel asserted "No cross-border transfer is on the record" right
+    // alongside that same mechanism language — a grader-confirmed
+    // contradiction. Reusing CHAPTER_V_INSTRUMENTS (the same closed lexicon
+    // already used to credit a named mechanism on an actual transfer row,
+    // defined above) keeps this lexical and conservative: it only opens the
+    // question, it never asserts a transfer exists.
+    const processorObligationsText = str(get(intake, "processor_obligations"));
+    const obligationsMechanismHit = CHAPTER_V_INSTRUMENTS.find((i) => i.re.test(processorObligationsText));
+    if (markerHits.length > 0 || obligationsMechanismHit) {
+      const partyText = markerHits.length > 0 ? markerHits.join("; ") : "";
+      // The {party} slot in ask_transfer_leg_unresolved's template reads
+      // "…transfer arises from {party}"; a processor name fills that slot
+      // grammatically (PANEL DPIA-P3), and so does this well-formed noun
+      // phrase for the obligations-text case.
+      const askParty = markerHits.length > 0
+        ? partyText
+        : `the recorded processor obligations naming a ${obligationsMechanismHit!.label}`;
       transfers.push({
         origin_regime: regime,
         destination: "",
@@ -3208,13 +3228,17 @@ export function buildSection2Coverage(
         mechanism_citation: "",
         transfer_risk_assessment_required: false,
         finding:
-          `No transfer flow is recorded for this processing, but the processor record names ${partyText} — a marker outside ${regime === "UK" ? "the United Kingdom" : "the EEA"} — so whether a cross-border leg arises from that engagement is not resolved on the record, and no Chapter V determination is made until it is.`,
+          `No transfer flow is recorded for this processing, but ${
+            markerHits.length > 0
+              ? `the processor record names ${partyText} — a marker outside ${regime === "UK" ? "the United Kingdom" : "the EEA"}`
+              : `the recorded processor obligations name a ${obligationsMechanismHit!.label}`
+          } — so whether a cross-border leg arises from that engagement is not resolved on the record, and no Chapter V determination is made until it is.`,
         citation: chapterVCite,
         status: "record_insufficient",
         information_needed:
-          `Whether a cross-border transfer arises from ${partyText}; if so, the destination and the Chapter V mechanism relied on.`,
+          `Whether a cross-border transfer arises from ${askParty}; if so, the destination and the Chapter V mechanism relied on.`,
         ask_class: "ask_transfer_leg_unresolved",
-        display_label: resolveAskLabel("ask_transfer_leg_unresolved", { party: partyText }),
+        display_label: resolveAskLabel("ask_transfer_leg_unresolved", { party: askParty }),
         source_field: "transfer_flows",
         registry_verified_on: "",
       });
@@ -3678,13 +3702,26 @@ export function buildGapLedgerDetailed(
     );
   }
 
+  // BATCH a77240e3 (2026-09-12, DPIA5-05, ChatGPT + Claude joint review) —
+  // the Art. 36(1) paragraph already names which risk(s) control the
+  // prior-consultation determination (buildArt36Consultation, above), but
+  // this ledger row's "enables" text did not — a reader had to notice the
+  // risk_label matched on their own. Naming the same fact here whenever
+  // this risk is one of the ones the determination turns on (its band is
+  // "high"/"undetermined", or its status is "record_insufficient", and the
+  // determination is not the settled "not required" outcome).
+  const art36 = deliverables.art36_consultation;
+  const drivesArt36 = art36.determination !== "consultation_not_required";
   for (const r of deliverables.risk_register) {
     if (r.information_needed === undefined) continue;
+    const isDriver = drivesArt36 && (r.residual_band === "high" || r.residual_band === "undetermined" || r.status === "record_insufficient");
     push(
       GAP_FIELD_SAFEGUARDS,
       str(r.information_needed),
       r.citation,
-      `the remaining risk level for ${r.risk_label}`,
+      isDriver
+        ? `the remaining risk level for ${r.risk_label}, which the Art. 36(1) prior-consultation determination above turns on`
+        : `the remaining risk level for ${r.risk_label}`,
       r,
     );
   }

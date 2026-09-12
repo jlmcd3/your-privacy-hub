@@ -889,7 +889,17 @@ export function deriveThreeTestStrip(report: Bag): RenderedTable | null {
   // from the same typed verdicts regardless of the gate's state.
   const pa = bag(report.public_authority_exclusion);
   const paDetermination = s(pa.determination);
-  const paWord = pa.basis_unavailable === true
+  // BATCH a77240e3 (2026-09-12, LIA5-01, ChatGPT + Claude joint review) —
+  // this row previously read from the public-authority gate ALONE, so a
+  // record foreclosed by the separate ePrivacy/PECR gate (eprivacy-gate.ts)
+  // still showed "Available" here while the headline determination read
+  // "Not Available" — a grader-confirmed, customer-visible contradiction.
+  // Both gates block Article 6(1)(f) availability; this row must reflect
+  // whichever fires. Read via readTypedVerdicts (the typed engine's own
+  // render-door telemetry), never the harder gate's own finding directly —
+  // this file's single-render-door law (pinned by eprivacy-gate.test.ts).
+  const eprivacyForeclosed = readTypedVerdicts(report).eprivacy_foreclosed;
+  const paWord = pa.basis_unavailable === true || eprivacyForeclosed
     ? "Not available"
     : paDetermination === "undetermined_on_the_record"
     ? "Determination Pending"
@@ -1471,6 +1481,32 @@ export function assembleLiaSkeletonDocument(
   // renders: the collected conditions (collectLiaConditions), never a bare
   // count of information_needed entries.
   const conditions = collectLiaConditions(report, ruleApplications);
+  // BATCH a77240e3 (2026-09-12, LIA5-02, ChatGPT + Claude joint review) —
+  // the ePrivacy/PECR consent blocker is the controlling condition whenever
+  // it forecloses the basis (the determination cannot proceed until it is
+  // resolved), but it never reached this list — eprivacy-gate.ts's finding
+  // carries no `information_needed` field to feed collectLiaConditions, so
+  // the blocker surfaced only in prose while stale-attestation dates got a
+  // numbered Condition. It is unshifted to the front so it renders as
+  // Condition 1, ahead of the (secondary) governance-currency conditions
+  // appended below. Gated on `v.eprivacy_foreclosed` (the typed engine's own
+  // render-door telemetry) and worded from `report.engagement_map`'s
+  // R_EPRIVACY_PECR entry (the same approved door eprivacyOverlayNote uses)
+  // — never the harder gate's own finding directly, per this file's
+  // single-render-door law (pinned by eprivacy-gate.test.ts).
+  if (v.eprivacy_foreclosed) {
+    const engagementMap = bag(report.engagement_map);
+    const mapEntries = Array.isArray(engagementMap.entries) ? engagementMap.entries : [];
+    const eprivacyEntry = mapEntries.map((e) => bag(e)).find((e) => s(e.rule_id) === "R_EPRIVACY_PECR");
+    const text = s(eprivacyEntry?.rationale) || s(bag(report.lia_determination).why).split(" Independently of that gate")[0];
+    if (text) {
+      conditions.unshift({
+        text: stop(text),
+        enables: "reliance on legitimate interests for the covered processing",
+        provision: "",
+      });
+    }
+  }
   // DOC 258 — stale review/approval dates condition the determination. The
   // report's own generation date is the reference where it carries one.
   const asOf = /^\d{4}-\d{2}-\d{2}/.test(s(report.generated_at)) ? new Date(s(report.generated_at)) : new Date();

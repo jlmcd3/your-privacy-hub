@@ -159,10 +159,15 @@ Deno.test("doc139 — LIA: firm requirement text renders only when eprivacy-gate
 
   const text = documentText({ engagement_map }, COOKIE_RECORD);
   assertStringIncludes(text, "Separately,");
+  // BATCH a77240e3 (2026-09-12, LIA5-03, ChatGPT + Claude joint review) —
+  // this branch was the one of four missing the Art. 5(3)/PECR reg. 6
+  // pinpoint the exemption_claimed branch already carried (doc 250 B1);
+  // updated to the now-pinpointed text.
   assertStringIncludes(
     text,
-    "requires a separate consent or exemption under the ePrivacy Directive / PECR 2003",
+    "requires a separate consent or exemption under Article 5(3) of the ePrivacy Directive",
   );
+  assertStringIncludes(text, "regulation 6 of the Privacy and Electronic Communications");
   assertStringIncludes(text, "does not affect, and is not affected by, the Article 6(1)(f) determination above");
 });
 

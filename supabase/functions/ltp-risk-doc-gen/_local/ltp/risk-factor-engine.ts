@@ -893,17 +893,31 @@ function movementMark(p: Pathway): string {
 }
 
 /** The safeguard-credited cell: credited safeguard(s) with status, or the
- * honest none line. */
+ * honest none line.
+ *
+ * BATCH a77240e3 (2026-09-12, RISK5-01, ChatGPT + Claude joint review) —
+ * this used to filter to ONLY the single best-status safeguard, so a risk
+ * with (say) an "Implemented and tested" blocklist AND a separately mapped
+ * "Planned, not yet implemented" safeguard printed just the former, silently
+ * dropping the latter from this cell (Appendix D's register does not have
+ * this bug: it already joins every linked safeguard). Every linked safeguard
+ * is now grouped by its own status and rendered, ranked highest status
+ * first — no safeguard the record maps to this risk is dropped. */
 function safeguardCreditedCell(p: Pathway): string {
+  if (!p.safeguards.length) return "None established";
   const byRank = [...p.safeguards].sort((a, b) =>
     (SAFEGUARD_STATUS_RANK[s(b.safeguard_status)] ?? 0) - (SAFEGUARD_STATUS_RANK[s(a.safeguard_status)] ?? 0)
   );
-  const best = byRank.filter((g) => s(g.safeguard_status) === (p.bestStatus ?? ""));
-  const picked = best.length ? best : byRank;
-  if (!picked.length) return "None established";
-  const names = picked.map((g) => firstSentence(s(g.safeguard)).replace(/\.$/, ""));
-  const status = p.bestStatus ? p.bestStatus.toLowerCase() : "recorded";
-  return `${names.join("; ")} (${status})`;
+  const order: string[] = [];
+  const byStatus = new Map<string, string[]>();
+  for (const g of byRank) {
+    const status = s(g.safeguard_status) || "recorded";
+    if (!byStatus.has(status)) { byStatus.set(status, []); order.push(status); }
+    byStatus.get(status)!.push(firstSentence(s(g.safeguard)).replace(/\.$/, ""));
+  }
+  return order
+    .map((status) => `${byStatus.get(status)!.join("; ")} (${status.toLowerCase()})`)
+    .join("; ");
 }
 
 /** The ledger — one row per identified risk, ranked by pre-safeguard level.

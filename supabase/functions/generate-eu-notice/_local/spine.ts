@@ -100,9 +100,12 @@ export const EU_SUPERVISORY_AUTHORITIES: ReadonlyArray<readonly [string, string,
   ["norway", "Datatilsynet (Norway)", "https://www.datatilsynet.no"],
 ];
 
-const EEA_RE =
+// Exported for validate.ts's establishment cross-consistency check
+// (BATCH a77240e3, EUN5-01) — keep in sync with the branching below, which
+// is the only other consumer of these two patterns.
+export const EEA_RE =
   /\b(eea|eu|austria|belgium|bulgaria|croatia|cyprus|czech|denmark|estonia|finland|france|germany|greece|hungary|ireland|italy|latvia|lithuania|luxembourg|malta|netherlands|poland|portugal|romania|slovakia|slovenia|spain|sweden|iceland|liechtenstein|norway)\b/;
-const UK_RE = /\b(uk|united kingdom|england|scotland|wales|northern ireland)\b/;
+export const UK_RE = /\b(uk|united kingdom|england|scotland|wales|northern ireland)\b/;
 
 const p = (html: string) => `<p>${html}</p>`;
 const ul = (items: string[]) => `<ul>${items.map((i) => `<li>${i}</li>`).join("")}</ul>`;
@@ -208,6 +211,16 @@ export function buildGdprSpine(ctx: SpineCtx): SpineResult {
   // decision, so no Art. 22 sentence, no high-impact row, no Art. 22 right.
   const automatedHumanReview = automatedToken === "human_review";
   const automatedDetail = fmt("automated_decisions_detail").trim();
+  // BATCH a77240e3 (2026-09-12, EUN5-02, ChatGPT + Claude joint review) — the
+  // "yes" branch below used to assert the Art. 22 lead sentence unconditionally
+  // whenever automated_decisions === "yes", without ever checking whether the
+  // company's own detail text says the opposite. A record answering "yes" but
+  // describing "No legal or equivalently significant effects arise…" printed
+  // both the flat assertion and its own contradiction two paragraphs apart —
+  // a customer-visible, grader-confirmed defect. Narrow, conservative lexicon
+  // (matches the LIA gate's convention: only an unmistakable negation fires).
+  const AUTOMATED_EFFECTS_NEGATION_RE = /\bno\s+legal\b[\s\S]{0,60}?\bsignificant\s+effects?\b/i;
+  const automatedYesContradicted = automatedYes && AUTOMATED_EFFECTS_NEGATION_RE.test(automatedDetail);
 
   const establishment = fmt("establishment_jurisdiction");
   const estLower = establishment.toLowerCase();
@@ -440,8 +453,16 @@ export function buildGdprSpine(ctx: SpineCtx): SpineResult {
     }
     if (automatedYes || automatedUnsure) {
       parts.push(`<h3>Automated decision-making with legal or similarly significant effects</h3>`);
-      if (automatedUnsure) {
+      if (automatedUnsure || automatedYesContradicted) {
         parts.push(p(`${fill("confirm whether we make decisions based solely on automated processing that produce legal effects or similarly significantly affect individuals; if so, complete this section, and if not, state that no such decisions are made")}.`));
+        // BATCH a77240e3 (EUN5-02) — routes the "yes but detail says no
+        // effects" record through the same confirm-first prompt as "unsure",
+        // rather than asserting the Art. 22 lead sentence the record's own
+        // detail contradicts. Surfaces the actual conflicting text so the
+        // reason for the prompt is not a mystery.
+        if (automatedYesContradicted) {
+          parts.push(p(`The "automated decisions" answer on this record is "Yes", but the recorded detail states: <strong>${esc(trimStop(automatedDetail))}</strong> — which appears to say the opposite. Confirm which is correct before completing or removing this section.`));
+        }
       } else {
         parts.push(p(`We make decisions based solely on automated processing, including profiling, that produce legal effects concerning you or similarly significantly affect you, within the meaning of ${esc(admLaw)}.`));
         // The "Meaningful information …" lead renders only over supplied

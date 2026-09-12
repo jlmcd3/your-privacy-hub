@@ -587,9 +587,27 @@ function buildThreshold(intake: I, spec: StateSpec): ThresholdAnalysis {
     citation: defRows.map((r) => r.citation).join("; "),
     standard: defRows.map((r) => r.verbatim_quote).join("\n\n"),
     record_fact: limbs.map((l) => `${l.limb}: ${l.record_fact}`).join(" "),
+    // BATCH a77240e3 (2026-09-12, REG5-01, ChatGPT + Claude joint review) —
+    // Texas is the ONLY state whose applicability test is disjunctive
+    // (combineLimbs, above): the definition can be `met === true` with one
+    // of the two alternative limbs recorded as NOT met (e.g. the revenue
+    // limb fails at 35% but the volume limb independently passes). The
+    // generic "every limb… is satisfied" sentence, reused unconditionally
+    // for every state, then contradicted this record's own limb table —
+    // confirmed against the rendered PDF. The registration CONCLUSION was
+    // never wrong (limb (2) alone suffices); only this sentence's claim
+    // about "every" limb was.
     application:
       met === true
-        ? `Every limb of the ${spec.state_name} definition is satisfied by the facts recorded.`
+        ? (spec.code === "US-TX"
+          ? (() => {
+            const [, revenue, volume] = limbs;
+            const metLimbs = [revenue, volume].filter((l) => l.met === true).map((l) => l.limb);
+            return `The ${spec.state_name} definition is satisfied: the collection, processing or transfer limb is met, and Texas's applicability test is disjunctive — only one of its two alternative limbs need be met. Here, ${
+              metLimbs.length === 2 ? "both alternative limbs are met" : `${metLimbs[0]} is met`
+            }; a limb that is not independently met does not defeat the definition under this disjunctive test.`;
+          })()
+          : `Every limb of the ${spec.state_name} definition is satisfied by the facts recorded.`)
         : met === false
         // DOC 256 (2026-09-11, batch e2e1185b): "limb(s)" is a pluralisation
         // token, not prose; the count decides the form.

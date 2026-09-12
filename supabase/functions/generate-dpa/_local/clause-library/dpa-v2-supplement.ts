@@ -122,7 +122,19 @@ export const DPA_US_COVERED_STATE_LAWS: readonly CoveredStateLaw[] = [
     supplement: "The Processor shall provide the information and assessment cooperation the Colorado Privacy Act requires of processors. Where that law requires an opportunity to object to a new Sub-processor, the objection right in Section 5 of the DPA applies notwithstanding a less protective default." },
   { state: "Connecticut", law: "Connecticut Data Privacy Act", citation: "Conn. Gen. Stat. § 42-515 et seq.", effective: "July 1, 2023",
     supplement: "The Processor shall provide the information and assessment cooperation the Connecticut Data Privacy Act requires of processors. Where that law requires an opportunity to object to a new Sub-processor, the objection right in Section 5 of the DPA applies notwithstanding a less protective default." },
-  { state: "Delaware", law: "Delaware Personal Data Privacy Act", citation: "6 Del. C. Ch. 12D", effective: "January 1, 2025" },
+  // BATCH a77240e3 (2026-09-12, DPA5-03, ChatGPT + Claude joint review) —
+  // Delaware carried no `supplement`, unlike every other listed state, so a
+  // Delaware-only record fell through to Schedule 3's generic "Other Covered
+  // State" catch-all with zero state-specific content. The Delaware Personal
+  // Data Privacy Act's processor-obligations provision (6 Del. C. § 12D-108)
+  // is part of the same second-generation state-privacy-law template as
+  // Colorado/Connecticut/Virginia above (assistance/cooperation duties plus
+  // a sub-processor objection right); this mirrors their established
+  // supplement sentence rather than inventing new Delaware-specific text.
+  // Per ChatGPT's own caution, this states only processor-contract terms —
+  // no controller-only duties (assessments, universal opt-out, cure period).
+  { state: "Delaware", law: "Delaware Personal Data Privacy Act", citation: "6 Del. C. Ch. 12D", effective: "January 1, 2025",
+    supplement: "The Processor shall provide the information and assessment cooperation the Delaware Personal Data Privacy Act requires of processors. Where that law requires an opportunity to object to a new Sub-processor, the objection right in Section 5 of the DPA applies notwithstanding a less protective default." },
   { state: "Florida", law: "Florida Digital Bill of Rights", citation: "Fla. Stat. § 501.701 et seq.", effective: "July 1, 2024", narrowCoverage: true },
   { state: "Indiana", law: "Indiana Consumer Data Protection Act", citation: "Ind. Code § 24-15-1-1 et seq.", effective: "January 1, 2026" },
   { state: "Iowa", law: "Iowa Consumer Data Protection Act", citation: "Iowa Code Ch. 715D", effective: "January 1, 2025" },

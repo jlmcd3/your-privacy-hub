@@ -920,7 +920,14 @@ function composeProcessors(intake: Bag, gdprEngaged: boolean): string {
   parts.push(
     name
       ? stop(`The company has identified the processor as ${name}`)
-      : "The company has not named the processor.",
+      // BATCH a77240e3 (2026-09-12, IR5-04, ChatGPT + Claude joint review) —
+      // this used to state the gap and stop; every sibling gap in this
+      // document (buildSaNotificationDetermination's dataTypes/encryption
+      // asks, above) pairs the gap with an immediate follow-up sentence.
+      // The processor's own name is a precondition for applying the
+      // Art. 28(3)(f)/33(2) clocks below to it, so it gets the same
+      // treatment.
+      : "The company has not named the processor. The immediate follow-up is to confirm the processor's name and role, so the notification clock and contractual obligations described below can be applied to it.",
   );
   // D1D2B3B8-I1 — the Art. 33(2)/28(3)(f) paragraphs state GDPR duties and
   // render only where a GDPR-family jurisdiction is recorded. On other

@@ -1155,7 +1155,17 @@ export function buildFactorAuthorityMatrixTable(
     // (the trigger is not engaged) misstates an untriggered provision as
     // controlling. Untriggered, the row is supplemental provenance context
     // under the ADMT role/decision-effect provision instead.
-    if (spec.label === "ADMT training data" && !isYes(intake.admt_provider_trained_using_pi)) {
+    //
+    // BATCH a77240e3 (2026-09-12, RISK5-02, ChatGPT + Claude joint review) —
+    // the guard above keyed off `admt_provider_trained_using_pi`, a
+    // different, optional field used elsewhere for the § 7153
+    // made-available-to-another-business scenario. The actual § 7150(b)(6)
+    // trigger this row cites is `q18b_admt_training` (cppa-risk-gates.ts;
+    // the same "Yes" test risk-factor-engine.ts already runs), so a record
+    // with the training trigger truly OFF but this unrelated field left
+    // "Yes"/unanswered still printed § 7150(b)(6) as controlling — the
+    // exact defect yesterday's fix meant to close.
+    if (spec.label === "ADMT training data" && !isYes(intake.q18b_admt_training)) {
       authority = "11 CCR § 7152(a)(3)(G)";
     }
     // DOC 148 — determination cells clip long embedded quotes (see

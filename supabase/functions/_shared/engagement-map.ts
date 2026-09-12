@@ -267,8 +267,12 @@ export function buildLiaEngagementMap(
       : (eprivacyGateDetermination === "not_engaged_on_the_record" || eprivacyExemptionClaimed)
         ? "not_engaged"
         : "conditional",
+    // BATCH a77240e3 (2026-09-12, LIA5-03, ChatGPT + Claude joint review) —
+    // this was the one branch of the four still missing the Art. 5(3) /
+    // PECR reg. 6 pinpoint the exemption_claimed branch below already
+    // carries (doc 250 B1); pinning it the same way here for consistency.
     rationale: eprivacyGateDetermination === "consent_requirement_engaged"
-      ? "Any storage of or access to information on a user's device requires a separate consent or exemption under the ePrivacy Directive / PECR 2003 in addition to the LI basis."
+      ? "Any storage of or access to information on a user's device requires a separate consent or exemption under Article 5(3) of the ePrivacy Directive (Directive 2002/58/EC) (regulation 6 of the Privacy and Electronic Communications (EC Directive) Regulations 2003 in the United Kingdom) in addition to the LI basis."
       : eprivacyExemptionClaimed
         // DOC 250 B1 (CEO-ratified bytes, 2026-09-10): pinpointed to Art. 5(3)
         // / PECR reg 6; the subject-to clause retired with the ratification.

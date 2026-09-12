@@ -125,14 +125,24 @@ function nestwaveFixture(): Bag {
 }
 
 Deno.test("batch c4d0b8a0 — Risk: the ADMT training-data row cites § 7150(b)(6) only when the training trigger is engaged", () => {
+  // BATCH a77240e3 (2026-09-12, RISK5-02, ChatGPT + Claude joint review) —
+  // this test originally toggled `admt_provider_trained_using_pi`, a
+  // different, optional field used elsewhere for the § 7153
+  // made-available-to-another-business scenario. It happened to pass
+  // because the code ALSO keyed off that wrong field — the exact bug
+  // ChatGPT's review caught. The real § 7150(b)(6) trigger this row cites
+  // is `q18b_admt_training` (cppa-risk-gates.ts; the same "Yes" test
+  // risk-factor-engine.ts already runs); the fixture's own
+  // `admt_provider_trained_using_pi: "No"` is left untouched and irrelevant
+  // to this row now.
   const base = nestwaveFixture();
-  const notTrained = { ...base, admt_provider_trained_using_pi: "No" };
+  const notTrained = { ...base, q18b_admt_training: "No" };
   const report1: Bag = {};
   const engine1 = runRiskFactorEngine(notTrained, report1, "2026-09-12");
   const table1 = buildFactorAuthorityMatrixTable(report1, notTrained, engine1, null);
   const row1 = table1?.rows.find((r) => r[0] === "ADMT training data");
   if (row1) assertEquals(row1[2], "11 CCR § 7152(a)(3)(G)");
-  const trained = { ...base, admt_provider_trained_using_pi: "Yes" };
+  const trained = { ...base, q18b_admt_training: "Yes" };
   const report2: Bag = {};
   const engine2 = runRiskFactorEngine(trained, report2, "2026-09-12");
   const table2 = buildFactorAuthorityMatrixTable(report2, trained, engine2, null);

@@ -1006,11 +1006,33 @@ export function buildRiskCalibrationFinding(intake: unknown): Finding {
     standard: a.verbatim,
     record_fact:
       `Nature: ${f.nature} Scope: ${f.scope} Context: ${f.context} Purposes: ${f.purposes} Data categories: ${f.dataCategories.join(", ") || "unstated"}. Technical controls: ${controls || "unstated"}.`,
+    // BATCH a77240e3 (2026-09-12, GOV5-02, ChatGPT + Claude joint review) —
+    // "On this assessment's reading" is added to the front of both branches.
+    // Article 24(1) itself says only "having regard to... the risks of
+    // varying likelihood and severity"; the severity-over-frequency
+    // calibration below is this assessment's own inference from that
+    // language, not a verbatim requirement of the Article. Without the
+    // hedge, the sentence read as though Article 24(1) supplied that exact
+    // rule — worse once buildAccountabilityDetermination (below) splices
+    // this sentence's first clause into a sentence naming "Article 24(1)
+    // names" immediately beforehand.
     application: risk
-      ? `The four named factors put this controller's processing at the higher end of the risk range: the categories on the record carry a severity that survives a low likelihood, so the measures must be calibrated to severity, not to incident frequency. ${controlsStrong ? "Enforced technical controls are consistent with that calibration; what makes them appropriate rather than merely present is evidence of their effectiveness against the specific harms these categories create." : "The recorded control set is not enforced across the estate, which is a mismatch: measures that stop at policy and training are not calibrated to processing of this severity."}`
-      : `The four named factors put this controller's processing at the lower end of the risk range. Appropriateness is relative, so a lighter measure set can be appropriate here in a way it would not be for special-category or large-scale monitoring processing. ${controlsStrong ? "The recorded controls exceed what this risk profile demands, which is permissible but should not be read as a compliance surplus that offsets weaknesses elsewhere." : "The recorded control set is proportionate on its face to this profile, provided the profile itself is accurate and is re-tested when processing changes."}`,
+      ? `On this assessment's reading, the four named factors put this controller's processing at the higher end of the risk range: the categories on the record carry a severity that survives a low likelihood, so the measures must be calibrated to severity, not to incident frequency. ${controlsStrong ? "Enforced technical controls are consistent with that calibration; what makes them appropriate rather than merely present is evidence of their effectiveness against the specific harms these categories create." : "The recorded control set is not enforced across the estate, which is a mismatch: measures that stop at policy and training are not calibrated to processing of this severity."}`
+      : `On this assessment's reading, the four named factors put this controller's processing at the lower end of the risk range. Appropriateness is relative, so a lighter measure set can be appropriate here in a way it would not be for special-category or large-scale monitoring processing. ${controlsStrong ? "The recorded controls exceed what this risk profile demands, which is permissible but should not be read as a compliance surplus that offsets weaknesses elsewhere." : "The recorded control set is proportionate on its face to this profile, provided the profile itself is accurate and is re-tested when processing changes."}`,
     verdict: risk && !controlsStrong ? "not_satisfied" : "satisfied",
     status: "analysed",
+    // BATCH a77240e3 (2026-09-12, GOV5-01, ChatGPT + Claude joint review) —
+    // this branch never set information_needed, so the remediation register
+    // (which derives its Action column from that field, per
+    // deriveRemediationRegisterTable) rendered "—" for a genuine adverse
+    // finding — the same defect class DOC 162 already fixed on
+    // buildReviewAndUpdateFinding's two adverse branches, just missed here.
+    ...(risk && !controlsStrong
+      ? {
+        information_needed:
+          "Enforce technical controls (e.g. DLP/content filtering) across the estate, calibrated to the severity the recorded categories carry, rather than relying on policy and training alone.",
+      }
+      : {}),
   };
 }
 
