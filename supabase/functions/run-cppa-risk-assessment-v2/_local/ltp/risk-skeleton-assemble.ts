@@ -1149,6 +1149,15 @@ export function buildFactorAuthorityMatrixTable(
     if (persuasiveTrail && spec.label === "Regulatory trigger and applicability") {
       authority = `${authority}; persuasive (Appendix B): analogous enforcement — ${persuasiveTrail}`;
     }
+    // BATCH c4d0b8a0 (2026-09-12, Claude rubric_citation_misapplied) — §
+    // 7150(b)(6) is the training-for-significant-decisions TRIGGER; citing
+    // it as this row's authority when the Company's own answer is "No"
+    // (the trigger is not engaged) misstates an untriggered provision as
+    // controlling. Untriggered, the row is supplemental provenance context
+    // under the ADMT role/decision-effect provision instead.
+    if (spec.label === "ADMT training data" && !isYes(intake.admt_provider_trained_using_pi)) {
+      authority = "11 CCR § 7152(a)(3)(G)";
+    }
     // DOC 148 — determination cells clip long embedded quotes (see
     // clipQuotedPassages); the body keeps every quote in full.
     rowsOut.push([spec.label, clipQuotedPassages(matrixDeterminationSentence(spec.factorId, determination)), authority]);

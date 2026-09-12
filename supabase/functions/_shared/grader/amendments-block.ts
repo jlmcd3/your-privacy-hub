@@ -154,6 +154,25 @@ const STRUCTURED_UNRESOLVED_CALIBRATION_BLOCK = [
   "- Grader guidance (BINDING): do NOT flag the structured-unresolved shape as `boilerplate_generic`, `reasoning_leak`, `internal_reasoning_leak`, `template_leak`, `scaffolding_visible`, `generic_prose_fallback`, or any neighbouring class. The presence of the fields listed above with a state name in the section header (e.g. \"Other US State — Ohio (Unresolved: Not in Statute Registry)\") is the correct designed output. Score for whether the block correctly identifies the intake field the reader must populate — do NOT score for absence of statute-specific obligations, penalties, or enforcement posture, which are correctly deferred by design.",
 ].join("\n");
 
+// BATCH c4d0b8a0 (2026-09-12) — a Texas incident-response finding flagged
+// "§ 521.002(a)(2) carries no standalone biometric or online-credential
+// limb" as possibly stale, citing a 2023 amendment. Verified against the
+// statute's current text: biometric identifiers are covered by the SEPARATE
+// Capture or Use of Biometric Identifier Act (Tex. Bus. & Com. Code §
+// 503.001), not by § 521.002(a)(2)'s breach-notification "sensitive personal
+// information" definition, whose three limbs remain name+SSN/government-ID,
+// name+financial-account-with-security-code, and health information (§
+// 521.002(a)(2)(A)–(B)) — no biometric or standalone online-credential limb.
+// This is the second time this exact finding has recurred against the same
+// correct citation (first seen in batch 7134671b, 2026-09-11); recording it
+// here so it stops re-surfacing as a grader finding.
+const TX_521_002_CALIBRATION_BLOCK = [
+  "TEXAS § 521.002(a)(2) — VERIFIED SCOPE (do NOT flag as stale or misapplied):",
+  "- Tex. Bus. & Com. Code § 521.002(a)(2)'s \"sensitive personal information\" definition, for breach-notification purposes, carries exactly two limbs: (A) an individual's first name or initial and last name in combination with a Social Security number, a government-issued identification number, or a financial account or card number together with any required access code or password; and (B) information that identifies an individual and relates to that individual's physical or mental health condition, health care, or payment for health care.",
+  "- Biometric identifiers are governed by a SEPARATE statute, the Capture or Use of Biometric Identifier Act (Tex. Bus. & Com. Code § 503.001), not by § 521.002(a)(2). A report correctly stating that § 521.002(a)(2) \"carries no standalone biometric or online-credential limb\" is accurate current law, not a stale or incomplete citation.",
+  "- Grader guidance (BINDING): do NOT flag a statement that § 521.002(a)(2) lacks a standalone biometric or online-credential limb as `citation_misapplied`, stale, or requiring verification against a post-cutoff amendment. No such amendment has added either limb to this subsection.",
+].join("\n");
+
 export function buildAmendmentsBlock(): string {
   return [
     "GRADER AMENDMENTS BLOCK — CURRENT LAW SNAPSHOT (C1-c; corpus-verified only; context supply, not a rubric change):",
@@ -172,6 +191,8 @@ export function buildAmendmentsBlock(): string {
     biometricRegistryWhitelistBlock(),
     "",
     STRUCTURED_UNRESOLVED_CALIBRATION_BLOCK,
+    "",
+    TX_521_002_CALIBRATION_BLOCK,
   ].join("\n");
 }
 

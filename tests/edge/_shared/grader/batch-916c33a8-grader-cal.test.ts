@@ -39,5 +39,5 @@ Deno.test("916c33a8 GR-3 — the instrument version appends the batch tag last",
   // RE-PIN 2026-09-11 (DOC 252 §10 rulings): the rulings tag follows the batch tag.
   // RE-PIN 2026-09-11 (DOC 253, batch bcf0a706): the batch tag follows the rulings tag.
   // RE-PIN 2026-09-11 (DOC 254, ChatGPT prose review): the review tag follows the batch tag.
-  assert(GRADER_CONTEXT_VERSION.endsWith("+batch-916c33a8-cal-2026-09-10+doc252-rulings-2026-09-11+batch-bcf0a706-cal-2026-09-11+doc254-chatgpt-review-2026-09-11+batch-e2e1185b-cal-2026-09-11+doc258-q9-homepage-2026-09-11"), GRADER_CONTEXT_VERSION);
+  assert(GRADER_CONTEXT_VERSION.endsWith("+batch-916c33a8-cal-2026-09-10+doc252-rulings-2026-09-11+batch-bcf0a706-cal-2026-09-11+doc254-chatgpt-review-2026-09-11+batch-e2e1185b-cal-2026-09-11+doc258-q9-homepage-2026-09-11+batch-c4d0b8a0-cal-2026-09-12"), GRADER_CONTEXT_VERSION);
 });

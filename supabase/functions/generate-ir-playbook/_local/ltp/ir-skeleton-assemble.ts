@@ -1389,8 +1389,14 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
     const why = s(sa.why);
     if (why) bits.push(stop(noStop(firstSentences(why, 3))));
 
+    // BATCH c4d0b8a0 (2026-09-12) — this note is fixed at exactly three
+    // sentences ("engages N regimes." + "states X only." + "Y applies
+    // independently ... does not discharge the other."); capping at 2 cut
+    // the payoff sentence, leaving an unexplained caveat beside the
+    // unrelated encryption-facts sentence that follows. firstSentences
+    // stops early on shorter text, so a generous cap is safe.
     const parallel = s(sa.parallel_duty_note);
-    if (parallel) settleBits.push(stop(noStop(firstSentences(parallel, 2))));
+    if (parallel) settleBits.push(stop(noStop(firstSentences(parallel, 3))));
     const needed = s(sa.information_needed);
     if (needed) settleBits.push(stop(`What would settle it is ${noStop(lowerEnumLabel(needed))}`));
     const dsVerdict = s(ds.verdict);

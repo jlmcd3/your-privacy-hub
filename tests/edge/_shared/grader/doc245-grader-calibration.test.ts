@@ -45,7 +45,7 @@ Deno.test("doc245 — GRADER_CONTEXT_VERSION keeps its prefix and appends the ba
   // RE-PIN 2026-09-11 (DOC 252 §10 rulings): "+doc252-rulings-2026-09-11".
   // RE-PIN 2026-09-11 (DOC 253, batch bcf0a706): "+batch-bcf0a706-cal-2026-09-11".
   // RE-PIN 2026-09-11 (DOC 254, ChatGPT prose review): "+doc254-chatgpt-review-2026-09-11".
-  assert(GRADER_CONTEXT_VERSION.endsWith("+doc252-rulings-2026-09-11+batch-bcf0a706-cal-2026-09-11+doc254-chatgpt-review-2026-09-11+batch-e2e1185b-cal-2026-09-11+doc258-q9-homepage-2026-09-11"), GRADER_CONTEXT_VERSION);
+  assert(GRADER_CONTEXT_VERSION.endsWith("+doc252-rulings-2026-09-11+batch-bcf0a706-cal-2026-09-11+doc254-chatgpt-review-2026-09-11+batch-e2e1185b-cal-2026-09-11+doc258-q9-homepage-2026-09-11+batch-c4d0b8a0-cal-2026-09-12"), GRADER_CONTEXT_VERSION);
   assert(
     GRADER_CONTEXT_VERSION.indexOf("+lia-v3-hooks-grader-2026-09-08") < GRADER_CONTEXT_VERSION.indexOf("+batch-e74fdbfd-cal-2026-09-09") &&
       GRADER_CONTEXT_VERSION.indexOf("+batch-e74fdbfd-cal-2026-09-09") < GRADER_CONTEXT_VERSION.indexOf("+doc250-eprivacy-overlay-2026-09-10") &&

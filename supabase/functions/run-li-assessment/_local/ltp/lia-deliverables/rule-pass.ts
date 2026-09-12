@@ -103,6 +103,7 @@ export function applyLiaRules(
       risks: {},
     };
 
+    let necessityConditionOpen = false;
     const result = applyRules([...rules], states, current, LIA_RULE_CONTEXT);
 
     if (result.invariant_violations.length > 0) {
@@ -182,6 +183,14 @@ export function applyLiaRules(
         provision: app.authority_citation,
         enables: element ? `the ${element} test` : "the assessment",
       });
+      // BATCH c4d0b8a0 (2026-09-12, GPT rubric_unsupported_business_claim,
+      // high) — a require_condition rule bearing on necessity is an OPEN
+      // necessity question by construction (its own text asks the company
+      // to resolve it); the fixed "legitimate_interests_available" sentence
+      // elsewhere claims the less-intrusive-means comparison "is documented"
+      // regardless, so the two directly contradicted each other on the same
+      // page. Recorded here for the patch below.
+      if (element === "necessity") necessityConditionOpen = true;
     }
 
     // ── 4. override_outcome / B3-9 outcome degradation ──────────────────
@@ -228,6 +237,26 @@ export function applyLiaRules(
         if (uncertainCap) {
           outcomeSource = { outcome: "undetermined_on_the_record", reason_sentence: uncertainCap.reason_sentence };
         }
+      }
+    }
+
+    // BATCH c4d0b8a0 — patch the "documented" claim BEFORE the cap_verdict
+    // block below, so a later override (if any) builds on the corrected
+    // text via the same existingOverride ?? report.lia_determination read.
+    if (necessityConditionOpen && current.outcome === "legitimate_interests_available") {
+      const priorDet = (mutated.determination_override ?? bag(report.lia_determination)) as unknown as LiaDetermination;
+      const priorWhy = s(priorDet.why);
+      const DOCUMENTED_CLAIM = "the comparison against less intrusive means is documented, and";
+      if (priorWhy.includes(DOCUMENTED_CLAIM)) {
+        mutated.determination_override = {
+          ...priorDet,
+          outcome: priorDet.outcome || current.outcome,
+          why: priorWhy.replace(
+            DOCUMENTED_CLAIM,
+            "whether the purpose could be achieved with less intrusive means remains an open record-completion item (see the necessity condition below), and",
+          ),
+          status: priorDet.status || "analysed",
+        };
       }
     }
 

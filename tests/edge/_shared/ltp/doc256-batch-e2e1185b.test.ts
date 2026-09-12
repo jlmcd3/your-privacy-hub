@@ -64,7 +64,7 @@ Deno.test("doc256 — both grader payload builders flatten a table paragraph int
 });
 
 Deno.test("doc256 — the grader instrument carries the batch e2e1185b tag", () => {
-  assert(GRADER_CONTEXT_VERSION.endsWith("+batch-e2e1185b-cal-2026-09-11+doc258-q9-homepage-2026-09-11"), GRADER_CONTEXT_VERSION);
+  assert(GRADER_CONTEXT_VERSION.endsWith("+batch-e2e1185b-cal-2026-09-11+doc258-q9-homepage-2026-09-11+batch-c4d0b8a0-cal-2026-09-12"), GRADER_CONTEXT_VERSION);
 });
 
 // ── registration: the limb sentence pluralises by count ────────────────────
