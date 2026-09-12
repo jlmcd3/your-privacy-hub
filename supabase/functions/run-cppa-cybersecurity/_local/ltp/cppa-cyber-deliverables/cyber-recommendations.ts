@@ -49,7 +49,15 @@ export type GapClass =
   | "not_implemented" // maturity maps to a not-implemented verdict
   | "partially_implemented" // maturity maps to a partially-implemented verdict
   | "evidence_insufficient" // maturity says implemented, but Op. B's evidence_sufficiency says insufficient/unknown for this SAME component
-  | "no_gap"; // implemented AND evidence sufficient — nothing to recommend
+  // BATCH c4d0b8a0 (2026-09-12, CYBER-07, ChatGPT + Claude joint review) —
+  // an otherwise-satisfied, evidence-sufficient component whose OWN
+  // record_fact names a completion date already past the report date
+  // (e.g. "migration will complete by Q4 2025" in a report dated
+  // 2026-09-12). Distinct from partially_implemented: the maturity
+  // selection itself is "implemented", so this never fires from the
+  // maturity dropdown — only from the pastDatedCommitments() scan below.
+  | "stale_commitment"
+  | "no_gap"; // implemented, evidence sufficient, no stale dated commitment — nothing to recommend
 
 export const GAP_CLASSES: readonly GapClass[] = [
   "no_record",
@@ -57,6 +65,7 @@ export const GAP_CLASSES: readonly GapClass[] = [
   "not_implemented",
   "partially_implemented",
   "evidence_insufficient",
+  "stale_commitment",
   "no_gap",
 ];
 
@@ -129,6 +138,15 @@ export const CYBER_RECOMMENDATION_LIBRARY: readonly RecommendationSlot[] = [
     template: "A finding on this component would rest primarily on management assertion; retain a testable artifact (a log, a configuration export, an audit letter) rather than a description alone." },
   { key: { gapClass: "evidence_insufficient", variant: "fact_anchored" }, ratified: true,
     template: "The description ({fact}) is not itself a testable artifact; retain the underlying evidence (a log, a configuration export, an audit letter) so the position can be tested rather than asserted." },
+
+  // BATCH c4d0b8a0 (2026-09-12, CYBER-07) — fact_anchored is the only
+  // variant reachable at runtime (a stale commitment can only be
+  // detected from record_fact text); fact_absent is carried solely to
+  // satisfy the library's own closed-and-exhaustive completeness test.
+  { key: { gapClass: "stale_commitment", variant: "fact_anchored" }, ratified: true,
+    template: "The recorded position ({fact}) names a completion date that has already passed; confirm whether the work is complete and update the maturity selection and the record accordingly." },
+  { key: { gapClass: "stale_commitment", variant: "fact_absent" }, ratified: true,
+    template: "A previously stated completion date has passed without a recorded update; confirm the component's current status and update the record accordingly." },
 
   { key: { gapClass: "no_gap", variant: "none" }, ratified: true,
     template: "No remediation identified for this component." },
@@ -309,6 +327,7 @@ const PRIORITY_BY_GAP_CLASS: Readonly<Record<GapClass, PriorityTier>> = {
   not_implemented: "Immediate",
   evidence_insufficient: "Within 90 days",
   partially_implemented: "Within 6 months",
+  stale_commitment: "Immediate",
   no_gap: "Monitor",
 };
 
@@ -365,8 +384,21 @@ export function buildCyberComponentRecommendations(
   const withGaps = coverage
     .map((c) => {
       const ev = evidenceBySlug.get(c.slug);
-      const gapClass = resolveGapClass(c, ev);
-      if (gapClass === "no_gap") return null;
+      let gapClass = resolveGapClass(c, ev);
+      if (gapClass === "no_gap") {
+        // BATCH c4d0b8a0 (2026-09-12, CYBER-07, ChatGPT + Claude joint
+        // review) — the doc 259A stale-date bump below only ever ran on
+        // components that already had SOME gap; an already-"Implemented"
+        // component with sufficient evidence short-circuited to no_gap at
+        // resolveGapClass and never reached it, so a stale future-tense
+        // commitment recorded on an ALREADY-SATISFIED component (e.g. "MFA
+        // migration will complete by Q4 2025" in a report dated
+        // 2026-09-12) produced no action at all. Reclassify here instead
+        // of excluding: resolveGapClass itself stays untouched (its own
+        // tests are unaffected).
+        if (pastDatedCommitments(s(c.record_fact), new Date()).length === 0) return null;
+        gapClass = "stale_commitment";
+      }
       const variant = resolveVariant(gapClass, c);
       const key: RecommendationKey = { gapClass, variant };
       return {

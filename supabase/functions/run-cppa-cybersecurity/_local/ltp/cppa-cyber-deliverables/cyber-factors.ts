@@ -305,6 +305,26 @@ export function buildRecordSufficiency(intake: Bag, d: CyberDeliverables): Recor
       followUps.push("record what the prior audit covered, which Section 1 identifies as a record-completion item");
     }
   }
+  {
+    // BATCH c4d0b8a0 (2026-09-12, CYBER-02, ChatGPT + Claude joint review) —
+    // this sentence and buildRecordCompletionExtras below (Section 6's
+    // action register) each computed the notification-material
+    // record-completion ask independently. A record whose ONLY
+    // record-completion gap was missing notification material printed
+    // "No record-completion follow-up is identified" here while Section 6
+    // still listed the action. Same trigger condition as the "Notification
+    // record" / "Notification material for the audit report" items in
+    // buildRecordCompletionExtras, so the two surfaces cannot disagree on
+    // this item again.
+    const incidentCount = profileStr(intake, "incidents_12mo");
+    const hasIncidents = !!incidentCount && !/^none$/i.test(incidentCount);
+    const notif = profileStr(intake, "incident_notifications");
+    if (hasIncidents && (!notif || notif === "Unsure")) {
+      followUps.push("record whether the reported incident required notification to affected consumers or a California agency, which Section 6 identifies as a record-completion item");
+    } else if (hasIncidents && notif !== "No notification was required") {
+      followUps.push("prepare the notification material for the audit report, which Section 6 identifies as a record-completion item");
+    }
+  }
   const follow_up = followUps.length
     ? `To improve the record: ${asProse(followUps)}.`
     : "No record-completion follow-up is identified.";

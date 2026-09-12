@@ -38,7 +38,8 @@ Deno.test("CYBER_RECOMMENDATION_LIBRARY — exhaustive: every gap class has its 
   }
   const actual = new Set(CYBER_RECOMMENDATION_LIBRARY.map((s) => keyToString(s.key)));
   assertEquals(actual, expected);
-  assertEquals(CYBER_RECOMMENDATION_LIBRARY.length, 11); // 5 classes x 2 variants + 1 no_gap
+  // BATCH c4d0b8a0 (2026-09-12, CYBER-07) added "stale_commitment".
+  assertEquals(CYBER_RECOMMENDATION_LIBRARY.length, 13); // 6 classes x 2 variants + 1 no_gap
 });
 
 // C2 (2026-08-26) — deliberate re-point of the PN-C3 gate pin: the designed
@@ -239,8 +240,21 @@ Deno.test("buildCyberNextSteps — blank owner falls back to a named-in-intake p
 });
 
 Deno.test("buildCyberNextSteps — fewer than 3 gaps yields fewer than 3 steps, never padded", () => {
-  const { coverage, evidence } = buildFor("cyber-nist-mid-tuning"); // 2 gaps per the earlier probe
+  // BATCH c4d0b8a0 (2026-09-12, CYBER-07) — this used to lean on the shared
+  // "cyber-nist-mid-tuning" golden fixture's incidental gap count (2, per
+  // the prior probe). That fixture's own c6_vuln_mgmt note ("pending
+  // decommission 2026-08-15") is now correctly caught as a third,
+  // previously-invisible stale-commitment gap by the CYBER-07 fix — the
+  // fixture doing its job, not a regression — which makes it the wrong data
+  // source for THIS test's actual claim (no padding below 3). A
+  // purpose-built 2-gap input replaces it.
+  const coverage = [
+    coverageRow({ slug: "cA", component_number: 1, verdict: "not_satisfied" }),
+    coverageRow({ slug: "cB", component_number: 2, verdict: "partially_satisfied", record_fact: "Partially implemented." }),
+  ];
+  const evidence = [evidenceRow({ slug: "cA" }), evidenceRow({ slug: "cB" })];
   const recs = buildCyberComponentRecommendations(coverage, evidence);
+  assertEquals(recs.length, 2);
   const steps = buildCyberNextSteps(recs, "Owner");
   assertEquals(steps.length, recs.length);
   assert(steps.length < 3, "expected this fixture to have fewer than 3 gaps");
