@@ -220,7 +220,14 @@ export function supplementarySections(opts: SupplementOpts): DpaClauseSection[] 
 
   {
     const bodies = [
-      `(Sensitive Data.) "Sensitive Data" means Personal Data subject to heightened protection under Applicable Data Protection Law, including special categories of personal data where the GDPR or UK GDPR applies and sensitive data or sensitive personal information where U.S. state law applies. The Processor shall process Sensitive Data only on the Controller's documented instructions and subject to safeguards appropriate to the sensitivity of the data and the requirements of Applicable Data Protection Law.`,
+      // BATCH d573cc4f (2026-09-12, DPA6-02, ChatGPT + Claude joint review) —
+      // this definition named "the GDPR or UK GDPR" unconditionally, even in
+      // us-state mode where no GDPR-family framework is in scope (the
+      // neighboring "Applicable Data Protection Law" clause above already
+      // gates its own GDPR-specific text on opts.gdprCore; this clause named
+      // the framework unconditionally in the same file). The US-law half of
+      // the definition is unaffected either way.
+      `(Sensitive Data.) "Sensitive Data" means Personal Data subject to heightened protection under Applicable Data Protection Law, including ${opts.gdprCore ? "special categories of personal data where the GDPR or UK GDPR applies and " : ""}sensitive data or sensitive personal information where U.S. state law applies. The Processor shall process Sensitive Data only on the Controller's documented instructions and subject to safeguards appropriate to the sensitivity of the data and the requirements of Applicable Data Protection Law.`,
       `(Required authorisation.) The Controller remains responsible for establishing any consent, authorisation or other lawful basis required for the processing it instructs, unless Applicable Data Protection Law independently assigns that obligation to the Processor.`,
       childrens
         ? `(Children and teenagers.) The record identifies Personal Data concerning children or teenagers. Where such data is subject to heightened statutory protection, the Processor shall provide the reasonable assistance necessary for the Controller to implement applicable consent, opt-in, opt-out, deletion or age-related requirements within the Services.`

@@ -427,14 +427,42 @@ export const STATE_WALK_GATES: Record<string, StateWalkGates> = {
   "Florida": {
     breach_definition:
       "\"breach of security\" means unauthorized access of data in electronic form containing personal information (Fla. Stat. § 501.171(1)(a)) — an access standard; good-faith access by an employee or agent is excluded where the information is not used for an unrelated purpose or subject to further unauthorized use",
+    // BATCH d573cc4f (2026-09-12, IR6-05, ChatGPT + Claude joint review) —
+    // these five intake types used to share ONE combined limb whose text
+    // was the entire disjunctive statutory list; the render (below, "the
+    // following fall within the statute's covered elements") then appended
+    // that full list regardless of which of the five were actually
+    // recorded, so a record naming only Financial/Location data still
+    // presented SSN, government-ID, medical, insurance and biometric
+    // language as matched facts. Split into five limbs — same citation,
+    // same verbatim statutory phrases, just correctly attributed — so the
+    // existing per-limb matching below (already proven on New York's
+    // equivalent per-type structure) only names the type(s) actually on
+    // the record.
     element_limbs: [
       {
-        intake_types: [
-          "Government IDs / SSN", "Financial / payment data", "Health / medical records",
-          "Biometric data", "Location data",
-        ],
-        limb:
-          "a social security number; a government-issued identification number; a financial account or card number together with any required security code; medical history or treatment information; a health insurance policy number; biometric data; or geolocation information (§ 501.171(1)(g)1.a)",
+        intake_types: ["Government IDs / SSN"],
+        limb: "a social security number; or a government-issued identification number (§ 501.171(1)(g)1.a)",
+        requires_name: true,
+      },
+      {
+        intake_types: ["Financial / payment data"],
+        limb: "a financial account or card number together with any required security code (§ 501.171(1)(g)1.a)",
+        requires_name: true,
+      },
+      {
+        intake_types: ["Health / medical records"],
+        limb: "medical history or treatment information; or a health insurance policy number (§ 501.171(1)(g)1.a)",
+        requires_name: true,
+      },
+      {
+        intake_types: ["Biometric data"],
+        limb: "biometric data (§ 501.171(1)(g)1.a)",
+        requires_name: true,
+      },
+      {
+        intake_types: ["Location data"],
+        limb: "geolocation information (§ 501.171(1)(g)1.a)",
         requires_name: true,
       },
       {

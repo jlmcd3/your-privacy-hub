@@ -49,7 +49,7 @@ import {
 } from "../../../_shared/prose/skeleton-render.ts";
 import { repairRegister } from "../../../_shared/ltp/register-repair.ts";
 import { firstSentence, firstSentences } from "../../../_shared/ltp/dpia-skeleton-assemble.ts";
-import { buildIrPlaybookDeliverables, normalizeBreachNoticeContracts, normalizeResponseTeamRoster, processorNameFromContracts, resolveProcessorName } from "./ir-playbook-deliverables/build.ts";
+import { buildIrPlaybookDeliverables, normalizeBreachNoticeContracts, normalizeResponseTeamRoster, processorNameFromContracts, resolveProcessorName, leadAuthorityNote } from "./ir-playbook-deliverables/build.ts";
 // IR-F tranche 2 — the verified per-state walk gates (CA/TX/NY this tranche).
 import { STATE_WALK_GATES, isUsStateJurisdiction } from "./ir-playbook-deliverables/us-state-duties.ts";
 // DOC 141 (2026-09-02) — the same jurisdiction list the regime derivation
@@ -257,9 +257,21 @@ function deriveExternalSupportTable(intake: Bag): RenderedTable | null {
 // build.ts) rather than leaving the cell to read as "no duty exists."
 /** Batch b83ea3c4 (2026-09-05) — the cell for a recorded jurisdiction that
  * produced no duty row. A scope statement, not a determination: the
- * playbook's statutes do not reach it, so nothing is asserted either way. */
+ * playbook's statutes do not reach it, so nothing is asserted either way.
+ *
+ * BATCH d573cc4f (2026-09-12, IR6-01, ChatGPT + Claude joint review) — the
+ * original wording ("no notification statute... attaches to this
+ * jurisdiction") is not actually the "no law applies" claim it can read as
+ * at a glance (it already says "this playbook covers"), but it is dense
+ * enough to misparse that way — and for a jurisdiction like Australia,
+ * which the company affirmatively selected and which DOES have a
+ * notification scheme this product simply hasn't built (the NDB scheme,
+ * Privacy Act 1988 Part IIIC), a passive "remains for separate advice"
+ * under-states the urgency. Reworded to lead with product scope and end
+ * with a clear imperative, without inventing a clock or asserting a duty
+ * this product hasn't analysed either way. */
 export const UNCOVERED_JURISDICTION_NOTE =
-  "No notification statute this playbook covers attaches to this jurisdiction; no clock is stated for it and its position remains for separate advice.";
+  "This product's coverage does not extend to this jurisdiction: no notification statute here has been analysed, and no clock is stated for it. Do not treat that as an assurance that no notification duty exists — obtain separate advice for this jurisdiction before proceeding.";
 
 /**
  * Batch b83ea3c4 (2026-09-05) — the recorded jurisdictions the document would
@@ -1395,6 +1407,19 @@ function composeNotificationAnalysis(report: Bag, intake: Bag): string {
 
     const why = s(sa.why);
     if (why) bits.push(stop(noStop(firstSentences(why, 3))));
+
+    // BATCH d573cc4f (2026-09-12, IR6-02, ChatGPT + Claude joint review) —
+    // leadAuthorityNote() (naming the recorded EU Member States and the
+    // Art. 56(1) lead-authority rule) is fully computed and appended onto
+    // `sa.application` in build.ts, but this render function never reads
+    // `sa.application` — only `sa.why` — so for a multi-state EU record the
+    // note was structurally unreachable in the customer document, the same
+    // "computed but never rendered" defect class the Art. 34 (`ds`) side
+    // already had fixed (see the E8973164 comment on `dsApplication` below).
+    // Calling the same pure function again here (rather than trying to
+    // parse it back out of `sa.application`) guarantees byte-identical text.
+    const leadAuthority = noStop(leadAuthorityNote(s(sa.regime) as never, arr(intake.jurisdictions)).trim());
+    if (leadAuthority) bits.push(stop(leadAuthority));
 
     // BATCH c4d0b8a0 (2026-09-12) — this note is fixed at exactly three
     // sentences ("engages N regimes." + "states X only." + "Y applies

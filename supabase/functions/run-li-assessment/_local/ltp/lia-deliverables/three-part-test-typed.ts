@@ -602,9 +602,21 @@ export function buildThreePartTestTyped(report: Bag, intake: Bag): LiaTypedStage
   // ── information_needed (roster-shaped; the guard validates fields). ────
   const information_needed: Bag[] = [];
   if (pv === "uncertain") {
+    // BATCH d573cc4f (2026-09-12, LIA6-02, ChatGPT + Claude joint review) —
+    // this generic ask fired whenever the purpose verdict was uncertain,
+    // regardless of WHY — so a record whose interest_legitimacy sub-tests
+    // already named the specific missing dimension (e.g. a bundled
+    // two-interest statement, per detectPurposeBundling in
+    // build-upgrade4.ts) still asked the company to generically restate an
+    // interest it had already stated in detail. u4.interest_legitimacy's
+    // own information_needed (built from its sub-tests, one of which is
+    // open whenever pv is "uncertain") already names the actual gap;
+    // the generic sentence is now only the fallback for the case where
+    // that specific text is somehow itself empty.
+    const specificAsk = s(u4.interest_legitimacy.information_needed);
     information_needed.push({
       field: "stated_purpose",
-      dimensions: "the interest pursued, stated precisely enough to be weighed",
+      dimensions: specificAsk || "the interest pursued, stated precisely enough to be weighed",
       provision: "GDPR Art. 6(1)(f)",
       enables: "the purpose test",
     });

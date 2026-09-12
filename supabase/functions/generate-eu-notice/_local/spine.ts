@@ -174,6 +174,17 @@ export function buildGdprSpine(ctx: SpineCtx): SpineResult {
   const sourceCats = fmt("data_source_categories");
   const sourceCatCodes = list("data_source_categories");
   const fromPublic = sourceCatCodes.includes("public_sources");
+  // BATCH d573cc4f (2026-09-12, EUN6-03, ChatGPT + Claude joint review) — the
+  // "other" option's enum label ("Other third-party source") rendered as if
+  // it were a meaningful Art. 14(2)(f) source disclosure, when it names
+  // nothing — a data subject learns nothing from the bare label. Consistent
+  // with this generator's no-new-intake-fields convention (doc 180), the
+  // label is swapped for a bracketed completion prompt instead of adding a
+  // free-text intake field. Pre-escaped: callers splice this directly,
+  // never re-wrapped in esc(), so the fill() markup survives intact.
+  const sourceCatsDisplay = sourceCatCodes.length
+    ? sourceCatCodes.map((c) => c === "other" ? fill("specify the other source") : esc(label("data_source_categories", c))).join(", ")
+    : "";
 
   const transfersYes = token("transfer_outside_eea") === "yes";
   const safeguardCodes = list("transfer_safeguards").filter((c) => isUK || c !== "uk_addendum");
@@ -219,7 +230,16 @@ export function buildGdprSpine(ctx: SpineCtx): SpineResult {
   // both the flat assertion and its own contradiction two paragraphs apart —
   // a customer-visible, grader-confirmed defect. Narrow, conservative lexicon
   // (matches the LIA gate's convention: only an unmistakable negation fires).
-  const AUTOMATED_EFFECTS_NEGATION_RE = /\bno\s+legal\b[\s\S]{0,60}?\bsignificant\s+effects?\b/i;
+  //
+  // BATCH d573cc4f (2026-09-12, EUN6-01, ChatGPT + Claude joint review) — the
+  // gap between "no" and "legal" was too tight (60 chars but effectively
+  // adjacent-only in practice) to catch a record phrased "No automated
+  // decision with a legal or similarly significant effect is taken without
+  // a product manager being able to intervene..." — "no" and "legal" are
+  // still in the same clause, just separated by "automated decision with
+  // a", which the old pattern's word-boundary-anchored `\bno\s+legal\b`
+  // never allowed. Widened to permit intervening words between the two.
+  const AUTOMATED_EFFECTS_NEGATION_RE = /\bno\b[\s\S]{0,80}?\blegal\b[\s\S]{0,80}?\bsignificant\s+effects?\b/i;
   const automatedYesContradicted = automatedYes && AUTOMATED_EFFECTS_NEGATION_RE.test(automatedDetail);
 
   const establishment = fmt("establishment_jurisdiction");
@@ -255,7 +275,7 @@ export function buildGdprSpine(ctx: SpineCtx): SpineResult {
   glanceRows.push(runIn("Who controls your personal data", `${controllerName}, ${controllerAddress}. Contact: ${contactEmail}.${dpoYes ? ` Data Protection Officer: ${dpoName}, ${dpoEmail}.` : ""}${repNeeded ? ` Representative in ${esc(regionShort)}: ${repLine}.` : ""}`));
   glanceRows.push(runIn("Why we use personal data", purposes ? esc(purposes) : fill("insert the purposes of processing")));
   glanceRows.push(runIn("What personal data we use", categories ? esc(categories) : fill("insert the categories of personal data processed")));
-  glanceRows.push(runIn("Where we obtain it", collectionLabel ? `${esc(collectionLabel)}${sourceCats && collectionSource !== "direct" ? ` — ${esc(sourceCats)}` : ""}` : fill("state whether personal data is obtained directly from individuals, from other sources, or both")));
+  glanceRows.push(runIn("Where we obtain it", collectionLabel ? `${esc(collectionLabel)}${sourceCats && collectionSource !== "direct" ? ` — ${sourceCatsDisplay}` : ""}` : fill("state whether personal data is obtained directly from individuals, from other sources, or both")));
   glanceRows.push(runIn("Who receives it", recipients ? esc(recipients) : fill("insert the categories of recipients")));
   glanceRows.push(runIn("International transfers", transfersYes
     ? `Yes — to ${destinations ? esc(destinations) : fill(`insert the countries or regions outside ${regionShort} to which personal data is transferred`)}${safeguards ? `, relying on ${esc(safeguards)}` : ""}. See the International Transfers section below.`
@@ -333,7 +353,7 @@ export function buildGdprSpine(ctx: SpineCtx): SpineResult {
       parts.push(p(collectionSource === "mixed"
         ? `We obtain some personal data directly from you and other personal data from sources other than you.`
         : `We obtain personal data from sources other than the individual to whom the information relates.`));
-      parts.push(p(`Those sources include: ${sourceCats ? `<strong>${esc(sourceCats)}</strong>` : fill("insert the categories of sources from which personal data is obtained")}.`));
+      parts.push(p(`Those sources include: ${sourceCats ? `<strong>${sourceCatsDisplay}</strong>` : fill("insert the categories of sources from which personal data is obtained")}.`));
       if (fromPublic) parts.push(p(`Some of this personal data is obtained from publicly accessible sources.`));
       parts.push(p(`Where personal data is obtained from a source other than you, we provide this information within a reasonable period after obtaining it and at the latest within one month; or, if the data is used to communicate with you, at the latest at the time of the first communication; or, if disclosure to another recipient is envisaged, at the latest when the data is first disclosed (Article 14(3) of ${esc(LAW)}).`));
     } else {
@@ -356,7 +376,7 @@ export function buildGdprSpine(ctx: SpineCtx): SpineResult {
       const block: string[] = [];
       block.push(`<h3>${esc(name)}</h3>`);
       block.push(runIn("Personal data used", `the relevant categories listed in Section 2 — ${fill("state which of those categories are used for this purpose")}`));
-      block.push(runIn("Source", collectionLabel ? esc(collectionLabel) + (sourceCats && collectionSource !== "direct" ? ` (${esc(sourceCats)})` : "") : fill("state where the personal data used for this purpose comes from")));
+      block.push(runIn("Source", collectionLabel ? esc(collectionLabel) + (sourceCats && collectionSource !== "direct" ? ` (${sourceCatsDisplay})` : "") : fill("state where the personal data used for this purpose comes from")));
       // One lawful basis selected → it applies to every purpose, no prompt.
       // Several → the customer states which applies here; where legitimate
       // interests is among them, the SPECIFIC interest pursued (Art. 13(1)(d))

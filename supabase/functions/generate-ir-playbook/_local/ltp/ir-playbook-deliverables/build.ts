@@ -322,7 +322,7 @@ function unintelligible(f: IncidentFacts): "yes" | "no" | "partial" | "unknown" 
  *  notification. Article 55/56 GDPR: the lead supervisory authority for the
  *  main establishment where the company is established in the Union;
  *  otherwise each Member State's authority (WP29 Guidelines WP250 rev.01). */
-function leadAuthorityNote(regime: NotificationRegime, jurisdictions: readonly string[]): string {
+export function leadAuthorityNote(regime: NotificationRegime, jurisdictions: readonly string[]): string {
   if (regime !== "eu") return "";
   const states = jurisdictions.filter((j) => EEA_JURISDICTIONS.includes(j) && j !== "EU/EEA");
   if (states.length === 0) return "";

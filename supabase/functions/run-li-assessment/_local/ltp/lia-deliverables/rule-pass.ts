@@ -136,8 +136,29 @@ export function applyLiaRules(
     // once (never per-application: several rules may target one element,
     // and `result.next.verdicts` already holds the authoritative outcome
     // of that whole contest). ──────────────────────────────────────────
+    // BATCH d573cc4f (2026-09-12, LIA6-01, ChatGPT + Claude joint review) —
+    // a recognise_interest rule (e.g. lia/rule/recognised-interest-security-
+    // fraud, keyed only on purpose_details.interest_type) recognizes that
+    // the INTEREST CATEGORY is one GDPR contemplates; it says nothing about
+    // whether the record's own statement of that interest is clearly and
+    // precisely articulated — the SEPARATE second sub-test build-upgrade4.ts's
+    // interest_legitimacy already resolves (e.g. detecting a bundled
+    // two-interest statement). Applying the rule's raise unconditionally
+    // overwrote an already-correct "undetermined" purpose verdict with
+    // "passes", while the generated Section II prose (sourced from
+    // interest_legitimacy directly, never touched by this pass) kept
+    // correctly saying "not yet determined" — a customer-visible, internally
+    // contradictory report. A recognise_interest effect on "purpose" must
+    // never raise the verdict past what interest_legitimacy itself already
+    // established for THIS record.
+    const interestLegitimacyVerdict = s(bag(report.interest_legitimacy).verdict);
+    const purposeRaiseBlocked = interestLegitimacyVerdict === "undetermined_on_the_record" ||
+      interestLegitimacyVerdict === "legitimate_interest_not_established";
     for (const [element, key] of Object.entries(TEST_KEY)) {
-      const finalVerdict = result.next.verdicts[element];
+      let finalVerdict = result.next.verdicts[element];
+      if (element === "purpose" && finalVerdict === "passes" && purposeRaiseBlocked) {
+        finalVerdict = verdicts[element];
+      }
       if (finalVerdict !== undefined && finalVerdict !== verdicts[element]) {
         bag(mutated.three_part_test[key]).verdict = finalVerdict;
       }

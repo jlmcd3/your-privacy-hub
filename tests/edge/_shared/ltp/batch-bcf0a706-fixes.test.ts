@@ -111,7 +111,11 @@ Deno.test("bcf0a706 governance — the UK transfer passage renders reader prose 
   } as never) as unknown as { application: string; citations_used: string[] };
   // Ledger F9 (CEO 2026-09-11): the omission is stated as the corpus row records it.
   assertStringIncludes(out.application, "The UK chapter is a different body of law, not the EU chapter under another name. Article 44 was omitted from the UK GDPR on 5 February 2026 by the Data (Use and Access) Act 2025, so the general principle for transfers is now Article 44A(1):");
-  assertStringIncludes(out.application, "Under Article 44A(2) that condition is met only where the transfer is approved by adequacy regulations under Article 45A, is made subject to appropriate safeguards under Article 46, or relies on a derogation for specific situations under Article 49 — Article 44A(2)(a):");
+  // BATCH d573cc4f (2026-09-12, GOV6-01): the Art. 44A(1) quote fragment now
+  // joins into the surrounding sentence with a dash instead of closing on
+  // "only if" and starting a fresh capitalized sentence — the fragment is
+  // mid-statute, not a complete command, and must not read as one.
+  assertStringIncludes(out.application, '"A controller or processor may transfer personal data to a third country or an international organisation only if" — a condition Article 44A(2) fixes as met only where the transfer is approved by adequacy regulations under Article 45A, is made subject to appropriate safeguards under Article 46, or relies on a derogation for specific situations under Article 49 — Article 44A(2)(a):');
   assert(!out.application.includes("must not be cited"), "drafting instruction must not render");
   // Ledger F6 — the recorded mechanism is named.
   assertStringIncludes(out.application, "The recorded mechanism — the UK Addendum to the EU standard contractual clauses — is a set of standard data protection clauses issued by the Information Commissioner under section 119A of the Data Protection Act 2018 (in force 21 March 2022) and falls within Article 46(2)(d) of the UK GDPR.");

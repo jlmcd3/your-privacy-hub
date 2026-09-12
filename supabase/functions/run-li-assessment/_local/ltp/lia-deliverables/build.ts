@@ -742,8 +742,11 @@ export function buildDetermination(
     outcome = "undetermined_on_the_record";
     status = "record_insufficient";
     const names = [...new Set(open)].map(factorLabel);
+    // BATCH d573cc4f (2026-09-12, LIA6-04, ChatGPT + Claude joint review) —
+    // subject-verb agreement: "1 of the elements ... are not established"
+    // when exactly one element is open.
     rawWhy =
-      `The determination is open rather than answered either way: ${names.length} of the elements the assessment turns on — ${names.join(", ")} — are not established on the information provided, and the mitigations below are the steps that would close each of them. ${conditions.verbatim}`;
+      `The determination is open rather than answered either way: ${names.length} of the elements the assessment turns on — ${names.join(", ")} — ${names.length === 1 ? "is" : "are"} not established on the information provided, and the mitigations below are the steps that would close each of them. ${conditions.verbatim}`;
     information_needed = [
       ...new Set(
         [

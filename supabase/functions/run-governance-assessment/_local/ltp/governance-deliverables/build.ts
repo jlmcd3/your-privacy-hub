@@ -1369,7 +1369,17 @@ export function buildTransferAnalysis(intake: unknown): TransferAnalysis {
       // corpus row records (Art. 44 omitted 5 February 2026 by the Data (Use
       // and Access) Act 2025, Sch. 7 para. 2(1); S.I. 2026/82) and the third
       // reads Article 44A(2) in order. The quoted rows are unchanged.
-      `The UK chapter is a different body of law, not the EU chapter under another name. Article 44 was omitted from the UK GDPR on 5 February 2026 by the Data (Use and Access) Act 2025, so the general principle for transfers is now Article 44A(1): "${ukPrinciple.verbatim}" Under Article 44A(2) that condition is met only where the transfer is approved by adequacy regulations under Article 45A, is made subject to appropriate safeguards under Article 46, or relies on a derogation for specific situations under Article 49 — Article 44A(2)(a): "${ukAdequacyRoute.verbatim}"; Article 44A(2)(b): "${ukSafeguardsRoute.verbatim}"`,
+      // BATCH d573cc4f (2026-09-12, GOV6-01, ChatGPT + Claude joint review) —
+      // Art. 44A(1) is one sentence that runs on into the paragraph (2)
+      // routes ("...only if [(a) ... or (b) ...]"); quoting only up to "only
+      // if" and then closing the sentence there reads as a complete
+      // statutory command when it is a mid-sentence fragment. No completing
+      // text for (1) exists to append (the routes are paragraph (2)'s own
+      // separately-quoted clauses), so the fix does not extend the quote —
+      // it joins the fragment into the surrounding sentence with a dash
+      // instead of a period, so nothing downstream can mistake the closing
+      // quotation mark for a sentence boundary.
+      `The UK chapter is a different body of law, not the EU chapter under another name. Article 44 was omitted from the UK GDPR on 5 February 2026 by the Data (Use and Access) Act 2025, so the general principle for transfers is now Article 44A(1): "${ukPrinciple.verbatim}" — a condition Article 44A(2) fixes as met only where the transfer is approved by adequacy regulations under Article 45A, is made subject to appropriate safeguards under Article 46, or relies on a derogation for specific situations under Article 49 — Article 44A(2)(a): "${ukAdequacyRoute.verbatim}"; Article 44A(2)(b): "${ukSafeguardsRoute.verbatim}"`,
     );
     if (f.mechanism && ADEQUACY_MECHANISMS.includes(f.mechanism)) {
       cite(ukAdequacyPower.citation);
@@ -1516,9 +1526,33 @@ export function buildTransferAnalysis(intake: unknown): TransferAnalysis {
     // rest of the document to learn what "each transfer leg" even refers
     // to. Named only when the record actually has tools to name — an
     // unnamed-tools record keeps the prior generic phrasing unchanged.
-    information_needed = recordedTools.length
-      ? `The executed instrument for each transfer leg — ${recordedTools.join(", ")} — for a UK leg, the IDTA or the Addendum as executed and the exporter's own Article 46(6) assessment; for an EU leg, the Commission clause set and its transfer impact assessment. The record names the mechanism type but not the executed document, so the leg cannot be closed as satisfied.`
-      : "The executed instrument for each transfer leg — for a UK leg, the IDTA or the Addendum as executed and the exporter's own Article 46(6) assessment; for an EU leg, the Commission clause set and its transfer impact assessment. The record names the mechanism type but not the executed document, so the leg cannot be closed as satisfied.";
+    // BATCH d573cc4f (2026-09-12, GOV6-02, ChatGPT + Claude joint review) —
+    // the intake carries only ONE transfer_mechanism field for the whole
+    // record. In a dual-regime record whose recorded mechanism belongs to
+    // just one chapter (mechanismRegime "uk" or "eu", not "both"), that
+    // chapter's leg has a NAMED mechanism (missing only the executed
+    // document) while the OTHER leg has NO mechanism recorded at all —
+    // a materially different gap. The generic ask below asked for "the
+    // executed instrument for each transfer leg" as if both legs were in
+    // the same, lesser-open state, conflating a leg that is one document
+    // away from closed with a leg that has nothing on record yet.
+    if (f.regime === "dual" && (f.mechanismRegime === "uk" || f.mechanismRegime === "eu")) {
+      const coveredLeg = f.mechanismRegime === "uk" ? "UK" : "EU";
+      const openLeg = f.mechanismRegime === "uk" ? "EU" : "UK";
+      const coveredDoc = coveredLeg === "UK"
+        ? "the IDTA or the Addendum as executed and the exporter's own Article 46(6) assessment"
+        : "the Commission clause set and its transfer impact assessment";
+      const openDoc = openLeg === "UK"
+        ? "the IDTA or the Addendum as executed and the exporter's own Article 46(6) assessment"
+        : "the Commission clause set and its transfer impact assessment";
+      information_needed = recordedTools.length
+        ? `For the ${coveredLeg} leg — ${recordedTools.join(", ")} — the record names the mechanism type but not the executed document, so ${coveredDoc} is needed to close it. For the ${openLeg} leg, no mechanism is recorded at all: adopt and execute ${openDoc} before that leg has any lawful route.`
+        : `For the ${coveredLeg} leg, the record names the mechanism type but not the executed document, so ${coveredDoc} is needed to close it. For the ${openLeg} leg, no mechanism is recorded at all: adopt and execute ${openDoc} before that leg has any lawful route.`;
+    } else {
+      information_needed = recordedTools.length
+        ? `The executed instrument for each transfer leg — ${recordedTools.join(", ")} — for a UK leg, the IDTA or the Addendum as executed and the exporter's own Article 46(6) assessment; for an EU leg, the Commission clause set and its transfer impact assessment. The record names the mechanism type but not the executed document, so the leg cannot be closed as satisfied.`
+        : "The executed instrument for each transfer leg — for a UK leg, the IDTA or the Addendum as executed and the exporter's own Article 46(6) assessment; for an EU leg, the Commission clause set and its transfer impact assessment. The record names the mechanism type but not the executed document, so the leg cannot be closed as satisfied.";
+    }
   }
 
   // D1D2B3B8-G3 (2026-08-28) — where a transfer is occurring and the leg is

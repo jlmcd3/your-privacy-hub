@@ -1225,8 +1225,17 @@ const HUMAN_INTERVENTION_AGGREGATE_RE =
 // not a measure in operation.
 const HUMAN_INTERVENTION_HEDGED_RE =
   /\b(?:may|might|could)\s+(?:still\s+)?(?:experience|face|suffer|be|remain|receive|occur)\b|\bexposure\b|\brisk(?:s)? of\b|\bworst[- ]case\b/i;
+// BATCH d573cc4f (2026-09-12, DPIA6-01, ChatGPT + Claude joint review) — the
+// three alternatives above all put the negation word BEFORE the human/review
+// actor ("without human review", "not reviewed by a person"). A record can
+// equally negate the VERB after naming the actor — "individual-level human
+// review of each personalised ranking is not performed before it is served" —
+// which slipped through undetected (the actor-noun clause matched
+// HUMAN_INTERVENTION_RE, and no existing alternative caught the trailing
+// negation), so the denial was recorded as if it were the mitigating measure
+// itself. This fourth alternative catches that ordering.
 const HUMAN_INTERVENTION_NEGATED_RE =
-  /\b(?:without|no|not|absence of|lack(?:s|ing)? of|never|nor)\s+(?:any\s+|a\s+|an\s+)?(?:meaningful\s+|individual(?:-level)?\s+|prior\s+)?(?:human|manual|person|individual)\b|\bnot\s+(?:reviewed|checked|assessed|decided|approved|confirmed|examined|verified)\s+by\b|\bcannot\s+(?:contest|challenge|appeal|obtain human intervention)\b/i;
+  /\b(?:without|no|not|absence of|lack(?:s|ing)? of|never|nor)\s+(?:any\s+|a\s+|an\s+)?(?:meaningful\s+|individual(?:-level)?\s+|prior\s+)?(?:human|manual|person|individual)\b|\bnot\s+(?:reviewed|checked|assessed|decided|approved|confirmed|examined|verified)\s+by\b|\bcannot\s+(?:contest|challenge|appeal|obtain human intervention)\b|\b(?:review|intervention|oversight|approval|sign-?off)\w*\b[\s\S]{0,60}?\bis\s+(?:not|never)\s+(?:performed|conducted|carried out|done|undertaken|provided)\b/i;
 
 export function readHumanInterventionSpan(intake: unknown): string {
   for (const field of HUMAN_INTERVENTION_FIELDS) {
@@ -2588,18 +2597,40 @@ const ASK_PROCESSOR_OBLIGATIONS =
  * repeated, an empty segment — keeps the whole answer on every row. Nothing
  * per-processor is invented.
  */
+// BATCH d573cc4f (2026-09-12, DPIA6-02, ChatGPT + Claude joint review) —
+// two real parsing bugs, both fixed here:
+// (1) the old lead extraction (`/\s*\(.*$/`) only stripped a processor
+//     label's trailing description when it came AFTER a parenthetical
+//     marker ("Nexlify Cloud (EU) -- infra..." -> "Nexlify Cloud"). A label
+//     with no parenthetical ("Braze Inc -- push notification delivery")
+//     kept its whole " -- description" suffix as part of the "lead", which
+//     then never matches anything in the obligations text (which just says
+//     "Braze Inc: ..."), so the whole segmentation silently failed and the
+//     combined text rendered under every processor's row.
+// (2) the old colon search (`body.indexOf(`${lead}:`)`) required the colon
+//     to immediately follow the bare lead, but the body text itself can
+//     carry its OWN parenthetical marker before the colon ("Nexlify Cloud
+//     (EU): processes..."), which the exact-substring search never matches.
+function processorLead(name: string): string {
+  const s = String(name ?? "");
+  const cut = s.search(/\s*\(|\s+--\s+/);
+  return (cut >= 0 ? s.slice(0, cut) : s).trim();
+}
 export function obligationsByProcessor(names: readonly string[], text: string): Map<string, string> | null {
   const body = String(text ?? "");
   if (!body || names.length < 2) return null;
-  const leads = names.map((n) => String(n ?? "").replace(/\s*\(.*$/u, "").trim());
+  const leads = names.map(processorLead);
   if (leads.some((l) => !l) || new Set(leads).size !== leads.length) return null;
-  const at = leads.map((l) => body.indexOf(`${l}:`));
+  // Tolerates an optional parenthetical marker between the lead and its own
+  // colon in the body text, e.g. "Nexlify Cloud (EU): processes...".
+  const matches = leads.map((l) => new RegExp(`${l.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*(?:\\([^)]*\\))?:`).exec(body));
+  const at = matches.map((m) => (m ? m.index : -1));
   if (at.some((p) => p < 0) || new Set(at).size !== at.length) return null;
   const order = at.map((p, i) => ({ p, i })).sort((a, b) => a.p - b.p);
   const out = new Map<string, string>();
   order.forEach(({ p, i }, k) => {
     const end = k + 1 < order.length ? order[k + 1].p : body.length;
-    const seg = body.slice(p + leads[i].length + 1, end).trim();
+    const seg = body.slice(p + matches[i]![0].length, end).trim();
     if (seg) out.set(names[i], seg);
   });
   return out.size === names.length ? out : null;
@@ -3212,13 +3243,30 @@ export function buildSection2Coverage(
     const obligationsMechanismHit = CHAPTER_V_INSTRUMENTS.find((i) => i.re.test(processorObligationsText));
     if (markerHits.length > 0 || obligationsMechanismHit) {
       const partyText = markerHits.length > 0 ? markerHits.join("; ") : "";
+      // BATCH d573cc4f (2026-09-12, DPIA6-03, ChatGPT + Claude joint review)
+      // — the marker scan and the mechanism-keyword scan are two INDEPENDENT
+      // open questions (e.g. one processor's own name carries a foreign
+      // marker while a DIFFERENT processor's obligations text separately
+      // names live SCCs). The prior version treated them as alternatives —
+      // whichever fired first won — so a record with both signals silently
+      // dropped the second one from both the finding and the ask. Both
+      // clauses now always name whichever signal(s) are actually present.
+      const openClauses: string[] = [];
+      if (markerHits.length > 0) {
+        openClauses.push(`the processor record names ${partyText} — a marker outside ${regime === "UK" ? "the United Kingdom" : "the EEA"}`);
+      }
+      if (obligationsMechanismHit) {
+        openClauses.push(`the recorded processor obligations name a ${obligationsMechanismHit.label}`);
+      }
+      const askParties: string[] = [];
+      if (markerHits.length > 0) askParties.push(partyText);
+      if (obligationsMechanismHit) askParties.push(`the recorded processor obligations naming a ${obligationsMechanismHit.label}`);
       // The {party} slot in ask_transfer_leg_unresolved's template reads
       // "…transfer arises from {party}"; a processor name fills that slot
       // grammatically (PANEL DPIA-P3), and so does this well-formed noun
-      // phrase for the obligations-text case.
-      const askParty = markerHits.length > 0
-        ? partyText
-        : `the recorded processor obligations naming a ${obligationsMechanismHit!.label}`;
+      // phrase for the obligations-text case; joined, both read naturally
+      // as a list of open sources.
+      const askParty = askParties.join(", or from ");
       transfers.push({
         origin_regime: regime,
         destination: "",
@@ -3229,9 +3277,7 @@ export function buildSection2Coverage(
         transfer_risk_assessment_required: false,
         finding:
           `No transfer flow is recorded for this processing, but ${
-            markerHits.length > 0
-              ? `the processor record names ${partyText} — a marker outside ${regime === "UK" ? "the United Kingdom" : "the EEA"}`
-              : `the recorded processor obligations name a ${obligationsMechanismHit!.label}`
+            openClauses.join("; separately, ")
           } — so whether a cross-border leg arises from that engagement is not resolved on the record, and no Chapter V determination is made until it is.`,
         citation: chapterVCite,
         status: "record_insufficient",
