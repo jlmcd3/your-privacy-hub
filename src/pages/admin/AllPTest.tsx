@@ -149,67 +149,11 @@ export default function AllPTest() {
       setPhase("generating");
 
       // ── Generation phase ────────────────────────────────────────────────
-      // Two intake sources, exactly as /admin/all-products-test:
-      //  • preset — the canonical contract-conformant data package (no model
-      //    call, so generation cannot time out). Default.
-      //  • claude — a fresh company profile per geo via the stress harness.
+      // Claude-generated intake only, exactly as /admin/all-products-test:
+      // a fresh company profile per geo via the stress harness.
       let docs: Array<{ tool: string; assessment_id: string; company_name: string }> = [];
 
-      if (intakeSource === "preset") {
-        const bases = SAMPLE_FIXTURES
-          .filter((f) => !f.paused)
-          .filter((f) => !f.variant.endsWith("-supplemental"))
-          .filter((f) => !isNonGdprFixtureForGdprOnlyProduct(f))
-          .filter((f) => selected.includes(f.tool_slug));
-        if (!bases.length) throw new Error("no pre-set datasets exist for the selected product(s)");
-
-        // INTAKE GATE — refuse the whole run rather than emit a doomed dispatch.
-        const bad = bases.map((f) => preflightFixture(f)).filter((r) => !r.ok);
-        if (bad.length) throw new Error(`preflight failed for ${bad.map((b) => b.label).join(", ")}`);
-
-        id = crypto.randomUUID();
-        sourceRef.current = "preset";
-        setBatchId(id);
-        if (count > PRESET_DATASET_COUNT) {
-          say(`Pre-set package holds ${PRESET_DATASET_COUNT} datasets per product — capping ${count} at ${PRESET_DATASET_COUNT}.`);
-        }
-        const plan = bases.map((f) => ({ base: f, datasets: pickPresetDatasets(f, count) }));
-        const totalRuns = plan.reduce((n, p) => n + p.datasets.length, 0);
-        say(`Batch ${id} started — ${totalRuns} document(s) from the pre-set data package.`);
-        await recordHistory(id);
-
-        const produced: typeof docs = [];
-        let done = 0;
-        // Products run through 4 lanes; datasets within a product stay serial,
-        // and a failing product ends only its own remaining datasets.
-        const runProduct = async (p: (typeof plan)[number]) => {
-          for (let i = 0; i < p.datasets.length; i++) {
-            if (cancelled.current) return;
-            const d = p.datasets[i];
-            try {
-              const out = await runGenerator(d, user.id, () => {});
-              produced.push({
-                tool: SLUG_TO_STRESS_TOOL[d.tool_slug],
-                assessment_id: out.sourceRowId,
-                company_name: `${d.title} [${d.variant}]`,
-              });
-              done += 1;
-              say(`✔ ${d.tool_slug} · ${d.title} [${d.variant}] generated (${done}/${totalRuns})`);
-            } catch (e) {
-              say(`✖ ${d.tool_slug} · ${d.title} [${d.variant}] — ${(e as Error).message}`);
-              if (i < p.datasets.length - 1) {
-                say(`⏭ skipping ${p.datasets.length - i - 1} remaining dataset(s) for ${d.tool_slug}`);
-              }
-              return;
-            }
-          }
-        };
-        let cursor = 0;
-        const lane = async () => { while (cursor < plan.length) await runProduct(plan[cursor++]); };
-        await Promise.all([lane(), lane(), lane(), lane()]);
-        if (cancelled.current) { say("Cancelled."); setPhase("idle"); return; }
-        docs = produced;
-      } else {
+      {
         say(`Launching ${selected.length} product(s) × ${count} document(s) on Claude-generated intake…`);
         id = await launchClaudeIntakeBatch({
           userId: user.id,
@@ -217,7 +161,6 @@ export default function AllPTest() {
           industryId,
           companiesPerGeo: count,
         });
-        sourceRef.current = "claude";
         setBatchId(id);
         say(`Batch ${id} started.`);
         await recordHistory(id);
@@ -252,6 +195,7 @@ export default function AllPTest() {
             company_name: j.company_name ?? "(unnamed)",
           }));
       }
+
 
       if (!docs.length) throw new Error("no documents were generated — nothing to review");
       say(`${docs.length} document(s) generated. Starting deep review (2 reviewers each, effort ${reviewEffort}).`);
