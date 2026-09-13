@@ -415,14 +415,37 @@ export default function AllPTest() {
         </section>
       )}
 
-      {!!log.length && (
-        <section className="rounded-lg border border-border bg-card p-4">
-          <h2 className="mb-2 text-sm font-medium text-foreground">Run log</h2>
-          <pre className="max-h-72 overflow-auto whitespace-pre-wrap font-mono text-[11px] leading-5 text-muted-foreground">
-            {log.join("\n")}
-          </pre>
-        </section>
-      )}
+      <section className="rounded-lg border border-border bg-card p-4">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-medium text-foreground">
+            Run log{batchId ? ` · batch ${batchId.slice(0, 8)}` : ""} ({log.length} line{log.length === 1 ? "" : "s"})
+          </h2>
+          {!!log.length && (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => void navigator.clipboard.writeText(log.join("\n"))}
+                className="rounded border border-border px-2 py-1 text-xs"
+              >
+                Copy log
+              </button>
+              <button
+                type="button"
+                onClick={() => downloadMarkdown(`all-ptest-log-${batchId ?? "run"}.txt`, log.join("\n"))}
+                className="rounded border border-border px-2 py-1 text-xs"
+              >
+                Download log
+              </button>
+            </div>
+          )}
+        </div>
+        <pre
+          ref={logRef}
+          className="max-h-96 overflow-auto whitespace-pre-wrap font-mono text-[11px] leading-5 text-muted-foreground"
+        >
+          {log.length ? log.join("\n") : "No run yet. Starting a run clears this log and streams progress here."}
+        </pre>
+      </section>
 
       {arbitrations.map((a) => (
         <section key={a.tool} className="rounded-lg border border-border bg-card p-4 space-y-3">
