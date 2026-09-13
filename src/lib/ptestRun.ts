@@ -458,6 +458,19 @@ export function buildPtestMarkdown(opts: {
   L.push(`- Generated: ${new Date().toISOString()}`);
   L.push("");
 
+  const { rows: scoreRows, batchMean } = buildScoreMatrix(opts.reviews, opts.arbitrations);
+  if (scoreRows.length) {
+    const n = (v: number | null) => (v === null ? "—" : v.toFixed(1));
+    L.push(`## Batch scores (batch mean ${n(batchMean)})`);
+    L.push("");
+    L.push("| Product | Documents | Claude | ChatGPT | Combined | Derived (cross-check) | Post-arbitration |");
+    L.push("| --- | --- | --- | --- | --- | --- | --- |");
+    scoreRows.forEach((r) => {
+      L.push(`| ${r.tool} | ${r.documents} | ${n(r.claude)} | ${n(r.gpt)} | ${n(r.combined)} | ${n(r.derived)} | ${n(r.arbitration)} |`);
+    });
+    L.push("");
+  }
+
   for (const arb of opts.arbitrations) {
     L.push(`## ${arb.tool.toUpperCase()} — arbitration`);
     if (arb.error) { L.push(`**Arbitration failed:** ${arb.error}`); L.push(""); continue; }
