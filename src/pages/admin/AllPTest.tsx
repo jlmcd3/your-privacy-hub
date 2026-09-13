@@ -268,6 +268,8 @@ export default function AllPTest() {
           </div>
         </div>
 
+        <p className="text-xs text-muted-foreground">{EFFORT_WARNING}</p>
+
         <div className="flex flex-wrap gap-2">
           {PRODUCTS.map((p) => {
             const on = selected.includes(p.slug);
