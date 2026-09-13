@@ -267,6 +267,13 @@
       "when": 1789329871099,
       "tag": "0037_ptest_batches_and_fix_items",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1789334521415,
+      "tag": "0038_ptest_scoring_columns",
+      "breakpoints": true
     }
   ]
 }
