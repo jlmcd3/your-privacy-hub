@@ -22,7 +22,14 @@ import {
   cancelClaudeBatch,
   type StressJobRow,
 } from "@/lib/claudeIntake";
-import type { ToolSlug } from "@/lib/sampleFixtures";
+import { SAMPLE_FIXTURES, type ToolSlug } from "@/lib/sampleFixtures";
+import { preflightFixture } from "@/lib/sampleFixturePreflight";
+import {
+  PRESET_DATASET_COUNT,
+  isNonGdprFixtureForGdprOnlyProduct,
+  pickPresetDatasets,
+} from "@/lib/sampleDataPackages";
+import { runGenerator } from "@/lib/sampleGenerators";
 import {
   enqueuePtestJobs,
   tickPtestDriver,
