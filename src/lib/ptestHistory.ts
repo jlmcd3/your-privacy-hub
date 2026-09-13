@@ -104,7 +104,7 @@ export async function setBatchStatus(batchId: string, status: string, note?: str
 export async function fetchBatches(limit = 50): Promise<PtestBatchRow[]> {
   const { data, error } = await supabase
     .from("ptest_batches")
-    .select("batch_id, created_at, industry, products, documents_per_product, review_effort, arbitration_effort, status, note")
+    .select("batch_id, created_at, industry, products, documents_per_product, review_effort, arbitration_effort, status, note, scores, batch_mean")
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw new Error(error.message);
