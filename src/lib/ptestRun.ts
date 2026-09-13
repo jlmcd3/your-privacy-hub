@@ -66,6 +66,13 @@ export interface ReviewerResult {
   overall?: string | null;
   note?: string | null;
   error?: string;
+  /** Reviewer's own six-dimension verdict (the headline score). */
+  dimension_scores?: Record<string, number> | null;
+  overall_score?: number | null;
+  /** Deterministic cross-check computed from the validated findings. */
+  derived_score?: number | null;
+  score_source?: string | null;
+  score_notes?: string | null;
 }
 
 export interface DeepReviewResult {
