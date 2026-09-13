@@ -170,6 +170,7 @@ const QualityBatch = lazy(() => import("./pages/admin/QualityBatch"));
 const FinalTest = lazy(() => import("./pages/admin/FinalTest"));
 const SOFinalTest = lazy(() => import("./pages/admin/SOFinalTest"));
 const AllProductsTest = lazy(() => import("./pages/admin/AllProductsTest"));
+const AllPTest = lazy(() => import("./pages/admin/AllPTest"));
 const QualityBatch2 = lazy(() => import("./pages/admin/QualityBatch2"));
 const QualityBatch2Review = lazy(() => import("./pages/admin/QualityBatch2Review"));
 const FunctionHealth = lazy(() => import("./pages/admin/FunctionHealth"));
@@ -765,6 +766,31 @@ const App = () => (
                   <AdminOnly fallback={<NotFound />}>
                     <Suspense fallback={<div className="p-8 text-gray-400">Loading…</div>}>
                       <AllProductsTest />
+                    </Suspense>
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            {/* ALL-PTEST — deep review + arbitration loop (no rubric grader). */}
+            <Route
+              path="/all-ptest"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <Suspense fallback={<div className="p-8 text-gray-400">Loading…</div>}>
+                      <AllPTest />
+                    </Suspense>
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/all-ptest"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <Suspense fallback={<div className="p-8 text-gray-400">Loading…</div>}>
+                      <AllPTest />
                     </Suspense>
                   </AdminOnly>
                 </ProtectedRoute>

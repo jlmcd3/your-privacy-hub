@@ -5709,6 +5709,126 @@ export type Database = {
         }
         Relationships: []
       }
+      ptest_arbitrations: {
+        Row: {
+          batch_id: string | null
+          ceo_sheet: Json
+          created_at: string
+          double_check: string | null
+          dropped: Json
+          effort: string | null
+          error: string | null
+          findings_in: number
+          fix_list: Json
+          id: string
+          input_truncated: boolean
+          model: string | null
+          prompt_version: string | null
+          run_by: string | null
+          summary: string | null
+          tool_slug: string
+          usage: Json | null
+        }
+        Insert: {
+          batch_id?: string | null
+          ceo_sheet?: Json
+          created_at?: string
+          double_check?: string | null
+          dropped?: Json
+          effort?: string | null
+          error?: string | null
+          findings_in?: number
+          fix_list?: Json
+          id?: string
+          input_truncated?: boolean
+          model?: string | null
+          prompt_version?: string | null
+          run_by?: string | null
+          summary?: string | null
+          tool_slug: string
+          usage?: Json | null
+        }
+        Update: {
+          batch_id?: string | null
+          ceo_sheet?: Json
+          created_at?: string
+          double_check?: string | null
+          dropped?: Json
+          effort?: string | null
+          error?: string | null
+          findings_in?: number
+          fix_list?: Json
+          id?: string
+          input_truncated?: boolean
+          model?: string | null
+          prompt_version?: string | null
+          run_by?: string | null
+          summary?: string | null
+          tool_slug?: string
+          usage?: Json | null
+        }
+        Relationships: []
+      }
+      ptest_reviews: {
+        Row: {
+          assessment_id: string
+          batch_id: string | null
+          company_name: string | null
+          created_at: string
+          double_check: string | null
+          dropped_unlocatable: number
+          effort: string | null
+          error: string | null
+          findings: Json
+          id: string
+          model: string | null
+          overall: string | null
+          prompt_version: string | null
+          reviewer: string
+          run_by: string | null
+          tool_slug: string
+          usage: Json | null
+        }
+        Insert: {
+          assessment_id: string
+          batch_id?: string | null
+          company_name?: string | null
+          created_at?: string
+          double_check?: string | null
+          dropped_unlocatable?: number
+          effort?: string | null
+          error?: string | null
+          findings?: Json
+          id?: string
+          model?: string | null
+          overall?: string | null
+          prompt_version?: string | null
+          reviewer: string
+          run_by?: string | null
+          tool_slug: string
+          usage?: Json | null
+        }
+        Update: {
+          assessment_id?: string
+          batch_id?: string | null
+          company_name?: string | null
+          created_at?: string
+          double_check?: string | null
+          dropped_unlocatable?: number
+          effort?: string | null
+          error?: string | null
+          findings?: Json
+          id?: string
+          model?: string | null
+          overall?: string | null
+          prompt_version?: string | null
+          reviewer?: string
+          run_by?: string | null
+          tool_slug?: string
+          usage?: Json | null
+        }
+        Relationships: []
+      }
       purchase_ledger: {
         Row: {
           amount_cents: number | null
