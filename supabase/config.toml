@@ -251,3 +251,9 @@ verify_jwt = false
 
 [functions.backfill-enforcement-subjects]
 verify_jwt = false
+
+[functions.deep-review-document]
+verify_jwt = false
+
+[functions.arbitrate-review-batch]
+verify_jwt = false
