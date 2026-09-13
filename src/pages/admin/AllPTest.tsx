@@ -94,6 +94,10 @@ export default function AllPTest() {
   // written to the log exactly once.
   const jobStates = useRef<Map<string, string>>(new Map());
   const logRef = useRef<HTMLPreElement | null>(null);
+  // Which intake path produced the live batch — a preset batch has no stress
+  // harness batch to cancel.
+  const sourceRef = useRef<"preset" | "claude">("preset");
+
 
   const say = useCallback((line: string) => {
     const stamp = new Date().toLocaleTimeString();
