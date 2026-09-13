@@ -5711,6 +5711,7 @@ export type Database = {
       }
       ptest_arbitrations: {
         Row: {
+          agreed_score: number | null
           arbitration_scope: string
           assessment_id: string | null
           batch_id: string | null
@@ -5728,11 +5729,13 @@ export type Database = {
           parent_job_id: string | null
           prompt_version: string | null
           run_by: string | null
+          score_notes: string | null
           summary: string | null
           tool_slug: string
           usage: Json | null
         }
         Insert: {
+          agreed_score?: number | null
           arbitration_scope?: string
           assessment_id?: string | null
           batch_id?: string | null
@@ -5750,11 +5753,13 @@ export type Database = {
           parent_job_id?: string | null
           prompt_version?: string | null
           run_by?: string | null
+          score_notes?: string | null
           summary?: string | null
           tool_slug: string
           usage?: Json | null
         }
         Update: {
+          agreed_score?: number | null
           arbitration_scope?: string
           assessment_id?: string | null
           batch_id?: string | null
@@ -5772,6 +5777,7 @@ export type Database = {
           parent_job_id?: string | null
           prompt_version?: string | null
           run_by?: string | null
+          score_notes?: string | null
           summary?: string | null
           tool_slug?: string
           usage?: Json | null
@@ -5782,6 +5788,7 @@ export type Database = {
         Row: {
           arbitration_effort: string | null
           batch_id: string
+          batch_mean: number | null
           created_at: string
           documents_per_product: number | null
           industry: string | null
@@ -5789,12 +5796,14 @@ export type Database = {
           products: string[]
           review_effort: string | null
           run_by: string | null
+          scores: Json | null
           status: string
           updated_at: string
         }
         Insert: {
           arbitration_effort?: string | null
           batch_id: string
+          batch_mean?: number | null
           created_at?: string
           documents_per_product?: number | null
           industry?: string | null
@@ -5802,12 +5811,14 @@ export type Database = {
           products?: string[]
           review_effort?: string | null
           run_by?: string | null
+          scores?: Json | null
           status?: string
           updated_at?: string
         }
         Update: {
           arbitration_effort?: string | null
           batch_id?: string
+          batch_mean?: number | null
           created_at?: string
           documents_per_product?: number | null
           industry?: string | null
@@ -5815,6 +5826,7 @@ export type Database = {
           products?: string[]
           review_effort?: string | null
           run_by?: string | null
+          scores?: Json | null
           status?: string
           updated_at?: string
         }
@@ -5961,6 +5973,8 @@ export type Database = {
           batch_id: string | null
           company_name: string | null
           created_at: string
+          derived_score: number | null
+          dimension_scores: Json | null
           double_check: string | null
           dropped_unlocatable: number
           effort: string | null
@@ -5969,9 +5983,12 @@ export type Database = {
           id: string
           model: string | null
           overall: string | null
+          overall_score: number | null
           prompt_version: string | null
           reviewer: string
           run_by: string | null
+          score_notes: string | null
+          score_source: string | null
           tool_slug: string
           usage: Json | null
         }
@@ -5980,6 +5997,8 @@ export type Database = {
           batch_id?: string | null
           company_name?: string | null
           created_at?: string
+          derived_score?: number | null
+          dimension_scores?: Json | null
           double_check?: string | null
           dropped_unlocatable?: number
           effort?: string | null
@@ -5988,9 +6007,12 @@ export type Database = {
           id?: string
           model?: string | null
           overall?: string | null
+          overall_score?: number | null
           prompt_version?: string | null
           reviewer: string
           run_by?: string | null
+          score_notes?: string | null
+          score_source?: string | null
           tool_slug: string
           usage?: Json | null
         }
@@ -5999,6 +6021,8 @@ export type Database = {
           batch_id?: string | null
           company_name?: string | null
           created_at?: string
+          derived_score?: number | null
+          dimension_scores?: Json | null
           double_check?: string | null
           dropped_unlocatable?: number
           effort?: string | null
@@ -6007,9 +6031,12 @@ export type Database = {
           id?: string
           model?: string | null
           overall?: string | null
+          overall_score?: number | null
           prompt_version?: string | null
           reviewer?: string
           run_by?: string | null
+          score_notes?: string | null
+          score_source?: string | null
           tool_slug?: string
           usage?: Json | null
         }

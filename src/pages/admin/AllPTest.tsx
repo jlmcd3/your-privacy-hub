@@ -30,6 +30,8 @@ import {
   fetchPtestResults,
   cancelPtestJobs,
   buildPtestMarkdown,
+  buildScoreMatrix,
+  fetchReviewScores,
   downloadMarkdown,
   assertAdminSession,
   type DeepReviewResult,
@@ -237,6 +239,16 @@ export default function AllPTest() {
             say(`⚠ ${label}: ${j.note}`);
           }
         }
+        // Per-document score, logged once per reviewer as the review lands.
+        try {
+          for (const s of await fetchReviewScores(id)) {
+            const key = `score:${s.assessment_id}:${s.reviewer}`;
+            if (jobStates.current.has(key) || s.error) continue;
+            jobStates.current.set(key, "1");
+            const n = (v: number | null) => (v === null ? "—" : v.toFixed(1));
+            say(`· scored ${s.tool_slug} · ${s.company_name ?? "(unnamed)"} — ${s.reviewer} ${n(s.overall_score)} (derived ${n(s.derived_score)})`);
+          }
+        } catch { /* scores are reporting only: never interrupt a run */ }
         if (done + failed >= jobRows.length) break;
       }
 
@@ -281,6 +293,8 @@ export default function AllPTest() {
       }
     }
   }, [batchId, say]);
+
+  const scoreMatrix = useMemo(() => buildScoreMatrix(reviews, arbitrations), [reviews, arbitrations]);
 
   const markdown = useMemo(
     () =>
@@ -475,6 +489,50 @@ export default function AllPTest() {
           {log.length ? log.join("\n") : "No run yet. Starting a run clears this log and streams progress here."}
         </pre>
       </section>
+
+      {!!scoreMatrix.rows.length && (
+        <section className="rounded-lg border border-border bg-card p-4">
+          <h2 className="mb-2 text-sm font-medium text-foreground">
+            Batch scores — mean {scoreMatrix.batchMean === null ? "—" : scoreMatrix.batchMean.toFixed(1)}
+          </h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-[11px] text-muted-foreground">
+              <thead>
+                <tr className="border-b border-border text-foreground">
+                  <th className="py-1 pr-3 font-medium">Product</th>
+                  <th className="py-1 pr-3 font-medium">Docs</th>
+                  <th className="py-1 pr-3 font-medium">Claude</th>
+                  <th className="py-1 pr-3 font-medium">ChatGPT</th>
+                  <th className="py-1 pr-3 font-medium">Combined</th>
+                  <th className="py-1 pr-3 font-medium">Derived</th>
+                  <th className="py-1 pr-3 font-medium">Post-arbitration</th>
+                </tr>
+              </thead>
+              <tbody>
+                {scoreMatrix.rows.map((r) => {
+                  const n = (v: number | null) => (v === null ? "—" : v.toFixed(1));
+                  return (
+                    <tr key={r.tool} className="border-b border-border/50">
+                      <td className="py-1 pr-3 text-foreground">{r.tool}</td>
+                      <td className="py-1 pr-3">{r.documents}</td>
+                      <td className="py-1 pr-3">{n(r.claude)}</td>
+                      <td className="py-1 pr-3">{n(r.gpt)}</td>
+                      <td className="py-1 pr-3 text-foreground">{n(r.combined)}</td>
+                      <td className="py-1 pr-3">{n(r.derived)}</td>
+                      <td className="py-1 pr-3">{n(r.arbitration)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            Combined is the headline (the reviewers' own six-dimension verdict, the same dimensions used on
+            /admin/all-products-test). Derived is a deterministic cross-check computed from the findings.
+            Post-arbitration scores only the agreed fix list.
+          </p>
+        </section>
+      )}
 
       {arbitrations.map((a) => (
         <section key={a.tool} className="rounded-lg border border-border bg-card p-4 space-y-3">

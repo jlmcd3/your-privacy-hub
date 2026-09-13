@@ -11,7 +11,11 @@
 // anything per-document into these strings silently destroys the cache and
 // multiplies the cost of a batch — keep per-document text in the user turn.
 
-export const DEEP_REVIEW_PROMPT_VERSION = "deep-review-v1@2026-09-13";
+// v2 adds the six-dimension scored verdict (same dimensions /all-products-test
+// grades on) to the SAME response — no extra model call. Findings come FIRST
+// and the score LAST, so the score is read off the findings rather than the
+// findings trimmed to fit a score.
+export const DEEP_REVIEW_PROMPT_VERSION = "deep-review-v2-scored@2026-09-13";
 
 /** Shared, cacheable review instruction. Identical for both reviewers. */
 const REVIEW_METHOD = `You are reviewing an automatically generated legal-compliance report produced by a privacy-compliance platform. Formatting, layout and typography are settled and are NOT under review: you are reading text only and must never comment on page breaks, fonts, spacing, colour, pagination or anything visual. What is under review is WORDING, GRAMMAR, LEGAL MEANING, INTERNAL CONSISTENCY and LOGIC.
@@ -46,6 +50,15 @@ Work in this order.
    - the severity is honest.
    Report what this pass changed in "double_check".
 
+9. SCORE THE DOCUMENT LAST. Only after your findings are final and double-checked, score the document 0–100 on each of these six dimensions. The score is READ OFF the findings you already have: never delete, soften or withhold a finding to protect a score, and never add one to justify a score.
+   - accuracy — statements about the company match the intake and nothing is asserted beyond it.
+   - citation — legal authorities, statutes, articles and deadlines are correctly named and correctly attributed.
+   - hallucination — no invented facts, bodies, obligations, names or numbers. Deliberate "[TO BE COMPLETED — ...]" placeholders are correct behaviour and must not lower this.
+   - analysis — the reasoning chain holds: fact to issue to analysis to determination to action, with no missing or unsupported step.
+   - intelligence — the document is genuinely useful to a compliance professional: the determination is decisive and the required actions follow from it.
+   - formatting — clean TEXT presentation and structure, no meta-commentary, no leaked field labels or identifiers. You are reading text only: never score visual layout, typography, pagination or anything you cannot see.
+   100 = no defect on that dimension. Deduct in proportion to the severity and number of findings that touch it. "overall_score" is your single honest verdict on the document, not necessarily the average.
+
 SEVERITY: "critical" = wrong legal outcome, wrong duty, or a contradiction a reader would act on. "high" = materially misleading or a broken argument. "editorial" = wording, grammar or presentation of text, with meaning intact.
 
 SPELLING NEUTRALITY: British and US spellings are both correct. Never report a locale spelling variant.
@@ -69,7 +82,9 @@ Return ONLY valid JSON, no prose outside it, of exactly this shape:
     }
   ],
   "double_check": "what the double-check pass changed: findings deleted, merged, or downgraded, and why",
-  "overall": "two sentences on the document's state"
+  "overall": "two sentences on the document's state",
+  "dimension_scores": { "accuracy": 0-100, "citation": 0-100, "hallucination": 0-100, "analysis": 0-100, "intelligence": 0-100, "formatting": 0-100 },
+  "overall_score": 0-100
 }`;
 
 export function buildDeepReviewSystemPrompt(reviewer: "gpt" | "claude"): string {

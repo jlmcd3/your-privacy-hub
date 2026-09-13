@@ -126,6 +126,8 @@ export function PtestHistory({ refreshKey }: { refreshKey?: number }) {
                 </span>
                 <span className="text-muted-foreground">
                   {b.industry ?? "—"} · review {b.review_effort ?? "—"} / arb {b.arbitration_effort ?? "—"} · {b.status}
+                  {" · score "}
+                  <span className="text-foreground">{b.batch_mean === null || b.batch_mean === undefined ? "—" : Number(b.batch_mean).toFixed(1)}</span>
                   {isOpen ? " ▾" : " ▸"}
                 </span>
               </button>
@@ -136,6 +138,13 @@ export function PtestHistory({ refreshKey }: { refreshKey?: number }) {
                     Batch <code>{b.batch_id}</code> · {rows.length} tracked item(s) · open {sum.open} · in progress {sum.in_progress} ·
                     fixed {sum.fixed} · rejected {sum.rejected} · deferred {sum.deferred}
                   </p>
+                  {b.scores && Object.keys(b.scores).length > 0 && (
+                    <p className="text-[11px] text-muted-foreground">
+                      Scores — {Object.entries(b.scores).map(([tool, s]) =>
+                        `${tool} ${s.combined === null ? "—" : Number(s.combined).toFixed(1)}${s.arbitration === null || s.arbitration === undefined ? "" : ` (post-arb ${Number(s.arbitration).toFixed(1)})`}`,
+                      ).join(" · ")}
+                    </p>
+                  )}
 
                   {(["fix", "ceo"] as const).map((kind) => {
                     const group = rows.filter((r) => r.item_kind === kind);

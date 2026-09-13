@@ -31,6 +31,18 @@ export interface PtestBatchRow {
   arbitration_effort: string | null;
   status: string;
   note: string | null;
+  /** Per-product rollup written by the driver when the last job lands. */
+  scores: Record<string, PtestProductScore> | null;
+  batch_mean: number | null;
+}
+
+export interface PtestProductScore {
+  claude: number | null;
+  gpt: number | null;
+  combined: number | null;
+  derived: number | null;
+  arbitration: number | null;
+  documents: number;
 }
 
 export interface PtestFixItemRow {
@@ -92,11 +104,11 @@ export async function setBatchStatus(batchId: string, status: string, note?: str
 export async function fetchBatches(limit = 50): Promise<PtestBatchRow[]> {
   const { data, error } = await supabase
     .from("ptest_batches")
-    .select("batch_id, created_at, industry, products, documents_per_product, review_effort, arbitration_effort, status, note")
+    .select("batch_id, created_at, industry, products, documents_per_product, review_effort, arbitration_effort, status, note, scores, batch_mean")
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw new Error(error.message);
-  return (data ?? []) as PtestBatchRow[];
+  return (data ?? []) as unknown as PtestBatchRow[];
 }
 
 // ── Fix items ───────────────────────────────────────────────────────────────

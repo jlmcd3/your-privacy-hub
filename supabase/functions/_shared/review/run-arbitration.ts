@@ -12,6 +12,7 @@
 
 import { ARBITRATION_SYSTEM, ARBITRATION_MERGE_SYSTEM, DEEP_REVIEW_PROMPT_VERSION } from "./prompts.ts";
 import { callClaude, parseJsonObject, type Effort } from "./model-calls.ts";
+import { deriveScoreFromFindings } from "./scores.ts";
 
 // deno-lint-ignore no-explicit-any
 type Admin = any;
@@ -115,7 +116,23 @@ export interface ArbitrationOutcome {
 
 const arr = (v: unknown) => (Array.isArray(v) ? v : []);
 
+/**
+ * POST-ARBITRATION SCORE. Deterministic, no model call: 100 minus the same
+ * severity weights the review scores use, applied to the AGREED fix list only
+ * — items routed to the CEO sheet or dropped cost nothing, because they are
+ * not (yet) defects the product owns. One deduction per entry, however many
+ * documents it occurred in: the entry is one underlying cause.
+ */
+function agreedScoreOf(fixList: unknown[]): number {
+  return deriveScoreFromFindings(
+    fixList.map((f) => ({ severity: (f as Record<string, unknown>)?.severity as string | undefined })),
+  );
+}
+
 async function persist(admin: Admin, record: Record<string, unknown>): Promise<string | undefined> {
+  if (record.agreed_score === undefined) {
+    record.agreed_score = record.error ? null : agreedScoreOf(arr(record.fix_list));
+  }
   const { data, error } = await admin.from("ptest_arbitrations").insert(record).select("id").single();
   if (error) {
     console.error(`[arbitrate] persist failed — ${error.message}`);

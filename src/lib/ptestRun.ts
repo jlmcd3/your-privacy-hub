@@ -66,6 +66,13 @@ export interface ReviewerResult {
   overall?: string | null;
   note?: string | null;
   error?: string;
+  /** Reviewer's own six-dimension verdict (the headline score). */
+  dimension_scores?: Record<string, number> | null;
+  overall_score?: number | null;
+  /** Deterministic cross-check computed from the validated findings. */
+  derived_score?: number | null;
+  score_source?: string | null;
+  score_notes?: string | null;
 }
 
 export interface DeepReviewResult {
@@ -155,6 +162,8 @@ export interface ArbitrationResult {
   dropped: Array<{ id: string; reason: string }>;
   doubleCheck: string | null;
   summary: string | null;
+  /** Post-arbitration score: 100 minus the severity weight of each agreed fix. */
+  agreedScore?: number | null;
   error?: string;
 }
 
@@ -275,10 +284,10 @@ export async function fetchPtestResults(batchId: string): Promise<{
 }> {
   const [rev, arb] = await Promise.all([
     supabase.from("ptest_reviews")
-      .select("assessment_id, tool_slug, company_name, reviewer, model, effort, findings, double_check, overall, dropped_unlocatable, error")
+      .select("assessment_id, tool_slug, company_name, reviewer, model, effort, findings, double_check, overall, dropped_unlocatable, error, dimension_scores, overall_score, derived_score, score_source, score_notes")
       .eq("batch_id", batchId).order("created_at", { ascending: true }),
     supabase.from("ptest_arbitrations")
-      .select("tool_slug, model, fix_list, ceo_sheet, dropped, double_check, summary, findings_in, input_truncated, error, arbitration_scope")
+      .select("tool_slug, model, fix_list, ceo_sheet, dropped, double_check, summary, findings_in, input_truncated, error, arbitration_scope, agreed_score")
       .eq("batch_id", batchId).eq("arbitration_scope", "merge").order("created_at", { ascending: true }),
   ]);
   if (rev.error) throw new Error(rev.error.message);
@@ -300,6 +309,11 @@ export async function fetchPtestResults(batchId: string): Promise<{
       findings: (r.findings ?? []) as unknown as ReviewFinding[],
       double_check: r.double_check,
       overall: r.overall,
+      dimension_scores: (r.dimension_scores ?? null) as unknown as Record<string, number> | null,
+      overall_score: r.overall_score === null ? null : Number(r.overall_score),
+      derived_score: r.derived_score === null ? null : Number(r.derived_score),
+      score_source: r.score_source ?? null,
+      score_notes: r.score_notes ?? null,
       error: r.error ?? undefined,
     };
   }
@@ -315,10 +329,89 @@ export async function fetchPtestResults(batchId: string): Promise<{
     dropped: (a.dropped ?? []) as unknown as Array<{ id: string; reason: string }>,
     doubleCheck: a.double_check,
     summary: a.summary,
+    agreedScore: a.agreed_score === null || a.agreed_score === undefined ? null : Number(a.agreed_score),
     error: a.error ?? undefined,
   }));
 
   return { reviews: Array.from(byDoc.values()), arbitrations };
+}
+
+// ── Scoring (read-only reporting) ───────────────────────────────────────────
+// Scores are derived from rows that already exist. Nothing here changes what is
+// reviewed, arbitrated or tracked; a missing score reads as "—", never as zero.
+
+export interface ProductScoreRow {
+  tool: string;
+  claude: number | null;
+  gpt: number | null;
+  combined: number | null;
+  derived: number | null;
+  arbitration: number | null;
+  documents: number;
+}
+
+const meanOf = (xs: Array<number | null | undefined>): number | null => {
+  const n = xs.filter((v): v is number => typeof v === "number" && Number.isFinite(v));
+  if (!n.length) return null;
+  return Math.round((n.reduce((a, b) => a + b, 0) / n.length) * 10) / 10;
+};
+
+export function buildScoreMatrix(
+  reviews: DeepReviewResult[],
+  arbitrations: ArbitrationResult[],
+): { rows: ProductScoreRow[]; batchMean: number | null } {
+  const byTool = new Map<string, { claude: number[]; gpt: number[]; derived: number[]; docs: number }>();
+  for (const doc of reviews) {
+    const slot = byTool.get(doc.tool) ?? { claude: [], gpt: [], derived: [], docs: 0 };
+    byTool.set(doc.tool, slot);
+    slot.docs += 1;
+    for (const key of Object.keys(doc.reviews)) {
+      const r = doc.reviews[key];
+      if (r.error) continue;
+      if (typeof r.overall_score === "number") (key === "claude" ? slot.claude : slot.gpt).push(r.overall_score);
+      if (typeof r.derived_score === "number") slot.derived.push(r.derived_score);
+    }
+  }
+  const arbByTool = new Map(arbitrations.filter((a) => !a.error).map((a) => [a.tool, a.agreedScore ?? null]));
+  const rows: ProductScoreRow[] = Array.from(byTool.entries()).map(([tool, s]) => ({
+    tool,
+    claude: meanOf(s.claude),
+    gpt: meanOf(s.gpt),
+    combined: meanOf([...s.claude, ...s.gpt]),
+    derived: meanOf(s.derived),
+    arbitration: arbByTool.get(tool) ?? null,
+    documents: s.docs,
+  }));
+  return { rows, batchMean: meanOf(rows.map((r) => r.combined)) };
+}
+
+export interface ReviewScoreRow {
+  assessment_id: string;
+  tool_slug: string;
+  company_name: string | null;
+  reviewer: string;
+  overall_score: number | null;
+  derived_score: number | null;
+  error: string | null;
+}
+
+/** Light poll read so the run log can report each document's score as it lands. */
+export async function fetchReviewScores(batchId: string): Promise<ReviewScoreRow[]> {
+  const { data, error } = await supabase
+    .from("ptest_reviews")
+    .select("assessment_id, tool_slug, company_name, reviewer, overall_score, derived_score, error")
+    .eq("batch_id", batchId)
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r) => ({
+    assessment_id: String(r.assessment_id),
+    tool_slug: r.tool_slug,
+    company_name: r.company_name,
+    reviewer: r.reviewer,
+    overall_score: r.overall_score === null ? null : Number(r.overall_score),
+    derived_score: r.derived_score === null ? null : Number(r.derived_score),
+    error: r.error,
+  }));
 }
 
 /** Bounded-concurrency map. Three in flight matches the harness's proven
@@ -364,6 +457,19 @@ export function buildPtestMarkdown(opts: {
   L.push(`- Review effort: ${opts.effortReview} · Arbitration effort: ${opts.effortArbitration}`);
   L.push(`- Generated: ${new Date().toISOString()}`);
   L.push("");
+
+  const { rows: scoreRows, batchMean } = buildScoreMatrix(opts.reviews, opts.arbitrations);
+  if (scoreRows.length) {
+    const n = (v: number | null) => (v === null ? "—" : v.toFixed(1));
+    L.push(`## Batch scores (batch mean ${n(batchMean)})`);
+    L.push("");
+    L.push("| Product | Documents | Claude | ChatGPT | Combined | Derived (cross-check) | Post-arbitration |");
+    L.push("| --- | --- | --- | --- | --- | --- | --- |");
+    scoreRows.forEach((r) => {
+      L.push(`| ${r.tool} | ${r.documents} | ${n(r.claude)} | ${n(r.gpt)} | ${n(r.combined)} | ${n(r.derived)} | ${n(r.arbitration)} |`);
+    });
+    L.push("");
+  }
 
   for (const arb of opts.arbitrations) {
     L.push(`## ${arb.tool.toUpperCase()} — arbitration`);
@@ -418,6 +524,10 @@ export function buildPtestMarkdown(opts: {
       L.push(`#### Reviewer ${key.toUpperCase()} — ${rev.model ?? "—"} (${rev.effort ?? "—"})`);
       if (rev.error) { L.push(`**Failed:** ${rev.error}`); continue; }
       if (rev.note) L.push(`_Note: ${rev.note}_`);
+      L.push(`Score: ${typeof rev.overall_score === "number" ? rev.overall_score.toFixed(1) : "—"} (reported) · ${typeof rev.derived_score === "number" ? rev.derived_score.toFixed(1) : "—"} (derived from findings)${rev.score_notes ? ` · ⚠ ${rev.score_notes}` : ""}`);
+      if (rev.dimension_scores) {
+        L.push(`Dimensions: ${Object.entries(rev.dimension_scores).map(([k, v]) => `${k} ${v}`).join(" · ")}`);
+      }
       L.push(`Overall: ${fence(rev.overall)}`);
       L.push(`Double-check: ${fence(rev.double_check)}`);
       const findings = rev.findings ?? [];
