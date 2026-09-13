@@ -79,11 +79,21 @@ export default function AllPTest() {
   // Bumped whenever a run records or updates history, so the panel reloads.
   const [historyKey, setHistoryKey] = useState(0);
   const cancelled = useRef(false);
+  // Last seen status per review/arbitration job, so every state change is
+  // written to the log exactly once.
+  const jobStates = useRef<Map<string, string>>(new Map());
+  const logRef = useRef<HTMLPreElement | null>(null);
 
   const say = useCallback((line: string) => {
     const stamp = new Date().toLocaleTimeString();
     setLog((prev) => [...prev, `${stamp}  ${line}`]);
   }, []);
+
+  // Keep the newest line in view while a run is in progress.
+  useEffect(() => {
+    const el = logRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [log]);
 
   const toggle = (slug: ToolSlug) =>
     setSelected((prev) => (prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]));
