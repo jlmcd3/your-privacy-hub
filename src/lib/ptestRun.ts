@@ -309,6 +309,11 @@ export async function fetchPtestResults(batchId: string): Promise<{
       findings: (r.findings ?? []) as unknown as ReviewFinding[],
       double_check: r.double_check,
       overall: r.overall,
+      dimension_scores: (r.dimension_scores ?? null) as unknown as Record<string, number> | null,
+      overall_score: r.overall_score === null ? null : Number(r.overall_score),
+      derived_score: r.derived_score === null ? null : Number(r.derived_score),
+      score_source: r.score_source ?? null,
+      score_notes: r.score_notes ?? null,
       error: r.error ?? undefined,
     };
   }
@@ -324,6 +329,7 @@ export async function fetchPtestResults(batchId: string): Promise<{
     dropped: (a.dropped ?? []) as unknown as Array<{ id: string; reason: string }>,
     doubleCheck: a.double_check,
     summary: a.summary,
+    agreedScore: a.agreed_score === null || a.agreed_score === undefined ? null : Number(a.agreed_score),
     error: a.error ?? undefined,
   }));
 
