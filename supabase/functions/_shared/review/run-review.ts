@@ -8,6 +8,7 @@ import { fetchReviewDocument, type ReviewTool } from "./document-source.ts";
 import { buildDeepReviewSystemPrompt, DEEP_REVIEW_PROMPT_VERSION } from "./prompts.ts";
 import { callClaude, callOpenAI, parseJsonObject, type Effort } from "./model-calls.ts";
 import { validateFindings } from "./validate.ts";
+import { parseReportedScores, deriveScoreFromFindings, divergenceNote } from "./scores.ts";
 
 // deno-lint-ignore no-explicit-any
 type Admin = any;
