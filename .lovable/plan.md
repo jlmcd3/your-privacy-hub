@@ -7,8 +7,8 @@ One product, N documents, two independent reviewers, one arbiter, one fix list, 
 Pick one product (or up to three CPPA products at once) and a document count. Then, per document:
 
 ```text
-intake generation  ->  document generation  ->  dual grading
-        ->  dual deep review (text + grader analysis)
+intake generation  ->  document generation
+        ->  dual deep review (document text)
         ->  arbitration (per batch)
         ->  Agreed Fix List  +  CEO Decision Sheet
 ```
@@ -19,7 +19,7 @@ Three products run as three independent workers, each with its own queue and its
 
 ## 2. Carried forward, not rebuilt
 
-Reused as-is from the existing harness: server batch orchestration and job rows, intake preflight gate, fixture shape contracts, concurrency 4, wall-clock and row-first batch discipline, invoke-with-timeout, the transient-error retry loop (send failures and boot errors retried twice with backoff; real errors never retried), grade persistence, byte-size limits on function payloads, and the untruncated Markdown export path.
+Reused as-is from the existing harness: server batch orchestration and job rows, intake preflight gate, fixture shape contracts, concurrency 4, wall-clock and row-first batch discipline, invoke-with-timeout, the transient-error retry loop (send failures and boot errors retried twice with backoff; real errors never retried), byte-size limits on function payloads, and the untruncated Markdown export path.
 
 New code is additive: a review stage, an arbitration stage, two artefacts, one page.
 
@@ -31,8 +31,6 @@ Both reviewer models are the same price. Sonnet is excluded everywhere.
 |---|---|---|---|
 | Intake generation | Claude small tier | low | no |
 | Document generation | deterministic | — | — |
-| Grader A | gpt-6-astra | medium | yes |
-| Grader B | Claude Fable 5.1 | medium | yes |
 | Deep review A | gpt-6-astra | medium | yes (second pass over own findings) |
 | Deep review B | Claude Fable 5.1 | medium | yes |
 | Arbitration (1 per batch) | Claude Fable 5.1 | high | yes |
@@ -40,7 +38,7 @@ Both reviewer models are the same price. Sonnet is excluded everywhere.
 
 Double-check is a required second section in each response — the model re-reads its own findings against the quoted source before emitting them — rather than a higher effort tier. Effort is set per call: `output_config.effort` on Anthropic, `reasoning_effort` (or `reasoning.effort`) on OpenAI.
 
-Prompt caching is on for both providers. The system prompt, review rubric, product spine description and grader rubric are one cached prefix per product per batch; only the document text and its grader analysis vary per call.
+Prompt caching is on for both providers. The system prompt, review rubric and product spine description are one cached prefix per product per batch; only the document text varies per call.
 
 ## 4. Prompt design (one per stage)
 
@@ -48,7 +46,7 @@ Every prompt returns strict JSON. Every finding must carry a verbatim quote from
 
 **Intake generation.** "Produce one realistic intake payload for <product> matching this exact schema. Values must be plausible for a real company and must satisfy every enum listed. Vary sector, size and jurisdiction from the payloads already produced in this batch. Output JSON only."
 
-**Grading (A and B, same rubric, different providers).** "Score this generated <product> report against the rubric. For each dimension give a score, and for each deduction give the verbatim passage, the rule it breaches and the severity. Then re-read every deduction and delete any whose quote you cannot find verbatim in the document."
+
 
 **Deep review (A and B, the heart of the loop — derived from the Codex method).** The prompt instructs, in order:
 
@@ -59,10 +57,9 @@ Every prompt returns strict JSON. Every finding must carry a verbatim quote from
 5. Respect role and jurisdiction boundaries: controller vs processor, provider vs deployer, EU vs UK.
 6. Where meaning depends on a missing fact or a disputed legal reading, describe the question and route it to the CEO sheet; do not invent a smooth answer.
 7. Trace each finding to a likely source layer: intake mapping, normalised facts, deterministic rules, spine, prose plan, clause/authority library, assembler, layout. Say "likely source" when the trace is incomplete.
-8. Reconcile each supplied grader allegation independently as confirmed, partly supported, input-dependent, needs-counsel or rejected. A low score is not a defect; a pass is not legal correctness.
-9. Double-check: re-read every finding and confirm the quote is present, the product and section are right, the proposed wording preserves meaning, no sibling section contradicts it, and no two findings are the same underlying problem.
+8. Double-check: re-read every finding and confirm the quote is present, the product and section are right, the proposed wording preserves meaning, no sibling section contradicts it, and no two findings are the same underlying problem.
 
-Output per finding: `id, product, variant, severity (critical/high/editorial), confidence, quote, why, proposed_change | decision_required, cause_layer, code_focus, grader_reconciliation, regression_test`.
+Output per finding: `id, product, variant, severity (critical/high/editorial), confidence, quote, why, proposed_change | decision_required, cause_layer, code_focus, regression_test`.
 
 **Arbitration (Claude is the arbiter).** "Here are two independent review sets for the same documents. Merge them, deduplicating across documents: one entry per underlying cause, listing every occurrence." Claude then classifies every finding by who raised it:
 
@@ -92,7 +89,7 @@ A fixed canonical fixture set per product so scores are comparable run to run. T
 
 ## 8. Estimated cost
 
-3 products x 5 documents, caching on, medium effort with double-check: roughly **$13–18 per batch**, dominated by the four review calls per document. Deterministic generation, PDF rendering and orchestration add no API cost. Treat as ±30% until the first real run measures actual reasoning length.
+3 products x 5 documents, caching on, medium effort with double-check: roughly **$8–12 per batch**, dominated by the two review calls per document. Deterministic generation and orchestration add no API cost. Treat as ±30% until the first real run measures actual reasoning length.
 
 ## 9. Build order
 
