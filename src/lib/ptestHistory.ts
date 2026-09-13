@@ -31,6 +31,18 @@ export interface PtestBatchRow {
   arbitration_effort: string | null;
   status: string;
   note: string | null;
+  /** Per-product rollup written by the driver when the last job lands. */
+  scores: Record<string, PtestProductScore> | null;
+  batch_mean: number | null;
+}
+
+export interface PtestProductScore {
+  claude: number | null;
+  gpt: number | null;
+  combined: number | null;
+  derived: number | null;
+  arbitration: number | null;
+  documents: number;
 }
 
 export interface PtestFixItemRow {

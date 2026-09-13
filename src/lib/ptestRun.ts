@@ -162,6 +162,8 @@ export interface ArbitrationResult {
   dropped: Array<{ id: string; reason: string }>;
   doubleCheck: string | null;
   summary: string | null;
+  /** Post-arbitration score: 100 minus the severity weight of each agreed fix. */
+  agreedScore?: number | null;
   error?: string;
 }
 
