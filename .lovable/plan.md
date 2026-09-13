@@ -77,7 +77,7 @@ CEO sheet routing overrides all three cases: anything legal, pricing, naming or 
 ## 5. Artefacts
 
 - **Agreed Fix List** (JSON + Markdown) — deduplicated causes, each with code focus and a proposed regression assertion. This is a handoff, not an applied change.
-- **CEO Decision Sheet** (Markdown) — reviewer disagreements and anything legal, pricing or naming related, each stated as a question with the options and the consequence of each.
+- **CEO Decision Sheet** (Markdown) — anything legal, pricing, naming or change-controlled, plus every ChatGPT finding Claude declined to fix (ChatGPT's proposed fix quoted, Claude's rejection reason beside it). Each stated as a question with options and consequences.
 - **Rejected log** — kept so the same finding is not re-raised every batch.
 
 Both artefacts download from the page and persist against the batch row, so a batch can be reopened later.
