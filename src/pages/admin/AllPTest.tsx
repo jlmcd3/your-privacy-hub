@@ -24,15 +24,18 @@ import {
 } from "@/lib/claudeIntake";
 import type { ToolSlug } from "@/lib/sampleFixtures";
 import {
-  deepReviewDocument,
-  arbitrateProduct,
-  mapLimited,
+  enqueuePtestJobs,
+  tickPtestDriver,
+  fetchPtestJobs,
+  fetchPtestResults,
+  cancelPtestJobs,
   buildPtestMarkdown,
   downloadMarkdown,
   assertAdminSession,
   type DeepReviewResult,
   type ArbitrationResult,
   type PtestEffort,
+  type PtestJobRow,
 } from "@/lib/ptestRun";
 
 const PRODUCTS: Array<{ slug: ToolSlug; label: string }> = [
@@ -48,14 +51,10 @@ const PRODUCTS: Array<{ slug: ToolSlug; label: string }> = [
 ];
 
 const EFFORTS: PtestEffort[] = ["low", "medium", "high", "max"];
-// MEASURED 2026-09-13 on a 289k-char CPPA Risk report: Claude review at "low"
-// took 137s, GPT at "low" 48s, arbitration over 21 findings at "medium" 180s.
-// Arbitration at "high" was still running at ~200s and the backend killed the
-// request. The defaults below sit inside that envelope; higher levels are
-// selectable but can exceed the backend's per-request limit on long documents.
-const EFFORT_WARNING = "Defaults are measured to finish inside the backend time limit. Higher levels give deeper analysis but can time out on long documents.";
-/** Bounded review concurrency — proven on the grading harness. */
-const REVIEW_CONCURRENCY = 3;
+// Review and arbitration run as background jobs, so the request window no
+// longer caps how long a model may think. Higher effort costs more and takes
+// longer; it can no longer time the work out.
+const EFFORT_WARNING = "Reviews and arbitration run as background jobs, so higher effort no longer risks a timeout — it only costs more and takes longer.";
 /** Wall clock for the generation phase before the run gives up polling. */
 const GENERATION_POLL_LIMIT_MS = 60 * 60 * 1000;
 
@@ -66,14 +65,15 @@ export default function AllPTest() {
   const [selected, setSelected] = useState<ToolSlug[]>(["cppa_risk", "cppa_cyber", "cppa_admt"]);
   const [industryId, setIndustryId] = useState("web");
   const [count, setCount] = useState(5);
-  const [reviewEffort, setReviewEffort] = useState<PtestEffort>("low");
-  const [arbEffort, setArbEffort] = useState<PtestEffort>("medium");
+  const [reviewEffort, setReviewEffort] = useState<PtestEffort>("high");
+  const [arbEffort, setArbEffort] = useState<PtestEffort>("high");
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [batchId, setBatchId] = useState<string | null>(null);
   const [log, setLog] = useState<string[]>([]);
   const [reviews, setReviews] = useState<DeepReviewResult[]>([]);
   const [arbitrations, setArbitrations] = useState<ArbitrationResult[]>([]);
+  const [jobs, setJobs] = useState<PtestJobRow[]>([]);
   const cancelled = useRef(false);
 
   const say = useCallback((line: string) => {
@@ -89,7 +89,7 @@ export default function AllPTest() {
   const run = useCallback(async () => {
     if (!user?.id) return;
     cancelled.current = false;
-    setLog([]); setReviews([]); setArbitrations([]); setBatchId(null);
+    setLog([]); setReviews([]); setArbitrations([]); setJobs([]); setBatchId(null);
     let id: string | null = null;
     try {
       await assertAdminSession();
@@ -134,48 +134,55 @@ export default function AllPTest() {
       if (!ready.length) throw new Error("no documents were generated — nothing to review");
       say(`${ready.length} document(s) generated. Starting deep review (2 reviewers each, effort ${reviewEffort}).`);
 
-      // ── Deep review phase ───────────────────────────────────────────────
+      // ── Review + arbitration, as background jobs ────────────────────────
+      // Nothing here waits on a model call. The work is enqueued and the page
+      // polls; the request window can no longer cut a long document short.
       setPhase("reviewing");
-      const results = await mapLimited(ready, REVIEW_CONCURRENCY, async (job) => {
-        if (cancelled.current) {
-          return {
-            ok: false, tool: job.tool_slug, assessmentId: job.source_row_id as string,
-            companyName: job.company_name ?? "", reviews: {}, error: "cancelled",
-          } as DeepReviewResult;
-        }
-        const res = await deepReviewDocument({
-          tool: job.tool_slug,
-          assessmentId: job.source_row_id as string,
-          batchId: id as string,
-          companyName: job.company_name ?? "(unnamed)",
-          effort: reviewEffort,
-        });
-        const counts = Object.entries(res.reviews)
-          .map(([k, v]) => `${k}:${v.error ? "failed" : (v.findings?.length ?? 0)}`)
-          .join(" · ");
-        say(res.error
-          ? `✖ ${job.tool_slug} — ${job.company_name ?? ""}: review failed — ${res.error}`
-          : `✔ ${job.tool_slug} — ${job.company_name ?? ""}: ${counts}`);
-        setReviews((prev) => [...prev, res]);
-        return res;
+      const enqueued = await enqueuePtestJobs({
+        batchId: id,
+        documents: ready.map((j) => ({
+          tool: j.tool_slug,
+          assessment_id: j.source_row_id as string,
+          company_name: j.company_name ?? "(unnamed)",
+        })),
+        reviewEffort,
+        arbitrationEffort: arbEffort,
       });
+      say(`${enqueued} review and arbitration job(s) queued. Reviews run first, then one arbitration per document, then one merge per product.`);
 
-      if (cancelled.current) { say("Cancelled before arbitration."); setPhase("idle"); return; }
+      let lastLine = "";
+      for (;;) {
+        if (cancelled.current) { say("Cancelled."); setPhase("idle"); return; }
+        await new Promise((r) => setTimeout(r, 6_000));
+        // Ticking every poll keeps the chain alive even if a hop was lost.
+        await tickPtestDriver(id);
+        let jobRows: PtestJobRow[] = [];
+        try {
+          jobRows = await fetchPtestJobs(id);
+        } catch (e) {
+          say(`Job read retried — ${(e as Error).message}`);
+          continue;
+        }
+        setJobs(jobRows);
+        const done = jobRows.filter((j) => j.status === "done").length;
+        const failed = jobRows.filter((j) => ["failed", "cancelled"].includes(j.status)).length;
+        const running = jobRows.filter((j) => j.status === "running").length;
+        setPhase(jobRows.some((j) => j.kind === "review" && ["queued", "running"].includes(j.status)) ? "reviewing" : "arbitrating");
+        const line = `Reviewing — ${done} done, ${running} running, ${failed} failed of ${jobRows.length}`;
+        if (line !== lastLine) { say(line); lastLine = line; }
+        for (const j of jobRows) {
+          if (j.input_truncated && j.note) say(`⚠ ${j.tool_slug} · ${j.kind}: ${j.note}`);
+        }
+        if (done + failed >= jobRows.length) break;
+      }
 
-      // ── Arbitration phase ───────────────────────────────────────────────
-      // One arbitration per product: three products' findings in one turn
-      // would blow the input window and blur the cause analysis.
-      setPhase("arbitrating");
-      const tools = Array.from(new Set(results.map((r) => r.tool)));
-      say(`Arbitrating ${tools.length} product(s) at effort ${arbEffort}…`);
-      const arbs: ArbitrationResult[] = [];
-      for (const tool of tools) {
-        const a = await arbitrateProduct({ batchId: id, tool, effort: arbEffort });
-        arbs.push(a);
-        setArbitrations((prev) => [...prev, a]);
+      const results = await fetchPtestResults(id);
+      setReviews(results.reviews);
+      setArbitrations(results.arbitrations);
+      for (const a of results.arbitrations) {
         say(a.error
-          ? `✖ ${tool}: arbitration failed — ${a.error}`
-          : `✔ ${tool}: ${a.fixList.length} agreed fix(es), ${a.ceoSheet.length} CEO decision(s), ${a.dropped.length} dropped`);
+          ? `✖ ${a.tool}: arbitration failed — ${a.error}`
+          : `✔ ${a.tool}: ${a.fixList.length} agreed fix(es), ${a.ceoSheet.length} CEO decision(s), ${a.dropped.length} dropped`);
       }
       setPhase("done");
       say("Run complete.");
@@ -190,7 +197,8 @@ export default function AllPTest() {
     if (batchId) {
       try {
         const { cancelledJobs } = await cancelClaudeBatch(batchId);
-        say(`Cancel requested — ${cancelledJobs} job(s) stopped.`);
+        await cancelPtestJobs(batchId);
+        say(`Cancel requested — ${cancelledJobs} generation job(s) stopped; queued review work cancelled.`);
       } catch (e) {
         say(`Cancel failed — ${(e as Error).message}`);
       }
@@ -319,6 +327,35 @@ export default function AllPTest() {
           </span>
         </div>
       </section>
+
+      {!!jobs.length && (
+        <section className="rounded-lg border border-border bg-card p-4">
+          <h2 className="mb-2 text-sm font-medium text-foreground">
+            Review queue ({jobs.filter((j) => j.status === "done").length}/{jobs.length} done)
+          </h2>
+          <ul className="grid gap-1 text-[11px] text-muted-foreground sm:grid-cols-2">
+            {jobs.map((j) => (
+              <li key={j.id} className="flex items-center justify-between gap-2 rounded border border-border px-2 py-1">
+                <span className="truncate">
+                  {j.tool_slug} · {j.kind.replace("arb_", "arbitration ")} · {j.company_name ?? "all documents"}
+                </span>
+                <span className={
+                  j.status === "done" ? "text-brand-teal-text"
+                    : j.status === "failed" ? "text-destructive"
+                    : "text-muted-foreground"
+                }>
+                  {j.status}{j.attempts > 1 ? ` (attempt ${j.attempts})` : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {jobs.some((j) => j.error) && (
+            <ul className="mt-2 space-y-1 text-[11px] text-destructive">
+              {jobs.filter((j) => j.error).map((j) => <li key={`e-${j.id}`}>{j.tool_slug} · {j.kind}: {j.error}</li>)}
+            </ul>
+          )}
+        </section>
+      )}
 
       {!!log.length && (
         <section className="rounded-lg border border-border bg-card p-4">

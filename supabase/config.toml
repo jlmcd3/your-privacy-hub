@@ -257,3 +257,6 @@ verify_jwt = false
 
 [functions.arbitrate-review-batch]
 verify_jwt = false
+
+[functions.ptest-run-driver]
+verify_jwt = false
