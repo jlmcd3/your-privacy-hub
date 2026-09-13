@@ -336,6 +336,84 @@ export async function fetchPtestResults(batchId: string): Promise<{
   return { reviews: Array.from(byDoc.values()), arbitrations };
 }
 
+// ── Scoring (read-only reporting) ───────────────────────────────────────────
+// Scores are derived from rows that already exist. Nothing here changes what is
+// reviewed, arbitrated or tracked; a missing score reads as "—", never as zero.
+
+export interface ProductScoreRow {
+  tool: string;
+  claude: number | null;
+  gpt: number | null;
+  combined: number | null;
+  derived: number | null;
+  arbitration: number | null;
+  documents: number;
+}
+
+const meanOf = (xs: Array<number | null | undefined>): number | null => {
+  const n = xs.filter((v): v is number => typeof v === "number" && Number.isFinite(v));
+  if (!n.length) return null;
+  return Math.round((n.reduce((a, b) => a + b, 0) / n.length) * 10) / 10;
+};
+
+export function buildScoreMatrix(
+  reviews: DeepReviewResult[],
+  arbitrations: ArbitrationResult[],
+): { rows: ProductScoreRow[]; batchMean: number | null } {
+  const byTool = new Map<string, { claude: number[]; gpt: number[]; derived: number[]; docs: number }>();
+  for (const doc of reviews) {
+    const slot = byTool.get(doc.tool) ?? { claude: [], gpt: [], derived: [], docs: 0 };
+    byTool.set(doc.tool, slot);
+    slot.docs += 1;
+    for (const key of Object.keys(doc.reviews)) {
+      const r = doc.reviews[key];
+      if (r.error) continue;
+      if (typeof r.overall_score === "number") (key === "claude" ? slot.claude : slot.gpt).push(r.overall_score);
+      if (typeof r.derived_score === "number") slot.derived.push(r.derived_score);
+    }
+  }
+  const arbByTool = new Map(arbitrations.filter((a) => !a.error).map((a) => [a.tool, a.agreedScore ?? null]));
+  const rows: ProductScoreRow[] = Array.from(byTool.entries()).map(([tool, s]) => ({
+    tool,
+    claude: meanOf(s.claude),
+    gpt: meanOf(s.gpt),
+    combined: meanOf([...s.claude, ...s.gpt]),
+    derived: meanOf(s.derived),
+    arbitration: arbByTool.get(tool) ?? null,
+    documents: s.docs,
+  }));
+  return { rows, batchMean: meanOf(rows.map((r) => r.combined)) };
+}
+
+export interface ReviewScoreRow {
+  assessment_id: string;
+  tool_slug: string;
+  company_name: string | null;
+  reviewer: string;
+  overall_score: number | null;
+  derived_score: number | null;
+  error: string | null;
+}
+
+/** Light poll read so the run log can report each document's score as it lands. */
+export async function fetchReviewScores(batchId: string): Promise<ReviewScoreRow[]> {
+  const { data, error } = await supabase
+    .from("ptest_reviews")
+    .select("assessment_id, tool_slug, company_name, reviewer, overall_score, derived_score, error")
+    .eq("batch_id", batchId)
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r) => ({
+    assessment_id: String(r.assessment_id),
+    tool_slug: r.tool_slug,
+    company_name: r.company_name,
+    reviewer: r.reviewer,
+    overall_score: r.overall_score === null ? null : Number(r.overall_score),
+    derived_score: r.derived_score === null ? null : Number(r.derived_score),
+    error: r.error,
+  }));
+}
+
 /** Bounded-concurrency map. Three in flight matches the harness's proven
  *  concurrency: enough to keep the batch moving, low enough that the two
  *  providers are never rate-limited into failures. */
