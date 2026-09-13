@@ -57,7 +57,17 @@ async function runReviewer(
   if (validated.droppedUnlocatable.length) {
     console.warn(`[deep-review] ${reviewer} dropped ${validated.droppedUnlocatable.length} unlocatable quote(s)`);
   }
+  // SCORING. The reported verdict is the headline; the derived score is
+  // computed from the VALIDATED findings only (a dropped, unlocatable finding
+  // must not cost the document points).
+  const reported = parseReportedScores(parsed);
+  const derived = deriveScoreFromFindings(validated.findings);
   return {
+    dimension_scores: reported.dimension_scores,
+    overall_score: reported.overall_score,
+    derived_score: derived,
+    score_source: reported.overall_score === null ? "derived_only" : "reported",
+    score_divergence: divergenceNote(reported.overall_score, derived),
     reviewer,
     model: res.model,
     effort: res.effort,
@@ -126,6 +136,11 @@ export async function runDocumentReview(admin: Admin, opts: {
         findings: s.value.findings,
         double_check: s.value.double_check,
         overall: s.value.overall,
+        dimension_scores: s.value.dimension_scores,
+        overall_score: s.value.overall_score,
+        derived_score: s.value.derived_score,
+        score_source: s.value.score_source,
+        score_notes: s.value.score_divergence,
         usage: s.value.usage,
         dropped_unlocatable: s.value.dropped_unlocatable.length + s.value.dropped_no_quote,
         error: null,
