@@ -110,6 +110,28 @@ export default function AllPTest() {
     if (el) el.scrollTop = el.scrollHeight;
   }, [log]);
 
+  // History row first: a run that later fails is still visible and its
+  // partial fix items remain reachable.
+  const recordHistory = useCallback(async (id: string) => {
+    try {
+      await recordBatchStart({
+        batchId: id,
+        runBy: user?.id ?? null,
+        industry: intakeSource === "preset"
+          ? "pre-set data package"
+          : STRESS_INDUSTRIES.find((i) => i.id === industryId)?.label ?? industryId,
+        products: selected,
+        documentsPerProduct: count,
+        reviewEffort,
+        arbitrationEffort: arbEffort,
+      });
+      setHistoryKey((k) => k + 1);
+    } catch (e) {
+      say(`History row not recorded — ${(e as Error).message}`);
+    }
+  }, [user?.id, intakeSource, industryId, selected, count, reviewEffort, arbEffort, say]);
+
+
   const toggle = (slug: ToolSlug) =>
     setSelected((prev) => (prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]));
 
