@@ -229,6 +229,7 @@ export default function AllPTest() {
       try {
         const { cancelledJobs } = await cancelClaudeBatch(batchId);
         await cancelPtestJobs(batchId);
+        try { await setBatchStatus(batchId, "cancelled"); setHistoryKey((k) => k + 1); } catch { /* history is secondary */ }
         say(`Cancel requested — ${cancelledJobs} generation job(s) stopped; queued review work cancelled.`);
       } catch (e) {
         say(`Cancel failed — ${(e as Error).message}`);
@@ -436,6 +437,8 @@ export default function AllPTest() {
           )}
         </section>
       ))}
+
+      <PtestHistory refreshKey={historyKey} />
     </div>
   );
 }
