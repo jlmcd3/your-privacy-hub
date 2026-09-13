@@ -132,7 +132,7 @@ export async function runDocumentReview(admin: Admin, opts: {
   // The two providers share no rate-limit budget, so the reviews run
   // concurrently. Neither reviewer can fail the other: each is settled
   // independently and its error is reported in its own slot.
-  const settled = await Promise.allSettled(opts.reviewers.map((r) => runReviewer(r, doc, opts.effort)));
+  const settled = await Promise.allSettled(opts.reviewers.map((r) => runReviewerWithRetry(r, doc, opts.effort)));
 
   const results: Record<string, unknown> = {};
   const rows: Record<string, unknown>[] = [];
