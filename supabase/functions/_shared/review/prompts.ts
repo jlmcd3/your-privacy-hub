@@ -11,7 +11,11 @@
 // anything per-document into these strings silently destroys the cache and
 // multiplies the cost of a batch — keep per-document text in the user turn.
 
-export const DEEP_REVIEW_PROMPT_VERSION = "deep-review-v1@2026-09-13";
+// v2 adds the six-dimension scored verdict (same dimensions /all-products-test
+// grades on) to the SAME response — no extra model call. Findings come FIRST
+// and the score LAST, so the score is read off the findings rather than the
+// findings trimmed to fit a score.
+export const DEEP_REVIEW_PROMPT_VERSION = "deep-review-v2-scored@2026-09-13";
 
 /** Shared, cacheable review instruction. Identical for both reviewers. */
 const REVIEW_METHOD = `You are reviewing an automatically generated legal-compliance report produced by a privacy-compliance platform. Formatting, layout and typography are settled and are NOT under review: you are reading text only and must never comment on page breaks, fonts, spacing, colour, pagination or anything visual. What is under review is WORDING, GRAMMAR, LEGAL MEANING, INTERNAL CONSISTENCY and LOGIC.
