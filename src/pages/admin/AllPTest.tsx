@@ -381,45 +381,26 @@ export default function AllPTest() {
       <section className="rounded-lg border border-border bg-card p-4 space-y-4">
         <div className="space-y-2">
           <span className="text-sm text-muted-foreground">Test data</span>
-          <div className="flex flex-wrap gap-2">
-            {([
-              { id: "preset" as const, label: "Pre-set data package" },
-              { id: "claude" as const, label: "Claude-generated intake" },
-            ]).map((o) => (
-              <button
-                key={o.id}
-                type="button"
-                disabled={busy}
-                onClick={() => setIntakeSource(o.id)}
-                className={`rounded border px-3 py-1.5 text-xs transition ${
-                  intakeSource === o.id
-                    ? "border-brand-teal bg-brand-teal/10 text-brand-teal-text"
-                    : "border-border text-muted-foreground hover:border-brand-teal/50"
-                }`}
-              >
-                {o.label}
-              </button>
-            ))}
-          </div>
           <p className="text-xs text-muted-foreground">
-            {intakeSource === "preset"
-              ? `The canonical contract-conformant data package — up to ${PRESET_DATASET_COUNT} distinct datasets per product, no model call, so test data cannot time out.`
-              : "Claude writes a fresh, internally consistent company profile per geo and every selected product runs against it server-side via the stress harness."}
+            Claude writes a fresh, internally consistent company profile per geo and every selected
+            product runs against it server-side via the stress harness — the same intake path as
+            /admin/all-products-test. The pre-set data package is not used here.
           </p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
           <label className="space-y-1 text-sm">
-            <span className="text-muted-foreground">Industry{intakeSource === "preset" ? " (Claude intake only)" : ""}</span>
+            <span className="text-muted-foreground">Industry</span>
             <select
               className="w-full rounded border border-border bg-background px-2 py-1.5 text-sm disabled:opacity-50"
               value={industryId}
-              disabled={busy || intakeSource === "preset"}
+              disabled={busy}
               onChange={(e) => setIndustryId(e.target.value)}
             >
               {STRESS_INDUSTRIES.map((i) => <option key={i.id} value={i.id}>{i.label}</option>)}
             </select>
           </label>
+
           <label className="space-y-1 text-sm">
             <span className="text-muted-foreground">Documents per product (1–8)</span>
             <input
