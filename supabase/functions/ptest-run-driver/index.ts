@@ -135,6 +135,76 @@ async function runJob(admin: any, job: JobRow) {
   }
 }
 
+/**
+ * BATCH SCORE ROLLUP. Written once, on the last job of a batch, from rows that
+ * are already persisted — so it is a report, never a second source of truth.
+ * A failure here is logged and swallowed: scoring must never fail a batch.
+ */
+// deno-lint-ignore no-explicit-any
+async function writeBatchRollup(admin: any, batchId: string) {
+  try {
+    const [{ data: reviews }, { data: arbs }] = await Promise.all([
+      admin.from("ptest_reviews")
+        .select("tool_slug, assessment_id, reviewer, overall_score, derived_score, error")
+        .eq("batch_id", batchId),
+      admin.from("ptest_arbitrations")
+        .select("tool_slug, agreed_score, error")
+        .eq("batch_id", batchId).eq("arbitration_scope", "merge"),
+    ]);
+
+    const byTool = new Map<string, {
+      claude: number[]; gpt: number[]; derived: number[]; docs: Set<string>;
+    }>();
+    for (const r of reviews ?? []) {
+      if (r.error) continue;
+      const slot = byTool.get(r.tool_slug) ??
+        { claude: [], gpt: [], derived: [], docs: new Set<string>() };
+      byTool.set(r.tool_slug, slot);
+      if (r.assessment_id) slot.docs.add(String(r.assessment_id));
+      const score = r.overall_score === null ? null : Number(r.overall_score);
+      if (score !== null && Number.isFinite(score)) {
+        (r.reviewer === "claude" ? slot.claude : slot.gpt).push(score);
+      }
+      if (r.derived_score !== null && Number.isFinite(Number(r.derived_score))) {
+        slot.derived.push(Number(r.derived_score));
+      }
+    }
+
+    const arbByTool = new Map<string, number>();
+    for (const a of arbs ?? []) {
+      if (a.error || a.agreed_score === null) continue;
+      arbByTool.set(a.tool_slug, Number(a.agreed_score));
+    }
+
+    const scores: Record<string, unknown> = {};
+    const combinedAll: number[] = [];
+    for (const [tool, s] of byTool) {
+      const claude = mean(s.claude);
+      const gpt = mean(s.gpt);
+      const combined = mean([...s.claude, ...s.gpt]);
+      if (combined !== null) combinedAll.push(combined);
+      scores[tool] = {
+        claude, gpt, combined,
+        derived: mean(s.derived),
+        arbitration: arbByTool.has(tool) ? arbByTool.get(tool) : null,
+        documents: s.docs.size,
+      };
+    }
+    const batchMean = mean(combinedAll);
+    if (!Object.keys(scores).length) return;
+    await admin.from("ptest_batches")
+      .update({ scores, batch_mean: batchMean })
+      .eq("batch_id", batchId);
+  } catch (e) {
+    console.error(`[ptest-run-driver] score rollup failed — ${(e as Error)?.message ?? e}`);
+  }
+}
+
+function mean(values: number[]): number | null {
+  if (!values.length) return null;
+  return Math.round((values.reduce((a, b) => a + b, 0) / values.length) * 10) / 10;
+}
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
