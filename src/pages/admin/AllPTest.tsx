@@ -48,6 +48,12 @@ const PRODUCTS: Array<{ slug: ToolSlug; label: string }> = [
 ];
 
 const EFFORTS: PtestEffort[] = ["low", "medium", "high", "max"];
+// MEASURED 2026-09-13 on a 289k-char CPPA Risk report: Claude review at "low"
+// took 137s, GPT at "low" 48s, arbitration over 21 findings at "medium" 180s.
+// Arbitration at "high" was still running at ~200s and the backend killed the
+// request. The defaults below sit inside that envelope; higher levels are
+// selectable but can exceed the backend's per-request limit on long documents.
+const EFFORT_WARNING = "Defaults are measured to finish inside the backend time limit. Higher levels give deeper analysis but can time out on long documents.";
 /** Bounded review concurrency — proven on the grading harness. */
 const REVIEW_CONCURRENCY = 3;
 /** Wall clock for the generation phase before the run gives up polling. */
@@ -60,8 +66,8 @@ export default function AllPTest() {
   const [selected, setSelected] = useState<ToolSlug[]>(["cppa_risk", "cppa_cyber", "cppa_admt"]);
   const [industryId, setIndustryId] = useState("web");
   const [count, setCount] = useState(5);
-  const [reviewEffort, setReviewEffort] = useState<PtestEffort>("medium");
-  const [arbEffort, setArbEffort] = useState<PtestEffort>("high");
+  const [reviewEffort, setReviewEffort] = useState<PtestEffort>("low");
+  const [arbEffort, setArbEffort] = useState<PtestEffort>("medium");
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [batchId, setBatchId] = useState<string | null>(null);
