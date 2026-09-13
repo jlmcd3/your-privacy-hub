@@ -304,7 +304,13 @@ const handler = async (req: Request): Promise<Response> => {
       .select("id", { count: "exact", head: true })
       .eq("batch_id", batchId)
       .eq("status", "queued");
-    if ((count ?? 0) > 0) await kickNext(batchId);
+    if ((count ?? 0) > 0) { await kickNext(batchId); return; }
+    // Last worker out writes the batch score rollup.
+    const { count: busyCount } = await admin.from("ptest_jobs")
+      .select("id", { count: "exact", head: true })
+      .eq("batch_id", batchId)
+      .in("status", ["queued", "running"]);
+    if ((busyCount ?? 0) === 0) await writeBatchRollup(admin, batchId);
   })());
 
   return json({
