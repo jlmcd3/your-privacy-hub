@@ -76,6 +76,8 @@ export default function AllPTest() {
   const [reviews, setReviews] = useState<DeepReviewResult[]>([]);
   const [arbitrations, setArbitrations] = useState<ArbitrationResult[]>([]);
   const [jobs, setJobs] = useState<PtestJobRow[]>([]);
+  // Bumped whenever a run records or updates history, so the panel reloads.
+  const [historyKey, setHistoryKey] = useState(0);
   const cancelled = useRef(false);
 
   const say = useCallback((line: string) => {
@@ -105,6 +107,22 @@ export default function AllPTest() {
       });
       setBatchId(id);
       say(`Batch ${id} started.`);
+      // History row first: a run that later fails is still visible and its
+      // partial fix items remain reachable.
+      try {
+        await recordBatchStart({
+          batchId: id,
+          runBy: user.id,
+          industry: STRESS_INDUSTRIES.find((i) => i.id === industryId)?.label ?? industryId,
+          products: selected,
+          documentsPerProduct: count,
+          reviewEffort,
+          arbitrationEffort: arbEffort,
+        });
+        setHistoryKey((k) => k + 1);
+      } catch (e) {
+        say(`History row not recorded — ${(e as Error).message}`);
+      }
 
       // ── Generation phase ────────────────────────────────────────────────
       // Each poll is individually bounded inside claudeIntake; a read that
@@ -186,10 +204,21 @@ export default function AllPTest() {
           ? `✖ ${a.tool}: arbitration failed — ${a.error}`
           : `✔ ${a.tool}: ${a.fixList.length} agreed fix(es), ${a.ceoSheet.length} CEO decision(s), ${a.dropped.length} dropped`);
       }
+      // Persist every agreed fix and CEO decision as a tracked item. Upsert:
+      // a re-sync never duplicates and never overwrites a human-set status.
+      try {
+        const tracked = await syncFixItems(id, results.arbitrations);
+        await setBatchStatus(id, "complete");
+        setHistoryKey((k) => k + 1);
+        say(`${tracked} fix/decision item(s) recorded in run history.`);
+      } catch (e) {
+        say(`Fix tracking not saved — ${(e as Error).message}`);
+      }
       setPhase("done");
       say("Run complete.");
     } catch (e) {
       say(`Run stopped — ${(e as Error).message}`);
+      if (id) { try { await setBatchStatus(id, "error", (e as Error).message); setHistoryKey((k) => k + 1); } catch { /* history is secondary */ } }
       setPhase("error");
     }
   }, [user?.id, selected, industryId, count, reviewEffort, arbEffort, say]);
