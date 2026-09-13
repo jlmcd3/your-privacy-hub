@@ -239,6 +239,16 @@ export default function AllPTest() {
             say(`⚠ ${label}: ${j.note}`);
           }
         }
+        // Per-document score, logged once per reviewer as the review lands.
+        try {
+          for (const s of await fetchReviewScores(id)) {
+            const key = `score:${s.assessment_id}:${s.reviewer}`;
+            if (jobStates.current.has(key) || s.error) continue;
+            jobStates.current.set(key, "1");
+            const n = (v: number | null) => (v === null ? "—" : v.toFixed(1));
+            say(`· scored ${s.tool_slug} · ${s.company_name ?? "(unnamed)"} — ${s.reviewer} ${n(s.overall_score)} (derived ${n(s.derived_score)})`);
+          }
+        } catch { /* scores are reporting only: never interrupt a run */ }
         if (done + failed >= jobRows.length) break;
       }
 
