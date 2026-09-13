@@ -37,6 +37,8 @@ import {
   type PtestEffort,
   type PtestJobRow,
 } from "@/lib/ptestRun";
+import { PtestHistory } from "@/components/admin/PtestHistory";
+import { recordBatchStart, setBatchStatus, syncFixItems } from "@/lib/ptestHistory";
 
 const PRODUCTS: Array<{ slug: ToolSlug; label: string }> = [
   { slug: "cppa_risk", label: "CPPA Risk Assessment" },
