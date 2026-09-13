@@ -88,6 +88,28 @@ async function runReviewer(
   };
 }
 
+/** Transient shapes worth one more attempt: a truncated/unparseable answer and
+ *  a provider call that ran past the self-abort window. Everything else (bad
+ *  key, missing model, empty document) is deterministic and is not retried. */
+function isRetryableReviewError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err ?? "");
+  return /unparseable JSON|timed out|TimeoutError|no_text_block|no_output_text|\b(429|500|502|503|504)\b/i.test(msg);
+}
+
+async function runReviewerWithRetry(
+  reviewer: Reviewer,
+  doc: { tool: string; id: string; documentText: string; intakeJson: string; truncated: boolean },
+  effort: Effort,
+) {
+  try {
+    return await runReviewer(reviewer, doc, effort);
+  } catch (err) {
+    if (!isRetryableReviewError(err)) throw err;
+    console.warn(`[deep-review] ${reviewer} attempt 1 failed (${err instanceof Error ? err.message : String(err)}) — retrying once`);
+    return await runReviewer(reviewer, doc, effort);
+  }
+}
+
 export interface DeepReviewOutcome {
   ok: boolean;
   status: number;
