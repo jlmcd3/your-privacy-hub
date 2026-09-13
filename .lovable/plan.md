@@ -64,14 +64,20 @@ Every prompt returns strict JSON. Every finding must carry a verbatim quote from
 
 Output per finding: `id, product, variant, severity (critical/high/editorial), confidence, quote, why, proposed_change | decision_required, cause_layer, code_focus, grader_reconciliation, regression_test`.
 
-**Arbitration.** "Here are two independent review sets for the same documents. Merge them. A finding is AGREED when both reviewers report the same underlying problem, even in different words. Route to the CEO sheet anything where the reviewers disagree on whether it is a defect, or that touches legal substance, pricing, product naming or a change-controlled prompt. Everything else is REJECTED with a reason. Deduplicate across documents: one entry per underlying cause, listing every occurrence."
+**Arbitration (Claude is the arbiter).** "Here are two independent review sets for the same documents. Merge them, deduplicating across documents: one entry per underlying cause, listing every occurrence." Claude then classifies every finding by who raised it:
+
+- **Both reviewers raised it** — AGREED. Goes on the fix list.
+- **Only ChatGPT raised it** — Claude decides whether it is a real error needing a fix. If Claude agrees, it goes on the fix list as AGREED-ON-REVIEW. If Claude disagrees, it goes on the **CEO Decision Sheet** stating ChatGPT's proposed fix verbatim and Claude's reason for rejecting it — never silently dropped.
+- **Only Claude raised it** — if it is not a CEO issue, it goes on the fix list. If it touches legal substance, pricing, product naming or a change-controlled prompt, it goes to the CEO sheet instead.
+
+CEO sheet routing overrides all three cases: anything legal, pricing, naming or change-controlled goes there regardless of who raised it.
 
 **Fix drafting.** For each agreed finding: the file and symbol to change, the change, the regression assertion that proves it, and the opposite/missing/boundary inputs the test must also cover.
 
 ## 5. Artefacts
 
 - **Agreed Fix List** (JSON + Markdown) — deduplicated causes, each with code focus and a proposed regression assertion. This is a handoff, not an applied change.
-- **CEO Decision Sheet** (Markdown) — reviewer disagreements and anything legal, pricing or naming related, each stated as a question with the options and the consequence of each.
+- **CEO Decision Sheet** (Markdown) — anything legal, pricing, naming or change-controlled, plus every ChatGPT finding Claude declined to fix (ChatGPT's proposed fix quoted, Claude's rejection reason beside it). Each stated as a question with options and consequences.
 - **Rejected log** — kept so the same finding is not re-raised every batch.
 
 Both artefacts download from the page and persist against the batch row, so a batch can be reopened later.
