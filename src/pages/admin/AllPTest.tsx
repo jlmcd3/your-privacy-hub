@@ -294,6 +294,8 @@ export default function AllPTest() {
     }
   }, [batchId, say]);
 
+  const scoreMatrix = useMemo(() => buildScoreMatrix(reviews, arbitrations), [reviews, arbitrations]);
+
   const markdown = useMemo(
     () =>
       batchId
