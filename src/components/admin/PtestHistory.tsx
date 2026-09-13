@@ -98,6 +98,33 @@ export function PtestHistory({ refreshKey }: { refreshKey?: number }) {
     if (item.fix_status === "open") await patch(batch.batch_id, item, { fix_status: "in_progress" });
   };
 
+  // Items still needing a fix: anything not yet fixed, rejected or deferred.
+  const needsFix = (r: PtestFixItemRow) =>
+    r.fix_status === "open" || r.fix_status === "in_progress";
+
+  const startFixAll = async (batch: PtestBatchRow, group: PtestFixItemRow[], kind: "fix" | "ceo") => {
+    const targets = group.filter(needsFix);
+    if (!targets.length) return;
+    const label = kind === "fix" ? "agreed-fixes" : "ceo-decisions";
+    const brief = [
+      `# ${kind === "fix" ? "Agreed fix list" : "CEO decision sheet"} — batch ${batch.batch_id}`,
+      "",
+      `${targets.length} item(s) needing a fix. Each brief is complete and self-contained.`,
+      "",
+      ...targets.map((it) => buildFixBrief(it, batch)),
+    ].join("\n\n---\n\n");
+    try {
+      await navigator.clipboard.writeText(brief);
+      toast({ title: "All fix briefs copied", description: `${targets.length} item(s). Paste to the implementing agent. Open items marked in progress.` });
+    } catch {
+      toast({ title: "All fix briefs downloaded", description: "Clipboard unavailable — the briefs were downloaded instead." });
+    }
+    downloadMarkdown(`fix-all-${label}-${batch.batch_id.slice(0, 8)}.md`, brief);
+    for (const it of targets) {
+      if (it.fix_status === "open") await patch(batch.batch_id, it, { fix_status: "in_progress" });
+    }
+  };
+
   return (
     <section className="rounded-lg border border-border bg-card p-4 space-y-3">
       <div className="flex items-center justify-between">
@@ -150,9 +177,20 @@ export function PtestHistory({ refreshKey }: { refreshKey?: number }) {
                     const group = rows.filter((r) => r.item_kind === kind);
                     return (
                       <div key={kind}>
-                        <h3 className="text-xs font-medium text-foreground">
-                          {kind === "fix" ? "Agreed fix list" : "CEO decision sheet"} ({group.length})
-                        </h3>
+                        <div className="flex items-center justify-between gap-2">
+                          <h3 className="text-xs font-medium text-foreground">
+                            {kind === "fix" ? "Agreed fix list" : "CEO decision sheet"} ({group.length})
+                          </h3>
+                          {group.some(needsFix) && (
+                            <button
+                              type="button"
+                              onClick={() => void startFixAll(b, group, kind)}
+                              className="rounded bg-brand-teal px-2 py-1 text-[11px] text-primary-foreground"
+                            >
+                              Fix all ({group.filter(needsFix).length})
+                            </button>
+                          )}
+                        </div>
                         {!group.length && <p className="text-[11px] text-muted-foreground">None.</p>}
                         <ul className="mt-1 space-y-2">
                           {group.map((it) => (
