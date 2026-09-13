@@ -30,6 +30,8 @@ import {
   fetchPtestResults,
   cancelPtestJobs,
   buildPtestMarkdown,
+  buildScoreMatrix,
+  fetchReviewScores,
   downloadMarkdown,
   assertAdminSession,
   type DeepReviewResult,
