@@ -11,7 +11,7 @@
 // the customer-facing text for wording, grammar, legal meaning, logic and
 // internal consistency. PDFs are not part of this loop.
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import {
   STRESS_INDUSTRIES,
