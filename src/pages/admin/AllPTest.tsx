@@ -15,21 +15,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import {
   STRESS_INDUSTRIES,
-  SLUG_TO_STRESS_TOOL,
   launchClaudeIntakeBatch,
   fetchClaudeBatchJobs,
   fetchClaudeBatchStatus,
   cancelClaudeBatch,
   type StressJobRow,
 } from "@/lib/claudeIntake";
-import { SAMPLE_FIXTURES, type ToolSlug } from "@/lib/sampleFixtures";
-import { preflightFixture } from "@/lib/sampleFixturePreflight";
-import {
-  PRESET_DATASET_COUNT,
-  isNonGdprFixtureForGdprOnlyProduct,
-  pickPresetDatasets,
-} from "@/lib/sampleDataPackages";
-import { runGenerator } from "@/lib/sampleGenerators";
+import { type ToolSlug } from "@/lib/sampleFixtures";
+
 import {
   enqueuePtestJobs,
   tickPtestDriver,
