@@ -524,6 +524,10 @@ export function buildPtestMarkdown(opts: {
       L.push(`#### Reviewer ${key.toUpperCase()} — ${rev.model ?? "—"} (${rev.effort ?? "—"})`);
       if (rev.error) { L.push(`**Failed:** ${rev.error}`); continue; }
       if (rev.note) L.push(`_Note: ${rev.note}_`);
+      L.push(`Score: ${typeof rev.overall_score === "number" ? rev.overall_score.toFixed(1) : "—"} (reported) · ${typeof rev.derived_score === "number" ? rev.derived_score.toFixed(1) : "—"} (derived from findings)${rev.score_notes ? ` · ⚠ ${rev.score_notes}` : ""}`);
+      if (rev.dimension_scores) {
+        L.push(`Dimensions: ${Object.entries(rev.dimension_scores).map(([k, v]) => `${k} ${v}`).join(" · ")}`);
+      }
       L.push(`Overall: ${fence(rev.overall)}`);
       L.push(`Double-check: ${fence(rev.double_check)}`);
       const findings = rev.findings ?? [];
