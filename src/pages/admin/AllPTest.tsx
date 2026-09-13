@@ -15,21 +15,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import {
   STRESS_INDUSTRIES,
-  SLUG_TO_STRESS_TOOL,
   launchClaudeIntakeBatch,
   fetchClaudeBatchJobs,
   fetchClaudeBatchStatus,
   cancelClaudeBatch,
   type StressJobRow,
 } from "@/lib/claudeIntake";
-import { SAMPLE_FIXTURES, type ToolSlug } from "@/lib/sampleFixtures";
-import { preflightFixture } from "@/lib/sampleFixturePreflight";
-import {
-  PRESET_DATASET_COUNT,
-  isNonGdprFixtureForGdprOnlyProduct,
-  pickPresetDatasets,
-} from "@/lib/sampleDataPackages";
-import { runGenerator } from "@/lib/sampleGenerators";
+import { type ToolSlug } from "@/lib/sampleFixtures";
+
 import {
   enqueuePtestJobs,
   tickPtestDriver,
@@ -76,10 +69,9 @@ export default function AllPTest() {
   const [count, setCount] = useState(5);
   const [reviewEffort, setReviewEffort] = useState<PtestEffort>("high");
   const [arbEffort, setArbEffort] = useState<PtestEffort>("high");
-  // INTAKE SOURCE — same two paths as /admin/all-products-test. "preset" is
-  // the canonical data package (no model call, cannot time out) and is the
-  // default; "claude" writes fresh company profiles via the stress harness.
-  const [intakeSource, setIntakeSource] = useState<"preset" | "claude">("preset");
+  // INTAKE SOURCE — Claude-generated intake only. The pre-set data package is
+  // deliberately not available on this page.
+
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [batchId, setBatchId] = useState<string | null>(null);
@@ -94,9 +86,6 @@ export default function AllPTest() {
   // written to the log exactly once.
   const jobStates = useRef<Map<string, string>>(new Map());
   const logRef = useRef<HTMLPreElement | null>(null);
-  // Which intake path produced the live batch — a preset batch has no stress
-  // harness batch to cancel.
-  const sourceRef = useRef<"preset" | "claude">("preset");
 
 
   const say = useCallback((line: string) => {
@@ -117,9 +106,8 @@ export default function AllPTest() {
       await recordBatchStart({
         batchId: id,
         runBy: user?.id ?? null,
-        industry: intakeSource === "preset"
-          ? "pre-set data package"
-          : STRESS_INDUSTRIES.find((i) => i.id === industryId)?.label ?? industryId,
+        industry: STRESS_INDUSTRIES.find((i) => i.id === industryId)?.label ?? industryId,
+
         products: selected,
         documentsPerProduct: count,
         reviewEffort,
@@ -129,7 +117,7 @@ export default function AllPTest() {
     } catch (e) {
       say(`History row not recorded — ${(e as Error).message}`);
     }
-  }, [user?.id, intakeSource, industryId, selected, count, reviewEffort, arbEffort, say]);
+  }, [user?.id, industryId, selected, count, reviewEffort, arbEffort, say]);
 
 
   const toggle = (slug: ToolSlug) =>
@@ -149,67 +137,11 @@ export default function AllPTest() {
       setPhase("generating");
 
       // ── Generation phase ────────────────────────────────────────────────
-      // Two intake sources, exactly as /admin/all-products-test:
-      //  • preset — the canonical contract-conformant data package (no model
-      //    call, so generation cannot time out). Default.
-      //  • claude — a fresh company profile per geo via the stress harness.
+      // Claude-generated intake only, exactly as /admin/all-products-test:
+      // a fresh company profile per geo via the stress harness.
       let docs: Array<{ tool: string; assessment_id: string; company_name: string }> = [];
 
-      if (intakeSource === "preset") {
-        const bases = SAMPLE_FIXTURES
-          .filter((f) => !f.paused)
-          .filter((f) => !f.variant.endsWith("-supplemental"))
-          .filter((f) => !isNonGdprFixtureForGdprOnlyProduct(f))
-          .filter((f) => selected.includes(f.tool_slug));
-        if (!bases.length) throw new Error("no pre-set datasets exist for the selected product(s)");
-
-        // INTAKE GATE — refuse the whole run rather than emit a doomed dispatch.
-        const bad = bases.map((f) => preflightFixture(f)).filter((r) => !r.ok);
-        if (bad.length) throw new Error(`preflight failed for ${bad.map((b) => b.label).join(", ")}`);
-
-        id = crypto.randomUUID();
-        sourceRef.current = "preset";
-        setBatchId(id);
-        if (count > PRESET_DATASET_COUNT) {
-          say(`Pre-set package holds ${PRESET_DATASET_COUNT} datasets per product — capping ${count} at ${PRESET_DATASET_COUNT}.`);
-        }
-        const plan = bases.map((f) => ({ base: f, datasets: pickPresetDatasets(f, count) }));
-        const totalRuns = plan.reduce((n, p) => n + p.datasets.length, 0);
-        say(`Batch ${id} started — ${totalRuns} document(s) from the pre-set data package.`);
-        await recordHistory(id);
-
-        const produced: typeof docs = [];
-        let done = 0;
-        // Products run through 4 lanes; datasets within a product stay serial,
-        // and a failing product ends only its own remaining datasets.
-        const runProduct = async (p: (typeof plan)[number]) => {
-          for (let i = 0; i < p.datasets.length; i++) {
-            if (cancelled.current) return;
-            const d = p.datasets[i];
-            try {
-              const out = await runGenerator(d, user.id, () => {});
-              produced.push({
-                tool: SLUG_TO_STRESS_TOOL[d.tool_slug],
-                assessment_id: out.sourceRowId,
-                company_name: `${d.title} [${d.variant}]`,
-              });
-              done += 1;
-              say(`✔ ${d.tool_slug} · ${d.title} [${d.variant}] generated (${done}/${totalRuns})`);
-            } catch (e) {
-              say(`✖ ${d.tool_slug} · ${d.title} [${d.variant}] — ${(e as Error).message}`);
-              if (i < p.datasets.length - 1) {
-                say(`⏭ skipping ${p.datasets.length - i - 1} remaining dataset(s) for ${d.tool_slug}`);
-              }
-              return;
-            }
-          }
-        };
-        let cursor = 0;
-        const lane = async () => { while (cursor < plan.length) await runProduct(plan[cursor++]); };
-        await Promise.all([lane(), lane(), lane(), lane()]);
-        if (cancelled.current) { say("Cancelled."); setPhase("idle"); return; }
-        docs = produced;
-      } else {
+      {
         say(`Launching ${selected.length} product(s) × ${count} document(s) on Claude-generated intake…`);
         id = await launchClaudeIntakeBatch({
           userId: user.id,
@@ -217,7 +149,6 @@ export default function AllPTest() {
           industryId,
           companiesPerGeo: count,
         });
-        sourceRef.current = "claude";
         setBatchId(id);
         say(`Batch ${id} started.`);
         await recordHistory(id);
@@ -252,6 +183,7 @@ export default function AllPTest() {
             company_name: j.company_name ?? "(unnamed)",
           }));
       }
+
 
       if (!docs.length) throw new Error("no documents were generated — nothing to review");
       say(`${docs.length} document(s) generated. Starting deep review (2 reviewers each, effort ${reviewEffort}).`);
@@ -333,16 +265,14 @@ export default function AllPTest() {
       if (id) { try { await setBatchStatus(id, "error", (e as Error).message); setHistoryKey((k) => k + 1); } catch { /* history is secondary */ } }
       setPhase("error");
     }
-  }, [user?.id, selected, industryId, count, reviewEffort, arbEffort, intakeSource, recordHistory, say]);
+  }, [user?.id, selected, industryId, count, reviewEffort, arbEffort, recordHistory, say]);
 
   const stop = useCallback(async () => {
     cancelled.current = true;
     if (batchId) {
       try {
-        // A preset batch has no stress-harness jobs to cancel.
-        const cancelledJobs = sourceRef.current === "claude"
-          ? (await cancelClaudeBatch(batchId)).cancelledJobs
-          : 0;
+        const cancelledJobs = (await cancelClaudeBatch(batchId)).cancelledJobs;
+
         await cancelPtestJobs(batchId);
         try { await setBatchStatus(batchId, "cancelled"); setHistoryKey((k) => k + 1); } catch { /* history is secondary */ }
         say(`Cancel requested — ${cancelledJobs} generation job(s) stopped; queued review work cancelled.`);
@@ -381,45 +311,26 @@ export default function AllPTest() {
       <section className="rounded-lg border border-border bg-card p-4 space-y-4">
         <div className="space-y-2">
           <span className="text-sm text-muted-foreground">Test data</span>
-          <div className="flex flex-wrap gap-2">
-            {([
-              { id: "preset" as const, label: "Pre-set data package" },
-              { id: "claude" as const, label: "Claude-generated intake" },
-            ]).map((o) => (
-              <button
-                key={o.id}
-                type="button"
-                disabled={busy}
-                onClick={() => setIntakeSource(o.id)}
-                className={`rounded border px-3 py-1.5 text-xs transition ${
-                  intakeSource === o.id
-                    ? "border-brand-teal bg-brand-teal/10 text-brand-teal-text"
-                    : "border-border text-muted-foreground hover:border-brand-teal/50"
-                }`}
-              >
-                {o.label}
-              </button>
-            ))}
-          </div>
           <p className="text-xs text-muted-foreground">
-            {intakeSource === "preset"
-              ? `The canonical contract-conformant data package — up to ${PRESET_DATASET_COUNT} distinct datasets per product, no model call, so test data cannot time out.`
-              : "Claude writes a fresh, internally consistent company profile per geo and every selected product runs against it server-side via the stress harness."}
+            Claude writes a fresh, internally consistent company profile per geo and every selected
+            product runs against it server-side via the stress harness — the same intake path as
+            /admin/all-products-test. The pre-set data package is not used here.
           </p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
           <label className="space-y-1 text-sm">
-            <span className="text-muted-foreground">Industry{intakeSource === "preset" ? " (Claude intake only)" : ""}</span>
+            <span className="text-muted-foreground">Industry</span>
             <select
               className="w-full rounded border border-border bg-background px-2 py-1.5 text-sm disabled:opacity-50"
               value={industryId}
-              disabled={busy || intakeSource === "preset"}
+              disabled={busy}
               onChange={(e) => setIndustryId(e.target.value)}
             >
               {STRESS_INDUSTRIES.map((i) => <option key={i.id} value={i.id}>{i.label}</option>)}
             </select>
           </label>
+
           <label className="space-y-1 text-sm">
             <span className="text-muted-foreground">Documents per product (1–8)</span>
             <input
