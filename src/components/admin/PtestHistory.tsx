@@ -177,9 +177,20 @@ export function PtestHistory({ refreshKey }: { refreshKey?: number }) {
                     const group = rows.filter((r) => r.item_kind === kind);
                     return (
                       <div key={kind}>
-                        <h3 className="text-xs font-medium text-foreground">
-                          {kind === "fix" ? "Agreed fix list" : "CEO decision sheet"} ({group.length})
-                        </h3>
+                        <div className="flex items-center justify-between gap-2">
+                          <h3 className="text-xs font-medium text-foreground">
+                            {kind === "fix" ? "Agreed fix list" : "CEO decision sheet"} ({group.length})
+                          </h3>
+                          {group.some(needsFix) && (
+                            <button
+                              type="button"
+                              onClick={() => void startFixAll(b, group, kind)}
+                              className="rounded bg-brand-teal px-2 py-1 text-[11px] text-primary-foreground"
+                            >
+                              Fix all ({group.filter(needsFix).length})
+                            </button>
+                          )}
+                        </div>
                         {!group.length && <p className="text-[11px] text-muted-foreground">None.</p>}
                         <ul className="mt-1 space-y-2">
                           {group.map((it) => (
