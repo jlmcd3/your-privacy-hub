@@ -5711,6 +5711,8 @@ export type Database = {
       }
       ptest_arbitrations: {
         Row: {
+          arbitration_scope: string
+          assessment_id: string | null
           batch_id: string | null
           ceo_sheet: Json
           created_at: string
@@ -5723,6 +5725,7 @@ export type Database = {
           id: string
           input_truncated: boolean
           model: string | null
+          parent_job_id: string | null
           prompt_version: string | null
           run_by: string | null
           summary: string | null
@@ -5730,6 +5733,8 @@ export type Database = {
           usage: Json | null
         }
         Insert: {
+          arbitration_scope?: string
+          assessment_id?: string | null
           batch_id?: string | null
           ceo_sheet?: Json
           created_at?: string
@@ -5742,6 +5747,7 @@ export type Database = {
           id?: string
           input_truncated?: boolean
           model?: string | null
+          parent_job_id?: string | null
           prompt_version?: string | null
           run_by?: string | null
           summary?: string | null
@@ -5749,6 +5755,8 @@ export type Database = {
           usage?: Json | null
         }
         Update: {
+          arbitration_scope?: string
+          assessment_id?: string | null
           batch_id?: string | null
           ceo_sheet?: Json
           created_at?: string
@@ -5761,11 +5769,78 @@ export type Database = {
           id?: string
           input_truncated?: boolean
           model?: string | null
+          parent_job_id?: string | null
           prompt_version?: string | null
           run_by?: string | null
           summary?: string | null
           tool_slug?: string
           usage?: Json | null
+        }
+        Relationships: []
+      }
+      ptest_jobs: {
+        Row: {
+          assessment_id: string | null
+          attempts: number
+          batch_id: string
+          claimed_at: string | null
+          company_name: string | null
+          created_at: string
+          effort: string
+          error: string | null
+          finished_at: string | null
+          heartbeat_at: string | null
+          id: string
+          input_truncated: boolean
+          kind: string
+          max_attempts: number
+          note: string | null
+          result_id: string | null
+          run_by: string | null
+          status: string
+          tool_slug: string
+        }
+        Insert: {
+          assessment_id?: string | null
+          attempts?: number
+          batch_id: string
+          claimed_at?: string | null
+          company_name?: string | null
+          created_at?: string
+          effort?: string
+          error?: string | null
+          finished_at?: string | null
+          heartbeat_at?: string | null
+          id?: string
+          input_truncated?: boolean
+          kind: string
+          max_attempts?: number
+          note?: string | null
+          result_id?: string | null
+          run_by?: string | null
+          status?: string
+          tool_slug: string
+        }
+        Update: {
+          assessment_id?: string | null
+          attempts?: number
+          batch_id?: string
+          claimed_at?: string | null
+          company_name?: string | null
+          created_at?: string
+          effort?: string
+          error?: string | null
+          finished_at?: string | null
+          heartbeat_at?: string | null
+          id?: string
+          input_truncated?: boolean
+          kind?: string
+          max_attempts?: number
+          note?: string | null
+          result_id?: string | null
+          run_by?: string | null
+          status?: string
+          tool_slug?: string
         }
         Relationships: []
       }
@@ -11307,6 +11382,36 @@ export type Database = {
           subject: string
           violation: string
         }[]
+      }
+      claim_ptest_job: {
+        Args: { _batch_id: string; _stale_after?: string }
+        Returns: {
+          assessment_id: string | null
+          attempts: number
+          batch_id: string
+          claimed_at: string | null
+          company_name: string | null
+          created_at: string
+          effort: string
+          error: string | null
+          finished_at: string | null
+          heartbeat_at: string | null
+          id: string
+          input_truncated: boolean
+          kind: string
+          max_attempts: number
+          note: string | null
+          result_id: string | null
+          run_by: string | null
+          status: string
+          tool_slug: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "ptest_jobs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       close_account: {
         Args: { _closure_type: string; _reason?: string; _user_id: string }

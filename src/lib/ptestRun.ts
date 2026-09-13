@@ -183,15 +183,142 @@ export async function arbitrateProduct(opts: {
       model: typeof d.model === "string" ? d.model : undefined,
       findingsIn: typeof d.findings_in === "number" ? d.findings_in : undefined,
       inputTruncated: !!d.input_truncated,
-      fixList: (a.fix_list ?? []) as FixListEntry[],
-      ceoSheet: (a.ceo_sheet ?? []) as CeoEntry[],
-      dropped: (a.dropped ?? []) as Array<{ id: string; reason: string }>,
+      fixList: (a.fix_list ?? []) as unknown as FixListEntry[],
+      ceoSheet: (a.ceo_sheet ?? []) as unknown as CeoEntry[],
+      dropped: (a.dropped ?? []) as unknown as Array<{ id: string; reason: string }>,
       doubleCheck: (a.double_check ?? null) as string | null,
       summary: (a.summary ?? null) as string | null,
     };
   } catch (e) {
     return { ...base, error: (e as Error).message };
   }
+}
+
+// ── Job queue (ptest-run-driver) ────────────────────────────────────────────
+// NO CALLER WAITS ON A MODEL CALL. Review and arbitration are enqueued as jobs
+// and run as background tasks server-side; the page polls ptest_jobs. This is
+// what removes the request-window ceiling on long documents — see
+// supabase/functions/ptest-run-driver/index.ts.
+
+/** Queue calls are short control-plane calls, never model calls. */
+const DRIVER_TIMEOUT_MS = 30_000;
+
+export interface PtestJobRow {
+  id: string;
+  tool_slug: string;
+  kind: "review" | "arb_document" | "arb_merge";
+  assessment_id: string | null;
+  company_name: string | null;
+  status: "queued" | "running" | "done" | "failed" | "cancelled";
+  attempts: number;
+  error: string | null;
+  note: string | null;
+  input_truncated: boolean;
+  finished_at: string | null;
+}
+
+async function driver(action: string, body: Record<string, unknown>) {
+  const { data, error } = await invokeResilient(
+    "ptest-run-driver",
+    { action, ...body },
+    DRIVER_TIMEOUT_MS,
+  );
+  if (error) throw new Error(error.message);
+  const d = (data ?? {}) as Record<string, unknown>;
+  if (d.error) throw new Error(`${d.error}${d.detail ? ` — ${d.detail}` : ""}`);
+  return d;
+}
+
+export async function enqueuePtestJobs(opts: {
+  batchId: string;
+  documents: Array<{ tool: string; assessment_id: string; company_name: string }>;
+  reviewEffort: PtestEffort;
+  arbitrationEffort: PtestEffort;
+}): Promise<number> {
+  const d = await driver("enqueue", {
+    batch_id: opts.batchId,
+    documents: opts.documents,
+    review_effort: opts.reviewEffort,
+    arbitration_effort: opts.arbitrationEffort,
+  });
+  return typeof d.enqueued === "number" ? d.enqueued : 0;
+}
+
+/** Keeps the chain alive. Idle-safe: claims at most one job, never duplicates. */
+export async function tickPtestDriver(batchId: string): Promise<void> {
+  try {
+    await driver("tick", { batch_id: batchId });
+  } catch {
+    // A failed tick is not fatal: the next poll ticks again, and a job whose
+    // worker died is re-queued by the stale-heartbeat rule.
+  }
+}
+
+export async function cancelPtestJobs(batchId: string): Promise<void> {
+  await driver("cancel", { batch_id: batchId });
+}
+
+export async function fetchPtestJobs(batchId: string): Promise<PtestJobRow[]> {
+  const { data, error } = await supabase
+    .from("ptest_jobs")
+    .select("id, tool_slug, kind, assessment_id, company_name, status, attempts, error, note, input_truncated, finished_at")
+    .eq("batch_id", batchId)
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as PtestJobRow[];
+}
+
+/** Reads the persisted reviews and the per-product merged verdicts. */
+export async function fetchPtestResults(batchId: string): Promise<{
+  reviews: DeepReviewResult[];
+  arbitrations: ArbitrationResult[];
+}> {
+  const [rev, arb] = await Promise.all([
+    supabase.from("ptest_reviews")
+      .select("assessment_id, tool_slug, company_name, reviewer, model, effort, findings, double_check, overall, dropped_unlocatable, error")
+      .eq("batch_id", batchId).order("created_at", { ascending: true }),
+    supabase.from("ptest_arbitrations")
+      .select("tool_slug, model, fix_list, ceo_sheet, dropped, double_check, summary, findings_in, input_truncated, error, arbitration_scope")
+      .eq("batch_id", batchId).eq("arbitration_scope", "merge").order("created_at", { ascending: true }),
+  ]);
+  if (rev.error) throw new Error(rev.error.message);
+  if (arb.error) throw new Error(arb.error.message);
+
+  const byDoc = new Map<string, DeepReviewResult>();
+  for (const r of rev.data ?? []) {
+    const key = String(r.assessment_id);
+    if (!byDoc.has(key)) {
+      byDoc.set(key, {
+        ok: true, tool: r.tool_slug, assessmentId: key,
+        companyName: r.company_name ?? "(unnamed)", reviews: {},
+      });
+    }
+    byDoc.get(key)!.reviews[r.reviewer] = {
+      reviewer: r.reviewer,
+      model: r.model ?? undefined,
+      effort: r.effort,
+      findings: (r.findings ?? []) as unknown as ReviewFinding[],
+      double_check: r.double_check,
+      overall: r.overall,
+      error: r.error ?? undefined,
+    };
+  }
+
+  const arbitrations: ArbitrationResult[] = (arb.data ?? []).map((a) => ({
+    ok: !a.error,
+    tool: a.tool_slug,
+    model: a.model ?? undefined,
+    findingsIn: a.findings_in ?? undefined,
+    inputTruncated: !!a.input_truncated,
+    fixList: (a.fix_list ?? []) as unknown as FixListEntry[],
+    ceoSheet: (a.ceo_sheet ?? []) as unknown as CeoEntry[],
+    dropped: (a.dropped ?? []) as unknown as Array<{ id: string; reason: string }>,
+    doubleCheck: a.double_check,
+    summary: a.summary,
+    error: a.error ?? undefined,
+  }));
+
+  return { reviews: Array.from(byDoc.values()), arbitrations };
 }
 
 /** Bounded-concurrency map. Three in flight matches the harness's proven
