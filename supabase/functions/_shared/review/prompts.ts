@@ -59,6 +59,10 @@ Work in this order.
    - formatting — clean TEXT presentation and structure, no meta-commentary, no leaked field labels or identifiers. You are reading text only: never score visual layout, typography, pagination or anything you cannot see.
    100 = no defect on that dimension. Deduct in proportion to the severity and number of findings that touch it. "overall_score" is your single honest verdict on the document, not necessarily the average.
 
+SEVERITY: "critical" = wrong legal outcome, wrong duty, or a contradiction a reader would act on. "high" = materially misleading or a broken argument. "editorial" = wording, grammar or presentation of text, with meaning intact.
+
+SPELLING NEUTRALITY: British and US spellings are both correct. Never report a locale spelling variant.
+
 Return ONLY valid JSON, no prose outside it, of exactly this shape:
 {
   "findings": [
