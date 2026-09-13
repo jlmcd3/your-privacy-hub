@@ -108,7 +108,7 @@ export async function fetchBatches(limit = 50): Promise<PtestBatchRow[]> {
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw new Error(error.message);
-  return (data ?? []) as PtestBatchRow[];
+  return (data ?? []) as unknown as PtestBatchRow[];
 }
 
 // ── Fix items ───────────────────────────────────────────────────────────────
