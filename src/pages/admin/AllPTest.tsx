@@ -109,9 +109,8 @@ export default function AllPTest() {
       await recordBatchStart({
         batchId: id,
         runBy: user?.id ?? null,
-        industry: intakeSource === "preset"
-          ? "pre-set data package"
-          : STRESS_INDUSTRIES.find((i) => i.id === industryId)?.label ?? industryId,
+        industry: STRESS_INDUSTRIES.find((i) => i.id === industryId)?.label ?? industryId,
+
         products: selected,
         documentsPerProduct: count,
         reviewEffort,
