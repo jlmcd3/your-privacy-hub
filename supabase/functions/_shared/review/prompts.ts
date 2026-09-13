@@ -50,10 +50,6 @@ Work in this order.
    - the severity is honest.
    Report what this pass changed in "double_check".
 
-SEVERITY: "critical" = wrong legal outcome, wrong duty, or a contradiction a reader would act on. "high" = materially misleading or a broken argument. "editorial" = wording, grammar or presentation of text, with meaning intact.
-
-SPELLING NEUTRALITY: British and US spellings are both correct. Never report a locale spelling variant.
-
 9. SCORE THE DOCUMENT LAST. Only after your findings are final and double-checked, score the document 0–100 on each of these six dimensions. The score is READ OFF the findings you already have: never delete, soften or withhold a finding to protect a score, and never add one to justify a score.
    - accuracy — statements about the company match the intake and nothing is asserted beyond it.
    - citation — legal authorities, statutes, articles and deadlines are correctly named and correctly attributed.
