@@ -41,8 +41,10 @@ export const OPENAI_CHAT_FALLBACK_MODEL = "gpt-4o";
 const ANTHROPIC_KEY = () => Deno.env.get("ANTHROPIC_API_KEY") ?? "";
 const OPENAI_KEY = () => Deno.env.get("OPENAI_API_KEY") ?? "";
 
-/** Self-abort window per call — inside the isolate wall clock. */
-export const REVIEW_CALL_TIMEOUT_MS = 300_000;
+/** Self-abort window per call — inside the isolate wall clock. Reviews run in
+ *  the background queue, so a long call no longer risks the batch; 300s was
+ *  clipping reasoning calls that legitimately return at ~310s. */
+export const REVIEW_CALL_TIMEOUT_MS = 540_000;
 
 export interface ModelCallResult {
   text: string;
@@ -133,7 +135,9 @@ export async function callClaude(opts: {
   sourceRowId?: string;
 }): Promise<ModelCallResult> {
   if (!ANTHROPIC_KEY()) throw new Error("ANTHROPIC_API_KEY not set");
-  const maxTokens = opts.maxTokens ?? 16_000;
+  // Long CPPA Risk/Cyber reviews were stopping at exactly 16,000 output tokens
+  // and arriving as truncated (unparseable) JSON.
+  const maxTokens = opts.maxTokens ?? 32_000;
   let note: string | null = null;
   let effort: Effort | null = opts.effort;
   let lastErr = "";
