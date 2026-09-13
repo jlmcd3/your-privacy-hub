@@ -86,9 +86,6 @@ export default function AllPTest() {
   // written to the log exactly once.
   const jobStates = useRef<Map<string, string>>(new Map());
   const logRef = useRef<HTMLPreElement | null>(null);
-  // Which intake path produced the live batch — a preset batch has no stress
-  // harness batch to cancel.
-  const sourceRef = useRef<"preset" | "claude">("preset");
 
 
   const say = useCallback((line: string) => {
@@ -120,7 +117,7 @@ export default function AllPTest() {
     } catch (e) {
       say(`History row not recorded — ${(e as Error).message}`);
     }
-  }, [user?.id, intakeSource, industryId, selected, count, reviewEffort, arbEffort, say]);
+  }, [user?.id, industryId, selected, count, reviewEffort, arbEffort, say]);
 
 
   const toggle = (slug: ToolSlug) =>
@@ -268,7 +265,7 @@ export default function AllPTest() {
       if (id) { try { await setBatchStatus(id, "error", (e as Error).message); setHistoryKey((k) => k + 1); } catch { /* history is secondary */ } }
       setPhase("error");
     }
-  }, [user?.id, selected, industryId, count, reviewEffort, arbEffort, intakeSource, recordHistory, say]);
+  }, [user?.id, selected, industryId, count, reviewEffort, arbEffort, recordHistory, say]);
 
   const stop = useCallback(async () => {
     cancelled.current = true;
