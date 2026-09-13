@@ -5778,6 +5778,117 @@ export type Database = {
         }
         Relationships: []
       }
+      ptest_batches: {
+        Row: {
+          arbitration_effort: string | null
+          batch_id: string
+          created_at: string
+          documents_per_product: number | null
+          industry: string | null
+          note: string | null
+          products: string[]
+          review_effort: string | null
+          run_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          arbitration_effort?: string | null
+          batch_id: string
+          created_at?: string
+          documents_per_product?: number | null
+          industry?: string | null
+          note?: string | null
+          products?: string[]
+          review_effort?: string | null
+          run_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          arbitration_effort?: string | null
+          batch_id?: string
+          created_at?: string
+          documents_per_product?: number | null
+          industry?: string | null
+          note?: string | null
+          products?: string[]
+          review_effort?: string | null
+          run_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ptest_fix_items: {
+        Row: {
+          batch_id: string
+          change_text: string | null
+          code_focus: string | null
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          defect_type: string | null
+          fix_notes: string | null
+          fix_reference: string | null
+          fix_status: string
+          id: string
+          item_id: string
+          item_kind: string
+          payload: Json
+          raised_by: string | null
+          regression_test: string | null
+          severity: string | null
+          title: string
+          tool_slug: string
+          updated_at: string
+        }
+        Insert: {
+          batch_id: string
+          change_text?: string | null
+          code_focus?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          defect_type?: string | null
+          fix_notes?: string | null
+          fix_reference?: string | null
+          fix_status?: string
+          id?: string
+          item_id: string
+          item_kind: string
+          payload?: Json
+          raised_by?: string | null
+          regression_test?: string | null
+          severity?: string | null
+          title: string
+          tool_slug: string
+          updated_at?: string
+        }
+        Update: {
+          batch_id?: string
+          change_text?: string | null
+          code_focus?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          defect_type?: string | null
+          fix_notes?: string | null
+          fix_reference?: string | null
+          fix_status?: string
+          id?: string
+          item_id?: string
+          item_kind?: string
+          payload?: Json
+          raised_by?: string | null
+          regression_test?: string | null
+          severity?: string | null
+          title?: string
+          tool_slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ptest_jobs: {
         Row: {
           assessment_id: string | null
