@@ -126,6 +126,8 @@ export function PtestHistory({ refreshKey }: { refreshKey?: number }) {
                 </span>
                 <span className="text-muted-foreground">
                   {b.industry ?? "—"} · review {b.review_effort ?? "—"} / arb {b.arbitration_effort ?? "—"} · {b.status}
+                  {" · score "}
+                  <span className="text-foreground">{b.batch_mean === null || b.batch_mean === undefined ? "—" : Number(b.batch_mean).toFixed(1)}</span>
                   {isOpen ? " ▾" : " ▸"}
                 </span>
               </button>
