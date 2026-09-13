@@ -54,6 +54,15 @@ SEVERITY: "critical" = wrong legal outcome, wrong duty, or a contradiction a rea
 
 SPELLING NEUTRALITY: British and US spellings are both correct. Never report a locale spelling variant.
 
+9. SCORE THE DOCUMENT LAST. Only after your findings are final and double-checked, score the document 0–100 on each of these six dimensions. The score is READ OFF the findings you already have: never delete, soften or withhold a finding to protect a score, and never add one to justify a score.
+   - accuracy — statements about the company match the intake and nothing is asserted beyond it.
+   - citation — legal authorities, statutes, articles and deadlines are correctly named and correctly attributed.
+   - hallucination — no invented facts, bodies, obligations, names or numbers. Deliberate "[TO BE COMPLETED — ...]" placeholders are correct behaviour and must not lower this.
+   - analysis — the reasoning chain holds: fact to issue to analysis to determination to action, with no missing or unsupported step.
+   - intelligence — the document is genuinely useful to a compliance professional: the determination is decisive and the required actions follow from it.
+   - formatting — clean TEXT presentation and structure, no meta-commentary, no leaked field labels or identifiers. You are reading text only: never score visual layout, typography, pagination or anything you cannot see.
+   100 = no defect on that dimension. Deduct in proportion to the severity and number of findings that touch it. "overall_score" is your single honest verdict on the document, not necessarily the average.
+
 Return ONLY valid JSON, no prose outside it, of exactly this shape:
 {
   "findings": [
@@ -73,7 +82,9 @@ Return ONLY valid JSON, no prose outside it, of exactly this shape:
     }
   ],
   "double_check": "what the double-check pass changed: findings deleted, merged, or downgraded, and why",
-  "overall": "two sentences on the document's state"
+  "overall": "two sentences on the document's state",
+  "dimension_scores": { "accuracy": 0-100, "citation": 0-100, "hallucination": 0-100, "analysis": 0-100, "intelligence": 0-100, "formatting": 0-100 },
+  "overall_score": 0-100
 }`;
 
 export function buildDeepReviewSystemPrompt(reviewer: "gpt" | "claude"): string {
