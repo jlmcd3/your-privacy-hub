@@ -339,10 +339,8 @@ export default function AllPTest() {
     cancelled.current = true;
     if (batchId) {
       try {
-        // A preset batch has no stress-harness jobs to cancel.
-        const cancelledJobs = sourceRef.current === "claude"
-          ? (await cancelClaudeBatch(batchId)).cancelledJobs
-          : 0;
+        const cancelledJobs = (await cancelClaudeBatch(batchId)).cancelledJobs;
+
         await cancelPtestJobs(batchId);
         try { await setBatchStatus(batchId, "cancelled"); setHistoryKey((k) => k + 1); } catch { /* history is secondary */ }
         say(`Cancel requested — ${cancelledJobs} generation job(s) stopped; queued review work cancelled.`);
