@@ -103,7 +103,9 @@ export default function AllPTest() {
   const run = useCallback(async () => {
     if (!user?.id) return;
     cancelled.current = false;
+    // A new run starts a fresh log; the previous run's log is replaced.
     setLog([]); setReviews([]); setArbitrations([]); setJobs([]); setBatchId(null);
+    jobStates.current = new Map();
     let id: string | null = null;
     try {
       await assertAdminSession();
