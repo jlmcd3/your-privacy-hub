@@ -202,8 +202,22 @@ export default function AllPTest() {
         setPhase(jobRows.some((j) => j.kind === "review" && ["queued", "running"].includes(j.status)) ? "reviewing" : "arbitrating");
         const line = `Reviewing — ${done} done, ${running} running, ${failed} failed of ${jobRows.length}`;
         if (line !== lastLine) { say(line); lastLine = line; }
+        // Per-job trace: each state change is logged once, never repeated on
+        // subsequent polls.
         for (const j of jobRows) {
-          if (j.input_truncated && j.note) say(`⚠ ${j.tool_slug} · ${j.kind}: ${j.note}`);
+          const label = `${j.tool_slug} · ${j.kind.replace("arb_", "arbitration ")} · ${j.company_name ?? "all documents"}`;
+          const seen = jobStates.current.get(j.id);
+          const state = `${j.status}#${j.attempts}`;
+          if (seen !== state) {
+            jobStates.current.set(j.id, state);
+            const mark = j.status === "done" ? "✔" : j.status === "failed" ? "✖" : "·";
+            say(`${mark} ${label} → ${j.status}${j.attempts > 1 ? ` (attempt ${j.attempts})` : ""}${j.error ? ` — ${j.error}` : ""}`);
+          }
+          const warnKey = `warn:${j.id}`;
+          if (j.input_truncated && j.note && !jobStates.current.has(warnKey)) {
+            jobStates.current.set(warnKey, "1");
+            say(`⚠ ${label}: ${j.note}`);
+          }
         }
         if (done + failed >= jobRows.length) break;
       }
