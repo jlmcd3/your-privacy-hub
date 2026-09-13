@@ -372,20 +372,49 @@ export default function AllPTest() {
       <header className="space-y-1">
         <h1 className="font-serif text-2xl text-foreground">Product Review Loop</h1>
         <p className="text-sm text-muted-foreground">
-          Claude-generated intake → deterministic generation → two independent deep reviews → arbitration →
+          Intake → deterministic generation → two independent deep reviews → arbitration →
           agreed fix list and CEO decision sheet. Text only: wording, grammar, legal meaning, logic and
           consistency. Formatting is not reviewed.
         </p>
       </header>
 
       <section className="rounded-lg border border-border bg-card p-4 space-y-4">
+        <div className="space-y-2">
+          <span className="text-sm text-muted-foreground">Test data</span>
+          <div className="flex flex-wrap gap-2">
+            {([
+              { id: "preset" as const, label: "Pre-set data package" },
+              { id: "claude" as const, label: "Claude-generated intake" },
+            ]).map((o) => (
+              <button
+                key={o.id}
+                type="button"
+                disabled={busy}
+                onClick={() => setIntakeSource(o.id)}
+                className={`rounded border px-3 py-1.5 text-xs transition ${
+                  intakeSource === o.id
+                    ? "border-brand-teal bg-brand-teal/10 text-brand-teal-text"
+                    : "border-border text-muted-foreground hover:border-brand-teal/50"
+                }`}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {intakeSource === "preset"
+              ? `The canonical contract-conformant data package — up to ${PRESET_DATASET_COUNT} distinct datasets per product, no model call, so test data cannot time out.`
+              : "Claude writes a fresh, internally consistent company profile per geo and every selected product runs against it server-side via the stress harness."}
+          </p>
+        </div>
+
         <div className="grid gap-4 md:grid-cols-3">
           <label className="space-y-1 text-sm">
-            <span className="text-muted-foreground">Industry</span>
+            <span className="text-muted-foreground">Industry{intakeSource === "preset" ? " (Claude intake only)" : ""}</span>
             <select
-              className="w-full rounded border border-border bg-background px-2 py-1.5 text-sm"
+              className="w-full rounded border border-border bg-background px-2 py-1.5 text-sm disabled:opacity-50"
               value={industryId}
-              disabled={busy}
+              disabled={busy || intakeSource === "preset"}
               onChange={(e) => setIndustryId(e.target.value)}
             >
               {STRESS_INDUSTRIES.map((i) => <option key={i.id} value={i.id}>{i.label}</option>)}
