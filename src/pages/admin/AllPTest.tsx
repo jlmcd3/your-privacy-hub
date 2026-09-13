@@ -22,7 +22,14 @@ import {
   cancelClaudeBatch,
   type StressJobRow,
 } from "@/lib/claudeIntake";
-import type { ToolSlug } from "@/lib/sampleFixtures";
+import { SAMPLE_FIXTURES, type ToolSlug } from "@/lib/sampleFixtures";
+import { preflightFixture } from "@/lib/sampleFixturePreflight";
+import {
+  PRESET_DATASET_COUNT,
+  isNonGdprFixtureForGdprOnlyProduct,
+  pickPresetDatasets,
+} from "@/lib/sampleDataPackages";
+import { runGenerator } from "@/lib/sampleGenerators";
 import {
   enqueuePtestJobs,
   tickPtestDriver,
@@ -69,6 +76,10 @@ export default function AllPTest() {
   const [count, setCount] = useState(5);
   const [reviewEffort, setReviewEffort] = useState<PtestEffort>("high");
   const [arbEffort, setArbEffort] = useState<PtestEffort>("high");
+  // INTAKE SOURCE — same two paths as /admin/all-products-test. "preset" is
+  // the canonical data package (no model call, cannot time out) and is the
+  // default; "claude" writes fresh company profiles via the stress harness.
+  const [intakeSource, setIntakeSource] = useState<"preset" | "claude">("preset");
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [batchId, setBatchId] = useState<string | null>(null);
@@ -83,6 +94,10 @@ export default function AllPTest() {
   // written to the log exactly once.
   const jobStates = useRef<Map<string, string>>(new Map());
   const logRef = useRef<HTMLPreElement | null>(null);
+  // Which intake path produced the live batch — a preset batch has no stress
+  // harness batch to cancel.
+  const sourceRef = useRef<"preset" | "claude">("preset");
+
 
   const say = useCallback((line: string) => {
     const stamp = new Date().toLocaleTimeString();
@@ -94,6 +109,28 @@ export default function AllPTest() {
     const el = logRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [log]);
+
+  // History row first: a run that later fails is still visible and its
+  // partial fix items remain reachable.
+  const recordHistory = useCallback(async (id: string) => {
+    try {
+      await recordBatchStart({
+        batchId: id,
+        runBy: user?.id ?? null,
+        industry: intakeSource === "preset"
+          ? "pre-set data package"
+          : STRESS_INDUSTRIES.find((i) => i.id === industryId)?.label ?? industryId,
+        products: selected,
+        documentsPerProduct: count,
+        reviewEffort,
+        arbitrationEffort: arbEffort,
+      });
+      setHistoryKey((k) => k + 1);
+    } catch (e) {
+      say(`History row not recorded — ${(e as Error).message}`);
+    }
+  }, [user?.id, intakeSource, industryId, selected, count, reviewEffort, arbEffort, say]);
+
 
   const toggle = (slug: ToolSlug) =>
     setSelected((prev) => (prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]));
@@ -110,61 +147,114 @@ export default function AllPTest() {
     try {
       await assertAdminSession();
       setPhase("generating");
-      say(`Launching ${selected.length} product(s) × ${count} document(s) on Claude-generated intake…`);
-      id = await launchClaudeIntakeBatch({
-        userId: user.id,
-        slugs: selected,
-        industryId,
-        companiesPerGeo: count,
-      });
-      setBatchId(id);
-      say(`Batch ${id} started.`);
-      // History row first: a run that later fails is still visible and its
-      // partial fix items remain reachable.
-      try {
-        await recordBatchStart({
-          batchId: id,
-          runBy: user.id,
-          industry: STRESS_INDUSTRIES.find((i) => i.id === industryId)?.label ?? industryId,
-          products: selected,
-          documentsPerProduct: count,
-          reviewEffort,
-          arbitrationEffort: arbEffort,
-        });
-        setHistoryKey((k) => k + 1);
-      } catch (e) {
-        say(`History row not recorded — ${(e as Error).message}`);
-      }
 
       // ── Generation phase ────────────────────────────────────────────────
-      // Each poll is individually bounded inside claudeIntake; a read that
-      // fails is logged and retried on the next tick, never fatal.
-      const started = Date.now();
-      let jobs: StressJobRow[] = [];
-      for (;;) {
+      // Two intake sources, exactly as /admin/all-products-test:
+      //  • preset — the canonical contract-conformant data package (no model
+      //    call, so generation cannot time out). Default.
+      //  • claude — a fresh company profile per geo via the stress harness.
+      let docs: Array<{ tool: string; assessment_id: string; company_name: string }> = [];
+
+      if (intakeSource === "preset") {
+        const bases = SAMPLE_FIXTURES
+          .filter((f) => !f.paused)
+          .filter((f) => !f.variant.endsWith("-supplemental"))
+          .filter((f) => !isNonGdprFixtureForGdprOnlyProduct(f))
+          .filter((f) => selected.includes(f.tool_slug));
+        if (!bases.length) throw new Error("no pre-set datasets exist for the selected product(s)");
+
+        // INTAKE GATE — refuse the whole run rather than emit a doomed dispatch.
+        const bad = bases.map((f) => preflightFixture(f)).filter((r) => !r.ok);
+        if (bad.length) throw new Error(`preflight failed for ${bad.map((b) => b.label).join(", ")}`);
+
+        id = crypto.randomUUID();
+        sourceRef.current = "preset";
+        setBatchId(id);
+        if (count > PRESET_DATASET_COUNT) {
+          say(`Pre-set package holds ${PRESET_DATASET_COUNT} datasets per product — capping ${count} at ${PRESET_DATASET_COUNT}.`);
+        }
+        const plan = bases.map((f) => ({ base: f, datasets: pickPresetDatasets(f, count) }));
+        const totalRuns = plan.reduce((n, p) => n + p.datasets.length, 0);
+        say(`Batch ${id} started — ${totalRuns} document(s) from the pre-set data package.`);
+        await recordHistory(id);
+
+        const produced: typeof docs = [];
+        let done = 0;
+        // Products run through 4 lanes; datasets within a product stay serial,
+        // and a failing product ends only its own remaining datasets.
+        const runProduct = async (p: (typeof plan)[number]) => {
+          for (let i = 0; i < p.datasets.length; i++) {
+            if (cancelled.current) return;
+            const d = p.datasets[i];
+            try {
+              const out = await runGenerator(d, user.id, () => {});
+              produced.push({
+                tool: SLUG_TO_STRESS_TOOL[d.tool_slug],
+                assessment_id: out.sourceRowId,
+                company_name: `${d.title} [${d.variant}]`,
+              });
+              done += 1;
+              say(`✔ ${d.tool_slug} · ${d.title} [${d.variant}] generated (${done}/${totalRuns})`);
+            } catch (e) {
+              say(`✖ ${d.tool_slug} · ${d.title} [${d.variant}] — ${(e as Error).message}`);
+              if (i < p.datasets.length - 1) {
+                say(`⏭ skipping ${p.datasets.length - i - 1} remaining dataset(s) for ${d.tool_slug}`);
+              }
+              return;
+            }
+          }
+        };
+        let cursor = 0;
+        const lane = async () => { while (cursor < plan.length) await runProduct(plan[cursor++]); };
+        await Promise.all([lane(), lane(), lane(), lane()]);
         if (cancelled.current) { say("Cancelled."); setPhase("idle"); return; }
-        if (Date.now() - started > GENERATION_POLL_LIMIT_MS) {
-          throw new Error("generation did not finish within the polling window");
+        docs = produced;
+      } else {
+        say(`Launching ${selected.length} product(s) × ${count} document(s) on Claude-generated intake…`);
+        id = await launchClaudeIntakeBatch({
+          userId: user.id,
+          slugs: selected,
+          industryId,
+          companiesPerGeo: count,
+        });
+        sourceRef.current = "claude";
+        setBatchId(id);
+        say(`Batch ${id} started.`);
+        await recordHistory(id);
+
+        // Each poll is individually bounded inside claudeIntake; a read that
+        // fails is logged and retried on the next tick, never fatal.
+        const started = Date.now();
+        let sjobs: StressJobRow[] = [];
+        for (;;) {
+          if (cancelled.current) { say("Cancelled."); setPhase("idle"); return; }
+          if (Date.now() - started > GENERATION_POLL_LIMIT_MS) {
+            throw new Error("generation did not finish within the polling window");
+          }
+          await new Promise((r) => setTimeout(r, 6_000));
+          try {
+            const status = await fetchClaudeBatchStatus(id);
+            sjobs = await fetchClaudeBatchJobs(id);
+            const done = sjobs.filter((j) => ["completed", "complete", "succeeded"].includes(j.status)).length;
+            const failed = sjobs.filter((j) => ["failed", "error", "cancelled"].includes(j.status)).length;
+            say(`Generating — setup ${status.setup_done}/${status.setup_total} · documents ${done} done, ${failed} failed of ${sjobs.length}`);
+            const terminal = ["completed", "complete", "failed", "cancelled", "done"].includes(status.status);
+            if (terminal || (sjobs.length > 0 && done + failed >= sjobs.length)) break;
+          } catch (e) {
+            say(`Status read retried — ${(e as Error).message}`);
+          }
         }
-        await new Promise((r) => setTimeout(r, 6_000));
-        try {
-          const status = await fetchClaudeBatchStatus(id);
-          jobs = await fetchClaudeBatchJobs(id);
-          const done = jobs.filter((j) => ["completed", "complete", "succeeded"].includes(j.status)).length;
-          const failed = jobs.filter((j) => ["failed", "error", "cancelled"].includes(j.status)).length;
-          say(`Generating — setup ${status.setup_done}/${status.setup_total} · documents ${done} done, ${failed} failed of ${jobs.length}`);
-          const terminal = ["completed", "complete", "failed", "cancelled", "done"].includes(status.status);
-          if (terminal || (jobs.length > 0 && done + failed >= jobs.length)) break;
-        } catch (e) {
-          say(`Status read retried — ${(e as Error).message}`);
-        }
+        docs = sjobs
+          .filter((j) => ["completed", "complete", "succeeded"].includes(j.status) && j.source_row_id)
+          .map((j) => ({
+            tool: j.tool_slug,
+            assessment_id: j.source_row_id as string,
+            company_name: j.company_name ?? "(unnamed)",
+          }));
       }
 
-      const ready = jobs.filter(
-        (j) => ["completed", "complete", "succeeded"].includes(j.status) && j.source_row_id,
-      );
-      if (!ready.length) throw new Error("no documents were generated — nothing to review");
-      say(`${ready.length} document(s) generated. Starting deep review (2 reviewers each, effort ${reviewEffort}).`);
+      if (!docs.length) throw new Error("no documents were generated — nothing to review");
+      say(`${docs.length} document(s) generated. Starting deep review (2 reviewers each, effort ${reviewEffort}).`);
 
       // ── Review + arbitration, as background jobs ────────────────────────
       // Nothing here waits on a model call. The work is enqueued and the page
@@ -172,11 +262,7 @@ export default function AllPTest() {
       setPhase("reviewing");
       const enqueued = await enqueuePtestJobs({
         batchId: id,
-        documents: ready.map((j) => ({
-          tool: j.tool_slug,
-          assessment_id: j.source_row_id as string,
-          company_name: j.company_name ?? "(unnamed)",
-        })),
+        documents: docs,
         reviewEffort,
         arbitrationEffort: arbEffort,
       });
@@ -247,13 +333,16 @@ export default function AllPTest() {
       if (id) { try { await setBatchStatus(id, "error", (e as Error).message); setHistoryKey((k) => k + 1); } catch { /* history is secondary */ } }
       setPhase("error");
     }
-  }, [user?.id, selected, industryId, count, reviewEffort, arbEffort, say]);
+  }, [user?.id, selected, industryId, count, reviewEffort, arbEffort, intakeSource, recordHistory, say]);
 
   const stop = useCallback(async () => {
     cancelled.current = true;
     if (batchId) {
       try {
-        const { cancelledJobs } = await cancelClaudeBatch(batchId);
+        // A preset batch has no stress-harness jobs to cancel.
+        const cancelledJobs = sourceRef.current === "claude"
+          ? (await cancelClaudeBatch(batchId)).cancelledJobs
+          : 0;
         await cancelPtestJobs(batchId);
         try { await setBatchStatus(batchId, "cancelled"); setHistoryKey((k) => k + 1); } catch { /* history is secondary */ }
         say(`Cancel requested — ${cancelledJobs} generation job(s) stopped; queued review work cancelled.`);
@@ -283,20 +372,49 @@ export default function AllPTest() {
       <header className="space-y-1">
         <h1 className="font-serif text-2xl text-foreground">Product Review Loop</h1>
         <p className="text-sm text-muted-foreground">
-          Claude-generated intake → deterministic generation → two independent deep reviews → arbitration →
+          Intake → deterministic generation → two independent deep reviews → arbitration →
           agreed fix list and CEO decision sheet. Text only: wording, grammar, legal meaning, logic and
           consistency. Formatting is not reviewed.
         </p>
       </header>
 
       <section className="rounded-lg border border-border bg-card p-4 space-y-4">
+        <div className="space-y-2">
+          <span className="text-sm text-muted-foreground">Test data</span>
+          <div className="flex flex-wrap gap-2">
+            {([
+              { id: "preset" as const, label: "Pre-set data package" },
+              { id: "claude" as const, label: "Claude-generated intake" },
+            ]).map((o) => (
+              <button
+                key={o.id}
+                type="button"
+                disabled={busy}
+                onClick={() => setIntakeSource(o.id)}
+                className={`rounded border px-3 py-1.5 text-xs transition ${
+                  intakeSource === o.id
+                    ? "border-brand-teal bg-brand-teal/10 text-brand-teal-text"
+                    : "border-border text-muted-foreground hover:border-brand-teal/50"
+                }`}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {intakeSource === "preset"
+              ? `The canonical contract-conformant data package — up to ${PRESET_DATASET_COUNT} distinct datasets per product, no model call, so test data cannot time out.`
+              : "Claude writes a fresh, internally consistent company profile per geo and every selected product runs against it server-side via the stress harness."}
+          </p>
+        </div>
+
         <div className="grid gap-4 md:grid-cols-3">
           <label className="space-y-1 text-sm">
-            <span className="text-muted-foreground">Industry</span>
+            <span className="text-muted-foreground">Industry{intakeSource === "preset" ? " (Claude intake only)" : ""}</span>
             <select
-              className="w-full rounded border border-border bg-background px-2 py-1.5 text-sm"
+              className="w-full rounded border border-border bg-background px-2 py-1.5 text-sm disabled:opacity-50"
               value={industryId}
-              disabled={busy}
+              disabled={busy || intakeSource === "preset"}
               onChange={(e) => setIndustryId(e.target.value)}
             >
               {STRESS_INDUSTRIES.map((i) => <option key={i.id} value={i.id}>{i.label}</option>)}
