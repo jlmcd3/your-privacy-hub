@@ -69,10 +69,9 @@ export default function AllPTest() {
   const [count, setCount] = useState(5);
   const [reviewEffort, setReviewEffort] = useState<PtestEffort>("high");
   const [arbEffort, setArbEffort] = useState<PtestEffort>("high");
-  // INTAKE SOURCE — same two paths as /admin/all-products-test. "preset" is
-  // the canonical data package (no model call, cannot time out) and is the
-  // default; "claude" writes fresh company profiles via the stress harness.
-  const [intakeSource, setIntakeSource] = useState<"preset" | "claude">("preset");
+  // INTAKE SOURCE — Claude-generated intake only. The pre-set data package is
+  // deliberately not available on this page.
+
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [batchId, setBatchId] = useState<string | null>(null);
