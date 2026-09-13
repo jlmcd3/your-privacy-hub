@@ -11,7 +11,7 @@
 // the customer-facing text for wording, grammar, legal meaning, logic and
 // internal consistency. PDFs are not part of this loop.
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import {
   STRESS_INDUSTRIES,
@@ -79,11 +79,21 @@ export default function AllPTest() {
   // Bumped whenever a run records or updates history, so the panel reloads.
   const [historyKey, setHistoryKey] = useState(0);
   const cancelled = useRef(false);
+  // Last seen status per review/arbitration job, so every state change is
+  // written to the log exactly once.
+  const jobStates = useRef<Map<string, string>>(new Map());
+  const logRef = useRef<HTMLPreElement | null>(null);
 
   const say = useCallback((line: string) => {
     const stamp = new Date().toLocaleTimeString();
     setLog((prev) => [...prev, `${stamp}  ${line}`]);
   }, []);
+
+  // Keep the newest line in view while a run is in progress.
+  useEffect(() => {
+    const el = logRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [log]);
 
   const toggle = (slug: ToolSlug) =>
     setSelected((prev) => (prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]));
@@ -93,7 +103,9 @@ export default function AllPTest() {
   const run = useCallback(async () => {
     if (!user?.id) return;
     cancelled.current = false;
+    // A new run starts a fresh log; the previous run's log is replaced.
     setLog([]); setReviews([]); setArbitrations([]); setJobs([]); setBatchId(null);
+    jobStates.current = new Map();
     let id: string | null = null;
     try {
       await assertAdminSession();
@@ -190,8 +202,22 @@ export default function AllPTest() {
         setPhase(jobRows.some((j) => j.kind === "review" && ["queued", "running"].includes(j.status)) ? "reviewing" : "arbitrating");
         const line = `Reviewing — ${done} done, ${running} running, ${failed} failed of ${jobRows.length}`;
         if (line !== lastLine) { say(line); lastLine = line; }
+        // Per-job trace: each state change is logged once, never repeated on
+        // subsequent polls.
         for (const j of jobRows) {
-          if (j.input_truncated && j.note) say(`⚠ ${j.tool_slug} · ${j.kind}: ${j.note}`);
+          const label = `${j.tool_slug} · ${j.kind.replace("arb_", "arbitration ")} · ${j.company_name ?? "all documents"}`;
+          const seen = jobStates.current.get(j.id);
+          const state = `${j.status}#${j.attempts}`;
+          if (seen !== state) {
+            jobStates.current.set(j.id, state);
+            const mark = j.status === "done" ? "✔" : j.status === "failed" ? "✖" : "·";
+            say(`${mark} ${label} → ${j.status}${j.attempts > 1 ? ` (attempt ${j.attempts})` : ""}${j.error ? ` — ${j.error}` : ""}`);
+          }
+          const warnKey = `warn:${j.id}`;
+          if (j.input_truncated && j.note && !jobStates.current.has(warnKey)) {
+            jobStates.current.set(warnKey, "1");
+            say(`⚠ ${label}: ${j.note}`);
+          }
         }
         if (done + failed >= jobRows.length) break;
       }
@@ -389,14 +415,37 @@ export default function AllPTest() {
         </section>
       )}
 
-      {!!log.length && (
-        <section className="rounded-lg border border-border bg-card p-4">
-          <h2 className="mb-2 text-sm font-medium text-foreground">Run log</h2>
-          <pre className="max-h-72 overflow-auto whitespace-pre-wrap font-mono text-[11px] leading-5 text-muted-foreground">
-            {log.join("\n")}
-          </pre>
-        </section>
-      )}
+      <section className="rounded-lg border border-border bg-card p-4">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-medium text-foreground">
+            Run log{batchId ? ` · batch ${batchId.slice(0, 8)}` : ""} ({log.length} line{log.length === 1 ? "" : "s"})
+          </h2>
+          {!!log.length && (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => void navigator.clipboard.writeText(log.join("\n"))}
+                className="rounded border border-border px-2 py-1 text-xs"
+              >
+                Copy log
+              </button>
+              <button
+                type="button"
+                onClick={() => downloadMarkdown(`all-ptest-log-${batchId ?? "run"}.txt`, log.join("\n"))}
+                className="rounded border border-border px-2 py-1 text-xs"
+              >
+                Download log
+              </button>
+            </div>
+          )}
+        </div>
+        <pre
+          ref={logRef}
+          className="max-h-96 overflow-auto whitespace-pre-wrap font-mono text-[11px] leading-5 text-muted-foreground"
+        >
+          {log.length ? log.join("\n") : "No run yet. Starting a run clears this log and streams progress here."}
+        </pre>
+      </section>
 
       {arbitrations.map((a) => (
         <section key={a.tool} className="rounded-lg border border-border bg-card p-4 space-y-3">
