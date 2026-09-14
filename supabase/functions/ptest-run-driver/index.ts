@@ -77,18 +77,52 @@ interface JobRow {
   run_by: string | null;
 }
 
+/** ONE JOB PER REVIEWER. A legacy 'review' row (queued before the split) still
+ *  runs both reviewers, so an in-flight batch is never stranded. */
+function reviewersOf(kind: string): Reviewer[] | null {
+  if (kind === "review_gpt") return ["gpt"];
+  if (kind === "review_claude") return ["claude"];
+  if (kind === "review") return ["gpt", "claude"];
+  return null;
+}
+
+/**
+ * HEARTBEAT. A model call can legitimately run for minutes with nothing to
+ * report; the stale-heartbeat rule must be able to tell that silence apart from
+ * a dead worker. The beat is refreshed every 30 seconds while the call is in
+ * flight and stopped the moment the job settles.
+ */
+// deno-lint-ignore no-explicit-any
+function startHeartbeat(admin: any, jobId: string): () => void {
+  const timer = setInterval(() => {
+    admin.from("ptest_jobs")
+      .update({ heartbeat_at: new Date().toISOString() })
+      .eq("id", jobId)
+      .eq("status", "running")
+      .then(
+        // deno-lint-ignore no-explicit-any
+        (r: any) => { if (r?.error) console.warn(`[ptest-run-driver] heartbeat failed — ${r.error.message}`); },
+        (e: unknown) => console.warn(`[ptest-run-driver] heartbeat threw — ${(e as Error)?.message ?? e}`),
+      );
+  }, 30_000);
+  return () => clearInterval(timer);
+}
+
 // deno-lint-ignore no-explicit-any
 async function runJob(admin: any, job: JobRow) {
+  const stopHeartbeat = startHeartbeat(admin, job.id);
   const finish = async (patch: Record<string, unknown>) => {
+    stopHeartbeat();
     await admin.from("ptest_jobs").update({ finished_at: new Date().toISOString(), ...patch }).eq("id", job.id);
   };
 
   try {
     // Cancellation is checked at the last moment before any spend.
     const { data: fresh } = await admin.from("ptest_jobs").select("status").eq("id", job.id).single();
-    if (fresh?.status === "cancelled") return;
+    if (fresh?.status === "cancelled") { stopHeartbeat(); return; }
 
-    if (job.kind === "review") {
+    const reviewers = reviewersOf(job.kind);
+    if (reviewers) {
       if (!isReviewTool(job.tool_slug) || !job.assessment_id) {
         await finish({ status: "failed", error: `unreviewable job (${job.tool_slug}/${job.assessment_id})` });
         return;
@@ -99,7 +133,7 @@ async function runJob(admin: any, job: JobRow) {
         batchId: job.batch_id,
         companyName: job.company_name,
         effort: job.effort as Effort,
-        reviewers: ["gpt", "claude"],
+        reviewers,
         userId: job.run_by,
       });
       await finish({

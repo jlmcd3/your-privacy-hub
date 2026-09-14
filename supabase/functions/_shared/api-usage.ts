@@ -18,6 +18,10 @@ export interface ApiUsageRow {
   cache_creation_tokens?: number | null;
   duration_ms?: number | null;
   source_row_id?: string | null;
+  /** Failure reason for a call that never returned a usable answer. A failed
+   *  call still costs wall-clock time and often provider spend, so it is
+   *  metered exactly like a successful one, with duration_ms and this reason. */
+  error?: string | null;
 }
 
 let cachedClient: any = null;

@@ -177,6 +177,7 @@ export type Database = {
           cache_read_tokens: number | null
           created_at: string
           duration_ms: number | null
+          error: string | null
           function_name: string
           id: string
           input_tokens: number | null
@@ -190,6 +191,7 @@ export type Database = {
           cache_read_tokens?: number | null
           created_at?: string
           duration_ms?: number | null
+          error?: string | null
           function_name: string
           id?: string
           input_tokens?: number | null
@@ -203,6 +205,7 @@ export type Database = {
           cache_read_tokens?: number | null
           created_at?: string
           duration_ms?: number | null
+          error?: string | null
           function_name?: string
           id?: string
           input_tokens?: number | null
