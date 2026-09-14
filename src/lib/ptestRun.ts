@@ -215,7 +215,8 @@ const DRIVER_TIMEOUT_MS = 30_000;
 export interface PtestJobRow {
   id: string;
   tool_slug: string;
-  kind: "review" | "arb_document" | "arb_merge";
+  /** One job per reviewer; "review" is the pre-split legacy kind. */
+  kind: "review" | "review_gpt" | "review_claude" | "arb_document" | "arb_merge";
   assessment_id: string | null;
   company_name: string | null;
   status: "queued" | "running" | "done" | "failed" | "cancelled";
