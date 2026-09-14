@@ -118,6 +118,49 @@ export interface ArbitrationOutcome {
 const arr = (v: unknown) => (Array.isArray(v) ? v : []);
 
 /**
+ * REVIEWER COVERAGE. A document is arbitrated only when at least one reviewer
+ * actually returned. When exactly one returned, the verdict is labelled so no
+ * export can read as if two reviewers agreed.
+ */
+export function reviewerCoverage(rows: ReviewRow[]): {
+  okCount: number;
+  allFailed: boolean;
+  singleReviewer: boolean;
+  failedReviewer: string | null;
+  failedError: string | null;
+} {
+  const reviewers = ["gpt", "claude"];
+  let okCount = 0;
+  let failedReviewer: string | null = null;
+  let failedError: string | null = null;
+  for (const reviewer of reviewers) {
+    const row = rows.find((r) => r.reviewer === reviewer);
+    if (row && !row.error) { okCount++; continue; }
+    failedReviewer = reviewer;
+    failedError = row?.error ?? "no review recorded";
+  }
+  return {
+    okCount,
+    allFailed: okCount === 0,
+    singleReviewer: okCount === 1,
+    failedReviewer: okCount === 1 ? failedReviewer : null,
+    failedError: okCount === 1 ? failedError : null,
+  };
+}
+
+export const SINGLE_REVIEWER_PREFIX_RE = /^SINGLE-REVIEWER ARBITRATION \([^)]*\)\.\s*/;
+
+export function singleReviewerPrefix(reviewer: string | null, error: string | null): string {
+  return `SINGLE-REVIEWER ARBITRATION (${reviewer ?? "one"} review failed: ${error ?? "unknown error"}). `;
+}
+
+function withPrefix(prefix: string | null, summary: string | null): string | null {
+  if (!prefix) return summary;
+  const body = (summary ?? "").replace(SINGLE_REVIEWER_PREFIX_RE, "");
+  return `${prefix}${body}`;
+}
+
+/**
  * POST-ARBITRATION SCORE. Deterministic, no model call: 100 minus the same
  * severity weights the review scores use, applied to the AGREED fix list only
  * — items routed to the CEO sheet or dropped cost nothing, because they are
