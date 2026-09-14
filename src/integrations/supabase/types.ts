@@ -5728,6 +5728,7 @@ export type Database = {
           fix_list: Json
           id: string
           input_truncated: boolean
+          metrics: Json | null
           model: string | null
           parent_job_id: string | null
           prompt_version: string | null
@@ -5753,6 +5754,7 @@ export type Database = {
           fix_list?: Json
           id?: string
           input_truncated?: boolean
+          metrics?: Json | null
           model?: string | null
           parent_job_id?: string | null
           prompt_version?: string | null
@@ -5778,6 +5780,7 @@ export type Database = {
           fix_list?: Json
           id?: string
           input_truncated?: boolean
+          metrics?: Json | null
           model?: string | null
           parent_job_id?: string | null
           prompt_version?: string | null
@@ -5803,6 +5806,7 @@ export type Database = {
           review_effort: string | null
           run_by: string | null
           scores: Json | null
+          settings: Json | null
           status: string
           updated_at: string
         }
@@ -5818,6 +5822,7 @@ export type Database = {
           review_effort?: string | null
           run_by?: string | null
           scores?: Json | null
+          settings?: Json | null
           status?: string
           updated_at?: string
         }
@@ -5833,8 +5838,123 @@ export type Database = {
           review_effort?: string | null
           run_by?: string | null
           scores?: Json | null
+          settings?: Json | null
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      ptest_findings: {
+        Row: {
+          assessment_id: string
+          batch_id: string
+          binding: string | null
+          block_key: string | null
+          block_key_b: string | null
+          class_reason: string | null
+          confidence: string | null
+          created_at: string
+          dedupe_key: string | null
+          drop_reason: string | null
+          finding_id: string
+          fix_class: string | null
+          gate_reason: string | null
+          golden_ref: string | null
+          id: string
+          intake_key: string | null
+          intake_value: string | null
+          job_id: string | null
+          kind: string | null
+          lint_rule: string | null
+          merged_id: string | null
+          queued: boolean
+          quote: string | null
+          quote_b: string | null
+          reanchored: boolean
+          registry_quote: string | null
+          registry_row_id: string | null
+          route: string | null
+          rule_ref: string | null
+          severity: string | null
+          status: string
+          tool_slug: string
+          vendor: string | null
+          why: string | null
+          worker: string
+        }
+        Insert: {
+          assessment_id: string
+          batch_id: string
+          binding?: string | null
+          block_key?: string | null
+          block_key_b?: string | null
+          class_reason?: string | null
+          confidence?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          drop_reason?: string | null
+          finding_id: string
+          fix_class?: string | null
+          gate_reason?: string | null
+          golden_ref?: string | null
+          id?: string
+          intake_key?: string | null
+          intake_value?: string | null
+          job_id?: string | null
+          kind?: string | null
+          lint_rule?: string | null
+          merged_id?: string | null
+          queued?: boolean
+          quote?: string | null
+          quote_b?: string | null
+          reanchored?: boolean
+          registry_quote?: string | null
+          registry_row_id?: string | null
+          route?: string | null
+          rule_ref?: string | null
+          severity?: string | null
+          status: string
+          tool_slug: string
+          vendor?: string | null
+          why?: string | null
+          worker: string
+        }
+        Update: {
+          assessment_id?: string
+          batch_id?: string
+          binding?: string | null
+          block_key?: string | null
+          block_key_b?: string | null
+          class_reason?: string | null
+          confidence?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          drop_reason?: string | null
+          finding_id?: string
+          fix_class?: string | null
+          gate_reason?: string | null
+          golden_ref?: string | null
+          id?: string
+          intake_key?: string | null
+          intake_value?: string | null
+          job_id?: string | null
+          kind?: string | null
+          lint_rule?: string | null
+          merged_id?: string | null
+          queued?: boolean
+          quote?: string | null
+          quote_b?: string | null
+          reanchored?: boolean
+          registry_quote?: string | null
+          registry_row_id?: string | null
+          route?: string | null
+          rule_ref?: string | null
+          severity?: string | null
+          status?: string
+          tool_slug?: string
+          vendor?: string | null
+          why?: string | null
+          worker?: string
         }
         Relationships: []
       }
@@ -5847,15 +5967,19 @@ export type Database = {
           decided_at: string | null
           decided_by: string | null
           defect_type: string | null
+          finding_ids: string[] | null
+          fix_class: string | null
           fix_notes: string | null
           fix_reference: string | null
           fix_status: string
+          golden_ref: string | null
           id: string
           item_id: string
           item_kind: string
           payload: Json
           raised_by: string | null
           regression_test: string | null
+          rule_ref: string | null
           severity: string | null
           single_reviewer: boolean
           title: string
@@ -5870,15 +5994,19 @@ export type Database = {
           decided_at?: string | null
           decided_by?: string | null
           defect_type?: string | null
+          finding_ids?: string[] | null
+          fix_class?: string | null
           fix_notes?: string | null
           fix_reference?: string | null
           fix_status?: string
+          golden_ref?: string | null
           id?: string
           item_id: string
           item_kind: string
           payload?: Json
           raised_by?: string | null
           regression_test?: string | null
+          rule_ref?: string | null
           severity?: string | null
           single_reviewer?: boolean
           title: string
@@ -5893,20 +6021,114 @@ export type Database = {
           decided_at?: string | null
           decided_by?: string | null
           defect_type?: string | null
+          finding_ids?: string[] | null
+          fix_class?: string | null
           fix_notes?: string | null
           fix_reference?: string | null
           fix_status?: string
+          golden_ref?: string | null
           id?: string
           item_id?: string
           item_kind?: string
           payload?: Json
           raised_by?: string | null
           regression_test?: string | null
+          rule_ref?: string | null
           severity?: string | null
           single_reviewer?: boolean
           title?: string
           tool_slug?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      ptest_generations: {
+        Row: {
+          assessment_id: string | null
+          batch_id: string
+          created_at: string
+          document_chars: number | null
+          document_hash: string | null
+          elapsed_ms: number | null
+          error: string | null
+          golden_id: string | null
+          id: string
+          product: string
+          report_date: string | null
+          run_no: number
+          settings: Json | null
+        }
+        Insert: {
+          assessment_id?: string | null
+          batch_id: string
+          created_at?: string
+          document_chars?: number | null
+          document_hash?: string | null
+          elapsed_ms?: number | null
+          error?: string | null
+          golden_id?: string | null
+          id?: string
+          product: string
+          report_date?: string | null
+          run_no?: number
+          settings?: Json | null
+        }
+        Update: {
+          assessment_id?: string | null
+          batch_id?: string
+          created_at?: string
+          document_chars?: number | null
+          document_hash?: string | null
+          elapsed_ms?: number | null
+          error?: string | null
+          golden_id?: string | null
+          id?: string
+          product?: string
+          report_date?: string | null
+          run_no?: number
+          settings?: Json | null
+        }
+        Relationships: []
+      }
+      ptest_golden_intakes: {
+        Row: {
+          assessment_id: string | null
+          created_at: string
+          created_by: string | null
+          enabled: boolean
+          id: string
+          intake_data: Json
+          label: string
+          module: string | null
+          product: string
+          ref: string
+          source: string
+        }
+        Insert: {
+          assessment_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          id?: string
+          intake_data: Json
+          label: string
+          module?: string | null
+          product: string
+          ref: string
+          source: string
+        }
+        Update: {
+          assessment_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          id?: string
+          intake_data?: Json
+          label?: string
+          module?: string | null
+          product?: string
+          ref?: string
+          source?: string
         }
         Relationships: []
       }
@@ -5921,12 +6143,14 @@ export type Database = {
           effort: string
           error: string | null
           finished_at: string | null
+          golden_id: string | null
           heartbeat_at: string | null
           id: string
           input_truncated: boolean
           kind: string
           max_attempts: number
           note: string | null
+          payload: Json | null
           result_id: string | null
           run_by: string | null
           status: string
@@ -5942,12 +6166,14 @@ export type Database = {
           effort?: string
           error?: string | null
           finished_at?: string | null
+          golden_id?: string | null
           heartbeat_at?: string | null
           id?: string
           input_truncated?: boolean
           kind: string
           max_attempts?: number
           note?: string | null
+          payload?: Json | null
           result_id?: string | null
           run_by?: string | null
           status?: string
@@ -5963,12 +6189,14 @@ export type Database = {
           effort?: string
           error?: string | null
           finished_at?: string | null
+          golden_id?: string | null
           heartbeat_at?: string | null
           id?: string
           input_truncated?: boolean
           kind?: string
           max_attempts?: number
           note?: string | null
+          payload?: Json | null
           result_id?: string | null
           run_by?: string | null
           status?: string
@@ -6000,6 +6228,8 @@ export type Database = {
           score_source: string | null
           tool_slug: string
           usage: Json | null
+          vendor: string | null
+          worker: string | null
         }
         Insert: {
           assessment_id: string
@@ -6024,6 +6254,8 @@ export type Database = {
           score_source?: string | null
           tool_slug: string
           usage?: Json | null
+          vendor?: string | null
+          worker?: string | null
         }
         Update: {
           assessment_id?: string
@@ -6048,6 +6280,8 @@ export type Database = {
           score_source?: string | null
           tool_slug?: string
           usage?: Json | null
+          vendor?: string | null
+          worker?: string | null
         }
         Relationships: []
       }
@@ -11542,12 +11776,14 @@ export type Database = {
           effort: string
           error: string | null
           finished_at: string | null
+          golden_id: string | null
           heartbeat_at: string | null
           id: string
           input_truncated: boolean
           kind: string
           max_attempts: number
           note: string | null
+          payload: Json | null
           result_id: string | null
           run_by: string | null
           status: string
