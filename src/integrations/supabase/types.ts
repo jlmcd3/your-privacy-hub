@@ -5733,6 +5733,7 @@ export type Database = {
           prompt_version: string | null
           run_by: string | null
           score_notes: string | null
+          single_reviewer: boolean
           summary: string | null
           tool_slug: string
           usage: Json | null
@@ -5757,6 +5758,7 @@ export type Database = {
           prompt_version?: string | null
           run_by?: string | null
           score_notes?: string | null
+          single_reviewer?: boolean
           summary?: string | null
           tool_slug: string
           usage?: Json | null
@@ -5781,6 +5783,7 @@ export type Database = {
           prompt_version?: string | null
           run_by?: string | null
           score_notes?: string | null
+          single_reviewer?: boolean
           summary?: string | null
           tool_slug?: string
           usage?: Json | null
@@ -5854,6 +5857,7 @@ export type Database = {
           raised_by: string | null
           regression_test: string | null
           severity: string | null
+          single_reviewer: boolean
           title: string
           tool_slug: string
           updated_at: string
@@ -5876,6 +5880,7 @@ export type Database = {
           raised_by?: string | null
           regression_test?: string | null
           severity?: string | null
+          single_reviewer?: boolean
           title: string
           tool_slug: string
           updated_at?: string
@@ -5898,6 +5903,7 @@ export type Database = {
           raised_by?: string | null
           regression_test?: string | null
           severity?: string | null
+          single_reviewer?: boolean
           title?: string
           tool_slug?: string
           updated_at?: string

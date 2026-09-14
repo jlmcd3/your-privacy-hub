@@ -1,0 +1,2 @@
+ALTER TABLE public.ptest_arbitrations ADD COLUMN IF NOT EXISTS single_reviewer BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE public.ptest_fix_items ADD COLUMN IF NOT EXISTS single_reviewer BOOLEAN NOT NULL DEFAULT false;

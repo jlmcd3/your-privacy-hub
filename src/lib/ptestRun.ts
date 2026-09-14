@@ -164,6 +164,8 @@ export interface ArbitrationResult {
   summary: string | null;
   /** Post-arbitration score: 100 minus the severity weight of each agreed fix. */
   agreedScore?: number | null;
+  /** True when at least one contributing document was arbitrated on one reviewer. */
+  singleReviewer?: boolean;
   error?: string;
 }
 
@@ -288,7 +290,7 @@ export async function fetchPtestResults(batchId: string): Promise<{
       .select("assessment_id, tool_slug, company_name, reviewer, model, effort, findings, double_check, overall, dropped_unlocatable, error, dimension_scores, overall_score, derived_score, score_source, score_notes")
       .eq("batch_id", batchId).order("created_at", { ascending: true }),
     supabase.from("ptest_arbitrations")
-      .select("tool_slug, model, fix_list, ceo_sheet, dropped, double_check, summary, findings_in, input_truncated, error, arbitration_scope, agreed_score")
+      .select("tool_slug, model, fix_list, ceo_sheet, dropped, double_check, summary, findings_in, input_truncated, error, arbitration_scope, agreed_score, single_reviewer")
       .eq("batch_id", batchId).eq("arbitration_scope", "merge").order("created_at", { ascending: true }),
   ]);
   if (rev.error) throw new Error(rev.error.message);
@@ -331,6 +333,7 @@ export async function fetchPtestResults(batchId: string): Promise<{
     doubleCheck: a.double_check,
     summary: a.summary,
     agreedScore: a.agreed_score === null || a.agreed_score === undefined ? null : Number(a.agreed_score),
+    singleReviewer: a.single_reviewer === true,
     error: a.error ?? undefined,
   }));
 
@@ -473,7 +476,7 @@ export function buildPtestMarkdown(opts: {
   }
 
   for (const arb of opts.arbitrations) {
-    L.push(`## ${arb.tool.toUpperCase()} — arbitration`);
+    L.push(`## ${arb.tool.toUpperCase()} — arbitration${arb.singleReviewer ? " (single reviewer)" : ""}`);
     if (arb.error) { L.push(`**Arbitration failed:** ${arb.error}`); L.push(""); continue; }
     L.push(`Findings arbitrated: ${arb.findingsIn ?? 0}${arb.inputTruncated ? " (input truncated)" : ""} · arbiter: ${arb.model ?? "—"}`);
     L.push("");
