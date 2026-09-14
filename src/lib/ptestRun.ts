@@ -476,7 +476,7 @@ export function buildPtestMarkdown(opts: {
   }
 
   for (const arb of opts.arbitrations) {
-    L.push(`## ${arb.tool.toUpperCase()} — arbitration`);
+    L.push(`## ${arb.tool.toUpperCase()} — arbitration${arb.singleReviewer ? " (single reviewer)" : ""}`);
     if (arb.error) { L.push(`**Arbitration failed:** ${arb.error}`); L.push(""); continue; }
     L.push(`Findings arbitrated: ${arb.findingsIn ?? 0}${arb.inputTruncated ? " (input truncated)" : ""} · arbiter: ${arb.model ?? "—"}`);
     L.push("");
