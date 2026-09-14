@@ -225,10 +225,23 @@ async function writeBatchRollup(admin: any, batchId: string) {
       };
     }
     const batchMean = mean(combinedAll);
-    if (!Object.keys(scores).length) return;
+
+    // A batch that lost a product is PARTIAL, never complete. The distinction
+    // is the whole point: a mean over two of three products is not a batch
+    // result, and must never read as one.
+    const { count: badCount } = await admin.from("ptest_jobs")
+      .select("id", { count: "exact", head: true })
+      .eq("batch_id", batchId)
+      .in("status", ["failed", "cancelled"]);
+    const closedStatus = (badCount ?? 0) > 0 ? "partial" : "complete";
+
+    const patch: Record<string, unknown> = { status: closedStatus };
+    if ((badCount ?? 0) > 0) patch.note = `${badCount} job(s) failed or were cancelled; this batch is partial`;
+    if (Object.keys(scores).length) { patch.scores = scores; patch.batch_mean = batchMean; }
     await admin.from("ptest_batches")
-      .update({ scores, batch_mean: batchMean })
-      .eq("batch_id", batchId);
+      .update(patch)
+      .eq("batch_id", batchId)
+      .in("status", ["running", "pending"]);
   } catch (e) {
     console.error(`[ptest-run-driver] score rollup failed — ${(e as Error)?.message ?? e}`);
   }
