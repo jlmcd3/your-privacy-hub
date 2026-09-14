@@ -125,6 +125,7 @@ export async function syncFixItems(batchId: string, arbitrations: ArbitrationRes
   const rows: Array<Record<string, unknown>> = [];
   for (const a of arbitrations) {
     if (a.error) continue;
+    const single = a.singleReviewer === true;
     (a.fixList ?? []).forEach((f: FixListEntry, i) => {
       rows.push({
         batch_id: batchId,
@@ -139,6 +140,7 @@ export async function syncFixItems(batchId: string, arbitrations: ArbitrationRes
         change_text: f.change ?? null,
         regression_test: f.regression_test ?? null,
         payload: f as unknown as Record<string, unknown>,
+        single_reviewer: single,
       });
     });
     (a.ceoSheet ?? []).forEach((c: CeoEntry, i) => {
@@ -155,6 +157,7 @@ export async function syncFixItems(batchId: string, arbitrations: ArbitrationRes
         change_text: c.gpt_proposed_fix ?? null,
         regression_test: null,
         payload: c as unknown as Record<string, unknown>,
+        single_reviewer: single,
       });
     });
   }
@@ -170,7 +173,7 @@ export async function syncFixItems(batchId: string, arbitrations: ArbitrationRes
 export async function fetchFixItems(batchId: string): Promise<PtestFixItemRow[]> {
   const { data, error } = await supabase
     .from("ptest_fix_items")
-    .select("id, batch_id, tool_slug, item_kind, item_id, title, severity, defect_type, raised_by, code_focus, change_text, regression_test, payload, fix_status, fix_notes, fix_reference, decided_at, created_at")
+    .select("id, batch_id, tool_slug, item_kind, item_id, title, severity, defect_type, raised_by, code_focus, change_text, regression_test, payload, fix_status, fix_notes, fix_reference, decided_at, created_at, single_reviewer")
     .eq("batch_id", batchId)
     .order("item_kind", { ascending: true })
     .order("created_at", { ascending: true });
