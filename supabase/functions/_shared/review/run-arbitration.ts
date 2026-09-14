@@ -208,11 +208,13 @@ export async function runArbitration(admin: Admin, opts: {
   let system: string;
   let turn: { text: string; truncated: boolean };
   let findingsIn: number;
+  let singleReviewer = false;
+  let singlePrefix: string | null = null;
 
   if (scope === "merge") {
     const { data: verdicts, error } = await admin
       .from("ptest_arbitrations")
-      .select("assessment_id, fix_list, ceo_sheet")
+      .select("assessment_id, fix_list, ceo_sheet, single_reviewer, summary")
       .eq("batch_id", opts.batchId)
       .eq("tool_slug", opts.tool)
       .eq("arbitration_scope", "document")
@@ -223,8 +225,18 @@ export async function runArbitration(admin: Admin, opts: {
       assessment_id: (v.assessment_id ?? null) as string | null,
       fix_list: arr(v.fix_list),
       ceo_sheet: arr(v.ceo_sheet),
+      single_reviewer: v.single_reviewer === true,
+      summary: typeof v.summary === "string" ? v.summary : null,
     }));
-    if (!rows.length) return { ok: false, status: 404, body: { error: "no_document_arbitrations" } };
+    // No successful document verdict — including the case where every document
+    // lost both reviewers — is a failure, never an empty-but-valid merge.
+    if (!rows.length) return { ok: false, status: 502, body: { error: "no_document_arbitrations" } };
+    singleReviewer = rows.some((r: { single_reviewer: boolean }) => r.single_reviewer);
+    if (singleReviewer) {
+      const src = rows.find((r: { single_reviewer: boolean; summary: string | null }) => r.single_reviewer && r.summary);
+      const m = src?.summary?.match(SINGLE_REVIEWER_PREFIX_RE);
+      singlePrefix = m ? m[0] : singleReviewerPrefix(null, "see document verdict");
+    }
     const merged = buildMergeTurn(opts.tool, rows);
     // A single document needs no merge call: its verdict IS the product verdict.
     if (rows.length === 1) {
@@ -236,10 +248,11 @@ export async function runArbitration(admin: Admin, opts: {
         ceo_sheet: rows[0].ceo_sheet,
         dropped: [],
         double_check: "Single document in this product; the per-document verdict is the product verdict, carried through unchanged.",
-        summary: "One document arbitrated; no cross-document deduplication was required.",
+        summary: withPrefix(singlePrefix, "One document arbitrated; no cross-document deduplication was required."),
         findings_in: merged.entryCount,
         input_truncated: false,
         usage: null,
+        single_reviewer: singleReviewer,
         error: null,
       };
       const rowId = await persist(admin, record);
@@ -260,12 +273,26 @@ export async function runArbitration(admin: Admin, opts: {
     }
     const { data: rows, error: readErr } = await q.order("created_at", { ascending: true });
     if (readErr) return { ok: false, status: 500, body: { error: "review_read_failed", detail: readErr.message } };
-    if (!rows || rows.length === 0) return { ok: false, status: 404, body: { error: "no_reviews_for_batch" } };
 
-    const digest = buildArbitrationTurn(opts.tool, rows as ReviewRow[]);
+    // A DOCUMENT WHOSE REVIEWS ALL FAILED IS NOT ARBITRATED. No model call, no
+    // verdict row: a failed product must never surface as a perfect score.
+    const reviewRows = (rows ?? []) as ReviewRow[];
+    const successful = reviewRows.filter((r) => !r.error);
+    if (!successful.length) {
+      return { ok: false, status: 502, body: { error: "reviews_failed" } };
+    }
+
+    if (scope === "document") {
+      const coverage = reviewerCoverage(reviewRows);
+      singleReviewer = coverage.singleReviewer;
+      if (singleReviewer) singlePrefix = singleReviewerPrefix(coverage.failedReviewer, coverage.failedError);
+    }
+
+    const digest = buildArbitrationTurn(opts.tool, reviewRows);
     if (digest.findingCount === 0) {
       // Nothing to arbitrate is a real, reportable outcome — not a failure, and
-      // not a reason to spend an arbitration call.
+      // not a reason to spend an arbitration call. Only reachable now when at
+      // least one reviewer genuinely returned zero findings.
       const record = {
         ...base,
         model: null,
@@ -274,10 +301,11 @@ export async function runArbitration(admin: Admin, opts: {
         ceo_sheet: [],
         dropped: [],
         double_check: null,
-        summary: "No findings were raised; nothing to arbitrate.",
+        summary: withPrefix(singlePrefix, "No findings were raised; nothing to arbitrate."),
         findings_in: 0,
         input_truncated: false,
         usage: null,
+        single_reviewer: singleReviewer,
         error: null,
       };
       const rowId = await persist(admin, record);
