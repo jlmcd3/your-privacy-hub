@@ -1,0 +1,101 @@
+{
+  "entity_name": "Verilink",
+  "company_name": "Verilink",
+  "primary_activity_name": "Behavioral interest classification for advertising",
+  "primary_activity_purpose": "Automatically categorize users into advertising segments from platform interaction data and optimize ad delivery.",
+  "processing_status": "Ongoing",
+  "q4_pi_categories": [
+    "Contact identifiers (name, email, phone)",
+    "Device identifiers (IP, cookies, device IDs)",
+    "Internet or network activity",
+    "General location (city, region, ZIP, IP-derived)",
+    "Account log-in or financial-account credentials",
+    "Financial information"
+  ],
+  "q15_sensitive_pi": "Yes",
+  "q5_sell_share": "Both",
+  "q12_notice_at_collection": "Yes, partial coverage",
+  "q13_notice_content": "Some elements",
+  "source_categories": [
+    "Directly from the consumer",
+    "Automatically from consumer devices or interactions",
+    "From third-party data providers or brokers"
+  ],
+  "processing_entry_point": "Data enters the profiling pipeline automatically when a logged-in or cookie-identified user loads a Verilink platform page; the collection trigger is the HTTP request to Verilink's event-tracking endpoint, which fires on each page view, search, or content interaction.",
+  "processing_methods": {
+    "collection_method": "Server-side event capture via Verilink's proprietary tracking SDK embedded in all platform pages; cookies and local storage identifiers are set on first visit and used to stitch sessions.",
+    "use_method": "Raw events are ingested into a streaming data pipeline, aggregated into feature vectors per user, and scored by the ML classifier on a 24-hour batch cycle to update interest-segment assignments in the ad-serving database.",
+    "disclosure_method": "Hashed audience segments (not raw PII) are transmitted to AdMatrix Technologies via secure API for ad targeting; DataSphere Analytics receives device-ID–based audience lists for cross-site frequency capping.",
+    "retention_method": "Raw event logs are stored in an encrypted cloud data lake for 13 months, after which automated deletion jobs purge records; derived segment assignments are overwritten on each 24-hour cycle.",
+    "other_processing_method": "N/A"
+  },
+  "processing_result": "The processing produces an interest-segment profile for each user, stored as a set of category labels and confidence scores. This output determines which advertisements are displayed to the user during each platform session and is shared as hashed audience segments with advertising partners for campaign targeting.",
+  "i1b_min_pi": "Only device identifiers, interaction events, and general location are strictly necessary to deliver targeted advertising; name and email address collected during account registration are not required for ad targeting and represent an over-collection relative to this specific purpose.",
+  "a2_necessity_set": [
+    { "element": "Device identifiers (cookies, device IDs)", "justification": "Device identifiers are required to stitch cross-session behavioral signals into a coherent interest profile for ad targeting.", "necessity": "Necessary to the stated purpose" },
+    { "element": "Internet or network activity (page views, clicks, search queries)", "justification": "Clickstream and interaction events are the primary input features for the interest-classification model and cannot be substituted.", "necessity": "Necessary to the stated purpose" },
+    { "element": "Account log-in credentials (email address)", "justification": "Email address is collected at account registration and linked to the behavioral profile but is not required to classify interests or serve targeted ads.", "necessity": "Collected but not necessary to the stated purpose" },
+    { "element": "General location (ZIP code, IP-derived city)", "justification": "General location is used for geographic ad targeting and is proportionate; precise GPS-level location is not collected for this activity.", "necessity": "Necessary to the stated purpose" }
+  ],
+  "retention_by_pi_category": [
+    { "pi_category": "Device identifiers (IP, cookies, device IDs)", "retention_criteria": "Fixed period from collection", "retention_period": "13 months" },
+    { "pi_category": "Internet or network activity", "retention_criteria": "Fixed period from collection", "retention_period": "13 months" },
+    { "pi_category": "Financial information", "retention_criteria": "Statutory or regulatory retention requirement", "retention_period": "7 years" },
+    { "pi_category": "Account log-in or financial-account credentials", "retention_criteria": "Duration of account / relationship", "retention_period": "Duration of account plus 3 years post-closure" }
+  ],
+  "i2_retention_period": "Behavioral profile data: 13 months; device identifiers: 13 months; ad interaction logs: 24 months for billing reconciliation.",
+  "i2_retention_criteria": "Fixed period from collection",
+  "i2_retention_detail": "Profiles and device identifiers are purged on a rolling 13-month cycle. Ad interaction logs are retained 24 months to support advertiser billing disputes, then deleted.",
+  "i9_has_existing_dpia": "Yes",
+  "i9_existing_dpia_summary": "A prior DPIA was completed in March 2022 covering the legacy ad-targeting pipeline. That assessment identified data minimization gaps in the use of precise geolocation for ad targeting; precise geolocation was subsequently removed from the pipeline. This assessment supersedes that prior DPIA for the current ML-based system.",
+  "expectation_check": [
+    "The processing continues after the interaction ends",
+    "Information is disclosed to parties the consumer does not directly interact with",
+    "Information is combined with information from other sources"
+  ],
+  "choice_architecture_check": [
+    "Consent or permission requests are presented symmetrically — declining is as easy as accepting",
+    "Declining the processing does not degrade the core service the consumer seeks"
+  ],
+  "a5_harm_pathways": [
+    { "harm": "(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability", "likelihood": "Possible", "severity": "Significant", "data_involved": "Behavioral interest profiles linked to device identifiers and account email addresses stored in the ad-serving database.", "actor": "External threat actor or malicious insider with access to the data lake or ad-serving API.", "source": "The centralized storage of enriched behavioral profiles creates a high-value target; the API endpoint shared with DataSphere Analytics is an external exposure point.", "cause": "A compromised API key or misconfigured cloud storage bucket could expose profile data to unauthorized parties, allowing re-identification of users." },
+    { "harm": "(C) Impairment of consumer control over personal information", "likelihood": "Likely", "severity": "Moderate", "data_involved": "Interest-segment profiles shared with DataSphere Analytics (a third party) without users having a clear understanding of cross-site data use.", "actor": "Verilink and its advertising partners acting within current contractual terms.", "source": "The Notice at Collection covers only partial collection points, and the DataSphere contract lacks confirmed CCPA restriction terms.", "cause": "Users are not adequately informed about third-party data sharing for cross-site targeting, and the opt-out mechanism may not effectively prevent data flows already in progress." },
+    { "harm": "(E) Economic harms", "likelihood": "Possible", "severity": "Moderate", "data_involved": "Interest profiles used to infer financial circumstances or vulnerability, potentially enabling predatory ad targeting.", "actor": "Advertisers using Verilink's audience segments to target financially distressed users with high-cost financial products.", "source": "Interest categories such as 'debt consolidation' or 'payday loan' may be constructed from behavioral signals and made available to advertisers without adequate guardrails.", "cause": "Absence of prohibited-category restrictions in the advertiser platform terms could allow exploitative ad campaigns directed at vulnerable users identified through behavioral profiling." }
+  ],
+  "a6_safeguards": [
+    { "harm": "(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability", "risk_pathway_ids": ["(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability"], "safeguard": "AES-256 encryption at rest and TLS 1.3 in transit for all behavioral profile data; API keys rotated quarterly; cloud storage bucket access restricted via IAM role-based policies audited monthly.", "safeguard_status": "Implemented and tested", "effectiveness_basis": "Validated by testing against the linked risk", "planned_timeline": "No committed timeline", "residual": "Insider threat and supply-chain compromise of a cloud provider remain residual risks not fully mitigated by current controls." },
+    { "harm": "(C) Impairment of consumer control over personal information", "risk_pathway_ids": ["(C) Impairment of consumer control over personal information"], "safeguard": "Contract amendments with DataSphere Analytics will prohibit re-identification of hashed audience segments and will incorporate CCPA-required service-provider restrictions; the Notice at Collection will be expanded to cover all collection points.", "safeguard_status": "Planned, not yet implemented", "effectiveness_basis": "Based on internal design review only", "planned_timeline": "Within 12 months", "residual": "Until contract amendments are executed and notice updated, consumers retain limited practical control over cross-site data sharing." },
+    { "harm": "(E) Economic harms", "risk_pathway_ids": ["(E) Economic harms"], "safeguard": "Advertiser policy review will prohibit targeting of interest segments associated with financial distress for high-cost financial product campaigns; a prohibited-category blocklist will be implemented in the ad-serving platform.", "safeguard_status": "Planned, not yet implemented", "effectiveness_basis": "Based on internal design review only", "planned_timeline": "Within 12 months", "residual": "Enforcement relies on advertiser self-classification of campaign type, leaving residual risk of policy circumvention." }
+  ],
+  "harm_category_review_status": [
+    { "harm_category": "(A) Unauthorized access, destruction, use, modification, or disclosure; loss of availability", "review_status": "Identified" },
+    { "harm_category": "(B) Unlawful discrimination on protected characteristics", "review_status": "Considered-none" },
+    { "harm_category": "(C) Impairment of consumer control over personal information", "review_status": "Identified" },
+    { "harm_category": "(D) Coercion or compulsion, including dark patterns", "review_status": "Considered-none" },
+    { "harm_category": "(E) Economic harms", "review_status": "Identified" },
+    { "harm_category": "(F) Physical harms", "review_status": "Considered-none" },
+    { "harm_category": "(G) Reputational harms", "review_status": "Not yet assessed" },
+    { "harm_category": "(H) Psychological harms", "review_status": "Considered-none" }
+  ],
+  "benefit_business_identified": "Yes",
+  "a4_benefit_business": "Targeted ad revenue funds free-tier platform services and supports continued product development.",
+  "a4_benefit_business_fact": "Advertising accounts for the majority of platform revenue and funds the free tier used by most consumers.",
+  "q18_admt_use": "Yes",
+  "q19_admt_description": "Verilink uses an ML-based interest-classification system to automatically categorize users into advertising segments and optimize ad delivery. The system makes material decisions about which advertisements are served and at what frequency, constituting a significant influence on users' commercial exposure.",
+  "admt_logic_documented": "The logic is documented and reviewed internally",
+  "i5_admt_logic": "The ML classifier assigns probability scores across approximately 300 interest categories based on recency-weighted clickstream features and session-level signals. Scores above a configurable threshold trigger ad-segment assignment, which is re-evaluated every 24 hours.",
+  "i5_admt_human_review": "Ad-segment assignments are fully automated; no human reviews individual user classifications before an advertisement is served. Aggregated segment performance is reviewed by the ad-ops team weekly but individual decisions are not subject to human override.",
+  "human_review_facts": ["There is no human review"],
+  "admt_testing_facts": ["Tested for accuracy or validity", "Tested for discriminatory impact or bias", "Testing performed or reviewed within the last 12 months"],
+  "i5_admt_fairness_testing": "Accuracy and disparate-impact testing across protected-class proxies is run quarterly by the data science team; the most recent review completed in Q2 2026.",
+  "i5_admt_training_source": "The classifier was trained on 36 months of historical Verilink platform interaction data with synthetic oversampling for lower-frequency interest categories; third-party browsing data was not used in training.",
+  "admt_provider_trained_using_pi": "No",
+  "admt_made_available_to_other_business": "No",
+  "assessment_reviewers_approvers": [
+    { "name": "Sandra Kole", "position": "Chief Privacy Officer", "role": "Approved" },
+    { "name": "Marcus Feld", "position": "VP Engineering & Data", "role": "Reviewed" },
+    { "name": "Theresa Wynn", "position": "Associate General Counsel, Privacy", "role": "Reviewed" }
+  ],
+  "a9_approval_date": "2025-06-30",
+  "approver_authority_confirmed": "Yes"
+}

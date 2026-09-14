@@ -50,6 +50,8 @@ import {
   admtEvaluationActiveFor,
   // DOC 167 — the Appendix E training-data reconciliation predicate.
   admtTrainingPiReconcileNeeded,
+  // BATCH ee860fd0 — the structured-"No" versus PI-narrative predicate.
+  admtTrainingPiNarrativeConflict,
   type RiskFactorEngineResult,
 } from "./risk-factor-engine.ts";
 import { firstSubstantiveSentence } from "../../../_shared/ltp/clause-bound.ts";
@@ -852,11 +854,17 @@ export function deriveAdmtTechnicalFacts(intake: Bag): RenderedTable | null {
     // preserved; where its training-data description reads as pseudonymized
     // or aggregated without the deidentified standard, the cell points at the
     // reconciliation Follow-Up rather than silently carrying a "No" beside it.
+    // BATCH ee860fd0 (training-data-status-conflict) — a structured "No"
+    // beside a training-source narrative describing consumer-level data
+    // renders with the reconciliation qualifier; an "Unknown" answer is
+    // rendered as given, never converted to "No".
     [
       "§ 7153 — trained using personal information",
-      `${yn(intake.admt_provider_trained_using_pi)}${
-        admtTrainingPiReconcileNeeded(intake) ? " — reconciliation pending (Follow-Ups, § 4.D)" : ""
-      }`,
+      admtTrainingPiNarrativeConflict(intake)
+        ? "No (as to the Company making the technology available to another business); training source recorded above indicates personal information — to be confirmed (§ 4.D)"
+        : `${yn(intake.admt_provider_trained_using_pi)}${
+          admtTrainingPiReconcileNeeded(intake) ? " — reconciliation pending (Follow-Ups, § 4.D)" : ""
+        }`,
     ],
     ["§ 7153 — recipient uses it for a significant decision", yn(intake.recipient_business_uses_admt_for_significant_decision)],
   ];
@@ -966,8 +974,22 @@ function composeVApproval(intake: Bag, assessmentDateIso?: string): string {
     const stale = apv !== undefined && asm !== undefined &&
       apv < riskApprovalCurrencyFloor(asm);
     if (stale) {
+      // BATCH ee860fd0 (approval-date-recharacterization) — the record does
+      // not say the date belongs to a different assessment, so the report
+      // does not say so either: both dates are stated and the version
+      // question is left open (the Follow-Up carries the same question).
+      // Only where the record itself marks the date as the prior version's
+      // (prior_risk_assessment_date) is the "earlier" reading permitted.
+      const expresslyPrior = s(intake.prior_risk_assessment_date) === approvalDate;
+      const approverNames = rows(intake.assessment_reviewers_approvers)
+        .filter((r) => s(r.role) === "Approved" || s(r.role) === "Both")
+        .map((r) => s(r.name))
+        .filter(Boolean);
+      const approvers = approverNames.length ? approverNames : (s(intake.a9_approver_name) ? [s(intake.a9_approver_name)] : []);
       bits.push(
-        `Prior review or approval date: ${approvalDate}. That date records an earlier internal review; the review and approval of this assessment, including its date, remains to be recorded (§ 7152(a)(9); Follow-Ups, § 4.D).`,
+        expresslyPrior
+          ? `Prior review or approval date: ${approvalDate}. That date is recorded as the prior version’s; the review and approval of this version, including its date, remain to be recorded (§ 7152(a)(9); Follow-Ups, § 4.D).`
+          : `The Company records approval${approvers.length ? ` by ${approvers.join(", ")}` : ""} on ${approvalDate}. That date precedes the date of this assessment (${asm}); which version of the assessment it approves, and whether approval of this version is required, remain to be confirmed (§ 7152(a)(9); Follow-Ups, § 4.D).`,
       );
     } else {
       bits.push(`${RISK52_FIXED.x_approval_date_label} ${approvalDate}.`);
@@ -1110,10 +1132,34 @@ export function clipQuotedPassages(text: string, maxWords = 12): string {
 // cell printed the heading ("H. Prior Assessments and Who Provided the
 // Information.") or a truncated roster item. The cell now carries the
 // determination sentence for each.
+// BATCH ee860fd0 (matrix-extraction-fragments) — a determination cell must be
+// one complete sentence: a sentence boundary INSIDE an open “…” quotation is
+// not a boundary (the prior-DPIA row used to close at the first stop inside
+// the Company's quoted summary, leaving the quote unclosed), and a lead-in
+// that ends in a colon before a structured list (the § 2.B sequence) is
+// replaced by a cross-reference sentence rather than a truncated extract.
+function quoteBalanced(t: string): boolean {
+  return (t.match(/“/g) ?? []).length === (t.match(/”/g) ?? []).length;
+}
+export function firstSubstantiveSentenceQuoteAware(text: string): string {
+  const t = String(text ?? "").trim();
+  const one = firstSubstantiveSentence(t);
+  if (quoteBalanced(one)) return one;
+  const start = t.indexOf(one);
+  const closeAt = t.indexOf("”", start + one.length);
+  if (closeAt < 0) return `${one.replace(/[.!?]\s*$/, "")} …”.`;
+  const rest = t.slice(closeAt + 1);
+  const stop = /[.!?](?=\s|$)/.exec(rest);
+  return t.slice(start, closeAt + 1 + (stop ? stop.index + 1 : 0)).trim();
+}
+
 export function matrixDeterminationSentence(factorId: string | undefined, text: string): string {
   let t = String(text ?? "").trim();
   if (factorId === "prior_assessments" && t.startsWith(RISK52_FIXED.prior_head)) {
     t = t.slice(RISK52_FIXED.prior_head.length).trim();
+  }
+  if (factorId === "operational_sequence" && t.startsWith(RISK52_FIXED.operates_lead)) {
+    return `${RISK52_FIXED.operates_lead.replace(/:\s*$/, "")}, recorded in § 2.B.`;
   }
   if (factorId === "record_providers") {
     const items = t.split("\n")
@@ -1128,7 +1174,7 @@ export function matrixDeterminationSentence(factorId: string | undefined, text: 
       .filter(Boolean);
     if (items.length) return `The information was provided by ${asProse(items)}.`;
   }
-  return firstSubstantiveSentence(t);
+  return firstSubstantiveSentenceQuoteAware(t);
 }
 
 export function buildFactorAuthorityMatrixTable(
@@ -1472,19 +1518,28 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
   if (isYes(intake.q18_admt_use) || admtEvaluationWithFacts(intake)) {
     composed["appendix_d:0"] =
       "This appendix preserves the technical and analytical detail supporting § 3.E, including the technology’s role, logic, assumptions and limitations, output, human review, testing, training-data provenance, and facts relevant to § 7153. The full verbatim system, logic, assumptions, and training-data descriptions are preserved here; the body quotes them only as its analysis requires.";
-    const techPresent = [
-      clause(intake.q19_admt_description),
-      clause(intake.i5_admt_logic),
-      clause(intake.admt_output),
-      clause(intake.i5_admt_human_review),
-      clause(intake.i5_admt_fairness_testing),
-      clause(intake.i5_admt_training_source),
-    ].filter(Boolean).length;
-    if (techPresent > 0) {
-      // DOC 154 (item 33) — counts under ten render as words.
-      const COUNT_WORDS = ["zero", "one", "two", "three", "four", "five", "six"];
-      composed["appendix_d:2"] =
-        `Analytical note. The record above preserves the Company’s own technical description across ${COUNT_WORDS[techPresent] ?? String(techPresent)} of the six record areas the appendix tracks (system description, logic, output and use, human review, testing, and training data). The body of the report evaluates those facts in § 3.E; this appendix preserves them so a reviewer can trace each conclusion to the description it rests on.`;
+    // BATCH ee860fd0 (admt-record-completeness) — the note names the record
+    // areas actually populated and the area(s) not recorded, instead of a
+    // bare count; the count is derived from the area list, never hard-coded.
+    const TECH_AREAS: ReadonlyArray<readonly [string, boolean]> = [
+      ["system description", clause(intake.q19_admt_description) !== ""],
+      ["logic", clause(intake.i5_admt_logic) !== ""],
+      ["output and use", clause(intake.admt_output) !== "" || clause(intake.admt_output_use) !== ""],
+      ["human review", clause(intake.i5_admt_human_review) !== ""],
+      ["testing", clause(intake.i5_admt_fairness_testing) !== ""],
+      ["training data", clause(intake.i5_admt_training_source) !== ""],
+    ];
+    const populatedAreas = TECH_AREAS.filter(([, on]) => on).map(([n]) => n);
+    const missingAreas = TECH_AREAS.filter(([, on]) => !on).map(([n]) => n);
+    if (populatedAreas.length > 0) {
+      const total = countWordSr(TECH_AREAS.length);
+      composed["appendix_d:2"] = missingAreas.length === 0
+        ? `Analytical note. The record above preserves the Company’s own technical description across all ${total} record areas the appendix tracks (${populatedAreas.join(", ")}). The body of the report evaluates those facts in § 3.E; this appendix preserves them so a reviewer can trace each conclusion to the description it rests on.`
+        : `Analytical note. The record above preserves the Company’s own technical description in ${countWordSr(populatedAreas.length)} of the ${total} record areas the appendix tracks — ${
+          populatedAreas.join(", ")
+        } — and does not record ${
+          missingAreas.length === 1 ? `the ${missingAreas[0]} area` : `the ${asProse(missingAreas)} areas`
+        }. The body of the report evaluates those facts in § 3.E; this appendix preserves them so a reviewer can trace each conclusion to the description it rests on.`;
     }
   } else {
     // A-TEAM S3 RULING V.13 (doc 115, 2026-08-31) — the trailing "appendix

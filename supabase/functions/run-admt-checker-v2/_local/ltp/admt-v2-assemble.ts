@@ -210,8 +210,32 @@ function humanInvolvementPhrase(effect: DecisionEffect): string {
 function advertisingPhrase(effect: DecisionEffect): string {
   return effect === "WEIGHS_AGAINST" ? "Weighs against significant-decision scope." : "No effect on scope.";
 }
-function outputRolePhrase(): string {
-  return "No independent effect on applicability; establishes the factual record for the Notice and Access sections.";
+// BATCH ee860fd0 (output-role-references-unreached-sections) — the phrase is
+// conditioned on whether the Notice and Access audits are actually reached;
+// out of scope they are not, and the factor is recorded as part of the
+// factual record instead. One selector feeds Section 2 and Appendix A, so
+// the two locations always carry the identical string.
+function outputRolePhrase(dutySectionsReached: boolean): string {
+  return dutySectionsReached
+    ? "No independent effect on applicability; establishes the factual record for the Notice and Access sections."
+    : "No independent effect on applicability; recorded as part of the factual record (the Notice and Access sections are not reached in this report).";
+}
+
+/** BATCH ee860fd0 (appendix-a-malformed-citation-range) — pinpoint list and
+ * range formatting for an authority string. A range is refused where one
+ * endpoint is a descendant of the other ("(b)(3)–(3)(A)" enumerates
+ * nothing); such pinpoints render as a list instead. Exported for tests. */
+export function citationPinpointList(pinpoints: readonly string[]): string {
+  return pinpoints.join(", ");
+}
+export function citationPinpointRange(from: string, to: string): string {
+  const norm = (p: string) => p.replace(/\s+/g, "");
+  const a = norm(from);
+  const b = norm(to);
+  if (a === b || a.startsWith(b) || b.startsWith(a)) {
+    throw new Error(`citation range endpoints share a parent subdivision: ${from}–${to}`);
+  }
+  return `${from}–${to}`;
 }
 function noticeDeliveryPhrase(status: SubstantiveState): string {
   if (status === "GAP") return "Condition — a Pre-use Notice has not yet been put in place.";
@@ -394,8 +418,12 @@ export function deriveAdmtFiredStates(computed: AdmtV2Computed): Set<string> {
  * operative" are recast in professional register; content and the
  * operative/nonbinding distinction unchanged. */
 const ADMT_S4_FRAMES: Record<string, string> = {
+  // BATCH ee860fd0 (human-involvement-interp-pointer) — the § 7001(e)(1)
+  // three-condition test is rendered in Section 2's opening paragraph
+  // (ADMT_V3_FIXED.applicability_requirement), not in the factor's
+  // determination cell; the pointer names where the test actually is.
   "Human involvement":
-    "Regulatory interpretation of the human-involvement standard — nonbinding interpretive context from the Agency's Final Statement of Reasons; the operative test is stated in this factor's determination above.",
+    "Regulatory interpretation of the human-involvement standard — nonbinding interpretive context from the Agency's Final Statement of Reasons; the operative test is stated in the opening paragraph of Section 2.",
   "Advertising exclusion":
     "Regulatory interpretation of the advertising exclusion — nonbinding interpretive context from the Agency's Final Statement of Reasons; the exclusion's scope is set by the operative definition cited above.",
 };
@@ -719,9 +747,12 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
           // A-TEAM DELTA (ChatGPT post-implementation review, 2026-08-31,
           // ADMT P1-4) — names which pathway is not reached, and points at
           // the automated-pathway condition, instead of the flat phrase.
-          ["Pre-use Notice", "Not reached", "—", scope.pathwayDependent ? NOT_REACHED_PHRASE_PATHWAY : NOT_REACHED_PHRASE],
-          ["Opt-out / exception", "Not reached", "—", scope.pathwayDependent ? NOT_REACHED_PHRASE_PATHWAY : NOT_REACHED_PHRASE],
-          ["Access and explanation", "Not reached", "—", scope.pathwayDependent ? NOT_REACHED_PHRASE_PATHWAY : NOT_REACHED_PHRASE],
+          // BATCH ee860fd0 (record-grade-qualified-vs-not-reached) — the
+          // record-grade cell carries the same "Not reached" label Section 7
+          // and the fact record use, so one area never reads three ways.
+          ["Pre-use Notice", "Not reached", "Not reached", scope.pathwayDependent ? NOT_REACHED_PHRASE_PATHWAY : NOT_REACHED_PHRASE],
+          ["Opt-out / exception", "Not reached", "Not reached", scope.pathwayDependent ? NOT_REACHED_PHRASE_PATHWAY : NOT_REACHED_PHRASE],
+          ["Access and explanation", "Not reached", "Not reached", scope.pathwayDependent ? NOT_REACHED_PHRASE_PATHWAY : NOT_REACHED_PHRASE],
         ]),
         ...(vendor.identified && scope.scopeState !== "OUT_OF_SCOPE"
           ? [["Vendor dependency", stateCell(vendor.posture), gradeCell(vendor.recordGrade), vendorDependencyPhrase(vendor)]]
@@ -799,7 +830,7 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
         ["Covered significant decision", scope.significantDecisionLabel, significantDecisionPhrase(scope.significantDecisionEffect)],
         ["Human involvement", scope.humanInvolvementLabel, humanInvolvementPhrase(scope.humanInvolvementEffect)],
         ["Advertising exclusion", scope.advertisingLabel, advertisingPhrase(scope.advertisingEffect)],
-        ["Role of ADMT output", scope.outputRoleLabel, outputRolePhrase()],
+        ["Role of ADMT output", scope.outputRoleLabel, outputRolePhrase(scope.scopeState !== "OUT_OF_SCOPE")],
       ],
     }},
     { kind: "generated", text: composeApplicabilityAnalysis(scope, systemName || "the System") },
@@ -1034,8 +1065,11 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   // ── 7. Governance, Record Sufficiency, and Related Risk-Assessment ─────
   push("governance", "7. Governance, Record Sufficiency, and Related Risk-Assessment Obligations", [
     legal(ADMT_V3_FIXED.governance_requirement),
-    { kind: "skeleton", text: "This ADMT Compliance Assessment is not the Article 10 risk assessment. The two records should nevertheless stay aligned because changes to the system, its decision use, or its safeguards may affect both analyses. The following table shows the record quality supporting each section of this assessment:" },
-    { kind: "skeleton", text: `The overall record supporting this assessment is graded ${computed.overallRecordGrade.replace(/_/g, " ").toLowerCase()}.` },
+    { kind: "skeleton", text: "This ADMT Compliance Assessment is not the Article 10 risk assessment. The two records should nevertheless stay aligned because changes to the system, its decision use, or its safeguards may affect both analyses." },
+    // BATCH ee860fd0 (section7-table-intro-dangling) — the overall-grade
+    // sentence precedes the table lead-in, so the lead-in's colon is
+    // immediately followed by the table it announces.
+    { kind: "skeleton", text: `The overall record supporting this assessment is graded ${computed.overallRecordGrade.replace(/_/g, " ").toLowerCase()}. The following table shows the record quality supporting each section of this assessment:` },
     { kind: "table", text: "", table: {
       key: "governance:1", surface: "record_grades", title: "",
       columns: ["Area", "Record quality"],
@@ -1527,6 +1561,9 @@ function buildFactRecordTable(
 ): { title: string; columns: string[]; rows: string[][] } {
   const d = (intake as any)?.admt_detail ?? {};
   const arrJoin = (v: unknown): string => Array.isArray(v) ? v.join("; ") : str(v as any);
+  const dutySectionsReached = computed.scope.scopeState !== "OUT_OF_SCOPE";
+  const areaGrade = (g: RecordGrade): string =>
+    dutySectionsReached ? gradeLabel(g) : "Not reached (intake data recorded; not assessed).";
 
   const hosting = str(d.hosting);
   const modelTypes = arrJoin(d.model_types);
@@ -1581,14 +1618,20 @@ function buildFactRecordTable(
       // terminal stop is dropped before the row's own is appended.
       factOr([consumerCount && `CA consumers: ${consumerCount.replace(/\.+$/, "")}.`, popBand && `Population band: ${popBand}.`, systemCount && `ADMT system count: ${systemCount.replace(/\.+$/, "")}.`].filter(Boolean).join(" "))],
     ["Internal roles", factOr(roleRoster)],
+    // BATCH ee860fd0 (record-grade-qualified-vs-not-reached) — the per-area
+    // record quality passes through the same not-reached gate Section 7 and
+    // the Executive Summary honour: out of scope, an area this report never
+    // assessed is "Not reached" (its intake data is recorded, not graded),
+    // never an ungated "Qualified". The Assessment Profile's overall grade is
+    // a separate attribute and is unaffected.
     ["Notice",
-      factOr([noticeDelivery && `Delivery: ${noticeDelivery}.`, `Record quality: ${gradeLabel(computed.notice.recordGrade)}`].filter(Boolean).join(" "))],
+      factOr([noticeDelivery && `Delivery: ${noticeDelivery}.`, `Record quality: ${areaGrade(computed.notice.recordGrade)}`].filter(Boolean).join(" "))],
     ["Opt-out / exception",
-      factOr(`Pathway: ${OPTOUT_PATH_LABEL[computed.optOutPath] ?? "unresolved"}. Record quality: ${gradeLabel(computed.optOut.recordGrade)}`)],
+      factOr(`Pathway: ${OPTOUT_PATH_LABEL[computed.optOutPath] ?? "unresolved"}. Record quality: ${areaGrade(computed.optOut.recordGrade)}`)],
     ["Access",
-      factOr(`Record quality: ${gradeLabel(computed.access.recordGrade)}`)],
+      factOr(`Record quality: ${areaGrade(computed.access.recordGrade)}`)],
     ["Vendor / system detail",
-      factOr(thirdParty ? `Third-party ADMT: ${thirdParty}. Record quality: ${gradeLabel(computed.vendor.recordGrade)}` : "No third-party ADMT identified.")],
+      factOr(thirdParty ? `Third-party ADMT: ${thirdParty}. Record quality: ${areaGrade(computed.vendor.recordGrade)}` : "No third-party ADMT identified.")],
   ];
 
   return { title: "", columns: ["Topic", "Recorded value"], rows };
@@ -1621,7 +1664,9 @@ function buildFactorMatrixTable(
     ["Significant decision", scope.significantDecisionLabel, significantDecisionPhrase(scope.significantDecisionEffect), "11 CCR §§ 7001(ddd), 7200(a)"],
     ["Human involvement", scope.humanInvolvementLabel, humanInvolvementPhrase(scope.humanInvolvementEffect), "11 CCR § 7001(e)(1)"],
     ["Advertising exclusion", scope.advertisingLabel, advertisingPhrase(scope.advertisingEffect), "11 CCR § 7001(ddd)(6)"],
-    ["Output role", scope.outputRoleLabel, outputRolePhrase(), "11 CCR §§ 7001(e)(1), 7220(c)(5)(B), 7222(b)(3)–(3)(A)"],
+    // BATCH ee860fd0 — § 7222(b)(3) and (b)(3)(A) are parent and child, not
+    // a range; both pinpoints are kept and enumerated as a list.
+    ["Output role", scope.outputRoleLabel, outputRolePhrase(scope.scopeState !== "OUT_OF_SCOPE"), `11 CCR §§ 7001(e)(1), 7220(c)(5)(B), 7222${citationPinpointList(["(b)(3)", "(b)(3)(A)"])}`],
   ];
 
   // PANEL ADMT-1 (2026-08-30): the matrix "restates each material factor

@@ -100,7 +100,12 @@ Deno.test("doc153 — Unsure is attributed to the Company; a non-enum value rend
 
 // ── Retention under an overall statement ─────────────────────────────────────
 
-Deno.test("doc153 — an uncovered category under an overall retention statement is a category-specific gap, not 'not stated'", () => {
+// BATCH ee860fd0 (2026-09-14, unsupported-retention-fallback) — the overall
+// statement "covers" an uncovered category only where it expressly names
+// it; this fixture's detail names contact identifiers, so the doc-153 form
+// is retained. An overall statement naming other categories only is pinned
+// in batch-ee860fd0-risk-fixes.test.ts.
+Deno.test("doc153 — an uncovered category the overall retention statement names is a category-specific gap, not 'not stated'", () => {
   const r = engineOn({
     q4_pi_categories: [
       "Contact identifiers (name, email, phone)",
@@ -111,6 +116,7 @@ Deno.test("doc153 — an uncovered category under an overall retention statement
     ],
     i2_retention_period: "24 months from collection",
     i2_retention_criteria: "Fixed period from collection",
+    i2_retention_detail: "Contact identifiers and device identifiers are retained 24 months from collection.",
   });
   const row = r.tables["ii_information:14"]!.rows.find((x) => x[0].startsWith("Contact identifiers"));
   assert(row, "uncovered category row missing");

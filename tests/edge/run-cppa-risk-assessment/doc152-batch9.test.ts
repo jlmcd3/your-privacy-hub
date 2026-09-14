@@ -65,7 +65,11 @@ Deno.test("doc152 — the currency floor is 365 days before the assessment date"
   assertEquals(riskApprovalCurrencyFloor("2026-09-03"), "2025-09-03");
 });
 
-Deno.test("doc152 — a stale (prior-year) approval date never renders sufficiency; the prior record is named and the follow-up completes it", () => {
+// BATCH ee860fd0 (2026-09-14, approval-date-recharacterization) — a stale
+// date is still never sufficiency, but it is no longer RECLASSIFIED as a
+// "prior review record" (a fact the intake does not state): the date is
+// named, and the open question (which version it approves) is carried.
+Deno.test("doc152 — a stale (prior-year) approval date never renders sufficiency; the date is named without reclassification and the follow-up carries the version question", () => {
   const r = engineOn({
     ...BENEFIT,
     a5_harm_pathways: [LOW_PATHWAY],
@@ -75,10 +79,11 @@ Deno.test("doc152 — a stale (prior-year) approval date never renders sufficien
   assertEquals(r.factors["approval_sufficiency_conclusion"], undefined, "sufficiency rendered from a stale date");
   const fu = r.factors["approval_follow_up"] ?? "";
   assert(fu.startsWith("Approval record — additional information required."), "date-gated state missing");
-  assert(fu.includes("Prior internal review or approval is recorded as of 2024-09-18"), "prior record not named");
-  assert(fu.includes("THIS assessment"), "current-assessment requirement not stated");
+  assert(fu.includes("The Company records approval as of 2024-09-18, a date that precedes the date of this assessment"), "recorded date not named");
+  assert(fu.includes("Record the review and approval of this version"), "current-version requirement not stated");
+  assert(!fu.includes("prior review record") && !fu.includes("Prior internal review"), "stale date reclassified as a prior review");
   assert(
-    (r.blocks["iv_determination:12"] ?? "").includes("the recorded approval date (2024-09-18) is a prior review record"),
+    (r.blocks["iv_determination:12"] ?? "").includes("Confirm which version of the assessment the recorded approval dated 2024-09-18 applies to"),
     "stale-date follow-up missing from § 4.D",
   );
 });
@@ -95,12 +100,12 @@ Deno.test("doc152 — a current approval date keeps the dated sufficiency conclu
     "current-date sufficiency lost",
   );
   assert(
-    !(r.blocks["iv_determination:12"] ?? "").includes("prior review record"),
+    !(r.blocks["iv_determination:12"] ?? "").includes("which version of the assessment"),
     "stale follow-up fired on a current date",
   );
 });
 
-Deno.test("doc152 — the § 5.A narrative labels a stale date as a prior review; the approval table's Date cell stays blank for it and prints a current one", () => {
+Deno.test("doc152 — the § 5.A narrative states a stale date with the open version question; the approval table's Date cell stays blank for it and prints a current one", () => {
   const staleIntake = {
     processing_status: "Ongoing",
     ...BENEFIT,
@@ -110,7 +115,8 @@ Deno.test("doc152 — the § 5.A narrative labels a stale date as a prior review
   };
   const sk = assembleRiskSkeletonDocument({} as never, staleIntake as never);
   const all = JSON.stringify(sk.document);
-  assert(all.includes("Prior review or approval date: 2024-09-18"), "§ 5.A stale-date label missing");
+  assert(all.includes("The Company records approval by Sandra Kowalski, Priya Sundaram on 2024-09-18. That date precedes the date of this assessment"), "§ 5.A stale-date sentence missing");
+  assert(!all.includes("earlier internal review"), "stale date reclassified in § 5.A");
   assert(
     !all.includes("Approval date: 2024-09-18"),
     "stale date still labeled as the current approval date",

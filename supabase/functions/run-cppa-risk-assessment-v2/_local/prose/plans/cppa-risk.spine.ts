@@ -123,8 +123,14 @@ export const RISK_SKELETON_CONTENT_HASH_V55 =
 // signature table — it reads "record their review of this assessment by
 // signature and date". Computed by running the digest, never hand-derived;
 // old-hash reproduction verified before re-pin (V55 above).
-export const RISK_SKELETON_CONTENT_HASH =
+export const RISK_SKELETON_CONTENT_HASH_V56 =
   "e58e86297b8f2d2342bdfdcbb52e3e7b9b3b6de5ea62f829bb672125084abe09";
+// BATCH ee860fd0 (2026-09-14, incorrect-section-cross-reference): the § 4.B
+// lead reads "Sections 2 and 3" (the document's Arabic scheme), not
+// "Sections II and III". Computed by running the digest, never hand-derived;
+// old-hash reproduction verified before re-pin (V56 above).
+export const RISK_SKELETON_CONTENT_HASH =
+  "c05f6ecbd383030493748337581ea5d14b20131c77108a7045c86abfc3a408ae";
 
 // A-TEAM S3 RULING I.24 (doc 115, 2026-08-31) — cover titles follow the fleet
 // Title Case convention (Batch 21a); ADMT's cover set the precedent. Cover
@@ -612,7 +618,9 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       // 3 — the rollup (engine iv_determination:3).
       { kind: "generated", text: "[GENERATED risk_rollup] Two sentences: most serious level before safeguards; most serious remaining level after the credits shown. Engine key iv_determination:3." },
       // 4 — B (law).
-      { kind: "skeleton", text: "B. What Weighs For, and What Weighs Against. The considerations below are those reached in Sections II and III and the ledger above — stated here by reference, in one place, so the balance can be read whole." },
+      // BATCH ee860fd0 (incorrect-section-cross-reference) — the document
+      // numbers its sections in Arabic; the reference follows the scheme.
+      { kind: "skeleton", text: "B. What Weighs For, and What Weighs Against. The considerations below are those reached in Sections 2 and 3 and the ledger above — stated here by reference, in one place, so the balance can be read whole." },
       // 5 — reference list, favorable (engine iv_determination:5).
       { kind: "generated", text: "[GENERATED factors_for] Reference list, one line each, no restatement. Engine key iv_determination:5." },
       // 6 — reference list, adverse (engine iv_determination:6).
