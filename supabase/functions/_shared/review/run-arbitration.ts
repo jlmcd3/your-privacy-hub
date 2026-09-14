@@ -13,6 +13,7 @@
 import { ARBITRATION_SYSTEM, ARBITRATION_MERGE_SYSTEM, DEEP_REVIEW_PROMPT_VERSION } from "./prompts.ts";
 import { callClaude, parseJsonObject, type Effort } from "./model-calls.ts";
 import { deriveScoreFromFindings } from "./scores.ts";
+import { ARBITRATION_JSON_SCHEMA } from "./json-schemas.ts";
 
 // deno-lint-ignore no-explicit-any
 type Admin = any;
@@ -253,6 +254,8 @@ export async function runArbitration(admin: Admin, opts: {
       maxTokens: 24_000,
       label: `arbitrate-${scope}`,
       product: opts.tool,
+      // FORCED VALID JSON — same discipline as the review call.
+      jsonSchema: ARBITRATION_JSON_SCHEMA,
     });
   } catch (e) {
     const msg = (e as Error)?.message ?? String(e);

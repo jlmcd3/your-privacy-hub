@@ -23,12 +23,12 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { isReviewTool, type ReviewTool } from "../_shared/review/document-source.ts";
-import { runDocumentReview } from "../_shared/review/run-review.ts";
+import { runDocumentReview, type Reviewer } from "../_shared/review/run-review.ts";
 import { runArbitration } from "../_shared/review/run-arbitration.ts";
 import { type Effort } from "../_shared/review/model-calls.ts";
 import { cors, json, requireAdmin, isResponse, SUPABASE_URL, SERVICE_KEY } from "../_shared/review/auth.ts";
 
-export const BUILD_STAMP = "all-ptest-driver-v1@2026-09-13";
+export const BUILD_STAMP = "all-ptest-driver-v2-split-reviewers@2026-09-14";
 console.log(`[ptest-run-driver] boot ${BUILD_STAMP}`);
 
 // deno-lint-ignore no-explicit-any
@@ -77,18 +77,52 @@ interface JobRow {
   run_by: string | null;
 }
 
+/** ONE JOB PER REVIEWER. A legacy 'review' row (queued before the split) still
+ *  runs both reviewers, so an in-flight batch is never stranded. */
+function reviewersOf(kind: string): Reviewer[] | null {
+  if (kind === "review_gpt") return ["gpt"];
+  if (kind === "review_claude") return ["claude"];
+  if (kind === "review") return ["gpt", "claude"];
+  return null;
+}
+
+/**
+ * HEARTBEAT. A model call can legitimately run for minutes with nothing to
+ * report; the stale-heartbeat rule must be able to tell that silence apart from
+ * a dead worker. The beat is refreshed every 30 seconds while the call is in
+ * flight and stopped the moment the job settles.
+ */
+// deno-lint-ignore no-explicit-any
+function startHeartbeat(admin: any, jobId: string): () => void {
+  const timer = setInterval(() => {
+    admin.from("ptest_jobs")
+      .update({ heartbeat_at: new Date().toISOString() })
+      .eq("id", jobId)
+      .eq("status", "running")
+      .then(
+        // deno-lint-ignore no-explicit-any
+        (r: any) => { if (r?.error) console.warn(`[ptest-run-driver] heartbeat failed — ${r.error.message}`); },
+        (e: unknown) => console.warn(`[ptest-run-driver] heartbeat threw — ${(e as Error)?.message ?? e}`),
+      );
+  }, 30_000);
+  return () => clearInterval(timer);
+}
+
 // deno-lint-ignore no-explicit-any
 async function runJob(admin: any, job: JobRow) {
+  const stopHeartbeat = startHeartbeat(admin, job.id);
   const finish = async (patch: Record<string, unknown>) => {
+    stopHeartbeat();
     await admin.from("ptest_jobs").update({ finished_at: new Date().toISOString(), ...patch }).eq("id", job.id);
   };
 
   try {
     // Cancellation is checked at the last moment before any spend.
     const { data: fresh } = await admin.from("ptest_jobs").select("status").eq("id", job.id).single();
-    if (fresh?.status === "cancelled") return;
+    if (fresh?.status === "cancelled") { stopHeartbeat(); return; }
 
-    if (job.kind === "review") {
+    const reviewers = reviewersOf(job.kind);
+    if (reviewers) {
       if (!isReviewTool(job.tool_slug) || !job.assessment_id) {
         await finish({ status: "failed", error: `unreviewable job (${job.tool_slug}/${job.assessment_id})` });
         return;
@@ -99,7 +133,7 @@ async function runJob(admin: any, job: JobRow) {
         batchId: job.batch_id,
         companyName: job.company_name,
         effort: job.effort as Effort,
-        reviewers: ["gpt", "claude"],
+        reviewers,
         userId: job.run_by,
       });
       await finish({
@@ -191,10 +225,23 @@ async function writeBatchRollup(admin: any, batchId: string) {
       };
     }
     const batchMean = mean(combinedAll);
-    if (!Object.keys(scores).length) return;
+
+    // A batch that lost a product is PARTIAL, never complete. The distinction
+    // is the whole point: a mean over two of three products is not a batch
+    // result, and must never read as one.
+    const { count: badCount } = await admin.from("ptest_jobs")
+      .select("id", { count: "exact", head: true })
+      .eq("batch_id", batchId)
+      .in("status", ["failed", "cancelled"]);
+    const closedStatus = (badCount ?? 0) > 0 ? "partial" : "complete";
+
+    const patch: Record<string, unknown> = { status: closedStatus };
+    if ((badCount ?? 0) > 0) patch.note = `${badCount} job(s) failed or were cancelled; this batch is partial`;
+    if (Object.keys(scores).length) { patch.scores = scores; patch.batch_mean = batchMean; }
     await admin.from("ptest_batches")
-      .update({ scores, batch_mean: batchMean })
-      .eq("batch_id", batchId);
+      .update(patch)
+      .eq("batch_id", batchId)
+      .in("status", ["running", "pending"]);
   } catch (e) {
     console.error(`[ptest-run-driver] score rollup failed — ${(e as Error)?.message ?? e}`);
   }
@@ -243,7 +290,11 @@ const handler = async (req: Request): Promise<Response> => {
         company_name: typeof d.company_name === "string" ? d.company_name : null,
         run_by: auth.userId,
       };
-      rows.push({ ...common, kind: "review", effort: reviewEffort });
+      // ONE JOB PER REVIEWER. Each provider gets its own isolate, its own wall
+      // clock and its own attempt budget; a slow reviewer can no longer lose
+      // the other reviewer's completed work.
+      rows.push({ ...common, kind: "review_gpt", effort: reviewEffort });
+      rows.push({ ...common, kind: "review_claude", effort: reviewEffort });
       rows.push({ ...common, kind: "arb_document", effort: arbEffort });
     }
     // One merge per product. Two-pass arbitration is the default here: a single
@@ -260,7 +311,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (insErr) return json({ error: "enqueue_failed", detail: insErr.message }, 500);
 
     // Start as many parallel workers as the harness's proven concurrency.
-    const starters = Math.min(3, docs.length);
+    const starters = Math.min(3, docs.length * 2);
     for (let i = 0; i < starters; i++) background(kickNext(batchId));
 
     return json({ ok: true, batch_id: batchId, enqueued: ins?.length ?? rows.length, workers: starters, build_stamp: BUILD_STAMP });
