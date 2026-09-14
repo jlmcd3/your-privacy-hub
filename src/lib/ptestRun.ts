@@ -290,7 +290,7 @@ export async function fetchPtestResults(batchId: string): Promise<{
       .select("assessment_id, tool_slug, company_name, reviewer, model, effort, findings, double_check, overall, dropped_unlocatable, error, dimension_scores, overall_score, derived_score, score_source, score_notes")
       .eq("batch_id", batchId).order("created_at", { ascending: true }),
     supabase.from("ptest_arbitrations")
-      .select("tool_slug, model, fix_list, ceo_sheet, dropped, double_check, summary, findings_in, input_truncated, error, arbitration_scope, agreed_score")
+      .select("tool_slug, model, fix_list, ceo_sheet, dropped, double_check, summary, findings_in, input_truncated, error, arbitration_scope, agreed_score, single_reviewer")
       .eq("batch_id", batchId).eq("arbitration_scope", "merge").order("created_at", { ascending: true }),
   ]);
   if (rev.error) throw new Error(rev.error.message);
