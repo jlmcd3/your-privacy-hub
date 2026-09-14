@@ -334,7 +334,7 @@ export async function runArbitration(admin: Admin, opts: {
     await persist(admin, {
       ...base, model: null, effort: opts.effort, fix_list: [], ceo_sheet: [], dropped: [],
       double_check: null, summary: null, findings_in: findingsIn, input_truncated: turn.truncated,
-      usage: null, error: msg,
+      usage: null, single_reviewer: singleReviewer, error: msg,
     });
     return { ok: false, status: 502, body: { error: "arbitration_failed", detail: msg } };
   }
@@ -344,7 +344,7 @@ export async function runArbitration(admin: Admin, opts: {
     await persist(admin, {
       ...base, model: res.model, effort: res.effort, fix_list: [], ceo_sheet: [], dropped: [],
       double_check: null, summary: null, findings_in: findingsIn, input_truncated: turn.truncated,
-      usage: null, error: `unparseable_json (${res.text.length} chars)`,
+      usage: null, single_reviewer: singleReviewer, error: `unparseable_json (${res.text.length} chars)`,
     });
     return { ok: false, status: 502, body: { error: "unparseable_arbitration_json", chars: res.text.length } };
   }
@@ -357,7 +357,8 @@ export async function runArbitration(admin: Admin, opts: {
     ceo_sheet: arr(parsed.ceo_sheet),
     dropped: arr(parsed.dropped),
     double_check: typeof parsed.double_check === "string" ? parsed.double_check : null,
-    summary: typeof parsed.summary === "string" ? parsed.summary : null,
+    single_reviewer: singleReviewer,
+    summary: withPrefix(singlePrefix, typeof parsed.summary === "string" ? parsed.summary : null),
     findings_in: findingsIn,
     input_truncated: turn.truncated,
     usage: {
