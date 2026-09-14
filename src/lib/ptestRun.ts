@@ -164,6 +164,8 @@ export interface ArbitrationResult {
   summary: string | null;
   /** Post-arbitration score: 100 minus the severity weight of each agreed fix. */
   agreedScore?: number | null;
+  /** True when at least one contributing document was arbitrated on one reviewer. */
+  singleReviewer?: boolean;
   error?: string;
 }
 
