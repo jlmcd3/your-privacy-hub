@@ -11733,6 +11733,7 @@ export type Database = {
       owns_client: { Args: { _client_id: string }; Returns: boolean }
       prune_old_coach_transcripts: { Args: never; Returns: undefined }
       prune_old_user_events: { Args: never; Returns: undefined }
+      ptest_reap: { Args: never; Returns: Json }
       purge_closed_accounts: { Args: never; Returns: number }
       purge_expired_bans: { Args: never; Returns: number }
       quality_runs_watchdog: { Args: never; Returns: Json }
