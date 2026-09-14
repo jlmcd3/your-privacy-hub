@@ -217,10 +217,11 @@ export default function AllPTest() {
           continue;
         }
         setJobs(jobRows);
+        finalJobs = jobRows;
         const done = jobRows.filter((j) => j.status === "done").length;
         const failed = jobRows.filter((j) => ["failed", "cancelled"].includes(j.status)).length;
         const running = jobRows.filter((j) => j.status === "running").length;
-        setPhase(jobRows.some((j) => j.kind === "review" && ["queued", "running"].includes(j.status)) ? "reviewing" : "arbitrating");
+        setPhase(jobRows.some((j) => j.kind.startsWith("review") && ["queued", "running"].includes(j.status)) ? "reviewing" : "arbitrating");
         const line = `Reviewing — ${done} done, ${running} running, ${failed} failed of ${jobRows.length}`;
         if (line !== lastLine) { say(line); lastLine = line; }
         // Per-job trace: each state change is logged once, never repeated on
