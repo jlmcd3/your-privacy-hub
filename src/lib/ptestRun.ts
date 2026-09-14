@@ -333,6 +333,7 @@ export async function fetchPtestResults(batchId: string): Promise<{
     doubleCheck: a.double_check,
     summary: a.summary,
     agreedScore: a.agreed_score === null || a.agreed_score === undefined ? null : Number(a.agreed_score),
+    singleReviewer: a.single_reviewer === true,
     error: a.error ?? undefined,
   }));
 
