@@ -764,162 +764,27 @@ export function bestBenefitTier(benefits: BenefitRecord[]): BenefitTier {
   return "none";
 }
 
-/** BATCH ee860fd0 (incomplete-necessity-coverage) — an inventory category
- * with no a2 row that the Company's own minimum-information statement
- * (i1b_min_pi) records as not required. */
-export interface NecessityInventoryUnnecessary {
-  readonly category: string;
-  /** The category elements the statement names (e.g. "name", "email"); empty when it names the category as a whole. */
-  readonly elements: readonly string[];
-  /** The Company's clause, as written. */
-  readonly statement: string;
-}
-
 export interface NecessityBuckets {
   readonly necessary: Bag[];
   readonly unnecessary: Bag[];
   readonly unsure: Bag[];
   readonly total: number;
-  /** Inventory categories with no a2 row that i1b_min_pi records as not required. */
-  readonly inventoryUnnecessary: readonly NecessityInventoryUnnecessary[];
-  /** Inventory categories with no necessity record at all. */
-  readonly inventoryUnresolved: readonly string[];
 }
 
-// ── BATCH ee860fd0 — category-label term matching (shared by the necessity
-// inventory reconciliation and the § 2.G retention fallback). A q4 label has
-// the shape "Head (element, element, …)"; the head's distinctive tokens and
-// the parenthetical elements are the terms a free-text statement can name.
-const GENERIC_CATEGORY_TOKENS = new Set([
-  "information", "identifiers", "identifier", "activity", "data", "general", "other", "or", "and", "of", "the",
-  "account", "personal", "related",
-]);
-function categoryTerms(label: string): { readonly headPhrase: string; readonly headTokens: string[]; readonly elements: string[] } {
-  const m = /^([^(]+?)\s*(?:\(([^)]*)\))?\s*$/.exec(s(label));
-  const headPhrase = (m?.[1] ?? s(label)).trim().toLowerCase();
-  const headTokens = headPhrase.split(/\s+/)
-    .map((t) => t.replace(/[^a-z0-9-]/g, ""))
-    .filter((t) => t.length >= 3 && !GENERIC_CATEGORY_TOKENS.has(t));
-  const elements = (m?.[2] ?? "").split(/,\s*/).map((x) => x.trim().toLowerCase()).filter(Boolean);
-  return { headPhrase, headTokens, elements };
-}
-function termRe(term: string): RegExp {
-  const esc = term.replace(/(?:e?s)$/, "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/[-\s]+/g, "[-\\s]?");
-  return new RegExp(`\\b${esc}(?:e?s)?\\b`, "i");
-}
-// The q4 inventory is a fixed enum whose labels are broader than the words a
-// Company uses for its elements ("Applicant income" is financial information;
-// "Contact details" are contact identifiers). Each label carries the element
-// vocabulary that names it; a label with no distinctive term ("Other") is
-// never reconciled by term matching.
-const CATEGORY_TERM_SYNONYMS: Readonly<Record<string, RegExp>> = {
-  "Contact identifiers (name, email, phone)": /\b(?:contact|names?|e-?mail|phone|telephone|mailing address|postal address)\b/i,
-  "Government identifiers (SSN, driver's license, state ID, passport number)":
-    /\b(?:ssn|social security|driver'?s? licen[cs]e|passport|state id|government-?issued|national id|identity number|id number|tax id|taxpayer)\b/i,
-  "Device identifiers (IP, cookies, device IDs)": /\b(?:device|cookies?|ip address|idfa|gaid|advertising id|mac address)\b/i,
-  "Internet or network activity": /\b(?:browsing|clickstream|clicks?|page ?views?|searches?|search quer\w+|sessions?|network activity|interaction events?|event logs?|web activity|app usage|usage data)\b/i,
-  "Contents of mail, email, or text messages": /\b(?:message contents?|e-?mail contents?|text messages?|mail contents?|communications? contents?)\b/i,
-  "Precise geolocation (GPS-level / specific address)": /\b(?:gps|precise (?:geo)?location|coordinates?|specific address|home address)\b/i,
-  "General location (city, region, ZIP, IP-derived)": /\b(?:(?:general |approximate |coarse )?(?:geo)?location|zip|postal code|city|region|ip-?derived)\b/i,
-  "Financial information": /\b(?:financial|income|salary|wages?|bank|credit|payments?|billing|card|transactions?|purchase histor\w+|loans?|debts?|account references?|invoices?|creditworthiness)\b/i,
-  "Account log-in or financial-account credentials": /\b(?:passwords?|log-?in|login|credentials?|account numbers?|security questions?|\bpins?\b)\b/i,
-  "Health or medical information": /\b(?:health|medical|diagnos\w*|prescriptions?|patients?|clinical|wellness)\b/i,
-  "Biometric information": /\b(?:biometric|fingerprints?|face|facial|voiceprints?|iris|retina)\b/i,
-  "Genetic data": /\b(?:genetic|dna|genom\w*)\b/i,
-  "Neural data": /\b(?:neural|brain|eeg)\b/i,
-  "Racial or ethnic origin": /\b(?:race|racial|ethnic\w*)\b/i,
-  "Religious or philosophical beliefs": /\b(?:religio\w*|philosophical|beliefs?)\b/i,
-  "Union membership": /\b(?:union)\b/i,
-  "Sexual orientation": /\b(?:sexual orientation|sexuality)\b/i,
-  "Gender identity": /\b(?:gender)\b/i,
-  "Citizenship or immigration status": /\b(?:citizenship|immigration|visa|nationality)\b/i,
-  "Employment information": /\b(?:employment|employer|jobs?|tenure|occupation|work history|payroll|performance reviews?)\b/i,
-  "Education information": /\b(?:education\w*|school|students?|grades?|transcripts?|degrees?)\b/i,
-  "Children's data (under 16)": /\b(?:child\w*|minors?|under[- ]16)\b/i,
-};
-/** Whether a free-text statement expressly names a q4 category — by its head
- * phrase, a distinctive head token, one of its parenthetical elements, or
- * the element vocabulary that names it. */
-export function textNamesCategory(text: string, category: string): { readonly head: boolean; readonly elements: string[] } {
-  const { headPhrase, headTokens, elements } = categoryTerms(category);
-  const t = s(text);
-  const synonym = CATEGORY_TERM_SYNONYMS[category];
-  const head = (headPhrase.length >= 6 && termRe(headPhrase).test(t)) || headTokens.some((tok) => termRe(tok).test(t)) ||
-    (synonym !== undefined && synonym.test(t));
-  return { head, elements: elements.filter((e) => termRe(e).test(t)) };
-}
-/** A category term matching can reconcile at all ("Other" cannot). */
-function categoryReconcilable(category: string): boolean {
-  return categoryTerms(category).headTokens.length > 0 || CATEGORY_TERM_SYNONYMS[category] !== undefined;
-}
-/** The inventory categories an a2 necessity row records: keyed by head first
- * (the Company labelled the row as that category), by a parenthetical
- * element or the category's element vocabulary otherwise. */
-function necessityRowCategories(rowElement: string, categories: readonly string[]): string[] {
-  const row = categoryTerms(rowElement);
-  const byHead = categories.filter((c) => {
-    const ct = categoryTerms(c);
-    return ct.headTokens.some((tok) => row.headTokens.includes(tok)) ||
-      (row.headPhrase.length >= 6 && ct.headPhrase.length >= 6 &&
-        (row.headPhrase.includes(ct.headPhrase) || ct.headPhrase.includes(row.headPhrase)));
-  });
-  if (byHead.length) return byHead;
-  return categories.filter((c) => {
-    const ct = categoryTerms(c);
-    return row.elements.some((re) => ct.elements.some((ce) => termRe(ce).test(re) || termRe(re).test(ce))) ||
-      (CATEGORY_TERM_SYNONYMS[c]?.test(rowElement) ?? false);
-  });
-}
-const NOT_NEEDED_RE =
-  /\b(?:not\s+(?:strictly\s+)?(?:required|necessary|needed|essential)|unnecessary|over-?collect\w*|beyond\s+what\s+is\s+(?:necessary|needed))\b/i;
-
+// DOC 261 (2026-09-14, targeted revert of batch ee860fd0
+// incomplete-necessity-coverage) — the free-text reconciliation of the
+// a2 element record against the q4 inventory (per-category synonym
+// vocabulary, negation parsing of i1b_min_pi) is withdrawn: it inferred
+// category membership from narrative text. The structured fix is a
+// `pi_category` key on each a2 row, after which reconciliation is exact.
 export function extractNecessity(intake: Bag): NecessityBuckets {
   const all = rows(intake.a2_necessity_set).filter((r) => s(r.element));
-  // BATCH ee860fd0 (incomplete-necessity-coverage) — the element-level record
-  // is reconciled against the full q4 inventory: a category no row records is
-  // never silently dropped. The reconciliation extends an existing record;
-  // with no a2 row at all the § 3.B posture sentence stands as before.
-  const categories = arr(intake.q4_pi_categories);
-  const keyed = new Set<string>();
-  if (all.length) {
-    for (const r of all) for (const c of necessityRowCategories(s(r.element), categories)) keyed.add(c);
-  }
-  const unkeyed = all.length ? categories.filter((c) => !keyed.has(c) && categoryReconcilable(c)) : [];
-  const clauses = s(intake.i1b_min_pi).split(/(?<=[.!?;])\s+/).map((x) => x.trim()).filter(Boolean);
-  const inventoryUnnecessary: NecessityInventoryUnnecessary[] = [];
-  const inventoryUnresolved: string[] = [];
-  const names = (cl: string, c: string) => {
-    const n = textNamesCategory(cl, c);
-    return n.head || n.elements.length > 0;
-  };
-  for (const c of unkeyed) {
-    const negative = clauses.find((cl) => NOT_NEEDED_RE.test(cl) && names(cl, c));
-    if (negative) {
-      inventoryUnnecessary.push({ category: c, elements: textNamesCategory(negative, c).elements, statement: negative.replace(/[.;]\s*$/, "") });
-    } else if (!clauses.some((cl) => names(cl, c))) {
-      // Named nowhere — not in an a2 row, not in the Company's own statement
-      // of the minimum information necessary — the category is unresolved.
-      // A category the statement names as processed is its record of
-      // necessity and draws no open item.
-      inventoryUnresolved.push(c);
-    }
-  }
   return {
     necessary: all.filter((r) => s(r.necessity) === "Necessary to the stated purpose"),
     unnecessary: all.filter((r) => s(r.necessity) === "Collected but not necessary to the stated purpose"),
     unsure: all.filter((r) => s(r.necessity) === "Unsure"),
     total: all.length,
-    inventoryUnnecessary,
-    inventoryUnresolved,
   };
-}
-
-/** BATCH ee860fd0 — the run-in name of an inventory-derived unnecessary
- * element: the named elements within their category, or the category. */
-export function inventoryUnnecessaryName(u: NecessityInventoryUnnecessary): string {
-  return u.elements.length
-    ? `${asProse(u.elements)} (within “${u.category}”)`
-    : `“${u.category}”`;
 }
 
 // ── Appendix tables (carried, v5.2 column register) ──────────────────────────
@@ -938,34 +803,18 @@ export function inventoryUnnecessaryName(u: NecessityInventoryUnnecessary): stri
 export function buildNecessityMatrixTable(intake: Bag): RenderedTable | null {
   const rowsData = rows(intake.a2_necessity_set).filter((r) => s(r.element));
   if (rowsData.length === 0) return null;
-  // BATCH ee860fd0 (incomplete-necessity-coverage) — the table covers the
-  // full inventory: categories the Company's minimum-information statement
-  // records as not required, and categories with no record, each get a row.
-  const necessity = extractNecessity(intake);
   return {
     key: "",
     surface: "necessity_matrix",
     title: "",
     columns: ["Element", "Determination", "Basis"],
-    rows: [
-      ...rowsData.map((r) => [
-        s(r.element),
-        s(r.necessity),
-        clause(r.justification)
-          ? `${qPassage(r.justification)}.`
-          : "Recorded without further explanation.",
-      ]),
-      ...necessity.inventoryUnnecessary.map((u) => [
-        u.elements.length ? `${u.category} — ${asProse(u.elements)}` : u.category,
-        "Collected but not necessary to the stated purpose (the Company’s minimum-information statement)",
-        `${qPassage(u.statement)}.`,
-      ]),
-      ...necessity.inventoryUnresolved.map((c) => [
-        c,
-        "Unresolved — no necessity record",
-        "The category appears in the Activity’s personal-information inventory without an element-level necessity record.",
-      ]),
-    ],
+    rows: rowsData.map((r) => [
+      s(r.element),
+      s(r.necessity),
+      clause(r.justification)
+        ? `${qPassage(r.justification)}.`
+        : "Recorded without further explanation.",
+    ]),
   };
 }
 
@@ -1297,89 +1146,11 @@ export function admtTrainingPiCueTerms(intake: Bag): string[] {
   return out;
 }
 
-// BATCH ee860fd0 (training-data-status-conflict) — the Company answers that
-// the technology is NOT trained using personal information while its
-// training-source narrative describes consumer-level data (platform
-// interaction data, clickstream, user records, …) with no deidentified /
-// aggregate-only qualifier. The answer is preserved and never overridden; the
-// Appendix E row, the § 3.E sentence and a Follow-Up state the tension. A
-// narrative describing synthetic or aggregate data only is not a conflict.
-const TRAINING_PI_CUE_RE =
-  /\b(?:personal (?:information|data)|(?:(?:platform|user|consumer|customer|member|subscriber|account|applicant|employee|patient|borrower|visitor)\s+)?(?:interaction|behavio(?:u)?ral|clickstream|browsing|transaction(?:al)?|activity|usage|event|profile|session|purchase|application|account|health|location|search)\s+(?:data|records?|logs?|histor(?:y|ies)|events?|signals?|information)|(?:users?|consumers?|customers?|applicants?|employees?|patients?|members?|subscribers?)['’]?\s+(?:data|records?|information|histor(?:y|ies)|profiles?))\b/i;
-const TRAINING_NON_PI_ONLY_RE =
-  /\b(?:only|solely|exclusively|entirely)\s+(?:on\s+|from\s+|using\s+)?(?:synthetic|aggregate\w*|de-?identified|anonymi[sz]ed)\b|\bno personal (?:information|data)\b/i;
-
-export function admtTrainingPiNarrativeCue(intake: Bag): string {
-  const text = s(intake.i5_admt_training_source);
-  return TRAINING_PI_CUE_RE.exec(text)?.[0] ?? "";
-}
-export function admtTrainingPiNarrativeConflict(intake: Bag): boolean {
-  if (s(intake.admt_provider_trained_using_pi) !== "No") return false;
-  // The DOC 167 pseudonymized / aggregated reconciliation is the more specific
-  // state and keeps its own row, sentence and Follow-Up.
-  if (admtTrainingPiReconcileNeeded(intake)) return false;
-  const text = s(intake.i5_admt_training_source);
-  if (!text || !TRAINING_PI_CUE_RE.test(text)) return false;
-  return !TRAINING_DEIDENTIFIED_RE.test(text) && !TRAINING_NON_PI_ONLY_RE.test(text);
-}
-
-// BATCH ee860fd0 (automatic-collection-consumer-act) — the consumer actions
-// the Company's own entry-point record names as the collection trigger.
-const CONSUMER_ACTION_CUES: ReadonlyArray<readonly [RegExp, string]> = [
-  [/\bpage[- ]?views?\b/i, "page views"],
-  [/\bpage[- ]?loads?\b|\bloads? (?:a|the|each|every|any) [^.;,]*?\bpage\b/i, "page loads"],
-  [/\bsearch(?:es)?\b/i, "searches"],
-  [/\bclicks?\b/i, "clicks"],
-  [/\bcontent interactions?\b/i, "content interactions"],
-  [/\bform submissions?\b|\bsubmits? (?:a|the) form\b/i, "form submissions"],
-  [/\b(?:log-?ins?|sign-?ins?)\b/i, "log-ins"],
-  [/\b(?:sign-?ups?|registrations?|account creation)\b/i, "registrations"],
-  [/\bpurchases?\b|\bcheckouts?\b/i, "purchases"],
-  [/\bscroll(?:s|ing)?\b/i, "scrolling"],
-  [/\btaps?\b/i, "taps"],
-  [/\bdownloads?\b/i, "downloads"],
-  [/\bapp (?:opens?|launch(?:es)?)\b/i, "app opens"],
-];
-export function recordedConsumerActions(entryPoint: string): string[] {
-  const t = s(entryPoint);
-  if (!t) return [];
-  const hits: Array<[number, string]> = [];
-  for (const [re, label] of CONSUMER_ACTION_CUES) {
-    const m = re.exec(t);
-    if (m && !hits.some(([, l]) => l === label)) hits.push([m.index, label]);
-  }
-  // Page loads and page views describe the same act; keep the more specific term.
-  const labels = hits.sort((a, b) => a[0] - b[0]).map(([, l]) => l);
-  return labels.includes("page views") ? labels.filter((l) => l !== "page loads") : labels;
-}
-
-// BATCH ee860fd0 (unmapped-admt-ledger-credit) — a § 4.A ledger safeguard is
-// keyed to the ADMT testing record only where its own text describes testing
-// / validation of the model, and with an implemented status (a planned one
-// draws a Condition, not a credit).
-const ADMT_TESTING_SAFEGUARD_RE =
-  /\b(?:model|classifier|algorithm\w*|ADMT|automated[- ]decision\w*|machine[- ]learning|\bML\b|scoring)\b[^.;]*\b(?:test\w*|validat\w*|audit\w*|bias|fairness|discriminat\w*|accuracy)\b|\b(?:bias|fairness|discriminat\w*|accuracy|disparate[- ]impact)\b[^.;]*\b(?:test\w*|audit\w*|validat\w*|monitor\w*)\b/i;
-export function admtTestingKeyedHarms(pathways: readonly Pathway[]): string[] {
-  return pathways
-    .filter((p) =>
-      p.safeguards.some((g) =>
-        (SAFEGUARD_STATUS_RANK[s(g.safeguard_status)] ?? 0) >= 2 && ADMT_TESTING_SAFEGUARD_RE.test(s(g.safeguard))
-      )
-    )
-    .map((p) => p.harm);
-}
-
-// BATCH ee860fd0 (retention-record-reconciliation) — the durations a retention
-// statement names ("13 months", "24 months", "7 years"), normalised.
-export function extractDurations(text: string): string[] {
-  const out: string[] = [];
-  for (const m of s(text).matchAll(/\b(\d+)\s*[- ]?\s*(day|week|month|year)s?\b/gi)) {
-    const n = Number(m[1]);
-    const d = `${n} ${m[2].toLowerCase()}${n === 1 ? "" : "s"}`;
-    if (!out.includes(d)) out.push(d);
-  }
-  return out;
-}
+// DOC 261 (2026-09-14, targeted revert of batch ee860fd0) — the narrative
+// training-data PI cue, the entry-point consumer-action extraction, the
+// ADMT-testing safeguard keying and the retention duration-conflict
+// detection are withdrawn: each inferred a fact from free text. Where the
+// engine needs those facts it reads a structured field or states nothing.
 
 // Batch 13 A-Team §5 (NestGrid, Luminary; NestWave is the deliberate
 // partial-overlap case) — the same disclosure work was rendered both as
@@ -1454,62 +1225,13 @@ const PAYMENT_PURPOSE_RE =
 function firstSentenceMatching(text: string, re: RegExp): string {
   return s(text).split(/(?<=[.!?])\s+/).find((x) => re.test(x)) ?? s(text);
 }
-// CEO decision ee860fd0 (datasphere-role-remediation) — recipients the record
-// classifies as a third party that a safeguard text names while describing
-// "service-provider" terms: the Company's remediation is keyed to the wrong
-// contract regime for that recipient's recorded role.
-export function thirdPartiesNamedAsServiceProvider(safeguardText: string, intake: Bag): string[] {
-  const text = s(safeguardText);
-  if (!/\bservice[- ]provider\b/i.test(text)) return [];
-  return rows(intake.recipients)
-    .filter((r) => /^third party/i.test(s(r.recipient_type)))
-    .map((r) => s(r.recipient_name_or_category))
-    .filter((name) => {
-      if (!name) return false;
-      const head = name.split(/\s*[(—–-]\s*/)[0].trim();
-      const key = head.length >= 5 ? head : name;
-      return text.toLowerCase().includes(key.toLowerCase());
-    });
-}
-
-// CEO decision ee860fd0 (sensitive-credential-condition) — the credentials
-// category is sensitive personal information only in combination with the
-// access code, password or credentials allowing access to the account
-// (Cal. Civ. Code § 1798.140(ae)(1)(A)). Where the element record keyed to
-// that category names an email address and no access-enabling credential,
-// the classification is carried as declared and confirmation is asked.
-const CREDENTIAL_CUE_RE = /\b(?:passwords?|passcodes?|pins?|security (?:questions?|codes?)|access codes?|account numbers?|log-?in credentials?|login credentials?|credentials? (?:allowing|permitting) access|card numbers?|routing numbers?)\b/i;
-const CREDENTIALS_CATEGORY = "Account log-in or financial-account credentials";
-export function credentialsElementRecordEmailOnly(intake: Bag): boolean {
-  if (!arr(intake.q4_pi_categories).includes(CREDENTIALS_CATEGORY)) return false;
-  const keyed = rows(intake.a2_necessity_set)
-    .map((r) => s(r.element))
-    .filter((e) => e && necessityRowCategories(e, [CREDENTIALS_CATEGORY]).length > 0);
-  if (!keyed.length) return false;
-  // The element's own label may repeat the category's words ("Account
-  // log-in credentials (email address)"); the recorded content is the
-  // parenthetical where one is given.
-  const content = keyed.map((e) => /\(([^)]*)\)/.exec(e)?.[1]?.trim() || e);
-  return content.every((e) => /\be-?mail\b/i.test(e)) && !content.some((e) => CREDENTIAL_CUE_RE.test(e));
-}
-
-// CEO decision ee860fd0 (information-provider-identification) — § 7152(a)(8)
-// requires the INDIVIDUALS who provided the information to be identified;
-// a record that names teams or functions only is an open item. A person is
-// recognised by an initial-plus-surname or given-plus-family-name pair
-// outside a team phrase; team phrases are stripped first.
-const TEAM_PHRASE_RE = /\b[\w&/'’-]+(?:\s+[\w&/'’-]+){0,3}\s+(?:team|department|group|unit|function|office|committee|division|squad)\b/gi;
-const PERSON_NAME_RE = /\b(?:[A-Z][a-z]+|[A-Z]\.)\s+[A-Z][a-zA-Z'’-]{2,}\b/;
-export function providersNameIndividuals(intake: Bag): { readonly anyRecord: boolean; readonly individuals: boolean } {
-  const texts = [
-    s(intake.a8_information_providers),
-    s(intake.i7_internal_contributors),
-    ...rows(intake.section_7151_operational_participants).map((p) => s(p.name)),
-  ].filter(Boolean);
-  if (!texts.length) return { anyRecord: false, individuals: false };
-  const stripped = texts.map((t) => t.replace(TEAM_PHRASE_RE, " "));
-  return { anyRecord: true, individuals: stripped.some((t) => PERSON_NAME_RE.test(t)) };
-}
+// DOC 261 (2026-09-14, targeted revert of the ee860fd0 CEO-decision build) —
+// the recipient-name-in-safeguard-text role note, the email-only credentials
+// check and the person-name detection over the providers roster are
+// withdrawn: each inferred a fact from free text. The structured
+// alternatives (a `pi_category` / credential-type field on the necessity
+// row; individual name fields on the participant rows) are recorded in
+// doc 261.
 
 export function paymentScopeFor(intake: Bag): { cue: string; sourceCue: boolean } | null {
   const purposeText = `${clause(intake.primary_activity_purpose)} ${clause(intake.i1_processing_purpose)}`;
@@ -1887,43 +1609,26 @@ export function runRiskFactorEngine(
   // quoted; the imperative frame around them is unchanged.
   for (const g of planned) {
     const addresses = safeguardHarms(g);
-    // CEO decisions ee860fd0 (ongoing-processing-permission,
-    // datasphere-role-remediation) — the condition carries the timeline the
-    // Company recorded for the safeguard, and, where the safeguard names
-    // service-provider terms for a recipient the record classifies as a
-    // third party, the role note (the § 7053 Follow-Up already asks for the
-    // terms). The Company's safeguard text is never rewritten.
+    // CEO decision ee860fd0 (ongoing-processing-permission) — the condition
+    // carries the timeline the Company recorded for the safeguard. The
+    // Company's safeguard text is never rewritten.
     const notes: string[] = [];
     const timeline = s(g.planned_timeline);
     if (timeline && timeline !== "No committed timeline") notes.push(`recorded timeline: ${timeline}`);
-    const misroled = thirdPartiesNamedAsServiceProvider(s(g.safeguard), intake);
-    if (misroled.length) {
-      notes.push(
-        `${asProse(misroled.map((n) => `“${n}”`))} ${plural(misroled.length, "is", "are")} recorded as a third party; the applicable contract terms are those of 11 CCR § 7053 — see the Follow-Ups`,
-      );
-    }
     conditions.push(
       `Complete implementation of the planned safeguard: ${qName(g.safeguard)}${
         notes.map((n) => ` (${n})`).join("")
       }${addresses.length ? ` (addresses: ${asProse(addresses)})` : ""}`,
     );
   }
-  if (necessity.unnecessary.length || necessity.inventoryUnnecessary.length) {
+  if (necessity.unnecessary.length) {
     // PANEL RISK-P1/D8 (2026-08-30): no colon cataphora here — the exec
     // summary compresses each condition to the text before its first colon,
     // and "the following element:" left "the following element" dangling in
     // the one paragraph most customers read. Naming the elements inline
     // keeps both the full § 4.D entry and the compact form grammatical.
-    // BATCH ee860fd0 (incomplete-necessity-coverage) — every element the
-    // record shows as not necessary is named, including those the Company's
-    // minimum-information statement records without an a2 row.
     conditions.push(
-      `Cease processing, or establish the necessity of, ${
-        asProse([
-          ...necessity.unnecessary.map((r) => `“${s(r.element)}”`),
-          ...necessity.inventoryUnnecessary.map(inventoryUnnecessaryName),
-        ])
-      }`,
+      `Cease processing, or establish the necessity of, ${asProse(necessity.unnecessary.map((r) => `“${s(r.element)}”`))}`,
     );
   }
   // DOC 148 (2026-09-02, A-Team Batch-8 P1) — condition deduplication. A
@@ -2078,16 +1783,6 @@ export function runRiskFactorEngine(
       } provides that personal information does not include consumer information that is deidentified (§ 1798.140(m)) or aggregate consumer information (§ 1798.140(b)); confirm which of those standards the training data met before training, and update the Appendix E record`,
     );
   }
-  // BATCH ee860fd0 (training-data-status-conflict) — the structured "No"
-  // beside a narrative describing consumer-level training data. The answer
-  // is preserved; the Appendix E row and § 3.E point here.
-  if (admtTrainingPiNarrativeConflict(intake)) {
-    followUps.push(
-      `Confirm whether the technology was trained using personal information: the Company answers “No”, while the recorded training-data source ${
-        qPassage(s(intake.i5_admt_training_source))
-      } describes ${qName(admtTrainingPiNarrativeCue(intake))}; if personal information was used, correct the answer and update the Appendix E record (§ 7153; § 7150(b)(6))`,
-    );
-  }
   // BATCH ee860fd0 (admt-record-completeness) — § 3.E may claim the logic
   // record "including its assumptions and limitations" only where the
   // assumptions-and-limitations field is on the record; otherwise the gap
@@ -2235,17 +1930,6 @@ export function runRiskFactorEngine(
       `Establish whether the following ${
         plural(necessity.unsure.length, "element is", "elements are")
       } necessary to the stated purpose: ${asProse(necessity.unsure.map((r) => `“${s(r.element)}”`))}`,
-    );
-  }
-  // BATCH ee860fd0 (incomplete-necessity-coverage) — an inventory category
-  // with no necessity record at all is unresolved, never omitted.
-  if (necessity.inventoryUnresolved.length) {
-    followUps.push(
-      `Record whether ${asProse(necessity.inventoryUnresolved.map((c) => `“${c}”`))} ${
-        plural(necessity.inventoryUnresolved.length, "is", "are")
-      } necessary to the stated purpose; ${
-        plural(necessity.inventoryUnresolved.length, "it appears", "they appear")
-      } in the Activity’s personal-information inventory without an element-level necessity record, and § 7152(a)(2) requires the assessment to identify the minimum personal information necessary to achieve the Purpose`,
     );
   }
   if (rc && rc.value === false) {
@@ -2491,8 +2175,7 @@ export function runRiskFactorEngine(
 
   // Balancing operands (the ratified logic, unchanged).
   const cell = RISK_BALANCING_TABLE[benefitTier][maxResidual];
-  const necessityQualified = necessity.unnecessary.length > 0 || necessity.unsure.length > 0 ||
-    necessity.inventoryUnnecessary.length > 0 || necessity.inventoryUnresolved.length > 0;
+  const necessityQualified = necessity.unnecessary.length > 0 || necessity.unsure.length > 0;
   // DOC 257 (2026-09-11, ChatGPT v2 CPPA-R2-04): the ratified cell text
   // carries the either-count token "risk or risks"; the number of pathways
   // at the governing remaining level decides the form.
@@ -3218,18 +2901,6 @@ export function runRiskFactorEngine(
       // facts the record collects are stated where the reader meets the
       // sensitivity finding; they printed nowhere before.
       const spiFacts: string[] = [];
-      // CEO decision ee860fd0 (sensitive-credential-condition) — the
-      // credentials category is carried as the Company declares it; where
-      // its element record names an email address only, the § 1798.140(ae)
-      // (1)(A) combination is confirmed by Follow-Up, never assumed or dropped.
-      if (spiList.includes(CREDENTIALS_CATEGORY) && credentialsElementRecordEmailOnly(intake)) {
-        spiFacts.push(
-          `The classification of “${CREDENTIALS_CATEGORY}” as sensitive personal information is carried as the Company declares it; the element record for that category names an email address only, and whether access-enabling credentials are processed with it (Cal. Civ. Code § 1798.140(ae)(1)(A)) appears among the Follow-Ups in § 4.D.`,
-        );
-        followUps.push(
-          `Confirm whether the Activity processes account log-in or financial-account information in combination with any required security or access code, password, or credentials allowing access to the account (Cal. Civ. Code § 1798.140(ae)(1)(A)); the only element recorded for the “${CREDENTIALS_CATEGORY}” category is an email address, and the sensitive-personal-information classification is carried as declared until confirmed`,
-        );
-      }
       if (isYes(intake.q15_sensitive_pi)) {
         if (s(intake.q17_sensitive_basis)) {
           spiFacts.push(`The Company records the basis for processing sensitive personal information as “${s(intake.q17_sensitive_basis)}”`);
@@ -3293,16 +2964,11 @@ export function runRiskFactorEngine(
       if (automatic) {
         // BATCH ee860fd0 (automatic-collection-consumer-act) — automatic
         // collection is gathered without a separate act of SUPPLYING the
-        // information; where the Company's entry-point record names the
-        // consumer actions that trigger it, they are stated, and no "no
-        // consumer act" weight is added on top of them.
-        const triggers = recordedConsumerActions(clause(intake.processing_entry_point));
+        // information (the consumer's own page views and searches are acts;
+        // the sentence no longer denies them). DOC 261: the extraction of
+        // those actions from the entry-point narrative is withdrawn.
         consequences.push(
-          triggers.length
-            ? `information collected automatically from devices or interactions is gathered without a separate act by the consumer of supplying the information (the collection is triggered by ${
-              asProse(triggers)
-            })`
-            : "information collected automatically from devices or interactions is gathered without a separate act by the consumer of supplying the information, which raises the weight of the notice and expectation analyses in § 3.C",
+          "information collected automatically from devices or interactions is gathered without a separate act by the consumer of supplying the information, which raises the weight of the notice and expectation analyses in § 3.C",
         );
       }
       if (brokers) {
@@ -3604,18 +3270,6 @@ export function runRiskFactorEngine(
     const retCovered = new Set(retRows.map((r) => s(r.pi_category)));
     const retMissing = arr(intake.q4_pi_categories).filter((c) => !retCovered.has(c));
     const hasOverall = Boolean(overallPeriod || overallCriteria);
-    // BATCH ee860fd0 (unsupported-retention-fallback) — the overall statement
-    // covers an uncovered category only where it expressly names it (its head
-    // or one of its elements); otherwise no period is recorded for the
-    // category and the follow-up carries the unknown status.
-    const overallStatementText = [overallPeriod, overallCriteria, clause(intake.i2_retention_detail)].filter(Boolean).join(" ");
-    const retMissingNamed = hasOverall
-      ? retMissing.filter((c) => {
-        const n = textNamesCategory(overallStatementText, c);
-        return n.head || n.elements.length > 0;
-      })
-      : [];
-    const retMissingUnnamed = retMissing.filter((c) => !retMissingNamed.includes(c));
     if (retRows.length) {
       tables["ii_information:14"] = {
         key: "",
@@ -3628,41 +3282,32 @@ export function runRiskFactorEngine(
             s(r.retention_period) || s(r.retention_criteria),
           ]),
           // DOC 153 (batch 736df0ad) — where the Company states an overall
-          // retention period or criterion THAT NAMES the category, an
-          // uncovered category is NOT "not stated": the overall statement is
-          // the only period covering it, and the gap is the category-specific
-          // one § 7152(a)(3)(B) asks for.
+          // retention period or criterion, an uncovered category is NOT
+          // "not stated"; the gap is the category-specific one § 7152(a)(3)(B)
+          // asks for.
+          // BATCH ee860fd0 (unsupported-retention-fallback) / DOC 261 — the
+          // row never asserts that the overall statement COVERS the
+          // category (whether it does is a reading of narrative text); it
+          // states the record: the overall statement is the only retention
+          // statement on it.
           ...retMissing.map((c) => [
             c,
-            retMissingNamed.includes(c)
-              ? "No category-specific period recorded — the Company’s overall retention statement applies; see the Follow-Ups in § 4.D"
-              : hasOverall
-              ? "Not stated — the Company’s overall retention statement does not address this category; see the Follow-Ups in § 4.D"
+            hasOverall
+              ? "No category-specific period recorded — the Company’s overall retention statement is the only retention statement on the record; see the Follow-Ups in § 4.D"
               : "Not stated — see the Follow-Ups in § 4.D",
           ]),
         ],
       };
-      if (retMissingNamed.length) {
-        followUps.push(
-          `Identify the retention period, or the criteria used to determine it, specifically for ${
-            asProse(retMissingNamed.map((c) => `“${c}”`))
-          }; only the Company’s overall retention statement in § 2.G currently covers ${
-            plural(retMissingNamed.length, "it", "them")
-          }, and § 7152(a)(3)(B) requires this for each category of personal information`,
-        );
-      }
-      if (retMissingUnnamed.length) {
+      if (retMissing.length) {
         followUps.push(
           hasOverall
-            ? `Identify the retention period, or the criteria used to determine it, for ${
-              asProse(retMissingUnnamed.map((c) => `“${c}”`))
-            }; the retention period for ${
-              plural(retMissingUnnamed.length, "it", "them")
-            } is unknown on the information provided — the Company’s overall retention statement in § 2.G does not address ${
-              plural(retMissingUnnamed.length, "it", "them")
-            } — and § 7152(a)(3)(B) requires this for each category of personal information`
+            ? `Identify the retention period, or the criteria used to determine it, specifically for ${
+              asProse(retMissing.map((c) => `“${c}”`))
+            }; only the Company’s overall retention statement in § 2.G is on the record for ${
+              plural(retMissing.length, "it", "them")
+            }, and § 7152(a)(3)(B) requires this for each category of personal information`
             : `Identify the retention period, or the criteria used to determine it, for ${
-              asProse(retMissingUnnamed.map((c) => `“${c}”`))
+              asProse(retMissing.map((c) => `“${c}”`))
             }; § 7152(a)(3)(B) requires this for each category of personal information`,
         );
       }
@@ -3692,10 +3337,9 @@ export function runRiskFactorEngine(
       const catCriteria = retRows
         .map((r) => [s(r.pi_category), clause(r.retention_criteria)] as const)
         .filter(([, c]) => c && c !== "Other criteria (described below)");
-      const lackingOwn = [
-        ...retRows.filter((r) => !catCriteria.some(([c]) => c === s(r.pi_category))).map((r) => s(r.pi_category)),
-        ...retMissingNamed,
-      ];
+      const lackingOwn = retRows
+        .filter((r) => !catCriteria.some(([c]) => c === s(r.pi_category)))
+        .map((r) => s(r.pi_category));
       let basisSentence = "";
       if (catCriteria.some(([, c]) => c !== basis)) {
         const groups = new Map<string, string[]>();
@@ -3713,24 +3357,13 @@ export function runRiskFactorEngine(
       } else if (basis) {
         basisSentence = `The Company states the basis for these periods as: “${basis}”. `;
       }
-      // The coherence conclusion is gated: no period stated in the overall
-      // statement that is attributed to no recorded category, and no open
+      // The coherence conclusion is gated on the structured record: no open
       // retention item (an uncovered category, or the payment/billing scope
       // question the § 2.F resolver raises); otherwise the qualified form
-      // names what remains to be reconciled.
-      const categoryDurations = new Set(retRows.flatMap((r) => extractDurations(s(r.retention_period))));
-      const unattributed = retRows.length
-        ? extractDurations(`${overallPeriod} ${clause(intake.i2_retention_detail)}`).filter((d) => !categoryDurations.has(d))
-        : [];
+      // names what remains to be reconciled. DOC 261: the duration-conflict
+      // detection over the overall statement's text is withdrawn.
       const paymentOpen = paymentScopeFor(intake) !== null;
       const openItems: string[] = [];
-      if (unattributed.length) {
-        openItems.push(
-          `the ${plural(unattributed.length, "period", "periods")} of ${
-            asProse(unattributed)
-          } stated in the overall retention statement but attributed to no recorded category`,
-        );
-      }
       if (retRows.length && retMissing.length) {
         openItems.push(`the period for ${asProse(retMissing.map((c) => `“${c}”`))}`);
       }
@@ -3746,26 +3379,17 @@ export function runRiskFactorEngine(
         ? ` Retention is stated for the Activity as a whole and remains to be established category by category${
           arr(intake.q4_pi_categories).length ? "; identifying it appears among the Follow-Ups in § 4.D" : ""
         }.`
-        : [
-          retMissingNamed.length
-            ? ` A category-specific retention period is not recorded for ${
-              asProse(retMissingNamed.map((c) => `“${c}”`))
-            }; the Company’s overall retention statement is the only period covering ${
-              plural(retMissingNamed.length, "it", "them")
-            } on the information provided, and category-level identification appears among the Follow-Ups in § 4.D.`
-            : "",
-          retMissingUnnamed.length && hasOverall
-            ? ` No retention period is recorded for ${
-              asProse(retMissingUnnamed.map((c) => `“${c}”`))
-            }; the overall statement does not address ${
-              plural(retMissingUnnamed.length, "it", "them")
-            }, and identification of that period appears among the Follow-Ups in § 4.D.`
-            : retMissingUnnamed.length
-            ? ` Retention is not stated for ${
-              asProse(retMissingUnnamed.map((c) => `“${c}”`))
-            }; identifying it appears among the Follow-Ups in § 4.D.`
-            : "",
-        ].join("");
+        : retMissing.length && hasOverall
+        ? ` A category-specific retention period is not recorded for ${
+          asProse(retMissing.map((c) => `“${c}”`))
+        }; the Company’s overall retention statement is the only retention statement on the record for ${
+          plural(retMissing.length, "it", "them")
+        }, and category-level identification appears among the Follow-Ups in § 4.D.`
+        : retMissing.length
+        ? ` Retention is not stated for ${
+          asProse(retMissing.map((c) => `“${c}”`))
+        }; identifying it appears among the Follow-Ups in § 4.D.`
+        : "";
       put(
         "ii_information:15",
         "retention_basis",
@@ -3836,18 +3460,6 @@ export function runRiskFactorEngine(
       if (external && /\b(counsel|attorney|law firm|llp)\b/i.test(external)) {
         parts.push(
           "Legal counsel providing legal advice is excepted from the § 7152(a)(8) information-provider record; counsel is noted here to complete the consultation record only.",
-        );
-      }
-      // CEO decision ee860fd0 (information-provider-identification) — a
-      // roster of teams or functions with no individual named is an open
-      // § 7152(a)(8) item, stated here and completed by Follow-Up.
-      const providerRecord = providersNameIndividuals(intake);
-      if (providerRecord.anyRecord && !providerRecord.individuals) {
-        parts.push(
-          "The record identifies teams or functions rather than individuals; § 7152(a)(8) requires the individuals who provided the information to be identified, and completing that record appears among the Follow-Ups in § 4.D.",
-        );
-        followUps.push(
-          "Identify by name and position the individuals who provided information for this assessment; the record names teams or functions only, and § 7152(a)(8) requires the individuals to be identified (legal counsel who provided legal advice excepted)",
         );
       }
       parts.push(RISK52_FIXED.providers_close);
@@ -4005,7 +3617,7 @@ export function runRiskFactorEngine(
       ["11 CCR § 7152(a)(2)"],
     );
   }
-  if (necessity.unnecessary.length || necessity.unsure.length || necessity.inventoryUnnecessary.length || necessity.inventoryUnresolved.length) {
+  if (necessity.unnecessary.length || necessity.unsure.length) {
     // PANEL RISK-P1 (2026-08-30). Two defects in the old sentence: (a) the
     // element name is the grammatical subject, so a plural element ("Contact
     // identifiers (name, email, phone) is collected") broke agreement on the
@@ -4026,30 +3638,11 @@ export function runRiskFactorEngine(
         ? `The necessity of “${s(r.element)}” is not established for the Purpose under assessment: the Company itself records the element as collected but not necessary to the stated purpose, and the basis it records (“${basis}”) does not establish a contribution to that Purpose. ${consequence}`
         : `The necessity of “${s(r.element)}” is not established: the Company records the element as collected but not necessary to the stated purpose, and the information provided identifies no contribution it makes to the Purpose. ${consequence}`;
     });
-    // BATCH ee860fd0 (incomplete-necessity-coverage) — the Company's own
-    // minimum-information statement propagates: a category it records as not
-    // required carries the same consequence as an a2 "not necessary" row.
-    for (const u of necessity.inventoryUnnecessary) {
+    if (necessity.unsure.length) {
       paras.push(
-        `The necessity of ${inventoryUnnecessaryName(u)} is not established for the Purpose under assessment: the Company’s own minimum-information statement records ${
-          u.elements.length ? asProse(u.elements) : "the category"
-        } as not required (${qPassage(u.statement)}). Processing the ${
-          plural(u.elements.length || 1, "element", "elements")
-        } creates privacy exposure without a corresponding contribution to the benefits weighed in Section 4, and ceasing or justifying ${
-          plural(u.elements.length || 1, "it", "them")
-        } appears in the ${conditionsHeadName}.`,
-      );
-    }
-    if (necessity.unsure.length || necessity.inventoryUnresolved.length) {
-      paras.push(
-        [
-          ...necessity.unsure.map((r) =>
-            `The necessity of “${s(r.element)}” is unresolved on the information provided; resolving it appears among the Follow-Ups.`
-          ),
-          ...necessity.inventoryUnresolved.map((c) =>
-            `No necessity record is made for “${c}”, a category in the Activity’s personal-information inventory; its necessity is unresolved on the information provided, and resolving it appears among the Follow-Ups.`
-          ),
-        ].join(" "),
+        necessity.unsure.map((r) =>
+          `The necessity of “${s(r.element)}” is unresolved on the information provided; resolving it appears among the Follow-Ups.`
+        ).join(" "),
       );
     }
     put(
@@ -4064,18 +3657,9 @@ export function runRiskFactorEngine(
     );
   }
   if (necessity.total) {
-    // BATCH ee860fd0 (incomplete-necessity-coverage) — the count and the
-    // names cover every element the record shows as not necessary (a2 rows
-    // plus the Company's minimum-information statement) and every inventory
-    // category left unresolved.
-    const notShown = [
-      ...necessity.unnecessary.map((r) => `“${s(r.element)}”`),
-      ...necessity.inventoryUnnecessary.map(inventoryUnnecessaryName),
-    ];
-    const unresolvedNames = [
-      ...necessity.unsure.map((r) => `“${s(r.element)}”`),
-      ...necessity.inventoryUnresolved.map((c) => `“${c}”`),
-    ];
+    // BATCH ee860fd0 — the conclusion names the elements it counts.
+    const notShown = necessity.unnecessary.map((r) => `“${s(r.element)}”`);
+    const unresolvedNames = necessity.unsure.map((r) => `“${s(r.element)}”`);
     const lead = !notShown.length && !unresolvedNames.length
       ? "The necessity analysis supports the information processed, and that conclusion weighs in the Company’s favor in Section 4."
       : notShown.length
@@ -4546,34 +4130,24 @@ export function runRiskFactorEngine(
               : "testing within the last 12 months",
           );
         }
-        // BATCH ee860fd0 (unmapped-admt-ledger-credit) — the § 4.A
-        // cross-reference renders only where the ledger actually carries a
-        // safeguard keyed to this testing record; it then names that
-        // entry's risk category. Otherwise the record is noted as producing
-        // no separate credit, and a keyed entry with no confirmed testing
-        // behind it is flagged as resting on testing the record does not
-        // support.
-        const keyedHarms = admtTestingKeyedHarms(pathways);
-        const keyedRef = keyedHarms.length ? ` against ${asProse(keyedHarms)}` : "";
+        // BATCH ee860fd0 (unmapped-admt-ledger-credit) — the § 4.A ledger
+        // credits safeguards recorded against identified risks (a6 rows);
+        // no ledger entry is keyed to the ADMT testing record, so § 3.E
+        // never claims a credit "rests on" it. DOC 261: the regex that keyed
+        // a safeguard to the testing record from its own text is withdrawn;
+        // a structured link on the safeguard row would restore the
+        // cross-reference exactly.
         const testingText = noneTyped
-          ? `No testing has been performed or confirmed for the system, and accuracy and fairness claims carry no evidentiary support — which weighs against the processing until testing is obtained.${
-            keyedHarms.length ? ` The safeguard credited in § 4.A${keyedRef} rests on testing the information provided does not support.` : ""
-          }`
+          ? "No testing has been performed or confirmed for the system, and accuracy and fairness claims carry no evidentiary support — which weighs against the processing until testing is obtained."
           : accuracy && bias && recent
           ? `The Company confirms accuracy and discriminatory-impact testing, performed or reviewed within the last 12 months${
             providerOnly ? ", performed by the provider rather than the Company" : ""
-          }${
-            keyedHarms.length
-              ? ` — and the related safeguard credit in § 4.A${keyedRef} rests on that record${providerOnly ? ", with the provider dependency noted" : ""}.`
-              : `; this record is noted but produces no separate credit in the § 4.A ledger${providerOnly ? ", and the provider dependency is noted" : ""}.`
-          }`
+          }; this record is noted but produces no separate credit in the § 4.A ledger${
+            providerOnly ? ", and the provider dependency is noted" : ""
+          }.`
           : `The testing described does not confirm ${asProse(testGaps)}${
             providerOnly ? ", and the testing that exists was performed by the provider rather than the Company" : ""
-          }. ${
-            keyedHarms.length
-              ? `The credit the safeguard keyed to this testing receives in § 4.A${keyedRef} is limited accordingly`
-              : "No safeguard in the § 4.A ledger is keyed to this testing record"
-          }${
+          }. No safeguard in the § 4.A ledger is keyed to this testing record${
             admtTestingRecommended ? ", and completing the identified testing appears among the Recommendations in § 4.D." : "."
           }`;
         put(
@@ -4641,12 +4215,6 @@ export function runRiskFactorEngine(
               ? `Training-data provenance is identified in the information provided and is preserved in Appendix E; the Company describes that source as ${
                 asProse(admtTrainingPiCueTerms(intake).map((t) => `“${t}”`))
               } while answering that the technology is not trained using personal information, and reconciling the two appears among the Follow-Ups in § 4.D.`
-              // BATCH ee860fd0 (training-data-status-conflict) — same
-              // predicate as the Follow-Up and the Appendix E row.
-              : admtTrainingPiNarrativeConflict(intake)
-              ? `Training-data provenance is identified in the information provided and is preserved in Appendix E; the Company describes that source as ${
-                qName(admtTrainingPiNarrativeCue(intake))
-              } while answering that the technology is not trained using personal information, and confirming which applies appears among the Follow-Ups in § 4.D.`
               : "Training-data provenance is identified in the information provided and is preserved in Appendix E.",
             ["INTAKE:i5_admt_training_source"],
             ["11 CCR § 7150(b)(6)", "11 CCR § 7153"],
@@ -5001,10 +4569,7 @@ export function runRiskFactorEngine(
         pro.push(`— Tested safeguards reduce the ${letter ? `(${letter})` : "identified"} risk (§ 4.A).`);
       }
     }
-    if (
-      necessity.total && !necessity.unnecessary.length && !necessity.unsure.length &&
-      !necessity.inventoryUnnecessary.length && !necessity.inventoryUnresolved.length
-    ) {
+    if (necessity.total && !necessity.unnecessary.length && !necessity.unsure.length) {
       pro.push("— The necessity analysis supports the information processed (§ 3.B).");
     }
     if (weakControls.length === 0 && (s(intake.q7_right_delete) || s(intake.q9_opt_out))) {
@@ -5024,7 +4589,7 @@ export function runRiskFactorEngine(
       .filter((p) => MATERIALITY_RANK[p.residual] >= 1)
       .sort((a, b) => MATERIALITY_RANK[b.residual] - MATERIALITY_RANK[a.residual])
       .map((p) => `— Remaining ${p.residual}: ${p.harm} (§ 4.A).`);
-    const notShownCount = necessity.unnecessary.length + necessity.inventoryUnnecessary.length;
+    const notShownCount = necessity.unnecessary.length;
     if (notShownCount) {
       con.push(
         `— ${capFirst(countWord(notShownCount))} ${

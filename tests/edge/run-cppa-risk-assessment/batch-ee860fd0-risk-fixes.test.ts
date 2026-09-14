@@ -45,10 +45,6 @@ for (const mirror of ["run-cppa-risk-assessment-v2", "ltp-risk-doc-gen"]) {
     extractNecessity,
     buildNecessityMatrixTable,
     buildRiskAndSafeguardRegisterTable,
-    recordedConsumerActions,
-    admtTrainingPiNarrativeConflict,
-    extractDurations,
-    textNamesCategory,
   } = engineMod;
   const { assembleRiskSkeletonDocument, matrixDeterminationSentence, firstSubstantiveSentenceQuoteAware } = asmMod;
 
@@ -71,18 +67,14 @@ for (const mirror of ["run-cppa-risk-assessment-v2", "ltp-risk-doc-gen"]) {
     assertStringIncludes(t, "this record is noted but produces no separate credit in the § 4.A ledger");
   });
 
-  Deno.test(`ee860fd0 [${mirror}] — with an ADMT-keyed ledger safeguard, § 3.E names that entry's risk category`, () => {
+  // DOC 261 (targeted revert): no ledger safeguard is ever keyed to the
+  // testing record by reading its text — a testing-shaped safeguard row
+  // still draws no "rests on that record" claim.
+  Deno.test(`ee860fd0 [${mirror}] — a testing-shaped safeguard row still draws no § 4.A credit claim; unconfirmed testing states no keyed safeguard; no ADMT ⇒ no § 3.E sentence`, () => {
     const r = engine({ a6_safeguards: [...(VERILINK.a6_safeguards as Bag[]), ADMT_TESTED_SAFEGUARD] });
-    const t = r.factors["admt_testing_analysis"] ?? "";
-    assertStringIncludes(t, "the related safeguard credit in § 4.A against (E) Economic harms rests on that record");
-  });
-
-  Deno.test(`ee860fd0 [${mirror}] — an ADMT-keyed ledger entry beside unconfirmed testing is flagged as unsupported; no ADMT in scope ⇒ no § 3.E sentence`, () => {
-    const r = engine({
-      a6_safeguards: [...(VERILINK.a6_safeguards as Bag[]), ADMT_TESTED_SAFEGUARD],
-      admt_testing_facts: ["No testing has been performed or confirmed"],
-    });
-    assertStringIncludes(r.factors["admt_testing_analysis"] ?? "", "rests on testing the information provided does not support");
+    assert(!(r.factors["admt_testing_analysis"] ?? "").includes("rests on that record"));
+    const gaps = engine({ admt_testing_facts: ["Tested for accuracy or validity"] });
+    assertStringIncludes(gaps.factors["admt_testing_analysis"] ?? "", "No safeguard in the § 4.A ledger is keyed to this testing record");
     const none = engine({ q18_admt_use: "No", admt_testing_facts: [] });
     assertEquals(none.factors["admt_testing_analysis"], undefined);
   });
@@ -119,26 +111,16 @@ for (const mirror of ["run-cppa-risk-assessment-v2", "ltp-risk-doc-gen"]) {
 
   // ── training-data-status-conflict ────────────────────────────────────────
 
-  Deno.test(`ee860fd0 [${mirror}] — structured "No" beside a platform-interaction-data narrative renders the reconciliation qualifier and a Follow-Up`, () => {
-    const rows = tableRows(doc(), "Appendix E");
-    const row = rows.find((r) => r[0] === "§ 7153 — trained using personal information")!;
-    assert(row[1] !== "No", "bare No survived");
-    assertEquals(
-      row[1],
-      "No (as to the Company making the technology available to another business); training source recorded above indicates personal information — to be confirmed (§ 4.D)",
-    );
-    assertStringIncludes(followUps(engine()), "Confirm whether the technology was trained using personal information: the Company answers “No”");
-    assertStringIncludes(engine().factors["admt_training_note"] ?? "", "describes that source as “platform interaction data”");
-  });
-
-  Deno.test(`ee860fd0 [${mirror}] — empty / synthetic-only narrative keeps a plain "No"; "Yes" and "Unknown" render as given`, () => {
-    const row = (over: Bag) => tableRows(doc(over), "Appendix E").find((r) => r[0] === "§ 7153 — trained using personal information");
+  // DOC 261 (targeted revert): the structured answer renders as given; the
+  // narrative-PI qualifier is withdrawn (free-text inference). "Unknown" is
+  // never converted to "No".
+  Deno.test(`ee860fd0 [${mirror}] — the § 7153 training row renders the Company's structured answer as given ("No" / "Yes" / "Unknown")`, () => {
+    const row = (over: Bag = {}) => tableRows(doc(over), "Appendix E").find((r) => r[0] === "§ 7153 — trained using personal information");
+    assertEquals(row()![1], "No");
     assertEquals(row({ i5_admt_training_source: "" })![1], "No");
-    // (An "aggregate"/"pseudonymized" cue routes to the DOC 167 reconciliation instead — unchanged here.)
-    assertEquals(row({ i5_admt_training_source: "Trained solely on synthetic data; no personal information was used." })![1], "No");
     assertEquals(row({ admt_provider_trained_using_pi: "Yes" })![1], "Yes");
     assertEquals(row({ admt_provider_trained_using_pi: "Unknown" })![1], "Unknown");
-    assert(!admtTrainingPiNarrativeConflict({ admt_provider_trained_using_pi: "Unknown", i5_admt_training_source: VERILINK.i5_admt_training_source }));
+    assert(!followUps(engine()).includes("Confirm whether the technology was trained using personal information"));
     // § 7153 applicability still turns on its own conditions.
     const made = engine({ admt_made_available_to_other_business: "Yes" });
     assertStringIncludes(made.factors["admt_made_available"] ?? "", "made available to another business");
@@ -189,22 +171,17 @@ for (const mirror of ["run-cppa-risk-assessment-v2", "ltp-risk-doc-gen"]) {
 
   // ── automatic-collection-consumer-act ────────────────────────────────────
 
-  Deno.test(`ee860fd0 [${mirror}] — automatic source with recorded page-view/search triggers names them and drops the "contemporaneous act" claim`, () => {
+  // DOC 261 (targeted revert): the wording no longer denies a consumer act;
+  // the extraction of triggers from the entry-point narrative is withdrawn.
+  Deno.test(`ee860fd0 [${mirror}] — automatic source: "without a separate act of supplying the information", never "without a contemporaneous act"; direct-only ⇒ the rule does not fire`, () => {
     const r = engine();
     const t = r.factors["sources_analysis"] ?? "";
     assert(!t.includes("without a contemporaneous act by the consumer"), t);
-    assertStringIncludes(t, "gathered without a separate act by the consumer of supplying the information (the collection is triggered by page views, searches and content interactions)");
+    assertStringIncludes(t, "gathered without a separate act by the consumer of supplying the information, which raises the weight of the notice and expectation analyses in § 3.C");
+    assert(!t.includes("triggered by"));
     assert(!/no consumer (act|interaction)/i.test([r.factors["notice_application"], r.factors["expectation_application"], r.factors["choice_architecture"]].join(" ")));
-    assertEquals(recordedConsumerActions(VERILINK.processing_entry_point as string), ["page views", "searches", "content interactions"]);
-  });
-
-  Deno.test(`ee860fd0 [${mirror}] — no entry-point actions ⇒ no trigger clause; direct-only ⇒ the rule does not fire; empty string ⇒ treated as missing`, () => {
-    const none = engine({ processing_entry_point: "Data enters the pipeline nightly from the warehouse." }).factors["sources_analysis"] ?? "";
-    assertStringIncludes(none, "without a separate act by the consumer of supplying the information, which raises the weight");
-    assert(!none.includes("triggered by"));
     const direct = engine({ source_categories: ["Directly from the consumer"] }).factors["sources_analysis"] ?? "";
     assert(!direct.includes("separate act"));
-    assertEquals(recordedConsumerActions(""), []);
   });
 
   // ── admt-record-completeness ─────────────────────────────────────────────
@@ -238,10 +215,11 @@ for (const mirror of ["run-cppa-risk-assessment-v2", "ltp-risk-doc-gen"]) {
     assertStringIncludes(t, "“Duration of account / relationship” for “Account log-in or financial-account credentials”");
     assertStringIncludes(t, "“Fixed period from collection” for “Device identifiers (IP, cookies, device IDs)” and “Internet or network activity”");
     assert(!t.includes("Retention remains connected to the Purpose on the information provided"), t);
-    assertStringIncludes(t, "the period of 24 months stated in the overall retention statement but attributed to no recorded category");
+    assertStringIncludes(t, "the period for “Contact identifiers (name, email, phone)” and “General location (city, region, ZIP, IP-derived)”");
     assertStringIncludes(t, "the scope of the payment or billing processing recorded in the information provided");
     assertStringIncludes(t, "remain to be reconciled (§ 4.D)");
-    assertEquals(extractDurations("13-month cycle; 24 months; 7 years; 1 year"), ["13 months", "24 months", "7 years", "1 year"]);
+    // DOC 261: no period is read out of the overall statement's text.
+    assert(!t.includes("attributed to no recorded category"), t);
   });
 
   Deno.test(`ee860fd0 [${mirror}] — one shared criterion, no conflict, no open item ⇒ the unqualified sentence; no basis at all ⇒ "cannot be determined"`, () => {
@@ -263,34 +241,29 @@ for (const mirror of ["run-cppa-risk-assessment-v2", "ltp-risk-doc-gen"]) {
       i2_retention_criteria: "",
     }).factors["retention_basis"] ?? "";
     assertStringIncludes(noBasis, "Whether retention remains connected to the Purpose cannot be determined on the information provided");
-    // A conflict alone (no open follow-up) names only the conflict.
-    const conflictOnly = engine({ ...clean, i2_retention_period: "13 months; audit logs 36 months" }).factors["retention_basis"] ?? "";
-    assertStringIncludes(conflictOnly, "the period of 36 months stated in the overall retention statement but attributed to no recorded category remains to be reconciled (§ 4.D)");
+    // DOC 261: a period mentioned only in the overall statement's text is not
+    // read as a conflict (free-text inference withdrawn).
+    const extraPeriodInText = engine({ ...clean, i2_retention_period: "13 months; audit logs 36 months" }).factors["retention_basis"] ?? "";
+    assertStringIncludes(extraPeriodInText, "Retention remains connected to the Purpose on the information provided.");
   });
 
   // ── unsupported-retention-fallback ───────────────────────────────────────
 
-  Deno.test(`ee860fd0 [${mirror}] — an overall statement naming only other categories does not "cover" the missing ones; status unknown in the Follow-Up`, () => {
+  // DOC 261 (targeted revert): the § 2.G fallback never asserts that the
+  // overall statement COVERS an uncovered category (whether it does is a
+  // reading of narrative text); it states the record — the overall statement
+  // is the only retention statement on it — and the Follow-Up asks.
+  Deno.test(`ee860fd0 [${mirror}] — an uncovered category under an overall statement is never claimed as "covered"; all categories covered ⇒ the fallback does not fire`, () => {
     const r = engine();
     const t = r.factors["retention_basis"] ?? "";
-    assertStringIncludes(t, "No retention period is recorded for “Contact identifiers (name, email, phone)” and “General location (city, region, ZIP, IP-derived)”; the overall statement does not address them");
-    assert(!t.includes("the only period covering them"), t);
-    const fu = followUps(r);
-    assertStringIncludes(fu, "the retention period for them is unknown on the information provided — the Company’s overall retention statement in § 2.G does not address them");
+    assertStringIncludes(t, "A category-specific retention period is not recorded for “Contact identifiers (name, email, phone)” and “General location (city, region, ZIP, IP-derived)”; the Company’s overall retention statement is the only retention statement on the record for them");
+    assert(!t.includes("the only period covering"), t);
+    assert(!t.includes("does not address"), t);
+    assertStringIncludes(followUps(r), "specifically for “Contact identifiers (name, email, phone)” and “General location (city, region, ZIP, IP-derived)”; only the Company’s overall retention statement in § 2.G is on the record for them");
     const rows = r.tables["ii_information:14"]!.rows;
-    assertEquals(rows.find((x: string[]) => x[0].startsWith("Contact identifiers"))![1], "Not stated — the Company’s overall retention statement does not address this category; see the Follow-Ups in § 4.D");
-  });
-
-  Deno.test(`ee860fd0 [${mirror}] — an overall statement that names the category asserts coverage (DOC 153 form kept); all categories covered ⇒ the fallback does not fire`, () => {
-    const named = engine({ i2_retention_detail: "Contact identifiers and general location data are purged on the same 13-month cycle." });
-    const t = named.factors["retention_basis"] ?? "";
-    assertStringIncludes(t, "A category-specific retention period is not recorded for “Contact identifiers (name, email, phone)” and “General location (city, region, ZIP, IP-derived)”; the Company’s overall retention statement is the only period covering them");
-    assert(!t.includes("No retention period is recorded"));
-    assertEquals(textNamesCategory("email addresses are kept 2 years", "Contact identifiers (name, email, phone)").elements, ["email"]);
-    assertEquals(textNamesCategory("cookie lifetimes are 13 months", "Contact identifiers (name, email, phone)"), { head: false, elements: [] });
+    assertEquals(rows.find((x: string[]) => x[0].startsWith("Contact identifiers"))![1], "No category-specific period recorded — the Company’s overall retention statement is the only retention statement on the record; see the Follow-Ups in § 4.D");
     const covered = engine({ q4_pi_categories: (VERILINK.retention_by_pi_category as Bag[]).map((r) => r.pi_category) });
     assert(!(covered.factors["retention_basis"] ?? "").includes("retention period is not recorded"));
-    assert(!(covered.factors["retention_basis"] ?? "").includes("No retention period is recorded"));
   });
 
   // ── recommendations-as-conditions ────────────────────────────────────────
@@ -311,8 +284,6 @@ for (const mirror of ["run-cppa-risk-assessment-v2", "ltp-risk-doc-gen"]) {
       a6_safeguards: [(VERILINK.a6_safeguards as Bag[])[0]],
       a5_harm_pathways: [(VERILINK.a5_harm_pathways as Bag[])[0]],
       a2_necessity_set: (VERILINK.a2_necessity_set as Bag[]).filter((r) => r.necessity === "Necessary to the stated purpose"),
-      i1b_min_pi: "",
-      q4_pi_categories: ["Device identifiers (IP, cookies, device IDs)", "Internet or network activity", "General location (city, region, ZIP, IP-derived)"],
     });
     assertEquals(noCond.blocks["iv_determination:11"], undefined, "no conditions expected");
     const det = noCond.factors["determination_text"] ?? "";
@@ -357,32 +328,27 @@ for (const mirror of ["run-cppa-risk-assessment-v2", "ltp-risk-doc-gen"]) {
 
   // ── incomplete-necessity-coverage ────────────────────────────────────────
 
-  Deno.test(`ee860fd0 [${mirror}] — the necessity record is reconciled against the full inventory: name propagates from i1b, financial information is unresolved, the count and the condition cover all`, () => {
+  // DOC 261 (targeted revert): the necessity record is the Company's a2
+  // element rows and nothing else — no category is inferred from narrative
+  // text. The conclusion now names the elements it counts (kept).
+  Deno.test(`ee860fd0 [${mirror}] — the necessity conclusion names the elements it counts and reads only the a2 record; the matrix has one row per a2 element`, () => {
     const n = extractNecessity(VERILINK);
-    assertEquals(n.inventoryUnnecessary.map((u: { category: string; elements: string[] }) => [u.category, u.elements]), [["Contact identifiers (name, email, phone)", ["name", "email"]]]);
-    assertEquals(n.inventoryUnresolved, ["Financial information"]);
+    assertEquals(n.unnecessary.length, 1);
+    assertEquals(Object.keys(n).sort(), ["necessary", "total", "unnecessary", "unsure"]);
     const r = engine();
-    const concl = r.factors["necessity_conclusion"] ?? "";
-    assertStringIncludes(concl, "two elements are not shown to be necessary — “Account log-in credentials (email address)” and name and email (within “Contact identifiers (name, email, phone)”)");
-    assertStringIncludes(concl, "necessity is unresolved for one element (“Financial information”)");
-    assertStringIncludes(conditions(r), "Cease processing, or establish the necessity of, “Account log-in credentials (email address)” and name and email (within “Contact identifiers (name, email, phone)”)");
-    assertStringIncludes(followUps(r), "Record whether “Financial information” is necessary to the stated purpose");
-    assertStringIncludes(r.factors["factors_against"] ?? "", "— Two elements not shown necessary (§ 3.B).");
-    const rows = buildNecessityMatrixTable(VERILINK)!.rows;
-    assertEquals(rows.length, 6);
-    assertEquals(rows.find((x: string[]) => x[0] === "Financial information")![1], "Unresolved — no necessity record");
+    assertStringIncludes(r.factors["necessity_conclusion"] ?? "", "one element is not shown to be necessary — “Account log-in credentials (email address)” — and that conclusion weighs against the processing in Section 4.");
+    assertStringIncludes(conditions(r), "Cease processing, or establish the necessity of, “Account log-in credentials (email address)”.");
+    assert(!followUps(r).includes("Record whether “Financial information” is necessary"));
+    assertStringIncludes(r.factors["factors_against"] ?? "", "— One element not shown necessary (§ 3.B).");
+    assertEquals(buildNecessityMatrixTable(VERILINK)!.rows.length, 4);
   });
 
-  Deno.test(`ee860fd0 [${mirror}] — all elements necessary ⇒ favorable sentence and no condition; a category absent from every record ⇒ unresolved, never omitted; no a2 record ⇒ the posture sentence stands`, () => {
+  Deno.test(`ee860fd0 [${mirror}] — all elements necessary ⇒ favorable sentence and no condition; no a2 record ⇒ the posture sentence stands`, () => {
     const allNec = engine({
       a2_necessity_set: (VERILINK.a2_necessity_set as Bag[]).map((r) => ({ ...r, necessity: "Necessary to the stated purpose" })),
-      i1b_min_pi: "",
-      q4_pi_categories: ["Device identifiers (IP, cookies, device IDs)", "Internet or network activity", "General location (city, region, ZIP, IP-derived)", "Account log-in or financial-account credentials"],
     });
     assertStringIncludes(allNec.factors["necessity_conclusion"] ?? "", "The necessity analysis supports the information processed");
     assert(!conditions(allNec).includes("Cease processing"));
-    const n = extractNecessity({ ...VERILINK, i1b_min_pi: "" });
-    assertEquals(n.inventoryUnresolved, ["Contact identifiers (name, email, phone)", "Financial information"]);
     const none = engine({ a2_necessity_set: [] });
     assertStringIncludes(none.factors["necessity_landing"] ?? "", "no element-level necessity record");
     assertEquals(none.factors["necessity_conclusion"], undefined);

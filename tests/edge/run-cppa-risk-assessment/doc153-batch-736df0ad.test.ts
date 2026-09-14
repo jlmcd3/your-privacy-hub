@@ -100,12 +100,11 @@ Deno.test("doc153 — Unsure is attributed to the Company; a non-enum value rend
 
 // ── Retention under an overall statement ─────────────────────────────────────
 
-// BATCH ee860fd0 (2026-09-14, unsupported-retention-fallback) — the overall
-// statement "covers" an uncovered category only where it expressly names
-// it; this fixture's detail names contact identifiers, so the doc-153 form
-// is retained. An overall statement naming other categories only is pinned
-// in batch-ee860fd0-risk-fixes.test.ts.
-Deno.test("doc153 — an uncovered category the overall retention statement names is a category-specific gap, not 'not stated'", () => {
+// BATCH ee860fd0 / DOC 261 (2026-09-14, unsupported-retention-fallback) —
+// the row, sentence and Follow-Up state the record (the overall statement is
+// the only retention statement on it) and never assert that it "covers" the
+// category — whether it does would be a reading of narrative text.
+Deno.test("doc153 — an uncovered category under an overall retention statement is a category-specific gap, not 'not stated'", () => {
   const r = engineOn({
     q4_pi_categories: [
       "Contact identifiers (name, email, phone)",
@@ -116,16 +115,16 @@ Deno.test("doc153 — an uncovered category the overall retention statement name
     ],
     i2_retention_period: "24 months from collection",
     i2_retention_criteria: "Fixed period from collection",
-    i2_retention_detail: "Contact identifiers and device identifiers are retained 24 months from collection.",
   });
   const row = r.tables["ii_information:14"]!.rows.find((x) => x[0].startsWith("Contact identifiers"));
   assert(row, "uncovered category row missing");
-  assert(row[1].startsWith("No category-specific period recorded — the Company’s overall retention statement applies"), row[1]);
+  assert(row[1].startsWith("No category-specific period recorded — the Company’s overall retention statement is the only retention statement on the record"), row[1]);
   const basis = r.factors["retention_basis"] ?? "";
   assert(basis.includes("A category-specific retention period is not recorded for “Contact identifiers (name, email, phone)”"), basis);
   assert(!basis.includes("Retention is not stated for"), "overstated 'not stated' survived");
+  assert(!basis.includes("the only period covering"), "coverage asserted from narrative text");
   assert(
-    (r.blocks["iv_determination:12"] ?? "").includes("specifically for “Contact identifiers (name, email, phone)”; only the Company’s overall retention statement in § 2.G currently covers it"),
+    (r.blocks["iv_determination:12"] ?? "").includes("specifically for “Contact identifiers (name, email, phone)”; only the Company’s overall retention statement in § 2.G is on the record for it"),
     "category-specific follow-up missing",
   );
 });

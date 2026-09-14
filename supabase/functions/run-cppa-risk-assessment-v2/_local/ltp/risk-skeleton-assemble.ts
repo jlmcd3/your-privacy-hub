@@ -50,8 +50,6 @@ import {
   admtEvaluationActiveFor,
   // DOC 167 — the Appendix E training-data reconciliation predicate.
   admtTrainingPiReconcileNeeded,
-  // BATCH ee860fd0 — the structured-"No" versus PI-narrative predicate.
-  admtTrainingPiNarrativeConflict,
   type RiskFactorEngineResult,
 } from "./risk-factor-engine.ts";
 import { firstSubstantiveSentence } from "../../../_shared/ltp/clause-bound.ts";
@@ -854,17 +852,15 @@ export function deriveAdmtTechnicalFacts(intake: Bag): RenderedTable | null {
     // preserved; where its training-data description reads as pseudonymized
     // or aggregated without the deidentified standard, the cell points at the
     // reconciliation Follow-Up rather than silently carrying a "No" beside it.
-    // BATCH ee860fd0 (training-data-status-conflict) — a structured "No"
-    // beside a training-source narrative describing consumer-level data
-    // renders with the reconciliation qualifier; an "Unknown" answer is
-    // rendered as given, never converted to "No".
+    // DOC 261 (2026-09-14) — the ee860fd0 narrative-PI qualifier on this row
+    // is withdrawn (free-text inference); the Company's answer renders as
+    // given, with the DOC 167 reconciliation pointer where that predicate
+    // fires.
     [
       "§ 7153 — trained using personal information",
-      admtTrainingPiNarrativeConflict(intake)
-        ? "No (as to the Company making the technology available to another business); training source recorded above indicates personal information — to be confirmed (§ 4.D)"
-        : `${yn(intake.admt_provider_trained_using_pi)}${
-          admtTrainingPiReconcileNeeded(intake) ? " — reconciliation pending (Follow-Ups, § 4.D)" : ""
-        }`,
+      `${yn(intake.admt_provider_trained_using_pi)}${
+        admtTrainingPiReconcileNeeded(intake) ? " — reconciliation pending (Follow-Ups, § 4.D)" : ""
+      }`,
     ],
     ["§ 7153 — recipient uses it for a significant decision", yn(intake.recipient_business_uses_admt_for_significant_decision)],
   ];

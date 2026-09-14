@@ -45,7 +45,7 @@ for (const mirror of ["run-cppa-risk-assessment-v2", "ltp-risk-doc-gen"]) {
   const engineMod = await import(`../../../supabase/functions/${mirror}/_local/ltp/risk-factor-engine.ts`);
   const asmMod = await import(`../../../supabase/functions/${mirror}/_local/ltp/risk-skeleton-assemble.ts`);
   const spine = await import(`../../../supabase/functions/${mirror}/_local/prose/plans/cppa-risk.spine.ts`);
-  const { runRiskFactorEngine, thirdPartiesNamedAsServiceProvider, credentialsElementRecordEmailOnly, providersNameIndividuals } = engineMod;
+  const { runRiskFactorEngine } = engineMod;
   const { assembleRiskSkeletonDocument, riskConditionName } = asmMod;
 
   const engine = (over: Bag = {}) => runRiskFactorEngine({ ...VERILINK, ...over } as never, REPORT as never, DATE);
@@ -54,19 +54,17 @@ for (const mirror of ["run-cppa-risk-assessment-v2", "ltp-risk-doc-gen"]) {
   const docText = (over: Bag = {}) => skeletonDocumentToText(assembleRiskSkeletonDocument(REPORT as never, { ...VERILINK, ...over } as never).document);
 
   // ── datasphere-role-remediation ──────────────────────────────────────────
+  // DOC 261 (targeted revert): the role note read the recipient's name out of
+  // the safeguard's text and is withdrawn. The recorded third-party role
+  // already draws the § 7053 Follow-Up from the structured recipient_type;
+  // the safeguard text is never rewritten.
 
-  Deno.test(`ceo ee860fd0 [${mirror}] — a planned safeguard naming service-provider terms for a recorded third party carries the § 7053 role note; the safeguard text is untouched`, () => {
+  Deno.test(`ceo ee860fd0 [${mirror}] — a recorded third party draws the § 7053 Follow-Up from its structured role; the condition carries no role note, and its name still resolves past the timeline note`, () => {
     const r = engine({ recipients: [DATASPHERE] });
     const c = conditions(r);
-    assertStringIncludes(c, "will incorporate CCPA-required service-provider restrictions; the Notice at Collection will be expanded to cover all collection points” (recorded timeline: Within 12 months) (“DataSphere Analytics” is recorded as a third party; the applicable contract terms are those of 11 CCR § 7053 — see the Follow-Ups) (addresses: (C) Impairment of consumer control over personal information).");
+    assertStringIncludes(c, "will incorporate CCPA-required service-provider restrictions; the Notice at Collection will be expanded to cover all collection points” (recorded timeline: Within 12 months) (addresses: (C) Impairment of consumer control over personal information).");
+    assert(!c.includes("recorded as a third party"));
     assertStringIncludes(followUps(r), "Confirm that the written contract with “DataSphere Analytics” carries the CCPA-required restriction terms");
-    assertEquals(thirdPartiesNamedAsServiceProvider((VERILINK.a6_safeguards as Bag[])[1].safeguard as string, { recipients: [DATASPHERE] }), ["DataSphere Analytics"]);
-    // A service-provider recipient, or a safeguard without service-provider terms, draws no note.
-    assertEquals(thirdPartiesNamedAsServiceProvider((VERILINK.a6_safeguards as Bag[])[1].safeguard as string, { recipients: [{ ...DATASPHERE, recipient_type: "Service provider" }] }), []);
-    assertEquals(thirdPartiesNamedAsServiceProvider("Contract amendments with DataSphere Analytics will prohibit re-identification.", { recipients: [DATASPHERE] }), []);
-    const noRecipients = conditions(engine());
-    assert(!noRecipients.includes("recorded as a third party"));
-    // The compact head and the syllabus name still resolve past the notes.
     const first = c.split("\n")[1].replace(/^1\. /, "");
     assertEquals(riskConditionName(first, 0), "Planned safeguard — (C) Impairment of consumer control over personal information");
     assertStringIncludes(r.factors["conditions_compact"] ?? "", "Complete implementation of the planned safeguard (two conditions, addressing (C) Impairment of consumer control over personal information and (E) Economic harms)");
@@ -129,36 +127,20 @@ for (const mirror of ["run-cppa-risk-assessment-v2", "ltp-risk-doc-gen"]) {
     assert(!conditions(undated).includes("(recorded timeline: No committed timeline)"));
   });
 
-  // ── sensitive-credential-condition ───────────────────────────────────────
+  // ── sensitive-credential-condition / information-provider-identification ─
+  // DOC 261 (targeted revert): both read facts out of free text (an
+  // "email-only" parenthetical; person-name detection) and are withdrawn.
+  // The SPI classification renders as the Company declares it, and the
+  // providers roster renders as recorded, with no inferred qualifier.
 
-  Deno.test(`ceo ee860fd0 [${mirror}] — credentials SPI is carried as declared; an email-only element record draws the § 1798.140(ae)(1)(A) Follow-Up and the § 2.D qualifier`, () => {
-    const r = engine();
-    assertEquals(credentialsElementRecordEmailOnly(VERILINK), true);
-    assertStringIncludes(r.factors["information_profile"] ?? "", "Of those, one is sensitive personal information — Account log-in or financial-account credentials");
-    assertStringIncludes(r.factors["information_profile"] ?? "", "the element record for that category names an email address only, and whether access-enabling credentials are processed with it (Cal. Civ. Code § 1798.140(ae)(1)(A)) appears among the Follow-Ups in § 4.D.");
-    assertStringIncludes(followUps(r), "Confirm whether the Activity processes account log-in or financial-account information in combination with any required security or access code, password, or credentials allowing access to the account (Cal. Civ. Code § 1798.140(ae)(1)(A))");
-    const withPassword = engine({
-      a2_necessity_set: [...(VERILINK.a2_necessity_set as Bag[]), { element: "Account log-in credentials (username and password)", necessity: "Necessary to the stated purpose", justification: "Authentication." }],
-    });
-    assertEquals(credentialsElementRecordEmailOnly({ ...VERILINK, a2_necessity_set: withPassword ? (withPassword as never) && [...(VERILINK.a2_necessity_set as Bag[]), { element: "Account log-in credentials (username and password)" }] : [] }), false);
-    assert(!followUps(withPassword).includes("§ 1798.140(ae)(1)(A))"));
-    // No element keyed to the category at all ⇒ nothing is asserted either way.
-    assertEquals(credentialsElementRecordEmailOnly({ ...VERILINK, a2_necessity_set: (VERILINK.a2_necessity_set as Bag[]).filter((x) => !/log-in/.test(x.element as string)) }), false);
-  });
-
-  // ── information-provider-identification ──────────────────────────────────
-
-  Deno.test(`ceo ee860fd0 [${mirror}] — a team-only provider roster draws the § 7152(a)(8) Follow-Up and the § 2.H sentence; named individuals do not`, () => {
+  Deno.test(`ceo ee860fd0 [${mirror}] — credentials SPI renders as declared and the providers roster as recorded; no free-text-derived qualifier or Follow-Up`, () => {
     const r = engine(TEAMS_ONLY);
-    assertStringIncludes(r.factors["record_providers"] ?? "", "The record identifies teams or functions rather than individuals; § 7152(a)(8) requires the individuals who provided the information to be identified, and completing that record appears among the Follow-Ups in § 4.D.");
-    assertStringIncludes(followUps(r), "Identify by name and position the individuals who provided information for this assessment; the record names teams or functions only, and § 7152(a)(8) requires the individuals to be identified (legal counsel who provided legal advice excepted)");
-    assertEquals(providersNameIndividuals(TEAMS_ONLY), { anyRecord: true, individuals: false });
-    assertEquals(providersNameIndividuals({ i7_internal_contributors: "M. Delgado, VP Consumer Credit; R. Okafor, CISO; T. Nguyen, Privacy Counsel; the store-operations director for POS workflow facts." }), { anyRecord: true, individuals: true });
-    assertEquals(providersNameIndividuals({ section_7151_operational_participants: [{ name: "Sandra Kole", role: "Chief Privacy Officer" }] }), { anyRecord: true, individuals: true });
-    assertEquals(providersNameIndividuals({}), { anyRecord: false, individuals: false });
-    const named = engine({ ...TEAMS_ONLY, i7_internal_contributors: "Marcus Feld, VP Engineering & Data (pipeline facts); the Ad Operations team (segment configuration)." });
-    assert(!followUps(named).includes("names teams or functions only"));
-    assert(!followUps(engine()).includes("names teams or functions only"), "no provider record ⇒ no ask");
+    assertStringIncludes(r.factors["information_profile"] ?? "", "Of those, one is sensitive personal information — Account log-in or financial-account credentials");
+    assert(!(r.factors["information_profile"] ?? "").includes("names an email address only"));
+    assert(!followUps(r).includes("§ 1798.140(ae)(1)(A)"));
+    assertStringIncludes(r.factors["record_providers"] ?? "", "Internal participants: Product Analytics team");
+    assert(!(r.factors["record_providers"] ?? "").includes("teams or functions rather than individuals"));
+    assert(!followUps(r).includes("names teams or functions only"));
   });
 
   // ── consumer-control-overcredit ──────────────────────────────────────────
