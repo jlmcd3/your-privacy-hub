@@ -59,6 +59,8 @@ export interface PtestFixItemRow {
   change_text: string | null;
   regression_test: string | null;
   payload: unknown;
+  /** True when the arbitration behind this item saw only one reviewer. */
+  single_reviewer?: boolean;
   fix_status: FixStatus;
   fix_notes: string | null;
   fix_reference: string | null;
