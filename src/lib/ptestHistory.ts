@@ -214,6 +214,9 @@ export function buildFixBrief(item: PtestFixItemRow, batch?: PtestBatchRow | nul
   L.push(line("Product", item.tool_slug));
   L.push(line("Item id", item.item_id));
   L.push(line("Raised by", item.raised_by));
+  if (item.single_reviewer) {
+    L.push("Reviewer coverage: SINGLE REVIEWER — the other reviewer's run failed; this item was not cross-checked.");
+  }
   L.push(line("Current status", item.fix_status));
   L.push("");
 
