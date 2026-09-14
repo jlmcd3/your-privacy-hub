@@ -547,7 +547,12 @@ export default function AllPTest() {
 
       {arbitrations.map((a) => (
         <section key={a.tool} className="rounded-lg border border-border bg-card p-4 space-y-3">
-          <h2 className="font-serif text-lg text-foreground">{a.tool}</h2>
+          <h2 className="font-serif text-lg text-foreground">
+            {a.tool}
+            {a.singleReviewer && (
+              <span className="ml-2 align-middle text-xs font-sans text-destructive">single reviewer</span>
+            )}
+          </h2>
           {a.error ? (
             <p className="text-sm text-destructive">Arbitration failed — {a.error}</p>
           ) : (
