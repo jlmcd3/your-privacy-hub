@@ -227,7 +227,8 @@ export default function AllPTest() {
         // Per-job trace: each state change is logged once, never repeated on
         // subsequent polls.
         for (const j of jobRows) {
-          const label = `${j.tool_slug} · ${j.kind.replace("arb_", "arbitration ")} · ${j.company_name ?? "all documents"}`;
+          const kindLabel = j.kind.replace("arb_", "arbitration ").replace("review_gpt", "review (GPT)").replace("review_claude", "review (Claude)");
+          const label = `${j.tool_slug} · ${kindLabel} · ${j.company_name ?? "all documents"}`;
           const seen = jobStates.current.get(j.id);
           const state = `${j.status}#${j.attempts}`;
           if (seen !== state) {
