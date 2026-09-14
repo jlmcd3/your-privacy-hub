@@ -267,7 +267,15 @@ export default function AllPTest() {
       // a re-sync never duplicates and never overwrites a human-set status.
       try {
         const tracked = await syncFixItems(id, results.arbitrations);
-        await setBatchStatus(id, "complete");
+        // A batch that lost any job closes as PARTIAL. Only a run where every
+        // job landed may read as complete.
+        const lost = finalJobs.filter((j) => ["failed", "cancelled"].includes(j.status)).length;
+        if (lost > 0) {
+          await setBatchStatus(id, "partial", `${lost} job(s) failed or were cancelled`);
+          say(`⚠ Batch closed as PARTIAL — ${lost} job(s) failed or were cancelled.`);
+        } else {
+          await setBatchStatus(id, "complete");
+        }
         setHistoryKey((k) => k + 1);
         say(`${tracked} fix/decision item(s) recorded in run history.`);
       } catch (e) {
