@@ -26,6 +26,7 @@
 //   always visible in the batch output rather than silently assumed.
 
 import { recordApiUsage } from "../api-usage.ts";
+import type { JsonSchemaSpec } from "./json-schemas.ts";
 
 export type Effort = "low" | "medium" | "high" | "max";
 
@@ -41,10 +42,11 @@ export const OPENAI_CHAT_FALLBACK_MODEL = "gpt-4o";
 const ANTHROPIC_KEY = () => Deno.env.get("ANTHROPIC_API_KEY") ?? "";
 const OPENAI_KEY = () => Deno.env.get("OPENAI_API_KEY") ?? "";
 
-/** Self-abort window per call — inside the isolate wall clock. Reviews run in
- *  the background queue, so a long call no longer risks the batch; 300s was
- *  clipping reasoning calls that legitimately return at ~310s. */
-export const REVIEW_CALL_TIMEOUT_MS = 540_000;
+/** Self-abort window per call — deliberately INSIDE the isolate wall clock.
+ *  A call that runs past this fails as THIS call's own error, recorded on the
+ *  job, rather than the isolate being killed with nothing written. Retries are
+ *  job attempts, not in-call retries, so the window stays short and honest. */
+export const REVIEW_CALL_TIMEOUT_MS = 330_000;
 
 export interface ModelCallResult {
   text: string;
@@ -79,6 +81,7 @@ async function anthropicOnce(opts: {
   maxTokens: number;
   effort: Effort | null;
   label: string;
+  jsonSchema?: JsonSchemaSpec | null;
 }): Promise<{ ok: true; text: string; usage: Record<string, unknown>; elapsedMs: number } | { ok: false; status: number; body: string }> {
   const started = Date.now();
   const body: Record<string, unknown> = {
@@ -90,6 +93,16 @@ async function anthropicOnce(opts: {
     messages: [{ role: "user", content: opts.user }],
   };
   if (opts.effort) body.output_config = { effort: opts.effort };
+  // STRUCTURED OUTPUT: a forced tool call. The provider validates the object
+  // against input_schema, so an unparseable answer is no longer possible.
+  if (opts.jsonSchema) {
+    body.tools = [{
+      name: opts.jsonSchema.name,
+      description: opts.jsonSchema.description,
+      input_schema: opts.jsonSchema.schema,
+    }];
+    body.tool_choice = { type: "tool", name: opts.jsonSchema.name };
+  }
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -108,13 +121,16 @@ async function anthropicOnce(opts: {
   const d = await res.json();
   const parts: string[] = [];
   const blockTypes: string[] = [];
+  let toolJson: string | null = null;
   for (const b of Array.isArray(d?.content) ? d.content : []) {
-    blockTypes.push(String((b as { type?: string })?.type ?? "unknown"));
-    if ((b as { type?: string })?.type === "text" && typeof (b as { text?: string }).text === "string") {
-      parts.push((b as { text: string }).text);
+    const block = b as { type?: string; text?: string; name?: string; input?: unknown };
+    blockTypes.push(String(block?.type ?? "unknown"));
+    if (block?.type === "text" && typeof block.text === "string") parts.push(block.text);
+    if (block?.type === "tool_use" && block.input && typeof block.input === "object") {
+      toolJson = JSON.stringify(block.input);
     }
   }
-  const text = parts.join("");
+  const text = toolJson ?? parts.join("");
   if (!text.trim()) {
     return {
       ok: false,
@@ -125,6 +141,29 @@ async function anthropicOnce(opts: {
   return { ok: true, text, usage: d?.usage ?? {}, elapsedMs: Date.now() - started };
 }
 
+/** A model that will not take the structured-output shape must still be able
+ *  to answer: the call is retried once as plain JSON-in-text. */
+function isStructuredOutputUnsupported(status: number, body: string): boolean {
+  return status === 400 && /tool|tool_choice|input_schema|json_schema|response_format|text\.format/i.test(body);
+}
+
+/** Failed calls are metered too: elapsed time and reason, same table. */
+function meterFailure(opts: {
+  label: string; product?: string; sourceRowId?: string; model: string | null;
+  elapsedMs: number; error: string;
+}) {
+  recordApiUsage({
+    function_name: opts.label,
+    product: opts.product ?? null,
+    model: opts.model,
+    input_tokens: null,
+    output_tokens: null,
+    duration_ms: opts.elapsedMs,
+    source_row_id: opts.sourceRowId ?? null,
+    error: opts.error.slice(0, 1000),
+  });
+}
+
 export async function callClaude(opts: {
   system: string;
   user: string;
@@ -133,19 +172,25 @@ export async function callClaude(opts: {
   label: string;
   product?: string;
   sourceRowId?: string;
+  /** When set, the answer is returned as a schema-validated tool call. */
+  jsonSchema?: JsonSchemaSpec | null;
 }): Promise<ModelCallResult> {
   if (!ANTHROPIC_KEY()) throw new Error("ANTHROPIC_API_KEY not set");
   // Long CPPA Risk/Cyber reviews were stopping at exactly 16,000 output tokens
   // and arriving as truncated (unparseable) JSON.
   const maxTokens = opts.maxTokens ?? 32_000;
+  const callStarted = Date.now();
   let note: string | null = null;
   let effort: Effort | null = opts.effort;
+  let schema: JsonSchemaSpec | null = opts.jsonSchema ?? null;
   let lastErr = "";
+  let lastModel: string | null = null;
 
   for (let i = 0; i < CLAUDE_REVIEW_MODELS.length; i++) {
     const model = CLAUDE_REVIEW_MODELS[i];
-    for (let attempt = 0; attempt < 2; attempt++) {
-      const r = await anthropicOnce({ model, system: opts.system, user: opts.user, maxTokens, effort, label: opts.label });
+    lastModel = model;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const r = await anthropicOnce({ model, system: opts.system, user: opts.user, maxTokens, effort, label: opts.label, jsonSchema: schema });
       if (r.ok) {
         const u = r.usage as Record<string, number | undefined>;
         const result: ModelCallResult = {
@@ -181,12 +226,23 @@ export async function callClaude(opts: {
         effort = null;
         continue; // same model, no effort
       }
+      if (schema && isStructuredOutputUnsupported(r.status, r.body)) {
+        console.warn(`[${opts.label}] ${model} rejected the structured-output schema — retrying as JSON text`);
+        note = `${note ? note + "; " : ""}structured output not accepted by ${model}; answered as JSON text`;
+        schema = null;
+        continue; // same model, no schema
+      }
       break; // move to next model candidate
     }
     if (!isModelUnavailableFromMessage(lastErr)) break;
     console.warn(`[${opts.label}] claude model ${model} unavailable — trying next candidate`);
   }
-  throw new Error(lastErr || "Anthropic call failed");
+  const failure = lastErr || "Anthropic call failed";
+  meterFailure({
+    label: opts.label, product: opts.product, sourceRowId: opts.sourceRowId,
+    model: lastModel, elapsedMs: Date.now() - callStarted, error: failure,
+  });
+  throw new Error(failure);
 }
 
 function isModelUnavailableFromMessage(msg: string): boolean {
@@ -208,19 +264,33 @@ async function openaiResponsesOnce(opts: {
   user: string;
   effort: Effort;
   label: string;
+  jsonSchema?: JsonSchemaSpec | null;
 }): Promise<{ ok: true; text: string; usage: Record<string, unknown>; elapsedMs: number } | { ok: false; status: number; body: string }> {
   const started = Date.now();
+  const payload: Record<string, unknown> = {
+    model: opts.model,
+    // Static instructions first so the automatic prefix cache can hit.
+    instructions: opts.system,
+    input: opts.user,
+    stream: true,
+    reasoning: { effort: opts.effort },
+  };
+  // STRUCTURED OUTPUT: the provider validates the object, so an answer that is
+  // not valid JSON cannot reach the parser.
+  if (opts.jsonSchema) {
+    payload.text = {
+      format: {
+        type: "json_schema",
+        name: opts.jsonSchema.name,
+        schema: opts.jsonSchema.schema,
+        strict: false,
+      },
+    };
+  }
   const res = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: { Authorization: `Bearer ${OPENAI_KEY()}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: opts.model,
-      // Static instructions first so the automatic prefix cache can hit.
-      instructions: opts.system,
-      input: opts.user,
-      stream: true,
-      reasoning: { effort: opts.effort },
-    }),
+    body: JSON.stringify(payload),
     signal: AbortSignal.timeout(REVIEW_CALL_TIMEOUT_MS),
   });
   if (!res.ok || !res.body) {
@@ -305,10 +375,15 @@ export async function callOpenAI(opts: {
   label: string;
   product?: string;
   sourceRowId?: string;
+  /** When set, the answer is returned as a schema-validated JSON response. */
+  jsonSchema?: JsonSchemaSpec | null;
 }): Promise<ModelCallResult> {
   if (!OPENAI_KEY()) throw new Error("OPENAI_API_KEY not set");
+  const callStarted = Date.now();
   let lastErr = "";
+  let lastModel: string | null = null;
   let note: string | null = null;
+  let schema: JsonSchemaSpec | null = opts.jsonSchema ?? null;
 
   const finish = (
     model: string,
@@ -349,13 +424,23 @@ export async function callOpenAI(opts: {
 
   for (let i = 0; i < OPENAI_REVIEW_MODELS.length; i++) {
     const model = OPENAI_REVIEW_MODELS[i];
-    const r = await openaiResponsesOnce({ model, system: opts.system, user: opts.user, effort: opts.effort, label: opts.label });
-    if (r.ok) {
-      if (i > 0) note = `model fell back to ${model}`;
-      return finish(model, opts.effort, r, i > 0);
+    lastModel = model;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const r = await openaiResponsesOnce({ model, system: opts.system, user: opts.user, effort: opts.effort, label: opts.label, jsonSchema: schema });
+      if (r.ok) {
+        if (i > 0) note = `${note ? note + "; " : ""}model fell back to ${model}`;
+        return finish(model, opts.effort, r, i > 0);
+      }
+      lastErr = `OpenAI ${r.status}: ${r.body}`;
+      if (schema && isStructuredOutputUnsupported(r.status, r.body)) {
+        console.warn(`[${opts.label}] ${model} rejected the structured-output schema — retrying as JSON text`);
+        note = `structured output not accepted by ${model}; answered as JSON text`;
+        schema = null;
+        continue; // same model, no schema
+      }
+      break;
     }
-    lastErr = `OpenAI ${r.status}: ${r.body}`;
-    if (!isModelUnavailable(r.status, r.body)) break;
+    if (!isModelUnavailableFromMessage(lastErr)) break;
     console.warn(`[${opts.label}] openai model ${model} unavailable — trying next candidate`);
   }
 
@@ -371,7 +456,12 @@ export async function callOpenAI(opts: {
     note = `no reasoning model available (${lastErr}); ran ${OPENAI_CHAT_FALLBACK_MODEL} without an effort level`;
     return finish(OPENAI_CHAT_FALLBACK_MODEL, null, r, true);
   }
-  throw new Error(`${lastErr || "OpenAI call failed"} | fallback ${OPENAI_CHAT_FALLBACK_MODEL}: ${r.status} ${r.body}`);
+  const failure = `${lastErr || "OpenAI call failed"} | fallback ${OPENAI_CHAT_FALLBACK_MODEL}: ${r.status} ${r.body}`;
+  meterFailure({
+    label: opts.label, product: opts.product, sourceRowId: opts.sourceRowId,
+    model: lastModel, elapsedMs: Date.now() - callStarted, error: failure,
+  });
+  throw new Error(failure);
 }
 
 // ── JSON extraction ─────────────────────────────────────────────────────────

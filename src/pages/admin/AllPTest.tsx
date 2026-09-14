@@ -203,6 +203,7 @@ export default function AllPTest() {
       say(`${enqueued} review and arbitration job(s) queued. Reviews run first, then one arbitration per document, then one merge per product.`);
 
       let lastLine = "";
+      let finalJobs: PtestJobRow[] = [];
       for (;;) {
         if (cancelled.current) { say("Cancelled."); setPhase("idle"); return; }
         await new Promise((r) => setTimeout(r, 6_000));
@@ -216,16 +217,18 @@ export default function AllPTest() {
           continue;
         }
         setJobs(jobRows);
+        finalJobs = jobRows;
         const done = jobRows.filter((j) => j.status === "done").length;
         const failed = jobRows.filter((j) => ["failed", "cancelled"].includes(j.status)).length;
         const running = jobRows.filter((j) => j.status === "running").length;
-        setPhase(jobRows.some((j) => j.kind === "review" && ["queued", "running"].includes(j.status)) ? "reviewing" : "arbitrating");
+        setPhase(jobRows.some((j) => j.kind.startsWith("review") && ["queued", "running"].includes(j.status)) ? "reviewing" : "arbitrating");
         const line = `Reviewing — ${done} done, ${running} running, ${failed} failed of ${jobRows.length}`;
         if (line !== lastLine) { say(line); lastLine = line; }
         // Per-job trace: each state change is logged once, never repeated on
         // subsequent polls.
         for (const j of jobRows) {
-          const label = `${j.tool_slug} · ${j.kind.replace("arb_", "arbitration ")} · ${j.company_name ?? "all documents"}`;
+          const kindLabel = j.kind.replace("arb_", "arbitration ").replace("review_gpt", "review (GPT)").replace("review_claude", "review (Claude)");
+          const label = `${j.tool_slug} · ${kindLabel} · ${j.company_name ?? "all documents"}`;
           const seen = jobStates.current.get(j.id);
           const state = `${j.status}#${j.attempts}`;
           if (seen !== state) {
@@ -264,7 +267,15 @@ export default function AllPTest() {
       // a re-sync never duplicates and never overwrites a human-set status.
       try {
         const tracked = await syncFixItems(id, results.arbitrations);
-        await setBatchStatus(id, "complete");
+        // A batch that lost any job closes as PARTIAL. Only a run where every
+        // job landed may read as complete.
+        const lost = finalJobs.filter((j) => ["failed", "cancelled"].includes(j.status)).length;
+        if (lost > 0) {
+          await setBatchStatus(id, "partial", `${lost} job(s) failed or were cancelled`);
+          say(`⚠ Batch closed as PARTIAL — ${lost} job(s) failed or were cancelled.`);
+        } else {
+          await setBatchStatus(id, "complete");
+        }
         setHistoryKey((k) => k + 1);
         say(`${tracked} fix/decision item(s) recorded in run history.`);
       } catch (e) {

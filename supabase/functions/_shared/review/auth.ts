@@ -7,7 +7,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 export const cors = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-internal-resume",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-internal-resume, x-internal-cron, x-driver-token",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -28,6 +28,16 @@ export async function requireAdmin(req: Request): Promise<AuthOk | Response> {
   if (req.headers.get("x-internal-resume") === "1" && token === SERVICE_KEY) {
     return { userId: null, internal: true };
   }
+  // Scheduled reaper (pg_cron) — a shared secret held in internal_driver_tokens,
+  // the same pattern the corpus drivers use. Read with the service role only.
+  const cronToken = req.headers.get("x-driver-token");
+  if (req.headers.get("x-internal-cron") === "1" && cronToken) {
+    const admin = createClient(SUPABASE_URL, SERVICE_KEY);
+    const { data } = await admin.from("internal_driver_tokens").select("token").eq("name", "ptest-driver").maybeSingle();
+    if (data?.token && data.token === cronToken) return { userId: null, internal: true };
+    return json({ error: "invalid_driver_token" }, 401);
+  }
+
   const userClient = createClient(SUPABASE_URL, ANON_KEY, { global: { headers: { Authorization: authHeader } } });
   const { data: userData, error: userErr } = await userClient.auth.getUser(token);
   if (userErr || !userData?.user) return json({ error: "invalid_jwt" }, 401);

@@ -9,6 +9,7 @@ import { buildDeepReviewSystemPrompt, DEEP_REVIEW_PROMPT_VERSION } from "./promp
 import { callClaude, callOpenAI, parseJsonObject, type Effort } from "./model-calls.ts";
 import { validateFindings } from "./validate.ts";
 import { parseReportedScores, deriveScoreFromFindings, divergenceNote } from "./scores.ts";
+import { REVIEW_JSON_SCHEMA } from "./json-schemas.ts";
 
 // deno-lint-ignore no-explicit-any
 type Admin = any;
@@ -50,6 +51,9 @@ async function runReviewer(
     label: `deep-review-${reviewer}`,
     product: doc.tool,
     sourceRowId: doc.id,
+    // FORCED VALID JSON: the provider validates the answer against the schema,
+    // so a truncated or prose-wrapped answer cannot reach the parser.
+    jsonSchema: REVIEW_JSON_SCHEMA,
   });
   const parsed = parseJsonObject(res.text);
   if (!parsed) throw new Error(`${reviewer} returned unparseable JSON (${res.text.length} chars)`);
@@ -88,27 +92,11 @@ async function runReviewer(
   };
 }
 
-/** Transient shapes worth one more attempt: a truncated/unparseable answer and
- *  a provider call that ran past the self-abort window. Everything else (bad
- *  key, missing model, empty document) is deterministic and is not retried. */
-function isRetryableReviewError(err: unknown): boolean {
-  const msg = err instanceof Error ? err.message : String(err ?? "");
-  return /unparseable JSON|timed out|TimeoutError|no_text_block|no_output_text|\b(429|500|502|503|504)\b/i.test(msg);
-}
-
-async function runReviewerWithRetry(
-  reviewer: Reviewer,
-  doc: { tool: string; id: string; documentText: string; intakeJson: string; truncated: boolean },
-  effort: Effort,
-) {
-  try {
-    return await runReviewer(reviewer, doc, effort);
-  } catch (err) {
-    if (!isRetryableReviewError(err)) throw err;
-    console.warn(`[deep-review] ${reviewer} attempt 1 failed (${err instanceof Error ? err.message : String(err)}) — retrying once`);
-    return await runReviewer(reviewer, doc, effort);
-  }
-}
+// NO IN-JOB RETRY. A reviewer runs ONCE per job. A retry is a new job attempt
+// (ptest_jobs.attempts, capped at max_attempts), so a retried call gets a fresh
+// isolate and a fresh wall clock instead of a second call inside a window that
+// is already half spent. The structured-output schema removes the unparseable-
+// JSON failure that the in-call retry existed for.
 
 export interface DeepReviewOutcome {
   ok: boolean;
@@ -129,16 +117,14 @@ export async function runDocumentReview(admin: Admin, opts: {
   if ("error" in doc) return { ok: false, status: doc.status, body: { error: doc.error } };
   if (!doc.documentText.trim()) return { ok: false, status: 400, body: { error: "empty_document" } };
 
-  // The two providers share no rate-limit budget, so the reviews run
-  // concurrently. Neither reviewer can fail the other: each is settled
-  // independently and its error is reported in its own slot.
-  const settled = await Promise.allSettled(opts.reviewers.map((r) => runReviewerWithRetry(r, doc, opts.effort)));
-
+  // PERSIST AS IT LANDS. Each reviewer writes its OWN row the moment its call
+  // returns — a fast reviewer's work can never be lost by a slow one, and a
+  // later failure of this isolate cannot take a completed review with it.
   const results: Record<string, unknown> = {};
-  const rows: Record<string, unknown>[] = [];
+  let stored = 0;
   let anyOk = false;
-  settled.forEach((s, i) => {
-    const reviewer = opts.reviewers[i];
+
+  const runAndPersist = async (reviewer: Reviewer) => {
     const common = {
       batch_id: opts.batchId ?? null,
       tool_slug: opts.tool,
@@ -148,30 +134,32 @@ export async function runDocumentReview(admin: Admin, opts: {
       prompt_version: DEEP_REVIEW_PROMPT_VERSION,
       run_by: opts.userId ?? null,
     };
-    if (s.status === "fulfilled") {
+    let row: Record<string, unknown>;
+    try {
+      const v = await runReviewer(reviewer, doc, opts.effort);
       anyOk = true;
-      results[reviewer] = s.value;
-      rows.push({
+      results[reviewer] = v;
+      row = {
         ...common,
-        model: s.value.model,
-        effort: s.value.effort,
-        findings: s.value.findings,
-        double_check: s.value.double_check,
-        overall: s.value.overall,
-        dimension_scores: s.value.dimension_scores,
-        overall_score: s.value.overall_score,
-        derived_score: s.value.derived_score,
-        score_source: s.value.score_source,
-        score_notes: s.value.score_divergence,
-        usage: s.value.usage,
-        dropped_unlocatable: s.value.dropped_unlocatable.length + s.value.dropped_no_quote,
+        model: v.model,
+        effort: v.effort,
+        findings: v.findings,
+        double_check: v.double_check,
+        overall: v.overall,
+        dimension_scores: v.dimension_scores,
+        overall_score: v.overall_score,
+        derived_score: v.derived_score,
+        score_source: v.score_source,
+        score_notes: v.score_divergence,
+        usage: v.usage,
+        dropped_unlocatable: v.dropped_unlocatable.length + v.dropped_no_quote,
         error: null,
-      });
-    } else {
-      const msg = (s.reason as Error)?.message ?? String(s.reason);
+      };
+    } catch (err) {
+      const msg = (err as Error)?.message ?? String(err);
       console.error(`[deep-review] ${reviewer} failed — ${msg}`);
       results[reviewer] = { reviewer, error: msg };
-      rows.push({
+      row = {
         ...common,
         model: null,
         effort: opts.effort,
@@ -181,16 +169,17 @@ export async function runDocumentReview(admin: Admin, opts: {
         usage: null,
         dropped_unlocatable: 0,
         error: msg,
-      });
+      };
     }
-  });
+    if (!opts.batchId) return;
+    const { error: insErr } = await admin.from("ptest_reviews").insert(row);
+    if (insErr) console.error(`[deep-review] review persist failed (${reviewer}) — ${insErr.message}`);
+    else stored += 1;
+  };
 
-  let stored = 0;
-  if (opts.batchId) {
-    const { error: insErr, data: ins } = await admin.from("ptest_reviews").insert(rows).select("id");
-    if (insErr) console.error(`[deep-review] review persist failed — ${insErr.message}`);
-    else stored = ins?.length ?? 0;
-  }
+  // The two providers share no rate-limit budget, so reviewers run
+  // concurrently when a caller asks for both. Neither can fail the other.
+  await Promise.all(opts.reviewers.map((r) => runAndPersist(r)));
 
   return {
     ok: anyOk,
