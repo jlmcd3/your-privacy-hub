@@ -131,13 +131,23 @@ export interface FixListEntry {
   raised_by: string;
   severity: string;
   defect_type: string;
-  occurrences: Array<{ document_id?: string; product?: string; section?: string; quote?: string }>;
+  occurrences: Array<{ document_id?: string; product?: string; section?: string; quote?: string; block_key?: string; company_name?: string | null }>;
   cause: string;
   cause_layer: string;
   code_focus: string;
-  change: string;
+  change: string | null;
   regression_test: string;
   boundary_cases?: string[];
+  // ── DOC 261 v2 fields (present on v2 verdicts) ──
+  fix_class?: string | null;
+  rule_ref?: string | null;
+  class_reason?: string | null;
+  gate_reason?: string | null;
+  intake_facts?: Array<{ key: string; value: string | null }>;
+  registry_rows?: Array<{ id: string; subsection: string; verbatim_quote: string | null }>;
+  block?: { kind: string; factor_ids: string[]; sources: string[]; authorities: string[] } | null;
+  second_block?: { block_key: string; quote: string | null } | null;
+  source_ids?: string[];
 }
 
 export interface CeoEntry {
@@ -149,6 +159,23 @@ export interface CeoEntry {
   gpt_proposed_fix: string | null;
   arbiter_reason: string;
   options?: Array<{ option: string; consequence: string }>;
+  fix_class?: string | null;
+  rule_ref?: string | null;
+  registry_rows?: Array<{ id: string; subsection: string; verbatim_quote: string | null }>;
+  intake_facts?: Array<{ key: string; value: string | null }>;
+  source_ids?: string[];
+}
+
+/** DOC 261 v2 — the per-product verdict metrics (the table is the gate; the number is the trend). */
+export interface VerdictMetrics {
+  documents?: number;
+  queued?: number;
+  ceo?: number;
+  observed?: number;
+  by_class?: Record<string, number>;
+  by_route?: Record<string, number>;
+  composite_mean?: number | null;
+  partial_coverage?: number;
 }
 
 export interface ArbitrationResult {
@@ -159,13 +186,15 @@ export interface ArbitrationResult {
   inputTruncated?: boolean;
   fixList: FixListEntry[];
   ceoSheet: CeoEntry[];
-  dropped: Array<{ id: string; reason: string }>;
+  dropped: Array<{ id: string; reason: string; kind?: string; block_key?: string; quote?: string; fix_class?: string }>;
   doubleCheck: string | null;
   summary: string | null;
-  /** Post-arbitration score: 100 minus the severity weight of each agreed fix. */
+  /** Post-arbitration score: 100 minus the severity weight of each agreed fix (v2: composite mean). */
   agreedScore?: number | null;
-  /** True when at least one contributing document was arbitrated on one reviewer. */
+  /** True when at least one contributing document was arbitrated on one reviewer (v2: a worker failed). */
   singleReviewer?: boolean;
+  /** v2 only. */
+  metrics?: VerdictMetrics | null;
   error?: string;
 }
 
@@ -214,11 +243,41 @@ export async function arbitrateProduct(opts: {
 /** Queue calls are short control-plane calls, never model calls. */
 const DRIVER_TIMEOUT_MS = 30_000;
 
+/** Job kinds. v2 (DOC 261): generate · lint · review_record · review_law_claude ·
+ *  review_law_gpt · review_reason · classify · arb_merge. Legacy: review ·
+ *  review_gpt · review_claude · arb_document. */
+export type PtestJobKind =
+  | "generate" | "lint" | "review_record" | "review_law_claude" | "review_law_gpt" | "review_reason" | "classify"
+  | "review" | "review_gpt" | "review_claude" | "arb_document" | "arb_merge";
+
+export const JOB_KIND_LABELS: Record<PtestJobKind, string> = {
+  generate: "generate (golden, ×2 determinism)",
+  lint: "lint",
+  review_record: "W-RECORD (Claude)",
+  review_law_claude: "W-LAW (Claude)",
+  review_law_gpt: "W-LAW (GPT)",
+  review_reason: "W-REASON (GPT)",
+  classify: "classify + gate",
+  review: "review (both)",
+  review_gpt: "review (GPT)",
+  review_claude: "review (Claude)",
+  arb_document: "arbitration document",
+  arb_merge: "merge",
+};
+
+export function jobKindLabel(kind: string): string {
+  return JOB_KIND_LABELS[kind as PtestJobKind] ?? kind;
+}
+
+/** True for a kind that runs before the per-document classification. */
+export function isReviewPhaseKind(kind: string): boolean {
+  return kind === "generate" || kind === "lint" || kind.startsWith("review");
+}
+
 export interface PtestJobRow {
   id: string;
   tool_slug: string;
-  /** One job per reviewer; "review" is the pre-split legacy kind. */
-  kind: "review" | "review_gpt" | "review_claude" | "arb_document" | "arb_merge";
+  kind: PtestJobKind | string;
   assessment_id: string | null;
   company_name: string | null;
   status: "queued" | "running" | "done" | "failed" | "cancelled";
@@ -246,14 +305,103 @@ export async function enqueuePtestJobs(opts: {
   documents: Array<{ tool: string; assessment_id: string; company_name: string }>;
   reviewEffort: PtestEffort;
   arbitrationEffort: PtestEffort;
-}): Promise<number> {
+  /** DOC 261 — also regenerate and review the golden panel for these products. */
+  golden?: boolean;
+  products?: string[];
+  /** YYYY-MM-DD injected as the report date (defaults to today server-side). */
+  reportDate?: string;
+  mode?: "v2" | "legacy";
+}): Promise<{ enqueued: number; goldens: number }> {
   const d = await driver("enqueue", {
     batch_id: opts.batchId,
     documents: opts.documents,
     review_effort: opts.reviewEffort,
     arbitration_effort: opts.arbitrationEffort,
+    golden: opts.golden === true,
+    products: opts.products ?? [],
+    report_date: opts.reportDate,
+    mode: opts.mode ?? "v2",
   });
-  return typeof d.enqueued === "number" ? d.enqueued : 0;
+  return { enqueued: typeof d.enqueued === "number" ? d.enqueued : 0, goldens: typeof d.goldens === "number" ? d.goldens : 0 };
+}
+
+// ── Golden panel (DOC 261 Stage 0 / §3.5) ───────────────────────────────────
+
+export interface PtestGoldenRow {
+  id: string;
+  product: string;
+  source: "fixture" | "assessment" | string;
+  ref: string;
+  label: string;
+  enabled: boolean;
+  assessment_id: string | null;
+  created_at?: string;
+}
+
+/** A batch id is required by the driver's auth wrapper; the panel actions ignore it. */
+const PANEL_BATCH = "00000000-0000-0000-0000-000000000000";
+
+export async function seedGoldenPanel(): Promise<PtestGoldenRow[]> {
+  const d = await driver("golden_seed", { batch_id: PANEL_BATCH });
+  return (d.goldens ?? []) as PtestGoldenRow[];
+}
+
+export async function listGoldenPanel(): Promise<PtestGoldenRow[]> {
+  const d = await driver("golden_list", { batch_id: PANEL_BATCH });
+  return (d.goldens ?? []) as PtestGoldenRow[];
+}
+
+export async function addGoldenFromAssessment(product: string, assessmentId: string, label?: string): Promise<PtestGoldenRow> {
+  const d = await driver("golden_add", { batch_id: PANEL_BATCH, product, assessment_id: assessmentId, label });
+  return d.golden as PtestGoldenRow;
+}
+
+export async function toggleGolden(goldenId: string, enabled: boolean): Promise<void> {
+  await driver("golden_toggle", { batch_id: PANEL_BATCH, golden_id: goldenId, enabled });
+}
+
+// ── Before/after diff (DOC 261 Stage 7) ─────────────────────────────────────
+
+export interface DiffFinding {
+  key: string;
+  block_key: string;
+  quote: string;
+  severity: string | null;
+  fix_class: string | null;
+  route: string | null;
+  raised_by: string[];
+}
+
+export interface GoldenDiff {
+  golden_ref: string;
+  product: string;
+  label: string | null;
+  assessment_before: string | null;
+  assessment_after: string | null;
+  gone: DiffFinding[];
+  persists: DiffFinding[];
+  new: DiffFinding[];
+  lint_before: Record<string, number>;
+  lint_after: Record<string, number>;
+  composite_before: number | null;
+  composite_after: number | null;
+  routes_before: Record<string, number>;
+  routes_after: Record<string, number>;
+}
+
+export interface BatchDiff {
+  batch_before: string;
+  batch_after: string;
+  comparable: boolean;
+  settings_note: string | null;
+  goldens: GoldenDiff[];
+  accepted: boolean;
+  acceptance_note: string;
+}
+
+export async function fetchBatchDiff(batchBefore: string, batchAfter: string): Promise<BatchDiff> {
+  const d = await driver("diff", { batch_id: batchAfter, batch_before: batchBefore });
+  return d.diff as BatchDiff;
 }
 
 /** Keeps the chain alive. Idle-safe: claims at most one job, never duplicates. */
@@ -290,7 +438,7 @@ export async function fetchPtestResults(batchId: string): Promise<{
       .select("assessment_id, tool_slug, company_name, reviewer, model, effort, findings, double_check, overall, dropped_unlocatable, error, dimension_scores, overall_score, derived_score, score_source, score_notes")
       .eq("batch_id", batchId).order("created_at", { ascending: true }),
     supabase.from("ptest_arbitrations")
-      .select("tool_slug, model, fix_list, ceo_sheet, dropped, double_check, summary, findings_in, input_truncated, error, arbitration_scope, agreed_score, single_reviewer")
+      .select("tool_slug, model, fix_list, ceo_sheet, dropped, double_check, summary, findings_in, input_truncated, error, arbitration_scope, agreed_score, single_reviewer, metrics")
       .eq("batch_id", batchId).eq("arbitration_scope", "merge").order("created_at", { ascending: true }),
   ]);
   if (rev.error) throw new Error(rev.error.message);
@@ -334,6 +482,7 @@ export async function fetchPtestResults(batchId: string): Promise<{
     summary: a.summary,
     agreedScore: a.agreed_score === null || a.agreed_score === undefined ? null : Number(a.agreed_score),
     singleReviewer: a.single_reviewer === true,
+    metrics: (a.metrics ?? null) as unknown as VerdictMetrics | null,
     error: a.error ?? undefined,
   }));
 
@@ -352,6 +501,12 @@ export interface ProductScoreRow {
   derived: number | null;
   arbitration: number | null;
   documents: number;
+  /** v2 (DOC 261): the class/route table beside the number. */
+  queued?: number | null;
+  ceo?: number | null;
+  observed?: number | null;
+  by_class?: Record<string, number> | null;
+  partial_coverage?: number | null;
 }
 
 const meanOf = (xs: Array<number | null | undefined>): number | null => {
@@ -376,16 +531,29 @@ export function buildScoreMatrix(
       if (typeof r.derived_score === "number") slot.derived.push(r.derived_score);
     }
   }
-  const arbByTool = new Map(arbitrations.filter((a) => !a.error).map((a) => [a.tool, a.agreedScore ?? null]));
-  const rows: ProductScoreRow[] = Array.from(byTool.entries()).map(([tool, s]) => ({
-    tool,
-    claude: meanOf(s.claude),
-    gpt: meanOf(s.gpt),
-    combined: meanOf([...s.claude, ...s.gpt]),
-    derived: meanOf(s.derived),
-    arbitration: arbByTool.get(tool) ?? null,
-    documents: s.docs,
-  }));
+  const arbByTool = new Map(arbitrations.filter((a) => !a.error).map((a) => [a.tool, a]));
+  // v2 verdicts carry metrics; the composite mean is the number, the route/class
+  // counts are the table (DOC 261 Rev 2 §0A V6).
+  for (const a of arbitrations) if (!a.error && !byTool.has(a.tool)) byTool.set(a.tool, { claude: [], gpt: [], derived: [], docs: a.metrics?.documents ?? 0 });
+  const rows: ProductScoreRow[] = Array.from(byTool.entries()).map(([tool, s]) => {
+    const a = arbByTool.get(tool);
+    const m = a?.metrics ?? null;
+    const legacyCombined = meanOf([...s.claude, ...s.gpt]);
+    return {
+      tool,
+      claude: meanOf(s.claude),
+      gpt: meanOf(s.gpt),
+      combined: legacyCombined ?? (m ? (m.composite_mean ?? a?.agreedScore ?? null) : null),
+      derived: meanOf(s.derived),
+      arbitration: a?.agreedScore ?? null,
+      documents: m?.documents ?? s.docs,
+      queued: m?.queued ?? null,
+      ceo: m?.ceo ?? null,
+      observed: m?.observed ?? null,
+      by_class: m?.by_class ?? null,
+      partial_coverage: m?.partial_coverage ?? null,
+    };
+  });
   return { rows, batchMean: meanOf(rows.map((r) => r.combined)) };
 }
 
@@ -467,35 +635,52 @@ export function buildPtestMarkdown(opts: {
     const n = (v: number | null) => (v === null ? "—" : v.toFixed(1));
     L.push(`## Batch scores (batch mean ${n(batchMean)})`);
     L.push("");
-    L.push("| Product | Documents | Claude | ChatGPT | Combined | Derived (cross-check) | Post-arbitration |");
-    L.push("| --- | --- | --- | --- | --- | --- | --- |");
-    scoreRows.forEach((r) => {
-      L.push(`| ${r.tool} | ${r.documents} | ${n(r.claude)} | ${n(r.gpt)} | ${n(r.combined)} | ${n(r.derived)} | ${n(r.arbitration)} |`);
-    });
+    const v2 = scoreRows.some((r) => r.queued !== null && r.queued !== undefined);
+    if (v2) {
+      L.push("| Product | Documents | Composite | Queued | CEO | Observed | Classes | Partial coverage |");
+      L.push("| --- | --- | --- | --- | --- | --- | --- | --- |");
+      scoreRows.forEach((r) => {
+        const classes = r.by_class ? Object.entries(r.by_class).map(([k, v]) => `${k} ${v}`).join(", ") : "—";
+        L.push(`| ${r.tool} | ${r.documents} | ${n(r.combined)} | ${r.queued ?? "—"} | ${r.ceo ?? "—"} | ${r.observed ?? "—"} | ${classes} | ${r.partial_coverage ?? 0} |`);
+      });
+    } else {
+      L.push("| Product | Documents | Claude | ChatGPT | Combined | Derived (cross-check) | Post-arbitration |");
+      L.push("| --- | --- | --- | --- | --- | --- | --- | --- |".slice(0, 41));
+      scoreRows.forEach((r) => {
+        L.push(`| ${r.tool} | ${r.documents} | ${n(r.claude)} | ${n(r.gpt)} | ${n(r.combined)} | ${n(r.derived)} | ${n(r.arbitration)} |`);
+      });
+    }
     L.push("");
   }
 
   for (const arb of opts.arbitrations) {
-    L.push(`## ${arb.tool.toUpperCase()} — arbitration${arb.singleReviewer ? " (single reviewer)" : ""}`);
-    if (arb.error) { L.push(`**Arbitration failed:** ${arb.error}`); L.push(""); continue; }
-    L.push(`Findings arbitrated: ${arb.findingsIn ?? 0}${arb.inputTruncated ? " (input truncated)" : ""} · arbiter: ${arb.model ?? "—"}`);
+    const isV2 = !!arb.metrics;
+    L.push(`## ${arb.tool.toUpperCase()} — ${isV2 ? "verdict (deterministic merge)" : "arbitration"}${arb.singleReviewer ? (isV2 ? " (partial coverage)" : " (single reviewer)") : ""}`);
+    if (arb.error) { L.push(`**${isV2 ? "Merge" : "Arbitration"} failed:** ${arb.error}`); L.push(""); continue; }
+    L.push(`Findings ${isV2 ? "merged" : "arbitrated"}: ${arb.findingsIn ?? 0}${arb.inputTruncated ? " (input truncated)" : ""} · ${isV2 ? "no model call" : `arbiter: ${arb.model ?? "—"}`}`);
     L.push("");
     L.push(`**Summary.** ${fence(arb.summary)}`);
     L.push("");
-    L.push(`### Agreed fix list (${arb.fixList.length})`);
+    L.push(`### ${isV2 ? "Queued fix list" : "Agreed fix list"} (${arb.fixList.length})`);
     if (!arb.fixList.length) L.push("_None._");
     arb.fixList.forEach((f, i) => {
       L.push(`#### ${i + 1}. ${f.title} \`${f.id}\``);
       L.push(`- Status: ${f.status} · raised by: ${f.raised_by} · severity: ${f.severity} · type: ${f.defect_type}`);
+      if (f.fix_class) L.push(`- Class: ${f.fix_class} · rule/clause: ${fence(f.rule_ref)} · gate: ${fence(f.gate_reason)}`);
+      if (f.class_reason) L.push(`- Classifier reason: ${f.class_reason}`);
       L.push(`- Cause: ${fence(f.cause)} (layer: ${fence(f.cause_layer)})`);
       L.push(`- Code focus: ${fence(f.code_focus)}`);
+      if (f.block) L.push(`- Block: ${f.block.kind} · factors ${f.block.factor_ids.join(", ") || "—"} · reads ${f.block.sources.join(", ") || "—"} · cites ${f.block.authorities.join("; ") || "—"}`);
+      (f.intake_facts ?? []).forEach((x) => L.push(`- Intake: \`${x.key}\` = ${fence(x.value)}`));
+      (f.registry_rows ?? []).forEach((r) => L.push(`- Registry ${r.id} (${r.subsection}): "${fence(r.verbatim_quote)}"`));
       L.push(`- Change: ${fence(f.change)}`);
-      L.push(`- Regression test: ${fence(f.regression_test)}`);
+      L.push(`- ${f.fix_class ? "Acceptance test" : "Regression test"}: ${fence(f.regression_test)}`);
       if (f.boundary_cases?.length) L.push(`- Boundary cases: ${f.boundary_cases.join("; ")}`);
       (f.occurrences ?? []).forEach((o) => {
-        L.push(`  - ${o.product ?? arb.tool} · ${o.document_id ?? "?"} · ${o.section ?? "—"}`);
+        L.push(`  - ${o.product ?? arb.tool} · ${o.company_name ?? o.document_id ?? "?"} · ${o.block_key ?? o.section ?? "—"}`);
         L.push(`    > ${fence(o.quote)}`);
       });
+      if (f.second_block) L.push(`  - second block ${f.second_block.block_key}: > ${fence(f.second_block.quote)}`);
       L.push("");
     });
     L.push(`### CEO decision sheet (${arb.ceoSheet.length})`);
@@ -503,15 +688,18 @@ export function buildPtestMarkdown(opts: {
     arb.ceoSheet.forEach((c, i) => {
       L.push(`#### ${i + 1}. ${c.question} \`${c.id}\``);
       L.push(`- Status: ${c.status} · raised by: ${c.raised_by}`);
+      if (c.fix_class) L.push(`- Class: ${c.fix_class} · rule/clause: ${fence(c.rule_ref)}`);
       L.push(`- Context: ${fence(c.context)}`);
-      L.push(`- GPT proposed fix: ${fence(c.gpt_proposed_fix)}`);
-      L.push(`- Arbiter reason: ${fence(c.arbiter_reason)}`);
+      (c.intake_facts ?? []).forEach((x) => L.push(`- Intake: \`${x.key}\` = ${fence(x.value)}`));
+      (c.registry_rows ?? []).forEach((r) => L.push(`- Registry ${r.id} (${r.subsection}): "${fence(r.verbatim_quote)}"`));
+      if (!isV2) L.push(`- GPT proposed fix: ${fence(c.gpt_proposed_fix)}`);
+      L.push(`- ${isV2 ? "Classifier" : "Arbiter"} reason: ${fence(c.arbiter_reason)}`);
       (c.options ?? []).forEach((o) => L.push(`  - **${o.option}** — ${o.consequence}`));
       L.push("");
     });
     if (arb.dropped.length) {
-      L.push(`### Dropped (${arb.dropped.length})`);
-      arb.dropped.forEach((d) => L.push(`- \`${d.id}\` — ${d.reason}`));
+      L.push(`### ${isV2 ? "Observed, intake artifacts, lint backlog and merges" : "Dropped"} (${arb.dropped.length})`);
+      arb.dropped.forEach((d) => L.push(`- \`${d.id}\`${d.block_key ? ` · ${d.block_key}` : ""} — ${d.reason}${d.quote ? `\n  > ${d.quote}` : ""}`));
       L.push("");
     }
     L.push(`**Arbiter double-check.** ${fence(arb.doubleCheck)}`);
@@ -525,10 +713,13 @@ export function buildPtestMarkdown(opts: {
     L.push(`Document: ${r.documentChars ?? "?"} chars${r.documentTruncated ? " (truncated)" : ""}`);
     for (const key of Object.keys(r.reviews)) {
       const rev = r.reviews[key];
-      L.push(`#### Reviewer ${key.toUpperCase()} — ${rev.model ?? "—"} (${rev.effort ?? "—"})`);
+      const isWorker = key.includes("/") || key === "LINT";
+      L.push(`#### ${isWorker ? "Worker" : "Reviewer"} ${isWorker ? key : key.toUpperCase()} — ${rev.model ?? "—"} (${rev.effort ?? "—"})`);
       if (rev.error) { L.push(`**Failed:** ${rev.error}`); continue; }
       if (rev.note) L.push(`_Note: ${rev.note}_`);
-      L.push(`Score: ${typeof rev.overall_score === "number" ? rev.overall_score.toFixed(1) : "—"} (reported) · ${typeof rev.derived_score === "number" ? rev.derived_score.toFixed(1) : "—"} (derived from findings)${rev.score_notes ? ` · ⚠ ${rev.score_notes}` : ""}`);
+      L.push(isWorker
+        ? `Validated findings deduction: ${typeof rev.derived_score === "number" ? rev.derived_score.toFixed(1) : "—"}${rev.score_notes ? ` · ⚠ ${rev.score_notes}` : ""}`
+        : `Score: ${typeof rev.overall_score === "number" ? rev.overall_score.toFixed(1) : "—"} (reported) · ${typeof rev.derived_score === "number" ? rev.derived_score.toFixed(1) : "—"} (derived from findings)${rev.score_notes ? ` · ⚠ ${rev.score_notes}` : ""}`);
       if (rev.dimension_scores) {
         L.push(`Dimensions: ${Object.entries(rev.dimension_scores).map(([k, v]) => `${k} ${v}`).join(" · ")}`);
       }

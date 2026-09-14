@@ -25,6 +25,8 @@ import { computeAdmtV2 } from "./_local/ltp/admt-v2-deterministic.ts";
 import { assembleAdmtV2Document, ADMT_V2_SPINE_VERSION } from "./_local/ltp/admt-v2-assemble.ts";
 import { buildAuthorityExhibit } from "../_shared/report-exhibits/authority-exhibit.ts";
 import { vaRegistryAsProvisions } from "./_local/ltp/admt-v2-corpus.ts";
+// DOC 261 — relocated from this file so the determinism harness shares it.
+import { gatherCitations } from "./_local/ltp/admt-v2-citations.ts";
 import { serializeCustomerReport } from "../_shared/report-serialize.ts";
 import { ADMT_V2_REPORT_SCHEMA } from "./_local/report-schemas/admt-v2.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
@@ -51,15 +53,6 @@ const corsHeaders = {
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-}
-
-/** Gathers every citation string a computed result actually emits (finding
- * authorities + the two header/statutory-framing citations), deduplicated.
- * This is the SAME "only what the document actually cites" discipline every
- * other product's authority exhibit already follows. */
-function gatherCitations(findingAuthorities: string[]): string[] {
-  const extra = ["11 CCR § 7200", "11 CCR § 7150(b)(3)"];
-  return [...new Set([...findingAuthorities, ...extra].filter((c) => c && c.trim()))];
 }
 
 /** LEAK-PREV-P2 — schema-driven whitelist pass, matching

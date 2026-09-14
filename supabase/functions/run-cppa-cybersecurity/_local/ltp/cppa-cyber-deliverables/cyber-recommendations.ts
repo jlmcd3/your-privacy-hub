@@ -377,9 +377,15 @@ export function buildCyberComponentRecommendations(
   coverage: readonly CyberComponentCoverage[],
   evidence: readonly EvidenceSufficiency[],
   corpusS4: readonly CyberS4CommentaryEntry[] = [],
+  // DOC 261 (2026-09-14) — the REPORT DATE the stale-commitment tests read.
+  // Injected by the caller (the report's own date) so a regeneration on a
+  // fixed intake is byte-identical on any calendar day; omitted ⇒ today,
+  // exactly the pre-261 behaviour.
+  asOf?: string,
 ): ComponentRecommendation[] {
   const evidenceBySlug = new Map(evidence.map((e) => [e.slug, e]));
   const corpusBySlug = new Map(corpusS4.map((e) => [e.slug, e]));
+  const reportDate: Date | string = asOf ?? new Date();
 
   const withGaps = coverage
     .map((c) => {
@@ -396,7 +402,7 @@ export function buildCyberComponentRecommendations(
         // 2026-09-12) produced no action at all. Reclassify here instead
         // of excluding: resolveGapClass itself stays untouched (its own
         // tests are unaffected).
-        if (pastDatedCommitments(s(c.record_fact), new Date()).length === 0) return null;
+        if (pastDatedCommitments(s(c.record_fact), reportDate).length === 0) return null;
         gapClass = "stale_commitment";
       }
       const variant = resolveVariant(gapClass, c);
@@ -409,7 +415,7 @@ export function buildCyberComponentRecommendations(
         // DOC 259A §3.11 (ChatGPT v3 CYB3-03) — a recorded position naming a
         // date already past on the report date is overdue work; it takes the
         // Immediate tier, never a relative deadline measured from today.
-        priority: pastDatedCommitments(s(c.record_fact), new Date()).length > 0 ? "Immediate" : priorityForGapClass(gapClass),
+        priority: pastDatedCommitments(s(c.record_fact), reportDate).length > 0 ? "Immediate" : priorityForGapClass(gapClass),
         slot: lookupRecommendation(key),
         corpus_commentary: corpusBySlug.get(c.slug)?.commentary ?? [],
       };

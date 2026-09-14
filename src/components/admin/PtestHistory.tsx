@@ -153,6 +153,10 @@ export function PtestHistory({ refreshKey }: { refreshKey?: number }) {
                 </span>
                 <span className="text-muted-foreground">
                   {b.industry ?? "—"} · review {b.review_effort ?? "—"} / arb {b.arbitration_effort ?? "—"} · {b.status}
+                  {b.settings && typeof (b.settings as { mode?: unknown }).mode === "string" ? ` · ${String((b.settings as { mode?: string }).mode)}` : ""}
+                  {b.settings && Array.isArray((b.settings as { golden_refs?: unknown }).golden_refs) && ((b.settings as { golden_refs: unknown[] }).golden_refs.length > 0)
+                    ? ` · golden ${(b.settings as { golden_refs: unknown[] }).golden_refs.length}`
+                    : ""}
                   {" · score "}
                   <span className="text-foreground">{b.batch_mean === null || b.batch_mean === undefined ? "—" : Number(b.batch_mean).toFixed(1)}</span>
                   {isOpen ? " ▾" : " ▸"}
@@ -199,6 +203,7 @@ export function PtestHistory({ refreshKey }: { refreshKey?: number }) {
                               <div>
                                 {it.tool_slug} · {it.severity ?? "—"} · {it.defect_type ?? "—"} · raised by {it.raised_by ?? "—"}
                               </div>
+                              {it.fix_class && <div>Class: {it.fix_class} · rule/clause: {it.rule_ref ?? "—"}</div>}
                               {it.code_focus && <div>Code focus: {it.code_focus}</div>}
                               {it.change_text && <div>Change: {it.change_text}</div>}
                               <div className="mt-2 flex flex-wrap items-center gap-2">

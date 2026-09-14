@@ -81,6 +81,15 @@ export interface RenderedParagraph {
   readonly text: string;
   /** Present only on `kind: "table"` paragraphs. */
   readonly table?: RenderedTable;
+  /**
+   * DOC 261 (2026-09-14) — the spine block this paragraph renders,
+   * `${sectionId}:${blockIndex}` (the same coordinate the composers, the
+   * engine provenance and the tables use). A composed block split into
+   * several paragraphs shares one key. Additive: every consumer that read
+   * paragraphs before this field ignores it; the /all-ptest workers, lint and
+   * validator address blocks by it.
+   */
+  readonly key?: string;
 }
 
 export interface RenderedSection {
@@ -235,7 +244,7 @@ export function renderSkeletonDocument(args: RenderSkeletonArgs): RenderedSkelet
       const key = `${section.id}:${i}`;
       if (block.kind === "skeleton") {
         const text = renderFixed(block.text, args.values);
-        if (text) paragraphs.push({ kind: "skeleton", text });
+        if (text) paragraphs.push({ kind: "skeleton", text, key });
         return;
       }
       if (block.kind === "table") {
@@ -244,7 +253,7 @@ export function renderSkeletonDocument(args: RenderSkeletonArgs): RenderedSkelet
         if (!t || !Array.isArray(t.rows) || t.rows.length === 0) return;
         const table: RenderedTable = { ...t, key, surface: t.surface || block.text.trim() };
         tables.push(table);
-        paragraphs.push({ kind: "table", text: "", table });
+        paragraphs.push({ kind: "table", text: "", table, key });
         return;
       }
       // lead / generated / conditional / rule — all supplied by the product
@@ -262,7 +271,7 @@ export function renderSkeletonDocument(args: RenderSkeletonArgs): RenderedSkelet
         // a composer can paragraph its own analysis. Bytes are untouched.
         for (const part of composed.trim().split(/\n{2,}/)) {
           const text = repairLinePreserving(part.trim());
-          if (text) paragraphs.push({ kind: block.kind, text });
+          if (text) paragraphs.push({ kind: block.kind, text, key });
         }
       }
 

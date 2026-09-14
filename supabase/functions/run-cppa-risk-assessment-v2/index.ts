@@ -25,6 +25,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { parseReportDate } from "../_shared/report-date.ts"; // DOC 261
 import { requireEntitlement } from "../_shared/entitlement.ts";
 import { handleRevisionMode } from "../_shared/revision-mode.ts";
 import { lifecycleUpdate } from "../_shared/lifecycle-write.ts";
@@ -78,7 +79,10 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-async function runPipeline(assessmentId: string): Promise<void> {
+// DOC 261 (2026-09-14) — `reportDate` (YYYY-MM-DD) is the document's own date,
+// injected by the /all-ptest determinism harness (internal callers only; see
+// _shared/report-date.ts). Omitted ⇒ today, exactly the pre-261 behaviour.
+async function runPipeline(assessmentId: string, reportDate?: string): Promise<void> {
   const t0 = Date.now();
   const { data: row, error } = await supabase
     .from("cppa_assessments")
@@ -119,6 +123,7 @@ async function runPipeline(assessmentId: string): Promise<void> {
     pass1: PASS1_MODE,
     pass2rEnabled: PASS2R_ENABLED,
     postPassDetectOnly: POST_PASS_DETECT_ONLY,
+    reportDate,
     callerName: FN,
     // ITEM 378 (CORRECTION) — critic/verifier injected so the refinement pass
     // runs on this (routed) path; CSC + stamp land in finalizeCppaRiskPayload.
@@ -210,6 +215,9 @@ Deno.serve(serveWithGenerationModel(async (req) => {
   }
   const assessment_id = body?.assessment_id as string | undefined;
   if (!assessment_id) return json({ error: "assessment_id required" }, 400);
+  // DOC 261 — injected report date; honoured for internal (service-key)
+  // callers only, so a customer request can never back- or post-date a report.
+  const reportDate = parseReportDate(body, caller.internal);
 
   // RC-B.1 — scoped-delta revision short-circuit (identical to legacy).
   const rev = await handleRevisionMode(supabase, body, { toolType: "cppa_risk_assessment" });
@@ -235,7 +243,7 @@ Deno.serve(serveWithGenerationModel(async (req) => {
 
   const wrapped = (async () => {
     try {
-      await runPipeline(assessment_id);
+      await runPipeline(assessment_id, reportDate);
       await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "cppa_assessments", sourceRowId: assessment_id });
     } catch (e) {
       console.error(`[${FN}] pipeline error:`, e);

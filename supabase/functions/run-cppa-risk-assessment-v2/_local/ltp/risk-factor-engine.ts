@@ -522,6 +522,14 @@ export interface FactorProvenance {
   readonly sources: readonly string[];
   /** Authority references for the Appendix A feed. */
   readonly authorities: readonly string[];
+  /**
+   * DOC 261 (2026-09-14) — the engine block this factor composed into
+   * (v5.2.1 coordinates; the assembler remaps to the v5.3 spine), or null for
+   * a factor stored for the Appendix A matrix without its own body block.
+   * Lets the /all-ptest workers address "the block that cites § X and reads
+   * intake key Y" instead of guessing a cause layer.
+   */
+  readonly block_key: string | null;
 }
 
 export interface RiskFactorEngineResult {
@@ -1281,7 +1289,7 @@ export function runRiskFactorEngine(
     const t = text.replace(/[^\S\n]{2,}/g, " ").trim();
     if (!t) return "";
     factors[factorId] = t;
-    provenance.push({ factor_id: factorId, factor_class: cls, sources, authorities });
+    provenance.push({ factor_id: factorId, factor_class: cls, sources, authorities, block_key: key });
     blocks[key] = blocks[key] ? `${blocks[key]}${breakBefore || " "}${t}` : t;
     return t;
   };
@@ -1299,7 +1307,7 @@ export function runRiskFactorEngine(
     const t = text.replace(/[^\S\n]{2,}/g, " ").trim();
     if (!t) return;
     factors[factorId] = t;
-    provenance.push({ factor_id: factorId, factor_class: cls, sources, authorities });
+    provenance.push({ factor_id: factorId, factor_class: cls, sources, authorities, block_key: null });
   };
 
   // Shared typed operands.

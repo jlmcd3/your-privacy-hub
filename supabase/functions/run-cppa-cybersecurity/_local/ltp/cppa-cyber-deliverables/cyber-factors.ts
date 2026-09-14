@@ -807,7 +807,7 @@ export interface ReadinessActionsResult {
   readonly sequencing: string;
 }
 
-function actionSentence(r: ComponentRecommendation, intake: Bag): string {
+function actionSentence(r: ComponentRecommendation, intake: Bag, asOf?: string): string {
   const rec = controlRec(intake, r.slug);
   // FD703575-CY3 — first-sentence fact, never the whole notes narrative.
   // 3E9AD759-CY3 — the record's own gap sentence locates the remaining work.
@@ -821,7 +821,10 @@ function actionSentence(r: ComponentRecommendation, intake: Bag): string {
   const text = r.slot.template.replace("{fact}", factText);
   // DOC 259A §3.11 (ChatGPT v3 CYB3-03) — a recorded position that names a
   // date already past on the report date is overdue work, not a plan.
-  const overdue = pastDatedCommitments(factText, new Date());
+  // DOC 261 (2026-09-14) — measured against the REPORT DATE the caller
+  // injects (the document's own date), never the wall clock, so a
+  // regeneration on a fixed intake is byte-identical on any calendar day.
+  const overdue = pastDatedCommitments(factText, asOf ?? new Date());
   const overdueSentence = overdue.length
     ? ` The recorded position names ${pastDatesProse(overdue)}, which is past on this report's date; record the outcome of that work and, where it did not complete, a current approved date.`
     : "";
@@ -946,14 +949,14 @@ export function buildRecordCompletionExtras(intake: Bag, d: CyberDeliverables): 
   return out;
 }
 
-export function buildReadinessActions(intake: Bag, recs: readonly ComponentRecommendation[], d?: CyberDeliverables): ReadinessActionsResult {
+export function buildReadinessActions(intake: Bag, recs: readonly ComponentRecommendation[], d?: CyberDeliverables, asOf?: string): ReadinessActionsResult {
   // FD703575-CY4 — an action appears ONCE. Immediate-priority items render
   // under "Priority readiness actions"; the class families below list only
   // the remaining (non-Immediate) items. The live batch rendered the same
   // four Immediate items verbatim in both lists.
   const nonPriority = recs.filter((r) => r.priority !== "Immediate");
-  const byClass = (classes: readonly string[]) => nonPriority.filter((r) => classes.includes(r.key.gapClass)).map((r) => actionSentence(r, intake));
-  const priority_actions = recs.filter((r) => r.priority === "Immediate").map((r) => actionSentence(r, intake));
+  const byClass = (classes: readonly string[]) => nonPriority.filter((r) => classes.includes(r.key.gapClass)).map((r) => actionSentence(r, intake, asOf));
+  const priority_actions = recs.filter((r) => r.priority === "Immediate").map((r) => actionSentence(r, intake, asOf));
   // DOC 129 CY-1 (Batch 3 A-Team ruling, 2026-09-01) — while the Section-2
   // readiness conclusion is open (record_insufficient), "Priority readiness
   // actions: none identified" must not print beside it: the gating
@@ -1224,6 +1227,9 @@ export function buildCyberFactors(
   recommendations: readonly ComponentRecommendation[],
   nextSteps: readonly CyberNextStep[],
   corpusCommentaryBySlug: ReadonlyMap<string, readonly string[]> = new Map(),
+  // DOC 261 (2026-09-14) — the report date (YYYY-MM-DD) the overdue-work
+  // sentences are measured against; omitted ⇒ today (pre-261 behaviour).
+  reportDate?: string,
 ): CyberFactorOutputs {
   const inputs: FactorInputs = { intake, deliverables, recommendations, nextSteps, corpusCommentaryBySlug };
   return {
@@ -1237,7 +1243,7 @@ export function buildCyberFactors(
     component_analyses: buildComponentAnalyses(inputs),
     cross_cutting: buildCrossCutting(intake, deliverables, recommendations),
     incident_readiness: buildIncidentReadiness(intake, deliverables),
-    readiness_actions: buildReadinessActions(intake, recommendations, deliverables),
+    readiness_actions: buildReadinessActions(intake, recommendations, deliverables, reportDate),
     overall: buildOverallReadinessNarrative(intake, deliverables, recommendations),
     evidence_preservation: buildEvidencePreservation(intake, deliverables),
     executive_lines: buildExecutiveReadinessLines(inputs),

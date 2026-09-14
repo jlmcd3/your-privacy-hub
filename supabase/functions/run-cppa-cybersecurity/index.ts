@@ -116,6 +116,7 @@ import { buildFsorAnchorBlock, CYBER_ZERO_TRUST_FSOR_ANCHOR_SPECS } from "../_sh
 import { buildCppaDeadlineBlock, verifyCppaDeadlineDrift } from "../_shared/cppa-deadline-registry.ts";
 import { verifyIcoFiguresDrift } from "../_shared/enforcement-figures-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
+import { parseReportDate } from "../_shared/report-date.ts"; // DOC 261
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { freezeOpenItemsOnFirstRun } from "../_shared/open-items.ts";
 import { handleRevisionMode } from "../_shared/revision-mode.ts"; // RC-B.1
@@ -353,7 +354,10 @@ import { serveWithGenerationModel, currentGenerationModel, currentSourceRowId, g
 import { recordApiUsage } from "../_shared/api-usage.ts"; // MODEL A/B HARNESS dispatch 1 — per-call spend/latency metering
 
 
-async function runAssessment(assessment_id: string): Promise<void> {
+// DOC 261 (2026-09-14) — `reportDate` (YYYY-MM-DD) is the document's own date,
+// injected by the /all-ptest determinism harness (internal callers only; see
+// _shared/report-date.ts). Omitted ⇒ today, exactly the pre-261 behaviour.
+async function runAssessment(assessment_id: string, reportDate?: string): Promise<void> {
   const { data: row } = await supabase
     .from("cppa_assessments")
     .select("*")
@@ -1853,7 +1857,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
         const remediationOwner = String(
           ((row as any)?.intake_data as any)?.profile?.remediation_owner ?? "",
         );
-        const recommendations = buildCyberComponentRecommendations(coverage, evidence, corpusS4);
+        const recommendations = buildCyberComponentRecommendations(coverage, evidence, corpusS4, reportDate);
         const nextSteps = buildCyberNextSteps(recommendations, remediationOwner);
         const _c = ((report as any)._meta ??= {});
         (_c.internal ??= {}).cyber_recommendations = { recommendations, next_steps: nextSteps };
@@ -2499,6 +2503,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
           composeView,
           ((row as any)?.intake_data as Record<string, unknown>) ?? {},
           phaseIn,
+          reportDate,
         );
         (report as any).skeleton_document = sk.document;
         console.log(JSON.stringify({
@@ -2589,6 +2594,9 @@ Deno.serve(serveWithGenerationModel(async (req) => {
     }
     const __body = await req.json();
     const { assessment_id } = __body;
+    // DOC 261 — injected report date; honoured for internal (service-key)
+    // callers only, so a customer request can never back- or post-date a report.
+    const reportDate = parseReportDate(__body, caller.internal);
     if (!assessment_id) {
       return new Response(JSON.stringify({ error: "assessment_id required" }), {
         status: 400,
@@ -2618,7 +2626,7 @@ Deno.serve(serveWithGenerationModel(async (req) => {
     // @ts-ignore — EdgeRuntime is provided by the Supabase edge runtime
     EdgeRuntime.waitUntil((async () => {
       try {
-        await runAssessment(assessment_id);
+        await runAssessment(assessment_id, reportDate);
         await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "cppa_assessments", sourceRowId: assessment_id });
       } catch (e) {
         await failFunctionRun(supabase, fnRun, e, { metadata: { assessment_id } });

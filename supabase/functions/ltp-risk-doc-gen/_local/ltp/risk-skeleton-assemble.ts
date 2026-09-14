@@ -871,8 +871,16 @@ export function deriveAdmtTechnicalFacts(intake: Bag): RenderedTable | null {
 
 // ── Slot values ─────────────────────────────────────────────────────────────
 
-export function buildRiskSlotValues(intake: Bag, report: Bag = {}): SlotValues {
-  const assessmentDate = new Date().toISOString().slice(0, 10);
+// DOC 261 (2026-09-14) — the assessment date is INJECTABLE. The /all-ptest
+// determinism harness regenerates a fixed intake and requires byte-identical
+// output on any calendar day; production omits it and gets today, exactly as
+// before. Only a well-formed YYYY-MM-DD is honoured.
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+export function buildRiskSlotValues(intake: Bag, report: Bag = {}, assessmentDateIso?: string): SlotValues {
+  const assessmentDate = assessmentDateIso && ISO_DATE_RE.test(assessmentDateIso)
+    ? assessmentDateIso
+    : new Date().toISOString().slice(0, 10);
 
   const submissionContact = [
     s(intake.cppa_submission_contact_name),
@@ -1486,10 +1494,31 @@ export interface RiskSkeletonResult {
   /** DOC 144 — the page-2 dashboard panel: the engine's exec panel extended
    * with the tally and plain-meaning operands (buildRiskExecDashboard). */
   readonly exec_panel: RiskExecDashboardPanel;
+  /**
+   * DOC 261 (2026-09-14) — the engine's provenance with every block key
+   * translated into the v5.3 spine coordinates the rendered document carries
+   * (RenderedParagraph.key). Persisted under `_meta.internal.factor_provenance`
+   * by the generator so the /all-ptest workers can read, per block, which
+   * intake keys it draws on and which authorities it cites.
+   */
+  readonly block_provenance: readonly BlockProvenance[];
 }
 
-export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkeletonResult {
-  const values = buildRiskSlotValues(intake, report);
+/** A provenance row addressed by the RENDERED block key (v5.3 spine). */
+export interface BlockProvenance {
+  readonly block_key: string | null;
+  readonly factor_id: string;
+  readonly factor_class: string;
+  readonly sources: readonly string[];
+  readonly authorities: readonly string[];
+}
+
+export function assembleRiskSkeletonDocument(
+  report: Bag,
+  intake: Bag,
+  opts?: { readonly assessmentDate?: string },
+): RiskSkeletonResult {
+  const values = buildRiskSlotValues(intake, report, opts?.assessmentDate);
   const assessmentDate = String(values.assessmentDate);
 
   // The v5.2 factor engine composes every generated body block and owns the
@@ -1625,11 +1654,21 @@ export function assembleRiskSkeletonDocument(report: Bag, intake: Bag): RiskSkel
   const body = skeletonDocumentToText(document).toLowerCase();
   const register_findings = RISK_V3_BANNED_REGISTER.filter((b) => body.includes(b));
 
+  // DOC 261 — provenance in rendered coordinates (ENGINE_KEY_REMAP applied).
+  const block_provenance: BlockProvenance[] = engine.provenance.map((p) => ({
+    block_key: p.block_key ? (ENGINE_KEY_REMAP[p.block_key] ?? p.block_key) : null,
+    factor_id: p.factor_id,
+    factor_class: p.factor_class,
+    sources: p.sources,
+    authorities: p.authorities,
+  }));
+
   return {
     document,
     conformance: verifySkeletonConformance(document, SKELETON_SECTIONS, values),
     register_findings,
     factor_engine: engine,
     exec_panel: execDashboard,
+    block_provenance,
   };
 }

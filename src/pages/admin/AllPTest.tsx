@@ -15,6 +15,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import {
   STRESS_INDUSTRIES,
+  SLUG_TO_STRESS_TOOL,
   launchClaudeIntakeBatch,
   fetchClaudeBatchJobs,
   fetchClaudeBatchStatus,
@@ -34,10 +35,19 @@ import {
   fetchReviewScores,
   downloadMarkdown,
   assertAdminSession,
+  jobKindLabel,
+  isReviewPhaseKind,
+  seedGoldenPanel,
+  listGoldenPanel,
+  addGoldenFromAssessment,
+  toggleGolden,
+  fetchBatchDiff,
   type DeepReviewResult,
   type ArbitrationResult,
   type PtestEffort,
   type PtestJobRow,
+  type PtestGoldenRow,
+  type BatchDiff,
 } from "@/lib/ptestRun";
 import { PtestHistory } from "@/components/admin/PtestHistory";
 import { recordBatchStart, setBatchStatus, syncFixItems } from "@/lib/ptestHistory";
@@ -68,9 +78,19 @@ export default function AllPTest() {
   const { user } = useAuth();
   const [selected, setSelected] = useState<ToolSlug[]>(["cppa_risk", "cppa_cyber", "cppa_admt"]);
   const [industryId, setIndustryId] = useState("web");
-  const [count, setCount] = useState(5);
+  // DOC 261: the golden panel is the default measured input; fresh documents
+  // are optional coverage (0 = golden panel only).
+  const [count, setCount] = useState(0);
+  const [useGolden, setUseGolden] = useState(true);
   const [reviewEffort, setReviewEffort] = useState<PtestEffort>("high");
   const [arbEffort, setArbEffort] = useState<PtestEffort>("high");
+  const [goldens, setGoldens] = useState<PtestGoldenRow[]>([]);
+  const [goldenBusy, setGoldenBusy] = useState(false);
+  const [addProduct, setAddProduct] = useState("cppa-risk");
+  const [addAssessment, setAddAssessment] = useState("");
+  const [compareWith, setCompareWith] = useState("");
+  const [diff, setDiff] = useState<BatchDiff | null>(null);
+  const [diffError, setDiffError] = useState<string | null>(null);
   // INTAKE SOURCE — Claude-generated intake only. The pre-set data package is
   // deliberately not available on this page.
 
@@ -127,6 +147,51 @@ export default function AllPTest() {
 
   const busy = phase === "generating" || phase === "reviewing" || phase === "arbitrating";
 
+  // ── Golden panel (DOC 261 Stage 0) ──────────────────────────────────────
+  const loadGoldens = useCallback(async () => {
+    try { setGoldens(await listGoldenPanel()); } catch (e) { say(`Golden panel read failed — ${(e as Error).message}`); }
+  }, [say]);
+  useEffect(() => { if (user?.id) void loadGoldens(); }, [user?.id, loadGoldens]);
+
+  const seedPanel = useCallback(async () => {
+    setGoldenBusy(true);
+    try {
+      await assertAdminSession();
+      const rows = await seedGoldenPanel();
+      setGoldens(rows);
+      say(`Golden panel seeded from the *_PERFECT fixtures — ${rows.length} intake(s) on the panel.`);
+    } catch (e) { say(`Golden seed failed — ${(e as Error).message}`); }
+    setGoldenBusy(false);
+  }, [say]);
+
+  const addGolden = useCallback(async () => {
+    if (!addAssessment.trim()) return;
+    setGoldenBusy(true);
+    try {
+      await assertAdminSession();
+      const g = await addGoldenFromAssessment(addProduct, addAssessment.trim());
+      say(`Added ${g.product} · ${g.label} to the golden panel (intake copied from ${addAssessment.trim().slice(0, 8)}).`);
+      setAddAssessment("");
+      await loadGoldens();
+    } catch (e) { say(`Golden add failed — ${(e as Error).message}`); }
+    setGoldenBusy(false);
+  }, [addAssessment, addProduct, loadGoldens, say]);
+
+  const flipGolden = useCallback(async (g: PtestGoldenRow) => {
+    try { await toggleGolden(g.id, !g.enabled); await loadGoldens(); } catch (e) { say(`Golden toggle failed — ${(e as Error).message}`); }
+  }, [loadGoldens, say]);
+
+  const runDiff = useCallback(async () => {
+    if (!batchId || !compareWith.trim()) return;
+    setDiffError(null);
+    try {
+      setDiff(await fetchBatchDiff(compareWith.trim(), batchId));
+    } catch (e) { setDiffError((e as Error).message); }
+  }, [batchId, compareWith]);
+
+  const productSlugs = useMemo(() => selected.map((s) => SLUG_TO_STRESS_TOOL[s]).filter(Boolean), [selected]);
+  const goldenCount = useMemo(() => goldens.filter((g) => g.enabled && productSlugs.includes(g.product)).length, [goldens, productSlugs]);
+
   const run = useCallback(async () => {
     if (!user?.id) return;
     cancelled.current = false;
@@ -137,14 +202,24 @@ export default function AllPTest() {
     try {
       await assertAdminSession();
       setPhase("generating");
+      setDiff(null);
 
       // ── Generation phase ────────────────────────────────────────────────
-      // Claude-generated intake only, exactly as /admin/all-products-test:
-      // a fresh company profile per geo via the stress harness.
+      // Fresh documents (optional): Claude-generated intake, exactly as
+      // /admin/all-products-test — a fresh company profile per geo via the
+      // stress harness. The golden panel is regenerated server-side by the
+      // driver's `generate` jobs (DOC 261 Stage 0), never here.
       let docs: Array<{ tool: string; assessment_id: string; company_name: string }> = [];
+      const wantGolden = useGolden && goldenCount > 0;
+      if (count === 0 && !wantGolden) throw new Error("nothing to run — enable the golden panel (and seed it) or set fresh documents per product above 0");
 
-      {
-        say(`Launching ${selected.length} product(s) × ${count} document(s) on Claude-generated intake…`);
+      if (count === 0) {
+        id = crypto.randomUUID();
+        setBatchId(id);
+        say(`Batch ${id} — golden panel only (${goldenCount} intake(s), each regenerated twice for the determinism check).`);
+        await recordHistory(id);
+      } else {
+        say(`Launching ${selected.length} product(s) × ${count} fresh document(s) on Claude-generated intake…`);
         id = await launchClaudeIntakeBatch({
           userId: user.id,
           slugs: selected,
@@ -187,20 +262,24 @@ export default function AllPTest() {
       }
 
 
-      if (!docs.length) throw new Error("no documents were generated — nothing to review");
-      say(`${docs.length} document(s) generated. Starting deep review (2 reviewers each, effort ${reviewEffort}).`);
+      if (!docs.length && !wantGolden) throw new Error("no documents were generated — nothing to review");
+      if (docs.length) say(`${docs.length} fresh document(s) generated.`);
+      say(`Starting the v2 loop: lint → W-RECORD (Claude) · W-LAW (Claude + GPT) · W-REASON (GPT) → classify + gate → deterministic merge (effort ${reviewEffort}).`);
 
-      // ── Review + arbitration, as background jobs ────────────────────────
+      // ── Lint + workers + classify + merge, as background jobs ──────────
       // Nothing here waits on a model call. The work is enqueued and the page
       // polls; the request window can no longer cut a long document short.
       setPhase("reviewing");
-      const enqueued = await enqueuePtestJobs({
+      const { enqueued, goldens: goldenQueued } = await enqueuePtestJobs({
         batchId: id,
         documents: docs,
         reviewEffort,
         arbitrationEffort: arbEffort,
+        golden: wantGolden,
+        products: productSlugs,
+        reportDate: new Date().toISOString().slice(0, 10),
       });
-      say(`${enqueued} review and arbitration job(s) queued. Reviews run first, then one arbitration per document, then one merge per product.`);
+      say(`${enqueued} job(s) queued${goldenQueued ? ` (${goldenQueued} golden regeneration(s))` : ""}: generate → lint → four workers per document → classify + gate → one merge per product.`);
 
       let lastLine = "";
       let finalJobs: PtestJobRow[] = [];
@@ -221,20 +300,19 @@ export default function AllPTest() {
         const done = jobRows.filter((j) => j.status === "done").length;
         const failed = jobRows.filter((j) => ["failed", "cancelled"].includes(j.status)).length;
         const running = jobRows.filter((j) => j.status === "running").length;
-        setPhase(jobRows.some((j) => j.kind.startsWith("review") && ["queued", "running"].includes(j.status)) ? "reviewing" : "arbitrating");
-        const line = `Reviewing — ${done} done, ${running} running, ${failed} failed of ${jobRows.length}`;
+        setPhase(jobRows.some((j) => isReviewPhaseKind(j.kind) && ["queued", "running"].includes(j.status)) ? "reviewing" : "arbitrating");
+        const line = `Working — ${done} done, ${running} running, ${failed} failed of ${jobRows.length}`;
         if (line !== lastLine) { say(line); lastLine = line; }
         // Per-job trace: each state change is logged once, never repeated on
         // subsequent polls.
         for (const j of jobRows) {
-          const kindLabel = j.kind.replace("arb_", "arbitration ").replace("review_gpt", "review (GPT)").replace("review_claude", "review (Claude)");
-          const label = `${j.tool_slug} · ${kindLabel} · ${j.company_name ?? "all documents"}`;
+          const label = `${j.tool_slug} · ${jobKindLabel(j.kind)} · ${j.company_name ?? "all documents"}`;
           const seen = jobStates.current.get(j.id);
           const state = `${j.status}#${j.attempts}`;
           if (seen !== state) {
             jobStates.current.set(j.id, state);
             const mark = j.status === "done" ? "✔" : j.status === "failed" ? "✖" : "·";
-            say(`${mark} ${label} → ${j.status}${j.attempts > 1 ? ` (attempt ${j.attempts})` : ""}${j.error ? ` — ${j.error}` : ""}`);
+            say(`${mark} ${label} → ${j.status}${j.attempts > 1 ? ` (attempt ${j.attempts})` : ""}${j.error ? ` — ${j.error}` : ""}${j.status === "done" && j.note ? ` — ${j.note}` : ""}`);
           }
           const warnKey = `warn:${j.id}`;
           if (j.input_truncated && j.note && !jobStates.current.has(warnKey)) {
@@ -242,14 +320,16 @@ export default function AllPTest() {
             say(`⚠ ${label}: ${j.note}`);
           }
         }
-        // Per-document score, logged once per reviewer as the review lands.
+        // Per-document worker result, logged once as each lands.
         try {
           for (const s of await fetchReviewScores(id)) {
             const key = `score:${s.assessment_id}:${s.reviewer}`;
             if (jobStates.current.has(key) || s.error) continue;
             jobStates.current.set(key, "1");
             const n = (v: number | null) => (v === null ? "—" : v.toFixed(1));
-            say(`· scored ${s.tool_slug} · ${s.company_name ?? "(unnamed)"} — ${s.reviewer} ${n(s.overall_score)} (derived ${n(s.derived_score)})`);
+            say(s.reviewer.includes("/") || s.reviewer === "LINT"
+              ? `· ${s.tool_slug} · ${s.company_name ?? "(unnamed)"} — ${s.reviewer} landed (findings deduction ${n(s.derived_score)})`
+              : `· scored ${s.tool_slug} · ${s.company_name ?? "(unnamed)"} — ${s.reviewer} ${n(s.overall_score)} (derived ${n(s.derived_score)})`);
           }
         } catch { /* scores are reporting only: never interrupt a run */ }
         if (done + failed >= jobRows.length) break;
@@ -260,7 +340,9 @@ export default function AllPTest() {
       setArbitrations(results.arbitrations);
       for (const a of results.arbitrations) {
         say(a.error
-          ? `✖ ${a.tool}: arbitration failed — ${a.error}`
+          ? `✖ ${a.tool}: ${a.metrics ? "merge" : "arbitration"} failed — ${a.error}`
+          : a.metrics
+          ? `✔ ${a.tool}: ${a.fixList.length} queued fix(es), ${a.ceoSheet.length} CEO question(s), ${a.dropped.length} observed/intake/merged · classes ${Object.entries(a.metrics.by_class ?? {}).map(([k, v]) => `${k} ${v}`).join(", ") || "none"}${a.singleReviewer ? " · PARTIAL COVERAGE" : ""}`
           : `✔ ${a.tool}: ${a.fixList.length} agreed fix(es), ${a.ceoSheet.length} CEO decision(s), ${a.dropped.length} dropped`);
       }
       // Persist every agreed fix and CEO decision as a tracked item. Upsert:
@@ -288,7 +370,7 @@ export default function AllPTest() {
       if (id) { try { await setBatchStatus(id, "error", (e as Error).message); setHistoryKey((k) => k + 1); } catch { /* history is secondary */ } }
       setPhase("error");
     }
-  }, [user?.id, selected, industryId, count, reviewEffort, arbEffort, recordHistory, say]);
+  }, [user?.id, selected, industryId, count, reviewEffort, arbEffort, recordHistory, say, useGolden, goldenCount, productSlugs]);
 
   const stop = useCallback(async () => {
     cancelled.current = true;
@@ -325,11 +407,12 @@ export default function AllPTest() {
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
       <header className="space-y-1">
-        <h1 className="font-serif text-2xl text-foreground">Product Review Loop</h1>
+        <h1 className="font-serif text-2xl text-foreground">Product Review Loop (v2 — DOC 261)</h1>
         <p className="text-sm text-muted-foreground">
-          Intake → deterministic generation → two independent deep reviews → arbitration →
-          agreed fix list and CEO decision sheet. Text only: wording, grammar, legal meaning, logic and
-          consistency. Formatting is not reviewed.
+          Golden panel (+ optional fresh intake) → deterministic generation, twice, hash-checked → lint →
+          three evidence-scoped workers (record fidelity · legal grounding on the registry · reasoning) →
+          deterministic validation → one classification pass → the queue gate → queued fixes, CEO questions,
+          intake artifacts. No arbiter re-judges merits; progress is measured on identical inputs.
         </p>
       </header>
 
@@ -337,15 +420,15 @@ export default function AllPTest() {
         <div className="space-y-2">
           <span className="text-sm text-muted-foreground">Test data</span>
           <p className="text-xs text-muted-foreground">
-            Claude writes a fresh, internally consistent company profile per geo and every selected
-            product runs against it server-side via the stress harness — the same intake path as
-            /admin/all-products-test. The pre-set data package is not used here.
+            The golden panel is the measured input: fixed intakes regenerated server-side through the
+            production functions with the report date injected. Fresh documents (Claude-generated intake via
+            the stress harness, as on /admin/all-products-test) add coverage and are tagged fresh.
           </p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
           <label className="space-y-1 text-sm">
-            <span className="text-muted-foreground">Industry</span>
+            <span className="text-muted-foreground">Industry (fresh documents)</span>
             <select
               className="w-full rounded border border-border bg-background px-2 py-1.5 text-sm disabled:opacity-50"
               value={industryId}
@@ -356,14 +439,20 @@ export default function AllPTest() {
             </select>
           </label>
 
-          <label className="space-y-1 text-sm">
-            <span className="text-muted-foreground">Documents per product (1–8)</span>
-            <input
-              type="number" min={1} max={8} value={count} disabled={busy}
-              onChange={(e) => setCount(Math.max(1, Math.min(8, Number(e.target.value) || 1)))}
-              className="w-full rounded border border-border bg-background px-2 py-1.5 text-sm"
-            />
-          </label>
+          <div className="space-y-1 text-sm">
+            <label className="block space-y-1">
+              <span className="text-muted-foreground">Fresh documents per product (0–8)</span>
+              <input
+                type="number" min={0} max={8} value={count} disabled={busy}
+                onChange={(e) => setCount(Math.max(0, Math.min(8, Number(e.target.value) || 0)))}
+                className="w-full rounded border border-border bg-background px-2 py-1.5 text-sm"
+              />
+            </label>
+            <label className="flex items-center gap-2 text-xs text-muted-foreground">
+              <input type="checkbox" checked={useGolden} disabled={busy} onChange={(e) => setUseGolden(e.target.checked)} />
+              Include the golden panel ({goldenCount} enabled for the selected products)
+            </label>
+          </div>
           <div className="grid grid-cols-2 gap-2">
             <label className="space-y-1 text-sm">
               <span className="text-muted-foreground">Review effort</span>
@@ -376,7 +465,7 @@ export default function AllPTest() {
               </select>
             </label>
             <label className="space-y-1 text-sm">
-              <span className="text-muted-foreground">Arbitration effort</span>
+              <span className="text-muted-foreground">Classifier effort (capped at medium)</span>
               <select
                 className="w-full rounded border border-border bg-background px-2 py-1.5 text-sm"
                 value={arbEffort} disabled={busy}
@@ -414,7 +503,7 @@ export default function AllPTest() {
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
-            disabled={busy || !selected.length || !user?.id}
+            disabled={busy || !selected.length || !user?.id || (count === 0 && (!useGolden || goldenCount === 0))}
             onClick={() => void run()}
             className="rounded bg-brand-teal px-4 py-2 text-sm text-primary-foreground disabled:opacity-50"
           >
@@ -440,16 +529,64 @@ export default function AllPTest() {
         </div>
       </section>
 
+      <section className="rounded-lg border border-border bg-card p-4 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-medium text-foreground">Golden panel ({goldens.length} intake{goldens.length === 1 ? "" : "s"})</h2>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" disabled={goldenBusy || busy} onClick={() => void seedPanel()} className="rounded border border-border px-2 py-1 text-xs disabled:opacity-50">
+              Seed from *_PERFECT fixtures
+            </button>
+            <button type="button" disabled={goldenBusy} onClick={() => void loadGoldens()} className="rounded border border-border px-2 py-1 text-xs disabled:opacity-50">
+              Refresh
+            </button>
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Fixed intakes, regenerated twice per batch through the production functions (report date injected,
+          model layers dark). A hash mismatch fails that document's generation as a P0. Add a stored production
+          intake by assessment id; its intake is copied so the panel never drifts.
+        </p>
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <select value={addProduct} disabled={goldenBusy || busy} onChange={(e) => setAddProduct(e.target.value)} className="rounded border border-border bg-background px-2 py-1 text-xs">
+            <option value="cppa-risk">cppa-risk</option>
+            <option value="cppa-cyber">cppa-cyber</option>
+            <option value="cppa-admt">cppa-admt</option>
+          </select>
+          <input
+            value={addAssessment} disabled={goldenBusy || busy} placeholder="assessment id (cppa_assessments)"
+            onChange={(e) => setAddAssessment(e.target.value)}
+            className="w-72 rounded border border-border bg-background px-2 py-1 text-xs"
+          />
+          <button type="button" disabled={goldenBusy || busy || !addAssessment.trim()} onClick={() => void addGolden()} className="rounded border border-border px-2 py-1 text-xs disabled:opacity-50">
+            Add to panel
+          </button>
+        </div>
+        {!!goldens.length && (
+          <ul className="grid gap-1 text-[11px] text-muted-foreground sm:grid-cols-2">
+            {goldens.map((g) => (
+              <li key={g.id} className="flex items-center justify-between gap-2 rounded border border-border px-2 py-1">
+                <span className="truncate">
+                  {g.product} · {g.label} <span className="opacity-70">({g.source}{g.assessment_id ? ` · row ${g.assessment_id.slice(0, 8)}` : ""})</span>
+                </span>
+                <button type="button" disabled={busy} onClick={() => void flipGolden(g)} className={g.enabled ? "text-brand-teal-text" : "text-muted-foreground"}>
+                  {g.enabled ? "enabled" : "disabled"}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       {!!jobs.length && (
         <section className="rounded-lg border border-border bg-card p-4">
           <h2 className="mb-2 text-sm font-medium text-foreground">
-            Review queue ({jobs.filter((j) => j.status === "done").length}/{jobs.length} done)
+            Job queue ({jobs.filter((j) => j.status === "done").length}/{jobs.length} done)
           </h2>
           <ul className="grid gap-1 text-[11px] text-muted-foreground sm:grid-cols-2">
             {jobs.map((j) => (
               <li key={j.id} className="flex items-center justify-between gap-2 rounded border border-border px-2 py-1">
                 <span className="truncate">
-                  {j.tool_slug} · {j.kind.replace("arb_", "arbitration ")} · {j.company_name ?? "all documents"}
+                  {j.tool_slug} · {jobKindLabel(j.kind)} · {j.company_name ?? "all documents"}
                 </span>
                 <span className={
                   j.status === "done" ? "text-brand-teal-text"
@@ -512,25 +649,28 @@ export default function AllPTest() {
                 <tr className="border-b border-border text-foreground">
                   <th className="py-1 pr-3 font-medium">Product</th>
                   <th className="py-1 pr-3 font-medium">Docs</th>
-                  <th className="py-1 pr-3 font-medium">Claude</th>
-                  <th className="py-1 pr-3 font-medium">ChatGPT</th>
-                  <th className="py-1 pr-3 font-medium">Combined</th>
-                  <th className="py-1 pr-3 font-medium">Derived</th>
-                  <th className="py-1 pr-3 font-medium">Post-arbitration</th>
+                  <th className="py-1 pr-3 font-medium">Composite</th>
+                  <th className="py-1 pr-3 font-medium">Queued</th>
+                  <th className="py-1 pr-3 font-medium">CEO</th>
+                  <th className="py-1 pr-3 font-medium">Observed</th>
+                  <th className="py-1 pr-3 font-medium">Classes</th>
+                  <th className="py-1 pr-3 font-medium">Coverage</th>
                 </tr>
               </thead>
               <tbody>
                 {scoreMatrix.rows.map((r) => {
-                  const n = (v: number | null) => (v === null ? "—" : v.toFixed(1));
+                  const n = (v: number | null | undefined) => (v === null || v === undefined ? "—" : typeof v === "number" ? v.toFixed(1) : String(v));
+                  const c = (v: number | null | undefined) => (v === null || v === undefined ? "—" : String(v));
                   return (
                     <tr key={r.tool} className="border-b border-border/50">
                       <td className="py-1 pr-3 text-foreground">{r.tool}</td>
                       <td className="py-1 pr-3">{r.documents}</td>
-                      <td className="py-1 pr-3">{n(r.claude)}</td>
-                      <td className="py-1 pr-3">{n(r.gpt)}</td>
                       <td className="py-1 pr-3 text-foreground">{n(r.combined)}</td>
-                      <td className="py-1 pr-3">{n(r.derived)}</td>
-                      <td className="py-1 pr-3">{n(r.arbitration)}</td>
+                      <td className="py-1 pr-3">{c(r.queued)}</td>
+                      <td className="py-1 pr-3">{c(r.ceo)}</td>
+                      <td className="py-1 pr-3">{c(r.observed)}</td>
+                      <td className="py-1 pr-3">{r.by_class ? Object.entries(r.by_class).map(([k, v]) => `${k} ${v}`).join(", ") || "—" : "—"}</td>
+                      <td className="py-1 pr-3">{r.partial_coverage ? <span className="text-destructive">partial on {r.partial_coverage}</span> : "full"}</td>
                     </tr>
                   );
                 })}
@@ -538,10 +678,44 @@ export default function AllPTest() {
             </table>
           </div>
           <p className="mt-2 text-[11px] text-muted-foreground">
-            Combined is the headline (the reviewers' own six-dimension verdict, the same dimensions used on
-            /admin/all-products-test). Derived is a deterministic cross-check computed from the findings.
-            Post-arbitration scores only the agreed fix list.
+            The class/route table is the acceptance gate; the composite (100 minus lint defects × 2 and the
+            severity weights of validated findings) is the trend line only. Legacy batches show their reviewer
+            means under Composite.
           </p>
+        </section>
+      )}
+
+      {!!batchId && phase === "done" && (
+        <section className="rounded-lg border border-border bg-card p-4 space-y-2">
+          <h2 className="text-sm font-medium text-foreground">Before / after on identical inputs</h2>
+          <p className="text-xs text-muted-foreground">
+            Compare this batch with an earlier batch that ran the same golden panel under the same settings.
+            Accepted when every queued item is gone and no new critical/high finding appeared.
+          </p>
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <input
+              value={compareWith} placeholder="earlier batch id" onChange={(e) => setCompareWith(e.target.value)}
+              className="w-80 rounded border border-border bg-background px-2 py-1 text-xs"
+            />
+            <button type="button" disabled={!compareWith.trim()} onClick={() => void runDiff()} className="rounded border border-border px-2 py-1 text-xs disabled:opacity-50">
+              Compare
+            </button>
+            {diffError && <span className="text-destructive">{diffError}</span>}
+          </div>
+          {diff && (
+            <div className="space-y-2 text-[11px] text-muted-foreground">
+              <p className={diff.accepted ? "text-brand-teal-text" : "text-destructive"}>{diff.acceptance_note}{diff.settings_note ? ` — ${diff.settings_note}` : ""}</p>
+              {diff.goldens.map((g) => (
+                <div key={g.golden_ref} className="rounded border border-border p-2">
+                  <div className="text-foreground">{g.product} · {g.label ?? g.golden_ref} · composite {g.composite_before ?? "—"} → {g.composite_after ?? "—"}</div>
+                  <div>gone {g.gone.length} · persists {g.persists.length} · new {g.new.length} · lint {Object.values(g.lint_before).reduce((a, b) => a + b, 0)} → {Object.values(g.lint_after).reduce((a, b) => a + b, 0)}</div>
+                  {g.new.map((f) => <div key={`n-${f.key}`}>+ NEW {f.severity} {f.fix_class ?? ""} @ {f.block_key}: “{f.quote.slice(0, 140)}”</div>)}
+                  {g.persists.filter((f) => f.route === "fix_list").map((f) => <div key={`p-${f.key}`}>= PERSISTS (queued) @ {f.block_key}: “{f.quote.slice(0, 140)}”</div>)}
+                  {g.gone.map((f) => <div key={`g-${f.key}`}>− gone @ {f.block_key}: “{f.quote.slice(0, 100)}”</div>)}
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       )}
 
@@ -550,23 +724,25 @@ export default function AllPTest() {
           <h2 className="font-serif text-lg text-foreground">
             {a.tool}
             {a.singleReviewer && (
-              <span className="ml-2 align-middle text-xs font-sans text-destructive">single reviewer</span>
+              <span className="ml-2 align-middle text-xs font-sans text-destructive">{a.metrics ? "partial coverage" : "single reviewer"}</span>
             )}
           </h2>
           {a.error ? (
-            <p className="text-sm text-destructive">Arbitration failed — {a.error}</p>
+            <p className="text-sm text-destructive">{a.metrics ? "Merge" : "Arbitration"} failed — {a.error}</p>
           ) : (
             <>
               <p className="text-sm text-muted-foreground">{a.summary}</p>
               <div>
-                <h3 className="text-sm font-medium text-foreground">Agreed fix list ({a.fixList.length})</h3>
+                <h3 className="text-sm font-medium text-foreground">{a.metrics ? "Queued fix list" : "Agreed fix list"} ({a.fixList.length})</h3>
                 <ul className="mt-1 space-y-2 text-xs text-muted-foreground">
                   {a.fixList.map((f) => (
                     <li key={f.id} className="rounded border border-border p-2">
                       <div className="text-foreground">{f.title}</div>
                       <div>{f.severity} · {f.defect_type} · raised by {f.raised_by} · {f.occurrences?.length ?? 0} occurrence(s)</div>
+                      {f.fix_class && <div>Class: {f.fix_class} · rule/clause: {f.rule_ref ?? "—"} · gate: {f.gate_reason ?? "—"}</div>}
                       <div>Code focus: {f.code_focus}</div>
-                      <div>Change: {f.change}</div>
+                      {f.change && <div>Change: {f.change}</div>}
+                      {f.fix_class && <div>Acceptance: {f.regression_test}</div>}
                     </li>
                   ))}
                   {!a.fixList.length && <li>None.</li>}
@@ -578,13 +754,27 @@ export default function AllPTest() {
                   {a.ceoSheet.map((c) => (
                     <li key={c.id} className="rounded border border-border p-2">
                       <div className="text-foreground">{c.question}</div>
-                      <div>{c.status} · raised by {c.raised_by}</div>
+                      <div>{c.status} · raised by {c.raised_by}{c.fix_class ? ` · ${c.fix_class}` : ""}</div>
                       <div>{c.arbiter_reason}</div>
                     </li>
                   ))}
                   {!a.ceoSheet.length && <li>None.</li>}
                 </ul>
               </div>
+              {a.metrics && a.dropped.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium text-foreground">Observed, intake artifacts, lint backlog ({a.dropped.filter((d) => d.kind).length})</h3>
+                  <ul className="mt-1 space-y-1 text-xs text-muted-foreground">
+                    {a.dropped.filter((d) => d.kind).map((d) => (
+                      <li key={d.id} className="rounded border border-border p-2">
+                        <div>{d.kind} · {d.fix_class ?? "—"} · {d.block_key ?? "—"}</div>
+                        <div className="text-foreground">{d.quote}</div>
+                        <div>{d.reason}</div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </>
           )}
         </section>

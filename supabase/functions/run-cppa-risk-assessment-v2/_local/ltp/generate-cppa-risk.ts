@@ -157,6 +157,10 @@ export interface GenerateCppaRiskOptions {
   readonly refinementEnabled?: boolean;
   /** RK2 — when true, csc/prose post-passes run detect-only (no document mutations). */
   readonly postPassDetectOnly?: boolean;
+  /** DOC 261 — the assessment date (YYYY-MM-DD) stamped on the document.
+   *  Injected by the /all-ptest determinism harness so a fixed intake
+   *  regenerates byte-identically on any calendar day; omitted ⇒ today. */
+  readonly reportDate?: string;
   /** DOC 231 — CPPA RISK V3 hook selection (dark). Supabase client for
    *  reading/writing `hook_selections`; omitted (tests/harnesses, and
    *  every caller until the CEO wires it) ⇒ no prior selections are read
@@ -378,7 +382,7 @@ export function finalizeCppaRiskPayload(
   ltpMeta: Record<string, unknown>,
   rawIntake: unknown,
   riskCorpus?: RiskCorpus | null,
-  extras?: { refinement?: RefinementTelemetry | null; postPassDetectOnly?: boolean; riskV3?: RiskV3SelectionRecord | null },
+  extras?: { refinement?: RefinementTelemetry | null; postPassDetectOnly?: boolean; riskV3?: RiskV3SelectionRecord | null; reportDate?: string },
 ): { report: Record<string, unknown>; emit_gate_filtered: number } {
   const postPassDetectOnly = extras?.postPassDetectOnly ?? false;
   const sealed = seal({ ...base }, rawIntake, postPassDetectOnly);
@@ -601,6 +605,8 @@ export function finalizeCppaRiskPayload(
     const built = assembleRiskSkeletonDocument(
       report,
       (rawIntake && typeof rawIntake === "object" ? rawIntake : {}) as Record<string, unknown>,
+      // DOC 261 — injected assessment date (determinism harness); undefined ⇒ today.
+      { assessmentDate: extras?.reportDate },
     );
     report.skeleton_document = built.document;
     const meta = (report._meta ??= {}) as Record<string, unknown>;
@@ -612,6 +618,10 @@ export function finalizeCppaRiskPayload(
       conformance_findings: built.conformance,
       register_findings: built.register_findings,
     };
+    // DOC 261 — the per-block provenance (block key → factor, intake sources,
+    // authorities), computed here since the engine ran and previously
+    // discarded. Compact (one row per factor); read by the /all-ptest workers.
+    internal.factor_provenance = built.block_provenance;
     console.log(JSON.stringify({
       evt: "risk_skeleton_assembled", fn: "generate-cppa-risk",
       sections: built.document.sections.length,
@@ -929,7 +939,7 @@ export async function generateCppaRiskReport(
     generationNo: options.riskV3Meter?.generationNo ?? 1,
   });
 
-  const { report } = finalizeCppaRiskPayload(base, ltpMeta, rawIntake, riskCorpus, { refinement, postPassDetectOnly: options.postPassDetectOnly, riskV3 });
+  const { report } = finalizeCppaRiskPayload(base, ltpMeta, rawIntake, riskCorpus, { refinement, postPassDetectOnly: options.postPassDetectOnly, riskV3, reportDate: options.reportDate });
   return { report, base, plan, ltpMeta, typeJOrigin, rawIntake, refinement, riskV3 };
 }
 
@@ -1000,7 +1010,7 @@ export async function runCppaRiskPass2R(
         { ...gen.ltpMeta, shipped_surface: "2R", ...meta },
         gen.rawIntake,
         riskCorpus,
-        { refinement, postPassDetectOnly: options.postPassDetectOnly, riskV3: gen.riskV3 },
+        { refinement, postPassDetectOnly: options.postPassDetectOnly, riskV3: gen.riskV3, reportDate: options.reportDate },
       );
       return { report, shipped_surface: "2R", meta };
     }
@@ -1010,7 +1020,7 @@ export async function runCppaRiskPass2R(
       { ...gen.ltpMeta, shipped_surface: "deterministic", ...meta },
       gen.rawIntake,
       riskCorpus,
-      { refinement: refinementDet, postPassDetectOnly: options.postPassDetectOnly, riskV3: gen.riskV3 },
+      { refinement: refinementDet, postPassDetectOnly: options.postPassDetectOnly, riskV3: gen.riskV3, reportDate: options.reportDate },
     );
     return { report, shipped_surface: "deterministic", meta };
 
@@ -1027,7 +1037,7 @@ export async function runCppaRiskPass2R(
       { ...gen.ltpMeta, shipped_surface: "deterministic", ...meta },
       gen.rawIntake,
       riskCorpus,
-      { refinement: refinementFallback, postPassDetectOnly: options.postPassDetectOnly, riskV3: gen.riskV3 },
+      { refinement: refinementFallback, postPassDetectOnly: options.postPassDetectOnly, riskV3: gen.riskV3, reportDate: options.reportDate },
     );
 
     return { report, shipped_surface: "deterministic", meta };

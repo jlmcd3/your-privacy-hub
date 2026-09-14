@@ -548,7 +548,8 @@ export function assembleCyberSkeletonDocumentV4(
     s4.map((e) => [s(e.slug), Array.isArray(e.commentary) ? (e.commentary as string[]) : []]),
   );
 
-  const factors = buildCyberFactors(intake, deliverables, recommendations, nextSteps, commentaryBySlug);
+  // DOC 261 — the report date reaches the overdue-work tests (never the clock).
+  const factors = buildCyberFactors(intake, deliverables, recommendations, nextSteps, commentaryBySlug, reportDate);
 
   const rd = deliverables.readiness_determination;
   const leadSentence = s(rd.headline) ||

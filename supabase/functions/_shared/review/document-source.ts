@@ -121,6 +121,10 @@ export interface ReviewDocument {
   documentField: string;
   truncated: boolean;
   originalLength: number;
+  /** DOC 261 — the raw intake object (the v2 validator checks keys and values against it). */
+  intake: unknown;
+  /** DOC 261 — the raw report_data (block keys, provenance, skeleton for lint). */
+  report: unknown;
 }
 
 export interface ReviewFetchError {
@@ -285,5 +289,7 @@ export async function fetchReviewDocument(
     documentField: field,
     truncated,
     originalLength,
+    intake,
+    report,
   };
 }
