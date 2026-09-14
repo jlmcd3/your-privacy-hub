@@ -294,8 +294,17 @@ const handler = async (req: Request): Promise<Response> => {
   const job = Array.isArray(claimed) ? claimed[0] as JobRow | undefined : undefined;
   if (!job) {
     // IDLE PATH: nothing claimable. Stop the chain — never kick a next hop here.
+    // A batch can also reach this path without a last worker (its worker was
+    // killed and the reaper failed the job), so the rollup is written here too;
+    // writeBatchRollup is idempotent and swallows its own failures.
+    const { count: busyIdle } = await admin.from("ptest_jobs")
+      .select("id", { count: "exact", head: true })
+      .eq("batch_id", batchId)
+      .in("status", ["queued", "running"]);
+    if ((busyIdle ?? 0) === 0) await writeBatchRollup(admin, batchId);
     return json({ ok: true, idle: true, build_stamp: BUILD_STAMP });
   }
+
 
   background((async () => {
     await runJob(admin, job);
