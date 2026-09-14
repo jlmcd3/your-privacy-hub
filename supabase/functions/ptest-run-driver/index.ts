@@ -23,12 +23,12 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { isReviewTool, type ReviewTool } from "../_shared/review/document-source.ts";
-import { runDocumentReview } from "../_shared/review/run-review.ts";
+import { runDocumentReview, type Reviewer } from "../_shared/review/run-review.ts";
 import { runArbitration } from "../_shared/review/run-arbitration.ts";
 import { type Effort } from "../_shared/review/model-calls.ts";
 import { cors, json, requireAdmin, isResponse, SUPABASE_URL, SERVICE_KEY } from "../_shared/review/auth.ts";
 
-export const BUILD_STAMP = "all-ptest-driver-v1@2026-09-13";
+export const BUILD_STAMP = "all-ptest-driver-v2-split-reviewers@2026-09-14";
 console.log(`[ptest-run-driver] boot ${BUILD_STAMP}`);
 
 // deno-lint-ignore no-explicit-any
