@@ -203,6 +203,7 @@ export default function AllPTest() {
       say(`${enqueued} review and arbitration job(s) queued. Reviews run first, then one arbitration per document, then one merge per product.`);
 
       let lastLine = "";
+      let finalJobs: PtestJobRow[] = [];
       for (;;) {
         if (cancelled.current) { say("Cancelled."); setPhase("idle"); return; }
         await new Promise((r) => setTimeout(r, 6_000));
