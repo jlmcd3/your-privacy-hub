@@ -1368,7 +1368,10 @@ export function riskConditionName(text: string, index: number): string {
   // The "(addresses: …)" clause closes the template, and the harm labels
   // inside it carry their own parentheses ("(C) Impairment …"), so the
   // capture runs to the clause's closing paren at the END of the text.
-  let m = /^Complete implementation of the planned safeguard: “[^”]*”(?: \(addresses: (.+)\)\.?)?\s*$/.exec(t);
+  // CEO decisions ee860fd0 — a planned-safeguard condition may carry note
+  // parentheticals (recorded timeline; recipient role) between the quoted
+  // safeguard and the "(addresses: …)" clause; the name reads past them.
+  let m = /^Complete implementation of the planned safeguard: “[^”]*”(?: \((?!addresses:)[^)]*\))*(?: \(addresses: (.+)\)\.?)?\s*$/.exec(t);
   if (m) return m[1] ? `Planned safeguard — ${m[1].trim()}` : "Planned safeguard";
   if (/^Complete implementation of the planned safeguard: “/.test(t)) return "Planned safeguard";
   m = /^Cease processing, or establish the necessity of, “([^”]+)”/.exec(t);

@@ -384,7 +384,7 @@ const ADMT_V3_FIXED = {
   vendor_requirement:
     "Article 11 places the consumer-facing duties on the business, but some duties expressly depend on downstream cooperation, and every service-provider or contractor contract must already require that cooperation, including assisting the business with its ADMT compliance and granting the business audit and testing rights over the vendor's systems (11 CCR § 7050(h); § 7051(a)(6)–(7)). When a consumer opts out after ADMT processing has begun, the business must notify service providers, contractors, and other persons processing the consumer's information with that ADMT and instruct them to comply within the same 15-business-day period (11 CCR § 7221(n)(2)). For access requests, service providers and contractors must assist the business by providing or making available relevant personal information (11 CCR § 7222(i)). Vendor controls therefore matter when the Company depends on a third party to execute the selected compliance pathway; they are not automatically standalone Article 11 violations merely because a particular contract term is absent.",
   governance_requirement:
-    "Businesses using ADMT for significant decisions must comply with Article 11 beginning January 1, 2027 (11 CCR § 7200(b)). The same use of ADMT is also a separate risk-assessment trigger under Article 10 (11 CCR § 7150(b)(3)). A required risk assessment must be conducted before covered processing begins (11 CCR §§ 7150(a), 7155(a)(1)) and reviewed at least every three years (11 CCR § 7155(a)(2)); it must be updated sooner — as soon as feasible and no later than 45 calendar days after the change — when a material change creates new privacy impacts, increases existing impacts, or weakens safeguards (11 CCR § 7155(a)(3)).",
+    "Businesses using ADMT for significant decisions must comply with Article 11 beginning January 1, 2027 (11 CCR § 7200(b)). The same use of ADMT is also a separate risk-assessment trigger under Article 10 (11 CCR § 7150(b)(3)). A required risk assessment must be conducted before covered processing begins (11 CCR §§ 7150(a), 7155(a)(1)); for covered processing initiated before January 1, 2026, it must be conducted and documented by December 31, 2027 (11 CCR § 7155(b)); and it must be reviewed at least every three years (11 CCR § 7155(a)(2)); it must be updated sooner — as soon as feasible and no later than 45 calendar days after the change — when a material change creates new privacy impacts, increases existing impacts, or weakens safeguards (11 CCR § 7155(a)(3)).",
   // PANEL ADMT-2 (2026-08-30, panel-B memo 2 (h)): there is no freestanding
   // "Article 11 of the California Code of Regulations", and Article 11
   // governs ADMT requirements, not "ADMT audits" — cited precisely.
@@ -1058,7 +1058,11 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
     // dependency states that instead of jumping 5 → 7 unexplained.
     push("vendor", "6. Third-Party and Vendor Dependency", [
       // A-TEAM S3 RULING V.13 (doc 115) — template commentary removed.
-      { kind: "skeleton", text: "Not applicable. The Company did not identify a third-party ADMT vendor for the assessed System, so no vendor-dependency analysis is required." },
+      // CEO decision ee860fd0 (third-party-admt-did-not-identify) — an
+      // explicit "No" is reported as the Company's answer.
+      { kind: "skeleton", text: /^no\b/i.test(str((intake as any)?.third_party_admt))
+        ? "Not applicable. The Company reports that it does not use a third-party ADMT vendor for the assessed System, so no vendor-dependency analysis is required."
+        : "Not applicable. The Company did not identify a third-party ADMT vendor for the assessed System, so no vendor-dependency analysis is required." },
     ]);
   }
 
@@ -1316,8 +1320,13 @@ function vendorLead(intake: Record<string, unknown>, vendor: { identified: boole
   // strip the terminal stop at the seam so the template's stop is the only
   // one ("…third-party data providers.." rendered in the PN-A7 sample).
   const thirdParty = str((intake as any)?.third_party_admt).replace(/\.\s*$/, "");
+  // CEO decision ee860fd0 (third-party-admt-did-not-identify) — an explicit
+  // "No" is the Company's affirmative answer; "did not identify" is kept
+  // for a blank or non-answer only.
   return vendor.identified
     ? `The Company identifies a third-party ADMT: ${thirdParty}.`
+    : /^no\b/i.test(thirdParty)
+    ? "The Company reports that it does not use a third-party ADMT for this System."
     : "The Company did not identify a third-party ADMT in the information supplied for this assessment.";
 }
 

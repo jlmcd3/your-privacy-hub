@@ -129,8 +129,15 @@ export const RISK_SKELETON_CONTENT_HASH_V56 =
 // lead reads "Sections 2 and 3" (the document's Arabic scheme), not
 // "Sections II and III". Computed by running the digest, never hand-derived;
 // old-hash reproduction verified before re-pin (V56 above).
-export const RISK_SKELETON_CONTENT_HASH =
+export const RISK_SKELETON_CONTENT_HASH_V57 =
   "c05f6ecbd383030493748337581ea5d14b20131c77108a7045c86abfc3a408ae";
+// CEO decisions ee860fd0 (2026-09-14): § 1.A's § 7154 consequence sentence
+// tracks the regulation's own "goal … restricting or prohibiting" words, and
+// Step 5 describes the comparator § 4.C actually applies. Computed by
+// running the digest, never hand-derived; old-hash reproduction verified
+// before re-pin (V57 above).
+export const RISK_SKELETON_CONTENT_HASH =
+  "1cdfb4e1cbbc2ce51b8fd9d225eeb9d38d36caff256947bf4404471c242fe9c6";
 
 // A-TEAM S3 RULING I.24 (doc 115, 2026-08-31) — cover titles follow the fleet
 // Title Case convention (Batch 21a); ADMT's cover set the precedent. Cover
@@ -423,7 +430,10 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
     title: "1. How This Assessment Decides",
     blocks: [
       // 0
-      { kind: "skeleton", text: "A. The Question. Sections 7152 and 7154 of 11 CCR frame a single question: do the privacy risks that this processing creates for consumers outweigh the benefits it produces for the consumer, the business, other stakeholders, and the public, once safeguards are taken into account? Section 7154 states the consequence directly: processing whose risks outweigh its benefits should be restricted or prohibited." },
+      // CEO decision ee860fd0 (mandatory-balancing-consequence) — the
+      // consequence sentence tracks § 7154(a)'s own words: the GOAL of the
+      // assessment is restricting or prohibiting such processing.
+      { kind: "skeleton", text: "A. The Question. Sections 7152 and 7154 of 11 CCR frame a single question: do the privacy risks that this processing creates for consumers outweigh the benefits it produces for the consumer, the business, other stakeholders, and the public, once safeguards are taken into account? Section 7154 states the consequence directly: the goal of the assessment is restricting or prohibiting processing whose risks to consumers’ privacy outweigh its benefits." },
       // 1
       { kind: "skeleton", text: "B. The EndUserPrivacy (EUP) Decision Logic. This assessment follows a five-step process to analyze whether the benefits of the Activity outweigh the risks it poses, after taking into account the safeguards the Company has implemented to mitigate those risks. It is based on the information provided by the Company." },
       // 2
@@ -435,7 +445,9 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       // 5
       { kind: "skeleton", text: "Step 4 — Safeguard mitigation. The type and implementation status of the safeguards identified by the Company are assessed against the corresponding risks." },
       // 6
-      { kind: "skeleton", text: "Step 5 — The balance. Each claimed benefit is weighed against the risks, as mitigated by safeguards, and the assessment is rendered." },
+      // CEO decision ee860fd0 (unsupported-favorable-balance, option 1) —
+      // Step 5 describes the comparator § 4.C actually applies.
+      { kind: "skeleton", text: "Step 5 — The balance. The strongest benefit established is weighed against the most serious risk remaining after safeguards; every benefit and every remaining risk is recorded in § 4.B, and the determination is rendered on that comparison." },
       // 7
       // DOC 255 (2026-09-11, ledger L2 accepted by the CEO).
       { kind: "skeleton", text: "C. Qualitative Refinement. The assessment also considers any additional information supplied by the Company to refine the conclusions reached through the steps above." },

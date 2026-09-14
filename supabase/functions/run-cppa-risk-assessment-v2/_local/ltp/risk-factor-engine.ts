@@ -1454,6 +1454,63 @@ const PAYMENT_PURPOSE_RE =
 function firstSentenceMatching(text: string, re: RegExp): string {
   return s(text).split(/(?<=[.!?])\s+/).find((x) => re.test(x)) ?? s(text);
 }
+// CEO decision ee860fd0 (datasphere-role-remediation) — recipients the record
+// classifies as a third party that a safeguard text names while describing
+// "service-provider" terms: the Company's remediation is keyed to the wrong
+// contract regime for that recipient's recorded role.
+export function thirdPartiesNamedAsServiceProvider(safeguardText: string, intake: Bag): string[] {
+  const text = s(safeguardText);
+  if (!/\bservice[- ]provider\b/i.test(text)) return [];
+  return rows(intake.recipients)
+    .filter((r) => /^third party/i.test(s(r.recipient_type)))
+    .map((r) => s(r.recipient_name_or_category))
+    .filter((name) => {
+      if (!name) return false;
+      const head = name.split(/\s*[(—–-]\s*/)[0].trim();
+      const key = head.length >= 5 ? head : name;
+      return text.toLowerCase().includes(key.toLowerCase());
+    });
+}
+
+// CEO decision ee860fd0 (sensitive-credential-condition) — the credentials
+// category is sensitive personal information only in combination with the
+// access code, password or credentials allowing access to the account
+// (Cal. Civ. Code § 1798.140(ae)(1)(A)). Where the element record keyed to
+// that category names an email address and no access-enabling credential,
+// the classification is carried as declared and confirmation is asked.
+const CREDENTIAL_CUE_RE = /\b(?:passwords?|passcodes?|pins?|security (?:questions?|codes?)|access codes?|account numbers?|log-?in credentials?|login credentials?|credentials? (?:allowing|permitting) access|card numbers?|routing numbers?)\b/i;
+const CREDENTIALS_CATEGORY = "Account log-in or financial-account credentials";
+export function credentialsElementRecordEmailOnly(intake: Bag): boolean {
+  if (!arr(intake.q4_pi_categories).includes(CREDENTIALS_CATEGORY)) return false;
+  const keyed = rows(intake.a2_necessity_set)
+    .map((r) => s(r.element))
+    .filter((e) => e && necessityRowCategories(e, [CREDENTIALS_CATEGORY]).length > 0);
+  if (!keyed.length) return false;
+  // The element's own label may repeat the category's words ("Account
+  // log-in credentials (email address)"); the recorded content is the
+  // parenthetical where one is given.
+  const content = keyed.map((e) => /\(([^)]*)\)/.exec(e)?.[1]?.trim() || e);
+  return content.every((e) => /\be-?mail\b/i.test(e)) && !content.some((e) => CREDENTIAL_CUE_RE.test(e));
+}
+
+// CEO decision ee860fd0 (information-provider-identification) — § 7152(a)(8)
+// requires the INDIVIDUALS who provided the information to be identified;
+// a record that names teams or functions only is an open item. A person is
+// recognised by an initial-plus-surname or given-plus-family-name pair
+// outside a team phrase; team phrases are stripped first.
+const TEAM_PHRASE_RE = /\b[\w&/'’-]+(?:\s+[\w&/'’-]+){0,3}\s+(?:team|department|group|unit|function|office|committee|division|squad)\b/gi;
+const PERSON_NAME_RE = /\b(?:[A-Z][a-z]+|[A-Z]\.)\s+[A-Z][a-zA-Z'’-]{2,}\b/;
+export function providersNameIndividuals(intake: Bag): { readonly anyRecord: boolean; readonly individuals: boolean } {
+  const texts = [
+    s(intake.a8_information_providers),
+    s(intake.i7_internal_contributors),
+    ...rows(intake.section_7151_operational_participants).map((p) => s(p.name)),
+  ].filter(Boolean);
+  if (!texts.length) return { anyRecord: false, individuals: false };
+  const stripped = texts.map((t) => t.replace(TEAM_PHRASE_RE, " "));
+  return { anyRecord: true, individuals: stripped.some((t) => PERSON_NAME_RE.test(t)) };
+}
+
 export function paymentScopeFor(intake: Bag): { cue: string; sourceCue: boolean } | null {
   const purposeText = `${clause(intake.primary_activity_purpose)} ${clause(intake.i1_processing_purpose)}`;
   if (PAYMENT_PURPOSE_RE.test(purposeText)) return null;
@@ -1830,10 +1887,25 @@ export function runRiskFactorEngine(
   // quoted; the imperative frame around them is unchanged.
   for (const g of planned) {
     const addresses = safeguardHarms(g);
+    // CEO decisions ee860fd0 (ongoing-processing-permission,
+    // datasphere-role-remediation) — the condition carries the timeline the
+    // Company recorded for the safeguard, and, where the safeguard names
+    // service-provider terms for a recipient the record classifies as a
+    // third party, the role note (the § 7053 Follow-Up already asks for the
+    // terms). The Company's safeguard text is never rewritten.
+    const notes: string[] = [];
+    const timeline = s(g.planned_timeline);
+    if (timeline && timeline !== "No committed timeline") notes.push(`recorded timeline: ${timeline}`);
+    const misroled = thirdPartiesNamedAsServiceProvider(s(g.safeguard), intake);
+    if (misroled.length) {
+      notes.push(
+        `${asProse(misroled.map((n) => `“${n}”`))} ${plural(misroled.length, "is", "are")} recorded as a third party; the applicable contract terms are those of 11 CCR § 7053 — see the Follow-Ups`,
+      );
+    }
     conditions.push(
       `Complete implementation of the planned safeguard: ${qName(g.safeguard)}${
-        addresses.length ? ` (addresses: ${asProse(addresses)})` : ""
-      }`,
+        notes.map((n) => ` (${n})`).join("")
+      }${addresses.length ? ` (addresses: ${asProse(addresses)})` : ""}`,
     );
   }
   if (necessity.unnecessary.length || necessity.inventoryUnnecessary.length) {
@@ -1964,6 +2036,32 @@ export function runRiskFactorEngine(
     // drawn from the same resolver § 5.B renders; the "Record when…" ask is
     // dropped. The list join supplies the terminal stop.
     followUps.push(DOC252_C1_C2_SENTENCE.replace(/\.$/, ""));
+    // CEO decision ee860fd0 (unsupported-transition-deadline) — the DOC 252
+    // inference stands; the record is asked to state the date the current
+    // Activity's covered processing began, as distinct from the prior
+    // assessment's pipeline, so the deadline rests on a recorded date.
+    if (!s(intake.processing_start_date)) {
+      followUps.push(
+        "Record the date the current Activity’s covered processing began, as distinct from the processing the prior assessment covered; the § 7155(b) transition deadline stated above rests on the record’s indication of a pre-2026 start",
+      );
+    }
+  }
+  // CEO decision ee860fd0 (notice-alone-for-unexpected-use) — a secondary use
+  // the Company records as a DISTINCT purpose and NOT disclosed in the notice
+  // raises the § 7002 purpose-limitation question (compatibility, consent,
+  // or exclusion from the Activity's scope), which expanded notice alone does
+  // not resolve. The transparency finding is unchanged; the question routes
+  // to the Follow-Ups.
+  const undisclosedDistinctUses = rows(intake.secondary_activities).filter((r) =>
+    /^distinct\b/i.test(s(r.relation_to_primary)) && /^no\b/i.test(s(r.disclosed_in_notice))
+  );
+  if (undisclosedDistinctUses.length) {
+    const named = undisclosedDistinctUses.map((r) => clause(r.name) || clause(r.purpose)).filter(Boolean);
+    followUps.push(
+      `Determine, for the secondary ${plural(undisclosedDistinctUses.length, "use", "uses")} recorded as a distinct purpose and not disclosed in the notice${
+        named.length ? ` (${asProse(named.map((n) => `“${n}”`))})` : ""
+      }, whether the use is reasonably necessary and proportionate to, and compatible with, the purpose for which the personal information was collected (11 CCR § 7002), and if not, whether the consumer’s consent is required or the use should be excluded from the Activity’s scope; expanded notice alone does not resolve a purpose-limitation question`,
+    );
   }
   // DOC 167 (Batch 13 A-Team §10) — the training-data classification
   // tension; the Company's "No" is preserved, never overridden.
@@ -2886,6 +2984,18 @@ export function runRiskFactorEngine(
       compact = `The determination depends on ${countWord(conditions.length)} ${
         plural(conditions.length, "Condition", "Conditions")
       } to Proceed: ${compactLabels}. The full conditions, follow-ups, and recommendations appear in § 4.D.`;
+      // CEO decision ee860fd0 (ongoing-processing-permission, option 3) —
+      // where a planned-safeguard condition carries no committed timeline,
+      // the Result says so: the permission to proceed rests on the Company's
+      // own commitment, and the timing is an open item, not a settled one.
+      const undated = planned.filter((g) => !s(g.planned_timeline) || s(g.planned_timeline) === "No committed timeline");
+      if (undated.length) {
+        compact += ` The timing of ${countWord(undated.length)} of ${
+          plural(undated.length, "the conditions", "those conditions")
+        } is not recorded: until a committed timeline is recorded (§ 4.D), the permission to proceed rests on the Company’s own commitment to complete ${
+          plural(undated.length, "it", "them")
+        }, and that timing remains an open item.`;
+      }
     }
     put(
       "executive_summary:10",
@@ -3108,6 +3218,18 @@ export function runRiskFactorEngine(
       // facts the record collects are stated where the reader meets the
       // sensitivity finding; they printed nowhere before.
       const spiFacts: string[] = [];
+      // CEO decision ee860fd0 (sensitive-credential-condition) — the
+      // credentials category is carried as the Company declares it; where
+      // its element record names an email address only, the § 1798.140(ae)
+      // (1)(A) combination is confirmed by Follow-Up, never assumed or dropped.
+      if (spiList.includes(CREDENTIALS_CATEGORY) && credentialsElementRecordEmailOnly(intake)) {
+        spiFacts.push(
+          `The classification of “${CREDENTIALS_CATEGORY}” as sensitive personal information is carried as the Company declares it; the element record for that category names an email address only, and whether access-enabling credentials are processed with it (Cal. Civ. Code § 1798.140(ae)(1)(A)) appears among the Follow-Ups in § 4.D.`,
+        );
+        followUps.push(
+          `Confirm whether the Activity processes account log-in or financial-account information in combination with any required security or access code, password, or credentials allowing access to the account (Cal. Civ. Code § 1798.140(ae)(1)(A)); the only element recorded for the “${CREDENTIALS_CATEGORY}” category is an email address, and the sensitive-personal-information classification is carried as declared until confirmed`,
+        );
+      }
       if (isYes(intake.q15_sensitive_pi)) {
         if (s(intake.q17_sensitive_basis)) {
           spiFacts.push(`The Company records the basis for processing sensitive personal information as “${s(intake.q17_sensitive_basis)}”`);
@@ -3716,6 +3838,18 @@ export function runRiskFactorEngine(
           "Legal counsel providing legal advice is excepted from the § 7152(a)(8) information-provider record; counsel is noted here to complete the consultation record only.",
         );
       }
+      // CEO decision ee860fd0 (information-provider-identification) — a
+      // roster of teams or functions with no individual named is an open
+      // § 7152(a)(8) item, stated here and completed by Follow-Up.
+      const providerRecord = providersNameIndividuals(intake);
+      if (providerRecord.anyRecord && !providerRecord.individuals) {
+        parts.push(
+          "The record identifies teams or functions rather than individuals; § 7152(a)(8) requires the individuals who provided the information to be identified, and completing that record appears among the Follow-Ups in § 4.D.",
+        );
+        followUps.push(
+          "Identify by name and position the individuals who provided information for this assessment; the record names teams or functions only, and § 7152(a)(8) requires the individuals to be identified (legal counsel who provided legal advice excepted)",
+        );
+      }
       parts.push(RISK52_FIXED.providers_close);
       put(
         "ii_information:18",
@@ -4059,11 +4193,16 @@ export function runRiskFactorEngine(
       : `Because ${
         asProse(phrases)
       }, and the notice does not cover the processing in full, those aspects fall outside the expectations the interaction creates. Unexpected processing is not prohibited, but until the notice covers it, the divergence weighs against the processing in Section 4.`;
+    // CEO decision ee860fd0 (notice-alone-for-unexpected-use) — same
+    // predicate as the Follow-Up above.
+    const secondaryUseNote = undisclosedDistinctUses.length
+      ? ` A secondary use recorded as a distinct purpose and not disclosed in the notice raises a purpose-limitation question under 11 CCR § 7002 that notice alone does not resolve; it appears among the Follow-Ups in § 4.D.`
+      : "";
     put(
       "iii_analysis:9",
       "expectation_application",
       "B",
-      text,
+      `${text}${secondaryUseNote}`,
       ["INTAKE:expectation_check", "INTAKE:q12_notice_at_collection", "INTAKE:q13_notice_content"],
       ["11 CCR § 7152(a)(5)(C)"],
     );
@@ -4191,7 +4330,15 @@ export function runRiskFactorEngine(
         } appears among the Recommendations in § 4.D.`
         : `The ${countWord(controlRows.length)} ${
           plural(controlRows.length, "control", "controls")
-        } reported ${plural(controlRows.length, "is", "are")} formal and exercisable on the information provided, and each is credited — which weighs in the Company’s favor.`) + footerNote;
+        } reported ${plural(controlRows.length, "is", "are")} formal and exercisable on the information provided, and each is credited — which weighs in the Company’s favor.${
+          // CEO decision ee860fd0 (consumer-control-overcredit) — presence-
+          // based credit stands; where the Company identifies a category (C)
+          // risk, the practical effect of the controls on those data flows
+          // is weighed where that risk is assessed.
+          pathways.some((p) => /^\(C\)/.test(p.harm))
+            ? " Their practical effect on the data flows identified under (C) Impairment of consumer control over personal information is weighed in § 4.A."
+            : ""
+        }`) + footerNote;
       put(
         "iii_analysis:13",
         "controls_application",
