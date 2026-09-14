@@ -277,7 +277,11 @@ const handler = async (req: Request): Promise<Response> => {
         company_name: typeof d.company_name === "string" ? d.company_name : null,
         run_by: auth.userId,
       };
-      rows.push({ ...common, kind: "review", effort: reviewEffort });
+      // ONE JOB PER REVIEWER. Each provider gets its own isolate, its own wall
+      // clock and its own attempt budget; a slow reviewer can no longer lose
+      // the other reviewer's completed work.
+      rows.push({ ...common, kind: "review_gpt", effort: reviewEffort });
+      rows.push({ ...common, kind: "review_claude", effort: reviewEffort });
       rows.push({ ...common, kind: "arb_document", effort: arbEffort });
     }
     // One merge per product. Two-pass arbitration is the default here: a single
@@ -294,7 +298,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (insErr) return json({ error: "enqueue_failed", detail: insErr.message }, 500);
 
     // Start as many parallel workers as the harness's proven concurrency.
-    const starters = Math.min(3, docs.length);
+    const starters = Math.min(3, docs.length * 2);
     for (let i = 0; i < starters; i++) background(kickNext(batchId));
 
     return json({ ok: true, batch_id: batchId, enqueued: ins?.length ?? rows.length, workers: starters, build_stamp: BUILD_STAMP });
