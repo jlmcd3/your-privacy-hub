@@ -9,7 +9,7 @@
 //
 //   deno run --no-check --allow-read --allow-env scripts/ptest/panel-asked-keys.ts [tool]
 
-import { PANEL_BY_TOOL, PANEL_TOOLS } from "../../supabase/functions/_shared/review/panels/index.ts";
+import { PANEL_BY_TOOL, PANEL_TOOLS } from "../../supabase/functions/ptest-fixtures/_local/panels/index.ts";
 import { contractForStressTool, dropBlankMultiValues } from "../../supabase/functions/run-stress-job/_local/intake-gate.ts";
 import { emptyAskedKeys } from "../../supabase/functions/_shared/ltp/record-complete.ts";
 import { PERFECT_BY_TOOL } from "../../supabase/functions/quality-batch-orchestrator/_local/golden/registry.ts";

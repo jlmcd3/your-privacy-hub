@@ -1,6 +1,6 @@
 // ptest-fixtures — the /all-ptest FIXTURE PANEL service (CEO instruction
 // 2026-09-14): fifteen complete, internally consistent dummy intakes per
-// product, committed under _shared/review/panels. A product test picks one
+// product, committed under ptest-fixtures/_local/panels. A product test picks one
 // fixture per product at random and runs the stress harness on it.
 //
 // This is a separate function so the ~2 MB of fixtures ride in exactly one
@@ -14,8 +14,8 @@
 //                      with the service key; returns batch_id + the picks
 
 import { cors, json, requireAdmin, isResponse, SUPABASE_URL, SERVICE_KEY } from "../_shared/review/auth.ts";
-import { panelCatalogue } from "../_shared/review/panels/index.ts";
-import { fromFixturesBody, planLaunch, resolvePanelTools } from "../_shared/review/panels/launch.ts";
+import { panelCatalogue } from "./_local/panels/index.ts";
+import { fromFixturesBody, planLaunch, resolvePanelTools } from "./_local/panels/launch.ts";
 
 export const BUILD_STAMP = "ptest-fixtures-v1@2026-09-14";
 console.log(`[ptest-fixtures] boot ${BUILD_STAMP}`);

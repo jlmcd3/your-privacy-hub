@@ -82,7 +82,7 @@ export default function AllPTest() {
   const [selected, setSelected] = useState<ToolSlug[]>(["cppa_risk", "cppa_cyber", "cppa_admt"]);
   const [industryId, setIndustryId] = useState("web");
   // INTAKE SOURCE (CEO 2026-09-14): "panel" picks one committed fixture per
-  // product at random (fifteen per product under _shared/review/panels);
+  // product at random (fifteen per product under ptest-fixtures/_local/panels);
   // "claude" writes a fresh company profile via the stress harness. Either
   // way the documents are generated server-side and then reviewed.
   // Default is "panel": the thirteen authored panels landed 2026-09-14.

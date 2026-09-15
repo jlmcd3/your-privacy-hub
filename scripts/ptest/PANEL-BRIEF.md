@@ -1,10 +1,10 @@
 # Fixture panel brief — 15 perfect intakes per product
 
-You are authoring a **fixture panel** for one or more EndUserPrivacy products: fifteen complete, internally consistent dummy intakes each, committed as TypeScript under `supabase/functions/_shared/review/panels/<tool>.ts`. The /all-ptest review loop picks one at random per product per batch and runs the real product on it, so every fixture must be something a real organisation could have entered on the form — and nothing in it may contradict anything else in it.
+You are authoring a **fixture panel** for one or more EndUserPrivacy products: fifteen complete, internally consistent dummy intakes each, committed as TypeScript under `supabase/functions/ptest-fixtures/_local/panels/<tool>.ts`. The /all-ptest review loop picks one at random per product per batch and runs the real product on it, so every fixture must be something a real organisation could have entered on the form — and nothing in it may contradict anything else in it.
 
 ## The file you write
 
-`supabase/functions/_shared/review/panels/<tool>.ts` already exists as a stub exporting an empty array. Replace the array with fifteen `PanelFixture` objects (type in `./types.ts`):
+`supabase/functions/ptest-fixtures/_local/panels/<tool>.ts` already exists as a stub exporting an empty array. Replace the array with fifteen `PanelFixture` objects (type in `./types.ts`):
 
 ```ts
 {
@@ -46,7 +46,7 @@ You are authoring a **fixture panel** for one or more EndUserPrivacy products: f
 deno test --no-check --allow-read --allow-env tests/edge/ptest/panels.test.ts --filter "[<tool>]"
 ```
 
-It checks the count, ids, metadata, distinct companies, geo, entity-name equality, the full contract, and (for cppa-risk / cppa-admt / cppa-cyber) that each fixture generates a document offline with no lint defect. Iterate until it is green. Also run `deno check supabase/functions/_shared/review/panels/<tool>.ts`.
+It checks the count, ids, metadata, distinct companies, geo, entity-name equality, the full contract, and (for cppa-risk / cppa-admt / cppa-cyber) that each fixture generates a document offline with no lint defect. Iterate until it is green. Also run `deno check supabase/functions/ptest-fixtures/_local/panels/<tool>.ts`.
 
 Do not edit any file other than your panel file(s). Do not change the test, the contracts, the products or the brief. If a contract makes a "perfect" answer impossible (a required field with no sensible value), say so in your report instead of working around it.
 
