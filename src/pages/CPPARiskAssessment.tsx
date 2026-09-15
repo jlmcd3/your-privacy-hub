@@ -400,18 +400,15 @@ export default function CPPARiskAssessment() {
   const [validationError, setValidationError] = useState<string | null>(null);
   // Per-question red state for the step check (fleet-wide pattern).
   const fieldErrors = useFieldErrors();
-  // Question wrapper bound to this page's error state.
-  const F = ({ k, children, className }: { k: string; children: React.ReactNode; className?: string }) => (
-    <FieldShell
-      fieldKey={k}
-      invalid={fieldErrors.isInvalid(k)}
-      message={fieldErrors.message}
-      onInteract={() => fieldErrors.clear(k)}
-      className={className}
-    >
-      {children}
-    </FieldShell>
-  );
+  // Props spread onto <FieldShell> for one question. A props helper rather than
+  // a wrapper component so the question subtree is never remounted (which would
+  // drop focus while typing).
+  const fprops = (k: string) => ({
+    fieldKey: k,
+    invalid: fieldErrors.isInvalid(k),
+    message: fieldErrors.message,
+    onInteract: () => fieldErrors.clear(k),
+  });
 
   const refine = useRefineMode("cppa_risk_assessment");
   const { isPro } = useSubscriptionTier();
