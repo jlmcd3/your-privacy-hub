@@ -48,6 +48,9 @@ import HowItWorksRow from "@/components/product/HowItWorksRow";
 import SuiteCrossSellStrip from "@/components/product/SuiteCrossSellStrip";
 import CompactDisclaimer from "@/components/product/CompactDisclaimer";
 import ValidationErrorSummary from "@/components/intake/ValidationErrorSummary";
+import FieldShell from "@/components/intake/FieldShell";
+import { fail, rowKey, type StepIssue } from "@/lib/intakeValidation";
+import { useFieldErrors } from "@/hooks/useFieldErrors";
 
 import { INCLUDED_GENERATIONS_HERO } from "@/config/pricing";
 import { useRefineMode } from "@/hooks/useRefineMode";
