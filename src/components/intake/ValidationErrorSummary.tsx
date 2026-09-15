@@ -31,10 +31,28 @@ const ValidationErrorSummary = forwardRef<HTMLDivElement, Props>(
     };
 
     useEffect(() => {
-      if (message && localRef.current) localRef.current.focus();
-    }, [message]);
+      // When the caller highlights the offending question, that question takes
+      // focus instead — the alert role still announces this box.
+      if (message && !fieldKey && localRef.current) localRef.current.focus();
+    }, [message, fieldKey]);
+
+    const jump = () => {
+      if (!fieldKey || typeof document === "undefined") return;
+      const esc =
+        typeof CSS !== "undefined" && typeof CSS.escape === "function"
+          ? CSS.escape
+          : (s: string) => s.replace(/["\\]/g, "\\$&");
+      const el = document.querySelector<HTMLElement>(`[data-field="${esc(fieldKey)}"]`);
+      if (!el) return;
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      const focusable = el.querySelector<HTMLElement>(
+        "input:not([type=hidden]):not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex='-1'])",
+      );
+      (focusable ?? el).focus({ preventScroll: true });
+    };
 
     if (!message) return null;
+
 
     return (
       <div
