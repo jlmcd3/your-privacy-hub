@@ -63,7 +63,21 @@ const ValidationErrorSummary = forwardRef<HTMLDivElement, Props>(
         className={`flex items-start gap-2 p-3 rounded-lg border border-destructive/40 bg-destructive/5 text-sm text-destructive focus:outline-none focus:ring-2 focus:ring-destructive/40 ${className}`}
       >
         <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" aria-hidden="true" />
-        <span>{message}</span>
+        <span>
+          {message}
+          {fieldKey ? (
+            <>
+              {" "}
+              <button
+                type="button"
+                onClick={jump}
+                className="underline underline-offset-2 font-medium hover:no-underline"
+              >
+                Go to the question
+              </button>
+            </>
+          ) : null}
+        </span>
       </div>
     );
   }
