@@ -12,6 +12,11 @@ interface Props {
   message: string | null;
   /** Optional className override on the wrapper. */
   className?: string;
+  /**
+   * Field key of the question the message refers to (see FieldShell). When
+   * given, the summary offers a link that scrolls back to that question.
+   */
+  fieldKey?: string | null;
 }
 
 const ValidationErrorSummary = forwardRef<HTMLDivElement, Props>(
