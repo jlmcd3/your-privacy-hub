@@ -52,7 +52,13 @@ export function useFieldErrors(): FieldErrors {
   const [message, setMessage] = useState<string | null>(null);
   const frame = useRef<number | null>(null);
 
-  const isInvalid = useCallback((key: string) => fields.includes(key), [fields]);
+  // A container key (`recipient_rows`) matches the row keys reported under it
+  // (`recipient_rows[2].disclosure_purpose`), so a page that anchors only the
+  // block still paints that block red.
+  const isInvalid = useCallback(
+    (key: string) => fields.some((f) => f === key || baseKey(f) === key),
+    [fields],
+  );
 
   const show = useCallback((keys: string[], msg: string) => {
     setFields(keys);
