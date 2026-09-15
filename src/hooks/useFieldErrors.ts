@@ -24,13 +24,21 @@ export interface FieldErrors {
   clearAll: () => void;
 }
 
+/** `recipient_rows[2].disclosure_purpose` -> `recipient_rows` (else the key). */
+export function baseKey(key: string): string {
+  const i = key.indexOf("[");
+  return i === -1 ? key : key.slice(0, i);
+}
+
 function focusFieldKey(key: string) {
   if (typeof document === "undefined" || !key) return;
   const escape =
     typeof CSS !== "undefined" && typeof CSS.escape === "function"
       ? CSS.escape
       : (s: string) => s.replace(/["\\]/g, "\\$&");
-  const el = document.querySelector<HTMLElement>(`[data-field="${escape(key)}"]`);
+  const el =
+    document.querySelector<HTMLElement>(`[data-field="${escape(key)}"]`) ??
+    document.querySelector<HTMLElement>(`[data-field="${escape(baseKey(key))}"]`);
   if (!el) return;
   el.scrollIntoView({ behavior: "smooth", block: "center" });
   const focusable = el.querySelector<HTMLElement>(
