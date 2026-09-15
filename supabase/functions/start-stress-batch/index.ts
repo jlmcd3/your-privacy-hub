@@ -435,6 +435,67 @@ Deno.serve(async (req) => {
     return json({ accepted: true }, 202);
   }
 
+  // ── FIXTURE-PANEL LAUNCH (CEO instruction 2026-09-14) ─────────────────────
+  // /all-ptest picks one committed fixture per product at random
+  // (ptest-fixtures → _shared/review/panels) and runs the SAME harness on it.
+  // No Claude intake generation: the jobs arrive fully formed, so setup is
+  // complete on insert and the workers start at once. Everything downstream
+  // (run-stress-job's per-tool arms, the contract gate, finalisation) is
+  // unchanged.
+  if (action === "from_fixtures") {
+    const jobs = Array.isArray(body?.jobs) ? body.jobs as Array<Record<string, unknown>> : [];
+    const runBy = typeof run_by === "string" ? run_by : null;
+    if (!jobs.length || !runBy) return json({ error: "missing required fields: jobs[], run_by" }, 400);
+    const known = new Set(ALL_TOOLS.map((t) => t.id));
+    const rows: Array<Record<string, unknown>> = [];
+    for (const j of jobs) {
+      const tool = normalizeToolId(String(j.tool_slug ?? ""));
+      if (!known.has(tool)) return json({ error: "bad_job", detail: `unknown tool_slug ${String(j.tool_slug)}` }, 400);
+      if (!j.fixture_data || typeof j.fixture_data !== "object") return json({ error: "bad_job", detail: `${tool}: fixture_data required` }, 400);
+      rows.push({
+        company_id: String(j.company_id ?? j.fixture_id ?? tool),
+        company_name: String(j.company_name ?? "(fixture)"),
+        industry: String(j.industry ?? "fixture panel"),
+        geo: j.geo === "eu" ? "eu" : "us",
+        tool_slug: tool,
+        fixture_data: j.fixture_data,
+        status: "pending",
+      });
+    }
+    const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
+    const tools = Array.from(new Set(rows.map((r) => String(r.tool_slug))));
+    const { data: batch, error: bErr } = await admin.from("static_stress_batches").insert({
+      run_by: runBy,
+      status: "running",
+      industries: [typeof body?.label === "string" && body.label.trim() ? body.label.trim() : "fixture panel"],
+      geo_filter: "both",
+      total_jobs: rows.length,
+      setup_total: 1,
+      setup_done: 1,
+      selected_tools: tools,
+      companies: [],
+      started_at: new Date().toISOString(),
+    }).select("id").single();
+    if (bErr || !batch) return json({ error: `batch insert: ${bErr?.message}` }, 500);
+    const { error: jErr } = await admin.from("static_stress_jobs").insert(rows.map((r) => ({ ...r, batch_id: batch.id })));
+    if (jErr) {
+      await admin.from("static_stress_batches").update({ status: "failed", error_log: `job insert: ${jErr.message}` }).eq("id", batch.id);
+      return json({ error: `job insert: ${jErr.message}` }, 500);
+    }
+    // Launch the workers inside a durable task (same stagger as the Claude path).
+    const workerCount = Math.min(20, rows.length);
+    // @ts-ignore
+    EdgeRuntime.waitUntil(Promise.all(Array.from({ length: workerCount }, async (_, w) => {
+      if (w > 0) await new Promise((resolve) => setTimeout(resolve, w * 500));
+      try {
+        await invokeFn("run-stress-job", { batch_id: batch.id, job_id: null }, 30_000);
+      } catch (e) {
+        console.warn(`[start-stress-batch] fixture worker ${w} launch failed:`, e);
+      }
+    })));
+    return json({ batch_id: batch.id, jobs: rows.length, tools }, 202);
+  }
+
   if (batch_id && company_index !== undefined) {
     // @ts-ignore
     EdgeRuntime.waitUntil(processNextCompany(batch_id, company_index));

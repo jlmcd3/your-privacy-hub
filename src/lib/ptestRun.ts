@@ -325,6 +325,60 @@ export async function enqueuePtestJobs(opts: {
   return { enqueued: typeof d.enqueued === "number" ? d.enqueued : 0, goldens: typeof d.goldens === "number" ? d.goldens : 0 };
 }
 
+// ── Fixture panel (CEO 2026-09-14): one committed fixture per product, at random ──
+
+export interface PanelPickRow {
+  tool: string;
+  id: string;
+  label: string;
+  company: string;
+  sector: string;
+  geo: string;
+}
+
+export interface PanelCatalogueRow {
+  tool: string;
+  size: number;
+  expected: number;
+  fixtures: Array<{ id: string; label: string; company: string; sector: string; geo: string }>;
+}
+
+async function fixturesFn(action: string, body: Record<string, unknown>) {
+  const { data, error } = await invokeResilient("ptest-fixtures", { action, ...body }, DRIVER_TIMEOUT_MS * 3);
+  if (error) throw new Error(error.message);
+  const d = (data ?? {}) as Record<string, unknown>;
+  if (d.error) throw new Error(`${d.error}${d.detail ? ` — ${d.detail}` : ""}`);
+  return d;
+}
+
+export async function fetchPanelCatalogue(): Promise<PanelCatalogueRow[]> {
+  const d = await fixturesFn("catalogue", {});
+  return (d.panels ?? []) as PanelCatalogueRow[];
+}
+
+/**
+ * Launch a stress batch on randomly picked panel fixtures (per_product each,
+ * 1–8). Returns the stress batch id (polled exactly like the Claude-intake
+ * batch) and the picks, with the seed that reproduces them.
+ */
+export async function launchFixtureBatch(opts: {
+  userId: string;
+  products: string[];
+  perProduct: number;
+  seed?: string | number;
+  label?: string;
+}): Promise<{ batchId: string; seed: number; picks: PanelPickRow[]; emptyPanels: string[] }> {
+  const d = await fixturesFn("launch", {
+    products: opts.products, per_product: opts.perProduct, seed: opts.seed, run_by: opts.userId, label: opts.label,
+  });
+  return {
+    batchId: String(d.batch_id),
+    seed: Number(d.seed),
+    picks: (d.picks ?? []) as PanelPickRow[],
+    emptyPanels: (d.empty_panels ?? []) as string[],
+  };
+}
+
 // ── Golden panel (DOC 261 Stage 0 / §3.5) ───────────────────────────────────
 
 export interface PtestGoldenRow {
