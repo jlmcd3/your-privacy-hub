@@ -3790,7 +3790,7 @@ export default function CPPARiskAssessment() {
               ))}
             </div>
           )}
-          <ValidationErrorSummary message={validationError} className="mt-4" />
+          <ValidationErrorSummary message={validationError} className="mt-4" fieldKey={fieldErrors.fields[0] ?? null} />
           <div className="flex justify-between pt-4 border-t flex-wrap gap-3 items-center">
             <Button variant="outline" onClick={back} disabled={step === 1}>Back</Button>
 
