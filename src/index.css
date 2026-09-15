@@ -461,3 +461,22 @@ html { scroll-behavior: smooth; }
   background: hsl(var(--fog));
 }
 
+
+/* ============================================================
+   INTAKE VALIDATION — the question a step check flagged.
+   Any element carrying data-field gets the red treatment when the
+   page marks it aria-invalid, so product pages only have to spread
+   the anchor props onto the question wrapper they already render.
+   ============================================================ */
+[data-field] {
+  scroll-margin-top: 7rem;
+}
+[data-field][aria-invalid="true"] {
+  border-radius: 0.5rem;
+  border: 1px solid hsl(var(--destructive) / 0.6);
+  background: hsl(var(--destructive) / 0.05);
+  padding: 0.75rem;
+}
+[data-field][aria-invalid="true"] label {
+  color: hsl(var(--destructive));
+}

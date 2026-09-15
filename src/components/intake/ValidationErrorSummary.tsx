@@ -12,10 +12,15 @@ interface Props {
   message: string | null;
   /** Optional className override on the wrapper. */
   className?: string;
+  /**
+   * Field key of the question the message refers to (see FieldShell). When
+   * given, the summary offers a link that scrolls back to that question.
+   */
+  fieldKey?: string | null;
 }
 
 const ValidationErrorSummary = forwardRef<HTMLDivElement, Props>(
-  ({ message, className = "" }, forwardedRef) => {
+  ({ message, className = "", fieldKey = null }, forwardedRef) => {
     const localRef = useRef<HTMLDivElement | null>(null);
     // Consume the forwarded ref for the caller while still owning a local ref
     // for the auto-focus effect.
@@ -26,10 +31,28 @@ const ValidationErrorSummary = forwardRef<HTMLDivElement, Props>(
     };
 
     useEffect(() => {
-      if (message && localRef.current) localRef.current.focus();
-    }, [message]);
+      // When the caller highlights the offending question, that question takes
+      // focus instead — the alert role still announces this box.
+      if (message && !fieldKey && localRef.current) localRef.current.focus();
+    }, [message, fieldKey]);
+
+    const jump = () => {
+      if (!fieldKey || typeof document === "undefined") return;
+      const esc =
+        typeof CSS !== "undefined" && typeof CSS.escape === "function"
+          ? CSS.escape
+          : (s: string) => s.replace(/["\\]/g, "\\$&");
+      const el = document.querySelector<HTMLElement>(`[data-field="${esc(fieldKey)}"]`);
+      if (!el) return;
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      const focusable = el.querySelector<HTMLElement>(
+        "input:not([type=hidden]):not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex='-1'])",
+      );
+      (focusable ?? el).focus({ preventScroll: true });
+    };
 
     if (!message) return null;
+
 
     return (
       <div
@@ -40,7 +63,21 @@ const ValidationErrorSummary = forwardRef<HTMLDivElement, Props>(
         className={`flex items-start gap-2 p-3 rounded-lg border border-destructive/40 bg-destructive/5 text-sm text-destructive focus:outline-none focus:ring-2 focus:ring-destructive/40 ${className}`}
       >
         <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" aria-hidden="true" />
-        <span>{message}</span>
+        <span>
+          {message}
+          {fieldKey ? (
+            <>
+              {" "}
+              <button
+                type="button"
+                onClick={jump}
+                className="underline underline-offset-2 font-medium hover:no-underline"
+              >
+                Go to the question
+              </button>
+            </>
+          ) : null}
+        </span>
       </div>
     );
   }

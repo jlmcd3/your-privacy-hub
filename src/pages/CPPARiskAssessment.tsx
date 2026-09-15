@@ -48,6 +48,9 @@ import HowItWorksRow from "@/components/product/HowItWorksRow";
 import SuiteCrossSellStrip from "@/components/product/SuiteCrossSellStrip";
 import CompactDisclaimer from "@/components/product/CompactDisclaimer";
 import ValidationErrorSummary from "@/components/intake/ValidationErrorSummary";
+import FieldShell from "@/components/intake/FieldShell";
+import { fail, rowKey, type StepIssue } from "@/lib/intakeValidation";
+import { useFieldErrors } from "@/hooks/useFieldErrors";
 
 import { INCLUDED_GENERATIONS_HERO } from "@/config/pricing";
 import { useRefineMode } from "@/hooks/useRefineMode";
@@ -395,6 +398,27 @@ export default function CPPARiskAssessment() {
 
   const [step, setStep] = useState(1);
   const [validationError, setValidationError] = useState<string | null>(null);
+  // Per-question red state for the step check (fleet-wide pattern).
+  const fieldErrors = useFieldErrors();
+  // Props spread onto <FieldShell> for one question. A props helper rather than
+  // a wrapper component so the question subtree is never remounted (which would
+  // drop focus while typing).
+  const fprops = (k: string) => ({
+    fieldKey: k,
+    invalid: fieldErrors.isInvalid(k),
+    message: fieldErrors.message,
+    onInteract: () => fieldErrors.clear(k),
+  });
+  /**
+   * Spread onto a question wrapper that already exists in the JSX. The red
+   * treatment itself lives in index.css on [data-field][aria-invalid="true"],
+   * so spreading this never fights an existing className.
+   */
+  const errAnchor = (k: string) => ({
+    "data-field": k,
+    "aria-invalid": fieldErrors.isInvalid(k) ? true : undefined,
+    onClickCapture: () => fieldErrors.clear(k),
+  });
 
   const refine = useRefineMode("cppa_risk_assessment");
   const { isPro } = useSubscriptionTier();
@@ -856,166 +880,235 @@ export default function CPPARiskAssessment() {
   ]);
 
 
-  const stepValid = (): string | null => {
+  // Index of the first in-scope row that fails `bad`, on the ORIGINAL array so
+  // the key matches the rendered row (the checks below filter to "started"
+  // rows, which would otherwise renumber them).
+  const badIdx = <T,>(all: T[], inScope: (r: T) => boolean, bad: (r: T) => boolean) =>
+    all.findIndex((r) => inScope(r) && bad(r));
+
+  const stepValid = (): StepIssue | null => {
     if (step === 1) {
-      if (!primaryActivityName.trim()) return "Name the processing activity you are assessing.";
-      if (primaryActivityPurpose.trim().length < 10) return "Describe in one sentence what this activity does with personal information (at least 10 characters).";
-      if (!hasSecondaryUses) return "Answer whether the same data is used for any other distinct purpose, product, or audience.";
-      if (!entityName.trim() || !subjectAnchor.trim()) return "Give the entity name and the one-line subject of this assessment.";
-      if (!q3) return "Select the sector this activity belongs to.";
-      if (!i1Purpose || i1Purpose.length < 30) return "Describe the specific purpose of this processing (at least 30 characters).";
-      if (!i9HasDpia) return "Answer whether an existing data protection impact assessment covers this activity.";
-      if (i9HasDpia === "Yes" && !i9DpiaSummary) return "Summarise the existing impact assessment — its title, date, and scope.";
-      if (!materialChangeSincePrior) return "Answer whether this activity has changed materially since the last assessment.";
+      if (!primaryActivityName.trim()) return fail("primary_activity_name", "Name the processing activity you are assessing.");
+      if (primaryActivityPurpose.trim().length < 10) return fail("primary_activity_purpose", "Describe in one sentence what this activity does with personal information (at least 10 characters).");
+      if (!hasSecondaryUses) return fail("has_secondary_uses", "Answer whether the same data is used for any other distinct purpose, product, or audience.");
+      if (!entityName.trim() || !subjectAnchor.trim()) return fail(!entityName.trim() ? "entity_name" : "subject_anchor", "Give the entity name and the one-line subject of this assessment.");
+      if (!q3) return fail("q3", "Select the sector this activity belongs to.");
+      if (!i1Purpose || i1Purpose.length < 30) return fail("i1_purpose", "Describe the specific purpose of this processing (at least 30 characters).");
+      if (!i9HasDpia) return fail("i9_has_dpia", "Answer whether an existing data protection impact assessment covers this activity.");
+      if (i9HasDpia === "Yes" && !i9DpiaSummary) return fail("i9_dpia_summary", "Summarise the existing impact assessment — its title, date, and scope.");
+      if (!materialChangeSincePrior) return fail("material_change_since_prior", "Answer whether this activity has changed materially since the last assessment.");
       // RK3-A1 — § 7152(a)(3)(A) processing record (form-required for new
       // submissions; optional at the data layer for legacy rows).
-      if (!processingEntryPoint.trim()) return "Say where personal information first enters this activity.";
-      if (Object.values(processingMethods).some((v) => !v.trim())) return "Complete all five processing-method entries — write \"N/A\" for any stage that does not occur.";
-      if (!processingResult.trim()) return "Say what this activity produces or supports — a decision, score, recommendation, service action, or operational outcome.";
+      if (!processingEntryPoint.trim()) return fail("processing_entry_point", "Say where personal information first enters this activity.");
+      if (Object.values(processingMethods).some((v) => !v.trim())) return fail("processing_methods", "Complete all five processing-method entries — write \"N/A\" for any stage that does not occur.");
+      if (!processingResult.trim()) return fail("processing_result", "Say what this activity produces or supports — a decision, score, recommendation, service action, or operational outcome.");
       // RK3-D (doc 33 D-L3) — form-required for new submissions; data-layer optional.
-      if (!rk3d.purpose_specificity_facts.length) return "Check what the stated purpose itself identifies — \"None of the above\" is a complete answer.";
-      if (!rk3d.out_of_scope_confirmation) return "Answer whether this same information is processed for anything outside the stated purpose — \"Unsure\" is a complete answer.";
-      if (!rk3d.comparable_processing_status) return "Answer whether this assessment covers a single activity or a set of similar activities.";
+      if (!rk3d.purpose_specificity_facts.length) return fail("rk3d_purpose_specificity_facts", "Check what the stated purpose itself identifies — \"None of the above\" is a complete answer.");
+      if (!rk3d.out_of_scope_confirmation) return fail("rk3d_out_of_scope_confirmation", "Answer whether this same information is processed for anything outside the stated purpose — \"Unsure\" is a complete answer.");
+      if (!rk3d.comparable_processing_status) return fail("rk3d_comparable_processing_status", "Answer whether this assessment covers a single activity or a set of similar activities.");
       if (hasSecondaryUses === "Yes — there are other uses") {
         const rows = secondaryActivities;
-        if (rows.some((a) => !a.relation_to_primary)) return "For each other use, say how it relates to the primary purpose.";
-        if (rows.some((a) => !a.disclosed_in_notice)) return "For each other use, say whether it is disclosed at or before collection.";
+        {
+          const i = badIdx(rows, () => true, (a) => !a.relation_to_primary);
+          if (i >= 0) return fail(rowKey("secondary_activities", i, "relation_to_primary"), "For each other use, say how it relates to the primary purpose.");
+        }
+        {
+          const i = badIdx(rows, () => true, (a) => !a.disclosed_in_notice);
+          if (i >= 0) return fail(rowKey("secondary_activities", i, "disclosed_in_notice"), "For each other use, say whether it is disclosed at or before collection.");
+        }
       }
     }
     if (step === 2) {
-      if (!q1 || !q2) return "Select the revenue band and the California consumer band.";
-      if (!q5) return "Answer whether you sell or share personal information.";
-      if (!q5bProfiling) return "Answer the profiling question.";
-      if (!q18) return "Answer whether automated decisionmaking technology is in use.";
-      if ((q18 === "Yes" || q18 === "In evaluation") && !q19) return "Describe the automated decisionmaking system and the decisions it touches.";
+      if (!q1 || !q2) return fail(!q1 ? "q1" : "q2", "Select the revenue band and the California consumer band.");
+      if (!q5) return fail("q5", "Answer whether you sell or share personal information.");
+      if (!q5bProfiling) return fail("q5b_profiling", "Answer the profiling question.");
+      if (!q18) return fail("q18", "Answer whether automated decisionmaking technology is in use.");
+      if ((q18 === "Yes" || q18 === "In evaluation") && !q19) return fail("q19", "Describe the automated decisionmaking system and the decisions it touches.");
       // DOC 157 — the categorical § 7001(ddd) answer is required whenever the
       // ADMT questions are open, and when q18b names significant-decision
       // training for a model that is not itself in use.
-      if ((admtTriggered || q18bTraining === "Yes — training ADMT for significant decisions") && !q19aDecisionCategories.length) return "Select which kind of decision the automated decisionmaking technology makes or will make — \"None of these categories\" is a complete answer.";
-      if (q19aDecisionCategories.includes(SIGNIFICANT_DECISION_CATEGORY_OPTS[1]) && !q19bHousingBasis) return "Answer whether the housing decision is based solely on availability, vacancy, or receipt of payment.";
-      if (q18 === "Yes" && !q20) return "Answer whether consumers can opt out of the automated decisionmaking.";
-      if (!q18bTraining) return "Answer whether personal information is processed to train automated decisionmaking or recognition technology.";
-      if (admtTriggered && (!i5AdmtLogic || !i5AdmtHumanReview)) return "Describe the automated decisionmaking logic and the human review process.";
+      if ((admtTriggered || q18bTraining === "Yes — training ADMT for significant decisions") && !q19aDecisionCategories.length) return fail("q19a_decision_categories", "Select which kind of decision the automated decisionmaking technology makes or will make — \"None of these categories\" is a complete answer.");
+      if (q19aDecisionCategories.includes(SIGNIFICANT_DECISION_CATEGORY_OPTS[1]) && !q19bHousingBasis) return fail("q19b_housing_basis", "Answer whether the housing decision is based solely on availability, vacancy, or receipt of payment.");
+      if (q18 === "Yes" && !q20) return fail("q20", "Answer whether consumers can opt out of the automated decisionmaking.");
+      if (!q18bTraining) return fail("q18b_training", "Answer whether personal information is processed to train automated decisionmaking or recognition technology.");
+      if (admtTriggered && (!i5AdmtLogic || !i5AdmtHumanReview)) return fail(!i5AdmtLogic ? "i5_admt_logic" : "i5_admt_human_review", "Describe the automated decisionmaking logic and the human review process.");
       // RK3-D (doc 33 D-L3) — typed ADMT operands, required when ADMT applies.
       if (admtTriggered) {
-        if (!rk3d.admt_role_type) return "Classify the ADMT's role in the decision — \"Unsure\" is a complete answer.";
-        if (!rk3d.admt_logic_documented) return "Say how the ADMT's logic is documented — \"Unsure\" is a complete answer.";
-        if (!rk3d.human_review_facts.length) return "Select what can be confirmed about the human review — \"There is no human review\" is a complete answer.";
-        if (!rk3d.admt_testing_facts.length) return "Select what describes the ADMT's testing record — \"No testing has been performed or confirmed\" is a complete answer.";
+        if (!rk3d.admt_role_type) return fail("rk3d_admt_role_type", "Classify the ADMT's role in the decision — \"Unsure\" is a complete answer.");
+        if (!rk3d.admt_logic_documented) return fail("rk3d_admt_logic_documented", "Say how the ADMT's logic is documented — \"Unsure\" is a complete answer.");
+        if (!rk3d.human_review_facts.length) return fail("rk3d_human_review_facts", "Select what can be confirmed about the human review — \"There is no human review\" is a complete answer.");
+        if (!rk3d.admt_testing_facts.length) return fail("rk3d_admt_testing_facts", "Select what describes the ADMT's testing record — \"No testing has been performed or confirmed\" is a complete answer.");
       }
-      if (!q6Multi.length || !q7 || !q8 || !q9 || !q10) return "Complete the consumer-rights answers.";
+      if (!q6Multi.length || !q7 || !q8 || !q9 || !q10) {
+        const firstMissing = !q6Multi.length ? "q6" : !q7 ? "q7" : !q8 ? "q8" : !q9 ? "q9" : "q10";
+        return fail(firstMissing, "Complete the consumer-rights answers.");
+      }
       // RK3-D (doc 33 D-L3) — choice-architecture confirmations.
-      if (!rk3d.choice_architecture_check.length) return "Select what you can confirm about how consumers are asked to permit the processing — \"None of the above can be confirmed\" is a complete answer.";
+      if (!rk3d.choice_architecture_check.length) return fail("rk3d_choice_architecture_check", "Select what you can confirm about how consumers are asked to permit the processing — \"None of the above can be confirmed\" is a complete answer.");
     }
     if (step === 3) {
-      if (!q4.length) return "Select the categories of personal information this activity processes.";
-      if (!q15) return "Answer whether sensitive personal information is processed.";
-      if (q15 === "Yes" && (!q16 || !q17 || !q15dHrCarveout)) return "Complete the sensitive personal information follow-ups.";
-      if (!q15bUnder16) return "Answer whether you have actual knowledge of processing under-16 consumers' data.";
-      if (!i4bSources) return "Identify where this personal information comes from.";
-      if (!i3CaConsumerBand) return "Select the approximate California consumer band for this activity.";
+      if (!q4.length) return fail("q4", "Select the categories of personal information this activity processes.");
+      if (!q15) return fail("q15", "Answer whether sensitive personal information is processed.");
+      if (q15 === "Yes" && (!q16 || !q17 || !q15dHrCarveout)) return fail(!q16 ? "q16" : !q17 ? "q17" : "q15d_hr_carveout", "Complete the sensitive personal information follow-ups.");
+      if (!q15bUnder16) return fail("q15b_under16", "Answer whether you have actual knowledge of processing under-16 consumers' data.");
+      if (!i4bSources) return fail("i4b_sources", "Identify where this personal information comes from.");
+      if (!i3CaConsumerBand) return fail("i3_ca_consumer_band", "Select the approximate California consumer band for this activity.");
       // RK3-A1 g2 — § 7152(a)(3)(C)/(D) (form-required; data-layer optional).
-      if (!consumerInteractionMethod) return "Select how your business interacts with the consumers this activity affects.";
-      if (!consumerInteractionPurpose.trim()) return "Say why the consumer interacts with your business in this context.";
-      if (!approximateCaConsumers.trim()) return "Give the approximate number of California consumers — a number or a range.";
-      if (!i6Vendors) return "List the service providers, contractors, or third parties involved — or write \"None\".";
-      if (!q11 || !q12 || !q13 || !q14) return "Complete the privacy-notice answers.";
-      if (!i4Disclosures.length) return "Select at least one disclosure mechanism, or \"No standalone disclosure\".";
+      if (!consumerInteractionMethod) return fail("consumer_interaction_method", "Select how your business interacts with the consumers this activity affects.");
+      if (!consumerInteractionPurpose.trim()) return fail("consumer_interaction_purpose", "Say why the consumer interacts with your business in this context.");
+      if (!approximateCaConsumers.trim()) return fail("approximate_ca_consumers", "Give the approximate number of California consumers — a number or a range.");
+      if (!i6Vendors) return fail("i6_vendors", "List the service providers, contractors, or third parties involved — or write \"None\".");
+      if (!q11 || !q12 || !q13 || !q14) return fail(!q11 ? "q11" : !q12 ? "q12" : !q13 ? "q13" : "q14", "Complete the privacy-notice answers.");
+      if (!i4Disclosures.length) return fail("i4_disclosures", "Select at least one disclosure mechanism, or \"No standalone disclosure\".");
       // RK3-A1 g4 — § 7152(a)(3)(E): each disclosure row needs content,
       // method, and Made/Planned status (form-required; data-layer optional).
       {
-        const rows = activityDisclosures.filter((r) => r.disclosure_content.trim() || r.disclosure_method || r.status);
-        if (rows.length === 0) return "Record at least one disclosure — what consumers are or will be told about this activity and how.";
-        if (rows.some((r) => !r.disclosure_content.trim())) return "Every disclosure row needs the content — what consumers are or will be told.";
-        if (rows.some((r) => !r.disclosure_method)) return "Every disclosure row needs a method — how the disclosure is or will be made.";
-        if (rows.some((r) => !r.status)) return "Mark each disclosure as Made or Planned.";
+        const started = (r: typeof activityDisclosures[number]) => Boolean(r.disclosure_content.trim() || r.disclosure_method || r.status);
+        const rows = activityDisclosures.filter(started);
+        if (rows.length === 0) return fail("activity_disclosures", "Record at least one disclosure — what consumers are or will be told about this activity and how.");
+        {
+          const i = badIdx(activityDisclosures, started, (r) => !r.disclosure_content.trim());
+          if (i >= 0) return fail(rowKey("activity_disclosures", i, "disclosure_content"), "Every disclosure row needs the content — what consumers are or will be told.");
+        }
+        {
+          const i = badIdx(activityDisclosures, started, (r) => !r.disclosure_method);
+          if (i >= 0) return fail(rowKey("activity_disclosures", i, "disclosure_method"), "Every disclosure row needs a method — how the disclosure is or will be made.");
+        }
+        {
+          const i = badIdx(activityDisclosures, started, (r) => !r.status);
+          if (i >= 0) return fail(rowKey("activity_disclosures", i, "status"), "Mark each disclosure as Made or Planned.");
+        }
       }
       // RK3-A1 g5 — § 7152(a)(3)(F): recipient rows, or the explicit
       // no-recipients declaration (form-required; data-layer optional).
       if (!recipientsNoneDeclared) {
-        const rows = recipientRows.filter((r) => r.recipient_name_or_category.trim() || r.recipient_type || r.pi_categories_made_available.length || r.disclosure_purpose.trim());
-        if (rows.length === 0) return "Add at least one recipient — or check the box declaring that no service provider, contractor, or third party receives this information.";
-        if (rows.some((r) => !r.recipient_name_or_category.trim())) return "Every recipient row needs a name or category.";
-        if (rows.some((r) => !r.recipient_type)) return "Classify each recipient: service provider, contractor, or third party.";
-        if (rows.some((r) => !r.pi_categories_made_available.length)) return "Select the personal-information categories made available to each recipient.";
-        if (rows.some((r) => !r.disclosure_purpose.trim())) return "State the purpose of the disclosure to each recipient.";
+        const started = (r: typeof recipientRows[number]) => Boolean(r.recipient_name_or_category.trim() || r.recipient_type || r.pi_categories_made_available.length || r.disclosure_purpose.trim());
+        const rows = recipientRows.filter(started);
+        if (rows.length === 0) return fail("recipient_rows", "Add at least one recipient — or check the box declaring that no service provider, contractor, or third party receives this information.");
+        {
+          const i = badIdx(recipientRows, started, (r) => !r.recipient_name_or_category.trim());
+          if (i >= 0) return fail(rowKey("recipient_rows", i, "recipient_name_or_category"), "Every recipient row needs a name or category.");
+        }
+        {
+          const i = badIdx(recipientRows, started, (r) => !r.recipient_type);
+          if (i >= 0) return fail(rowKey("recipient_rows", i, "recipient_type"), "Classify each recipient: service provider, contractor, or third party.");
+        }
+        {
+          const i = badIdx(recipientRows, started, (r) => !r.pi_categories_made_available.length);
+          if (i >= 0) return fail(rowKey("recipient_rows", i, "pi_categories_made_available"), "Select the personal-information categories made available to each recipient.");
+        }
+        {
+          const i = badIdx(recipientRows, started, (r) => !r.disclosure_purpose.trim());
+          if (i >= 0) return fail(rowKey("recipient_rows", i, "disclosure_purpose"), "State the purpose of the disclosure to each recipient.");
+        }
         // RK3-D (doc 33 D-L3) — per-row contractual protections.
-        if (rows.some((r) => !r.contractual_protections)) return "Select the contractual-protection status for each recipient — \"Unsure\" is a complete answer.";
+        {
+          const i = badIdx(recipientRows, started, (r) => !r.contractual_protections);
+          if (i >= 0) return fail(rowKey("recipient_rows", i, "contractual_protections"), "Select the contractual-protection status for each recipient — \"Unsure\" is a complete answer.");
+        }
       }
       // RK3-D (doc 33 D-L3) — sources, relationship, expectations, vendor dependency.
-      if (!rk3d.source_categories.length) return "Select the source categories this information comes through.";
-      if (!rk3d.consumer_relationship_context) return "Say who the affected consumers are in relation to your business.";
-      if (!rk3d.expectation_check.length) return "Select which processing facts apply — \"None of the above apply\" is a complete answer.";
-      if (!rk3d.vendor_dependency) return "Answer whether any recipient or vendor is essential to the processing — \"Unsure\" is a complete answer.";
+      if (!rk3d.source_categories.length) return fail("rk3d_source_categories", "Select the source categories this information comes through.");
+      if (!rk3d.consumer_relationship_context) return fail("rk3d_consumer_relationship_context", "Say who the affected consumers are in relation to your business.");
+      if (!rk3d.expectation_check.length) return fail("rk3d_expectation_check", "Select which processing facts apply — \"None of the above apply\" is a complete answer.");
+      if (!rk3d.vendor_dependency) return fail("rk3d_vendor_dependency", "Answer whether any recipient or vendor is essential to the processing — \"Unsure\" is a complete answer.");
     }
     if (step === 4) {
-      if (!i1bMinPi || i1bMinPi.length < 20) return "State the minimum personal information necessary for this purpose.";
-      if (!i2RetentionPeriod || !i2RetentionCriteria) return "Give a retention period and the criteria that set it.";
+      if (!i1bMinPi || i1bMinPi.length < 20) return fail("i1b_min_pi", "State the minimum personal information necessary for this purpose.");
+      if (!i2RetentionPeriod || !i2RetentionCriteria) return fail(!i2RetentionPeriod ? "i2_retention_period" : "i2_retention_criteria", "Give a retention period and the criteria that set it.");
       // RK3-A1 g3 — § 7152(a)(3)(B): each row needs a category plus a period
       // or the criteria that determine it (form-required; data-layer optional).
       {
-        const rows = retentionByPiCategory.filter((r) => r.pi_category || r.retention_period.trim() || r.retention_criteria);
-        if (rows.length === 0) return "Add at least one per-category retention row — the categories this activity processes each need a retention period or the criteria that determine it.";
-        if (rows.some((r) => !r.pi_category)) return "Every retention row needs a personal-information category.";
-        if (rows.some((r) => !r.retention_period.trim() && !r.retention_criteria)) return "Every retention row needs a period — or, if the period is unknown, the criteria that determine it.";
+        const started = (r: typeof retentionByPiCategory[number]) => Boolean(r.pi_category || r.retention_period.trim() || r.retention_criteria);
+        const rows = retentionByPiCategory.filter(started);
+        if (rows.length === 0) return fail("retention_by_pi_category", "Add at least one per-category retention row — the categories this activity processes each need a retention period or the criteria that determine it.");
+        {
+          const i = badIdx(retentionByPiCategory, started, (r) => !r.pi_category);
+          if (i >= 0) return fail(rowKey("retention_by_pi_category", i, "pi_category"), "Every retention row needs a personal-information category.");
+        }
+        {
+          const i = badIdx(retentionByPiCategory, started, (r) => !r.retention_period.trim() && !r.retention_criteria);
+          if (i >= 0) return fail(rowKey("retention_by_pi_category", i, "retention_period"), "Every retention row needs a period — or, if the period is unknown, the criteria that determine it.");
+        }
       }
     }
     if (step === 5) {
       // RK3-D (doc 33 D-L3) — pathway interdependency + per-safeguard-row
       // typed operands (form-required for new submissions; data-layer optional).
       const a5rows = a5HarmPathways.filter((r) => r.harm);
-      if (a5rows.length && !rk3d.risk_interdependency_check) return "Answer whether the identified impacts operate independently or could compound each other — \"Unsure\" is a complete answer.";
+      if (a5rows.length && !rk3d.risk_interdependency_check) return fail("rk3d_risk_interdependency_check", "Answer whether the identified impacts operate independently or could compound each other — \"Unsure\" is a complete answer.");
       if (rk3d.risk_interdependency_check === "Two or more identified pathways could compound each other" && rk3d.compounding_pathways.length < 2) {
-        return "Select at least two pathways that could compound each other.";
+        return fail("rk3d_compounding_pathways", "Select at least two pathways that could compound each other.");
       }
-      const a6rows = a6Safeguards.filter((r) => r.harm && (r.safeguard.trim() || r.safeguard_status));
-      if (a6rows.some((r) => !r.effectiveness_basis)) return "Select the effectiveness evidence for each safeguard — \"No effectiveness evidence\" is a complete answer.";
-      if (a6rows.some((r) => r.safeguard_status === "Planned, not yet implemented" && !r.planned_timeline)) return "Give the committed timeline for each planned safeguard — \"No committed timeline\" is a complete answer.";
+      const started = (r: typeof a6Safeguards[number]) => Boolean(r.harm && (r.safeguard.trim() || r.safeguard_status));
+      {
+        const i = badIdx(a6Safeguards, started, (r) => !r.effectiveness_basis);
+        if (i >= 0) return fail(rowKey("a6_safeguards", i, "effectiveness_basis"), "Select the effectiveness evidence for each safeguard — \"No effectiveness evidence\" is a complete answer.");
+      }
+      {
+        const i = badIdx(a6Safeguards, started, (r) => r.safeguard_status === "Planned, not yet implemented" && !r.planned_timeline);
+        if (i >= 0) return fail(rowKey("a6_safeguards", i, "planned_timeline"), "Give the committed timeline for each planned safeguard — \"No committed timeline\" is a complete answer.");
+      }
     }
     if (step === 6) {
       // RK3-A1 g6 — § 7152(a)(4) benefit gates: every class answered; "Yes"
       // requires the statement and its supporting fact. Never force a benefit.
-      const gates: [string, string, string, string, string][] = [
-        [benefitBusinessIdentified, a4BenefitBusiness, a4BenefitBusinessFact, rk3d.benefit_business_magnitude_basis, "business"],
-        [benefitConsumerIdentified, a4BenefitConsumer, a4BenefitConsumerFact, rk3d.benefit_consumer_magnitude_basis, "consumer"],
-        [benefitOtherStakeholdersIdentified, a4BenefitOtherStakeholders, a4BenefitOtherStakeholdersFact, rk3d.benefit_other_stakeholders_magnitude_basis, "other-stakeholder"],
-        [benefitPublicIdentified, a4BenefitPublic, a4BenefitPublicFact, rk3d.benefit_public_magnitude_basis, "public"],
+      const gates: [string, string, string, string, string, string][] = [
+        [benefitBusinessIdentified, a4BenefitBusiness, a4BenefitBusinessFact, rk3d.benefit_business_magnitude_basis, "business", "business"],
+        [benefitConsumerIdentified, a4BenefitConsumer, a4BenefitConsumerFact, rk3d.benefit_consumer_magnitude_basis, "consumer", "consumer"],
+        [benefitOtherStakeholdersIdentified, a4BenefitOtherStakeholders, a4BenefitOtherStakeholdersFact, rk3d.benefit_other_stakeholders_magnitude_basis, "other-stakeholder", "other_stakeholders"],
+        [benefitPublicIdentified, a4BenefitPublic, a4BenefitPublicFact, rk3d.benefit_public_magnitude_basis, "public", "public"],
       ];
-      for (const [gate, text, fact, basis, label] of gates) {
-        if (!gate) return `Answer whether a distinct ${label} benefit is identified — "No" is a complete answer.`;
-        if (gate === "Yes" && !text.trim()) return `Describe the ${label} benefit you identified.`;
-        if (gate === "Yes" && !fact.trim()) return `Give the fact in the record supporting the ${label} benefit.`;
+      for (const [gate, text, fact, basis, label, slug] of gates) {
+        if (!gate) return fail(`benefit_${slug}_identified`, `Answer whether a distinct ${label} benefit is identified — "No" is a complete answer.`);
+        if (gate === "Yes" && !text.trim()) return fail(`a4_benefit_${slug}`, `Describe the ${label} benefit you identified.`);
+        if (gate === "Yes" && !fact.trim()) return fail(`a4_benefit_${slug}_fact`, `Give the fact in the record supporting the ${label} benefit.`);
         // RK3-D (doc 33 D-L3) — magnitude basis; "No basis stated" is a complete answer.
-        if (gate === "Yes" && !basis) return `Say what kind of basis the ${label} benefit statement gives for its size — "No basis stated" is a complete answer.`;
+        if (gate === "Yes" && !basis) return fail(`benefit_${slug}_magnitude_basis`, `Say what kind of basis the ${label} benefit statement gives for its size — "No basis stated" is a complete answer.`);
       }
     }
     if (step === 7) {
-      if (!i7InternalContributors) return "List the internal contributor roles — or write \"None\".";
+      if (!i7InternalContributors) return fail("i7_internal_contributors", "List the internal contributor roles — or write \"None\".");
       // RK3-A1 g6 — § 7151: the participation record needs at least one
       // complete, confirmed row (form-required; data-layer optional).
       {
-        const rows = sectionParticipants.filter((r) => r.name.trim() || r.role.trim() || r.processing_responsibility.trim());
-        if (rows.length === 0) return "Record the employees whose job duties include participating in this processing — § 7151 requires their inclusion in the assessment process.";
-        if (rows.some((r) => !r.name.trim() || !r.role.trim())) return "Every participation row needs a name and a role or title.";
-        if (rows.some((r) => !r.processing_responsibility.trim())) return "State each participant's responsibility in the processing.";
-        if (rows.some((r) => !r.participation_confirmed)) return "Confirm each listed employee's participation in the assessment process.";
+        const started = (r: typeof sectionParticipants[number]) => Boolean(r.name.trim() || r.role.trim() || r.processing_responsibility.trim());
+        const rows = sectionParticipants.filter(started);
+        if (rows.length === 0) return fail("section_participants", "Record the employees whose job duties include participating in this processing — § 7151 requires their inclusion in the assessment process.");
+        {
+          const i = badIdx(sectionParticipants, started, (r) => !r.name.trim() || !r.role.trim());
+          if (i >= 0) return fail(rowKey("section_participants", i, "name"), "Every participation row needs a name and a role or title.");
+        }
+        {
+          const i = badIdx(sectionParticipants, started, (r) => !r.processing_responsibility.trim());
+          if (i >= 0) return fail(rowKey("section_participants", i, "processing_responsibility"), "State each participant's responsibility in the processing.");
+        }
+        {
+          const i = badIdx(sectionParticipants, started, (r) => !r.participation_confirmed);
+          if (i >= 0) return fail(rowKey("section_participants", i, "participation_confirmed"), "Confirm each listed employee's participation in the assessment process.");
+        }
       }
-      if (!i8ExecName || !i8ExecTitle) return "Give the certifying executive's name and title.";
+      if (!i8ExecName || !i8ExecTitle) return fail(!i8ExecName ? "i8_exec_name" : "i8_exec_title", "Give the certifying executive's name and title.");
     }
     return null;
   };
 
   const next = () => {
-    const err = stepValid();
-    if (err) { setValidationError(err); return; }
+    const issue = stepValid();
+    if (issue) {
+      setValidationError(issue.message);
+      fieldErrors.show(issue.fields, issue.message);
+      return;
+    }
     // Mid-intake account gate: anonymous visitors stop one step before the
     // summary (2026-09-04 policy). Answers survive the signup round-trip in
     // sessionStorage via useToolDraft's anonymous capture.
     if (!user && step + 1 === totalSteps - 1) { setAuthGateOpen(true); return; }
     setValidationError(null);
+    fieldErrors.clearAll();
     setStep((s) => s + 1);
   };
-  const back = () => { setValidationError(null); setStep((s) => Math.max(1, s - 1)); };
+  const back = () => { setValidationError(null); fieldErrors.clearAll(); setStep((s) => Math.max(1, s - 1)); };
 
 
   const intake = useMemo(() => ({
@@ -1847,7 +1940,7 @@ export default function CPPARiskAssessment() {
               <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR §§ 7150(a), 7152(a)(1), 7155(a)(1), 7156 — identifying the processing under assessment</p>
               <RequiredLegend />
               <p className="text-sm text-muted-foreground">These answers open the report: they name the activity, state its purpose, and fix the entity and subject line that appear on every page of the assessment and on the annual submission worksheet.</p>
-              <div data-rail-key="primary_activity" onFocus={() => focusRail('primary_activity')}>
+              <div data-rail-key="primary_activity" {...errAnchor("primary_activity_name")} onFocus={() => focusRail('primary_activity')}>
                 <Label htmlFor="primary_activity_name">What should we call the processing activity you're assessing today? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(a))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">A short working name for this one activity. It is the subject of this assessment and appears throughout the report.</p>
                 <input
@@ -1860,7 +1953,7 @@ export default function CPPARiskAssessment() {
                   className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
                 />
               </div>
-              <div data-rail-key="primary_activity" onFocus={() => focusRail('primary_activity')}>
+              <div data-rail-key="primary_activity" {...errAnchor("primary_activity_purpose")} onFocus={() => focusRail('primary_activity')}>
                 <Label htmlFor="primary_activity_purpose">In one sentence, what does this activity do with personal information? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7155(a)(1))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">Describe what is done with the information — the operation, not the business justification.</p>
                 <textarea
@@ -1877,7 +1970,7 @@ export default function CPPARiskAssessment() {
                   record: where PI enters, the five planned processing methods,
                   and what the activity produces. Feeds Spine 4.3 §II.A and the
                   DERIVED lifecycle narrative. */}
-              <div data-rail-key="processing_record" onFocus={() => focusRail('processing_record')}>
+              <div data-rail-key="processing_record" {...errAnchor("processing_entry_point")} onFocus={() => focusRail('processing_record')}>
                 <Label htmlFor="processing_entry_point">Where does personal information first enter this activity? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(A))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">The first point of collection or receipt — a form, an app screen, a call, a file from another system, a purchase from another business.</p>
                 <textarea
@@ -1890,7 +1983,7 @@ export default function CPPARiskAssessment() {
                   className="mt-2 w-full px-3 py-2 rounded-md border border-input bg-background"
                 />
               </div>
-              <div data-rail-key="processing_record" onFocus={() => focusRail('processing_record')}>
+              <div data-rail-key="processing_record" {...errAnchor("processing_methods")} onFocus={() => focusRail('processing_record')}>
                 <Label>How is the information collected, used, disclosed, retained, and otherwise processed? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(A))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">One line per stage. Write “N/A” for any stage that does not occur in this activity.</p>
                 <div className="mt-2 space-y-3">
@@ -1916,7 +2009,7 @@ export default function CPPARiskAssessment() {
                   ))}
                 </div>
               </div>
-              <div data-rail-key="processing_record" onFocus={() => focusRail('processing_record')}>
+              <div data-rail-key="processing_record" {...errAnchor("processing_result")} onFocus={() => focusRail('processing_record')}>
                 <Label htmlFor="processing_result">What does this activity produce or support? <Req /></Label>
                 <p className="text-xs text-muted-foreground mt-1">The output — a decision, score, recommendation, service action, or operational outcome. This connects the processing to its benefits and its risk pathways.</p>
                 <textarea
@@ -1952,7 +2045,7 @@ export default function CPPARiskAssessment() {
                 </div>
               </div>
 
-              <div data-rail-key="comparable_set" onFocus={() => focusRail('comparable_set')}>
+              <div data-rail-key="comparable_set" {...errAnchor("has_secondary_uses")} onFocus={() => focusRail('comparable_set')}>
                 <Label>
                   Beyond {primaryActivityName.trim() || "this activity"}, does your company use this same data for any other distinct purpose, product, or audience? <Req />{" "}
                   <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7156(a))</span>
@@ -2153,7 +2246,7 @@ export default function CPPARiskAssessment() {
                   autoComplete="organization"
                 />
               </div>
-              <div data-rail-key="subject_anchor" onFocus={() => focusRail('subject_anchor')}>
+              <div data-rail-key="subject_anchor" {...errAnchor("subject_anchor")} onFocus={() => focusRail('subject_anchor')}>
                 <Label htmlFor="subject_anchor">In one line: what processing does this assessment cover? <Req /></Label>
                 <p className="text-xs text-muted-foreground mt-1">
                   Set when you first generate; fixed thereafter. The detailed purpose below remains editable.
@@ -2167,12 +2260,12 @@ export default function CPPARiskAssessment() {
                   className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
                 />
               </div>
-              <div data-rail-key="q3_sector" onFocus={() => focusRail('q3_sector')}><Label>What is your primary business sector? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(a))</span></Label>
+              <div data-rail-key="q3_sector" {...errAnchor("q3")} onFocus={() => focusRail('q3_sector')}><Label>What is your primary business sector? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(a))</span></Label>
                 <select value={q3} onChange={(e) => setQ3(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
                   <option value="">Select…</option>{SECTORS.map((s) => <option key={s}>{s}</option>)}
                 </select>
               </div>
-              <div data-rail-key="i1_purpose" onFocus={() => focusRail('i1_purpose')}>
+              <div data-rail-key="i1_purpose" {...errAnchor("i1_purpose")} onFocus={() => focusRail('i1_purpose')}>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>What is the specific purpose of this processing activity? <span className="text-xs text-muted-foreground">(§ 7152(a)(1))</span></Label><StatutePopover term="Specific purpose" summary="The assessment must state the specific purpose of the processing; generic purposes such as 'improving services' are insufficient." cite="11 CCR § 7152(a)(2)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Describe what you do with the personal information, who it relates to, and what business outcome it supports. Avoid generic phrases such as "improve services," "for security purposes," "analytics," or "as described in our privacy policy" — these will be flagged by the validator.
@@ -2225,7 +2318,7 @@ export default function CPPARiskAssessment() {
                   <input type="date" className="mt-2 block w-48 h-10 px-3 rounded-md border border-input bg-background" value={priorRiskAssessmentDate} onChange={(e) => setPriorRiskAssessmentDate(e.target.value)} onFocus={() => focusRail('timing_and_status')} />
                 </div>
               </div>
-              <div data-rail-key="i9_dpia" onFocus={() => focusRail('i9_dpia')}>
+              <div data-rail-key="i9_dpia" {...errAnchor("i9_has_dpia")} onFocus={() => focusRail('i9_dpia')}>
                 <Label>Is there an existing GDPR DPIA (or other PIA) for this activity? <span className="text-xs text-muted-foreground">(§ 7156(b))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">If a GDPR DPIA exists, we'll map what it already covers.</p><div className="mt-2"><Radio name="i9" options={["Yes", "No"]} value={i9HasDpia} onChange={setI9HasDpia} /></div>
                 <FscrCallout citation="11 CCR § 7156(b)" callouts={fscrCallouts} />
@@ -2240,7 +2333,7 @@ export default function CPPARiskAssessment() {
                 )}
                 {renderAssertion("i9_existing_dpia_summary")}
               </div>
-              <div data-rail-key="material_change_since_prior" onFocus={() => focusRail('material_change_since_prior')}>
+              <div data-rail-key="material_change_since_prior" {...errAnchor("material_change_since_prior")} onFocus={() => focusRail('material_change_since_prior')}>
                 <Label>Has this processing activity changed materially since the last assessment? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7155(a)(3))</span></Label>
                 {/* DOC 157 (2026-09-03) — the regulation's own three-part test. */}
                 <p className="text-xs text-muted-foreground mt-1">A change is material under § 7155(a)(3) "if it creates new negative impacts or increases the magnitude or likelihood of previously identified negative impacts as set forth in section 7152, subsection (a)(5), or diminishes the effectiveness of the safeguards as set forth in section 7152, subsection (a)(6)" — for example a change to the purpose, to the minimum personal information necessary, or to the risks raised by consumers. A material change requires the assessment to be updated "as soon as feasibly possible, but no later than 45 calendar days from the date of the material change." If this is the first assessment of this activity, answer "No".</p>
@@ -2267,13 +2360,13 @@ export default function CPPARiskAssessment() {
               <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR §§ 7150(b)(1)–(6), 7120(b); Cal. Civ. Code §§ 1798.100–1798.140 — triggers, thresholds, and rights infrastructure</p>
               <RequiredLegend />
               <p className="text-sm text-muted-foreground">These answers produce the section of the report that establishes why the assessment is required and records the rights machinery a regulator will test first.</p>
-              <div data-rail-key="q1_revenue" onFocus={() => focusRail('q1_revenue')}><Label>What is your business's annual gross revenue? <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(1))</span></Label><p className="text-xs text-muted-foreground mt-1">Total worldwide gross revenue from all sources — not just California.</p><div className="mt-2"><Radio name="q1" options={REVENUE_OPTS} value={q1} onChange={setQ1} /></div></div>
-              <div data-rail-key="q2_consumers" onFocus={() => focusRail('q2_consumers')}><Label>How many California consumers' personal information do you process in a year? <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(2)(A))</span></Label><p className="text-xs text-muted-foreground mt-1">Your best estimate of distinct California residents across all processing.</p><div className="mt-2"><Radio name="q2" options={CONSUMER_OPTS} value={q2} onChange={setQ2} /></div></div>
+              <div data-rail-key="q1_revenue" {...errAnchor("q1")} onFocus={() => focusRail('q1_revenue')}><Label>What is your business's annual gross revenue? <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(1))</span></Label><p className="text-xs text-muted-foreground mt-1">Total worldwide gross revenue from all sources — not just California.</p><div className="mt-2"><Radio name="q1" options={REVENUE_OPTS} value={q1} onChange={setQ1} /></div></div>
+              <div data-rail-key="q2_consumers" {...errAnchor("q2")} onFocus={() => focusRail('q2_consumers')}><Label>How many California consumers' personal information do you process in a year? <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(2)(A))</span></Label><p className="text-xs text-muted-foreground mt-1">Your best estimate of distinct California residents across all processing.</p><div className="mt-2"><Radio name="q2" options={CONSUMER_OPTS} value={q2} onChange={setQ2} /></div></div>
               {/* DOC 157 (2026-09-03) — "sell" is not limited to advertising
                   (Cal. Civ. Code § 1798.140(ad): any disclosure for monetary or
                   other valuable consideration); only "share" (ah) is the
                   cross-context behavioral advertising concept. */}
-              <div data-rail-key="q5_sell_share" onFocus={() => focusRail('q5_sell_share')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Do you sell personal information (disclose it for money or other valuable consideration), or share it for cross-context behavioural advertising? <Req /></Label><DefPopover termKey="ccba" /><EnforcementSignalIcon signalKey="sell_share" signals={enforcementSignals} /></div>
+              <div data-rail-key="q5_sell_share" {...errAnchor("q5")} onFocus={() => focusRail('q5_sell_share')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Do you sell personal information (disclose it for money or other valuable consideration), or share it for cross-context behavioural advertising? <Req /></Label><DefPopover termKey="ccba" /><EnforcementSignalIcon signalKey="sell_share" signals={enforcementSignals} /></div>
                 <p className="text-xs text-muted-foreground mt-1">"Sell" and "share" have specific CCPA meanings — tap the definition icon.</p><div className="mt-2"><Radio name="q5" options={Q5_SELL_SHARE_OPTS} value={q5} onChange={setQ5} /></div>
               </div>
               {q5 && q5 !== "No" && (
@@ -2313,7 +2406,7 @@ export default function CPPARiskAssessment() {
                   inference at all, so bare monitoring (clock-in logs) could
                   read as the trigger. § 7150(b)(5) now resolves solely from
                   the dedicated sensitive_location_basis question below. */}
-              <div data-rail-key="q5b_profiling" onFocus={() => focusRail('q5b_profiling')}>
+              <div data-rail-key="q5b_profiling" {...errAnchor("q5b_profiling")} onFocus={() => focusRail('q5b_profiling')}>
                 <Label>Does the automated processing derive any personal attributes of your workers, students, or applicants — like their performance, reliability, health, or behavior — based on systematic observation of them? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(4))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">This is a separate risk-assessment trigger covering educational-program applicants, job applicants, students, employees, and independent contractors. Answer "Yes" only where the observation itself feeds an inference about the person — for example productivity, keystroke, or location tracking used to score performance or reliability. Bare record-keeping (e.g. clock-in/out logs kept as records) with no characteristic derived from it is not this trigger.</p>
                 <div className="mt-2"><Radio name="q5b" options={["Yes", "No"]} value={q5bProfiling} onChange={setQ5bProfiling} /></div>
@@ -2337,7 +2430,7 @@ export default function CPPARiskAssessment() {
                   retired); which kind of decision the system makes, and so
                   whether § 7150(b)(3) is engaged, is recorded in the
                   categorical question that follows the description. */}
-              <div data-rail-key="q18_admt" onFocus={() => focusRail('q18_admt')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Do you use automated decisionmaking technology — technology that processes personal information and uses computation to replace or substantially replace human decisionmaking — for decisions about consumers? <Req /></Label><DefPopover termKey="admt" /><span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(e))</span></div><p className="text-xs text-muted-foreground mt-1">Answer "Yes" for any deployed use. The questions that follow record which kind of decision the system makes; § 7150(b)(3) applies when that decision is a significant decision under § 7001(ddd) (financial or lending services, housing, education, employment or independent contracting, or healthcare).</p><div className="mt-2"><Radio name="q18" options={["Yes", "No", "In evaluation"]} value={q18} onChange={setQ18} /></div></div>
+              <div data-rail-key="q18_admt" {...errAnchor("q18")} onFocus={() => focusRail('q18_admt')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Do you use automated decisionmaking technology — technology that processes personal information and uses computation to replace or substantially replace human decisionmaking — for decisions about consumers? <Req /></Label><DefPopover termKey="admt" /><span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(e))</span></div><p className="text-xs text-muted-foreground mt-1">Answer "Yes" for any deployed use. The questions that follow record which kind of decision the system makes; § 7150(b)(3) applies when that decision is a significant decision under § 7001(ddd) (financial or lending services, housing, education, employment or independent contracting, or healthcare).</p><div className="mt-2"><Radio name="q18" options={["Yes", "No", "In evaluation"]} value={q18} onChange={setQ18} /></div></div>
               {(q18 === "Yes" || q18 === "In evaluation") && (
                 <div><Label>Describe the ADMT system and its decisions <Req /></Label>
                   <div className="mt-2"><AssistedInput
@@ -2383,7 +2476,7 @@ export default function CPPARiskAssessment() {
                   )}
                 </div>
               )}
-              <div data-rail-key="q18b_admt_training" onFocus={() => focusRail('q18b_admt_training')}>
+              <div data-rail-key="q18b_admt_training" {...errAnchor("q18b_training")} onFocus={() => focusRail('q18b_admt_training')}>
                 {/* DOC 157 (2026-09-03) — the stem, cite, and second option now
                     track the adopted § 7150(b)(6): both limbs, and the
                     "intends to use" standard (using, plans to use, permits or
@@ -2398,7 +2491,7 @@ export default function CPPARiskAssessment() {
                 )}
               </div>
               {admtTriggered && (
-                <div data-coach-field="i5_admt_logic" data-rail-key="i5_admt" onFocus={() => focusRail('i5_admt')} className="border-l-4 border-amber-400 pl-4 py-2 bg-amber-50/40 dark:bg-amber-950/10 rounded-r">
+                <div data-coach-field="i5_admt_logic" data-rail-key="i5_admt" {...errAnchor("i5_admt_logic")} onFocus={() => focusRail('i5_admt')} className="border-l-4 border-amber-400 pl-4 py-2 bg-amber-50/40 dark:bg-amber-950/10 rounded-r">
                   <Label className="font-semibold">Automated decisionmaking specifics <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(G))</span></Label>
                   <div className="mt-2">
                     <div className="inline-flex items-center gap-1.5 mb-1">
@@ -2571,8 +2664,8 @@ export default function CPPARiskAssessment() {
               </div>
               <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>How can consumers request deletion of their personal information? <Req /></Label><DefPopover termKey="right_to_delete" /></div><p className="text-xs text-muted-foreground mt-1">Describe the deletion request path and how you confirm it's done.</p><div className="mt-2"><Radio name="q7" options={["Automated deletion with confirmation", "Manual process, documented", "Case-by-case handling", "No formal process"]} value={q7} onChange={setQ7} /></div></div>
               <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>How can consumers request correction of inaccurate personal information? <Req /></Label><DefPopover termKey="right_to_correct" /></div><p className="text-xs text-muted-foreground mt-1">How a consumer flags an error and how you correct it.</p><div className="mt-2"><Radio name="q8" options={["Online self-service", "Handled via support", "No formal process"]} value={q8} onChange={setQ8} /></div></div>
-              <div data-rail-key="q9_opt_out" onFocus={() => focusRail('q9_opt_out')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Right to Opt-Out — do you have a "Do Not Sell or Share" link? <Req /></Label><DefPopover termKey="right_to_opt_out" /><EnforcementSignalIcon signalKey="opt_out_link" signals={enforcementSignals} /></div><p className="text-xs text-muted-foreground mt-1">A "Do Not Sell or Share" link is required if you sell or share PI.</p><div className="mt-2"><Radio name="q9" options={["Yes, prominently on homepage", "Yes, but in footer only", "Yes — in the settings area of our app, smart TV or other device without a homepage", "In progress", "No"]} value={q9} onChange={setQ9} /></div></div>
-              <div data-rail-key="q10_verification" onFocus={() => focusRail('q10_verification')}><Label>How do you verify the identity of consumers who submit rights requests? <span className="text-xs text-muted-foreground font-mono">(11 CCR §§ 7060–7062)</span></Label><p className="text-xs text-muted-foreground mt-1">The process you use to confirm a requester is who they claim to be.</p><div className="mt-2"><Radio name="q10" options={["Documented verification process matching CPPA guidance", "Informal verification", "No verification process"]} value={q10} onChange={setQ10} /></div></div>
+              <div data-rail-key="q9_opt_out" {...errAnchor("q9")} onFocus={() => focusRail('q9_opt_out')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Right to Opt-Out — do you have a "Do Not Sell or Share" link? <Req /></Label><DefPopover termKey="right_to_opt_out" /><EnforcementSignalIcon signalKey="opt_out_link" signals={enforcementSignals} /></div><p className="text-xs text-muted-foreground mt-1">A "Do Not Sell or Share" link is required if you sell or share PI.</p><div className="mt-2"><Radio name="q9" options={["Yes, prominently on homepage", "Yes, but in footer only", "Yes — in the settings area of our app, smart TV or other device without a homepage", "In progress", "No"]} value={q9} onChange={setQ9} /></div></div>
+              <div data-rail-key="q10_verification" {...errAnchor("q10")} onFocus={() => focusRail('q10_verification')}><Label>How do you verify the identity of consumers who submit rights requests? <span className="text-xs text-muted-foreground font-mono">(11 CCR §§ 7060–7062)</span></Label><p className="text-xs text-muted-foreground mt-1">The process you use to confirm a requester is who they claim to be.</p><div className="mt-2"><Radio name="q10" options={["Documented verification process matching CPPA guidance", "Informal verification", "No verification process"]} value={q10} onChange={setQ10} /></div></div>
               {/* RK3-D (doc 33 D-L3) — choice-architecture confirmations. */}
               <div>
                 <Label>Which of the following can you confirm about how consumers are asked to permit this processing? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7004)</span></Label>
@@ -2601,7 +2694,7 @@ export default function CPPARiskAssessment() {
               <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR § 7152(a)(3); Cal. Civ. Code §§ 1798.100(a), 1798.130 — operational elements of the processing</p>
               <RequiredLegend />
               <p className="text-sm text-muted-foreground">These answers become the operational record in the report: the categories in play, their sources, the recipients, and the disclosures consumers actually see.</p>
-              <div data-rail-key="q4_pi_categories" onFocus={() => focusRail('q4_pi_categories')}>
+              <div data-rail-key="q4_pi_categories" {...errAnchor("q4")} onFocus={() => focusRail('q4_pi_categories')}>
                 <Label>Which categories of personal information do you process? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(2))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">Categories marked <span className="text-red-600 font-semibold">Sensitive</span> trigger additional obligations under Cal. Civ. Code § 1798.140(ae) and will auto-advance Q15.</p>
                 <div className="mt-2">
@@ -2618,7 +2711,7 @@ export default function CPPARiskAssessment() {
                 </div>
                 {renderAssertion("q4_pi_categories")}
               </div>
-              <div data-rail-key="q15_sensitive_pi" onFocus={() => focusRail('q15_sensitive_pi')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Do you process any sensitive PI? <Req /></Label><DefPopover termKey="sensitive_pi" /><EnforcementSignalIcon signalKey="sensitive_pi" signals={enforcementSignals} /></div><p className="text-xs text-muted-foreground mt-1">Sensitive PI includes government identifiers, account credentials, precise geolocation, race or ethnicity, health, biometrics, genetic and neural data, message contents, and more — see the definition. Under 11 CCR § 7001(bbb)(4) it also includes all personal information of consumers you have actual knowledge are under 16 (the next question); a "Yes" there engages the § 7150(b)(2) trigger on its own.</p><div className="mt-2"><Radio name="q15" options={Q15_SENSITIVE_PI_OPTS} value={q15} onChange={setQ15} /></div></div>
+              <div data-rail-key="q15_sensitive_pi" {...errAnchor("q15")} onFocus={() => focusRail('q15_sensitive_pi')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Do you process any sensitive PI? <Req /></Label><DefPopover termKey="sensitive_pi" /><EnforcementSignalIcon signalKey="sensitive_pi" signals={enforcementSignals} /></div><p className="text-xs text-muted-foreground mt-1">Sensitive PI includes government identifiers, account credentials, precise geolocation, race or ethnicity, health, biometrics, genetic and neural data, message contents, and more — see the definition. Under 11 CCR § 7001(bbb)(4) it also includes all personal information of consumers you have actual knowledge are under 16 (the next question); a "Yes" there engages the § 7150(b)(2) trigger on its own.</p><div className="mt-2"><Radio name="q15" options={Q15_SENSITIVE_PI_OPTS} value={q15} onChange={setQ15} /></div></div>
               {q15 === "Yes" && (<>
                 <div data-rail-key="q15c_spi_volume" onFocus={() => focusRail('q15c_spi_volume')}>
                   <Label>For how many California consumers do you process sensitive personal information annually? <span className="text-xs text-muted-foreground font-mono">(§ 7120(b)(2)(B))</span></Label>
@@ -2628,7 +2721,7 @@ export default function CPPARiskAssessment() {
                 <div><Label>Do you provide consumers the right to limit use of their sensitive PI? <Req /></Label><p className="text-xs text-muted-foreground mt-1">The right to limit applies when you use sensitive PI beyond what's necessary.</p><div className="mt-2"><Radio name="q16" options={["Yes, with a separate \"Limit the Use of My Sensitive PI\" link", "Yes, handled within privacy settings", "No", "Not yet implemented"]} value={q16} onChange={setQ16} /></div></div>
                 <div><Label>What is your legal basis for processing sensitive PI? <Req /></Label><p className="text-xs text-muted-foreground mt-1">The lawful basis you rely on to process sensitive PI.</p><div className="mt-2"><Radio name="q17" options={["Consent", "Necessary for the service", "Employment contract", "Other permitted purpose"]} value={q17} onChange={setQ17} /></div></div>
                 {/* PN-CORPUS-L-RISK-1 — § 7150(b)(2)(A) personnel carve-out. */}
-                <div data-rail-key="q15d_hr_carveout" onFocus={() => focusRail('q15d_hr_carveout')}>
+                <div data-rail-key="q15d_hr_carveout" {...errAnchor("q15d_hr_carveout")} onFocus={() => focusRail('q15d_hr_carveout')}>
                   <Label>Is the sensitive PI in this activity solely that of your employees or independent contractors, used solely and specifically for administering compensation, employment authorization, employment benefits, legally required reasonable accommodation, or legally required wage reporting? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(2)(A))</span></Label>
                   <p className="text-xs text-muted-foreground mt-1">Section 7150(b)(2)(A) exempts sensitive-PI processing done solely and specifically for these routine personnel purposes from the § 7150(b)(2) risk-assessment trigger. Any other processing of consumers' sensitive PI remains subject to the requirement — if this activity also processes consumer sensitive PI, or uses the personnel data for anything beyond these purposes, answer "No".</p>
                   <div className="mt-2"><Radio name="q15d" options={["Yes — solely for those personnel purposes", "No — processed for other purposes as well", "Not applicable — no employee or contractor sensitive PI"]} value={q15dHrCarveout} onChange={setQ15dHrCarveout} /></div>
@@ -2646,12 +2739,12 @@ export default function CPPARiskAssessment() {
                   </div>
                 )}
               </>)}
-              <div data-rail-key="q15b_under16" onFocus={() => focusRail('q15b_under16')}>
+              <div data-rail-key="q15b_under16" {...errAnchor("q15b_under16")} onFocus={() => focusRail('q15b_under16')}>
                 <Label>Do you know that you collect personal information from consumers under 16? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(bbb))</span></Label><p className="text-xs text-muted-foreground mt-1">"Actual knowledge" is the legal standard — meaning your business is actually aware, not merely on notice. This includes knowledge gained from age screening, account data, or other direct signals.</p>
                 <p className="text-xs text-muted-foreground mt-1">Under the 2026 regulations, <span className="font-medium">all</span> personal information of a consumer under 16 is sensitive personal information where the business has actual knowledge of the age. Requesting age at sign-up, or willfully disregarding age, counts as actual knowledge — and pulls this processing into the sensitive-PI rules.</p>
                 <div className="mt-2"><Radio name="q15b" options={["Yes — we knowingly process under-16 data", "No — we do not knowingly process under-16 data", "Unsure"]} value={q15bUnder16} onChange={setQ15bUnder16} /></div>
               </div>
-              <div data-rail-key="i4b_sources" onFocus={() => focusRail('i4b_sources')}>
+              <div data-rail-key="i4b_sources" {...errAnchor("i4b_sources")} onFocus={() => focusRail('i4b_sources')}>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Where does this personal information come from? <span className="text-xs text-muted-foreground">(§ 7152(a)(3))</span></Label><StatutePopover term="Sources of the PI" summary="The operational elements of the processing must identify the sources of the personal information — for example, directly from the consumer, observed, or obtained from third parties." cite="11 CCR § 7152(a)(3)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">Identify each source: collected directly from the consumer, passively observed from their activity, generated/inferred by you, or obtained from third parties (data brokers, advertising or analytics partners, affiliates, public records). Note which categories come from which source.</p>
                 <ExhibitTextarea className="mt-2" rows={3} value={i4bSources} onChange={setI4bSources} placeholder='Category — source, one per line' />
@@ -2672,7 +2765,7 @@ export default function CPPARiskAssessment() {
               {/* RK3-A1 g2 — § 7152(a)(3)(D) activity-specific estimate (the band
                   above stays for screening/analytics) + § 7152(a)(3)(C)
                   interaction method and purpose. */}
-              <div data-rail-key="consumer_interaction" onFocus={() => focusRail('consumer_interaction')}>
+              <div data-rail-key="consumer_interaction" {...errAnchor("approximate_ca_consumers")} onFocus={() => focusRail('consumer_interaction')}>
                 <Label htmlFor="approximate_ca_consumers">State that approximate number for the record — a number or a range. <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(D))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">The assessment record carries your stated figure, not just the band — e.g., “about 45,000” or “40,000–60,000”.</p>
                 <input
@@ -2685,7 +2778,7 @@ export default function CPPARiskAssessment() {
                   className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
                 />
               </div>
-              <div data-rail-key="consumer_interaction" onFocus={() => focusRail('consumer_interaction')}>
+              <div data-rail-key="consumer_interaction" {...errAnchor("consumer_interaction_method")} onFocus={() => focusRail('consumer_interaction')}>
                 <Label>How does your business interact with the consumers this activity affects? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(C))</span></Label>
                 <div className="mt-2"><Radio name="consumer_interaction_method" options={[...CONSUMER_INTERACTION_METHOD_OPTS]} value={consumerInteractionMethod} onChange={setConsumerInteractionMethod} /></div>
               </div>
@@ -2714,7 +2807,7 @@ export default function CPPARiskAssessment() {
                   />
                 </div>
               </div>
-              <div data-rail-key="consumer_interaction" onFocus={() => focusRail('consumer_interaction')}>
+              <div data-rail-key="consumer_interaction" {...errAnchor("consumer_interaction_purpose")} onFocus={() => focusRail('consumer_interaction')}>
                 <Label htmlFor="consumer_interaction_purpose">Why does the consumer interact with your business in this context? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(C))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">The consumer's side of the transaction — e.g., to buy a product, use a service, apply for a job. Separate from the processing purpose. If there is no direct interaction, say how the information reaches you instead.</p>
                 <textarea
@@ -2728,7 +2821,7 @@ export default function CPPARiskAssessment() {
                 />
               </div>
               <div>
-                <div className="inline-flex items-center gap-1.5 flex-wrap" data-rail-key="i6_recipients" onFocus={() => focusRail('i6_recipients')}><Label>Which service providers, contractors, or third parties are involved? <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(F))</span></Label><StatutePopover term="Recipients of the PI" summary="Identify the recipients of the personal information — service providers, contractors, and third parties — together with their category and the purpose of each disclosure." cite="11 CCR § 7152(a)(3)(F)" /></div>
+                <div className="inline-flex items-center gap-1.5 flex-wrap" data-rail-key="i6_recipients" {...errAnchor("i6_vendors")} onFocus={() => focusRail('i6_recipients')}><Label>Which service providers, contractors, or third parties are involved? <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(F))</span></Label><StatutePopover term="Recipients of the PI" summary="Identify the recipients of the personal information — service providers, contractors, and third parties — together with their category and the purpose of each disclosure." cite="11 CCR § 7152(a)(3)(F)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">For each recipient, note its category — <span className="font-medium">service provider</span>, <span className="font-medium">contractor</span>, or <span className="font-medium">third party</span> — and the purpose of the disclosure. The category matters: disclosure to a third party for its own use is a sale or share.</p>
                 <ExhibitTextarea
                   className="mt-2"
@@ -2741,7 +2834,7 @@ export default function CPPARiskAssessment() {
               </div>
               {/* RK3-A1 g5 — § 7152(a)(3)(F) canonical recipient record. The
                   free-text list above stays as the legacy summary. */}
-              <div data-rail-key="recipients_record" onFocus={() => focusRail('recipients_record')}>
+              <div data-rail-key="recipients_record" {...errAnchor("recipient_rows")} onFocus={() => focusRail('recipients_record')}>
                 <Label>For the record: each recipient, its type, the categories it receives, and why. <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(F))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">One row per recipient. The type matters: disclosure to a third party for its own use is a sale or share.</p>
                 <label className="mt-2 flex items-start gap-2 text-sm">
@@ -2854,7 +2947,7 @@ export default function CPPARiskAssessment() {
               {/* RK3-A1 g4 — § 7152(a)(3)(E) canonical activity-disclosure
                   record: content + method + Made/Planned per disclosure. The
                   mechanism pills above stay as the summary. */}
-              <div data-rail-key="activity_disclosures" onFocus={() => focusRail('activity_disclosures')}>
+              <div data-rail-key="activity_disclosures" {...errAnchor("activity_disclosures")} onFocus={() => focusRail('activity_disclosures')}>
                 <Label>For this activity, what are consumers told — or will they be told — and how? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(E))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">One row per material disclosure: the substance of what is said, how it is or will be delivered, and whether it is already made or still planned.</p>
                 <div className="mt-2 space-y-2">
@@ -2928,13 +3021,13 @@ export default function CPPARiskAssessment() {
               <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR § 7152(a)(2)–(3)(B); Cal. Civ. Code §§ 1798.140(e), 1798.145 — minimisation analysis, retention, and enumerated business purposes</p>
               <RequiredLegend />
               <p className="text-sm text-muted-foreground">These answers drive the minimisation analysis in the report — each element tested against the stated purpose — together with the retention plan and any enumerated business purpose the activity leans on.</p>
-              <div data-coach-field="i1b_min_pi" data-rail-key="i1b_min_pi" onFocus={() => focusRail('i1b_min_pi')}>
+              <div data-coach-field="i1b_min_pi" data-rail-key="i1b_min_pi" {...errAnchor("i1b_min_pi")} onFocus={() => focusRail('i1b_min_pi')}>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>What is the minimum personal information necessary to achieve this purpose? <span className="text-xs text-muted-foreground">(§ 7152(a)(2))</span></Label><StatutePopover term="Minimum PI necessary" summary="The assessment must identify the minimum personal information necessary to achieve the purpose, reflecting the CCPA's data-minimisation principle." cite="11 CCR § 7152(a)(2)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">Name the specific data elements you actually need for the purpose above, and note any you collect today that are <span className="font-medium">not</span> strictly necessary. If a less-identifying alternative (de-identified, aggregated, or shorter-retained data) could achieve the same purpose, say so — § 7152(a)(2) requires this minimisation analysis.</p>
                 <ExhibitTextarea className="mt-2" rows={3} value={i1bMinPi} onChange={setI1bMinPi} placeholder='Elements needed, and elements not needed' />
                 {renderAssertion("i1b_min_pi")}
               </div>
-              <div data-rail-key="i2_retention" onFocus={() => focusRail('i2_retention')}>
+              <div data-rail-key="i2_retention" {...errAnchor("i2_retention_period")} onFocus={() => focusRail('i2_retention')}>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>How long will you keep this data, and how is that period set? <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(B))</span></Label><StatutePopover term="Retention period" summary="State how long each category of personal information will be retained, or the criteria used to determine that period." cite="11 CCR § 7152(a)(4)(B)" /></div>
                 <input
                   className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
@@ -2963,7 +3056,7 @@ export default function CPPARiskAssessment() {
               </div>
               {/* RK3-A1 g3 — § 7152(a)(3)(B) canonical per-category retention
                   record. The i2 fields above stay as the overall summary. */}
-              <div data-rail-key="retention_by_category" onFocus={() => focusRail('retention_by_category')}>
+              <div data-rail-key="retention_by_category" {...errAnchor("retention_by_pi_category")} onFocus={() => focusRail('retention_by_category')}>
                 <Label>For each category of personal information, how long is it kept? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(B))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">One row per category this activity processes. Give the period — or, if the period is not known, the criteria used to determine it.</p>
                 <div className="mt-2 space-y-2">
@@ -3194,7 +3287,7 @@ export default function CPPARiskAssessment() {
                     <Textarea className="mt-2" rows={3} value={impactData.safeguards} onChange={(e) => setImpactData((d) => ({ ...d, safeguards: e.target.value }))} placeholder='One safeguard per line' />
                   </div>
                 {/* A-6 — safeguards mapped to an identified impact */}
-                <div data-coach-field="a6_safeguards" data-rail-key="impact_safeguards" onFocus={() => focusRail('impact_safeguards')}>
+                <div data-coach-field="a6_safeguards" data-rail-key="impact_safeguards" {...errAnchor("a6_safeguards")} onFocus={() => focusRail('impact_safeguards')}>
                   <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>What safeguards address each impact above? <span className="text-xs text-muted-foreground">(§ 7152(a)(6))</span></Label><StatutePopover term="Safeguards" summary="Identify the safeguards the business plans to implement for the processing, including safeguards addressing the negative impacts identified under subsection (a)(5)." cite="11 CCR § 7152(a)(6)" /></div>
                   <p className="text-xs text-muted-foreground mt-1">Each safeguard must name the impact it addresses. An impact with no safeguard is reported as unaddressed.</p>
                   <div className="mt-2 space-y-3">
@@ -3408,7 +3501,7 @@ export default function CPPARiskAssessment() {
                 /></div>
                 {/* RK3-A1 g6 — § 7151(a) participation record, placed with the
                     contributor questions it is distinct from. */}
-                <div className="mt-4" data-rail-key="section_7151_participation" onFocus={() => focusRail('section_7151_participation')}>
+                <div className="mt-4" data-rail-key="section_7151_participation" {...errAnchor("section_participants")} onFocus={() => focusRail('section_7151_participation')}>
                   <Label>Which employees' job duties include participating in this processing? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7151(a))</span></Label>
                   <p className="text-xs text-muted-foreground mt-1">§ 7151(a) requires these employees to be included in the risk-assessment process. This is a participation record, separate from the § 7152(a)(8) list of who provided information.</p>
                   <div className="mt-2 space-y-2">
@@ -3707,7 +3800,7 @@ export default function CPPARiskAssessment() {
               ))}
             </div>
           )}
-          <ValidationErrorSummary message={validationError} className="mt-4" />
+          <ValidationErrorSummary message={validationError} className="mt-4" fieldKey={fieldErrors.fields[0] ?? null} />
           <div className="flex justify-between pt-4 border-t flex-wrap gap-3 items-center">
             <Button variant="outline" onClick={back} disabled={step === 1}>Back</Button>
 
