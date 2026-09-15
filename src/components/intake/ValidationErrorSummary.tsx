@@ -20,7 +20,7 @@ interface Props {
 }
 
 const ValidationErrorSummary = forwardRef<HTMLDivElement, Props>(
-  ({ message, className = "" }, forwardedRef) => {
+  ({ message, className = "", fieldKey = null }, forwardedRef) => {
     const localRef = useRef<HTMLDivElement | null>(null);
     // Consume the forwarded ref for the caller while still owning a local ref
     // for the auto-focus effect.
