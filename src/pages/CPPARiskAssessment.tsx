@@ -856,166 +856,235 @@ export default function CPPARiskAssessment() {
   ]);
 
 
-  const stepValid = (): string | null => {
+  // Index of the first in-scope row that fails `bad`, on the ORIGINAL array so
+  // the key matches the rendered row (the checks below filter to "started"
+  // rows, which would otherwise renumber them).
+  const badIdx = <T,>(all: T[], inScope: (r: T) => boolean, bad: (r: T) => boolean) =>
+    all.findIndex((r) => inScope(r) && bad(r));
+
+  const stepValid = (): StepIssue | null => {
     if (step === 1) {
-      if (!primaryActivityName.trim()) return "Name the processing activity you are assessing.";
-      if (primaryActivityPurpose.trim().length < 10) return "Describe in one sentence what this activity does with personal information (at least 10 characters).";
-      if (!hasSecondaryUses) return "Answer whether the same data is used for any other distinct purpose, product, or audience.";
-      if (!entityName.trim() || !subjectAnchor.trim()) return "Give the entity name and the one-line subject of this assessment.";
-      if (!q3) return "Select the sector this activity belongs to.";
-      if (!i1Purpose || i1Purpose.length < 30) return "Describe the specific purpose of this processing (at least 30 characters).";
-      if (!i9HasDpia) return "Answer whether an existing data protection impact assessment covers this activity.";
-      if (i9HasDpia === "Yes" && !i9DpiaSummary) return "Summarise the existing impact assessment — its title, date, and scope.";
-      if (!materialChangeSincePrior) return "Answer whether this activity has changed materially since the last assessment.";
+      if (!primaryActivityName.trim()) return fail("primary_activity_name", "Name the processing activity you are assessing.");
+      if (primaryActivityPurpose.trim().length < 10) return fail("primary_activity_purpose", "Describe in one sentence what this activity does with personal information (at least 10 characters).");
+      if (!hasSecondaryUses) return fail("has_secondary_uses", "Answer whether the same data is used for any other distinct purpose, product, or audience.");
+      if (!entityName.trim() || !subjectAnchor.trim()) return fail(!entityName.trim() ? "entity_name" : "subject_anchor", "Give the entity name and the one-line subject of this assessment.");
+      if (!q3) return fail("q3", "Select the sector this activity belongs to.");
+      if (!i1Purpose || i1Purpose.length < 30) return fail("i1_purpose", "Describe the specific purpose of this processing (at least 30 characters).");
+      if (!i9HasDpia) return fail("i9_has_dpia", "Answer whether an existing data protection impact assessment covers this activity.");
+      if (i9HasDpia === "Yes" && !i9DpiaSummary) return fail("i9_dpia_summary", "Summarise the existing impact assessment — its title, date, and scope.");
+      if (!materialChangeSincePrior) return fail("material_change_since_prior", "Answer whether this activity has changed materially since the last assessment.");
       // RK3-A1 — § 7152(a)(3)(A) processing record (form-required for new
       // submissions; optional at the data layer for legacy rows).
-      if (!processingEntryPoint.trim()) return "Say where personal information first enters this activity.";
-      if (Object.values(processingMethods).some((v) => !v.trim())) return "Complete all five processing-method entries — write \"N/A\" for any stage that does not occur.";
-      if (!processingResult.trim()) return "Say what this activity produces or supports — a decision, score, recommendation, service action, or operational outcome.";
+      if (!processingEntryPoint.trim()) return fail("processing_entry_point", "Say where personal information first enters this activity.");
+      if (Object.values(processingMethods).some((v) => !v.trim())) return fail("processing_methods", "Complete all five processing-method entries — write \"N/A\" for any stage that does not occur.");
+      if (!processingResult.trim()) return fail("processing_result", "Say what this activity produces or supports — a decision, score, recommendation, service action, or operational outcome.");
       // RK3-D (doc 33 D-L3) — form-required for new submissions; data-layer optional.
-      if (!rk3d.purpose_specificity_facts.length) return "Check what the stated purpose itself identifies — \"None of the above\" is a complete answer.";
-      if (!rk3d.out_of_scope_confirmation) return "Answer whether this same information is processed for anything outside the stated purpose — \"Unsure\" is a complete answer.";
-      if (!rk3d.comparable_processing_status) return "Answer whether this assessment covers a single activity or a set of similar activities.";
+      if (!rk3d.purpose_specificity_facts.length) return fail("rk3d_purpose_specificity_facts", "Check what the stated purpose itself identifies — \"None of the above\" is a complete answer.");
+      if (!rk3d.out_of_scope_confirmation) return fail("rk3d_out_of_scope_confirmation", "Answer whether this same information is processed for anything outside the stated purpose — \"Unsure\" is a complete answer.");
+      if (!rk3d.comparable_processing_status) return fail("rk3d_comparable_processing_status", "Answer whether this assessment covers a single activity or a set of similar activities.");
       if (hasSecondaryUses === "Yes — there are other uses") {
         const rows = secondaryActivities;
-        if (rows.some((a) => !a.relation_to_primary)) return "For each other use, say how it relates to the primary purpose.";
-        if (rows.some((a) => !a.disclosed_in_notice)) return "For each other use, say whether it is disclosed at or before collection.";
+        {
+          const i = badIdx(rows, () => true, (a) => !a.relation_to_primary);
+          if (i >= 0) return fail(rowKey("secondary_activities", i, "relation_to_primary"), "For each other use, say how it relates to the primary purpose.");
+        }
+        {
+          const i = badIdx(rows, () => true, (a) => !a.disclosed_in_notice);
+          if (i >= 0) return fail(rowKey("secondary_activities", i, "disclosed_in_notice"), "For each other use, say whether it is disclosed at or before collection.");
+        }
       }
     }
     if (step === 2) {
-      if (!q1 || !q2) return "Select the revenue band and the California consumer band.";
-      if (!q5) return "Answer whether you sell or share personal information.";
-      if (!q5bProfiling) return "Answer the profiling question.";
-      if (!q18) return "Answer whether automated decisionmaking technology is in use.";
-      if ((q18 === "Yes" || q18 === "In evaluation") && !q19) return "Describe the automated decisionmaking system and the decisions it touches.";
+      if (!q1 || !q2) return fail(!q1 ? "q1" : "q2", "Select the revenue band and the California consumer band.");
+      if (!q5) return fail("q5", "Answer whether you sell or share personal information.");
+      if (!q5bProfiling) return fail("q5b_profiling", "Answer the profiling question.");
+      if (!q18) return fail("q18", "Answer whether automated decisionmaking technology is in use.");
+      if ((q18 === "Yes" || q18 === "In evaluation") && !q19) return fail("q19", "Describe the automated decisionmaking system and the decisions it touches.");
       // DOC 157 — the categorical § 7001(ddd) answer is required whenever the
       // ADMT questions are open, and when q18b names significant-decision
       // training for a model that is not itself in use.
-      if ((admtTriggered || q18bTraining === "Yes — training ADMT for significant decisions") && !q19aDecisionCategories.length) return "Select which kind of decision the automated decisionmaking technology makes or will make — \"None of these categories\" is a complete answer.";
-      if (q19aDecisionCategories.includes(SIGNIFICANT_DECISION_CATEGORY_OPTS[1]) && !q19bHousingBasis) return "Answer whether the housing decision is based solely on availability, vacancy, or receipt of payment.";
-      if (q18 === "Yes" && !q20) return "Answer whether consumers can opt out of the automated decisionmaking.";
-      if (!q18bTraining) return "Answer whether personal information is processed to train automated decisionmaking or recognition technology.";
-      if (admtTriggered && (!i5AdmtLogic || !i5AdmtHumanReview)) return "Describe the automated decisionmaking logic and the human review process.";
+      if ((admtTriggered || q18bTraining === "Yes — training ADMT for significant decisions") && !q19aDecisionCategories.length) return fail("q19a_decision_categories", "Select which kind of decision the automated decisionmaking technology makes or will make — \"None of these categories\" is a complete answer.");
+      if (q19aDecisionCategories.includes(SIGNIFICANT_DECISION_CATEGORY_OPTS[1]) && !q19bHousingBasis) return fail("q19b_housing_basis", "Answer whether the housing decision is based solely on availability, vacancy, or receipt of payment.");
+      if (q18 === "Yes" && !q20) return fail("q20", "Answer whether consumers can opt out of the automated decisionmaking.");
+      if (!q18bTraining) return fail("q18b_training", "Answer whether personal information is processed to train automated decisionmaking or recognition technology.");
+      if (admtTriggered && (!i5AdmtLogic || !i5AdmtHumanReview)) return fail(!i5AdmtLogic ? "i5_admt_logic" : "i5_admt_human_review", "Describe the automated decisionmaking logic and the human review process.");
       // RK3-D (doc 33 D-L3) — typed ADMT operands, required when ADMT applies.
       if (admtTriggered) {
-        if (!rk3d.admt_role_type) return "Classify the ADMT's role in the decision — \"Unsure\" is a complete answer.";
-        if (!rk3d.admt_logic_documented) return "Say how the ADMT's logic is documented — \"Unsure\" is a complete answer.";
-        if (!rk3d.human_review_facts.length) return "Select what can be confirmed about the human review — \"There is no human review\" is a complete answer.";
-        if (!rk3d.admt_testing_facts.length) return "Select what describes the ADMT's testing record — \"No testing has been performed or confirmed\" is a complete answer.";
+        if (!rk3d.admt_role_type) return fail("rk3d_admt_role_type", "Classify the ADMT's role in the decision — \"Unsure\" is a complete answer.");
+        if (!rk3d.admt_logic_documented) return fail("rk3d_admt_logic_documented", "Say how the ADMT's logic is documented — \"Unsure\" is a complete answer.");
+        if (!rk3d.human_review_facts.length) return fail("rk3d_human_review_facts", "Select what can be confirmed about the human review — \"There is no human review\" is a complete answer.");
+        if (!rk3d.admt_testing_facts.length) return fail("rk3d_admt_testing_facts", "Select what describes the ADMT's testing record — \"No testing has been performed or confirmed\" is a complete answer.");
       }
-      if (!q6Multi.length || !q7 || !q8 || !q9 || !q10) return "Complete the consumer-rights answers.";
+      if (!q6Multi.length || !q7 || !q8 || !q9 || !q10) {
+        const firstMissing = !q6Multi.length ? "q6" : !q7 ? "q7" : !q8 ? "q8" : !q9 ? "q9" : "q10";
+        return fail(firstMissing, "Complete the consumer-rights answers.");
+      }
       // RK3-D (doc 33 D-L3) — choice-architecture confirmations.
-      if (!rk3d.choice_architecture_check.length) return "Select what you can confirm about how consumers are asked to permit the processing — \"None of the above can be confirmed\" is a complete answer.";
+      if (!rk3d.choice_architecture_check.length) return fail("rk3d_choice_architecture_check", "Select what you can confirm about how consumers are asked to permit the processing — \"None of the above can be confirmed\" is a complete answer.");
     }
     if (step === 3) {
-      if (!q4.length) return "Select the categories of personal information this activity processes.";
-      if (!q15) return "Answer whether sensitive personal information is processed.";
-      if (q15 === "Yes" && (!q16 || !q17 || !q15dHrCarveout)) return "Complete the sensitive personal information follow-ups.";
-      if (!q15bUnder16) return "Answer whether you have actual knowledge of processing under-16 consumers' data.";
-      if (!i4bSources) return "Identify where this personal information comes from.";
-      if (!i3CaConsumerBand) return "Select the approximate California consumer band for this activity.";
+      if (!q4.length) return fail("q4", "Select the categories of personal information this activity processes.");
+      if (!q15) return fail("q15", "Answer whether sensitive personal information is processed.");
+      if (q15 === "Yes" && (!q16 || !q17 || !q15dHrCarveout)) return fail(!q16 ? "q16" : !q17 ? "q17" : "q15d_hr_carveout", "Complete the sensitive personal information follow-ups.");
+      if (!q15bUnder16) return fail("q15b_under16", "Answer whether you have actual knowledge of processing under-16 consumers' data.");
+      if (!i4bSources) return fail("i4b_sources", "Identify where this personal information comes from.");
+      if (!i3CaConsumerBand) return fail("i3_ca_consumer_band", "Select the approximate California consumer band for this activity.");
       // RK3-A1 g2 — § 7152(a)(3)(C)/(D) (form-required; data-layer optional).
-      if (!consumerInteractionMethod) return "Select how your business interacts with the consumers this activity affects.";
-      if (!consumerInteractionPurpose.trim()) return "Say why the consumer interacts with your business in this context.";
-      if (!approximateCaConsumers.trim()) return "Give the approximate number of California consumers — a number or a range.";
-      if (!i6Vendors) return "List the service providers, contractors, or third parties involved — or write \"None\".";
-      if (!q11 || !q12 || !q13 || !q14) return "Complete the privacy-notice answers.";
-      if (!i4Disclosures.length) return "Select at least one disclosure mechanism, or \"No standalone disclosure\".";
+      if (!consumerInteractionMethod) return fail("consumer_interaction_method", "Select how your business interacts with the consumers this activity affects.");
+      if (!consumerInteractionPurpose.trim()) return fail("consumer_interaction_purpose", "Say why the consumer interacts with your business in this context.");
+      if (!approximateCaConsumers.trim()) return fail("approximate_ca_consumers", "Give the approximate number of California consumers — a number or a range.");
+      if (!i6Vendors) return fail("i6_vendors", "List the service providers, contractors, or third parties involved — or write \"None\".");
+      if (!q11 || !q12 || !q13 || !q14) return fail(!q11 ? "q11" : !q12 ? "q12" : !q13 ? "q13" : "q14", "Complete the privacy-notice answers.");
+      if (!i4Disclosures.length) return fail("i4_disclosures", "Select at least one disclosure mechanism, or \"No standalone disclosure\".");
       // RK3-A1 g4 — § 7152(a)(3)(E): each disclosure row needs content,
       // method, and Made/Planned status (form-required; data-layer optional).
       {
-        const rows = activityDisclosures.filter((r) => r.disclosure_content.trim() || r.disclosure_method || r.status);
-        if (rows.length === 0) return "Record at least one disclosure — what consumers are or will be told about this activity and how.";
-        if (rows.some((r) => !r.disclosure_content.trim())) return "Every disclosure row needs the content — what consumers are or will be told.";
-        if (rows.some((r) => !r.disclosure_method)) return "Every disclosure row needs a method — how the disclosure is or will be made.";
-        if (rows.some((r) => !r.status)) return "Mark each disclosure as Made or Planned.";
+        const started = (r: typeof activityDisclosures[number]) => Boolean(r.disclosure_content.trim() || r.disclosure_method || r.status);
+        const rows = activityDisclosures.filter(started);
+        if (rows.length === 0) return fail("activity_disclosures", "Record at least one disclosure — what consumers are or will be told about this activity and how.");
+        {
+          const i = badIdx(activityDisclosures, started, (r) => !r.disclosure_content.trim());
+          if (i >= 0) return fail(rowKey("activity_disclosures", i, "disclosure_content"), "Every disclosure row needs the content — what consumers are or will be told.");
+        }
+        {
+          const i = badIdx(activityDisclosures, started, (r) => !r.disclosure_method);
+          if (i >= 0) return fail(rowKey("activity_disclosures", i, "disclosure_method"), "Every disclosure row needs a method — how the disclosure is or will be made.");
+        }
+        {
+          const i = badIdx(activityDisclosures, started, (r) => !r.status);
+          if (i >= 0) return fail(rowKey("activity_disclosures", i, "status"), "Mark each disclosure as Made or Planned.");
+        }
       }
       // RK3-A1 g5 — § 7152(a)(3)(F): recipient rows, or the explicit
       // no-recipients declaration (form-required; data-layer optional).
       if (!recipientsNoneDeclared) {
-        const rows = recipientRows.filter((r) => r.recipient_name_or_category.trim() || r.recipient_type || r.pi_categories_made_available.length || r.disclosure_purpose.trim());
-        if (rows.length === 0) return "Add at least one recipient — or check the box declaring that no service provider, contractor, or third party receives this information.";
-        if (rows.some((r) => !r.recipient_name_or_category.trim())) return "Every recipient row needs a name or category.";
-        if (rows.some((r) => !r.recipient_type)) return "Classify each recipient: service provider, contractor, or third party.";
-        if (rows.some((r) => !r.pi_categories_made_available.length)) return "Select the personal-information categories made available to each recipient.";
-        if (rows.some((r) => !r.disclosure_purpose.trim())) return "State the purpose of the disclosure to each recipient.";
+        const started = (r: typeof recipientRows[number]) => Boolean(r.recipient_name_or_category.trim() || r.recipient_type || r.pi_categories_made_available.length || r.disclosure_purpose.trim());
+        const rows = recipientRows.filter(started);
+        if (rows.length === 0) return fail("recipient_rows", "Add at least one recipient — or check the box declaring that no service provider, contractor, or third party receives this information.");
+        {
+          const i = badIdx(recipientRows, started, (r) => !r.recipient_name_or_category.trim());
+          if (i >= 0) return fail(rowKey("recipient_rows", i, "recipient_name_or_category"), "Every recipient row needs a name or category.");
+        }
+        {
+          const i = badIdx(recipientRows, started, (r) => !r.recipient_type);
+          if (i >= 0) return fail(rowKey("recipient_rows", i, "recipient_type"), "Classify each recipient: service provider, contractor, or third party.");
+        }
+        {
+          const i = badIdx(recipientRows, started, (r) => !r.pi_categories_made_available.length);
+          if (i >= 0) return fail(rowKey("recipient_rows", i, "pi_categories_made_available"), "Select the personal-information categories made available to each recipient.");
+        }
+        {
+          const i = badIdx(recipientRows, started, (r) => !r.disclosure_purpose.trim());
+          if (i >= 0) return fail(rowKey("recipient_rows", i, "disclosure_purpose"), "State the purpose of the disclosure to each recipient.");
+        }
         // RK3-D (doc 33 D-L3) — per-row contractual protections.
-        if (rows.some((r) => !r.contractual_protections)) return "Select the contractual-protection status for each recipient — \"Unsure\" is a complete answer.";
+        {
+          const i = badIdx(recipientRows, started, (r) => !r.contractual_protections);
+          if (i >= 0) return fail(rowKey("recipient_rows", i, "contractual_protections"), "Select the contractual-protection status for each recipient — \"Unsure\" is a complete answer.");
+        }
       }
       // RK3-D (doc 33 D-L3) — sources, relationship, expectations, vendor dependency.
-      if (!rk3d.source_categories.length) return "Select the source categories this information comes through.";
-      if (!rk3d.consumer_relationship_context) return "Say who the affected consumers are in relation to your business.";
-      if (!rk3d.expectation_check.length) return "Select which processing facts apply — \"None of the above apply\" is a complete answer.";
-      if (!rk3d.vendor_dependency) return "Answer whether any recipient or vendor is essential to the processing — \"Unsure\" is a complete answer.";
+      if (!rk3d.source_categories.length) return fail("rk3d_source_categories", "Select the source categories this information comes through.");
+      if (!rk3d.consumer_relationship_context) return fail("rk3d_consumer_relationship_context", "Say who the affected consumers are in relation to your business.");
+      if (!rk3d.expectation_check.length) return fail("rk3d_expectation_check", "Select which processing facts apply — \"None of the above apply\" is a complete answer.");
+      if (!rk3d.vendor_dependency) return fail("rk3d_vendor_dependency", "Answer whether any recipient or vendor is essential to the processing — \"Unsure\" is a complete answer.");
     }
     if (step === 4) {
-      if (!i1bMinPi || i1bMinPi.length < 20) return "State the minimum personal information necessary for this purpose.";
-      if (!i2RetentionPeriod || !i2RetentionCriteria) return "Give a retention period and the criteria that set it.";
+      if (!i1bMinPi || i1bMinPi.length < 20) return fail("i1b_min_pi", "State the minimum personal information necessary for this purpose.");
+      if (!i2RetentionPeriod || !i2RetentionCriteria) return fail(!i2RetentionPeriod ? "i2_retention_period" : "i2_retention_criteria", "Give a retention period and the criteria that set it.");
       // RK3-A1 g3 — § 7152(a)(3)(B): each row needs a category plus a period
       // or the criteria that determine it (form-required; data-layer optional).
       {
-        const rows = retentionByPiCategory.filter((r) => r.pi_category || r.retention_period.trim() || r.retention_criteria);
-        if (rows.length === 0) return "Add at least one per-category retention row — the categories this activity processes each need a retention period or the criteria that determine it.";
-        if (rows.some((r) => !r.pi_category)) return "Every retention row needs a personal-information category.";
-        if (rows.some((r) => !r.retention_period.trim() && !r.retention_criteria)) return "Every retention row needs a period — or, if the period is unknown, the criteria that determine it.";
+        const started = (r: typeof retentionByPiCategory[number]) => Boolean(r.pi_category || r.retention_period.trim() || r.retention_criteria);
+        const rows = retentionByPiCategory.filter(started);
+        if (rows.length === 0) return fail("retention_by_pi_category", "Add at least one per-category retention row — the categories this activity processes each need a retention period or the criteria that determine it.");
+        {
+          const i = badIdx(retentionByPiCategory, started, (r) => !r.pi_category);
+          if (i >= 0) return fail(rowKey("retention_by_pi_category", i, "pi_category"), "Every retention row needs a personal-information category.");
+        }
+        {
+          const i = badIdx(retentionByPiCategory, started, (r) => !r.retention_period.trim() && !r.retention_criteria);
+          if (i >= 0) return fail(rowKey("retention_by_pi_category", i, "retention_period"), "Every retention row needs a period — or, if the period is unknown, the criteria that determine it.");
+        }
       }
     }
     if (step === 5) {
       // RK3-D (doc 33 D-L3) — pathway interdependency + per-safeguard-row
       // typed operands (form-required for new submissions; data-layer optional).
       const a5rows = a5HarmPathways.filter((r) => r.harm);
-      if (a5rows.length && !rk3d.risk_interdependency_check) return "Answer whether the identified impacts operate independently or could compound each other — \"Unsure\" is a complete answer.";
+      if (a5rows.length && !rk3d.risk_interdependency_check) return fail("rk3d_risk_interdependency_check", "Answer whether the identified impacts operate independently or could compound each other — \"Unsure\" is a complete answer.");
       if (rk3d.risk_interdependency_check === "Two or more identified pathways could compound each other" && rk3d.compounding_pathways.length < 2) {
-        return "Select at least two pathways that could compound each other.";
+        return fail("rk3d_compounding_pathways", "Select at least two pathways that could compound each other.");
       }
-      const a6rows = a6Safeguards.filter((r) => r.harm && (r.safeguard.trim() || r.safeguard_status));
-      if (a6rows.some((r) => !r.effectiveness_basis)) return "Select the effectiveness evidence for each safeguard — \"No effectiveness evidence\" is a complete answer.";
-      if (a6rows.some((r) => r.safeguard_status === "Planned, not yet implemented" && !r.planned_timeline)) return "Give the committed timeline for each planned safeguard — \"No committed timeline\" is a complete answer.";
+      const started = (r: typeof a6Safeguards[number]) => Boolean(r.harm && (r.safeguard.trim() || r.safeguard_status));
+      {
+        const i = badIdx(a6Safeguards, started, (r) => !r.effectiveness_basis);
+        if (i >= 0) return fail(rowKey("a6_safeguards", i, "effectiveness_basis"), "Select the effectiveness evidence for each safeguard — \"No effectiveness evidence\" is a complete answer.");
+      }
+      {
+        const i = badIdx(a6Safeguards, started, (r) => r.safeguard_status === "Planned, not yet implemented" && !r.planned_timeline);
+        if (i >= 0) return fail(rowKey("a6_safeguards", i, "planned_timeline"), "Give the committed timeline for each planned safeguard — \"No committed timeline\" is a complete answer.");
+      }
     }
     if (step === 6) {
       // RK3-A1 g6 — § 7152(a)(4) benefit gates: every class answered; "Yes"
       // requires the statement and its supporting fact. Never force a benefit.
-      const gates: [string, string, string, string, string][] = [
-        [benefitBusinessIdentified, a4BenefitBusiness, a4BenefitBusinessFact, rk3d.benefit_business_magnitude_basis, "business"],
-        [benefitConsumerIdentified, a4BenefitConsumer, a4BenefitConsumerFact, rk3d.benefit_consumer_magnitude_basis, "consumer"],
-        [benefitOtherStakeholdersIdentified, a4BenefitOtherStakeholders, a4BenefitOtherStakeholdersFact, rk3d.benefit_other_stakeholders_magnitude_basis, "other-stakeholder"],
-        [benefitPublicIdentified, a4BenefitPublic, a4BenefitPublicFact, rk3d.benefit_public_magnitude_basis, "public"],
+      const gates: [string, string, string, string, string, string][] = [
+        [benefitBusinessIdentified, a4BenefitBusiness, a4BenefitBusinessFact, rk3d.benefit_business_magnitude_basis, "business", "business"],
+        [benefitConsumerIdentified, a4BenefitConsumer, a4BenefitConsumerFact, rk3d.benefit_consumer_magnitude_basis, "consumer", "consumer"],
+        [benefitOtherStakeholdersIdentified, a4BenefitOtherStakeholders, a4BenefitOtherStakeholdersFact, rk3d.benefit_other_stakeholders_magnitude_basis, "other-stakeholder", "other_stakeholders"],
+        [benefitPublicIdentified, a4BenefitPublic, a4BenefitPublicFact, rk3d.benefit_public_magnitude_basis, "public", "public"],
       ];
-      for (const [gate, text, fact, basis, label] of gates) {
-        if (!gate) return `Answer whether a distinct ${label} benefit is identified — "No" is a complete answer.`;
-        if (gate === "Yes" && !text.trim()) return `Describe the ${label} benefit you identified.`;
-        if (gate === "Yes" && !fact.trim()) return `Give the fact in the record supporting the ${label} benefit.`;
+      for (const [gate, text, fact, basis, label, slug] of gates) {
+        if (!gate) return fail(`benefit_${slug}_identified`, `Answer whether a distinct ${label} benefit is identified — "No" is a complete answer.`);
+        if (gate === "Yes" && !text.trim()) return fail(`a4_benefit_${slug}`, `Describe the ${label} benefit you identified.`);
+        if (gate === "Yes" && !fact.trim()) return fail(`a4_benefit_${slug}_fact`, `Give the fact in the record supporting the ${label} benefit.`);
         // RK3-D (doc 33 D-L3) — magnitude basis; "No basis stated" is a complete answer.
-        if (gate === "Yes" && !basis) return `Say what kind of basis the ${label} benefit statement gives for its size — "No basis stated" is a complete answer.`;
+        if (gate === "Yes" && !basis) return fail(`benefit_${slug}_magnitude_basis`, `Say what kind of basis the ${label} benefit statement gives for its size — "No basis stated" is a complete answer.`);
       }
     }
     if (step === 7) {
-      if (!i7InternalContributors) return "List the internal contributor roles — or write \"None\".";
+      if (!i7InternalContributors) return fail("i7_internal_contributors", "List the internal contributor roles — or write \"None\".");
       // RK3-A1 g6 — § 7151: the participation record needs at least one
       // complete, confirmed row (form-required; data-layer optional).
       {
-        const rows = sectionParticipants.filter((r) => r.name.trim() || r.role.trim() || r.processing_responsibility.trim());
-        if (rows.length === 0) return "Record the employees whose job duties include participating in this processing — § 7151 requires their inclusion in the assessment process.";
-        if (rows.some((r) => !r.name.trim() || !r.role.trim())) return "Every participation row needs a name and a role or title.";
-        if (rows.some((r) => !r.processing_responsibility.trim())) return "State each participant's responsibility in the processing.";
-        if (rows.some((r) => !r.participation_confirmed)) return "Confirm each listed employee's participation in the assessment process.";
+        const started = (r: typeof sectionParticipants[number]) => Boolean(r.name.trim() || r.role.trim() || r.processing_responsibility.trim());
+        const rows = sectionParticipants.filter(started);
+        if (rows.length === 0) return fail("section_participants", "Record the employees whose job duties include participating in this processing — § 7151 requires their inclusion in the assessment process.");
+        {
+          const i = badIdx(sectionParticipants, started, (r) => !r.name.trim() || !r.role.trim());
+          if (i >= 0) return fail(rowKey("section_participants", i, "name"), "Every participation row needs a name and a role or title.");
+        }
+        {
+          const i = badIdx(sectionParticipants, started, (r) => !r.processing_responsibility.trim());
+          if (i >= 0) return fail(rowKey("section_participants", i, "processing_responsibility"), "State each participant's responsibility in the processing.");
+        }
+        {
+          const i = badIdx(sectionParticipants, started, (r) => !r.participation_confirmed);
+          if (i >= 0) return fail(rowKey("section_participants", i, "participation_confirmed"), "Confirm each listed employee's participation in the assessment process.");
+        }
       }
-      if (!i8ExecName || !i8ExecTitle) return "Give the certifying executive's name and title.";
+      if (!i8ExecName || !i8ExecTitle) return fail(!i8ExecName ? "i8_exec_name" : "i8_exec_title", "Give the certifying executive's name and title.");
     }
     return null;
   };
 
   const next = () => {
-    const err = stepValid();
-    if (err) { setValidationError(err); return; }
+    const issue = stepValid();
+    if (issue) {
+      setValidationError(issue.message);
+      fieldErrors.show(issue.fields, issue.message);
+      return;
+    }
     // Mid-intake account gate: anonymous visitors stop one step before the
     // summary (2026-09-04 policy). Answers survive the signup round-trip in
     // sessionStorage via useToolDraft's anonymous capture.
     if (!user && step + 1 === totalSteps - 1) { setAuthGateOpen(true); return; }
     setValidationError(null);
+    fieldErrors.clearAll();
     setStep((s) => s + 1);
   };
-  const back = () => { setValidationError(null); setStep((s) => Math.max(1, s - 1)); };
+  const back = () => { setValidationError(null); fieldErrors.clearAll(); setStep((s) => Math.max(1, s - 1)); };
 
 
   const intake = useMemo(() => ({
