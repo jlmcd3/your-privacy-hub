@@ -74,7 +74,10 @@ export function useFieldErrors(): FieldErrors {
   }, []);
 
   const clear = useCallback((key: string) => {
-    setFields((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : prev));
+    setFields((prev) => {
+      const next = prev.filter((k) => k !== key && baseKey(k) !== key);
+      return next.length === prev.length ? prev : next;
+    });
   }, []);
 
   const clearAll = useCallback(() => {
