@@ -1,7 +1,7 @@
 // /all-ptest fixture panel — registry and random selection.
 //
-// Importable only by the function that needs the fixtures (ptest-fixtures);
-// the panels are ~2 MB of source and must not ride in any other bundle.
+// Lives at src/lib/ptestPanels and is imported by the /all-ptest admin page;
+// the panels are ~1.2 MB of source and must not ride in any function bundle.
 
 import { PANEL_SIZE, PANEL_TOOLS, type PanelFixture, type PanelTool } from "./types.ts";
 import { PANEL_CPPA_RISK } from "./cppa-risk.ts";

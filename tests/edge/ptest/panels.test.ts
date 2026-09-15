@@ -15,7 +15,7 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   PANEL_BY_TOOL, PANEL_SIZE, PANEL_TOOL_GEO, PANEL_TOOLS, fixtureJobRows, pickFixtures, seededRandom, type PanelTool,
-} from "../../../supabase/functions/ptest-fixtures/_local/panels/index.ts";
+} from "../../../src/lib/ptestPanels/index.ts";
 import { contractForStressTool, blockingContractViolations, dropBlankMultiValues } from "../../../supabase/functions/run-stress-job/_local/intake-gate.ts";
 import { validateIntake } from "../../../supabase/functions/run-stress-job/_local/intake-contracts/validate.ts";
 import { emptyAskedKeys } from "../../../supabase/functions/_shared/ltp/record-complete.ts";

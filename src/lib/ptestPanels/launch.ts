@@ -1,4 +1,4 @@
-// /all-ptest fixture panel — LAUNCH helpers (pure; used by ptest-fixtures and tests).
+// /all-ptest fixture panel — LAUNCH helpers (pure; used from src/lib/ptestPanels and tests).
 
 import { PAGE_SLUG_TO_PANEL_TOOL, PANEL_BY_TOOL, isPanelTool, pickFixtures, seedFromString, seededRandom, type PanelPick, type PanelTool } from "./index.ts";
 

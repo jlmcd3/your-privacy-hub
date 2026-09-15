@@ -13,6 +13,8 @@
  */
 import { invokeWithTimeout } from "@/lib/sampleGenerators";
 import { supabase } from "@/integrations/supabase/client";
+import { panelCatalogue } from "@/lib/ptestPanels/index.ts";
+import { fromFixturesBody, planLaunch, resolvePanelTools } from "@/lib/ptestPanels/launch.ts";
 
 export type PtestEffort = "low" | "medium" | "high" | "max";
 
@@ -343,23 +345,30 @@ export interface PanelCatalogueRow {
   fixtures: Array<{ id: string; label: string; company: string; sector: string; geo: string }>;
 }
 
-async function fixturesFn(action: string, body: Record<string, unknown>) {
-  const { data, error } = await invokeResilient("ptest-fixtures", { action, ...body }, DRIVER_TIMEOUT_MS * 3);
-  if (error) throw new Error(error.message);
-  const d = (data ?? {}) as Record<string, unknown>;
-  if (d.error) throw new Error(`${d.error}${d.detail ? ` — ${d.detail}` : ""}`);
-  return d;
-}
-
+/**
+ * The panel catalogue (ids/labels only, no intakes) — read straight out of
+ * the panel module now that it ships in the app bundle instead of behind a
+ * dedicated edge function (removed — its panel fixtures could not ship
+ * inside an edge function bundle). Kept async so callers written against the
+ * old network call keep working unchanged.
+ */
 export async function fetchPanelCatalogue(): Promise<PanelCatalogueRow[]> {
-  const d = await fixturesFn("catalogue", {});
-  return (d.panels ?? []) as PanelCatalogueRow[];
+  return panelCatalogue();
 }
 
 /**
  * Launch a stress batch on randomly picked panel fixtures (per_product each,
  * 1–8). Returns the stress batch id (polled exactly like the Claude-intake
  * batch) and the picks, with the seed that reproduces them.
+ *
+ * Picking used to happen inside a dedicated edge function (removed — its
+ * ~2 MB of panel fixtures could not ship inside an edge function bundle).
+ * The pick is now made here, in the browser, with the same pure helpers
+ * (`resolvePanelTools` / `planLaunch` / `fromFixturesBody`) the old function
+ * called; only the `start-stress-batch` `action: "from_fixtures"` call still
+ * crosses the network, exactly as the old function made it — except now with
+ * the caller's own session token (AUTH-GATE, mirroring launchClaudeIntakeBatch
+ * in src/lib/claudeIntake.ts) instead of a service key.
  */
 export async function launchFixtureBatch(opts: {
   userId: string;
@@ -368,14 +377,42 @@ export async function launchFixtureBatch(opts: {
   seed?: string | number;
   label?: string;
 }): Promise<{ batchId: string; seed: number; picks: PanelPickRow[]; emptyPanels: string[] }> {
-  const d = await fixturesFn("launch", {
-    products: opts.products, per_product: opts.perProduct, seed: opts.seed, run_by: opts.userId, label: opts.label,
-  });
+  // AUTH-GATE (mirrors launchClaudeIntakeBatch, src/lib/claudeIntake.ts ~106-113):
+  // start-stress-batch is admin-only. When the browser session has lapsed,
+  // supabase-js falls back to the publishable key as the bearer, which the
+  // auth server rejects (bad_jwt) and the function answers 403 forbidden —
+  // check first and fail with a clear message instead.
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData.session?.access_token) {
+    throw new Error("Your session has expired — sign in again to start a batch.");
+  }
+
+  const tools = resolvePanelTools(opts.products);
+  if (!tools.length) throw new Error("no_products: products[] must name at least one known product");
+
+  const plan = planLaunch(tools, opts.perProduct, opts.seed);
+  if (!plan.picks.length) {
+    throw new Error(`empty_panels: no fixtures on the panel for ${plan.empty.join(", ")}`);
+  }
+
+  const body = fromFixturesBody(opts.userId, plan, opts.label);
+  // Same call the old edge function made to start-stress-batch, just from
+  // here: invokeResilient uses supabase.functions.invoke, which sends the
+  // caller's own session token — never a service key.
+  const { data, error } = await invokeResilient("start-stress-batch", body, DRIVER_TIMEOUT_MS * 3);
+  if (error) throw new Error(error.message);
+  const d = (data ?? {}) as Record<string, unknown>;
+  if (d.error) throw new Error(`${d.error}${d.detail ? ` — ${d.detail}` : ""}`);
+  if (!d.batch_id) throw new Error("launch_failed: start-stress-batch returned no batch_id");
+
+  const picks: PanelPickRow[] = plan.picks.map(({ tool, fixture }) => ({
+    tool, id: fixture.id, label: fixture.label, company: fixture.company, sector: fixture.sector, geo: fixture.geo,
+  }));
   return {
     batchId: String(d.batch_id),
-    seed: Number(d.seed),
-    picks: (d.picks ?? []) as PanelPickRow[],
-    emptyPanels: (d.empty_panels ?? []) as string[],
+    seed: plan.seed,
+    picks,
+    emptyPanels: [...plan.empty],
   };
 }
 

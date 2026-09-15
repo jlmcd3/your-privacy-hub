@@ -437,7 +437,7 @@ Deno.serve(async (req) => {
 
   // ── FIXTURE-PANEL LAUNCH (CEO instruction 2026-09-14) ─────────────────────
   // /all-ptest picks one committed fixture per product at random
-  // (ptest-fixtures → ptest-fixtures/_local/panels) and runs the SAME harness on it.
+  // (the admin page picks fixtures in the browser from src/lib/ptestPanels) and runs the SAME harness on it.
   // No Claude intake generation: the jobs arrive fully formed, so setup is
   // complete on insert and the workers start at once. Everything downstream
   // (run-stress-job's per-tool arms, the contract gate, finalisation) is

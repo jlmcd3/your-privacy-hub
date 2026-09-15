@@ -2,8 +2,8 @@
 // Hermetic. (Panel CONTENT is gated by panels.test.ts.)
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { PANEL_BY_TOOL, PANEL_TOOLS, pickFixtures, seedFromString, seededRandom } from "../../../supabase/functions/ptest-fixtures/_local/panels/index.ts";
-import { fromFixturesBody, planLaunch, resolvePanelTools } from "../../../supabase/functions/ptest-fixtures/_local/panels/launch.ts";
+import { PANEL_BY_TOOL, PANEL_TOOLS, pickFixtures, seedFromString, seededRandom } from "../../../src/lib/ptestPanels/index.ts";
+import { fromFixturesBody, planLaunch, resolvePanelTools } from "../../../src/lib/ptestPanels/launch.ts";
 
 Deno.test("resolvePanelTools — page slugs and harness ids both resolve; unknowns drop; duplicates collapse", () => {
   assertEquals(resolvePanelTools(["cppa_risk", "cppa-risk", "li_assessment", "nope", "eu_notice", 7]), ["cppa-risk", "lia", "eu-notice"]);

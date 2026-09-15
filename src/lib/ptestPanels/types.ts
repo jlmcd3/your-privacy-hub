@@ -1,7 +1,7 @@
 // /all-ptest — THE FIXTURE PANEL (CEO instruction 2026-09-14): fifteen
 // complete, internally consistent dummy intakes per product sold on
 // enduserprivacy.com. A product test at /all-ptest picks ONE fixture per
-// product at random from its panel (see ../../../ptest-fixtures) and runs
+// product at random from its panel (see src/lib/ptestPanels) and runs
 // the stress harness on it — the same generation path as the Claude-intake
 // mode, with a fixed, reviewable input.
 //
