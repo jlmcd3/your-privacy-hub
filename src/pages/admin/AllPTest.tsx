@@ -85,8 +85,8 @@ export default function AllPTest() {
   // product at random (fifteen per product under _shared/review/panels);
   // "claude" writes a fresh company profile via the stress harness. Either
   // way the documents are generated server-side and then reviewed.
-  // Default flips to "panel" in the commit that lands the authored panels.
-  const [intakeSource, setIntakeSource] = useState<"panel" | "claude">("claude");
+  // Default is "panel": the thirteen authored panels landed 2026-09-14.
+  const [intakeSource, setIntakeSource] = useState<"panel" | "claude">("panel");
   // Documents per product from the chosen source (0 = golden panel only).
   const [count, setCount] = useState(1);
   const [useGolden, setUseGolden] = useState(true);

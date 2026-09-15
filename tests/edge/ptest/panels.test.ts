@@ -4,8 +4,10 @@
 // metadata the page and the harness read, (b) pass the product's intake
 // contract with ZERO violations (not just the harness's blocking subset —
 // a "perfect" fixture answers every required field with verbatim options and
-// carries no unknown key), (c) name distinct companies, and (d) for the three
-// deterministic CPPA engines, generate a document offline without throwing.
+// carries no unknown key), (c) name distinct companies, (d) for products whose
+// PERFECT golden reaches zero empty asked keys, leave the product's own
+// record-complete gate clear, and (e) for the three deterministic CPPA
+// engines, generate a document offline without throwing or a lint defect.
 //
 // Run one product while authoring:
 //   deno test --no-check --allow-read --allow-env tests/edge/ptest/panels.test.ts --filter "[cppa-risk]"
@@ -16,6 +18,7 @@ import {
 } from "../../../supabase/functions/_shared/review/panels/index.ts";
 import { contractForStressTool, blockingContractViolations, dropBlankMultiValues } from "../../../supabase/functions/run-stress-job/_local/intake-gate.ts";
 import { validateIntake } from "../../../supabase/functions/run-stress-job/_local/intake-contracts/validate.ts";
+import { emptyAskedKeys } from "../../../supabase/functions/_shared/ltp/record-complete.ts";
 import { ROPA_ACTIVITY_ANSWER_KEYS } from "../../../supabase/functions/run-stress-job/_local/ropa-rows.ts";
 import { generateCppaRiskReport } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/generate-cppa-risk.ts";
 import { computeAdmtV2 } from "../../../supabase/functions/run-admt-checker-v2/_local/ltp/admt-v2-deterministic.ts";
@@ -37,7 +40,7 @@ const DATE = "2026-09-14";
 /** The intake key that carries the named entity, per tool (must equal fixture.company). */
 const COMPANY_KEY: Record<PanelTool, string[]> = {
   "cppa-risk": ["entity_name"],
-  "cppa-cyber": ["profile.company_name", "company_name", "entity_name"],
+  "cppa-cyber": ["profile.entity_name"],
   "cppa-admt": ["organization_name"],
   "dpia": ["organization_name"],
   "lia": ["organization_name"],
@@ -50,6 +53,9 @@ const COMPANY_KEY: Record<PanelTool, string[]> = {
   "eu-notice": ["controller_name"],
   "registration": ["organization_name"],
 };
+
+/** Products whose shipped PERFECT golden reaches zero empty asked keys (verified 2026-09-14). */
+const RECORD_COMPLETE_ZERO = new Set<PanelTool>(["cppa-risk", "cppa-cyber", "biometric", "ir-playbook"]);
 
 function readPath(o: unknown, path: string): unknown {
   let cur: unknown = o;
@@ -145,6 +151,25 @@ for (const tool of PANEL_TOOLS) {
       }
     }
   });
+
+  // RECORD-COMPLETE (item380-r5 semantics): the product's own truth gate
+  // (`_shared/ltp/record-complete.ts`) counts every ASKED key — optional-but-
+  // presented fields included, untriggered conditionals excluded — and the
+  // "record before this assessment is complete" framing renders only when the
+  // count is zero. The shipped PERFECT goldens reach zero on these products,
+  // so a "perfect" panel fixture must too. (ADMT/DPIA/LIA/governance goldens
+  // do not reach zero themselves — scenario-driven empties — so the gate is
+  // not applied there; dpa/notices/registration have no truth gate.)
+  if (RECORD_COMPLETE_ZERO.has(tool)) {
+    Deno.test(`panel [${tool}] — every fixture answers every asked intake key (record-complete gate clear)`, () => {
+      if (!authored) return skip();
+      const contract = contractForStressTool(tool)!;
+      for (const f of panel) {
+        const empties = emptyAskedKeys(contract, dropBlankMultiValues(contract, f.intake as Bag));
+        assertEquals(empties, [], `${f.id}: empty asked keys — the record-complete gate would read "contract_incomplete"`);
+      }
+    });
+  }
 
   if (tool === "cppa-risk" || tool === "cppa-admt" || tool === "cppa-cyber") {
     Deno.test(`panel [${tool}] — every fixture generates a document offline (deterministic engine) with no new lint defect`, async () => {
