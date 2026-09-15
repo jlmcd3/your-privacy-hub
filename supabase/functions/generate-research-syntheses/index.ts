@@ -164,7 +164,11 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const authHeader = req.headers.get("Authorization") ?? "";
-  if (authHeader !== `Bearer ${ADMIN_SECRET}`) {
+  const CRON_TOKEN = Deno.env.get("RESEARCH_CRON_TOKEN") ?? "";
+  const authorized =
+    (ADMIN_SECRET && authHeader === `Bearer ${ADMIN_SECRET}`) ||
+    (CRON_TOKEN && authHeader === `Bearer ${CRON_TOKEN}`);
+  if (!authorized) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
