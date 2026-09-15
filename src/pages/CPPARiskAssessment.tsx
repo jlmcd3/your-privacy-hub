@@ -409,6 +409,16 @@ export default function CPPARiskAssessment() {
     message: fieldErrors.message,
     onInteract: () => fieldErrors.clear(k),
   });
+  /**
+   * Spread onto a question wrapper that already exists in the JSX. The red
+   * treatment itself lives in index.css on [data-field][aria-invalid="true"],
+   * so spreading this never fights an existing className.
+   */
+  const errAnchor = (k: string) => ({
+    "data-field": k,
+    "aria-invalid": fieldErrors.isInvalid(k) ? true : undefined,
+    onClickCapture: () => fieldErrors.clear(k),
+  });
 
   const refine = useRefineMode("cppa_risk_assessment");
   const { isPro } = useSubscriptionTier();
