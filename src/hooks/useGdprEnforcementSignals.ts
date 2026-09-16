@@ -78,16 +78,30 @@ export function useGdprEnforcementSignals(
 
             const json = await res.json();
             const actions: any[] = json.results ?? json.enforcement_context ?? [];
-            const caseCount: number = json.total_matched ?? actions.length;
-            const topCase = actions[0];
+            // Governance F21 (2026-09-15) — count only actions that cite the
+            // requested provisions; a fallback pool is not a topic count.
+            const matchedActions = actions.filter((a) => a?.topic_match !== false);
+            const caseCount: number = typeof json.topic_matched_count === "number"
+              ? json.topic_matched_count
+              : matchedActions.length;
+            const example = matchedActions.find((a) => a?.regulator && a?.violation) ?? null;
+            const provisionLabel = config.articles.map((a) => a.replace(/^gdpr:/, "Art. ")).join(" / ");
 
-            let summary = `${caseCount} GDPR enforcement action${caseCount !== 1 ? "s" : ""} in our corpus involve ${config.description}.`;
-            if (topCase?.regulator && topCase?.violation) {
-              summary += ` Most significant: ${topCase.regulator as string} — ${String(topCase.violation).slice(0, 100)}.`;
+            let summary: string;
+            if (caseCount > 0) {
+              summary = `${caseCount} GDPR enforcement action${caseCount !== 1 ? "s" : ""} in our corpus cite${caseCount === 1 ? "s" : ""} ${provisionLabel} GDPR — ${config.description}.`;
+              if (example) summary += ` One example: ${example.regulator as string} — ${String(example.violation).slice(0, 100)}.`;
+            } else {
+              summary = `No action in our corpus cites ${provisionLabel} GDPR for ${config.description}; this is a general prompt, not evidence of enforcement on this point.`;
             }
             summary += " Ensure your answer is consistent with your actual practices and privacy policy.";
 
-            results[key] = { summary, caseCount };
+            results[key] = {
+              summary,
+              caseCount,
+              example: example ? { regulator: String(example.regulator), violation: String(example.violation), url: typeof example.source_url === "string" ? example.source_url : null } : null,
+              noTopicMatch: caseCount === 0,
+            };
           } catch {
             // Silent — signals must never block the form
           }

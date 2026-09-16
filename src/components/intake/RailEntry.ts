@@ -16,7 +16,24 @@ export type RailEntry = {
   citationUrl?: string;
   plainSummary: string;
   regulationText: string;
+  /**
+   * LIA/DPIA/Governance master reviews (2026-09-15): what `regulationText`
+   * IS. Default is inferred: an unbroken quotation is "verbatim", text with
+   * an ellipsis is an "excerpt", text beginning "Summary of" is a "summary".
+   * Set explicitly for guidance quotations ("guidance", e.g. WP248) and for
+   * product paraphrases ("paraphrase"), which must never be labelled as law.
+   * A bare placeholder ("…") is suppressed by the rail whatever the kind.
+   */
+  regulationTextKind?: "verbatim" | "excerpt" | "summary" | "guidance" | "paraphrase";
+  /** Overrides the heading shown above `regulationText` (e.g. "EDPB WP248 rev.01 (verbatim)"). */
+  regulationTextHeading?: string;
   fscrContext?: string;
+  /**
+   * Heading for `fscrContext`. Defaults to "Agency reasoning (FSOR)" for the
+   * CPPA products; the GDPR hook sets "GDPR recital (context)" so a recital is
+   * never presented as an agency's final statement of reasons.
+   */
+  fscrContextHeading?: string;
   enforcementNote?: string;
   goodAnswer?: string;
   /**

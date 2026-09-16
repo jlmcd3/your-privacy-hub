@@ -50,8 +50,12 @@ Deno.test("doc258 — the contract carries the seven Art. 37(1)(c) elements, gat
   assertEquals(core.required, "conditional");
   assertEquals((core as Bag).hiddenValue, "n/a");
   assertEquals(SC_POPULATION_PROPORTION.length, 3);
-  assertEquals(SC_DURATION.length, 4);
-  assertEquals(SC_GEOGRAPHIC_SCOPE.length, 4);
+  // Governance master review (2026-09-15, F06) — both lists gained an honest
+  // "Unknown"; the four Doc 258 options are unchanged and still lead the list.
+  assertEquals(SC_DURATION.length, 5);
+  assertEquals(SC_GEOGRAPHIC_SCOPE.length, 5);
+  assertEquals(SC_DURATION[4], "Unknown");
+  assertEquals(SC_GEOGRAPHIC_SCOPE[4], "Unknown");
 });
 
 Deno.test("doc258 — the form's option lists mirror the contract verbatim", async () => {

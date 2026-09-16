@@ -384,7 +384,7 @@ export default function RefinePanel({
         <div>
           <div className="text-eyebrow text-brand-mist mb-2">Supplemental information for this revision</div>
           <p className="text-sm text-slate max-w-[70ch]">
-            Answer any open items the prior report named, and add anything else material to this revision. Your notes are used as intake for the re-run.
+            Answer any open items the prior report named. Your answers are used as intake for the re-run; there is no separate box here for other material.
           </p>
         </div>
         {priorInfo.length > 0 && (

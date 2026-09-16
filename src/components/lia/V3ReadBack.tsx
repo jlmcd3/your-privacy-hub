@@ -18,6 +18,11 @@
 // Panels render INLINE under the field they concern (a portal into the
 // textarea's parent element) so the message sits with the answer; when no
 // such element exists the panel renders where the component is mounted.
+//
+// LIA F21 (2026-09-15): the page passes `closedAnswers` (the closed-list
+// answers the gate compares free text against) and receives `onGateSettled`
+// once the submit-time gate has finished, so checkout can wait for it. The
+// gate runs ONLY at submit — never on blur.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -49,6 +54,12 @@ export interface V3ReadBackProps {
   readonly closedAnswers?: Record<string, unknown>;
   /** The anonymous preview token, when the row has no owner yet. */
   readonly previewToken?: string | null;
+  /**
+   * Called once per submit signal after the gate has run (or was not
+   * needed), with the field ids that are non-conforming and not yet kept as
+   * written. The page holds checkout while any remain.
+   */
+  readonly onGateSettled?: (result: { nonConforming: string[] }) => void;
 }
 
 interface FieldState {
@@ -69,7 +80,9 @@ function fieldElement(field_id: string): HTMLTextAreaElement | HTMLInputElement 
 }
 
 export default function V3ReadBack(props: V3ReadBackProps) {
-  const { assessmentId, fields, submitSignal = 0, closedAnswers, previewToken = null } = props;
+  const { assessmentId, fields, submitSignal = 0, closedAnswers, previewToken = null, onGateSettled } = props;
+  const settledRef = useRef(onGateSettled);
+  settledRef.current = onGateSettled;
   const [states, setStates] = useState<FieldStates>({});
   const fieldsRef = useRef(fields);
   const statesRef = useRef<FieldStates>({});
@@ -127,6 +140,12 @@ export default function V3ReadBack(props: V3ReadBackProps) {
         preview_token: previewToken,
       });
       if (res.error) console.warn("[lia-v3] submit state not recorded (non-fatal):", res.error);
+      if (cancelled) return;
+      // F21 — report the settled state: flagged answers not yet kept as written.
+      const nonConforming = Object.entries(statesRef.current)
+        .filter(([, s]) => s && s.gate?.verdict === "non_conforming" && !s.stood_on)
+        .map(([field_id]) => field_id);
+      settledRef.current?.({ nonConforming });
     })();
     return () => {
       cancelled = true;
@@ -160,6 +179,9 @@ export default function V3ReadBack(props: V3ReadBackProps) {
           question,
           span: s.gate.evidence_span ?? "",
           other_question: s.gate.other_limb_field ? liaV3QuestionText(s.gate.other_limb_field) : "",
+          // F21 — the contradiction template renders only when the gate names the closed question and answer.
+          closed_question: s.gate.closed_field ? liaV3QuestionText(s.gate.closed_field) : "",
+          closed_answer: s.gate.closed_answer ?? "",
         });
         if (line) lines.push(line);
       }

@@ -20,7 +20,7 @@
  * is "always" required by contract — but degrade loudly rather than throw
  * if it ever does).
  */
-import { classifyLiaUseCase, USE_CASE_LABELS } from "../../../../_shared/lia/lia-use-case-classifier.ts";
+import { liaUseCaseWasConfirmed, resolveLiaUseCase, USE_CASE_LABELS } from "../../../../_shared/lia/lia-use-case-classifier.ts";
 import { LIA_PRECEDENT_CLASSES_VERSION, precedentClassRow } from "./precedent-classes.ts";
 import type { PrecedentClassFinding } from "./types.ts";
 
@@ -70,11 +70,15 @@ export function buildPrecedentClassPosture(intake: unknown): PrecedentClassFindi
     };
   }
 
-  const useCaseClass = classifyLiaUseCase(description);
+  // LIA master review (2026-09-15, F03) — the customer's confirmed class
+  // (screening correction) wins over a fresh keyword classification.
+  const useCaseClass = resolveLiaUseCase(intake);
   const useCaseLabel = USE_CASE_LABELS[useCaseClass] ?? USE_CASE_LABELS.other;
   const row = precedentClassRow(useCaseClass);
 
-  const record_fact = `The record describes this processing as ${useCaseLabel.toLowerCase()}.`;
+  const record_fact = liaUseCaseWasConfirmed(intake)
+    ? `The Company confirmed at screening that this processing is ${useCaseLabel.toLowerCase()}.`
+    : `The record describes this processing as ${useCaseLabel.toLowerCase()}.`;
 
   if (!row) {
     return {

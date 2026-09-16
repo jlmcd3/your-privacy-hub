@@ -43,7 +43,7 @@ import {
   type ScoredRow,
 } from "../../../_shared/corpus/cam-relevance.ts";
 import type { CamRelevanceProfile, CamRow } from "../../../_shared/corpus/cam-types.ts";
-import { classifyLiaUseCase, USE_CASE_LABELS } from "../../../_shared/lia/lia-use-case-classifier.ts";
+import { resolveLiaUseCase, USE_CASE_LABELS } from "../../../_shared/lia/lia-use-case-classifier.ts";
 // DOC 213 TRACK H2 — offline analogy hooks, dark behind LIA_HOOKS_ENABLED
 // (default false; LIA_HOOKS ships [] until the first ratified row, so the
 // block below is a no-op in production today regardless of the flag). This
@@ -179,7 +179,7 @@ export function buildLiaRelevanceQuery(report: Bag, intake: Bag): RelevanceQuery
   }
 
   const posture = bag(report.precedent_class_posture);
-  const useCase = s(posture.use_case_class) || classifyLiaUseCase(s(intake.processing_description));
+  const useCase = s(posture.use_case_class) || resolveLiaUseCase(intake);
 
   const balancing = bag(intake.balancing_details);
   const relationship = RELATIONSHIP_CATEGORY[s(balancing.relationship_category)] ??

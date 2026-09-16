@@ -51,7 +51,13 @@ const base = {
   alternatives_considered:
     "Consent under Article 6(1)(a) — members could decline app-based recommendations entirely, which would remove the scheduling and availability feature members have said in surveys they value, and would need to be re-obtained at every renewal. Manual scheduling by staff — would not scale to the volume of daily bookings and could not update live equipment availability in real time.",
 
+  // LIA master review (2026-09-15) — the intake now asks these; a complete record answers them.
+
+  use_case_code_confirmed: "product_improvement",
+
   purpose_details: {
+
+  stated_purpose_status: "Published in our current privacy notice",
     interest_holder: "Our business",
     interest_type: "Commercial benefit — improving the member experience and supporting subscription retention",
     interest_statement:
@@ -114,6 +120,8 @@ const base = {
   },
 
   attestation: {
+
+  approval_status: "Approved",
     dpo_reviewed: "Yes",
     dpo_reviewer: "Priya Nathwani",
     dpo_review_date: "2026-07-14",

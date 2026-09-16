@@ -51,6 +51,9 @@ export const POTENTIAL_HARM_OPTS = [
   "Limited — minor inconvenience or unwanted contact",
   "Significant — discrimination, financial loss, reputational damage",
   "Severe — physical safety, identity theft, loss of livelihood",
+  // LIA master review (2026-09-15, F16) — severity not yet assessed is an
+  // honest answer the report records as open (severityOf → "unknown").
+  "Not assessed",
   "None / negligible", "Minor", "Moderate", "Severe",
 ] as const;
 // DOC 161 — the purpose selects' option strings (text fields on the contract;
@@ -98,8 +101,11 @@ const BENEFICIARY_OPTS = [
   "Our business", "The individuals whose data is processed", "A third party",
   "Our business and the individuals", "Our business and a third party",
 ] as const;
+// LIA master review (2026-09-15, F16) — mixed and unlisted relationships are
+// honest answers; the two additions are appended, nothing renamed.
 const RELATIONSHIP_CATEGORY_OPTS = [
   "Customer", "Employee", "Prospect", "Member of the public — no relationship",
+  "Mixed — more than one relationship", "Other",
 ] as const;
 const OPT_OUT_AVAILABLE_OPTS = [
   "Yes — unconditional, on request, with no consequence",
@@ -131,7 +137,22 @@ const ART9_CONDITION_OPTS = [
   "Archiving, research or statistics (Art. 9(2)(j))",
   "None identified",
   "Not yet assessed",
+  // LIA master review (2026-09-15, F12) — Art. 9(1) reaches biometric data
+  // only when processed "for the purpose of uniquely identifying a natural
+  // person"; a biometric category used otherwise is not special-category
+  // data, and the record says so instead of forcing a condition.
+  "Not applicable — the biometric data is not used to uniquely identify individuals",
 ] as const;
+// LIA master review (2026-09-15) — new closed lists. Verbatim copies live in
+// src/pages/LIAssessment.enums.ts; parity is enforced by the test.
+export const STATED_PURPOSE_STATUS_OPTS = [
+  "Published in our current privacy notice",
+  "Proposed wording — not yet published",
+  "Not yet drafted",
+] as const;
+export const CHILDREN_AGE_BAND_OPTS = ["Under 13", "13 to 15", "16 to 17", "Mixed ages", "Not known"] as const;
+export const BIOMETRIC_UNIQUE_ID_OPTS = ["Yes", "No", "Not sure"] as const;
+export const APPROVAL_STATUS_OPTS = ["Approved", "Approval pending", "Not yet submitted for approval", "Not applicable"] as const;
 const MARKETING_CONSENT_BASIS_OPTS = [
   "Consent obtained",
   "Soft opt-in (existing customers; the organisation's own similar products or services)",
@@ -188,6 +209,11 @@ export const liAssessmentStageBContract: IntakeContract = {
     { key: "purpose_details.interest_statement",       kind: "narrative",  required: "optional" },
     { key: "purpose_details.interest_holder_other",    kind: "text",       required: "optional" },
     { key: "purpose_details.interest_type_other",      kind: "text",       required: "optional" },
+    // LIA master review (2026-09-15, F11) — the notice wording's status:
+    // published, proposed or not yet drafted. The transparency analysis
+    // reads the status beside the words instead of treating draft copy as a
+    // disclosure made.
+    { key: "purpose_details.stated_purpose_status",    kind: "enum",       required: "optional", options: STATED_PURPOSE_STATUS_OPTS },
     // ITEM 311 — Art. 6(1)(f) second subparagraph. The exclusion is decided
     // BEFORE the balance is reached, so the record has to carry it. Optional
     // at contract level; the builder degrades loudly when it is absent.
@@ -258,6 +284,19 @@ export const liAssessmentStageBContract: IntakeContract = {
     { key: "balancing_details.vulnerable_subjects_other",    kind: "text",       required: "optional" },
     // ITEM 311 — Art. 6(1)(f) "in particular where the data subject is a child".
     { key: "balancing_details.children_data_subjects",       kind: "enum",       required: "optional", options: CHILD_DATA_SUBJECT_OPTS },
+    // LIA master review (2026-09-15, F05) — the age range is asked, never
+    // inferred from a general Yes; shown only when children are involved.
+    { key: "balancing_details.children_age_band",            kind: "enum",       required: "conditional", options: CHILDREN_AGE_BAND_OPTS,
+      requiredWhen: 'balancing_details.children_data_subjects === "Yes"',
+      trigger: { key: "balancing_details.children_data_subjects", equals: ["Yes"] },
+      hiddenValue: "" },
+    // LIA master review (2026-09-15, F12) — Art. 9(1) qualifies biometric
+    // data by the unique-identification purpose; asked only when the
+    // "Biometric data" category is selected.
+    { key: "balancing_details.biometric_unique_identification", kind: "enum",    required: "conditional", options: BIOMETRIC_UNIQUE_ID_OPTS,
+      requiredWhen: 'data_categories includes "Biometric data"',
+      trigger: { key: "data_categories[]", equals: ["Biometric data"] },
+      hiddenValue: "" },
 
     { key: "balancing_details.potential_harm",               kind: "enum",       required: "always", options: POTENTIAL_HARM_OPTS },
     { key: "balancing_details.potential_harm_detail",        kind: "narrative",  required: "optional" },
@@ -303,9 +342,17 @@ export const liAssessmentStageBContract: IntakeContract = {
     { key: "attestation.approver_name",       kind: "text",         required: "optional" },
     { key: "attestation.approver_position",   kind: "text",         required: "optional" },
     { key: "attestation.approval_date",       kind: "text",         required: "optional" },
+    // LIA master review (2026-09-15, F19) — the approval state is recorded,
+    // never inferred from blank name/date fields.
+    { key: "attestation.approval_status",     kind: "enum",         required: "optional", options: APPROVAL_STATUS_OPTS },
     { key: "attestation.review_triggers",     kind: "string-array", required: "optional" },
 
     { key: "stage",                 kind: "text", required: "always" },        // "submitted"
     { key: "preview_assessment_id", kind: "text", required: "always" },
+    // LIA master review (2026-09-15, F03) — the use case the customer
+    // confirmed at screening (a classifier code), when they corrected the
+    // detected one. The engine's classifier consumers prefer it over a fresh
+    // keyword classification (resolveLiaUseCase). Null when not corrected.
+    { key: "use_case_code_confirmed", kind: "text", required: "optional" },
   ],
 };

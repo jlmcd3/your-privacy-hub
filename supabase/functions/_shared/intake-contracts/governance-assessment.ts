@@ -52,20 +52,43 @@ export const SC_DURATION = [
   "Recurring",
   "Long-term but for a fixed period",
   "Temporary or one-off",
+  // Governance master review (2026-09-15, F06) — an unknown is an honest answer.
+  "Unknown",
 ] as const;
 export const SC_GEOGRAPHIC_SCOPE = [
   "Local",
   "National",
   "Several Member States or countries",
   "Broader than the EU/EEA and the UK",
+  // Governance master review (2026-09-15, F06).
+  "Unknown",
 ] as const;
+// Governance master review (2026-09-15, F06) — Art. 9(1) names philosophical
+// beliefs and sex life beside the categories already listed; an "Other or
+// unsure" route records a category the list does not name instead of forcing
+// a wrong one. Biometric data counts only when used to uniquely identify.
 export const GOV_SPECIAL_CATS = [
   "Health data", "Biometric data", "Genetic data", "Racial/ethnic origin",
   "Political opinions", "Religious beliefs", "Trade union membership",
   "Sexual orientation",
+  "Philosophical beliefs", "Sex life", "Other or unsure which category",
 ] as const;
 
 const YES_NO = ["Yes", "No"] as const;
+// Governance master review (2026-09-15, F06) — special_category gains an
+// honest unknown; the engine reads "Yes" only, so "Unknown" behaves as
+// not-established (recorded as open, never as a categorical negative).
+export const SPECIAL_CATEGORY_OPTS = ["Yes", "No", "Unknown"] as const;
+// F10 — Art. 3 territorial-scope facts, asked beside the residents question.
+export const TERRITORIAL_SCOPE_BASIS = [
+  "Established in the EU or EEA",
+  "Established in the UK",
+  "We offer goods or services to people in the EU or UK",
+  "We monitor the behaviour of people in the EU or UK",
+  "None of these",
+  "Unsure",
+] as const;
+export const TERRITORIAL_SCOPE_EXCLUSIVE = ["None of these", "Unsure"] as const;
 
 // GOVERNANCE UPGRADE — remediation menus (mirrored in the deliverables
 // registry at _shared/ltp/governance-deliverables/elements.ts).
@@ -127,6 +150,11 @@ const DPA_ART28 = ["Yes — verified", "Partially", "Not verified", "Unsure"] as
 const TRANSFER_STATUS = [
   "Yes, US-based tools", "Yes, other non-adequate countries",
   "All tools store data in EU/UK", "Unsure",
+  // Governance master review (2026-09-15, F08) — adequacy destinations and
+  // mixed routes are distinguishable answers; the mechanism question opens
+  // for every "Yes".
+  "Yes, only to countries with an adequacy decision or regulations",
+  "Yes, a mix of routes (described below)",
 ] as const;
 // Union of the three branch-specific transfer_mechanism option lists
 // (isUk&!isEu / isEu&!isUk / mixed) as computed in
@@ -152,11 +180,17 @@ const DSR_CAPABILITY = [
   "Documented but not tested", "Ad hoc / not documented",
   "No process in place", "Unsure",
 ] as const;
-const DSR_RIGHTS_TESTED = ["Access", "Erasure", "Portability", "Rectification"] as const;
+// Governance master review (2026-09-15, F18) — the two further Chapter III
+// rights a process can be tested against.
+const DSR_RIGHTS_TESTED = ["Access", "Erasure", "Portability", "Rectification", "Restriction", "Objection"] as const;
 const INVENTORY_AUDIT = [
   "Yes — audited + formal approval process",
   "Inventory exists, no formal audit/approval",
   "No formal inventory", "Unsure",
+  // Governance master review (2026-09-15, F18) — the mixed states the old
+  // bundles could not express.
+  "Inventory exists and is audited, but there is no formal approval route",
+  "Inventory exists with a formal approval route, but it is not audited",
 ] as const;
 // DOC 162 (2026-09-03) — Art. 30(1)(f) "where possible, the envisaged time
 // limits for erasure of the different categories of data". The Art. 30
@@ -188,9 +222,19 @@ export const governanceContract: IntakeContract = {
   fields: [
     { key: "organization_name", kind: "text", required: "always" },
     { key: "sector", kind: "enum", required: "always", options: GOV_SECTORS },
+    // Governance master review (2026-09-15, F06) — the explanatory inputs
+    // behind an "Other" selection; asked only when Other is selected.
+    { key: "sector_other", kind: "text", required: "conditional",
+      requiredWhen: 'sector === "Other"', trigger: { key: "sector", equals: ["Other"] }, hiddenValue: "" },
     { key: "org_size", kind: "enum", required: "always", options: GOV_SIZES },
     { key: "jurisdictions", kind: "multi-enum", required: "always", options: GOV_JURISDICTIONS },
+    { key: "jurisdictions_other", kind: "text", required: "conditional",
+      requiredWhen: 'jurisdictions includes "Other"', trigger: { key: "jurisdictions[]", equals: ["Other"] }, hiddenValue: "" },
     { key: "eu_uk_data", kind: "enum", required: "always", options: YES_NO },
+    // F10 — the Art. 3 facts that decide territorial scope; the residents
+    // question alone does not. Optional so legacy rows validate.
+    { key: "territorial_scope_basis", kind: "multi-enum", required: "optional", options: TERRITORIAL_SCOPE_BASIS,
+      exclusive: TERRITORIAL_SCOPE_EXCLUSIVE },
     // `tools` is a flat string[] in the real form (GovernanceAssessment.tsx
     // ~L99), always drawn from GOV_TOOLS. The form additionally folds an
     // optional "Other: <text>" suffix (page ~L196) — that non-verbatim
@@ -203,7 +247,9 @@ export const governanceContract: IntakeContract = {
     // .join() at run-governance-assessment L802 (RC-Gov-Crash-2026-07-15).
     { key: "tools", kind: "multi-enum", required: "optional", options: GOV_TOOLS },
     { key: "data_categories", kind: "multi-enum", required: "always", options: GOV_DATA_CATS },
-    { key: "special_category", kind: "enum", required: "always", options: YES_NO },
+    { key: "data_categories_other", kind: "text", required: "conditional",
+      requiredWhen: 'data_categories includes "Other"', trigger: { key: "data_categories[]", equals: ["Other"] }, hiddenValue: "" },
+    { key: "special_category", kind: "enum", required: "always", options: SPECIAL_CATEGORY_OPTS },
     // Batch b83ea3c4 (2026-09-05): the form shows the category pills only when
     // special_category is "Yes" (GovernanceAssessment.tsx); the engine reads
     // the list only under that answer.
@@ -243,9 +289,15 @@ export const governanceContract: IntakeContract = {
     { key: "dpa_status", kind: "enum", required: "conditional",
       requiredWhen: 'eu_uk_data === "Yes"',
       hiddenValue: "n/a", options: [...DPA_STATUS, "n/a"] as unknown as readonly string[] },
+    // Governance master review (2026-09-15, F08) — optional structured detail
+    // behind the aggregate answers, so the report can count what the intake
+    // identified and not claim a count it never collected.
+    { key: "processor_count", kind: "text", required: "optional" },
+    { key: "uncovered_vendors", kind: "narrative", required: "optional" },
     { key: "transfer_status", kind: "enum", required: "conditional",
       requiredWhen: 'eu_uk_data === "Yes"',
       hiddenValue: "n/a", options: [...TRANSFER_STATUS, "n/a"] as unknown as readonly string[] },
+    { key: "transfer_routes", kind: "narrative", required: "optional" },
     { key: "technical_controls", kind: "enum", required: "always", options: TECHNICAL_CONTROLS },
     { key: "technical_controls_list", kind: "multi-enum", required: "conditional",
       requiredWhen: 'technical_controls === "Yes — DLP/content filtering actively enforced" OR starts with "Partial"',
@@ -267,7 +319,7 @@ export const governanceContract: IntakeContract = {
       requiredWhen: 'dpa_status ∈ {"Yes, all vendors","Most vendors"}',
       hiddenValue: "n/a", options: [...DPA_ART28, "n/a"] as unknown as readonly string[] },
     { key: "transfer_mechanism", kind: "enum", required: "conditional",
-      requiredWhen: 'transfer_status ∈ {"Yes, US-based tools","Yes, other non-adequate countries"}',
+      requiredWhen: 'transfer_status starts with "Yes"',
       hiddenValue: "n/a", options: [...TRANSFER_MECHANISM, "n/a"] as unknown as readonly string[] },
     { key: "additional_context", kind: "narrative", required: "optional" },
     // ── ITEM 313 additions ────────────────────────────────────────────
@@ -294,7 +346,7 @@ export const governanceContract: IntakeContract = {
 
 
 export const GOVERNANCE_INLINE_LISTS = {
-  GOV_SECTORS, GOV_SIZES, GOV_JURISDICTIONS, GOV_TOOLS, GOV_DATA_CATS,
+  GOV_SECTORS, GOV_SIZES, GOV_JURISDICTIONS, GOV_TOOLS, GOV_DATA_CATS, SPECIAL_CATEGORY_OPTS, TERRITORIAL_SCOPE_BASIS,
   GOV_SPECIAL_CATS, SC_CORE_ACTIVITY, SC_POPULATION_PROPORTION, SC_DURATION, SC_GEOGRAPHIC_SCOPE,
   PRIVACY_POLICY, PRIVACY_NOTICE_COVERAGE, DPO_STATUS,
   DPIA_STATUS, DPIA_AI_COVERAGE, INCIDENT_RESPONSE, TRAINING_STATUS,

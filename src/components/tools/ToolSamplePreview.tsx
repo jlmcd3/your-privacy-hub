@@ -6,6 +6,14 @@ export type ToolType = "li" | "healthcheck" | "dpia";
 interface Props {
   toolType: ToolType;
   toolName: string;
+  /**
+   * Governance F19 / F03 (2026-09-15): before the intake is complete the
+   * panel's action continues the intake rather than offering purchase. When
+   * set, the button reads `ctaLabel` and the helper says the form must be
+   * completed first; onPurchase is still the handler (the page decides).
+   */
+  ctaLabel?: string;
+  ctaHelper?: string;
   /** Price the current viewer will pay (subscriber rate if applicable) */
   price: number;
   /** Standalone (non-subscriber) price — shown for comparison when viewer is a subscriber */
@@ -103,9 +111,9 @@ function HealthcheckSample() {
         <div>
           <p className="text-[11px] font-bold uppercase tracking-wider text-brand-steel mb-1">Readiness Score</p>
           <p className="text-sm text-foreground leading-relaxed">
-            Your organization scores <strong>72 / 100</strong> on the governance readiness index —
-            above the median for similar organizations, with focused gaps in AI governance and
-            cross-border transfer documentation.
+            An illustrative organisation scores <strong>72 / 100</strong> on the governance readiness index,
+            with focused gaps in AI governance and cross-border transfer documentation. Your score and
+            findings come from your own answers.
           </p>
         </div>
       </section>
@@ -182,6 +190,8 @@ export default function ToolSamplePreview({
   stripeConfigured = true,
   onPurchase,
   purchasing,
+  ctaLabel,
+  ctaHelper,
 }: Props) {
   const Sample = toolType === "li" ? LISample : toolType === "healthcheck" ? HealthcheckSample : DPIASample;
 
@@ -190,7 +200,7 @@ export default function ToolSamplePreview({
       <div className="px-6 py-4 border-b bg-muted/30">
         <h2 className="text-foreground">Sample Output Preview</h2>
         <p className="text-sm text-muted-foreground mt-0.5">
-          A representative preview of what your full {toolName} report contains.
+          An illustrative preview of the format and sections of a {toolName} report. The findings shown are not yours.
         </p>
       </div>
 
@@ -212,19 +222,21 @@ export default function ToolSamplePreview({
             </p>
             <h3 className="mb-1">{toolName}</h3>
             <p className="text-blue-200 text-sm mb-5">
-              Complete the form above and purchase to generate your full analysis.
+              {ctaHelper ?? "Complete the form above, review your answers, then purchase to generate your report."}
             </p>
             <Button
               size="lg"
               onClick={onPurchase}
-              disabled={purchasing || !stripeConfigured}
+              disabled={purchasing || (!ctaLabel && !stripeConfigured)}
               className="bg-white text-brand-navy hover:bg-white/90 font-bold disabled:opacity-70"
             >
-              {!stripeConfigured
-                ? `Payments Coming Soon — $${price}`
-                : purchasing
-                  ? "Redirecting…"
-                  : `Purchase Full Analysis — $${price}`}
+              {ctaLabel
+                ? ctaLabel
+                : !stripeConfigured
+                  ? `Payments Coming Soon — $${price}`
+                  : purchasing
+                    ? "Redirecting…"
+                    : `Purchase ${toolName} — $${price}`}
             </Button>
             <p className="text-[11px] text-blue-200/80 mt-4">
               This tool produces a compliance framework document, not legal advice.

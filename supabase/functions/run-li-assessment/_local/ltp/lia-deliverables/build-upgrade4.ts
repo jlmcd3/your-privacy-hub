@@ -1033,6 +1033,9 @@ function severityOf(text: string): HarmSeverity {
   // record_insufficient finding (and an "impact is not stated" clause) against
   // a record that had answered the question. The mapping is the 1:1 bijection
   // between the two four-band scales, not a re-grading.
+  // LIA master review (2026-09-15, F16) — "Not assessed" is an honest answer;
+  // the record has not rated the harm, so it is unstated, not negligible.
+  if (/^not assessed/i.test(text)) return "unstated";
   if (/^severe/i.test(text)) return "severe";
   if (/^moderate/i.test(text)) return "significant";
   if (/^minor/i.test(text)) return "limited";

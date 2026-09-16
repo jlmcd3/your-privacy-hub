@@ -61,7 +61,7 @@ import type {
   PublicAuthorityFinding,
   ReasonableExpectationsFinding,
 } from "./types.ts";
-import { classifyLiaUseCase } from "../../../../_shared/lia/lia-use-case-classifier.ts";
+import { resolveLiaUseCase } from "../../../../_shared/lia/lia-use-case-classifier.ts";
 
 type Bag = Record<string, unknown>;
 
@@ -112,7 +112,8 @@ export function buildClassificationTyped(intake: Bag): LiaTypedClassification {
     ? scdRaw
     : dataCats.some((c) => SPECIAL_CATEGORY_TEXT.test(c));
   return {
-    use_case_category: classifyLiaUseCase(s(intake.processing_description)),
+    // LIA master review (2026-09-15, F03) — the confirmed class wins over a fresh classification.
+    use_case_category: resolveLiaUseCase(intake),
     primary_data_categories: dataCats,
     special_category_data: special,
     relationship_exists: !!s(intake.relationship_type) && !/^none$/i.test(s(intake.relationship_type)),

@@ -73,7 +73,7 @@ const DPIA_TOOLS = ["Microsoft 365 / Copilot", "Google Workspace / Gemini", "Sal
 const DPIA_SAFEGUARDS = ["Encryption at rest", "Encryption in transit", "Access controls", "Data minimisation", "Pseudonymisation", "Staff training", "DPA signed with processor", "Anonymisation", "Contractual restrictions", "None"];
 const DPIA_JURISDICTIONS = ["EU (GDPR)", "United Kingdom (UK GDPR)", "United States — Federal", "California (CCPA/CPRA)", "Other US States", "Canada", "Brazil (LGPD)", "Australia", "Singapore", "Other"];
 const DPIA_LEGAL_BASES = ["Consent (Art. 6(1)(a))", "Contract (Art. 6(1)(b))", "Legal obligation (Art. 6(1)(c))", "Vital interests (Art. 6(1)(d))", "Public task (Art. 6(1)(e))", "Legitimate interest (Art. 6(1)(f))"];
-const DPIA_ARTICLE_9_CONDITIONS = ["Explicit consent (Art. 9(2)(a))", "Employment, social security & social protection law (Art. 9(2)(b))", "Vital interests — data subject incapable of consent (Art. 9(2)(c))", "Not-for-profit body's legitimate activities (Art. 9(2)(d))", "Data manifestly made public by the data subject (Art. 9(2)(e))", "Establishment, exercise or defence of legal claims (Art. 9(2)(f))", "Substantial public interest — Union/Member State law (Art. 9(2)(g))", "Preventive/occupational medicine, health or social care (Art. 9(2)(h))", "Public interest in public health (Art. 9(2)(i))", "Archiving, research or statistics — Art. 89(1) (Art. 9(2)(j))"];
+const DPIA_ARTICLE_9_CONDITIONS = ["Explicit consent (Art. 9(2)(a))", "Employment, social security & social protection law (Art. 9(2)(b))", "Vital interests — data subject incapable of consent (Art. 9(2)(c))", "Not-for-profit body's legitimate activities (Art. 9(2)(d))", "Data manifestly made public by the data subject (Art. 9(2)(e))", "Establishment, exercise or defence of legal claims (Art. 9(2)(f))", "Substantial public interest — Union/Member State law (Art. 9(2)(g))", "Preventive/occupational medicine, health or social care (Art. 9(2)(h))", "Public interest in public health (Art. 9(2)(i))", "Archiving, research or statistics — Art. 89(1) (Art. 9(2)(j))", "Not applicable — the biometric data is not used to uniquely identify individuals", "Not yet established — condition still to be identified"];
 // DOC 160 (2026-09-03) — imagery-capture typed facts (contract DPIA_IMAGERY_*).
 const DPIA_IMAGERY_CAPTURE = [
   "No imagery or video of identifiable individuals",
@@ -131,13 +131,16 @@ const LIA_POTENTIAL_HARM = [
   "Limited — minor inconvenience or unwanted contact",
   "Significant — discrimination, financial loss, reputational damage",
   "Severe — physical safety, identity theft, loss of livelihood",
+  // LIA master review (2026-09-15, F16) — mirrors POTENTIAL_HARM_OPTS.
+  "Not assessed",
   "None / negligible", "Minor", "Moderate", "Severe",
 ];
 const LIA_BENEFICIARY = [
   "Our business", "The individuals whose data is processed", "A third party",
   "Our business and the individuals", "Our business and a third party",
 ];
-const LIA_RELATIONSHIP_CATEGORY = ["Customer", "Employee", "Prospect", "Member of the public — no relationship"];
+// LIA master review (2026-09-15, F16) — mirrors RELATIONSHIP_CATEGORY_OPTS.
+const LIA_RELATIONSHIP_CATEGORY = ["Customer", "Employee", "Prospect", "Member of the public — no relationship", "Mixed — more than one relationship", "Other"];
 const LIA_OPT_OUT_AVAILABLE = [
   "Yes — unconditional, on request, with no consequence",
   "Yes — but conditional or subject to review",

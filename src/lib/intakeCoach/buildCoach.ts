@@ -21,16 +21,20 @@ import { THIN_SPOTS, type CoachProduct, type ThinSpot } from "./thinSpots";
 export const COACH_MAX_CARDS = 6;
 
 /** Fixed copy. Scanned by the register battery in src/test/intakeCoach.register.test.ts. */
+// DPIA master review (2026-09-15, F18 / F19) — the copy says what the check
+// actually does (a bounded look at a few configured questions for brief or
+// unanswered entries and a few markers), never that an answer is "strong":
+// passing a length check is not a judgement of substance.
 export const COACH_COPY = {
   heading: "Strengthen your answers",
   intro:
-    "A short review of what your assessment will say with the answers you have given. Nothing here blocks you — you can continue now.",
+    "A short check of a few configured questions for brief or unanswered entries, and what your assessment records in each case. It reads length and a few markers, not the substance of your answers. Nothing here blocks you — you can continue now.",
   statAnswered: "questions answered",
-  statStrengthen: "answers to strengthen",
-  statStrong: "already strong",
+  statStrengthen: "answers to look at",
+  statStrong: "not flagged by this check",
   cardsHeading: "Worth a second look",
-  strongHeading: "Already strong",
-  strongIntro: "These answers carry enough detail for the assessment to work from.",
+  strongHeading: "Not flagged by this check",
+  strongIntro: "These answers passed the checks described on the cards (length, and a named system or figure where that is looked for). That is what was checked, not their substance.",
   consequenceLabel: "As written, your assessment will record…",
   detailsLabel: "The boxes to look at first",
 
@@ -38,9 +42,9 @@ export const COACH_COPY = {
   jumpLabel: "Jump to this question",
   continueLabel: "Continue",
   footer:
-    "This review is advisory. Your assessment runs with the answers as they stand.",
+    "This review is advisory and covers the configured questions only. Your assessment runs with the answers as they stand.",
   noCards:
-    "Nothing stands out for a second look. Your answers carry enough detail for the assessment to work from.",
+    "Nothing is flagged by these checks. They read length and a few markers on the configured questions, not the substance of your answers.",
 } as const;
 
 /**

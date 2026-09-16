@@ -100,8 +100,11 @@ export const DPIA_THIN_SPOTS: readonly ThinSpot[] = [
     rank: 3,
     minLength: 80,
     heuristic: "Short answer: fewer than 80 characters of substance.",
+    // DPIA master review (2026-09-15, F18) — this check reads length only; a
+    // short entry may well say whether the advice was followed, and the
+    // consequence must not claim the record is silent on that.
     consequence:
-      "As written, the consultation section states the advice exactly as you enter it, and records nothing about whether it was followed.",
+      "As written, the consultation section states the advice exactly as you enter it — your wording, nothing added. This check noticed only that the entry is brief.",
     consequenceSource:
       "supabase/functions/_shared/ltp/dpia-csc.ts (consultation surface); src/pages/DPIAFramework.tsx stage 4 guidance",
     advice:
@@ -115,9 +118,12 @@ export const DPIA_THIN_SPOTS: readonly ThinSpot[] = [
     minLength: 200,
     marker: /[A-Z][A-Za-z0-9]{2,}|\d/,
     heuristic:
-      "Short (under 200 characters) or names no system: no capitalised system name and no figure appears.",
+      "Short (under 200 characters) or names no system: no capitalised word of three or more letters and no figure appears.",
+    // F18 — the marker is a capitalised word or a figure, which is not proof
+    // that a system is named; the consequence says what the report does and
+    // what this check saw, and nothing more.
     consequence:
-      "As written, the description section carries your wording as the factual base for the analysis. Anything not described here is not analysed later.",
+      "As written, the description section carries your wording as part of the factual base for the analysis, alongside your other answers. This check noticed only that the entry is brief or carries no capitalised name or figure.",
     consequenceSource:
       "src/pages/DPIAFramework.tsx description guidance (Art. 35(7)(a)); supabase/functions/_shared/ltp/dpia-deliverables",
     advice:

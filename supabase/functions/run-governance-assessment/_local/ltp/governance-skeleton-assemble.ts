@@ -187,6 +187,9 @@ const DPA_VERIFIED_PHRASES: Record<string, string> = {
 const TRANSFER_PHRASES: Record<string, string> = {
   "Yes, US-based tools": "that it transfers personal data to US-based tools",
   "Yes, other non-adequate countries": "that it transfers personal data to countries without an adequacy decision",
+  // Governance master review (2026-09-15, F08).
+  "Yes, only to countries with an adequacy decision or regulations": "that it transfers personal data only to countries covered by an adequacy decision or adequacy regulations",
+  "Yes, a mix of routes (described below)": "that it transfers personal data by a mix of routes, described in its answers",
   "All tools store data in EU/UK": "that all of its tools store data in the EU or the UK",
   "No transfers": "that it makes no transfers outside the EU or the UK",
   "Unsure": "that it is unsure whether transfers outside the EU or the UK occur",

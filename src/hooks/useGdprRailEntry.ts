@@ -20,6 +20,8 @@ export interface GdprRailEntryOpts {
   coachLead?: string;
   coachBody?: string;
   goodAnswer?: string;
+  /** Governance F11 (2026-09-15) — whether goodAnswer is a worked example or an explanation. */
+  goodAnswerKind?: "example" | "explanation";
   commonMistake?: string;
 }
 
@@ -78,13 +80,21 @@ export function useGdprRailEntry(opts: GdprRailEntryOpts | null): GdprRailEntryS
             citation: `Art. ${opts.article} ${opts.jurisdiction.toUpperCase()} GDPR${articleTitle}`,
             citationUrl: opts.jurisdiction === "uk" ? UK_URL : EU_URL,
             plainSummary: opts.plainSummary,
-            regulationText: regulationText || "[Article text not available in corpus]",
+            // LIA F09 / DPIA F14 (2026-09-15): the article body is a
+            // verbatim quotation when present; when the corpus has no row the
+            // rail shows nothing rather than a bracketed placeholder headed
+            // "verbatim". A recital is context beside the article, headed as
+            // a recital — never as an agency's statement of reasons.
+            regulationText,
+            regulationTextKind: regulationText ? "verbatim" : undefined,
             fscrContext,
+            fscrContextHeading: fscrContext ? `GDPR Recital ${opts.recital} (context beside the article)` : undefined,
             enforcementNote: opts.enforcementNote,
             relatedCitations: opts.relatedCitations,
             coachLead: opts.coachLead,
             coachBody: opts.coachBody,
             goodAnswer: opts.goodAnswer,
+            goodAnswerKind: opts.goodAnswerKind,
             commonMistake: opts.commonMistake,
           });
         }
@@ -96,7 +106,10 @@ export function useGdprRailEntry(opts: GdprRailEntryOpts | null): GdprRailEntryS
     })();
 
     return () => { cancelled = true; };
-  }, [opts?.article, opts?.jurisdiction, opts?.recital]);
+    // LIA F08 (2026-09-15): the label, summary and coaching are part of the
+    // entry; a section switch that keeps the same article must still refresh
+    // them (Purpose and Necessity both use Article 6 without a recital).
+  }, [opts?.article, opts?.jurisdiction, opts?.recital, opts?.fieldLabel, opts?.plainSummary, opts?.coachLead, opts?.coachBody, opts?.goodAnswer, opts?.goodAnswerKind, opts?.commonMistake, opts?.enforcementNote]);
 
   return { entry, loading };
 }

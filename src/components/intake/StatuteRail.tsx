@@ -11,6 +11,26 @@ import type { RailEntry } from "./RailEntry";
 // Backward-compat re-export so legacy `import type { RailEntry } from ".../StatuteRail"` keeps working.
 export type { RailEntry } from "./RailEntry";
 
+/** A placeholder ("…", "...", whitespace) is not regulation text. */
+export function hasRegulationText(text: string | undefined | null): boolean {
+  if (!text) return false;
+  return text.replace(/[…\.\s]/g, "").length > 0;
+}
+
+/** The heading that says what the quoted block is (see RailEntry.regulationTextKind). */
+export function regulationTextHeading(entry: Pick<RailEntry, "regulationText" | "regulationTextKind" | "regulationTextHeading">): string {
+  if (entry.regulationTextHeading) return entry.regulationTextHeading;
+  const kind = entry.regulationTextKind
+    ?? (/^Summary of/i.test(entry.regulationText) ? "summary" : /…|\.\.\./.test(entry.regulationText) ? "excerpt" : "verbatim");
+  switch (kind) {
+    case "summary": return "Regulation summary (not a quotation)";
+    case "excerpt": return "Regulation text (excerpt)";
+    case "guidance": return "Regulatory guidance (quotation, not the regulation)";
+    case "paraphrase": return "Product paraphrase (not the regulation text)";
+    default: return "Regulation text (verbatim)";
+  }
+}
+
 interface StatuteRailProps {
   entry: RailEntry | null;
   className?: string;
@@ -116,17 +136,15 @@ export default function StatuteRail({
         </div>
       )}
 
-      {entry.regulationText && (
+      {hasRegulationText(entry.regulationText) && (
         <div>
           {/* ADMT F15 (2026-09-15): only an unbroken quotation is called
               verbatim. Text carrying an ellipsis is an excerpt; text that
-              begins "Summary of" is a summary written in the product's words. */}
+              begins "Summary of" is a summary written in the product's words.
+              LIA F09 / DPIA F14 (2026-09-15): a bare placeholder is never
+              shown, and guidance or a paraphrase is never headed as law. */}
           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
-            {/^Summary of/i.test(entry.regulationText)
-              ? "Regulation summary (not a quotation)"
-              : /…|\.\.\./.test(entry.regulationText)
-              ? "Regulation text (excerpt)"
-              : "Regulation text (verbatim)"}
+            {regulationTextHeading(entry)}
           </p>
           <div className="border-l-2 border-border pl-3">
             <p className="text-[11px] leading-relaxed text-foreground/80 italic whitespace-pre-wrap">
@@ -139,7 +157,7 @@ export default function StatuteRail({
       {entry.fscrContext && (
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
-            Agency reasoning (FSOR)
+            {entry.fscrContextHeading ?? "Agency reasoning (FSOR)"}
           </p>
           <p className="text-[11px] leading-relaxed text-foreground/70">{entry.fscrContext}</p>
         </div>

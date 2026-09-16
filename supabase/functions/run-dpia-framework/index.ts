@@ -13,7 +13,11 @@ import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun, logPostGenLint } from "../_shared/function-run-logger.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
-import { resolveDpiaJurisdiction, renderResolvedBlock, validateJurisdiction, type DpiaIntakeFacts, type TransferFlow } from "../_shared/dpia-jurisdiction-registry.ts";
+import { resolveDpiaJurisdiction, renderResolvedBlock, validateJurisdiction, canonicalCountryCode, type DpiaIntakeFacts, type TransferFlow } from "../_shared/dpia-jurisdiction-registry.ts";
+// DPIA master review (2026-09-15, F05 / F11 / F01) — one transfer-row reader
+// for every producer, and clause-scoped negation for the profiling cue.
+import { readTransferRows, transferPresenceState } from "../_shared/dpia-transfer-rows.ts";
+import { assertedMentions } from "../_shared/negation.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { DPIA_VERIFIED_AUTHORITIES } from "./_local/registry/dpia-verified-authorities.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
@@ -630,6 +634,12 @@ const DPIA_SPECIAL_CAT_LABELS = new Set([
   "Biometric data",
   "Genetic data",
 ]);
+// DPIA master review (2026-09-15, F08) — Art. 9(1) makes biometric data
+// special-category only when processed to uniquely identify a natural person.
+// The page asks that (biometric_unique_identification); the answers below are
+// the contract's DPIA_BIOMETRIC_UNIQUE_ID options.
+const DPIA_BIOMETRIC_YES = "Yes — used to uniquely identify individuals";
+const DPIA_BIOMETRIC_NO = "No — not used to uniquely identify individuals";
 const DPIA_EU_UK_JURIS = new Set(["EU (GDPR)", "United Kingdom (UK GDPR)"]);
 
 export function computeDpiaTestStates(intake: Record<string, any> | null | undefined): Record<string, DpiaTestStateEntry> {
@@ -639,9 +649,19 @@ export function computeDpiaTestStates(intake: Record<string, any> | null | undef
   const out: Record<string, DpiaTestStateEntry> = {};
 
   const special = cats.filter((c) => DPIA_SPECIAL_CAT_LABELS.has(c));
-  out.M1 = special.length > 0
-    ? { state: "resolved_met", basis: `data_categories includes ${JSON.stringify(special)} — Art. 35(3)(b) engaged`, source_fields: ["data_categories"] }
-    : { state: "resolved_not_met", basis: "no Art. 9 special-category label present in data_categories", source_fields: ["data_categories"] };
+  const bioAnswer = String(it.biometric_unique_identification ?? "").trim();
+  const onlyBiometric = special.length > 0 && special.every((c) => c === "Biometric data");
+  if (special.length === 0) {
+    out.M1 = { state: "resolved_not_met", basis: "no Art. 9 special-category label present in data_categories", source_fields: ["data_categories"] };
+  } else if (onlyBiometric && bioAnswer === DPIA_BIOMETRIC_NO) {
+    // F08 — the purpose test, answered: not special-category data.
+    out.M1 = { state: "resolved_not_met", basis: "data_categories includes \"Biometric data\" but the record states it is not processed to uniquely identify individuals — outside Art. 9(1); Art. 35(3)(b) is not engaged on this label", source_fields: ["data_categories", "biometric_unique_identification"] };
+  } else if (onlyBiometric && bioAnswer !== DPIA_BIOMETRIC_YES) {
+    // F08 — the purpose is unstated or unsure: the classification is OPEN, not met.
+    out.M1 = { state: "indeterminate", basis: "data_categories includes \"Biometric data\"; whether it is processed to uniquely identify individuals (Art. 9(1)) is not stated — the special-category classification is open; recording the biometric-purpose answer completes it", source_fields: ["data_categories", "biometric_unique_identification"] };
+  } else {
+    out.M1 = { state: "resolved_met", basis: `data_categories includes ${JSON.stringify(special)} — special-category data present (Art. 9(1)); whether Art. 35(3)(b) is engaged also turns on scale`, source_fields: ["data_categories"] };
+  }
 
   const childCats = cats.filter((c) => /child/i.test(c));
   out.M2 = childCats.length > 0
@@ -651,6 +671,13 @@ export function computeDpiaTestStates(intake: Record<string, any> | null | undef
   const art9 = String(it.article_9_condition ?? "").trim();
   if (out.M1.state === "resolved_not_met") {
     out.M3 = { state: "resolved_not_applicable", basis: "M1 not met — no Art. 9(2) condition required", source_fields: ["article_9_condition"] };
+  } else if (out.M1.state === "indeterminate") {
+    out.M3 = { state: "indeterminate", basis: "special-category classification open (biometric purpose not stated) — the Art. 9(2) condition cannot yet be assessed", source_fields: ["article_9_condition", "biometric_unique_identification"] };
+  } else if (/^Not yet established/i.test(art9)) {
+    // F08 — the honest answer: the condition is still to be identified.
+    out.M3 = { state: "indeterminate", basis: "special-category data present; the record states the Art. 9(2) condition is not yet established — recording the condition completes it", source_fields: ["article_9_condition"] };
+  } else if (/^Not applicable/i.test(art9)) {
+    out.M3 = { state: "indeterminate", basis: "the record marks Art. 9 as not applicable while a special-category label is present — reconcile the data-category and biometric-purpose answers", source_fields: ["article_9_condition", "data_categories"] };
   } else {
     out.M3 = art9
       ? { state: "resolved_met", basis: `intake supplies Art. 9(2) condition "${art9.slice(0, 100)}"`, source_fields: ["article_9_condition"] }
@@ -684,9 +711,14 @@ export function computeDpiaTestStates(intake: Record<string, any> | null | undef
     ? { state: "resolved_met", basis: `intake names DPO info "${dpo.slice(0, 80)}"`, source_fields: ["dpo_info"] }
     : { state: "indeterminate", basis: "dpo_info is empty; DPO consultation is conditional on designation", source_fields: ["dpo_info"] };
 
+  // DPIA master review (2026-09-15, F01) — clause-scoped negation: "does not
+  // involve profiling" is not a profiling cue. Presence NEVER = resolved_met.
   const desc = String(it.description ?? "");
-  out.M9 = /\bprofil/i.test(desc)
-    ? { state: "candidate", basis: `description contains "profil…" — Art. 35(3)(a) prong flagged for JUDGMENT (assess the language; confirm or reject the prong)`, source_fields: ["description"] }
+  const profil = assertedMentions(desc, "profil");
+  out.M9 = profil.asserted > 0
+    ? { state: "candidate", basis: `description contains "profil…" in asserted form — Art. 35(3)(a) prong flagged for JUDGMENT (assess the language; confirm or reject the prong)`, source_fields: ["description"] }
+    : profil.negated > 0
+    ? { state: "indeterminate", basis: "description mentions 'profil…' only in negated form (the record states profiling is not performed) — not a cue for Art. 35(3)(a); assess as JUDGMENT and do not describe the record as profiling", source_fields: ["description"] }
     : { state: "indeterminate", basis: "description does not contain the 'profil' keyword — absence is NOT proof of non-profiling; assess as JUDGMENT per the existing trigger rule", source_fields: ["description"] };
 
   return out;
@@ -1206,28 +1238,61 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
     if (/italy|\bIT\b/i.test(joined)) return "IT";
     return "";
   }
-  const resolverCountry = (intake.controller_country || inferCountryFromJurisdictions(intake.jurisdictions || []) || "").toUpperCase();
-  const resolverSector = (intake.controller_sector || "private") as any;
+  // DPIA master review (2026-09-15, F06) — an explicit country answer
+  // (including the picker sentinels OTHER / UNKNOWN) is never replaced by a
+  // guess from the jurisdictions list; inference fills a blank only. GB / GBR
+  // / UK canonicalise to the registry's one key.
+  const explicitCountry = String(intake.controller_country ?? "").trim();
+  const resolverCountry = explicitCountry
+    ? canonicalCountryCode(explicitCountry)
+    : canonicalCountryCode(inferCountryFromJurisdictions(intake.jurisdictions || []));
+  // F06 — controller_sector is the regulator-routing category; a legacy row
+  // that carries an industry word there routes as "private" and the word is
+  // kept as the industry (visibly, in the log and the record).
+  const ROUTING_SECTORS = ["private", "public", "federal-public", "telecom", "postal"];
+  const rawSector = String(intake.controller_sector ?? "").trim();
+  const resolverSector = (ROUTING_SECTORS.includes(rawSector) ? rawSector : "private") as any;
+  const sectorNote = rawSector && !ROUTING_SECTORS.includes(rawSector)
+    ? `controller_sector "${rawSector}" is an industry, not a routing category — routed as private; kept as industry`
+    : "";
+  // F04 / F07 — "Unknown" is the page's honest Land answer; it resolves to the
+  // registry's [TO COMPLETE — identify the competent Land DPA], never to BfDI.
+  const landRaw = String(intake.controller_land ?? "").trim();
+  const resolverLand = landRaw && landRaw !== "Unknown" ? landRaw : undefined;
+  const centralRaw = String(intake.central_administration_country ?? "").trim();
+  const centralAdmin = centralRaw ? canonicalCountryCode(centralRaw) : resolverCountry;
+  const euDecisionRaw = String(intake.eu_decision_establishment_country ?? "").trim();
+  const euDecision = canonicalCountryCode(euDecisionRaw);
+  // F05 / F11 — every row is read (contract, legacy camelCase or resolver
+  // shape); a row without an identified destination is counted as incomplete
+  // and reported, not filtered away in silence.
+  const jurisText = (Array.isArray(intake.jurisdictions) ? intake.jurisdictions : []).join(" ");
+  const recordRegime: "EU" | "UK" = /United Kingdom \(UK GDPR\)/.test(jurisText) && !/EU \(GDPR\)/.test(jurisText) ? "UK" : "EU";
+  const transferRows = readTransferRows(intake.transfer_flows, recordRegime);
+  const incompleteTransferRows = transferRows.filter((r) => !r.complete);
+  const presenceState = transferPresenceState(intake.transfer_presence, transferRows);
   const facts: DpiaIntakeFacts = {
-    controllerSites: resolverCountry ? [{ country: resolverCountry, land: intake.controller_land || undefined, sector: resolverSector }] : [],
-    centralAdministrationCountry: (intake.central_administration_country || resolverCountry || "").toUpperCase(),
-    euEstablishmentWithDecisionAuthority: intake.eu_decision_establishment_country
-      ? { country: String(intake.eu_decision_establishment_country).toUpperCase(), sector: "private" }
+    controllerSites: resolverCountry ? [{ country: resolverCountry, land: resolverLand, sector: resolverSector }] : [],
+    centralAdministrationCountry: centralAdmin,
+    // F06 — the deciding office carries the controller's Land and sector when
+    // it is the same country; the registry decides whether it is in the Union.
+    euEstablishmentWithDecisionAuthority: euDecisionRaw && euDecisionRaw.toUpperCase() !== "UNKNOWN"
+      ? { country: euDecision || euDecisionRaw, land: euDecision === resolverCountry ? resolverLand : undefined, sector: euDecision === resolverCountry ? resolverSector : "private" }
       : null,
-    transferFlows: Array.isArray(intake.transfer_flows)
-      ? (intake.transfer_flows as any[]).map((f): TransferFlow => ({
-          originRegime: (f.originRegime === "UK" ? "UK" : "EU"),
-          destinationCountry: String(f.destination || "").toUpperCase(),
-          importerEntity: f.importer || undefined,
-          importerDpfCertified: !!f.dpfCertified,
-          importerUkExtensionCertified: !!f.ukExtensionCertified,
-        })).filter((f) => f.destinationCountry)
-      : [],
+    transferFlows: transferRows
+      .filter((r) => r.complete)
+      .map((r): TransferFlow => ({
+        originRegime: r.origin_regime,
+        destinationCountry: r.destination_country,
+        importerEntity: r.recipient || undefined,
+        importerDpfCertified: r.dpf_certified,
+        importerUkExtensionCertified: r.uk_extension_certified,
+      })),
     article9Condition: intake.article_9_condition || undefined,
     retentionRecordType: intake.retention_record_type || undefined,
   };
   const resolved = resolveDpiaJurisdiction(facts);
-  console.log(`[run-dpia-framework] resolver: country=${resolverCountry} land=${intake.controller_land || "-"} oss=${resolved.oss.ossAvailable} transfers=${resolved.transfers.length}`);
+  console.log(`[run-dpia-framework] resolver: country=${resolverCountry || "-"}${explicitCountry && !resolverCountry ? ` (explicit "${explicitCountry}", not inferred)` : ""} land=${resolverLand || landRaw || "-"} oss=${resolved.oss.ossAvailable} transfers=${resolved.transfers.length} incomplete_rows=${incompleteTransferRows.length} presence=${presenceState}${sectorNote ? ` note="${sectorNote}"` : ""}`);
 
   const testStates = computeDpiaTestStates(intake as Record<string, any>);
 

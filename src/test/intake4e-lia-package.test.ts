@@ -7,7 +7,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { liAssessmentStageBContract } from "../../supabase/functions/_shared/intake-contracts/li-assessment";
-import { HARM_PREFILL } from "../pages/LIAssessmentIntake";
+import { HARM_PREFILL } from "../lib/liaHarmSuggestions";
+import { HARM_OPTS, VULNERABLE_GROUP_OPTS } from "../pages/LIAssessment.enums";
 
 const page = readFileSync("src/pages/LIAssessmentIntake.tsx", "utf8");
 const keys = liAssessmentStageBContract.fields.map((f) => f.key);
@@ -28,14 +29,19 @@ describe("INTAKE-4e — LIA intake package", () => {
   });
 
   it("keeps the stored option strings byte-identical", () => {
+    // LIA master review (2026-09-15, F16): the lists live in LIAssessment.enums.ts
+    // and the page renders them from there (VULNERABLE_GROUP_OPTS / HARM_OPTS).
+    const all = [...VULNERABLE_GROUP_OPTS, ...HARM_OPTS];
     for (const opt of [
       "Children under 16",
       "Financially vulnerable",
       "Loss of autonomy or control over data",
       "Identity theft or fraud exposure",
     ]) {
-      expect(page).toContain(`"${opt}"`);
+      expect(all).toContain(opt);
     }
+    expect(page).toContain("options={VULNERABLE_GROUP_OPTS}");
+    expect(page).toContain("options={HARM_OPTS}");
   });
 
   it("offers prefill as confirmation, never a silent copy", () => {

@@ -2569,6 +2569,12 @@ const BIOMETRIC_NON_IDENTIFICATION_LEXICON =
   /\bheart rate\b|\bspo2\b|\boxygen saturation\b|\becg\b|\bekg\b|\beeg\b|\bgaze\b|\battention score\w*|\bgait\b|\bposture\b|\btemperature\b|\bwellness\b|\bmonitoring\b|\bclinical\b|\btriage\b|\bergonomic\w*|\bperformance\b/i;
 
 function biometricHasOnlyNonIdentificationPurpose(intake: unknown): boolean {
+  // DPIA master review (2026-09-15, F08) — the page now ASKS the Art. 9(1)
+  // purpose (biometric_unique_identification). An explicit answer governs;
+  // the lexicon below is the fallback for records that predate the question.
+  const explicit = str(get(intake, "biometric_unique_identification")).trim();
+  if (/^No — not used to uniquely identify/i.test(explicit)) return true;
+  if (/^Yes — used to uniquely identify/i.test(explicit)) return false;
   const text = ART9_OTHER_SWEEP_FIELDS.map((f) => str(get(intake, f))).join("\n");
   if (!text.trim()) return false;
   return BIOMETRIC_NON_IDENTIFICATION_LEXICON.test(text) && !BIOMETRIC_IDENTIFICATION_LEXICON.test(text);
@@ -2769,9 +2775,13 @@ export function buildProcessingInventory(intake: unknown): DpiaProcessingInvento
   // already named an Art. 9(2) condition itself (that determination is
   // never second-guessed by a lexicon).
   const biometricNonIdentifying = biometricHasOnlyNonIdentificationPurpose(intake);
+  // F08 — the two honest non-affirmative Art. 9 answers ("Not applicable — the
+  // biometric data is not used…", "Not yet established — …") are not a named
+  // condition and never second-guess the biometric purpose test.
+  const art9Named = art9 && !/^Not applicable|^Not yet established/i.test(art9) ? art9 : "";
   const data_items: DpiaInventoryDataItem[] = arr(get(intake, "data_categories")).map((item) => {
     const specialByLabel = (SPECIAL_CATEGORY_CATS_LOCAL as readonly string[]).includes(item);
-    const special = specialByLabel && !(item === "Biometric data" && !art9 && biometricNonIdentifying);
+    const special = specialByLabel && !(item === "Biometric data" && !art9Named && biometricNonIdentifying);
     if (!special) {
       return {
         item,

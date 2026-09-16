@@ -163,4 +163,124 @@ export const GOVERNANCE_PERFECT: GoldenCase[] = [
       { kind: "must_include", pattern: "remediation_plan", label: "remediation plan emitted" },
     ],
   },
+
+  // ── F12 (Governance Intake Master Review, 2026-09-15) ───────────────────
+  // CURRENT-UI FIXTURE. The historical case above (`gov-occupational-
+  // health-eu-uk-perfect`) is RETAINED UNCHANGED for regression. This
+  // second case reconstructs the same fictional organisation as a complete,
+  // current-UI-valid Step 1–5 submission, fixing the two drifts F12 found:
+  //   (1) adds `retention_schedule_status` — the historical case has no
+  //       value for it at all, so replaying it through Step 3's stepValid
+  //       (GovernanceAssessment.tsx ~L214: `if (!retentionScheduleStatus)
+  //       return ...`) fails, even though the contract marks the field
+  //       "optional" for legacy-row compatibility (DOC 162, Art. 30(1)(f)).
+  //   (2) uses transfer_mechanism "EU SCCs" — the historical case's "EU
+  //       Standard Contractual Clauses (SCCs)" is only a valid selection on
+  //       the EU-only branch. With BOTH "EU (GDPR)" and "United Kingdom (UK
+  //       GDPR)" in jurisdictions, GovernanceAssessment.tsx's
+  //       transferMechOptions ternary (~L191-194) falls through to the
+  //       mixed branch: ["UK IDTA / Addendum", "EU SCCs", "Binding
+  //       Corporate Rules", "Adequacy decision/regulations", "None"], which
+  //       does not contain the EU-only label.
+  // Every other answer below is verbatim-identical to the historical case
+  // and is independently confirmed (by the sibling Deno test) to still be a
+  // verbatim, currently-selectable option on the branch it sits on.
+  {
+    id: "gov-occupational-health-eu-uk-perfect-ui-2026-09",
+    tool: "governance",
+    set: "tuning",
+    intake: {
+      // ── Identity and scope ─────────────────────────────────────────────
+      organization_name: "Aldergate Occupational Health Services Ltd",
+      sector: "Healthcare/Life Sciences",
+      org_size: "251-1000",
+      jurisdictions: ["EU (GDPR)", "United Kingdom (UK GDPR)"],
+      eu_uk_data: "Yes",
+      tools: ["Google Workspace / Gemini", "Zoom + AI features", "HubSpot"],
+      data_categories: [
+        "Contact details",
+        "Employee records",
+        "Health or medical data",
+        "Communications content",
+      ],
+      special_category: "Yes",
+      special_categories_list: ["Health data"],
+      sc_core_activity: "Yes — a primary activity, or inextricably part of delivering our principal products or services",
+      sc_core_activity_explanation: "Occupational-health assessment is the only service Aldergate provides; every engagement produces and relies on clinical findings about the employee assessed.",
+      sc_data_subjects_count: "74,000",
+      sc_population_proportion: "No",
+      sc_data_volume: "Full occupational-health clinical records — history, examination findings, fitness determinations and adjustment recommendations — for every employee assessed.",
+      sc_duration: "Continuous or ongoing",
+      sc_geographic_scope: "Several Member States or countries",
+
+      // ── Notice and accountability ──────────────────────────────────────
+      privacy_policy: "Yes, current (reviewed in last 12 months)",
+      privacy_notice_coverage:
+        "Yes — notice covers all current activities, transfers, retention, and rights",
+      dpo_status: "Yes, formal DPO",
+      dpia_status: "Yes, multiple DPIAs completed",
+      dpia_ai_coverage: "Yes — all AI/high-risk tools assessed",
+      incident_response: "Yes, tested in last 12 months",
+      training_status: "Yes, formal onboarding + annual refresh",
+      training_ai_coverage: "Yes — explicitly covers AI tools",
+      tool_instruction: "Yes, written policy with specific prohibitions",
+
+      // ── Vendors and transfers ──────────────────────────────────────────
+      dpa_status: "Yes, all vendors",
+      dpa_art28_verified: "Yes — verified",
+      transfer_status: "Yes, US-based tools",
+      // F12 fix (1 of 2) — mixed EU+UK branch label, verbatim from
+      // transferMechOptions' fallthrough list (GovernanceAssessment.tsx
+      // ~L194) and from the contract's TRANSFER_MECHANISM union.
+      transfer_mechanism: "EU SCCs",
+
+      // ── Controls and rights ────────────────────────────────────────────
+      technical_controls: "Yes — DLP/content filtering actively enforced",
+      technical_controls_list: [
+        "DLP rules",
+        "Content filtering",
+        "Endpoint upload restrictions",
+        "Approval workflow",
+      ],
+      dsr_capability: "Yes — documented and tested across all vendors",
+      dsr_rights_tested: ["Access", "Erasure", "Portability", "Rectification"],
+      inventory_audit: "Yes — audited + formal approval process",
+      // F12 fix (2 of 2) — the field the historical fixture omits entirely.
+      // Verbatim RETENTION_SCHEDULE_STATUS / page "retention" Radio option;
+      // consistent with the dated, sourced retention rule already narrated
+      // in processing_scope below.
+      retention_schedule_status: "Yes — retention periods documented for each category of data",
+
+      // ── Article 24(1) second sentence ──────────────────────────────────
+      measures_review_cadence: "Annually or more often",
+      measures_last_review_date: "2026-02-09",
+
+      // ── Article 24(1) calibration factors (nature/scope/context/purposes) ─
+      processing_nature:
+        "Aldergate runs pre-placement and periodic fitness-for-work assessments for employer clients. Clinical records are held in Medisyne OH (Medisyne Software BV, Utrecht — processor under a signed Art. 28 DPA dated 2025-09-04), appointment scheduling and client correspondence run in HubSpot (HubSpot Inc., Cambridge MA — processor under HubSpot's Art. 28 DPA with the 2021 EU SCCs and the UK Addendum, countersigned 2025-10-16), remote consultations run in Zoom with the AI companion summary feature restricted to Aldergate's clinician accounts (Zoom Communications Inc. — processor under an Art. 28 DPA dated 2025-07-22), and internal correspondence runs in Google Workspace with Gemini enabled for administrative staff only (Google Ireland Ltd — processor under the Google Workspace Data Processing Addendum, in force from 2025-04-01). No automated system issues a fitness determination; every determination is signed by a named occupational-health physician.",
+      processing_scope:
+        "Approximately 74,000 assessment records covering employees of 310 client employers across Ireland, the Netherlands and the United Kingdom, with roughly 2,100 new assessments each month. Clinical records are retained for 40 years from the date of the last assessment, the period set by the UK Control of Substances Hazardous to Health Regulations 2002 reg. 11 health-record duty for the surveillance cohort and applied as the single clinical retention rule; scheduling and billing records are retained for 7 years from the end of the accounting period, set by the Companies Act audit-trail requirement, and are deleted by a scheduled quarterly job owned by the Head of IT.",
+      processing_context:
+        "The people assessed are employees of Aldergate's client employers, not Aldergate's own customers, and attendance is a condition of their employment, so their ability to decline is limited and the imbalance is material. Clinical findings are never released to the employer: the employer receives only a fitness outcome and any recommended adjustments, and the underlying record stays with the Aldergate clinician. Expectations are set by the appointment notice issued by Aldergate at booking and by the employer's own staff privacy notice, which the contract requires the employer to keep aligned.",
+      processing_purposes:
+        "Determining fitness for a specific role, recommending workplace adjustments under equality legislation, carrying out statutory health surveillance for employees exposed to noise, vibration and respiratory sensitisers, and reporting anonymised aggregate attendance and outcome statistics to the commissioning employer. There is no secondary research use, no profiling, and no onward disclosure to insurers.",
+
+      // ── Remediation defaults (owner, date, priority, validation) ────────
+      remediation_default_owner:
+        "Priya Raghunathan, Data Protection Officer, reporting directly to the Chief Executive with a standing quarterly item at the Board Audit and Risk Committee",
+      remediation_default_target_date: "2026-12-18",
+      remediation_default_priority: "High — remediate this quarter",
+      remediation_default_validation_method: "Internal audit sample",
+
+      // ── Free narrative ─────────────────────────────────────────────────
+      additional_context:
+        "The Data Protection Officer holds no other role and does not own the information-security function, which sits with the Head of IT, so there is no Art. 38(6) conflict. The open governance question is the Zoom AI companion summary: it is enabled for clinician accounts, its output is written into the Medisyne consultation note, and the DPIA dated 2026-01-22 records the control as a mandatory clinician review of every generated summary before the note is signed. Aldergate has not yet evidenced that the review actually occurs on each note — the audit trail records the signature but not the edit history — and the Head of Clinical Governance is scheduled to report on that evidence gap by 2026-09-30.",
+    },
+    assertions: [
+      { kind: "must_include", pattern: "Article 5\\(2\\)|Art\\. 5\\(2\\)", flags: "i", label: "accountability standard cited" },
+      { kind: "must_include", pattern: "Article 24|Art\\. 24", flags: "i", label: "Art. 24(1) duty reached" },
+      { kind: "must_include", pattern: "domain_element_findings", label: "ICO tracker element findings emitted" },
+      { kind: "must_include", pattern: "remediation_plan", label: "remediation plan emitted" },
+    ],
+  },
 ];

@@ -36,9 +36,17 @@ interface Props {
   clientId?: string | null;
   intakeData?: Record<string, unknown>;
   onClose: () => void;
-  /** Called only after backend confirms the purchase row was written. */
-  onComplete?: (assessmentId: string, suiteCyberId?: string) => void;
+  /**
+   * Called when checkout hands off. `status` says what actually happened:
+   * "confirmed" — the backend verified the purchase row; "included" — the
+   * caller's plan covered the tool (no payment); "pending" — verification
+   * timed out and the customer chose to continue (the purchase is NOT
+   * confirmed: keep the draft, do not mark the result as purchased).
+   */
+  onComplete?: (assessmentId: string, suiteCyberId?: string, status?: CheckoutCompletionStatus) => void;
 }
+
+export type CheckoutCompletionStatus = "confirmed" | "included" | "pending";
 
 export default function ToolCheckoutModal({
   open,
@@ -85,7 +93,7 @@ export default function ToolCheckoutModal({
           },
         });
       }
-      onComplete?.(data.assessment_id);
+      onComplete?.(data.assessment_id, undefined, "included");
       throw new Error("Included with your plan — no payment is needed.");
     }
     if (error || !data?.client_secret) {
@@ -116,7 +124,7 @@ export default function ToolCheckoutModal({
   const confirmAndComplete = useCallback(async () => {
     const id = lastAssessmentIdRef.current;
     if (!id) {
-      onComplete?.("");
+      onComplete?.("", undefined, "pending");
       return;
     }
     setConfirming(true);
@@ -125,10 +133,10 @@ export default function ToolCheckoutModal({
     setConfirming(false);
     if (ok) {
       firePurchaseVerified({ tool: toolType, surface: "tool_checkout_modal" });
-      onComplete?.(id, lastSuiteCyberIdRef.current || undefined);
+      onComplete?.(id, lastSuiteCyberIdRef.current || undefined, "confirmed");
     } else {
       setConfirmError(
-        "Payment received, but your purchase hasn't finalized yet. It usually takes a few seconds — you can continue to your result and we'll keep working in the background."
+        "Your payment was submitted, but we have not yet been able to confirm it. This usually resolves within a few seconds. You can continue to the status page; your answers are kept until the purchase is confirmed."
       );
     }
   }, [onComplete, toolType]);
@@ -169,10 +177,10 @@ export default function ToolCheckoutModal({
             <div className="p-8 text-center">
               <p className="text-sm text-amber-700 mb-4">{confirmError}</p>
               <button
-                onClick={() => onComplete?.(lastAssessmentIdRef.current, lastSuiteCyberIdRef.current || undefined)}
+                onClick={() => onComplete?.(lastAssessmentIdRef.current, lastSuiteCyberIdRef.current || undefined, "pending")}
                 className="bg-brand-navy text-white text-sm font-semibold px-5 py-2 rounded-lg"
               >
-                Continue
+                Continue to status
               </button>
             </div>
           ) : stripePromise ? (

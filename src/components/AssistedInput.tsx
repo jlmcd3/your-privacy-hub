@@ -46,6 +46,9 @@ export interface AssistedInputProps {
   assertionSlot?: React.ReactNode;
   /** Compose with <ExhibitTextarea>. Exhibit sentinel disables pills. */
   useExhibit?: boolean;
+  /** DPIA F03 (2026-09-15): parent-owned stash of the narrative an exhibit replaced (see ExhibitTextarea). */
+  exhibitStash?: string;
+  onExhibitStash?: (narrative: string) => void;
   /** Additional passthrough to the underlying textarea. */
   placeholder?: string;
   id?: string;
@@ -107,6 +110,8 @@ export function AssistedInput({
   separator = DEFAULT_SEPARATOR,
   assertionSlot,
   useExhibit = false,
+  exhibitStash,
+  onExhibitStash,
   placeholder,
   id,
   name,
@@ -269,6 +274,8 @@ export function AssistedInput({
           name={name}
           value={value}
           onChange={onChange}
+          stash={exhibitStash}
+          onStash={onExhibitStash}
           placeholder={placeholder}
           rows={rows}
           disabled={disabled}

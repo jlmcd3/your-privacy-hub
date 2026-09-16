@@ -46,7 +46,10 @@ export const LIA_PERFECT: GoldenCase[] = [
         "Prevent payment fraud on card orders placed on the Ravensmoor online store, so that fraudulent orders are held before dispatch rather than recovered as chargebacks after the goods have left the warehouse.",
       alternatives_considered:
         "Manual review of every order, the card scheme's own 3-D Secure step-up alone, and a fixed order-value threshold were each considered and are set out with their rationale in the necessity record.",
+      // LIA master review (2026-09-15) — the intake now asks these; a complete record answers them.
+      use_case_code_confirmed: "fraud_prevention",
       purpose_details: {
+      stated_purpose_status: "Published in our current privacy notice",
         interest_holder: "Other",
         interest_holder_other:
           "Ravensmoor Cycles Ltd as controller, and the cardholders whose cards would otherwise be used fraudulently on the store.",
@@ -128,6 +131,7 @@ export const LIA_PERFECT: GoldenCase[] = [
 
       // ── Stage B — attestation close ────────────────────────────────────
       attestation: {
+      approval_status: "Approved",
         dpo_reviewed: "Yes",
         dpo_reviewer: "Bethan Carrow, Data Protection Officer",
         dpo_review_date: "2026-04-09",

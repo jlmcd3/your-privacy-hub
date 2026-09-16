@@ -43,14 +43,30 @@ interface Props {
   onJumpToStep?: (selector: string) => boolean;
 }
 
-/** Scroll the card's anchor into view and focus its first control. */
+/**
+ * Scroll the card's anchor into view and focus its first control.
+ *
+ * DPIA master review (2026-09-15, F19): several targets sit inside collapsed
+ * <details> groups, so every details ancestor is opened first; the function
+ * returns true only when focus actually reached a control (or, when the
+ * anchor has no control, the anchor itself), not merely when the anchor exists.
+ */
 export function focusCoachTarget(selector: string): boolean {
   const el = document.querySelector(selector) as HTMLElement | null;
   if (!el) return false;
+  let node: HTMLElement | null = el;
+  while (node) {
+    const details = node.closest("details");
+    if (!details) break;
+    details.open = true;
+    node = details.parentElement;
+  }
   el.scrollIntoView({ behavior: "smooth", block: "center" });
-  const focusable = el.querySelector("input, textarea, select") as HTMLElement | null;
-  focusable?.focus({ preventScroll: true });
-  return true;
+  const focusable = el.querySelector("input:not([type=hidden]):not([disabled]), textarea:not([disabled]), select:not([disabled])") as HTMLElement | null;
+  const target = focusable ?? el;
+  if (!focusable && !el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
+  target.focus({ preventScroll: true });
+  return document.activeElement === target;
 }
 
 function jumpTo(selector: string, onClose: () => void, onJumpToStep?: (s: string) => boolean) {
@@ -81,6 +97,29 @@ const IntakeCoachStep = ({
   const writtenRef = useRef(false);
   const baselineRef = useRef<Record<string, string>>({});
   const editedRef = useRef<Set<string>>(new Set());
+  // DPIA F19 (2026-09-15): an outcome chosen before the transcript row exists
+  // is queued and written when the id arrives — a quick Close or Continue no
+  // longer leaves the transcript without an outcome. Still fail-open.
+  const pendingOutcomeRef = useRef<"skipped" | "continued" | null>(null);
+  const flushOutcome = (id: string) => {
+    const o = pendingOutcomeRef.current;
+    if (!o) return;
+    pendingOutcomeRef.current = null;
+    if (o === "skipped") void markTranscriptOutcome(id, "skipped").catch(() => { /* fail-open */ });
+    else void markTranscriptOutcome(id, "continued").catch(() => { /* fail-open */ });
+  };
+
+  // F19 — each opening is its own logical run: a reopen after edits writes a
+  // fresh transcript instead of silently reusing the first one. Edits made
+  // after the previous close were already tracked against that transcript.
+  useEffect(() => {
+    if (open && transcriptIdRef.current) {
+      transcriptIdRef.current = null;
+      writtenRef.current = false;
+      editedRef.current = new Set();
+      pendingOutcomeRef.current = null;
+    }
+  }, [open]);
 
   useEffect(() => {
     if (!open || !result || writtenRef.current || !userId) return;
@@ -92,7 +131,7 @@ const IntakeCoachStep = ({
       { userId, product, referenceKind, referenceId },
       result,
     )
-      .then((id) => { transcriptIdRef.current = id; })
+      .then((id) => { transcriptIdRef.current = id; if (id) flushOutcome(id); })
       .catch(() => { /* fail-open */ });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, result, userId]);
@@ -113,11 +152,13 @@ const IntakeCoachStep = ({
   const handleClose = () => {
     const id = transcriptIdRef.current;
     if (id) void markTranscriptOutcome(id, "skipped").catch(() => { /* fail-open */ });
+    else if (writtenRef.current) pendingOutcomeRef.current = "skipped";
     onClose();
   };
   const handleContinue = () => {
     const id = transcriptIdRef.current;
     if (id) void markTranscriptOutcome(id, "continued").catch(() => { /* fail-open */ });
+    else if (writtenRef.current) pendingOutcomeRef.current = "continued";
     onContinue();
   };
 
@@ -131,6 +172,10 @@ const IntakeCoachStep = ({
         </DialogHeader>
 
         <p className="text-sm text-muted-foreground">{COACH_COPY.intro}</p>
+        {/* F19 — the scope of this review, stated: the configured questions, capped cards. */}
+        <p className="text-meta text-muted-foreground" data-testid="coach-scope">
+          Checked: {result.stats.asked} questions asked of this record; cards are shown for the configured questions only, up to six at a time.
+        </p>
 
         {/* 3-stat strip */}
         <div className="grid grid-cols-3 gap-3" data-testid="coach-stats">

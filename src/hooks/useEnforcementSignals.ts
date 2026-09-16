@@ -8,6 +8,14 @@ import { supabase } from "@/integrations/supabase/client";
 export interface EnforcementSignal {
   summary: string;
   caseCount: number;
+  /**
+   * Governance F21 (2026-09-15) — one example that actually matched the
+   * topic, with its source, or absent. Never presented as "most significant"
+   * without a documented ranking.
+   */
+  example?: { regulator: string; violation: string; url: string | null } | null;
+  /** True when the corpus produced no topic match and the popover shows general context only. */
+  noTopicMatch?: boolean;
 }
 
 export type EnforcementSignalMap = Record<string, EnforcementSignal>;

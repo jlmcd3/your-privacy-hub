@@ -52,14 +52,17 @@ import {
 } from "@/pages/LIAssessment.enums";
 import { Scale } from 'lucide-react';
 
-const MultiPills = ({ options, value, onChange }: { options: string[]; value: string[]; onChange: (v: string[]) => void }) => (
-  <div className="flex flex-wrap gap-2">
+// LIA F18 (2026-09-15): the group carries an accessible name and each pill
+// exposes its selected state (aria-pressed), not only a colour.
+const MultiPills = ({ options, value, onChange, labelledBy }: { options: string[]; value: string[]; onChange: (v: string[]) => void; labelledBy?: string }) => (
+  <div className="flex flex-wrap gap-2" role="group" aria-labelledby={labelledBy}>
     {options.map((opt) => {
       const checked = value.includes(opt);
       return (
         <button
           key={opt}
           type="button"
+          aria-pressed={checked}
           onClick={() => onChange(checked ? value.filter((v) => v !== opt) : [...value, opt])}
           className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
             checked ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-muted border-input"
@@ -75,6 +78,19 @@ const MultiPills = ({ options, value, onChange }: { options: string[]; value: st
 interface PreviewSignal {
   use_case_label: string;
   use_case_code: string;
+  // LIA F03 (2026-09-15) — the evidence behind the detected class, so the
+  // customer can confirm or correct it before anything is rated on it.
+  classification?: {
+    detected_code: string;
+    detected_label: string;
+    matched_terms: string[];
+    negated_terms: string[];
+    tie: boolean;
+    candidates: Array<{ code: string; label: string }>;
+    override_code: string | null;
+    override_label: string | null;
+  };
+  use_case_options?: Array<{ code: string; label: string }>;
   precedents: Array<{
     processing_activity: string;
     outcome: string;
@@ -82,9 +98,20 @@ interface PreviewSignal {
     dpa_source: string;
     summary: string;
     case_reference?: string | null;
+    relevance_note?: string | null;
   }>;
   precedents_matched: number;
-  strength: { rating: "Strong" | "Moderate" | "Weak" | "High Risk"; rationale: string };
+  precedents_in_selected_jurisdictions?: number;
+  // LIA F04 — how the decisions were chosen and what was not compared.
+  precedent_selection?: {
+    pool_size: number;
+    matched_count: number;
+    preferred_count: number;
+    jurisdiction_fallback: boolean;
+    not_compared: string[];
+    description: string;
+  };
+  strength: { rating: "Strong" | "Moderate" | "Weak" | "High Risk"; rationale: string; basis?: string; pool?: string };
   disclaimer: string;
 }
 
@@ -124,6 +151,12 @@ const LIAssessment = () => {
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<PreviewSignal | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
+  // LIA F02 (2026-09-15) — the signal is bound to the answers it was computed
+  // from. Any later edit marks it stale; Continue waits for a refresh.
+  const [previewInputs, setPreviewInputs] = useState<string | null>(null);
+  const [useCaseOverride, setUseCaseOverride] = useState<string | null>(null);
+  const inputsSnapshot = JSON.stringify({ organizationName, subjectAnchor, processingDescription, dataCategories, relationship, jurisdictions, dataCategoriesOther, relationshipOther });
+  const previewStale = !!preview && previewInputs !== null && previewInputs !== inputsSnapshot;
 
   const validate = () => {
     if (!organizationName.trim()) return "Tell us the name of the organisation being assessed.";
@@ -135,12 +168,16 @@ const LIAssessment = () => {
     return null;
   };
 
-  const handlePreview = async () => {
+  // F03 — `override` is a classifier code the customer chose in place of the
+  // detected one. The preview is recomputed for it (a new preview row is
+  // written; earlier rows are kept as prior versions).
+  const handlePreview = async (override?: string | null) => {
     const err = validate();
     if (err) {
       toast({ title: "Almost there", description: err, variant: "destructive" });
       return;
     }
+    const chosen = override === undefined ? useCaseOverride : override;
     setLoading(true);
     try {
       // Fold any "Other" free-text into the stored values so it flows through the existing columns
@@ -154,6 +191,7 @@ const LIAssessment = () => {
           data_categories: dataCategoriesOut,
           relationship_type: relationshipOut,
           jurisdictions,
+          ...(chosen ? { use_case_override: chosen } : {}),
         },
       });
       if (fnErr) throw fnErr;
@@ -180,6 +218,8 @@ const LIAssessment = () => {
 
       setPreview(previewData);
       setPreviewId(row.id);
+      setPreviewInputs(inputsSnapshot);
+      setUseCaseOverride(chosen ?? null);
       // Smooth scroll to result
       setTimeout(() => {
         document.getElementById("preview-signal")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -192,7 +232,7 @@ const LIAssessment = () => {
   };
 
   const handleContinue = () => {
-    if (!previewId) return;
+    if (!previewId || previewStale) return;
     navigate(`/li-assessment/intake/${previewId}`);
   };
 
@@ -437,10 +477,10 @@ const LIAssessment = () => {
             </div>
 
             <div>
-              <Label className="font-serif-text font-semibold text-[16.5px] text-brand-navy">Data categories involved<Req /> <DefPopover termKey="gdpr_special_categories" /></Label>
-              <div className="mt-2"><MultiPills options={DATA_CATEGORIES} value={dataCategories} onChange={setDataCategories} /></div>
+              <Label id="lia-data-categories-label" className="font-serif-text font-semibold text-[16.5px] text-brand-navy">Data categories involved<Req /> <DefPopover termKey="gdpr_special_categories" /></Label>
+              <div className="mt-2"><MultiPills options={DATA_CATEGORIES} value={dataCategories} onChange={setDataCategories} labelledBy="lia-data-categories-label" /></div>
               {dataCategories.includes("Other") && (
-                <input value={dataCategoriesOther} onChange={(e) => setDataCategoriesOther(e.target.value)} placeholder="Specify the other data categories" className="mt-2 w-full h-10 px-3 rounded-md border border-brand-cloud bg-background text-sm" />
+                <input aria-label="Specify the other data categories" value={dataCategoriesOther} onChange={(e) => setDataCategoriesOther(e.target.value)} placeholder="Specify the other data categories" className="mt-2 w-full h-10 px-3 rounded-md border border-brand-cloud bg-background text-sm" />
               )}
             </div>
 
@@ -451,13 +491,13 @@ const LIAssessment = () => {
                 {RELATIONSHIPS.map((r) => <option key={r} value={r}>{r}</option>)}
               </select>
               {relationship === "Other" && (
-                <input value={relationshipOther} onChange={(e) => setRelationshipOther(e.target.value)} placeholder="Describe your relationship with the data subjects" className="mt-2 w-full h-10 px-3 rounded-md border border-brand-cloud bg-background text-sm" />
+                <input aria-label="Describe your relationship with the data subjects" value={relationshipOther} onChange={(e) => setRelationshipOther(e.target.value)} placeholder="Describe your relationship with the data subjects" className="mt-2 w-full h-10 px-3 rounded-md border border-brand-cloud bg-background text-sm" />
               )}
             </div>
 
             <div>
-              <Label className="font-serif-text font-semibold text-[16.5px] text-brand-navy">Jurisdictions where this processing applies<Req /></Label>
-              <div className="mt-2"><MultiPills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div>
+              <Label id="lia-jurisdictions-label" className="font-serif-text font-semibold text-[16.5px] text-brand-navy">Jurisdictions where this processing applies<Req /></Label>
+              <div className="mt-2"><MultiPills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} labelledBy="lia-jurisdictions-label" /></div>
             </div>
 
             <div className="pt-2 border-t border-brand-cloud">
@@ -482,9 +522,19 @@ const LIAssessment = () => {
           <section id="preview-signal">
             <div className="text-eyebrow text-brand-mist mb-2">Preliminary signal</div>
             <div className="bg-card border-t-4 border-brand-navy rounded-2xl p-5 sm:p-6 md:p-8 shadow-eup-sm space-y-6">
+              {previewStale && (
+                <div role="status" className="border-l-4 border-amber-400 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-r text-sm text-amber-900 dark:text-amber-200" data-testid="lia-preview-stale">
+                  Your answers have changed since this signal was produced. It reflects the earlier answers; refresh it before continuing.
+                  <div className="mt-2">
+                    <button type="button" onClick={() => void handlePreview()} disabled={loading} className="px-3 py-1.5 rounded-md border text-sm font-semibold bg-background hover:bg-muted disabled:opacity-60">
+                      {loading ? "Analysing precedents…" : "Refresh the signal"}
+                    </button>
+                  </div>
+                </div>
+              )}
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div>
-                  <div className="text-eyebrow text-brand-mist mb-1">Use case</div>
+                  <div className="text-eyebrow text-brand-mist mb-1">Use case{preview.classification?.override_code ? " · confirmed by you" : " · detected from your description"}</div>
                   <h2 className="font-display text-brand-navy leading-snug">{preview.use_case_label}</h2>
                 </div>
                 <span className={`px-4 py-1.5 rounded-full border text-meta font-semibold ${STRENGTH_STYLE[preview.strength.rating]}`}>
@@ -492,13 +542,64 @@ const LIAssessment = () => {
                 </span>
               </div>
 
+              {/* LIA F03 (2026-09-15) — the classification is shown with its
+                  evidence and can be corrected before anything is rated on it. */}
+              {preview.classification && (
+                <div className="rounded-md border bg-muted/20 p-3 text-sm space-y-2" data-testid="lia-classification">
+                  <p>
+                    <span className="font-medium">Detected:</span> {preview.classification.detected_label}
+                    {preview.classification.matched_terms.length > 0
+                      ? <> — from the words {preview.classification.matched_terms.map((t) => `“${t.trim()}”`).join(", ")} in your description.</>
+                      : <> — no activity term was found; the general class is used.</>}
+                  </p>
+                  {preview.classification.negated_terms.length > 0 && (
+                    <p className="text-muted-foreground">
+                      Ignored because your description rules them out: {preview.classification.negated_terms.map((t) => `“${t.trim()}”`).join(", ")}.
+                    </p>
+                  )}
+                  {preview.classification.tie && (
+                    <p className="text-muted-foreground">
+                      Your description fits more than one activity equally ({preview.classification.candidates.map((c) => c.label).join(", ")}); the first is used unless you choose another.
+                    </p>
+                  )}
+                  {preview.classification.override_code && (
+                    <p className="text-muted-foreground">
+                      You confirmed <span className="font-medium">{preview.classification.override_label}</span> in place of the detected {preview.classification.detected_label}. Your original description is kept as written.
+                    </p>
+                  )}
+                  {preview.use_case_options && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label htmlFor="lia-use-case-override" className="text-muted-foreground">Not the activity you described? Choose the one that fits:</label>
+                      <select
+                        id="lia-use-case-override"
+                        className="h-9 px-2 rounded-md border border-input bg-background text-sm"
+                        value={preview.classification.override_code ?? preview.classification.detected_code}
+                        disabled={loading}
+                        onChange={(e) => {
+                          const code = e.target.value;
+                          void handlePreview(code === preview.classification?.detected_code ? null : code);
+                        }}
+                      >
+                        {preview.use_case_options.map((o) => <option key={o.code} value={o.code}>{o.label}</option>)}
+                      </select>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <p className="text-sm text-brand-navy leading-relaxed">{preview.strength.rationale}</p>
 
               {preview.precedents.length > 0 ? (
                 <div className="pt-5 border-t border-brand-cloud">
                   <h3 className="text-eyebrow text-brand-mist mb-3">
-                    Most analogous regulator decisions — showing {preview.precedents.length} of {preview.precedents_matched} matched
+                    Tracked regulator decisions sharing a term with this activity — showing {preview.precedents.length} of {preview.precedents_matched} matched
                   </h3>
+                  {/* LIA F04 (2026-09-15) — how the decisions were chosen, and what was not compared. */}
+                  {preview.precedent_selection && (
+                    <p className="text-meta text-muted-foreground mb-3" data-testid="lia-precedent-method">
+                      {preview.precedent_selection.description} Not compared: {preview.precedent_selection.not_compared.join("; ")}. Check that the facts of each decision match yours before relying on it.
+                    </p>
+                  )}
                   <div className="space-y-5">
                     {preview.precedents.map((p, i) => (
                       <article key={i} className="bg-card border border-brand-cloud rounded-xl shadow-eup-sm relative overflow-hidden flex">
@@ -508,6 +609,9 @@ const LIAssessment = () => {
                           <div className="flex flex-wrap gap-1.5 mb-3">
                             <span className="bg-muted text-muted-foreground px-2 py-0.5 text-eyebrow rounded">{p.dpa_source}</span>
                             <span className="bg-muted text-muted-foreground px-2 py-0.5 text-eyebrow rounded">{p.jurisdiction}</span>
+                            {p.relevance_note && (
+                              <span className="bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 text-eyebrow rounded">{p.relevance_note}</span>
+                            )}
                           </div>
                           <p className="text-sm text-slate leading-relaxed mb-4">{p.summary}</p>
                           <div className="flex items-center justify-between gap-3 pt-3 border-t border-brand-cloud">
@@ -527,8 +631,8 @@ const LIAssessment = () => {
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground italic">
-                  No directly analogous regulator decisions in the tracked database for this use case. The full
-                  assessment will analyse your facts on first principles and surface adjacent precedents.
+                  No tracked regulator decision shares a term with this activity. The full assessment analyses your
+                  facts under the three-part test and cites the authorities that apply to them.
                 </p>
               )}
 
@@ -542,10 +646,12 @@ const LIAssessment = () => {
               <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center pt-4 border-t border-brand-cloud">
                 <button
                   onClick={handleContinue}
-                  className="w-full sm:w-auto px-6 py-3 rounded-md bg-teal-action text-white font-semibold hover:bg-teal-action-hover transition-colors"
+                  disabled={previewStale || loading}
+                  className="w-full sm:w-auto px-6 py-3 rounded-md bg-teal-action text-white font-semibold hover:bg-teal-action-hover transition-colors disabled:opacity-60"
                 >
                   Continue to full assessment (${pricing.price})
                 </button>
+                {previewStale && <span className="text-meta text-amber-800">Refresh the signal first — it no longer matches your answers.</span>}
                 {pricing.isSubscriber && pricing.standalonePrice > pricing.price && (
                   <span className="text-meta text-muted-foreground">
                     Subscriber rate · standalone ${pricing.standalonePrice}

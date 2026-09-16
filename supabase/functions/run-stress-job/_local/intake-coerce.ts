@@ -329,20 +329,26 @@ function severityRank(option: string): number | null {
 }
 
 /** Ordinal severity scales: keyword hit, else the low-middle rung. */
+// An honest non-answer on a severity scale ("Not assessed", "Unknown",
+// "Unsure") carries no rank; it is set aside when the scale is recognised
+// and is never chosen by this pass (LIA master review 2026-09-15, F16).
+const SEVERITY_UNRANKED = /^(not assessed|not yet assessed|unknown|unsure|not sure|not known)$/;
+
 function severityMatch(value: string, options: readonly string[]): string | null {
-  const ranks = options.map(severityRank);
-  const isScale = options.length >= 3 && ranks.every((r) => r !== null);
+  const scale = options.filter((o) => !SEVERITY_UNRANKED.test(norm(o)));
+  const ranks = scale.map(severityRank);
+  const isScale = scale.length >= 3 && ranks.every((r) => r !== null);
   if (!isScale) return null;
   const v = norm(value);
   for (const w of ["severe", "critical", "major", "high", "significant", "moderate", "medium", "minor", "low", "limited", "negligible", "none"]) {
     if (!v.split(" ").includes(w)) continue;
-    const hit = options.find((o) => norm(o).split(" ").includes(w));
+    const hit = scale.find((o) => norm(o).split(" ").includes(w));
     if (hit) return hit;
   }
   const distinct = [...new Set(ranks as number[])].sort((a, b) => a - b);
   const target = distinct[Math.floor((distinct.length - 1) / 2)];
   const idx = ranks.indexOf(target);
-  return idx >= 0 ? options[idx] : options[Math.floor((options.length - 1) / 2)];
+  return idx >= 0 ? scale[idx] : scale[Math.floor((scale.length - 1) / 2)];
 }
 
 

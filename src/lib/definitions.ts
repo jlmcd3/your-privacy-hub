@@ -181,8 +181,8 @@ export const DEFINITIONS: Record<string, TermDefinition> = {
   },
   gdpr_breach_notification: {
     term: "Breach notification (72 hours)",
-    definition: "In the case of a personal data breach, the controller shall without undue delay and, where feasible, not later than 72 hours after having become aware of it, notify the breach to the competent supervisory authority, unless the breach is unlikely to result in a risk to the rights and freedoms of natural persons. (verbatim, condensed)",
-    cite: "Art. 33(1) GDPR / UK GDPR",
+    definition: "In the case of a personal data breach, the controller shall without undue delay and, where feasible, not later than 72 hours after having become aware of it, notify the breach to the competent supervisory authority, unless the breach is unlikely to result in a risk to the rights and freedoms of natural persons. The processor shall notify the controller without undue delay after becoming aware of a personal data breach. (verbatim, condensed)",
+    cite: "Art. 33(1)–(2) GDPR / UK GDPR",
     ukNote: "UK GDPR: notification is to the ICO.",
   },
   gdpr_breach_communication: {
@@ -192,7 +192,7 @@ export const DEFINITIONS: Record<string, TermDefinition> = {
   },
   gdpr_transparency: {
     term: "Transparency information (Arts. 13–14)",
-    definition: "At the time personal data are obtained, the controller must provide the data subject with prescribed information including the controller's identity and contact details, the purposes and legal basis of processing, recipients, third-country transfers, retention period, data subject rights, and the source of the data where not collected from the data subject. (summary)",
+    definition: "Where personal data are collected from the data subject, Art. 13 requires the controller to provide prescribed information — including the controller's identity and contact details, the purposes and legal basis of processing, recipients, third-country transfers, retention period, and data subject rights — at the time when the personal data are obtained. Where personal data have not been obtained from the data subject, Art. 14 requires the same categories of information plus the source of the data, and Art. 14(3) sets a different timing rule: within a reasonable period and at the latest within one month, or at the time of first communication with the data subject, or at first disclosure to another recipient, whichever occurs first. (summary)",
     cite: "Arts. 13–14 GDPR / UK GDPR",
   },
   gdpr_international_transfer: {
@@ -209,7 +209,7 @@ export const DEFINITIONS: Record<string, TermDefinition> = {
   },
   gdpr_dpo: {
     term: "Data Protection Officer (DPO)",
-    definition: "A controller or processor must designate a DPO where processing is carried out by a public authority, or where core activities consist of regular and systematic monitoring of data subjects on a large scale, or large-scale processing of special categories of data or criminal conviction data. (summary)",
+    definition: "A controller or processor must designate a DPO where: (a) processing is carried out by a public authority or body, except for courts acting in their judicial capacity; (b) core activities consist of regular and systematic monitoring of data subjects on a large scale; or (c) core activities consist of large-scale processing of special categories of data or criminal conviction data. 'Core activities' includes processing that is an inextricable part of the controller's or processor's activity, not only its headline business description; headcount is not itself a designation criterion under any of the three limbs. (summary)",
     cite: "Arts. 37–39 GDPR / UK GDPR",
   },
   gdpr_security_measures: {
@@ -219,7 +219,7 @@ export const DEFINITIONS: Record<string, TermDefinition> = {
   },
   gdpr_data_subject_rights: {
     term: "Data subject rights",
-    definition: "Data subjects have the right to be informed and to obtain access to their personal data, and to rectification, erasure, restriction of processing, data portability, and to object. The controller must facilitate these rights and respond without undue delay and within one month. (summary)",
+    definition: "Data subjects have the right to be informed and to obtain access to their personal data, and to rectification, erasure, restriction of processing, data portability, and to object. The controller must facilitate these rights and respond without undue delay and within one month of receipt of the request; that period may be extended by two further months where necessary, taking into account the complexity and number of requests, provided the controller informs the data subject of the extension and the reasons for the delay within one month of receipt of the request. (summary)",
     cite: "Arts. 12, 15–22 GDPR / UK GDPR",
   },
   gdpr_accountability: {

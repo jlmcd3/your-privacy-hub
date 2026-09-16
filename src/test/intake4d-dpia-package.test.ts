@@ -43,6 +43,7 @@ describe("INTAKE-4d — DPIA intake package", () => {
 
   it("offers the prefills as confirmations, not silent copies", () => {
     expect(page).toContain("Use my earlier answer");
-    expect(page).toContain("Start from my earlier answer");
+    // DPIA master review (2026-09-15, F09): the affordance is labelled for what it does.
+    expect(page).toContain("Copy my necessity notes into a draft row");
   });
 });

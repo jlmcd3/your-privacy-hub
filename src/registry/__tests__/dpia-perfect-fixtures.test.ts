@@ -28,6 +28,15 @@ const EXEMPT = new Set([
   // the field is correctly absent there; dpia-perfect-uk-complete's reasons
   // DO qualify and it answers the field (see dpia.ts), so it needs no exemption.
   "automated_decision_nature",
+  // DPIA Intake Master Review (2026-09-15, F06 / F08) — conditional fields
+  // with hiddenValue "": asked only when data_categories includes "Other"
+  // (data_categories_other) or "Biometric data" (biometric_unique_identification),
+  // or when controller_country is the OTHER sentinel (controller_country_other).
+  // Neither perfect fixture selects those triggers, so the fields are
+  // legitimately hidden and travel "".
+  "data_categories_other",
+  "biometric_unique_identification",
+  "controller_country_other",
 ]);
 
 function filled(v: unknown): boolean {

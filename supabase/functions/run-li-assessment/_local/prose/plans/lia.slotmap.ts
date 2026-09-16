@@ -254,6 +254,8 @@ export const LIA_RELATIONSHIP_LABELS: Readonly<Record<string, string>> = Object.
   "Member of the public": "members of the public",
   // DOC 161 (2026-09-03) — the balancing form's own category label.
   "Member of the public — no relationship": "members of the public with no prior relationship with the company",
+  // LIA master review (2026-09-15, F16) — mixed relationships are an honest answer.
+  "Mixed — more than one relationship": "individuals who stand in more than one relationship with the company",
   "Customer": "customers of the company",
   "Employee/worker": "the company's employees and workers",
   "Prospect": "prospective customers",

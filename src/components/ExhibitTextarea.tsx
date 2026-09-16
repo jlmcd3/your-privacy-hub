@@ -56,8 +56,11 @@ export function ExhibitTextarea({
     if (!exhibit) stashedRef.current = value || "";
   }, [value, exhibit]);
 
+  // DPIA master review (2026-09-15, F21): `id` names the TEXTAREA (so a
+  // page Label's htmlFor reaches the control it describes); the radio gets a
+  // derived id of its own.
   const radioId = React.useMemo(
-    () => id || `exhibit-${Math.random().toString(36).slice(2, 9)}`,
+    () => (id ? `${id}-exhibit` : `exhibit-${Math.random().toString(36).slice(2, 9)}`),
     [id]
   );
 
@@ -74,6 +77,7 @@ export function ExhibitTextarea({
     <div className="space-y-2">
       <Textarea
         {...textareaProps}
+        id={id}
         className={cn(className, exhibit && "opacity-50 cursor-not-allowed bg-muted")}
         value={exhibit ? "" : value}
         placeholder={

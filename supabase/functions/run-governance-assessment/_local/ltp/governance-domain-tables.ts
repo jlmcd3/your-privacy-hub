@@ -88,6 +88,19 @@ function toolInventory(intake: Bag): TypedDomainFinding {
       gap_description: "Sanctioning is informal: a tool can enter use without a recorded approval, and drift from the inventory is not detected.",
       recommended_action: "Adopt a formal approval step for new tools and an audit cadence for the inventory, recording both (GDPR Art. 24(1); Art. 32(1)(d)).",
     },
+    // Governance master review (2026-09-15, F18) — the two mixed states.
+    "Inventory exists and is audited, but there is no formal approval route": {
+      severity: "Medium",
+      current_state: "The company maintains and audits a tool inventory, but new tools are not passed through a formal approval route.",
+      gap_description: "Drift is detected by audit, but a tool can enter use before anyone records its approval.",
+      recommended_action: "Add a recorded approval step for new tools ahead of first use, keeping the existing audit cadence (GDPR Art. 24(1); Art. 32(1)(d)).",
+    },
+    "Inventory exists with a formal approval route, but it is not audited": {
+      severity: "Medium",
+      current_state: "The company maintains a tool inventory with a formal approval route for new tools, but does not audit the inventory against what is in use.",
+      gap_description: "Approval is recorded, but drift from the inventory is not detected.",
+      recommended_action: "Adopt an audit cadence that checks the inventory against the tools actually in use, keeping the existing approval route (GDPR Art. 24(1); Art. 32(1)(d)).",
+    },
     "No formal inventory": {
       severity: "High",
       current_state: "The company reports that no formal tool inventory exists.",

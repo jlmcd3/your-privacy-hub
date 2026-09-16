@@ -408,6 +408,11 @@ export const DPIA_PERFECT: GoldenCase[] = [
       dp_by_design_measures:
         "Diagnosis category held only in the occupational-health module under two named physician accounts; only the fitness verdict is released to line management; scheduling uses pseudonymised case identifiers; an automated job enforces the 18-month deletion; access logs are reviewed quarterly by the DPO.",
       transfer_flows: [],
+      // DPIA master review (2026-09-15) — the current intake asks these; a complete record answers them.
+      transfer_presence: "No — all processing stays within the EEA and the UK",
+      processing_end_status: "Temporary — ends on the date or condition below",
+      controller_industry: "Occupational health services",
+      safeguards_other: "None beyond the measures listed; the two named physician accounts are the only access route to diagnosis categories.",
       retention_record_type: "Retention schedule entry OH-07 in the corporate records-retention register.",
       residual_risks:
         "Two moderate risks remain after the measures above. Line managers can still infer a health reason from a fitness verdict; it is accepted because only the verdict is released, no diagnosis category leaves the occupational-health module, and access is limited to two named physicians under quarterly log review. A scheduling error could expose a case identifier to the wrong team; it is accepted because identifiers are pseudonymised, the mapping sits behind the physician accounts, and any exposure is caught by the quarterly access review and the 18-month deletion job.",
@@ -539,6 +544,11 @@ export const DPIA_PERFECT: GoldenCase[] = [
       dp_by_design_measures:
         "Pseudonymised identifiers throughout the scoring pipeline; raw-text discard within 48 hours; minimum team size of eight for any manager-visible output; role separation between People Analytics and occupational health; access logging with monthly review; automated deletion enforcing both retention limits.",
       transfer_flows: [],
+      // DPIA master review (2026-09-15) — the current intake asks these; a complete record answers them.
+      transfer_presence: "No — all processing stays within the EEA and the UK",
+      processing_end_status: "Temporary — ends on the date or condition below",
+      controller_industry: "Human-resources services",
+      safeguards_other: "None beyond the measures listed; the purpose-limitation policy annexed to the DPIA is the control on reuse.",
       retention_record_type: "Retention schedule reference HR-22 (workforce analytics) in the corporate retention register.",
       residual_risks:
         "After the measures above, two risks remain. A false positive can still reach an occupational-health adviser; it is accepted because every individual flag is reviewed by a named adviser before any contact and false positives are logged and fed into the quarterly model review. Employees may still moderate what they write on the platform; it is accepted for the twelve-month pilot only, is monitored through the staff forum, and is re-tested at the re-assessment gate before any continuation.",

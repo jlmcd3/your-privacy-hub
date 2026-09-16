@@ -32,8 +32,13 @@ export function EnforcementSignalIcon({ signalKey, signals }: EnforcementSignalI
           Enforcement signal — {signal.caseCount} cases in corpus
         </p>
         <p className="text-xs leading-relaxed text-foreground">{signal.summary}</p>
+        {signal.example?.url && (
+          <p className="text-xs">
+            <a href={signal.example.url} target="_blank" rel="noreferrer" className="underline text-primary">Open the cited decision</a>
+          </p>
+        )}
         <p className="font-mono text-[11px] text-muted-foreground pt-1 border-t">
-          End User Privacy enforcement corpus · 119 regulators
+          End User Privacy enforcement corpus · counts are actions citing the provision named above
         </p>
       </PopoverContent>
     </Popover>

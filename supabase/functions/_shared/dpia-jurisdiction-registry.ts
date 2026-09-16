@@ -36,6 +36,29 @@ export interface SupervisoryAuthority {
   lastVerified: string; // YYYY-MM-DD
 }
 
+// DPIA Intake Master Review (2026-09-15, F06) — ONE country vocabulary at
+// every boundary. The picker stores ISO 3166-1 alpha-2 ("GB" for the UK);
+// this registry keys the United Kingdom as "UK"; fixtures and free text may
+// carry alpha-3 or the Eurostat code for Greece. Everything is canonicalised
+// here before any lookup, and the picker sentinels (OTHER / UNKNOWN) become
+// "" — no country — so they resolve to an honest [TO COMPLETE], never to a
+// guessed authority.
+const COUNTRY_ALIASES: Record<string, string> = {
+  GB: "UK", GBR: "UK", "UNITED KINGDOM": "UK", EL: "GR", GRC: "GR",
+  DEU: "DE", IRL: "IE", FRA: "FR", ESP: "ES", NLD: "NL", ITA: "IT", SWE: "SE", DNK: "DK", BEL: "BE",
+  AUT: "AT", FIN: "FI", LUX: "LU", PRT: "PT", NOR: "NO", CHE: "CH", POL: "PL", CZE: "CZ", HUN: "HU",
+  ROU: "RO", BGR: "BG", HRV: "HR", SVN: "SI", SVK: "SK", EST: "EE", LVA: "LV", LTU: "LT", MLT: "MT",
+  CYP: "CY", ISL: "IS", LIE: "LI", USA: "US",
+};
+const COUNTRY_SENTINELS = new Set(["OTHER", "UNKNOWN", "N/A", "NONE", "-", "?"]);
+export function canonicalCountryCode(raw: unknown): string {
+  const c = String(raw ?? "").trim().toUpperCase();
+  if (!c || COUNTRY_SENTINELS.has(c)) return "";
+  return COUNTRY_ALIASES[c] ?? c;
+}
+/** The EU/EEA members as canonical codes (the UK is not in the Union). */
+export const EEA_CANONICAL = new Set<string>(["DE","IE","FR","ES","NL","IT","SE","DK","BE","AT","FI","LU","GR","PT","NO","PL","CZ","HU","RO","BG","HR","SI","SK","EE","LV","LT","MT","CY","IS","LI"]);
+
 // ── 1a. Supervisory authorities ──────────────────────────────────────────────
 // Germany: PRIVATE-SECTOR controllers → Land authority. NEVER BfDI.
 // BfDI supervises ONLY federal public bodies, telecoms, and postal services.
@@ -111,7 +134,8 @@ export interface SiteFacts {
 }
 
 export function competentSA(site: SiteFacts): SupervisoryAuthority {
-  const country = String(site.country || "").toUpperCase() as CountryCode;
+  // F06 — GB / GBR / UK are one authority; sentinels resolve to "unresolved".
+  const country = canonicalCountryCode(site.country) as CountryCode;
   const sector: Sector = (site.sector || "private") as Sector;
 
   if (country === "DE") {
@@ -159,19 +183,27 @@ export function leadAuthorityAndOSS(input: {
   concernedSites?: SiteFacts[];
 }): OSSResult {
   const concerned = (input.concernedSites || []).map(competentSA);
-  const ca = String(input.centralAdministrationCountry || "").toUpperCase();
-  const EEA = new Set<string>(["DE","UK","IE","FR","ES","NL","IT","SE","DK","BE","AT","FI","LU","GR","PT","NO","PL","CZ","HU","RO","BG","HR","SI","SK","EE","LV","LT","MT","CY","IS","LI"]);
-  // UK is post-Brexit — UK GDPR OSS doesn't apply across EU.
-  const caInEEA = EEA.has(ca) && ca !== "UK";
+  // F06 — canonical codes throughout; the UK is post-Brexit, so UK GDPR OSS
+  // does not apply across the EU and "UK" is never an establishment in the Union.
+  const ca = canonicalCountryCode(input.centralAdministrationCountry);
+  const caInEEA = EEA_CANONICAL.has(ca);
   if (caInEEA) {
-    const lead = competentSA({ country: ca as CountryCode, sector: "private" });
+    // F06 — the lead authority is resolved with the Land and sector of the
+    // site at the place of central administration where the record has them;
+    // a German controller is never left "DE-unknown-private" while its Land
+    // is on the record.
+    const caSite = (input.concernedSites || []).find((s) => canonicalCountryCode(s.country) === ca);
+    const lead = competentSA({ country: ca as CountryCode, land: caSite?.land, sector: caSite?.sector ?? "private" });
     return {
       ossAvailable: true, leadAuthority: lead, concernedAuthorities: concerned,
       rationale: `Central administration in ${ca} — main establishment under GDPR Art. 4(16)(a) (controller limb: place of central administration in the Union); lead SA via Art. 56 one-stop-shop.`,
     };
   }
-  if (input.euEstablishmentWithDecisionAuthority) {
-    const lead = competentSA(input.euEstablishmentWithDecisionAuthority as SiteFacts);
+  const eu = input.euEstablishmentWithDecisionAuthority ?? null;
+  const euCode = eu ? canonicalCountryCode(eu.country) : "";
+  const euInUnion = !!euCode && EEA_CANONICAL.has(euCode);
+  if (eu && euInUnion) {
+    const lead = competentSA({ ...eu, country: euCode } as SiteFacts);
     return {
       ossAvailable: true, leadAuthority: lead, concernedAuthorities: concerned,
       // FF-4 pd6 — corrected: this is still the Art. 4(16)(a) controller limb.
@@ -179,12 +211,17 @@ export function leadAuthorityAndOSS(input: {
       // establishment of the controller in the Union with power to have them
       // implemented, that establishment is the main establishment. Art. 4(16)(b)
       // is the PROCESSOR limb and does not govern controller main-establishment.
-      rationale: `Central administration outside the EU, but another establishment of the controller in the Union takes the decisions on the purposes and means of this processing and has the power to have them implemented → that establishment is the main establishment under GDPR Art. 4(16)(a) (controller limb, second clause).`,
+      rationale: `Central administration outside the EU, but another establishment of the controller in the Union (${euCode}) takes the decisions on the purposes and means of this processing and has the power to have them implemented → that establishment is the main establishment under GDPR Art. 4(16)(a) (controller limb, second clause).`,
     };
   }
+  // F06 — a deciding office named outside the Union (or not identified) is
+  // recorded, and cannot be the main establishment; the result is unchanged.
+  const namedOutside = eu
+    ? ` A deciding office was named${eu.country ? ` in ${String(eu.country).toUpperCase()}` : ""}${euCode ? "" : " (country not identified)"}, which is not an establishment in the Union, so it cannot be the main establishment under Art. 4(16)(a); it is recorded without changing this result.`
+    : "";
   return {
     ossAvailable: false, leadAuthority: null, concernedAuthorities: concerned,
-    rationale: `Central administration outside the EU and no EU establishment of the controller takes the decisions on the purposes and means of this processing → no main establishment under GDPR Art. 4(16)(a); OSS is unavailable; each concerned SA is independently competent (EDPB Guidelines 8/2022). (Art. 4(16)(b) governs the processor limb, not the controller.)`,
+    rationale: `Central administration outside the EU and no EU establishment of the controller takes the decisions on the purposes and means of this processing → no main establishment under GDPR Art. 4(16)(a); OSS is unavailable; each concerned SA is independently competent (EDPB Guidelines 8/2022). (Art. 4(16)(b) governs the processor limb, not the controller.)${namedOutside}`,
   };
 }
 
@@ -245,11 +282,25 @@ const EEA_CODES = new Set(["DE","IE","FR","ES","NL","IT","SE","DK","BE","AT","FI
 const UK_CANONICAL = new Set(["GB", "UK", "GBR"]);
 export function canonicalDestinationCode(raw: string): string {
   const c = String(raw || "").toUpperCase().trim();
-  return UK_CANONICAL.has(c) ? "UK" : c;
+  // F06 — one vocabulary: the same aliases and sentinels as canonicalCountryCode.
+  return UK_CANONICAL.has(c) ? "UK" : canonicalCountryCode(c);
 }
+
+// F06 / F11 — a row whose destination is not identified (blank, OTHER,
+// UNKNOWN) gets an honest placeholder, never a mechanism inferred for an
+// unknown country.
+const DESTINATION_UNRESOLVED: TransferMechanism = {
+  id: "destination-unresolved",
+  mechanism: "[TO COMPLETE — identify the destination country; the Chapter V basis for this flow depends on it]",
+  citation: "GDPR Chapter V (Arts. 44–49)",
+  tiaRequired: false,
+  verifyAgainst: "—",
+  lastVerified: "2026-09-16",
+};
 
 export function transferMechanism(flow: TransferFlow): TransferMechanism {
   const dest = canonicalDestinationCode(String(flow.destinationCountry || ""));
+  if (!dest) return DESTINATION_UNRESOLVED;
   if (flow.originRegime === "EU") {
     if (EEA_CODES.has(dest)) return INTERNAL;
     if (dest === "US") return flow.importerDpfCertified ? EU_US_DPF : EU_SCCS;
@@ -371,7 +422,8 @@ export function resolveDpiaJurisdiction(facts: DpiaIntakeFacts): ResolvedJurisdi
     concernedSites: facts.controllerSites,
   });
   const transfers = facts.transferFlows.map((f) => ({ flow: f, resolved: transferMechanism(f) }));
-  const countries = Array.from(new Set(facts.controllerSites.map((s) => String(s.country || "").toUpperCase())));
+  // F06 — the national-law hooks are keyed on the canonical code (GB → UK).
+  const countries = Array.from(new Set(facts.controllerSites.map((s) => canonicalCountryCode(s.country)).filter(Boolean)));
   const specialCategoryHooks = facts.article9Condition
     ? countries.map((c) => ({ country: c, hook: specialCategoryHook(c, facts.article9Condition!) }))
     : [];

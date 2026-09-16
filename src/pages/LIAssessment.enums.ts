@@ -55,6 +55,9 @@ export const ART9_CONDITIONS = [
   "Archiving, research or statistics (Art. 9(2)(j))",
   "None identified",
   "Not yet assessed",
+  // LIA master review (2026-09-15, F12) — biometric data outside the Art. 9(1)
+  // unique-identification purpose (verbatim copy in the contract).
+  "Not applicable — the biometric data is not used to uniquely identify individuals",
 ];
 export const MARKETING_CHANNELS = [
   "Automated calls (recorded messages)",
@@ -76,3 +79,71 @@ export const ACHIEVABLE_WITHOUT_PERSONAL_DATA = [
   "No — personal data is required (explain why below)",
   "Not assessed",
 ];
+
+// LIA master review (2026-09-15) — closed lists the full intake used to
+// inline, plus the new questions. Verbatim copies of the contract lists
+// (_shared/intake-contracts/li-assessment.ts); parity enforced by the test.
+export const STATED_PURPOSE_STATUS_OPTS = [
+  "Published in our current privacy notice",
+  "Proposed wording — not yet published",
+  "Not yet drafted",
+];
+export const CHILDREN_AGE_BAND_OPTS = ["Under 13", "13 to 15", "16 to 17", "Mixed ages", "Not known"];
+export const BIOMETRIC_UNIQUE_ID_OPTS = ["Yes", "No", "Not sure"];
+export const APPROVAL_STATUS_OPTS = ["Approved", "Approval pending", "Not yet submitted for approval", "Not applicable"];
+export const RELATIONSHIP_CATEGORY_OPTS = [
+  "Customer", "Employee", "Prospect", "Member of the public — no relationship",
+  "Mixed — more than one relationship", "Other",
+];
+export const POTENTIAL_HARM_SEVERITY_OPTS = [
+  "Negligible — annoyance only",
+  "Limited — minor inconvenience or unwanted contact",
+  "Significant — discrimination, financial loss, reputational damage",
+  "Severe — physical safety, identity theft, loss of livelihood",
+  "Not assessed",
+];
+// F05 — the vulnerable-group list gains two children entries so the age band
+// drives the selection instead of an inferred "under 16"; F16 — "None" is
+// exclusive on the page.
+export const VULNERABLE_GROUP_OPTS = [
+  "Children under 16",
+  "Children aged 16 or 17",
+  "Children (age range not established)",
+  "Patients / health context",
+  "Employees",
+  "Job applicants",
+  "Financially vulnerable",
+  "Other",
+  "None",
+];
+export const VULNERABLE_GROUP_EXCLUSIVE = "None";
+// F16 — harms: "None identified" and "Unknown" are honest, exclusive answers.
+export const HARM_OPTS = [
+  "Financial loss",
+  "Discrimination or unfair treatment",
+  "Reputational damage",
+  "Loss of autonomy or control over data",
+  "Distress or intrusion",
+  "Exclusion from a service",
+  "Physical safety risk",
+  "Identity theft or fraud exposure",
+  "None identified",
+  "Unknown",
+];
+export const HARM_EXCLUSIVE = ["None identified", "Unknown"];
+// F16 — safeguards: "None in place yet" is an honest, exclusive answer.
+export const SAFEGUARD_OPTS = [
+  "Encryption at rest and in transit",
+  "Pseudonymisation",
+  "Access controls / least privilege",
+  "Retention limits",
+  "Independent oversight (DPO / privacy committee)",
+  "DPIA completed",
+  "Vendor due diligence",
+  "Notice at collection (privacy information given when the data is collected)",
+  "Opt-out offered",
+  "Other",
+  "None in place yet",
+];
+export const SAFEGUARD_EXCLUSIVE = "None in place yet";
+export const MARKETING_CHANNELS_EXCLUSIVE = "None of these";

@@ -81,6 +81,10 @@ export const ANNEX_1_RESERVED_NOTE =
 /** Intake option strings that indicate children are among the data subjects. */
 export const CHILD_VULNERABLE_OPTIONS: readonly string[] = [
   "Children under 16",
+  // LIA master review (2026-09-15, F05) — the age band is asked, never
+  // inferred; these two options carry the other bands.
+  "Children aged 16 or 17",
+  "Children (age range not established)",
 ];
 
 /** Enum answers to `balancing_details.children_data_subjects`. */

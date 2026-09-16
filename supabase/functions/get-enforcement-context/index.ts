@@ -107,6 +107,18 @@ function applyCommonFilters(q: any, query: Query) {
   return out;
 }
 
+/** Governance F21 (2026-09-15) — does this row match the TOPIC asked about
+ *  (a requested provision in provisions_normalized, or a requested data
+ *  category), as opposed to having reached the pool through a fallback? */
+function topicMatch(r: any, query: Query): boolean {
+  const provs: string[] = Array.isArray(r?.provisions_normalized) ? r.provisions_normalized.map((p: unknown) => String(p)) : [];
+  const cats: string[] = Array.isArray(r?.data_categories) ? r.data_categories.map((c: unknown) => String(c)) : [];
+  const articleHit = !!query.articles?.length && provs.some((p) => query.articles!.includes(p));
+  const categoryHit = !!query.data_categories?.length && cats.some((c) => query.data_categories!.includes(c));
+  if (!query.articles?.length && !query.data_categories?.length) return true;
+  return articleHit || categoryHit;
+}
+
 function applyContentFilters(q: any, query: Query) {
   let out = q;
   if (query.data_categories?.length) out = out.overlaps("data_categories", query.data_categories);
@@ -314,8 +326,13 @@ Deno.serve(async (req) => {
   const results = filterSurfaceRows(
     [...t1Sorted, ...t2Sorted, ...t3Sorted].filter(qualityFilter),
     { product: q.tool },
-  );
+  ).map((r: any) => ({ ...r, topic_match: topicMatch(r, q) }));
   const totalMatched = tier1.length + tier2.length + tier3.length;
+  // Governance F21 (2026-09-15) — the count a popover may state: rows that
+  // actually cite a requested provision (or overlap a requested data
+  // category). total_matched is the bounded candidate-pool size and is kept
+  // for diagnostics only.
+  const topicMatchedCount = results.filter((r: any) => r.topic_match).length;
 
 
   const note = results.length === 0
@@ -325,6 +342,8 @@ Deno.serve(async (req) => {
   const response = {
     count: results.length,
     total_matched: totalMatched,
+    topic_matched_count: topicMatchedCount,
+    fallback_used: fallbackUsed,
     results,
     regime: q.regime ?? null,
     jurisdiction_whitelist_size: homeList.length,
@@ -440,12 +459,15 @@ async function runUntiered(q: Query, limit: number, cacheKey: string): Promise<R
     .filter((r: any) =>
       typeof r?.subject === "string" && r.subject.trim().length > 0 &&
       (r?.precedent_significance ?? 0) >= 2);
-  const gatedScored = filterSurfaceRows(scored, { product: q.tool });
+  const gatedScored = filterSurfaceRows(scored, { product: q.tool }).map((r: any) => ({ ...r, topic_match: topicMatch(r, q) }));
   const note = gatedScored.length === 0
     ? (jurisdictionWhitelist || regimeCfg ? "no_jurisdictional_precedent" : "no_match")
     : fallbackUsed;
   const response = {
-    count: gatedScored.length, total_matched: finalRows.length, results: gatedScored,
+    count: gatedScored.length, total_matched: finalRows.length,
+    topic_matched_count: gatedScored.filter((r: any) => r.topic_match).length,
+    fallback_used: fallbackUsed,
+    results: gatedScored,
     surface_gate: gateAudit(scored, { product: q.tool }),
     regime: q.regime ?? null,
     jurisdiction_whitelist_size: jurisdictionWhitelist?.length ?? null,

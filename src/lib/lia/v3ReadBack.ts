@@ -62,6 +62,15 @@ export interface GateFieldResult {
   other_limb_field: string | null;
   evidence_span: string | null;
   gate_result_id: string | null;
+  /**
+   * LIA F21 (2026-09-15) — for `contradicts_closed_answer`: the closed
+   * question the answer disagrees with (a field id) and the customer's own
+   * closed answer. Optional: a gate that does not return them leaves the
+   * template unrendered (the renderer's unresolved-slot rule), never a
+   * sentence with a hole in it.
+   */
+  closed_field?: string | null;
+  closed_answer?: string | null;
 }
 
 export interface Outcome {

@@ -72,7 +72,7 @@
  * any pinpoint citation to the Directive can ratify.
  */
 import { LIA_CORPUS_MAP } from "../../corpus/maps/lia-corpus-map.ts";
-import { classifyLiaUseCase, USE_CASE_LABELS } from "../../../../_shared/lia/lia-use-case-classifier.ts";
+import { resolveLiaUseCase, USE_CASE_LABELS } from "../../../../_shared/lia/lia-use-case-classifier.ts";
 import type { EprivacyGateDetermination, EprivacyShortCircuitFinding, EprivacyTriggerBasis } from "./types.ts";
 
 export const LIA_EPRIVACY_GATE_VERSION = "lia-eprivacy-gate-2026-09-05-v2-device-access-question";
@@ -316,7 +316,9 @@ export function buildEprivacyShortCircuit(intake: unknown): EprivacyShortCircuit
   const marketingIndications = collectHits(scan, ELECTRONIC_MARKETING_INDICATORS);
   const deviceIndications = collectHits(scan, DEVICE_ACCESS_INDICATORS);
   const strictlyNecessary = anyMatch(scan, STRICTLY_NECESSARY_QUALIFIER);
-  const useCaseClass = classifyLiaUseCase(description);
+  // LIA master review (2026-09-15, F03) — the confirmed class, when the
+  // customer corrected the detected one at screening.
+  const useCaseClass = resolveLiaUseCase(intake);
   const classIndicated = EPRIVACY_ADJACENT_CLASSES.includes(useCaseClass);
 
   const unsolicitedEngaged = unsolicitedHits.length > 0;

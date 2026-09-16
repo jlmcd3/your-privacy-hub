@@ -50,6 +50,13 @@ export const DPIA_ART9 = [
   "Preventive/occupational medicine, health or social care (Art. 9(2)(h))",
   "Public interest in public health (Art. 9(2)(i))",
   "Archiving, research or statistics — Art. 89(1) (Art. 9(2)(j))",
+  // DPIA master review (2026-09-15, F08) — two honest non-affirmative answers.
+  // The first is recorded automatically when biometric data is the only
+  // candidate category and the company states it is NOT used to uniquely
+  // identify people (Art. 9(1) purpose test); the second records that the
+  // condition is still to be identified rather than forcing a wrong one.
+  "Not applicable — the biometric data is not used to uniquely identify individuals",
+  "Not yet established — condition still to be identified",
 ] as const;
 
 export const DPIA_REASONS = [
@@ -99,6 +106,40 @@ export const DPIA_IMAGERY_SPACES = [
   "Both",
 ] as const;
 
+// DPIA master review (2026-09-15, F08) — Art. 9(1) makes biometric data
+// special-category only "for the purpose of uniquely identifying a natural
+// person". Asked when Biometric data is selected; decides whether the Art.
+// 9(2) selector is required and how the engine classifies the item.
+export const DPIA_BIOMETRIC_UNIQUE_ID = [
+  "Yes — used to uniquely identify individuals",
+  "No — not used to uniquely identify individuals",
+  "Not sure",
+] as const;
+// F11 — transfer presence is an explicit state; an empty row list no longer
+// asserts "no transfer" on its own.
+export const DPIA_TRANSFER_PRESENCE = [
+  "Yes — data leaves the EEA or the UK",
+  "No — all processing stays within the EEA and the UK",
+  "Not yet assessed",
+] as const;
+// F11 — ongoing / temporary / undecided are distinct; nothing is inferred
+// from a blank end date.
+export const DPIA_PROCESSING_END_STATUS = [
+  "Ongoing — no planned end",
+  "Temporary — ends on the date or condition below",
+  "Not yet decided",
+] as const;
+// F09 — an alternative may be viable; the historical rows (no outcome) are
+// rejected alternatives and keep that meaning.
+export const DPIA_ALTERNATIVE_OUTCOMES = [
+  "Rejected — it would not achieve the purpose",
+  "Rejected — other reason (explained)",
+  "Viable — still under consideration",
+  "Adopted in part",
+] as const;
+// F06 — picker sentinels the country fields may carry instead of an ISO code.
+export const DPIA_COUNTRY_SENTINELS = ["OTHER", "UNKNOWN"] as const;
+
 // SPECIAL_CATEGORY_CATS — page L58; gates article_9_condition requiredness.
 const SPECIAL_CATEGORY_CATS = ["Health or medical data", "Biometric data"] as const;
 
@@ -113,6 +154,15 @@ export const dpiaFrameworkContract: IntakeContract = {
     { key: "description", kind: "narrative", required: "always" },
     { key: "purpose", kind: "narrative", required: "always" },
     { key: "data_categories", kind: "multi-enum", required: "always", options: DPIA_DATA_CATS },
+    // DPIA master review (2026-09-15, F08) — the explanatory input behind
+    // "Other", and the Art. 9(1) purpose question behind "Biometric data".
+    { key: "data_categories_other", kind: "text", required: "conditional",
+      requiredWhen: 'data_categories includes "Other"',
+      trigger: { key: "data_categories[]", equals: ["Other"] }, hiddenValue: "" },
+    { key: "biometric_unique_identification", kind: "enum", required: "conditional",
+      requiredWhen: 'data_categories includes "Biometric data"',
+      trigger: { key: "data_categories[]", equals: ["Biometric data"] }, hiddenValue: "",
+      options: DPIA_BIOMETRIC_UNIQUE_ID },
     { key: "data_subjects", kind: "text", required: "always" },
     { key: "volume_frequency", kind: "text", required: "always" },
     // third_party_processors — Pills multi-select over TOOLS plus optional
@@ -120,10 +170,19 @@ export const dpiaFrameworkContract: IntakeContract = {
     // [...processors, `Other: ${otherProcessor.trim()}`]).
     { key: "third_party_processors", kind: "string-array", required: "optional" },
     { key: "existing_safeguards", kind: "multi-enum", required: "optional", options: DPIA_SAFEGUARDS },
+    // DPIA master review (2026-09-15, F10) — measures the fixed list does not name.
+    { key: "safeguards_other", kind: "narrative", required: "optional" },
     { key: "jurisdictions", kind: "multi-enum", required: "always", options: DPIA_JURISDICTIONS },
     { key: "legal_basis_proposed", kind: "enum", required: "always", options: DPIA_LEGAL_BASES },
+    // DPIA master review (2026-09-15, F07) — the VALUE-EQUALS trigger the
+    // record-complete gate and the coach read (the doc 158 lesson): the page
+    // shows and requires this selector exactly when a special-category label
+    // is selected, so the gate must count it as asked then. When biometric
+    // data is the only label and is not used to identify people, the page
+    // records the explicit "Not applicable" answer (never a blank).
     { key: "article_9_condition", kind: "enum", required: "conditional",
       requiredWhen: 'data_categories overlaps SPECIAL_CATEGORY_CATS',
+      trigger: { key: "data_categories[]", equals: [...SPECIAL_CATEGORY_CATS] },
       hiddenValue: "", options: DPIA_ART9 },
     { key: "necessity_proportionality", kind: "narrative", required: "always" },
     { key: "retention_period", kind: "text", required: "always" },
@@ -149,6 +208,9 @@ export const dpiaFrameworkContract: IntakeContract = {
     { key: "processor_obligations", kind: "narrative", required: "optional" },
     { key: "processing_version", kind: "text", required: "optional" },
     { key: "estimated_launch_date", kind: "date", required: "optional" },
+    // DPIA master review (2026-09-15, F11) — ongoing / temporary / undecided
+    // is stated, never inferred from a blank end date.
+    { key: "processing_end_status", kind: "enum", required: "optional", options: DPIA_PROCESSING_END_STATUS },
     { key: "estimated_end_date", kind: "date", required: "optional" },
     { key: "dpia_team", kind: "narrative", required: "optional" },
     // DPIA UPGRADE ITEM 2 — EDPB template v1.0 (adopted 10 March 2026) § 0.5
@@ -195,6 +257,9 @@ export const dpiaFrameworkContract: IntakeContract = {
         { key: "processing_operation", kind: "text" },
         { key: "alternative", kind: "text" },
         { key: "rejection_reason", kind: "narrative" },
+        // DPIA master review (2026-09-15, F09) — optional; absent means the
+        // alternative was rejected (the historical meaning of a row).
+        { key: "outcome", kind: "text", note: "one of DPIA_ALTERNATIVE_OUTCOMES; absent = rejected" },
       ],
       shapeNote: "NEVER emit reason_rejected; the key is rejection_reason." },
 
@@ -204,27 +269,53 @@ export const dpiaFrameworkContract: IntakeContract = {
 
 
     // Jurisdiction resolver inputs
+    // DPIA master review (2026-09-15, F06) — an ISO-2 code as stored by the
+    // picker ("GB" for the UK; the engine canonicalises GB/GBR/UK), or one
+    // of DPIA_COUNTRY_SENTINELS when the country is not listed or not known.
     { key: "controller_country", kind: "text", required: "optional" },
+    { key: "controller_country_other", kind: "text", required: "conditional",
+      requiredWhen: 'controller_country === "OTHER"',
+      trigger: { key: "controller_country", equals: ["OTHER"] }, hiddenValue: "" },
     // ITEM 380 r5b — real skip logic: DPIAFramework.tsx L911 renders this
-    // select only when `controllerCountry === "DE"`.
+    // select only when `controllerCountry === "DE"`. F04: the page now emits
+    // "" when the Land is hidden, so a stale Land never travels.
     { key: "controller_land", kind: "text", required: "conditional",
       requiredWhen: "controller_country === \"DE\"",
-      trigger: { key: "controller_country", equals: ["DE"] } },
+      trigger: { key: "controller_country", equals: ["DE"] }, hiddenValue: "" },
 
+    // F06 — controller_sector is the REGULATOR-ROUTING category
+    // (private / public / federal-public / telecom / postal) the resolver
+    // reads; controller_industry is the industry the company is in. Legacy
+    // rows that carry an industry word in controller_sector are mapped by the
+    // engine to "private" routing and the word is kept as the industry.
     { key: "controller_sector", kind: "text", required: "optional" },
+    { key: "controller_industry", kind: "text", required: "optional" },
     { key: "central_administration_country", kind: "text", required: "optional" },
     // ITEM 380 r5c — emptyIsAnswer. DPIAFramework.tsx:936-941 presents this
     // select unconditionally; its empty option carries emptyLabel
     // "No — decisions are made elsewhere", so blank is a substantive answer.
     { key: "eu_decision_establishment_country", kind: "text", required: "optional", emptyIsAnswer: true },
+    // DPIA master review (2026-09-15, F11) — the presence of transfers is an
+    // explicit answer (Yes / No / Not yet assessed). Optional so legacy rows
+    // validate; where it is absent, zero rows keep their historical meaning.
+    { key: "transfer_presence", kind: "enum", required: "optional", options: DPIA_TRANSFER_PRESENCE },
     // ITEM 380 r5c — emptyIsAnswer. DPIAFramework.tsx:752-756 presents the
     // transfer-flow repeater unconditionally; zero rows states that
-    // "no cross-border transfer is on the record".
+    // "no cross-border transfer is on the record" (read with transfer_presence).
+    //
+    // F05 — ONE schema. These snake_case keys are canonical; the page emits
+    // them. The engine's reader (supabase/functions/_shared/dpia-transfer-rows.ts)
+    // also accepts the legacy camelCase rows the page used to emit
+    // (importer / destination / originRegime / dpfCertified / ukExtensionCertified)
+    // and the resolver shape, losslessly.
     { key: "transfer_flows", kind: "structured", required: "optional", emptyIsAnswer: true,
       itemKeys: [
         { key: "recipient", kind: "text" },
-        { key: "destination_country", kind: "text", note: "ISO-2, e.g. \"DE\", \"US\"" },
+        { key: "destination_country", kind: "text", note: "ISO-2, e.g. \"DE\", \"US\"; \"GB\" for the UK; or OTHER / UNKNOWN" },
+        { key: "origin_regime", kind: "text", note: "\"EU\" or \"UK\" — confirmed by the customer, never defaulted" },
         { key: "transfer_mechanism", kind: "text" },
+        { key: "dpf_certified", kind: "text", note: "boolean — importer certified under the EU–US Data Privacy Framework" },
+        { key: "uk_extension_certified", kind: "text", note: "boolean — importer certified under the UK Extension" },
         { key: "notes", kind: "text" },
       ],
       shapeNote: "Emit an EMPTY ARRAY where no cross-border flow exists." },

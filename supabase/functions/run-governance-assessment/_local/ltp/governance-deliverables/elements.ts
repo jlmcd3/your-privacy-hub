@@ -161,7 +161,12 @@ export const DEMONSTRABILITY_DUTIES: ReadonlyArray<{
     anchorKey: "art30_available",
     intake_key: "inventory_audit",
     present: ["Yes — audited + formal approval process"],
-    partial: ["Inventory exists, no formal audit/approval"],
+    // Governance master review (2026-09-15, F18) — the mixed states are partial.
+    partial: [
+      "Inventory exists, no formal audit/approval",
+      "Inventory exists and is audited, but there is no formal approval route",
+      "Inventory exists with a formal approval route, but it is not audited",
+    ],
   },
   {
     key: "dpia_programme",
@@ -250,10 +255,16 @@ export const RECORD_INSUFFICIENT = "record_insufficient" as const;
 export const EU_JURISDICTION = "EU (GDPR)";
 export const UK_JURISDICTION = "United Kingdom (UK GDPR)";
 
-/** transfer_status values that put a restricted transfer on the record. */
+/** transfer_status values that put a transfer outside the EU/UK on the record
+ *  (the mechanism question then names the Chapter V basis for each). */
 export const TRANSFER_OCCURRING: readonly string[] = [
   "Yes, US-based tools",
   "Yes, other non-adequate countries",
+  // Governance master review (2026-09-15, F08) — adequacy destinations are
+  // transfers whose Chapter V basis is Art. 45; mixed routes are transfers
+  // whose routes the record describes separately.
+  "Yes, only to countries with an adequacy decision or regulations",
+  "Yes, a mix of routes (described below)",
 ];
 /** transfer_status value that records no restricted transfer. */
 export const TRANSFER_NOT_OCCURRING: readonly string[] = [
