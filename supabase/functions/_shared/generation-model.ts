@@ -22,7 +22,7 @@ export const ALLOWED_GENERATION_MODELS: readonly string[] = [
 
 /** Short, filename-safe slug per model — used in PDF/zip filenames and columns. */
 export const GENERATION_MODEL_SLUG: Record<string, string> = {
-  [DEFAULT_GENERATION_MODEL]: "sonnet46",
+  [DEFAULT_GENERATION_MODEL]: "sonnet5",
   [AB_ALT_GENERATION_MODEL]: "fable5",
 };
 
