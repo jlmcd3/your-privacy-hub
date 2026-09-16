@@ -42,6 +42,15 @@ export type RevenueBandV2 = typeof REVENUE_BANDS_V2[number];
 // verified 2026-09-16). Encoding the figure in a band label breaks at every
 // adjustment, so the threshold is data with an effective date, and the
 // consumers ask the threshold question against the dated figure.
+//
+// Citation verified 2026-09-16 (leginfo.legislature.ca.gov): § 1798.140(d)(1)(A)
+// reads "As of January 1 of the calendar year, had annual gross revenues in
+// excess of twenty-five million dollars ($25,000,000) in the preceding
+// calendar year, as adjusted pursuant to subdivision (d) of Section
+// 1798.199.95"; § 1798.199.95(d)(1) directs the Agency to adjust that figure
+// "On January 1, 2025, and on January 1 of any odd-numbered year thereafter".
+// So revenue earned in calendar year Y is tested against the figure in force
+// on January 1 of Y+1 (ccpaRevenueThresholdForYear).
 export interface CcpaRevenueThreshold {
   /** ISO date the figure took effect. */
   readonly effective: string;

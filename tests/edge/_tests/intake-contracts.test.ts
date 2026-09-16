@@ -48,6 +48,9 @@ import {
   ADMT_DECISION_CADENCE_OPTS,
   ADMT_SOLE_FACTOR_OPTS,
   ADMT_SOLELY_ADVERTISING_OPTS,
+  ADMT_SOLE_USE_ATTESTATION_OPTS,
+  ADMT_SOLE_USE_ATTESTATION_WORK_OPTS,
+  ADMT_SOLE_USE_ATTESTATION_ALL_OPTS,
 } from "../../../supabase/functions/_shared/intake-contracts/cppa-admt.ts";
 import {
   liAssessmentStageAContract,
@@ -259,6 +262,15 @@ Deno.test("intake-contracts / admt PARITY — contract enums === form enums", ()
   assertEquals([...ADMT_DECISION_CADENCE_OPTS], [...AdmtEnums.ADMT_DECISION_CADENCE_OPTS]);
   assertEquals([...ADMT_SOLE_FACTOR_OPTS], [...AdmtEnums.ADMT_SOLE_FACTOR_OPTS]);
   assertEquals([...ADMT_SOLELY_ADVERTISING_OPTS], [...AdmtEnums.ADMT_SOLELY_ADVERTISING_OPTS]);
+  // CEO item 1 (2026-09-16) — both sole-use branch sets mirror, and the
+  // contract field accepts the union.
+  assertEquals([...ADMT_SOLE_USE_ATTESTATION_OPTS], [...AdmtEnums.ADMT_SOLE_USE_ATTESTATION_OPTS]);
+  assertEquals([...ADMT_SOLE_USE_ATTESTATION_WORK_OPTS], [...AdmtEnums.ADMT_SOLE_USE_ATTESTATION_WORK_OPTS]);
+  const soleUse = cppaAdmtContract.fields.find((f) => f.key === "admt_detail.sole_use_attestation")!;
+  assertEquals([...(soleUse.options ?? [])], [...ADMT_SOLE_USE_ATTESTATION_ALL_OPTS]);
+  for (const o of [...ADMT_SOLE_USE_ATTESTATION_OPTS, ...ADMT_SOLE_USE_ATTESTATION_WORK_OPTS]) {
+    assert((soleUse.options as readonly string[]).includes(o), o);
+  }
 });
 
 Deno.test("intake-contracts / admt MIRROR — admt_detail enum leaves match FIELD_ENUM_MIRROR", () => {

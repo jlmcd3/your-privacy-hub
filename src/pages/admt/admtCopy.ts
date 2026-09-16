@@ -16,10 +16,19 @@
 
 export const ADMT_COPY = Object.freeze({
   // S01 Applicability card
+  // Verified 2026-09-16 against the CPPA text of regulations: § 7200(b)
+  // ("must be in compliance with the requirements of this Article no later
+  // than January 1, 2027"); § 7155(a)(1) ("before initiating any processing
+  // activity identified in section 7150, subsection (b)"); § 7155(b)
+  // (pre-existing processing: "no later than December 31, 2027"). The
+  // January 1, 2026 effective date is the OAL-approved effective date
+  // published at https://cppa.ca.gov/regulations/ccpa_updates.html (the PDF
+  // text still carries the "[OAL to fill in the effective date]" placeholder).
   applicabilityCard:
-    "If your business uses ADMT to make significant decisions, Article 11 notice, opt-out and access requirements must be met by January 1, 2027. Risk assessments follow a separate timetable: covered new processing requires assessment before it begins from January 1, 2026. Covered processing begun before that date and continuing afterward has the transition deadline in § 7155(b). This product assesses Article 11 gaps; it does not replace a separate risk assessment.",
+    "If your business uses ADMT to make significant decisions, Article 11 notice, opt-out and access requirements must be met by January 1, 2027. Risk assessments follow a separate timetable: covered new processing requires assessment before it begins from January 1, 2026. Covered processing begun before that date and continuing afterward has the transition deadline in § 7155(b), December 31, 2027. This product assesses Article 11 gaps; it does not replace a separate risk assessment.",
 
-  // S02 One system instruction
+  // S02 One system instruction — § 7220(e) (consolidated Pre-use Notice)
+  // verified 2026-09-16 against the CPPA text of regulations.
   oneSystemInstruction:
     "Use one assessment in this tool for each ADMT system. Describe every purpose for which that system is used. The law permits a consolidated Pre-use Notice in the circumstances described in § 7220(e); shared request mechanisms may serve several systems when all applicable requirements are met.",
 
@@ -33,7 +42,9 @@ export const ADMT_COPY = Object.freeze({
   workedExampleClosing:
     "Examples elsewhere in the form may use different fictional systems. Describe your own records; do not copy an example as a company fact.",
 
-  // S05 Additional risk triggers
+  // S05 Additional risk triggers — § 7150(b) verified 2026-09-16: (b)(3) ADMT
+  // for a significant decision; (b)(4)–(5) the specified automated profiling;
+  // (b)(6) processing personal information to train the specified technology.
   riskTriggersIntro:
     "These questions identify activities that may require a separate risk assessment. Relevant triggers include ADMT used for significant decisions, the specified forms of automated profiling and the specified uses of personal information for training technology under § 7150(b)(3)–(6). Describe the activity and its context; a broad Yes to profiling or training does not by itself establish every condition.",
 
@@ -49,7 +60,10 @@ export const ADMT_COPY = Object.freeze({
   step3Intro:
     "Consumers can opt out of ADMT used for significant decisions unless a listed exception applies. When the opt-out right must be offered, at least two designated submission methods are required. Describe the methods or exception actually used.",
 
-  // S09 Step 4 timing
+  // S09 Step 4 timing — verified 2026-09-16: § 7222(e) applies the Article 5
+  // verification requirements to requests to access ADMT; § 7021 names
+  // "request to access ADMT" in its own title and subsection (b) ("no later
+  // than 45 calendar days", up to 45 more with notice, 90 in total).
   step4Timing:
     "Consumers can request information about how ADMT was used in their case. Access requests are verified under Article 5. Apply the response periods in § 7021, including the standard 45-calendar-day period and the conditions for any extension. Describe the process you currently follow.",
 

@@ -190,7 +190,7 @@ Deno.test("doc158 §4 — an exception selected for a decision domain it does no
   assertEquals(wrong.optOut.posture, "GAP");
   const right = computeAdmtV2(base({ decision_domains: [HIRING], opt_out_exception: HIRE_EXC, admt_detail: { sole_use_attestation: "Yes — solely to assess ability to perform", nondiscrimination_testing: "Yes — documented testing record" }, opt_out_fairness_doc: "Quarterly testing." }));
   assertEquals(right.optOut.eligibility.status, "MEETS_REPORTED");
-  const work = computeAdmtV2(base({ decision_domains: [WORK], opt_out_exception: WORK_EXC, admt_detail: { sole_use_attestation: "Yes — solely to assess ability to perform", nondiscrimination_testing: "Yes — documented testing record" }, opt_out_fairness_doc: "Quarterly testing." }));
+  const work = computeAdmtV2(base({ decision_domains: [WORK], opt_out_exception: WORK_EXC, admt_detail: { sole_use_attestation: "Yes — solely for the allocation/assignment of work or compensation", nondiscrimination_testing: "Yes — documented testing record" }, opt_out_fairness_doc: "Quarterly testing." }));
   assertEquals(work.optOut.eligibility.status, "MEETS_REPORTED");
   assertEquals(computeAdmtV2(base()).optOut.eligibility.status, "NOT_APPLICABLE");
 });

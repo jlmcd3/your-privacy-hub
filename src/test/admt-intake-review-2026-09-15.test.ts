@@ -96,8 +96,12 @@ describe("ADMT intake — 2026-09-15 review pins", () => {
     expect(PAGE.includes("You must provide at least two designated opt-out methods")).toBe(false);
     expect(PAGE.includes("Add another method.")).toBe(false);
     expect(PAGE.includes('data-testid="admt-methods-shortfall"')).toBe(true);
-    // The § 7221(b)(3) branch asks its own question.
+    // The § 7221(b)(3) branch asks its own question with its own Yes string (CEO item 1),
+    // and a Yes given to the other branch's question is cleared when the exception changes.
     expect(PAGE.includes('data-rail-key="sole_use_attestation_work"')).toBe(true);
+    expect(PAGE.includes("const soleUseOptions = onWorkException ? SOLE_USE_ATTESTATION_WORK_OPTIONS : SOLE_USE_ATTESTATION_OPTIONS")).toBe(true);
+    expect(PAGE.includes('if (v && !soleUseOptions.includes(v)) setA("sole_use_attestation", "")')).toBe(true);
+    expect(PAGE.includes("options={soleUseOptions}")).toBe(true);
   });
 
   it("legacy camelCase drafts migrate and an empty restore is reported, not dismissed (F17, F19)", () => {

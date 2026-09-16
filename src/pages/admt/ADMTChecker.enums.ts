@@ -41,6 +41,13 @@ export const ADMT_SOLE_USE_ATTESTATION_OPTS = [
   "No — the output is also used for other purposes",
   "Unsure",
 ];
+// ADMT master review (2026-09-15, F07 / CEO item 1) — the § 7221(b)(3)(A)
+// branch attests to its own condition (parity mirror of the contract set).
+export const ADMT_SOLE_USE_ATTESTATION_WORK_OPTS = [
+  "Yes — solely for the allocation/assignment of work or compensation",
+  "No — the output is also used for other purposes",
+  "Unsure",
+];
 export const ADMT_NONDISCRIM_TESTING_OPTS = [
   "Yes — documented testing record",
   "Testing performed but not documented",

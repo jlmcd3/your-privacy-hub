@@ -285,7 +285,7 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   "admt_detail.appeal_timeline": "appeal response timeline",
   "admt_detail.appeal_reversal_rate": "appeal reversal rate",
   "admt_detail.appeal_outcomes": "appeal outcome categories",
-  "admt_detail.sole_use_attestation": "whether ADMT is used solely to assess ability",
+  "admt_detail.sole_use_attestation": "whether the ADMT is used solely for the purpose the claimed exception permits (§ 7221(b)(2)(A) ability to perform; (b)(3)(A) allocation of work or compensation)",
   "admt_detail.nondiscrimination_testing": "non-discrimination testing record",
   "admt_detail.bias_protected_chars": "protected characteristics tested",
   "admt_detail.bias_proxy_vars": "proxy variables identified and mitigated",

@@ -132,6 +132,7 @@ export {
   ADMT_AFFECTED_POPULATION_BAND_OPTS,
   ADMT_ROLE_ROSTER_OPTS,
   ADMT_SOLE_USE_ATTESTATION_OPTS,
+  ADMT_SOLE_USE_ATTESTATION_WORK_OPTS,
   ADMT_NONDISCRIM_TESTING_OPTS,
 } from "./ADMTChecker.enums";
 import {
@@ -147,9 +148,11 @@ import {
   ADMT_AFFECTED_POPULATION_BAND_OPTS,
   ADMT_ROLE_ROSTER_OPTS,
   ADMT_SOLE_USE_ATTESTATION_OPTS,
+  ADMT_SOLE_USE_ATTESTATION_WORK_OPTS,
   ADMT_NONDISCRIM_TESTING_OPTS,
 } from "./ADMTChecker.enums";
 const SOLE_USE_ATTESTATION_OPTIONS = ADMT_SOLE_USE_ATTESTATION_OPTS;
+const SOLE_USE_ATTESTATION_WORK_OPTIONS = ADMT_SOLE_USE_ATTESTATION_WORK_OPTS;
 const NONDISCRIM_TESTING_OPTIONS = ADMT_NONDISCRIM_TESTING_OPTS;
 import { AlertTriangle } from 'lucide-react';
 
@@ -444,6 +447,18 @@ export default function ADMTChecker() {
   const provideOptOut = showsOptOutMechanics(optOutPath);
   const onEmploymentException = isEmploymentException(optOutPath);
   const onFullOptOut = optOutPath === "FULL_OPT_OUT";
+  // CEO item 1 (2026-09-16) — the § 7221(b)(3)(A) branch asks its own
+  // sole-use question with its own Yes string. A Yes given to the other
+  // branch's question is not a Yes to this one, so it is cleared (No and
+  // Unsure are shared and stay) when the exception selection changes.
+  const onWorkException = optOutPath === "WORK_ALLOCATION_COMP_EXCEPTION";
+  const soleUseOptions = onWorkException ? SOLE_USE_ATTESTATION_WORK_OPTIONS : SOLE_USE_ATTESTATION_OPTIONS;
+  useEffect(() => {
+    if (!onEmploymentException) return;
+    const v = adv.sole_use_attestation;
+    if (v && !soleUseOptions.includes(v)) setA("sole_use_attestation", "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [optOutPath]);
 
   // ADMT master review (2026-09-15, F01) — ONE scope resolver, mirrored from
   // the engine (tests/edge/run-admt-checker-v2/scope-mirror-parity.test.ts):
@@ -1758,13 +1773,13 @@ export default function ADMTChecker() {
                       </p>
                       <div className="mb-4 space-y-3">
                         <div>
-                          {/* F06 — the § 7221(b)(3) branch asks the (b)(3) question; the stored option values are shared by both branches. */}
+                          {/* F06 / CEO item 1 — the § 7221(b)(3) branch asks the (b)(3) question with its own Yes string (soleUseOptions). */}
                           {optOutPath === "WORK_ALLOCATION_COMP_EXCEPTION" ? (
                             <Label className="text-[12px]" data-rail-key="sole_use_attestation_work" onFocus={() => focus("sole_use_attestation_work")}>Is the ADMT used solely to allocate or assign work, or to set compensation, for this person? <span className="font-normal text-muted-foreground">(§ 7221(b)(3))</span></Label>
                           ) : (
                             <Label className="text-[12px]" data-rail-key="sole_use_attestation" onFocus={() => focus("sole_use_attestation")}>Is the ADMT used solely to assess the person's ability to perform at work or in an educational program? <span className="font-normal text-muted-foreground">(§ 7221(b)(2))</span></Label>
                           )}
-                          <div className="mt-1"><Radio name="sole_use_attestation" options={SOLE_USE_ATTESTATION_OPTIONS} value={adv.sole_use_attestation || ""} onChange={(v) => setA("sole_use_attestation", v)} data-rail-key={optOutPath === "WORK_ALLOCATION_COMP_EXCEPTION" ? "sole_use_attestation_work" : "sole_use_attestation"} onFocus={() => focus(optOutPath === "WORK_ALLOCATION_COMP_EXCEPTION" ? "sole_use_attestation_work" : "sole_use_attestation")} /></div>
+                          <div className="mt-1"><Radio name="sole_use_attestation" options={soleUseOptions} value={adv.sole_use_attestation || ""} onChange={(v) => setA("sole_use_attestation", v)} data-rail-key={onWorkException ? "sole_use_attestation_work" : "sole_use_attestation"} onFocus={() => focus(onWorkException ? "sole_use_attestation_work" : "sole_use_attestation")} /></div>
                         </div>
                         <div>
                           <Label className="text-[12px]" data-rail-key="nondiscrimination_testing" onFocus={() => focus("nondiscrimination_testing")}>Do you hold a non-discrimination testing record for this ADMT?</Label>

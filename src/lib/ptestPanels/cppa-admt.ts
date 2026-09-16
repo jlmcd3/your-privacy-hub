@@ -811,7 +811,7 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         solely_advertising: "No",
         decision_domains_other: "",
         hi_reviewer_present: "No — fully automated",
-        sole_use_attestation: "Yes — solely to assess ability to perform",
+        sole_use_attestation: "Yes — solely for the allocation/assignment of work or compensation",
         nondiscrimination_testing: "Yes — documented testing record",
         bias_protected_chars: ["Race", "Sex / gender", "Age", "Disability"],
         bias_proxy_vars:

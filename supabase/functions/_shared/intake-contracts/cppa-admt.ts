@@ -52,6 +52,23 @@ export const ADMT_SOLE_USE_ATTESTATION_OPTS = [
   "No — the output is also used for other purposes",
   "Unsure",
 ] as const;
+// ADMT master review (2026-09-15, F07 / CEO item 1, 2026-09-16) — the
+// § 7221(b)(3)(A) branch attests to a DIFFERENT fact ("solely for the
+// business's allocation/assignment of work or compensation"), so it has its
+// own Yes string; No and Unsure are shared. The field accepts either set;
+// the page shows the set for the exception selected and clears a Yes given
+// to the other branch's question (a Yes to one condition is not a Yes to
+// the other). The engine reads the Yes/No/Unsure prefix, so both sets score.
+export const ADMT_SOLE_USE_ATTESTATION_WORK_OPTS = [
+  "Yes — solely for the allocation/assignment of work or compensation",
+  "No — the output is also used for other purposes",
+  "Unsure",
+] as const;
+/** Every value the field may hold (union of the two branch sets, de-duplicated). */
+export const ADMT_SOLE_USE_ATTESTATION_ALL_OPTS = [
+  ...ADMT_SOLE_USE_ATTESTATION_OPTS,
+  ...ADMT_SOLE_USE_ATTESTATION_WORK_OPTS.filter((o) => !(ADMT_SOLE_USE_ATTESTATION_OPTS as readonly string[]).includes(o)),
+] as const;
 export const ADMT_NONDISCRIM_TESTING_OPTS = [
   "Yes — documented testing record",
   "Testing performed but not documented",
@@ -374,7 +391,7 @@ export const cppaAdmtContract: IntakeContract = {
       requiredWhen: 'opt_out_exception is the human-appeal exception (§ 7221(b)(1))',
       trigger: { key: "opt_out_exception", equals: ["Human appeal exception (§ 7221(b)(1)) — we provide a human reviewer with authority to overturn the decision"] } },
     // (c) § 7221(b)(2) condition evidence.
-    { key: "admt_detail.sole_use_attestation",      kind: "enum", required: "optional", options: ADMT_SOLE_USE_ATTESTATION_OPTS },
+    { key: "admt_detail.sole_use_attestation",      kind: "enum", required: "optional", options: ADMT_SOLE_USE_ATTESTATION_ALL_OPTS },
     { key: "admt_detail.nondiscrimination_testing", kind: "enum", required: "optional", options: ADMT_NONDISCRIM_TESTING_OPTS },
     // DOC 158 — § 7221(b)(2)(B)/(b)(3)(B) testing evidence, collected by the
     // form and never registered or read.

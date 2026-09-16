@@ -876,10 +876,13 @@ export function computeOptOut(intake: Intake, path: PathState): OptOutResult {
   // ADMT is used solely to assess ability to perform (hiring/admission);
   // § 7221(b)(3)(A) asks whether it is used solely for allocation/assignment
   // of work or compensation. One question was asked for both branches with
-  // the hiring wording and the hiring authority. The stored answer values are
-  // unchanged; the factor now names the condition of the branch claimed and
-  // cites its own subsection (registry row optout_exc_work, verified against
-  // the CPPA text of regulations, 2026-09-16).
+  // the hiring wording and the hiring authority. The factor names the
+  // condition of the branch claimed and cites its own subsection (registry
+  // row optout_exc_work, verified against the CPPA text of regulations,
+  // 2026-09-16). CEO item 1 (2026-09-16): the work branch now stores its own
+  // Yes string ("Yes — solely for the allocation/assignment of work or
+  // compensation", contract ADMT_SOLE_USE_ATTESTATION_WORK_OPTS); this code
+  // reads the Yes/No prefix, so both branch sets score identically.
   const onWorkExc = path === "WORK_ALLOCATION_COMP_EXCEPTION";
   const soleUseCondition = onWorkExc
     ? "used solely for the allocation/assignment of work or compensation (§ 7221(b)(3)(A))"

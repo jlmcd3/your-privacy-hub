@@ -5,8 +5,11 @@
  * FRONTEND MIRROR of CCPA_REVENUE_THRESHOLDS in
  * supabase/functions/_shared/bands/revenue-consumer.ts, pinned by
  * tests/edge/_shared/ccpa-revenue-threshold-mirror.test.ts. The figure is
- * CPI-adjusted every odd-numbered year (Civ. Code § 1798.199.95(d)); the CPPA
- * published $26,625,000 effective January 1, 2025
+ * CPI-adjusted every odd-numbered year (Civ. Code § 1798.199.95(d)(1), the
+ * provision § 1798.140(d)(1)(A) itself names: "as adjusted pursuant to
+ * subdivision (d) of Section 1798.199.95"; both verified on
+ * leginfo.legislature.ca.gov 2026-09-16); the CPPA published $26,625,000
+ * effective January 1, 2025
  * (https://www.cppa.ca.gov/regulations/cpi_adjustment.html, verified
  * 2026-09-16). Relative imports only (Deno tests).
  */

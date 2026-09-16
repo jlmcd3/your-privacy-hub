@@ -872,7 +872,7 @@ export const CPPA_ADMT_GOLDEN: GoldenCase[] = [
         bias_adverse_impact: "Yes",
         bias_outcome_summary: "Selection rates by group fall within the four-fifths band, and the false-negative rate differs by under two points between groups; the full tables are held in the testing record.",
         access_denial_basis: "Conflict with federal or state law, or a CCPA exception, explained in writing to the requestor.",
-        sole_use_attestation: "Yes — solely to assess ability to perform",
+        sole_use_attestation: "Yes — solely for the allocation/assignment of work or compensation",
         nondiscrimination_testing: "Yes — documented testing record",
       },
     },

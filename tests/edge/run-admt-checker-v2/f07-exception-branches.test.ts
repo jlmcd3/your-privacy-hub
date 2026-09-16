@@ -40,6 +40,20 @@ Deno.test("F07 — the work branch's sole-use finding names its own condition an
   assertEquals(f.authority, "11 CCR § 7221(b)(3)");
 });
 
+Deno.test("CEO item 1 — the work branch's own Yes string scores MEETS_REPORTED and the contract accepts both branch sets", async () => {
+  const { cppaAdmtContract, ADMT_SOLE_USE_ATTESTATION_WORK_OPTS, ADMT_SOLE_USE_ATTESTATION_OPTS } = await import("../../../supabase/functions/_shared/intake-contracts/cppa-admt.ts");
+  const workYes = ADMT_SOLE_USE_ATTESTATION_WORK_OPTS[0];
+  assert(workYes.startsWith("Yes — solely for the allocation/assignment of work or compensation"), workYes);
+  const r = run({ decision_domains: [WORK], opt_out_exception: WORK_EXC, admt_detail: { sole_use_attestation: workYes } });
+  const f = finding(r, "Sole-use condition");
+  // A MEETS_REPORTED factor raises no finding; the hiring Yes on the same branch scores the same way.
+  assertEquals(f, undefined);
+  const hireYesOnWork = run({ decision_domains: [WORK], opt_out_exception: WORK_EXC, admt_detail: { sole_use_attestation: ADMT_SOLE_USE_ATTESTATION_OPTS[0] } });
+  assertEquals(finding(hireYesOnWork, "Sole-use condition"), undefined);
+  const field = cppaAdmtContract.fields.find((x) => x.key === "admt_detail.sole_use_attestation")!;
+  for (const o of [...ADMT_SOLE_USE_ATTESTATION_OPTS, ...ADMT_SOLE_USE_ATTESTATION_WORK_OPTS]) assert((field.options as readonly string[]).includes(o), o);
+});
+
 Deno.test("F07 — the hiring branch keeps the ability-to-perform condition", () => {
   const r = run({ decision_domains: [HIRE], opt_out_exception: HIRE_EXC, admt_detail: { sole_use_attestation: "No — the output is also used for other purposes" } });
   const f = finding(r, "Sole-use condition")!;

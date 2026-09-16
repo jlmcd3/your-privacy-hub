@@ -215,7 +215,7 @@ export const ADMT_REVIEW_FIELDS: readonly FieldSpec[] = [
   { key: "admt_detail.appeal_timeline", step: 3, label: "Target response timeline", kind: "scalar" },
   { key: "admt_detail.appeal_reversal_rate", step: 3, label: "Reversal rate, 12 mo (optional)", kind: "scalar" },
   { key: "admt_detail.appeal_outcomes", step: 3, label: "Appeal outcome categories (select all)", kind: "list" },
-  { key: "admt_detail.sole_use_attestation", step: 3, label: "Is the ADMT used solely to assess the person's ability to perform at work or in an educational program?", kind: "scalar" },
+  { key: "admt_detail.sole_use_attestation", step: 3, label: "Sole-use condition of the exception claimed (§ 7221(b)(2)(A): solely to assess ability to perform; § 7221(b)(3)(A): solely for the allocation/assignment of work or compensation)", kind: "scalar" },
   { key: "admt_detail.nondiscrimination_testing", step: 3, label: "Do you hold a non-discrimination testing record for this ADMT?", kind: "scalar" },
   { key: "admt_detail.bias_protected_chars", step: 3, label: "Protected characteristics tested (select all)", kind: "list" },
   { key: "admt_detail.bias_proxy_vars", step: 3, label: "Proxy variables identified & how mitigated", kind: "scalar" },
