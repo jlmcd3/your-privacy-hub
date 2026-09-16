@@ -77,6 +77,10 @@ export const LIA_PERFECT: GoldenCase[] = [
 
       // ── Stage B — necessity ────────────────────────────────────────────
       necessity_details: {
+      // CEO 2026-09-16 (doc 265 §8 item 11) — the necessity question the intake asks; a complete record answers it.
+      achievable_without_personal_data: "No — personal data is required (explain why below)",
+      achievable_without_personal_data_rationale:
+        "The check has to attach a decision to the specific order and card in front of it, so it needs the personal data of that order: the device signals, the delivery address and the cardholder's purchase history. Anonymised or synthetic data would not identify which live order to hold, and aggregate fraud statistics cannot stop an individual fraudulent transaction.",
         alternatives:
           "Manual review of every order; 3-D Secure step-up alone; a fixed order-value review threshold; refusing card-not-present orders entirely.",
         alternatives_rationale:

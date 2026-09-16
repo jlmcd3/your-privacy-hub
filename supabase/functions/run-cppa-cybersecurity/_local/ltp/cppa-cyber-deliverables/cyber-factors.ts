@@ -550,10 +550,14 @@ export function buildComponentAnalyses(inputs: FactorInputs): CyberComponentAnal
     } else {
       lines.push("Evidence identified. None.");
     }
-    if (e && !notApplicable) {
-      lines.push(e.sufficiency === "sufficient"
-        ? "Auditor testability. The identified evidence includes material an auditor can examine and test."
-        : e.sufficiency === "partial"
+    // CEO 2026-09-16 (doc 262 §2.4): the sufficient-evidence sentence ("The
+    // identified evidence includes material an auditor can examine and
+    // test.") repeated once per component and is implied by the evidence
+    // list above and the structured sufficiency field, so it is no longer
+    // emitted. The partial and insufficient findings still are — each names
+    // a gap the reader has to act on.
+    if (e && !notApplicable && e.sufficiency !== "sufficient") {
+      lines.push(e.sufficiency === "partial"
         ? "Auditor testability. The identified material evidences intent rather than operation; a testable artifact — a log, a configuration export, a report, a test result, an auditor letter, or a training record — belongs behind the described control."
         : "Auditor testability. No testable material is identified; a finding would rest primarily on management assertion, which § 7122(d) does not permit as the primary basis.");
     }

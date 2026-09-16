@@ -205,8 +205,8 @@ for (const tool of PANEL_TOOLS) {
         const text = reviewTextOf({ skeleton_document: doc }).text;
         assert(text.length > 5_000, `${f.id}: document is implausibly short (${text.length} chars)`);
         const lint = lintDocument(doc!, profile, f.intake as Bag);
-        // The one pinned known defect (ADMT access#p2 lead-in) is tolerated; anything else is a fixture that trips a product defect — report it.
-        const defects = lint.hits.filter((h) => h.severity === "defect" && !(tool === "cppa-admt" && h.rule === "L-LEADIN" && h.block_key === "access#p2"));
+        // CEO 2026-09-16: the ADMT access#p2 lead-in defect is fixed, so no defect is tolerated — any hit is a fixture that trips a product defect; report it.
+        const defects = lint.hits.filter((h) => h.severity === "defect");
         assertEquals(defects.map((h) => `${h.rule}/${h.check}@${h.block_key}: ${h.quote.slice(0, 80)}`), [], `${f.id}: lint defects on the generated document`);
       }
     });

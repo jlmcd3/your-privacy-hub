@@ -1000,8 +1000,11 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   if (!outOfScope) push("access", "5. Access and Explanation Audit", [
     legal(ADMT_V3_FIXED.access_requirement),
     legal(ADMT_V3_FIXED.access_process_requirement),
-    { kind: "skeleton", text: "The following tables show the Company's access-request process and its readiness to produce each element of the required explanation:" },
+    // CEO 2026-09-16 (doc 262 §2.3, PERFECT-panel lint L-LEADIN): the
+    // determination sentence renders BEFORE the lead-in, so "The following
+    // tables show …:" is immediately followed by the tables it introduces.
     { kind: "lead", text: accessDeterminationSentence(access) },
+    { kind: "skeleton", text: "The following tables show the Company's access-request process and its readiness to produce each element of the required explanation:" },
     { kind: "table", text: "", table: {
       key: "access:2", surface: "access_process_factors", title: "",
       columns: ["Process requirement", "Company response", "Evidence"],

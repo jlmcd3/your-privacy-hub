@@ -690,8 +690,8 @@ export const ADMT_BLOCK_CATALOGUE: BlockCatalogue = {
       "block_key": "access#p2",
       "section_id": "access",
       "section_title": "5. Access and Explanation Audit",
-      "kind": "skeleton",
-      "fixed_text_prefix": "The following tables show the Company's access-request process and its readiness to produce each element of the required explanation:",
+      "kind": "lead",
+      "fixed_text_prefix": null,
       "factor_ids": [],
       "sources": [],
       "authorities": []
@@ -700,8 +700,8 @@ export const ADMT_BLOCK_CATALOGUE: BlockCatalogue = {
       "block_key": "access#p3",
       "section_id": "access",
       "section_title": "5. Access and Explanation Audit",
-      "kind": "lead",
-      "fixed_text_prefix": null,
+      "kind": "skeleton",
+      "fixed_text_prefix": "The following tables show the Company's access-request process and its readiness to produce each element of the required explanation:",
       "factor_ids": [],
       "sources": [],
       "authorities": []

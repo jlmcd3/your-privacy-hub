@@ -233,6 +233,13 @@ export const GOVERNANCE_PERFECT: GoldenCase[] = [
       // transferMechOptions' fallthrough list (GovernanceAssessment.tsx
       // ~L194) and from the contract's TRANSFER_MECHANISM union.
       transfer_mechanism: "EU SCCs",
+      // CEO 2026-09-16 (doc 265 §8 item 5): the current-UI record answers the four
+      // optional questions the Governance master review added (F08 / F10).
+      territorial_scope_basis: ["Established in the EU or EEA", "Established in the UK"],
+      processor_count: "Four — the three tools listed and Medisyne Software BV — each under a signed Art. 28 agreement.",
+      uncovered_vendors: "None — every processor in scope is under a signed Art. 28 agreement.",
+      transfer_routes:
+        "HubSpot Inc. (Cambridge, MA) — EU SCCs (2021 modules) with a transfer impact assessment on file; Google Workspace — EU SCCs under Google's data-processing terms; Zoom — EU SCCs under Zoom's DPA. UK-origin data relies on the UK Addendum to the same clauses.",
 
       // ── Controls and rights ────────────────────────────────────────────
       technical_controls: "Yes — DLP/content filtering actively enforced",

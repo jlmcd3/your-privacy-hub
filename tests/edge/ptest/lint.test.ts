@@ -277,18 +277,13 @@ function report(id: string, hits: readonly LintHit[]): void {
   for (const h of hits) console.log(`  [${id}] ${h.rule}/${h.check}/${h.severity} ${h.block_key} — ${h.detail} :: "${h.quote.slice(0, 120)}"`);
 }
 
-// KNOWN DEFECTS ON THE PERFECT PANEL (2026-09-14). Genuine class-(d) hits the
-// lint found on first run, pinned here so the gate is "no NEW defects" until
-// the product is fixed; each entry is a CEO fix decision, not a lint
-// exemption. Remove an entry when its fix lands — the gate then enforces zero.
-//   admt/access#p2 — "The following tables show …:" is followed by the verdict
-//   lead sentence, and only then by the two tables (a dangling lead-in).
-const KNOWN_DEFECTS: Readonly<Record<string, readonly string[]>> = {
-  "admt-full-optout-strong-compliance": ["L-LEADIN/dangling_lead_in@access#p2"],
-  "admt-human-appeal-exception-strong": ["L-LEADIN/dangling_lead_in@access#p2"],
-  "admt-hiring-admission-exception-strong": ["L-LEADIN/dangling_lead_in@access#p2"],
-  "admt-work-allocation-compensation-exception-strong": ["L-LEADIN/dangling_lead_in@access#p2"],
-};
+// KNOWN DEFECTS ON THE PERFECT PANEL. Genuine class-(d) hits the lint found
+// on first run are pinned here so the gate is "no NEW defects" until the
+// product is fixed; each entry is a CEO fix decision, not a lint exemption.
+// Remove an entry when its fix lands — the gate then enforces zero.
+//   admt/access#p2 (2026-09-14) — fixed 2026-09-16 (CEO, doc 262 §2.3): the
+//   determination sentence now precedes the lead-in. No entry remains.
+const KNOWN_DEFECTS: Readonly<Record<string, readonly string[]>> = {};
 
 const defectKeys = (hits: readonly LintHit[]): string[] =>
   hits.filter((h) => h.severity === "defect").map((h) => `${h.rule}/${h.check}@${h.block_key}`).sort();

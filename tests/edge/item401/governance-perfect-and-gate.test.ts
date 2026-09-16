@@ -28,20 +28,29 @@ import {
   emptyAskedKeys,
   FALSE_ABSENCE_CHECK_IDS,
 } from "../../../supabase/functions/_shared/ltp/record-complete.ts";
-import { GOVERNANCE_PIPELINE_STAMP, REFERENCE_RENDER_TOKENS } from "../../../supabase/functions/run-governance-assessment/_local/prose/plans/governance.spine.ts";
+// CEO 2026-09-16 (doc 265 §8 item 5): the governance spine retired the
+// REFERENCE_RENDER_TOKENS idiom (as item 410 did for biometric), and the
+// Governance F12 fixture added a second perfect case; the pins below follow
+// the fixture list instead of a literal count.
+import { GOVERNANCE_PIPELINE_STAMP } from "../../../supabase/functions/run-governance-assessment/_local/prose/plans/governance.spine.ts";
 import { serializeCustomerReport } from "../../../supabase/functions/_shared/report-serialize.ts";
 import { GOVERNANCE_REPORT_SCHEMA } from "../../../supabase/functions/run-governance-assessment/_local/report-schemas/governance.ts";
 
-const INTAKE = GOVERNANCE_PERFECT[0].intake as Record<string, unknown>;
+// The current-UI case is the complete record; the historical case is kept as the documented F12 drift.
+const INTAKE = GOVERNANCE_PERFECT[1].intake as Record<string, unknown>;
+const INTAKES = GOVERNANCE_PERFECT.map((c) => c.intake as Record<string, unknown>);
 
-Deno.test("fixture: exactly one governance perfect case, correctly labelled", () => {
-  assertEquals(GOVERNANCE_PERFECT.length, 1);
-  assertEquals(GOVERNANCE_PERFECT[0].tool, "governance");
-  assertEquals(GOVERNANCE_PERFECT[0].id, "gov-occupational-health-eu-uk-perfect");
+Deno.test("fixture: the governance perfect cases are correctly labelled (historical + current-UI)", () => {
+  assertEquals(GOVERNANCE_PERFECT.map((c) => c.id), [
+    "gov-occupational-health-eu-uk-perfect",
+    "gov-occupational-health-eu-uk-perfect-ui-2026-09",
+  ]);
+  for (const c of GOVERNANCE_PERFECT) assertEquals(c.tool, "governance");
 });
 
-Deno.test("fixture: every ASKED field is answered (emptyAskedKeys === [])", () => {
-  const empties = emptyAskedKeys(governanceContract, INTAKE);
+Deno.test("fixture: every ASKED field is answered on the current-UI perfect case (emptyAskedKeys === [])", () => {
+  const current = GOVERNANCE_PERFECT[1].intake as Record<string, unknown>;
+  const empties = emptyAskedKeys(governanceContract, current);
   assertEquals(empties, [], `unanswered asked keys: ${empties.join(", ")}`);
 });
 
@@ -68,17 +77,10 @@ Deno.test("fixture: carries no placeholder token", () => {
   }
 });
 
-Deno.test("fixture: carries no reference-render token (item 382/400 fact-exempt rule)", () => {
-  const blob = JSON.stringify(INTAKE).toLowerCase();
-  for (const tok of REFERENCE_RENDER_TOKENS) {
-    assert(!blob.includes(String(tok).toLowerCase()), `reference-render token leaked into fixture: ${tok}`);
-  }
-});
-
 Deno.test("registry: PERFECT_BY_TOOL + casesForVariant wiring for governance", () => {
   assertEquals(PERFECT_BY_TOOL["governance"], GOVERNANCE_PERFECT);
   assertEquals(casesForVariant("governance", "perfect"), GOVERNANCE_PERFECT);
-  assertEquals(intakesForVariant("governance", "perfect"), [INTAKE]);
+  assertEquals(intakesForVariant("governance", "perfect"), INTAKES);
   // Degraded pilot sources untouched.
   assertEquals(casesForVariant("governance", null), GOLDEN_BY_TOOL["governance"]);
   assertEquals(casesForVariant("governance", "messy"), MESSY_BY_TOOL["governance"]);
@@ -90,13 +92,13 @@ Deno.test("harness: governance perfect batch is admissible end-to-end", () => {
   assertEquals(tv, { "governance": "perfect" });
   assertEquals(resolveToolVariant("governance", tv, null), "perfect");
   const pins = intakesForVariant("governance", "perfect");
-  assertEquals(pins.length, 1);
-  const seed = buildSeedRow("governance", 1, 1, "00000000-0000-0000-0000-000000000000", "2026-08-07T00:00:00Z", {
+  assertEquals(pins.length, GOVERNANCE_PERFECT.length);
+  const seed = buildSeedRow("governance", pins.length, 1, "00000000-0000-0000-0000-000000000000", "2026-08-07T00:00:00Z", {
     pins,
   }) as Record<string, unknown>;
   assertEquals(seed.tool, "governance");
   assertEquals(seed.status, "pending");
-  assertEquals((seed.intakes as unknown[]).length, 1);
+  assertEquals((seed.intakes as unknown[]).length, pins.length);
 });
 
 Deno.test("harness: the governance source row carries the intake wholesale (no column whitelist)", () => {

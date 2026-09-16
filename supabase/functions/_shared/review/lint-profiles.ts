@@ -149,12 +149,9 @@ export const CYBER_LINT_PROFILE: LintProfile = {
   product: "cppa-cyber",
   registrySections: CYBER_REGISTRY_SECTIONS,
   citeAllowlist: [7001, 7002, 7150, 7152],
-  byDesignDuplicates: [
-    // § 3 per-component module: the evidence sentence recurs for every
-    // component whose record identifies testable material — a template, not a
-    // double emission (PERFECT panel, 2026-09-14: 18 occurrences).
-    /^The identified evidence includes material an auditor can examine and test\.$/,
-  ],
+  // CEO 2026-09-16 (doc 262 §2.4): the per-component "auditor can examine
+  // and test" sentence is no longer emitted, so no by-design repeat remains.
+  byDesignDuplicates: [],
   labelPairs: [],
   emptyCellExemptTables: [/^signature:/, /^cover:/],
   customChecks: [cyberEvidencePostureCheck],

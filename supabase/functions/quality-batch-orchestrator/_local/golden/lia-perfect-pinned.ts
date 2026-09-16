@@ -74,6 +74,14 @@ const base = {
   },
 
   necessity_details: {
+
+  // CEO 2026-09-16 (doc 265 §8 item 11) — the necessity question the intake asks; a complete record answers it.
+
+  achievable_without_personal_data: "No — personal data is required (explain why below)",
+
+  achievable_without_personal_data_rationale:
+
+    "A recommendation is made to an individual member from that member's own visits and app usage, so it needs that member's data. Anonymised or synthetic data would not identify the member to recommend to, and aggregate attendance data could only produce the same generic timetable for everyone.",
     alternatives:
       "Consent under Article 6(1)(a) — members could decline app-based recommendations entirely, which would remove the scheduling and availability feature members have said in surveys they value, and would need to be re-obtained at every renewal. Manual scheduling by staff — would not scale to the volume of daily bookings and could not update live equipment availability in real time.",
     // L4 (2026-08-26): filled — a "perfect" record states WHY each
