@@ -271,7 +271,7 @@ export async function callAnthropicWithContinuation(opts: AnthropicCallOpts): Pr
   }
 
   // Continuation: the Messages API rejects a conversation that ends with an
-  // assistant turn (claude-sonnet-4-6 returns 400 on that shape). Send the
+  // assistant turn (claude-sonnet-5 returns 400 on that shape). Send the
   // truncated assistant output followed by an explicit user "continue" turn,
   // then stitch. Overlap guard trims any suffix of first.text that the model
   // re-emitted at the start of the continuation.

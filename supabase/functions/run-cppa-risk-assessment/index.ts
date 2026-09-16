@@ -963,7 +963,7 @@ Return only valid JSON matching the specified output structure. No preamble, no 
 }
 
 // ---------------------------------------------------------------------------
-// Model call — Claude Sonnet 4.6 via Anthropic API direct.
+// Model call — Claude Sonnet 5 via Anthropic API direct.
 // ---------------------------------------------------------------------------
 async function callModel(
   system: string | SystemBlock[],

@@ -49,7 +49,7 @@ export const QUALITY_BATCH2_TOOLS: QualityBatch2Tool[] = [
 // MODEL A/B HARNESS (dispatch 1) — mirrors
 // supabase/functions/_shared/generation-model.ts. Kept in sync by hand; the
 // allowlist is small and change-controlled.
-export const DEFAULT_GENERATION_MODEL = "claude-sonnet-4-6";
+export const DEFAULT_GENERATION_MODEL = "claude-sonnet-5";
 export const AB_ALT_GENERATION_MODEL = "claude-fable-5";
 
 export const GENERATION_MODEL_SLUG: Record<string, string> = {

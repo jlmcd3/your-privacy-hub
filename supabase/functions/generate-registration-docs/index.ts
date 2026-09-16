@@ -34,7 +34,7 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
-const SONNET_MODEL = "claude-sonnet-4-6";
+const SONNET_MODEL = "claude-sonnet-5";
 const HAIKU_MODEL = "claude-haiku-4-5-20251001";
 
 // Verbatim system prompt — guardrails for AI Act citations, monetary penalties,

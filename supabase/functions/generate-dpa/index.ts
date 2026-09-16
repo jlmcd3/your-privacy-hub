@@ -306,7 +306,7 @@ const supabase = createClient(
 );
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-const AI_MODEL = "claude-sonnet-4-6";
+const AI_MODEL = "claude-sonnet-5";
 
 interface EnforcementCtx {
   id?: string;

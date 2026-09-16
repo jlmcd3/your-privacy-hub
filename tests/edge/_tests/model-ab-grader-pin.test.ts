@@ -25,7 +25,7 @@ Deno.test("grader/rubric model strings are literals, not the A/B model", () => {
   assert(SRC.includes('model: "o3"'), "o3 grader model string missing");
   // Fixture-intake generation must stay pinned so BOTH arms see identical facts.
   assert(
-    SRC.includes('16000,\n      "claude-sonnet-4-6",'),
+    SRC.includes('16000,\n      "claude-sonnet-5",'),
     "fixture-intake generation model is no longer a pinned literal",
   );
 });

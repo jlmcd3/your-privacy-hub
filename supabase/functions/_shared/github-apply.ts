@@ -61,7 +61,7 @@ export async function applyPatchWithClaude(
     method: "POST",
     headers: { "x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({
-      model: "claude-sonnet-4-6",
+      model: "claude-sonnet-5",
       max_tokens: 64000,
       system: "You are a code editor. Apply ONLY the specified patch to the TypeScript file — change nothing else. Return the complete modified file content as raw TypeScript. No explanation, no markdown, no code fences.",
       messages: [{ role: "user", content: `Apply this patch.\n\nPATCH LOCATION: ${fixLocation}\nCHECK BEING FIXED: ${checkId}\n\nPATCH TO APPLY:\n${proposedFix}\n\nCURRENT FILE:\n${currentContent}\n\nReturn the complete modified file. Raw TypeScript only.` }],

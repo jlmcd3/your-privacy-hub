@@ -3,7 +3,7 @@
  *
  * Mirrors the Pass-1 adapter patterns exactly (ltp/pass1-llm.ts):
  *   * shared Anthropic client (`../anthropic-call.ts`), never a hand-rolled fetch
- *   * model claude-sonnet-4-6, caller attribution passed through for spend metering
+ *   * model claude-sonnet-5, caller attribution passed through for spend metering
  *   * per-attempt AbortController with a REAL abort at 90s
  *   * stage ceiling 180s — attempts stop when the stage budget is spent
  *   * at most 2 validator-directed retries; the reject reason is fed back VERBATIM
@@ -44,7 +44,7 @@ import {
 import { currentGenerationModel, generationTimeoutMs } from "../../../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
 
 export const PASS2R_LLM_STAMP = "ltp-pass2r-llm-2026-07-30-item278";
-export const PASS2R_MODEL = "claude-sonnet-4-6";
+export const PASS2R_MODEL = "claude-sonnet-5";
 /** One call + at most two validator-directed retries (§2R.6). */
 export const PASS2R_MAX_ATTEMPTS = 3;
 // Item 281 (2026-07-30): raised from 90_000/180_000 on evidence from job

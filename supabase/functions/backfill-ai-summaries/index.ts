@@ -169,7 +169,7 @@ async function _enrichAttempt(
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-6",
+        model: "claude-sonnet-5",
         // 2500 is comfortably above the ~1.5–2k tokens our enrichment JSON actually uses,
         // and keeps reserved OTPM low so we don't trip Anthropic's per-minute output ceiling.
         max_tokens: 4000,
