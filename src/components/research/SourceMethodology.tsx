@@ -3,8 +3,6 @@
 
 export default function SourceMethodology({
   className,
-  lastVerified: _lastVerified,
-  variant: _variant = "default",
 }: {
   className?: string;
   lastVerified?: string;
