@@ -18,6 +18,14 @@ export interface ExhibitTextareaProps extends Omit<TextareaProps, "value" | "onC
   exhibitLabel?: string;
   /** Optional id used to scope the radio name. */
   id?: string;
+  /**
+   * ADMT F19 (2026-09-15): parent-owned stash of the narrative that the
+   * exhibit sentinel replaced. When `onStash` is supplied the component
+   * writes the narrative there on selection and restores from `stash` on
+   * deselection, so the text survives unmounts and draft round-trips.
+   */
+  stash?: string;
+  onStash?: (narrative: string) => void;
 }
 
 /**
@@ -31,10 +39,14 @@ export interface ExhibitTextareaProps extends Omit<TextareaProps, "value" | "onC
 export function ExhibitTextarea({
   value,
   onChange,
-  exhibitLabel = "Add an Exhibit for me and I will complete that separately",
+  // ADMT S15 (2026-09-15): the choice reserves a blank exhibit; it neither
+  // uploads evidence nor completes the exhibit, and the label says so.
+  exhibitLabel = "Add a blank exhibit for me to complete separately",
   className,
   id,
   disabled,
+  stash,
+  onStash,
   ...textareaProps
 }: ExhibitTextareaProps) {
   const exhibit = isExhibit(value);
@@ -51,8 +63,9 @@ export function ExhibitTextarea({
 
   const toggle = () => {
     if (exhibit) {
-      onChange(stashedRef.current || "");
+      onChange((onStash ? stash : stashedRef.current) || stashedRef.current || "");
     } else {
+      if (onStash) onStash(value || "");
       onChange(EXHIBIT_SENTINEL);
     }
   };
@@ -84,7 +97,12 @@ export function ExhibitTextarea({
           onClick={toggle}
           onChange={() => { /* handled in onClick to allow deselect */ }}
         />
-        <span>{exhibitLabel}</span>
+        <span>
+          {exhibitLabel}
+          <span className="block text-[11px] text-muted-foreground/90">
+            This does not upload evidence or complete the exhibit; your typed text is kept and restored if you deselect this.
+          </span>
+        </span>
       </label>
     </div>
   );

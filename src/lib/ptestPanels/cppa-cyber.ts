@@ -332,6 +332,8 @@ export const PANEL_CPPA_CYBER: PanelFixture[] = [
         q5_sell_share: "No",
         q15_sensitive_pi: "No",
         password_auth_used: "Yes",
+        consumer_notice_status: "No notice was required",
+        agency_notice_status: "No notice was required",
       },
       controls: buildControls({
         c1_auth: {
@@ -460,6 +462,8 @@ export const PANEL_CPPA_CYBER: PanelFixture[] = [
         q15_sensitive_pi: "Yes",
         q15c_spi_volume: "50,000 or more",
         password_auth_used: "No",
+        q1_revenue_threshold_check: "Yes — above the threshold",
+        q1_revenue_reference_year: "2025",
       },
       controls: buildControls({
         c1_auth: {
@@ -585,6 +589,8 @@ export const PANEL_CPPA_CYBER: PanelFixture[] = [
         q5_sell_share: "No",
         q15_sensitive_pi: "No",
         password_auth_used: "Yes",
+        consumer_notice_status: "Notice provided to affected consumers",
+        agency_notice_status: "No notice was required",
       },
       controls: buildControls({
         c1_auth: {
@@ -966,6 +972,10 @@ export const PANEL_CPPA_CYBER: PanelFixture[] = [
         q5c_share_revenue_50pct: "Yes",
         q15_sensitive_pi: "No",
         password_auth_used: "No",
+        q1_revenue_threshold_check: "No — at or below the threshold",
+        q1_revenue_reference_year: "2025",
+        consumer_notice_status: "No notice was required",
+        agency_notice_status: "Notice provided to an agency",
       },
       controls: buildControls({
         c1_auth: {
@@ -1093,6 +1103,10 @@ export const PANEL_CPPA_CYBER: PanelFixture[] = [
         q5c_share_revenue_50pct: "Unsure",
         q15_sensitive_pi: "No",
         password_auth_used: "Yes",
+        q1_revenue_threshold_check: "Yes — above the threshold",
+        q1_revenue_reference_year: "2025",
+        consumer_notice_status: "Notice provided to affected consumers",
+        agency_notice_status: "Notice provided to an agency",
       },
       controls: buildControls({
         c1_auth: {
@@ -1220,6 +1234,8 @@ export const PANEL_CPPA_CYBER: PanelFixture[] = [
         q15_sensitive_pi: "Yes",
         q15c_spi_volume: "50,000 or more",
         password_auth_used: "Yes",
+        q1_revenue_threshold_check: "No — at or below the threshold",
+        q1_revenue_reference_year: "2025",
       },
       controls: buildControls({
         c1_auth: {
@@ -1347,6 +1363,8 @@ export const PANEL_CPPA_CYBER: PanelFixture[] = [
         q5_sell_share: "No",
         q15_sensitive_pi: "No",
         password_auth_used: "No",
+        consumer_notice_status: "No notice was required",
+        agency_notice_status: "No notice was required",
       },
       controls: buildControls({
         c1_auth: {
@@ -1727,6 +1745,8 @@ export const PANEL_CPPA_CYBER: PanelFixture[] = [
         q5c_share_revenue_50pct: "Yes",
         q15_sensitive_pi: "No",
         password_auth_used: "No",
+        consumer_notice_status: "No notice was required",
+        agency_notice_status: "No notice was required",
       },
       controls: buildControls({
         c1_auth: {
@@ -1855,6 +1875,10 @@ export const PANEL_CPPA_CYBER: PanelFixture[] = [
         q15_sensitive_pi: "Yes",
         q15c_spi_volume: "50,000 or more",
         password_auth_used: "Yes",
+        q1_revenue_threshold_check: "Yes — above the threshold",
+        q1_revenue_reference_year: "2025",
+        consumer_notice_status: "Notice provided to affected consumers",
+        agency_notice_status: "No notice was required",
       },
       controls: buildControls({
         c1_auth: {

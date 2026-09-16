@@ -86,6 +86,10 @@ export const FIXTURE_CYBER_YIELD_K1: CyberContractFixture = {
       in_scope_frameworks: ["SOC 2", "HITRUST"],
       audit_scope_rationale:
         "Audit covers the multi-tenant SaaS production estate. Leverages the 2026 SOC 2 Type II under § 7123(f); supplemented for the segmentation, retention, and third-party components that SOC 2 does not directly test.",
+      // Legacy incident_notifications is absent on this fixture, so both
+      // notice-status keys derive to "Unsure" per the mapping rule.
+      consumer_notice_status: "Unsure",
+      agency_notice_status: "Unsure",
     },
     controls: LIVE_CONTROLS.map(({ key, label }) => ({
       key,

@@ -12,24 +12,31 @@
 
 import type { RailEntry } from "@/components/intake/StatuteRail";
 
+// Canonical OAL-approved regulations PDF — the same URL used elsewhere in the
+// codebase (e.g. supabase/functions/_shared/registry/risk-verified-authorities.ts)
+// for every CCR citation whose regulationText quotes verbatim text below.
+const CPPA_PDF_URL =
+  "https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf";
+
 export const ADMT_RAIL: Record<string, RailEntry> = {
   scope_does_business_use_admt: {
-    coachLead: "Name the technology, its inputs, its output, and where it makes the call unaided.",
-    coachBody: "Describe the specific system, the categories of PI it consumes, the type of output it produces, and the point at which that output drives a decision without meaningful human authority to change it.",
+    coachLead: "Name the system, the personal information it uses, and the output it produces.",
+    coachBody: "Describe how that output affects the decision and any human review, including the reviewer's authority to change it. Record those facts before concluding the system falls outside the definition.",
     fieldLabel: "Does your business use ADMT?",
     citation: "11 CCR § 7001(e)",
+    citationUrl: CPPA_PDF_URL,
     plainSummary:
       "ADMT means any technology that processes personal information and uses computation to replace or substantially replace human decisionmaking. It includes AI, ML, and profiling systems. It does NOT include infrastructure like firewalls, databases, or spreadsheets — unless those systems replace human decisions.",
     regulationText:
       '"Automated decisionmaking technology" or "ADMT" means any technology that processes personal information and uses computation to replace human decisionmaking or substantially replace human decisionmaking.\n\n(1) For purposes of this definition, to "substantially replace human decisionmaking" means a business uses the technology\'s output to make a decision without human involvement. Human involvement requires the human reviewer to: (A) Know how to interpret and use the technology\'s output to make the decision; (B) Review and analyze the output of the technology, and any other information that is relevant to make or change the decision; and (C) Have the authority to make or change the decision based on their analysis.\n\n(2) ADMT includes profiling that replaces human decisionmaking or substantially replaces human decisionmaking.\n\n(3) ADMT does not include web hosting, domain registration, networking, caching, website-loading, data storage, firewalls, anti-virus, anti-malware, spam- and robocall-filtering, spellchecking, calculators, databases, and spreadsheets, provided that they do not replace human decisionmaking.',
     fscrContext:
-      "The CPPA deliberately removed explicit references to 'artificial intelligence' from the final regulations to create a technology-neutral standard that focuses on the functional impact — does the system replace human judgment about an individual — rather than the technical architecture.",
+      "Product interpretation (FSOR pinpoint pending verification): the CPPA deliberately removed explicit references to 'artificial intelligence' from the final regulations to create a technology-neutral standard that focuses on the functional impact — does the system replace human judgment about an individual — rather than the technical architecture.",
     enforcementNote:
-      "The CPPA has indicated it will look at whether a human reviewer genuinely has authority to change a decision, not just review it. A 'human in the loop' who cannot override the system's output does not satisfy the human involvement standard.",
+      "Product interpretation (FSOR pinpoint pending verification): the CPPA has indicated it will look at whether a human reviewer genuinely has authority to change a decision, not just review it. A 'human in the loop' who cannot override the system's output does not satisfy the human involvement standard.",
     goodAnswer:
       "“A gradient-boosted model scores loan applications 0–100 from credit history, income, and debt ratio; scores under 40 are auto-declined with no human review.” — names the technology, the inputs, the output, and exactly where automation makes the call.",
     commonMistake:
-      "Calling a tool ‘not ADMT’ because a person signs off, when that person only rubber-stamps the output and cannot realistically overturn it. If the human can't change the outcome, it is still ADMT.",
+      "Calling a tool ‘not ADMT’ because a person signs off, when that person only rubber-stamps the output and cannot realistically overturn it. That fact points toward ADMT status, though the full definition also turns on its other elements.",
     relatedCitations: [
       { citation: "11 CCR § 7001(ii)", label: "Profiling definition" },
       { citation: "11 CCR § 7001(ddd)", label: "Significant decision definition" },
@@ -37,20 +44,21 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   scope_significant_decision_domain: {
-    coachLead: "Pick from the closed § 7001(ddd) list, and name what the ADMT output actually gates.",
-    coachBody: "State which of the five statutory categories applies — financial/lending, housing, education, employment or contracting, healthcare — and identify the specific access the output governs.",
+    coachLead: "Select the § 7001(ddd) categories that describe what the output actually provides or denies.",
+    coachBody: "Identify the specific service, opportunity, or compensation affected. Choose None of these categories if nothing on the list applies, and separately answer the housing follow-up on availability, vacancy, or receipt of payment where relevant.",
     goodAnswer:
-      "'Significant decision' is a closed list — financial/lending, housing, education, employment or contracting, healthcare (§ 7001(ddd)). Advertising, audience segmentation, and ordinary profiling are excluded, however consequential they feel. The relevant category is whichever one the ADMT output actually gates.",
+      "A worked example: “The output determines whether an applicant is admitted to a nursing program — that is an education-enrollment decision, not advertising or ordinary profiling.” Names the actual category the output affects.",
     commonMistake:
-      "Treating any high-stakes-feeling decision as “significant.” The list is closed: advertising, gaming/subscription eligibility, and ordinary profiling don't count, however consequential they feel.",
+      "Treating any high-stakes-feeling decision as significant, or treating every kind of profiling as automatically excluded. Advertising is excluded by definition; profiling that itself makes one of the listed decisions is not excluded simply because it is profiling.",
     fieldLabel: "What type of significant decision does your ADMT make?",
     citation: "11 CCR § 7001(ddd)",
+    citationUrl: CPPA_PDF_URL,
     plainSummary:
       "A 'significant decision' is one that results in the provision or denial of financial services, housing, education opportunities, employment, or healthcare. Advertising is explicitly excluded. The categories are defined narrowly — only decisions that gate access to these specific services count.",
     regulationText:
       '"Significant decision" means a decision that results in the provision or denial of financial or lending services, housing, education enrollment or opportunities, employment or independent contracting opportunities or compensation, or healthcare services.\n\n(1) "Financial or lending services" means the extension of credit or a loan, transmitting or exchanging funds, the provision of deposit or checking accounts, check cashing, or installment payment plans.\n\n(2) "Housing" means any building, structure, or portion thereof that is used or occupied as, or designed, arranged, or intended to be used or occupied as, a home, residence, or sleeping place by one or more consumers… The use of ADMT that provides or denies housing to a consumer based solely on the availability or vacancy of the housing or the successful receipt of payment for housing from the consumer is not making a significant decision.\n\n(3) "Education enrollment or opportunities" means: (A) Admission or acceptance into academic or vocational programs; (B) Educational credentials (e.g., a degree, diploma, or certificate); and (C) Suspension and expulsion.\n\n(4) "Employment or independent contracting opportunities or compensation" means: (A) Hiring; (B) Allocation or assignment of work… or compensation… ("allocation/assignment of work and compensation"); (C) Promotion; and (D) Demotion, suspension, and termination.\n\n(5) "Healthcare services" means services related to the diagnosis, prevention, or treatment of human disease or impairment, or the assessment or care of an individual\'s health.\n\n(6) Significant decision does not include advertising to a consumer.',
     fscrContext:
-      "The CPPA narrowed the definition of 'significant decision' significantly from earlier drafts by removing advertising and behavioral profiling. The final definition focuses on high-stakes decisions that can materially affect a consumer's access to economic resources, shelter, education, work, or health.",
+      "Product interpretation (FSOR pinpoint pending verification): the CPPA narrowed the definition of 'significant decision' from earlier drafts by removing advertising and behavioral profiling. The final definition focuses on decisions that can materially affect a consumer's access to economic resources, shelter, education, work, or health.",
     relatedCitations: [
       { citation: "11 CCR § 7200(a)", label: "Compliance trigger" },
       { citation: "11 CCR § 7221(b)(2)-(3)", label: "Opt-out exceptions for employment/education" },
@@ -58,22 +66,23 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   scope_human_involvement: {
-    coachLead: "Say who reviews, what they see, and whether they can — and do — overturn the output before the fact.",
-    coachBody: "Name the reviewer role, the information they weigh alongside the ADMT output, their authority to change the outcome, and whether review happens before the decision issues.",
+    coachLead: "State who reviews the output, when they act, and whether they hold authority to change the decision.",
+    coachBody: "Describe what information the reviewer considers alongside the output, and identify any limits on their authority. An override-rate example is illustrative evidence, not a minimum standard to reach.",
     goodAnswer:
       "“A senior underwriter reviews every sub-40 score against the file and tax returns and overturns ~8% before any denial issues.” — interprets, reviews-plus-other-info, and can change the outcome, before the fact.",
     commonMistake:
       "Counting a reviewer who only sees the score after the decision, or who can't realistically overturn it. After-the-fact or no-authority review is not meaningful involvement.",
     fieldLabel: "Does a human with authority to overturn the decision review each output?",
     citation: "11 CCR § 7001(e)(1)",
+    citationUrl: CPPA_PDF_URL,
     plainSummary:
       "If a human reviewer genuinely knows how to interpret the output, reviews it along with other relevant information, AND has the authority to change the decision based on their analysis — the system may not be ADMT at all. All three elements must be present.",
     regulationText:
       'For purposes of this definition, to "substantially replace human decisionmaking" means a business uses the technology\'s output to make a decision without human involvement. Human involvement requires the human reviewer to:\n(A) Know how to interpret and use the technology\'s output to make the decision;\n(B) Review and analyze the output of the technology, and any other information that is relevant to make or change the decision; and\n(C) Have the authority to make or change the decision based on their analysis in subsection (B).',
     fscrContext:
-      "The FSOR commentary explains that rubber-stamp review does not constitute 'human involvement.' A reviewer who always accepts the system output, or who lacks the authority or expertise to change it, does not meet the standard. The test is functional, not formal.",
+      "Product interpretation (FSOR pinpoint pending verification): rubber-stamp review does not constitute 'human involvement.' A reviewer who always accepts the system output, or who lacks the authority or expertise to change it, does not meet the standard. The test is functional, not formal.",
     enforcementNote:
-      "Document human review processes carefully. The CPPA will scrutinize whether reviewers actually exercise independent judgment. Rate of decision reversal, reviewer training records, and whether output is shown to reviewers alongside contextual information are all relevant evidence.",
+      "Product interpretation (FSOR pinpoint pending verification): describe human review processes in detail. Rate of decision reversal, reviewer training records, and whether output is shown to reviewers alongside contextual information are all relevant evidence of whether review is genuinely exercised.",
   },
 
   notice_timing: {
@@ -90,7 +99,7 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
     regulationText:
       "Be presented prominently and conspicuously to the consumer at or before the point when the business collects the consumer's personal information that the business plans to process using ADMT. If a business has already collected the consumer's personal information for a different purpose and subsequently plans to process it using ADMT for the purpose set forth in section 7200, subsection (a), the business must provide a Pre-use Notice before processing the consumer's personal information for that purpose.",
     fscrContext:
-      "The timing rule prevents retroactive application of ADMT to data collected before the consumer was informed. If your existing customer data was collected without ADMT disclosure, you cannot use that data for ADMT significant decisions without first providing a Pre-use Notice.",
+      "Product interpretation (FSOR pinpoint pending verification): the timing rule prevents retroactive application of ADMT to data collected before the consumer was informed. If your existing customer data was collected without ADMT disclosure, using that data for an ADMT significant decision needs a Pre-use Notice first.",
     relatedCitations: [
       { citation: "11 CCR § 7003", label: "Notice format and presentation requirements" },
       { citation: "11 CCR § 7220(e)", label: "Consolidated notice option" },
@@ -111,9 +120,9 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
     regulationText:
       'A plain language explanation of the specific purpose for which the business plans to use the ADMT. The business must not describe the purpose in generic terms, such as "to make a significant decision" without further information, because this does not describe to the consumer the specific decision for which the business plans to use ADMT with respect to them.',
     fscrContext:
-      "The FSOR repeatedly emphasizes that consumers must be able to understand what is actually being decided about them in order to meaningfully exercise their opt-out right. A vague purpose statement defeats the notice's function and will be treated as non-compliant.",
+      "Product interpretation (FSOR pinpoint pending verification): consumers need to understand what is actually being decided about them in order to meaningfully exercise their opt-out right. A vague purpose statement defeats the notice's function.",
     enforcementNote:
-      "Common violation pattern: privacy notices that say 'we use automated tools to improve our services' or 'we process information to assess your application.' These will not satisfy § 7220(c)(1). The notice must name the decision (e.g., 'to determine whether to approve your loan application' or 'to rank job applicants for initial screening').",
+      "Product interpretation (FSOR pinpoint pending verification): a common pattern is a notice that says 'we use automated tools to improve our services' or 'we process information to assess your application' — wording that does not name the decision itself (e.g., 'to determine whether to approve your loan application' or 'to rank job applicants for initial screening').",
     relatedCitations: [
       { citation: "11 CCR § 7222(b)(1)", label: "Same specificity required in access responses" },
     ],
@@ -168,7 +177,7 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
     regulationText:
       'Additional information about how the ADMT works to make a significant decision about consumers, and how the significant decision would be made if a consumer opts out. The business may provide this information via a simple and easy-to-use method (e.g., a layered notice or hyperlink). The additional information must include a plain language explanation of the following:\n\n(A) How the ADMT processes personal information to make a significant decision about consumers, including the categories of personal information that affect the output generated by the ADMT. An "output" may include predictions, decisions, and recommendations (e.g., numerical scores of compatibility).\n\n(B) The type of output generated by the ADMT, and how that output is used to make a significant decision…\n\n(C) What the alternative process for making a significant decision is for consumers who opt out, unless an exception to providing the opt-out of ADMT set forth in section 7221, subsection (b), applies.',
     fscrContext:
-      "Trade secrets and security-compromising information are excluded from this disclosure obligation (§ 7220(d)). Businesses may withhold specific model parameters or weights that constitute trade secrets, but must still describe the categories of PI used and the general logic of how outputs are generated.",
+      "Product interpretation (FSOR pinpoint pending verification): trade secrets and security-compromising information are excluded from this disclosure obligation (§ 7220(d)). Withholding specific model parameters or weights that constitute trade secrets does not remove the separate duty to describe the categories of PI used and the general logic of how outputs are generated.",
     relatedCitations: [
       { citation: "11 CCR § 7220(d)", label: "Trade secret and security carve-outs" },
       { citation: "11 CCR § 7220(e)", label: "Consolidated notice for multiple ADMTs" },
@@ -207,7 +216,7 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
     regulationText:
       'A business must provide two or more designated methods for submitting requests to opt-out of ADMT. A business must consider the methods by which it interacts with consumers, the manner in which the business uses the ADMT, and the ease of use by the consumer when determining which methods consumers may use to submit requests to opt-out of the business\'s use of the ADMT. At least one method offered must reflect the manner in which the business primarily interacts with the consumer.\n\n(1) A business that interacts with consumers online must, at a minimum, allow consumers to submit requests to opt-out through an interactive form accessible via an opt-out link that is provided in the Pre-use Notice. The link title must state what the consumer is opting out of, such as "Opt-out of Automated Decisionmaking Technology."\n\n(4) A notification or tool regarding cookies, such as a cookie banner or cookie controls, is not by itself an acceptable method for submitting requests to opt-out of the business\'s use of ADMT because cookies concern the collection of personal information and not necessarily the use of ADMT.',
     enforcementNote:
-      "The opt-out link title requirement is specific: it must say what the consumer is opting out of, such as 'Opt-out of Automated Decisionmaking Technology.' Generic labels like 'Your Privacy Choices' will not satisfy this requirement when used in an ADMT Pre-use Notice.",
+      "Product interpretation (FSOR pinpoint pending verification): the opt-out link title requirement is specific — it must say what the consumer is opting out of, such as 'Opt-out of Automated Decisionmaking Technology.' A generic label like 'Your Privacy Choices,' used alone in an ADMT Pre-use Notice, does not name what the link opts the consumer out of.",
     relatedCitations: [
       { citation: "11 CCR § 7004", label: "Ease-of-use requirements" },
       { citation: "11 CCR § 7221(d)-(e)", label: "Process requirements — minimal steps, no account required" },
@@ -228,7 +237,7 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
     regulationText:
       "The business provides the consumer with a method to appeal the decision to a human reviewer who has the authority to overturn the decision. To qualify for this exception, the business must do the following:\n\n(A) Designate a human reviewer to review and analyze the output of the ADMT and any other information that is relevant to change the significant decision at issue. This human reviewer must consider the information provided by the consumer in support of their appeal and may consider any other sources of information about the significant decision. The human reviewer must know how to interpret and use the output of the ADMT that made the significant decision being appealed and must have the authority to change the decision based on their analysis.\n\n(B) Clearly describe to the consumer how to submit an appeal and enable the consumer to provide information to the human reviewer in support of their appeal. The method of appeal must be easy for the consumers to execute, require minimal steps, and comply with section 7004.",
     fscrContext:
-      "This exception was heavily debated during rulemaking. The CPPA clarified that the appeal must be a genuine opportunity for reconsideration, not a formality. The reviewer must actually have authority — a manager who only escalates further appeals does not qualify.",
+      "Product interpretation (FSOR pinpoint pending verification): the appeal is meant to be a genuine opportunity for reconsideration, not a formality. A reviewer who only escalates the matter to someone else, without personal authority to change it, does not satisfy the designated-reviewer element.",
     relatedCitations: [
       { citation: "11 CCR § 7021", label: "Timeline requirements for appeal responses" },
       { citation: "11 CCR § 7001(e)(1)", label: "Human involvement definition (related)" },
@@ -236,59 +245,64 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   optout_exception_hiring: {
-    coachLead: "State the sole assessment purpose and the documented non-discrimination evidence.",
-    coachBody: "Confirm the ADMT is used only to assess ability to perform in the work or program at issue, and point to the fairness testing that supports the claim it does not unlawfully discriminate across protected characteristics.",
+    coachLead: "State which branch you rely on, and confirm the sole-use condition for that branch specifically.",
+    coachBody: "For hiring or admission, confirm the ADMT is used solely to assess ability to perform. For work allocation, assignment, or compensation, confirm the ADMT is used solely for that purpose. Point to the fairness testing supporting the non-discrimination condition for whichever branch applies.",
     goodAnswer:
-      "ADMT used solely to assess for a hiring/admission decision, with documented bias testing showing no unlawful discrimination.",
+      "ADMT used solely to assess ability to perform for a hiring decision, with documented testing supporting the non-discrimination condition for that branch.",
     commonMistake:
-      "Invoking the hiring exception for a tool that also does more than assess (e.g., sets pay), or with no fairness testing on file.",
-    fieldLabel: "Opt-out exception: hiring and educational assessment",
+      "Invoking either branch for a tool that also serves another purpose — for example a hiring-assessment tool that also sets pay — because assessment or allocation is the main use. 'Solely' excludes a tool with any additional purpose.",
+    fieldLabel: "Opt-out exceptions: hiring/admission and work allocation or compensation",
     citation: "11 CCR § 7221(b)(2)-(3)",
+    citationUrl: CPPA_PDF_URL,
     plainSummary:
-      "Opt-out is not required for admission/hiring decisions IF the ADMT is used solely to assess the consumer's ability to perform at work or in an educational program AND the ADMT does not unlawfully discriminate based on protected characteristics. Similarly for work allocation and compensation decisions.",
+      "This exception has two separate branches, each with its own sole-use condition. Under (b)(2), opt-out is not required for admission, acceptance, or hiring decisions if the ADMT is used solely to assess the consumer's ability to perform at work or in an educational program, and the ADMT works for the business's purpose without unlawfully discriminating. Under (b)(3), opt-out is not required for allocation/assignment of work or compensation decisions if the ADMT is used solely for that allocation/assignment or compensation purpose, and works for the business's purpose without unlawfully discriminating. A tool is not covered by (b)(2) merely because assessment is its main use if it also serves another purpose, and the same is true of (b)(3) for allocation or compensation tools.",
     regulationText:
       "(2) For admission, acceptance, or hiring decisions as set forth in section 7001, subsections (ddd)(3)(A) and (ddd)(4)(A), if the following are true:\n(A) The business uses the ADMT solely for the business's assessment of the consumer's ability to perform at work or in an educational program to determine whether to admit, accept, or hire them; and\n(B) The ADMT works for the business's purpose and does not unlawfully discriminate based upon protected characteristics.\n\n(3) For allocation/assignment of work and compensation decisions as set forth in section 7001, subsection (ddd)(4)(B), if the following are true:\n(A) The business uses the ADMT solely for the business's allocation/assignment of work or compensation; and\n(B) The ADMT works for the business's purpose and does not unlawfully discriminate based upon protected characteristics.",
     enforcementNote:
-      "The non-discrimination condition is not self-certifying. A business relying on this exception should have documented fairness testing results (disparate impact analysis, testing across protected classes) to support the claim that the ADMT 'works for its purpose and does not unlawfully discriminate.'",
+      "Product interpretation (FSOR pinpoint pending verification): the non-discrimination condition is not self-certifying. A business relying on either branch of this exception would typically hold documented fairness-testing results (disparate impact analysis, testing across protected classes) supporting the claim that the ADMT 'works for its purpose and does not unlawfully discriminate.'",
     relatedCitations: [
       { citation: "11 CCR § 7001(ddd)(3)-(4)", label: "Education and employment significant decision definitions" },
+      { citation: "11 CCR § 7221(b)(3)(A)", label: "Work-allocation/compensation sole-use condition (sole_use_attestation_work)" },
     ],
   },
 
   optout_timing_response: {
-    coachLead: "Commit to ceasing ADMT processing within 15 business days, and to notifying downstream recipients on the same clock.",
-    coachBody: "Describe the intake and cessation flow (with the 15-business-day ceiling), the mechanism for stopping ADMT use for that consumer, and the notification path to service providers, contractors, and any third parties to whom the PI was disclosed.",
+    coachLead: "Commit to ceasing ADMT processing as soon as feasibly possible, within 15 business days, and to notifying downstream recipients on the same clock.",
+    coachBody: "Describe the cessation flow for a request received after processing has begun, and separately explain how a request received before processing starts prevents initiation instead. Confirming completion to the consumer is a related but separate duty under § 7221(h).",
     goodAnswer:
       "A documented process that honors an opt-out within 15 business days and stops ADMT processing for that consumer from then on.",
     commonMistake:
-      "No defined timeline, or honoring the opt-out only for new data while the existing automated decision keeps running.",
+      "No defined timeline, honoring the opt-out only for new data while the existing automated decision keeps running, or conflating this cessation duty with the separate duty to confirm completion.",
     fieldLabel: "Opt-out: response timing",
     citation: "11 CCR § 7221(n)(1)",
+    citationUrl: CPPA_PDF_URL,
     plainSummary:
       "Once a consumer submits an opt-out request AFTER you have already started ADMT processing, you must cease processing that consumer's PI using that ADMT as soon as feasibly possible but no later than 15 business days from receipt. You must also notify all service providers, contractors, and other persons to whom you disclosed that PI.",
     regulationText:
       "If the consumer did not opt-out in response to the Pre-use Notice, and submitted a request to opt-out of ADMT after the business initiated the processing, the business must comply with the consumer's opt-out request by:\n\n(1) Ceasing to process the consumer's personal information using that ADMT as soon as feasibly possible, but no later than 15 business days from the date the business receives the request; and\n\n(2) Notifying all the business's service providers, contractors, or other persons to whom the business has disclosed or made personal information available to process the consumer's personal information using that ADMT, that the consumer has made a request to opt-out of that ADMT and instructing them to comply with the consumer's request to opt-out of that ADMT within the same time frame.",
     relatedCitations: [
+      { citation: "11 CCR § 7221(h)", label: "Consumer confirmation of opt-out completion (separate duty)" },
       { citation: "11 CCR § 7221(k)", label: "12-month re-ask restriction" },
-      { citation: "11 CCR § 7221(m)", label: "Pre-initiation opt-out" },
+      { citation: "11 CCR § 7221(m)", label: "Request received before processing begins" },
     ],
   },
 
   access_logic_disclosure: {
-    coachLead: "Explain, in plain language, how the ADMT processed THIS consumer's PI to produce THEIR output.",
-    coachBody: "Describe the parameters and reasoning that produced the specific output for the requester. Protect genuine trade secrets under § 7222(c), but a bare trade-secret refusal is not a compliant response.",
+    coachLead: "Explain how the system processed this specific consumer's information to produce their output.",
+    coachBody: "Describe the parameters and reasoning behind the output for this requester, and identify anything withheld along with its basis under § 7222(c). Keep the readiness workflow — how you would produce this explanation — distinct from the explanation itself; a copied workflow sentence is not the explanation.",
     goodAnswer:
-      "Plain-language logic: “your score reflected a high debt-to-income ratio and a short credit history; these pushed it below the approval threshold.”",
+      "Plain-language logic: “your output reflected a high debt-to-income ratio and a short credit history; these placed it below the approval threshold.”",
     commonMistake:
-      "Hiding behind “trade secret” to disclose nothing. You may protect secrets but must still give enough for the consumer to understand the decision.",
+      "Hiding behind “trade secret” to disclose nothing, or reusing the sentence that describes how you would produce the explanation as though it were the explanation itself.",
     fieldLabel: "Access right: ADMT logic disclosure",
     citation: "11 CCR § 7222(b)(2)",
+    citationUrl: CPPA_PDF_URL,
     plainSummary:
       "When a consumer requests access to ADMT, you must provide plain-language information about the logic of the ADMT — how it processed their personal information to generate the specific output about them, including the parameters that generated that output. Trade secrets and security-compromising details may be withheld.",
     regulationText:
       "Information about the logic of the ADMT. Such information must enable a consumer to understand how the ADMT processed their personal information to generate an output with respect to them, which may include the parameters that generated the output as well as the specific output with respect to the consumer.",
     fscrContext:
-      "The CPPA wants consumers to be able to understand, in practical terms, what factors led to the output that affected them. This is similar to GDPR Article 22's 'meaningful information about the logic involved.' Generic explanations of how the system works in general are insufficient — the explanation must relate to the specific consumer's case.",
+      "Product interpretation (FSOR pinpoint pending verification): the goal is for consumers to understand, in practical terms, what factors led to the output that affected them — comparable to GDPR Article 22's 'meaningful information about the logic involved.' A generic explanation of how the system works in general, without relating it to the specific consumer's case, does not serve that goal.",
     relatedCitations: [
       { citation: "11 CCR § 7222(c)", label: "Trade secret and security carve-outs for access responses" },
       { citation: "11 CCR § 7222(j)", label: "Aggregate response option (>4 uses in 12 months)" },
@@ -296,14 +310,15 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   access_outcome_disclosure: {
-    coachLead: "State the output, the threshold, and how the output drove this consumer's specific decision.",
-    coachBody: "Give the actual output, explain whether it was the sole factor and — if not — which other factors mattered, describe any human role that did not meet § 7001(e)(1), and disclose planned future use of the same output.",
+    coachLead: "State the output and the actual outcome for this consumer, not a description of the process that produces one.",
+    coachBody: "Explain whether the output was the sole factor, which other factors mattered, what any human did, and any planned future use, keeping this substantive explanation distinct from the readiness workflow that describes how you would assemble it.",
     goodAnswer:
-      "States the output and how it was used: “score 32/100; below the 40 threshold, so the application was automatically declined.”",
+      "States the output and how it was used: “output 32/100; below the 40 threshold, so the application was automatically declined.”",
     commonMistake:
-      "Describing the system in general but never telling the consumer their actual result or how it drove the decision.",
+      "Describing the system in general without ever stating this consumer's actual result, or substituting the readiness-workflow sentence for the outcome explanation itself.",
     fieldLabel: "Access right: decision outcome disclosure",
     citation: "11 CCR § 7222(b)(3)",
+    citationUrl: CPPA_PDF_URL,
     plainSummary:
       "You must explain how the ADMT output was used to make the specific significant decision about this consumer — whether it was the sole factor, what other factors played a role, and what role any human played. If the output will be used to make future decisions about this consumer, you must explain that too.",
     regulationText:
@@ -328,7 +343,7 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
     regulationText:
       "An explanation that the business is prohibited from retaliating against the consumer for exercising their rights under the CCPA, and instructions, including any direct link, for how the consumer may exercise the CCPA rights described in the business's privacy policy.",
     fscrContext:
-      "§ 7222(b)(4) imposes the DISCLOSURE duty inside the access response itself. It is distinct from § 7222(k), which is the separate substantive prohibition on retaliation, and from § 7220(c)(4), which is the pre-use-notice counterpart. Both prongs — the statement AND the direct link — are required.",
+      "Product interpretation (FSOR pinpoint pending verification): § 7222(b)(4) is the disclosure duty inside the access response itself. It is distinct from § 7222(k), the separate substantive prohibition on retaliation, and from § 7220(c)(4), the pre-use-notice counterpart. Both the statement and the direct link belong in the response.",
     relatedCitations: [
       { citation: "11 CCR § 7222(k)", label: "Substantive prohibition on retaliation for exercising ADMT rights" },
       { citation: "Cal. Civ. Code § 1798.125", label: "Statutory anti-retaliation prohibition" },
@@ -339,16 +354,17 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
 
 
   access_verification: {
-    coachLead: "Verify identity proportionately under Article 5 — and if you cannot, tell the requester so.",
-    coachBody: "Match the request to the account holder with a proportionate check; do not over-collect new sensitive PI. If verification fails, respond that identity could not be verified rather than declining without explanation.",
+    coachLead: "Describe the identity check you actually run, proportionate to the request and the information at stake.",
+    coachBody: "Distinguish account holders from people without an account, and say what you tell a requester when verification cannot be completed. Government ID, a selfie, knowledge-based questions, and notarization are practices to report if used, not defaults to adopt; 'Not currently defined' or 'Unknown' describes an unresolved process accurately.",
     goodAnswer:
       "A proportionate identity check that matches the request to the account holder — without demanding excessive new personal information.",
     commonMistake:
-      "Either skipping verification (risking disclosure to the wrong person) or over-collecting sensitive ID data just to process the request.",
+      "Treating a suggested method — a government ID, a selfie, a notarized letter — as the expected default, or skipping verification altogether and disclosing to whoever asked.",
     fieldLabel: "Access right: identity verification",
     citation: "11 CCR § 7222(e)",
+    citationUrl: CPPA_PDF_URL,
     plainSummary:
-      "Unlike opt-out requests, access requests DO require identity verification under Article 5. If you cannot verify the consumer's identity, you must inform them that you cannot verify their identity — you cannot just deny the request without explanation.",
+      "Unlike opt-out requests, access requests do require identity verification under Article 5, using measures proportionate to the information and risk involved. If you cannot verify the consumer's identity, you must inform them that you cannot verify their identity rather than denying the request without explanation.",
     regulationText:
       "A business must comply with the verification requirements set forth in Article 5 for requests to access ADMT. If a business cannot verify the identity of the person making the request to access ADMT, the business must inform the requestor that it cannot verify their identity.",
     relatedCitations: [
@@ -388,20 +404,21 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   // (ids c49a76e8-8c96-48d8-9fc7-3d1f1d2d546c, 23bfcaed-a6ea-4752-882c-89608dc07f5e).
   role_roster: {
     fieldLabel: "Internal role roster (roles with defined responsibilities for this ADMT)",
-    citation: "11 CCR § 7157(c)",
+    citation: "11 CCR § 7157(c) (context)",
+    citationUrl: CPPA_PDF_URL,
     plainSummary:
-      "The person who submits the risk assessment to the Agency must be an executive who is directly responsible for risk-assessment compliance, has sufficient knowledge of the assessment to provide accurate information, and has authority to submit it. The roster you record here is what the assessment relies on to identify that individual and the roles supporting them.",
+      "Section 7157(c) governs who may sign and submit a risk assessment to the Agency — an executive with direct responsibility, sufficient knowledge, and authority to submit — not a general mandate that every ADMT have an assigned owner in each listed role. This roster is contextual background for that separate risk-assessment submission, and by itself does not identify the executive authorized to submit.",
     regulationText:
       "(c) The individual submitting the information set forth in subsection (b) must be a member of the business's executive management team who: (1) Is directly responsible for the business's risk-assessment compliance; (2) Has sufficient knowledge of the business's risk assessment to provide accurate information; and (3) Has the authority to submit the risk assessment information to the Agency.",
     enforcementNote:
       "The § 7157(b)(5) attestation is signed under penalty of perjury. FSOR commentary on § 7157 (rows c49a76e8… and 23bfcaed…) confirms the Agency's focus on who bears direct responsibility and who is authorised to submit — not who merely reviewed the assessment.",
-    coachLead: "Select every role that already has a defined responsibility — do not select roles you plan to assign later.",
+    coachLead: "Select the roles that already hold a defined responsibility for this system today.",
     coachBody:
-      "For each role picked, a real person should already own a documented duty for this ADMT (design, monitoring, human-review authority, incident escalation, or attestation). Roles that are aspirational belong in the remediation plan, not this roster.",
+      "Describe current assignments rather than planned ones. Leaving a role unselected records that this intake found no current assignment for it, not that the role is unassigned — and this checklist does not by itself identify the executive authorized to submit a risk assessment for this system.",
     goodAnswer:
-      "A retailer picks Chief Privacy Officer, Model Owner, and Fair-Lending Reviewer because each already holds a written responsibility for the credit-decision ADMT; it leaves Ombudsperson unselected because no one currently holds that duty.",
+      "A payroll platform selects Privacy officer, Product owner, and Security officer because each already holds a written duty for this system; it leaves Vendor manager not recorded because no one has yet taken on that duty.",
     commonMistake:
-      "Selecting every conceivable role to look complete. § 7157(c) rewards accuracy about who actually holds the responsibility — an over-broad roster weakens the attestation, not strengthens it.",
+      "Selecting every listed role to look complete, or reading an unselected role as evidence that the role is unassigned rather than simply not recorded here.",
     relatedCitations: [
       { citation: "11 CCR § 7157(b)(5)", label: "Attestation under penalty of perjury" },
       { citation: "11 CCR § 7157(b)(6)", label: "Submitter name and title" },
@@ -441,19 +458,44 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
       "Counting an internal escalation path the consumer is never told about. The steps that matter are the ones the consumer must take.",
   },
   sole_use_attestation: {
-    coachLead: "State whether the ADMT output is used for anything beyond assessing ability to perform.",
-    coachBody: "The exception is lost if the same output also drives another purpose. Answer for the output, not for the system as a whole.",
-    fieldLabel: "Sole-use attestation (hiring / admission exception)",
+    coachLead: "Answer for the ADMT's actual use in this hiring or admission decision, not for the system as a whole.",
+    coachBody: "State whether the ADMT is used solely to assess the consumer's ability to perform for this decision, and describe any additional purpose it also serves instead of choosing an inaccurate affirmative answer.",
+    fieldLabel: "Sole-use condition — hiring or admission",
     citation: "11 CCR § 7221(b)(2)(A)",
+    citationUrl: CPPA_PDF_URL,
     plainSummary:
-      "The hiring and admission exception applies only if the ADMT is used solely to assess the person's ability to perform at work or in an educational program in order to decide whether to admit, accept, or hire them.",
+      "The hiring and admission exception applies only if the ADMT is used solely to assess the person's ability to perform at work or in an educational program in order to decide whether to admit, accept, or hire them. The condition is answered for the ADMT's actual use, not for the system's overall purpose.",
     regulationText:
       "The business uses the ADMT solely for the business\u2019s assessment of the consumer\u2019s ability to perform at work or in an educational program to determine whether to admit, accept, or hire them.",
     goodAnswer:
-      "\u201cNo \u2014 the same score also feeds our compensation banding.\u201d An honest negative preserves the assessment; an inaccurate yes destroys it.",
+      "\u201cNo \u2014 the same output also feeds our compensation banding.\u201d An honest negative preserves the assessment; an inaccurate yes does not.",
     commonMistake:
       "Answering yes because assessment is the main use. \u201cSolely\u201d means only.",
+    relatedCitations: [
+      { citation: "11 CCR \u00a7 7221(b)(3)(A)", label: "Work-allocation/compensation sole-use condition (separate branch)" },
+    ],
   },
+
+  sole_use_attestation_work: {
+    coachLead: "Answer for the ADMT's actual use in allocating work or setting compensation, not for the system as a whole.",
+    coachBody: "State whether the ADMT is used solely for allocation, assignment of work, or compensation, and describe any additional purpose it also serves instead of assuming the hiring test controls.",
+    fieldLabel: "Sole-use condition \u2014 allocation/assignment of work or compensation",
+    citation: "11 CCR \u00a7 7221(b)(3)(A)",
+    citationUrl: CPPA_PDF_URL,
+    plainSummary:
+      "The work-allocation and compensation exception applies only if the ADMT is used solely for the business's allocation or assignment of work, or for compensation decisions, and works for the business's purpose without unlawfully discriminating based on protected characteristics. It is a separate branch from the hiring/admission exception and carries its own sole-use condition.",
+    regulationText:
+      "(3) For allocation/assignment of work and compensation decisions as set forth in section 7001, subsection (ddd)(4)(B), if the following are true: (A) The business uses the ADMT solely for the business's allocation/assignment of work or compensation; and (B) The ADMT works for the business's purpose and does not unlawfully discriminate based upon protected characteristics.",
+    goodAnswer:
+      "\"No \u2014 the same output also feeds a separate promotion-eligibility screen.\" An accurate negative preserves the assessment of which exception may apply; an inaccurate yes does not.",
+    commonMistake:
+      "Applying the hiring/admission sole-use test to this branch, or assuming that because one category of significant decision qualifies, a system serving mixed purposes qualifies for all of them.",
+    relatedCitations: [
+      { citation: "11 CCR \u00a7 7221(b)(2)(A)", label: "Hiring/admission sole-use condition (separate branch)" },
+      { citation: "11 CCR \u00a7 7001(ddd)(4)(B)", label: "Allocation/assignment of work and compensation definition" },
+    ],
+  },
+
   nondiscrimination_testing: {
     coachLead: "Say whether a testing record exists, and whether it is documented.",
     coachBody: "The exception requires that the ADMT works for its purpose and does not unlawfully discriminate. Undocumented testing cannot be shown to a regulator.",
@@ -472,9 +514,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   // ── UPGRADE-3 — new intake fields (§ 7220 notice text, § 7222 readiness) ──
   notice_full_text: {
     coachLead: "Paste the notice as consumers actually see it, not a summary of it.",
-    coachBody: "Your report quotes these words back and tests each element against the standard. A paraphrase cannot be tested; the finding degrades to a record shortfall.",
+    coachBody: "Your report quotes these words back and tests each element against the standard. If you use text assembled from excerpts, compare it against the published notice for order and missing passages, and confirm it is complete before treating it as the notice — excerpts alone are not automatically a complete notice.",
     fieldLabel: "Published Pre-use Notice, in full",
     citation: "11 CCR § 7220(c)",
+    citationUrl: CPPA_PDF_URL,
     plainSummary:
       "The pre-use notice must give the consumer the specific purpose, the right to opt out and how to submit it, the right to access ADMT and how to submit it, that the business cannot retaliate, and a plain-language explanation of how the ADMT works.",
     regulationText:
@@ -482,7 +525,7 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
     goodAnswer:
       "The complete notice text copied from the page where it is published, headings included.",
     commonMistake:
-      "Pasting the general privacy policy instead of the pre-use notice, or describing the notice rather than reproducing it.",
+      "Pasting the general privacy policy instead of the pre-use notice, describing the notice rather than reproducing it, or confirming an assembled excerpt as complete without checking it against the published order and content.",
   },
   access_readiness: {
     coachLead: "Answer for what you can produce today, not for what you intend to build.",
@@ -563,18 +606,22 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
       "Treating a vendor as a service provider because an invoice exists. The role turns on the contract terms, not the commercial relationship, and a vendor that determines its own purposes is a third party regardless of what the order form calls it.",
   },
   optout_15_day_process: {
-    coachLead: "Trace one opt-out request from arrival to downstream suppression, with a clock on each hop.",
-    coachBody: "The answer should name the intake point, the team that owns it, the system where suppression is set, the downstream recipients told, and the elapsed time for each step measured against the 15-business-day limit.",
+    coachLead: "Trace one opt-out request from arrival to downstream suppression, and identify whether it arrived before or after processing began.",
+    coachBody: "Describe the intake point, the team that owns it, the system where suppression is set, and the downstream recipients notified, with the elapsed time for each step. As soon as feasibly possible sets the pace; 15 business days is the ceiling, not a waiting period.",
     fieldLabel: "Operational opt-out process (15 business days)",
-    citation: "11 CCR § 7221(e)\u2013(g)",
+    citation: "11 CCR \u00a7 7221(n)(1)\u2013(2)",
+    citationUrl: CPPA_PDF_URL,
+    relatedCitations: [
+      { citation: "11 CCR \u00a7 7221(m)", label: "Opt-out received before processing prevents it from starting" },
+    ],
     plainSummary:
-      "Once a consumer opts out, you must stop using ADMT to process their personal information within 15 business days, and you must tell every service provider, contractor, and third party you gave that information to so they stop as well.",
+      "Once a consumer opts out after ADMT processing has already begun, you must cease processing their personal information using that ADMT as soon as feasibly possible, with 15 business days from receipt as the outer limit \u2014 not a period to wait out. You must also notify every service provider, contractor, and other person you disclosed that information to, on the same clock. A request submitted before processing began is a different fact pattern: \u00a7 7221(m) requires that the processing never start at all.",
     regulationText:
-      "A business must comply with a consumer\u2019s request to opt-out of automated decisionmaking technology as soon as feasibly possible, but no later than 15 business days from the date the business receives the request. The business must notify all service providers, contractors, and third parties that process the consumer\u2019s personal information using the automated decisionmaking technology of the consumer\u2019s request, and instruct them to comply.",
+      "(n) If the consumer did not opt-out in response to the Pre-use Notice, and submitted a request to opt-out of ADMT after the business initiated the processing, the business must comply with the consumer\u2019s opt-out request by: (1) Ceasing to process the consumer\u2019s personal information using that ADMT as soon as feasibly possible, but no later than 15 business days from the date the business receives the request; and (2) Notifying all the business\u2019s service providers, contractors, or other persons to whom the business has disclosed or made personal information available to process the consumer\u2019s personal information using that ADMT, that the consumer has made a request to opt-out of that ADMT and instructing them to comply with the consumer\u2019s request to opt-out of that ADMT within the same time frame.",
     goodAnswer:
       "A worked example from an unrelated sector: \u201cRequests arrive through the privacy webform or the toll-free line and are ticketed to the Privacy Operations queue the same business day. Operations sets a suppression flag on the customer record in the decisioning platform within 3 business days, which removes the account from the scoring job on its next nightly run. Two downstream recipients \u2014 the scoring vendor and the analytics warehouse \u2014 receive an automated suppression file within 5 business days, and their acknowledgements are logged against the ticket. The ticket cannot be closed without both acknowledgements.\u201d That answer has an intake point, an owner, a system, a clock on each hop, and downstream closure.",
     commonMistake:
-      "Describing only the internal switch. The duty runs downstream too: a suppression flag in your own system does nothing about the copy of the personal information already sitting with a service provider still scoring it.",
+      "Describing only the internal switch, or treating the 15 business days as a window to use before acting rather than an outer limit. The duty also runs to any downstream recipient still holding a copy of the information.",
   },
   access_trade_secret_policy: {
     coachLead: "Decide in advance what you would withhold, and on which of the two grounds.",
@@ -658,4 +705,323 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
     ],
   },
 
+
+  // ── New rail entries for intake fields that previously had no direct mapping ──
+
+  organization_name: {
+    coachLead: "Enter the legal name of the entity whose use of this system is being assessed.",
+    coachBody: "Distinguish the responsible entity from a trading name, a brand, or a supplier. This answer alone does not establish that the entity is a CCPA \u2018business\u2019 or that this system is in scope.",
+    fieldLabel: "Which organization is running this assessment?",
+    citation: "Cal. Civ. Code \u00a7 1798.140(d)",
+    plainSummary:
+      "Civil Code \u00a7 1798.140(d) defines the CCPA-responsible \u2018business\u2019 \u2014 generally a for-profit legal entity that does business in California and meets the statute\u2019s collection, revenue, or data-sale thresholds, among other conditions. This field records the entity whose use of the system is being assessed, not a trading name or an affiliated brand.",
+    regulationText:
+      "Summary of Cal. Civ. Code \u00a7 1798.140(d) (verbatim text is not in the verified corpus): the statute defines \u2018business\u2019 by reference to a set of conditions \u2014 including for-profit status, doing business in California, and meeting specified thresholds for revenue, the volume of consumers\u2019 or households\u2019 personal information bought, sold, or shared, or revenue derived from selling or sharing personal information \u2014 that determine which entities the CCPA\u2019s obligations reach.",
+    goodAnswer:
+      "\u2018Cascade Materials Holdings, Inc.\u2019 \u2014 the registered entity that operates the system, not the storefront brand \u2018Cascade Building Supply\u2019 that consumers see.",
+    commonMistake:
+      "Naming the consumer-facing brand instead of the entity that controls the processing, or naming a vendor rather than the business that deployed the vendor\u2019s tool.",
+  },
+
+  system_type: {
+    coachLead: "Name the technology used, and keep that label separate from the legal question of whether it is ADMT.",
+    coachBody: "List each method if the system combines several \u2014 for example a rules engine plus a statistical model. A label such as \u2018ML classifier\u2019 or \u2018rules engine\u2019 does not by itself determine whether \u00a7 7001(e) applies; the system description does that.",
+    fieldLabel: "System type",
+    citation: "11 CCR \u00a7 7001(e)",
+    citationUrl: CPPA_PDF_URL,
+    plainSummary:
+      "The technology label you choose \u2014 rules engine, statistical model, ML classifier, generative AI, and so on \u2014 does not itself decide whether \u00a7 7001(e) applies. The definition turns on function: does the system process personal information and use computation to replace or substantially replace a human decision. A system built on any of these technologies can meet or fail that test.",
+    regulationText:
+      "\u201CAutomated decisionmaking technology\u201D or \u201CADMT\u201D means any technology that processes personal information and uses computation to replace human decisionmaking or substantially replace human decisionmaking.\n\n(1) For purposes of this definition, to \u201Csubstantially replace human decisionmaking\u201D means a business uses the technology\u2019s output to make a decision without human involvement. Human involvement requires the human reviewer to: (A) Know how to interpret and use the technology\u2019s output to make the decision; (B) Review and analyze the output of the technology, and any other information that is relevant to make or change the decision; and (C) Have the authority to make or change the decision based on their analysis.\n\n(2) ADMT includes profiling that replaces human decisionmaking or substantially replaces human decisionmaking.\n\n(3) ADMT does not include web hosting, domain registration, networking, caching, website-loading, data storage, firewalls, anti-virus, anti-malware, spam- and robocall-filtering, spellchecking, calculators, databases, and spreadsheets, provided that they do not replace human decisionmaking.",
+    goodAnswer:
+      "\u2018Statistical model combined with a rules engine for eligibility cutoffs\u2019 \u2014 names the actual combination rather than picking one label to simplify the answer.",
+    commonMistake:
+      "Adopting a technical label from a suggested example because it sounds authoritative, rather than describing the technology actually in use.",
+    relatedCitations: [{ citation: "11 CCR \u00a7 7001(ddd)", label: "Significant decision definition" }],
+  },
+
+  third_party_admt: {
+    coachLead: "List each third-party tool or API that makes or materially contributes to this decision, one per line.",
+    coachBody: "Identify the supplier and its actual contribution for each one. Naming a system, or reserving an exhibit to complete later, records that the information will be supplied \u2014 it is not itself a fact about what the vendor does.",
+    fieldLabel: "Third-party tools or APIs contributing to the decision",
+    citation: "11 CCR \u00a7\u00a7 7150(b)(6), 7153",
+    citationUrl: CPPA_PDF_URL,
+    plainSummary:
+      "Using a vendor\u2019s ADMT does not shift responsibility away from the business that deploys it for a significant decision. Where a vendor makes ADMT trained on personal information available for that purpose, \u00a7 7153 requires the vendor to supply the facts the deploying business needs for its own risk assessment, and \u00a7 7150(b)(6) can independently trigger a risk assessment for training such technology. Naming a system here, or reserving an exhibit for later, is not itself a supplier fact.",
+    regulationText:
+      "\u00a7 7150(b)(6): \u201CProcessing the personal information of consumers, which the business intends to use to train an ADMT for a significant decision concerning a consumer; or train a facial-recognition, emotion-recognition, or other technology that verifies a consumer\u2019s identity, or conducts physical or biological identification or profiling of a consumer. For purposes of this paragraph, \u2018intends to use\u2019 means the business is using, plans to use, permits others to use, plans to permit others to use, is advertising or marketing the use of, or plans to advertise or market the use of.\u201D \u00a7 7153: \u201C(a) A business that makes ADMT available to another business (\u2018recipient-business\u2019) to make a significant decision as set forth in section 7150, subsection (b)(3), must provide to the recipient-business all facts available to the business that are necessary for the recipient-business to conduct its own risk assessment. (b) The requirements of this section apply only to ADMT trained using personal information.\u201D",
+    goodAnswer:
+      "\u2018Vendor: Northwind Analytics Labs \u2014 supplies the underlying risk model; internal team applies the cutoff.\u2019 Names the vendor and its specific role rather than a generic \u2018we use a vendor.\u2019",
+    commonMistake:
+      "Treating the exhibit placeholder, or a single named product, as if it already described every vendor\u2019s role, documentation, and contract terms.",
+    relatedCitations: [
+      { citation: "11 CCR \u00a7 7157(c)", label: "Vendor detail feeds a separate risk-assessment submission" },
+    ],
+  },
+
+  ca_consumer_count: {
+    coachLead: "Give a number or a range, and identify the year or period it covers.",
+    coachBody: "Keep the estimate as free text and explain any uncertainty. Do not collapse a range into a single number by joining its digits \u2014 \u20181,000\u20132,000\u2019 is not \u201810002000,\u2019 and a unit such as thousand changes the value it represents.",
+    fieldLabel: "Approximate number of California consumers this system decides about",
+    citation: "11 CCR \u00a7 7152(a)(3)(D)",
+    citationUrl: CPPA_PDF_URL,
+    plainSummary:
+      "\u00a7 7152(a)(3)(D) asks the risk assessment to state the approximate number of consumers whose personal information the business plans to process. An estimate or a range is an acceptable answer; the field records an approximation, not a certified count.",
+    regulationText: "(D) The approximate number of consumers whose personal information the business plans to process.",
+    goodAnswer:
+      "\u2018Approximately 12,000\u201315,000 California consumers in 2026, based on loan-application volume.\u2019 States a range, a period, and its basis.",
+    commonMistake:
+      "Concatenating the digits of a range, or dropping a unit like \u2018thousand\u2019 or \u2018k,\u2019 so that an estimate of twenty thousand is recorded as twenty.",
+    relatedCitations: [{ citation: "11 CCR \u00a7 7152(a)(3)", label: "Operational elements of the processing" }],
+  },
+
+  admt_system_count: {
+    coachLead: "Count the distinct systems used for significant decisions, and separately check which consolidation pattern, if any, actually fits.",
+    coachBody: "This assessment still addresses the system named above regardless of the total count. A higher count does not by itself establish eligibility for a consolidated notice \u2014 match your actual systems and purposes against the four listed patterns.",
+    fieldLabel: "Distinct ADMT systems run for significant decisions",
+    citation: "11 CCR \u00a7 7220(e)",
+    citationUrl: CPPA_PDF_URL,
+    plainSummary:
+      "Running more than one ADMT system can make a business eligible to publish one consolidated Pre-use Notice under \u00a7 7220(e) instead of a separate notice for each use \u2014 but eligibility depends on which of the four listed consolidation patterns actually describes the business\u2019s systems and purposes, not on the count alone.",
+    regulationText:
+      "(e) A business may provide a consolidated Pre-use Notice as set forth below, provided that the consolidated Pre-use Notice includes the information required by this Article for each of the business\u2019s proposed uses of ADMT: (1) The business\u2019s use of a single ADMT for multiple purposes. For example, an employer may provide a consolidated Pre-use Notice to an employee that addresses the employer\u2019s proposed use of productivity monitoring software to determine the employee\u2019s allocation/assignment of work and compensation, and to determine which employees will be demoted. (2) The business\u2019s use of multiple ADMTs for a single purpose. For example, a business may provide a consolidated Pre-use Notice to a job applicant that addresses the business\u2019s proposed use of: (1) software to screen applicants\u2019 resumes to determine which applicants it will hire, and (2) software to evaluate applicants\u2019 vocal intonation, facial expression, and gestures to determine which applicants to hire. (3) The business\u2019s use of multiple ADMTs for multiple purposes. For example, an educational provider may provide a consolidated Pre-use Notice to a new student that addresses the educational provider\u2019s proposed use of: (A) software that automatically screens students\u2019 work for plagiarism to determine whether they will be suspended, and (B) software that automatically assesses students\u2019 exams to determine whether to grant them a diploma or certificate. (4) The systematic use of a single ADMT. For example, a business may provide a consolidated Pre-use Notice to an employee that addresses the business\u2019s methodical and regular use of ADMT to allocate work to its employees, rather than providing a Pre-use Notice to the same employees each time it proposes to use the same ADMT for the same purpose.",
+    goodAnswer:
+      "\u2018Three systems: resume screening, interview-scoring, and background-check triage \u2014 all used for hiring, so a single consolidated notice may cover them under the multiple-ADMTs-for-a-single-purpose pattern.\u2019 Names each system and checks it against a specific pattern.",
+    commonMistake:
+      "Assuming that operating several systems automatically qualifies for one consolidated notice, without checking which of the four listed patterns the actual systems and purposes match.",
+    relatedCitations: [{ citation: "11 CCR \u00a7 7220(b)", label: "Pre-use Notice content requirements" }],
+  },
+
+  training_data_use: {
+    coachLead: "Identify the system, the training purpose, and whether your own business does the training.",
+    coachBody: "Separate your business\u2019s own training activity from a vendor\u2019s contractual right to train on your data. Describe the actual technology and intended use rather than treating any \u2018Yes\u2019 as automatically meeting every condition of this trigger.",
+    fieldLabel: "Using personal information to train an automated decision system",
+    citation: "11 CCR \u00a7 7150(b)(3)\u2013(6)",
+    citationUrl: CPPA_PDF_URL,
+    plainSummary:
+      "Training an ADMT for a significant decision, or training facial-recognition, emotion-recognition, identity-verification, or physical/biological-identification technology, using personal information, is itself one of the activities listed in \u00a7 7150(b) that can trigger a risk assessment \u2014 separately from whether the business also uses ADMT to make a significant decision. This question is contextual to that separate risk-assessment trigger; a broad \u2018Yes\u2019 does not by itself establish every condition of the trigger.",
+    regulationText:
+      "(3) Using ADMT for a significant decision concerning a consumer. \u2026 (6) Processing the personal information of consumers, which the business intends to use to train an ADMT for a significant decision concerning a consumer; or train a facial-recognition, emotion-recognition, or other technology that verifies a consumer\u2019s identity, or conducts physical or biological identification or profiling of a consumer. For purposes of this paragraph, \u201Cintends to use\u201D means the business is using, plans to use, permits others to use, plans to permit others to use, is advertising or marketing the use of, or plans to advertise or market the use of.",
+    goodAnswer:
+      "\u2018Yes \u2014 we fine-tune an internal fraud-scoring model quarterly on transaction records, including personal information, for use in account-closure decisions.\u2019 Names the technology, the training activity, and its intended use.",
+    commonMistake:
+      "Answering Yes because a vendor\u2019s contract permits it to train on your data, when your own business does not perform or direct that training.",
+    relatedCitations: [
+      { citation: "11 CCR \u00a7 7150(a)", label: "Risk-assessment trigger" },
+      { citation: "11 CCR \u00a7 7153", label: "Recipient-business facts when ADMT trained on personal information is made available" },
+    ],
+  },
+
+  profiling_use: {
+    coachLead: "Describe the actual profiling activity, including what it infers and from what observation.",
+    coachBody: "Distinguish profiling from a significant decision and from advertising alone, and identify whether it involves systematic observation in an applicant, student, employee, or contractor capacity, or a sensitive location. Compare the actual activity against the trigger conditions instead of treating any \u2018Yes\u2019 as a legal conclusion.",
+    fieldLabel: "Automated profiling of consumers without a significant decision",
+    citation: "11 CCR \u00a7 7150(b)(3)\u2013(6)",
+    citationUrl: CPPA_PDF_URL,
+    plainSummary:
+      "Using automated processing to infer or extrapolate a consumer\u2019s traits \u2014 intelligence, health, behavior, reliability, and similar characteristics \u2014 from systematic observation can itself trigger a risk assessment under \u00a7 7150(b)(4)-(5), separately from whether that profiling also makes a significant decision. This question is contextual to that separate trigger; a broad \u2018Yes\u2019 does not by itself establish every condition.",
+    regulationText:
+      "(4) Using automated processing to infer or extrapolate a consumer\u2019s intelligence, ability, aptitude, performance at work, economic situation, health (including mental health), personal preferences, interests, reliability, predispositions, behavior, location, or movements, based upon systematic observation of that consumer when they are acting in their capacity as an educational program applicant, job applicant, student, employee, or independent contractor for the business. (5) Using automated processing to infer or extrapolate a consumer\u2019s intelligence, ability, aptitude, performance at work, economic situation, health (including mental health), personal preferences, interests, reliability, predispositions, behavior, or movements, based upon that consumer\u2019s presence in a sensitive location. \u201CInfer or extrapolate\u201D does not include a business using a consumer\u2019s personal information solely to deliver goods to, or provide transportation for, that consumer at a sensitive location.",
+    goodAnswer:
+      "\u2018Yes \u2014 we infer likely commute patterns from location pings to route delivery offers; no significant decision results.\u2019 Describes the actual inference and confirms it is not tied to a listed decision.",
+    commonMistake:
+      "Treating any personalization or analytics activity as \u2018profiling\u2019 under this trigger, or assuming a Yes here automatically triggers a risk assessment without checking the specific conditions.",
+    relatedCitations: [
+      { citation: "11 CCR \u00a7 7001(ii)", label: "Profiling definition" },
+      { citation: "11 CCR \u00a7 7150(a)", label: "Risk-assessment trigger" },
+    ],
+  },
+
+  optout_confirmation_mechanism: {
+    coachLead: "Describe how a consumer can confirm that their opt-out request was actually processed.",
+    coachBody: "Name the confirmation channel \u2014 a status page, an email receipt, a support line \u2014 and keep it distinct from the internal cessation and notification steps. A completed suppression is not itself a consumer-facing confirmation method.",
+    fieldLabel: "Opt-out confirmation mechanism",
+    citation: "11 CCR \u00a7 7221(h)",
+    citationUrl: CPPA_PDF_URL,
+    plainSummary:
+      "The business must give the consumer a way to confirm that their opt-out request has been processed. This is a separate duty from the cessation and downstream-notification timeline in \u00a7 7221(n) \u2014 completing the underlying suppression is not the same as giving the consumer a means to confirm it happened.",
+    regulationText:
+      "(h) A business must provide a means by which the consumer can confirm that the business has processed their request to opt-out of ADMT.",
+    goodAnswer:
+      "\u2018Consumers receive an automated email once suppression is applied, and may also check status through the account portal.\u2019 Names an actual channel the consumer uses.",
+    commonMistake:
+      "Describing only the internal suppression step and treating it as if it were also the consumer\u2019s confirmation method.",
+    relatedCitations: [
+      { citation: "11 CCR \u00a7 7221(n)", label: "Cessation and downstream-notification timeline (separate duty)" },
+    ],
+  },
+
+  optout_exception_other: {
+    coachLead: "Describe the approach you actually use today, and name which exception you think may apply, if any.",
+    coachBody: "State what remains uncertain rather than asserting a conclusion. This path keeps the facts available for assessment without forcing a choice between a full opt-out right and one of the listed exceptions.",
+    fieldLabel: "Opt-out exception: other / situation differs",
+    citation: "11 CCR \u00a7 7221(a)\u2013(b)",
+    citationUrl: CPPA_PDF_URL,
+    plainSummary:
+      "Selecting \u2018Other\u2019 records that the business\u2019s situation does not cleanly match the full opt-out right in \u00a7 7221(a) or any of the three listed exceptions in \u00a7 7221(b) \u2014 the human-appeal exception, the hiring/admission exception, or the work-allocation/compensation exception. It is an unresolved position pending further review, not a claim that the business already provides a complete opt-out right.",
+    regulationText:
+      "(a) A business must provide consumers with the ability to opt-out of the use of ADMT to make a significant decision concerning the consumer, except as set forth in subsection (b). (b) A business is not required to provide consumers with the ability to opt-out of a business\u2019s use of ADMT to make a significant decision in the following circumstances: \u2026",
+    goodAnswer:
+      "\u2018We currently offer a single opt-out form, but have not confirmed whether our review process meets the human-appeal exception\u2019s authority requirement.\u2019 Names the open question rather than resolving it.",
+    commonMistake:
+      "Treating an unresolved \u2018Other\u2019 answer as though it already establishes a full, compliant opt-out right.",
+    relatedCitations: [
+      { citation: "11 CCR \u00a7 7221(b)(1)", label: "Human appeal exception" },
+      { citation: "11 CCR \u00a7 7221(b)(2)-(3)", label: "Hiring/admission and work-allocation exceptions" },
+    ],
+  },
+
+  optout_appeal_mechanics: {
+    coachLead: "Name the reviewer\u2019s role, confirm their training and authority, and describe the actual submission and timeline.",
+    coachBody: "Report what the process does today \u2014 role, training, authority to overturn, what the consumer may submit, the target response time, and the outcomes it produces. A reversal rate, a specific timeline, or a fixed list of outcome categories are examples of evidence a process might show, not a threshold the process needs to reach.",
+    fieldLabel: "Human-appeal mechanics (reviewer role, training, authority, submission, timeline, outcomes)",
+    citation: "11 CCR \u00a7 7221(b)(1)(A)\u2013(B)",
+    citationUrl: CPPA_PDF_URL,
+    plainSummary:
+      "These mechanics \u2014 the reviewer\u2019s role and training, their authority to overturn the decision, what the consumer may submit, the target timeline, and outcome tracking \u2014 are the operational detail behind the \u00a7 7221(b)(1) three-part test: a designated reviewer who can interpret the output, consider the consumer\u2019s submission, and has authority to change the decision, reached through an appeal process that is easy to use and requires minimal steps.",
+    regulationText:
+      "(1) The business provides the consumer with a method to appeal the decision to a human reviewer who has the authority to overturn the decision. To qualify for this exception, the business must do the following: (A) Designate a human reviewer to review and analyze the output of the ADMT and any other information that is relevant to change the significant decision at issue. This human reviewer must consider the information provided by the consumer in support of their appeal and may consider any other sources of information about the significant decision. The human reviewer must know how to interpret and use the output of the ADMT that made the significant decision being appealed and must have the authority to change the decision based on their analysis. (B) Clearly describe to the consumer how to submit an appeal and enable the consumer to provide information to the human reviewer in support of their appeal. The method of appeal must be easy for the consumers to execute, require minimal steps, and comply with section 7004. Disclosures and communications with consumers concerning the appeal must comply with section 7003, subsections (a)\u2013(b). The timeline for requests to appeal ADMT must comply with section 7021. Businesses must comply with the verification requirements set forth in Article 5 when a consumer submits an appeal.",
+    goodAnswer:
+      "\u2018The Appeals Coordinator role reviews the consumer\u2019s statement plus the underlying file, is trained on the scoring model\u2019s outputs, and can reverse a decision; target response is 10 business days; outcomes are upheld, reversed, or modified.\u2019 Covers role, training, authority, timeline, and outcomes in one narrative.",
+    commonMistake:
+      "Treating the example timeline or reversal rate as a deadline or rate the process needs to hit, rather than as illustrative detail describing whatever the actual process produces.",
+    relatedCitations: [
+      { citation: "11 CCR \u00a7 7221(b)(1)", label: "Human-appeal exception (parent provision)" },
+      { citation: "11 CCR \u00a7 7021", label: "Appeal-response timeline" },
+    ],
+  },
+
+  fairness_testing_detail: {
+    coachLead: "Describe what testing or other evidence you actually have, and say plainly when there is none.",
+    coachBody: "Name the method, the groups covered, the date, and the findings where testing exists. \u2018Not currently documented\u2019 or \u2018Unknown\u2019 accurately describes the position when no testing has occurred or the record has not been located \u2014 the regulation names no particular method, cadence, or metric as the one to use.",
+    fieldLabel: "Fairness and non-discrimination testing detail",
+    citation: "11 CCR \u00a7 7221(b)(2)(B), (b)(3)(B)",
+    citationUrl: CPPA_PDF_URL,
+    plainSummary:
+      "Whichever exception a business claims \u2014 hiring/admission or work-allocation/compensation \u2014 the second sole-use condition is the same: the ADMT must work for the business\u2019s purpose and must not unlawfully discriminate based on protected characteristics. The regulation does not specify a required testing method, cadence, or metric for showing this.",
+    regulationText:
+      "11 CCR \u00a7 7221(b)(2)(B) and \u00a7 7221(b)(3)(B) each provide, in identical terms: \u201CThe ADMT works for the business\u2019s purpose and does not unlawfully discriminate based upon protected characteristics.\u201D",
+    goodAnswer:
+      "\u2018Vendor-supplied disparate-impact analysis across race and sex, run March 2026, no statistically significant gap found; not yet extended to age.\u2019 Names the method, the groups covered, the date, and the finding \u2014 including a gap.",
+    commonMistake:
+      "Treating a vendor\u2019s general fairness marketing claim as a testing record, or leaving every field blank rather than recording \u2018Not currently documented\u2019 where that is the actual position.",
+    relatedCitations: [
+      { citation: "11 CCR \u00a7 7221(b)(2)(A)", label: "Hiring/admission sole-use condition" },
+      { citation: "11 CCR \u00a7 7221(b)(3)(A)", label: "Work-allocation/compensation sole-use condition" },
+    ],
+  },
+
+  access_submission_methods: {
+    coachLead: "List each method consumers can use today to request ADMT information, and where to find it.",
+    coachBody: "Existing right-to-know channels may serve this purpose. Treat a suggested phrase as a starting point to edit into the actual route, not as a channel that exists simply because it was offered.",
+    fieldLabel: "Access request submission methods",
+    citation: "11 CCR \u00a7 7222(d)",
+    citationUrl: CPPA_PDF_URL,
+    plainSummary:
+      "Methods for submitting a request to access ADMT must be easy to use and must not use dark patterns. A business may rely on its existing methods for right-to-know, deletion, or correction requests to also serve access-to-ADMT requests; the suggested channels in this field are editable descriptions of possible methods, not an endorsed or required list.",
+    regulationText:
+      "(d) A business\u2019s methods for consumers to submit requests to access ADMT must be easy to use and must not use dark patterns. A business may use its existing methods to submit requests to know, delete, or correct as set forth in section 7020 for requests to access ADMT.",
+    goodAnswer:
+      "\u2018Privacy request form at [company]/privacy-requests, and the same toll-free line used for right-to-know requests.\u2019 Names the actual channel and its existing use.",
+    commonMistake:
+      "Selecting a suggested method without confirming it is actually offered, or listing a channel that exists for another purpose without checking it reaches ADMT requests too.",
+    relatedCitations: [
+      { citation: "11 CCR \u00a7 7222", label: "Access right \u2014 full requirements" },
+      { citation: "11 CCR \u00a7 7020", label: "Existing right-to-know, deletion, and correction methods" },
+    ],
+  },
+
+  access_response_timeline: {
+    coachLead: "Choose the timeline your current process actually supports, and describe when notice of any extension goes out.",
+    coachBody: "The standard period is 45 calendar days from receipt; an additional 45 days is available only with notice and an explanation given to the consumer, not as an automatic extra period. Record \u2018Not yet defined\u2019 if no process exists.",
+    fieldLabel: "Response timeline for access requests",
+    citation: "11 CCR \u00a7 7021(b); 11 CCR \u00a7 7222(a)",
+    citationUrl: CPPA_PDF_URL,
+    plainSummary:
+      "A response to a request to access ADMT is due no later than 45 calendar days after receipt, and that clock starts on receipt regardless of the time needed for verification. A business may take up to an additional 45 calendar days \u2014 a maximum of 90 calendar days total \u2014 but only if it gives the consumer notice and an explanation of the reason before the standard period runs out. The extension is conditional, not an automatic extra 45 days.",
+    regulationText:
+      "(b) Businesses shall respond to a request to delete, request to correct, and request to know, request to access ADMT, and request to appeal ADMT no later than 45 calendar days after receipt of the request. The 45-day period will begin on the day that the business receives the request, regardless of time required to verify the request. If the business cannot verify the consumer within the 45-day time period, the business may deny the request. If necessary, businesses may take up to an additional 45 calendar days to respond to the consumer\u2019s request, for a maximum total of 90 calendar days from the day the request is received, provided that the business provides the consumer with notice and an explanation of the reason that the business will take more than 45 days to respond to the request. (11 CCR \u00a7 7222(a): \u201CA business that uses ADMT to make a significant decision must provide a consumer with information about this use when responding to a consumer\u2019s request to access ADMT.\u201D)",
+    goodAnswer:
+      "\u2018We target 30 calendar days; if verification or volume pushes past 45, we send a written extension notice before the 45th day, consistent with the 90-day maximum.\u2019 Ties the actual practice to the conditional extension.",
+    commonMistake:
+      "Describing the 90-day maximum as the standard timeline, or assuming the extension applies without sending the consumer notice and an explanation.",
+    relatedCitations: [{ citation: "11 CCR \u00a7 7222(b)", label: "What the response must explain" }],
+  },
+
+  notice_delivery: {
+    coachLead: "Identify the page, screen, or document that actually shows the notice today.",
+    coachBody: "Name every place consumers currently receive it. If none has been published yet, select only that \u2014 a draft sitting in a document is not a delivered notice.",
+    fieldLabel: "Pre-use Notice delivery method",
+    citation: "11 CCR \u00a7 7220(b)(1)\u2013(3)",
+    citationUrl: CPPA_PDF_URL,
+    plainSummary:
+      "The Pre-use Notice must comply with \u00a7 7003(a)-(b), be presented prominently and conspicuously at or before the point of collection (or before ADMT processing begins, for already-collected information), and be presented in the manner the business primarily interacts with the consumer. A draft notice that has not been published to consumers does not satisfy any of these delivery conditions.",
+    regulationText:
+      "(b) The Pre-use Notice must: (1) Comply with section 7003, subsections (a)\u2013(b). (2) Be presented prominently and conspicuously to the consumer at or before the point when the business collects the consumer\u2019s personal information that the business plans to process using ADMT. If a business has already collected the consumer\u2019s personal information for a different purpose and subsequently plans to process it using ADMT for the purpose set forth in section 7200, subsection (a), the business must provide a Pre-use Notice before processing the consumer\u2019s personal information for that purpose. (3) Be presented in the manner in which the business primarily interacts with the consumer.",
+    goodAnswer:
+      "\u2018Displayed as a standalone notice on the loan-application page, immediately before the applicant submits personal information.\u2019 Names the actual surface and its timing.",
+    commonMistake:
+      "Selecting a delivery method that is planned or drafted but not yet live, or describing the intended future workflow instead of the current one.",
+    relatedCitations: [
+      { citation: "11 CCR \u00a7 7220(e)", label: "Consolidated notice option" },
+      { citation: "11 CCR \u00a7 7003", label: "Notice format and presentation requirements" },
+    ],
+  },
+
+  system_decision_detail: {
+    coachLead: "Trace the output to the actual action taken, and keep an intermediate ranking separate from the final outcome.",
+    coachBody: "Name the product and hosting arrangement, the technology types combined, what the decision provides, denies, ranks, or changes, and its cadence. State whether the output is the sole factor or one of several, what the other factors are, and whether the same output is planned for use in a later significant decision.",
+    fieldLabel: "System and decision detail (vendor/product, hosting, model type, effects, cadence, factor weight, future use, advertising)",
+    citation: "11 CCR \u00a7 7001(ddd) (context)",
+    citationUrl: CPPA_PDF_URL,
+    plainSummary:
+      "These fields describe the mechanics of the system and its decision \u2014 the product and hosting arrangement, the technology types combined, what the decision actually provides or denies, how often it recurs, whether the output is the sole factor, and whether the same output feeds a later decision. They are context for classifying the significant decision under \u00a7 7001(ddd); none of them is itself a separate legal category, and a technology label does not decide whether the ADMT definition is met.",
+    regulationText:
+      "\u201CSignificant decision\u201D means a decision that results in the provision or denial of financial or lending services, housing, education enrollment or opportunities, employment or independent contracting opportunities or compensation, or healthcare services. For purposes of this definition: \u2026 (6) Significant decision does not include advertising to a consumer.",
+    goodAnswer:
+      "\u2018Hosted by the vendor; a statistical model plus a rules-based cutoff; produces a numeric ranking used to order candidates for interview, one factor among several including a recruiter\u2019s review; not reused for later decisions.\u2019 Traces product, technology, effect, and factor weight together.",
+    commonMistake:
+      "Treating an intermediate ranking or output value as though it were itself the final decision, or assuming a technology label like \u2018ML classifier\u2019 settles whether the ADMT definition applies.",
+    relatedCitations: [
+      { citation: "11 CCR \u00a7 7200(a)", label: "Compliance trigger" },
+      { citation: "11 CCR \u00a7 7222(b)(3)", label: "Outcome disclosure \u2014 sole factor and other factors" },
+    ],
+  },
+
+  housing_decision_basis: {
+    coachLead: "Check the actual decision rules \u2014 including any eligibility or screening factor \u2014 before answering.",
+    coachBody: "Answer Yes only when availability, vacancy, or receipt of payment is the sole basis for the outcome. Keep this fact separate from any other significant-decision category also selected for this system.",
+    fieldLabel: "Housing decision based solely on availability, vacancy, or payment",
+    citation: "11 CCR \u00a7 7001(ddd)(2)",
+    citationUrl: CPPA_PDF_URL,
+    plainSummary:
+      "A housing decision made by ADMT is not a \u2018significant decision\u2019 at all if it is based solely on the availability or vacancy of the housing, or on the successful receipt of payment for it. Any other factor in the decision takes it outside this exclusion.",
+    regulationText:
+      "The use of ADMT that provides or denies housing to a consumer based solely on the availability or vacancy of the housing or the successful receipt of payment for housing from the consumer is not making a significant decision.",
+    goodAnswer:
+      "\u2018No \u2014 the system also screens applicants against income and rental-history criteria before offering a unit.\u2019 Names the additional factor that takes the decision outside the exclusion.",
+    commonMistake:
+      "Answering Yes because availability or payment is one of several factors, when the exclusion applies only when it is the sole basis for the decision.",
+    relatedCitations: [{ citation: "11 CCR \u00a7 7001(ddd)", label: "Significant decision definition" }],
+  },
+
+  human_involvement_self_test: {
+    coachLead: "Report the reviewer\u2019s stage, training, and authority as separate facts, not one combined impression.",
+    coachBody: "State when the reviewer acts relative to the decision \u2014 before it issues, after it issues, or only on appeal \u2014 since a pre-decision review differs from a later appeal. Give the override rate, if known, as illustrative evidence only; a low or zero rate does not by itself show the reviewer lacks authority.",
+    fieldLabel: "Human-involvement self-test (reviewer presence, role, stage, training, other information, authority, override rate)",
+    citation: "11 CCR \u00a7 7001(e)(1)(A)\u2013(C)",
+    citationUrl: CPPA_PDF_URL,
+    plainSummary:
+      "These questions walk through the three-part human-involvement test one element at a time \u2014 whether a reviewer is present, their role, when they act, whether they are trained to interpret the output, whether they weigh other information alongside it, and whether they hold authority to change the decision. Frequency (how often a human reviews) and authority (whether that human can change the outcome) are different facts; a review that occurs on every decision but cannot change any of them still fails the authority element.",
+    regulationText:
+      "For purposes of this definition, to \u201Csubstantially replace human decisionmaking\u201D means a business uses the technology\u2019s output to make a decision without human involvement. Human involvement requires the human reviewer to: (A) Know how to interpret and use the technology\u2019s output to make the decision; (B) Review and analyze the output of the technology, and any other information that is relevant to make or change the decision; and (C) Have the authority to make or change the decision based on their analysis in subsection (B).",
+    goodAnswer:
+      "\u2018A claims adjuster reviews every flagged file before the denial letter goes out, is trained on the scoring tool\u2019s output, and can reverse the flag; override rate last year was 6% of flagged files.\u2019 Separates stage, training, authority, and rate as distinct facts.",
+    commonMistake:
+      "Inferring review frequency from the authority answer, or treating an after-the-fact review as equivalent to a review that happens before the decision issues.",
+    relatedCitations: [
+      { citation: "11 CCR \u00a7 7001(e)", label: "ADMT definition (parent provision)" },
+      { citation: "11 CCR \u00a7 7222(b)(3)", label: "Outcome disclosure \u2014 human's role when involvement does not meet \u00a7 7001(e)(1)" },
+    ],
+  },
 };

@@ -47,6 +47,38 @@ export const CYBER_IN_SCOPE_FRAMEWORKS = [
   "Other",
 ] as const;
 
+// Cyber master review (2026-09-15, F08) — the exclusive "no prior work"
+// answer for reusable framework work; "None / informal" keeps its
+// informal-practice meaning. LITERAL COPY of the contract's
+// CYBER_NO_PRIOR_FRAMEWORK_WORK / CYBER_IN_SCOPE_FRAMEWORK_OPTIONS.
+export const CYBER_NO_PRIOR_FRAMEWORK_WORK = "No prior framework work to rely on";
+export const CYBER_IN_SCOPE_FRAMEWORK_OPTIONS = [...CYBER_IN_SCOPE_FRAMEWORKS, CYBER_NO_PRIOR_FRAMEWORK_WORK] as const;
+
+// Cyber master review (2026-09-15, F07) — the incident count offers an
+// explicit unknown. LITERAL COPY of the contract's INCIDENTS_12MO_OPTIONS.
+export const CYBER_INCIDENTS_12MO_OPTIONS = ["None", "1", "2–5", "More than 5", "Unknown / not yet reviewed"] as const;
+
+// Cyber master review (2026-09-15, F06) — the dated threshold question, asked
+// only for the "$25M to under $50M" band. LITERAL COPY of the contract's
+// CYBER_REVENUE_THRESHOLD_CHECK_OPTIONS.
+export const CYBER_REVENUE_THRESHOLD_CHECK_OPTIONS = ["Yes — above the threshold", "No — at or below the threshold", "Unsure"] as const;
+export const CYBER_REVENUE_STRADDLING_BAND = "$25M to under $50M";
+
+// Cyber master review (2026-09-15, F07) — consumer and agency notice status,
+// required-vs-sent kept distinct. LITERAL COPIES of the contract's lists.
+export const CYBER_CONSUMER_NOTICE_STATUS_OPTIONS = [
+  "Notice provided to affected consumers",
+  "Notice required but not yet sent",
+  "No notice was required",
+  "Unsure",
+] as const;
+export const CYBER_AGENCY_NOTICE_STATUS_OPTIONS = [
+  "Notice provided to an agency",
+  "Notice required but not yet sent",
+  "No notice was required",
+  "Unsure",
+] as const;
+
 // ITEM 315 — § 7122 auditor-engagement status. Content-anchored: the edge
 // contract copies this list verbatim (supabase/functions/_shared/ltp/
 // cppa-cyber-deliverables/build.ts CYBER_AUDITOR_ENGAGEMENT_OPTIONS) and

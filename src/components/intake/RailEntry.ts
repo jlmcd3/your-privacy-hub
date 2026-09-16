@@ -19,6 +19,13 @@ export type RailEntry = {
   fscrContext?: string;
   enforcementNote?: string;
   goodAnswer?: string;
+  /**
+   * ADMT/Cyber master reviews (2026-09-15, F15): a goodAnswer is EITHER a
+   * fictional worked example of form (the default) OR an explanation of the
+   * legal standard. The coaching panel labels the two differently so an
+   * explanation is never presented as "a worked example (fictional)".
+   */
+  goodAnswerKind?: "example" | "explanation";
   commonMistake?: string;
   /**
    * coachLead — ONE imperative line a seasoned professional can act on instantly

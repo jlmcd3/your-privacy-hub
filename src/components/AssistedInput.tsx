@@ -169,7 +169,17 @@ export function AssistedInput({
       onChange(removeSnippet(value, p.snippet, separator));
       return;
     }
-    const next = appendSnippet(value, p.snippet, separator);
+    // ADMT F18 (2026-09-15): an exclusive (negative) snippet cannot stand
+    // beside a positive one. Selecting it drops the other pills' snippets;
+    // selecting a positive pill drops any exclusive snippet first. Free text
+    // the user typed is left in place either way.
+    let base = value;
+    if (p.exclusive) {
+      for (const other of pills) if (other.id !== p.id && base.includes(other.snippet)) base = removeSnippet(base, other.snippet, separator);
+    } else {
+      for (const other of pills) if (other.exclusive && base.includes(other.snippet)) base = removeSnippet(base, other.snippet, separator);
+    }
+    const next = appendSnippet(base, p.snippet, separator);
     onChange(next);
     if (SLOT_TOKEN_RE.test(p.snippet)) {
       selectFirstSlotIn(p.snippet, next);

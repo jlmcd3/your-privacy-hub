@@ -52,6 +52,15 @@ import { FscrCallout } from "@/components/FscrCallout";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 import { useToolDraft, useAutoRestoreDraft } from "@/hooks/useToolDraft";
 import DraftRestoreBanner from "@/components/DraftRestoreBanner";
+// Cyber master review (2026-09-15/16) — field errors (Addition 2), the
+// review screen (Addition 1), the register's copy (S01–S10) and the dated
+// CCPA revenue threshold (F06).
+import ValidationErrorSummary from "@/components/intake/ValidationErrorSummary";
+import { useFieldErrors } from "@/hooks/useFieldErrors";
+import { fail, type StepIssue } from "@/lib/intakeValidation";
+import { buildCyberReview } from "@/lib/cyberReview";
+import { CYBER_APPLICABILITY_CARD, CYBER_COPY } from "./cyberCopy";
+import { ccpaRevenueThresholdForYearMirror, defaultRevenueReferenceYear } from "@/lib/ccpaRevenueThreshold";
 
 // RC-C3.CLOSE-1 / RC-FLIP-2 — MATURITY lives in a standalone enums module so
 // shared components (refine surface) don't import this page module. Re-export
@@ -65,6 +74,10 @@ import {
   // DOC 159 (2026-09-03) — § 7123(e)(9)/(10) notification facts and the
   // § 7123(b)(2) not-applicable position.
   CYBER_INCIDENT_NOTIFICATION_OPTIONS, CYBER_NOT_APPLICABLE_MATURITY,
+  // Cyber master review (2026-09-15/16) — F06/F07/F08 additions.
+  CYBER_INCIDENTS_12MO_OPTIONS, CYBER_REVENUE_THRESHOLD_CHECK_OPTIONS, CYBER_REVENUE_STRADDLING_BAND,
+  CYBER_CONSUMER_NOTICE_STATUS_OPTIONS, CYBER_AGENCY_NOTICE_STATUS_OPTIONS,
+  CYBER_IN_SCOPE_FRAMEWORK_OPTIONS, CYBER_NO_PRIOR_FRAMEWORK_WORK,
 } from "./CPPACybersecurity.enums";
 
 // INTAKE-4b — `notesHint` / `evidenceHint` carry the per-component plain-language
@@ -139,8 +152,14 @@ export default function CPPACybersecurity() {
     // FC-L4 (2026-08-25, CEO-ordered) — optional; see the intake-contract
     // header comment.
     password_auth_used: "",
-    // DOC 159 — § 7123(e)(9)/(10); asked only when an incident is reported.
+    // DOC 159 — § 7123(e)(9)/(10); legacy aggregate since 2026-09-16 (kept for
+    // old drafts; the two status questions below carry the fact now).
     incident_notifications: "",
+    // Cyber master review (2026-09-15, F07) — required-vs-sent, per recipient.
+    consumer_notice_status: "", agency_notice_status: "",
+    // Cyber master review (2026-09-15, F06) — the dated threshold question,
+    // asked only when the stated band straddles the CPI-adjusted figure.
+    q1_revenue_threshold_check: "", q1_revenue_reference_year: "",
   });
   // INTAKE-4b — prefill-confirm for profile.in_scope_frameworks. The earlier
   // "primary security framework in use" answer supplies the same fact for the
@@ -152,18 +171,32 @@ export default function CPPACybersecurity() {
   const setM = (k: string, v: string) => setMaturity((s) => ({ ...s, [k]: v }));
   const setN = (k: string, v: string) => setNotes((s) => ({ ...s, [k]: v }));
   const setNa = (k: string, v: string) => setNaReason((s) => ({ ...s, [k]: v }));
+  // Cyber master review (2026-09-15, F05) — "None on file" is an explicit
+  // absence and cannot stand beside a positive evidence type: choosing it
+  // clears the others, choosing a positive type removes it. Blank stays
+  // blank (not answered), never "nothing on file".
+  const EVIDENCE_NONE = "None on file";
   const toggleEvidence = (k: string, opt: string) =>
     setEvidence((s) => {
       const cur = s[k] || [];
-      return { ...s, [k]: cur.includes(opt) ? cur.filter((o) => o !== opt) : [...cur, opt] };
+      if (cur.includes(opt)) return { ...s, [k]: cur.filter((o) => o !== opt) };
+      if (opt === EVIDENCE_NONE) return { ...s, [k]: [EVIDENCE_NONE] };
+      return { ...s, [k]: [...cur.filter((o) => o !== EVIDENCE_NONE), opt] };
     });
+  // Cyber master review (2026-09-15, F08) — the absence answer is exclusive;
+  // the legacy "None / informal" keeps its informal-practice meaning and may
+  // sit beside a named framework. Touching the group confirms it.
   const toggleInScopeFramework = (opt: string) => {
     setInScopeTouched(true);
     setProfile((p) => {
       const cur = p.in_scope_frameworks || [];
-      return { ...p, in_scope_frameworks: cur.includes(opt) ? cur.filter((o) => o !== opt) : [...cur, opt] };
+      if (cur.includes(opt)) return { ...p, in_scope_frameworks: cur.filter((o) => o !== opt) };
+      if (opt === CYBER_NO_PRIOR_FRAMEWORK_WORK) return { ...p, in_scope_frameworks: [CYBER_NO_PRIOR_FRAMEWORK_WORK] };
+      return { ...p, in_scope_frameworks: [...cur.filter((o) => o !== CYBER_NO_PRIOR_FRAMEWORK_WORK), opt] };
     });
   };
+  /** F08 — an explicit confirmation of the carried-over primary framework. */
+  const confirmInScopePrefill = () => setInScopeTouched(true);
 
   // INTAKE-4b PREFILL (never merge): the primary-framework answer prefills the
   // in-scope list as a confirmation. Stored values are the same
@@ -186,6 +219,30 @@ export default function CPPACybersecurity() {
   const activeCyberRailEntry: RailEntry | null = activeCyberRailKey ? (CPPA_CYBER_RAIL[activeCyberRailKey] ?? null) : null;
   const focusRail = (key: string) => setActiveCyberRailKey(key);
 
+  // Cyber master review (2026-09-15, Addition 2) — the fleet-wide field-error
+  // contract (fail → useFieldErrors.show → [data-field] outline/scroll/focus),
+  // previously absent from this product.
+  const fieldErrors = useFieldErrors();
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const errAnchor = (k: string) => ({
+    "data-field": k,
+    "aria-invalid": fieldErrors.isInvalid(k) ? true : undefined,
+    onClickCapture: () => fieldErrors.clear(k),
+  });
+
+  // Cyber master review (2026-09-15, F06) — the threshold question names the
+  // calendar year; when it first appears the preceding year is filled in as
+  // the reference year (editable).
+  const straddling = profile.q1_revenue === CYBER_REVENUE_STRADDLING_BAND;
+  useEffect(() => {
+    if (straddling && !profile.q1_revenue_reference_year) {
+      setProfile((p) => ({ ...p, q1_revenue_reference_year: String(defaultRevenueReferenceYear()) }));
+    }
+  }, [straddling, profile.q1_revenue_reference_year]);
+  const referenceYear = Number.parseInt(profile.q1_revenue_reference_year, 10);
+  const threshold = ccpaRevenueThresholdForYearMirror(Number.isInteger(referenceYear) ? referenceYear : defaultRevenueReferenceYear());
+  const incidentsReported = ["1", "2–5", "More than 5"].includes(profile.incidents_12mo);
+
   // Update the active rail entry as the user scrolls up/down the form.
   useScrollActiveRail(setActiveCyberRailKey);
 
@@ -199,8 +256,19 @@ export default function CPPACybersecurity() {
   // RC-P7: control maturity is no longer required at submit. Blank controls flow to the
   // backend's insufficient-information path (M4–M21 → indeterminate; synthesiseCyberAsksFromControls
   // mints information_needed entries subject to the 3-entry cap).
+  // Cyber master review (2026-09-15, F04/F14): the deliberate five-field gate
+  // is unchanged; whitespace no longer satisfies it, and each failure names
+  // its field so the summary can outline, scroll to and focus it.
+  const profileIssue = (): StepIssue | null => {
+    if (!profile.entity_name.trim()) return fail("entity_name", "Enter the legal name of the entity being assessed.");
+    if (!profile.industry.trim()) return fail("industry", "Name the sector of the operations in scope.");
+    if (!profile.incidents_12mo) return fail("incidents_12mo", "Choose the number of security incidents in the last 12 months — \"Unknown / not yet reviewed\" is a complete answer.");
+    if (!profile.framework) return fail("framework", "Choose the framework that primarily guides the program today.");
+    if (!profile.last_audit) return fail("last_audit", "Choose when the last independent security audit was completed.");
+    return null;
+  };
   const profileComplete = useMemo(
-    () => !!(profile.entity_name.trim() && profile.industry && profile.incidents_12mo && profile.framework && profile.last_audit),
+    () => !!(profile.entity_name.trim() && profile.industry.trim() && profile.incidents_12mo && profile.framework && profile.last_audit),
     [profile]
   );
   const unassessedCount = useMemo(
@@ -211,7 +279,20 @@ export default function CPPACybersecurity() {
 
   const intake = useMemo(
     () => ({
-      profile,
+      profile: {
+        ...profile,
+        // F08 — a carried-over primary framework is a suggestion until the
+        // customer confirms or edits it; an unconfirmed suggestion is not
+        // their answer and does not travel.
+        in_scope_frameworks: inScopePrefilled && !inScopeTouched ? [] : profile.in_scope_frameworks,
+        // F06/F07 — answers to questions the record no longer asks stay in
+        // the draft but travel blank (the contract's hidden value).
+        q1_revenue_threshold_check: profile.q1_revenue === CYBER_REVENUE_STRADDLING_BAND ? profile.q1_revenue_threshold_check : "",
+        q1_revenue_reference_year: profile.q1_revenue === CYBER_REVENUE_STRADDLING_BAND ? profile.q1_revenue_reference_year : "",
+        consumer_notice_status: ["1", "2–5", "More than 5"].includes(profile.incidents_12mo) ? profile.consumer_notice_status : "",
+        agency_notice_status: ["1", "2–5", "More than 5"].includes(profile.incidents_12mo) ? profile.agency_notice_status : "",
+        incident_notifications: ["1", "2–5", "More than 5"].includes(profile.incidents_12mo) ? profile.incident_notifications : "",
+      },
       controls: CONTROLS.map((c) => ({
         key: c.key,
         label: c.label,
@@ -222,7 +303,7 @@ export default function CPPACybersecurity() {
         na_reason: maturity[c.key] === CYBER_NOT_APPLICABLE_MATURITY ? (naReason[c.key] || "") : "",
       })),
     }),
-    [profile, maturity, notes, evidence, naReason]
+    [profile, maturity, notes, evidence, naReason, inScopePrefilled, inScopeTouched]
   );
 
   const draftData = useMemo(
@@ -260,18 +341,27 @@ export default function CPPACybersecurity() {
 
   const notifyUnassessed = () => {
     if (unassessedCount > 0) {
-      toast({
-        title: "Partial submission",
-        description: `${unassessedCount} of 18 controls left unassessed — they will be reported as "insufficient information" and you can supply them later.`,
-      });
+      // S06 — no promise of later revisions; the review block above the
+      // button carries the durable count.
+      toast({ title: "Partial readiness report", description: CYBER_COPY.partialSubmission(unassessedCount) });
     }
   };
 
-  const handlePurchase = () => {
-    if (!allComplete) {
-      toast({ title: "Required", description: "Complete the organization profile: entity name, industry, incidents, framework, and last audit.", variant: "destructive" });
-      return;
+  // Addition 2 — the gate names its field and the summary jumps to it.
+  const gate = (): boolean => {
+    const issue = profileIssue();
+    if (issue) {
+      setValidationError(issue.message);
+      fieldErrors.show(issue.fields, issue.message);
+      return false;
     }
+    setValidationError(null);
+    fieldErrors.clearAll();
+    return true;
+  };
+
+  const handlePurchase = () => {
+    if (!gate()) return;
     notifyUnassessed();
     if (!user) { setAuthGateOpen(true); return; }
     setCheckoutOpen(true);
@@ -291,10 +381,7 @@ export default function CPPACybersecurity() {
     [isSuite, suiteModules],
   );
   const handleSuiteContinue = () => {
-    if (!allComplete) {
-      toast({ title: "Required", description: "Complete the organization profile: entity name, industry, incidents, framework, and last audit.", variant: "destructive" });
-      return;
-    }
+    if (!gate()) return;
     notifyUnassessed();
     if (!user) { setAuthGateOpen(true); return; }
     saveSuiteModule("cybersecurity", intake as Record<string, unknown>);
@@ -354,7 +441,9 @@ export default function CPPACybersecurity() {
           {
             title: "Does the audit requirement apply to you?",
             tone: "amber",
-            body: "Businesses that clear the CCPA revenue and data-volume thresholds may be subject to an independent annual cybersecurity audit. For businesses over $100M in revenue, the first certification is due Apr. 1, 2028.",
+            // Cyber master review (2026-09-15, F12 / legal reference points):
+            // the first-report date depends on the § 7121 cohort, not one date.
+            body: CYBER_APPLICABILITY_CARD,
           },
           {
             title: "What you receive",
@@ -441,27 +530,28 @@ export default function CPPACybersecurity() {
         <section className="bg-card border rounded-lg p-6 space-y-4">
           <h2 className="">Organization profile</h2>
           <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR § 7123 — cybersecurity audit scope and components · § 7124 — annual certification requirement</p>
-          <p className="text-sm text-muted-foreground">These five facts set the audit perimeter. They name the entity that owes the duty, the threat context each component finding is weighed against, and the audit history the readiness report starts from.</p>
+          {/* Cyber master review (2026-09-15, S01 / P01–P03): the intro no
+              longer assumes an audit duty; the entity and industry helpers
+              say what the answer identifies; the incident count is counted
+              against the regulatory definition, not a notification threshold. */}
+          <p className="text-sm text-muted-foreground">{CYBER_COPY.profileIntro}</p>
           <RequiredLegend />
-          <div data-rail-key="entity_name" onFocus={() => focusRail('entity_name')}>
+          <div data-rail-key="entity_name" onFocus={() => focusRail('entity_name')} {...errAnchor("entity_name")}>
             <Label htmlFor="cyber_entity_name">Entity name<Req /></Label>
-            <p className="text-xs text-muted-foreground mt-1">The legal entity that owes the audit duty — this name carries onto the report and any downstream certification.</p>
-            <input id="cyber_entity_name" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.entity_name} onChange={(e) => setProfile({ ...profile, entity_name: e.target.value })} placeholder="Legal entity name" autoComplete="organization" />
+            <p id="cyber_entity_name_help" className="text-xs text-muted-foreground mt-1">Enter the registered legal name of the entity being assessed, including its legal suffix. This name identifies the subject of the report; answering does not itself establish that an audit is legally required.</p>
+            <input id="cyber_entity_name" aria-describedby="cyber_entity_name_help" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.entity_name} onChange={(e) => setProfile({ ...profile, entity_name: e.target.value })} placeholder="Legal entity name" autoComplete="organization" />
           </div>
-          <div data-rail-key="profile_industry" onFocus={() => focusRail('profile_industry')}>
+          <div data-rail-key="profile_industry" onFocus={() => focusRail('profile_industry')} {...errAnchor("industry")}>
             <Label htmlFor="cyber_industry">Industry sector<Req /></Label>
-            <p className="text-xs text-muted-foreground mt-1">The sector of the operations in scope, which sets the threat context the eighteen component findings are read against.</p>
-            <input id="cyber_industry" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.industry} onChange={(e) => setProfile({ ...profile, industry: e.target.value })} placeholder="Sector" />
+            <p id="cyber_industry_help" className="text-xs text-muted-foreground mt-1">Name the sector or sectors of the operations being assessed. For a multi-line business, identify the relevant operations rather than only the parent company's industry.</p>
+            <input id="cyber_industry" aria-describedby="cyber_industry_help" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.industry} onChange={(e) => setProfile({ ...profile, industry: e.target.value })} placeholder="Sector" />
           </div>
-          <div data-rail-key="incidents_12mo" onFocus={() => focusRail('incidents_12mo')}>
-            <Label htmlFor="cyber_incidents">Reportable security incidents in the last 12 months<Req /></Label>
-            <p className="text-xs text-muted-foreground mt-1">Count from the incident register, using the severity threshold your response plan applies. § 7123(c)(17) reaches incidents in the audit period.</p>
-            <select id="cyber_incidents" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.incidents_12mo} onChange={(e) => setProfile({ ...profile, incidents_12mo: e.target.value })}>
+          <div data-rail-key="incidents_12mo" onFocus={() => focusRail('incidents_12mo')} {...errAnchor("incidents_12mo")}>
+            <Label htmlFor="cyber_incidents">Security incidents in the last 12 months<Req /></Label>
+            <p id="cyber_incidents_help" className="text-xs text-muted-foreground mt-1">Check the incident register and count each security incident meeting the definition in 11 CCR § 7123(c)(17)(A) once — actual or imminent jeopardy to the information system or the personal information, or a violation or imminent threat of violation of the program. Do not use a notification threshold as the definition. If the register has not been checked against that definition, choose “Unknown / not yet reviewed” rather than “None”.</p>
+            <select id="cyber_incidents" aria-describedby="cyber_incidents_help" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.incidents_12mo} onChange={(e) => setProfile({ ...profile, incidents_12mo: e.target.value })}>
               <option value="">Select…</option>
-              <option value="None">None</option>
-              <option value="1">1</option>
-              <option value="2–5">2–5</option>
-              <option value="More than 5">More than 5</option>
+              {CYBER_INCIDENTS_12MO_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
             </select>
           </div>
           {/* DOC 159 (2026-09-03) — 11 CCR § 7123(e)(9)/(10): the audit report
@@ -469,19 +559,39 @@ export default function CPPACybersecurity() {
               notification under Civ. Code § 1798.82(a) and of any required
               agency notification. Asked only once an incident is reported;
               the deterministic path never infers it from the count. */}
-          {profile.incidents_12mo && profile.incidents_12mo !== "None" && (
-            <div data-rail-key="incident_notifications" onFocus={() => focusRail('incident_notifications')}>
-              <Label htmlFor="cyber_incident_notifications">Did any of those incidents require notification to affected consumers or to an agency?<Req /></Label>
-              <p className="text-xs text-muted-foreground mt-1">Why we ask: 11 CCR § 7123(e)(9) and (e)(10) require the audit report to include a sample copy or a description of any consumer notification made under Civ. Code § 1798.82(a) and of any required agency notification. Answer from the incident register, not from memory.</p>
-              <select id="cyber_incident_notifications" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.incident_notifications} onChange={(e) => setProfile({ ...profile, incident_notifications: e.target.value })}>
-                <option value="">Select…</option>
-                {CYBER_INCIDENT_NOTIFICATION_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
+          {/* Cyber master review (2026-09-15, F07) — whether a notice was
+              required and whether it was sent are different facts, for
+              consumers and for an agency. The legacy single answer is shown
+              only when an old draft carried one and the two new questions
+              are still blank. Both are optional at the gate; the report
+              records a blank as a record-completion item. */}
+          {incidentsReported && (
+            <div className="space-y-3 rounded-md border border-input p-3" data-rail-key="consumer_notice_status" onFocus={() => focusRail('consumer_notice_status')}>
+              <p className="text-xs text-muted-foreground">For each reported incident, check the notification file. Distinguish whether notice was required from whether it was sent, and answer for consumers and for an agency separately. Use Unsure when these facts have not been confirmed. Why we ask: 11 CCR § 7123(e)(9) and (e)(10) require the audit report to include a sample copy or a description of any consumer notification made under Civ. Code § 1798.82(a) and of any required agency notification.</p>
+              {profile.incident_notifications && !profile.consumer_notice_status && !profile.agency_notice_status && (
+                <p role="status" className="text-xs rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-amber-800 dark:text-amber-300">
+                  Earlier answer on this draft: “{profile.incident_notifications}”. Please answer the two questions below; the earlier answer is kept on the record.
+                </p>
+              )}
+              <div {...errAnchor("consumer_notice_status")}>
+                <Label htmlFor="cyber_consumer_notice_status">Notification to affected consumers (Civ. Code § 1798.82(a)) <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+                <select id="cyber_consumer_notice_status" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.consumer_notice_status} onChange={(e) => setProfile({ ...profile, consumer_notice_status: e.target.value })}>
+                  <option value="">Select…</option>
+                  {CYBER_CONSUMER_NOTICE_STATUS_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+              </div>
+              <div {...errAnchor("agency_notice_status")} data-rail-key="agency_notice_status" onFocus={(e) => { e.stopPropagation(); focusRail('agency_notice_status'); }}>
+                <Label htmlFor="cyber_agency_notice_status">Notification to an agency with jurisdiction over privacy laws in California <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+                <select id="cyber_agency_notice_status" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.agency_notice_status} onChange={(e) => setProfile({ ...profile, agency_notice_status: e.target.value })}>
+                  <option value="">Select…</option>
+                  {CYBER_AGENCY_NOTICE_STATUS_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+              </div>
             </div>
           )}
-          <div data-rail-key="framework" onFocus={() => focusRail('framework')}>
+          <div data-rail-key="framework" onFocus={() => focusRail('framework')} {...errAnchor("framework")}>
             <Label htmlFor="cyber_framework">Primary security framework in use<Req /></Label>
-            <p className="text-xs text-muted-foreground mt-1">The framework the program is actually run against today, not one the organization intends to adopt.</p>
+            <p className="text-xs text-muted-foreground mt-1">Choose the framework that primarily guides the program today. This is separate from the completed audit or assessment evidence you will rely on below. If Other, name it in Audit scope rationale.</p>
             <select id="cyber_framework" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.framework} onChange={(e) => setProfile({ ...profile, framework: e.target.value })}>
               <option value="">Select…</option>
               <option value="NIST CSF">NIST CSF</option>
@@ -493,9 +603,9 @@ export default function CPPACybersecurity() {
               <option value="Other">Other</option>
             </select>
           </div>
-          <div data-rail-key="profile_audit" onFocus={() => focusRail('profile_audit')}>
+          <div data-rail-key="profile_audit" onFocus={() => focusRail('profile_audit')} {...errAnchor("last_audit")}>
             <Label htmlFor="cyber_last_audit">Last independent security audit<Req /></Label>
-            <p className="text-xs text-muted-foreground mt-1">An audit performed by someone outside the team that runs the program. Internal self-review is not an independent audit for this purpose.</p>
+            <p className="text-xs text-muted-foreground mt-1">Choose the time band for completion of the most recent independent security audit. Internal auditors may qualify; a self-review by the team operating the program is a different activity. Record the exact completion date and scope in Prior audit scope if known.</p>
             <select id="cyber_last_audit" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.last_audit} onChange={(e) => setProfile({ ...profile, last_audit: e.target.value })}>
               <option value="">Select…</option>
               <option value="Within 12 months">Within 12 months</option>
@@ -514,26 +624,46 @@ export default function CPPACybersecurity() {
               field routes the applicability table to an "insufficient
               information" cell rather than blocking checkout. */}
           <p className="text-sm font-medium mt-2">Audit applicability</p>
-          <p className="text-xs text-muted-foreground -mt-2">These answers determine whether 11 CCR § 7120 requires this business to complete a cybersecurity audit at all. Left blank, the report states the applicability question as unresolved rather than assuming an answer.</p>
+          <p className="text-xs text-muted-foreground -mt-2">{CYBER_COPY.applicabilityIntro}</p>
           <div data-rail-key="q1_revenue" onFocus={() => focusRail('q1_revenue')}>
             <Label htmlFor="cyber_q1_revenue">What is your business's annual gross revenue? <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(d)(1)(A))</span></Label>
-            <p className="text-xs text-muted-foreground mt-1">Total worldwide gross revenue from all sources — not just California.</p>
+            <p className="text-xs text-muted-foreground mt-1">Use total worldwide gross revenue, before expenses, for the preceding calendar year, from approved financial records. If the amount is not known, leave this unresolved rather than guessing.</p>
             <select id="cyber_q1_revenue" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.q1_revenue} onChange={(e) => setProfile({ ...profile, q1_revenue: e.target.value })}>
               <option value="">Select…</option>
               {CYBER_REVENUE_OPTS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
             </select>
           </div>
+          {/* Cyber master review (2026-09-15, F06) — the "$25M to under $50M"
+              band straddles the CPI-adjusted CCPA threshold, so the band
+              cannot settle § 1798.140(d)(1)(A). The dated figure is asked
+              directly; the year is editable. */}
+          {straddling && (
+            <div className="rounded-md border border-input p-3 space-y-3" data-rail-key="q1_revenue_threshold_check" onFocus={(e) => { e.stopPropagation(); focusRail('q1_revenue_threshold_check'); }}>
+              <div>
+                <Label htmlFor="cyber_q1_threshold">Was your annual gross revenue above {threshold.label} for calendar year {profile.q1_revenue_reference_year || defaultRevenueReferenceYear()}? <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(d)(1)(A), CPI-adjusted)</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">The CCPA revenue threshold is adjusted for inflation every odd-numbered year; the figure in force for that year is {threshold.label}. Your revenue band spans both sides of it, so the report cannot tell from the band alone. Choose Unsure if the figure has not been checked; the report will leave applicability unresolved rather than assume.</p>
+                <select id="cyber_q1_threshold" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.q1_revenue_threshold_check} onChange={(e) => setProfile({ ...profile, q1_revenue_threshold_check: e.target.value })}>
+                  <option value="">Select…</option>
+                  {CYBER_REVENUE_THRESHOLD_CHECK_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+              </div>
+              <div>
+                <Label htmlFor="cyber_q1_year">Calendar year the revenue figure refers to</Label>
+                <input id="cyber_q1_year" inputMode="numeric" pattern="[0-9]{4}" className="mt-2 w-40 h-10 px-3 rounded-md border border-input bg-background" value={profile.q1_revenue_reference_year} onChange={(e) => setProfile({ ...profile, q1_revenue_reference_year: e.target.value.replace(/[^0-9]/g, "").slice(0, 4) })} placeholder={String(defaultRevenueReferenceYear())} />
+              </div>
+            </div>
+          )}
           <div data-rail-key="q2_consumers" onFocus={() => focusRail('q2_consumers')}>
             <Label htmlFor="cyber_q2_consumers">How many California consumers' personal information do you process in a year? <span className="text-xs text-muted-foreground font-mono">(§ 7120(b)(2)(A))</span></Label>
-            <p className="text-xs text-muted-foreground mt-1">Your best estimate of distinct California residents across all processing.</p>
+            <p className="text-xs text-muted-foreground mt-1">Estimate distinct California residents whose personal information the business processes during the preceding calendar year, across its processing activities. Count each person once; do not substitute the number of records or accounts. Section 7120(b)(2)(A) also counts households; the household route is not modelled here, so leave this unresolved rather than restating a household count as residents.</p>
             <select id="cyber_q2_consumers" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.q2_consumers} onChange={(e) => setProfile({ ...profile, q2_consumers: e.target.value })}>
               <option value="">Select…</option>
               {CYBER_CONSUMER_OPTS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
             </select>
           </div>
           <div data-rail-key="q5_sell_share" onFocus={() => focusRail('q5_sell_share')}>
-            <Label htmlFor="cyber_q5_sell_share">Do you sell or share personal information for cross-context behavioural advertising?</Label>
-            <p className="text-xs text-muted-foreground mt-1">"Sell" and "share" have specific CCPA meanings.</p>
+            <Label htmlFor="cyber_q5_sell_share">Do you sell personal information, or share it for cross-context behavioural advertising?</Label>
+            <p className="text-xs text-muted-foreground mt-1">“Sell” and “share” have specific CCPA meanings: a sale need not be for advertising or involve cash; “share” here means disclosure for cross-context behavioural advertising. Assess the actual disclosures, including those handled by vendors.</p>
             <select id="cyber_q5_sell_share" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.q5_sell_share} onChange={(e) => setProfile({ ...profile, q5_sell_share: e.target.value })}>
               <option value="">Select…</option>
               {CYBER_SELL_SHARE_OPTS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
@@ -542,7 +672,7 @@ export default function CPPACybersecurity() {
           {profile.q5_sell_share && profile.q5_sell_share !== "No" && (
             <div data-rail-key="q5c_share_revenue_50pct" onFocus={() => focusRail('q5c_share_revenue_50pct')}>
               <Label htmlFor="cyber_q5c">Does 50% or more of your annual gross revenue derive from selling or sharing personal information? <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(d)(1)(C) / 11 CCR § 7120(b)(1))</span></Label>
-              <p className="text-xs text-muted-foreground mt-1">Optional — this feeds the covered-business test for the § 7120(b)(1) 50%-revenue prong. Skip if you're unsure or the number isn't material.</p>
+              <p className="text-xs text-muted-foreground mt-1">Using the same calendar year, does revenue from selling or sharing personal information make up at least half of total annual gross revenue? Choose Unsure if the split is not known; an unanswered field leaves this part of applicability unresolved.</p>
               <select id="cyber_q5c" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.q5c_share_revenue_50pct} onChange={(e) => setProfile({ ...profile, q5c_share_revenue_50pct: e.target.value })}>
                 <option value="">Select…</option>
                 {CYBER_SHARE_REVENUE_50PCT_OPTS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
@@ -550,8 +680,8 @@ export default function CPPACybersecurity() {
             </div>
           )}
           <div data-rail-key="q15_sensitive_pi" onFocus={() => focusRail('q15_sensitive_pi')}>
-            <Label htmlFor="cyber_q15">Do you process any sensitive PI?</Label>
-            <p className="text-xs text-muted-foreground mt-1">Sensitive PI includes health, precise location, race, and more.</p>
+            <Label htmlFor="cyber_q15">Do you process any sensitive personal information?</Label>
+            <p className="text-xs text-muted-foreground mt-1">Check the full CCPA definition against your data inventory (for example government identifiers, account credentials, precise geolocation, racial or ethnic origin, religious beliefs, union membership, the contents of mail and messages, genetic and biometric data, health, sex life and sexual orientation, and the personal information of consumers known to be under 16). Choose Unsure if that review is incomplete.</p>
             <select id="cyber_q15" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.q15_sensitive_pi} onChange={(e) => setProfile({ ...profile, q15_sensitive_pi: e.target.value })}>
               <option value="">Select…</option>
               {CYBER_SENSITIVE_PI_OPTS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
@@ -560,7 +690,7 @@ export default function CPPACybersecurity() {
           {profile.q15_sensitive_pi === "Yes" && (
             <div data-rail-key="q15c_spi_volume" onFocus={() => focusRail('q15c_spi_volume')}>
               <Label htmlFor="cyber_q15c">For how many California consumers do you process sensitive personal information annually? <span className="text-xs text-muted-foreground font-mono">(§ 7120(b)(2)(B))</span></Label>
-              <p className="text-xs text-muted-foreground mt-1">Optional — this feeds the § 7120(b)(2)(B) SPI-volume cyber-audit prong. Give your best estimate for the distinct California residents whose SPI you process in a year.</p>
+              <p className="text-xs text-muted-foreground mt-1">For the preceding calendar year, estimate distinct California residents whose sensitive personal information the business processes. Count each person once across categories and systems; choose Unsure if a reliable count is not available.</p>
               <select id="cyber_q15c" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.q15c_spi_volume} onChange={(e) => setProfile({ ...profile, q15c_spi_volume: e.target.value })}>
                 <option value="">Select…</option>
                 {CYBER_SPI_VOLUME_OPTS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
@@ -581,10 +711,12 @@ export default function CPPACybersecurity() {
           </div>
           <div data-rail-key="in_scope_frameworks" onFocus={() => focusRail('in_scope_frameworks')}>
             <Label>Frameworks in scope for this audit <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
-            {inScopePrefilled && !inScopeTouched ? (
-              <p className="text-xs text-muted-foreground mt-1">We have carried your primary framework over. Confirm it, and add any other framework whose existing evidence this audit will lean on. Left blank, the report treats the audit as standing alone and credits no prior framework work. Why we ask: § 7123(f) lets an audit leverage work already done under another framework, but only for what that framework actually covered.</p>
-            ) : (
-              <p className="text-xs text-muted-foreground mt-1">Pick every framework whose existing evidence this audit will lean on. Left blank, the report treats the audit as standing alone and credits no prior framework work. Why we ask: § 7123(f) lets an audit leverage work already done under another framework, but only for what that framework actually covered.</p>
+            <p className="text-xs text-muted-foreground mt-1">Select frameworks with existing reports, assessments or other work that this audit will rely on, and identify that work and its coverage in Audit scope rationale. This is separate from the framework you use to run the program. A framework name alone is not evidence that the prior work satisfies the Article. Why we ask: § 7123(f) lets an audit leverage work already done under another framework, but only for what that framework actually covered.</p>
+            {inScopePrefilled && !inScopeTouched && (
+              <p role="status" className="text-xs rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-amber-800 dark:text-amber-300 mt-2">
+                Suggested from your primary framework: {profile.in_scope_frameworks.join(", ")}. This is a suggestion, not your answer — it is not recorded until you confirm it or change the selection.
+                <button type="button" className="ml-2 underline underline-offset-2" onClick={confirmInScopePrefill}>Confirm this selection</button>
+              </p>
             )}
             {/* Same accessibility fix as the per-component evidence pills
                 below: selection was conveyed by colour alone. This group is
@@ -596,13 +728,14 @@ export default function CPPACybersecurity() {
               aria-label="Frameworks in scope for this audit"
               className="mt-2 flex flex-wrap gap-2"
             >
-              {CYBER_IN_SCOPE_FRAMEWORKS.map((opt) => {
+              {CYBER_IN_SCOPE_FRAMEWORK_OPTIONS.map((opt) => {
                 const selected = profile.in_scope_frameworks.includes(opt);
                 return (
                   <button
                     key={opt}
                     type="button"
                     aria-pressed={selected}
+                    title={opt === CYBER_NO_PRIOR_FRAMEWORK_WORK ? "Exclusive: no prior framework work is available to rely on" : opt === "None / informal" ? "Informal practice; may sit beside a named framework" : undefined}
                     onClick={() => toggleInScopeFramework(opt)}
                     className={`text-xs px-3 py-1 rounded-full border ${selected ? "bg-primary text-primary-foreground border-primary" : "bg-background text-foreground border-input"}`}
                   >{opt}</button>
@@ -635,7 +768,7 @@ export default function CPPACybersecurity() {
               layer; contract key profile.remediation_owner. */}
           <div data-rail-key="remediation_owner" onFocus={() => focusRail('remediation_owner')}>
             <Label htmlFor="cyber_remediation_owner">Who owns remediation of findings from this audit? <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
-            <p className="text-xs text-muted-foreground mt-1">Name the person or role accountable for closing what the audit finds. Left blank, the report assigns no owner and records remediation ownership as unstated. Why we ask: findings without a named owner are the most common reason remediation stalls, and an auditor will ask who is accountable.</p>
+            <p className="text-xs text-muted-foreground mt-1">Name the person or role accountable for coordinating closure of this audit's findings. If ownership is not assigned, say so. Distinguish the overall coordinator from the people responsible for individual remediation actions. Left blank, the report records remediation ownership as unstated.</p>
             <Textarea id="cyber_remediation_owner" rows={2} value={profile.remediation_owner} onChange={(e) => setProfile({ ...profile, remediation_owner: e.target.value })} className="mt-2" placeholder="Name or role, e.g. VP Security Engineering" />
           </div>
 
@@ -650,7 +783,7 @@ export default function CPPACybersecurity() {
             <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR § 7123(c)(1)–(18) — enumerated program components</p>
             <p className="text-sm text-muted-foreground mt-1">Each component becomes one finding in the readiness report. Rate what is running today; a component left unrated is reported as insufficient information rather than as a shortfall.</p>
           </div>
-          <IntakeGuidance>For stronger findings, name the tools in place, the scope they cover, and any exceptions. Specific evidence produces a stronger gap analysis than a vague "in place" rating. Select "Not applicable to our information system" only for a component that cannot apply to the systems that process personal information (for example, secure development where the Company writes no software), and say why: the auditor makes the final applicability determination under 11 CCR § 7123(b)(2), and the report records your position for it.</IntakeGuidance>
+          <IntakeGuidance>{CYBER_COPY.sectionGuidance}</IntakeGuidance>
 
           {CONTROLS.map((c, i) => (
             <div key={c.key} className="border-t pt-5 first:border-t-0 first:pt-0">
@@ -668,10 +801,12 @@ export default function CPPACybersecurity() {
               <p className="text-xs text-muted-foreground mt-1 mb-3">{c.description}</p>
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs" htmlFor={`maturity_${c.key}`}>Maturity<Req /></Label>
-                  {/* INTAKE-4b wording pass — framing text only; the rung
-                      definitions in MATURITY are stored values and unchanged. */}
-                  <p className="text-[11px] text-muted-foreground mt-0.5">Rate what is running today, not what is designed or planned. Why we ask: the audit records the programme as it stands, and an overstated rating is the finding an auditor tests first.</p>
+                  {/* Cyber master review (2026-09-15, F04): the rating never
+                      blocked checkout (a blank is reported as insufficient
+                      information by design), so it is labelled optional; the
+                      stars stay only on the five fields that do block. */}
+                  <Label className="text-xs" htmlFor={`maturity_${c.key}`}>Maturity <span className="font-normal text-muted-foreground">(optional)</span></Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">{CYBER_COPY.maturityHelper}</p>
                   <select id={`maturity_${c.key}`} data-rail-key={c.key} onFocus={() => focusRail(c.key)} className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm" value={maturity[c.key] || ""} onChange={(e) => setM(c.key, e.target.value)}>
                     <option value="">Select…</option>
                     {MATURITY.map((m) => <option key={m} value={m}>{m}</option>)}
@@ -680,21 +815,21 @@ export default function CPPACybersecurity() {
                       not-applicable selection. */}
                   {maturity[c.key] === CYBER_NOT_APPLICABLE_MATURITY && (
                     <div className="mt-2" data-rail-key="component_not_applicable" onFocus={() => focusRail('component_not_applicable')}>
-                      <Label className="text-xs" htmlFor={`na_reason_${c.key}`}>Why does this component not apply to your information system?<Req /></Label>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">The information system includes every resource organized for processing personal information, owned or not (11 CCR § 7001(t)). State the fact that takes this component outside it; the auditor confirms the position.</p>
+                      <Label className="text-xs" htmlFor={`na_reason_${c.key}`}>Why does this component not apply to your information system? <span className="font-normal text-muted-foreground">(optional here; recorded as a record-completion item if blank)</span></Label>
+                      <p className="text-xs text-muted-foreground mt-0.5">{CYBER_COPY.nonapplicabilityHelper}</p>
                       <Textarea id={`na_reason_${c.key}`} rows={2} value={naReason[c.key] || ""} onChange={(e) => setNa(c.key, e.target.value)} className="mt-1" placeholder="One or two sentences stating the fact" />
                     </div>
                   )}
                 </div>
                 <div>
                   <Label className="text-xs" htmlFor={`notes_${c.key}`}>Notes <span className="font-normal text-muted-foreground">(optional)</span></Label>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">{c.notesHint ?? "Name the tool, the estate it covers, and any carve-out. Left blank, the finding rests on the rating alone."}</p>
-                  <Textarea id={`notes_${c.key}`} rows={2} value={notes[c.key] || ""} onChange={(e) => setN(c.key, e.target.value)} className="mt-1" placeholder="Tool, scope, exceptions" />
+                  <p className="text-xs text-muted-foreground mt-0.5">{c.notesHint ?? CYBER_COPY.notesHelper}</p>
+                  <Textarea id={`notes_${c.key}`} rows={3} value={notes[c.key] || ""} onChange={(e) => setN(c.key, e.target.value)} className="mt-1" placeholder="Measure or process, systems and people covered, exceptions, supporting records" data-rail-key={c.key} onFocus={() => focusRail(c.key)} />
                 </div>
               </div>
               <div className="mt-3">
-                <Label className="text-xs">Evidence available <span className="font-normal text-muted-foreground">(optional)</span></Label>
-                <p className="text-[11px] text-muted-foreground mt-0.5">{c.evidenceHint ?? "Select every artefact an auditor could test for this component. Left blank, the evidence checklist records nothing on file for it."}</p>
+                <Label className="text-xs" id={`evidence_label_${c.key}`}>Evidence available <span className="font-normal text-muted-foreground">(optional)</span></Label>
+                <p className="text-xs text-muted-foreground mt-0.5">{c.evidenceHint ?? CYBER_COPY.evidenceHelper}</p>
                 {/* QA round two (Cyber accessibility, Low, 2026-09-06) — these
                     pills are real buttons, so they were already keyboard
                     operable, but selection was carried by colour alone: a
@@ -707,6 +842,7 @@ export default function CPPACybersecurity() {
                   role="group"
                   aria-label={`Evidence available for ${c.label}`}
                   className="mt-1 flex flex-wrap gap-2"
+                  data-rail-key={c.key} onFocus={() => focusRail(c.key)}
                 >
                   {CYBER_EVIDENCE_OPTS.map((opt) => {
                     const selected = (evidence[c.key] || []).includes(opt);
@@ -731,6 +867,90 @@ export default function CPPACybersecurity() {
               )}
             </div>
           ))}
+        </section>
+
+        {/* Cyber master review (2026-09-15, Addition 1) — this intake had no
+            review of the answers before payment: only a toast counting
+            unrated components. Every answer, every unanswered item and the
+            evidence selections are shown back here, grouped by profile and
+            by component, with a jump back to each question. */}
+        <section className="bg-card border rounded-lg p-6 space-y-4" aria-labelledby="cyber_review_heading">
+          <h2 id="cyber_review_heading">Review your answers</h2>
+          <p className="text-sm text-muted-foreground">Review all answers and unanswered items before continuing. Use Edit to return to a question. The report analyses the information you provide; an unanswered item is reported as insufficient information, not as a shortfall.</p>
+          {(() => {
+            const sections = buildCyberReview(intake);
+            const unratedList = CONTROLS.filter((c) => !maturity[c.key]);
+            const jump = (id: string) => {
+              const el = document.getElementById(id);
+              if (!el) return;
+              el.scrollIntoView({ behavior: "smooth", block: "center" });
+              el.focus({ preventScroll: true });
+            };
+            const idFor = (sectionStep: number, key: string): string | null => {
+              if (sectionStep <= 2) {
+                const map: Record<string, string> = {
+                  entity_name: "cyber_entity_name", industry: "cyber_industry", incidents_12mo: "cyber_incidents",
+                  consumer_notice_status: "cyber_consumer_notice_status", agency_notice_status: "cyber_agency_notice_status",
+                  framework: "cyber_framework", last_audit: "cyber_last_audit", q1_revenue: "cyber_q1_revenue",
+                  q1_revenue_threshold_check: "cyber_q1_threshold", q1_revenue_reference_year: "cyber_q1_year",
+                  q2_consumers: "cyber_q2_consumers", q5_sell_share: "cyber_q5_sell_share", q5c_share_revenue_50pct: "cyber_q5c",
+                  q15_sensitive_pi: "cyber_q15", q15c_spi_volume: "cyber_q15c", password_auth_used: "cyber_password_auth_used",
+                  audit_scope_rationale: "cyber_scope_rationale", auditor_engagement_status: "cyber_auditor_status",
+                  prior_audit_scope: "cyber_prior_scope", remediation_owner: "cyber_remediation_owner",
+                };
+                return map[key] ?? null;
+              }
+              const control = CONTROLS[sectionStep - 3];
+              if (!control) return null;
+              if (key.endsWith(".maturity")) return `maturity_${control.key}`;
+              if (key.endsWith(".notes")) return `notes_${control.key}`;
+              if (key.endsWith(".na_reason")) return `na_reason_${control.key}`;
+              return `maturity_${control.key}`;
+            };
+            return (
+              <>
+                <p role="status" className={`text-xs rounded-md border px-3 py-2 ${unratedList.length ? "border-amber-300 bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300" : "border-input text-muted-foreground"}`}>
+                  {unratedList.length
+                    ? `${CYBER_COPY.partialSubmission(unratedList.length)} Unrated: ${unratedList.map((c) => c.label).join("; ")}.`
+                    : "All 18 components carry a rating."}
+                </p>
+                <div className="divide-y rounded-md border">
+                  {sections.map((sec) => (
+                    <details key={sec.step} className="px-4 py-2" open={sec.step <= 2 || sec.rows.some((r) => r.state === "unanswered")}>
+                      <summary className="cursor-pointer text-sm font-medium py-1">
+                        {sec.title}
+                        <span className="ml-2 text-xs text-muted-foreground font-normal">
+                          {sec.rows.filter((r) => r.state === "unanswered").length ? `${sec.rows.filter((r) => r.state === "unanswered").length} unanswered` : "complete"}
+                        </span>
+                      </summary>
+                      <div className="divide-y text-sm">
+                        {sec.rows.map((row) => {
+                          const target = idFor(sec.step, row.key);
+                          return (
+                            <div key={row.key} className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-2">
+                              <div className="text-muted-foreground text-[12px]">{row.label}</div>
+                              <div className="sm:col-span-2 break-words text-[13px] flex items-start justify-between gap-3">
+                                <span className={row.state === "unanswered" ? "italic text-muted-foreground" : ""}>
+                                  {row.state === "unanswered" ? "Not answered" : row.text}
+                                  {row.items && row.items.length > 0 && (
+                                    <ul className="mt-1 list-disc pl-4 text-[12px] text-muted-foreground">
+                                      {row.items.map((it) => <li key={it.label}>{it.label}: {it.text}</li>)}
+                                    </ul>
+                                  )}
+                                </span>
+                                {target && <button type="button" className="shrink-0 text-xs underline underline-offset-2 text-muted-foreground hover:text-foreground" onClick={() => jump(target)}>Edit</button>}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </details>
+                  ))}
+                </div>
+              </>
+            );
+          })()}
+          <ValidationErrorSummary message={validationError} fieldKey={fieldErrors.fields[0] ?? null} />
         </section>
 
         <div className="bg-card border rounded-lg p-6 flex justify-end flex-wrap gap-3">

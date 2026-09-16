@@ -72,13 +72,23 @@ Deno.test("doc159 — the not-applicable maturity is the sixth option, verbatim 
   assertEquals([...FIELD_ENUM_MIRROR["cppa_cybersecurity:maturity"]!], [...CYBER_MATURITY_OPTIONS]);
 });
 
-Deno.test("doc159 — the notification options match across contract, form and mirror; the field is conditional on an incident", () => {
+Deno.test("doc159 — the notification options match across contract, form and mirror; the fact is carried by two conditional fields (2026-09-16 re-pin)", () => {
   assertEquals([...CYBER_INCIDENT_NOTIFICATION_OPTIONS], [...FORM_NOTIFICATION_OPTIONS]);
   assertEquals([...FIELD_ENUM_MIRROR["cppa_cybersecurity:incident_notifications"]!], [...CYBER_INCIDENT_NOTIFICATION_OPTIONS]);
-  const f = cppaCybersecurityContract.fields.find((x) => x.key === "profile.incident_notifications")!;
-  assertEquals(f.required, "conditional");
-  assertEquals(f.trigger?.key, "profile.incidents_12mo");
-  assertEquals([...(f.trigger?.equals ?? [])], ["1", "2–5", "More than 5"]);
+  // Cyber master review (2026-09-15, F07): whether a notice was required and
+  // whether it was sent are separate facts, for consumers and for an agency.
+  // The legacy aggregate stays for old records and is never asked anew.
+  const legacy = cppaCybersecurityContract.fields.find((x) => x.key === "profile.incident_notifications")!;
+  assertEquals(legacy.required, "optional");
+  assertEquals(legacy.superseded, true);
+  for (const key of ["profile.consumer_notice_status", "profile.agency_notice_status"]) {
+    const f = cppaCybersecurityContract.fields.find((x) => x.key === key)!;
+    assert(f, `${key} missing`);
+    assertEquals(f.required, "conditional");
+    assertEquals(f.trigger?.key, "profile.incidents_12mo");
+    assertEquals([...(f.trigger?.equals ?? [])], ["1", "2–5", "More than 5"]);
+    assertEquals([...FIELD_ENUM_MIRROR[`cppa_cybersecurity:${key.replace("profile.", "")}`]!], [...(f.options ?? [])]);
+  }
 });
 
 Deno.test("doc159 — the not-applicable basis is conditional on the maturity value, over the array rows", () => {
@@ -309,10 +319,24 @@ Deno.test("doc159 — § 7123(e)(9)/(10): the notification answer decides the au
     ["Unsure", ["is unsure whether any reported incident required notification", "record-completion item"], "Notification record"],
     ["", ["is not recorded; 11 CCR § 7123(e)(9) and (e)(10) turn on it"], "Notification record"],
   ];
+  // Cyber master review (2026-09-16, F07): the same six cases, expressed
+  // through the two status fields the form now asks; the legacy aggregate is
+  // cleared so the fallback path is not what is under test here.
+  const STATUS_FOR: Record<string, [string, string]> = {
+    "No notification was required": ["No notice was required", "No notice was required"],
+    "Affected consumers were notified (Civ. Code § 1798.82(a))": ["Notice provided to affected consumers", "No notice was required"],
+    "An agency with jurisdiction over privacy laws in California was notified": ["No notice was required", "Notice provided to an agency"],
+    "Both affected consumers and an agency were notified": ["Notice provided to affected consumers", "Notice provided to an agency"],
+    "Unsure": ["Unsure", "Unsure"],
+    "": ["", ""],
+  };
   for (const [answer, needles, extra] of cases) {
     const i = base();
     profile(i).incidents_12mo = "1";
-    profile(i).incident_notifications = answer;
+    delete profile(i).incident_notifications;
+    const [consumer, agency] = STATUS_FOR[answer];
+    profile(i).consumer_notice_status = consumer;
+    profile(i).agency_notice_status = agency;
     const { d, f } = factors(i);
     for (const n of needles) assertStringIncludes(f.incident_readiness.analysis, n, `${answer || "(blank)"} → ${n}`);
     const extras = buildRecordCompletionExtras(i, d);
@@ -326,6 +350,8 @@ Deno.test("doc159 — § 7123(e)(9)/(10): with no incident the notification ques
   const i = base();
   profile(i).incidents_12mo = "None";
   delete profile(i).incident_notifications;
+  delete profile(i).consumer_notice_status;
+  delete profile(i).agency_notice_status;
   assertEquals(emptyAskedKeys(cppaCybersecurityContract, i), []);
   const { d, f } = factors(i);
   assert(!/11 CCR § 7123(e)(9)|is unsure whether any reported incident|is not recorded; 11 CCR/.test(f.incident_readiness.analysis), f.incident_readiness.analysis);

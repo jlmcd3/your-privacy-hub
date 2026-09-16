@@ -384,6 +384,21 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     verified_on: VOD,
     primary_source_url: CCR_URL,
   }),
+  // ADMT master review (2026-09-15, F07) — the work-allocation/compensation
+  // exception carries its own sole-use condition; the engine cited the
+  // hiring row for both branches. Verified against the CPPA text of
+  // regulations PDF (pages 116–117) on 2026-09-16.
+  optout_exc_work: R({
+    proposition_key: "optout_exc_work",
+    citation: "11 CCR § 7221",
+    subsection: "11 CCR § 7221(b)(3)",
+    verbatim_quote:
+      "For allocation/assignment of work and compensation decisions as set forth in section 7001, subsection (ddd)(4)(B), if the following are true:\n(A) The business uses the ADMT solely for the business’s allocation/assignment of work or compensation; and\n(B) The ADMT works for the business’s purpose and does not unlawfully discriminate based upon protected characteristics.",
+    depth_class: "sub_subsection",
+    governing_anchor: ART11,
+    verified_on: "2026-09-16",
+    primary_source_url: CCR_URL,
+  }),
 
   // ---- Access (§ 7222) ------------------------------------------------------
   access_provide: R({

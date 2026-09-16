@@ -219,6 +219,9 @@ export function emptyAskedKeys(
     // unconditionally AND whose empty state IS a substantive answer, so an
     // empty value is an answer, not an unanswered ask.
     if (f.emptyIsAnswer === true) continue;
+    // Cyber master review (2026-09-16, F07) — a superseded key is retained
+    // for records that answered it and is never asked of a new record.
+    if (f.superseded === true) continue;
     // Skip-logic: a conditional whose trigger the record does not show was
     // never asked.
     if (f.required === "conditional" && !conditionalTriggered(rec, f)) continue;

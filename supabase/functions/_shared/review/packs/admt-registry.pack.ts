@@ -177,6 +177,12 @@ export const ADMT_REGISTRY_PACK: RegistryPack = {
       "verbatim_quote": "For admission, acceptance, or hiring decisions as set forth in section 7001, subsections (ddd)(3)(A) and (ddd)(4)(A), if the following are true:\n(A) The business uses the ADMT solely for the business’s assessment of the consumer’s ability to perform at work or in an educational program to determine whether to admit, accept, or hire them; and\n(B) The ADMT works for the business’s purpose and does not unlawfully discriminate based upon protected characteristics."
     },
     {
+      "proposition_key": "optout_exc_work",
+      "citation": "11 CCR § 7221",
+      "subsection": "11 CCR § 7221(b)(3)",
+      "verbatim_quote": "For allocation/assignment of work and compensation decisions as set forth in section 7001, subsection (ddd)(4)(B), if the following are true:\n(A) The business uses the ADMT solely for the business’s allocation/assignment of work or compensation; and\n(B) The ADMT works for the business’s purpose and does not unlawfully discriminate based upon protected characteristics."
+    },
+    {
       "proposition_key": "access_provide",
       "citation": "11 CCR § 7222",
       "subsection": "11 CCR § 7222(a)",

@@ -91,6 +91,16 @@ export interface IntakeField {
    * silently inherit the exclusion.
    */
   emptyIsAnswer?: true;
+  /**
+   * Cyber master review (2026-09-16, F07) — SUPERSEDED KEY.
+   *
+   * The form no longer asks this question; newer keys carry the fact. The
+   * key stays in the contract so records that answered it still validate
+   * and the engines can read it as a fallback, but the record-complete gate
+   * never counts it as an unanswered ask. The doc comment on the field MUST
+   * name the keys that replaced it.
+   */
+  superseded?: true;
   /** PROMPT 8H — for kind="structured" arrays: the EXACT per-record keys. */
   itemKeys?: readonly StructuredItemKey[];
   /** PROMPT 8H — optional prose note rendered alongside `itemKeys`. */

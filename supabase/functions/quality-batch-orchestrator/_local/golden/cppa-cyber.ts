@@ -168,7 +168,7 @@ export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
     intake: {
       // c1_auth notes: FIDO2 for engineering, Duo PUSH (password + push) for
       // staff -> passwords are in use.
-      profile: { entity_name: "Meridian SaaS Inc.", industry: "SaaS", incidents_12mo: "1", framework: "NIST CSF", last_audit: "Within 12 months", ...DEFAULT_SCOPE, in_scope_frameworks: ["NIST CSF", "SOC 2"], ...APPLICABILITY_YES, password_auth_used: "Yes", incident_notifications: "No notification was required" },
+      profile: { entity_name: "Meridian SaaS Inc.", industry: "SaaS", incidents_12mo: "1", framework: "NIST CSF", last_audit: "Within 12 months", ...DEFAULT_SCOPE, in_scope_frameworks: ["NIST CSF", "SOC 2"], ...APPLICABILITY_YES, password_auth_used: "Yes", incident_notifications: "No notification was required", consumer_notice_status: "No notice was required", agency_notice_status: "No notice was required" },
       controls: build(meridian, "Implemented across organization"),
     },
     assertions: [
@@ -196,7 +196,7 @@ export const CPPA_CYBER_GOLDEN: GoldenCase[] = [
     set: "adversarial",
     intake: {
       // c1_auth notes: "MFA via Okta" doesn't rule out a password factor.
-      profile: { entity_name: "Cascade Health", industry: "Healthcare", incidents_12mo: "2–5", framework: "HITRUST", last_audit: "12–24 months ago", ...DEFAULT_SCOPE, in_scope_frameworks: ["HITRUST"], ...APPLICABILITY_NO, password_auth_used: "Yes", incident_notifications: "Unsure" },
+      profile: { entity_name: "Cascade Health", industry: "Healthcare", incidents_12mo: "2–5", framework: "HITRUST", last_audit: "12–24 months ago", ...DEFAULT_SCOPE, in_scope_frameworks: ["HITRUST"], ...APPLICABILITY_NO, password_auth_used: "Yes", incident_notifications: "Unsure", consumer_notice_status: "Unsure", agency_notice_status: "Unsure" },
       controls: build({
         c1_auth: { notes: "MFA via Okta. Encryption: AES-256 at rest with KMS-managed keys; TLS 1.3 in transit." },
         c2_encryption: { notes: "See auth notes." },
@@ -562,6 +562,8 @@ export const CYBER_PERFECT: GoldenCase[] = [
         // DOC 159 — § 7123(e)(9)/(10): asked because one incident is
         // reported; the c17 record's Sev-3 event required no notification.
         incident_notifications: "No notification was required",
+        consumer_notice_status: "No notice was required",
+        agency_notice_status: "No notice was required",
       },
       controls: CONTROL_ROWS.map((c) => ({
         key: c.key,

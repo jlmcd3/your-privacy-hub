@@ -54,14 +54,20 @@ describe("INTAKE-4b — contract key/option snapshot (byte-identity guard)", () 
   // the full rationale on each. Re-pinned to the current field list rather
   // than widened to "contains at least"; a future addition should touch
   // this list deliberately, same discipline.
-  it("the full field list is the INTAKE-4b set plus C1.2's six applicability fields plus FC-L4's password predicate", () => {
+  // DELIBERATE RE-PIN (2026-09-16, Cyber master review F06/F07): the dated
+  // revenue-threshold question and its reference year, and the separate
+  // consumer/agency notice statuses, are additive; the legacy aggregate
+  // incident_notifications stays (optional) so old records validate.
+  it("the full field list is the INTAKE-4b set plus C1.2's six applicability fields plus FC-L4's password predicate plus the 2026-09-16 review fields", () => {
     const keys = cppaCybersecurityContract.fields.map((f) => f.key);
     expect(keys).toEqual([
       "profile.entity_name",
       "profile.industry",
       "profile.incidents_12mo",
-      // DOC 159 (2026-09-03) — § 7123(e)(9)/(10), conditional on an incident.
+      // DOC 159 (2026-09-03) — § 7123(e)(9)/(10); legacy aggregate since 2026-09-16.
       "profile.incident_notifications",
+      "profile.consumer_notice_status",
+      "profile.agency_notice_status",
       "profile.framework",
       "profile.last_audit",
       "profile.in_scope_frameworks",
@@ -70,6 +76,8 @@ describe("INTAKE-4b — contract key/option snapshot (byte-identity guard)", () 
       "profile.prior_audit_scope",
       "profile.remediation_owner",
       "profile.q1_revenue",
+      "profile.q1_revenue_threshold_check",
+      "profile.q1_revenue_reference_year",
       "profile.q2_consumers",
       "profile.q5_sell_share",
       "profile.q5c_share_revenue_50pct",

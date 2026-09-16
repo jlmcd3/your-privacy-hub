@@ -503,7 +503,9 @@ export const ADMT_BLOCK_CATALOGUE: BlockCatalogue = {
       "fixed_text_prefix": null,
       "factor_ids": [],
       "sources": [],
-      "authorities": []
+      "authorities": [
+        "§ 7221(b)(2)(A)"
+      ]
     },
     {
       "block_key": "executive_summary#p8",
@@ -766,7 +768,8 @@ export const ADMT_BLOCK_CATALOGUE: BlockCatalogue = {
       "sources": [],
       "authorities": [
         "§ 7220(c)",
-        "§ 7220(c)(4)"
+        "§ 7220(c)(4)",
+        "§ 7221(b)(2)(A)"
       ]
     },
     {

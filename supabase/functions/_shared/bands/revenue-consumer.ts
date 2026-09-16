@@ -34,15 +34,45 @@ export const REVENUE_BANDS_V2 = [
 ] as const;
 export type RevenueBandV2 = typeof REVENUE_BANDS_V2[number];
 
-// § 1798.140(d)(1)(A) $25M covered-business trigger. Business self-
-// selects into "$25M to under $50M" because their gross revenue exceeds
-// $25M (labels are user-facing bands, not point values).
-export const REVENUE_BAND_APPLICABILITY_A: Record<RevenueBandV2, boolean> = {
+// ── § 1798.140(d)(1)(A) revenue trigger — a DATED record ──────────────────
+// Cyber master review (2026-09-15, F06; lead-engineer reframing): the
+// statutory $25,000,000 figure is adjusted for CPI every odd-numbered year
+// (Civ. Code § 1798.199.95(d)); the CPPA published $26,625,000 effective
+// January 1, 2025 (https://www.cppa.ca.gov/regulations/cpi_adjustment.html,
+// verified 2026-09-16). Encoding the figure in a band label breaks at every
+// adjustment, so the threshold is data with an effective date, and the
+// consumers ask the threshold question against the dated figure.
+export interface CcpaRevenueThreshold {
+  /** ISO date the figure took effect. */
+  readonly effective: string;
+  readonly amount: number;
+  readonly label: string;
+  readonly source: string;
+}
+export const CCPA_REVENUE_THRESHOLDS: readonly CcpaRevenueThreshold[] = [
+  { effective: "2020-01-01", amount: 25_000_000, label: "$25,000,000", source: "Cal. Civ. Code § 1798.140(d)(1)(A) (statutory figure)" },
+  { effective: "2025-01-01", amount: 26_625_000, label: "$26,625,000", source: "CPPA CPI adjustment effective January 1, 2025 — https://www.cppa.ca.gov/regulations/cpi_adjustment.html" },
+];
+/** The threshold in force on an ISO date (default: today). */
+export function ccpaRevenueThresholdOn(isoDate?: string): CcpaRevenueThreshold {
+  const d = isoDate ?? new Date().toISOString().slice(0, 10);
+  let current = CCPA_REVENUE_THRESHOLDS[0];
+  for (const t of CCPA_REVENUE_THRESHOLDS) if (t.effective <= d) current = t;
+  return current;
+}
+/** The threshold a calendar reference year is tested against: the figure in force on January 1 of the following year. */
+export function ccpaRevenueThresholdForYear(referenceYear: number): CcpaRevenueThreshold {
+  return ccpaRevenueThresholdOn(`${referenceYear + 1}-01-01`);
+}
+/** True/false when the whole band clears or fails the current threshold; null when it straddles it. */
+export const REVENUE_BAND_APPLICABILITY_A: Record<RevenueBandV2, boolean | null> = {
   "Under $25M":         false,
-  "$25M to under $50M": true,
+  "$25M to under $50M": null, // straddles the CPI-adjusted figure — resolved by the dated threshold question, never by the band
   "$50M to $100M":      true,
   "Over $100M":         true,
 };
+/** The bands that cannot resolve the trigger on their own. */
+export const REVENUE_BANDS_STRADDLING_A: readonly RevenueBandV2[] = ["$25M to under $50M"];
 
 // § 7121(a) audit-cohort dates. Values are ISO date-only; humanised via
 // the mapping table in the courier.

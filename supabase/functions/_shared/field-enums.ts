@@ -263,8 +263,14 @@ export const FIELD_ENUM_MIRROR: Record<string, readonly string[]> = {
   "cppa_cybersecurity:q15_sensitive_pi": Q15_SENSITIVE_PI_OPTS,
   "cppa_cybersecurity:q15c_spi_volume": SPI_VOLUME_OPTS,
   "cppa_cybersecurity:password_auth_used": CYBER_PASSWORD_AUTH_OPTS,
-  // DOC 159 — § 7123(e)(9)/(10) notification facts.
+  // DOC 159 — § 7123(e)(9)/(10) notification facts (legacy aggregate since 2026-09-16).
   "cppa_cybersecurity:incident_notifications": CYBER_INCIDENT_NOTIFICATION_OPTS,
+  // Cyber master review (2026-09-15/16, F06/F07) — LITERAL COPIES of the
+  // contract lists in intake-contracts/cppa-cybersecurity.ts.
+  "cppa_cybersecurity:incidents_12mo": ["None", "1", "2–5", "More than 5", "Unknown / not yet reviewed"],
+  "cppa_cybersecurity:q1_revenue_threshold_check": ["Yes — above the threshold", "No — at or below the threshold", "Unsure"],
+  "cppa_cybersecurity:consumer_notice_status": ["Notice provided to affected consumers", "Notice required but not yet sent", "No notice was required", "Unsure"],
+  "cppa_cybersecurity:agency_notice_status": ["Notice provided to an agency", "Notice required but not yet sent", "No notice was required", "Unsure"],
 };
 
 export function resolveEnumRef(enumRef: string | null | undefined): readonly string[] | null {

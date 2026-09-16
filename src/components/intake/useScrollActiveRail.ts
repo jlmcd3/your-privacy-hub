@@ -24,7 +24,21 @@ export function useScrollActiveRail(
   useEffect(() => {
     const OFFSET = 200; // px — "active zone" starts this far from the viewport top
 
+    // ADMT F11 / Cyber F02 (2026-09-15): focus and scroll used to race for
+    // the same key, so opening a worked example beside one question showed
+    // the neighbouring question's guidance. While an answer control inside a
+    // tagged question has focus, that question's key wins and the scroll
+    // observer stands down; it resumes on blur.
+    const focusedRailKey = (): string | null => {
+      const ae = document.activeElement as HTMLElement | null;
+      if (!ae || ae === document.body) return null;
+      const tagged = ae.closest<HTMLElement>("[data-rail-key]");
+      return tagged?.getAttribute("data-rail-key") ?? null;
+    };
+
     const compute = () => {
+      const focused = focusedRailKey();
+      if (focused) { setKey(focused); return; }
       const els = Array.from(
         document.querySelectorAll<HTMLElement>("[data-rail-key]"),
       );
@@ -65,9 +79,13 @@ export function useScrollActiveRail(
 
     window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule);
+    document.addEventListener("focusin", schedule);
+    document.addEventListener("focusout", schedule);
     return () => {
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
+      document.removeEventListener("focusin", schedule);
+      document.removeEventListener("focusout", schedule);
       cancelAnimationFrame(raf);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -316,12 +316,10 @@ export function buildRecordSufficiency(intake: Bag, d: CyberDeliverables): Recor
     // record" / "Notification material for the audit report" items in
     // buildRecordCompletionExtras, so the two surfaces cannot disagree on
     // this item again.
-    const incidentCount = profileStr(intake, "incidents_12mo");
-    const hasIncidents = !!incidentCount && !/^none$/i.test(incidentCount);
-    const notif = profileStr(intake, "incident_notifications");
-    if (hasIncidents && (!notif || notif === "Unsure")) {
+    const nf = resolveNotificationFacts(intake);
+    if (nf.open) {
       followUps.push("record whether the reported incident required notification to affected consumers or a California agency, which Section 6 identifies as a record-completion item");
-    } else if (hasIncidents && notif !== "No notification was required") {
+    } else if (nf.material) {
       followUps.push("prepare the notification material for the audit report, which Section 6 identifies as a record-completion item");
     }
   }
@@ -742,6 +740,51 @@ export function buildCrossCutting(intake: Bag, d: CyberDeliverables, recs: reado
 
 // ── Incident context (v1.1 § 5; guardrail i3 — never infer breach facts) ────
 
+/**
+ * Cyber master review (2026-09-15, F07/F17) — the notification facts, resolved
+ * once for every surface. `consumer_notice_status` / `agency_notice_status`
+ * carry the fact; the legacy `incident_notifications` aggregate is read only
+ * where both new answers are absent. Everything is gated on a reported
+ * incident count: a retained answer beside "None" or an unknown count states
+ * nothing.
+ */
+export function resolveNotificationFacts(intake: Bag): {
+  hasIncidents: boolean; countUnknown: boolean;
+  consumersNotified: boolean; agencyNotified: boolean;
+  consumerPending: boolean; agencyPending: boolean;
+  consumerNotRequired: boolean; agencyNotRequired: boolean;
+  /** At least one notification question is unanswered or "Unsure". */
+  open: boolean;
+  /** Notification material (a copy or description) belongs in the audit report. */
+  material: boolean;
+} {
+  const count = profileStr(intake, "incidents_12mo");
+  const countUnknown = /^unknown/i.test(count);
+  const hasIncidents = !!count && !/^none$/i.test(count) && !countUnknown;
+  const notif = profileStr(intake, "incident_notifications");
+  const consumerStatus = profileStr(intake, "consumer_notice_status");
+  const agencyStatus = profileStr(intake, "agency_notice_status");
+  const legacy = !consumerStatus && !agencyStatus;
+  const consumersNotified = hasIncidents && (legacy ? /^Affected consumers were notified|^Both affected consumers/.test(notif) : /^Notice provided/.test(consumerStatus));
+  const agencyNotified = hasIncidents && (legacy ? /^An agency with jurisdiction|^Both affected consumers/.test(notif) : /^Notice provided/.test(agencyStatus));
+  // Older records stored free text in the legacy aggregate; any such value
+  // other than the negative or "Unsure" was, and remains, read as a reported
+  // notification with the recipient unspecified (material for the report).
+  const legacyOtherNotified = hasIncidents && legacy && !!notif && notif !== "Unsure" && notif !== "No notification was required" && !consumersNotified && !agencyNotified;
+  const consumerPending = hasIncidents && /^Notice required but not yet sent/.test(consumerStatus);
+  const agencyPending = hasIncidents && /^Notice required but not yet sent/.test(agencyStatus);
+  const consumerNotRequired = hasIncidents && (legacy ? notif === "No notification was required" : /^No notice was required/.test(consumerStatus));
+  const agencyNotRequired = hasIncidents && (legacy ? notif === "No notification was required" : /^No notice was required/.test(agencyStatus));
+  const consumerOpen = hasIncidents && (legacy ? (!notif || notif === "Unsure") : (!consumerStatus || consumerStatus === "Unsure"));
+  const agencyOpen = hasIncidents && (legacy ? (!notif || notif === "Unsure") : (!agencyStatus || agencyStatus === "Unsure"));
+  return {
+    hasIncidents, countUnknown, consumersNotified, agencyNotified, consumerPending, agencyPending,
+    consumerNotRequired, agencyNotRequired,
+    open: consumerOpen || agencyOpen,
+    material: consumersNotified || agencyNotified || consumerPending || agencyPending || legacyOtherNotified,
+  };
+}
+
 export function buildIncidentReadiness(intake: Bag, d: CyberDeliverables): { analysis: string; follow_up: string } {
   const count = profileStr(intake, "incidents_12mo");
   const c17 = controlRec(intake, "c17_incident");
@@ -761,22 +804,39 @@ export function buildIncidentReadiness(intake: Bag, d: CyberDeliverables): { ana
   // content turn on whether any incident was notified to consumers under
   // Civ. Code § 1798.82(a) or to an agency. The Company's own answer decides
   // what is stated; nothing is inferred from the count (guardrail i3).
-  const hasIncidents = !!count && !/^none$/i.test(count);
+  // Cyber master review (2026-09-15, F17) — every notification sentence is
+  // gated on hasIncidents: a retained notification answer beside a count of
+  // "None" (the form keeps hidden answers) used to print a notice claim next
+  // to a no-incidents statement. An unknown count is neither.
+  const nf = resolveNotificationFacts(intake);
+  const { countUnknown, consumersNotified, agencyNotified, consumerPending, agencyPending, consumerNotRequired, agencyNotRequired } = nf;
+  const notificationOpen = nf.open;
   const notif = profileStr(intake, "incident_notifications");
-  const consumersNotified = /^Affected consumers were notified|^Both affected consumers/.test(notif);
-  const agencyNotified = /^An agency with jurisdiction|^Both affected consumers/.test(notif);
-  const notificationOpen = hasIncidents && (!notif || notif === "Unsure");
-  if (hasIncidents && notif === "No notification was required") {
+  const consumerStatus = profileStr(intake, "consumer_notice_status");
+  const agencyStatus = profileStr(intake, "agency_notice_status");
+  if (countUnknown) {
+    sentences.push("The Company has not yet reviewed its incident register against the 11 CCR § 7123(c)(17)(A) definition, so the count is recorded as unknown; completing that review is a record-completion item.");
+  }
+  if (consumerNotRequired && agencyNotRequired) {
     sentences.push("The Company reports that no reported incident required notification to affected consumers or to an agency, so 11 CCR § 7123(e)(9) and (e)(10) call for no notification material in the audit report on that answer.");
+  } else {
+    if (consumerNotRequired) sentences.push("The Company reports that no reported incident required notification to affected consumers under Civ. Code § 1798.82(a).");
+    if (agencyNotRequired) sentences.push("The Company reports that no reported incident required notification to an agency with jurisdiction over privacy laws in California.");
   }
   if (consumersNotified) {
     sentences.push("The Company reports that affected consumers were notified under Civ. Code § 1798.82(a); 11 CCR § 7123(e)(9) requires the audit report to include a sample copy of the notification, excluding any personal information, or a description of it.");
   }
+  if (consumerPending) {
+    sentences.push("The Company reports that notification to affected consumers under Civ. Code § 1798.82(a) was required and has not yet been sent; 11 CCR § 7123(e)(9) will require the audit report to include a sample copy or a description of that notification once made, and the outstanding notice is itself a matter for the Company's incident-response record.");
+  }
   if (agencyNotified) {
     sentences.push("The Company reports that an agency with jurisdiction over privacy laws in California was notified; 11 CCR § 7123(e)(10) requires the audit report to include a sample copy of the required notification, excluding any personal information, or a description of it together with the dates and details of the activity that gave rise to it and any related remediation measures.");
   }
+  if (agencyPending) {
+    sentences.push("The Company reports that a required notification to an agency with jurisdiction over privacy laws in California has not yet been made; 11 CCR § 7123(e)(10) will require the audit report to include a sample copy or a description of it, with the dates and details of the activity and any related remediation measures, once made.");
+  }
   if (notificationOpen) {
-    sentences.push(notif === "Unsure"
+    sentences.push((consumerStatus === "Unsure" || agencyStatus === "Unsure" || notif === "Unsure")
       ? "The Company is unsure whether any reported incident required notification to affected consumers or to an agency; resolving that is a record-completion item, because 11 CCR § 7123(e)(9) and (e)(10) turn on it."
       : "Whether any reported incident required notification to affected consumers or to an agency is not recorded; 11 CCR § 7123(e)(9) and (e)(10) turn on it, so recording it is a record-completion item.");
   }
@@ -788,8 +848,14 @@ export function buildIncidentReadiness(intake: Bag, d: CyberDeliverables): { ana
   if (consumersNotified || agencyNotified) {
     followUps.push("prepare, for the audit report, the sample copy (personal information excluded) or the description of each notification the Company reports, with the dates, details and remediation measures 11 CCR § 7123(e)(10) requires for an agency notification");
   }
+  if (consumerPending || agencyPending) {
+    followUps.push(`make the notification the Company reports as required but not yet sent${consumerPending && agencyPending ? " to affected consumers and to the agency" : consumerPending ? " to affected consumers" : " to the agency"}, and prepare the sample copy or description for the audit report`);
+  }
   if (notificationOpen) {
     followUps.push("record whether any reported incident required notification to affected consumers (Civ. Code § 1798.82(a)) or to an agency");
+  }
+  if (countUnknown) {
+    followUps.push("review the incident register against the 11 CCR § 7123(c)(17)(A) definition and record the count for the period");
   }
   const follow_up = followUps.length
     ? `The incident-record follow-up is to ${followUps.join("; and to ")}.`
@@ -907,18 +973,22 @@ export function buildRecordCompletionExtras(intake: Bag, d: CyberDeliverables): 
   // DOC 159 — § 7123(e)(9)/(10): the notification answer beside a reported
   // incident, and the audit-report material it calls for.
   {
-    const count = profileStr(intake, "incidents_12mo");
-    const hasIncidents = !!count && !/^none$/i.test(count);
-    const notif = profileStr(intake, "incident_notifications");
-    if (hasIncidents && (!notif || notif === "Unsure")) {
+    const nf = resolveNotificationFacts(intake);
+    if (nf.open) {
       out.push({
         label: "Notification record",
         action: "Record whether any reported incident required notification to affected consumers (Civ. Code § 1798.82(a)) or to an agency with jurisdiction over privacy laws in California; 11 CCR § 7123(e)(9) and (e)(10) turn on it.",
       });
-    } else if (hasIncidents && notif !== "No notification was required") {
+    } else if (nf.material) {
       out.push({
         label: "Notification material for the audit report",
         action: "Prepare the sample copy (personal information excluded) or the description of each notification the Company reports, with the dates, details and remediation measures 11 CCR § 7123(e)(10) requires for an agency notification, for inclusion in the audit report under 11 CCR § 7123(e)(9) and (e)(10).",
+      });
+    }
+    if (nf.countUnknown) {
+      out.push({
+        label: "Incident count",
+        action: "Review the incident register against the 11 CCR § 7123(c)(17)(A) definition of a security incident and record the count for the period.",
       });
     }
   }

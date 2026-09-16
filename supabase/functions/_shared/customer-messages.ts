@@ -304,8 +304,13 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   "profile.entity_name": "entity name",
   "profile.industry": "industry",
   "profile.incidents_12mo": "cybersecurity incidents in the last 12 months",
-  // DOC 159 — § 7123(e)(9)/(10).
+  // DOC 159 — § 7123(e)(9)/(10); legacy aggregate since 2026-09-16.
   "profile.incident_notifications": "breach notifications made for the reported incidents",
+  // Cyber master review (2026-09-15/16, F06/F07).
+  "profile.consumer_notice_status": "whether affected consumers were notified of the reported incidents",
+  "profile.agency_notice_status": "whether an agency was notified of the reported incidents",
+  "profile.q1_revenue_threshold_check": "whether annual gross revenue exceeded the CCPA revenue threshold",
+  "profile.q1_revenue_reference_year": "the calendar year the revenue figure refers to",
   "profile.framework": "cybersecurity framework in use",
   "profile.last_audit": "most recent cybersecurity audit",
   "profile.in_scope_frameworks": "in-scope cybersecurity frameworks",

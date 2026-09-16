@@ -118,8 +118,15 @@ export default function StatuteRail({
 
       {entry.regulationText && (
         <div>
+          {/* ADMT F15 (2026-09-15): only an unbroken quotation is called
+              verbatim. Text carrying an ellipsis is an excerpt; text that
+              begins "Summary of" is a summary written in the product's words. */}
           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
-            Regulation text (verbatim)
+            {/^Summary of/i.test(entry.regulationText)
+              ? "Regulation summary (not a quotation)"
+              : /…|\.\.\./.test(entry.regulationText)
+              ? "Regulation text (excerpt)"
+              : "Regulation text (verbatim)"}
           </p>
           <div className="border-l-2 border-border pl-3">
             <p className="text-[11px] leading-relaxed text-foreground/80 italic whitespace-pre-wrap">
@@ -166,7 +173,7 @@ export default function StatuteRail({
     <div className="flex flex-col items-center justify-center py-8 text-center">
       <BookOpen className="w-8 h-8 text-muted-foreground/40 mb-3" />
       <p className="text-[12px] text-muted-foreground">
-        Focus on a field to see the relevant regulation text, agency reasoning, and enforcement context here.
+        The regulation text, agency reasoning and enforcement context for the question you are answering appear here. A question with no configured legal reference shows this notice; it does not mean the question has no legal basis.
       </p>
     </div>
   );
@@ -174,7 +181,10 @@ export default function StatuteRail({
   return (
     <>
       <aside
-        className={`hidden lg:flex flex-col ${fluid ? "w-full" : "w-[300px] shrink-0 self-stretch"} ${className}`}
+        // Cyber F03 / ADMT F16 (2026-09-15): BenchLayout forms its three
+        // columns at xl; the aside used to appear at lg, so between 1024 and
+        // 1280px it rendered as a block at the foot of the form. One token.
+        className={`hidden xl:flex flex-col ${fluid ? "w-full" : "w-[300px] shrink-0 self-stretch"} ${className}`}
         aria-label="Regulation reference"
       >
         {fluid ? (
@@ -203,10 +213,11 @@ export default function StatuteRail({
       </aside>
 
 
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t shadow-lg">
+      <div className="xl:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t shadow-lg">
         <button
           type="button"
           className="w-full flex items-center justify-between px-4 py-3"
+          aria-expanded={mobileOpen}
           onClick={() => setMobileOpen((o) => !o)}
         >
           <div className="flex items-center gap-2">
@@ -214,6 +225,9 @@ export default function StatuteRail({
             <span className="text-[12px] font-semibold text-[hsl(var(--brand-navy))]">
               {entry ? entry.citation : "Regulation Reference"}
             </span>
+            {entry?.fieldLabel ? (
+              <span className="text-[11px] text-muted-foreground truncate max-w-[55vw]">· {entry.fieldLabel}</span>
+            ) : null}
           </div>
           {mobileOpen ? (
             <ChevronDown className="w-4 h-4 text-muted-foreground" />
@@ -221,7 +235,16 @@ export default function StatuteRail({
             <ChevronUp className="w-4 h-4 text-muted-foreground" />
           )}
         </button>
-        {mobileOpen && <div className="px-4 pb-4 max-h-64 overflow-y-auto border-t">{content}</div>}
+        {mobileOpen && (
+          <div className="px-4 pb-4 max-h-[60vh] overflow-y-auto border-t">
+            <div className="flex justify-end pt-2">
+              <button type="button" className="text-[11px] underline underline-offset-2 text-muted-foreground" onClick={() => setMobileOpen(false)}>
+                Close
+              </button>
+            </div>
+            {content}
+          </div>
+        )}
       </div>
     </>
   );

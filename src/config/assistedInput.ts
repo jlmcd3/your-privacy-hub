@@ -39,6 +39,12 @@ export interface AssistedInputPill {
    * not user-visible.
    */
   keywords?: readonly string[];
+  /**
+   * ADMT F18 (2026-09-15): a negative snippet ("Not currently documented")
+   * that cannot stand beside a positive one. Selecting it removes the other
+   * pills' snippets; selecting a positive pill removes it.
+   */
+  exclusive?: boolean;
 }
 
 export interface AssistedInputFieldConfig {

@@ -1224,7 +1224,9 @@ export const GOLDEN_PANEL_PACK: GoldenPanelPack = {
           "q5_sell_share": "No",
           "q15_sensitive_pi": "No",
           "password_auth_used": "No",
-          "incident_notifications": "No notification was required"
+          "incident_notifications": "No notification was required",
+          "consumer_notice_status": "No notice was required",
+          "agency_notice_status": "No notice was required"
         },
         "controls": [
           {

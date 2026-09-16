@@ -55,6 +55,9 @@ export function incidentPhrase(count: unknown): string {
   if (c === "1") return "one security incident";
   if (c === "2–5") return "two to five security incidents";
   if (c === "More than 5") return "more than five security incidents";
+  // Cyber master review (2026-09-15, F07) — the count may be recorded as not
+  // yet reviewed against the § 7123(c)(17)(A) definition.
+  if (/^unknown/i.test(c)) return "an as-yet-unreviewed number of security incidents";
   return c ? `${c} security incidents` : "";
 }
 

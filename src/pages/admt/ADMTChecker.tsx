@@ -43,7 +43,8 @@ import { intakeGate } from "@/components/intake/intakeGateCopy";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
-import { Req, RequiredLegend } from "@/components/RequiredMark";
+// S17 — the page shadows these with step-aware versions (see inside the component).
+import { Req as RequiredStar, RequiredLegend as RequiredLegendMark } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import { useToolDraft, useAutoRestoreDraft } from "@/hooks/useToolDraft";
 import StatuteRail from "@/components/intake/StatuteRail";
@@ -51,6 +52,19 @@ import { useScrollActiveRail } from "@/components/intake/useScrollActiveRail";
 import { ChoiceRadio } from "@/components/intake/ChoiceRadio";
 import { ChoiceWithOther } from "@/components/intake/ChoiceWithOther";
 import { ADMT_RAIL } from "@/components/admt/admtRailEntries";
+// ADMT master review (2026-09-15, ChatGPT + Claude) — one scope resolver
+// mirrored from the engine (F01), the opt-out path classifier (F06), the
+// honest population-band suggestion (F02), the fleet field-error contract
+// (F14), the complete review model (F08) and the register's copy (S01–S18).
+import { useFieldErrors } from "@/hooks/useFieldErrors";
+import { fail, type StepIssue } from "@/lib/intakeValidation";
+import { resolveAdmtScope } from "@/lib/admtScopeMirror";
+import { isEmploymentException, resolveAdmtOptOutPath, showsOptOutMechanics } from "@/lib/admtOptOutPath";
+import { describeBandSuggestion, suggestPopulationBand } from "@/lib/admtPopulationBand";
+import { buildAdmtReview, type ReviewRow } from "@/lib/admtReview";
+import { ADMT_COPY } from "./admtCopy";
+import { NOTICE_ELEMENT_RAIL, draftHasRecognisedAnswers, normaliseAdmtDraft } from "./admtDraft";
+import { OTHER_OPTION as OPT_OUT_OTHER_OPTION } from "@/components/intake/ChoiceWithOther";
 import type { RailEntry } from "@/components/intake/StatuteRail";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
@@ -168,12 +182,14 @@ const STEP_TITLES: Record<number, string> = {
   5: "Review your answers",
 };
 
+// ADMT master review (2026-09-15, F01/F14) — the rail key and the field-error
+// anchor the page passes are forwarded to the group (they were dropped).
 const Pills = ({
-  options, value, onChange, onFocus,
+  options, value, onChange, onFocus, ...rest
 }: {
   options: string[]; value: string[]; onChange: (v: string[]) => void; onFocus?: () => void;
-}) => (
-  <div className="flex flex-wrap gap-2" onFocus={onFocus}>
+} & Omit<ComponentProps<"div">, "onChange" | "onFocus">) => (
+  <div className="flex flex-wrap gap-2" onFocus={onFocus} {...rest}>
     {options.map((opt) => {
       const checked = value.includes(opt);
       return (
@@ -195,17 +211,21 @@ const Pills = ({
 
 // Progressive disclosure for optional clusters. The value line states, in plain
 // words, what the report does NOT say if the cluster is left closed.
-function OptionalCluster({ title, valueLine, children }: { title: string; valueLine: string; children: React.ReactNode }) {
+// ADMT master review (2026-09-15, S16) — Expand/Collapse with an answer
+// count; collapsing hides the questions and keeps their answers; "optional"
+// is optional for intake completion, not a statement about the legal duty.
+function OptionalCluster({ title, valueLine, answered = 0, children }: { title: string; valueLine: string; answered?: number; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="border-t pt-6 mt-6">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <Label className="text-base font-semibold">{title} <span className="text-xs font-normal text-muted-foreground">(optional)</span></Label>
+          <Label className="text-base font-semibold">{title} <span className="text-xs font-normal text-muted-foreground">(optional for completing the intake)</span></Label>
           <p className="text-xs text-muted-foreground mt-1 max-w-2xl">{valueLine}</p>
+          <p className="text-[11px] text-muted-foreground mt-1">{ADMT_COPY.optionalPanelHint}</p>
         </div>
-        <Button type="button" variant="outline" size="sm" onClick={() => setOpen((o) => !o)}>
-          {open ? "Hide" : `Add ${title.toLowerCase()}`}
+        <Button type="button" variant="outline" size="sm" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+          {open ? "Collapse" : `Expand${answered > 0 ? ` (${answered} answered)` : ""}`}
         </Button>
       </div>
       {open && <div className="mt-4 space-y-4">{children}</div>}
@@ -269,9 +289,8 @@ export default function ADMTChecker() {
   const [admtSystemCount, setAdmtSystemCount] = useState("");
   // TURN 2 — new intake fields
   const [affectedPopulationBand, setAffectedPopulationBand] = useState("");
-  // INTAKE-4c — prefill-only bookkeeping for the affected-population band.
+  // F02 — the band is suggested, never written into the field unconfirmed.
   const [bandTouched, setBandTouched] = useState(false);
-  const [bandPrefilled, setBandPrefilled] = useState(false);
   const [roleRoster, setRoleRoster] = useState<string[]>([]);
   // prior_access_requests_12mo removed (RC-P6): § 7222(j) threshold is framework-level, not per-consumer.
 
@@ -331,192 +350,255 @@ export default function ADMTChecker() {
   const [prefilled, setPrefilled] = useState<Record<string, boolean>>({});
   const markTouched = (k: string) => setPrefillTouched((p) => (p[k] ? p : { ...p, [k]: true }));
   const markPrefilled = (k: string) => setPrefilled((p) => (p[k] ? p : { ...p, [k]: true }));
+  /** ADMT master review (2026-09-15, F02–F05) — a system-filled value the customer has not confirmed or edited. */
+  const isProvisional = (k: string) => !!prefilled[k] && !prefillTouched[k];
+  /** A provisional value is not the customer's answer: it travels blank. */
+  const unlessProvisional = (k: string, v: string) => (isProvisional(k) ? "" : v);
+  /** Keep: the customer adopts the suggested value as their own answer. */
+  const confirmPrefill = (k: string) => markTouched(k);
 
-  const suggestedBand = useMemo(() => {
-    const digits = caConsumerCount.replace(/[^0-9]/g, "");
-    if (!digits) return "";
-    const n = Number(digits);
-    if (!Number.isFinite(n) || n <= 0) return "";
-    if (n < 1000) return "Under 1,000";
-    if (n <= 10000) return "1,000 – 10,000";
-    if (n <= 100000) return "10,001 – 100,000";
-    if (n <= 1000000) return "100,001 – 1,000,000";
-    return "Over 1,000,000";
-  }, [caConsumerCount]);
+  // ADMT master review (2026-09-15, F14) — the fleet field-error contract.
+  const fieldErrors = useFieldErrors();
+  const errAnchor = (k: string) => ({
+    "data-field": k,
+    "aria-invalid": fieldErrors.isInvalid(k) ? true : undefined,
+    onClickCapture: () => fieldErrors.clear(k),
+  });
 
-  useEffect(() => {
-    if (bandTouched || affectedPopulationBand || !suggestedBand) return;
-    setAffectedPopulationBand(suggestedBand);
-    setBandPrefilled(true);
-  }, [suggestedBand, bandTouched, affectedPopulationBand]);
+  // ADMT master review (2026-09-15, F19) — the narrative behind an exhibit
+  // choice is kept in the draft, not in a component ref, so a step change,
+  // a collapsed panel or a reload while the exhibit is selected keeps it.
+  const [exhibitStash, setExhibitStash] = useState<Record<string, string>>({});
+  const stashFor = (k: string) => ({
+    stash: exhibitStash[k] ?? "",
+    onStash: (t: string) => setExhibitStash((s) => ({ ...s, [k]: t })),
+  });
 
-  // adv.hi_reviewer_present — PREFILL ONLY, NEVER MERGE. The human-review
-  // answer in step 1 supplies the same fact; this row stays a question.
-  useEffect(() => {
-    if (prefillTouched.hi_reviewer_present || adv.hi_reviewer_present) return;
-    const map: Record<string, string> = {
-      [HUMAN_REVIEW_OPTIONS[0]]: "Yes — on every decision",
-      [HUMAN_REVIEW_OPTIONS[1]]: "Sometimes / on a subset",
-      [HUMAN_REVIEW_OPTIONS[2]]: "No — fully automated",
-    };
-    const seed = map[humanReview];
+  // ADMT master review (2026-09-15, F17) — a resumed draft that restores no
+  // recognised field says so instead of silently clearing the banner.
+  const [restoreWarning, setRestoreWarning] = useState<string | null>(null);
+  const [noticePreviewOpen, setNoticePreviewOpen] = useState(false);
+
+  // ── ADMT master review (2026-09-15, F02–F05) — THE PROVISIONAL CONVENTION ─
+  // Nothing derived from another answer is written into a field and treated
+  // as the customer's assertion. A suggestion is shown as provisional, an
+  // explicit action adopts it, editing or a Keep action confirms it, and an
+  // unconfirmed suggestion travels blank (unlessProvisional, in the payload).
+  //
+  // F02 — the affected-population band is SUGGESTED from the count; the
+  // parser keeps the estimate intact (no digit-joining, no sign or decimal
+  // stripping) and suggests only when the whole estimate sits in one band.
+  const bandSuggestion = useMemo(() => suggestPopulationBand(caConsumerCount), [caConsumerCount]);
+  const confirmSuggestedBand = () => {
+    if (bandSuggestion.kind !== "band") return;
+    setBandTouched(true);
+    setAffectedPopulationBand(bandSuggestion.band);
+  };
+  // F03 — the coverage question (hi_reviewer_present) is never seeded from
+  // the authority answer (human_review): a reviewer may see every decision
+  // without being able to change any of them. Both stay independent.
+  // F05 — a readiness process sentence is not a consumer explanation; the
+  // customer may start from it, provisionally, by an explicit action.
+  const startDisclosureFromProcess = (field: "accessLogicDisclosure" | "accessOutcomeDisclosure") => {
+    const seed = ((field === "accessLogicDisclosure" ? accessReadiness.b2_logic_process : accessReadiness.b3_outcome_process) || "").trim();
     if (!seed) return;
-    setA("hi_reviewer_present", seed);
-    markPrefilled("hi_reviewer_present");
-  }, [humanReview, adv.hi_reviewer_present, prefillTouched.hi_reviewer_present]);
-
-  // adv.vendor_product — the named third-party system supplies the product name.
+    if (field === "accessLogicDisclosure") setAccessLogicDisclosure(seed); else setAccessOutcomeDisclosure(seed);
+    markPrefilled(field);
+    setPrefillTouched((p) => ({ ...p, [field]: false }));
+  };
+  // F04 — assembled excerpts are previewed and adopted by an explicit action,
+  // labelled as excerpts, provisional until confirmed as the complete notice.
+  const noticeElementsJoined = useMemo(
+    () => Object.values(noticeElementText).map((v) => (v || "").trim()).filter(Boolean).join("\n\n"),
+    [noticeElementText],
+  );
+  const adoptAssembledNotice = () => {
+    if (!noticeElementsJoined) return;
+    setNoticeFullText(noticeElementsJoined);
+    markPrefilled("noticeFullText");
+    setPrefillTouched((p) => ({ ...p, noticeFullText: false }));
+    setNoticePreviewOpen(false);
+  };
+  const noticeElementsNotInFullText = useMemo(() => {
+    if (!noticeFullText.trim()) return [] as string[];
+    return Object.entries(noticeElementText)
+      .filter(([, v]) => (v || "").trim() && !noticeFullText.includes((v || "").trim()))
+      .map(([k]) => k);
+  }, [noticeFullText, noticeElementText]);
+  // vendor_product — the named third-party system supplies a provisional
+  // product name; an exhibit placeholder is never a product name.
   useEffect(() => {
-    if (prefillTouched.vendor_product || adv.vendor_product) return;
+    if (prefillTouched.vendor_product || adv.vendor_product || isExhibit(thirdPartyAdmt)) return;
     const first = thirdPartyAdmt.split("\n").map((s) => s.trim()).filter(Boolean)[0];
     if (!first) return;
     setA("vendor_product", first);
     markPrefilled("vendor_product");
   }, [thirdPartyAdmt, adv.vendor_product, prefillTouched.vendor_product]);
-
-  // accessLogicDisclosure / accessOutcomeDisclosure — the § 7222(b) readiness
-  // answers supply the same facts the disclosure has to carry.
-  useEffect(() => {
-    if (prefillTouched.accessLogicDisclosure || accessLogicDisclosure.trim()) return;
-    const seed = (accessReadiness.b2_logic_process || "").trim();
-    if (!seed) return;
-    setAccessLogicDisclosure(seed);
-    markPrefilled("accessLogicDisclosure");
-  }, [accessReadiness.b2_logic_process, accessLogicDisclosure, prefillTouched.accessLogicDisclosure]);
-
-  useEffect(() => {
-    if (prefillTouched.accessOutcomeDisclosure || accessOutcomeDisclosure.trim()) return;
-    const seed = (accessReadiness.b3_outcome_process || "").trim();
-    if (!seed) return;
-    setAccessOutcomeDisclosure(seed);
-    markPrefilled("accessOutcomeDisclosure");
-  }, [accessReadiness.b3_outcome_process, accessOutcomeDisclosure, prefillTouched.accessOutcomeDisclosure]);
-
-  // noticeFullText — the element-by-element transcription supplies the same
-  // sentences; assembled once as a starting point for confirmation.
-  const noticeElementsJoined = useMemo(
-    () => Object.values(noticeElementText).map((v) => (v || "").trim()).filter(Boolean).join("\n\n"),
-    [noticeElementText],
-  );
-  useEffect(() => {
-    if (prefillTouched.noticeFullText || noticeFullText.trim() || !noticeElementsJoined) return;
-    setNoticeFullText(noticeElementsJoined);
-    markPrefilled("noticeFullText");
-  }, [noticeElementsJoined, noticeFullText, prefillTouched.noticeFullText]);
   // ─────────────────────────────────────────────────────────────────────────
 
-  const provideOptOut =
-    !optOutException.startsWith("Human appeal") &&
-    !optOutException.startsWith("Hiring") &&
-    !optOutException.startsWith("Work allocation");
+  // ADMT master review (2026-09-15, F06) — the opt-out path mirrors the
+  // engine's classifier: "Other" and unrecognised text are UNRESOLVED, never
+  // the full opt-out path. The full-opt-out questions are shown for the full
+  // path and, as optional facts, for an unresolved one.
+  const optOutPath = resolveAdmtOptOutPath(optOutException);
+  const provideOptOut = showsOptOutMechanics(optOutPath);
+  const onEmploymentException = isEmploymentException(optOutPath);
+  const onFullOptOut = optOutPath === "FULL_OPT_OUT";
 
-  // QA batch 2026-09-05 (AD 02) — "None of these categories" is the explicit
-  // negative (DOC 158), not a significant-decision domain. Counting it as one
-  // told an out-of-scope system that Article 11 "appears to apply".
-  const outOfScopeByDomain =
-    decisionDomains.length > 0 && decisionDomains.every((d) => d === ADMT_NONE_DOMAIN);
+  // ADMT master review (2026-09-15, F01) — ONE scope resolver, mirrored from
+  // the engine (tests/edge/run-admt-checker-v2/scope-mirror-parity.test.ts):
+  // four states, facts named, nothing chosen silently.
+  const scope = useMemo(() => resolveAdmtScope({ decisionDomains, humanReview, detail: adv }), [decisionDomains, humanReview, adv]);
+  const dutiesOptional = scope.dutiesMayNotAttach;
   const admtScopeVerdict = useMemo(() => {
-    const hasSignificant = decisionDomains.some((d) => d !== ADMT_NONE_DOMAIN);
-    const answeredHuman = !!humanReview;
-    if (!hasSignificant && !answeredHuman && decisionDomains.length === 0) return null;
-    const humanQualifies =
-      humanReview.startsWith("Yes — reviewer knows") ||
-      (adv.hi_trained === "Yes" && adv.hi_reviews_other_info === "Yes" && adv.hi_authority_override === "Yes");
-    if (!hasSignificant)
-      return { level: "out", title: "Article 11 ADMT obligations may not apply yet",
-        body: "You haven't indicated a significant decision (a provision/denial of financial, housing, education, employment, or healthcare). Advertising and ordinary profiling are excluded. If this system doesn't gate one of those, the ADMT notice/opt-out/access duties may not attach — keep this reasoning on file." } as const;
-    if (humanQualifies)
-      return { level: "out", title: "A qualifying human reviewer appears to be in the loop",
-        body: "Because your reviewer can interpret the output, reviews it with other information, AND can change the outcome before it issues, the system may not “substantially replace” human decisionmaking under § 7001(e). Article 11 may not apply — document this and confirm with counsel. You can stop here." } as const;
-    return { level: "in", title: "Article 11 ADMT obligations appear to apply",
-      body: "Your system makes a significant decision and no qualifying human reviewer overrides it before it issues, so it “substantially replaces” human decisionmaking. You'll need a pre-use notice, an opt-out, and an access process — the remaining steps check each. (Preliminary read; your report confirms it.)" } as const;
-  }, [decisionDomains, humanReview, adv]);
+    const answeredAnything = decisionDomains.length > 0 || !!humanReview || !!adv.solely_advertising;
+    if (!answeredAnything) return null;
+    switch (scope.state) {
+      case "INCONSISTENT_RECORD":
+        return { level: "conflict", title: "Your Step 1 answers conflict — resolve them before the scope finding can be reached", body: scope.contradictions.join(" "), facts: scope.facts } as const;
+      case "NOT_YET_ANSWERED":
+        return { level: "incomplete", title: "Scope not yet determined", body: `${ADMT_COPY.scopeIncomplete} Still needed: ${scope.missing.join("; ")}.`, facts: scope.facts } as const;
+      case "OUT_OF_SCOPE":
+        return {
+          level: "out",
+          title: scope.categoricalNone || scope.clearAdvertisingExclusion || scope.housingExcluded ? ADMT_COPY.scopeNoSignificantDecisionTitle : ADMT_COPY.scopeQualifyingReviewerTitle,
+          body: `${scope.categoricalNone || scope.clearAdvertisingExclusion || scope.housingExcluded
+            ? "On your answers the decision is not a significant decision under § 7001(ddd), so the Article 11 notice, opt-out and access duties may not attach. Steps 2–4 are optional for this system; answer what you actually provide and keep this reasoning on file."
+            : "On your answers a qualifying human reviewer is in the loop before the decision issues, so the system may not \u201csubstantially replace\u201d human decisionmaking under § 7001(e)(1). Steps 2–4 are optional for this system; answer what you actually provide and confirm the position with counsel."}${scope.conditions.length ? ` Condition: ${scope.conditions.join(" ")}` : ""}`,
+          facts: scope.facts,
+        } as const;
+      default:
+        return { level: "in", title: ADMT_COPY.scopeObligationsApplyTitle, body: "On your answers the system makes a significant decision without qualifying human involvement, so it substantially replaces human decisionmaking. The remaining steps check the Pre-use Notice, the opt-out and the access process; your report confirms the position.", facts: scope.facts } as const;
+    }
+  }, [scope, decisionDomains.length, humanReview, adv.solely_advertising]);
 
-  const stepValid = (): string | null => {
+  // S11 — the self-test result has four states, never one blanket sentence.
+  const selfTestState = useMemo((): "hidden" | "incomplete" | "contradiction" | "likely" | "unlikely" => {
+    if (!adv.hi_reviewer_present || String(adv.hi_reviewer_present).startsWith("No")) return "hidden";
+    if (scope.contradictions.some((c) => c.includes("self-test"))) return "contradiction";
+    if (!adv.hi_trained || !adv.hi_reviews_other_info || !adv.hi_authority_override || !adv.hi_stage) return "incomplete";
+    const qualifies = adv.hi_trained === "Yes" && adv.hi_reviews_other_info === "Yes" && adv.hi_authority_override === "Yes" && String(adv.hi_stage).startsWith("Before");
+    return qualifies ? "likely" : "unlikely";
+  }, [adv, scope.contradictions]);
+
+  // S17 — required stars are removed where validation is intentionally
+  // bypassed (Steps 2–4 when the duties may not attach); Step 1 keeps them.
+  const starsSuspended = dutiesOptional && step >= 2 && step <= 4;
+  const Req = () => (starsSuspended ? null : <RequiredStar />);
+  const RequiredLegend = () => (starsSuspended ? null : <RequiredLegendMark />);
+
+  // Step 5 — "Edit" returns to the question and outlines it.
+  const jumpTo = (targetStep: number, key: string) => {
+    setStep(targetStep);
+    setValidationError(null);
+    if (typeof window === "undefined") return;
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        const esc = typeof CSS !== "undefined" && typeof CSS.escape === "function" ? CSS.escape : (s: string) => s.replace(/["\\]/g, "\\$&");
+        const el = document.querySelector<HTMLElement>(`[data-field="${esc(key)}"]`) ?? document.querySelector<HTMLElement>(`[data-rail-key="${esc(key)}"]`);
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+        (el?.querySelector<HTMLElement>("input, textarea, button, [tabindex]") ?? el)?.focus?.({ preventScroll: true });
+      });
+    });
+  };
+
+  // ADMT master review (2026-09-15, F06/F14) — every check names its field
+  // (the summary outlines, scrolls to and focuses it); meaningful-content
+  // checks trim; and a truthful gap never blocks: zero or one opt-out method
+  // is recorded and the report states the § 7221(c) shortfall (the engine
+  // already does), instead of the form demanding an invented method.
+  const stepValid = (): StepIssue | null => {
     if (step === 1) {
-      if (!organizationName.trim()) return "Name the organization running this assessment.";
-      if (!systemName.trim()) return "Name the ADMT system.";
-      if (!systemDescription || systemDescription.length < 30)
-        return "Describe what the system does — at least 30 characters.";
+      if (!organizationName.trim()) return fail("organization_name", "Name the organization running this assessment.");
+      if (!systemName.trim()) return fail("system_name", "Name the ADMT system.");
+      if (systemDescription.trim().length < 30)
+        return fail("system_description", "Describe what the system does — at least 30 characters of description.");
       if (!decisionDomains.length)
-        return "Select the decision domains this system affects — \"None of these categories\" is a complete answer.";
+        return fail("decision_domains", "Select the decision domains this system affects — \"None of these categories\" is a complete answer.");
       // DOC 158 — the explicit negative cannot be combined; Housing carries the
       // § 7001(ddd)(2) follow-up.
       if (decisionDomains.includes(ADMT_NONE_DOMAIN) && decisionDomains.length > 1)
-        return "\"None of these categories\" cannot be combined with a decision domain — select the domain(s) or the negative, not both.";
+        return fail("decision_domains", "\"None of these categories\" cannot be combined with a decision domain — select the domain(s) or the negative, not both.");
       if (decisionDomains.includes(ADMT_HOUSING_DOMAIN) && !adv.housing_decision_basis)
-        return "Answer whether the housing decision is based solely on availability, vacancy, or receipt of payment (§ 7001(ddd)(2)).";
-      if (!humanReview) return "Describe the human review applied to this system's outputs.";
+        return fail("admt_detail.housing_decision_basis", "Answer whether the housing decision is based solely on availability, vacancy, or receipt of payment (§ 7001(ddd)(2)).");
+      if (!humanReview) return fail("human_review", "Describe the human review applied to this system's outputs.");
+      // F01 — a contradictory record is asked to resolve itself, never resolved silently.
+      if (scope.state === "INCONSISTENT_RECORD") {
+        const first = scope.contradictions[0] ?? "Your Step 1 answers conflict; resolve them before continuing.";
+        const key = first.includes("advertising") ? "admt_detail.solely_advertising" : first.includes("self-test") ? "admt_detail.hi_reviewer_present" : "decision_domains";
+        return fail(key, first);
+      }
     }
-    // QA batch 2026-09-05 (AD 02) — Steps 2–4 test the Article 11 notice,
-    // opt-out and access duties. When Step 1 records "None of these
-    // categories" alone, those duties may not attach, so the steps become
-    // optional: nothing is invented to satisfy a validator (the QA pass had
-    // to fabricate a second opt-out method to get past § 7221(c)). Whatever
-    // IS answered still flows to the engine, which records the scope
-    // position on its own terms (DOC 158 categorical negative).
-    if (outOfScopeByDomain && step >= 2 && step <= 4) return null;
+    // F01 — Steps 2–4 test the Article 11 duties. Where the unified scope
+    // result determines that those duties do not attach (the categorical
+    // negative, the housing exclusion, solely advertising, or qualifying
+    // human review), the steps become optional: nothing is invented to
+    // satisfy a validator; whatever IS answered still flows to the engine.
+    if (dutiesOptional && step >= 2 && step <= 4) return null;
     if (step === 2) {
-      if (!noticeDelivery.length) return "Select how the Pre-use Notice reaches consumers.";
+      if (!noticeDelivery.length) return fail("notice_delivery", "Select how the Pre-use Notice reaches consumers — \"We have not yet provided a Pre-use Notice\" is a complete answer.");
       // DOC 158 — § 7220(b)(2) timing, whenever a notice is provided.
       if (!noticeDelivery.includes("We have not yet provided a Pre-use Notice") && !noticeTiming)
-        return "Say when the Pre-use Notice is presented relative to collection and the first ADMT processing (§ 7220(b)(2)).";
-      if (!noticeHasSpecificPurpose) return "Answer whether the notice states a specific purpose.";
+        return fail("notice_timing", "Say when the Pre-use Notice is presented relative to collection and the first ADMT processing (§ 7220(b)(2)).");
+      if (!noticeHasSpecificPurpose) return fail("notice_has_specific_purpose", "Answer whether the notice states a specific purpose.");
       if (noticeHasSpecificPurpose === "Yes" && !noticePurposeText.trim())
-        return "Provide the specific purpose statement as published.";
-      if (!noticeHasOptOutDesc) return "Answer whether the notice describes the opt-out right.";
-      if (!noticeHasAccessDesc) return "Answer whether the notice describes the access right.";
+        return fail("notice_purpose_text", "Provide the specific purpose statement as published.");
+      if (!noticeHasOptOutDesc) return fail("notice_has_opt_out_desc", "Answer whether the notice describes the opt-out right.");
+      if (!noticeHasAccessDesc) return fail("notice_has_access_desc", "Answer whether the notice describes the access right.");
       if (!noticeHasAntiRetaliation)
-        return "Answer whether the notice includes the anti-retaliation statement.";
-      if (!noticeHasHowItWorks) return "Answer whether the notice explains how the ADMT works.";
+        return fail("notice_has_anti_retaliation", "Answer whether the notice includes the anti-retaliation statement.");
+      if (!noticeHasHowItWorks) return fail("notice_has_how_it_works", "Answer whether the notice explains how the ADMT works.");
     }
     if (step === 3) {
       if (!optOutException)
-        return "Select either an opt-out right or the exception relied on.";
-      if (provideOptOut && optOutMethods.length < 2)
-        return "You must provide at least two designated opt-out methods (§ 7221(c)).";
+        return fail("opt_out_exception", "Select either an opt-out right or the exception relied on — \"Other\" is a complete answer when your situation differs.");
+      if (optOutPath === "OTHER_UNRESOLVED" && optOutException === OPT_OUT_OTHER_OPTION && !(adv.opt_out_exception_other || "").trim())
+        return fail("opt_out_exception", "Describe your situation in the box below the options — the report records it as unresolved rather than as an opt-out or an exception.");
       if (
-        provideOptOut &&
+        onFullOptOut &&
         optOutMethods.includes("Interactive online form linked from the Pre-use Notice") &&
         !optOutLinkTitle.trim()
       )
-        return "Give the title of the opt-out link (§ 7221(c)(1)).";
-      if (provideOptOut && !optOutConfirmationMechanism)
-        return "Describe how a consumer confirms an opt-out was processed (§ 7221(h)).";
+        return fail("opt_out_link_title", "Give the title of the opt-out link as it appears in your Pre-use Notice — the report tests the actual title (§ 7221(c)(1)).");
+      if (onFullOptOut && !optOutConfirmationMechanism.trim())
+        return fail("opt_out_confirmation_mechanism", "Describe how a consumer confirms an opt-out was processed — \"Not yet defined\" is a complete answer (§ 7221(h)).");
       // DOC 158 — the handling duties checklist on the full opt-out path.
-      if (provideOptOut && !optOutHandling.length)
-        return "Select the opt-out handling duties you can confirm — \"None of the above can be confirmed\" is a complete answer.";
-      if (optOutException.startsWith("Human appeal") && !optOutAppealProcess.trim())
-        return "Describe the human appeal process (§ 7221(b)(1)).";
-      if ((optOutException.startsWith("Hiring") || optOutException.startsWith("Work")) && !optOutFairnessDoc.trim())
-        return "Describe the non-discrimination testing documentation (§ 7221(b)(2)-(3)).";
+      if (onFullOptOut && !optOutHandling.length)
+        return fail("opt_out_handling_confirmations", "Select the opt-out handling duties you can confirm — \"None of the above can be confirmed\" is a complete answer.");
+      if (optOutPath === "HUMAN_APPEAL_EXCEPTION" && !optOutAppealProcess.trim())
+        return fail("opt_out_appeal_process", "Describe the human appeal process (§ 7221(b)(1)).");
+      if (onEmploymentException && !optOutFairnessDoc.trim())
+        return fail("opt_out_fairness_doc", "Describe the non-discrimination testing you actually hold — \"Not currently documented\" is a complete answer (§ 7221(b)(2)–(3)).");
     }
     if (step === 4) {
-      if (!accessSubmissionMethods.trim()) return "Describe how consumers submit access requests.";
+      if (!accessSubmissionMethods.trim()) return fail("access_submission_methods", "Describe how consumers submit access requests — \"Not yet defined\" is a complete answer.");
       if (!accessVerificationProcess.trim())
-        return "Describe the identity verification applied to access requests.";
-      if (!accessLogicDisclosure.trim())
-        return "Describe the logic information disclosed in access responses.";
-      if (!accessOutcomeDisclosure.trim())
-        return "Describe the outcome information disclosed in access responses.";
-      if (!accessResponseTimeline) return "Select the response timeline.";
-
+        return fail("access_verification_process", "Describe the identity verification applied to access requests — \"Not currently defined\" is a complete answer.");
+      // F05 — a workflow sentence carried over from the readiness answers is
+      // not a consumer explanation until the customer confirms or edits it.
+      if (!unlessProvisional("accessLogicDisclosure", accessLogicDisclosure).trim())
+        return fail("access_logic_disclosure", isProvisional("accessLogicDisclosure") ? "Keep or edit the suggested text before continuing — a copied process sentence is not the consumer explanation until you keep it." : "Describe the logic information disclosed in access responses — say what is missing if you cannot produce it.");
+      if (!unlessProvisional("accessOutcomeDisclosure", accessOutcomeDisclosure).trim())
+        return fail("access_outcome_disclosure", isProvisional("accessOutcomeDisclosure") ? "Keep or edit the suggested text before continuing — a copied process sentence is not the consumer explanation until you keep it." : "Describe the outcome information disclosed in access responses — say what is missing if you cannot produce it.");
+      if (!accessResponseTimeline) return fail("access_response_timeline", "Select the response timeline — \"Our process is not yet defined\" is a complete answer.");
     }
     return null;
   };
 
   const next = () => {
-    const err = stepValid();
-    if (err) {
-      setValidationError(err);
+    const issue = stepValid();
+    if (issue) {
+      setValidationError(issue.message);
+      fieldErrors.show(issue.fields, issue.message);
       return;
     }
     // Mid-intake account gate: stop anonymous visitors one step before review.
     if (!user && step + 1 === totalSteps - 1) { setAuthGateOpen(true); return; }
     setValidationError(null);
+    fieldErrors.clearAll();
     setStep((s) => s + 1);
   };
-  const back = () => { setValidationError(null); setStep((s) => Math.max(1, s - 1)); };
+  const back = () => { setValidationError(null); fieldErrors.clearAll(); setStep((s) => Math.max(1, s - 1)); };
 
 
   const intake = useMemo(
@@ -533,7 +615,8 @@ export default function ADMTChecker() {
       notice_has_specific_purpose: noticeHasSpecificPurpose,
       notice_purpose_text: noticePurposeText,
       notice_element_text: noticeElementText,
-      notice_full_text: noticeFullText,
+      // F04 — assembled excerpts adopted but not yet confirmed are not the published notice.
+      notice_full_text: unlessProvisional("noticeFullText", noticeFullText),
       notice_has_opt_out_desc: noticeHasOptOutDesc,
       notice_has_access_desc: noticeHasAccessDesc,
       notice_has_anti_retaliation: noticeHasAntiRetaliation,
@@ -551,8 +634,9 @@ export default function ADMTChecker() {
       opt_out_fairness_doc: optOutFairnessDoc,
       access_submission_methods: accessSubmissionMethods,
       access_verification_process: accessVerificationProcess,
-      access_logic_disclosure: accessLogicDisclosure,
-      access_outcome_disclosure: accessOutcomeDisclosure,
+      // F05 — a workflow sentence started from the readiness answers is not the explanation until kept.
+      access_logic_disclosure: unlessProvisional("accessLogicDisclosure", accessLogicDisclosure),
+      access_outcome_disclosure: unlessProvisional("accessOutcomeDisclosure", accessOutcomeDisclosure),
       access_response_timeline: accessResponseTimeline,
       access_trade_secret_policy: accessTradeSecretPolicy,
       access_readiness: accessReadiness,
@@ -566,7 +650,8 @@ export default function ADMTChecker() {
       opt_out_15_day_process: optOut15DayProcess,
       // DOC 158 — § 7221(f)/(i)/(j)/(k)/(m) handling duties.
       opt_out_handling_confirmations: optOutHandling,
-      admt_detail: adv,
+      // A carried-over product name is a suggestion until confirmed.
+      admt_detail: isProvisional("vendor_product") ? { ...adv, vendor_product: "" } : adv,
     }),
     [
       organizationName, systemName, systemType, systemDescription, decisionDomains, humanReview,
@@ -579,11 +664,35 @@ export default function ADMTChecker() {
       accessLogicDisclosure, accessOutcomeDisclosure, accessResponseTimeline,
       accessTradeSecretPolicy, accessReadiness,
       caConsumerCount, thirdPartyAdmt, admtSystemCount, affectedPopulationBand, roleRoster, optOut15DayProcess, adv,
-      noticeTiming, optOutHandling,
+      noticeTiming, optOutHandling, prefilled, prefillTouched,
     ],
   );
 
-  const draftData = intake;
+  // F08 — the review flags provisional values and answers on branches the
+  // current path no longer selects (retained, never dropped).
+  const provisionalReviewKeys = useMemo(() => {
+    const s = new Set<string>();
+    if (isProvisional("noticeFullText")) s.add("notice_full_text");
+    if (isProvisional("accessLogicDisclosure")) s.add("access_logic_disclosure");
+    if (isProvisional("accessOutcomeDisclosure")) s.add("access_outcome_disclosure");
+    if (isProvisional("vendor_product")) s.add("admt_detail.vendor_product");
+    return s;
+  }, [prefilled, prefillTouched]);
+  const inactiveReviewKeys = useMemo(() => {
+    const s = new Set<string>();
+    if (optOutPath !== "HUMAN_APPEAL_EXCEPTION") { s.add("opt_out_appeal_process"); for (const k of ["appeal_reviewer_role", "appeal_trained", "appeal_authority_overturn", "appeal_step_count", "appeal_consumer_submit", "appeal_timeline", "appeal_reversal_rate", "appeal_outcomes"]) s.add(`admt_detail.${k}`); }
+    if (!onEmploymentException) { s.add("opt_out_fairness_doc"); for (const k of ["sole_use_attestation", "nondiscrimination_testing", "bias_protected_chars", "bias_proxy_vars", "bias_testing_cadence", "bias_last_test", "bias_next_test", "bias_adverse_impact", "bias_outcome_summary"]) s.add(`admt_detail.${k}`); }
+    if (!provideOptOut) for (const k of ["opt_out_methods", "opt_out_link_title", "opt_out_confirmation_mechanism", "opt_out_15_day_process", "opt_out_handling_confirmations", "opt_out_no_cookie_banner", "opt_out_no_account_required"]) s.add(k);
+    if (!decisionDomains.includes(ADMT_HOUSING_DOMAIN)) s.add("admt_detail.housing_decision_basis");
+    if (noticeDelivery.includes("We have not yet provided a Pre-use Notice")) s.add("notice_timing");
+    return s;
+  }, [optOutPath, onEmploymentException, provideOptOut, decisionDomains, noticeDelivery]);
+  const reviewSections = useMemo(() => buildAdmtReview(intake, { inactiveKeys: inactiveReviewKeys, provisionalKeys: provisionalReviewKeys }), [intake, inactiveReviewKeys, provisionalReviewKeys]);
+  const unansweredReviewRows = useMemo(() => reviewSections.flatMap((sec) => sec.rows.filter((r) => r.state === "unanswered" && !inactiveReviewKeys.has(r.key)).map((r) => ({ ...r, step: sec.step }))), [reviewSections, inactiveReviewKeys]);
+  const exhibitReviewRows = useMemo(() => reviewSections.flatMap((sec) => sec.rows.filter((r) => r.state === "exhibit")), [reviewSections]);
+
+  // F19 — the exhibit narratives travel with the draft (never with the payload).
+  const draftData = useMemo(() => ({ ...intake, exhibit_stash: exhibitStash }), [intake, exhibitStash]);
   const INITIAL_DRAFT = useMemo(
     () =>
       JSON.stringify({
@@ -624,9 +733,20 @@ export default function ADMTChecker() {
     enabled: !!user && touched,
   });
 
+  // F17 — drafts saved before 2026-09-05 (AD 03) used camelCase state names
+  // (organizationName, systemName, …) rather than the payload's snake_case
+  // keys. Resuming one restored nothing and dismissed the banner — the
+  // "visible Step 1 blank" observation. Legacy keys are mapped, and a draft
+  // that yields no recognised field is reported, not discarded.
   const applyRestore = () => {
-    const d = restoreData as Record<string, any> | null;
-    if (!d) return;
+    const raw = restoreData as Record<string, any> | null;
+    if (!raw) return;
+    const d = normaliseAdmtDraft(raw) as Record<string, any>;
+    if (!draftHasRecognisedAnswers(d)) {
+      setRestoreWarning("This saved draft contains no answers this form recognises, so nothing was restored. The draft has been kept unchanged; if you expected answers here, do not discard it — contact support and mention the saved-draft date shown above.");
+      return;
+    }
+    setRestoreWarning(null);
     // INTAKE-4c — a restored draft carries the customer's own answers on every
     // prefill row, so the prefill must never overwrite them.
     setBandTouched(true);
@@ -637,6 +757,7 @@ export default function ADMTChecker() {
       accessOutcomeDisclosure: true,
       noticeFullText: true,
     });
+    if (d.exhibit_stash && typeof d.exhibit_stash === "object") setExhibitStash(d.exhibit_stash as Record<string, string>);
     if (typeof d.organization_name === "string") setOrganizationName(d.organization_name);
     if (typeof d.system_name === "string") setSystemName(d.system_name);
     if (typeof d.system_type === "string") setSystemType(d.system_type);
@@ -777,7 +898,7 @@ export default function ADMTChecker() {
           {
             title: "Does the ADMT rule apply to you?",
             tone: "amber",
-            body: "If you use automated decision-making for significant decisions such as hiring, lending, housing, or healthcare, California's pre-use notice, opt-out, and risk-assessment duties begin Jan. 1, 2027.",
+            body: ADMT_COPY.applicabilityCard,
           },
           {
             title: "What you receive",
@@ -843,6 +964,11 @@ export default function ADMTChecker() {
             </div>
           </div>
         )}
+        {restoreWarning && (
+          <div role="alert" data-testid="admt-restore-warning" className="border-l-4 border-amber-400 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-r text-sm text-amber-900 dark:text-amber-200 mb-4">
+            {restoreWarning}
+          </div>
+        )}
 
         <IntakeMasthead
           kicker="CPPA ADMT · 11 CCR Article 11 (§§ 7200–7222)"
@@ -889,27 +1015,25 @@ export default function ADMTChecker() {
               {step === 1 && (
                 <>
                  <h2 className="font-serif text-xl">Step 1 · Does the ADMT law apply to you?</h2>
-                 <p className="text-sm text-muted-foreground mt-1"><span className="font-semibold text-foreground">What we're checking:</span> whether this system makes a <em>significant decision</em> with no meaningful human involvement — the two things that trigger California's ADMT rules.</p>
+                 <p className="text-sm text-muted-foreground mt-1"><span className="font-semibold text-foreground">What we're checking:</span> {ADMT_COPY.step1Intro}</p>
                  <p className="text-[10px] font-mono text-muted-foreground/70 mt-1">11 CCR §§ 7001(e), 7001(ddd), 7200(a)</p>
                  <p className="text-sm text-foreground/80 mt-2 italic">This stage produces the applicability determination at the front of your report — the finding that decides whether every obligation in §§ 7220–7222 reaches this system at all.</p>
 
                   <RequiredLegend />
-                  <p className="text-sm text-muted-foreground">
-                    Complete one assessment per ADMT system. If you use multiple ADMT systems for significant decisions, run the checker once per system. Each system requires its own pre-use notice, opt-out mechanism, and access right process.
-                  </p>
+                  <p className="text-sm text-muted-foreground">{ADMT_COPY.oneSystemInstruction}</p>
 
                   <details className="rounded-md border bg-muted/20 p-4">
-                    <summary className="cursor-pointer text-sm font-medium select-none">See a worked example (a loan-approval engine)</summary>
+                    <summary className="cursor-pointer text-sm font-medium select-none">See a fictional example (a loan-approval engine) <span className="ml-2 inline-block rounded border px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground align-middle">{ADMT_COPY.workedExampleLabel} — not a template</span></summary>
                     <div className="mt-3 space-y-2 text-[13px] text-muted-foreground leading-relaxed">
                       <p><span className="font-medium text-foreground">Organization:</span> Acme Lending, Inc.</p>
                       <p><span className="font-medium text-foreground">System:</span> "ScoreEngine v3.2" — a gradient-boosted model that scores consumer loan applications 0–100 from credit history, income, and debt-to-income ratio.</p>
                       <p><span className="font-medium text-foreground">Significant decision:</span> financial / lending services — the score gates loan approval or denial.</p>
                       <p><span className="font-medium text-foreground">Human review:</span> applications scoring under 40 are auto-declined with no one able to override before the decision issues — so there is no meaningful human involvement, and the ADMT rules apply.</p>
-                      <p className="italic">The field examples throughout this form refer back to this scenario.</p>
+                      <p className="italic">{ADMT_COPY.workedExampleClosing}</p>
                     </div>
                   </details>
 
-                  <div>
+                  <div data-rail-key="organization_name" onFocus={() => focus("organization_name")} {...errAnchor("organization_name")}>
                     <Label>
                       Which organization is running this assessment? <Req />
                     </Label>
@@ -924,7 +1048,7 @@ export default function ADMTChecker() {
                     />
                   </div>
 
-                  <div>
+                  <div {...errAnchor("system_name")}>
                     <Label data-rail-key="scope_does_business_use_admt" onFocus={() => focus("scope_does_business_use_admt")}>
                       System name <Req />
                     </Label>
@@ -937,7 +1061,7 @@ export default function ADMTChecker() {
                     />
                   </div>
 
-                  <div>
+                  <div data-rail-key="system_type" onFocus={() => focus("system_type")}>
                     <Label>System type (optional)</Label>
                     <input
                       className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
@@ -947,8 +1071,8 @@ export default function ADMTChecker() {
                     />
                   </div>
 
-                  <div>
-                    <Label data-rail-key="scope_does_business_use_admt" onFocus={() => focus("scope_does_business_use_admt")}>
+                  <div {...errAnchor("system_description")}>
+                    <Label data-rail-key="system_decision_detail" onFocus={() => focus("system_decision_detail")}>
                       What does this system decide, and how? <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -959,12 +1083,12 @@ export default function ADMTChecker() {
                       rows={4}
                       value={systemDescription}
                       onChange={(e) => setSystemDescription(e.target.value)}
-                      data-rail-key="scope_does_business_use_admt" onFocus={() => focus("scope_does_business_use_admt")}
+                      data-rail-key="system_decision_detail" onFocus={() => focus("system_decision_detail")}
                       placeholder="Two or three sentences"
                     />
                   </div>
 
-                  <div>
+                  <div data-rail-key="third_party_admt" onFocus={() => focus("third_party_admt")}>
                     <Label>
                       Are you using any third-party tools or APIs that make, or materially contribute to, this decision? <span className="text-xs text-muted-foreground font-normal">(optional)</span>
                     </Label>
@@ -976,6 +1100,7 @@ export default function ADMTChecker() {
                       rows={2}
                       value={thirdPartyAdmt}
                       onChange={setThirdPartyAdmt}
+                      {...stashFor("third_party_admt")}
                       placeholder="One system per line"
                     />
                   </div>
@@ -1029,10 +1154,11 @@ export default function ADMTChecker() {
                   )}
 
                   <OptionalCluster
+                    answered={[caConsumerCount, admtSystemCount, affectedPopulationBand].filter((v) => v.trim()).length + (roleRoster.length ? 1 : 0)}
                     title="Scale and internal ownership"
                     valueLine="Left closed, the report sizes your exposure as unstated and names no internal owner for this system; nothing is inferred on your behalf."
                   >
-                    <div>
+                    <div data-rail-key="ca_consumer_count" onFocus={() => focus("ca_consumer_count")}>
                       <Label>Approximate number of California consumers this system makes decisions about each year</Label>
                       <p className="text-xs text-muted-foreground mt-1">
                         Sizes the exposure the report describes. A range is fine.
@@ -1043,9 +1169,17 @@ export default function ADMTChecker() {
                         onChange={(e) => setCaConsumerCount(e.target.value)}
                         placeholder="A number or a range"
                       />
+                      {bandSuggestion.kind !== "none" && (
+                        <p className="text-[11px] text-muted-foreground mt-1" data-testid="admt-band-suggestion" data-kind={bandSuggestion.kind}>
+                          {describeBandSuggestion(bandSuggestion)}
+                          {bandSuggestion.kind === "band" && affectedPopulationBand !== bandSuggestion.band && (
+                            <> <button type="button" className="underline" onClick={confirmSuggestedBand}>Use this band</button></>
+                          )}
+                        </p>
+                      )}
                     </div>
 
-                    <div>
+                    <div data-rail-key="admt_system_count" onFocus={() => focus("admt_system_count")}>
                       <Label>How many distinct ADMT systems does your business run for significant decisions?</Label>
                       <p className="text-xs text-muted-foreground mt-1">
                         More than one system may let you publish a single consolidated pre-use notice under § 7220(e) instead of one per system.
@@ -1058,16 +1192,16 @@ export default function ADMTChecker() {
                       />
                     </div>
 
-                    {/* INTAKE-4c — PREFILL ONLY, NEVER MERGE. This stays its own
-                        question with its own key and options; the consumer-count
-                        answer above only suggests a band. */}
+                    {/* F02 — its own question with its own key and options; the
+                        consumer-count answer above only SUGGESTS a band, and the
+                        suggestion enters this field only by the customer's action. */}
                     <div data-rail-key="affected_population_band" onFocus={() => focus("affected_population_band")}>
                       <Label data-rail-key="affected_population_band" onFocus={() => focus("affected_population_band")}>How many Californians does this system reach? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(3)(D))</span></Label>
-                      {bandPrefilled && !bandTouched ? (
-                        <p className="text-xs text-muted-foreground mt-1">We have suggested a band from the consumer count you gave above. Confirm it or pick another. Why we ask: § 7152(a)(3)(D) asks the assessment to state the number of consumers whose information is processed, and the report uses this band wherever it describes reach.</p>
-                      ) : (
-                        <p className="text-xs text-muted-foreground mt-1">Pick the band the report should use when it describes how many Californians this system reaches. Why we ask: § 7152(a)(3)(D) asks the assessment to state the number of consumers whose information is processed.</p>
-                      )}
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Pick the band the report should use when it describes how many Californians this system reaches.
+                        {bandSuggestion.kind === "band" && !affectedPopulationBand ? ` Your estimate above sits in the "${bandSuggestion.band}" band; select it or another.` : bandSuggestion.kind === "cross-band" ? " Your estimate above spans more than one band, so no band is suggested; select the one the report should use." : ""}
+                        {" "}Why we ask: § 7152(a)(3)(D) asks the assessment to state the number of consumers whose information is processed, and the report uses this band wherever it describes reach.
+                      </p>
                       <div className="mt-2">
                         <Pills
                           options={ADMT_AFFECTED_POPULATION_BAND_OPTS}
@@ -1097,7 +1231,7 @@ export default function ADMTChecker() {
 
 
 
-                  <div>
+                  <div {...errAnchor("decision_domains")}>
                     <Label data-rail-key="scope_significant_decision_domain" onFocus={() => focus("scope_significant_decision_domain")}>
                       What significant decision(s) does this system make? <DefPopover termKey="significant_decision" /> <Req />
                     </Label>
@@ -1122,7 +1256,7 @@ export default function ADMTChecker() {
 
                   {/* DOC 158 — § 7001(ddd)(2) housing exclusion, asked only when Housing is selected. */}
                   {decisionDomains.includes(ADMT_HOUSING_DOMAIN) && (
-                    <div data-rail-key="scope_significant_decision_domain" onFocus={() => focus("scope_significant_decision_domain")}>
+                    <div data-rail-key="housing_decision_basis" onFocus={() => focus("housing_decision_basis")} {...errAnchor("admt_detail.housing_decision_basis")}>
                       <Label className="text-[12px]">Is the housing decision based solely on the availability or vacancy of the housing, or on the successful receipt of payment for it? <Req /> <span className="text-[11px] text-muted-foreground font-mono">(§ 7001(ddd)(2))</span></Label>
                       <p className="text-[11px] text-muted-foreground">Under § 7001(ddd)(2), "the use of ADMT that provides or denies housing to a consumer based solely on the availability or vacancy of the housing or the successful receipt of payment for housing from the consumer is not making a significant decision."</p>
                       <div className="mt-1"><Radio name="housing_basis" options={[...ADMT_HOUSING_DECISION_BASIS_OPTS]} value={adv.housing_decision_basis || ""} onChange={(v) => setA("housing_decision_basis", v)} /></div>
@@ -1134,7 +1268,7 @@ export default function ADMTChecker() {
                     <div>
                       <Label className="text-[12px]">Vendor / product name &amp; version</Label>
                       {prefilled.vendor_product && !prefillTouched.vendor_product && (
-                        <p className="text-[11px] text-muted-foreground">Carried over from the third-party system you named. Confirm or correct it.</p>
+                        <p className="text-[11px] text-muted-foreground" data-testid="admt-vendor-provisional">Suggested from the third-party system you named — not yet part of your answers. Edit it, or <button type="button" className="underline" onClick={() => confirmPrefill("vendor_product")}>keep it as the product name</button>.</p>
                       )}
                       <input className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm" value={adv.vendor_product || ""} onChange={(e) => { markTouched("vendor_product"); setA("vendor_product", e.target.value); }} placeholder="Product name and version" />
                     </div>
@@ -1169,14 +1303,14 @@ export default function ADMTChecker() {
                       <p className="text-[11px] text-muted-foreground">Why we ask: § 7222(b) requires the access response to explain how the output was used, and an output reused downstream widens what you have to disclose.</p>
                       <div className="mt-1"><Radio name="adv_future" options={ADMT_YES_NO_UNSURE_OPTS} value={adv.feeds_future_decisions || ""} onChange={(v) => setA("feeds_future_decisions", v)} /></div>
                     </div>
-                    <div>
+                    <div {...errAnchor("admt_detail.solely_advertising")}>
                       <Label className="text-[12px]">Is this system used solely for advertising?</Label>
                       <p className="text-[11px] text-muted-foreground">Advertising is excluded from "significant decision" — a Yes here means Article 11 ADMT obligations do not attach.</p>
                       <div className="mt-1"><Radio name="adv_ads" options={ADMT_SOLELY_ADVERTISING_OPTS} value={adv.solely_advertising || ""} onChange={(v) => setA("solely_advertising", v)} /></div>
                     </div>
                   </div>
 
-                  <div>
+                  <div {...errAnchor("human_review")}>
                     <Label data-rail-key="scope_human_involvement" onFocus={() => focus("scope_human_involvement")}>
                       Human review of system outputs <Req />
                     </Label>
@@ -1194,18 +1328,16 @@ export default function ADMTChecker() {
                     </div>
                   </div>
 
-                  <div className="rounded-md border bg-muted/20 p-4 space-y-3" data-rail-key="scope_human_involvement" onFocus={() => focus("scope_human_involvement")}>
+                  <div className="rounded-md border bg-muted/20 p-4 space-y-3" data-rail-key="human_involvement_self_test" onFocus={() => focus("human_involvement_self_test")}>
                     <p className="text-[11px] italic text-muted-foreground">You're seeing this because how much a human is involved decides whether the law applies at all — it's worth a moment.</p>
                     <p className="text-[12px] font-semibold">Human-involvement self-test (§ 7001(e)(1))</p>
                     <p className="text-[12px] text-muted-foreground">This is the gate for the entire regime: if a qualifying human is in the loop, the system does not "substantially replace" human decisionmaking and Article 11 obligations may not attach.</p>
-                    {/* INTAKE-4c — PREFILL ONLY, NEVER MERGE: this row keeps its
-                        own key and options; the step-1 human-review answer only
-                        seeds it for confirmation. */}
-                    <div>
-                      <Label className="text-[12px]">Is a human reviewer involved in the decision?</Label>
-                      {prefilled.hi_reviewer_present && !prefillTouched.hi_reviewer_present && (
-                        <p className="text-[11px] text-muted-foreground">Carried over from your human-review answer above. Confirm it or change it.</p>
-                      )}
+                    {/* F03 — this coverage question is never seeded from the
+                        authority answer above: a reviewer may see every decision
+                        without being able to change any of them. */}
+                    <div {...errAnchor("admt_detail.hi_reviewer_present")}>
+                      <Label className="text-[12px]">How many of this system's decisions does a human reviewer actually look at?</Label>
+                      <p className="text-[11px] text-muted-foreground">Answer this on its own. The question above asks what the reviewer is able to do; this one asks how many decisions are reviewed at all. "Sometimes / on a subset" means the decisions no one reviews are made by the ADMT alone.</p>
                       <div className="mt-1"><Radio name="hi_present" options={["Yes — on every decision", "Sometimes / on a subset", "No — fully automated"]} value={adv.hi_reviewer_present || ""} onChange={(v) => { markTouched("hi_reviewer_present"); setA("hi_reviewer_present", v); }} /></div>
                     </div>
                     {adv.hi_reviewer_present && !adv.hi_reviewer_present.startsWith("No") && (
@@ -1237,11 +1369,13 @@ export default function ADMTChecker() {
                           <Label className="text-[12px]">Actual override rate, last 12 months (optional)</Label>
                           <input className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm" value={adv.hi_override_rate || ""} onChange={(e) => setA("hi_override_rate", e.target.value)} placeholder="e.g. 8%" />
                         </div>
-                        {adv.hi_reviewer_present && (
-                          <div className={`p-3 rounded text-[12px] ${adv.hi_trained === "Yes" && adv.hi_reviews_other_info === "Yes" && adv.hi_authority_override === "Yes" && (adv.hi_stage || "").startsWith("Before") ? "bg-green-50 border border-green-200 text-green-900 dark:bg-green-950/20 dark:text-green-200" : "bg-amber-50 border border-amber-200 text-amber-900 dark:bg-amber-950/20 dark:text-amber-200"}`}>
-                            {adv.hi_trained === "Yes" && adv.hi_reviews_other_info === "Yes" && adv.hi_authority_override === "Yes" && (adv.hi_stage || "").startsWith("Before")
-                              ? "Based on your answers, this likely qualifies as human involvement under § 7001(e)(1) — the system may not 'substantially replace' human decisionmaking, so Article 11 ADMT obligations may not attach. Confirm with counsel."
-                              : "Based on your answers, this likely does NOT qualify as human involvement under § 7001(e)(1) — all three elements (interpret, review-plus-other-info, authority-to-change) must be present and applied before the decision. Article 11 obligations (notice, opt-out, access) therefore apply."}
+                        {selfTestState !== "hidden" && (
+                          <div data-testid="admt-self-test-result" data-state={selfTestState} className={`p-3 rounded text-[12px] ${selfTestState === "likely" ? "bg-green-50 border border-green-200 text-green-900 dark:bg-green-950/20 dark:text-green-200" : selfTestState === "contradiction" ? "bg-red-50 border border-red-200 text-red-900 dark:bg-red-950/20 dark:text-red-200" : selfTestState === "incomplete" ? "bg-muted border text-muted-foreground" : "bg-amber-50 border border-amber-200 text-amber-900 dark:bg-amber-950/20 dark:text-amber-200"}`}>
+                            {selfTestState === "incomplete" ? ADMT_COPY.scopeIncomplete
+                              : selfTestState === "contradiction" ? (scope.contradictions.find((c) => c.includes("self-test")) ?? ADMT_COPY.scopeContradiction)
+                              : selfTestState === "likely" ? ADMT_COPY.humanInvolvementLikely
+                              : ADMT_COPY.humanInvolvementUnlikely}
+                            {selfTestState === "likely" && String(adv.hi_reviewer_present).startsWith("Sometimes") ? " Review covers only a subset of decisions; the decisions no one reviews remain ADMT and the Article 11 duties apply to them." : ""}
                           </div>
                         )}
                       </>
@@ -1249,10 +1383,15 @@ export default function ADMTChecker() {
                   </div>
 
                   {admtScopeVerdict && (
-                    <div className={`rounded-md border p-4 ${admtScopeVerdict.level === "in" ? "border-cobalt/40 bg-[hsl(var(--cobalt)/0.06)]" : "border-emerald-300 bg-emerald-50/60 dark:bg-emerald-950/20"}`}>
+                    <div data-testid="admt-scope-banner" data-level={admtScopeVerdict.level} className={`rounded-md border p-4 ${admtScopeVerdict.level === "in" ? "border-cobalt/40 bg-[hsl(var(--cobalt)/0.06)]" : admtScopeVerdict.level === "out" ? "border-emerald-300 bg-emerald-50/60 dark:bg-emerald-950/20" : admtScopeVerdict.level === "conflict" ? "border-red-300 bg-red-50/60 dark:bg-red-950/20" : "border-amber-300 bg-amber-50/60 dark:bg-amber-950/20"}`}>
                       <p className="text-sm font-semibold">{admtScopeVerdict.title}</p>
                       <p className="text-[13px] text-muted-foreground mt-1 leading-relaxed">{admtScopeVerdict.body}</p>
-                      <p className="text-[11px] text-muted-foreground mt-2 italic">This is a preliminary, on-screen read of scope. Your generated report contains the authoritative, regulation-cited determination.</p>
+                      {admtScopeVerdict.facts.length > 0 && (
+                        <ul className="mt-2 list-disc pl-5 text-[12px] text-muted-foreground space-y-0.5">
+                          {admtScopeVerdict.facts.map((f) => <li key={f}>{f}</li>)}
+                        </ul>
+                      )}
+                      <p className="text-[11px] text-muted-foreground mt-2 italic">{ADMT_COPY.scopeFooter}</p>
                     </div>
                   )}
 
@@ -1260,11 +1399,9 @@ export default function ADMTChecker() {
                     <p className="text-[12px] font-semibold text-amber-800 dark:text-amber-300 mb-2">
                       Additional risk assessment triggers (§ 7150)
                     </p>
-                    <p className="text-[12px] text-muted-foreground mb-3">
-                      A risk assessment is required not only when using ADMT for significant decisions, but also if you use personal information to train ADMT, or use automated processing for profiling. Answer these to ensure your risk assessment scope is complete.
-                    </p>
+                    <p className="text-[12px] text-muted-foreground mb-3">{ADMT_COPY.riskTriggersIntro}</p>
                     <div className="space-y-3">
-                      <div>
+                      <div data-rail-key="training_data_use" onFocus={() => focus("training_data_use")}>
                         <Label className="text-[12px]">Do you use personal information to train any automated decision system?</Label>
                         <p className="text-[11px] text-muted-foreground">Why we ask: § 7150(b)(6) makes processing personal information to train ADMT for a significant decision (or facial-, emotion-, identity-verification, or physical/biological identification technology) a risk-assessment trigger on its own, even where no significant decision is made; § 7153 separately obliges a business that makes ADMT available to another business to give it the facts its risk assessment needs.</p>
                         <div className="mt-1">
@@ -1273,11 +1410,11 @@ export default function ADMTChecker() {
                             options={["Yes", "No"]}
                             value={trainingDataUse}
                             onChange={setTrainingDataUse}
-                            data-rail-key="scope_does_business_use_admt" onFocus={() => focus("scope_does_business_use_admt")}
+                            data-rail-key="training_data_use" onFocus={() => focus("training_data_use")}
                           />
                         </div>
                       </div>
-                      <div>
+                      <div data-rail-key="profiling_use" onFocus={() => focus("profiling_use")}>
                         <Label className="text-[12px]">Do you use automated processing to profile consumers (predict behavior, preferences, or characteristics) even without making a 'significant decision'?</Label>
                         <div className="mt-1">
                           <Radio
@@ -1285,7 +1422,7 @@ export default function ADMTChecker() {
                             options={["Yes", "No"]}
                             value={profilingUse}
                             onChange={setProfilingUse}
-                            data-rail-key="scope_does_business_use_admt" onFocus={() => focus("scope_does_business_use_admt")}
+                            data-rail-key="profiling_use" onFocus={() => focus("profiling_use")}
                           />
                         </div>
                       </div>
@@ -1294,9 +1431,12 @@ export default function ADMTChecker() {
                 </>
               )}
 
-              {outOfScopeByDomain && step >= 2 && step <= 4 && (
-                <div className="mb-4 border-l-4 border-amber-400 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-r text-sm text-amber-900 dark:text-amber-200">
-                  <span className="font-semibold">Optional for this system.</span> In Step 1 you recorded that the decision falls in none of the § 7001(ddd) categories, so the Article 11 notice, opt-out and access duties this step checks may not attach. Answer only what you actually provide — leave the rest blank and continue; the report records the scope position from your Step 1 answer.
+              {dutiesOptional && step >= 2 && step <= 4 && (
+                <div className="mb-4 border-l-4 border-amber-400 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-r text-sm text-amber-900 dark:text-amber-200" data-testid="admt-partial-scope-banner">
+                  <span className="font-semibold">Optional for this system.</span> {ADMT_COPY.partialScopeBanner}
+                  {scope.facts.length > 0 && (
+                    <ul className="mt-1 list-disc pl-5 text-[12px] space-y-0.5">{scope.facts.map((f) => <li key={f}>{f}</li>)}</ul>
+                  )}
                 </div>
               )}
               {step === 2 && (
@@ -1304,31 +1444,29 @@ export default function ADMTChecker() {
                  <h2 className="font-serif text-xl">Step 2 · Do people get the right heads-up?</h2>
                  <p className="text-sm text-muted-foreground mt-1"><span className="font-semibold text-foreground">What we're checking:</span> before you use ADMT for a significant decision, you must tell people — in specific terms, at or before you use it — what it does and how to opt out.</p>
                  <p className="text-[10px] font-mono text-muted-foreground/70 mt-1">11 CCR §§ 7220(b)–(c)</p>
-                 <p className="text-sm text-foreground/80 mt-2 italic">This stage produces the pre-use notice section of your report — an element-by-element test of what you publish against the six things § 7220(c) requires it to say.</p>
+                 <p className="text-sm text-foreground/80 mt-2 italic">{ADMT_COPY.step2ElementsIntro}</p>
 
                   <RequiredLegend />
-                  <p className="text-sm text-muted-foreground">
-                    The Pre-use Notice must be provided prominently at or before the point you collect PI for ADMT use (§ 7220(b)). If you've already collected the PI for another purpose and now plan to use ADMT, you must provide the notice before starting ADMT processing.
-                  </p>
+                  <p className="text-sm text-muted-foreground">{ADMT_COPY.step2TimingIntro}</p>
 
-                  <div>
-                    <Label data-rail-key="notice_timing" onFocus={() => focus("notice_timing")}>
+                  <div {...errAnchor("notice_delivery")}>
+                    <Label data-rail-key="notice_delivery" onFocus={() => focus("notice_delivery")}>
                       How do you deliver the Pre-use Notice to consumers? <Req />
                     </Label>
-                    <p className="text-xs text-muted-foreground mt-1">Select all methods used.</p>
+                    <p className="text-xs text-muted-foreground mt-1">Select all methods used. "We have not yet provided a Pre-use Notice" is a complete answer.</p>
                     <div className="mt-2">
                       <Pills
                         options={NOTICE_DELIVERY_OPTIONS}
                         value={noticeDelivery}
                         onChange={handleNoticeDeliveryChange}
-                        data-rail-key="notice_timing" onFocus={() => focus("notice_timing")}
+                        data-rail-key="notice_delivery" onFocus={() => focus("notice_delivery")}
                       />
                     </div>
                   </div>
 
                   {/* DOC 158 — § 7220(b)(2) timing (never asked before). */}
                   {!noticeDelivery.includes("We have not yet provided a Pre-use Notice") && (
-                    <div data-rail-key="notice_timing" onFocus={() => focus("notice_timing")}>
+                    <div data-rail-key="notice_timing" onFocus={() => focus("notice_timing")} {...errAnchor("notice_timing")}>
                       <Label data-rail-key="notice_timing" onFocus={() => focus("notice_timing")}>
                         When is the Pre-use Notice presented? <Req />
                       </Label>
@@ -1338,7 +1476,7 @@ export default function ADMTChecker() {
                       </div>
                     </div>
                   )}
-                  <div>
+                  <div {...errAnchor("notice_has_specific_purpose")}>
                     <Label data-rail-key="notice_specific_purpose" onFocus={() => focus("notice_specific_purpose")}>
                       Does your Pre-use Notice state the specific purpose for ADMT use in plain language? <Req />
                     </Label>
@@ -1355,7 +1493,7 @@ export default function ADMTChecker() {
                       />
                     </div>
                     {noticeHasSpecificPurpose === "Yes" && (
-                      <div className="mt-3">
+                      <div className="mt-3" {...errAnchor("notice_purpose_text")}>
                         <Label className="text-[12px]">Paste your specific purpose statement as it appears in the notice:</Label>
                         <Textarea
                           className="mt-1"
@@ -1376,9 +1514,9 @@ export default function ADMTChecker() {
                     <Label className="text-[12px] font-semibold" data-rail-key="notice_full_text" onFocus={() => focus("notice_full_text")}>
                       Paste your published Pre-use Notice in full
                     </Label>
-                    {prefilled.noticeFullText && !prefillTouched.noticeFullText ? (
-                      <p className="text-xs text-muted-foreground mt-1 mb-2">
-                        We have assembled this from the elements you pasted below. Confirm it reads as the published notice does, or replace it with the full text. Your report quotes these words back and tests each § 7220(c) element against them.
+                    {isProvisional("noticeFullText") ? (
+                      <p className="text-xs text-muted-foreground mt-1 mb-2" data-testid="admt-notice-provisional">
+                        This box holds the excerpts you pasted below, joined together — a starting point, not the published notice. Edit it to match the notice as consumers see it, or <button type="button" className="underline" onClick={() => confirmPrefill("noticeFullText")}>confirm that this is the complete published notice</button>. Until you do, it is not sent with your answers.
                       </p>
                     ) : (
                       <p className="text-xs text-muted-foreground mt-1 mb-2">
@@ -1392,6 +1530,25 @@ export default function ADMTChecker() {
                       data-rail-key="notice_full_text" onFocus={() => focus("notice_full_text")}
                       placeholder="Paste the full notice text"
                     />
+                    {noticeElementsJoined && !noticeFullText.trim() && (
+                      <div className="mt-2 text-xs text-muted-foreground" data-testid="admt-notice-assemble">
+                        <button type="button" className="underline" aria-expanded={noticePreviewOpen} onClick={() => setNoticePreviewOpen((o) => !o)}>
+                          {noticePreviewOpen ? "Hide the assembled excerpts" : "Preview the excerpts you pasted below, joined together"}
+                        </button>
+                        {noticePreviewOpen && (
+                          <div className="mt-2 rounded border bg-background p-2">
+                            <p className="mb-1 font-medium">Assembled excerpts — not the published notice</p>
+                            <pre className="whitespace-pre-wrap font-sans text-[12px]">{noticeElementsJoined}</pre>
+                            <Button type="button" size="sm" variant="outline" className="mt-2" onClick={adoptAssembledNotice}>Start from these excerpts</Button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {noticeElementsNotInFullText.length > 0 && !isProvisional("noticeFullText") && (
+                      <p className="mt-2 text-[11px] text-amber-800 dark:text-amber-300" data-testid="admt-notice-mismatch">
+                        {noticeElementsNotInFullText.length === 1 ? "One excerpt" : `${noticeElementsNotInFullText.length} excerpts`} pasted below {noticeElementsNotInFullText.length === 1 ? "does" : "do"} not appear in this full text. The report tests the full text; check that both reflect the notice as published.
+                      </p>
+                    )}
                   </div>
 
                   {/* ITEM 308 — published pre-use notice text, element by element.
@@ -1420,8 +1577,9 @@ export default function ADMTChecker() {
                             rows={2}
                             value={noticeElementText[k] || ""}
                             onChange={(e) => setNET(k, e.target.value)}
-                            data-rail-key="notice_element_text"
-                            onFocus={() => focus("notice_element_text")}
+                            aria-label={`${label} — exact wording from your notice`}
+                            data-rail-key={NOTICE_ELEMENT_RAIL[k] ?? "notice_element_text"}
+                            onFocus={(e) => { e.stopPropagation(); focus(NOTICE_ELEMENT_RAIL[k] ?? "notice_element_text"); }}
                             placeholder="Paste the exact wording"
                           />
                         </div>
@@ -1429,7 +1587,7 @@ export default function ADMTChecker() {
                     </div>
                   </div>
 
-                  <div>
+                  <div {...errAnchor("notice_has_opt_out_desc")}>
                     <Label data-rail-key="notice_opt_out_description" onFocus={() => focus("notice_opt_out_description")}>
                       Does your notice describe the consumer's right to opt out and how to submit a request? <Req />
                     </Label>
@@ -1444,7 +1602,7 @@ export default function ADMTChecker() {
                     </div>
                   </div>
 
-                  <div>
+                  <div {...errAnchor("notice_has_access_desc")}>
                     <Label data-rail-key="notice_access_right_description" onFocus={() => focus("notice_access_right_description")}>
                       Does your notice describe the consumer's right to access ADMT information and how to submit a request? <Req />
                     </Label>
@@ -1459,7 +1617,7 @@ export default function ADMTChecker() {
                     </div>
                   </div>
 
-                  <div>
+                  <div {...errAnchor("notice_has_anti_retaliation")}>
                     <Label data-rail-key="notice_anti_retaliation" onFocus={() => focus("notice_anti_retaliation")}>
                       Does your notice state that the business is prohibited from retaliating against consumers for exercising CCPA rights? <Req />
                     </Label>
@@ -1474,7 +1632,7 @@ export default function ADMTChecker() {
                     </div>
                   </div>
 
-                  <div>
+                  <div {...errAnchor("notice_has_how_it_works")}>
                     <Label data-rail-key="notice_how_admt_works" onFocus={() => focus("notice_how_admt_works")}>
                       Does your notice include additional information about how the ADMT works? <Req />
                     </Label>
@@ -1518,32 +1676,36 @@ export default function ADMTChecker() {
               {step === 3 && (
                 <>
                  <h2 className="font-serif text-xl">Step 3 · Can people say no?</h2>
-                 <p className="text-sm text-muted-foreground mt-1"><span className="font-semibold text-foreground">What we're checking:</span> consumers can opt out of ADMT for significant decisions unless a narrow exception applies — and if it applies, you must offer at least two ways to opt out.</p>
+                 <p className="text-sm text-muted-foreground mt-1"><span className="font-semibold text-foreground">What we're checking:</span> {ADMT_COPY.step3Intro}</p>
                  <p className="text-[10px] font-mono text-muted-foreground/70 mt-1">11 CCR § 7221</p>
                  <p className="text-sm text-foreground/80 mt-2 italic">This stage produces the opt-out section of your report — whether your opt-out mechanism, or the exception you rely on instead, holds under § 7221.</p>
 
                   <RequiredLegend />
 
-                  <div>
+                  <div {...errAnchor("opt_out_exception")}>
                     <Label data-rail-key="optout_exception_human_appeal" onFocus={() => focus("optout_exception_human_appeal")}>
                       Are you providing a full opt-out right, or relying on an exception? <DefPopover termKey="admt_opt_out" /> <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1"><span className="font-medium text-foreground">Why we ask:</span> the opt-out only has to be honored if no exception applies — this tells us which path (full opt-out vs. exception) the rest of this step follows.</p>
-                    <div className="mt-2">
+                    <div className="mt-2" data-rail-key={optOutException === OPT_OUT_OTHER_OPTION ? "optout_exception_other" : "optout_exception_human_appeal"} onFocus={() => focus(optOutException === OPT_OUT_OTHER_OPTION ? "optout_exception_other" : "optout_exception_human_appeal")}>
                       <ChoiceWithOther
                         options={OPT_OUT_EXCEPTIONS}
                         value={optOutException}
                         onChange={setOptOutException}
                         otherText={adv.opt_out_exception_other || ""}
                         onOtherText={(v) => setA("opt_out_exception_other", v)}
-                        data-rail-key="optout_exception_human_appeal" onFocus={() => focus("optout_exception_human_appeal")}
                         placeholder="A short paragraph in your own words"
                       />
                     </div>
+                    {optOutPath === "OTHER_UNRESOLVED" && optOutException && (
+                      <p className="mt-2 text-[12px] text-amber-800 dark:text-amber-300" data-testid="admt-optout-unresolved">
+                        Your answer does not match a listed exception or the full opt-out right, so the report records the opt-out position as unresolved — it treats your situation as neither. The opt-out questions below are optional facts about what you offer today.
+                      </p>
+                    )}
                   </div>
 
-                  {optOutException.startsWith("Human appeal") && (
-                    <div className="border-l-4 border-amber-400 pl-4 py-2 bg-amber-50/30 dark:bg-amber-950/10 rounded-r">
+                  {optOutPath === "HUMAN_APPEAL_EXCEPTION" && (
+                    <div className="border-l-4 border-amber-400 pl-4 py-2 bg-amber-50/30 dark:bg-amber-950/10 rounded-r" {...errAnchor("opt_out_appeal_process")}>
                       <p className="text-[12px] font-semibold mb-2">Human appeal exception — documentation required</p>
                       <p className="text-xs text-muted-foreground mb-3">
                         To qualify, the designated human reviewer must: know how to interpret the output; review it plus any information the consumer provides; and have the authority to change the decision (§ 7221(b)(1)(A)).
@@ -1559,7 +1721,7 @@ export default function ADMTChecker() {
                         data-rail-key="optout_exception_human_appeal" onFocus={() => focus("optout_exception_human_appeal")}
                         placeholder="A short paragraph"
                       />
-                      <div className="mt-4 space-y-3 border-t pt-3">
+                      <div className="mt-4 space-y-3 border-t pt-3" data-rail-key="optout_appeal_mechanics" onFocus={(e) => { e.stopPropagation(); focus("optout_appeal_mechanics"); }}>
                         <p className="text-[12px] font-semibold">Appeal mechanics (feeds the § 7221(b)(1) three-part test)</p>
                         <div>
                           <Label className="text-[12px]">Appeal reviewer role / title</Label>
@@ -1570,7 +1732,7 @@ export default function ADMTChecker() {
                           <div><Label className="text-[12px]">Authority to overturn?</Label><div className="mt-1"><Radio name="ap_auth" options={["Yes", "No"]} value={adv.appeal_authority_overturn || ""} onChange={(v) => setA("appeal_authority_overturn", v)} /></div></div>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
-                          <div><Label className="text-[12px]" data-rail-key="appeal_step_count" onFocus={() => focus("appeal_step_count")}>Steps from decision to human reviewer</Label><input className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm" value={adv.appeal_step_count || ""} onChange={(e) => setA("appeal_step_count", e.target.value)} data-rail-key="appeal_step_count" onFocus={() => focus("appeal_step_count")} placeholder="e.g. 2" /></div>
+                          <div><Label className="text-[12px]" data-rail-key="appeal_step_count" onFocus={() => focus("appeal_step_count")}>Steps from decision to human reviewer</Label><input className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm" value={adv.appeal_step_count || ""} onChange={(e) => setA("appeal_step_count", e.target.value)} data-rail-key="appeal_step_count" onFocus={(e) => { e.stopPropagation(); focus("appeal_step_count"); }} placeholder="e.g. 2" /></div>
                         </div>
                         <div>
                           <Label className="text-[12px]">What may the consumer submit on appeal? (select all)</Label>
@@ -1588,16 +1750,21 @@ export default function ADMTChecker() {
                     </div>
                   )}
 
-                  {(optOutException.startsWith("Hiring") || optOutException.startsWith("Work")) && (
-                    <div className="border-l-4 border-amber-400 pl-4 py-2 bg-amber-50/30 dark:bg-amber-950/10 rounded-r">
+                  {onEmploymentException && (
+                    <div className="border-l-4 border-amber-400 pl-4 py-2 bg-amber-50/30 dark:bg-amber-950/10 rounded-r" {...errAnchor("opt_out_fairness_doc")}>
                       <p className="text-[12px] font-semibold mb-2">Non-discrimination documentation required</p>
                       <p className="text-xs text-muted-foreground mb-3">
                         This exception only applies if the ADMT 'works for the business's purpose and does not unlawfully discriminate based upon protected characteristics' (§ 7221(b)(2)(B), (b)(3)(B)). You must have documented evidence.
                       </p>
                       <div className="mb-4 space-y-3">
                         <div>
-                          <Label className="text-[12px]" data-rail-key="sole_use_attestation" onFocus={() => focus("sole_use_attestation")}>Is the ADMT used solely to assess the person's ability to perform at work or in an educational program?</Label>
-                          <div className="mt-1"><Radio name="sole_use_attestation" options={SOLE_USE_ATTESTATION_OPTIONS} value={adv.sole_use_attestation || ""} onChange={(v) => setA("sole_use_attestation", v)} /></div>
+                          {/* F06 — the § 7221(b)(3) branch asks the (b)(3) question; the stored option values are shared by both branches. */}
+                          {optOutPath === "WORK_ALLOCATION_COMP_EXCEPTION" ? (
+                            <Label className="text-[12px]" data-rail-key="sole_use_attestation_work" onFocus={() => focus("sole_use_attestation_work")}>Is the ADMT used solely to allocate or assign work, or to set compensation, for this person? <span className="font-normal text-muted-foreground">(§ 7221(b)(3))</span></Label>
+                          ) : (
+                            <Label className="text-[12px]" data-rail-key="sole_use_attestation" onFocus={() => focus("sole_use_attestation")}>Is the ADMT used solely to assess the person's ability to perform at work or in an educational program? <span className="font-normal text-muted-foreground">(§ 7221(b)(2))</span></Label>
+                          )}
+                          <div className="mt-1"><Radio name="sole_use_attestation" options={SOLE_USE_ATTESTATION_OPTIONS} value={adv.sole_use_attestation || ""} onChange={(v) => setA("sole_use_attestation", v)} data-rail-key={optOutPath === "WORK_ALLOCATION_COMP_EXCEPTION" ? "sole_use_attestation_work" : "sole_use_attestation"} onFocus={() => focus(optOutPath === "WORK_ALLOCATION_COMP_EXCEPTION" ? "sole_use_attestation_work" : "sole_use_attestation")} /></div>
                         </div>
                         <div>
                           <Label className="text-[12px]" data-rail-key="nondiscrimination_testing" onFocus={() => focus("nondiscrimination_testing")}>Do you hold a non-discrimination testing record for this ADMT?</Label>
@@ -1613,7 +1780,7 @@ export default function ADMTChecker() {
                         pills={ASSISTED_INPUT_REGISTRY.opt_out_fairness_doc.pills}
                         placeholder="A few sentences"
                       />
-                      <div className="mt-4 space-y-3 border-t pt-3">
+                      <div className="mt-4 space-y-3 border-t pt-3" data-rail-key="fairness_testing_detail" onFocus={(e) => { e.stopPropagation(); focus("fairness_testing_detail"); }}>
                         <p className="text-[12px] font-semibold">Validity &amp; non-discrimination detail (§ 7221(b)(2)(B), (b)(3)(B))</p>
                         <p className="text-[12px] text-muted-foreground">This exception only holds if the ADMT works for its purpose AND does not unlawfully discriminate, with evidence.</p>
                         <div>
@@ -1638,7 +1805,7 @@ export default function ADMTChecker() {
                         </div>
                         <div>
                           <Label className="text-[12px]">Outcome distribution / false-positive &amp; false-negative rates by group</Label>
-                          <ExhibitTextarea className="mt-1" rows={2} value={adv.bias_outcome_summary || ""} onChange={(v) => setA("bias_outcome_summary", v)} placeholder="One line per group" />
+                          <ExhibitTextarea className="mt-1" rows={2} value={adv.bias_outcome_summary || ""} onChange={(v) => setA("bias_outcome_summary", v)} {...stashFor("admt_detail.bias_outcome_summary")} placeholder="One line per group" />
                         </div>
                       </div>
                     </div>
@@ -1646,12 +1813,12 @@ export default function ADMTChecker() {
 
                   {provideOptOut && (
                     <>
-                      <div>
+                      <div {...errAnchor("opt_out_methods")}>
                         <Label data-rail-key="optout_methods" onFocus={() => focus("optout_methods")}>
-                          Opt-out submission methods provided <Req />
+                          Opt-out submission methods provided {onFullOptOut ? <Req /> : <span className="text-xs text-muted-foreground font-normal">(answer if you offer an opt-out today)</span>}
                         </Label>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Select all methods you provide. You must provide at least two. At least one must match how you primarily interact with consumers. Online businesses must provide an interactive online form.
+                          Select every method you provide today. § 7221(c) requires at least two designated methods, at least one matching how you primarily interact with consumers; an online business must offer an interactive online form. Select only what exists — a shortfall is recorded as a gap in the report, not corrected here.
                         </p>
                         <div className="mt-2">
                           <Pills
@@ -1661,15 +1828,15 @@ export default function ADMTChecker() {
                             data-rail-key="optout_methods" onFocus={() => focus("optout_methods")}
                           />
                         </div>
-                        {optOutMethods.length > 0 && optOutMethods.length < 2 && (
-                          <p className="text-xs text-destructive mt-2">
-                            <AlertTriangle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> § 7221(c) requires at least two designated methods. Add another method.
+                        {onFullOptOut && optOutMethods.length < 2 && (
+                          <p className="text-xs text-amber-800 dark:text-amber-300 mt-2" data-testid="admt-methods-shortfall">
+                            <AlertTriangle aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /> § 7221(c) requires at least two designated methods; you have selected {optOutMethods.length === 0 ? "none" : "one"}. You can continue — the report records this as a gap with its remediation step. Do not select a method you do not provide.
                           </p>
                         )}
                       </div>
 
                       {optOutMethods.includes("Interactive online form linked from the Pre-use Notice") && (
-                        <div>
+                        <div {...errAnchor("opt_out_link_title")}>
                           <Label data-rail-key="optout_methods" onFocus={() => focus("optout_methods")}>
                             Opt-out link title (as it appears in your Pre-use Notice) <Req />
                           </Label>
@@ -1686,24 +1853,24 @@ export default function ADMTChecker() {
                         </div>
                       )}
 
-                      <div>
-                        <Label data-rail-key="optout_timing_response" onFocus={() => focus("optout_timing_response")}>
-                          Opt-out confirmation mechanism <Req />
+                      <div {...errAnchor("opt_out_confirmation_mechanism")}>
+                        <Label data-rail-key="optout_confirmation_mechanism" onFocus={() => focus("optout_confirmation_mechanism")}>
+                          Opt-out confirmation mechanism {onFullOptOut ? <Req /> : null}
                         </Label>
                         <p className="text-xs text-muted-foreground mt-1">
-                          § 7221(h) requires you to provide a means by which consumers can confirm their opt-out was processed.
+                          § 7221(h) requires you to provide a means by which consumers can confirm their opt-out was processed. "Not yet defined" is a complete answer.
                         </p>
                         <input
                           className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
                           value={optOutConfirmationMechanism}
                           onChange={(e) => setOptOutConfirmationMechanism(e.target.value)}
-                          data-rail-key="optout_timing_response" onFocus={() => focus("optout_timing_response")}
+                          data-rail-key="optout_confirmation_mechanism" onFocus={() => focus("optout_confirmation_mechanism")}
                           placeholder="Channel, then timing"
                         />
                       </div>
 
                       {provideOptOut && (
-                        <div>
+                        <div data-rail-key="optout_15_day_process" onFocus={() => focus("optout_15_day_process")}>
                           <Label>
                             Operational opt-out process: how do you action an opt-out request within 15 business days?
                           </Label>
@@ -1727,8 +1894,8 @@ export default function ADMTChecker() {
                       <div className="rounded-md border p-4 space-y-3 bg-muted/20">
                         <p className="text-[12px] font-semibold">Confirm opt-out process compliance</p>
                         {/* DOC 158 — § 7221(f), (i), (j), (k), (m) handling duties (never asked before). */}
-                        <div data-rail-key="optout_handling" onFocus={() => focus("optout_handling")}>
-                          <Label className="text-[12px]">Which of the following can you confirm about how opt-out requests are handled? <Req /></Label>
+                        <div data-rail-key="optout_handling" onFocus={() => focus("optout_handling")} {...errAnchor("opt_out_handling_confirmations")}>
+                          <Label className="text-[12px]">Which of the following can you confirm about how opt-out requests are handled? {onFullOptOut ? <Req /> : null}</Label>
                           <p className="text-[11px] text-muted-foreground">Select every duty you can confirm. "None of the above can be confirmed" is a complete answer; unconfirmed duties are recorded as follow-up items, never as violations.</p>
                           <div className="mt-1"><Pills options={[...OPT_OUT_HANDLING_OPTS]} value={optOutHandling} onChange={setOptOutHandling} data-rail-key="optout_handling" onFocus={() => focus("optout_handling")} /></div>
                         </div>
@@ -1772,9 +1939,7 @@ export default function ADMTChecker() {
                  <p className="text-sm text-foreground/80 mt-2 italic">This stage produces the access-and-appeal section of your report — whether you can actually answer a consumer who asks what the ADMT did to them, and what you would withhold.</p>
 
                   <RequiredLegend />
-                  <p className="text-sm text-muted-foreground">
-                    Consumers have the right to request information about your use of ADMT with respect to them (§ 7222). Unlike opt-out, access requests require identity verification. You must respond within 45 days.
-                  </p>
+                  <p className="text-sm text-muted-foreground">{ADMT_COPY.step4Timing}</p>
 
                   {/* UPGRADE-3 ITEM 3 — § 7222(b) explanation readiness. */}
                   <div className="border-l-4 border-brand-teal/60 pl-4 py-2 rounded-r bg-muted/30">
@@ -1794,7 +1959,7 @@ export default function ADMTChecker() {
                         // DOC 158 — § 7222(b)(4), never a readiness element before.
                         ["b4_rights", "That you cannot retaliate, and how to exercise other CCPA rights — with links to the request form or portal (§ 7222(b)(4))"],
                       ].map(([k, label]) => (
-                        <div key={k}>
+                        <div key={k} data-rail-key={`access_readiness_${k}`} onFocus={(e) => { e.stopPropagation(); focus(`access_readiness_${k}`); }}>
                           <Label className="text-[12px]" data-rail-key={`access_readiness_${k}`} onFocus={() => focus(`access_readiness_${k}`)}>{label}</Label>
                           <div className="mt-1">
                             <Radio
@@ -1809,19 +1974,21 @@ export default function ADMTChecker() {
                               onChange={(v) => setAR(`${k}_ready`, v)}
                             />
                           </div>
+                          <Label className="mt-2 block text-[11px] font-normal text-muted-foreground" htmlFor={`ar_${k}_process`}>By what internal process would you produce this? One sentence — a workflow note, not the explanation a consumer receives.</Label>
                           <input
-                            className="mt-2 w-full h-9 px-3 rounded-md border border-input bg-background text-sm"
+                            id={`ar_${k}_process`}
+                            className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm"
                             value={accessReadiness[`${k}_process`] || ""}
                             onChange={(e) => setAR(`${k}_process`, e.target.value)}
-                            placeholder="One sentence"
+                            placeholder="e.g. Pull the decision record and the model card from the case file"
                           />
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  <div>
-                    <Label data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}>
+                  <div data-rail-key="access_submission_methods" onFocus={() => focus("access_submission_methods")} {...errAnchor("access_submission_methods")}>
+                    <Label data-rail-key="access_submission_methods" onFocus={() => focus("access_submission_methods")}>
                       Submission methods for access requests <DefPopover termKey="admt_access_right" /> <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -1837,7 +2004,7 @@ export default function ADMTChecker() {
                     />
                   </div>
 
-                  <div>
+                  <div data-rail-key="access_verification" onFocus={() => focus("access_verification")} {...errAnchor("access_verification_process")}>
                     <Label data-rail-key="access_verification" onFocus={() => focus("access_verification")}>
                       Identity verification process for access requests <Req />
                     </Label>
@@ -1854,13 +2021,18 @@ export default function ADMTChecker() {
                     />
                   </div>
 
-                  <div>
+                  <div {...errAnchor("access_logic_disclosure")}>
                     <Label data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}>
                       What do you tell someone about how the system reached its result? <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Say how the system handled that person's information, what drove the output, and what the output was (§ 7222(b)(2)). Trade secrets may be withheld.{prefilled.accessLogicDisclosure && !prefillTouched.accessLogicDisclosure ? " We have carried over what you wrote above about how the system works — confirm it or replace it." : ""}
+                      Say how the system handled that person's information, what drove the output, and what the output was (§ 7222(b)(2)). Trade secrets may be withheld. This is the explanation a consumer receives, not your internal process.
                     </p>
+                    {isProvisional("accessLogicDisclosure") ? (
+                      <p className="text-[11px] text-muted-foreground mt-1" data-testid="admt-logic-provisional">Started from the process note you wrote above — a suggestion, not yet your answer. Edit it into the explanation a consumer would receive, or <button type="button" className="underline" onClick={() => confirmPrefill("accessLogicDisclosure")}>keep it as written</button>.</p>
+                    ) : !accessLogicDisclosure.trim() && (accessReadiness.b2_logic_process || "").trim() ? (
+                      <p className="text-[11px] text-muted-foreground mt-1"><button type="button" className="underline" onClick={() => startDisclosureFromProcess("accessLogicDisclosure")}>Start from the process note you wrote above</button> — you will need to rewrite it for a consumer.</p>
+                    ) : null}
                     <Textarea
                       className="mt-2"
                       rows={3}
@@ -1871,13 +2043,18 @@ export default function ADMTChecker() {
                     />
                   </div>
 
-                  <div>
+                  <div {...errAnchor("access_outcome_disclosure")}>
                     <Label data-rail-key="access_outcome_disclosure" onFocus={() => focus("access_outcome_disclosure")}>
                       What do you tell someone about the decision itself? <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Say how the output was used in the decision, whether it decided the matter on its own, what else counted, what a human did, and any later use of the output (§ 7222(b)(3)).{prefilled.accessOutcomeDisclosure && !prefillTouched.accessOutcomeDisclosure ? " We have carried over what you wrote above about producing the outcome — confirm it or replace it." : ""}
+                      Say how the output was used in the decision, whether it decided the matter on its own, what else counted, what a human did, and any later use of the output (§ 7222(b)(3)). This is the explanation a consumer receives, not your internal process.
                     </p>
+                    {isProvisional("accessOutcomeDisclosure") ? (
+                      <p className="text-[11px] text-muted-foreground mt-1" data-testid="admt-outcome-provisional">Started from the process note you wrote above — a suggestion, not yet your answer. Edit it into the explanation a consumer would receive, or <button type="button" className="underline" onClick={() => confirmPrefill("accessOutcomeDisclosure")}>keep it as written</button>.</p>
+                    ) : !accessOutcomeDisclosure.trim() && (accessReadiness.b3_outcome_process || "").trim() ? (
+                      <p className="text-[11px] text-muted-foreground mt-1"><button type="button" className="underline" onClick={() => startDisclosureFromProcess("accessOutcomeDisclosure")}>Start from the process note you wrote above</button> — you will need to rewrite it for a consumer.</p>
+                    ) : null}
                     <Textarea
                       className="mt-2"
                       rows={3}
@@ -1888,8 +2065,8 @@ export default function ADMTChecker() {
                     />
                   </div>
 
-                  <div>
-                    <Label data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}>
+                  <div {...errAnchor("access_response_timeline")}>
+                    <Label data-rail-key="access_response_timeline" onFocus={() => focus("access_response_timeline")}>
                       Response timeline for access requests <Req />
                     </Label>
                     <div className="mt-2">
@@ -1902,7 +2079,7 @@ export default function ADMTChecker() {
                         ]}
                         value={accessResponseTimeline}
                         onChange={setAccessResponseTimeline}
-                        data-rail-key="access_logic_disclosure" onFocus={() => focus("access_logic_disclosure")}
+                        data-rail-key="access_response_timeline" onFocus={() => focus("access_response_timeline")}
                       />
                     </div>
                   </div>
@@ -1910,6 +2087,7 @@ export default function ADMTChecker() {
                   {/* prior_access_requests_12mo question removed (RC-P6): § 7222(j) threshold applies at framework level and is now framed as a monitoring threshold in the report, not conditioned on a per-consumer count. */}
 
                   <OptionalCluster
+                    answered={[accessTradeSecretPolicy, String(adv.access_secure_transmission || ""), String(adv.access_denial_basis || "")].filter((v) => v.trim()).length}
                     title="Withholding and denial policy"
                     valueLine="Left unanswered, the report records no advance policy on what you withhold or deny, and treats every § 7222(c) call as one you will make under time pressure."
                   >
@@ -1946,7 +2124,7 @@ export default function ADMTChecker() {
                       <p className="text-xs text-muted-foreground mt-1">
                         § 7222 permits denial only on specific grounds — a conflict with federal or state law, an enumerated CCPA exception, trade secret (Civil Code § 3426.1(d)), or a substantial security risk.
                       </p>
-                      <ExhibitTextarea className="mt-2" rows={2} value={adv.access_denial_basis || ""} onChange={(v) => setA("access_denial_basis", v)} placeholder="One ground per line" />
+                      <ExhibitTextarea className="mt-2" rows={2} value={adv.access_denial_basis || ""} onChange={(v) => setA("access_denial_basis", v)} {...stashFor("admt_detail.access_denial_basis")} placeholder="One ground per line" />
                     </div>
                   </OptionalCluster>
 
@@ -1956,63 +2134,49 @@ export default function ADMTChecker() {
               {isReview && (
                 <>
                   <h2 className="font-serif text-xl">Review your answers</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Review before submitting. The checker will generate a gap analysis with specific remediation steps cited to the regulation.
-                  </p>
-                  <div className="rounded-lg border bg-card divide-y text-sm">
-                    {(
-                      [
-                        ["System name", systemName],
-                        ["System description", systemDescription],
-                        ["Significant decision domains", decisionDomains.join("; ")],
-                        ["Human review", humanReview],
-                        ["Training data use", trainingDataUse],
-                        ["Profiling use", profilingUse],
-                        ["Notice delivery", noticeDelivery.join("; ")],
-                        ["Notice — specific purpose", noticeHasSpecificPurpose],
-                        ...(noticePurposeText ? [["Notice — purpose text", noticePurposeText]] : []),
-                        ["Notice — opt-out description", noticeHasOptOutDesc],
-                        ["Notice — access description", noticeHasAccessDesc],
-                        ["Notice — anti-retaliation", noticeHasAntiRetaliation],
-                        ["Notice — how ADMT works", noticeHasHowItWorks],
-                        ["Notice — alternative process", noticeHasAlternativeProcess],
-                        ["Opt-out approach", optOutException],
-                        ...(provideOptOut
-                          ? [
-                              ["Opt-out methods", optOutMethods.join("; ")],
-                              ...(optOutLinkTitle ? [["Opt-out link title", optOutLinkTitle]] : []),
-                              ["Opt-out confirmation", optOutConfirmationMechanism],
-                              ["No cookie-banner-only", optOutNoCookieBanner],
-                              ["No account required", optOutNoAccountRequired],
-                            ]
-                          : []),
-                        ...(optOutAppealProcess ? [["Appeal process", optOutAppealProcess]] : []),
-                        ...(optOutFairnessDoc ? [["Fairness testing", optOutFairnessDoc]] : []),
-                        ["Access submission methods", accessSubmissionMethods],
-                        ["Access verification", accessVerificationProcess],
-                        ["Access — logic disclosure", accessLogicDisclosure],
-                        ["Access — outcome disclosure", accessOutcomeDisclosure],
-                        ["Access response timeline", accessResponseTimeline],
-                        ...(accessTradeSecretPolicy ? [["Trade secret policy", accessTradeSecretPolicy]] : []),
-                        ...(caConsumerCount ? [["CA consumers (approx.)", caConsumerCount]] : []),
-                        ...(thirdPartyAdmt ? [["Third-party ADMT tools", thirdPartyAdmt]] : []),
-                        ...(optOut15DayProcess ? [["15-day opt-out process", optOut15DayProcess]] : []),
-                        ...(admtSystemCount ? [["ADMT systems operated", admtSystemCount]] : []),
-                        // Prior access requests (12 mo.) row removed (RC-P6).
-                      ] as [string, string][]
-                    )
-                      .filter(([, v]) => v)
-                      .map(([label, value]) => (
-                        <div key={label} className="grid grid-cols-1 sm:grid-cols-3 gap-2 px-4 py-3">
-                          <div className="text-muted-foreground text-[12px] sm:col-span-1">{label}</div>
-                          <div className="sm:col-span-2 break-words text-[13px]">{value}</div>
-                        </div>
-                      ))}
-                  </div>
+                  <p className="text-sm text-muted-foreground">{ADMT_COPY.finalReviewInstruction}</p>
+                  {admtScopeVerdict && (
+                    <div className="rounded-md border p-3 text-[13px]" data-testid="admt-review-scope" data-level={admtScopeVerdict.level}>
+                      <p className="font-semibold">{admtScopeVerdict.title}</p>
+                      <p className="text-muted-foreground mt-1">{admtScopeVerdict.body}</p>
+                    </div>
+                  )}
+                  {(unansweredReviewRows.length > 0 || exhibitReviewRows.length > 0) && (
+                    <div className="rounded-md border border-amber-200 bg-amber-50/40 dark:bg-amber-950/10 p-3 text-[12px]" data-testid="admt-review-unresolved">
+                      <p className="font-semibold text-amber-800 dark:text-amber-300">Unresolved items</p>
+                      {unansweredReviewRows.length > 0 && (
+                        <p className="mt-1 text-muted-foreground">{unansweredReviewRows.length} question{unansweredReviewRows.length === 1 ? "" : "s"} on your current path {unansweredReviewRows.length === 1 ? "is" : "are"} unanswered. The report records each as not stated; it does not assume an answer.</p>
+                      )}
+                      {exhibitReviewRows.length > 0 && (
+                        <p className="mt-1 text-muted-foreground">{exhibitReviewRows.length} exhibit{exhibitReviewRows.length === 1 ? "" : "s"} deferred. A blank exhibit is listed as outstanding in the report and does not establish compliance.</p>
+                      )}
+                    </div>
+                  )}
+                  {reviewSections.map((sec) => (
+                    <section key={sec.step} className="rounded-lg border bg-card text-sm" aria-labelledby={`admt-review-step-${sec.step}`}>
+                      <div className="flex items-center justify-between gap-2 px-4 py-2 border-b bg-muted/30">
+                        <h3 id={`admt-review-step-${sec.step}`} className="font-medium text-[13px]">Step {sec.step} · {sec.title}</h3>
+                        <Button type="button" size="sm" variant="ghost" onClick={() => jumpTo(sec.step, sec.rows[0]?.key ?? "")}>Edit step</Button>
+                      </div>
+                      <div className="divide-y">
+                        {sec.rows.filter((r) => !(inactiveReviewKeys.has(r.key) && r.state === "unanswered")).map((r: ReviewRow) => (
+                          <div key={r.key} className="grid grid-cols-1 sm:grid-cols-[1fr_2fr_auto] gap-2 px-4 py-2" data-review-key={r.key} data-review-state={r.state}>
+                            <div className="text-muted-foreground text-[12px]">{r.label}</div>
+                            <div className={`break-words text-[13px] ${r.state === "unanswered" ? "italic text-muted-foreground" : ""}`}>
+                              {r.state === "unanswered" ? "Not answered" : r.items ? (
+                                <ul className="space-y-0.5">{r.items.map((it) => <li key={it.label}><span className="text-muted-foreground">{it.label}:</span> {it.text}</li>)}</ul>
+                              ) : r.text}
+                            </div>
+                            <div><button type="button" className="text-[12px] underline text-muted-foreground" onClick={() => jumpTo(sec.step, r.key)} aria-label={`Edit ${r.label}`}>Edit</button></div>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  ))}
                 </>
               )}
 
-              <ValidationErrorSummary message={validationError} className="mt-4" />
+              <ValidationErrorSummary message={validationError} fieldKey={fieldErrors.fields[0] ?? null} className="mt-4" />
               <div className="flex justify-between pt-4 border-t flex-wrap gap-3 items-center">
                 <Button variant="outline" onClick={back} disabled={step === 1}>Back</Button>
 

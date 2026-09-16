@@ -389,6 +389,24 @@ export function computeScope(intake: Intake): ScopeResult {
         priority: 1, closure_condition: "qualifying human review confirmed for every decision pathway, or the automated pathways brought under Article 11, with pathway-uniformity of the notice/opt-out/access processes confirmed",
       }));
     }
+    // ADMT master review (2026-09-15, F01/F03) — the self-test can say the
+    // reviewer acts on "Sometimes / on a subset" of decisions. That is a
+    // coverage fact, not an authority fact: the decisions no one reviews are
+    // ADMT and the Article 11 duties reach them. Stated as a priority-1
+    // condition beside the OUT_OF_SCOPE determination, exactly as the
+    // automated-pathway rule above (RULING 3.2); never a silent state change.
+    if (/^Sometimes/.test(hiPresent)) {
+      pathwayDependent = true;
+      findings.push(mkFinding({
+        area: "Applicability", criterion: "Review coverage",
+        source_fields: ["human_review", "admt_detail.hi_reviewer_present"],
+        substantive_state: "GAP", decision_effect: "CONDITION",
+        factual_basis: "The Company reports qualifying human review, and its self-test records that the reviewer acts on only a subset of decisions. The decisions that no reviewer acts on are made by the System without human involvement; for those decisions the System is ADMT and the Article 11 duties apply.",
+        authority: humanInvolvementBasis,
+        action_text: "Either extend qualifying human review to every significant decision the System makes, or treat the unreviewed decisions as in-scope ADMT and ensure the Pre-use Notice, opt-out and access processes cover them.",
+        priority: 1, closure_condition: "qualifying human review confirmed for every decision the System makes, or the unreviewed decisions brought under Article 11",
+      }));
+    }
   } else if (humanReviewUnresolved) {
     // DEF-2: an unresolved answer (blank OR "Not applicable / unsure")
     // cannot carry an affirmative scope determination.
@@ -854,12 +872,25 @@ export function computeOptOut(intake: Intake, path: PathState): OptOutResult {
   let soleUseStatus: SubstantiveState = "INSUFFICIENT_RECORD";
   if (soleUseAns.startsWith("Yes")) soleUseStatus = "MEETS_REPORTED";
   else if (soleUseAns.startsWith("No")) soleUseStatus = "GAP";
+  // ADMT master review (2026-09-15, F07) — § 7221(b)(2)(A) asks whether the
+  // ADMT is used solely to assess ability to perform (hiring/admission);
+  // § 7221(b)(3)(A) asks whether it is used solely for allocation/assignment
+  // of work or compensation. One question was asked for both branches with
+  // the hiring wording and the hiring authority. The stored answer values are
+  // unchanged; the factor now names the condition of the branch claimed and
+  // cites its own subsection (registry row optout_exc_work, verified against
+  // the CPPA text of regulations, 2026-09-16).
+  const onWorkExc = path === "WORK_ALLOCATION_COMP_EXCEPTION";
+  const soleUseCondition = onWorkExc
+    ? "used solely for the allocation/assignment of work or compensation (§ 7221(b)(3)(A))"
+    : "used solely to assess the consumer's ability to perform at work or in an educational program (§ 7221(b)(2)(A))";
   const exceptionSoleUse: NoticeFactor = {
     status: onEmpExc ? soleUseStatus : "NOT_APPLICABLE", label: soleUseAns || "Not reported",
-    effect: statusEffect(onEmpExc ? soleUseStatus : "NOT_APPLICABLE"), authority: cite("optout_exc_hire"),
+    effect: statusEffect(onEmpExc ? soleUseStatus : "NOT_APPLICABLE"),
+    authority: onWorkExc ? (vaCite("optout_exc_work") || cite("optout_exc_hire")) : cite("optout_exc_hire"),
   };
   push("Opt-Out", "Sole-use condition", exceptionSoleUse, ["admt_detail.sole_use_attestation"],
-    `The Company reports: "${soleUseAns || "(not answered)"}".`, "Confirm the ADMT is used solely to assess the relevant ability or allocation/compensation factor.", 1, "The Company confirms the ADMT is used solely to assess the relevant ability or allocation/compensation factor");
+    `The Company reports: "${soleUseAns || "(not answered)"}" on whether the ADMT is ${soleUseCondition}.`, `Confirm the ADMT is ${soleUseCondition}.`, 1, `The Company confirms the ADMT is ${soleUseCondition}`);
 
   const testingAns = str(detail(intake).nondiscrimination_testing);
   let testingStatus: SubstantiveState = "INSUFFICIENT_RECORD";
@@ -889,21 +920,42 @@ export function computeOptOut(intake: Intake, path: PathState): OptOutResult {
   const HIRE_ELIGIBLE = ["Hiring or admission decisions", "Education enrollment or opportunities (admission, credentials, suspension)"];
   const WORK_ELIGIBLE = ["Work allocation, scheduling, or compensation"];
   const eligibleDomains = path === "HIRING_ADMISSION_EXCEPTION" ? HIRE_ELIGIBLE : path === "WORK_ALLOCATION_COMP_EXCEPTION" ? WORK_ELIGIBLE : [];
-  const eligibilityMet = !onEmpExc || domainsSel.some((d) => eligibleDomains.includes(d));
-  const eligibilityStatus: SubstantiveState = !onEmpExc ? "NOT_APPLICABLE" : eligibilityMet ? "MEETS_REPORTED" : "GAP";
+  // ADMT master review (2026-09-15, F07) — mixed purposes are not covered
+  // because one category qualifies. The explicit negative is not a decision
+  // domain; the regulated domains outside the exception keep the opt-out duty.
+  const regulatedSel = domainsSel.filter((d) => d !== ADMT_NONE_DOMAIN);
+  const coveredSel = regulatedSel.filter((d) => eligibleDomains.includes(d));
+  const uncoveredSel = regulatedSel.filter((d) => !eligibleDomains.includes(d));
+  const eligibilityMet = !onEmpExc || coveredSel.length > 0;
+  const eligibilityStatus: SubstantiveState = !onEmpExc
+    ? "NOT_APPLICABLE"
+    : !eligibilityMet
+    ? "GAP"
+    : uncoveredSel.length > 0
+    ? "PARTIAL"
+    : "MEETS_REPORTED";
+  const exceptionName = path === "HIRING_ADMISSION_EXCEPTION" ? "hiring/admission" : "work-allocation/compensation";
   const eligibility: NoticeFactor = {
     status: eligibilityStatus,
     label: !onEmpExc
       ? "Not applicable"
-      : eligibilityMet
-      ? `Decision domain within the exception: ${domainsSel.filter((d) => eligibleDomains.includes(d)).join("; ")}`
-      : `No eligible decision domain recorded (${domainsSel.join("; ") || "none"})`,
-    effect: statusEffect(eligibilityStatus), authority: cite("optout_exc_hire"),
+      : !eligibilityMet
+      ? `No eligible decision domain recorded (${domainsSel.join("; ") || "none"})`
+      : uncoveredSel.length > 0
+      ? `Exception covers ${coveredSel.join("; ")}; not ${uncoveredSel.join("; ")}`
+      : `Decision domain within the exception: ${coveredSel.join("; ")}`,
+    effect: statusEffect(eligibilityStatus), authority: onWorkExc ? (vaCite("optout_exc_work") || cite("optout_exc_hire")) : cite("optout_exc_hire"),
   };
   push("Opt-Out", "Exception eligibility", eligibility, ["opt_out_exception", "decision_domains"],
-    `The Company relies on the ${path === "HIRING_ADMISSION_EXCEPTION" ? "hiring/admission" : "work-allocation/compensation"} exception, but the decision domains it records (${domainsSel.join("; ") || "none"}) are not the decisions that exception covers.`,
-    "Select the opt-out pathway that matches the recorded decision domain, or record the decision domain the exception covers.", 1,
-    "The Company's selected exception matches a recorded decision domain it covers");
+    eligibilityStatus === "PARTIAL"
+      ? `The Company relies on the ${exceptionName} exception. That exception covers ${coveredSel.join("; ")} but not ${uncoveredSel.join("; ")}, which the record also lists; consumers keep the right to opt out of the ADMT for the decisions the exception does not cover.`
+      : `The Company relies on the ${exceptionName} exception, but the decision domains it records (${domainsSel.join("; ") || "none"}) are not the decisions that exception covers.`,
+    eligibilityStatus === "PARTIAL"
+      ? "Provide the opt-out for the decisions the exception does not cover, or record separately which decisions the ADMT makes under the exception."
+      : "Select the opt-out pathway that matches the recorded decision domain, or record the decision domain the exception covers.", 1,
+    eligibilityStatus === "PARTIAL"
+      ? "The Company provides the opt-out for the decisions outside the exception, or records the exception as covering only the decisions it names"
+      : "The Company's selected exception matches a recorded decision domain it covers");
 
   // DOC 158 — § 7221(c)(1): an online business must offer an interactive
   // opt-out form via a link in the Pre-use Notice, and the link title must

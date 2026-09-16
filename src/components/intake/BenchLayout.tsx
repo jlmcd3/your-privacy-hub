@@ -68,9 +68,13 @@ export default function BenchLayout({
             {entryHasCoaching ? (
               <CoachingPanel entry={railEntry} openByDefault={coachingOpenByDefault} />
             ) : (
+              // ADMT S13 / Cyber S05 (2026-09-15): the old fallback claimed no
+              // guidance was needed. A missing entry is a gap, not a verdict,
+              // and the law column is promised only when an entry exists.
               <p className="text-body-small text-ink-soft leading-relaxed">
-                No additional guidance is needed for this question — answer it from your
-                own records. The statutory basis is shown under “The law”.
+                No question-specific guidance is configured for this field. Answer from your
+                records and identify uncertainty where the form permits.
+                {railEntry ? " The statutory basis is shown under “The law”." : ""}
               </p>
             )}
           </div>

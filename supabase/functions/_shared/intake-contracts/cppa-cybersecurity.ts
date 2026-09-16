@@ -103,6 +103,35 @@ export const INCIDENTS_12MO_OPTIONS = [
   "1",
   "2–5",
   "More than 5",
+  // Cyber master review (2026-09-15, F07): a count that has not been checked
+  // against the § 7123(c)(17)(A) definition is recorded as unknown, never as
+  // "None". Consumed by record-facts.ts (incidentPhrase) and cyber-factors.ts.
+  "Unknown / not yet reviewed",
+] as const;
+// Cyber master review (2026-09-15, F06) — asked only when the stated revenue
+// band ("$25M to under $50M") straddles the dated CCPA threshold
+// (_shared/bands/revenue-consumer.ts CCPA_REVENUE_THRESHOLDS). The page states
+// the figure and the calendar year in the question; the record keeps both.
+export const CYBER_REVENUE_THRESHOLD_CHECK_OPTIONS = [
+  "Yes — above the threshold",
+  "No — at or below the threshold",
+  "Unsure",
+] as const;
+// Cyber master review (2026-09-15, F07) — § 7123(e)(9)/(e)(10): whether a
+// notice was required and whether it was sent are different facts, for
+// consumers (Civ. Code § 1798.82(a)) and for an agency separately. The legacy
+// single answer (CYBER_INCIDENT_NOTIFICATION_OPTIONS) is kept for old records.
+export const CYBER_CONSUMER_NOTICE_STATUS_OPTIONS = [
+  "Notice provided to affected consumers",
+  "Notice required but not yet sent",
+  "No notice was required",
+  "Unsure",
+] as const;
+export const CYBER_AGENCY_NOTICE_STATUS_OPTIONS = [
+  "Notice provided to an agency",
+  "Notice required but not yet sent",
+  "No notice was required",
+  "Unsure",
 ] as const;
 
 export const FRAMEWORK_OPTIONS = [
@@ -164,6 +193,13 @@ export const CYBER_EVIDENCE_OPTS = [
 // TURN 3 — in_scope_frameworks: multi-enum drawn from FRAMEWORK_OPTIONS so
 // callers cannot invent alternative framework names.
 export const CYBER_IN_SCOPE_FRAMEWORKS = FRAMEWORK_OPTIONS;
+// Cyber master review (2026-09-15, F08) — the legacy "None / informal" value
+// fused genuine absence with informal practice, and informal practice can sit
+// beside a named framework. The absence answer is now its own, exclusive
+// option; "None / informal" keeps its informal-practice meaning and is never
+// rewritten. Parity mirror: src/pages/CPPACybersecurity.enums.ts.
+export const CYBER_NO_PRIOR_FRAMEWORK_WORK = "No prior framework work to rely on";
+export const CYBER_IN_SCOPE_FRAMEWORK_OPTIONS = [...FRAMEWORK_OPTIONS, CYBER_NO_PRIOR_FRAMEWORK_WORK] as const;
 
 // ITEM 315 — § 7122 auditor-engagement status. LITERAL COPY of
 // src/pages/CPPACybersecurity.enums.ts CYBER_AUDITOR_ENGAGEMENT. Parity with
@@ -231,8 +267,18 @@ export const cppaCybersecurityContract: IntakeContract = {
     // DOC 159 — § 7123(e)(9)/(10) notification facts, asked only when the
     // Company reports at least one incident (the form shows the row under the
     // incident count for any non-"None" answer; VALUE-EQUALS trigger, r5b).
-    { key: "profile.incident_notifications", kind: "enum", required: "conditional",
-      options: CYBER_INCIDENT_NOTIFICATION_OPTIONS,
+    // Cyber master review (2026-09-15, F07) — legacy aggregate, SUPERSEDED by
+    // profile.consumer_notice_status and profile.agency_notice_status below.
+    // Kept optional so records that answered it still validate and the engine
+    // can read it as a fallback; never counted as an unanswered ask.
+    { key: "profile.incident_notifications", kind: "enum", required: "optional",
+      options: CYBER_INCIDENT_NOTIFICATION_OPTIONS, superseded: true },
+    { key: "profile.consumer_notice_status", kind: "enum", required: "conditional",
+      options: CYBER_CONSUMER_NOTICE_STATUS_OPTIONS,
+      requiredWhen: 'profile.incidents_12mo is "1", "2–5" or "More than 5"',
+      trigger: { key: "profile.incidents_12mo", equals: ["1", "2–5", "More than 5"] } },
+    { key: "profile.agency_notice_status", kind: "enum", required: "conditional",
+      options: CYBER_AGENCY_NOTICE_STATUS_OPTIONS,
       requiredWhen: 'profile.incidents_12mo is "1", "2–5" or "More than 5"',
       trigger: { key: "profile.incidents_12mo", equals: ["1", "2–5", "More than 5"] } },
     { key: "profile.framework",      kind: "enum", required: "always",
@@ -241,7 +287,8 @@ export const cppaCybersecurityContract: IntakeContract = {
       options: LAST_AUDIT_OPTIONS },
     // TURN 3 — scope framing fields (optional; feed C-C scope justification).
     { key: "profile.in_scope_frameworks", kind: "multi-enum", required: "optional",
-      options: CYBER_IN_SCOPE_FRAMEWORKS, askEligible: true },
+      options: CYBER_IN_SCOPE_FRAMEWORK_OPTIONS, askEligible: true,
+      exclusive: [CYBER_NO_PRIOR_FRAMEWORK_WORK] },
     { key: "profile.audit_scope_rationale", kind: "narrative", required: "optional",
       askEligible: true },
     // ITEM 315 — § 7122 independence inputs (optional; feed the
@@ -276,6 +323,17 @@ export const cppaCybersecurityContract: IntakeContract = {
     // the applicability table's correctness depends on it.
     { key: "profile.q1_revenue", kind: "enum", required: "optional",
       options: CYBER_APPLICABILITY_REVENUE_OPTIONS, askEligible: true },
+    // Cyber master review (2026-09-15, F06) — the dated threshold question,
+    // asked only for the band that straddles the CPI-adjusted figure.
+    { key: "profile.q1_revenue_threshold_check", kind: "enum", required: "conditional",
+      requiredWhen: 'q1_revenue === "$25M to under $50M"', hiddenValue: "",
+      trigger: { key: "profile.q1_revenue", equals: ["$25M to under $50M"] },
+      options: CYBER_REVENUE_THRESHOLD_CHECK_OPTIONS },
+    // The calendar year the threshold answer refers to; the page fills it in
+    // beside the threshold question, so it is asked on the same condition.
+    { key: "profile.q1_revenue_reference_year", kind: "text", required: "conditional",
+      requiredWhen: 'q1_revenue === "$25M to under $50M"', hiddenValue: "",
+      trigger: { key: "profile.q1_revenue", equals: ["$25M to under $50M"] } },
     { key: "profile.q2_consumers", kind: "enum", required: "optional",
       options: CYBER_APPLICABILITY_CONSUMER_OPTIONS, askEligible: true },
     { key: "profile.q5_sell_share", kind: "enum", required: "optional",

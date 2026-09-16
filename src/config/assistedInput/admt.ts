@@ -21,7 +21,7 @@ const admt_vendor_training_rights: AssistedInputFieldConfig = {
     { id: "all_inputs", label: "Vendor may train on all inputs (no restriction)", snippet: "Vendor may train on all inputs (no restriction)" },
     { id: "silent", label: "Contractual silence -- training rights not addressed", snippet: "Contractual silence -- training rights not addressed" },
     { id: "opt_out", label: "Opt-out available on request", snippet: "Opt-out available on request" },
-    { id: "not_documented", label: "Not currently documented", snippet: "Not currently documented" },
+    { id: "not_documented", label: "Not currently documented", snippet: "Not currently documented", exclusive: true },
   ],
 };
 
@@ -33,7 +33,8 @@ const opt_out_fairness_doc: AssistedInputFieldConfig = {
     { id: "continuous_monitoring", label: "Continuous outcome-monitoring by subgroup", snippet: "Continuous outcome-monitoring by subgroup" },
     { id: "parity_metrics", label: "Statistical parity + equal-opportunity metrics", snippet: "Statistical parity + equal-opportunity metrics" },
     { id: "adversarial", label: "Adversarial / red-team testing", snippet: "Adversarial / red-team testing" },
-    { id: "not_documented", label: "Not currently documented", snippet: "Not currently documented" },
+    // ADMT F18 (2026-09-15): the negative cannot stand beside a testing method.
+    { id: "not_documented", label: "Not currently documented", snippet: "Not currently documented", exclusive: true },
   ],
 };
 
@@ -57,7 +58,7 @@ const access_verification_process: AssistedInputFieldConfig = {
     { id: "kba", label: "Knowledge-based questions matching account data", snippet: "Knowledge-based questions matching account data" },
     { id: "notarised", label: "Notarised written request for non-accountholders", snippet: "Notarised written request for non-accountholders" },
     { id: "attestation", label: "Attestation under penalty of perjury", snippet: "Attestation under penalty of perjury" },
-    { id: "not_defined", label: "Not currently defined", snippet: "Not currently defined" },
+    { id: "not_defined", label: "Not currently defined", snippet: "Not currently defined", exclusive: true },
   ],
 };
 

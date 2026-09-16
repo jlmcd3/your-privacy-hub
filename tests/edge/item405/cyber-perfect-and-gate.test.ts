@@ -120,8 +120,18 @@ Deno.test("fixture: carries no reference-render token (item404 fact-exempt rule)
 // narrower than "never", not absent: exactly these two named keys may
 // mention revenue; nothing else may, and this fixture must not smuggle an
 // answer for a revenue question outside that pair.
-Deno.test("fixture: only the two named § 7120 predicate keys mention revenue (C1.2 supersedes ITEM 204)", () => {
-  const AUTHORIZED_REVENUE_KEYS = ["profile.q1_revenue", "profile.q5c_share_revenue_50pct"];
+Deno.test("fixture: only the named § 7120 predicate keys mention revenue (C1.2 supersedes ITEM 204; F06 adds the dated-threshold pair)", () => {
+  // Cyber master review (2026-09-15, F06) — the "$25M to under $50M" band
+  // straddles the CPI-adjusted threshold ($26,625,000 from 2025-01-01), so
+  // the predicate now also asks the dated threshold question and its
+  // reference year. Both resolve the SAME § 7120(a) revenue predicate; no
+  // other key may mention revenue.
+  const AUTHORIZED_REVENUE_KEYS = [
+    "profile.q1_revenue",
+    "profile.q1_revenue_threshold_check",
+    "profile.q1_revenue_reference_year",
+    "profile.q5c_share_revenue_50pct",
+  ];
   const revenueKeys = cppaCybersecurityContract.fields
     .map((f) => f.key)
     .filter((k) => /revenue/i.test(k));

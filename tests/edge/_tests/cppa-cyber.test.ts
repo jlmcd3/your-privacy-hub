@@ -75,8 +75,11 @@ Deno.test("cyber T_CLASS pins 18 controls.<slug> → cppa_cybersecurity:maturity
 Deno.test("cyber maturity enum resolves via server FIELD_ENUM_MIRROR", async () => {
   const { resolveEnumRef } = await import("../../../supabase/functions/_shared/field-enums.ts");
   const opts = resolveEnumRef("cppa_cybersecurity:maturity");
-  assert(Array.isArray(opts) && opts.length === 5,
-    `expected 5 maturity options; got ${JSON.stringify(opts)}`);
+  // Doc 159 (2026-09-03) added the sixth option, "Not applicable to our
+  // information system", which opens the controls[].na_reason follow-up.
+  assert(Array.isArray(opts) && opts.length === 6,
+    `expected 6 maturity options; got ${JSON.stringify(opts)}`);
+  assert(opts!.some((o) => /^Not applicable to our information system$/.test(o)));
   // Anchored to intake page constants (do NOT retype here — assert shape only).
   assert(opts!.some((o) => /Not implemented/i.test(o)));
   assert(opts!.some((o) => /continuous monitoring/i.test(o)));

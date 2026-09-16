@@ -76,22 +76,36 @@ Deno.test("resolveA2 — true via consumer volume alone", () => {
   assertEquals(r.value, true);
 });
 Deno.test("resolveA2 — true via sensitive-PI volume alone", () => {
+  // Cyber master review (2026-09-16, F06): the straddling band no longer
+  // resolves the revenue gate by itself; the dated threshold question does.
   const r = resolveA2({
-    q1_revenue: "$25M to under $50M", q15_sensitive_pi: "Yes", q15c_spi_volume: "50,000 or more",
+    q1_revenue: "$25M to under $50M", q1_revenue_threshold_check: "Yes — above the threshold",
+    q15_sensitive_pi: "Yes", q15c_spi_volume: "50,000 or more",
   });
   assertEquals(r.value, true);
+  const unresolved = resolveA2({ q1_revenue: "$25M to under $50M", q15_sensitive_pi: "Yes", q15c_spi_volume: "50,000 or more" });
+  assertEquals(unresolved.value, null);
+  assert(unresolved.basis.includes("straddles"), unresolved.basis);
 });
 
 // ── METAMORPHIC (doc 67 §2's own mandate for this class of test) —
 // flip an enum across its statutory boundary and confirm the resolved
 // value moves by exactly the predicted delta, nothing else changing. ────
 
-Deno.test("METAMORPHIC — q1_revenue crossing the $25M gate flips A2 (all else held constant, over-threshold volume)", () => {
+Deno.test("METAMORPHIC — q1_revenue crossing the revenue gate flips A2 (all else held constant, over-threshold volume)", () => {
+  // Cyber master review (2026-09-16, F06): the clean crossing is Under $25M →
+  // $50M to $100M; the straddling band is indeterminate until the dated
+  // threshold question answers it, and then moves with that answer.
   const base = { q2_consumers: "1,000,000 or more" };
   const under = resolveA2({ ...base, q1_revenue: "Under $25M" });
-  const over = resolveA2({ ...base, q1_revenue: "$25M to under $50M" });
+  const over = resolveA2({ ...base, q1_revenue: "$50M to $100M" });
   assertEquals(under.value, false);
   assertEquals(over.value, true);
+  const straddle = resolveA2({ ...base, q1_revenue: "$25M to under $50M" });
+  assertEquals(straddle.value, null);
+  assertEquals(resolveA2({ ...base, q1_revenue: "$25M to under $50M", q1_revenue_threshold_check: "No — at or below the threshold" }).value, false);
+  assertEquals(resolveA2({ ...base, q1_revenue: "$25M to under $50M", q1_revenue_threshold_check: "Yes — above the threshold" }).value, true);
+  assertEquals(resolveA2({ ...base, q1_revenue: "$25M to under $50M", q1_revenue_threshold_check: "Unsure" }).value, null);
 });
 
 Deno.test("METAMORPHIC — q2_consumers crossing the 250,000 line flips the volume prong (revenue held over $25M)", () => {

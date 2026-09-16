@@ -31,6 +31,8 @@
 import {
   CONSUMER_BAND_APPLICABILITY,
   REVENUE_BAND_APPLICABILITY_A,
+  ccpaRevenueThresholdForYear,
+  ccpaRevenueThresholdOn,
   resolveConsumerBand,
   resolveRevenueBand,
 } from "../../../_shared/bands/revenue-consumer.ts";
@@ -127,27 +129,58 @@ function resolveVolumeProng(profile: Bag): TriResult {
   };
 }
 
-/** A2 — § 7120(b)(2): revenue >$25M AND the volume prong. */
+/**
+ * The § 1798.140(d)(1)(A) threshold this record is tested against. The
+ * intake records the calendar year the revenue figure refers to
+ * (profile.q1_revenue_reference_year); absent that, the figure in force
+ * today applies. Cyber master review (2026-09-15, F06).
+ */
+export function revenueThresholdFor(profile: Bag) {
+  const year = Number.parseInt(s(profile.q1_revenue_reference_year), 10);
+  return Number.isInteger(year) && year >= 2020 && year <= 2100 ? ccpaRevenueThresholdForYear(year) : ccpaRevenueThresholdOn();
+}
+
+/**
+ * The revenue gate, tri-state. A band that clears or fails the threshold
+ * decides it; the straddling band ("$25M to under $50M") never does — only
+ * the dated threshold question (profile.q1_revenue_threshold_check) can, and
+ * an unanswered or "Unsure" question leaves the gate unresolved.
+ */
+export function resolveRevenueGate(profile: Bag): { value: Tri; basis: string } {
+  const t = revenueThresholdFor(profile);
+  const raw = s(profile.q1_revenue);
+  const revenueBand = resolveRevenueBand(raw);
+  if (!revenueBand) return { value: null, basis: raw ? `the business's stated revenue band ("${raw}") does not resolve the ${t.label} threshold` : "the business has not stated its annual gross revenue" };
+  const byBand = REVENUE_BAND_APPLICABILITY_A[revenueBand];
+  if (byBand === false) return { value: false, basis: `the business has stated annual gross revenue under $25,000,000, below the ${t.label} threshold` };
+  if (byBand === true) return { value: true, basis: `the business's annual gross revenue exceeds the ${t.label} threshold` };
+  const check = s(profile.q1_revenue_threshold_check);
+  if (/^Yes/.test(check)) return { value: true, basis: `the business has stated that its annual gross revenue exceeded the ${t.label} threshold` };
+  if (/^No/.test(check)) return { value: false, basis: `the business has stated that its annual gross revenue did not exceed the ${t.label} threshold` };
+  return { value: null, basis: `the business's stated revenue band ("${revenueBand}") straddles the ${t.label} threshold and it has not stated (or is unsure) whether its revenue exceeded that figure` };
+}
+
+/** A2 — § 7120(b)(2): the dated revenue threshold AND the volume prong. */
 export function resolveA2(profile: Bag): TriResult {
-  const revenueBand = resolveRevenueBand(s(profile.q1_revenue));
-  const revenueGate: Tri = revenueBand ? REVENUE_BAND_APPLICABILITY_A[revenueBand] : null;
+  const revenue = resolveRevenueGate(profile);
+  const revenueGate: Tri = revenue.value;
   const volume = resolveVolumeProng(profile);
 
   const value = triAnd(revenueGate, volume.value);
   if (value === false && revenueGate === false) {
-    return { value: false, basis: "the business has stated annual gross revenue under $25,000,000" };
+    return { value: false, basis: revenue.basis };
   }
   if (value === false) {
     return { value: false, basis: volume.basis };
   }
   if (value === true) {
-    return { value: true, basis: `the business's annual gross revenue exceeds $25,000,000 and ${volume.basis.replace(/^the business /, "the business ")}` };
+    return { value: true, basis: `${revenue.basis} and ${volume.basis.replace(/^the business /, "the business ")}` };
   }
   return {
     value: null,
-    basis: revenueBand
-      ? volume.basis
-      : "the business has not stated its annual gross revenue",
+    basis: revenueGate === null
+      ? revenue.basis
+      : volume.basis,
   };
 }
 
@@ -210,7 +243,10 @@ export function buildCyberApplicabilityTable(profile: Bag): RenderedTable {
       ],
       [
         "A2 — § 7120(b)(2)",
-        "Annual gross revenue exceeds $25,000,000 (§ 1798.140(d)(1)(A)), and in the preceding calendar year the business processed 250,000 or more consumers' or households' personal information, or 50,000 or more consumers' sensitive personal information (§ 7120(b)(2)(A)-(B)).",
+        // Cyber master review (2026-09-15, F06) — the figure is the dated,
+        // CPI-adjusted threshold, named with its effective date, never the
+        // statutory $25,000,000 alone.
+        `Annual gross revenue exceeds the CCPA threshold of ${revenueThresholdFor(profile).label} (§ 1798.140(d)(1)(A), as adjusted with effect from ${revenueThresholdFor(profile).effective}), and in the preceding calendar year the business processed 250,000 or more consumers' or households' personal information, or 50,000 or more consumers' sensitive personal information (§ 7120(b)(2)(A)-(B)).`,
         statusCell(result.a2),
       ],
     ],
