@@ -2134,7 +2134,7 @@ export default function CPPARiskAssessment() {
                     was removed here deliberately; do not restore it without
                     also changing the composer, the rail, and spec § 2R.5. */}
                 <p className="text-xs text-muted-foreground mt-1">
-                  A single risk assessment may cover a “comparable set” of processing activities — similar activities presenting similar risks to consumers’ privacy. You’ll compare each additional use against this activity on five dimensions; if any one of them differs, this tool recommends a separate risk assessment for that use, and if any is unresolved it recommends one unless you confirm the dimension is the same. That is this tool’s recommendation on the record you give it, not a statement of what the law requires, and it does not replace review by your counsel.
+                  A single risk assessment may cover a “comparable set” of processing activities — similar activities presenting similar risks to consumers’ privacy. You’ll compare each additional use against this activity on five dimensions; if any one of them differs, this tool recommends a separate risk assessment for that use, and if any is unresolved it recommends one unless you confirm the dimension is the same.
                 </p>
 
                 <div className="mt-2">
