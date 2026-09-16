@@ -1,12 +1,9 @@
-// SourceMethodology — compact bordered module. Optionally carries a
-// "Last verified" date for the sourcing methodology itself (distinct from the
-// page-level "Legally verified" line in ResearchPageHeader). When no date is
-// passed, nothing is rendered rather than inventing one.
+// SourceMethodology — compact bordered module with site-wide sourcing language.
 // All consumers use the same site-wide sourcing language.
 
 export default function SourceMethodology({
   className,
-  lastVerified,
+  lastVerified: _lastVerified,
   variant: _variant = "default",
 }: {
   className?: string;
@@ -29,11 +26,6 @@ export default function SourceMethodology({
         Content is maintained under a periodic review cycle and is not represented to be up to
         date and does not constitute legal advice.
       </p>
-      {lastVerified ? (
-        <p className="mt-3 text-xs text-slate m-0">
-          <span className="font-medium text-brand-navy">Last verified:</span> {lastVerified}
-        </p>
-      ) : null}
     </aside>
   );
 }
