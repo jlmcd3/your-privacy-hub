@@ -1,55 +1,13 @@
-// SourceMethodology — compact bordered module. Optionally carries a
-// "Last verified" date for the sourcing methodology itself (distinct from the
-// page-level "Legally verified" line in ResearchPageHeader). When no date is
-// passed, nothing is rendered rather than inventing one.
-//
-// variant="research" renders the simplified sourcing card used on the eight
-// research pillar pages (Breach Notification, GDPR Enforcement, Global Privacy
-// Laws, AI Privacy Regulations, Cross Border Transfers, Biometric Privacy,
-// Health Data Privacy, Cookie Consent). The default variant keeps the fuller
-// wording plus the "Report an error" link for other consumers.
-import { Link, useLocation } from "react-router-dom";
+// SourceMethodology — compact bordered module with site-wide sourcing language.
+// All consumers use the same site-wide sourcing language.
 
 export default function SourceMethodology({
   className,
-  lastVerified,
-  variant = "default",
 }: {
   className?: string;
   lastVerified?: string;
   variant?: "default" | "research";
 }) {
-  const { pathname } = useLocation();
-  const contactHref = `/contact?subject=${encodeURIComponent(
-    "Correction request",
-  )}&page=${encodeURIComponent(pathname)}`;
-
-  if (variant === "research") {
-    return (
-      <aside
-        className={`rounded-xl border border-brand-cloud bg-card px-5 py-4 md:px-6 md:py-5 ${className ?? ""}`}
-        aria-label="How this page is sourced"
-      >
-        <h3 className="font-display text-brand-navy text-base md:text-lg mb-2 leading-tight">
-          How this page is sourced
-        </h3>
-        <p className="text-sm text-slate leading-6 m-0">
-          Information on this page links to or is sourced from primary sources, such as statutes,
-          regulations, and regulator publications.
-        </p>
-        <p className="mt-3 text-sm text-slate leading-6 m-0">
-          Content is maintained under a periodic review cycle and is not represented to be up to
-          date and does not constitute legal advice.
-        </p>
-        {lastVerified ? (
-          <p className="mt-3 text-xs text-slate m-0">
-            <span className="font-medium text-brand-navy">Last verified:</span> {lastVerified}
-          </p>
-        ) : null}
-      </aside>
-    );
-  }
-
   return (
     <aside
       className={`rounded-xl border border-brand-cloud bg-card px-5 py-4 md:px-6 md:py-5 ${className ?? ""}`}
@@ -59,27 +17,12 @@ export default function SourceMethodology({
         How this page is sourced
       </h3>
       <p className="text-sm text-slate leading-6 m-0">
-        Every legal claim on this page links to or is derived from primary sources — statutes,
-        regulations, and regulator publications — calibrated against our enforcement corpus.
-        Content is maintained under an internal review cycle.
+        Information on this page links to or is sourced from primary sources, such as statutes,
+        regulations, and regulator publications.
       </p>
       <p className="mt-3 text-sm text-slate leading-6 m-0">
-        We are working toward marking every citation as binding law, regulator guidance, or
-        End User Privacy analysis. This page supports, but does not replace, review by
-        qualified legal counsel.
-      </p>
-      {lastVerified ? (
-        <p className="mt-3 text-xs text-slate m-0">
-          <span className="font-medium text-brand-navy">Last verified:</span> {lastVerified}
-        </p>
-      ) : null}
-      <p className="mt-3 text-sm m-0">
-        <Link
-          to={contactHref}
-          className="text-brand-teal-text font-medium hover:underline no-underline"
-        >
-          Report an error →
-        </Link>
+        Content is maintained under a periodic review cycle and is not represented to be up to
+        date and does not constitute legal advice.
       </p>
     </aside>
   );
