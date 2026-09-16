@@ -16,7 +16,7 @@ const DOCS = [
     url: "https://www.edpb.europa.eu/our-work-tools/documents/public-consultations/2024/guidelines-012024-processing-personal-data_en",
     authority: "EDPB",
     jurisdiction: "EU",
-    model: "claude-sonnet-4-6",
+    model: "claude-sonnet-5",
   },
   {
     url: "https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/lawful-basis/legitimate-interests/",

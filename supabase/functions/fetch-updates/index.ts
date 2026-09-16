@@ -1291,7 +1291,7 @@ Generate 0-3 action_items. Return [] if the source text does not support specifi
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-6",
+        model: "claude-sonnet-5",
         max_tokens: 5000,
         system: systemPrompt,
         messages: [{ role: "user", content: buildUserContent(correction) }],

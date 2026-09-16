@@ -61,7 +61,7 @@ import {
 import { currentGenerationModel, generationTimeoutMs } from "../../../_shared/generation-model.ts"; // MODEL A/B HARNESS dispatch 1
 
 export const PASS1_LLM_STAMP = "ltp-pass1-llm-item261-grounded-observe@2026-07-29";
-export const PASS1_MODEL = "claude-sonnet-4-6";
+export const PASS1_MODEL = "claude-sonnet-5";
 export const PASS1_MAX_ATTEMPTS = 2;
 export const PASS1_TIMEOUT_ENFORCED = "abort-controller"; // T-M9 ping surface
 

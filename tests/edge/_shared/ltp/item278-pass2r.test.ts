@@ -79,7 +79,7 @@ function envEnforce(on: boolean) {
 }
 
 Deno.test("manifest pins the §2R.6 model and budget", () => {
-  assertEquals(PASS2R_MODEL, "claude-sonnet-4-6");
+  assertEquals(PASS2R_MODEL, "claude-sonnet-5");
   assertEquals(PASS2R_MAX_ATTEMPTS, 3); // one call + two validator-directed retries
   assertEquals(PASS2R_PER_ATTEMPT_TIMEOUT_MS, 170_000); // Item 281
   assertEquals(PASS2R_STAGE_CEILING_MS, 360_000); // Item 281

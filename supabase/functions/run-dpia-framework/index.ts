@@ -1735,7 +1735,7 @@ async function selfInvokeUnit(dpia_id: string, unit: UnitId): Promise<void> {
         // MODEL A/B HARNESS: every unit of a DPIA does its own model call in a
         // fresh invocation. Without re-sending the ambient generation model the
         // self-invoke resets to the default and an A/B run silently generates
-        // both sides on claude-sonnet-4-6.
+        // both sides on claude-sonnet-5.
         body: JSON.stringify({ dpia_id, unit, generation_model: currentGenerationModel() }),
         signal: AbortSignal.timeout(20_000),
       });

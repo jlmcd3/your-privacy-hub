@@ -70,7 +70,7 @@ async function callClaude(system: string, user: string, maxTokens = 64000): Prom
     method: "POST",
     headers: { "x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({
-      model: "claude-sonnet-4-6",
+      model: "claude-sonnet-5",
       max_tokens: maxTokens,
       system,
       messages: [{ role: "user", content: user }],

@@ -12,7 +12,7 @@
 // Internal micro-tasks (haiku classifiers, summarisers, citation auditors)
 // keep their explicit model strings — they are not part of the A/B surface.
 
-export const DEFAULT_GENERATION_MODEL = "claude-sonnet-4-6";
+export const DEFAULT_GENERATION_MODEL = "claude-sonnet-5";
 export const AB_ALT_GENERATION_MODEL = "claude-fable-5";
 
 export const ALLOWED_GENERATION_MODELS: readonly string[] = [
@@ -22,7 +22,7 @@ export const ALLOWED_GENERATION_MODELS: readonly string[] = [
 
 /** Short, filename-safe slug per model — used in PDF/zip filenames and columns. */
 export const GENERATION_MODEL_SLUG: Record<string, string> = {
-  [DEFAULT_GENERATION_MODEL]: "sonnet46",
+  [DEFAULT_GENERATION_MODEL]: "sonnet5",
   [AB_ALT_GENERATION_MODEL]: "fable5",
 };
 
@@ -81,7 +81,7 @@ export function generationTimeoutMs(model: string, base?: number): number {
 // ── Per-call output-token headroom policy (item 373) ─────────────────────────
 // claude-fable-5 emits an internal `thinking` content block whose tokens are
 // billed against the SAME max_tokens budget as the visible answer. With the
-// per-unit caps tuned for claude-sonnet-4-6 the whole budget can be consumed
+// per-unit caps tuned for claude-sonnet-5 the whole budget can be consumed
 // by thinking, so the response comes back stop_reason=max_tokens with no text
 // block at all. Give the alternate model extra output headroom — configuration
 // only; the prompts and every other request field stay byte-identical between

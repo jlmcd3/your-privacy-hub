@@ -119,7 +119,7 @@ Articles:\n${JSON.stringify(digest, null, 2)}`;
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-6",
+      model: "claude-sonnet-5",
       max_tokens: 6000,
       system: `You are a senior privacy regulatory analyst at a leading intelligence firm. You produce structured trend and pattern analysis across batches of recent privacy regulatory developments for a compliance platform serving DPOs and privacy counsel.
 

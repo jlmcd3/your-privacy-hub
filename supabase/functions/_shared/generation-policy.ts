@@ -1,6 +1,6 @@
 // Cross-product generation policy: token caps + retry/refund dispatch.
 //
-// Customer-facing product generators all run on claude-sonnet-4-6, whose
+// Customer-facing product generators all run on claude-sonnet-5, whose
 // synchronous Messages API output ceiling is 64,000 tokens. Anthropic bills
 // only for tokens actually generated and `max_tokens` carries no rate-limit
 // cost or extra latency — raising the cap to the model ceiling is pure

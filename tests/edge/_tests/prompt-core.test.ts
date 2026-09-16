@@ -90,7 +90,7 @@ Deno.test("full variant: blocks, placeholders, content", () => {
   assertStringIncludes(blocks[3].text, "further internal investigation is advisable.");
   assertStringIncludes(blocks[3].text, "NEVER instruct the reader to consult legal counsel");
 
-  // Cache minimum: Claude Sonnet 4.6 prefix ≥ 1024 tokens (~4 chars/token).
+  // Cache minimum: Claude Sonnet 5 prefix ≥ 1024 tokens (~4 chars/token).
   assert(b1.length / 4 >= 1024, `block1 too short for cache: ${b1.length} chars`);
 });
 

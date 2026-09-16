@@ -304,7 +304,7 @@ export default function VerificationScanAdmin() {
         <h1 className="text-3xl font-serif mb-2">Verification scan (Package 7)</h1>
         <p className="text-sm text-muted-foreground mb-6">
           Fetches each enforcement action's primary source, extracts Tier A/B fields via Claude Haiku 4.5,
-          verifies the corpus paraphrase via Sonnet 4.6, and gates <code>memo_eligible</code> on the result.
+          verifies the corpus paraphrase via Sonnet 5, and gates <code>memo_eligible</code> on the result.
         </p>
 
         {/* Health */}
