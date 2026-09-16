@@ -40,6 +40,9 @@ const UI_ONLY = new Set([
   "coachSeen",
   "finalizationOpen",
   "activeRiskRailKey",
+  // Doc 262 §9.5 item 5a — provisional prefill marks; the answer itself lives
+  // in a5HarmPathways and an unconfirmed prefill is stripped from the payload.
+  "a5Prefilled",
 ]);
 
 function stateNames(): string[] {

@@ -200,6 +200,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
         { pi_category: "Contact identifiers (name, email, phone)", retention_period: "36 months from last purchase", retention_criteria: "" },
         { pi_category: "Financial information", retention_period: "36 months from last purchase", retention_criteria: "" },
         { pi_category: "Device identifiers (IP, cookies, device IDs)", retention_period: "", retention_criteria: "Until purpose is fulfilled, then deletion" },
+        { pi_category: "Internet or network activity", retention_period: "36 months from last purchase", retention_criteria: "" },
       ],
       activity_disclosures: [
         {
@@ -471,6 +472,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
         { pi_category: "Government identifiers (SSN, driver's license, state ID, passport number)", retention_period: "7 years from account closure or decline", retention_criteria: "" },
         { pi_category: "Financial information", retention_period: "", retention_criteria: "Statutory or regulatory retention requirement" },
         { pi_category: "Account log-in or financial-account credentials", retention_period: "7 years from account closure or decline", retention_criteria: "" },
+        { pi_category: "Contact identifiers (name, email, phone)", retention_period: "7 years from account closure or decline", retention_criteria: "" },
       ],
       activity_disclosures: [
         {
@@ -757,6 +759,8 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       retention_by_pi_category: [
         { pi_category: "Health or medical information", retention_period: "24 months from last app activity", retention_criteria: "" },
         { pi_category: "Precise geolocation (GPS-level / specific address)", retention_period: "", retention_criteria: "Until purpose is fulfilled, then deletion" },
+        { pi_category: "Contact identifiers (name, email, phone)", retention_period: "24 months from last app activity", retention_criteria: "" },
+        { pi_category: "Device identifiers (IP, cookies, device IDs)", retention_period: "24 months from last app activity", retention_criteria: "" },
       ],
       activity_disclosures: [
         {
@@ -1238,6 +1242,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       retention_by_pi_category: [
         { pi_category: "Internet or network activity", retention_period: "18 months rolling", retention_criteria: "" },
         { pi_category: "Contact identifiers (name, email, phone)", retention_period: "", retention_criteria: "Duration of account / relationship" },
+        { pi_category: "Device identifiers (IP, cookies, device IDs)", retention_period: "18 months rolling", retention_criteria: "" },
       ],
       activity_disclosures: [
         {
@@ -1470,6 +1475,8 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       retention_by_pi_category: [
         { pi_category: "Education information", retention_period: "", retention_criteria: "Statutory or regulatory retention requirement" },
         { pi_category: "Health or medical information", retention_period: "3 years from the student's last enrollment term", retention_criteria: "" },
+        { pi_category: "Contact identifiers (name, email, phone)", retention_period: "3 years from the student's last enrollment term", retention_criteria: "" },
+        { pi_category: "Children's data (under 16)", retention_period: "", retention_criteria: "Statutory or regulatory retention requirement" },
       ],
       activity_disclosures: [
         {
@@ -1740,6 +1747,8 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       retention_by_pi_category: [
         { pi_category: "Government identifiers (SSN, driver's license, state ID, passport number)", retention_period: "", retention_criteria: "Statutory or regulatory retention requirement" },
         { pi_category: "Health or medical information", retention_period: "10 years from claim closure", retention_criteria: "" },
+        { pi_category: "Contact identifiers (name, email, phone)", retention_period: "10 years from claim closure", retention_criteria: "" },
+        { pi_category: "Financial information", retention_period: "10 years from claim closure", retention_criteria: "" },
       ],
       activity_disclosures: [
         {
@@ -1999,6 +2008,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       retention_by_pi_category: [
         { pi_category: "Precise geolocation (GPS-level / specific address)", retention_period: "", retention_criteria: "Until purpose is fulfilled, then deletion" },
         { pi_category: "Device identifiers (IP, cookies, device IDs)", retention_period: "24 months rolling", retention_criteria: "" },
+        { pi_category: "Contact identifiers (name, email, phone)", retention_period: "", retention_criteria: "Duration of account / relationship" },
       ],
       activity_disclosures: [
         {
@@ -2229,6 +2239,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       retention_by_pi_category: [
         { pi_category: "Biometric information", retention_period: "0 days — discarded immediately after match", retention_criteria: "Until purpose is fulfilled, then deletion" },
         { pi_category: "Contact identifiers (name, email, phone)", retention_period: "24 months from last stay", retention_criteria: "Fixed period from collection" },
+        { pi_category: "Financial information", retention_period: "24 months from last stay", retention_criteria: "Fixed period from collection" },
       ],
       activity_disclosures: [
         {
@@ -2416,6 +2427,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       retention_by_pi_category: [
         { pi_category: "General location (city, region, ZIP, IP-derived)", retention_period: "", retention_criteria: "Until purpose is fulfilled, then deletion" },
         { pi_category: "Internet or network activity", retention_period: "12 months rolling", retention_criteria: "" },
+        { pi_category: "Contact identifiers (name, email, phone)", retention_period: "", retention_criteria: "Duration of account / relationship" },
       ],
       activity_disclosures: [
         {

@@ -22,7 +22,9 @@ import ActiveClientLabel from "@/components/ActiveClientLabel";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ExhibitTextarea } from "@/components/ExhibitTextarea";
+import { ExhibitTextarea, isExhibit } from "@/components/ExhibitTextarea";
+// Doc 262 §9.5 item 2 — legacy harm pills seed structured § 7152(a)(5) rows.
+import { blankHarmRow, seedHarmRowsFromPills } from "@/lib/harmPillSeed";
 import { AssistedInput } from "@/components/AssistedInput";
 import { ASSISTED_INPUT_REGISTRY } from "@/config/assistedInput";
 import { useAuth } from "@/hooks/useAuth";
@@ -39,6 +41,15 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
 import { InfoPopover } from "@/components/InfoPopover";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
+// Doc 261-review (2026-09-15, LEGAL 03 / LEGAL 04 / EX 04): card citations come
+// from the front-end mirror of the engine's pinpoint registry, so the intake
+// and the report can no longer cite different authority for the same card.
+import { exceptionPinpoint } from "@/lib/risk-exceptions";
+// Doc 261-review (2026-09-15, LEGAL 06): front-end mirror of the engine's
+// categorical § 7001(ddd) resolver, pinned by a Deno parity test.
+import { resolveAdmtDecisionMirror } from "@/lib/admtDecisionMirror";
+// Doc 261-review (2026-09-15, EX 11): the review model covers every payload key.
+import { buildCppaRiskReview } from "@/lib/cppaRiskReview";
 import { DefPopover } from "@/components/DefPopover";
 import { ProductHero } from "@/components/ProductHero";
 import SuiteSelector from "@/components/product/SuiteSelector";
@@ -284,14 +295,14 @@ const Radio = ({ name, options, value, onChange }: { name: string; options: stri
 // they describe permitted internal uses or carve-outs from specific obligations.
 // Rail key (railKey) maps to CPPA_RISK_RAIL entries with verbatim statutory text.
 export const CPPA_EXCEPTIONS: { key: string; label: string; cite: string; railKey: string }[] = [
-  { key: "fraud_detection",   label: "Fraud prevention / detection",                       cite: "Cal. Civ. Code § 1798.140(e)(2)", railKey: "exc_fraud_detection" },
-  { key: "security_integrity", label: "Security & integrity of systems and data",          cite: "Cal. Civ. Code § 1798.140(e)(2)", railKey: "exc_security_integrity" },
-  { key: "debugging",         label: "Debugging to identify and repair errors",            cite: "Cal. Civ. Code § 1798.140(e)(3)", railKey: "exc_debugging" },
-  { key: "transient_use",     label: "Transient / short-term use (no profile built)",      cite: "Cal. Civ. Code § 1798.140(e)(4)", railKey: "exc_transient_use" },
-  { key: "internal_research", label: "Internal research for technological development",    cite: "Cal. Civ. Code § 1798.140(e)(8)", railKey: "exc_internal_research" },
-  { key: "employment_context", label: "Employment-context processing",                     cite: "No current statutory exemption (former § 1798.145(m) inoperative since January 1, 2023) — additional information required", railKey: "exc_employment_context" },
-  { key: "legal_compliance",  label: "Compliance with a legal obligation",                 cite: "Cal. Civ. Code § 1798.145(a)(1)", railKey: "exc_legal_compliance" },
-  { key: "consumer_request",  label: "Performing a service the consumer requested",        cite: "Cal. Civ. Code § 1798.140(e)(1)", railKey: "exc_consumer_request" },
+  { key: "fraud_detection",   label: "Fraud prevention / detection",                       cite: exceptionPinpoint("fraud_detection"),   railKey: "exc_fraud_detection" },
+  { key: "security_integrity", label: "Security & integrity of systems and data",          cite: exceptionPinpoint("security_integrity"), railKey: "exc_security_integrity" },
+  { key: "debugging",         label: "Debugging to identify and repair errors",            cite: exceptionPinpoint("debugging"),         railKey: "exc_debugging" },
+  { key: "transient_use",     label: "Transient / short-term use (no profile built)",      cite: exceptionPinpoint("transient_use"),     railKey: "exc_transient_use" },
+  { key: "internal_research", label: "Internal research for technological development",    cite: exceptionPinpoint("internal_research"), railKey: "exc_internal_research" },
+  { key: "employment_context", label: "Employment-context processing",                     cite: exceptionPinpoint("employment_context"), railKey: "exc_employment_context" },
+  { key: "legal_compliance",  label: "Compliance with a legal obligation",                 cite: exceptionPinpoint("legal_compliance"),  railKey: "exc_legal_compliance" },
+  { key: "consumer_request",  label: "Performing a service the consumer requested",        cite: exceptionPinpoint("consumer_request"),  railKey: "exc_consumer_request" },
 ];
 
 // § 7152(a)(5) negative-impact examples + impact-assessment scales live in a
@@ -354,8 +365,11 @@ import {
 
 // Progressive disclosure for optional clusters. The value line states what the
 // report does when the cluster is left closed — never a nudge to fill it in.
-function OptionalCluster({ title, valueLine, children }: { title: string; valueLine: string; children: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
+function OptionalCluster({ title, valueLine, children, defaultOpen = false }: { title: string; valueLine: string; children: React.ReactNode; defaultOpen?: boolean }) {
+  // Doc 261-review (2026-09-15, Addition 2 / CEO Note 4): a cluster whose
+  // contents are always relevant may open on load instead of hiding behind
+  // an "Add …" button the user has to discover.
+  const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="border-t pt-6 mt-6">
       <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -595,6 +609,13 @@ export default function CPPARiskAssessment() {
   const [a4BenefitPublicFact, setA4BenefitPublicFact] = useState("");
   // UPGRADE-2 (ITEM 4) — the pathway triple (data / actor / route) and the
   // per-safeguard residual-risk statement required by § 7152(a)(5)-(6).
+  // Doc 262 §9.5 item 5a — fields filled from Step 3 by a chip are provisional
+  // until the user keeps or edits them; an unconfirmed prefill never reaches
+  // the payload (ADMT review F02–F05 lesson). UI state only — not drafted.
+  const [a5Prefilled, setA5Prefilled] = useState<Record<number, string[]>>({});
+  const markPrefilled = (idx: number, field: string) => setA5Prefilled((m) => ({ ...m, [idx]: [...new Set([...(m[idx] ?? []), field])] }));
+  const clearPrefilled = (idx: number, field: string) => setA5Prefilled((m) => ({ ...m, [idx]: (m[idx] ?? []).filter((f) => f !== field) }));
+  const isPrefilled = (idx: number, field: string) => (a5Prefilled[idx] ?? []).includes(field);
   const [a5HarmPathways, setA5HarmPathways] = useState<{ harm: string; data_involved: string; actor: string; source: string; cause: string; likelihood: string; severity: string }[]>([
     { harm: "", data_involved: "", actor: "", source: "", cause: "", likelihood: "", severity: "" },
   ]);
@@ -737,12 +758,12 @@ export default function CPPARiskAssessment() {
   // DOC 157 (2026-09-03) — the categorical § 7001(ddd) block, rendered under
   // the ADMT description and, for a trained-but-not-used model, under q18b.
   const renderDecisionCategoryBlock = (stem: string) => (
-    <div className="mt-3" data-rail-key="q19a_decision_categories" onFocus={() => focusRail('q19a_decision_categories')}>
+    <div className="mt-3" data-rail-key="q19a_decision_categories" {...errAnchor("q19a_decision_categories")} onFocus={() => focusRail('q19a_decision_categories')}>
       <Label>{stem} <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(ddd))</span></Label>
       <p className="text-xs text-muted-foreground mt-1">Select every category that applies. A "significant decision" is one "that results in the provision or denial of financial or lending services, housing, education enrollment or opportunities, employment or independent contracting opportunities or compensation, or healthcare services"; it "does not include advertising to a consumer." "None of these categories" and "Advertising only" are complete answers.</p>
       <div className="mt-2"><Pills options={[...SIGNIFICANT_DECISION_CATEGORY_OPTS]} value={q19aDecisionCategories} onChange={(v: string[]) => setQ19aDecisionCategories(v)} /></div>
       {q19aDecisionCategories.includes(SIGNIFICANT_DECISION_CATEGORY_OPTS[1]) && (
-        <div className="mt-3">
+        <div className="mt-3" data-rail-key="q19b_housing_basis" {...errAnchor("q19b_housing_basis")} onFocus={(e) => { e.stopPropagation(); focusRail('q19b_housing_basis'); }}>
           <Label className="text-sm">Is the housing decision based solely on the availability or vacancy of the housing, or on the successful receipt of payment for it? <Req /> <span className="text-xs text-muted-foreground font-mono">(§ 7001(ddd)(2))</span></Label>
           <p className="text-xs text-muted-foreground mt-1">Under § 7001(ddd)(2), "the use of ADMT that provides or denies housing to a consumer based solely on the availability or vacancy of the housing or the successful receipt of payment for housing from the consumer is not making a significant decision."</p>
           <div className="mt-2"><Radio name="q19b_housing_basis" options={[...HOUSING_DECISION_BASIS_OPTS]} value={q19bHousingBasis} onChange={setQ19bHousingBasis} /></div>
@@ -787,7 +808,23 @@ export default function CPPARiskAssessment() {
   // Regulatory footprint — derived deterministically from current answers.
   // Updates in real time as the user fills in the form.
   const regulatoryFootprint = useMemo(() => {
-    const items: { citation: string; label: string; triggered: boolean; note?: string }[] = [
+    // Doc 261-review (2026-09-15, LEGAL 06): every item carries a `state`.
+    // "required" is the historical behaviour; "unresolved" and "evaluation"
+    // are rendered distinctly so the panel never announces an obligation the
+    // engine's own gate (gate-eval.ts) would not find.
+    type FootprintState = "required" | "unresolved" | "evaluation";
+    const admtDecision = resolveAdmtDecisionMirror({ q19a_decision_categories: q19aDecisionCategories, q19b_housing_basis: q19bHousingBasis });
+    const humanReviewAllThree =
+      rk3d.human_review_facts.includes("Reviewers know how to interpret and use the ADMT's output") &&
+      rk3d.human_review_facts.includes("Reviewers consider information beyond the ADMT's output") &&
+      rk3d.human_review_facts.includes("Reviewers have authority to change or overrule the decision");
+    const admtB3State: FootprintState | null =
+      q18 === "In evaluation" ? "evaluation"
+      : q18 !== "Yes" ? null
+      : admtDecision.cls === "significant" ? "required"
+      : admtDecision.cls === "unresolved" ? "unresolved"
+      : null; // advertising-only, none-of-these, housing-excluded: determined non-engagement on the Company's own answer
+    const items: { citation: string; label: string; triggered: boolean; note?: string; state?: FootprintState }[] = [
       {
         citation: "11 CCR § 7150(b)(1)",
         label: "Risk assessment required — sell/share activities",
@@ -806,8 +843,16 @@ export default function CPPARiskAssessment() {
       // separate prongs with separate triggers; (b)(4) and (b)(5) were absent.
       {
         citation: "11 CCR § 7150(b)(3)",
-        label: "Risk assessment required — ADMT for a significant decision",
-        triggered: q18 === "Yes" || q18 === "In evaluation",
+        label:
+          admtB3State === "required" ? "Risk assessment required — ADMT for a significant decision"
+          : admtB3State === "unresolved" ? "Potential trigger — ADMT is used; complete the decision-category question to resolve whether it makes a significant decision"
+          : "Not yet engaged — ADMT is in evaluation, not deployed; complete this assessment before the system is used for decisions about consumers",
+        triggered: admtB3State !== null,
+        state: admtB3State ?? undefined,
+        note:
+          admtB3State === "required" && humanReviewAllThree
+            ? "your human-review answers assert all three elements of effective human involvement (§ 7001(e)(1)); if that is right the technology may fall outside the ADMT definition — a question for counsel, and the assessment path stays open"
+            : undefined,
       },
       {
         citation: "11 CCR § 7150(b)(4)",
@@ -877,6 +922,7 @@ export default function CPPARiskAssessment() {
   }, [
     q1, q4, q5, q15, q15dHrCarveout, q18, q5bProfiling, q18bTraining, sensitiveLocationBasis,
     hasSecondaryUses, secondaryActivities,
+    q19aDecisionCategories, q19bHousingBasis, rk3d.human_review_facts,
   ]);
 
 
@@ -1030,6 +1076,18 @@ export default function CPPARiskAssessment() {
           const i = badIdx(retentionByPiCategory, started, (r) => !r.retention_period.trim() && !r.retention_criteria);
           if (i >= 0) return fail(rowKey("retention_by_pi_category", i, "retention_period"), "Every retention row needs a period — or, if the period is unknown, the criteria that determine it.");
         }
+        // Doc 261-review (2026-09-15, Addition 3 / LIVE03): every category the
+        // Company selected in Step 3 needs a retention row here. The rows were
+        // validated individually but never compared with the selection, so
+        // five categories could advance on one row. The "add the missing rows"
+        // button beside the block pre-fills the category so nothing is retyped.
+        {
+          const covered = new Set(rows.map((r) => r.pi_category));
+          const missing = q4.filter((c) => !covered.has(c));
+          if (missing.length) {
+            return fail("retention_by_pi_category", `Add a retention row for each category you selected in Step 3 — ${missing.length === 1 ? "one category has none" : `${missing.length} categories have none`}: ${missing.slice(0, 3).join("; ")}${missing.length > 3 ? "; …" : ""}. Use "Add rows for the remaining categories" if the same period applies.`);
+          }
+        }
       }
     }
     if (step === 5) {
@@ -1062,33 +1120,23 @@ export default function CPPARiskAssessment() {
       for (const [gate, text, fact, basis, label, slug] of gates) {
         if (!gate) return fail(`benefit_${slug}_identified`, `Answer whether a distinct ${label} benefit is identified — "No" is a complete answer.`);
         if (gate === "Yes" && !text.trim()) return fail(`a4_benefit_${slug}`, `Describe the ${label} benefit you identified.`);
-        if (gate === "Yes" && !fact.trim()) return fail(`a4_benefit_${slug}_fact`, `Give the fact in the record supporting the ${label} benefit.`);
+        // Doc 261-review (2026-09-15, EX 09 / LIVE06): a blank supporting fact
+        // is a complete answer — the engine carries the benefit as limited
+        // weight (resolveBenefitWeight), exactly as the helper copy promises.
+        // `fact` stays in the tuple so the anchor key list is unchanged.
+        void fact;
         // RK3-D (doc 33 D-L3) — magnitude basis; "No basis stated" is a complete answer.
         if (gate === "Yes" && !basis) return fail(`benefit_${slug}_magnitude_basis`, `Say what kind of basis the ${label} benefit statement gives for its size — "No basis stated" is a complete answer.`);
       }
     }
     if (step === 7) {
-      if (!i7InternalContributors) return fail("i7_internal_contributors", "List the internal contributor roles — or write \"None\".");
-      // RK3-A1 g6 — § 7151: the participation record needs at least one
-      // complete, confirmed row (form-required; data-layer optional).
-      {
-        const started = (r: typeof sectionParticipants[number]) => Boolean(r.name.trim() || r.role.trim() || r.processing_responsibility.trim());
-        const rows = sectionParticipants.filter(started);
-        if (rows.length === 0) return fail("section_participants", "Record the employees whose job duties include participating in this processing — § 7151 requires their inclusion in the assessment process.");
-        {
-          const i = badIdx(sectionParticipants, started, (r) => !r.name.trim() || !r.role.trim());
-          if (i >= 0) return fail(rowKey("section_participants", i, "name"), "Every participation row needs a name and a role or title.");
-        }
-        {
-          const i = badIdx(sectionParticipants, started, (r) => !r.processing_responsibility.trim());
-          if (i >= 0) return fail(rowKey("section_participants", i, "processing_responsibility"), "State each participant's responsibility in the processing.");
-        }
-        {
-          const i = badIdx(sectionParticipants, started, (r) => !r.participation_confirmed);
-          if (i >= 0) return fail(rowKey("section_participants", i, "participation_confirmed"), "Confirm each listed employee's participation in the assessment process.");
-        }
-      }
-      if (!i8ExecName || !i8ExecTitle) return fail(!i8ExecName ? "i8_exec_name" : "i8_exec_title", "Give the certifying executive's name and title.");
+      // Doc 262 §9.5 policy (CEO, 2026-09-15): the lack of identification of
+      // individuals never stops an approval or the report. The former gates on
+      // contributor roles, the § 7151 participation rows and their
+      // confirmation, and the certifying executive's name and title are now
+      // notices (step7IdentificationNotices) shown at Step 7 and in the Step 8
+      // outstanding panel; the report states the outstanding identification as
+      // a condition on the approval level reached.
     }
     return null;
   };
@@ -1111,6 +1159,8 @@ export default function CPPARiskAssessment() {
   const back = () => { setValidationError(null); fieldErrors.clearAll(); setStep((s) => Math.max(1, s - 1)); };
 
 
+  // Doc 262 §9.5 item 5c — the first roster row with approval authority.
+  const rosterApprover = assessmentReviewersApprovers.find((r) => (r.role === "Approved" || r.role === "Both") && r.name.trim());
   const intake = useMemo(() => ({
     entity_name: entityName.trim(),
     subject_anchor: subjectAnchor.trim(),
@@ -1235,13 +1285,23 @@ export default function CPPARiskAssessment() {
     a4_benefit_consumer_fact: a4BenefitConsumerFact.trim(),
     a4_benefit_other_stakeholders_fact: a4BenefitOtherStakeholdersFact.trim(),
     a4_benefit_public_fact: a4BenefitPublicFact.trim(),
-    a5_harm_pathways: a5HarmPathways.filter((r) => r.harm),
+    // Doc 262 §9.5 item 5a — strip prefilled-but-unconfirmed suggestions.
+    a5_harm_pathways: a5HarmPathways
+      .map((r, idx) => ({
+        ...r,
+        data_involved: isPrefilled(idx, "data_involved") ? "" : r.data_involved,
+        actor: isPrefilled(idx, "actor") ? "" : r.actor,
+      }))
+      .filter((r) => r.harm),
     a6_safeguards: a6Safeguards.filter((r) => r.harm && (r.safeguard.trim() || r.safeguard_status)),
     harm_category_review_status: Object.keys(harmCategoryReviewStatus).length
       ? HARM_PATHWAY_OPTS.map((cat) => ({ harm_category: cat, review_status: harmCategoryReviewStatus[cat] || "" })).filter((r) => r.review_status)
       : undefined,
-    a9_approver_name: a9ApproverName.trim(),
-    a9_approver_position: a9ApproverPosition.trim(),
+    // Doc 262 §9.5 item 5c — one roster: when the Step 7 approver fields are
+    // blank, the legacy keys derive from the first roster row recorded as
+    // "Approved" or "Both". Keys unchanged; no double typing.
+    a9_approver_name: a9ApproverName.trim() || rosterApprover?.name.trim() || "",
+    a9_approver_position: a9ApproverPosition.trim() || rosterApprover?.position.trim() || "",
     a9_approval_date: a9ApprovalDate,
     a8_information_providers: a8InformationProviders.trim(),
     // ── QA round two (RA-A-09 / RA-B-02 / SUITE-A-02 / SUITE-B04, High,
@@ -1724,6 +1784,20 @@ export default function CPPARiskAssessment() {
   }, [shouldAutoResume, draftFound, restoreData, touched]);
 
   const summaryStep = step === totalSteps;
+  // Doc 262 §9.5 policy — identification is reported, never gated. The strings
+  // are the former Step 7 validator messages, kept so their meaning (and the
+  // tests that pin them) survive the change from gate to notice.
+  const step7IdentificationNotices = useMemo(() => {
+    const out: string[] = [];
+    if (!i7InternalContributors) out.push("list the internal contributor roles — or write \"None\"");
+    const started = sectionParticipants.filter((r) => r.name.trim() || r.role.trim() || r.processing_responsibility.trim());
+    if (started.length === 0) out.push("record the employees whose job duties include participating in this processing — § 7151 requires their inclusion in the assessment process");
+    if (started.some((r) => !r.name.trim() || !r.role.trim())) out.push("every participation row needs a name and a role or title");
+    if (started.some((r) => !r.processing_responsibility.trim())) out.push("state each participant's responsibility in the processing");
+    if (started.some((r) => !r.participation_confirmed)) out.push("Confirm each listed employee's participation in the assessment process");
+    if (!i8ExecName || !i8ExecTitle) out.push("give the certifying executive's name and title (§ 7157(b))");
+    return out;
+  }, [i7InternalContributors, sectionParticipants, i8ExecName, i8ExecTitle]);
 
 
   const handlePurchase = () => {
@@ -1941,7 +2015,7 @@ export default function CPPARiskAssessment() {
               <RequiredLegend />
               <p className="text-sm text-muted-foreground">These answers open the report: they name the activity, state its purpose, and fix the entity and subject line that appear on every page of the assessment and on the annual submission worksheet.</p>
               <div data-rail-key="primary_activity" {...errAnchor("primary_activity_name")} onFocus={() => focusRail('primary_activity')}>
-                <Label htmlFor="primary_activity_name">What should we call the processing activity you're assessing today? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(a))</span></Label>
+                <Label htmlFor="primary_activity_name">What should we call the processing activity you're assessing today? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(a))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">A short working name for this one activity. It is the subject of this assessment and appears throughout the report.</p>
                 <input
                   id="primary_activity_name"
@@ -1954,7 +2028,7 @@ export default function CPPARiskAssessment() {
                 />
               </div>
               <div data-rail-key="primary_activity" {...errAnchor("primary_activity_purpose")} onFocus={() => focusRail('primary_activity')}>
-                <Label htmlFor="primary_activity_purpose">In one sentence, what does this activity do with personal information? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7155(a)(1))</span></Label>
+                <Label htmlFor="primary_activity_purpose">In one sentence, what does this activity do with personal information? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7155(a)(1))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">Describe what is done with the information — the operation, not the business justification.</p>
                 <textarea
                   id="primary_activity_purpose"
@@ -2026,7 +2100,7 @@ export default function CPPARiskAssessment() {
               {/* RK3-D (doc 33 D-L3) — purpose-specificity facets. The report
                   bands the purpose on this typed answer; the honest answer is
                   what the stated purpose itself identifies. */}
-              <div>
+              <div data-rail-key="rk3d_purpose_specificity_facts" {...errAnchor("rk3d_purpose_specificity_facts")} onFocus={() => focusRail('rk3d_purpose_specificity_facts')}>
                 <Label>Which of the following does your stated purpose itself identify? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(1))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">Check only what the purpose statement above actually names — the report evaluates the purpose's precision on this answer. "None of the above" is a complete answer.</p>
                 <div className="mt-2">
@@ -2045,7 +2119,7 @@ export default function CPPARiskAssessment() {
                 </div>
               </div>
 
-              <div data-rail-key="comparable_set" {...errAnchor("has_secondary_uses")} onFocus={() => focusRail('comparable_set')}>
+              <div data-rail-key="comparable_set" {...errAnchor("has_secondary_uses")} onFocus={(e) => { e.stopPropagation(); focusRail('comparable_set'); }}>
                 <Label>
                   Beyond {primaryActivityName.trim() || "this activity"}, does your company use this same data for any other distinct purpose, product, or audience? <Req />{" "}
                   <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7156(a))</span>
@@ -2082,13 +2156,14 @@ export default function CPPARiskAssessment() {
               </div>
 
               {hasSecondaryUses === "Yes — there are other uses" && (
-                <div className="space-y-4">
+                <div className="space-y-4" data-rail-key="secondary_activities" {...errAnchor("secondary_activities")} onFocus={() => focusRail('secondary_activities')}>
                   {secondaryActivities.map((act, idx) => (
                     <div
                       key={idx}
                       data-rail-key="comparable_set"
-                      onFocus={() => focusRail('comparable_set')}
+                      onFocus={(e) => { e.stopPropagation(); focusRail('comparable_set'); }}
                       className="rounded-lg border border-input p-4 space-y-3"
+                      {...errAnchor(rowKey("secondary_activities", idx))}
                     >
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-sm font-semibold">Other use #{idx + 1}</p>
@@ -2111,7 +2186,7 @@ export default function CPPARiskAssessment() {
                               prev.map((a, i) => (i === idx ? { ...a, name: e.target.value } : a)),
                             )
                           }
-                          onFocus={() => focusRail('comparable_set')}
+                          onFocus={(e) => { e.stopPropagation(); focusRail('comparable_set'); }}
                           placeholder="e.g., Fraud screening"
                           className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
                         />
@@ -2127,7 +2202,7 @@ export default function CPPARiskAssessment() {
                               prev.map((a, i) => (i === idx ? { ...a, purpose: e.target.value } : a)),
                             )
                           }
-                          onFocus={() => focusRail('comparable_set')}
+                          onFocus={(e) => { e.stopPropagation(); focusRail('comparable_set'); }}
                           placeholder="e.g., We score transactions to hold suspected fraudulent orders."
                           className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
                         />
@@ -2135,7 +2210,7 @@ export default function CPPARiskAssessment() {
                       {/* RK3-D (doc 33 D-L3) — per-row secondary-use operands. */}
                       <div>
                         <Label>How does this other use relate to the primary purpose? <Req /></Label>
-                        <div className="mt-1.5">
+                        <div className="mt-1.5" {...errAnchor(rowKey("secondary_activities", idx, "relation_to_primary"))}>
                           <Radio
                             name={`secondary_relation_${idx}`}
                             options={[...SECONDARY_RELATION_OPTS]}
@@ -2150,7 +2225,7 @@ export default function CPPARiskAssessment() {
                       </div>
                       <div>
                         <Label>Is this other use disclosed to consumers at or before collection? <Req /></Label>
-                        <div className="mt-1.5">
+                        <div className="mt-1.5" {...errAnchor(rowKey("secondary_activities", idx, "disclosed_in_notice"))}>
                           <Radio
                             name={`secondary_disclosed_${idx}`}
                             options={[...SECONDARY_DISCLOSED_OPTS]}
@@ -2213,7 +2288,7 @@ export default function CPPARiskAssessment() {
               {/* RK3-D (doc 33 D-L3) — out-of-scope confirmation + comparable-set
                   status. Both are typed scope facts the report's Section I
                   factors consume. */}
-              <div>
+              <div data-rail-key="rk3d_out_of_scope_confirmation" {...errAnchor("rk3d_out_of_scope_confirmation")} onFocus={() => focusRail('rk3d_out_of_scope_confirmation')}>
                 <Label>Outside the stated purpose and any uses listed above, is this same information processed for anything else? <Req /></Label>
                 <p className="text-xs text-muted-foreground mt-1">"Unsure" is a complete answer — the report records it as an open follow-up rather than assuming the favorable answer.</p>
                 <div className="mt-2"><Radio name="out_of_scope_confirmation" options={[...OUT_OF_SCOPE_CONFIRMATION_OPTS]} value={rk3d.out_of_scope_confirmation} onChange={(v) => setRk3dField("out_of_scope_confirmation", v)} /></div>
@@ -2224,7 +2299,7 @@ export default function CPPARiskAssessment() {
                   </div>
                 )}
               </div>
-              <div>
+              <div data-rail-key="rk3d_comparable_processing_status" {...errAnchor("rk3d_comparable_processing_status")} onFocus={() => focusRail('rk3d_comparable_processing_status')}>
                 <Label>Does this assessment cover a single activity, or a set of similar activities? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7156(a))</span></Label>
                 <div className="mt-2"><Radio name="comparable_processing_status" options={[...COMPARABLE_PROCESSING_STATUS_OPTS]} value={rk3d.comparable_processing_status} onChange={(v) => setRk3dField("comparable_processing_status", v)} /></div>
                 {rk3d.comparable_processing_status === "This assessment covers a set of similar activities presenting similar risks" && (
@@ -2234,7 +2309,7 @@ export default function CPPARiskAssessment() {
                   </div>
                 )}
               </div>
-              <div>
+              <div data-rail-key="entity_name" {...errAnchor("entity_name")} onFocus={() => focusRail('entity_name')}>
                 <Label htmlFor="entity_name">Entity name <span className="text-xs text-muted-foreground">(legal business name as it will appear on the report and § 7157 worksheet)</span></Label>
                 <input
                   id="entity_name"
@@ -2260,13 +2335,13 @@ export default function CPPARiskAssessment() {
                   className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
                 />
               </div>
-              <div data-rail-key="q3_sector" {...errAnchor("q3")} onFocus={() => focusRail('q3_sector')}><Label>What is your primary business sector? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(a))</span></Label>
+              <div data-rail-key="q3_sector" {...errAnchor("q3")} onFocus={() => focusRail('q3_sector')}><Label>What is your primary business sector? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(a))</span></Label>
                 <select value={q3} onChange={(e) => setQ3(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
                   <option value="">Select…</option>{SECTORS.map((s) => <option key={s}>{s}</option>)}
                 </select>
               </div>
               <div data-rail-key="i1_purpose" {...errAnchor("i1_purpose")} onFocus={() => focusRail('i1_purpose')}>
-                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>What is the specific purpose of this processing activity? <span className="text-xs text-muted-foreground">(§ 7152(a)(1))</span></Label><StatutePopover term="Specific purpose" summary="The assessment must state the specific purpose of the processing; generic purposes such as 'improving services' are insufficient." cite="11 CCR § 7152(a)(2)" /></div>
+                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>What is the specific purpose of this processing activity? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(1))</span></Label><StatutePopover term="Specific purpose" summary="The assessment must state the specific purpose of the processing; generic purposes such as 'improving services' are insufficient." cite="11 CCR § 7152(a)(2)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Describe what you do with the personal information, who it relates to, and what business outcome it supports. Avoid generic phrases such as "improve services," "for security purposes," "analytics," or "as described in our privacy policy" — these will be flagged by the validator.
                 </p>
@@ -2319,22 +2394,22 @@ export default function CPPARiskAssessment() {
                 </div>
               </div>
               <div data-rail-key="i9_dpia" {...errAnchor("i9_has_dpia")} onFocus={() => focusRail('i9_dpia')}>
-                <Label>Is there an existing GDPR DPIA (or other PIA) for this activity? <span className="text-xs text-muted-foreground">(§ 7156(b))</span></Label>
+                <Label>Is there an existing GDPR DPIA (or other PIA) for this activity? <Req /> <span className="text-xs text-muted-foreground">(§ 7156(b))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">If a GDPR DPIA exists, we'll map what it already covers.</p><div className="mt-2"><Radio name="i9" options={["Yes", "No"]} value={i9HasDpia} onChange={setI9HasDpia} /></div>
                 <FscrCallout citation="11 CCR § 7156(b)" callouts={fscrCallouts} />
                 {i9HasDpia === "Yes" && (
-                  <Textarea
+                  <div data-rail-key="i9_dpia_summary" {...errAnchor("i9_dpia_summary")} onFocus={(e) => { e.stopPropagation(); focusRail('i9_dpia_summary'); }}><Textarea
                     className="mt-2"
                     rows={2}
                     value={i9DpiaSummary}
                     onChange={(e) => setI9DpiaSummary(e.target.value)}
                     placeholder="Title, date, scope"
-                  />
+                  /></div>
                 )}
                 {renderAssertion("i9_existing_dpia_summary")}
               </div>
               <div data-rail-key="material_change_since_prior" {...errAnchor("material_change_since_prior")} onFocus={() => focusRail('material_change_since_prior')}>
-                <Label>Has this processing activity changed materially since the last assessment? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7155(a)(3))</span></Label>
+                <Label>Has this processing activity changed materially since the last assessment? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7155(a)(3))</span></Label>
                 {/* DOC 157 (2026-09-03) — the regulation's own three-part test. */}
                 <p className="text-xs text-muted-foreground mt-1">A change is material under § 7155(a)(3) "if it creates new negative impacts or increases the magnitude or likelihood of previously identified negative impacts as set forth in section 7152, subsection (a)(5), or diminishes the effectiveness of the safeguards as set forth in section 7152, subsection (a)(6)" — for example a change to the purpose, to the minimum personal information necessary, or to the risks raised by consumers. A material change requires the assessment to be updated "as soon as feasibly possible, but no later than 45 calendar days from the date of the material change." If this is the first assessment of this activity, answer "No".</p>
                 <div className="mt-2"><Radio name="material_change_since_prior" options={["Yes", "No"]} value={materialChangeSincePrior} onChange={setMaterialChangeSincePrior} /></div>
@@ -2360,8 +2435,8 @@ export default function CPPARiskAssessment() {
               <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR §§ 7150(b)(1)–(6), 7120(b); Cal. Civ. Code §§ 1798.100–1798.140 — triggers, thresholds, and rights infrastructure</p>
               <RequiredLegend />
               <p className="text-sm text-muted-foreground">These answers produce the section of the report that establishes why the assessment is required and records the rights machinery a regulator will test first.</p>
-              <div data-rail-key="q1_revenue" {...errAnchor("q1")} onFocus={() => focusRail('q1_revenue')}><Label>What is your business's annual gross revenue? <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(1))</span></Label><p className="text-xs text-muted-foreground mt-1">Total worldwide gross revenue from all sources — not just California.</p><div className="mt-2"><Radio name="q1" options={REVENUE_OPTS} value={q1} onChange={setQ1} /></div></div>
-              <div data-rail-key="q2_consumers" {...errAnchor("q2")} onFocus={() => focusRail('q2_consumers')}><Label>How many California consumers' personal information do you process in a year? <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(2)(A))</span></Label><p className="text-xs text-muted-foreground mt-1">Your best estimate of distinct California residents across all processing.</p><div className="mt-2"><Radio name="q2" options={CONSUMER_OPTS} value={q2} onChange={setQ2} /></div></div>
+              <div data-rail-key="q1_revenue" {...errAnchor("q1")} onFocus={() => focusRail('q1_revenue')}><Label>What is your business's annual gross revenue? <Req /> <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(1))</span></Label><p className="text-xs text-muted-foreground mt-1">Total worldwide gross revenue from all sources — not just California.</p><div className="mt-2"><Radio name="q1" options={REVENUE_OPTS} value={q1} onChange={setQ1} /></div></div>
+              <div data-rail-key="q2_consumers" {...errAnchor("q2")} onFocus={() => focusRail('q2_consumers')}><Label>How many California consumers' personal information do you process in a year? <Req /> <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(2)(A))</span></Label><p className="text-xs text-muted-foreground mt-1">Your best estimate of distinct California residents across all processing.</p><div className="mt-2"><Radio name="q2" options={CONSUMER_OPTS} value={q2} onChange={setQ2} /></div></div>
               {/* DOC 157 (2026-09-03) — "sell" is not limited to advertising
                   (Cal. Civ. Code § 1798.140(ad): any disclosure for monetary or
                   other valuable consideration); only "share" (ah) is the
@@ -2407,7 +2482,7 @@ export default function CPPARiskAssessment() {
                   read as the trigger. § 7150(b)(5) now resolves solely from
                   the dedicated sensitive_location_basis question below. */}
               <div data-rail-key="q5b_profiling" {...errAnchor("q5b_profiling")} onFocus={() => focusRail('q5b_profiling')}>
-                <Label>Does the automated processing derive any personal attributes of your workers, students, or applicants — like their performance, reliability, health, or behavior — based on systematic observation of them? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(4))</span></Label>
+                <Label>Does the automated processing derive any personal attributes of your workers, students, or applicants — like their performance, reliability, health, or behavior — based on systematic observation of them? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(4))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">This is a separate risk-assessment trigger covering educational-program applicants, job applicants, students, employees, and independent contractors. Answer "Yes" only where the observation itself feeds an inference about the person — for example productivity, keystroke, or location tracking used to score performance or reliability. Bare record-keeping (e.g. clock-in/out logs kept as records) with no characteristic derived from it is not this trigger.</p>
                 <div className="mt-2"><Radio name="q5b" options={["Yes", "No"]} value={q5bProfiling} onChange={setQ5bProfiling} /></div>
               </div>
@@ -2430,9 +2505,9 @@ export default function CPPARiskAssessment() {
                   retired); which kind of decision the system makes, and so
                   whether § 7150(b)(3) is engaged, is recorded in the
                   categorical question that follows the description. */}
-              <div data-rail-key="q18_admt" {...errAnchor("q18")} onFocus={() => focusRail('q18_admt')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Do you use automated decisionmaking technology — technology that processes personal information and uses computation to replace or substantially replace human decisionmaking — for decisions about consumers? <Req /></Label><DefPopover termKey="admt" /><span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(e))</span></div><p className="text-xs text-muted-foreground mt-1">Answer "Yes" for any deployed use. The questions that follow record which kind of decision the system makes; § 7150(b)(3) applies when that decision is a significant decision under § 7001(ddd) (financial or lending services, housing, education, employment or independent contracting, or healthcare).</p><div className="mt-2"><Radio name="q18" options={["Yes", "No", "In evaluation"]} value={q18} onChange={setQ18} /></div></div>
+              <div data-rail-key="q18_admt" {...errAnchor("q18")} onFocus={() => focusRail('q18_admt')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Do you use automated decisionmaking technology — technology that processes personal information and uses computation to replace or substantially replace human decisionmaking — for decisions about consumers? <Req /></Label><DefPopover termKey="admt" /><span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(e))</span></div><p className="text-xs text-muted-foreground mt-1">Answer "Yes" for any deployed use. The questions that follow record which kind of decision the system makes; § 7150(b)(3) applies when that decision is a significant decision under § 7001(ddd) (financial or lending services, housing, education, employment or independent contracting, or healthcare). <span className="font-medium">Include ADMT your business uses itself and ADMT a service provider or contractor operates on your behalf for this activity</span> — the assessment obligation sits with the business that decides the processing, whoever runs the system.</p><div className="mt-2"><Radio name="q18" options={["Yes", "No", "In evaluation"]} value={q18} onChange={setQ18} /></div></div>
               {(q18 === "Yes" || q18 === "In evaluation") && (
-                <div><Label>Describe the ADMT system and its decisions <Req /></Label>
+                <div data-rail-key="q19" {...errAnchor("q19")} onFocus={() => focusRail('q19')}><Label>Describe the ADMT system and its decisions <Req /></Label>
                   <div className="mt-2"><AssistedInput
                     value={q19}
                     onChange={setQ19}
@@ -2446,7 +2521,7 @@ export default function CPPARiskAssessment() {
                 </div>
               )}
               {q18 === "Yes" && (
-                <div><Label>Do you provide consumers with the right to opt out of ADMT? <Req /></Label><p className="text-xs text-muted-foreground mt-1">An opt-out is required for qualifying ADMT.</p><div className="mt-2"><Radio name="q20" options={["Yes, with documented opt-out", "Planned for implementation", "No"]} value={q20} onChange={setQ20} /></div>{renderAssertion("q20_admt_opt_out")}</div>
+                <div data-rail-key="q20" {...errAnchor("q20")} onFocus={() => focusRail('q20')}><Label>Do you provide consumers with the right to opt out of ADMT? <Req /></Label><p className="text-xs text-muted-foreground mt-1">An opt-out is required for qualifying ADMT.</p><div className="mt-2"><Radio name="q20" options={["Yes, with documented opt-out", "Planned for implementation", "No"]} value={q20} onChange={setQ20} /></div>{renderAssertion("q20_admt_opt_out")}</div>
               )}
               {/* RK3-A2 g3 — § 7153 branch. Records whether this business makes
                   its ADMT available to another business, triggering the § 7153
@@ -2483,8 +2558,8 @@ export default function CPPARiskAssessment() {
                     plans to permit others to use, advertises or markets, or
                     plans to advertise or market the use). The former cite
                     "(b)(5)" was wrong. */}
-                <Label>Do you process personal information that your business uses, plans to use, permits or plans to permit others to use, or advertises or markets for use, to train either (a) ADMT for a significant decision about a consumer, or (b) facial-recognition, emotion-recognition, or other technology that verifies a consumer's identity or performs physical or biological identification or profiling? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(6))</span></Label>
-                <p className="text-xs text-muted-foreground mt-1">Training such a model is an independent risk-assessment trigger, separate from <span className="font-medium">using</span> ADMT for a decision. It applies even if the trained system is never deployed against your own consumers, and it applies where another party trains on data you permit them to use. "Train" means "the process through which a technology discovers underlying patterns, learns a series of actions, or is taught to generate a desired output" — for example adjusting the parameters of an algorithm, improving the algorithm that determines how a model learns, or iterating the datasets fed into it (§ 7001(fff)).</p>
+                <Label>Do you process personal information that your business uses, plans to use, permits or plans to permit others to use, or advertises or markets for use, to train either (a) ADMT for a significant decision about a consumer, or (b) facial-recognition, emotion-recognition, or other technology that verifies a consumer's identity or performs physical or biological identification or profiling? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(6))</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">Count a model that a service provider trains on your behalf, or with your consumers' information, as your own training. Training such a model is an independent risk-assessment trigger, separate from <span className="font-medium">using</span> ADMT for a decision. It applies even if the trained system is never deployed against your own consumers, and it applies where another party trains on data you permit them to use. "Train" means "the process through which a technology discovers underlying patterns, learns a series of actions, or is taught to generate a desired output" — for example adjusting the parameters of an algorithm, improving the algorithm that determines how a model learns, or iterating the datasets fed into it (§ 7001(fff)).</p>
                 <div className="mt-2"><Radio name="q21" options={["Yes — training ADMT for significant decisions", "Yes — training facial-recognition, emotion-recognition, identity-verification, or physical or biological identification or profiling technology", "No"]} value={q18bTraining} onChange={setQ18bTraining} /></div>
                 {q18 !== "Yes" && q18 !== "In evaluation" && q18bTraining === "Yes — training ADMT for significant decisions" && (
                   renderDecisionCategoryBlock("Which kind of decision will the technology being trained make or contribute to?")
@@ -2544,7 +2619,7 @@ export default function CPPARiskAssessment() {
                       assertionSlot={renderAssertion("i5_admt_fairness_testing")}
                     />
                   </div>
-                  <div className="mt-2">
+                  <div className="mt-2" data-rail-key="i5_admt_human_review" {...errAnchor("i5_admt_human_review")} onFocus={(e) => { e.stopPropagation(); focusRail('i5_admt_human_review'); }}>
                     <div className="inline-flex items-center gap-1.5 mb-1">
                       <span className="text-sm font-medium">Human review process for outputs <Req /></span>
                       <InfoPopover term="Examples" cite="Illustrative examples — not exhaustive">
@@ -2595,18 +2670,23 @@ export default function CPPARiskAssessment() {
                       tables consume; "Unsure" / "cannot be confirmed" is a
                       complete answer and is treated conservatively. */}
                   <div className="mt-4 pt-4 border-t border-amber-200 dark:border-amber-900 space-y-3">
-                    <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide">Typed ADMT determinations (RK3-D)</p>
-                    <div>
+                    <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide">ADMT determinations</p>
+                    <div data-rail-key="rk3d_admt_role_type" {...errAnchor("rk3d_admt_role_type")} onFocus={(e) => { e.stopPropagation(); focusRail('rk3d_admt_role_type'); }}>
                       <Label className="text-sm">What role does the ADMT play in the decision? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001)</span></Label>
                       <div className="mt-2"><Radio name="admt_role_type" options={[...ADMT_ROLE_TYPE_OPTS]} value={rk3d.admt_role_type} onChange={(v) => setRk3dField("admt_role_type", v)} /></div>
                     </div>
-                    <div>
+                    <div data-rail-key="rk3d_admt_logic_documented" {...errAnchor("rk3d_admt_logic_documented")} onFocus={(e) => { e.stopPropagation(); focusRail('rk3d_admt_logic_documented'); }}>
                       <Label className="text-sm">How is the ADMT's logic documented? <Req /></Label>
                       <div className="mt-2"><Radio name="admt_logic_documented" options={[...ADMT_LOGIC_DOCUMENTED_OPTS]} value={rk3d.admt_logic_documented} onChange={(v) => setRk3dField("admt_logic_documented", v)} /></div>
                     </div>
-                    <div>
-                      <Label className="text-sm">Which of the following describe the human review, if any? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(ddd))</span></Label>
-                      <p className="text-xs text-muted-foreground mt-1">Select all that can be confirmed. These three facts are the elements of effective human involvement.</p>
+                    <div data-rail-key="rk3d_human_review_facts" {...errAnchor("rk3d_human_review_facts")} onFocus={(e) => { e.stopPropagation(); focusRail('rk3d_human_review_facts'); }}>
+                      {/* Doc 261-review (2026-09-15, LEGAL 05): (ddd) defines "significant
+                          decision"; the three human-involvement elements are § 7001(e)(1)(A)–(C).
+                          Verified against the approved corpus (admt-registry pack rows quoting
+                          "(A) Know how to interpret … (B) Review and analyze … (C) Have the
+                          authority …" and "'human involvement' in section 7001, subsection (e)(1)"). */}
+                      <Label className="text-sm">Which of the following describe the human review, if any? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(e)(1)(A)–(C))</span></Label>
+                      <p className="text-xs text-muted-foreground mt-1">Select all that can be confirmed. These three facts are the elements of effective human involvement. Selecting “Reviewers consider information beyond the ADMT's output” asserts that reviewers analyse the output itself together with the other information relevant to the decision.</p>
                       <div className="mt-2">
                         <Pills
                           options={[...HUMAN_REVIEW_FACTS_OPTS]}
@@ -2620,7 +2700,7 @@ export default function CPPARiskAssessment() {
                         />
                       </div>
                     </div>
-                    <div>
+                    <div data-rail-key="rk3d_admt_testing_facts" {...errAnchor("rk3d_admt_testing_facts")} onFocus={(e) => { e.stopPropagation(); focusRail('rk3d_admt_testing_facts'); }}>
                       <Label className="text-sm">Which of the following describe the ADMT's testing record? <Req /></Label>
                       <div className="mt-2">
                         <Pills
@@ -2640,7 +2720,7 @@ export default function CPPARiskAssessment() {
                   </div>
                 </div>
               )}
-              <div>
+              <div data-rail-key="q6" {...errAnchor("q6")} onFocus={() => focusRail('q6')}>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>How can consumers request access to the personal information you hold? <Req /></Label><DefPopover termKey="right_to_know" /></div>
                 <p className="text-xs text-muted-foreground mt-1">Select all that apply.</p>
                 <div className="mt-2">
@@ -2662,12 +2742,12 @@ export default function CPPARiskAssessment() {
                   />
                 </div>
               </div>
-              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>How can consumers request deletion of their personal information? <Req /></Label><DefPopover termKey="right_to_delete" /></div><p className="text-xs text-muted-foreground mt-1">Describe the deletion request path and how you confirm it's done.</p><div className="mt-2"><Radio name="q7" options={["Automated deletion with confirmation", "Manual process, documented", "Case-by-case handling", "No formal process"]} value={q7} onChange={setQ7} /></div></div>
-              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>How can consumers request correction of inaccurate personal information? <Req /></Label><DefPopover termKey="right_to_correct" /></div><p className="text-xs text-muted-foreground mt-1">How a consumer flags an error and how you correct it.</p><div className="mt-2"><Radio name="q8" options={["Online self-service", "Handled via support", "No formal process"]} value={q8} onChange={setQ8} /></div></div>
+              <div data-rail-key="q7" {...errAnchor("q7")} onFocus={() => focusRail('q7')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>How can consumers request deletion of their personal information? <Req /></Label><DefPopover termKey="right_to_delete" /></div><p className="text-xs text-muted-foreground mt-1">Describe the deletion request path and how you confirm it's done.</p><div className="mt-2"><Radio name="q7" options={["Automated deletion with confirmation", "Manual process, documented", "Case-by-case handling", "No formal process"]} value={q7} onChange={setQ7} /></div></div>
+              <div data-rail-key="q8" {...errAnchor("q8")} onFocus={() => focusRail('q8')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>How can consumers request correction of inaccurate personal information? <Req /></Label><DefPopover termKey="right_to_correct" /></div><p className="text-xs text-muted-foreground mt-1">How a consumer flags an error and how you correct it.</p><div className="mt-2"><Radio name="q8" options={["Online self-service", "Handled via support", "No formal process"]} value={q8} onChange={setQ8} /></div></div>
               <div data-rail-key="q9_opt_out" {...errAnchor("q9")} onFocus={() => focusRail('q9_opt_out')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Right to Opt-Out — do you have a "Do Not Sell or Share" link? <Req /></Label><DefPopover termKey="right_to_opt_out" /><EnforcementSignalIcon signalKey="opt_out_link" signals={enforcementSignals} /></div><p className="text-xs text-muted-foreground mt-1">A "Do Not Sell or Share" link is required if you sell or share PI.</p><div className="mt-2"><Radio name="q9" options={["Yes, prominently on homepage", "Yes, but in footer only", "Yes — in the settings area of our app, smart TV or other device without a homepage", "In progress", "No"]} value={q9} onChange={setQ9} /></div></div>
               <div data-rail-key="q10_verification" {...errAnchor("q10")} onFocus={() => focusRail('q10_verification')}><Label>How do you verify the identity of consumers who submit rights requests? <span className="text-xs text-muted-foreground font-mono">(11 CCR §§ 7060–7062)</span></Label><p className="text-xs text-muted-foreground mt-1">The process you use to confirm a requester is who they claim to be.</p><div className="mt-2"><Radio name="q10" options={["Documented verification process matching CPPA guidance", "Informal verification", "No verification process"]} value={q10} onChange={setQ10} /></div></div>
               {/* RK3-D (doc 33 D-L3) — choice-architecture confirmations. */}
-              <div>
+              <div data-rail-key="rk3d_choice_architecture_check" {...errAnchor("rk3d_choice_architecture_check")} onFocus={() => focusRail('rk3d_choice_architecture_check')}>
                 <Label>Which of the following can you confirm about how consumers are asked to permit this processing? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7004)</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">Select only what you can confirm. An unconfirmed item is treated conservatively in the report — "None of the above can be confirmed" is a complete answer.</p>
                 <div className="mt-2">
@@ -2695,7 +2775,7 @@ export default function CPPARiskAssessment() {
               <RequiredLegend />
               <p className="text-sm text-muted-foreground">These answers become the operational record in the report: the categories in play, their sources, the recipients, and the disclosures consumers actually see.</p>
               <div data-rail-key="q4_pi_categories" {...errAnchor("q4")} onFocus={() => focusRail('q4_pi_categories')}>
-                <Label>Which categories of personal information do you process? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(2))</span></Label>
+                <Label>Which categories of personal information do you process? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(2))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">Categories marked <span className="text-red-600 font-semibold">Sensitive</span> trigger additional obligations under Cal. Civ. Code § 1798.140(ae) and will auto-advance Q15.</p>
                 <div className="mt-2">
                   <Pills
@@ -2711,15 +2791,20 @@ export default function CPPARiskAssessment() {
                 </div>
                 {renderAssertion("q4_pi_categories")}
               </div>
-              <div data-rail-key="q15_sensitive_pi" {...errAnchor("q15")} onFocus={() => focusRail('q15_sensitive_pi')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Do you process any sensitive PI? <Req /></Label><DefPopover termKey="sensitive_pi" /><EnforcementSignalIcon signalKey="sensitive_pi" signals={enforcementSignals} /></div><p className="text-xs text-muted-foreground mt-1">Sensitive PI includes government identifiers, account credentials, precise geolocation, race or ethnicity, health, biometrics, genetic and neural data, message contents, and more — see the definition. Under 11 CCR § 7001(bbb)(4) it also includes all personal information of consumers you have actual knowledge are under 16 (the next question); a "Yes" there engages the § 7150(b)(2) trigger on its own.</p><div className="mt-2"><Radio name="q15" options={Q15_SENSITIVE_PI_OPTS} value={q15} onChange={setQ15} /></div></div>
+              <div data-rail-key="q15_sensitive_pi" {...errAnchor("q15")} onFocus={() => focusRail('q15_sensitive_pi')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Do you process any sensitive PI? <Req /></Label><DefPopover termKey="sensitive_pi" /><EnforcementSignalIcon signalKey="sensitive_pi" signals={enforcementSignals} /></div><p className="text-xs text-muted-foreground mt-1">Sensitive PI includes government identifiers, account credentials, precise geolocation, race or ethnicity, health, biometrics, genetic and neural data, message contents, and more — see the definition. Under 11 CCR § 7001(bbb)(4) it also includes all personal information of consumers you have actual knowledge are under 16 (the next question); a "Yes" there engages the § 7150(b)(2) trigger on its own.</p><div className="mt-2"><Radio name="q15" options={Q15_SENSITIVE_PI_OPTS} value={q15} onChange={setQ15} /></div>
+                {q15 !== "" && q15 !== "Yes" && q4.some((cat) => SENSITIVE_PI_CATEGORIES.has(cat)) && (
+                  <p className="mt-2 text-xs rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-amber-800 dark:text-amber-300" role="status">
+                    Your answers conflict: at least one category you selected above is sensitive personal information, but this answer says “{q15}”. Both will be recorded as given — change one of them if that is not what you mean.
+                  </p>
+                )}</div>
               {q15 === "Yes" && (<>
                 <div data-rail-key="q15c_spi_volume" onFocus={() => focusRail('q15c_spi_volume')}>
                   <Label>For how many California consumers do you process sensitive personal information annually? <span className="text-xs text-muted-foreground font-mono">(§ 7120(b)(2)(B))</span></Label>
                   <p className="text-xs text-muted-foreground mt-1">Optional — this feeds the § 7120(b)(2)(B) SPI-volume cyber-audit prong. Give your best estimate for the distinct California residents whose SPI you process in a year.</p>
                   <div className="mt-2"><Radio name="q15c" options={SPI_VOLUME_OPTS} value={q15cSpiVolume} onChange={setQ15cSpiVolume} /></div>
                 </div>
-                <div><Label>Do you provide consumers the right to limit use of their sensitive PI? <Req /></Label><p className="text-xs text-muted-foreground mt-1">The right to limit applies when you use sensitive PI beyond what's necessary.</p><div className="mt-2"><Radio name="q16" options={["Yes, with a separate \"Limit the Use of My Sensitive PI\" link", "Yes, handled within privacy settings", "No", "Not yet implemented"]} value={q16} onChange={setQ16} /></div></div>
-                <div><Label>What is your legal basis for processing sensitive PI? <Req /></Label><p className="text-xs text-muted-foreground mt-1">The lawful basis you rely on to process sensitive PI.</p><div className="mt-2"><Radio name="q17" options={["Consent", "Necessary for the service", "Employment contract", "Other permitted purpose"]} value={q17} onChange={setQ17} /></div></div>
+                <div data-rail-key="q16" {...errAnchor("q16")} onFocus={() => focusRail('q16')}><Label>Do you provide consumers the right to limit use of their sensitive PI? <Req /></Label><p className="text-xs text-muted-foreground mt-1">The right to limit applies when you use sensitive PI beyond what's necessary.</p><div className="mt-2"><Radio name="q16" options={["Yes, with a separate \"Limit the Use of My Sensitive PI\" link", "Yes, handled within privacy settings", "No", "Not yet implemented"]} value={q16} onChange={setQ16} /></div></div>
+                <div data-rail-key="q17" {...errAnchor("q17")} onFocus={() => focusRail('q17')}><Label>What is your legal basis for processing sensitive PI? <Req /></Label><p className="text-xs text-muted-foreground mt-1">The lawful basis you rely on to process sensitive PI.</p><div className="mt-2"><Radio name="q17" options={["Consent", "Necessary for the service", "Employment contract", "Other permitted purpose"]} value={q17} onChange={setQ17} /></div></div>
                 {/* PN-CORPUS-L-RISK-1 — § 7150(b)(2)(A) personnel carve-out. */}
                 <div data-rail-key="q15d_hr_carveout" {...errAnchor("q15d_hr_carveout")} onFocus={() => focusRail('q15d_hr_carveout')}>
                   <Label>Is the sensitive PI in this activity solely that of your employees or independent contractors, used solely and specifically for administering compensation, employment authorization, employment benefits, legally required reasonable accommodation, or legally required wage reporting? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(2)(A))</span></Label>
@@ -2740,12 +2825,12 @@ export default function CPPARiskAssessment() {
                 )}
               </>)}
               <div data-rail-key="q15b_under16" {...errAnchor("q15b_under16")} onFocus={() => focusRail('q15b_under16')}>
-                <Label>Do you know that you collect personal information from consumers under 16? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(bbb))</span></Label><p className="text-xs text-muted-foreground mt-1">"Actual knowledge" is the legal standard — meaning your business is actually aware, not merely on notice. This includes knowledge gained from age screening, account data, or other direct signals.</p>
+                <Label>Do you know that you collect personal information from consumers under 16? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(bbb))</span></Label><p className="text-xs text-muted-foreground mt-1">"Actual knowledge" is the legal standard — meaning your business is actually aware, not merely on notice. This includes knowledge gained from age screening, account data, or other direct signals.</p>
                 <p className="text-xs text-muted-foreground mt-1">Under the 2026 regulations, <span className="font-medium">all</span> personal information of a consumer under 16 is sensitive personal information where the business has actual knowledge of the age. Requesting age at sign-up, or willfully disregarding age, counts as actual knowledge — and pulls this processing into the sensitive-PI rules.</p>
                 <div className="mt-2"><Radio name="q15b" options={["Yes — we knowingly process under-16 data", "No — we do not knowingly process under-16 data", "Unsure"]} value={q15bUnder16} onChange={setQ15bUnder16} /></div>
               </div>
               <div data-rail-key="i4b_sources" {...errAnchor("i4b_sources")} onFocus={() => focusRail('i4b_sources')}>
-                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Where does this personal information come from? <span className="text-xs text-muted-foreground">(§ 7152(a)(3))</span></Label><StatutePopover term="Sources of the PI" summary="The operational elements of the processing must identify the sources of the personal information — for example, directly from the consumer, observed, or obtained from third parties." cite="11 CCR § 7152(a)(3)" /></div>
+                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Where does this personal information come from? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3))</span></Label><StatutePopover term="Sources of the PI" summary="The operational elements of the processing must identify the sources of the personal information — for example, directly from the consumer, observed, or obtained from third parties." cite="11 CCR § 7152(a)(3)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">Identify each source: collected directly from the consumer, passively observed from their activity, generated/inferred by you, or obtained from third parties (data brokers, advertising or analytics partners, affiliates, public records). Note which categories come from which source.</p>
                 <ExhibitTextarea className="mt-2" rows={3} value={i4bSources} onChange={setI4bSources} placeholder='Category — source, one per line' />
                 {renderAssertion("i4b_sources")}
@@ -2753,12 +2838,12 @@ export default function CPPARiskAssessment() {
               {/* RK3-D (doc 33 D-L3) — typed source categories; the report's
                   source-risk table reads these, the free text above stays as
                   the descriptive record. */}
-              <div>
+              <div data-rail-key="rk3d_source_categories" {...errAnchor("rk3d_source_categories")} onFocus={() => focusRail('rk3d_source_categories')}>
                 <Label>For the record: which source categories apply? <Req /></Label>
                 <p className="text-xs text-muted-foreground mt-1">Select every category the information actually comes through.</p>
                 <div className="mt-2"><Pills options={[...SOURCE_CATEGORY_OPTS]} value={rk3d.source_categories} onChange={(v: string[]) => setRk3dField("source_categories", v)} /></div>
               </div>
-              <div>
+              <div data-rail-key="i3_ca_consumer_band" {...errAnchor("i3_ca_consumer_band")} onFocus={() => focusRail('i3_ca_consumer_band')}>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Approximately how many California consumers does this activity affect? <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(D))</span></Label><StatutePopover term="California consumer count" summary="State the approximate number of consumers whose personal information the processing affects." cite="11 CCR § 7152(a)(4)(D)" /></div>
                 <div className="mt-2"><Radio name="i3" options={CA_CONSUMER_BAND} value={i3CaConsumerBand} onChange={setI3CaConsumerBand} /></div>
               </div>
@@ -2784,12 +2869,12 @@ export default function CPPARiskAssessment() {
               </div>
               {/* RK3-D (doc 33 D-L3) — relationship context; frames the
                   expectation and coercion analyses. */}
-              <div>
+              <div data-rail-key="rk3d_consumer_relationship_context" {...errAnchor("rk3d_consumer_relationship_context")} onFocus={() => focusRail('rk3d_consumer_relationship_context')}>
                 <Label>Who are the affected consumers, in relation to your business? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7002(b))</span></Label>
                 <div className="mt-2"><Radio name="consumer_relationship_context" options={[...CONSUMER_RELATIONSHIP_CONTEXT_OPTS]} value={rk3d.consumer_relationship_context} onChange={(v) => setRk3dField("consumer_relationship_context", v)} /></div>
               </div>
               {/* RK3-D (doc 33 D-L3) — § 7002(b)-factor expectation markers. */}
-              <div>
+              <div data-rail-key="rk3d_expectation_check" {...errAnchor("rk3d_expectation_check")} onFocus={() => focusRail('rk3d_expectation_check')}>
                 <Label>Which of the following apply to this processing? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7002(b))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">These facts frame what a consumer can reasonably expect. Select all that apply — "None of the above apply" is a complete answer.</p>
                 <div className="mt-2">
@@ -2821,8 +2906,8 @@ export default function CPPARiskAssessment() {
                 />
               </div>
               <div>
-                <div className="inline-flex items-center gap-1.5 flex-wrap" data-rail-key="i6_recipients" {...errAnchor("i6_vendors")} onFocus={() => focusRail('i6_recipients')}><Label>Which service providers, contractors, or third parties are involved? <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(F))</span></Label><StatutePopover term="Recipients of the PI" summary="Identify the recipients of the personal information — service providers, contractors, and third parties — together with their category and the purpose of each disclosure." cite="11 CCR § 7152(a)(3)(F)" /></div>
-                <p className="text-xs text-muted-foreground mt-1">For each recipient, note its category — <span className="font-medium">service provider</span>, <span className="font-medium">contractor</span>, or <span className="font-medium">third party</span> — and the purpose of the disclosure. The category matters: disclosure to a third party for its own use is a sale or share.</p>
+                <div className="inline-flex items-center gap-1.5 flex-wrap" data-rail-key="i6_recipients" {...errAnchor("i6_vendors")} onFocus={() => focusRail('i6_recipients')}><Label>Which service providers, contractors, or third parties are involved? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(F))</span></Label><StatutePopover term="Recipients of the PI" summary="Identify the recipients of the personal information — service providers, contractors, and third parties — together with their category and the purpose of each disclosure." cite="11 CCR § 7152(a)(3)(F)" /></div>
+                <p className="text-xs text-muted-foreground mt-1">For each recipient, note its category — <span className="font-medium">service provider</span>, <span className="font-medium">contractor</span>, or <span className="font-medium">third party</span> — and the purpose of the disclosure. The category matters: disclosure to a third party for its own use is a sale or share. If a service provider or contractor runs automated decisionmaking on your behalf as part of this activity, that system belongs in the ADMT questions in Step 2 as your own use.</p>
                 <ExhibitTextarea
                   className="mt-2"
                   rows={3}
@@ -2864,46 +2949,62 @@ export default function CPPARiskAssessment() {
                             </button>
                           </div>
                           <div className="grid gap-2 xl:grid-cols-[1.2fr_0.9fr] items-start">
-                            <input
-                              className="h-10 px-3 rounded-md border border-input bg-background min-w-0"
-                              value={row.recipient_name_or_category}
-                              onChange={(e) => setRecipientRows((prev) => prev.map((r, i) => (i === idx ? { ...r, recipient_name_or_category: e.target.value } : r)))}
-                              onFocus={() => focusRail('recipients_record')}
-                              placeholder="Name or category — e.g., Print-and-mail vendor"
-                            />
-                            <select
-                              className="h-10 px-3 rounded-md border border-input bg-background min-w-0"
-                              value={row.recipient_type}
-                              onChange={(e) => setRecipientRows((prev) => prev.map((r, i) => (i === idx ? { ...r, recipient_type: e.target.value } : r)))}
-                              onFocus={() => focusRail('recipients_record')}
-                            >
-                              <option value="">Type…</option>
-                              <option>Service provider</option>
-                              <option>Contractor</option>
-                              <option>Third party</option>
-                            </select>
+                            <div className="min-w-0" {...errAnchor(rowKey("recipient_rows", idx, "recipient_name_or_category"))}>
+                              <Label htmlFor={`recipient_${idx}_name`} className="text-xs text-muted-foreground">Name or category <Req /></Label>
+                              <input
+                                id={`recipient_${idx}_name`}
+                                className="mt-1 h-10 px-3 rounded-md border border-input bg-background min-w-0 w-full"
+                                value={row.recipient_name_or_category}
+                                onChange={(e) => setRecipientRows((prev) => prev.map((r, i) => (i === idx ? { ...r, recipient_name_or_category: e.target.value } : r)))}
+                                onFocus={() => focusRail('recipients_record')}
+                                placeholder="e.g., Print-and-mail vendor"
+                              />
+                            </div>
+                            <div className="min-w-0" {...errAnchor(rowKey("recipient_rows", idx, "recipient_type"))}>
+                              <Label htmlFor={`recipient_${idx}_type`} className="text-xs text-muted-foreground">Recipient type <Req /></Label>
+                              <select
+                                id={`recipient_${idx}_type`}
+                                className="mt-1 h-10 px-3 rounded-md border border-input bg-background min-w-0 w-full"
+                                value={row.recipient_type}
+                                onChange={(e) => setRecipientRows((prev) => prev.map((r, i) => (i === idx ? { ...r, recipient_type: e.target.value } : r)))}
+                                onFocus={() => focusRail('recipients_record')}
+                              >
+                                <option value="">Type…</option>
+                                <option>Service provider</option>
+                                <option>Contractor</option>
+                                <option>Third party</option>
+                              </select>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground">Categories made available to this recipient:</p>
+                          <div {...errAnchor(rowKey("recipient_rows", idx, "pi_categories_made_available"))}>
+                            <p className="text-xs text-muted-foreground">Categories made available to this recipient <Req /></p>
                             <div className="mt-1"><Pills options={q4.length ? q4 : PI_CATEGORIES} value={row.pi_categories_made_available} onChange={(next: string[]) => setRecipientRows((prev) => prev.map((r, i) => (i === idx ? { ...r, pi_categories_made_available: next } : r)))} /></div>
                           </div>
-                          <input
-                            className="h-10 px-3 rounded-md border border-input bg-background w-full"
-                            value={row.disclosure_purpose}
-                            onChange={(e) => setRecipientRows((prev) => prev.map((r, i) => (i === idx ? { ...r, disclosure_purpose: e.target.value } : r)))}
-                            onFocus={() => focusRail('recipients_record')}
-                            placeholder="Purpose of the disclosure — e.g., Printing and mailing the monthly coupon batch"
-                          />
+                          <div {...errAnchor(rowKey("recipient_rows", idx, "disclosure_purpose"))}>
+                            <Label htmlFor={`recipient_${idx}_purpose`} className="text-xs text-muted-foreground">Purpose of the disclosure to this recipient <Req /></Label>
+                            <input
+                              id={`recipient_${idx}_purpose`}
+                              className="mt-1 h-10 px-3 rounded-md border border-input bg-background w-full"
+                              value={row.disclosure_purpose}
+                              onChange={(e) => setRecipientRows((prev) => prev.map((r, i) => (i === idx ? { ...r, disclosure_purpose: e.target.value } : r)))}
+                              onFocus={() => focusRail('recipients_record')}
+                              placeholder="e.g., Printing and mailing the monthly coupon batch"
+                            />
+                          </div>
                           {/* RK3-D (doc 33 D-L3) — contractual-protection status. */}
-                          <select
-                            className="h-10 px-3 rounded-md border border-input bg-background w-full"
-                            value={row.contractual_protections || ""}
-                            onChange={(e) => setRecipientRows((prev) => prev.map((r, i) => (i === idx ? { ...r, contractual_protections: e.target.value } : r)))}
-                            onFocus={() => focusRail('recipients_record')}
-                          >
-                            <option value="">Contractual protections…</option>
-                            {RECIPIENT_CONTRACT_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
-                          </select>
+                          <div {...errAnchor(rowKey("recipient_rows", idx, "contractual_protections"))}>
+                            <Label htmlFor={`recipient_${idx}_contract`} className="text-xs text-muted-foreground">Contractual protections <Req /></Label>
+                            <select
+                              id={`recipient_${idx}_contract`}
+                              className="mt-1 h-10 px-3 rounded-md border border-input bg-background w-full"
+                              value={row.contractual_protections || ""}
+                              onChange={(e) => setRecipientRows((prev) => prev.map((r, i) => (i === idx ? { ...r, contractual_protections: e.target.value } : r)))}
+                              onFocus={() => focusRail('recipients_record')}
+                            >
+                              <option value="">Contractual protections…</option>
+                              {RECIPIENT_CONTRACT_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
+                            </select>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -2918,7 +3019,7 @@ export default function CPPARiskAssessment() {
                 )}
               </div>
               {/* RK3-D (doc 33 D-L3) — vendor dependency. */}
-              <div>
+              <div data-rail-key="rk3d_vendor_dependency" {...errAnchor("rk3d_vendor_dependency")} onFocus={() => focusRail('rk3d_vendor_dependency')}>
                 <Label>Is any recipient or vendor essential to this processing? <Req /></Label>
                 <p className="text-xs text-muted-foreground mt-1">"Essential" means the processing could not continue without them. "Unsure" is a complete answer.</p>
                 <div className="mt-2"><Radio name="vendor_dependency" options={[...VENDOR_DEPENDENCY_OPTS]} value={rk3d.vendor_dependency} onChange={(v) => setRk3dField("vendor_dependency", v)} /></div>
@@ -2934,11 +3035,11 @@ export default function CPPARiskAssessment() {
                   </div>
                 )}
               </div>
-              <div><Label>When was your privacy policy last reviewed or updated? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.130(a)(5))</span></Label><p className="text-xs text-muted-foreground mt-1">CCPA expects a review at least every 12 months.</p><div className="mt-2"><Radio name="q11" options={["Within 12 months", "12–24 months ago", "Over 24 months ago", "No privacy policy"]} value={q11} onChange={setQ11} /></div>{renderAssertion("q11_policy_review")}</div>
-              <div><Label>Do you show a notice at collection at or before the point you collect PI? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.100(a))</span></Label><p className="text-xs text-muted-foreground mt-1">The short notice shown where data is collected — separate from the full policy.</p><div className="mt-2"><Radio name="q12" options={["Yes, covers all collection points", "Yes, partial coverage", "No"]} value={q12} onChange={setQ12} /></div></div>
-              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Do your notices include the categories of PI collected, the purpose, and the right to opt-out? <Req /></Label><DefPopover termKey="notice_at_collection" /></div><p className="text-xs text-muted-foreground mt-1">Notice at collection must state categories, purpose, and the opt-out right.</p><div className="mt-2"><Radio name="q13" options={["Yes, all three", "Some elements", "No"]} value={q13} onChange={setQ13} /></div></div>
-              <div><Label>For employees/job applicants — do you provide a separate California-specific notice? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.100(a))</span></Label><p className="text-xs text-muted-foreground mt-1">California employees and job applicants need their own notice.</p><div className="mt-2"><Radio name="q14" options={["Yes", "No — we use our general privacy policy", "Not applicable (no CA employees)"]} value={q14} onChange={setQ14} /></div></div>
-              <div>
+              <div data-rail-key="q11" {...errAnchor("q11")} onFocus={() => focusRail('q11')}><Label>When was your privacy policy last reviewed or updated? <Req /> <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.130(a)(5))</span></Label><p className="text-xs text-muted-foreground mt-1">CCPA expects a review at least every 12 months.</p><div className="mt-2"><Radio name="q11" options={["Within 12 months", "12–24 months ago", "Over 24 months ago", "No privacy policy"]} value={q11} onChange={setQ11} /></div>{renderAssertion("q11_policy_review")}</div>
+              <div data-rail-key="q12" {...errAnchor("q12")} onFocus={() => focusRail('q12')}><Label>Do you show a notice at collection at or before the point you collect PI? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.100(a))</span></Label><p className="text-xs text-muted-foreground mt-1">The short notice shown where data is collected — separate from the full policy.</p><div className="mt-2"><Radio name="q12" options={["Yes, covers all collection points", "Yes, partial coverage", "No"]} value={q12} onChange={setQ12} /></div></div>
+              <div data-rail-key="q13" {...errAnchor("q13")} onFocus={() => focusRail('q13')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Do your notices include the categories of PI collected, the purpose, and the right to opt-out? <Req /></Label><DefPopover termKey="notice_at_collection" /></div><p className="text-xs text-muted-foreground mt-1">Notice at collection must state categories, purpose, and the opt-out right.</p><div className="mt-2"><Radio name="q13" options={["Yes, all three", "Some elements", "No"]} value={q13} onChange={setQ13} /></div></div>
+              <div data-rail-key="q14" {...errAnchor("q14")} onFocus={() => focusRail('q14')}><Label>For employees/job applicants — do you provide a separate California-specific notice? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.100(a))</span></Label><p className="text-xs text-muted-foreground mt-1">California employees and job applicants need their own notice.</p><div className="mt-2"><Radio name="q14" options={["Yes", "No — we use our general privacy policy", "Not applicable (no CA employees)"]} value={q14} onChange={setQ14} /></div></div>
+              <div data-rail-key="i4_disclosures" {...errAnchor("i4_disclosures")} onFocus={() => focusRail('i4_disclosures')}>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>How are consumers informed of this processing activity? <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(E))</span></Label><StatutePopover term="Disclosure mechanisms" summary="Identify the disclosures made to consumers about the processing and how they are provided." cite="11 CCR § 7152(a)(4)(E)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">Select every mechanism that applies. The report will map your selections against the conspicuousness requirements of § 7003.</p>
                 <div className="mt-2"><Pills options={DISCLOSURE_MECHANISMS} value={i4Disclosures} onChange={setI4Disclosures} /></div>
@@ -2964,42 +3065,58 @@ export default function CPPARiskAssessment() {
                           Remove
                         </button>
                       </div>
+                      <div {...errAnchor(rowKey("activity_disclosures", idx, "disclosure_content"))}>
+                      <Label htmlFor={`disclosure_${idx}_content`} className="text-xs text-muted-foreground">What consumers are or will be told <Req /></Label>
                       <textarea
+                        id={`disclosure_${idx}_content`}
                         value={row.disclosure_content}
                         onChange={(e) => setActivityDisclosures((prev) => prev.map((r, i) => (i === idx ? { ...r, disclosure_content: e.target.value } : r)))}
                         onFocus={() => focusRail('activity_disclosures')}
                         rows={2}
                         placeholder="What consumers are or will be told — e.g., “The sign-up form states that name, address, and birth month are used to mail a birthday coupon.”"
-                        className="w-full px-3 py-2 rounded-md border border-input bg-background"
+                        className="mt-1 w-full px-3 py-2 rounded-md border border-input bg-background"
                       />
-                      <div className="grid gap-2 xl:grid-cols-[1.2fr_0.8fr_1fr] items-start">
-                        <select
-                          className="h-10 px-3 rounded-md border border-input bg-background min-w-0"
-                          value={row.disclosure_method}
-                          onChange={(e) => setActivityDisclosures((prev) => prev.map((r, i) => (i === idx ? { ...r, disclosure_method: e.target.value } : r)))}
-                          onFocus={() => focusRail('activity_disclosures')}
-                        >
-                          <option value="">How it is made…</option>
-                          {DISCLOSURE_MECHANISMS.filter((m) => m !== "No standalone disclosure").map((m) => <option key={m}>{m}</option>)}
-                          <option>Other (describe in the content)</option>
-                        </select>
-                        <select
-                          className="h-10 px-3 rounded-md border border-input bg-background min-w-0"
-                          value={row.status}
-                          onChange={(e) => setActivityDisclosures((prev) => prev.map((r, i) => (i === idx ? { ...r, status: e.target.value } : r)))}
-                          onFocus={() => focusRail('activity_disclosures')}
-                        >
-                          <option value="">Made or planned…</option>
-                          <option>Made</option>
-                          <option>Planned</option>
-                        </select>
+                      </div>
+                      <div className="grid gap-2 xl:grid-cols-[1.2fr_0.8fr_1fr] items-end">
+                        <div className="min-w-0" {...errAnchor(rowKey("activity_disclosures", idx, "disclosure_method"))}>
+                          <Label htmlFor={`disclosure_${idx}_method`} className="text-xs text-muted-foreground">How it is made <Req /></Label>
+                          <select
+                            id={`disclosure_${idx}_method`}
+                            className="mt-1 h-10 px-3 rounded-md border border-input bg-background min-w-0 w-full"
+                            value={row.disclosure_method}
+                            onChange={(e) => setActivityDisclosures((prev) => prev.map((r, i) => (i === idx ? { ...r, disclosure_method: e.target.value } : r)))}
+                            onFocus={() => focusRail('activity_disclosures')}
+                          >
+                            <option value="">How it is made…</option>
+                            {DISCLOSURE_MECHANISMS.filter((m) => m !== "No standalone disclosure").map((m) => <option key={m}>{m}</option>)}
+                            <option>Other (describe in the content)</option>
+                          </select>
+                        </div>
+                        <div className="min-w-0" {...errAnchor(rowKey("activity_disclosures", idx, "status"))}>
+                          <Label htmlFor={`disclosure_${idx}_status`} className="text-xs text-muted-foreground">Made or planned <Req /></Label>
+                          <select
+                            id={`disclosure_${idx}_status`}
+                            className="mt-1 h-10 px-3 rounded-md border border-input bg-background min-w-0 w-full"
+                            value={row.status}
+                            onChange={(e) => setActivityDisclosures((prev) => prev.map((r, i) => (i === idx ? { ...r, status: e.target.value } : r)))}
+                            onFocus={() => focusRail('activity_disclosures')}
+                          >
+                            <option value="">Made or planned…</option>
+                            <option>Made</option>
+                            <option>Planned</option>
+                          </select>
+                        </div>
+                        <div className="min-w-0">
+                        <Label htmlFor={`disclosure_${idx}_timing`} className="text-xs text-muted-foreground">Timing / location <span className="font-normal">(optional)</span></Label>
                         <input
-                          className="h-10 px-3 rounded-md border border-input bg-background min-w-0"
+                          id={`disclosure_${idx}_timing`}
+                          className="mt-1 h-10 px-3 rounded-md border border-input bg-background min-w-0 w-full"
                           value={row.timing_or_location}
                           onChange={(e) => setActivityDisclosures((prev) => prev.map((r, i) => (i === idx ? { ...r, timing_or_location: e.target.value } : r)))}
                           onFocus={() => focusRail('activity_disclosures')}
-                          placeholder="Timing / location (optional)"
+                          placeholder="e.g., At sign-up, on the form"
                         />
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -3022,13 +3139,13 @@ export default function CPPARiskAssessment() {
               <RequiredLegend />
               <p className="text-sm text-muted-foreground">These answers drive the minimisation analysis in the report — each element tested against the stated purpose — together with the retention plan and any enumerated business purpose the activity leans on.</p>
               <div data-coach-field="i1b_min_pi" data-rail-key="i1b_min_pi" {...errAnchor("i1b_min_pi")} onFocus={() => focusRail('i1b_min_pi')}>
-                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>What is the minimum personal information necessary to achieve this purpose? <span className="text-xs text-muted-foreground">(§ 7152(a)(2))</span></Label><StatutePopover term="Minimum PI necessary" summary="The assessment must identify the minimum personal information necessary to achieve the purpose, reflecting the CCPA's data-minimisation principle." cite="11 CCR § 7152(a)(2)" /></div>
+                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>What is the minimum personal information necessary to achieve this purpose? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(2))</span></Label><StatutePopover term="Minimum PI necessary" summary="The assessment must identify the minimum personal information necessary to achieve the purpose, reflecting the CCPA's data-minimisation principle." cite="11 CCR § 7152(a)(2)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">Name the specific data elements you actually need for the purpose above, and note any you collect today that are <span className="font-medium">not</span> strictly necessary. If a less-identifying alternative (de-identified, aggregated, or shorter-retained data) could achieve the same purpose, say so — § 7152(a)(2) requires this minimisation analysis.</p>
                 <ExhibitTextarea className="mt-2" rows={3} value={i1bMinPi} onChange={setI1bMinPi} placeholder='Elements needed, and elements not needed' />
                 {renderAssertion("i1b_min_pi")}
               </div>
               <div data-rail-key="i2_retention" {...errAnchor("i2_retention_period")} onFocus={() => focusRail('i2_retention')}>
-                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>How long will you keep this data, and how is that period set? <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(B))</span></Label><StatutePopover term="Retention period" summary="State how long each category of personal information will be retained, or the criteria used to determine that period." cite="11 CCR § 7152(a)(4)(B)" /></div>
+                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>How long will you keep this data, and how is that period set? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(B))</span></Label><StatutePopover term="Retention period" summary="State how long each category of personal information will be retained, or the criteria used to determine that period." cite="11 CCR § 7152(a)(4)(B)" /></div>
                 <input
                   className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
                   value={i2RetentionPeriod}
@@ -3036,7 +3153,7 @@ export default function CPPARiskAssessment() {
                   placeholder="E.g. 24 months from collection; 7 years after relationship ends"
                 />
                 {renderAssertion("i2_retention_period")}
-                <select
+                <div data-rail-key="i2_retention_criteria" {...errAnchor("i2_retention_criteria")} onFocus={(e) => { e.stopPropagation(); focusRail('i2_retention_criteria'); }}><select
                   className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
                   value={i2RetentionCriteria}
                   onChange={(e) => setI2RetentionCriteria(e.target.value)}
@@ -3044,7 +3161,7 @@ export default function CPPARiskAssessment() {
                   <option value="">Retention criteria…</option>
                   {RETENTION_CRITERIA.map((c) => <option key={c}>{c}</option>)}
                 </select>
-                {renderAssertion("i2_retention_criteria")}
+                {renderAssertion("i2_retention_criteria")}</div>
                 <Textarea
                   className="mt-2"
                   rows={2}
@@ -3061,32 +3178,44 @@ export default function CPPARiskAssessment() {
                 <p className="text-xs text-muted-foreground mt-1">One row per category this activity processes. Give the period — or, if the period is not known, the criteria used to determine it.</p>
                 <div className="mt-2 space-y-2">
                   {retentionByPiCategory.map((row, idx) => (
-                    <div key={idx} className="grid gap-2 xl:grid-cols-[1.2fr_1fr_1fr_auto] items-start">
-                      <select
-                        className="h-10 px-3 rounded-md border border-input bg-background min-w-0"
-                        value={row.pi_category}
-                        onChange={(e) => setRetentionByPiCategory((prev) => prev.map((r, i) => (i === idx ? { ...r, pi_category: e.target.value } : r)))}
-                        onFocus={() => focusRail('retention_by_category')}
-                      >
-                        <option value="">Category…</option>
-                        {(q4.length ? q4 : PI_CATEGORIES).map((c) => <option key={c}>{c}</option>)}
-                      </select>
-                      <input
-                        className="h-10 px-3 rounded-md border border-input bg-background min-w-0"
-                        value={row.retention_period}
-                        onChange={(e) => setRetentionByPiCategory((prev) => prev.map((r, i) => (i === idx ? { ...r, retention_period: e.target.value } : r)))}
-                        onFocus={() => focusRail('retention_by_category')}
-                        placeholder="Period — e.g., 24 months"
-                      />
-                      <select
-                        className="h-10 px-3 rounded-md border border-input bg-background min-w-0"
+                    <div key={idx} className="grid gap-2 xl:grid-cols-[1.2fr_1fr_1fr_auto] items-end">
+                      <div className="min-w-0" {...errAnchor(rowKey("retention_by_pi_category", idx, "pi_category"))}>
+                        <Label htmlFor={`retention_${idx}_category`} className="text-xs text-muted-foreground">Category <Req /></Label>
+                        <select
+                          id={`retention_${idx}_category`}
+                          className="mt-1 h-10 px-3 rounded-md border border-input bg-background min-w-0 w-full"
+                          value={row.pi_category}
+                          onChange={(e) => setRetentionByPiCategory((prev) => prev.map((r, i) => (i === idx ? { ...r, pi_category: e.target.value } : r)))}
+                          onFocus={() => focusRail('retention_by_category')}
+                        >
+                          <option value="">Category…</option>
+                          {(q4.length ? q4 : PI_CATEGORIES).map((c) => <option key={c}>{c}</option>)}
+                        </select>
+                      </div>
+                      <div className="min-w-0" {...errAnchor(rowKey("retention_by_pi_category", idx, "retention_period"))}>
+                        <Label htmlFor={`retention_${idx}_period`} className="text-xs text-muted-foreground">Period <span className="font-normal">(or criteria →)</span></Label>
+                        <input
+                          id={`retention_${idx}_period`}
+                          className="mt-1 h-10 px-3 rounded-md border border-input bg-background min-w-0 w-full"
+                          value={row.retention_period}
+                          onChange={(e) => setRetentionByPiCategory((prev) => prev.map((r, i) => (i === idx ? { ...r, retention_period: e.target.value } : r)))}
+                          onFocus={() => focusRail('retention_by_category')}
+                          placeholder="e.g., 24 months"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <Label htmlFor={`retention_${idx}_criteria`} className="text-xs text-muted-foreground">Criteria <span className="font-normal">(if period unknown)</span></Label>
+                        <select
+                        id={`retention_${idx}_criteria`}
+                        className="mt-1 h-10 px-3 rounded-md border border-input bg-background min-w-0 w-full"
                         value={row.retention_criteria}
                         onChange={(e) => setRetentionByPiCategory((prev) => prev.map((r, i) => (i === idx ? { ...r, retention_criteria: e.target.value } : r)))}
                         onFocus={() => focusRail('retention_by_category')}
                       >
-                        <option value="">Criteria (if period unknown)…</option>
+                        <option value="">Criteria…</option>
                         {RETENTION_CRITERIA.map((c) => <option key={c}>{c}</option>)}
                       </select>
+                      </div>
                       <button
                         type="button"
                         onClick={() => setRetentionByPiCategory((prev) => prev.filter((_, i) => i !== idx))}
@@ -3098,6 +3227,23 @@ export default function CPPARiskAssessment() {
                     </div>
                   ))}
                 </div>
+                {(() => {
+                  const covered = new Set(retentionByPiCategory.map((r) => r.pi_category));
+                  const remaining = q4.filter((c) => !covered.has(c));
+                  return remaining.length > 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => setRetentionByPiCategory((prev) => {
+                        // Reuse a blank first row rather than leaving it dangling.
+                        const base = prev.length === 1 && !prev[0].pi_category && !prev[0].retention_period.trim() && !prev[0].retention_criteria ? [] : prev;
+                        return [...base, ...remaining.map((c) => ({ pi_category: c, retention_period: "", retention_criteria: "" }))];
+                      })}
+                      className="mt-2 mr-4 text-xs underline underline-offset-2 text-primary hover:text-foreground"
+                    >
+                      + Add rows for the remaining {remaining.length === 1 ? "category" : `${remaining.length} categories`}
+                    </button>
+                  ) : null;
+                })()}
                 <button
                   type="button"
                   onClick={() => setRetentionByPiCategory((prev) => [...prev, { pi_category: "", retention_period: "", retention_criteria: "" }])}
@@ -3110,29 +3256,51 @@ export default function CPPARiskAssessment() {
                 <div data-rail-key="i1b_min_pi" onFocus={() => focusRail('i1b_min_pi')}>
                   <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Which data elements do you collect, and is each one necessary for your stated purpose? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(2))</span></Label><StatutePopover term="Minimum-necessary set" summary="The assessment must identify the minimum personal information necessary to achieve the purpose; each element collected is tested against that purpose." cite="11 CCR § 7152(a)(2)" /></div>
                   <p className="text-xs text-muted-foreground mt-1">List each data element this activity collects. Mark the ones that are not necessary — they become minimisation findings in the report.</p>
-                  <div className="mt-2 space-y-2">
+                  {/* Doc 261-review (2026-09-15, EX 02 / LIVE02): the former
+                      xl:grid-cols-[1fr_1fr_1.4fr] row collapsed the element
+                      field to ~26 px because only one of its three controls
+                      could shrink (min-w-0) and the breakpoint was keyed to the
+                      viewport, not the ~586 px centre column. A stacked card
+                      needs no breakpoint, gives every control a persistent
+                      label, and lets the justification be prose. */}
+                  <div className="mt-2 space-y-3">
                     {a2NecessitySet.map((row, idx) => (
-                      <div key={idx} className="grid gap-2 xl:grid-cols-[1fr_1fr_1.4fr] items-start">
-                        <input
-                          className="h-10 px-3 rounded-md border border-input bg-background min-w-0"
-                          value={row.element}
-                          onChange={(e) => setA2NecessitySet((rows) => rows.map((r, i) => i === idx ? { ...r, element: e.target.value } : r))}
-                          placeholder="Data element (e.g. precise geolocation)"
-                        />
-                        <select
-                          className="h-10 px-3 rounded-md border border-input bg-background"
-                          value={row.necessity}
-                          onChange={(e) => setA2NecessitySet((rows) => rows.map((r, i) => i === idx ? { ...r, necessity: e.target.value } : r))}
-                        >
-                          <option value="">Necessary to the purpose?…</option>
-                          {NECESSITY_STATUS_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
-                        </select>
-                        <input
-                          className="h-10 px-3 rounded-md border border-input bg-background"
-                          value={row.justification}
-                          onChange={(e) => setA2NecessitySet((rows) => rows.map((r, i) => i === idx ? { ...r, justification: e.target.value } : r))}
-                          placeholder="Reason this element is here"
-                        />
+                      <div key={idx} className="rounded-md border border-input p-3 space-y-2">
+                        <div className="grid gap-2 sm:grid-cols-2 items-end">
+                          <div className="min-w-0">
+                            <Label htmlFor={`element_${idx}_name`} className="text-xs text-muted-foreground">Data element</Label>
+                            <input
+                              id={`element_${idx}_name`}
+                              className="mt-1 h-10 px-3 rounded-md border border-input bg-background min-w-0 w-full"
+                              value={row.element}
+                              onChange={(e) => setA2NecessitySet((rows) => rows.map((r, i) => i === idx ? { ...r, element: e.target.value } : r))}
+                              placeholder="e.g., precise geolocation"
+                            />
+                          </div>
+                          <div className="min-w-0">
+                            <Label htmlFor={`element_${idx}_necessity`} className="text-xs text-muted-foreground">Necessary to the stated purpose?</Label>
+                            <select
+                              id={`element_${idx}_necessity`}
+                              className="mt-1 h-10 px-3 rounded-md border border-input bg-background min-w-0 w-full"
+                              value={row.necessity}
+                              onChange={(e) => setA2NecessitySet((rows) => rows.map((r, i) => i === idx ? { ...r, necessity: e.target.value } : r))}
+                            >
+                              <option value="">Select…</option>
+                              {NECESSITY_STATUS_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
+                            </select>
+                          </div>
+                        </div>
+                        <div>
+                          <Label htmlFor={`element_${idx}_reason`} className="text-xs text-muted-foreground">Reason this element is collected, or why it is not necessary</Label>
+                          <Textarea
+                            id={`element_${idx}_reason`}
+                            className="mt-1"
+                            rows={2}
+                            value={row.justification}
+                            onChange={(e) => setA2NecessitySet((rows) => rows.map((r, i) => i === idx ? { ...r, justification: e.target.value } : r))}
+                            placeholder="e.g., Needed to route the delivery; not needed for the coupon itself"
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -3143,15 +3311,29 @@ export default function CPPARiskAssessment() {
                     )}
                   </div>
                 </div>
-              <OptionalCluster title="Business purposes and statutory exemptions" valueLine="Left unclaimed, the report records no enumerated business purpose for this activity; nothing is inferred on your behalf.">
+              <OptionalCluster title="Business purposes and statutory exemptions" defaultOpen valueLine="Left unclaimed, the report records no enumerated business purpose for this activity; nothing is inferred on your behalf.">
               {/* === CCPA business purposes / statutory exemptions (optional) — moved to follow retention === */}
-              <div data-coach-field="exceptions_intake" className="border-t pt-6 mt-6">
-                <Label className="text-base font-semibold">CCPA business purposes &amp; statutory exemptions <span className="text-xs font-normal text-muted-foreground">(optional)</span></Label>
+              {/* Doc 261-review (2026-09-15, Addition 2): the inner heading
+                  duplicated the cluster title one line above it; the
+                  explanatory paragraph stays. */}
+              <div data-coach-field="exceptions_intake">
                 <p className="text-xs text-muted-foreground mt-1">
                   Check any that apply to this activity; leave blank if none do. These are the "business purposes" listed in <span className="font-mono">Cal. Civ. Code § 1798.140(e)</span> and the exemptions in <span className="font-mono">§ 1798.145</span> — they permit specific internal uses or carve out specific obligations, but they do <span className="font-medium">not</span> remove a § 7150 risk-assessment trigger.
                 </p>
-                <div className="mt-3 space-y-3">
-                  {CPPA_EXCEPTIONS.map((ex) => {
+                {/* Doc 261-review (2026-09-15, EX 03 / CEO Note 3): the eight
+                    cards mix § 1798.140(e) business purposes with § 1798.145
+                    exemptions, so a single heading naming only (e) would
+                    mislabel two of them. Group them under their own statute
+                    instead of renaming the section. Keys and stored values
+                    are unchanged. */}
+                <div className="mt-3 space-y-5">
+                  {([
+                    { heading: "Business purposes — Cal. Civ. Code § 1798.140(e)", keys: ["fraud_detection", "security_integrity", "debugging", "transient_use", "internal_research", "consumer_request"] },
+                    { heading: "Statutory exemptions — Cal. Civ. Code § 1798.145", keys: ["employment_context", "legal_compliance"] },
+                  ] as const).map((group) => (
+                  <div key={group.heading} className="space-y-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{group.heading}</p>
+                  {CPPA_EXCEPTIONS.filter((ex) => (group.keys as readonly string[]).includes(ex.key)).map((ex) => {
                     const cur: ExceptionClaim = exceptionClaims[ex.key] ?? { claimed: false, scope: "", safeguards: "", authority_basis: "", retention_period: "" };
                     return (
                       <div key={ex.key} className="rounded border p-3" data-rail-key={ex.railKey} onFocus={() => focusRail(ex.railKey)} onClick={() => focusRail(ex.railKey)}>
@@ -3166,35 +3348,61 @@ export default function CPPARiskAssessment() {
                         </label>
                         {cur.claimed && (
                           <div className="mt-2 space-y-2 pl-6">
-                            <Textarea
-                              rows={2}
-                              value={cur.scope}
-                              onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, scope: e.target.value } }))}
-                              placeholder="Activity and data covered"
-                            />
-                            <Textarea
-                              rows={2}
-                              value={cur.safeguards}
-                              onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, safeguards: e.target.value } }))}
-                              placeholder="Documented safeguards"
-                            />
-                            <Textarea
-                              rows={2}
-                              value={cur.authority_basis ?? ""}
-                              onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, authority_basis: e.target.value } }))}
-                              placeholder="Statutes or rules relied on"
-                            />
-                            <Textarea
-                              rows={2}
-                              value={cur.retention_period ?? ""}
-                              onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, retention_period: e.target.value } }))}
-                              placeholder="Retention period for this purpose"
-                            />
+                            {/* CEO Note 5: the supporting-authority field leads, with
+                                the card's own citation shown so it need not be retyped;
+                                ask only for any additional business-specific authority. */}
+                            <div>
+                              <Label htmlFor={`exc_${ex.key}_authority`} className="text-xs text-muted-foreground">Authority relied on</Label>
+                              <p className="text-xs text-muted-foreground font-mono">{ex.cite}</p>
+                              <Textarea
+                                id={`exc_${ex.key}_authority`}
+                                className="mt-1"
+                                rows={2}
+                                value={cur.authority_basis ?? ""}
+                                onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, authority_basis: e.target.value } }))}
+                                placeholder="Any additional statute, rule, court order or contractual duty you rely on for this purpose (optional)"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor={`exc_${ex.key}_scope`} className="text-xs text-muted-foreground">Activity and data covered</Label>
+                              <Textarea
+                                id={`exc_${ex.key}_scope`}
+                                className="mt-1"
+                                rows={2}
+                                value={cur.scope}
+                                onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, scope: e.target.value } }))}
+                                placeholder="Which processing, and which data elements, this purpose covers"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor={`exc_${ex.key}_safeguards`} className="text-xs text-muted-foreground">Documented safeguards</Label>
+                              <Textarea
+                                id={`exc_${ex.key}_safeguards`}
+                                className="mt-1"
+                                rows={2}
+                                value={cur.safeguards}
+                                onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, safeguards: e.target.value } }))}
+                                placeholder="Controls that keep the use within this purpose"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor={`exc_${ex.key}_retention`} className="text-xs text-muted-foreground">Retention period for this purpose</Label>
+                              <Textarea
+                                id={`exc_${ex.key}_retention`}
+                                className="mt-1"
+                                rows={2}
+                                value={cur.retention_period ?? ""}
+                                onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, retention_period: e.target.value } }))}
+                                placeholder="How long information is kept for this purpose, and what sets that period"
+                              />
+                            </div>
                           </div>
                         )}
                       </div>
                     );
                   })}
+                  </div>
+                  ))}
                 </div>
                 {renderAssertion("exceptions_intake")}
               </div>
@@ -3218,7 +3426,13 @@ export default function CPPARiskAssessment() {
                   </div>
                   <div data-rail-key="impact_harm_causes" onFocus={() => focusRail('impact_harm_causes')}>
                     <Label>Types of harm that could result <span className="text-xs text-muted-foreground font-mono">(§ 7152(a)(5))</span></Label>
-                    <div className="mt-2"><Pills options={HARM_TYPES} value={impactData.harmTypes} onChange={(v) => setImpactData((d) => ({ ...d, harmTypes: v }))} /></div>
+                    <div className="mt-2"><Pills options={HARM_TYPES} value={impactData.harmTypes} onChange={(v) => {
+                      setImpactData((d) => ({ ...d, harmTypes: v }));
+                      // Doc 262 §9.5 item 2 — a quick pick scaffolds a pathway row with the
+                      // category pre-selected; rows already present are never touched.
+                      setA5HarmPathways((rows) => [...seedHarmRowsFromPills(v, rows, blankHarmRow)]);
+                    }} /></div>
+                    <p className="text-xs text-muted-foreground mt-1">Each type you select adds a matching impact row below, ready for its data, actor, source, cause, likelihood and severity.</p>
                     <p className="text-xs text-muted-foreground mt-2">For the harms selected above, describe their <span className="font-medium">sources and causes</span> — what about this processing creates each harm. § 7152(a)(5) requires the assessment to identify the sources and causes of negative impacts, not just the harms.</p>
                     <Textarea className="mt-2" rows={3} value={impactData.harmCauses} onChange={(e) => setImpactData((d) => ({ ...d, harmCauses: e.target.value }))} placeholder='Source and cause of each impact' />
                   </div>
@@ -3237,10 +3451,42 @@ export default function CPPARiskAssessment() {
                           <option value="">Select the statutory impact category…</option>
                           {HARM_PATHWAY_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
                         </select>
-                        <Textarea rows={2} value={row.data_involved} onChange={(e) => setA5HarmPathways((rows) => rows.map((r, i) => i === idx ? { ...r, data_involved: e.target.value } : r))} placeholder="Data elements exposed" />
-                        <Textarea rows={2} value={row.actor} onChange={(e) => setA5HarmPathways((rows) => rows.map((r, i) => i === idx ? { ...r, actor: e.target.value } : r))} placeholder="Who or what acts on the data" />
-                        <Textarea rows={2} value={row.source} onChange={(e) => setA5HarmPathways((rows) => rows.map((r, i) => i === idx ? { ...r, source: e.target.value } : r))} placeholder="Where the impact comes from" />
-                        <Textarea rows={2} value={row.cause} onChange={(e) => setA5HarmPathways((rows) => rows.map((r, i) => i === idx ? { ...r, cause: e.target.value } : r))} placeholder="What produces the impact" />
+                        {/* Doc 262 §9.5 item 5a — fill from Step 3 instead of retyping. */}
+                        <div className="flex flex-wrap gap-2">
+                          {q4.length > 0 && !row.data_involved.trim() && (
+                            <button type="button" className="text-xs px-2 py-0.5 rounded border border-input hover:bg-muted" onClick={() => { setA5HarmPathways((rows) => rows.map((r, i) => i === idx ? { ...r, data_involved: q4.join("; ") } : r)); markPrefilled(idx, "data_involved"); }}>
+                              Use the categories from Step 3 as the data involved
+                            </button>
+                          )}
+                          {recipientRows.some((r) => r.recipient_name_or_category.trim()) && !row.actor.trim() && (
+                            <button type="button" className="text-xs px-2 py-0.5 rounded border border-input hover:bg-muted" onClick={() => { setA5HarmPathways((rows) => rows.map((r, i) => i === idx ? { ...r, actor: recipientRows.filter((x) => x.recipient_name_or_category.trim()).map((x) => `${x.recipient_name_or_category.trim()}${x.recipient_type ? ` (${x.recipient_type})` : ""}`).join("; ") } : r)); markPrefilled(idx, "actor"); }}>
+                              Use the recipients from Step 3 as the actors
+                            </button>
+                          )}
+                        </div>
+                        {(isPrefilled(idx, "data_involved") || isPrefilled(idx, "actor")) && (
+                          <p role="status" className="text-xs rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-amber-800 dark:text-amber-300">
+                            Suggested from Step 3 — edit it or keep it as written; a suggestion is not recorded as your answer until you do.
+                            {isPrefilled(idx, "data_involved") && <button type="button" className="ml-2 underline underline-offset-2" onClick={() => clearPrefilled(idx, "data_involved")}>Keep data involved</button>}
+                            {isPrefilled(idx, "actor") && <button type="button" className="ml-2 underline underline-offset-2" onClick={() => clearPrefilled(idx, "actor")}>Keep actors</button>}
+                          </p>
+                        )}
+                        <div>
+                          <Label htmlFor={`harm_${idx}_data_involved`} className="text-xs text-muted-foreground">Data involved</Label>
+                          <Textarea id={`harm_${idx}_data_involved`} className="mt-1" rows={2} value={row.data_involved} onChange={(e) => { clearPrefilled(idx, "data_involved"); setA5HarmPathways((rows) => rows.map((r, i) => i === idx ? { ...r, data_involved: e.target.value } : r)); }} placeholder="Data elements exposed" />
+                        </div>
+                        <div>
+                          <Label htmlFor={`harm_${idx}_actor`} className="text-xs text-muted-foreground">Who or what acts on the data</Label>
+                          <Textarea id={`harm_${idx}_actor`} className="mt-1" rows={2} value={row.actor} onChange={(e) => { clearPrefilled(idx, "actor"); setA5HarmPathways((rows) => rows.map((r, i) => i === idx ? { ...r, actor: e.target.value } : r)); }} placeholder="Who or what acts on the data" />
+                        </div>
+                        <div>
+                          <Label htmlFor={`harm_${idx}_source`} className="text-xs text-muted-foreground">Source of the impact</Label>
+                          <Textarea id={`harm_${idx}_source`} className="mt-1" rows={2} value={row.source} onChange={(e) => setA5HarmPathways((rows) => rows.map((r, i) => i === idx ? { ...r, source: e.target.value } : r))} placeholder="Where the impact comes from" />
+                        </div>
+                        <div>
+                          <Label htmlFor={`harm_${idx}_cause`} className="text-xs text-muted-foreground">Cause — what about this processing produces it</Label>
+                          <Textarea id={`harm_${idx}_cause`} className="mt-1" rows={2} value={row.cause} onChange={(e) => setA5HarmPathways((rows) => rows.map((r, i) => i === idx ? { ...r, cause: e.target.value } : r))} placeholder="What produces the impact" />
+                        </div>
                         <div className="grid gap-2 md:grid-cols-2">
                           <select
                             className="h-10 px-3 rounded-md border border-input bg-background"
@@ -3269,12 +3515,12 @@ export default function CPPARiskAssessment() {
                     )}
                   </div>
                   {/* RK3-D (doc 33 D-L3) — pathway interdependency. */}
-                  <div className="mt-4">
+                  <div className="mt-4" data-rail-key="rk3d_risk_interdependency_check" {...errAnchor("rk3d_risk_interdependency_check")} onFocus={(e) => { e.stopPropagation(); focusRail('rk3d_risk_interdependency_check'); }}>
                     <Label>Do the impacts above operate independently, or could any compound each other? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7154)</span></Label>
                     <p className="text-xs text-muted-foreground mt-1">Impacts compound when one occurring makes another more likely or more severe — for example, a breach that also exposes information enabling reputational harm.</p>
                     <div className="mt-2"><Radio name="risk_interdependency_check" options={[...RISK_INTERDEPENDENCY_OPTS]} value={rk3d.risk_interdependency_check} onChange={(v) => setRk3dField("risk_interdependency_check", v)} /></div>
                     {rk3d.risk_interdependency_check === "Two or more identified pathways could compound each other" && (
-                      <div className="mt-2">
+                      <div className="mt-2" data-rail-key="rk3d_compounding_pathways" {...errAnchor("rk3d_compounding_pathways")} onFocus={(e) => { e.stopPropagation(); focusRail('rk3d_compounding_pathways'); }}>
                         <p className="text-xs text-muted-foreground mb-1">Select the pathways that could compound each other (at least two):</p>
                         <Pills options={[...HARM_PATHWAY_OPTS]} value={rk3d.compounding_pathways} onChange={(v: string[]) => setRk3dField("compounding_pathways", v)} />
                       </div>
@@ -3301,8 +3547,12 @@ export default function CPPARiskAssessment() {
                           <option value="">Impact addressed…</option>
                           {HARM_PATHWAY_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
                         </select>
-                        <Textarea rows={2} value={row.safeguard} onChange={(e) => setA6Safeguards((rows) => rows.map((r, i) => i === idx ? { ...r, safeguard: e.target.value } : r))} placeholder="The safeguard" />
+                        <div>
+                          <Label htmlFor={`safeguard_${idx}_text`} className="text-xs text-muted-foreground">Safeguard</Label>
+                          <Textarea id={`safeguard_${idx}_text`} className="mt-1" rows={2} value={row.safeguard} onChange={(e) => setA6Safeguards((rows) => rows.map((r, i) => i === idx ? { ...r, safeguard: e.target.value } : r))} placeholder="What the measure is and what it prevents" />
+                        </div>
                         <select
+                          aria-label="Implementation status"
                           className="w-full h-10 px-3 rounded-md border border-input bg-background"
                           value={row.safeguard_status}
                           onChange={(e) => setA6Safeguards((rows) => rows.map((r, i) => i === idx ? { ...r, safeguard_status: e.target.value } : r))}
@@ -3312,23 +3562,31 @@ export default function CPPARiskAssessment() {
                         </select>
                         <Textarea rows={2} value={row.residual} onChange={(e) => setA6Safeguards((rows) => rows.map((r, i) => i === idx ? { ...r, residual: e.target.value } : r))} placeholder="Risk remaining afterwards" />
                         {/* RK3-D (doc 33 D-L3) — effectiveness evidence + planned timeline. */}
+                        <div {...errAnchor(rowKey("a6_safeguards", idx, "effectiveness_basis"))}>
+                        <Label htmlFor={`safeguard_${idx}_evidence`} className="text-xs text-muted-foreground">Effectiveness evidence <Req /></Label>
                         <select
-                          className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                          id={`safeguard_${idx}_evidence`}
+                          className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background"
                           value={row.effectiveness_basis || ""}
                           onChange={(e) => setA6Safeguards((rows) => rows.map((r, i) => i === idx ? { ...r, effectiveness_basis: e.target.value } : r))}
                         >
                           <option value="">Effectiveness evidence…</option>
                           {SAFEGUARD_EFFECTIVENESS_BASIS_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
                         </select>
+                        </div>
                         {row.safeguard_status === "Planned, not yet implemented" && (
+                          <div {...errAnchor(rowKey("a6_safeguards", idx, "planned_timeline"))}>
+                          <Label htmlFor={`safeguard_${idx}_timeline`} className="text-xs text-muted-foreground">Committed timeline <Req /></Label>
                           <select
-                            className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                            id={`safeguard_${idx}_timeline`}
+                            className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background"
                             value={row.planned_timeline || ""}
                             onChange={(e) => setA6Safeguards((rows) => rows.map((r, i) => i === idx ? { ...r, planned_timeline: e.target.value } : r))}
                           >
                             <option value="">Committed timeline…</option>
                             {PLANNED_TIMELINE_OPTS.map((o) => <option key={o} value={o}>{o}</option>)}
                           </select>
+                          </div>
                         )}
                         <div>
                           <p className="text-xs text-muted-foreground mb-1">Which harm pathways does this safeguard address? (optional)</p>
@@ -3404,63 +3662,61 @@ export default function CPPARiskAssessment() {
                       "no distinct benefit identified" for the class, and the
                       statement + fact appear only on "Yes". */}
                   <div className="mt-3 space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm">Is a distinct benefit to the business identified? <Req /></Label>
-                      <Radio name="benefit_business_identified" options={["Yes", "No"]} value={benefitBusinessIdentified} onChange={setBenefitBusinessIdentified} />
-                      {benefitBusinessIdentified === "Yes" && (
-                        <>
-                          <Textarea rows={2} value={a4BenefitBusiness} onChange={(e) => setA4BenefitBusiness(e.target.value)} placeholder="Specific outcome for the business" />
-                          <Textarea rows={2} data-rail-key="a4_benefit_supporting_fact" onFocus={() => focusRail('a4_benefit_supporting_fact')} value={a4BenefitBusinessFact} onChange={(e) => setA4BenefitBusinessFact(e.target.value)} placeholder="Fact in the record showing it" />
-                          {/* RK3-D (doc 33 D-L3) — magnitude basis. */}
-                          <div><p className="text-xs text-muted-foreground mb-1">What kind of basis does the statement give for the benefit's size?</p><Radio name="benefit_business_magnitude_basis" options={[...BENEFIT_MAGNITUDE_BASIS_OPTS]} value={rk3d.benefit_business_magnitude_basis} onChange={(v) => setRk3dField("benefit_business_magnitude_basis", v)} /></div>
-                        </>
-                      )}
-                      {benefitBusinessIdentified === "No" && (
-                        <p className="text-xs text-muted-foreground">Recorded: no distinct business benefit identified. The weighing gives this class no affirmative weight.</p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm">Is a distinct benefit to the consumer identified? <Req /></Label>
-                      <Radio name="benefit_consumer_identified" options={["Yes", "No"]} value={benefitConsumerIdentified} onChange={setBenefitConsumerIdentified} />
-                      {benefitConsumerIdentified === "Yes" && (
-                        <>
-                          <Textarea rows={2} value={a4BenefitConsumer} onChange={(e) => setA4BenefitConsumer(e.target.value)} placeholder="Specific outcome for the consumer" />
-                          <Textarea rows={2} data-rail-key="a4_benefit_supporting_fact" onFocus={() => focusRail('a4_benefit_supporting_fact')} value={a4BenefitConsumerFact} onChange={(e) => setA4BenefitConsumerFact(e.target.value)} placeholder="Fact in the record showing it" />
-                          <div><p className="text-xs text-muted-foreground mb-1">What kind of basis does the statement give for the benefit's size?</p><Radio name="benefit_consumer_magnitude_basis" options={[...BENEFIT_MAGNITUDE_BASIS_OPTS]} value={rk3d.benefit_consumer_magnitude_basis} onChange={(v) => setRk3dField("benefit_consumer_magnitude_basis", v)} /></div>
-                        </>
-                      )}
-                      {benefitConsumerIdentified === "No" && (
-                        <p className="text-xs text-muted-foreground">Recorded: no distinct consumer benefit identified. The weighing gives this class no affirmative weight.</p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm">Is a distinct benefit to other stakeholders identified? <Req /></Label>
-                      <Radio name="benefit_other_stakeholders_identified" options={["Yes", "No"]} value={benefitOtherStakeholdersIdentified} onChange={setBenefitOtherStakeholdersIdentified} />
-                      {benefitOtherStakeholdersIdentified === "Yes" && (
-                        <>
-                          <Textarea rows={2} value={a4BenefitOtherStakeholders} onChange={(e) => setA4BenefitOtherStakeholders(e.target.value)} placeholder="Outcome for other stakeholders" />
-                          <Textarea rows={2} data-rail-key="a4_benefit_supporting_fact" onFocus={() => focusRail('a4_benefit_supporting_fact')} value={a4BenefitOtherStakeholdersFact} onChange={(e) => setA4BenefitOtherStakeholdersFact(e.target.value)} placeholder="Fact in the record showing it" />
-                          <div><p className="text-xs text-muted-foreground mb-1">What kind of basis does the statement give for the benefit's size?</p><Radio name="benefit_other_stakeholders_magnitude_basis" options={[...BENEFIT_MAGNITUDE_BASIS_OPTS]} value={rk3d.benefit_other_stakeholders_magnitude_basis} onChange={(v) => setRk3dField("benefit_other_stakeholders_magnitude_basis", v)} /></div>
-                        </>
-                      )}
-                      {benefitOtherStakeholdersIdentified === "No" && (
-                        <p className="text-xs text-muted-foreground">Recorded: no distinct other-stakeholder benefit identified.</p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm">Is a distinct benefit to the public identified? <Req /></Label>
-                      <Radio name="benefit_public_identified" options={["Yes", "No"]} value={benefitPublicIdentified} onChange={setBenefitPublicIdentified} />
-                      {benefitPublicIdentified === "Yes" && (
-                        <>
-                          <Textarea rows={2} value={a4BenefitPublic} onChange={(e) => setA4BenefitPublic(e.target.value)} placeholder="Outcome for the public" />
-                          <Textarea rows={2} data-rail-key="a4_benefit_supporting_fact" onFocus={() => focusRail('a4_benefit_supporting_fact')} value={a4BenefitPublicFact} onChange={(e) => setA4BenefitPublicFact(e.target.value)} placeholder="Fact in the record showing it" />
-                          <div><p className="text-xs text-muted-foreground mb-1">What kind of basis does the statement give for the benefit's size?</p><Radio name="benefit_public_magnitude_basis" options={[...BENEFIT_MAGNITUDE_BASIS_OPTS]} value={rk3d.benefit_public_magnitude_basis} onChange={(v) => setRk3dField("benefit_public_magnitude_basis", v)} /></div>
-                        </>
-                      )}
-                      {benefitPublicIdentified === "No" && (
-                        <p className="text-xs text-muted-foreground">Recorded: no distinct public benefit identified.</p>
-                      )}
-                    </div>
+                    {/* Doc 261-review (2026-09-15): one data-driven block for the
+                        four § 7152(a)(4) groups. Every validator key carries its
+                        own data-field anchor; controls carry persistent labels;
+                        switching a gate to "No" clears the hidden statement /
+                        fact / basis so a retracted benefit cannot travel to the
+                        engine (which already gives a "No" gate no weight — the
+                        clearing keeps the record honest, not the score). A blank
+                        supporting fact is allowed on "Yes": the engine scores it
+                        as limited weight, which is what the copy promises. */}
+                    {([
+                      { slug: "business", label: "the business", identified: benefitBusinessIdentified, setIdentified: setBenefitBusinessIdentified, text: a4BenefitBusiness, setText: setA4BenefitBusiness, fact: a4BenefitBusinessFact, setFact: setA4BenefitBusinessFact, basisKey: "benefit_business_magnitude_basis" as const, noNote: "Recorded: no distinct business benefit identified. The weighing gives this class no affirmative weight." },
+                      { slug: "consumer", label: "the consumer", identified: benefitConsumerIdentified, setIdentified: setBenefitConsumerIdentified, text: a4BenefitConsumer, setText: setA4BenefitConsumer, fact: a4BenefitConsumerFact, setFact: setA4BenefitConsumerFact, basisKey: "benefit_consumer_magnitude_basis" as const, noNote: "Recorded: no distinct consumer benefit identified. The weighing gives this class no affirmative weight." },
+                      { slug: "other_stakeholders", label: "other stakeholders", identified: benefitOtherStakeholdersIdentified, setIdentified: setBenefitOtherStakeholdersIdentified, text: a4BenefitOtherStakeholders, setText: setA4BenefitOtherStakeholders, fact: a4BenefitOtherStakeholdersFact, setFact: setA4BenefitOtherStakeholdersFact, basisKey: "benefit_other_stakeholders_magnitude_basis" as const, noNote: "Recorded: no distinct other-stakeholder benefit identified." },
+                      { slug: "public", label: "the public", identified: benefitPublicIdentified, setIdentified: setBenefitPublicIdentified, text: a4BenefitPublic, setText: setA4BenefitPublic, fact: a4BenefitPublicFact, setFact: setA4BenefitPublicFact, basisKey: "benefit_public_magnitude_basis" as const, noNote: "Recorded: no distinct public benefit identified." },
+                    ] as const).map((g) => (
+                      <div key={g.slug} className="space-y-2" {...errAnchor(`benefit_${g.slug}_identified`)}>
+                        <Label className="text-sm">Is a distinct benefit to {g.label} identified? <Req /></Label>
+                        <Radio
+                          name={`benefit_${g.slug}_identified`}
+                          options={["Yes", "No"]}
+                          value={g.identified}
+                          onChange={(v) => {
+                            g.setIdentified(v);
+                            if (v === "No") {
+                              // CL-T04 — a hidden answer is not an answer. Clear
+                              // the dependent fields rather than carrying them
+                              // silently in the payload.
+                              g.setText("");
+                              g.setFact("");
+                              setRk3dField(g.basisKey, "");
+                            }
+                          }}
+                        />
+                        {g.identified === "Yes" && (
+                          <>
+                            <div {...errAnchor(`a4_benefit_${g.slug}`)}>
+                              <Label htmlFor={`a4_benefit_${g.slug}`} className="text-xs text-muted-foreground">Specific outcome for {g.label} <Req /></Label>
+                              <Textarea id={`a4_benefit_${g.slug}`} className="mt-1" rows={2} value={g.text} onChange={(e) => g.setText(e.target.value)} placeholder="What concretely improves, for whom" />
+                            </div>
+                            <div {...errAnchor(`a4_benefit_${g.slug}_fact`)} data-rail-key="a4_benefit_supporting_fact" onFocus={() => focusRail('a4_benefit_supporting_fact')}>
+                              <Label htmlFor={`a4_benefit_${g.slug}_fact`} className="text-xs text-muted-foreground">Fact in the record showing it <span className="font-normal">(optional — leave blank if nothing in the record shows it; the weighing then carries this benefit as unevidenced)</span></Label>
+                              <Textarea id={`a4_benefit_${g.slug}_fact`} className="mt-1" rows={2} value={g.fact} onChange={(e) => g.setFact(e.target.value)} placeholder="A report, measurement, or decision record that cites the benefit" />
+                            </div>
+                            {/* RK3-D (doc 33 D-L3) — magnitude basis. */}
+                            <div {...errAnchor(g.basisKey)}>
+                              <p className="text-xs text-muted-foreground mb-1">What kind of basis does the statement give for the benefit's size? <Req /></p>
+                              <Radio name={g.basisKey} options={[...BENEFIT_MAGNITUDE_BASIS_OPTS]} value={rk3d[g.basisKey]} onChange={(v) => setRk3dField(g.basisKey, v)} />
+                            </div>
+                          </>
+                        )}
+                        {g.identified === "No" && (
+                          <p className="text-xs text-muted-foreground">{g.noNote}</p>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
                   <div data-rail-key="impact_benefits" onFocus={() => focusRail('impact_benefits')}>
@@ -3488,8 +3744,8 @@ export default function CPPARiskAssessment() {
               <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR §§ 7151, 7152(a)(8)–(9), 7157(b) — contributors, approval record, and the certifying executive</p>
               <RequiredLegend />
               <p className="text-sm text-muted-foreground">These answers close the report: the people who supplied the facts, the person who approved the assessment, and the executive who certifies it on the annual submission worksheet.</p>
-              <div>
-                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Who contributed to or was consulted in preparing this assessment? <span className="text-xs text-muted-foreground">(§§ 7151, 7152(a)(8))</span></Label><StatutePopover term="Contributors and consultees" summary="Identify the individuals and roles who contributed to or were consulted in preparing the risk assessment." cite="11 CCR § 7152(a)(9)" /></div>
+              <div data-rail-key="i7_internal_contributors" {...errAnchor("i7_internal_contributors")} onFocus={() => focusRail('i7_internal_contributors')}>
+                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Who contributed to or was consulted in preparing this assessment? <span className="text-xs text-muted-foreground">(§§ 7151, 7152(a)(8))</span></Label><StatutePopover term="Contributors and consultees" summary="Record who participated in preparing the assessment (§ 7151) and, separately, who provided the information in it (§ 7152(a)(8)). Review and approval is its own record under § 7152(a)(9), further down." cite="11 CCR §§ 7151, 7152(a)(8)" /></div>
                 <div className="mt-2"><AssistedInput
                   value={i7InternalContributors}
                   onChange={setI7InternalContributors}
@@ -3501,8 +3757,8 @@ export default function CPPARiskAssessment() {
                 /></div>
                 {/* RK3-A1 g6 — § 7151(a) participation record, placed with the
                     contributor questions it is distinct from. */}
-                <div className="mt-4" data-rail-key="section_7151_participation" {...errAnchor("section_participants")} onFocus={() => focusRail('section_7151_participation')}>
-                  <Label>Which employees' job duties include participating in this processing? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7151(a))</span></Label>
+                <div className="mt-4" data-rail-key="section_7151_participation" {...errAnchor("section_participants")} onFocus={(e) => { e.stopPropagation(); focusRail('section_7151_participation'); }}>
+                  <Label>Which employees' job duties include participating in this processing? <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7151(a))</span></Label>
                   <p className="text-xs text-muted-foreground mt-1">§ 7151(a) requires these employees to be included in the risk-assessment process. This is a participation record, separate from the § 7152(a)(8) list of who provided information.</p>
                   <div className="mt-2 space-y-2">
                     {sectionParticipants.map((row, idx) => (
@@ -3518,36 +3774,48 @@ export default function CPPARiskAssessment() {
                             Remove
                           </button>
                         </div>
-                        <div className="grid gap-2 xl:grid-cols-2 items-start">
+                        <div className="grid gap-2 xl:grid-cols-2 items-end">
+                          <div className="min-w-0" {...errAnchor(rowKey("section_participants", idx, "name"))}>
+                            <Label htmlFor={`participant_${idx}_name`} className="text-xs text-muted-foreground">Name <Req /></Label>
+                            <input
+                              id={`participant_${idx}_name`}
+                              className="mt-1 h-10 px-3 rounded-md border border-input bg-background min-w-0 w-full"
+                              value={row.name}
+                              onChange={(e) => setSectionParticipants((prev) => prev.map((r, i) => (i === idx ? { ...r, name: e.target.value } : r)))}
+                              onFocus={(e) => { e.stopPropagation(); focusRail('section_7151_participation'); }}
+                              placeholder="Name"
+                            />
+                          </div>
+                          <div className="min-w-0">
+                            <Label htmlFor={`participant_${idx}_role`} className="text-xs text-muted-foreground">Title or role</Label>
+                            <input
+                              id={`participant_${idx}_role`}
+                              className="mt-1 h-10 px-3 rounded-md border border-input bg-background min-w-0 w-full"
+                              value={row.role}
+                              onChange={(e) => setSectionParticipants((prev) => prev.map((r, i) => (i === idx ? { ...r, role: e.target.value } : r)))}
+                              onFocus={(e) => { e.stopPropagation(); focusRail('section_7151_participation'); }}
+                              placeholder="Title or role"
+                            />
+                          </div>
+                        </div>
+                        <div {...errAnchor(rowKey("section_participants", idx, "processing_responsibility"))}>
+                          <Label htmlFor={`participant_${idx}_resp`} className="text-xs text-muted-foreground">Responsibility in the processing <Req /></Label>
                           <input
-                            className="h-10 px-3 rounded-md border border-input bg-background min-w-0"
-                            value={row.name}
-                            onChange={(e) => setSectionParticipants((prev) => prev.map((r, i) => (i === idx ? { ...r, name: e.target.value } : r)))}
-                            onFocus={() => focusRail('section_7151_participation')}
-                            placeholder="Name"
-                          />
-                          <input
-                            className="h-10 px-3 rounded-md border border-input bg-background min-w-0"
-                            value={row.role}
-                            onChange={(e) => setSectionParticipants((prev) => prev.map((r, i) => (i === idx ? { ...r, role: e.target.value } : r)))}
-                            onFocus={() => focusRail('section_7151_participation')}
-                            placeholder="Title or role"
+                            id={`participant_${idx}_resp`}
+                            className="mt-1 h-10 px-3 rounded-md border border-input bg-background w-full"
+                            value={row.processing_responsibility}
+                            onChange={(e) => setSectionParticipants((prev) => prev.map((r, i) => (i === idx ? { ...r, processing_responsibility: e.target.value } : r)))}
+                            onFocus={(e) => { e.stopPropagation(); focusRail('section_7151_participation'); }}
+                            placeholder="e.g., Runs the monthly coupon batch job"
                           />
                         </div>
-                        <input
-                          className="h-10 px-3 rounded-md border border-input bg-background w-full"
-                          value={row.processing_responsibility}
-                          onChange={(e) => setSectionParticipants((prev) => prev.map((r, i) => (i === idx ? { ...r, processing_responsibility: e.target.value } : r)))}
-                          onFocus={() => focusRail('section_7151_participation')}
-                          placeholder="Responsibility in the processing — e.g., Runs the monthly coupon batch job"
-                        />
-                        <label className="flex items-start gap-2 text-sm">
+                        <label className="flex items-start gap-2 text-sm" {...errAnchor(rowKey("section_participants", idx, "participation_confirmed"))}>
                           <input
                             type="checkbox"
                             className="mt-0.5"
                             checked={row.participation_confirmed}
                             onChange={(e) => setSectionParticipants((prev) => prev.map((r, i) => (i === idx ? { ...r, participation_confirmed: e.target.checked } : r)))}
-                            onFocus={() => focusRail('section_7151_participation')}
+                            onFocus={(e) => { e.stopPropagation(); focusRail('section_7151_participation'); }}
                           />
                           <span className="text-xs text-muted-foreground">This employee was included in the risk-assessment process for this activity.</span>
                         </label>
@@ -3573,15 +3841,21 @@ export default function CPPARiskAssessment() {
                 /></div>
               </div>
               <div className="grid sm:grid-cols-2 gap-3">
-                <div>
+                <div data-rail-key="i8_exec_name" {...errAnchor("i8_exec_name")} onFocus={() => focusRail('i8_exec_name')}>
                   <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Who is the executive certifying this assessment? <span className="text-xs text-muted-foreground">(§ 7157(b)(5))</span></Label><StatutePopover term="Certifying executive" summary="The risk assessment must be certified by an executive responsible for oversight of the processing." cite="11 CCR § 7157" /></div>
                   <input className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={i8ExecName} onChange={(e) => setI8ExecName(e.target.value)} placeholder="Full legal name" />
                 </div>
-                <div>
-                  <Label>Certifying executive title <Req /></Label>
+                <div data-rail-key="i8_exec_title" {...errAnchor("i8_exec_title")} onFocus={() => focusRail('i8_exec_title')}>
+                  <Label>Certifying executive title</Label>
                   <input className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={i8ExecTitle} onChange={(e) => setI8ExecTitle(e.target.value)} placeholder="E.g. Chief Privacy Officer" />
                 </div>
               </div>
+              {/* Doc 262 §9.5 policy — identification is reported, never gated. */}
+              {step7IdentificationNotices.length > 0 && (
+                <p role="status" className="text-xs rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-amber-800 dark:text-amber-300">
+                  Identification still outstanding: {step7IdentificationNotices.join("; ")}. You can continue; the report will state the identification as a condition on the approval level reached.
+                </p>
+              )}
 
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
@@ -3612,12 +3886,13 @@ export default function CPPARiskAssessment() {
               </p>
                 {/* A-9 — review and approval record */}
                 <div>
-                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Who reviewed and approved this assessment? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(9))</span></Label><StatutePopover term="Review and approval" summary="The assessment must record the date it was reviewed and approved and the names and positions of those who reviewed or approved it; the approver must have authority to participate in deciding whether the processing is initiated." cite="11 CCR § 7152(a)(9)" /></div>
+                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Who reviewed and approved this assessment? <span className="text-xs text-muted-foreground">(§ 7152(a)(9))</span></Label><StatutePopover term="Review and approval" summary="The assessment must record the date it was reviewed and approved and the names and positions of those who reviewed or approved it; the approver must have authority to participate in deciding whether the processing is initiated." cite="11 CCR § 7152(a)(9)" /></div>
                   <div className="mt-2 grid gap-2 md:grid-cols-3">
                     <input className="h-10 px-3 rounded-md border border-input bg-background" value={a9ApproverName} onChange={(e) => setA9ApproverName(e.target.value)} placeholder="Approver name" />
                     <input className="h-10 px-3 rounded-md border border-input bg-background" value={a9ApproverPosition} onChange={(e) => setA9ApproverPosition(e.target.value)} placeholder="Approver position" />
                     <input type="date" className="h-10 px-3 rounded-md border border-input bg-background" value={a9ApprovalDate} onChange={(e) => setA9ApprovalDate(e.target.value)} />
                   </div>
+                  <p className="text-xs text-muted-foreground mt-1">Optional here. If you leave the name and position blank, the report takes the approver from the reviewer and approver roster in the finalization stage (the first person recorded as “Approved” or “Both”).{rosterApprover && !a9ApproverName.trim() ? ` Currently: ${rosterApprover.name.trim()}${rosterApprover.position.trim() ? `, ${rosterApprover.position.trim()}` : ""}.` : ""}</p>
                   <div className="mt-3">
                     <Label>Who provided the information in this assessment? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(8))</span></Label>
                     <Textarea className="mt-2" rows={2} value={a8InformationProviders} onChange={(e) => setA8InformationProviders(e.target.value)} placeholder="Names and positions" />
@@ -3628,7 +3903,7 @@ export default function CPPARiskAssessment() {
           )}
 
 
-          {summaryStep && <SummaryTable intake={intake} />}
+          {summaryStep && <SummaryTable intake={intake} onEdit={(s) => { fieldErrors.clearAll(); setValidationError(null); setStep(s); }} />}
 
           {/* RK3-A3 g3 — finalization stage (doc 31 §3 — NEW-F fields, § 7152(a)(7)+(9)) */}
           {summaryStep && (
@@ -3643,7 +3918,46 @@ export default function CPPARiskAssessment() {
               </button>
               {finalizationOpen && (
                 <div className="border-t px-4 py-4 space-y-5">
-                  <p className="text-xs text-muted-foreground">Complete after the risk analysis has been reviewed. These fields satisfy 11 CCR § 7152(a)(7) and (a)(9). Internal only — not submitted until the record is finalized.</p>
+                  {/* Doc 261-review (2026-09-15, CL-T05): the former sentence said the
+                      stage was "not submitted until the record is finalized", but nothing
+                      gates generation on these fields. The intake contract treats them as
+                      optional; the record-complete gate counts three of them as asked, so
+                      leaving them blank does not block the report — it makes the report
+                      state that the record is not yet complete. Say exactly that. */}
+                  <p className="text-xs text-muted-foreground">Complete after the risk analysis has been reviewed. These fields satisfy 11 CCR § 7152(a)(7) and (a)(9). You can generate the report without them, but a report generated with the approval record blank will say the record before the assessment is not yet complete.</p>
+                  {(() => {
+                    const outstanding = [
+                      !finalProcessingDecision && "the final processing decision",
+                      !assessmentReviewersApprovers.some((r) => r.name.trim() || r.position.trim() || r.role) && "at least one reviewer or approver",
+                      !approverAuthorityConfirmed && "whether the approver has authority",
+                      !a9ApprovalDate && "the approval date",
+                      !a8InformationProviders.trim() && "who provided the information",
+                      !finalizationFollowUpResolved && "whether follow-up items are resolved or deferred",
+                    ].filter((x): x is string => typeof x === "string");
+                    // Doc 262 §9.5 item 3 — a deferred exhibit is not an answer (record-complete r6).
+                    const deferredExhibits = [i4bSources, i6Vendors, i1bMinPi, i7InternalContributors, i7ExternalConsultees].filter(isExhibit).length;
+                    return (
+                      <>
+                        {outstanding.length ? (
+                          <p role="status" className="text-xs rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-amber-800 dark:text-amber-300">
+                            Still blank in this stage: {outstanding.join("; ")}. The report will record the approval as outstanding until these are answered.
+                          </p>
+                        ) : (
+                          <p role="status" className="text-xs text-muted-foreground">Every field in this stage is answered.</p>
+                        )}
+                        {step7IdentificationNotices.length > 0 && (
+                          <p role="status" className="text-xs rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-amber-800 dark:text-amber-300">
+                            Identification still outstanding from Step 7: {step7IdentificationNotices.join("; ")}. This does not stop generation; the report states the identification as a condition on the approval.
+                          </p>
+                        )}
+                        {deferredExhibits > 0 && (
+                          <p role="status" className="text-xs rounded-md border border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-3 py-2 text-blue-800 dark:text-blue-300">
+                            {deferredExhibits} {deferredExhibits === 1 ? "answer is" : "answers are"} deferred to an exhibit. The report will say the record is not yet complete until the exhibit is attached.
+                          </p>
+                        )}
+                      </>
+                    );
+                  })()}
 
                   {/* final_processing_decision */}
                   <div>
@@ -3678,21 +3992,30 @@ export default function CPPARiskAssessment() {
                     <Label>Assessment reviewers and approvers <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(9))</span></Label>
                     <div className="mt-2 space-y-2">
                       {assessmentReviewersApprovers.map((row, idx) => (
-                        <div key={idx} className="grid gap-2 md:grid-cols-[1fr_1fr_auto_auto] items-center">
-                          <input
-                            className="h-10 px-3 rounded-md border border-input bg-background"
-                            value={row.name}
-                            onChange={(e) => setAssessmentReviewersApprovers((prev) => prev.map((r, i) => i === idx ? { ...r, name: e.target.value } : r))}
-                            placeholder="Name"
-                          />
-                          <input
-                            className="h-10 px-3 rounded-md border border-input bg-background"
-                            value={row.position}
-                            onChange={(e) => setAssessmentReviewersApprovers((prev) => prev.map((r, i) => i === idx ? { ...r, position: e.target.value } : r))}
-                            placeholder="Position / title"
-                          />
+                        <div key={idx} className="grid gap-2 md:grid-cols-[1fr_1fr_auto_auto] items-end">
+                          <div className="min-w-0">
+                            <Label htmlFor={`reviewer_${idx}_name`} className="text-xs text-muted-foreground">Name</Label>
+                            <input
+                              id={`reviewer_${idx}_name`}
+                              className="mt-1 h-10 px-3 rounded-md border border-input bg-background min-w-0 w-full"
+                              value={row.name}
+                              onChange={(e) => setAssessmentReviewersApprovers((prev) => prev.map((r, i) => i === idx ? { ...r, name: e.target.value } : r))}
+                              placeholder="Name"
+                            />
+                          </div>
+                          <div className="min-w-0">
+                            <Label htmlFor={`reviewer_${idx}_position`} className="text-xs text-muted-foreground">Position / title</Label>
+                            <input
+                              id={`reviewer_${idx}_position`}
+                              className="mt-1 h-10 px-3 rounded-md border border-input bg-background min-w-0 w-full"
+                              value={row.position}
+                              onChange={(e) => setAssessmentReviewersApprovers((prev) => prev.map((r, i) => i === idx ? { ...r, position: e.target.value } : r))}
+                              placeholder="Position / title"
+                            />
+                          </div>
                           <select
-                            className="h-10 px-3 rounded-md border border-input bg-background"
+                            aria-label="Role"
+                            className="h-10 px-3 rounded-md border border-input bg-background min-w-0"
                             value={row.role}
                             onChange={(e) => setAssessmentReviewersApprovers((prev) => prev.map((r, i) => i === idx ? { ...r, role: e.target.value } : r))}
                           >
@@ -3744,25 +4067,20 @@ export default function CPPARiskAssessment() {
 
                   {/* D10 restaged: a9_approval_date */}
                   <div>
-                    <Label>Approval date <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(9) — D10 restaged)</span></Label>
-                    <input
-                      type="date"
-                      className="mt-2 h-10 px-3 rounded-md border border-input bg-background"
-                      value={a9ApprovalDate}
-                      onChange={(e) => setA9ApprovalDate(e.target.value)}
-                    />
+                    {/* Doc 261-review (2026-09-15, CL-T06): this date and the
+                        provider record share their state with Step 7, where they
+                        are collected. Show the recorded answer here; do not ask
+                        twice on the same state. */}
+                    <Label>Approval date <span className="text-xs text-muted-foreground">(§ 7152(a)(9) — recorded in Step 7)</span></Label>
+                    <p className="mt-2 text-sm">{a9ApprovalDate || <span className="text-muted-foreground">Not yet recorded</span>}</p>
+                    <button type="button" className="mt-1 text-xs underline underline-offset-2 text-primary hover:text-foreground" onClick={() => { fieldErrors.clearAll(); setValidationError(null); setStep(7); }}>Edit in Step 7</button>
                   </div>
 
                   {/* D10 restaged: a8_information_providers */}
                   <div>
-                    <Label>Who provided the information in this assessment? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(8) — D10 restaged)</span></Label>
-                    <Textarea
-                      className="mt-2"
-                      rows={2}
-                      value={a8InformationProviders}
-                      onChange={(e) => setA8InformationProviders(e.target.value)}
-                      placeholder="Names and positions — legal counsel excluded per § 7152(a)(8)-(9)"
-                    />
+                    <Label>Who provided the information in this assessment? <span className="text-xs text-muted-foreground">(§ 7152(a)(8) — recorded in Step 7)</span></Label>
+                    <p className="mt-2 text-sm whitespace-pre-wrap">{a8InformationProviders.trim() || <span className="text-muted-foreground">Not yet recorded</span>}</p>
+                    <button type="button" className="mt-1 text-xs underline underline-offset-2 text-primary hover:text-foreground" onClick={() => { fieldErrors.clearAll(); setValidationError(null); setStep(7); }}>Edit in Step 7</button>
                   </div>
 
                   {/* finalization_required_follow_up_resolved */}
@@ -3790,7 +4108,12 @@ export default function CPPARiskAssessment() {
               </p>
               {regulatoryFootprint.map((item) => (
                 <div key={item.citation} className="flex items-start gap-2">
-                  <span className="text-green-600 mt-0.5 shrink-0"><CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} /></span>
+                  <span className={`${item.state === "required" || !item.state ? "text-green-600" : "text-amber-600"} mt-0.5 shrink-0`}>
+                    {item.state === "unresolved" || item.state === "evaluation"
+                      ? <span aria-hidden="true" className="inline-block w-[1em] text-center font-bold leading-none">?</span>
+                      : <CheckCircle2 aria-hidden="true" className="inline w-[1em] h-[1em] align-[-0.125em]" strokeWidth={1.75} />}
+                    <span className="sr-only">{item.state === "unresolved" ? "Unresolved:" : item.state === "evaluation" ? "Not yet engaged:" : "Triggered:"}</span>
+                  </span>
                   <div className="text-xs">
                     <span className="font-mono text-blue-700 dark:text-blue-400 font-medium">{item.citation}</span>
                     <span className="text-foreground ml-2">{item.label}</span>
@@ -3885,65 +4208,69 @@ export default function CPPARiskAssessment() {
   );
 }
 
-function SummaryTable({ intake }: { intake: Record<string, any> }) {
-  const rows: { label: string; value: string }[] = [];
-  const push = (label: string, value: any) => {
-    if (value == null || value === "") return;
-    rows.push({ label, value: Array.isArray(value) ? value.join(", ") : String(value) });
-  };
-  push("Annual revenue", intake.q1_revenue);
-  push("CA consumers (business-wide)", intake.q2_consumers);
-  push("Sector", intake.q3_sector);
-  push("PI categories", intake.q4_pi_categories);
-  push("Sell or share PI", intake.q5_sell_share);
-  push("Right to Know", intake.q6_right_know);
-  push("Right to Delete", intake.q7_right_delete);
-  push("Right to Correct", intake.q8_right_correct);
-  push("Opt-out link", intake.q9_opt_out);
-  push("Identity verification", intake.q10_id_verification);
-  push("Policy review cadence", intake.q11_policy_review);
-  push("Notice at collection", intake.q12_notice_at_collection);
-  push("Notice content", intake.q13_notice_content);
-  push("Employee notice", intake.q14_employee_notice);
-  push("Sensitive PI processed", intake.q15_sensitive_pi);
-  if (intake.q15_sensitive_pi === "Yes") {
-    push("Right to limit sensitive PI", intake.q16_sensitive_limit);
-    push("Sensitive PI legal basis", intake.q17_sensitive_basis);
-  }
-  push("ADMT in use", intake.q18_admt_use);
-  if (intake.q18_admt_use === "Yes" || intake.q18_admt_use === "In evaluation") {
-    push("ADMT description", intake.q19_admt_description);
-  }
-  if (intake.q18_admt_use === "Yes") push("ADMT opt-out", intake.q20_admt_opt_out);
-
-  push("Specific processing purpose", intake.i1_processing_purpose);
-  push("Retention period", intake.i2_retention_period);
-  push("Retention criteria", intake.i2_retention_criteria);
-  push("Retention detail", intake.i2_retention_detail);
-  push("California consumers for this activity", intake.i3_ca_consumer_band);
-  push("Disclosure mechanisms", intake.i4_disclosure_mechanisms);
-  if (intake.q18_admt_use === "Yes" || intake.q18_admt_use === "In evaluation") {
-    push("Automated decisionmaking logic", intake.i5_admt_logic);
-    push("Training-data source", intake.i5_admt_training_source);
-    push("Fairness testing", intake.i5_admt_fairness_testing);
-    push("Human review process", intake.i5_admt_human_review);
-  }
-  push("Service providers and third parties", intake.i6_vendors);
-  push("Internal contributors", intake.i7_internal_contributors);
-  push("External consultees", intake.i7_external_consultees);
-  push("Certifying executive", `${intake.i8_certifying_exec_name ?? ""} — ${intake.i8_certifying_exec_title ?? ""}`);
-  push("Existing impact assessment", intake.i9_has_existing_dpia);
-  if (intake.i9_has_existing_dpia === "Yes") push("Existing impact assessment summary", intake.i9_existing_dpia_summary);
-
+function SummaryTable({ intake, onEdit }: { intake: Record<string, any>; onEdit: (step: number) => void }) {
+  // Doc 261-review (2026-09-15, EX 11 / LIVE07): the former table rendered 37
+  // legacy scalar rows and omitted every structured record — data elements,
+  // harm pathways, safeguards, benefits, recipients, per-category retention,
+  // disclosures, business purposes and the extended ADMT record — although
+  // all of them were saved and sent. The reviewer approves what this screen
+  // shows, so it now renders the whole payload, grouped by step, with three
+  // answer states kept visibly distinct, and an Edit link back to each step.
+  // src/lib/cppaRiskReview.ts holds the field inventory; a coverage test pins
+  // it to the payload builder above so the two cannot drift apart again.
+  const sections = buildCppaRiskReview(intake);
+  const counts = sections.flatMap((s) => s.rows).reduce(
+    (acc, r) => ({ ...acc, [r.state]: (acc[r.state] ?? 0) + 1 }),
+    {} as Record<string, number>,
+  );
+  const tone = (state: string) =>
+    state === "unanswered" ? "text-amber-700 dark:text-amber-400"
+    : state === "exhibit" ? "text-blue-700 dark:text-blue-400"
+    : state === "negative" ? "text-muted-foreground"
+    : "text-foreground";
   return (
     <>
       <h2>Review your answers</h2>
-      <div className="rounded-lg border bg-card divide-y">
-        {rows.map((r) => (
-          <div key={r.label} className="grid grid-cols-1 sm:grid-cols-3 gap-2 px-4 py-3">
-            <div className="text-sm font-medium text-muted-foreground sm:col-span-1">{r.label}</div>
-            <div className="text-sm text-foreground sm:col-span-2 break-words">{r.value}</div>
-          </div>
+      <p className="text-sm text-muted-foreground">
+        Every answer in this assessment, by step. {counts.unanswered ? `${counts.unanswered} question${counts.unanswered === 1 ? " is" : "s are"} not answered` : "Every question is answered"}
+        {counts.exhibit ? `; ${counts.exhibit} deferred to an exhibit` : ""}. Answers of “No”, “None” or “Unsure” are complete answers and are shown in grey.
+      </p>
+      <div className="space-y-4">
+        {sections.map((s) => (
+          <section key={s.step} className="rounded-lg border bg-card" aria-labelledby={`review-step-${s.step}`}>
+            <div className="flex items-center justify-between gap-3 px-4 py-2 border-b bg-muted/40">
+              <h3 id={`review-step-${s.step}`} className="text-sm font-semibold">Step {s.step} — {s.title}</h3>
+              {s.step <= 7 && (
+                <button type="button" className="text-xs underline underline-offset-2 text-primary hover:text-foreground" onClick={() => onEdit(s.step)}>
+                  Edit step {s.step}
+                </button>
+              )}
+            </div>
+            <div className="divide-y">
+              {s.rows.map((r) => (
+                <div key={r.key} className="grid grid-cols-1 sm:grid-cols-3 gap-2 px-4 py-3" data-review-key={r.key}>
+                  <div className="text-sm font-medium text-muted-foreground sm:col-span-1">{r.label}</div>
+                  <div className={`text-sm sm:col-span-2 break-words ${tone(r.state)}`}>
+                    {r.state === "unanswered" ? (
+                      <span className="italic">Not answered</span>
+                    ) : (
+                      <span className="whitespace-pre-wrap">{r.text}</span>
+                    )}
+                    {r.items && r.items.length > 0 && (
+                      <ul className="mt-1 space-y-1 list-disc pl-5">
+                        {r.items.map((it, i) => (
+                          <li key={i} className="text-xs text-foreground">
+                            <span className="font-medium">{it.label}</span>
+                            {it.text ? <span className="text-muted-foreground"> — {it.text}</span> : null}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
         ))}
       </div>
     </>

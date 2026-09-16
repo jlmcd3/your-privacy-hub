@@ -233,15 +233,28 @@ Deno.test("RK3-A1 g6 — contract carries the § 7151 participation record, dist
   assert(field("a8_information_providers"), "a8_information_providers must remain a distinct field");
 });
 
-Deno.test("RK3-A1 g6 — form emits gates + participation and stepValid enforces both", async () => {
+Deno.test("RK3-A1 g6 — form emits gates + participation; identification is a notice, not a gate", async () => {
   const src = await Deno.readTextFile(PAGE_PATH);
   assert(src.includes("benefit_business_identified: benefitBusinessIdentified"), "intake memo must emit the business gate");
   assert(src.includes("benefit_public_identified: benefitPublicIdentified"), "intake memo must emit the public gate");
   assert(src.includes("section_7151_operational_participants: sectionParticipants.filter((r) => r.name.trim())"), "intake memo must emit the participation record");
   assert(src.includes('"No" is a complete answer.'), "stepValid must accept No as a complete gate answer");
-  assert(src.includes("Give the fact in the record supporting the"), "stepValid must require the supporting fact on Yes");
-  assert(src.includes("§ 7151 requires their inclusion in the assessment process"), "stepValid must require the participation record");
-  assert(src.includes("Confirm each listed employee's participation"), "stepValid must require per-row confirmation");
+  // Doc 261-review (2026-09-15, EX 09 / LIVE06): the supporting fact is no
+  // longer required on a "Yes" gate. The engine scores a blank fact as
+  // "limited weight" (resolveBenefitWeight) and the rail and helper copy both
+  // promise that an unsupported benefit is carried as unevidenced; the
+  // validator was the one layer that contradicted them. Pin the new rule.
+  assert(!src.includes("Give the fact in the record supporting the"), "stepValid must not block a Yes gate on a blank supporting fact (EX 09)");
+  assert(src.includes("EX 09 / LIVE06"), "the EX 09 rationale must stay beside the relaxed check");
+  // Doc 262 §9.5 policy (CEO, 2026-09-15): identification of individuals never
+  // blocks. The participation record and per-row confirmation are notices
+  // (step7IdentificationNotices), not stepValid gates; the wording survives.
+  assert(src.includes("§ 7151 requires their inclusion in the assessment process"), "the participation notice must keep the § 7151 wording");
+  assert(src.includes("Confirm each listed employee's participation"), "the per-row confirmation notice must survive");
+  assert(src.includes("step7IdentificationNotices"), "identification is reported through step7IdentificationNotices");
+  assert(!src.includes('fail("section_participants"'), "stepValid must not gate on the participation record (doc 262 §9.5)");
+  assert(!src.includes('fail("i7_internal_contributors"'), "stepValid must not gate on contributor roles (doc 262 §9.5)");
+  assert(!src.includes('"i8_exec_name" : "i8_exec_title"'), "stepValid must not gate on the certifying executive (doc 262 §9.5)");
   assert(src.includes("Array.isArray(d.sectionParticipants)"), "applyRestore must restore participation rows with shape guards");
 });
 

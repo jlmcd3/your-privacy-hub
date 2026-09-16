@@ -47,11 +47,19 @@ const HARM_CODE_TO_FACTOR: Readonly<Record<string, string>> = {
 // structured list. Both are legitimate contract fields; this module only
 // ever read the pathway shape, so an intake answered via the simpler
 // multi-select showed every negative-impact factor as absent regardless of
-// what was selected. "Loss of availability of personal information" has no
-// A-H counterpart and intentionally maps to nothing (omission over
-// invention -- it does not grant presence to an unrelated factor).
+// what was selected.
+// DOC 262 §9.8 item 1 (CEO, 2026-09-15) — "Loss of availability of personal
+// information" now maps to (A). The canonical § 7152(a)(5) category (A) on
+// the form reads "Unauthorized access, destruction, use, modification,
+// disclosure, or loss of availability of personal information", so the
+// pill names an element of (A) rather than an unrelated factor; the intake
+// seeds the same pill into an (A) row (src/lib/harmPillSeed.ts, pinned by
+// tests/edge/run-cppa-risk-assessment/harm-pill-seed-mirror.test.ts). A
+// record that used the pill alone now scores the factor the form would
+// have recorded for it.
 const HARM_TYPE_TEXT_TO_CODE: Readonly<Record<string, string>> = {
   "Unauthorised access, destruction, use, modification, or disclosure": "A",
+  "Loss of availability of personal information": "A",
   "Unlawful discrimination": "B",
   "Impairment of consumer control over personal information": "C",
   "Coercion or dark patterns": "D",

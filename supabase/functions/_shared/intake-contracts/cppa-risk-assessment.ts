@@ -577,10 +577,14 @@ export const cppaRiskContract: IntakeContract = {
     { key: "i5_admt_human_review",   kind: "narrative",  required: "conditional",
       requiredWhen: 'ADMT trigger engaged' },
     { key: "i6_vendors",             kind: "narrative",  required: "always" },
-    { key: "i7_internal_contributors", kind: "narrative", required: "always" },
+    // DOC 262 §9.8 (CEO, 2026-09-15) — identification of individuals never
+    // gates the record. These three were "always" (and Step 7 blocked on
+    // them); they are optional here so the record-complete gate never lists
+    // them, and a blank one is stated as a Follow-Up by the engine instead.
+    { key: "i7_internal_contributors", kind: "narrative", required: "optional" },
     { key: "i7_external_consultees", kind: "narrative",  required: "optional" },
-    { key: "i8_certifying_exec_name", kind: "text",      required: "always" },
-    { key: "i8_certifying_exec_title", kind: "text",     required: "always" },
+    { key: "i8_certifying_exec_name", kind: "text",      required: "optional" },
+    { key: "i8_certifying_exec_title", kind: "text",     required: "optional" },
     // DOC 157 (2026-09-03) — § 7157(b)(1) requires the point of contact's
     // phone number AND email address; both are re-declared required at the
     // finalization gate (cppa-risk-assessment-finalization.ts).

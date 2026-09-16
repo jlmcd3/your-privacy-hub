@@ -122,3 +122,56 @@ export function exceptionViewText(view: ExceptionView): string[] {
   }
   return out;
 }
+
+// ---------------------------------------------------------------------------
+// Doc 261-review (2026-09-15, LEGAL 03 / LEGAL 04 / EX 04) — FRONTEND MIRROR of
+// the deterministic pinpoint registry in
+// supabase/functions/_shared/report-contracts/risk-exceptions.ts. The intake
+// page used to carry its own hand-typed citations for the eight business-
+// purpose / exemption cards, and two of them had drifted from the engine
+// ((e)(8) for internal research, (e)(1) for the consumer-requested card).
+// The engine's table is the source of truth; the page reads this mirror and
+// tests/edge/item426/exception-pin-mirror.test.ts pins the two byte-for-byte.
+// ---------------------------------------------------------------------------
+
+export const EXCEPTION_PIN: Readonly<Record<string, string>> = {
+  fraud_detection:
+    "Cal. Civ. Code § 1798.140(e)(2) (security-and-integrity business purpose; see § 1798.140(ac)); deletion requests: § 1798.105(d)(2)",
+  security_integrity:
+    "Cal. Civ. Code § 1798.140(e)(2) (security-and-integrity business purpose; see § 1798.140(ac)); deletion requests: § 1798.105(d)(2)",
+  debugging: "Cal. Civ. Code § 1798.140(e)(3); deletion requests: § 1798.105(d)(3)",
+  transient_use: "Cal. Civ. Code § 1798.140(e)(4)",
+  internal_research:
+    "Cal. Civ. Code § 1798.140(e)(7); deletion requests: § 1798.105(d)(6) (informed consent) or (d)(7)",
+  legal_compliance:
+    "Cal. Civ. Code § 1798.145(a)(1)(A)–(B); deletion requests: § 1798.105(d)(8)",
+  consumer_request:
+    "Cal. Civ. Code § 1798.105(d)(1) (complete the transaction / provide the requested good or service)",
+  employment_context:
+    "NO CURRENT STATUTORY EXEMPTION — § 1798.145(m) inoperative since 2023-01-01; flag for counsel review",
+};
+
+export const EXCEPTION_LABELS: Readonly<Record<string, string>> = {
+  fraud_detection: "Fraud detection",
+  security_integrity: "Security and integrity",
+  debugging: "Debugging",
+  transient_use: "Transient use",
+  internal_research: "Internal research",
+  legal_compliance: "Legal compliance",
+  consumer_request: "Consumer-requested transaction",
+  employment_context: "Employment context",
+};
+
+/**
+ * The short, user-facing pinpoint for an intake card: the registry entry up
+ * to its first "; " (the deletion-request cross-reference is report detail,
+ * not a label). The employment-context entry is returned whole because its
+ * whole point is the warning.
+ */
+export function exceptionPinpoint(key: string): string {
+  const full = EXCEPTION_PIN[key] ?? "";
+  if (key === "employment_context") return "No current statutory exemption (former § 1798.145(m) inoperative since January 1, 2023) — additional information required";
+  const i = full.indexOf("; ");
+  return i === -1 ? full : full.slice(0, i);
+}
+

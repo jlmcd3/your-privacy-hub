@@ -1912,6 +1912,22 @@ export function runRiskFactorEngine(
       );
     }
   }
+  // DOC 262 §9.8 (CEO, 2026-09-15) — the lack of identification of
+  // individuals never stops an approval or the report; it is stated as a
+  // condition. The certifying executive (§ 7157(b)(5), (c)) and the
+  // contributor roles (§ 7151) were contract-required and gated at Step 7;
+  // both are now optional in the contract and complete here instead. The
+  // executive sentence is the CEO's wording (doc 262 §9.6 → §9.8).
+  if (!s(intake.i8_certifying_exec_name) || !s(intake.i8_certifying_exec_title)) {
+    followUps.push(
+      "Record the name and title of the executive who will certify the § 7157(b) annual submission; the certification cannot be made until they are identified",
+    );
+  }
+  if (!s(intake.i7_internal_contributors)) {
+    followUps.push(
+      "Record the roles that contributed to or were consulted in preparing this assessment; § 7151 requires the employees whose job duties include the processing to be included in the assessment process, and the record does not yet identify them",
+    );
+  }
   // DOC 148 (A-Team Batch-8 P0 temporal validation) — a safeguard row whose
   // own text names a target period that has already passed cannot rest on
   // an ordinary "planned" or "untested" state: the recorded date controls,

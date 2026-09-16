@@ -17,6 +17,9 @@
 // Regulation text: verbatim from 11 CCR §§ 7150–7157 and Cal. Civ. Code §§ 1798.100–1798.140.
 
 import type { RailEntry } from "@/components/intake/StatuteRail";
+// Doc 261-review (2026-09-15, LEGAL 01): the harm-category tracker's copy is
+// derived from HARM_PATHWAY_OPTS so the rail can never disagree with the form.
+import { HARM_PATHWAY_OPTS } from "@/pages/CPPARiskAssessment.enums";
 
 const CPPA_URL = "https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf";
 
@@ -406,7 +409,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     fieldLabel: "Automated decisionmaking for decisions with significant effects",
     citation: "11 CCR § 7001(e)",
     citationUrl: CPPA_URL,
-    plainSummary: "ADMT means technology that processes PI and uses computation to replace or substantially replace human decision-making. It includes AI, ML, and profiling. It does NOT include infrastructure (firewalls, databases, spreadsheets) that doesn't replace human decisions. ADMT use triggers a mandatory risk assessment under §§ 7150(b)(3) and 7150(b)(6).",
+    plainSummary: "ADMT means technology that processes PI and uses computation to replace or substantially replace human decision-making. It includes AI, ML, and profiling. It does NOT include infrastructure (firewalls, databases, spreadsheets) that doesn't replace human decisions. Using ADMT for a significant decision about a consumer (§ 7001(ddd)) engages the § 7150(b)(3) risk-assessment trigger; training ADMT for the purposes listed in § 7150(b)(6) is a separate trigger with its own facts.",
     regulationText: "\"Automated decisionmaking technology\" or \"ADMT\" means any technology that processes personal information and uses computation to replace human decisionmaking or substantially replace human decisionmaking. (1) For purposes of this definition, to \"substantially replace human decisionmaking\" means a business uses the technology's output to make a decision without human involvement.",
     enforcementNote: "The CPPA has indicated it will look at whether a human reviewer genuinely has authority to change a decision, not just review it. A 'human in the loop' who cannot override the system's output does not satisfy the human involvement standard.",
     coachLead: "If ADMT is in play, describe the system, not the vendor.",
@@ -548,9 +551,12 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
 
   exc_internal_research: {
     fieldLabel: "Business purpose: Internal research for technological development",
-    citation: "Cal. Civ. Code § 1798.140(e)(8)",
+    // Doc 261-review (2026-09-15, LEGAL 03): (e)(7), matching the engine's
+    // pinpoint registry (report-contracts/risk-exceptions.ts); (e)(8) is the
+    // quality-and-safety purpose.
+    citation: "Cal. Civ. Code § 1798.140(e)(7)",
     citationUrl: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.140.",
-    plainSummary: "Undertaking internal research for technological development and demonstration is an enumerated business purpose. Note: training ADMT/AI systems on personal information almost always implicates § 7150(b) triggers regardless of this purpose — a risk assessment is still required.",
+    plainSummary: "Undertaking internal research for technological development and demonstration is an enumerated business purpose. Note: it does not remove a risk-assessment trigger. If the research trains ADMT for a significant decision or the other purposes listed in § 7150(b)(6), that trigger applies on its own terms; answer the training question (q18b) on the facts.",
     regulationText: "Undertaking internal research for technological development and demonstration.",
     coachLead: "The research must be internal, technological, and true to the collection context.",
     coachBody: "This covers internal research for technological development and demonstration. Check that the use fits the context the consumer gave the data in.",
@@ -584,11 +590,17 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
   },
 
   exc_consumer_request: {
-    fieldLabel: "Business purpose: Performing a service the consumer requested",
-    citation: "Cal. Civ. Code § 1798.140(e)(1)",
-    citationUrl: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.140.",
-    plainSummary: "Auditing related to counting ad impressions, verifying positioning and quality of ad impressions, and auditing compliance with this and other specifications — together with performing services on behalf of the business or service provider — is an enumerated business purpose. It permits service-provider arrangements and supports primary-purpose use, but does not remove a § 7150 trigger.",
-    regulationText: "Performing services on behalf of the business or service provider, including maintaining or servicing accounts, providing customer service, processing or fulfilling orders and transactions, verifying customer information, processing payments, providing financing, providing analytic services, providing storage, or providing similar services on behalf of the business or service provider.",
+    fieldLabel: "Performing a service the consumer requested",
+    // Doc 261-review (2026-09-15, LEGAL 04): this card had cited (e)(1), the
+    // advertising-audit purpose, and quoted the (e)(5) services text under it.
+    // The engine's pinpoint registry already resolves the card to the
+    // deletion-request exception in § 1798.105(d)(1) — the provision that
+    // actually turns on what the consumer requested — so the rail now matches
+    // the report. The prose below is a labelled summary, not a quotation.
+    citation: "Cal. Civ. Code § 1798.105(d)(1)",
+    citationUrl: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.105.",
+    plainSummary: "Section 1798.105(d)(1) is the deletion-request exception for information a business needs to complete the transaction for which it was collected, to provide a good or service the consumer requested or reasonably anticipated in an ongoing relationship, or otherwise to perform its contract with the consumer. Claiming it here records that reliance; it does not remove a § 7150 risk-assessment trigger.",
+    regulationText: "Summary (not the statutory text): under § 1798.105(d)(1) a business is not required to delete personal information it needs to complete the transaction for which it was collected, to provide a good or service the consumer requested or reasonably anticipated within an ongoing business relationship, or otherwise to perform a contract between the business and the consumer.",
     coachLead: "The consumer must have asked for the specific service.",
     coachBody: "This covers performing what the consumer requested. Uses that serve your wider goals around that service — upsell, retention models — are different purposes.",
     goodAnswer: "'Using a shipping address to deliver the order' qualifies. 'Using it to model neighbourhood affluence' doesn't — same field, different purpose.",
@@ -1071,9 +1083,14 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     citation: "11 CCR § 7152(a)(5)",
     citationUrl: CPPA_URL,
     plainSummary:
-      "Internal quality tracker. For each of the five HARM_PATHWAY categories (A)–(E), record whether the category was identified (at least one pathway), considered and found not applicable, or not yet assessed. This field is never printed in the report.",
+      `Internal quality tracker. For each of the eight negative-impact categories the form uses — ${HARM_PATHWAY_OPTS.join("; ")} — record whether the category was identified (at least one pathway), considered and found not applicable, or not yet assessed. This field is never printed in the report.`,
+    // Doc 261-review (2026-09-15, LEGAL 01): the former text here was a
+    // five-category passage presented as a quotation of § 7152(a)(5) while the
+    // form implements eight categories with different letters. This is a
+    // labelled summary built from the same dictionary the form uses, not a
+    // quotation; the operative text lives in the approved corpus.
     regulationText:
-      "11 CCR § 7152(a)(5) — The risk assessment must identify the negative impacts to consumers associated with the processing, including but not limited to: (A) unauthorized access, destruction, use, modification, or disclosure, or loss of availability; (B) physical injury; (C) psychological injury; (D) financial injury; and (E) adverse action taken by a business or government entity.",
+      `Summary (not the statutory text): 11 CCR § 7152(a)(5) requires the assessment to identify the negative impacts to consumers associated with the processing. The categories this assessment tracks, in the form's own lettering, are ${HARM_PATHWAY_OPTS.join("; ")}. The list in the regulation is illustrative, not exhaustive.`,
     relatedCitations: [
       { citation: "11 CCR § 7152(a)(6)", label: "Safeguards addressing identified impacts" },
     ],
@@ -1082,10 +1099,794 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     coachBody:
       "Mark each category as Identified (you recorded at least one pathway under it), Considered-none (you reviewed it and concluded no applicable pathways exist for this processing), or Not yet assessed. A category left at Not yet assessed signals an open item. This data is internal only and does not appear in the printed report.",
     goodAnswer:
-      "(A) Identified — unauthorized access pathway recorded. (B) Considered-none — processing is fully digital, no physical-injury pathway. (C) Considered-none. (D) Identified — financial harm from data breach recorded. (E) Considered-none.",
+      "(A) Identified — an unauthorized-access pathway is recorded. (B) Considered-none — the model uses no protected characteristics or proxies, and this was tested. (C) Identified — consumers cannot opt out of the profiling. (D) Considered-none. (E) Identified — an erroneous score can raise the price a consumer pays. (F) Considered-none — the processing cannot cause physical harm. (G) Considered-none. (H) Considered-none.",
     commonMistake:
-      "Leaving all categories at Not yet assessed and submitting the assessment. A complete assessment must show that every category was at least considered.",
+      "Reading the letters from memory. (B) is unlawful discrimination and (F) is physical harm on this form; dismissing (B) because the processing is 'fully digital' answers the wrong question. Also: leaving every category at Not yet assessed — a complete assessment shows that each category was at least considered.",
   },
 
+  // ══════════════════════════════════════════════════════════════════════════
+  // Doc 262 §9.5 item 5b (2026-09-15) — coaching expansion. The 36 anchored
+  // questions below had no statute-rail hook (the "How to answer well" column
+  // never appeared for them) and `bought_sold_shared_count` was hooked to an
+  // entry that did not exist. Verbatim text is quoted only where the codebase
+  // carries a verified row (risk-verified-authorities.ts, admt-verified-
+  // authorities.ts, ccpa-1798-140-pin.ts); every other regulationText is a
+  // labelled summary, never an invented quotation. Companies are fictional.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── Step 1 ────────────────────────────────────────────────────────────────
+  entity_name: {
+    fieldLabel: "Entity name",
+    citation: "11 CCR § 7157(b)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "The annual submission to the Agency identifies the business by name. The name entered here is the one the report and the § 7157 worksheet carry.",
+    regulationText:
+      "§ 7157(b) — “A business must submit to the Agency the following risk assessment information:” (Summary of § 7157(b)(1): the business's name and contact information — verbatim text is not in the verified corpus.)",
+    relatedCitations: [
+      { citation: "11 CCR § 7157(c)", label: "Who submits — executive management" },
+    ],
+    coachLead:
+      "Give the full legal name, with its suffix, exactly as it appears on formation documents.",
+    coachBody:
+      "One legal entity per assessment. A trade name or brand goes in the activity description, not here; a parent and a subsidiary are two entities.",
+    goodAnswer:
+      "“Fernbrook Grocers, Inc.” — the registered name with its suffix. “Fernbrook” alone is a brand, and “Fernbrook Grocers and subsidiaries” names more than one entity.",
+    commonMistake:
+      "Entering the operating brand or a division name. The worksheet is filed by the legal entity, and a mismatch between this field and the filing is a correction later.",
+  },
+
+  secondary_activities: {
+    fieldLabel: "Other uses of the same information",
+    citation: "11 CCR §§ 7150(a), 7156(a)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "Each distinct processing activity is assessed on its own unless it belongs to a comparable set. Listing the other uses of the same information is how the record shows which uses were considered and where this assessment's scope ends.",
+    regulationText:
+      "§ 7156(a) — “A business may conduct a single risk assessment for a comparable set of processing activities. A ‘comparable set of processing activities’ that can be addressed by a single risk assessment is a set of similar processing activities that present similar risks to consumers' privacy.”",
+    relatedCitations: [
+      { citation: "11 CCR § 7150(a)", label: "Assessment before initiating the processing" },
+    ],
+    coachLead:
+      "Name each other use in one line: whose information, what is done with it, and what comes out.",
+    coachBody:
+      "A use with a different purpose, product, or audience is a different activity. The comparison with the primary activity is what the report uses to say whether one assessment covers both.",
+    goodAnswer:
+      "Fernbrook Grocers, primary activity: birthday coupon mailing. Other use #1 — “Basket analysis for store layout: the same loyalty purchase history is aggregated by store to decide shelf placement.” Same records, different purpose and output, so it is listed as its own use.",
+    commonMistake:
+      "Listing departments (“marketing also uses it”) rather than uses. The record needs the operation and its purpose so the comparable-set question can be answered from it.",
+  },
+
+  rk3d_out_of_scope_confirmation: {
+    fieldLabel: "Is the same information processed for anything else?",
+    citation: "11 CCR §§ 7150(a), 7152(a)(1)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "The assessment covers a stated purpose. This is the closing scope check: whether the same information is also processed for something outside this assessment, so the report can say where its findings stop.",
+    regulationText:
+      "§ 7152(a)(1) — “Identify and document in a risk assessment report the business's purpose for processing consumers' personal information. The purpose must not be identified or described in generic terms, such as ‘to improve our services’ or for ‘security purposes.’”",
+    relatedCitations: [
+      { citation: "11 CCR § 7156(a)", label: "Comparable set of processing activities" },
+    ],
+    coachLead:
+      "Answer from the data flow as it runs today, including work done by vendors and other teams on the same records.",
+    coachBody:
+      "The question is about the information, not the team. If another program reads the same records, that is another activity — say so, and name it in one line. “Unsure” is recorded as an open follow-up, not as the favourable answer.",
+    goodAnswer:
+      "Harbor & Pine Apartments, tenant-screening assessment: “The application file is also processed for other activities not covered by this assessment — a separate marketing program re-contacts declined applicants about other units.” One line, and the other program is named.",
+    commonMistake:
+      "Answering for the team's own use only. A service provider's analytics on the same file is still processing of the affected information.",
+  },
+
+  rk3d_comparable_processing_status: {
+    fieldLabel: "Single activity or comparable set",
+    citation: "11 CCR § 7156(a)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "One assessment can cover several activities only when they are similar and present similar privacy risks. This answer records which of the two this report is.",
+    regulationText:
+      "§ 7156(a) — “A business may conduct a single risk assessment for a comparable set of processing activities. A ‘comparable set of processing activities’ that can be addressed by a single risk assessment is a set of similar processing activities that present similar risks to consumers' privacy.”",
+    relatedCitations: [
+      { citation: "11 CCR § 7150(a)", label: "Assessment before initiating the processing" },
+    ],
+    coachLead:
+      "Decide from the comparison you recorded above: same information, same way, same purpose, same risks.",
+    coachBody:
+      "For a set, the basis you state is the record — say what is the same across the activities and why the risks are the same. If any one element differs, the report treats the activities as separate.",
+    goodAnswer:
+      "Larkspur Credit Union: “Set — each of the three branch-based loan pre-screens collects the same application fields through the same form for the same credit decision, with the same recipients.” Every element of similarity is named, so the basis can be checked.",
+    commonMistake:
+      "Treating activities as a set because they sit in one system or one department. Similar tooling with different purposes or audiences is two activities.",
+  },
+
+  rk3d_purpose_specificity_facts: {
+    fieldLabel: "What the stated purpose itself identifies",
+    citation: "11 CCR § 7152(a)(1)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "The purpose has to be specific, not generic. This checklist records which concrete elements the purpose statement above actually names, and the report evaluates the purpose on that record.",
+    regulationText:
+      "§ 7152(a)(1) — “Identify and document in a risk assessment report the business's purpose for processing consumers' personal information. The purpose must not be identified or described in generic terms, such as ‘to improve our services’ or for ‘security purposes.’”",
+    relatedCitations: [
+      { citation: "11 CCR § 7152(a)(2)", label: "Categories of personal information, including the minimum necessary" },
+    ],
+    coachLead:
+      "Re-read your purpose statement and tick only the elements that appear in its words.",
+    coachBody:
+      "This is a reading test of your own sentence, not a description of what the purpose could cover. If the statement does not name the product, the categories, the consumers, or the outcome, leave that box unticked and, if you wish, go back and add it to the purpose.",
+    goodAnswer:
+      "Purpose: “Meridian Staffing ranks applicants for warehouse roles using their application answers and work history to shortlist candidates for recruiter review.” Ticked: the operation (ranking for warehouse roles), the categories (application answers, work history), the consumers (applicants), the outcome (a shortlist).",
+    commonMistake:
+      "Ticking what the team knows rather than what the sentence says. The report quotes the purpose as written; a box ticked without support in the wording is a contradiction on the page.",
+  },
+
+  i9_dpia_summary: {
+    fieldLabel: "Existing assessment — title, date, and scope",
+    citation: "11 CCR § 7156(b)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "An assessment prepared for another purpose can be used for this one when it meets § 7152. Identifying the prior document by title, date, and scope lets the report say what is being relied on and what it does not cover.",
+    regulationText:
+      "§ 7156(b) — “A business may utilize a risk assessment that it has prepared for another purpose to meet the requirements in section 7152, provided that the risk assessment …” (the proviso continues; the verified corpus carries the opening clause).",
+    relatedCitations: [
+      { citation: "11 CCR § 7152(a)", label: "Required content of a risk assessment" },
+    ],
+    coachLead:
+      "Give the document's title, its date, and the processing it covered, in one line.",
+    coachBody:
+      "Scope matters more than length: say which activity and which jurisdiction the earlier assessment addressed. The report can then state what it adds to that document rather than restating it.",
+    goodAnswer:
+      "“Tidewater Clinics — GDPR DPIA, appointment-reminder SMS, approved 14 March 2026; covers the EU patient base only.” Title, date, activity, and the limit of its scope.",
+    commonMistake:
+      "Writing “DPIA on file.” Without a date and scope the report cannot tell whether the earlier work covers this activity, and treats the reference as unverified.",
+  },
+
+  // ── Step 2 ────────────────────────────────────────────────────────────────
+  q19: {
+    fieldLabel: "Describe the ADMT system and its decisions",
+    citation: "11 CCR § 7001(e)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "ADMT is defined by what it does with personal information and the decision it replaces or substantially replaces. The description is the record of the system, its inputs, its output, and the decision the output affects.",
+    regulationText:
+      "§ 7001(e) — “‘Automated decisionmaking technology’ or ‘ADMT’ means any technology that processes personal information and uses computation to replace human decisionmaking or substantially replace human decisionmaking.”",
+    relatedCitations: [
+      { citation: "11 CCR § 7222(b)(2)", label: "Information about the logic of the ADMT" },
+      { citation: "11 CCR § 7150(b)(3)", label: "Using ADMT for a significant decision" },
+    ],
+    coachLead:
+      "Name each system, who operates it, what it takes in, what it puts out, and the decision that output feeds.",
+    coachBody:
+      "Include vendor-operated systems used on your behalf. A category picked from the suggestions is a start, not the record — the four facts are what the report reads.",
+    goodAnswer:
+      "Meridian Staffing: “A vendor-hosted screening model (operated by the vendor on our instance) reads application answers and work history and outputs a 1–5 rank; recruiters see only applicants ranked 3 or above, so the rank decides who is reviewed for interview.” System, operator, input, output, decision.",
+    commonMistake:
+      "Describing the product (“an AI hiring platform”) instead of the system. The report needs the output and the decision it affects; a brand name states neither.",
+  },
+
+  q20: {
+    fieldLabel: "Right to opt out of ADMT",
+    citation: "11 CCR § 7221(a)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "A business using ADMT for a significant decision provides a way to opt out, unless an exception in § 7221(b) applies. This answer records what exists today for this ADMT use.",
+    regulationText:
+      "§ 7221(a) — “A business must provide consumers with the ability to opt-out of the use of ADMT to make a significant decision concerning the consumer, except as set forth in subsection (b).”\n\n§ 7221(b)(1) — “The business provides the consumer with a method to appeal the decision to a human reviewer who has the authority to overturn the decision.”",
+    relatedCitations: [
+      { citation: "11 CCR § 7220(c)(2)", label: "Pre-use notice — description of the opt-out right" },
+      { citation: "11 CCR § 7221(n)(1)", label: "Ceasing processing within 15 business days" },
+    ],
+    coachLead:
+      "Answer for the opt-out as it works now — where a consumer finds it and what happens after the request.",
+    coachBody:
+      "“Planned for implementation” is for an opt-out that does not yet exist. If you rely on an exception rather than an opt-out, say which one in the ADMT description above; the report treats the choice between opt-out and exception as a fact to record, not a default.",
+    goodAnswer:
+      "Larkspur Credit Union: “Yes, with documented opt-out — the pre-use notice links to a request form; on receipt the application is routed to an underwriter and the model is not run on it.” The route and the consequence are both stated.",
+    commonMistake:
+      "Answering “Yes” because a general privacy-rights form exists. The opt-out is specific to this ADMT use and has a defined effect on the processing.",
+  },
+
+  i5_admt_human_review: {
+    fieldLabel: "Human review process for outputs",
+    citation: "11 CCR § 7001(e)(1)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "Whether the technology ‘substantially replaces’ human decisionmaking turns on what the human reviewer actually does. The description is the record of who reviews, when, with what other information, and with what authority.",
+    regulationText:
+      "§ 7001(e)(1) — “For purposes of this definition, to ‘substantially replace human decisionmaking’ means a business uses the technology's output to make a decision without human involvement.” Human involvement requires that a human “(A) Know how to interpret and use the technology's output to make the decision; (B) Review and analyze the output of the technology, and any other information that is relevant to make or change the decision; and (C) Have the authority to make or change the decision based on their analysis in subsection (B).”",
+    relatedCitations: [
+      { citation: "11 CCR § 7221(b)(1)", label: "Appeal to a human reviewer with authority to overturn" },
+    ],
+    coachLead:
+      "Describe the review before the decision takes effect: who, when, what else they look at, and whether they can change the outcome.",
+    coachBody:
+      "Reconsideration after a decision is a different thing from involvement in making it; if the only human step is an appeal, say that. If there is no review, state it directly — the report records it as a fact, not a finding against you.",
+    goodAnswer:
+      "Larkspur Credit Union: “A licensed underwriter reads every application scored in the middle band together with the applicant's uploaded statements and can approve or decline regardless of the score; top and bottom bands are decided by the score alone.” The description separates where a human decides from where the score decides.",
+    commonMistake:
+      "Writing “a human reviews the output” without saying what the reviewer sees or can change. Those two facts are what the three § 7001(e)(1) elements turn on.",
+  },
+
+  rk3d_admt_role_type: {
+    fieldLabel: "The ADMT's role in the decision",
+    citation: "11 CCR § 7001(e)(1)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "The role classification follows from the three human-involvement elements: whether a human who knows how to use the output, considers other information, and has authority to change the decision is actually part of making it.",
+    regulationText:
+      "§ 7001(e)(1) — human involvement requires that a human “(A) Know how to interpret and use the technology's output to make the decision; (B) Review and analyze the output of the technology, and any other information that is relevant to make or change the decision; and (C) Have the authority to make or change the decision based on their analysis in subsection (B).”",
+    relatedCitations: [
+      { citation: "11 CCR § 7001(e)", label: "Definition of ADMT" },
+    ],
+    coachLead:
+      "Classify from the decision process as it runs, checking each of the three elements against the review you described above.",
+    coachBody:
+      "The middle option — a human is involved but not all three elements are met — is the accurate answer for many real processes, and the report treats it as such. “Unsure” is for a process that has not been verified.",
+    goodAnswer:
+      "Meridian Staffing: recruiters see the rank but cannot review applicants ranked below 3, so element (C) is not met for those applicants — “A human is involved, but not all three § 7001(e)(1) requirements are met.” The facts decide the option, not the label the team prefers.",
+    commonMistake:
+      "Selecting the fully-involved option because a person signs off. Signing off without seeing other relevant information, or without authority to change the result, does not meet elements (B) and (C).",
+  },
+
+  rk3d_admt_logic_documented: {
+    fieldLabel: "How the ADMT's logic is documented",
+    citation: "11 CCR § 7222(b)(2)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "Consumers can access information about the logic of the ADMT, and the assessment records what is documented and who documented it. Provider documentation the business relies on is a different basis from documentation the business reviewed itself.",
+    regulationText:
+      "§ 7222(b)(2) — “Information about the logic of the ADMT. Such information must enable a consumer to understand how the ADMT processed their personal information to generate an output with respect to them, which may include the parameters that generated the output as well as the specific output with respect to the consumer.”",
+    relatedCitations: [
+      { citation: "11 CCR § 7001(e)", label: "Definition of ADMT" },
+    ],
+    coachLead:
+      "Pick the option that matches who wrote the documentation and whether your business has reviewed it.",
+    coachBody:
+      "A provider's model card that no one in the business has read is provider documentation relied on, not internal review. “Not fully documented or understood” is an honest answer the report can work with.",
+    goodAnswer:
+      "Larkspur Credit Union: the vendor supplies a model card listing the input variables and their weights; the credit-risk team has not yet reviewed it — “The logic is documented by the provider and the Company relies on that documentation.”",
+    commonMistake:
+      "Choosing “documented and reviewed internally” because the contract promises documentation. The option is about a review that has happened, not one that is available on request.",
+  },
+
+  rk3d_human_review_facts: {
+    fieldLabel: "The three human-involvement facts",
+    citation: "11 CCR § 7001(e)(1)(A)–(C)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "These three facts are the elements of human involvement. Each one you select is an assertion about the review process the report will rely on.",
+    regulationText:
+      "§ 7001(e)(1) — a human must “(A) Know how to interpret and use the technology's output to make the decision; (B) Review and analyze the output of the technology, and any other information that is relevant to make or change the decision; and (C) Have the authority to make or change the decision based on their analysis in subsection (B).”",
+    relatedCitations: [
+      { citation: "11 CCR § 7221(b)(1)", label: "Appeal to a human reviewer with authority to overturn" },
+    ],
+    coachLead:
+      "Select each fact only where the review process, as run, supports it.",
+    coachBody:
+      "“Reviewers consider information beyond the ADMT's output” asserts that they analyse the output itself together with the other relevant information. If review exists but none of the facts has been confirmed, “None of the above can be confirmed” is the accurate record; “There is no human review” is for a process with no reviewer at all.",
+    goodAnswer:
+      "Tidewater Clinics, appointment-priority model: reviewers are trained on the score's meaning (A) and can re-order the list (C), but see only the score and not the referral notes — (A) and (C) selected, (B) not. The record shows exactly which element is missing.",
+    commonMistake:
+      "Selecting all three because a reviewer exists. Each fact is separate; a reviewer who cannot see other relevant information does not satisfy (B) however experienced they are.",
+  },
+
+  rk3d_admt_testing_facts: {
+    fieldLabel: "The ADMT's testing record",
+    citation: "11 CCR §§ 7152(a)(5), 7152(a)(6)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "The assessment identifies negative impacts — including unlawful discrimination — and the safeguards planned for them. Testing for accuracy and for discriminatory impact is evidence on both, and the record distinguishes what was tested, when, and by whom.",
+    regulationText:
+      "§ 7152(a)(5) — “Identify the negative impacts to consumers' privacy associated with the processing. The business must identify the sources and causes of these negative impacts.” (Summary of § 7152(a)(6): identify and document the safeguards the business plans to implement for the processing.)",
+    relatedCitations: [
+      { citation: "11 CCR § 7001(e)", label: "Definition of ADMT" },
+    ],
+    coachLead:
+      "Select only the testing facts you can point to a document for; a test's existence is not its result.",
+    coachBody:
+      "Provider testing can be recorded, and the option for it keeps it distinct from your own. Accuracy and bias are separate tests; the 12-month option is about when the testing happened or was reviewed, not when the model was bought.",
+    goodAnswer:
+      "Meridian Staffing: the vendor's disparate-impact report is dated seven months ago and was read by the HR analytics lead; no accuracy validation has been done — “Tested for discriminatory impact or bias”, “Testing performed or reviewed within the last 12 months”, “Testing performed by the provider rather than the Company”. Accuracy is left unselected.",
+    commonMistake:
+      "Selecting accuracy testing because the vendor says the model is accurate. A claim in marketing material is not a test record; the report reads unselected as untested, which is the accurate state.",
+  },
+
+  q6: {
+    fieldLabel: "How consumers request access to their information",
+    citation: "Cal. Civ. Code §§ 1798.110, 1798.115",
+    plainSummary:
+      "Consumers can request the categories and specific pieces of personal information a business holds about them, its sources, its purposes, and its recipients. This answer records the routes that accept such a request today.",
+    regulationText:
+      "Summary of Cal. Civ. Code §§ 1798.110 and 1798.115 (verbatim text is not in the verified corpus): a consumer has the right to request that a business disclose the categories and specific pieces of personal information it has collected, the categories of sources, the purposes, and the categories of third parties to whom it is disclosed, sold, or shared.",
+    relatedCitations: [
+      { citation: "11 CCR §§ 7060–7062", label: "Verification of requests" },
+    ],
+    coachLead:
+      "Select each route that accepts an access request today; a route described in the policy but not working is not a route.",
+    coachBody:
+      "More than one route can be selected. “No formal process in place” is for a business with no defined route at all, and the report records it as a gap to close rather than a failure to explain.",
+    goodAnswer:
+      "Brightline Telecom: the web form with identity verification is live and support agents log emailed requests into the same queue — both routes selected; the app has no request screen, so “In-app account settings” is left unselected.",
+    commonMistake:
+      "Selecting the in-app route because account settings show some data. Viewing a profile is not a request process unless it produces the disclosures the statute lists.",
+  },
+
+  q7: {
+    fieldLabel: "How consumers request deletion",
+    citation: "Cal. Civ. Code § 1798.105",
+    plainSummary:
+      "Consumers can ask a business to delete personal information it collected from them, subject to the statutory exceptions. The answer records how the request is handled and whether completion is confirmed.",
+    regulationText:
+      "Summary of Cal. Civ. Code § 1798.105 (verbatim text is not in the verified corpus): a consumer has the right to request that a business delete personal information the business has collected from the consumer; the business deletes it, directs its service providers and contractors to delete it, and notifies third parties, subject to the exceptions in subsection (d).",
+    relatedCitations: [
+      { citation: "11 CCR § 7021(b)", label: "Response timeline for requests" },
+    ],
+    coachLead:
+      "Pick the option that matches the deletion workflow as written down, and whether the requester is told it is done.",
+    coachBody:
+      "A documented manual process is one with a written workflow and a completion record. Case-by-case handling means there is no consistent workflow — say so; the report records the state, not a verdict.",
+    goodAnswer:
+      "Oakhaven Tutoring: the support team follows a written checklist covering the student database, the email tool, and the billing vendor, and sends a confirmation when each is done — “Manual process, documented”.",
+    commonMistake:
+      "Choosing “automated deletion with confirmation” because one system has a delete button. The workflow covers every system and vendor holding the information, and confirmation follows completion across all of them.",
+  },
+
+  q8: {
+    fieldLabel: "How consumers request correction",
+    citation: "Cal. Civ. Code § 1798.106",
+    plainSummary:
+      "Consumers can ask a business to correct inaccurate personal information it maintains about them. The answer records the route consumers use today.",
+    regulationText:
+      "Summary of Cal. Civ. Code § 1798.106 (verbatim text is not in the verified corpus): a consumer has the right to request that a business maintaining inaccurate personal information correct it, taking into account the nature of the information and the purposes of its processing; the business uses commercially reasonable efforts to correct it as directed by the consumer.",
+    relatedCitations: [
+      { citation: "11 CCR § 7021(b)", label: "Response timeline for requests" },
+    ],
+    coachLead:
+      "Choose the route consumers actually use to fix an error: self-service editing, a support-assisted process, or none.",
+    coachBody:
+      "If both self-service and support routes exist, choose the one that handles the information this activity uses; the other can be described in the disclosure record. “No formal process” is an honest state the report can work with.",
+    goodAnswer:
+      "Brightline Telecom: customers edit contact details in the account portal, but billing-address corrections used by the credit check go through a support ticket with a review step — “Handled via support” is chosen because that is the route for the information in this activity.",
+    commonMistake:
+      "Selecting “online self-service” when the fields a consumer can edit are not the ones this activity relies on. The route is judged against the information the processing uses.",
+  },
+
+  rk3d_choice_architecture_check: {
+    fieldLabel: "How consumers are asked to permit this processing",
+    citation: "11 CCR § 7004",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "Methods for obtaining consent are judged on their design: easy to understand, symmetrical in choice, free of confusing language or architecture, free of manipulative design, and easy to execute. Each confirmation you give is an assertion about the design in use.",
+    regulationText:
+      "Summary of 11 CCR § 7004 (verbatim text is not in the verified corpus): methods for submitting requests and obtaining consent are designed and implemented so that they are easy to understand, offer symmetry in choice, avoid language or interactive elements that are confusing, avoid choice architecture that impairs or interferes with the consumer's ability to make a choice, and are easy to execute; a method that does not comply may be considered a dark pattern, and consent obtained through a dark pattern is not consent.",
+    relatedCitations: [
+      { citation: "11 CCR § 7002(b)", label: "Consumers' reasonable expectations" },
+    ],
+    coachLead:
+      "Confirm only what you can show from the screens or forms as they exist now.",
+    coachBody:
+      "Symmetry means declining takes no more steps than accepting; degrading the core service on decline is a separate fact. An unconfirmed item is treated conservatively — “None of the above can be confirmed” is a complete, honest answer.",
+    goodAnswer:
+      "Oakhaven Tutoring, progress-tracking consent: “Accept” and “Not now” are the same size on the same screen, and declining keeps every lesson feature — the first two confirmed. A countdown banner nudges toward accepting, so the third is left unconfirmed.",
+    commonMistake:
+      "Confirming symmetry because both choices are present. Symmetry is about effort and prominence, not presence; a decline hidden behind “Manage settings” is not symmetrical.",
+  },
+
+  q16: {
+    fieldLabel: "Right to limit use of sensitive personal information",
+    citation: "Cal. Civ. Code § 1798.121; 11 CCR § 7027",
+    plainSummary:
+      "Where a business uses or discloses sensitive personal information for purposes beyond those permitted by the regulations, consumers can limit that use. The answer records how the right is offered today, if at all.",
+    regulationText:
+      "Summary of Cal. Civ. Code § 1798.121 and 11 CCR § 7027 (verbatim text is not in the verified corpus): a consumer has the right to limit the use and disclosure of their sensitive personal information to what is necessary to perform the services or provide the goods reasonably expected, and to the purposes § 7027(m) permits; a business offering the right provides a “Limit the Use of My Sensitive Personal Information” link or an alternative opt-out method.",
+    relatedCitations: [
+      { citation: "11 CCR § 7150(b)(2)", label: "Sensitive PI as a risk-assessment trigger" },
+    ],
+    coachLead:
+      "Answer for what is live: a separate link, a control inside settings, nothing yet, or no right offered.",
+    coachBody:
+      "The right applies only to uses beyond the permitted purposes; a business whose sensitive-PI uses all fall within § 7027(m) may accurately answer “No” and say why in the sensitive-PI basis question below. “Not yet implemented” is for a planned control.",
+    goodAnswer:
+      "Tidewater Clinics: precise geolocation from the mobile app feeds a marketing audience, which is outside the permitted purposes, and the app's privacy settings contain a limit toggle — “Yes, handled within privacy settings”.",
+    commonMistake:
+      "Answering “Yes” because the privacy policy mentions the right. The answer is about the mechanism consumers can use, not the paragraph that describes it.",
+  },
+
+  q17: {
+    fieldLabel: "Basis for processing sensitive personal information",
+    citation: "Cal. Civ. Code § 1798.121; 11 CCR § 7027(m)",
+    plainSummary:
+      "The CCPA does not run on a menu of lawful bases. What matters is the purpose the sensitive information serves, whether consent is involved, and whether a permitted-purpose exception in § 7027(m) applies. This answer records the closest description.",
+    regulationText:
+      "Summary of 11 CCR § 7027(m) (verbatim text is not in the verified corpus): the purposes for which a business may use or disclose sensitive personal information without offering the right to limit include performing the services or providing the goods reasonably expected by an average consumer, and specified security, integrity, short-term, and service-quality purposes.",
+    relatedCitations: [
+      { citation: "11 CCR § 7150(b)(2)(A)", label: "Personnel carve-out for sensitive PI" },
+    ],
+    coachLead:
+      "Pick the description closest to why the sensitive information is used, and be ready to say why each category is needed.",
+    coachBody:
+      "“Employment contract” is not a general exemption; where it is chosen, the employment-exception questions below ask for the facts. Consent and necessity are different bases and the report treats them differently.",
+    goodAnswer:
+      "Meridian Staffing, payroll onboarding: Social Security numbers are used for tax withholding and legally required wage reporting — “Necessary for the service”, with the purpose stated per category. A GDPR-style “legitimate interests” label would not describe this.",
+    commonMistake:
+      "Choosing “Consent” because a checkbox exists at sign-up. Consent that is not the actual basis for the use — or that was obtained through a design § 7004 would treat as a dark pattern — does not describe the processing.",
+  },
+
+  q19b_housing_basis: {
+    fieldLabel: "Housing decisions — availability, vacancy, or payment only",
+    citation: "11 CCR § 7001(ddd)(2)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "A housing decision made solely on whether the housing is available or vacant, or on whether payment was received, is not a significant decision. Any other factor in the decision keeps it within the definition.",
+    regulationText:
+      "§ 7001(ddd)(2) — “‘Housing’ means any building, structure, or portion thereof that is used or occupied as, or designed, arranged, or intended to be used or occupied as, a home, residence, or sleeping place by one or more consumers including for permanent or temporary occupancy.” The same subsection provides that “the use of ADMT that provides or denies housing to a consumer based solely on the availability or vacancy of the housing or the successful receipt of payment for housing from the consumer is not making a significant decision.”",
+    relatedCitations: [
+      { citation: "11 CCR § 7150(b)(3)", label: "Using ADMT for a significant decision" },
+    ],
+    coachLead:
+      "Answer “Yes” only if nothing about the applicant — income, history, screening score — enters the decision.",
+    coachBody:
+      "“Solely” is the operative word. A system that checks vacancy and then scores the applicant is deciding on the score, and the exclusion does not apply.",
+    goodAnswer:
+      "Harbor & Pine Apartments, unit-hold system: a unit is held for whoever pays the deposit first, with no screening — “Yes”. Their separate tenant-screening model, which scores rental history, is “No — other factors are considered.”",
+    commonMistake:
+      "Answering “Yes” because payment is one of the factors. The exclusion applies when availability, vacancy, or payment is the only basis.",
+  },
+
+  bought_sold_shared_count: {
+    fieldLabel: "Consumers or households whose information is bought, sold, or shared each year",
+    citation: "Cal. Civ. Code § 1798.140(d)(1)(B)",
+    plainSummary:
+      "One of the three ways a business is covered by the CCPA is annually buying, selling, or sharing the personal information of 100,000 or more consumers or households. This figure is that operand; left blank, the report lists it as outstanding rather than assuming a value.",
+    regulationText:
+      "§ 1798.140(d)(1)(B) — “Alone or in combination, annually buys, sells, or shares the personal information of 100,000 or more consumers or households.”",
+    relatedCitations: [
+      { citation: "Cal. Civ. Code § 1798.140(ag)(1)", label: "Definition of ‘business’ — revenue prong" },
+      { citation: "11 CCR § 7150(b)(1)", label: "Selling or sharing as a risk-assessment trigger" },
+    ],
+    coachLead:
+      "Count consumers or households across buying, selling, and sharing together, for the last calendar year.",
+    coachBody:
+      "The three verbs are combined and households count as well as individuals. If the number is not known, leaving the field blank is more accurate than guessing; the report records it as an open item.",
+    goodAnswer:
+      "Brightline Telecom: 140,000 subscriber records were shared with an advertising partner and 20,000 prospect records were bought from a broker — 160,000 combined, so “100,000 to under 250,000”.",
+    commonMistake:
+      "Counting only sales. Sharing for cross-context behavioural advertising and buying from data brokers both count toward the same threshold.",
+  },
+
+  // ── Step 3 ────────────────────────────────────────────────────────────────
+  rk3d_source_categories: {
+    fieldLabel: "Source categories for the record",
+    citation: "11 CCR § 7152(a)(3)(A)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "The operational record includes the sources of the personal information. These categories structure the source narrative above so the report can state where the information comes from.",
+    regulationText:
+      "§ 7152(a)(3)(A) — “The business's planned method for collecting, using, disclosing, retaining, or otherwise processing personal information, and the sources of the personal information.”",
+    relatedCitations: [
+      { citation: "11 CCR § 7152(a)(3)(F)", label: "Recipients of the personal information" },
+    ],
+    coachLead:
+      "Select every category the information actually comes through, matching the sources you described.",
+    coachBody:
+      "A sign-up form is directly from the consumer; a vendor's batch feed is from service providers or contractors; a purchased profile is from a third-party data provider. Information your own systems generate is described in the narrative, since the list has no category for it.",
+    goodAnswer:
+      "Fernbrook Grocers: members type their details at the register (directly from the consumer) and the point-of-sale system logs purchases (automatically from consumer interactions) — two categories selected, matching the two sources in the narrative.",
+    commonMistake:
+      "Selecting only the first category because the consumer originally supplied the information. A copy that reaches this activity through a vendor feed is also from a service provider.",
+  },
+
+  i3_ca_consumer_band: {
+    fieldLabel: "Approximate number of California consumers affected",
+    citation: "11 CCR § 7152(a)(3)(D)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "The operational record includes the approximate number of consumers whose personal information the processing affects. The band is the screening answer; the stated figure below it is the record.",
+    regulationText:
+      "§ 7152(a)(3) — “Identify and document in a risk assessment report the following operational elements of the processing:” (Summary of § 7152(a)(3)(D): the approximate number of consumers whose personal information the business plans to process — verbatim text is not in the verified corpus.)",
+    relatedCitations: [
+      { citation: "11 CCR § 7152(a)(3)(C)", label: "How the business interacts with the consumers" },
+    ],
+    coachLead:
+      "Choose the band for the distinct California consumers this activity touches, on the same scope and period as your stated figure.",
+    coachBody:
+      "Count the activity, not the company. The band and the figure below describe the same population; if they disagree, the report cannot tell which one is the record.",
+    goodAnswer:
+      "Fernbrook Grocers: 45,000 loyalty members with a California address receive the coupon — “10,000–100,000”, with “about 45,000” stated below. The chain's 300,000 total customers are not the population for this activity.",
+    commonMistake:
+      "Reporting all customers because the database holds them all. The number is the consumers whose information this activity processes.",
+  },
+
+  rk3d_consumer_relationship_context: {
+    fieldLabel: "Who the affected consumers are, in relation to the business",
+    citation: "11 CCR § 7002(b)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "What a consumer reasonably expects depends in part on their relationship with the business. Applicants, employees, patients, and site visitors expect different things from the same processing, and the report reads the impacts against the relationship you record.",
+    regulationText:
+      "Summary of 11 CCR § 7002(b) (verbatim text is not in the verified corpus): whether a purpose is consistent with consumers' reasonable expectations is judged by factors including the relationship between the consumer and the business, the type and nature of the information, the source of the information and the disclosures made at collection, and the degree to which the involvement of third parties or other purposes is visible to the consumer.",
+    relatedCitations: [
+      { citation: "11 CCR § 7150(b)(4)", label: "Inference in a work or education context" },
+    ],
+    coachLead:
+      "Pick the relationship that describes the people whose information this activity processes; use “Mixed” only when more than one group is included.",
+    coachBody:
+      "For “Mixed”, name each group in the description of the activity and say whether their information is treated differently. The relationship also feeds the § 7150(b)(4) work-or-education check, so applicants and employees are worth distinguishing from customers.",
+    goodAnswer:
+      "Meridian Staffing, applicant ranking: “Employees or job applicants” — the model runs on applicants only; current employees are scored in a separate activity. Oakhaven Tutoring's progress tracker processes students and their parents, so it records “Mixed” and names both groups.",
+    commonMistake:
+      "Choosing “Existing customers” for everyone the business has a record on. A declined applicant or a site visitor with no account is not a customer, and their expectations differ.",
+  },
+
+  rk3d_expectation_check: {
+    fieldLabel: "Facts that frame what consumers can expect",
+    citation: "11 CCR § 7002(b)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "These facts describe context — when the processing happens, whether the purpose changed, whether information is combined or disclosed. They are inputs to the reasonable-expectations analysis, not findings that the processing is lawful or unlawful.",
+    regulationText:
+      "Summary of 11 CCR § 7002(b) (verbatim text is not in the verified corpus): reasonable expectations are judged by factors including the relationship with the business, the type and nature of the information, the source and the disclosures made at collection, the degree to which the involvement of third parties is visible, and whether the processing is compatible with the context in which the information was collected.",
+    relatedCitations: [
+      { citation: "11 CCR § 7152(a)(5)", label: "Negative impacts — sources and causes" },
+    ],
+    coachLead:
+      "Select every fact that is true of this activity; leave the rest unselected, and use “None of the above apply” only when every statement is inapplicable.",
+    coachBody:
+      "Keeping transaction history after the order closes is processing that continues after the interaction. Combining account data with broker attributes is combination with other sources. Each selected fact goes into the analysis as a fact, not as an admission.",
+    goodAnswer:
+      "Harbor & Pine Apartments: the screening score is computed after the applicant's visit ends (continues after the interaction), the score uses a credit bureau file (combined with other sources), and the bureau is a party the applicant never interacts with (disclosed to parties not directly interacted with) — three facts selected.",
+    commonMistake:
+      "Selecting only the first fact because the processing starts during the interaction. If it also continues afterwards, both are true and both are selected.",
+  },
+
+  rk3d_vendor_dependency: {
+    fieldLabel: "Whether a recipient or vendor is essential",
+    citation: "11 CCR § 7152(a)(3)(F)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "The recipients of the information are part of the operational record. Whether the processing could continue without one of them is a fact about dependency that the report carries into the negative-impact and safeguard analysis.",
+    regulationText:
+      "§ 7152(a)(3)(F) — “The names or categories of the service providers, contractors, or third parties to whom the business discloses or makes available the consumers' personal information for the processing; and the purpose for which the business discloses or makes the consumers' personal information available to them.”",
+    relatedCitations: [
+      { citation: "11 CCR § 7051(a)(6)", label: "Service-provider contract duties" },
+    ],
+    coachLead:
+      "Ask whether the activity would stop if a listed recipient or vendor became unavailable tomorrow.",
+    coachBody:
+      "A vendor with a tested replacement is not essential today; the only provider able to run the scoring model is. Distinguish current dependency from a replacement plan you have not tested — “Unsure” is a complete answer.",
+    goodAnswer:
+      "Larkspur Credit Union: “One or more vendors are essential — the processing could not continue without them: Cardinal Analytics (hosts and runs the scoring model; no in-house alternative).” The print vendor for decision letters is interchangeable and is not named.",
+    commonMistake:
+      "Answering “No single vendor is essential” because contracts allow termination. Termination rights do not create a working replacement; the question is operational.",
+  },
+
+  q11: {
+    fieldLabel: "When the privacy policy was last reviewed or updated",
+    citation: "Cal. Civ. Code § 1798.130(a)(5)",
+    plainSummary:
+      "The privacy policy is updated at least once every twelve months. The answer records the documented review date, which the report reads alongside the disclosures made for this activity.",
+    regulationText:
+      "Summary of Cal. Civ. Code § 1798.130(a)(5) (verbatim text is not in the verified corpus): a business discloses the required information in its online privacy policy and updates that information at least once every 12 months.",
+    relatedCitations: [
+      { citation: "11 CCR § 7011", label: "Privacy policy — required contents" },
+    ],
+    coachLead:
+      "Use the dated review record or the policy's effective date — not the website's copyright year.",
+    coachBody:
+      "A review that made no changes still counts as a review if it is documented and dated. If there is no privacy policy, the accurate answer is that one; the report records the gap plainly.",
+    goodAnswer:
+      "Brightline Telecom: the policy page shows “Effective 2 February 2026” and the legal team's review memo is dated the same week — “Within 12 months”.",
+    commonMistake:
+      "Answering from the footer's “© 2026”. A copyright notice is not a policy date.",
+  },
+
+  q12: {
+    fieldLabel: "Notice at collection — at or before the point of collection",
+    citation: "Cal. Civ. Code § 1798.100(a); 11 CCR § 7012",
+    plainSummary:
+      "Consumers are informed at or before the point of collection what is collected and why. This answer records whether that notice reaches every collection point for this activity.",
+    regulationText:
+      "Summary of Cal. Civ. Code § 1798.100(a) and 11 CCR § 7012 (verbatim text is not in the verified corpus): a business that controls the collection of personal information informs consumers, at or before the point of collection, of the categories collected, the purposes, whether the information is sold or shared, and the retention period or the criteria used to determine it; the notice is presented in the manner in which the information is collected.",
+    relatedCitations: [
+      { citation: "11 CCR § 7152(a)(3)(E)", label: "Disclosures made about this processing" },
+    ],
+    coachLead:
+      "Answer per collection point for this activity: form, app, call, vendor feed, or in-person.",
+    coachBody:
+      "A notice on the web form does not cover collection over the phone. “Partial coverage” is the accurate answer when one channel lacks the notice — name the channel in the disclosure record below.",
+    goodAnswer:
+      "Fernbrook Grocers: the sign-up form links the notice above the submit button, but cashiers enrolling members at the register do not present it — “Yes, partial coverage”, with the register channel named in the disclosure rows.",
+    commonMistake:
+      "Answering “Yes, covers all collection points” because the privacy policy is comprehensive. The policy is not the notice at collection; timing and placement are the point.",
+  },
+
+  q13: {
+    fieldLabel: "Notice contents — categories, purpose, and the opt-out right",
+    citation: "Cal. Civ. Code § 1798.100(a); 11 CCR § 7012",
+    plainSummary:
+      "The notice at collection carries specific contents. The answer records whether the categories collected, the purposes, and the opt-out right all appear in it.",
+    regulationText:
+      "Summary of Cal. Civ. Code § 1798.100(a) and 11 CCR § 7012 (verbatim text is not in the verified corpus): the notice at collection lists the categories of personal information collected and the purposes for each, states whether the information is sold or shared, gives the retention period or its criteria, and links to the privacy policy and, where applicable, to the opt-out of sale or sharing.",
+    relatedCitations: [
+      { citation: "Cal. Civ. Code § 1798.135(a)", label: "The ‘Do Not Sell or Share’ link" },
+    ],
+    coachLead:
+      "Open the notice as a consumer sees it and check for each of the three elements by name.",
+    coachBody:
+      "“Some elements” is the accurate answer when the notice names categories and purposes but not the opt-out right, or the reverse. Where the business does not sell or share, the notice can say so instead of offering an opt-out; that still counts as addressing the element.",
+    goodAnswer:
+      "Oakhaven Tutoring: the notice lists the categories and purposes and states “We do not sell or share personal information” — “Yes, all three”, because the opt-out element is addressed by the statement.",
+    commonMistake:
+      "Reading the privacy policy instead of the notice. The elements have to be in the notice presented at collection, not somewhere in the longer document it links to.",
+  },
+
+  q14: {
+    fieldLabel: "Separate notice for California employees and applicants",
+    citation: "Cal. Civ. Code § 1798.100(a); 11 CCR § 7012",
+    plainSummary:
+      "Employees and job applicants are consumers, and information collected from them needs its own notice at collection, presented where that collection happens.",
+    regulationText:
+      "Summary of Cal. Civ. Code § 1798.100(a) and 11 CCR § 7012 (verbatim text is not in the verified corpus): the notice at collection is given to consumers — including employees, applicants, and contractors — at or before the point of collection, in the manner in which the information is collected.",
+    relatedCitations: [
+      { citation: "11 CCR § 7150(b)(2)(A)", label: "Personnel carve-out for sensitive PI" },
+    ],
+    coachLead:
+      "Answer for the notice actually shown at onboarding or in the application flow, not for the customer-facing policy.",
+    coachBody:
+      "A general consumer policy rarely describes the categories collected from applicants or the purposes of HR processing, which is why “No — we use our general privacy policy” is the accurate answer for many businesses. “Not applicable” is for a business with no California employees or applicants.",
+    goodAnswer:
+      "Meridian Staffing: the applicant portal shows an applicant-specific notice before the first form, and new hires receive an employee notice in the onboarding packet — “Yes”.",
+    commonMistake:
+      "Answering “Yes” because the general policy has an “Employees” heading. The notice is presented at the point of collection, in the application or onboarding flow.",
+  },
+
+  i4_disclosures: {
+    fieldLabel: "How consumers are informed of this processing",
+    citation: "11 CCR § 7152(a)(3)(E)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "The operational record includes what the business has told or will tell consumers about the processing and how. These mechanisms are the summary; the disclosure rows below carry the content and status.",
+    regulationText:
+      "§ 7152(a)(3)(E) — “What disclosures the business has made or plans to make to the consumer about the processing of their personal information and how these disclosures were or will be made”",
+    relatedCitations: [
+      { citation: "Cal. Civ. Code § 1798.100(a)", label: "Notice at collection" },
+    ],
+    coachLead:
+      "Select every mechanism through which consumers receive information about this activity, then describe each one in the rows below.",
+    coachBody:
+      "Name the actual screen or document in the rows: “the sign-up form's notice” rather than “notice at collection” in the abstract. “No standalone disclosure” means nothing is said about this activity anywhere — it does not sit alongside other selections.",
+    goodAnswer:
+      "Tidewater Clinics, appointment reminders: “Notice at Collection” (the intake form's notice names reminder messaging) and “Consent screen” (the SMS opt-in screen states the purpose) — two mechanisms, each described in its own row with its status.",
+    commonMistake:
+      "Selecting “Privacy policy” for every activity. If the policy does not mention this processing, it is not a disclosure about it; the rows below are where that gets checked.",
+  },
+
+  i2_retention_criteria: {
+    fieldLabel: "Retention criteria",
+    citation: "11 CCR § 7152(a)(3)(B)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "Where the retention period is not fixed, the record gives the criteria used to determine it. The selection names the type of criterion; the description below states it concretely.",
+    regulationText:
+      "§ 7152(a)(3)(B) — “How long the business plans to retain each category of personal information, or if unknown, the criteria the business plans to use to determine that retention period.”",
+    relatedCitations: [
+      { citation: "11 CCR § 7152(a)(2)", label: "Categories of personal information" },
+    ],
+    coachLead:
+      "Pick the criterion that actually ends retention, and say in the box below what triggers deletion and what happens then.",
+    coachBody:
+      "“Duration of account” is a trigger, not a period — the description says what happens when the account closes and how soon. A statutory requirement is named with its source. If different categories follow different rules, the category table below is where each one is recorded.",
+    goodAnswer:
+      "Fernbrook Grocers: “Duration of account / relationship — records are deleted 90 days after a membership closes; purchase history is aggregated at 24 months regardless.” The criterion, the trigger, the delay, and the exception.",
+    commonMistake:
+      "Selecting “Until purpose is fulfilled” without saying what fulfilment looks like. The report reads an undefined trigger as no criterion.",
+  },
+
+  // ── Step 5 ────────────────────────────────────────────────────────────────
+  rk3d_risk_interdependency_check: {
+    fieldLabel: "Whether the impacts compound each other",
+    citation: "11 CCR §§ 7152(a)(5), 7154(a)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "Negative impacts are identified with their sources and causes, and the assessment weighs them against the benefits. When one impact makes another more likely or more severe, the weighing has to account for the combination, so the record says whether that is the case.",
+    regulationText:
+      "§ 7152(a)(5) — “Identify the negative impacts to consumers' privacy associated with the processing. The business must identify the sources and causes of these negative impacts.”\n\n§ 7154(a) — “The goal of a risk assessment is restricting or prohibiting the processing of personal information if the risks to privacy of the consumer outweigh the benefits resulting from processing to the consumer, the business, other stakeholders, and the public.”",
+    relatedCitations: [
+      { citation: "11 CCR § 7152(a)(6)", label: "Safeguards for the processing" },
+    ],
+    coachLead:
+      "Ask whether one recorded impact, if it happened, would make another more likely or worse.",
+    coachBody:
+      "Exposed home-location records (A) enable stalking (F); a discriminatory rejection (B) also produces financial loss (E). Two impacts arising from the same activity do not compound merely by coexisting — the link is causal. “Unsure” is recorded as not yet assessed.",
+    goodAnswer:
+      "Harbor & Pine Apartments: an erroneous screening score (E, economic harm) leads to a denial that appears on tenant databases used by other landlords (G, reputational harm) — “Two or more identified pathways could compound each other”, with (E) and (G) selected below.",
+    commonMistake:
+      "Answering “compound” whenever more than one impact is listed. Compounding is one impact feeding another, not a count of impacts.",
+  },
+
+  rk3d_compounding_pathways: {
+    fieldLabel: "Which pathways compound each other",
+    citation: "11 CCR § 7152(a)(5)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "Having said that impacts compound, the record names which ones. The categories selected here are read against the impact rows recorded above.",
+    regulationText:
+      "§ 7152(a)(5) — “Identify the negative impacts to consumers' privacy associated with the processing. The business must identify the sources and causes of these negative impacts.”",
+    relatedCitations: [
+      { citation: "11 CCR § 7154(a)", label: "The goal of a risk assessment" },
+    ],
+    coachLead:
+      "Select at least two categories that you recorded impacts under, and explain the link in those rows' cause fields.",
+    coachBody:
+      "A category with no impact row above cannot compound anything. The connection lives in the rows: say in the cause of the second impact that it follows from the first.",
+    goodAnswer:
+      "Harbor & Pine Apartments: (E) and (G) selected; the (G) row's cause reads “a denial produced by an erroneous (E) score is reported to tenant databases.” The selection and the row explain each other.",
+    commonMistake:
+      "Selecting a category that has no row above. The report can only trace a compounding link between impacts it has on record.",
+  },
+
+  // ── Step 7 ────────────────────────────────────────────────────────────────
+  i7_internal_contributors: {
+    fieldLabel: "Who contributed to or was consulted in preparing this assessment",
+    citation: "11 CCR §§ 7151, 7152(a)(8)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "Employees whose duties include the processing are included in the assessment process, external parties may be, and the report identifies who provided its information. This is the preparation record — distinct from the named information-provider list and from the approval record.",
+    regulationText:
+      "§ 7151(a) — “A business's employees whose job duties include participating in the processing of personal information that would be subject to a risk assessment must be included in the business's risk assessment process for that processing activity.”\n\n§ 7151(b) — “In conducting the risk assessment, a business may include external parties in the process.”\n\n§ 7152(a)(8) — “Identify and document in a risk assessment report the individuals who provided the information for the risk assessment, except for legal counsel who provided legal advice.”",
+    relatedCitations: [
+      { citation: "11 CCR § 7152(a)(9)", label: "Review and approval record" },
+    ],
+    coachLead:
+      "List each role consulted and what it contributed; write “None” if no one beyond the author was involved.",
+    coachBody:
+      "Roles are enough here — names and positions go in the § 7152(a)(8) provider list and the § 7151 participation rows. Legal counsel who gave legal advice is excluded from the report's records, so note the consultation without naming the advice. A blank here never blocks the report; it is stated as a condition on the approval.",
+    goodAnswer:
+      "Tidewater Clinics: “Privacy lead — coordinated the assessment; scheduling-system owner — explained the reminder workflow; security lead — supplied the access-control facts; outside counsel consulted (legal advice excluded from the record).”",
+    commonMistake:
+      "Listing the same people here and as approvers. Preparing the assessment and approving it are separate records; the approval record is further down.",
+  },
+
+  i8_exec_name: {
+    fieldLabel: "The executive certifying the annual submission",
+    citation: "11 CCR § 7157(b)(5), (c)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "The annual submission to the Agency carries an attestation made under penalty of perjury by a member of executive management who meets § 7157(c). Naming that person here does not certify anything; it records who is expected to.",
+    regulationText:
+      "§ 7157(b)(5) — “Attestation to the following statement: ‘I attest that the business has conducted a risk assessment for the processing activities set forth in California Code of Regulations, Title 11, section 7150, subsection (b), during the time period covered by this submission, and that I meet the requirements of section 7157, subsection (c). Under penalty of perjury under the laws of the state of California, I hereby declare that the risk assessment information submitted is true and correct.’”\n\n§ 7157(c) — “The individual submitting the information set forth in subsection (b) must be a member of the business's executive management team who:” (the qualifying conditions follow).",
+    relatedCitations: [
+      { citation: "11 CCR § 7152(a)(9)", label: "Review and approval of the assessment itself" },
+    ],
+    coachLead:
+      "Name the executive expected to make the § 7157 attestation — a person, not a committee.",
+    coachBody:
+      "This is separate from approving the assessment. If the person has not been identified, leave it blank: the report states the identification as a condition on the approval level reached rather than stopping.",
+    goodAnswer:
+      "Larkspur Credit Union: “Avery Patel” — the executive responsible for oversight of consumer lending, who will make the April submission. Title follows in the next field.",
+    commonMistake:
+      "Entering the privacy analyst who drafted the assessment. The attestation is made by a member of executive management who meets § 7157(c), whoever wrote the document.",
+  },
+
+  i8_exec_title: {
+    fieldLabel: "Certifying executive title",
+    citation: "11 CCR § 7157(c)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "The submitting individual is a member of the business's executive management team who meets the conditions in § 7157(c). The title is how the report shows that the named person holds such a position.",
+    regulationText:
+      "§ 7157(c) — “The individual submitting the information set forth in subsection (b) must be a member of the business's executive management team who:” (the qualifying conditions follow; see § 7157(c) in the regulation text).",
+    relatedCitations: [
+      { citation: "11 CCR § 7157(b)(5)", label: "The attestation statement" },
+    ],
+    coachLead:
+      "Give the person's actual title as it appears in the organisation, not the role you would like them to hold.",
+    coachBody:
+      "A title on its own does not establish that the person meets § 7157(c); the report pairs the title with the name and the oversight responsibility described elsewhere. A blank is recorded as a condition, not a block.",
+    goodAnswer:
+      "“Chief Lending Officer” for Avery Patel at Larkspur Credit Union — the title held, which also describes oversight of the processing being assessed.",
+    commonMistake:
+      "Writing “Certifying Executive” or “Data Protection Officer” as a generic label. The record needs the title the person holds.",
+  },
 };
 

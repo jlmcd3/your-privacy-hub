@@ -51,9 +51,13 @@ Deno.test("neither source present -> absent, never invented", () => {
   assertEquals(p.ledger_refs, []);
 });
 
-Deno.test("'Loss of availability of personal information' has no A-H counterpart and grants nothing", () => {
+// DOC 262 §9.8 item 1 (CEO, 2026-09-15) — the pill names an element of the
+// canonical category (A) ("…or loss of availability of personal information"),
+// so it grants (A) and nothing else. Before this ruling it mapped to nothing.
+Deno.test("'Loss of availability of personal information' grants (A) and no other category", () => {
   const intake = { impact_intake: { harmTypes: ["Loss of availability of personal information"] } };
-  for (const id of ["neg.a.unauthorized_access", "neg.b.discrimination", "neg.c.impaired_control"]) {
-    assertEquals(detectFactorPresence(id, intake).present, false);
+  assertEquals(detectFactorPresence("neg.a.unauthorized_access", intake).present, true);
+  for (const id of ["neg.b.discrimination", "neg.c.impaired_control", "neg.f.physical_harms"]) {
+    assertEquals(detectFactorPresence(id, intake).present, false, id);
   }
 });

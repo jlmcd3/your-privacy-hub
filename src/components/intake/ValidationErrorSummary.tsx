@@ -32,8 +32,22 @@ const ValidationErrorSummary = forwardRef<HTMLDivElement, Props>(
 
     useEffect(() => {
       // When the caller highlights the offending question, that question takes
-      // focus instead — the alert role still announces this box.
-      if (message && !fieldKey && localRef.current) localRef.current.focus();
+      // focus instead — the alert role still announces this box. If the named
+      // question has no data-field anchor in the DOM (an unanchored key), fall
+      // back to focusing the summary so the failure is still announced and
+      // reachable by keyboard.
+      if (!message || !localRef.current) return;
+      if (!fieldKey) { localRef.current.focus(); return; }
+      if (typeof document === "undefined") return;
+      const esc =
+        typeof CSS !== "undefined" && typeof CSS.escape === "function"
+          ? CSS.escape
+          : (s: string) => s.replace(/["\\]/g, "\\$&");
+      const base = fieldKey.indexOf("[") === -1 ? fieldKey : fieldKey.slice(0, fieldKey.indexOf("["));
+      const anchored =
+        document.querySelector(`[data-field="${esc(fieldKey)}"]`) ??
+        document.querySelector(`[data-field="${esc(base)}"]`);
+      if (!anchored) localRef.current.focus();
     }, [message, fieldKey]);
 
     const jump = () => {

@@ -171,6 +171,30 @@ for (const tool of PANEL_TOOLS) {
     });
   }
 
+  // DOC 262 §9.8 item 4 (CEO, 2026-09-15) — the form requires a retention
+  // row for every category selected in Step 3 (CPPARiskAssessment.tsx
+  // stepValid: "Add a retention row for each category you selected"), each
+  // row carrying a period or the criteria that determine it. A panel fixture
+  // is what a careful customer would submit, so it satisfies the same rule.
+  // Nine fixtures were short one or two rows before this gate existed.
+  if (tool === "cppa-risk") {
+    Deno.test(`panel [${tool}] — every q4 category has a retention row with a period or criteria`, () => {
+      if (!authored) return skip();
+      for (const f of panel) {
+        const intake = f.intake as Bag;
+        const cats = Array.isArray(intake.q4_pi_categories) ? (intake.q4_pi_categories as unknown[]).map(String) : [];
+        const rowsIn = Array.isArray(intake.retention_by_pi_category) ? intake.retention_by_pi_category as Array<Record<string, unknown>> : [];
+        const covered = new Set(
+          rowsIn
+            .filter((r) => String(r.retention_period ?? "").trim() || String(r.retention_criteria ?? "").trim())
+            .map((r) => String(r.pi_category ?? "")),
+        );
+        assert(cats.length > 0, `${f.id}: no q4 categories`);
+        assertEquals(cats.filter((c) => !covered.has(c)), [], `${f.id}: categories without a retention row`);
+      }
+    });
+  }
+
   if (tool === "cppa-risk" || tool === "cppa-admt" || tool === "cppa-cyber") {
     Deno.test(`panel [${tool}] — every fixture generates a document offline (deterministic engine) with no new lint defect`, async () => {
       if (!authored) return skip();

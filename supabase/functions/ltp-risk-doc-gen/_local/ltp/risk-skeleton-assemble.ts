@@ -600,9 +600,11 @@ export function deriveAgencySubmissionChecklistTable(
   const combinedTitle = matchingApproverTitle
     ? [contactTitle, matchingApproverTitle].filter(Boolean).join(" / ")
     : contactTitle;
+  // DOC 262 §9.8 (CEO, 2026-09-15) — a blank certifying executive is a
+  // condition stated among the Follow-Ups (§ 4.D), never a reported absence.
   const contact = contactName
     ? `${contactName}${combinedTitle ? `, ${combinedTitle}` : ""}`
-    : "Not reported.";
+    : "Not yet identified — see the Follow-Ups in § 4.D.";
   return {
     key: "",
     surface: "agency_submission_checklist",

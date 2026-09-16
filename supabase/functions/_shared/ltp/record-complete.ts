@@ -101,7 +101,12 @@ export interface RecordCompleteTelemetry {
 
 function isEmptyValue(v: unknown): boolean {
   if (v === "" || v === null || v === undefined) return true;
-  if (typeof v === "string") return v.trim().length === 0;
+  // Doc 261-review (2026-09-15, CL-T07; CEO decision 9.5 item 3): an exhibit
+  // placeholder or other completion token is deferred work, not an answer.
+  // The prose layer already treats it so (intakeKeyFilled → hasPlaceholderToken);
+  // this gate now agrees, so the "record is complete" framing cannot render
+  // while an exhibit is outstanding. Measured live impact: 9 Risk records.
+  if (typeof v === "string") return v.trim().length === 0 || hasPlaceholderToken(v);
   if (Array.isArray(v)) return v.length === 0;
   if (typeof v === "object") return Object.keys(v as object).length === 0;
   return false;
