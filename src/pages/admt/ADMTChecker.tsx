@@ -52,7 +52,7 @@ import { useScrollActiveRail } from "@/components/intake/useScrollActiveRail";
 import { ChoiceRadio } from "@/components/intake/ChoiceRadio";
 import { ChoiceWithOther } from "@/components/intake/ChoiceWithOther";
 import { ADMT_RAIL } from "@/components/admt/admtRailEntries";
-// ADMT master review (2026-09-15, ChatGPT + Claude) — one scope resolver
+// ADMT master review (2026-09-15) — one scope resolver
 // mirrored from the engine (F01), the opt-out path classifier (F06), the
 // honest population-band suggestion (F02), the fleet field-error contract
 // (F14), the complete review model (F08) and the register's copy (S01–S18).

@@ -295,7 +295,7 @@ export function ResearchSynthesisBlock({ sectionKey, promoteHeading, compact, on
                     <p className="text-meta text-gray-500 flex-1">
                       {personalized
                         ? "Pre-loaded with your role and jurisdiction profile. Fill in the organization context before sending."
-                        : "Copy into Claude, ChatGPT, or any AI assistant. Fill in the organization context section before sending."}
+                        : "Copy into any AI assistant. Fill in the organization context section before sending."}
                     </p>
                     <button
                       type="button"

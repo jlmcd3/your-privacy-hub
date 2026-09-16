@@ -113,7 +113,7 @@ export function InvestigationPrompt({ item, demoContext, defaultOpen = false }: 
           {/* Header row */}
           <div className="flex items-start justify-between gap-2 mt-2">
             <p className="text-xs text-gray-600 leading-relaxed">
-              Copy this prompt into Claude, ChatGPT, or any AI assistant.
+              Copy this prompt into any AI assistant.
               {!loading && !personalised && (
                 <span className="block mt-0.5 text-indigo-600">
                   Set your{' '}
