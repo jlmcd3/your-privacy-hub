@@ -163,9 +163,20 @@ export function gate(
   return { route: "observed", queued: false, reason: `unclassified (${c.fix_class})` };
 }
 
+/** A W-LAW finding that says the pack has no row for the provision a block
+ *  cites. It is a registry-coverage gap, never a document defect (doc 263
+ *  run 1, 2026-09-17): it is scored nowhere and classified by code. */
+export function isRegistryGap(f: { binding?: string | null; why?: string | null; workers?: readonly string[]; worker?: string | null }): boolean {
+  const fromLaw = f.workers ? f.workers.includes("W-LAW") : f.worker === "W-LAW";
+  return fromLaw && ((f.binding ?? "") === "no_row" || /^\s*NO ROW\b/i.test(f.why ?? ""));
+}
+
 export function compositeScore(deduped: readonly DedupedFinding[]): number {
   let deduction = 0;
-  for (const f of deduped) deduction += f.is_lint ? 2 : (SEVERITY_WEIGHTS[f.severity] ?? 3);
+  for (const f of deduped) {
+    if (isRegistryGap(f)) continue;
+    deduction += f.is_lint ? 2 : (SEVERITY_WEIGHTS[f.severity] ?? 3);
+  }
   return Math.max(0, Math.min(100, Math.round((100 - deduction) * 10) / 10));
 }
 
@@ -313,7 +324,8 @@ export async function runClassifyJob(admin: Admin, opts: {
   const rows = (fRows ?? []) as FindingRow[];
   const deduped = dedupeFindings(rows);
   const lintKeys = new Set(deduped.filter((f) => f.is_lint).map((f) => f.block_key));
-  const workerFindings = deduped.filter((f) => !f.is_lint);
+  // Registry gaps never reach the classifier: they are not defects to class.
+  const workerFindings = deduped.filter((f) => !f.is_lint && !isRegistryGap(f));
 
   // 3. Persistence: the same dedupe key seen on this document in an earlier batch.
   const persisting = new Set<string>();
@@ -351,7 +363,16 @@ export async function runClassifyJob(admin: Admin, opts: {
   const byClass: Record<string, number> = {};
   const byRoute: Record<string, number> = {};
   const updates: Array<{ ids: string[]; patch: Bag }> = [];
+  let registryGaps = 0;
   for (const f of deduped) {
+    if (isRegistryGap(f)) {
+      registryGaps += 1;
+      byClass["registry_gap"] = (byClass["registry_gap"] ?? 0) + 1;
+      byRoute["registry_backlog"] = (byRoute["registry_backlog"] ?? 0) + 1;
+      dropped.push({ id: f.id, kind: "registry_backlog", reason: "registry_backlog: the pack has no row for the provision this block cites — a registry-coverage gap, not scored", block_key: f.block_key, quote: f.quote.slice(0, 200), fix_class: "registry_gap", raised_by: f.raised_by.join(" + "), why: f.why.slice(0, 400) });
+      updates.push({ ids: f.row_ids, patch: { fix_class: "registry_gap", class_reason: "registry-coverage gap (NO ROW); excluded from the score", dedupe_key: f.key, route: "registry_backlog", queued: false } });
+      continue;
+    }
     const c: Classification = f.is_lint
       ? { fix_class: "presentation", rule_ref: f.lint_rule, reason: "deterministic lint hit" }
       : classifications.get(f.id) ?? { fix_class: "judgment", rule_ref: null, reason: "unclassified by the model — routed to the CEO sheet conservatively" };
@@ -371,7 +392,7 @@ export async function runClassifyJob(admin: Admin, opts: {
   const composite = compositeScore(deduped);
   const workerCounts: Record<string, number> = {};
   for (const f of deduped) for (const w of f.raised_by) workerCounts[w] = (workerCounts[w] ?? 0) + 1;
-  const metrics = { deduped: deduped.length, raw: rows.length, lint: deduped.filter((f) => f.is_lint).length, by_class: byClass, by_route: byRoute, by_raiser: workerCounts, failed_workers: failed, composite };
+  const metrics = { deduped: deduped.length, raw: rows.length, registry_gaps: registryGaps, lint: deduped.filter((f) => f.is_lint).length, by_class: byClass, by_route: byRoute, by_raiser: workerCounts, failed_workers: failed, composite };
   const coverage = failed.length ? `PARTIAL COVERAGE (${failed.join("; ")}). ` : "";
   const summary = `${coverage}${deduped.length} finding(s) after dedupe (${rows.length} raw): ${fix_list.length} queued, ${ceo_sheet.length} for the CEO, ${dropped.length} observed/intake/lint-backlog. Classes: ${Object.entries(byClass).map(([k, v]) => `${k} ${v}`).join(", ") || "none"}.`;
 

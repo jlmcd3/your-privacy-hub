@@ -702,6 +702,63 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     verified_on: VOD,
     primary_source_url: CCR_URL,
   }),
+  // ---- doc 263 run 1 (2026-09-17) — rows W-LAW found missing on batch eac083a5:
+  // each is the sentence that continues a row above, verbatim from the corpus.
+  notice_timing_later_use: R({
+    proposition_key: "notice_timing_later_use",
+    citation: "11 CCR § 7220",
+    subsection: "11 CCR § 7220(b)(2)",
+    verbatim_quote:
+      "If a business has already collected the consumer's personal information for a different purpose and subsequently plans to process it using ADMT for the purpose set forth in section 7200, subsection (a), the business must provide a Pre-use Notice before processing the consumer's personal information for that purpose.",
+    depth_class: "clause",
+    governing_anchor: ART11,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  notice_purpose_not_generic: R({
+    proposition_key: "notice_purpose_not_generic",
+    citation: "11 CCR § 7220",
+    subsection: "11 CCR § 7220(c)(1)",
+    verbatim_quote:
+      "The business must not describe the purpose in generic terms, such as \"to make a significant decision\" without further information, because this does not describe to the consumer the specific decision for which the business plans to use ADMT with respect to them.",
+    depth_class: "clause",
+    governing_anchor: ART11,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  notice_exception_appeal_right: R({
+    proposition_key: "notice_exception_appeal_right",
+    citation: "11 CCR § 7220",
+    subsection: "11 CCR § 7220(c)(2)(A)",
+    verbatim_quote:
+      "If the business is not required to provide the ability to opt-out because it is relying upon the human appeal exception set forth in section 7221, subsection (b)(1), the business must instead inform the consumer of their ability to appeal the decision and provide instructions to the consumer on how to submit their appeal.",
+    depth_class: "clause",
+    governing_anchor: ART11,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  notice_howworks_human_role: R({
+    proposition_key: "notice_howworks_human_role",
+    citation: "11 CCR § 7220",
+    subsection: "11 CCR § 7220(c)(5)(B)",
+    verbatim_quote:
+      "For example, this may include whether the output is the sole factor in the decisionmaking process or what the other factors are in that decisionmaking process; and to the extent that a human is part of the decisionmaking process in a manner that does not meet the requirements of \"human involvement\" in section 7001, subsection (e)(1), what that human's role is in the decisionmaking process.",
+    depth_class: "clause",
+    governing_anchor: ART11,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  access_other_factors: R({
+    proposition_key: "access_other_factors",
+    citation: "11 CCR § 7222",
+    subsection: "11 CCR § 7222(b)(3)",
+    verbatim_quote:
+      "For example, this may include information about whether the output was the sole factor to make the decision; and if it was not the sole factor, which other factors played a role in making the decision",
+    depth_class: "clause",
+    governing_anchor: ART11,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
 };
 
 /** Convenience export: array form for iteration/report. */

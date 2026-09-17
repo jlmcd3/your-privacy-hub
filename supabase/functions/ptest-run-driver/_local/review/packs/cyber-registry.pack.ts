@@ -533,7 +533,31 @@ export const CYBER_REGISTRY_PACK: RegistryPack = {
         "provision_key": "cppa-7124",
         "path": "d(4)",
         "starts_with": "I attest that I meet the req",
-        "ends_with": "o submit this certification."
+        "ends_with": "regarding the cybersecurity audit."
+      }
+    },
+    {
+      "proposition_key": "cyber_evidence_specific",
+      "citation": "11 CCR § 7122",
+      "subsection": "11 CCR § 7122(d)",
+      "verbatim_quote": null,
+      "locator": {
+        "provision_key": "cppa-7122",
+        "path": "d",
+        "starts_with": "Cybersecurity audit findings must",
+        "ends_with": "deems appropriate."
+      }
+    },
+    {
+      "proposition_key": "cyber_report_components",
+      "citation": "11 CCR § 7123",
+      "subsection": "11 CCR § 7123(e)(2)",
+      "verbatim_quote": null,
+      "locator": {
+        "provision_key": "cppa-7123",
+        "path": "e(2)",
+        "starts_with": "Identify the applicable components",
+        "ends_with": "component assessed in accordance with subsection (d);"
       }
     }
   ]

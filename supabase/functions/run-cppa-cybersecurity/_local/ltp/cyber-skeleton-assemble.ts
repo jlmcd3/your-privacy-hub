@@ -191,15 +191,15 @@ function composeExecutiveLead(report: Bag): string {
   const counts = readCounts(report);
   const gaps = gapCount(counts);
   if (gaps > 0) {
-    return `On the company's answers, its recorded programme is not yet ready for the certified cybersecurity audit: ${gaps === 1 ? "one component is" : `${gaps} components are`} not yet supported.`;
+    return `On the company's answers, its recorded programme is not yet ready for the cybersecurity audit and its § 7124 certification: ${gaps === 1 ? "one component is" : `${gaps} components are`} not yet supported.`;
   }
   // VACUOUS-TRUTH GUARD (batch 4e89037e, 2026-08-26): zero gaps proves
   // nothing when the components were never assessed at all — an empty
   // controls array must never read as readiness.
   if (counts.withStatus < counts.total) {
-    return `On the company's answers, ${counts.withStatus === 0 ? "the enumerated components are not yet assessed" : `only ${counts.withStatus} of the ${counts.total} enumerated components are assessed`}, and the record does not yet support a readiness conclusion for the certified cybersecurity audit.`;
+    return `On the company's answers, ${counts.withStatus === 0 ? "the enumerated components are not yet assessed" : `only ${counts.withStatus} of the ${counts.total} enumerated components are assessed`}, and the record does not yet support a readiness conclusion for the cybersecurity audit and its § 7124 certification.`;
   }
-  return "On the company's answers, its recorded programme is ready for the certified cybersecurity audit across the enumerated components.";
+  return "On the company's answers, its recorded programme is ready for the cybersecurity audit and its § 7124 certification across the enumerated components.";
 }
 
 function composeExecutiveBody(report: Bag): string {

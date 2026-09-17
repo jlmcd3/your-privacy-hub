@@ -319,6 +319,36 @@ export const ADMT_REGISTRY_PACK: RegistryPack = {
       "citation": "11 CCR § 7001",
       "subsection": "11 CCR § 7001(e)(1)",
       "verbatim_quote": "(A) Know how to interpret and use the technology's output to make the decision; (B) Review and analyze the output of the technology, and any other information that is relevant to make or change the decision; and (C) Have the authority to make or change the decision based on their analysis in subsection (B)."
+    },
+    {
+      "proposition_key": "notice_timing_later_use",
+      "citation": "11 CCR § 7220",
+      "subsection": "11 CCR § 7220(b)(2)",
+      "verbatim_quote": "If a business has already collected the consumer's personal information for a different purpose and subsequently plans to process it using ADMT for the purpose set forth in section 7200, subsection (a), the business must provide a Pre-use Notice before processing the consumer's personal information for that purpose."
+    },
+    {
+      "proposition_key": "notice_purpose_not_generic",
+      "citation": "11 CCR § 7220",
+      "subsection": "11 CCR § 7220(c)(1)",
+      "verbatim_quote": "The business must not describe the purpose in generic terms, such as \"to make a significant decision\" without further information, because this does not describe to the consumer the specific decision for which the business plans to use ADMT with respect to them."
+    },
+    {
+      "proposition_key": "notice_exception_appeal_right",
+      "citation": "11 CCR § 7220",
+      "subsection": "11 CCR § 7220(c)(2)(A)",
+      "verbatim_quote": "If the business is not required to provide the ability to opt-out because it is relying upon the human appeal exception set forth in section 7221, subsection (b)(1), the business must instead inform the consumer of their ability to appeal the decision and provide instructions to the consumer on how to submit their appeal."
+    },
+    {
+      "proposition_key": "notice_howworks_human_role",
+      "citation": "11 CCR § 7220",
+      "subsection": "11 CCR § 7220(c)(5)(B)",
+      "verbatim_quote": "For example, this may include whether the output is the sole factor in the decisionmaking process or what the other factors are in that decisionmaking process; and to the extent that a human is part of the decisionmaking process in a manner that does not meet the requirements of \"human involvement\" in section 7001, subsection (e)(1), what that human's role is in the decisionmaking process."
+    },
+    {
+      "proposition_key": "access_other_factors",
+      "citation": "11 CCR § 7222",
+      "subsection": "11 CCR § 7222(b)(3)",
+      "verbatim_quote": "For example, this may include information about whether the output was the sole factor to make the decision; and if it was not the sole factor, which other factors played a role in making the decision"
     }
   ]
 };

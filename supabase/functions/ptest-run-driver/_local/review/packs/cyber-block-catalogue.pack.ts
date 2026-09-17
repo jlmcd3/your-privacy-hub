@@ -56,6 +56,7 @@ export const CYBER_BLOCK_CATALOGUE: BlockCatalogue = {
       "factor_ids": [],
       "sources": [],
       "authorities": [
+        "§ 7123",
         "§ 7123(c)",
         "§ 7124"
       ]
@@ -269,6 +270,7 @@ export const CYBER_BLOCK_CATALOGUE: BlockCatalogue = {
       "authorities": [
         "11 CCR § 7122(d)",
         "11 CCR § 7123(c)",
+        "11 CCR § 7123(e)(2)",
         "§ 7123(c)"
       ]
     },
@@ -371,6 +373,7 @@ export const CYBER_BLOCK_CATALOGUE: BlockCatalogue = {
       "factor_ids": [],
       "sources": [],
       "authorities": [
+        "§ 7123",
         "§ 7123(c)",
         "§ 7124"
       ]

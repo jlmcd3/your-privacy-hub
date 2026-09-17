@@ -269,7 +269,7 @@ export function buildComponentCoverage(facts: CyberFacts): CyberComponentCoverag
       // recorded maturity itself.
       const recordedMaturity = maturityPhrase(maturity);
       application =
-        `${comp.citation} requires this component to be assessed and documented. The record shows it ` +
+        `${comp.citation} lists this component among those the audit must assess where applicable, and the audit report must identify it and describe how it is assessed (11 CCR § 7123(e)(2)). The record shows it ` +
         `${recordedMaturity}, which is what the component asks for; ` +
         (notes
           ? `the description identifies the specific controls relied on.`
@@ -279,7 +279,7 @@ export function buildComponentCoverage(facts: CyberFacts): CyberComponentCoverag
         : "Describe the controls relied on so the position can be tested rather than asserted.";
     } else if (verdict === "partially_satisfied") {
       application =
-        `${comp.citation} requires this component to be assessed and documented. The record shows it documented but ` +
+        `${comp.citation} lists this component among those the audit must assess where applicable, and the audit report must identify it and describe how it is assessed (11 CCR § 7123(e)(2)). The record shows it documented but ` +
         `only partially implemented, so the component is addressed in policy and incompletely in operation.`;
       remediation = `Complete implementation of ${comp.label} across the systems in audit scope and record the completion date.`;
     } else if (maturity === "Ad hoc / informal") {
@@ -288,14 +288,14 @@ export function buildComponentCoverage(facts: CyberFacts): CyberComponentCoverag
       // finding names the documentation gap rather than calling the
       // component absent.
       application =
-        `${comp.citation} requires this component to be assessed and documented, and 11 CCR § 7123(b)(1) reaches the ` +
+        `${comp.citation} lists this component among those the audit must assess where applicable, and the audit report must identify it and describe how it is assessed (11 CCR § 7123(e)(2)), and 11 CCR § 7123(b)(1) reaches the ` +
         `written documentation of the program. The record shows a status of "${maturity}": the component operates ` +
         `informally, without the written policies and procedures the audit assesses, so the audit would report it as ` +
         `not implemented as a documented component.`;
       remediation = `Document ${comp.label} in written policies and procedures and implement them across the systems in audit scope before the audit is certified under ${CYBER_7124_CITATION}.`;
     } else {
       application =
-        `${comp.citation} requires this component to be assessed and documented. The record shows a status of ` +
+        `${comp.citation} lists this component among those the audit must assess where applicable, and the audit report must identify it and describe how it is assessed (11 CCR § 7123(e)(2)). The record shows a status of ` +
         `"${maturity}", which does not evidence an implemented component; the audit would report it as not implemented.`;
       remediation = `Implement ${comp.label} and document the controls before the audit is certified under ${CYBER_7124_CITATION}.`;
     }
@@ -391,8 +391,8 @@ export function buildEvidenceSufficiency(facts: CyberFacts): EvidenceSufficiency
           `The record offers ${offered.length} evidence item${offered.length === 1 ? "" : "s"} for ${comp.label}: ` +
           `${offered.join("; ")}.`,
         application:
-          `${EVIDENCE_STANDARD.citation} requires reliance on documents reviewed, sampling and testing performed, ` +
-          `and interviews conducted. The record offers ${testable.length} testable artifact` +
+          `${EVIDENCE_STANDARD.citation} requires findings to rely primarily on the specific evidence the auditor deems appropriate ` +
+          `(documents reviewed, sampling and testing performed, and interviews conducted). The record offers ${testable.length} testable artifact` +
           `${testable.length === 1 ? "" : "s"} (${testable.join("; ")}), so the auditor can test the position ` +
           `rather than accept management's account of it.`,
         verdict: "satisfied" as Verdict,
@@ -880,11 +880,11 @@ export function buildReadinessDetermination(
     : "";
   const applicableWord = notApplicable.length ? "applicable " : "";
   const headline = conclusion === "ready"
-    ? `On the information provided the business is ready for a § 7124 certified cybersecurity audit: all ${countWord(total)} ${applicableWord}§ 7123(c) components are implemented and each is supported by testable evidence.${naNote}`
+    ? `On the information provided the business is ready for the § 7123 cybersecurity audit and the § 7124 certification of its completion: all ${countWord(total)} ${applicableWord}§ 7123(c) components are implemented and each is supported by testable evidence.${naNote}`
     : conclusion === "ready_subject_to_named_remediation"
     // DOC 255 (2026-09-11, ledger L5 accepted by the CEO): the lead names at
     // most three items inline; the rest are counted and live in Section 6.
-    ? `On the information provided the business is ready for a § 7124 certified cybersecurity audit subject to ${countWord(remediationItems.length)} named remediation item${remediationItems.length === 1 ? "" : "s"}: ${remediationItems.slice(0, 3).join("; ")}${remediationItems.length > 3 ? `; and ${countWord(remediationItems.length - 3)} further item${remediationItems.length - 3 === 1 ? "" : "s"} named in Section 6` : ""}. No component is unimplemented and no § 7122 condition is unmet.${naNote}`
+    ? `On the information provided the business is ready for the § 7123 cybersecurity audit and the § 7124 certification of its completion subject to ${countWord(remediationItems.length)} named remediation item${remediationItems.length === 1 ? "" : "s"}: ${remediationItems.slice(0, 3).join("; ")}${remediationItems.length > 3 ? `; and ${countWord(remediationItems.length - 3)} further item${remediationItems.length - 3 === 1 ? "" : "s"} named in Section 6` : ""}. No component is unimplemented and no § 7122 condition is unmet.${naNote}`
     : conclusion === "not_ready"
     ? (() => {
         // QA round two (CY-A-01 / CY-B-02, 2026-09-06) — same root cause the
@@ -905,7 +905,7 @@ export function buildReadinessDetermination(
         if (enforcementBlocks && blocking.length === 0) {
           bits.push("§ 7123(b)(3) implementation-and-enforcement evidence is unmet on this record");
         }
-        return `On the information provided the business is not ready for a § 7124 certified cybersecurity audit: ${bits.join(", and ")}.${naNote}`;
+        return `On the information provided the business is not ready for the § 7123 cybersecurity audit and the § 7124 certification of its completion: ${bits.join(", and ")}.${naNote}`;
       })()
     : (() => {
         // 2026-08-25 — REAL BUG FOUND while investigating C1.1b (prose-gold's

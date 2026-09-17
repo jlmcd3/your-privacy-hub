@@ -21,6 +21,7 @@ import { W_LAW_JSON_SCHEMA, W_REASON_JSON_SCHEMA, W_RECORD_JSON_SCHEMA } from ".
 import { callClaude, callOpenAI, parseJsonObject, type Effort } from "../../../_shared/review/model-calls.ts";
 import { validateWorkerFindings, type DroppedFinding, type ValidatedFinding } from "./validate-v2.ts";
 import { hydrateLocatorPack, registryPackFor, renderRegistryPackText } from "./packs/index.ts";
+import { isRegistryGap } from "./classify.ts";
 import type { RegistryPack } from "./packs/types.ts";
 import { deriveScoreFromFindings } from "../../../_shared/review/scores.ts";
 
@@ -213,7 +214,9 @@ export async function runWorkerJob(admin: Admin, opts: WorkerJobOpts): Promise<W
       overall: null,
       dimension_scores: null,
       overall_score: null,
-      derived_score: deriveScoreFromFindings(v.findings),
+      // doc 263 run 1 — registry gaps (NO ROW) are coverage, not defects; the
+      // worker's score reads the findings it could actually check.
+      derived_score: deriveScoreFromFindings(v.findings.filter((f) => !isRegistryGap({ worker: opts.worker, binding: f.binding, why: f.why }))),
       score_source: "derived_only",
       score_notes: unresolved.length ? `registry rows not hydrated: ${unresolved.join(", ")}` : null,
       usage: {

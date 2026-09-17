@@ -290,8 +290,8 @@ export const ADMT_BLOCK_CATALOGUE: BlockCatalogue = {
       "authorities": [
         "11 CCR § 7221(a)",
         "11 CCR § 7221(b)(1)",
-        "11 CCR § 7221(b)(2)",
-        "11 CCR § 7221(b)(3)"
+        "11 CCR § 7221(b)(2)(A)",
+        "11 CCR § 7221(b)(3)(A)"
       ]
     },
     {

@@ -97,7 +97,11 @@ export const CYBER_AUTHORITY_LOCATORS: readonly CyberAuthorityLocator[] = [
   { proposition_key: "cyber_cert_by_april1", citation: "11 CCR § 7124", subsection: "11 CCR § 7124(b)", provision_key: "cppa-7124", path: "b", starts_with: "The business must submit the", ends_with: "plete a cybersecurity audit." },
   { proposition_key: "cyber_cert_by_exec", citation: "11 CCR § 7124", subsection: "11 CCR § 7124(c)", provision_key: "cppa-7124", path: "c", starts_with: "The written certification mu", ends_with: "ecutive management team who:" },
   { proposition_key: "cyber_cert_portal_and_attest", citation: "11 CCR § 7124", subsection: "11 CCR § 7124(d)", provision_key: "cppa-7124", path: "d", starts_with: "The written certification mu", ends_with: "ite at https://cppa.ca.gov/." },
-  { proposition_key: "cyber_cert_attestation_text", citation: "11 CCR § 7124", subsection: "11 CCR § 7124(d)(4)", provision_key: "cppa-7124", path: "d(4)", starts_with: "I attest that I meet the req", ends_with: "o submit this certification." },
+  // doc 263 run 1 (2026-09-17) — the whole attestation statement, not its first sentence.
+  { proposition_key: "cyber_cert_attestation_text", citation: "11 CCR § 7124", subsection: "11 CCR § 7124(d)(4)", provision_key: "cppa-7124", path: "d(4)", starts_with: "I attest that I meet the req", ends_with: "regarding the cybersecurity audit." },
+  // doc 263 run 1 (2026-09-17) — rows W-LAW found missing on batch eac083a5.
+  { proposition_key: "cyber_evidence_specific", citation: "11 CCR § 7122", subsection: "11 CCR § 7122(d)", provision_key: "cppa-7122", path: "d", starts_with: "Cybersecurity audit findings must", ends_with: "deems appropriate." },
+  { proposition_key: "cyber_report_components", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(e)(2)", provision_key: "cppa-7123", path: "e(2)", starts_with: "Identify the applicable components", ends_with: "component assessed in accordance with subsection (d);" },
 ];
 
 // ── corpus text handling ─────────────────────────────────────────────────

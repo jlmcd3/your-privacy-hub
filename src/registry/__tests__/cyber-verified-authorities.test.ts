@@ -35,7 +35,7 @@ beforeAll(async () => {
 describe("cppa-cybersecurity verified-authority registry — row-shape contract", () => {
   it("hydrates the registry from the corpus (skipped offline)", () => {
     if (!hydrated) return;
-    expect(Object.keys(CYBER_VERIFIED_AUTHORITIES).length).toBe(44);
+    expect(Object.keys(CYBER_VERIFIED_AUTHORITIES).length).toBe(46);
   });
 
   it("stamps a non-empty version tag", () => {
