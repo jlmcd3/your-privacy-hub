@@ -83,9 +83,9 @@ Deno.test("slot-resolver: unknown slot returns empty", () => {
 
 Deno.test("pass1 manifest exposes model + prompt version (T-M5 fold-in: direct Anthropic client)", () => {
   // CEO Q3 same-model ruling (PRE-WAVED-EMITTER-FIXES-2026-07-27): Pass-1
-  // runs on claude-sonnet-4-6 via the shared Anthropic client (not the
+  // runs on claude-sonnet-5 via the shared Anthropic client (not the
   // Lovable AI gateway). Assertion updated from "google/…" prefix.
-  assertEquals(PASS1_MANIFEST.model, "claude-sonnet-4-6");
+  assertEquals(PASS1_MANIFEST.model, "claude-sonnet-5");
   assertEquals(PASS1_MANIFEST.max_attempts, 2);
   assert(PASS1_MANIFEST.prompt_version.startsWith("pass1-derive-"));
 });

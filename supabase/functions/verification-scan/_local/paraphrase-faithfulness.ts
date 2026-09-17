@@ -1,10 +1,10 @@
-// Paraphrase faithfulness check via Claude Sonnet 4.6.
+// Paraphrase faithfulness check via Claude Sonnet 5.
 // Compares corpus paraphrase (A = key_compliance_failure) against source (B).
 
 // AUDIT 2026-09-08 (ledger A8-3): read every text block, never content[0].
 import { extractTextBlocks } from "../../_shared/anthropic-call.ts";
 
-const SONNET_MODEL = "claude-sonnet-4-6";
+const SONNET_MODEL = "claude-sonnet-5";
 const ANTHROPIC_VERSION = "2023-06-01";
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 

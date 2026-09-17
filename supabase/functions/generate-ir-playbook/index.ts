@@ -1235,7 +1235,7 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
         }
 
         // Tail-continuation retry: replay the model's truncated output as an assistant
-        // turn and ask for a continuation in a final user turn (claude-sonnet-4-6 does
+        // turn and ask for a continuation in a final user turn (claude-sonnet-5 does
         // not support assistant prefill — conversation must end with user message).
         async function continuePart(which: "A" | "B" | "C", extra: string, truncated: string, maxTokens: number, timeoutMs: number): Promise<{ text: string; stopReason: string | null }> {
           const tail = which === "C"

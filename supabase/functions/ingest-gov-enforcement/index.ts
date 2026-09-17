@@ -370,7 +370,7 @@ async function generateUpdateSummary(
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-6",
+        model: "claude-sonnet-5",
         max_tokens: 5000,
         system: `You are a senior privacy regulatory analyst at a leading intelligence firm.
 Analyse this enforcement action or regulatory announcement and return a single valid JSON object.

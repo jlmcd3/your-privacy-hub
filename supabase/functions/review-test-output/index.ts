@@ -4,7 +4,7 @@
 // 1. Legacy `mode: "rubric"` (default) — original 1-5 dimension scoring used by
 //    the assertion-test admin page. Backwards-compatible with prior callers.
 // 2. Improvement-cycle `mode: "improvement"` — spec'd by the Quality Loop v2
-//    framework. Accepts an explicit `model` (gpt-4o OR claude-sonnet-4-6),
+//    framework. Accepts an explicit `model` (gpt-4o OR claude-sonnet-5),
 //    scores 0-100 across six dimensions, and returns a flat `changes[]` list
 //    that the dual-model consensus stage can rank.
 

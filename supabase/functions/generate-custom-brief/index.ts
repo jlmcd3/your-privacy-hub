@@ -599,7 +599,7 @@ Return ONLY the JSON object. 3-5 action items. 3-8 issue tags. No preamble.`;
           method: "POST",
           headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
           body: JSON.stringify({
-            model: "claude-sonnet-4-6",
+            model: "claude-sonnet-5",
             // HF5: raise ceiling for Sonnet-5 thinking-block budget consumption.
             max_tokens: 24000,
             system: systemPrompt + "\n\n" + ADVISORY_VOICE_RULES,
@@ -696,7 +696,7 @@ Action items: ${JSON.stringify(customSections.your_action_items || [])}`,
         preferences_snapshot: { industries, jurisdictions, topics, format: briefFormat, brief_role: userRole },
         generated_at: new Date().toISOString(),
         articles_used: topArticles.length,
-        generation_model: "claude-sonnet-4-6",
+        generation_model: "claude-sonnet-5",
         verification_result: verificationResult,
         issue_tags: issueTags,
         source_map: baseSourceMap,
