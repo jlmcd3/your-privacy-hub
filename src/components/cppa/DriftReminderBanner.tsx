@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { X, Bell } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 type Reminder = {
   id: string;
@@ -36,10 +37,15 @@ export default function DriftReminderBanner() {
   }, []);
 
   const dismiss = async (id: string) => {
-    await supabase
-      .from("cppa_drift_reminders")
-      .update({ dismissed_at: new Date().toISOString() })
-      .eq("id", id);
+    const { error } = await supabase.rpc("dismiss_drift_reminder", { reminder_id: id });
+    if (error) {
+      toast({
+        title: "Could not dismiss reminder",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
     setReminders((r) => r.filter((x) => x.id !== id));
   };
 
