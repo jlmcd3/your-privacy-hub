@@ -13,8 +13,10 @@
 //   - Regulation text: 11 CCR Article 10 (§§ 7150–7157) from the CPPA-approved
 //     regulatory text package (ccpa_updates_cyber_risk_admt_appr_text.pdf),
 //     mirrored in cppa_authorities (source='CPPA_REGS', status='current').
-//     Statutory placeholders such as "[OAL to fill in the effective date of
-//     these regulations]" are preserved verbatim (CORPUS-2 precedent).
+//     Statutory placeholders are preserved verbatim as the corpus carries them
+//     (CORPUS-2 precedent); the § 7155(b) effective-date placeholders were
+//     replaced by the final OAL date (January 1, 2026) on 2026-09-17 together
+//     with the corpus rows (doc 267 item 1).
 //   - Statutory anchors: Cal. Civ. Code § 1798.140 (definitions — post-CPRA
 //     lettering; the "Third party" definition is (ai), NOT (ad) which is
 //     "Sell"); § 1798.185(a)(15) (ADMT rule-making authority).
@@ -411,10 +413,10 @@ export const RISK_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7155",
     subsection: "11 CCR § 7155(b)",
     verbatim_quote:
-      "For any processing activity identified in section 7150, subsection (b), that the business initiated prior to [OAL to fill in the effective date of these regulations] and that continues after [OAL to fill in the effective date of these regulations], the business must conduct, and document as set forth in section 7152, a risk assessment in accordance with the requirements of this Article no later than December 31, 2027.",
+      "For any processing activity identified in section 7150, subsection (b), that the business initiated prior to January 1, 2026 and that continues after January 1, 2026, the business must conduct, and document as set forth in section 7152, a risk assessment in accordance with the requirements of this Article no later than December 31, 2027.",
     depth_class: "subsection",
     governing_anchor: ART10,
-    verified_on: VOD,
+    verified_on: "2026-09-17", // § 7155(b) re-verified against the final OAL text (effective January 1, 2026)
     primary_source_url: CCR_URL,
   }),
   ra_retention: R({

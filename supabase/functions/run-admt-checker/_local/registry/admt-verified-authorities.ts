@@ -228,10 +228,10 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     citation: "11 CCR § 7155",
     subsection: "11 CCR § 7155(b)",
     verbatim_quote:
-      "For any processing activity identified in section 7150, subsection (b), that the business initiated prior to [OAL to fill in the effective date of these regulations] and that continues after [OAL to fill in the effective date of these regulations], the business must conduct, and document as set forth in section 7152, a risk assessment in accordance with the requirements of this Article no later than December 31, 2027.",
+      "For any processing activity identified in section 7150, subsection (b), that the business initiated prior to January 1, 2026 and that continues after January 1, 2026, the business must conduct, and document as set forth in section 7152, a risk assessment in accordance with the requirements of this Article no later than December 31, 2027.",
     depth_class: "subsection",
     governing_anchor: ART10,
-    verified_on: VOD,
+    verified_on: "2026-09-17", // § 7155(b) re-verified against the final OAL text (effective January 1, 2026)
     primary_source_url: CCR_URL,
   }),
   ra_submit: R({

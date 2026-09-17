@@ -22,8 +22,9 @@ export const ADMT_COPY = Object.freeze({
   // activity identified in section 7150, subsection (b)"); § 7155(b)
   // (pre-existing processing: "no later than December 31, 2027"). The
   // January 1, 2026 effective date is the OAL-approved effective date
-  // published at https://cppa.ca.gov/regulations/ccpa_updates.html (the PDF
-  // text still carries the "[OAL to fill in the effective date]" placeholder).
+  // published at https://cppa.ca.gov/regulations/ccpa_updates.html; the
+  // corpus and registry text of § 7155(b) carry that date (refreshed
+  // 2026-09-17 from the final OAL text, doc 267 item 1).
   applicabilityCard:
     "If your business uses ADMT to make significant decisions, Article 11 notice, opt-out and access requirements must be met by January 1, 2027. Risk assessments follow a separate timetable: covered new processing requires assessment before it begins from January 1, 2026. Covered processing begun before that date and continuing afterward has the transition deadline in § 7155(b), December 31, 2027. This product assesses Article 11 gaps; it does not replace a separate risk assessment.",
 
