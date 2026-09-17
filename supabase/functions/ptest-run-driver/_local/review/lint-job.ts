@@ -6,12 +6,12 @@
 // fix_class "presentation" pre-set. Also records the document hash (Stage 0)
 // so a rerun can compare.
 
-import { fetchReviewDocument, type ReviewTool } from "./document-source.ts";
+import { fetchReviewDocument, type ReviewTool } from "../../../_shared/review/document-source.ts";
 import { lintDocument, type LintHit } from "./lint.ts";
 import { lintProfileFor } from "./lint-profiles.ts";
 import { documentHash } from "./determinism.ts";
 import { PTEST_V2_PROMPT_VERSION } from "./prompts-v2.ts";
-import type { RenderedSkeletonDocument } from "../prose/skeleton-render.ts";
+import type { RenderedSkeletonDocument } from "../../../_shared/prose/skeleton-render.ts";
 
 // deno-lint-ignore no-explicit-any
 type Admin = any;

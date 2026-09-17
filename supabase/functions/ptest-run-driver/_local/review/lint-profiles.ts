@@ -1,7 +1,7 @@
 // /all-ptest v2 (DOC 261, 2026-09-14) — LINT PROFILES for the three CPPA products.
 //
 // Everything product-specific the shared lint needs, pinned as static data so
-// `_shared/review/lint.ts` never imports a function's `_local` tree (deploy
+// `ptest-run-driver/_local/review/lint.ts` (moved out of `_shared` on 2026-09-17, doc 266 INV-5) never imports a function's `_local` tree (deploy
 // cap). The registry-section lists are PINNED COPIES of what each product's
 // verified-authority registry covers on 2026-09-14; the test
 // tests/edge/ptest/lint.test.ts compares them against the live registries so
@@ -13,7 +13,7 @@
 // names its origin.
 
 import type { LintHit, LintProfile } from "./lint.ts";
-import type { RenderedSkeletonDocument } from "../prose/skeleton-render.ts";
+import type { RenderedSkeletonDocument } from "../../../_shared/prose/skeleton-render.ts";
 
 // ── Registry coverage (pinned; guarded by test) ─────────────────────────────
 

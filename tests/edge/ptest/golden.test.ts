@@ -3,11 +3,11 @@
 // two-run determinism check, and the before/after diff.
 
 import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { GOLDEN_PRODUCTS, generateGoldenOnce, runGenerateJob, type GoldenRow } from "../../../supabase/functions/_shared/review/golden.ts";
-import { computeBatchDiff } from "../../../supabase/functions/_shared/review/diff.ts";
-import { GOLDEN_PANEL } from "../../../supabase/functions/_shared/review/packs/index.ts";
+import { GOLDEN_PRODUCTS, generateGoldenOnce, runGenerateJob, type GoldenRow } from "../../../supabase/functions/ptest-run-driver/_local/review/golden.ts";
+import { computeBatchDiff } from "../../../supabase/functions/ptest-run-driver/_local/review/diff.ts";
+import { GOLDEN_PANEL } from "../../../supabase/functions/ptest-run-driver/_local/review/packs/index.ts";
 import { buildGoldenPanelPack } from "../../../scripts/ptest/build-packs.ts";
-import { documentJobRows } from "../../../supabase/functions/_shared/review/job-rows.ts";
+import { documentJobRows } from "../../../supabase/functions/ptest-run-driver/_local/review/job-rows.ts";
 
 type Row = Record<string, unknown>;
 

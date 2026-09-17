@@ -2,8 +2,8 @@
 // every keep path has a case.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { lookupIntake, validateWorkerFindings, valueMatches, type ValidationContext } from "../../../supabase/functions/_shared/review/validate-v2.ts";
-import { REGISTRY_PACKS } from "../../../supabase/functions/_shared/review/packs/index.ts";
+import { lookupIntake, validateWorkerFindings, valueMatches, type ValidationContext } from "../../../supabase/functions/ptest-run-driver/_local/review/validate-v2.ts";
+import { REGISTRY_PACKS } from "../../../supabase/functions/ptest-run-driver/_local/review/packs/index.ts";
 
 const BLOCK_A = "The Company answers “Yes” to processing sensitive personal information, and the Activity falls within the risk-assessment obligation.";
 const BLOCK_B = "Section 7155(a)(1) requires a risk assessment before the Company initiates processing that falls within § 7150(b).";

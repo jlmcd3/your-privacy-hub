@@ -20,7 +20,7 @@
 
 import { documentHash, firstDivergence, reviewTextOf } from "./determinism.ts";
 import { documentJobRows } from "./job-rows.ts";
-import type { Effort } from "./model-calls.ts";
+import type { Effort } from "../../../_shared/review/model-calls.ts";
 
 // deno-lint-ignore no-explicit-any
 type Admin = any;

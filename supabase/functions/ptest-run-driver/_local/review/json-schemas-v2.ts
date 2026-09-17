@@ -7,7 +7,7 @@
 // carries the evidence the deterministic validator (validate-v2.ts) checks:
 // the quote, the intake key/value, the registry row id/quote.
 
-import type { JsonSchemaSpec } from "./json-schemas.ts";
+import type { JsonSchemaSpec } from "../../../_shared/review/json-schemas.ts";
 
 const str = { type: ["string", "null"] } as const;
 const SEVERITY = { type: "string", enum: ["critical", "high", "editorial"] } as const;

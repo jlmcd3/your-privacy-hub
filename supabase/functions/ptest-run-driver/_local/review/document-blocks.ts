@@ -12,7 +12,7 @@
 // keys are synthesised as `section#pN` so the validator still has an anchor,
 // and the composed list is empty (W-LAW then runs in fixed-prose mode).
 
-import { decodeHtmlEntities } from "./document-source.ts";
+import { decodeHtmlEntities } from "../../../_shared/review/document-source.ts";
 
 type Bag = Record<string, unknown>;
 

@@ -2,14 +2,14 @@
 //
 // Pure builders that read the product registries and run the risk engine
 // over the golden panel to produce the packs committed under
-// supabase/functions/_shared/review/packs/. Used by export-packs.ts (writes
+// supabase/functions/ptest-run-driver/_local/review/packs/. Used by export-packs.ts (writes
 // the files) and by tests/edge/ptest/packs.test.ts (rebuilds in memory and
 // asserts the committed files equal the rebuild — drift guard).
 //
 // This module imports product `_local` trees and therefore lives OUTSIDE
 // supabase/functions (scripts/tests only).
 
-import type { BlockCatalogue, BlockCatalogueEntry, RegistryPack } from "../../supabase/functions/_shared/review/packs/types.ts";
+import type { BlockCatalogue, BlockCatalogueEntry, RegistryPack } from "../../supabase/functions/ptest-run-driver/_local/review/packs/types.ts";
 import {
   RISK_VERIFIED_AUTHORITY_ROWS,
   RISK_VERIFIED_AUTHORITY_VERSION,
@@ -27,7 +27,7 @@ import { generateCppaRiskReport } from "../../supabase/functions/run-cppa-risk-a
 import { CPPA_RISK_GOLDEN, CPPA_RISK_PERFECT } from "../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk.ts";
 import { ADMT_PERFECT } from "../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-admt.ts";
 import { CYBER_PERFECT } from "../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-cyber.ts";
-import type { GoldenPanelPack } from "../../supabase/functions/_shared/review/packs/types.ts";
+import type { GoldenPanelPack } from "../../supabase/functions/ptest-run-driver/_local/review/packs/types.ts";
 
 type Bag = Record<string, unknown>;
 
@@ -180,7 +180,7 @@ import { buildAuthorityExhibit } from "../../supabase/functions/_shared/report-e
 import { buildCyberDeliverables } from "../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cppa-cyber-deliverables/build.ts";
 import { buildCyberComponentRecommendations, buildCyberNextSteps } from "../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cppa-cyber-deliverables/cyber-recommendations.ts";
 import { assembleCyberSkeletonDocumentV4, CYBER_V4_ASSEMBLER_STAMP } from "../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cyber-skeleton-assemble-v4.ts";
-import { extractBlocks } from "../../supabase/functions/_shared/review/document-blocks.ts";
+import { extractBlocks } from "../../supabase/functions/ptest-run-driver/_local/review/document-blocks.ts";
 
 const CITE_RE = /11\s?CCR\s?§§?\s?\d{4}(?:\([a-z0-9A-Z]{1,3}\))*|(?<!\d)§§?\s?7\d{3}(?:\([a-z0-9A-Z]{1,3}\))*|Cal\.\s?Civ\.\s?Code\s?§§?\s?\d{4}(?:\.\d+)?(?:\([a-z0-9A-Z]{1,3}\))*/g;
 

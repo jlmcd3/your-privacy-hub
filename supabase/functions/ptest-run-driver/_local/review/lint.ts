@@ -42,7 +42,7 @@
 //             sentence; "prior version" language needs a recorded prior date
 //             (intake-gated; skipped when no intake is supplied)
 
-import type { RenderedSkeletonDocument, RenderedTable } from "../prose/skeleton-render.ts";
+import type { RenderedSkeletonDocument, RenderedTable } from "../../../_shared/prose/skeleton-render.ts";
 
 export const LINT_VERSION = "ptest-lint@doc261-2026-09-14";
 

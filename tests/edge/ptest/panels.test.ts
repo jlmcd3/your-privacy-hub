@@ -29,9 +29,9 @@ import { buildAuthorityExhibit } from "../../../supabase/functions/_shared/repor
 import { buildCyberDeliverables } from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cppa-cyber-deliverables/build.ts";
 import { buildCyberComponentRecommendations, buildCyberNextSteps } from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cppa-cyber-deliverables/cyber-recommendations.ts";
 import { assembleCyberSkeletonDocumentV4 } from "../../../supabase/functions/run-cppa-cybersecurity/_local/ltp/cyber-skeleton-assemble-v4.ts";
-import { reviewTextOf } from "../../../supabase/functions/_shared/review/determinism.ts";
-import { lintDocument } from "../../../supabase/functions/_shared/review/lint.ts";
-import { lintProfileFor } from "../../../supabase/functions/_shared/review/lint-profiles.ts";
+import { reviewTextOf } from "../../../supabase/functions/ptest-run-driver/_local/review/determinism.ts";
+import { lintDocument } from "../../../supabase/functions/ptest-run-driver/_local/review/lint.ts";
+import { lintProfileFor } from "../../../supabase/functions/ptest-run-driver/_local/review/lint-profiles.ts";
 import type { RenderedSkeletonDocument } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
 
 type Bag = Record<string, unknown>;

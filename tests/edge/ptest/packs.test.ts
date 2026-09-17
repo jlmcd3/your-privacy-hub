@@ -22,7 +22,7 @@ import {
   registryRowById,
   renderBlockCatalogueText,
   renderRegistryPackText,
-} from "../../../supabase/functions/_shared/review/packs/index.ts";
+} from "../../../supabase/functions/ptest-run-driver/_local/review/packs/index.ts";
 import { generateCppaRiskReport } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/generate-cppa-risk.ts";
 import { CPPA_RISK_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk.ts";
 

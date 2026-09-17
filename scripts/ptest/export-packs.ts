@@ -2,7 +2,7 @@
 //
 //   deno run --allow-read --allow-write --allow-env scripts/ptest/export-packs.ts
 //
-// Regenerates supabase/functions/_shared/review/packs/*.pack.ts from the
+// Regenerates supabase/functions/ptest-run-driver/_local/review/packs/*.pack.ts from the
 // product registries and the risk engine (golden panel). Run after any change
 // to a verified-authority registry, the risk spine, or the engine's
 // provenance; the drift test fails until the committed packs are rebuilt.
@@ -18,7 +18,7 @@ import {
   packModuleSource,
 } from "./build-packs.ts";
 
-const OUT = new URL("../../supabase/functions/_shared/review/packs/", import.meta.url);
+const OUT = new URL("../../supabase/functions/ptest-run-driver/_local/review/packs/", import.meta.url);
 
 const files: Array<[string, string, string, unknown]> = [
   ["risk-registry.pack.ts", "RISK_REGISTRY_PACK", "RegistryPack", buildRiskRegistryPack()],

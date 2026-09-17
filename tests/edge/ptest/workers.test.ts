@@ -2,11 +2,11 @@
 // the driver's v2 job set. Hermetic: no model, no database.
 
 import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { WORKER_JOB_KINDS, WORKER_KIND_LIST, findingRows, reviewerLabel, workerOfKind } from "../../../supabase/functions/_shared/review/workers.ts";
-import { WORKER_VENDORS, buildWorkerSystemPrompt, buildWorkerUserTurn, type WorkerId } from "../../../supabase/functions/_shared/review/prompts-v2.ts";
-import { W_LAW_JSON_SCHEMA, W_REASON_JSON_SCHEMA, W_RECORD_JSON_SCHEMA, CLASSIFY_JSON_SCHEMA } from "../../../supabase/functions/_shared/review/json-schemas-v2.ts";
-import { blockTextMap, composedListOf, extractBlocks, intakeKeysForBlock, renderBlocksText, renderComposedList } from "../../../supabase/functions/_shared/review/document-blocks.ts";
-import { runLintJob } from "../../../supabase/functions/_shared/review/lint-job.ts";
+import { WORKER_JOB_KINDS, WORKER_KIND_LIST, findingRows, reviewerLabel, workerOfKind } from "../../../supabase/functions/ptest-run-driver/_local/review/workers.ts";
+import { WORKER_VENDORS, buildWorkerSystemPrompt, buildWorkerUserTurn, type WorkerId } from "../../../supabase/functions/ptest-run-driver/_local/review/prompts-v2.ts";
+import { W_LAW_JSON_SCHEMA, W_REASON_JSON_SCHEMA, W_RECORD_JSON_SCHEMA, CLASSIFY_JSON_SCHEMA } from "../../../supabase/functions/ptest-run-driver/_local/review/json-schemas-v2.ts";
+import { blockTextMap, composedListOf, extractBlocks, intakeKeysForBlock, renderBlocksText, renderComposedList } from "../../../supabase/functions/ptest-run-driver/_local/review/document-blocks.ts";
+import { runLintJob } from "../../../supabase/functions/ptest-run-driver/_local/review/lint-job.ts";
 import { v2JobRows } from "../../../supabase/functions/ptest-run-driver/index.ts";
 import { generateCppaRiskReport } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/generate-cppa-risk.ts";
 import { CPPA_RISK_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk.ts";

@@ -22,9 +22,9 @@
 
 import { CLASSIFY_SYSTEM, buildClassifyUserTurn, PTEST_V2_PROMPT_VERSION, type ClassifyInputFinding } from "./prompts-v2.ts";
 import { CLASSIFY_JSON_SCHEMA, FIX_CLASSES, type FixClass } from "./json-schemas-v2.ts";
-import { callClaude, parseJsonObject, type Effort } from "./model-calls.ts";
+import { callClaude, parseJsonObject, type Effort } from "../../../_shared/review/model-calls.ts";
 import { normalise } from "./validate-v2.ts";
-import { SEVERITY_WEIGHTS } from "./scores.ts";
+import { SEVERITY_WEIGHTS } from "../../../_shared/review/scores.ts";
 import { blockCatalogueFor, registryPackFor, registryRowById } from "./packs/index.ts";
 
 // deno-lint-ignore no-explicit-any

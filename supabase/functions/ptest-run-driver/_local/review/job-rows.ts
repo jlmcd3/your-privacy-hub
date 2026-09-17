@@ -2,7 +2,7 @@
 // Shared by the driver's enqueue and by the `generate` job (which enqueues a
 // golden document's jobs once the regeneration lands).
 
-import type { Effort } from "./model-calls.ts";
+import type { Effort } from "../../../_shared/review/model-calls.ts";
 import { WORKER_KIND_LIST } from "./workers.ts";
 
 export interface DocumentJobSpec {

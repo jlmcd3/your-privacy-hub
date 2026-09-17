@@ -29,8 +29,8 @@
 // offline test (tests/edge/ptest/determinism.test.ts) and the driver's
 // production check share one definition of "identical".
 
-import { extractCustomerDocument } from "../grader/payload.ts";
-import { decodeHtmlEntities } from "./document-source.ts";
+import { extractCustomerDocument } from "../../../_shared/grader/payload.ts";
+import { decodeHtmlEntities } from "../../../_shared/review/document-source.ts";
 
 export type DeterminismProduct = "cppa-risk" | "cppa-cyber" | "cppa-admt";
 

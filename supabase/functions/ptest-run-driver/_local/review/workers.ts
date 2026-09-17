@@ -8,7 +8,7 @@
 // stored; validated findings and dropped findings are both written to
 // ptest_findings (the drop reason is the quality signal about the worker).
 
-import { fetchReviewDocument, type ReviewTool } from "./document-source.ts";
+import { fetchReviewDocument, type ReviewTool } from "../../../_shared/review/document-source.ts";
 import { blockTextMap, composedListOf, extractBlocks, renderBlocksText, renderComposedList } from "./document-blocks.ts";
 import {
   buildWorkerSystemPrompt,
@@ -18,11 +18,11 @@ import {
   type WorkerId,
 } from "./prompts-v2.ts";
 import { W_LAW_JSON_SCHEMA, W_REASON_JSON_SCHEMA, W_RECORD_JSON_SCHEMA } from "./json-schemas-v2.ts";
-import { callClaude, callOpenAI, parseJsonObject, type Effort } from "./model-calls.ts";
+import { callClaude, callOpenAI, parseJsonObject, type Effort } from "../../../_shared/review/model-calls.ts";
 import { validateWorkerFindings, type DroppedFinding, type ValidatedFinding } from "./validate-v2.ts";
 import { hydrateLocatorPack, registryPackFor, renderRegistryPackText } from "./packs/index.ts";
 import type { RegistryPack } from "./packs/types.ts";
-import { deriveScoreFromFindings } from "./scores.ts";
+import { deriveScoreFromFindings } from "../../../_shared/review/scores.ts";
 
 // deno-lint-ignore no-explicit-any
 type Admin = any;

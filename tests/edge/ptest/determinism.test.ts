@@ -29,7 +29,7 @@ import {
   longDate,
   reviewTextOf,
   todayIso,
-} from "../../../supabase/functions/_shared/review/determinism.ts";
+} from "../../../supabase/functions/ptest-run-driver/_local/review/determinism.ts";
 import { CPPA_RISK_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk.ts";
 import { ADMT_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-admt.ts";
 import { CYBER_PERFECT } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-cyber.ts";

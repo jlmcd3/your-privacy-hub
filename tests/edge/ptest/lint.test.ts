@@ -14,7 +14,7 @@
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import type { RenderedSkeletonDocument } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
-import { LINT_RULE_IDS, lintDocument, type LintHit, type LintProfile } from "../../../supabase/functions/_shared/review/lint.ts";
+import { LINT_RULE_IDS, lintDocument, type LintHit, type LintProfile } from "../../../supabase/functions/ptest-run-driver/_local/review/lint.ts";
 import {
   ADMT_LINT_PROFILE,
   ADMT_REGISTRY_SECTIONS,
@@ -22,7 +22,7 @@ import {
   CYBER_REGISTRY_SECTIONS,
   RISK_LINT_PROFILE,
   RISK_REGISTRY_SECTIONS,
-} from "../../../supabase/functions/_shared/review/lint-profiles.ts";
+} from "../../../supabase/functions/ptest-run-driver/_local/review/lint-profiles.ts";
 import { RISK_VERIFIED_AUTHORITY_ROWS } from "../../../supabase/functions/_shared/registry/risk-verified-authorities.ts";
 import { ADMT_VERIFIED_AUTHORITY_ROWS } from "../../../supabase/functions/run-admt-checker-v2/_local/registry/admt-verified-authorities.ts";
 import { CYBER_AUTHORITY_LOCATORS } from "../../../supabase/functions/run-cppa-cybersecurity/_local/registry/cyber-verified-authorities.ts";

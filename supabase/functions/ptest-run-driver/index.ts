@@ -35,15 +35,15 @@ import { runDocumentReview, type Reviewer } from "../_shared/review/run-review.t
 import { runArbitration } from "../_shared/review/run-arbitration.ts";
 import { type Effort } from "../_shared/review/model-calls.ts";
 import { cors, json, requireAdmin, isResponse, SUPABASE_URL, SERVICE_KEY } from "../_shared/review/auth.ts";
-import { runWorkerJob, workerOfKind, WORKER_KIND_LIST } from "../_shared/review/workers.ts";
-import { runLintJob } from "../_shared/review/lint-job.ts";
-import { mergeProductV2, runClassifyJob } from "../_shared/review/classify.ts";
-import { PTEST_V2_PROMPT_VERSION, WORKER_VENDORS } from "../_shared/review/prompts-v2.ts";
-import { DETERMINISM_SETTINGS, todayIso } from "../_shared/review/determinism.ts";
-import { documentJobRows, mergeJobRow } from "../_shared/review/job-rows.ts";
-import { GOLDEN_PRODUCTS, runGenerateJob, type GoldenRow } from "../_shared/review/golden.ts";
-import { computeBatchDiff } from "../_shared/review/diff.ts";
-import { GOLDEN_PANEL } from "../_shared/review/packs/index.ts";
+import { runWorkerJob, workerOfKind, WORKER_KIND_LIST } from "./_local/review/workers.ts";
+import { runLintJob } from "./_local/review/lint-job.ts";
+import { mergeProductV2, runClassifyJob } from "./_local/review/classify.ts";
+import { PTEST_V2_PROMPT_VERSION, WORKER_VENDORS } from "./_local/review/prompts-v2.ts";
+import { DETERMINISM_SETTINGS, todayIso } from "./_local/review/determinism.ts";
+import { documentJobRows, mergeJobRow } from "./_local/review/job-rows.ts";
+import { GOLDEN_PRODUCTS, runGenerateJob, type GoldenRow } from "./_local/review/golden.ts";
+import { computeBatchDiff } from "./_local/review/diff.ts";
+import { GOLDEN_PANEL } from "./_local/review/packs/index.ts";
 import { isIsoDate } from "../_shared/report-date.ts";
 
 export const BUILD_STAMP = "all-ptest-driver-v3-workers@2026-09-14";

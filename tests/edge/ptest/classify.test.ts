@@ -12,7 +12,7 @@ import {
   type Classification,
   type DedupedFinding,
   type FindingRow,
-} from "../../../supabase/functions/_shared/review/classify.ts";
+} from "../../../supabase/functions/ptest-run-driver/_local/review/classify.ts";
 
 type Row = Record<string, unknown>;
 
