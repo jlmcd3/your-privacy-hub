@@ -38,7 +38,7 @@ import {
   frameBodyNeedles,
   MACHINE_ABSENCE_SENTENCES,
   PARTIAL_DISCHARGE_RE,
-} from "../../../_shared/ltp/dpia-csc.ts";
+} from "../../../_shared/ltp/csc-absence.ts" // INV-5 (2026-09-16): the shared recognisers, without the DPIA deliverables behind dpia-csc.ts;
 import {
   buildHumanInvolvementRecord,
   buildHumanReviewReasoning,

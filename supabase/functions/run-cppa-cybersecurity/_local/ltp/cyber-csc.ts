@@ -49,7 +49,7 @@
 // modules to a directory the batch functions bundle can fail specifier
 // resolution at deploy time; one new module per leg keeps the closure stable.
 
-import { carriesAbsenceLanguage, frameBodyNeedles, PARTIAL_DISCHARGE_RE } from "../../../_shared/ltp/dpia-csc.ts";
+import { carriesAbsenceLanguage, frameBodyNeedles, PARTIAL_DISCHARGE_RE } from "../../../_shared/ltp/csc-absence.ts" // INV-5 (2026-09-16): the shared recognisers, without the DPIA deliverables behind dpia-csc.ts;
 import {
   CYBER_ABSENCE_LABEL_PHRASINGS,
   isProtectedCyberString,

@@ -55,7 +55,7 @@
 // Telemetry rides `_meta.internal.ir_csc`.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { carriesAbsenceLanguage, frameBodyNeedles } from "../../../_shared/ltp/dpia-csc.ts";
+import { carriesAbsenceLanguage, frameBodyNeedles } from "../../../_shared/ltp/csc-absence.ts" // INV-5 (2026-09-16): the shared recognisers, without the DPIA deliverables behind dpia-csc.ts;
 import {
   IR_ABSENCE_LABEL_PHRASINGS,
   IR_DESIGNED_ABSENCE_EXEMPTIONS,

@@ -22,7 +22,9 @@ export const PANEL_LIA: PanelFixture[] = [
       jurisdictions: ["EU (GDPR)"],
       stated_purpose: "Detect and stop fraudulent card payments and transfers before funds leave a customer's account.",
       alternatives_considered: "Kastellan considered consent-based screening, a fixed transaction-value threshold, and manual review of a random sample; each is set out with its rejection reason in the necessity record.",
+      use_case_code_confirmed: "fraud_prevention",
       purpose_details: {
+        stated_purpose_status: "Published in our current privacy notice",
         interest_holder: "Our organisation only",
         interest_type: "Security / fraud prevention",
         interest_statement: "Kastellan bears the reimbursement cost of unauthorised transactions under the Swedish Payment Services Act; screening every transaction before release lets it stop fraud before funds leave rather than reimburse after the fact.",
@@ -62,6 +64,7 @@ export const PANEL_LIA: PanelFixture[] = [
         additional_context: "No score or signal is shared with any third party outside the mandatory fraud-reporting channel to Finansinspektionen, and none is used for marketing or credit-limit decisions.",
       },
       attestation: {
+        approval_status: "Approved",
         dpo_reviewed: "Yes",
         dpo_reviewer: "Elin Nyström, Data Protection Officer",
         dpo_review_date: "2026-05-12",
@@ -91,7 +94,9 @@ export const PANEL_LIA: PanelFixture[] = [
       jurisdictions: ["United Kingdom (UK GDPR)", "EU (GDPR)"],
       stated_purpose: "Detect and escalate unauthorised access attempts on client networks before an intrusion succeeds.",
       alternatives_considered: "Vantpoint considered relying on client-side alerting alone and a lower-fidelity aggregate-only log feed; both are addressed with their rejection reasons in the necessity record.",
+      use_case_code_confirmed: "it_security",
       purpose_details: {
+        stated_purpose_status: "Published in our current privacy notice",
         interest_holder: "Our organisation and a third party (e.g. business partner)",
         interest_type: "Security / fraud prevention",
         interest_statement: "Vantpoint's managed-security clients contract for intrusion detection across their networks; correlating authentication events by named account is what makes a privileged-account compromise visible in time to act.",
@@ -131,6 +136,7 @@ export const PANEL_LIA: PanelFixture[] = [
         additional_context: "Log data from one client's network is never correlated against another client's network, and no data is used for any purpose beyond the contracted security-monitoring service.",
       },
       attestation: {
+        approval_status: "Approved",
         dpo_reviewed: "Yes",
         dpo_reviewer: "Harriet Ogundele, Data Protection Officer",
         dpo_review_date: "2026-04-08",
@@ -160,7 +166,9 @@ export const PANEL_LIA: PanelFixture[] = [
       jurisdictions: ["EU (GDPR)"],
       stated_purpose: "Promote Loureiro's own products to existing customers using their purchase history to personalise which items are featured.",
       alternatives_considered: "Loureiro considered consent-based opt-in marketing and untargeted mass marketing with no personalisation; both are set out with their rejection reasons in the necessity record.",
+      use_case_code_confirmed: "direct_marketing",
       purpose_details: {
+        stated_purpose_status: "Published in our current privacy notice",
         interest_holder: "Our organisation only",
         interest_type: "Commercial / revenue-related",
         interest_statement: "Loureiro has a commercial interest in prompting repeat purchases from its existing customer base using the soft opt-in permitted for its own similar products.",
@@ -202,6 +210,7 @@ export const PANEL_LIA: PanelFixture[] = [
         additional_context: "No purchase or contact data is shared with any third-party advertiser; personalisation runs entirely within Loureiro's own marketing platform.",
       },
       attestation: {
+        approval_status: "Approved",
         dpo_reviewed: "Yes",
         dpo_reviewer: "Federica Colombo, Responsabile della Protezione dei Dati",
         dpo_review_date: "2026-03-04",
@@ -231,7 +240,9 @@ export const PANEL_LIA: PanelFixture[] = [
       jurisdictions: ["EU (GDPR)"],
       stated_purpose: "Identify underused or confusing product features to prioritise the design-software roadmap.",
       alternatives_considered: "Kleurwerk considered opt-in-only analytics and periodic user surveys instead of continuous logging; both are addressed with their rejection reasons in the necessity record.",
+      use_case_code_confirmed: "research_analytics",
       purpose_details: {
+        stated_purpose_status: "Published in our current privacy notice",
         interest_holder: "Our organisation only",
         interest_type: "Research / product improvement",
         interest_statement: "Kleurwerk needs to know which features are actually used, and where users struggle, to prioritise a limited engineering roadmap; this is a live, ongoing product-management need.",
@@ -275,6 +286,7 @@ export const PANEL_LIA: PanelFixture[] = [
         additional_context: "Usage data is never sold or shared with any third party and is used exclusively for Kleurwerk's own product-roadmap decisions.",
       },
       attestation: {
+        approval_status: "Approved",
         dpo_reviewed: "Yes",
         dpo_reviewer: "Joost Bakker, Functionaris Gegevensbescherming",
         dpo_review_date: "2026-02-10",
@@ -304,7 +316,9 @@ export const PANEL_LIA: PanelFixture[] = [
       jurisdictions: ["EU (GDPR)"],
       stated_purpose: "Support coaching and quality assurance of customer-service agents through a sampled review of recorded calls.",
       alternatives_considered: "Grünewald considered live call-listening by team leads and self-assessment by agents against the rubric instead of recording; both are set out with their rejection reasons in the necessity record.",
+      use_case_code_confirmed: "employee_monitoring",
       purpose_details: {
+        stated_purpose_status: "Published in our current privacy notice",
         interest_holder: "Our organisation only",
         interest_type: "Operational / service delivery",
         interest_statement: "Grünewald is contractually required by its client brands to maintain a quality-assurance programme; recorded-call review against a rubric is the mechanism agreed with the works council for delivering that requirement.",
@@ -348,6 +362,7 @@ export const PANEL_LIA: PanelFixture[] = [
         additional_context: "Recordings are never shared with the client brands directly; only aggregate quality scores, not the recordings themselves, are reported to clients.",
       },
       attestation: {
+        approval_status: "Approved",
         dpo_reviewed: "Yes",
         dpo_reviewer: "Dr. Anke Fiedler, Datenschutzbeauftragte",
         dpo_review_date: "2025-10-27",
@@ -377,7 +392,9 @@ export const PANEL_LIA: PanelFixture[] = [
       jurisdictions: ["EU (GDPR)", "United Kingdom (UK GDPR)"],
       stated_purpose: "Identify failing components and plan firmware updates to improve appliance reliability.",
       alternatives_considered: "Solstice considered relying only on warranty-claim data and a smaller opt-in beta-tester panel instead of telemetry from all connected appliances; both are addressed with their rejection reasons in the necessity record.",
+      use_case_code_confirmed: "product_improvement",
       purpose_details: {
+        stated_purpose_status: "Published in our current privacy notice",
         interest_holder: "Our organisation only",
         interest_type: "Research / product improvement",
         interest_statement: "Solstice needs to know which components fail in real household use, not only which failures reach a warranty claim, to prioritise engineering fixes and firmware updates before a fault becomes widespread.",
@@ -417,6 +434,7 @@ export const PANEL_LIA: PanelFixture[] = [
         additional_context: "Telemetry is never used to market other Solstice products to the household and is not shared with retailers.",
       },
       attestation: {
+        approval_status: "Approved",
         dpo_reviewed: "Yes",
         dpo_reviewer: "Niamh Casey, Data Protection Officer",
         dpo_review_date: "2026-01-14",
@@ -446,7 +464,9 @@ export const PANEL_LIA: PanelFixture[] = [
       jurisdictions: ["EU (GDPR)"],
       stated_purpose: "Detect and mitigate DDoS attacks and botnet activity affecting the network and its subscribers.",
       alternatives_considered: "Réseau Fibre considered relying solely on upstream transit-provider alerts and full packet-content inspection instead of flow-metadata analysis; both are set out with their rejection reasons in the necessity record.",
+      use_case_code_confirmed: "it_security",
       purpose_details: {
+        stated_purpose_status: "Published in our current privacy notice",
         interest_holder: "Our organisation and a third party (e.g. business partner)",
         interest_type: "Security / fraud prevention",
         interest_statement: "Réseau Fibre and its subscribers share an interest in a network that is not degraded by attack traffic and in identifying a subscriber's own device that has been compromised into a botnet before it is used against others.",
@@ -490,6 +510,7 @@ export const PANEL_LIA: PanelFixture[] = [
         additional_context: "Flow metadata is never used for advertising, and is shared with ANSSI only where a specific attack meets the mandatory national incident-reporting threshold.",
       },
       attestation: {
+        approval_status: "Approved",
         dpo_reviewed: "Yes",
         dpo_reviewer: "Camille Fontaine, Déléguée à la protection des données",
         dpo_review_date: "2026-06-09",
@@ -519,7 +540,9 @@ export const PANEL_LIA: PanelFixture[] = [
       jurisdictions: ["EU (GDPR)"],
       stated_purpose: "Recover overdue utility bill amounts through a graduated internal process and, where necessary, a licensed external collections agency.",
       alternatives_considered: "Acqua Chiara considered immediate service disconnection at 60 days and immediate referral to external collections with no internal payment-plan stage; both are addressed with their rejection reasons in the necessity record.",
+      use_case_code_confirmed: "contractual_administration",
       purpose_details: {
+        stated_purpose_status: "Published in our current privacy notice",
         interest_holder: "Our organisation only",
         interest_type: "Commercial / revenue-related",
         interest_statement: "Acqua Chiara has a legitimate interest in recovering amounts genuinely owed for services already supplied, while a graduated process with a payment-plan option gives a household in temporary difficulty a realistic route to avoid escalation.",
@@ -559,6 +582,7 @@ export const PANEL_LIA: PanelFixture[] = [
         additional_context: "Data shared with Recupero Crediti Lombardia S.r.l. is limited to what is needed for recovery and is returned or deleted once the debt is resolved or written off.",
       },
       attestation: {
+        approval_status: "Approved",
         dpo_reviewed: "Yes",
         dpo_reviewer: "Simone Bianchi, Responsabile della Protezione dei Dati",
         dpo_review_date: "2026-03-20",
@@ -588,7 +612,9 @@ export const PANEL_LIA: PanelFixture[] = [
       jurisdictions: ["EU (GDPR)"],
       stated_purpose: "Prevent fraudulent listings and scam messaging from reaching buyers on the marketplace.",
       alternatives_considered: "Marktplaats Vertrouwen considered post-publication reporting only and a flat new-account waiting period instead of pre-publication scoring; both are set out with their rejection reasons in the necessity record.",
+      use_case_code_confirmed: "fraud_prevention",
       purpose_details: {
+        stated_purpose_status: "Published in our current privacy notice",
         interest_holder: "The wider public",
         interest_type: "Security / fraud prevention",
         interest_statement: "Buyers on the marketplace, and the marketplace's own reputation, are harmed by fraudulent listings reaching publication; pre-publication scoring catches a large share of scam patterns before any buyer is exposed.",
@@ -628,6 +654,7 @@ export const PANEL_LIA: PanelFixture[] = [
         additional_context: "No score or signal is shared with any third party, and none is used to influence a seller's marketplace fees.",
       },
       attestation: {
+        approval_status: "Approved",
         dpo_reviewed: "Yes",
         dpo_reviewer: "Wouter Smit, Functionaris Gegevensbescherming",
         dpo_review_date: "2026-07-01",
@@ -657,7 +684,9 @@ export const PANEL_LIA: PanelFixture[] = [
       jurisdictions: ["United Kingdom (UK GDPR)"],
       stated_purpose: "Detect anomalous badge-access patterns that may indicate a cloned or stolen access badge across managed buildings.",
       alternatives_considered: "Castlemore considered manual security-desk log review only and disabling cross-building anomaly correlation; both are addressed with their rejection reasons in the necessity record.",
+      use_case_code_confirmed: "it_security",
       purpose_details: {
+        stated_purpose_status: "Published in our current privacy notice",
         interest_holder: "Our organisation and a third party (e.g. business partner)",
         interest_type: "Security / fraud prevention",
         interest_statement: "Castlemore and its tenant occupiers share an interest in detecting a cloned or stolen badge before it is used to gain unauthorised building access.",
@@ -696,6 +725,7 @@ export const PANEL_LIA: PanelFixture[] = [
         additional_context: "Access-log data is never shared between unrelated tenant occupiers and is used only for the security purpose described.",
       },
       attestation: {
+        approval_status: "Approved",
         dpo_reviewed: "Yes",
         dpo_reviewer: "Olivia Bennett, Data Protection Officer",
         dpo_review_date: "2026-04-30",
@@ -725,7 +755,9 @@ export const PANEL_LIA: PanelFixture[] = [
       jurisdictions: ["EU (GDPR)"],
       stated_purpose: "Raise funds for the Foundation's welfare programmes by informing past donors of current campaigns.",
       alternatives_considered: "The Foundation considered consent-based opt-in fundraising communications and untargeted public advertising instead of appeals to past donors; both are set out with their rejection reasons in the necessity record.",
+      use_case_code_confirmed: "direct_marketing",
       purpose_details: {
+        stated_purpose_status: "Published in our current privacy notice",
         interest_holder: "Our organisation and a third party (e.g. business partner)",
         interest_type: "Public interest / societal benefit",
         interest_statement: "The Foundation's welfare programmes depend on donor funding, and past donors who have not opted out are the group most likely to support a further appeal, which the charity soft opt-in specifically permits without a fresh consent request each quarter.",
@@ -767,6 +799,7 @@ export const PANEL_LIA: PanelFixture[] = [
         additional_context: "Donor contact data is never shared with or sold to any other organisation, including other charities.",
       },
       attestation: {
+        approval_status: "Approved",
         dpo_reviewed: "Yes",
         dpo_reviewer: "Sophie Laurent, Déléguée à la protection des données",
         dpo_review_date: "2026-01-19",
@@ -796,7 +829,9 @@ export const PANEL_LIA: PanelFixture[] = [
       jurisdictions: ["EU (GDPR)"],
       stated_purpose: "Personalise destination recommendations shown to website visitors based on their own browsing behaviour.",
       alternatives_considered: "Nordafari considered showing only generic best-seller destinations to all visitors and a shorter session-only personalisation window instead of cross-session profiles; both are set out with their rejection reasons in the necessity record.",
+      use_case_code_confirmed: "product_improvement",
       purpose_details: {
+        stated_purpose_status: "Published in our current privacy notice",
         interest_holder: "Our organisation only",
         interest_type: "Commercial / revenue-related",
         interest_statement: "Nordafari has a commercial interest in showing a visitor destinations they are more likely to book, which increases conversion from browsing to a completed holiday booking.",
@@ -836,6 +871,7 @@ export const PANEL_LIA: PanelFixture[] = [
         additional_context: "No browsing data is sold to any third-party advertiser; personalisation runs entirely within Nordafari's own website.",
       },
       attestation: {
+        approval_status: "Approved",
         dpo_reviewed: "Yes",
         dpo_reviewer: "Kristina Åberg, Dataskyddsombud",
         dpo_review_date: "2026-05-25",
@@ -865,7 +901,9 @@ export const PANEL_LIA: PanelFixture[] = [
       jurisdictions: ["EU (GDPR)", "United Kingdom (UK GDPR)"],
       stated_purpose: "Improve driver safety through coaching informed by a weekly driving-behaviour score, and support fuel-efficiency planning.",
       alternatives_considered: "Dunboyne considered relying on customer and public incident reports alone and continuous 24-hour tracking instead of working-hours-only telematics; both are addressed with their rejection reasons in the necessity record.",
+      use_case_code_confirmed: "employee_monitoring",
       purpose_details: {
+        stated_purpose_status: "Published in our current privacy notice",
         interest_holder: "Our organisation and the individuals",
         interest_type: "Operational / service delivery",
         interest_statement: "Dunboyne has an operational interest in reducing at-fault collisions and fuel cost across its delivery fleet, and drivers benefit from targeted coaching before a driving pattern results in an incident.",
@@ -909,6 +947,7 @@ export const PANEL_LIA: PanelFixture[] = [
         additional_context: "Telematics data is never shared with customers and is used only for internal safety coaching and fleet fuel-efficiency planning.",
       },
       attestation: {
+        approval_status: "Approved",
         dpo_reviewed: "Yes",
         dpo_reviewer: "Aoife Kinsella, Data Protection Officer",
         dpo_review_date: "2025-08-07",
@@ -938,7 +977,9 @@ export const PANEL_LIA: PanelFixture[] = [
       jurisdictions: ["EU (GDPR)"],
       stated_purpose: "Recover assigned consumer debts on behalf of originating creditors under Rheinfeld's registered debt-collection activity.",
       alternatives_considered: "Rheinfeld considered immediate court action with no prior payment-plan stage and unlimited-frequency contact instead of the current graduated, frequency-capped process; both are set out with their rejection reasons in the necessity record.",
+      use_case_code_confirmed: "contractual_administration",
       purpose_details: {
+        stated_purpose_status: "Published in our current privacy notice",
         interest_holder: "A third party we share data with",
         interest_holder_other: "",
         interest_type: "Legal / regulatory compliance",
@@ -978,6 +1019,7 @@ export const PANEL_LIA: PanelFixture[] = [
         additional_context: "Debt data is never shared with any party beyond Rheinfeld and the originating creditor, and is not used for any marketing purpose.",
       },
       attestation: {
+        approval_status: "Approved",
         dpo_reviewed: "Yes",
         dpo_reviewer: "Michael Vogt, Datenschutzbeauftragter",
         dpo_review_date: "2026-02-24",
@@ -1007,7 +1049,9 @@ export const PANEL_LIA: PanelFixture[] = [
       jurisdictions: ["EU (GDPR)"],
       stated_purpose: "Prevent SIM-swap fraud and account takeover by verifying high-risk SIM-change and account-access requests before they take effect.",
       alternatives_considered: "Telveil considered processing every SIM-swap request identically with a fixed 24-hour delay and relying on customer-reported fraud only; both are set out with their rejection reasons in the necessity record.",
+      use_case_code_confirmed: "it_security",
       purpose_details: {
+        stated_purpose_status: "Published in our current privacy notice",
         interest_holder: "Our organisation and the individuals",
         interest_type: "Security / fraud prevention",
         interest_statement: "Telveil and its subscribers share an interest in preventing a SIM swap from being used to intercept authentication codes for the subscriber's other accounts, which is the specific fraud pattern this screening targets.",
@@ -1049,6 +1093,7 @@ export const PANEL_LIA: PanelFixture[] = [
         additional_context: "No signalling or device data is shared with any third party, and none is used for marketing or handset-upgrade targeting.",
       },
       attestation: {
+        approval_status: "Approved",
         dpo_reviewed: "Yes",
         dpo_reviewer: "Sofie Van Damme, Data Protection Officer",
         dpo_review_date: "2026-07-15",

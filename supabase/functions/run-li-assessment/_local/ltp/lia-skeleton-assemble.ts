@@ -71,7 +71,8 @@ import { repairRegister } from "../../../_shared/ltp/register-repair.ts";
 // DOC 172 (2026-09-04) — Syllabus & Record (doc 151); LIA is the third
 // product migrated onto the fleet presentation system.
 import { dispositionTone, type SyllabusProjection } from "../../../_shared/prose/syllabus.ts";
-import { firstSentence } from "../../../_shared/ltp/dpia-skeleton-assemble.ts";
+// INV-5 (2026-09-16): imported from its definition, not through the DPIA assembler.
+import { firstSentence } from "../../../_shared/ltp/clause-bound.ts";
 import { naturalCitationCompare } from "../../../_shared/ltp/citation-order.ts";
 // DOC 73 §4 (R2/R5, 2026-08-26) — the precedent-class posture finding.
 // LIA_PRECEDENT_CLASS_RATIFIED gates whether it reaches the document at

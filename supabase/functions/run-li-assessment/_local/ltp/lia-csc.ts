@@ -37,7 +37,7 @@ import {
   frameBodyNeedles,
   MACHINE_ABSENCE_SENTENCES,
   PARTIAL_DISCHARGE_RE,
-} from "../../../_shared/ltp/dpia-csc.ts";
+} from "../../../_shared/ltp/csc-absence.ts";
 import type { FrameSet } from "../../../_shared/prose/frames.ts";
 import { buildReasonableExpectations } from "./lia-deliverables/build.ts";
 import {

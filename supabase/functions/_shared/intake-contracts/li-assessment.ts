@@ -207,8 +207,15 @@ export const liAssessmentStageBContract: IntakeContract = {
     { key: "purpose_details.interest_holder",          kind: "text",       required: "optional" },
     { key: "purpose_details.interest_type",            kind: "text",       required: "optional" },
     { key: "purpose_details.interest_statement",       kind: "narrative",  required: "optional" },
-    { key: "purpose_details.interest_holder_other",    kind: "text",       required: "optional" },
-    { key: "purpose_details.interest_type_other",      kind: "text",       required: "optional" },
+    // Panel completeness (2026-09-16) — the page shows these only behind the
+    // "Other (describe below)" selection and emits "" otherwise; the gate
+    // must not count them as asked on any other answer.
+    { key: "purpose_details.interest_holder_other",    kind: "text",       required: "conditional",
+      requiredWhen: 'purpose_details.interest_holder === "Other (describe below)"',
+      trigger: { key: "purpose_details.interest_holder", equals: ["Other (describe below)"] }, hiddenValue: "" },
+    { key: "purpose_details.interest_type_other",      kind: "text",       required: "conditional",
+      requiredWhen: 'purpose_details.interest_type === "Other (describe below)"',
+      trigger: { key: "purpose_details.interest_type", equals: ["Other (describe below)"] }, hiddenValue: "" },
     // LIA master review (2026-09-15, F11) — the notice wording's status:
     // published, proposed or not yet drafted. The transparency analysis
     // reads the status beside the words instead of treating draft copy as a
@@ -281,7 +288,9 @@ export const liAssessmentStageBContract: IntakeContract = {
     // builder degrades loudly with a named ask when it is absent.
     { key: "balancing_details.collection_context",           kind: "narrative",  required: "optional" },
     { key: "balancing_details.vulnerable_subjects",          kind: "string-array", required: "optional" }, // string[] from LIAssessmentIntake.tsx L127
-    { key: "balancing_details.vulnerable_subjects_other",    kind: "text",       required: "optional" },
+    { key: "balancing_details.vulnerable_subjects_other",    kind: "text",       required: "conditional",
+      requiredWhen: 'balancing_details.vulnerable_subjects includes "Other"',
+      trigger: { key: "balancing_details.vulnerable_subjects[]", equals: ["Other"] }, hiddenValue: "" },
     // ITEM 311 — Art. 6(1)(f) "in particular where the data subject is a child".
     { key: "balancing_details.children_data_subjects",       kind: "enum",       required: "optional", options: CHILD_DATA_SUBJECT_OPTS },
     // LIA master review (2026-09-15, F05) — the age range is asked, never
@@ -301,7 +310,9 @@ export const liAssessmentStageBContract: IntakeContract = {
     { key: "balancing_details.potential_harm",               kind: "enum",       required: "always", options: POTENTIAL_HARM_OPTS },
     { key: "balancing_details.potential_harm_detail",        kind: "narrative",  required: "optional" },
     { key: "balancing_details.safeguards",                   kind: "string-array", required: "optional" }, // string[] from LIAssessmentIntake.tsx L129
-    { key: "balancing_details.safeguards_other",             kind: "text",       required: "optional" },
+    { key: "balancing_details.safeguards_other",             kind: "text",       required: "conditional",
+      requiredWhen: 'balancing_details.safeguards includes "Other"',
+      trigger: { key: "balancing_details.safeguards[]", equals: ["Other"] }, hiddenValue: "" },
     // ITEM 311 — measures offered as MITIGATIONS. EDPB 1/2024 II.C.4 excludes
     // measures the GDPR already requires; the builder classifies each entry.
     { key: "balancing_details.additional_mitigations",       kind: "narrative",  required: "optional" },

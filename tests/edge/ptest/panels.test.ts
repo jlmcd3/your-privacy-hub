@@ -54,8 +54,13 @@ const COMPANY_KEY: Record<PanelTool, string[]> = {
   "registration": ["organization_name"],
 };
 
-/** Products whose shipped PERFECT golden reaches zero empty asked keys (verified 2026-09-14). */
-const RECORD_COMPLETE_ZERO = new Set<PanelTool>(["cppa-risk", "cppa-cyber", "biometric", "ir-playbook"]);
+/**
+ * Products whose panel must reach zero empty asked keys (verified 2026-09-14;
+ * dpia / lia / governance added 2026-09-16 after the three intake master
+ * reviews — every question those pages now ask is answered on their panels,
+ * so the record-complete gate is enforced there too).
+ */
+const RECORD_COMPLETE_ZERO = new Set<PanelTool>(["cppa-risk", "cppa-cyber", "biometric", "ir-playbook", "dpia", "lia", "governance"]);
 
 function readPath(o: unknown, path: string): unknown {
   let cur: unknown = o;
