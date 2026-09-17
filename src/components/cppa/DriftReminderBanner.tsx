@@ -36,10 +36,15 @@ export default function DriftReminderBanner() {
   }, []);
 
   const dismiss = async (id: string) => {
-    await supabase
-      .from("cppa_drift_reminders")
-      .update({ dismissed_at: new Date().toISOString() })
-      .eq("id", id);
+    const { error } = await supabase.rpc("dismiss_drift_reminder", { reminder_id: id });
+    if (error) {
+      toast({
+        title: "Could not dismiss reminder",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
     setReminders((r) => r.filter((x) => x.id !== id));
   };
 

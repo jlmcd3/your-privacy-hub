@@ -70,10 +70,10 @@ export default function RegistrationMyFilings() {
   useEffect(() => { load(); }, [load]);
 
   async function toggleReminders(orderId: string, enabled: boolean) {
-    const { error } = await supabase
-      .from("registration_orders")
-      .update({ renewal_reminders_enabled: enabled })
-      .eq("id", orderId);
+    const { error } = await supabase.rpc("set_registration_renewal_reminders", {
+      order_id: orderId,
+      enabled,
+    });
     if (error) toast.error(error.message);
     else {
       toast.success(enabled ? "Renewal reminders on" : "Renewal reminders off");
