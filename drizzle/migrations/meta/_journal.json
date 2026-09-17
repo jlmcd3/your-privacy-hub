@@ -302,6 +302,13 @@
       "when": 1789425899328,
       "tag": "0043_ptest_v2_workers",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1789615529633,
+      "tag": "0044_tool_acknowledgments_acknowledged",
+      "breakpoints": true
     }
   ]
 }
