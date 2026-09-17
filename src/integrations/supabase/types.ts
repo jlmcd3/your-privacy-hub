@@ -10236,6 +10236,7 @@ export type Database = {
       }
       tool_acknowledgments: {
         Row: {
+          acknowledged: boolean | null
           acknowledged_at: string
           created_at: string
           id: string
@@ -10245,6 +10246,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          acknowledged?: boolean | null
           acknowledged_at?: string
           created_at?: string
           id?: string
@@ -10254,6 +10256,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          acknowledged?: boolean | null
           acknowledged_at?: string
           created_at?: string
           id?: string
