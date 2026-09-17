@@ -446,6 +446,12 @@ export default function ADMTChecker() {
   const optOutPath = resolveAdmtOptOutPath(optOutException);
   const provideOptOut = showsOptOutMechanics(optOutPath);
   const onEmploymentException = isEmploymentException(optOutPath);
+  // Auto CPPA 1 pre-run (2026-09-17) — the vendor questions open only when a
+  // third-party system is NAMED. An explicit "No" / "None" is the Company's
+  // answer that there is none (CEO decision ee860fd0, computeVendor), so it no
+  // longer opens questions about a vendor the customer just said does not
+  // exist. The contract's PRESENT trigger on admt_detail.vendor_* mirrors this.
+  const namesThirdParty = !!thirdPartyAdmt.trim() && !isExhibit(thirdPartyAdmt) && !/^\s*(no|none)\b/i.test(thirdPartyAdmt);
   const onFullOptOut = optOutPath === "FULL_OPT_OUT";
   // CEO item 1 (2026-09-16) — the § 7221(b)(3)(A) branch asks its own
   // sole-use question with its own Yes string. A Yes given to the other
@@ -698,10 +704,11 @@ export default function ADMTChecker() {
     if (optOutPath !== "HUMAN_APPEAL_EXCEPTION") { s.add("opt_out_appeal_process"); for (const k of ["appeal_reviewer_role", "appeal_trained", "appeal_authority_overturn", "appeal_step_count", "appeal_consumer_submit", "appeal_timeline", "appeal_reversal_rate", "appeal_outcomes"]) s.add(`admt_detail.${k}`); }
     if (!onEmploymentException) { s.add("opt_out_fairness_doc"); for (const k of ["sole_use_attestation", "nondiscrimination_testing", "bias_protected_chars", "bias_proxy_vars", "bias_testing_cadence", "bias_last_test", "bias_next_test", "bias_adverse_impact", "bias_outcome_summary"]) s.add(`admt_detail.${k}`); }
     if (!provideOptOut) for (const k of ["opt_out_methods", "opt_out_link_title", "opt_out_confirmation_mechanism", "opt_out_15_day_process", "opt_out_handling_confirmations", "opt_out_no_cookie_banner", "opt_out_no_account_required"]) s.add(k);
+    if (!namesThirdParty) for (const k of ["vendor_status", "vendor_docs", "vendor_makes_available", "v_audit", "v_assist", "v_optout", "v_appeal", "v_incident", "vendor_product", "vendor_training_rights"]) s.add(`admt_detail.${k}`);
     if (!decisionDomains.includes(ADMT_HOUSING_DOMAIN)) s.add("admt_detail.housing_decision_basis");
     if (noticeDelivery.includes("We have not yet provided a Pre-use Notice")) s.add("notice_timing");
     return s;
-  }, [optOutPath, onEmploymentException, provideOptOut, decisionDomains, noticeDelivery]);
+  }, [optOutPath, onEmploymentException, provideOptOut, decisionDomains, noticeDelivery, namesThirdParty]);
   const reviewSections = useMemo(() => buildAdmtReview(intake, { inactiveKeys: inactiveReviewKeys, provisionalKeys: provisionalReviewKeys }), [intake, inactiveReviewKeys, provisionalReviewKeys]);
   const unansweredReviewRows = useMemo(() => reviewSections.flatMap((sec) => sec.rows.filter((r) => r.state === "unanswered" && !inactiveReviewKeys.has(r.key)).map((r) => ({ ...r, step: sec.step }))), [reviewSections, inactiveReviewKeys]);
   const exhibitReviewRows = useMemo(() => reviewSections.flatMap((sec) => sec.rows.filter((r) => r.state === "exhibit")), [reviewSections]);
@@ -1108,7 +1115,7 @@ export default function ADMTChecker() {
                       Are you using any third-party tools or APIs that make, or materially contribute to, this decision? <span className="text-xs text-muted-foreground font-normal">(optional)</span>
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
-                      You remain the responsible business even when the decision runs on someone else's model. Name each third-party system involved; answering opens the vendor questions.
+                      You remain the responsible business even when the decision runs on someone else's model. Name each third-party system involved; naming one opens the vendor questions. If no third party is involved, answer No.
                     </p>
                     <ExhibitTextarea
                       className="mt-2"
@@ -1121,7 +1128,7 @@ export default function ADMTChecker() {
                   </div>
 
 
-                  {thirdPartyAdmt.trim() && !isExhibit(thirdPartyAdmt) && (
+                  {namesThirdParty && (
                     <div className="rounded-md border bg-muted/20 p-4 space-y-3" data-rail-key="vendor_documentation" onFocus={() => focus("vendor_documentation")}>
                       <p className="text-[11px] italic text-muted-foreground">You're seeing this because you named a third-party ADMT system above.</p>
                       <p className="text-[12px] font-semibold">Vendor and downstream-recipient detail</p>

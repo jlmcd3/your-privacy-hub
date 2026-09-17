@@ -94,9 +94,16 @@ Deno.test("fixture: sufficiency lint — narratives meaningful, self-test detail
     if (f.emptyIsAnswer === true) return false;
     if (f.required !== "conditional") return true;
     if (!f.trigger) return false;
-    const v = readPath(f.trigger.key);
+    const v = readPath(f.trigger.key.replace(/\[\]$/, ""));
     const vals = Array.isArray(v) ? v : [v];
-    return vals.some((x) => typeof x === "string" && f.trigger!.equals.includes(x));
+    // doc 263 run 1 — PRESENT shape (a named third-party system opens the
+    // vendor questions; an explicit No/None does not), mirrored from the gate.
+    if (f.trigger.present) {
+      const skip = (f.trigger.unlessLeadingWord ?? []).map((w) => w.toLowerCase());
+      return vals.some((x) => typeof x === "string" && x.trim().length > 0 && !skip.includes(/^\s*([A-Za-z]+)/.exec(x)?.[1]?.toLowerCase() ?? ""));
+    }
+    const equals = f.trigger.equals ?? [];
+    return vals.some((x) => typeof x === "string" && equals.includes(x));
   };
   const leaves = cppaAdmtContract.fields
     .filter((f) => f.key.startsWith("admt_detail.") && askedHere(f))

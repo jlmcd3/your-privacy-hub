@@ -32,8 +32,20 @@ export type Requiredness = "always" | "conditional" | "optional";
 export interface FieldTrigger {
   /** Dotted path to the controlling answer in the raw intake record. */
   key: string;
-  /** VERBATIM stored values of the controlling answer that show this field. */
-  equals: readonly string[];
+  /** VALUE-EQUALS: VERBATIM stored values of the controlling answer that show this field. */
+  equals?: readonly string[];
+  /**
+   * PRESENT (doc 263 run 1, 2026-09-17): the form shows this field whenever
+   * the controlling answer is non-empty (a placeholder token reads as empty,
+   * as the gate reads it) and its first word is not one of
+   * `unlessLeadingWord` (case-insensitive). The ADMT third-party box: any
+   * named system opens the vendor questions; an explicit "No" / "None" is
+   * the Company's answer that there is none (CEO decision ee860fd0, mirrored
+   * from admt-v2-deterministic.ts computeVendor). A trigger carries exactly
+   * one of `equals` / `present`.
+   */
+  present?: true;
+  unlessLeadingWord?: readonly string[];
 }
 
 /**

@@ -19,7 +19,7 @@
 export interface CoachField {
   key: string;
   required: "always" | "conditional" | "optional";
-  trigger?: { key: string; equals: readonly string[] };
+  trigger?: { key: string; equals?: readonly string[]; present?: true; unlessLeadingWord?: readonly string[] };
   emptyIsAnswer?: true;
 }
 
@@ -65,7 +65,18 @@ export function readPath(root: unknown, key: string): unknown[] {
 function conditionalTriggered(intake: Record<string, unknown>, f: CoachField): boolean {
   if (f.trigger) {
     const vals = readPath(intake, f.trigger.key);
-    return vals.some((v) => typeof v === "string" && f.trigger!.equals.includes(v));
+    if (f.trigger.present) {
+      // PRESENT (doc 263 run 1) — mirrors record-complete.ts: non-empty and the
+      // first word is not one of unlessLeadingWord (case-insensitive).
+      const skip = (f.trigger.unlessLeadingWord ?? []).map((w) => w.toLowerCase());
+      return vals.some((v) => {
+        if (typeof v !== "string" || isEmptyValue(v)) return false;
+        const lead = /^\s*([A-Za-z]+)/.exec(v)?.[1]?.toLowerCase();
+        return !(lead !== undefined && skip.includes(lead));
+      });
+    }
+    const equals = f.trigger.equals ?? [];
+    return vals.some((v) => typeof v === "string" && equals.includes(v));
   }
   if (!f.key.includes("[]")) return false;
   const parent = f.key.slice(0, f.key.indexOf("[]") + 2);

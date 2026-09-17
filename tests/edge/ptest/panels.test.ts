@@ -60,7 +60,7 @@ const COMPANY_KEY: Record<PanelTool, string[]> = {
  * reviews — every question those pages now ask is answered on their panels,
  * so the record-complete gate is enforced there too).
  */
-const RECORD_COMPLETE_ZERO = new Set<PanelTool>(["cppa-risk", "cppa-cyber", "biometric", "ir-playbook", "dpia", "lia", "governance"]);
+const RECORD_COMPLETE_ZERO = new Set<PanelTool>(["cppa-risk", "cppa-cyber", "cppa-admt", "biometric", "ir-playbook", "dpia", "lia", "governance"]);
 
 function readPath(o: unknown, path: string): unknown {
   let cur: unknown = o;

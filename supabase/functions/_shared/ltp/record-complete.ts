@@ -157,6 +157,13 @@ export const SYSTEM_KEYS: ReadonlySet<string> = new Set<string>([
  *   2. VALUE-EQUALS (ITEM 380 r5b): the field carries `trigger: { key, equals }`
  *      mirroring the form's show/hide condition; triggered when the value at
  *      `trigger.key` is verbatim one of `equals`.
+ *   3. PRESENT (doc 263 run 1, 2026-09-17): `trigger: { key, present: true,
+ *      unlessLeadingWord? }` — triggered when the value at `trigger.key` is a
+ *      non-empty string (placeholder tokens read as empty, `isEmptyValue`)
+ *      whose first word is not one of `unlessLeadingWord`, case-insensitive.
+ *      Mirrors the ADMT form (a named third-party system opens the vendor
+ *      questions) and the engine (an explicit "No"/"None" is the answer that
+ *      there is none — CEO decision ee860fd0).
  *
  * Conditionals whose predicate is prose we cannot parse are left unchecked
  * (they cannot make the claim false, and they cannot make it true).
@@ -164,7 +171,16 @@ export const SYSTEM_KEYS: ReadonlySet<string> = new Set<string>([
 function conditionalTriggered(intake: Record<string, unknown>, f: IntakeField): boolean {
   if (f.trigger) {
     const vals = readPath(intake, f.trigger.key);
-    return vals.some((v) => typeof v === "string" && f.trigger!.equals.includes(v));
+    if (f.trigger.present) {
+      const skip = (f.trigger.unlessLeadingWord ?? []).map((w) => w.toLowerCase());
+      return vals.some((v) => {
+        if (typeof v !== "string" || isEmptyValue(v)) return false;
+        const lead = /^\s*([A-Za-z]+)/.exec(v)?.[1]?.toLowerCase();
+        return !(lead !== undefined && skip.includes(lead));
+      });
+    }
+    const equals = f.trigger.equals ?? [];
+    return vals.some((v) => typeof v === "string" && equals.includes(v));
   }
   if (!f.key.includes("[]")) return false;
   const parent = f.key.slice(0, f.key.indexOf("[]") + 2);
